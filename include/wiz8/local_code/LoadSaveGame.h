@@ -66,7 +66,7 @@ void BuildCharacterPath00514EC0(char* destination, const wchar_t* name, int slot
 unsigned char SaveGameExists(void);
 void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status);
 /* 0x00512920: load a save slot by name; the Please Wait screen drives it. */
-unsigned int LoadGame(const char* slot_name);
+unsigned char LoadGame(const char* slot_name);
 
 unsigned char SaveLevelStatus(const char* path);
 unsigned char LoadLevelStatus(const char* path, int level);
@@ -90,8 +90,10 @@ char SaveCharacterToCurrentGame(const char* path, int slot,
                                 W8Character* character);                     /* 0x005155B0 */
 char LoadCharacterFromCurrentGame(const char* path, W8Character* character); /* 0x005156C0 */
 /* Deferred main-game autosave: notice first, then SaveGame on the next tick. */
-void ProcessMainGameAutoSave(void);      /* 0x00515B00 */
-unsigned char SaveMonsterStatus(W8Chunk* chunks); /* 0x005145A0 */
+void ProcessMainGameAutoSave(void);                          /* 0x00515B00 */
+unsigned char SaveMonsterStatus(W8Chunk* chunks);            /* 0x005145A0 */
+void SaveMonsterControlSpellEffect00516580(W8Chunk* chunks); /* 0x00516580 */
+void LoadMonsterControlSpellEffect00516310(W8Chunk* chunks); /* 0x00516310 */
 
 unsigned char LoadMonsterGroup(W8Chunk* chunk); /* 0x00513C20 */
 unsigned char LoadMonster(W8Chunk* chunk);      /* 0x00513D80 */

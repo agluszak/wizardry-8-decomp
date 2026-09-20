@@ -284,6 +284,8 @@ int g_item_message_005ee668 = 56;
 int g_item_message_005ee68c = 65;
 // GLOBAL: WIZ8 0x005ee690
 int g_item_message_005ee690 = 66;
+// GLOBAL: WIZ8 0x005ee69c
+int g_effect_005ee69c = 69;
 // GLOBAL: WIZ8 0x005EE6D8
 int g_effect_005ee6d8 = 0x54;
 // GLOBAL: WIZ8 0x005EE6DC

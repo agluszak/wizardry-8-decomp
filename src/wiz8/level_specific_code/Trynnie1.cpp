@@ -123,7 +123,7 @@ void KillTrynnieGroups004DA850(void)
         group = GetMonsterGroupByListIndex(index);
         if (group != 0 && group->flag_28 != 0 &&
             (record = MonsterGroupGetRecord(group), record->faction_id_25f == 0xd) &&
-            Function511A40(group, 0x1be) != 0) {
+            ReplaceMonsterGroupSpecies00511A40(group, 0x1be) != 0) {
             RemoveAllGroupMembers(group);
         }
     }

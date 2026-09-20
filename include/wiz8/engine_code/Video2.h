@@ -120,6 +120,7 @@ stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width
    scissored viewport, then blit the locked frame buffer onto the target. */
 unsigned char RenderWorldToSurface00426F80(srColorSurface* target, W8ScreenRect* rect,
                                            char render_secondary);
+void SetPickKey004277F0(void* key);
 
 struct W8ControlsRect;
 /* 0x00424790: build a solid-color quad sprite; width/height are pixel counts
@@ -222,6 +223,8 @@ extern srCamera* g_overlay_camera_659670;
 extern srCamera* g_square_camera_659674;
 extern unsigned char g_flag_65beaf;
 extern srGERD* g_gerd_659634;
+/* Secondary renderer device preferred by the offscreen world-render path. */
+extern srGERD* g_secondary_gerd_65971c;
 extern LPDIRECTDRAWSURFACE2 g_primary_surface_6596a8;
 extern stSurface2D* g_surface_node_659664;
 extern srMaterial* g_blit_material_65967c;
@@ -255,8 +258,15 @@ unsigned char GetRendererModeByte(void);
 void SetViewport(int left, int top, int right, int bottom);
 /* Scale a 640x480 design-space rect onto the GERD surface and remember it;
    no-ops when the stored bounds already match. */
-void SetScaledViewport00425C90(int left, int top, int right, int bottom);
+
 void SetScaledViewport00425DA0(int left, int top, int right, int bottom);
+/* 0x00425C90: same scaled-viewport update; the automap installs its viewport
+   through it. */
+void SetScaledViewport00425C90(int left, int top, int right, int bottom);
+/* Read the stored pixel viewport back out in normalized 0..1 scale. */
+void GetScaledViewportBounds004273F0(float* left_top, float* right_bottom);
+/* Lock the primary GERD buffer and emit one debug wireframe line. */
+void DrawBufferLine00426490(long x0, long y0, long x1, long y1, unsigned long* pixel);
 unsigned char InitializeRendererSceneObjects(void);
 void PurgeInactiveSceneInstances(srScene* scene);
 void ResetVideoFrameState00422B10(void);

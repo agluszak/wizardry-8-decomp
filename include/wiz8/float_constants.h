@@ -16,6 +16,11 @@
 
 extern const float g_float_005ebb38;
 extern const float g_float_005ebb34;
+/* 0x005EBB30: 0.8, the radian bias subtracted from the near-camera scatter
+   heading in PositionMonsterGroupNearCamera00511050. */
+extern const float g_float_005ebb30;
+/* 0x005ED828: 0.0016, the Random(1000) scale on the same scatter heading. */
+extern const float g_float_005ed828;
 /* 0x005EE774: scales the record float into the group-engagement probe
    distance. */
 extern const float g_float_005ee774;
@@ -105,6 +110,8 @@ extern const float g_float_005ebcb0;
 extern const float g_float_005ebcb4;
 extern const float g_float_005ebcb8;
 extern const double g_double_005ebcc0;
+/* Shadow-extrusion pitch scale: 1/1500 as a float. */
+extern const float g_float_005ec8e0;
 extern float g_float_005ee838;
 /* Automap pan step as a fraction of the current zoom span. */
 extern const float g_float_005ebcd8;

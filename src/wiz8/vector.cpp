@@ -1,5 +1,7 @@
 #include "wiz8/vector.h"
 
+#include "wiz8/local_code/SpellEffect.h"
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -94,7 +96,7 @@ class W8Missile;
 // TEMPLATE: WIZ8 0x00451b20
 // W8GrowableVector<W8Missile*>::~W8GrowableVector<W8Missile*>
 
-class W8SpellDamageReport;
+struct W8SpellDamageReport;
 
 // VTABLE: WIZ8 0x005ebfec
 // class W8GrowableVector<W8SpellDamageReport*>
@@ -287,6 +289,9 @@ struct W8EncounterScriptName;
 
 // TEMPLATE: WIZ8 0x00446050
 // W8Vector<W8EncounterScriptName*>::~W8Vector<W8EncounterScriptName*>
+
+/* Direct W8GrowableVector specialization identified by its vtable. AutomapScreenEnter's
+   excluded_textures is the lone capacity-constructed instance. */
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
@@ -562,6 +567,14 @@ class srClipPlane;
 
 // TEMPLATE: WIZ8 0x00501f10
 // W8GrowableVector<W8SpellEffectEntry*>::~W8GrowableVector<W8SpellEffectEntry*>
+
+/* LoadGame's teardown calls this emission; ResetLiveSessionForLoad inlines the
+   same member. VC6 kept the out-of-line body in Local Code\LoadSaveGame.cpp's
+   span; clang inlines every call, so it is instantiated explicitly here. */
+// TEMPLATE: WIZ8 0x00516a00
+// W8GrowableVector<W8SpellEffectEntry*>::RemoveAtAndDelete
+void (W8GrowableVector<W8SpellEffectEntry*>::*keep_RemoveAtAndDelete_00516a00)(int) =
+    &W8GrowableVector<W8SpellEffectEntry*>::RemoveAtAndDelete;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 

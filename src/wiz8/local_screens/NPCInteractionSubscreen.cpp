@@ -5138,7 +5138,8 @@ void ResolveNpcPickpocket00576BA0(int party_slot)
     wchar_t text[200];
     int slot;
 
-    switch (Function50BC90(character, g_screen_state_00649f1c->dialogue_npc, &item, &gold)) {
+    switch (AttemptNpcPickpocket0050BC90(character, g_screen_state_00649f1c->dialogue_npc, &item,
+                                         &gold)) {
     case 0:
         swprintf(text, gppStringList[0x74d], character->name, GetItemDisplayName(&item));
         for (slot = 0; slot < 8; ++slot) {

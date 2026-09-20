@@ -141,5 +141,6 @@ extern int g_effect_005ee618; /* 0x005EE618: event type 36 - queued on the bound
 extern int g_effect_005ee630; /* 0x005EE630: event type 42 - queued on every
                                eligible party member in the same pass */
 extern int g_effect_005ee638;
+extern int g_effect_005ee69c;
 extern int g_effect_005ee658; /* 0x005EE658: event type 0x34 - rest-benefit
                                resolution after the surprise sequence */

@@ -59,3 +59,5 @@ unsigned char JournalScreenEnter(void);
 void JournalScreenFrame(void);
 unsigned char JournalScreenLeave(int leaving);
 unsigned char JournalScreenFinalize(void);
+/* 0x00558B20: load the fact journal vector from the JRNL section. */
+void LoadJournalEntries00558B20(unsigned int file);

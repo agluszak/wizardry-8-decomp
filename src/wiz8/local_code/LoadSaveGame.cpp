@@ -44,6 +44,8 @@
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/engine_code/stCube.h"
+#include "wiz8/engine_code/Video2.h"
+#include "surrender/srColorSurface.h"
 #include "wiz8/world_cursor.h"
 #include "wiz8/engine_code/stLight.hpp"
 #include "wiz8/engine_code/Spells.h"
@@ -57,6 +59,13 @@
 #include "wiz8/location_variables.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/level_specific_code/MasterFunctionList.h"
+#include "wiz8/cursor.h"
+#include "wiz8/local_code/Factions.h"
+#include "wiz8/local_code/NPCManager.h"
+#include "wiz8/local_screens/JournalScreen.h"
+#include "wiz8/local_code/ConditionsAndEnchantments.h"
+#include "wiz8/engine_code/stScript.h"
+#include "surrender/srTypeRegistry.h"
 
 #include "timer.h"
 
@@ -75,6 +84,7 @@
 #include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/npc_interaction.h"
 #include "soundman.h"
+#include "timer.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_code/NPCManager.h"
@@ -138,7 +148,6 @@ static_assert(sizeof(W8StatusHeader) == 0x314, "W8StatusHeader_must_be_0x314");
 /* Same-unit bodies SaveGame reaches before their definitions. */
 void ReadSaveChunks(W8Chunk* source, W8Chunk* destination);
 void SaveGlobalStatus(W8Chunk* chunks, W8GlobalStatus* status);
-void SaveMonsterControlSpellEffect00516580(W8Chunk* chunks);
 unsigned char SaveMonsterRecord005147A0(W8Chunk* chunks, unsigned int index);
 
 /* 0x0061A134/0x0061A138: the two XOR masks SaveGame applies to the file's
@@ -1360,6 +1369,20 @@ unsigned char LoadMonster(W8Chunk* chunk)
     return 1;
 }
 
+/* Write the MONS section: the group and monster counts, then every group
+   record followed by the flag that says whether the group is also on the
+   encounter list, then every monster record through SaveMonster. Live list
+   indices come first; the encounter groups and the unborn monsters are the
+   same records under indices biased by 10000. A null group or a failed
+   monster write abandons the section by releasing the current chunk. */
+
+/* Write one monster's record inside the open MONS section: the version and
+   record-size words, the W8MonsterInfo image, then the script state, the
+   unborn flag, the navigator movement state and the version-3 order/patrol
+   fields, mirroring the layout LoadMonster reads back. The script name is
+   seeded from the shared empty-name word before the copy the way the ambient
+   and spell code seed theirs. */
+
 /* Tear down the live session before a new-game or save load replaces it:
    unload the current level, empty queued character events and spell effects,
    and reset the main-game screen and gameplay status blocks. */
@@ -1367,7 +1390,6 @@ unsigned char LoadMonster(W8Chunk* chunk)
 void ResetLiveSessionForLoad(void)
 {
     int index;
-    W8SpellEffectEntry* effect;
 
     if (g_status_685170.current_level != -1) {
         UnloadLevel("");
@@ -1380,8 +1402,7 @@ void ResetLiveSessionForLoad(void)
     ClearNpcMessageQueue();
     ResetMainScreenStateBlock();
     for (index = g_spell_effects.GetCount() - 1; index >= 0; --index) {
-        effect = g_spell_effects.RemoveAt(index);
-        delete effect;
+        g_spell_effects.RemoveAtAndDelete(index);
     }
     ReleaseAllTriggers();
     ResetGameplayStatusBlock();
@@ -1717,6 +1738,29 @@ char LoadCharacterFromCurrentGame(const char* path, W8Character* character)
     return found ? 1 : 0;
 }
 
+/* Render the world into the slot's embedded 80x60 ARGB1555 pixel buffer.
+   Option 4 is suppressed so the HUD does not bleed into the thumbnail, the
+   full frame is re-rendered afterwards to restore the screen. */
+// FUNCTION: WIZ8 0x00515840
+void CaptureSaveScreenshot(W8SaveScreenshot* screenshot)
+{
+    W8ScreenRect rect;
+    srColorSurface* surface;
+
+    screenshot->version = 1.0f;
+    rect.top = 0;
+    rect.left = 0;
+    rect.right = 640;
+    rect.bottom = 480;
+    surface =
+        new srColorSurface(srPixelConvert::SURFACE_ARGB1555, screenshot->pixels, 0x50, 0x3c, 0xa0);
+    SetRendererOption4Enabled(0);
+    screenshot->capture_result = RenderWorldToSurface00426F80(surface, &rect, 1);
+    RenderFrame();
+    SetRendererOption4Enabled(1);
+    surface->release();
+}
+
 /* Save-slot bookkeeping from the same established
    Local Code\LoadSaveGame.cpp translation unit. */
 
@@ -1729,6 +1773,9 @@ unsigned char g_save_notice_shown_0068506b;
    reference sites across 10 functions rather than in .rdata with the format
    literals, so it is a mutable character array rather than a string literal;
    this build initialises it to "SAV". */
+/* 0x0061A134/0x0061A138: the mask pair SaveGame XORs the iron-man save file's
+   creation FILETIME with before storing it in the status block. */
+
 // GLOBAL: WIZ8 0x0061A144
 char g_save_extension[] = "SAV";
 
@@ -2281,3 +2328,147 @@ unsigned char FindFreeEndingSaveName00516890(char* name)
     }
     return 0;
 }
+
+/* Write a full save slot: repair the target's read-only bit, fold the running
+   CurrentGame sections forward unless this save is CurrentGame itself, refresh
+   the camera anchor and per-box countdown snapshots, then emit the GVER
+   version triple, the SHOT screenshot, TEXT message storage, the optional TVAR
+   location variables, and the NPCI/NPCT/NPCF/FATA/JRNL chain before
+   SaveStatusHeader appends the level sections. The transcript writer declining
+   NPCI ends the chain early. */
+
+/* Load a save slot: tear down the live session the way
+   ResetLiveSessionForLoad does, copy the slot over Saves\CurrentGame.SAV, then
+   dispatch each chunk to its section loader. Afterward the four
+   message-storage countdown clocks are re-armed from the snapshots the save
+   recorded, the gameplay timer restarts, the held-item cursor is restored,
+   and the loaded items are normalized. */
+// FUNCTION: WIZ8 0x00512920
+unsigned char LoadGame(const char* slot_name)
+{
+    W8Chunk chunks;
+    char path[260];
+    int count;
+    int index;
+    int box;
+
+    if (g_status_685170.current_level != -1) {
+        UnloadLevel("");
+        SoundEmptyCache();
+    }
+    if (gXStatus.character_event_queue != 0) {
+        gXStatus.character_event_queue->DestroyAllEvents();
+    }
+    ResetMainGameScreenState();
+    ClearNpcMessageQueue();
+    ResetMainScreenStateBlock();
+    for (index = g_spell_effects.GetCount() - 1; index >= 0; --index) {
+        g_spell_effects.RemoveAtAndDelete(index);
+    }
+    ReleaseAllTriggers();
+    ResetGameplayStatusBlock();
+    sprintf(path, "%s\\%s.%s", "Saves", slot_name, g_save_extension);
+    if (_access("Saves\\CurrentGame.SAV", 2) != 0 && errno == EACCES) {
+        _chmod("Saves\\CurrentGame.SAV", _S_IREAD | _S_IWRITE);
+    }
+    FileDelete("Saves\\CurrentGame.SAV");
+    FileCopy(path, "Saves\\CurrentGame.SAV", 0);
+    if (_access("Saves\\CurrentGame.SAV", 2) != 0 && errno == EACCES) {
+        _chmod("Saves\\CurrentGame.SAV", _S_IREAD | _S_IWRITE);
+    }
+    if (chunks.OpenRead(const_cast<char*>("Saves\\CurrentGame.SAV")) == 0) {
+        return 0;
+    }
+    count = chunks.ChunkCount();
+    for (index = 0; index < count; ++index) {
+        chunks.OpenChunk(0, 0);
+        if (!chunks.CurrentChunkAtEnd()) {
+            switch (chunks.CurrentChunkId()) {
+            case 0x41545347: /* GSTA */
+                LoadGameStatus(&chunks, &g_status_685170);
+                break;
+            case 0x54584554: /* TEXT */
+                LoadTextBoxState0058FC30(chunks.m_hFile);
+                break;
+            case 0x52415654: /* TVAR */
+                LoadLocationVariables00444310(chunks.m_hFile);
+                break;
+            case 0x4943504e: /* NPCI */
+                LoadNpcDialogueTranscript005750D0(chunks.m_hFile);
+                break;
+            case 0x5443504e: /* NPCT */
+                LoadNpcStates00509FC0(&chunks);
+                break;
+            case 0x4643504e: /* NPCF */
+                LoadFactState(chunks.m_hFile);
+                break;
+            case 0x41544146: /* FATA */
+                LoadFactionState00536070(chunks.m_hFile);
+                break;
+            case 0x4c4e524a: /* JRNL */
+                LoadJournalEntries00558B20(chunks.m_hFile);
+                break;
+            case 0x4e505948: /* HYPN */
+                LoadMonsterControlSpellEffect00516310(&chunks);
+                break;
+            }
+        }
+        chunks.SkipCurrentChunk();
+        chunks.ReleaseCurrentChunk();
+    }
+    chunks.Close();
+    for (box = 0; box < 4; ++box) {
+        for (index = 0; index < static_cast<int>(g_status_685170.text_box_lines_shown_49a7[box]);
+             ++index) {
+            g_message_storage_68f2d8[box][index].clock_08 =
+                SetCountdownClock(g_message_storage_68f2d8[box][index].clock_ticking_0c);
+        }
+    }
+    g_gameplay_timer_685067->Restart();
+    ResetMainGameScreenState();
+    if (g_status_685170.item_in_hand_235b.item_id == -1) {
+        ClearHeldItemDisplay();
+    } else {
+        SetItemCursor(0);
+    }
+    SanitizeLoadedItems00522EF0();
+    return 1;
+}
+
+/* Render the world onto an 80x60 ARGB1555 surface backed by the record's
+   pixel store. Renderer option 4 is suppressed while Function426F80 captures
+   the frame, then RenderFrame repaints the real front buffer before the
+   option is restored. */
+
+/* Read the HYPN record: one live spell-effect entry for the monster-control
+   effect, rebuilt through the entry constructor and pushed onto
+   g_spell_effects. */
+// FUNCTION: WIZ8 0x00516310
+void LoadMonsterControlSpellEffect00516310(W8Chunk* chunks)
+{
+    W8SpellEffectEntry* effect = new W8SpellEffectEntry;
+
+    chunks->Read(&effect->kind, 4, 0);
+    chunks->Read(&effect->turns_remaining, 4, 0);
+    chunks->Read(&effect->Source, 0x34, 0);
+    chunks->Read(&effect->target, 0x20, 0);
+    chunks->Read(&effect->OrigSource, 0x34, 0);
+    chunks->Read(effect->unknown_03c, 0x20, 0);
+    chunks->Read(&effect->flag_120, 1, 0);
+    chunks->Read(&effect->flag_121, 1, 0);
+    chunks->Read(&effect->flag_122, 1, 0);
+    chunks->Read(&effect->flag_123, 1, 0);
+    chunks->Read(effect->unknown_0b0, 0x30, 0);
+    AddSpellEffect(effect);
+}
+
+/* Write the monster-control spell effect as the HYPN record: the same fields
+   the loader reads, none of the runtime vectors or result state. */
+
+/* The byte-vector Grow LoadMonster's script-condition copy emits; the linker
+   kept this unit's instance for AddItem005CE210 as well. */
+// TEMPLATE: WIZ8 0x005169a0
+// W8GrowableVector<unsigned char>::Grow
+
+/* The remove-and-delete emission LoadGame calls while ResetLiveSessionForLoad
+   inlines it (0x00516A00) is instantiated explicitly in vector.cpp. */
