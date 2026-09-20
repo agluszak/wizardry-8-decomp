@@ -1058,3 +1058,71 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
         }
     }
 }
+
+// GLOBAL: WIZ8 0x005ee6f8
+int g_effect_005ee6f8 = 131;
+
+/* Scripted kill reactions keyed by monster record id: facts and faction
+   changes for the special kills, the Rattkin breeder location-variable count,
+   and the 0x22b cleanup that clears the victim's condition and queues the
+   death event on the recorded party slot. */
+// FUNCTION: WIZ8 0x005090C0
+void MonsterKilled(int record_id, int killer_party_slot)
+{
+    unsigned char value;
+    wchar_t display_value[10];
+
+    if (record_id == 0x131) {
+        SetFact(0x36, 1, 0);
+        return;
+    }
+    if (record_id == 0x1a9) {
+        SetFact(0x318, 1, 0);
+        ApplyFactionChange(2, 1, 0x10, 0x14);
+        return;
+    }
+    if (record_id == 0x14f || record_id == 0xdd) {
+        if (GetLocationVarIDByName("NumberRattkinBreedersKilled") == -1) {
+            CreateLocationVar("NumberRattkinBreedersKilled", 1);
+            return;
+        }
+        SetTriggerVariableByName00444030("NumberRattkinBreedersKilled", 2);
+        SetFact(0x19b, 1, 0);
+        SetFactionDispositionBand(7, 0);
+    } else {
+        if (record_id == 0x22b) {
+            value = EvaluateFact(0x1be);
+            if (g_status_685170.log_fact_checks_3120 != 0) {
+                if (value != 0) {
+                    wcscpy(display_value, L"TRUE");
+                } else {
+                    wcscpy(display_value, L"FALSE");
+                }
+                ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[0x1be].symbolic_name,
+                            display_value);
+            }
+            if (value != 0) {
+                SetFact(0x2a6, 0, 0);
+            }
+            if (g_status_685170.flag_2489 != 0) {
+                if (g_status_685170.buffers.characters[g_status_685170.value_423d]
+                        .condition_turns[10] > 0) {
+                    RemoveCharacterCondition(g_status_685170.value_423d, 10, 0);
+                }
+                QueueCharacterEvent(&g_status_685170.buffers.characters[g_status_685170.value_423d],
+                                    g_effect_005ee6f8, 0, g_effect_argument_005ed8c8,
+                                    g_effect_argument_005ed914);
+            }
+            SetFact(0x1b6, 1, 0);
+            return;
+        }
+        if (record_id == 0x181) {
+            SetFact(0x1e8, 1, 0);
+            return;
+        }
+        if (record_id == 0x175 || record_id == 0x222) {
+            SetFact(0x326, 1, 0);
+            return;
+        }
+    }
+}

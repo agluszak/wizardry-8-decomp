@@ -28,6 +28,7 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/Camera.h"
 #include "wiz8/engine_code/Environment.h"
+#include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/engine_code/World.h"
@@ -105,6 +106,219 @@ bool GetNpcScriptRegionName(int region, wchar_t* name)
     return false;
 }
 
+/* The named-person table FindNpcNameOrPlaceQuote resolves keywords against:
+   the mask bit the speaking NPC's record must carry to answer as that person,
+   and the quote id the keyword maps to. */
+struct W8NpcNamedQuote {
+    wchar_t name[0x32];
+    unsigned int mask;
+    int quote;
+};
+
+// GLOBAL: WIZ8 0x0061aea8
+W8NpcNamedQuote g_npc_named_quotes_0061aea8[] = {
+    {L"Phoozang", 0x4000, 116},    {L"Cosmic Lords", 0x8000, 116}, {L"Yamir", 0x10000, 111},
+    {L"Z'Ant", 0x20000, 109},      {L"Vi Domina", 0x40000, 106},   {L"Al-Sedexus", 0x80000, 113},
+    {L"Astral Dominae", 1, 106},   {L"Destinae Dominus", 2, 112},  {L"Chaos Moliri", 4, 106},
+    {L"Helm of Serinity", 8, 107}, {L"Mook", 0x10, 106},           {L"Umpani", 0x20, 111},
+    {L"T'Rang", 0x40, 109},        {L"Higardi", 0x80, 106},        {L"Trynnie", 0x100, 107},
+    {L"Rapax", 0x200, 114},        {L"Rynjin", 0x400, 114},        {L"Rattkin", 0x800, 107},
+    {L"Dark Savant", 0x1000, 106}, {L"Marten", 0x2000, 112},
+};
+/* No full sentinel row exists in retail: the name[0] scan in
+   FindNpcNameOrPlaceQuote reads one row past the end, where the following
+   zero word happens to terminate the loop. */
+
+/* Region-by-level-band quote table: one 0x12-int row per
+   g_npc_script_region_names region id; band 0 is unused. */
+// GLOBAL: WIZ8 0x0061bda0
+int g_npc_region_quotes_0061bda0[15][0x12] = {
+    {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
+    {-1, 117, 210, 210, 210, 210, 210, 213, 210, 211, 211, 211, 211, 213, 210, -1, 210, 213},
+    {-1, 211, 117, 210, 210, 210, 210, 213, 210, 213, 213, 211, 211, 213, 210, -1, 210, 213},
+    {-1, 211, 211, 117, 213, 213, 213, 213, 213, 213, 213, 211, 211, 213, 213, -1, 212, 213},
+    {-1, 211, 212, 212, 117, 210, 213, 213, 211, 211, 211, 211, 211, 213, 211, -1, 212, 211},
+    {-1, 211, 212, 212, 211, 117, 211, 213, 211, 211, 211, 211, 211, 213, 211, -1, 212, 211},
+    {-1, 211, 212, 212, 212, 212, 117, 213, 212, 211, 211, 211, 211, 213, 212, -1, 212, 211},
+    {-1, 213, 212, 212, 212, 212, 212, 117, 212, 211, 211, 211, 211, 213, 212, -1, 212, 211},
+    {-1, 211, 212, 212, 210, 210, 210, 213, 117, 211, 211, 212, 212, 213, 210, -1, 212, 213},
+    {-1, 212, 212, 210, 210, 210, 210, 210, 212, 117, 210, 212, 212, 210, 210, -1, 212, 211},
+    {-1, 212, 212, 210, 210, 210, 210, 210, 210, 211, 117, 212, 212, 210, 210, -1, 212, 211},
+    {-1, 210, 210, 210, 210, 210, 210, 210, 210, 213, 213, 117, 213, 210, 210, -1, 210, 210},
+    {-1, 212, 210, 210, 210, 210, 210, 210, 210, 213, 213, 212, 117, 210, 210, -1, 212, 212},
+    {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 211, 211, 211, 117, -1, -1, 212, 211},
+    {-1, 118, 118, 118, 118, 118, 118, 118, 118, 118, 118, 118, 118, 118, 118, 118, 212, 212},
+};
+
+/* Find the quote index of the entry that consumes `item_id`: kind 0x0b takes
+   the item, kind 0x0f merely names it; `grants_item` reports which when given.
+   Both out-pointers are optional. */
+// FUNCTION: WIZ8 0x00528CD0
+int FindNpcScriptItemQuote(int item_id, short* index, unsigned char* grants_item)
+{
+    int entry_index;
+    int quote_index;
+
+    for (quote_index = 0;
+         quote_index < static_cast<int>(g_npc_scripting.npc->script_file->quote_count);
+         ++quote_index) {
+        W8NpcScriptQuote* quote = g_npc_scripting.npc->script_file->quotes + quote_index;
+        for (entry_index = 0; entry_index < static_cast<int>(quote->entry_count); ++entry_index) {
+            W8NpcQuoteEntry* entry = quote->entries + entry_index;
+            if ((entry->kind_00 == 0xb || entry->kind_00 == 0xf) && entry->operand_01 == item_id) {
+                if (index != 0) {
+                    *index = static_cast<short>(entry_index);
+                }
+                if (grants_item == 0) {
+                    return quote_index;
+                }
+                *grants_item = entry->kind_00 != 0xf;
+                return quote_index;
+            }
+        }
+    }
+    return -1;
+}
+
+/* Resolve an NPC-name, named-person, or region keyword to the quote id the
+   speaker answers with; -1 when nothing applies. The record's alias mask
+   selects which named persons this NPC will speak for. */
+// FUNCTION: WIZ8 0x00528D50
+int FindNpcNameOrPlaceQuote(W8NpcState* npc, wchar_t* text)
+{
+    int index;
+    int band;
+
+    if (CompareWideTextIgnoreAsciiCase00402920(npc->record->source_name_004, text) == 0) {
+        return 0x75;
+    }
+    for (index = 0; g_npc_named_quotes_0061aea8[index].name[0] != 0; ++index) {
+        if (CompareWideTextIgnoreAsciiCase00402920(text, g_npc_named_quotes_0061aea8[index].name) ==
+            0) {
+            if ((npc->record->name_alias_mask_060 & g_npc_named_quotes_0061aea8[index].mask) == 0) {
+                return -1;
+            }
+            return g_npc_named_quotes_0061aea8[index].quote;
+        }
+    }
+    if (CompareWideTextIgnoreAsciiCase00402920(text, L"Trang") == 0 &&
+        (npc->record->name_alias_mask_060 & 0x40) != 0) {
+        return 0x6d;
+    }
+    for (index = 0; g_npc_script_region_names[index].name[0] != 0; ++index) {
+        if (CompareWideTextIgnoreAsciiCase00402920(text, g_npc_script_region_names[index].name) ==
+            0) {
+            band = GetLevelBand(g_status_685170.current_level);
+            return g_npc_region_quotes_0061bda0[g_npc_script_region_names[index].region][band];
+        }
+    }
+    if (CompareWideTextIgnoreAsciiCase00402920(text, L"Mt Gigas") == 0 ||
+        CompareWideTextIgnoreAsciiCase00402920(text, L"Gigas") == 0) {
+        band = GetLevelBand(g_status_685170.current_level);
+        return g_npc_region_quotes_0061bda0[11][band];
+    }
+    if (CompareWideTextIgnoreAsciiCase00402920(text, L"the swamp") == 0) {
+        band = GetLevelBand(g_status_685170.current_level);
+        return g_npc_region_quotes_0061bda0[4][band];
+    }
+    if (CompareWideTextIgnoreAsciiCase00402920(text, L"the Monastery") != 0) {
+        return -1;
+    }
+    band = GetLevelBand(g_status_685170.current_level);
+    return g_npc_region_quotes_0061bda0[1][band];
+}
+
+/* Remove one stack unit of the matching item: the character backpacks first
+   (the slot whose address equals `item` wins, or any slot carrying `item_id`
+   when `match_item_id` is set), then the party pool, then the pending
+   trade item. The first hit announces the loss through the quote bubble or
+   the layout-4 path and returns. */
+// FUNCTION: WIZ8 0x00528FF0
+void RemoveNpcScriptItem(W8ItemInstance* item, int match_item_id, int item_id)
+{
+    wchar_t text[200];
+    char sound_path[128];
+    SOUNDPARMS sound_parms;
+    unsigned int slot;
+    unsigned int index;
+    W8ItemInstance* slot_item;
+
+    for (slot = 0; slot < 8; ++slot) {
+        if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
+            continue;
+        }
+        for (index = 0; index < 8; ++index) {
+            slot_item = &g_status_685170.buffers.characters[slot].backpack[index];
+            if (slot_item->item_id != -1 &&
+                (slot_item == item || (match_item_id != 0 && slot_item->item_id == item_id))) {
+                if (slot_item->stack_count != 0) {
+                    --slot_item->stack_count;
+                }
+                if (slot_item->stack_count == 0) {
+                    EmptyItemRecord(slot_item, &g_status_685170.buffers.characters[slot], 1);
+                }
+                swprintf(text, gppStringList[0x7ec], g_status_685170.buffers.characters[slot].name);
+                if (g_screen_state_00649f1c->value_fc == 4) {
+                    Function5ADB10(0);
+                    return;
+                }
+                SetNpcQuoteBubbleVisible(true, text, 0, -1, 0x47);
+                g_npc_scripting.voice_playing = 0;
+                g_npc_scripting.message_duration_ms = 2000;
+                g_npc_scripting.last_tick = GetTickCount();
+                g_npc_scripting.message_started_at = GetTickCount();
+                memset(&sound_parms, 0xff, sizeof(SOUNDPARMS));
+                g_npc_scripting.quote_active = 1;
+                sprintf(sound_path, "Data\\Sound\\misc\\startgame.wav");
+                sound_parms.EOSCallback = 0;
+                SoundPlay(sound_path, &sound_parms);
+                return;
+            }
+        }
+    }
+    for (slot = 0; slot < static_cast<unsigned int>(g_status_685170.party_item_count_1791);
+         ++slot) {
+        slot_item = &g_status_685170.party_item_pool_0021[slot];
+        if (slot_item->item_id != -1 &&
+            (slot_item == item || (match_item_id != 0 && slot_item->item_id == item_id))) {
+            if (slot_item->stack_count != 0) {
+                --slot_item->stack_count;
+            }
+            if (slot_item->stack_count == 0) {
+                EmptyPartyPoolEntry00521CD0(slot);
+            }
+            swprintf(text, gppStringList[0x7ed]);
+            if (g_screen_state_00649f1c->value_fc == 4) {
+                Function5ADB10(0);
+                return;
+            }
+            SetNpcQuoteBubbleVisible(true, text, 0, -1, 0x47);
+            g_npc_scripting.voice_playing = 0;
+            g_npc_scripting.message_duration_ms = 2000;
+            g_npc_scripting.last_tick = GetTickCount();
+            g_npc_scripting.message_started_at = GetTickCount();
+            memset(&sound_parms, 0xff, sizeof(SOUNDPARMS));
+            g_npc_scripting.quote_active = 1;
+            sprintf(sound_path, "Data\\Sound\\misc\\startgame.wav");
+            sound_parms.EOSCallback = 0;
+            SoundPlay(sound_path, &sound_parms);
+            return;
+        }
+    }
+    if (g_screen_state_00649f1c->flag_1f9 != 0 && item != 0 &&
+        g_screen_state_00649f1c->pending_item_1ed.item_id == item->item_id) {
+        if (item->stack_count != 0) {
+            --item->stack_count;
+        }
+        if (item->stack_count == 0) {
+            g_screen_state_00649f1c->flag_1f9 = 0;
+            if (gXStatus.fNpcDialogueMode == 0) {
+                ClearHeldItemDisplay();
+            }
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x00528f60
 void StripNpcKeywordPunctuation(wchar_t* text)
 {
@@ -156,6 +370,8 @@ unsigned char g_flag_68506f;
 int g_sedexus_sound_handle_61aea0 = -1;
 // GLOBAL: WIZ8 0x0061c324
 const char g_sedexus_moaning_sound_0061c324[] = "Data\\Sound\\Ambients\\Al_Sedexus Moaning.wav";
+// GLOBAL: WIZ8 0x00614b44
+const wchar_t g_format_al_s_00614b44[] = L"Al-%s";
 
 // GLOBAL: WIZ8 0x005EE634
 int g_effect_005ee634 = 43;
@@ -2267,6 +2483,28 @@ void SetFlag68C4F4(void)
     g_npc_scripting.flag_c4 = 1;
 }
 
+/* Raise the quote bubble over `text` and, when `play_sound` is set, kick off
+   the generic start-game click that accompanies a silent text notice. */
+// FUNCTION: WIZ8 0x00529570
+void DisplayNpcQuote00529570(const wchar_t* text, char play_sound)
+{
+    char sound_path[128];
+    SOUNDPARMS sound_parms;
+
+    SetNpcQuoteBubbleVisible(true, text, 0, -1, 0x47);
+    g_npc_scripting.voice_playing = 0;
+    g_npc_scripting.message_duration_ms = 2000;
+    g_npc_scripting.last_tick = GetTickCount();
+    g_npc_scripting.message_started_at = GetTickCount();
+    g_npc_scripting.quote_active = 1;
+    if (play_sound != 0) {
+        memset(&sound_parms, 0xff, sizeof(SOUNDPARMS));
+        sprintf(sound_path, "Data\\Sound\\misc\\startgame.wav");
+        sound_parms.EOSCallback = 0;
+        SoundPlay(sound_path, &sound_parms);
+    }
+}
+
 /* Run every kind-0x17 consequence entry of the given quote - the reply
    handler's decline path when the party refuses a price offer. */
 // FUNCTION: WIZ8 0x00529610
@@ -2426,6 +2664,152 @@ void BeginNpcScriptedScene(void)
             EnableRegionSetInput(party_slot + 7);
             EnableRegionInput(party_slot + 0x5a);
         }
+    }
+}
+/* The scripted-scene wind-down: clears the targeting/level state raised by
+   BeginNpcScriptedScene, resets the script facts, then classifies the picked
+   character. A female pick with any non-female party member present raises
+   fact 0x1c0 and queues the special event; an unanimated pick is further
+   tested for the three 0x1fd-0x1ff items (success leaves fact 0x1c1 at zero
+   and fills the alternate-name display), and anything else falls back to
+   facts 0x1c1 or 0x227. The party-member region sets reopen on the way out. */
+// FUNCTION: WIZ8 0x00529C40
+void EndScriptedPortraitPick00529C40(int party_slot)
+{
+    W8ItemInstance* found;
+    W8Character* character;
+    unsigned int fact;
+    unsigned int slot;
+    bool other_gender_present;
+
+    if (g_flag_68506f == 0) {
+        return;
+    }
+    if (gXStatus.fCombatMode == 0 || gXStatus.fPartyMovementMode != 0) {
+        ClearLevelDataFlag6();
+    }
+    SetTargetingMode(0);
+    for (slot = 0; slot < 8; ++slot) {
+        if (g_status_685170.buffers.party_rows[slot].occupied != 0) {
+            RegionSetDisable(slot + 7);
+            DisableRegionSetInput(slot + 7);
+            DisableRegionInput(slot + 0x5a);
+        }
+    }
+    g_npc_scripting.scripted_scene_active = 0;
+    g_flag_68506f = 0;
+    other_gender_present = false;
+    SetFact(0x1c0, 0, 0);
+    SetFact(0x200, 0, 0);
+    SetFact(0x1c1, 0, 0);
+    SetFact(0x227, 0, 0);
+    for (slot = 0; slot < 8; ++slot) {
+        if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+            g_status_685170.buffers.characters[slot].gender != W8_GENDER_FEMALE) {
+            other_gender_present = true;
+            break;
+        }
+    }
+    character = &g_status_685170.buffers.characters[party_slot];
+    if (character->gender == W8_GENDER_FEMALE && other_gender_present != 0) {
+        SetFact(0x1c0, 1, 0);
+        QueueCharacterEvent(character, g_effect_005ee634, g_event_flag_005ed8e0,
+                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+        return;
+    }
+    if (g_status_685170.buffers.party_rows[party_slot].animation_0fa == -1) {
+        if (character->highest_condition < 0xf) {
+            if (FindItemOnCharacter(character, 0x1fd, &found, 0, 0) != 0 &&
+                FindItemOnCharacter(character, 0x1fe, &found, 0, 0) != 0 &&
+                FindItemOnCharacter(character, 0x1ff, &found, 0, 0) != 0) {
+                SetFact(0x1c1, 0, 0);
+                swprintf(g_status_685170.monster_name_buffer_2453, g_format_al_s_00614b44,
+                         character->name);
+                g_status_685170.alternate_name_slot_247f = party_slot;
+                g_status_685170.flag_2489 = 1;
+                g_status_685170.flag_2446 = 1;
+                QueueCharacterEvent(character, g_special_event_0068c50c, 0,
+                                    g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                goto done;
+            }
+            fact = 0x1c1;
+        } else {
+            fact = 0x227;
+        }
+    } else {
+        fact = 0x227;
+    }
+    SetFact(fact, 1, 0);
+done:
+    for (slot = 0; slot < 8; ++slot) {
+        if (g_status_685170.buffers.party_rows[slot].occupied != 0) {
+            RegionSetEnable(slot + 7);
+            EnableRegionSetInput(slot + 7);
+            EnableRegionInput(slot + 0x5a);
+        }
+    }
+}
+/* Al-Sedexus takes her pick: the scripted scene opens, the lighting fades,
+   and every still-living occupied slot other than the marked
+   alternate_name_slot_247f character is put under condition 0x11. */
+// FUNCTION: WIZ8 0x00529EF0
+void BeginSedexusCapture(void)
+{
+    unsigned int party_slot;
+
+    g_npc_scripting.scripted_scene_active = 1;
+    BeginScriptedWorldAction();
+    g_npc_scripting.sedexus_capture_pending = 1;
+    g_npc_scripting.sedexus_capture_active = 1;
+    BeginWorldLightingFade(-1000.0f);
+    for (party_slot = 0; party_slot < 8; ++party_slot) {
+        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
+            (g_status_685170.buffers.characters[party_slot].hp_current > 0 ||
+             g_status_685170.buffers.characters[party_slot].highest_condition < 0x12) &&
+            party_slot != static_cast<unsigned int>(g_status_685170.alternate_name_slot_247f)) {
+            SetCharacterCondition(party_slot, 0x11, 9999, 0, 0, 0);
+        }
+    }
+}
+/* The capture resolves into the templar spawn: the two NPC kinds are
+   released, the LezboDemonAppeared trigger variable drops, monster 0xd8 is
+   spawned on np_al-adryian51 and given proximitytemplar.msf, and the two
+   gate triggers fire while the lighting fades back up. */
+// FUNCTION: WIZ8 0x00529F90
+void ResolveSedexusCapture(void)
+{
+    W8MonsterGroup* group;
+    Trigger* trigger;
+    srVector3T<float> position;
+    int location_id;
+    unsigned int monster_list_index;
+    W8MonsterInfo* info;
+
+    ReleaseNpcMonsterByKind(0x3b);
+    ReleaseNpcMonsterByKind(0x40);
+    SetTriggerVariableByName00444030("LezboDemonAppeared", 0);
+    if (FindEntityByName("np_al-adryian51", &position, 0, 0)) {
+        group = SpawnMonsters(0xd8, 1, &position, 2, 1, 0, 0);
+        location_id = IListGetAt(group->monsters, 0);
+        if (location_id != 0) {
+            monster_list_index = MonsterGetIndexByLocationID(
+                0x10e0, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp", location_id, 1);
+            info = MonsterGetScriptPartByLocationIndex(monster_list_index);
+            if (info != 0) {
+                info->monster->SetScript004C7F10("proximitytemplar.msf", 1);
+            }
+        }
+    }
+    g_npc_scripting.scripted_scene_active = 1;
+    g_npc_scripting.sedexus_release_pending = 1;
+    BeginWorldLightingFade(1000.0f);
+    trigger = FindTriggerByName("al-seduxusgate");
+    if (trigger != 0) {
+        trigger->Run(-1);
+    }
+    trigger = FindTriggerByName("templargate14");
+    if (trigger != 0) {
+        trigger->Run(-1);
     }
 }
 // FUNCTION: WIZ8 0x0052A070

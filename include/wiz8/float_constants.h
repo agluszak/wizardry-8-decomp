@@ -55,6 +55,9 @@ extern const float g_float_005ec510;
 extern const float g_float_005ec020;
 extern float g_float_005ec1a8;
 extern float g_float_005ec260;
+/* 0x005EC29C: pi/4, the arc bound the targeting cone tests compare
+   normalized heading and elevation deltas against. */
+extern const float g_float_005ec29c;
 extern float g_float_005ec2f8;
 /* 0x005EC35C: read as GetRangeConstant5EC35C's return and as OctPath's
    waypoint query vertical extent. */

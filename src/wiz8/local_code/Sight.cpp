@@ -151,8 +151,7 @@ void RefreshAllSight(void)
 
 /* Whether one monster can see another in combat once line of sight is clear. */
 // FUNCTION: WIZ8 0x005058a0
-bool CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target,
-                          W8VisibilityRecord* record)
+bool CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target, W8VisibilityRecord* record)
 {
     W8MonsterRecord* target_record;
     W8Monster* source_monster;
@@ -955,4 +954,68 @@ final_sight_flags:
     }
     monster->GetPlayerToMonsterSightFlags004C4A20(monster_info->party_threat.sight_flags_05,
                                                   monster_info->party_threat.sight_flags_05 + 1, 0);
+}
+
+/* Whether the source group's monster can see the target group's monster. Out
+   of combat the sight check is distance-gated by the world far clip and runs
+   CanMonsterSeeMonster plus the 3D line-of-sight test; in combat the source's
+   mon-to-mon visibility list is consulted directly. */
+// FUNCTION: WIZ8 0x00505F30
+bool MonsterGroupCanSeeGroup(W8MonsterGroup* source, W8MonsterGroup* target)
+{
+    W8MonsterInfo* source_info;
+    W8MonsterInfo* target_info;
+    W8VisibilityRecord* visibility;
+    W8VisibilityRecord record;
+    W8Monster* source_monster;
+    W8Monster* target_monster;
+    W8World* world;
+    float distance;
+    double far_clip;
+    int index;
+
+    source_info = MonsterGetScriptPartByLocationIndex(
+        MonsterGetIndexByLocationID(0x47c, SIGHT_CPP, source->value_9f, 1));
+    target_info = MonsterGetScriptPartByLocationIndex(
+        MonsterGetIndexByLocationID(0x47d, SIGHT_CPP, target->value_9f, 1));
+    source_monster = source_info->monster;
+    target_monster = target_info->monster;
+    if (target_info->fInCombat == 0) {
+        distance = source_monster->GetDistanceToMonster004C7DD0(target_monster);
+        world = GetWorld();
+        far_clip = WorldGetFarClip(world);
+        if (distance <= far_clip) {
+            memset(&record, 0, sizeof(record));
+            record.state_04 = 1;
+            if (CanMonsterSeeMonster(source_info, target_info, &record) != 0 &&
+                source_monster->HasLineOfSightToMonster004C4AF0(target_monster) != 0) {
+                return 1;
+            }
+        }
+    } else {
+        if (source_info->fActive == 0) {
+            srAssertFail("pSourceMonsterInfo->fActive", SIGHT_CPP, 0x3fc, 0);
+        }
+        if (target_info->fActive == 0) {
+            srAssertFail("pTargetMonsterInfo->fActive", SIGHT_CPP, 0x3fd, 0);
+        }
+        // reinterpret-ok: retail counts the pointer list through the IList sibling
+        W8IList* visibility_list = reinterpret_cast<W8IList*>(source_info->plsVisMonToMon);
+        for (index = 0; index < static_cast<int>(ILLength(visibility_list)); ++index) {
+            visibility =
+                static_cast<W8VisibilityRecord*>(PLGet(source_info->plsVisMonToMon, index));
+            if (visibility == 0) {
+                srAssertFail("FALSE", SIGHT_CPP, 0x406, 0);
+            } else if (visibility->about_location_id == target_info->location_id) {
+                if (visibility == 0) {
+                    return 0;
+                }
+                if (visibility->state_04 != 1) {
+                    return 0;
+                }
+                return 1;
+            }
+        }
+    }
+    return 0;
 }

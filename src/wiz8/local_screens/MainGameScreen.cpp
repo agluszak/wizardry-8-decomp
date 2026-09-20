@@ -4047,7 +4047,7 @@ void SelectPartyCharacter(int party_slot)
     g_status_685170.selected_character = party_slot;
     RequestPartySlotRedraw(party_slot);
     if (previous != -1 && (gXStatus.fSpellCastMode != 0 || gXStatus.fItemSelectMode != 0)) {
-        Function53B050(previous);
+        ClearSlotTargeting0053B050(previous);
     }
     g_level_block->clock_214 = SetCountdownClock(500);
     g_level_block->flag_218 = 1;
@@ -5279,7 +5279,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                             g_level_block->tooltip_kind = 0;
                         }
                         if (gXStatus.iTargetingMode == 0) {
-                            Function53C130(slot, 1);
+                            UpdateSlotMonsterHighlights0053C130(slot, 1);
                             return 0;
                         }
                     }
@@ -5296,7 +5296,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                     }
                     SetTargetCursor(GetTargetingCursorForState(0));
                     if (gXStatus.iTargetingMode == 0) {
-                        Function53C130(slot, 0);
+                        UpdateSlotMonsterHighlights0053C130(slot, 0);
                     }
                 }
                 if (g_level_block->portrait_overlay_party_slot == static_cast<int>(slot)) {

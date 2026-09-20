@@ -39,7 +39,9 @@ struct W8NpcScriptingState {
     W8NpcDialogueStagingRestore staging_restore;
     /* 0x70: a quote is being presented - voice is playing or the text/EOS
        hold is counting down. Cleared by FinishNpcVoicePlayback. */
-    unsigned char quote_active;
+    /* The session restore assigns the staged byte raw; retail does not
+       normalize it. */
+    unsigned char quote_active; // bool-byte-ok: staged-byte copy stays unnormalized
     /* 0x71: the quote's voice sound actually started; gates SoundStop and the
        mouth-gap cleanup in FinishNpcVoicePlayback. */
     unsigned char voice_playing;
@@ -56,10 +58,10 @@ struct W8NpcScriptingState {
     unsigned char flag_c4;
     unsigned char restore_staged_session;
     unsigned char portrait_message_active;
-    unsigned char scripted_scene_active;
-    unsigned char sedexus_release_pending;
-    unsigned char sedexus_capture_pending;
-    unsigned char sedexus_capture_active;
+    bool scripted_scene_active;
+    bool sedexus_release_pending;
+    bool sedexus_capture_pending;
+    bool sedexus_capture_active;
     unsigned char stopping_voice_playback;
 };
 
@@ -161,7 +163,7 @@ void BeginSedexusCapture(void); /* 0x00529EF0 */
 void SetFlag68C4F4(void); /* 0x00529560 */
 /* 0x00529570: show the NPC quote bubble for the formatted line; a nonzero
    second argument also plays the startup jingle. */
-void DisplayNpcQuote00529570(const unsigned short* text, char play_jingle);
+void DisplayNpcQuote00529570(const wchar_t* text, char play_sound);
 /* 0x00576DA0: advance the dialogue NPC's refusal state - each stage queues a
    different quote until the third, which stays queued. */
 void QueueDialogueNpcRefusal00576DA0(void);
