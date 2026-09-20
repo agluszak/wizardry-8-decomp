@@ -34,7 +34,7 @@ private:
     bool CreateQuoteText005E0600();
     unsigned char HandleInputEvent005E0880(const InputAtom* input);
 
-    unsigned char m_voice_started_054;
+    bool m_voice_started_054;
     unsigned char pad_055[3];
     W8TextBuffer* m_quote_text_058;
     W8DialogNumericInput* m_numeric_input_05c;
@@ -48,7 +48,7 @@ private:
     W8MonsterManagerEntry m_saved_monster_entry_18da;
     W8PartySlotRow m_saved_party_row_19f2;
     unsigned char m_field_1af8;
-    unsigned char m_portrait_clock_started_1af9;
+    bool m_portrait_clock_started_1af9;
     unsigned char pad_1afa[2];
     unsigned int m_portrait_clock_1afc;
 };
