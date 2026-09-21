@@ -16,7 +16,11 @@ struct W8OctRegionVolume {
     unsigned char positional_06[6];
     /* The bit the visibility pass tests and sets for this volume. */
     unsigned int region_bit_0c;
-    unsigned char positional_10[0xc];
+    /* Two record dwords LoadRegionFile copies from the .cub record at +0x10
+       and +0x18, and the dword it zeroes at +0x14. */
+    unsigned long value_10;
+    unsigned long value_14;
+    unsigned long value_18;
     /* Nine 12-byte points from +0x1c to +0x88; 0x004301C0 projects the first
        against the camera and falls back to the other eight. */
     srVector3T<float> points_1c[9];

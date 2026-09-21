@@ -999,8 +999,7 @@ void __stdcall SetOctreeGameData0046D7D0(W8GameData* value)
 /* Test one point against all six frustum planes: outside if any signed
    distance is negative. */
 // FUNCTION: WIZ8 0x0046d880
-unsigned char PointInsideFrustum0046D880(const srVector3T<float>* point,
-                                         const srVector4T<float>* planes)
+bool PointInsideFrustum0046D880(const srVector3T<float>* point, const srVector4T<float>* planes)
 {
     for (int index = 0; index < 6; ++index) {
         float distance = SignedPlaneDistance(planes[index], *point);
