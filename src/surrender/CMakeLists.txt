@@ -9,6 +9,7 @@ add_library(wiz8_surrender_objects OBJECT
     environment_mapper.cpp
     exponent_table.cpp
     extension.cpp
+    fog.cpp
     file_stream.cpp
     generic_vp.cpp
     heap.cpp
@@ -36,6 +37,7 @@ set_source_files_properties(
     debug.cpp
     debug_vp.cpp
     extension.cpp
+    fog.cpp
     file_stream.cpp
     heap.cpp
     huffman.cpp

@@ -83,6 +83,12 @@ public:
         vp->_copy(destination, source, w, count);
     }
 
+    /* srFog::process adds a scalar fog offset through vtable +0xdc. */
+    static inline void add(float* destination, float constant, const float* source, SRDWORD count)
+    {
+        vp->_add(destination, constant, source, count);
+    }
+
     static inline void add(float* destination, const float* source_0, const float* source_1,
                            SRDWORD count)
     {
@@ -158,6 +164,12 @@ public:
                                  SRDWORD count)
     {
         vp->_normalize(destination, vectors, length, count);
+    }
+
+    /* srFog::process clamps the computed fog factors through vtable +0x16c. */
+    static inline void clampUnit(float* destination, const float* source, SRDWORD count)
+    {
+        vp->_clampUnit(destination, source, count);
     }
 
     static inline void minMax(const srVector3* source, srVector3& minimum, srVector3& maximum,
