@@ -375,10 +375,10 @@ void CloseSpellCastingView(void)
             ToggleWorldCursor();
         }
         if (gXStatus.fLockInteract != 0 && IsScreenTransitionPending() == 0) {
-            Function587510(0);
+            OpenLockInteraction00587510(0);
         }
         if (gXStatus.fTrapInteract != 0 && IsScreenTransitionPending() == 0) {
-            Function58A470(0);
+            OpenTrapInteraction0058A470(0);
         }
         if (interact_id != -1 && IsScreenTransitionPending() == 0) {
             monster_index = MonsterGetIndexByLocationID(0x1cf, SPELLCASTING_CPP, location_id, 1);

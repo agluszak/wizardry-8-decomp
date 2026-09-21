@@ -85,6 +85,7 @@ struct W8PendingNotice {
 };
 #pragma pack(pop)
 extern W8PendingNotice g_pending_notice_68ee60;
+extern wchar_t g_wchar_0068ee58[4];
 
 /* W8MainScreenState::value_fc - which NPC dialogue layout is up. Layout 1 is
    not evidenced. */

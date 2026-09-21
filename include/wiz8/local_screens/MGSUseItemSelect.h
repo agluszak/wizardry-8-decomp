@@ -40,10 +40,10 @@ void SetValue69B9A4(W8ItemInstance* value);
 
 void CommitSelectedItemUse(void);         /* 0x0059D180: fItemSelectMode per-frame commit */
 void SelectUseItemLine0059DDC0(int line); /* 0x0059DDC0 */
-void OpenUseItemAssayDialog59D880(W8ItemInstance* item); /* 0x0059D880 */
-void RestoreTargetCursor59D930(W8DialogBase* dialog);    /* 0x0059D930 */
-void Function59DFA0(W8ItemInstance* item);               /* 0x0059DFA0 */
-void Function59E0F0(void);                               /* 0x0059E0F0 */
+void OpenUseItemAssayDialog59D880(W8ItemInstance* item);     /* 0x0059D880 */
+void RestoreTargetCursor59D930(W8DialogBase* dialog);        /* 0x0059D930 */
+void UpdateUseItemDetailPanel0059DFA0(W8ItemInstance* item); /* 0x0059DFA0 */
+void TakeUseItemIntoHand0059E0F0(void);                      /* 0x0059E0F0 */
 
 void CloseUseItemSelectView(void);   /* 0x0059CAC0 */
 void Function59CC40(int party_slot); /* 0x0059CC40 */

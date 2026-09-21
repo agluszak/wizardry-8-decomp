@@ -302,7 +302,7 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled); /* 0x0
 void DrawMainGamePrompt(void);                              /* 0x0056AC80 */
 void Function58C790(void);                                  /* 0x0058C790 */
 void Function59CF50(int active);                            /* 0x0059CF50 */
-void Function587C50(void);                                  /* 0x00587C50 */
+void InvalidateLockInteractionPanels(void);                 /* 0x00587C50 */
 unsigned char GetOpenDialogueFlag(void);                    /* 0x0058D7C0 */
 void RedrawTextBoxComplete(void);                           /* 0x0058A8C0 */
 unsigned char HandleMouselookInput(const InputAtom* input); /* 0x00568B50 */
@@ -388,6 +388,70 @@ void EndLockInteractMode(char suspend)
     RequestRedraw(0x1000);
 }
 
+/* Re-derive the lock interaction's control enables for the selected
+   character, matching the constructor's initial pass: tumblers need lockpick
+   skill, the spell button needs a castable knock-knock, and the force button
+   needs enough strength to roll. The info text and action panel repaint
+   either way. */
+// FUNCTION: WIZ8 0x00587A30
+void RefreshLockInteractionControls(void)
+{
+    W8LockInteraction* interaction = g_lock_interaction_68f2c0;
+    W8Character* character;
+    int level;
+    int power;
+    unsigned int figure;
+    unsigned int book;
+    unsigned int realm;
+    int divisor;
+    int i;
+
+    if (!IsPartySlotEligible00524A10(g_status_685170.selected_character)) {
+        level = -1;
+    } else {
+        character = &g_status_685170.buffers.characters[g_status_685170.selected_character];
+        if (character->skills[10].flag_00 == 0 && character->skills[10].level == 0) {
+            level = -1;
+        } else {
+            level = character->skills[10].level;
+        }
+    }
+    for (i = 0; i < interaction->m_tumbler_panel_10->m_tumbler_count_50; i++) {
+        interaction->m_tumbler_panel_10->m_tumblers_54[i]->SetEnabled(level > -1);
+    }
+    character = &g_status_685170.buffers.characters[g_status_685170.selected_character];
+    if (IsPartySlotEligible00524A10(g_status_685170.selected_character) &&
+        character->spell_learned[0x27] == 1) {
+        book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
+        realm = character->skills[0x1c + g_spell_records[0x27].realm].level;
+        book = character->skills[book].level;
+        power = (book + realm * 4) / 5;
+        if (power > -1) {
+            figure = CanCharacterCastSpell(character, 0x27);
+        } else {
+            figure = 0;
+        }
+    } else {
+        figure = 0;
+    }
+    interaction->m_spell_button_20->SetEnabled(figure);
+    if (!IsPartySlotEligible00524A10(g_status_685170.selected_character)) {
+        figure = 0xffffffff;
+    } else {
+        character = &g_status_685170.buffers.characters[g_status_685170.selected_character];
+        if (character->stamina < 0x50 || character->attributes[0].effective <= 0x32) {
+            figure = 0xffffffff;
+        } else {
+            divisor = g_settings_6850c8.difficulty - 1 + interaction->m_tumbler_count_0c;
+            ClampInteger(&divisor, 2, 8);
+            figure = (character->attributes[0].effective - 0x32) / IntegerPower(2, divisor - 2);
+        }
+    }
+    interaction->m_force_button_24->SetEnabled(static_cast<int>(figure) > -1);
+    interaction->m_info_panel_14->RefreshInfo();
+    interaction->m_action_panel_18->Invalidate(0);
+}
+
 /* Re-arm the lock tumbler and action region sets while lock interact is up. */
 // FUNCTION: WIZ8 0x00587C20
 void EnableLockInteractionPanels(void)
@@ -395,6 +459,19 @@ void EnableLockInteractionPanels(void)
     if (g_lock_interaction_68f2c0 != 0) {
         g_lock_interaction_68f2c0->EnablePanels(1);
     }
+}
+
+/* Mark the lock interaction's tumbler and action panels dirty and rebuild the
+   info text; run from the redraw sweep when flag 0x200 is raised while lock
+   interact mode is up. */
+// FUNCTION: WIZ8 0x00587C50
+void InvalidateLockInteractionPanels(void)
+{
+    W8LockInteraction* interaction = g_lock_interaction_68f2c0;
+
+    interaction->m_tumbler_panel_10->Invalidate(0);
+    interaction->m_info_panel_14->RefreshInfo();
+    interaction->m_action_panel_18->Invalidate(0);
 }
 
 // FUNCTION: WIZ8 0x005854B0
@@ -2809,10 +2886,10 @@ unsigned char MainGameScreenEnter(void)
     SetTargetingMode(0);
     SetPrimarySurfaceTextureHint2Enabled(1);
     if (gXStatus.fLockInteract) {
-        Function587510(0);
+        OpenLockInteraction00587510(0);
     }
     if (gXStatus.fTrapInteract) {
-        Function58A470(0);
+        OpenTrapInteraction0058A470(0);
     }
     if (gXStatus.item_drag_active) {
         if (IsPartySlotEligible00524A10(gXStatus.dragged_character_slot)) {
@@ -3351,7 +3428,7 @@ unsigned char MainGameScreenLeave(int leaving)
     if (gXStatus.fSpellCastMode)
         CloseSpellCastingView();
     if (gXStatus.fItemSelectMode)
-        Function59C9C0();
+        CloseUseItemSelectView();
     if (gXStatus.fReviewCharacterMode)
         CloseFormationPanel();
     if (gXStatus.fNpcDialogueMode)
@@ -3761,7 +3838,7 @@ void ApplyMainGameRedrawFlags(void)
     if (gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) {
         if (gXStatus.fLockInteractMode != 0) {
             if ((g_level_block->redraw_flags & 0x200) != 0) {
-                Function587C50();
+                InvalidateLockInteractionPanels();
             }
             goto finish_mode_overlays;
         }
@@ -4271,7 +4348,7 @@ void SelectPartyCharacter(int party_slot)
         SyncNpcServiceButtons0056EE20(g_status_685170.selected_character);
     }
     if (gXStatus.fLockInteractMode != 0) {
-        Function587A30();
+        RefreshLockInteractionControls();
     }
     if (gXStatus.fTrapInteractMode != 0) {
         RefreshMainGameActionPanel();

@@ -5,15 +5,19 @@
 #include "wiz8/dialog_code/AssayDialog.h"
 #include "wiz8/dialog_code/DialogBase.h"
 #include "wiz8/engine_code/Spells.h"
+#include "wiz8/fonts.h"
+#include "wiz8/item_video_object_vector.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/local_code/Magic.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/Targeting.h"
 #include "wiz8/local_code/TextControl.h"
+#include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/local_screens/OptionsScreen.h"
 #include "wiz8/local_screens/RCSItemsPage.h"
 #include "wiz8/local_screens/Screens.h"
@@ -51,6 +55,8 @@ int g_use_item_cursor_y_0069b9ac;
 int g_use_item_owner_index_0069b9b0;
 // GLOBAL: WIZ8 0x0069B9B4
 W8ItemInstance* g_use_item_list_0069b9b4[0x15e];
+// GLOBAL: WIZ8 0x0069BF2C
+W8ItemInstance* g_use_item_detail_item_0069bf2c;
 // GLOBAL: WIZ8 0x0069BF30
 int g_saved_target_cursor_0069bf30;
 // GLOBAL: WIZ8 0x0069BF34
@@ -342,7 +348,7 @@ void SelectUseItemLine0059DDC0(int iTextLine)
         srAssertFail("iTextLine < (INT32) guiNumItemsInList", MGSUSEITEMSELECT_CPP, 0x61e, 0);
     }
     SetTargetingMode(0);
-    Function59DFA0(g_use_item_list_0069b9b4[iTextLine]);
+    UpdateUseItemDetailPanel0059DFA0(g_use_item_list_0069b9b4[iTextLine]);
     if (ValidateItemSpellUse(g_use_item_owner_index_0069b9b0, g_use_item_list_0069b9b4[iTextLine],
                              SpellCastingNoticeClosed005A02F0) != 0) {
         QueueCharacterEvent(&g_status_685170.buffers.characters[g_use_item_owner_index_0069b9b0],
@@ -357,7 +363,7 @@ void SelectUseItemLine0059DDC0(int iTextLine)
         return;
     }
     if (IsUsableItemClass00522A00(g_value_69b9a0) != 0) {
-        Function59E0F0();
+        TakeUseItemIntoHand0059E0F0();
         CloseUseItemSelectView();
         return;
     }
@@ -377,6 +383,56 @@ void SelectUseItemLine0059DDC0(int iTextLine)
     ConfigureSpellTargetFilter(target_type, GetTargetNeededForItem(g_value_69b9a0));
 }
 
+/* Show the item in the detail control: its catalog icon plus a quantity line -
+   stack counts only past one, uses/charges always once the item is identified,
+   '?' while it still is not. */
+// FUNCTION: WIZ8 0x0059DFA0
+void UpdateUseItemDetailPanel0059DFA0(W8ItemInstance* item)
+{
+    wchar_t text[0x20];
+    const wchar_t* value;
+    short count;
+    bool charges = false;
+
+    g_use_item_select_controls[0]->m_imageObject =
+        g_item_video_objects_68ec68.GetOrCreateVideoObject(item->item_id);
+    g_use_item_select_controls[0]->m_measured_w = -1;
+    g_use_item_select_controls[0]->m_measured_h = -1;
+    g_use_item_select_controls[0]->m_imageFrame = 0;
+    g_use_item_select_controls[0]->m_normalSprite = 0;
+    g_use_item_select_controls[0]->m_pressedSprite = 0;
+    count = 0;
+    switch (g_item_records[item->item_id].quantity_kind) {
+    case 1:
+        count = item->stack_count;
+        break;
+    case 2:
+    case 3:
+        charges = true;
+        if (item->identified == 0) {
+            count = -1;
+        } else {
+            count = item->uses_or_charges;
+        }
+        break;
+    case 4:
+        charges = true;
+        count = item->uses_or_charges;
+        break;
+    }
+    if (count == -1) {
+        value = L"?";
+    } else if (count > 1 || charges) {
+        swprintf(text, g_format_d_0060aa20, count);
+        value = text;
+    } else {
+        value = g_wchar_0068ee58;
+    }
+    g_use_item_select_controls[0]->m_textBuffer.SetText(value, g_font_683660);
+    g_use_item_select_controls[0]->Invalidate(1);
+    g_use_item_detail_item_0069bf2c = item;
+}
+
 // FUNCTION: WIZ8 0x0059E0D0
 W8ItemInstance* GetSelectedOrFallbackValue0059E0D0(void)
 {
@@ -391,6 +447,40 @@ W8ItemInstance* GetSelectedOrFallbackValue0059E0D0(void)
 void SelectCurrentUseItemLine0059E0E0(void)
 {
     SelectUseItemLine0059DDC0(g_selected_use_item_line_0069b95c);
+}
+
+/* Move the selected item into the cursor hand. When the hand is already
+   holding an item that one goes back to the owner or party first; if the
+   store shifted the party pool, the selection is re-anchored onto the entry
+   the move slid it to before the hand copy is refreshed. */
+// FUNCTION: WIZ8 0x0059E0F0
+void TakeUseItemIntoHand0059E0F0(void)
+{
+    unsigned int i;
+    int old_count;
+
+    if (g_status_685170.item_in_cursor == 0) {
+        CopyItemInstance(&g_status_685170.item_in_hand_235b, g_value_69b9a0, 0, 1);
+        return;
+    }
+    if (g_use_item_owner_index_0069b9b0 == -1) {
+        srAssertFail("giUseItemChar != BAD_INDEX", MGSUSEITEMSELECT_CPP, 0x6c1, 0);
+    }
+    old_count = g_status_685170.party_item_count_1791;
+    GiveItemToCharacterOrParty(g_use_item_owner_index_0069b9b0, &g_status_685170.item_in_hand_235b,
+                               1);
+    if (g_use_item_select_mode_0069b98c == 1 &&
+        old_count != g_status_685170.party_item_count_1791 &&
+        g_status_685170.party_item_count_1791 != 0) {
+        for (i = 0; i < static_cast<unsigned int>(g_status_685170.party_item_count_1791); i++) {
+            if (g_value_69b9a0 == &g_status_685170.party_item_pool_0021[i]) {
+                g_value_69b9a0 = &g_status_685170.party_item_pool_0021[i + 1];
+                CopyItemInstance(&g_status_685170.item_in_hand_235b, g_value_69b9a0, 0, 1);
+                return;
+            }
+        }
+    }
+    CopyItemInstance(&g_status_685170.item_in_hand_235b, g_value_69b9a0, 0, 1);
 }
 
 // FUNCTION: WIZ8 0x0059E1E0

@@ -547,7 +547,7 @@ void DrawPortraitConditionOverlay(int party_slot);   /* 0x00564BA0 */
 void DrawPortraitStatusOverlay(int party_slot);      /* 0x00564D80 */
 void DrawPortraitEnchantmentOverlay(int party_slot); /* 0x005651F0 */
 void SelectPartyCharacter(int party_slot);           /* 0x00565740 */
-void Function587A30(void);                           /* 0x00587A30 */
+void RefreshLockInteractionControls(void);           /* 0x00587A30 */
 void EnableLockInteractionPanels(void);              /* 0x00587C20 */
 void RefreshMainGameActionPanel(void);               /* 0x0058A860 */
 void EnableTrapInteractionPanelRegions(void);        /* 0x0058A880 */
@@ -643,11 +643,9 @@ bool AttemptNpcItemTrade005AE2A0(W8ItemInstance* item, unsigned char quantity, i
 void NpcTradeSplitDialogResult005AE1A0(W8DialogBase* dialog);
 void RefreshFormationPanel005B2980(unsigned char show_portraits); /* 0x005B2980 */
 void Function58BA60(void);                                        /* 0x0058BA60 */
-void Function587510(int value);
-void EndLockInteractMode(char suspend); /* 0x005879A0 */
-void Function58A470(int value);
-void UpdateMainGameScreen(void);        /* 0x0058A750 */
-void EndTrapInteractMode(char suspend); /* 0x0058A790 */
+void EndLockInteractMode(char suspend);                           /* 0x005879A0 */
+void UpdateMainGameScreen(void);                                  /* 0x0058A750 */
+void EndTrapInteractMode(char suspend);                           /* 0x0058A790 */
 int GetPartySlotSkill10Level(int slot);
 int OpenLockInteraction00587510(Trigger* trigger);
 int OpenTrapInteraction0058A470(Trigger* trigger);
@@ -670,7 +668,6 @@ void DisableMainRegionSet(void);                /* 0x00561FB0 */
 void EnableMainRegionSet(void);                 /* 0x00561FA0 */
 void OpenUseItemSelectView(int slot);           /* 0x0059C930 */
 
-void Function59C9C0(void);
 unsigned char MainGameScreenInitialize(void);
 unsigned char MainGameScreenEnter(void);
 void MainGameScreenFrame(void);
