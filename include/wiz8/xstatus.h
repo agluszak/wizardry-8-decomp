@@ -114,7 +114,10 @@ struct W8XStatus {
     W8ItemInstance* dragged_item;                /* 0x19ba: 0x00685072 */
     unsigned char dragged_item_origin;           /* 0x19be: 0x00685076 */
     signed char dragged_character_slot;          /* 0x19bf: 0x00685077 */
-    unsigned char status_block[56];              /* 0x19c0: 0x00685078 */
+    /* 0x19c0: fourteen countdown timers; SpellAffectedTarget004F9AE0 indexes
+       one per entry of g_cooldown_spell_ids_00616e34 and re-arms a 180000ms
+       clock each time the check fires. */
+    unsigned int spell_cooldown_timers[14];
     unsigned int combat_countdown;               /* 0x19f8: 0x006850B0 */
     unsigned char combat_difficulty;             /* 0x19fc: 0x006850B4 */
     unsigned char party_moving;                  /* 0x19fd: 0x006850B5 */
@@ -157,7 +160,7 @@ static_assert(offsetof(W8XStatus, target_position) == 0x9c7, "W8XStatus_target_p
 static_assert(offsetof(W8XStatus, monster_record_cache) == 0xa0f,
               "W8XStatus_monster_record_cache_offset");
 static_assert(offsetof(W8XStatus, gameplay_timer) == 0x19af, "W8XStatus_timer_offset");
-static_assert(offsetof(W8XStatus, status_block) == 0x19c0, "W8XStatus_status_block_offset");
+static_assert(offsetof(W8XStatus, spell_cooldown_timers) == 0x19c0, "W8XStatus_cooldown_timers_offset");
 static_assert(offsetof(W8XStatus, hostile_group_count) == 0x1a06,
               "W8XStatus_hostile_group_count_offset");
 static_assert(sizeof(W8XStatus) == 0x1a0a, "W8XStatus_size");

@@ -2582,3 +2582,59 @@ void PostMonsterNotice(W8MonsterInfo* monster_info, const wchar_t* format, ...)
     wcscpy(separator, text[0] == L'\'' || text[0] == L':' ? &g_wchar_00689b34 : L" ");
     ShowNoticef(9, L"%s%s%s", GetMonsterName(monster_info, 0, 0), separator, text);
 }
+
+// FUNCTION: WIZ8 0x00590BD0
+void RefreshTextBoxMode00590BD0(unsigned short mode)
+{
+    if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME &&
+        g_current_screen_state.id != W8_SCREEN_CAMP) {
+        return;
+    }
+    if (mode == 0xffff) {
+        if ((gXStatus.fNpcDialogueMode == '\0' || CanOpenNpcDialogue()) &&
+            gXStatus.fCampMode == '\0') {
+            if (GetFlag68F105() == '\0') {
+                mode = static_cast<unsigned short>(gXStatus.fCombatMode != '\0');
+            } else {
+                mode = 0;
+            }
+        } else {
+            mode = (-static_cast<unsigned short>(IsNpcDialogueTextBoxActive()) & 0xfffe) + 2;
+        }
+    }
+    short text_box = static_cast<short>(mode);
+    if (g_status_685170.text_box_lines_used_4997[text_box] == 0) {
+        srAssertFail("gStatus.uiTextBoxLinesUsed[iTextBuffer] > 0", MGS_TEXT_BOX_CPP, 0x109e, 0);
+    }
+    unsigned int last_line = g_status_685170.text_box_lines_used_4997[text_box] - 1;
+    unsigned int group_line = g_message_storage_68f2d8[text_box][last_line].link_10;
+    if (last_line < group_line) {
+        srAssertFail("uiLastLineIndex >= uiGroupLine", MGS_TEXT_BOX_CPP, 0x10a6, 0);
+    }
+    group_line = last_line - group_line;
+    if (group_line <= last_line) {
+        wchar_t text[500];
+        W8MessageStorageRecord* line = &g_message_storage_68f2d8[text_box][group_line];
+        unsigned int index = group_line;
+        unsigned int length;
+        do {
+            if (line->wString == 0) {
+                srAssertFail("pTextLine->wString != NULL", MGS_TEXT_BOX_CPP, 0x10ad, 0);
+            }
+            if (index == group_line) {
+                wcscpy(text, line->wString);
+                length = wcslen(line->wString);
+            } else {
+                if (499 < wcslen(line->wString) + 1 + length) {
+                    break;
+                }
+                wcscat(text, g_W8TextSeparator0060CC74);
+                wcscat(text, line->wString);
+                length = length + 1 + wcslen(line->wString);
+            }
+            index = index + 1;
+            line = line + 1;
+        } while (index <= last_line);
+        ShowNoticeLine(text, (W8DialogDestroyCallback)0, 1, 0);
+    }
+}

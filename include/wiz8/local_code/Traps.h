@@ -1,6 +1,7 @@
 #pragma once
 
 #include "input.h"
+#include "surrender/srMath.h"
 
 class Trigger;
 
@@ -21,3 +22,8 @@ void Function5E35A0(void);                                         /* 0x005E35A0
 unsigned char GetTable650434Entry(int trap, int device);
 void Function5E3780(Trigger* trigger); /* 0x005E3780 */
 void Function5E3AB0(Trigger* trigger); /* 0x005E3AB0 */
+/* 0x005E3800: cast `spell_id` from a trap at `point`; place-targeted spells go
+   to the camera position, party spells strike up to `target_count` random
+   living members other than the selected character. */
+void CastTrapSpellAtPoint005E3800(srVector3T<float> point, int spell_id, unsigned int power_level,
+                                  int target_count);

@@ -41,6 +41,7 @@ extern float g_float_005ebc64;
 /* 10.0f - the per-tick cursor input-to-world scale. */
 extern float g_float_005ebc88;
 extern float g_float_005ebcdc;
+extern double g_double_005ebc68;
 extern double g_double_005ebc70;
 extern float g_float_005ebc90;
 extern double g_double_005ebc30;
@@ -186,6 +187,7 @@ extern float g_movement_speed_step_005ed490;
 extern const double g_zero_005ebb40;
 extern const double g_double_005ed7a8;
 extern const double g_double_005ed7c0;
+extern const float g_float_005ed7d0;
 extern const float g_float_005ebf48;
 extern const float g_float_005ebf4c;
 extern const float g_camera_angle_period_005ec014;

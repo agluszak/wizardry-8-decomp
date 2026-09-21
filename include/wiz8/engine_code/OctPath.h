@@ -9,6 +9,9 @@
 #include <stddef.h>
 
 class stModelInstance;
+class srShader;
+class srTextureIFace;
+class srMaterialIFace;
 class GDProp;
 class GDPreProp;
 class OctPrePathLog;
@@ -642,6 +645,9 @@ static_assert(offsetof(PrePathing, min_component_percent_1200) == 0x1200,
 void __stdcall StepPathCell004622D0(int* x, int* z, int direction);
 
 extern W8PathingService* g_pathing_00659c60;
+extern srShader* g_path_shader_00652dc4;
+extern srTextureIFace* g_path_texture_00652dc0;
+extern srMaterialIFace* g_path_material_00652dbc;
 extern unsigned short g_path_reserve_0060827a;
 extern float g_path_span_scale_005ec344;
 extern double g_double_005ec3b0;

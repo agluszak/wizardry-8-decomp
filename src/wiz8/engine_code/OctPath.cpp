@@ -129,7 +129,7 @@ float g_path_cardinal_scale_005ec358 = 1.4149999618530273f;
 // GLOBAL: WIZ8 0x005ec360
 float g_float_005ec360 = 25000.0f;
 // GLOBAL: WIZ8 0x00652dc4
-srShader g_path_shader_00652dc4;
+srShader* g_path_shader_00652dc4;
 // GLOBAL: WIZ8 0x00652dc0
 srTextureIFace* g_path_texture_00652dc0;
 // GLOBAL: WIZ8 0x00652dbc
@@ -5674,7 +5674,7 @@ stModelInstance* W8PathingService::EnsurePathVisualization0045D530()
     }
     model->autoRelease();
     model->flags_3a0 &= ~1U;
-    model->setShader(g_path_shader_00652dc4, 0);
+    model->setShader(*g_path_shader_00652dc4, 0);
     model->setName("WayPoint Mesh");
     model->flag_3cc = 0;
 

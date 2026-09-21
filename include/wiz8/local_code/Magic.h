@@ -68,6 +68,21 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
 /* 0x004FEA50: assert and route the source/target pair a cast is about to
    use; some target kinds have their own placement pass. */
 void PrepareSpellTarget004FEA50(int spell_id, W8TargetSource* source, W8CombatSlot* target);
+/* 0x004FE740: expand a named combat slot into a full target source and
+   rewrite the slot to the kind the source entity implies. */
+void RedirectSpellTargetToSource004FE740(W8TargetSource* source, W8CombatSlot* target);
+/* 0x004FEDC0: pick a random living combatant other than the caster into the
+   combat slot; zero when no alternative exists. */
+int PickRandomSpellTarget004FEDC0(int spell_id, W8TargetSource* source, W8CombatSlot* target);
+/* 0x004FEF90: scatter a place target inside the spell's range from the
+   caster's position. */
+void ScatterSpellTargetPoint004FEF90(int spell_id, W8TargetSource* source, W8CombatSlot* target);
+/* 0x004FF220: a confused caster (condition 0x0c) may have the spell's slot
+   retargeted at a random combatant or a scattered point. */
+void RetargetConfusedSpellCaster004FF220(int spell_id, W8TargetSource* source,
+                                         W8CombatSlot* target);
+/* 0x00501B70: drop monsters the spell cannot affect from a target vector. */
+void CullSpellMonsterTargets00501B70(int spell_id, W8GrowableVector<int>* monster_targets);
 /* Resolve valid spell targets for one cast and append location ids to the
    caller's vectors. The party and monster vectors are separate outputs; the
    final flag enables radius highlighting rather than plain line-of-sight
@@ -77,6 +92,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
                                 W8GrowableVector<int>* party_markers,
                                 int highlighting); /* 0x004FD030 */
 int GetProfessionCasterLevel(W8Character* character, int profession_id);
+unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int identify_context);
 int GetSpellbookForSpell(const W8Character* character, int spell_id, int a, int b, int c);
 /* 0x00501A60: the spell a missile type carries, or W8_SPELL_NONE. */
 int MissileSpellId(int missile_type);

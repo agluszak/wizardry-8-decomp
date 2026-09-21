@@ -29,6 +29,9 @@
 #include "wiz8/startup_world.h"
 #include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/GDProp.h"
+#include "wiz8/engine_code/OctPath.h"
+#include "wiz8/engine_code/stMeshModel.h"
+#include "wiz8/engine_code/stModelInstance.h"
 #include "wiz8/engine_code/3d.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/sr_api.h"
@@ -278,6 +281,8 @@ int g_level_footstep_sound_00603ad4 = -1;
 float g_level_footstep_time_00652dd0;
 // GLOBAL: WIZ8 0x005ebc50
 const double g_motion_delta_epsilon_005ebc50 = 0.10000000149011612;
+// GLOBAL: WIZ8 0x005ebc68
+double g_double_005ebc68 = 0.3;
 // GLOBAL: WIZ8 0x005ebcd4
 const float g_footstep_fall_threshold_005ebcd4 = -250.0f;
 // GLOBAL: WIZ8 0x00652940
@@ -2389,6 +2394,99 @@ unsigned char SetEnvironmentLoadFlag(unsigned char flag)
         g_environment_load_flag_00603ad0 = flag;
     }
     return previous;
+}
+
+/* Rebuilds the trace/debug mesh from m_pSurfaces: one triangle per surface,
+   textured and materialed with the path debug resources, DIG entries set
+   from the normalized vertex normals (or the 0.15-scaled XZ normal when the
+   surface flag bit 4 marks it as a trace edge). */
+// FUNCTION: WIZ8 0x0041C930
+stModelInstance* W8GameData::CreateTraceModel0041C930()
+{
+    BitArray trace_edges(m_iNumSurfaces * 3 + 10);
+    stMeshModel* model = new stMeshModel(m_iNumSurfaces, m_iNumSurfaces * 3);
+    if (model == 0) {
+        srAssertFail("pstMeshModel", "C:\\Projects\\Wizardry 8\\Engine Code\\GameData.cpp", 0x56d,
+                     "ModelGameData::Read -- Could not create pstMeshModel.");
+    }
+    model->autoRelease();
+    model->flags_3a0 &= ~1U;
+
+    srVector3i* polygons = model->getPolyVertex();
+    srPtr<srTextureIFace>* textures = model->getPolyTexture(0, 0, 1);
+    srVector3T<float>* locations = model->getVertexLoc();
+    srVector2T<float>* texture_coordinates = model->getVertexTexCoords(0, 0, 1);
+    srPtr<srMaterialIFace>* materials =
+        model->getVertexMaterial(0, static_cast<srMeshModel::e_side>(0), 1);
+    unsigned long* shade_indices = model->getVertexShadeIndex(1);
+
+    int vertex = 0;
+    for (int index = 0; index < m_iNumSurfaces; ++index) {
+        W8GDSurface* surface = &m_pSurfaces[index];
+        textures[index] = g_path_texture_00652dc0;
+        if (surface->flags_00 & 4) {
+            trace_edges.Set(vertex);
+            trace_edges.Set(vertex + 1);
+            trace_edges.Set(vertex + 2);
+        }
+        texture_coordinates[vertex].SetZero();
+        materials[vertex] = g_path_material_00652dbc;
+        polygons[index].x = vertex;
+        shade_indices[vertex] = vertex;
+        locations[vertex] = m_pVertices[surface->vertex_indices_18[0]];
+        ++vertex;
+        texture_coordinates[vertex].SetZero();
+        materials[vertex] = g_path_material_00652dbc;
+        polygons[index].y = vertex;
+        shade_indices[vertex] = vertex;
+        locations[vertex] = m_pVertices[surface->vertex_indices_18[1]];
+        ++vertex;
+        texture_coordinates[vertex].SetZero();
+        materials[vertex] = g_path_material_00652dbc;
+        polygons[index].z = vertex;
+        shade_indices[vertex] = vertex;
+        locations[vertex] = m_pVertices[surface->vertex_indices_18[2]];
+        ++vertex;
+    }
+
+    model->setShader(*g_path_shader_00652dc4, 0);
+    if ((model->control_state_390 & 8) == 0) {
+        unsigned long state = model->control_state_390 | 8;
+        model->control_state_390 = state;
+        model->control_state_390 = state | 8;
+    }
+
+    srVector3T<float>* normals = model->getVertexNormal();
+    srVector3T<float>* dig = model->getVertexDIG(0, 1);
+    for (int i = 0; i < vertex; ++i) {
+        if (trace_edges.Test(i)) {
+            dig[i] = normals[i];
+            if (dig[i].y < g_float_005ebc7c) {
+                dig[i].y = 0.0f;
+                dig[i].Normalize();
+                dig[i].y = 1.0f;
+                dig[i].Normalize();
+            }
+        } else {
+            dig[i].x = normals[i].x * g_float_005ebc78 + g_float_005ebc78;
+            dig[i].y = 0.0f;
+            dig[i].z = normals[i].z * g_float_005ebc78 + g_float_005ebc78;
+            float length = dig[i].Length();
+            if (length >= static_cast<float>(g_double_005ebc70)) {
+                dig[i].x = 0.15f;
+                dig[i].z = 0.15f;
+            } else if (length < static_cast<float>(g_double_005ebc68)) {
+                dig[i].SetLength(g_double_005ebc68);
+            }
+        }
+    }
+
+    model->setName("GameData Mesh");
+    model->flag_3cc = 0;
+    model->flags_3a0 &= ~2U;
+    stModelInstance* instance = CreateModelInstance0046F5C0(model);
+    instance->setName("GameData Mesh");
+    return instance;
 }
 
 // FUNCTION: WIZ8 0x0041F0D0

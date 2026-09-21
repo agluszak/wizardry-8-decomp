@@ -12,6 +12,7 @@ struct W8Character;
 struct W8EffectSlot;
 struct W8MonsterInfo;
 
+int GetConditionDisplaySlot(int condition); /* 0x00551900 */
 unsigned int RollEffectMagnitude(W8SpellEffectDefinition* definition); /* 0x00551A20 */
 unsigned int RollEffectDuration(W8SpellEffectDefinition* definition);  /* 0x005519C0 */
 

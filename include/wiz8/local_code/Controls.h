@@ -18,6 +18,8 @@ class W8Widget;
 /* The region callback a widget without its own region is given. It answers
    whether the event was consumed; the screen-input dispatcher returns that
    byte to its caller. */
+extern const wchar_t g_W8TextSeparator0060CC74[]; /* 0x0060CC74 */
+
 extern unsigned char DispatchControlRegionEvent(const InputAtom* event,
                                                 struct W8Region* region); /* 0x004F3140 */
 

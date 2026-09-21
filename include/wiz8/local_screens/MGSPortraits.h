@@ -51,6 +51,11 @@ void ReleasePortraitControls(void);
 void ReleaseConditionButtons(void);
 /* Create the eight level-up portrait buttons (gpLevelButtons) and their panel. */
 void CreateLevelButtons(void); /* 0x0059B940 */
+/* Flags the portrait slot's spell-effect icon and plays the spell's sound.
+   `backfire` selects the failure icon variant; spell_id 0 uses the generic
+   magic sound. The body lives in the gap TU between MGSButtons and
+   MGSPortraits. */
+void ShowMonsterSpellEffectIcon0059AF40(int slot, int realm, char backfire, int spell_id);
 /* Refresh cached HP/stamina/spell portrait bar widths; dirty + redraw when
    any slot's displayed fraction (or numeric HP) changes. */
 void SyncPartyPortraitVitalsBars(void);                          /* 0x0059A3A0 */

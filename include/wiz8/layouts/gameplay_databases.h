@@ -179,7 +179,9 @@ struct W8SpellRuntimeRecord {
     /* 0x126: a monster may cast the spell at all. MonsterOKToCastSpell reports
        a spell without it by name and asserts. */
     unsigned char monster_castable;
-    unsigned char unknown_127[4];
+    /* 0x127: per power-level radius term; PopulateSpellTargetMarkers scales it
+       by power and adds effect_radius before world-scale. */
+    float radius_per_level_127;
     /* 0x12b: SpellInfoDialog selects the long-range caption when this is 3. */
     int field_12b;
     /* 0x12f: the range category a monster casting this spell needs. */
@@ -191,7 +193,8 @@ struct W8SpellRuntimeRecord {
     W8SpellUsage usable_when;
     /* 0x13f: the spell has to be aimed before it can be cast. */
     unsigned char needs_aim_13f;
-    unsigned char unknown_140[4];
+    /* 0x140: MissileTables.dbs row the delivery missile is built from. */
+    int missile_type_140;
     /* 0x144: the spell's effect is delivered by a missile in flight, so its
        queued effect stays alive until the missile lands. Set for the ten
        projectile spells - Frost, Heal Wounds, Make Wounds, Sleep, Stamina,
