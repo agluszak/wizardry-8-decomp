@@ -89,6 +89,7 @@ struct W8OctBuildTree00446390;
 class Trigger;
 class srCamera;
 class srNode;
+class stModelInstance;
 class W8Octree;
 struct W8OctreeTrace;
 struct W8World;
@@ -173,8 +174,8 @@ struct W8GameData {
        trigger in the crossing direction unless the bit sets already hold
        it. */
     void ProcessCrossedSurface(W8GDSurface* surface); /* 0x0041C770 */
-    /* Builds the octree trace model and answers its scene node. */
-    srNode* CreateTraceModel0041C930(); /* 0x0041c930 */
+    /* Builds the octree trace mesh and answers its model instance. */
+    stModelInstance* CreateTraceModel0041C930(); /* 0x0041c930 */
     /* 0x0041F330: apply world-render camera-motion flags into `rotation` and
        mirror the result into `saved`. Retail call sites pass the owning
        W8GameData in ECX even though the body reads only globals. */
