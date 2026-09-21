@@ -361,9 +361,14 @@ public:
        fills `out_distance` with the route length and returns nonzero when a
        route inside `max_range` exists. */
     int FindNavigatorPathDistance(float max_range, float* out_distance); /* 0x00453480 */
-    void SetValue120(float value);                                       /* 0x00453C50 */
-    float GetValue120();                                                 /* 0x00453C60 */
-    void SetMonsterTurnSpeed(float speed);                               /* 0x00453C70 */
+    /* Path length from this navigator's position to `target` within
+       `max_range`, measured on a static scratch movement/attachment snapshot;
+       -1.0 when no route fits. */
+    float MeasurePathDistance00453300(srVector3T<float>* target, float max_range,
+                                      int target_location_id); /* 0x00453300 */
+    void SetValue120(float value);                             /* 0x00453C50 */
+    float GetValue120();                                       /* 0x00453C60 */
+    void SetMonsterTurnSpeed(float speed);                     /* 0x00453C70 */
     unsigned char
     ConfigureMovementToPosition00452630(const srVector3T<float>* position); /* 0x00452630 */
     /* Point the movement target at another navigator's position and enter the

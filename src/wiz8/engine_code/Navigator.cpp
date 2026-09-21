@@ -589,6 +589,15 @@ void W8Navigator::SetBounds(const srVector3T<float>* minimum, const srVector3T<f
     radius_084 = movement_0c0.alternate_radius_0b4;
 }
 
+// FUNCTION: WIZ8 0x00453480
+int W8Navigator::FindNavigatorPathDistance(float max_range, float* out_distance)
+{
+    float distance = MeasurePathDistance00453300(&g_startup_world_659c0c->movement_0c0.position_040,
+                                                 max_range, 0);
+    *out_distance = distance;
+    return distance != g_negative_one_005ebc38;
+}
+
 // FUNCTION: WIZ8 0x004534c0
 srVector3T<float> W8Navigator::GetPosition()
 {

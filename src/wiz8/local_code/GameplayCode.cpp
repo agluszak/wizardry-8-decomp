@@ -43,6 +43,7 @@
 #include "wiz8/message_box.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/dice.h"
+#include "random.h"
 
 #include <math.h>
 #include <new>
