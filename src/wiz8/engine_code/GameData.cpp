@@ -62,9 +62,8 @@ unsigned char g_flag_00652da7;
 float SettlePositionToGround00420BD0(const srVector3T<float>* position, unsigned char* hit)
 {
     srVector3T<float> candidate = *position;
-    if (g_octree_game_data_00652db0 != 0 && g_octree_game_data_00652db0->positional_04 != 0) {
-        return g_octree_game_data_00652db0->positional_04->SettleToGround(&candidate, hit, 1,
-                                                                          500.0f);
+    if (g_octree_game_data_00652db0 != 0 && g_octree_game_data_00652db0->octree_04 != 0) {
+        return g_octree_game_data_00652db0->octree_04->SettleToGround(&candidate, hit, 1, 500.0f);
     }
     float height = position->y;
     if (hit != 0) {
@@ -97,11 +96,10 @@ float GetGroundSurfaceInfo(const srVector3T<float>* position, char* surface, cha
     srVector3T<float> candidate = *position;
     float height;
 
-    if (g_octree_game_data_00652db0 == 0 || g_octree_game_data_00652db0->positional_04 == 0) {
+    if (g_octree_game_data_00652db0 == 0 || g_octree_game_data_00652db0->octree_04 == 0) {
         height = position->y;
     } else {
-        height =
-            g_octree_game_data_00652db0->positional_04->SettleToGround(&candidate, 0, 1, 500.0f);
+        height = g_octree_game_data_00652db0->octree_04->SettleToGround(&candidate, 0, 1, 500.0f);
     }
     if (g_octree_game_data_00652db0->value_54 != 0) {
         *surface = g_octree_game_data_00652db0->m_pSurfaces[g_octree_game_data_00652db0->value_54]
@@ -662,7 +660,7 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion0041B770(srVector3T<float>* direct
     static srVector4T<float> s_prop_hit_plane_00652d90;
     objects = 0;
     count = static_cast<unsigned int>(
-        positional_04->CollectObjectsAlongSegment(&objects, position, direction, 504.0f, 8));
+        octree_04->CollectObjectsAlongSegment(&objects, position, direction, 504.0f, 8));
     for (index = 0; index < count; ++index) {
         prop = *g_world->collidable_props->GetAt(objects[index]);
         if (prop->GetSetting6C() != 0) {
@@ -922,7 +920,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion0041AB40()
     level = g_level_data_00652dac;
     camera_position = level->camera_position_34;
     adjusted_position = camera_position;
-    if (geometry_index_00 == 0 && positional_04 == 0) {
+    if (geometry_index_00 == 0 && octree_04 == 0) {
         if (static_cast<float>(g_motion_delta_epsilon_005ebc50) < level->vector_a0.Length()) {
             return 1;
         }
@@ -997,7 +995,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion0041AB40()
             nearest_surface = 0;
             nearest_distance = 1.0e8f;
             if (geometry_index_00 == 0) {
-                if (positional_04 != 0) {
+                if (octree_04 != 0) {
                     if (attempt < 3) {
                         ProbeMonstersAlongMotion0041BD60(&motion_delta, &probe_position, 1);
                     }
@@ -1008,7 +1006,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion0041AB40()
                         hit_position = probe_position;
                     }
                     probe_position = camera_position;
-                    hit_count = positional_04->CollectObjectsAlongSegment(
+                    hit_count = octree_04->CollectObjectsAlongSegment(
                         &octree_hits, &camera_position, &motion_delta, 1000.0f, 3);
                 } else {
                     hit_count = 0;
@@ -1038,7 +1036,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion0041AB40()
             if (hit_count != 0) {
                 probe_position = camera_position;
                 for (index = 0; index < hit_count; ++index) {
-                    if (positional_04 == 0) {
+                    if (octree_04 == 0) {
                         surface =
                             reinterpret_cast< // reinterpret-ok: geometry collect stores surface*
                                 W8GDSurface*>(geometry_hits[index]);
@@ -1087,7 +1085,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion0041AB40()
                     probe_position = camera_position;
                     nearest_surface = 0;
                     nearest_distance = 1.0e8f;
-                    if (positional_04 == 0) {
+                    if (octree_04 == 0) {
                         if (geometry_index_00 != 0) {
                             geometry_hits = 0;
                             hit_count = geometry_index_00->CollectObjectsAlongSegment00446D80(
@@ -1107,7 +1105,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion0041AB40()
                             hit_position = probe_position;
                         }
                         probe_position = camera_position;
-                        hit_count = positional_04->CollectObjectsAlongSegment(
+                        hit_count = octree_04->CollectObjectsAlongSegment(
                             &octree_hits, &camera_position, &motion_delta, 1000.0f, 3);
                     }
                 }
@@ -1115,11 +1113,11 @@ unsigned char W8GameData::AdvanceEnvironmentMotion0041AB40()
         }
 
         if (exhausted != 0) {
-            if (positional_04 != 0) {
+            if (octree_04 != 0) {
                 probe_position = adjusted_position;
                 motion_delta = environ_delta;
-                hit_count = positional_04->CollectObjectsAlongSegment(
-                    &octree_hits, &adjusted_position, &environ_delta, 1000.0f, 3);
+                hit_count = octree_04->CollectObjectsAlongSegment(&octree_hits, &adjusted_position,
+                                                                  &environ_delta, 1000.0f, 3);
                 crossed_count = 0;
                 for (index = 0; index < hit_count; ++index) {
                     surface = &m_pSurfaces[octree_hits[index]];
@@ -1278,7 +1276,7 @@ unsigned char W8GameData::TestProp(int prop_id, W8OctreeTrace* trace, char skip_
 }
 
 /* Ray the trace record against `count` surfaces: all of m_pSurfaces in order
-   when `surface_ids` is null, else just the listed indexes. The value_88 flag
+   when `surface_ids` is null, else just the listed indexes. The trace_flag4_gate_88 flag
    admits flag-4 surfaces only, 0x1080-marked surfaces are skipped outright,
    `skip_flag` drops 0x8000-marked ones, and a nonzero positional_44 needs a
    passing `mode` roll. Each accepted surface's plane is tested both sides of
@@ -1306,7 +1304,7 @@ char W8GameData::TestTraceResult(int count, unsigned long* surface_ids, W8Octree
             } else {
                 surface = m_pSurfaces + *id;
             }
-            if (((value_88 == 0 || (surface->flags_00 & 4) != 0) &&
+            if (((trace_flag4_gate_88 == 0 || (surface->flags_00 & 4) != 0) &&
                  (surface->flags_00 & 0x1080) == 0 &&
                  (skip_flag == 0 || (surface->flags_00 & 0x8000) == 0)) &&
                 (surface->positional_44 == 0 ||

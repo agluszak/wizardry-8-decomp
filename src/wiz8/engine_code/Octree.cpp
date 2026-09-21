@@ -2245,7 +2245,7 @@ float W8Octree::SettleToGround(srVector3T<float>* position, unsigned char* out_h
                     }
                 }
             }
-            g_octree_game_data_00652db0->value_88 = 1;
+            g_octree_game_data_00652db0->trace_flag4_gate_88 = 1;
             if (ProbeCellForTrace(cell) == 0) {
                 goto descend;
             }
@@ -2265,7 +2265,7 @@ float W8Octree::SettleToGround(srVector3T<float>* position, unsigned char* out_h
             } else if (prop_hit) {
                 current_prop = -1;
             }
-            g_octree_game_data_00652db0->value_88 = 0;
+            g_octree_game_data_00652db0->trace_flag4_gate_88 = 0;
         } while (-1 < cell[1]);
         if (hit != 0) {
         done:
@@ -4110,7 +4110,7 @@ finish:
     FileClose(hOctFile);
     if (fSuccess != 0) {
         g_octree_6598a4 = this;
-        pGameData->positional_04 = this;
+        pGameData->octree_04 = this;
         *game_data = pGameData;
         g_octree_game_data_00652db0 = pGameData;
         ReadRegionLinkFile(m_owned_0c0);
