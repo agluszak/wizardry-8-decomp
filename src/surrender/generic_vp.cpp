@@ -208,12 +208,21 @@ SRDWORD srVP_generic::_min(const SRDWORD* source, SRDWORD count)
 // FUNCTION: SURRENDER 0x10065CD0
 void srVP_generic::_reverse(SRDWORD* destination, const SRDWORD* source, SRDWORD count)
 {
-    for (SRDWORD index = 0; index < count / 2; ++index) {
-        destination[index] = source[count - 1 - index];
-        destination[count - 1 - index] = source[index];
+    SRDWORD half = count >> 1;
+    if (half != 0) {
+        SRDWORD* front = destination;
+        SRDWORD* back = destination + (count - 1);
+        SRDWORD remaining = half;
+        do {
+            SRDWORD temp = source[front - destination];
+            *front = source[back - destination];
+            *back = temp;
+            ++front;
+            --back;
+        } while (--remaining != 0);
     }
     if ((count & 1) != 0) {
-        destination[count / 2] = source[count / 2];
+        destination[half] = source[half];
     }
 }
 
@@ -626,10 +635,12 @@ void srVP_generic::_minMax(const srVector3* source, srVector3& minimum, srVector
     for (SRDWORD index = 1; index < count; ++index) {
         const float* components = &source[index].x;
         for (int component = 0; component < 3; ++component) {
-            if (components[component] < minimum_components[component]) {
+            if (components[component] >= minimum_components[component]) {
+                if (components[component] > maximum_components[component]) {
+                    maximum_components[component] = components[component];
+                }
+            } else {
                 minimum_components[component] = components[component];
-            } else if (components[component] > maximum_components[component]) {
-                maximum_components[component] = components[component];
             }
         }
     }
@@ -1344,9 +1355,9 @@ void srVP_generic::_transformOrtho(srVector4* destination, const srVector4* sour
 {
     const float* m = &matrix.vectors[0].x;
     for (SRDWORD index = 0; index < count; ++index) {
-        destination[index].x = source[index].x * m[0] + source[index].w * m[3];
+        destination[index].x = source[index].w * m[3] + source[index].x * m[0];
         destination[index].y = source[index].y * m[5] + source[index].w * m[7];
-        destination[index].z = source[index].z * m[10] + source[index].w * m[11];
+        destination[index].z = source[index].w * m[11] + source[index].z * m[10];
         destination[index].w = source[index].w * m[15];
     }
 }
@@ -1357,9 +1368,9 @@ void srVP_generic::_transformPerspective(srVector4* destination, const srVector4
 {
     const float* m = &matrix.vectors[0].x;
     for (SRDWORD index = 0; index < count; ++index) {
-        destination[index].x = source[index].x * m[0] + source[index].z * m[2];
-        destination[index].y = source[index].z * m[6] + source[index].y * m[5];
-        destination[index].z = source[index].w * m[11] + source[index].z * m[10];
+        destination[index].x = source[index].z * m[2] + source[index].x * m[0];
+        destination[index].y = source[index].y * m[5] + source[index].z * m[6];
+        destination[index].z = source[index].z * m[10] + source[index].w * m[11];
         destination[index].w = source[index].z * m[14];
     }
 }
@@ -1679,13 +1690,13 @@ void srVP_generic::_mul(srMatrix4& destination, const srMatrix4& source_0,
         float right_2 = right[8 + column];
         float right_3 = right[12 + column];
         result[column] =
-            right_0 * left[0] + right_1 * left[1] + right_3 * left[3] + right_2 * left[2];
+            right_2 * left[2] + right_3 * left[3] + right_1 * left[1] + right_0 * left[0];
         result[4 + column] =
-            right_0 * left[4] + right_1 * left[5] + right_3 * left[7] + right_2 * left[6];
+            right_2 * left[6] + right_3 * left[7] + right_1 * left[5] + right_0 * left[4];
         result[8 + column] =
-            right_0 * left[8] + right_1 * left[9] + right_3 * left[11] + right_2 * left[10];
+            right_2 * left[10] + right_3 * left[11] + right_1 * left[9] + right_0 * left[8];
         result[12 + column] =
-            right_0 * left[12] + right_1 * left[13] + right_3 * left[15] + right_2 * left[14];
+            right_0 * left[12] + right_2 * left[14] + right_3 * left[15] + right_1 * left[13];
     }
 }
 
