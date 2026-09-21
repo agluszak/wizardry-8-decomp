@@ -5,6 +5,7 @@
 #include "wiz8/local_code/CombatRange.h"
 #include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/OctPath.h"
+#include "wiz8/engine_code/OctMeshModel.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/Navigator.h"
@@ -128,12 +129,6 @@ float g_path_cardinal_scale_005ec358 = 1.4149999618530273f;
 
 // GLOBAL: WIZ8 0x005ec360
 float g_float_005ec360 = 25000.0f;
-// GLOBAL: WIZ8 0x00652dc4
-srShader g_path_shader_00652dc4;
-// GLOBAL: WIZ8 0x00652dc0
-srTextureIFace* g_path_texture_00652dc0;
-// GLOBAL: WIZ8 0x00652dbc
-srMaterialIFace* g_path_material_00652dbc;
 // GLOBAL: WIZ8 0x00659c6c
 unsigned int g_path_visualization_cell_00659c6c;
 // GLOBAL: WIZ8 0x005ec380
@@ -5674,7 +5669,9 @@ stModelInstance* W8PathingService::EnsurePathVisualization0045D530()
     }
     model->autoRelease();
     model->flags_3a0 &= ~1U;
-    model->setShader(g_path_shader_00652dc4, 0);
+    srShader shader;
+    shader.CopyValue(&g_oct_mesh_default_shader_00652dc4->value);
+    model->setShader(shader, 0);
     model->setName("WayPoint Mesh");
     model->flag_3cc = 0;
 
@@ -5686,11 +5683,11 @@ stModelInstance* W8PathingService::EnsurePathVisualization0045D530()
     unsigned long* shade_indices = model->getVertexShadeIndex(1);
 
     for (index = 0; index < polygon_count; ++index) {
-        textures[index] = g_path_texture_00652dc0;
+        textures[index] = g_oct_mesh_default_texture_00652dc0;
     }
     for (index = 0; index < vertex_count; ++index) {
         texture_coordinates[index].SetZero();
-        materials[index] = g_path_material_00652dbc;
+        materials[index] = g_oct_mesh_default_material_00652dbc;
         shade_indices[index] = index;
     }
 

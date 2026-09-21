@@ -1,5 +1,7 @@
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/OctMeshModel.h"
+#include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/OctBuildTree.h"
 #include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
@@ -1466,7 +1468,7 @@ stModelInstance* W8GameData::CreateTraceModel0041C930()
     int vertex = 0;
     for (int index = 0; index < m_iNumSurfaces; ++index) {
         W8GDSurface* surface = m_pSurfaces + index;
-        poly_textures[index] = g_path_texture_00652dc0;
+        poly_textures[index] = g_oct_mesh_default_texture_00652dc0;
         if ((surface->flags_00 & 4) != 0) {
             selected.Set(vertex);
             selected.Set(vertex + 1);
@@ -1474,26 +1476,26 @@ stModelInstance* W8GameData::CreateTraceModel0041C930()
         }
         texcoords[vertex].x = 0.0f;
         texcoords[vertex].y = 0.0f;
-        vertex_materials[vertex] = g_path_material_00652dbc;
+        vertex_materials[vertex] = g_oct_mesh_default_material_00652dbc;
         poly_vertices[index].x = vertex;
         shade_indices[vertex] = vertex;
         vertex_locs[vertex] = m_pVertices[surface->vertex_indices_18[0]];
         texcoords[vertex + 1].x = 0.0f;
         texcoords[vertex + 1].y = 0.0f;
-        vertex_materials[vertex + 1] = g_path_material_00652dbc;
+        vertex_materials[vertex + 1] = g_oct_mesh_default_material_00652dbc;
         poly_vertices[index].y = vertex + 1;
         shade_indices[vertex + 1] = vertex + 1;
         vertex_locs[vertex + 1] = m_pVertices[surface->vertex_indices_18[1]];
         texcoords[vertex + 2].x = 0.0f;
         texcoords[vertex + 2].y = 0.0f;
-        vertex_materials[vertex + 2] = g_path_material_00652dbc;
+        vertex_materials[vertex + 2] = g_oct_mesh_default_material_00652dbc;
         poly_vertices[index].z = vertex + 2;
         shade_indices[vertex + 2] = vertex + 2;
         vertex_locs[vertex + 2] = m_pVertices[surface->vertex_indices_18[2]];
         vertex += 3;
     }
     srShader shader;
-    shader.CopyValue(&g_path_shader_00652dc4.value);
+    shader.CopyValue(&g_oct_mesh_default_shader_00652dc4->value);
     mesh->setShader(shader, 0);
     if ((mesh->control_state_390 & 8) == 0) {
         mesh->control_state_390 |= 8;
