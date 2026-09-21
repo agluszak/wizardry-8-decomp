@@ -11,6 +11,15 @@ public:
     unsigned int lo; /* 0x00 */
     unsigned int hi; /* 0x04 */
 
+    /* The timer bodies store ftol results straight into a quad word; this is
+       the low/high word store that lowers to. */
+    srQuadWord& operator=(unsigned __int64 value)
+    {
+        lo = static_cast<unsigned int>(value);
+        hi = static_cast<unsigned int>(value >> 0x20);
+        return *this;
+    }
+
     operator double() const
     {
         // reinterpret-ok: deliberate bit reinterpretation of the pair as one qword
