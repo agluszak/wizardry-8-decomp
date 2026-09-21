@@ -114,6 +114,7 @@ int GetTextBoxScrollRange(void);
    builds a va_list in each and passes the format on. */
 void PostCharacterNotice(int party_slot, const wchar_t* format, ...);            /* 0x00590950 */
 void PostMonsterNotice(W8MonsterInfo* monster_info, const wchar_t* format, ...); /* 0x00590B40 */
+void ScrollTextBoxToBottom0058BA60(void);                                        /* 0x0058BA60 */
 void ScrollTextBoxTo(int line);                                                  /* 0x0058BBC0 */
 void ScrollDialogueTextBoxToLine0058BA60(void);                                  /* 0x0058BA60 */
 void ScrollTextBoxUp(int lines);                                                 /* 0x0058BF00 */

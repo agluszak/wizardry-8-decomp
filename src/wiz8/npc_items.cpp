@@ -654,6 +654,35 @@ unsigned int GetNpcItemCount(W8NpcState* npc)
     return PLLength(npc->items);
 }
 
+// GLOBAL: WIZ8 0x0062A80C
+char g_sound_cash_transaction_62a80c[] = "Data\\Sound\\misc\\Cash Transaction.wav";
+
+// FUNCTION: WIZ8 0x0055B730
+unsigned char SellItemToNpc0055B730(W8NpcState* npc, W8ItemInstance* item, unsigned char quantity,
+                                    char suppress_payment)
+{
+    W8ItemInstance stack;
+    int amount;
+
+    if ((g_item_records[item->item_id].flags_041 & 2) == 0) {
+        if (NpcAcceptsTradeItemClass(npc, item) != 0) {
+            ReplaceOrCreateItem(&stack, item->item_id, 0, item->identified, 0);
+            stack.stack_count = quantity;
+            amount = CalculateTradeStackPrice(npc, &stack, 0);
+            if (suppress_payment == 0) {
+                AddPartyGold(amount, 0);
+            }
+            SoundPlay(g_sound_cash_transaction_62a80c, 0);
+            if (item->stack_count == 0) {
+                item->stack_count = 1;
+            }
+            AddNpcItemFromInstance(npc, item, quantity);
+            return 1;
+        }
+    }
+    return 0;
+}
+
 // FUNCTION: WIZ8 0x0055b290
 bool NpcAcceptsTradeItemClass(W8NpcState* npc, W8ItemInstance* item)
 {
