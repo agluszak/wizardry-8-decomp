@@ -244,8 +244,8 @@ unsigned char HandleMainGameInputEvent(const InputAtom* input)
     }
     if (GetFlag69DA6C() != 0) {
         if (g_monster_combat_timer_enabled_006f0531 == 0 &&
-            Function5E3610(input, Function5E35A0) == 1) {
-            Function5E34B0();
+            HandleRecordModeInput005E3610(input, ShowRecordModePrompt005E35A0) == 1) {
+            SubmitRecordModeLine005E34B0();
             return 1;
         }
     } else {

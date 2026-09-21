@@ -2041,7 +2041,7 @@ void W8MainGameScreen::Update()
         panel->EnableRegionSet(0);
         panel->m_key_handler_074->m_range_038.EnableRegionSet(0);
         m_action_panel_014->EnableRegionSet(0);
-        Function5E3780(m_owner_008);
+        RunTrapTrigger005E3780(m_owner_008);
         gXStatus.fTrapInteractMode = 0;
         if (g_main_game_screen != 0) {
             delete g_main_game_screen;
@@ -2061,7 +2061,7 @@ void W8MainGameScreen::Update()
         }
         SoundPlay((STR)g_trap_sprung_sound_0064bcd0, 0);
         EnablePanelRegionSets(0);
-        Function5E3AB0(m_owner_008);
+        CastTrapDeviceSpell005E3AB0(m_owner_008);
         m_state_018 = 9;
         m_timer_154.SetDuration(2.0f);
         m_timer_154.Restart();

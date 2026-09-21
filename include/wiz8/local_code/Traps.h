@@ -16,12 +16,12 @@ enum { W8_TRAP_TYPE_COUNT = 15, W8_TRAP_DEVICE_COUNT = 8 };
 void ClearValue69DA68(void);
 unsigned char GetFlag69DA6C(void);
 /* Record-mode console line input and its per-key prompt/apply callbacks. */
-char Function5E3610(const InputAtom* input, void (*prompt)(void)); /* 0x005E3610 */
-void Function5E34B0(void);                                         /* 0x005E34B0 */
-void Function5E35A0(void);                                         /* 0x005E35A0 */
+char HandleRecordModeInput005E3610(const InputAtom* input, void (*prompt)(void));
+void SubmitRecordModeLine005E34B0(void);
+void ShowRecordModePrompt005E35A0(void);
 unsigned char GetTable650434Entry(int trap, int device);
-void Function5E3780(Trigger* trigger); /* 0x005E3780 */
-void Function5E3AB0(Trigger* trigger); /* 0x005E3AB0 */
+void RunTrapTrigger005E3780(Trigger* trigger);
+void CastTrapDeviceSpell005E3AB0(Trigger* trigger);
 /* 0x005E3800: cast `spell_id` from a trap at `point`; place-targeted spells go
    to the camera position, party spells strike up to `target_count` random
    living members other than the selected character. */

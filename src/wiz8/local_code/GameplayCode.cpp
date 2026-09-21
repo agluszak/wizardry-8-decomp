@@ -1076,6 +1076,66 @@ unsigned char RemoveCharacterFromParty(int party_slot, char save_character_data)
     return 1;
 }
 
+/* Re-seat a party member from a serialized record: hand its equipment and
+   backpack to the party pool, remove the slot, copy the record over the
+   character, and rebuild the row, marching order and formation. When
+   grant_starting_equipment is set the party is charged the equipment cost. */
+// FUNCTION: WIZ8 0x004EF7E0
+unsigned char ReplacePartyMemberFromRecord004EF7E0(W8Character* character,
+                                                   const W8Character* record,
+                                                   char grant_starting_equipment)
+{
+    unsigned int slot = CharacterPointerToPartySlot(character);
+    int index;
+    W8ItemInstance* item = character->equipment;
+    for (index = 0xc; index != 0; --index) {
+        if (item->item_id != -1) {
+            AddItemToParty(item, '\0', '\0');
+        }
+        ++item;
+    }
+    item = character->backpack;
+    for (index = 8; index != 0; --index) {
+        if (item->item_id != -1) {
+            AddItemToParty(item, '\0', '\0');
+        }
+        ++item;
+    }
+    RemoveCharacterFromParty(slot, '\0');
+    memcpy(character, record, sizeof(W8Character));
+    character->in_party = '\x01';
+    ResetPartySlotRow(slot);
+    ResetGameplaySlot(slot);
+    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+    row->animation_0fa = -1;
+    for (index = 0; index < 8; ++index) {
+        if (g_status_685170.party_order_slots[index] == 0xffffffff) {
+            g_status_685170.party_order_slots[index] = slot;
+            row->party_order_index = index;
+            break;
+        }
+    }
+    PlaceCharacterInFormation(&g_status_685170.formation, slot);
+    g_status_685170.formation.positions[slot].bOldQuadrant = 0xff;
+    ++g_status_685170.total_member_count;
+    ++g_status_685170.regular_member_count;
+    RebuildCharacterModifierBlock(character);
+    RecalculateCharacterDerivedStats(character);
+    if (grant_starting_equipment != '\0') {
+        unsigned int cost = ComputeStartingEquipmentCost(character);
+        if (g_status_685170.party_gold < cost) {
+            srAssertFail("uiValue <= gStatus.uiPartyGold",
+                         "C:\\Projects\\Wizardry 8\\Local Code\\GameplayCode.cpp", 0x922, 0);
+        }
+        g_status_685170.party_gold = g_status_685170.party_gold - cost;
+        AddCharacterStartingEquipment(character);
+    }
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+        RefreshPartySlotRegions();
+    }
+    return slot & 0xff;
+}
+
 // FUNCTION: WIZ8 0x004EEF10
 void AwardPartyExperience004EEF10(int amount, int alternate_message)
 {
