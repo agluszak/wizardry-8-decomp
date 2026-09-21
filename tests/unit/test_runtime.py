@@ -13,6 +13,7 @@ from wiz8decomp.runtime import (
     _parse_wine_dump,
     _reset_runtime_scenario_state,
     _run_runtime_scenario,
+    _runtime_failure,
     _symbolize_addresses,
     analyze_runtime_crash,
     configure_wine_window_management,
@@ -142,6 +143,20 @@ def test_runtime_observation_is_normalized_to_typed_fields() -> None:
 def test_runtime_observation_requires_one_owned_record() -> None:
     with pytest.raises(RuntimeError, match="expected one runtime observation"):
         _parse_runtime_observation("wine diagnostics only")
+
+
+def test_runtime_failure_reports_native_reason_instead_of_timeout(tmp_path: Path) -> None:
+    failure = _runtime_failure(
+        "hostile-encounter",
+        2,
+        "",
+        "WIZ8_RUNTIME_FAILURE scenario=hostile-encounter reason=observation_failed line=2288\n",
+        tmp_path,
+        Path("Wiz8RuntimeTest.exe"),
+    )
+
+    assert "reason=observation_failed line=2288" in str(failure)
+    assert "timeout" not in str(failure)
 
 
 @pytest.mark.parametrize("check_order", [False, True])

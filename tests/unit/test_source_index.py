@@ -517,3 +517,36 @@ def test_host_compile_database_rejects_unowned_repo_entries(tmp_path: Path) -> N
 
     with pytest.raises(SourceIndexError, match="outside every configured source-root"):
         source_index.host_compile_database(repository, database, settings, {"WIZ8": ("src/wiz8",)})
+
+
+def test_host_compile_database_accepts_runtime_lint_sources(tmp_path: Path) -> None:
+    settings = _settings(tmp_path)
+    repository = settings.repo_dir
+    repository.mkdir()
+    database = repository / "build/clang/compile_commands.json"
+    database.parent.mkdir(parents=True)
+    database.write_text(
+        json.dumps(
+            [
+                {
+                    "directory": "/out",
+                    "file": "/repo/tests/runtime/wiz8_runtime_test.cpp",
+                    "arguments": [
+                        "/usr/bin/clang-cl",
+                        "/repo/tests/runtime/wiz8_runtime_test.cpp",
+                    ],
+                }
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    rewritten = json.loads(
+        source_index.host_compile_database(
+            repository, database, settings, {"WIZ8": ("src/wiz8",)}
+        ).read_text(encoding="utf-8")
+    )
+
+    assert rewritten[0]["file"] == str(
+        (repository / "tests/runtime/wiz8_runtime_test.cpp").resolve()
+    )

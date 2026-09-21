@@ -90,6 +90,23 @@ add_library(wiz8_recovered_objects OBJECT ${WIZ8_SOURCE_FILES})
 target_link_libraries(wiz8_recovered_objects PRIVATE wiz8_compile_settings)
 wiz8_lint_target(wiz8_recovered_objects)
 
+set(WIZ8_RUNTIME_TEST_SOURCES
+    "${PROJECT_SOURCE_DIR}/tests/runtime/wiz8_runtime_test.cpp"
+    "${PROJECT_SOURCE_DIR}/tests/runtime/oct_file_semantic_test.cpp"
+    "${PROJECT_SOURCE_DIR}/tests/runtime/keyboard_menu_semantic_test.cpp"
+    "${PROJECT_SOURCE_DIR}/tests/runtime/npc_dialogue_semantic_test.cpp"
+    "${PROJECT_SOURCE_DIR}/tests/runtime/mongen_semantic_test.cpp"
+    "${PROJECT_SOURCE_DIR}/tests/runtime/sight_semantic_test.cpp"
+    "${PROJECT_SOURCE_DIR}/tests/runtime/split_stack_semantic_test.cpp"
+    "${PROJECT_SOURCE_DIR}/tests/runtime/audio_semantic_test.cpp"
+    "${PROJECT_SOURCE_DIR}/tests/runtime/mouth_gap_semantic_test.cpp"
+    "${PROJECT_SOURCE_DIR}/tests/runtime/party_movement_semantic_test.cpp"
+    "${PROJECT_SOURCE_DIR}/tests/runtime/wiz8_crash_report.cpp"
+)
+add_library(wiz8_runtime_test_objects OBJECT ${WIZ8_RUNTIME_TEST_SOURCES})
+target_link_libraries(wiz8_runtime_test_objects PRIVATE wiz8_compile_settings)
+wiz8_lint_target(wiz8_runtime_test_objects)
+
 if(WIZ8_BUILD_PRODUCTS)
     wiz8_add_import_library(WIZ8_SR imports/sr.def
         IMPORT_OBJECTS "${CMAKE_BINARY_DIR}/sr-assert-import.lib")
@@ -155,18 +172,8 @@ if(WIZ8_BUILD_PRODUCTS)
         FIXED_BASE
         SOURCES
             "$<TARGET_OBJECTS:wiz8_runtime_stub_objects>"
+            "$<TARGET_OBJECTS:wiz8_runtime_test_objects>"
             "${wiz8_runtime_stub_object}"
-            "${PROJECT_SOURCE_DIR}/tests/runtime/wiz8_runtime_test.cpp"
-            "${PROJECT_SOURCE_DIR}/tests/runtime/oct_file_semantic_test.cpp"
-            "${PROJECT_SOURCE_DIR}/tests/runtime/keyboard_menu_semantic_test.cpp"
-            "${PROJECT_SOURCE_DIR}/tests/runtime/npc_dialogue_semantic_test.cpp"
-            "${PROJECT_SOURCE_DIR}/tests/runtime/mongen_semantic_test.cpp"
-            "${PROJECT_SOURCE_DIR}/tests/runtime/sight_semantic_test.cpp"
-            "${PROJECT_SOURCE_DIR}/tests/runtime/split_stack_semantic_test.cpp"
-            "${PROJECT_SOURCE_DIR}/tests/runtime/audio_semantic_test.cpp"
-            "${PROJECT_SOURCE_DIR}/tests/runtime/mouth_gap_semantic_test.cpp"
-            "${PROJECT_SOURCE_DIR}/tests/runtime/party_movement_semantic_test.cpp"
-            "${PROJECT_SOURCE_DIR}/tests/runtime/wiz8_crash_report.cpp"
         LIBRARIES WIZ8_SGP ddraw.lib gdi32.lib user32.lib
     )
 endif()

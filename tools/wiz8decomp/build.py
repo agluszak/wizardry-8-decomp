@@ -556,7 +556,7 @@ def _lint_selection(
 def _lint_compile_files(
     output: Path, repository: Path, selected: list[Path] | None
 ) -> tuple[list[str], list[str]]:
-    from .source_index import indexed_targets
+    from .source_index import LINT_ONLY_SOURCE_ROOTS, indexed_targets
 
     database_path = output / "compile_commands.json"
     database = json.loads(database_path.read_text(encoding="utf-8"))
@@ -580,7 +580,9 @@ def _lint_compile_files(
         if relative.startswith("src/sgp/"):
             vendor.add(raw)
             continue
-        if any(relative == root or relative.startswith(root + "/") for root in roots):
+        if any(relative == root or relative.startswith(root + "/") for root in roots) or any(
+            relative == root or relative.startswith(root + "/") for root in LINT_ONLY_SOURCE_ROOTS
+        ):
             recovered.add(raw)
     return sorted(recovered), sorted(vendor)
 

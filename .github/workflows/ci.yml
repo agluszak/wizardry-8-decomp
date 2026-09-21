@@ -337,11 +337,6 @@ jobs:
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: uv run pytest -q tests/licensed
 
-      - name: Build runtime-test product for trusted PR
-        # Compile the product separately so stale harness sources fail before the runtime suite starts.
-        if: github.event_name == 'pull_request' && env.LICENSED_INPUTS == 'true'
-        run: uv run wiz8 build runtime-test
-
       - name: Run full runtime suite
         id: runtime
         if: env.LICENSED_INPUTS == 'true'

@@ -23,6 +23,7 @@ _SOURCE_SUFFIXES = frozenset({".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx"}
 _SYNTHETIC_MARKER = re.compile(r"^\s*//\s*SYNTHETIC:\s+")
 _SOURCE_MARKER = re.compile(r"^\s*//\s*(?:FUNCTION|TEMPLATE|SYNTHETIC|LIBRARY|VTABLE|GLOBAL):\s+")
 _SOURCE_INDEX_SCHEMAS = frozenset({"reccmp-source-index-v2", "reccmp-source-index-v3"})
+LINT_ONLY_SOURCE_ROOTS = ("tests/runtime",)
 _ATTACHED_INCLUDE_FLAGS = (
     "-isystem",
     "-iquote",
@@ -736,6 +737,11 @@ def _reject_unowned_repo_entries(
             candidate == root or candidate.startswith(root.rstrip("/") + "/")
             for source_roots in roots.values()
             for root in source_roots
+        ):
+            continue
+        if any(
+            candidate == root or candidate.startswith(root.rstrip("/") + "/")
+            for root in LINT_ONLY_SOURCE_ROOTS
         ):
             continue
         raise SourceIndexError(

@@ -69,8 +69,6 @@
 
 extern "C" {
 
-extern int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous, LPSTR command_line,
-                          int show_command);
 extern InputAtom gEventQueue[256];
 }
 
@@ -472,9 +470,10 @@ static void ClickControl(W8TextControl* control)
     SendScenarioMouse((bounds->x1 + bounds->x2) / 2, (bounds->y1 + bounds->y2) / 2);
 }
 
-static DWORD FailScenario()
+static DWORD FailScenarioAt(int line)
 {
-    g_observation.timed_out = 1;
+    fprintf(stderr, "WIZ8_RUNTIME_FAILURE scenario=%s reason=observation_failed line=%d\n",
+            g_scenario, line);
     fprintf(stderr,
             "runtime-test failed: state=%d pending=%d transition=%u entered=%u final=%u "
             "redrawn=%u committed=%u in_party=%u main_game=%u page=%d running=%u active=%u\n",
@@ -493,6 +492,8 @@ static DWORD FailScenario()
     }
     return 2;
 }
+
+#define FailScenario() FailScenarioAt(__LINE__)
 
 /* Walk a live region's current bounds instead of a fixed pixel. */
 static bool RegionCenter(int region_index, int* x, int* y)
@@ -2103,7 +2104,7 @@ static DWORD WINAPI DriveScenario(void*)
                     }
                     if (provoked_info != 0) {
                         unsigned int provoked_location_id = provoked_info->location_id;
-                        unsigned int provoked_group_id = provoked_info->monster_group_id;
+                        int provoked_group_id = provoked_info->monster_group_id;
                         gfApplicationActive = 0;
                         Sleep(200);
                         /* At ~17k units the hostile group's own navigation
@@ -2154,9 +2155,7 @@ static DWORD WINAPI DriveScenario(void*)
                         }
                         if (provoked_info == 0 || provoked_info->monster == 0) {
                             provoked_info = 0;
-                            for (unsigned int i = 0;
-                                 i < ILLength(reinterpret_cast<W8IList*>(gXStatus.plsMonsterList));
-                                 ++i) {
+                            for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
                                 W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
                                 if (info != 0 && info->fActive != 0 && info->monster != 0 &&
                                     info->monster_group_id == provoked_group_id) {
@@ -2321,11 +2320,13 @@ static DWORD WINAPI DriveScenario(void*)
                 g_npc_scripting.gap_track.mouth_open = 1;
                 g_npc_scripting.last_tick = 99;
                 ResetLiveSessionForLoad();
-                unsigned char zero_state[sizeof(g_npc_scripting)];
-                memset(zero_state, 0, sizeof(zero_state));
                 g_observation.npc_state_reset_ok =
-                    memcmp(&g_npc_scripting, zero_state, sizeof(zero_state)) == 0 &&
-                    g_npc_scripting.message_lines.GetCount() == 0;
+                    g_npc_scripting.message_lines.GetCount() == 0 &&
+                    g_npc_scripting.pending_script_values.GetCount() == 0 &&
+                    g_npc_scripting.restore_staged_session == 0 &&
+                    g_npc_scripting.voice_handle == 0 &&
+                    g_npc_scripting.staging_restore.current_quote_index == 0 &&
+                    g_npc_scripting.gap_track.mouth_open == 0 && g_npc_scripting.last_tick == 0;
                 if (!g_observation.npc_state_reset_ok) {
                     return FailScenario();
                 }
@@ -2590,7 +2591,8 @@ int main(int argc, char** argv)
            g_observation.game_saved && g_observation.game_loaded &&
            g_observation.load_position_restored && g_observation.combat_started &&
            g_observation.combat_action_queued && g_observation.combat_party_moved &&
-           g_observation.combat_ended)));
+           g_observation.combat_ended && g_observation.combat_aggroed &&
+           g_observation.monster_engaged)));
     const bool npc_state_reset_ok =
         strcmp(g_scenario, "npc-state-reset") != 0 || g_observation.npc_state_reset_ok;
     const int result = driver_status == 0 && startup_ok &&

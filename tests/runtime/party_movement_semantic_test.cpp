@@ -26,7 +26,6 @@ bool RunPartyMovementSemanticTest(PartyMovementSemanticResult* result)
     unsigned char saved_movement_ui = gXStatus.fPartyMovementUi;
 
     memset(result, 0, sizeof(*result));
-    memset(&combat, 0, sizeof(combat));
     memset(&level, 0, sizeof(level));
     g_combat_state = &combat;
     g_level_block = &level;
