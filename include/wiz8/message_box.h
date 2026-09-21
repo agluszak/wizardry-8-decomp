@@ -24,6 +24,24 @@ struct W8SkillNoticePayload {
 static_assert(sizeof(W8ExperienceNoticePayload) == 8, "W8ExperienceNoticePayload_size");
 static_assert(sizeof(W8SkillNoticePayload) == 0x11, "W8SkillNoticePayload_size");
 
+/* The tagged dword payloads carried at W8MessageBoxLine::payload_10 and
+   ::extra. Which member is live is selected by the line's `type` (or by the
+   quote-bubble notice kind the payload is handed to); `raw` covers any
+   still-unresolved kind. */
+// union-ok: W8MessageBoxLine::type selects the live member; producers store one member per kind and consumers delete the owned one, so the variants share storage with mutually exclusive lifecycles.
+union W8MessageBoxPayload {
+    void* raw;
+    /* Owned wide text (delete[]) for the PORTRAIT_*, SKILL_NOTICES and
+       LEVEL_UP kinds; a null-vs-non-null flag for FINISH_ACTION and
+       RESET_LEVEL_STATE. */
+    wchar_t* text;
+    W8ItemInstance* item;                  /* payload_10: REMOVE_SCRIPT_ITEM */
+    int argument;                          /* payload_10: QueueNpcMessageLine tag */
+    W8SkillNoticePayload* skill_notices;   /* extra: SKILL_NOTICES; delete */
+    W8ExperienceNoticePayload* experience; /* extra: PORTRAIT_EXTRA; delete */
+    int* level_up_slot;                    /* extra: LEVEL_UP party slot; delete */
+};
+
 /* Queued NPC message kinds dispatched by ProcessMessageBoxQueue at 0x00526E90.
    W8_NPC_MSG_QUOTE lines are built by QueueNpcScriptLine; the command kinds are
    built by QueueNpcMessageLine/AddMessageBoxLine, and QUOTE_ENTRY continuations
@@ -110,13 +128,9 @@ struct W8MessageBoxLine {
     /* 0x08: QUOTE_ENTRY only; producers always store a W8NpcQuoteEntry*. */
     W8NpcQuoteEntry* quote_entry;
     W8NpcMessageKind type; /* 0x0c */
-    /* 0x10: per-kind payload sharing one dword:
-       - wchar_t* text: PORTRAIT_*, SKILL_NOTICES, LEVEL_UP (owned; delete[]),
-         FINISH_ACTION/RESET_LEVEL_STATE (null vs non-null flag)
-       - W8ItemInstance* item: REMOVE_SCRIPT_ITEM
-       - int argument: QueueNpcMessageLine tags (npc kind, group/party slot,
-         string index, event type, travel level id) and PARTY_SPEAKER_EVENT */
-    void* payload_10;
+    /* 0x10: per-kind payload sharing one dword; `text`, `item` and `argument`
+       are the proven members. */
+    W8MessageBoxPayload payload_10;
     int continuation_quote;         /* 0x14: QUOTE_ENTRY's owning quote index */
     unsigned char suppress_entries; /* 0x18: QUOTE skips the quote-entry scan */
     /* 0x1c: ownership is selected by `type`. SKILL_NOTICES hands a
@@ -125,7 +139,7 @@ struct W8MessageBoxLine {
        W8ExperienceNoticePayload* to the bubble. The bubble consumes and
        deletes each payload on dismissal; the immediate skill-notice path
        deletes its payload itself. */
-    void* extra;
+    W8MessageBoxPayload extra;
     W8NpcState* npc; /* 0x20: speaking NPC, copied from g_npc_scripting.npc */
 };
 

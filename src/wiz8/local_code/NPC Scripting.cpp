@@ -1095,8 +1095,8 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
                     memset(line, 0, sizeof(W8MessageBoxLine));
                     line->quote_index = -1;
                     line->type = W8_NPC_MSG_CLOSE_RESUME_NPC;
-                    line->payload_10 = 0;
-                    line->extra = 0;
+                    line->payload_10.raw = 0;
+                    line->extra.raw = 0;
                     line->npc = g_npc_scripting.npc;
                     g_npc_scripting.message_lines.Add(line);
                     goto entries_done;
@@ -1138,9 +1138,8 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
                     memset(line, 0, sizeof(W8MessageBoxLine));
                     line->quote_index = -1;
                     line->type = W8_NPC_MSG_PARTY_SPEAKER_EVENT;
-                    line->payload_10 = reinterpret_cast<void*>(
-                        event_type); // reinterpret-ok: tagged message integer
-                    line->extra = 0;
+                    line->payload_10.argument = event_type;
+                    line->extra.raw = 0;
                     line->npc = g_npc_scripting.npc;
                     g_npc_scripting.message_lines.Add(line);
                 } break;
@@ -1591,7 +1590,7 @@ void ProcessMessageBoxQueue(void)
         OpenNpcDialogueTranscriptLayout();
         break;
     case W8_NPC_MSG_REMOVE_SCRIPT_ITEM:
-        RemoveNpcScriptItem(static_cast<W8ItemInstance*>(line->payload_10), 0, -1);
+        RemoveNpcScriptItem(line->payload_10.item, 0, -1);
         break;
     case W8_NPC_MSG_CLOSE_RESUME_NPC:
         CloseNpcDialogueIfActive();
@@ -1600,8 +1599,7 @@ void ProcessMessageBoxQueue(void)
         }
         break;
     case W8_NPC_MSG_FOCUS_NPC: {
-        int npc_kind =
-            reinterpret_cast<int>(line->payload_10) /* reinterpret-ok: tagged message integer */;
+        int npc_kind = line->payload_10.argument;
         npc = GetNpcStateByKind(npc_kind);
         if (npc != 0) {
             RecruitNpcIntoParty(npc);
@@ -1614,8 +1612,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_GROUP_ACTION: {
-        int group =
-            reinterpret_cast<int>(line->payload_10) /* reinterpret-ok: tagged message integer */;
+        int group = line->payload_10.argument;
         ClearMainGameTargetState();
         DismissNpcFromParty(group, 0, false, false);
         if (g_screen_state_00649f1c->dialogue_layout == W8_DIALOGUE_LAYOUT_TRANSCRIPT) {
@@ -1639,8 +1636,7 @@ void ProcessMessageBoxQueue(void)
                   0); // c-style-cast-ok: released SGP textual API uses UINT8 pointer spelling
         break;
     case W8_NPC_MSG_PORTRAIT_STRING: {
-        int string_index =
-            reinterpret_cast<int>(line->payload_10) /* reinterpret-ok: tagged message integer */;
+        int string_index = line->payload_10.argument;
         g_npc_scripting.portrait_message_active = 1;
         SetNpcQuoteBubbleVisible(1, gppStringList[string_index], 0, -1, -1);
         g_npc_scripting.message_duration_ms =
@@ -1658,7 +1654,7 @@ void ProcessMessageBoxQueue(void)
         SpawnAlfieKnow004DFB80(0);
         break;
     case W8_NPC_MSG_FINISH_ACTION:
-        if (line->payload_10 == 0) {
+        if (line->payload_10.raw == 0) {
             ClearMainGameTargetState();
         } else {
             BeginScriptedWorldAction();
@@ -1718,7 +1714,7 @@ void ProcessMessageBoxQueue(void)
         RemoveAletheides();
         break;
     case W8_NPC_MSG_SKILL_NOTICES: {
-        W8SkillNoticePayload* skill_changes = static_cast<W8SkillNoticePayload*>(line->extra);
+        W8SkillNoticePayload* skill_changes = line->extra.skill_notices;
         if (g_settings_6850c8.skill_increase_messages == 0) {
             for (index = 0; index < skill_changes->count; ++index) {
                 int party_slot = skill_changes->party_slots[index];
@@ -1734,13 +1730,12 @@ void ProcessMessageBoxQueue(void)
             delete skill_changes;
         } else {
             g_npc_scripting.portrait_message_active = 1;
-            SetNpcQuoteBubbleVisible(1, static_cast<wchar_t*>(line->payload_10), 0, -1, -1, 2,
-                                     line->extra, -1);
+            SetNpcQuoteBubbleVisible(1, line->payload_10.text, 0, -1, -1, 2, line->extra.raw, -1);
             g_npc_scripting.message_duration_ms =
-                ComputePortraitMessageDuration(static_cast<wchar_t*>(line->payload_10));
+                ComputePortraitMessageDuration(line->payload_10.text);
             g_npc_scripting.message_started_at = GetTickCount();
         }
-        delete[] static_cast<wchar_t*>(line->payload_10);
+        delete[] line->payload_10.text;
         break;
     }
     case W8_NPC_MSG_CALL_HENCHMAN: {
@@ -1773,36 +1768,32 @@ void ProcessMessageBoxQueue(void)
     }
     case W8_NPC_MSG_PORTRAIT_EXTRA:
         g_npc_scripting.portrait_message_active = 1;
-        SetNpcQuoteBubbleVisible(1, static_cast<wchar_t*>(line->payload_10), 0, -1, -1, 1,
-                                 line->extra, -1);
-        g_npc_scripting.message_duration_ms =
-            ComputePortraitMessageDuration(static_cast<wchar_t*>(line->payload_10));
+        SetNpcQuoteBubbleVisible(1, line->payload_10.text, 0, -1, -1, 1, line->extra.raw, -1);
+        g_npc_scripting.message_duration_ms = ComputePortraitMessageDuration(line->payload_10.text);
         g_npc_scripting.message_started_at = GetTickCount();
-        delete[] static_cast<wchar_t*>(line->payload_10);
+        delete[] line->payload_10.text;
         break;
     case W8_NPC_MSG_PORTRAIT_MESSAGE:
         g_npc_scripting.portrait_message_active = 1;
-        SetNpcQuoteBubbleVisible(1, static_cast<wchar_t*>(line->payload_10), 0, -1, -1);
-        g_npc_scripting.message_duration_ms =
-            ComputePortraitMessageDuration(static_cast<wchar_t*>(line->payload_10));
+        SetNpcQuoteBubbleVisible(1, line->payload_10.text, 0, -1, -1);
+        g_npc_scripting.message_duration_ms = ComputePortraitMessageDuration(line->payload_10.text);
         g_npc_scripting.message_started_at = GetTickCount();
-        delete[] static_cast<wchar_t*>(line->payload_10);
+        delete[] line->payload_10.text;
         break;
     case W8_NPC_MSG_LEVEL_UP: {
-        int party_slot = *static_cast<int*>(line->extra);
+        int party_slot = *line->extra.level_up_slot;
         g_status_685170.buffers.XChar[party_slot].flag_103 = 1;
         if (g_settings_6850c8.skill_increase_messages == 0) {
             SoundPlay((STR) "Data\\Sound\\Misc\\GainLevel.wav",
                       0); // c-style-cast-ok: released SGP textual API uses UINT8 pointer spelling
-            delete[] static_cast<wchar_t*>(line->payload_10);
+            delete[] line->payload_10.text;
         } else {
             g_npc_scripting.portrait_message_active = 1;
-            SetNpcQuoteBubbleVisible(1, static_cast<wchar_t*>(line->payload_10), 0, -1, -1, 3,
-                                     line->extra, -1);
+            SetNpcQuoteBubbleVisible(1, line->payload_10.text, 0, -1, -1, 3, line->extra.raw, -1);
             g_npc_scripting.message_duration_ms =
-                ComputePortraitMessageDuration(static_cast<wchar_t*>(line->payload_10));
+                ComputePortraitMessageDuration(line->payload_10.text);
             g_npc_scripting.message_started_at = GetTickCount();
-            delete[] static_cast<wchar_t*>(line->payload_10);
+            delete[] line->payload_10.text;
         }
         break;
     }
@@ -1844,7 +1835,7 @@ void ProcessMessageBoxQueue(void)
     }
     case W8_NPC_MSG_RESET_LEVEL_STATE:
         if (gXStatus.fCombatMode == 0 || gXStatus.fPartyMovementMode != 0) {
-            if (line->payload_10 == 0) {
+            if (line->payload_10.raw == 0) {
                 ClearLevelDataFlag6();
             } else {
                 ResetLevelDataVectors0041F0D0();
@@ -1852,8 +1843,7 @@ void ProcessMessageBoxQueue(void)
         }
         break;
     case W8_NPC_MSG_SET_CONDITION_13: {
-        int party_slot =
-            reinterpret_cast<int>(line->payload_10) /* reinterpret-ok: tagged message integer */;
+        int party_slot = line->payload_10.argument;
         g_status_685170.skip_next_condition_reaction = 1;
         SetCharacterCondition(party_slot, 0x13, 9999, 0, 0, 0);
         g_status_685170.flag_2487 = 1;
@@ -1968,8 +1958,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_PARTY_SPEAKER_EVENT: {
-        unsigned int event_type = static_cast<unsigned int>(
-            reinterpret_cast<int>(line->payload_10) /* reinterpret-ok: tagged message integer */);
+        unsigned int event_type = static_cast<unsigned int>(line->payload_10.argument);
         int party_slot =
             PickRandomPartySpeaker(event_type, g_status_685170.selected_party_member_2434);
         if (party_slot != -1) {
@@ -1985,8 +1974,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_PARTY_MEMBER_EVENT: {
-        int party_slot =
-            reinterpret_cast<int>(line->payload_10) /* reinterpret-ok: tagged message integer */;
+        int party_slot = line->payload_10.argument;
         QueueCharacterEvent(&g_status_685170.buffers.Char[party_slot], g_effect_005ee58c,
                             g_event_flag_005ed8e0, g_effect_argument_005ed8c8,
                             g_effect_argument_005ed914);
@@ -2193,8 +2181,7 @@ void ProcessMessageBoxQueue(void)
         break;
     case W8_NPC_MSG_CLEAR_NPC_COMBAT:
         if (g_combat_state != 0) {
-            int party_slot = reinterpret_cast<int>(
-                line->payload_10) /* reinterpret-ok: tagged message integer */;
+            int party_slot = line->payload_10.argument;
             if (g_combat_state->iActionChar == party_slot) {
                 g_combat_state->eCombatActionStatus = 0;
                 g_combat_state->iActionChar = -1;
@@ -2210,8 +2197,7 @@ void ProcessMessageBoxQueue(void)
         break;
     case W8_NPC_MSG_TRAVEL_CONFIRM:
         ShowMainGameNoticeLine(gppStringList[0x7eb], OnNpcTravelConfirmationClosed, 1, 1);
-        g_pending_npc_travel_level =
-            reinterpret_cast<int>(line->payload_10) /* reinterpret-ok: tagged message integer */;
+        g_pending_npc_travel_level = line->payload_10.argument;
         break;
     case W8_NPC_MSG_PRINCE_NOT_HOME: {
         EndNpcDialogueSession0056E800(0);
@@ -2226,8 +2212,7 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_PARTY_SLOT_EVENT_18: {
-        int party_slot =
-            reinterpret_cast<int>(line->payload_10) /* reinterpret-ok: tagged message integer */;
+        int party_slot = line->payload_10.argument;
         QueueCharacterEvent(&g_status_685170.buffers.Char[party_slot], 0x18,
                             g_event_flag_005ed8ec | g_event_flag_005ed8e0,
                             g_effect_argument_005ed8c8, g_effect_argument_005ed914);
@@ -2325,8 +2310,8 @@ void QueueNpcMessageLine(W8NpcMessageKind kind, int argument)
     memset(line, 0, sizeof(W8MessageBoxLine));
     line->quote_index = -1;
     line->type = kind;
-    line->payload_10 = reinterpret_cast<void*>(argument); // reinterpret-ok: tagged message integer
-    line->extra = 0;
+    line->payload_10.argument = argument;
+    line->extra.raw = 0;
     line->npc = g_npc_scripting.npc;
 
     g_npc_scripting.message_lines.Add(line);
@@ -2340,8 +2325,8 @@ void AddMessageBoxLine(W8NpcMessageKind kind, wchar_t* text, void* extra)
     memset(line, 0, sizeof(W8MessageBoxLine));
     line->quote_index = -1;
     line->type = kind;
-    line->payload_10 = text;
-    line->extra = extra;
+    line->payload_10.text = text;
+    line->extra.raw = extra;
     line->npc = g_npc_scripting.npc;
 
     if (g_npc_scripting.message_lines.Add(line) < 0) {
