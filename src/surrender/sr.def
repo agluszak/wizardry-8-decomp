@@ -150,29 +150,3 @@ EXPORTS
     ?getFunctionCallCount@srDebugDD@@QBEKW4e_command@srDD@@@Z
     ?getFunctionCallTime@srDebugDD@@QBENW4e_command@srDD@@@Z
     ?increaseCallCount@srDebugDD@@QAEXW4e_command@srDD@@@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAD@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAE@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAF@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAG@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAH@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAJ@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAK@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAM@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAN@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAV?$srMatrix2T@M@@@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAV?$srMatrix2T@N@@@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAV?$srMatrix3T@M@@@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAV?$srMatrix3T@N@@@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAV?$srMatrix4T@M@@@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAV?$srMatrix4T@N@@@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAV?$srVector2T@M@@@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAV?$srVector2T@N@@@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAV?$srVector3T@M@@@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAV?$srVector3T@N@@@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAV?$srVector4T@M@@@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAV?$srVector4T@N@@@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAVsrQuadWord@@@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAVsrQuaternion@@@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAVsrVector2i@@@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAVsrVector3i@@@Z
-    ??5@YAAAVsrBinIStream@@AAV0@AAVsrVector4i@@@Z

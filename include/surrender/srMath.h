@@ -1076,14 +1076,3 @@ public:
 };
 
 static_assert(sizeof(srVector4i) == 0x10, "srVector4i_must_be_0x10");
-
-/* SurRender's quaternion value type. The exported srBinIStream extraction
-   operator (0x10031AF0) reads a scalar w followed by a 3-vector v, fixing the
-   member order below. */
-class srQuaternion {
-public:
-    float w;
-    srVector3T<float> v;
-};
-
-static_assert(sizeof(srQuaternion) == 0x10, "srQuaternion_must_be_0x10");

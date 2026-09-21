@@ -475,9 +475,7 @@ int srConfig::exists(const char* name) const
    operator= at 0x100040D0 and init at 0x10004150 - belong to that unit's
    recovery, not this file. */
 
-/* The provider's callable init emission - retail expansions call it from
-   destructor and copy-constructor tails, so it is deliberately not inline. */
-void srInlineString::init()
+inline void srInlineString::init()
 {
     inline_[0] = '\0';
     data_ = inline_;
@@ -496,6 +494,11 @@ void srInlineString::reset()
     inline_[0] = '\0';
     data_ = inline_;
     size_ = 1;
+}
+
+inline srInlineString::srInlineString()
+{
+    init();
 }
 
 inline srInlineString::srInlineString(const char* source)

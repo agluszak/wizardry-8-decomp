@@ -28,10 +28,6 @@
    products do not share the same method bodies. Only the members below are
    identical in both products. */
 struct srInlineString {
-    /* Bare empty-state construction - the retail expansions write the three
-       fields directly rather than calling init. The SurRender translation
-       units keep the spelling as a TU-local inline copy; there is no shared
-       strong emission. */
     srInlineString();
     srInlineString(const char* source);
     srInlineString(const srInlineString& source);
@@ -56,9 +52,6 @@ struct srInlineString {
     long find(const srInlineString& needle, unsigned long offset) const;
     void erase(unsigned long begin, unsigned long end);
     void insert(const srInlineString& text, unsigned long position);
-    /* Single-shot search-and-replace: the stream unit emits it at
-       0x10032B00 and loops it for separator normalization. */
-    int replace(const srInlineString& needle, const srInlineString& replacement);
 
     char* data()
     {

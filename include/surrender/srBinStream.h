@@ -2,27 +2,32 @@
 
 #include "srHeap.h"
 
-// VTABLE: SURRENDER 0x10076970 srBinStream
-// class srBinStream
 class SR_DLL_IMPORT srBinStream {
 public:
-    enum e_state { SR_STREAM_OK = 0, SR_STREAM_ERROR = 1, SR_STREAM_STATE_2 = 2 };
-
-    enum e_seekDir { SR_SEEK_BEGIN = 0, SR_SEEK_CURRENT = 1, SR_SEEK_END = 2 };
-
-    enum e_byteOrder { SR_BYTE_ORDER_0 = 0, SR_BYTE_ORDER_1 = 1 };
-
-    /* Thrown by setState when exceptions are enabled and the stream enters the
-       error state. Retail RTTI shows a one-byte type carrying the state. */
-    class Failure {
-    public:
-        Failure(e_state state) : state_00(static_cast<char>(state)) {}
-        char state_00;
+    enum e_state {
+        SR_STREAM_OK = 0,
+        SR_STREAM_ERROR = 1,
+        SR_STREAM_STATE_2 = 2
     };
 
-    virtual ~srBinStream();
+    enum e_seekDir {
+        SR_SEEK_BEGIN = 0,
+        SR_SEEK_CURRENT = 1,
+        SR_SEEK_END = 2
+    };
+
+    enum e_byteOrder {
+        SR_BYTE_ORDER_0 = 0,
+        SR_BYTE_ORDER_1 = 1
+    };
+
+    srBinStream(const srBinStream& stream);
+    virtual ~srBinStream() {}
+    srBinStream& operator=(const srBinStream& stream);
+
     virtual unsigned long getSize();
-    virtual srBinStream& seek(unsigned long position, e_seekDir direction) = 0;
+    virtual srBinStream& seek(
+        unsigned long position, e_seekDir direction) = 0;
     virtual srBinStream& seek(unsigned long position) = 0;
     virtual unsigned long tell() = 0;
 
@@ -30,19 +35,9 @@ public:
     bool exceptions(bool enabled);
     e_byteOrder getByteOrder() const;
     bool good() const;
-    bool operator!() const;
     operator void*() const;
     void setByteOrder(e_byteOrder byte_order);
     void setState(e_state state);
-
-    /* Implicit copy constructor/assignment: retail emits them via the
-       class-level dllexport; the bodies are plain memberwise copies. */
-    // SYNTHETIC: SURRENDER 0x10032240
-    // srBinStream::srBinStream
-    // SYNTHETIC: SURRENDER 0x10032280
-    // srBinStream::operator=
-    // SYNTHETIC: SURRENDER 0x100322E0
-    // srBinStream::`vector deleting destructor'
 
 protected:
     srBinStream();
@@ -57,4 +52,5 @@ private:
     e_byteOrder byte_order_0c;
 };
 
-static_assert(sizeof(srBinStream) == 0x10, "srBinStream_must_be_0x10");
+static_assert(sizeof(srBinStream) == 0x10,
+              "srBinStream_must_be_0x10");
