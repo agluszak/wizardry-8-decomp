@@ -1232,6 +1232,38 @@ void SetRendererOption4Enabled(char enabled)
     }
 }
 
+/* The static scene's fog colour clamped into 0..1 for the caller; an empty
+   world reports black. */
+// FUNCTION: WIZ8 0x00427290
+void GetWorldColour00427290(EnvironmentColour* colour)
+{
+    if (g_world != 0) {
+        const srVector3T<float> fog = g_world->static_scene->getFogColor();
+        colour->red = fog.x;
+        colour->green = fog.y;
+        colour->blue = fog.z;
+        if (colour->red <= 0.0f) {
+            colour->red = 0.0f;
+        } else if (colour->red >= 1.0f) {
+            colour->red = 1.0f;
+        }
+        if (colour->green <= 0.0f) {
+            colour->green = 0.0f;
+        } else if (colour->green >= 1.0f) {
+            colour->green = 1.0f;
+        }
+        if (colour->blue <= 0.0f) {
+            colour->blue = 0.0f;
+        } else if (colour->blue >= 1.0f) {
+            colour->blue = 1.0f;
+        }
+        return;
+    }
+    colour->red = 0.0f;
+    colour->green = 0.0f;
+    colour->blue = 0.0f;
+}
+
 // FUNCTION: WIZ8 0x00428e20
 int GetUsedPageFileBytes(void)
 {
@@ -1260,6 +1292,19 @@ void SetWorldModelPickingEnabled(char enabled)
     if (enabled == 0) {
         g_current_model_instance_65962c = 0;
     }
+}
+
+/* Whether the whole cursor image stays inside the viewport rectangle. */
+// FUNCTION: WIZ8 0x00428030
+bool CursorInsideViewport00428030(void)
+{
+    if (g_viewport_left_6595e8 <= g_cursor_width_654ad0 &&
+        g_viewport_top_6595ec <= g_cursor_height_654ad4 &&
+        g_cursor_width_654ad0 + g_cursor_image_width_6596b4 <= g_viewport_right_6595f0 &&
+        g_cursor_height_654ad4 + g_cursor_image_height_6596b8 <= g_viewport_bottom_6595f4) {
+        return true;
+    }
+    return false;
 }
 
 /* Mouse cursor scene and rendering. */
@@ -3748,3 +3793,115 @@ void SetPickKey004277F0(void* key)
             reinterpret_cast<unsigned long>(key)); // reinterpret-ok: opaque pick token
     }
 }
+
+/* Compiler emissions between Video2.cpp's authored bodies and Levels.cpp's
+   first anchor: sr refcounted-pointer and class-support template bodies plus
+   their deleting destructors. */
+
+// TEMPLATE: WIZ8 0x00429B00
+// srPtr assignment emission: release the held interface, addref and store the new one
+
+// TEMPLATE: WIZ8 0x00429D70
+// srClassSupport ctor emission (vftable 0x005EBF94, ClassNode registration)
+
+// TEMPLATE: WIZ8 0x00429EE0
+// srClass vcall+0x18 accessor emission (result forwarded through the import addref)
+
+// TEMPLATE: WIZ8 0x00429F00
+// srClassSupport dtor emission (vftable 0x005EBF68, ClassNode unregistration)
+
+// SYNTHETIC: WIZ8 0x0042A170
+// `scalar deleting destructor' for the 0x005EBF94 class-support emission
+
+// TEMPLATE: WIZ8 0x0042A1A0
+// srClassSupport ctor emission (vftable 0x005EBF94, ClassNode registration)
+
+// SYNTHETIC: WIZ8 0x0042A230
+// `scalar deleting destructor' for the 0x005EBF68 class-support emission
+
+// SYNTHETIC: WIZ8 0x0042A2E0
+// W8GrowableVector<srClass*>::`scalar deleting destructor' (Video2.cpp emission)
+
+// SYNTHETIC: WIZ8 0x0042A360
+// srVertexProcessor::~srVertexProcessor trivial body
+
+/* Released by ReleaseVideoGlobals00423F30; both sit between the camera and
+   material globals, exact subtypes unresolved. */
+// GLOBAL: WIZ8 0x65966c
+srClass* g_object_65966c;
+// GLOBAL: WIZ8 0x659678
+srClass* g_object_659678;
+
+/* Standalone JMP thunk onto RenderFrame; no call sites or data references
+   reach it. */
+// SYNTHETIC: WIZ8 0x004229C0
+// RenderFrame tail-call thunk onto 0x00426790
+
+/* Release the modeler and every retained scene, surface, material and
+   helper resource the video layer holds. */
+// FUNCTION: WIZ8 0x00423F30
+void ReleaseVideoGlobals00423F30(void)
+{
+    if (g_modeler_65963c != 0) {
+        delete g_modeler_65963c;
+        g_modeler_65963c = 0;
+    }
+    if (g_scene_permanent_659648 != 0) {
+        g_scene_permanent_659648->release();
+        g_scene_permanent_659648 = 0;
+    }
+    if (g_scene_user_659640 != 0) {
+        g_scene_user_659640->release();
+        g_scene_user_659640 = 0;
+    }
+    if (g_scene_fullscreen_659644 != 0) {
+        g_scene_fullscreen_659644->release();
+        g_scene_fullscreen_659644 = 0;
+    }
+    if (g_scene_overlay0_659654 != 0) {
+        g_scene_overlay0_659654->release();
+        g_scene_overlay0_659654 = 0;
+    }
+    if (g_scene_overlay1_659658 != 0) {
+        g_scene_overlay1_659658->release();
+        g_scene_overlay1_659658 = 0;
+    }
+    if (g_scene_square_65965c != 0) {
+        g_scene_square_65965c->release();
+        g_scene_square_65965c = 0;
+    }
+    if (g_scene_prerender0_65964c != 0) {
+        g_scene_prerender0_65964c->release();
+        g_scene_prerender0_65964c = 0;
+    }
+    if (g_scene_prerender1_659650 != 0) {
+        g_scene_prerender1_659650->release();
+        g_scene_prerender1_659650 = 0;
+    }
+    if (g_object_65966c != 0) {
+        g_object_65966c->release();
+        g_object_65966c = 0;
+    }
+    if (g_object_659678 != 0) {
+        g_object_659678->release();
+        g_object_659678 = 0;
+    }
+    if (g_blit_material_65967c != 0) {
+        g_blit_material_65967c->release();
+        g_blit_material_65967c = 0;
+    }
+    if (g_mouse_surface_659688 != 0) {
+        g_mouse_surface_659688->release();
+        g_mouse_surface_659688 = 0;
+    }
+    if (g_primary_color_surface_659660 != 0) {
+        g_primary_color_surface_659660->release();
+        g_primary_color_surface_659660 = 0;
+    }
+}
+
+/* srVertexProcessor::MaterialInfo's inline ctor emitted out-of-line inside
+   srMaterial's locally-compiled constructor; the primary is in
+   srVertexProcessor.h. */
+// SYNTHETIC: WIZ8 0x00424A80
+// srVertexProcessor::MaterialInfo::MaterialInfo (Video2.cpp emission)

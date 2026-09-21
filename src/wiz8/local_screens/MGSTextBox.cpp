@@ -2266,6 +2266,33 @@ char TextBoxHandleKey(const InputAtom* event)
    function's own name in the player's words. Its caller passes the same
    (level, flag, backfire) triple CastSpellAtLockInteraction00587C80 takes;
    only the target is read here. */
+/* The trap-mode half of CastSpellAtLockInteraction00587C80: without a
+   backfire the disarm chance is `level * 5 + 0x32 - m_field_038 * 6`, a
+   success parks the screen in state 7 (8 on a miss), and either way the text
+   and action panels go quiet for a 1.5 second timer. */
+// FUNCTION: WIZ8 0x0058A930
+void AttemptTrapDisarm0058A930(int level, int /*flag*/, char backfire)
+{
+    W8MainGameScreen* screen = g_main_game_screen;
+    int chance;
+
+    if (backfire != '\0') {
+        chance = 0;
+    } else {
+        chance = level * 5 + 0x32 + screen->m_field_038 * -6;
+    }
+    if (static_cast<int>(Random(100)) < chance) {
+        screen->m_state_018 = 7;
+    } else {
+        screen->m_state_018 = 8;
+    }
+    screen->m_text_panel_00c->EnableRegionSet(0);
+    screen->m_text_panel_00c->m_key_handler_074->m_range_038.EnableRegionSet(0);
+    screen->m_action_panel_014->EnableRegionSet(0);
+    screen->m_timer_154.SetDuration(1.5f);
+    screen->m_timer_154.Restart();
+}
+
 // FUNCTION: WIZ8 0x0058a9c0
 void SetKnockKnockTarget(int target, int /*flag*/, int /*backfire*/)
 {
@@ -2338,6 +2365,64 @@ void SelectTextSlot1D8(int line, int index)
             RequestRedraw(W8_REDRAW_TEXT_BOX);
         }
     }
+}
+
+/* Re-show the last wrapped entry of `mode`'s message run as a notice line;
+   0xffff derives the mode from the live dialogue/camp/combat state. */
+// FUNCTION: WIZ8 0x00590BD0
+void RefreshTextBoxMode00590BD0(unsigned short mode)
+{
+    wchar_t text[500];
+    W8MessageStorageRecord* line;
+    unsigned int last_line;
+    unsigned int group_lines;
+    unsigned int first_line;
+    unsigned int index;
+    size_t length;
+
+    if (g_current_screen_state.id != 7 && g_current_screen_state.id != 6) {
+        return;
+    }
+    if (mode == 0xffff) {
+        if ((gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue()) && gXStatus.fCampMode == 0) {
+            if (GetFlag68F105() == 0) {
+                mode = gXStatus.fCombatMode != 0;
+            } else {
+                mode = 0;
+            }
+        } else {
+            mode = IsNpcDialogueTextBoxActive() ? 0 : 2;
+        }
+    }
+    int text_box = static_cast<short>(mode);
+    if (g_status_685170.text_box_lines_used_4997[text_box] == 0) {
+        srAssertFail("gStatus.uiTextBoxLinesUsed[iTextBuffer] > 0", MGS_TEXT_BOX_CPP, 0x109e, 0);
+    }
+    last_line = g_status_685170.text_box_lines_used_4997[text_box] - 1;
+    group_lines = g_message_storage_68f2d8[text_box][last_line].link_10;
+    if (last_line < group_lines) {
+        srAssertFail("uiLastLineIndex >= uiGroupLine", MGS_TEXT_BOX_CPP, 0x10a6, 0);
+    }
+    first_line = last_line - group_lines;
+    line = &g_message_storage_68f2d8[text_box][first_line];
+    length = 0;
+    for (index = first_line; index <= last_line; index++, line++) {
+        if (line->wString == 0) {
+            srAssertFail("pTextLine->wString != NULL", MGS_TEXT_BOX_CPP, 0x10ad, 0);
+        }
+        if (index == first_line) {
+            wcscpy(text, line->wString);
+            length = wcslen(line->wString);
+        } else {
+            if (wcslen(line->wString) + 1 + length > 499) {
+                break;
+            }
+            wcscat(text, g_W8TextSeparator0060CC74);
+            wcscat(text, line->wString);
+            length += 1 + wcslen(line->wString);
+        }
+    }
+    ShowNoticeLine(text, 0, 1, 0);
 }
 
 // FUNCTION: WIZ8 0x00590D90

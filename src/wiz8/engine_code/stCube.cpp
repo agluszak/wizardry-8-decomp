@@ -80,6 +80,10 @@ double g_world_cursor_scale_005ebf50 = 0.002;
 /* Build the numbered cube the world cursor table holds: a 500-unit modeller
    cube, a translucent white material, and a 32x32 texture the label painter
    later fills. */
+/* Standalone JMP thunk onto CreateWorldCursorCube0048D080. */
+// SYNTHETIC: WIZ8 0x0048D070
+// CreateWorldCursorCube0048D080 thunk -> CreateWorldCursorCube0048D080
+
 // FUNCTION: WIZ8 0x0048d080
 W8WorldCursorNode* CreateWorldCursorCube0048D080(void)
 {

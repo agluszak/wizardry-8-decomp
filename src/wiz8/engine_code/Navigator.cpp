@@ -1639,6 +1639,14 @@ void W8Navigator::SetPitchRollEnabled00453CA0(char pitch, char roll)
     movement_0c0.roll_enabled_075 = roll;
 }
 
+// SYNTHETIC: WIZ8 0x00452100
+// W8Navigator::`scalar deleting destructor'
+
+/* 0x004527AD is a split address inside this body: it resumes at the
+   g_pathing_00659c60 nonnull branch with the call registers still live, not a
+   separate authored function. */
+// SYNTHETIC: WIZ8 0x004527AD
+// W8Navigator::LinkToNavigator004527A0 mid-body continuation
 // FUNCTION: WIZ8 0x004527a0
 unsigned char W8Navigator::LinkToNavigator004527A0(W8Navigator* target, double separation)
 {

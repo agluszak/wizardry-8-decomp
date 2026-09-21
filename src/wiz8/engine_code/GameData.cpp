@@ -12,6 +12,7 @@
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/engine_code/AmbientSound.h"
 #include "wiz8/engine_code/Prop.h"
+#include "wiz8/engine_code/SoundEvent.h"
 #include "wiz8/local_code/CombatPartyMovement.h"
 #include "wiz8/local_code/FormationAndFacing.h"
 #include "wiz8/local_code/GameplayCode.h"
@@ -66,6 +67,33 @@ float SettlePositionToGround00420BD0(const srVector3T<float>* position, unsigned
     if (hit != 0) {
         *hit = 0;
     }
+    return height;
+}
+
+/* The ground height under `position` plus the footstep surface/material of
+   the surface the last trace selected; both outputs stay zero when no
+   surface was recorded. */
+// FUNCTION: WIZ8 0x00420CA0
+float GetGroundSurfaceInfo(const srVector3T<float>* position, char* surface, char* material)
+{
+    srVector3T<float> candidate = *position;
+    float height;
+
+    if (g_octree_game_data_00652db0 == 0 || g_octree_game_data_00652db0->positional_04 == 0) {
+        height = position->y;
+    } else {
+        height =
+            g_octree_game_data_00652db0->positional_04->SettleToGround(&candidate, 0, 1, 500.0f);
+    }
+    if (g_octree_game_data_00652db0->value_54 != 0) {
+        *surface = g_octree_game_data_00652db0->m_pSurfaces[g_octree_game_data_00652db0->value_54]
+                       .footstep_surface_3c;
+        *material = g_octree_game_data_00652db0->m_pSurfaces[g_octree_game_data_00652db0->value_54]
+                        .footstep_material_3d;
+        return height;
+    }
+    *material = 0;
+    *surface = 0;
     return height;
 }
 
@@ -2953,6 +2981,33 @@ unsigned char W8LevelDataRecord::UpdateFootstepFromMotion00420A60()
         }
     }
     return 1;
+}
+
+/* Flip the two props the last motion contact bound: the primary prop toggles
+   only while its setting-6f2 latch is set, and the secondary follows when it
+   is still set on the far side; a secondary that fails the check reports 0. */
+// FUNCTION: WIZ8 0x0041FF00
+unsigned char W8LevelDataRecord::ToggleBoundProps0041FF00()
+{
+    W8Prop* prop;
+    bool toggled = false;
+
+    BeginPartyMovement();
+    if (primary_contact_prop_id >= 0) {
+        prop = *g_world->collidable_props->GetAt(primary_contact_prop_id);
+        if (prop->IsSetting6FTwo()) {
+            prop->ToggleSetting6E();
+            toggled = true;
+            if (secondary_contact_prop_id >= 0) {
+                prop = *g_world->collidable_props->GetAt(secondary_contact_prop_id);
+                if (!prop->IsSetting6FTwo()) {
+                    return 0;
+                }
+                prop->ToggleSetting6E();
+            }
+        }
+    }
+    return toggled;
 }
 
 // FUNCTION: WIZ8 0x0041FF90

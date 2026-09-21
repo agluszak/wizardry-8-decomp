@@ -834,6 +834,29 @@ void RefreshFogRanges004836A0(void)
     }
 }
 
+/* Full environment teardown for shutdown: the ResetEnvironment ambient block
+   and the ReleaseEnvironmentObjects drops inlined into one body, with the
+   light count cleared by a direct store rather than Clear(). */
+// FUNCTION: WIZ8 0x004823B0
+void ClearEnvironmentGlobals004823B0(void)
+{
+    g_sky_gradient_animations_0065a168[0] = 0;
+    g_sky_gradient_animations_0065a168[1] = 0;
+    g_sky_gradient_animations_0065a168[2] = 0;
+    g_sun_prop_0065a160 = 0;
+    g_moon_prop_0065ad84 = 0;
+    g_celestial_orbit_radius_0060a3a4 = -1.0f;
+    if (g_environment_object_0065b9b0 != 0) {
+        g_environment_object_0065b9b0->release();
+    }
+    if (g_environment_object_0065b9b4 != 0) {
+        g_environment_object_0065b9b4->release();
+    }
+    g_environment_object_0065b9b0 = 0;
+    g_environment_object_0065b9b4 = 0;
+    g_environment_lights_0065b998.count = 0;
+}
+
 /* Clear the whole ambient block. The six stores together are what makes them one
    group; the orbit radius last, at minus one, which is the "not measured yet"
    value InitializeLevelEnvironment tests before re-deriving the sky. */

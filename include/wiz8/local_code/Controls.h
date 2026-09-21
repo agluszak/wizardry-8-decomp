@@ -12,6 +12,9 @@ struct W8Region;
 
 class W8Widget;
 
+/* The single-space separator wrapped notice lines are re-joined with. */
+extern const wchar_t g_W8TextSeparator0060CC74[]; /* 0x0060CC74 */
+
 // VTABLE: WIZ8 0x005ed5b0
 // class W8GrowableVector<W8Widget*>
 

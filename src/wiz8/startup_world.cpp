@@ -46,3 +46,19 @@ unsigned char InitializeStartupNavigation0044F060(void)
                                      g_startup_depth_603ac8);
     return 1;
 }
+
+/* Tears down the startup navigation state InitializeStartupNavigation0044F060
+   built: the ani-mesh cache, render quality, environment globals, and the
+   startup navigator itself. */
+// FUNCTION: WIZ8 0x0044F190
+void ShutdownStartupNavigation0044F190(void)
+{
+    NoOp();
+    FreeAniMeshCache004B57D0();
+    DestroyRenderQuality0047B570();
+    ClearEnvironmentGlobals004823B0();
+    if (g_startup_world_659c0c != 0) {
+        delete g_startup_world_659c0c;
+    }
+    g_startup_world_659c0c = 0;
+}

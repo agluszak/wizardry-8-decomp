@@ -167,6 +167,19 @@ W8OptionsPanelSet::~W8OptionsPanelSet()
     }
 }
 
+/* Standalone JMP thunk onto Controls::~Controls emitted for this TU. */
+// SYNTHETIC: WIZ8 0x005A4080
+// Controls::~Controls thunk -> Controls::~Controls
+
+/* Vtable 0x005EEDDC is an unnamed W8TextControl subclass emitted for this TU:
+   identical to W8TextControl's table except slot 0, which holds the generated
+   deleting destructor 0x005A76B0 wrapping the emitted destructor 0x005A76D0. */
+// SYNTHETIC: WIZ8 0x005A76B0
+// W8TextControl subclass 0x005EEDDC::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x005A76D0
+// W8TextControl subclass 0x005EEDDC::~subclass (emitted)
+
 W8OptionsGamePanel::W8OptionsGamePanel() : W8OptionsPanel(0) {}
 
 // SYNTHETIC: WIZ8 0x005ac680

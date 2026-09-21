@@ -192,10 +192,9 @@ srColorSurface* LoadSurface0047C090(int handle)
     case 2:
     case 10:
         if (header.pixel_depth == 16) {
-            surface = SR_NEW(W8ColorSurface)(
-                static_cast<srPixelConvert::e_surfaceType>(
-                    (header.image_descriptor & 0xf) == 0 ? 8 : 9),
-                width, height);
+            surface = SR_NEW(W8ColorSurface)(static_cast<srPixelConvert::e_surfaceType>(
+                                                 (header.image_descriptor & 0xf) == 0 ? 8 : 9),
+                                             width, height);
         } else if (header.pixel_depth == 24) {
             surface = SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_BGR24, width, height);
         } else if (header.pixel_depth == 32) {
@@ -328,14 +327,6 @@ void stTextureFile::setFileName(const char* file_name)
     texture_flags_ |= DEFAULTS_PENDING;
 }
 
-void stTextureFile::releaseSurface()
-{
-    if (surface_5c != 0) {
-        surface_5c->release();
-        surface_5c = 0;
-    }
-}
-
 // FUNCTION: WIZ8 0x0047C8B0
 void stTextureFile::invalidate()
 {
@@ -355,6 +346,16 @@ stTextureFile::~stTextureFile()
     delete[] file_name_58;
     file_name_58 = 0;
     texture_flags_ &= ~LOAD_FAILED;
+    texture_flags_ |= DEFAULTS_PENDING;
+}
+
+// FUNCTION: WIZ8 0x0047BBD0
+void stTextureFile::releaseSurface()
+{
+    if (surface_5c != 0) {
+        surface_5c->release();
+        surface_5c = 0;
+    }
     texture_flags_ |= DEFAULTS_PENDING;
 }
 

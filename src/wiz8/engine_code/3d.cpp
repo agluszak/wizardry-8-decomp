@@ -1187,3 +1187,8 @@ bool BoundsInsideFrustum0046D920(const W8OctRegionVolume* volume, const W8Boundi
    folded array instantiations. The primary template lives in srArray.h. */
 // TEMPLATE: WIZ8 0x004701b0
 // srArray<T>::release
+
+/* srMatrix4T<float>::Set emitted for this TU (BakeInstanceVertexLighting's
+   transform builds); the primary template lives in srMath.h. */
+// TEMPLATE: WIZ8 0x00470200
+// srMatrix4T<float>::Set

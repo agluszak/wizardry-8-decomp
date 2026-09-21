@@ -100,6 +100,45 @@ stMeshModel::stMeshModel(long polygons, long vertices)
 // SYNTHETIC: WIZ8 0x00470e90
 // stMeshModel::`scalar deleting destructor'
 
+// FUNCTION: WIZ8 0x00470ED0
+stMeshModel::~stMeshModel()
+{
+    if (next != 0) {
+        stMeshModel* linked = next;
+        next = 0;
+        delete linked;
+    }
+    FreeFrameStorage();
+    while (skin_table_names.count != 0) {
+        RemoveSkinTable00473830(0);
+    }
+    if ((flags_3a0 & 4) != 0) {
+        for (int index = 0; index < g_mesh_models.count; ++index) {
+            if (g_mesh_models.data[index] == this) {
+                g_mesh_models.RemoveAt(index);
+                break;
+            }
+        }
+    }
+    if (lerp_buffer_448 != 0) {
+        srHeap.free(lerp_buffer_448);
+        lerp_buffer_448 = 0;
+    }
+    if (automap_polygons != 0) {
+        delete automap_polygons;
+        automap_polygons = 0;
+    }
+    if (skin_blanking_apt_458 != 0) {
+        delete skin_blanking_apt_458;
+    }
+    if (skin_blanking_apt_number_45c != 0) {
+        delete skin_blanking_apt_number_45c;
+    }
+    if (skin_blanking_checked_460 != 0) {
+        delete skin_blanking_checked_460;
+    }
+}
+
 // FUNCTION: WIZ8 0x004748c0
 srClass* stMeshModel::vInstance()
 {
@@ -1960,3 +1999,25 @@ srTriMeshPipeline* srTriMeshPipeline::Get004750A0(srGERD* renderer)
    at 0x005AA400 (OptionsScreen.cpp). No separate FUNCTION claim: decomplint
    rejects FOLDED-before-primary when engine_code sorts ahead of OptionsScreen. */
 void stMeshModel::NotifyLinkedModel005AA400(stMeshModel*) {}
+
+/* Compiler emissions between stMeshModel.cpp's authored bodies and
+   AmbientSound.cpp's first anchor: the class-support ctor, the member
+   vectors' lifecycle bodies, and the tri-mesh pipeline deleting dtor. */
+
+// TEMPLATE: WIZ8 0x00474560
+// srClassSupport<stMeshModel,srMeshModel,0,65539>::srClassSupport (ClassNode registration)
+
+// SYNTHETIC: WIZ8 0x00474760
+// srClassSupport<stMeshModel,srMeshModel,0,65539>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x004747D0
+// operator-new forwarding thunk used by the vector assign emissions
+
+// TEMPLATE: WIZ8 0x00474D20
+// W8GrowableVector<unsigned char>::RemoveAt (stMeshModel.cpp emission)
+
+// SYNTHETIC: WIZ8 0x00474DE0
+// W8GrowableVector<stMeshModel*>::`scalar deleting destructor' (construction-phase copy)
+
+// SYNTHETIC: WIZ8 0x004752D0
+// srTriMeshPipeline::`scalar deleting destructor'

@@ -331,6 +331,9 @@ signed char g_spell_power_extent_index_00616f41[8] = {0, 0, 0, 1, 1, 2, 2, 0};
 void ServiceNpcDialogue0056E510(void);
 // GLOBAL: WIZ8 0x0064BA80
 int g_lock_pin_target_height_64ba80[4] = {10, 16, 22, 28};
+
+// GLOBAL: WIZ8 0x0064ba90
+int g_knock_knock_chance_0064ba90[8] = {0, 344, 459, 516, 550, 573, 589, 602};
 // GLOBAL: WIZ8 0x0064BAE8
 char s_lock_pin_falling_64bae8[] = "Data\\Sound\\Misc\\Lock_Pin_Falling.wav";
 // GLOBAL: WIZ8 0x0064BABC
@@ -1302,6 +1305,137 @@ void W8LockInteraction::AttemptForce()
     }
 }
 
+/* Roll the knock-knock chance against a shuffled pin order. At most
+   `level + 1` pins are rolled; each success raises an unowned pin (or, on
+   backfire, drops a raised one) and animates the tumbler. The control enables
+   are then re-derived exactly as RefreshLockInteractionControls does and the
+   interaction enters state 7. */
+// FUNCTION: WIZ8 0x005871A0
+void W8LockInteraction::ApplyKnockKnock005871A0(int level, int /*flag*/, char backfire)
+{
+    W8Character* character;
+    int order[8];
+    int slot;
+    int pins;
+    int i;
+    int pin;
+    unsigned int count;
+    unsigned int chance;
+    unsigned int figure;
+    unsigned int book;
+    unsigned int realm;
+    int power;
+    int divisor;
+    bool rolled;
+    W8LockTumbler* tumbler;
+    W8LockTumblerPanel* panel;
+
+    slot = g_status_685170.selected_character;
+    count = m_tumbler_count_0c;
+    rolled = false;
+    for (i = 0; i < static_cast<int>(count); ++i) {
+        order[i] = i;
+    }
+    for (i = 0; i < static_cast<int>(count); ++i) {
+        unsigned int first = Random(count);
+        unsigned int second = Random(m_tumbler_count_0c);
+        if (first != second) {
+            int swap = order[first];
+            order[first] = order[second];
+            order[second] = swap;
+        }
+        count = m_tumbler_count_0c;
+    }
+    pins = level + 1;
+    if (m_tumbler_count_0c <= level + 1) {
+        pins = m_tumbler_count_0c;
+    }
+    chance = g_knock_knock_chance_0064ba90[level];
+    for (i = 0; i < pins; ++i) {
+        if (Random(1000) < chance) {
+            pin = order[i];
+            panel = m_tumbler_panel_10;
+            if (backfire == '\0') {
+                if (m_tumbler_owner_38[pin] == -1) {
+                    tumbler = panel->m_tumblers_54[pin];
+                    tumbler->m_hovered_38 = 0;
+                    tumbler->m_rising_35 = 1;
+                    panel->m_animating_74 = 1;
+                }
+                m_tumbler_panel_10->m_tumblers_54[pin]->m_at_top_37 = 1;
+                m_tumbler_locked_58[pin] = 1;
+                m_tumbler_owner_38[pin] = slot;
+            } else {
+                if (m_tumbler_owner_38[pin] == -1) {
+                    continue;
+                }
+                m_tumbler_locked_58[pin] = 0;
+                m_tumbler_owner_38[pin] = -1;
+                m_tumbler_panel_10->m_tumblers_54[pin]->m_at_top_37 = 0;
+                tumbler = panel->m_tumblers_54[pin];
+                tumbler->m_pin_set_34 = 0;
+                tumbler->m_falling_36 = 1;
+                panel->m_animating_74 = 1;
+            }
+            rolled = true;
+        }
+    }
+    if (rolled) {
+        if (backfire == '\0') {
+            SoundPlay(s_lock_pin_rising_64bb10, 0);
+        } else {
+            SoundPlay(s_lock_pin_falling_64bae8, 0);
+            m_tumbler_panel_10->SetEnabled(0);
+        }
+    }
+    slot = g_status_685170.selected_character;
+    if (!IsPartySlotEligible00524A10(slot)) {
+        pins = -1;
+    } else {
+        character = &g_status_685170.buffers.characters[slot];
+        if (character->skills[10].flag_00 == 0 && character->skills[10].level == 0) {
+            pins = -1;
+        } else {
+            pins = character->skills[10].level;
+        }
+    }
+    panel = m_tumbler_panel_10;
+    for (i = 0; i < panel->m_tumbler_count_50; ++i) {
+        panel->m_tumblers_54[i]->SetEnabled(pins > -1);
+    }
+    character = &g_status_685170.buffers.characters[g_status_685170.selected_character];
+    if (IsPartySlotEligible00524A10(g_status_685170.selected_character) &&
+        character->spell_learned[0x27] == 1) {
+        book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
+        realm = character->skills[0x1c + g_spell_records[0x27].realm].level;
+        power = (character->skills[book].level + realm * 4) / 5;
+        if (power > -1) {
+            figure = CanCharacterCastSpell(character, 0x27);
+        } else {
+            figure = 0;
+        }
+    } else {
+        figure = 0;
+    }
+    m_spell_button_20->SetEnabled(figure);
+    slot = g_status_685170.selected_character;
+    pins = m_tumbler_count_0c;
+    if (IsPartySlotEligible00524A10(slot) &&
+        g_status_685170.buffers.characters[slot].stamina > 0x4f &&
+        g_status_685170.buffers.characters[slot].attributes[0].effective > 0x32) {
+        divisor = pins - 1 + g_settings_6850c8.difficulty;
+        ClampInteger(&divisor, 2, 8);
+        figure = (g_status_685170.buffers.characters[slot].attributes[0].effective - 0x32) /
+                 IntegerPower(2, divisor - 2);
+    } else {
+        figure = 0xffffffff;
+    }
+    m_force_button_24->SetEnabled(static_cast<int>(figure) > -1);
+    m_info_panel_14->RefreshInfo();
+    m_action_panel_18->SetEnabled(0);
+    m_state_34 = 7;
+}
+
 // FUNCTION: WIZ8 0x005874D0
 void W8LockInteraction::BeginUnlock()
 {
@@ -1310,6 +1444,20 @@ void W8LockInteraction::BeginUnlock()
     m_state_34 = 8;
     m_timer_80.SetDuration(1.0f);
     m_timer_80.Restart();
+}
+
+// FUNCTION: WIZ8 0x00587C80
+void CastSpellAtLockInteraction00587C80(unsigned int level, int flag, int backfire)
+{
+    if (gXStatus.fTrapInteractMode != '\0') {
+        AttemptTrapDisarm0058A930(level, flag, backfire);
+        return;
+    }
+    if (gXStatus.fLockInteractMode == '\0') {
+        ShowNotice(0xc, gppStringList[0x1ebc / 4], -1, -1, 0);
+        return;
+    }
+    g_lock_interaction_68f2c0->ApplyKnockKnock005871A0(level, flag, backfire);
 }
 
 // FUNCTION: WIZ8 0x00587cf0
@@ -2786,6 +2934,11 @@ bool __fastcall IsNpcDialogueTextExpanded(W8NpcDialogueTextController* controlle
     return controller->scroll_height == 0xff;
 }
 
+/* Standalone JMP thunk onto W8Widget::~W8Widget; the vtable slot of
+   W8NpcDialogueScrollWidget reaches it. */
+// SYNTHETIC: WIZ8 0x0055E5D0
+// W8NpcDialogueScrollWidget::~W8NpcDialogueScrollWidget thunk -> W8Widget::~W8Widget
+
 // FUNCTION: WIZ8 0x0055E570
 W8NpcDialogueScrollWidget::W8NpcDialogueScrollWidget(Controls* panel, unsigned int region, int left,
                                                      int top, int right, int bottom)
@@ -3107,7 +3260,6 @@ unsigned char MainGameScreenEnter(void)
     }
     return 1;
 }
-
 
 /* While the party is idle, arm a one-minute countdown after input and, once the
    cursor has also been still for a minute and that countdown expires, advance

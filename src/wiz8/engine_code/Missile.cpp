@@ -1458,3 +1458,8 @@ bool W8Missile::OnCollision(W8Navigator* other)
 miss:
     return false;
 }
+
+/* srMatrix3T<float>::RotateAboutX emitted for this TU; the primary template
+   lives in srMath.h. */
+// TEMPLATE: WIZ8 0x004A5AB0
+// srMatrix3T<float>::RotateAboutX

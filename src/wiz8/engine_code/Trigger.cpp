@@ -230,6 +230,29 @@ unsigned char __fastcall DecrementLockTimer004457A0(int* lock_state)
     return 0;
 }
 
+// FUNCTION: WIZ8 0x00445940
+bool InsideDestinationTrigger00445940(float x, float y, float z)
+{
+    W8GrowableVector<Trigger*>* triggers = g_world->triggers;
+    int trigger_count = triggers->GetCount();
+
+    for (int index = 0; index < trigger_count; ++index) {
+        Trigger* trigger = *triggers->GetAt(index);
+        if (trigger->initial_action_22a == 0x34) {
+            srVector3T<float> position = trigger->position_118;
+            float dx = position.x - x;
+            float dy = position.y - y;
+            float dz = position.z - z;
+            float distance = static_cast<float>(sqrt(dx * dx + dy * dy + dz * dz));
+            if (distance < trigger->range_maximum_0a8 && ((trigger->flags_0a0 >> 6) & 1) == 0 &&
+                distance >= trigger->range_minimum_0a4) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 // FUNCTION: WIZ8 0x0043cb30
 void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, bool restoring)
 {

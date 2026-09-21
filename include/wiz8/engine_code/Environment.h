@@ -99,6 +99,7 @@ void SetCameraLightMode00483E80(int mode);
 void RefreshFogRanges004836A0(void);
 
 void SetViewDistance(float distance);
+void ClearEnvironmentGlobals004823B0(void);
 unsigned char InitializeEnvironmentColours(void);
 extern unsigned int g_frame_tick_65a154;
 extern float g_frame_elapsed_65a158;

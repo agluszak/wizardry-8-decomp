@@ -21,6 +21,7 @@ public:
 
     stMeshModel(long polygons, long vertices);
 
+    virtual ~stMeshModel() override;       /* 0x00470ED0 */
     virtual srClass* vInstance() override; /* 0x004748c0 */
     virtual int getBoundingSphere(srVector3T<float>& center,
                                   float& radius) override; /* 0x00471dd0 */
