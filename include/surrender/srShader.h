@@ -9,6 +9,10 @@ class srShader {
 public:
     srShader();
 
+    /* Copy one packed shader word into value; sources are shader words and
+       render-flag table entries alike. */
+    void CopyValue(const unsigned long* source);
+
     enum e_pass {
         PASS_NEVER = 0,
         PASS_LESS = 1,

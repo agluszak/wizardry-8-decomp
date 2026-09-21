@@ -654,6 +654,8 @@ extern srMaterialIFace* g_path_material_00652dbc;
 extern unsigned short g_path_reserve_0060827a;
 extern float g_path_span_scale_005ec344;
 extern double g_double_005ec3b0;
+/* The -1.0 no-route sentinel MeasurePathDistance00453300 returns. */
+extern const double g_double_005ec2e8;
 /* 0x005ED300: OctPrePath.cpp's vertical-link slack; retail Combat.cpp reads
    it directly when sizing a monster's move. */
 extern float g_prepath_link_height_5ed300;

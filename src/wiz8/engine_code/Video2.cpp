@@ -1644,6 +1644,16 @@ unsigned char GetCursorPositionInViewport(srVector3T<float>* position)
     return 0;
 }
 
+/* The tracked cursor tip (hotspot + size) in pixel-scale units. DropHeldItem
+   turns it into the toss direction. */
+// FUNCTION: WIZ8 0x004282F0
+void GetCursorScaledPosition004282F0(srVector3T<float>* position)
+{
+    position->x = (g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0) * g_scale_x_5ebb1c;
+    position->z = 0.0f;
+    position->y = (g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4) * g_scale_y_5ebb20;
+}
+
 /* Keep the rendered cursor synchronized with the OS cursor. In windowed mode
    the OS cursor is visible outside the client area and hidden while the game
    owns it; fullscreen coordinates are clamped to the 640x480 game surface. */
@@ -3650,7 +3660,7 @@ srNode* MakePosterQuad00424BA0(srTextureIFace* texture, float width, float heigh
     model->setMaterial(g_blit_material_65967c, 0, static_cast<srMeshModel::e_side>(0));
     model->setTexture(texture, 0, 0);
     srShader shader_copy;
-    CopyLevelDataHandle(&shader_copy.value, &shader.value);
+    shader_copy.CopyValue(&shader.value);
     model->setShader(shader_copy, 0);
 
     stModelInstance* instance = SR_NEW(stModelInstance)(static_cast<srNode*>(0));

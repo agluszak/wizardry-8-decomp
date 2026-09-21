@@ -195,7 +195,7 @@ struct W8LevelFileSwitch { /* 0x271 */
 };
 
 struct W8LevelFilePlane { /* 0x30 */
-    unsigned char unknown_00[0x30];
+    srVector3T<float> vertices_00[4];
 };
 
 struct W8LevelFileInvisible { /* 0x241 */

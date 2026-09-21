@@ -11,7 +11,6 @@ struct W8LevelFileParticleSystem;
 struct W8LevelFileProp;
 
 extern float g_float_005ec52c;
-extern float g_float_005ebc28;
 
 struct W8OctPreTreeVertex;
 struct W8OctPreTreeGeometry;

@@ -1493,7 +1493,7 @@ stModelInstance* W8GameData::CreateTraceModel0041C930()
         vertex += 3;
     }
     srShader shader;
-    CopyLevelDataHandle(&shader.value, &g_path_shader_00652dc4.value);
+    shader.CopyValue(&g_path_shader_00652dc4.value);
     mesh->setShader(shader, 0);
     if ((mesh->control_state_390 & 8) == 0) {
         mesh->control_state_390 |= 8;
@@ -1533,11 +1533,11 @@ stModelInstance* W8GameData::CreateTraceModel0041C930()
     return instance;
 }
 
-/* Copy one four-byte handle over another. */
+/* Copy one packed shader word into the shader. */
 // FUNCTION: WIZ8 0x0041cf80
-void CopyLevelDataHandle(unsigned long* destination, const unsigned long* source)
+void srShader::CopyValue(const unsigned long* source)
 {
-    *destination = *source;
+    value = *source;
 }
 
 // GLOBAL: WIZ8 0x005ebc80

@@ -53,6 +53,9 @@ unsigned int GetMillisecondsSinceCursorMove(void);
    rectangle (left, top, right, bottom). */
 bool IsCursorInRectangle(int left, int top, int right, int bottom);
 unsigned char GetCursorPositionInViewport(srVector3T<float>* position);
+/* 0x004282F0: the tracked cursor position in pixel-scale units
+   (hotspot + size scaled by g_scale_x/g_scale_y), z left zero. */
+void GetCursorScaledPosition004282F0(srVector3T<float>* position);
 void UpdateHeldItemCursor(void);
 void ClearHeldItemDisplay(void);
 void SetItemCursor(int item_id); /* 0x0055F160 */

@@ -41,6 +41,8 @@
 #include "wiz8/geometry.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/xstatus.h"
+#include "wiz8/cursor.h"
+#include "soundman.h"
 #include "wiz8/dialog_code/DialogBase.h"
 #include "wiz8/dialog_code/DialogFactoryDialogs.h"
 
@@ -56,6 +58,22 @@ extern const double g_double_005ed7b0 = 1.0 / 360.0;
 /* 0x005ED7B8: camera distance inside which inactive world items are activated. */
 // GLOBAL: WIZ8 0x005ed7b8
 float g_float_005ed7b8 = 20000.0f;
+
+/* 0x005ED7A8: pi, the amplitude cursor-driven throw angles are scaled from. */
+// GLOBAL: WIZ8 0x005ed7a8
+extern const double g_double_005ed7a8 = 3.141592653589793;
+
+/* 0x005EBF48: the screen-y coefficient in the drop-item yaw. */
+// GLOBAL: WIZ8 0x005ebf48
+extern const float g_float_005ebf48 = 85.0f;
+
+/* 0x005EBF4C: the screen-z coefficient in the drop-item pitch. */
+// GLOBAL: WIZ8 0x005ebf4c
+extern const float g_float_005ebf4c = 71.0f;
+
+/* 0x005ED7C0: the vertical scale of the drop-item direction. */
+// GLOBAL: WIZ8 0x005ed7c0
+extern const double g_double_005ed7c0 = -2500.0;
 
 /* 0x0064A1CD: when set, skip activating world items that already carry flag
    bit 0. */
@@ -863,6 +881,64 @@ void UpdateNearbyWorldItems(void)
     next_item:
         count = PLLength(gXStatus.plsItemList);
     }
+}
+
+/* Toss the cursor-held item into the world. The tracked cursor position is
+   turned into a 2500-unit direction through the camera rotation, traced to
+   the first obstruction, shortened by the item radius, settled onto the
+   ground and lifted back up. When the spot is free the held instance becomes
+   a world item; otherwise the refusal sound plays. */
+// FUNCTION: WIZ8 0x004F7610
+void DropHeldItem(int arg_1)
+{
+    srVector3T<float> cursor;
+    GetCursorScaledPosition004282F0(&cursor);
+    cursor.y = (cursor.y - g_float_005ebc7c) * g_float_005ec390;
+    cursor.z = (cursor.z - g_float_005ebc7c) * g_float_005ec390;
+
+    double amplitude = g_double_005ed7a8 * g_float_005ebcf8;
+    double pitch = amplitude * g_float_005ebc28 + amplitude * cursor.z * g_float_005ebf4c;
+    double base = cos(pitch) * g_double_005ec030;
+    double yaw = amplitude * cursor.y * g_float_005ebf48;
+
+    srVector3T<float> direction;
+    direction.y = static_cast<float>(sin(pitch) * g_double_005ed7c0);
+    direction.x = static_cast<float>(base * sin(yaw));
+    direction.z = static_cast<float>(base * cos(yaw));
+
+    srMatrix3T<float> rotation;
+    WorldGetCameraRotation(g_world, &rotation);
+    direction = rotation.Transform(direction);
+
+    srVector3T<float> camera;
+    GetCameraPosition(&camera);
+    direction += camera;
+    g_octree_6598a4->TraceLineOfSight(&camera, &direction, 1, -3, -3, 1, 0);
+
+    srVector3T<float> delta = direction - camera;
+    float distance_squared = delta.LengthSquared();
+    float distance = static_cast<float>(sqrt(distance_squared)) - g_float_005ec3f8;
+    if (distance < g_float_005ebb34) {
+        distance = g_float_005ebb34;
+    }
+    if (distance_squared != static_cast<float>(g_zero_005ebb40)) {
+        distance /= static_cast<float>(sqrt(distance_squared));
+        delta *= distance;
+    }
+
+    srVector3T<float> position = camera + delta;
+    position.y = g_octree_6598a4->SettleToGround(&position, 0, 1, 250.0f) + g_float_005ec3f8;
+    if (FindNearbyFreePosition00451800(250.0f, &position, 1, 1) != 0) {
+        W8WorldItem* item = CreateWorldItem(&g_status_685170.item_in_hand_235b, &position, 3, 1);
+        if (item == 0) {
+            // Retail passes the NULL item pointer as the assert message.
+            // reinterpret-ok: pointer-valued assert message argument.
+            const char* failed_item = reinterpret_cast<const char*>(item);
+            srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 0x339, failed_item);
+        }
+        return;
+    }
+    SoundPlay("Data\\Sound\\Misc\\CantDrop.WAV", 0);
 }
 
 /* Destroy callback the item picker installs: the items still held by the

@@ -310,7 +310,6 @@ void RedrawPanel69B940(void);           /* 0x0059BC00 */
 void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled); /* 0x0059A540 */
 
 void DrawMainGamePrompt(void);              /* 0x0056AC80 */
-void RedrawDialogueTextInput0058C790(void); /* 0x0058C790 */
 void InvalidateLockInteractionPanels(void); /* 0x00587C50 */
 unsigned char GetOpenDialogueFlag(void);    /* 0x0058D7C0 */
 void RedrawTextBoxComplete(void);           /* 0x0058A8C0 */
@@ -3108,6 +3107,7 @@ unsigned char MainGameScreenEnter(void)
     }
     return 1;
 }
+
 
 /* While the party is idle, arm a one-minute countdown after input and, once the
    cursor has also been still for a minute and that countdown expires, advance

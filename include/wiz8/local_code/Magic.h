@@ -100,7 +100,9 @@ int GetSpellbookForSpell(const W8Character* character, int spell_id, int a, int 
 /* 0x00501A60: the spell a missile type carries, or W8_SPELL_NONE. */
 int MissileSpellId(int missile_type);
 /* Whether the party as a whole is under one particular condition. */
-bool PartyHasCondition(int condition_id);                                    /* 0x005012B0 */
+bool PartyHasCondition(int condition_id); /* 0x005012B0 */
+/* Whether the combat party-effect slots already carry one condition. */
+bool CombatHasCondition(int condition_id);                                   /* 0x00501250 */
 int GetSpellDifficulty(unsigned int caster_figure, int spell_id, int bonus); /* 0x004FF790 */
 
 /* 0x004FAE70: whether a spellcasting-blocked condition stops this character
@@ -149,6 +151,5 @@ extern const unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT];
 void DetachMissileReferences005019A0(W8Missile* missile);
 /* Whether every queued effect still has time left on it. */
 bool AllSpellEffectsStillRunning(void); /* 0x00500E50 */
-bool CombatHasCondition(int condition_id);
 
 #endif

@@ -127,6 +127,17 @@ extern float g_float_005ebccc;
 extern const float g_float_005ec340;
 extern float g_float_005ec028;
 extern float g_float_005ec1a0;
+/* 0x005ED7A8: pi, the amplitude cursor-driven throw angles are scaled from. */
+extern const double g_double_005ed7a8;
+/* 0x005EBF4C: 71.0, the screen-z coefficient in the drop-item pitch. */
+extern const float g_float_005ebf4c;
+/* 0x005EBC28: 5.0, a generic proximity/scale factor shared by navigation,
+   monster-level math and the drop-item pitch. */
+extern float g_float_005ebc28;
+/* 0x005EBF48: 85.0, the screen-y coefficient in the drop-item yaw. */
+extern const float g_float_005ebf48;
+/* 0x005ED7C0: -2500.0, the vertical scale of the drop-item direction. */
+extern const double g_double_005ed7c0;
 extern float g_float_005ec38c;
 extern float g_float_005ec384;
 extern float g_float_005ec370;

@@ -9,6 +9,7 @@
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/GameplayInit.h"
 #include "wiz8/local_code/GameplayMods.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/local_code/Magic.h"
@@ -22,6 +23,7 @@
 #include "wiz8/local_code/CharGeneration.h"
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/GameplayCode.h"
+#include "wiz8/local_code/GameplayInit.h"
 #include "wiz8/local_code/GameplayMods.h"
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/Magic.h"
@@ -31,6 +33,7 @@
 #include "wiz8/xstatus.h"
 
 #include "random.h"
+#include "FileMan.h"
 
 #include <string.h>
 #include <wchar.h>

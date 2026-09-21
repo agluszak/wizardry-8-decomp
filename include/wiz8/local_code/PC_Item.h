@@ -192,7 +192,7 @@ unsigned short GetItemUnidentifiedNameIndex(const W8ItemInstance* item);
 /* Unresolved gap, declared for the split-stack dialog's trade-price labels:
    the gold price of a stack in the active trade context. The mode argument
    selects the pricing direction (0 for the buy side, 1 for the sell side). */
-int CalculateTradeStackPrice(W8NpcState* npc, W8ItemInstance* item, int mode); /* 0x0055B5E0 */
+int CalculateTradeStackPrice(W8NpcState* npc, W8ItemInstance* item, char mode); /* 0x0055B5E0 */
 /* 0x0051D7A0: whether any occupied, conscious party member can use the item. */
 bool AnyPartyMemberCanUseItem(int item_id);
 
