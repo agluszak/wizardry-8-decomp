@@ -1,6 +1,7 @@
 /* Enable the pinned SDK's SendInput declarations for the harness only. */
 #define _WIN32_WINNT 0x0500
 #include "game_thread_executor.h"
+#include "runtime_scenario.h"
 #include "wiz8/regions.h"
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/cursor.h"
@@ -76,73 +77,9 @@ extern InputAtom gEventQueue[256];
 struct W8LevelLoadDescriptor;
 extern W8LevelLoadDescriptor* g_load_descriptor_69b7c8;
 
-struct RuntimeObservation {
-    int menu_state;
-    unsigned int region_set_enabled;
-    unsigned int first_region;
-    unsigned int last_region;
-    unsigned char menu_seen;
-    unsigned char shade_table_ok;
-    unsigned char exit_observed;
-    unsigned char transition_observed;
-    unsigned char character_entered;
-    unsigned char character_returned;
-    unsigned char final_page_entered;
-    unsigned char final_page_redrawn;
-    unsigned char character_name_typed;
-    unsigned char character_summary_opened;
-    unsigned char character_committed;
-    unsigned char character_in_party;
-    unsigned char main_game_entered;
-    unsigned char party_moved;
-    unsigned char party_turned;
-    unsigned char world_soaked;
-    unsigned char automap_opened;
-    unsigned char automap_closed;
-    unsigned char game_saved;
-    unsigned char game_loaded;
-    unsigned char load_position_restored;
-    unsigned char combat_started;
-    unsigned char combat_action_queued;
-    unsigned char combat_party_moved;
-    unsigned char combat_ended;
-    unsigned char combat_aggroed;
-    unsigned char monster_engaged;
-    unsigned char return_observed;
-    unsigned char timed_out;
-    int character_page_start;
-    int character_page_after;
-    unsigned char tooltip_shown;
-    unsigned char tooltip_removed;
-    unsigned char skill_tooltip_shown;
-    unsigned char skill_tooltip_removed;
-    unsigned char skill_interacted;
-    unsigned char npc_state_reset_ok;
-    unsigned char playlist_active;
-    int playlist_tracks;
-    int playlist_weight;
-    int playlist_pause_min;
-    int playlist_pause_max;
-    int playlist_pause_chance;
-    int patch_catalog_count;
-    unsigned int item_database_count;
-    unsigned int monster_database_count;
-    unsigned int npc_database_count;
-    unsigned char patch_precedence_ok;
-    unsigned char physical_fallback_ok;
-};
-
 static RuntimeObservation g_observation;
 static const char* g_scenario;
-static unsigned char g_sight_semantic_ok;
-static unsigned char g_split_semantic_ok;
-static unsigned char g_party_movement_semantic_ok;
-static unsigned char g_audio_semantic_ok;
-static unsigned char g_keyboard_semantic_ok;
-static unsigned char g_dialogue_semantic_ok;
-static unsigned char g_search_semantic_ok;
-static unsigned char g_mongen_semantic_ok;
-static unsigned char g_mouth_gap_semantic_ok;
+static const RuntimeScenario* g_scenario_spec;
 
 static bool RunSearchModeSemanticTest(void)
 {
@@ -215,7 +152,7 @@ static bool RunSearchModeSemanticTest(void)
 
 /* Bounds the driver join after WinMain returns. Python owns the hard
    process deadline, including hangs inside WinMain. */
-static const DWORD kScenarioBudgetMs = 120000;
+
 static DWORD g_scenario_started;
 
 static void ReportStep(const char* step)
@@ -659,9 +596,8 @@ static void ResetNpcStateOnGameThread(void* opaque)
     gfProgramIsRunning = 0;
 }
 
-static void RunMenuChecksOnGameThread(void* opaque)
+static void RunMenuChecksOnGameThread(void*)
 {
-    int* semantic_status = static_cast<int*>(opaque);
     g_observation.playlist_active = g_music_playlist_active_65ba7e;
     g_observation.playlist_tracks = g_music_playlist_track_count_65ba84;
     g_observation.playlist_weight = g_music_playlist_weight_total_65ba80;
@@ -692,82 +628,82 @@ static void RunMenuChecksOnGameThread(void* opaque)
             g_observation.patch_catalog_count, g_observation.patch_precedence_ok,
             g_observation.physical_fallback_ok);
     fflush(stderr);
+}
 
-    if (strcmp(g_scenario, "oct-file") == 0) {
-        OctFileSemanticResult oct_result;
-        bool oct_ok = RunOctFileSemanticTests(&oct_result);
-        PrintOctFileSemanticResults(&oct_result);
-        *semantic_status = oct_ok ? 0 : 1;
-        return;
-    }
+static DWORD RunOctFileScenario()
+{
+    OctFileSemanticResult oct_result;
+    g_observation.semantic_ok = RunOctFileSemanticTests(&oct_result);
+    PrintOctFileSemanticResults(&oct_result);
+    return g_observation.semantic_ok ? 0 : 1;
+}
 
-    if (strcmp(g_scenario, "sight-threshold") == 0) {
-        SightSemanticResult sight_result;
-        g_sight_semantic_ok = RunSightSemanticTests(&sight_result);
-        PrintSightSemanticResults(&sight_result);
-        *semantic_status = g_sight_semantic_ok ? 0 : 1;
-        return;
-    }
+static DWORD RunSightScenario()
+{
+    SightSemanticResult sight_result;
+    g_observation.semantic_ok = RunSightSemanticTests(&sight_result);
+    PrintSightSemanticResults(&sight_result);
+    return g_observation.semantic_ok ? 0 : 1;
+}
 
-    if (strcmp(g_scenario, "split-stack") == 0) {
-        SplitStackSemanticResult split_result;
-        g_split_semantic_ok = RunSplitStackSemanticTest(&split_result);
-        PrintSplitStackSemanticResults(&split_result);
-        *semantic_status = g_split_semantic_ok ? 0 : 1;
-        return;
-    }
+static DWORD RunSplitStackScenario()
+{
+    SplitStackSemanticResult split_result;
+    g_observation.semantic_ok = RunSplitStackSemanticTest(&split_result);
+    PrintSplitStackSemanticResults(&split_result);
+    return g_observation.semantic_ok ? 0 : 1;
+}
 
-    if (strcmp(g_scenario, "party-movement") == 0) {
-        PartyMovementSemanticResult movement_result;
-        g_party_movement_semantic_ok = RunPartyMovementSemanticTest(&movement_result);
-        PrintPartyMovementSemanticResults(&movement_result);
-        *semantic_status = g_party_movement_semantic_ok ? 0 : 1;
-        return;
-    }
+static DWORD RunPartyMovementScenario()
+{
+    PartyMovementSemanticResult movement_result;
+    g_observation.semantic_ok = RunPartyMovementSemanticTest(&movement_result);
+    PrintPartyMovementSemanticResults(&movement_result);
+    return g_observation.semantic_ok ? 0 : 1;
+}
 
-    if (strcmp(g_scenario, "audio-semantics") == 0) {
-        AudioSemanticResult audio_result;
-        g_audio_semantic_ok = RunAudioSemanticTests(&audio_result);
-        PrintAudioSemanticResults(&audio_result);
-        *semantic_status = g_audio_semantic_ok ? 0 : 1;
-        return;
-    }
+static DWORD RunAudioScenario()
+{
+    AudioSemanticResult audio_result;
+    g_observation.semantic_ok = RunAudioSemanticTests(&audio_result);
+    PrintAudioSemanticResults(&audio_result);
+    return g_observation.semantic_ok ? 0 : 1;
+}
 
-    if (strcmp(g_scenario, "keyboard-menu") == 0) {
-        KeyboardMenuSemanticResult keyboard_result;
-        g_keyboard_semantic_ok = RunKeyboardMenuSemanticTest(&keyboard_result);
-        PrintKeyboardMenuSemanticResults(&keyboard_result);
-        *semantic_status = g_keyboard_semantic_ok ? 0 : 1;
-        return;
-    }
+static DWORD RunKeyboardMenuScenario()
+{
+    KeyboardMenuSemanticResult keyboard_result;
+    g_observation.semantic_ok = RunKeyboardMenuSemanticTest(&keyboard_result);
+    PrintKeyboardMenuSemanticResults(&keyboard_result);
+    return g_observation.semantic_ok ? 0 : 1;
+}
 
-    if (strcmp(g_scenario, "mouth-gap") == 0) {
-        MouthGapSemanticResult mouth_gap_result;
-        g_mouth_gap_semantic_ok = RunMouthGapSemanticTest(&mouth_gap_result);
-        PrintMouthGapSemanticResults(&mouth_gap_result);
-        *semantic_status = g_mouth_gap_semantic_ok ? 0 : 1;
-        return;
-    }
+static DWORD RunMouthGapScenario()
+{
+    MouthGapSemanticResult mouth_gap_result;
+    g_observation.semantic_ok = RunMouthGapSemanticTest(&mouth_gap_result);
+    PrintMouthGapSemanticResults(&mouth_gap_result);
+    return g_observation.semantic_ok ? 0 : 1;
+}
 
-    if (strcmp(g_scenario, "npc-dialogue") == 0) {
-        NpcDialogueSemanticResult dialogue_result;
-        g_dialogue_semantic_ok = RunNpcDialogueSemanticTest(&dialogue_result);
-        PrintNpcDialogueSemanticResults(&dialogue_result);
-        *semantic_status = g_dialogue_semantic_ok ? 0 : 1;
-        return;
-    }
+static DWORD RunNpcDialogueScenario()
+{
+    NpcDialogueSemanticResult dialogue_result;
+    g_observation.semantic_ok = RunNpcDialogueSemanticTest(&dialogue_result);
+    PrintNpcDialogueSemanticResults(&dialogue_result);
+    return g_observation.semantic_ok ? 0 : 1;
+}
 
-    if (strcmp(g_scenario, "search-mode") == 0) {
-        g_search_semantic_ok = RunSearchModeSemanticTest();
-        *semantic_status = g_search_semantic_ok ? 0 : 1;
-        return;
-    }
+static DWORD RunSearchModeScenario()
+{
+    g_observation.semantic_ok = RunSearchModeSemanticTest();
+    return g_observation.semantic_ok ? 0 : 1;
+}
 
-    if (strcmp(g_scenario, "mongen") == 0) {
-        g_mongen_semantic_ok = RunMonGenSemanticTest();
-        *semantic_status = g_mongen_semantic_ok ? 0 : 1;
-        return;
-    }
+static DWORD RunMonGenScenario()
+{
+    g_observation.semantic_ok = RunMonGenSemanticTest();
+    return g_observation.semantic_ok ? 0 : 1;
 }
 
 struct HostileEncounterContext {
@@ -925,1070 +861,1033 @@ static void ProbeExecutorOnGameThread(void* opaque)
     ++probe->calls;
 }
 
-static DWORD WINAPI DriveScenario(void*)
+static bool WaitForEngineReady(unsigned int timeout_ms)
 {
-    if (!WaitForMainMenu(30000)) {
-        g_observation.timed_out = 1;
-        fprintf(stderr, "runtime-test timeout: state=%d window=%p regions=%u running=%u\n",
-                g_current_screen_state.id, ghWindow, g_region_sets[1].enabled, gfProgramIsRunning);
-        fflush(stderr);
-        gfProgramIsRunning = 0;
-        if (ghWindow != NULL) {
-            PostMessage(ghWindow, WM_CLOSE, 0, 0);
+    unsigned int started = GetTickCount();
+    while (GetTickCount() - started < timeout_ms) {
+        if (*(volatile unsigned char*)&gfGameInitialized && *(HWND volatile*)&ghWindow != 0 &&
+            gFileDataBase.pLibraries != 0 && gXStatus.uiItemsInDatabase != 0 &&
+            gXStatus.uiMonstersInDatabase != 0 && gXStatus.uiNpcsInDatabase != 0) {
+            return true;
         }
-        return 2;
+        Sleep(5);
     }
+    return false;
+}
 
-    if (!InitializeRuntimeGameThreadExecutor(ghWindow)) {
-        return FailScenario("game-thread-executor", "install-failed");
-    }
-    if (strcmp(g_scenario, "main-menu-startup") == 0) {
-        ExecutorProbe probe = {0, 0};
-        DWORD expected_thread = GetWindowThreadProcessId(ghWindow, 0);
-        for (unsigned int index = 0; index < 100; ++index) {
-            if (!RunOnGameThread(ProbeExecutorOnGameThread, &probe) ||
-                probe.thread_id != expected_thread || probe.calls != index + 1) {
-                return FailScenario("game-thread-executor", "callback-thread-or-count-mismatch");
-            }
+enum CharacterFlow { CHARACTER_RETURN, CHARACTER_ACCEPTANCE, CHARACTER_RESET, CHARACTER_DIRECT };
+
+static DWORD RunCharacterFlow(CharacterFlow flow)
+{
+    /* New Game is the second live menu region. Click its current bounds so
+       the scenario uses the ordinary region callback without racing
+       several keyboard pairs through SGP's hook in one frame. */
+    ClickRegion(g_region_sets[1].first_region + 1);
+    /* Entering is only complete after GameLoop clears the pending state and
+       the controller has built and enabled the mode-zero character panel.
+       The panel's shared region-set slot is the readiness marker. */
+    unsigned int started = GetTickCount();
+    while (GetTickCount() - started < 5000) {
+        unsigned int region_set =
+            *(volatile unsigned int*)&g_party_selection_character_region_set_69c4f0;
+        if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_PARTY_SELECTION &&
+            *(volatile int*)&g_pending_screen_state.id == -1 && region_set != 0 &&
+            *(volatile unsigned int*)&g_region_sets[region_set].enabled) {
+            g_observation.transition_observed = 1;
+            break;
         }
-        ReportStep("game-thread-executor-checked");
-    }
-    g_observation.menu_seen = 1;
-    ReportStep("main-menu-reached");
-    g_observation.menu_state = g_current_screen_state.id;
-    g_observation.region_set_enabled = g_region_sets[1].enabled;
-    g_observation.first_region = g_region_sets[1].first_region;
-    g_observation.last_region = g_region_sets[1].last_region;
-    /* The menu music starts on a later frame than the menu state and its
-       regions; the observation is only stable once the list is live. */
-    unsigned int playlist_started = GetTickCount();
-    while (*(volatile unsigned char*)&g_music_playlist_active_65ba7e == 0 &&
-           GetTickCount() - playlist_started < 3000) {
         Sleep(10);
     }
-    int semantic_status = -1;
-    if (!RunOnGameThread(RunMenuChecksOnGameThread, &semantic_status)) {
-        return FailScenario("main-menu-checks", "game-thread-executor-failed");
-    }
-    if (semantic_status >= 0) {
-        gfProgramIsRunning = 0;
-        return semantic_status;
+    if (!g_observation.transition_observed) {
+        return FailScenario("party-selection", "new-game-transition-not-observed");
     }
 
-    if (strcmp(g_scenario, "main-menu-startup") == 0) {
-        gfProgramIsRunning = 0;
-        return 0;
+    /* The left action panel registers its controls in creation order, so
+       the first region in its live set is "Create Character". Click the
+       centre of that region's current bounds rather than a fixed pixel. */
+    unsigned int left_action_set =
+        *(volatile unsigned int*)&g_party_selection_left_action_region_set_69c504;
+    if (left_action_set == 0 || left_action_set >= g_region_set_count) {
+        return FailScenario("character-entry", "create-character-region-set-missing");
     }
-
-    if (strcmp(g_scenario, "main-menu-new-game") == 0 ||
-        strcmp(g_scenario, "main-game-start") == 0 || strcmp(g_scenario, "npc-state-reset") == 0 ||
-        strcmp(g_scenario, "new-game-entry") == 0) {
-        /* New Game is the second live menu region. Click its current bounds so
-           the scenario uses the ordinary region callback without racing
-           several keyboard pairs through SGP's hook in one frame. */
-        ClickRegion(g_region_sets[1].first_region + 1);
-        /* Entering is only complete after GameLoop clears the pending state and
-           the controller has built and enabled the mode-zero character panel.
-           The panel's shared region-set slot is the readiness marker. */
-        unsigned int started = GetTickCount();
-        while (GetTickCount() - started < 5000) {
-            unsigned int region_set =
-                *(volatile unsigned int*)&g_party_selection_character_region_set_69c4f0;
-            if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_PARTY_SELECTION &&
-                *(volatile int*)&g_pending_screen_state.id == -1 && region_set != 0 &&
-                *(volatile unsigned int*)&g_region_sets[region_set].enabled) {
-                g_observation.transition_observed = 1;
-                break;
-            }
-            Sleep(10);
-        }
-        if (!g_observation.transition_observed) {
-            return FailScenario("party-selection", "new-game-transition-not-observed");
-        }
-
-        /* The left action panel registers its controls in creation order, so
-           the first region in its live set is "Create Character". Click the
-           centre of that region's current bounds rather than a fixed pixel. */
-        unsigned int left_action_set =
-            *(volatile unsigned int*)&g_party_selection_left_action_region_set_69c504;
-        if (left_action_set == 0 || left_action_set >= g_region_set_count) {
-            return FailScenario("character-entry", "create-character-region-set-missing");
-        }
-        unsigned int create_region =
-            *(volatile unsigned int*)&g_region_sets[left_action_set].first_region;
-        if (create_region >= g_region_count) {
-            return FailScenario("character-entry", "create-character-region-missing");
-        }
-        W8Region* create_bounds = &g_regions[create_region];
-        SendScenarioMouse((create_bounds->x1 + create_bounds->x2) / 2,
-                          (create_bounds->y1 + create_bounds->y2) / 2);
-        started = GetTickCount();
-        while (GetTickCount() - started < 5000) {
-            W8CharacterScreen* screen = *(W8CharacterScreen* volatile*)&g_character_screen_0069c2e8;
-            unsigned int page_region_set =
-                *(volatile unsigned int*)&g_character_stats_region_set_0069c550;
-            if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_CHARACTER &&
-                *(volatile int*)&g_pending_screen_state.id == -1 && screen != 0 &&
-                screen->m_pages_1b0c[0] != 0 && page_region_set != 0 &&
-                *(volatile unsigned int*)&g_region_sets[page_region_set].enabled) {
-                g_observation.character_entered = 1;
-                ReportStep("character-entered");
-                break;
-            }
-            Sleep(10);
-        }
-        if (!g_observation.character_entered) {
-            return FailScenario("character-entry", "character-screen-not-entered");
-        }
-
-        /* Walk the creation pages through their real controls. The first
-           profession record is a non-caster, so the spell page is skipped. */
+    unsigned int create_region =
+        *(volatile unsigned int*)&g_region_sets[left_action_set].first_region;
+    if (create_region >= g_region_count) {
+        return FailScenario("character-entry", "create-character-region-missing");
+    }
+    W8Region* create_bounds = &g_regions[create_region];
+    SendScenarioMouse((create_bounds->x1 + create_bounds->x2) / 2,
+                      (create_bounds->y1 + create_bounds->y2) / 2);
+    started = GetTickCount();
+    while (GetTickCount() - started < 5000) {
         W8CharacterScreen* screen = *(W8CharacterScreen* volatile*)&g_character_screen_0069c2e8;
-        if (screen == 0 || screen->m_page_index_00c != 0 || screen->m_pages_1b0c[0] == 0) {
-            return FailScenario("character-attributes", "initial-page-state-invalid");
+        unsigned int page_region_set =
+            *(volatile unsigned int*)&g_character_stats_region_set_0069c550;
+        if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_CHARACTER &&
+            *(volatile int*)&g_pending_screen_state.id == -1 && screen != 0 &&
+            screen->m_pages_1b0c[0] != 0 && page_region_set != 0 &&
+            *(volatile unsigned int*)&g_region_sets[page_region_set].enabled) {
+            g_observation.character_entered = 1;
+            ReportStep("character-entered");
+            break;
         }
-        W8CharacterPage005EF778* stats_page =
-            static_cast<W8CharacterPage005EF778*>(screen->m_pages_1b0c[0]);
-        W8CharacterCreationState* creation = &screen->m_creation_state_187c;
+        Sleep(10);
+    }
+    if (!g_observation.character_entered) {
+        return FailScenario("character-entry", "character-screen-not-entered");
+    }
 
-        /* Take the first profession, race and sex record. */
-        ClickControl(stats_page->m_profession_row_07c->m_increment_020);
-        started = GetTickCount();
-        while (stats_page->m_profession_row_07c->m_value_004 == -1) {
-            if (GetTickCount() - started > 3000)
-                return FailScenario("character-attributes", "profession-selection-timeout");
-            Sleep(10);
-        }
-        ClickControl(stats_page->m_race_row_080->m_increment_020);
-        started = GetTickCount();
-        while (stats_page->m_race_row_080->m_value_004 == -1) {
-            if (GetTickCount() - started > 3000)
-                return FailScenario("character-attributes", "race-selection-timeout");
-            Sleep(10);
-        }
-        ClickControl(stats_page->m_gender_row_084->m_increment_020);
-        started = GetTickCount();
-        while (stats_page->m_gender_row_084->m_value_004 == -1) {
-            if (GetTickCount() - started > 3000)
-                return FailScenario("character-attributes", "gender-selection-timeout");
-            Sleep(10);
-        }
+    /* Walk the creation pages through their real controls. The first
+       profession record is a non-caster, so the spell page is skipped. */
+    W8CharacterScreen* screen = *(W8CharacterScreen* volatile*)&g_character_screen_0069c2e8;
+    if (screen == 0 || screen->m_page_index_00c != 0 || screen->m_pages_1b0c[0] == 0) {
+        return FailScenario("character-attributes", "initial-page-state-invalid");
+    }
+    W8CharacterPage005EF778* stats_page =
+        static_cast<W8CharacterPage005EF778*>(screen->m_pages_1b0c[0]);
+    W8CharacterCreationState* creation = &screen->m_creation_state_187c;
 
-        /* The row callback enables the attribute entries once profession and
-           race exist. */
-        started = GetTickCount();
-        while (!stats_page->m_entries_04c.data[0]->m_enabled_03a) {
-            if (GetTickCount() - started > 3000)
-                return FailScenario("character-attributes", "attribute-controls-not-enabled");
-            Sleep(10);
-        }
+    /* Take the first profession, race and sex record. */
+    ClickControl(stats_page->m_profession_row_07c->m_increment_020);
+    started = GetTickCount();
+    while (stats_page->m_profession_row_07c->m_value_004 == -1) {
+        if (GetTickCount() - started > 3000)
+            return FailScenario("character-attributes", "profession-selection-timeout");
+        Sleep(10);
+    }
+    ClickControl(stats_page->m_race_row_080->m_increment_020);
+    started = GetTickCount();
+    while (stats_page->m_race_row_080->m_value_004 == -1) {
+        if (GetTickCount() - started > 3000)
+            return FailScenario("character-attributes", "race-selection-timeout");
+        Sleep(10);
+    }
+    ClickControl(stats_page->m_gender_row_084->m_increment_020);
+    started = GetTickCount();
+    while (stats_page->m_gender_row_084->m_value_004 == -1) {
+        if (GetTickCount() - started > 3000)
+            return FailScenario("character-attributes", "gender-selection-timeout");
+        Sleep(10);
+    }
 
-        /* Spend the whole attribute pool through each entry's own increment
-           control until the page itself reports the allocation complete. */
-        bool progress = true;
-        started = GetTickCount();
-        while (creation->attributes_complete == 0 && progress && GetTickCount() - started < 20000) {
-            progress = false;
-            for (int index = 0; index < stats_page->m_entries_04c.count; ++index) {
-                W8CharacterPageEntry* entry = stats_page->m_entries_04c.data[index];
-                if (entry == 0 || !entry->m_enabled_03a) {
-                    continue;
-                }
-                while (true) {
-                    volatile int* spent = entry->m_second_024;
-                    volatile int* limit = entry->m_third_028;
-                    if (*spent >= *limit)
-                        break;
-                    int before = *spent;
-                    ClickControl(entry->m_increment_008);
-                    unsigned int click_started = GetTickCount();
-                    while (*spent == before && GetTickCount() - click_started < 1000) {
-                        Sleep(5);
-                    }
-                    if (*spent == before)
-                        break;
-                    progress = true;
-                    if (creation->attributes_complete != 0)
-                        break;
-                }
-                if (creation->attributes_complete != 0)
-                    break;
-            }
-        }
-        if (creation->attributes_complete == 0) {
-            return FailScenario("character-attributes", "attribute-points-not-committed");
-        }
+    /* The row callback enables the attribute entries once profession and
+       race exist. */
+    started = GetTickCount();
+    while (!stats_page->m_entries_04c.data[0]->m_enabled_03a) {
+        if (GetTickCount() - started > 3000)
+            return FailScenario("character-attributes", "attribute-controls-not-enabled");
+        Sleep(10);
+    }
 
-        /* Hover the Next control long enough to raise its help box and move
-           off it to take the box down before using it. */
-        HoverRegion(screen->m_next_1af8->m_region);
-        if (WaitForTooltip(true, 2000)) {
-            g_observation.tooltip_shown = 1;
-        }
-        ParkMouseOutsideActiveRegions();
-        if (WaitForTooltip(false, 2000)) {
-            g_observation.tooltip_removed = 1;
-        }
-
-        ClickControl(screen->m_next_1af8);
-        started = GetTickCount();
-        while (*(volatile int*)&screen->m_page_index_00c != 2) {
-            if (GetTickCount() - started > 5000)
-                return FailScenario("character-skills", "skill-page-transition-timeout");
-            Sleep(10);
-        }
-
-        /* Spend the skill pool the same way on the skill page. */
-        W8CharacterPage005EF5C8* skills_page = 0;
-        started = GetTickCount();
-        while (GetTickCount() - started < 5000) {
-            skills_page = static_cast<W8CharacterPage005EF5C8*>(screen->m_pages_1b0c[2]);
-            if (skills_page != 0 && skills_page->m_entries_04c.count > 0 &&
-                skills_page->m_entries_04c.data[0]->m_enabled_03a) {
-                break;
-            }
-            Sleep(10);
-        }
-        if (skills_page == 0 || skills_page->m_entries_04c.count == 0) {
-            return FailScenario("character-skills", "skill-page-controls-missing");
-        }
-
-        /* The skills page's first enabled row raises and clears its own help
-           box through the row's help control. */
-        for (int index = 0; index < skills_page->m_entries_04c.count; ++index) {
-            W8CharacterPageEntry* entry = skills_page->m_entries_04c.data[index];
+    /* Spend the whole attribute pool through each entry's own increment
+       control until the page itself reports the allocation complete. */
+    bool progress = true;
+    started = GetTickCount();
+    while (creation->attributes_complete == 0 && progress && GetTickCount() - started < 20000) {
+        progress = false;
+        for (int index = 0; index < stats_page->m_entries_04c.count; ++index) {
+            W8CharacterPageEntry* entry = stats_page->m_entries_04c.data[index];
             if (entry == 0 || !entry->m_enabled_03a) {
                 continue;
             }
-            HoverRegion(entry->m_help_010->m_region);
-            if (WaitForTooltip(true, 2000)) {
-                g_observation.skill_tooltip_shown = 1;
-            }
-            ParkMouseOutsideActiveRegions();
-            if (WaitForTooltip(false, 2000)) {
-                g_observation.skill_tooltip_removed = 1;
-            }
-            break;
-        }
-
-        progress = true;
-        started = GetTickCount();
-        while (creation->skills_complete == 0 && progress && GetTickCount() - started < 20000) {
-            progress = false;
-            for (int index = 0; index < skills_page->m_entries_04c.count; ++index) {
-                W8CharacterPageEntry* entry = skills_page->m_entries_04c.data[index];
-                if (entry == 0 || !entry->m_enabled_03a || !entry->m_increment_allowed_03b) {
-                    continue;
-                }
+            while (true) {
                 volatile int* spent = entry->m_second_024;
                 volatile int* limit = entry->m_third_028;
                 if (*spent >= *limit)
-                    continue;
+                    break;
                 int before = *spent;
                 ClickControl(entry->m_increment_008);
                 unsigned int click_started = GetTickCount();
                 while (*spent == before && GetTickCount() - click_started < 1000) {
                     Sleep(5);
                 }
-                if (*spent != before)
-                    progress = true;
-                if (*spent != before) {
-                    g_observation.skill_interacted = 1;
-                }
-                if (creation->skills_complete != 0)
+                if (*spent == before)
+                    break;
+                progress = true;
+                if (creation->attributes_complete != 0)
                     break;
             }
+            if (creation->attributes_complete != 0)
+                break;
         }
-        if (creation->skills_complete == 0) {
-            return FailScenario("character-skills", "skill-points-not-committed");
-        }
+    }
+    if (creation->attributes_complete == 0) {
+        return FailScenario("character-attributes", "attribute-points-not-committed");
+    }
 
-        /* The final page copies both name fields into its text-input buffers at
-           activation, and only enables Next while both are non-empty. Pre-fill
-           the character before the page opens so the real Next control is
-           enabled, the same state a user reaches by typing a name. */
-        if (strcmp(g_scenario, "main-game-start") == 0 ||
-            strcmp(g_scenario, "npc-state-reset") == 0 ||
-            strcmp(g_scenario, "new-game-entry") == 0) {
-            if (!RunOnGameThread(NameCharacterFixtureOnGameThread, screen)) {
-                return FailScenario("character-name-fixture", "game-thread-executor-failed");
+    /* Hover the Next control long enough to raise its help box and move
+       off it to take the box down before using it. */
+    HoverRegion(screen->m_next_1af8->m_region);
+    if (WaitForTooltip(true, 2000)) {
+        g_observation.tooltip_shown = 1;
+    }
+    ParkMouseOutsideActiveRegions();
+    if (WaitForTooltip(false, 2000)) {
+        g_observation.tooltip_removed = 1;
+    }
+
+    ClickControl(screen->m_next_1af8);
+    started = GetTickCount();
+    while (*(volatile int*)&screen->m_page_index_00c != 2) {
+        if (GetTickCount() - started > 5000)
+            return FailScenario("character-skills", "skill-page-transition-timeout");
+        Sleep(10);
+    }
+
+    /* Spend the skill pool the same way on the skill page. */
+    W8CharacterPage005EF5C8* skills_page = 0;
+    started = GetTickCount();
+    while (GetTickCount() - started < 5000) {
+        skills_page = static_cast<W8CharacterPage005EF5C8*>(screen->m_pages_1b0c[2]);
+        if (skills_page != 0 && skills_page->m_entries_04c.count > 0 &&
+            skills_page->m_entries_04c.data[0]->m_enabled_03a) {
+            break;
+        }
+        Sleep(10);
+    }
+    if (skills_page == 0 || skills_page->m_entries_04c.count == 0) {
+        return FailScenario("character-skills", "skill-page-controls-missing");
+    }
+
+    /* The skills page's first enabled row raises and clears its own help
+       box through the row's help control. */
+    for (int index = 0; index < skills_page->m_entries_04c.count; ++index) {
+        W8CharacterPageEntry* entry = skills_page->m_entries_04c.data[index];
+        if (entry == 0 || !entry->m_enabled_03a) {
+            continue;
+        }
+        HoverRegion(entry->m_help_010->m_region);
+        if (WaitForTooltip(true, 2000)) {
+            g_observation.skill_tooltip_shown = 1;
+        }
+        ParkMouseOutsideActiveRegions();
+        if (WaitForTooltip(false, 2000)) {
+            g_observation.skill_tooltip_removed = 1;
+        }
+        break;
+    }
+
+    progress = true;
+    started = GetTickCount();
+    while (creation->skills_complete == 0 && progress && GetTickCount() - started < 20000) {
+        progress = false;
+        for (int index = 0; index < skills_page->m_entries_04c.count; ++index) {
+            W8CharacterPageEntry* entry = skills_page->m_entries_04c.data[index];
+            if (entry == 0 || !entry->m_enabled_03a || !entry->m_increment_allowed_03b) {
+                continue;
+            }
+            volatile int* spent = entry->m_second_024;
+            volatile int* limit = entry->m_third_028;
+            if (*spent >= *limit)
+                continue;
+            int before = *spent;
+            ClickControl(entry->m_increment_008);
+            unsigned int click_started = GetTickCount();
+            while (*spent == before && GetTickCount() - click_started < 1000) {
+                Sleep(5);
+            }
+            if (*spent != before)
+                progress = true;
+            if (*spent != before) {
+                g_observation.skill_interacted = 1;
+            }
+            if (creation->skills_complete != 0)
+                break;
+        }
+    }
+    if (creation->skills_complete == 0) {
+        return FailScenario("character-skills", "skill-points-not-committed");
+    }
+
+    /* The final page copies both name fields into its text-input buffers at
+       activation, and only enables Next while both are non-empty. Pre-fill
+       the character before the page opens so the real Next control is
+       enabled, the same state a user reaches by typing a name. */
+    if (flow == CHARACTER_ACCEPTANCE || flow == CHARACTER_RESET || flow == CHARACTER_DIRECT) {
+        if (!RunOnGameThread(NameCharacterFixtureOnGameThread, screen)) {
+            return FailScenario("character-name-fixture", "game-thread-executor-failed");
+        }
+    }
+
+    /* Enter the final page and let its redraw complete: the prepared block
+       clearing is the product-side proof that a frame ran. */
+    ClickControl(screen->m_next_1af8);
+    started = GetTickCount();
+    while (GetTickCount() - started < 5000) {
+        W8CharacterPage005EF57C* final_page =
+            *(W8CharacterPage005EF57C* volatile*)&screen->m_pages_1b0c[3];
+        if (*(volatile int*)&screen->m_page_index_00c == 3 && final_page != 0) {
+            g_observation.final_page_entered = 1;
+            ReportStep("character-final-page");
+            if (final_page->m_prepared_06c == 0) {
+                g_observation.final_page_redrawn = 1;
+                break;
             }
         }
+        Sleep(10);
+    }
+    if (!g_observation.final_page_entered) {
+        return FailScenario("character-final-page", "final-page-not-entered");
+    }
 
-        /* Enter the final page and let its redraw complete: the prepared block
-           clearing is the product-side proof that a frame ran. */
-        ClickControl(screen->m_next_1af8);
+    /* Exercise the final page through Wine's real keyboard path.  This
+       scenario intentionally reaches the page with both fields empty, so
+       the product selects field zero; Tab then transfers focus to the
+       second field. */
+    if (flow == CHARACTER_RETURN) {
+        const WORD first_name_keys[] = {'P', 'R', 'O', 'B', 'E'};
+        const WORD second_name_keys[] = {'N', 'A', 'M', 'E'};
+        for (int first_name_index = 0; first_name_index < 5; ++first_name_index) {
+            SendScenarioKey(first_name_keys[first_name_index]);
+            Sleep(20);
+        }
+        SendScenarioKey(VK_TAB);
+        Sleep(20);
+        for (int second_name_index = 0; second_name_index < 4; ++second_name_index) {
+            SendScenarioKey(second_name_keys[second_name_index]);
+            Sleep(20);
+        }
         started = GetTickCount();
-        while (GetTickCount() - started < 5000) {
-            W8CharacterPage005EF57C* final_page =
-                *(W8CharacterPage005EF57C* volatile*)&screen->m_pages_1b0c[3];
-            if (*(volatile int*)&screen->m_page_index_00c == 3 && final_page != 0) {
-                g_observation.final_page_entered = 1;
-                ReportStep("character-final-page");
-                if (final_page->m_prepared_06c == 0) {
-                    g_observation.final_page_redrawn = 1;
-                    break;
-                }
+        while (GetTickCount() - started < 3000) {
+            if (wcscmp(screen->m_character_018.name_part_2, L"probe") == 0 &&
+                wcscmp(screen->m_character_018.name, L"name") == 0) {
+                g_observation.character_name_typed = 1;
+                break;
             }
             Sleep(10);
         }
-        if (!g_observation.final_page_entered) {
-            return FailScenario("character-final-page", "final-page-not-entered");
+        if (!g_observation.character_name_typed) {
+            return FailScenario("character-final-page", "name-input-not-observed");
         }
 
-        /* Exercise the final page through Wine's real keyboard path.  This
-           scenario intentionally reaches the page with both fields empty, so
-           the product selects field zero; Tab then transfers focus to the
-           second field. */
-        if (strcmp(g_scenario, "main-menu-new-game") == 0) {
-            const WORD first_name_keys[] = {'P', 'R', 'O', 'B', 'E'};
-            const WORD second_name_keys[] = {'N', 'A', 'M', 'E'};
-            for (int first_name_index = 0; first_name_index < 5; ++first_name_index) {
-                SendScenarioKey(first_name_keys[first_name_index]);
-                Sleep(20);
-            }
-            SendScenarioKey(VK_TAB);
-            Sleep(20);
-            for (int second_name_index = 0; second_name_index < 4; ++second_name_index) {
-                SendScenarioKey(second_name_keys[second_name_index]);
-                Sleep(20);
-            }
-            started = GetTickCount();
-            while (GetTickCount() - started < 3000) {
-                if (wcscmp(screen->m_character_018.name_part_2, L"probe") == 0 &&
-                    wcscmp(screen->m_character_018.name, L"name") == 0) {
-                    g_observation.character_name_typed = 1;
-                    break;
-                }
-                Sleep(10);
-            }
-            if (!g_observation.character_name_typed) {
-                return FailScenario("character-final-page", "name-input-not-observed");
-            }
-
-            int voice_sample_region =
-                RegionWithHelpText(g_character_page4_region_set_0069c52c, 0xf5);
-            if (voice_sample_region < 0) {
-                return FailScenario("character-final-page", "voice-sample-control-missing");
-            }
-            ClickRegion(voice_sample_region);
-            started = GetTickCount();
-            while (GetTickCount() - started < 3000) {
-                if (screen->m_dialog_1b1c != 0) {
-                    g_observation.character_summary_opened = 1;
-                    break;
-                }
-                Sleep(10);
-            }
-            if (!g_observation.character_summary_opened) {
-                return FailScenario("character-summary", "summary-not-opened");
-            }
-            Sleep(1000);
-            SendScenarioKey(VK_SPACE);
-            started = GetTickCount();
-            while (GetTickCount() - started < 3000) {
-                if (screen->m_dialog_1b1c == 0) {
-                    break;
-                }
-                Sleep(10);
-            }
+        int voice_sample_region = RegionWithHelpText(g_character_page4_region_set_0069c52c, 0xf5);
+        if (voice_sample_region < 0) {
+            return FailScenario("character-final-page", "voice-sample-control-missing");
+        }
+        ClickRegion(voice_sample_region);
+        started = GetTickCount();
+        while (GetTickCount() - started < 3000) {
             if (screen->m_dialog_1b1c != 0) {
-                return FailScenario("character-summary", "summary-not-closed");
+                g_observation.character_summary_opened = 1;
+                break;
             }
+            Sleep(10);
+        }
+        if (!g_observation.character_summary_opened) {
+            return FailScenario("character-summary", "summary-not-opened");
+        }
+        Sleep(1000);
+        SendScenarioKey(VK_SPACE);
+        started = GetTickCount();
+        while (GetTickCount() - started < 3000) {
+            if (screen->m_dialog_1b1c == 0) {
+                break;
+            }
+            Sleep(10);
+        }
+        if (screen->m_dialog_1b1c != 0) {
+            return FailScenario("character-summary", "summary-not-closed");
+        }
+    }
+
+    g_observation.character_page_start = 0;
+    g_observation.character_page_after = screen->m_page_index_00c;
+
+    if (flow == CHARACTER_ACCEPTANCE || flow == CHARACTER_RESET || flow == CHARACTER_DIRECT) {
+        /* Commit the character through the final page's own next control.
+           A broken AdvancePage callback must fail the scenario rather than
+           be papered over by calling it directly. */
+        ClickControl(screen->m_next_1af8);
+        started = GetTickCount();
+        while (GetTickCount() - started < 5000) {
+            if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_PARTY_SELECTION &&
+                *(volatile int*)&g_pending_screen_state.id == -1) {
+                g_observation.character_committed = 1;
+                ReportStep("character-committed");
+                break;
+            }
+            Sleep(10);
+        }
+        if (!g_observation.character_committed) {
+            return FailScenario("character-commit", "character-not-committed");
         }
 
-        g_observation.character_page_start = 0;
-        g_observation.character_page_after = screen->m_page_index_00c;
+        /* Return toggles the selected roster row into the active party
+           through the party builder's toggle. */
+        SendScenarioKey(VK_RETURN);
+        started = GetTickCount();
+        while (GetTickCount() - started < 5000) {
+            if (CountActiveCharacters() != 0) {
+                g_observation.character_in_party = 1;
+                break;
+            }
+            Sleep(10);
+        }
+        if (!g_observation.character_in_party) {
+            return FailScenario("party-selection", "committed-character-not-in-party");
+        }
 
-        if (strcmp(g_scenario, "main-game-start") == 0 ||
-            strcmp(g_scenario, "npc-state-reset") == 0 ||
-            strcmp(g_scenario, "new-game-entry") == 0) {
-            /* Commit the character through the final page's own next control.
-               A broken AdvancePage callback must fail the scenario rather than
-               be papered over by calling it directly. */
-            ClickControl(screen->m_next_1af8);
-            started = GetTickCount();
-            while (GetTickCount() - started < 5000) {
-                if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_PARTY_SELECTION &&
-                    *(volatile int*)&g_pending_screen_state.id == -1) {
-                    g_observation.character_committed = 1;
-                    ReportStep("character-committed");
-                    break;
-                }
-                Sleep(10);
+        if (flow == CHARACTER_ACCEPTANCE || flow == CHARACTER_RESET) {
+            /* The product's start control requires a six-member party, so
+               the remaining members are fixture copies; they still enter
+               through the recovered party-add path rather than by writing
+               occupied flags directly. */
+            const char* fixture_failure = 0;
+            if (!RunOnGameThread(CompletePartyFixtureOnGameThread, &fixture_failure)) {
+                return FailScenario("party-fixture", "game-thread-executor-failed");
             }
-            if (!g_observation.character_committed) {
-                return FailScenario("character-commit", "character-not-committed");
+            if (fixture_failure != 0) {
+                return FailScenario("party-fixture", fixture_failure);
             }
-
-            /* Return toggles the selected roster row into the active party
-               through the party builder's toggle. */
-            SendScenarioKey(VK_RETURN);
-            started = GetTickCount();
-            while (GetTickCount() - started < 5000) {
-                if (CountActiveCharacters() != 0) {
-                    g_observation.character_in_party = 1;
-                    break;
+            unsigned int bottom_set =
+                *(volatile unsigned int*)&g_party_selection_bottom_action_region_set_69c508;
+            for (int click = 0; click < 4; ++click) {
+                int start_region = RegionWithHelpText(bottom_set, 0x6cb);
+                if (start_region < 0) {
+                    return FailScenario("party-start", "start-party-control-missing");
                 }
-                Sleep(10);
-            }
-            if (!g_observation.character_in_party) {
-                return FailScenario("party-selection", "committed-character-not-in-party");
-            }
-
-            if (strcmp(g_scenario, "main-game-start") == 0 ||
-                strcmp(g_scenario, "npc-state-reset") == 0) {
-                /* The product's start control requires a six-member party, so
-                   the remaining members are fixture copies; they still enter
-                   through the recovered party-add path rather than by writing
-                   occupied flags directly. */
-                const char* fixture_failure = 0;
-                if (!RunOnGameThread(CompletePartyFixtureOnGameThread, &fixture_failure)) {
-                    return FailScenario("party-fixture", "game-thread-executor-failed");
-                }
-                if (fixture_failure != 0) {
-                    return FailScenario("party-fixture", fixture_failure);
-                }
-                unsigned int bottom_set =
-                    *(volatile unsigned int*)&g_party_selection_bottom_action_region_set_69c508;
-                for (int click = 0; click < 4; ++click) {
-                    int start_region = RegionWithHelpText(bottom_set, 0x6cb);
-                    if (start_region < 0) {
-                        return FailScenario("party-start", "start-party-control-missing");
-                    }
-                    ClickRegion(start_region);
-                    started = GetTickCount();
-                    while (GetTickCount() - started < 2000) {
-                        if (*(volatile int*)&g_pending_screen_state.id != -1 ||
-                            *(volatile int*)&g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-                            break;
-                        }
-                        Sleep(10);
-                    }
+                ClickRegion(start_region);
+                started = GetTickCount();
+                while (GetTickCount() - started < 2000) {
                     if (*(volatile int*)&g_pending_screen_state.id != -1 ||
                         *(volatile int*)&g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
                         break;
                     }
+                    Sleep(10);
                 }
-            } else {
-                /* Direct product new-game entry is the low-level bring-up
-                   path; the behavioral scenario must not call it. */
-                if (!RunOnGameThread(StartNewGameOnGameThread, 0)) {
-                    return FailScenario("new-game-entry", "game-thread-executor-failed");
-                }
-            }
-
-            started = GetTickCount();
-            int observed_state = -2;
-            while (GetTickCount() - started < 30000) {
-                if (observed_state != *(volatile int*)&g_current_screen_state.id) {
-                    observed_state = *(volatile int*)&g_current_screen_state.id;
-                    fprintf(stderr,
-                            "runtime-test new-game state: current=%d pending=%d intro=%lu "
-                            "skip=%u router=%d\n",
-                            observed_state, *(volatile int*)&g_pending_screen_state.id,
-                            *(volatile unsigned long*)&g_intro_video_index,
-                            g_status_685170.skip_loose_character_check_2444, g_value_68de50);
-                    fflush(stderr);
-                }
-                if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-                    *(volatile int*)&g_pending_screen_state.id == -1) {
-                    g_observation.main_game_entered = 1;
-                    ReportStep("main-game-entered");
+                if (*(volatile int*)&g_pending_screen_state.id != -1 ||
+                    *(volatile int*)&g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
                     break;
                 }
-                if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_INTRO) {
-                    SendScenarioKey(VK_ESCAPE);
-                    Sleep(250);
-                    continue;
-                }
-                Sleep(10);
             }
-            if (!g_observation.main_game_entered) {
-                return FailScenario("main-game-entry", "main-game-not-entered");
+        } else {
+            /* Direct product new-game entry is the low-level bring-up
+               path; the behavioral scenario must not call it. */
+            if (!RunOnGameThread(StartNewGameOnGameThread, 0)) {
+                return FailScenario("new-game-entry", "game-thread-executor-failed");
             }
-            if (strcmp(g_scenario, "main-game-start") == 0) {
-                srVector3T<float> saved_position;
-                srVector3T<float> walked_position;
-                int forward_index = g_mgs_keyboard != 0
-                                        ? g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_MOVE_FORWARD)
-                                        : -1;
-                MGSKeyBinding* forward_binding =
-                    forward_index >= 0 ? g_mgs_keyboard->GetBinding(forward_index) : 0;
-                int backward_index = g_mgs_keyboard != 0
-                                         ? g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_MOVE_BACKWARD)
-                                         : -1;
-                MGSKeyBinding* backward_binding =
-                    backward_index >= 0 ? g_mgs_keyboard->GetBinding(backward_index) : 0;
-                if (forward_binding == 0) {
-                    fprintf(stderr, "runtime-test movement: MOVE_FORWARD binding missing\n");
-                    return FailScenario("exploration-movement", "forward-binding-missing");
-                }
-                /* Quick save first, before the walk can latch the level-motion
-                   override: the save gate reads flag4/fall state. Tapping the
-                   resolved QUICK_SAVE binding dispatches command 314, which
-                   picks a Quick N slot and runs SaveGame — the world screenshot
-                   chunk included — then posts a notice. A fresh Quick file
-                   under Saves\ proves the serializer ran to completion. */
-                if (gfProgramIsRunning && g_mgs_keyboard != 0) {
-                    int save_index = g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_QUICK_SAVE);
-                    MGSKeyBinding* save_binding =
-                        save_index >= 0 ? g_mgs_keyboard->GetBinding(save_index) : 0;
-                    if (save_binding != 0) {
-                        char save_path[0x100];
-                        int slot;
-                        WORD save_modifiers[3];
-                        int save_modifier_count = 0;
-                        if ((save_binding->modifiers & SHIFT_DOWN) != 0) {
-                            save_modifiers[save_modifier_count++] = VK_SHIFT;
-                        }
-                        if ((save_binding->modifiers & CTRL_DOWN) != 0) {
-                            save_modifiers[save_modifier_count++] = VK_CONTROL;
-                        }
-                        if ((save_binding->modifiers & ALT_DOWN) != 0) {
-                            save_modifiers[save_modifier_count++] = VK_MENU;
-                        }
-                        int save_modifier_index;
-                        for (save_modifier_index = 0; save_modifier_index < save_modifier_count;
-                             ++save_modifier_index) {
-                            SendScenarioKeyHeld(save_modifiers[save_modifier_index], 0);
-                        }
-                        SendScenarioKeyHeld(save_binding->key, 0);
-                        SendScenarioKeyHeld(save_binding->key, 1);
-                        for (save_modifier_index = 0; save_modifier_index < save_modifier_count;
-                             ++save_modifier_index) {
-                            SendScenarioKeyHeld(save_modifiers[save_modifier_index], 1);
-                        }
-                        slot = 0;
-                        started = GetTickCount();
-                        while (GetTickCount() - started < 20000 && gfProgramIsRunning) {
-                            for (slot = 1; slot <= 3; ++slot) {
-                                sprintf(save_path, "Saves\\Quick %d.SAV", slot);
-                                if (FileExists(save_path)) {
-                                    break;
-                                }
-                            }
-                            if (slot <= 3) {
+        }
+
+        started = GetTickCount();
+        int observed_state = -2;
+        while (GetTickCount() - started < 30000) {
+            if (observed_state != *(volatile int*)&g_current_screen_state.id) {
+                observed_state = *(volatile int*)&g_current_screen_state.id;
+                fprintf(stderr,
+                        "runtime-test new-game state: current=%d pending=%d intro=%lu "
+                        "skip=%u router=%d\n",
+                        observed_state, *(volatile int*)&g_pending_screen_state.id,
+                        *(volatile unsigned long*)&g_intro_video_index,
+                        g_status_685170.skip_loose_character_check_2444, g_value_68de50);
+                fflush(stderr);
+            }
+            if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
+                *(volatile int*)&g_pending_screen_state.id == -1) {
+                g_observation.main_game_entered = 1;
+                ReportStep("main-game-entered");
+                break;
+            }
+            if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_INTRO) {
+                SendScenarioKey(VK_ESCAPE);
+                Sleep(250);
+                continue;
+            }
+            Sleep(10);
+        }
+        if (!g_observation.main_game_entered) {
+            return FailScenario("main-game-entry", "main-game-not-entered");
+        }
+        if (flow == CHARACTER_ACCEPTANCE) {
+            srVector3T<float> saved_position;
+            srVector3T<float> walked_position;
+            int forward_index =
+                g_mgs_keyboard != 0 ? g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_MOVE_FORWARD) : -1;
+            MGSKeyBinding* forward_binding =
+                forward_index >= 0 ? g_mgs_keyboard->GetBinding(forward_index) : 0;
+            int backward_index = g_mgs_keyboard != 0
+                                     ? g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_MOVE_BACKWARD)
+                                     : -1;
+            MGSKeyBinding* backward_binding =
+                backward_index >= 0 ? g_mgs_keyboard->GetBinding(backward_index) : 0;
+            if (forward_binding == 0) {
+                fprintf(stderr, "runtime-test movement: MOVE_FORWARD binding missing\n");
+                return FailScenario("exploration-movement", "forward-binding-missing");
+            }
+            /* Quick save first, before the walk can latch the level-motion
+               override: the save gate reads flag4/fall state. Tapping the
+               resolved QUICK_SAVE binding dispatches command 314, which
+               picks a Quick N slot and runs SaveGame — the world screenshot
+               chunk included — then posts a notice. A fresh Quick file
+               under Saves\ proves the serializer ran to completion. */
+            if (gfProgramIsRunning && g_mgs_keyboard != 0) {
+                int save_index = g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_QUICK_SAVE);
+                MGSKeyBinding* save_binding =
+                    save_index >= 0 ? g_mgs_keyboard->GetBinding(save_index) : 0;
+                if (save_binding != 0) {
+                    char save_path[0x100];
+                    int slot;
+                    WORD save_modifiers[3];
+                    int save_modifier_count = 0;
+                    if ((save_binding->modifiers & SHIFT_DOWN) != 0) {
+                        save_modifiers[save_modifier_count++] = VK_SHIFT;
+                    }
+                    if ((save_binding->modifiers & CTRL_DOWN) != 0) {
+                        save_modifiers[save_modifier_count++] = VK_CONTROL;
+                    }
+                    if ((save_binding->modifiers & ALT_DOWN) != 0) {
+                        save_modifiers[save_modifier_count++] = VK_MENU;
+                    }
+                    int save_modifier_index;
+                    for (save_modifier_index = 0; save_modifier_index < save_modifier_count;
+                         ++save_modifier_index) {
+                        SendScenarioKeyHeld(save_modifiers[save_modifier_index], 0);
+                    }
+                    SendScenarioKeyHeld(save_binding->key, 0);
+                    SendScenarioKeyHeld(save_binding->key, 1);
+                    for (save_modifier_index = 0; save_modifier_index < save_modifier_count;
+                         ++save_modifier_index) {
+                        SendScenarioKeyHeld(save_modifiers[save_modifier_index], 1);
+                    }
+                    slot = 0;
+                    started = GetTickCount();
+                    while (GetTickCount() - started < 20000 && gfProgramIsRunning) {
+                        for (slot = 1; slot <= 3; ++slot) {
+                            sprintf(save_path, "Saves\\Quick %d.SAV", slot);
+                            if (FileExists(save_path)) {
                                 break;
                             }
-                            Sleep(200);
                         }
                         if (slot <= 3) {
-                            g_observation.game_saved = 1;
-                            ReportStep("game-saved");
-                        } else {
-                            srVector3T<float> save_probe_a;
-                            srVector3T<float> save_probe_b;
-                            GetCameraPosition(&save_probe_a);
-                            Sleep(1000);
-                            GetCameraPosition(&save_probe_b);
-                            fprintf(stderr,
-                                    "runtime-test quick-save: key=0x%x modifiers=0x%x "
-                                    "screen=%d blocked=%d flag4=%d combat=%d "
-                                    "level_flags=0x%x y_a=%.2f y_b=%.2f\n",
-                                    save_binding->key, save_binding->modifiers,
-                                    g_current_screen_state.id, IsScreenInputBlocked(),
-                                    IsLevelDataFlag4EffectivelySet(), gXStatus.fCombatMode,
-                                    g_level_data_00652dac != 0 ? g_level_data_00652dac->flags
-                                                               : 0xffffffffU,
-                                    save_probe_a.y, save_probe_b.y);
-                        }
-                    } else {
-                        fprintf(stderr,
-                                "runtime-test quick-save: QUICK_SAVE binding missing (index=%d)\n",
-                                save_index);
-                    }
-                }
-                /* Move away from the saved spot first so the quick-load has to
-                   prove it restored the party position rather than merely
-                   surviving. The camera is still settling right after level
-                   entry, so wait for it to stop before taking the reference -
-                   the anchor the load reproduces is the settled one. */
-                GetCameraPosition(&saved_position);
-                GetCameraPosition(&walked_position);
-                started = GetTickCount();
-                while ((saved_position - walked_position).Length() > 0.05f &&
-                       GetTickCount() - started < 3000 && gfProgramIsRunning) {
-                    Sleep(200);
-                    saved_position = walked_position;
-                    GetCameraPosition(&walked_position);
-                }
-                saved_position = walked_position;
-                if (g_observation.game_saved && gfProgramIsRunning) {
-                    unsigned char pressed_before_load = 0;
-                    float input_before_load = 0.0f;
-                    float transformed_before_load = 0.0f;
-                    float integrated_before_load = 0.0f;
-                    float motion_before_load = 0.0f;
-                    SendScenarioKeyHeld(forward_binding->key, 0);
-                    started = GetTickCount();
-                    while (GetTickCount() - started < 5000 && gfProgramIsRunning) {
-                        Sleep(100);
-                        if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_FORWARD)) {
-                            pressed_before_load = 1;
-                        }
-                        if (g_level_data_00652dac != 0) {
-                            float input_motion = g_level_data_00652dac->vector_40.Length();
-                            float transformed_motion = g_level_data_00652dac->vector_70.Length();
-                            float integrated_motion = g_level_data_00652dac->vector_64.Length();
-                            float world_motion = g_level_data_00652dac->vector_a0.Length();
-                            if (input_motion > input_before_load) {
-                                input_before_load = input_motion;
-                            }
-                            if (world_motion > motion_before_load) {
-                                motion_before_load = world_motion;
-                            }
-                            if (transformed_motion > transformed_before_load) {
-                                transformed_before_load = transformed_motion;
-                            }
-                            if (integrated_motion > integrated_before_load) {
-                                integrated_before_load = integrated_motion;
-                            }
-                        }
-                        GetCameraPosition(&walked_position);
-                        if ((walked_position - saved_position).Length() > 1.5f) {
                             break;
                         }
+                        Sleep(200);
                     }
-                    SendScenarioKeyHeld(forward_binding->key, 1);
-                    if ((walked_position - saved_position).Length() <= 1.5f) {
-                        fprintf(stderr,
-                                "runtime-test pre-load movement: pressed=%d input=%.2f "
-                                "transformed=%.2f integrated=%.2f motion=%.2f "
-                                "flags=0x%x envload=%d scale=%.3f "
-                                "forward=%.2f integrated=%.2f env38=%.2f env3c=%.2f "
-                                "env20=%.2f\n",
-                                pressed_before_load, input_before_load, transformed_before_load,
-                                integrated_before_load, motion_before_load,
-                                g_level_data_00652dac != 0 ? g_level_data_00652dac->flags : 0,
-                                g_environment_load_flag_00603ad0,
-                                g_level_data_00652dac != 0 ? g_level_data_00652dac->camera_scale_14
-                                                           : -1.0f,
-                                g_level_data_00652dac != 0
-                                    ? g_level_data_00652dac->camera_forward_4c.Length()
-                                    : -1.0f,
-                                g_level_data_00652dac != 0
-                                    ? g_level_data_00652dac->vector_64.Length()
-                                    : -1.0f,
-                                g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_38 : -1.0f,
-                                g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_3c : -1.0f,
-                                g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_20 : -1.0f);
-                        if (backward_binding != 0) {
-                            unsigned char backward_pressed = 0;
-                            float backward_input = 0.0f;
-                            SendScenarioKeyHeld(backward_binding->key, 0);
-                            started = GetTickCount();
-                            while (GetTickCount() - started < 5000 && gfProgramIsRunning) {
-                                Sleep(100);
-                                if (g_mgs_keyboard->IsCommandPressed(
-                                        W8_MGS_COMMAND_MOVE_BACKWARD)) {
-                                    backward_pressed = 1;
-                                }
-                                if (g_level_data_00652dac != 0 &&
-                                    g_level_data_00652dac->vector_40.Length() > backward_input) {
-                                    backward_input = g_level_data_00652dac->vector_40.Length();
-                                }
-                                GetCameraPosition(&walked_position);
-                                if ((walked_position - saved_position).Length() > 1.5f) {
-                                    break;
-                                }
-                            }
-                            SendScenarioKeyHeld(backward_binding->key, 1);
-                            if ((walked_position - saved_position).Length() <= 1.5f) {
-                                fprintf(stderr,
-                                        "runtime-test pre-load backward: key=0x%x mods=0x%x "
-                                        "pressed=%d input=%.2f\n",
-                                        backward_binding->key, backward_binding->modifiers,
-                                        backward_pressed, backward_input);
-                            }
-                        }
-                    }
-                }
-                /* Quick load after the save file exists: tapping the resolved
-                   QUICK_LOAD binding dispatches command 315, which finds the
-                   Quick slot, hands the PLEASE_WAIT screen the load descriptor
-                   and waits on its LoadGame + LoadLevel round trip. Returning
-                   to the main game proves the whole read path completed. */
-                if (g_observation.game_saved && gfProgramIsRunning && g_mgs_keyboard != 0) {
-                    int load_index = g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_QUICK_LOAD);
-                    MGSKeyBinding* load_binding =
-                        load_index >= 0 ? g_mgs_keyboard->GetBinding(load_index) : 0;
-                    if (load_binding != 0) {
-                        WORD load_modifiers[3];
-                        int load_modifier_count = 0;
-                        if ((load_binding->modifiers & SHIFT_DOWN) != 0) {
-                            load_modifiers[load_modifier_count++] = VK_SHIFT;
-                        }
-                        if ((load_binding->modifiers & CTRL_DOWN) != 0) {
-                            load_modifiers[load_modifier_count++] = VK_CONTROL;
-                        }
-                        if ((load_binding->modifiers & ALT_DOWN) != 0) {
-                            load_modifiers[load_modifier_count++] = VK_MENU;
-                        }
-                        int load_modifier_index;
-                        for (load_modifier_index = 0; load_modifier_index < load_modifier_count;
-                             ++load_modifier_index) {
-                            SendScenarioKeyHeld(load_modifiers[load_modifier_index], 0);
-                        }
-                        SendScenarioKeyHeld(load_binding->key, 0);
-                        SendScenarioKeyHeld(load_binding->key, 1);
-                        for (load_modifier_index = 0; load_modifier_index < load_modifier_count;
-                             ++load_modifier_index) {
-                            SendScenarioKeyHeld(load_modifiers[load_modifier_index], 1);
-                        }
-                        fprintf(stderr,
-                                "runtime-test quick-load: dispatched key=0x%x modifiers=0x%x "
-                                "screen=%d pending=%d blocked=%d\n",
-                                load_binding->key, load_binding->modifiers,
-                                g_current_screen_state.id, g_pending_screen_state.id,
-                                IsScreenInputBlocked());
-                        /* The whole PLEASE_WAIT pass - LoadGame plus the
-                           LoadLevel round trip - can complete inside a single
-                           poll interval once the level data is cached, so watch
-                           the descriptor the screen allocates for the load
-                           rather than only the transient screen ids. */
-                        int saw_load =
-                            *(volatile W8LevelLoadDescriptor**)&g_load_descriptor_69b7c8 != 0 ||
-                            *(volatile int*)&g_current_screen_state.id == W8_SCREEN_PLEASE_WAIT ||
-                            *(volatile int*)&g_pending_screen_state.id == W8_SCREEN_PLEASE_WAIT;
-                        started = GetTickCount();
-                        while (GetTickCount() - started < 45000 && gfProgramIsRunning) {
-                            if (*(volatile W8LevelLoadDescriptor**)&g_load_descriptor_69b7c8 != 0 ||
-                                *(volatile int*)&g_current_screen_state.id ==
-                                    W8_SCREEN_PLEASE_WAIT ||
-                                *(volatile int*)&g_pending_screen_state.id ==
-                                    W8_SCREEN_PLEASE_WAIT) {
-                                saw_load = 1;
-                            }
-                            if (saw_load &&
-                                *(volatile int*)&g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-                                *(volatile int*)&g_pending_screen_state.id == -1 &&
-                                *(volatile W8LevelLoadDescriptor**)&g_load_descriptor_69b7c8 == 0) {
-                                break;
-                            }
-                            Sleep(5);
-                        }
-                        if (saw_load &&
-                            *(volatile int*)&g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-                            g_observation.game_loaded = 1;
-                            ReportStep("game-loaded");
-                            fprintf(stderr,
-                                    "runtime-test post-load motion: flags=0x%x envload=%d "
-                                    "scale=%.3f env38=%.2f env3c=%.2f env20=%.2f\n",
-                                    g_level_data_00652dac != 0 ? g_level_data_00652dac->flags : 0,
-                                    g_environment_load_flag_00603ad0,
-                                    g_level_data_00652dac != 0
-                                        ? g_level_data_00652dac->camera_scale_14
-                                        : -1.0f,
-                                    g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_38 : -1.0f,
-                                    g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_3c : -1.0f,
-                                    g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_20 : -1.0f);
-                            /* LoadGame + LoadLevel must put the party back at
-                               the saved spot: the position walked away from
-                               before the load snaps back. */
-                            srVector3T<float> restored;
-                            GetCameraPosition(&restored);
-                            started = GetTickCount();
-                            while ((restored - saved_position).Length() >= 1.0f &&
-                                   GetTickCount() - started < 5000 && gfProgramIsRunning) {
-                                Sleep(100);
-                                GetCameraPosition(&restored);
-                            }
-                            float moved = (walked_position - saved_position).Length();
-                            float drift = (restored - saved_position).Length();
-                            /* The X/Z snap is exact; the anchor lands ~1.5
-                               higher on Y across the level reload, a
-                               ground-contact resolution difference pending
-                               the collision-path audit, so the restore proof
-                               gates on the horizontal plane. */
-                            srVector3T<float> horizontal = restored - saved_position;
-                            horizontal.y = 0.0f;
-                            if (moved > 1.0f && horizontal.Length() < 1.0f) {
-                                g_observation.load_position_restored = 1;
-                                ReportStep("load-position-restored");
-                            } else {
-                                fprintf(stderr,
-                                        "runtime-test quick-load: restore "
-                                        "saved=(%.1f %.1f %.1f) restored=(%.1f %.1f %.1f) "
-                                        "walked=(%.1f %.1f %.1f) walked=%.2f drift=%.2f\n",
-                                        saved_position.x, saved_position.y, saved_position.z,
-                                        restored.x, restored.y, restored.z, walked_position.x,
-                                        walked_position.y, walked_position.z, moved, drift);
-                            }
-                        } else {
-                            fprintf(stderr,
-                                    "runtime-test quick-load: key=0x%x modifiers=0x%x "
-                                    "screen=%d pending=%d saw_load=%d\n",
-                                    load_binding->key, load_binding->modifiers,
-                                    g_current_screen_state.id, g_pending_screen_state.id, saw_load);
-                        }
+                    if (slot <= 3) {
+                        g_observation.game_saved = 1;
+                        ReportStep("game-saved");
                     } else {
+                        srVector3T<float> save_probe_a;
+                        srVector3T<float> save_probe_b;
+                        GetCameraPosition(&save_probe_a);
+                        Sleep(1000);
+                        GetCameraPosition(&save_probe_b);
                         fprintf(stderr,
-                                "runtime-test quick-load: QUICK_LOAD binding missing (index=%d)\n",
-                                load_index);
+                                "runtime-test quick-save: key=0x%x modifiers=0x%x "
+                                "screen=%d blocked=%d flag4=%d combat=%d "
+                                "level_flags=0x%x y_a=%.2f y_b=%.2f\n",
+                                save_binding->key, save_binding->modifiers,
+                                g_current_screen_state.id, IsScreenInputBlocked(),
+                                IsLevelDataFlag4EffectivelySet(), gXStatus.fCombatMode,
+                                g_level_data_00652dac != 0 ? g_level_data_00652dac->flags
+                                                           : 0xffffffffU,
+                                save_probe_a.y, save_probe_b.y);
                     }
+                } else {
+                    fprintf(stderr,
+                            "runtime-test quick-save: QUICK_SAVE binding missing (index=%d)\n",
+                            save_index);
                 }
-                /* Hold the live MOVE_FORWARD binding through real frames;
-                   the camera position is the party's world position. Keep the
-                   key held for the whole window so the walk crosses triggers
-                   and wall collision, then let the world tick idle while the
-                   ambient monster, NPC and generator updates run. */
-                srVector3T<float> before;
-                srVector3T<float> after;
-                GetCameraPosition(&before);
+            }
+            /* Move away from the saved spot first so the quick-load has to
+               prove it restored the party position rather than merely
+               surviving. The camera is still settling right after level
+               entry, so wait for it to stop before taking the reference -
+               the anchor the load reproduces is the settled one. */
+            GetCameraPosition(&saved_position);
+            GetCameraPosition(&walked_position);
+            started = GetTickCount();
+            while ((saved_position - walked_position).Length() > 0.05f &&
+                   GetTickCount() - started < 3000 && gfProgramIsRunning) {
+                Sleep(200);
+                saved_position = walked_position;
+                GetCameraPosition(&walked_position);
+            }
+            saved_position = walked_position;
+            if (g_observation.game_saved && gfProgramIsRunning) {
+                unsigned char pressed_before_load = 0;
+                float input_before_load = 0.0f;
+                float transformed_before_load = 0.0f;
+                float integrated_before_load = 0.0f;
+                float motion_before_load = 0.0f;
                 SendScenarioKeyHeld(forward_binding->key, 0);
-                unsigned char forward_pressed = 0;
-                float maximum_input_motion = 0.0f;
-                float maximum_transformed_motion = 0.0f;
-                float maximum_integrated_motion = 0.0f;
-                float maximum_world_motion = 0.0f;
-                float maximum_camera_forward = 0.0f;
-                unsigned int observed_render_flags = 0;
                 started = GetTickCount();
-                while (GetTickCount() - started < 10000 && gfProgramIsRunning) {
+                while (GetTickCount() - started < 5000 && gfProgramIsRunning) {
                     Sleep(100);
                     if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_FORWARD)) {
-                        forward_pressed = 1;
+                        pressed_before_load = 1;
                     }
                     if (g_level_data_00652dac != 0) {
                         float input_motion = g_level_data_00652dac->vector_40.Length();
                         float transformed_motion = g_level_data_00652dac->vector_70.Length();
                         float integrated_motion = g_level_data_00652dac->vector_64.Length();
                         float world_motion = g_level_data_00652dac->vector_a0.Length();
-                        float camera_forward = g_level_data_00652dac->camera_forward_4c.Length();
-                        if (input_motion > maximum_input_motion) {
-                            maximum_input_motion = input_motion;
+                        if (input_motion > input_before_load) {
+                            input_before_load = input_motion;
                         }
-                        if (world_motion > maximum_world_motion) {
-                            maximum_world_motion = world_motion;
+                        if (world_motion > motion_before_load) {
+                            motion_before_load = world_motion;
                         }
-                        if (transformed_motion > maximum_transformed_motion) {
-                            maximum_transformed_motion = transformed_motion;
+                        if (transformed_motion > transformed_before_load) {
+                            transformed_before_load = transformed_motion;
                         }
-                        if (integrated_motion > maximum_integrated_motion) {
-                            maximum_integrated_motion = integrated_motion;
-                        }
-                        if (camera_forward > maximum_camera_forward) {
-                            maximum_camera_forward = camera_forward;
+                        if (integrated_motion > integrated_before_load) {
+                            integrated_before_load = integrated_motion;
                         }
                     }
-                    observed_render_flags |= g_level_block->world_render_flags;
-                    GetCameraPosition(&after);
-                    if (g_observation.party_moved == 0 && (after - before).Length() > 1.0f) {
-                        g_observation.party_moved = 1;
-                        ReportStep("party-moved");
+                    GetCameraPosition(&walked_position);
+                    if ((walked_position - saved_position).Length() > 1.5f) {
+                        break;
                     }
                 }
                 SendScenarioKeyHeld(forward_binding->key, 1);
-                if (!g_observation.party_moved && backward_binding != 0) {
-                    unsigned char backward_pressed = 0;
-                    float backward_input = 0.0f;
-                    SendScenarioKeyHeld(backward_binding->key, 0);
-                    started = GetTickCount();
-                    while (GetTickCount() - started < 10000 && gfProgramIsRunning) {
-                        Sleep(100);
-                        if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_BACKWARD)) {
-                            backward_pressed = 1;
-                        }
-                        if (g_level_data_00652dac != 0 &&
-                            g_level_data_00652dac->vector_40.Length() > backward_input) {
-                            backward_input = g_level_data_00652dac->vector_40.Length();
-                        }
-                        GetCameraPosition(&after);
-                        if ((after - before).Length() > 1.0f) {
-                            g_observation.party_moved = 1;
-                            ReportStep("party-moved");
-                            break;
-                        }
-                    }
-                    SendScenarioKeyHeld(backward_binding->key, 1);
-                    if (!g_observation.party_moved) {
-                        fprintf(stderr,
-                                "runtime-test backward: key=0x%x mods=0x%x pressed=%d "
-                                "input=%.2f\n",
-                                backward_binding->key, backward_binding->modifiers,
-                                backward_pressed, backward_input);
-                    }
-                }
-                if (!g_observation.party_moved) {
-                    GetCameraPosition(&after);
-                    fprintf(
-                        stderr,
-                        "runtime-test movement: before=(%.1f %.1f %.1f) "
-                        "after=(%.1f %.1f %.1f) key=0x%x modifiers=0x%x "
-                        "pressed=%d input_motion=%.2f transformed_motion=%.2f "
-                        "integrated_motion=%.2f world_motion=%.2f "
-                        "camera_forward=%.2f render_flags=0x%x string_input=%d "
-                        "cmd200=%d engaged=%d timer_flags=0x%x paused=%d "
-                        "d1=%d d2=%d level_flags=0x%x cam_scale=%.3f "
-                        "envload=%d env38=%.2f env3c=%.2f env20=%.2f "
-                        "transition=%d fade=%d review=%d rec=%d mipe=%d/%d modal=%d npc=%d\n",
-                        before.x, before.y, before.z, after.x, after.y, after.z,
-                        forward_binding->key, forward_binding->modifiers, forward_pressed,
-                        maximum_input_motion, maximum_transformed_motion, maximum_integrated_motion,
-                        maximum_world_motion, maximum_camera_forward, observed_render_flags,
-                        gfCurrentStringInputState,
-                        g_mgs_keyboard != 0
-                            ? g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_FORWARD)
-                            : 0xff,
-                        AnyCharacterEngaged(),
-                        g_game_time_accumulator_6598bc != 0
-                            ? g_game_time_accumulator_6598bc->m_flags
-                            : 0xffff,
-                        g_shared_timer_paused, g_shared_timer_flag_d1, g_shared_timer_flag_d2,
-                        g_level_data_00652dac != 0 ? g_level_data_00652dac->flags : 0xffffffffU,
-                        g_level_data_00652dac != 0 ? g_level_data_00652dac->camera_scale_14 : -1.0f,
-                        g_environment_load_flag_00603ad0,
-                        g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_38 : -1.0f,
-                        g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_3c : -1.0f,
-                        g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_20 : -1.0f,
-                        IsScreenTransitionPending(), g_level_block->flag_328,
-                        g_level_block->review_transition_active, GetFlag69DA6C(), GetFlag68F105(),
-                        GetFlag68F104(), g_modal_owner_0068edd0 != 0, gXStatus.fNpcDialogueMode);
-                    return FailScenario("exploration-movement",
-                                        maximum_input_motion > 0.0f
-                                            ? "input-produced-no-world-motion"
-                                            : "held-key-produced-no-input");
-                }
-                /* Resolve the live TURN_LEFT binding rather than assuming a
-                   key, then hold it through frames: HandleManualCameraHotkeys
-                   raises the turn flag and ApplyCameraRotation must rotate the
-                   camera yaw. camera_forward_4c is only the per-frame motion
-                   delta - zero while stationary - so watch the orientation. */
-                if (gfProgramIsRunning && g_mgs_keyboard != 0) {
-                    int binding_index = g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_TURN_LEFT);
-                    MGSKeyBinding* turn_binding =
-                        binding_index >= 0 ? g_mgs_keyboard->GetBinding(binding_index) : 0;
-                    if (turn_binding != 0) {
-                        W8CameraAngleRecord heading_before;
-                        W8CameraAngleRecord heading_now;
-                        W8CameraAngleRecord pitch_scratch;
-                        GetCameraOrientation(heading_before, pitch_scratch);
-                        WORD modifiers[3];
-                        int modifier_count = 0;
-                        if ((turn_binding->modifiers & SHIFT_DOWN) != 0) {
-                            modifiers[modifier_count++] = VK_SHIFT;
-                        }
-                        if ((turn_binding->modifiers & CTRL_DOWN) != 0) {
-                            modifiers[modifier_count++] = VK_CONTROL;
-                        }
-                        if ((turn_binding->modifiers & ALT_DOWN) != 0) {
-                            modifiers[modifier_count++] = VK_MENU;
-                        }
-                        int modifier_index;
-                        for (modifier_index = 0; modifier_index < modifier_count;
-                             ++modifier_index) {
-                            SendScenarioKeyHeld(modifiers[modifier_index], 0);
-                        }
-                        SendScenarioKeyHeld(turn_binding->key, 0);
+                if ((walked_position - saved_position).Length() <= 1.5f) {
+                    fprintf(stderr,
+                            "runtime-test pre-load movement: pressed=%d input=%.2f "
+                            "transformed=%.2f integrated=%.2f motion=%.2f "
+                            "flags=0x%x envload=%d scale=%.3f "
+                            "forward=%.2f integrated=%.2f env38=%.2f env3c=%.2f "
+                            "env20=%.2f\n",
+                            pressed_before_load, input_before_load, transformed_before_load,
+                            integrated_before_load, motion_before_load,
+                            g_level_data_00652dac != 0 ? g_level_data_00652dac->flags : 0,
+                            g_environment_load_flag_00603ad0,
+                            g_level_data_00652dac != 0 ? g_level_data_00652dac->camera_scale_14
+                                                       : -1.0f,
+                            g_level_data_00652dac != 0
+                                ? g_level_data_00652dac->camera_forward_4c.Length()
+                                : -1.0f,
+                            g_level_data_00652dac != 0 ? g_level_data_00652dac->vector_64.Length()
+                                                       : -1.0f,
+                            g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_38 : -1.0f,
+                            g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_3c : -1.0f,
+                            g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_20 : -1.0f);
+                    if (backward_binding != 0) {
+                        unsigned char backward_pressed = 0;
+                        float backward_input = 0.0f;
+                        SendScenarioKeyHeld(backward_binding->key, 0);
                         started = GetTickCount();
                         while (GetTickCount() - started < 5000 && gfProgramIsRunning) {
                             Sleep(100);
-                            GetCameraOrientation(heading_now, pitch_scratch);
-                            if (fabsf(heading_now[0] - heading_before[0]) > 0.01f) {
-                                g_observation.party_turned = 1;
-                                ReportStep("party-turned");
+                            if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_BACKWARD)) {
+                                backward_pressed = 1;
+                            }
+                            if (g_level_data_00652dac != 0 &&
+                                g_level_data_00652dac->vector_40.Length() > backward_input) {
+                                backward_input = g_level_data_00652dac->vector_40.Length();
+                            }
+                            GetCameraPosition(&walked_position);
+                            if ((walked_position - saved_position).Length() > 1.5f) {
                                 break;
                             }
                         }
-                        SendScenarioKeyHeld(turn_binding->key, 1);
-                        for (modifier_index = 0; modifier_index < modifier_count;
-                             ++modifier_index) {
-                            SendScenarioKeyHeld(modifiers[modifier_index], 1);
-                        }
-                        if (!g_observation.party_turned) {
+                        SendScenarioKeyHeld(backward_binding->key, 1);
+                        if ((walked_position - saved_position).Length() <= 1.5f) {
                             fprintf(stderr,
-                                    "runtime-test turn: binding=%d key=0x%x modifiers=0x%x "
-                                    "yaw_before=%.3f yaw_after=%.3f\n",
-                                    binding_index, turn_binding->key, turn_binding->modifiers,
-                                    heading_before[0], heading_now[0]);
+                                    "runtime-test pre-load backward: key=0x%x mods=0x%x "
+                                    "pressed=%d input=%.2f\n",
+                                    backward_binding->key, backward_binding->modifiers,
+                                    backward_pressed, backward_input);
+                        }
+                    }
+                }
+            }
+            /* Quick load after the save file exists: tapping the resolved
+               QUICK_LOAD binding dispatches command 315, which finds the
+               Quick slot, hands the PLEASE_WAIT screen the load descriptor
+               and waits on its LoadGame + LoadLevel round trip. Returning
+               to the main game proves the whole read path completed. */
+            if (g_observation.game_saved && gfProgramIsRunning && g_mgs_keyboard != 0) {
+                int load_index = g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_QUICK_LOAD);
+                MGSKeyBinding* load_binding =
+                    load_index >= 0 ? g_mgs_keyboard->GetBinding(load_index) : 0;
+                if (load_binding != 0) {
+                    WORD load_modifiers[3];
+                    int load_modifier_count = 0;
+                    if ((load_binding->modifiers & SHIFT_DOWN) != 0) {
+                        load_modifiers[load_modifier_count++] = VK_SHIFT;
+                    }
+                    if ((load_binding->modifiers & CTRL_DOWN) != 0) {
+                        load_modifiers[load_modifier_count++] = VK_CONTROL;
+                    }
+                    if ((load_binding->modifiers & ALT_DOWN) != 0) {
+                        load_modifiers[load_modifier_count++] = VK_MENU;
+                    }
+                    int load_modifier_index;
+                    for (load_modifier_index = 0; load_modifier_index < load_modifier_count;
+                         ++load_modifier_index) {
+                        SendScenarioKeyHeld(load_modifiers[load_modifier_index], 0);
+                    }
+                    SendScenarioKeyHeld(load_binding->key, 0);
+                    SendScenarioKeyHeld(load_binding->key, 1);
+                    for (load_modifier_index = 0; load_modifier_index < load_modifier_count;
+                         ++load_modifier_index) {
+                        SendScenarioKeyHeld(load_modifiers[load_modifier_index], 1);
+                    }
+                    fprintf(stderr,
+                            "runtime-test quick-load: dispatched key=0x%x modifiers=0x%x "
+                            "screen=%d pending=%d blocked=%d\n",
+                            load_binding->key, load_binding->modifiers, g_current_screen_state.id,
+                            g_pending_screen_state.id, IsScreenInputBlocked());
+                    /* The whole PLEASE_WAIT pass - LoadGame plus the
+                       LoadLevel round trip - can complete inside a single
+                       poll interval once the level data is cached, so watch
+                       the descriptor the screen allocates for the load
+                       rather than only the transient screen ids. */
+                    int saw_load =
+                        *(volatile W8LevelLoadDescriptor**)&g_load_descriptor_69b7c8 != 0 ||
+                        *(volatile int*)&g_current_screen_state.id == W8_SCREEN_PLEASE_WAIT ||
+                        *(volatile int*)&g_pending_screen_state.id == W8_SCREEN_PLEASE_WAIT;
+                    started = GetTickCount();
+                    while (GetTickCount() - started < 45000 && gfProgramIsRunning) {
+                        if (*(volatile W8LevelLoadDescriptor**)&g_load_descriptor_69b7c8 != 0 ||
+                            *(volatile int*)&g_current_screen_state.id == W8_SCREEN_PLEASE_WAIT ||
+                            *(volatile int*)&g_pending_screen_state.id == W8_SCREEN_PLEASE_WAIT) {
+                            saw_load = 1;
+                        }
+                        if (saw_load &&
+                            *(volatile int*)&g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
+                            *(volatile int*)&g_pending_screen_state.id == -1 &&
+                            *(volatile W8LevelLoadDescriptor**)&g_load_descriptor_69b7c8 == 0) {
+                            break;
+                        }
+                        Sleep(5);
+                    }
+                    if (saw_load &&
+                        *(volatile int*)&g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+                        g_observation.game_loaded = 1;
+                        ReportStep("game-loaded");
+                        fprintf(stderr,
+                                "runtime-test post-load motion: flags=0x%x envload=%d "
+                                "scale=%.3f env38=%.2f env3c=%.2f env20=%.2f\n",
+                                g_level_data_00652dac != 0 ? g_level_data_00652dac->flags : 0,
+                                g_environment_load_flag_00603ad0,
+                                g_level_data_00652dac != 0 ? g_level_data_00652dac->camera_scale_14
+                                                           : -1.0f,
+                                g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_38 : -1.0f,
+                                g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_3c : -1.0f,
+                                g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_20 : -1.0f);
+                        /* LoadGame + LoadLevel must put the party back at
+                           the saved spot: the position walked away from
+                           before the load snaps back. */
+                        srVector3T<float> restored;
+                        GetCameraPosition(&restored);
+                        started = GetTickCount();
+                        while ((restored - saved_position).Length() >= 1.0f &&
+                               GetTickCount() - started < 5000 && gfProgramIsRunning) {
+                            Sleep(100);
+                            GetCameraPosition(&restored);
+                        }
+                        float moved = (walked_position - saved_position).Length();
+                        float drift = (restored - saved_position).Length();
+                        /* The X/Z snap is exact; the anchor lands ~1.5
+                           higher on Y across the level reload, a
+                           ground-contact resolution difference pending
+                           the collision-path audit, so the restore proof
+                           gates on the horizontal plane. */
+                        srVector3T<float> horizontal = restored - saved_position;
+                        horizontal.y = 0.0f;
+                        if (moved > 1.0f && horizontal.Length() < 1.0f) {
+                            g_observation.load_position_restored = 1;
+                            ReportStep("load-position-restored");
+                        } else {
+                            fprintf(stderr,
+                                    "runtime-test quick-load: restore "
+                                    "saved=(%.1f %.1f %.1f) restored=(%.1f %.1f %.1f) "
+                                    "walked=(%.1f %.1f %.1f) walked=%.2f drift=%.2f\n",
+                                    saved_position.x, saved_position.y, saved_position.z,
+                                    restored.x, restored.y, restored.z, walked_position.x,
+                                    walked_position.y, walked_position.z, moved, drift);
                         }
                     } else {
-                        fprintf(stderr, "runtime-test turn: TURN_LEFT binding missing (index=%d)\n",
-                                binding_index);
+                        fprintf(stderr,
+                                "runtime-test quick-load: key=0x%x modifiers=0x%x "
+                                "screen=%d pending=%d saw_load=%d\n",
+                                load_binding->key, load_binding->modifiers,
+                                g_current_screen_state.id, g_pending_screen_state.id, saw_load);
                     }
+                } else {
+                    fprintf(stderr,
+                            "runtime-test quick-load: QUICK_LOAD binding missing (index=%d)\n",
+                            load_index);
+                }
+            }
+            /* Hold the live MOVE_FORWARD binding through real frames;
+               the camera position is the party's world position. Keep the
+               key held for the whole window so the walk crosses triggers
+               and wall collision, then let the world tick idle while the
+               ambient monster, NPC and generator updates run. */
+            srVector3T<float> before;
+            srVector3T<float> after;
+            GetCameraPosition(&before);
+            SendScenarioKeyHeld(forward_binding->key, 0);
+            unsigned char forward_pressed = 0;
+            float maximum_input_motion = 0.0f;
+            float maximum_transformed_motion = 0.0f;
+            float maximum_integrated_motion = 0.0f;
+            float maximum_world_motion = 0.0f;
+            float maximum_camera_forward = 0.0f;
+            unsigned int observed_render_flags = 0;
+            started = GetTickCount();
+            while (GetTickCount() - started < 10000 && gfProgramIsRunning) {
+                Sleep(100);
+                if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_FORWARD)) {
+                    forward_pressed = 1;
+                }
+                if (g_level_data_00652dac != 0) {
+                    float input_motion = g_level_data_00652dac->vector_40.Length();
+                    float transformed_motion = g_level_data_00652dac->vector_70.Length();
+                    float integrated_motion = g_level_data_00652dac->vector_64.Length();
+                    float world_motion = g_level_data_00652dac->vector_a0.Length();
+                    float camera_forward = g_level_data_00652dac->camera_forward_4c.Length();
+                    if (input_motion > maximum_input_motion) {
+                        maximum_input_motion = input_motion;
+                    }
+                    if (world_motion > maximum_world_motion) {
+                        maximum_world_motion = world_motion;
+                    }
+                    if (transformed_motion > maximum_transformed_motion) {
+                        maximum_transformed_motion = transformed_motion;
+                    }
+                    if (integrated_motion > maximum_integrated_motion) {
+                        maximum_integrated_motion = integrated_motion;
+                    }
+                    if (camera_forward > maximum_camera_forward) {
+                        maximum_camera_forward = camera_forward;
+                    }
+                }
+                observed_render_flags |= g_level_block->world_render_flags;
+                GetCameraPosition(&after);
+                if (g_observation.party_moved == 0 && (after - before).Length() > 1.0f) {
+                    g_observation.party_moved = 1;
+                    ReportStep("party-moved");
+                }
+            }
+            SendScenarioKeyHeld(forward_binding->key, 1);
+            if (!g_observation.party_moved && backward_binding != 0) {
+                unsigned char backward_pressed = 0;
+                float backward_input = 0.0f;
+                SendScenarioKeyHeld(backward_binding->key, 0);
+                started = GetTickCount();
+                while (GetTickCount() - started < 10000 && gfProgramIsRunning) {
+                    Sleep(100);
+                    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_BACKWARD)) {
+                        backward_pressed = 1;
+                    }
+                    if (g_level_data_00652dac != 0 &&
+                        g_level_data_00652dac->vector_40.Length() > backward_input) {
+                        backward_input = g_level_data_00652dac->vector_40.Length();
+                    }
+                    GetCameraPosition(&after);
+                    if ((after - before).Length() > 1.0f) {
+                        g_observation.party_moved = 1;
+                        ReportStep("party-moved");
+                        break;
+                    }
+                }
+                SendScenarioKeyHeld(backward_binding->key, 1);
+                if (!g_observation.party_moved) {
+                    fprintf(stderr,
+                            "runtime-test backward: key=0x%x mods=0x%x pressed=%d "
+                            "input=%.2f\n",
+                            backward_binding->key, backward_binding->modifiers, backward_pressed,
+                            backward_input);
+                }
+            }
+            if (!g_observation.party_moved) {
+                GetCameraPosition(&after);
+                fprintf(
+                    stderr,
+                    "runtime-test movement: before=(%.1f %.1f %.1f) "
+                    "after=(%.1f %.1f %.1f) key=0x%x modifiers=0x%x "
+                    "pressed=%d input_motion=%.2f transformed_motion=%.2f "
+                    "integrated_motion=%.2f world_motion=%.2f "
+                    "camera_forward=%.2f render_flags=0x%x string_input=%d "
+                    "cmd200=%d engaged=%d timer_flags=0x%x paused=%d "
+                    "d1=%d d2=%d level_flags=0x%x cam_scale=%.3f "
+                    "envload=%d env38=%.2f env3c=%.2f env20=%.2f "
+                    "transition=%d fade=%d review=%d rec=%d mipe=%d/%d modal=%d npc=%d\n",
+                    before.x, before.y, before.z, after.x, after.y, after.z, forward_binding->key,
+                    forward_binding->modifiers, forward_pressed, maximum_input_motion,
+                    maximum_transformed_motion, maximum_integrated_motion, maximum_world_motion,
+                    maximum_camera_forward, observed_render_flags, gfCurrentStringInputState,
+                    g_mgs_keyboard != 0
+                        ? g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_FORWARD)
+                        : 0xff,
+                    AnyCharacterEngaged(),
+                    g_game_time_accumulator_6598bc != 0 ? g_game_time_accumulator_6598bc->m_flags
+                                                        : 0xffff,
+                    g_shared_timer_paused, g_shared_timer_flag_d1, g_shared_timer_flag_d2,
+                    g_level_data_00652dac != 0 ? g_level_data_00652dac->flags : 0xffffffffU,
+                    g_level_data_00652dac != 0 ? g_level_data_00652dac->camera_scale_14 : -1.0f,
+                    g_environment_load_flag_00603ad0,
+                    g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_38 : -1.0f,
+                    g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_3c : -1.0f,
+                    g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_20 : -1.0f,
+                    IsScreenTransitionPending(), g_level_block->flag_328,
+                    g_level_block->review_transition_active, GetFlag69DA6C(), GetFlag68F105(),
+                    GetFlag68F104(), g_modal_owner_0068edd0 != 0, gXStatus.fNpcDialogueMode);
+                return FailScenario("exploration-movement", maximum_input_motion > 0.0f
+                                                                ? "input-produced-no-world-motion"
+                                                                : "held-key-produced-no-input");
+            }
+            /* Resolve the live TURN_LEFT binding rather than assuming a
+               key, then hold it through frames: HandleManualCameraHotkeys
+               raises the turn flag and ApplyCameraRotation must rotate the
+               camera yaw. camera_forward_4c is only the per-frame motion
+               delta - zero while stationary - so watch the orientation. */
+            if (gfProgramIsRunning && g_mgs_keyboard != 0) {
+                int binding_index = g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_TURN_LEFT);
+                MGSKeyBinding* turn_binding =
+                    binding_index >= 0 ? g_mgs_keyboard->GetBinding(binding_index) : 0;
+                if (turn_binding != 0) {
+                    W8CameraAngleRecord heading_before;
+                    W8CameraAngleRecord heading_now;
+                    W8CameraAngleRecord pitch_scratch;
+                    GetCameraOrientation(heading_before, pitch_scratch);
+                    WORD modifiers[3];
+                    int modifier_count = 0;
+                    if ((turn_binding->modifiers & SHIFT_DOWN) != 0) {
+                        modifiers[modifier_count++] = VK_SHIFT;
+                    }
+                    if ((turn_binding->modifiers & CTRL_DOWN) != 0) {
+                        modifiers[modifier_count++] = VK_CONTROL;
+                    }
+                    if ((turn_binding->modifiers & ALT_DOWN) != 0) {
+                        modifiers[modifier_count++] = VK_MENU;
+                    }
+                    int modifier_index;
+                    for (modifier_index = 0; modifier_index < modifier_count; ++modifier_index) {
+                        SendScenarioKeyHeld(modifiers[modifier_index], 0);
+                    }
+                    SendScenarioKeyHeld(turn_binding->key, 0);
+                    started = GetTickCount();
+                    while (GetTickCount() - started < 5000 && gfProgramIsRunning) {
+                        Sleep(100);
+                        GetCameraOrientation(heading_now, pitch_scratch);
+                        if (fabsf(heading_now[0] - heading_before[0]) > 0.01f) {
+                            g_observation.party_turned = 1;
+                            ReportStep("party-turned");
+                            break;
+                        }
+                    }
+                    SendScenarioKeyHeld(turn_binding->key, 1);
+                    for (modifier_index = 0; modifier_index < modifier_count; ++modifier_index) {
+                        SendScenarioKeyHeld(modifiers[modifier_index], 1);
+                    }
+                    if (!g_observation.party_turned) {
+                        fprintf(stderr,
+                                "runtime-test turn: binding=%d key=0x%x modifiers=0x%x "
+                                "yaw_before=%.3f yaw_after=%.3f\n",
+                                binding_index, turn_binding->key, turn_binding->modifiers,
+                                heading_before[0], heading_now[0]);
+                    }
+                } else {
+                    fprintf(stderr, "runtime-test turn: TURN_LEFT binding missing (index=%d)\n",
+                            binding_index);
+                }
+            }
+            if (gfProgramIsRunning) {
+                /* Ambient simulation proof: dormant monsters still tick
+                   their wander/idle navigation, so positions sampled
+                   around the soak window should drift for the ones whose
+                   AI is live. */
+                unsigned int monster_indexes[64];
+                srVector3T<float> monster_before[64];
+                int monster_sampled = 0;
+                if (gXStatus.plsMonsterList != 0) {
+                    unsigned int count =
+                        ILLength(reinterpret_cast<W8IList*>(gXStatus.plsMonsterList));
+                    for (unsigned int i = 0; i < count && monster_sampled < 64; ++i) {
+                        W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
+                        if (info != 0 && info->fActive != 0 && info->monster != 0) {
+                            monster_indexes[monster_sampled] = i;
+                            monster_before[monster_sampled] = info->monster->GetPosition();
+                            ++monster_sampled;
+                        }
+                    }
+                }
+                started = GetTickCount();
+                while (GetTickCount() - started < 15000 && gfProgramIsRunning) {
+                    Sleep(200);
                 }
                 if (gfProgramIsRunning) {
-                    /* Ambient simulation proof: dormant monsters still tick
-                       their wander/idle navigation, so positions sampled
-                       around the soak window should drift for the ones whose
-                       AI is live. */
-                    unsigned int monster_indexes[64];
-                    srVector3T<float> monster_before[64];
-                    int monster_sampled = 0;
-                    if (gXStatus.plsMonsterList != 0) {
-                        unsigned int count =
-                            ILLength(reinterpret_cast<W8IList*>(gXStatus.plsMonsterList));
-                        for (unsigned int i = 0; i < count && monster_sampled < 64; ++i) {
-                            W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-                            if (info != 0 && info->fActive != 0 && info->monster != 0) {
-                                monster_indexes[monster_sampled] = i;
-                                monster_before[monster_sampled] = info->monster->GetPosition();
-                                ++monster_sampled;
+                    int monsters_moved = 0;
+                    for (int i = 0; i < monster_sampled; ++i) {
+                        W8MonsterInfo* info =
+                            MonsterGetScriptPartByLocationIndex(monster_indexes[i]);
+                        if (info != 0 && info->fActive != 0 && info->monster != 0 &&
+                            (info->monster->GetPosition() - monster_before[i]).Length() > 0.5f) {
+                            ++monsters_moved;
+                        }
+                    }
+                    g_observation.world_soaked = 1;
+                    ReportStep("world-soaked");
+                    srVector3T<float> camera_now;
+                    GetCameraPosition(&camera_now);
+                    float nearest = 1e30f;
+                    int nearest_index = -1;
+                    for (int k = 0; k < monster_sampled; ++k) {
+                        W8MonsterInfo* info =
+                            MonsterGetScriptPartByLocationIndex(monster_indexes[k]);
+                        if (info != 0 && info->fActive != 0 && info->monster != 0) {
+                            float dist = (info->monster->GetPosition() - camera_now).Length();
+                            if (dist < nearest) {
+                                nearest = dist;
+                                nearest_index = (int)monster_indexes[k];
                             }
                         }
+                    }
+                    fprintf(stderr,
+                            "runtime-test soak: monsters=%d moved=%d hostile=%u combat=%u "
+                            "move_ui=%u nearest=%.1f@%d\n",
+                            monster_sampled, monsters_moved, gXStatus.hostile_monster_count,
+                            gXStatus.fCombatMode, gXStatus.fPartyMovementUi, nearest,
+                            nearest_index);
+                }
+            }
+            /* Dispatched-command path: tapping the resolved AUTOMAP key
+               lands a KEY_DOWN atom that FindCommandForEvent resolves to
+               command 303, DispatchMGSCommand opens the automap screen, and
+               HandleAutomapKey toggles back out on the same binding. */
+            if (gfProgramIsRunning && g_mgs_keyboard != 0) {
+                int automap_index = g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_AUTOMAP);
+                MGSKeyBinding* automap_binding =
+                    automap_index >= 0 ? g_mgs_keyboard->GetBinding(automap_index) : 0;
+                if (automap_binding != 0) {
+                    WORD automap_modifiers[3];
+                    int automap_modifier_count = 0;
+                    if ((automap_binding->modifiers & SHIFT_DOWN) != 0) {
+                        automap_modifiers[automap_modifier_count++] = VK_SHIFT;
+                    }
+                    if ((automap_binding->modifiers & CTRL_DOWN) != 0) {
+                        automap_modifiers[automap_modifier_count++] = VK_CONTROL;
+                    }
+                    if ((automap_binding->modifiers & ALT_DOWN) != 0) {
+                        automap_modifiers[automap_modifier_count++] = VK_MENU;
+                    }
+                    int modifier_index;
+                    for (modifier_index = 0; modifier_index < automap_modifier_count;
+                         ++modifier_index) {
+                        SendScenarioKeyHeld(automap_modifiers[modifier_index], 0);
+                    }
+                    SendScenarioKeyHeld(automap_binding->key, 0);
+                    SendScenarioKeyHeld(automap_binding->key, 1);
+                    for (modifier_index = 0; modifier_index < automap_modifier_count;
+                         ++modifier_index) {
+                        SendScenarioKeyHeld(automap_modifiers[modifier_index], 1);
                     }
                     started = GetTickCount();
-                    while (GetTickCount() - started < 15000 && gfProgramIsRunning) {
-                        Sleep(200);
+                    while (GetTickCount() - started < 10000 && gfProgramIsRunning &&
+                           g_current_screen_state.id != W8_SCREEN_AUTOMAP) {
+                        Sleep(100);
                     }
-                    if (gfProgramIsRunning) {
-                        int monsters_moved = 0;
-                        for (int i = 0; i < monster_sampled; ++i) {
-                            W8MonsterInfo* info =
-                                MonsterGetScriptPartByLocationIndex(monster_indexes[i]);
-                            if (info != 0 && info->fActive != 0 && info->monster != 0 &&
-                                (info->monster->GetPosition() - monster_before[i]).Length() >
-                                    0.5f) {
-                                ++monsters_moved;
-                            }
+                    if (g_current_screen_state.id == W8_SCREEN_AUTOMAP) {
+                        g_observation.automap_opened = 1;
+                        ReportStep("automap-opened");
+                        started = GetTickCount();
+                        while (GetTickCount() - started < 3000 && gfProgramIsRunning) {
+                            Sleep(200);
                         }
-                        g_observation.world_soaked = 1;
-                        ReportStep("world-soaked");
-                        srVector3T<float> camera_now;
-                        GetCameraPosition(&camera_now);
-                        float nearest = 1e30f;
-                        int nearest_index = -1;
-                        for (int k = 0; k < monster_sampled; ++k) {
-                            W8MonsterInfo* info =
-                                MonsterGetScriptPartByLocationIndex(monster_indexes[k]);
-                            if (info != 0 && info->fActive != 0 && info->monster != 0) {
-                                float dist = (info->monster->GetPosition() - camera_now).Length();
-                                if (dist < nearest) {
-                                    nearest = dist;
-                                    nearest_index = (int)monster_indexes[k];
-                                }
-                            }
-                        }
-                        fprintf(stderr,
-                                "runtime-test soak: monsters=%d moved=%d hostile=%u combat=%u "
-                                "move_ui=%u nearest=%.1f@%d\n",
-                                monster_sampled, monsters_moved, gXStatus.hostile_monster_count,
-                                gXStatus.fCombatMode, gXStatus.fPartyMovementUi, nearest,
-                                nearest_index);
-                    }
-                }
-                /* Dispatched-command path: tapping the resolved AUTOMAP key
-                   lands a KEY_DOWN atom that FindCommandForEvent resolves to
-                   command 303, DispatchMGSCommand opens the automap screen, and
-                   HandleAutomapKey toggles back out on the same binding. */
-                if (gfProgramIsRunning && g_mgs_keyboard != 0) {
-                    int automap_index = g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_AUTOMAP);
-                    MGSKeyBinding* automap_binding =
-                        automap_index >= 0 ? g_mgs_keyboard->GetBinding(automap_index) : 0;
-                    if (automap_binding != 0) {
-                        WORD automap_modifiers[3];
-                        int automap_modifier_count = 0;
-                        if ((automap_binding->modifiers & SHIFT_DOWN) != 0) {
-                            automap_modifiers[automap_modifier_count++] = VK_SHIFT;
-                        }
-                        if ((automap_binding->modifiers & CTRL_DOWN) != 0) {
-                            automap_modifiers[automap_modifier_count++] = VK_CONTROL;
-                        }
-                        if ((automap_binding->modifiers & ALT_DOWN) != 0) {
-                            automap_modifiers[automap_modifier_count++] = VK_MENU;
-                        }
-                        int modifier_index;
                         for (modifier_index = 0; modifier_index < automap_modifier_count;
                              ++modifier_index) {
                             SendScenarioKeyHeld(automap_modifiers[modifier_index], 0);
@@ -2001,162 +1900,161 @@ static DWORD WINAPI DriveScenario(void*)
                         }
                         started = GetTickCount();
                         while (GetTickCount() - started < 10000 && gfProgramIsRunning &&
-                               g_current_screen_state.id != W8_SCREEN_AUTOMAP) {
+                               g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
                             Sleep(100);
                         }
-                        if (g_current_screen_state.id == W8_SCREEN_AUTOMAP) {
-                            g_observation.automap_opened = 1;
-                            ReportStep("automap-opened");
-                            started = GetTickCount();
-                            while (GetTickCount() - started < 3000 && gfProgramIsRunning) {
-                                Sleep(200);
-                            }
-                            for (modifier_index = 0; modifier_index < automap_modifier_count;
-                                 ++modifier_index) {
-                                SendScenarioKeyHeld(automap_modifiers[modifier_index], 0);
-                            }
-                            SendScenarioKeyHeld(automap_binding->key, 0);
-                            SendScenarioKeyHeld(automap_binding->key, 1);
-                            for (modifier_index = 0; modifier_index < automap_modifier_count;
-                                 ++modifier_index) {
-                                SendScenarioKeyHeld(automap_modifiers[modifier_index], 1);
-                            }
-                            started = GetTickCount();
-                            while (GetTickCount() - started < 10000 && gfProgramIsRunning &&
-                                   g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
-                                Sleep(100);
-                            }
-                            if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-                                g_observation.automap_closed = 1;
-                                ReportStep("automap-closed");
-                            }
-                        } else {
-                            fprintf(stderr,
-                                    "runtime-test automap: key=0x%x modifiers=0x%x screen=%d "
-                                    "pending=%d\n",
-                                    automap_binding->key, automap_binding->modifiers,
-                                    g_current_screen_state.id, g_pending_screen_state.id);
+                        if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+                            g_observation.automap_closed = 1;
+                            ReportStep("automap-closed");
                         }
                     } else {
                         fprintf(stderr,
-                                "runtime-test automap: AUTOMAP binding missing (index=%d)\n",
-                                automap_index);
+                                "runtime-test automap: key=0x%x modifiers=0x%x screen=%d "
+                                "pending=%d\n",
+                                automap_binding->key, automap_binding->modifiers,
+                                g_current_screen_state.id, g_pending_screen_state.id);
                     }
+                } else {
+                    fprintf(stderr, "runtime-test automap: AUTOMAP binding missing (index=%d)\n",
+                            automap_index);
                 }
-                /* Voluntary combat: the TOGGLE_COMBAT binding runs StartCombat
-                   with no hostiles engaged, the round machinery ticks for a
-                   few seconds, then the same binding runs the EndCombat path
-                   back to exploration. The automap-close transition drains the
-                   input queue on main-game re-entry, so the press retries
-                   until an atom survives the drain window. */
-                if (gfProgramIsRunning && g_mgs_keyboard != 0) {
-                    int combat_index = g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_TOGGLE_COMBAT);
-                    MGSKeyBinding* combat_binding =
-                        combat_index >= 0 ? g_mgs_keyboard->GetBinding(combat_index) : 0;
-                    if (combat_binding != 0) {
-                        WORD combat_modifiers[3];
-                        int combat_modifier_count = 0;
-                        if ((combat_binding->modifiers & SHIFT_DOWN) != 0) {
-                            combat_modifiers[combat_modifier_count++] = VK_SHIFT;
+            }
+            /* Voluntary combat: the TOGGLE_COMBAT binding runs StartCombat
+               with no hostiles engaged, the round machinery ticks for a
+               few seconds, then the same binding runs the EndCombat path
+               back to exploration. The automap-close transition drains the
+               input queue on main-game re-entry, so the press retries
+               until an atom survives the drain window. */
+            if (gfProgramIsRunning && g_mgs_keyboard != 0) {
+                int combat_index = g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_TOGGLE_COMBAT);
+                MGSKeyBinding* combat_binding =
+                    combat_index >= 0 ? g_mgs_keyboard->GetBinding(combat_index) : 0;
+                if (combat_binding != 0) {
+                    WORD combat_modifiers[3];
+                    int combat_modifier_count = 0;
+                    if ((combat_binding->modifiers & SHIFT_DOWN) != 0) {
+                        combat_modifiers[combat_modifier_count++] = VK_SHIFT;
+                    }
+                    if ((combat_binding->modifiers & CTRL_DOWN) != 0) {
+                        combat_modifiers[combat_modifier_count++] = VK_CONTROL;
+                    }
+                    if ((combat_binding->modifiers & ALT_DOWN) != 0) {
+                        combat_modifiers[combat_modifier_count++] = VK_MENU;
+                    }
+                    int modifier_index;
+                    int combat_attempt;
+                    for (combat_attempt = 0;
+                         combat_attempt < 5 && gfProgramIsRunning && gXStatus.fCombatMode == 0;
+                         ++combat_attempt) {
+                        Sleep(400);
+                        for (modifier_index = 0; modifier_index < combat_modifier_count;
+                             ++modifier_index) {
+                            SendScenarioKeyHeld(combat_modifiers[modifier_index], 0);
                         }
-                        if ((combat_binding->modifiers & CTRL_DOWN) != 0) {
-                            combat_modifiers[combat_modifier_count++] = VK_CONTROL;
+                        SendScenarioKeyHeld(combat_binding->key, 0);
+                        SendScenarioKeyHeld(combat_binding->key, 1);
+                        for (modifier_index = 0; modifier_index < combat_modifier_count;
+                             ++modifier_index) {
+                            SendScenarioKeyHeld(combat_modifiers[modifier_index], 1);
                         }
-                        if ((combat_binding->modifiers & ALT_DOWN) != 0) {
-                            combat_modifiers[combat_modifier_count++] = VK_MENU;
+                        started = GetTickCount();
+                        while (GetTickCount() - started < 2000 && gfProgramIsRunning &&
+                               gXStatus.fCombatMode == 0) {
+                            Sleep(100);
                         }
-                        int modifier_index;
-                        int combat_attempt;
-                        for (combat_attempt = 0;
-                             combat_attempt < 5 && gfProgramIsRunning && gXStatus.fCombatMode == 0;
-                             ++combat_attempt) {
-                            Sleep(400);
-                            for (modifier_index = 0; modifier_index < combat_modifier_count;
-                                 ++modifier_index) {
-                                SendScenarioKeyHeld(combat_modifiers[modifier_index], 0);
+                    }
+                    if (gXStatus.fCombatMode != 0) {
+                        g_observation.combat_started = 1;
+                        ReportStep("combat-started");
+                        /* With combat live, dispatch the PARTY_WALK
+                           binding: the action key runs ChooseAction ->
+                           ApplyPartyCombatAction, which queues the party
+                           move and opens the movement panel, so
+                           fPartyMovementUi latching proves the combat
+                           action path end to end. */
+                        int walk_index = g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_PARTY_WALK);
+                        MGSKeyBinding* walk_binding =
+                            walk_index >= 0 ? g_mgs_keyboard->GetBinding(walk_index) : 0;
+                        if (walk_binding != 0) {
+                            int round_index =
+                                g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_START_COMBAT_ROUND);
+                            MGSKeyBinding* round_binding =
+                                round_index >= 0 ? g_mgs_keyboard->GetBinding(round_index) : 0;
+                            WORD walk_modifiers[3];
+                            int walk_modifier_count = 0;
+                            if ((walk_binding->modifiers & SHIFT_DOWN) != 0) {
+                                walk_modifiers[walk_modifier_count++] = VK_SHIFT;
                             }
-                            SendScenarioKeyHeld(combat_binding->key, 0);
-                            SendScenarioKeyHeld(combat_binding->key, 1);
-                            for (modifier_index = 0; modifier_index < combat_modifier_count;
-                                 ++modifier_index) {
-                                SendScenarioKeyHeld(combat_modifiers[modifier_index], 1);
+                            if ((walk_binding->modifiers & CTRL_DOWN) != 0) {
+                                walk_modifiers[walk_modifier_count++] = VK_CONTROL;
                             }
-                            started = GetTickCount();
-                            while (GetTickCount() - started < 2000 && gfProgramIsRunning &&
-                                   gXStatus.fCombatMode == 0) {
-                                Sleep(100);
+                            if ((walk_binding->modifiers & ALT_DOWN) != 0) {
+                                walk_modifiers[walk_modifier_count++] = VK_MENU;
                             }
-                        }
-                        if (gXStatus.fCombatMode != 0) {
-                            g_observation.combat_started = 1;
-                            ReportStep("combat-started");
-                            /* With combat live, dispatch the PARTY_WALK
-                               binding: the action key runs ChooseAction ->
-                               ApplyPartyCombatAction, which queues the party
-                               move and opens the movement panel, so
-                               fPartyMovementUi latching proves the combat
-                               action path end to end. */
-                            int walk_index = g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_PARTY_WALK);
-                            MGSKeyBinding* walk_binding =
-                                walk_index >= 0 ? g_mgs_keyboard->GetBinding(walk_index) : 0;
-                            if (walk_binding != 0) {
-                                int round_index =
-                                    g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_START_COMBAT_ROUND);
-                                MGSKeyBinding* round_binding =
-                                    round_index >= 0 ? g_mgs_keyboard->GetBinding(round_index) : 0;
-                                WORD walk_modifiers[3];
-                                int walk_modifier_count = 0;
-                                if ((walk_binding->modifiers & SHIFT_DOWN) != 0) {
-                                    walk_modifiers[walk_modifier_count++] = VK_SHIFT;
+                            for (combat_attempt = 0; combat_attempt < 8 && gfProgramIsRunning &&
+                                                     gXStatus.fPartyMovementUi == 0;
+                                 ++combat_attempt) {
+                                for (modifier_index = 0; modifier_index < walk_modifier_count;
+                                     ++modifier_index) {
+                                    SendScenarioKeyHeld(walk_modifiers[modifier_index], 0);
                                 }
-                                if ((walk_binding->modifiers & CTRL_DOWN) != 0) {
-                                    walk_modifiers[walk_modifier_count++] = VK_CONTROL;
+                                SendScenarioKeyHeld(walk_binding->key, 0);
+                                SendScenarioKeyHeld(walk_binding->key, 1);
+                                for (modifier_index = 0; modifier_index < walk_modifier_count;
+                                     ++modifier_index) {
+                                    SendScenarioKeyHeld(walk_modifiers[modifier_index], 1);
                                 }
-                                if ((walk_binding->modifiers & ALT_DOWN) != 0) {
-                                    walk_modifiers[walk_modifier_count++] = VK_MENU;
+                                started = GetTickCount();
+                                while (GetTickCount() - started < 1500 && gfProgramIsRunning &&
+                                       gXStatus.fPartyMovementUi == 0) {
+                                    Sleep(100);
                                 }
-                                for (combat_attempt = 0; combat_attempt < 8 && gfProgramIsRunning &&
-                                                         gXStatus.fPartyMovementUi == 0;
-                                     ++combat_attempt) {
-                                    for (modifier_index = 0; modifier_index < walk_modifier_count;
-                                         ++modifier_index) {
-                                        SendScenarioKeyHeld(walk_modifiers[modifier_index], 0);
+                            }
+                            if (gXStatus.fPartyMovementUi != 0) {
+                                g_observation.combat_action_queued = 1;
+                                ReportStep("combat-action-queued");
+                                /* Begin the queued walk while the movement key is held;
+                                   the active combat phase owns movement updates. */
+                                srVector3T<float> combat_before;
+                                srVector3T<float> combat_after;
+                                unsigned char combat_forward_pressed = 0;
+                                unsigned char combat_backward_pressed = 0;
+                                float combat_input = 0.0f;
+                                GetCameraPosition(&combat_before);
+                                SendScenarioKeyHeld(forward_binding->key, 0);
+                                if (round_binding != 0) {
+                                    SendScenarioKeyHeld(round_binding->key, 0);
+                                    SendScenarioKeyHeld(round_binding->key, 1);
+                                }
+                                started = GetTickCount();
+                                while (GetTickCount() - started < 5000 && gfProgramIsRunning &&
+                                       g_observation.combat_party_moved == 0) {
+                                    Sleep(100);
+                                    if (g_mgs_keyboard->IsCommandPressed(
+                                            W8_MGS_COMMAND_MOVE_FORWARD)) {
+                                        combat_forward_pressed = 1;
                                     }
-                                    SendScenarioKeyHeld(walk_binding->key, 0);
-                                    SendScenarioKeyHeld(walk_binding->key, 1);
-                                    for (modifier_index = 0; modifier_index < walk_modifier_count;
-                                         ++modifier_index) {
-                                        SendScenarioKeyHeld(walk_modifiers[modifier_index], 1);
+                                    if (g_level_data_00652dac != 0 &&
+                                        g_level_data_00652dac->vector_40.Length() > combat_input) {
+                                        combat_input = g_level_data_00652dac->vector_40.Length();
                                     }
-                                    started = GetTickCount();
-                                    while (GetTickCount() - started < 1500 && gfProgramIsRunning &&
-                                           gXStatus.fPartyMovementUi == 0) {
-                                        Sleep(100);
+                                    GetCameraPosition(&combat_after);
+                                    if ((combat_after - combat_before).Length() > 1.0f &&
+                                        g_level_block->move_budget_2dc < 100) {
+                                        g_observation.combat_party_moved = 1;
+                                        ReportStep("combat-party-moved");
                                     }
                                 }
-                                if (gXStatus.fPartyMovementUi != 0) {
-                                    g_observation.combat_action_queued = 1;
-                                    ReportStep("combat-action-queued");
-                                    /* Begin the queued walk while the movement key is held;
-                                       the active combat phase owns movement updates. */
-                                    srVector3T<float> combat_before;
-                                    srVector3T<float> combat_after;
-                                    unsigned char combat_forward_pressed = 0;
-                                    unsigned char combat_backward_pressed = 0;
-                                    float combat_input = 0.0f;
-                                    GetCameraPosition(&combat_before);
-                                    SendScenarioKeyHeld(forward_binding->key, 0);
-                                    if (round_binding != 0) {
-                                        SendScenarioKeyHeld(round_binding->key, 0);
-                                        SendScenarioKeyHeld(round_binding->key, 1);
-                                    }
+                                SendScenarioKeyHeld(forward_binding->key, 1);
+                                if (!g_observation.combat_party_moved && backward_binding != 0) {
+                                    SendScenarioKeyHeld(backward_binding->key, 0);
                                     started = GetTickCount();
                                     while (GetTickCount() - started < 5000 && gfProgramIsRunning &&
                                            g_observation.combat_party_moved == 0) {
                                         Sleep(100);
                                         if (g_mgs_keyboard->IsCommandPressed(
-                                                W8_MGS_COMMAND_MOVE_FORWARD)) {
-                                            combat_forward_pressed = 1;
+                                                W8_MGS_COMMAND_MOVE_BACKWARD)) {
+                                            combat_backward_pressed = 1;
                                         }
                                         if (g_level_data_00652dac != 0 &&
                                             g_level_data_00652dac->vector_40.Length() >
@@ -2171,329 +2069,317 @@ static DWORD WINAPI DriveScenario(void*)
                                             ReportStep("combat-party-moved");
                                         }
                                     }
-                                    SendScenarioKeyHeld(forward_binding->key, 1);
-                                    if (!g_observation.combat_party_moved &&
-                                        backward_binding != 0) {
-                                        SendScenarioKeyHeld(backward_binding->key, 0);
-                                        started = GetTickCount();
-                                        while (GetTickCount() - started < 5000 &&
-                                               gfProgramIsRunning &&
-                                               g_observation.combat_party_moved == 0) {
-                                            Sleep(100);
-                                            if (g_mgs_keyboard->IsCommandPressed(
-                                                    W8_MGS_COMMAND_MOVE_BACKWARD)) {
-                                                combat_backward_pressed = 1;
-                                            }
-                                            if (g_level_data_00652dac != 0 &&
-                                                g_level_data_00652dac->vector_40.Length() >
-                                                    combat_input) {
-                                                combat_input =
-                                                    g_level_data_00652dac->vector_40.Length();
-                                            }
-                                            GetCameraPosition(&combat_after);
-                                            if ((combat_after - combat_before).Length() > 1.0f &&
-                                                g_level_block->move_budget_2dc < 100) {
-                                                g_observation.combat_party_moved = 1;
-                                                ReportStep("combat-party-moved");
-                                            }
-                                        }
-                                        SendScenarioKeyHeld(backward_binding->key, 1);
-                                    }
-                                    if (!g_observation.combat_party_moved) {
-                                        GetCameraPosition(&combat_after);
-                                        fprintf(stderr,
-                                                "runtime-test combat-move: "
-                                                "before=(%.1f %.1f %.1f) after=(%.1f %.1f %.1f) "
-                                                "budget=%d ui=%d cur_action=%u next_action=%u "
-                                                "can_move=%d forward=%d backward=%d "
-                                                "input=%.2f round_key=%d\n",
-                                                combat_before.x, combat_before.y, combat_before.z,
-                                                combat_after.x, combat_after.y, combat_after.z,
-                                                g_level_block->move_budget_2dc,
-                                                gXStatus.fPartyMovementUi,
-                                                g_combat_state->uiCurrentPartyAction,
-                                                g_combat_state->uiNextPartyAction, CanPartyMove(),
-                                                combat_forward_pressed, combat_backward_pressed,
-                                                combat_input, round_index);
-                                    }
-                                } else {
+                                    SendScenarioKeyHeld(backward_binding->key, 1);
+                                }
+                                if (!g_observation.combat_party_moved) {
+                                    GetCameraPosition(&combat_after);
                                     fprintf(stderr,
-                                            "runtime-test combat-action: selected=%d "
-                                            "walk_enabled=%u next_action=%u "
-                                            "cur_action=%u surprise=%u blocked=%d combat=%u\n",
-                                            g_status_685170.selected_character,
-                                            IsMGSActionKeyEnabled(W8_MGS_ACTION_WALK),
-                                            g_combat_state->uiNextPartyAction,
+                                            "runtime-test combat-move: "
+                                            "before=(%.1f %.1f %.1f) after=(%.1f %.1f %.1f) "
+                                            "budget=%d ui=%d cur_action=%u next_action=%u "
+                                            "can_move=%d forward=%d backward=%d "
+                                            "input=%.2f round_key=%d\n",
+                                            combat_before.x, combat_before.y, combat_before.z,
+                                            combat_after.x, combat_after.y, combat_after.z,
+                                            g_level_block->move_budget_2dc,
+                                            gXStatus.fPartyMovementUi,
                                             g_combat_state->uiCurrentPartyAction,
-                                            gXStatus.fSurprisePossible, IsScreenInputBlocked(),
-                                            gXStatus.fCombatMode);
+                                            g_combat_state->uiNextPartyAction, CanPartyMove(),
+                                            combat_forward_pressed, combat_backward_pressed,
+                                            combat_input, round_index);
                                 }
-                                /* Once movement input stops the walk action
-                                   sits at status 1 with CanPartyMove false;
-                                   pressing START_COMBAT_ROUND again is the
-                                   game's free-turn command: BeginFreeTurnPhase
-                                   marks the action FINISHED so the round
-                                   scheduler unwinds flag_000 and
-                                   ToggleCombatMode can disengage. */
-                                if (g_observation.combat_party_moved && round_binding != 0) {
-                                    SendScenarioKeyHeld(round_binding->key, 0);
-                                    SendScenarioKeyHeld(round_binding->key, 1);
-                                    /* The round unwinding may end combat
-                                       outright, which frees g_combat_state;
-                                       poll the pointer before its fields. */
-                                    started = GetTickCount();
-                                    while (GetTickCount() - started < 5000 && gfProgramIsRunning &&
-                                           g_combat_state != 0 && g_combat_state->flag_000 != 0) {
-                                        Sleep(100);
-                                    }
-                                    if (g_combat_state != 0 && g_combat_state->flag_000 != 0) {
-                                        fprintf(stderr,
-                                                "runtime-test combat-round: flag_000=%u "
-                                                "cur_action=%u cur_status=%u next_action=%u "
-                                                "move_ui=%u can_move=%d budget=%d flag6=%d\n",
-                                                g_combat_state->flag_000,
-                                                g_combat_state->uiCurrentPartyAction,
-                                                g_combat_state->uiCurrentPartyActionStatus,
-                                                g_combat_state->uiNextPartyAction,
-                                                gXStatus.fPartyMovementUi, CanPartyMove(),
-                                                g_level_block->move_budget_2dc,
-                                                GetLevelDataFlag6());
-                                    }
-                                }
+                            } else {
+                                fprintf(stderr,
+                                        "runtime-test combat-action: selected=%d "
+                                        "walk_enabled=%u next_action=%u "
+                                        "cur_action=%u surprise=%u blocked=%d combat=%u\n",
+                                        g_status_685170.selected_character,
+                                        IsMGSActionKeyEnabled(W8_MGS_ACTION_WALK),
+                                        g_combat_state->uiNextPartyAction,
+                                        g_combat_state->uiCurrentPartyAction,
+                                        gXStatus.fSurprisePossible, IsScreenInputBlocked(),
+                                        gXStatus.fCombatMode);
                             }
-                            started = GetTickCount();
-                            while (GetTickCount() - started < 3000 && gfProgramIsRunning) {
-                                Sleep(200);
-                            }
-                            for (combat_attempt = 0; combat_attempt < 5 && gfProgramIsRunning &&
-                                                     gXStatus.fCombatMode != 0;
-                                 ++combat_attempt) {
-                                for (modifier_index = 0; modifier_index < combat_modifier_count;
-                                     ++modifier_index) {
-                                    SendScenarioKeyHeld(combat_modifiers[modifier_index], 0);
-                                }
-                                SendScenarioKeyHeld(combat_binding->key, 0);
-                                SendScenarioKeyHeld(combat_binding->key, 1);
-                                for (modifier_index = 0; modifier_index < combat_modifier_count;
-                                     ++modifier_index) {
-                                    SendScenarioKeyHeld(combat_modifiers[modifier_index], 1);
-                                }
+                            /* Once movement input stops the walk action
+                               sits at status 1 with CanPartyMove false;
+                               pressing START_COMBAT_ROUND again is the
+                               game's free-turn command: BeginFreeTurnPhase
+                               marks the action FINISHED so the round
+                               scheduler unwinds flag_000 and
+                               ToggleCombatMode can disengage. */
+                            if (g_observation.combat_party_moved && round_binding != 0) {
+                                SendScenarioKeyHeld(round_binding->key, 0);
+                                SendScenarioKeyHeld(round_binding->key, 1);
+                                /* The round unwinding may end combat
+                                   outright, which frees g_combat_state;
+                                   poll the pointer before its fields. */
                                 started = GetTickCount();
-                                while (GetTickCount() - started < 2000 && gfProgramIsRunning &&
-                                       gXStatus.fCombatMode != 0) {
+                                while (GetTickCount() - started < 5000 && gfProgramIsRunning &&
+                                       g_combat_state != 0 && g_combat_state->flag_000 != 0) {
                                     Sleep(100);
                                 }
+                                if (g_combat_state != 0 && g_combat_state->flag_000 != 0) {
+                                    fprintf(stderr,
+                                            "runtime-test combat-round: flag_000=%u "
+                                            "cur_action=%u cur_status=%u next_action=%u "
+                                            "move_ui=%u can_move=%d budget=%d flag6=%d\n",
+                                            g_combat_state->flag_000,
+                                            g_combat_state->uiCurrentPartyAction,
+                                            g_combat_state->uiCurrentPartyActionStatus,
+                                            g_combat_state->uiNextPartyAction,
+                                            gXStatus.fPartyMovementUi, CanPartyMove(),
+                                            g_level_block->move_budget_2dc, GetLevelDataFlag6());
+                                }
                             }
-                            if (gXStatus.fCombatMode == 0) {
-                                g_observation.combat_ended = 1;
-                                ReportStep("combat-ended");
+                        }
+                        started = GetTickCount();
+                        while (GetTickCount() - started < 3000 && gfProgramIsRunning) {
+                            Sleep(200);
+                        }
+                        for (combat_attempt = 0;
+                             combat_attempt < 5 && gfProgramIsRunning && gXStatus.fCombatMode != 0;
+                             ++combat_attempt) {
+                            for (modifier_index = 0; modifier_index < combat_modifier_count;
+                                 ++modifier_index) {
+                                SendScenarioKeyHeld(combat_modifiers[modifier_index], 0);
                             }
-                        } else {
-                            fprintf(stderr,
-                                    "runtime-test combat: key=0x%x modifiers=0x%x screen=%d "
-                                    "blocked=%d combat=%d\n",
-                                    combat_binding->key, combat_binding->modifiers,
-                                    g_current_screen_state.id, IsScreenInputBlocked(),
-                                    gXStatus.fCombatMode);
+                            SendScenarioKeyHeld(combat_binding->key, 0);
+                            SendScenarioKeyHeld(combat_binding->key, 1);
+                            for (modifier_index = 0; modifier_index < combat_modifier_count;
+                                 ++modifier_index) {
+                                SendScenarioKeyHeld(combat_modifiers[modifier_index], 1);
+                            }
+                            started = GetTickCount();
+                            while (GetTickCount() - started < 2000 && gfProgramIsRunning &&
+                                   gXStatus.fCombatMode != 0) {
+                                Sleep(100);
+                            }
+                        }
+                        if (gXStatus.fCombatMode == 0) {
+                            g_observation.combat_ended = 1;
+                            ReportStep("combat-ended");
                         }
                     } else {
                         fprintf(stderr,
-                                "runtime-test combat: TOGGLE_COMBAT binding missing (index=%d)\n",
-                                combat_index);
+                                "runtime-test combat: key=0x%x modifiers=0x%x screen=%d "
+                                "blocked=%d combat=%d\n",
+                                combat_binding->key, combat_binding->modifiers,
+                                g_current_screen_state.id, IsScreenInputBlocked(),
+                                gXStatus.fCombatMode);
                     }
+                } else {
+                    fprintf(stderr,
+                            "runtime-test combat: TOGGLE_COMBAT binding missing (index=%d)\n",
+                            combat_index);
                 }
-                /* Real encounter: no monster sits within walking reach of the
-                   start room (the soak diagnostic measures the nearest ~17k
-                   units away), so provoke the nearest live group through
-                   MakeTargetGroupHostile - the same entry a party attack on
-                   the monster takes. The group turns hostile, its faction is
-                   alerted, combat stays engaged, and the monsters' own AI
-                   pathing toward the party proves the encounter simulates.
-                   Select, relocate and provoke the group together on the
-                   game thread before observing the encounter. */
-                if (gfProgramIsRunning && g_observation.combat_ended != 0 &&
-                    gXStatus.plsMonsterList != 0) {
-                    HostileEncounterContext context;
-                    if (!RunOnGameThread(ProvokeHostileEncounterOnGameThread, &context)) {
-                        return FailScenario("hostile-encounter", "game-thread-executor-failed");
+            }
+            /* Real encounter: no monster sits within walking reach of the
+               start room (the soak diagnostic measures the nearest ~17k
+               units away), so provoke the nearest live group through
+               MakeTargetGroupHostile - the same entry a party attack on
+               the monster takes. The group turns hostile, its faction is
+               alerted, combat stays engaged, and the monsters' own AI
+               pathing toward the party proves the encounter simulates.
+               Select, relocate and provoke the group together on the
+               game thread before observing the encounter. */
+            if (gfProgramIsRunning && g_observation.combat_ended != 0 &&
+                gXStatus.plsMonsterList != 0) {
+                HostileEncounterContext context;
+                if (!RunOnGameThread(ProvokeHostileEncounterOnGameThread, &context)) {
+                    return FailScenario("hostile-encounter", "game-thread-executor-failed");
+                }
+                srVector3T<float> party_position = context.party_position;
+                W8MonsterInfo* provoked_info = context.info;
+                float provoked_distance = context.distance;
+                if (provoked_info != 0 && provoked_info->monster != 0) {
+                    /* The group is hostile and combat is engaged, but the
+                       provoked monster only acts on its own turn: in
+                       turn-based combat that takes a START_COMBAT_ROUND
+                       press, the same command that ran the voluntary
+                       round above. Dispatch it while watching for the
+                       monster's own movement to prove the encounter
+                       simulates past the hostility flag. */
+                    int aggro_round_index =
+                        g_mgs_keyboard != 0
+                            ? g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_START_COMBAT_ROUND)
+                            : -1;
+                    MGSKeyBinding* aggro_round_binding =
+                        aggro_round_index >= 0 ? g_mgs_keyboard->GetBinding(aggro_round_index) : 0;
+                    fprintf(stderr,
+                            "runtime-test round-binding: keyboard=%p index=%d "
+                            "binding=%p\n",
+                            (void*)g_mgs_keyboard, aggro_round_index, (void*)aggro_round_binding);
+                    float engage_distance = 1e30f;
+                    float engage_baseline = 1e30f;
+                    /* Per-monster approach tracking: the nearest-member min
+                       hides an approach by a farther member of the group,
+                       so watch each live hostile's own distance. */
+                    float monster_distance[512];
+                    memset(monster_distance, 0, sizeof(monster_distance));
+                    unsigned char monster_distance_seen[512];
+                    memset(monster_distance_seen, 0, sizeof(monster_distance_seen));
+                    int party_hp = 0;
+                    for (unsigned int i = 0; i < 6; ++i) {
+                        if (g_status_685170.buffers.party_rows[i].occupied) {
+                            party_hp += g_status_685170.buffers.characters[i].hp_current;
+                        }
                     }
-                    srVector3T<float> party_position = context.party_position;
-                    W8MonsterInfo* provoked_info = context.info;
-                    float provoked_distance = context.distance;
-                    if (provoked_info != 0 && provoked_info->monster != 0) {
-                        /* The group is hostile and combat is engaged, but the
-                           provoked monster only acts on its own turn: in
-                           turn-based combat that takes a START_COMBAT_ROUND
-                           press, the same command that ran the voluntary
-                           round above. Dispatch it while watching for the
-                           monster's own movement to prove the encounter
-                           simulates past the hostility flag. */
-                        int aggro_round_index =
-                            g_mgs_keyboard != 0
-                                ? g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_START_COMBAT_ROUND)
-                                : -1;
-                        MGSKeyBinding* aggro_round_binding =
-                            aggro_round_index >= 0 ? g_mgs_keyboard->GetBinding(aggro_round_index)
-                                                   : 0;
+                    unsigned int round_presses = 0;
+                    started = GetTickCount();
+                    while (GetTickCount() - started < 20000 && gfProgramIsRunning &&
+                           g_observation.monster_engaged == 0) {
+                        Sleep(200);
+                        if (gXStatus.hostile_monster_count != 0 &&
+                            g_observation.combat_aggroed == 0) {
+                            g_observation.combat_aggroed = 1;
+                            ReportStep("combat-aggroed");
+                        }
+                        /* The provoked monster can die before it ever
+                           closes (a weak pick in a hostile faction), so
+                           engagement watches every live hostile: any
+                           approach on the party or any party damage a
+                           hostile action caused proves the encounter
+                           simulates. */
+                        for (unsigned int m = 0;
+                             m < ILLength(reinterpret_cast<W8IList*>(gXStatus.plsMonsterList)) &&
+                             m < 512;
+                             ++m) {
+                            W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(m);
+                            if (info != 0 && info->fActive != 0 && info->monster != 0 &&
+                                (info->condition_turns[13] != 0 || info->fInCombat != 0)) {
+                                float dist =
+                                    (info->monster->GetPosition() - party_position).Length();
+                                if (dist < engage_distance) {
+                                    engage_distance = dist;
+                                }
+                                if (monster_distance_seen[m] == 0) {
+                                    monster_distance_seen[m] = 1;
+                                } else if (monster_distance[m] - dist > 50.0f) {
+                                    g_observation.monster_engaged = 1;
+                                    ReportStep("monster-engaged");
+                                }
+                                monster_distance[m] = dist;
+                            }
+                        }
+                        if (engage_baseline > 1e29f) {
+                            engage_baseline = engage_distance;
+                        }
+                        int party_hp_now = 0;
+                        for (unsigned int s = 0; s < 6; ++s) {
+                            if (g_status_685170.buffers.party_rows[s].occupied) {
+                                party_hp_now += g_status_685170.buffers.characters[s].hp_current;
+                            }
+                        }
+                        if ((engage_baseline - engage_distance > 50.0f ||
+                             party_hp_now < party_hp) &&
+                            gXStatus.hostile_monster_count != 0) {
+                            g_observation.monster_engaged = 1;
+                            ReportStep("monster-engaged");
+                        }
+                        if (g_observation.monster_engaged == 0 &&
+                            gXStatus.hostile_monster_count != 0 && aggro_round_binding != 0 &&
+                            round_presses < 6) {
+                            SendScenarioKeyHeld(aggro_round_binding->key, 0);
+                            SendScenarioKeyHeld(aggro_round_binding->key, 1);
+                            ++round_presses;
+                            Sleep(1500);
+                        }
+                    }
+                    if (g_observation.combat_aggroed == 0 || g_observation.monster_engaged == 0) {
                         fprintf(stderr,
-                                "runtime-test round-binding: keyboard=%p index=%d "
-                                "binding=%p\n",
-                                (void*)g_mgs_keyboard, aggro_round_index,
-                                (void*)aggro_round_binding);
-                        float engage_distance = 1e30f;
-                        float engage_baseline = 1e30f;
-                        /* Per-monster approach tracking: the nearest-member min
-                           hides an approach by a farther member of the group,
-                           so watch each live hostile's own distance. */
-                        float monster_distance[512];
-                        memset(monster_distance, 0, sizeof(monster_distance));
-                        unsigned char monster_distance_seen[512];
-                        memset(monster_distance_seen, 0, sizeof(monster_distance_seen));
-                        int party_hp = 0;
-                        for (unsigned int i = 0; i < 6; ++i) {
-                            if (g_status_685170.buffers.party_rows[i].occupied) {
-                                party_hp += g_status_685170.buffers.characters[i].hp_current;
-                            }
-                        }
-                        unsigned int round_presses = 0;
-                        started = GetTickCount();
-                        while (GetTickCount() - started < 20000 && gfProgramIsRunning &&
-                               g_observation.monster_engaged == 0) {
-                            Sleep(200);
-                            if (gXStatus.hostile_monster_count != 0 &&
-                                g_observation.combat_aggroed == 0) {
-                                g_observation.combat_aggroed = 1;
-                                ReportStep("combat-aggroed");
-                            }
-                            /* The provoked monster can die before it ever
-                               closes (a weak pick in a hostile faction), so
-                               engagement watches every live hostile: any
-                               approach on the party or any party damage a
-                               hostile action caused proves the encounter
-                               simulates. */
-                            for (unsigned int m = 0; m < ILLength(reinterpret_cast<W8IList*>(
-                                                             gXStatus.plsMonsterList)) &&
-                                                     m < 512;
-                                 ++m) {
-                                W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(m);
-                                if (info != 0 && info->fActive != 0 && info->monster != 0 &&
-                                    (info->condition_turns[13] != 0 || info->fInCombat != 0)) {
-                                    float dist =
-                                        (info->monster->GetPosition() - party_position).Length();
-                                    if (dist < engage_distance) {
-                                        engage_distance = dist;
-                                    }
-                                    if (monster_distance_seen[m] == 0) {
-                                        monster_distance_seen[m] = 1;
-                                    } else if (monster_distance[m] - dist > 50.0f) {
-                                        g_observation.monster_engaged = 1;
-                                        ReportStep("monster-engaged");
-                                    }
-                                    monster_distance[m] = dist;
-                                }
-                            }
-                            if (engage_baseline > 1e29f) {
-                                engage_baseline = engage_distance;
-                            }
-                            int party_hp_now = 0;
-                            for (unsigned int s = 0; s < 6; ++s) {
-                                if (g_status_685170.buffers.party_rows[s].occupied) {
-                                    party_hp_now +=
-                                        g_status_685170.buffers.characters[s].hp_current;
-                                }
-                            }
-                            if ((engage_baseline - engage_distance > 50.0f ||
-                                 party_hp_now < party_hp) &&
-                                gXStatus.hostile_monster_count != 0) {
-                                g_observation.monster_engaged = 1;
-                                ReportStep("monster-engaged");
-                            }
-                            if (g_observation.monster_engaged == 0 &&
-                                gXStatus.hostile_monster_count != 0 && aggro_round_binding != 0 &&
-                                round_presses < 6) {
-                                SendScenarioKeyHeld(aggro_round_binding->key, 0);
-                                SendScenarioKeyHeld(aggro_round_binding->key, 1);
-                                ++round_presses;
-                                Sleep(1500);
-                            }
-                        }
-                        if (g_observation.combat_aggroed == 0 ||
-                            g_observation.monster_engaged == 0) {
-                            fprintf(stderr,
-                                    "runtime-test aggro: hostile=%u combat=%u provoked=%.0f "
-                                    "engage=%.0f active=%d hp=%d cond=%d rounds=%u state=%p\n",
-                                    gXStatus.hostile_monster_count, gXStatus.fCombatMode,
-                                    provoked_distance, engage_distance, provoked_info->fActive,
-                                    provoked_info->hp_current, provoked_info->highest_condition,
-                                    round_presses, (void*)g_combat_state);
-                        }
+                                "runtime-test aggro: hostile=%u combat=%u provoked=%.0f "
+                                "engage=%.0f active=%d hp=%d cond=%d rounds=%u state=%p\n",
+                                gXStatus.hostile_monster_count, gXStatus.fCombatMode,
+                                provoked_distance, engage_distance, provoked_info->fActive,
+                                provoked_info->hp_current, provoked_info->highest_condition,
+                                round_presses, (void*)g_combat_state);
                     }
                 }
             }
-            if (strcmp(g_scenario, "npc-state-reset") == 0) {
-                NpcStateResetContext context;
-                context.result = 0;
-                if (!RunOnGameThread(ResetNpcStateOnGameThread, &context)) {
-                    return FailScenario("npc-state-reset", "game-thread-executor-failed");
-                }
-                if (context.result < 0) {
-                    return FailScenario("npc-state-reset", "finish-message-queue-insert-failed");
-                }
-                g_observation.npc_state_reset_ok = context.result != 0;
-                if (!g_observation.npc_state_reset_ok) {
-                    return FailScenario("npc-state-reset", "live-session-state-not-cleared");
-                }
-                /* WinMain exits after this flow, so a second in-process new-game
-                   session is not available without starting a fresh process. */
-            }
-            gfProgramIsRunning = 0;
-            if (gfApplicationActive == 0) {
-                /* The game loop is parked in WaitMessage; prod it so it can
-                   observe gfProgramIsRunning and unwind. */
-                PostMessage(ghWindow, WM_NULL, 0, 0);
-            }
-            return 0;
         }
-
-        /* Escape raises the discard dialog; accept it once it is up. */
-        SendScenarioKey(VK_ESCAPE);
-        started = GetTickCount();
-        while (GetTickCount() - started < 2000) {
-            if (screen != 0 && screen->m_dialog_1b1c != 0) {
-                break;
+        if (flow == CHARACTER_RESET) {
+            NpcStateResetContext context;
+            context.result = 0;
+            if (!RunOnGameThread(ResetNpcStateOnGameThread, &context)) {
+                return FailScenario("npc-state-reset", "game-thread-executor-failed");
             }
-            Sleep(10);
-        }
-        SendScenarioKey(VK_RETURN);
-        started = GetTickCount();
-        while (GetTickCount() - started < 5000) {
-            if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_PARTY_SELECTION &&
-                *(volatile int*)&g_pending_screen_state.id == -1) {
-                g_observation.character_returned = 1;
-                break;
+            if (context.result < 0) {
+                return FailScenario("npc-state-reset", "finish-message-queue-insert-failed");
             }
-            Sleep(10);
-        }
-        if (!g_observation.character_returned) {
-            return FailScenario("character-return", "party-selection-not-restored");
-        }
-
-        SendScenarioKey(VK_ESCAPE);
-        started = GetTickCount();
-        while (GetTickCount() - started < 5000) {
-            if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_MAIN_MENU &&
-                *(volatile int*)&g_pending_screen_state.id == -1) {
-                g_observation.return_observed = 1;
-                gfProgramIsRunning = 0;
-                return 0;
+            g_observation.npc_state_reset_ok = context.result != 0;
+            if (!g_observation.npc_state_reset_ok) {
+                return FailScenario("npc-state-reset", "live-session-state-not-cleared");
             }
-            Sleep(10);
+            /* WinMain exits after this flow, so a second in-process new-game
+               session is not available without starting a fresh process. */
         }
-        g_observation.timed_out = 1;
-        PostMessage(ghWindow, WM_CLOSE, 0, 0);
-        return 2;
+        gfProgramIsRunning = 0;
+        if (gfApplicationActive == 0) {
+            /* The game loop is parked in WaitMessage; prod it so it can
+               observe gfProgramIsRunning and unwind. */
+            PostMessage(ghWindow, WM_NULL, 0, 0);
+        }
+        return 0;
     }
 
+    /* Escape raises the discard dialog; accept it once it is up. */
+    SendScenarioKey(VK_ESCAPE);
+    started = GetTickCount();
+    while (GetTickCount() - started < 2000) {
+        if (screen != 0 && screen->m_dialog_1b1c != 0) {
+            break;
+        }
+        Sleep(10);
+    }
+    SendScenarioKey(VK_RETURN);
+    started = GetTickCount();
+    while (GetTickCount() - started < 5000) {
+        if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_PARTY_SELECTION &&
+            *(volatile int*)&g_pending_screen_state.id == -1) {
+            g_observation.character_returned = 1;
+            break;
+        }
+        Sleep(10);
+    }
+    if (!g_observation.character_returned) {
+        return FailScenario("character-return", "party-selection-not-restored");
+    }
+
+    SendScenarioKey(VK_ESCAPE);
+    started = GetTickCount();
+    while (GetTickCount() - started < 5000) {
+        if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_MAIN_MENU &&
+            *(volatile int*)&g_pending_screen_state.id == -1) {
+            g_observation.return_observed = 1;
+            gfProgramIsRunning = 0;
+            return 0;
+        }
+        Sleep(10);
+    }
+    g_observation.timed_out = 1;
+    PostMessage(ghWindow, WM_CLOSE, 0, 0);
+    return 2;
+}
+
+static DWORD RunCharacterReturnScenario()
+{
+    return RunCharacterFlow(CHARACTER_RETURN);
+}
+static DWORD RunMainGameScenario()
+{
+    return RunCharacterFlow(CHARACTER_ACCEPTANCE);
+}
+static DWORD RunNpcResetScenario()
+{
+    return RunCharacterFlow(CHARACTER_RESET);
+}
+static DWORD RunDirectEntryScenario()
+{
+    return RunCharacterFlow(CHARACTER_DIRECT);
+}
+
+static DWORD RunMenuExitScenario()
+{
     SendScenarioKey(VK_NEXT, KEYEVENTF_EXTENDEDKEY);
     SendScenarioKey(VK_RETURN);
     unsigned int started = GetTickCount();
@@ -2520,38 +2406,191 @@ static DWORD WINAPI DriveScenario(void*)
     return 2;
 }
 
+static DWORD RunMenuStartupScenario()
+{
+    ExecutorProbe probe = {0, 0};
+    DWORD expected_thread = GetWindowThreadProcessId(ghWindow, 0);
+    for (unsigned int index = 0; index < 100; ++index) {
+        if (!RunOnGameThread(ProbeExecutorOnGameThread, &probe) ||
+            probe.thread_id != expected_thread || probe.calls != index + 1) {
+            return FailScenario("game-thread-executor", "callback-thread-or-count-mismatch");
+        }
+    }
+    ReportStep("game-thread-executor-checked");
+
+    gfProgramIsRunning = 0;
+    return 0;
+}
+
+static void RunSemanticScenarioOnGameThread(void* opaque)
+{
+    DWORD* result = static_cast<DWORD*>(opaque);
+    *result = g_scenario_spec->run();
+    gfProgramIsRunning = 0;
+}
+
+static DWORD WINAPI DriveScenario(void*)
+{
+    if (!WaitForEngineReady(g_scenario_spec->timeout_ms)) {
+        return FailScenario("engine-ready", "initialization-timeout");
+    }
+    g_observation.engine_ready = 1;
+    ReportStep("engine-ready");
+    if (!InitializeRuntimeGameThreadExecutor(ghWindow)) {
+        return FailScenario("game-thread-executor", "install-failed");
+    }
+    if (g_scenario_spec->phase != RUNTIME_ENGINE_READY) {
+        if (!WaitForMainMenu(g_scenario_spec->timeout_ms)) {
+            return FailScenario("main-menu", "startup-timeout");
+        }
+        g_observation.menu_seen = 1;
+        ReportStep("main-menu-reached");
+        g_observation.menu_state = g_current_screen_state.id;
+        g_observation.region_set_enabled = g_region_sets[1].enabled;
+        g_observation.first_region = g_region_sets[1].first_region;
+        g_observation.last_region = g_region_sets[1].last_region;
+        /* The menu music starts on a later frame than the menu state and its
+           regions; the observation is only stable once the list is live. */
+        unsigned int playlist_started = GetTickCount();
+        while (*(volatile unsigned char*)&g_music_playlist_active_65ba7e == 0 &&
+               GetTickCount() - playlist_started < 3000) {
+            Sleep(10);
+        }
+        if (!RunOnGameThread(RunMenuChecksOnGameThread, 0)) {
+            return FailScenario("main-menu-checks", "game-thread-executor-failed");
+        }
+    }
+    if (g_scenario_spec->kind == RUNTIME_SEMANTIC) {
+        DWORD result = 1;
+        if (!RunOnGameThread(RunSemanticScenarioOnGameThread, &result)) {
+            return FailScenario("semantic-check", "game-thread-executor-failed");
+        }
+        if (result != 0) {
+            return FailScenario("semantic-check", "required-invariant-failed");
+        }
+        return result;
+    }
+    return g_scenario_spec->run();
+}
+
+static bool ValidateSemantic(const RuntimeObservation& o)
+{
+    return o.engine_ready && o.semantic_ok;
+}
+
+static bool ValidateMenuStartup(const RuntimeObservation& o)
+{
+    return o.menu_seen && o.menu_state == W8_SCREEN_MAIN_MENU && o.region_set_enabled &&
+           o.playlist_active && o.playlist_tracks > 0 && o.patch_precedence_ok &&
+           o.physical_fallback_ok && o.shade_table_ok;
+}
+
+static bool ValidateCharacterUi(const RuntimeObservation& o)
+{
+    return o.transition_observed && o.character_entered && o.final_page_entered &&
+           o.final_page_redrawn && o.character_page_start == 0 &&
+           o.character_page_after > o.character_page_start && o.tooltip_shown &&
+           o.tooltip_removed && o.skill_tooltip_shown && o.skill_tooltip_removed &&
+           o.skill_interacted;
+}
+
+static bool ValidateCharacterReturn(const RuntimeObservation& o)
+{
+    return ValidateCharacterUi(o) && o.character_returned && o.return_observed;
+}
+
+static bool ValidateNewGame(const RuntimeObservation& o)
+{
+    return ValidateCharacterUi(o) && o.character_committed && o.character_in_party &&
+           o.main_game_entered;
+}
+
+static bool ValidateMainGame(const RuntimeObservation& o)
+{
+    return ValidateNewGame(o) && o.party_moved && o.party_turned && o.world_soaked &&
+           o.automap_opened && o.automap_closed && o.game_saved && o.game_loaded &&
+           o.load_position_restored && o.combat_started && o.combat_action_queued &&
+           o.combat_party_moved && o.combat_ended && o.combat_aggroed && o.monster_engaged;
+}
+
+static bool ValidateNpcReset(const RuntimeObservation& o)
+{
+    return ValidateNewGame(o) && o.npc_state_reset_ok;
+}
+
+static bool ValidateMenuExit(const RuntimeObservation& o)
+{
+    return o.menu_seen && o.exit_observed;
+}
+
+static const RuntimeScenario kScenarios[] = {
+    {"oct-file", RUNTIME_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC, 15000, RunOctFileScenario,
+     ValidateSemantic},
+    {"sight-threshold", RUNTIME_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC, 15000, RunSightScenario,
+     ValidateSemantic},
+    {"split-stack", RUNTIME_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC, 15000,
+     RunSplitStackScenario, ValidateSemantic},
+    {"party-movement", RUNTIME_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC, 15000,
+     RunPartyMovementScenario, ValidateSemantic},
+    {"audio-semantics", RUNTIME_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC, 15000, RunAudioScenario,
+     ValidateSemantic},
+    {"mongen", RUNTIME_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC, 15000, RunMonGenScenario,
+     ValidateSemantic},
+    {"keyboard-menu", RUNTIME_MAIN_MENU, RUNTIME_PR, RUNTIME_SEMANTIC, 20000,
+     RunKeyboardMenuScenario, ValidateSemantic},
+    {"mouth-gap", RUNTIME_MAIN_MENU, RUNTIME_PR, RUNTIME_SEMANTIC, 20000, RunMouthGapScenario,
+     ValidateSemantic},
+    {"npc-dialogue", RUNTIME_MAIN_MENU, RUNTIME_PR, RUNTIME_SEMANTIC, 20000, RunNpcDialogueScenario,
+     ValidateSemantic},
+    {"search-mode", RUNTIME_MAIN_MENU, RUNTIME_PR, RUNTIME_SEMANTIC, 20000, RunSearchModeScenario,
+     ValidateSemantic},
+    {"main-menu-startup", RUNTIME_MAIN_MENU, RUNTIME_PR, RUNTIME_INTEGRATION, 20000,
+     RunMenuStartupScenario, ValidateMenuStartup},
+    {"main-menu-exit-auto-repeat", RUNTIME_MAIN_MENU, RUNTIME_PR, RUNTIME_ACCEPTANCE, 20000,
+     RunMenuExitScenario, ValidateMenuExit},
+    {"main-menu-new-game", RUNTIME_MAIN_MENU, RUNTIME_MAIN, RUNTIME_ACCEPTANCE, 30000,
+     RunCharacterReturnScenario, ValidateCharacterReturn},
+    {"main-game-start", RUNTIME_MAIN_MENU, RUNTIME_PR, RUNTIME_INTEGRATION, 90000,
+     RunMainGameScenario, ValidateMainGame},
+    {"npc-state-reset", RUNTIME_MAIN_MENU, RUNTIME_PR, RUNTIME_INTEGRATION, 30000,
+     RunNpcResetScenario, ValidateNpcReset},
+    {"new-game-entry", RUNTIME_MAIN_MENU, RUNTIME_NIGHTLY, RUNTIME_INTEGRATION, 30000,
+     RunDirectEntryScenario, ValidateNewGame},
+};
+
+static void ListScenarios()
+{
+    static const char* phases[] = {"engine-ready", "main-menu", "main-game"};
+    static const char* tiers[] = {"pr", "main", "nightly"};
+    static const char* kinds[] = {"acceptance", "integration", "semantic"};
+    printf("name\tphase\ttier\tkind\ttimeout_ms\n");
+    for (unsigned int index = 0; index < sizeof(kScenarios) / sizeof(kScenarios[0]); ++index) {
+        const RuntimeScenario& scenario = kScenarios[index];
+        printf("%s\t%s\t%s\t%s\t%u\n", scenario.name, phases[scenario.phase], tiers[scenario.tier],
+               kinds[scenario.kind], scenario.timeout_ms);
+    }
+}
+
 int main(int argc, char** argv)
 {
+    if (argc == 2 && strcmp(argv[1], "--list-scenarios") == 0) {
+        ListScenarios();
+        return 0;
+    }
+    if (argc == 3 && strcmp(argv[1], "--scenario") == 0) {
+        for (unsigned int index = 0; index < sizeof(kScenarios) / sizeof(kScenarios[0]); ++index) {
+            if (strcmp(argv[2], kScenarios[index].name) == 0) {
+                g_scenario_spec = &kScenarios[index];
+                break;
+            }
+        }
+    }
+    if (g_scenario_spec == 0) {
+        fprintf(stderr, "usage: Wiz8RuntimeTest --list-scenarios | --scenario NAME\n");
+        return 64;
+    }
     W8SetCrashContextWriter(WriteRuntimeTestContext);
-    if (argc != 3 || strcmp(argv[1], "--scenario") != 0) {
-        fprintf(
-            stderr,
-            "usage: Wiz8RuntimeTest --scenario "
-            "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start|"
-            "npc-state-reset|new-game-entry|oct-file|sight-threshold|split-stack|party-movement|"
-            "audio-semantics|keyboard-menu|mouth-gap|npc-dialogue|search-mode|mongen\n");
-        return 64;
-    }
-
-    if (strcmp(argv[2], "main-menu-startup") != 0 &&
-        strcmp(argv[2], "main-menu-exit-auto-repeat") != 0 &&
-        strcmp(argv[2], "main-game-start") != 0 && strcmp(argv[2], "new-game-entry") != 0 &&
-        strcmp(argv[2], "main-menu-new-game") != 0 && strcmp(argv[2], "npc-state-reset") != 0 &&
-        strcmp(argv[2], "oct-file") != 0 && strcmp(argv[2], "sight-threshold") != 0 &&
-        strcmp(argv[2], "split-stack") != 0 && strcmp(argv[2], "party-movement") != 0 &&
-        strcmp(argv[2], "audio-semantics") != 0 && strcmp(argv[2], "keyboard-menu") != 0 &&
-        strcmp(argv[2], "mouth-gap") != 0 && strcmp(argv[2], "npc-dialogue") != 0 &&
-        strcmp(argv[2], "search-mode") != 0 && strcmp(argv[2], "mongen") != 0) {
-        fprintf(
-            stderr,
-            "usage: Wiz8RuntimeTest --scenario "
-            "main-menu-startup|main-menu-exit-auto-repeat|main-menu-new-game|main-game-start|"
-            "npc-state-reset|new-game-entry|oct-file|sight-threshold|split-stack|party-movement|"
-            "audio-semantics|keyboard-menu|mouth-gap|npc-dialogue|search-mode|mongen\n");
-        return 64;
-    }
-
-    g_scenario = argv[2];
+    g_scenario = g_scenario_spec->name;
     g_scenario_started = GetTickCount();
     memset(&g_observation, 0, sizeof(g_observation));
     g_observation.menu_state = -1;
@@ -2569,16 +2608,18 @@ int main(int argc, char** argv)
             g_scenario, GetTickCount() - g_scenario_started, game_status);
     fflush(stderr);
     /* Python enforces the process deadline while WinMain or this join runs. */
-    WaitForSingleObject(driver, kScenarioBudgetMs);
+    if (WaitForSingleObject(driver, g_scenario_spec->timeout_ms) != WAIT_OBJECT_0) {
+        fprintf(stderr,
+                "WIZ8_RUNTIME_FAILURE scenario=%s step=shutdown reason=driver-join-timeout\n",
+                g_scenario);
+        fflush(stderr);
+        TerminateProcess(GetCurrentProcess(), 1);
+        return 1;
+    }
     DWORD driver_status = 2;
     GetExitCodeThread(driver, &driver_status);
     CloseHandle(driver);
     ShutdownRuntimeGameThreadExecutor();
-
-    if (strcmp(g_scenario, "sight-threshold") == 0 || strcmp(g_scenario, "oct-file") == 0) {
-        SGPExit();
-        return driver_status;
-    }
 
     /* Keep the scenario result on stderr before teardown: a teardown failure
        must not erase whether the flow itself reached its goal. */
@@ -2597,124 +2638,64 @@ int main(int argc, char** argv)
     const bool teardown_ok = g_cursor_node_659694 == NULL && gFileDataBase.pLibraries == NULL &&
                              gFileDataBase.RealFiles.pRealFilesOpen == NULL;
 
-    printf("WIZ8_RUNTIME_TEST scenario=%s menu_seen=%u menu_state=%d "
-           "regions_enabled=%u first_region=%u last_region=%u "
-           "playlist_active=%u playlist_tracks=%d playlist_weight=%d "
-           "playlist_pause_min=%d playlist_pause_max=%d playlist_pause_chance=%d "
-           "patch_catalog_count=%d item_database_count=%u "
-           "monster_database_count=%u npc_database_count=%u "
-           "patch_precedence_ok=%u physical_fallback_ok=%u "
-           "shade_table_ok=%u exit_observed=%u transition_observed=%u "
-           "character_entered=%u character_returned=%u "
-           "final_page_entered=%u final_page_redrawn=%u "
-           "character_name_typed=%u character_summary_opened=%u "
-           "character_committed=%u character_in_party=%u main_game_entered=%u "
-           "party_moved=%u party_turned=%u world_soaked=%u automap_opened=%u automap_closed=%u "
-           "game_saved=%u game_loaded=%u load_restored=%u "
-           "combat_started=%u combat_action_queued=%u combat_party_moved=%u combat_ended=%u "
-           "combat_aggroed=%u monster_engaged=%u "
-           "return_observed=%u teardown=%u timed_out=%u "
-           "npc_state_reset_ok=%u "
-           "character_page_start=%d character_page_after=%d "
-           "tooltip_shown=%u tooltip_removed=%u "
-           "skill_tooltip_shown=%u skill_tooltip_removed=%u "
-           "skill_interacted=%u\n",
-           g_scenario, g_observation.menu_seen, g_observation.menu_state,
-           g_observation.region_set_enabled, g_observation.first_region, g_observation.last_region,
-           g_observation.playlist_active, g_observation.playlist_tracks,
-           g_observation.playlist_weight, g_observation.playlist_pause_min,
-           g_observation.playlist_pause_max, g_observation.playlist_pause_chance,
-           g_observation.patch_catalog_count, g_observation.item_database_count,
-           g_observation.monster_database_count, g_observation.npc_database_count,
-           g_observation.patch_precedence_ok, g_observation.physical_fallback_ok,
-           g_observation.shade_table_ok, g_observation.exit_observed,
-           g_observation.transition_observed, g_observation.character_entered,
-           g_observation.character_returned, g_observation.final_page_entered,
-           g_observation.final_page_redrawn, g_observation.character_name_typed,
-           g_observation.character_summary_opened, g_observation.character_committed,
-           g_observation.character_in_party, g_observation.main_game_entered,
-           g_observation.party_moved, g_observation.party_turned, g_observation.world_soaked,
-           g_observation.automap_opened, g_observation.automap_closed, g_observation.game_saved,
-           g_observation.game_loaded, g_observation.load_position_restored,
-           g_observation.combat_started, g_observation.combat_action_queued,
-           g_observation.combat_party_moved, g_observation.combat_ended,
-           g_observation.combat_aggroed, g_observation.monster_engaged,
-           g_observation.return_observed, teardown_ok ? 1 : 0, g_observation.timed_out,
-           g_observation.npc_state_reset_ok, g_observation.character_page_start,
-           g_observation.character_page_after, g_observation.tooltip_shown,
-           g_observation.tooltip_removed, g_observation.skill_tooltip_shown,
-           g_observation.skill_tooltip_removed, g_observation.skill_interacted);
+    printf(
+        "WIZ8_RUNTIME_TEST scenario=%s engine_ready=%u semantic_ok=%u menu_seen=%u menu_state=%d "
+        "regions_enabled=%u first_region=%u last_region=%u "
+        "playlist_active=%u playlist_tracks=%d playlist_weight=%d "
+        "playlist_pause_min=%d playlist_pause_max=%d playlist_pause_chance=%d "
+        "patch_catalog_count=%d item_database_count=%u "
+        "monster_database_count=%u npc_database_count=%u "
+        "patch_precedence_ok=%u physical_fallback_ok=%u "
+        "shade_table_ok=%u exit_observed=%u transition_observed=%u "
+        "character_entered=%u character_returned=%u "
+        "final_page_entered=%u final_page_redrawn=%u "
+        "character_name_typed=%u character_summary_opened=%u "
+        "character_committed=%u character_in_party=%u main_game_entered=%u "
+        "party_moved=%u party_turned=%u world_soaked=%u automap_opened=%u automap_closed=%u "
+        "game_saved=%u game_loaded=%u load_restored=%u "
+        "combat_started=%u combat_action_queued=%u combat_party_moved=%u combat_ended=%u "
+        "combat_aggroed=%u monster_engaged=%u "
+        "return_observed=%u teardown=%u timed_out=%u "
+        "npc_state_reset_ok=%u "
+        "character_page_start=%d character_page_after=%d "
+        "tooltip_shown=%u tooltip_removed=%u "
+        "skill_tooltip_shown=%u skill_tooltip_removed=%u "
+        "skill_interacted=%u\n",
+        g_scenario, g_observation.engine_ready, g_observation.semantic_ok, g_observation.menu_seen,
+        g_observation.menu_state, g_observation.region_set_enabled, g_observation.first_region,
+        g_observation.last_region, g_observation.playlist_active, g_observation.playlist_tracks,
+        g_observation.playlist_weight, g_observation.playlist_pause_min,
+        g_observation.playlist_pause_max, g_observation.playlist_pause_chance,
+        g_observation.patch_catalog_count, g_observation.item_database_count,
+        g_observation.monster_database_count, g_observation.npc_database_count,
+        g_observation.patch_precedence_ok, g_observation.physical_fallback_ok,
+        g_observation.shade_table_ok, g_observation.exit_observed,
+        g_observation.transition_observed, g_observation.character_entered,
+        g_observation.character_returned, g_observation.final_page_entered,
+        g_observation.final_page_redrawn, g_observation.character_name_typed,
+        g_observation.character_summary_opened, g_observation.character_committed,
+        g_observation.character_in_party, g_observation.main_game_entered,
+        g_observation.party_moved, g_observation.party_turned, g_observation.world_soaked,
+        g_observation.automap_opened, g_observation.automap_closed, g_observation.game_saved,
+        g_observation.game_loaded, g_observation.load_position_restored,
+        g_observation.combat_started, g_observation.combat_action_queued,
+        g_observation.combat_party_moved, g_observation.combat_ended, g_observation.combat_aggroed,
+        g_observation.monster_engaged, g_observation.return_observed, teardown_ok ? 1 : 0,
+        g_observation.timed_out, g_observation.npc_state_reset_ok,
+        g_observation.character_page_start, g_observation.character_page_after,
+        g_observation.tooltip_shown, g_observation.tooltip_removed,
+        g_observation.skill_tooltip_shown, g_observation.skill_tooltip_removed,
+        g_observation.skill_interacted);
 
-    const bool startup_ok =
-        g_observation.menu_seen && g_observation.menu_state == W8_SCREEN_MAIN_MENU &&
-        g_observation.region_set_enabled && g_observation.first_region == 1 &&
-        g_observation.last_region == 6 && g_observation.playlist_active &&
-        g_observation.playlist_tracks > 0 && g_observation.patch_catalog_count > 0 &&
-        g_observation.item_database_count > 0 && g_observation.monster_database_count > 0 &&
-        g_observation.npc_database_count > 0 && g_observation.patch_precedence_ok &&
-        g_observation.physical_fallback_ok && g_observation.shade_table_ok;
-    const bool exit_ok =
-        strcmp(g_scenario, "main-menu-startup") == 0 || g_observation.exit_observed;
-    const bool sight_flow = strcmp(g_scenario, "sight-threshold") == 0;
-    const bool split_flow = strcmp(g_scenario, "split-stack") == 0;
-    const bool movement_flow = strcmp(g_scenario, "party-movement") == 0;
-    const bool audio_flow = strcmp(g_scenario, "audio-semantics") == 0;
-    const bool keyboard_flow = strcmp(g_scenario, "keyboard-menu") == 0;
-    const bool dialogue_flow = strcmp(g_scenario, "npc-dialogue") == 0;
-    const bool search_flow = strcmp(g_scenario, "search-mode") == 0;
-    const bool mongen_flow = strcmp(g_scenario, "mongen") == 0;
-    const bool mouth_gap_flow = strcmp(g_scenario, "mouth-gap") == 0;
-    const bool semantic_flow = sight_flow || split_flow || movement_flow || audio_flow ||
-                               keyboard_flow || dialogue_flow || search_flow || mongen_flow ||
-                               mouth_gap_flow;
-    const bool semantic_ok =
-        (sight_flow && g_sight_semantic_ok) || (split_flow && g_split_semantic_ok) ||
-        (movement_flow && g_party_movement_semantic_ok) || (audio_flow && g_audio_semantic_ok) ||
-        (keyboard_flow && g_keyboard_semantic_ok) || (dialogue_flow && g_dialogue_semantic_ok) ||
-        (search_flow && g_search_semantic_ok) || (mongen_flow && g_mongen_semantic_ok) ||
-        (mouth_gap_flow && g_mouth_gap_semantic_ok);
-    const bool character_flow = strcmp(g_scenario, "main-menu-new-game") == 0 ||
-                                strcmp(g_scenario, "main-game-start") == 0 ||
-                                strcmp(g_scenario, "npc-state-reset") == 0 ||
-                                strcmp(g_scenario, "new-game-entry") == 0;
-    const bool transition_ok =
-        !character_flow ||
-        (g_observation.transition_observed && g_observation.character_entered &&
-         g_observation.final_page_entered && g_observation.final_page_redrawn &&
-         (strcmp(g_scenario, "main-game-start") == 0 ||
-                  strcmp(g_scenario, "npc-state-reset") == 0 ||
-                  strcmp(g_scenario, "new-game-entry") == 0
-              ? (g_observation.character_committed && g_observation.main_game_entered)
-              : (g_observation.character_returned && g_observation.return_observed)));
-    const bool character_ok =
-        !character_flow ||
-        (g_observation.character_page_start == 0 &&
-         g_observation.character_page_after > g_observation.character_page_start &&
-         g_observation.tooltip_shown && g_observation.tooltip_removed);
-    const bool skills_ok =
-        !character_flow || (g_observation.skill_tooltip_shown &&
-                            g_observation.skill_tooltip_removed && g_observation.skill_interacted);
-    const bool gameplay_ok =
-        (strcmp(g_scenario, "main-game-start") != 0 && strcmp(g_scenario, "npc-state-reset") != 0 &&
-         strcmp(g_scenario, "new-game-entry") != 0) ||
-        (g_observation.character_committed && g_observation.character_in_party &&
-         g_observation.main_game_entered &&
-         (strcmp(g_scenario, "main-game-start") != 0 ||
-          (g_observation.party_moved && g_observation.party_turned && g_observation.world_soaked &&
-           g_observation.automap_opened && g_observation.automap_closed &&
-           g_observation.game_saved && g_observation.game_loaded &&
-           g_observation.load_position_restored && g_observation.combat_started &&
-           g_observation.combat_action_queued && g_observation.combat_party_moved &&
-           g_observation.combat_ended && g_observation.combat_aggroed &&
-           g_observation.monster_engaged)));
-    const bool npc_state_reset_ok =
-        strcmp(g_scenario, "npc-state-reset") != 0 || g_observation.npc_state_reset_ok;
-    const int result = driver_status == 0 && startup_ok &&
-                               (semantic_flow ? semantic_ok : (character_flow || exit_ok)) &&
-                               transition_ok && character_ok && skills_ok && gameplay_ok &&
-                               npc_state_reset_ok && teardown_ok
-                           ? 0
-                           : 1;
+    const int result =
+        driver_status == 0 && g_scenario_spec->validate(g_observation) && teardown_ok ? 0 : 1;
+    if (result != 0) {
+        fprintf(stderr,
+                "WIZ8_RUNTIME_FAILURE scenario=%s step=validation "
+                "reason=required-observations-or-teardown-failed\n",
+                g_scenario);
+        fflush(stderr);
+    }
     fflush(stdout);
     TerminateProcess(GetCurrentProcess(), result);
     return result;

@@ -162,6 +162,33 @@ def test_runtime_phase_summary_ignores_other_scenarios_and_unusable_steps() -> N
     )
 
 
+def _registry():
+    from wiz8decomp.runtime import _parse_runtime_scenarios
+
+    return _parse_runtime_scenarios(
+        "name\tphase\ttier\tkind\ttimeout_ms\n"
+        "main-menu-startup\tmain-menu\tpr\tintegration\t15000\n"
+        "split-stack\tengine-ready\tpr\tsemantic\t15000\n"
+    )
+
+
+@pytest.mark.parametrize(
+    "row",
+    [
+        "../escape\tengine-ready\tpr\tsemantic\t15000",
+        "probe\tunknown\tpr\tsemantic\t15000",
+        "probe\tengine-ready\tpr\tsemantic\t0",
+        "probe\tengine-ready\tpr\tsemantic\t-1",
+        "probe\tengine-ready\tpr\tsemantic\t15000\nprobe\tengine-ready\tpr\tsemantic\t15000",
+    ],
+)
+def test_registry_rejects_unsafe_or_ambiguous_metadata(row):
+    from wiz8decomp.runtime import _parse_runtime_scenarios
+
+    with pytest.raises(RuntimeError):
+        _parse_runtime_scenarios("name\tphase\ttier\tkind\ttimeout_ms\n" + row)
+
+
 @pytest.mark.parametrize("check_order", [False, True])
 def test_runtime_suite_selection_and_server_lifetime(
     tmp_path: Path, monkeypatch, check_order
@@ -181,7 +208,10 @@ def test_runtime_suite_selection_and_server_lifetime(
         "wiz8decomp.runtime.subprocess.run", lambda command, **kwargs: shutdowns.append(command)
     )
 
-    def run(executable, stage, environment, scenario, object_root, map_path):
+    monkeypatch.setattr("wiz8decomp.runtime._read_runtime_scenarios", lambda *args: _registry())
+
+    def run(executable, stage, environment, scenario, timeout_seconds, object_root, map_path):
+        assert timeout_seconds == 15
         visited.append((scenario, stage))
         (stage / "scenario-output.tmp").write_text(scenario)
         return {"scenario": scenario, "teardown": 1}
@@ -218,7 +248,9 @@ def test_runtime_suite_preserves_failures_and_continues(tmp_path: Path, monkeypa
     )
     monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", lambda *args, **kwargs: None)
 
-    def run(executable, stage, environment, scenario, object_root, map_path):
+    monkeypatch.setattr("wiz8decomp.runtime._read_runtime_scenarios", lambda *args: _registry())
+
+    def run(executable, stage, environment, scenario, timeout_seconds, object_root, map_path):
         visited.append(scenario)
         if scenario == "main-menu-startup":
             raise RuntimeError("startup invariant failed")
@@ -498,7 +530,6 @@ def test_runtime_timeout_preserves_in_process_diagnostics(
         "time.sleep(60)\n"
     )
     wine.chmod(0o755)
-    monkeypatch.setattr("wiz8decomp.runtime.RUNTIME_SCENARIO_TIMEOUT_SECONDS", 1)
     monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", lambda *args, **kwargs: None)
     with pytest.raises(RuntimeError, match="last_step=process-start"):
         _run_runtime_scenario(
@@ -506,6 +537,7 @@ def test_runtime_timeout_preserves_in_process_diagnostics(
             tmp_path,
             {"PATH": f"{tmp_path}:/usr/bin:/bin"},
             "main-menu-startup",
+            timeout_seconds=1,
         )
     diagnostic = tmp_path / "diagnostics" / "main-menu-startup-failure.txt"
     assert "menu reached; teardown stuck" in diagnostic.read_text()
@@ -546,6 +578,7 @@ def test_runtime_terminal_failure_has_short_grace_and_preserves_report(
             tmp_path,
             {"PATH": f"{tmp_path}:/usr/bin:/bin"},
             "probe",
+            timeout_seconds=5,
         )
     assert time.monotonic() - started < 2
     assert report in (tmp_path / "diagnostics/probe-failure.txt").read_text()
