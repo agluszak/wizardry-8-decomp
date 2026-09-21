@@ -651,7 +651,6 @@ bool AttemptNpcItemTrade005AE2A0(W8ItemInstance* item, unsigned char quantity, i
    chosen count to the editor slot and refreshes the trade selection. */
 void NpcTradeSplitDialogResult005AE1A0(W8DialogBase* dialog);
 void RefreshFormationPanel005B2980(unsigned char show_portraits); /* 0x005B2980 */
-void ScrollDialogueTextBoxToLine0058BA60(void);                   /* 0x0058BA60 */
 void EndLockInteractMode(char suspend);                           /* 0x005879A0 */
 void UpdateMainGameScreen(void);                                  /* 0x0058A750 */
 void EndTrapInteractMode(char suspend);                           /* 0x0058A790 */

@@ -110,5 +110,3 @@ char* TrimAndLowercaseString(char* text);
 struct W8OctPreTreeVertex;
 struct W8OctRegionPolygon;
 
-extern W8OctPreTreeVertex* g_gd_vertices_0065bd34;
-extern W8OctRegionPolygon* g_gd_polygons_0065bd38;

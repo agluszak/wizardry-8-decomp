@@ -153,4 +153,3 @@ char ScoreNpcTheft0050BAF0(W8Character* character, W8NpcState* npc, int item_id,
 char AttemptNpcItemTheft0050C040(W8Character* character, W8NpcState* npc, int item_id, int count);
 void UpdateNpcPartyMember0050B3B0(int party_slot);
 char QueueNpcDepartureEvents0050DEC0(int destination_level);
-bool NpcHasTopic(W8NpcState* npc, int topic);
