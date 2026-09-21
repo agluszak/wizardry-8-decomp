@@ -97,7 +97,7 @@ Controls* gpSubMenuPanel;
    known global starts at 0x0069B900. Menu 0 considers five actions then adds
    a cancel row at index built - 1, which could look like a sixth write - but
    Berserk requires the fighter-only trait 0x14 while Pray requires the
-   priest-only trait 0x0b and current_profession is a single index, so menu 0
+   priest-only trait 0x0b and iProfession is a single index, so menu 0
    never has all five actions available and built stays <= 5. */
 // GLOBAL: WIZ8 0x0069B8EC
 W8TextControl* g_submenu_rows_69b8ec[5];
@@ -1317,7 +1317,7 @@ unsigned char SubMenuRowRegionEvent(const InputAtom* event, W8Region* region)
             if (CanPartySlotUseRecordedItem(slot) == 0) {
                 SetRegionHelpText(gppStringList[0x174 / 4]);
             } else {
-                party_row = &g_status_685170.buffers.party_rows[slot];
+                party_row = &g_status_685170.buffers.XChar[slot];
                 item = FindCharacterItemAt(slot, party_row->item_origin, party_row->item_slot);
                 name = FormatItemDisplayName(item, 0);
                 SetRegionHelpText(
@@ -1351,13 +1351,13 @@ void DrawSubMenuCharacterAction(void)
         return;
     }
     SetFont(g_smfnt_font_683694);
-    row = &g_status_685170.buffers.party_rows[slot];
+    row = &g_status_685170.buffers.XChar[slot];
     SetFontObjectPalette16BPP(g_smfnt_font_683694,
                               g_font_state_palettes_68ee1c[row->party_order_index]);
     DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, 6, 0x157, 0x1c2, 2, 0);
-    character = &g_status_685170.buffers.characters[slot];
+    character = &g_status_685170.buffers.Char[slot];
     swprintf(text, L"%s - %s", character->name,
-             gppStringList[g_profession_name_message_ids_61e3f0[character->current_profession]]);
+             gppStringList[g_profession_name_message_ids_61e3f0[character->iProfession]]);
     gprintf((0xb9 - StringPixLength((UINT16*)text, g_smfnt_font_683694)) / 2 + 0x157, 0x1c6,
             (UINT16*)g_format_s_006068e4, text);
     if (gXStatus.fCombatMode != 1) {
@@ -1371,28 +1371,28 @@ void DrawSubMenuCharacterAction(void)
         switch (action) {
         case 0:
             swprintf(text, L"%s - ", gppStringList[g_action_kind_message_ids_61e988[0]]);
-            if (character->hand_attacks[0].in_play != 0) {
-                if (character->equipment[6].item_id == -1) {
+            if (character->Hand[0].in_play != 0) {
+                if (character->EquippedItem[6].iItemNo == -1) {
                     wcscat(text, gppStringList[0x16e0 / 4]);
                 } else {
                     wcscat(text,
                            gppStringList[g_generic_item_name_notice[GetItemUnidentifiedNameIndex(
-                               &character->equipment[6])]]);
+                               &character->EquippedItem[6])]]);
                 }
             }
-            if (character->hand_attacks[1].in_play == 0) {
-                if (character->hand_attacks[0].in_play == 0) {
+            if (character->Hand[1].in_play == 0) {
+                if (character->Hand[0].in_play == 0) {
                     wcscat(text, gppStringList[0x16e0 / 4]);
                 }
             } else {
-                if (character->equipment[7].item_id == -1) {
+                if (character->EquippedItem[7].iItemNo == -1) {
                     swprintf(second, L"%s", gppStringList[0x16e0 / 4]);
                 } else {
                     swprintf(second, L"%s",
                              gppStringList[g_generic_item_name_notice[GetItemUnidentifiedNameIndex(
-                                 &character->equipment[7])]]);
+                                 &character->EquippedItem[7])]]);
                 }
-                if (character->hand_attacks[0].in_play == 0) {
+                if (character->Hand[0].in_play == 0) {
                     wcscat(text, second);
                 } else {
                     width = StringPixLength((UINT16*)text, g_smfnt_font_683694);
@@ -1408,7 +1408,7 @@ void DrawSubMenuCharacterAction(void)
         case 5:
             if (row->target_in_combat.iType == W8_TARGET_KIND_CHARACTER) {
                 swprintf(text, L"%s - %s", gppStringList[g_action_kind_message_ids_61e988[5]],
-                         g_status_685170.buffers.characters[row->target_in_combat.iChar].name);
+                         g_status_685170.buffers.Char[row->target_in_combat.iChar].name);
             } else if (row->target_in_combat.iType == W8_TARGET_KIND_MONSTER) {
                 monster_index = MonsterGetIndexByLocationID(0x7ed, MGSBUTTONS_CPP,
                                                             row->target_in_combat.iMonsterID, 1);
@@ -1427,7 +1427,7 @@ void DrawSubMenuCharacterAction(void)
             break;
         case 8:
             swprintf(text, L"%s - %s", gppStringList[g_action_kind_message_ids_61e988[8]],
-                     g_spell_records[g_item_records[row->action_detail_045.item_use.item->item_id]
+                     g_spell_records[g_item_records[row->action_detail_045.item_use.item->iItemNo]
                                          .spell_id]
                          .display_name);
             break;
@@ -1515,7 +1515,7 @@ void RedrawSubMenuButtons(void)
 
     DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, 5, 0x124, 0x1c2, 2, 0);
     DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, 6, 0x157, 0x1c2, 2, 0);
-    if (g_status_685170.buffers.party_rows[g_status_685170.selected_character].occupied) {
+    if (g_status_685170.buffers.XChar[g_status_685170.selected_character].fOccupied) {
         DrawSubMenuCharacterAction();
     }
 

@@ -777,10 +777,10 @@ void MartensBluff2IdolGasVictim004DE7D0(void)
 
     lowest = 10;
     for (slot = 0; slot < 8; slot++) {
-        if (g_status_685170.buffers.party_rows[slot].occupied == 0 || slot < 2) {
+        if (g_status_685170.buffers.XChar[slot].fOccupied == 0 || slot < 2) {
             severities[slot] = 10;
         } else {
-            switch (g_status_685170.buffers.characters[slot].current_profession) {
+            switch (g_status_685170.buffers.Char[slot].iProfession) {
             case W8_PROFESSION_FIGHTER:
                 severities[slot] = 2;
                 break;
@@ -811,9 +811,8 @@ void MartensBluff2IdolGasVictim004DE7D0(void)
         }
         if (count == 0) {
             slot = 0;
-            while (g_status_685170.buffers.party_rows[slot].occupied == 0 ||
-                   g_status_685170.buffers.characters[slot].highest_condition !=
-                       W8_CONDITION_DEAD) {
+            while (g_status_685170.buffers.XChar[slot].fOccupied == 0 ||
+                   g_status_685170.buffers.Char[slot].highest_condition != W8_CONDITION_DEAD) {
                 slot++;
                 if (slot > 7) {
                     return;

@@ -287,32 +287,32 @@ unsigned char StartCombat(int surprise)
 void ResetPartyCombatRows004E7590(void)
 {
     for (unsigned int slot = 0; slot < 8; ++slot) {
-        if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
+        if (g_status_685170.buffers.XChar[slot].fOccupied == 0) {
             continue;
         }
-        g_status_685170.buffers.party_rows[slot].pending_action = -1;
-        g_status_685170.buffers.party_rows[slot].attack_mode[0] = -1;
-        g_status_685170.buffers.party_rows[slot].attack_mode[1] = -1;
-        ResetCombatSlot(&g_status_685170.buffers.party_rows[slot].target_out_of_combat);
+        g_status_685170.buffers.XChar[slot].pending_action = -1;
+        g_status_685170.buffers.XChar[slot].attack_mode[0] = -1;
+        g_status_685170.buffers.XChar[slot].attack_mode[1] = -1;
+        ResetCombatSlot(&g_status_685170.buffers.XChar[slot].target_out_of_combat);
         if (GetCurrentTargetingContext(slot) != W8_TARGETING_CONTEXT_SHARED) {
-            ClearTargetHighlights(slot, &g_status_685170.buffers.party_rows[slot].target_in_combat);
+            ClearTargetHighlights(slot, &g_status_685170.buffers.XChar[slot].target_in_combat);
         }
-        ResetCombatSlot(&g_status_685170.buffers.party_rows[slot].target_in_combat);
+        ResetCombatSlot(&g_status_685170.buffers.XChar[slot].target_in_combat);
         RequestPartySlotRedraw(slot);
         if (slot == static_cast<unsigned int>(g_status_685170.selected_character)) {
             RequestRedrawParty();
         }
-        SetCharacterCombatAction(slot, g_status_685170.buffers.party_rows[slot].action_kind,
-                                 g_status_685170.buffers.party_rows[slot].action_detail, 0, 0);
+        SetCharacterCombatAction(slot, g_status_685170.buffers.XChar[slot].action_kind,
+                                 g_status_685170.buffers.XChar[slot].action_detail, 0, 0);
         g_combat_state->characters[slot].combat_status_8c = -1;
         g_combat_state->characters[slot].portrait_image_084 = -1;
         g_combat_state->characters[slot].portrait_image_alternate_088 = -1;
         g_combat_state->characters[slot].flag_34 =
-            g_status_685170.buffers.characters[slot].hp_current == 0 ||
-            g_status_685170.buffers.characters[slot].highest_condition >= 0xf;
-        g_status_685170.buffers.characters[slot].conditions_1817[0].value_08 = 0;
-        g_status_685170.buffers.characters[slot].conditions_1817[0].value_00 = 0;
-        g_status_685170.buffers.characters[slot].conditions_1817[0].value_04 = 0;
+            g_status_685170.buffers.Char[slot].hp_current == 0 ||
+            g_status_685170.buffers.Char[slot].highest_condition >= 0xf;
+        g_status_685170.buffers.Char[slot].conditions_1817[0].value_08 = 0;
+        g_status_685170.buffers.Char[slot].conditions_1817[0].value_00 = 0;
+        g_status_685170.buffers.Char[slot].conditions_1817[0].value_04 = 0;
     }
 }
 
@@ -335,9 +335,10 @@ bool CombatMayAdvanceContinuously(void)
 {
     if (gXStatus.fCombatMode != 0) {
         for (int slot = 0; slot < 2; ++slot) {
-            W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
-            W8Character* character = &g_status_685170.buffers.characters[slot];
-            if (row->occupied && character->hp_current != 0 && character->highest_condition < 0xf &&
+            W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
+            W8Character* character = &g_status_685170.buffers.Char[slot];
+            if (row->fOccupied && character->hp_current != 0 &&
+                character->highest_condition < 0xf &&
                 g_combat_state->npc_combat_script_pending[slot]) {
                 return false;
             }
@@ -347,9 +348,9 @@ bool CombatMayAdvanceContinuously(void)
         return true;
     }
     for (int slot = 0; slot < 8; ++slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
-        W8Character* character = &g_status_685170.buffers.characters[slot];
-        if (row->occupied && character->hp_current != 0 &&
+        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
+        W8Character* character = &g_status_685170.buffers.Char[slot];
+        if (row->fOccupied && character->hp_current != 0 &&
             CharacterCanSwitchTo(slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) &&
             CharacterActionTargetsEnemies(character, row->action_03d, row->action_detail_041,
                                           &row->action_detail_045)) {
@@ -366,9 +367,9 @@ bool QueueNpcCombatScript(void)
         return false;
     }
     for (int slot = 0; slot < 2; ++slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
-        W8Character* character = &g_status_685170.buffers.characters[slot];
-        if (!row->occupied || character->hp_current == 0 || character->highest_condition >= 0xb ||
+        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
+        W8Character* character = &g_status_685170.buffers.Char[slot];
+        if (!row->fOccupied || character->hp_current == 0 || character->highest_condition >= 0xb ||
             g_combat_state->npc_combat_script_pending[slot]) {
             continue;
         }
@@ -420,8 +421,8 @@ bool CombatHasContinuingEffects(void)
 
     for (enchantment = 0; enchantment < 8; ++enchantment) {
         for (slot = 0; slot < 8; ++slot) {
-            if (g_status_685170.buffers.party_rows[slot].occupied &&
-                g_status_685170.buffers.characters[slot].enchantments[enchantment].value_08 > 0) {
+            if (g_status_685170.buffers.XChar[slot].fOccupied &&
+                g_status_685170.buffers.Char[slot].enchantments[enchantment].value_08 > 0) {
                 return true;
             }
         }
@@ -471,11 +472,11 @@ void ApplyCombatEndEffects(void)
 {
     int slot;
     for (slot = 0; slot < 2; ++slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
-        if (row->occupied) {
+        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
+        if (row->fOccupied) {
             W8NpcState* npc = GetNpcState(row->animation_0fa);
             if (npc != 0) {
-                W8Character* character = &g_status_685170.buffers.characters[slot];
+                W8Character* character = &g_status_685170.buffers.Char[slot];
                 if (character->highest_condition == 0x12) {
                     if (npc->unknown_ef[1]) {
                         ApplyItemEffectToRandomCharacter(g_effect_005ee5bc, -1, 0,
@@ -489,10 +490,10 @@ void ApplyCombatEndEffects(void)
         }
     }
     for (slot = 0; slot < 8; ++slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
-        W8Character* character = &g_status_685170.buffers.characters[slot];
-        if (row->occupied && character->condition_turns[0x12] == 0 &&
-            character->condition_turns[0x13] != 0 &&
+        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
+        W8Character* character = &g_status_685170.buffers.Char[slot];
+        if (row->fOccupied && character->uiCondition[0x12] == 0 &&
+            character->uiCondition[0x13] != 0 &&
             gXStatus.monster_manager_entries[slot].condition_19_latch == 0 &&
             (!g_status_685170.flag_2487 ||
              g_status_685170.pending_condition_party_slot_248f != slot)) {
@@ -553,10 +554,10 @@ void BeginCombatExecution004E8370(void)
     }
 
     for (slot = 0; slot < 8; ++slot) {
-        W8PartySlotRow* party = &g_status_685170.buffers.party_rows[slot];
-        W8Character* character = &g_status_685170.buffers.characters[slot];
+        W8PartySlotRow* party = &g_status_685170.buffers.XChar[slot];
+        W8Character* character = &g_status_685170.buffers.Char[slot];
         W8CombatCharacterRow* row = &g_combat_state->characters[slot];
-        if (party->occupied) {
+        if (party->fOccupied) {
             row->flag_81 = 0;
             row->flag_80 = 0;
             row->spot_attempts_90 = 0;
@@ -570,14 +571,14 @@ void BeginCombatExecution004E8370(void)
     }
     RepickInvalidCombatTargets00536400();
     for (slot = 0; slot < 8; ++slot) {
-        W8PartySlotRow* party = &g_status_685170.buffers.party_rows[slot];
+        W8PartySlotRow* party = &g_status_685170.buffers.XChar[slot];
         W8CombatCharacterRow* row = &g_combat_state->characters[slot];
-        if (party->occupied) {
+        if (party->fOccupied) {
             row->unknown_82[0] = 0;
             if (party->pending_action == 0) {
-                W8Character* character = &g_status_685170.buffers.characters[slot];
+                W8Character* character = &g_status_685170.buffers.Char[slot];
                 if (CharacterHasTrait00547940(character, 0x10) &&
-                    character->hand_attacks[0].weapon_skill == 0 &&
+                    character->Hand[0].weapon_skill == 0 &&
                     Random(100) < static_cast<unsigned char>(ScaleValueByProfessionLevel005479B0(
                                       character, 0x10, 12.0f))) {
                     row->unknown_82[0] = 1;
@@ -609,7 +610,7 @@ void BeginCombatExecution004E8370(void)
     if (g_settings_6850c8.verbose_combat_messages != 0 &&
         g_combat_state->uiCurrentPartyAction == 0) {
         for (slot = 0; slot < 8; ++slot) {
-            W8PartySlotRow* party = &g_status_685170.buffers.party_rows[slot];
+            W8PartySlotRow* party = &g_status_685170.buffers.XChar[slot];
             if (!IsPartySlotEligible00524A10(slot) ||
                 !CharacterCanSwitchTo(slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0)) {
                 continue;
@@ -621,7 +622,7 @@ void BeginCombatExecution004E8370(void)
                 if (party->target_in_combat.iType == W8_TARGET_KIND_CHARACTER) {
                     PostCharacterNotice(
                         slot, gppStringList[0x229],
-                        g_status_685170.buffers.characters[party->target_in_combat.iChar].name);
+                        g_status_685170.buffers.Char[party->target_in_combat.iChar].name);
                 } else if (party->target_in_combat.iType == W8_TARGET_KIND_MONSTER) {
                     unsigned int index = MonsterGetIndexByLocationID(
                         0x5e2, "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp",
@@ -652,7 +653,7 @@ void BeginCombatExecution004E8370(void)
                 PostMonsterNotice(monster, gppStringList[0x229], GetMonsterName(target, 0, 0));
             } else if (monster->Target.iType == W8_TARGET_KIND_CHARACTER) {
                 PostMonsterNotice(monster, gppStringList[0x229],
-                                  g_status_685170.buffers.characters[monster->Target.iChar].name);
+                                  g_status_685170.buffers.Char[monster->Target.iChar].name);
             } else {
                 srAssertFail("FALSE", "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0x60a, 0);
             }
@@ -685,9 +686,9 @@ int IsPartyEngaged(void)
     }
     if (g_combat_state->uiCurrentPartyAction == 0) {
         for (party_slot = 0; party_slot < 8; ++party_slot) {
-            if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
-                g_status_685170.buffers.characters[party_slot].hp_current != 0 &&
-                g_status_685170.buffers.characters[party_slot].highest_condition < 0xf &&
+            if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0 &&
+                g_status_685170.buffers.Char[party_slot].hp_current != 0 &&
+                g_status_685170.buffers.Char[party_slot].highest_condition < 0xf &&
                 g_combat_state->characters[party_slot].flag_34 != 0) {
                 return 1;
             }
@@ -711,7 +712,7 @@ void RecordCharacterDeath(int party_slot)
 // FUNCTION: WIZ8 0x004e8290
 void SetSlotAction(int party_slot, int action_kind, int action_detail)
 {
-    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
 
     row->action_kind = action_kind;
     row->action_detail = action_detail;
@@ -744,8 +745,8 @@ void BeginCombatRound(void)
         return;
     }
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status_685170.buffers.party_rows[party_slot].pending_action == W8_ACTION_EQUIP) {
-            g_status_685170.buffers.party_rows[party_slot].pending_action = -1;
+        if (g_status_685170.buffers.XChar[party_slot].pending_action == W8_ACTION_EQUIP) {
+            g_status_685170.buffers.XChar[party_slot].pending_action = -1;
         }
     }
     g_combat_state->flag_a50 = 0;
@@ -771,12 +772,12 @@ void CatchUpCombatActor(W8CombatCharacterRow* row)
 // FUNCTION: WIZ8 0x004ebc80
 bool CanCharReBreathe(int party_slot)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
     if (!CharacterHasCondition(character, 0x1c)) {
         return false;
     }
-    return character->stamina_max / 5 <= character->stamina;
+    return character->uiStaminaMax / 5 <= character->stamina;
 }
 
 /* Take one character out of the round: hand back whatever they were aiming at,
@@ -784,7 +785,7 @@ bool CanCharReBreathe(int party_slot)
 // FUNCTION: WIZ8 0x004e82e0
 void DropCharacterFromRound(int party_slot)
 {
-    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
 
     if (GetCurrentTargetingContext(party_slot) != 2) {
         ClearTargetHighlights(party_slot, &row->target_in_combat);
@@ -830,17 +831,16 @@ int PartyAvoidsSurprise(void)
     if (gXStatus.fSurprisePossible == 0) {
         return 0;
     }
-    while (g_status_685170.buffers.party_rows[party_slot].occupied == 0 ||
-           g_status_685170.buffers.characters[party_slot].hp_current == 0 ||
-           g_status_685170.buffers.characters[party_slot].highest_condition > 10) {
+    while (g_status_685170.buffers.XChar[party_slot].fOccupied == 0 ||
+           g_status_685170.buffers.Char[party_slot].hp_current == 0 ||
+           g_status_685170.buffers.Char[party_slot].highest_condition > 10) {
         ++party_slot;
         if (party_slot > 7) {
             return 1;
         }
     }
     Random(1);
-    if (g_status_685170.buffers.characters[party_slot].attributes[6].effective >> 1 <=
-        Random(100)) {
+    if (g_status_685170.buffers.Char[party_slot].attributes[6].effective >> 1 <= Random(100)) {
         return 1;
     }
     return 0;
@@ -893,8 +893,8 @@ unsigned char TryPanicWoundedCharacter(const W8CombatSlot* target)
     if (target->iType != W8_TARGET_KIND_CHARACTER) {
         return 0;
     }
-    character = &g_status_685170.buffers.characters[target->iChar];
-    if ((character->hp_current * 100) / (unsigned int)character->hp_max >=
+    character = &g_status_685170.buffers.Char[target->iChar];
+    if ((character->hp_current * 100) / static_cast<unsigned int>(character->uiHPMax) >=
         g_flee_hp_fraction_005ed8f8) {
         return 0;
     }
@@ -1015,15 +1015,15 @@ void EndMonsterAttack(W8MonsterInfo* monster_info)
 // FUNCTION: WIZ8 0x004ed2d0
 unsigned char TryCharacterAction(int party_slot, int action, char commit)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
     if (character->hp_current == 0 || character->highest_condition >= 0xf) {
         return 0;
     }
     if (g_combat_state->characters[party_slot].flag_34 != 0) {
-        return g_status_685170.buffers.party_rows[party_slot].pending_action == action;
+        return g_status_685170.buffers.XChar[party_slot].pending_action == action;
     }
-    if (g_status_685170.buffers.party_rows[party_slot].action_03d != action) {
+    if (g_status_685170.buffers.XChar[party_slot].action_03d != action) {
         if (action != W8_ACTION_DEFEND) {
             return 0;
         }
@@ -1049,7 +1049,7 @@ void SwitchCharacterTo(int party_slot, int action)
         srAssertFail("(iCharAction == CHAR_ACTION_DEFEND) || (iCharAction == CHAR_ACTION_PROTECT)",
                      "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0x1686, 0);
     }
-    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
 
     row->pending_action = action;
     row->attack_mode[0] = -1;
@@ -1146,8 +1146,8 @@ void EndCombat004EA310(int mode)
     }
     ResetLivingMonstersAfterCombat();
     for (int slot = 0; slot < 8; ++slot) {
-        if (g_status_685170.buffers.party_rows[slot].occupied != 0) {
-            CalcArmorClasses(&g_status_685170.buffers.characters[slot]);
+        if (g_status_685170.buffers.XChar[slot].fOccupied != 0) {
+            CalcArmorClasses(&g_status_685170.buffers.Char[slot]);
         }
     }
     if (gXStatus.world_update_blocked != 0) {
@@ -1169,7 +1169,7 @@ void EndCombat004EA310(int mode)
 void ChooseAction(int party_slot, int action, int detail, const W8ActionDetailBlock* data,
                   int arg_5, int arg_6)
 {
-    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
 
     if (gXStatus.fCombatMode == 0) {
         row->pending_action = action;
@@ -1236,9 +1236,9 @@ void ApplyPartyCombatAction(int party_slot, int action, int detail, const W8Acti
         if (g_combat_state->uiCurrentPartyAction == 0) {
             party_slot_index = 0;
             do {
-                character = &g_status_685170.buffers.characters[party_slot_index];
+                character = &g_status_685170.buffers.Char[party_slot_index];
                 row = &g_combat_state->characters[party_slot_index];
-                if (g_status_685170.buffers.party_rows[party_slot_index].occupied != 0 &&
+                if (g_status_685170.buffers.XChar[party_slot_index].fOccupied != 0 &&
                     character->hp_current != 0 && character->highest_condition < 0xf &&
                     row->flag_34 != 0) {
                     SetPendingMoveKind(action);
@@ -1270,7 +1270,7 @@ void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail
                               const W8ActionDetailBlock* data, int notify)
 {
     if (gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0) {
-        g_status_685170.buffers.party_rows[party_slot].action_03d = -1;
+        g_status_685170.buffers.XChar[party_slot].action_03d = -1;
         AimByKind(party_slot, W8_TARGET_KIND_NONE, W8_TARGETING_CONTEXT_CURRENT);
     }
     W8TargetSource source;
@@ -1280,24 +1280,24 @@ void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail
         srAssertFail("iAction < CHAR_ACTION_COUNT",
                      "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0x484, 0);
     }
-    g_status_685170.buffers.party_rows[party_slot].action_03d = action_kind;
-    g_status_685170.buffers.party_rows[party_slot].action_detail_041 = action_detail;
+    g_status_685170.buffers.XChar[party_slot].action_03d = action_kind;
+    g_status_685170.buffers.XChar[party_slot].action_detail_041 = action_detail;
     if (data == 0) {
-        memset(&g_status_685170.buffers.party_rows[party_slot].action_detail_045, 0,
-               sizeof(g_status_685170.buffers.party_rows[party_slot].action_detail_045));
+        memset(&g_status_685170.buffers.XChar[party_slot].action_detail_045, 0,
+               sizeof(g_status_685170.buffers.XChar[party_slot].action_detail_045));
     } else {
-        memcpy(&g_status_685170.buffers.party_rows[party_slot].action_detail_045, data,
-               sizeof(g_status_685170.buffers.party_rows[party_slot].action_detail_045));
+        memcpy(&g_status_685170.buffers.XChar[party_slot].action_detail_045, data,
+               sizeof(g_status_685170.buffers.XChar[party_slot].action_detail_045));
     }
     row->action_changed_a7 = 1;
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
     if (character->hp_current != 0 && character->highest_condition < 0xd && action_kind != -1) {
         if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, notify) == 0) {
             AimByKind(party_slot, W8_TARGET_KIND_NONE, W8_TARGETING_CONTEXT_IN_COMBAT);
         } else if (TargetIsInPlay(party_slot, 2) == 0 &&
                    RepickActionTarget(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, notify) == 1) {
-            PointCameraAtCombatTarget(
-                &source, &g_status_685170.buffers.party_rows[party_slot].target_in_combat);
+            PointCameraAtCombatTarget(&source,
+                                      &g_status_685170.buffers.XChar[party_slot].target_in_combat);
         }
         if (notify != 0) {
             RevalidateSelectedTarget(party_slot);
@@ -1318,7 +1318,7 @@ void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail
         PostCharacterNotice(party_slot, gppStringList[0x225]);
     } else if (action_kind == 9 &&
                !(g_combat_state->iActionChar == party_slot &&
-                 g_status_685170.buffers.party_rows[party_slot].pending_action == 9)) {
+                 g_status_685170.buffers.XChar[party_slot].pending_action == 9)) {
         PostCharacterNotice(party_slot, gppStringList[0x226]);
     }
     CalcArmorClasses(character);
@@ -1330,7 +1330,7 @@ void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail
 void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_action,
                         W8CombatSlot** out_target, W8ActionDetailBlock** out_detail)
 {
-    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
     int kind;
     int value_a;
     W8CombatSlot* target;
@@ -1435,7 +1435,7 @@ void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_act
 // FUNCTION: WIZ8 0x004e79a0
 bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, int arg_3, int arg_4)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
     if (gXStatus.iTargetingMode == 0 && IsScreenIdle() != 0) {
         for (unsigned int slot = 0; slot < 8; ++slot) {
@@ -1467,12 +1467,12 @@ bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, int arg_3,
             if (arg_4 == 0) {
                 return 0;
             }
-            if (character->equipment[6].item_id != -1) {
-                if (character->equipment[7].item_id == -1) {
-                    EquipMatchingPartnerItem(character, &character->equipment[6], -1, 7);
+            if (character->EquippedItem[6].iItemNo != -1) {
+                if (character->EquippedItem[7].iItemNo == -1) {
+                    EquipMatchingPartnerItem(character, &character->EquippedItem[6], -1, 7);
                 }
-                if (character->equipment[6].uses_or_charges == 0) {
-                    MergeMatchingPartnerItem(character, &character->equipment[6]);
+                if (character->EquippedItem[6].uses_or_charges == 0) {
+                    MergeMatchingPartnerItem(character, &character->EquippedItem[6]);
                 }
             }
             if (CanAnyHandReachTarget(party_slot) == 0) {
@@ -1485,12 +1485,12 @@ bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, int arg_3,
             if (arg_4 == 0) {
                 return 0;
             }
-            if (character->equipment[6].item_id != -1) {
-                if (character->equipment[7].item_id == -1) {
-                    EquipMatchingPartnerItem(character, &character->equipment[6], -1, 7);
+            if (character->EquippedItem[6].iItemNo != -1) {
+                if (character->EquippedItem[7].iItemNo == -1) {
+                    EquipMatchingPartnerItem(character, &character->EquippedItem[6], -1, 7);
                 }
-                if (character->equipment[6].uses_or_charges == 0) {
-                    MergeMatchingPartnerItem(character, &character->equipment[6]);
+                if (character->EquippedItem[6].uses_or_charges == 0) {
+                    MergeMatchingPartnerItem(character, &character->EquippedItem[6]);
                 }
             }
             if (CanCharacterBerserk(party_slot) == 0) {
@@ -1501,7 +1501,7 @@ bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, int arg_3,
     case W8_ACTION_BREATHE:
         if (CharacterHasTrait00547940(character, W8_TRAIT_BREATHE) == 0 ||
             character->stamina <
-                static_cast<int>(static_cast<unsigned int>(character->stamina_max) / 5)) {
+                static_cast<int>(static_cast<unsigned int>(character->uiStaminaMax) / 5)) {
             return 0;
         }
         break;
@@ -1699,10 +1699,10 @@ void AutoAdvanceSelectedCharacter004E8DA0(void)
 void AssignCombatPhases004E89D0(void)
 {
     for (int party_slot = 0; party_slot < 8; ++party_slot) {
-        W8PartySlotRow* party_row = &g_status_685170.buffers.party_rows[party_slot];
-        W8Character* character = &g_status_685170.buffers.characters[party_slot];
+        W8PartySlotRow* party_row = &g_status_685170.buffers.XChar[party_slot];
+        W8Character* character = &g_status_685170.buffers.Char[party_slot];
         W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
-        if (party_row->occupied == 0 || character->hp_current == 0 ||
+        if (party_row->fOccupied == 0 || character->hp_current == 0 ||
             character->highest_condition > 0xe || g_combat_state->party_surprised_a52 != 0) {
             party_row->pending_action = -1;
             row->phase = 0;
@@ -1713,7 +1713,7 @@ void AssignCombatPhases004E89D0(void)
             if (action == W8_ACTION_ATTACK || action == W8_ACTION_BERSERK) {
                 int hand = ChooseCharacterAttackHand(party_slot);
                 if (hand != -1) {
-                    value += character->hand_attacks[hand].damage_bonus;
+                    value += character->Hand[hand].damage_bonus;
                 }
             }
             ClampInteger(&value, -10, 0x59);
@@ -1760,7 +1760,7 @@ void AssignCombatPhases004E89D0(void)
 // FUNCTION: WIZ8 0x004e99c0
 void PracticeCombatRoundSkills004E99C0(int party_slot)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
     W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
     for (int hand = 0; hand < 2; ++hand) {
         W8CombatHandRecord* hand_record = &row->hand_records[hand];
@@ -1856,11 +1856,11 @@ groups_checked:
         }
     }
     for (int party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0) {
-            W8Character* character = &g_status_685170.buffers.characters[party_slot];
-            if (g_status_685170.buffers.party_rows[party_slot].pending_action == 4 ||
+        if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0) {
+            W8Character* character = &g_status_685170.buffers.Char[party_slot];
+            if (g_status_685170.buffers.XChar[party_slot].pending_action == 4 ||
                 character->highest_condition == 0xf || character->highest_condition == 0x11) {
-                int sides = static_cast<unsigned int>(character->stamina_max) / 0x14 - 1;
+                int sides = static_cast<unsigned int>(character->uiStaminaMax) / 0x14 - 1;
                 if (sides == 0) {
                     sides = 1;
                 }
@@ -1871,7 +1871,7 @@ groups_checked:
                         ScaleValueByProfessionLevel005479B0(character, 0, 3.3f) * amount);
                 }
                 RestoreCharacterStamina(party_slot, amount,
-                                        character->stamina < character->stamina_max);
+                                        character->stamina < character->uiStaminaMax);
             }
             PracticeCombatRoundSkills004E99C0(party_slot);
             g_combat_state->characters[party_slot].flag_34 =
@@ -1935,8 +1935,8 @@ int CheckCombatEnd004E9F90(unsigned int arg_1)
     if (any_active == 0) {
         ShowNotice(0xc, gppStringList[0x230], 0, -1, 0);
         for (int party_slot = 0; party_slot < 8; ++party_slot) {
-            W8Character* character = &g_status_685170.buffers.characters[party_slot];
-            if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
+            W8Character* character = &g_status_685170.buffers.Char[party_slot];
+            if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0 &&
                 (character->hp_current != 0 || character->highest_condition < 0x12)) {
                 SetCharacterCondition(party_slot, 0x12, 9999, 0, 0, 1);
             }
@@ -1972,7 +1972,7 @@ int CheckCombatEnd004E9F90(unsigned int arg_1)
             if (gXStatus.combat_difficulty != 0 &&
                 GetRandomPartySlots(0, 0, -1, &party_slot, 1, 0) != 0 &&
                 (event =
-                     QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot],
+                     QueueCharacterEvent(&g_status_685170.buffers.Char[party_slot],
                                          g_effect_005ee614, g_effect_argument_005ed8d8,
                                          g_effect_argument_005ed8cc, g_effect_argument_005ed914),
                  event != 0)) {
@@ -2082,8 +2082,8 @@ monsters_checked:
 // FUNCTION: WIZ8 0x004EA5C0
 void ExecuteCharacterAction004EA5C0(int party_slot)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
-    W8PartySlotRow* slot = &g_status_685170.buffers.party_rows[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
+    W8PartySlotRow* slot = &g_status_685170.buffers.XChar[party_slot];
     W8TargetSource source;
     W8TargetSource enemy_source;
     int interrupt = -1;
@@ -2242,7 +2242,7 @@ void ExecuteCharacterAction004EA5C0(int party_slot)
         } while (step == 2 && power == 8 &&
                  SpellCastFatigueCost(detail, 1) + fatigue_cost <= character->stamina &&
                  g_spell_records[detail].spell_point_cost <=
-                     character->sp_left[g_spell_records[detail].realm]);
+                     character->iSPLeft[g_spell_records[detail].realm]);
         break;
     }
     case 8:
@@ -2305,10 +2305,10 @@ action_done:
 void ComputeCharacterActionPhase004EAC90(int party_slot)
 {
     W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
-    int action = g_status_685170.buffers.party_rows[party_slot].pending_action;
+    int action = g_status_685170.buffers.XChar[party_slot].pending_action;
     if ((action == 0 || action == 1) && CanAnyHandReachTarget(party_slot) != 0 &&
         TargetIsInPlay(party_slot, 2, W8_TARGETING_CONTEXT_OUT_OF_COMBAT) != 0) {
-        W8Character* character = &g_status_685170.buffers.characters[party_slot];
+        W8Character* character = &g_status_685170.buffers.Char[party_slot];
         int current = row->current_hand;
         int other = current == 0;
         unsigned int current_value = row->hand_attack_values_40[current];
@@ -2316,8 +2316,8 @@ void ComputeCharacterActionPhase004EAC90(int party_slot)
         int chosen = current;
         if (other_value != 0) {
             chosen = other;
-            if (other_value < current_value && character->hand_attacks[other].damage_bonus <
-                                                   character->hand_attacks[current].damage_bonus) {
+            if (other_value < current_value &&
+                character->Hand[other].damage_bonus < character->Hand[current].damage_bonus) {
                 chosen = current;
             }
         }
@@ -2335,8 +2335,8 @@ void ComputeCharacterActionPhase004EAC90(int party_slot)
             if (phase < 0x65) {
                 row->current_hand = chosen;
                 if (chosen != current) {
-                    row->phase = character->hand_attacks[current].damage_bonus -
-                                 character->hand_attacks[chosen].damage_bonus + phase;
+                    row->phase = character->Hand[current].damage_bonus -
+                                 character->Hand[chosen].damage_bonus + phase;
                 }
                 ClampUnsignedInteger(&row->phase, g_combat_state->round_counter, 100);
                 RoundPhaseToStep(&row->phase, g_combat_state->round_counter);
@@ -2712,17 +2712,16 @@ int ExecuteCharacterSpecialAttack(int party_slot)
     g_combat_state->breath_visual_a4c->auto_release = '\x01';
     SetTargetSourceToCharacter(party_slot, &source);
     PopulateSpellTargetMarkers(0x77, 0, &source,
-                               &g_status_685170.buffers.party_rows[party_slot].target_out_of_combat,
+                               &g_status_685170.buffers.XChar[party_slot].target_out_of_combat,
                                &monster_targets, &char_targets, 0);
     ProvokeListedMonsterGroups(&source, &monster_targets);
     ResolveMonsterGroupAttack005560A0(
-        0x1e, &source, &g_status_685170.buffers.party_rows[party_slot].target_out_of_combat,
+        0x1e, &source, &g_status_685170.buffers.XChar[party_slot].target_out_of_combat,
         char_targets, monster_targets);
     FatigueCharacter(
         party_slot,
         static_cast<int>(
-            static_cast<unsigned int>(g_status_685170.buffers.characters[party_slot].stamina_max) /
-            5),
+            static_cast<unsigned int>(g_status_685170.buffers.Char[party_slot].uiStaminaMax) / 5),
         '\0', NULL);
     return 3;
 }
@@ -2747,7 +2746,7 @@ char CreateCharacterBreathEffect(int party_slot)
     double pitch;
 
     SetTargetSourceToCharacter(party_slot, &source);
-    target = &g_status_685170.buffers.party_rows[party_slot].target_out_of_combat;
+    target = &g_status_685170.buffers.XChar[party_slot].target_out_of_combat;
     PopulateSpellTargetMarkers(0x77, 0, &source, target, &monster_targets, &char_targets, 0);
     if (monster_targets.GetCount() == 0) {
         PostCharacterNotice(
@@ -2909,9 +2908,9 @@ int GetConditionInterrupt004EC1E0(W8TargetSource* source)
                          "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0x1193, 0);
         }
         party_slot = source->iChar;
-        character = &g_status_685170.buffers.characters[party_slot];
-        condition_turns = character->condition_turns;
-        moving = g_status_685170.buffers.party_rows[party_slot].pending_action == W8_ACTION_RUN;
+        character = &g_status_685170.buffers.Char[party_slot];
+        condition_turns = character->uiCondition;
+        moving = g_status_685170.buffers.XChar[party_slot].pending_action == W8_ACTION_RUN;
         if (CanAnyHandReachTarget(party_slot)) {
             can_attack = CanPartySlotAttackAnyTarget(party_slot, 8, 1, '\0') != 0;
             second_hand_attack = CanPartySlotAttackAnyTarget(party_slot, 8, 1, '\x01') != 0;
@@ -2978,7 +2977,7 @@ int GetConditionInterrupt004EC1E0(W8TargetSource* source)
     }
     if (source->iType == W8_TARGET_SOURCE_CHARACTER) {
         if (!can_attack) {
-            if (AreAllHandSlotsEmpty(&g_status_685170.buffers.characters[party_slot]) == 0 &&
+            if (AreAllHandSlotsEmpty(&g_status_685170.buffers.Char[party_slot]) == 0 &&
                 CanUnequipSlotItem(character, 6) != 0 && CanUnequipSlotItem(character, 7) != 0) {
                 SwapWeaponSetSlots0051D3B0(party_slot, '\0', '\x01');
                 if (CanAnyHandReachTarget(party_slot) != 0 &&
@@ -3107,9 +3106,9 @@ void UpdateCombat004E8EA0(void)
         }
         if (gXStatus.fCombatMode != 0) {
             for (unsigned int slot = 0; slot < 2; ++slot) {
-                if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
-                    g_status_685170.buffers.characters[slot].hp_current != 0 &&
-                    g_status_685170.buffers.characters[slot].highest_condition < 0xf &&
+                if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
+                    g_status_685170.buffers.Char[slot].hp_current != 0 &&
+                    g_status_685170.buffers.Char[slot].highest_condition < 0xf &&
                     g_combat_state->npc_combat_script_pending[slot] != 0) {
                     return;
                 }
@@ -3186,7 +3185,7 @@ void UpdateCombat004E8EA0(void)
             srAssertFail("FALSE", "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0x816, 0);
             return;
         }
-        int pending_action = g_status_685170.buffers.party_rows[slot].pending_action;
+        int pending_action = g_status_685170.buffers.XChar[slot].pending_action;
         int result;
         if (pending_action < 0) {
             result = 3;
@@ -3207,7 +3206,7 @@ void UpdateCombat004E8EA0(void)
         int slot = g_combat_state->iActionChar;
         if (slot != -1) {
             if (g_combat_state->characters[slot].action_changed_a7 == 0) {
-                W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+                W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
                 switch (row->action_03d) {
                 case 0:
                 case 1:
@@ -3273,15 +3272,15 @@ void ScheduleCombatActor004E9490(void)
         if (g_combat_state->uiCurrentPartyAction == 0 ||
             g_combat_state->uiCurrentPartyActionStatus == 3) {
             for (int slot = 0; slot < 8; ++slot) {
-                W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
-                if (row->occupied == 0) {
+                W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
+                if (row->fOccupied == 0) {
                     continue;
                 }
                 W8CombatCharacterRow* combat_row = &g_combat_state->characters[slot];
                 if (combat_row->phase != g_combat_state->round_counter) {
                     continue;
                 }
-                W8Character* character = &g_status_685170.buffers.characters[slot];
+                W8Character* character = &g_status_685170.buffers.Char[slot];
                 if (character->hp_current != 0 && character->highest_condition < 0xf) {
                     g_combat_state->eCombatActionStatus = 1;
                     g_combat_state->iActionChar = slot;
@@ -3350,10 +3349,10 @@ void ScheduleCombatActor004E9490(void)
                     W8TargetingContext context;
                     int action;
                     if (g_combat_state->characters[slot].flag_34 == 0) {
-                        action = g_status_685170.buffers.party_rows[slot].action_03d;
+                        action = g_status_685170.buffers.XChar[slot].action_03d;
                         context = W8_TARGETING_CONTEXT_IN_COMBAT;
                     } else {
-                        action = g_status_685170.buffers.party_rows[slot].pending_action;
+                        action = g_status_685170.buffers.XChar[slot].pending_action;
                         context = W8_TARGETING_CONTEXT_OUT_OF_COMBAT;
                     }
                     if ((action == W8_ACTION_DEFEND || action == W8_ACTION_PROTECT ||
@@ -3414,11 +3413,10 @@ void ScheduleCombatActor004E9490(void)
                 g_combat_state->flag_a51 = 0;
                 if (gXStatus.fCombatMode != 0) {
                     for (unsigned int slot = 0; slot < 8; ++slot) {
-                        if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
-                            g_status_685170.buffers.characters[slot].hp_current != 0 &&
-                            g_status_685170.buffers.characters[slot].highest_condition < 0xd &&
-                            g_status_685170.buffers.party_rows[slot].pending_action ==
-                                W8_ACTION_EQUIP) {
+                        if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
+                            g_status_685170.buffers.Char[slot].hp_current != 0 &&
+                            g_status_685170.buffers.Char[slot].highest_condition < 0xd &&
+                            g_status_685170.buffers.XChar[slot].pending_action == W8_ACTION_EQUIP) {
                             ++g_combat_state->flag_a51;
                             if (g_combat_state->flag_a50 == 0) {
                                 g_combat_state->flag_a50 = 1;
@@ -3452,8 +3450,8 @@ short GetCombatActionProgress004EC610(int* out_total)
     if (g_combat_state->uiCurrentPartyAction == 0 ||
         g_combat_state->uiCurrentPartyActionStatus == 3) {
         for (int party_slot = 0; party_slot < 8; ++party_slot) {
-            W8Character* character = &g_status_685170.buffers.characters[party_slot];
-            if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
+            W8Character* character = &g_status_685170.buffers.Char[party_slot];
+            if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0 &&
                 character->hp_current != 0 && character->highest_condition < 0xf &&
                 TryCharacterAction(party_slot, W8_ACTION_DEFEND, 0) == 0 &&
                 TryCharacterAction(party_slot, W8_ACTION_PROTECT, 0) == 0 &&

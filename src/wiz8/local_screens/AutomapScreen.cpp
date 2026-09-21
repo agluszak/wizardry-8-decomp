@@ -2220,7 +2220,7 @@ void RenderAutomapMarkers00582930(void)
             }
             int x = 0xc - static_cast<int>((location.x - left) / g_automap_zoom * -455.0f);
             int y = 0x20 - static_cast<int>((1.0f - (location.z - top) / g_automap_zoom) * -435.0f);
-            stModelInstance2D* marker = CreateAutomapItemMarker005833E0(world_item->item.item_id);
+            stModelInstance2D* marker = CreateAutomapItemMarker005833E0(world_item->item.iItemNo);
             if (marker != 0) {
                 unsigned int width = marker->GetWidth00480EF0();
                 unsigned int height = marker->GetHeight00480F70();

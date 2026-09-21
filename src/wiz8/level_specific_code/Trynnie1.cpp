@@ -33,9 +33,9 @@
 /* Item ids 0x1b3 and 0x1c3 route the use-item action down the origin/equip
    path instead of activating, the same as a non-usable equip class. */
 // FUNCTION: WIZ8 0x004DA0F0
-char IsSpecialItemId004DA0F0(W8ItemInstance* item)
+bool IsSpecialItemId004DA0F0(W8ItemInstance* item)
 {
-    return item->item_id == 0x1b3 || item->item_id == 0x1c3;
+    return item->iItemNo == 0x1b3 || item->iItemNo == 0x1c3;
 }
 
 /* Level 0x19 setup: once fact 0x229 reports the Trynnies dead and the
@@ -90,7 +90,7 @@ bool Trynnie1FountRandomFX004DA740(Trigger* pTrigger)
         return 1;
     } else if (roll < 75) {
         for (i = 0; i < W8_PARTY_SLOT_COUNT; ++i) {
-            if (g_status_685170.buffers.party_rows[i].occupied != 0) {
+            if (g_status_685170.buffers.XChar[i].fOccupied != 0) {
                 HealCharacter(i, 100, 0);
             }
         }
@@ -98,7 +98,7 @@ bool Trynnie1FountRandomFX004DA740(Trigger* pTrigger)
         return 1;
     } else {
         for (i = 0; i < W8_PARTY_SLOT_COUNT; ++i) {
-            if (g_status_685170.buffers.party_rows[i].occupied != 0) {
+            if (g_status_685170.buffers.XChar[i].fOccupied != 0) {
                 RestoreCharacterStamina(i, 100, 0);
             }
         }

@@ -237,7 +237,7 @@ void UpdateSubMenuButton(int index)
         g_submenu_buttons_69b8b0[4]->SetEnabled(
             IsPartySlotEligible00524A10(g_status_685170.selected_character) != 0 &&
             CharacterHasCastableSpell(
-                &g_status_685170.buffers.characters[g_status_685170.selected_character]) != 0);
+                &g_status_685170.buffers.Char[g_status_685170.selected_character]) != 0);
         if (g_submenu_buttons_69b8b0[4]->IsPressed() != (gXStatus.fSpellCastMode != 0)) {
             g_submenu_buttons_69b8b0[4]->SetPressed(gXStatus.fSpellCastMode != 0);
         }
@@ -298,7 +298,7 @@ void SubMenuButtonUseItem(W8DialogButton* button)
 void SubMenuButtonSpellView(W8DialogButton* button)
 {
     if (CharacterHasCastableSpell(
-            &g_status_685170.buffers.characters[g_status_685170.selected_character]) != 0) {
+            &g_status_685170.buffers.Char[g_status_685170.selected_character]) != 0) {
         if (gXStatus.fSpellCastMode != 0) {
             CloseSpellCastingView();
         } else {
@@ -598,14 +598,14 @@ unsigned char BuildSubMenuPanel(short notification)
         message = g_submenu_entry_message_ids_64c548[menu * 5 + entry];
         icon_delta = 0;
         if (menu == W8_SUBMENU_SPELLS && entry == 1) {
-            message += g_spell_records[g_status_685170.buffers
-                                           .party_rows[g_status_685170.selected_character]
-                                           .spell_id]
-                           .realm *
-                       7;
+            message +=
+                g_spell_records[g_status_685170.buffers.XChar[g_status_685170.selected_character]
+                                    .spell_id]
+                    .realm *
+                7;
         } else if (menu == W8_SUBMENU_ATTACK && entry == 0) {
-            switch (g_status_685170.buffers.characters[g_status_685170.selected_character]
-                        .hand_attacks[0]
+            switch (g_status_685170.buffers.Char[g_status_685170.selected_character]
+                        .Hand[0]
                         .weapon_skill) {
             case 1:
                 base = 4;
@@ -771,8 +771,7 @@ W8SubMenuEntryState CheckSubMenuActionUsable(int party_slot)
     unsigned char matches;
 
     matches = 0;
-    if (g_level_block->selection_kind ==
-            g_status_685170.buffers.party_rows[party_slot].action_03d &&
+    if (g_level_block->selection_kind == g_status_685170.buffers.XChar[party_slot].action_03d &&
         g_level_block->selection_settled == 0) {
         matches = 1;
     }
@@ -789,7 +788,7 @@ W8SubMenuEntryState GetSubMenuEntryState(short menu, short item, int party_slot)
     W8SubMenuEntryState state;
     W8Character* character;
 
-    character = &g_status_685170.buffers.characters[party_slot];
+    character = &g_status_685170.buffers.Char[party_slot];
     state = W8_SUBMENU_ENTRY_UNAVAILABLE;
     MapSubMenuSelection(menu, item);
     switch (menu) {

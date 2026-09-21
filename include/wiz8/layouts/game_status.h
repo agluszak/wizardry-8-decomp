@@ -21,8 +21,10 @@ enum { W8_PARTY_SLOT_COUNT = 8 };
 #pragma pack(push, 1)
 struct W8StatusBuffers {
     float save_version;
-    W8Character* characters;
-    W8PartySlotRow* party_rows;
+    /* Char and XChar, spelled by the gStatus.Char[uiChar] and
+       gStatus.XChar[uiSlot] assertions. */
+    W8Character* Char;
+    W8PartySlotRow* XChar;
 };
 
 enum { W8_CHARACTER_SERIALIZED_SIZE = 0x1862 };

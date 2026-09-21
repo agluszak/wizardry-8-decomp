@@ -65,7 +65,7 @@ int GetProfessionCasterLevel(W8Character* character, int profession_id)
     int magic_level_offset;
 
     if (profession_id == -1) {
-        profession_id = character->current_profession;
+        profession_id = character->iProfession;
         if (profession_id == -1) {
             srAssertFail("iProfession != -1", "C:\\Projects\\Wizardry 8\\Local Code\\Magic.cpp",
                          0xe13, 0);
@@ -109,13 +109,13 @@ int GetSpellDifficulty(unsigned int caster_figure, int spell_id, int bonus)
 // FUNCTION: WIZ8 0x00500010
 bool CanCastFromItem(const W8Character* caster, const W8ItemInstance* item)
 {
-    if (g_item_records[item->item_id].category != 3) {
+    if (g_item_records[item->iItemNo].category != 3) {
         return false;
     }
     if (item->identified == 0) {
         return false;
     }
-    return CanCharacterUseItem(caster, item->item_id) != 0;
+    return CanCharacterUseItem(caster, item->iItemNo) != 0;
 }
 
 #define MAGIC_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Magic.cpp"
@@ -150,7 +150,7 @@ enum { W8_SPELL_COUNT = 0x96 };
 // FUNCTION: WIZ8 0x004fae70
 bool IsSpellBlockedForCharacter(const W8Character* character, int spell_id)
 {
-    if (character->condition_turns[W8_CONDITION_SPELLCASTING_BLOCKED] != 0) {
+    if (character->uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] != 0) {
         if (g_spell_records[spell_id].alchemy_spell == 0) {
             return true;
         }
@@ -502,7 +502,7 @@ bool CombatHasCondition(int condition_id)
 // FUNCTION: WIZ8 0x004f9aa0
 void SetPartySlotSpell(int party_slot, int spell_id, int power_level, const W8CombatSlot* target)
 {
-    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
 
     row->spell_id = spell_id;
     row->spell_detail.spell.power_level = power_level;
@@ -523,7 +523,7 @@ void SetCharacterSpell(const W8Character* character, int spell_id, int power_lev
     notify.spell.unused = 0;
     ChooseAction(party_slot, 7, spell_id, &notify, 0, 1);
 
-    row = &g_status_685170.buffers.party_rows[party_slot];
+    row = &g_status_685170.buffers.XChar[party_slot];
     row->spell_detail.spell.power_level = power_level;
     row->spell_id = spell_id;
     row->spell_detail.spell.unused = 0;
@@ -537,7 +537,7 @@ void SetCharacterSpell(const W8Character* character, int spell_id, int power_lev
 bool PartySlotSpellTargetStillValid(int party_slot)
 {
     char needed = GetTargetNeededForSpellFriendly(
-        g_status_685170.buffers.party_rows[party_slot].spell_id, 0, W8_TARGETING_CONTEXT_CURRENT);
+        g_status_685170.buffers.XChar[party_slot].spell_id, 0, W8_TARGETING_CONTEXT_CURRENT);
 
     if (!TargetMatchesNeeded(GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_SPELL),
                              needed)) {
@@ -552,7 +552,7 @@ bool PartySlotSpellTargetStillValid(int party_slot)
 // FUNCTION: WIZ8 0x00501880
 void StartCharacterBreathAttack(int party_slot)
 {
-    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
 
     if (!CanCharReBreathe(party_slot)) {
         srAssertFail("CanCharReBreathe(uiChar)", MAGIC_CPP, 5320, 0);
@@ -840,7 +840,7 @@ void FinishSpellEffect00500F70(W8SpellEffectEntry* effect)
     }
     if ((effect->target.iType == W8_TARGET_KIND_MONSTER && monster_info->hp_current == 0) ||
         (effect->target.iType == W8_TARGET_KIND_CHARACTER &&
-         g_status_685170.buffers.characters[effect->target.iChar].hp_current == 0)) {
+         g_status_685170.buffers.Char[effect->target.iChar].hp_current == 0)) {
         target.iType = W8_TARGET_KIND_PLACE;
         if (effect->target.iType == W8_TARGET_KIND_MONSTER) {
             W8NavigatorMovementState* movement = &monster_info->monster->movement_0c0;
@@ -939,7 +939,7 @@ unsigned char g_profession_spellbooks[15] = {
 // FUNCTION: WIZ8 0x00501590
 void StartCharacterSpellCast(int party_slot, int power_level)
 {
-    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
     W8CombatSlot saved_target = row->spell_target;
     W8ActionDetailBlock named;
     const W8ActionDetailBlock* target;
@@ -971,7 +971,7 @@ void StartCharacterSpellCast(int party_slot, int power_level)
 // FUNCTION: WIZ8 0x00501790
 void StartCharacterItemUse(int party_slot)
 {
-    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
     W8CombatSlot saved_target = row->item_target;
 
     if (gXStatus.fCombatMode == 0) {
@@ -997,7 +997,7 @@ void StartCharacterItemUse(int party_slot)
 // FUNCTION: WIZ8 0x004ffbd0
 int GetTotalCasterLevel(const W8Character* character, int unused, int spellbook, char include_all)
 {
-    int profession = character->current_profession;
+    int profession = character->iProfession;
     int total;
     int other;
     int level;
@@ -1016,7 +1016,7 @@ int GetTotalCasterLevel(const W8Character* character, int unused, int spellbook,
     }
 
     for (other = 0; other < 15; ++other) {
-        if (character->profession_levels[other] != 0 && other != character->current_profession &&
+        if (character->profession_levels[other] != 0 && other != character->iProfession &&
             (g_profession_spellbooks[other] & spellbook) != 0) {
             if (g_profession_magic_level_offsets[other] != -255) {
                 level =
@@ -1085,7 +1085,7 @@ bool CharacterHasCastableSpell(W8Character* character)
     for (spell_id = 0; spell_id < 0x72; ++spell_id) {
         if (spell_id != 0 && character->spell_learned[spell_id] == 1 &&
             g_spell_records[spell_id].spell_point_cost <=
-                character->sp_left[g_spell_records[spell_id].realm]) {
+                character->iSPLeft[g_spell_records[spell_id].realm]) {
             return 1;
         }
     }
@@ -1098,7 +1098,7 @@ bool CanCharacterCastSpell(W8Character* character, int spell_id)
 {
     if (spell_id != 0 && character->spell_learned[spell_id] == 1 &&
         g_spell_records[spell_id].spell_point_cost <=
-            character->sp_left[g_spell_records[spell_id].realm]) {
+            character->iSPLeft[g_spell_records[spell_id].realm]) {
         return 1;
     }
     return 0;
@@ -1126,7 +1126,7 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
     unsigned int spell_level;
     int spellbook_skill;
 
-    if ((g_profession_spellbooks[character->current_profession] & book) == W8_SPELLBOOK_NONE) {
+    if ((g_profession_spellbooks[character->iProfession] & book) == W8_SPELLBOOK_NONE) {
         return 0;
     }
     if (CharacterHasTrait00547940(character, W8_TRAIT_CANNOT_LEARN)) {
@@ -1136,8 +1136,7 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
     caster_level = GetProfessionCasterLevel(character, -1);
     if (caster_level > 0) {
         for (other = 0; other < 15; ++other) {
-            if (character->profession_levels[other] != 0 &&
-                other != character->current_profession &&
+            if (character->profession_levels[other] != 0 && other != character->iProfession &&
                 (g_profession_spellbooks[other] & book) != W8_SPELLBOOK_NONE) {
                 other_level = GetProfessionCasterLevel(character, other);
                 if (other_level > 0) {
@@ -1244,11 +1243,11 @@ void LearnSpellFromItem(W8Character* character, W8ItemInstance* item)
     int usage_points;
     unsigned int skill_id;
 
-    if (g_item_records[item->item_id].spell_id == W8_SPELL_NONE) {
+    if (g_item_records[item->iItemNo].spell_id == W8_SPELL_NONE) {
         srAssertFail("gpItemDB[pPCItem->iItemNo].ubSpellNumber != SPELL_NONE", MAGIC_CPP, 0x101f,
                      0);
     }
-    spell_id = g_item_records[item->item_id].spell_id;
+    spell_id = g_item_records[item->iItemNo].spell_id;
 
     if (!CanCharacterLearnSpell(character, spell_id)) {
         ShowNoticeLine(FormatWideString(gppStringList[0x6ec / 4], character->name), 0, 1, 0);
@@ -1289,7 +1288,7 @@ enum { W8_SPELL_CONDITIONAL = 0x3c };
 // FUNCTION: WIZ8 0x005012e0
 bool CanPartySlotCastRecordedSpell(int party_slot)
 {
-    const W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+    const W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
     int spell_id = row->spell_id;
     int power_level = row->spell_detail.spell.power_level;
 
@@ -1299,7 +1298,7 @@ bool CanPartySlotCastRecordedSpell(int party_slot)
     if (spell_id == W8_SPELL_CONDITIONAL && GetConditionRecordFlag(party_slot, 0)) {
         return false;
     }
-    if (g_status_685170.buffers.characters[party_slot].spell_learned[spell_id] != 1) {
+    if (g_status_685170.buffers.Char[party_slot].spell_learned[spell_id] != 1) {
         return false;
     }
     if (row->spell_detail.spell.power_level == W8_SPELL_POWER_AS_AFFORDABLE &&
@@ -1311,7 +1310,7 @@ bool CanPartySlotCastRecordedSpell(int party_slot)
         power_level = 1;
     }
     if (g_spell_records[spell_id].spell_point_cost * power_level >
-        g_status_685170.buffers.characters[party_slot].sp_left[g_spell_records[spell_id].realm]) {
+        g_status_685170.buffers.Char[party_slot].iSPLeft[g_spell_records[spell_id].realm]) {
         return false;
     }
     if (!SpellUsableNow(spell_id, 0)) {
@@ -1331,7 +1330,7 @@ bool CanPartySlotCastRecordedSpell(int party_slot)
 // FUNCTION: WIZ8 0x00501400
 int GetAffordableSpellPowerLevel(int party_slot)
 {
-    const W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+    const W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
     int spell_id = row->spell_id;
     int power_level = row->spell_detail.spell.power_level;
     int cost;
@@ -1342,7 +1341,7 @@ int GetAffordableSpellPowerLevel(int party_slot)
     if (spell_id == W8_SPELL_CONDITIONAL && GetConditionRecordFlag(party_slot, 0)) {
         return 0;
     }
-    if (g_status_685170.buffers.characters[party_slot].spell_learned[spell_id] != 1) {
+    if (g_status_685170.buffers.Char[party_slot].spell_learned[spell_id] != 1) {
         return 0;
     }
     if (row->spell_detail.spell.power_level == W8_SPELL_POWER_AS_AFFORDABLE &&
@@ -1362,8 +1361,8 @@ int GetAffordableSpellPowerLevel(int party_slot)
     }
     cost = g_spell_records[spell_id].spell_point_cost * power_level;
     while (power_level != 0) {
-        if (cost <= g_status_685170.buffers.characters[party_slot]
-                        .sp_left[g_spell_records[spell_id].realm]) {
+        if (cost <=
+            g_status_685170.buffers.Char[party_slot].iSPLeft[g_spell_records[spell_id].realm]) {
             return power_level;
         }
         --power_level;
@@ -1383,7 +1382,7 @@ int GetAffordableSpellPowerLevel(int party_slot)
 // FUNCTION: WIZ8 0x00501660
 bool CanPartySlotUseRecordedItem(int party_slot)
 {
-    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
     W8ItemInstance* item;
     int spell_id;
     unsigned char normalize;
@@ -1398,18 +1397,18 @@ bool CanPartySlotUseRecordedItem(int party_slot)
     if (row->item_origin == W8_ITEM_ORIGIN_PARTY_POOL && gXStatus.fCombatMode != 0) {
         return false;
     }
-    if (item == 0 || item->item_id == -1 || item->item_id != row->item_id_0c9) {
+    if (item == 0 || item->iItemNo == -1 || item->iItemNo != row->item_id_0c9) {
         return false;
     }
     if (!CanUseItemForAction(party_slot, item)) {
         return false;
     }
-    if (!CanCharacterActivateItem(&g_status_685170.buffers.characters[party_slot], item)) {
+    if (!CanCharacterActivateItem(&g_status_685170.buffers.Char[party_slot], item)) {
         return false;
     }
 
     spell_id = GetItemSpell(item);
-    normalize = ItemClassNormalizesTarget(&g_item_records[item->item_id]);
+    normalize = ItemClassNormalizesTarget(&g_item_records[item->iItemNo]);
     if (GetSpellTargetType(spell_id, normalize) == W8_TARGET_TYPE_CASTER &&
         row->item_target.iChar != party_slot) {
         return false;
@@ -1590,7 +1589,7 @@ unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id,
     unsigned int level;
     int party_slot = book;
 
-    if (pricing != 0 && character->condition_turns[W8_CONDITION_SPELLCASTING_BLOCKED] != 0 &&
+    if (pricing != 0 && character->uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] != 0 &&
         g_spell_records[spell_id].alchemy_spell != 0) {
         return W8_SKILL_ALCHEMY;
     }
@@ -1764,7 +1763,7 @@ unsigned int ChoosePowerLevelForDuration(W8Character* character, int spell_id,
     }
 
     for (power_level = 1; power_level < 8; ++power_level) {
-        if (character->sp_left[realm] <
+        if (character->iSPLeft[realm] <
             (int)(g_spell_records[spell_id].spell_point_cost * power_level)) {
             return best_power;
         }
@@ -1809,14 +1808,14 @@ unsigned int ChoosePowerLevelToRestore(W8Character* character, int spell_id,
     }
 
     if (spell_id == W8_SPELL_RESTORE_HP) {
-        missing = target->hp_max - (int)target->hp_current;
+        missing = target->uiHPMax - static_cast<int>(target->hp_current);
     } else if (spell_id == W8_SPELL_RESTORE_HP_THEN_STAMINA) {
-        missing = target->hp_max - (int)target->hp_current;
+        missing = target->uiHPMax - static_cast<int>(target->hp_current);
         if (missing == 0) {
-            missing = target->stamina_max - target->stamina;
+            missing = target->uiStaminaMax - target->stamina;
         }
     } else if (spell_id == W8_SPELL_RESTORE_STAMINA) {
-        missing = target->stamina_max - target->stamina;
+        missing = target->uiStaminaMax - target->stamina;
     } else {
         return 1;
     }
@@ -1863,16 +1862,16 @@ enum {
 // FUNCTION: WIZ8 0x004fe480
 unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int identify_context)
 {
-    W8Character* caster = &g_status_685170.buffers.characters[party_slot];
-    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+    W8Character* caster = &g_status_685170.buffers.Char[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
     const unsigned int* conditions = 0;
     const W8Character* target_character = 0;
     unsigned int power_level;
     unsigned int worst;
 
     if (row->spell_target.iType == W8_TARGET_KIND_CHARACTER) {
-        target_character = &g_status_685170.buffers.characters[row->spell_target.iChar];
-        conditions = target_character->condition_turns;
+        target_character = &g_status_685170.buffers.Char[row->spell_target.iChar];
+        conditions = target_character->uiCondition;
     } else if (row->spell_target.iType == W8_TARGET_KIND_MONSTER) {
         W8MonsterInfo* monster_info =
             MonsterInfoFromID(0xb83, MAGIC_CPP, row->spell_target.iMonsterID, 1);
@@ -2014,10 +2013,10 @@ wchar_t* SpellTargetString(const W8TargetSource* source, const W8CombatSlot* tar
         if (!TargetSourceIsCharacter(source, 0) || source->unknown_18[1] != 0 ||
             source->iChar != target->iChar) {
             return FormatWideString(gppStringList[W8_MESSAGE_TARGET_AT / 4],
-                                    g_status_685170.buffers.characters[target->iChar].name);
+                                    g_status_685170.buffers.Char[target->iChar].name);
         }
         name_prefix =
-            g_name_prefix_messages[g_status_685170.buffers.characters[target->iChar].gender * 4];
+            g_name_prefix_messages[g_status_685170.buffers.Char[target->iChar].gender * 4];
         break;
 
     case 2:
@@ -2203,9 +2202,9 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
             if (*condition_count == 1) {
                 if (effect->target.iType == W8_TARGET_KIND_CHARACTER) {
                     AppendToLastTextLine(
-                        FormatWideString(
-                            L"%s %s", g_status_685170.buffers.characters[effect->target.iChar].name,
-                            gppStringList[condition_text[0]]),
+                        FormatWideString(L"%s %s",
+                                         g_status_685170.buffers.Char[effect->target.iChar].name,
+                                         gppStringList[condition_text[0]]),
                         -1);
                 } else if (effect->target.iType == W8_TARGET_KIND_MONSTER) {
                     W8MonsterInfo* monster_info =
@@ -2263,7 +2262,7 @@ bool ValidateSpellTarget004FAC40(int party_slot, int spell_id, unsigned int powe
     W8TargetSource source;
     SetTargetSourceToCharacter(party_slot, &source);
     PopulateSpellTargetMarkers(spell_id, power, &source,
-                               &g_status_685170.buffers.party_rows[party_slot].target_out_of_combat,
+                               &g_status_685170.buffers.XChar[party_slot].target_out_of_combat,
                                &monsters, &party, 0);
 
     bool valid = true;
@@ -2292,7 +2291,7 @@ bool ValidateSpellTarget004FAC40(int party_slot, int spell_id, unsigned int powe
     }
     if (!valid && (!gXStatus.fCombatMode || !MonsterCanAimSpell005474B0(spell_id) ||
                    gXStatus.hostile_monster_count != 0 || !g_combat_state->flag_a54)) {
-        QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot],
+        QueueCharacterEvent(&g_status_685170.buffers.Char[party_slot],
                             g_character_event_kind_005ee65c, 0, g_effect_argument_005ed8c8,
                             g_effect_argument_005ed914);
     }
@@ -2352,8 +2351,8 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
         goto LAB_004fa3f4;
     case 0x6:
         if (aim->iType == W8_TARGET_KIND_CHARACTER) {
-            if (g_status_685170.buffers.characters[aim->iChar].hp_current ==
-                static_cast<unsigned int>(g_status_685170.buffers.characters[aim->iChar].hp_max)) {
+            if (g_status_685170.buffers.Char[aim->iChar].hp_current ==
+                static_cast<unsigned int>(g_status_685170.buffers.Char[aim->iChar].uiHPMax)) {
                 return false;
             }
         } else {
@@ -2380,8 +2379,8 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
                 }
                 return false;
             }
-            if (g_status_685170.buffers.characters[aim->iChar].stamina !=
-                g_status_685170.buffers.characters[aim->iChar].stamina_max) {
+            if (g_status_685170.buffers.Char[aim->iChar].stamina !=
+                g_status_685170.buffers.Char[aim->iChar].uiStaminaMax) {
                 return true;
             }
             return false;
@@ -2389,7 +2388,7 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
         goto LAB_004fa3f4;
     case 0x10:
         if (aim->iType == W8_TARGET_KIND_CHARACTER) {
-            conditions = g_status_685170.buffers.characters[aim->iChar].condition_turns;
+            conditions = g_status_685170.buffers.Char[aim->iChar].uiCondition;
         } else {
             monster_info = MonsterInfoFromID(0x2b6, MAGIC_CPP, aim->iMonsterID, '\x01');
             conditions = monster_info->condition_turns;
@@ -2407,7 +2406,7 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
     case 0x41:
         if (gXStatus.fCombatMode != 0 && gXStatus.hostile_monster_count != 0) {
             if (aim->iType == W8_TARGET_KIND_CHARACTER) {
-                enchantments = g_status_685170.buffers.characters[aim->iChar].enchantments;
+                enchantments = g_status_685170.buffers.Char[aim->iChar].enchantments;
             } else {
                 monster_info = MonsterInfoFromID(0x18a, MAGIC_CPP, aim->iMonsterID, '\x01');
                 enchantments = monster_info->enchantments;
@@ -2463,7 +2462,7 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
         goto switchD_004f9b2d_caseD_8;
     case 0x22:
         if (aim->iType == W8_TARGET_KIND_CHARACTER) {
-            conditions = g_status_685170.buffers.characters[aim->iChar].condition_turns;
+            conditions = g_status_685170.buffers.Char[aim->iChar].uiCondition;
         } else {
             monster_info = MonsterInfoFromID(0x250, MAGIC_CPP, aim->iMonsterID, '\x01');
             conditions = monster_info->condition_turns;
@@ -2474,7 +2473,7 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
         break;
     case 0x23:
         if (aim->iType == W8_TARGET_KIND_CHARACTER) {
-            conditions = g_status_685170.buffers.characters[aim->iChar].condition_turns;
+            conditions = g_status_685170.buffers.Char[aim->iChar].uiCondition;
         } else {
             monster_info = MonsterInfoFromID(0x261, MAGIC_CPP, aim->iMonsterID, '\x01');
             conditions = monster_info->condition_turns;
@@ -2487,10 +2486,10 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
         affected = false;
         if (gXStatus.fCombatMode != 0) {
             index = 0;
-            walker = g_status_685170.buffers.characters;
-            row = g_status_685170.buffers.party_rows;
-            while (!row->occupied || 0x12 < walker->highest_condition ||
-                   walker->stamina_max <= walker->stamina) {
+            walker = g_status_685170.buffers.Char;
+            row = g_status_685170.buffers.XChar;
+            while (!row->fOccupied || 0x12 < walker->highest_condition ||
+                   walker->uiStaminaMax <= walker->stamina) {
                 ++index;
                 ++row;
                 ++walker;
@@ -2503,7 +2502,7 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
         break;
     case 0x33:
         if (aim->iType == W8_TARGET_KIND_CHARACTER) {
-            conditions = g_status_685170.buffers.characters[aim->iChar].condition_turns;
+            conditions = g_status_685170.buffers.Char[aim->iChar].uiCondition;
         } else {
             monster_info = MonsterInfoFromID(0x272, MAGIC_CPP, aim->iMonsterID, '\x01');
             conditions = monster_info->condition_turns;
@@ -2519,10 +2518,10 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
             }
             affected = false;
             index = 8;
-            row = g_status_685170.buffers.party_rows;
+            row = g_status_685170.buffers.XChar;
             do {
-                if (row->occupied &&
-                    g_status_685170.buffers.characters[8 - index].enchantments[3].value_08 /
+                if (row->fOccupied &&
+                    g_status_685170.buffers.Char[8 - index].enchantments[3].value_08 /
                             static_cast<float>(duration) <=
                         g_navigator_vertical_phase_step_005ebcc8) {
                     affected = true;
@@ -2553,7 +2552,7 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
             }
         }
         if (aim->iType == W8_TARGET_KIND_CHARACTER) {
-            conditions = g_status_685170.buffers.characters[aim->iChar].condition_turns;
+            conditions = g_status_685170.buffers.Char[aim->iChar].uiCondition;
         } else {
             monster_info = MonsterInfoFromID(0x2f9, MAGIC_CPP, aim->iMonsterID, '\x01');
             conditions = monster_info->condition_turns;
@@ -2568,10 +2567,10 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
         goto LAB_004fa3f4;
     case 0x44:
         index = 0;
-        while (g_status_685170.buffers.party_rows[index].occupied == 0 ||
-               0x12 < g_status_685170.buffers.characters[index].highest_condition ||
-               g_status_685170.buffers.characters[index].hp_max <=
-                   static_cast<int>(g_status_685170.buffers.characters[index].hp_current)) {
+        while (g_status_685170.buffers.XChar[index].fOccupied == 0 ||
+               0x12 < g_status_685170.buffers.Char[index].highest_condition ||
+               g_status_685170.buffers.Char[index].uiHPMax <=
+                   static_cast<int>(g_status_685170.buffers.Char[index].hp_current)) {
             ++index;
             if (7 < index) {
                 return false;
@@ -2593,7 +2592,7 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
         break;
     case 0x4a:
         if (aim->iType == W8_TARGET_KIND_CHARACTER) {
-            conditions = g_status_685170.buffers.characters[aim->iChar].condition_turns;
+            conditions = g_status_685170.buffers.Char[aim->iChar].uiCondition;
         } else {
             monster_info = MonsterInfoFromID(0x283, MAGIC_CPP, aim->iMonsterID, '\x01');
             conditions = monster_info->condition_turns;
@@ -2604,7 +2603,7 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
         break;
     case 0x58:
         if (aim->iType == W8_TARGET_KIND_CHARACTER_INDIRECT) {
-            conditions = g_status_685170.buffers.characters[aim->iChar].condition_turns;
+            conditions = g_status_685170.buffers.Char[aim->iChar].uiCondition;
         } else {
             monster_info = MonsterInfoFromID(0x2a5, MAGIC_CPP, aim->iMonsterID, '\x01');
             conditions = monster_info->condition_turns;
@@ -2617,16 +2616,16 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
         if (aim->iType == W8_TARGET_KIND_CHARACTER) {
             slot = aim->iChar;
             index = 1;
-            conditions = g_status_685170.buffers.characters[slot].condition_turns + 1;
+            conditions = g_status_685170.buffers.Char[slot].uiCondition + 1;
             while (*conditions == 0) {
                 ++index;
                 ++conditions;
                 if (0x11 < index) {
-                    return g_status_685170.buffers.characters[slot].stamina <
-                               g_status_685170.buffers.characters[slot].stamina_max ||
-                           g_status_685170.buffers.characters[slot].hp_current <
+                    return g_status_685170.buffers.Char[slot].stamina <
+                               g_status_685170.buffers.Char[slot].uiStaminaMax ||
+                           g_status_685170.buffers.Char[slot].hp_current <
                                static_cast<unsigned int>(
-                                   g_status_685170.buffers.characters[slot].hp_max);
+                                   g_status_685170.buffers.Char[slot].uiHPMax);
                 }
             }
         } else {
@@ -2646,7 +2645,7 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
         return true;
     case 0x78:
         if (aim->iType == W8_TARGET_KIND_CHARACTER) {
-            conditions = g_status_685170.buffers.characters[aim->iChar].condition_turns;
+            conditions = g_status_685170.buffers.Char[aim->iChar].uiCondition;
         } else {
             monster_info = MonsterInfoFromID(0x294, MAGIC_CPP, aim->iMonsterID, '\x01');
             conditions = monster_info->condition_turns;
@@ -2719,7 +2718,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     const int* profession_level;
     char flag_byte;
 
-    character = &g_status_685170.buffers.characters[party_slot];
+    character = &g_status_685170.buffers.Char[party_slot];
     record = &g_spell_records[spell_id];
     realm = record->realm;
     sp_left = record->spell_point_cost;
@@ -2734,7 +2733,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     case 0:
         quiet = 0;
     LAB_004fa5d7:
-        threshold = character->sp_left[realm];
+        threshold = character->iSPLeft[realm];
         if (sp_left * power_level - threshold != 0 &&
             static_cast<int>(threshold) <= static_cast<int>(sp_left * power_level)) {
             power_level = threshold / sp_left;
@@ -2748,7 +2747,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
             goto LAB_004fa5d7;
         }
     LAB_004fa575:
-        if (character->sp_left[realm] < static_cast<int>(sp_left)) {
+        if (character->iSPLeft[realm] < static_cast<int>(sp_left)) {
             goto LAB_004fa58d;
         }
         break;
@@ -2765,7 +2764,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     if (ValidateSpellTarget004FAC40(party_slot, spell_id, power_level, false, false) == '\0') {
         return 0;
     }
-    if (character->condition_turns[8] != 0 &&
+    if (character->uiCondition[8] != 0 &&
         (record->alchemy_spell == '\0' || character->skills[0x1a].level == 0)) {
         return 0;
     }
@@ -2780,13 +2779,13 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
         if (power_level == 0) {
             return 0;
         }
-        threshold = character->sp_left[realm];
+        threshold = character->iSPLeft[realm];
         if (sp_left * power_level - threshold != 0 &&
             static_cast<int>(threshold) <= static_cast<int>(sp_left * power_level)) {
             power_level = threshold / sp_left;
         }
     }
-    aim = &g_status_685170.buffers.party_rows[party_slot].target_out_of_combat;
+    aim = &g_status_685170.buffers.XChar[party_slot].target_out_of_combat;
     if (g_settings_6850c8.verbose_combat_messages == '\0') {
         if (continue_cast == '\0') {
             PostCharacterNotice(party_slot, gppStringList[0x18c], record->display_name,
@@ -2829,7 +2828,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     profession_level = character->profession_levels;
     profession = W8_PROFESSION_FIGHTER;
     do {
-        if (*profession_level != 0 && profession != character->current_profession &&
+        if (*profession_level != 0 && profession != character->iProfession &&
             (g_profession_spellbooks[profession] & spellbook) != 0 &&
             (index = GetProfessionCasterLevel(character, profession), 0 < index)) {
             caster_level += index;
@@ -2866,7 +2865,7 @@ LAB_004faa0f:
     do {
         if (index != 0 && character->spell_learned[index] == 1 &&
             g_spell_records[index].spell_point_cost <=
-                character->sp_left[g_spell_records[index].realm] &&
+                character->iSPLeft[g_spell_records[index].realm] &&
             SpellUsableNow(index, '\0')) {
             ++g_status_685170.tail_3121.spell_usage.records[index].usable_cast_count;
         }
@@ -2999,7 +2998,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
             fizzled = true;
             SoundPlay("Data\\Sound\\Misc\\Spell Fizzle 01.", 0);
             if (local_a0 != -1 && (roll = Random(100), roll < 0x46)) {
-                QueueCharacterEvent(&g_status_685170.buffers.characters[local_a0],
+                QueueCharacterEvent(&g_status_685170.buffers.Char[local_a0],
                                     g_special_event_0068c558, 0, g_effect_argument_005ed8c8,
                                     g_effect_argument_005ed914);
             }
@@ -3068,7 +3067,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
     if (TargetSourceIsCharacter(source, 1)) {
         if (source->unknown_18[1] == '\0') {
             caster_figure =
-                GetTotalCasterLevel(&g_status_685170.buffers.characters[source->iChar], 0,
+                GetTotalCasterLevel(&g_status_685170.buffers.Char[source->iChar], 0,
                                     (g_spell_records[spell_id].psionics_spell != '\0' ? 8 : 0) |
                                         (g_spell_records[spell_id].divinity_spell != '\0' ? 2 : 0) |
                                         (g_spell_records[spell_id].wizardry_spell != '\0' ? 1 : 0) |
@@ -3376,7 +3375,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         }
         if (local_a0 != -1) {
             if (Random(2) == 0) {
-                QueueCharacterEvent(&g_status_685170.buffers.characters[local_a0],
+                QueueCharacterEvent(&g_status_685170.buffers.Char[local_a0],
                                     g_item_message_005ee5c8, 0, g_effect_argument_005ed8c8,
                                     g_effect_argument_005ed914);
             } else {
@@ -3464,9 +3463,9 @@ void RedirectBackfiredSpellTarget004FE740(W8TargetSource* source, W8CombatSlot* 
         break;
     case W8_TARGET_KIND_PARTY:
         slot = 0;
-        while (g_status_685170.buffers.party_rows[slot].occupied == '\0' ||
-               g_status_685170.buffers.characters[slot].hp_current == 0 ||
-               0x12 <= g_status_685170.buffers.characters[slot].highest_condition) {
+        while (g_status_685170.buffers.XChar[slot].fOccupied == '\0' ||
+               g_status_685170.buffers.Char[slot].hp_current == 0 ||
+               0x12 <= g_status_685170.buffers.Char[slot].highest_condition) {
             ++slot;
             if (8 <= slot) {
                 srAssertFail("FALSE", MAGIC_CPP, 0xc1b, 0);
@@ -3660,7 +3659,7 @@ int PickBackfireTarget004FEDC0(int spell_id, W8TargetSource* source, W8CombatSlo
 
     candidates = 0;
     for (slot = 0; slot < 8; ++slot) {
-        if (g_status_685170.buffers.party_rows[slot].occupied != '\0' &&
+        if (g_status_685170.buffers.XChar[slot].fOccupied != '\0' &&
             (!TargetSourceIsCharacter(source, 0) || source->iChar != slot)) {
             ++candidates;
         }
@@ -3681,7 +3680,7 @@ int PickBackfireTarget004FEDC0(int spell_id, W8TargetSource* source, W8CombatSlo
     }
     pick = Random(candidates) + 1;
     for (slot = 0; slot < 8; ++slot) {
-        if (g_status_685170.buffers.party_rows[slot].occupied != '\0' &&
+        if (g_status_685170.buffers.XChar[slot].fOccupied != '\0' &&
             (!TargetSourceIsCharacter(source, 0) || source->iChar != slot) && (--pick == 0)) {
             if (GetSpellTargetType(spell_id, '\0') == 4) {
                 target->iType = W8_TARGET_KIND_PARTY;
@@ -3787,8 +3786,8 @@ void CheckSpellBackfire004FF220(int spell_id, W8TargetSource* source, W8CombatSl
 
     monster_info = 0;
     if (source->iType == W8_TARGET_SOURCE_CHARACTER) {
-        character = &g_status_685170.buffers.characters[source->iChar];
-        if (character->condition_turns[0xc] == 0) {
+        character = &g_status_685170.buffers.Char[source->iChar];
+        if (character->uiCondition[0xc] == 0) {
             return;
         }
         if (target->iType == W8_TARGET_KIND_CHARACTER && target->iChar == source->iChar) {
@@ -4154,10 +4153,10 @@ LAB_004fd26b:
         if (spell_id != 0x16 && spell_id != 0x4d) {
             slot = 0;
             do {
-                if (g_status_685170.buffers.party_rows[slot].occupied != '\0' &&
-                    g_status_685170.buffers.characters[slot].hp_current != 0 &&
-                    g_status_685170.buffers.characters[slot].highest_condition < 0x12 &&
-                    (g_status_685170.buffers.characters[slot].condition_turns[0xd] == 0 ||
+                if (g_status_685170.buffers.XChar[slot].fOccupied != '\0' &&
+                    g_status_685170.buffers.Char[slot].hp_current != 0 &&
+                    g_status_685170.buffers.Char[slot].highest_condition < 0x12 &&
+                    (g_status_685170.buffers.Char[slot].uiCondition[0xd] == 0 ||
                      !MonsterCanAimSpell005474B0(spell_id) || static_cast<char>(side) == '\x03')) {
                     party_markers->Add(slot);
                 }

@@ -304,9 +304,9 @@ void CastTrapSpell005E3800(srVector3T<float> point, int spell_id, int power, int
         target.point.z = position.z;
         collected = 0;
         for (slot = 0; slot < 8; ++slot) {
-            if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
-                g_status_685170.buffers.characters[slot].hp_current != 0 &&
-                g_status_685170.buffers.characters[slot].highest_condition < 0x12) {
+            if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
+                g_status_685170.buffers.Char[slot].hp_current != 0 &&
+                g_status_685170.buffers.Char[slot].highest_condition < 0x12) {
                 targets.Add(slot);
                 ++collected;
             }

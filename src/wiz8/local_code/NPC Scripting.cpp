@@ -244,20 +244,20 @@ void RemoveNpcScriptItem(W8ItemInstance* item, int match_item_id, int item_id)
     W8ItemInstance* slot_item;
 
     for (slot = 0; slot < 8; ++slot) {
-        if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
+        if (g_status_685170.buffers.XChar[slot].fOccupied == 0) {
             continue;
         }
         for (index = 0; index < 8; ++index) {
-            slot_item = &g_status_685170.buffers.characters[slot].backpack[index];
-            if (slot_item->item_id != -1 &&
-                (slot_item == item || (match_item_id != 0 && slot_item->item_id == item_id))) {
+            slot_item = &g_status_685170.buffers.Char[slot].backpack[index];
+            if (slot_item->iItemNo != -1 &&
+                (slot_item == item || (match_item_id != 0 && slot_item->iItemNo == item_id))) {
                 if (slot_item->stack_count != 0) {
                     --slot_item->stack_count;
                 }
                 if (slot_item->stack_count == 0) {
-                    EmptyItemRecord(slot_item, &g_status_685170.buffers.characters[slot], 1);
+                    EmptyItemRecord(slot_item, &g_status_685170.buffers.Char[slot], 1);
                 }
-                swprintf(text, gppStringList[0x7ec], g_status_685170.buffers.characters[slot].name);
+                swprintf(text, gppStringList[0x7ec], g_status_685170.buffers.Char[slot].name);
                 if (g_screen_state_00649f1c->dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {
                     RebuildNpcTradeItemList005ADB10(0);
                     return;
@@ -279,8 +279,8 @@ void RemoveNpcScriptItem(W8ItemInstance* item, int match_item_id, int item_id)
     for (slot = 0; slot < static_cast<unsigned int>(g_status_685170.party_item_count_1791);
          ++slot) {
         slot_item = &g_status_685170.party_item_pool_0021[slot];
-        if (slot_item->item_id != -1 &&
-            (slot_item == item || (match_item_id != 0 && slot_item->item_id == item_id))) {
+        if (slot_item->iItemNo != -1 &&
+            (slot_item == item || (match_item_id != 0 && slot_item->iItemNo == item_id))) {
             if (slot_item->stack_count != 0) {
                 --slot_item->stack_count;
             }
@@ -306,7 +306,7 @@ void RemoveNpcScriptItem(W8ItemInstance* item, int match_item_id, int item_id)
         }
     }
     if (g_screen_state_00649f1c->held_item_pending != 0 && item != 0 &&
-        g_screen_state_00649f1c->pending_item_1ed.item_id == item->item_id) {
+        g_screen_state_00649f1c->pending_item_1ed.iItemNo == item->iItemNo) {
         if (item->stack_count != 0) {
             --item->stack_count;
         }
@@ -507,16 +507,16 @@ void ProcessNpcScriptingFrame(void)
             ClearMainGameTargetState();
             selected_party_member = g_status_685170.selected_party_member_2434;
             for (party_slot = 0; party_slot < 8; ++party_slot) {
-                W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
-                character = &g_status_685170.buffers.characters[party_slot];
-                if (row->occupied != 0 &&
+                W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
+                character = &g_status_685170.buffers.Char[party_slot];
+                if (row->fOccupied != 0 &&
                     ((character->hp_current > 0 || character->highest_condition < 0x12) &&
                      party_slot != selected_party_member)) {
                     RemoveCharacterCondition(party_slot, 0x11, 0);
                     selected_party_member = g_status_685170.selected_party_member_2434;
                 }
             }
-            character = &g_status_685170.buffers.characters[selected_party_member];
+            character = &g_status_685170.buffers.Char[selected_party_member];
             if (character->gender == W8_GENDER_MALE) {
                 QueueCharacterEvent(character, g_effect_005ee634, 0, g_effect_argument_005ed8c8,
                                     g_effect_argument_005ed914);
@@ -817,7 +817,7 @@ void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_index,
                 LoadMouthGapTrack(
                     voice_path,
                     &gXStatus.monster_manager_entries[g_npc_scripting.npc->group_index].mouth_gap);
-                g_status_685170.buffers.party_rows[g_npc_scripting.npc->group_index]
+                g_status_685170.buffers.XChar[g_npc_scripting.npc->group_index]
                     .pending_event_type_ff = g_npc_scripting.staging_restore.current_quote_index;
                 entry->pending_event_type_114 = g_npc_scripting.staging_restore.current_quote_index;
                 g_screen_state_00649f1c->last_notice_npc_kind =
@@ -1433,8 +1433,7 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
         break;
     }
     if (g_npc_scripting.npc->character != 0 && g_npc_scripting.npc->group_index != -1) {
-        g_status_685170.buffers.party_rows[g_npc_scripting.npc->group_index].pending_event_type_ff =
-            0;
+        g_status_685170.buffers.XChar[g_npc_scripting.npc->group_index].pending_event_type_ff = 0;
     }
 }
 
@@ -1622,7 +1621,7 @@ void ProcessMessageBoxQueue(void)
         DismissNpcFromParty(group, 0, false, false);
         if (g_screen_state_00649f1c->dialogue_layout == W8_DIALOGUE_LAYOUT_TRANSCRIPT) {
             for (int party_slot = 0; party_slot < 8; ++party_slot) {
-                if (g_status_685170.buffers.party_rows[party_slot].occupied != 0) {
+                if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0) {
                     RegionSetDisable(party_slot + 7);
                     DisableRegionSetInput(party_slot + 7);
                 }
@@ -1725,9 +1724,9 @@ void ProcessMessageBoxQueue(void)
             for (index = 0; index < skill_changes->count; ++index) {
                 int party_slot = skill_changes->party_slots[index];
                 int skill = skill_changes->skills[index];
-                W8Character* character = &g_status_685170.buffers.characters[party_slot];
+                W8Character* character = &g_status_685170.buffers.Char[party_slot];
                 unsigned int value = character->skills[skill].value_02;
-                if (skill == g_profession_bonus_skills[character->current_profession]) {
+                if (skill == g_profession_bonus_skills[character->iProfession]) {
                     value = value * 125 / 100;
                 }
                 PostCharacterNotice(party_slot, gppStringList[0x1d9],
@@ -1792,7 +1791,7 @@ void ProcessMessageBoxQueue(void)
         break;
     case W8_NPC_MSG_LEVEL_UP: {
         int party_slot = *static_cast<int*>(line->extra);
-        g_status_685170.buffers.party_rows[party_slot].flag_103 = 1;
+        g_status_685170.buffers.XChar[party_slot].flag_103 = 1;
         if (g_settings_6850c8.skill_increase_messages == 0) {
             SoundPlay((STR) "Data\\Sound\\Misc\\GainLevel.wav",
                       0); // c-style-cast-ok: released SGP textual API uses UINT8 pointer spelling
@@ -1976,7 +1975,7 @@ void ProcessMessageBoxQueue(void)
             PickRandomPartySpeaker(event_type, g_status_685170.selected_party_member_2434);
         if (party_slot != -1) {
             g_status_685170.selected_party_member_2434 = static_cast<unsigned char>(party_slot);
-            QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot], event_type,
+            QueueCharacterEvent(&g_status_685170.buffers.Char[party_slot], event_type,
                                 g_event_flag_005ed8e0, g_effect_argument_005ed8c8,
                                 g_effect_argument_005ed914);
             SetNpcDialoguePanelVisible(0);
@@ -1989,7 +1988,7 @@ void ProcessMessageBoxQueue(void)
     case W8_NPC_MSG_PARTY_MEMBER_EVENT: {
         int party_slot =
             reinterpret_cast<int>(line->payload_10) /* reinterpret-ok: tagged message integer */;
-        QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot], g_effect_005ee58c,
+        QueueCharacterEvent(&g_status_685170.buffers.Char[party_slot], g_effect_005ee58c,
                             g_event_flag_005ed8e0, g_effect_argument_005ed8c8,
                             g_effect_argument_005ed914);
         break;
@@ -2060,16 +2059,16 @@ void ProcessMessageBoxQueue(void)
         unsigned int eligible = 0;
         int party_slot;
         for (party_slot = 2; party_slot < 8; ++party_slot) {
-            if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
-                g_status_685170.buffers.characters[party_slot].highest_condition < 0xf) {
+            if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0 &&
+                g_status_685170.buffers.Char[party_slot].highest_condition < 0xf) {
                 ++eligible;
             }
         }
         if (eligible > 1) {
             for (party_slot = 0; party_slot < 8; ++party_slot) {
-                W8Character* character = &g_status_685170.buffers.characters[party_slot];
-                if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
-                    character->race == 10 && character->highest_condition < 0xf) {
+                W8Character* character = &g_status_685170.buffers.Char[party_slot];
+                if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0 &&
+                    character->iRace == 10 && character->highest_condition < 0xf) {
                     QueueCharacterEvent(character, g_effect_005ee654, g_event_flag_005ed8e0,
                                         g_effect_argument_005ed8c8, g_effect_argument_005ed914);
                     break;
@@ -2230,7 +2229,7 @@ void ProcessMessageBoxQueue(void)
     case W8_NPC_MSG_PARTY_SLOT_EVENT_18: {
         int party_slot =
             reinterpret_cast<int>(line->payload_10) /* reinterpret-ok: tagged message integer */;
-        QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot], 0x18,
+        QueueCharacterEvent(&g_status_685170.buffers.Char[party_slot], 0x18,
                             g_event_flag_005ed8ec | g_event_flag_005ed8e0,
                             g_effect_argument_005ed8c8, g_effect_argument_005ed914);
         break;
@@ -2673,7 +2672,7 @@ void BeginNpcScriptedScene(void)
     gXStatus.flag_19b7 = 1;
     SetTargetingMode(1);
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0) {
+        if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0) {
             RegionSetEnable(party_slot + 7);
             EnableRegionSetInput(party_slot + 7);
             EnableRegionInput(party_slot + 0x5a);
@@ -2704,7 +2703,7 @@ void EndScriptedPortraitPick00529C40(int party_slot)
     }
     SetTargetingMode(0);
     for (slot = 0; slot < 8; ++slot) {
-        if (g_status_685170.buffers.party_rows[slot].occupied != 0) {
+        if (g_status_685170.buffers.XChar[slot].fOccupied != 0) {
             RegionSetDisable(slot + 7);
             DisableRegionSetInput(slot + 7);
             DisableRegionInput(slot + 0x5a);
@@ -2718,20 +2717,20 @@ void EndScriptedPortraitPick00529C40(int party_slot)
     SetFact(0x1c1, 0, 0);
     SetFact(0x227, 0, 0);
     for (slot = 0; slot < 8; ++slot) {
-        if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
-            g_status_685170.buffers.characters[slot].gender != W8_GENDER_FEMALE) {
+        if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
+            g_status_685170.buffers.Char[slot].gender != W8_GENDER_FEMALE) {
             other_gender_present = true;
             break;
         }
     }
-    character = &g_status_685170.buffers.characters[party_slot];
+    character = &g_status_685170.buffers.Char[party_slot];
     if (character->gender == W8_GENDER_FEMALE && other_gender_present != 0) {
         SetFact(0x1c0, 1, 0);
         QueueCharacterEvent(character, g_effect_005ee634, g_event_flag_005ed8e0,
                             g_effect_argument_005ed8c8, g_effect_argument_005ed914);
         return;
     }
-    if (g_status_685170.buffers.party_rows[party_slot].animation_0fa == -1) {
+    if (g_status_685170.buffers.XChar[party_slot].animation_0fa == -1) {
         if (character->highest_condition < 0xf) {
             if (FindItemOnCharacter(character, 0x1fd, &found, 0, 0) != 0 &&
                 FindItemOnCharacter(character, 0x1fe, &found, 0, 0) != 0 &&
@@ -2756,7 +2755,7 @@ void EndScriptedPortraitPick00529C40(int party_slot)
     SetFact(fact, 1, 0);
 done:
     for (slot = 0; slot < 8; ++slot) {
-        if (g_status_685170.buffers.party_rows[slot].occupied != 0) {
+        if (g_status_685170.buffers.XChar[slot].fOccupied != 0) {
             RegionSetEnable(slot + 7);
             EnableRegionSetInput(slot + 7);
             EnableRegionInput(slot + 0x5a);
@@ -2777,9 +2776,9 @@ void BeginSedexusCapture(void)
     g_npc_scripting.sedexus_capture_active = 1;
     BeginWorldLightingFade(-1000.0f);
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
-            (g_status_685170.buffers.characters[party_slot].hp_current > 0 ||
-             g_status_685170.buffers.characters[party_slot].highest_condition < 0x12) &&
+        if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0 &&
+            (g_status_685170.buffers.Char[party_slot].hp_current > 0 ||
+             g_status_685170.buffers.Char[party_slot].highest_condition < 0x12) &&
             party_slot != static_cast<unsigned int>(g_status_685170.alternate_name_slot_247f)) {
             SetCharacterCondition(party_slot, 0x11, 9999, 0, 0, 0);
         }

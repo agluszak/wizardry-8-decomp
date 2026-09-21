@@ -138,7 +138,7 @@ void ClearPendingPartyMovement(int excluded_party_slot)
         if (party_slot != excluded_party_slot &&
             CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) != 0) {
             RefreshCombatTargetHighlights(
-                party_slot, &g_status_685170.buffers.party_rows[party_slot].target_in_combat);
+                party_slot, &g_status_685170.buffers.XChar[party_slot].target_in_combat);
         }
     }
     UpdatePartyMovementControl();
@@ -200,11 +200,11 @@ unsigned char GetPartyHasteSteps(unsigned int* out_steps)
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         W8Character* character;
 
-        if (g_status_685170.buffers.party_rows[party_slot].occupied == 0) {
+        if (g_status_685170.buffers.XChar[party_slot].fOccupied == 0) {
             continue;
         }
-        character = &g_status_685170.buffers.characters[party_slot];
-        if (character->condition_turns[19] != 0) {
+        character = &g_status_685170.buffers.Char[party_slot];
+        if (character->uiCondition[19] != 0) {
             continue;
         }
         if (character->enchantments[5].value_08 == 0) {
@@ -258,9 +258,9 @@ void CompletePartyMovementTurns(void)
     remaining = remaining < 100 ? 100 - remaining : 0;
 
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
-        W8PartySlotRow* party_row = &g_status_685170.buffers.party_rows[party_slot];
-        W8Character* character = &g_status_685170.buffers.characters[party_slot];
-        if (party_row->occupied == 0 || character->hp_current == 0 ||
+        W8PartySlotRow* party_row = &g_status_685170.buffers.XChar[party_slot];
+        W8Character* character = &g_status_685170.buffers.Char[party_slot];
+        if (party_row->fOccupied == 0 || character->hp_current == 0 ||
             character->highest_condition >= 0xf) {
             continue;
         }
@@ -285,9 +285,9 @@ void InitializePartyMovementPhase(void)
     int minimum_initiative = 90;
 
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
-        W8Character* character = &g_status_685170.buffers.characters[party_slot];
-        if (row->occupied != 0 && character->hp_current != 0) {
+        W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
+        W8Character* character = &g_status_685170.buffers.Char[party_slot];
+        if (row->fOccupied != 0 && character->hp_current != 0) {
             int initiative = character->initiative + Random(4);
             if (initiative < minimum_initiative) {
                 minimum_initiative = initiative;
@@ -427,7 +427,7 @@ void CancelPartyMovement(void)
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
         if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_CURRENT, 1, 0) != 0) {
             RefreshCombatTargetHighlights(
-                party_slot, &g_status_685170.buffers.party_rows[party_slot].target_in_combat);
+                party_slot, &g_status_685170.buffers.XChar[party_slot].target_in_combat);
         }
     }
     UpdatePartyMovementControl();
@@ -444,8 +444,8 @@ void InterruptActivePartyMovement(void)
     }
     g_combat_state->uiCurrentPartyAction = 0;
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
-        W8PartySlotRow* party_row = &g_status_685170.buffers.party_rows[party_slot];
-        if (party_row->occupied == 0) {
+        W8PartySlotRow* party_row = &g_status_685170.buffers.XChar[party_slot];
+        if (party_row->fOccupied == 0) {
             continue;
         }
         W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];

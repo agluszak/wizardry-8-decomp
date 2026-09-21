@@ -106,10 +106,10 @@ char CanPartySlotAttackAnyTarget(int party_slot, int category, int flag, char ha
         }
     }
     if (category == 0 || category == 8) {
-        W8Character* character = &g_status_685170.buffers.characters[first];
+        W8Character* character = &g_status_685170.buffers.Char[first];
         for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
-            W8Character* candidate = &g_status_685170.buffers.characters[slot];
-            if (slot != first && g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+            W8Character* candidate = &g_status_685170.buffers.Char[slot];
+            if (slot != first && g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
                 candidate->hp_current != 0 && candidate->highest_condition < 0x12 &&
                 CharacterVsCharacterDisposition(first, slot) == side) {
                 for (unsigned int reach_hand = 0; reach_hand < 2; ++reach_hand) {
@@ -298,7 +298,7 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
         range = W8_RANGE_TOUCH;
         flag = 1;
     } else {
-        W8Character* character = &g_status_685170.buffers.characters[party_slot];
+        W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
         ChooseCombatAction(party_slot, context, &action, &detail, 0, &detail_block);
         switch (action) {
@@ -356,9 +356,8 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
     return 1;
 cannot_aim:
     if (notify_failure != 0) {
-        QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot],
-                            g_special_event_0068c530, 0, g_effect_argument_005ed8c8,
-                            g_effect_argument_005ed914);
+        QueueCharacterEvent(&g_status_685170.buffers.Char[party_slot], g_special_event_0068c530, 0,
+                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
     }
     return 0;
 }
@@ -372,7 +371,7 @@ char CharacterActionReachesSlot(int party_slot, int hand, int target_slot, int c
     if (static_cast<char>(party_slot) == target_slot) {
         return 1;
     }
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
     int kind;
     int action;
     W8ActionDetailBlock* detail;
@@ -433,9 +432,8 @@ bool IsSlotInRangeOfGroup(int party_slot, int group_id, W8TargetingContext conte
     SetTargetSourceToCharacter(party_slot, &source);
     if (IsTargetSourceInRangeOfGroup(&source, group, context) == 0) {
         if (notify != 0) {
-            QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot],
-                                g_special_event_0068c530, 0, g_effect_argument_005ed8c8,
-                                g_effect_argument_005ed914);
+            QueueCharacterEvent(&g_status_685170.buffers.Char[party_slot], g_special_event_0068c530,
+                                0, g_effect_argument_005ed8c8, g_effect_argument_005ed914);
         }
         return false;
     }
@@ -448,7 +446,7 @@ bool IsSlotInRangeOfGroup(int party_slot, int group_id, W8TargetingContext conte
 // FUNCTION: WIZ8 0x005199f0
 int GetCharActionRange(int party_slot, int hand, W8TargetingContext context)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
     W8ActionDetailBlock* detail_block;
     int action;
     int detail;
@@ -490,7 +488,7 @@ int GetCharAttackRange(const W8Character* character, unsigned int hand)
         }
         best = -1;
         for (index = 0; index < 2; ++index) {
-            if (character->hand_attacks[index].in_play != 0) {
+            if (character->Hand[index].in_play != 0) {
                 range = GetCharAttackRange(character, index);
                 if (best < range) {
                     best = range;
@@ -499,17 +497,16 @@ int GetCharAttackRange(const W8Character* character, unsigned int hand)
         }
         return best;
     }
-    if (character->hand_attacks[hand].in_play == 0) {
+    if (character->Hand[hand].in_play == 0) {
         FormatDebugMessage(1,
                            "ERROR: GetCharAttackRange for hand %d which can't attack, uiChar = %d",
                            hand, CharacterPointerToPartySlot(character));
         return -1;
     }
-    if (character->hand_attacks[hand].wield_kind != 1 &&
-        character->hand_attacks[hand].wield_kind != 3) {
+    if (character->Hand[hand].uiHolds != 1 && character->Hand[hand].uiHolds != 3) {
         return 0;
     }
-    return g_item_records[character->equipment[6 + (hand != 0)].item_id].wield_group;
+    return g_item_records[character->EquippedItem[6 + (hand != 0)].iItemNo].wield_group;
 }
 
 /* The furthest range category any of this character's hands can reach at. */
@@ -521,7 +518,7 @@ W8RangeCategory GetBestHandRangeCategory(const W8Character* character)
     unsigned int hand;
 
     for (hand = 0; hand < 2; ++hand) {
-        if (character->hand_attacks[hand].in_play != 0) {
+        if (character->Hand[hand].in_play != 0) {
             category = static_cast<W8RangeCategory>(GetCharAttackRange(character, hand));
             if (category > best) {
                 best = category;
@@ -570,9 +567,9 @@ unsigned char MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned i
     disposition_needed = static_cast<char>((disposition_needed != 0) + 1);
 
     for (party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
-        W8Character* character = &g_status_685170.buffers.characters[party_slot];
+        W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
-        if (g_status_685170.buffers.party_rows[party_slot].occupied == 0) {
+        if (g_status_685170.buffers.XChar[party_slot].fOccupied == 0) {
             continue;
         }
         if (character->hp_current == 0) {
@@ -1150,8 +1147,7 @@ bool AnyoneStandsAhead(unsigned char position)
 
     for (index = 0; index < W8_FORMATION_ROW_WIDTH; ++index) {
         slot = g_status_685170.formation.bOccupantChar[position][index];
-        if (slot != -1 &&
-            g_status_685170.buffers.characters[slot].bonus_1770.out_of_formation == 0) {
+        if (slot != -1 && g_status_685170.buffers.Char[slot].bonus_1770.out_of_formation == 0) {
             ++found;
         }
     }
@@ -1179,8 +1175,7 @@ char CountRowsBetween(int party_slot, W8MonsterInfo* monster_info)
 
     for (index = 0; index < W8_FORMATION_ROW_WIDTH; ++index) {
         slot = g_status_685170.formation.bOccupantChar[monster_quadrant][index];
-        if (slot != -1 &&
-            g_status_685170.buffers.characters[slot].bonus_1770.out_of_formation == 0) {
+        if (slot != -1 && g_status_685170.buffers.Char[slot].bonus_1770.out_of_formation == 0) {
             ++rows;
         }
     }
@@ -1209,8 +1204,7 @@ char CountRowsBetween(int party_slot, W8MonsterInfo* monster_info)
     found_front = 0;
     for (index = 0; index < W8_FORMATION_ROW_WIDTH; ++index) {
         slot = g_status_685170.formation.bOccupantChar[4][index];
-        if (slot != -1 &&
-            g_status_685170.buffers.characters[slot].bonus_1770.out_of_formation == 0) {
+        if (slot != -1 && g_status_685170.buffers.Char[slot].bonus_1770.out_of_formation == 0) {
             ++found_front;
         }
     }
@@ -1249,8 +1243,7 @@ bool FrontRankScreens(unsigned int from_position, unsigned int to_position)
     found = 0;
     for (index = 0; index < W8_FORMATION_ROW_WIDTH; ++index) {
         slot = g_status_685170.formation.bOccupantChar[4][index];
-        if (slot != -1 &&
-            g_status_685170.buffers.characters[slot].bonus_1770.out_of_formation == 0) {
+        if (slot != -1 && g_status_685170.buffers.Char[slot].bonus_1770.out_of_formation == 0) {
             ++found;
         }
     }
@@ -1273,9 +1266,9 @@ int PickReachableSlotByDisposition(int party_slot, char relationship)
     W8ActionDetailBlock* detail;
     int range;
     for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
-        if (slot == party_slot || g_status_685170.buffers.party_rows[slot].occupied == '\0' ||
-            g_status_685170.buffers.characters[slot].hp_current == 0 ||
-            g_status_685170.buffers.characters[slot].highest_condition >= 0x12 ||
+        if (slot == party_slot || g_status_685170.buffers.XChar[slot].fOccupied == '\0' ||
+            g_status_685170.buffers.Char[slot].hp_current == 0 ||
+            g_status_685170.buffers.Char[slot].highest_condition >= 0x12 ||
             CharacterVsCharacterDisposition(party_slot, slot) != relationship) {
             continue;
         }
@@ -1286,7 +1279,7 @@ int PickReachableSlotByDisposition(int party_slot, char relationship)
             if (static_cast<char>(party_slot) == slot) {
                 goto accept;
             }
-            character = &g_status_685170.buffers.characters[party_slot];
+            character = &g_status_685170.buffers.Char[party_slot];
             ChooseCombatAction(party_slot, 0, &kind, &action, 0, &detail);
             switch (kind) {
             case 0:

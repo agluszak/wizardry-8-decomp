@@ -242,7 +242,7 @@ void ImportWizardry7Character005590B0(W8Character* character, W8Wiz7Character* i
     memset(character, 0, sizeof(W8Character));
     swprintf(character->name, g_combat_log_format_00617664, TitleCaseString(imported->name_000));
     wcscpy(character->name_part_2, character->name);
-    character->race = imported->race_237;
+    character->iRace = imported->race_237;
     character->gender = (W8Gender)imported->gender_238;
     switch (imported->profession_239) {
     default:
@@ -288,7 +288,7 @@ void ImportWizardry7Character005590B0(W8Character* character, W8Wiz7Character* i
         profession = W8_PROFESSION_NINJA;
         break;
     }
-    character->current_profession = profession;
+    character->iProfession = profession;
     CalcCharacterTableValue(character);
     level = (unsigned short)imported->level_024;
     if (imported->level_024 > 0) {
@@ -298,12 +298,12 @@ void ImportWizardry7Character005590B0(W8Character* character, W8Wiz7Character* i
     character->experience = 13000;
     character->value_09f9 = imported->unknown_010;
     character->death_count_09fd = imported->deaths_026 - 1;
-    character->profession_levels[character->current_profession] = character->level;
-    character->original_profession = character->current_profession;
+    character->profession_levels[character->iProfession] = character->uiExpLevel;
+    character->original_profession = character->iProfession;
     character->level_band_base = 0;
     status = imported->status_23b;
     if (status == 2 || status == 3) {
-        character->condition_turns[0x12] = 9999;
+        character->uiCondition[0x12] = 9999;
         character->highest_condition = 0x12;
     } else {
         character->highest_condition = 0;
@@ -321,10 +321,10 @@ void ImportWizardry7Character005590B0(W8Character* character, W8Wiz7Character* i
     EnsureUniquePartyVoice004EFAD0(character);
     CalcCharacterLevelBand(character);
     RecalculateCharacterDerivedStats(character);
-    character->stamina = character->stamina_max;
-    character->hp_current = character->hp_max;
+    character->stamina = character->uiStaminaMax;
+    character->hp_current = character->uiHPMax;
     for (skill_id = 0; skill_id < 6; ++skill_id) {
-        character->sp_left[skill_id] = character->sp_max[skill_id];
+        character->iSPLeft[skill_id] = character->sp_max[skill_id];
     }
 }
 
@@ -403,19 +403,19 @@ void ConvertAttribute(W8Character* character, const W8Wiz7Character* imported)
         }
     }
     average = total / 6;
-    primary = g_profession_primary_attributes_614fc8[character->current_profession];
+    primary = g_profession_primary_attributes_614fc8[character->iProfession];
     for (i = 3; i != 0; --i) {
         imported_values[*primary++] += 0x28;
     }
     for (i = 0; i < 7; ++i) {
-        character->attributes[i].value = g_race_attribute_minimums[character->race].values[i];
+        character->attributes[i].value = g_race_attribute_minimums[character->iRace].values[i];
     }
     points = 0;
     for (i = 0; i < 7; ++i) {
         if (character->attributes[i].value <
-            (unsigned int)g_profession_attribute_minimums[character->current_profession]
-                .values[i]) {
-            int deficit = g_profession_attribute_minimums[character->current_profession].values[i] -
+            static_cast<unsigned int>(
+                g_profession_attribute_minimums[character->iProfession].values[i])) {
+            int deficit = g_profession_attribute_minimums[character->iProfession].values[i] -
                           character->attributes[i].value;
             character->attributes[i].value += deficit;
             points += deficit;
@@ -458,8 +458,9 @@ void ConvertAttribute(W8Character* character, const W8Wiz7Character* imported)
     if (0 < -points) {
         do {
             pick = Random(7);
-            if (g_profession_attribute_minimums[character->current_profession].values[pick] != 0 &&
-                (unsigned int)g_race_attribute_minimums[character->race].values[pick] <
+            if (g_profession_attribute_minimums[character->iProfession].values[pick] != 0 &&
+                static_cast<unsigned int>(
+                    g_race_attribute_minimums[character->iRace].values[pick]) <
                     character->attributes[pick].value) {
                 ++removed;
                 character->attributes[pick].value -= 1;
@@ -481,7 +482,7 @@ void GrantStartingSpells005595D0(W8Character* character, const W8Wiz7Character*)
     for (i = 0x72; i != 0; --i) {
         character->spell_learned[i - 1] = 0;
     }
-    offset = g_profession_magic_level_offsets[character->current_profession];
+    offset = g_profession_magic_level_offsets[character->iProfession];
     if (offset < 0 && -0xff < offset) {
         count = 2;
     } else {
@@ -492,8 +493,7 @@ void GrantStartingSpells005595D0(W8Character* character, const W8Wiz7Character*)
     }
     i = 0;
     do {
-        LearnSpell(character, g_profession_starting_spells_62a5f8[character->current_profession][i],
-                   '\0');
+        LearnSpell(character, g_profession_starting_spells_62a5f8[character->iProfession][i], '\0');
         --count;
         if (count == '\0') {
             break;
@@ -608,8 +608,8 @@ void ImportEquipment00559650(W8Character* character, const W8Wiz7Character* impo
         }
     }
     profession = W8_PROFESSION_COUNT;
-    if (character->race != 5) {
-        profession = character->current_profession;
+    if (character->iRace != 5) {
+        profession = character->iProfession;
     }
     starting = g_starting_equipment_61635c[profession];
     for (slot = 6; slot != 0; --slot) {
@@ -626,21 +626,21 @@ void ImportEquipment00559650(W8Character* character, const W8Wiz7Character* impo
                 if (equip_slot == 6 && (g_item_records[item_id].flags_041 & 8) != 0) {
                     equip_slot = 7;
                 }
-                if (character->equipment[equip_slot].item_id == -1) {
+                if (character->EquippedItem[equip_slot].iItemNo == -1) {
                     AddItemToCharacter(character, &item, '\x01', '\0', '\0');
                 }
             }
         }
     }
     give = -1;
-    if (character->equipment[6].item_id == -1) {
-        if (character->current_profession == W8_PROFESSION_FIGHTER) {
+    if (character->EquippedItem[6].iItemNo == -1) {
+        if (character->iProfession == W8_PROFESSION_FIGHTER) {
             if (character->skills[0].level < character->skills[1].level) {
                 give = 0x12;
             } else {
                 give = 7;
             }
-        } else if (character->current_profession == W8_PROFESSION_PRIEST) {
+        } else if (character->iProfession == W8_PROFESSION_PRIEST) {
             if (character->skills[3].level <= character->skills[5].level) {
                 give = 0x52;
             } else {
@@ -672,7 +672,7 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
     int i;
 
     if (g_skill_attributes[skill_id].unknown_04 == 2) {
-        if (g_profession_skill_availability[skill_id][character->current_profession] != 1) {
+        if (g_profession_skill_availability[skill_id][character->iProfession] != 1) {
             return 0;
         }
     } else if (g_skill_attributes[skill_id].unknown_04 == 3) {
@@ -792,7 +792,7 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
             }
             break;
         case 0x12:
-            if (g_profession_skill_availability[0x12][character->current_profession] != 1) {
+            if (g_profession_skill_availability[0x12][character->iProfession] != 1) {
                 base_value = 0;
                 break;
             }
@@ -805,9 +805,8 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
             if (100 < base_value) {
                 base_value = 100;
             }
-            if (g_profession_bonus_skills[character->current_profession] != 0x12) {
-                for (i = 0; i < 4 && g_profession_skills[character->current_profession][i] != 0x12;
-                     ++i) {
+            if (g_profession_bonus_skills[character->iProfession] != 0x12) {
+                for (i = 0; i < 4 && g_profession_skills[character->iProfession][i] != 0x12; ++i) {
                 }
                 if (i == 4 || 3 < i) {
                     base_value >>= 1;
@@ -860,7 +859,7 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
     if (!routed) {
         base_value = imported->skills[mapped];
         if (0x17 < skill_id && skill_id < 0x1c) {
-            if (character->current_profession == 0xc && (skill_id == 0x1a || skill_id == 0x1b) &&
+            if (character->iProfession == 0xc && (skill_id == 0x1a || skill_id == 0x1b) &&
                 base_value == 0) {
                 base_value = ((unsigned int)(imported->skills[0x20] + imported->skills[0x1e])) / 2;
             }

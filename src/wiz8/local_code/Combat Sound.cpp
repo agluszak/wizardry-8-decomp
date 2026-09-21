@@ -256,7 +256,7 @@ static __forceinline int PCItemInACSlot(const W8Character* character, int hit_lo
     default:
         srAssertFail("FALSE", COMBAT_SOUND_CPP, 168, "PCItemInACSlot: ERROR - Invalid AC location");
     }
-    return character->equipment[slot].item_id;
+    return character->EquippedItem[slot].iItemNo;
 }
 
 // FUNCTION: WIZ8 0x00549EF0
@@ -265,7 +265,7 @@ void MakePCAttackSound00549EF0(W8CombatCharacterRow* row, const W8HandAttack* ha
 {
     int weapon_class;
 
-    if (hand_attack->wield_kind == 0) {
+    if (hand_attack->uiHolds == HOLDS_NOTHING) {
         weapon_class = 9;
     } else {
         weapon_class = g_item_records[row->weapon_item_id_78].weapon_sound_class_0c5;
@@ -283,14 +283,14 @@ void MakePCMeleeHitSound00549F50(int iChar, const W8HandAttack* hand_attack, W8C
     int weapon_class;
     int target_material = -1;
 
-    if (hand_attack->wield_kind == 0) {
+    if (hand_attack->uiHolds == HOLDS_NOTHING) {
         weapon_class = 9;
     } else {
         weapon_class = g_item_records[g_combat_state->characters[iChar].paired_item_id_7c]
                            .weapon_sound_class_0c5;
     }
     if (target->iType == W8_TARGET_KIND_CHARACTER) {
-        const W8Character* character = &g_status_685170.buffers.characters[target->iChar];
+        const W8Character* character = &g_status_685170.buffers.Char[target->iChar];
         int item = PCItemInACSlot(character, hit_location);
         target_material = item == -1 ? 0 : g_item_records[item].material_0c1;
     } else if (target->iType == W8_TARGET_KIND_MONSTER) {
@@ -312,7 +312,7 @@ void MakePCHitSound(W8Missile* missile, W8CombatSlot* target, int hit_location, 
     int target_material = -1;
 
     if (target->iType == W8_TARGET_KIND_CHARACTER) {
-        const W8Character* character = &g_status_685170.buffers.characters[target->iChar];
+        const W8Character* character = &g_status_685170.buffers.Char[target->iChar];
         int item = PCItemInACSlot(character, hit_location);
         target_material = item == -1 ? 0 : g_item_records[item].material_0c1;
     } else if (target->iType == W8_TARGET_KIND_MONSTER) {
@@ -341,7 +341,7 @@ void MakeMonsterHitSound0054A270(const W8MonsterAttack* attack, W8CombatSlot* ta
     }
     weapon_class = attack->weapon_class_1c;
     if (target->iType == W8_TARGET_KIND_CHARACTER) {
-        const W8Character* character = &g_status_685170.buffers.characters[target->iChar];
+        const W8Character* character = &g_status_685170.buffers.Char[target->iChar];
         int item = PCItemInACSlot(character, hit_location);
         target_material = item == -1 ? 0 : g_item_records[item].material_0c1;
     } else if (target->iType == W8_TARGET_KIND_MONSTER) {

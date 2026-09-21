@@ -10,7 +10,7 @@
 #pragma pack(push, 1)
 
 /* The eighteen conditions a character can be under, indexed directly into
-   W8Character::condition_turns. Only the ones a recovered body names are
+   W8Character::uiCondition. Only the ones a recovered body names are
    spelled out; the rest keep their numbers. */
 enum {
     /* Twenty entries: the per-character copier walks all twenty, while the
@@ -118,10 +118,17 @@ enum {
     W8_RACE_ADJUSTMENT_ATTRIBUTE_BIAS = 1000
 };
 
-/* One hand's derived attack block. CalcAttacks walks two at this stride, while
-   the equipment refresh helper writes the leading wield kind at 0x00. */
+/* One hand's derived attack block - the elements of W8Character::Hand.
+   CalcAttacks walks two at this stride, while the equipment refresh helper
+   writes the leading wield kind at 0x00, spelled uiHolds by the
+   Combat Attack.cpp:0xc55 assertion pPC->Hand[uiHand].uiHolds. */
+enum {
+    /* Zero means the hand holds nothing; the uiHolds assertions spell it
+       HOLDS_NOTHING. */
+    HOLDS_NOTHING = 0
+};
 struct W8HandAttack {
-    int wield_kind;              /* 0x00 */
+    int uiHolds;                 /* 0x00 */
     unsigned char in_play;       /* 0x04 */
     int weapon_skill;            /* 0x05, unaligned */
     int combat_skill;            /* 0x09 */
@@ -159,7 +166,7 @@ struct W8Character {
     /* 0x0000: SaveCharacter stamps 1 here before writing the record, so the
        leading dword is a saved-record version rather than runtime state. */
     unsigned int record_version;
-    unsigned char in_party; /* 0x0004 */
+    unsigned char fInParty; /* 0x0004: pPC->fInParty assertion spelling */
     /* 0x0005: the character's name, wide, and the stem SaveCharacter formats
        "%ls.CHR" from. The extent below partitions the unknown run up to the
        profession at 0x0069; it is not proven, and only the fact that a wide
@@ -171,23 +178,29 @@ struct W8Character {
        assertion that bounds it against PROF_COUNT, and the profession the
        character started in. The level band subtracts a base only while the two
        agree. */
-    W8Profession current_profession;  /* 0x0069 */
+    W8Profession iProfession;         /* 0x0069 */
     W8Profession original_profession; /* 0x006d */
-    int race;                         /* 0x0071: indexes the race resistance table */
+    /* 0x0071: iRace, spelled by the assertion bounding it against
+       PC_RACE_COUNT; indexes the race resistance table. */
+    int iRace;
     /* 0x0075: zero is male and one is female. The quote lookup names the
        Data\Quotes\PCs files m_ or f_ from it, the item record's two-bit mask
        admits exactly one sex, and the female-only profession at index two
        forces the field to one. */
     W8Gender gender;
-    /* 0x0079: looked up from the table at 0x00616604 by gender, race and
-       profession together. */
-    int table_value_0079;
+    /* 0x0079: the portrait/catalog index. Looked up from the table at
+       0x00616604 by gender, race and profession together, drawn through
+       DrawCatalogImage(-14, ...) and RenderPartyPortrait, and reassigned from
+       g_portrait_groups_648950[].portraits[] when the portrait changes. */
+    int portrait_index;
     /* 0x007d: cleared by DeriveCharacterPersonality004EFA30 in both of its branches and set to -1
        by the character rebuild; all three accesses are four-byte stores. */
     int unknown_007d;
-    int personality_0081;                       /* indexes the state-5 descriptor text */
-    int voice_0085;                             /* selected by the character voice control */
-    unsigned int level;                         /* 0x0089: averaged across occupied slots */
+    int personality_0081; /* indexes the state-5 descriptor text */
+    int voice_0085;       /* selected by the character voice control */
+    /* 0x0089: uiExpLevel, spelled by the assertion pPC->uiExpLevel > 0;
+       averaged across occupied slots. */
+    unsigned int uiExpLevel;
     int profession_levels[W8_PROFESSION_COUNT]; /* 0x008d */
     unsigned char unknown_00c9[0x14];
     /* 0x00dd: the eight-band ladder over the character's level in their
@@ -219,13 +232,15 @@ struct W8Character {
        the identical array at its own 0x57 with the same indices meaning the
        same things. Several entries were read individually before this array
        explained them: two doubles the fatigue an action costs, eight blocks
-       spellcasting, eighteen is death (and unlocks bound equipment). */
-    unsigned int condition_turns[W8_CONDITION_COUNT]; /* 0x0a01 */
+       spellcasting, eighteen is death (and unlocks bound equipment). Spelled
+       uiCondition by the gStatus.Char[uiChar].uiCondition[uiCondition] > 0
+       assertion. */
+    unsigned int uiCondition[W8_CONDITION_COUNT]; /* 0x0a01 */
     unsigned char unknown_0a51[0x14];
     W8Enchantment enchantments[8]; /* 0x0a65 */
     unsigned char unknown_0ac5[0x3c];
     /* 0x0b01: the highest currently-set condition index, rescanned from
-       condition_turns[0x13] downward by 0x005237E0 whenever a condition is
+       uiCondition[0x13] downward by 0x005237E0 whenever a condition is
        lifted. Zero is either "none set" or condition zero, matching the
        monster copy at W8MonsterInfo::highest_condition. Thresholds are the
        condition ids themselves: below HOSTILE for rest/formation, below
@@ -239,18 +254,19 @@ struct W8Character {
     /* 0x0b0d..0x0b20: the two pools with a ceiling each, plus the adjustment
        damage is booked against before hit points are recalculated. A character
        whose hp_current is zero is treated as out of the fight everywhere. */
-    int hp_max;                        /* 0x0b0d */
+    int uiHPMax;                       /* 0x0b0d: gpReviewPC->uiHPMax assertion */
     unsigned int hp_current;           /* 0x0b11 */
     int hp_adjustment;                 /* 0x0b15 */
-    int stamina_max;                   /* 0x0b19 */
+    int uiStaminaMax;                  /* 0x0b19: gpReviewPC->uiStaminaMax assertion */
     int stamina;                       /* 0x0b1d */
     unsigned int fatigue_penalty_0b21; /* 0x0b21: taken off the stamina ceiling */
-    /* 0x0b25 and 0x0b45: iSPMax and iSPLeft, one per spell realm, named by the
-       Health Stamina Mana.cpp:1067 assertion pPC->iSPLeft[uiRealm] and bounded
-       at six realms by the total the party-wide restore accumulates. */
+    /* 0x0b25 and 0x0b45: the spell-point pools, one per spell realm. The left
+       pool is spelled iSPLeft by the Health Stamina Mana.cpp:1067 assertion
+       pPC->iSPLeft[uiRealm]; the pair is bounded at six realms by the total
+       the party-wide restore accumulates. */
     int sp_max[W8_SPELL_REALM_COUNT]; /* 0x0b25 */
     unsigned char unknown_0b3d[8];
-    int sp_left[W8_SPELL_REALM_COUNT]; /* 0x0b45 */
+    int iSPLeft[W8_SPELL_REALM_COUNT]; /* 0x0b45 */
     unsigned char unknown_0b5d[8];
     /* 0x0b65: game minutes until the alchemist (trait MAKE_POTIONS) may brew
        again; 0x00503100 ticks it down outside surprise, and 0x00548E60
@@ -303,17 +319,21 @@ struct W8Character {
     int damage_reduction;
     W8CharacterResistance resistances[W8_RESISTANCE_COUNT]; /* 0x0edd */
     unsigned char unknown_0f3d[0x20];
-    /* 0x0f5d: the twelve worn/held slots, indexed by the same slot numbering
-       GetItemDefaultEquipSlot answers and GetItemEquipSlotMask sets bits for.
-       Slots six and seven are the primary hands and eight and nine the
-       alternate pair, which is what the two-handed and off-hand tests read. */
-    W8ItemInstance equipment[12]; /* 0x0f5d */
+    /* 0x0f5d: EquippedItem, the twelve worn/held slots spelled by the
+       Combat Attack.cpp assertion pPC->EquippedItem[uiWeaponSlot].iItemNo,
+       indexed by the same slot numbering GetItemDefaultEquipSlot answers and
+       GetItemEquipSlotMask sets bits for. Slots six and seven are the primary
+       hands and eight and nine the alternate pair, which is what the
+       two-handed and off-hand tests read. */
+    W8ItemInstance EquippedItem[12]; /* 0x0f5d */
     unsigned char unknown_0fed[0x3c];
     /* 0x1029: the eight per-character carried slots. GetOriginOfCharacterItem
        reports this array as origin zero and the equipment array as origin one. */
     W8ItemInstance backpack[8]; /* 0x1029 */
     unsigned char unknown_1089[0xc0];
-    W8HandAttack hand_attacks[2]; /* 0x1149 */
+    /* 0x1149: Hand, spelled by the pPC->Hand[uiHand].uiHolds assertion; the
+       two per-hand derived attack blocks. */
+    W8HandAttack Hand[2];
     unsigned char unknown_11ff[0xb6];
     unsigned char dual_wielding; /* 0x12b5 */
     /* 0x12b6: per-monster-id detection score, one byte per record id. The

@@ -154,7 +154,7 @@ char GetTargetNoticeColor(const W8TargetSource* source, const W8CombatSlot* targ
         return 8;
     }
     if (target->iType == W8_TARGET_KIND_CHARACTER) {
-        return g_status_685170.buffers.party_rows[target->iChar].party_order_index;
+        return g_status_685170.buffers.XChar[target->iChar].party_order_index;
     }
     if (target->iType == W8_TARGET_KIND_MONSTER) {
         return 9;
@@ -168,8 +168,8 @@ bool ShouldClearAimForAppliedTarget(W8TargetSource* source, W8CombatSlot* target
                                     W8TargetingContext context,
                                     unsigned char action_targets_enemies)
 {
-    unsigned char source_hostile;
-    unsigned char target_hostile;
+    bool source_hostile;
+    bool target_hostile;
 
     if (context == W8_TARGETING_CONTEXT_OUT_OF_COMBAT) {
         return 1;
@@ -178,7 +178,7 @@ bool ShouldClearAimForAppliedTarget(W8TargetSource* source, W8CombatSlot* target
         if (source->iChar == BAD_INDEX) {
             srAssertFail("pSource->iChar != BAD_INDEX", TARGETING_CPP, 0xce3, 0);
         }
-        source_hostile = g_status_685170.buffers.characters[source->iChar].condition_turns[13] != 0;
+        source_hostile = g_status_685170.buffers.Char[source->iChar].uiCondition[13] != 0;
     } else {
         if (source->iType != W8_TARGET_SOURCE_MONSTER) {
             srAssertFail("FALSE", TARGETING_CPP, 0xdf9, 0);
@@ -193,7 +193,7 @@ bool ShouldClearAimForAppliedTarget(W8TargetSource* source, W8CombatSlot* target
                 ->ubDisposition == DISP_HOSTILE;
     }
     if (target->iType == W8_TARGET_KIND_CHARACTER) {
-        target_hostile = g_status_685170.buffers.characters[target->iChar].condition_turns[13] != 0;
+        target_hostile = g_status_685170.buffers.Char[target->iChar].uiCondition[13] != 0;
     } else if (target->iType == W8_TARGET_KIND_MONSTER) {
         target_hostile =
             MonsterGetScriptPartByLocationIndex(
@@ -345,10 +345,10 @@ int GetTargetNeededForItem(const W8ItemInstance* item)
 {
     const W8ItemDatabaseRecord* record;
 
-    if (item == 0 || item->item_id == -1) {
+    if (item == 0 || item->iItemNo == -1) {
         return 0;
     }
-    record = &g_item_records[item->item_id];
+    record = &g_item_records[item->iItemNo];
     if (record->spell_id == 0) {
         return 0;
     }
@@ -540,9 +540,9 @@ void ApplyTarget(W8CombatSlot* target, W8TargetingContext context)
     }
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        row = &g_status_685170.buffers.party_rows[party_slot];
-        character = &g_status_685170.buffers.characters[party_slot];
-        if (row->occupied == 0 || character->hp_current == 0 ||
+        row = &g_status_685170.buffers.XChar[party_slot];
+        character = &g_status_685170.buffers.Char[party_slot];
+        if (row->fOccupied == 0 || character->hp_current == 0 ||
             character->highest_condition >= 0x12) {
             continue;
         }
@@ -670,9 +670,9 @@ char TargetMatchesNeeded(W8CombatSlot* target, int needed)
 void RepickInvalidCombatTargets00536400(void)
 {
     for (int party_slot = 0; party_slot < 8; ++party_slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
-        W8Character* character = &g_status_685170.buffers.characters[party_slot];
-        if (row->occupied == 0 || character->hp_current == 0 ||
+        W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
+        W8Character* character = &g_status_685170.buffers.Char[party_slot];
+        if (row->fOccupied == 0 || character->hp_current == 0 ||
             character->highest_condition >= 0xd ||
             !CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 1, 0)) {
             continue;
@@ -707,8 +707,8 @@ int GetTargetNeededForAction(int action, int spell_id, const W8ActionDetailBlock
     case 7:
         return GetTargetNeededForSpellFriendly(spell_id, 0, W8_TARGETING_CONTEXT_CURRENT);
     case 8:
-        if (detail_block->item_use.item != 0 && detail_block->item_use.item->item_id != -1) {
-            record = &g_item_records[detail_block->item_use.item->item_id];
+        if (detail_block->item_use.item != 0 && detail_block->item_use.item->iItemNo != -1) {
+            record = &g_item_records[detail_block->item_use.item->iItemNo];
             if (record->spell_id != 0) {
                 return GetTargetNeededForSpellFriendly(record->spell_id,
                                                        ItemClassNormalizesTarget(record),
@@ -779,8 +779,8 @@ int GetTargetNeededForCurrentAction(int party_slot)
     case 7:
         return GetTargetNeededForSpellFriendly(detail, 0, W8_TARGETING_CONTEXT_CURRENT);
     case 8:
-        if (detail_block->item_use.item != 0 && detail_block->item_use.item->item_id != -1) {
-            record = &g_item_records[detail_block->item_use.item->item_id];
+        if (detail_block->item_use.item != 0 && detail_block->item_use.item->iItemNo != -1) {
+            record = &g_item_records[detail_block->item_use.item->iItemNo];
             if (record->spell_id != 0) {
                 return GetTargetNeededForSpellFriendly(record->spell_id,
                                                        ItemClassNormalizesTarget(record),
@@ -802,8 +802,8 @@ bool IsItemTargetOfNeededKind(int party_slot, const W8ItemInstance* item)
     const W8ItemDatabaseRecord* record;
     int needed = 0;
 
-    if (item != 0 && item->item_id != -1) {
-        record = &g_item_records[item->item_id];
+    if (item != 0 && item->iItemNo != -1) {
+        record = &g_item_records[item->iItemNo];
         if (record->spell_id != 0) {
             needed =
                 GetTargetNeededForSpellFriendly(record->spell_id, ItemClassNormalizesTarget(record),
@@ -1207,10 +1207,9 @@ bool IsTargetStillPresent(const W8CombatSlot* target)
         if (target->iChar == BAD_INDEX) {
             srAssertFail("pTarget->iChar != BAD_INDEX", TARGETING_CPP, 0x6c, 0);
         }
-        if (g_status_685170.buffers.party_rows[target->iChar].occupied == 0 ||
-            g_status_685170.buffers.characters[target->iChar].hp_current == 0 ||
-            g_status_685170.buffers.characters[target->iChar].highest_condition >=
-                W8_CONDITION_DEAD) {
+        if (g_status_685170.buffers.XChar[target->iChar].fOccupied == 0 ||
+            g_status_685170.buffers.Char[target->iChar].hp_current == 0 ||
+            g_status_685170.buffers.Char[target->iChar].highest_condition >= W8_CONDITION_DEAD) {
             return false;
         }
         break;
@@ -1219,12 +1218,12 @@ bool IsTargetStillPresent(const W8CombatSlot* target)
         if (target->iChar == BAD_INDEX) {
             srAssertFail("pTarget->iChar != BAD_INDEX", TARGETING_CPP, 0x75, 0);
         }
-        if (g_status_685170.buffers.party_rows[target->iChar].occupied == 0 ||
-            g_status_685170.buffers.characters[target->iChar].hp_current != 0 ||
-            g_status_685170.buffers.characters[target->iChar]
-                    .condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] == 0 ||
-            g_status_685170.buffers.characters[target->iChar]
-                    .condition_turns[W8_CONDITION_BEYOND_REACH] != 0) {
+        if (g_status_685170.buffers.XChar[target->iChar].fOccupied == 0 ||
+            g_status_685170.buffers.Char[target->iChar].hp_current != 0 ||
+            g_status_685170.buffers.Char[target->iChar]
+                    .uiCondition[W8_CONDITION_REACHABLE_WHEN_DOWN] == 0 ||
+            g_status_685170.buffers.Char[target->iChar].uiCondition[W8_CONDITION_BEYOND_REACH] !=
+                0) {
             return false;
         }
         break;
@@ -1277,7 +1276,7 @@ bool IsTargetStillPresent(const W8CombatSlot* target)
         if (target->pPCItem == 0) {
             srAssertFail("pTarget->pPCItem != NULL", TARGETING_CPP, 0xb4, 0);
         }
-        if (target->pPCItem->item_id == BAD_INDEX) {
+        if (target->pPCItem->iItemNo == BAD_INDEX) {
             return false;
         }
         break;
@@ -1536,7 +1535,7 @@ W8TargetingContext ResolveTargetingContext(int party_slot, W8TargetingContext co
 // FUNCTION: WIZ8 0x0053b7f0
 W8CombatSlot* GetTargetBlockForContext(int party_slot, W8TargetingContext context)
 {
-    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
 
     if (context == W8_TARGETING_CONTEXT_CURRENT) {
         context = GetCurrentTargetingContext(party_slot);
@@ -1612,7 +1611,7 @@ int GetTargetingCursorForState(int alternate)
 // FUNCTION: WIZ8 0x0053A700
 bool ActionNeedsExplicitTarget(int party_slot)
 {
-    switch (GetSpellTargetType(g_status_685170.buffers.party_rows[party_slot].spell_id, 0)) {
+    switch (GetSpellTargetType(g_status_685170.buffers.XChar[party_slot].spell_id, 0)) {
     case W8_TARGET_TYPE_CASTER:
     case W8_TARGET_TYPE_PARTY:
     case W8_TARGET_TYPE_ALL_ENEMIES:
@@ -2121,15 +2120,15 @@ void RefreshTargetMarker(void)
 // FUNCTION: WIZ8 0x0053C2C0
 bool IsDeadCharacterTargetable(int party_slot)
 {
-    if (g_status_685170.buffers.party_rows[party_slot].occupied == 0) {
+    if (g_status_685170.buffers.XChar[party_slot].fOccupied == 0) {
         return false;
     }
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
     if (character->hp_current > 0 ||
-        character->condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] == 0) {
+        character->uiCondition[W8_CONDITION_REACHABLE_WHEN_DOWN] == 0) {
         return false;
     }
-    return character->condition_turns[W8_CONDITION_BEYOND_REACH] <= 0;
+    return character->uiCondition[W8_CONDITION_BEYOND_REACH] <= 0;
 }
 
 /* A party slot can participate only while occupied, alive, and below the
@@ -2137,9 +2136,9 @@ bool IsDeadCharacterTargetable(int party_slot)
 // FUNCTION: WIZ8 0x0053C270
 bool CanPartySlotParticipate(int party_slot)
 {
-    return g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
-           g_status_685170.buffers.characters[party_slot].hp_current != 0 &&
-           g_status_685170.buffers.characters[party_slot].highest_condition < W8_CONDITION_DEAD;
+    return g_status_685170.buffers.XChar[party_slot].fOccupied != 0 &&
+           g_status_685170.buffers.Char[party_slot].hp_current != 0 &&
+           g_status_685170.buffers.Char[party_slot].highest_condition < W8_CONDITION_DEAD;
 }
 
 /* Validate a targeting context a second time, after resolving "current". The
@@ -2258,9 +2257,9 @@ bool RepickActionTarget(int party_slot, W8TargetingContext context, int arg)
     unsigned int monster_index;
     int selected;
 
-    if (g_status_685170.buffers.party_rows[party_slot].occupied == 0 ||
-        g_status_685170.buffers.characters[party_slot].hp_current == 0 ||
-        g_status_685170.buffers.characters[party_slot].highest_condition >= W8_CONDITION_DEAD) {
+    if (g_status_685170.buffers.XChar[party_slot].fOccupied == 0 ||
+        g_status_685170.buffers.Char[party_slot].hp_current == 0 ||
+        g_status_685170.buffers.Char[party_slot].highest_condition >= W8_CONDITION_DEAD) {
         return 0;
     }
 
@@ -2332,8 +2331,8 @@ bool RepickActionTarget(int party_slot, W8TargetingContext context, int arg)
         needed = GetTargetNeededForSpellFriendly(action, 0, W8_TARGETING_CONTEXT_CURRENT);
         break;
     case 8:
-        if (detail_block->item_use.item != 0 && detail_block->item_use.item->item_id != -1 &&
-            (record = &g_item_records[detail_block->item_use.item->item_id],
+        if (detail_block->item_use.item != 0 && detail_block->item_use.item->iItemNo != -1 &&
+            (record = &g_item_records[detail_block->item_use.item->iItemNo],
              record->spell_id != 0)) {
             needed = GetTargetNeededForSpellFriendly(
                 record->spell_id, ItemClassNormalizesTarget(record), W8_TARGETING_CONTEXT_CURRENT);
@@ -2484,8 +2483,8 @@ bool TargetIsInPlay(int party_slot, int value, W8TargetingContext context)
         needed = GetTargetNeededForSpellFriendly(action, 0, W8_TARGETING_CONTEXT_CURRENT);
         break;
     case 8:
-        if (detail_block->item_use.item != 0 && detail_block->item_use.item->item_id != -1 &&
-            (record = &g_item_records[detail_block->item_use.item->item_id],
+        if (detail_block->item_use.item != 0 && detail_block->item_use.item->iItemNo != -1 &&
+            (record = &g_item_records[detail_block->item_use.item->iItemNo],
              record->spell_id != 0)) {
             needed = GetTargetNeededForSpellFriendly(
                 record->spell_id, ItemClassNormalizesTarget(record), W8_TARGETING_CONTEXT_CURRENT);
@@ -2646,8 +2645,8 @@ bool SlotHasAnyValidTarget(int party_slot)
                 return 0;
             }
             return SpellHasAnyValidTarget(
-                party_slot, g_item_records[item->item_id].spell_id,
-                ItemClassNormalizesTarget(&g_item_records[item->item_id]));
+                party_slot, g_item_records[item->iItemNo].spell_id,
+                ItemClassNormalizesTarget(&g_item_records[item->iItemNo]));
         }
         break;
     }
@@ -2703,12 +2702,11 @@ bool SpellHasAnyValidTarget(int party_slot, int spell_id, unsigned char normaliz
 
     case W8_SPELL_TARGET_DEAD_CHARACTER:
         for (index = 0; index < 8; ++index) {
-            if (g_status_685170.buffers.party_rows[index].occupied != 0 &&
-                g_status_685170.buffers.characters[index].hp_current == 0 &&
-                g_status_685170.buffers.characters[index]
-                        .condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] != 0 &&
-                g_status_685170.buffers.characters[index]
-                        .condition_turns[W8_CONDITION_BEYOND_REACH] == 0) {
+            if (g_status_685170.buffers.XChar[index].fOccupied != 0 &&
+                g_status_685170.buffers.Char[index].hp_current == 0 &&
+                g_status_685170.buffers.Char[index].uiCondition[W8_CONDITION_REACHABLE_WHEN_DOWN] !=
+                    0 &&
+                g_status_685170.buffers.Char[index].uiCondition[W8_CONDITION_BEYOND_REACH] == 0) {
                 return 1;
             }
         }
@@ -3013,10 +3011,10 @@ finish:
 void RefreshAllPartyTargets(void)
 {
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
-        W8Character* character = &g_status_685170.buffers.characters[party_slot];
+        W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
+        W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
-        if (row->occupied != 0 &&
+        if (row->fOccupied != 0 &&
             (character->hp_current != 0 || character->highest_condition < W8_CONDITION_DEAD)) {
             W8CombatSlot* target =
                 GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
@@ -3308,7 +3306,7 @@ void AimAtTarget(int actor, W8CombatSlot* target, W8TargetingContext context)
             int detail;
             W8CombatSlot* chosen_target;
             W8ActionDetailBlock* detail_block;
-            W8PartySlotRow* row = &g_status_685170.buffers.party_rows[actor];
+            W8PartySlotRow* row = &g_status_685170.buffers.XChar[actor];
 
             ChooseCombatAction(actor, W8_TARGETING_CONTEXT_IN_COMBAT, &action, &detail,
                                &chosen_target, &detail_block);
@@ -3526,8 +3524,8 @@ void ConfigureSpellTargetFilter(int target_type, unsigned int needed_kind)
                    RepickActionTarget(selected, W8_TARGETING_CONTEXT_SHARED, 0)) {
             W8TargetSource source;
             SetTargetSourceToCharacter(selected, &source);
-            PointCameraAtCombatTarget(
-                &source, &g_status_685170.buffers.party_rows[selected].target_in_combat);
+            PointCameraAtCombatTarget(&source,
+                                      &g_status_685170.buffers.XChar[selected].target_in_combat);
         }
         goto aim_done;
     case 7:
@@ -3585,9 +3583,9 @@ aim_done:
 // FUNCTION: WIZ8 0x0053a770
 bool ItemUseNeedsTarget0053A770(int party_slot)
 {
-    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
     W8ItemInstance* item = FindCharacterItemAt(party_slot, row->item_origin, row->item_slot);
-    unsigned char normalize = ItemClassNormalizesTarget(&g_item_records[item->item_id]);
+    unsigned char normalize = ItemClassNormalizesTarget(&g_item_records[item->iItemNo]);
     switch (GetSpellTargetType(GetItemSpell(item), normalize)) {
     case 0:
     case 2:
@@ -3634,8 +3632,8 @@ void ClearSlotTargeting0053B050(int party_slot)
     }
     if (gXStatus.fCombatMode != 0 &&
         CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0)) {
-        RefreshCombatTargetHighlights(
-            party_slot, &g_status_685170.buffers.party_rows[party_slot].target_in_combat);
+        RefreshCombatTargetHighlights(party_slot,
+                                      &g_status_685170.buffers.XChar[party_slot].target_in_combat);
     }
 }
 
@@ -3688,16 +3686,16 @@ void UpdateSlotMonsterHighlights0053C130(int party_slot, char enable)
 int ChooseFallbackMonsterTarget0053C990(int party_slot, int group_id, W8TargetingContext context)
 {
     int result = -1;
-    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
     if (g_settings_6850c8.autoswap_weapons != 0 &&
         gXStatus.monster_manager_entries[party_slot].item_swap_in_progress == 0 &&
         row->flag_0f5 == 0 &&
         (g_combat_state->flag_000 == 0 || g_combat_state->characters[party_slot].flag_34 == 0 ||
          g_combat_state->characters[party_slot].phase == 0) &&
-        !IsItemBoundToWearer(&character->equipment[8]) &&
-        !IsItemBoundToWearer(&character->equipment[9]) &&
+        !IsItemBoundToWearer(&character->EquippedItem[8]) &&
+        !IsItemBoundToWearer(&character->EquippedItem[9]) &&
         SwapWeaponSetSlots0051D3B0(party_slot, 0, 0) == 1) {
         result = ChooseMonsterTarget(party_slot, group_id, context);
         if (result == -1) {
@@ -3722,8 +3720,8 @@ int ChooseFallbackMonsterTarget0053C990(int party_slot, int group_id, W8Targetin
             }
         }
         row->flag_105 ^= 1;
-        RefreshAfterItemRecordChange(&character->equipment[6], character, 1);
-        RefreshAfterItemRecordChange(&character->equipment[7], character, 1);
+        RefreshAfterItemRecordChange(&character->EquippedItem[6], character, 1);
+        RefreshAfterItemRecordChange(&character->EquippedItem[7], character, 1);
     }
     return result;
 }
@@ -3735,9 +3733,9 @@ int ChooseFallbackMonsterTarget0053C990(int party_slot, int group_id, W8Targetin
 void ReconcilePartyEquipmentAfterCombat0053CD60(void)
 {
     for (int party_slot = 0; party_slot < 8; ++party_slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
-        W8Character* character = &g_status_685170.buffers.characters[party_slot];
-        if (row->occupied != 0 &&
+        W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
+        W8Character* character = &g_status_685170.buffers.Char[party_slot];
+        if (row->fOccupied != 0 &&
             (character->hp_current != 0 || character->highest_condition < 0xd) &&
             row->flag_105 != 0 && g_settings_6850c8.autoswap_weapons != 0 && row->flag_0f5 == 0) {
             SwapWeaponSetSlots0051D3B0(party_slot, 0, 1);

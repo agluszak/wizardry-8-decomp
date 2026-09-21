@@ -424,7 +424,7 @@ bool ItemInfoIsWorldPersistent(const W8WorldItem* item)
     if (item == 0) {
         return false;
     }
-    return (g_item_records[item->item.item_id].flags_041 & W8_ITEM_FLAG_PERSISTENT) != 0;
+    return (g_item_records[item->item.iItemNo].flags_041 & W8_ITEM_FLAG_PERSISTENT) != 0;
 }
 
 /* Copy a world item's carried item out onto the heap. */
@@ -436,9 +436,7 @@ W8ItemInstance* CopyWorldItemInstance(const W8WorldItem* item)
     if (copy == 0) {
         return 0;
     }
-    *(int*)copy = *(const int*)&item->item;
-    *((int*)copy + 1) = *((const int*)&item->item + 1);
-    *((int*)copy + 2) = *((const int*)&item->item + 2);
+    *copy = item->item;
     return copy;
 }
 
@@ -690,10 +688,10 @@ void ActivateItem(W8WorldItem* item)
     info.hFile = 0;
     info.bitmap_folder = "Data\\Items3D\\Bitmaps";
 
-    name = g_item_records[item->item.item_id].internal_name;
+    name = g_item_records[item->item.iItemNo].internal_name;
     if (strlen(name) == 0) {
         name =
-            g_item_model_fallback_names[g_item_records[item->item.item_id].unidentified_name_index];
+            g_item_model_fallback_names[g_item_records[item->item.iItemNo].unidentified_name_index];
     }
     strcpy(zItemName, name);
     if (strstr(zItemName, ".ITM") != 0) {
@@ -707,7 +705,7 @@ void ActivateItem(W8WorldItem* item)
         if (!FileExists(zItemFullPath)) {
             srAssertFail("FileExists(zItemFullPath)", ITEM_MANAGER_CPP, 0x1ed,
                          FormatString("ActivateItem: ERROR - missing ITM file %s, item %d",
-                                      zItemFullPath, item->item.item_id));
+                                      zItemFullPath, item->item.iItemNo));
         }
     }
 
@@ -994,7 +992,7 @@ unsigned char InteractWithWorldItem004F7910(int runtime_id)
     if (item == 0) {
         srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 857, 0);
     }
-    if (g_item_records[item->item.item_id].flags_041 & 0x20) {
+    if (g_item_records[item->item.iItemNo].flags_041 & 0x20) {
         W8TriggerItemPickerDialog* dialog = new W8TriggerItemPickerDialog;
         if (dialog != 0) {
             dialog->SetItemGroup(item);
@@ -1289,7 +1287,7 @@ void RebuildAllWorldItemInstances(void)
 
     for (index = 0; index < PLLength(gXStatus.plsItemList); ++index) {
         item = ItemInfo(index);
-        ReplaceOrCreateItem(&item->item, item->item.item_id, 0, 0, 0);
+        ReplaceOrCreateItem(&item->item, item->item.iItemNo, 0, 0, 0);
     }
 }
 

@@ -337,11 +337,11 @@ void RefreshUseItemSelectionForSlot0059CC40(int party_slot)
     }
     if (CanPartySlotUseRecordedItem(party_slot)) {
         gXStatus.dragged_item = 0;
-        item = FindCharacterItemAt(party_slot,
-                                   g_status_685170.buffers.party_rows[party_slot].item_origin,
-                                   g_status_685170.buffers.party_rows[party_slot].item_slot);
+        item =
+            FindCharacterItemAt(party_slot, g_status_685170.buffers.XChar[party_slot].item_origin,
+                                g_status_685170.buffers.XChar[party_slot].item_slot);
         if (CanUseItemForAction(g_use_item_owner_index_0069b9b0, item)) {
-            if (g_status_685170.buffers.party_rows[party_slot].item_origin == 2) {
+            if (g_status_685170.buffers.XChar[party_slot].item_origin == 2) {
                 if (gXStatus.fCombatMode) {
                     srAssertFail("!gXStatus.fCombatMode", MGSUSEITEMSELECT_CPP, 0x216, 0);
                 }
@@ -424,13 +424,13 @@ void UpdateUseItemSelect0059CF50(unsigned char active)
     if (g_value_69b9a0 != 0 &&
         CanUseItemForAction(g_status_685170.selected_character, g_value_69b9a0) &&
         IsItemTargetOfNeededKind(g_status_685170.selected_character, g_value_69b9a0)) {
-        character = &g_status_685170.buffers.characters[g_status_685170.selected_character];
+        character = &g_status_685170.buffers.Char[g_status_685170.selected_character];
         if (g_value_69b9a0 != 0) {
             g_use_item_commit_active_0069bf38 = 1;
             CommitSelectedSpellTarget();
             g_use_item_commit_active_0069bf38 = 0;
             AimItemUseAtCurrentTarget0051DB60(character, g_value_69b9a0);
-            if (g_value_69b9a0 != 0 && g_value_69b9a0->item_id != -1 &&
+            if (g_value_69b9a0 != 0 && g_value_69b9a0->iItemNo != -1 &&
                 GetItemSpell(g_value_69b9a0) == 0x17) {
                 return;
             }
@@ -495,13 +495,13 @@ void CommitSelectedItemUse(void)
     if (g_value_69b9a0 != 0 &&
         CanUseItemForAction(g_status_685170.selected_character, g_value_69b9a0) &&
         IsItemTargetOfNeededKind(g_status_685170.selected_character, g_value_69b9a0)) {
-        character = &g_status_685170.buffers.characters[g_status_685170.selected_character];
+        character = &g_status_685170.buffers.Char[g_status_685170.selected_character];
         if (g_value_69b9a0 != 0) {
             g_use_item_commit_active_0069bf38 = 1;
             CommitSelectedSpellTarget();
             g_use_item_commit_active_0069bf38 = 0;
             AimItemUseAtCurrentTarget0051DB60(character, g_value_69b9a0);
-            if (g_value_69b9a0 != 0 && g_value_69b9a0->item_id != -1 &&
+            if (g_value_69b9a0 != 0 && g_value_69b9a0->iItemNo != -1 &&
                 GetItemSpell(g_value_69b9a0) == 0x17) {
                 return;
             }
@@ -569,10 +569,10 @@ void RebuildUseItemSelectList0059D230(int mode, W8ItemInstance* select)
         g_use_item_select_panels_69b994[1]->Invalidate(0);
         return;
     }
-    character = &g_status_685170.buffers.characters[slot];
+    character = &g_status_685170.buffers.Char[slot];
     do {
         for (i = 0; i < 12; i++) {
-            if (!AppendUseItemListEntry0059D450(&character->equipment[i], select, pass)) {
+            if (!AppendUseItemListEntry0059D450(&character->EquippedItem[i], select, pass)) {
                 return;
             }
         }
@@ -601,7 +601,7 @@ bool AppendUseItemListEntry0059D450(W8ItemInstance* item, W8ItemInstance* select
     short count;
     bool charged;
 
-    if (item->item_id == -1) {
+    if (item->iItemNo == -1) {
         return true;
     }
     if (IsUseItemFilteredOut0059D6B0(item)) {
@@ -631,9 +631,8 @@ bool AppendUseItemListEntry0059D450(W8ItemInstance* item, W8ItemInstance* select
             g_selected_use_item_line_0069b95c = g_use_item_list_count_0069b990;
         }
         g_use_item_list_0069b9b4[g_use_item_list_count_0069b990] = item;
-        if (g_item_records[item->item_id].equip_class != 0xd ||
-            g_status_685170.buffers.characters[g_use_item_owner_index_0069b9b0]
-                    .condition_turns[8] == 0) {
+        if (g_item_records[item->iItemNo].equip_class != 0xd ||
+            g_status_685170.buffers.Char[g_use_item_owner_index_0069b9b0].uiCondition[8] == 0) {
             color = 0;
         } else {
             color = 4;
@@ -651,7 +650,7 @@ bool AppendUseItemListEntry0059D450(W8ItemInstance* item, W8ItemInstance* select
     }
     g_use_item_list_0069b9b4[g_use_item_list_count_0069b990] = item;
     charged = false;
-    switch (g_item_records[item->item_id].quantity_kind) {
+    switch (g_item_records[item->iItemNo].quantity_kind) {
     case 1:
         count = item->stack_count;
         break;
@@ -701,12 +700,12 @@ bool IsUseItemFilteredOut0059D6B0(W8ItemInstance* item)
     if (g_use_item_select_flags_0069b984 == 0) {
         return false;
     }
-    if (item->item_id == -1) {
+    if (item->iItemNo == -1) {
         return true;
     }
-    if (!CanCharacterActivateItem(
-            &g_status_685170.buffers.characters[g_status_685170.selected_character], item)) {
-        if (CanCastFromItem(&g_status_685170.buffers.characters[g_status_685170.selected_character],
+    if (!CanCharacterActivateItem(&g_status_685170.buffers.Char[g_status_685170.selected_character],
+                                  item)) {
+        if (CanCastFromItem(&g_status_685170.buffers.Char[g_status_685170.selected_character],
                             item)) {
             return false;
         }
@@ -714,9 +713,8 @@ bool IsUseItemFilteredOut0059D6B0(W8ItemInstance* item)
             return true;
         }
         if ((g_status_685170.selected_character == 0 || g_status_685170.selected_character == 1) &&
-            (npc =
-                 GetNpcState(g_status_685170.buffers.party_rows[g_status_685170.selected_character]
-                                 .animation_0fa),
+            (npc = GetNpcState(
+                 g_status_685170.buffers.XChar[g_status_685170.selected_character].animation_0fa),
              npc != 0) &&
             NpcWantsItem0050DC50(npc, item)) {
             return true;
@@ -797,8 +795,8 @@ void OpenUseItemAssayDialog59D880(W8ItemInstance* item)
     W8AssayDialog* dialog;
 
     g_saved_target_cursor_0069bf30 = gXStatus.iCurrentCursor;
-    dialog = new W8AssayDialog(
-        item, &g_status_685170.buffers.characters[g_use_item_owner_index_0069b9b0]);
+    dialog =
+        new W8AssayDialog(item, &g_status_685170.buffers.Char[g_use_item_owner_index_0069b9b0]);
     dialog->SetText(&g_wchar_00689b34);
     dialog->SetOrigin(g_info_dialog_x_005ef958, 0x48);
     dialog->m_destroy_callback = RestoreTargetCursor59D930;
@@ -1021,7 +1019,7 @@ void SelectUseItemLine0059DDC0(int iTextLine)
     UpdateUseItemDetailPanel0059DFA0(g_use_item_list_0069b9b4[iTextLine]);
     if (ValidateItemSpellUse(g_use_item_owner_index_0069b9b0, g_use_item_list_0069b9b4[iTextLine],
                              SpellCastingNoticeClosed005A02F0) != 0) {
-        QueueCharacterEvent(&g_status_685170.buffers.characters[g_use_item_owner_index_0069b9b0],
+        QueueCharacterEvent(&g_status_685170.buffers.Char[g_use_item_owner_index_0069b9b0],
                             g_character_event_kind_005ee65c, 0,
                             g_character_event_flags_mask_005ed8e4 | g_effect_argument_005ed8c8,
                             g_effect_argument_005ed914);
@@ -1037,9 +1035,9 @@ void SelectUseItemLine0059DDC0(int iTextLine)
         CloseUseItemSelectView();
         return;
     }
-    if (CanCastFromItem(&g_status_685170.buffers.characters[g_status_685170.selected_character],
+    if (CanCastFromItem(&g_status_685170.buffers.Char[g_status_685170.selected_character],
                         g_value_69b9a0)) {
-        LearnSpellFromItem(&g_status_685170.buffers.characters[g_status_685170.selected_character],
+        LearnSpellFromItem(&g_status_685170.buffers.Char[g_status_685170.selected_character],
                            g_value_69b9a0);
         CloseUseItemSelectView();
         return;
@@ -1049,7 +1047,7 @@ void SelectUseItemLine0059DDC0(int iTextLine)
     RedrawTextBox();
     target_type =
         GetSpellTargetType(GetItemSpell(g_value_69b9a0),
-                           ItemClassNormalizesTarget(&g_item_records[g_value_69b9a0->item_id]));
+                           ItemClassNormalizesTarget(&g_item_records[g_value_69b9a0->iItemNo]));
     ConfigureSpellTargetFilter(target_type, GetTargetNeededForItem(g_value_69b9a0));
 }
 
@@ -1065,14 +1063,14 @@ void UpdateUseItemDetailPanel0059DFA0(W8ItemInstance* item)
     bool charges = false;
 
     g_use_item_select_controls[0]->m_imageObject =
-        g_item_video_objects_68ec68.GetOrCreateVideoObject(item->item_id);
+        g_item_video_objects_68ec68.GetOrCreateVideoObject(item->iItemNo);
     g_use_item_select_controls[0]->m_measured_w = -1;
     g_use_item_select_controls[0]->m_measured_h = -1;
     g_use_item_select_controls[0]->m_imageFrame = 0;
     g_use_item_select_controls[0]->m_normalSprite = 0;
     g_use_item_select_controls[0]->m_pressedSprite = 0;
     count = 0;
-    switch (g_item_records[item->item_id].quantity_kind) {
+    switch (g_item_records[item->iItemNo].quantity_kind) {
     case 1:
         count = item->stack_count;
         break;

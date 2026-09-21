@@ -310,8 +310,8 @@ unsigned char WorldCursorNodeShowMessageOnce004D9260(int command, W8WorldCursorN
     if (enabled != 0 && g_status_685170.search_mode == 0 &&
         g_status_685170.party_modifiers_22e3.flag_46 == 0) {
         for (slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
-            if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
-                CharacterHasTrait00547940(g_status_685170.buffers.characters + slot, 0xc)) {
+            if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
+                CharacterHasTrait00547940(g_status_685170.buffers.Char + slot, 0xc)) {
                 goto command_check;
             }
         }
@@ -421,7 +421,7 @@ unsigned char WorldCursorNodeMaleCharacterEvent004D9590(int command, W8WorldCurs
     W8Character* character;
 
     if (command == 1 && g_status_685170.flag_2489 != 0) {
-        character = g_status_685170.buffers.characters + g_status_685170.alternate_name_slot_247f;
+        character = g_status_685170.buffers.Char + g_status_685170.alternate_name_slot_247f;
         if (character->gender == W8_GENDER_MALE) {
             QueueCharacterEvent(character, g_character_event_kind_005ee63c, 0,
                                 g_effect_argument_005ed8c8, g_effect_argument_005ed914);
@@ -573,7 +573,7 @@ unsigned char WorldCursorNodePartyVoice004D98C0(int command, W8WorldCursorNode* 
             *shown = 1;
             slot = PickRandomPartySpeaker(event_type, -1);
             if (slot != -1) {
-                QueueCharacterEvent(g_status_685170.buffers.characters + slot, event_type, 0,
+                QueueCharacterEvent(g_status_685170.buffers.Char + slot, event_type, 0,
                                     g_effect_argument_005ed8c8, g_effect_argument_005ed914);
             }
         }

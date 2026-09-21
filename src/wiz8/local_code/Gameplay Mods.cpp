@@ -69,10 +69,9 @@ void RebuildPartyEffectBlock0050E700(void)
     int active = 0;
     unsigned int slot_byte = 0;
     while (slot_byte <= 0x82f) {
-        W8Character* character = &g_status_685170.buffers.characters[active];
-        if (g_status_685170.buffers.party_rows[active].occupied != 0 &&
-            character->hp_current != 0 && character->highest_condition == 0 &&
-            CharacterHasTrait00547940(character, 10) != 0) {
+        W8Character* character = &g_status_685170.buffers.Char[active];
+        if (g_status_685170.buffers.XChar[active].fOccupied != 0 && character->hp_current != 0 &&
+            character->highest_condition == 0 && CharacterHasTrait00547940(character, 10) != 0) {
             break;
         }
         slot_byte += 0x106;
@@ -84,13 +83,13 @@ void RebuildPartyEffectBlock0050E700(void)
         g_status_685170.party_modifiers_22e3.boost_spell_regen = 1;
     }
     for (int party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0) {
-            W8Character* character = &g_status_685170.buffers.characters[party_slot];
+        if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0) {
+            W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
             memset(&character->bonus_1770, 0, sizeof(W8GameplayModifierBlock));
             ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
             ApplyModifierBlock(&character->bonus_1770, &character->condition_modifiers_16a2);
-            if (character->in_party != 0) {
+            if (character->fInParty != 0) {
                 ApplyModifierBlock(&character->bonus_1770, &g_status_685170.party_modifiers_22e3);
             }
             RecalculateCharacterDerivedStats(character);
@@ -117,7 +116,7 @@ void AccumulateEquipmentModifiers(W8Character* character, W8GameplayModifierBloc
     int index;
 
     for (slot = 0; slot < 12; ++slot) {
-        int item_id = character->equipment[slot].item_id;
+        int item_id = character->EquippedItem[slot].iItemNo;
         if (slot == 8 || slot == 9 || item_id == -1) {
             continue;
         }
@@ -307,7 +306,7 @@ void RebuildCharacterModifierBlock(W8Character* character)
     memset(&character->bonus_1770, 0, sizeof(W8GameplayModifierBlock));
     ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
     ApplyModifierBlock(&character->bonus_1770, &character->condition_modifiers_16a2);
-    if (character->in_party != 0) {
+    if (character->fInParty != 0) {
         ApplyModifierBlock(&character->bonus_1770, &g_status_685170.party_modifiers_22e3);
     }
 }
@@ -324,7 +323,7 @@ void RebuildEquipmentAndDerivedStats(W8Character* character)
     memset(&character->bonus_1770, 0, sizeof(W8GameplayModifierBlock));
     ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
     ApplyModifierBlock(&character->bonus_1770, &character->condition_modifiers_16a2);
-    if (character->in_party != 0) {
+    if (character->fInParty != 0) {
         ApplyModifierBlock(&character->bonus_1770, &g_status_685170.party_modifiers_22e3);
     }
     RecalculateCharacterDerivedStats(character);
@@ -336,7 +335,7 @@ void RebuildEquipmentAndDerivedStats(W8Character* character)
 // FUNCTION: WIZ8 0x0050e5c0
 void RebuildEquipmentAndDerivedStatsForSlot(int party_slot)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
     memset(&character->equipment_bonus_1709, 0, sizeof(W8GameplayModifierBlock));
     AccumulateEquipmentModifiers(character, &character->equipment_bonus_1709);
@@ -344,7 +343,7 @@ void RebuildEquipmentAndDerivedStatsForSlot(int party_slot)
     memset(&character->bonus_1770, 0, sizeof(W8GameplayModifierBlock));
     ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
     ApplyModifierBlock(&character->bonus_1770, &character->condition_modifiers_16a2);
-    if (character->in_party != 0) {
+    if (character->fInParty != 0) {
         ApplyModifierBlock(&character->bonus_1770, &g_status_685170.party_modifiers_22e3);
     }
     RecalculateCharacterDerivedStats(character);
@@ -357,10 +356,10 @@ void RebuildEquipmentAndDerivedStatsForSlot(int party_slot)
 // FUNCTION: WIZ8 0x0050e650
 void RebuildConditionsAndDerivedStats(int party_slot)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
     memset(&character->condition_modifiers_16a2, 0, sizeof(W8GameplayModifierBlock));
-    ApplyConditionModifiers(character, character->condition_turns, character->condition_argument,
+    ApplyConditionModifiers(character, character->uiCondition, character->condition_argument,
                             &character->condition_modifiers_16a2);
     ApplyEnchantmentModifiers(character->enchantments, &character->condition_modifiers_16a2);
     ApplyBoundNpcPenalty0050DBF0(character, &character->condition_modifiers_16a2);
@@ -368,7 +367,7 @@ void RebuildConditionsAndDerivedStats(int party_slot)
     memset(&character->bonus_1770, 0, sizeof(W8GameplayModifierBlock));
     ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
     ApplyModifierBlock(&character->bonus_1770, &character->condition_modifiers_16a2);
-    if (character->in_party != 0) {
+    if (character->fInParty != 0) {
         ApplyModifierBlock(&character->bonus_1770, &g_status_685170.party_modifiers_22e3);
     }
     RecalculateCharacterDerivedStats(character);

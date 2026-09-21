@@ -132,9 +132,9 @@ int CountActiveCharacters(void)
     int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
-            g_status_685170.buffers.characters[party_slot].hp_current != 0 &&
-            g_status_685170.buffers.characters[party_slot].highest_condition < 0x12) {
+        if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0 &&
+            g_status_685170.buffers.Char[party_slot].hp_current != 0 &&
+            g_status_685170.buffers.Char[party_slot].highest_condition < 0x12) {
             ++count;
         }
     }
@@ -149,9 +149,9 @@ bool AnyCharacterActive(void)
     int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
-            g_status_685170.buffers.characters[party_slot].hp_current != 0 &&
-            g_status_685170.buffers.characters[party_slot].highest_condition < 0x12) {
+        if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0 &&
+            g_status_685170.buffers.Char[party_slot].hp_current != 0 &&
+            g_status_685170.buffers.Char[party_slot].highest_condition < 0x12) {
             ++count;
         }
     }
@@ -164,12 +164,12 @@ bool AnyCharacterActive(void)
 // FUNCTION: WIZ8 0x004ef010
 void AdvanceCharacterToLevel(W8Character* character, unsigned int level)
 {
-    character->level = 1;
+    character->uiExpLevel = 1;
     character->experience_previous_goal = 0;
     CalcXPGoal(character);
 
-    while (character->level < level) {
-        character->level = character->level + 1;
+    while (character->uiExpLevel < level) {
+        character->uiExpLevel = character->uiExpLevel + 1;
         character->experience_previous_goal = character->experience_goal;
         CalcXPGoal(character);
     }
@@ -188,14 +188,14 @@ void CalcXPGoal(W8Character* character)
     if (character == 0) {
         srAssertFail("pPC != NULL", GAMEPLAY_CODE_CPP, 0x725, 0);
     }
-    if (character->level == 0) {
+    if (character->uiExpLevel == 0) {
         srAssertFail("pPC->uiExpLevel > 0", GAMEPLAY_CODE_CPP, 0x726, 0);
     }
-    if (character->current_profession < 0 || character->current_profession >= W8_PROFESSION_COUNT) {
+    if (character->iProfession < 0 || character->iProfession >= W8_PROFESSION_COUNT) {
         srAssertFail("(pPC->iProfession >= 0) && (pPC->iProfession < PROF_COUNT)",
                      GAMEPLAY_CODE_CPP, 0x727, 0);
     }
-    switch (character->current_profession) {
+    switch (character->iProfession) {
     case 0:
     case 7:
     case 8:
@@ -224,17 +224,17 @@ void CalcXPGoal(W8Character* character)
         return;
     }
 
-    if (character->level == 1) {
+    if (character->uiExpLevel == 1) {
         character->experience_goal = character->experience_previous_goal + weight;
         return;
     }
-    if (character->level <= 10) {
-        character->experience_goal =
-            character->experience_previous_goal + IntegerPower(2, character->level - 2) * weight;
+    if (character->uiExpLevel <= 10) {
+        character->experience_goal = character->experience_previous_goal +
+                                     IntegerPower(2, character->uiExpLevel - 2) * weight;
         return;
     }
     value = IntegerPower(2, 8) * weight;
-    for (unsigned int current = 10; current < character->level; ++current) {
+    for (unsigned int current = 10; current < character->uiExpLevel; ++current) {
         value = value * 12 / 10;
     }
     character->experience_goal = character->experience_previous_goal + value;
@@ -255,11 +255,11 @@ void RefreshLevelUpReadyNotices(void)
 
     gXStatus.unknown_026[1] = 0;
     for (party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+        W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
         bool* ready_flag = &gXStatus.monster_manager_entries[party_slot].level_up_ready;
-        W8Character* character = &g_status_685170.buffers.characters[party_slot];
+        W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
-        if (row->occupied == 0) {
+        if (row->fOccupied == 0) {
             if (character->hp_current != 0) {
                 if (*ready_flag != 0) {
                     RequestPartySlotRedraw(party_slot);
@@ -321,9 +321,9 @@ void RefreshLevelUpReadyNotices(void)
 // FUNCTION: WIZ8 0x004ef3c0
 bool IsCharacterReadyToAdvance(int party_slot)
 {
-    const W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    const W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
-    if (g_status_685170.buffers.party_rows[party_slot].occupied == 0) {
+    if (g_status_685170.buffers.XChar[party_slot].fOccupied == 0) {
         return false;
     }
     if (character->hp_current == 0) {
@@ -342,7 +342,7 @@ unsigned int FindFreePartySlot(unsigned int first, unsigned int last)
     unsigned int slot;
 
     for (slot = first; slot < last; ++slot) {
-        if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
+        if (g_status_685170.buffers.XChar[slot].fOccupied == 0) {
             return slot;
         }
     }
@@ -356,9 +356,9 @@ unsigned int FindFreePartySlot(unsigned int first, unsigned int last)
 // FUNCTION: WIZ8 0x004eed80
 void CalcCharacterLevelBand(W8Character* character)
 {
-    unsigned int level = character->profession_levels[character->current_profession];
+    unsigned int level = character->profession_levels[character->iProfession];
 
-    if (character->current_profession == character->original_profession) {
+    if (character->iProfession == character->original_profession) {
         level -= character->level_band_base;
     }
 
@@ -385,13 +385,13 @@ void CalcCharacterLevelBand(W8Character* character)
 // FUNCTION: WIZ8 0x004ef950
 void CalcCharacterTableValue(W8Character* character)
 {
-    if (character->race > 10) {
+    if (character->iRace > 10) {
         srAssertFail("pPC->iRace < PC_RACE_COUNT", GAMEPLAY_CODE_CPP, 2359, 0);
     }
-    character->table_value_0079 =
-        g_character_table_00616604[(character->gender * 0x10 + character->race) *
+    character->portrait_index =
+        g_character_table_00616604[(character->gender * 0x10 + character->iRace) *
                                        W8_PROFESSION_COUNT +
-                                   character->current_profession];
+                                   character->iProfession];
 }
 
 // GLOBAL: WIZ8 0x00617894
@@ -427,13 +427,13 @@ int CalcPhysCombatExperience(W8Character* character)
     unsigned int profession;
     int levels;
 
-    if (character->current_profession == -1) {
+    if (character->iProfession == -1) {
         return 0;
     }
     if (character == 0) {
         srAssertFail("pPC != NULL", GAMEPLAY_CODE_CPP, 398, 0);
     }
-    if (character->current_profession < 0 || character->current_profession > 14) {
+    if (character->iProfession < 0 || character->iProfession > 14) {
         srAssertFail("(pPC->iProfession >= 0) && (pPC->iProfession < PROF_COUNT)",
                      GAMEPLAY_CODE_CPP, 399, 0);
     }
@@ -478,8 +478,9 @@ int CalcPhysCombatExperience(W8Character* character)
 // FUNCTION: WIZ8 0x004ee000
 void CalcInitiative(W8Character* character)
 {
-    character->initiative = ((character->level + 1) >> 1) + character->attributes[6].effective / 5 -
-                            10 + character->attributes[5].effective / 5;
+    character->initiative = ((character->uiExpLevel + 1) >> 1) +
+                            character->attributes[6].effective / 5 - 10 +
+                            character->attributes[5].effective / 5;
 
     if (character->skills[39].flag_00 != 0) {
         character->initiative += character->skills[39].level / 10 + 1;
@@ -520,13 +521,13 @@ void CalcAttacks(W8Character* character)
 
     for (hand = 0; hand < 2; ++hand) {
         SetHandType(character, hand + 6);
-        attacks[hand] = &character->hand_attacks[hand];
-        equipment[hand] = &character->equipment[hand + 6];
-        if (equipment[hand]->item_id == -1) {
+        attacks[hand] = &character->Hand[hand];
+        equipment[hand] = &character->EquippedItem[hand + 6];
+        if (equipment[hand]->iItemNo == -1) {
             records[hand] = 0;
             attacks[hand]->weapon_skill = 14;
         } else {
-            records[hand] = &g_item_records[equipment[hand]->item_id];
+            records[hand] = &g_item_records[equipment[hand]->iItemNo];
             attacks[hand]->weapon_skill = records[hand]->weapon_skill;
         }
     }
@@ -549,13 +550,13 @@ void CalcAttacks(W8Character* character)
         case 8:
         case 9:
             attack->combat_skill = 17;
-            if (ItemHasSingledOutGenericName(equipment[hand]->item_id) &&
-                (equipment[hand == 0]->item_id == -1 ||
-                 !CompatiblePartnerItems(equipment[hand]->item_id,
-                                         equipment[hand == 0]->item_id))) {
+            if (ItemHasSingledOutGenericName(equipment[hand]->iItemNo) &&
+                (equipment[hand == 0]->iItemNo == -1 ||
+                 !CompatiblePartnerItems(equipment[hand]->iItemNo,
+                                         equipment[hand == 0]->iItemNo))) {
                 attack->in_play = 0;
             }
-            if (ItemHasQuantityKindFour(equipment[hand]->item_id) &&
+            if (ItemHasQuantityKindFour(equipment[hand]->iItemNo) &&
                 equipment[hand]->uses_or_charges == 0) {
                 attack->in_play = 0;
             }
@@ -569,20 +570,20 @@ void CalcAttacks(W8Character* character)
             if (attacks[0]->combat_skill != attacks[1]->combat_skill) {
                 attacks[1]->in_play = 0;
             }
-            if (attacks[1]->wield_kind == 2 || attacks[1]->wield_kind == 3) {
+            if (attacks[1]->uiHolds == 2 || attacks[1]->uiHolds == 3) {
                 attacks[1]->in_play = 0;
             }
             if (records[0] != 0 && records[0]->unidentified_name_index == 0x83) {
                 attacks[1]->in_play = 0;
             }
-            if (attacks[1]->wield_kind == 0 && attacks[0]->wield_kind != 0) {
+            if (attacks[1]->uiHolds == HOLDS_NOTHING && attacks[0]->uiHolds != HOLDS_NOTHING) {
                 attacks[1]->in_play = 0;
             }
         }
     }
 
-    character->dual_wielding = attacks[0]->wield_kind == 1 && attacks[0]->in_play &&
-                               attacks[1]->wield_kind == 1 && attacks[1]->in_play;
+    character->dual_wielding = attacks[0]->uiHolds == 1 && attacks[0]->in_play &&
+                               attacks[1]->uiHolds == 1 && attacks[1]->in_play;
 
     physical_experience = CalcPhysCombatExperience(character);
     for (hand = 0; hand < 2; ++hand) {
@@ -601,7 +602,7 @@ void CalcAttacks(W8Character* character)
                  2) /
                 3;
         divisor = 20;
-        if (other->wield_kind == 1 && other->in_play) {
+        if (other->uiHolds == 1 && other->in_play) {
             score += character->skills[other->weapon_skill].level >> 1;
             divisor = 25;
         }
@@ -645,10 +646,9 @@ void CalcAttacks(W8Character* character)
                                 attack->combined_skill * 2 + physical_experience) /
                                    3 +
                                60;
-        if (character->in_party && character->race == 15) {
+        if (character->fInParty && character->iRace == 15) {
             unsigned int party_slot = CharacterPointerToPartySlot(character);
-            W8NpcState* npc =
-                GetNpcState(g_status_685170.buffers.party_rows[party_slot].animation_0fa);
+            W8NpcState* npc = GetNpcState(g_status_685170.buffers.XChar[party_slot].animation_0fa);
             if (npc != 0 && npc->name_style == W8_NPC_RFS81_A &&
                 !GetFact(W8_FACT_RFS81_HAS_BEEN_FIXED)) {
                 attack->attack_score /= 2;
@@ -694,10 +694,10 @@ void CalcAttacks(W8Character* character)
         if (records[hand] != 0) {
             attack->damage_bonus += records[hand]->attack_damage_bonus;
             attack->hit_bonus += records[hand]->attack_hit_bonus;
-            if (other->wield_kind == 3 && records[hand == 0] != 0) {
+            if (other->uiHolds == 3 && records[hand == 0] != 0) {
                 attack->hit_bonus += records[hand == 0]->attack_hit_bonus;
             }
-            if (ItemHasSingledOutGenericName(equipment[hand]->item_id)) {
+            if (ItemHasSingledOutGenericName(equipment[hand]->iItemNo)) {
                 attack->value_29 += records[hand]->damage_dice.base * 10;
             }
         } else {
@@ -807,7 +807,7 @@ void CalcArmorClasses(W8Character* character)
     }
 
     for (index = 0; index < 12; ++index) {
-        int item_id = character->equipment[index].item_id;
+        int item_id = character->EquippedItem[index].iItemNo;
         if (index != 0 && index != 4 && index != 5 && index != 8 && index != 9 && index != 10 &&
             index != 11 && item_id != -1) {
             int component = g_item_records[item_id].equip_class == 5 ? 3 : 4;
@@ -885,7 +885,7 @@ void CalcArmorClasses(W8Character* character)
     int weighted_total = 0;
     for (index = 0; index < 5; ++index) {
         int armor_class = character->armor_class_total + character->armor_class_components[6];
-        int item_id = character->equipment[equipment_slots[index]].item_id;
+        int item_id = character->EquippedItem[equipment_slots[index]].iItemNo;
         if (item_id != -1) {
             armor_class += g_item_records[item_id].armor_class_bonus;
         }
@@ -911,7 +911,7 @@ const int g_character_value_table_006164f4[34][2] = {
 void DeriveCharacterPersonality004EFA30(W8Character* character)
 {
     int gender = character->gender;
-    int value = character->current_profession;
+    int value = character->iProfession;
     int index;
     int flag;
 
@@ -921,9 +921,9 @@ void DeriveCharacterPersonality004EFA30(W8Character* character)
         case 1:
         case 3:
         case 7:
-            if (character->race == 2) {
+            if (character->iRace == 2) {
                 value = 0x10;
-            } else if (character->race == 6) {
+            } else if (character->iRace == 6) {
                 value = 0x0f;
             }
             break;
@@ -952,9 +952,9 @@ void EnsureUniquePartyVoice004EFAD0(W8Character* character)
 
     for (;;) {
         slot = 0;
-        other = g_status_685170.buffers.characters;
+        other = g_status_685170.buffers.Char;
         for (;;) {
-            if (other->in_party != 0 && other != character && other->gender == character->gender &&
+            if (other->fInParty != 0 && other != character && other->gender == character->gender &&
                 other->personality_0081 == character->personality_0081 &&
                 other->voice_0085 == character->voice_0085) {
                 break;
@@ -984,8 +984,8 @@ unsigned int GetAveragePartyLevel(void)
     int slot;
 
     for (slot = 0; slot < 8; ++slot) {
-        if (g_status_685170.buffers.party_rows[slot].occupied != 0) {
-            total_level += g_status_685170.buffers.characters[slot].level;
+        if (g_status_685170.buffers.XChar[slot].fOccupied != 0) {
+            total_level += g_status_685170.buffers.Char[slot].uiExpLevel;
             ++occupied_slots;
         }
     }
@@ -1003,7 +1003,7 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
 
     if (slot_kind == -1) {
         slot = 2;
-        while (g_status_685170.buffers.party_rows[slot].occupied != 0) {
+        while (g_status_685170.buffers.XChar[slot].fOccupied != 0) {
             ++slot;
             if (slot > 7) {
                 return -1;
@@ -1011,7 +1011,7 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
         }
     } else {
         slot = 0;
-        while (g_status_685170.buffers.party_rows[slot].occupied != 0) {
+        while (g_status_685170.buffers.XChar[slot].fOccupied != 0) {
             ++slot;
             if (slot > 1) {
                 return -1;
@@ -1022,13 +1022,13 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
         return -1;
     }
 
-    W8Character* destination = &g_status_685170.buffers.characters[slot];
+    W8Character* destination = &g_status_685170.buffers.Char[slot];
     memcpy(destination, character, sizeof(W8Character));
-    destination->in_party = 1;
+    destination->fInParty = 1;
     ResetPartySlotRow(slot);
     ResetGameplaySlot(slot);
 
-    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
     row->animation_0fa = slot_kind;
     for (unsigned int index = 0; index < 8; ++index) {
         if (g_status_685170.party_order_slots[index] == (unsigned int)-1) {
@@ -1066,26 +1066,25 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
 // FUNCTION: WIZ8 0x004EF610
 unsigned char RemoveCharacterFromParty(int party_slot, char save_character_data)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
-    if (save_character_data != 0 &&
-        g_status_685170.buffers.party_rows[party_slot].animation_0fa == -1) {
+    if (save_character_data != 0 && g_status_685170.buffers.XChar[party_slot].animation_0fa == -1) {
         srAssertFail("!fSaveCharData || fCHAR_NPC(uiSlot)", GAMEPLAY_CODE_CPP, 0x895, 0);
     }
     gXStatus.character_event_queue->RemoveCharacterEvents(character);
-    character->in_party = 0;
+    character->fInParty = 0;
     if (save_character_data != 0) {
         RebuildCharacterModifierBlock(character);
         RecalculateCharacterDerivedStats(character);
-        if (SaveCharacter(character, g_status_685170.buffers.party_rows[party_slot].animation_0fa,
-                          1, 0) == 0) {
-            character->in_party = 1;
+        if (SaveCharacter(character, g_status_685170.buffers.XChar[party_slot].animation_0fa, 1,
+                          0) == 0) {
+            character->fInParty = 1;
             RebuildCharacterModifierBlock(character);
             RecalculateCharacterDerivedStats(character);
             return 0;
         }
     }
-    g_status_685170.buffers.party_rows[party_slot].occupied = 0;
+    g_status_685170.buffers.XChar[party_slot].fOccupied = 0;
     character->highest_condition = 0;
     character->enchantment_top = 0;
     SetFormationPosition(&g_status_685170.formation, party_slot, -1, -1, 0, 1, 1);
@@ -1096,10 +1095,10 @@ unsigned char RemoveCharacterFromParty(int party_slot, char save_character_data)
     if (g_status_685170.game_started != 0) {
         PostCharacterNotice(party_slot, gppStringList[0x251]);
     }
-    g_status_685170
-        .party_order_slots[g_status_685170.buffers.party_rows[party_slot].party_order_index] = -1;
+    g_status_685170.party_order_slots[g_status_685170.buffers.XChar[party_slot].party_order_index] =
+        -1;
     --g_status_685170.total_member_count;
-    if (g_status_685170.buffers.party_rows[party_slot].animation_0fa == -1) {
+    if (g_status_685170.buffers.XChar[party_slot].animation_0fa == -1) {
         --g_status_685170.regular_member_count;
     } else {
         --g_status_685170.auxiliary_member_count;
@@ -1127,25 +1126,25 @@ unsigned char RecruitCharacterIntoParty004EF7E0(W8Character* character, W8Charac
     unsigned int order_index;
 
     for (index = 0; index < 12; ++index) {
-        if (character->equipment[index].item_id != -1) {
-            AddItemToParty(&character->equipment[index], 0, 0);
+        if (character->EquippedItem[index].iItemNo != -1) {
+            AddItemToParty(&character->EquippedItem[index], 0, 0);
         }
     }
     for (index = 0; index < 8; ++index) {
-        if (character->backpack[index].item_id != -1) {
+        if (character->backpack[index].iItemNo != -1) {
             AddItemToParty(&character->backpack[index], 0, 0);
         }
     }
     RemoveCharacterFromParty(slot, 0);
     memcpy(character, record, sizeof(W8Character));
-    character->in_party = 1;
+    character->fInParty = 1;
     ResetPartySlotRow(slot);
     ResetGameplaySlot(slot);
-    g_status_685170.buffers.party_rows[slot].animation_0fa = -1;
+    g_status_685170.buffers.XChar[slot].animation_0fa = -1;
     for (order_index = 0; order_index < 8; ++order_index) {
         if (g_status_685170.party_order_slots[order_index] == static_cast<unsigned int>(-1)) {
             g_status_685170.party_order_slots[order_index] = slot;
-            g_status_685170.buffers.party_rows[slot].party_order_index = order_index;
+            g_status_685170.buffers.XChar[slot].party_order_index = order_index;
             break;
         }
     }
@@ -1173,9 +1172,9 @@ unsigned char RecruitCharacterIntoParty004EF7E0(W8Character* character, W8Charac
 void AwardPartyExperience004EEF10(int amount, int alternate_message)
 {
     for (int slot = 0; slot < 8; ++slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
-        W8Character* character = &g_status_685170.buffers.characters[slot];
-        if (row->occupied && character->hp_current > 0 && character->highest_condition < 0x12 &&
+        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
+        W8Character* character = &g_status_685170.buffers.Char[slot];
+        if (row->fOccupied && character->hp_current > 0 && character->highest_condition < 0x12 &&
             amount != 0) {
             unsigned int total = character->experience + static_cast<unsigned int>(amount);
             if (total > character->experience) {

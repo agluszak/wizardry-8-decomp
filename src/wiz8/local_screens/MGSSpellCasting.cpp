@@ -413,13 +413,13 @@ void SelectSpellCastingCharacter(int party_slot)
 {
     int realm;
 
-    if (CharacterHasCastableSpell(&g_status_685170.buffers.characters[party_slot]) == 0 ||
+    if (CharacterHasCastableSpell(&g_status_685170.buffers.Char[party_slot]) == 0 ||
         IsPartySlotEligible00524A10(party_slot) == 0) {
         ResetEditorStatusLine0058AA20(-1);
         CloseSpellCastingView();
         return;
     }
-    gpSCSV->caster = &g_status_685170.buffers.characters[party_slot];
+    gpSCSV->caster = &g_status_685170.buffers.Char[party_slot];
     BuildLearnedSpellState004F9600(&gpSCSV->learned, gpSCSV->caster);
     UpdateSpellRealmPointDisplays();
     gpSCSV->uiSpellToCast = 0;
@@ -433,7 +433,7 @@ void SelectSpellCastingCharacter(int party_slot)
     SelectSpellCastingPartySlot(g_status_685170.selected_character);
     RequestRedraw(0x200);
     if (GetAffordableSpellPowerLevel(party_slot) != 0) {
-        int spell_id = g_status_685170.buffers.party_rows[party_slot].spell_id;
+        int spell_id = g_status_685170.buffers.XChar[party_slot].spell_id;
         SelectSpellCastingRealm005A0380(g_spell_records[spell_id].realm);
         if (spell_id == 0x17) {
             gpSCSV->uiSpellIndex = -1;
@@ -615,7 +615,7 @@ static void RebuildSpellCastingList(int spell_id)
                 int id = gpSCSV->learned.spell_ids_by_realm[realm][index];
                 gpSCSV->override_spell_104 = id;
                 spell = &g_spell_records[id];
-                if (spell->spell_point_cost <= gpSCSV->caster->sp_left[realm] &&
+                if (spell->spell_point_cost <= gpSCSV->caster->iSPLeft[realm] &&
                     SpellUsableNow(id, 0) != 0 &&
                     SpellHasAnyValidTarget(CharacterPointerToPartySlot(gpSCSV->caster), id, 0) !=
                         0 &&
@@ -767,9 +767,8 @@ void BeginSpellCast005A0110(int spell_id, int location_id, int interact_id)
     }
     gpSCSV->interact_id = interact_id;
     gpSCSV->location_id = location_id;
-    if (CanCharacterCastSpell(
-            &g_status_685170.buffers.characters[g_status_685170.selected_character], spell_id) ==
-        0) {
+    if (CanCharacterCastSpell(&g_status_685170.buffers.Char[g_status_685170.selected_character],
+                              spell_id) == 0) {
         return;
     }
     realm = -1;
@@ -1204,7 +1203,7 @@ unsigned char SpellRealmButtonRegionEvent(const InputAtom* event, W8Region* regi
                     g_format_s_parens_s_colon_d_0064c934,
                     gppStringList[g_spell_realm_help_string_ids_0064c840[realm]],
                     gppStringList[0xb4 / 4],
-                    g_status_685170.buffers.characters[g_status_685170.selected_character]
+                    g_status_685170.buffers.Char[g_status_685170.selected_character]
                         .skills[W8_SKILL_FIRST_REALM + realm]
                         .level));
             }
@@ -1364,7 +1363,7 @@ static void SelectSpellCastingListRow005A1150(int index)
         gpSCSV->uiSpellIndex = -1;
         ConfigureSpellTargetFilter(-1, 0);
         ShowSpellCastingError(spell_id);
-        QueueCharacterEvent(&g_status_685170.buffers.characters[g_status_685170.selected_character],
+        QueueCharacterEvent(&g_status_685170.buffers.Char[g_status_685170.selected_character],
                             g_character_event_kind_005ee65c, 0,
                             g_character_event_flags_mask_005ed8e4 | g_effect_argument_005ed8c8,
                             g_effect_argument_005ed914);
@@ -1377,7 +1376,7 @@ static void SelectSpellCastingListRow005A1150(int index)
     }
     cost = g_spell_records[spell_id].spell_point_cost;
     levels = GetCharacterRealmSpellPoints(
-                 &g_status_685170.buffers.characters[g_status_685170.selected_character],
+                 &g_status_685170.buffers.Char[g_status_685170.selected_character],
                  g_spell_records[spell_id].realm) /
              cost;
     ClampUnsignedInteger(&levels, 0, 7);
@@ -1429,8 +1428,7 @@ static void TryCommitSpellCast(void)
     }
     if (gpSCSV->uiSpellToCast == 0x4b && gpSCSV->dialog_confirmed == 0) {
         if (IsModalOpen() == 0 &&
-            g_status_685170.buffers.characters[g_status_685170.selected_character]
-                .has_saved_location) {
+            g_status_685170.buffers.Char[g_status_685170.selected_character].has_saved_location) {
             ShowMainGameNoticeLine(gppStringList[0x7a4], SpellCastingDialogResult005A0AE0, 1, 1);
         }
     } else if (gpSCSV->uiSpellToCast == 0x49 && gpSCSV->dialog_confirmed == 0 &&

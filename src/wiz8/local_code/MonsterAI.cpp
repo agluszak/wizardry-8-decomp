@@ -1189,7 +1189,7 @@ void BuildMonsterActionQueue(W8MonsterInfo* monster_info, char target_locked, ch
         }
     }
     for (index = char_lo; index < char_hi; ++index) {
-        if (Random(100) < g_status_685170.buffers.characters[index].skills[0xb].level * 75 / 100) {
+        if (Random(100) < g_status_685170.buffers.Char[index].skills[0xb].level * 75 / 100) {
             avoided[index] = 1;
         }
     }
@@ -1204,9 +1204,9 @@ targets_chosen:
             monster_info->player_visibility.sight_flags_05[RangeCategoryUsesSightCondition(
                 monster_info, (W8RangeCategory)record->attacks[attack].range_category)] != 0) {
             for (index = char_lo; index < char_hi; ++index) {
-                if (g_status_685170.buffers.party_rows[index].occupied != 0 &&
-                    g_status_685170.buffers.characters[index].hp_current != 0 &&
-                    g_status_685170.buffers.characters[index].highest_condition < 0x12 &&
+                if (g_status_685170.buffers.XChar[index].fOccupied != 0 &&
+                    g_status_685170.buffers.Char[index].hp_current != 0 &&
+                    g_status_685170.buffers.Char[index].highest_condition < 0x12 &&
                     MonsterVsCharDisposition(index, monster_info) == disposition_needed &&
                     MonsterAttackReachesCharacter(monster_info, record, attack, index) != 0) {
                     if (avoided[index] == 0) {
@@ -1242,7 +1242,7 @@ targets_chosen:
     if (scan_chars != 0) {
         for (index = char_lo; index < char_hi; ++index) {
             if (resisted[index] != 0 && Random(2) == 0) {
-                PracticeCharacterSkill(&g_status_685170.buffers.characters[index], 0xb, 1, 0);
+                PracticeCharacterSkill(&g_status_685170.buffers.Char[index], 0xb, 1, 0);
             }
         }
     }
@@ -1394,12 +1394,12 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
         return 1;
     }
     if (combat_slot->iType == W8_TARGET_KIND_CHARACTER) {
-        character = &g_status_685170.buffers.characters[combat_slot->iChar];
-        hp_max = character->hp_max;
+        character = &g_status_685170.buffers.Char[combat_slot->iChar];
+        hp_max = character->uiHPMax;
         hp = character->hp_current;
         stat = character->stamina;
-        stat_max = character->stamina_max;
-        condition_turns = character->condition_turns;
+        stat_max = character->uiStaminaMax;
+        condition_turns = character->uiCondition;
         enchantments = character->enchantments;
     } else {
         if (combat_slot->iType != W8_TARGET_KIND_MONSTER) {
@@ -1916,9 +1916,9 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
         if (IsVisibleUnderConditions(monster_info, &monster_info->player_visibility, sight_kind) !=
             0) {
             for (index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
-                if (g_status_685170.buffers.party_rows[index].occupied != 0 &&
-                    g_status_685170.buffers.characters[index].hp_current != 0 &&
-                    g_status_685170.buffers.characters[index].highest_condition < 0x12 &&
+                if (g_status_685170.buffers.XChar[index].fOccupied != 0 &&
+                    g_status_685170.buffers.Char[index].hp_current != 0 &&
+                    g_status_685170.buffers.Char[index].highest_condition < 0x12 &&
                     MonsterVsCharDisposition(index, monster_info) == 2 &&
                     MonsterAttackReachesCharacter(monster_info, record, 0, index) != 0) {
                     ResetCombatSlot(&slot);
@@ -1949,9 +1949,9 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
         if (IsVisibleUnderConditions(monster_info, &monster_info->player_visibility, sight_kind) !=
             0) {
             for (index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
-                if (g_status_685170.buffers.party_rows[index].occupied != 0 &&
-                    g_status_685170.buffers.characters[index].hp_current != 0 &&
-                    g_status_685170.buffers.characters[index].highest_condition < 0x12 &&
+                if (g_status_685170.buffers.XChar[index].fOccupied != 0 &&
+                    g_status_685170.buffers.Char[index].hp_current != 0 &&
+                    g_status_685170.buffers.Char[index].highest_condition < 0x12 &&
                     MonsterVsCharDisposition(index, monster_info) == 1 &&
                     MonsterAttackReachesCharacter(monster_info, record, 0, index) != 0) {
                     ResetCombatSlot(&slot);
@@ -2017,9 +2017,9 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
             if (MonsterSpellTargetOK(monster_info, spell_id, &slot) != 0 &&
                 SpellAreaHitsNeutralMonster(monster_info, spell_id, &slot) == 0) {
                 for (index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
-                    if (g_status_685170.buffers.party_rows[index].occupied != 0 &&
-                        g_status_685170.buffers.characters[index].hp_current != 0 &&
-                        g_status_685170.buffers.characters[index].highest_condition < 0x12 &&
+                    if (g_status_685170.buffers.XChar[index].fOccupied != 0 &&
+                        g_status_685170.buffers.Char[index].hp_current != 0 &&
+                        g_status_685170.buffers.Char[index].highest_condition < 0x12 &&
                         MonsterVsCharDisposition(index, monster_info) == 1 &&
                         MonsterAttackReachesCharacter(monster_info, record, 0, index) != 0) {
                         targets->Add(slot);
@@ -2179,9 +2179,9 @@ unsigned char MonsterHasNoVisibleEnemy(W8MonsterInfo* monster_info, int party_on
     }
     if (monster_info->player_visibility.state_04 != 0) {
         for (index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
-            if (g_status_685170.buffers.party_rows[index].occupied != 0 &&
-                g_status_685170.buffers.characters[index].hp_current > 0 &&
-                g_status_685170.buffers.characters[index].highest_condition < 0x12 &&
+            if (g_status_685170.buffers.XChar[index].fOccupied != 0 &&
+                g_status_685170.buffers.Char[index].hp_current > 0 &&
+                g_status_685170.buffers.Char[index].highest_condition < 0x12 &&
                 MonsterVsCharDisposition(index, monster_info) == 1) {
                 return 0;
             }
@@ -2250,9 +2250,9 @@ bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only, int ho
         monster_info->player_visibility.sight_flags_05[2] != 0 &&
         (within_reach == 0 || monster_info->monster->GetDistanceToPlayer004C7CB0() <= reach)) {
         for (index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
-            if (g_status_685170.buffers.party_rows[index].occupied != 0 &&
-                g_status_685170.buffers.characters[index].hp_current > 0 &&
-                g_status_685170.buffers.characters[index].highest_condition < 0x12) {
+            if (g_status_685170.buffers.XChar[index].fOccupied != 0 &&
+                g_status_685170.buffers.Char[index].hp_current > 0 &&
+                g_status_685170.buffers.Char[index].highest_condition < 0x12) {
                 disposition = MonsterVsCharDisposition(index, monster_info);
                 if (hostility == 3) {
                     return 1;
@@ -2506,9 +2506,9 @@ unsigned char PartyHalfSpellTargetsValid(W8MonsterInfo* monster_info, int spell_
     W8CombatSlot slot;
 
     for (index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
-        if (g_status_685170.buffers.party_rows[index].occupied != 0 &&
-            g_status_685170.buffers.characters[index].hp_current != 0 &&
-            g_status_685170.buffers.characters[index].highest_condition < 0x12 &&
+        if (g_status_685170.buffers.XChar[index].fOccupied != 0 &&
+            g_status_685170.buffers.Char[index].hp_current != 0 &&
+            g_status_685170.buffers.Char[index].highest_condition < 0x12 &&
             MonsterVsCharDisposition(index, monster_info) == 1) {
             ++eligible;
             ResetCombatSlot(&slot);

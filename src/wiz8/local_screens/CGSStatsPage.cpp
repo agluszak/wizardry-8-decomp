@@ -512,7 +512,7 @@ void W8CharacterPage005EF778::Activate()
 {
     EnableRegionSet(1);
     UpdateRowValues();
-    if (m_character_060->race != -1 || m_character_060->current_profession != -1) {
+    if (m_character_060->iRace != -1 || m_character_060->iProfession != -1) {
         for (int index = 0; index < m_entries_04c.count; ++index) {
             if (!m_rows_initialized_089) {
                 m_entries_04c.data[index]->SetEnabled(1);
@@ -546,7 +546,7 @@ void W8CharacterPage005EF778::UpdateRowValues()
     unsigned char eligible[15];
 
     if (m_mode_068 == 0) {
-        if (m_character_060->current_profession == 2) {
+        if (m_character_060->iProfession == 2) {
             g_character_gender_records_0064f218[0].enabled_0e = 0;
         } else {
             g_character_gender_records_0064f218[0].enabled_0e = 1;
@@ -563,7 +563,7 @@ void W8CharacterPage005EF778::UpdateRowValues()
         }
     }
 
-    int profession = m_character_060->current_profession;
+    int profession = m_character_060->iProfession;
     W8CharacterStatsRow005EF750* row = m_profession_row_07c;
     if (profession == -1) {
         row->m_value_control_024->SetRecord(0);
@@ -583,7 +583,7 @@ void W8CharacterPage005EF778::UpdateRowValues()
         row->m_subpanel_028->Invalidate(0);
     }
 
-    int race = m_character_060->race;
+    int race = m_character_060->iRace;
     row = m_race_row_080;
     if (race == -1) {
         row->m_value_control_024->SetRecord(0);
@@ -629,7 +629,7 @@ void W8CharacterPage005EF778::UpdateRowValues()
 void W8CharacterPage005EF778::Refresh()
 {
     UpdateRowValues();
-    if (m_character_060->race != -1 || m_character_060->current_profession != -1) {
+    if (m_character_060->iRace != -1 || m_character_060->iProfession != -1) {
         for (int index = 0; index < m_entries_04c.count; ++index) {
             if (!m_rows_initialized_089) {
                 m_entries_04c.data[index]->SetEnabled(1);
@@ -659,8 +659,8 @@ void W8CharacterPage005EF778::Accept()
 // FUNCTION: WIZ8 0x005ca550
 void W8CharacterPage005EF778::GetNavigationState(bool* next_enabled, bool* exit_enabled)
 {
-    if (!m_creation_state_064->attributes_complete || m_character_060->current_profession == -1 ||
-        m_character_060->race == -1 || m_character_060->gender == -1) {
+    if (!m_creation_state_064->attributes_complete || m_character_060->iProfession == -1 ||
+        m_character_060->iRace == -1 || m_character_060->gender == -1) {
         *next_enabled = false;
     } else {
         *next_enabled = true;
@@ -788,7 +788,7 @@ void W8CharacterPage005EF778::OnRowValueChanged(W8CharacterStatsRow005EF750* row
     m_dirty_06d = 1;
     m_screen_05c->UpdateNavigation(this);
     UpdateRowValues();
-    if (m_character_060->race != -1 || m_character_060->current_profession != -1) {
+    if (m_character_060->iRace != -1 || m_character_060->iProfession != -1) {
         for (int index = 0; index < m_entries_04c.count; ++index) {
             if (!m_rows_initialized_089) {
                 m_entries_04c.data[index]->SetEnabled(1);
@@ -937,7 +937,7 @@ void W8CharacterPage005EF778::SetCharacter(W8Character* character,
             rows[row_index]->m_value_control_024->SetEnabled(0);
         }
     } else if (mode == 2) {
-        if (character->race == 0xf) {
+        if (character->iRace == 0xf) {
             m_profession_row_07c->m_decrement_01c->SetEnabled(0);
             m_profession_row_07c->m_increment_020->SetEnabled(0);
             m_profession_row_07c->m_value_control_024->SetEnabled(0);
@@ -1027,7 +1027,7 @@ void W8CharacterPage005EF778::Redraw()
         text.SetText(gppStringList[0x96], g_font_683660);
         text.RenderToTarget(0, 0, -14);
 
-        if (m_character_060->race != -1) {
+        if (m_character_060->iRace != -1) {
             bounds.top = top + 0x7e;
             bounds.bottom = top + 0x8a;
             bounds.left = left + 0xf9;
@@ -1063,7 +1063,7 @@ void W8CharacterPage005EF778::Redraw()
         bounds.bottom = top + 0x133;
         bounds.top = top + 0xbb;
         bounds.right = left + 0xe6;
-        if (m_character_060->current_profession != -1 || m_character_060->race != -1) {
+        if (m_character_060->iProfession != -1 || m_character_060->iRace != -1) {
             unsigned char available[0x20];
             unsigned int available_count = 0;
             for (int trait = 0; trait < 0x20; ++trait) {
@@ -1075,14 +1075,14 @@ void W8CharacterPage005EF778::Redraw()
                 }
             }
             int line_height = (available_count < 8) + 0xd;
-            if (m_character_060->current_profession != -1) {
+            if (m_character_060->iProfession != -1) {
                 text.SetLayoutBounds(&bounds, 1, 1);
                 text.SetText(
                     FormatWideString(
                         g_format_s_space_s_00617584,
                         gppStringList
                             [g_character_skill_name_ids_61e454
-                                 [g_profession_bonus_skills[m_character_060->current_profession]]],
+                                 [g_profession_bonus_skills[m_character_060->iProfession]]],
                         gppStringList[0xb2]),
                     g_font_683660);
                 text.RenderToTarget(0, 0, -14);
@@ -1116,9 +1116,9 @@ void W8CharacterPage005EF778::Redraw()
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(gppStringList[0x29c / 4], g_font_683660);
         text.RenderToTarget(0, 0, -14);
-        if (m_character_060->race != -1) {
+        if (m_character_060->iRace != -1) {
             text.SetLayoutMode(g_W8TextBufferLayoutMask005ED550 | g_W8TextBufferLayoutMask005ED554);
-            text.SetText(FormatWideString(g_format_d_0060aa20, m_character_060->hp_max),
+            text.SetText(FormatWideString(g_format_d_0060aa20, m_character_060->uiHPMax),
                          g_font_683660);
             text.RenderToTarget(0, 0, -14);
         }
@@ -1129,9 +1129,9 @@ void W8CharacterPage005EF778::Redraw()
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(gppStringList[0x2a4 / 4], g_font_683660);
         text.RenderToTarget(0, 0, -14);
-        if (m_character_060->race != -1) {
+        if (m_character_060->iRace != -1) {
             text.SetLayoutMode(g_W8TextBufferLayoutMask005ED550 | g_W8TextBufferLayoutMask005ED554);
-            text.SetText(FormatWideString(g_format_d_0060aa20, m_character_060->stamina_max),
+            text.SetText(FormatWideString(g_format_d_0060aa20, m_character_060->uiStaminaMax),
                          g_font_683660);
             text.RenderToTarget(0, 0, -14);
         }
@@ -1142,7 +1142,7 @@ void W8CharacterPage005EF778::Redraw()
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(gppStringList[0x3b4 / 4], g_font_683660);
         text.RenderToTarget(0, 0, -14);
-        if (m_character_060->race != -1) {
+        if (m_character_060->iRace != -1) {
             text.SetLayoutMode(g_W8TextBufferLayoutMask005ED550 | g_W8TextBufferLayoutMask005ED554);
             text.SetText(FormatWideString(
                              g_format_d_0060aa20,
@@ -1157,7 +1157,7 @@ void W8CharacterPage005EF778::Redraw()
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(gppStringList[0x2b4 / 4], g_font_683660);
         text.RenderToTarget(0, 0, -14);
-        if (m_character_060->race != -1) {
+        if (m_character_060->iRace != -1) {
             text.SetLayoutMode(g_W8TextBufferLayoutMask005ED550 | g_W8TextBufferLayoutMask005ED554);
             text.SetText(
                 FormatWideString(g_format_d_0060aa20, m_character_060->armor_class_average),
@@ -1171,7 +1171,7 @@ void W8CharacterPage005EF778::Redraw()
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(gppStringList[0x2bc / 4], g_font_683660);
         text.RenderToTarget(0, 0, -14);
-        if (m_character_060->race != -1) {
+        if (m_character_060->iRace != -1) {
             text.SetLayoutMode(g_W8TextBufferLayoutMask005ED550 | g_W8TextBufferLayoutMask005ED554);
             text.SetText(
                 FormatWideString(g_format_d_0060aa20, m_character_060->carrying_capacity / 10),
@@ -1187,7 +1187,7 @@ void W8CharacterPage005EF778::Redraw()
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(gppStringList[0x2e4 / 4], g_font_683660);
         text.RenderToTarget(0, 0, -14);
-        if (m_character_060->race != -1 || m_character_060->current_profession != -1) {
+        if (m_character_060->iRace != -1 || m_character_060->iProfession != -1) {
             for (int realm = 0; realm < 6; ++realm) {
                 bool first_column = (realm & 1) == 0;
                 bounds.left = (realm / 2) * 0x3f + 0x39 + left;
@@ -1221,7 +1221,7 @@ void W8CharacterPage005EF778::Redraw()
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(gppStringList[0x2cc / 4], g_font_683660);
         text.RenderToTarget(0, 0, -14);
-        if (m_character_060->current_profession != -1) {
+        if (m_character_060->iProfession != -1) {
             text.SetLayoutMode(g_W8TextBufferLayoutMask005ED558 | g_W8TextBufferLayoutMask005ED548);
             bounds.top = top + 0x12f;
             bounds.bottom = top + 0x13b;
@@ -1230,18 +1230,18 @@ void W8CharacterPage005EF778::Redraw()
             text.SetLayoutBounds(&bounds, 1, 1);
             text.SetText(
                 gppStringList[g_character_skill_name_ids_61e454
-                                  [g_profession_bonus_skills[m_character_060->current_profession]]],
+                                  [g_profession_bonus_skills[m_character_060->iProfession]]],
                 g_font_683660);
             text.RenderToTarget(0, 0, -14);
             for (int index = 0; index < 4; ++index) {
-                if (g_profession_skills[m_character_060->current_profession][index] != -1) {
+                if (g_profession_skills[m_character_060->iProfession][index] != -1) {
                     bounds.top = bounds.top + 0xe;
                     bounds.bottom = bounds.bottom + 0xe;
                     text.SetLayoutBounds(&bounds, 1, 1);
                     text.SetText(
                         gppStringList
                             [g_character_skill_name_ids_61e454
-                                 [g_profession_skills[m_character_060->current_profession][index]]],
+                                 [g_profession_skills[m_character_060->iProfession][index]]],
                         g_font_683660);
                     text.RenderToTarget(0, 0, -14);
                 }
@@ -1273,7 +1273,7 @@ void W8CharacterPage005EF778::Redraw()
         text.SetLayoutBounds(&bounds, 1, 1);
         if (m_mode_068 == 0) {
             text.SetText(gppStringList[0xe5], g_font_683660);
-        } else if (m_character_060->race == 0xf) {
+        } else if (m_character_060->iRace == 0xf) {
             text.SetText(gppStringList[0xe7], g_font_683660);
         } else {
             text.SetText(gppStringList[0xe6], g_font_683660);

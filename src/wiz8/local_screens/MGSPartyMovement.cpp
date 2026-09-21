@@ -354,9 +354,9 @@ unsigned char HandlePartyMovement(float* real_elapsed, float* frame_elapsed)
         return 0;
     }
     for (party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
-        W8Character* character = &g_status_685170.buffers.characters[party_slot];
-        if (row->occupied == 0 || character->stamina <= 0 || character->highest_condition >= 0xf) {
+        W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
+        W8Character* character = &g_status_685170.buffers.Char[party_slot];
+        if (row->fOccupied == 0 || character->stamina <= 0 || character->highest_condition >= 0xf) {
             continue;
         }
         amount = *frame_elapsed;
@@ -386,7 +386,7 @@ unsigned char HandlePartyMovement(float* real_elapsed, float* frame_elapsed)
         if (gXStatus.fCombatMode != 0) {
             multiplier = multiplier + multiplier;
         }
-        if (character->condition_turns[2] != 0) {
+        if (character->uiCondition[2] != 0) {
             multiplier = multiplier * g_float_005ec3b8;
         }
         row->movement_fatigue = multiplier * amount + row->movement_fatigue;

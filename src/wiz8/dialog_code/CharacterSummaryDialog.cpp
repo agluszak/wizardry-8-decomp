@@ -53,18 +53,16 @@ int W8CharacterSummaryDialog::CreateControls()
     W8DialogBase::CreateControls();
     m_field_070 = 0;
     m_field_1af8 = 0;
-    memcpy(&m_saved_character_078, g_status_685170.buffers.characters,
-           sizeof(m_saved_character_078));
+    memcpy(&m_saved_character_078, g_status_685170.buffers.Char, sizeof(m_saved_character_078));
     memcpy(static_cast<void*>(&m_saved_monster_entry_18da),
            static_cast<const void*>(&gXStatus.monster_manager_entries[0]),
            sizeof(m_saved_monster_entry_18da));
-    memcpy(&m_saved_party_row_19f2, g_status_685170.buffers.party_rows,
-           sizeof(m_saved_party_row_19f2));
-    memcpy(g_status_685170.buffers.characters, m_character_074, sizeof(*m_character_074));
+    memcpy(&m_saved_party_row_19f2, g_status_685170.buffers.XChar, sizeof(m_saved_party_row_19f2));
+    memcpy(g_status_685170.buffers.Char, m_character_074, sizeof(*m_character_074));
     ResetPartySlotRow(0);
     ResetGameplaySlot(0);
-    g_status_685170.buffers.characters[0].in_party = 1;
-    g_status_685170.buffers.party_rows[0].animation_0fa = -1;
+    g_status_685170.buffers.Char[0].fInParty = 1;
+    g_status_685170.buffers.XChar[0].animation_0fa = -1;
     if (!CreateQuoteText()) {
         m_error = 7;
         return 7;
@@ -80,12 +78,11 @@ void W8CharacterSummaryDialog::DestroyControls()
     m_quote_text_058 = 0;
     gXStatus.character_event_queue->CompleteAllActiveEvents();
     if (!m_field_1af8) {
-        memcpy(g_status_685170.buffers.characters, &m_saved_character_078,
-               sizeof(m_saved_character_078));
+        memcpy(g_status_685170.buffers.Char, &m_saved_character_078, sizeof(m_saved_character_078));
         memcpy(static_cast<void*>(&gXStatus.monster_manager_entries[0]),
                static_cast<const void*>(&m_saved_monster_entry_18da),
                sizeof(m_saved_monster_entry_18da));
-        memcpy(g_status_685170.buffers.party_rows, &m_saved_party_row_19f2,
+        memcpy(g_status_685170.buffers.XChar, &m_saved_party_row_19f2,
                sizeof(m_saved_party_row_19f2));
     }
 }
@@ -100,8 +97,7 @@ bool W8CharacterSummaryDialog::CreateQuoteText()
                                    g_character_summary_quote_bounds_00650250[index].top + m_y,
                                    g_character_summary_quote_bounds_00650250[index].right + m_x,
                                    g_character_summary_quote_bounds_00650250[index].bottom + m_y};
-        W8Character* character =
-            m_field_1af8 ? m_character_074 : g_status_685170.buffers.characters;
+        W8Character* character = m_field_1af8 ? m_character_074 : g_status_685170.buffers.Char;
         W8CharacterEvent* event =
             new W8CharacterEvent(character, g_effect_005ee588, 0, g_effect_argument_005ed8c8,
                                  g_effect_argument_005ed914);
@@ -131,7 +127,7 @@ void W8CharacterSummaryDialog::Draw()
     if (m_quote_text_058 != 0) {
         m_quote_text_058->RenderToTarget(0, 0, -14);
     }
-    RenderPartyPortrait0052EB00(m_character_074->table_value_0079, m_x + 11, m_y + 11, 2, 1, 0);
+    RenderPartyPortrait0052EB00(m_character_074->portrait_index, m_x + 11, m_y + 11, 2, 1, 0);
     if (!m_portrait_clock_started_1af9) {
         m_portrait_clock_started_1af9 = 1;
         m_portrait_clock_1afc = GetClock();
@@ -141,7 +137,7 @@ void W8CharacterSummaryDialog::Draw()
 // FUNCTION: WIZ8 0x005e0830
 void W8CharacterSummaryDialog::DrawPortraitAnimationFrame()
 {
-    BlitPartyPortraitAnimation(m_character_074->table_value_0079, m_x + 11, m_y + 11, 2, 0, 0);
+    BlitPartyPortraitAnimation(m_character_074->portrait_index, m_x + 11, m_y + 11, 2, 0, 0);
 }
 
 // FUNCTION: WIZ8 0x005e0860
@@ -188,8 +184,7 @@ unsigned char W8CharacterSummaryDialog::ProcessInput()
     MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, mouse.x, mouse.y, gfLeftButtonState, gfRightButtonState);
     if (!m_voice_started_054 && m_portrait_clock_1afc + 750 < GetClock()) {
         m_voice_started_054 = 1;
-        W8Character* character =
-            m_field_1af8 ? m_character_074 : g_status_685170.buffers.characters;
+        W8Character* character = m_field_1af8 ? m_character_074 : g_status_685170.buffers.Char;
         QueueCharacterEvent(character, g_effect_005ee588, 0, g_effect_argument_005ed8c8,
                             g_effect_argument_005ed914);
     }

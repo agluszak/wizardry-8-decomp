@@ -276,9 +276,9 @@ void OpenSplitStackDialog005BA400(W8ItemInstance* item)
     W8DialogBase* dialog;
 
     g_split_item_source_0069c424 = 0;
-    if (item->item_id != -1 && item->stack_count > 1 &&
-        (g_item_records[item->item_id].flags_041 & 2) == 0 &&
-        g_item_records[item->item_id].quantity_kind == 1) {
+    if (item->iItemNo != -1 && item->stack_count > 1 &&
+        (g_item_records[item->iItemNo].flags_041 & 2) == 0 &&
+        g_item_records[item->iItemNo].quantity_kind == 1) {
         g_split_item_source_0069c424 = item;
         dialog = new W8SplitItemDialog(g_split_dialog_kind_005efb64, item, -1);
         dialog->SetText(&g_wchar_00689b34);
@@ -322,7 +322,7 @@ void UseItem005BA4F0(W8ItemInstance* item)
 // FUNCTION: WIZ8 0x005BA5D0
 void MergeItemStacksWithHeld005BA5D0(W8ItemInstance* item)
 {
-    if (item->item_id != -1) {
+    if (item->iItemNo != -1) {
         if (MergeItems(g_value_0069c0f8, item) != 0) {
             RebuildCampItemList005A4A00();
             g_camp_screen_0069c0f4->redraw_flags |= 0xfffffff;
@@ -340,7 +340,7 @@ void ReportCastResult005BA620(int party_slot)
 
     StartBreathCycle(giReviewCharSlot, 0);
     result = RevealCharacterItemBindingsByProfession00548E20(giReviewCharSlot, party_slot);
-    character = g_status_685170.buffers.characters + party_slot;
+    character = g_status_685170.buffers.Char + party_slot;
     if (result == 0) {
         SoundPlay("Data\\Sound\\Misc\\Spell Fizzle 01.wav", 0);
         text = FormatWideString(gppStringList[0x6f8 / 4], character->name, 0, 1, 0);
@@ -371,18 +371,18 @@ void UseHeldItemOnItem005BA740(W8ItemInstance* item)
         srAssertFail("giCasterCharSlot < MAX_CHARS",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSItemsPage.cpp", 0x669, 0);
     }
-    if (g_status_685170.buffers.party_rows[giCasterCharSlot].occupied == 0) {
+    if (g_status_685170.buffers.XChar[giCasterCharSlot].fOccupied == 0) {
         srAssertFail("fCHAR_OCCUPIED(giCasterCharSlot)",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSItemsPage.cpp", 0x66a, 0);
     }
-    if (item->item_id != -1) {
+    if (item->iItemNo != -1) {
         if (CanItemLeaveItsSlot(item) != 0) {
             ResetCombatSlot(&target);
             target.iType = W8_TARGET_KIND_ITEM;
             if (CommitPartySlotSpell005A6340(giCasterCharSlot, 0x17, 8, &target) == 1) {
                 OpenItemInfoDialog005BA110(item, 0);
                 if (item->identified == 0) {
-                    QueueCharacterEvent(g_status_685170.buffers.characters + giCasterCharSlot,
+                    QueueCharacterEvent(g_status_685170.buffers.Char + giCasterCharSlot,
                                         g_character_event_kind_005ee65c, 0,
                                         g_effect_argument_005ed8c8, g_effect_argument_005ed914);
                 }
@@ -393,7 +393,7 @@ void UseHeldItemOnItem005BA740(W8ItemInstance* item)
             giCasterCharSlot = -1;
             return;
         }
-        QueueCharacterEvent(g_status_685170.buffers.characters + giCasterCharSlot,
+        QueueCharacterEvent(g_status_685170.buffers.Char + giCasterCharSlot,
                             g_character_event_kind_005ee65c, 0, g_effect_argument_005ed8c8,
                             g_effect_argument_005ed914);
     }
@@ -408,7 +408,7 @@ void TargetCharacterWithHeldItem005BA8E0(unsigned int uiTargetChar)
         srAssertFail("uiTargetChar < MAX_CHARS",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSItemsPage.cpp", 0x692, 0);
     }
-    if (g_status_685170.buffers.party_rows[uiTargetChar].occupied == 0) {
+    if (g_status_685170.buffers.XChar[uiTargetChar].fOccupied == 0) {
         srAssertFail("fCHAR_OCCUPIED(uiTargetChar)",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSItemsPage.cpp", 0x693, 0);
     }
@@ -420,7 +420,7 @@ void TargetCharacterWithHeldItem005BA8E0(unsigned int uiTargetChar)
         srAssertFail("giCasterCharSlot < MAX_CHARS",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSItemsPage.cpp", 0x695, 0);
     }
-    if (g_status_685170.buffers.party_rows[giCasterCharSlot].occupied == 0) {
+    if (g_status_685170.buffers.XChar[giCasterCharSlot].fOccupied == 0) {
         srAssertFail("fCHAR_OCCUPIED(giCasterCharSlot)",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSItemsPage.cpp", 0x696, 0);
     }
@@ -450,7 +450,7 @@ bool CanCharacterUseItemEntry005BAA10(W8Character* character, W8ItemInstance* it
 // FUNCTION: WIZ8 0x005BAA50
 bool CanSplitItemStack005BAA50(const W8ItemInstance* item)
 {
-    const W8ItemDatabaseRecord* record = g_item_records + item->item_id;
+    const W8ItemDatabaseRecord* record = g_item_records + item->iItemNo;
     if ((record->flags_041 & 2) != 0) {
         return 0;
     }
@@ -500,21 +500,22 @@ void SplitStackDialogResult005BAA80(W8DialogBase* dialog)
         if (gXStatus.held_item_source == -1) {
             goto add_to_pool;
         }
-        character = g_status_685170.buffers.characters + gXStatus.held_item_source;
+        character = g_status_685170.buffers.Char + gXStatus.held_item_source;
         if (gXStatus.held_item_origin == 1) {
-            if (character->equipment[static_cast<short>(gXStatus.held_item_slot)].item_id != -1 ||
-                CanEquipItemInSlot(character, g_status_685170.item_in_hand_235b.item_id,
+            if (character->EquippedItem[static_cast<short>(gXStatus.held_item_slot)].iItemNo !=
+                    -1 ||
+                CanEquipItemInSlot(character, g_status_685170.item_in_hand_235b.iItemNo,
                                    static_cast<unsigned char>(gXStatus.held_item_slot), 0) == 0 ||
-                CanCharacterUseItem(character, g_status_685170.item_in_hand_235b.item_id) == 0) {
+                CanCharacterUseItem(character, g_status_685170.item_in_hand_235b.iItemNo) == 0) {
                 goto add_to_character;
             }
-            destination = character->equipment + static_cast<short>(gXStatus.held_item_slot);
+            destination = character->EquippedItem + static_cast<short>(gXStatus.held_item_slot);
         } else {
             if (gXStatus.held_item_origin != 0) {
                 goto add_to_pool;
             }
             destination = character->backpack + static_cast<short>(gXStatus.held_item_slot);
-            if (character->backpack[static_cast<short>(gXStatus.held_item_slot)].item_id != -1) {
+            if (character->backpack[static_cast<short>(gXStatus.held_item_slot)].iItemNo != -1) {
                 goto add_to_character;
             }
         }
@@ -540,7 +541,7 @@ applied:
     g_status_685170.item_in_hand_235b.stack_count = carried;
     RebuildEquipmentAndDerivedStatsForSlot(giReviewCharSlot);
     RebuildCampItemList005A4A00();
-    RecalculateCharacterDerivedStats(g_status_685170.buffers.characters + giReviewCharSlot);
+    RecalculateCharacterDerivedStats(g_status_685170.buffers.Char + giReviewCharSlot);
     RecalculateCarriedWeight(g_value_0069c0f8);
     RedistributePartyEncumbrance();
     SetCampItemActionMode005B59B0(0);
@@ -561,8 +562,8 @@ void UpdateItemCursorForState005BAD20(int flag, W8ItemInstance* item, int slot)
     }
     if (gXStatus.iTargetingMode == 1) {
         if ((g_camp_screen_0069c0f4->entry_mode == 7 || g_camp_screen_0069c0f4->entry_mode == 9) &&
-            g_status_685170.buffers.party_rows[slot].occupied != 0 &&
-            g_status_685170.buffers.characters[slot].condition_turns[0x13] == 0) {
+            g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
+            g_status_685170.buffers.Char[slot].uiCondition[0x13] == 0) {
         set_cursor:
             cursor = GetTargetingCursorForState(flag);
             SetTargetCursor(cursor);
@@ -583,7 +584,7 @@ void UpdateItemCursorForState005BAD20(int flag, W8ItemInstance* item, int slot)
             srAssertFail("pItem", "C:\\Projects\\Wizardry 8\\Local Screens\\RCSItemsPage.cpp",
                          0x763, 0);
         }
-        if (item->item_id == -1) {
+        if (item->iItemNo == -1) {
             return;
         }
         if ((g_camp_screen_0069c0f4->entry_mode == 2 || g_camp_screen_0069c0f4->entry_mode == 8) &&
@@ -597,7 +598,7 @@ void UpdateItemCursorForState005BAD20(int flag, W8ItemInstance* item, int slot)
             goto set_cursor_item;
         }
         if (g_camp_screen_0069c0f4->entry_mode == 4) {
-            const W8ItemDatabaseRecord* record = g_item_records + item->item_id;
+            const W8ItemDatabaseRecord* record = g_item_records + item->iItemNo;
             if ((record->flags_041 & 2) != 0) {
                 return;
             }
@@ -609,7 +610,7 @@ void UpdateItemCursorForState005BAD20(int flag, W8ItemInstance* item, int slot)
                     if (g_combat_state->flag_a50 == 0) {
                         return;
                     }
-                    if (g_status_685170.buffers.party_rows[giReviewCharSlot].pending_action != 9) {
+                    if (g_status_685170.buffers.XChar[giReviewCharSlot].pending_action != 9) {
                         return;
                     }
                 }
@@ -621,7 +622,7 @@ void UpdateItemCursorForState005BAD20(int flag, W8ItemInstance* item, int slot)
             if (g_camp_screen_0069c0f4->entry_mode != 1) {
                 return;
             }
-            if (item->item_id == -1) {
+            if (item->iItemNo == -1) {
                 return;
             }
             if ((char)flag == 0) {
@@ -693,7 +694,7 @@ void UnequipBothHands005BB010(void)
         ShowCampNoticeLine(gppStringList[0x245c / 4], 0, 1, 0);
         return;
     }
-    character = g_status_685170.buffers.characters + giReviewCharSlot;
+    character = g_status_685170.buffers.Char + giReviewCharSlot;
     BindEquippedItem(character, 6);
     BindEquippedItem(character, 7);
     if (CanUnequipSlotItem(character, 6) != 0 && CanUnequipSlotItem(character, 7) != 0) {
@@ -710,12 +711,12 @@ void UnequipBothHands005BB010(void)
 void TogglePartyRowFlag005BB140(void)
 {
     if ((g_camp_action_buttons_0069c468[1]->m_stateFlags & g_W8TextControlMask005ED570) != 0) {
-        g_status_685170.buffers.party_rows[giReviewCharSlot].flag_0f5 = 1;
+        g_status_685170.buffers.XChar[giReviewCharSlot].flag_0f5 = 1;
         g_camp_action_buttons_0069c468[0]->SetEnabled(0);
         g_camp_action_buttons_0069c468[0]->Invalidate(0);
         return;
     }
-    g_status_685170.buffers.party_rows[giReviewCharSlot].flag_0f5 = 0;
+    g_status_685170.buffers.XChar[giReviewCharSlot].flag_0f5 = 0;
     g_camp_action_buttons_0069c468[0]->SetEnabled(1);
     g_camp_action_buttons_0069c468[0]->Invalidate(0);
 }
@@ -830,7 +831,7 @@ unsigned char BackpackRegionHandler005BB350(const InputAtom* event, W8Region* re
 
     slot = region->callback_id;
     item = g_value_0069c0f8->backpack + slot;
-    if (item->item_id == -1 && g_status_685170.item_in_cursor == 0) {
+    if (item->iItemNo == -1 && g_status_685170.item_in_cursor == 0) {
         PushButtonSoundScheme005587C0(0, 1);
     }
     if (event->usEvent < 0x81) {
@@ -848,7 +849,7 @@ unsigned char BackpackRegionHandler005BB350(const InputAtom* event, W8Region* re
                 return 1;
             }
             HandleCampItemClick005A4C70(item, slot, 0);
-            if (item->item_id != -1) {
+            if (item->iItemNo != -1) {
                 SetItemTooltip005BBD30(item, region);
                 SetRegionHelpForceEnabled004F27C0(1);
                 return 1;
@@ -858,7 +859,7 @@ unsigned char BackpackRegionHandler005BB350(const InputAtom* event, W8Region* re
         return 1;
     }
     if (event->usEvent == 0x100) {
-        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && item->item_id != -1 &&
+        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && item->iItemNo != -1 &&
             g_camp_screen_0069c0f4->entry_mode != 3) {
             g_camp_entry_parameter_0069c0fc = g_value_0069c0f8;
             if (CanItemLeaveItsSlot(item) != 0 && PartyAttemptsToIdentifyItem(item, 0) != 0 &&
@@ -873,7 +874,7 @@ unsigned char BackpackRegionHandler005BB350(const InputAtom* event, W8Region* re
     }
     if (event->usEvent == 0x400) {
         if ((region->flags & W8_REGION_MOUSE_TRANSITION_MASK) != 0) {
-            if (item->item_id != -1 || g_status_685170.item_in_cursor != 0) {
+            if (item->iItemNo != -1 || g_status_685170.item_in_cursor != 0) {
                 g_camp_screen_0069c0f4->item_redraw_flags |= 2 << (slot & 0x1f);
             }
             UpdateItemCursorForState005BAD20((region->flags & W8_REGION_MOUSE_ENTER) != 0, item, 0);
@@ -881,7 +882,7 @@ unsigned char BackpackRegionHandler005BB350(const InputAtom* event, W8Region* re
                 if ((region->flags & W8_REGION_MOUSE_LEAVE) == 0) {
                     return 0;
                 }
-            } else if (item->item_id != -1) {
+            } else if (item->iItemNo != -1) {
                 SetItemTooltip005BBD30(item, region);
                 SetRegionHelpForceEnabled004F27C0(1);
                 return 0;
@@ -902,12 +903,12 @@ unsigned char EquipSlotRegionHandler005BB560(const InputAtom* event, W8Region* r
     wchar_t* name;
 
     slot = region->callback_id;
-    item = g_value_0069c0f8->equipment + slot;
-    if (item->item_id == -1 &&
+    item = g_value_0069c0f8->EquippedItem + slot;
+    if (item->iItemNo == -1 &&
         (g_status_685170.item_in_cursor == 0 || g_camp_screen_0069c0f4->entry_mode == 1 ||
-         CanEquipItemInSlot(g_value_0069c0f8, g_status_685170.item_in_hand_235b.item_id,
+         CanEquipItemInSlot(g_value_0069c0f8, g_status_685170.item_in_hand_235b.iItemNo,
                             (unsigned char)slot, 1) == 0 ||
-         CanCharacterUseItem(g_value_0069c0f8, g_status_685170.item_in_hand_235b.item_id) == 0)) {
+         CanCharacterUseItem(g_value_0069c0f8, g_status_685170.item_in_hand_235b.iItemNo) == 0)) {
         PushButtonSoundScheme005587C0(0, 1);
     }
     if (event->usEvent < 0x81) {
@@ -932,7 +933,7 @@ unsigned char EquipSlotRegionHandler005BB560(const InputAtom* event, W8Region* r
             SetRegionHelpDelay(delay);
             SetRegionHelpForceEnabled004F27C0(1);
             EnableRegionHelpFlag004F27D0(region);
-            if (item->item_id != -1) {
+            if (item->iItemNo != -1) {
                 name = FormatItemDisplayName(item, 0);
                 swprintf(g_camp_screen_0069c0f4->caption, L"%s (%s)", name,
                          gppStringList[g_equip_slot_label_ids_61e7c4[slot]]);
@@ -950,7 +951,7 @@ unsigned char EquipSlotRegionHandler005BB560(const InputAtom* event, W8Region* r
                 return 0;
             }
             if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-                if (item->item_id != -1 || g_status_685170.item_in_cursor != 0) {
+                if (item->iItemNo != -1 || g_status_685170.item_in_cursor != 0) {
                     g_camp_screen_0069c0f4->item_redraw_flags |= 0x400 << (slot & 0x1f);
                 }
                 UpdateItemCursorForState005BAD20(1, item, 0);
@@ -961,7 +962,7 @@ unsigned char EquipSlotRegionHandler005BB560(const InputAtom* event, W8Region* r
                 }
                 SetRegionHelpDelay(delay);
                 SetRegionHelpForceEnabled004F27C0(1);
-                if (item->item_id == -1) {
+                if (item->iItemNo == -1) {
                     swprintf(g_camp_screen_0069c0f4->caption, g_format_s_006068e4,
                              gppStringList[g_equip_slot_label_ids_61e7c4[slot]]);
                 } else {
@@ -972,7 +973,7 @@ unsigned char EquipSlotRegionHandler005BB560(const InputAtom* event, W8Region* r
                 SetRegionHelpText(g_camp_screen_0069c0f4->caption);
             }
             if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-                if (item->item_id != -1 || g_status_685170.item_in_cursor != 0) {
+                if (item->iItemNo != -1 || g_status_685170.item_in_cursor != 0) {
                     g_camp_screen_0069c0f4->item_redraw_flags |= 0x400 << (slot & 0x1f);
                 }
                 UpdateItemCursorForState005BAD20(0, item, 0);
@@ -980,7 +981,7 @@ unsigned char EquipSlotRegionHandler005BB560(const InputAtom* event, W8Region* r
             }
             return 0;
         }
-        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && item->item_id != -1 &&
+        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && item->iItemNo != -1 &&
             g_camp_screen_0069c0f4->entry_mode != 3) {
             g_camp_entry_parameter_0069c0fc = g_value_0069c0f8;
             if (CanItemLeaveItsSlot(item) != 0 && PartyAttemptsToIdentifyItem(item, 0) != 0 &&
@@ -1008,13 +1009,13 @@ unsigned char ItemPoolRegionHandler005BB900(const InputAtom* event, W8Region* re
     pool_index = g_camp_screen_0069c0f4->item_scroll + slot;
     if (g_camp_screen_0069c0f4->item_list_count <= pool_index ||
         g_status_685170.party_item_pool_0021[g_camp_screen_0069c0f4->item_list_4ec[pool_index]]
-                .item_id == -1) {
+                .iItemNo == -1) {
         pool_index = g_status_685170.party_item_count_1791;
     } else {
         pool_index = g_camp_screen_0069c0f4->item_list_4ec[pool_index];
     }
     item = g_status_685170.party_item_pool_0021 + pool_index;
-    if (item->item_id == -1 && g_status_685170.item_in_cursor == 0) {
+    if (item->iItemNo == -1 && g_status_685170.item_in_cursor == 0) {
         PushButtonSoundScheme005587C0(0, 1);
     }
     if (event->usEvent < 0x101) {
@@ -1049,14 +1050,14 @@ unsigned char ItemPoolRegionHandler005BB900(const InputAtom* event, W8Region* re
             return 1;
         }
         HandleCampItemClick005A4C70(item, pool_index, 2);
-        if (item->item_id != -1) {
+        if (item->iItemNo != -1) {
             SetItemTooltip005BBD30(item, region);
             return 1;
         }
     } else {
         if (event->usEvent == 0x400) {
             if ((region->flags & W8_REGION_MOUSE_TRANSITION_MASK) != 0) {
-                if (item->item_id != -1 || g_status_685170.item_in_cursor != 0) {
+                if (item->iItemNo != -1 || g_status_685170.item_in_cursor != 0) {
                     g_camp_screen_0069c0f4->item_redraw_flags |= 0x800000 << (slot & 0x1f);
                 }
                 UpdateItemCursorForState005BAD20((region->flags & W8_REGION_MOUSE_ENTER) != 0, item,
@@ -1065,7 +1066,7 @@ unsigned char ItemPoolRegionHandler005BB900(const InputAtom* event, W8Region* re
                     if ((region->flags & W8_REGION_MOUSE_LEAVE) == 0) {
                         return 0;
                     }
-                } else if (item->item_id != -1) {
+                } else if (item->iItemNo != -1) {
                     SetItemTooltip005BBD30(item, region);
                     return 0;
                 }
@@ -1098,7 +1099,7 @@ unsigned char ItemPoolRegionHandler005BB900(const InputAtom* event, W8Region* re
         } else {
             pool_index = g_camp_screen_0069c0f4->item_list_4ec[pool_index];
         }
-        if (g_status_685170.party_item_pool_0021[pool_index].item_id != -1) {
+        if (g_status_685170.party_item_pool_0021[pool_index].iItemNo != -1) {
             SetItemTooltip005BBD30(g_status_685170.party_item_pool_0021 + pool_index, region);
             return 1;
         }
@@ -1183,7 +1184,7 @@ void SetItemTooltip005BBD30(W8ItemInstance* item, W8Region* region)
     EnableRegionHelpFlag004F27D0(region);
     name = FormatItemDisplayName(item, 0);
     wcscpy(g_camp_screen_0069c0f4->caption, name);
-    record = g_item_records + item->item_id;
+    record = g_item_records + item->iItemNo;
     if (record->category == 3) {
         if (record->spell_id == 0) {
             srAssertFail("ubSpell != SPELL_NONE",
@@ -1217,7 +1218,7 @@ void DrawCampItemIcons005BBE30(void)
 
     for (index = 0; index < 8; ++index) {
         item = &character->backpack[index];
-        if (item->item_id != -1) {
+        if (item->iItemNo != -1) {
             DrawCampItemLabel005BBF40(item, (index & 1) * 0x31 + 0xd,
                                       (index >> 1) * 0x39 + 0xc2 + (index & 1) * 0x10, 0);
         }
@@ -1242,8 +1243,8 @@ void DrawCampItemIcons005BBE30(void)
     }
     region = g_camp_screen_regions_64cbf0;
     for (index = 0; index < 12; ++index) {
-        item = &character->equipment[index];
-        if (item->item_id != -1) {
+        item = &character->EquippedItem[index];
+        if (item->iItemNo != -1) {
             DrawCampItemLabel005BBF40(item, region->unknown_18, region->unknown_1c,
                                       static_cast<char>(region->unknown_20));
         }

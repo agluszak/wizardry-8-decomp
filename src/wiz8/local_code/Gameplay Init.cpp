@@ -260,28 +260,28 @@ void DestroyLevelDatabase(void)
 void ResetGameStatus(unsigned char release)
 {
     if (release) {
-        if (g_status_685170.buffers.characters) {
-            free(g_status_685170.buffers.characters);
-            g_status_685170.buffers.characters = 0;
+        if (g_status_685170.buffers.Char) {
+            free(g_status_685170.buffers.Char);
+            g_status_685170.buffers.Char = 0;
         }
-        if (g_status_685170.buffers.party_rows) {
-            free(g_status_685170.buffers.party_rows);
-            g_status_685170.buffers.party_rows = 0;
+        if (g_status_685170.buffers.XChar) {
+            free(g_status_685170.buffers.XChar);
+            g_status_685170.buffers.XChar = 0;
         }
     }
     memset(&g_status_685170, 0, sizeof(g_status_685170));
-    g_status_685170.buffers.characters =
+    g_status_685170.buffers.Char =
         static_cast<W8Character*>(malloc(sizeof(W8Character) * W8_PARTY_SLOT_COUNT));
-    if (!g_status_685170.buffers.characters) {
+    if (!g_status_685170.buffers.Char) {
         return;
     }
-    g_status_685170.buffers.party_rows =
+    g_status_685170.buffers.XChar =
         static_cast<W8PartySlotRow*>(malloc(sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT));
-    if (!g_status_685170.buffers.party_rows) {
+    if (!g_status_685170.buffers.XChar) {
         return;
     }
-    memset(g_status_685170.buffers.characters, 0, sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
-    memset(g_status_685170.buffers.party_rows, 0, sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
+    memset(g_status_685170.buffers.Char, 0, sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
+    memset(g_status_685170.buffers.XChar, 0, sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
 }
 
 /* Clear the complete status object, including its POD gameplay-state tail. */
@@ -341,25 +341,23 @@ void ResetForNewGame(void)
     unsigned int* id;
     unsigned int index;
 
-    if (g_status_685170.buffers.characters) {
-        free(g_status_685170.buffers.characters);
-        g_status_685170.buffers.characters = 0;
+    if (g_status_685170.buffers.Char) {
+        free(g_status_685170.buffers.Char);
+        g_status_685170.buffers.Char = 0;
     }
-    if (g_status_685170.buffers.party_rows) {
-        free(g_status_685170.buffers.party_rows);
-        g_status_685170.buffers.party_rows = 0;
+    if (g_status_685170.buffers.XChar) {
+        free(g_status_685170.buffers.XChar);
+        g_status_685170.buffers.XChar = 0;
     }
     memset(&g_status_685170, 0, sizeof(g_status_685170));
-    g_status_685170.buffers.characters =
+    g_status_685170.buffers.Char =
         static_cast<W8Character*>(malloc(sizeof(W8Character) * W8_PARTY_SLOT_COUNT));
-    if (g_status_685170.buffers.characters) {
-        g_status_685170.buffers.party_rows =
+    if (g_status_685170.buffers.Char) {
+        g_status_685170.buffers.XChar =
             static_cast<W8PartySlotRow*>(malloc(sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT));
-        if (g_status_685170.buffers.party_rows) {
-            memset(g_status_685170.buffers.characters, 0,
-                   sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
-            memset(g_status_685170.buffers.party_rows, 0,
-                   sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
+        if (g_status_685170.buffers.XChar) {
+            memset(g_status_685170.buffers.Char, 0, sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
+            memset(g_status_685170.buffers.XChar, 0, sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
         }
     }
     ReleaseMessageStorage();
@@ -444,7 +442,7 @@ void ResetGameplaySlot(unsigned int slot)
     record->portrait_frame = 6;
     record->portrait_pose_animation_active = 0;
     tier = 1;
-    if (g_status_685170.buffers.characters[slot].highest_condition >= 0xf) {
+    if (g_status_685170.buffers.Char[slot].highest_condition >= 0xf) {
         tier = 2;
     }
     record->portrait_pose = tier;
@@ -492,10 +490,10 @@ void ResetGameplaySlot(unsigned int slot)
 // FUNCTION: WIZ8 0x0054b470
 void ResetPartySlotRow(int slot)
 {
-    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
 
     memset(row, 0, sizeof(W8PartySlotRow));
-    row->occupied = 1;
+    row->fOccupied = 1;
     row->spell_id = 0;
     row->queued_action = 0xff;
     SetSlotAction(slot, 0, -1);
@@ -506,31 +504,30 @@ void ResetPartySlotRow(int slot)
 // FUNCTION: WIZ8 0x0054b4c0
 unsigned char AllocateStatusBuffers(W8StatusBuffers* status)
 {
-    status->characters =
-        static_cast<W8Character*>(malloc(sizeof(W8Character) * W8_PARTY_SLOT_COUNT));
-    if (!status->characters) {
+    status->Char = static_cast<W8Character*>(malloc(sizeof(W8Character) * W8_PARTY_SLOT_COUNT));
+    if (!status->Char) {
         return 0;
     }
-    status->party_rows =
+    status->XChar =
         static_cast<W8PartySlotRow*>(malloc(sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT));
-    if (!status->party_rows) {
+    if (!status->XChar) {
         return 0;
     }
-    memset(status->characters, 0, sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
-    memset(status->party_rows, 0, sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
+    memset(status->Char, 0, sizeof(W8Character) * W8_PARTY_SLOT_COUNT);
+    memset(status->XChar, 0, sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
     return 1;
 }
 
 // FUNCTION: WIZ8 0x0054b520
 void FreeStatusBuffers(W8StatusBuffers* status)
 {
-    if (status->characters) {
-        free(status->characters);
-        status->characters = 0;
+    if (status->Char) {
+        free(status->Char);
+        status->Char = 0;
     }
-    if (status->party_rows) {
-        free(status->party_rows);
-        status->party_rows = 0;
+    if (status->XChar) {
+        free(status->XChar);
+        status->XChar = 0;
     }
 }
 

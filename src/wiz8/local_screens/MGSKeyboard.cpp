@@ -538,7 +538,7 @@ void DispatchMGSCommand(int command)
     case W8_MGS_COMMAND_SELECT_PC_5:
     case W8_MGS_COMMAND_SELECT_PC_6: {
         int slot = command - W8_MGS_COMMAND_SELECT_RECRUITED_1;
-        if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
+        if (g_status_685170.buffers.XChar[slot].fOccupied == 0) {
             break;
         }
         if (g_status_685170.selected_character != slot) {
@@ -894,23 +894,20 @@ void RefreshKeyboardMenuRows(void)
         }
         if (message == -1) {
             if (menu == W8_SUBMENU_SPELLS && item == 1) {
-                icon += g_spell_records[g_status_685170.buffers.party_rows[g_value_64c1c8].spell_id]
-                            .realm *
-                        7;
+                icon +=
+                    g_spell_records[g_status_685170.buffers.XChar[g_value_64c1c8].spell_id].realm *
+                    7;
             }
             row->SetEnabled(0);
         } else {
             if (menu == W8_SUBMENU_SPELLS && item == 1) {
                 adjust =
-                    g_spell_records[g_status_685170.buffers.party_rows[g_value_64c1c8].spell_id]
-                        .realm *
+                    g_spell_records[g_status_685170.buffers.XChar[g_value_64c1c8].spell_id].realm *
                     7;
                 message += adjust;
                 icon += adjust;
             } else if (menu == W8_SUBMENU_ATTACK && item == 0) {
-                switch (g_status_685170.buffers.characters[g_value_64c1c8]
-                            .hand_attacks[0]
-                            .weapon_skill) {
+                switch (g_status_685170.buffers.Char[g_value_64c1c8].Hand[0].weapon_skill) {
                 case 1:
                     adjust = 4;
                     break;
@@ -1179,7 +1176,7 @@ unsigned char KeyboardMenuRowRegionEvent(const InputAtom* event, W8Region* regio
                 SetRegionHelpText(gppStringList[0x168 / 4]);
                 return 1;
             }
-            name = g_spell_records[g_status_685170.buffers.party_rows[g_value_64c1c8].spell_id]
+            name = g_spell_records[g_status_685170.buffers.XChar[g_value_64c1c8].spell_id]
                        .display_name;
             power = GetAffordableSpellPowerLevel(g_value_64c1c8);
             SetRegionHelpText(FormatWideString(g_format_s_colon_s_paren_d_006481b4,
@@ -1197,7 +1194,7 @@ unsigned char KeyboardMenuRowRegionEvent(const InputAtom* event, W8Region* regio
             SetRegionHelpText(gppStringList[0x174 / 4]);
             return 1;
         }
-        party_row = &g_status_685170.buffers.party_rows[g_value_64c1c8];
+        party_row = &g_status_685170.buffers.XChar[g_value_64c1c8];
         item = FindCharacterItemAt(g_value_64c1c8, party_row->item_origin, party_row->item_slot);
         name = FormatItemDisplayName(item, 0);
         SetRegionHelpText(

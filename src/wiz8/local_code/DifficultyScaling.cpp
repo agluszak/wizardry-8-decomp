@@ -12,7 +12,7 @@
 // FUNCTION: WIZ8 0x0055cc00
 void ScaleValueForCharacterDifficulty(int party_slot, int* value)
 {
-    if (g_status_685170.buffers.characters[party_slot].condition_turns[W8_CONDITION_TURNCOAT] > 0) {
+    if (g_status_685170.buffers.Char[party_slot].uiCondition[W8_CONDITION_TURNCOAT] > 0) {
         switch (g_settings_6850c8.difficulty) {
         case 0:
             *value = (*value * 3 * 20) / 100;

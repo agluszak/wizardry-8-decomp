@@ -897,16 +897,15 @@ void PostCharacterNotice(int party_slot, const wchar_t* format, ...)
     va_end(arguments);
 
     wcscpy(separator, (text[0] == L'\'' || text[0] == L':') ? &g_wchar_00689b34 : L" ");
-    ShowNoticef(8, L"%s%s%s", g_status_685170.buffers.characters[party_slot].name, separator, text);
-    stop = wcslen(g_status_685170.buffers.characters[party_slot].name);
+    ShowNoticef(8, L"%s%s%s", g_status_685170.buffers.Char[party_slot].name, separator, text);
+    stop = wcslen(g_status_685170.buffers.Char[party_slot].name);
     if (text[0] == L'\'') {
         ++stop;
         if (text[1] == L's') {
             ++stop;
         }
     }
-    HighlightTextBoxRange(g_status_685170.buffers.party_rows[party_slot].party_order_index, 0, stop,
-                          -1);
+    HighlightTextBoxRange(g_status_685170.buffers.XChar[party_slot].party_order_index, 0, stop, -1);
 }
 
 /* PostCharacterNotice with an explicit context instead of the automatic -1
@@ -924,16 +923,16 @@ void PostCharacterNoticeInContext00590A40(int party_slot, int context, const wch
     va_end(arguments);
 
     wcscpy(separator, (text[0] == L'\'' || text[0] == L':') ? &g_wchar_00689b34 : L" ");
-    FormatNotice(8, context, L"%s%s%s", g_status_685170.buffers.characters[party_slot].name,
-                 separator, text);
-    stop = wcslen(g_status_685170.buffers.characters[party_slot].name);
+    FormatNotice(8, context, L"%s%s%s", g_status_685170.buffers.Char[party_slot].name, separator,
+                 text);
+    stop = wcslen(g_status_685170.buffers.Char[party_slot].name);
     if (text[0] == L'\'') {
         ++stop;
         if (text[1] == L's') {
             ++stop;
         }
     }
-    HighlightTextBoxRange(g_status_685170.buffers.party_rows[party_slot].party_order_index, 0, stop,
+    HighlightTextBoxRange(g_status_685170.buffers.XChar[party_slot].party_order_index, 0, stop,
                           context);
 }
 

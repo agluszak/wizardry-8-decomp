@@ -113,7 +113,7 @@ char MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info)
 {
     unsigned char disposition;
 
-    if (g_status_685170.buffers.characters[character_slot].condition_turns[13] == 0) {
+    if (g_status_685170.buffers.Char[character_slot].uiCondition[13] == 0) {
         return monster_info->ubDisposition;
     }
     disposition = monster_info->ubDisposition;
@@ -134,12 +134,12 @@ char MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info)
 // FUNCTION: WIZ8 0x00547010
 char CharacterVsCharacterDisposition(int first, int second)
 {
-    W8Character* characters = g_status_685170.buffers.characters;
-    unsigned int first_turns = characters[first].condition_turns[13];
-    if (first_turns == 0 && characters[second].condition_turns[13] == 0) {
+    W8Character* characters = g_status_685170.buffers.Char;
+    unsigned int first_turns = characters[first].uiCondition[13];
+    if (first_turns == 0 && characters[second].uiCondition[13] == 0) {
         return DISP_FRIENDLY;
     }
-    if (first_turns == 0 || characters[second].condition_turns[13] == 0) {
+    if (first_turns == 0 || characters[second].uiCondition[13] == 0) {
         return DISP_HOSTILE;
     }
     return DISP_FRIENDLY;
@@ -149,7 +149,7 @@ char CharacterVsCharacterDisposition(int first, int second)
 char GetOppositeDisposition(W8TargetSource* source)
 {
     if (TargetSourceIsCharacter(source, 0)) {
-        if (g_status_685170.buffers.characters[source->iChar].condition_turns[13] == 0) {
+        if (g_status_685170.buffers.Char[source->iChar].uiCondition[13] == 0) {
             return DISP_HOSTILE;
         }
     } else if (TargetSourceIsMonster(source, 0)) {
@@ -288,7 +288,7 @@ unsigned char CharacterActionTargetsEnemies(W8Character* character, int action_k
     case W8_ACTION_USE_ITEM:
         item = detail->item_use.item;
         if (CanCharacterActivateItem(character, item) != 0) {
-            spell_id = g_item_records[item->item_id].spell_id;
+            spell_id = g_item_records[item->iItemNo].spell_id;
             if (spell_id != 0) {
                 if (spell_id > 0x95) {
                     srAssertFail("iType < SPELL_COUNT",
@@ -475,7 +475,7 @@ void SetMonsterHostility(W8MonsterInfo* monster, unsigned char hostility)
 // FUNCTION: WIZ8 0x00547bf0
 unsigned char CanPartySlotTurnUndead(int party_slot)
 {
-    if (!CharacterHasTrait00547940(&g_status_685170.buffers.characters[party_slot], 0x11) ||
+    if (!CharacterHasTrait00547940(&g_status_685170.buffers.Char[party_slot], 0x11) ||
         g_combat_state == 0 || g_combat_state->characters[party_slot].turn_undead_used) {
         return 0;
     }
@@ -507,12 +507,12 @@ int TurnUndead(int party_slot, int* out_cost, char check)
     source.unknown_18[2] = 1;
     int power;
     if (!check) {
-        power = g_status_685170.buffers.characters[party_slot].profession_levels[0xc] + 10 +
-                g_status_685170.buffers.characters[party_slot].profession_levels[10];
+        power = g_status_685170.buffers.Char[party_slot].profession_levels[0xc] + 10 +
+                g_status_685170.buffers.Char[party_slot].profession_levels[10];
         source.unknown_18[0] = 1;
     } else {
-        power = g_status_685170.buffers.characters[party_slot].profession_levels[0xc] +
-                g_status_685170.buffers.characters[party_slot].profession_levels[10];
+        power = g_status_685170.buffers.Char[party_slot].profession_levels[0xc] +
+                g_status_685170.buffers.Char[party_slot].profession_levels[10];
         PostCharacterNotice(party_slot, gppStringList[0x182]);
     }
 
@@ -542,7 +542,7 @@ int TurnUndead(int party_slot, int* out_cost, char check)
 // FUNCTION: WIZ8 0x00547f40
 unsigned char CanPartySlotPray(int party_slot)
 {
-    if (!CharacterHasTrait00547940(&g_status_685170.buffers.characters[party_slot], 0xb) ||
+    if (!CharacterHasTrait00547940(&g_status_685170.buffers.Char[party_slot], 0xb) ||
         g_combat_state == 0 || g_combat_state->characters[party_slot].pray_used) {
         return 0;
     }
@@ -576,7 +576,7 @@ const wchar_t g_pray_dash_00619788[] = L" -- ";
 // FUNCTION: WIZ8 0x00547FE0
 int CharacterPrayAction00547FE0(int party_slot)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
     W8GrowableVector<int> monster_targets;
     bool found = false;
     bool stop = false;
@@ -640,8 +640,7 @@ int CharacterPrayAction00547FE0(int party_slot)
         action = 0;
     }
     power_level =
-        static_cast<unsigned int>(character->profession_levels[character->current_profession]) / 3 +
-        2;
+        static_cast<unsigned int>(character->profession_levels[character->iProfession]) / 3 + 2;
     for (;;) {
         --action;
         switch (action) {
@@ -656,9 +655,9 @@ int CharacterPrayAction00547FE0(int party_slot)
             goto done;
         case 1:
             for (index = 0; index < 8; ++index) {
-                W8Character* member = &g_status_685170.buffers.characters[index];
-                if (g_status_685170.buffers.party_rows[index].occupied && member->hp_current != 0 &&
-                    member->stamina < member->stamina_max) {
+                W8Character* member = &g_status_685170.buffers.Char[index];
+                if (g_status_685170.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
+                    member->stamina < member->uiStaminaMax) {
                     AppendToLastTextLine(gppStringList[0x179], -1);
                     CastSpellFromSource(0x2c, &source, &target, 7, 0, 0, 1, &outcome, 0, 0, 0);
                     goto done;
@@ -669,8 +668,8 @@ int CharacterPrayAction00547FE0(int party_slot)
             found = false;
             in_range = 0;
             for (index = 0; index < 8; ++index) {
-                W8Character* member = &g_status_685170.buffers.characters[index];
-                if (g_status_685170.buffers.party_rows[index].occupied && member->hp_current != 0 &&
+                W8Character* member = &g_status_685170.buffers.Char[index];
+                if (g_status_685170.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
                     member->highest_condition < 0x12 && member->enchantments[2].value_00 == 0) {
                     ++in_range;
                     found = true;
@@ -679,10 +678,10 @@ int CharacterPrayAction00547FE0(int party_slot)
             if (found) {
                 pick = Random(in_range) + 1;
                 for (index = 0; index < 8; ++index) {
-                    W8Character* member = &g_status_685170.buffers.characters[index];
-                    if (g_status_685170.buffers.party_rows[index].occupied &&
-                        member->hp_current != 0 && member->highest_condition < 0x12 &&
-                        member->enchantments[2].value_00 == 0 && --pick == 0) {
+                    W8Character* member = &g_status_685170.buffers.Char[index];
+                    if (g_status_685170.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
+                        member->highest_condition < 0x12 && member->enchantments[2].value_00 == 0 &&
+                        --pick == 0) {
                         AppendToLastTextLine(
                             FormatWideString(gppStringList[0x17a], member->name, -1), -1);
                         target.iType = W8_TARGET_KIND_CHARACTER;
@@ -701,10 +700,10 @@ int CharacterPrayAction00547FE0(int party_slot)
             found = false;
             in_range = 0;
             for (index = 0; index < 8; ++index) {
-                W8Character* member = &g_status_685170.buffers.characters[index];
-                if (g_status_685170.buffers.party_rows[index].occupied && member->hp_current != 0 &&
+                W8Character* member = &g_status_685170.buffers.Char[index];
+                if (g_status_685170.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
                     member->highest_condition < 0x12 &&
-                    (member->condition_turns[0xb] != 0 || member->condition_turns[0xd] != 0)) {
+                    (member->uiCondition[0xb] != 0 || member->uiCondition[0xd] != 0)) {
                     ++in_range;
                     found = true;
                 }
@@ -712,10 +711,10 @@ int CharacterPrayAction00547FE0(int party_slot)
             if (found) {
                 pick = Random(in_range) + 1;
                 for (index = 0; index < 8; ++index) {
-                    W8Character* member = &g_status_685170.buffers.characters[index];
-                    if (g_status_685170.buffers.party_rows[index].occupied &&
-                        member->hp_current != 0 && member->highest_condition < 0x12 &&
-                        (member->condition_turns[0xb] != 0 || member->condition_turns[0xd] != 0) &&
+                    W8Character* member = &g_status_685170.buffers.Char[index];
+                    if (g_status_685170.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
+                        member->highest_condition < 0x12 &&
+                        (member->uiCondition[0xb] != 0 || member->uiCondition[0xd] != 0) &&
                         --pick == 0) {
                         AppendToLastTextLine(gppStringList[0x179], -1);
                         target.iType = W8_TARGET_KIND_CHARACTER;
@@ -747,12 +746,12 @@ int CharacterPrayAction00547FE0(int party_slot)
             }
             best = -1;
             for (index = 0; index < 8; ++index) {
-                W8Character* member = &g_status_685170.buffers.characters[index];
-                if (g_status_685170.buffers.party_rows[index].occupied && member->hp_current != 0 &&
+                W8Character* member = &g_status_685170.buffers.Char[index];
+                if (g_status_685170.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
                     member->highest_condition < 0x12 &&
-                    member->hp_current < static_cast<unsigned int>(member->hp_max) &&
+                    member->hp_current < static_cast<unsigned int>(member->uiHPMax) &&
                     (best == -1 ||
-                     member->hp_current < g_status_685170.buffers.characters[best].hp_current)) {
+                     member->hp_current < g_status_685170.buffers.Char[best].hp_current)) {
                     best = index;
                 }
             }
