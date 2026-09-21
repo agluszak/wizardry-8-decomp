@@ -295,12 +295,12 @@ void Function564710(int party_slot);                                      /* 0x0
 void Function5651F0(int party_slot);                                      /* 0x005651F0 */
 void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled); /* 0x0059A540 */
 
-void Function56AC80(void);               /* 0x0056AC80 */
-void Function58C790(void);               /* 0x0058C790 */
-void Function59CF50(int active);         /* 0x0059CF50 */
-void Function587C50(void);               /* 0x00587C50 */
-unsigned char GetOpenDialogueFlag(void); /* 0x0058D7C0 */
-void RedrawTextBoxComplete(void);        /* 0x0058A8C0 */
+void Function56AC80(void);                  /* 0x0056AC80 */
+void RedrawDialogueTextInput0058C790(void); /* 0x0058C790 */
+void Function59CF50(int active);            /* 0x0059CF50 */
+void Function587C50(void);                  /* 0x00587C50 */
+unsigned char GetOpenDialogueFlag(void);    /* 0x0058D7C0 */
+void RedrawTextBoxComplete(void);           /* 0x0058A8C0 */
 unsigned char Function568B50(const InputAtom* input);
 
 bool IsPartyPortraitUnderCursor00561980(unsigned int party_slot);
@@ -3752,7 +3752,7 @@ void ApplyMainGameRedrawFlags(void)
         ActivateNpcDialoguePanels0056ECF0(1);
     }
     if (GetOpenDialogueFlag() != 0) {
-        Function58C790();
+        RedrawDialogueTextInput0058C790();
     }
 finish_mode_overlays:
     if ((g_level_block->redraw_flags & 0x800) != 0) {

@@ -32,6 +32,7 @@
 #include "wiz8/utility.h"
 #include "vobject_blitters.h"
 #include "Font.h"
+#include "line.h"
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -613,6 +614,44 @@ void ScrollTextBoxToCursor(void)
     ScrollTextBoxTo(0);
 }
 
+/* Append text onto a box's current line, growing its string in place; the
+   optional second argument is the box, -1 for the one the current game mode
+   posts to. */
+// FUNCTION: WIZ8 0x0058B300
+void AppendTextBoxLine0058B300(const wchar_t* text, ...)
+{
+    va_list arguments;
+    va_start(arguments, text);
+    short text_box = static_cast<short>(va_arg(arguments, int));
+    va_end(arguments);
+
+    if (text_box == -1) {
+        if ((gXStatus.fNpcDialogueMode != 0 && !CanOpenNpcDialogue()) || gXStatus.fCampMode != 0) {
+            text_box = IsNpcDialogueTextBoxActive() ? 0 : 2;
+        } else if (GetFlag68F105()) {
+            text_box = 0;
+        } else {
+            text_box = gXStatus.fCombatMode != 0;
+        }
+    }
+    W8MessageStorageRecord* line =
+        &g_message_storage_68f2d8[text_box][g_status_685170.text_box_lines_used_4997[text_box] - 1];
+    if (line->wString == 0) {
+        srAssertFail("pTextLine->wString != NULL", MGS_TEXT_BOX_CPP, 0x223, 0);
+    }
+    line->value_14 = wcslen(line->wString);
+    wchar_t* previous = line->wString;
+    line->wString = static_cast<wchar_t*>(
+        malloc((wcslen(previous) + wcslen(text)) * sizeof(wchar_t) + sizeof(wchar_t)));
+    if (line->wString != 0) {
+        wcscpy(line->wString, previous);
+        wcscat(line->wString, text);
+        free(previous);
+    } else {
+        line->wString = previous;
+    }
+}
+
 /* Recolour the character span [start, stop) of the most recent line of one
    text box. A -1 box means the one the current game mode posts to. When the
    line was wrapped, the box's split position says where the second row
@@ -830,6 +869,34 @@ void PostCharacterNotice(int party_slot, const wchar_t* format, ...)
                           -1);
 }
 
+/* PostCharacterNotice with an explicit context instead of the automatic -1
+   box; the weapon-set swap paths post it under the dialogue context. */
+// FUNCTION: WIZ8 0x00590A40
+void PostCharacterNoticeInContext00590A40(int party_slot, int context, const wchar_t* format, ...)
+{
+    wchar_t separator[2];
+    wchar_t text[4096];
+    va_list arguments;
+    int stop;
+
+    va_start(arguments, format);
+    vswprintf(text, format, arguments);
+    va_end(arguments);
+
+    wcscpy(separator, (text[0] == L'\'' || text[0] == L':') ? &g_wchar_00689b34 : L" ");
+    FormatNotice(8, context, L"%s%s%s", g_status_685170.buffers.characters[party_slot].name,
+                 separator, text);
+    stop = wcslen(g_status_685170.buffers.characters[party_slot].name);
+    if (text[0] == L'\'') {
+        ++stop;
+        if (text[1] == L's') {
+            ++stop;
+        }
+    }
+    HighlightTextBoxRange(g_status_685170.buffers.party_rows[party_slot].party_order_index, 0, stop,
+                          context);
+}
+
 static unsigned int GetTextBoxLineCount(short text_box)
 {
     unsigned int count = g_status_685170.text_box_lines_shown_49a7[text_box];
@@ -984,6 +1051,152 @@ void ScrollTextBoxDown(int lines)
         g_level_block->dialogue_content_region = 0x59;
     }
     RequestRedraw(W8_REDRAW_TEXT_BOX);
+}
+
+/* Draw the dormant typed-dialogue editor's caret: a vertical bar on the row
+   holding the insertion point, offset by the first-line prefix and the
+   pixel length of the text before the cursor. */
+// FUNCTION: WIZ8 0x0058C8E0
+static void DrawDialogueTextCursor0058C8E0(int x, int y)
+{
+    unsigned int pitch = 0;
+    W8DialogueTextState* input = g_level_block->dialogue_text_input;
+    unsigned int line = 1;
+    unsigned int hidden = 0;
+
+    if (input->line_count > 1) {
+        const unsigned int* offset = input->line_offsets + 1;
+        while (input->cursor >= *offset) {
+            ++line;
+            ++offset;
+            if (line >= input->line_count) {
+                break;
+            }
+        }
+    }
+    short text_box = g_status_685170.text_line_cursor_1795;
+    if (g_status_685170.text_box_lines_shown_49a7[text_box] < g_level_block->text_lines[text_box]) {
+        hidden = g_level_block->text_lines[text_box] -
+                 g_status_685170.text_box_lines_shown_49a7[text_box];
+    }
+    if (line <= hidden) {
+        return;
+    }
+
+    int x_offset = 0;
+    if (line == 1 && input->first_line_prefix != 0) {
+        x_offset = StringPixLength(input->first_line_prefix, g_level_block->text_box_font);
+    }
+    unsigned int start = input->line_offsets[line - 1];
+    x_offset +=
+        StringNPixLength(input->text + start, input->cursor - start, g_level_block->text_box_font);
+
+    int y_line = y + (line - hidden - 1) * 0xb;
+    char* screen = static_cast<char*>(LockPrimarySurface(&pitch));
+    if (y_line < g_level_block->text_box_bottom) {
+        unsigned int bottom = g_level_block->text_box_bottom;
+        unsigned int y_end = y_line + GetFontHeight(g_level_block->text_box_font);
+        if (bottom <= y_end) {
+            y_end = bottom;
+        }
+        int x_cursor = x + x_offset + 1;
+        LineDraw(0, x_cursor, y_line, x_cursor, y_end, -0x100, screen);
+    }
+    UnlockPrimarySurface();
+}
+
+/* Print the dormant typed-dialogue editor's wrapped lines starting at
+   first_line, temporarily terminating each row at the next line's start
+   offset; tracks the widest row and invalidates the printed rectangle. */
+// FUNCTION: WIZ8 0x0058CA30
+static void DrawDialogueTextInputLines0058CA30(int x, int y, unsigned int first_line)
+{
+    W8DialogueTextState* input = g_level_block->dialogue_text_input;
+    wchar_t* string = input->text + input->line_offsets[first_line];
+    int max_width = 0;
+    int x_start = x;
+    int y_start = y;
+    unsigned int line = first_line;
+    bool clipped = false;
+
+    if (input->first_line_prefix != 0 && first_line == 0) {
+        gprintf(x, y, const_cast<wchar_t*>(g_format_s_006068e4), input->first_line_prefix);
+        x += StringPixLength(input->first_line_prefix, g_level_block->text_box_font);
+    }
+    if (line < input->line_count - 1) {
+        do {
+            wchar_t* next = input->text + input->line_offsets[line + 1];
+            wchar_t saved = *next;
+            *next = 0;
+            gprintf(x, y, const_cast<wchar_t*>(g_format_s_006068e4), string);
+            int width = StringPixLength(string, g_level_block->text_box_font);
+            if (max_width < width) {
+                max_width = StringPixLength(string, g_level_block->text_box_font);
+            }
+            input->text[input->line_offsets[line + 1]] = saved;
+            y += 0xb;
+            if (y >= g_level_block->text_box_bottom) {
+                clipped = true;
+                break;
+            }
+            if (x != x_start) {
+                x = x_start;
+            }
+            string = input->text + input->line_offsets[line + 1];
+            ++line;
+        } while (line < input->line_count - 1);
+    }
+    if (!clipped) {
+        gprintf(x, y, const_cast<wchar_t*>(g_format_s_006068e4), string);
+        ++line;
+        int width = StringPixLength(string, g_level_block->text_box_font);
+        if (max_width < width) {
+            max_width = StringPixLength(string, g_level_block->text_box_font);
+        }
+    }
+    InvalidateRegion(x, y_start, x + max_width, y_start + line * 0xb, 0);
+}
+
+/* Repaint the dormant typed-dialogue editor over the text box: the wrapped
+   lines when the input is dirty, then the cursor. */
+// FUNCTION: WIZ8 0x0058C790
+void RedrawDialogueTextInput0058C790(void)
+{
+    W8DialogueTextState* input = g_level_block->dialogue_text_input;
+    if ((input->dirty != 0 || input->unknown_2c != 0)) {
+        short text_box = g_status_685170.text_line_cursor_1795;
+        int offset = g_status_685170.text_box_lines_shown_49a7[text_box] -
+                     g_level_block->text_lines[text_box];
+        if (offset < 7) {
+            SaveFontSettings();
+            SetFontDestBuffer(0xfffffff2, g_level_block->text_box_left, g_level_block->text_box_top,
+                              g_level_block->text_box_right, g_level_block->text_box_bottom, '\0');
+            SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette_2ec);
+            SetFont(g_level_block->text_box_font);
+
+            int y = g_level_block->text_box_top + offset * 0xb;
+            if (y < g_level_block->text_box_top) {
+                y = g_level_block->text_box_top;
+            }
+            if (input->dirty == 0) {
+                if (input->unknown_2c != 0) {
+                    DrawDialogueTextCursor0058C8E0(g_level_block->text_box_left, y);
+                }
+            } else {
+                unsigned int first_line = 0;
+                if (offset < 0) {
+                    first_line = g_level_block->text_lines[text_box] -
+                                 g_status_685170.text_box_lines_shown_49a7[text_box];
+                }
+                DrawDialogueTextInputLines0058CA30(g_level_block->text_box_left, y, first_line);
+                input->dirty = 0;
+                DrawDialogueTextCursor0058C8E0(g_level_block->text_box_left, y);
+            }
+
+            SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette_2ec);
+            RestoreFontSettings();
+        }
+    }
 }
 
 // FUNCTION: WIZ8 0x0058D7E0
