@@ -375,11 +375,106 @@ private:
     AddedLineFilter added_lines_;
 };
 
+struct ProjectRecordPointer {
+    const RecordDecl* record = nullptr;
+    unsigned pointer_depth = 0;
+};
+
+static ProjectRecordPointer project_record_pointer(QualType type)
+{
+    ProjectRecordPointer result;
+    type = canonical(type);
+    while (type->isPointerType()) {
+        ++result.pointer_depth;
+        type = canonical(type->getPointeeType());
+    }
+    if (result.pointer_depth == 0) {
+        return {};
+    }
+
+    const auto* record_type = type->getAs<RecordType>();
+    if (record_type == nullptr) {
+        return {};
+    }
+    const RecordDecl* record = record_type->getDecl();
+    if (const RecordDecl* definition = record->getDefinition()) {
+        record = definition;
+    }
+    const llvm::StringRef name = record->getName();
+    if (!name.starts_with("W8") && !name.starts_with("sr") && !name.starts_with("st")) {
+        return {};
+    }
+    result.record = dyn_cast<RecordDecl>(record->getCanonicalDecl());
+    return result;
+}
+
+class ProjectRecordReinterpretCastCheck final : public ClangTidyCheck {
+public:
+    ProjectRecordReinterpretCastCheck(llvm::StringRef name, ClangTidyContext* context)
+        : ClangTidyCheck(name, context)
+    {
+    }
+
+    void registerMatchers(ast_matchers::MatchFinder* finder) override
+    {
+        finder->addMatcher(ast_matchers::cxxReinterpretCastExpr().bind("record-cast"), this);
+    }
+
+    void check(const ast_matchers::MatchFinder::MatchResult& result) override
+    {
+        const auto* cast = result.Nodes.getNodeAs<CXXReinterpretCastExpr>("record-cast");
+        if (cast == nullptr || result.Context == nullptr || result.SourceManager == nullptr) {
+            return;
+        }
+        if (cast->getBeginLoc().isMacroID()) {
+            return;
+        }
+
+        SourceManager& sources = *result.SourceManager;
+        SourceLocation location = sources.getExpansionLoc(cast->getBeginLoc());
+        if (location.isInvalid() || sources.isInSystemHeader(location)) {
+            return;
+        }
+        const std::string file = repository_relative_path(sources, location);
+        const unsigned line = sources.getSpellingLineNumber(location);
+        if (!added_lines_.contains(file, line)) {
+            return;
+        }
+
+        ASTContext& context = *result.Context;
+        if (is_in_template_instantiation(cast, context)) {
+            return;
+        }
+
+        const Expr* source_expr = cast->getSubExpr()->IgnoreParenImpCasts();
+        const QualType source_type = canonical(source_expr->getType());
+        const QualType target_type = canonical(cast->getType());
+        const ProjectRecordPointer source = project_record_pointer(source_type);
+        const ProjectRecordPointer target = project_record_pointer(target_type);
+        if (source.record == nullptr || target.record == nullptr) {
+            return;
+        }
+        if (source.record == target.record && source.pointer_depth == target.pointer_depth) {
+            return;
+        }
+
+        diag(cast->getBeginLoc(),
+             "reinterpret_cast from modeled project record pointer %0 to %1 hides a "
+             "source-model disagreement; fix the owning type or recovered prototype instead")
+            << source_type << target_type;
+    }
+
+private:
+    AddedLineFilter added_lines_;
+};
+
 class WizardryTidyModule final : public ClangTidyModule {
 public:
     void addCheckFactories(ClangTidyCheckFactories& factories) override
     {
         factories.registerCheck<RedundantScalarCastCheck>("wiz8-redundant-scalar-cast");
+        factories.registerCheck<ProjectRecordReinterpretCastCheck>(
+            "wiz8-project-record-reinterpret-cast");
     }
 };
 

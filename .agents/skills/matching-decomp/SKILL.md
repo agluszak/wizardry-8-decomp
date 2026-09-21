@@ -76,6 +76,13 @@ For a substantial body, reconstruct the source contract before transcribing cont
   the field/subobject there instead of adding byte-pointer arithmetic or an overlay cast. Literal byte
   offsets through `this` or typed W8/sr/st pointers/references are a hard error with no waiver. Leave
   raw storage only when the fact genuinely remains unresolved and say why.
+- **Bulk/overlapping accesses:** widened loads/stores, dword/block copies and `memcpy` are often
+  compiler lowering of an ordinary assignment or embedded-record copy. Trace the whole extent before
+  turning them into a wider field, byte alias or union. Same-offset alternate decompiler types are a
+  source-model question for type-modeling, not permission to add an overlay.
+- **Pointer provenance:** follow the actual receiver/argument through representative callers. If a call
+  needs a reinterpret cast between two modeled W8/sr/st record pointers solely to satisfy the recovered
+  prototype, stop and reconcile that prototype/owner rather than documenting the cast.
 - **Callables:** use an evidence-backed declaration for a recovered callable. Never manufacture a call
   by reinterpret-casting an address/storage value to an inline function-pointer type; declared
   callbacks and external dynamic-library boundaries are different cases.
