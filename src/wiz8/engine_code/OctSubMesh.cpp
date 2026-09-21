@@ -350,7 +350,7 @@ stMeshModel* OctMeshModel::Read0049E9A0(int file, srMaterialIFace** materials,
     }
 
     srShader shader;
-    CopyLevelDataHandle(&shader.value, &render_flags[selected_material]);
+    shader.CopyValue(&render_flags[selected_material]);
     model->setShader(shader, 0);
     if ((render_flags[selected_material] & 0x6000) == 0x4000) {
         if (unweighted) {

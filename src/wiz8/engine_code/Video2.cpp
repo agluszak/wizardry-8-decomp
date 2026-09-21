@@ -75,8 +75,6 @@
 
 /* Video2-internal helpers. Their only recovered callers are in this unit, so
    they are declared here instead of the released Video2 header. */
-srNode* MakePosterQuad00424BA0(srTextureIFace* texture, float width, float height,
-                               unsigned char positional_3);
 srModelInstance* Video2DRectToSquarePolygon(int* rect, void* source, int source_pitch,
                                             srNode* parent, unsigned char overlay);
 srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch, srNode* parent,
@@ -3662,7 +3660,7 @@ srNode* MakePosterQuad00424BA0(srTextureIFace* texture, float width, float heigh
     model->setMaterial(g_blit_material_65967c, 0, static_cast<srMeshModel::e_side>(0));
     model->setTexture(texture, 0, 0);
     srShader shader_copy;
-    CopyLevelDataHandle(&shader_copy.value, &shader.value);
+    shader_copy.CopyValue(&shader.value);
     model->setShader(shader_copy, 0);
 
     stModelInstance* instance = SR_NEW(stModelInstance)(static_cast<srNode*>(0));

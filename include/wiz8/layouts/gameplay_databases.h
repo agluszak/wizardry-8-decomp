@@ -332,7 +332,11 @@ struct W8NpcDatabaseRecord {
     char display_name[0x26];
     W8NpcCharacterTemplate character; /* 0x0c4 */
     W8PList* item_stock_rules;        /* 0x2ca: W8NpcItemStockRule* elements */
-    unsigned char unknown_2ce[8];
+    /* 0x2ce/0x2d2: the trade price factors. CalculateTradeStackPrice adds the
+       bargained adjustment to buy_price_factor when the NPC buys from the
+       party and subtracts it from sell_price_factor when the party buys. */
+    float buy_price_factor;
+    float sell_price_factor;
     /* 0x2d6: one accepted trade-item class per bit, used by 0x0055B290. */
     unsigned int trade_item_class_mask;
     unsigned char unknown_2da[0x10];

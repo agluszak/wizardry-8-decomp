@@ -405,6 +405,48 @@ bool IsPartyLookingAwayFrom(int, W8MonsterInfo* monster_info)
     return ShortestAngleDistance(bearing, facing) >= g_facing_tolerance_005ee858;
 }
 
+/* The facing step from `position`'s quadrant toward `arg_2`'s quadrant: the
+   target quadrant verbatim for rows 0-3, the opposite quadrant when the
+   target sits in the centre, and the no-facing code 4 when either side is
+   unseated or both match. */
+// FUNCTION: WIZ8 0x00555e70
+signed char DecideFacingForPosition(int position, int arg_2)
+{
+    signed char source = g_status_685170.formation.positions[position].bQuadrant;
+    signed char target = g_status_685170.formation.positions[arg_2].bQuadrant;
+
+    if (source == -1) {
+        srAssertFail("bSourceQuadrant != -1", FORMATION_CPP, 0x40d, 0);
+    }
+    if (target == -1 || source == target) {
+        return 4;
+    }
+    switch (target) {
+    case 0:
+        return 0;
+    case 1:
+        return 1;
+    case 2:
+        return 2;
+    case 3:
+        return 3;
+    case 4:
+        switch (source) {
+        case 0:
+            return 2;
+        case 1:
+            return 3;
+        case 2:
+            return 0;
+        case 3:
+            return 1;
+        }
+        break;
+    }
+    srAssertFail("FALSE", FORMATION_CPP, 0x43a, 0);
+    return 4;
+}
+
 /* Whether the party is looking at a point, measured as a plain difference
    rather than the shortest way round - so a bearing either side of the wrap
    answers no. */
