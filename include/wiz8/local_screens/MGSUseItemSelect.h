@@ -1,6 +1,7 @@
 #pragma once
 
 #include "input.h"
+#include "wiz8/layouts/main_game_screen.h"
 
 struct Controls;
 struct W8Region;
@@ -12,14 +13,16 @@ struct W8ItemInstance;
    iterated together with its siblings by the per-frame update. */
 extern Controls* g_use_item_select_panels_69b994[3];
 
-/* 0x0069B950: up/down scroll buttons for the use-item select list. */
-extern W8TextControl* g_use_item_select_scroll_buttons[2];
+/* 0x0069B950: up/down scroll buttons for the use-item select list plus the
+   caption label at index 2; CloseUseItemSelectView deletes all three in one
+   pass ending at g_selected_use_item_line_0069b95c. */
+extern W8TextControl* g_use_item_select_scroll_buttons[3];
 /* 0x0069B960: action/icon controls indexed by region callback_id (0..8). */
 extern W8TextControl* g_use_item_select_controls[9];
 
 struct W8ItemInstance;
 
-extern int g_value_69b988;
+extern W8MainUiMode g_value_69b988;
 extern W8ItemInstance* g_value_69b9a0;
 extern W8ItemInstance* g_value_69b9a4;
 
@@ -27,7 +30,7 @@ extern W8ItemInstance* g_value_69b9a4;
    is open; RestoreTargetCursor59D930 puts it back on dialog destroy. */
 extern int g_saved_target_cursor_0069bf30;
 
-void SetValue69B988(int value);
+void SetValue69B988(W8MainUiMode value);
 void RedrawPanel69B998(void);
 void CloseUseItemSelection0059D950(void);
 /* Scroll-button region callback for use-item select (ids 0 and 1). */

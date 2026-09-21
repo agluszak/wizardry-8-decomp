@@ -668,7 +668,7 @@ void DestroySurpriseFade0056B690(void);         /* 0x0056B690 */
 unsigned char UpdateSurpriseFade0056B6F0(void); /* 0x0056B6F0 */
 void DisableMainRegionSet(void);                /* 0x00561FB0 */
 void EnableMainRegionSet(void);                 /* 0x00561FA0 */
-void OpenUseItemSelectView(int slot);           /* 0x0059C930 */
+unsigned char OpenUseItemSelectView(int slot);  /* 0x0059C930 */
 
 unsigned char MainGameScreenInitialize(void);
 unsigned char MainGameScreenEnter(void);

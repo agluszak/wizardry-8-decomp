@@ -10,13 +10,17 @@
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/local_code/character_events.h"
+#include "wiz8/local_code/Configuration.h"
+#include "wiz8/local_code/Gameloop.h"
 #include "wiz8/local_code/Magic.h"
 #include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/Targeting.h"
 #include "wiz8/local_code/TextControl.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/MGSPortraitCombat.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/NPCInteractionSubscreen.h"
@@ -35,10 +39,10 @@
 // GLOBAL: WIZ8 0x0069b994
 Controls* g_use_item_select_panels_69b994[3];
 // GLOBAL: WIZ8 0x0069b988
-int g_value_69b988;
+W8MainUiMode g_value_69b988;
 
 // GLOBAL: WIZ8 0x0069B950
-W8TextControl* g_use_item_select_scroll_buttons[2];
+W8TextControl* g_use_item_select_scroll_buttons[3];
 // GLOBAL: WIZ8 0x0069B95C
 int g_selected_use_item_line_0069b95c;
 // GLOBAL: WIZ8 0x0069B960
@@ -80,6 +84,203 @@ void RebuildUseItemSelectList0059D230(int mode, W8ItemInstance* select); /* 0x00
 bool AppendUseItemListEntry0059D450(W8ItemInstance* item, W8ItemInstance* select,
                                     unsigned char pass); /* 0x0059D450 */
 bool IsUseItemFilteredOut0059D6B0(W8ItemInstance* item); /* 0x0059D6B0 */
+void UseItemSelectScrollUp0059D790(void);                /* 0x0059D790 */
+void UseItemSelectScrollDown0059D7E0(void);              /* 0x0059D7E0 */
+void UseItemSelectFilterToggle0059D830(void);            /* 0x0059D830 */
+void UseItemSelectAssayButton0059D860(void);             /* 0x0059D860 */
+void CreateUseItemSelectControls0059C300(void);          /* 0x0059C300 */
+
+/* Build the use-item view chrome: three Controls panels, the two scroll
+   buttons plus the caption label in g_use_item_select_scroll_buttons, and the
+   nine g_use_item_select_controls rows. */
+// FUNCTION: WIZ8 0x0059C300
+void CreateUseItemSelectControls0059C300(void)
+{
+    Controls* panel;
+    Controls** panel_iter;
+
+    g_use_item_select_panels_69b994[0] = new Controls(0x17, 0x166, 0xa4, 0x1c2, 0x97, 0, 0);
+    g_use_item_select_panels_69b994[1] = new Controls(0xa4, 0x166, 0x1dc, 0x1c2, 0x97, 0, 1);
+    g_use_item_select_panels_69b994[2] = new Controls(0x1dc, 0x166, 0x269, 0x1c2, 0x97, 0, 2);
+    panel = g_use_item_select_panels_69b994[0];
+    g_use_item_select_scroll_buttons[0] =
+        new W8TextControl(panel, 0x9c, 0x24, 0x1d, 0x44, 0x3d, 0x98, 0, 0, 2, 1, 4, 3);
+    g_use_item_select_scroll_buttons[1] =
+        new W8TextControl(panel, 0x9d, 0x48, 0x1d, 0x68, 0x3d, 0x98, 0, 5, 7, 6, 9, 8);
+    g_use_item_select_scroll_buttons[2] =
+        new W8TextControl(panel, 0xffffffff, 4, 4, 0x89, 0x13, -1, -1, -1, -1, -1, -1, -1);
+    g_use_item_select_scroll_buttons[0]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    g_use_item_select_scroll_buttons[1]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    g_use_item_select_scroll_buttons[0]->m_primaryActivationCallback =
+        UseItemSelectScrollUp0059D790;
+    g_use_item_select_scroll_buttons[1]->m_primaryActivationCallback =
+        UseItemSelectScrollDown0059D7E0;
+    g_use_item_select_scroll_buttons[2]->m_textBuffer.SetLayoutMode(
+        g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
+    g_use_item_select_scroll_buttons[2]->m_textBuffer.SetText(gppStringList[0x77a], g_font_683660);
+    panel = g_use_item_select_panels_69b994[2];
+    g_use_item_select_controls[0] =
+        new W8TextControl(panel, 0x9e, 5, 5, 0x31, 0x39, -1, -1, -1, -1, -1, -1, -1);
+    g_use_item_select_controls[0]->m_textBuffer.SetLayoutMode(g_W8TextBufferLayoutMask005ED55C |
+                                                              g_W8TextBufferLayoutMask005ED550);
+    g_use_item_select_controls[0]->AddLayoutFlags(g_W8TextControlMask005ED594);
+    g_use_item_select_controls[1] =
+        new W8TextControl(panel, 0xffffffff, 0x36, 6, 0x44, 0x14, 0x1ab, 0, 0, 1, 2, 4, 3);
+    g_use_item_select_controls[2] =
+        new W8TextControl(panel, 0xffffffff, 0x47, 6, 0x55, 0x14, 0x1ab, 0, 5, 6, 7, 9, 8);
+    g_use_item_select_controls[3] =
+        new W8TextControl(panel, 0x9f, 0x58, 6, 0x66, 0x14, 0x1ab, 0, 0xa, 0xb, 0xc, 0xe, 0xd);
+    g_use_item_select_controls[4] = new W8TextControl(panel, 0xffffffff, 0x36, 0x17, 0x44, 0x25,
+                                                      0x1ab, 0, 0xf, 0x10, 0x11, 0x13, 0x12);
+    g_use_item_select_controls[5] = new W8TextControl(panel, 0xffffffff, 0x47, 0x17, 0x55, 0x25,
+                                                      0x1ab, 0, 0x14, 0x15, 0x16, 0x18, 0x17);
+    g_use_item_select_controls[6] = new W8TextControl(panel, 0xffffffff, 0x58, 0x17, 0x66, 0x25,
+                                                      0x1ab, 0, 0x19, 0x1a, 0x1b, 0x1d, 0x1c);
+    g_use_item_select_controls[7] = new W8TextControl(panel, 0xffffffff, 0x35, 0x27, 0x56, 0x39,
+                                                      0x1aa, 0, 0x1e, 0x22, 0x1f, 0x20, 0x21);
+    g_use_item_select_controls[8] =
+        new W8TextControl(panel, 0xa0, 0x6c, 6, 0x87, 0x21, 0x8e, 0, 4, -1, 5, 6, 7);
+    g_use_item_select_controls[2]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    g_use_item_select_controls[3]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    g_use_item_select_controls[4]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    g_use_item_select_controls[5]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    g_use_item_select_controls[6]->AddLayoutFlags(g_W8TextControlMask005ED578);
+    g_use_item_select_controls[0]->m_primaryActivationCallback = UseItemSelectAssayButton0059D860;
+    g_use_item_select_controls[0]->m_secondaryActivationCallback = UseItemSelectAssayButton0059D860;
+    g_use_item_select_controls[1]->m_primaryActivationCallback = NoOp;
+    g_use_item_select_controls[2]->m_primaryActivationCallback = NoOp;
+    g_use_item_select_controls[3]->m_primaryActivationCallback = UseItemSelectFilterToggle0059D830;
+    g_use_item_select_controls[4]->m_primaryActivationCallback = NoOp;
+    g_use_item_select_controls[5]->m_primaryActivationCallback = NoOp;
+    g_use_item_select_controls[6]->m_primaryActivationCallback = NoOp;
+    g_use_item_select_controls[8]->m_primaryActivationCallback = CloseUseItemSelection0059D950;
+    for (panel_iter = g_use_item_select_panels_69b994;
+         panel_iter < g_use_item_select_panels_69b994 + 3; panel_iter++) {
+        (*panel_iter)->SetEnabled(1);
+    }
+}
+
+// FUNCTION: WIZ8 0x0059C930
+unsigned char OpenUseItemSelectView(int slot)
+{
+    W8TextControl** control;
+    W8MainUiMode mode;
+
+    g_use_item_commit_active_0069bf38 = 0;
+    UpdateScreenOverlays(0);
+    gXStatus.fItemSelectMode = 1;
+    if (g_level_block->combat_end_notification != -1) {
+        DestroySubMenuControls();
+    }
+    if (gXStatus.fNpcDialogueMode != 0) {
+        EndNpcDialogueSession0056E800(0);
+    }
+    CloseMainGameOverlays();
+    mode = g_settings_6850c8.main_ui_mode;
+    if (mode == W8_MAIN_UI_MODE_RADAR) {
+        ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 0);
+    } else {
+        SetViewportMode(GetMainGameViewportMode());
+    }
+    g_value_69b988 = mode;
+    RegionSetEnable(0x14);
+    EnableRegionInput(0x52);
+    EnableRegionInput(0x53);
+    EnableRegionInput(0x54);
+    EnableRegionInput(0x55);
+    g_level_block->action_panel_visible = 1;
+    DisableRegionInput(0x59);
+    DisableRegionInput(0x56);
+    DisableRegionInput(0x57);
+    DisableRegionInput(0x58);
+    RegionSetEnable(0x1a);
+    SelectTextBox(2);
+    ResetEditorStatusLine0058AA20(-1);
+    g_level_block->flag_271 = 0;
+    CreateUseItemSelectControls0059C300();
+    g_use_item_select_mode_0069b98c = -1;
+    g_use_item_select_flags_0069b984 = 0;
+    g_use_item_cursor_x_0069b9a8 = -1;
+    g_use_item_cursor_y_0069b9ac = -1;
+    g_use_item_hover_row_0069bf34 = -1;
+    g_value_69b9a0 = 0;
+    g_value_69b9a4 = 0;
+    g_use_item_detail_item_0069bf2c = 0;
+    for (control = g_use_item_select_controls + 1; control <= g_use_item_select_controls + 6;
+         control++) {
+        (*control)->SetEnabled(0);
+    }
+    memset(g_use_item_list_0069b9b4, 0, sizeof(g_use_item_list_0069b9b4));
+    g_use_item_select_controls[7]->SetEnabled(0);
+    RequestRedraw(0x200);
+    RequestRedraw(0x100);
+    RequestRedraw(0x1000);
+    g_use_item_owner_index_0069b9b0 = -1;
+    RefreshUseItemSelectionForSlot0059CC40(slot);
+    SelectSpellCastingPartySlot(slot);
+    PauseMainGameWorld();
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x0059CAC0
+void CloseUseItemSelectView(void)
+{
+    W8TextControl** control;
+    Controls** panel;
+
+    if (g_use_item_commit_active_0069bf38 == 0) {
+        RegionSetDisable(0x1a);
+        DisableRegionInput(0x52);
+        DisableRegionInput(0x53);
+        DisableRegionInput(0x54);
+        DisableRegionInput(0x55);
+        RegionSetDisable(0x14);
+        g_level_block->action_panel_visible = 0;
+        SetTargetingMode(0);
+        ResetEditorStatusLine0058AA20(-1);
+        g_level_block->flag_271 = 1;
+        SelectTextBox(gXStatus.fCombatMode != 0);
+        for (control = g_use_item_select_scroll_buttons;
+             control < g_use_item_select_scroll_buttons + 3; control++) {
+            if (*control != 0) {
+                delete *control;
+            }
+        }
+        for (control = g_use_item_select_controls; control < g_use_item_select_controls + 9;
+             control++) {
+            if (*control != 0) {
+                delete *control;
+            }
+        }
+        for (panel = g_use_item_select_panels_69b994; panel < g_use_item_select_panels_69b994 + 3;
+             panel++) {
+            if (*panel != 0) {
+                delete *panel;
+            }
+        }
+        gXStatus.fItemSelectMode = 0;
+        ApplyMainGameModeFlag(g_value_69b988, 1);
+        RequestRedraw(0x200);
+        RequestRedraw(0x100);
+        RequestRedraw(0x1000);
+        ResumeMainGameWorld();
+        gXStatus.item_drag_active = 0;
+        gXStatus.dragged_item = 0;
+        gXStatus.dragged_item_origin = 0xff;
+        gXStatus.dragged_character_slot = -1;
+        if (gXStatus.fLockInteract != 0 && IsScreenTransitionPending() == 0) {
+            OpenLockInteraction00587510(0);
+            return;
+        }
+        if (gXStatus.fTrapInteract != 0 && IsScreenTransitionPending() == 0) {
+            OpenTrapInteraction0058A470(0);
+            return;
+        }
+        if (gXStatus.fCampMode != 0 && g_pending_screen_state.id != 6) {
+            SyncDialogueNpcState00577260();
+        }
+    }
+}
 
 /* Rebuild the list for the character the open use-item view now targets. A
    dragged item switches the list to that item's usable/unusable passes; a
@@ -182,7 +383,7 @@ void RefreshUseItemSelectionForSlot0059CC40(int party_slot)
 }
 
 // FUNCTION: WIZ8 0x0059CF30
-void SetValue69B988(int value)
+void SetValue69B988(W8MainUiMode value)
 {
     g_value_69b988 = value;
 }
@@ -532,6 +733,58 @@ void RefreshUseItemSelection(void)
     if (g_use_item_select_mode_0069b98c != -1) {
         RebuildUseItemSelectList0059D230(g_use_item_select_mode_0069b98c, 0);
         RequestRedraw(0x200);
+    }
+}
+
+// FUNCTION: WIZ8 0x0059D790
+void UseItemSelectScrollUp0059D790(void)
+{
+    if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[0]->m_stateFlags &
+                                   g_W8TextControlMask005ED570) != 0) {
+        if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[1]->m_stateFlags &
+                                       g_W8TextControlMask005ED570) != 0) {
+            g_use_item_select_scroll_buttons[1]->DisableSecondaryState(0);
+            g_use_item_select_scroll_buttons[1]->Invalidate(0);
+        }
+        RebuildUseItemSelectList0059D230(0, 0);
+        return;
+    }
+    g_use_item_select_scroll_buttons[0]->EnableSecondaryState(0);
+}
+
+// FUNCTION: WIZ8 0x0059D7E0
+void UseItemSelectScrollDown0059D7E0(void)
+{
+    if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[1]->m_stateFlags &
+                                   g_W8TextControlMask005ED570) != 0) {
+        if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[0]->m_stateFlags &
+                                       g_W8TextControlMask005ED570) != 0) {
+            g_use_item_select_scroll_buttons[0]->DisableSecondaryState(0);
+            g_use_item_select_scroll_buttons[0]->Invalidate(0);
+        }
+        RebuildUseItemSelectList0059D230(1, 0);
+        return;
+    }
+    g_use_item_select_scroll_buttons[1]->EnableSecondaryState(0);
+}
+
+// FUNCTION: WIZ8 0x0059D830
+void UseItemSelectFilterToggle0059D830(void)
+{
+    if (static_cast<unsigned char>(g_use_item_select_controls[3]->m_stateFlags &
+                                   g_W8TextControlMask005ED570) == 0) {
+        g_use_item_select_controls[3]->EnableSecondaryState(1);
+        g_use_item_select_controls[3]->Invalidate(0);
+    }
+    g_use_item_select_flags_0069b984 |= 1;
+}
+
+// FUNCTION: WIZ8 0x0059D860
+void UseItemSelectAssayButton0059D860(void)
+{
+    if (g_use_item_detail_item_0069bf2c != 0 &&
+        g_use_item_select_controls[0]->m_imageObject != -1) {
+        OpenUseItemAssayDialog59D880(g_use_item_detail_item_0069bf2c);
     }
 }
 
