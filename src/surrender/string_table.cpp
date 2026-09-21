@@ -1,25 +1,44 @@
 #include "surrender/srStringTable.h"
 
+#include "surrender/srHeap.h"
+
 #include <string.h>
 
 // FUNCTION: SURRENDER 0x10003840
-srStringTable::srStringTable()
-    : strings_00(0), capacity_04(0), count_08(0)
-{
-}
+srStringTable::srStringTable() : strings_00(0), capacity_04(0), count_08(0) {}
 
 // FUNCTION: SURRENDER 0x10003850
 void srStringTable::reset()
 {
     for (long index = 0; index < count_08; ++index) {
+        if (capacity_04 <= index) {
+            const long capacity = capacity_04 + 8 + index;
+            if (capacity_04 != capacity) {
+                char** strings = 0;
+                if (capacity != 0) {
+                    strings = static_cast<char**>(operator new(capacity * 4));
+                    if (strings_00 != 0 && capacity_04 != 0) {
+                        const long copy = capacity <= capacity_04 ? capacity : capacity_04;
+                        for (long position = 0; position < copy; ++position) {
+                            strings[position] = strings_00[position];
+                        }
+                    }
+                }
+                operator delete(strings_00);
+                strings_00 = strings;
+                capacity_04 = capacity;
+            }
+        }
         if (strings_00[index] != 0) {
-            delete[] strings_00[index];
+            srHeap.free(strings_00[index]);
             strings_00[index] = 0;
         }
     }
-    delete[] strings_00;
-    strings_00 = 0;
-    capacity_04 = 0;
+    if (capacity_04 != 0) {
+        operator delete(strings_00);
+        strings_00 = 0;
+        capacity_04 = 0;
+    }
     count_08 = 0;
 }
 
@@ -27,7 +46,7 @@ void srStringTable::reset()
 srStringTable::~srStringTable()
 {
     reset();
-    delete[] strings_00;
+    operator delete(strings_00);
     strings_00 = 0;
     capacity_04 = 0;
 }
@@ -39,18 +58,26 @@ void srStringTable::addString(const char* string)
         return;
     }
 
-    if (count_08 >= capacity_04) {
-        const long capacity = capacity_04 + count_08 + 8;
-        char** strings = new char*[capacity];
-        for (long index = 0; index < capacity_04; ++index) {
-            strings[index] = strings_00[index];
+    if (static_cast<unsigned long>(capacity_04) <= static_cast<unsigned long>(count_08)) {
+        const long capacity = capacity_04 + 8 + count_08;
+        if (capacity_04 != capacity) {
+            char** strings = 0;
+            if (capacity != 0) {
+                strings = static_cast<char**>(operator new(capacity * 4));
+                if (strings_00 != 0 && capacity_04 != 0) {
+                    const long copy = capacity <= capacity_04 ? capacity : capacity_04;
+                    for (long index = 0; index < copy; ++index) {
+                        strings[index] = strings_00[index];
+                    }
+                }
+            }
+            operator delete(strings_00);
+            strings_00 = strings;
+            capacity_04 = capacity;
         }
-        delete[] strings_00;
-        strings_00 = strings;
-        capacity_04 = capacity;
     }
 
-    strings_00[count_08] = new char[strlen(string) + 1];
+    strings_00[count_08] = static_cast<char*>(srHeap.allocate(strlen(string) + 1));
     strcpy(strings_00[count_08], string);
     ++count_08;
 }
@@ -83,21 +110,27 @@ srStringTable& srStringTable::operator=(const srStringTable& other)
 }
 
 // FUNCTION: SURRENDER 0x10003AC0
-srStringTable::srStringTable(const srStringTable& other)
-    : strings_00(0), capacity_04(0), count_08(other.count_08)
+srStringTable::srStringTable(const srStringTable& other) : strings_00(0), capacity_04(0)
 {
-    if (other.capacity_04 != 0) {
-        capacity_04 = other.capacity_04;
-        strings_00 = new char*[capacity_04];
-        for (long index = 0; index < capacity_04; ++index) {
+    if (&other != this) {
+        const long capacity = other.capacity_04;
+        operator delete(strings_00);
+        strings_00 = 0;
+        capacity_04 = 0;
+        if (capacity != 0) {
+            capacity_04 = capacity;
+            strings_00 = static_cast<char**>(operator new(capacity * 4));
+        }
+        for (long index = 0; index < other.capacity_04; ++index) {
             strings_00[index] = other.strings_00[index];
         }
     }
+    count_08 = other.count_08;
 }
 
 // FUNCTION: SURRENDER 0x10003B40
-void srStringTable::addSeparatedStrings(
-    const char* strings, const char* separators, int append_slash)
+void srStringTable::addSeparatedStrings(const char* strings, const char* separators,
+                                        int append_slash)
 {
     if (strings == 0 || *strings == '\0') {
         return;
@@ -107,8 +140,7 @@ void srStringTable::addSeparatedStrings(
         const size_t length = strlen(strings);
         char* string = new char[length + (append_slash ? 2 : 1)];
         strcpy(string, strings);
-        if (append_slash && string[length - 1] != '/' &&
-            string[length - 1] != '\\') {
+        if (append_slash && string[length - 1] != '/' && string[length - 1] != '\\') {
             strcat(string, "/");
         }
         addString(string);
@@ -127,8 +159,7 @@ void srStringTable::addSeparatedStrings(
         char* string = new char[length + (append_slash ? 2 : 1)];
         strncpy(string, current, length);
         string[length] = '\0';
-        if (append_slash && string[length - 1] != '/' &&
-            string[length - 1] != '\\') {
+        if (append_slash && string[length - 1] != '/' && string[length - 1] != '\\') {
             strcat(string, "/");
         }
         addString(string);
