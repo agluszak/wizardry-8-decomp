@@ -477,7 +477,7 @@ void OpenMonsterInfoDialog0056AD60(int location_id);                    /* 0x005
 void OpenAssayDialog0056AE20(W8ItemInstance* item, int character_slot); /* 0x0056AE20 */
 
 void OnQuitGameDialogClosed(W8DialogBase* dialog);
-void Function560A70(W8DialogBase* dialog); /* 0x00560A70 */
+void OnEndGameDialogClosed00560A70(W8DialogBase* dialog); /* 0x00560A70 */
 
 void PauseMainGameWorld(void);
 void ResumeMainGameWorld(void);
@@ -644,7 +644,7 @@ bool AttemptNpcItemTrade005AE2A0(W8ItemInstance* item, unsigned char quantity, i
    chosen count to the editor slot and refreshes the trade selection. */
 void NpcTradeSplitDialogResult005AE1A0(W8DialogBase* dialog);
 void RefreshFormationPanel005B2980(unsigned char show_portraits); /* 0x005B2980 */
-void Function58BA60(void);                                        /* 0x0058BA60 */
+void ScrollTextBoxToBottom0058BA60(void);                         /* 0x0058BA60 */
 void EndLockInteractMode(char suspend);                           /* 0x005879A0 */
 void UpdateMainGameScreen(void);                                  /* 0x0058A750 */
 void EndTrapInteractMode(char suspend);                           /* 0x0058A790 */

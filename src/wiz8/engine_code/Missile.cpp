@@ -1194,6 +1194,11 @@ bool W8Missile::IsCycleSupported(signed char cycle)
 
 /* Select one of the missile representation's two emitters and rebuild its
    light and particle attachment state. */
+/* 0x004A4440 is a split address inside this body: it resumes at the
+   animation-record field copy after the timestamp read, not a separate
+   authored function. */
+// SYNTHETIC: WIZ8 0x004A4440
+// W8Missile::SetCycle mid-body continuation
 // FUNCTION: WIZ8 0x004a4300
 void W8Missile::SetCycle(signed char cycle)
 {

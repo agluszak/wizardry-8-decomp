@@ -965,6 +965,60 @@ void AdvanceNoticeLine(short text_box)
     RequestRedraw(W8_REDRAW_TEXT_BOX);
 }
 
+/* Scroll the active text box so its bottom line is visible, with a one- or
+   seven-line trailing margin: one while the NPC dialogue layout is flagged or
+   every modal mode is quiet, seven while another mode owns the screen. When
+   the dormant typed-dialogue input owns the cursor's box, its pending
+   `line_count` rows are included in the target. */
+// FUNCTION: WIZ8 0x0058BA60
+void ScrollTextBoxToBottom0058BA60(void)
+{
+    W8DialogueTextState* input;
+    int adjust;
+
+    if (IsNpcDialogueTextBoxActive577830()) {
+        return;
+    }
+    if (g_level_block->dialogue_text_input_open != 0 &&
+        (input = g_level_block->dialogue_text_input, input != 0) &&
+        g_status_685170.text_line_cursor_1795 == input->text_box) {
+        if (gXStatus.fNpcDialogueMode != 0) {
+            if (g_screen_state_00649f1c->flag_261 != 0) {
+                adjust = 1;
+            } else {
+                adjust = 7;
+            }
+        } else if (gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0 &&
+                   gXStatus.fCampMode == 0) {
+            adjust = 1;
+        } else {
+            adjust = 7;
+        }
+        ScrollTextBoxTo(
+            static_cast<int>(
+                g_status_685170.text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795] +
+                input->line_count) -
+            adjust);
+        return;
+    }
+    if (gXStatus.fNpcDialogueMode != 0) {
+        if (g_screen_state_00649f1c->flag_261 != 0) {
+            adjust = 1;
+        } else {
+            adjust = 7;
+        }
+    } else if (gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0 &&
+               gXStatus.fCampMode == 0) {
+        adjust = 1;
+    } else {
+        adjust = 7;
+    }
+    ScrollTextBoxTo(
+        static_cast<int>(
+            g_status_685170.text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795]) -
+        adjust);
+}
+
 // FUNCTION: WIZ8 0x0058bbc0
 void ScrollTextBoxTo(int line)
 {

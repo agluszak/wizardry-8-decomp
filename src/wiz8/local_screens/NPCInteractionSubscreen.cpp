@@ -2969,7 +2969,7 @@ void CloseNpcDialogueOptionLayout(void)
     }
     g_screen_state_00649f1c->flag_229 = 0;
     SelectTextBox(3);
-    Function58BA60();
+    ScrollTextBoxToBottom0058BA60();
 }
 
 // FUNCTION: WIZ8 0x00572590
