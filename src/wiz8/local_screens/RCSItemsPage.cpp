@@ -339,7 +339,7 @@ void ReportCastResult005BA620(int party_slot)
     int result;
 
     StartBreathCycle(giReviewCharSlot, 0);
-    result = Function548E20(giReviewCharSlot, party_slot);
+    result = RevealItemsByProfessionLevel00548E20(giReviewCharSlot, party_slot);
     character = g_status_685170.buffers.characters + party_slot;
     if (result == 0) {
         SoundPlay("Data\\Sound\\Misc\\Spell Fizzle 01.wav", 0);

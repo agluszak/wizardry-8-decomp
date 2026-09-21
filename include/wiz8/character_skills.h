@@ -122,6 +122,9 @@ enum W8Trait {
 /* 0x00547A50: the cheat-death trait's revival - notice, unconsciousness, and
    hit points rolled back up from a profession-level-scaled share. */
 void CheatDeathRevive00547A50(int party_slot);
+/* 0x00548E20: reveals a party slot's item bindings at a strength of the
+   character's current-profession level divided by four plus one. */
+int RevealItemsByProfessionLevel00548E20(int character_index, unsigned int party_slot);
 /* 0x00548E60: the alchemist's brew - rolls a level-banded item for a character
    with the MAKE_POTIONS trait, then re-arms the brew cooldown. */
 void BrewAlchemistPotion00548E60(W8Character* character);

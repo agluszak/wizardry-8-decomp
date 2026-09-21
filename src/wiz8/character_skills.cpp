@@ -304,6 +304,18 @@ int g_alchemist_brew_recipes[][3] = {
     {258, 12, 15}, {-1, 0, 0},
 };
 
+/* Reveal the bindings on a party slot's items at a strength derived from the
+   reviewed character's level in their current profession: a quarter of the
+   level plus one. */
+// FUNCTION: WIZ8 0x00548E20
+int RevealItemsByProfessionLevel00548E20(int character_index, unsigned int party_slot)
+{
+    W8Character* character = &g_status_685170.buffers.characters[character_index];
+    unsigned int level = character->profession_levels[character->current_profession];
+
+    return RevealCharacterItemBindings(party_slot, (level >> 2) + 1, 0);
+}
+
 /* Brew one potion for a conscious alchemist whose cooldown has elapsed. The
    table bands each potion by alchemist profession level (-1 opens the top
    end); a random in-band entry is created, announced and stowed, then the
