@@ -258,7 +258,7 @@ void RemoveNpcScriptItem(W8ItemInstance* item, int match_item_id, int item_id)
                     EmptyItemRecord(slot_item, &g_status_685170.buffers.characters[slot], 1);
                 }
                 swprintf(text, gppStringList[0x7ec], g_status_685170.buffers.characters[slot].name);
-                if (g_screen_state_00649f1c->value_fc == 4) {
+                if (g_screen_state_00649f1c->dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {
                     RebuildNpcTradeItemList005ADB10(0);
                     return;
                 }
@@ -288,7 +288,7 @@ void RemoveNpcScriptItem(W8ItemInstance* item, int match_item_id, int item_id)
                 EmptyPartyPoolEntry00521CD0(slot);
             }
             swprintf(text, gppStringList[0x7ed]);
-            if (g_screen_state_00649f1c->value_fc == 4) {
+            if (g_screen_state_00649f1c->dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {
                 RebuildNpcTradeItemList005ADB10(0);
                 return;
             }
@@ -305,13 +305,13 @@ void RemoveNpcScriptItem(W8ItemInstance* item, int match_item_id, int item_id)
             return;
         }
     }
-    if (g_screen_state_00649f1c->flag_1f9 != 0 && item != 0 &&
+    if (g_screen_state_00649f1c->held_item_pending != 0 && item != 0 &&
         g_screen_state_00649f1c->pending_item_1ed.item_id == item->item_id) {
         if (item->stack_count != 0) {
             --item->stack_count;
         }
         if (item->stack_count == 0) {
-            g_screen_state_00649f1c->flag_1f9 = 0;
+            g_screen_state_00649f1c->held_item_pending = 0;
             if (gXStatus.fNpcDialogueMode == 0) {
                 ClearHeldItemDisplay();
             }
@@ -466,7 +466,7 @@ void UpdateNpcDialogueVoiceAndCursor(void)
 
 update_cursor:
     if (gXStatus.fNpcDialogueMode != 0) {
-        if (g_screen_state_00649f1c->dialogue_cursor_flag != 0) {
+        if (g_screen_state_00649f1c->dialogue_hidden != 0) {
             SetTargetCursor(1);
             return;
         }
@@ -1149,7 +1149,7 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
                         wchar_t keyword_text[100];
                         swprintf(keyword_text, L"%S", entry->sub_entries->text);
                         if (gXStatus.fNpcDialogueMode == 0 ||
-                            g_screen_state_00649f1c->flag_252 == 0) {
+                            g_screen_state_00649f1c->scripted_dialogue == 0) {
                             AddNpcDialogueKeyword(keyword_text, 1, 1);
                         } else {
                             AddDialogueTranscriptKeyword(keyword_text, 1);
@@ -1161,7 +1161,7 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
                         wchar_t keyword_text[100];
                         swprintf(keyword_text, L"%S", entry->sub_entries->text);
                         if (gXStatus.fNpcDialogueMode == 0 ||
-                            g_screen_state_00649f1c->flag_252 == 0) {
+                            g_screen_state_00649f1c->scripted_dialogue == 0) {
                             AddNpcDialogueKeyword(keyword_text, 0, 1);
                         } else {
                             AddDialogueTranscriptKeyword(keyword_text, 0);
@@ -1173,7 +1173,7 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
                         wchar_t keyword_text[100];
                         swprintf(keyword_text, L"%S", entry->sub_entries->text);
                         if (gXStatus.fNpcDialogueMode == 0 ||
-                            g_screen_state_00649f1c->flag_252 == 0) {
+                            g_screen_state_00649f1c->scripted_dialogue == 0) {
                             AddNpcDialogueKeyword(keyword_text, 2, 1);
                         } else {
                             AddDialogueTranscriptKeyword(keyword_text, 2);
@@ -1185,7 +1185,7 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
                         wchar_t keyword_text[100];
                         swprintf(keyword_text, L"%S", entry->sub_entries->text);
                         if (gXStatus.fNpcDialogueMode == 0 ||
-                            g_screen_state_00649f1c->flag_252 == 0) {
+                            g_screen_state_00649f1c->scripted_dialogue == 0) {
                             AddNpcDialogueKeyword(keyword_text, 3, 1);
                         } else {
                             AddDialogueTranscriptKeyword(keyword_text, 3);
@@ -1197,7 +1197,7 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
                         wchar_t keyword_text[100];
                         swprintf(keyword_text, L"%S", entry->sub_entries->text);
                         if (gXStatus.fNpcDialogueMode == 0 ||
-                            g_screen_state_00649f1c->flag_252 == 0) {
+                            g_screen_state_00649f1c->scripted_dialogue == 0) {
                             AddNpcDialogueKeyword(keyword_text, 1, 1);
                         } else {
                             AddDialogueTranscriptKeyword(keyword_text, 1);
@@ -1209,7 +1209,7 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
                         wchar_t keyword_text[100];
                         swprintf(keyword_text, L"%S", entry->sub_entries->text);
                         if (gXStatus.fNpcDialogueMode == 0 ||
-                            g_screen_state_00649f1c->flag_252 == 0) {
+                            g_screen_state_00649f1c->scripted_dialogue == 0) {
                             AddNpcDialogueKeyword(keyword_text, 0, 1);
                         } else {
                             AddDialogueTranscriptKeyword(keyword_text, 0);
@@ -1221,7 +1221,7 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
                         wchar_t keyword_text[100];
                         swprintf(keyword_text, L"%S", entry->sub_entries->text);
                         if (gXStatus.fNpcDialogueMode == 0 ||
-                            g_screen_state_00649f1c->flag_252 == 0) {
+                            g_screen_state_00649f1c->scripted_dialogue == 0) {
                             AddNpcDialogueKeyword(keyword_text, 2, 1);
                         } else {
                             AddDialogueTranscriptKeyword(keyword_text, 2);
@@ -1233,7 +1233,7 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
                         wchar_t keyword_text[100];
                         swprintf(keyword_text, L"%S", entry->sub_entries->text);
                         if (gXStatus.fNpcDialogueMode == 0 ||
-                            g_screen_state_00649f1c->flag_252 == 0) {
+                            g_screen_state_00649f1c->scripted_dialogue == 0) {
                             AddNpcDialogueKeyword(keyword_text, 3, 1);
                         } else {
                             AddDialogueTranscriptKeyword(keyword_text, 3);
@@ -1406,7 +1406,7 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
             SoundPlay(sound_path, &sound_parms);
         }
         ClearNpcItemId(g_npc_scripting.npc, entry->operand_01);
-        if (g_screen_state_00649f1c->value_fc == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {
+        if (g_screen_state_00649f1c->dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX) {
             RebuildNpcTradeItemList005ADB10(0);
         }
         break;
@@ -1620,7 +1620,7 @@ void ProcessMessageBoxQueue(void)
             reinterpret_cast<int>(line->payload_10) /* reinterpret-ok: tagged message integer */;
         ClearMainGameTargetState();
         DismissNpcFromParty(group, 0, false, false);
-        if (g_screen_state_00649f1c->value_fc == W8_DIALOGUE_LAYOUT_TRANSCRIPT) {
+        if (g_screen_state_00649f1c->dialogue_layout == W8_DIALOGUE_LAYOUT_TRANSCRIPT) {
             for (int party_slot = 0; party_slot < 8; ++party_slot) {
                 if (g_status_685170.buffers.party_rows[party_slot].occupied != 0) {
                     RegionSetDisable(party_slot + 7);
@@ -1980,8 +1980,8 @@ void ProcessMessageBoxQueue(void)
                                 g_event_flag_005ed8e0, g_effect_argument_005ed8c8,
                                 g_effect_argument_005ed914);
             SetNpcDialoguePanelVisible(0);
-            if (g_screen_state_00649f1c->flag_250 != 0) {
-                g_screen_state_00649f1c->flag_23c = 1;
+            if (g_screen_state_00649f1c->modal_dialog_open != 0) {
+                g_screen_state_00649f1c->suppress_parting_reaction = 1;
             }
         }
         break;
