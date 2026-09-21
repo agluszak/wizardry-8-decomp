@@ -39,11 +39,7 @@
 #include "vsurface.h"
 
 void DrawDamageSplatOverlay(unsigned int party_slot); /* 0x0059ADD0 */
-void Function59B0F0(unsigned int party_slot);         /* 0x0059B0F0 */
-void Function564BA0(int party_slot);                  /* 0x00564BA0 */
-void Function564D80(int party_slot);                  /* 0x00564D80 */
-void Function564710(int party_slot);                  /* 0x00564710 */
-void Function5651F0(int party_slot);                  /* 0x005651F0 */
+void DrawPortraitEffectIcon(unsigned int party_slot); /* 0x0059B0F0 */
 
 /* 0x006488D0: dead-character portrait catalog ids, two per race - the small
    party-strip image at [race][0] and the large header portrait at [race][1]. */
@@ -254,6 +250,38 @@ void DrawDamageSplatOverlay(unsigned int party_slot)
         }
         if (gXStatus.fCombatMode != 0) {
             entry->combat_portrait_dirty = 1;
+        }
+    }
+}
+
+/* Draw the in-flight spell/condition effect icon over the slot's portrait.
+   frame -1 is the deferred-start state and draws nothing; the icon is skipped
+   while a pending portrait refresh sits under another overlay (the settings
+   mode parked off PORTRAITS with the slot's refresh flag set). */
+// FUNCTION: WIZ8 0x0059B0F0
+void DrawPortraitEffectIcon(unsigned int party_slot)
+{
+    int image = gXStatus.monster_manager_entries[party_slot].effect_icon_frame;
+    int top = 0;
+    if (image != -1) {
+        switch (party_slot >> 1) {
+        case 0:
+            top = 0x12;
+            break;
+        case 1:
+            top = 0x67;
+            break;
+        case 2:
+            top = 0xbc;
+            break;
+        case 3:
+            top = 0x111;
+        }
+        if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS ||
+            g_level_block->portrait_refresh_pending[party_slot] != 0) {
+            DrawCatalogImageAndInvalidate(
+                -0xe, gXStatus.monster_manager_entries[party_slot].effect_icon_catalog, 0, image,
+                (party_slot & 1) << 9 | 0x17, top, 2, 0);
         }
     }
 }
@@ -936,7 +964,7 @@ portrait_fx:
         DrawDamageSplatOverlay(party_slot);
     }
     if (entry->effect_icon_active != 0) {
-        Function59B0F0(party_slot);
+        DrawPortraitEffectIcon(party_slot);
     }
 
     if (g_level_block->party_slots_170[3] == static_cast<int>(party_slot)) {
@@ -961,16 +989,16 @@ portrait_fx:
     }
 
     if (g_level_block->portrait_overlay_party_slot == static_cast<int>(party_slot)) {
-        Function564BA0(g_level_block->portrait_overlay_party_slot);
+        DrawPortraitConditionOverlay(g_level_block->portrait_overlay_party_slot);
     }
     if (g_level_block->condition_orb_party_slot == static_cast<int>(party_slot)) {
-        Function5651F0(g_level_block->condition_orb_party_slot);
+        DrawPortraitEnchantmentOverlay(g_level_block->condition_orb_party_slot);
     }
     if (g_level_block->enchantment_orb_party_slot == static_cast<int>(party_slot)) {
-        Function564710(g_level_block->enchantment_orb_party_slot);
+        DrawPortraitVitalsOverlay(g_level_block->enchantment_orb_party_slot);
     }
     if (g_level_block->condition_highlight_party_slot == static_cast<int>(party_slot)) {
-        Function564D80(g_level_block->condition_highlight_party_slot);
+        DrawPortraitStatusOverlay(g_level_block->condition_highlight_party_slot);
     }
 
     if (g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&

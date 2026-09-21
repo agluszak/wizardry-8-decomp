@@ -55,7 +55,7 @@ int g_message_box_font;
 // GLOBAL: WIZ8 0x0068c0ac
 unsigned int g_message_box_shade;
 // GLOBAL: WIZ8 0x0068c0b0
-unsigned char g_message_box_accepted;
+bool g_message_box_accepted;
 char g_format_string_buffer[200];
 wchar_t g_wide_string_buffer[4096];
 wchar_t g_empty_wide_string[1];
@@ -681,6 +681,38 @@ bool CreateMessageBox(wchar_t* text, int font, unsigned int shade, bool has_acce
     GetButtonArea(g_message_box_background_button, &rect);
     InvalidateRegion(rect.iLeft, rect.iTop, rect.iRight, rect.iBottom, 0x11);
     return true;
+}
+
+/* Force-dismiss an open message box (state 2 -> 3): remove the buttons and
+   images, clear and invalidate the background rect, and drop the accepted
+   latch so RenderMessageBox never fires the callback. */
+// FUNCTION: WIZ8 0x005187E0
+void CloseMessageBox(void)
+{
+    SGPRect rect;
+
+    if (g_message_box_state == 2) {
+        if (g_message_box_accept_button != -1) {
+            RemoveButton(g_message_box_accept_button);
+            UnloadButtonImage(g_message_box_accept_image);
+        }
+        if (g_message_box_cancel_button != -1) {
+            RemoveButton(g_message_box_cancel_button);
+            UnloadButtonImage(g_message_box_cancel_image);
+        }
+        if (g_message_box_background_button != -1) {
+            GetButtonArea(g_message_box_background_button, &rect);
+            ClearSurfaceRect(rect.iLeft, rect.iTop, rect.iRight, rect.iBottom);
+            InvalidateRegion(rect.iLeft, rect.iTop, rect.iRight, rect.iBottom, 1);
+            RemoveButton(g_message_box_background_button);
+        }
+        if (g_message_box_background_image != -1) {
+            UnloadGenericButtonImage(g_message_box_background_image);
+            g_message_box_background_image = -1;
+        }
+        g_message_box_state = 3;
+        g_message_box_accepted = 0;
+    }
 }
 
 // FUNCTION: WIZ8 0x005188c0

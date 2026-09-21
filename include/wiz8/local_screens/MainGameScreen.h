@@ -32,6 +32,8 @@ extern const wchar_t g_format_s_colon_s_0061c3e0[];
 extern const wchar_t g_format_s_colon_s_paren_d_006481b4[];
 /* MainGameScreen.cpp GLOBAL at 0x0064DA8C: the " %s : " display format. */
 extern const wchar_t g_format_s_spaced_colon_0064da8c[];
+/* MainGameScreen.cpp GLOBAL at 0x0061A700: the "%s (%d)" display format. */
+extern const wchar_t g_format_s_paren_d_0061a700[];
 
 extern W8MainGameResourceSlot g_main_game_resource_slots[17];
 extern W8ScreenRect g_viewport_modes_647d30[];
@@ -542,12 +544,16 @@ void DismissHighlightOverlay(void);     /* 0x00563EB0 */
 /* 0x00563FC0: the portrait-hover panel's producer; the four hover entry
    points hand it the slot, a content row count and a minimum plate width. */
 void DrawHighlightOverlay(unsigned int party_slot, int row_count, unsigned int min_width);
-void SelectPartyCharacter(int party_slot);    /* 0x00565740 */
-void Function587A30(void);                    /* 0x00587A30 */
-void EnableLockInteractionPanels(void);       /* 0x00587C20 */
-void Function58A860(void);                    /* 0x0058A860 */
-void EnableTrapInteractionPanelRegions(void); /* 0x0058A880 */
-void OpenAutomapScreen(void);                 /* 0x00561480 */
+void DrawPortraitVitalsOverlay(int party_slot);      /* 0x00564710 */
+void DrawPortraitConditionOverlay(int party_slot);   /* 0x00564BA0 */
+void DrawPortraitStatusOverlay(int party_slot);      /* 0x00564D80 */
+void DrawPortraitEnchantmentOverlay(int party_slot); /* 0x005651F0 */
+void SelectPartyCharacter(int party_slot);           /* 0x00565740 */
+void RefreshLockInteractionControls(void);           /* 0x00587A30 */
+void EnableLockInteractionPanels(void);              /* 0x00587C20 */
+void RefreshMainGameActionPanel(void);               /* 0x0058A860 */
+void EnableTrapInteractionPanelRegions(void);        /* 0x0058A880 */
+void OpenAutomapScreen(void);                        /* 0x00561480 */
 /* Clear one slot's pending portrait refresh while the screen is not in
    portrait mode, and disable that slot's portrait region set. */
 void ClearPortraitRefreshSlot(int slot); /* 0x00561DB0 */
@@ -639,11 +645,9 @@ bool AttemptNpcItemTrade005AE2A0(W8ItemInstance* item, unsigned char quantity, i
 void NpcTradeSplitDialogResult005AE1A0(W8DialogBase* dialog);
 void RefreshFormationPanel005B2980(unsigned char show_portraits); /* 0x005B2980 */
 void Function58BA60(void);                                        /* 0x0058BA60 */
-void Function587510(int value);
-void Function5879A0(int);
-void Function58A470(int value);
-void UpdateMainGameScreen(void); /* 0x0058A750 */
-void Function58A790(int);
+void EndLockInteractMode(char suspend);                           /* 0x005879A0 */
+void UpdateMainGameScreen(void);                                  /* 0x0058A750 */
+void EndTrapInteractMode(char suspend);                           /* 0x0058A790 */
 int GetPartySlotSkill10Level(int slot);
 int OpenLockInteraction00587510(Trigger* trigger);
 int OpenTrapInteraction0058A470(Trigger* trigger);
@@ -664,9 +668,8 @@ void DestroySurpriseFade0056B690(void);         /* 0x0056B690 */
 unsigned char UpdateSurpriseFade0056B6F0(void); /* 0x0056B6F0 */
 void DisableMainRegionSet(void);                /* 0x00561FB0 */
 void EnableMainRegionSet(void);                 /* 0x00561FA0 */
-void OpenUseItemSelectView(int slot);           /* 0x0059C930 */
+unsigned char OpenUseItemSelectView(int slot);  /* 0x0059C930 */
 
-void Function59C9C0(void);
 unsigned char MainGameScreenInitialize(void);
 unsigned char MainGameScreenEnter(void);
 void MainGameScreenFrame(void);

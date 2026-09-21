@@ -225,8 +225,6 @@ bool IsEquippableItemClass005A6310(W8ItemInstance* item); /* 0x005A6310 */
 extern int g_effect_005ee6ec;
 extern int g_effect_argument_005ed8cc;
 
-void Function5187E0(void);
-
 /* 0x005A6620: begin the timed screen fade and run `callback` when it
    finishes; `fade_to_black` selects the alpha ramp. */
 void BeginScreenFade(int fade_to_black, int arg_2, int fade_code, void (*callback)(void), char flag,

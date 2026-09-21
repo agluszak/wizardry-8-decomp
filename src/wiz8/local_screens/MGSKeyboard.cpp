@@ -266,7 +266,7 @@ void DispatchMGSCommand(int command)
         } else if (gXStatus.fSpellCastMode != 0) {
             ResetSpellCastingSelection005A0B90();
         } else if (gXStatus.fLockInteractMode != 0) {
-            Function5879A0(0);
+            EndLockInteractMode(0);
         } else if (gXStatus.fItemSelectMode != 0) {
             CloseUseItemSelection0059D950();
         } else if (gXStatus.iTargetingMode != 0) {
