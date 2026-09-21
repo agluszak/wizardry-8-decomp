@@ -1129,6 +1129,29 @@ unsigned char __fastcall ConsumeLockQuality004457A0(int* lock_state)
     return 0;
 }
 
+/* Whether the point falls inside the annulus of a live destination trigger:
+   action 0x34 sends the party to m_pacRecipients through RunDestination, and
+   flag 0x40 marks a trigger whose countdown event is already queued. */
+// FUNCTION: WIZ8 0x00445940
+unsigned char InsideDestinationTrigger00445940(float x, float y, float z)
+{
+    int trigger_count = g_world->triggers->GetCount();
+    for (int index = 0; index < trigger_count; ++index) {
+        Trigger* trigger = *g_world->triggers->GetAt(index);
+        if (trigger->initial_action_22a == 0x34) {
+            float dx = trigger->position_118.x - x;
+            float dy = trigger->position_118.y - y;
+            float dz = trigger->position_118.z - z;
+            float distance = static_cast<float>(sqrt(dx * dx + dy * dy + dz * dz));
+            if (distance < trigger->range_maximum_0a8 && (trigger->flags_0a0 & 0x40U) == 0 &&
+                distance >= trigger->range_minimum_0a4) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
 // FUNCTION: WIZ8 0x004457c0
 bool Trigger::PlayActionSound(const char* sound_name, int volume)
 {
