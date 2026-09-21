@@ -60,7 +60,18 @@ struct W8OctreeTrace {
 
 static_assert(sizeof(W8OctreeTrace) == 0x30, "W8OctreeTrace_must_be_0x30");
 /* Bulk vector-array writes and reads the .oct submesh serializers share. The
-   writers stage at most 0x100 records through a stack buffer per FileWrite. */
+   writers stage at most 0x100 records through a stack buffer per FileWrite.
+
+   Retail emits exactly one reader/writer pair per record width and every call
+   site lives in OctMeshModel::Read/Write. The width-12 entries serve both
+   srVector3T<float> arrays (vertex locations, normals, lights) and srVector3i
+   index triples (poly-vertex, poly-UV); this incremental-link build performs
+   no identical-function folding, so the shared entry is one source function,
+   not a folded overload pair or a per-type template instantiation. The
+   writer's elementwise staging copy proves the declared element was a
+   complete 12-byte record rather than raw storage, and the family is keyed
+   on the float vector width (srVector2/3/4 are the float typedefs), so the
+   float spelling is canonical and the integer triples are the reused case. */
 bool WriteVector4Array004372E0(int file, const srVector4T<float>* values, int count);
 bool WriteVector3Array00437390(int file, const srVector3T<float>* values, int count);
 bool WriteVector2Array00437430(int file, const srVector2T<float>* values, int count);
@@ -86,9 +97,9 @@ char GrowBoundsByPoint(const srVector3T<float>* point, srVector3T<float>* minimu
 char SphereNearBounds(const srVector3T<float>* point, float radius,
                       const W8BoundingBox* bounds); /* 0x004386A0 */
 
-/* The mesh's polygon index arrays are the same raw 12-byte records as the
-   float vectors and retail routes both through 0x004374E0; the inline integer
-   view keeps that one cast at the boundary. */
+/* The polygon index triples reuse the canonical float-vector entry point
+   above (see the family comment); the inline integer view keeps that one
+   cast at the call-site boundary. */
 inline bool ReadVectorArray(int file, srVector3i* values, int count)
 {
     return ReadVector3Array004374E0(
@@ -109,7 +120,8 @@ inline bool ReadVectorArray(int file, srVector2T<float>* values, int count)
     return ReadVector2Array00437510(file, values, count);
 }
 
-/* The polygon index arrays serialize through the same 12-byte vector writer. */
+/* The polygon index triples serialize through the same canonical 12-byte
+   float-vector writer. */
 inline bool WriteVectorArray(int file, const srVector3i* values, int count)
 {
     return WriteVector3Array00437390(
