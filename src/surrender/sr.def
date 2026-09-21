@@ -681,3 +681,19 @@ EXPORTS
     ?vwrite@srBinOFStream@@EAEKPBXK@Z
     ?vwrite@srBinOMStream@@EAEKPBXK@Z
     ?write@srBinOStream@@QAEAAV1@PBXK@Z
+    ??0srFog@@QAE@PAVsrNode@@@Z
+    ??0srFog@@QAE@ABV0@@Z
+    ??1srFog@@UAE@XZ
+    ??4srFog@@QAEAAV0@ABV0@@Z
+    ??_7srFog@@6B?$srClassSupport@VsrIlluminator@@VsrNode@@$0A@$0BCAA@@@@ DATA
+    ??_7srFog@@6BsrVertexProcessor@@@ DATA
+    ?dump@srFog@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?getDensity@srFog@@QBEMXZ
+    ?getRange@srFog@@QAEXAAN0@Z
+    ?isActive@srFog@@UAEHAAVsrVertexPipe@@@Z
+    ?process@srFog@@UAEXAAVsrVertexPipe@@@Z
+    ?sGetClassName@srFog@@SAPBDXZ
+    ?setDensity@srFog@@QAEXM@Z
+    ?setRange@srFog@@QAEXNN@Z
+    ?vInstance@srFog@@UAEPAVsrClass@@XZ
+    ?verify@srFog@@UAEXW4e_verify@srRuntimeClass@@@Z
