@@ -20,7 +20,12 @@ from pathlib import Path
 from typing import Any
 
 from .cast_lint import added_lines_without_marker, baseline_diff
-from .global_model import overlapping_globals, parse_global_definitions, unaddressed_globals
+from .global_model import (
+    overlapping_globals,
+    parse_global_definitions,
+    shadowed_global_definitions,
+    unaddressed_globals,
+)
 
 SCOPE_PREFIXES = ("src/wiz8/", "include/wiz8/")
 
@@ -170,7 +175,10 @@ def structural_violations(repo_dir: Path) -> list[dict[str, Any]]:
             }
         )
     violations.extend(unaddressed_globals(repo_dir))
-    for item in overlapping_globals(parse_global_definitions(repo_dir)):
+    definitions = parse_global_definitions(repo_dir)
+    for item in overlapping_globals(definitions) + shadowed_global_definitions(
+        repo_dir, definitions
+    ):
         violations.append(
             {
                 "kind": item["kind"],

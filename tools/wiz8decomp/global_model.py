@@ -30,6 +30,14 @@ _DECL = re.compile(
 _VTABLE_OR_FUNCTION = re.compile(r"^\s*//\s*(?:VTABLE|FUNCTION|TEMPLATE|SYNTHETIC|LIBRARY):")
 _IDENTITY_ALIAS = re.compile(r"identity-alias\s*:", re.IGNORECASE)
 _DOCUMENTED_ALIAS = re.compile(r"alias(?:es)?\s+(?:of|for)\b|no separate definition", re.IGNORECASE)
+# A file-scope variable definition whose name ends in a retail address. The
+# name must be preceded by type text so in-body assignments (`g_x_... = 1;`)
+# do not count as declarations.
+_ADDRESS_SUFFIX_DECL = re.compile(
+    r"^\s*(?P<prefix>(?:static|const|volatile|mutable|register)\s+)*"
+    r"(?P<rtype>(?:[A-Za-z_][\w:<>,]*(?:::[\w<>]+)*[\s*&]+)+)"
+    r"(?P<name>[A-Za-z_]\w*?_(?P<address>[0-9a-fA-F]{8}))\s*(?:\[[^\]]*\])*\s*(?:=|;)"
+)
 
 PRIMITIVE_SIZES = {
     "bool": 1,
@@ -329,6 +337,118 @@ def unaddressed_globals(repo_dir: Path) -> list[dict[str, Any]]:
                         "line": index + 1,
                         "name": name,
                         "detail": detail,
+                    }
+                )
+    return violations
+
+
+def shadowed_global_definitions(
+    repo_dir: Path, definitions: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """Unmarked definitions that claim a ``GLOBAL``-marked retail address.
+
+    A file-scope variable named ``..._00652dc4`` asserts ownership of that
+    address even without a marker. When the address already has a marked
+    owner, the unmarked definition is a second source object for the same
+    retail storage and must not survive review.
+    """
+
+    marked: dict[tuple[str, int], list[dict[str, Any]]] = defaultdict(list)
+    for item in definitions:
+        if item.get("name"):
+            marked[(str(item.get("target") or "WIZ8"), int(item["address"]))].append(item)
+
+    from .source_index import project_targets
+
+    roots_by_target: dict[str, tuple[str, ...]] = {}
+    for name, config in project_targets(repo_dir).items():
+        roots = config.get("source-root", ())
+        if isinstance(roots, str):
+            roots = (roots,)
+        roots_by_target[name] = tuple(roots)
+
+    def target_for(relative: str) -> str:
+        for name, source_roots in roots_by_target.items():
+            if any(relative.startswith(root.rstrip("/") + "/") for root in source_roots):
+                return name
+        return "WIZ8"
+
+    violations: list[dict[str, Any]] = []
+    roots = (repo_dir / "src", repo_dir / "include")
+    for root in roots:
+        if not root.is_dir():
+            continue
+        for path in sorted(root.rglob("*")):
+            if path.suffix.lower() not in {".h", ".hpp", ".cpp", ".c"}:
+                continue
+            relative = str(path.relative_to(repo_dir))
+            lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+            depth = 0
+            in_block_comment = False
+            for number, line in enumerate(lines, 1):
+                text = line
+                # Naive block-comment tracking: strings on comment lines are
+                # not C++ tokens, so replace comment regions with spaces.
+                cleaned = ""
+                cursor = 0
+                while cursor < len(text):
+                    if in_block_comment:
+                        end = text.find("*/", cursor)
+                        if end < 0:
+                            cursor = len(text)
+                            continue
+                        in_block_comment = False
+                        cursor = end + 2
+                        continue
+                    start = text.find("/*", cursor)
+                    line_comment = text.find("//", cursor)
+                    if line_comment >= 0 and (start < 0 or line_comment < start):
+                        cleaned += text[cursor:line_comment]
+                        cursor = len(text)
+                        continue
+                    if start < 0:
+                        cleaned += text[cursor:]
+                        break
+                    cleaned += text[cursor:start] + "  "
+                    in_block_comment = True
+                    cursor = start + 2
+                code = cleaned
+                depth += code.count("{") - code.count("}")
+                stripped = code.strip()
+                if depth != 0 or not stripped:
+                    continue
+                if _SOURCE_MARKER.match(stripped):
+                    continue
+                match = _ADDRESS_SUFFIX_DECL.match(stripped)
+                if match is None:
+                    continue
+                if stripped.startswith(("extern ", "extern\t")):
+                    continue
+                target = target_for(relative)
+                address = int(match.group("address"), 16)
+                owners = [
+                    owner
+                    for owner in marked.get((target, address), [])
+                    if not (
+                        owner.get("source_file") == relative
+                        and int(owner.get("line") or 0) == number
+                    )
+                ]
+                if not owners:
+                    continue
+                owner = owners[0]
+                violations.append(
+                    {
+                        "kind": "global-address-shadow",
+                        "name": match.group("name"),
+                        "address": f"0x{address:08x}",
+                        "file": relative,
+                        "line": number,
+                        "detail": (
+                            f"{match.group('name')} @ 0x{address:x} duplicates "
+                            f"{owner['name']} ({owner['source_file']}:{owner['line']}) "
+                            "without a GLOBAL marker"
+                        ),
                     }
                 )
     return violations
