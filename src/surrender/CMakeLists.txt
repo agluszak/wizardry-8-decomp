@@ -15,6 +15,7 @@ add_library(wiz8_surrender_objects OBJECT
     huffman.cpp
     io_managers.cpp
     model_instance.cpp
+    node.cpp
     stream.cpp
     string_table.cpp
     system.cpp
