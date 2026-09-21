@@ -470,10 +470,10 @@ static void ClickControl(W8TextControl* control)
     SendScenarioMouse((bounds->x1 + bounds->x2) / 2, (bounds->y1 + bounds->y2) / 2);
 }
 
-static DWORD FailScenarioAt(int line)
+static DWORD FailScenarioAt(const char* step, const char* reason, int line)
 {
-    fprintf(stderr, "WIZ8_RUNTIME_FAILURE scenario=%s reason=observation_failed line=%d\n",
-            g_scenario, line);
+    fprintf(stderr, "WIZ8_RUNTIME_FAILURE scenario=%s step=%s reason=%s line=%d\n", g_scenario,
+            step, reason, line);
     fprintf(stderr,
             "runtime-test failed: state=%d pending=%d transition=%u entered=%u final=%u "
             "redrawn=%u committed=%u in_party=%u main_game=%u page=%d running=%u active=%u\n",
@@ -493,7 +493,8 @@ static DWORD FailScenarioAt(int line)
     return 2;
 }
 
-#define FailScenario() FailScenarioAt(__LINE__)
+#define FailScenario() FailScenarioAt("scenario", "observation-failed", __LINE__)
+#define FailScenarioInvariant(step, reason) FailScenarioAt(step, reason, __LINE__)
 
 /* Walk a live region's current bounds instead of a fixed pixel. */
 static bool RegionCenter(int region_index, int* x, int* y)
@@ -1621,7 +1622,10 @@ static DWORD WINAPI DriveScenario(void*)
                         IsScreenTransitionPending(), g_level_block->flag_328,
                         g_level_block->review_transition_active, GetFlag69DA6C(), GetFlag68F105(),
                         GetFlag68F104(), g_modal_owner_0068edd0 != 0, gXStatus.fNpcDialogueMode);
-                    return FailScenario();
+                    return FailScenarioInvariant("exploration-movement",
+                                                 maximum_input_motion > 0.0f
+                                                     ? "input-produced-no-world-motion"
+                                                     : "held-key-produced-no-input");
                 }
                 /* Resolve the live TURN_LEFT binding rather than assuming a
                    key, then hold it through frames: HandleManualCameraHotkeys

@@ -479,6 +479,7 @@ void* srHeap::allocate(unsigned long size)
     lock->getAccess();
     void* result;
     if (size < 0x200) {
+        size |= 0xf;
         unsigned long index = size >> 4;
         char* chunk = static_cast<char*>(small_free_lists_00[index]);
         if (chunk == 0) {
@@ -486,7 +487,7 @@ void* srHeap::allocate(unsigned long size)
                 current_block_84 = allocateBlock(block_size_a4);
                 current_block_offset_80 = 0xf;
             }
-            if (block_size_a4 - current_block_offset_80 <= (size | 0xf)) {
+            if (block_size_a4 - current_block_offset_80 <= size) {
                 current_block_84->next_08 = block_list_88;
                 block_list_88 = current_block_84;
                 current_block_84 = allocateBlock(block_size_a4);
@@ -499,7 +500,7 @@ void* srHeap::allocate(unsigned long size)
             char* chunk =
                 static_cast<char*>(current_block_84->allocation_00) + current_block_offset_80;
             *chunk = static_cast<char>(index);
-            current_block_offset_80 += (size | 0xf) + 1;
+            current_block_offset_80 += size + 1;
             lock->releaseAccess();
             return chunk + 1;
         }
