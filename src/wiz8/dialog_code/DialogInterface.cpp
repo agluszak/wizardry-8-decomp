@@ -15,9 +15,13 @@
  * operation remains unconditional after its null check.
  */
 
+// GLOBAL: WIZ8 0x0064fde8
 int g_dialog_font_64fde8;
+// GLOBAL: WIZ8 0x0069ca32
 BOOLEAN g_dialog_font_enabled_69ca32;
+// GLOBAL: WIZ8 0x0064fdec
 unsigned char g_dialog_font_foreground_64fdec;
+// GLOBAL: WIZ8 0x0064fded
 unsigned char g_dialog_font_background_64fded;
 
 // FUNCTION: WIZ8 0x005cf280
@@ -48,7 +52,7 @@ W8DialogBase* CreateDialogByKind(int kind)
         dialog->SetBackground("Data\\Dialogs\\DialogBackground.sti", 0);
         return dialog;
     case 3:
-        dialog = new W8ListBoxDialog005CBB40;
+        dialog = new W8ListBoxDialog;
         dialog->SetText(L"ListBox Dialog");
         dialog->SetOrigin(200, 100);
         dialog->SetExtent(240, 280);

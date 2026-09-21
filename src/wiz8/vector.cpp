@@ -459,6 +459,11 @@ class W8Navigator;
 // TEMPLATE: WIZ8 0x005cd6e0
 // W8GrowableVector<W8MasterFunction>::~W8GrowableVector<W8MasterFunction>
 
+/* Emitted inside the DialogFactoryDialogs.cpp span by the listbox dialog's
+   destruction path; the specialization's table is 0x005ECA78. */
+// TEMPLATE: WIZ8 0x005cd6c0
+// W8GrowableVector<unsigned short>::~W8GrowableVector<unsigned short>
+
 /* The emitted lifecycle and both reviewed vtables belong directly to the
    ordinary light-vector template specializations. */
 

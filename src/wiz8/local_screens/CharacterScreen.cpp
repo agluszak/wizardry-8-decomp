@@ -275,7 +275,7 @@ void W8CharacterScreen::ShowRaceInfo(unsigned int race)
 void W8CharacterScreen::ShowAttributeInfo005B07C0(unsigned int attribute)
 {
     m_dialog_response_1b20 = 0;
-    m_dialog_1b1c = new W8AttributeInfoDialog005DFC70(attribute);
+    m_dialog_1b1c = new W8AttributeInfoDialog(attribute);
     m_dialog_1b1c->SetText(&g_wchar_00689b34);
     ActivateDialogRegion(0x138);
 }
@@ -284,7 +284,7 @@ void W8CharacterScreen::ShowAttributeInfo005B07C0(unsigned int attribute)
 void W8CharacterScreen::ShowAttributeInfo005B0850(unsigned int attribute)
 {
     m_dialog_response_1b20 = 0;
-    m_dialog_1b1c = new W8SecondaryAttributeInfoDialog005E0180(attribute);
+    m_dialog_1b1c = new W8SecondaryAttributeInfoDialog(attribute);
     m_dialog_1b1c->SetText(&g_wchar_00689b34);
     ActivateDialogRegion(0x138);
 }
@@ -294,9 +294,9 @@ void W8CharacterScreen::ShowDialog005B08E0(int value)
 {
     m_dialog_response_1b20 = 0;
     if (value == g_profession_bonus_skills[m_character_018.current_profession]) {
-        m_dialog_1b1c = new W8SkillInfoDialog005EFD08(value, 0, 0, 1);
+        m_dialog_1b1c = new W8SkillInfoDialog(value, 0, 0, 1);
     } else {
-        m_dialog_1b1c = new W8SkillInfoDialog005EFD08(value, 0, 0, 0);
+        m_dialog_1b1c = new W8SkillInfoDialog(value, 0, 0, 0);
     }
     m_dialog_1b1c->SetText(&g_wchar_00689b34);
     ActivateDialogRegion(0x138);

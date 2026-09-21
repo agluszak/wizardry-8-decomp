@@ -824,8 +824,7 @@ unsigned char W8AssayDialog::PopulateRequirements()
     m_buttons[4]->Configure("Data\\Dialogs\\popup_iteminfo.sti", -1, 3, 3, 3, 3, 0, 0, 0, 0, -1, 0,
                             0);
     m_buttons[5]->Configure("Data\\Dialogs\\popup_confirmationbuttons.sti", 3, 0, 1, 2, 2,
-                            W8TriggerItemPickerDialog::CloseOwningDialog005CE6E0, 0, 0, 0x7f, 0x12,
-                            0, 0);
+                            W8TriggerItemPickerDialog::CloseOwningDialog, 0, 0, 0x7f, 0x12, 0, 0);
     m_buttons[6]->Configure("Data\\Dialogs\\icons_profession.sti", 1, 0, -1, 0, -1, 0, 0, 0, 0x7f,
                             0x2ad, 0, 0);
     m_buttons[7]->Configure("Data\\Dialogs\\icons_profession.sti", 3, 2, -1, 2, -1, 0, 0, 0, 0x7f,

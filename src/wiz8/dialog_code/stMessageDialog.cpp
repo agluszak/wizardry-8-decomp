@@ -50,9 +50,9 @@ void W8MessageDialogBase::Draw()
     W8DialogBase::Draw();
     DrawButton(m_message_button);
     if (!m_show_confirm && !allow_cancel) {
-        y = m_y + (m_height - GetFontHeight(g_dialog_font_64fde8) * m_line_count) / 2;
+        y = m_y + m_height / 2 - (GetFontHeight(g_dialog_font_64fde8) * m_line_count >> 1);
     } else {
-        y = m_y + ((m_height - 0x21) - GetFontHeight(g_dialog_font_64fde8) * m_line_count) / 2;
+        y = m_y + (m_height - 0x21) / 2 - (GetFontHeight(g_dialog_font_64fde8) * m_line_count >> 1);
     }
     if (m_lines) {
         SaveFontSettings();
@@ -61,7 +61,7 @@ void W8MessageDialogBase::Draw()
         SetFontBackground(g_dialog_font_background_64fded);
         for (index = 0; index < m_line_count; ++index) {
             wchar_t* line = m_lines[index];
-            short width = StringPixLengthArg(g_dialog_font_64fde8, wcslen(line), line, y, line);
+            short width = StringPixLengthArg(g_dialog_font_64fde8, wcslen(line), line);
             gprintf(m_x + (m_width - width) / 2, y, line);
             y += GetFontHeight(g_dialog_font_64fde8);
         }

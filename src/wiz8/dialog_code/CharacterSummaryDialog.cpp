@@ -23,6 +23,7 @@
    cluster immediately after StatInfoDialogs.cpp.  Retail does not expose its
    original translation-unit or class spelling. */
 
+// GLOBAL: WIZ8 0x00650250
 static const W8ControlsRect g_character_summary_quote_bounds_00650250[1] = {
     {121, 24, 345, 72},
 };
@@ -64,7 +65,7 @@ int W8CharacterSummaryDialog::CreateControls()
     ResetGameplaySlot(0);
     g_status_685170.buffers.characters[0].in_party = 1;
     g_status_685170.buffers.party_rows[0].animation_0fa = -1;
-    if (!CreateQuoteText005E0600()) {
+    if (!CreateQuoteText()) {
         m_error = 7;
         return 7;
     }
@@ -90,7 +91,7 @@ void W8CharacterSummaryDialog::DestroyControls()
 }
 
 // FUNCTION: WIZ8 0x005e0600
-bool W8CharacterSummaryDialog::CreateQuoteText005E0600()
+bool W8CharacterSummaryDialog::CreateQuoteText()
 {
     W8TextBuffer** buffers[] = {&m_quote_text_058};
 
@@ -153,7 +154,7 @@ void W8CharacterSummaryDialog::OnNumericInputChanged(int value)
 }
 
 // FUNCTION: WIZ8 0x005e0880
-unsigned char W8CharacterSummaryDialog::HandleInputEvent005E0880(const InputAtom* input)
+unsigned char W8CharacterSummaryDialog::HandleInputEvent(const InputAtom* input)
 {
     W8DialogNumericInput* inputs[] = {m_numeric_input_05c};
     for (int index = 0; index < 1; ++index) {
@@ -214,7 +215,7 @@ unsigned char W8CharacterSummaryDialog::ProcessInput()
                                         gfRightButtonState);
             break;
         default:
-            return HandleInputEvent005E0880(&input);
+            return HandleInputEvent(&input);
         }
     }
     return m_keep_open;

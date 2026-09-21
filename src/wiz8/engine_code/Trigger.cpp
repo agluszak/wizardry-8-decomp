@@ -861,7 +861,7 @@ void UpdateWorldTriggers00443AE0(W8World* world)
                 W8TriggerItemPickerDialog* dialog = new W8TriggerItemPickerDialog;
                 if (dialog != 0) {
                     dialog->m_user_data = trigger;
-                    dialog->SetItemGroup005CF0C0(trigger->world_item_group_34c);
+                    dialog->SetItemGroup(trigger->world_item_group_34c);
                     dialog->m_destroy_callback = OnItemDialogClosed004456C0;
                     gXStatus.flag_19b6 = 0;
                     g_modal_owner_0068edd0 = dialog;
@@ -901,7 +901,7 @@ void OnItemDialogClosed004456C0(W8DialogBase* base)
     W8TriggerItemPickerDialog* dialog = static_cast<W8TriggerItemPickerDialog*>(base);
 
     if (dialog != 0) {
-        dialog->ReturnItemsToGroup005CF110();
+        dialog->ReturnItemsToGroup();
         static_cast<Trigger*>(dialog->m_user_data)->flags_0a0 &= 0xfdffffff;
     }
 }

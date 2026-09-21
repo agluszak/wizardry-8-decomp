@@ -8,6 +8,7 @@
 #include "Font.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/NPCInteractionSubscreen.h"
+#include "wiz8/local_screens/OptionsScreen.h"
 
 /* Retail initializer 0x005D1010 copies the Controls layout constant. */
 // GLOBAL: WIZ8 0x0069c5d0
@@ -43,7 +44,7 @@ W8DialogTextEntry::W8DialogTextEntry(const wchar_t* prefix, const wchar_t* text,
         wcscpy(m_buffer, prefix);
         wcscat(m_buffer, L": ");
     } else {
-        wcscpy(m_buffer, L"");
+        wcscpy(m_buffer, &g_wchar_00689b34);
     }
     wcscat(m_buffer, text);
     UpdateLayout();
@@ -93,7 +94,7 @@ void W8DialogTextEntry::Draw(unsigned char force)
             if (prefix_remaining < static_cast<int>(span)) {
                 wchar_t saved = line[prefix_remaining];
                 line[prefix_remaining] = L'\0';
-                mprintf(x, y, L"%s", line);
+                gprintf(x, y, L"%s", line);
                 x += StringPixLength(line, m_font);
                 line[prefix_remaining] = saved;
                 if (!m_selected) {
@@ -106,7 +107,7 @@ void W8DialogTextEntry::Draw(unsigned char force)
             }
             prefix_remaining -= span;
         }
-        mprintf(x, y, L"%s", line);
+        gprintf(x, y, L"%s", line);
         y += GetLineHeight();
         line[span] = L'\n';
         if (m_layoutBounds.bottom <= y) {
@@ -120,7 +121,7 @@ void W8DialogTextEntry::Draw(unsigned char force)
         if (prefix_remaining > 0 && prefix_remaining < static_cast<int>(span)) {
             wchar_t saved = line[prefix_remaining];
             line[prefix_remaining] = L'\0';
-            mprintf(x, y, L"%s", line);
+            gprintf(x, y, L"%s", line);
             x += StringPixLength(line, m_font);
             line[prefix_remaining] = saved;
             if (!m_selected) {
@@ -130,7 +131,7 @@ void W8DialogTextEntry::Draw(unsigned char force)
             }
             line += prefix_remaining;
         }
-        mprintf(x, y, L"%s", line);
+        gprintf(x, y, L"%s", line);
     }
 done:
     InvalidateRegion(m_layoutBounds.left, m_layoutBounds.top, m_layoutBounds.right,

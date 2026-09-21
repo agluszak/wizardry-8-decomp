@@ -501,7 +501,7 @@ void __fastcall
 ClearNpcDialogueTextBackground(W8NpcDialogueTextController* controller);            /* 0x0055EAE0 */
 bool __fastcall IsNpcDialogueTextExpanded(W8NpcDialogueTextController* controller); /* 0x0055E2B0 */
 /* Which party portrait the pointer is over, if any. */
-unsigned int HitTestPartyPortrait(const InputAtom* event);
+unsigned char HitTestPartyPortrait(const InputAtom* event);
 void ClearCombatSelection(void);                                               /* 0x0056A5A0 */
 void UpdateWorldViewCursor0056A5D0(const InputAtom* event, int target_needed); /* 0x0056A5D0 */
 void RequestRefreshPartyState(void);
