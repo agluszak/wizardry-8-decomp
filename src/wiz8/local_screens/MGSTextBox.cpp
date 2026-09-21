@@ -72,6 +72,8 @@ W8MessageStorageRecord g_message_storage_68f2d8[4][0x15e];
 
 void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, short text_box,
                       int wrapped_line);
+void DrawDialogueInputCaret0058C8E0(int x, int y);
+void DrawDialogueInputLines0058CA30(int x, int y, int start_line);
 
 // FUNCTION: WIZ8 0x0058fdd0
 int GetNextNoticeWord(int cursor, const wchar_t* text, W8NoticeWord* word)
@@ -911,10 +913,9 @@ void ScrollTextBoxToBottom0058BA60(void)
     if (g_level_block->dialogue_text_input_open != 0 &&
         (input = g_level_block->dialogue_text_input) != 0 &&
         g_status_685170.text_line_cursor_1795 == input->text_box) {
-        ScrollTextBoxTo(g_status_685170.text_box_lines_shown_49a7
-                                [g_status_685170.text_line_cursor_1795] +
-                            input->line_count -
-                        W8_TEXT_BOX_VISIBLE_LINE_COUNT());
+        ScrollTextBoxTo(
+            g_status_685170.text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795] +
+            input->line_count - W8_TEXT_BOX_VISIBLE_LINE_COUNT());
         return;
     }
     ScrollTextBoxTo(
@@ -1900,6 +1901,148 @@ void RedrawTextBoxBody(unsigned char skip_invalidate)
 
     SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette_2ec);
     RestoreFontSettings();
+}
+
+/* Repaint the dialogue text input over the text box's tail rows while the
+   editor state says the text or caret is dirty. The repaint starts at the row
+   following the scrolled log content and only runs while fewer than a full
+   window of log lines remain below the scroll top. */
+// FUNCTION: WIZ8 0x0058C790
+void RepaintDialogueInputText0058C790(void)
+{
+    W8DialogueTextState* input = g_level_block->dialogue_text_input;
+    int remaining;
+    int y;
+
+    if (input->dirty == 0 && input->unknown_2c == 0) {
+        return;
+    }
+    remaining = g_status_685170.text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795] -
+                g_level_block->text_lines[g_status_685170.text_line_cursor_1795];
+    if (remaining >= 7) {
+        return;
+    }
+    SaveFontSettings();
+    SetFontDestBuffer(0xfffffff2, g_level_block->text_box_left, g_level_block->text_box_top,
+                      g_level_block->text_box_right, g_level_block->text_box_bottom, 0);
+    SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette_2ec);
+    SetFont(g_level_block->text_box_font);
+    y = __max(g_level_block->text_box_top, g_level_block->text_box_top + 11 * remaining);
+    if (input->dirty != 0) {
+        DrawDialogueInputLines0058CA30(
+            g_level_block->text_box_left, y,
+            remaining < 0
+                ? g_level_block->text_lines[g_status_685170.text_line_cursor_1795] -
+                      g_status_685170
+                          .text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795]
+                : 0);
+        input->dirty = 0;
+        DrawDialogueInputCaret0058C8E0(g_level_block->text_box_left, y);
+    } else if (input->unknown_2c != 0) {
+        DrawDialogueInputCaret0058C8E0(g_level_block->text_box_left, y);
+    }
+    SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette_2ec);
+    RestoreFontSettings();
+}
+
+/* Draw the dialogue input's caret: a one-pixel vertical line at the cursor's
+   line and column, measured through the editable text's line offsets. Does
+   nothing while the cursor's line is scrolled above the visible window. */
+// FUNCTION: WIZ8 0x0058C8E0
+void DrawDialogueInputCaret0058C8E0(int x, int y)
+{
+    W8DialogueTextState* input = g_level_block->dialogue_text_input;
+    unsigned int pitch;
+    char* screen;
+    unsigned int i;
+    unsigned int line = 1;
+    unsigned int hidden = 0;
+    int x_offset = 0;
+    unsigned int top_y;
+    unsigned int bottom_y;
+
+    if (input->line_count > 1) {
+        i = 1;
+        while (input->cursor >= input->line_offsets[i]) {
+            i++;
+            if (i >= input->line_count) {
+                break;
+            }
+        }
+        line = i;
+    }
+    if (g_status_685170.text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795] <
+        g_level_block->text_lines[g_status_685170.text_line_cursor_1795]) {
+        hidden = g_level_block->text_lines[g_status_685170.text_line_cursor_1795] -
+                 g_status_685170.text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795];
+        if (line <= hidden) {
+            return;
+        }
+    }
+    if (line == 1 && input->first_line_prefix != 0) {
+        x_offset += StringPixLength(Wiz8ToSgpWideText(input->first_line_prefix),
+                                    g_level_block->text_box_font);
+    }
+    x_offset += StringNPixLength(Wiz8ToSgpWideText(input->text + input->line_offsets[line - 1]),
+                                 input->cursor - input->line_offsets[line - 1],
+                                 g_level_block->text_box_font);
+    top_y = 11 * (line - hidden - 1) + y;
+    screen = static_cast<char*>(LockPrimarySurface(&pitch));
+    if (top_y < static_cast<unsigned int>(g_level_block->text_box_bottom)) {
+        bottom_y = __min(top_y + GetFontHeight(g_level_block->text_box_font),
+                         static_cast<unsigned int>(g_level_block->text_box_bottom));
+        LineDraw(0, x + x_offset + 1, top_y, x + x_offset + 1, bottom_y, -0x100, screen);
+    }
+    UnlockPrimarySurface();
+}
+
+/* Draw the dialogue input's text lines from start_line down, eleven pixels
+   per row, stopping before the box bottom. The first line picks up the
+   optional prefix when start_line is zero. Returns through InvalidateRegion
+   of the painted rectangle. */
+// FUNCTION: WIZ8 0x0058CA30
+void DrawDialogueInputLines0058CA30(int x, int y, int start_line)
+{
+    W8DialogueTextState* input = g_level_block->dialogue_text_input;
+    wchar_t* line = input->text + input->line_offsets[start_line];
+    wchar_t saved;
+    wchar_t* next;
+    int row_y = y;
+    int max_width = 0;
+    int x_origin = x;
+    unsigned int i = start_line;
+
+    if (input->first_line_prefix != 0 && start_line == 0) {
+        gprintf(x, row_y, Wiz8ToSgpWideText(g_format_s_006068e4), input->first_line_prefix);
+        x += StringPixLength(Wiz8ToSgpWideText(input->first_line_prefix),
+                             g_level_block->text_box_font);
+    }
+    while (i < input->line_count - 1) {
+        next = input->text + input->line_offsets[i + 1];
+        saved = *next;
+        *next = 0;
+        gprintf(x, row_y, Wiz8ToSgpWideText(g_format_s_006068e4), line);
+        if (StringPixLength(Wiz8ToSgpWideText(line), g_level_block->text_box_font) > max_width) {
+            max_width = StringPixLength(Wiz8ToSgpWideText(line), g_level_block->text_box_font);
+        }
+        *next = saved;
+        row_y += 0xb;
+        if (row_y >= g_level_block->text_box_bottom) {
+            InvalidateRegion(x_origin, y, x_origin + max_width, y + 11 * i, 0);
+            return;
+        }
+        if (x != x_origin) {
+            x = x_origin;
+        }
+        line = next;
+        i++;
+    }
+    gprintf(x, row_y, Wiz8ToSgpWideText(g_format_s_006068e4), line);
+    i++;
+    if (StringPixLength(Wiz8ToSgpWideText(line), g_level_block->text_box_font) > max_width) {
+        max_width = StringPixLength(Wiz8ToSgpWideText(line), g_level_block->text_box_font);
+    }
+    InvalidateRegion(x_origin, y, x_origin + max_width, y + 11 * i, 0);
 }
 
 /* Redraw the text-box scroll chrome (up/down buttons and thumb) when the

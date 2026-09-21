@@ -300,7 +300,6 @@ void RedrawPanel69B940(void);           /* 0x0059BC00 */
 void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled); /* 0x0059A540 */
 
 void DrawMainGamePrompt(void); /* 0x0056AC80 */
-void Function58C790(void);     /* 0x0058C790 */
 
 void InvalidateLockInteractionPanels(void);                 /* 0x00587C50 */
 unsigned char GetOpenDialogueFlag(void);                    /* 0x0058D7C0 */
@@ -3954,7 +3953,7 @@ void ApplyMainGameRedrawFlags(void)
         ActivateNpcDialoguePanels0056ECF0(1);
     }
     if (GetOpenDialogueFlag() != 0) {
-        Function58C790();
+        RepaintDialogueInputText0058C790();
     }
 finish_mode_overlays:
     if ((g_level_block->redraw_flags & 0x800) != 0) {
