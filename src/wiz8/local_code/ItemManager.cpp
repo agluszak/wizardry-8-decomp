@@ -50,7 +50,7 @@
 
 /* 0x004F7C50: the item-picker destroy callback InteractWithWorldItem installs;
    not yet recovered. */
-void Function4F7C50(W8DialogBase* dialog);
+void OnTriggerItemPickerClosed004F7C50(W8DialogBase* dialog);
 
 /* 0x005ED7B0: 1/360, the half-degree step random item angles are built
    from. */
@@ -887,7 +887,7 @@ unsigned char InteractWithWorldItem004F7910(int runtime_id)
         W8TriggerItemPickerDialog* dialog = new W8TriggerItemPickerDialog;
         if (dialog != 0) {
             dialog->SetItemGroup005CF0C0(item);
-            dialog->m_destroy_callback = Function4F7C50;
+            dialog->m_destroy_callback = OnTriggerItemPickerClosed004F7C50;
         }
         g_modal_owner_0068edd0 = dialog;
         return 1;
@@ -915,6 +915,55 @@ unsigned char InteractWithWorldItem004F7910(int runtime_id)
         srAssertFail("fStatus", ITEM_MANAGER_CPP, 893, 0);
     }
     return result;
+}
+
+/* Trigger-item-picker destroy callback. The dialog hands its item group back;
+   a two-item group keeps its second member in the world at the head's
+   position, while the head itself - or a group that was never split - is
+   pulled off its sector, deactivated and freed out of the item list. A group
+   of three or more is left untouched. */
+// FUNCTION: WIZ8 0x004f7c50
+void OnTriggerItemPickerClosed004F7C50(W8DialogBase* dialog)
+{
+    W8WorldItem* item;
+    W8WorldItem* target;
+    unsigned int index;
+    bool was_active;
+
+    if (dialog == 0) {
+        return;
+    }
+    item = static_cast<W8TriggerItemPickerDialog*>(dialog)->ReturnItemsToGroup005CF110();
+    if (ItemInfoGetNumInGroup(item) == 2) {
+        W8WorldItem* second = ItemInfoGroupGetNext(item);
+        second->position = item->position;
+        if (second->p3D == 0) {
+            ActivateItem(second);
+        }
+        PLAdoptAppend(gXStatus.plsItemList, second);
+        item->next = 0;
+        index = ItemIndex(item->runtime_id);
+        target = ItemInfo(index);
+        if (target->sector_id > -1) {
+            RemoveItemFromSector(target->sector_id, target);
+        }
+        was_active = target->fActive;
+    } else {
+        if (ItemInfoGetNumInGroup(item) != 1) {
+            return;
+        }
+        index = ItemIndex(item->runtime_id);
+        target = ItemInfo(index);
+        if (target->sector_id > -1) {
+            RemoveItemFromSector(target->sector_id, target);
+        }
+        was_active = target->fActive;
+    }
+    if (was_active != 0) {
+        DeactivateWorldItem(target);
+    }
+    FreeWorldItemGroup(target);
+    PLRemoveAt(gXStatus.plsItemList, index);
 }
 
 /* Push every live world item back to its sector and free the whole list. The

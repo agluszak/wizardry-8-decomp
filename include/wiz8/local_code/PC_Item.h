@@ -9,6 +9,7 @@ void ReleaseGenericItemNames(void);
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/dialog_code/DialogBase.h"
 
+struct W8CombatSlot;
 struct W8ItemDatabaseRecord;
 struct W8NpcState;
 
@@ -256,6 +257,7 @@ int CastItemSpell0051EE70(W8Character* character, W8ItemInstance* item, unsigned
 
 /* The same batch's remaining bodies, recovered together with them. */
 void AimItemUseAtCurrentTarget0051DB60(W8Character* character, W8ItemInstance* item);
+void SetPartySlotItem0051DC50(int party_slot, W8ItemInstance* item, const W8CombatSlot* target);
 unsigned char SwapWeaponSetSlots0051D3B0(int party_slot, char announce, unsigned char refresh);
 void SplitThrowableStackBetweenHands0051ED30(W8Character* character, int equip_slot);
 void RemovePartyPoolEntry00521C20(unsigned int index);

@@ -3602,6 +3602,22 @@ void AimItemUseAtCurrentTarget0051DB60(W8Character* character, W8ItemInstance* i
     ChooseAction(party_slot, W8_ACTION_USE_ITEM, -1, &detail, 0, 1);
 }
 
+/* Stage a slot's item context for a use: the detail block gets the item with
+   no use kind, the target copies across, and the item's id, origin and slot
+   are stamped so the row can find it again. The item-side counterpart of
+   SetPartySlotSpell. */
+// FUNCTION: WIZ8 0x0051dc50
+void SetPartySlotItem0051DC50(int party_slot, W8ItemInstance* item, const W8CombatSlot* target)
+{
+    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+
+    row->item_detail.item_use.kind = -1;
+    row->item_detail.item_use.item = item;
+    row->item_target = *target;
+    row->item_id_0c9 = item->item_id;
+    GetOriginOfCharacterItem(party_slot, item, &row->item_origin, &row->item_slot);
+}
+
 /* Take one of an item's uses away, and when that was the last one, empty the
    record. A stack counts down its count and a charged item its charges; an
    already-exhausted charged item can only be cleared when the caller allows

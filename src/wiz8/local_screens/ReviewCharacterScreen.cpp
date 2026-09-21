@@ -2549,8 +2549,8 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
             g_item_records[row->pending_action_detail_015.item_use.item->item_id].spell_id ==
                 0x17) {
             reidentify = 1;
-            result =
-                Function5A6440(party_slot, row->pending_action_detail_015.item_use.item, &target);
+            result = CommitPartySlotItemUse005A6440(
+                party_slot, row->pending_action_detail_015.item_use.item, &target);
         } else {
             result = CommitPartySlotSpell005A6340(party_slot, 0x17, 8, &target);
         }
@@ -3103,6 +3103,44 @@ int CommitPartySlotSpell005A6340(int party_slot, int spell_id, int power_level,
         return result;
     }
     if (spell_id == 0x17 && target->pPCItem->identified != 0) {
+        SoundPlay("Data\\Sound\\Misc\\Spell Learned.wav", 0);
+        return 1;
+    }
+    SoundPlay("Data\\Spells\\Sounds\\GeneralMagic.wav", 0);
+    return 1;
+}
+
+/* Books a party slot's out-of-combat item use: stamps the row's pending
+   use-item action aimed at the item's target, runs the use, stages the item
+   context on the row, then fatigues the user and plays fizzle/learned/general
+   audio for the result. The item twin of CommitPartySlotSpell005A6340. */
+// FUNCTION: WIZ8 0x005a6440
+int CommitPartySlotItemUse005A6440(int party_slot, W8ItemInstance* item, W8CombatSlot* target)
+{
+    int fatigue;
+    int result;
+    W8PartySlotRow* row;
+
+    StartBreathCycle(party_slot, 0);
+    row = &g_status_685170.buffers.party_rows[party_slot];
+    row->pending_action = W8_ACTION_USE_ITEM;
+    row->attack_mode[0] = -1;
+    row->attack_mode[1] = -1;
+    row->pending_action_detail_015.item_use.kind = -1;
+    row->pending_action_detail_015.item_use.item = item;
+    row->target_out_of_combat = *target;
+    result = UseItem(&g_status_685170.buffers.characters[party_slot], item, &fatigue);
+    SetPartySlotItem0051DC50(party_slot, item, target);
+    if (fatigue == -1) {
+        fatigue = CharacterActionFatigueCost(party_slot, W8_ACTION_USE_ITEM);
+    }
+    FatigueCharacter(party_slot, fatigue, 1, 0);
+    if (result != 1) {
+        SoundPlay("Data\\Sound\\Misc\\Spell Fizzle 01.wav", 0);
+        return result;
+    }
+    if (g_item_records[target->pPCItem->item_id].spell_id == 0x17 &&
+        target->pPCItem->identified != 0) {
         SoundPlay("Data\\Sound\\Misc\\Spell Learned.wav", 0);
         return 1;
     }
