@@ -74,6 +74,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/engine_code/IntervalGate.cpp
     src/wiz8/engine_code/BitArray.cpp
     src/wiz8/engine_code/GameData.cpp
+    src/wiz8/engine_code/ground_surface_info.cpp
     src/wiz8/engine_code/GDFileIO.cpp
     src/wiz8/engine_code/Octree.cpp
     src/wiz8/engine_code/OctPath.cpp
