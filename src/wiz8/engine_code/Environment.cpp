@@ -55,6 +55,9 @@ unsigned long g_tick_65b9a8;
 /* The static and dynamic scene fogs owned by the environment. */
 // GLOBAL: WIZ8 0x0065B9B0
 srFog* g_environment_object_0065b9b0;
+/* Camera-light intensity ceiling for SetCameraLightMode00483E80; the linker
+   folds it into the shared 50.0f constant Octree.cpp emits at 0x005EC02C. */
+static const float CAMERA_LIGHT_MAXIMUM_INTENSITY = 50.0f;
 // GLOBAL: WIZ8 0x0065B9B4
 srFog* g_environment_object_0065b9b4;
 // SYNTHETIC: WIZ8 0x00482250
@@ -1040,6 +1043,50 @@ void SetSkyNodeVisible(bool visible)
             camera_light->clearFlag(srNode::FLAG_DISABLE);
         } else {
             camera_light->setFlag(srNode::FLAG_DISABLE);
+        }
+    }
+}
+
+/* Mode 0 raises the camera light's intensity by the step value, clamped to
+   the ceiling; mode 1 lowers it by the same step and, once it reaches the
+   floor, falls through to mode 2 which disables the node. Mode 3 re-enables
+   the node without touching the intensity. */
+// FUNCTION: WIZ8 0x00483E80
+void SetCameraLightMode00483E80(int mode)
+{
+    stLight* camera_light;
+    float intensity;
+
+    if (g_world != 0 && (camera_light = g_world->camera_light, camera_light != 0)) {
+        switch (mode) {
+        case 0:
+            camera_light->clearFlag(srNode::FLAG_DISABLE);
+            camera_light = g_world->camera_light;
+            intensity = g_float_005ebb34;
+            if (camera_light != 0) {
+                intensity = camera_light->intensity_1d0;
+            }
+            intensity = intensity + g_float_005ebc7c;
+            if (CAMERA_LIGHT_MAXIMUM_INTENSITY < intensity) {
+                intensity = CAMERA_LIGHT_MAXIMUM_INTENSITY;
+            }
+            if (camera_light != 0) {
+                camera_light->intensity_1d0 = intensity;
+            }
+            return;
+        case 1:
+            intensity = camera_light->intensity_1d0 - g_float_005ebc7c;
+            if (g_float_005ebb34 < intensity) {
+                camera_light->intensity_1d0 = intensity;
+                return;
+            }
+            /* fall through */
+        case 2:
+            camera_light->setFlag(srNode::FLAG_DISABLE);
+            return;
+        case 3:
+            camera_light->clearFlag(srNode::FLAG_DISABLE);
+            return;
         }
     }
 }

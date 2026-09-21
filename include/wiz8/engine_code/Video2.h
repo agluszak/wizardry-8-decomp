@@ -280,6 +280,7 @@ void RenderFrame(void);
 IDirectDrawSurface2* BeginVideoPresentation(void);
 unsigned char FinishVideoPresentation(void);
 void PublishLightDirection(const EnvironmentColour* direction);
+void GetWorldColour00427290(EnvironmentColour* colour); /* 0x00427290 */
 srVector3T<float>* __fastcall SaturateColor004299B0(srVector3T<float>* color);
 void ReleaseObject004257F0(srClass* object);
 void Initialize16BitPixelFormatMasks(void);

@@ -35,7 +35,19 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/GrCycle.h"
 #include "wiz8/engine_code/PolyPick.h"
+#include "wiz8/engine_code/Video2.h"
+#include "wiz8/environment_colour.h"
+#include "wiz8/fonts.h"
+#include "wiz8/local_code/MonsterAI.h"
+#include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/local_code/Sight.h"
 #include "random.h"
+
+#include "Font.h"
+#include "input.h"
+#include "sgp.h"
+
+#include <ctype.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,10 +64,14 @@ double g_double_005ec378 = 4.0;
 float g_float_005ec38c = 0.9847999811172485f;
 // GLOBAL: WIZ8 0x005ec384
 float g_float_005ec384 = 37500.0f;
+// GLOBAL: WIZ8 0x005ec388
+float g_float_005ec388 = 100000.0f;
 // GLOBAL: WIZ8 0x005ec370
 float g_float_005ec370 = 550.0f;
 // GLOBAL: WIZ8 0x005ec394
 float g_float_005ec394 = 1.2000000476837158f;
+// GLOBAL: WIZ8 0x005ec398
+const float g_float_005ec398 = 1001.0f;
 // GLOBAL: WIZ8 0x005ec39c
 const float g_float_005ec39c = 250000.0f;
 // GLOBAL: WIZ8 0x005ec3b8
@@ -1325,6 +1341,193 @@ unsigned char W8PathingService::BuildAttachmentPath00460950(W8NavigatorAttachmen
             }
             attachment->flags_00 = attachment->flags_00 | 0x20000;
             return 1;
+        }
+    }
+    return 0;
+}
+
+/* Link the attachment's recorded route to `target`: seeds the search state
+   from the attachment's start waypoint, runs the recursive link search, and
+   when that fails falls back to the A* FindPath when the straight-line cost
+   still exceeds `separation`. The reached chain is walked back through
+   parent_10 into the scratch array, reversed into the attachment's position
+   and value arrays, trimmed at the `separation` sphere around the target, and
+   the last stored position becomes position_1c. */
+// FUNCTION: WIZ8 0x004612a0
+unsigned char W8PathingService::LinkAttachmentTarget004612A0(W8NavigatorAttachment* attachment,
+                                                             unsigned int flags,
+                                                             const srVector3T<float>* target,
+                                                             float separation)
+{
+    unsigned int node;
+    unsigned int count;
+    unsigned int current;
+    unsigned int index;
+    unsigned short start;
+    float dx;
+    float dy;
+    float dz;
+
+    patrol_min_1e0 = separation;
+    patrol_distance_1e8 = separation + g_float_005ec0a8;
+    patrol_start_1ec = *target;
+    path_flags_000 = flags;
+    value_1d4 = 0;
+    start = FindWaypoint0045B120(&attachment->position_10, '\x01');
+    if ((start == 0) && ((start = value_1d4) == 0)) {
+        return 0;
+    }
+    rendered_waypoints_05c->ClearAll();
+    visible_waypoints_058->ClearAll();
+    path_heap_06c->heap_00->size_0c = 0;
+    index = start;
+    visible_waypoints_058->Set(index);
+    probe_cell_key_078 = index;
+    dx = target->x - attachment->position_10.x;
+    dy = target->y - attachment->position_10.y;
+    dz = target->z - attachment->position_10.z;
+    patrol_cost_210 = sqrt(dx * dx + dy * dy + dz * dz);
+    m_pSurfaces_048[index].parent_10 = 0;
+    m_pSurfaces_048[index].cost_1c = patrol_cost_210;
+    node = RecurseTargetLinks004615D0(start);
+    if (static_cast<short>(node) == 0) {
+        if (patrol_cost_210 > separation) {
+            attachment->position_1c = m_pSurfaces_048[probe_cell_key_078].position_04;
+            node = FindPath00460B80(attachment, flags);
+        }
+        if (static_cast<short>(node) == 0) {
+            return 0;
+        }
+    }
+    attachment->position_1c = m_pSurfaces_048[node & 0xffff].position_04;
+    count = 0;
+    visible_waypoints_058->ClearAll();
+    current = node;
+    while (static_cast<unsigned short>(current) != 0) {
+        if (visible_waypoints_058->Set(current & 0xffff) != 0) {
+            break;
+        }
+        index = count & 0xffff;
+        if (m_ulNumWayPoints <= index) {
+            srAssertFail("i < m_ulNumWayPoints", OCTPATH_CPP, 0x1c97, 0);
+        }
+        g_path_scratch_00659c64[index] = static_cast<unsigned short>(current);
+        current = m_pSurfaces_048[current & 0xffff].parent_10;
+        ++count;
+    }
+    g_path_scratch_00659c64[count] = 0;
+    if (static_cast<short>(count) != 0) {
+        do {
+            unsigned short surface_index = g_path_scratch_00659c64[count - 1];
+            srVector3T<float>* position = &m_pSurfaces_048[surface_index].position_04;
+            if (static_cast<unsigned int>(attachment->capacity_0a) <=
+                static_cast<unsigned int>(attachment->path_position_index_08 + 1)) {
+                attachment->GrowPathStorage00456BD0();
+            }
+            srVector3T<float>* slot = attachment->position_4c + attachment->path_position_index_08;
+            slot->x = position->x;
+            slot->y = position->y;
+            slot->z = position->z;
+            attachment->path_values_50[attachment->path_position_index_08] = surface_index;
+            attachment->path_position_index_08 = attachment->path_position_index_08 + 1;
+            attachment->flags_00 = attachment->flags_00 & 0xffbfffff;
+            --count;
+        } while (count != 0);
+    }
+    attachment->TruncatePathAtRadius004566C0(target, separation);
+    if (1 < attachment->path_position_index_08) {
+        attachment->path_position_index_08 = attachment->path_position_index_08 - 1;
+        attachment->position_1c = attachment->position_4c[attachment->path_position_index_08];
+    }
+    if (value_1d4 != 0) {
+        attachment->position_28 = probe_position_07c;
+        attachment->flags_00 = attachment->flags_00 | 0x80000;
+    }
+    attachment->flags_00 = attachment->flags_00 | 0x20000;
+    return 1;
+}
+
+/* Recursive depth-first link search from `waypoint`. Collects the waypoint's
+   admissible links (the same edge/surface flag filters as FindPath), extends
+   each destination's accumulated link cost, keys the candidates by their
+   distance to the stored target, sorts them, and either returns the first
+   candidate priced beyond patrol_distance_1e8 or recurses into each in sorted
+   order. The farthest-measured candidate is parked in probe_cell_key_078 for
+   the fallback path in LinkAttachmentTarget004612A0. */
+// FUNCTION: WIZ8 0x004615d0
+unsigned short W8PathingService::RecurseTargetLinks004615D0(unsigned short waypoint)
+{
+    unsigned short edge;
+    unsigned short destination;
+    unsigned short candidates[20];
+    unsigned long keys[20];
+    float distances[20];
+    unsigned int count = 0;
+    unsigned int index;
+    unsigned int link_flags;
+    float distance;
+    W8PathEdge* link;
+
+    edge = m_pSurfaces_048[waypoint].first_edge_24;
+    if (edge != 0) {
+        unsigned short* slot = candidates;
+        do {
+            link = m_pEdges_04c + edge;
+            link_flags = link->flags_00;
+            if ((link_flags & 0x1000000) == 0) {
+                destination = link->destination_06;
+                if ((((m_pSurfaces_048[destination].flags_00 & 0x20) == 0) &&
+                     (((link_flags & 0x80000000) == 0) ||
+                      (((link_flags & 0x10000000) != 0 &&
+                        ((path_flags_000 & 0x10000000) != 0))))) &&
+                    ((path_flags_000 == 0) ||
+                     ((((link_flags & 0xffff) == 0xffff ||
+                        ((link_flags & path_flags_000 & 0xffff) != 0)) &&
+                       (((link_flags & 0x70000) == 0x70000 ||
+                         ((link_flags & path_flags_000 & 0x70000) != 0)))) &&
+                      (((link_flags & 0x380000) == 0x380000 ||
+                        ((link_flags & path_flags_000 & 0x380000) != 0))))) &&
+                    (destination != 0)) {
+                    if (rendered_waypoints_05c->Test(destination) == 0) {
+                        m_pSurfaces_048[destination].cost_1c =
+                            link->distance_08 + m_pSurfaces_048[waypoint].cost_1c;
+                        m_pSurfaces_048[destination].parent_10 = waypoint;
+                        srVector3T<float> to_target =
+                            m_pSurfaces_048[destination].position_04 - patrol_start_1ec;
+                        distance = to_target.Length();
+                        distances[count] = distance;
+                        if (patrol_cost_210 < distance) {
+                            patrol_cost_210 = distance;
+                            probe_cell_key_078 = destination;
+                        }
+                        srVector3T<float> link_direction =
+                            m_pSurfaces_048[destination].position_04 -
+                            m_pSurfaces_048[waypoint].position_04;
+                        link_direction.Normalize();
+                        *slot = edge;
+                        keys[count] = static_cast<unsigned long>(
+                            g_float_005ec398 -
+                            DotProduct(link_direction, to_target / distance) * g_float_005ebc64);
+                        ++count;
+                        ++slot;
+                    }
+                }
+            }
+            edge = link->next_0c;
+        } while (edge != 0);
+    }
+    QuickSortByKey(candidates, keys, 0, static_cast<int>(count) - 1);
+    rendered_waypoints_05c->Set(waypoint);
+    if (count != 0) {
+        for (index = 0; index < count; ++index) {
+            destination = m_pEdges_04c[candidates[index]].destination_06;
+            if (patrol_distance_1e8 < distances[index]) {
+                return destination;
+            }
+            destination = RecurseTargetLinks004615D0(destination);
+            if (destination != 0) {
+                return destination;
+            }
         }
     }
     return 0;
@@ -3200,6 +3403,67 @@ unsigned char W8PathingService::PrepareLinkedNavigator00466FB0(W8NavigatorMoveme
         }
     }
     return built;
+}
+
+/* One movement step for a monster walking an attachment path. The scaled
+   frame time is spent in 5.0-unit slices: each slice advances the position
+   along the recorded route, stamps every waypoint the advance crossed with
+   the accumulator's current time, and re-aims yaw at the step direction.
+   Hostile groups run sight and RTAI between slices and bail when combat
+   starts. `radius`/`separation` are passed by callers but never read.
+   Returns whether the step completed the path. */
+// FUNCTION: WIZ8 0x00467150
+unsigned int W8PathingService::StepMonsterAlongPath00467150(W8NavigatorMovementState* movement,
+                                                            float radius, float separation)
+{
+    g_navigator_position_changed_659c11 = true;
+    unsigned char arrived = '\0';
+    W8NavigatorAttachment* attachment = movement->attachment_0ac;
+    W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
+        MonsterGetIndexByLocationID(0x2a95, OCTPATH_CPP, movement->location_id_004, '\x01'));
+    W8MonsterGroup* group = GetMonsterGroupByListIndex(
+        GetMonsterGroupIndexByID(0x2a96, OCTPATH_CPP, monster_info->monster_group_id, '\x01'));
+    monster_info->monster->unknown_0bc[1] = 1;
+    float remaining = g_rate_006068EC * g_game_time_accumulator_6598bc->GetValue28();
+    do {
+        if (remaining <= g_float_005ebb34) {
+            break;
+        }
+        float step;
+        if (remaining <= g_float_005ebc28) {
+            step = remaining;
+        } else {
+            step = 5.0f;
+        }
+        unsigned short previous = attachment->path_cursor_04;
+        srVector3T<float> direction;
+        arrived = attachment->AdvancePositionWithDirection00457150(
+            &movement->position_040, step * movement->movement_scale_060 * g_world_scale_005ebc40,
+            &direction);
+        unsigned short reached = attachment->path_cursor_04;
+        if (previous < reached) {
+            do {
+                attachment->path_cursor_04 = previous;
+                m_pSurfaces_048[attachment->path_values_50[attachment->path_cursor_04]]
+                    .positional_14 =
+                    static_cast<unsigned int>(g_game_time_accumulator_6598bc->GetValue30());
+                previous = previous + 1;
+            } while (previous < reached);
+            attachment->path_cursor_04 = reached;
+        }
+        float angle = NormalizeAngle(static_cast<float>(atan2(direction.x, direction.z)));
+        movement->target_yaw = angle;
+        movement->yaw = angle;
+        if (group->ubDisposition == DISP_HOSTILE) {
+            UpdateMonsterSight(monster_info, 1, 0);
+            DoMonsterRTAI(monster_info, '\x01');
+            if (monster_info->fInCombat != '\0') {
+                break;
+            }
+        }
+        remaining = remaining - step;
+    } while (arrived == '\0');
+    return arrived != '\0';
 }
 
 /* Give everything the service owns back. The four malloc'd tables and the
@@ -5671,6 +5935,86 @@ void W8PathingService::AddWaypoint0045DDB0(const srVector3T<float>* position)
     ++m_ulNumWayPoints;
 }
 
+/* Interactive link builder for one waypoint: asks the editor for a direction
+   mask and link flags, queries the waypoint octree kind inside a 100000/50000
+   box around the waypoint, span-tests each candidate, sorts them nearest-first
+   by truncated distance, then adds the links the accepted direction mask
+   allows. The first unreachable candidate ends the walk (they sort last). */
+// FUNCTION: WIZ8 0x0045e030
+void W8PathingService::SetWaypointLinkFlags0045E030(unsigned short waypoint, unsigned int direction)
+{
+    unsigned long* objects = 0;
+    unsigned int link_flags[2];
+    unsigned int index;
+    unsigned int count;
+    unsigned int accepted;
+    unsigned long* distances;
+    W8PathSurface* surface;
+    W8PathSurface* candidate;
+    srVector3T<float> lower;
+    srVector3T<float> upper;
+    float dx;
+    float dy;
+    float dz;
+    float distance;
+
+    if (1 < m_ulNumWayPoints) {
+        link_flags[0] = 0;
+        link_flags[1] = 0;
+        accepted = EditWaypointLinkFlags0045F530("SET FLAGS FOR ALL LINKS FOR THIS WAYPOINT",
+                                                 link_flags, direction);
+        if (accepted != 0) {
+            surface = m_pSurfaces_048 + waypoint;
+            lower.x = surface->position_04.x - g_float_005ec388;
+            lower.y = surface->position_04.y - g_float_005ec260;
+            lower.z = surface->position_04.z - g_float_005ec388;
+            upper.x = surface->position_04.x + g_float_005ec388;
+            upper.y = surface->position_04.y + g_float_005ec260;
+            upper.z = surface->position_04.z + g_float_005ec388;
+            count = g_octree_6598a4->QueryObjects(&objects, &lower, &upper, W8_OCTREE_KIND_WAYPOINT,
+                                                  waypoint);
+            if (count != 0) {
+                distances = static_cast<unsigned long*>(malloc(count * sizeof(unsigned long)));
+                for (index = 0; index < count; ++index) {
+                    candidate = m_pSurfaces_048 + objects[index];
+                    if ((candidate->flags_00 & 2) == 0) {
+                        dx = candidate->position_04.x - surface->position_04.x;
+                        dy = candidate->position_04.y - surface->position_04.y;
+                        dz = candidate->position_04.z - surface->position_04.z;
+                        distance = sqrt(dx * dx + dy * dy + dz * dz);
+                        if (TestWaypointSpan0045A1B0(&surface->position_04, &candidate->position_04,
+                                                     '\0', '\0') != '\0') {
+                            distances[index] = static_cast<unsigned long>(distance);
+                        } else {
+                            distances[index] = 0xffffffff;
+                        }
+                    } else {
+                        distances[index] = 0xffffffff;
+                    }
+                }
+                QuickSortByKey(objects, distances, 0, static_cast<int>(count) - 1);
+                for (index = 0; index < count; ++index) {
+                    if (distances[index] == 0xffffffff) {
+                        return;
+                    }
+                    if (HasDirectionalWaypointLink0045EF90(
+                            waypoint, static_cast<unsigned short>(objects[index])) == '\0') {
+                        if ((accepted & 1) != 0) {
+                            AddWaypointLink0045EC30(waypoint,
+                                                    static_cast<unsigned short>(objects[index]),
+                                                    link_flags[0]);
+                        }
+                        if ((accepted & 2) != 0) {
+                            AddWaypointLink0045EC30(static_cast<unsigned short>(objects[index]),
+                                                    waypoint, link_flags[1]);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 /* Unlink and clear one edge record.
 
    The owning surface or predecessor edge is redirected to the removed edge's
@@ -6063,6 +6407,296 @@ void W8PathingService::EditTeleportalLink(const srVector3T<float>* destination,
     m_pEdges_04c[edge_index].distance_08 = 0.0f;
     MarkRendererReady();
     flag_1cc = 1;
+}
+
+/* Modal waypoint-link flag editor: renders the link's direction, movement,
+   size, nav-group, collision and door bits over nine heap-allocated text/wide
+   line buffers and services a keyboard loop. 'C' and 'T' toggle the collide
+   and through-door bits, 'D'/'G'/'M'/'S' arm a pending second-key prompt for
+   the direction/group/movement/size bits, ENTER commits and ESC cancels. Only
+   the pending-'D' direction keys actually change state; the 'G' second key
+   computes a bit the retail code drops, and the 'M'/'S' second keys are dead.
+   Returns the accepted direction mask, zero on cancel. */
+// FUNCTION: WIZ8 0x0045f530
+unsigned int W8PathingService::EditWaypointLinkFlags0045F530(const char* title, unsigned int* flags,
+                                                             unsigned int direction)
+{
+    EnvironmentColour colour_saved;
+    EnvironmentColour colour_backup;
+    InputAtom atom;
+    MSG message;
+    char* lines[9];
+    unsigned short* wide[9];
+    char groups[32];
+    unsigned int current;
+    unsigned int link_flags;
+    unsigned int index;
+    unsigned int line;
+    int letter;
+    int key;
+    char pending = '\0';
+    short length;
+
+    memset(&colour_saved, 0, sizeof(colour_saved));
+    memset(&colour_backup, 0, sizeof(colour_backup));
+    GetWorldColour00427290(&colour_backup);
+    PublishLightDirection(&colour_saved);
+    SetFont(g_smfnt_font_683694);
+    SetRGBFontShadow(0, 0, 0);
+    SetFontObjectPalette16BPP(g_smfnt_font_683694, g_font_state_palettes_68ee1c[5]);
+    if (direction == 0 || (value_1ce & 2) != 0) {
+        direction = 3;
+    }
+    if (flags[0] == 0) {
+        flags[0] = 0x3fffff;
+    }
+    if (flags[1] == 0) {
+        flags[1] = 0x3fffff;
+    }
+    link_flags = (((direction & 3) == 2) ? flags[1] : flags[0]) & 0x12000000;
+    for (index = 0; index < 9; ++index) {
+        lines[index] = new char[0x100];
+        wide[index] = new unsigned short[0x100];
+    }
+    if (title != 0) {
+        strcpy(lines[0], title);
+    } else {
+        sprintf(lines[0], "EDIT NEW WAYPOINT LINK FLAGS:");
+    }
+    sprintf(lines[8], " ESC to Cancel, ENTER to Accept");
+    for (;;) {
+        current = ((direction & 1) != 0) ? flags[0] : flags[1];
+        sprintf(lines[2], " (D)irections: ");
+        if ((direction & 3) == 3) {
+            strcat(lines[2], "2 way link             ");
+        } else if ((direction & 3) == 1) {
+            strcat(lines[2], "1 way link outward     ");
+        } else {
+            strcat(lines[2], "1 way link inward      ");
+        }
+        if ((direction & 4) != 0) {
+            strcat(lines[2], "(FIXED)");
+        }
+        sprintf(lines[3], " (M)ovement: ");
+        if ((current & 0x70000) == 0x70000) {
+            strcat(lines[3], "All types              ");
+        } else {
+            if ((current & 0x10000) != 0) {
+                strcat(lines[3], "Walk ");
+            }
+            if ((current & 0x20000) != 0) {
+                strcat(lines[3], "Fly ");
+            }
+            if ((current & 0x40000) != 0) {
+                strcat(lines[3], "Swim ");
+            }
+        }
+        sprintf(lines[4], " (S)ize of Monster: ");
+        if ((current & 0x380000) == 0x380000) {
+            strcat(lines[4], "All sizes");
+        } else {
+            if ((current & 0x80000) != 0) {
+                strcat(lines[4], "Tiny ");
+            }
+            if ((current & 0x100000) != 0) {
+                strcat(lines[4], "Small ");
+            }
+            if ((current & 0x200000) != 0) {
+                strcat(lines[4], "Medium ");
+            }
+            if ((current & 0x400000) != 0) {
+                strcat(lines[4], "Large ");
+            }
+            if ((current & 0x800000) != 0) {
+                strcat(lines[4], "Huge ");
+            }
+        }
+        sprintf(lines[5], " (G)roup: ");
+        if ((current & 0xffff) == 0xffff) {
+            strcat(lines[5], "All Nav Groups");
+        } else {
+            sprintf(groups, "[                   ] (A to P)");
+            letter = 0;
+            for (index = 0; index < 16; ++index) {
+                if ((index % 4) == 0) {
+                    ++letter;
+                }
+                if ((current & (1 << index)) != 0) {
+                    groups[letter] = 'A' + index;
+                }
+                ++letter;
+            }
+            strcat(lines[5], groups);
+        }
+        sprintf(lines[6], " (C)ollide with Geometry: ");
+        strcat(lines[6], (current & 0x2000000) != 0 ? "No" : "Yes");
+        sprintf(lines[7], " (T)hrough Door: ");
+        strcat(lines[7], (current & 0x10000000) != 0 ? "Yes" : "No");
+        ClearSurfaceRect(0x1e, 0x64, 0x262, 0xcc);
+        for (line = 0; line < 9; ++line) {
+            length = 0;
+            if (lines[line][0] != '\0') {
+                do {
+                    if (0x50 <= length) {
+                        goto draw;
+                    }
+                    wide[line][length] = static_cast<short>(lines[line][length]);
+                    ++length;
+                } while (lines[line][length] != '\0');
+            }
+            while (length < 0x50) {
+                wide[line][length] = 0x20;
+                ++length;
+            }
+        draw:
+            wide[line][length] = 0;
+            gprintfDirty(0x1f, 0x65 + line * 0xd, const_cast<UINT16*>(g_format_s_006068e4),
+                         wide[line]);
+        }
+        InvalidateRegion(0x1e, 0x64, 0x262, 0xcc, 4);
+        if (DequeueEvent(&atom) == 0) {
+            do {
+                RenderFrame();
+                RenderFrame();
+                WaitMessage();
+                if (PeekMessageA(&message, (HWND)0, 0, 0, 0) != 0 &&
+                    GetMessageA(&message, (HWND)0, 0, 0) != 0) {
+                    TranslateMessage(&message);
+                    DispatchMessageA(&message);
+                }
+            } while (DequeueEvent(&atom) == 0);
+        }
+        if (atom.usEvent != 1) {
+            continue;
+        }
+        if (atom.usParam == 0x1b) {
+            if (pending == 0) {
+                direction = 0;
+                break;
+            }
+            sprintf(lines[1], "                                             ");
+            pending = 0;
+            continue;
+        }
+        if (atom.usParam == 0x0d) {
+            if (pending == 0) {
+                break;
+            }
+            pending = 0;
+            continue;
+        }
+        if (pending != 0) {
+            key = toupper(atom.usParam);
+            switch (pending) {
+            case 'C':
+                if (key != 'Y') {
+                    pending = 0;
+                }
+                break;
+            case 'D':
+                if (key == 'B') {
+                    direction = direction | 3;
+                } else if (key == 'O') {
+                    direction = direction & ~2;
+                } else if (key == 'I') {
+                    direction = direction & ~1;
+                }
+                break;
+            case 'G':
+                if ('A' <= key && key <= 'P') {
+                    /* Retail computes 1 << (pending - 'A') here and drops the
+                       result; nothing consumes it. */
+                }
+                break;
+            case 'M':
+                break;
+            case 'S':
+                if (0 <= key - 'A' && key - 'A' <= 0x13) {
+                    switch (key) {
+                    case 'A':
+                    case 'H':
+                    case 'K':
+                    case 'L':
+                    case 'R':
+                    case 'S':
+                    case 'T':
+                        break;
+                    case 'B':
+                    case 'C':
+                    case 'D':
+                    case 'E':
+                    case 'F':
+                    case 'G':
+                    case 'I':
+                    case 'J':
+                    case 'M':
+                    case 'N':
+                    case 'O':
+                    case 'P':
+                    case 'Q':
+                        break;
+                    }
+                }
+                break;
+            }
+        } else {
+            switch (toupper(atom.usParam)) {
+            case 'C':
+                link_flags = link_flags ^ 0x2000000;
+                break;
+            case 'D':
+                if ((value_1ce & 2) != 0) {
+                    sprintf(lines[1], " Can only set flags in both directions in this link mode");
+                } else if ((direction & 4) == 0) {
+                    sprintf(lines[1], " (B)oth, (O)utward, or (I)nward");
+                    pending = 'D';
+                }
+                break;
+            case 'G':
+                sprintf(lines[1], " Key Toggle: Cap is On, Lowercase is Off");
+                pending = 'G';
+                break;
+            case 'M':
+                sprintf(lines[1], " Toggle (W)alking, (F)lying, or (S)wimming");
+                pending = 'M';
+                break;
+            case 'S':
+                sprintf(lines[1], " (A)ll (T)iny (S)mall (M)edium (L)arge (H)uge");
+                pending = 'S';
+                break;
+            case 'T':
+                link_flags = link_flags ^ 0x10000000;
+                break;
+            default:
+                lines[1][0] = 0;
+                break;
+            }
+        }
+    }
+    ClearSurfaceRect(0x1e, 0x64, 0x262, 0xd9);
+    for (line = 0; line < 9; ++line) {
+        wide[line][0x50] = 0;
+        gprintfDirty(0x1f, 0x65 + line * 0xd, const_cast<UINT16*>(g_format_s_006068e4), wide[line]);
+    }
+    InvalidateRegion(0x1e, 0x64, 0x262, 0xd9, 4);
+    RenderFrame();
+    RenderFrame();
+    for (index = 0; index < 9; ++index) {
+        delete[] lines[index];
+        delete[] wide[index];
+    }
+    PublishLightDirection(&colour_backup);
+    link_flags = (current & 0xedffffff) | link_flags;
+    direction = direction & 3;
+    if ((direction & 1) != 0) {
+        flags[0] = link_flags;
+    }
+    if ((direction & 2) != 0) {
+        flags[1] = link_flags;
+    }
+    value_1ce = value_1ce | 0x100;
+    m_positional_1d0 = link_flags;
+    return direction;
 }
 
 /* Look one named path up, and report the region and height range it spans.

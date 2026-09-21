@@ -226,6 +226,7 @@ W8MeshStripBuilder::W8MeshStripBuilder(srVector3i* vertices, unsigned int polygo
     }
 }
 
+// FUNCTION: WIZ8 0x00487980
 W8MeshStripBuilder::~W8MeshStripBuilder()
 {
     delete[] polygons;

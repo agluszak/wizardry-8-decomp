@@ -128,6 +128,112 @@ int stMeshModel::getBoundingBox(srVector3T<float>& minimum, srVector3T<float>& m
     return 1;
 }
 
+/* Recompute the linked group's union bounds: clear this model's cached box,
+   accumulate every frame's bounds from the whole previous/next chain, then
+   push the resulting box, center and radius to each member. Models whose
+   flags_3a0 bit 2 is clear answer from the base-class bounding box; the rest
+   decompress each frame's vertex table. */
+// FUNCTION: WIZ8 0x00471E10
+void stMeshModel::calculateBounds()
+{
+    bounds_minimum_200.SetZero();
+    bounds_maximum_20c.SetZero();
+    bounds_center_218.SetZero();
+    bounds_radius_224 = 0;
+
+    stMeshModel* head = this;
+    while (head->previous != 0) {
+        head = head->previous;
+    }
+
+    stMeshModel* model;
+    srVector3T<float> minimum;
+    srVector3T<float> maximum;
+    minimum.SetZero();
+    maximum.SetZero();
+    for (model = head; model != 0; model = model->next) {
+        for (unsigned int frame = 0; frame < model->frame_count; ++frame) {
+            srVector3T<float> frame_minimum;
+            srVector3T<float> frame_maximum;
+            if ((model->flags_3a0 & 4) == 0) {
+                model->srMeshModel::getBoundingBox(frame_minimum, frame_maximum);
+            } else {
+                model->GetFrameBounds00473190(frame, &frame_minimum, &frame_maximum);
+            }
+            if (frame_minimum.x < minimum.x) {
+                minimum.x = frame_minimum.x;
+            }
+            if (frame_minimum.y < minimum.y) {
+                minimum.y = frame_minimum.y;
+            }
+            if (frame_minimum.z < minimum.z) {
+                minimum.z = frame_minimum.z;
+            }
+            if (maximum.x < frame_maximum.x) {
+                maximum.x = frame_maximum.x;
+            }
+            if (maximum.y < frame_maximum.y) {
+                maximum.y = frame_maximum.y;
+            }
+            if (maximum.z < frame_maximum.z) {
+                maximum.z = frame_maximum.z;
+            }
+        }
+    }
+
+    srVector3T<float> center;
+    center.Set((maximum.x + minimum.x) * g_double_005ebe80,
+               (maximum.y + minimum.y) * g_double_005ebe80,
+               (maximum.z + minimum.z) * g_double_005ebe80);
+    float radius = static_cast<float>(sqrt((maximum.x - center.x) * (maximum.x - center.x) +
+                                           (maximum.y - center.y) * (maximum.y - center.y) +
+                                           (maximum.z - center.z) * (maximum.z - center.z)));
+    float minimum_distance =
+        static_cast<float>(sqrt((minimum.x - center.x) * (minimum.x - center.x) +
+                                (minimum.y - center.y) * (minimum.y - center.y) +
+                                (minimum.z - center.z) * (minimum.z - center.z)));
+    if (radius < minimum_distance) {
+        radius = minimum_distance;
+    }
+    head->setBounds(minimum, maximum, center, radius);
+    for (model = head->next; model != 0; model = model->next) {
+        model->setBounds(minimum, maximum, center, radius);
+    }
+}
+
+/* Bounds `frame`'s vertex table into `minimum`/`maximum`. When the frame is
+   not resident it is decompressed into a scratch array that is released
+   afterward; empty tables produce the zero vector on both outputs. */
+// FUNCTION: WIZ8 0x00473190
+void stMeshModel::GetFrameBounds00473190(int frame, srVector3T<float>* minimum,
+                                         srVector3T<float>* maximum)
+{
+    minimum->x = 0;
+    minimum->y = 0;
+    minimum->z = 0;
+    maximum->x = 0;
+    maximum->y = 0;
+    maximum->z = 0;
+    if (m_pVertexLoc != 0 && vertex_location_count_22c != 0 &&
+        static_cast<unsigned int>(frame) < frame_count) {
+        srVector3T<float>* vertices = m_pVertexLoc[frame];
+        if (vertices == 0) {
+            vertices = new srVector3T<float>[vertex_location_count_22c];
+            if (vertices == 0) {
+                return;
+            }
+            DecompressFrame(frame, 1, vertices);
+        }
+        if (vertex_location_count_22c != 0) {
+            srVectorProcessor::minMax(vertices, *minimum, *maximum,
+                                      static_cast<SRDWORD>(vertex_location_count_22c));
+        }
+        if (m_pVertexLoc[frame] == 0) {
+            delete[] vertices;
+        }
+    }
+}
+
 /* Apply pending vertex DIG lighting when flags_3a0 bit 1 is set, then return
    the SurRender TriMesh cache. */
 // FUNCTION: WIZ8 0x00472270
