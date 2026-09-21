@@ -37,6 +37,7 @@ unsigned __int64 quadWord64(const srQuadWord& value)
 char storage_class[0x2c];
 } // namespace
 
+
 // GLOBAL: SURRENDER 0x1009C710
 unsigned short srTimer::cpuFreqVariancePct = 4;
 
@@ -847,7 +848,8 @@ unsigned long srTimer::resume()
         m_pause.lo = 0;
         m_pause.hi = 0;
     }
-    return (unsigned long)(quadWord64(delta) * m_units_per_interval / quadWord64(m_frequency));
+    return (unsigned long)(quadWord64(delta) * (unsigned long)m_units_per_interval /
+                           quadWord64(m_frequency));
 }
 
 // FUNCTION: SURRENDER 0x10062DF0
@@ -940,40 +942,41 @@ const char* srTimer::getCPUTypeIdString(e_cpuTypeId type) const
 }
 
 // FUNCTION: SURRENDER 0x10062790
-void srTimer::setStorage(char* storage)
+void srTimer::setStorage(char* const storage)
 {
-    if (storage == 0) {
-        storage = (char*)default_storage;
+    char* value = storage;
+    if (value == 0) {
+        value = (char*)default_storage;
     }
-    char* colon = strchr(storage, ':');
-    if (colon == 0 || (unsigned short)(colon - storage) > 10) {
+    char* colon = strchr(value, ':');
+    if (colon == 0 || (unsigned short)(colon - value) > 10) {
         return;
     }
     char root[11];
     memset(root, 0, sizeof(root));
-    strncpy(root, storage, colon - storage);
+    strncpy(root, value, colon - value);
     if (_strnicmp(root, "hkcu", 4) == 0) {
-        storage = (char*)0x80000001;
+        value = (char*)0x80000001;
     } else if (_strnicmp(root, "hklm", 4) == 0) {
-        storage = (char*)0x80000002;
+        value = (char*)0x80000002;
     } else if (_strnicmp(root, "hkcr", 4) == 0) {
-        storage = (char*)0x80000000;
+        value = (char*)0x80000000;
     } else if (_strnicmp(root, "hkus", 4) == 0) {
-        storage = (char*)0x80000003;
+        value = (char*)0x80000003;
     } else if (_strnicmp(root, "hkpd", 4) == 0) {
-        storage = (char*)0x80000004;
+        value = (char*)0x80000004;
     } else if (_strnicmp(root, "hkcc", 4) == 0) {
-        storage = (char*)0x80000005;
+        value = (char*)0x80000005;
     } else {
         if (_strnicmp(root, "0x", 2) != 0 || strlen(root) != 0xa) {
             return;
         }
-        sscanf("%d", root, &storage);
-        if (storage == 0) {
+        sscanf("%d", root, &value);
+        if (value == 0) {
             return;
         }
     }
-    RegKeyBase = storage;
+    RegKeyBase = value;
     strcpy(RegKeyName, colon + 1);
     char* slash = strchr(RegKeyName, '/');
     while (slash != 0) {
@@ -1038,5 +1041,21 @@ const char* srTimer::getOsIdent() const
             static_cast<unsigned int>(info.dwBuildNumber & 0xffff));
     osThreadState = 0;
     return osIdent;
+}
+
+/* The stream's width field doubles as the print-mode selector: 1 prints the
+   CPU identity and frequency, anything else the OS identity; the mode is
+   restored afterwards. */
+// FUNCTION: SURRENDER 0x10060F90
+std::ostream& operator<<(std::ostream& stream, const srTimer& timer)
+{
+    int mode = stream.width();
+    if (mode == 1) {
+        stream << timer.m_cpu_ident << " @ " << timer.m_frequency * 1e-6 << " Mhz";
+    } else {
+        stream << timer.m_ident;
+    }
+    stream.width(mode);
+    return stream;
 }
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #include "srHeap.h"
 #include "srQuadWord.h"
 
@@ -77,7 +79,7 @@ public:
     /* "<hive>:<path>" names the registry location store()/retrieve() use; a
        null storage selects default_storage. */
     static char* getStorage(char* buffer, unsigned long size);
-    static void setStorage(char* storage);
+    static void setStorage(char* const storage);
 
     unsigned char unknown_004_[0x4];
     char m_ident[0x400];     /* 0x008: module/OS identity text */
@@ -125,5 +127,7 @@ protected:
     static const char* RegCpuVariance;
 };
 #pragma pack(pop)
+
+SR_DLL_IMPORT std::ostream& operator<<(std::ostream& stream, const srTimer& timer);
 
 static_assert((sizeof(srTimer) == 0x868), "srTimer_must_be_0x868");
