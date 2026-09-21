@@ -664,15 +664,15 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
             visible_to_player = 0;
         } else {
             float yaw = GetCameraYawRadians();
-            unsigned int light;
+            unsigned int sight_override;
             unsigned int minimum_level = 9999;
             unsigned char fade_flag;
             float player_distance;
 
             if (gXStatus.fCombatMode == 0) {
-                light = g_status_685170.party_modifiers_22e3.sight_override_4a;
+                sight_override = g_status_685170.party_modifiers_22e3.sight_override_4a;
             } else {
-                light = 0;
+                sight_override = 0;
             }
             for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
                 W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
@@ -702,7 +702,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                     float threshold = ComputeSightThreshold(
                         observer_position, target_position, yaw, monster_info->attributes[4],
                         fade_flag, monster_info->condition_turns[0xc] != 0, record->kind_0cb == 0xc,
-                        static_cast<int>(minimum_level), static_cast<int>(light),
+                        static_cast<int>(minimum_level), static_cast<int>(sight_override),
                         monster_info->player_visibility.state_04, 0, player_distance);
 
                     if (threshold < player_distance) {

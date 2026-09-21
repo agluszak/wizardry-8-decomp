@@ -78,8 +78,8 @@ float SettlePositionToGround00420C30(srVector3T<float>* position, unsigned char*
     srVector3T<float> candidate = *position;
     srVector3T<float> ground;
     ground = candidate;
-    if (g_octree_game_data_00652db0 != 0 && g_octree_game_data_00652db0->positional_04 != 0) {
-        return g_octree_game_data_00652db0->positional_04->SettleToGround(&ground, hit, 1, 500.0f);
+    if (g_octree_game_data_00652db0 != 0 && g_octree_game_data_00652db0->octree_04 != 0) {
+        return g_octree_game_data_00652db0->octree_04->SettleToGround(&ground, hit, 1, 500.0f);
     }
     if (hit != 0) {
         *hit = 0;

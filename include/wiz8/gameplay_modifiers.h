@@ -72,7 +72,7 @@ struct W8GameplayModifierBlock {
     unsigned char out_of_formation; /* 0x45 */
     unsigned char flag_46;          /* 0x46: set by effect id 0x11 */
     unsigned char light_47;         /* 0x47: the doubled light value the sky node reads */
-    unsigned char value_48;         /* 0x48: max-combined, effect id 0x21 */
+     unsigned char value_48;         /* 0x48: max-combined, effect id 0x21 */
     /* 0x49: missile deflection chance in percent; Missile.cpp compares it
        against Random(100)+1. Max-combined, effect id 0x1a. */
     unsigned char missile_deflect_chance_49;
