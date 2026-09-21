@@ -207,6 +207,7 @@ void SetTextInputScheme(int mode)
     } else if (mode == 1) {
         pColors->usFont = (short)g_wiz_text_mono_font_683630;
         pColors->usTextFieldColor = Get16BPPColor(0x632a1e);
+        pColors->usInactiveTextFieldColor = Get16BPPColor(0xffffff);
         pColors->usInactiveTextFieldColor = Get16BPPColor(0x0a0a0a);
         pColors->usDarkerColor = Get16BPPColor(0);
         pColors->usBrighterColor = Get16BPPColor(0);
@@ -342,7 +343,9 @@ char AddTextInputField(int left, int top, int width, int height, int priority, c
         }
         gfHiliteMode = 1;
     }
+    field->fUserField = 0;
     field->fEnabled = 1;
+    field->fBlockMouseCallbacks = 0;
     MSYS_DefineRegion(&field->region, (unsigned short)left, (unsigned short)top,
                       (unsigned short)(left + width), (unsigned short)(top + height),
                       (signed char)priority, MSYS_NO_CURSOR, MouseMovedInTextRegionCallback,
@@ -869,7 +872,7 @@ void AddChar(unsigned short character)
         ++gpActive->ubStrLen;
         gubCursorPos = gpActive->ubStrLen;
     } else {
-        for (int position = length; position >= gubCursorPos; --position) {
+        for (int position = length + 1; position >= gubCursorPos; --position) {
             gpActive->szString[position + 1] = gpActive->szString[position];
         }
         gpActive->szString[gubCursorPos] = character;
