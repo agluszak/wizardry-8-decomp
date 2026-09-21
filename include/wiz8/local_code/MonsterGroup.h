@@ -139,7 +139,6 @@ W8MonsterRecord* MonsterGroupGetRecord(W8MonsterGroup* group);
 void RefreshMonsterGroup(W8MonsterGroup* monster_group);
 void DetachMonsterGroup(W8MonsterGroup* monster_group);
 
-void NotifyMonsterGroupActivity(W8MonsterGroup* monster_group);
 unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group); /* 0x0050F5D0 */
 /* MonsterGroup.cpp: respawns a same-sized group of a different monster id
    beside the source group, deactivating the old members as each replacement
@@ -148,9 +147,8 @@ W8MonsterGroup* ReplaceMonsterGroupSpecies00511A40(W8MonsterGroup* group,
                                                    unsigned int monster_id); /* 0x00511A40 */
 /* 0x00511CE0: mark every member's navigator position dirty (or clean). */
 void SetMonsterGroupNavigatorDirty(W8MonsterGroup* monster_group, unsigned char flag);
-void RefreshMonsterGroupConditions(W8MonsterGroup* monster_group);
 bool MonsterGroupAllMembersDying00511850(W8MonsterGroup* monster_group); /* 0x00511850 */
-void LoadMonsterGroupMembers(W8MonsterGroup* monster_group); /* 0x0050F630 */
+void LoadMonsterGroupMembers(W8MonsterGroup* monster_group);             /* 0x0050F630 */
 /* Out-of-combat refresh: proximity hostility for unaligned neutrals, then
    default disposition on the intelligence-squared cooldown. */
 void RefreshMonsterGroupHostility005113A0(W8MonsterGroup* monster_group); /* 0x005113A0 */

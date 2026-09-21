@@ -2245,7 +2245,7 @@ void W8Monster::ProcessScript004C80E0()
                         group = FindFirstMonsterByID(0x13e);
                         if (group != 0) {
                             SetMonsterGroupHostility(group, 1, 0);
-                            NotifyMonsterGroupActivity(group);
+                            MonsterGroupEnterCombat(group);
                         }
                     } else if (_stricmp(token, "ENDSAVANTWALK") == 0) {
                         flags_1dc |= 0x40;

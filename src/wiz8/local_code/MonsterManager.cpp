@@ -1247,7 +1247,7 @@ unsigned char RemoveMonster(unsigned int monster_list_index, unsigned char destr
         } else {
             RecountActiveMonsterGroupMembers(monster_group);
             if (monster_group->value_9f == monster_info->location_id) {
-                RefreshMonsterGroupConditions(monster_group);
+                ElectGroupLeaderMember(monster_group);
                 if (monster_group->leader_group_id == 0) {
                     RefreshMonsterGroupAndAllies(monster_group);
                 }

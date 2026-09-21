@@ -58,7 +58,6 @@ extern const wchar_t g_poison_suffix_0061c964[]; /* 0x0061C964 */
 /* 0x0052BEB0: how a monster answers being struck - the struck cycle, a
    possible condition knock-on, and the hostility check toward the attacker. */
 void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* attacker, char quiet);
-void RecordCharacterDamage(int party_slot, unsigned int amount);
 void CharacterDies(int party_slot);
 void ApplyRolledHealthChangeToParty(const W8Dice* dice, W8SpellEffectResult* result, int arg_3);
 /* 0x0052BA80: roll the dice once for every live monster within the radius of
