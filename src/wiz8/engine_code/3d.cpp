@@ -83,6 +83,10 @@ void DetachWorldItemMeshes0046DE40(W8World* world)
     }
 }
 
+/* Five-byte tail-jump thunk to GameData.cpp's GetCameraYawRadians. */
+// SYNTHETIC: WIZ8 0x0046e490
+// GetCameraYawRadians
+
 /* Remove every light held in one world's list, drop it from the render update
    set, and release it. */
 // FUNCTION: WIZ8 0x0046e4a0

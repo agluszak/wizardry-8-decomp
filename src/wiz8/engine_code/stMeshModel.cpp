@@ -80,9 +80,6 @@ stMeshModel::stMeshModel(long polygons, long vertices)
         s_compressed_normal_table_ready = 1;
     }
 
-    srCore.getRegistry()->registerInstance(
-        srClassSupport<stMeshModel, srMeshModel, false, 0x10003>::sGetClassNode(), this);
-
     srMeshModel::reset(polygons, vertices);
 
     for (int pass = 0; pass < 4; ++pass) {
@@ -95,6 +92,37 @@ stMeshModel::stMeshModel(long polygons, long vertices)
     if ((control_state_390 & 1) == 0) {
         control_state_390 |= 9;
     }
+}
+
+// FUNCTION: WIZ8 0x00470ED0
+stMeshModel::~stMeshModel()
+{
+    if (next != 0) {
+        stMeshModel* link = next;
+        next = 0;
+        delete link;
+    }
+    FreeFrameStorage();
+    while (skin_table_names.count != 0) {
+        RemoveSkinTable00473830(0);
+    }
+    if ((flags_3a0 & 4) != 0) {
+        int index = g_mesh_models.IndexOf(this);
+        if (index >= 0) {
+            g_mesh_models.RemoveAt(index);
+        }
+    }
+    if (lerp_buffer_448 != 0) {
+        srHeap.free(lerp_buffer_448);
+        lerp_buffer_448 = 0;
+    }
+    if (automap_polygons != 0) {
+        delete[] automap_polygons;
+        automap_polygons = 0;
+    }
+    delete skin_blanking_apt_458;
+    delete skin_blanking_apt_number_45c;
+    delete skin_blanking_checked_460;
 }
 
 // SYNTHETIC: WIZ8 0x00470e90
@@ -110,7 +138,7 @@ srClass* stMeshModel::vInstance()
 int stMeshModel::getBoundingSphere(srVector3T<float>& center, float& radius)
 {
     if ((control_state_390 & 1) != 0) {
-        calculateBounds();
+        stMeshModel::calculateBounds();
     }
     center = bounds_center_218;
     radius = bounds_radius_224;
@@ -121,7 +149,7 @@ int stMeshModel::getBoundingSphere(srVector3T<float>& center, float& radius)
 int stMeshModel::getBoundingBox(srVector3T<float>& minimum, srVector3T<float>& maximum)
 {
     if ((control_state_390 & 1) != 0) {
-        calculateBounds();
+        stMeshModel::calculateBounds();
     }
     minimum = bounds_minimum_200;
     maximum = bounds_maximum_20c;
@@ -1576,6 +1604,76 @@ void stMeshModel::FinalizeVertexFrame00473180(int frame)
 
 // TEMPLATE: WIZ8 0x004741b0
 // srHeapArray<T>::release (null-checked; four-byte-element instantiations)
+
+/* Further primary-template emissions in this TU: the preserving setCapacity
+   overloads, the unconditional release for the twelve-byte-element vector
+   array, member vector dtors/deleting destructors, and the copy machinery the
+   srClassSupport clone reaches. */
+// TEMPLATE: WIZ8 0x004700D0
+// srHeapArray<srVector3T<float> >::setCapacity (element-constructing emission)
+
+// TEMPLATE: WIZ8 0x004701D0
+// srHeapArray<srVector3T<float> >::release (unconditional-free emission)
+
+// TEMPLATE: WIZ8 0x004744A0
+// srHeapArray<srVector3T<float> >::setCapacity (preserving two-argument emission)
+
+// TEMPLATE: WIZ8 0x004747D0
+// srHeapArray<srVector3T<float> >::allocate
+
+// TEMPLATE: WIZ8 0x00474650
+// srHeapArray<float>::setCapacity (preserving two-argument emission)
+
+// TEMPLATE: WIZ8 0x00474790
+// srVector3T<float> elementwise copy (clone member-copy emission)
+
+// TEMPLATE: WIZ8 0x00474560
+// srClassSupport<stMeshModel,srMeshModel,0,65539>::~srClassSupport<stMeshModel,srMeshModel,0,65539>
+
+// SYNTHETIC: WIZ8 0x00474760
+// srClassSupport<stMeshModel,srMeshModel,0,65539>::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x00474B80
+// W8GrowableVector<int>::~W8GrowableVector<int>
+
+// TEMPLATE: WIZ8 0x00474BA0
+// W8GrowableVector<srPtr<srTextureIFace>*>::~W8GrowableVector<srPtr<srTextureIFace>*>
+
+// TEMPLATE: WIZ8 0x00474BC0
+// W8GrowableVector<short>::~W8GrowableVector<short>
+
+// TEMPLATE: WIZ8 0x00474D20
+// W8GrowableVector<unsigned char>::RemoveAt
+
+// SYNTHETIC: WIZ8 0x00474D60
+// W8GrowableVector<srPtr<srTextureIFace>*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x00474D90
+// W8GrowableVector<srPtr<srTextureIFace>*>::`vector deleting destructor'
+
+// SYNTHETIC: WIZ8 0x00474DB0
+// W8GrowableVector<short>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x00474DE0
+// W8GrowableVector<stMeshModel*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x00474E60
+// W8GrowableVector<int*>::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x00474E90
+// W8GrowableVector<int>::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x00474EC0
+// W8GrowableVector<T>::operator= (four-byte-element emission)
+
+// TEMPLATE: WIZ8 0x00474F60
+// W8GrowableVector<srPtr<srTextureIFace>*>::W8GrowableVector (capacity emission)
+
+// TEMPLATE: WIZ8 0x00475000
+// W8GrowableVector<short>::operator= (two-byte-element emission)
+
+// SYNTHETIC: WIZ8 0x004752D0
+// srTriMeshPipeline::`scalar deleting destructor'
 
 /* Mirror the active shader onto both the pipeline and the current Pass record
    selected at +0x18. */

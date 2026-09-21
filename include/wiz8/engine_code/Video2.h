@@ -32,6 +32,7 @@ extern HWND ghWindow;
 
 extern BOOLEAN InitializeVideoManager(HINSTANCE hInstance, UINT16 usCommandShow, void* WindowProc);
 extern void ShutdownVideoManager(void);
+extern void ShutdownVideoScenes00423F30(void);
 extern void SuspendVideoManager(void);
 extern BOOLEAN RestoreVideoManager(void);
 extern void GetCurrentVideoSettings(UINT16* usWidth, UINT16* usHeight, UINT8* ubBitDepth);
@@ -308,7 +309,8 @@ unsigned char HasEnoughFreeDiskSpace(void);
 int GetUsedPageFileBytes(void);
 srModelInstance* GetValue65962C(void);
 void SetValue65962C(srModelInstance* value);
-bool IsCursorInsideViewport(void); /* 0x00428070 */
+bool IsCursorInsideViewport(void);               /* 0x00428070 */
+bool IsCursorImageInsideViewport(void); /* 0x00428030 */
 
 #endif
 

@@ -124,6 +124,29 @@ void W8MaterialMapper00482010::process(srVertexPipe& pipe)
     }
 }
 
+/* Drop every per-level environment object: the sky gradients, the Sun/Moon
+   props and the orbit radius reset, then release the two fog objects and
+   empty the registered-light list without freeing its storage. */
+// FUNCTION: WIZ8 0x004823B0
+void ClearEnvironmentObjects004823B0(void)
+{
+    g_sky_gradient_animations_0065a168[0] = 0;
+    g_sky_gradient_animations_0065a168[1] = 0;
+    g_sky_gradient_animations_0065a168[2] = 0;
+    g_sun_prop_0065a160 = 0;
+    g_moon_prop_0065ad84 = 0;
+    g_celestial_orbit_radius_0060a3a4 = -1.0f;
+    if (g_environment_object_0065b9b0 != 0) {
+        g_environment_object_0065b9b0->release();
+    }
+    if (g_environment_object_0065b9b4 != 0) {
+        g_environment_object_0065b9b4->release();
+    }
+    g_environment_object_0065b9b0 = 0;
+    g_environment_object_0065b9b4 = 0;
+    g_environment_lights_0065b998.count = 0;
+}
+
 /* Advance the authoritative game clock and place the two celestial props on
    opposite sides of the world's recovered sky origin: the day's prop sits one
    orbit radius away in the rotated direction, the other rests on the origin.

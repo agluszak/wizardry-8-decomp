@@ -509,6 +509,15 @@ void LoadLightStates0049D390(int handle)
 // TEMPLATE: WIZ8 0x0049DB30
 // srClassSupport<srIlluminator,srNode,0,4608>::getClassNode
 
+// TEMPLATE: WIZ8 0x0049DBA0
+// srClassSupport<srIlluminator,srNode,0,4608>::clone
+
+// TEMPLATE: WIZ8 0x0049DFE0
+// srClassSupport<srIlluminator,srNode,0,4608>::~srClassSupport
+
+// SYNTHETIC: WIZ8 0x0049DFB0
+// srClassSupport<srIlluminator,srNode,0,4608>::`scalar deleting destructor'
+
 // TEMPLATE: WIZ8 0x0049DC60
 // srClassSupport<stLight,srLight,0,65542>::getClassID
 

@@ -165,6 +165,9 @@ static unsigned char LoadPathParameters004CCCB0();
 
 /* The path-search heap specialization is emitted after OctPath.cpp's ordinary
    bodies. The generic definitions live once in stHeap.hpp. */
+// TEMPLATE: WIZ8 0x004673b0
+// srMatrix3T<float>::Transform (return-by-value emission)
+
 // TEMPLATE: WIZ8 0x004675B0
 // stHeap<W8PathHeapEntry>::Insert004675B0
 

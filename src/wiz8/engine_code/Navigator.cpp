@@ -564,6 +564,9 @@ W8Navigator::~W8Navigator()
     }
 }
 
+// SYNTHETIC: WIZ8 0x00452100
+// W8Navigator::`scalar deleting destructor'
+
 // FUNCTION: WIZ8 0x00452E10
 bool W8Navigator::IsLinkedToNavigator00452E10(W8Navigator* other)
 {

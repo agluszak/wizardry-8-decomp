@@ -5,127 +5,125 @@
 #include "FileMan.h"
 #include "surrender/srCore.h"
 #include "surrender/srHeap.h"
+#include "surrender/srArray.h"
 #include "surrender/srPalette.h"
 #include "surrender/srTypeRegistry.h"
 #include "wiz8/virtual_file.h"
 
 #include <string.h>
 
+/* Both TGA scratch buffers are srHeapArray objects: growth goes through the
+   preserving two-argument setCapacity (retail copies the old contents before
+   freeing) and the zero-size branch calls the emitted release() at
+   0x004741B0. The second pair backs one decoded row / RLE packet. */
 // GLOBAL: WIZ8 0x0065A138
-unsigned char* g_tga_file_data_0065a138;
-// GLOBAL: WIZ8 0x0065A13C
-unsigned int g_tga_file_data_capacity_0065a13c;
+srHeapArray<unsigned char> g_tga_file_data_0065a138;
+// GLOBAL: WIZ8 0x0065A130
+srHeapArray<unsigned char> g_tga_row_data_0065a130;
 
+/* Decodes TGA pixel data into the surface. Destination writes are strided:
+   the pixel step is the surface's bytes-per-pixel (negated when the
+   descriptor's right-origin bit is set) and the row step only exists for
+   bottom-up images, where it unwinds the row just written plus one more.
+   RLE packet payloads land in the row scratch buffer; a packet that
+   overruns the row carries its remainder into the next row's count. */
 // FUNCTION: WIZ8 0x0047BC80
-void LoadSurfacePixels0047BC80(int handle, srColorSurface* surface, const W8TgaHeader* header)
+void __stdcall LoadSurfacePixels0047BC80(int handle, srColorSurface* surface,
+                                         const W8TgaHeader* header)
 {
-    srPixelConvert::PixelFormat format;
-    unsigned char* file_data;
-    unsigned int file_size;
-    unsigned int file_position;
-    unsigned int data_size;
-    unsigned int bytes_per_pixel;
-    unsigned int width;
-    unsigned int height;
-    unsigned int row_size;
-    unsigned char* destination;
-
-    surface->getPixelFormat(format);
-    bytes_per_pixel = format.bytes_per_pixel_minus_one + 1;
-    width = header->width;
-    height = header->height;
-    row_size = width * bytes_per_pixel;
-    file_size = FileGetSize(handle);
-    file_position = FileGetPos(handle);
-    data_size = file_size - file_position;
-
-    if (g_tga_file_data_capacity_0065a13c < data_size) {
-        if (g_tga_file_data_0065a138 != 0) {
-            srHeap.free(g_tga_file_data_0065a138);
-        }
-        g_tga_file_data_0065a138 = static_cast<unsigned char*>(srHeap.allocate(data_size));
-        g_tga_file_data_capacity_0065a13c = data_size;
-    }
-    file_data = g_tga_file_data_0065a138;
-    if (data_size == 0 || file_data == 0 || !FileRead(handle, file_data, data_size, 0)) {
-        return;
-    }
-
-    destination = static_cast<unsigned char*>(surface->getDataPtr());
+    unsigned char* destination = static_cast<unsigned char*>(surface->getDataPtr());
     if (destination == 0) {
         return;
     }
 
-    if (header->image_type == 9 || header->image_type == 10 || header->image_type == 11) {
-        unsigned int source_offset = 0;
-        unsigned int pixel_offset = 0;
-        unsigned int pixel_count = width * height;
-
-        while (pixel_offset < pixel_count && source_offset < data_size) {
-            unsigned char packet = file_data[source_offset++];
-            unsigned int packet_count = (packet & 0x7f) + 1;
-            unsigned int copy_count = packet_count;
-
-            if ((packet & 0x80) != 0) {
-                const unsigned char* pixel = file_data + source_offset;
-                for (unsigned int index = 0; index < copy_count; ++index) {
-                    unsigned int x = pixel_offset % width;
-                    unsigned int y = pixel_offset / width;
-                    if ((header->image_descriptor & 0x20) == 0) {
-                        y = height - 1 - y;
-                    }
-                    if ((header->image_descriptor & 0x10) != 0) {
-                        x = width - 1 - x;
-                    }
-                    memcpy(destination + y * surface->getPitch() + x * bytes_per_pixel, pixel,
-                           bytes_per_pixel);
-                    ++pixel_offset;
-                }
-                source_offset += bytes_per_pixel;
-            } else {
-                if (source_offset + packet_count * bytes_per_pixel > data_size) {
-                    packet_count = (data_size - source_offset) / bytes_per_pixel;
-                }
-                copy_count = packet_count;
-                for (unsigned int index = 0; index < copy_count; ++index) {
-                    unsigned int x = pixel_offset % width;
-                    unsigned int y = pixel_offset / width;
-                    if ((header->image_descriptor & 0x20) == 0) {
-                        y = height - 1 - y;
-                    }
-                    if ((header->image_descriptor & 0x10) != 0) {
-                        x = width - 1 - x;
-                    }
-                    memcpy(destination + y * surface->getPitch() + x * bytes_per_pixel,
-                           file_data + source_offset, bytes_per_pixel);
-                    source_offset += bytes_per_pixel;
-                    ++pixel_offset;
-                }
-            }
-        }
+    int rle = header->image_type == 9 || header->image_type == 10 || header->image_type == 11;
+    long pixel_step = surface->pixel_format_30.bytes_per_pixel_minus_one + 1;
+    long file_bpp = header->pixel_depth >> 3;
+    if (file_bpp <= 0 || file_bpp > 4) {
         return;
     }
 
-    for (unsigned int row = 0; row < height; ++row) {
-        unsigned int destination_row = row;
-        if ((header->image_descriptor & 0x20) == 0) {
-            destination_row = height - 1 - row;
+    long row_step = 0;
+    if ((header->image_descriptor & 0x20) == 0) {
+        row_step = header->width * pixel_step * -2;
+        destination += (header->height - 1) * header->width * pixel_step;
+    }
+    if ((header->image_descriptor & 0x10) != 0) {
+        destination += (header->width - 1) * pixel_step;
+        pixel_step = -pixel_step;
+    }
+
+    unsigned int count = header->width;
+    unsigned int carry = 0;
+    unsigned int scratch_size = rle ? file_bpp << 7 : header->width * file_bpp;
+
+    unsigned int data_size = FileGetSize(handle) - FileGetPos(handle);
+    if (g_tga_file_data_0065a138.capacity < data_size) {
+        g_tga_file_data_0065a138.setCapacity(data_size, 1);
+    }
+    unsigned char* file_data = g_tga_file_data_0065a138.data;
+    if (!FileRead(handle, file_data, data_size, 0)) {
+        return;
+    }
+
+    if (g_tga_row_data_0065a130.capacity < scratch_size) {
+        g_tga_row_data_0065a130.setCapacity(scratch_size, 1);
+    }
+    unsigned char* scratch = g_tga_row_data_0065a130.data;
+
+    unsigned int file_offset = 0;
+    unsigned int step = file_bpp;
+    for (long row = 0; row < header->height; ++row) {
+        if (!rle) {
+            unsigned int row_bytes = header->width * file_bpp;
+            memcpy(scratch, file_data + file_offset, row_bytes);
+            file_offset += header->width * file_bpp;
         }
-        if ((header->image_descriptor & 0x10) == 0) {
-            memcpy(destination + destination_row * surface->getPitch(), file_data + row * row_size,
-                   row_size);
-        } else {
-            for (unsigned int column = 0; column < width; ++column) {
-                memcpy(destination + destination_row * surface->getPitch() +
-                           (width - 1 - column) * bytes_per_pixel,
-                       file_data + row * row_size + column * bytes_per_pixel, bytes_per_pixel);
+
+        long column = 0;
+        unsigned char* source = scratch;
+        while (column < header->width) {
+            if (carry == 0) {
+                if (rle) {
+                    unsigned char packet = file_data[file_offset];
+                    step = ((packet & 0x80) != 0) ? 0 : file_bpp;
+                    count = (packet & 0x7f) + 1;
+                    unsigned int copy_size = file_bpp;
+                    if ((packet & 0x80) == 0) {
+                        copy_size = count * file_bpp;
+                    }
+                    memcpy(scratch, file_data + file_offset + 1, copy_size);
+                    file_offset += 1 + copy_size;
+                    source = scratch;
+                }
+            } else {
+                count = carry;
             }
+
+            if (rle) {
+                carry = column - header->width + count;
+                if (static_cast<int>(carry) < 0) {
+                    carry = 0;
+                }
+                count -= carry;
+            }
+
+            for (unsigned int index = count; index > 0; --index) {
+                memcpy(destination, source, file_bpp);
+                destination += pixel_step;
+                source += step;
+            }
+            if (carry == 0 && step == 0) {
+                source += file_bpp;
+            }
+            column += count;
         }
+        destination += row_step;
     }
 }
 
 // FUNCTION: WIZ8 0x0047C090
-srColorSurface* LoadSurface0047C090(int handle)
+srColorSurface* __stdcall LoadSurface0047C090(int handle, long* unused_out)
 {
     W8TgaHeader header;
     unsigned short width;
@@ -192,10 +190,9 @@ srColorSurface* LoadSurface0047C090(int handle)
     case 2:
     case 10:
         if (header.pixel_depth == 16) {
-            surface = SR_NEW(W8ColorSurface)(
-                static_cast<srPixelConvert::e_surfaceType>(
-                    (header.image_descriptor & 0xf) == 0 ? 8 : 9),
-                width, height);
+            surface = SR_NEW(W8ColorSurface)(static_cast<srPixelConvert::e_surfaceType>(
+                                                 (header.image_descriptor & 0xf) == 0 ? 8 : 9),
+                                             width, height);
         } else if (header.pixel_depth == 24) {
             surface = SR_NEW(W8ColorSurface)(srPixelConvert::SURFACE_BGR24, width, height);
         } else if (header.pixel_depth == 32) {
@@ -234,6 +231,26 @@ srColorSurface* LoadSurface0047C090(int handle)
 // VTABLE: WIZ8 0x005EC63C
 // class srClassSupport<stTextureFile,srTexture,0,65537>
 
+/* The TGA loader instantiates srClassSupport for the imported srPalette
+   (class id 0x2900); its registry and clone slots are emitted in this TU. */
+// VTABLE: WIZ8 0x005EC5D8
+// class srClassSupport<srPalette,srPalette,0,10496>
+
+// TEMPLATE: WIZ8 0x0047D650
+// srClassSupport<srPalette,srPalette,0,10496>::getClassID
+
+// TEMPLATE: WIZ8 0x0047D660
+// srClassSupport<srPalette,srPalette,0,10496>::getClassName
+
+// TEMPLATE: WIZ8 0x0047D670
+// srClassSupport<srPalette,srPalette,0,10496>::getClassNode
+
+// TEMPLATE: WIZ8 0x0047D6B0
+// srClassSupport<srPalette,srPalette,0,10496>::clone
+
+// SYNTHETIC: WIZ8 0x0047C5C0
+// srClassSupport<srPalette,srPalette,0,10496>::`scalar deleting destructor'
+
 // TEMPLATE: WIZ8 0x0047D6D0
 // srClassSupport<stTextureFile,srTexture,0,65537>::getClassID
 
@@ -253,19 +270,32 @@ srColorSurface* LoadSurface0047C090(int handle)
 // srClassSupport<stTextureFile,srTexture,0,65537>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x0047D9A0
-// srClassSupport<stTextureFile,srTexture,0,65537>::sGetClassNode
+// srClassSupport<srTexture,srTextureIFace,false,8464>::sGetClassNode
+
+// FUNCTION: WIZ8 0x0047BBD0
+void stTextureFile::releaseSurface()
+{
+    if (surface_5c != 0) {
+        surface_5c->release();
+        surface_5c = 0;
+    }
+    texture_flags_ |= DEFAULTS_PENDING;
+}
 
 // FUNCTION: WIZ8 0x0047C630
 stTextureFile::stTextureFile(const char* file_name, int cached)
-    : cached_54(cached), file_name_58(0), surface_5c(0), frame_handle_60(getNewFrameHandle()),
+    : cached_54(0), file_name_58(0), surface_5c(0), frame_handle_60(getNewFrameHandle()),
       has_alpha_64(0)
 {
+    /* Retail stores 0 then conditionally stores 1: the authored value is the
+       normalized predicate, not the raw parameter. */
+    cached_54 = (cached != 0);
     invalidate();
     setFileName(file_name);
     if (file_name != 0) {
         setName(file_name);
     }
-    if (cached_54 != 0 && file_name_58 != 0) {
+    if (cached != 0 && file_name != 0) {
         setupDefaultValues();
     }
 }
@@ -328,23 +358,16 @@ void stTextureFile::setFileName(const char* file_name)
     texture_flags_ |= DEFAULTS_PENDING;
 }
 
-void stTextureFile::releaseSurface()
-{
-    if (surface_5c != 0) {
-        surface_5c->release();
-        surface_5c = 0;
-    }
-}
-
 // FUNCTION: WIZ8 0x0047C8B0
 void stTextureFile::invalidate()
 {
     releaseSurface();
-    texture_flags_ |= DEFAULTS_PENDING;
     invalidateFrameHandle(frame_handle_60);
     texture_flags_ &= ~LOAD_FAILED;
 }
 
+/* Retail runs the invalidate sequence twice: this call is expanded inline,
+   and the setFileName(0) invalidation stays a virtual dispatch. */
 // FUNCTION: WIZ8 0x0047C8E0
 stTextureFile::~stTextureFile()
 {
@@ -352,25 +375,30 @@ stTextureFile::~stTextureFile()
         ReleaseReadMeshScratch004881D0();
     }
     invalidate();
-    delete[] file_name_58;
-    file_name_58 = 0;
-    texture_flags_ &= ~LOAD_FAILED;
-    texture_flags_ |= DEFAULTS_PENDING;
+    setFileName(0);
 }
 
 // FUNCTION: WIZ8 0x0047BBF0
 void stTextureFile::loadSurface()
 {
+    /* The second LoadSurface argument is an out-pointer the callee ignores;
+       the caller still initializes the dword it passes. */
+    long unused_04 = 0;
+
     if (surface_5c != 0) {
         invalidate();
     }
+    /* A missing file name lands on the same LOAD_FAILED tail as a failed
+       load; retail has no silent early return here. */
     if (file_name_58 == 0) {
+        texture_flags_ |= LOAD_FAILED;
         return;
     }
 
+    surface_5c = 0;
     int handle = FileOpen(file_name_58, 0x41, 0);
     if (handle != 0) {
-        surface_5c = LoadSurface0047C090(handle);
+        surface_5c = LoadSurface0047C090(handle, &unused_04);
         FileClose(handle);
     }
 
@@ -381,6 +409,9 @@ void stTextureFile::loadSurface()
 
     setupDefaultValues();
     surface_5c->setFilter(getFilter());
+    /* Retail reads the alpha channel count straight out of the surface's
+       pixel format (unsigned SETA): the authored comparison is `> 0`. */
+    has_alpha_64 = (surface_5c->pixel_format_30.alpha_bits > 0);
 }
 
 // FUNCTION: WIZ8 0x0047CA50
@@ -403,9 +434,11 @@ void stTextureFile::getMipmapData(MultiRequest& request)
         }
     }
 
-    if (cached_54 == 0) {
+    /* Retail tests the flag with TEST byte ptr [+0x54],0x1 even though the
+       constructor stores the field dword-wide: the authored predicate is a
+       bit test, not a zero compare. */
+    if ((cached_54 & 1) == 0) {
         releaseSurface();
-        texture_flags_ |= DEFAULTS_PENDING;
     }
 }
 

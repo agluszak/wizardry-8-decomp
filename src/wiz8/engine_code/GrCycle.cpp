@@ -57,6 +57,9 @@ float g_float_005ec5c4 = 0.699999988079071f;
 // VTABLE: WIZ8 0x005eceb8 W8Navigator
 // class W8GrCycle
 
+// SYNTHETIC: WIZ8 0x004a9100
+// W8GrCycle::`vector deleting destructor'`adjustor{24}'
+
 // SYNTHETIC: WIZ8 0x004a5f00
 // W8GrCycle::`scalar deleting destructor'
 
@@ -1263,8 +1266,14 @@ W8GrowableVector<char*> g_grcycle_names;
 // SYNTHETIC: WIZ8 0x004a9050
 // W8GrowableVector<W8GrCycle*>::`scalar deleting destructor'
 
+// SYNTHETIC: WIZ8 0x004a9020
+// W8GrowableVector<W8GrCycle*>::`vector deleting destructor'
+
 // TEMPLATE: WIZ8 0x004a9070
 // W8GrowableVector<W8GrCycle*>::~W8GrowableVector<W8GrCycle*>
+
+// TEMPLATE: WIZ8 0x004a9090
+// W8GrowableVector<stLight*>::W8GrowableVector<stLight*>
 
 // GLOBAL: WIZ8 0x0065be00
 W8GrowableVector<W8GrowableVector<W8GrCycle*>*> g_grcycles_by_name;
@@ -1275,6 +1284,9 @@ W8GrowableVector<W8GrowableVector<W8GrCycle*>*> g_grcycles_by_name;
 // SYNTHETIC: WIZ8 0x004a8f70
 // W8GrowableVector<W8CameraShakeEffect*>::`scalar deleting destructor'
 
+// SYNTHETIC: WIZ8 0x004a8f40
+// W8GrowableVector<W8CameraShakeEffect*>::`vector deleting destructor'
+
 // TEMPLATE: WIZ8 0x004a8f90
 // W8GrowableVector<W8CameraShakeEffect*>::~W8GrowableVector<W8CameraShakeEffect*>
 
@@ -1284,7 +1296,10 @@ W8GrowableVector<W8GrowableVector<W8GrCycle*>*> g_grcycles_by_name;
 // SYNTHETIC: WIZ8 0x004a8fe0
 // W8GrowableVector<W8GrCycleParticleAttachment*>::`scalar deleting destructor'
 
-// TEMPLATE: WIZ8 0x004a8fb0
+// SYNTHETIC: WIZ8 0x004a8fb0
+// W8GrowableVector<W8GrCycleParticleAttachment*>::`vector deleting destructor'
+
+// TEMPLATE: WIZ8 0x004a9000
 // W8GrowableVector<W8GrCycleParticleAttachment*>::~W8GrowableVector<W8GrCycleParticleAttachment*>
 
 // FUNCTION: WIZ8 0x004a8430

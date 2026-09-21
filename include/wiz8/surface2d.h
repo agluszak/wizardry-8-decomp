@@ -49,6 +49,11 @@ public:
     virtual void traverse(TraverseInfo& info) override;
     virtual void process(const ProcessInfo& info, e_processType type) override;
 
+    /* Rebase the tile texture coordinates by the scale delta over the tile
+       size, then store the new scale. Called by SetSurfaceScale004297E0. */
+    void setScale(float scale); /* 0x0047E560 */
+    /* The ortho tile render pass; process() forwards the renderer to it. */
+    void DrawTiles0047E100(srGERD* renderer); /* 0x0047E100 */
     void enableRendererFlag(unsigned int flag);
     void setTextureHint2Enabled(unsigned char enabled);
     void invalidateTiles();

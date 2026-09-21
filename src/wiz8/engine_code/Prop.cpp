@@ -74,6 +74,9 @@ unsigned char g_byte_00659a64;
 // SYNTHETIC: WIZ8 0x0044ef60
 // W8GrowableVector<W8PropAnimationSegment*>::`scalar deleting destructor'
 
+// SYNTHETIC: WIZ8 0x0044ef30
+// W8GrowableVector<W8PropAnimationSegment*>::`vector deleting destructor' (companion table 0x005EC1D4)
+
 // TEMPLATE: WIZ8 0x0044ef00
 // W8GrowableVector<W8PropAnimationSegment*>::~W8GrowableVector<W8PropAnimationSegment*>
 

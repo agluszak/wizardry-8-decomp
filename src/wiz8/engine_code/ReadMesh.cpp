@@ -190,6 +190,31 @@ struct W8MeshStripBuilder {
 // TEMPLATE: WIZ8 0x00489bf0
 // SortByKey<W8MeshStripPolygon>
 
+/* Retail's BuildSingleLevelMesh constructs two W8GrowableVector<int>
+   scratch banks in this TU. Its Grow emission fills fresh capacity with the
+   0x0100241b sentinel, unlike the primary template's uninitialized new[]; the
+   discrepancy is recorded, not worked around. */
+// TEMPLATE: WIZ8 0x00489B70
+// srClassSupport<srModel,srClass,1,8192>::sGetClassNode
+
+// TEMPLATE: WIZ8 0x00489BB0
+// W8GrowableVector<int>::W8GrowableVector
+
+// TEMPLATE: WIZ8 0x00489F50
+// W8GrowableVector<short>::~W8GrowableVector
+
+// TEMPLATE: WIZ8 0x00489F70
+// W8GrowableVector<int>::Add
+
+// TEMPLATE: WIZ8 0x00489FB0
+// W8GrowableVector<int>::IndexOf
+
+// TEMPLATE: WIZ8 0x0048A530
+// W8GrowableVector<int>::Grow
+
+// SYNTHETIC: WIZ8 0x0048A160
+// W8GrowableVector<short>::`scalar deleting destructor'
+
 /* Sorts each run of equal group ids by its key, then renumbers the groups so
    equal keys within a group stay together. */
 static void SortGroupsByKey(unsigned long* order, unsigned long* keys, unsigned long* groups,

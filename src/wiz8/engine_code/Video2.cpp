@@ -110,7 +110,7 @@ int g_frame_reset_interval_603c68 = 50;
 // GLOBAL: WIZ8 0x603c39
 unsigned char g_fullscreen_603c39 = 1;
 // GLOBAL: WIZ8 0x603c3a
-unsigned char g_flush_pending_603c3a = 1;
+bool g_flush_pending_603c3a = true;
 // GLOBAL: WIZ8 0x603c3c
 int g_screen_width_603c3c = 640;
 // GLOBAL: WIZ8 0x603c40
@@ -239,6 +239,12 @@ int g_dword_6596ec;
 int g_dword_6596f0;
 // GLOBAL: WIZ8 0x659668
 const int* g_value_659668;
+// GLOBAL: WIZ8 0x65966c
+srClass* g_render_object_65966c;
+// GLOBAL: WIZ8 0x659678
+srClass* g_render_object_659678;
+// GLOBAL: WIZ8 0x659720
+HWND g_window_659720;
 // GLOBAL: WIZ8 0x65409c
 unsigned int g_tick_65409c;
 // GLOBAL: WIZ8 0x659704
@@ -420,13 +426,121 @@ void ShutdownVideoManager(void)
         g_cursor_node_659694 = 0;
     }
     FreeMouseCursor();
+    ShutdownVideoScenes00423F30();
+    ShutdownStartupNavigation0044F190();
     if (g_flag_659710) {
+        PauseMainGameWorld();
         g_flag_659710 = 0;
-        g_flush_pending_603c3a = 0;
-        if (!g_fullscreen_603c39 && ghWindow) {
+        if (g_gerd_659634) {
+            g_flush_pending_603c3a = 0;
+            g_gerd_659634->closeWindow(static_cast<srGERD::e_closeHint>(0));
+        }
+        if (!g_fullscreen_603c39) {
             GetWindowRect(ghWindow, &g_window_rect_659610);
         }
+        ShowWindow(ghWindow, SW_MINIMIZE);
         FreeMouseCursor();
+    }
+    if (g_primary_surface1_6596a4) {
+        g_primary_surface1_6596a4->Release();
+        g_primary_surface1_6596a4 = 0;
+    }
+    if (g_primary_surface_6596a8) {
+        g_primary_surface_6596a8->Release();
+        g_primary_surface_6596a8 = 0;
+    }
+    if (g_direct_draw_65969c) {
+        g_direct_draw_65969c->Release();
+        g_direct_draw_65969c = 0;
+    }
+    if (g_direct_draw2_6596a0) {
+        g_direct_draw2_6596a0->Release();
+        g_direct_draw2_6596a0 = 0;
+    }
+    if (ghWindow) {
+        CloseWindow(ghWindow);
+        ghWindow = 0;
+    }
+    if (g_window_659720) {
+        CloseWindow(g_window_659720);
+        g_window_659720 = 0;
+    }
+    if (g_gerd_659634) {
+        g_flush_pending_603c3a = 0;
+        g_gerd_659634->closeWindow(static_cast<srGERD::e_closeHint>(0));
+        g_gerd_659634->deleteContext();
+        g_gerd_659634 = 0;
+    }
+    if (g_secondary_gerd_65971c) {
+        g_secondary_gerd_65971c->closeWindow(static_cast<srGERD::e_closeHint>(0));
+        g_secondary_gerd_65971c->deleteContext();
+        g_secondary_gerd_65971c = 0;
+    }
+    srConfig.removeAll();
+    srExit();
+}
+
+/* Releases the renderer scene graph and 2D objects created by the video
+   startup sequence; runs from ShutdownVideoManager before the DirectDraw
+   teardown. */
+// FUNCTION: WIZ8 0x00423f30
+void ShutdownVideoScenes00423F30(void)
+{
+    if (g_modeler_65963c) {
+        delete g_modeler_65963c;
+        g_modeler_65963c = 0;
+    }
+    if (g_scene_permanent_659648) {
+        g_scene_permanent_659648->release();
+        g_scene_permanent_659648 = 0;
+    }
+    if (g_scene_user_659640) {
+        g_scene_user_659640->release();
+        g_scene_user_659640 = 0;
+    }
+    if (g_scene_fullscreen_659644) {
+        g_scene_fullscreen_659644->release();
+        g_scene_fullscreen_659644 = 0;
+    }
+    if (g_scene_overlay0_659654) {
+        g_scene_overlay0_659654->release();
+        g_scene_overlay0_659654 = 0;
+    }
+    if (g_scene_overlay1_659658) {
+        g_scene_overlay1_659658->release();
+        g_scene_overlay1_659658 = 0;
+    }
+    if (g_scene_square_65965c) {
+        g_scene_square_65965c->release();
+        g_scene_square_65965c = 0;
+    }
+    if (g_scene_prerender0_65964c) {
+        g_scene_prerender0_65964c->release();
+        g_scene_prerender0_65964c = 0;
+    }
+    if (g_scene_prerender1_659650) {
+        g_scene_prerender1_659650->release();
+        g_scene_prerender1_659650 = 0;
+    }
+    if (g_render_object_65966c) {
+        g_render_object_65966c->release();
+        g_render_object_65966c = 0;
+    }
+    if (g_render_object_659678) {
+        g_render_object_659678->release();
+        g_render_object_659678 = 0;
+    }
+    if (g_blit_material_65967c) {
+        g_blit_material_65967c->release();
+        g_blit_material_65967c = 0;
+    }
+    if (g_mouse_surface_659688) {
+        g_mouse_surface_659688->release();
+        g_mouse_surface_659688 = 0;
+    }
+    if (g_primary_color_surface_659660) {
+        g_primary_color_surface_659660->release();
+        g_primary_color_surface_659660 = 0;
     }
 }
 
@@ -1602,6 +1716,20 @@ bool ClearMouseSurface(void)
     return true;
 }
 
+/* Distinct from IsCursorInsideViewport: the whole cursor image must fit
+   inside the viewport, not just the hotspot point. */
+// FUNCTION: WIZ8 0x00428030
+bool IsCursorImageInsideViewport(void)
+{
+    if (g_cursor_width_654ad0 >= g_viewport_left_6595e8 &&
+        g_cursor_height_654ad4 >= g_viewport_top_6595ec &&
+        g_cursor_width_654ad0 + g_cursor_image_width_6596b4 <= g_viewport_right_6595f0 &&
+        g_cursor_height_654ad4 + g_cursor_image_height_6596b8 <= g_viewport_bottom_6595f4) {
+        return true;
+    }
+    return false;
+}
+
 // FUNCTION: WIZ8 0x00428070
 bool IsCursorInsideViewport(void)
 {
@@ -2618,14 +2746,7 @@ bool HasScreenTransitionObjects(void)
 // FUNCTION: WIZ8 0x004297e0
 void SetSurfaceScale004297E0(float scale)
 {
-    float factor = 1.0f / (float)g_surface_node_659664->tile_size;
-    float previous = g_surface_node_659664->scale;
-    int index;
-
-    for (index = 0; index != 8; ++index) {
-        g_surface_node_659664->coordinates[index] += (scale - previous) * factor;
-    }
-    g_surface_node_659664->scale = scale;
+    g_surface_node_659664->setScale(scale);
     g_surface_scale_659680 = scale;
 }
 
@@ -3537,16 +3658,20 @@ void EndRenderProbe004289C0(void)
 // TEMPLATE: WIZ8 0x00429BC0
 // srClassSupport<srMeshModel,srMeshModel,0,8208>::clone
 
+/* 0x00424A50 calls the imported ~srMeshModel: it is the local
+   ??_GsrMeshModel thunk, not the support-class deleting destructor. */
 // SYNTHETIC: WIZ8 0x00424A50
-// srClassSupport<srMeshModel,srMeshModel,0,8208>::`scalar deleting destructor'
+// srMeshModel::`scalar deleting destructor'
 
 /* CVDUMP includes the class tag on the repeated self-type argument in each
    vftable symbol below. These remain ordinary self-support instantiations. */
 // VTABLE: WIZ8 0x005EBEEC
 // class srClassSupport<srTextureMap, class srTextureMap, 0, 8465>
 
+/* 0x00424B70 calls the imported ~srTextureMap: it is the local
+   ??_GsrTextureMap thunk, not the support-class deleting destructor. */
 // SYNTHETIC: WIZ8 0x00424B70
-// srClassSupport<srTextureMap,srTextureMap,0,8465>::`scalar deleting destructor'
+// srTextureMap::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00429BE0
 // srClassSupport<srTextureMap,srTextureMap,0,8465>::getClassID
@@ -3560,26 +3685,50 @@ void EndRenderProbe004289C0(void)
 // TEMPLATE: WIZ8 0x00429CA0
 // srClassSupport<srTextureMap,srTextureMap,0,8465>::clone
 
+/* The constructor at 0x00429D70 registers class 8720 under the 8704 class
+   node owned by srMaterialIFace: the support parent is srMaterialIFace,
+   not srMaterial. A distinct srClassSupport<srMaterial,srMaterial,0,8720>
+   instantiation exists elsewhere (stGroundShadow.cpp emissions). */
 // VTABLE: WIZ8 0x005EBDE0
-// class srClassSupport<srMaterial, class srMaterial, 0, 8720>
+// class srClassSupport<srMaterial, class srMaterialIFace, 0, 8720>
+
+// TEMPLATE: WIZ8 0x00429D70
+// srClassSupport<srMaterial,srMaterialIFace,0,8720>::srClassSupport
+
+// TEMPLATE: WIZ8 0x00429F00
+// srClassSupport<srMaterial,srMaterialIFace,0,8720>::~srClassSupport
+
+// SYNTHETIC: WIZ8 0x0042A230
+// srClassSupport<srMaterial,srMaterialIFace,0,8720>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00429CC0
-// srClassSupport<srMaterial,srMaterial,0,8720>::getClassID
+// srClassSupport<srMaterial,srMaterialIFace,0,8720>::getClassID
 
 // TEMPLATE: WIZ8 0x00429CD0
-// srClassSupport<srMaterial,srMaterial,0,8720>::getClassName
+// srClassSupport<srMaterial,srMaterialIFace,0,8720>::getClassName
 
 // TEMPLATE: WIZ8 0x00429CE0
-// srClassSupport<srMaterial,srMaterial,0,8720>::getClassNode
+// srClassSupport<srMaterial,srMaterialIFace,0,8720>::getClassNode
 
 // TEMPLATE: WIZ8 0x00429D50
-// srClassSupport<srMaterial,srMaterial,0,8720>::clone
+// srClassSupport<srMaterial,srMaterialIFace,0,8720>::clone
 
+/* 0x00423E50 calls the imported ~srMaterial: it is the local ??_GsrMaterial
+   thunk, not the support-class deleting destructor. */
 // SYNTHETIC: WIZ8 0x00423e50
-// srClassSupport<srMaterial,srMaterial,0,8720>::`scalar deleting destructor'
+// srMaterial::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00429E80
 // srClassSupport<srMaterialIFace,srClass,1,8704>::getClassID
+
+// TEMPLATE: WIZ8 0x00429EE0
+// srClassSupport<srMaterialIFace,srClass,1,8704>::clone
+
+// TEMPLATE: WIZ8 0x0042A1A0
+// srClassSupport<srMaterialIFace,srClass,1,8704>::~srClassSupport
+
+// SYNTHETIC: WIZ8 0x0042A170
+// srClassSupport<srMaterialIFace,srClass,1,8704>::`scalar deleting destructor'
 
 /* CVDUMP includes the class tag on the repeated self-type argument in the
    vftable symbol.  It is still the ordinary srCamera self-support template. */
@@ -3598,8 +3747,10 @@ void EndRenderProbe004289C0(void)
 // TEMPLATE: WIZ8 0x0042A0A0
 // srClassSupport<srCamera,srCamera,0,5120>::clone
 
+/* 0x00423E80 calls the imported ~srCamera: it is the local ??_GsrCamera
+   thunk, not the support-class deleting destructor. */
 // SYNTHETIC: WIZ8 0x00423e80
-// srClassSupport<srCamera,srCamera,0,5120>::`scalar deleting destructor'
+// srCamera::`scalar deleting destructor'
 
 /* CVDUMP includes the class tag on the repeated self-type argument in the
    vftable symbol.  It is still the ordinary srScene self-support template. */
@@ -3618,8 +3769,21 @@ void EndRenderProbe004289C0(void)
 // TEMPLATE: WIZ8 0x0042A150
 // srClassSupport<srScene,srScene,0,4112>::clone
 
+/* 0x00423EB0 calls the imported ~srScene: it is the local ??_GsrScene
+   thunk, not the support-class deleting destructor. */
 // SYNTHETIC: WIZ8 0x00423eb0
-// srClassSupport<srScene,srScene,0,4112>::`scalar deleting destructor'
+// srScene::`scalar deleting destructor'
+
+/* 0x00423EE0 calls the imported ~srModeler: it is the local ??_GsrModeler
+   thunk emitted for the g_modeler delete, not a support-class deleting
+   destructor. */
+// SYNTHETIC: WIZ8 0x00423EE0
+// srModeler::`scalar deleting destructor'
+
+/* 0x004229C0 is a bare JMP to RenderFrame: a tail-jump thunk with no
+   distinct source entity. */
+// SYNTHETIC: WIZ8 0x004229C0
+// RenderFrame (tail-jump thunk)
 
 // VTABLE: WIZ8 0x005EBD10
 // class srClassSupport<srColorSurface, class srColorSurface, 0, 12560>
@@ -3636,8 +3800,10 @@ void EndRenderProbe004289C0(void)
 // TEMPLATE: WIZ8 0x00429AD0
 // srClassSupport<srColorSurface,srColorSurface,0,12560>::clone
 
+/* 0x00423F00 calls the imported ~srColorSurface: it is the local
+   ??_GsrColorSurface thunk, not the support-class deleting destructor. */
 // SYNTHETIC: WIZ8 0x00423f00
-// srClassSupport<srColorSurface,srColorSurface,0,12560>::`scalar deleting destructor'
+// srColorSurface::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x00424BA0
 srNode* MakePosterQuad00424BA0(srTextureIFace* texture, float width, float height,

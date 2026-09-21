@@ -635,11 +635,11 @@ void DispatchMGSCommand(int command)
         ToggleNumericHitPoints();
         break;
     case W8_MGS_COMMAND_DEBUG_INJECT_CLICK:
-        if (IsCursorInsideViewport() != 0) {
+        if (IsCursorImageInsideViewport() != 0) {
             unsigned int position = (static_cast<unsigned int>(gusMouseYPos) << 16) | gusMouseXPos;
             QueueEvent(LEFT_BUTTON_DOWN, 0, position);
             QueueEvent(LEFT_BUTTON_UP, 0, position);
-            gfRecordedLeftButtonUp = 0;
+            gfLeftButtonState = 0;
         }
         break;
     case W8_MGS_COMMAND_TOGGLE_AUTO_ADVANCE:

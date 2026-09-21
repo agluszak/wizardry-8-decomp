@@ -918,6 +918,9 @@ static_assert(sizeof(W8OctUvPoolEntry) == 0xc, "W8OctUvPoolEntry_must_be_0xc");
 /* Builds one record's UV map: walks the three corners of every polygon,
    deduplicates uvs through the pool and emits the corner-to-uv index
    triplets plus the final srVector2 map.  Returns the uv count. */
+// TEMPLATE: WIZ8 0x0046a490
+// srVector3T<float>::operator=
+
 // FUNCTION: WIZ8 0x0046a4b0
 unsigned long OctPreTree::SplitUVMaps0046A4B0(W8OctSubmeshBuild* record,
                                               W8OctPreTreeGeometry* geometry)

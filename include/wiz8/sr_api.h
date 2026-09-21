@@ -9,6 +9,7 @@ typedef void(__cdecl* srAssertHandler)(const char* expression, const char* sourc
 /* These imports are declared once here so every first-party caller sees the
    same recovered SurRender ABI. */
 __declspec(dllimport) int __cdecl srInit(void);
+__declspec(dllimport) int __cdecl srExit(void);
 __declspec(dllimport) void __cdecl srAssertSetFunc(srAssertHandler handler);
 
 /*

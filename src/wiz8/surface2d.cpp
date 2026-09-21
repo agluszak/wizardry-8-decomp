@@ -169,22 +169,31 @@ void stSurface2D::traverse(TraverseInfo& info)
 // FUNCTION: WIZ8 0x0047E0F0
 void stSurface2D::process(const ProcessInfo& info, e_processType)
 {
-    srGERD* renderer = info.renderer;
+    DrawTiles0047E100(info.renderer);
+}
+
+/* The tile render pass, entered from process(): ortho projection, vertex
+   array state, then one triangle strip per tile in row-major order. Retail
+   discards the getLocation() result; the call is kept as emitted. */
+// FUNCTION: WIZ8 0x0047E100
+void stSurface2D::DrawTiles0047E100(srGERD* renderer)
+{
     int row;
     int column;
     int index = 0;
 
+    getLocation();
     renderer->matrixMode(srGERD::MATRIX_PROJECTION);
     renderer->pushMatrix();
     renderer->loadIdentity();
     renderer->ortho(0.0, 1.0, 1.0, 0.0, 0.0, 1.0);
     renderer->setVertexArrayMask(srFlags<srRendererDefs::e_vertexArray>(state));
+    renderer->setClipState(srFlags<srRendererDefs::e_clip>(0x3f)); /* CLIP_LEFT..CLIP_FAR */
     renderer->setCullMode(srGERD::CULL_FRONT);
     srShader shader;
     shader.value = flags;
     renderer->setShader(shader);
     renderer->setTexCoordPointer(2, srRendererDefs::TYPE_FLOAT, 8, coordinates, 0);
-    renderer->setClipState(srFlags<srRendererDefs::e_clip>(0x3f)); /* CLIP_LEFT..CLIP_FAR */
     renderer->setAntiAlias(srGERD::ANTIALIAS_NONE);
 
     for (row = 0; row != rows; ++row) {
@@ -296,6 +305,18 @@ void stSurface2D::updateRectangle(srGERD* renderer, void*, long, int left, int t
             x = left;
         }
     }
+}
+
+// FUNCTION: WIZ8 0x0047E560
+void stSurface2D::setScale(float scale)
+{
+    float factor = 1.0f / tile_size;
+    float offset = (scale - this->scale) * factor;
+    for (int index = 0; index != 4; ++index) {
+        coordinates[index * 2] += offset;
+        coordinates[index * 2 + 1] += offset;
+    }
+    this->scale = scale;
 }
 
 // FUNCTION: WIZ8 0x0047e5b0

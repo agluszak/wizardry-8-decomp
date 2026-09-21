@@ -230,6 +230,31 @@ unsigned char __fastcall DecrementLockTimer004457A0(int* lock_state)
     return 0;
 }
 
+/* True while a type-0x34 destination trigger holds (x, y, z) inside its
+   activation annulus: under range_maximum_0a8 and, unless flags_0a0 bit 6
+   waives the minimum, at or beyond range_minimum_0a4. */
+// FUNCTION: WIZ8 0x00445940
+bool InsideDestinationTrigger00445940(float x, float y, float z)
+{
+    int count = g_world->triggers->GetCount();
+
+    for (int index = 0; index < count; ++index) {
+        Trigger* trigger = *g_world->triggers->GetAt(index);
+        if (trigger->initial_action_22a != 0x34) {
+            continue;
+        }
+        float dx = trigger->position_118.x - x;
+        float dy = trigger->position_118.y - y;
+        float dz = trigger->position_118.z - z;
+        float distance = sqrtf(dx * dx + dy * dy + dz * dz);
+        if (distance < trigger->range_maximum_0a8 && ((trigger->flags_0a0 >> 6) & 1) == 0 &&
+            distance >= trigger->range_minimum_0a4) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // FUNCTION: WIZ8 0x0043cb30
 void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, bool restoring)
 {
@@ -3917,6 +3942,16 @@ Trigger::~Trigger()
 
 // SYNTHETIC: WIZ8 0x00445e90
 // srClassSupport<Trigger,srClass,1,65544>::`scalar deleting destructor'
+
+/* Resolves a light instance by name under the stLight class node. Retail
+   inlines stLight::sGetClassNode, so this emission carries the lazy
+   stLight->srLight->srNode registration walk before the registry find. */
+// FUNCTION: WIZ8 0x00445a10
+stLight* FindLightByName00445A10(const char* name, const srRuntimeClass* relative_to)
+{
+    return static_cast<stLight*>(
+        srCore.getRegistry()->find(stLight::sGetClassNode(), name, relative_to));
+}
 
 // TEMPLATE: WIZ8 0x00445EF0
 // srClassSupport<srNode,srNode,0,4096>::getClassNode
