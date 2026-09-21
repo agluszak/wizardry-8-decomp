@@ -70,14 +70,17 @@ unsigned char W8NavigatorAttachment::TruncatePathAtRadius004566C0(const srVector
 {
     unsigned int index = path_cursor_04;
     float distance = (position_4c[index] - *target).Length();
+    /* Retail leaves this slot cold when position_4c[path_cursor_04] is already
+       outside the radius, so the interpolation below reads whatever occupied
+       the stack. Preserved intentionally. */
     float previous_distance;
 
     if (distance < radius) {
         do {
-            previous_distance = distance;
             if (path_position_index_08 <= index) {
                 break;
             }
+            previous_distance = distance;
             ++index;
             distance = (position_4c[index] - *target).Length();
         } while (distance < radius);
