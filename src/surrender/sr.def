@@ -176,9 +176,9 @@ EXPORTS
     ??5@YAAAVsrBinIStream@@AAV0@AAVsrVector2i@@@Z
     ??5@YAAAVsrBinIStream@@AAV0@AAVsrVector3i@@@Z
     ??5@YAAAVsrBinIStream@@AAV0@AAVsrVector4i@@@Z
-    ??_7srNode@@6B@
-    ?sceneGraphCSect@srNode@@0VsrCriticalSection@@A
-    ?sceneGraphLockCount@srNode@@0JA
+    ??_7srNode@@6B@ DATA
+    ?sceneGraphCSect@srNode@@0VsrCriticalSection@@A DATA
+    ?sceneGraphLockCount@srNode@@0JA DATA
     ?lockSceneGraph@srNode@@SAXXZ
     ?unlockSceneGraph@srNode@@SAXXZ
     ?isSceneGraphLocked@srNode@@SAHXZ
@@ -236,21 +236,21 @@ EXPORTS
     ??0srTimer@@QAE@HHH@Z
     ??1srTimer@@UAE@XZ
     ??4srTimer@@QAEAAV0@ABV0@@Z
-    ??_7srTimer@@6B@
-    ?CPU_Features_Mask@srTimer@@1KB
-    ?CPU_Model_Mask@srTimer@@1KB
+    ??_7srTimer@@6B@ DATA
+    ?CPU_Features_Mask@srTimer@@1KB DATA
+    ?CPU_Model_Mask@srTimer@@1KB DATA
     ?RDTSC@srTimer@@KGHPAVsrQuadWord@@@Z
-    ?RegCpuFeatures@srTimer@@1PBDB
-    ?RegCpuFreq@srTimer@@1PBDB
-    ?RegCpuMaxID@srTimer@@1PBDB
-    ?RegCpuSIG@srTimer@@1PBDB
-    ?RegCpuVariance@srTimer@@1PBDB
-    ?RegCpuVers@srTimer@@1PBDB
-    ?RegKeyBase@srTimer@@1PAXA
-    ?RegKeyName@srTimer@@1PADA
-    ?RegRoot@srTimer@@1PBDB
-    ?cpuFreqVariancePct@srTimer@@1GA
-    ?default_storage@srTimer@@1PBDB
+    ?RegCpuFeatures@srTimer@@1PBDB DATA
+    ?RegCpuFreq@srTimer@@1PBDB DATA
+    ?RegCpuMaxID@srTimer@@1PBDB DATA
+    ?RegCpuSIG@srTimer@@1PBDB DATA
+    ?RegCpuVariance@srTimer@@1PBDB DATA
+    ?RegCpuVers@srTimer@@1PBDB DATA
+    ?RegKeyBase@srTimer@@1PAXA DATA
+    ?RegKeyName@srTimer@@1PADA DATA
+    ?RegRoot@srTimer@@1PBDB DATA
+    ?cpuFreqVariancePct@srTimer@@1GA DATA
+    ?default_storage@srTimer@@1PBDB DATA
     ?fastThreads@srTimer@@QAEHXZ
     ?getAscTime@srTimer@@QAEPADPADVsrQuadWord@@@Z
     ?getAscTime@srTimer@@UAEPADPADW4e_timerReadControl@1@@Z
@@ -275,14 +275,13 @@ EXPORTS
     ?getRawTime@srTimer@@UAEKW4e_timerReadControl@1@@Z
     ?getStorage@srTimer@@SAPADPADK@Z
     ?getTick@srTimer@@KGHPAVsrQuadWord@@@Z
-    ?getStorage@srTimer@@SAPADPADK@Z
     ?getTime@srTimer@@UAENW4e_timerReadControl@1@@Z
     ?getUTime@srTimer@@UAEKAAVsrQuadWord@@W4e_timerReadControl@1@@Z
     ?getUTime@srTimer@@UAEKW4e_timerReadControl@1@@Z
     ?getUnits@srTimer@@QBEKXZ
     ?isPaused@srTimer@@QBEHXZ
-    ?osIdent@srTimer@@1PADA
-    ?osThreadState@srTimer@@1FA
+    ?osIdent@srTimer@@1PADA DATA
+    ?osThreadState@srTimer@@1FA DATA
     ?pause@srTimer@@UAEHXZ
     ?reset@srTimer@@UAEHHHH@Z
     ?resume@srTimer@@UAEKXZ
@@ -298,7 +297,7 @@ EXPORTS
     ??1srVariableTimer@@UAE@XZ
     ??4srVariableTimer@@QAEAAV0@ABV0@@Z
     ??4srVariableTimer@@QAEAAV0@ABVsrTimer@@@Z
-    ??_7srVariableTimer@@6B@
+    ??_7srVariableTimer@@6B@ DATA
     ?addTime@srVariableTimer@@QAEXM@Z
     ?getAscTime@srVariableTimer@@UAEPADPADW4e_timerReadControl@srTimer@@@Z
     ?getBaseAscTime@srVariableTimer@@QAEPADPADW4e_timerReadControl@srTimer@@@Z
@@ -331,7 +330,7 @@ EXPORTS
     ??0srPalette@@QAE@PAVsrARGB@@J@Z
     ??1srPalette@@MAE@XZ
     ??4srPalette@@QAEAAV0@ABV0@@Z
-    ??_7srPalette@@6B@
+    ??_7srPalette@@6B@ DATA
     ?dump@srPalette@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?findMatchingPalette@srPalette@@SAPAV1@QBVsrARGB@@J@Z
     ?getColor@srPalette@@QBE?AVsrARGB@@J@Z
@@ -359,7 +358,7 @@ EXPORTS
     ?findRG@Quantizer@srPalette@@AAEEJJ@Z
     ?initRGB@Quantizer@srPalette@@AAEXJJJJ@Z
     ?initRG@Quantizer@srPalette@@AAEXJJJJ@Z
-    ?initialized@Quantizer@srPalette@@0HA
+    ?initialized@Quantizer@srPalette@@0HA DATA
     ?partitionRGB@Quantizer@srPalette@@AAEXJJ@Z
     ?quantize@Quantizer@srPalette@@QAEEABVsrARGB@@@Z
     ?quantize@Quantizer@srPalette@@QAEEEEE@Z
@@ -394,3 +393,291 @@ EXPORTS
     ?createOptimalPalette@Optimizer@srPalette@@SAPAV2@ABUPaletteInfo@12@@Z
     ?findOptimalColor@Optimizer@srPalette@@CAXPAUNode@12@ABULUT@12@@Z
     ?setupLUT@Optimizer@srPalette@@CAXAAULUT@12@ABVsrARGB@@@Z
+
+    ; Established retail exports bound by recovered SURRENDER source;
+    ; the surrender-exports check rejects removing these entries.
+    ??0BitIStream@srHuffman@@QAE@AAVsrBinIStream@@@Z
+    ??0BitOStream@srHuffman@@QAE@AAVsrBinOStream@@@Z
+    ??0Compressor@srHuffman@@QAE@ABVSampler@1@@Z
+    ??0Decompressor@srHuffman@@QAE@AAVBitIStream@1@@Z
+    ??0Opener@srIStreamOpener@@QAE@XZ
+    ??0Path@srFileManager@@IAE@PBD@Z
+    ??0Sampler@srHuffman@@QAE@ABV01@@Z
+    ??0Sampler@srHuffman@@QAE@XZ
+    ??0srBinFStream@@IAE@XZ
+    ??0srBinFStream@@QAE@ABV0@@Z
+    ??0srBinIAsyncStream@@QAE@ABV0@@Z
+    ??0srBinIAsyncStream@@QAE@PBD@Z
+    ??0srBinIFStream@@QAE@ABV0@@Z
+    ??0srBinIFStream@@QAE@PBD@Z
+    ??0srBinIFStream@@QAE@XZ
+    ??0srBinIMStream@@QAE@PBXK@Z
+    ??0srBinIOFStream@@QAE@ABV0@@Z
+    ??0srBinIOFStream@@QAE@PBD@Z
+    ??0srBinIOFStream@@QAE@XZ
+    ??0srBinIStream@@QAE@XZ
+    ??0srBinOFStream@@QAE@ABV0@@Z
+    ??0srBinOFStream@@QAE@PBD@Z
+    ??0srBinOFStream@@QAE@XZ
+    ??0srBinOMStream@@QAE@ABV0@@Z
+    ??0srBinOMStream@@QAE@XZ
+    ??0srBinStream@@IAE@XZ
+    ??0srBinStream@@QAE@ABV0@@Z
+    ??0srDebugDD@@QAE@PAVsrDD@@@Z
+    ??0srDummyStreamBuf@@AAE@ABV0@@Z
+    ??0srDummyStreamBuf@@QAE@XZ
+    ??0srExtension@@QAE@PBD@Z
+    ??0srFStreamOpener@@QAE@XZ
+    ??0srFileManager@@QAE@XZ
+    ??0srIStreamOpener@@QAE@XZ
+    ??0srStringTable@@QAE@ABV0@@Z
+    ??0srStringTable@@QAE@XZ
+    ??1BitOStream@srHuffman@@QAE@XZ
+    ??1Compressor@srHuffman@@QAE@XZ
+    ??1Decompressor@srHuffman@@QAE@XZ
+    ??1Opener@srIStreamOpener@@UAE@XZ
+    ??1Path@srFileManager@@IAE@XZ
+    ??1Sampler@srHuffman@@QAE@XZ
+    ??1srBinFStream@@MAE@XZ
+    ??1srBinIAsyncStream@@UAE@XZ
+    ??1srBinIFStream@@UAE@XZ
+    ??1srBinIMStream@@UAE@XZ
+    ??1srBinIOFStream@@UAE@XZ
+    ??1srBinIStream@@UAE@XZ
+    ??1srBinOFStream@@UAE@XZ
+    ??1srBinOMStream@@UAE@XZ
+    ??1srBinOStream@@UAE@XZ
+    ??1srBinStream@@UAE@XZ
+    ??1srDummyStreamBuf@@UAE@XZ
+    ??1srExtension@@QAE@XZ
+    ??1srFStreamOpener@@UAE@XZ
+    ??1srFileManager@@UAE@XZ
+    ??1srIStreamOpener@@QAE@XZ
+    ??1srStringTable@@QAE@XZ
+    ??4BitOStream@srHuffman@@AAEAAV01@ABV01@@Z
+    ??4Compressor@srHuffman@@QAEAAV01@ABV01@@Z
+    ??4Opener@srIStreamOpener@@QAEAAV01@ABV01@@Z
+    ??4Path@srFileManager@@QAEAAV01@ABV01@@Z
+    ??4Sampler@srHuffman@@QAEAAV01@ABV01@@Z
+    ??4srBinFStream@@QAEAAV0@ABV0@@Z
+    ??4srBinIFStream@@QAEAAV0@ABV0@@Z
+    ??4srBinIOFStream@@QAEAAV0@ABV0@@Z
+    ??4srBinOFStream@@QAEAAV0@ABV0@@Z
+    ??4srBinStream@@QAEAAV0@ABV0@@Z
+    ??4srDummyStreamBuf@@AAEAAV0@ABV0@@Z
+    ??4srDynamicLibrary@@QAEAAV0@ABV0@@Z
+    ??4srExtension@@QAEAAV0@ABV0@@Z
+    ??4srFStreamOpener@@QAEAAV0@ABV0@@Z
+    ??4srIStreamOpener@@QAEAAV0@ABV0@@Z
+    ??4srStringTable@@QAEAAV0@ABV0@@Z
+    ??7srBinStream@@QBE_NXZ
+    ??AsrStringTable@@QAEPADH@Z
+    ??BsrBinStream@@QBEPAXXZ
+    ??_DsrBinFStream@@QAEXXZ
+    ??_DsrBinIAsyncStream@@QAEXXZ
+    ??_DsrBinIFStream@@QAEXXZ
+    ??_DsrBinIMStream@@QAEXXZ
+    ??_DsrBinIOFStream@@QAEXXZ
+    ??_DsrBinIStream@@QAEXXZ
+    ??_DsrBinOFStream@@QAEXXZ
+    ??_DsrBinOMStream@@QAEXXZ
+    ??_DsrBinOStream@@QAEXXZ
+    ?addPath@srFileManager@@QAEXPBD@Z
+    ?addSeparatedStrings@srStringTable@@QAEXPBD0H@Z
+    ?addStreamType@srIStreamOpener@@QAEXPAVOpener@1@PBD@Z
+    ?addString@srStringTable@@QAEXPBD@Z
+    ?allocate@srFileManager@@UAEPAXPBD@Z
+    ?beginFrame@srDebugDD@@UAEXXZ
+    ?bindPalette@srDebugDD@@UAEXAAUPalette@srDD@@@Z
+    ?bindTexture@srDebugDD@@UAEXKAAUTexture@srDD@@@Z
+    ?bufferOp@srDebugDD@@UAE?AW4e_error@srDD@@ABUBufferCommand@3@@Z
+    ?buildSymbolTree@Compressor@srHuffman@@QAEXXZ
+    ?byteOrderMatch@srBinStream@@IBE_NXZ
+    ?byteSwap@srBinStream@@KAXPAEH@Z
+    ?chDir@srSystem@@SAJPBD@Z
+    ?checkCompatibility@srDynamicLibrary@@SA?AW4Compatibility@1@PBD@Z
+    ?clear@srBinStream@@QAEXXZ
+    ?clearBuffers@srDebugDD@@UAEXABV?$srFlags@W4e_buffer@srDD@@@@@Z
+    ?close@srBinFStream@@QAEXXZ
+    ?closeWindow@srDebugDD@@UAEXXZ
+    ?collectSymbols@Compressor@srHuffman@@QAEXABVSampler@2@@Z
+    ?compressSymbol@Compressor@srHuffman@@QAEXAAVBitOStream@2@K@Z
+    ?createContext@srDebugDD@@UAE?AW4e_error@srDD@@K@Z
+    ?decompressSymbol@Decompressor@srHuffman@@QAEKXZ
+    ?deleteContext@srDebugDD@@UAEXXZ
+    ?deletePalette@srDebugDD@@UAEXAAUPalette@srDD@@@Z
+    ?deleteTexture@srDebugDD@@UAEXAAUTexture@srDD@@@Z
+    ?drawArrays@srDebugDD@@UAEXW4e_primitive@srRendererDefs@@JK@Z
+    ?drawElements@srDebugDD@@UAEXW4e_primitive@srRendererDefs@@KW4e_indexType@3@PBX@Z
+    ?dump@srClass@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?dump@srFileManager@@QAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?dump@srRuntimeClass@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?dump@srVectorProcessor@@SAXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?dumpAll@srExtension@@SAXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?dumpNode@Compressor@srHuffman@@AAEXAAVBitOStream@2@PAUNode@12@@Z
+    ?endDebug@srVectorProcessor@@SAXXZ
+    ?endFrame@srDebugDD@@UAEXXZ
+    ?exceptions@srBinStream@@QAE_N_N@Z
+    ?extCommand@srDebugDD@@UAEXKPAXK@Z
+    ?fence@srDebugDD@@UAEXXZ
+    ?fetchCache@BitIStream@srHuffman@@AAEXJ@Z
+    ?find@srExtension@@SAPAV1@PBD@Z
+    ?findOpener@srIStreamOpener@@AAEPAVOpener@1@PBD@Z
+    ?flipFrame@srDebugDD@@UAEXPBUScissor@srDD@@0K@Z
+    ?flush@BitOStream@srHuffman@@AAEXXZ
+    ?flushBuffer@BitOStream@srHuffman@@AAEXXZ
+    ?flushByte@BitOStream@srHuffman@@AAEXXZ
+    ?flushFrame@srDebugDD@@UAEXXZ
+    ?free@srDynamicLibrary@@SAHPAX@Z
+    ?free@srFileManager@@UAEXPAX@Z
+    ?free@srMemoryAllocator@@QAEXPAX@Z
+    ?fullPath@srSystem@@SAPADPADPBDK@Z
+    ?get@BitIStream@srHuffman@@QAEKK@Z
+    ?getBit@BitIStream@srHuffman@@QAEKXZ
+    ?getBufferPixelFormat@srDebugDD@@UAEXAAUPixelFormat@srDD@@@Z
+    ?getByte@BitIStream@srHuffman@@AAEKJ@Z
+    ?getByteOrder@srBinStream@@QBE?AW4e_byteOrder@1@XZ
+    ?getChar@srBinIStream@@QAEGXZ
+    ?getCount@srExtension@@SAJXZ
+    ?getCount@srStringTable@@QBEJXZ
+    ?getCwd@srSystem@@SAPADPADJ@Z
+    ?getDWord@BitIStream@srHuffman@@AAEKJ@Z
+    ?getDWord@srBinIStream@@QAEKXZ
+    ?getDataCount@Decompressor@srHuffman@@QBEKXZ
+    ?getDescription@srExtension@@QAEPBDXZ
+    ?getDescription@srFStreamOpener@@UBEPBDXZ
+    ?getDouble@srBinIStream@@QAENXZ
+    ?getDriverInfo@srDebugDD@@UAEXAAUDriverInfo@srDD@@@Z
+    ?getFirst@srExtension@@SAPAV1@XZ
+    ?getFirstPath@srFileManager@@QBEPAVPath@1@XZ
+    ?getFloat@srBinIStream@@QAEMXZ
+    ?getFunction@srDynamicLibrary@@SAPAXPAXPBD@Z
+    ?getFunctionName@srDebugDD@@QBEPBDW4e_command@srDD@@@Z
+    ?getInfo@srDebugDD@@UAEXAAUInfo@srDD@@@Z
+    ?getMemoryAllocator@srCore@@QBEPAVsrMemoryAllocator@@XZ
+    ?getName@Path@srFileManager@@QBEPBDXZ
+    ?getName@srExtension@@QAEPBDXZ
+    ?getNext@Path@srFileManager@@QBEPAV12@XZ
+    ?getNext@srExtension@@QAEPAV1@XZ
+    ?getNumSymbols@Sampler@srHuffman@@QBEKXZ
+    ?getPath@srBinFStream@@QBEPBDXZ
+    ?getPtr@srBinOMStream@@QAEPAXXZ
+    ?getQuadWord@srBinIStream@@QAE?AVsrQuadWord@@XZ
+    ?getSize@srBinIMStream@@UAEKXZ
+    ?getSize@srBinOMStream@@UAEKXZ
+    ?getSize@srBinStream@@UAEKXZ
+    ?getSize@srFileManager@@UAEJPBD@Z
+    ?getStatistics@srDebugDD@@UAEXAAUStatistics@srDD@@@Z
+    ?getString@srStringTable@@QBEPADJ@Z
+    ?getSymbolFrequency@Sampler@srHuffman@@QBEKK@Z
+    ?getSymbolValue@Sampler@srHuffman@@QBEKK@Z
+    ?getTextureFormats@srDebugDD@@UAEXAAUPixelFormatList@srDD@@@Z
+    ?getVersion@srDynamicLibrary@@SAKPBD@Z
+    ?getWindowList@srDebugDD@@UAEXAAUWindowInfoList@srDD@@@Z
+    ?getWord@srBinIStream@@QAEGXZ
+    ?getWordOrLess@BitIStream@srHuffman@@AAEKK@Z
+    ?good@srBinStream@@QBE_NXZ
+    ?increaseCallTime@srDebugDD@@QAEXW4e_command@srDD@@N@Z
+    ?initBaseVP@srVectorProcessor@@SAXXZ
+    ?insert@Sampler@srHuffman@@QAEXK@Z
+    ?isBusy@srDebugDD@@UAEHXZ
+    ?isFinished@srBinIAsyncStream@@QAEHXZ
+    ?isOpen@srBinFStream@@QAEHXZ
+    ?load@srDynamicLibrary@@SAPAXPBD@Z
+    ?load@srExtension@@SAPAV1@PBD0@Z
+    ?load@srFileManager@@UAEXPBDPAXK@Z
+    ?loadBest@srVectorProcessor@@SAHPBD@Z
+    ?makePath@srSystem@@SAXPADPBD111@Z
+    ?mopen@srBinFStream@@IAEXPBDW4e_mode@1@H@Z
+    ?open@srBinIFStream@@QAEXPBD@Z
+    ?open@srBinIOFStream@@QAEXPBD@Z
+    ?open@srBinOFStream@@QAEXPBD@Z
+    ?open@srFStreamOpener@@UAEPAVsrBinIStream@@PBD@Z
+    ?open@srIStreamOpener@@AAEPAVsrBinIStream@@PBD0@Z
+    ?open@srIStreamOpener@@QAEPAVsrBinIStream@@PBD@Z
+    ?openWindow@srDebugDD@@UAE?AW4e_error@srDD@@ABUOpenInfo@3@AAUOpenResult@3@@Z
+    ?overflow@srDummyStreamBuf@@EAEHH@Z
+    ?parsePrefix@srIStreamOpener@@AAEXPAPAD0PBD@Z
+    ?preBindTexture@srDebugDD@@UAEXKAAUTexture@srDD@@@Z
+    ?pseek@srBinFStream@@MAEAAVsrBinStream@@K@Z
+    ?pseek@srBinFStream@@MAEAAVsrBinStream@@KW4e_seekDir@2@@Z
+    ?ptell@srBinFStream@@MAEKXZ
+    ?put@BitOStream@srHuffman@@QAEXKK@Z
+    ?putBit@BitOStream@srHuffman@@AAEXK@Z
+    ?putChar@srBinOStream@@QAEAAV1@D@Z
+    ?putDWord@srBinOStream@@QAEAAV1@K@Z
+    ?putDouble@srBinOStream@@QAEAAV1@N@Z
+    ?putFloat@srBinOStream@@QAEAAV1@M@Z
+    ?putQWord@srBinOStream@@QAEAAV1@VsrQuadWord@@@Z
+    ?putWord@srBinOStream@@QAEAAV1@G@Z
+    ?read@srBinIStream@@QAEAAV1@PAXK@Z
+    ?releaseAll@srExtension@@SAXXZ
+    ?removePath@srFileManager@@QAEXPBD@Z
+    ?reset@srStringTable@@QAEXXZ
+    ?resetStatistics@srDebugDD@@UAEXXZ
+    ?resetStatistics@srVectorProcessor@@SAXXZ
+    ?rewind@BitIStream@srHuffman@@QAEXJ@Z
+    ?save@srFileManager@@UAEXPBDPAXK@Z
+    ?scanFiles@srSystem@@SAJAAVsrStringTable@@PBD1@Z
+    ?scanFiles@srSystem@@SAJAAVsrStringTable@@PBD@Z
+    ?scanLibraries@srSystem@@SAJAAVsrStringTable@@PBD1@Z
+    ?seek@srBinIAsyncStream@@UAEAAVsrBinStream@@K@Z
+    ?seek@srBinIAsyncStream@@UAEAAVsrBinStream@@KW4e_seekDir@2@@Z
+    ?seek@srBinIFStream@@UAEAAVsrBinStream@@K@Z
+    ?seek@srBinIFStream@@UAEAAVsrBinStream@@KW4e_seekDir@2@@Z
+    ?seek@srBinIMStream@@UAEAAVsrBinStream@@K@Z
+    ?seek@srBinIMStream@@UAEAAVsrBinStream@@KW4e_seekDir@2@@Z
+    ?seek@srBinIOFStream@@UAEAAVsrBinStream@@K@Z
+    ?seek@srBinIOFStream@@UAEAAVsrBinStream@@KW4e_seekDir@2@@Z
+    ?seek@srBinOFStream@@UAEAAVsrBinStream@@K@Z
+    ?seek@srBinOFStream@@UAEAAVsrBinStream@@KW4e_seekDir@2@@Z
+    ?seek@srBinOMStream@@UAEAAVsrBinStream@@K@Z
+    ?seek@srBinOMStream@@UAEAAVsrBinStream@@KW4e_seekDir@2@@Z
+    ?setByteOrder@srBinStream@@QAEXW4e_byteOrder@1@@Z
+    ?setClearValues@srDebugDD@@UAEXABUClearValues@srDD@@@Z
+    ?setCullMode@srDebugDD@@UAEXW4e_cullMode@srDD@@@Z
+    ?setFogColor@srDebugDD@@UAEXABV?$srVector4T@M@@@Z
+    ?setGlobalPalette@srDebugDD@@UAEXPAKK@Z
+    ?setPath@srBinFStream@@AAEXPBD@Z
+    ?setPath@srFileManager@@QAEXPBD@Z
+    ?setPolygonMode@srDebugDD@@UAEXW4e_polygonMode@srDD@@@Z
+    ?setPolygonOffset@srDebugDD@@UAEXJ@Z
+    ?setProjectionMatrix@srDebugDD@@UAEXABV?$srMatrix4T@M@@W4e_type@2@@Z
+    ?setScissor@srDebugDD@@UAEXABUScissor@srDD@@@Z
+    ?setShader@srDebugDD@@UAEXABVsrShader@@@Z
+    ?setState@srBinStream@@QAEXW4e_state@1@@Z
+    ?setTextureParameters@srDebugDD@@UAEXKABUTexParms@srDD@@@Z
+    ?setVertexArrayInfo@srDebugDD@@UAEXPBUVertexArrayInfo@srRendererDefs@@@Z
+    ?setViewPort@srDebugDD@@UAEXABUViewPort@srDD@@@Z
+    ?setupPath@Compressor@srHuffman@@QAEXPAUNode@12@KK@Z
+    ?setupSymbolTable@Decompressor@srHuffman@@AAEXPAUSymbol@12@@Z
+    ?splitPath@srSystem@@SAXPBDPAD111@Z
+    ?startDebug@srVectorProcessor@@SAXH@Z
+    ?storeSymbolTable@Compressor@srHuffman@@QAEXAAVBitOStream@2@@Z
+    ?tell@srBinIAsyncStream@@UAEKXZ
+    ?tell@srBinIFStream@@UAEKXZ
+    ?tell@srBinIMStream@@UAEKXZ
+    ?tell@srBinIOFStream@@UAEKXZ
+    ?tell@srBinOFStream@@UAEKXZ
+    ?tell@srBinOMStream@@UAEKXZ
+    ?testDependencies@srDynamicLibrary@@SAHPBD@Z
+    ?texImage@srDebugDD@@UAEXAAUTexture@srDD@@K@Z
+    ?texSubImage@srDebugDD@@UAEXAAUTexture@srDD@@KKKKK@Z
+    ?underflow@srDummyStreamBuf@@EAEHXZ
+    ?update@srDebugDD@@UAEXABUUpdate@srDD@@@Z
+    ?verify@srClass@@UAEXW4e_verify@srRuntimeClass@@@Z
+    ?verify@srRuntimeClass@@UAEXW4e_verify@1@@Z
+    ?vget@srBinIFStream@@EAEGXZ
+    ?vget@srBinIOFStream@@EAEGXZ
+    ?vget@srBinIStream@@MAEGXZ
+    ?vput@srBinIOFStream@@EAEGD@Z
+    ?vput@srBinOFStream@@EAEGD@Z
+    ?vput@srBinOStream@@MAEGD@Z
+    ?vread@srBinIAsyncStream@@UAEKPAXK@Z
+    ?vread@srBinIFStream@@EAEKPAXK@Z
+    ?vread@srBinIMStream@@EAEKPAXK@Z
+    ?vread@srBinIOFStream@@EAEKPAXK@Z
+    ?vwrite@srBinIOFStream@@EAEKPBXK@Z
+    ?vwrite@srBinOFStream@@EAEKPBXK@Z
+    ?vwrite@srBinOMStream@@EAEKPBXK@Z
+    ?write@srBinOStream@@QAEAAV1@PBXK@Z
