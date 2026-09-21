@@ -3808,7 +3808,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         level = effect->definition.duration_scale;
         shake = CreateCameraShakeEffect004AE080(
             level * g_navigator_vertical_phase_step_005ebcc8 + g_float_005ebc7c, 1,
-            level * g_navigator_snap_angle_005ec2f0 + g_float_005ee838, 0x47435000, &point);
+            level * g_navigator_snap_angle_005ec2f0 + g_float_005ee838, 50000.0f, &point);
         shake->flags_00 = shake->flags_00 & 0xffffffe7;
         sound_name = g_spell_records[spell_id].sound_name;
         if (sound_name[0] != 0) {

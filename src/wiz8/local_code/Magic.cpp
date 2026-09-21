@@ -821,7 +821,6 @@ bool IsTeleportCastMissingAnchor00501D00(W8Character* character, int spell_id)
     }
     return !character->has_saved_location;
 }
-
 /* The 0x4f spell's finalizer. Once its target is gone, the impact spell 0x76
    is cast at the target's last position and the matching notice is posted:
    the monster's own notice for a monster that has died, or the targeted

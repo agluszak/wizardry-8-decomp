@@ -565,3 +565,6 @@ unsigned char W8OctRegionVolume::ContainsPoint0049E460(const srVector3T<float>* 
 
 // SYNTHETIC: WIZ8 0x004A2200
 // stLightDefinition005ECDBC::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x0049E290
+// srArray<srNode*>::setCapacity

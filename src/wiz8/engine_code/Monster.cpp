@@ -684,7 +684,7 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
                                &intensity, &value);
                         int shake_cycle = ParseMonsterCycleName004C2010(cycle_name, &subcycle);
                         W8CameraShakeEffect* effect = new W8CameraShakeEffect(
-                            duration, 1, intensity, (int)(value * g_world_scale_005ebc40), 0);
+                            duration, 1, intensity, value * g_world_scale_005ebc40, 0);
                         if (effect != 0) {
                             effect->frame_40 = frame;
                             effect->cycle_3c = shake_cycle;
@@ -3279,12 +3279,11 @@ void W8Monster::UpdateRepresentation(W8World* world)
     {
         float angle = GetPitch();
         if (angle != g_float_005ebb34) {
-            rotation.RotateAboutX(sin((double)angle), cos((double)angle));
+            rotation.RotateAboutX(static_cast<double>(angle));
         }
     }
     if (movement_0c0.roll_028 != g_float_005ebb34) {
-        rotation.RotateAboutZ(sin((double)movement_0c0.roll_028),
-                              cos((double)movement_0c0.roll_028));
+        rotation.RotateAboutZ(static_cast<double>(movement_0c0.roll_028));
     }
     m_pRep->SetRotation004B88D0(&rotation);
 

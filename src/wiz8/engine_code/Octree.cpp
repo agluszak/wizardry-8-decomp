@@ -2808,6 +2808,11 @@ no_probes:;
 // TEMPLATE: WIZ8 0x0055dbb0
 // W8HashTable<unsigned int,int>::Insert
 
+/* Second Remove emission (0x00438C90 above is the other), serving the
+   keyboard/automap tables' callers. */
+// TEMPLATE: WIZ8 0x0055DD60
+// W8HashTable<unsigned int,int>::Remove
+
 // FUNCTION: WIZ8 0x00436840
 W8OctreeObjectRegistry::W8OctreeObjectRegistry()
     : by_cell(new W8OctreeIndex), by_object(new W8OctreeIndex)

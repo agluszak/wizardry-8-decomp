@@ -658,9 +658,8 @@ unsigned char LoadSpellVisualResource004AB580(const W8GrCycleLoadContext* contex
                             break;
                         }
                     }
-                    effect = new W8CameraShakeEffect(
-                        duration, 1, intensity, static_cast<int>(distance * g_world_scale_005ebc40),
-                        0);
+                    effect = new W8CameraShakeEffect(duration, 1, intensity,
+                                                     distance * g_world_scale_005ebc40, 0);
                     if (effect != 0) {
                         effect->cycle_3c = index;
                         effect->frame_40 = frame;
