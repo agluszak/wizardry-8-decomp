@@ -1455,12 +1455,12 @@ bool W8Missile::OnCollision(W8Navigator* other)
     hit_result = 1;
     if (g_missile_table_65bde0[missile_table_index_1d8].flag_154 == 0) {
         if (combat_slot_260.iType == W8_TARGET_KIND_CHARACTER) {
-            deflect_chance =
-                g_status_685170.buffers.characters[combat_slot_260.iChar].bonus_1770.value_49;
+            deflect_chance = g_status_685170.buffers.characters[combat_slot_260.iChar]
+                                 .bonus_1770.missile_deflect_chance_49;
         } else {
             W8MonsterInfo* monster_info =
                 MonsterInfoFromID(0x676, MISSILE_CPP, combat_slot_260.iMonsterID, 1);
-            deflect_chance = monster_info->modifiers_1db.value_49;
+            deflect_chance = monster_info->modifiers_1db.missile_deflect_chance_49;
         }
         if (deflect_chance > 0 && Random(100) + 1 <= deflect_chance) {
             hit_result = 2;

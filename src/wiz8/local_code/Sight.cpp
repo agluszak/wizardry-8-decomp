@@ -670,7 +670,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
             float player_distance;
 
             if (gXStatus.fCombatMode == 0) {
-                light = g_status_685170.party_modifiers_22e3.flag_4a;
+                light = g_status_685170.party_modifiers_22e3.sight_override_4a;
             } else {
                 light = 0;
             }
@@ -809,7 +809,7 @@ after_sight:
                             character->condition_turns[12] != 0, character->current_profession == 6,
                             record->effective_level_24f, npc_fade_flag,
                             static_cast<int>(monster_info->party_threat.state_04),
-                            g_status_685170.party_modifiers_22e3.flag_4a, distance);
+                            g_status_685170.party_modifiers_22e3.sight_override_4a, distance);
 
                         if (g_status_685170.search_mode != 0) {
                             threshold *= g_sight_threat_scale_005ed7f8;

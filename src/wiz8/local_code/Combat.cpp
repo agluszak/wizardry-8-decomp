@@ -2004,7 +2004,7 @@ void RollCombatSurprise004ECF50(char arg_1)
                      0x1552, 0);
     }
     if (arg_1 == 0) {
-        if (g_status_685170.party_modifiers_22e3.flag_4a == 0) {
+        if (g_status_685170.party_modifiers_22e3.sight_override_4a == 0) {
             index = 0;
             while (index < PLLength(gXStatus.plsMonsterList)) {
                 monster_info = MonsterGetScriptPartByLocationIndex(index);
