@@ -77,6 +77,26 @@ public:
     SR_DLL_IMPORT void swapDiffuseAndSpecular();
     SR_DLL_IMPORT int testEyeSpaceBounds(const srVector3T<float>& center, float radius) const;
 
+    /* Per-record render state from Input::records_48, stride 0x5c. flags_00:
+       bit0 vertex colors present, bit1 indexed specular into diffuse,
+       bit2 indexed specular into specular, bit3 indexed alpha, bits4/5
+       indexed ST0/ST1, bit6 per-vertex material table. channels_04 is the
+       shader's channel-disable mask; color_kind_10 selects the ARGB/vector3/
+       vector4 copyIndexed source for colors_0c. */
+    struct Record {
+        unsigned long flags_00;
+        unsigned long channels_04;
+        srMaterialIFace* material_08;
+        const void* colors_0c;
+        unsigned long color_kind_10;
+        const srVector4T<float>* specular_source_14;
+        const srVector4T<float>* specular_source_18;
+        const float* alpha_source_1c;
+        const srVector2T<float>* st_source_20[2];
+        srMaterialIFace* const* materials_28;
+        void* user_2c[12];
+    };
+
 private:
     SR_DLL_IMPORT void finishDiffuseAlpha();
     SR_DLL_IMPORT void finishSpecularFog();
@@ -108,7 +128,7 @@ private:
     srMaterialIFace* material_68;                     /* 0x68 */
     const Input* input_6c;                            /* 0x6c */
     const unsigned long* avt_70;                      /* 0x70 */
-    const void* current_record_74;                    /* 0x74 */
+    const Record* current_record_74;                  /* 0x74 */
     srVertexArray* vertex_array_78;                   /* 0x78 */
     srVector4T<float>* eye_space_locations_7c;        /* 0x7c */
     unsigned long batch_base_80;                      /* 0x80 */
@@ -122,4 +142,5 @@ private:
 #pragma pack(pop)
 
 static_assert(sizeof(srVertexPipe) == 0x9c, "srVertexPipe_must_be_0x9c");
+static_assert(sizeof(srVertexPipe::Record) == 0x5c, "srVertexPipe_Record_must_be_0x5c");
 static_assert(sizeof(srVertexPipe::Input) == 0x64, "srVertexPipe_Input_must_be_0x64");

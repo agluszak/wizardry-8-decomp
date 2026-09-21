@@ -56,6 +56,9 @@ public:
        before identity+ortho. OpenGL srDD talks GL_MODELVIEW (0x1700) and
        GL_PROJECTION (0x1701) for those two stacks. */
     enum e_matrixMode { MATRIX_MODELVIEW = 0, MATRIX_PROJECTION = 1 };
+    /* pushClipPlane stores the mode byte per plane and special-cases value 1;
+       enumerator names are not established. */
+    enum e_clipMode {};
     enum e_antiAlias { ANTIALIAS_NONE = 0 };
     /* OpenGL: 0 disables GL_CULL_FACE, 1 enables + GL_BACK, 2 enables + GL_FRONT.
        DirectX7: D3DCULL_NONE / D3DCULL_CCW / D3DCULL_CW. */
@@ -137,6 +140,8 @@ public:
                            const srVector3T<float>& object_center, float object_radius);
     void getInverseModelViewMatrix(srMatrix4T<float>& matrix);
     void getClipPlanes(ClipPlanes& planes);
+    void pushClipPlane(const srVector4T<float>& plane, e_clipMode mode);
+    void popClipPlane();
     void getProjectClipNearMatrix(srMatrix4T<float>& matrix);
     void getNormalMatrix(srMatrix4T<float>& matrix);
     srMatrix4T<float>::e_scaleType getModelViewScaleType();

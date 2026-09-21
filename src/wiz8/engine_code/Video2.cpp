@@ -801,7 +801,7 @@ unsigned char OpenRendererWindow(void)
         ShutdownWithErrorBox("Could not open video output device.");
         return 0;
     }
-    g_flush_pending_603c3a = 1;
+    g_flush_pending_603c3a = true;
     return 1;
 }
 
@@ -811,7 +811,7 @@ IDirectDrawSurface2* BeginVideoPresentation(void)
     DDSURFACEDESC description;
 
     if (g_gerd_659634 != 0) {
-        g_flush_pending_603c3a = 0;
+        g_flush_pending_603c3a = false;
         g_gerd_659634->closeWindow((srGERD::e_closeHint)1);
         g_gerd_659634->deleteContext();
     }
@@ -866,7 +866,7 @@ unsigned char VideoResizeWindow(void)
     if (g_fullscreen_603c39 || !ghWindow || !g_gerd_659634 || !g_flush_pending_603c3a) {
         return 0;
     }
-    g_flush_pending_603c3a = 0;
+    g_flush_pending_603c3a = false;
     g_gerd_659634->closeWindow(static_cast<srGERD::e_closeHint>(1));
     if (g_gerd_659634->openWindow() == static_cast<srGERD::e_error>(3)) {
         return 0;
@@ -874,7 +874,7 @@ unsigned char VideoResizeWindow(void)
     g_dword_6596f0 = 2;
     g_dword_6596ec = 2;
     ResetTransientRenderScenes();
-    g_flush_pending_603c3a = 1;
+    g_flush_pending_603c3a = true;
     return 1;
 }
 
@@ -883,7 +883,7 @@ void VideoFullScreen(unsigned char enabled)
 {
     g_fullscreen_603c39 = enabled;
     if (ghWindow && g_gerd_659634 && g_flush_pending_603c3a) {
-        g_flush_pending_603c3a = 0;
+        g_flush_pending_603c3a = false;
         g_gerd_659634->closeWindow(static_cast<srGERD::e_closeHint>(1));
         OpenRendererWindow();
     }
@@ -934,7 +934,7 @@ void SuspendVideoManager(void)
         PauseMainGameWorld();
         g_flag_659710 = 0;
         if (g_gerd_659634) {
-            g_flush_pending_603c3a = 0;
+            g_flush_pending_603c3a = false;
             g_gerd_659634->closeWindow((srGERD::e_closeHint)0);
         }
         if (!g_fullscreen_603c39) {
