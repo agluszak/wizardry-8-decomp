@@ -206,8 +206,9 @@ void InitializeStateDrivenPropVariables00445200(Trigger* trigger);
    resets its difficulty-derived seed/state fields. lock_state is
    &Trigger::value_368. */
 void __fastcall UpdateTriggerLock00445730(int* lock_state); /* 0x00445730 */
-/* Ticks the lock countdown at lock_state[7]; returns 1 while a tick remained. */
-unsigned char __fastcall DecrementLockTimer004457A0(int* lock_state); /* 0x004457A0 */
+/* Spends one point of the lock's quality budget (lock_state[7] ==
+   Trigger::value_384) and reports whether one remained to spend. */
+unsigned char __fastcall ConsumeLockQuality004457A0(int* lock_state); /* 0x004457A0 */
 
 static_assert(sizeof(Trigger) == 0x38c, "Trigger_must_be_0x38c");
 

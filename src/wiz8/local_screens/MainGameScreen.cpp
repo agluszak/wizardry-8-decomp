@@ -356,8 +356,6 @@ unsigned int g_lock_tumbler_region_set_68f2b8;
 unsigned int g_lock_action_region_set_68f2bc;
 // GLOBAL: WIZ8 0x0068F2C0
 W8LockInteraction* g_lock_interaction_68f2c0;
-/* 0x004457A0: thiscall on the embedded lock/trap state at Trigger+0x368;
-   decrements the charge count at its +0x1c and reports whether one remained. */
 /* 0x00586A70: the selected slot's effective power with spell 0x27. */
 int GetKnockKnockSpellPower00586A70(int slot);
 /* Open the lock interaction over a trigger, or re-raise its panels while one
@@ -1212,7 +1210,7 @@ void W8LockInteraction::ResolvePick()
     }
     m_slot_attempts_60[m_selected_slot_2c]++;
     m_tumbler_owner_38[m_picked_tumbler_30] = m_selected_slot_2c;
-    if (Random(5) == 0 && DecrementLockTimer004457A0(&m_trigger_08->value_368) != 0) {
+    if (Random(5) == 0 && ConsumeLockQuality004457A0(&m_trigger_08->value_368) != 0) {
         character = &g_status_685170.buffers.characters[m_selected_slot_2c];
         level = character->skills[10].level;
         PracticeCharacterSkill(character, 10, 1, 0);
@@ -2293,7 +2291,7 @@ void W8MainGameScreen::Update()
         panel->EnableRegionSet(0);
         panel->m_key_handler_074->m_range_038.EnableRegionSet(0);
         m_action_panel_014->EnableRegionSet(0);
-        CompleteTrapInteraction005E3780(m_owner_008);
+        CompleteTrapDisarm005E3780(m_owner_008);
         gXStatus.fTrapInteractMode = 0;
         if (g_main_game_screen != 0) {
             delete g_main_game_screen;
@@ -2313,7 +2311,7 @@ void W8MainGameScreen::Update()
         }
         SoundPlay((STR)g_trap_sprung_sound_0064bcd0, 0);
         EnablePanelRegionSets(0);
-        TriggerTrapDevice005E3AB0(m_owner_008);
+        ResolveSprungTrap005E3AB0(m_owner_008);
         m_state_018 = 9;
         m_timer_154.SetDuration(2.0f);
         m_timer_154.Restart();
