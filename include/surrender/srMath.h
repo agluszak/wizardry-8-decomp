@@ -111,6 +111,7 @@ public:
     T LengthSquared() const;
     srVector3T<T>* SetFromDouble(const srVector3T<double>* source);
     srVector3T<T>* SetFromFloat(const srVector3T<float>* source);
+    void SetSaturated(const srVector3T<T>& source);
     srVector3T<T>* RotateAboutY(double sine, double cosine);
     srVector3T<T>* RotateAboutX(double sine, double cosine);
     srVector3T<T>* RotateAboutZ(double sine, double cosine);
@@ -248,6 +249,27 @@ template <class T> srVector3T<T>* srVector3T<T>::SetFromFloat(const srVector3T<f
     y = (T)source->y;
     z = (T)source->z;
     return this;
+}
+
+// TEMPLATE: WIZ8 0x004258B0
+// srVector3T<float>::SetSaturated
+template <class T> void srVector3T<T>::SetSaturated(const srVector3T<T>& source)
+{
+    x = (T)source.x;
+    y = (T)source.y;
+    z = (T)source.z;
+    if (x <= 0.0f)
+        x = 0;
+    else if (x >= 1.0f)
+        x = 1.0f;
+    if (y <= 0.0f)
+        y = 0;
+    else if (y >= 1.0f)
+        y = 1.0f;
+    if (z <= 0.0f)
+        z = 0;
+    else if (z >= 1.0f)
+        z = 1.0f;
 }
 
 // TEMPLATE: WIZ8 0x00451A10

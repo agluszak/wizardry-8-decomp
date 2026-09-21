@@ -325,10 +325,23 @@ public:
     /* Copy movement_0c0.velocity_034 out - the missile homing step scales this
        by its step count to predict the next position. */
     void GetVelocity(srVector3T<float>* velocity); /* 0x004534F0 */
+    /* movement_0c0.velocity_034 = *velocity - the launch direction step. */
+    void SetVelocity00453520(const srVector3T<float>* velocity); /* 0x00453520 */
     /* movement_0c0.target_yaw = NormalizeAngle(angle). */
     void SetTargetYaw(float angle); /* 0x004538D0 */
     /* movement_0c0.target_pitch_024 = NormalizeAngle(angle). */
     void SetTargetPitch(float angle); /* 0x00453920 */
+    /* The navigator a from->to trace runs into: the startup world, a monster's
+       navigator, or null. `include_target` lets the trace report the tracked
+       movement target instead of skipping its location id. */
+    W8Navigator* ResolveBlockingNavigator00453230(const srVector3T<float>* from,
+                                                  srVector3T<float>* to,
+                                                  unsigned char include_target); /* 0x00453230 */
+    /* Copies this navigator's movement state into a scratch probe, asks the
+       octree to route toward `target`, and returns the measured path length or
+       -1 when no route inside `max_range` exists. */
+    double MeasurePathDistance00453300(const srVector3T<float>* target, float max_range,
+                                       int location_id); /* 0x00453300 */
     /* Find the navigator occupying `to`; the move collides when both sides'
        OnCollision accept it. */
     unsigned char CheckNavigatorCollision00453540(const srVector3T<float>* from,

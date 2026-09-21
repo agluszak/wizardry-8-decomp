@@ -110,6 +110,7 @@ void ClearSlotTargeting0053B050(int party_slot); /* 0x0053B050 */
 /* 0x00537270: whether the slot's current target satisfies the spell's
    needed-target kind. */
 bool IsSpellTargetOfNeededKind(int party_slot, int spell_id);
+bool IsItemTargetOfNeededKind(int party_slot, const W8ItemInstance* item); /* 0x005372B0 */
 /* 0x0053AF40: select the party slot the spell-casting view is casting for. */
 void SelectSpellCastingPartySlot(int party_slot);
 /* 0x0053A440: set the targeting filter for the spell being aimed. */

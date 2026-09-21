@@ -1000,8 +1000,7 @@ void RenderFrame(void)
             clear_color.y = ambient_light.green;
             clear_color.z = ambient_light.blue;
         } else {
-            g_world->static_scene->getFogColor(clear_color);
-            SaturateColor004299B0(&clear_color);
+            clear_color.SetSaturated(g_world->static_scene->getFogColor());
         }
     }
 
@@ -1131,6 +1130,7 @@ void RenderFrame(void)
         SetWorldScenePosition004511D0(GetWorld(), &saved_world_position);
     }
 }
+
 /* Render the world into the locked frame buffer and copy the pixels onto a
    caller-owned color surface. The secondary render device (the second Voodoo
    board) takes over when present; `rect` selects a logical 640x480 viewport,
@@ -1801,6 +1801,32 @@ unsigned char g_flag_6596ea;
    tile table. A cell occupied by a 2D instance releases that instance and
    recursively invalidates the cells its extent covers; the flags the caller
    passes only mark this cell. */
+/* Retire a 2D node: clear every tile-table slot that references it, invalidate
+   the texture its model still exposes, and release the node itself. */
+// FUNCTION: WIZ8 0x00425950
+void ReleaseSurfaceNode00425950(srNode* node)
+{
+    if (node == 0) {
+        return;
+    }
+    int index = 0;
+    for (srNode** slot = g_surface_nodes_654adc; slot < g_surface_nodes_654adc + 0x12c0;
+         ++slot, ++index) {
+        if (*slot == node) {
+            *slot = 0;
+            g_block_652ddc[index] = 0;
+        }
+    }
+    srMeshModel* model = static_cast<srMeshModel*>(static_cast<stModelInstance2D*>(node)->model());
+    if (model != 0) {
+        srTextureIFace* texture = model->getTexture(0, 0);
+        if (texture != 0) {
+            texture->invalidate();
+        }
+    }
+    node->release();
+}
+
 // FUNCTION: WIZ8 0x004259b0
 static void InvalidateDirtyTile004259B0(int cell, unsigned int flags)
 {
@@ -3636,6 +3662,22 @@ srNode* MakePosterQuad00424BA0(srTextureIFace* texture, float width, float heigh
     }
     instance->state_178 |= 0x10;
     return instance;
+}
+
+/* Exception-scope cleanup for the small MakePosterQuad local whose managed
+   pointer lives at +0x08 (the palette slot). */
+struct Video2PosterQuadInfo {
+    unsigned long width;
+    unsigned long height;
+    srClass* pointer_08;
+};
+
+// FUNCTION: WIZ8 0x00424EA0
+void __fastcall ReleaseOwnedMember00424EA0(Video2PosterQuadInfo* object)
+{
+    if (object->pointer_08 != 0) {
+        object->pointer_08->release();
+    }
 }
 
 // FUNCTION: WIZ8 0x00425590
