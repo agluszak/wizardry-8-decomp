@@ -159,7 +159,13 @@ struct W8GameData {
     void ReadProcessedGameData(int handle); /* 0x00449240 */
     /* Writes the game-data block WriteOctFile appends after the terminator. */
     unsigned char WriteGameData0044AA40(int handle); /* 0x0044AA40 */
-    unsigned char Function447660(HANDLE file, int index);
+    /* Reads one WGD vertex/polygon list: counts, the scaled vertex bank with
+       unscaled bounds tracking, the face records, and — for the non-primary
+       pass — the interface name and conditional-face records. */
+    unsigned char ReadWGDList00447660(HANDLE file, int poly_type);
+    /* Builds m_pInterfaces/m_pStates/m_piCondPolys from the {interface id,
+       surface index, group} triples collected by ReadWGDList. */
+    void CompileGDInterfaces00447FB0(const int* records, int count);
     /* Release the level-data record, game-time accumulator and companion
        level-data globals; runs first in ~W8GameData. */
     void ReleaseLevelData0041A9E0();
@@ -237,6 +243,16 @@ struct W8GameData {
 
     void IntegrateTriggers();
     void AddTriggerPlane(const srVector3T<float>* vertices, Trigger* trigger);
+    /* Registers a linked record's twelve generated surfaces; the `face`-indexed
+       surface also spawns an environment record scaled by `value`. */
+    void AddTriggerPlane(const srVector3T<float>* vertices, float value, float scalar,
+                         const signed char* face); /* 0x00448C60 */
+    /* Grows the environment bank by tens and appends a record whose motion
+       derives from the linked surface's scaled plane. */
+    void CreateGDEnviron00448E60(const W8GDSurface* surface, float scale);
+    /* Folds the trigger vertex/surface banks into the main arrays without
+       rebuilding the spatial index; the CompileGameData00449D10 path. */
+    void IntegrateTriggerGeometry00448A60();
     /* 1-based ordinal of the m_ppNames entry whose name matches, else -1. */
     int FindPointerByName004482A0(const char* name); /* 0x004482A0 */
     /* Registers one invisible-plane record; the OctBuild driver feeds it the
@@ -246,7 +262,7 @@ struct W8GameData {
        forwards to the 0x00448C60 helper. Retail call sites pass record + 1
        (the payload), the +0x1b3 float, the +0x1b7 scalar and a pointer to the
        +0x1b1 face byte. */
-    void AddLinkedRecord00448BF0(const void* payload, float value, float scalar,
+    void AddLinkedRecord00448BF0(const srVector3T<float>* vertices, float value, float scalar,
                                  const signed char* face); /* 0x00448BF0 */
     /* Compiles the read game data into the shared build arrays. */
     void CompileGameData00449D10(); /* 0x00449D10 */

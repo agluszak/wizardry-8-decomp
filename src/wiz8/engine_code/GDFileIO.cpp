@@ -16,6 +16,7 @@
 #include "FileMan.h"
 
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <windows.h>
@@ -65,13 +66,399 @@ W8GameData* ReadGameData00447570(const char* path, bool secondary)
     if (game_data == 0) {
         srAssertFail("pGameData", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0xa7, 0);
     }
-    got_polygons = game_data->Function447660(file, 0);
-    got_vertices = game_data->Function447660(file, 1);
+    got_polygons = game_data->ReadWGDList00447660(file, 0);
+    got_vertices = game_data->ReadWGDList00447660(file, 1);
     if (got_vertices == 0 && got_polygons == 0) {
         ReportBuildStatus00497690(7, "ReadGameData: No polygons or vertices in GameData!\n");
     }
     CloseHandle(file);
     return game_data;
+}
+
+/* The WGD face record's fixed head: three vertex indexes, the source plane,
+   and a version tag checked before the rest of the record is read. */
+struct W8GDFaceHeader { /* 0x1c */
+    int vertex_indices_00[3];
+    float plane_0c[3];
+    int version_18;
+};
+
+static_assert(sizeof(W8GDFaceHeader) == 0x1c, "W8GDFaceHeader_must_be_0x1c");
+
+/* The WGD face record's tail: classification flag, slope/value pair, footstep
+   selectors, an unused dword, and the trigger index the writer overrode. */
+struct W8GDFaceData { /* 0x18 */
+    int type_00;
+    float slope_04;
+    float value_08;
+    unsigned char material_0c;
+    unsigned char surface_0d;
+    unsigned char pad_0e[2];
+    int positional_10;
+    int trigger_index_14;
+};
+
+static_assert(sizeof(W8GDFaceData) == 0x18, "W8GDFaceData_must_be_0x18");
+
+/* The conditional-face record following a non-primary face: the group key the
+   interface compiler buckets on and the interface's name. */
+struct W8GDExtendedFace { /* 0x44 */
+    int group_00;
+    char name_04[0x40];
+};
+
+static_assert(sizeof(W8GDExtendedFace) == 0x44, "W8GDExtendedFace_must_be_0x44");
+
+/* Reads one WGD vertex/polygon bank. poly_type 0 builds fresh arrays; any
+   other type grows the existing banks and also consumes each face's extended
+   name record into the interface tables. */
+// FUNCTION: WIZ8 0x00447660
+unsigned char W8GameData::ReadWGDList00447660(HANDLE file, int poly_type)
+{
+    DWORD bytes_read;
+    int vertex_count;
+    int face_count;
+    int record_count;
+    int* cond_faces;
+    int index;
+    int name_index;
+    unsigned char success;
+    char message[100];
+    float bounds[6];
+
+    record_count = 0;
+    if (poly_type < 0 || 2 < poly_type) {
+        ReportBuildStatus00497690(7, "ReadWGDList: Invalid poly type.\n");
+    }
+    success = ReadFile(file, &vertex_count, 4, &bytes_read, 0) & 1 &
+              ReadFile(file, &face_count, 4, &bytes_read, 0);
+    if (success == 0) {
+        srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0xe5,
+                     "Error reading counts from WGD file.");
+    }
+    if (face_count > 0 && vertex_count > 0) {
+        if (face_count < 0x30d41) {
+            if (vertex_count < 0x30d41) {
+                if (poly_type == 0) {
+                    m_pVertices = new srVector3T<float>[vertex_count];
+                    if (m_pVertices == 0) {
+                        srAssertFail("m_pVertices",
+                                     "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x114,
+                                     "ReadWGDList: Could not allocate vertices.");
+                    }
+                    m_pSurfaces =
+                        static_cast<W8GDSurface*>(malloc(face_count * sizeof(W8GDSurface)));
+                    if (m_pSurfaces == 0) {
+                        srAssertFail("m_pSurfaces",
+                                     "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x116,
+                                     "ReadWGDList: Could not allocate surfaces.");
+                    }
+                } else {
+                    W8GDSurface* old_surfaces = m_pSurfaces;
+                    srVector3T<float>* old_vertices = m_pVertices;
+                    m_pVertices = new srVector3T<float>[m_iNumVertices + vertex_count];
+                    if (m_pVertices == 0) {
+                        srAssertFail("m_pVertices",
+                                     "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x101,
+                                     "ReadWGDList: Could not allocate vertices.");
+                    }
+                    memcpy(m_pVertices, old_vertices, m_iNumVertices * sizeof(srVector3T<float>));
+                    srHeap.free(old_vertices);
+                    m_pSurfaces = static_cast<W8GDSurface*>(
+                        malloc((m_iNumSurfaces + face_count) * sizeof(W8GDSurface)));
+                    if (m_pSurfaces == 0) {
+                        srAssertFail("m_pSurfaces",
+                                     "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x106,
+                                     "ReadWGDList: Could not allocate surfaces.");
+                    }
+                    memcpy(m_pSurfaces, old_surfaces, m_iNumSurfaces * sizeof(W8GDSurface));
+                    free(old_surfaces);
+                    cond_faces = static_cast<int*>(malloc(face_count * 0xc));
+                    if (cond_faces == 0) {
+                        srAssertFail("pCondFaces",
+                                     "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x10c,
+                                     "ReadWGDList: Could not allocate pCondFaces.");
+                    }
+                    m_ppNames = static_cast<char**>(malloc(face_count * sizeof(char*)));
+                    if (m_ppNames == 0) {
+                        srAssertFail("m_ppNames",
+                                     "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x10e,
+                                     "ReadWGDList: Could not allocate name list.");
+                    }
+                    memset(m_ppNames, 0, face_count * sizeof(char*));
+                }
+                index = m_iNumVertices;
+                name_index = 0;
+                while (index < m_iNumVertices + vertex_count) {
+                    srVector3T<float> vertex;
+                    success &= ReadFile(file, &vertex, 0xc, &bytes_read, 0);
+                    if (success == 0) {
+                        srAssertFail("fSuccess",
+                                     "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x120,
+                                     "Error reading vertex from WGD file.");
+                    }
+                    m_pVertices[index].x = vertex.x * g_world_scale_005ebc40;
+                    m_pVertices[index].y = vertex.y * g_world_scale_005ebc40;
+                    m_pVertices[index].z = vertex.z * g_world_scale_005ebc40;
+                    if (index == m_iNumVertices) {
+                        minimum_08.x = vertex.x;
+                        maximum_14.x = vertex.x;
+                        minimum_08.y = vertex.y;
+                        maximum_14.y = vertex.y;
+                        minimum_08.z = vertex.z;
+                        maximum_14.z = vertex.z;
+                    } else {
+                        if (vertex.x < minimum_08.x) {
+                            minimum_08.x = vertex.x;
+                        }
+                        if (maximum_14.x < vertex.x) {
+                            maximum_14.x = vertex.x;
+                        }
+                        if (vertex.y < minimum_08.y) {
+                            minimum_08.y = vertex.y;
+                        }
+                        if (maximum_14.y < vertex.y) {
+                            maximum_14.y = vertex.y;
+                        }
+                        if (vertex.z < minimum_08.z) {
+                            minimum_08.z = vertex.z;
+                        }
+                        if (maximum_14.z < vertex.z) {
+                            maximum_14.z = vertex.z;
+                        }
+                    }
+                    ++index;
+                }
+                index = m_iNumSurfaces;
+                int* record = cond_faces;
+                while (index < m_iNumSurfaces + face_count) {
+                    W8GDFaceHeader header;
+                    W8GDFaceData data;
+                    W8GDExtendedFace extended;
+                    success = ReadFile(file, &header, 0x1c, &bytes_read, 0);
+                    if (header.version_18 != 2) {
+                        srAssertFail("(tfFace.iVersion == 2 )",
+                                     "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x142,
+                                     "Wrong version of WGD data--Get new plugin.");
+                    }
+                    success &= ReadFile(file, &data, 0x18, &bytes_read, 0);
+                    if (poly_type != 0) {
+                        success &= ReadFile(file, &extended, 0x44, &bytes_read, 0);
+                    }
+                    if (success == 0) {
+                        srAssertFail("fSuccess",
+                                     "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x146,
+                                     "Error reading face from WGD file.");
+                    }
+                    W8GDSurface* surface = &m_pSurfaces[index];
+                    surface->value_40 = data.value_08;
+                    surface->slope_48 = data.slope_04;
+                    surface->positional_44 = data.positional_10;
+                    surface->trigger_index_08 = data.trigger_index_14;
+                    surface->footstep_material_3d = data.material_0c;
+                    surface->footstep_surface_3c = data.surface_0d;
+                    if (data.type_00 == 1) {
+                        surface->flags_00 = 0x44;
+                    } else {
+                        surface->flags_00 = 0;
+                    }
+                    surface->plane_24[0] = header.plane_0c[0];
+                    surface->plane_24[1] = header.plane_0c[1];
+                    surface->plane_24[2] = header.plane_0c[2];
+                    float largest = static_cast<float>(fabs(surface->plane_24[0]));
+                    unsigned int axis = 0;
+                    if (largest < static_cast<float>(fabs(surface->plane_24[1]))) {
+                        largest = static_cast<float>(fabs(surface->plane_24[1]));
+                        axis = 1;
+                    }
+                    if (largest < static_cast<float>(fabs(surface->plane_24[2]))) {
+                        axis = 2;
+                    }
+                    surface->flags_00 |= axis;
+                    surface->vertex_indices_18[0] = header.vertex_indices_00[0] + m_iNumVertices;
+                    surface->vertex_indices_18[1] = header.vertex_indices_00[1] + m_iNumVertices;
+                    surface->vertex_indices_18[2] = header.vertex_indices_00[2] + m_iNumVertices;
+                    surface->index_04 = index;
+                    surface->trigger_index_08 = 0;
+                    surface->positional_14 = -1;
+                    surface->positional_10 = -1;
+                    surface->positional_0c = -1;
+                    surface->hit_plane_38 = 0;
+                    ClassifySurfacePlane004498C0(m_pVertices, surface);
+                    if (poly_type != 0) {
+                        record[1] = index;
+                        record[0] = 0;
+                        record[2] = extended.group_00;
+                        name_index = 0;
+                        while (name_index < m_iNumNames && record[0] == 0) {
+                            if (strcmp(m_ppNames[name_index], extended.name_04) == 0) {
+                                record[0] = name_index + 1;
+                            }
+                            ++name_index;
+                        }
+                        if (record[0] == 0) {
+                            m_ppNames[name_index] = static_cast<char*>(malloc(0x40));
+                            if (m_ppNames[name_index] == 0) {
+                                srAssertFail("m_ppNames[i2]",
+                                             "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                                             0x187, "ReadWGDList: Couldn't allocate name string.");
+                            }
+                            strcpy(m_ppNames[name_index], extended.name_04);
+                            if (m_iNumInterfaces == 0) {
+                                m_iNumInterfaces = 1;
+                            }
+                            record[0] = m_iNumInterfaces;
+                            ++m_iNumInterfaces;
+                            ++m_iNumNames;
+                        }
+                        surface->trigger_index_08 = record[0];
+                        ++record_count;
+                        record += 3;
+                    }
+                    ++index;
+                }
+                ReadFile(file, &bounds[3], 4, &bytes_read, 0);
+                ReadFile(file, &bounds[4], 4, &bytes_read, 0);
+                ReadFile(file, &bounds[5], 4, &bytes_read, 0);
+                ReadFile(file, &bounds[0], 4, &bytes_read, 0);
+                ReadFile(file, &bounds[1], 4, &bytes_read, 0);
+                ReadFile(file, &bounds[2], 4, &bytes_read, 0);
+                for (index = 0; index < 3; ++index) {
+                    bounds[index + 3] = bounds[index + 3] * g_world_scale_005ebc40;
+                    bounds[index] = bounds[index] * g_world_scale_005ebc40;
+                }
+                if (bounds[3] < minimum_08.x) {
+                    minimum_08.x = bounds[3];
+                }
+                if (bounds[4] < minimum_08.y) {
+                    minimum_08.y = bounds[4];
+                }
+                if (bounds[5] < minimum_08.z) {
+                    minimum_08.z = bounds[5];
+                }
+                if (maximum_14.x < bounds[0]) {
+                    maximum_14.x = bounds[0];
+                }
+                if (maximum_14.y < bounds[1]) {
+                    maximum_14.y = bounds[1];
+                }
+                if (maximum_14.z < bounds[2]) {
+                    maximum_14.z = bounds[2];
+                }
+                if (m_ppNames != 0 && cond_faces != 0) {
+                    CompileGDInterfaces00447FB0(cond_faces, record_count);
+                    free(cond_faces);
+                }
+                m_iNumVertices = m_iNumVertices + vertex_count;
+                m_iNumSurfaces = m_iNumSurfaces + face_count;
+                return 1;
+            }
+            sprintf(message, "Too many GameData vertices: %d!\n", vertex_count);
+        } else {
+            sprintf(message, "Too many GameData polygons: %d!\n", face_count);
+        }
+        ReportBuildStatus00497690(7, message);
+    }
+    return 0;
+}
+
+/* Builds the switch-interface tables from the conditional-face triples
+   collected by the non-primary WGD pass: one interface per id, one state per
+   group, and the counted conditional-poly lists. The interface record id and
+   first-state index are written before the group scan, the state count after. */
+// FUNCTION: WIZ8 0x00447FB0
+void W8GameData::CompileGDInterfaces00447FB0(const int* records, int count)
+{
+    int states[3000];
+    int group_ids[100];
+    int group_counts[100];
+    int group_polys[100 * 100];
+    int poly_scratch[5001];
+    int record_index;
+    int group;
+    int poly;
+
+    m_pInterfaces =
+        static_cast<W8GDInterface*>(malloc((m_iNumInterfaces + 2) * sizeof(W8GDInterface)));
+    if (m_pInterfaces == 0) {
+        srAssertFail("m_pInterfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x1df,
+                     "CompileGDInterfaces: Couldn't allocate GD Interfaces.");
+    }
+    memset(m_pInterfaces, 0, (m_iNumInterfaces + 2) * sizeof(W8GDInterface));
+    memset(states, 0, sizeof(states));
+    m_iNumCondPolys = 1;
+    int interface_id;
+    for (interface_id = 1; interface_id < m_iNumInterfaces; ++interface_id) {
+        W8GDInterface* gd_interface = &m_pInterfaces[interface_id];
+        gd_interface->id_00 = interface_id;
+        gd_interface->iStates = m_iNumStates;
+        memset(group_counts, 0, sizeof(group_counts));
+        int group_count = 1;
+        for (record_index = 0; record_index < count; ++record_index) {
+            const int* record = records + record_index * 3;
+            if (record[0] == interface_id) {
+                bool found = false;
+                for (group = 0; group < group_count; ++group) {
+                    if (record[2] == group_ids[group]) {
+                        group_polys[group * 100 + group_counts[group]] = record[1];
+                        ++group_counts[group];
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    group_ids[group] = record[2];
+                    group_polys[group * 100 + group_counts[group]] = record[1];
+                    ++group_counts[group];
+                    ++group_count;
+                }
+            }
+        }
+        gd_interface->state_count_04 = group_count;
+        for (group = 0; group < group_count; ++group) {
+            states[m_iNumStates * 3] = group_ids[group];
+            states[m_iNumStates * 3 + 1] = group_counts[group];
+            states[m_iNumStates * 3 + 2] = m_iNumCondPolys;
+            ++m_iNumStates;
+            for (poly = 0; poly < group_counts[group]; ++poly) {
+                poly_scratch[++m_iNumCondPolys] = group_polys[group * 100 + poly];
+            }
+            poly_scratch[++m_iNumCondPolys] = 0;
+        }
+    }
+    m_pStates =
+        static_cast<W8GDInterfaceState*>(malloc((m_iNumStates + 2) * sizeof(W8GDInterfaceState)));
+    if (m_pStates == 0) {
+        srAssertFail("m_pStates", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x20e,
+                     "CompileGDInterfaces: Couldn't allocate GDState array.");
+    }
+    memcpy(m_pStates, states, m_iNumStates * sizeof(W8GDInterfaceState));
+    m_piCondPolys = static_cast<int*>(malloc(m_iNumCondPolys * 4 + 8));
+    if (m_piCondPolys == 0) {
+        srAssertFail("m_piCondPolys", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x211,
+                     "CompileGDInterfaces: Couldn't allocate Conditional poly array.");
+    }
+    memcpy(m_piCondPolys, poly_scratch, m_iNumCondPolys * sizeof(int));
+    for (interface_id = 1; interface_id < m_iNumInterfaces; ++interface_id) {
+        SetInterfaceState(interface_id, 0);
+    }
+}
+
+/* Answers the 1-based ordinal of the name-table entry matching `name`,
+   else -1. ReadWGDList keeps the same search inline instead of calling this. */
+// FUNCTION: WIZ8 0x004482A0
+int W8GameData::FindPointerByName004482A0(const char* name)
+{
+    if (m_ppNames != 0) {
+        int index = 0;
+        while (index < m_iNumNames) {
+            if (strcmp(m_ppNames[index], name) == 0) {
+                return index + 1;
+            }
+            ++index;
+        }
+    }
+    return -1;
 }
 
 // FUNCTION: WIZ8 0x00448310
@@ -173,6 +560,85 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
     ++m_iNumTrigSurfaces;
 }
 
+/* Registers a level-file plane's two triangles (vertices 0,1,2 and 2,3,0) as
+   a trigger-surface pair under the auto-numbered trigger index. */
+// FUNCTION: WIZ8 0x004485F0
+void W8GameData::AddLevelPlane004485F0(W8LevelFilePlane* plane)
+{
+    int index;
+    // reinterpret-ok: the opaque 0x30 plane record is four serialized vertex triples.
+    const srVector3T<float>* vertices = reinterpret_cast<const srVector3T<float>*>(plane);
+
+    if (m_pTrigSurfaces == 0) {
+        m_pTrigSurfaces = static_cast<W8GDSurface*>(malloc(500 * sizeof(W8GDSurface)));
+        if (m_pTrigSurfaces == 0) {
+            srAssertFail("m_pTrigSurfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                         0x2c3, "AddTriggerPlane: Couldn't allocate trigger surfaces.");
+        }
+        m_pTrigVertices =
+            static_cast<srVector3T<float>*>(srHeap.allocate(1000 * sizeof(srVector3T<float>)));
+        if (m_pTrigVertices == 0) {
+            srAssertFail("m_pTrigVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                         0x2c5, "AddTriggerPlane: Couldn't allocate trigger vertices.");
+        }
+        m_ppTriggers = static_cast<Trigger**>(malloc(500 * sizeof(Trigger*)));
+        if (m_ppTriggers == 0) {
+            srAssertFail("m_ppTriggers", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                         0x2c7, "AddTriggerPlane: Couldn't allocate trigger array.");
+        }
+        m_iNumTrigSurfaces = 0;
+        m_iNumTrigVertices = 0;
+        m_iNumTriggers = 0;
+    }
+    if (m_iNumTrigSurfaces >= 500) {
+        srAssertFail("m_iNumTrigSurfaces < MAX_TRIG_SURFACES",
+                     "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x2cc, 0);
+    }
+    for (index = 0; index < 4; ++index) {
+        m_pTrigVertices[m_iNumTrigVertices].x = vertices[index].x * g_world_scale_005ebc40;
+        m_pTrigVertices[m_iNumTrigVertices].y = vertices[index].y * g_world_scale_005ebc40;
+        m_pTrigVertices[m_iNumTrigVertices].z = vertices[index].z * g_world_scale_005ebc40;
+        ++m_iNumTrigVertices;
+    }
+
+    W8GDSurface* surface = &m_pTrigSurfaces[m_iNumTrigSurfaces];
+    surface->flags_00 = 0x80;
+    surface->index_04 = m_iNumSurfaces + m_iNumTrigSurfaces;
+    surface->trigger_index_08 = m_iNumTriggers;
+    surface->value_40 = 1.1f;
+    surface->vertex_indices_18[0] = m_iNumTrigVertices - 4;
+    surface->vertex_indices_18[1] = m_iNumTrigVertices - 3;
+    surface->vertex_indices_18[2] = m_iNumTrigVertices - 2;
+    ClassifySurfacePlane004498C0(m_pTrigVertices, surface);
+    for (index = 0; index < 3; ++index) {
+        surface->vertex_indices_18[index] += m_iNumVertices;
+    }
+    surface->positional_0c = -1;
+    surface->positional_10 = -1;
+    surface->positional_14 = -1;
+    surface->hit_plane_38 = 0;
+    ++m_iNumTrigSurfaces;
+
+    surface = &m_pTrigSurfaces[m_iNumTrigSurfaces];
+    surface->flags_00 = 0x80;
+    surface->index_04 = m_iNumSurfaces + m_iNumTrigSurfaces;
+    surface->trigger_index_08 = m_iNumTriggers;
+    surface->value_40 = 1.1f;
+    surface->vertex_indices_18[0] = m_iNumTrigVertices - 2;
+    surface->vertex_indices_18[1] = m_iNumTrigVertices - 1;
+    surface->vertex_indices_18[2] = m_iNumTrigVertices - 4;
+    ClassifySurfacePlane004498C0(m_pTrigVertices, surface);
+    for (index = 0; index < 3; ++index) {
+        surface->vertex_indices_18[index] += m_iNumVertices;
+    }
+    surface->positional_0c = -1;
+    surface->positional_10 = -1;
+    surface->positional_14 = -1;
+    surface->hit_plane_38 = 0;
+    ++m_iNumTrigSurfaces;
+    ++m_iNumTriggers;
+}
+
 // FUNCTION: WIZ8 0x00448840
 void W8GameData::IntegrateTriggers()
 {
@@ -216,6 +682,187 @@ void W8GameData::IntegrateTriggers()
     }
     bits_58 = new BitArray(m_iNumTriggers);
     bits_5c = new BitArray(m_iNumTriggers);
+}
+
+/* The CompileGameData00449D10 counterpart of IntegrateTriggers: folds the
+   trigger banks into the main vertex and surface arrays without rebuilding
+   the spatial index. */
+// FUNCTION: WIZ8 0x00448A60
+void W8GameData::IntegrateTriggerGeometry00448A60()
+{
+    if (m_iNumTrigVertices != 0) {
+        srVector3T<float>* new_vertices = static_cast<srVector3T<float>*>(
+            srHeap.allocate((m_iNumTrigVertices + 1 + m_iNumVertices) * sizeof(srVector3T<float>)));
+        if (new_vertices == 0) {
+            srAssertFail("pNewVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                         0x351, "IntegrateTriggers: Couldn't allocate new vertex array.");
+        }
+        memcpy(new_vertices, m_pVertices, m_iNumVertices * sizeof(srVector3T<float>));
+        memcpy(new_vertices + m_iNumVertices, m_pTrigVertices,
+               m_iNumTrigVertices * sizeof(srVector3T<float>));
+        m_iNumVertices = m_iNumVertices + m_iNumTrigVertices;
+        srHeap.free(m_pVertices);
+        srHeap.free(m_pTrigVertices);
+        m_pTrigVertices = 0;
+        m_iNumTrigVertices = 0;
+        integrated_surface_count_34 = m_iNumTrigSurfaces;
+        m_pVertices = new_vertices;
+        W8GDSurface* new_surfaces = static_cast<W8GDSurface*>(
+            malloc((m_iNumSurfaces + 1 + m_iNumTrigSurfaces) * sizeof(W8GDSurface)));
+        if (new_surfaces == 0) {
+            srAssertFail("pNewSurfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                         0x361, "IntegrateTriggers: Couldn't allocate new surface array.");
+        }
+        memcpy(new_surfaces, m_pSurfaces, m_iNumSurfaces * sizeof(W8GDSurface));
+        memcpy(new_surfaces + m_iNumSurfaces, m_pTrigSurfaces,
+               m_iNumTrigSurfaces * sizeof(W8GDSurface));
+        free(m_pTrigSurfaces);
+        free(m_pSurfaces);
+        m_iNumSurfaces = m_iNumSurfaces + m_iNumTrigSurfaces;
+        m_pSurfaces = new_surfaces;
+        m_pTrigSurfaces = 0;
+        m_iNumTrigSurfaces = 0;
+    }
+}
+
+/* Copies the linked record's 36 serialized vertices into a scratch block and
+   registers them as twelve trigger surfaces, then releases the copy. */
+// FUNCTION: WIZ8 0x00448BF0
+void W8GameData::AddLinkedRecord00448BF0(const srVector3T<float>* vertices, float value,
+                                         float scalar, const signed char* face)
+{
+    srVector3T<float>* copy =
+        static_cast<srVector3T<float>*>(srHeap.allocate(36 * sizeof(srVector3T<float>)));
+    for (int index = 0; index < 36; ++index) {
+        copy[index] = vertices[index];
+    }
+    AddTriggerPlane(copy, value, scalar, face);
+    srHeap.free(copy);
+}
+
+/* Appends a linked record's vertices to the trigger bank, scaled by
+   g_double_005ec150, and emits twelve consecutive trigger surfaces under the
+   current environment index. The surface numbered `*face` also grows an
+   environment record scaled by `value`/`scalar`. */
+// FUNCTION: WIZ8 0x00448C60
+void W8GameData::AddTriggerPlane(const srVector3T<float>* vertices, float value, float scalar,
+                                 const signed char* face)
+{
+    int index;
+    int vertex_base;
+
+    if (m_pTrigSurfaces == 0) {
+        m_pTrigSurfaces = static_cast<W8GDSurface*>(malloc(500 * sizeof(W8GDSurface)));
+        if (m_pTrigSurfaces == 0) {
+            srAssertFail("m_pTrigSurfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                         0x3b0, "AddTriggerPlane: Couldn't allocate trigger surfaces.");
+        }
+        m_pTrigVertices =
+            static_cast<srVector3T<float>*>(srHeap.allocate(1000 * sizeof(srVector3T<float>)));
+        if (m_pTrigVertices == 0) {
+            srAssertFail("m_pTrigVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                         0x3b2, "AddTriggerPlane: Couldn't allocate trigger vertices.");
+        }
+        m_ppTriggers = static_cast<Trigger**>(malloc(500 * sizeof(Trigger*)));
+        if (m_ppTriggers == 0) {
+            srAssertFail("m_ppTriggers", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                         0x3b4, "AddTriggerPlane: Couldn't allocate trigger array.");
+        }
+        m_iNumTrigSurfaces = 0;
+        m_iNumTrigVertices = 0;
+        m_iNumTriggers = 0;
+    }
+    if (m_iNumTrigSurfaces >= 500) {
+        srAssertFail("m_iNumTrigSurfaces < MAX_TRIG_SURFACES",
+                     "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x3b9, 0);
+    }
+    vertex_base = m_iNumTrigVertices;
+    for (index = 0; index < 36; ++index) {
+        m_pTrigVertices[m_iNumTrigVertices].x =
+            static_cast<float>(vertices[index].x * g_double_005ec150);
+        m_pTrigVertices[m_iNumTrigVertices].y =
+            static_cast<float>(vertices[index].y * g_double_005ec150);
+        m_pTrigVertices[m_iNumTrigVertices].z =
+            static_cast<float>(vertices[index].z * g_double_005ec150);
+        ++m_iNumTrigVertices;
+    }
+    for (index = 0; index < 12; ++index) {
+        W8GDSurface* surface = &m_pTrigSurfaces[m_iNumTrigSurfaces];
+        surface->flags_00 = 0x1080;
+        surface->index_04 = m_iNumTrigSurfaces + m_iNumSurfaces;
+        surface->trigger_index_08 = m_iNumEnvirons;
+        surface->vertex_indices_18[0] = vertex_base;
+        surface->vertex_indices_18[1] = vertex_base + 1;
+        surface->vertex_indices_18[2] = vertex_base + 2;
+        surface->value_40 = 0.0f;
+        vertex_base += 3;
+        ClassifySurfacePlane004498C0(m_pTrigVertices, surface);
+        if (index == *face) {
+            CreateGDEnviron00448E60(surface, value);
+            W8EnvironRecord* environ_record = m_ppEnvirons[m_iNumEnvirons];
+            environ_record->value_34 = environ_record->value_34 * scalar;
+            environ_record->value_38 = environ_record->value_34 * environ_record->value_3c * 2.0f;
+        }
+        surface->vertex_indices_18[0] += m_iNumVertices;
+        surface->vertex_indices_18[1] += m_iNumVertices;
+        surface->vertex_indices_18[2] += m_iNumVertices;
+        ++m_iNumTrigSurfaces;
+    }
+    ++m_iNumEnvirons;
+}
+
+/* Grows the environment pointer bank by ten records at a time and appends a
+   fresh W8EnvironRecord whose motion vector derives from the linked surface's
+   plane scaled by `scale`. */
+// FUNCTION: WIZ8 0x00448E60
+void W8GameData::CreateGDEnviron00448E60(const W8GDSurface* surface, float scale)
+{
+    if (m_iNumEnvirons % 10 == 0) {
+        unsigned int size = m_iNumEnvirons * sizeof(W8EnvironRecord*) + 0x28;
+        W8EnvironRecord** grown = static_cast<W8EnvironRecord**>(malloc(size));
+        if (grown == 0) {
+            srAssertFail("ppTempEnvirons", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                         0x3ec, 0);
+        }
+        memset(grown, 0, size);
+        for (int index = 0; index < m_iNumEnvirons; ++index) {
+            grown[index] = m_ppEnvirons[index];
+        }
+        free(m_ppEnvirons);
+        m_ppEnvirons = grown;
+    }
+    W8EnvironRecord* environ_record = new W8EnvironRecord();
+    if (environ_record == 0) {
+        environ_record = 0;
+    } else {
+        environ_record->value_04 = 0;
+        environ_record->value_00 = 0;
+        environ_record->value_08 = 0;
+        environ_record->value_10 = 0;
+        environ_record->value_14 = -g_navigator_gravity_00603acc;
+        environ_record->value_18 = 0;
+        environ_record->value_20 = 1.0f;
+        environ_record->vector_24.x = 0.0f;
+        environ_record->vector_24.y = 0.0f;
+        environ_record->vector_24.z = 0.0f;
+        environ_record->value_1c = 0.05f;
+        environ_record->value_30 = g_default_world_height_00603ac8;
+        environ_record->value_34 =
+            g_camera_level_forward_scale_603aac * g_navigator_linked_radius_scale_005ebc98;
+        environ_record->value_40 = 1.0f;
+        environ_record->value_3c = g_float_00603ab8;
+        environ_record->value_38 = g_float_00603abc;
+    }
+    m_ppEnvirons[m_iNumEnvirons] = environ_record;
+    if (m_ppEnvirons[m_iNumEnvirons] == 0) {
+        ReportBuildStatus00497690(7, "CreateGDEnviron: Could not allocate GD_Environ.");
+    }
+    m_ppEnvirons[m_iNumEnvirons]->value_10 =
+        g_navigator_gravity_00603acc * surface->plane_24[0] * scale;
+    m_ppEnvirons[m_iNumEnvirons]->value_14 =
+        (scale * surface->plane_24[1] - g_float_005ebb38) * g_navigator_gravity_00603acc;
+    m_ppEnvirons[m_iNumEnvirons]->value_18 =
+        g_navigator_gravity_00603acc * surface->plane_24[2] * scale;
 }
 
 struct W8ProcessedGameDataHeader {
@@ -419,6 +1066,10 @@ void W8GameData::ReadProcessedGameData(int handle)
    extremes, the shared engine-time object on first use, a default
    environment bank, and the previous level-data teardown. The zero stores
    below follow the image order rather than field order. */
+/* 0x0044902E is the constructor's shared body entry: the SEH wrapper at
+   0x00449010 zeroes EBX and falls through into the code below. */
+// SYNTHETIC: WIZ8 0x0044902E
+// W8GameData::W8GameData shared constructor entry
 // FUNCTION: WIZ8 0x00449010
 W8GameData::W8GameData(int handle, bool secondary)
 {
