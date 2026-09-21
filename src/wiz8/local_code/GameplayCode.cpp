@@ -851,8 +851,7 @@ void CalcArmorClasses(W8Character* character)
         }
 
         character->armor_class_components[5] += character->bonus_1770.armor_bonus_04;
-        character->armor_class_components[8] +=
-            static_cast<signed char>(character->bonus_1770.value_4b);
+        character->armor_class_components[8] += character->bonus_1770.armor_class_adjustment_4b;
         if (defensive_action) {
             character->armor_class_components[10] += 2;
         }
