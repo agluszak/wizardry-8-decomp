@@ -276,7 +276,7 @@ void W8OptionsSaveLoadPanel::Populate()
     if (m_panel == 11 && g_options_last_save_name_0069c1cc[0] != 0) {
         for (int index = 1; index < g_options_screen_0069c254->m_save_slots.count; ++index) {
             if (wcscmp(g_options_last_save_name_0069c1cc,
-                       g_options_screen_0069c254->m_save_slots.data[index]->name) == 0) {
+                       (*g_options_screen_0069c254->m_save_slots.GetAt(index))->name) == 0) {
                 page = (index - 1) / 5;
                 selected = (index - 1) % 5;
             }
@@ -312,21 +312,26 @@ void W8OptionsSaveLoadPanel::SetCurrent(int current)
     m_current_04c = current;
     Invalidate(0);
 
-    int first = current * 5 + (m_panel == 11 ? 1 : 0);
-    int limit = first + 5;
-    if (limit > g_options_screen_0069c254->m_save_slots.count) {
-        limit = g_options_screen_0069c254->m_save_slots.count;
+    int first = current * 5;
+    if (m_panel == 11) {
+        ++first;
     }
-    int row = 0;
-    for (int slot = first; slot < limit; ++slot, ++row) {
-        m_rows.data[row]->m_save = g_options_screen_0069c254->m_save_slots.data[slot];
-        m_rows.data[row]->SetEnabled(m_rows.data[row]->m_save != 0);
-        m_rows.data[row]->Invalidate(0);
+    int limit = g_options_screen_0069c254->m_save_slots.count;
+    if (first + 5 < limit) {
+        limit = first + 5;
     }
-    for (; row < 5; ++row) {
-        m_rows.data[row]->m_save = 0;
-        m_rows.data[row]->SetEnabled(0);
-        m_rows.data[row]->Invalidate(0);
+    for (int slot = first; slot < limit; ++slot) {
+        W8SaveSlot* save = *g_options_screen_0069c254->m_save_slots.GetAt(slot);
+        W8OptionsSaveRow* row = *m_rows.GetAt(slot - first);
+        row->m_save = save;
+        row->SetEnabled(save != 0);
+        row->Invalidate(0);
+    }
+    for (; limit < first + 5; ++limit) {
+        W8OptionsSaveRow* row = *m_rows.GetAt(limit - first);
+        row->m_save = 0;
+        row->SetEnabled(0);
+        row->Invalidate(0);
     }
     m_selection.SetSelected(0);
     if (g_options_screen_0069c254->m_text_editor == 0 && m_panel == 12 &&
@@ -378,10 +383,10 @@ void W8OptionsSaveLoadPanel::OnDialogClosed(unsigned char reason, int value)
             selected_slot = m_current_04c;
         } else if (value == 3) {
             selected_slot = m_current_04c * 5 + m_selection.m_selectedIndex;
-            wcscpy(g_options_screen_0069c254->m_save_slots.data[selected_slot]->name,
+            wcscpy((*g_options_screen_0069c254->m_save_slots.GetAt(selected_slot))->name,
                    m_previous_name);
-            W8OptionsSaveRow* row = m_rows.data[m_selection.m_selectedIndex];
-            row->m_save = g_options_screen_0069c254->m_save_slots.data[selected_slot];
+            W8OptionsSaveRow* row = *m_rows.GetAt(m_selection.m_selectedIndex);
+            row->m_save = *g_options_screen_0069c254->m_save_slots.GetAt(selected_slot);
             row->SetEnabled(row->m_save != 0);
             row->Invalidate(0);
             if (g_options_screen_0069c254->m_text_editor != 0 || m_panel != 12 ||
@@ -428,13 +433,13 @@ void W8OptionsSaveLoadPanel::OnDialogClosed(unsigned char reason, int value)
 void W8OptionsSaveLoadPanel::OnTextEditComplete(W8OptionsTextEditor*, unsigned char cancelled)
 {
     int selected_slot = m_current_04c * 5 + m_selection.m_selectedIndex;
-    m_rows.data[m_editing_row]->m_editing = 0;
+    (*m_rows.GetAt(m_editing_row))->m_editing = 0;
     if (cancelled != 0) {
-        m_rows.data[m_selection.m_selectedIndex]->Invalidate(0);
+        (*m_rows.GetAt(m_selection.m_selectedIndex))->Invalidate(0);
         return;
     }
 
-    W8SaveSlot* slot = g_options_screen_0069c254->m_save_slots.data[selected_slot];
+    W8SaveSlot* slot = *g_options_screen_0069c254->m_save_slots.GetAt(selected_slot);
     wcscpy(m_previous_name, slot->name);
     Get16BitStringFromField(0, slot->name);
     if (wcslen(slot->name) == 0) {
@@ -443,7 +448,7 @@ void W8OptionsSaveLoadPanel::OnTextEditComplete(W8OptionsTextEditor*, unsigned c
         return;
     }
 
-    W8OptionsSaveRow* row = m_rows.data[m_selection.m_selectedIndex];
+    W8OptionsSaveRow* row = *m_rows.GetAt(m_selection.m_selectedIndex);
     row->m_save = slot;
     row->SetEnabled(slot != 0);
     row->Invalidate(0);
@@ -464,9 +469,9 @@ void W8OptionsSaveLoadPanel::OnEditSaveName(W8OptionsSaveRow*)
     int selected_slot = m_current_04c * 5 + m_selection.m_selectedIndex;
     g_options_screen_0069c254->BeginSaveNameEdit(
         this, m_selection.m_selectedIndex,
-        g_options_screen_0069c254->m_save_slots.data[selected_slot]->name);
+        (*g_options_screen_0069c254->m_save_slots.GetAt(selected_slot))->name);
     m_editing_row = m_selection.m_selectedIndex;
-    m_rows.data[m_editing_row]->m_editing = 1;
+    (*m_rows.GetAt(m_editing_row))->m_editing = 1;
 }
 
 // FUNCTION: WIZ8 0x005ab230
@@ -495,7 +500,7 @@ void W8OptionsSaveLoadPanel::OnSelectionChanged(W8ControlSelection*, int)
 void W8OptionsSaveLoadPanel::DeleteSelectedSave()
 {
     int selected_slot = m_current_04c * 5 + 1 + m_selection.m_selectedIndex;
-    W8SaveSlot* slot = g_options_screen_0069c254->m_save_slots.data[selected_slot];
+    W8SaveSlot* slot = *g_options_screen_0069c254->m_save_slots.GetAt(selected_slot);
     char path[260];
     sprintf(path, "%s\\%S.%s", "Saves", slot->name, "SAV");
     if (DeleteFileA(path) == 0) {
@@ -533,7 +538,7 @@ void W8OptionsSaveLoadPanel::DeleteSelectedSave()
 void W8OptionsSaveLoadPanel::LoadSelectedSave()
 {
     int selected_slot = m_current_04c * 5 + 1 + m_selection.m_selectedIndex;
-    W8SaveSlot* slot = g_options_screen_0069c254->m_save_slots.data[selected_slot];
+    W8SaveSlot* slot = *g_options_screen_0069c254->m_save_slots.GetAt(selected_slot);
     if (slot->version_major + slot->version_minor * 0.1f + slot->version_patch * 0.01f <= 1.24f) {
         wcsncpy(g_options_last_save_name_0069c1cc, slot->name, 0x40);
         reinterpret_cast<char*>(g_options_last_save_name_0069c1cc)[0x7e] =
@@ -553,7 +558,7 @@ void W8OptionsSaveLoadPanel::LoadSelectedSave()
 void W8OptionsSaveLoadPanel::SaveSelectedSave()
 {
     int selected_slot = m_current_04c * 5 + m_selection.m_selectedIndex;
-    W8SaveSlot* slot = g_options_screen_0069c254->m_save_slots.data[selected_slot];
+    W8SaveSlot* slot = *g_options_screen_0069c254->m_save_slots.GetAt(selected_slot);
     if (wcslen(slot->name) == 0) {
         g_options_screen_0069c254->ShowNotification(this, 0, 0x82a, 0);
         return;
