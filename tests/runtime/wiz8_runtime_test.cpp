@@ -1041,7 +1041,8 @@ static bool MoveParty(int command, bool combat_move = false)
 
 static DWORD RunAcceptanceMovement()
 {
-    if (!WaitForGameplay(3000) || !MoveParty(W8_MGS_COMMAND_MOVE_FORWARD)) {
+    // Acceptance requires observed motion, not StartCombat's grounding precondition.
+    if (!MoveParty(W8_MGS_COMMAND_MOVE_FORWARD)) {
         return FailScenario("party-movement", "forward-motion-not-observed");
     }
     g_observation.party_moved = 1;
@@ -1145,7 +1146,7 @@ static DWORD RunSaveLoadMoveScenario()
         return FailScenario("load", "saved-position-not-restored");
     }
     ReportStep("load-position-restored");
-    if (!WaitForGameplay(2000) || !MoveParty(W8_MGS_COMMAND_MOVE_FORWARD)) {
+    if (!MoveParty(W8_MGS_COMMAND_MOVE_FORWARD)) {
         return FailScenario("after-load", "motion-not-observed");
     }
     g_observation.moved_after_load = 1;
