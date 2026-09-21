@@ -647,9 +647,9 @@ unsigned char LoadMissileCycle004A3550(W8GrCycleLoadContext* context, const char
                                         break;
                                     }
                                 }
-                                effect = new W8CameraShakeEffect(
-                                    duration, '\x01', intensity,
-                                    static_cast<int>(seconds * g_world_scale_005ebc40), 0);
+                                effect =
+                                    new W8CameraShakeEffect(duration, '\x01', intensity,
+                                                            seconds * g_world_scale_005ebc40, 0);
                                 if (effect != 0) {
                                     effect->cycle_3c = cycle;
                                     effect->frame_40 = frame;

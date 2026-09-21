@@ -832,3 +832,12 @@ bool stLightDefinition005ECDA0::IsEnabledForSubcycle(unsigned char subcycle)
 
 // FUNCTION: WIZ8 0x004a25e0
 stLightDefinition005ECDA0::~stLightDefinition005ECDA0() {}
+
+// TEMPLATE: WIZ8 0x004A2500
+// W8GrowableVector<int>::W8GrowableVector
+
+// TEMPLATE: WIZ8 0x004A2540
+// W8GrowableVector<float>::W8GrowableVector
+
+// TEMPLATE: WIZ8 0x004a2670
+// W8GrowableVector<srVector3T<float>>::Grow

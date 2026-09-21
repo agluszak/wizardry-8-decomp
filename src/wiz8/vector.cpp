@@ -11,6 +11,9 @@
 // TEMPLATE: WIZ8 0x004ed900
 // W8GrowableVector<int>::W8GrowableVector
 
+// TEMPLATE: WIZ8 0x004ed950
+// srMatrix3T<float>::TransformTransposed
+
 // TEMPLATE: WIZ8 0x004d99e0
 // W8GrowableVector<T*>::RemoveAt
 
@@ -607,6 +610,9 @@ class W8Navigator;
 // TEMPLATE: WIZ8 0x004aab10
 // W8GrowableVector<srVector3T<float>*>::~W8GrowableVector<srVector3T<float>*>
 
+// TEMPLATE: WIZ8 0x004aab30
+// W8GrowableVector<srVector3T<float>*>::W8GrowableVector
+
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
 /* Engine Code\Spells.cpp's g_sound3d_instances_65be40. */
@@ -634,6 +640,11 @@ class srClipPlane;
 
 // SYNTHETIC: WIZ8 0x004be030
 // W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>::`scalar deleting destructor'
+
+/* Second emission of the same specialization's ctor (0x004BE050 sits beside
+   this unit's other clip-plane vector emissions). */
+// TEMPLATE: WIZ8 0x004be050
+// W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>::W8GrowableVector
 
 // TEMPLATE: WIZ8 0x004bdfe0
 // W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>::~W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>
@@ -671,6 +682,14 @@ class srClipPlane;
 
 // TEMPLATE: WIZ8 0x00501f10
 // W8GrowableVector<W8SpellEffectEntry*>::~W8GrowableVector<W8SpellEffectEntry*>
+
+// TEMPLATE: WIZ8 0x00501f80
+// W8GrowableVector<W8SpellVisual*>::W8GrowableVector
+
+/* Embedded-member emission: constructs the reports vector at +0x5A of the
+   enclosing result record rather than a standalone vector. */
+// TEMPLATE: WIZ8 0x00501fd0
+// W8GrowableVector<W8SpellDamageReport*>::W8GrowableVector
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
@@ -714,11 +733,17 @@ struct W8AutomapNote;
 // VTABLE: WIZ8 0x005eea28
 // class W8GrowableVector<W8AutomapNote*>
 
+// TEMPLATE: WIZ8 0x005853A0
+// W8HashTable<unsigned int,int>::Lookup
+
 // SYNTHETIC: WIZ8 0x00585420
 // W8GrowableVector<W8AutomapNote*>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00585440
 // W8GrowableVector<W8AutomapNote*>::~W8GrowableVector<W8AutomapNote*>
+
+// TEMPLATE: WIZ8 0x00585460
+// W8GrowableVector<srClass*>::W8GrowableVector
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
@@ -899,8 +924,6 @@ struct W8AutomapNote;
 // SYNTHETIC: WIZ8 0x004AAAC0
 // W8GrowableVector<srVector3T<float>*>::`scalar deleting destructor' (PathAI.CPP emission)
 
-// TEMPLATE: WIZ8 0x004AAB30
-// W8GrowableVector<srVector3T<float>*>::W8GrowableVector (capacity ctor, PathAI.CPP emission)
 
 /* Spells.cpp span. */
 // SYNTHETIC: WIZ8 0x004AF710
@@ -913,11 +936,7 @@ struct W8AutomapNote;
 // SYNTHETIC: WIZ8 0x004A20C0
 // W8GrowableVector<float>::`scalar deleting destructor' (AnimObj.cpp emission)
 
-// TEMPLATE: WIZ8 0x004A2500
-// W8GrowableVector capacity-ctor emission (AnimObj.cpp span, element type unresolved)
 
-// TEMPLATE: WIZ8 0x004A2540
-// W8GrowableVector capacity-ctor emission (AnimObj.cpp span, element type unresolved)
 
 /* Monster.cpp span. */
 // TEMPLATE: WIZ8 0x004CACE0
@@ -962,22 +981,14 @@ struct W8AutomapNote;
 // `scalar deleting destructor' for the 0x005ED660 vector table
 
 /* ItemManager.cpp span. */
-// TEMPLATE: WIZ8 0x004F9580
-// W8GrowableVector capacity-ctor emission for the 0x005EC160 table (ItemManager.cpp span)
 
 /* Magic.cpp span. */
 // SYNTHETIC: WIZ8 0x00501F30
 // W8GrowableVector<W8SpellEffectEntry*>::`scalar deleting destructor' (Magic.cpp emission)
 
-// TEMPLATE: WIZ8 0x00501F80
-// W8GrowableVector<W8SpellVisual>::W8GrowableVector (capacity ctor, Magic.cpp emission)
 
-// TEMPLATE: WIZ8 0x00501FD0
-// W8GrowableVector<W8SpellDamageReport> member capacity-ctor emission (Magic.cpp span)
 
 /* NPC Manager.cpp span. */
-// TEMPLATE: WIZ8 0x00509A80
-// W8GrowableVector<W8NpcState>::~W8GrowableVector<W8NpcState> (NPC Manager.cpp emission)
 
 /* LoadSaveGame.cpp span: removes the indexed element, shift-fills the slot
    and destroys the removed entry. */
@@ -1012,42 +1023,24 @@ struct W8AutomapNote;
 // SYNTHETIC: WIZ8 0x005853F0
 // W8GrowableVector<W8AutomapNote*>::`scalar deleting destructor' (second emission)
 
-// TEMPLATE: WIZ8 0x00585460
-// W8GrowableVector<srClass*>::W8GrowableVector (capacity ctor, AutomapScreen.cpp emission)
 
 // TEMPLATE: WIZ8 0x0047D290
 // intrusive-list head init emission
 
 /* Cursor3d.cpp -> stParticle.cpp gap. */
-// TEMPLATE: WIZ8 0x00492C70
-// srClassSupport ctor emission (vftable 0x005EBF94)
 
-// TEMPLATE: WIZ8 0x0049E290
-// srNode::TraverseInfo::NodeArray::setCapacity
 
 /* AnimObj.cpp -> Missile.cpp gap. */
-// TEMPLATE: WIZ8 0x004A2670
-// capacity-growth emission (12-byte elements)
 
 /* ReadLevel.cpp -> quad.cpp gap. */
 // SYNTHETIC: WIZ8 0x004BE000
 // W8GrowableVector<W8VectorElement005ED1B8*>::`scalar deleting destructor'
 
-// TEMPLATE: WIZ8 0x004BE050
-// W8GrowableVector<W8VectorElement005ED1B8*>::W8GrowableVector (capacity ctor)
 
 /* Monster.cpp -> OctPrePath.cpp gap. */
-// TEMPLATE: WIZ8 0x004CAB60
-// srMatrix3T<float> rotation-compose emission (Monster.cpp span)
 
 /* Combat.cpp -> GameplayCode.cpp gap. */
-// TEMPLATE: WIZ8 0x004ED950
-// srMatrix3T<float> vector-transform emission (Combat.cpp span)
 
 /* InputMapper.cpp -> Screens.cpp gap. */
-// TEMPLATE: WIZ8 0x0055DD60
-// stHash xorshift hash emission (InputMapper.cpp span)
 
 /* AutomapScreen.cpp -> MGSTextBox.cpp gap. */
-// TEMPLATE: WIZ8 0x005853A0
-// stHash xorshift hash emission (AutomapScreen.cpp span)

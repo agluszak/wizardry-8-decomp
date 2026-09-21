@@ -472,8 +472,11 @@ public:
     /* The single-angle overloads evaluate the trigonometry themselves. */
     srMatrix3T<T>* RotateAboutY(double angle);
     srMatrix3T<T>* RotateAboutX(double angle);
+    srMatrix3T<T>* RotateAboutZ(double angle);
     srMatrix3T<T>* RotateAroundAxis(double angle, const srVector3T<T>& axis);
     srVector3T<T> Transform(const srVector3T<T>& value) const;
+    /* Column products: result = M^T * value. */
+    srVector3T<T> TransformTransposed(const srVector3T<T>& value) const;
     bool operator==(const srMatrix3T<T>& other) const;
 
     srVector3T<T> vectors[3];
@@ -666,6 +669,35 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutX(double angle)
     return this;
 }
 
+// TEMPLATE: WIZ8 0x004CAB60
+// srMatrix3T<float>::RotateAboutZ
+template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutZ(double angle)
+{
+    srVector3T<T> basis[3];
+    srMatrix3T<T> rotation;
+    T cosine;
+    T sine;
+
+    if (angle != 0.0) {
+        cosine = (T)cos(angle);
+        sine = (T)sin(angle);
+        basis[0].x = cosine;
+        basis[0].y = -sine;
+        basis[0].z = (T)0;
+        basis[1].x = sine;
+        basis[1].y = cosine;
+        basis[1].z = (T)0;
+        basis[2].x = (T)0;
+        basis[2].y = (T)0;
+        basis[2].z = (T)1;
+        rotation.vectors[0] = basis[0];
+        rotation.vectors[1] = basis[1];
+        rotation.vectors[2] = basis[2];
+        MultiplyBy(rotation);
+    }
+    return this;
+}
+
 /* Single-angle overload of the Rodrigues rotation above, keeping the
    trigonometry and the basis products in double precision until the float
    stores. The MartensBluff2 arrow trap emits it at 0x004DE940. */
@@ -741,6 +773,21 @@ template <class T> srVector3T<T> srMatrix3T<T>::Transform(const srVector3T<T>& v
     result.x = DotProduct(vectors[0], value);
     result.y = DotProduct(vectors[1], value);
     result.z = DotProduct(vectors[2], value);
+    return result;
+}
+
+/* The transposed product: each result component is a column dot, so
+   result = M^T * value. Emitted standalone at 0x004ED950 for the Combat.cpp
+   breath-effect direction rotation. */
+// TEMPLATE: WIZ8 0x004ed950
+// srMatrix3T<float>::TransformTransposed
+template <class T>
+srVector3T<T> srMatrix3T<T>::TransformTransposed(const srVector3T<T>& value) const
+{
+    srVector3T<T> result;
+    result.x = vectors[0].x * value.x + vectors[1].x * value.y + vectors[2].x * value.z;
+    result.y = vectors[0].y * value.x + vectors[1].y * value.y + vectors[2].y * value.z;
+    result.z = vectors[0].z * value.x + vectors[1].z * value.y + vectors[2].z * value.z;
     return result;
 }
 
