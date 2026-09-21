@@ -3108,7 +3108,6 @@ unsigned char MainGameScreenEnter(void)
     return 1;
 }
 
-
 /* While the party is idle, arm a one-minute countdown after input and, once the
    cursor has also been still for a minute and that countdown expires, advance
    ambient follow-up chatter. Busy modes keep refreshing the countdown and
@@ -8742,7 +8741,7 @@ void TryMGSActionKey(int command)
    against two runs of region numbers at once - one starting at 0x24 six apart
    and one at 0x5a one apart - and only two event kinds are answered. */
 // FUNCTION: WIZ8 0x00569c00
-unsigned int HitTestPartyPortrait(const InputAtom* event)
+unsigned char HitTestPartyPortrait(const InputAtom* event)
 {
     unsigned int region = 0x24;
     int slot = 0;

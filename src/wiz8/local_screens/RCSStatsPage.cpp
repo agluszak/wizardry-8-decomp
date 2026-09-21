@@ -1005,7 +1005,7 @@ unsigned char CampSkillListRegionHandler005C6230(const InputAtom* event, W8Regio
                 }
             }
         }
-        W8SkillInfoDialog005EFD08* dialog = new W8SkillInfoDialog005EFD08(
+        W8SkillInfoDialog* dialog = new W8SkillInfoDialog(
             skill, best, g_value_0069c0f8->skills[skill].flag_00 == 0,
             skill == g_profession_bonus_skills[g_value_0069c0f8->current_profession]);
         DisplayCampDialog(dialog);

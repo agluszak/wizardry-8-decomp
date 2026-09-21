@@ -2467,7 +2467,7 @@ void LoadMonsterControlSpellEffect00516310(W8Chunk* chunks)
    the loader reads, none of the runtime vectors or result state. */
 
 /* The byte-vector Grow LoadMonster's script-condition copy emits; the linker
-   kept this unit's instance for AddItem005CE210 as well. */
+   kept this unit's instance for AddItem as well. */
 // TEMPLATE: WIZ8 0x005169a0
 // W8GrowableVector<unsigned char>::Grow
 

@@ -956,7 +956,7 @@ void OnItemPickerDialogDestroyed004F7C50(W8DialogBase* dialog)
     if (dialog == 0) {
         return;
     }
-    group = static_cast<W8TriggerItemPickerDialog*>(dialog)->ReturnItemsToGroup005CF110();
+    group = static_cast<W8TriggerItemPickerDialog*>(dialog)->ReturnItemsToGroup();
     if (ItemInfoGetNumInGroup(group) == 2) {
         item = ItemInfoGroupGetNext(group);
         item->position = group->position;
@@ -997,7 +997,7 @@ unsigned char InteractWithWorldItem004F7910(int runtime_id)
     if (g_item_records[item->item.item_id].flags_041 & 0x20) {
         W8TriggerItemPickerDialog* dialog = new W8TriggerItemPickerDialog;
         if (dialog != 0) {
-            dialog->SetItemGroup005CF0C0(item);
+            dialog->SetItemGroup(item);
             dialog->m_destroy_callback = OnItemPickerDialogDestroyed004F7C50;
         }
         g_modal_owner_0068edd0 = dialog;

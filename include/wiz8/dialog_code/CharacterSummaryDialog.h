@@ -31,8 +31,8 @@ public:
     void DrawPortraitAnimationFrame(); /* 0x005E0830 */
 
 private:
-    bool CreateQuoteText005E0600();
-    unsigned char HandleInputEvent005E0880(const InputAtom* input);
+    bool CreateQuoteText();
+    unsigned char HandleInputEvent(const InputAtom* input);
 
     bool m_voice_started_054;
     unsigned char pad_055[3];

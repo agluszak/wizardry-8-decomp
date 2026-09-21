@@ -8,7 +8,7 @@
    Live query: 0x005D14D0/0x005D1640 sit in the gap between DialogInterface.cpp
    (upper 0x005CF580) and stMessageDialog.cpp (lower 0x005D2800). Retail
    Dialog Code\stListBox.cpp's hull is 0x005CCE70-0x005CD1E0: the six SGP
-   button callbacks of W8ListBoxDialog005CBB40, now defined in stListBox.cpp. The
+   button callbacks of W8ListBoxDialog, now defined in stListBox.cpp. The
    intervening helpers (0x005CC650/0x005CCB80/0x005CD2B0) are not in that hull,
    and neither are these. Retail emits a second one-slot table at 0x005EF89C
    holding the duplicate sdd emission 0x005D2560; the compared table at

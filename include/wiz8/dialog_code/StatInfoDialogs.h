@@ -11,10 +11,10 @@
    retail still emits its vtable: the derived constructors briefly store
    0x005efc88 before overwriting it, and the derived destructors restore it. */
 // VTABLE: WIZ8 0x005efc88
-class W8StatInfoDialogBase005DF880 : public W8DialogBase {
+class W8StatInfoDialogBase : public W8DialogBase {
 public:
-    W8StatInfoDialogBase005DF880();
-    virtual ~W8StatInfoDialogBase005DF880() override;
+    W8StatInfoDialogBase();
+    virtual ~W8StatInfoDialogBase() override;
     virtual int CreateControls() override;
     virtual void DestroyControls() override;
     virtual void Draw() override;
@@ -34,31 +34,31 @@ protected:
 };
 
 // VTABLE: WIZ8 0x005efcc8
-class W8AttributeInfoDialog005DFC70 : public W8StatInfoDialogBase005DF880 {
+class W8AttributeInfoDialog : public W8StatInfoDialogBase {
 public:
-    W8AttributeInfoDialog005DFC70(unsigned int uiIndex);
-    virtual ~W8AttributeInfoDialog005DFC70() override;
+    W8AttributeInfoDialog(unsigned int uiIndex);
+    virtual ~W8AttributeInfoDialog() override;
 
 private:
     unsigned int m_uiIndex; /* 0x148 */
 };
 
 // VTABLE: WIZ8 0x005efd48
-class W8SecondaryAttributeInfoDialog005E0180 : public W8StatInfoDialogBase005DF880 {
+class W8SecondaryAttributeInfoDialog : public W8StatInfoDialogBase {
 public:
-    W8SecondaryAttributeInfoDialog005E0180(unsigned int uiIndex);
-    virtual ~W8SecondaryAttributeInfoDialog005E0180() override;
+    W8SecondaryAttributeInfoDialog(unsigned int uiIndex);
+    virtual ~W8SecondaryAttributeInfoDialog() override;
 
 private:
     unsigned int m_uiIndex; /* 0x148 */
 };
 
 // VTABLE: WIZ8 0x005efd08
-class W8SkillInfoDialog005EFD08 : public W8StatInfoDialogBase005DF880 {
+class W8SkillInfoDialog : public W8StatInfoDialogBase {
 public:
-    W8SkillInfoDialog005EFD08(unsigned int skill, unsigned char first, unsigned char second,
-                              unsigned char bonus);
-    virtual ~W8SkillInfoDialog005EFD08() override;
+    W8SkillInfoDialog(unsigned int skill, unsigned char first, unsigned char second,
+                      unsigned char bonus);
+    virtual ~W8SkillInfoDialog() override;
 
 protected:
     virtual unsigned char PopulateText() override;
@@ -71,14 +71,12 @@ private:
     unsigned char pad_14f;
 };
 
-static_assert(sizeof(W8StatInfoDialogBase005DF880) == 0x148,
-              "W8StatInfoDialogBase005DF880_must_be_0x148");
-static_assert(sizeof(W8AttributeInfoDialog005DFC70) == 0x14c,
+static_assert(sizeof(W8StatInfoDialogBase) == 0x148, "W8StatInfoDialogBase005DF880_must_be_0x148");
+static_assert(sizeof(W8AttributeInfoDialog) == 0x14c,
               "W8AttributeInfoDialog005DFC70_must_be_0x14c");
-static_assert(sizeof(W8SecondaryAttributeInfoDialog005E0180) == 0x14c,
+static_assert(sizeof(W8SecondaryAttributeInfoDialog) == 0x14c,
               "W8SecondaryAttributeInfoDialog005E0180_must_be_0x14c");
-static_assert(sizeof(W8SkillInfoDialog005EFD08) == 0x150,
-              "W8SkillInfoDialog005EFD08_must_be_0x150");
+static_assert(sizeof(W8SkillInfoDialog) == 0x150, "W8SkillInfoDialog005EFD08_must_be_0x150");
 
 /* 0x0061E50C: gppStringList indices naming each attribute/resistance row. */
 extern unsigned short g_attr_table_61E50C[18];

@@ -40,7 +40,7 @@ unsigned short g_attr_table_61E50C[18] = {
 };
 
 // FUNCTION: WIZ8 0x005df880
-W8StatInfoDialogBase005DF880::W8StatInfoDialogBase005DF880()
+W8StatInfoDialogBase::W8StatInfoDialogBase()
 {
     SetOrigin(0x9c, 0x69);
     SetExtent(0x14a, 0x10e);
@@ -48,17 +48,17 @@ W8StatInfoDialogBase005DF880::W8StatInfoDialogBase005DF880()
 }
 
 // SYNTHETIC: WIZ8 0x005df920
-// W8StatInfoDialogBase005DF880::`scalar deleting destructor'
+// W8StatInfoDialogBase::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005DF940
-W8StatInfoDialogBase005DF880::~W8StatInfoDialogBase005DF880()
+W8StatInfoDialogBase::~W8StatInfoDialogBase()
 {
     scrollbar_054.DestroyControls();
     W8DialogBase::DestroyControls();
 }
 
 // FUNCTION: WIZ8 0x005df9d0
-int W8StatInfoDialogBase005DF880::CreateControls()
+int W8StatInfoDialogBase::CreateControls()
 {
     W8DialogBase::CreateControls();
     if (PopulateText() == 0) {
@@ -84,14 +84,14 @@ int W8StatInfoDialogBase005DF880::CreateControls()
 }
 
 // FUNCTION: WIZ8 0x005dfac0
-void W8StatInfoDialogBase005DF880::DestroyControls()
+void W8StatInfoDialogBase::DestroyControls()
 {
     scrollbar_054.DestroyControls();
     W8DialogBase::DestroyControls();
 }
 
 // FUNCTION: WIZ8 0x005dfae0
-void W8StatInfoDialogBase005DF880::Draw()
+void W8StatInfoDialogBase::Draw()
 {
     if ((m_dirty_flags & 1) != 0) {
         if (m_initialized == 0) {
@@ -109,7 +109,7 @@ void W8StatInfoDialogBase005DF880::Draw()
 }
 
 // FUNCTION: WIZ8 0x005dfb40
-void W8StatInfoDialogBase005DF880::DrawTitle()
+void W8StatInfoDialogBase::DrawTitle()
 {
     SetFont(g_font_683660);
     SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
@@ -118,7 +118,7 @@ void W8StatInfoDialogBase005DF880::DrawTitle()
     gprintf(m_x + 0xe + (0x112 - width) / 2, m_y + 0x11, L"%s", title);
 }
 
-void W8StatInfoDialogBase005DF880::OnRightButtonUp()
+void W8StatInfoDialogBase::OnRightButtonUp()
 {
     if (m_right_button_down) {
         m_keep_open = 0;
@@ -126,7 +126,7 @@ void W8StatInfoDialogBase005DF880::OnRightButtonUp()
 }
 
 // FUNCTION: WIZ8 0x005dfbb0
-void W8StatInfoDialogBase005DF880::OnMouseWheel(int delta)
+void W8StatInfoDialogBase::OnMouseWheel(int delta)
 {
     if (delta > 0) {
         for (int step = 0; step < delta; ++step) {
@@ -140,15 +140,13 @@ void W8StatInfoDialogBase005DF880::OnMouseWheel(int delta)
 }
 
 // FUNCTION: WIZ8 0x005dfbf0
-void W8StatInfoDialogBase005DF880::ScrollCallback(W8DialogScrollBar* scroll_bar,
-                                                  int first_visible_entry)
+void W8StatInfoDialogBase::ScrollCallback(W8DialogScrollBar* scroll_bar, int first_visible_entry)
 {
     int left;
     int top;
     int right;
     int bottom;
-    W8StatInfoDialogBase005DF880* dialog =
-        static_cast<W8StatInfoDialogBase005DF880*>(scroll_bar->m_owner);
+    W8StatInfoDialogBase* dialog = static_cast<W8StatInfoDialogBase*>(scroll_bar->m_owner);
     if (dialog != 0) {
         dialog->textarea_0e8.SetFirstVisibleLine(first_visible_entry);
         left = dialog->m_x + 0x11;
@@ -162,7 +160,7 @@ void W8StatInfoDialogBase005DF880::ScrollCallback(W8DialogScrollBar* scroll_bar,
 }
 
 // FUNCTION: WIZ8 0x005dfdb0
-unsigned char W8StatInfoDialogBase005DF880::PopulateText()
+unsigned char W8StatInfoDialogBase::PopulateText()
 {
     W8ControlsRect bounds;
     bounds.left = m_x + 0x11;
@@ -177,7 +175,7 @@ unsigned char W8StatInfoDialogBase005DF880::PopulateText()
 }
 
 // FUNCTION: WIZ8 0x005dfc70
-W8AttributeInfoDialog005DFC70::W8AttributeInfoDialog005DFC70(unsigned int uiIndex)
+W8AttributeInfoDialog::W8AttributeInfoDialog(unsigned int uiIndex)
 {
     if (uiIndex >= ATTR_COUNT) {
         srAssertFail("uiIndex < ATTR_COUNT", STAT_INFO_DIALOGS_CPP, 204, 0);
@@ -188,18 +186,18 @@ W8AttributeInfoDialog005DFC70::W8AttributeInfoDialog005DFC70(unsigned int uiInde
 }
 
 // SYNTHETIC: WIZ8 0x005dfd00
-// W8AttributeInfoDialog005DFC70::`scalar deleting destructor'
+// W8AttributeInfoDialog::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005dfd20
-W8AttributeInfoDialog005DFC70::~W8AttributeInfoDialog005DFC70()
+W8AttributeInfoDialog::~W8AttributeInfoDialog()
 {
     scrollbar_054.DestroyControls();
     W8DialogBase::DestroyControls();
 }
 
 // FUNCTION: WIZ8 0x005dfe40
-W8SkillInfoDialog005EFD08::W8SkillInfoDialog005EFD08(unsigned int skill, unsigned char first,
-                                                     unsigned char second, unsigned char bonus)
+W8SkillInfoDialog::W8SkillInfoDialog(unsigned int skill, unsigned char first, unsigned char second,
+                                     unsigned char bonus)
 {
     if (skill >= SKILL_COUNT) {
         srAssertFail("uiIndex < SKILL_COUNT", STAT_INFO_DIALOGS_CPP, 227, 0);
@@ -213,17 +211,17 @@ W8SkillInfoDialog005EFD08::W8SkillInfoDialog005EFD08(unsigned int skill, unsigne
 }
 
 // SYNTHETIC: WIZ8 0x005dfef0
-// W8SkillInfoDialog005EFD08::`scalar deleting destructor'
+// W8SkillInfoDialog::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005dff10
-W8SkillInfoDialog005EFD08::~W8SkillInfoDialog005EFD08()
+W8SkillInfoDialog::~W8SkillInfoDialog()
 {
     scrollbar_054.DestroyControls();
     W8DialogBase::DestroyControls();
 }
 
 // FUNCTION: WIZ8 0x005dffa0
-unsigned char W8SkillInfoDialog005EFD08::PopulateText()
+unsigned char W8SkillInfoDialog::PopulateText()
 {
     W8ControlsRect bounds;
     bounds.left = m_x + 0x11;
@@ -259,7 +257,7 @@ unsigned char W8SkillInfoDialog005EFD08::PopulateText()
 }
 
 // FUNCTION: WIZ8 0x005e0180
-W8SecondaryAttributeInfoDialog005E0180::W8SecondaryAttributeInfoDialog005E0180(unsigned int uiIndex)
+W8SecondaryAttributeInfoDialog::W8SecondaryAttributeInfoDialog(unsigned int uiIndex)
 {
     if (uiIndex >= ATTR_COUNT) {
         srAssertFail("uiIndex < ATTR_COUNT", STAT_INFO_DIALOGS_CPP, 278, 0);
@@ -270,10 +268,10 @@ W8SecondaryAttributeInfoDialog005E0180::W8SecondaryAttributeInfoDialog005E0180(u
 }
 
 // SYNTHETIC: WIZ8 0x005e0210
-// W8SecondaryAttributeInfoDialog005E0180::`scalar deleting destructor'
+// W8SecondaryAttributeInfoDialog::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x005e0230
-W8SecondaryAttributeInfoDialog005E0180::~W8SecondaryAttributeInfoDialog005E0180()
+W8SecondaryAttributeInfoDialog::~W8SecondaryAttributeInfoDialog()
 {
     scrollbar_054.DestroyControls();
     W8DialogBase::DestroyControls();

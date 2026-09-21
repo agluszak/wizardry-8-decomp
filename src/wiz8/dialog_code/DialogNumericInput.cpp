@@ -125,7 +125,7 @@ void W8DialogNumericInput::Draw(unsigned char force)
 }
 
 // FUNCTION: WIZ8 0x005e17a0
-void W8DialogNumericInput::TypeDigit005E17A0(wchar_t digit)
+void W8DialogNumericInput::TypeDigit(wchar_t digit)
 {
     if (m_active != 0) {
         swprintf(g_numeric_input_text, g_format_d_0060aa20, m_value);
@@ -149,7 +149,7 @@ void W8DialogNumericInput::TypeDigit005E17A0(wchar_t digit)
 }
 
 // FUNCTION: WIZ8 0x005e1840
-void W8DialogNumericInput::DeleteForward005E1840()
+void W8DialogNumericInput::DeleteForward()
 {
     if (m_active != 0 && m_caret != 0) {
         swprintf(g_numeric_input_text, g_format_d_0060aa20, m_value);
@@ -177,7 +177,7 @@ void W8DialogNumericInput::DeleteForward005E1840()
 }
 
 // FUNCTION: WIZ8 0x005e18f0
-void W8DialogNumericInput::Backspace005E18F0()
+void W8DialogNumericInput::Backspace()
 {
     if (m_active != 0) {
         swprintf(g_numeric_input_text, g_format_d_0060aa20, m_value);
@@ -217,7 +217,7 @@ unsigned char W8DialogNumericInput::HandleInput(const InputAtom* input)
     switch (input->usParam) {
     case 8:
         if (m_active != 0 && m_caret != -1) {
-            Backspace005E18F0();
+            Backspace();
             return 1;
         }
         break;
@@ -253,7 +253,7 @@ unsigned char W8DialogNumericInput::HandleInput(const InputAtom* input)
         break;
     case 0x2e:
         if (m_active != 0 && m_caret != -1) {
-            DeleteForward005E1840();
+            DeleteForward();
             return 1;
         }
         break;
@@ -268,7 +268,7 @@ unsigned char W8DialogNumericInput::HandleInput(const InputAtom* input)
     case 0x38:
     case 0x39:
         if (m_active != 0 && m_caret != -1) {
-            TypeDigit005E17A0(static_cast<wchar_t>(input->usParam));
+            TypeDigit(static_cast<wchar_t>(input->usParam));
             return 1;
         }
         break;
@@ -283,7 +283,7 @@ unsigned char W8DialogNumericInput::HandleInput(const InputAtom* input)
     case 0x68:
     case 0x69:
         if (m_active != 0 && m_caret != -1) {
-            TypeDigit005E17A0(static_cast<wchar_t>(input->usParam - 0x30));
+            TypeDigit(static_cast<wchar_t>(input->usParam - 0x30));
             return 1;
         }
         break;
