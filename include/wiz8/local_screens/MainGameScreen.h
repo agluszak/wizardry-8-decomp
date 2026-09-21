@@ -484,6 +484,7 @@ void OpenAssayDialog0056AE20(W8ItemInstance* item, int character_slot); /* 0x005
 
 void OnQuitGameDialogClosed(W8DialogBase* dialog);
 void MainGameNoticeDialogClosed00560A70(W8DialogBase* dialog); /* 0x00560A70 */
+void OnLevelTransitionDialogClosed(W8DialogBase* dialog);      /* 0x00561000 */
 
 void PauseMainGameWorld(void);
 void ResumeMainGameWorld(void);
@@ -525,8 +526,8 @@ extern unsigned char g_flag_0068edd9;
 extern unsigned char g_flag_0068edda;
 extern int g_main_game_mode_0068eddc;
 extern int g_value_64c1c8;
-int GetValue64C1C8(void); /* 0x00593320 */
-void RequestLevelTransition005615F0(int level, int entry, unsigned char flag);
+int GetValue64C1C8(void);                                                      /* 0x00593320 */
+void RequestLevelTransition005615F0(int level, int entry, unsigned char flag); /* 0x005615F0 */
 extern unsigned char g_build_level_links_0065bd2c;
 extern int g_next_link_level_0068ede8;
 extern bool g_navigator_position_changed_659c11;

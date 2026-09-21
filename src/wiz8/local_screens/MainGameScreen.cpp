@@ -82,6 +82,7 @@
 #include "wiz8/regions.h"
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_code/Gameloop.h"
+#include "wiz8/level_specific_code/MasterFunctionList.h"
 #include "wiz8/fonts.h"
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/Strings.h"
@@ -277,6 +278,13 @@ const wchar_t g_format_s_paren_d_0061a700[] = L"%s (%d)";
 const wchar_t g_format_s_colon_s_0061c3e0[] = L"%s: %s";
 // GLOBAL: WIZ8 0x0064da8c
 const wchar_t g_format_s_spaced_colon_0064da8c[] = L" %s : ";
+
+// GLOBAL: WIZ8 0x006480e4
+const wchar_t g_format_s_space_s_question_006480e4[] = L"%s %s?";
+// GLOBAL: WIZ8 0x006480b8
+const wchar_t g_text_enter_default_level_006480b8[] = L"Enter default level ?";
+// GLOBAL: WIZ8 0x0064808c
+const wchar_t g_format_enter_test_level_c_0064808c[] = L"Enter test level %c ?";
 
 // GLOBAL: WIZ8 0x005ec258
 const float g_float_005ec258 = 0.019999999552965164f;
@@ -2903,6 +2911,108 @@ unsigned char MainGameScreenEnter(void)
         StartLevelMusic(1, 1);
     }
     return 1;
+}
+
+/* The level-transition confirmation dialog's result callback: on confirm the
+   queued level/entry move into the pending screen state, the active main-game
+   UI mode is torn down and the Please Wait screen takes over; on cancel the
+   camera snaps back to the trigger point the request saved. */
+// FUNCTION: WIZ8 0x00561000
+void OnLevelTransitionDialogClosed(W8DialogBase* dialog)
+{
+    if (GetDialogResult(dialog) != 0) {
+        g_pending_screen_state.mode = 3;
+        g_pending_screen_state.parameter = g_level_block->pending_level;
+        g_pending_screen_state.parameter_2 = g_level_block->pending_entry_id;
+        switch (g_main_game_mode_0068eddc) {
+        case 3:
+            if (gXStatus.fNpcDialogueMode != 0) {
+                EndNpcDialogueSession0056E800(0);
+            }
+            break;
+        case 5:
+            CloseMessageBox();
+            break;
+        case 6:
+            if (g_level_block->highlight_graphic != 0) {
+                ReleaseObject004257F0(g_level_block->highlight_graphic);
+                g_level_block->highlight_graphic = 0;
+                if (g_main_game_mode_0068eddc != 6) {
+                    goto mode_reset;
+                }
+            }
+            ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                             g_level_block->dialogue_width_238 + g_level_block->dialogue_x_220,
+                             g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224);
+            InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                             g_level_block->dialogue_width_238 + g_level_block->dialogue_x_220,
+                             g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224, 0);
+            if (g_level_block->dialogue_y_224 <
+                    static_cast<unsigned int>(
+                        g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+                g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                g_level_block->redraw_flags |= 0x100;
+            }
+            if (0x166 < g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224 &&
+                g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                g_level_block->redraw_flags |= 0x800;
+            }
+            break;
+        }
+    mode_reset:
+        g_main_game_mode_0068eddc = 0;
+        SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
+        return;
+    }
+    WorldSetCameraLocation(g_world, &g_trigger_camera_006599a0.x);
+}
+
+/* Copy the queued level/entry into the pending screen state, tear down the
+   active main-game UI mode and hand off to the Please Wait screen. */
+// FUNCTION: WIZ8 0x005611A0
+void BeginLevelTransition(void)
+{
+    g_pending_screen_state.mode = 3;
+    g_pending_screen_state.parameter = g_level_block->pending_level;
+    g_pending_screen_state.parameter_2 = g_level_block->pending_entry_id;
+    switch (g_main_game_mode_0068eddc) {
+    case 3:
+        if (gXStatus.fNpcDialogueMode != 0) {
+            EndNpcDialogueSession0056E800(0);
+        }
+        break;
+    case 5:
+        CloseMessageBox();
+        break;
+    case 6:
+        if (g_level_block->highlight_graphic != 0) {
+            ReleaseObject004257F0(g_level_block->highlight_graphic);
+            g_level_block->highlight_graphic = 0;
+            if (g_main_game_mode_0068eddc != 6) {
+                goto mode_reset;
+            }
+        }
+        ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                         g_level_block->dialogue_width_238 + g_level_block->dialogue_x_220,
+                         g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224);
+        InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                         g_level_block->dialogue_width_238 + g_level_block->dialogue_x_220,
+                         g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224, 0);
+        if (g_level_block->dialogue_y_224 <
+                static_cast<unsigned int>(
+                    g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x100;
+        }
+        if (0x166 < g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224 &&
+            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x800;
+        }
+        break;
+    }
+mode_reset:
+    g_main_game_mode_0068eddc = 0;
+    SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
 }
 
 /* While the party is idle, arm a one-minute countdown after input and, once the
@@ -7327,6 +7437,103 @@ void OpenAutomapScreen(void)
     }
     g_main_game_mode_0068eddc = 0;
     SetPendingScreenState(W8_SCREEN_AUTOMAP);
+}
+
+/* Queue a level transition to `entry` on `level`. With `flag` set the request
+   first builds the "Enter <name>?" prompt and, unless queued NPC departure
+   events answer it, raises a mode-5 confirmation dialog whose result callback
+   completes the transition or restores the camera; with `flag` clear the
+   transition is queued immediately. */
+// FUNCTION: WIZ8 0x005615F0
+void RequestLevelTransition005615F0(int level, int entry, unsigned char flag)
+{
+    unsigned int destination_level = NormalizeMasterFunctionValue004D9700(level);
+
+    g_level_block->pending_level = destination_level;
+    g_level_block->pending_entry_id = entry;
+    if (flag != 0) {
+        if (destination_level < 0x2f) {
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s_space_s_question_006480e4,
+                     gppStringList[0x1e64 / 4],
+                     gppStringList[g_level_name_indices_605820[destination_level]]);
+        } else if (destination_level == 0x38) {
+            wcscpy(g_level_block->text_paint_scratch_000, g_text_enter_default_level_006480b8);
+        } else {
+            swprintf(g_level_block->text_paint_scratch_000, g_format_enter_test_level_c_0064808c,
+                     destination_level + 2);
+        }
+        if (QueueNpcDepartureEvents0050DEC0(destination_level) != 0) {
+            WorldSetCameraLocation(g_world, &g_trigger_camera_006599a0.x);
+            return;
+        }
+        wchar_t* message = g_level_block->text_paint_scratch_000;
+        switch (g_main_game_mode_0068eddc) {
+        case 3:
+            if (gXStatus.fNpcDialogueMode != 0) {
+                EndNpcDialogueSession0056E800(0);
+            }
+            break;
+        case 5:
+            CloseMessageBox();
+            break;
+        case 6:
+            if (g_level_block->highlight_graphic != 0) {
+                ReleaseObject004257F0(g_level_block->highlight_graphic);
+                g_level_block->highlight_graphic = 0;
+            }
+            ClearHighlightOverlayRegion();
+            break;
+        }
+        g_main_game_mode_0068eddc = 5;
+        W8MessageDialogBase* dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
+        dialog->SetClientExtent(0xfa, 200);
+        dialog->SetMessage(message, 1, 0x32, 1, 1, 1, 1, 0, 0x15e);
+        SetDialogDestroyCallback(dialog, OnLevelTransitionDialogClosed);
+        g_modal_owner_0068edd0 = dialog;
+        ActivateDialogRegion(0x138);
+        return;
+    }
+    g_pending_screen_state.mode = 3;
+    g_pending_screen_state.parameter = g_level_block->pending_level;
+    g_pending_screen_state.parameter_2 = g_level_block->pending_entry_id;
+    switch (g_main_game_mode_0068eddc) {
+    case 3:
+        if (gXStatus.fNpcDialogueMode != 0) {
+            EndNpcDialogueSession0056E800(0);
+        }
+        break;
+    case 5:
+        CloseMessageBox();
+        break;
+    case 6:
+        if (g_level_block->highlight_graphic != 0) {
+            ReleaseObject004257F0(g_level_block->highlight_graphic);
+            g_level_block->highlight_graphic = 0;
+            if (g_main_game_mode_0068eddc != 6) {
+                goto mode_reset;
+            }
+        }
+        ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                         g_level_block->dialogue_width_238 + g_level_block->dialogue_x_220,
+                         g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224);
+        InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                         g_level_block->dialogue_width_238 + g_level_block->dialogue_x_220,
+                         g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224, 0);
+        if (g_level_block->dialogue_y_224 <
+                static_cast<unsigned int>(
+                    g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x100;
+        }
+        if (0x166 < g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224 &&
+            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x800;
+        }
+        break;
+    }
+mode_reset:
+    g_main_game_mode_0068eddc = 0;
+    SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
 }
 
 /* Load the level the party is on. With no level yet there is nothing to load

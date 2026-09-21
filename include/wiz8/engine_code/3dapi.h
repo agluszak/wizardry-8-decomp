@@ -23,6 +23,9 @@ extern unsigned char g_flag_00609c8c;
 void ReportAssertion(const char* expression, const char* source_path, long line);
 void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags);
 void ApplyWorldUpdateFlags(W8World* world, unsigned int flags);
+/* Moves the camera and its camera light together; only the camera's move
+   notifies the level. */
+void WorldSetCameraLocation(W8World* world, const float* location); /* 0x00450420 */
 /* Retail call sites push world/x/y; the body ignores them and reads the
    renderer's selected prop index. */
 int ForwardSelectedPropIndex004503B0(W8World* world, int x, int y);
