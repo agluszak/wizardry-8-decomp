@@ -69,16 +69,15 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
 
     fake_record = static_cast<W8NpcDatabaseRecord*>(malloc(sizeof(W8NpcDatabaseRecord)));
     fake_npc = static_cast<W8NpcState*>(malloc(sizeof(W8NpcState)));
-    fake_screen = static_cast<W8MainScreenState*>(malloc(sizeof(W8MainScreenState)));
+    fake_screen = new W8MainScreenState();
     if (fake_record == 0 || fake_npc == 0 || fake_screen == 0) {
         free(fake_record);
         free(fake_npc);
-        free(fake_screen);
+        delete fake_screen;
         return false;
     }
     memset(fake_record, 0, sizeof(*fake_record));
     memset(fake_npc, 0, sizeof(*fake_npc));
-    memset(fake_screen, 0, sizeof(*fake_screen));
 
     /* flag_2ea routes the dispatcher's quote handling past the pending-value
        rescan and routes BeginNpcDialogueInternal to its quote branch; the
@@ -95,7 +94,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
         if (test_level_block == 0) {
             free(fake_record);
             free(fake_npc);
-            free(fake_screen);
+            delete fake_screen;
             return false;
         }
         memset(test_level_block, 0, sizeof(*test_level_block));
@@ -211,7 +210,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     }
     free(fake_record);
     free(fake_npc);
-    free(fake_screen);
+    delete fake_screen;
 
     return result->state_ready != 0 && result->prepended_quote_ran_first != 0 &&
            result->spacer_consumed_inertly != 0 && result->close_flag_set != 0 &&

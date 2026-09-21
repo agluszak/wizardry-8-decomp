@@ -114,7 +114,7 @@ static unsigned char CheckSortByKeyReverse()
     unsigned long keys[8] = {80, 70, 60, 50, 40, 30, 20, 10};
     SortByKey(items, keys, 8);
     for (int index = 0; index < 8; ++index) {
-        if (keys[index] != static_cast<unsigned long>((index + 1) * 10) ||
+        if (keys[index] != static_cast<unsigned long>(index + 1) * 10 ||
             items[index] != static_cast<unsigned short>(index + 1)) {
             return 0;
         }

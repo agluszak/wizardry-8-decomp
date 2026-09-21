@@ -32,6 +32,7 @@ def _managed_link(source: Path, destination: Path) -> None:
 
 
 RUNTIME_OBSERVATION = re.compile(r"^WIZ8_RUNTIME_TEST (?P<fields>.+)$")
+RUNTIME_FAILURE = re.compile(r"^WIZ8_RUNTIME_FAILURE (?P<fields>.+)$", re.MULTILINE)
 RUNTIME_CRASH = re.compile(r"^WIZ8_RUNTIME_CRASH (?P<fields>.+)$", re.MULTILINE)
 RUNTIME_CANDIDATE = re.compile(
     r"^WIZ8_RUNTIME_CANDIDATE source=(?P<source>\S+) address=(?P<address>[0-9a-fA-F]+)",
@@ -519,6 +520,12 @@ def _runtime_failure(
     if crash is not None:
         detail = _crash_detail(map_path, object_root, crash) if map_path is not None else ""
         return RuntimeError(f"{scenario} failed: {crash.record}{detail}\nartifacts={artifact}")
+    failure = RUNTIME_FAILURE.search(combined)
+    if failure is not None:
+        fields = _parse_diagnostic_fields(failure.group("fields"))
+        reason = fields.get("reason", "unknown")
+        line = fields.get("line", "unknown")
+        return RuntimeError(f"{scenario} failed: reason={reason} line={line}\nartifacts={artifact}")
     diagnostic_lines = [line for line in combined.splitlines() if line.strip()]
     last_diagnostic = diagnostic_lines[-1][-500:] if diagnostic_lines else "no diagnostics"
     summary = f"status={returncode if returncode is not None else 'timeout'}: {last_diagnostic}"
