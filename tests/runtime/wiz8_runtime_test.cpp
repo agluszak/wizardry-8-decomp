@@ -14,6 +14,7 @@
 #include "wiz8/local_code/GameplayDatabase.h"
 #include "wiz8/local_code/LoadSaveGame.h"
 #include "wiz8/local_code/NPCScripting.h"
+#include "wiz8/local_code/PartyImport.h"
 #include "wiz8/music_playlist.h"
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_code/Gameloop.h"
