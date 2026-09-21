@@ -788,6 +788,46 @@ void UseItemSelectAssayButton0059D860(void)
     }
 }
 
+void Function59D230(int mode, int arg); /* 0x0059D230: rebuild the list for a select mode */
+
+/* Commit the pending use-item action: while the selected item is still usable
+   by the owner and its recorded target suits it, commit the target and aim
+   the item use. Spell 0x17 keeps the view open for the follow-up pick;
+   anything else closes it. */
+// FUNCTION: WIZ8 0x0059D180
+void CommitSelectedItemUse(void)
+{
+    W8Character* character;
+
+    if (g_value_69b9a0 != 0 &&
+        CanUseItemForAction(g_status_685170.selected_character, g_value_69b9a0) &&
+        IsItemTargetOfNeededKind(g_status_685170.selected_character, g_value_69b9a0)) {
+        character = &g_status_685170.buffers.characters[g_status_685170.selected_character];
+        if (g_value_69b9a0 != 0) {
+            g_use_item_commit_active_0069bf38 = 1;
+            CommitSelectedSpellTarget();
+            g_use_item_commit_active_0069bf38 = 0;
+            AimItemUseAtCurrentTarget0051DB60(character, g_value_69b9a0);
+            if (g_value_69b9a0 != 0 && g_value_69b9a0->item_id != -1 &&
+                GetItemSpell(g_value_69b9a0) == 0x17) {
+                return;
+            }
+            CloseUseItemSelectView();
+        }
+    }
+}
+
+/* After the cursor item is dropped mid-select, rebuild the list under the
+   saved select mode so the rows reflect the new state, then repaint. */
+// FUNCTION: WIZ8 0x0059D690
+void RefreshUseItemSelection(void)
+{
+    if (g_use_item_select_mode_0069b98c != -1) {
+        Function59D230(g_use_item_select_mode_0069b98c, 0);
+        RequestRedraw(0x200);
+    }
+}
+
 /* Right release on the use-item text box: open the assay dialog for the item
    on the clicked row. The target cursor is saved so the destroy callback can
    restore it. */
