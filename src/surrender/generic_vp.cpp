@@ -944,11 +944,11 @@ void srVP_generic::_transform(srVector3* destination, const srVector3* vectors,
     const float* m = &matrix.vectors[0].x;
     for (SRDWORD index = 0; index < count; ++index) {
         destination[index].x =
-            vectors[index].x * m[0] + vectors[index].y * m[1] + vectors[index].z * m[2] + m[3];
+            vectors[index].z * m[2] + vectors[index].x * m[0] + m[1] * vectors[index].y + m[3];
         destination[index].y =
-            vectors[index].x * m[4] + vectors[index].y * m[5] + vectors[index].z * m[6] + m[7];
+            vectors[index].x * m[4] + m[5] * vectors[index].y + vectors[index].z * m[6] + m[7];
         destination[index].z =
-            vectors[index].x * m[8] + vectors[index].y * m[9] + vectors[index].z * m[10] + m[11];
+            vectors[index].y * m[9] + vectors[index].z * m[10] + vectors[index].x * m[8] + m[11];
     }
 }
 
@@ -1381,14 +1381,14 @@ void srVP_generic::_transform(srVector4* destination, const srVector4* vectors,
 {
     const float* m = &matrix.vectors[0].x;
     for (SRDWORD index = 0; index < count; ++index) {
-        destination[index].x = vectors[index].x * m[0] + vectors[index].y * m[1] +
-                               vectors[index].z * m[2] + vectors[index].w * m[3];
-        destination[index].y = vectors[index].x * m[4] + vectors[index].y * m[5] +
-                               vectors[index].z * m[6] + vectors[index].w * m[7];
-        destination[index].z = vectors[index].x * m[8] + vectors[index].y * m[9] +
-                               vectors[index].z * m[10] + vectors[index].w * m[11];
-        destination[index].w = vectors[index].x * m[12] + vectors[index].y * m[13] +
-                               vectors[index].z * m[14] + vectors[index].w * m[15];
+        destination[index].x = vectors[index].y * m[1] + vectors[index].z * m[2] +
+                               m[0] * vectors[index].x + m[3] * vectors[index].w;
+        destination[index].y = vectors[index].w * m[7] + vectors[index].z * m[6] +
+                               m[4] * vectors[index].x + m[5] * vectors[index].y;
+        destination[index].z = vectors[index].z * m[10] + m[11] * vectors[index].w +
+                               m[9] * vectors[index].y + m[8] * vectors[index].x;
+        destination[index].w = vectors[index].w * m[15] + m[13] * vectors[index].y +
+                               m[12] * vectors[index].x + vectors[index].z * m[14];
     }
 }
 
@@ -1399,13 +1399,13 @@ void srVP_generic::_transform(srVector4* destination, const srVector3* vectors,
     const float* m = &matrix.vectors[0].x;
     for (SRDWORD index = 0; index < count; ++index) {
         destination[index].x =
-            vectors[index].x * m[0] + vectors[index].y * m[1] + vectors[index].z * m[2] + m[3];
+            vectors[index].z * m[2] + vectors[index].x * m[0] + m[1] * vectors[index].y + m[3];
         destination[index].y =
-            vectors[index].x * m[4] + vectors[index].y * m[5] + vectors[index].z * m[6] + m[7];
+            vectors[index].x * m[4] + vectors[index].z * m[6] + m[5] * vectors[index].y + m[7];
         destination[index].z =
-            vectors[index].x * m[8] + vectors[index].y * m[9] + vectors[index].z * m[10] + m[11];
+            vectors[index].z * m[10] + m[9] * vectors[index].y + vectors[index].x * m[8] + m[11];
         destination[index].w =
-            vectors[index].x * m[12] + vectors[index].y * m[13] + vectors[index].z * m[14] + m[15];
+            vectors[index].x * m[12] + m[13] * vectors[index].y + m[14] * vectors[index].z + m[15];
     }
 }
 
@@ -1417,9 +1417,9 @@ void srVP_generic::_transformIndexed(srVector3* destination, const srVector3* so
     for (SRDWORD index = 0; index < count; ++index) {
         SRDWORD source_index = indices[index];
         const srVector3* vector = &source[source_index];
-        destination[index].x = vector->x * m[0] + vector->y * m[1] + vector->z * m[2] + m[3];
-        destination[index].y = vector->x * m[4] + vector->y * m[5] + vector->z * m[6] + m[7];
-        destination[index].z = vector->x * m[8] + vector->y * m[9] + vector->z * m[10] + m[11];
+        destination[index].x = vector->x * m[0] + vector->z * m[2] + m[1] * vector->y + m[3];
+        destination[index].y = vector->x * m[4] + m[5] * vector->y + vector->z * m[6] + m[7];
+        destination[index].z = vector->y * m[9] + vector->z * m[10] + vector->x * m[8] + m[11];
     }
 }
 
@@ -1431,10 +1431,10 @@ void srVP_generic::_transformIndexed(srVector4* destination, const srVector3* so
     for (SRDWORD index = 0; index < count; ++index) {
         SRDWORD source_index = indices[index];
         const srVector3* vector = &source[source_index];
-        destination[index].x = vector->x * m[0] + vector->y * m[1] + vector->z * m[2] + m[3];
-        destination[index].y = vector->x * m[4] + vector->y * m[5] + vector->z * m[6] + m[7];
-        destination[index].z = vector->x * m[8] + vector->y * m[9] + vector->z * m[10] + m[11];
-        destination[index].w = vector->x * m[12] + vector->y * m[13] + vector->z * m[14] + m[15];
+        destination[index].x = vector->y * m[1] + vector->x * m[0] + vector->z * m[2] + m[3];
+        destination[index].y = vector->x * m[4] + m[5] * vector->y + vector->z * m[6] + m[7];
+        destination[index].z = vector->y * m[9] + vector->z * m[10] + vector->x * m[8] + m[11];
+        destination[index].w = vector->z * m[14] + vector->x * m[12] + vector->y * m[13] + m[15];
     }
 }
 
@@ -1614,10 +1614,12 @@ void srVP_generic::_minMax(const srVector4* source, srVector4& minimum, srVector
     for (SRDWORD index = 1; index < count; ++index) {
         const float* components = &source[index].x;
         for (int component = 0; component < 4; ++component) {
-            if (components[component] < minimum_components[component]) {
+            if (components[component] >= minimum_components[component]) {
+                if (components[component] > maximum_components[component]) {
+                    maximum_components[component] = components[component];
+                }
+            } else {
                 minimum_components[component] = components[component];
-            } else if (components[component] > maximum_components[component]) {
-                maximum_components[component] = components[component];
             }
         }
     }
