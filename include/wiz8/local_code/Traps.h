@@ -19,5 +19,10 @@ char Function5E3610(const InputAtom* input, void (*prompt)(void)); /* 0x005E3610
 void Function5E34B0(void);                                         /* 0x005E34B0 */
 void Function5E35A0(void);                                         /* 0x005E35A0 */
 unsigned char GetTable650434Entry(int trap, int device);
-void Function5E3780(Trigger* trigger); /* 0x005E3780 */
-void Function5E3AB0(Trigger* trigger); /* 0x005E3AB0 */
+/* Finishes a successful disarm: completes the item interaction, rolls the
+   learn chance, prints the "<trap> disarmed" line and runs the trigger. */
+void CompleteTrapDisarm005E3780(Trigger* trigger); /* 0x005E3780 */
+/* Resolves a sprung trap: prints the outcome line, derives target count and
+   power from the device count versus the type's difficulty, then discharges
+   the trap's spell. */
+void ResolveSprungTrap005E3AB0(Trigger* trigger); /* 0x005E3AB0 */

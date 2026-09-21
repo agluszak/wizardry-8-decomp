@@ -1023,6 +1023,41 @@ bool Trigger::HasActorWithinRadius(float radius, bool include_party)
     return 0;
 }
 
+// FUNCTION: WIZ8 0x00445730
+void __fastcall UpdateTriggerLock00445730(int* lock_state)
+{
+    int index;
+    int size;
+
+    if (lock_state[0] == 1) {
+        for (index = 0; index < 8; ++index) {
+            // reinterpret-ok: int* lock_state overlays the Trigger tail pins
+            reinterpret_cast<unsigned char*>(lock_state)[index + 9] =
+                static_cast<unsigned char>(Random(4));
+        }
+        size = lock_state[1];
+        if (size < 2) {
+            size = 2;
+        } else if (size > 7) {
+            size = 8;
+        }
+        lock_state[7] = size * 3;
+    }
+    lock_state[8] = -1;
+    // reinterpret-ok: byte +8 of the int* lock_state overlay is state_370.state
+    reinterpret_cast<unsigned char*>(lock_state)[8] = 0;
+}
+
+// FUNCTION: WIZ8 0x004457A0
+unsigned char __fastcall ConsumeLockQuality004457A0(int* lock_state)
+{
+    if (lock_state[7] > 0) {
+        --lock_state[7];
+        return 1;
+    }
+    return 0;
+}
+
 // FUNCTION: WIZ8 0x004457c0
 bool Trigger::PlayActionSound(const char* sound_name, int volume)
 {
