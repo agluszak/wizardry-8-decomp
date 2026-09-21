@@ -653,7 +653,7 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                     tree->spatial_000.SetWorkingBounds00467B70(&g_weld_min_0065bab0,
                                                                &g_weld_max_0065bacc);
                     tree->m_positional_1b0 = alpha_polys;
-                    value->positional_04 = tree;
+                    value->octree_04 = tree;
                     sprintf(message, "Poly List Len: %d\n",
                             static_cast<int>(tree->polygon_cursor_3a0));
                     ReportBuildStatus00497690(6, message);

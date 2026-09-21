@@ -479,7 +479,7 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
 {
     int trigger_index = 0;
     int index;
-    if (positional_04 != 0) {
+    if (octree_04 != 0) {
         if (m_ppTriggers == 0) {
             g_integrated_trigger_count_00659a58 = 0;
             m_ppTriggers = static_cast<Trigger**>(malloc(m_iNumTriggers * sizeof(Trigger*) + 4));
@@ -1087,7 +1087,7 @@ void W8GameData::ReadProcessedGameData(int handle)
 W8GameData::W8GameData(int handle, bool secondary)
 {
     geometry_index_00 = 0;
-    positional_04 = 0;
+    octree_04 = 0;
     m_iNumVertices = 0;
     m_pVertices = 0;
     integrated_surface_count_34 = 0;
@@ -1114,7 +1114,7 @@ W8GameData::W8GameData(int handle, bool secondary)
     m_ppNames = 0;
     m_iNumEnvirons = 0;
     m_ppEnvirons = 0;
-    value_88 = 0;
+    trace_flag4_gate_88 = 0;
     minimum_08 = 1.0e8f;
     maximum_14 = -1.0e8f;
     if (!secondary) {
