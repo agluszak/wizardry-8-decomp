@@ -8882,7 +8882,7 @@ void ConfirmNpcTrade005AD290(void)
                     entry->available_at == 0) {
                     if (matched == selected) {
                         if (index != 0xffffffff &&
-                            Function55B7E0(
+                            BuyItemFromNpc0055B7E0(
                                 g_screen_state_00649f1c->dialogue_npc, index,
                                 static_cast<unsigned char>(g_screen_state_00649f1c->trade_quantity),
                                 '\0', &moved) != 0) {
@@ -9258,7 +9258,7 @@ bool AttemptNpcItemTrade005AE2A0(W8ItemInstance* item, unsigned char quantity, i
         if (g_item_records[item->item_id].identify_difficulty != 0 && quantity == 1) {
             AddNpcTopic(g_screen_state_00649f1c->dialogue_npc, item->item_id);
         }
-        Function55B7E0(g_screen_state_00649f1c->dialogue_npc, index, quantity, 1, 0);
+        BuyItemFromNpc0055B7E0(g_screen_state_00649f1c->dialogue_npc, index, quantity, 1, 0);
         ResetEditorStatusLine0058AA20(2);
         ResetNpcDialogueItemEditor();
         EnableNpcTradeFilterButtons00573630();

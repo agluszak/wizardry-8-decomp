@@ -139,7 +139,7 @@ int CountItemOnCharacter(W8Character* character, int item_id, W8ItemInstance** f
                          int include_backpack);
 /* 0x005223A0: move the departing character's soul-bound equipment to the
    party pool or the held-item display before the slot is released. */
-void Function5223A0(W8Character* character);
+void MoveCharacterItemsToParty005223A0(W8Character* character);
 char PartyAttemptsToIdentifyItem(W8ItemInstance* item, int argument_2);
 
 bool CanItemLeaveItsSlot(const W8ItemInstance* item);                              /* 0x0051F2B0 */

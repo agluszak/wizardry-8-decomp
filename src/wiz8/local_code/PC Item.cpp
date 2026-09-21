@@ -1613,6 +1613,34 @@ void GetOriginOfCharacterItem(int character_index, W8ItemInstance* item, unsigne
     *slot = 0xffff;
 }
 
+/* Strip a departing character's carried items into the party pool, overflowing
+   into the held-item hand: worn slots move unless they are soul-bound and the
+   wearer is still alive, then the eight carried slots follow for every worn
+   slot still occupied. Anything the pool cannot take is announced by name. */
+// FUNCTION: WIZ8 0x005223A0
+void MoveCharacterItemsToParty005223A0(W8Character* character)
+{
+    int item_id;
+    int slot;
+
+    for (slot = 0; slot < 12; ++slot) {
+        item_id = character->equipment[slot].item_id;
+        if (item_id != -1 &&
+            (g_item_records[item_id].binds_on_equip == 0 ||
+             character->equipment[slot].bind_announced != 0 || g_equip_slot_icons[slot] == -1 ||
+             character->condition_turns[W8_CONDITION_DEAD] != 0) &&
+            AddItemToPartyOrDrop(&character->equipment[slot], 0) == 0) {
+            ShowNoticef(0, gppStringList[0x1f4c / 4], &g_item_records[item_id]);
+        }
+    }
+    for (slot = 0; slot < 8; ++slot) {
+        item_id = character->equipment[slot].item_id;
+        if (item_id != -1 && AddItemToPartyOrDrop(&character->backpack[slot], 0) == 0) {
+            ShowNoticef(0, gppStringList[0x1f4c / 4], &g_item_records[item_id]);
+        }
+    }
+}
+
 /* Initialize the fixed item-video-object vector to one entry per item record. */
 // FUNCTION: WIZ8 0x0051b560
 void InitializeItemVideoObjects(void)

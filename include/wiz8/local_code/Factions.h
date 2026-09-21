@@ -67,10 +67,6 @@ W8FactionDisposition GetFactionDisposition(signed char faction);
 W8FactionDisposition GetFactionDispositionToward(signed char faction, signed char other);
 
 signed char GetFactionDispositionScore(signed char faction);
-/* 0x00535C50: the band query 0x0050A280 runs before the ally-faction scan -
-   mode 1 reads the faction's disposition band, other modes read the pairwise
-   relation row. */
-unsigned char Function535C50(signed char faction, char mode);
 
 /* 0x00535920: zero both faction tables and seed the starting dispositions and
    relations a fresh game begins with. */

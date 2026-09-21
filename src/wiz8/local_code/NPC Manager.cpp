@@ -580,7 +580,7 @@ void UpdateNpcPartyMember0050B3B0(int party_slot)
 
     if (character->highest_condition == 0x12) {
         ShowNoticef(0, gppStringList[0x7d4], character->name);
-        Function5223A0(character);
+        MoveCharacterItemsToParty005223A0(character);
         RemoveCharacterFromParty(party_slot, 0);
         return;
     }

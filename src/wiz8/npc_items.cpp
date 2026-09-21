@@ -12,6 +12,7 @@
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/Strings.h"
 #include "wiz8/monster_runtime.h"
 #include "random.h"
 #include "soundman.h"
@@ -677,6 +678,78 @@ unsigned char SellItemToNpc0055B730(W8NpcState* npc, W8ItemInstance* item, unsig
         }
     }
     return 0;
+}
+
+// FUNCTION: WIZ8 0x0055B7E0
+unsigned char BuyItemFromNpc0055B7E0(W8NpcState* npc, int index, unsigned char quantity,
+                                     char suppress_payment, int* remaining_out)
+{
+    W8NpcItemEntry* entry;
+    W8ItemInstance item;
+    W8ItemInstance stack;
+    unsigned char stock;
+    unsigned char count;
+    unsigned char moved;
+    unsigned int length;
+    unsigned int position;
+    int price;
+
+    moved = 0;
+    entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
+    if (entry == 0) {
+        return 0;
+    }
+    stock = entry->item.stack_count;
+    do {
+        ReplaceOrCreateItem(&item, entry->item.item_id, 1, 1, 0);
+        if (g_item_records[item.item_id].quantity_kind == 0) {
+            count = 1;
+        } else if (g_item_records[item.item_id].quantity_kind == 1) {
+            count = quantity - moved;
+            if (g_item_records[item.item_id].maximum_quantity < count) {
+                count = g_item_records[item.item_id].maximum_quantity;
+            }
+            if (count == 0) {
+                count = 1;
+            }
+            item.stack_count = count;
+        } else {
+            item.uses_or_charges = entry->item.uses_or_charges;
+            count = 1;
+        }
+        if (AddItemToPartyOrDrop(&item, 0) == 0 && g_status_685170.item_in_cursor == 0) {
+            DisplayNpcQuote00529570(gppStringList[0x6b1], 0);
+        }
+        moved += count;
+    } while (moved < quantity);
+    if (moved == 0) {
+        return 0;
+    }
+    ReplaceOrCreateItem(&stack, entry->item.item_id, 0, 1, 0);
+    stack.stack_count = moved;
+    price = CalculateTradeStackPrice(npc, &stack, 1);
+    SoundPlay(g_sound_cash_transaction_62a80c, 0);
+    if (ConsumeNpcItemQuantity(npc, index, moved) == 0) {
+        return 0;
+    }
+    if (suppress_payment == 0) {
+        SpendPartyGold(price);
+    }
+    if (remaining_out != 0) {
+        *remaining_out = stock - moved;
+    }
+    length = PLLength(npc->items);
+    for (position = 0; position < length; position++) {
+        entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, position));
+        if (entry != 0 && entry->quantity == 0) {
+            delete static_cast<W8NpcItemEntry*>(PLRemoveAt(npc->items, position));
+            if (position != 0) {
+                position--;
+            }
+            length = PLLength(npc->items);
+        }
+    }
+    return 1;
 }
 
 // FUNCTION: WIZ8 0x0055b290

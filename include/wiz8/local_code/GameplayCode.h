@@ -70,7 +70,8 @@ void EnsureUniquePartyVoice004EFAD0(W8Character* character); /* 0x004EFAD0 */
    task does not expand. */
 void CastSpellAtLockInteraction00587C80(unsigned int level, int flag, int backfire);
 unsigned int GetAveragePartyLevel(void); /* 0x004EF420 */
-void Function4EF7E0(W8Character*, W8Character*, int);
+unsigned char ReplacePartyMember004EF7E0(W8Character* old_character, W8Character* new_character,
+                                         char charge_for_equipment);
 bool AnyMonsterEngaged(void); /* 0x004EEE20 */
 /* 0x004EF9A0: on a level-motion override, roll `pow(8.0, fall + 0.7)` d6 of
    fall damage against the party with a notice and the fall-impact sound. */
