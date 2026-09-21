@@ -32,7 +32,6 @@ struct W8PropAnimationSegment {
    0xc4 bytes, runs the AnimRep constructor, then installs the Prop-owned
    animation pointer, speed, and the slot vector at 0xb0.  The secondary
    vtable at 0xb0 is the growable-vector specialization at 0x005EC1D0. */
-#pragma pack(push, 1)
 class W8PropRepresentation : public W8AnimRep005ED050 {
 public:
     /* Default construction is inlined at Prop::Prop. */
@@ -71,7 +70,6 @@ public:
     unsigned char flag_0c1;                          /* 0xc1 */
     unsigned char unknown_0c2[2];
 }; /* 0xc4 */
-#pragma pack(pop)
 
 static_assert(sizeof(W8PropRepresentation) == 0xc4, "W8PropRepresentation_must_be_0xc4");
 

@@ -81,12 +81,10 @@ public:
 static_assert(sizeof(W8TriggerActionData005EC158) == 0x0c,
               "W8TriggerActionData005EC158_must_be_0x0c");
 
-#pragma pack(push, 1)
 struct W8TriggerState370 {
     unsigned char state;
     unsigned char bytes_01[8];
 };
-#pragma pack(pop)
 
 static_assert(sizeof(W8TriggerState370) == 9, "W8TriggerState370_must_be_9");
 

@@ -257,7 +257,6 @@ struct W8MonsterCombatState {
 }; /* 0x153 */
 #pragma pack(pop)
 
-#pragma pack(push, 1)
 /* 0x286: the party-side sight record for one monster. The live-threat gate,
    the clock and two position triples the player-sight pass stamps, the
    use-bounds flag IsVisibleToPlayer consumes, and its two sight flags. The
@@ -279,6 +278,7 @@ struct W8PartyThreatRecord {
 }; /* 0x30 */
 static_assert(sizeof(W8PartyThreatRecord) == 0x30, "W8PartyThreatRecord_size");
 
+#pragma pack(push, 1)
 /* One 0x31-byte visibility record. W8MonsterInfo embeds the party-facing one
    at 0x348 and the mon-to-mon list allocates one per other monster; both store
    the observer's position at 0x10 and the observed entity's at 0x1c as

@@ -35,7 +35,6 @@ struct W8SpellDamageReport {
 
 static_assert(sizeof(W8SpellDamageReport) == 0x6c, "W8SpellDamageReport_must_be_0x6c");
 
-#pragma pack(push, 1)
 /* One spell effect definition, 0x30 bytes. A missile carries its own copy at
    0x1fc. The radius at 0x00 bounds an area effect (0 for a single target),
    the dice at 0x04 are rolled for the effect's size, the three values at
@@ -54,7 +53,6 @@ struct W8SpellEffectDefinition {
     int duration_base;      /* 0x28 */
     int duration_per_power; /* 0x2c */
 };
-#pragma pack(pop)
 
 static_assert(sizeof(W8SpellEffectDefinition) == 0x30, "W8SpellEffectDefinition_must_be_0x30");
 
@@ -87,7 +85,6 @@ struct W8SpellEffectResult {
 
 static_assert(sizeof(W8SpellEffectResult) == 0xa2, "W8SpellEffectResult_must_be_0xa2");
 
-#pragma pack(push, 1)
 struct W8SpellEffectEntry {
     /* Every construction site inlines this sequence: the member vectors are
        built first, then the working source, the target slot, the carried
@@ -147,7 +144,6 @@ struct W8SpellEffectEntry {
     unsigned char applied_125;
     W8SpellEffectResult result_126; /* 0x126 */
 };
-#pragma pack(pop)
 
 static_assert(sizeof(W8SpellEffectEntry) == 0x1c8, "W8SpellEffectEntry_must_be_0x1c8");
 static_assert(offsetof(W8SpellEffectEntry, OrigSource) == 0x008, "W8SpellEffectEntry_OrigSource");

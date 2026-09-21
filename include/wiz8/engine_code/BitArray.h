@@ -15,8 +15,6 @@
  * the word's first bit, and advances them independently.
  */
 
-#pragma pack(push, 1)
-
 class BitArray {
 public:
     explicit BitArray(unsigned int bit_count); /* 0x0043ACC0 */
@@ -77,8 +75,6 @@ public:
     unsigned int* puiIndex; /* 0x18 */
     unsigned int bit_count; /* 0x1c */
 }; /* 0x20 */
-
-#pragma pack(pop)
 
 enum { W8_BITS_PER_WORD = 32 };
 
