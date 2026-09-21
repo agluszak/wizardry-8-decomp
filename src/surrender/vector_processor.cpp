@@ -101,10 +101,7 @@ void srVectorProcessor::dump(std::ostream& stream)
             ++used;
         }
     }
-    if (used == 0) {
-        return;
-    }
-    if (total == 0.0) {
+    if (used == 0 || total == 0.0) {
         return;
     }
     SRDWORD* scores = static_cast<SRDWORD*>(operator new(used * 4));
@@ -148,7 +145,7 @@ void srVectorProcessor::dump(std::ostream& stream)
         char element_text[0x40];
         char misalignments[0x40];
         sprintf(percent, "%.2f%%", time * 100.0 / total);
-        sprintf(cycles, "%.2f", time * frequency / calls);
+        sprintf(cycles, "%.2f", time * frequency / elements);
         sprintf(call_text, "%d", static_cast<int>(calls));
         sprintf(element_text, "%d", static_cast<int>(elements / calls));
         sprintf(misalignments, "%d/%d", static_cast<int>(debug->misaligned8_1148[command]),
@@ -276,11 +273,13 @@ void srVectorProcessor::release()
     if (vp != 0) {
         delete base;
         delete debug;
-        if (module != 0 && !srDynamicLibrary::free(module)) {
-            char message[512];
-            sprintf(message,
-                    "srVectorProcessor::release () -- call to srDynamicLibrary::free() failed!\n");
-            srDebugPrintf(0, message);
+        if (module != 0) {
+            if (!srDynamicLibrary::free(module)) {
+                char message[512];
+                sprintf(message, "srVectorProcessor::release () -- call to "
+                                 "srDynamicLibrary::free() failed!\n");
+                srDebugPrintf(0, message);
+            }
         }
         vp = 0;
         base = 0;
