@@ -2223,7 +2223,7 @@ void ExecuteCharacterAction004EA5C0(int party_slot)
         result = CanCharacterAttackItsTarget(party_slot);
         break;
     case 6:
-        fatigue_cost = Function547FE0(party_slot);
+        fatigue_cost = PerformPartySlotPray00547FE0(party_slot);
         if (fatigue_cost == 0) {
             goto action_failed;
         }

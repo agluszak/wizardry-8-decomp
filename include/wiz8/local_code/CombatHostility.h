@@ -50,9 +50,10 @@ void SetMonsterGroupHostilityByID(int group_id, unsigned int hostility, char rec
 /* 0x00547CB0: write the fatigue the slot's pending pray costs, or -1 when it
    cannot be paid; the flag picks the check flavor. */
 int TurnUndead(int party_slot, int* out_cost, char check);
-/* 0x00547FE0: the fatigue the slot's pending turn-undead costs, zero when it
-   cannot be carried out. */
-int Function547FE0(int party_slot);
+/* 0x00547FE0: resolve the slot's once-per-combat pray action - roll the
+   weighted divine-intervention table and try lower outcomes until one
+   applies; returns the fatigue cost, zero when the slot cannot pray. */
+int PerformPartySlotPray00547FE0(int party_slot);
 
 /* 0x0061EC14: gppStringList indices naming each monster special-attack kind,
    indexed by W8MonsterRecord::special_attack_kind_0e3; slot zero is unused. */

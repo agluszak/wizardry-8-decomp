@@ -7,6 +7,7 @@
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_code/CombatRange.h"
+#include "wiz8/local_code/Configuration.h"
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/engine_code/Spells.h"
@@ -21,6 +22,7 @@
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/Targeting.h"
+#include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/layouts/game_status.h"
@@ -550,6 +552,394 @@ unsigned char CanPartySlotPray(int party_slot)
         }
     }
     return 0;
+}
+
+/* 0x0061DD38: authored weight of each pray outcome, indexed by table slot; the
+   runtime table below is rebuilt as suffix sums once per process. */
+// GLOBAL: WIZ8 0x0061DD38
+static const int g_pray_action_weights_61dd38[14] = {5,  5,  10, 10, 10, 20, 10,
+                                                     10, 10, 5,  5,  5,  5,  5};
+
+/* 0x0068D814: the runtime cumulative table; entry [14] at 0x0068D84C doubles
+   as the grand total the roll ranges over. */
+// GLOBAL: WIZ8 0x0068D814
+static int g_pray_action_weight_sums_68d814[15];
+
+/* Perform the slot's once-per-combat pray action: roll the weighted table,
+   biased down while few rounds have passed or up on the hard difficulty, then
+   try the rolled outcome and each lower one until one applies. Returns the
+   fatigue the action costs, zero when the slot cannot pray or no hostile is
+   fighting. */
+// FUNCTION: WIZ8 0x00547FE0
+int PerformPartySlotPray00547FE0(int party_slot)
+{
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    bool found = false;
+    bool success = false;
+    unsigned int count;
+    unsigned int pick;
+    unsigned int index;
+    unsigned int slot;
+    unsigned int roll;
+    unsigned int power;
+    int action;
+    int cost;
+    int out_value;
+    float range;
+    W8CombatSlot target;
+    W8TargetSource source;
+    W8GrowableVector<int> monster_targets;
+
+    if (!CharacterHasTrait00547940(character, 0xb) || g_combat_state == 0 ||
+        g_combat_state->characters[party_slot].pray_used != 0) {
+        return 0;
+    }
+    index = 0;
+    if (PLLength(gXStatus.plsMonsterList) == 0) {
+        return 0;
+    }
+    while (true) {
+        W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
+        if (monster->fActive != 0 && monster->fInCombat != 0 &&
+            monster->ubDisposition == DISP_HOSTILE && monster->hp_current != 0) {
+            break;
+        }
+        index++;
+        if (PLLength(gXStatus.plsMonsterList) <= index) {
+            return 0;
+        }
+    }
+
+    if (g_pray_action_weight_sums_68d814[14] == 0) {
+        for (index = 0; index < 14; index++) {
+            int weight = g_pray_action_weights_61dd38[index];
+            for (int* sum = &g_pray_action_weight_sums_68d814[index];
+                 sum <= &g_pray_action_weight_sums_68d814[14]; sum++) {
+                *sum += weight;
+            }
+        }
+    }
+    SetTargetSourceToCharacter(party_slot, &source);
+    source.unknown_1f[1] = 1;
+    source.unknown_1f[3] = 1;
+    ResetCombatSlot(&target);
+    PostCharacterNotice(party_slot, gppStringList[0x174]);
+    cost = CharacterActionFatigueCost(party_slot, 6);
+    if (character->stamina < cost && character->stamina < static_cast<int>(Random(cost))) {
+        PostCharacterNotice(party_slot, gppStringList[0x175]);
+        return cost;
+    }
+    if (g_settings_6850c8.verbose_combat_messages == 0) {
+        SetTextBoxMode(1, -1);
+        AppendToLastTextLine(L" -- ", -1);
+        SetTextBoxMode(1, -1);
+    }
+    roll = Random(g_pray_action_weight_sums_68d814[14]);
+    if (g_combat_state->value_004 < 4) {
+        roll = (g_combat_state->value_004 * 3 - 0xc) * 5 + roll;
+    } else if (8 < g_combat_state->value_004) {
+        roll += Random(10);
+    }
+    if (gXStatus.combat_difficulty == 0) {
+        roll -= 10;
+    } else if (gXStatus.combat_difficulty == 2) {
+        roll += 10;
+    }
+    action = 0;
+    for (index = 0; index < 14; index++) {
+        if (static_cast<int>(roll) <= g_pray_action_weight_sums_68d814[index]) {
+            action = index;
+            break;
+        }
+    }
+    power =
+        static_cast<unsigned int>(character->profession_levels[character->current_profession]) / 3 +
+        2;
+
+    while (true) {
+        action--;
+        switch (action) {
+        case 0:
+            if (Random(2) == 0) {
+                AppendToLastTextLine(gppStringList[0x178], -1);
+                g_combat_state->value_014 += 10;
+            } else {
+                AppendToLastTextLine(gppStringList[0x177], -1);
+                AddPartyGold(100, 1);
+            }
+            goto done;
+        case 1:
+            found = false;
+            for (slot = 0; slot < 8; slot++) {
+                W8Character* member = &g_status_685170.buffers.characters[slot];
+                if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+                    member->hp_current != 0 && member->stamina < member->stamina_max) {
+                    AppendToLastTextLine(gppStringList[0x179], -1);
+                    CastSpellFromSource(0x2c, &source, &target, 7, 0, 0, 1, &out_value, 0, 0, 0);
+                    goto done;
+                }
+            }
+            break;
+        case 2:
+            found = false;
+            for (slot = 0; slot < 8; slot++) {
+                W8Character* member = &g_status_685170.buffers.characters[slot];
+                if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+                    member->hp_current != 0 && member->highest_condition < 0x12 &&
+                    member->enchantments[2].value_08 == 0) {
+                    count++;
+                    found = true;
+                }
+            }
+            if (found) {
+                pick = Random(count) + 1;
+                for (slot = 0; slot < 8; slot++) {
+                    W8Character* member = &g_status_685170.buffers.characters[slot];
+                    if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+                        member->hp_current != 0 && member->highest_condition < 0x12 &&
+                        member->enchantments[2].value_08 == 0) {
+                        pick--;
+                        if (pick == 0) {
+                            AppendToLastTextLine(
+                                FormatWideString(gppStringList[0x17a], member->name), -1);
+                            target.iType = W8_TARGET_KIND_CHARACTER;
+                            if (6 < power) {
+                                power = 7;
+                            }
+                            target.iChar = slot;
+                            CastSpellFromSource(0x15, &source, &target, power, 0, 0, 0, &out_value,
+                                                0, 0, 0);
+                            goto done;
+                        }
+                    }
+                }
+            }
+            break;
+        case 3:
+            found = false;
+            count = 0;
+            for (slot = 0; slot < 8; slot++) {
+                W8Character* member = &g_status_685170.buffers.characters[slot];
+                if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+                    member->hp_current != 0 && member->highest_condition < 0x12 &&
+                    (member->condition_turns[11] != 0 || member->condition_turns[13] != 0)) {
+                    count++;
+                    found = true;
+                }
+            }
+            if (found) {
+                pick = Random(count) + 1;
+                for (slot = 0; slot < 8; slot++) {
+                    W8Character* member = &g_status_685170.buffers.characters[slot];
+                    if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+                        member->hp_current != 0 && member->highest_condition < 0x12 &&
+                        (member->condition_turns[11] != 0 || member->condition_turns[13] != 0)) {
+                        pick--;
+                        if (pick == 0) {
+                            AppendToLastTextLine(gppStringList[0x179], -1);
+                            target.iType = W8_TARGET_KIND_CHARACTER;
+                            bool over_power = 7 < power;
+                            if (over_power) {
+                                power = 7;
+                            }
+                            target.iChar = slot;
+                            CastSpellFromSource(0x4a, &source, &target, power, 0, 0, over_power,
+                                                &out_value, 0, 0, 0);
+                            goto done;
+                        }
+                    }
+                }
+            }
+            break;
+        case 4:
+            if (7 < power) {
+                if ((power & 0xfffffffe) < 0xe) {
+                    power >>= 1;
+                } else {
+                    power = 7;
+                }
+                ResetCombatSlot(&target);
+                target.iType = W8_TARGET_KIND_PARTY;
+                AppendToLastTextLine(gppStringList[0x179], -1);
+                CastSpellFromSource(0x44, &source, &target, power, 0, 0, 1, &out_value, 0, 0, 0);
+                goto done;
+            }
+            for (slot = 0; slot < 8; slot++) {
+                W8Character* member = &g_status_685170.buffers.characters[slot];
+                unsigned int hp = member->hp_current;
+                if (g_status_685170.buffers.party_rows[slot].occupied != 0 && hp != 0 &&
+                    member->highest_condition < 0x12 &&
+                    hp < static_cast<unsigned int>(member->hp_max)) {
+                    if (found) {
+                        if (hp < g_status_685170.buffers.characters[pick].hp_current) {
+                            pick = slot;
+                        }
+                    } else {
+                        found = true;
+                        pick = slot;
+                    }
+                }
+            }
+            if (found) {
+                ResetCombatSlot(&target);
+                target.iType = W8_TARGET_KIND_CHARACTER;
+                target.iChar = pick;
+                AppendToLastTextLine(gppStringList[0x179], -1);
+                CastSpellFromSource(6, &source, &target, power, 0, 0, 0, &out_value, 0, 0, 0);
+                goto done;
+            }
+            break;
+        case 5:
+            for (slot = 0; slot < 6; slot++) {
+                if (g_combat_state->effect_slots_85a[slot].active != 0 &&
+                    g_combat_state->effect_slots_85a[slot].effect_id == 2) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                AppendToLastTextLine(gppStringList[0x17b], -1);
+                CastSpellFromSource(2, &source, &target, power, 0, 0, 0, &out_value, 0, 0, 0);
+                goto done;
+            }
+            break;
+        case 6:
+            range = CalcRangeDistance(g_spell_records[0x19].range_category);
+            count = 0;
+            if (PLLength(gXStatus.plsMonsterList) != 0) {
+                for (index = 0; index < PLLength(gXStatus.plsMonsterList); index++) {
+                    W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
+                    if (monster->fActive != 0 && monster->fInCombat != 0 &&
+                        monster->ubDisposition == DISP_HOSTILE && monster->hp_current != 0 &&
+                        monster->monster->GetDistanceToPlayer004C7CB0() <= range) {
+                        count++;
+                    }
+                }
+                if (count != 0) {
+                    pick = Random(count) + 1;
+                    if (PLLength(gXStatus.plsMonsterList) != 0) {
+                        for (index = 0; index < PLLength(gXStatus.plsMonsterList); index++) {
+                            W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
+                            if (monster->fActive != 0 && monster->fInCombat != 0 &&
+                                monster->ubDisposition == DISP_HOSTILE &&
+                                monster->hp_current != 0 &&
+                                monster->monster->GetDistanceToPlayer004C7CB0() <= range) {
+                                pick--;
+                                if (pick == 0) {
+                                    AppendToLastTextLine(gppStringList[0x179], -1);
+                                    target.iType = W8_TARGET_KIND_MONSTER;
+                                    target.iMonsterID = monster->location_id;
+                                    if (6 < power) {
+                                        power = 7;
+                                    }
+                                    monster_targets.Add(monster->location_id);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    CastSpellFromSource(0x19, &source, &target, power, 0, 0, 0, &out_value, 0, 0,
+                                        &monster_targets);
+                    goto done;
+                }
+            }
+            break;
+        case 7:
+            success = 0 < TurnUndead(party_slot, 0, 0);
+            break;
+        case 8:
+            AppendToLastTextLine(gppStringList[0x179], -1);
+            for (index = 0; index < 0x12; index++) {
+                RemoveConditionFromParty(index);
+            }
+            if (g_combat_state != 0) {
+                W8EffectSlot* effect = g_combat_state->effect_slots;
+                for (index = 0; index < 9; index++) {
+                    if (effect->active != 0) {
+                        ResetPartyEffectBlock(effect);
+                    }
+                    effect++;
+                }
+            }
+            goto done;
+        case 9:
+            if (!CombatHasCondition(0x3b) || !CombatHasCondition(0x35)) {
+                target.iType = W8_TARGET_KIND_PARTY;
+                target.iChar = -1;
+                AppendToLastTextLine(gppStringList[0x17b], -1);
+                CastSpellFromSource(0x3b, &source, &target, power, 0, 0, 0, &out_value, 0, 0, 0);
+                CastSpellFromSource(0x35, &source, &target, power, 0, 0, 0, &out_value, 0, 0, 0);
+                goto done;
+            }
+            break;
+        case 10:
+            if (!PartyHasCondition(0x28) || !PartyHasCondition(0x14) || !PartyHasCondition(0x20) ||
+                !PartyHasCondition(0x1a)) {
+                target.iType = W8_TARGET_KIND_PARTY;
+                target.iChar = -1;
+                AppendToLastTextLine(gppStringList[0x17b], -1);
+                CastSpellFromSource(0x28, &source, &target, power, 0, 0, 0, &out_value, 0, 0, 0);
+                CastSpellFromSource(0x14, &source, &target, power, 0, 0, 0, &out_value, 0, 0, 0);
+                CastSpellFromSource(0x20, &source, &target, power, 0, 0, 0, &out_value, 0, 0, 0);
+                CastSpellFromSource(0x1a, &source, &target, power, 0, 0, 0, &out_value, 0, 0, 0);
+                goto done;
+            }
+            break;
+        case 0xb:
+            count = 0;
+            if (PLLength(gXStatus.plsMonsterList) != 0) {
+                for (index = 0; index < PLLength(gXStatus.plsMonsterList); index++) {
+                    W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
+                    if (monster->fActive != 0 && monster->fInCombat != 0 &&
+                        monster->ubDisposition == DISP_HOSTILE && monster->hp_current != 0 &&
+                        monster->condition_turns[6] == 0) {
+                        AppendToLastTextLine(
+                            FormatWideString(
+                                gppStringList[0x17c],
+                                gppStringList[g_gender_name_message_rows_61e430[character->gender]
+                                                                               [2]]),
+                            -1);
+                        target.iType = W8_TARGET_KIND_FIVE;
+                        CastSpellFromSource(0x75, &source, &target, power, 0, 0, 0, &out_value, 0,
+                                            0, 0);
+                        goto done;
+                    }
+                }
+            }
+            break;
+        case 0xc:
+            power >>= 1;
+            range = CalcRangeDistance(g_spell_records[0x60].range_category);
+            success = false;
+            count = 0;
+            if (PLLength(gXStatus.plsMonsterList) != 0) {
+                for (index = 0; index < PLLength(gXStatus.plsMonsterList); index++) {
+                    W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
+                    if (monster->fActive != 0 && monster->fInCombat != 0 &&
+                        monster->ubDisposition == DISP_HOSTILE && monster->hp_current != 0 &&
+                        monster->monster->GetDistanceToPlayer004C7CB0() <= range) {
+                        count = 1;
+                        AppendToLastTextLine(gppStringList[0x179], -1);
+                        ResetCombatSlot(&target);
+                        CastSpellFromSource(0x60, &source, &target, power, 0, 0, 0, &out_value, 0,
+                                            0, 0);
+                        break;
+                    }
+                }
+            }
+            continue;
+        default:
+            AppendToLastTextLine(gppStringList[0x176], -1);
+            goto done;
+        }
+        if (success) {
+            goto done;
+        }
+    }
+
+done:
+    g_combat_state->characters[party_slot].pray_used = 1;
+    return cost;
 }
 
 // FUNCTION: WIZ8 0x005478A0
