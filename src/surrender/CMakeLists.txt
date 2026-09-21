@@ -19,6 +19,7 @@ add_library(wiz8_surrender_objects OBJECT
     stream.cpp
     string_table.cpp
     system.cpp
+    timer.cpp
     triangulator.cpp
     type_registry.cpp
     vc6_runtime.cpp
