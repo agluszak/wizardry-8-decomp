@@ -50,27 +50,60 @@ WINE_STACK_LINE = re.compile(
     r"(?P<words>[0-9a-fA-F]{1,16}(?:\s+[0-9a-fA-F]{1,16})*)\s*$",
     re.MULTILINE,
 )
-RUNTIME_SCENARIOS = (
-    "oct-file",
-    "sight-threshold",
-    "main-menu-startup",
-    "main-menu-new-game",
-    "main-game-start",
-    # "new-game-entry",  # Lower-level bring-up path, excluded from the canonical suite.
-    "npc-state-reset",
-    "main-menu-exit-auto-repeat",
-    "split-stack",
-    "party-movement",
-    "audio-semantics",
-    "keyboard-menu",
-    "mouth-gap",
-    "npc-dialogue",
-    "search-mode",
-    "mongen",
-)
-# Python owns the hard process deadline, including a WinMain that never returns.
-RUNTIME_SCENARIO_TIMEOUT_SECONDS = 135
 RUNTIME_FAILURE_GRACE_SECONDS = 2.0
+
+
+@dataclass(frozen=True)
+class RuntimeScenario:
+    name: str
+    phase: str
+    tier: str
+    kind: str
+    timeout_ms: int
+
+
+def _parse_runtime_scenarios(output: str) -> dict[str, RuntimeScenario]:
+    lines = output.splitlines()
+    if not lines or lines[0] != "name\tphase\ttier\tkind\ttimeout_ms":
+        raise RuntimeError(
+            "runtime executable did not report a scenario registry; rebuild runtime-test"
+        )
+    scenarios: dict[str, RuntimeScenario] = {}
+    for line in lines[1:]:
+        fields = line.split("\t")
+        if len(fields) != 5:
+            raise RuntimeError(f"malformed runtime scenario: {line}")
+        name, phase, tier, kind, timeout = fields
+        if (
+            re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", name) is None
+            or name in scenarios
+            or phase not in {"engine-ready", "main-menu", "main-game"}
+            or tier not in {"pr", "main", "nightly"}
+            or kind not in {"acceptance", "integration", "semantic"}
+            or not timeout.isascii()
+            or not timeout.isdigit()
+            or int(timeout) <= 0
+        ):
+            raise RuntimeError(f"invalid runtime scenario metadata: {line}")
+        scenarios[name] = RuntimeScenario(name, phase, tier, kind, int(timeout))
+    if not scenarios:
+        raise RuntimeError("runtime scenario registry is empty")
+    return scenarios
+
+
+def _read_runtime_scenarios(
+    executable: Path, stage: Path, environment: dict[str, str]
+) -> dict[str, RuntimeScenario]:
+    result = subprocess.run(
+        ["wine", f"./{executable.name}", "--list-scenarios"],
+        cwd=stage,
+        env=environment,
+        capture_output=True,
+        text=True,
+        timeout=15,
+        check=True,
+    )
+    return _parse_runtime_scenarios(result.stdout)
 
 
 @dataclass(frozen=True)
@@ -646,6 +679,7 @@ def _run_runtime_scenario(
     stage: Path,
     environment: dict[str, str],
     scenario: str,
+    timeout_seconds: float,
     object_root: Path | None = None,
     map_path: Path | None = None,
 ) -> dict[str, str | int]:
@@ -668,7 +702,7 @@ def _run_runtime_scenario(
             selector.register(process.stderr, selectors.EVENT_READ, "stderr")
             try:
                 while selector.get_map():
-                    deadline = started + RUNTIME_SCENARIO_TIMEOUT_SECONDS
+                    deadline = started + timeout_seconds
                     if failure_deadline is not None:
                         deadline = min(deadline, failure_deadline)
                     remaining = deadline - time.monotonic()
@@ -704,7 +738,7 @@ def _run_runtime_scenario(
                                         last_step = fields.get("step", last_step)
                 if not timed_out:
                     try:
-                        deadline = started + RUNTIME_SCENARIO_TIMEOUT_SECONDS
+                        deadline = started + timeout_seconds
                         if failure_deadline is not None:
                             deadline = min(deadline, failure_deadline)
                         process.wait(timeout=max(0.001, deadline - time.monotonic()))
@@ -772,12 +806,17 @@ def _run_runtime_scenario(
 
 
 def run_runtime_suite(
-    settings: Settings, *, scenarios: tuple[str, ...] = RUNTIME_SCENARIOS, check_order: bool = False
+    settings: Settings,
+    *,
+    scenarios: tuple[str, ...] | None = None,
+    tier: str = "pr",
+    check_order: bool = False,
 ) -> dict[str, Any]:
     """Run selected scenarios, optionally checking reverse-order determinism."""
 
-    if not scenarios or set(scenarios) - set(RUNTIME_SCENARIOS):
-        raise ValueError(f"invalid runtime scenario selection: {scenarios}")
+    tiers = ("pr", "main", "nightly")
+    if tier not in tiers:
+        raise ValueError(f"invalid runtime tier: {tier}")
 
     if shutil.which("wine") is None or shutil.which("wineserver") is None:
         raise RuntimeError("wine and wineserver are required to run WIZ8_RUNTIME_TEST")
@@ -794,6 +833,24 @@ def run_runtime_suite(
     ) as display:
         configure_wine_window_management(environment, private_display=display is not None)
         try:
+            registry_stage = stage_game(
+                settings,
+                name="runtime-test/registry",
+                executable=executable,
+                objects=object_root,
+                reset_saves=True,
+            )
+            registry = _read_runtime_scenarios(
+                registry_stage.executable, registry_stage.root, environment
+            )
+            if scenarios is None:
+                scenarios = tuple(
+                    name
+                    for name, spec in registry.items()
+                    if tiers.index(spec.tier) <= tiers.index(tier)
+                )
+            if not scenarios or set(scenarios) - registry.keys():
+                raise ValueError(f"invalid runtime scenario selection: {scenarios}")
             orders = [("forward", scenarios)]
             if check_order:
                 orders.append(("reverse", tuple(reversed(scenarios))))
@@ -817,6 +874,7 @@ def run_runtime_suite(
                             staged.root,
                             environment,
                             scenario,
+                            registry[scenario].timeout_ms / 1000,
                             object_root,
                             staged.map,
                         )

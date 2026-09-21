@@ -345,7 +345,7 @@ jobs:
           if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
             uv run wiz8 runtime-test --build
           else
-            uv run wiz8 runtime-test --build --check-order
+            uv run wiz8 runtime-test --build --tier main --check-order
           fi
 
       - name: Upload runtime-test diagnostics

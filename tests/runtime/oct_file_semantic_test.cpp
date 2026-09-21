@@ -686,7 +686,7 @@ bool RunOctFileSemanticTests(OctFileSemanticResult* result)
 
 void PrintOctFileSemanticResults(const OctFileSemanticResult* result)
 {
-    printf("WIZ8_RUNTIME_TEST scenario=oct-file io_enabled=%u write=%u size=%u "
+    printf("oct-file semantic: io_enabled=%u write=%u size=%u "
            "sentinels=%u header=%u load=%u spatial=%u tables=%u leaf_flag=%u "
            "gamedata=%u sort_insert=%u sort_partition=%u sortkey_ordered=%u "
            "sortkey_reverse=%u sortkey_mixed=%u sort_edge=%u sort_dup=%u sort_ulong=%u "

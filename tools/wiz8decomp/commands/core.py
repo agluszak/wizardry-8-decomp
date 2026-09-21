@@ -273,6 +273,9 @@ def runtime_test_command(
         list[str] | None,
         typer.Option("--scenario", help="Run a named scenario; repeat to select several."),
     ] = None,
+    tier: Annotated[
+        str, typer.Option(help="Registry tier: pr, main, or nightly (cumulative).")
+    ] = "pr",
     check_order: Annotated[
         bool,
         typer.Option(
@@ -287,10 +290,8 @@ def runtime_test_command(
     """Run deterministic in-process semantic scenarios using the existing product."""
     from .. import command_support as cli
     from ..build import build_target, warn_if_product_may_be_stale
-    from ..runtime import RUNTIME_SCENARIOS, run_runtime_suite
+    from ..runtime import run_runtime_suite
 
-    if scenario and (unknown := set(scenario) - set(RUNTIME_SCENARIOS)):
-        raise typer.BadParameter(f"unknown runtime scenarios: {', '.join(sorted(unknown))}")
     settings = cli.settings()
     if build:
         build_target(settings, "runtime-test")
@@ -298,7 +299,8 @@ def runtime_test_command(
     cli.emit(
         run_runtime_suite(
             settings,
-            scenarios=tuple(dict.fromkeys(scenario)) if scenario else RUNTIME_SCENARIOS,
+            scenarios=tuple(dict.fromkeys(scenario)) if scenario else None,
+            tier=tier,
             check_order=check_order,
         )
     )
@@ -546,13 +548,10 @@ def debug_command(
     from .. import command_support as cli
     from ..build import build_target, warn_if_product_may_be_stale
     from ..debug.debugger import run_debugger
-    from ..runtime import RUNTIME_SCENARIOS
 
     settings = cli.settings()
     if scenario is not None and arguments:
         raise ValueError("runtime product arguments cannot be combined with --scenario")
-    if scenario is not None and scenario not in RUNTIME_SCENARIOS:
-        raise ValueError(f"unknown runtime scenario: {scenario}")
     target = "runtime-test" if scenario is not None else "runtime"
     if build:
         build_target(settings, target)

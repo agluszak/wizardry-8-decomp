@@ -271,7 +271,6 @@ def test_runtime_test_build_is_explicit(monkeypatch) -> None:
     monkeypatch.setattr(
         build, "warn_if_product_may_be_stale", lambda _, target: events.append(("check", target))
     )
-    monkeypatch.setattr(runtime, "RUNTIME_SCENARIOS", ("probe",))
     monkeypatch.setattr(
         runtime,
         "run_runtime_suite",
