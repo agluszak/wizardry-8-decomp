@@ -96,6 +96,19 @@ struct W8NavigatorAttachment {
        exceeded the remainder of the live segment. */
     unsigned char AdvancePositionTowardWaypoint00456F60(srVector3T<float>* position,
                                                         float distance); /* 0x00456F60 */
+    /* Trims the recorded route to end at the sphere of `radius` around
+       `target`: walks stored positions while they stay inside, interpolates
+       the boundary point into position_1c and the route slot, moves the end
+       index there, and clears flag 0x400000. One when a boundary point was
+       installed. */
+    unsigned char TruncatePathAtRadius004566C0(const srVector3T<float>* target,
+                                               float radius); /* 0x004566C0 */
+    /* Advances `position` along the recorded route by `distance`, writing the
+       unit direction toward the current waypoint into `direction`; one once
+       the final waypoint is reached. */
+    unsigned char
+    AdvancePositionWithDirection00457150(srVector3T<float>* position, float distance,
+                                         srVector3T<float>* direction); /* 0x00457150 */
 };
 
 class W8Navigator;

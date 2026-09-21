@@ -398,6 +398,13 @@ public:
        costs against the randomized patrol_distance target, tracking the
        argmin-key fallback nodes, and returns the reached endpoint or zero.
        Retail names it in the "Too many links" assert. */
+    /* Depth-first link search from `waypoint` toward the target stored in
+       patrol_start_1ec by LinkAttachmentTarget004612A0: collects admissible
+       edge destinations (filtered like FindPath), prices each by accumulated
+       link cost plus distance-to-target, sorts by that key, then returns the
+       first candidate beyond patrol_distance_1e8 or the first nonzero
+       recursive result. probe_cell_key_078 tracks the farthest candidate. */
+    unsigned short RecurseTargetLinks004615D0(unsigned short waypoint); /* 0x004615D0 */
     unsigned short RecursePatrolLinks00461D10(unsigned short waypoint);
     float MeasureDirectionalPath0045AC70(const int* cell, int direction, unsigned int height,
                                          float distance);
