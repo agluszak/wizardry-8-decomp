@@ -12,6 +12,7 @@
 #include "wiz8/local_code/Magic.h"
 #include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/OctBuildPreTree.h"
 #include "wiz8/engine_code/Item.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/item_spawning.h"
@@ -43,6 +44,7 @@
 #include "wiz8/xstatus.h"
 #include "wiz8/dialog_code/DialogBase.h"
 #include "wiz8/dialog_code/DialogFactoryDialogs.h"
+#include "soundman.h"
 
 /* 0x0068EDCC: the level runtime block, which also carries the interface
    selection the item manager resets. */
@@ -52,6 +54,11 @@
    not yet recovered. */
 void Function4F7C50(W8DialogBase* dialog);
 
+/* 0x005ED7A8: pi, the factor DropHeldItem's cursor-to-angle math starts
+   from. */
+// GLOBAL: WIZ8 0x005ed7a8
+extern const double g_double_005ed7a8 = 3.141592653589793;
+
 /* 0x005ED7B0: 1/360, the half-degree step random item angles are built
    from. */
 // GLOBAL: WIZ8 0x005ed7b0
@@ -60,6 +67,19 @@ extern const double g_double_005ed7b0 = 1.0 / 360.0;
 /* 0x005ED7B8: camera distance inside which inactive world items are activated. */
 // GLOBAL: WIZ8 0x005ed7b8
 float g_float_005ed7b8 = 20000.0f;
+
+/* 0x005ED7C0: -2500.0, the drop direction's vertical extent in
+   DropHeldItem. */
+// GLOBAL: WIZ8 0x005ed7c0
+extern const double g_double_005ed7c0 = -2500.0;
+
+/* 0x005EBF48: 85.0, the drop direction's horizontal sweep in degrees. */
+// GLOBAL: WIZ8 0x005ebf48
+extern const float g_float_005ebf48 = 85.0f;
+
+/* 0x005EBF4C: 71.0, the drop direction's vertical sweep in degrees. */
+// GLOBAL: WIZ8 0x005ebf4c
+extern const float g_float_005ebf4c = 71.0f;
 
 /* 0x0064A1CD: when set, skip activating world items that already carry flag
    bit 0. */
@@ -80,6 +100,68 @@ bool InitializeItemManagerState()
     }
     gXStatus.plsItemList = PLCreate();
     return gXStatus.plsItemList != 0;
+}
+
+/* Drop the held item toward the cursor. The cursor's normalized screen
+   position steers a 2500-unit ray - an 85-degree horizontal sweep and a
+   5..76 degree pitch band - rotated by the camera and clipped by the octree
+   before the item settles to ground. No free spot plays the failure sound. */
+// FUNCTION: WIZ8 0x004F7610
+void DropHeldItem(int arg_1)
+{
+    srVector3T<float> cursor;
+    srVector3T<float> direction;
+    srVector3T<float> delta;
+    srVector3T<float> camera;
+    srMatrix3T<float> rotation;
+
+    GetCursorScreenPosition004282F0(&cursor);
+    cursor.x = (cursor.x - g_float_005ebc7c) * g_float_005ec390;
+    cursor.y = (cursor.y - g_float_005ebc7c) * g_float_005ec390;
+    double to_radians = g_double_005ed7a8 * g_float_005ebcf8;
+    double pitch = to_radians * g_float_005ebc28 + to_radians * cursor.y * g_float_005ebf4c;
+    double pitch_cos = cos(pitch);
+    double pitch_sin = sin(pitch);
+    direction.y = static_cast<float>(pitch_sin * g_double_005ed7c0);
+    double yaw = to_radians * cursor.x * g_float_005ebf48;
+    double yaw_cos = cos(yaw);
+    double yaw_sin = sin(yaw);
+    direction.z = static_cast<float>(pitch_cos * g_double_005ec030) * static_cast<float>(yaw_cos);
+    direction.x = static_cast<float>(pitch_cos * g_double_005ec030) * static_cast<float>(yaw_sin);
+    WorldGetCameraRotation(g_world, &rotation);
+    direction.Transform(rotation);
+    GetCameraPosition(&camera);
+    direction.x += camera.x;
+    direction.y += camera.y;
+    direction.z += camera.z;
+    g_octree_6598a4->TraceLineOfSight(&camera, &direction, 1, -3, -3, 1, 0);
+    delta.x = direction.x - camera.x;
+    delta.y = direction.y - camera.y;
+    delta.z = direction.z - camera.z;
+    float length_squared = delta.x * delta.x + delta.y * delta.y + delta.z * delta.z;
+    float distance = sqrtf(length_squared) - g_float_005ec3f8;
+    if (distance < g_float_005ebb34) {
+        distance = g_float_005ebb34;
+    }
+    if (length_squared != static_cast<float>(g_zero_005ebb40)) {
+        distance = distance / sqrtf(length_squared);
+        delta.x *= distance;
+        delta.y *= distance;
+        delta.z *= distance;
+    }
+    direction.x = delta.x + camera.x;
+    direction.y = delta.y + camera.y;
+    direction.z = delta.z + camera.z;
+    direction.y = g_octree_6598a4->SettleToGround(&direction, 0, 1, 250.0f) + g_float_005ec3f8;
+    if (FindNearbyFreePosition00451800(250.0f, &direction, 1, 1) != 0) {
+        W8WorldItem* item_info =
+            CreateWorldItem(&g_status_685170.item_in_hand_235b, &direction, 3, 1);
+        if (item_info == 0) {
+            srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 0x339, 0);
+        }
+        return;
+    }
+    SoundPlay("Data\\Sound\\Misc\\CantDrop.WAV", 0);
 }
 
 // FUNCTION: WIZ8 0x004f8130

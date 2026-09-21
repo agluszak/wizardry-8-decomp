@@ -33,7 +33,7 @@
    NPC Manager.cpp (0x00509CD0). Two clusters, no proven ownership. */
 
 // GLOBAL: WIZ8 0x0068de63
-unsigned char g_import_party_loaded;
+bool g_import_party_loaded;
 // GLOBAL: WIZ8 0x0068de5d
 unsigned char g_import_flag_0068de5d;
 // GLOBAL: WIZ8 0x00689b78
@@ -406,7 +406,7 @@ unsigned char EvaluateFact(int fact_id)
                 unsigned int slot = 0;
                 do {
                     if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
-                        slot == (unsigned int)g_status_685170.value_423d) {
+                        slot == static_cast<unsigned int>(g_status_685170.value_423d)) {
                         return 1;
                     }
                     ++slot;

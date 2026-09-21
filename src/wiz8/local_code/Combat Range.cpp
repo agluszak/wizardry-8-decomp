@@ -1037,6 +1037,49 @@ float CalcRangeDistance(W8RangeCategory range_category)
     return steps * g_world_scale_005ebc40;
 }
 
+/* Source-relative action range: same band steps, then the acting navigator's
+   alternate radius - the party's for a character source, the resolved
+   monster's for a monster source, nothing otherwise. */
+// FUNCTION: WIZ8 0x0051AA30
+float CalcRangeDistance(int range_category, W8TargetSource* source)
+{
+    unsigned int steps = 0;
+
+    switch (range_category) {
+    case W8_RANGE_NONE:
+        steps = 0;
+        break;
+    case W8_RANGE_TOUCH:
+        steps = 2;
+        break;
+    case W8_RANGE_SHORT:
+        steps = 4;
+        break;
+    case W8_RANGE_LONG:
+        steps = 25;
+        break;
+    case W8_RANGE_EXTREME:
+        steps = 50;
+        break;
+    default:
+        srAssertFail("FALSE", COMBAT_RANGE_CPP, 0x463,
+                     "CalcRangeDistance: ERROR - Invalid range category");
+    }
+    float distance = steps * g_world_scale_005ebc40;
+    if (TargetSourceIsCharacter(source, 0)) {
+        return g_startup_world_659c0c->movement_0c0.alternate_radius_0b4 + distance;
+    }
+    if (TargetSourceIsMonster(source, 0)) {
+        if (source->iMonsterID == -1) {
+            srAssertFail("pSource->iMonsterID != -1", COMBAT_RANGE_CPP, 0x483, 0);
+        }
+        W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(0x484, COMBAT_RANGE_CPP, source->iMonsterID, 1));
+        return monster_info->monster->movement_0c0.alternate_radius_0b4 + distance;
+    }
+    return distance;
+}
+
 /* Party-relative action range for the world cursor: same band steps as
    CalcRangeDistance, then add the startup navigator's movement value_0b0. */
 // FUNCTION: WIZ8 0x0051AB50

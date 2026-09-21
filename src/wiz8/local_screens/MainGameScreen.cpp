@@ -8546,7 +8546,7 @@ unsigned int HitTestPartyPortrait(const InputAtom* event)
             return 0;
         }
     }
-    kind = *(const unsigned short*)((const char*)event + 6);
+    kind = event->usEvent;
     if (kind == 8 || kind == 0x10) {
         return DispatchRegionInput(event);
     }

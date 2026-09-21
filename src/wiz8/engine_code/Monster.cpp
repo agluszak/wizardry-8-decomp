@@ -48,6 +48,7 @@
 #include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/engine_code/stTextureAnim.h"
 #include "wiz8/engine_code/stScript.h"
+#include "wiz8/engine_code/stTextureFile.h"
 #include "wiz8/engine_code/stSound3D.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/layouts/game_status.h"
@@ -177,6 +178,13 @@ W8AttachmentOffset g_monster_attachment_offsets_0060e618[8][8] = {{{0.0f, 0.0f, 
 // GLOBAL: WIZ8 0x0060e918
 float g_monster_attachment_scales_0060e918[8] = {0.3f,  0.2f,  0.15f, 0.15f,
                                                  0.15f, 0.15f, 0.15f, 0.15f};
+
+/* Per-party-order bitmaps for the marker posters SetMonsterTargetMarker004C4DE0
+   hangs on a monster's representation. */
+// GLOBAL: WIZ8 0x0060e938
+const char* g_monster_marker_bitmaps[8] = {"TriRed.tga",  "TriGreen.tga",  "TriPurple.tga",
+                                           "TriBlue.tga", "TriOrange.tga", "TriYellow.tga",
+                                           "TriPink.tga", "TriBrown.tga"};
 
 // GLOBAL: WIZ8 0x005ec04c
 const float g_monster_rotation_offset_005ec04c = 3.141592502593994f;
@@ -2739,6 +2747,37 @@ int W8Monster::IsFacingPlayer004C4D40()
     return fabs(bearing - facing) <= g_monster_facing_tolerance_005ec2b0;
 }
 
+/* Attach or detach the per-party-slot marker poster on the monster at
+   location_id.  Attaching requires the slot's rep object to be empty; the
+   bitmap is chosen by the party slot's marching-order index. */
+// FUNCTION: WIZ8 0x004C4DE0
+void SetMonsterTargetMarker004C4DE0(int party_slot, int location_id, int on)
+{
+    char path[260];
+
+    unsigned int monster_list_index =
+        MonsterGetIndexByLocationID(0xf1b, MONSTER_CPP, location_id, 1);
+    W8Monster* monster = MonsterGetScriptPartByLocationIndex(monster_list_index)->monster;
+    W8MonsterRep* rep = monster->m_pRep;
+    if (on == 0) {
+        W8Item* item = rep->objects_5c8[party_slot];
+        if (item != 0) {
+            item->DetachMesh0049FA30(g_world);
+            PListRemove(g_world->plsItems, item);
+            delete item;
+            rep->objects_5c8[party_slot] = 0;
+            rep->value_5c4--;
+        }
+    } else if (rep->objects_5c8[party_slot] == 0) {
+        sprintf(path, "Data\\Monsters\\Bitmaps\\%s",
+                g_monster_marker_bitmaps[g_status_685170.buffers.party_rows[party_slot]
+                                             .party_order_index]);
+        rep->objects_5c8[party_slot] = CreateMonsterIconItem004C5500(g_world, path, 1);
+        rep->value_5c4++;
+    }
+    monster->UpdateAttachedObjects004C3F70();
+}
+
 /* Start making the representation visible.  Reversing an active fade-out
    preserves its current scale by seeding the opposite timer at that progress;
    an idle monster starts from zero instead. */
@@ -2811,6 +2850,45 @@ void W8Monster::BeginFadeOut004C5150(float duration)
     rep->instance_scale_05c = 1.0f;
     rep->apply_instance_scale_061 = 1;
     fade_state_330 = -1;
+}
+
+/* Build a world item that carries a clamped poster-quad icon: the texture is
+   loaded from path, the quad's vertices are shifted 250 units on Y so the
+   sprite floats over the monster, and alignment is enabled on the instance. */
+// FUNCTION: WIZ8 0x004C5500
+W8Item* CreateMonsterIconItem004C5500(W8World* world, const char* path, int flag)
+{
+    stTextureFile* texture = new stTextureFile(path, 0);
+    texture->setWrapS(srTextureIFace::WRAP_CLAMP);
+    texture->setWrapT(srTextureIFace::WRAP_CLAMP);
+    if (texture == 0) {
+        return 0;
+    }
+    texture->loadSurface();
+    texture->autoRelease();
+    stModelInstance* instance =
+        static_cast<stModelInstance*>(MakePosterQuad00424BA0(texture, 500.0f, 500.0f, 1));
+    if (instance == 0) {
+        return 0;
+    }
+    srVector3T<float> offset;
+    offset.x = 0.0f;
+    offset.y = 250.0f;
+    offset.z = 0.0f;
+    static_cast<srMeshModel*>(instance->model())->relocateVertices(offset);
+    instance->setAlignment(1);
+    W8Item* item = new W8Item();
+    if (item == 0) {
+        return 0;
+    }
+    static_cast<W8ItemRep*>(item->m_pRep)->flags |= 0x40;
+    static_cast<W8ItemRep*>(item->m_pRep)->m_psrMesh = instance;
+    static_cast<W8ItemRep*>(item->m_pRep)->RefreshBounds();
+    item->AttachMesh0049F900(world);
+    instance->scale_194.x = 0.0f;
+    instance->scale_194.y = 0.0f;
+    instance->scale_194.z = 0.0f;
+    return item;
 }
 
 // FUNCTION: WIZ8 0x004c73f0
@@ -4613,7 +4691,7 @@ void MonsterSetCycleSubCycle(W8GrCycle* cycle, unsigned char subcycle)
 // FUNCTION: WIZ8 0x004c5eb0
 void NotifyMonsterHighlight(int party_slot, int location_id, int on)
 {
-    Function4C4DE0(party_slot, location_id, on);
+    SetMonsterTargetMarker004C4DE0(party_slot, location_id, on);
 }
 
 /* The public forwarding boundary preserves the loader's AL result. Both

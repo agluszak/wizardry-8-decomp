@@ -150,6 +150,12 @@ void RotateNodeInDegrees00425840(srNode* node, int degrees);
 /* 0x00425950: drop a 2D node from the surface-tile table, invalidate its
    model's texture, and release the node. */
 void ReleaseSurfaceNode00425950(srNode* node);
+/* 0x004282F0: the tracked cursor's far corner in 0..1 screen coordinates. */
+void GetCursorScreenPosition004282F0(srVector3T<float>* position);
+/* 0x00424BA0: build a textured poster quad (stModelInstance wrapping a
+   one-cell stMeshModel) for a 2D screen or marker sprite. */
+srNode* MakePosterQuad00424BA0(srTextureIFace* texture, float width, float height,
+                               unsigned char positional_3);
 /* 0x00427E70: surface-lock helper used while installing a drag cursor. */
 bool ClearMouseSurface(void);
 /* 0x004255F0: place a 2D node at a screen position in normalized

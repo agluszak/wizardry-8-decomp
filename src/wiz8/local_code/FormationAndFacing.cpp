@@ -164,6 +164,46 @@ void ReconcilePartyFormation(W8PartyFormationState* edited, W8PartyFormationStat
     RefreshRadarMap();
 }
 
+/* Which facing a formation move from `position` to `arg_2` should produce.
+   A move to quadrant four means facing the source quadrant's opposite - the
+   inner switch maps source 0..3 to 2,3,0,1 - and no quadrant change faces
+   outward (4). */
+// FUNCTION: WIZ8 0x00555E70
+signed char DecideFacingForPosition(int position, int arg_2)
+{
+    signed char source_quadrant = g_status_685170.formation.positions[position].bQuadrant;
+    signed char target_quadrant = g_status_685170.formation.positions[arg_2].bQuadrant;
+
+    if (source_quadrant == -1) {
+        srAssertFail("bSourceQuadrant != -1", FORMATION_CPP, 0x40d, 0);
+    }
+    if (target_quadrant != -1 && source_quadrant != target_quadrant) {
+        switch (target_quadrant) {
+        case 0:
+            return 0;
+        case 1:
+            return 1;
+        case 2:
+            return 2;
+        case 3:
+            return 3;
+        case 4:
+            switch (source_quadrant) {
+            case 0:
+                return 2;
+            case 1:
+                return 3;
+            case 2:
+                return 0;
+            case 3:
+                return 1;
+            }
+        }
+        srAssertFail("FALSE", FORMATION_CPP, 0x43a, 0);
+    }
+    return 4;
+}
+
 /* Which of the four quadrants around the party a world position falls in.
    The bearing to the position is taken relative to the party's facing, wrapped
    into a single turn, then biased by half a quadrant before the divide - so

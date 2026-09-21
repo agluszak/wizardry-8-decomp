@@ -184,6 +184,10 @@ extern const float g_float_005ebca0;
 extern float g_movement_speed_step_005ed490;
 
 extern const double g_zero_005ebb40;
+extern const double g_double_005ed7a8;
+extern const double g_double_005ed7c0;
+extern const float g_float_005ebf48;
+extern const float g_float_005ebf4c;
 extern const float g_camera_angle_period_005ec014;
 extern const float g_float_005ebcf0;
 extern const float g_float_005ebcf8;

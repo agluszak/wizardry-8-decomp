@@ -52,8 +52,8 @@ void SetWorldMeshVertexLightTable0046F760(W8World* world, int table);
 void BuildPlaneFromPoints0046D660(srVector4T<float>* plane, const srVector3T<float>* first,
                                   const srVector3T<float>* second, const srVector3T<float>* third);
 /* Report whether a point satisfies all six frustum planes. */
-unsigned char PointInsideFrustum0046D880(const srVector3T<float>* point,
-                                         const srVector4T<float>* planes);
+bool PointInsideFrustum0046D880(const srVector3T<float>* point,
+                                const srVector4T<float>* planes);
 /* Report whether a sphere of `radius` at `point` reaches all six frustum
    planes (each plane distance may be as low as -radius). */
 unsigned char SphereInsideFrustum0046D8D0(const srVector3T<float>* point, float radius,
