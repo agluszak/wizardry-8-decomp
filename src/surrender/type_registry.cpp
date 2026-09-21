@@ -920,9 +920,9 @@ unsigned long srClass::getTimestamp() const
 // FUNCTION: SURRENDER 0x1000E600
 unsigned long srClass::allocateTimeStamps(unsigned long count) const
 {
-    unsigned long first = _timestampCtr + 1;
+    unsigned long first = _timestampCtr;
     _timestampCtr += count;
-    return first;
+    return first + 1;
 }
 
 /* The update block prints through the void* overload for the callback and
@@ -1178,17 +1178,14 @@ srRegistry::ClassNode* srRegistry::getChildClass(ClassNode* parent, ClassNode* c
         if (link != parent->child_end_08) {
             result = link->node_00;
         }
-    } else {
-        while (link != parent->child_end_08) {
-            if (link->node_00 == child) {
-                link = link->next_04;
-                if (link != parent->child_end_08) {
-                    result = link->node_00;
-                }
-                break;
-            }
+    } else if (link != parent->child_end_08) {
+        while (link->node_00 != child || link->next_04 == parent->child_end_08) {
             link = link->next_04;
+            if (link == parent->child_end_08) {
+                return 0;
+            }
         }
+        result = link->next_04->node_00;
     }
     return result;
 }
