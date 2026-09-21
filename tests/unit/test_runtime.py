@@ -1,3 +1,4 @@
+import time
 from contextlib import nullcontext
 from pathlib import Path
 from types import SimpleNamespace
@@ -498,6 +499,7 @@ def test_runtime_timeout_preserves_in_process_diagnostics(
     )
     wine.chmod(0o755)
     monkeypatch.setattr("wiz8decomp.runtime.RUNTIME_SCENARIO_TIMEOUT_SECONDS", 1)
+    monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", lambda *args, **kwargs: None)
     with pytest.raises(RuntimeError, match="last_step=process-start"):
         _run_runtime_scenario(
             tmp_path / "test.exe",
@@ -508,6 +510,46 @@ def test_runtime_timeout_preserves_in_process_diagnostics(
     diagnostic = tmp_path / "diagnostics" / "main-menu-startup-failure.txt"
     assert "menu reached; teardown stuck" in diagnostic.read_text()
     assert "partial stdout" in diagnostic.read_text()
+
+
+@pytest.mark.parametrize("crash", [False, True])
+@pytest.mark.parametrize("hang", [False, True])
+def test_runtime_terminal_failure_has_short_grace_and_preserves_report(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, crash: bool, hang: bool
+) -> None:
+    report = (
+        "WIZ8_RUNTIME_CRASH code=c0000005 eip=00401000\n"
+        "WIZ8_RUNTIME_CANDIDATE source=stack+0 address=00402000 offset=00002000\n"
+        "WIZ8_RUNTIME_CRASH_END\n"
+        if crash
+        else "WIZ8_RUNTIME_FAILURE scenario=probe step=fixture reason=broken line=12\n"
+    )
+    wine = tmp_path / "wine"
+    wine.write_text(
+        "#!/usr/bin/env python3\nimport sys, time\n"
+        f"report = {report!r}\n"
+        # Exercise partial pipe reads without losing a candidate before CRASH_END.
+        "for line in report.splitlines():\n"
+        "    print(line, file=sys.stderr, flush=True)\n"
+        "    time.sleep(0.03)\n" + ("time.sleep(60)\n" if hang else "")
+    )
+    wine.chmod(0o755)
+    stopped = []
+    monkeypatch.setattr("wiz8decomp.runtime.RUNTIME_FAILURE_GRACE_SECONDS", 0.15)
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.subprocess.run", lambda command, **kwargs: stopped.append(command)
+    )
+    started = time.monotonic()
+    with pytest.raises(RuntimeError, match="probe failed"):
+        _run_runtime_scenario(
+            tmp_path / "test.exe",
+            tmp_path,
+            {"PATH": f"{tmp_path}:/usr/bin:/bin"},
+            "probe",
+        )
+    assert time.monotonic() - started < 2
+    assert report in (tmp_path / "diagnostics/probe-failure.txt").read_text()
+    assert stopped == [["wineserver", "-k"]]
 
 
 def test_runtime_display_accepts_an_existing_private_display(

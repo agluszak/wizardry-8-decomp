@@ -70,6 +70,7 @@ RUNTIME_SCENARIOS = (
 )
 # Python owns the hard process deadline, including a WinMain that never returns.
 RUNTIME_SCENARIO_TIMEOUT_SECONDS = 135
+RUNTIME_FAILURE_GRACE_SECONDS = 2.0
 
 
 @dataclass(frozen=True)
@@ -651,6 +652,7 @@ def _run_runtime_scenario(
     started = time.monotonic()
     output: dict[str, bytearray] = {"stdout": bytearray(), "stderr": bytearray()}
     timed_out = False
+    failure_deadline: float | None = None
     pending_stderr = b""
     last_step = "process-start"
     with subprocess.Popen(
@@ -666,9 +668,12 @@ def _run_runtime_scenario(
             selector.register(process.stderr, selectors.EVENT_READ, "stderr")
             try:
                 while selector.get_map():
-                    remaining = RUNTIME_SCENARIO_TIMEOUT_SECONDS - (time.monotonic() - started)
+                    deadline = started + RUNTIME_SCENARIO_TIMEOUT_SECONDS
+                    if failure_deadline is not None:
+                        deadline = min(deadline, failure_deadline)
+                    remaining = deadline - time.monotonic()
                     if remaining <= 0:
-                        timed_out = True
+                        timed_out = failure_deadline is None
                         break
                     for key, _ in selector.select(min(remaining, 0.25)):
                         chunk = os.read(key.fd, 65536)
@@ -682,6 +687,13 @@ def _run_runtime_scenario(
                             pending_stderr += chunk
                             while b"\n" in pending_stderr:
                                 line, pending_stderr = pending_stderr.split(b"\n", 1)
+                                if failure_deadline is None and (
+                                    line.rstrip(b"\r") == b"WIZ8_RUNTIME_CRASH_END"
+                                    or line.startswith(b"WIZ8_RUNTIME_FAILURE ")
+                                ):
+                                    failure_deadline = (
+                                        time.monotonic() + RUNTIME_FAILURE_GRACE_SECONDS
+                                    )
                                 if line.startswith(b"WIZ8_RUNTIME_STEP "):
                                     fields = dict(
                                         item.split("=", 1)
@@ -692,15 +704,24 @@ def _run_runtime_scenario(
                                         last_step = fields.get("step", last_step)
                 if not timed_out:
                     try:
-                        process.wait(
-                            timeout=max(
-                                0.001,
-                                RUNTIME_SCENARIO_TIMEOUT_SECONDS - (time.monotonic() - started),
-                            )
-                        )
+                        deadline = started + RUNTIME_SCENARIO_TIMEOUT_SECONDS
+                        if failure_deadline is not None:
+                            deadline = min(deadline, failure_deadline)
+                        process.wait(timeout=max(0.001, deadline - time.monotonic()))
                     except subprocess.TimeoutExpired:
-                        timed_out = True
+                        timed_out = failure_deadline is None
             finally:
+                if timed_out or failure_deadline is not None:
+                    # A Wine debugger can outlive the executable and retain its pipes/window.
+                    # Scenarios run serially in this checkout-owned prefix; retire it on failure
+                    # so the next isolated stage cannot find the failed scenario's window.
+                    subprocess.run(
+                        ["wineserver", "-k"],
+                        env=environment,
+                        check=False,
+                        capture_output=True,
+                        timeout=5,
+                    )
                 if process.poll() is None:
                     process.kill()
                 process.wait()
@@ -708,7 +729,7 @@ def _run_runtime_scenario(
     stderr = output["stderr"].decode(errors="replace")
     if timed_out:
         stderr += f"\nruntime-test deadline: last_step={last_step}\n"
-    if timed_out or process.returncode:
+    if timed_out or failure_deadline is not None or process.returncode:
         raise _runtime_failure(
             scenario,
             None if timed_out else process.returncode,
