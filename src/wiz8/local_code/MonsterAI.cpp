@@ -115,7 +115,10 @@ const int g_combat_effect_slot_spells_00616db4[9] = {
 };
 
 /* The same mapping for the second combat effect block, indexed against
-   W8CombatState::effect_slots_85a and the monster's effect_slots_d7. */
+   W8CombatState::effect_slots_85a and the monster's effect_slots_d7. One
+   retail array: [0..6) are spell ids, [6..23) — the retail sub-table at
+   0x00616DF0 — is the spell-point budget/failure percentage indexed by cost
+   band that Magic.cpp's failure and power-level readers consume. */
 // GLOBAL: WIZ8 0x00616DD8
 const int g_combat_effect_slot_spells_and_cast_success_00616dd8[23] = {
     0x2, 0x35, 0x3b, 0x3e, 0,  0,  30,  40,  50,  58,  64,  70,
