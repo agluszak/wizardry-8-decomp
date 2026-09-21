@@ -6,6 +6,9 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/engine_code/Spells.h"
+#include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/Levels.h"
+#include "wiz8/engine_code/3dapi.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/local_code/Magic.h"
 #include "wiz8/local_code/Targeting.h"
@@ -15,13 +18,18 @@
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/CharacterScreen.h"
+#include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/vector.h"
 #include "wiz8/utility.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/string_database.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/sr_api.h"
+#include "FileMan.h"
 #include "random.h"
+#include <ctype.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <stdio.h>
 #include <string.h>
