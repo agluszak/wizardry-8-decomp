@@ -119,7 +119,7 @@ char g_octree_file_search_wildcard_006068a0[] = "*";
 // GLOBAL: WIZ8 0x00659890
 unsigned long* g_octree_state_00659890;
 // GLOBAL: WIZ8 0x00659894
-srNode* g_octree_trace_node_00659894;
+stModelInstance* g_octree_trace_node_00659894;
 // GLOBAL: WIZ8 0x00659898
 unsigned char g_octree_update_suspended_00659898;
 // GLOBAL: WIZ8 0x00659899
@@ -1908,8 +1908,7 @@ void W8Octree::ToggleUpdateSuspension00434020(W8World* world)
     if (g_octree_trace_node_00659894 == 0) {
         g_octree_trace_node_00659894 = g_octree_game_data_00652db0->CreateTraceModel0041C930();
         g_octree_trace_node_00659894->setParent(world->static_scene, 1);
-        SetModelInstanceChainExclusionMask(
-            static_cast<srModelInstance*>(g_octree_trace_node_00659894), 2);
+        SetModelInstanceChainExclusionMask(g_octree_trace_node_00659894, 2);
     }
     g_octree_trace_node_00659894->clearFlag(srNode::FLAG_DISABLE);
     g_octree_trace_node_00659894->clearFlag(srNode::FLAG_TERMINATE);
