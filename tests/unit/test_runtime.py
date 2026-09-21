@@ -6,14 +6,13 @@ import pytest
 from wiz8decomp.config import Settings
 from wiz8decomp.display import runtime_display
 from wiz8decomp.runtime import (
-    RUNTIME_SCENARIO_STATE_FILES,
     _crash_detail,
     _parse_runtime_crash,
     _parse_runtime_observation,
     _parse_wine_dump,
-    _reset_runtime_scenario_state,
     _run_runtime_scenario,
     _runtime_failure,
+    _runtime_phase_summary,
     _symbolize_addresses,
     analyze_runtime_crash,
     configure_wine_window_management,
@@ -68,23 +67,6 @@ def test_stage_game_uses_managed_links_and_materialized_cfg(tmp_path: Path) -> N
     assert restaged.executable_written is False
     assert restaged.executable == result.executable
     assert (stage / "Wiz8.CFG").read_bytes() == b"\x00\xff"
-
-
-def test_reset_runtime_scenario_state_removes_only_scenario_outputs(tmp_path: Path) -> None:
-    stage = tmp_path / "runtime-test"
-    for relative_path in RUNTIME_SCENARIO_STATE_FILES:
-        path = stage / relative_path
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(b"scenario state")
-    retained = stage / "Saves" / "Characters" / "fixture.CHR"
-    retained.write_bytes(b"fixture")
-
-    _reset_runtime_scenario_state(stage)
-
-    assert all(
-        not (stage / relative_path).exists() for relative_path in RUNTIME_SCENARIO_STATE_FILES
-    )
-    assert retained.read_bytes() == b"fixture"
 
 
 def test_stage_game_refuses_an_unmanaged_asset_directory(tmp_path: Path) -> None:
@@ -150,13 +132,33 @@ def test_runtime_failure_reports_native_reason_instead_of_timeout(tmp_path: Path
         "hostile-encounter",
         2,
         "",
-        "WIZ8_RUNTIME_FAILURE scenario=hostile-encounter reason=observation_failed line=2288\n",
+        "WIZ8_RUNTIME_STEP scenario=hostile-encounter step=main-game-entered state=pass "
+        "elapsed_ms=13900\n"
+        "WIZ8_RUNTIME_FAILURE scenario=hostile-encounter step=monster-engagement "
+        "reason=monster-never-engaged line=2288\n",
         tmp_path,
         Path("Wiz8RuntimeTest.exe"),
     )
 
-    assert "reason=observation_failed line=2288" in str(failure)
+    assert "step=monster-engagement reason=monster-never-engaged line=2288" in str(failure)
+    assert "phases: main-game-entered=13900ms" in str(failure)
     assert "timeout" not in str(failure)
+
+
+def test_runtime_phase_summary_ignores_other_scenarios_and_unusable_steps() -> None:
+    output = (
+        "WIZ8_RUNTIME_STEP scenario=main-game-start step=main-menu-reached state=pass "
+        "elapsed_ms=9000\n"
+        "WIZ8_RUNTIME_STEP scenario=other step=ignored state=pass elapsed_ms=1\n"
+        "WIZ8_RUNTIME_STEP scenario=main-game-start step=no-time state=pass\n"
+        "WIZ8_RUNTIME_STEP scenario=main-game-start step=main-game-entered state=pass "
+        "elapsed_ms=14000"
+    )
+
+    assert (
+        _runtime_phase_summary(output, "main-game-start")
+        == "main-menu-reached=9000ms -> main-game-entered=14000ms"
+    )
 
 
 @pytest.mark.parametrize("check_order", [False, True])
@@ -179,14 +181,52 @@ def test_runtime_suite_selection_and_server_lifetime(
     )
 
     def run(executable, stage, environment, scenario, object_root, map_path):
-        visited.append(scenario)
+        visited.append((scenario, stage))
+        (stage / "scenario-output.tmp").write_text(scenario)
         return {"scenario": scenario, "teardown": 1}
 
     monkeypatch.setattr("wiz8decomp.runtime._run_runtime_scenario", run)
     result = run_runtime_suite(settings, scenarios=scenarios, check_order=check_order)
-    assert visited == list(scenarios) + (list(reversed(scenarios)) if check_order else [])
+    expected = list(scenarios) + (list(reversed(scenarios)) if check_order else [])
+    assert [scenario for scenario, _ in visited] == expected
+    assert all(
+        stage == settings.runtime_stage(f"runtime-test/{scenario}") for scenario, stage in visited
+    )
+    assert all(
+        (settings.runtime_stage(f"runtime-test/{scenario}") / "scenario-output.tmp").read_text()
+        == scenario
+        for scenario in scenarios
+    )
     assert shutdowns == [["wineserver", "-k"]]
     assert result["deterministic"] is (True if check_order else None)
+    assert result["scenario_stages"] == {
+        scenario: str(settings.runtime_stage(f"runtime-test/{scenario}")) for scenario in scenarios
+    }
+
+
+def test_runtime_suite_preserves_failures_and_continues(tmp_path: Path, monkeypatch) -> None:
+    settings = _settings(tmp_path)
+    scenarios = ("main-menu-startup", "split-stack")
+    visited = []
+    monkeypatch.setattr("wiz8decomp.runtime.shutil.which", lambda name: f"/usr/bin/{name}")
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.runtime_display", lambda *args, **kwargs: nullcontext(None)
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.configure_wine_window_management", lambda *args, **kwargs: None
+    )
+    monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", lambda *args, **kwargs: None)
+
+    def run(executable, stage, environment, scenario, object_root, map_path):
+        visited.append(scenario)
+        if scenario == "main-menu-startup":
+            raise RuntimeError("startup invariant failed")
+        return {"scenario": scenario, "teardown": 1}
+
+    monkeypatch.setattr("wiz8decomp.runtime._run_runtime_scenario", run)
+    with pytest.raises(RuntimeError, match="forward/main-menu-startup: startup invariant failed"):
+        run_runtime_suite(settings, scenarios=scenarios)
+    assert visited == list(scenarios)
 
 
 def test_staging_keeps_the_map_for_each_executable_snapshot(

@@ -33,6 +33,7 @@ def _managed_link(source: Path, destination: Path) -> None:
 
 RUNTIME_OBSERVATION = re.compile(r"^WIZ8_RUNTIME_TEST (?P<fields>.+)$")
 RUNTIME_FAILURE = re.compile(r"^WIZ8_RUNTIME_FAILURE (?P<fields>.+)$", re.MULTILINE)
+RUNTIME_STEP = re.compile(r"^WIZ8_RUNTIME_STEP (?P<fields>.+)$", re.MULTILINE)
 RUNTIME_CRASH = re.compile(r"^WIZ8_RUNTIME_CRASH (?P<fields>.+)$", re.MULTILINE)
 RUNTIME_CANDIDATE = re.compile(
     r"^WIZ8_RUNTIME_CANDIDATE source=(?P<source>\S+) address=(?P<address>[0-9a-fA-F]+)",
@@ -69,12 +70,6 @@ RUNTIME_SCENARIOS = (
 )
 # Python owns the hard process deadline, including a WinMain that never returns.
 RUNTIME_SCENARIO_TIMEOUT_SECONDS = 135
-RUNTIME_SCENARIO_STATE_FILES = (
-    Path("Saves") / "Characters" / "Probe.CHR",
-    Path("Saves") / "AutoSave.SAV",
-    Path("Saves") / "CleanUp.SAV",
-    Path("Saves") / "CurrentGame.SAV",
-)
 
 
 @dataclass(frozen=True)
@@ -127,11 +122,6 @@ def _materialize_config(settings: Settings, stage: Path) -> None:
     if not game_cfg.exists():
         encoded = (settings.repo_dir / "config" / "runtime" / "Wiz8.CFG.hex").read_text()
         game_cfg.write_bytes(bytes.fromhex(encoded))
-
-
-def _reset_runtime_scenario_state(stage: Path) -> None:
-    for relative_path in RUNTIME_SCENARIO_STATE_FILES:
-        (stage / relative_path).unlink(missing_ok=True)
 
 
 def stage_game(
@@ -523,13 +513,29 @@ def _runtime_failure(
     failure = RUNTIME_FAILURE.search(combined)
     if failure is not None:
         fields = _parse_diagnostic_fields(failure.group("fields"))
+        step = fields.get("step", "unknown")
         reason = fields.get("reason", "unknown")
         line = fields.get("line", "unknown")
-        return RuntimeError(f"{scenario} failed: reason={reason} line={line}\nartifacts={artifact}")
+        phases = _runtime_phase_summary(combined, scenario)
+        phase_detail = f"\nphases: {phases}" if phases else ""
+        return RuntimeError(
+            f"{scenario} failed: step={step} reason={reason} line={line}"
+            f"{phase_detail}\nartifacts={artifact}"
+        )
     diagnostic_lines = [line for line in combined.splitlines() if line.strip()]
     last_diagnostic = diagnostic_lines[-1][-500:] if diagnostic_lines else "no diagnostics"
     summary = f"status={returncode if returncode is not None else 'timeout'}: {last_diagnostic}"
     return RuntimeError(f"{scenario} failed: {summary}\nartifacts={artifact}")
+
+
+def _runtime_phase_summary(output: str, scenario: str) -> str:
+    phases: list[str] = []
+    for match in RUNTIME_STEP.finditer(output):
+        fields = _parse_diagnostic_fields(match.group("fields"))
+        if fields.get("scenario") != scenario or "step" not in fields or "elapsed_ms" not in fields:
+            continue
+        phases.append(f"{fields['step']}={fields['elapsed_ms']}ms")
+    return " -> ".join(phases)
 
 
 def runtime_test_environment(
@@ -737,6 +743,9 @@ def _run_runtime_scenario(
             object_root,
             map_path,
         )
+    phases = _runtime_phase_summary(stderr, scenario)
+    if phases:
+        print(f"PHASES {scenario} {phases}", file=sys.stderr, flush=True)
     print(f"PASS {scenario} {time.monotonic() - started:.1f}s", file=sys.stderr, flush=True)
     return observation
 
@@ -751,18 +760,14 @@ def run_runtime_suite(
 
     if shutil.which("wine") is None or shutil.which("wineserver") is None:
         raise RuntimeError("wine and wineserver are required to run WIZ8_RUNTIME_TEST")
-    staged = stage_game(
-        settings,
-        name="runtime-test",
-        executable=settings.product_build_dir / "Wiz8RuntimeTest.exe",
-        objects=settings.recovered_objects_dir,
-        reset_saves=True,
-    )
-    stage = staged.root
-    executable = staged.executable
-    object_root = staged.objects
+    stage = settings.runtime_stage("runtime-test")
+    stage.mkdir(parents=True, exist_ok=True)
+    executable = settings.product_build_dir / "Wiz8RuntimeTest.exe"
+    object_root = settings.recovered_objects_dir
     prefix, environment = runtime_test_environment(settings)
     runs: dict[str, dict[str, dict[str, str | int]]] = {}
+    scenario_stages: dict[str, str] = {}
+    failures: list[str] = []
     with runtime_display(
         environment, default="virtual", log_path=stage / "xvfb-runtime-test.log"
     ) as display:
@@ -774,11 +779,38 @@ def run_runtime_suite(
             for order_name, ordered_scenarios in orders:
                 runs[order_name] = {}
                 for scenario in ordered_scenarios:
-                    _reset_runtime_scenario_state(stage)
-                    print(f"RUN {scenario} ({order_name})", file=sys.stderr, flush=True)
-                    runs[order_name][scenario] = _run_runtime_scenario(
-                        executable, stage, environment, scenario, object_root, staged.map
+                    scenario_stage = stage / scenario
+                    shutil.rmtree(scenario_stage, ignore_errors=True)
+                    staged = stage_game(
+                        settings,
+                        name=f"runtime-test/{scenario}",
+                        executable=executable,
+                        objects=object_root,
+                        reset_saves=True,
                     )
+                    scenario_stages[scenario] = str(staged.root)
+                    print(f"RUN {scenario} ({order_name})", file=sys.stderr, flush=True)
+                    try:
+                        runs[order_name][scenario] = _run_runtime_scenario(
+                            staged.executable,
+                            staged.root,
+                            environment,
+                            scenario,
+                            object_root,
+                            staged.map,
+                        )
+                    except RuntimeError as error:
+                        failure = str(error)
+                        failures.append(f"{order_name}/{scenario}: {failure}")
+                        runs[order_name][scenario] = {
+                            "scenario": scenario,
+                            "failure": failure,
+                        }
+                        print(
+                            f"FAIL {scenario} ({order_name}): {failure}",
+                            file=sys.stderr,
+                            flush=True,
+                        )
         finally:
             subprocess.run(
                 ["wineserver", "-k"],
@@ -788,9 +820,14 @@ def run_runtime_suite(
                 capture_output=True,
             )
     if check_order and runs["forward"] != runs["reverse"]:
-        raise RuntimeError("runtime observations depend on scenario order")
+        failures.append("runtime observations depend on scenario order")
+    if failures:
+        raise RuntimeError("runtime suite failures:\n\n" + "\n\n".join(failures))
     return {
-        **staged.as_dict(),
+        "stage": str(stage),
+        "executable": str(executable),
+        "objects": str(object_root),
+        "scenario_stages": scenario_stages,
         "wine_prefix": str(prefix),
         "display": display or "host",
         "scenarios": runs["forward"],
