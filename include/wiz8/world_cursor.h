@@ -8,7 +8,6 @@ class stParticle;
 class srNode;
 class stLight;
 
-#pragma pack(push, 1)
 struct W8WorldCursorState {
     /* 0x00: detached with the world when the cursor hides. */
     W8Monster* monster_00;
@@ -80,7 +79,6 @@ struct W8WorldCursorState {
        it to the cursor position and releases it when shift lifts. */
     W8MonsterInfo* dragged_info_dc;
 };
-#pragma pack(pop)
 
 static_assert(sizeof(W8WorldCursorState) == 0xe0, "W8WorldCursorState_size");
 

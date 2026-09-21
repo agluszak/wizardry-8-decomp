@@ -69,7 +69,6 @@ struct W8PendingNoticeLine {
     int npc_kind;
 };
 
-#pragma pack(push, 1)
 /* 0x0068EE60: the NPC script notice queued between 0x0056C5E0 and its
    DispatchPendingNpcScriptNotice dispatch. flag and force are stored as
    independent bytes at +0x14/+0x15; the dispatch reloads +0x14 as one dword
@@ -83,7 +82,6 @@ struct W8PendingNotice {
     unsigned char force;
     unsigned char unused_16[2];
 };
-#pragma pack(pop)
 extern W8PendingNotice g_pending_notice_68ee60;
 extern wchar_t g_wchar_0068ee58[4];
 
@@ -122,7 +120,6 @@ struct W8DialogueTranscriptRecord {
 };
 static_assert(sizeof(W8DialogueTranscriptRecord) == 0xca, "W8DialogueTranscriptRecord_size");
 
-#pragma pack(push, 1)
 struct W8MainScreenState {
     /* 0x000: a word 0x0056CAD0 clears while the dialogue opens. */
     short value_000;
@@ -271,7 +268,6 @@ struct W8MainScreenState {
     unsigned char unknown_263;
     int last_notice_npc_kind; /* 0x264 */
 };
-#pragma pack(pop)
 static_assert(sizeof(W8MainScreenState) == 0x268, "W8MainScreenState_size");
 static_assert(offsetof(W8MainScreenState, dialogue_scroll_up_button) == 0x134,
               "W8MainScreenState_dialogue_scroll_up_button");
