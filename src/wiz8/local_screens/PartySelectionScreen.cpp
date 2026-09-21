@@ -102,40 +102,6 @@ unsigned int g_party_selection_party_slot_region_set_69c4f4;
 // GLOBAL: WIZ8 0x0069C4F8
 unsigned int g_party_selection_character_grid_region_set_69c4f8;
 
-// GLOBAL: WIZ8 0x0068DE48
-unsigned int g_wiz7_imported_character_count_0068de48;
-
-// GLOBAL: WIZ8 0x0068DEB8
-W8Wiz7Character g_wiz7_import_buffer_0068deb8[6];
-
-/* Validate the selected Wizardry 7 save, reset for a new game, grant the
-   imported party its fixed 2500 gold, then convert and add each stored
-   character. Result 2 selects the alternate failure notice in
-   LoadImportedPartyFile; it is returned only when the save's ending selector
-   imported as 3. */
-// FUNCTION: WIZ8 0x00558c40
-int LoadWizardry7Import00558C40(const char* path)
-{
-    W8Character character;
-
-    if (Function558D00(path) == 0) {
-        return 1;
-    }
-    ResetForNewGame();
-    g_status_685170.party_gold = 0x9c4;
-    g_status_685170.skip_loose_character_check_2444 = 1;
-    if (g_wiz7_imported_character_count_0068de48 <= 6) {
-        for (unsigned int index = 0; index < g_wiz7_imported_character_count_0068de48; ++index) {
-            ImportWizardry7Character005590B0(&character, &g_wiz7_import_buffer_0068deb8[index]);
-            if (AddCharacterToParty(&character, -1) == -1) {
-                return 1;
-            }
-        }
-        return g_value_68de50 == 3 ? 2 : 0;
-    }
-    return 1;
-}
-
 /* Imported characters not installed in the active party are owned here. Name
    strings are separately owned by the second vector. Clearing the counts
    before the two ordinary vector destructors preserves their storage teardown
