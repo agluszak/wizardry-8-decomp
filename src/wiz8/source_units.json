@@ -21,6 +21,7 @@
     "src/wiz8/engine_code/MonsterLight.cpp",
     "src/wiz8/engine_code/OctRegionPolygon.cpp",
     "src/wiz8/engine_code/game_timer.cpp",
+    "src/wiz8/engine_code/ground_surface_info.cpp",
     "src/wiz8/engine_code/stGroundShadow.cpp",
     "src/wiz8/engine_code/stLight.cpp",
     "src/wiz8/engine_code/stTextureAnim.cpp",
