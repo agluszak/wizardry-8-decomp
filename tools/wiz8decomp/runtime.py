@@ -811,12 +811,16 @@ def run_runtime_suite(
     scenarios: tuple[str, ...] | None = None,
     tier: str = "pr",
     check_order: bool = False,
+    repeat: int = 1,
 ) -> dict[str, Any]:
     """Run selected scenarios, optionally checking reverse-order determinism."""
 
+    suite_started = time.monotonic()
     tiers = ("pr", "main", "nightly")
     if tier not in tiers:
         raise ValueError(f"invalid runtime tier: {tier}")
+    if repeat < 1:
+        raise ValueError("runtime repeat count must be positive")
 
     if shutil.which("wine") is None or shutil.which("wineserver") is None:
         raise RuntimeError("wine and wineserver are required to run WIZ8_RUNTIME_TEST")
@@ -851,22 +855,28 @@ def run_runtime_suite(
                 )
             if not scenarios or set(scenarios) - registry.keys():
                 raise ValueError(f"invalid runtime scenario selection: {scenarios}")
-            orders = [("forward", scenarios)]
-            if check_order:
-                orders.append(("reverse", tuple(reversed(scenarios))))
+            orders = []
+            comparisons = []
+            for repetition in range(1, repeat + 1):
+                suffix = f"-{repetition}" if repeat > 1 else ""
+                forward, reverse = f"forward{suffix}", f"reverse{suffix}"
+                orders.append((forward, scenarios))
+                if check_order:
+                    orders.append((reverse, tuple(reversed(scenarios))))
+                    comparisons.append((forward, reverse))
             for order_name, ordered_scenarios in orders:
                 runs[order_name] = {}
                 for scenario in ordered_scenarios:
-                    scenario_stage = stage / scenario
+                    scenario_stage = stage / order_name / scenario
                     shutil.rmtree(scenario_stage, ignore_errors=True)
                     staged = stage_game(
                         settings,
-                        name=f"runtime-test/{scenario}",
+                        name=f"runtime-test/{order_name}/{scenario}",
                         executable=executable,
                         objects=object_root,
                         reset_saves=True,
                     )
-                    scenario_stages[scenario] = str(staged.root)
+                    scenario_stages[f"{order_name}/{scenario}"] = str(staged.root)
                     print(f"RUN {scenario} ({order_name})", file=sys.stderr, flush=True)
                     try:
                         runs[order_name][scenario] = _run_runtime_scenario(
@@ -898,8 +908,21 @@ def run_runtime_suite(
                 check=False,
                 capture_output=True,
             )
-    if check_order and runs["forward"] != runs["reverse"]:
-        failures.append("runtime observations depend on scenario order")
+    for forward, reverse in comparisons:
+        if any(
+            observation != runs[reverse][scenario]
+            for scenario, observation in runs[forward].items()
+            if "failure" not in observation and "failure" not in runs[reverse][scenario]
+        ):
+            failures.append(f"runtime observations depend on scenario order: {forward}/{reverse}")
+    elapsed = time.monotonic() - suite_started
+    print(
+        f"RUNTIME_SUITE scenarios={sum(len(run) for run in runs.values())} "
+        f"failures={len(failures)} elapsed_s={elapsed:.1f} "
+        f"renderer={environment.get('GALLIUM_DRIVER', 'default')}",
+        file=sys.stderr,
+        flush=True,
+    )
     if failures:
         raise RuntimeError("runtime suite failures:\n\n" + "\n\n".join(failures))
     return {
@@ -909,6 +932,7 @@ def run_runtime_suite(
         "scenario_stages": scenario_stages,
         "wine_prefix": str(prefix),
         "display": display or "host",
-        "scenarios": runs["forward"],
+        "runs": runs,
+        "elapsed_seconds": elapsed,
         "deterministic": True if check_order else None,
     }

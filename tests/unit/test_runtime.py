@@ -190,8 +190,9 @@ def test_registry_rejects_unsafe_or_ambiguous_metadata(row):
 
 
 @pytest.mark.parametrize("check_order", [False, True])
+@pytest.mark.parametrize("repeat", [1, 3])
 def test_runtime_suite_selection_and_server_lifetime(
-    tmp_path: Path, monkeypatch, check_order
+    tmp_path: Path, monkeypatch, check_order, repeat
 ) -> None:
     settings = _settings(tmp_path)
     scenarios = ("main-menu-startup", "split-stack")
@@ -217,25 +218,26 @@ def test_runtime_suite_selection_and_server_lifetime(
         return {"scenario": scenario, "teardown": 1}
 
     monkeypatch.setattr("wiz8decomp.runtime._run_runtime_scenario", run)
-    result = run_runtime_suite(settings, scenarios=scenarios, check_order=check_order)
-    expected = list(scenarios) + (list(reversed(scenarios)) if check_order else [])
-    assert [scenario for scenario, _ in visited] == expected
-    assert all(
-        stage == settings.runtime_stage(f"runtime-test/{scenario}") for scenario, stage in visited
+    result = run_runtime_suite(
+        settings, scenarios=scenarios, check_order=check_order, repeat=repeat
     )
+    expected = (list(scenarios) + (list(reversed(scenarios)) if check_order else [])) * repeat
+    assert [scenario for scenario, _ in visited] == expected
+    assert len({stage for _, stage in visited}) == len(visited)
     assert all(
-        (settings.runtime_stage(f"runtime-test/{scenario}") / "scenario-output.tmp").read_text()
-        == scenario
-        for scenario in scenarios
+        (stage / "scenario-output.tmp").read_text() == scenario for scenario, stage in visited
     )
     assert shutdowns == [["wineserver", "-k"]]
     assert result["deterministic"] is (True if check_order else None)
     assert result["scenario_stages"] == {
-        scenario: str(settings.runtime_stage(f"runtime-test/{scenario}")) for scenario in scenarios
+        f"{stage.parent.name}/{scenario}": str(stage) for scenario, stage in visited
     }
 
 
-def test_runtime_suite_preserves_failures_and_continues(tmp_path: Path, monkeypatch) -> None:
+@pytest.mark.parametrize("check_order", [False, True])
+def test_runtime_suite_preserves_failures_and_continues(
+    tmp_path: Path, monkeypatch, check_order
+) -> None:
     settings = _settings(tmp_path)
     scenarios = ("main-menu-startup", "split-stack")
     visited = []
@@ -253,13 +255,16 @@ def test_runtime_suite_preserves_failures_and_continues(tmp_path: Path, monkeypa
     def run(executable, stage, environment, scenario, timeout_seconds, object_root, map_path):
         visited.append(scenario)
         if scenario == "main-menu-startup":
-            raise RuntimeError("startup invariant failed")
+            raise RuntimeError(f"startup invariant failed; artifacts={stage}")
         return {"scenario": scenario, "teardown": 1}
 
     monkeypatch.setattr("wiz8decomp.runtime._run_runtime_scenario", run)
-    with pytest.raises(RuntimeError, match="forward/main-menu-startup: startup invariant failed"):
-        run_runtime_suite(settings, scenarios=scenarios)
-    assert visited == list(scenarios)
+    with pytest.raises(
+        RuntimeError, match="forward/main-menu-startup: startup invariant failed"
+    ) as error:
+        run_runtime_suite(settings, scenarios=scenarios, check_order=check_order)
+    assert "depend on scenario order" not in str(error.value)
+    assert visited == list(scenarios) + (list(reversed(scenarios)) if check_order else [])
 
 
 def test_staging_keeps_the_map_for_each_executable_snapshot(

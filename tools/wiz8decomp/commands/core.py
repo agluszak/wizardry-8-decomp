@@ -276,6 +276,9 @@ def runtime_test_command(
     tier: Annotated[
         str, typer.Option(help="Registry tier: pr, main, or nightly (cumulative).")
     ] = "pr",
+    repeat: Annotated[
+        int, typer.Option(min=1, help="Repeat selected scenarios in fresh stages.")
+    ] = 1,
     check_order: Annotated[
         bool,
         typer.Option(
@@ -301,6 +304,7 @@ def runtime_test_command(
             settings,
             scenarios=tuple(dict.fromkeys(scenario)) if scenario else None,
             tier=tier,
+            repeat=repeat,
             check_order=check_order,
         )
     )

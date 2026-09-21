@@ -21,6 +21,8 @@ struct RuntimeObservation {
     unsigned char character_in_party;
     unsigned char main_game_entered;
     unsigned char party_moved;
+    unsigned char party_moved_backward;
+    unsigned char moved_after_load;
     unsigned char party_turned;
     unsigned char world_soaked;
     unsigned char automap_opened;

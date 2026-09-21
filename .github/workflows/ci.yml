@@ -6,6 +6,16 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      renderer:
+        description: Runtime renderer experiment
+        type: choice
+        default: default
+        options:
+          - default
+          - softpipe
+  schedule:
+    - cron: '17 2 * * *'
 
 permissions:
   contents: read
@@ -341,8 +351,21 @@ jobs:
         id: runtime
         if: env.LICENSED_INPUTS == 'true'
         continue-on-error: true
+        env:
+          RUNTIME_RENDERER: ${{ inputs.renderer || 'default' }}
         run: |
-          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+          if [[ "$RUNTIME_RENDERER" == "softpipe" ]]; then
+            export GALLIUM_DRIVER=softpipe
+          fi
+          if [[ "$GITHUB_EVENT_NAME" == "schedule" ]]; then
+            status=0
+            uv run wiz8 runtime-test --build --repeat 3 \
+              --scenario main-game-start --scenario save-load-move \
+              --scenario combat-roundtrip --scenario hostile-encounter || status=1
+            uv run wiz8 runtime-test --scenario world-soak || status=1
+            exit "$status"
+          elif [[ "$GITHUB_EVENT_NAME" == "pull_request" || "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            # Renderer experiments use the same forward workload as trusted PRs.
             uv run wiz8 runtime-test --build
           else
             uv run wiz8 runtime-test --build --tier main --check-order
@@ -354,7 +377,7 @@ jobs:
         with:
           name: runtime-test-diagnostics
           path: |
-            build/runtime/runtime-test/*/diagnostics/
+            build/runtime/runtime-test/**/diagnostics/
             build/logs/
           if-no-files-found: warn
 
