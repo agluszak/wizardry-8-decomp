@@ -546,13 +546,6 @@ bool PartySlotSpellTargetStillValid(int party_slot)
     return IsCurrentTargetInRange(party_slot, 0, W8_TARGETING_CONTEXT_SPELL) != 0;
 }
 
-/* 0x00616DF0: seventeen entries, indexed by the spell's own cost band. The
-   monster power-level chooser reads the same table as a spell-point budget
-   cost, so the one table serves both. */
-const int g_spell_failure_table[] = {
-    30, 40, 50, 58, 64, 70, 76, 81, 86, 90, 94, 97, 100, 102, 105, 107, 110,
-};
-
 /* Start one character's breath attack. The assertion names the predicate it
    depends on outright - CanCharReBreathe - so a character who cannot is a
    caller error rather than a refusal. */
@@ -917,7 +910,9 @@ unsigned int GetSpellFailureChance(unsigned int skill, int spell_id, int factor)
     if (band > 0x10) {
         band = 0x10;
     }
-    needed = (unsigned int)(g_spell_failure_table[band] * factor) / 7;
+    needed = static_cast<unsigned int>(
+                 g_combat_effect_slot_spells_and_cast_success_00616dd8[6 + band] * factor) /
+             7;
     if (needed <= skill) {
         return 0;
     }
@@ -1473,7 +1468,7 @@ unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, W8Monster
         if (band > 16) {
             band = 16;
         }
-        cost = (g_spell_failure_table[band] * power_level) / 7;
+        cost = (g_combat_effect_slot_spells_and_cast_success_00616dd8[6 + band] * power_level) / 7;
 
         if (cost > budget) {
             unsigned int shortfall = (cost * 70 - budget * 70) / cost;
@@ -1637,7 +1632,8 @@ unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id,
             if (band > 16) {
                 band = 16;
             }
-            needed = (g_spell_failure_table[band] * power_level) / 7;
+            needed =
+                (g_combat_effect_slot_spells_and_cast_success_00616dd8[6 + band] * power_level) / 7;
             if (skill_figure < needed) {
                 failure = (needed * 70 - skill_figure * 70) / needed;
                 if ((int)failure < 0) {
