@@ -255,10 +255,10 @@ void RefreshRadarMap(void)
         }
         MakeVSurfaceFromVObject(handle, 0, &map_surface);
         for (int slot = 0; slot < 8; ++slot) {
-            W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+            W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
             W8PartyFormationPosition* position = &g_status_685170.formation.positions[slot];
 
-            if (row->occupied != 0 && position->bQuadrant != -1) {
+            if (row->fOccupied != 0 && position->bQuadrant != -1) {
                 int cell = position->bQuadrant * 3 + position->bQuadrantSlot;
                 DrawCatalogImage((int)map_surface, 0xa5, 0, row->party_order_index,
                                  g_radar_cell_offsets_0064cb6c[cell][0],
@@ -382,8 +382,7 @@ void UpdateRadarBlips(void)
             unsigned char hostile = 0;
 
             if (gXStatus.fCombatMode != 0 && g_status_685170.selected_character != -1 &&
-                g_status_685170.buffers.party_rows[g_status_685170.selected_character].occupied !=
-                    0 &&
+                g_status_685170.buffers.XChar[g_status_685170.selected_character].fOccupied != 0 &&
                 ((unsigned char)(1 << g_status_685170.selected_character) &
                  MonsterGetRuntimeFlag5BC(monster)) != 0) {
                 hostile = 1;

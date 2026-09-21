@@ -5,7 +5,9 @@
 
 /* One live item stack carried by a character, party pool, or world item. */
 struct W8ItemInstance {
-    int item_id;
+    /* 0x00: the Items.dbs record id, spelled iItemNo by the
+       pPC->EquippedItem[uiWeaponSlot].iItemNo assertion. */
+    int iItemNo;
     unsigned char stack_count;     /* 0x04: quantity-kind 1 */
     unsigned char uses_or_charges; /* 0x05: quantity-kinds 2 through 4 */
     unsigned char identified;

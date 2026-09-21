@@ -1346,8 +1346,8 @@ void W8TriggerItemPickerDialog::TransferSelectedItems(int destination)
             if (destination == -1) {
                 added = AddItemToParty(instance, 1, 0);
             } else {
-                added = AddItemToCharacter(&g_status_685170.buffers.characters[destination],
-                                           instance, 0, 1, 0);
+                added = AddItemToCharacter(&g_status_685170.buffers.Char[destination], instance, 0,
+                                           1, 0);
             }
             if (added != 0) {
                 items_54.RemoveAt(index);
@@ -1793,7 +1793,7 @@ int W8TriggerItemPickerDialog::AddItem(W8WorldItem* item)
                 ++index;
             }
             if (index < items_54.GetCount()) {
-                while (index < items_54.GetCount() && other->item.item_id != instance->item_id) {
+                while (index < items_54.GetCount() && other->item.iItemNo != instance->iItemNo) {
                     other = *items_54.GetAt(index);
                     ++index;
                 }
@@ -1977,7 +1977,7 @@ void W8TriggerItemPickerDialog::Draw()
         }
         W8WorldItem* world_item = *items_54.GetAt(item_index);
         W8ItemInstance* item = &world_item->item;
-        int video_object = g_item_video_objects_68ec68.GetOrCreateVideoObject(item->item_id);
+        int video_object = g_item_video_objects_68ec68.GetOrCreateVideoObject(item->iItemNo);
         DrawCatalogImage(-0xe, video_object, 0, 0, button->GetX() + 2, button->GetY() + 2, 2, 0);
         SetFont(g_wiz_text_font_683640);
         if (item->stack_count > 1) {
@@ -1987,7 +1987,7 @@ void W8TriggerItemPickerDialog::Draw()
             wchar_t* name = GetItemDisplayName(item);
             gprintf(button->GetX() + 0x3c, button->GetY() + 6, name);
         }
-        unsigned short weight = g_item_records[item->item_id].weight;
+        unsigned short weight = g_item_records[item->iItemNo].weight;
         gprintf(button->GetX() + 0x3c, button->GetY() + GetFontHeight(g_wiz_text_font_683640) + 6,
                 L"%4.1f lbs", weight * 0.1f);
     }

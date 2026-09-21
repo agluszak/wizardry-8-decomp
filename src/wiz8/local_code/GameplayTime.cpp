@@ -97,21 +97,21 @@ void UpdateGameClock00502010(int elapsed)
         g_status_685170.item_recharge_ms_239d %= 3600000;
         for (unsigned int slot = 0; slot < 8; ++slot) {
             char uses = static_cast<char>(hours);
-            if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
+            if (g_status_685170.buffers.XChar[slot].fOccupied == 0) {
                 continue;
             }
-            W8Character* character = &g_status_685170.buffers.characters[slot];
+            W8Character* character = &g_status_685170.buffers.Char[slot];
             int i;
-            W8ItemInstance* item = character->equipment;
+            W8ItemInstance* item = character->EquippedItem;
             for (i = 0xc; i != 0; --i) {
-                if (item->item_id == 0x266) {
+                if (item->iItemNo == 0x266) {
                     AddItemUses(item, uses);
                 }
                 ++item;
             }
             item = character->backpack;
             for (i = 8; i != 0; --i) {
-                if (item->item_id == 0x266) {
+                if (item->iItemNo == 0x266) {
                     AddItemUses(item, uses);
                 }
                 ++item;
@@ -120,7 +120,7 @@ void UpdateGameClock00502010(int elapsed)
         for (unsigned int index = 0;
              index < static_cast<unsigned int>(g_status_685170.party_item_count_1791); ++index) {
             W8ItemInstance* item = &g_status_685170.party_item_pool_0021[index];
-            if (item->item_id == 0x266) {
+            if (item->iItemNo == 0x266) {
                 AddItemUses(item, static_cast<char>(hours));
             }
         }
@@ -174,7 +174,7 @@ void UpdateGameClock00502010(int elapsed)
             SetNpcQuoteBubbleVisible(false, 0, 0, -1, 0xffffffff);
             gXStatus.character_event_queue->CompleteAllActiveEvents();
             for (unsigned int slot = 0; slot < 8; ++slot) {
-                if (g_status_685170.buffers.party_rows[slot].occupied != 0) {
+                if (g_status_685170.buffers.XChar[slot].fOccupied != 0) {
                     SetPortraitTargetPose(&gXStatus.monster_manager_entries[slot], 2);
                 }
             }
@@ -239,7 +239,7 @@ void RequestCamp00502460(void)
         SetNpcQuoteBubbleVisible(false, 0, 0, -1, 0xffffffff);
         gXStatus.character_event_queue->CompleteAllActiveEvents();
         for (unsigned int slot = 0; slot < 8; ++slot) {
-            if (g_status_685170.buffers.party_rows[slot].occupied != 0) {
+            if (g_status_685170.buffers.XChar[slot].fOccupied != 0) {
                 SetPortraitTargetPose(&gXStatus.monster_manager_entries[slot], 2);
             }
         }
@@ -269,7 +269,7 @@ void BeginSurprise005025F0(void)
 
     gXStatus.character_event_queue->CompleteAllActiveEvents();
     for (i = 0; i < W8_PARTY_SLOT_COUNT; ++i) {
-        if (g_status_685170.buffers.party_rows[i].occupied != 0) {
+        if (g_status_685170.buffers.XChar[i].fOccupied != 0) {
             SetPortraitTargetPose(&gXStatus.monster_manager_entries[i], 2);
         }
     }
@@ -409,7 +409,7 @@ void EndSurprise00502860(void)
         g_status_685170.skip_next_condition_reaction = 1;
         int party_slot = g_status_685170.pending_condition_party_slot_248f;
         RemoveCharacterCondition(party_slot, 0x13, 0);
-        QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot], g_effect_005ee658, 0,
+        QueueCharacterEvent(&g_status_685170.buffers.Char[party_slot], g_effect_005ee658, 0,
                             g_effect_argument_005ed8c8, g_effect_argument_005ed914);
         SetFact(0xb6, 1, 0);
     }
@@ -439,8 +439,8 @@ void ResolveSurpriseWake005029E0(void)
 {
     if (g_combat_state != 0 && g_combat_state->party_surprised_a52 != 0) {
         for (unsigned int slot = 0; slot < 8; ++slot) {
-            W8Character* character = &g_status_685170.buffers.characters[slot];
-            if (g_status_685170.buffers.party_rows[slot].occupied == 0 ||
+            W8Character* character = &g_status_685170.buffers.Char[slot];
+            if (g_status_685170.buffers.XChar[slot].fOccupied == 0 ||
                 character->highest_condition >= 0x12) {
                 continue;
             }
@@ -456,7 +456,7 @@ void ResolveSurpriseWake005029E0(void)
     }
 
     for (unsigned int slot = 0; slot < 8; ++slot) {
-        if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
+        if (g_status_685170.buffers.XChar[slot].fOccupied == 0) {
             continue;
         }
         W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[slot];
@@ -480,13 +480,13 @@ void RebuildCharacterRegenRates00502B50(W8Character* character)
     float rate;
     int realm;
 
-    rate = ((float)character->hp_max * 0.4f + 20.0f) * 0.0041666669f;
+    rate = (character->uiHPMax * 0.4f + 20.0f) * 0.0041666669f;
     character->health_regen_rate_0b69 = rate;
     if (character->bonus_1770.boost_health_regen != 0) {
         character->health_regen_rate_0b69 = rate * 1.5f;
     }
 
-    rate = ((float)character->stamina_max * 0.9f + 20.0f) * 0.0041666669f;
+    rate = (character->uiStaminaMax * 0.9f + 20.0f) * 0.0041666669f;
     character->stamina_regen_rate_0b71 = rate;
     if (character->bonus_1770.boost_stamina_regen != 0) {
         character->stamina_regen_rate_0b71 = rate * 1.5f;
@@ -546,7 +546,7 @@ void AdvanceTimedEffects00502D00(unsigned int minutes)
         if (g_status_685170.wait_state_2399 == 1 || g_status_685170.wait_state_2399 == 0) {
             g_status_685170.wait_state_2399 = 2;
             for (unsigned int slot = 0; slot < 8; ++slot) {
-                g_status_685170.buffers.party_rows[slot].movement_fatigue = 0;
+                g_status_685170.buffers.XChar[slot].movement_fatigue = 0;
             }
         } else if (g_status_685170.wait_state_2399 == 2) {
             g_status_685170.wait_state_2399 = 3;
@@ -559,10 +559,10 @@ void AdvanceTimedEffects00502D00(unsigned int minutes)
     }
 
     for (unsigned int slot = 0; slot < 8; ++slot) {
-        W8Character* character = &g_status_685170.buffers.characters[slot];
-        if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+        W8Character* character = &g_status_685170.buffers.Char[slot];
+        if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
             (character->highest_condition < 0x12 ||
-             (character->condition_turns[0x12] == 0 && GetConditionRecordFlag(slot, 1) != 0))) {
+             (character->uiCondition[0x12] == 0 && GetConditionRecordFlag(slot, 1) != 0))) {
             GameTurnsPassedChar00503100(slot, minutes);
         }
     }
@@ -668,7 +668,7 @@ void AdvanceTimedEffects00502D00(unsigned int minutes)
 // FUNCTION: WIZ8 0x00503100
 void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
     bool diseased = false;
     unsigned int realm;
 
@@ -682,7 +682,7 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
                                0);
     }
 
-    if (character->condition_turns[W8_CONDITION_DISEASED] != 0) {
+    if (character->uiCondition[W8_CONDITION_DISEASED] != 0) {
         diseased = true;
         if (Random(character->attributes[W8_ATTRIBUTE_VITALITY].effective * 10) < minutes) {
             switch (Random(4)) {
@@ -730,12 +730,12 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
                 break;
             }
             case 2:
-                if (static_cast<unsigned int>(character->hp_max) < 5) {
+                if (static_cast<unsigned int>(character->uiHPMax) < 5) {
                     break;
                 }
                 {
                     unsigned int loss = Random(4) + 1;
-                    character->hp_max = character->hp_max - loss;
+                    character->uiHPMax = character->uiHPMax - loss;
                     character->hp_adjustment = character->hp_adjustment - loss;
                     if (loss == 1) {
                         PostCharacterNotice(party_slot, gppStringList[0x26e]);
@@ -753,12 +753,12 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
                 }
                 break;
             case 3:
-                if (static_cast<unsigned int>(character->stamina_max) < 5) {
+                if (static_cast<unsigned int>(character->uiStaminaMax) < 5) {
                     break;
                 }
                 {
                     unsigned int loss = Random(4) + 1;
-                    character->stamina_max = character->stamina_max - loss;
+                    character->uiStaminaMax = character->uiStaminaMax - loss;
                     character->fatigue_penalty_0b21 = character->fatigue_penalty_0b21 + loss;
                     PostCharacterNotice(party_slot, gppStringList[0x271], loss);
                     int stamina = character->stamina;
@@ -775,10 +775,10 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
         }
     }
 
-    if (character->condition_turns[W8_CONDITION_INFATUATED] != 0) {
+    if (character->uiCondition[W8_CONDITION_INFATUATED] != 0) {
         if (GetLevelBand(g_status_685170.current_level) == 9 ||
             GetLevelBand(g_status_685170.current_level) == 0xa) {
-            if (character->condition_turns[W8_CONDITION_HEXED] == W8_CONDITION_INDEFINITE) {
+            if (character->uiCondition[W8_CONDITION_HEXED] == W8_CONDITION_INDEFINITE) {
                 RemoveCharacterCondition(party_slot, W8_CONDITION_HEXED, 1);
             }
         } else {
@@ -792,7 +792,7 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
                 ApplyDamageToCharacter(party_slot, hits, 0, 1, 0,
                                        static_cast<W8SpellEffectResult*>(0), 0);
             }
-            if (character->condition_turns[W8_CONDITION_HEXED] == 0) {
+            if (character->uiCondition[W8_CONDITION_HEXED] == 0) {
                 SetCharacterCondition(party_slot, W8_CONDITION_HEXED, W8_CONDITION_INDEFINITE, 0, 0,
                                       1);
             }
@@ -806,18 +806,18 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
         if (holder == static_cast<W8Character*>(0) ||
             FindItemOnCharacter(holder, 0x239, static_cast<W8ItemInstance**>(0), 0,
                                 static_cast<W8ItemInstance*>(0)) == 0) {
-            if (character->condition_turns[W8_CONDITION_INSANE] < W8_CONDITION_INDEFINITE) {
+            if (character->uiCondition[W8_CONDITION_INSANE] < W8_CONDITION_INDEFINITE) {
                 SetCharacterCondition(party_slot, W8_CONDITION_INSANE, W8_CONDITION_INDEFINITE, 0,
                                       0, 1);
             }
-        } else if (character->condition_turns[W8_CONDITION_INSANE] == W8_CONDITION_INDEFINITE) {
+        } else if (character->uiCondition[W8_CONDITION_INSANE] == W8_CONDITION_INDEFINITE) {
             RemoveCharacterCondition(party_slot, W8_CONDITION_INSANE, 1);
         }
     }
 
     signed char health_mod = character->bonus_1770.health_regen_adjustment;
     if (health_mod > 0) {
-        if (character->hp_current < static_cast<unsigned int>(character->hp_max)) {
+        if (character->hp_current < static_cast<unsigned int>(character->uiHPMax)) {
             HealCharacter(party_slot, static_cast<int>(health_mod) * static_cast<int>(minutes), 0);
         }
     } else if (health_mod < 0) {
@@ -828,7 +828,7 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
 
     signed char stamina_mod = character->bonus_1770.stamina_regen_adjustment;
     if (stamina_mod > 0) {
-        if (character->stamina < character->stamina_max) {
+        if (character->stamina < character->uiStaminaMax) {
             RestoreCharacterStamina(party_slot, stamina_mod * static_cast<int>(minutes), 0);
         }
     } else if (stamina_mod < 0) {
@@ -839,7 +839,7 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
     for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
         signed char spell_mod = character->bonus_1770.spell_regen_adjustment;
         if (spell_mod > 0) {
-            if (character->sp_left[realm] < character->sp_max[realm]) {
+            if (character->iSPLeft[realm] < character->sp_max[realm]) {
                 RestoreCharacterRealmSpellPoints(
                     party_slot, realm, static_cast<int>(spell_mod) * static_cast<int>(minutes));
             }
@@ -890,7 +890,7 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
     }
 
     if (health_scale > g_float_005ebb34 &&
-        character->hp_current < static_cast<unsigned int>(character->hp_max)) {
+        character->hp_current < static_cast<unsigned int>(character->uiHPMax)) {
         character->health_regen_accumulator_0b6d =
             minutes * character->health_regen_rate_0b69 * health_scale +
             character->health_regen_accumulator_0b6d;
@@ -899,7 +899,7 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
             character->health_regen_accumulator_0b6d -
             static_cast<unsigned int>(character->health_regen_accumulator_0b6d);
     }
-    if (stamina_scale > g_float_005ebb34 && character->stamina < character->stamina_max) {
+    if (stamina_scale > g_float_005ebb34 && character->stamina < character->uiStaminaMax) {
         character->stamina_regen_accumulator_0b75 =
             minutes * character->stamina_regen_rate_0b71 * stamina_scale +
             character->stamina_regen_accumulator_0b75;
@@ -911,7 +911,7 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
     }
     if (spell_scale > g_float_005ebb34) {
         for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
-            if (character->sp_left[realm] < character->sp_max[realm]) {
+            if (character->iSPLeft[realm] < character->sp_max[realm]) {
                 character->spell_regen_rates_0b79[realm * 2 + 1] =
                     minutes * character->spell_regen_rates_0b79[realm * 2] * spell_scale +
                     character->spell_regen_rates_0b79[realm * 2 + 1];
@@ -925,21 +925,21 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
         }
     }
 
-    if (character->hp_current >= static_cast<unsigned int>(character->hp_max)) {
+    if (character->hp_current >= static_cast<unsigned int>(character->uiHPMax)) {
         character->health_regen_accumulator_0b6d = 0.0f;
     }
-    if (character->stamina >= character->stamina_max) {
+    if (character->stamina >= character->uiStaminaMax) {
         character->stamina_regen_accumulator_0b75 = 0.0f;
     }
     for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
-        if (character->sp_left[realm] >= character->sp_max[realm]) {
+        if (character->iSPLeft[realm] >= character->sp_max[realm]) {
             character->spell_regen_rates_0b79[realm * 2 + 1] = 0.0f;
         }
     }
 
     for (unsigned int condition = 0; condition < W8_CONDITION_COUNT; ++condition) {
-        if (character->condition_turns[condition] != 0 &&
-            character->condition_turns[condition] < W8_CONDITION_INDEFINITE) {
+        if (character->uiCondition[condition] != 0 &&
+            character->uiCondition[condition] < W8_CONDITION_INDEFINITE) {
             TickCharacterCondition(party_slot, condition, minutes);
         }
     }
@@ -1328,9 +1328,9 @@ void UpdateCampFatigue005044D0(int ticks)
     }
     bool any_rolled = false;
     for (unsigned int slot = 0; slot < 8; ++slot) {
-        W8Character* character = &g_status_685170.buffers.characters[slot];
-        if (g_status_685170.buffers.party_rows[slot].occupied != 0 && character->hp_current != 0 &&
-            character->highest_condition < 0x12 && character->race != 0xf &&
+        W8Character* character = &g_status_685170.buffers.Char[slot];
+        if (g_status_685170.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
+            character->highest_condition < 0x12 && character->iRace != 0xf &&
             FindItemOnCharacter(character, 0x1e5, static_cast<W8ItemInstance**>(0), 0,
                                 static_cast<W8ItemInstance*>(0)) == 0) {
             W8Dice dice;
@@ -1386,12 +1386,12 @@ void UpdatePartyStamina00504670(int ticks)
     }
 
     for (unsigned int slot = 0; slot < 8; ++slot) {
-        if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
+        if (g_status_685170.buffers.XChar[slot].fOccupied == 0) {
             continue;
         }
-        W8Character* character = &g_status_685170.buffers.characters[slot];
+        W8Character* character = &g_status_685170.buffers.Char[slot];
         if (character->highest_condition >= 0x12 &&
-            (character->condition_turns[0x12] != 0 || GetConditionRecordFlag(slot, 1) == 0)) {
+            (character->uiCondition[0x12] != 0 || GetConditionRecordFlag(slot, 1) == 0)) {
             continue;
         }
         if (g_status_685170.party_fatigued_2433 != 0 &&
@@ -1410,15 +1410,15 @@ void UpdatePartyStamina00504670(int ticks)
 // FUNCTION: WIZ8 0x00504730
 void RegenCharacterStamina00504730(int party_slot, unsigned int elapsed)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
-    unsigned int frost = character->condition_turns[2];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
+    unsigned int frost = character->uiCondition[2];
     signed char stamina_mod = character->bonus_1770.stamina_regen_adjustment;
     if (stamina_mod < 1) {
         if (stamina_mod < 0) {
             FatigueCharacter(party_slot, -static_cast<int>(stamina_mod * elapsed), 0,
                              static_cast<W8SpellEffectResult*>(0));
         }
-    } else if (character->stamina < character->stamina_max) {
+    } else if (character->stamina < character->uiStaminaMax) {
         RestoreCharacterStamina(party_slot, stamina_mod * static_cast<int>(elapsed), 0);
     }
 
@@ -1444,7 +1444,7 @@ void RegenCharacterStamina00504730(int party_slot, unsigned int elapsed)
             scale *= g_float_005ec3b8;
         }
     }
-    if (scale > g_float_005ebb34 && character->stamina < character->stamina_max) {
+    if (scale > g_float_005ebb34 && character->stamina < character->uiStaminaMax) {
         character->stamina_regen_accumulator_0b75 +=
             elapsed * character->stamina_regen_rate_0b71 * scale;
         int amount = static_cast<int>(character->stamina_regen_accumulator_0b75);
@@ -1452,7 +1452,7 @@ void RegenCharacterStamina00504730(int party_slot, unsigned int elapsed)
         character->stamina_regen_accumulator_0b75 -=
             static_cast<float>(static_cast<int>(character->stamina_regen_accumulator_0b75));
     }
-    if (character->stamina >= character->stamina_max) {
+    if (character->stamina >= character->uiStaminaMax) {
         character->stamina_regen_accumulator_0b75 = g_float_005ebb34;
     }
 }

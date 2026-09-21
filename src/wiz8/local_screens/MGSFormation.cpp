@@ -79,14 +79,14 @@ static void DrawFormationSlotMarkers(int target)
     int slot;
 
     for (slot = 0; slot < 8; ++slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
         W8PartyFormationPosition* position = &g_status_685170.formation.positions[slot];
         int left;
         int top;
         int image;
         int order_image;
 
-        if (row->occupied == 0 || position->bQuadrant == -1) {
+        if (row->fOccupied == 0 || position->bQuadrant == -1) {
             continue;
         }
         left = g_formation_marker_offsets_0064daf4[position->bQuadrant * 3 +
@@ -221,11 +221,11 @@ unsigned char FormationBoardRegionEvent(const InputAtom* event, W8Region* region
 
     hit = -1;
     for (slot = 0; slot < 8; ++slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
         W8PartyFormationPosition* position = &g_status_685170.formation.positions[slot];
         int cell;
 
-        if (row->occupied == 0 || position->bQuadrant == -1) {
+        if (row->fOccupied == 0 || position->bQuadrant == -1) {
             continue;
         }
         cell = position->bQuadrant * 3 + position->bQuadrantSlot;
@@ -264,11 +264,11 @@ unsigned char FormationBoardHoverRegionEvent005B207F(const InputAtom*, W8Region*
 
     hit = -1;
     for (slot = 0; slot < 8; ++slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
         W8PartyFormationPosition* position = &g_status_685170.formation.positions[slot];
         int cell;
 
-        if (row->occupied == 0 || position->bQuadrant == -1) {
+        if (row->fOccupied == 0 || position->bQuadrant == -1) {
             continue;
         }
         cell = position->bQuadrant * 3 + position->bQuadrantSlot;
@@ -405,13 +405,13 @@ static void UpdateFormationCells(void)
         ResetFormationCellControls(cell);
     }
     for (slot = 0; slot < 8; ++slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
+        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
         W8PartyFormationPosition* position = &gXStatus.edited_formation.positions[slot];
         W8TextControl* primary;
         W8TextControl* overlay;
         int sprite;
 
-        if (row->occupied != 0 && position->bQuadrant != -1) {
+        if (row->fOccupied != 0 && position->bQuadrant != -1) {
             cell = position->bQuadrant * 3 + position->bQuadrantSlot;
             primary = g_formation_cell_controls[cell];
             overlay = g_formation_cell_overlays[cell];
@@ -488,7 +488,7 @@ static void AcceptFormationChanges(void)
     unsigned int slot;
 
     for (slot = 0; slot < 8; ++slot) {
-        if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+        if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
             CanHoldFormationPlace(slot) != 0 &&
             gXStatus.edited_formation.positions[slot].bQuadrant !=
                 g_status_685170.formation.positions[slot].bQuadrant) {

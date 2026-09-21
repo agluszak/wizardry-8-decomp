@@ -84,7 +84,7 @@ W8SplitItemDialog::W8SplitItemDialog(int kind, W8ItemInstance* item, int count)
     m_remaining_0bc = item->stack_count;
     m_stack_total_0c4 = item->stack_count;
     if (count == -1) {
-        if (g_item_records[item->item_id].maximum_quantity <= 0xa) {
+        if (g_item_records[item->iItemNo].maximum_quantity <= 0xa) {
             split_count_0c0 = 1;
         } else {
             split_count_0c0 = item->stack_count >> 1;
@@ -448,7 +448,7 @@ void W8SplitItemDialog::Draw()
     }
     if (m_first_draw_0d4 != 0) {
         DrawCatalogImageAndInvalidate(
-            -0xe, g_item_video_objects_68ec68.GetOrCreateVideoObject(m_item_0d0->item_id), 0, 0,
+            -0xe, g_item_video_objects_68ec68.GetOrCreateVideoObject(m_item_0d0->iItemNo), 0, 0,
             m_x + 0x18, m_y + 0xe, 2, 0);
         m_first_draw_0d4 = 0;
     }

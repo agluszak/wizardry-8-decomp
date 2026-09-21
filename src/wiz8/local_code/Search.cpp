@@ -235,7 +235,7 @@ void RunSearchPulse(void)
                     }
                     int slot = searchable->PickBestSearcher();
                     if (slot != -1) {
-                        W8Character* character = &g_status_685170.buffers.characters[slot];
+                        W8Character* character = &g_status_685170.buffers.Char[slot];
                         if (searchable->world_item == 0) {
                             if (searchable->trigger == 0) {
                                 QueueCharacterEvent(character, g_effect_005ee5f0, 0,
@@ -290,8 +290,8 @@ void RunSearchPulse(void)
                 /* Retail scans the party for a live member carrying the
                    Scouting skill and then discards the result. */
                 for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
-                    W8Character* character = &g_status_685170.buffers.characters[slot];
-                    if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+                    W8Character* character = &g_status_685170.buffers.Char[slot];
+                    if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
                         character->hp_current != 0 &&
                         character->highest_condition < W8_CONDITION_TURNCOAT &&
                         character->skills[W8_SKILL_SCOUTING].level != 0) {
@@ -320,8 +320,8 @@ int W8Searchable::PickBestSearcher()
     int best_slot = -1;
     bool earned = false;
     for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
-        W8Character* character = &g_status_685170.buffers.characters[slot];
-        if (g_status_685170.buffers.party_rows[slot].occupied == 0 || character->hp_current == 0 ||
+        W8Character* character = &g_status_685170.buffers.Char[slot];
+        if (g_status_685170.buffers.XChar[slot].fOccupied == 0 || character->hp_current == 0 ||
             character->highest_condition >= W8_CONDITION_TURNCOAT) {
             continue;
         }
@@ -376,8 +376,8 @@ int W8Searchable::PickBestSearcher()
     srVector3T<float> delta = camera - position;
     if (delta.Length() < range) {
         if (earned) {
-            PracticeCharacterSkill(&g_status_685170.buffers.characters[best_slot],
-                                   W8_SKILL_SCOUTING, 5, 0);
+            PracticeCharacterSkill(&g_status_685170.buffers.Char[best_slot], W8_SKILL_SCOUTING, 5,
+                                   0);
         }
         return best_slot;
     }

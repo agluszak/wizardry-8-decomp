@@ -62,7 +62,7 @@ unsigned short g_condition_notices_0061E570[128] = {
 // FUNCTION: WIZ8 0x005248a0
 unsigned char GetConditionRecordFlag(int party_slot, int condition)
 {
-    return g_status_685170.buffers.characters[party_slot].conditions_1817[condition].value_08;
+    return g_status_685170.buffers.Char[party_slot].conditions_1817[condition].value_08;
 }
 
 // FUNCTION: WIZ8 0x005248D0
@@ -81,16 +81,16 @@ void ReleaseMonsterConditionBindings(W8MonsterInfo* monster_info)
                 break;
             }
             for (unsigned int party_slot = 0; party_slot < 8; ++party_slot) {
-                W8Character* character = &g_status_685170.buffers.characters[party_slot];
+                W8Character* character = &g_status_685170.buffers.Char[party_slot];
                 W8CharacterConditionRecord* record = &character->conditions_1817[slot_kind];
-                if ((condition == 0 || character->condition_turns[condition] != 0) &&
+                if ((condition == 0 || character->uiCondition[condition] != 0) &&
                     record->value_00 == g_status_685170.current_level &&
                     record->value_04 == monster_info->location_id) {
                     cleared = true;
                     record->value_08 = 0;
                     record->value_00 = 0;
                     record->value_04 = 0;
-                    if (condition != 0 && character->in_party != 0) {
+                    if (condition != 0 && character->fInParty != 0) {
                         RemoveCharacterCondition(party_slot, condition, 1);
                     }
                 }
@@ -120,30 +120,31 @@ enum { W8_CONDITION_SURVIVES_DEATH = 10 };
 // FUNCTION: WIZ8 0x00523330
 void RemoveCharacterCondition(int party_slot, int condition, int announce)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
-    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
     W8ItemInstance* found_item;
     W8Character* found_character;
-    unsigned char can_rest;
+    bool can_rest;
 
-    if (character->condition_turns[condition] != 0 || g_status_685170.value_2390 == 0) {
-        if (row->occupied == 0) {
+    if (character->uiCondition[condition] != 0 || g_status_685170.value_2390 == 0) {
+        if (row->fOccupied == 0) {
             srAssertFail("fCHAR_OCCUPIED(uiChar)",
                          "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
                          0xf4, 0);
         }
-        if (character->condition_turns[condition] == 0) {
+        if (character->uiCondition[condition] == 0) {
             srAssertFail("gStatus.Char[uiChar].uiCondition[uiCondition] > 0",
                          "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
                          0xf5, 0);
         }
-        if (party_slot >= 0 && party_slot < 8 && row->occupied != 0 && character->hp_current != 0) {
+        if (party_slot >= 0 && party_slot < 8 && row->fOccupied != 0 &&
+            character->hp_current != 0) {
             can_rest = character->highest_condition < 0xd;
         } else {
             can_rest = 0;
         }
         if (condition == 9) {
-            if (character->condition_turns[W8_CONDITION_SURVIVES_DEATH] != 0 &&
+            if (character->uiCondition[W8_CONDITION_SURVIVES_DEATH] != 0 &&
                 GetLevelBand(g_status_685170.current_level) != '\t' &&
                 GetLevelBand(g_status_685170.current_level) != '\n') {
                 return;
@@ -163,7 +164,7 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
             PostCharacterNotice(party_slot, gppStringList[0x90c / 4],
                                 gppStringList[g_condition_notices_0061E570[condition * 4]]);
         }
-        character->condition_turns[condition] = 0;
+        character->uiCondition[condition] = 0;
         RecomputeCharacterHighestCondition(party_slot);
         switch (condition) {
         case 1:
@@ -190,7 +191,7 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
         }
         RebuildConditionsAndDerivedStats(party_slot);
         QueueConditionClearedReaction(character, condition);
-        if (!can_rest && party_slot > -1 && party_slot < 8 && row->occupied != 0 &&
+        if (!can_rest && party_slot > -1 && party_slot < 8 && row->fOccupied != 0 &&
             character->hp_current != 0 && character->highest_condition < 0xd &&
             gXStatus.fCombatMode != 0 &&
             CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) != 0) {
@@ -217,11 +218,11 @@ void NormalizeItemQuantityKind(W8ItemInstance* item)
 {
     unsigned char quantity_kind;
 
-    if (item->item_id == -1) {
+    if (item->iItemNo == -1) {
         return;
     }
 
-    quantity_kind = g_item_records[item->item_id].quantity_kind;
+    quantity_kind = g_item_records[item->iItemNo].quantity_kind;
     if (quantity_kind != 1) {
         if (quantity_kind <= 1 || quantity_kind > 4 || item->stack_count <= 0) {
             return;
@@ -260,29 +261,29 @@ void SanitizeLoadedItems00522EF0(void)
     W8Character* character;
 
     for (slot = 0; slot < 8; ++slot) {
-        if (g_status_685170.buffers.party_rows[slot].occupied != 0) {
-            UnequipUnusableItems(&g_status_685170.buffers.characters[slot]);
+        if (g_status_685170.buffers.XChar[slot].fOccupied != 0) {
+            UnequipUnusableItems(&g_status_685170.buffers.Char[slot]);
         }
     }
     for (slot = 0; slot < 8; ++slot) {
-        if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
+        if (g_status_685170.buffers.XChar[slot].fOccupied == 0) {
             continue;
         }
-        character = &g_status_685170.buffers.characters[slot];
+        character = &g_status_685170.buffers.Char[slot];
         for (index = 0; index < 12; ++index) {
-            if (character->equipment[index].item_id != -1) {
-                NormalizeItemQuantityKind(&character->equipment[index]);
+            if (character->EquippedItem[index].iItemNo != -1) {
+                NormalizeItemQuantityKind(&character->EquippedItem[index]);
             }
         }
         for (index = 0; index < 8; ++index) {
-            if (character->backpack[index].item_id != -1) {
+            if (character->backpack[index].iItemNo != -1) {
                 NormalizeItemQuantityKind(&character->backpack[index]);
             }
         }
     }
     for (index = 0; index < static_cast<unsigned int>(g_status_685170.party_item_count_1791);
          ++index) {
-        if (g_status_685170.party_item_pool_0021[index].item_id != -1) {
+        if (g_status_685170.party_item_pool_0021[index].iItemNo != -1) {
             NormalizeItemQuantityKind(&g_status_685170.party_item_pool_0021[index]);
         }
     }
@@ -307,13 +308,13 @@ W8ConditionImmunity g_condition_immunities_006171A8[3] = {
 // FUNCTION: WIZ8 0x005237e0
 void RecomputeCharacterHighestCondition(int party_slot)
 {
-    if (g_status_685170.buffers.party_rows[party_slot].occupied == 0) {
+    if (g_status_685170.buffers.XChar[party_slot].fOccupied == 0) {
         srAssertFail("fCHAR_OCCUPIED(uiChar)", CONDITIONS_CPP, 0x183, 0);
     }
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
     unsigned int previous = character->highest_condition;
     for (int index = 0x13; index >= 0; --index) {
-        if (character->condition_turns[index] != 0 || index == 0) {
+        if (character->uiCondition[index] != 0 || index == 0) {
             character->highest_condition = index;
             break;
         }
@@ -354,7 +355,7 @@ done:
 void ApplyCharacterCondition00523940(int party_slot, int condition, int argument,
                                      unsigned int duration, unsigned int percent)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
     W8Enchantment* enchantment = &character->enchantments[condition];
     if (enchantment->value_00 < static_cast<unsigned int>(argument)) {
         enchantment->value_00 = argument;
@@ -396,38 +397,37 @@ void ApplyCharacterCondition00523940(int party_slot, int condition, int argument
 // FUNCTION: WIZ8 0x005236A0
 void TickCharacterCondition(unsigned int party_slot, unsigned int condition, unsigned int minutes)
 {
-    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
 
-    if (row->occupied == 0) {
+    if (row->fOccupied == 0) {
         srAssertFail("fCHAR_OCCUPIED(uiSlot)",
                      "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp", 0x158,
                      0);
     }
-    if (g_status_685170.buffers.characters[party_slot].condition_turns[condition] == 0) {
+    if (g_status_685170.buffers.Char[party_slot].uiCondition[condition] == 0) {
         srAssertFail("gStatus.Char[uiSlot].uiCondition[uiCondition] > 0",
                      "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp", 0x159,
                      0);
     }
-    if (g_status_685170.buffers.characters[party_slot].condition_turns[condition] <= minutes) {
+    if (g_status_685170.buffers.Char[party_slot].uiCondition[condition] <= minutes) {
         RemoveCharacterCondition(party_slot, condition, 1);
         return;
     }
     if (condition == W8_CONDITION_POISONED) {
-        int strength = g_status_685170.buffers.characters[party_slot].condition_argument;
+        int strength = g_status_685170.buffers.Char[party_slot].condition_argument;
         unsigned int lost =
             strength * minutes /
-            g_status_685170.buffers.characters[party_slot].condition_turns[W8_CONDITION_POISONED];
+            g_status_685170.buffers.Char[party_slot].uiCondition[W8_CONDITION_POISONED];
 
         if (lost == 0 &&
-            Random(100) < g_status_685170.buffers.characters[party_slot].condition_argument *
-                              minutes * 100 /
-                              g_status_685170.buffers.characters[party_slot]
-                                  .condition_turns[W8_CONDITION_POISONED]) {
+            Random(100) <
+                g_status_685170.buffers.Char[party_slot].condition_argument * minutes * 100 /
+                    g_status_685170.buffers.Char[party_slot].uiCondition[W8_CONDITION_POISONED]) {
             lost = 1;
         }
-        g_status_685170.buffers.characters[party_slot].condition_argument = strength - lost;
+        g_status_685170.buffers.Char[party_slot].condition_argument = strength - lost;
     }
-    g_status_685170.buffers.characters[party_slot].condition_turns[condition] -= minutes;
+    g_status_685170.buffers.Char[party_slot].uiCondition[condition] -= minutes;
 }
 
 // FUNCTION: WIZ8 0x00523C00
@@ -672,13 +672,13 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
     /* Retail compiled this comparison with VC6's mixed-sign operands; the
    signedness is part of the recovered body and changing it would change
    the compare and branch. Suppress only this diagnostic here. */
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
-    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
     int old_highest;
     unsigned int old_duration;
     unsigned char handled;
 
-    if (row->occupied == 0) {
+    if (row->fOccupied == 0) {
         srAssertFail("fCHAR_OCCUPIED(uiChar)",
                      "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp", 0x2a,
                      0);
@@ -692,7 +692,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
         return 0;
     }
     if (condition == 0x12 && CharacterHasTrait00547940(character, 2) != 0 &&
-        character->condition_turns[17] < 7) {
+        character->uiCondition[17] < 7) {
         CheatDeathRevive00547A50(party_slot);
         return 0;
     }
@@ -743,9 +743,9 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
         break;
     }
     old_highest = character->highest_condition;
-    old_duration = character->condition_turns[condition];
+    old_duration = character->uiCondition[condition];
     if (old_duration < (unsigned int)duration) {
-        character->condition_turns[condition] = duration;
+        character->uiCondition[condition] = duration;
         if (old_duration == 0) {
             if (condition == 9 || condition == 0xC) {
                 gXStatus.flag_a03 = 1;
@@ -781,7 +781,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
                                 gppStringList[g_condition_notices_0061E570[condition * 4]]);
         }
     }
-    if ((party_slot < 0 || party_slot > 7 || row->occupied == 0 || character->hp_current == 0 ||
+    if ((party_slot < 0 || party_slot > 7 || row->fOccupied == 0 || character->hp_current == 0 ||
          character->highest_condition > 0xC) &&
         gXStatus.fCombatMode != 0) {
         ClearPartySlotMonsterHighlights(party_slot);
@@ -803,11 +803,11 @@ void CopyCharacterConditionsToTarget(const W8Character* character, const int* ta
 
     ResetTargetSource(&target_block);
     for (condition = 0; condition < W8_CONDITION_COUNT; ++condition) {
-        duration = character->condition_turns[condition];
+        duration = character->uiCondition[condition];
         if (duration != 0) {
             if (condition == W8_CONDITION_POISONED) {
                 argument = character->condition_argument;
-                duration = character->condition_turns[W8_CONDITION_POISONED];
+                duration = character->uiCondition[W8_CONDITION_POISONED];
             } else {
                 argument = 0;
             }
@@ -847,10 +847,9 @@ void ClearCharacterEnchantmentSlot(int party_slot, int slot)
     W8Character* character;
     int scan;
 
-    memset(&g_status_685170.buffers.characters[party_slot].enchantments[slot], 0,
-           sizeof(W8Enchantment));
+    memset(&g_status_685170.buffers.Char[party_slot].enchantments[slot], 0, sizeof(W8Enchantment));
 
-    character = &g_status_685170.buffers.characters[party_slot];
+    character = &g_status_685170.buffers.Char[party_slot];
     for (scan = 7; scan >= 0; --scan) {
         if (character->enchantments[scan].value_08 > 0 || scan == 0) {
             character->enchantment_top = scan;
@@ -875,16 +874,15 @@ void ClearCharacterEnchantmentSlot(int party_slot, int slot)
 // FUNCTION: WIZ8 0x00523b30
 void TickCharacterEnchantmentSlot(int party_slot, int slot, unsigned int turns)
 {
-    unsigned int remaining =
-        g_status_685170.buffers.characters[party_slot].enchantments[slot].value_08;
+    unsigned int remaining = g_status_685170.buffers.Char[party_slot].enchantments[slot].value_08;
     W8Character* character;
     int scan;
 
     if (remaining <= turns) {
-        memset(&g_status_685170.buffers.characters[party_slot].enchantments[slot], 0,
+        memset(&g_status_685170.buffers.Char[party_slot].enchantments[slot], 0,
                sizeof(W8Enchantment));
 
-        character = &g_status_685170.buffers.characters[party_slot];
+        character = &g_status_685170.buffers.Char[party_slot];
         for (scan = 7; scan >= 0; --scan) {
             if (character->enchantments[scan].value_08 > 0 || scan == 0) {
                 character->enchantment_top = scan;
@@ -902,8 +900,7 @@ void TickCharacterEnchantmentSlot(int party_slot, int slot, unsigned int turns)
             gXStatus.flag_a03 = 1;
         }
     } else {
-        g_status_685170.buffers.characters[party_slot].enchantments[slot].value_08 =
-            remaining - turns;
+        g_status_685170.buffers.Char[party_slot].enchantments[slot].value_08 = remaining - turns;
     }
 }
 
@@ -991,8 +988,8 @@ void RemoveConditionFromParty(int condition)
     int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
-            g_status_685170.buffers.characters[party_slot].condition_turns[condition] != 0) {
+        if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0 &&
+            g_status_685170.buffers.Char[party_slot].uiCondition[condition] != 0) {
             RemoveCharacterCondition(party_slot, condition, 1);
         }
     }
@@ -1009,8 +1006,8 @@ void RemoveConditionFromEveryone(int condition)
     W8MonsterInfo* monster_info;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
-            g_status_685170.buffers.characters[party_slot].condition_turns[condition] != 0) {
+        if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0 &&
+            g_status_685170.buffers.Char[party_slot].uiCondition[condition] != 0) {
             RemoveCharacterCondition(party_slot, condition, 1);
         }
     }
@@ -1032,9 +1029,9 @@ void RemoveAllEnchantments(void)
 {
     for (unsigned int enchantment = 0; enchantment < 8; ++enchantment) {
         for (int party_slot = 0; party_slot < 8; ++party_slot) {
-            W8Character* character = &g_status_685170.buffers.characters[party_slot];
+            W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
-            if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
+            if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0 &&
                 character->enchantments[enchantment].value_08 != 0) {
                 memset(&character->enchantments[enchantment], 0, sizeof(W8Enchantment));
                 int top = 7;
@@ -1092,8 +1089,8 @@ void RemoveAllConditionsFromParty(void)
             continue;
         }
         for (party_slot = 0; party_slot < 8; ++party_slot) {
-            if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
-                g_status_685170.buffers.characters[party_slot].condition_turns[condition] != 0) {
+            if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0 &&
+                g_status_685170.buffers.Char[party_slot].uiCondition[condition] != 0) {
                 RemoveCharacterCondition(party_slot, condition, 1);
             }
         }
@@ -1130,10 +1127,9 @@ void BindMonsterToCharacterDependence(unsigned int party_slot, unsigned int depe
             GetMonsterGroupIndexByID(0x455, CONDITIONS_CPP, monster_info->monster_group_id, 1)));
     }
 
-    g_status_685170.buffers.characters[party_slot].conditions_1817[dependence_slot].value_00 =
+    g_status_685170.buffers.Char[party_slot].conditions_1817[dependence_slot].value_00 =
         g_status_685170.current_level;
-    g_status_685170.buffers.characters[party_slot].conditions_1817[dependence_slot].value_04 =
-        monster_id;
-    g_status_685170.buffers.characters[party_slot].conditions_1817[dependence_slot].value_08 = 1;
+    g_status_685170.buffers.Char[party_slot].conditions_1817[dependence_slot].value_04 = monster_id;
+    g_status_685170.buffers.Char[party_slot].conditions_1817[dependence_slot].value_08 = 1;
     RebuildConditionsAndDerivedStats(party_slot);
 }

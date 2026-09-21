@@ -102,22 +102,22 @@ void InitializeCharacterCreation(W8Character* character, W8CharacterCreationStat
     g_gender_locked_0068de34 = 0;
     memset(character, 0, sizeof(*character));
     character->gender = W8_GENDER_UNSET;
-    character->current_profession = W8_PROFESSION_NONE;
-    character->race = -1;
-    character->level = 1;
+    character->iProfession = W8_PROFESSION_NONE;
+    character->iRace = -1;
+    character->uiExpLevel = 1;
     character->level_band_base = 0;
     character->highest_condition = 0;
     character->enchantment_top = 0;
-    character->table_value_0079 = -1;
+    character->portrait_index = -1;
     character->unknown_007d = -1;
     character->personality_0081 = -1;
     memset(creation_state, 0, sizeof(*creation_state));
     EmptyAllCarriedItems(character);
 
     int points = 0;
-    if (character->current_profession != -1 && character->race != -1) {
+    if (character->iProfession != -1 && character->iRace != -1) {
         points = 0x3c + g_attribute_point_bonus_0068de28;
-        if (character->level != 1) {
+        if (character->uiExpLevel != 1) {
             points -= 0x36;
         }
         if (points < 0) {
@@ -129,7 +129,7 @@ void InitializeCharacterCreation(W8Character* character, W8CharacterCreationStat
     RecomputeAttributeLimits(character, creation_state);
 
     points = 0xf + g_skill_point_bonus_0068de2c;
-    if (character->level != 1) {
+    if (character->uiExpLevel != 1) {
         points -= 6;
     }
     if (points < 0) {
@@ -150,14 +150,14 @@ void InitializeCharacterLevelUp(W8Character* character, W8CharacterCreationState
     g_skill_point_bonus_0068de2c = 0;
     g_spell_point_bonus_0068de30 = 0;
     g_gender_locked_0068de34 = 0;
-    ++character->level;
-    ++character->profession_levels[character->current_profession];
+    ++character->uiExpLevel;
+    ++character->profession_levels[character->iProfession];
     memset(creation_state, 0, sizeof(*creation_state));
 
     int points = 0;
-    if (character->current_profession != -1 && character->race != -1) {
+    if (character->iProfession != -1 && character->iRace != -1) {
         points = 0x3c + g_attribute_point_bonus_0068de28;
-        if (character->level != 1) {
+        if (character->uiExpLevel != 1) {
             points -= 0x36;
         }
         if (points < 0) {
@@ -169,7 +169,7 @@ void InitializeCharacterLevelUp(W8Character* character, W8CharacterCreationState
     RecomputeAttributeLimits(character, creation_state);
 
     points = 0xf + g_skill_point_bonus_0068de2c;
-    if (character->level != 1) {
+    if (character->uiExpLevel != 1) {
         points -= 6;
     }
     if (points < 0) {
@@ -201,9 +201,9 @@ void ResetSkillContribution(W8Character* character, W8CharacterCreationState* cr
     creation_state->skill_points_spent[skill_id] = 0;
 
     if (skill_id >= 0x18 && skill_id < 0x1c) {
-        int offset = g_profession_magic_level_offsets[character->current_profession];
+        int offset = g_profession_magic_level_offsets[character->iProfession];
         if (offset < 0 && offset > -0xff &&
-            character->profession_levels[character->current_profession] + offset == 1) {
+            character->profession_levels[character->iProfession] + offset == 1) {
             int missing = 5 - character->skills[skill_id].value_02;
             if (missing > 0) {
                 character->skills[skill_id].value_02 += missing;
@@ -342,7 +342,7 @@ void ApplyProfessionMinimumAttributes(W8Character* character,
 
     character->attribute_point_deficit_0199 = 0;
     for (index = 0; index < 7; ++index) {
-        int deficit = g_profession_attribute_minimums[character->current_profession].values[index] -
+        int deficit = g_profession_attribute_minimums[character->iProfession].values[index] -
                       character->attributes[index].value;
         deficits[index] = deficit;
         if (deficit > 0) {
@@ -360,9 +360,8 @@ void ApplyProfessionMinimumAttributes(W8Character* character,
     for (index = 0; index < 7; ++index) {
         int deficit = deficits[index];
         if (deficit < 1) {
-            if (character->level > 1) {
-                int minimum =
-                    g_profession_attribute_minimums[character->current_profession].values[index];
+            if (character->uiExpLevel > 1) {
+                int minimum = g_profession_attribute_minimums[character->iProfession].values[index];
                 int value = creation_state->attribute_values_008[index];
                 while (character->attributes[index].value - value < (unsigned int)minimum) {
                     creation_state->attribute_values_008[index] = value - 1;
@@ -375,7 +374,7 @@ void ApplyProfessionMinimumAttributes(W8Character* character,
             character->attributes[index].value += deficit;
             character->attributes[index].effective += deficit;
             creation_state->attribute_points_total -= deficit;
-            if (character->level > 1) {
+            if (character->uiExpLevel > 1) {
                 creation_state->attribute_baselines_048[index] = deficit;
             }
         }
@@ -399,7 +398,7 @@ void PayDownAttributeDebt(W8Character* character, W8CharacterCreationState* crea
 
     int total = 0;
     for (index = 0; index < 7; ++index) {
-        int minimum = g_profession_attribute_minimums[character->current_profession].values[index];
+        int minimum = g_profession_attribute_minimums[character->iProfession].values[index];
         int deficit = 0;
         if (character->attributes[index].value < minimum) {
             deficit = minimum - character->attributes[index].value;
@@ -437,7 +436,7 @@ void PayDownAttributeDebt(W8Character* character, W8CharacterCreationState* crea
         return;
     }
     creation_state->attribute_points_total = character->attribute_point_deficit_0199;
-    character->level_band_base = character->level;
+    character->level_band_base = character->uiExpLevel;
 #pragma clang diagnostic pop
 }
 
@@ -453,7 +452,7 @@ void DetermineEligibleProfessions(W8Character* character, W8CharacterCreationSta
 
     for (unsigned int profession = 0; profession < W8_PROFESSION_COUNT; ++profession) {
         eligibility[profession] = 1;
-        if (profession == (unsigned int)character->current_profession) {
+        if (profession == static_cast<unsigned int>(character->iProfession)) {
             eligibility[profession] = 1;
         } else if (profession == W8_PROFESSION_VALKYRIE && character->gender != W8_GENDER_FEMALE) {
             eligibility[W8_PROFESSION_VALKYRIE] = 0;
@@ -524,7 +523,7 @@ complete:
     RecalculateRealmSpellPoints(character);
     CalcArmorClasses(character);
     RecalculateCharacterResistances(character);
-    if (character->level == 1) {
+    if (character->uiExpLevel == 1) {
         RebuildSkillAllocations(character, creation_state);
     }
     CountRemainingSpellPoints(character, creation_state);
@@ -621,7 +620,7 @@ void FinalizeSpellPointPool(W8Character* character, W8CharacterCreationState* cr
     if (GetProfessionCasterLevel(character, -1) < 1) {
         creation_state->spell_points_total = 0;
     } else {
-        if (character->level == 1) {
+        if (character->uiExpLevel == 1) {
             creation_state->magic_skill_bonus = 2;
         } else {
             creation_state->magic_skill_bonus = 1;
@@ -748,7 +747,7 @@ void RebuildSkillAllocations(W8Character* character, W8CharacterCreationState* c
     }
     InitializeSkillBaseLevels00553C90(character);
 
-    int profession = character->current_profession;
+    int profession = character->iProfession;
     int count = 1;
     for (index = 0; index < 4; ++index) {
         if (g_profession_skills[profession][index] != -1) {
@@ -789,7 +788,7 @@ int ComputeLevelUpSpellPointAward(W8Character* character, W8CharacterCreationSta
     int index;
     int saved[0x72];
 
-    if (character->level <= 1) {
+    if (character->uiExpLevel <= 1) {
         if (creation_state->spell_points_total > 0) {
             if (creation_state->spell_points_remaining > 0) {
                 for (index = 0; index < 0x72; ++index) {
@@ -908,10 +907,10 @@ int ComputeStartingEquipmentCost(W8Character* character)
 
     total = 0;
     AddCharacterStartingEquipment(character);
-    item = character->equipment;
+    item = character->EquippedItem;
     count = 0xc;
     do {
-        if (item->item_id != -1) {
+        if (item->iItemNo != -1) {
             total += GetItemStackValue(item);
         }
         ++item;
@@ -920,7 +919,7 @@ int ComputeStartingEquipmentCost(W8Character* character)
     item = character->backpack;
     count = 8;
     do {
-        if (item->item_id != -1) {
+        if (item->iItemNo != -1) {
             total += GetItemStackValue(item);
         }
         ++item;
@@ -940,10 +939,10 @@ unsigned char CanAffordStartingEquipment(W8Character* character)
 
     total = 0;
     AddCharacterStartingEquipment(character);
-    item = character->equipment;
+    item = character->EquippedItem;
     count = 0xc;
     do {
-        if (item->item_id != -1) {
+        if (item->iItemNo != -1) {
             total += GetItemStackValue(item);
         }
         ++item;
@@ -952,7 +951,7 @@ unsigned char CanAffordStartingEquipment(W8Character* character)
     item = character->backpack;
     count = 8;
     do {
-        if (item->item_id != -1) {
+        if (item->iItemNo != -1) {
             total += GetItemStackValue(item);
         }
         ++item;
@@ -971,11 +970,11 @@ void RebuildLevelUpPoolsForProfession(W8Character* character,
 {
     int index;
 
-    if (character->current_profession != W8_PROFESSION_NONE) {
-        --character->profession_levels[character->current_profession];
+    if (character->iProfession != W8_PROFESSION_NONE) {
+        --character->profession_levels[character->iProfession];
     }
     ++character->profession_levels[profession];
-    character->current_profession = profession;
+    character->iProfession = profession;
 
     if (profession == W8_PROFESSION_VALKYRIE) {
         if (character->gender == W8_GENDER_MALE) {
@@ -987,7 +986,7 @@ void RebuildLevelUpPoolsForProfession(W8Character* character,
         character->gender = W8_GENDER_MALE;
     }
 
-    if (character->level > 1) {
+    if (character->uiExpLevel > 1) {
         for (index = 0; index < 7; ++index) {
             int baseline = creation_state->attribute_baselines_048[index];
             if (baseline > 0) {
@@ -1005,7 +1004,7 @@ void RebuildLevelUpPoolsForProfession(W8Character* character,
                 creation_state->skill_baselines_1bc[index] = 0;
             }
         }
-        int bonus_skill = g_profession_bonus_skills[character->current_profession];
+        int bonus_skill = g_profession_bonus_skills[character->iProfession];
         int base = character->skills[bonus_skill].value_02;
         int missing = (creation_state->skill_points_spent[bonus_skill] - base) + 5;
         if (missing > 0) {
@@ -1014,7 +1013,7 @@ void RebuildLevelUpPoolsForProfession(W8Character* character,
             creation_state->skill_baselines_1bc[bonus_skill] += missing;
         }
         for (index = 0; index < 4; ++index) {
-            int skill = g_profession_skills[character->current_profession][index];
+            int skill = g_profession_skills[character->iProfession][index];
             int value = character->skills[skill].value_02;
             int missing = (creation_state->skill_points_spent[skill] - value) + 5;
             if (missing > 0) {
@@ -1031,7 +1030,7 @@ void RebuildLevelUpPoolsForProfession(W8Character* character,
 // FUNCTION: WIZ8 0x005571c0
 void SetCharacterRace(W8Character* character, W8CharacterCreationState* creation_state, int race)
 {
-    character->race = race;
+    character->iRace = race;
     ApplyRaceProfessionTables(character, creation_state);
 }
 
@@ -1050,25 +1049,25 @@ void SetCharacterGender(W8Character* character, W8CharacterCreationState* creati
 void ApplyRaceProfessionTables(W8Character* character, W8CharacterCreationState* creation_state)
 {
     int index;
-    if (character->race == -1) {
-        if (character->current_profession != -1) {
+    if (character->iRace == -1) {
+        if (character->iProfession != -1) {
             for (index = 0; index < 7; ++index) {
                 unsigned int minimum =
-                    g_profession_attribute_minimums[character->current_profession].values[index];
+                    g_profession_attribute_minimums[character->iProfession].values[index];
                 character->attributes[index].value = minimum;
                 character->attributes[index].effective = minimum;
             }
         }
     } else {
-        if (character->level == 1) {
+        if (character->uiExpLevel == 1) {
             for (index = 0; index < 7; ++index) {
-                unsigned int minimum = g_race_attribute_minimums[character->race].values[index];
+                unsigned int minimum = g_race_attribute_minimums[character->iRace].values[index];
                 character->attributes[index].value = minimum;
                 character->attributes[index].effective = minimum;
             }
         }
-        if (character->current_profession != -1) {
-            if (character->level == 1) {
+        if (character->iProfession != -1) {
+            if (character->uiExpLevel == 1) {
                 int points = 0x3c + g_attribute_point_bonus_0068de28;
                 if (points < 0) {
                     points = 0;
@@ -1076,7 +1075,7 @@ void ApplyRaceProfessionTables(W8Character* character, W8CharacterCreationState*
                 creation_state->attribute_points_total = points;
                 creation_state->attribute_points_remaining = points;
                 RecomputeAttributeLimits(character, creation_state);
-                character->original_profession = character->current_profession;
+                character->original_profession = character->iProfession;
                 ApplyProfessionMinimumAttributes(character, creation_state);
                 CalcCharacterLevelBand(character);
                 for (index = 0; index < 7; ++index) {
@@ -1093,7 +1092,7 @@ void ApplyRaceProfessionTables(W8Character* character, W8CharacterCreationState*
             RefreshCharacterSkillAvailability00553CD0(character);
             RecomputeSkillLimits(character, creation_state);
         }
-        if (character->level == 1) {
+        if (character->uiExpLevel == 1) {
             for (index = 0; index < 7; ++index) {
                 character->attributes[index].effective = character->attributes[index].value;
             }
@@ -1106,12 +1105,11 @@ void ApplyRaceProfessionTables(W8Character* character, W8CharacterCreationState*
         CalcArmorClasses(character);
     }
     RecalculateCharacterResistances(character);
-    if (character->level == 1) {
-        if (character->gender != -1 && character->current_profession != -1 &&
-            character->race != -1) {
+    if (character->uiExpLevel == 1) {
+        if (character->gender != -1 && character->iProfession != -1 && character->iRace != -1) {
             RebuildSkillAllocations(character, creation_state);
         }
-        character->table_value_0079 = -1;
+        character->portrait_index = -1;
         character->unknown_007d = -1;
         character->personality_0081 = -1;
         character->voice_0085 = 0;
@@ -1178,7 +1176,7 @@ void FinalizeCreatedCharacter(W8Character* character, W8CharacterCreationState* 
         AddCharacterStartingEquipment(character);
     }
 
-    if (character->current_profession == 0xc) {
+    if (character->iProfession == 0xc) {
         character->unknown_1860 += creation_state->magic_skill_bonus;
     } else {
         for (realm = 0x18; realm <= 0x1b; ++realm) {
@@ -1224,7 +1222,7 @@ void FinalizeCreatedCharacter(W8Character* character, W8CharacterCreationState* 
         }
         if (character->unknown_1860 > 0) {
             --character->unknown_1860;
-        } else if (character->current_profession == 0xc) {
+        } else if (character->iProfession == 0xc) {
             for (realm = 0x18; realm <= 0x1b; ++realm) {
                 if (character->skills[realm].flag_00 != 0 &&
                     character->skill_costs_185c[realm - 0x18] > 0) {
@@ -1272,7 +1270,7 @@ void AddCharacterStartingEquipment(W8Character* character)
 
     EmptyAllCarriedItems(character);
 
-    set = character->race == 5 ? 15 : character->current_profession;
+    set = character->iRace == 5 ? 15 : character->iProfession;
     for (slot = 0; slot < 6; ++slot) {
         if (g_starting_equipment_61635c[set][slot] == -1) {
             continue;
@@ -1281,7 +1279,7 @@ void AddCharacterStartingEquipment(W8Character* character)
         AddItemToCharacter(character, &item, 1, 0, 0);
     }
 
-    switch (character->current_profession) {
+    switch (character->iProfession) {
     case 0:
         if (character->skills[1].level > character->skills[0].level) {
             ReplaceOrCreateItem(&item, 0x12, 1, 1, 1);

@@ -675,12 +675,12 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                 sight_override = 0;
             }
             for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
-                W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
-                W8Character* character = &g_status_685170.buffers.characters[slot];
+                W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
+                W8Character* character = &g_status_685170.buffers.Char[slot];
 
-                if (row->occupied != 0 && character->hp_current != 0 &&
-                    character->highest_condition < 0xf && character->level < minimum_level) {
-                    minimum_level = character->level;
+                if (row->fOccupied != 0 && character->hp_current != 0 &&
+                    character->highest_condition < 0xf && character->uiExpLevel < minimum_level) {
+                    minimum_level = character->uiExpLevel;
                 }
             }
 
@@ -792,10 +792,10 @@ after_sight:
                 }
                 seen_by_party = false;
                 for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
-                    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];
-                    W8Character* character = &g_status_685170.buffers.characters[slot];
+                    W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
+                    W8Character* character = &g_status_685170.buffers.Char[slot];
 
-                    if (row->occupied != 0 && character->hp_current != 0 &&
+                    if (row->fOccupied != 0 && character->hp_current != 0 &&
                         character->highest_condition < 0xf) {
                         srVector3T<float> observer_position;
                         srVector3T<float> target_position;
@@ -806,7 +806,7 @@ after_sight:
                             observer_position, target_position, yaw,
                             character->attributes[6].effective,
                             static_cast<unsigned char>(character->skills[15].level),
-                            character->condition_turns[12] != 0, character->current_profession == 6,
+                            character->uiCondition[12] != 0, character->iProfession == 6,
                             record->effective_level_24f, npc_fade_flag,
                             static_cast<int>(monster_info->party_threat.state_04),
                             g_status_685170.party_modifiers_22e3.sight_override_4a, distance);
@@ -848,7 +848,7 @@ after_sight:
                                         effect = g_sight_effect_005ee698;
                                     }
                                     W8CharacterEvent* notice = QueueCharacterEvent(
-                                        &g_status_685170.buffers.characters[party_slot], effect, 0,
+                                        &g_status_685170.buffers.Char[party_slot], effect, 0,
                                         g_effect_argument_005ed8c8, g_effect_argument_005ed914);
 
                                     if (notice != 0) {
@@ -879,9 +879,8 @@ after_sight:
                                             effect = g_sight_effect_005ee66c;
                                         }
                                         W8CharacterEvent* notice = QueueCharacterEvent(
-                                            &g_status_685170.buffers.characters[party_slot], effect,
-                                            0, g_effect_argument_005ed8c8,
-                                            g_effect_argument_005ed914);
+                                            &g_status_685170.buffers.Char[party_slot], effect, 0,
+                                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
 
                                         if (notice != 0) {
                                             notice->dispatch_delay_ms = 0x5dc;

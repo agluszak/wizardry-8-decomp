@@ -83,7 +83,7 @@ void SetItemTooltip005BBD30(W8ItemInstance* item, W8Region* region);
 void DrawCampItemIcons005BBE30(void);
 
 /* Unresolved gap callee, declared for the call sites in this unit. */
-char IsSpecialItemId004DA0F0(W8ItemInstance* item);
+bool IsSpecialItemId004DA0F0(W8ItemInstance* item);
 
 /* 0x0061E7C4: the twelve equip-slot label message ids indexed by region
    callback_id; gap-owned table, also read by the AssayDialog TU. */

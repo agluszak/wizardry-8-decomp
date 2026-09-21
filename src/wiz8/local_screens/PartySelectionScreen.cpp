@@ -112,7 +112,7 @@ W8PartySelectionCharacterCollection::~W8PartySelectionCharacterCollection()
     int index;
     for (index = 0; index < characters.count; ++index) {
         W8Character* character = GetCharacter(index);
-        if (!character->in_party) {
+        if (!character->fInParty) {
             delete character;
         }
     }
@@ -144,7 +144,7 @@ void W8PartySelectionCharacterCollection::DetachFromParty(int index)
         memcpy(replacement, previous, sizeof(W8Character));
     }
     RemoveCharacterFromParty(slot + 2, 0);
-    replacement->in_party = 0;
+    replacement->fInParty = 0;
     characters.SetAt(index, replacement);
 }
 
@@ -152,11 +152,10 @@ void W8PartySelectionCharacterCollection::DetachFromParty(int index)
 int W8PartySelectionCharacterCollection::FindPartySlot(int index)
 {
     W8Character* character = GetCharacter(index);
-    if (character && character->in_party) {
-        W8PartySlotRow* rows = g_status_685170.buffers.party_rows;
+    if (character && character->fInParty) {
+        W8PartySlotRow* rows = g_status_685170.buffers.XChar;
         for (int slot = 0; slot < 6; ++slot) {
-            if (rows[slot + 2].occupied &&
-                &g_status_685170.buffers.characters[slot + 2] == character) {
+            if (rows[slot + 2].fOccupied && &g_status_685170.buffers.Char[slot + 2] == character) {
                 return slot;
             }
         }
@@ -196,8 +195,8 @@ void W8PartySelectionCharacterCollection::LoadExternalCharacters()
         } else {
             int slot;
             for (slot = 2; slot < 8; ++slot) {
-                if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
-                    wcscmp(g_status_685170.buffers.characters[slot].name, character->name) == 0) {
+                if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
+                    wcscmp(g_status_685170.buffers.Char[slot].name, character->name) == 0) {
                     break;
                 }
             }
@@ -645,7 +644,7 @@ void RefreshPartySelectionPortrait(unsigned int party_slot)
     }
     W8PartySelectionPartySlotRow005EF3E4* row = *rows;
     Controls* panel = row->m_pPanel;
-    int portrait = g_status_685170.buffers.characters[row->m_row + 2].table_value_0079;
+    int portrait = g_status_685170.buffers.Char[row->m_row + 2].portrait_index;
     int flags = 2;
     if ((g_portrait_descriptors_6483d0[portrait].render_mode == 1 && row->m_row % 2 == 0) ||
         (g_portrait_descriptors_6483d0[portrait].render_mode == 2 && row->m_row % 2 != 0)) {
@@ -692,8 +691,8 @@ void W8PartySelectionCharacterRow005EF364::Redraw(int full_redraw)
         g_party_selection_character_collection_69c4ec->GetCharacter(m_character_index);
     int left = m_pPanel->origin_x + m_left;
     int top = m_pPanel->origin_y + m_top;
-    DrawCatalogImage(-14, 0x13, character->table_value_0079, 0, left + 2, top + 2, 2, 0);
-    if (character->in_party) {
+    DrawCatalogImage(-14, 0x13, character->portrait_index, 0, left + 2, top + 2, 2, 0);
+    if (character->fInParty) {
         ShadowVideoSurfaceRect(-14, left + 2, top + 2, left + 0x2e, top + 0x25);
         SetObjectShade(g_wiz_text_font_secondary_object_683680, 6);
     }
@@ -701,11 +700,11 @@ void W8PartySelectionCharacterRow005EF364::Redraw(int full_redraw)
     left += 0x36;
     SetFont(g_font_683660);
     mprintf(left, top + 4, const_cast<wchar_t*>(L"%s"), character->name);
-    mprintf(left, top + 0x0e, L"%s %d %s", gppStringList[0x1ae4 / 4], character->level,
-            gppStringList[g_profession_name_message_ids_61e3f0[character->current_profession]]);
+    mprintf(left, top + 0x0e, L"%s %d %s", gppStringList[0x1ae4 / 4], character->uiExpLevel,
+            gppStringList[g_profession_name_message_ids_61e3f0[character->iProfession]]);
     mprintf(left, top + 0x18, L"%s %s",
             gppStringList[g_gender_name_message_rows_61e430[character->gender][0]],
-            gppStringList[g_race_name_message_ids_61e3d0[character->race]]);
+            gppStringList[g_race_name_message_ids_61e3d0[character->iRace]]);
     SetObjectShade(g_wiz_text_font_secondary_object_683680, 4);
 }
 
@@ -861,8 +860,8 @@ void W8PartySelectionCharacterPanel005EF3C8::OpenCampForSelectedMember(int row)
     m_control_58.SetSelected(row);
     int slot;
     for (slot = 0; slot < 6; ++slot) {
-        if (g_status_685170.buffers.party_rows[slot + 2].occupied &&
-            &g_status_685170.buffers.characters[slot + 2] ==
+        if (g_status_685170.buffers.XChar[slot + 2].fOccupied &&
+            &g_status_685170.buffers.Char[slot + 2] ==
                 g_party_selection_controller->m_character_18) {
             break;
         }
@@ -911,12 +910,12 @@ void W8PartySelectionPartySlotRow005EF3E4::Redraw(int full_redraw)
     int left = m_pPanel->origin_x + m_left;
     int top = m_pPanel->origin_y + m_top;
     W8Character* character = 0;
-    if (!g_status_685170.buffers.party_rows[m_row + 2].occupied) {
+    if (!g_status_685170.buffers.XChar[m_row + 2].fOccupied) {
         ColorFillVideoSurfaceArea(-14, left, top, m_pPanel->origin_x + m_right,
                                   m_pPanel->origin_y + m_bottom, 0x8000);
     } else {
-        character = &g_status_685170.buffers.characters[m_row + 2];
-        int portrait = character->table_value_0079;
+        character = &g_status_685170.buffers.Char[m_row + 2];
+        int portrait = character->portrait_index;
         int flags = 2;
         if ((g_portrait_descriptors_6483d0[portrait].render_mode == 1 && !(m_row & 1)) ||
             (g_portrait_descriptors_6483d0[portrait].render_mode == 2 && (m_row & 1))) {
@@ -943,8 +942,8 @@ void W8PartySelectionPartySlotRow005EF3E4::OnRightButtonUp(int event)
     if (m_row == -1) {
         int slot;
         for (slot = 0; slot < 6; ++slot) {
-            if (g_status_685170.buffers.party_rows[slot + 2].occupied &&
-                &g_status_685170.buffers.characters[slot + 2] ==
+            if (g_status_685170.buffers.XChar[slot + 2].fOccupied &&
+                &g_status_685170.buffers.Char[slot + 2] ==
                     g_party_selection_controller->m_character_18) {
                 break;
             }
@@ -953,7 +952,7 @@ void W8PartySelectionPartySlotRow005EF3E4::OnRightButtonUp(int event)
         g_pending_screen_state.parameter_3 = g_party_selection_controller->m_character_18;
     } else {
         g_pending_screen_state.parameter_2 = m_row + 2;
-        g_pending_screen_state.parameter_3 = &g_status_685170.buffers.characters[m_row + 2];
+        g_pending_screen_state.parameter_3 = &g_status_685170.buffers.Char[m_row + 2];
     }
     SetPendingScreenState(W8_SCREEN_CAMP);
 }
@@ -984,7 +983,7 @@ W8PartySelectionPartySlotPanel005EF438::W8PartySelectionPartySlotPanel005EF438()
     m_control_50.m_selectionListener = this;
     for (int slot = 0; slot < 6; ++slot) {
         W8TextControl* control = m_control_50.m_lsButtons.data[slot];
-        control->SetEnabled(g_status_685170.buffers.party_rows[slot + 2].occupied);
+        control->SetEnabled(g_status_685170.buffers.XChar[slot + 2].fOccupied);
     }
     Invalidate(0);
 }
@@ -1013,7 +1012,7 @@ void W8PartySelectionCharacterGridPanel005EF450::OnPrimary(W8TextControl* contro
         }
     }
     control->SetAlternateTextEnabled(0);
-    g_pending_screen_state.parameter_3 = &g_status_685170.buffers.characters[index + 2];
+    g_pending_screen_state.parameter_3 = &g_status_685170.buffers.Char[index + 2];
     g_pending_screen_state.mode = 2;
     SetPendingScreenState(W8_SCREEN_CHARACTER);
 }
@@ -1055,8 +1054,8 @@ void W8PartySelectionCharacterSummaryPanel005EF4E0::Redraw()
     }
 
     W8Character* character = m_character_4c;
-    DrawCatalogImageAndInvalidate(-14, 0x11, character->table_value_0079, 0, 0x85, 0x30, 2, 0);
-    if (character->in_party) {
+    DrawCatalogImageAndInvalidate(-14, 0x11, character->portrait_index, 0, 0x85, 0x30, 2, 0);
+    if (character->fInParty) {
         W8ControlsRect bounds = {0x85, 0x30, 0x139, 0xba};
         W8TextBuffer overlay(&bounds, gppStringList[0x1ae0 / 4], g_options_title_font_68368c,
                              g_W8TextBufferLayoutMask005ED55C | g_W8TextBufferLayoutMask005ED54C,
@@ -1076,13 +1075,15 @@ void W8PartySelectionCharacterSummaryPanel005EF4E0::Redraw()
 
     const wchar_t* level_text = gppStringList[0x1ae4 / 4];
     const wchar_t* profession =
-        gppStringList[g_profession_name_message_ids_61e3f0[character->current_profession]];
-    wchar_t* level_line = FormatWideString(L"%s %d %s", level_text, character->level, profession);
+        gppStringList[g_profession_name_message_ids_61e3f0[character->iProfession]];
+    wchar_t* level_line =
+        FormatWideString(L"%s %d %s", level_text, character->uiExpLevel, profession);
     int width = StringPixLength(level_line, g_font_683660);
-    mprintf((0xbf - width) / 2 + 0x78, 0xef, L"%s %d %s", level_text, character->level, profession);
+    mprintf((0xbf - width) / 2 + 0x78, 0xef, L"%s %d %s", level_text, character->uiExpLevel,
+            profession);
 
     const wchar_t* gender = gppStringList[g_gender_name_message_rows_61e430[character->gender][0]];
-    const wchar_t* race = gppStringList[g_race_name_message_ids_61e3d0[character->race]];
+    const wchar_t* race = gppStringList[g_race_name_message_ids_61e3d0[character->iRace]];
     wchar_t* race_line = FormatWideString(L"%s %s", gender, race);
     width = StringPixLength(race_line, g_font_683660);
     mprintf((0xbf - width) / 2 + 0x7f, 0xfd, L"%s %s", gender, race);
@@ -1108,11 +1109,11 @@ void W8PartySelectionCharacterSummaryPanel005EF4E0::Redraw()
     mprintf(0xbf, 0x17b, L"%d", character->attributes[6].value);
 
     mprintf(0xe3, 0x127, gppStringList[0x1b04 / 4]);
-    mprintf(0x115, 0x127, L"%d", character->hp_max);
+    mprintf(0x115, 0x127, L"%d", character->uiHPMax);
     mprintf(0xe3, 0x135, gppStringList[0x1b08 / 4]);
     mprintf(0x115, 0x135, L"%d", SumCharacterSpellPoints(character));
     mprintf(0xe3, 0x143, gppStringList[0x1b0c / 4]);
-    mprintf(0x115, 0x143, L"%d", character->stamina_max);
+    mprintf(0x115, 0x143, L"%d", character->uiStaminaMax);
     mprintf(0xe3, 0x151, gppStringList[0x1b10 / 4]);
     mprintf(0x115, 0x151, L"%d", character->carrying_capacity / 10);
 }
@@ -1541,7 +1542,7 @@ void W8PartySelectionController::SetMode(int mode)
         m_control_24->EnableRegionSet(1);
         m_control_24->SetEnabled(1);
         for (int slot = 0; slot < 6; ++slot) {
-            unsigned char occupied = g_status_685170.buffers.party_rows[slot + 2].occupied;
+            bool occupied = g_status_685170.buffers.XChar[slot + 2].fOccupied;
             m_control_24->ControlAt(slot)->SetActive(m_mode == 1 && occupied &&
                                                      IsCharacterReadyToAdvance(slot + 2));
         }
@@ -1609,10 +1610,10 @@ void W8PartySelectionController::SetSelection(int selection, int party_slot, int
         if (m_mode == 0) {
             m_character_18 = g_party_selection_character_collection_69c4ec->GetCharacter(selection);
             int selected_slot = -1;
-            if (m_character_18 && m_character_18->in_party) {
+            if (m_character_18 && m_character_18->fInParty) {
                 for (int slot = 0; slot < 6; ++slot) {
-                    if (g_status_685170.buffers.party_rows[slot + 2].occupied &&
-                        &g_status_685170.buffers.characters[slot + 2] == m_character_18) {
+                    if (g_status_685170.buffers.XChar[slot + 2].fOccupied &&
+                        &g_status_685170.buffers.Char[slot + 2] == m_character_18) {
                         selected_slot = slot;
                         break;
                     }
@@ -1626,14 +1627,14 @@ void W8PartySelectionController::SetSelection(int selection, int party_slot, int
             }
         }
     } else {
-        m_character_18 = &g_status_685170.buffers.characters[selection + 2];
-        if (!m_character_18->in_party) {
+        m_character_18 = &g_status_685170.buffers.Char[selection + 2];
+        if (!m_character_18->fInParty) {
             m_character_18 = 0;
             selection = -1;
         }
         if (m_mode == 0) {
             int character_index = -1;
-            if (selection >= 0 && g_status_685170.buffers.party_rows[selection + 2].occupied) {
+            if (selection >= 0 && g_status_685170.buffers.XChar[selection + 2].fOccupied) {
                 for (int index = 0;
                      index < g_party_selection_character_collection_69c4ec->characters.count;
                      ++index) {
@@ -1656,7 +1657,7 @@ void W8PartySelectionController::SetSelection(int selection, int party_slot, int
     m_control_2c->m_character_4c = m_character_18;
     m_control_2c->Invalidate(0);
     wchar_t* text =
-        gppStringList[((!m_character_18 || !m_character_18->in_party) ? 0x1b18 : 0x1b1c) / 4];
+        gppStringList[((!m_character_18 || !m_character_18->fInParty) ? 0x1b18 : 0x1b1c) / 4];
     m_text_44->m_textBuffer.SetText(text, g_font_683660);
     unsigned char have_character = m_character_18 != 0;
     m_text_44->SetEnabled(have_character);
@@ -1665,7 +1666,7 @@ void W8PartySelectionController::SetSelection(int selection, int party_slot, int
     m_text_48->Invalidate(0);
     m_text_4c->SetEnabled(have_character);
     m_text_4c->Invalidate(0);
-    if (m_character_18 && !m_character_18->in_party && FindFreePartySlot(2, 8) == 0xffffffff) {
+    if (m_character_18 && !m_character_18->fInParty && FindFreePartySlot(2, 8) == 0xffffffff) {
         m_text_44->SetEnabled(0);
     }
 }
@@ -1715,8 +1716,8 @@ void W8PartySelectionController::OnPrimary(W8TextControl* control)
     if (control == m_text_4c) {
         int slot;
         for (slot = 0; slot < 6; ++slot) {
-            if (g_status_685170.buffers.party_rows[slot + 2].occupied &&
-                &g_status_685170.buffers.characters[slot + 2] == m_character_18) {
+            if (g_status_685170.buffers.XChar[slot + 2].fOccupied &&
+                &g_status_685170.buffers.Char[slot + 2] == m_character_18) {
                 break;
             }
         }
@@ -1785,7 +1786,7 @@ void W8PartySelectionController::OnPrimary(W8TextControl* control)
     W8PartySelectionCharacterCollection* collection = g_party_selection_character_collection_69c4ec;
     for (int index = 0; index < collection->characters.count; ++index) {
         W8Character* previous = collection->GetCharacter(index);
-        if (!previous->in_party) {
+        if (!previous->fInParty) {
             continue;
         }
 
@@ -1797,7 +1798,7 @@ void W8PartySelectionController::OnPrimary(W8TextControl* control)
             memcpy(replacement, previous, sizeof(W8Character));
         }
         RemoveCharacterFromParty(slot + 2, 0);
-        replacement->in_party = 0;
+        replacement->fInParty = 0;
         collection->characters.SetAt(index, replacement);
     }
     SetMode(1);
@@ -1944,7 +1945,7 @@ void W8PartySelectionController::ApplyPartySelectionConfirmation(int, unsigned c
     case 1: {
         int selected = m_character_panel_20->m_selected_row;
         W8Character* character = collection->GetCharacter(selected);
-        if (character->in_party) {
+        if (character->fInParty) {
             collection->DetachFromParty(selected);
             character = collection->GetCharacter(selected);
         }
@@ -1986,7 +1987,7 @@ void W8PartySelectionController::ApplyPartySelectionConfirmation(int, unsigned c
     case 4: {
         for (int index = 0; index < collection->characters.count; ++index) {
             W8Character* previous = collection->GetCharacter(index);
-            if (!previous->in_party) {
+            if (!previous->fInParty) {
                 continue;
             }
             int slot = collection->FindPartySlot(index);
@@ -1997,7 +1998,7 @@ void W8PartySelectionController::ApplyPartySelectionConfirmation(int, unsigned c
                 memcpy(replacement, previous, sizeof(W8Character));
             }
             RemoveCharacterFromParty(slot + 2, 0);
-            replacement->in_party = 0;
+            replacement->fInParty = 0;
             collection->characters.SetAt(index, replacement);
         }
         SetMode(1);
@@ -2031,12 +2032,12 @@ void W8PartySelectionController::LoadImportedPartyFile(int selection)
     m_text_54->Invalidate(0);
     int slot;
     for (slot = 0; slot < 6; ++slot) {
-        unsigned char occupied = g_status_685170.buffers.party_rows[slot + 2].occupied;
+        bool occupied = g_status_685170.buffers.XChar[slot + 2].fOccupied;
         m_control_28->m_control_50.m_lsButtons.data[slot]->SetEnabled(occupied);
     }
     m_control_28->Invalidate(0);
     for (slot = 0; slot < 6; ++slot) {
-        unsigned char occupied = g_status_685170.buffers.party_rows[slot + 2].occupied;
+        bool occupied = g_status_685170.buffers.XChar[slot + 2].fOccupied;
         m_control_24->ControlAt(slot)->SetActive(m_mode == 1 && occupied &&
                                                  IsCharacterReadyToAdvance(slot + 2));
     }
@@ -2057,11 +2058,11 @@ void W8PartySelectionController::TogglePartyMemberSelection()
 
     W8PartySelectionCharacterCollection* collection = g_party_selection_character_collection_69c4ec;
     W8Character* character = collection->GetCharacter(selected);
-    if (!character->in_party) {
+    if (!character->fInParty) {
         int slot = AddCharacterToParty(character, -1);
         if (slot != -1) {
             delete character;
-            collection->characters.SetAt(selected, &g_status_685170.buffers.characters[slot]);
+            collection->characters.SetAt(selected, &g_status_685170.buffers.Char[slot]);
         }
         if (selected < collection->characters.count - 1) {
             ++selected;
@@ -2080,7 +2081,7 @@ void W8PartySelectionController::TogglePartyMemberSelection()
                     break;
                 }
             }
-            if (g_status_685170.buffers.party_rows[next_slot + 2].occupied) {
+            if (g_status_685170.buffers.XChar[next_slot + 2].fOccupied) {
                 found = true;
                 break;
             }
@@ -2094,7 +2095,7 @@ void W8PartySelectionController::TogglePartyMemberSelection()
     }
 
     for (int slot = 0; slot < 6; ++slot) {
-        unsigned char occupied = g_status_685170.buffers.party_rows[slot + 2].occupied;
+        bool occupied = g_status_685170.buffers.XChar[slot + 2].fOccupied;
         m_control_28->m_control_50.m_lsButtons.data[slot]->SetEnabled(occupied);
     }
     m_control_28->Invalidate(0);
@@ -2126,15 +2127,15 @@ unsigned char PartySelectionScreenEnter(void)
 
         for (int index = 0; index < collection->characters.count; ++index) {
             W8Character* character = collection->GetCharacter(index);
-            if (!character->in_party) {
+            if (!character->fInParty) {
                 delete character;
             }
         }
         collection->characters.count = 0;
-        W8PartySlotRow* rows = g_status_685170.buffers.party_rows;
+        W8PartySlotRow* rows = g_status_685170.buffers.XChar;
         for (int slot = 2; slot < 8; ++slot) {
-            if (rows[slot].occupied) {
-                collection->characters.Add(&g_status_685170.buffers.characters[slot]);
+            if (rows[slot].fOccupied) {
+                collection->characters.Add(&g_status_685170.buffers.Char[slot]);
             }
         }
         collection->LoadExternalCharacters();
@@ -2146,15 +2147,15 @@ unsigned char PartySelectionScreenEnter(void)
         if (g_previous_screen_id == 3 && g_party_selection_controller->m_mode != 1) {
             for (int index = 0; index < collection->characters.count; ++index) {
                 W8Character* character = collection->GetCharacter(index);
-                if (!character->in_party) {
+                if (!character->fInParty) {
                     delete character;
                 }
             }
             collection->characters.count = 0;
-            W8PartySlotRow* rows = g_status_685170.buffers.party_rows;
+            W8PartySlotRow* rows = g_status_685170.buffers.XChar;
             for (int slot = 2; slot < 8; ++slot) {
-                if (rows[slot].occupied) {
-                    collection->characters.Add(&g_status_685170.buffers.characters[slot]);
+                if (rows[slot].fOccupied) {
+                    collection->characters.Add(&g_status_685170.buffers.Char[slot]);
                 }
             }
             collection->LoadExternalCharacters();

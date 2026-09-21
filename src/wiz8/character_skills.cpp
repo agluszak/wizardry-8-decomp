@@ -48,7 +48,7 @@ void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int part
                                    unsigned char continue_line, int skill_id)
 {
     unsigned int skill_level;
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
     if (continue_line != 0) {
         text[*length] = L' ';
@@ -63,7 +63,7 @@ void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int part
     text[*length] = 0xb4; /* font glyph */
     *length += 1;
     text[*length] = GetTable647CCCEntry(
-        static_cast<char>(g_status_685170.buffers.party_rows[party_slot].party_order_index));
+        static_cast<char>(g_status_685170.buffers.XChar[party_slot].party_order_index));
     *length += 1;
     text[*length] = L' ';
     *length += 1;
@@ -76,7 +76,7 @@ void AppendSkillIncreaseNoticeText(wchar_t* text, unsigned int* length, int part
     text[*length] = L' ';
     *length += 1;
     skill_level = character->skills[skill_id].level;
-    if (skill_id == g_profession_bonus_skills[character->current_profession]) {
+    if (skill_id == g_profession_bonus_skills[character->iProfession]) {
         skill_level = (skill_level * 0x7d) / 100;
     }
     swprintf(text + *length, gppStringList[0x76c / 4],
@@ -106,8 +106,8 @@ void FlushDeferredSkillNotices(void)
     memset(text, 0, 0x400);
     extra = new W8SkillNoticePayload;
     for (slot = 0; slot < 8; ++slot) {
-        W8Character* character = &g_status_685170.buffers.characters[slot];
-        if (g_status_685170.buffers.party_rows[slot].occupied == 0 || character->hp_current == 0 ||
+        W8Character* character = &g_status_685170.buffers.Char[slot];
+        if (g_status_685170.buffers.XChar[slot].fOccupied == 0 || character->hp_current == 0 ||
             character->highest_condition >= 0x12) {
             continue;
         }
@@ -149,7 +149,7 @@ void FlushDeferredSkillNotices(void)
 // FUNCTION: WIZ8 0x00558610
 void InvalidateAndRecalculateCharacterClassData00558610(W8Character* character)
 {
-    character->table_value_0079 = -1;
+    character->portrait_index = -1;
     character->unknown_007d = -1;
     character->personality_0081 = -1;
     DeriveCharacterPersonality004EFA30(character);
@@ -206,16 +206,16 @@ bool CharacterHasTrait00547940(const W8Character* character, int trait)
     if (character == 0) {
         return false;
     }
-    if (character->current_profession != -1) {
-        const int* abilities = g_profession_abilities[character->current_profession].ability_ids;
+    if (character->iProfession != -1) {
+        const int* abilities = g_profession_abilities[character->iProfession].ability_ids;
         for (index = 0; index < 3; ++index) {
             if (abilities[index] == trait) {
                 return true;
             }
         }
     }
-    if (character->race != -1) {
-        const int* abilities = g_race_abilities[character->race].ability_ids;
+    if (character->iRace != -1) {
+        const int* abilities = g_race_abilities[character->iRace].ability_ids;
         for (index = 0; index < 5; ++index) {
             if (abilities[index] == trait) {
                 return true;
@@ -235,7 +235,7 @@ bool CharacterHasTrait00547940(const W8Character* character, int trait)
 // FUNCTION: WIZ8 0x005479b0
 float ScaleValueByProfessionLevel005479B0(W8Character* character, int, float base)
 {
-    unsigned int level = character->profession_levels[character->current_profession];
+    unsigned int level = character->profession_levels[character->iProfession];
 
     if (level > 0x14) {
         return base;
@@ -266,11 +266,11 @@ float ScaleValueByMonsterLevel00547A00(W8MonsterRecord* record, int, float base)
 // FUNCTION: WIZ8 0x00547A50
 void CheatDeathRevive00547A50(int party_slot)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
     PostCharacterNotice(party_slot, gppStringList[0x173]);
     SetCharacterCondition(party_slot, W8_CONDITION_UNCONSCIOUS,
-                          character->condition_turns[W8_CONDITION_UNCONSCIOUS] -
+                          character->uiCondition[W8_CONDITION_UNCONSCIOUS] -
                               static_cast<int>(ScaleValueByProfessionLevel005479B0(
                                   character, W8_TRAIT_CHEAT_DEATH, g_float_005ebc28)) +
                               7,
@@ -278,9 +278,9 @@ void CheatDeathRevive00547A50(int party_slot)
     if (g_combat_state != 0 && g_combat_state->characters[party_slot].cheat_death_used == 0) {
         character->hp_current =
             (Random(static_cast<unsigned int>(ScaleValueByProfessionLevel005479B0(
-                 character, W8_TRAIT_CHEAT_DEATH, character->hp_max * g_float_005ebc7c))) +
+                 character, W8_TRAIT_CHEAT_DEATH, character->uiHPMax * g_float_005ebc7c))) +
              0x32) *
-            character->hp_max / 100;
+            character->uiHPMax / 100;
         g_combat_state->characters[party_slot].cheat_death_used = 1;
     } else {
         character->hp_current =
@@ -295,9 +295,9 @@ void CheatDeathRevive00547A50(int party_slot)
 // FUNCTION: WIZ8 0x00548E20
 int RevealCharacterItemBindingsByProfession00548E20(int party_slot, unsigned int target_slot)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
     return RevealCharacterItemBindings(
-        target_slot, (character->profession_levels[character->current_profession] >> 2) + 1, 0);
+        target_slot, (character->profession_levels[character->iProfession] >> 2) + 1, 0);
 }
 
 /* Alchemist auto-brew candidates as {item_id, minimum alchemist profession
@@ -329,8 +329,7 @@ void BrewAlchemistPotion00548E60(W8Character* character)
     unsigned int recipes;
     unsigned int pick;
 
-    if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
-        character->highest_condition < 0x11 &&
+    if (g_status_685170.buffers.XChar[slot].fOccupied != 0 && character->highest_condition < 0x11 &&
         CharacterHasTrait00547940(character, W8_TRAIT_MAKE_POTIONS) != 0) {
         alchemy = character->profession_levels[W8_PROFESSION_ALCHEMIST];
         recipes = 0;
@@ -370,7 +369,7 @@ bool IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
     unsigned int index;
     int magic_offset;
 
-    if (g_profession_skill_availability[skill_id][character->current_profession] == 0) {
+    if (g_profession_skill_availability[skill_id][character->iProfession] == 0) {
         return false;
     }
     if (CharacterHasTrait00547940(character, 0x1f)) {
@@ -399,7 +398,7 @@ bool IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
         return false;
     }
 
-    profession = character->current_profession;
+    profession = character->iProfession;
     if (skill_id != (unsigned int)g_profession_bonus_skills[profession]) {
         for (index = 0; index < 4; ++index) {
             if (skill_id == (unsigned int)g_profession_skills[profession][index]) {
@@ -487,7 +486,7 @@ void ResetCharacterSkills00553A60(W8Character* character)
 
     for (index = 0; index < 0x29; ++index) {
         int value = character->skills[index].value_02;
-        if (index == (unsigned int)g_profession_bonus_skills[character->current_profession]) {
+        if (index == static_cast<unsigned int>(g_profession_bonus_skills[character->iProfession])) {
             unsigned int bonus = (unsigned int)(value * 0x19) / 100;
             if (bonus == 0) {
                 bonus = 1;
@@ -564,7 +563,7 @@ void ApplySkillChange(W8Character* character, int skill_id)
     RefreshCharacterSkillAvailability00553CD0(character);
 
     int level = character->skills[skill_id].value_02;
-    if (skill_id == g_profession_bonus_skills[character->current_profession]) {
+    if (skill_id == g_profession_bonus_skills[character->iProfession]) {
         unsigned int bonus = static_cast<unsigned int>(level * 0x19) / 100;
         if (bonus == 0) {
             bonus = 1;
@@ -660,7 +659,7 @@ void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_poin
 
     improved = false;
     if (usage_points != 0 &&
-        g_profession_skill_availability[skill_id][character->current_profession] != 0) {
+        g_profession_skill_availability[skill_id][character->iProfession] != 0) {
         W8CharacterSkill* skill = &character->skills[skill_id];
         skill->available_13 = true;
         if (skill->flag_00 == 0) {
@@ -696,7 +695,7 @@ void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_poin
             if (improved) {
                 RefreshCharacterSkillAvailability00553CD0(character);
                 int level = skill->value_02;
-                if (skill_id == g_profession_bonus_skills[character->current_profession]) {
+                if (skill_id == g_profession_bonus_skills[character->iProfession]) {
                     unsigned int bonus = static_cast<unsigned int>(level * 0x19) / 100;
                     if (bonus == 0) {
                         bonus = 1;

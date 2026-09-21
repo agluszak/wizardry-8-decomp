@@ -302,9 +302,9 @@ void DischargeTrapSpell005E3800(float x, float y, float z, int spell_id, unsigne
         target.point = g_startup_world_659c0c->GetPosition();
         eligible = 0;
         for (index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
-            if (g_status_685170.buffers.party_rows[index].occupied &&
-                g_status_685170.buffers.characters[index].hp_current != 0 &&
-                g_status_685170.buffers.characters[index].highest_condition < W8_CONDITION_DEAD) {
+            if (g_status_685170.buffers.XChar[index].fOccupied &&
+                g_status_685170.buffers.Char[index].hp_current != 0 &&
+                g_status_685170.buffers.Char[index].highest_condition < W8_CONDITION_DEAD) {
                 targets.Add(index);
                 ++eligible;
             }

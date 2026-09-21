@@ -41,12 +41,11 @@ void RecalculateCharacterDerivedStats(W8Character* character)
 {
     int index;
 
-    if (character->current_profession >= 0xf || character->race >= 0x10 ||
-        character->gender == -1) {
+    if (character->iProfession >= 0xf || character->iRace >= 0x10 || character->gender == -1) {
         return;
     }
-    if (character->level > 0x32) {
-        character->level = 0x32;
+    if (character->uiExpLevel > 0x32) {
+        character->uiExpLevel = 0x32;
     }
     for (index = 0; index < 0xf; ++index) {
         if ((unsigned int)character->profession_levels[index] > 0x32) {
@@ -110,7 +109,7 @@ void RecalculateCharacterDerivedStats(W8Character* character)
     CalcInitiative(character);
     CalcAttacks(character);
     CalcArmorClasses(character);
-    if (character->in_party != 0 && g_current_screen_state.id != 3) {
+    if (character->fInParty != 0 && g_current_screen_state.id != 3) {
         RequestPartySlotRedraw(CharacterPointerToPartySlot(character));
     }
 }
@@ -146,7 +145,7 @@ bool RecalculateCarriedWeight(W8Character* character)
     unsigned int previous = character->inventory_weight;
     character->inventory_weight = 0;
     for (int index = 0; index < W8_EQUIP_SLOT_COUNT; ++index) {
-        character->inventory_weight += GetItemStackWeight(&character->equipment[index]);
+        character->inventory_weight += GetItemStackWeight(&character->EquippedItem[index]);
     }
     for (int backpack_index = 0; backpack_index < 8; ++backpack_index) {
         character->inventory_weight += GetItemStackWeight(&character->backpack[backpack_index]);
@@ -173,8 +172,8 @@ void RedistributePartyEncumbrance(void)
     int capacity[8];
     int unassigned[8];
     float load_ratio[8];
-    W8Character* characters = g_status_685170.buffers.characters;
-    W8PartySlotRow* active = g_status_685170.buffers.party_rows;
+    W8Character* characters = g_status_685170.buffers.Char;
+    W8PartySlotRow* active = g_status_685170.buffers.XChar;
 
     if (!g_status_685170.game_started) {
         return;
@@ -188,7 +187,7 @@ void RedistributePartyEncumbrance(void)
     for (slot = 0; slot < 8; ++slot) {
         W8Character* character = &characters[slot];
         character->party_weight_share = 0;
-        if (active[slot].occupied != 0 && character->highest_condition < W8_CONDITION_DEAD) {
+        if (active[slot].fOccupied != 0 && character->highest_condition < W8_CONDITION_DEAD) {
             capacity[slot] = character->carrying_capacity;
             unassigned[slot] = capacity[slot] - character->inventory_weight;
             load_ratio[slot] = (float)unassigned[slot] * 100.0f / (float)capacity[slot];
@@ -205,7 +204,7 @@ void RedistributePartyEncumbrance(void)
         float best_ratio = -999999.0f;
         for (slot = 0; slot < 8; ++slot) {
             W8Character* character = &characters[slot];
-            if (active[slot].occupied != 0 && character->highest_condition < W8_CONDITION_DEAD &&
+            if (active[slot].fOccupied != 0 && character->highest_condition < W8_CONDITION_DEAD &&
                 load_ratio[slot] > best_ratio) {
                 best_ratio = load_ratio[slot];
                 best_slot = slot;
@@ -221,7 +220,7 @@ void RedistributePartyEncumbrance(void)
     }
 
     for (slot = 0; slot < 8; ++slot) {
-        if (active[slot].occupied == 0) {
+        if (active[slot].fOccupied == 0) {
             continue;
         }
         W8Character* character = &characters[slot];

@@ -301,11 +301,10 @@ void DrawCampStatsPage005C48B0(void)
                     ((0x11f - StringPixLength(text, g_font_683660)) >> 1),
                 g_camp_stats_origin_y_0069c514 + 0x8d, const_cast<wchar_t*>(g_format_s_006068e4),
                 text);
-        swprintf(
-            g_camp_screen_0069c0f4->caption, const_cast<wchar_t*>(g_format_s_space_s_00617584),
-            gppStringList[g_character_skill_name_ids_61e454
-                              [g_profession_bonus_skills[g_value_0069c0f8->current_profession]]],
-            gppStringList[0x8c5]);
+        swprintf(g_camp_screen_0069c0f4->caption, const_cast<wchar_t*>(g_format_s_space_s_00617584),
+                 gppStringList[g_character_skill_name_ids_61e454
+                                   [g_profession_bonus_skills[g_value_0069c0f8->iProfession]]],
+                 gppStringList[0x8c5]);
         gprintf(0x10, 0x142, const_cast<wchar_t*>(g_format_s_006068e4),
                 g_camp_screen_0069c0f4->caption);
         int trait_count = 0;
@@ -350,7 +349,7 @@ void DrawCampStatsPage005C48B0(void)
 // FUNCTION: WIZ8 0x005c4d40
 unsigned int CountEquipItemBenefits005C4D40(int slot)
 {
-    W8ItemDatabaseRecord* record = &g_item_records[g_value_0069c0f8->equipment[slot].item_id];
+    W8ItemDatabaseRecord* record = &g_item_records[g_value_0069c0f8->EquippedItem[slot].iItemNo];
     unsigned int count = record->attack_damage_bonus > 0;
     int index;
     for (index = 0; index < 0x10; ++index) {
@@ -394,7 +393,7 @@ unsigned int CountEquipItemBenefits005C4D40(int slot)
 // FUNCTION: WIZ8 0x005c4e20
 unsigned int CountEquipItemPenalties005C4E20(int slot)
 {
-    W8ItemDatabaseRecord* record = &g_item_records[g_value_0069c0f8->equipment[slot].item_id];
+    W8ItemDatabaseRecord* record = &g_item_records[g_value_0069c0f8->EquippedItem[slot].iItemNo];
     unsigned int count = record->attack_damage_bonus < 0;
     int index;
     if (record->attack_hit_bonus < 0) {
@@ -423,7 +422,7 @@ unsigned int CountEquipItemPenalties005C4E20(int slot)
     if (record->modifier_0b1_index != -1 && record->modifier_0b1_value < 0) {
         ++count;
     }
-    if (record->binds_on_equip != 0 && g_value_0069c0f8->equipment[slot].bound != 0) {
+    if (record->binds_on_equip != 0 && g_value_0069c0f8->EquippedItem[slot].bound != 0) {
         ++count;
     }
     return count;
@@ -451,12 +450,12 @@ void RebuildCampEffectList005C4EE0(void)
     screen->effect_scroll = 0;
     W8Character* character = g_value_0069c0f8;
     for (int condition = 0x13; condition >= 0; --condition) {
-        if (character->condition_turns[condition] != 0) {
+        if (character->uiCondition[condition] != 0) {
             W8CampEffectEntry entry;
             memset(&entry, 0, sizeof(entry));
             entry.kind = 0;
             entry.detrimental = 1;
-            entry.turns = character->condition_turns[condition];
+            entry.turns = character->uiCondition[condition];
             entry.lines = 1;
             if (entry.turns == 9999) {
                 entry.lines = 2;
@@ -501,8 +500,8 @@ void RebuildCampEffectList005C4EE0(void)
         }
     }
     for (int slot = 0; slot < 12; ++slot) {
-        W8ItemInstance* item = &g_value_0069c0f8->equipment[slot];
-        if (slot != 8 && slot != 9 && item->identified != 0 && item->item_id != -1) {
+        W8ItemInstance* item = &g_value_0069c0f8->EquippedItem[slot];
+        if (slot != 8 && slot != 9 && item->identified != 0 && item->iItemNo != -1) {
             int beneficial = CountEquipItemBenefits005C4D40(slot);
             int detrimental = CountEquipItemPenalties005C4E20(slot);
             if (beneficial != 0 || detrimental != 0) {
@@ -650,10 +649,10 @@ static void DrawCampEffectEntry005C54A0(W8CampEffectEntry* entry, int* line_out)
         return;
     } else if (entry->kind == 2) {
         W8ItemDatabaseRecord* record =
-            &g_item_records[g_value_0069c0f8->equipment[entry->index].item_id];
+            &g_item_records[g_value_0069c0f8->EquippedItem[entry->index].iItemNo];
         SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes_68ee1c[1]);
         gprintf(0x15e, line * 0xe + 0xbf, const_cast<wchar_t*>(g_format_s_006068e4),
-                GetItemDisplayName(&g_value_0069c0f8->equipment[entry->index]));
+                GetItemDisplayName(&g_value_0069c0f8->EquippedItem[entry->index]));
         SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
         int next = line + 1;
         if (record->attack_damage_bonus != 0) {
@@ -753,7 +752,8 @@ static void DrawCampEffectEntry005C54A0(W8CampEffectEntry* entry, int* line_out)
                 ++line;
             }
         }
-        if (record->binds_on_equip != 0 && g_value_0069c0f8->equipment[entry->index].bound != 0) {
+        if (record->binds_on_equip != 0 &&
+            g_value_0069c0f8->EquippedItem[entry->index].bound != 0) {
             gprintf(0x15e, line * 0xe + 0xbf, gppStringList[0x8e1]);
             *line_out = line + 2;
             return;
@@ -913,9 +913,8 @@ void DrawCampSkillsPage005C5D80(void)
                 } else {
                     bool best = true;
                     for (int slot = 0; slot < 8; ++slot) {
-                        if (g_status_685170.buffers.party_rows[slot].occupied &&
-                            value->level <
-                                g_status_685170.buffers.characters[slot].skills[skill].level) {
+                        if (g_status_685170.buffers.XChar[slot].fOccupied &&
+                            value->level < g_status_685170.buffers.Char[slot].skills[skill].level) {
                             best = false;
                             break;
                         }
@@ -997,9 +996,9 @@ unsigned char CampSkillListRegionHandler005C6230(const InputAtom* event, W8Regio
         if (g_status_685170.game_started && g_value_0069c0f8->skills[skill].level != 0) {
             best = 1;
             for (int slot = 0; slot < 8; ++slot) {
-                if (g_status_685170.buffers.party_rows[slot].occupied &&
+                if (g_status_685170.buffers.XChar[slot].fOccupied &&
                     g_value_0069c0f8->skills[skill].level <
-                        g_status_685170.buffers.characters[slot].skills[skill].level) {
+                        g_status_685170.buffers.Char[slot].skills[skill].level) {
                     best = 0;
                     break;
                 }
@@ -1007,7 +1006,7 @@ unsigned char CampSkillListRegionHandler005C6230(const InputAtom* event, W8Regio
         }
         W8SkillInfoDialog* dialog = new W8SkillInfoDialog(
             skill, best, g_value_0069c0f8->skills[skill].flag_00 == 0,
-            skill == g_profession_bonus_skills[g_value_0069c0f8->current_profession]);
+            skill == g_profession_bonus_skills[g_value_0069c0f8->iProfession]);
         DisplayCampDialog(dialog);
     }
     return 1;
@@ -1109,7 +1108,7 @@ void W8CharacterPage005EF57C::Accept()
     } else {
         W8Character* original = m_screen_05c->GetOriginalCharacter();
         m_character_060->personality_0081 = original->personality_0081;
-        m_character_060->table_value_0079 = original->table_value_0079;
+        m_character_060->portrait_index = original->portrait_index;
         m_character_060->voice_0085 = original->voice_0085;
         wcscpy(m_character_060->name_part_2, original->name_part_2);
         wcscpy(m_character_060->name, original->name);
@@ -1127,7 +1126,7 @@ void W8CharacterPage005EF57C::GetNavigationState(bool* next_enabled, bool* exit_
         W8Character* original = m_screen_05c->GetOriginalCharacter();
         *exit_enabled = false;
         if (m_character_060->personality_0081 == original->personality_0081 &&
-            m_character_060->table_value_0079 == original->table_value_0079 &&
+            m_character_060->portrait_index == original->portrait_index &&
             m_character_060->voice_0085 == original->voice_0085 &&
             wcscmp(m_character_060->name_part_2, original->name_part_2) == 0 &&
             wcscmp(m_character_060->name, original->name) == 0) {
@@ -1286,7 +1285,7 @@ void W8CharacterPage005EF57C::Redraw()
     }
 
     if (m_portrait_dirty_0fe) {
-        DrawCatalogImageAndInvalidate(-14, 0x11, m_character_060->table_value_0079, 0,
+        DrawCatalogImageAndInvalidate(-14, 0x11, m_character_060->portrait_index, 0,
                                       origin_x + 0x86, origin_y + 5, 0, 0);
         m_portrait_dirty_0fe = 0;
     }
@@ -1321,18 +1320,18 @@ void W8CharacterPage005EF57C::Redraw()
 // FUNCTION: WIZ8 0x005c7220
 void W8CharacterPage005EF57C::OnPrimary(W8TextControl* control)
 {
-    int portrait = m_character_060->table_value_0079;
+    int portrait = m_character_060->portrait_index;
     if (control == m_control_078) {
         int group = g_portrait_descriptors_6483d0[portrait].group + 1;
         if (group > 11)
             group = 0;
-        m_character_060->table_value_0079 = g_portrait_groups_648950[group].portraits[0];
+        m_character_060->portrait_index = g_portrait_groups_648950[group].portraits[0];
         m_portrait_dirty_0fe = 1;
     } else if (control == m_control_07c) {
         int group = g_portrait_descriptors_6483d0[portrait].group - 1;
         if (group < 0)
             group = 11;
-        m_character_060->table_value_0079 = g_portrait_groups_648950[group].portraits[0];
+        m_character_060->portrait_index = g_portrait_groups_648950[group].portraits[0];
         m_portrait_dirty_0fe = 1;
     } else if (control == m_control_080 || control == m_control_084) {
         int group = g_portrait_descriptors_6483d0[portrait].group;
@@ -1350,7 +1349,7 @@ void W8CharacterPage005EF57C::OnPrimary(W8TextControl* control)
             if (index < 0)
                 index = portraits->count - 1;
         }
-        m_character_060->table_value_0079 = portraits->portraits[index];
+        m_character_060->portrait_index = portraits->portraits[index];
         m_portrait_dirty_0fe = 1;
     } else if (control == m_randomize_088) {
         m_animation_active_0fc = 1;
@@ -1569,7 +1568,7 @@ void W8CharacterPage005EF5C8::UpdateEntries()
                               &value->value_02, &m_creation_state_064->skill_points_spent[skill],
                               &m_creation_state_064->skill_limits[skill], 0x101);
             entry->SetLabelFontState(
-                skill == g_profession_bonus_skills[m_character_060->current_profession] ? 3 : -1);
+                skill == g_profession_bonus_skills[m_character_060->iProfession] ? 3 : -1);
         }
     }
 }

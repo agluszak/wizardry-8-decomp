@@ -1390,7 +1390,7 @@ void W8Missile::AnnounceCollisionTarget()
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         wcscat(text, GetMonsterName(monster_info, 0, 0));
     } else {
-        wcscat(text, g_status_685170.buffers.characters[combat_slot_260.iChar].name);
+        wcscat(text, g_status_685170.buffers.Char[combat_slot_260.iChar].name);
     }
     target_stop = wcslen(text);
     source_color = GetSourceNoticeColor(&m_Source);
@@ -1489,7 +1489,7 @@ bool W8Missile::OnCollision(W8Navigator* other)
     hit_result = 1;
     if (g_missile_table_65bde0[missile_table_index_1d8].flag_154 == 0) {
         if (combat_slot_260.iType == W8_TARGET_KIND_CHARACTER) {
-            deflect_chance = g_status_685170.buffers.characters[combat_slot_260.iChar]
+            deflect_chance = g_status_685170.buffers.Char[combat_slot_260.iChar]
                                  .bonus_1770.missile_deflect_chance_49;
         } else {
             W8MonsterInfo* monster_info =

@@ -130,7 +130,7 @@ W8CharacterScreen::W8CharacterScreen(int mode, W8Character* character)
 {
     if (character != 0) {
         memcpy(&m_character_018, character, sizeof(m_character_018));
-        m_character_018.in_party = 0;
+        m_character_018.fInParty = 0;
     }
     for (int index = 0; index < 4; ++index) {
         m_pages_1b0c[index] = 0;
@@ -298,7 +298,7 @@ void W8CharacterScreen::ShowAttributeInfo005B0850(unsigned int attribute)
 void W8CharacterScreen::ShowDialog005B08E0(int value)
 {
     m_dialog_response_1b20 = 0;
-    if (value == g_profession_bonus_skills[m_character_018.current_profession]) {
+    if (value == g_profession_bonus_skills[m_character_018.iProfession]) {
         m_dialog_1b1c = new W8SkillInfoDialog(value, 0, 0, 1);
     } else {
         m_dialog_1b1c = new W8SkillInfoDialog(value, 0, 0, 0);
@@ -370,26 +370,27 @@ void W8CharacterScreen::AdvancePage(unsigned char forward)
             return;
         }
         if (index == 0) {
-            if (m_mode_008 == 2 &&
-                m_character_018.current_profession != m_original_014->current_profession &&
+            if (m_mode_008 == 2 && m_character_018.iProfession != m_original_014->iProfession &&
                 !m_confirm_profession_1aed) {
                 int value = ComputeRealmSkillDebt(m_original_014, &m_character_018);
                 if (value > 0) {
                     ShowMessage(
-                        FormatWideString(gppStringList[0x36c / 4],
-                                         gppStringList[g_profession_name_message_ids_61e3f0
-                                                           [m_original_014->current_profession]],
-                                         gppStringList[g_profession_name_message_ids_61e3f0
-                                                           [m_character_018.current_profession]],
-                                         value),
+                        FormatWideString(
+                            gppStringList[0x36c / 4],
+                            gppStringList
+                                [g_profession_name_message_ids_61e3f0[m_original_014->iProfession]],
+                            gppStringList
+                                [g_profession_name_message_ids_61e3f0[m_character_018.iProfession]],
+                            value),
                         1, 4);
                 } else {
                     ShowMessage(
-                        FormatWideString(gppStringList[0x368 / 4],
-                                         gppStringList[g_profession_name_message_ids_61e3f0
-                                                           [m_original_014->current_profession]],
-                                         gppStringList[g_profession_name_message_ids_61e3f0
-                                                           [m_character_018.current_profession]]),
+                        FormatWideString(
+                            gppStringList[0x368 / 4],
+                            gppStringList
+                                [g_profession_name_message_ids_61e3f0[m_original_014->iProfession]],
+                            gppStringList[g_profession_name_message_ids_61e3f0[m_character_018
+                                                                                   .iProfession]]),
                         1, 4);
                 }
                 return;
@@ -495,7 +496,7 @@ void W8CharacterScreen::SyncCharacterForPage(int index)
     } else if (index == 3) {
         if (m_character_018.personality_0081 < 0)
             DeriveCharacterPersonality004EFA30(&m_character_018);
-        if (m_character_018.table_value_0079 < 0)
+        if (m_character_018.portrait_index < 0)
             CalcCharacterTableValue(&m_character_018);
     }
 }
@@ -515,8 +516,8 @@ void W8CharacterScreen::DrawHeader()
     if (m_mode_008 == 0) {
         DrawCatalogImage(-14, 0x107, 0, 2, 10, 0xc, 2, 0);
     } else {
-        int frame = m_original_014 == 0 ? m_character_018.table_value_0079
-                                        : m_original_014->table_value_0079;
+        int frame =
+            m_original_014 == 0 ? m_character_018.portrait_index : m_original_014->portrait_index;
         DrawCatalogImage(-14, 0x11, frame, 0, 10, 0xc, 2, 0);
     }
 
@@ -539,23 +540,22 @@ void W8CharacterScreen::DrawHeader()
             FormatWideString(
                 L"%s %s",
                 gppStringList[g_gender_name_message_rows_61e430[m_character_018.gender][0]],
-                gppStringList[g_race_name_message_ids_61e3d0[m_character_018.race]]),
+                gppStringList[g_race_name_message_ids_61e3d0[m_character_018.iRace]]),
             g_font_683660);
         text.RenderToTarget(0, 1, -14);
         bounds.top += 0xe;
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(
-            gppStringList[g_profession_name_message_ids_61e3f0[m_character_018.current_profession]],
+            gppStringList[g_profession_name_message_ids_61e3f0[m_character_018.iProfession]],
             g_font_683660);
         text.RenderToTarget(0, 1, -14);
         bounds.top += 0xe;
         text.SetLayoutBounds(&bounds, 1, 1);
         text.SetText(
             FormatWideString(
-                L"%s %d (%s)", gppStringList[0x1ae4 / 4], m_character_018.level,
-                gppStringList
-                    [g_profession_level_name_message_ids_61e688[m_character_018.current_profession]
-                                                               [m_character_018.level_band]]),
+                L"%s %d (%s)", gppStringList[0x1ae4 / 4], m_character_018.uiExpLevel,
+                gppStringList[g_profession_level_name_message_ids_61e688
+                                  [m_character_018.iProfession][m_character_018.level_band]]),
             g_font_683660);
         text.RenderToTarget(0, 1, -14);
     }
@@ -580,20 +580,20 @@ bool W8CharacterScreen::CommitCharacter()
             BuildCharacterPath00514EC0(path, m_original_014->name, -1);
             DeleteFileA(path);
         }
-        m_character_018.in_party = 0;
+        m_character_018.fInParty = 0;
         if (!SaveCharacter(&m_character_018, -1, 0, 0)) {
             memcpy(&m_character_018, &backup, sizeof(m_character_018));
             ShowMessage(gppStringList[0x350 / 4], 0, 0);
             return false;
         }
-        m_character_018.in_party = backup.in_party;
+        m_character_018.fInParty = backup.fInParty;
     }
     if (m_original_014 != 0) {
-        unsigned char was_in_party = m_original_014->in_party;
+        bool was_in_party = m_original_014->fInParty;
         memcpy(m_original_014, &m_character_018, sizeof(*m_original_014));
         if (was_in_party)
-            m_original_014->in_party = 1;
-        if (m_original_014->current_profession == W8_PROFESSION_GADGETEER)
+            m_original_014->fInParty = 1;
+        if (m_original_014->iProfession == W8_PROFESSION_GADGETEER)
             UpgradeProfessionClassItem005218C0(m_original_014);
         UnequipUnusableItems(m_original_014);
     }
@@ -703,8 +703,8 @@ bool W8CharacterScreen::ValidateName()
         }
     }
     for (int index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
-        if (g_status_685170.buffers.party_rows[index].occupied &&
-            wcscmp(g_status_685170.buffers.characters[index].name, m_character_018.name) == 0) {
+        if (g_status_685170.buffers.XChar[index].fOccupied &&
+            wcscmp(g_status_685170.buffers.Char[index].name, m_character_018.name) == 0) {
             ShowMessage(gppStringList[0x354 / 4], 0, 0);
             return false;
         }

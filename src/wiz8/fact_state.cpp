@@ -334,9 +334,9 @@ unsigned char EvaluateFact(int fact_id)
             return FindItemOnParty(0x27b, 0, 0, 2, 0);
         case 0xb5: {
             unsigned int slot = 0;
-            while (g_status_685170.buffers.party_rows[slot].occupied == 0 ||
-                   g_status_685170.buffers.characters[slot].race != 10 ||
-                   g_status_685170.buffers.characters[slot].highest_condition > 0xe) {
+            while (g_status_685170.buffers.XChar[slot].fOccupied == 0 ||
+                   g_status_685170.buffers.Char[slot].iRace != 10 ||
+                   g_status_685170.buffers.Char[slot].highest_condition > 0xe) {
                 if (slot >= 7) {
                     return 0;
                 }
@@ -403,7 +403,7 @@ unsigned char EvaluateFact(int fact_id)
             if (g_status_685170.flag_2489 != 0) {
                 unsigned int slot = 0;
                 do {
-                    if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+                    if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
                         slot ==
                             static_cast<unsigned int>(g_status_685170.tail_3121.facts.value_423d)) {
                         return 1;
@@ -432,7 +432,7 @@ unsigned char EvaluateFact(int fact_id)
             }
             W8NpcState* npc = GetNpcStateByKind(0x18);
             if (npc != 0 &&
-                g_status_685170.buffers.characters[npc->group_index].highest_condition >= 0xf) {
+                g_status_685170.buffers.Char[npc->group_index].highest_condition >= 0xf) {
                 return 1;
             }
             return 0;

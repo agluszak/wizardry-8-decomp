@@ -87,11 +87,11 @@
 unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char arg_3, char arg_4,
                                     char arg_5, W8SpellEffectResult* result_stats, char arg_7)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
     unsigned int absorbed;
     unsigned int applied;
 
-    if (g_status_685170.buffers.party_rows[party_slot].occupied == 0) {
+    if (g_status_685170.buffers.XChar[party_slot].fOccupied == 0) {
         srAssertFail("fCHAR_OCCUPIED(uiChar)", HEALTH_STAMINA_MANA_CPP, 403, 0);
     }
     if (character->hp_current == 0) {
@@ -139,7 +139,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
     applied = character->hp_current;
     if (applied <= amount) {
         if (CharacterHasTrait00547940(character, 2) != 0 &&
-            character->condition_turns[W8_CONDITION_EXHAUSTED] < 7) {
+            character->uiCondition[W8_CONDITION_EXHAUSTED] < 7) {
             CheatDeathRevive00547A50(party_slot);
             RecordCharacterDamage(party_slot, amount);
             return applied;
@@ -170,7 +170,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
                               result_stats == 0);
     }
 
-    if (character->condition_turns[W8_CONDITION_ASLEEP] != 0 && arg_3 == 0 &&
+    if (character->uiCondition[W8_CONDITION_ASLEEP] != 0 && arg_3 == 0 &&
         Random(100) < (character->attributes[6].effective >> 1) + 0x32) {
         RemoveCharacterCondition(party_slot, W8_CONDITION_ASLEEP, 1);
     }
@@ -201,8 +201,8 @@ void ApplyRolledHealthChangeToParty(const W8Dice* dice, W8SpellEffectResult* res
     int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
-            g_status_685170.buffers.characters[party_slot].highest_condition < W8_CONDITION_DEAD) {
+        if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0 &&
+            g_status_685170.buffers.Char[party_slot].highest_condition < W8_CONDITION_DEAD) {
             ApplyDamageToCharacter(party_slot, RollDice(dice), 0, arg_3, 0, result, 0);
         }
     }
@@ -221,7 +221,7 @@ void HealPartyByDice(unsigned char count, unsigned char sides, short base)
     dice.count = count;
     dice.sides = sides;
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0) {
+        if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0) {
             HealCharacter(party_slot, RollDice(&dice), 1);
         }
     }
@@ -238,7 +238,7 @@ void RestorePartyStaminaByDice(unsigned char count, unsigned char sides, short b
     dice.count = count;
     dice.sides = sides;
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0) {
+        if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0) {
             RestoreCharacterStamina(party_slot, RollDice(&dice), 0);
         }
     }
@@ -249,14 +249,14 @@ void RestorePartyStaminaByDice(unsigned char count, unsigned char sides, short b
 // FUNCTION: WIZ8 0x0052b480
 void SpendCharacterSpellPoints(int party_slot, int realm, int amount)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
     if (amount != 0) {
-        if (character->sp_left[realm] < amount) {
+        if (character->iSPLeft[realm] < amount) {
             srAssertFail("pPC->iSPLeft[uiRealm] >= (INT32) uiSPs", HEALTH_STAMINA_MANA_CPP, 1067,
                          0);
         }
-        character->sp_left[realm] -= amount;
+        character->iSPLeft[realm] -= amount;
         RequestPartySlotRedraw(party_slot);
     }
 }
@@ -265,11 +265,11 @@ void SpendCharacterSpellPoints(int party_slot, int realm, int amount)
 // FUNCTION: WIZ8 0x0052b4f0
 void RestoreCharacterRealmSpellPoints(int party_slot, int realm, int amount)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
-    character->sp_left[realm] += amount;
-    if (character->sp_max[realm] < character->sp_left[realm]) {
-        character->sp_left[realm] = character->sp_max[realm];
+    character->iSPLeft[realm] += amount;
+    if (character->sp_max[realm] < character->iSPLeft[realm]) {
+        character->iSPLeft[realm] = character->sp_max[realm];
     }
     RequestPartySlotRedraw(party_slot);
 }
@@ -283,7 +283,7 @@ void DrainPartySpellPoints(int arg_1, int arg_2)
     int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0) {
+        if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0) {
             DrainCharacterSpellPoints(party_slot, arg_1, arg_2);
         }
     }
@@ -300,14 +300,14 @@ void RestorePartySpellPoints(int amount)
     int granted;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
-            g_status_685170.buffers.characters[party_slot].highest_condition < W8_CONDITION_DEAD &&
-            g_status_685170.buffers.characters[party_slot].hp_current != 0) {
+        if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0 &&
+            g_status_685170.buffers.Char[party_slot].highest_condition < W8_CONDITION_DEAD &&
+            g_status_685170.buffers.Char[party_slot].hp_current != 0) {
             granted = amount;
             if (amount < 0) {
                 granted = 0;
                 for (realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
-                    granted += g_status_685170.buffers.characters[party_slot].sp_max[realm];
+                    granted += g_status_685170.buffers.Char[party_slot].sp_max[realm];
                 }
             }
             RestoreCharacterSpellPointsEvenly(party_slot, granted);
@@ -525,7 +525,7 @@ enum { W8_STAMINA_TO_SHAKE_OFF_EXHAUSTION = 9 };
 // FUNCTION: WIZ8 0x0052a710
 int GetCharacterRealmSpellPoints(const W8Character* character, int realm)
 {
-    int points = character->sp_left[realm];
+    int points = character->iSPLeft[realm];
     return points > 0 ? points : 0;
 }
 
@@ -534,7 +534,7 @@ int SumCharacterSpellPointsLeft(const W8Character* character)
 {
     int total = 0;
     for (int realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
-        total += character->sp_left[realm] > 0 ? character->sp_left[realm] : 0;
+        total += character->iSPLeft[realm] > 0 ? character->iSPLeft[realm] : 0;
     }
     return total;
 }
@@ -588,18 +588,18 @@ static int FatigueBandFromMissing(int missing_percent)
 // FUNCTION: WIZ8 0x0052add0
 void HealCharacter(int party_slot, int amount, char announce)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
     unsigned int hp_max;
     unsigned int fraction;
 
-    if (g_status_685170.buffers.party_rows[party_slot].occupied == 0) {
+    if (g_status_685170.buffers.XChar[party_slot].fOccupied == 0) {
         srAssertFail("fCHAR_OCCUPIED(uiChar)", HEALTH_STAMINA_MANA_CPP, 661, 0);
     }
 
     if (character->hp_current == 0) {
         return;
     }
-    hp_max = character->hp_max;
+    hp_max = character->uiHPMax;
     if (character->hp_current == hp_max) {
         return;
     }
@@ -616,7 +616,7 @@ void HealCharacter(int party_slot, int amount, char announce)
         }
     }
 
-    fraction = (character->hp_current * 100) / (unsigned int)character->hp_max;
+    fraction = (character->hp_current * 100) / static_cast<unsigned int>(character->uiHPMax);
     if (fraction >= g_effect_threshold_005ed904) {
         if (gXStatus.character_event_queue->HasEventCharacter(g_effect_005ee594, party_slot)) {
             gXStatus.character_event_queue->SetEventCharacterMask(g_effect_005ee594, party_slot, 0);
@@ -640,7 +640,7 @@ void HealCharacter(int party_slot, int amount, char announce)
 // FUNCTION: WIZ8 0x0052b1c0
 void RestoreCharacterStamina(int party_slot, int amount, char announce)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
     int stamina_max;
     int previous_band;
     int band;
@@ -648,7 +648,7 @@ void RestoreCharacterStamina(int party_slot, int amount, char announce)
     if (character->highest_condition >= W8_CONDITION_DEAD || character->hp_current == 0) {
         return;
     }
-    stamina_max = character->stamina_max;
+    stamina_max = character->uiStaminaMax;
     if (character->stamina == stamina_max) {
         return;
     }
@@ -667,12 +667,13 @@ void RestoreCharacterStamina(int party_slot, int amount, char announce)
 
     previous_band = character->fatigue_band;
     band = FatigueBandFromMissing(
-        100 - (int)((character->stamina * 100) / (unsigned int)character->stamina_max));
+        100 - static_cast<int>((character->stamina * 100) /
+                               static_cast<unsigned int>(character->uiStaminaMax)));
     character->fatigue_band = band;
     if (band != previous_band) {
         CalcArmorClasses(character);
     }
-    if (character->condition_turns[W8_CONDITION_EXHAUSTED] == W8_CONDITION_INDEFINITE &&
+    if (character->uiCondition[W8_CONDITION_EXHAUSTED] == W8_CONDITION_INDEFINITE &&
         character->stamina > W8_STAMINA_TO_SHAKE_OFF_EXHAUSTION) {
         RemoveCharacterCondition(party_slot, W8_CONDITION_EXHAUSTED, 1);
     }
@@ -685,7 +686,7 @@ void RestoreCharacterStamina(int party_slot, int amount, char announce)
 // FUNCTION: WIZ8 0x0052b590
 void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announce)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
     unsigned int remaining = amount;
     unsigned int taken;
     int attempts;
@@ -701,10 +702,10 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
 
     for (attempts = 0x32; remaining != 0 && attempts != 0; --attempts) {
         realm = Random(W8_SPELL_REALM_COUNT);
-        if (character->sp_left[realm] > 0) {
+        if (character->iSPLeft[realm] > 0) {
             taken = remaining;
-            if ((unsigned int)character->sp_left[realm] <= remaining) {
-                taken = character->sp_left[realm];
+            if (static_cast<unsigned int>(character->iSPLeft[realm]) <= remaining) {
+                taken = character->iSPLeft[realm];
             }
             SpendCharacterSpellPoints(party_slot, realm, taken);
             if (announce) {
@@ -724,7 +725,7 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
 // FUNCTION: WIZ8 0x0052b910
 void RestoreCharacterSpellPointsEvenly(int party_slot, int amount)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
     struct {
         unsigned int realm;
         unsigned int deficit;
@@ -735,7 +736,7 @@ void RestoreCharacterSpellPointsEvenly(int party_slot, int amount)
 
     for (index = 0; index < W8_SPELL_REALM_COUNT; ++index) {
         order[index].realm = index;
-        order[index].deficit = character->sp_max[index] - character->sp_left[index];
+        order[index].deficit = character->sp_max[index] - character->iSPLeft[index];
     }
     qsort(order, W8_SPELL_REALM_COUNT, sizeof(order[0]), CompareSpellPointDeficits);
 
@@ -753,7 +754,7 @@ void RestoreCharacterSpellPointsEvenly(int party_slot, int amount)
                 continue;
             }
             tied = index < W8_SPELL_REALM_COUNT && order[index].deficit == order[index + 1].deficit;
-            ++character->sp_left[order[index].realm];
+            ++character->iSPLeft[order[index].realm];
             --amount;
             ++granted;
             --order[index].deficit;
@@ -776,20 +777,20 @@ void RestoreCharacterSpellPointsEvenly(int party_slot, int amount)
 // FUNCTION: WIZ8 0x0052b7e0
 void DamageCharacter(int party_slot, int damage, char announce)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
-    if (g_status_685170.buffers.party_rows[party_slot].occupied == 0) {
+    if (g_status_685170.buffers.XChar[party_slot].fOccupied == 0) {
         srAssertFail("fCHAR_OCCUPIED(uiChar)", HEALTH_STAMINA_MANA_CPP, 1186, 0);
     }
 
-    if (character->hp_max != 0 && character->hp_current != 0) {
+    if (character->uiHPMax != 0 && character->hp_current != 0) {
         FatigueCharacter(party_slot, (damage * 2) / 3, 0, 0);
         if (announce) {
             ShowNoticef(8, gppStringList[0x710 / 4], damage);
         }
         character->hp_adjustment -= damage;
         RecalculateCharacterHitPoints(character);
-        if (character->condition_turns[1] == 0) {
+        if (character->uiCondition[1] == 0) {
             SetCharacterCondition(party_slot, 1, W8_CONDITION_INDEFINITE, 0, 0, 0);
         }
         if (character->hp_current != 0) {
@@ -935,7 +936,7 @@ enum { W8_FATIGUE_BAND_DEEP = 2, W8_FATIGUE_BAND_RECOVERED = 2 };
 void FatigueCharacter(int party_slot, int amount, char scale_by_load,
                       W8SpellEffectResult* report_to)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
     int previous_band;
     int band;
     int load_percent;
@@ -950,7 +951,7 @@ void FatigueCharacter(int party_slot, int amount, char scale_by_load,
                          "FatigueCharacter: ERROR - Invalid load category");
         }
         load_percent = kLoadFatiguePercent[character->load_category];
-        if (character->condition_turns[W8_CONDITION_LOAD_EASED] == 0) {
+        if (character->uiCondition[W8_CONDITION_LOAD_EASED] == 0) {
             if (character->enchantments[5].value_08 != 0) {
                 load_percent += 0x19;
             }
@@ -969,14 +970,15 @@ void FatigueCharacter(int party_slot, int amount, char scale_by_load,
 
     previous_band = character->fatigue_band;
     band = FatigueBandFromMissing(
-        100 - (int)((character->stamina * 100) / (unsigned int)character->stamina_max));
+        100 - static_cast<int>((character->stamina * 100) /
+                               static_cast<unsigned int>(character->uiStaminaMax)));
     character->fatigue_band = band;
     if (band != previous_band) {
         CalcArmorClasses(character);
     }
 
     if (character->stamina < 1) {
-        if (character->condition_turns[W8_CONDITION_EXHAUSTED] < W8_CONDITION_INDEFINITE) {
+        if (character->uiCondition[W8_CONDITION_EXHAUSTED] < W8_CONDITION_INDEFINITE) {
             SetCharacterCondition(party_slot, W8_CONDITION_EXHAUSTED, W8_CONDITION_INDEFINITE, 0, 0,
                                   report_to == 0);
             if (report_to != 0) {
@@ -1013,15 +1015,15 @@ unsigned int CharacterActionFatigueCost(int party_slot, int action_kind)
     case W8_ACTION_ATTACK:
     case W8_ACTION_BERSERK:
         attack_mode =
-            g_status_685170.buffers.party_rows[party_slot].attack_mode[combat_row->current_hand];
+            g_status_685170.buffers.XChar[party_slot].attack_mode[combat_row->current_hand];
         if (attack_mode == 5) {
             cost = Random(3) + 2;
         } else if (attack_mode == 6) {
             cost = Random(3) + 3;
         } else {
-            item_id = g_status_685170.buffers.characters[party_slot]
-                          .equipment[combat_row->current_equip_slot]
-                          .item_id;
+            item_id = g_status_685170.buffers.Char[party_slot]
+                          .EquippedItem[combat_row->current_equip_slot]
+                          .iItemNo;
             if (item_id == -1) {
                 cost = Random(4) + 3;
             } else {
@@ -1040,7 +1042,7 @@ unsigned int CharacterActionFatigueCost(int party_slot, int action_kind)
         break;
     case W8_ACTION_TURN_UNDEAD:
     case W8_ACTION_PRAY:
-        cost = g_status_685170.buffers.characters[party_slot].stamina_max / 5;
+        cost = g_status_685170.buffers.Char[party_slot].uiStaminaMax / 5;
         if (cost < 0x14) {
             cost = 0x14;
         }
@@ -1055,8 +1057,7 @@ unsigned int CharacterActionFatigueCost(int party_slot, int action_kind)
         cost = 0;
     }
 
-    if (g_status_685170.buffers.characters[party_slot]
-            .condition_turns[W8_CONDITION_FATIGUE_DOUBLED] != 0) {
+    if (g_status_685170.buffers.Char[party_slot].uiCondition[W8_CONDITION_FATIGUE_DOUBLED] != 0) {
         cost *= 2;
     }
     return cost;
@@ -1067,13 +1068,13 @@ unsigned int CharacterActionFatigueCost(int party_slot, int action_kind)
 // FUNCTION: WIZ8 0x0052b6d0
 void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amount, char announce)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
     unsigned int available;
 
     if (character->hp_current == 0) {
         return;
     }
-    available = character->sp_left[realm];
+    available = character->iSPLeft[realm];
     if (available == 0) {
         return;
     }
@@ -1107,18 +1108,18 @@ void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amou
 // FUNCTION: WIZ8 0x0052abf0
 void CharacterDies(int party_slot)
 {
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
-    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
+    W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
     unsigned int condition;
     int animation;
 
-    if (row->occupied == 0) {
+    if (row->fOccupied == 0) {
         srAssertFail("fCHAR_OCCUPIED(uiChar)", HEALTH_STAMINA_MANA_CPP, 561, 0);
     }
 
     ++character->death_count_09fd;
     for (condition = 0; condition < W8_CONDITION_CLEARABLE_COUNT; ++condition) {
-        if (condition != 10 && character->condition_turns[condition] != 0) {
+        if (condition != 10 && character->uiCondition[condition] != 0) {
             RemoveCharacterCondition(party_slot, condition, 0);
         }
     }
@@ -1174,7 +1175,7 @@ void RecalculateCharacterHitPoints(W8Character* character)
     int hit_points;
     int remaining;
 
-    if (character->current_profession == W8_PROFESSION_NONE) {
+    if (character->iProfession == W8_PROFESSION_NONE) {
         return;
     }
 
@@ -1193,12 +1194,12 @@ void RecalculateCharacterHitPoints(W8Character* character)
     if (hit_points < 1) {
         hit_points = 1;
     }
-    if (hit_points != character->hp_max) {
-        remaining = (hit_points - character->hp_max) + (int)character->hp_current;
+    if (hit_points != character->uiHPMax) {
+        remaining = (hit_points - character->uiHPMax) + static_cast<int>(character->hp_current);
         if (remaining < 0) {
             remaining = 0;
         }
-        character->hp_max = hit_points;
+        character->uiHPMax = hit_points;
         character->hp_current = remaining;
         if (remaining == 0) {
             SetCharacterCondition(CharacterPointerToPartySlot(character), W8_CONDITION_DEAD,
@@ -1218,21 +1219,21 @@ void RecalculateCharacterHitPoints(W8Character* character)
 // FUNCTION: WIZ8 0x0052a3e0
 void RecalculateCharacterStamina(W8Character* character)
 {
-    unsigned int previous = character->stamina_max;
+    unsigned int previous = character->uiStaminaMax;
     unsigned int value =
         (unsigned int)(((character->attributes[0].effective + character->attributes[2].effective +
                          character->attributes[3].effective) *
                         (1.0f / 3.0f)) *
-                           (character->level * g_float_005ed8b8 +
+                           (character->uiExpLevel * g_float_005ed8b8 +
                             g_environment_near_scale_005ec0b0) +
                        g_double_005ebe80);
-    character->stamina_max = value;
+    character->uiStaminaMax = value;
     if (character->fatigue_penalty_0b21 < value) {
-        character->stamina_max = value - character->fatigue_penalty_0b21;
+        character->uiStaminaMax = value - character->fatigue_penalty_0b21;
     } else {
-        character->stamina_max = 0;
+        character->uiStaminaMax = 0;
     }
-    value = character->stamina_max;
+    value = character->uiStaminaMax;
     if (value != previous) {
         character->stamina += value - previous;
     }
@@ -1257,7 +1258,7 @@ void RecalculateCharacterStamina(W8Character* character)
 // FUNCTION: WIZ8 0x0052a500
 void RecalculateRealmSpellPoints(W8Character* character)
 {
-    int profession = character->current_profession;
+    int profession = character->iProfession;
     if (profession != 0 && (profession < 7 || profession > 9)) {
         character->skill_unlocks[0x24] = RebuildRealmSpellPointCeilings0052A540(character);
         return;
@@ -1313,7 +1314,7 @@ int RebuildRealmSpellPointCeilings0052A540(W8Character* character)
         int computed = (int)(((weighted + character->skills[0x1c + index].level * 3 +
                                character->attributes[2].effective) *
                               g_float_005ecbb4) *
-                                 (learned + character->level + 1) +
+                                 (learned + character->uiExpLevel + 1) +
                              g_double_005ebe80);
         if (best < computed) {
             best = computed;
@@ -1326,7 +1327,7 @@ int RebuildRealmSpellPointCeilings0052A540(W8Character* character)
             character->sp_max[index] = max_spell_levels[index];
         }
         if (character->sp_max[index] != old) {
-            character->sp_left[index] += character->sp_max[index] - old;
+            character->iSPLeft[index] += character->sp_max[index] - old;
         }
     }
     return best;
@@ -1352,10 +1353,11 @@ unsigned int FindPartySlotWithLowestHitPoints(void)
     unsigned int best_percent = 100;
 
     for (unsigned int slot = 0; slot < 8; ++slot) {
-        W8Character* character = &g_status_685170.buffers.characters[slot];
-        if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+        W8Character* character = &g_status_685170.buffers.Char[slot];
+        if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
             character->highest_condition < W8_CONDITION_DEAD) {
-            unsigned int percent = (character->hp_current * 100) / (unsigned int)character->hp_max;
+            unsigned int percent =
+                (character->hp_current * 100) / static_cast<unsigned int>(character->uiHPMax);
             if (percent < best_percent) {
                 best_slot = slot;
                 best_percent = percent;
@@ -1375,8 +1377,8 @@ unsigned int FindPartySlotWithLowestSpellPoints(void)
     unsigned int best_percent = 100;
 
     for (unsigned int slot = 0; slot < 8; ++slot) {
-        W8Character* character = &g_status_685170.buffers.characters[slot];
-        if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+        W8Character* character = &g_status_685170.buffers.Char[slot];
+        if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
             character->highest_condition < W8_CONDITION_DEAD) {
             unsigned int pool_max = 0;
             for (int realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
@@ -1385,7 +1387,7 @@ unsigned int FindPartySlotWithLowestSpellPoints(void)
             if (pool_max > 0) {
                 int pool_left = 0;
                 for (int realm = 0; realm < W8_SPELL_REALM_COUNT; ++realm) {
-                    int left = character->sp_left[realm];
+                    int left = character->iSPLeft[realm];
                     pool_left += left & ((left <= 0) - 1);
                 }
                 unsigned int percent = (unsigned int)(pool_left * 100) / pool_max;
@@ -1423,8 +1425,8 @@ W8Character* FindPartyMemberWithLowestResistance4(void)
     unsigned int lowest = 999;
     int selected = 0;
     for (int party_slot = 0; party_slot < 8; ++party_slot) {
-        W8Character* character = &g_status_685170.buffers.characters[party_slot];
-        if (g_status_685170.buffers.party_rows[party_slot].occupied != 0 &&
+        W8Character* character = &g_status_685170.buffers.Char[party_slot];
+        if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0 &&
             character->highest_condition < W8_CONDITION_DEAD &&
             character->resistances[4].total < lowest) {
             selected = party_slot;
@@ -1433,5 +1435,5 @@ W8Character* FindPartyMemberWithLowestResistance4(void)
     }
     if (lowest == 999)
         return 0;
-    return &g_status_685170.buffers.characters[selected];
+    return &g_status_685170.buffers.Char[selected];
 }

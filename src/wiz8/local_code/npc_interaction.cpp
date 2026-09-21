@@ -49,10 +49,10 @@ bool IsPartySlotEligible00524A10(int slot)
     if (slot >= 8) {
         return 0;
     }
-    if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
+    if (g_status_685170.buffers.XChar[slot].fOccupied == 0) {
         return 0;
     }
-    character = &g_status_685170.buffers.characters[slot];
+    character = &g_status_685170.buffers.Char[slot];
     if (character->hp_current == 0) {
         return 0;
     }
