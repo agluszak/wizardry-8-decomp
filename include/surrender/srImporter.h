@@ -26,6 +26,9 @@ public:
 
     SR_DLL_IMPORT void exportSurface(const char* path, srColorSurfaceIFace& surface,
                                      const ExportInfo& options);
+    /* Provider-side import entry (0x1002DA00); no consumer import evidence,
+       so it stays unannotated. */
+    srColorSurfaceIFace* importSurface(const char* path, const ImportInfo& options);
 };
 
 static_assert((sizeof(srSurfaceIOManager::ImportInfo) == 0x0c), "srSurfaceImportInfo_must_be_0x0c");
@@ -33,8 +36,7 @@ static_assert((sizeof(srSurfaceIOManager::ExportInfo) == 0x0c), "srSurfaceExport
 
 class __declspec(novtable) srSurfaceIOManager::SurfaceImporter : public srIOManager::Importer {
 public:
-    virtual int getSurfaceDesc(srColorSurfaceIFace::SurfaceDesc& description,
-                               srBinIStream& stream,
+    virtual int getSurfaceDesc(srColorSurfaceIFace::SurfaceDesc& description, srBinIStream& stream,
                                const srSurfaceIOManager::ImportInfo& options);
     virtual srColorSurfaceIFace* importSurface(srBinIStream& stream,
                                                const srSurfaceIOManager::ImportInfo& options) = 0;

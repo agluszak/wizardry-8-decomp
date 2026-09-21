@@ -19,10 +19,11 @@ add_library(wiz8_surrender_objects OBJECT
     stream.cpp
     string_table.cpp
     system.cpp
+    palette.cpp
     timer.cpp
+    variable_timer.cpp
     triangulator.cpp
     type_registry.cpp
-    variable_timer.cpp
     vc6_runtime.cpp
     vector_processor.cpp
 )

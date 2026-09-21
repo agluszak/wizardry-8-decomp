@@ -153,6 +153,10 @@ public:
     {
         return srHeap.allocate(size);
     }
+    void* operator new(unsigned int, void* at)
+    {
+        return at;
+    }
     void operator delete(void* instance)
     {
         srHeap.free(instance);
