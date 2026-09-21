@@ -16,6 +16,9 @@ extern unsigned int g_party_selection_import_list_region_set_69c50c;    /* 0x006
    animation frames. */
 extern unsigned char g_portrait_frame_flags_0061cbc0[0x50];
 extern int g_value_68de50; /* 0x0068DE50: Wizardry-7 import ending selector */
+/* 0x0068DE58: the imported save's 96 flag bits expanded one byte each; element
+   0xb marks an imported party and element 5 gates fact 0x7b. */
+extern unsigned char g_wiz7_imported_flags_0068de58[0x60];
 
 /* Refresh one party-selection list portrait after a slot change. */
 void RefreshPartySelectionPortrait(unsigned int party_slot); /* 0x005C33C0 */

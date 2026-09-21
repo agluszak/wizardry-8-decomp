@@ -27,7 +27,12 @@ struct W8Wiz7Character {
     unsigned char skills[0x22];  /* 0x178: ConvertSkill indexes it by the
                                           mapped skill id (highest 0x21) and
                                           reads the contiguous ranges inside */
-    unsigned char unknown_19a[0x9d];
+    unsigned char unknown_19a[0x98];
+    /* 0x232: packed Wiz7 save-state byte; identical across all records of a
+       valid save. High nibble selects the imported ending (0x10/0x20/0x40/0x80
+       -> selector 0..3), low nibble 1/2/4 selects the second state value. */
+    unsigned char ending_flags_232;
+    unsigned char unknown_233[0x04];
     unsigned char race_237;       /* 0x237 */
     unsigned char gender_238;     /* 0x238 */
     unsigned char profession_239; /* 0x239: Wiz7 class byte */

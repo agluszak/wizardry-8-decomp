@@ -63,7 +63,7 @@
 
 void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                                  char right_button, char left_button);
-unsigned char Function558D00(const char* path);
+unsigned char ReadWizardry7ImportFile00558D00(const char* path);
 int LoadWizardry7Import00558C40(const char* path);
 
 /* Two ordinary growable vectors and the scroll origin account for all 0x24
@@ -105,6 +105,18 @@ unsigned int g_party_selection_character_grid_region_set_69c4f8;
 // GLOBAL: WIZ8 0x0068DE48
 unsigned int g_wiz7_imported_character_count_0068de48;
 
+/* Set when the imported save's party record marks a completed Wizardry 7 game;
+   only then does the record byte at W8Wiz7Character::ending_flags_232 decode
+   into g_value_68de50. */
+// GLOBAL: WIZ8 0x0068DE4C
+bool g_wiz7_import_save_completed_0068de4c;
+
+// GLOBAL: WIZ8 0x0068DE54
+int g_value_68de54;
+
+// GLOBAL: WIZ8 0x0068DE58
+unsigned char g_wiz7_imported_flags_0068de58[0x60];
+
 // GLOBAL: WIZ8 0x0068DEB8
 W8Wiz7Character g_wiz7_import_buffer_0068deb8[6];
 
@@ -118,7 +130,7 @@ int LoadWizardry7Import00558C40(const char* path)
 {
     W8Character character;
 
-    if (Function558D00(path) == 0) {
+    if (ReadWizardry7ImportFile00558D00(path) == 0) {
         return 1;
     }
     ResetForNewGame();
@@ -134,6 +146,138 @@ int LoadWizardry7Import00558C40(const char* path)
         return g_value_68de50 == 3 ? 2 : 0;
     }
     return 1;
+}
+
+/* The 0x34c-byte leader record of a Wizardry 7 save. Only the members this
+   reader touches are named; the surrounding bytes are skipped by the two
+   counted seeks and never interpreted. */
+struct W8Wiz7SaveHeader {
+    unsigned char unknown_000[0x200];
+    unsigned char imported_flags_200[0x0c]; /* 0x200: 96 bits expanded to
+                                               g_wiz7_imported_flags_0068de58 */
+    unsigned char unknown_20c[0xc0];
+    short skip_count_2cc; /* 0x2cc: six-byte records skipped after the header */
+    short skip_count_2ce; /* 0x2ce: eight-byte records skipped after that */
+    unsigned char unknown_2d0[0x7c];
+};
+static_assert(sizeof(W8Wiz7SaveHeader) == 0x34c, "W8Wiz7SaveHeader_size");
+
+/* The 0x4c-byte party record that follows the skipped sections. */
+struct W8Wiz7PartyRecord {
+    short completed_game_00; /* 0x00: -1 marks a completed Wizardry 7 save */
+    unsigned char unknown_02[0x48];
+    short character_count_4a; /* 0x4a */
+};
+static_assert(sizeof(W8Wiz7PartyRecord) == 0x4c, "W8Wiz7PartyRecord_size");
+
+/* Read a Wizardry 7 save into the import buffer. After the fixed leader the
+   file interleaves counted variable sections with fixed blocks this reader
+   does not interpret; every block is still read so the position stays honest.
+   Each character record must carry the same ending byte. On success the
+   ending/secondary nibbles decode into g_value_68de50/g_value_68de54 and the
+   header's 96 imported bits expand into g_wiz7_imported_flags_0068de58. */
+// FUNCTION: WIZ8 0x00558D00
+unsigned char ReadWizardry7ImportFile00558D00(const char* path)
+{
+    W8Wiz7SaveHeader header;
+    W8Wiz7PartyRecord party;
+    unsigned char block_80[0x80];
+    unsigned char block_90[0x90];
+    unsigned char block_68[0x68];
+    unsigned char block_14a[0x14a];
+    unsigned char block_344[0x344];
+    unsigned char block_42[0x42];
+    unsigned int bytes_read;
+    unsigned int index;
+    int record_index;
+    W8Wiz7Character* record;
+    unsigned int ending_flags;
+    HWFILE file = FileOpen(const_cast<char*>(path), FILE_ACCESS_READ, 0);
+    if (file == 0) {
+        return 0;
+    }
+    if (FileRead(file, &header, 0x34c, &bytes_read) != 0 &&
+        FileSeek(file, header.skip_count_2cc * 6, FILE_SEEK_FROM_CURRENT) != 0 &&
+        FileSeek(file, header.skip_count_2ce << 3, FILE_SEEK_FROM_CURRENT) != 0) {
+        index = 0;
+        do {
+            if (FileSeek(file, 0x100, FILE_SEEK_FROM_CURRENT) == 0) {
+                goto fail;
+            }
+            ++index;
+        } while (index < 0x20);
+        if (FileRead(file, &party, 0x4c, &bytes_read) != 0 && party.character_count_4a != 0 &&
+            party.character_count_4a < 7 && FileRead(file, block_80, 0x80, &bytes_read) != 0 &&
+            FileRead(file, block_90, 0x90, &bytes_read) != 0 &&
+            FileRead(file, block_68, 0x68, &bytes_read) != 0 &&
+            FileRead(file, block_14a, 0x14a, &bytes_read) != 0 &&
+            FileRead(file, block_344, 0x344, &bytes_read) != 0 &&
+            FileRead(file, block_42, 0x42, &bytes_read) != 0 &&
+            FileSeek(file, 100, FILE_SEEK_FROM_CURRENT) != 0) {
+            record_index = 0;
+            if (party.character_count_4a > 0) {
+                record = g_wiz7_import_buffer_0068deb8;
+                do {
+                    if (FileRead(file, record, 0x248, &bytes_read) == 0) {
+                        goto fail;
+                    }
+                    if (record != g_wiz7_import_buffer_0068deb8 &&
+                        record->ending_flags_232 != (record - 1)->ending_flags_232) {
+                        goto fail;
+                    }
+                    ++record_index;
+                    ++record;
+                } while (record_index < party.character_count_4a);
+            }
+            FileClose(file);
+            g_wiz7_imported_character_count_0068de48 = party.character_count_4a;
+            g_wiz7_import_save_completed_0068de4c = party.completed_game_00 == -1;
+            ending_flags = g_wiz7_import_buffer_0068deb8[0].ending_flags_232;
+            if (g_wiz7_import_save_completed_0068de4c) {
+                switch (ending_flags & 0xf0) {
+                case 0x10:
+                    g_value_68de50 = 0;
+                    break;
+                case 0x20:
+                    g_value_68de50 = 1;
+                    break;
+                case 0x40:
+                    g_value_68de50 = 2;
+                    break;
+                case 0x80:
+                    g_value_68de50 = 3;
+                    break;
+                default:
+                    return 0;
+                }
+            } else {
+                g_value_68de50 = -1;
+            }
+            ending_flags &= 0xf;
+            if (ending_flags == 1) {
+                g_value_68de54 = 0;
+            } else if (ending_flags == 2) {
+                g_value_68de54 = 1;
+            } else if (ending_flags == 4) {
+                g_value_68de54 = 2;
+            } else {
+                g_value_68de54 = -1;
+            }
+            index = 0;
+            do {
+                if ((header.imported_flags_200[index >> 3] & (1 << (index & 7))) == 0) {
+                    g_wiz7_imported_flags_0068de58[index] = 0;
+                } else {
+                    g_wiz7_imported_flags_0068de58[index] = 1;
+                }
+                ++index;
+            } while (index < 0x60);
+            return 1;
+        }
+    }
+fail:
+    FileClose(file);
+    return 0;
 }
 
 /* Imported characters not installed in the active party are owned here. Name

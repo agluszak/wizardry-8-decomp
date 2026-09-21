@@ -6,8 +6,6 @@
    aliases g_npc_name_buffer[0] - a retail off-by-one, kept faithful. */
 extern unsigned char g_fact_values[1000];
 extern unsigned char g_fact_notifications_suppressed;
-extern bool g_import_party_loaded;
-extern unsigned char g_import_flag_0068de5d;
 
 /* Fact ids recovered code tests. The names are the FACT.DBS record strings;
    the database carries them itself. */
