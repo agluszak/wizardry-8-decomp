@@ -589,14 +589,11 @@ void W8Navigator::SetBounds(const srVector3T<float>* minimum, const srVector3T<f
     radius_084 = movement_0c0.alternate_radius_0b4;
 }
 
-// FUNCTION: WIZ8 0x00453480
-int W8Navigator::FindNavigatorPathDistance(float max_range, float* out_distance)
-{
-    float distance = MeasurePathDistance00453300(&g_startup_world_659c0c->movement_0c0.position_040,
-                                                 max_range, 0);
-    *out_distance = distance;
-    return distance != g_negative_one_005ebc38;
-}
+/* The attachment the octree's navigator-target probe is currently filling in;
+   parked globally while PrepareNavigatorTarget runs so the path walk can reach
+   it, then cleared. */
+// GLOBAL: WIZ8 0x00659BF4
+W8NavigatorAttachment* g_active_navigator_attachment_00659bf4;
 
 // FUNCTION: WIZ8 0x004534c0
 srVector3T<float> W8Navigator::GetPosition()
@@ -1130,6 +1127,105 @@ void W8Navigator::UpdateFacing(char immediate)
     }
 }
 
+// FUNCTION: WIZ8 0x00453230
+W8Navigator* W8Navigator::ResolveBlockingNavigator00453230(const srVector3T<float>* from,
+                                                           srVector3T<float>* to,
+                                                           unsigned char include_target)
+{
+    int hit_location;
+    int location;
+
+    if (state_088 == 0) {
+        return 0;
+    }
+    if (target_navigator_04c == 0) {
+        hit_location = -3;
+    } else {
+        hit_location = target_navigator_04c->movement_0c0.location_id_004;
+    }
+    location = -3;
+    if (include_target != 0 && target_navigator_04c != 0) {
+        location = target_navigator_04c->movement_0c0.location_id_004;
+    }
+    if (g_octree_6598a4->ResolveTraceHit(from, to, movement_0c0.location_id_004, &hit_location,
+                                         location, unknown_090, '\0') != 0) {
+        if (hit_location == 0) {
+            return g_startup_world_659c0c;
+        }
+        if (hit_location > 0) {
+            W8MonsterInfo* monster_info =
+                MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+                    0x5d7, "C:\\Projects\\Wizardry 8\\Engine Code\\Navigator.cpp", hit_location,
+                    1));
+            if (monster_info->monster != 0) {
+                return monster_info->monster;
+            }
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x00453300
+double W8Navigator::MeasurePathDistance00453300(const srVector3T<float>* target, float max_range,
+                                                int location_id)
+{
+    static W8NavigatorMovementState movement;
+    static W8NavigatorAttachment attachment;
+    unsigned char ready;
+
+    movement.CopySettingsFrom(movement_0c0);
+    movement.target_location_id_010 = location_id;
+    movement.vector_088 = movement_0c0.vector_088;
+    movement.vector_094 = movement_0c0.vector_094;
+    movement.vector_0a0 = movement_0c0.vector_0a0;
+    movement.position_040 = movement_0c0.position_040;
+    movement.target_position_04c = *target;
+    attachment.InitializeSegment004563E0(&movement_0c0.position_040, target);
+    movement.attachment_0ac = &attachment;
+    if (g_flag_006081e4 == 0) {
+        attachment.flags_00 |= 0xc010000;
+    } else {
+        attachment.flags_00 &= 0xf3feffff;
+    }
+    ready = g_octree_6598a4->PrepareNavigatorTarget00434250(&movement, max_range, radius_084);
+    movement.attachment_0ac = 0;
+    if (ready != 0 && ((attachment.flags_00 & 0x10000) == 0 || (attachment.flags_00 & 7) != 3)) {
+        return attachment.MeasurePathLength00456B00();
+    }
+    return -1.0;
+}
+
+// FUNCTION: WIZ8 0x00453480
+int W8Navigator::FindNavigatorPathDistance(float max_range, float* out_distance)
+{
+    double distance = MeasurePathDistance00453300(
+        &g_startup_world_659c0c->movement_0c0.position_040, max_range, 0);
+
+    *out_distance = static_cast<float>(distance);
+    if (distance != g_negative_one_005ebc38) {
+        return 1;
+    }
+    return 0;
+}
+
+// FUNCTION: WIZ8 0x00453520
+void W8Navigator::SetVelocity00453520(const srVector3T<float>* velocity)
+{
+    movement_0c0.velocity_034 = *velocity;
+}
+
+// FUNCTION: WIZ8 0x00453540
+unsigned char W8Navigator::CheckNavigatorCollision00453540(const srVector3T<float>* from,
+                                                           const srVector3T<float>* to)
+{
+    W8Navigator* blocker =
+        ResolveBlockingNavigator00453230(from, const_cast<srVector3T<float>*>(to), 0);
+
+    if (blocker != 0 && OnCollision(blocker) && blocker->OnCollision(this)) {
+        return 1;
+    }
+    return 0;
+}
 /* Re-prime the attachment for a new movement segment: keep only the link flag
    bits, reseed the path cursors at one, copy source and destination into the
    position fields and the first two waypoints, clear the recorded path values

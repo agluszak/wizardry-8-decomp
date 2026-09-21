@@ -1535,7 +1535,7 @@ stModelInstance* W8GameData::CreateTraceModel0041C930()
 
 /* Copy one four-byte handle over another. */
 // FUNCTION: WIZ8 0x0041cf80
-void __thiscall CopyLevelDataHandle(unsigned long* destination, const unsigned long* source)
+void CopyLevelDataHandle(unsigned long* destination, const unsigned long* source)
 {
     *destination = *source;
 }

@@ -75,6 +75,8 @@
 
 /* Video2-internal helpers. Their only recovered callers are in this unit, so
    they are declared here instead of the released Video2 header. */
+srNode* MakePosterQuad00424BA0(srTextureIFace* texture, float width, float height,
+                               unsigned char positional_3);
 srModelInstance* Video2DRectToSquarePolygon(int* rect, void* source, int source_pitch,
                                             srNode* parent, unsigned char overlay);
 srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch, srNode* parent,
@@ -1642,6 +1644,16 @@ unsigned char GetCursorPositionInViewport(srVector3T<float>* position)
         return 1;
     }
     return 0;
+}
+
+/* The tracked cursor tip (hotspot + size) in pixel-scale units. DropHeldItem
+   turns it into the toss direction. */
+// FUNCTION: WIZ8 0x004282F0
+void GetCursorScaledPosition004282F0(srVector3T<float>* position)
+{
+    position->x = (g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0) * g_scale_x_5ebb1c;
+    position->z = 0.0f;
+    position->y = (g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4) * g_scale_y_5ebb20;
 }
 
 /* Keep the rendered cursor synchronized with the OS cursor. In windowed mode
