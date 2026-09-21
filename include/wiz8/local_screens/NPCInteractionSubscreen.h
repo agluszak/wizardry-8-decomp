@@ -401,8 +401,9 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
                               int quote_id, unsigned int font_palette, unsigned char notice_kind,
                               void* payload, int npc_kind); /* 0x00576060 */
 void DrawNpcQuoteBubble(void);                              /* 0x00576670 */
-/* 0x00575E60: OpenNpcDialog — quote entry and dialog request share the
-   packed 0x12-byte layout at the call site in ProcessNpcQuoteEntry. */
+/* 0x00575E60: OpenNpcDialog — the modal request is the script's
+   W8NpcQuoteEntry itself; the dialog discriminates kind_00 0x05 (option
+   list), 0x12/0x1e (price check) and 0x13 (keyword entry). */
 void LookAtDialogueNpc(void);        /* 0x005767F0 */
 void CloseNpcDialogueIfActive(void); /* 0x00576B80 */
 void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, int flags,
