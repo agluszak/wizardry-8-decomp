@@ -35,6 +35,8 @@ public:
     };
 
     srTimer(int argument_0, int argument_1, int argument_2);
+    srTimer(const srTimer& other);
+    srTimer& operator=(const srTimer& other);
 
     virtual ~srTimer(); /* 0 */
     virtual char* getAscTime(char* buffer, e_timerReadControl control);
@@ -71,9 +73,11 @@ public:
     void setUnits(unsigned long units);
     int isPaused() const;
     int fastThreads();
-
-    static void setStorage(char* storage);
+    const char* getCPUTypeIdString(e_cpuTypeId type) const;
+    /* "<hive>:<path>" names the registry location store()/retrieve() use; a
+       null storage selects default_storage. */
     static char* getStorage(char* buffer, unsigned long size);
+    static void setStorage(char* storage);
 
     unsigned char unknown_004_[0x4];
     char m_ident[0x400];     /* 0x008: module/OS identity text */

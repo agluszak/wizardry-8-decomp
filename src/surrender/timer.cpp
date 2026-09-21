@@ -1,5 +1,6 @@
 #include "surrender/srTimer.h"
 
+#include <ctype.h>
 #include <mmsystem.h>
 #include <stdio.h>
 #include <string.h>
@@ -96,6 +97,62 @@ srTimer::srTimer(int argument_0, int argument_1, int argument_2)
     m_read_tick = 0;
     setUnits(1000);
     reset(argument_0, argument_1, argument_2);
+}
+
+/* Retail copies the two 0x400 strings and the 13-byte CPU signature with
+   byte-at-a-time loops, not memcpy, and reloads kernel32 instead of sharing
+   the source's handle. */
+// FUNCTION: SURRENDER 0x10060B90
+srTimer::srTimer(const srTimer& other)
+{
+    int index;
+    for (index = 0; index < 0x400; ++index) {
+        m_ident[index] = other.m_ident[index];
+    }
+    for (index = 0; index < 0x400; ++index) {
+        m_cpu_ident[index] = other.m_cpu_ident[index];
+    }
+    m_frequency = other.m_frequency;
+    m_base = other.m_base;
+    m_tick = other.m_tick;
+    m_pause = other.m_pause;
+    m_units_per_interval = other.m_units_per_interval;
+    m_read_tick = other.m_read_tick;
+    m_kernel32 = other.m_kernel32 == 0 ? 0 : (void*)LoadLibraryA("kernel32");
+    for (index = 0; index < 0xd; ++index) {
+        m_cpu_vendor[index] = other.m_cpu_vendor[index];
+    }
+    m_cpu_max_id = other.m_cpu_max_id;
+    m_cpu_signature = other.m_cpu_signature;
+    m_cpu_features = other.m_cpu_features;
+    m_pause.lo = 0;
+    m_pause.hi = 0;
+}
+
+// FUNCTION: SURRENDER 0x10062480
+srTimer& srTimer::operator=(const srTimer& other)
+{
+    int index;
+    for (index = 0; index < 0x400; ++index) {
+        m_ident[index] = other.m_ident[index];
+    }
+    for (index = 0; index < 0x400; ++index) {
+        m_cpu_ident[index] = other.m_cpu_ident[index];
+    }
+    m_frequency = other.m_frequency;
+    m_base = other.m_base;
+    m_tick = other.m_tick;
+    m_pause = other.m_pause;
+    m_units_per_interval = other.m_units_per_interval;
+    m_read_tick = other.m_read_tick;
+    m_kernel32 = other.m_kernel32 == 0 ? 0 : (void*)LoadLibraryA("kernel32");
+    for (index = 0; index < 0xd; ++index) {
+        m_cpu_vendor[index] = other.m_cpu_vendor[index];
+    }
+    m_cpu_max_id = other.m_cpu_max_id;
+    m_cpu_signature = other.m_cpu_signature;
+    m_cpu_features = other.m_cpu_features;
+    return *this;
 }
 
 // FUNCTION: SURRENDER 0x10060F80
@@ -677,54 +734,6 @@ int srTimer::isPaused() const
     return 0;
 }
 
-// FUNCTION: SURRENDER 0x10062790
-void srTimer::setStorage(char* storage)
-{
-    if (storage == 0) {
-        storage = (char*)default_storage;
-    }
-    char* colon = strchr(storage, ':');
-    if (colon == 0) {
-        return;
-    }
-    if ((unsigned short)(colon - storage) > 10) {
-        return;
-    }
-    char prefix[11] = {0};
-    strncpy(prefix, storage, colon - storage);
-    if (_strnicmp(prefix, "hkcu", 4) == 0) {
-        storage = (char*)0x80000001;
-    } else if (_strnicmp(prefix, "hklm", 4) == 0) {
-        storage = (char*)0x80000002;
-    } else if (_strnicmp(prefix, "hkcr", 4) == 0) {
-        storage = (char*)0x80000000;
-    } else if (_strnicmp(prefix, "hkus", 4) == 0) {
-        storage = (char*)0x80000003;
-    } else if (_strnicmp(prefix, "hkpd", 4) == 0) {
-        storage = (char*)0x80000004;
-    } else if (_strnicmp(prefix, "hkcc", 4) == 0) {
-        storage = (char*)0x80000005;
-    } else {
-        if (_strnicmp(prefix, "0x", 2) != 0) {
-            return;
-        }
-        if (strlen(prefix) != 10) {
-            return;
-        }
-        sscanf(prefix, "%d", (int*)&storage);
-        if (storage == 0) {
-            return;
-        }
-    }
-    RegKeyBase = storage;
-    strcpy(RegKeyName, colon + 1);
-    char* slash = strchr(RegKeyName, '/');
-    while (slash != 0) {
-        *slash = '\\';
-        slash = strchr(RegKeyName, '/');
-    }
-}
-
 // FUNCTION: SURRENDER 0x10062960
 int srTimer::store()
 {
@@ -883,18 +892,24 @@ unsigned long srTimer::getUTime(srQuadWord& out, e_timerReadControl control)
 char* srTimer::getAscTime(char* buffer, e_timerReadControl control)
 {
     getUTime(control);
-    return getAscTime(buffer, (m_tick - m_base) * (unsigned int)m_units_per_interval / m_frequency);
+    unsigned __int64 units =
+        quadWord64(m_tick - m_base) * (unsigned long)m_units_per_interval / quadWord64(m_frequency);
+    srQuadWord ticks;
+    ticks.lo = (unsigned long)units;
+    ticks.hi = (unsigned long)(units >> 0x20);
+    return getAscTime(buffer, ticks);
 }
 
+/* Writes "HHH:MM:SS.mmm"; the hour field is 3-wide until it overflows into
+   "###" and the seconds carry the fraction. */
 // FUNCTION: SURRENDER 0x10063030
-char* srTimer::getAscTime(char* buffer, srQuadWord value)
+char* srTimer::getAscTime(char* buffer, srQuadWord ticks)
 {
-    char* out = buffer;
     *buffer = '\0';
-    float t = (float)((double)value / m_units_per_interval);
-    if (t >= 3600.0f) {
-        long hours = (long)(t * (1.0f / 3600.0f));
-        t = t - hours * 3600;
+    float seconds = (float)((ticks.lo + ticks.hi * 4294967296.0) / m_units_per_interval);
+    if (seconds >= 3600.0f) {
+        long hours = (long)(seconds / 3600.0f);
+        seconds -= (float)(hours * 0xe10);
         if (hours < 1000) {
             sprintf(buffer + strlen(buffer), "%03lu:", hours);
         } else {
@@ -903,13 +918,125 @@ char* srTimer::getAscTime(char* buffer, srQuadWord value)
     } else {
         strcat(buffer, "000:");
     }
-    if (t >= 60.0f) {
-        long minutes = (long)(t * (1.0f / 60.0f));
-        t = t - minutes * 60;
+    if (seconds >= 60.0f) {
+        long minutes = (long)(seconds / 60.0f);
+        seconds -= (float)(minutes * 0x3c);
         sprintf(buffer + strlen(buffer), "%02lu:", minutes);
     } else {
         strcat(buffer, "00:");
     }
-    sprintf(buffer + strlen(buffer), "%06.3f", t);
-    return out;
+    sprintf(buffer + strlen(buffer), "%06.3f", seconds);
+    return buffer;
 }
+
+// FUNCTION: SURRENDER 0x10063200
+const char* srTimer::getCPUTypeIdString(e_cpuTypeId type) const
+{
+    const char* names[] = {"OEM", "Overdrive", "SMP", "Unknown"};
+    if (4 <= (unsigned int)type) {
+        type = CPU_TYPE_RESERVED;
+    }
+    return names[type];
+}
+
+// FUNCTION: SURRENDER 0x10062790
+void srTimer::setStorage(char* storage)
+{
+    if (storage == 0) {
+        storage = (char*)default_storage;
+    }
+    char* colon = strchr(storage, ':');
+    if (colon == 0 || (unsigned short)(colon - storage) > 10) {
+        return;
+    }
+    char root[11];
+    memset(root, 0, sizeof(root));
+    strncpy(root, storage, colon - storage);
+    if (_strnicmp(root, "hkcu", 4) == 0) {
+        storage = (char*)0x80000001;
+    } else if (_strnicmp(root, "hklm", 4) == 0) {
+        storage = (char*)0x80000002;
+    } else if (_strnicmp(root, "hkcr", 4) == 0) {
+        storage = (char*)0x80000000;
+    } else if (_strnicmp(root, "hkus", 4) == 0) {
+        storage = (char*)0x80000003;
+    } else if (_strnicmp(root, "hkpd", 4) == 0) {
+        storage = (char*)0x80000004;
+    } else if (_strnicmp(root, "hkcc", 4) == 0) {
+        storage = (char*)0x80000005;
+    } else {
+        if (_strnicmp(root, "0x", 2) != 0 || strlen(root) != 0xa) {
+            return;
+        }
+        sscanf("%d", root, &storage);
+        if (storage == 0) {
+            return;
+        }
+    }
+    RegKeyBase = storage;
+    strcpy(RegKeyName, colon + 1);
+    char* slash = strchr(RegKeyName, '/');
+    while (slash != 0) {
+        *slash = '\\';
+        slash = strchr(RegKeyName, '/');
+    }
+}
+
+// FUNCTION: SURRENDER 0x10060CC0
+const char* srTimer::getOsIdent() const
+{
+    if (osThreadState != 0xffff) {
+        return osIdent;
+    }
+    osThreadState = 1;
+    OSVERSIONINFOA info;
+    info.dwOSVersionInfoSize = 0x94;
+    GetVersionExA(&info);
+    char csd[256];
+    memset(csd, 0, sizeof(csd));
+    strncpy(csd, info.szCSDVersion, 0xff);
+    char* front = csd;
+    while (isspace(*front) && *front != '\0') {
+        ++front;
+    }
+    strcpy(info.szCSDVersion, front);
+    char* end = info.szCSDVersion + strlen(info.szCSDVersion) - 1;
+    if (end != info.szCSDVersion) {
+        while (isspace(*end) && end != info.szCSDVersion) {
+            --end;
+        }
+    }
+    *end = '\0';
+    if (info.dwPlatformId == 2) {
+        sprintf(osIdent, "WindowsNT %d.%d build %d", static_cast<int>(info.dwMajorVersion),
+                static_cast<int>(info.dwMinorVersion), static_cast<int>(info.dwBuildNumber));
+        if (info.szCSDVersion[0] != '\0') {
+            sprintf(osIdent + strlen(osIdent), " (%s)", info.szCSDVersion);
+        }
+        return osIdent;
+    }
+    const char* name;
+    if (info.dwMajorVersion < 4) {
+        name = "Win32s on Windows";
+    } else if (info.dwMinorVersion > 9) {
+        name = "Windows98";
+    } else {
+        name = "Windows95";
+    }
+    strcpy(osIdent, name);
+    if (info.szCSDVersion[0] != '\0') {
+        if ((info.dwBuildNumber & 0xffff) == 0x457) {
+            strcat(osIdent, " OSR2");
+        } else if (info.szCSDVersion[0] == ' ') {
+            strcat(osIdent, info.szCSDVersion);
+        } else {
+            sprintf(osIdent + strlen(osIdent), " %s", info.szCSDVersion);
+        }
+    }
+    sprintf(osIdent + strlen(osIdent), " (Version %d.%02d.%u)",
+            static_cast<int>(info.dwMajorVersion), static_cast<int>(info.dwMinorVersion),
+            static_cast<unsigned int>(info.dwBuildNumber & 0xffff));
+    osThreadState = 0;
+    return osIdent;
+}
+

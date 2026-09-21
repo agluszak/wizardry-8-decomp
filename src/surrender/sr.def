@@ -232,9 +232,13 @@ EXPORTS
     ?signal@srNode@@QAEXKPAX@Z
     ?unlink@srNode@@AAEXXZ
     ?checkTransformation@srNode@@ABEXXZ
+    ??0srTimer@@QAE@ABV0@@Z
     ??0srTimer@@QAE@HHH@Z
     ??1srTimer@@UAE@XZ
+    ??4srTimer@@QAEAAV0@ABV0@@Z
     ??_7srTimer@@6B@
+    ?CPU_Features_Mask@srTimer@@1KB
+    ?CPU_Model_Mask@srTimer@@1KB
     ?RDTSC@srTimer@@KGHPAVsrQuadWord@@@Z
     ?RegCpuFeatures@srTimer@@1PBDB
     ?RegCpuFreq@srTimer@@1PBDB
@@ -257,6 +261,7 @@ EXPORTS
     ?getCPUModel@srTimer@@QBEGXZ
     ?getCPUStepping@srTimer@@QBEGXZ
     ?getCPUType@srTimer@@QBE?AW4e_cpuTypeId@1@XZ
+    ?getCPUTypeIdString@srTimer@@QBEPBDW4e_cpuTypeId@1@@Z
     ?getFPUSupport@srTimer@@QBEHXZ
     ?getFeature@srTimer@@QBEHJ@Z
     ?getFreq@srTimer@@QBEXAAVsrQuadWord@@@Z
@@ -268,6 +273,7 @@ EXPORTS
     ?getRDTSCSupport@srTimer@@QBEHXZ
     ?getRawTime@srTimer@@UAEKAAVsrQuadWord@@W4e_timerReadControl@1@@Z
     ?getRawTime@srTimer@@UAEKW4e_timerReadControl@1@@Z
+    ?getStorage@srTimer@@SAPADPADK@Z
     ?getTick@srTimer@@KGHPAVsrQuadWord@@@Z
     ?getStorage@srTimer@@SAPADPADK@Z
     ?getTime@srTimer@@UAENW4e_timerReadControl@1@@Z
