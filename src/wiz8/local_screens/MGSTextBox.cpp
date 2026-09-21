@@ -867,7 +867,7 @@ static unsigned int FindDialogueTextLine(const W8DialogueTextState* input)
 /* Retail returns 7 when the text box is in a multi-line mode (spell / item /
    camp / NPC dialogue with the transcript collapsed); otherwise 1. */
 #define W8_TEXT_BOX_VISIBLE_LINE_COUNT()                                                           \
-    (((gXStatus.fNpcDialogueMode == 0 || g_screen_state_00649f1c->flag_261 == 0) &&                \
+    (((gXStatus.fNpcDialogueMode == 0 || g_screen_state_00649f1c->text_box_collapsed == 0) &&                \
       (gXStatus.fSpellCastMode != 0 || gXStatus.fNpcDialogueMode != 0 ||                           \
        gXStatus.fItemSelectMode != 0 || gXStatus.fCampMode != 0))                                  \
          ? 7                                                                                       \
