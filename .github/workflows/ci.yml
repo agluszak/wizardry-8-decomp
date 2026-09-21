@@ -341,7 +341,12 @@ jobs:
         id: runtime
         if: env.LICENSED_INPUTS == 'true'
         continue-on-error: true
-        run: uv run wiz8 runtime-test --build --check-order
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            uv run wiz8 runtime-test --build
+          else
+            uv run wiz8 runtime-test --build --check-order
+          fi
 
       - name: Upload runtime-test diagnostics
         if: env.LICENSED_INPUTS == 'true' && steps.runtime.outcome == 'failure'
@@ -349,7 +354,7 @@ jobs:
         with:
           name: runtime-test-diagnostics
           path: |
-            build/runtime/runtime-test/diagnostics/
+            build/runtime/runtime-test/*/diagnostics/
             build/logs/
           if-no-files-found: warn
 

@@ -470,10 +470,10 @@ static void ClickControl(W8TextControl* control)
     SendScenarioMouse((bounds->x1 + bounds->x2) / 2, (bounds->y1 + bounds->y2) / 2);
 }
 
-static DWORD FailScenarioAt(int line)
+static DWORD FailScenarioAt(const char* step, const char* reason, int line)
 {
-    fprintf(stderr, "WIZ8_RUNTIME_FAILURE scenario=%s reason=observation_failed line=%d\n",
-            g_scenario, line);
+    fprintf(stderr, "WIZ8_RUNTIME_FAILURE scenario=%s step=%s reason=%s line=%d\n", g_scenario,
+            step, reason, line);
     fprintf(stderr,
             "runtime-test failed: state=%d pending=%d transition=%u entered=%u final=%u "
             "redrawn=%u committed=%u in_party=%u main_game=%u page=%d running=%u active=%u\n",
@@ -493,7 +493,7 @@ static DWORD FailScenarioAt(int line)
     return 2;
 }
 
-#define FailScenario() FailScenarioAt(__LINE__)
+#define FailScenario(step, reason) FailScenarioAt(step, reason, __LINE__)
 
 /* Walk a live region's current bounds instead of a fixed pixel. */
 static bool RegionCenter(int region_index, int* x, int* y)
@@ -784,7 +784,7 @@ static DWORD WINAPI DriveScenario(void*)
             Sleep(10);
         }
         if (!g_observation.transition_observed) {
-            return FailScenario();
+            return FailScenario("party-selection", "new-game-transition-not-observed");
         }
 
         /* The left action panel registers its controls in creation order, so
@@ -793,12 +793,12 @@ static DWORD WINAPI DriveScenario(void*)
         unsigned int left_action_set =
             *(volatile unsigned int*)&g_party_selection_left_action_region_set_69c504;
         if (left_action_set == 0 || left_action_set >= g_region_set_count) {
-            return FailScenario();
+            return FailScenario("character-entry", "create-character-region-set-missing");
         }
         unsigned int create_region =
             *(volatile unsigned int*)&g_region_sets[left_action_set].first_region;
         if (create_region >= g_region_count) {
-            return FailScenario();
+            return FailScenario("character-entry", "create-character-region-missing");
         }
         W8Region* create_bounds = &g_regions[create_region];
         SendScenarioMouse((create_bounds->x1 + create_bounds->x2) / 2,
@@ -819,14 +819,14 @@ static DWORD WINAPI DriveScenario(void*)
             Sleep(10);
         }
         if (!g_observation.character_entered) {
-            return FailScenario();
+            return FailScenario("character-entry", "character-screen-not-entered");
         }
 
         /* Walk the creation pages through their real controls. The first
            profession record is a non-caster, so the spell page is skipped. */
         W8CharacterScreen* screen = *(W8CharacterScreen* volatile*)&g_character_screen_0069c2e8;
         if (screen == 0 || screen->m_page_index_00c != 0 || screen->m_pages_1b0c[0] == 0) {
-            return FailScenario();
+            return FailScenario("character-attributes", "initial-page-state-invalid");
         }
         W8CharacterPage005EF778* stats_page =
             static_cast<W8CharacterPage005EF778*>(screen->m_pages_1b0c[0]);
@@ -837,21 +837,21 @@ static DWORD WINAPI DriveScenario(void*)
         started = GetTickCount();
         while (stats_page->m_profession_row_07c->m_value_004 == -1) {
             if (GetTickCount() - started > 3000)
-                return FailScenario();
+                return FailScenario("character-attributes", "profession-selection-timeout");
             Sleep(10);
         }
         ClickControl(stats_page->m_race_row_080->m_increment_020);
         started = GetTickCount();
         while (stats_page->m_race_row_080->m_value_004 == -1) {
             if (GetTickCount() - started > 3000)
-                return FailScenario();
+                return FailScenario("character-attributes", "race-selection-timeout");
             Sleep(10);
         }
         ClickControl(stats_page->m_gender_row_084->m_increment_020);
         started = GetTickCount();
         while (stats_page->m_gender_row_084->m_value_004 == -1) {
             if (GetTickCount() - started > 3000)
-                return FailScenario();
+                return FailScenario("character-attributes", "gender-selection-timeout");
             Sleep(10);
         }
 
@@ -860,7 +860,7 @@ static DWORD WINAPI DriveScenario(void*)
         started = GetTickCount();
         while (!stats_page->m_entries_04c.data[0]->m_enabled_03a) {
             if (GetTickCount() - started > 3000)
-                return FailScenario();
+                return FailScenario("character-attributes", "attribute-controls-not-enabled");
             Sleep(10);
         }
 
@@ -897,7 +897,7 @@ static DWORD WINAPI DriveScenario(void*)
             }
         }
         if (creation->attributes_complete == 0) {
-            return FailScenario();
+            return FailScenario("character-attributes", "attribute-points-not-committed");
         }
 
         /* Hover the Next control long enough to raise its help box and move
@@ -915,7 +915,7 @@ static DWORD WINAPI DriveScenario(void*)
         started = GetTickCount();
         while (*(volatile int*)&screen->m_page_index_00c != 2) {
             if (GetTickCount() - started > 5000)
-                return FailScenario();
+                return FailScenario("character-skills", "skill-page-transition-timeout");
             Sleep(10);
         }
 
@@ -931,7 +931,7 @@ static DWORD WINAPI DriveScenario(void*)
             Sleep(10);
         }
         if (skills_page == 0 || skills_page->m_entries_04c.count == 0) {
-            return FailScenario();
+            return FailScenario("character-skills", "skill-page-controls-missing");
         }
 
         /* The skills page's first enabled row raises and clears its own help
@@ -981,7 +981,7 @@ static DWORD WINAPI DriveScenario(void*)
             }
         }
         if (creation->skills_complete == 0) {
-            return FailScenario();
+            return FailScenario("character-skills", "skill-points-not-committed");
         }
 
         /* The final page copies both name fields into its text-input buffers at
@@ -1017,7 +1017,7 @@ static DWORD WINAPI DriveScenario(void*)
             Sleep(10);
         }
         if (!g_observation.final_page_entered) {
-            return FailScenario();
+            return FailScenario("character-final-page", "final-page-not-entered");
         }
 
         /* Exercise the final page through Wine's real keyboard path.  This
@@ -1047,13 +1047,13 @@ static DWORD WINAPI DriveScenario(void*)
                 Sleep(10);
             }
             if (!g_observation.character_name_typed) {
-                return FailScenario();
+                return FailScenario("character-final-page", "name-input-not-observed");
             }
 
             int voice_sample_region =
                 RegionWithHelpText(g_character_page4_region_set_0069c52c, 0xf5);
             if (voice_sample_region < 0) {
-                return FailScenario();
+                return FailScenario("character-final-page", "voice-sample-control-missing");
             }
             ClickRegion(voice_sample_region);
             started = GetTickCount();
@@ -1065,7 +1065,7 @@ static DWORD WINAPI DriveScenario(void*)
                 Sleep(10);
             }
             if (!g_observation.character_summary_opened) {
-                return FailScenario();
+                return FailScenario("character-summary", "summary-not-opened");
             }
             Sleep(1000);
             SendScenarioKey(VK_SPACE);
@@ -1077,7 +1077,7 @@ static DWORD WINAPI DriveScenario(void*)
                 Sleep(10);
             }
             if (screen->m_dialog_1b1c != 0) {
-                return FailScenario();
+                return FailScenario("character-summary", "summary-not-closed");
             }
         }
 
@@ -1102,7 +1102,7 @@ static DWORD WINAPI DriveScenario(void*)
                 Sleep(10);
             }
             if (!g_observation.character_committed) {
-                return FailScenario();
+                return FailScenario("character-commit", "character-not-committed");
             }
 
             /* Return toggles the selected roster row into the active party
@@ -1117,7 +1117,7 @@ static DWORD WINAPI DriveScenario(void*)
                 Sleep(10);
             }
             if (!g_observation.character_in_party) {
-                return FailScenario();
+                return FailScenario("party-selection", "committed-character-not-in-party");
             }
 
             if (strcmp(g_scenario, "main-game-start") == 0 ||
@@ -1135,14 +1135,14 @@ static DWORD WINAPI DriveScenario(void*)
                     }
                 }
                 if (populated < 0) {
-                    return FailScenario();
+                    return FailScenario("party-fixture", "populated-character-slot-missing");
                 }
                 while (CountActiveCharacters() < 6) {
                     int before = CountActiveCharacters();
                     if (AddCharacterToParty(&g_status_685170.buffers.characters[populated], -1) <
                             0 ||
                         CountActiveCharacters() <= before) {
-                        return FailScenario();
+                        return FailScenario("party-fixture", "party-member-add-failed");
                     }
                 }
                 unsigned int bottom_set =
@@ -1150,7 +1150,7 @@ static DWORD WINAPI DriveScenario(void*)
                 for (int click = 0; click < 4; ++click) {
                     int start_region = RegionWithHelpText(bottom_set, 0x6cb);
                     if (start_region < 0) {
-                        return FailScenario();
+                        return FailScenario("party-start", "start-party-control-missing");
                     }
                     ClickRegion(start_region);
                     started = GetTickCount();
@@ -1199,7 +1199,7 @@ static DWORD WINAPI DriveScenario(void*)
                 Sleep(10);
             }
             if (!g_observation.main_game_entered) {
-                return FailScenario();
+                return FailScenario("main-game-entry", "main-game-not-entered");
             }
             if (strcmp(g_scenario, "main-game-start") == 0) {
                 srVector3T<float> saved_position;
@@ -1216,7 +1216,7 @@ static DWORD WINAPI DriveScenario(void*)
                     backward_index >= 0 ? g_mgs_keyboard->GetBinding(backward_index) : 0;
                 if (forward_binding == 0) {
                     fprintf(stderr, "runtime-test movement: MOVE_FORWARD binding missing\n");
-                    return FailScenario();
+                    return FailScenario("exploration-movement", "forward-binding-missing");
                 }
                 /* Quick save first, before the walk can latch the level-motion
                    override: the save gate reads flag4/fall state. Tapping the
@@ -1317,6 +1317,8 @@ static DWORD WINAPI DriveScenario(void*)
                 if (g_observation.game_saved && gfProgramIsRunning) {
                     unsigned char pressed_before_load = 0;
                     float input_before_load = 0.0f;
+                    float transformed_before_load = 0.0f;
+                    float integrated_before_load = 0.0f;
                     float motion_before_load = 0.0f;
                     SendScenarioKeyHeld(forward_binding->key, 0);
                     started = GetTickCount();
@@ -1327,12 +1329,20 @@ static DWORD WINAPI DriveScenario(void*)
                         }
                         if (g_level_data_00652dac != 0) {
                             float input_motion = g_level_data_00652dac->vector_40.Length();
+                            float transformed_motion = g_level_data_00652dac->vector_70.Length();
+                            float integrated_motion = g_level_data_00652dac->vector_64.Length();
                             float world_motion = g_level_data_00652dac->vector_a0.Length();
                             if (input_motion > input_before_load) {
                                 input_before_load = input_motion;
                             }
                             if (world_motion > motion_before_load) {
                                 motion_before_load = world_motion;
+                            }
+                            if (transformed_motion > transformed_before_load) {
+                                transformed_before_load = transformed_motion;
+                            }
+                            if (integrated_motion > integrated_before_load) {
+                                integrated_before_load = integrated_motion;
                             }
                         }
                         GetCameraPosition(&walked_position);
@@ -1344,10 +1354,12 @@ static DWORD WINAPI DriveScenario(void*)
                     if ((walked_position - saved_position).Length() <= 1.5f) {
                         fprintf(stderr,
                                 "runtime-test pre-load movement: pressed=%d input=%.2f "
-                                "motion=%.2f flags=0x%x envload=%d scale=%.3f "
+                                "transformed=%.2f integrated=%.2f motion=%.2f "
+                                "flags=0x%x envload=%d scale=%.3f "
                                 "forward=%.2f integrated=%.2f env38=%.2f env3c=%.2f "
                                 "env20=%.2f\n",
-                                pressed_before_load, input_before_load, motion_before_load,
+                                pressed_before_load, input_before_load, transformed_before_load,
+                                integrated_before_load, motion_before_load,
                                 g_level_data_00652dac != 0 ? g_level_data_00652dac->flags : 0,
                                 g_environment_load_flag_00603ad0,
                                 g_level_data_00652dac != 0 ? g_level_data_00652dac->camera_scale_14
@@ -1527,6 +1539,8 @@ static DWORD WINAPI DriveScenario(void*)
                 SendScenarioKeyHeld(forward_binding->key, 0);
                 unsigned char forward_pressed = 0;
                 float maximum_input_motion = 0.0f;
+                float maximum_transformed_motion = 0.0f;
+                float maximum_integrated_motion = 0.0f;
                 float maximum_world_motion = 0.0f;
                 float maximum_camera_forward = 0.0f;
                 unsigned int observed_render_flags = 0;
@@ -1538,6 +1552,8 @@ static DWORD WINAPI DriveScenario(void*)
                     }
                     if (g_level_data_00652dac != 0) {
                         float input_motion = g_level_data_00652dac->vector_40.Length();
+                        float transformed_motion = g_level_data_00652dac->vector_70.Length();
+                        float integrated_motion = g_level_data_00652dac->vector_64.Length();
                         float world_motion = g_level_data_00652dac->vector_a0.Length();
                         float camera_forward = g_level_data_00652dac->camera_forward_4c.Length();
                         if (input_motion > maximum_input_motion) {
@@ -1545,6 +1561,12 @@ static DWORD WINAPI DriveScenario(void*)
                         }
                         if (world_motion > maximum_world_motion) {
                             maximum_world_motion = world_motion;
+                        }
+                        if (transformed_motion > maximum_transformed_motion) {
+                            maximum_transformed_motion = transformed_motion;
+                        }
+                        if (integrated_motion > maximum_integrated_motion) {
+                            maximum_integrated_motion = integrated_motion;
                         }
                         if (camera_forward > maximum_camera_forward) {
                             maximum_camera_forward = camera_forward;
@@ -1594,7 +1616,8 @@ static DWORD WINAPI DriveScenario(void*)
                         stderr,
                         "runtime-test movement: before=(%.1f %.1f %.1f) "
                         "after=(%.1f %.1f %.1f) key=0x%x modifiers=0x%x "
-                        "pressed=%d input_motion=%.2f world_motion=%.2f "
+                        "pressed=%d input_motion=%.2f transformed_motion=%.2f "
+                        "integrated_motion=%.2f world_motion=%.2f "
                         "camera_forward=%.2f render_flags=0x%x string_input=%d "
                         "cmd200=%d engaged=%d timer_flags=0x%x paused=%d "
                         "d1=%d d2=%d level_flags=0x%x cam_scale=%.3f "
@@ -1602,8 +1625,9 @@ static DWORD WINAPI DriveScenario(void*)
                         "transition=%d fade=%d review=%d rec=%d mipe=%d/%d modal=%d npc=%d\n",
                         before.x, before.y, before.z, after.x, after.y, after.z,
                         forward_binding->key, forward_binding->modifiers, forward_pressed,
-                        maximum_input_motion, maximum_world_motion, maximum_camera_forward,
-                        observed_render_flags, gfCurrentStringInputState,
+                        maximum_input_motion, maximum_transformed_motion, maximum_integrated_motion,
+                        maximum_world_motion, maximum_camera_forward, observed_render_flags,
+                        gfCurrentStringInputState,
                         g_mgs_keyboard != 0
                             ? g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_FORWARD)
                             : 0xff,
@@ -1621,7 +1645,10 @@ static DWORD WINAPI DriveScenario(void*)
                         IsScreenTransitionPending(), g_level_block->flag_328,
                         g_level_block->review_transition_active, GetFlag69DA6C(), GetFlag68F105(),
                         GetFlag68F104(), g_modal_owner_0068edd0 != 0, gXStatus.fNpcDialogueMode);
-                    return FailScenario();
+                    return FailScenario("exploration-movement",
+                                        maximum_input_motion > 0.0f
+                                            ? "input-produced-no-world-motion"
+                                            : "held-key-produced-no-input");
                 }
                 /* Resolve the live TURN_LEFT binding rather than assuming a
                    key, then hold it through frames: HandleManualCameraHotkeys
@@ -2312,7 +2339,7 @@ static DWORD WINAPI DriveScenario(void*)
                 line->type = W8_NPC_MSG_FINISH_ACTION;
                 if (g_npc_scripting.message_lines.Add(line) < 0) {
                     delete line;
-                    return FailScenario();
+                    return FailScenario("npc-state-reset", "finish-message-queue-insert-failed");
                 }
                 g_npc_scripting.restore_staged_session = 1;
                 g_npc_scripting.voice_handle = 7;
@@ -2328,7 +2355,7 @@ static DWORD WINAPI DriveScenario(void*)
                     g_npc_scripting.staging_restore.current_quote_index == 0 &&
                     g_npc_scripting.gap_track.mouth_open == 0 && g_npc_scripting.last_tick == 0;
                 if (!g_observation.npc_state_reset_ok) {
-                    return FailScenario();
+                    return FailScenario("npc-state-reset", "live-session-state-not-cleared");
                 }
                 /* WinMain exits after this flow, so a second in-process new-game
                    session is not available without starting a fresh process. */
@@ -2362,7 +2389,7 @@ static DWORD WINAPI DriveScenario(void*)
             Sleep(10);
         }
         if (!g_observation.character_returned) {
-            return FailScenario();
+            return FailScenario("character-return", "party-selection-not-restored");
         }
 
         SendScenarioKey(VK_ESCAPE);
