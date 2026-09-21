@@ -1,5 +1,5 @@
 /* In-process semantic scenario for the keyboard-menu availability refresh
-   recovered in MGSKeyboard.cpp. The scenario runs on the driver thread once
+   recovered in MGSKeyboard.cpp. The scenario runs on the game thread once
    the main menu is live.
 
    It builds the twelve-row refresh set the way BuildKeyboardMenu leaves it -

@@ -81,7 +81,9 @@ void ReportStackCandidates(unsigned long esp)
     }
 }
 
-LONG WINAPI ReportUnhandledException(EXCEPTION_POINTERS* exception)
+} // namespace
+
+LONG WINAPI W8ReportUnhandledException(EXCEPTION_POINTERS* exception)
 {
     EXCEPTION_RECORD* record = exception->ExceptionRecord;
     CONTEXT* context = exception->ContextRecord;
@@ -136,10 +138,12 @@ LONG WINAPI ReportUnhandledException(EXCEPTION_POINTERS* exception)
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
+namespace {
+
 struct CrashReportInstaller {
     CrashReportInstaller()
     {
-        SetUnhandledExceptionFilter(ReportUnhandledException);
+        SetUnhandledExceptionFilter(W8ReportUnhandledException);
     }
 };
 

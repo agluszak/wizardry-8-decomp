@@ -1,6 +1,6 @@
 /* In-process semantic scenario for the split-stack dialog recovered in
    SplitItemDialog.cpp and consumed by RCSItemsPage.cpp. The scenario runs on
-   the driver thread once the main menu is live so the item database is real.
+   the game thread once the main menu is live so the item database is real.
 
    The destroy callback's accept path is not driven: its tail calls
    (RebuildEquipmentAndDerivedStatsForSlot, RebuildCampItemList005A4A00,
