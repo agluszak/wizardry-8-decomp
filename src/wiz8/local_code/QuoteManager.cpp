@@ -1374,13 +1374,11 @@ void W8CharacterEventQueue::SetEventCharacterMask(unsigned int event_type, unsig
 // FUNCTION: WIZ8 0x0052DD90
 bool W8CharacterEventQueue::HasEventCharacter(unsigned int event_type, unsigned int party_slot)
 {
-    unsigned int mask_index;
-    unsigned char mask = (unsigned char)(1 << (party_slot & 31));
-
-    if (!MapEventTypeToDescriptorIndex(event_type, &mask_index)) {
-        return false;
+    if (event_type >= g_first_remapped_event_005ee718) {
+        event_type += g_normal_event_count_005ee70c - g_first_remapped_event_005ee718;
     }
-    return (event_character_masks[mask_index] & mask) != 0;
+    return (event_character_masks[event_type] &
+            static_cast<unsigned char>(1 << (party_slot & 31))) != 0;
 }
 
 // FUNCTION: WIZ8 0x0052DC80
@@ -1428,7 +1426,7 @@ unsigned char W8CharacterEventQueue::HasActiveEvents()
 // FUNCTION: WIZ8 0x0052E470
 unsigned char W8CharacterEventQueue::IsMainQueueEmpty() const
 {
-    return pending_events.count < 1;
+    return pending_events.count <= 0;
 }
 
 // FUNCTION: WIZ8 0x0052DDD0

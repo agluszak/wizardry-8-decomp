@@ -678,3 +678,11 @@ void GDProp::TransformMeshGeometry004B7E50(const W8LevelFileScaledPathNode* node
         }
     }
 }
+
+/* srMatrix4x3T<float>::SetTranslation/Scale emitted for this TU by
+   TransformMeshGeometry004B7E50; the primary templates live in srMath.h. */
+// TEMPLATE: WIZ8 0x004B8660
+// srMatrix4x3T<float>::SetTranslation
+
+// TEMPLATE: WIZ8 0x004B8680
+// srMatrix4x3T<float>::Scale

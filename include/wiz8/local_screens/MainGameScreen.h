@@ -388,6 +388,10 @@ public:
     void AttemptForce();                                     /* 0x00586E40 */
     void EnablePanels(int enable);                           /* 0x00586AF0 */
     void BeginUnlock();                                      /* 0x005874D0 */
+    /* Knock-knock resolution: rolls the per-level chance over a shuffled pin
+       order, raising (or on backfire dropping) them, then re-derives the
+       control enables and enters state 7. The flag parameter is unused. */
+    void ApplyKnockKnock005871A0(int level, int flag, char backfire); /* 0x005871A0 */
 
     Trigger* m_trigger_08;  /* 0x08 */
     int m_tumbler_count_0c; /* 0x0c: trigger->value_36c clamped to [2,8] */

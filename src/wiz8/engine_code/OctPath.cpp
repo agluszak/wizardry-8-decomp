@@ -7420,3 +7420,8 @@ unsigned char LoadPathParameters004CCCB0()
         }
     }
 }
+
+/* Second emission of the float RotateAboutY; the primary template lives in
+   srMath.h and surrender_math.cpp holds the 0x438F90 copy. */
+// TEMPLATE: WIZ8 0x00467430
+// srMatrix3T<float>::RotateAboutY

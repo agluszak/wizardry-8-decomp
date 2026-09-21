@@ -2,6 +2,7 @@
 
 #include "surrender/srCore.h"
 #include "surrender/srGERD.h"
+#include "wiz8/float_constants.h"
 
 stTexture2D::stTexture2D()
     : srClassSupport<stTexture2D, srTexture, false, 0x1000f>(), left(0), top(0), right(128),
@@ -173,16 +174,16 @@ void stSurface2D::process(const ProcessInfo& info, e_processType)
 }
 
 /* The tile render pass, entered from process(): ortho projection, vertex
-   array state, then one triangle strip per tile in row-major order. Retail
-   discards the getLocation() result; the call is kept as emitted. */
+   array state, then one triangle strip per tile in row-major order. */
 // FUNCTION: WIZ8 0x0047E100
 void stSurface2D::DrawTiles0047E100(srGERD* renderer)
 {
+    srVector3T<float> location;
     int row;
     int column;
     int index = 0;
 
-    getLocation();
+    getLocation(location);
     renderer->matrixMode(srGERD::MATRIX_PROJECTION);
     renderer->pushMatrix();
     renderer->loadIdentity();
@@ -225,6 +226,24 @@ void stSurface2D::DrawTiles0047E100(srGERD* renderer)
     renderer->setTexture(0, 0);
     renderer->matrixMode(srGERD::MATRIX_PROJECTION);
     renderer->popMatrix();
+}
+
+// FUNCTION: WIZ8 0x0047E560
+void stSurface2D::setScale(float new_scale)
+{
+    float* coordinate = coordinates;
+    float factor = g_float_005ebb38 / tile_size;
+    float delta = (new_scale - scale) * factor;
+    int row;
+    int column;
+
+    for (row = 4; row != 0; --row) {
+        for (column = 2; column != 0; --column) {
+            *coordinate += delta;
+            ++coordinate;
+        }
+    }
+    scale = new_scale;
 }
 
 void stSurface2D::invalidateTiles()
@@ -305,18 +324,6 @@ void stSurface2D::updateRectangle(srGERD* renderer, void*, long, int left, int t
             x = left;
         }
     }
-}
-
-// FUNCTION: WIZ8 0x0047E560
-void stSurface2D::setScale(float scale)
-{
-    float factor = 1.0f / tile_size;
-    float offset = (scale - this->scale) * factor;
-    for (int index = 0; index != 4; ++index) {
-        coordinates[index * 2] += offset;
-        coordinates[index * 2 + 1] += offset;
-    }
-    this->scale = scale;
 }
 
 // FUNCTION: WIZ8 0x0047e5b0

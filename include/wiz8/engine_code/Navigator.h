@@ -155,8 +155,8 @@ struct W8NavigatorMovementState {
     float turn_rate_068;
     unsigned short flag_06c;
     unsigned char unknown_06e[6];
-    bool pitch_enabled_074;
-    bool roll_enabled_075;
+    char pitch_enabled_074;
+    char roll_enabled_075;
     unsigned char unknown_076[2];
     float vertical_velocity_078;
     float vertical_base_07c;

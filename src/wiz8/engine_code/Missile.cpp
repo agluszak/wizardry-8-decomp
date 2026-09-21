@@ -8,6 +8,7 @@
  */
 
 #include "wiz8/engine_code/AnimObj.h"
+#include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/GrObject.h"
 #include "wiz8/engine_code/Octree.h"
@@ -259,6 +260,10 @@ float AdvanceMissileAI004A50A0(W8AIMissile* record, srVector3T<float>* out, unsi
 
 // GLOBAL: WIZ8 0x005ece50
 const double g_double_005ece50 = 0.009800000000000001;
+// GLOBAL: WIZ8 0x005ece58
+const float g_float_005ece58 = 81.25f;
+// GLOBAL: WIZ8 0x005ece5c
+const float g_float_005ece5c = 32.5f;
 
 // GLOBAL: WIZ8 0x0065bde0
 W8MissileTableRecord* g_missile_table_65bde0;
@@ -337,30 +342,59 @@ bool W8Missile::BlocksEndingCombat004A5790()
     return 0;
 }
 
-/* The launch point starts as a fixed camera-space offset — swung ±75 units to
-   the wielding side by the low index bit and stepped down per character — then
-   rotated into world space by the camera yaw and pitch and added to the camera
-   position. */
 // FUNCTION: WIZ8 0x004A57B0
 void GetCharacterProjectilePosition004A57B0(unsigned int character_index,
                                             srVector3T<float>* position)
 {
-    srVector3T<float> camera_position;
+    srVector3T<float> camera;
     srMatrix3T<float> rotation;
+    srVector3T<float> first;
+    srVector3T<float> second;
+    srVector3T<float> third;
+    srMatrix3T<float> step;
+    float angle;
+    double cosine;
+    double sine;
 
-    GetCameraPosition(&camera_position);
-    position->SetZero();
-    if (character_index & 1) {
-        position->x = -75.0f;
-    } else {
+    GetCameraPosition(&camera);
+    position->x = 0.0f;
+    position->y = 0.0f;
+    position->z = 0.0f;
+    if ((character_index & 1) == 0) {
         position->x = 75.0f;
+    } else {
+        position->x = -75.0f;
     }
-    position->y = 81.25f - character_index * g_float_005ebc7c * 32.5f;
     rotation.SetIdentity();
-    rotation.RotateAboutY(GetCameraYawRadians() - g_monster_rotation_offset_005ec04c);
-    rotation.RotateAboutX(-GetCameraPitchRadians());
-    *position = rotation.Transform(*position);
-    *position += camera_position;
+    position->y = g_float_005ece58 - character_index * g_float_005ebc7c * g_float_005ece5c;
+    angle = GetCameraYawRadians() - g_monster_rotation_offset_005ec04c;
+    if (angle != 0.0) {
+        cosine = cos(angle);
+        sine = sin(angle);
+        third.y = 0.0f;
+        third.x = static_cast<float>(-sine);
+        third.z = static_cast<float>(cosine);
+        second.Set(0.0, 1.0, 0.0);
+        first.Set(cosine, 0.0, sine);
+        step.SetRows(first, second, third);
+        rotation.MultiplyBy(step);
+    }
+    angle = -GetCameraPitchRadians();
+    if (angle != 0.0) {
+        cosine = cos(angle);
+        sine = sin(angle);
+        third.x = 0.0f;
+        third.y = static_cast<float>(sine);
+        third.z = static_cast<float>(cosine);
+        second.Set(0.0, cosine, -sine);
+        first.Set(1.0, 0.0, 0.0);
+        step.SetRows(first, second, third);
+        rotation.MultiplyBy(step);
+    }
+    position->x = DotProduct(rotation.vectors[0], *position);
+    position->y = DotProduct(rotation.vectors[1], *position);
+    position->z = DotProduct(rotation.vectors[2], *position);
+    *position += camera;
 }
 
 // VTABLE: WIZ8 0x005ecde0 W8MissileRep
@@ -1484,3 +1518,8 @@ bool W8Missile::OnCollision(W8Navigator* other)
 miss:
     return false;
 }
+
+/* srMatrix3T<float>::RotateAboutX emitted for this TU; the primary template
+   lives in srMath.h. */
+// TEMPLATE: WIZ8 0x004A5AB0
+// srMatrix3T<float>::RotateAboutX

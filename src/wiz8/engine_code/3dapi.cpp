@@ -734,10 +734,10 @@ void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags)
                 ApplyCameraRotation(&path_rotation);
                 if (path->discrete_mode_1c != 0) {
                     if (path->position >= path->nodes_0c->GetCount() - g_float_005ebb38) {
-                        UpdateCameraPathState0048F2F0(world, camera_path, 0.0f);
+                        UpdateCameraPathState0048F2F0(world, camera_path, 0);
                     }
                 } else if (path->position >= g_double_005ebc30) {
-                    UpdateCameraPathState0048F2F0(world, camera_path, 0.0f);
+                    UpdateCameraPathState0048F2F0(world, camera_path, 0);
                 }
             }
         }

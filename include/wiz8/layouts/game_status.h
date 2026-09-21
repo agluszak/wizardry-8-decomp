@@ -169,7 +169,10 @@ struct W8GlobalStatus {
     unsigned int camp_fatigue_count_2498;
     /* 0x249c: party slot fact 0x39 hands to RemoveCharacterCondition. */
     int party_slot_249c;
-    unsigned char unknown_24a0[0xc80];
+    /* 0x24a0: per-spell 0x10-byte stat records; TrackItemSpellSource00501D20
+       walks records[0..149] bumping usable_cast_count for spells the character
+       carries and cast_count for the selected source spell. */
+    W8SpellUsageRecord item_spell_usage_24a0[200];
     unsigned char log_fact_checks_3120;
     /* 0x3121..0x47dd has two proven overlapping retail views. EndCombat walks
        1000 consecutive dwords from 0x3121, while spell execution indexes two

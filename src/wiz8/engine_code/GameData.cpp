@@ -15,6 +15,7 @@
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/engine_code/AmbientSound.h"
 #include "wiz8/engine_code/Prop.h"
+#include "wiz8/engine_code/SoundEvent.h"
 #include "wiz8/local_code/CombatPartyMovement.h"
 #include "wiz8/local_code/FormationAndFacing.h"
 #include "wiz8/local_code/GameplayCode.h"
@@ -76,15 +77,15 @@ float SettlePositionToGround00420BD0(const srVector3T<float>* position, unsigned
 float SettlePositionToGround00420C30(srVector3T<float>* position, unsigned char* hit)
 {
     srVector3T<float> candidate = *position;
+    srVector3T<float> ground;
+    ground = candidate;
     if (g_octree_game_data_00652db0 != 0 && g_octree_game_data_00652db0->positional_04 != 0) {
-        return g_octree_game_data_00652db0->positional_04->SettleToGround(&candidate, hit, 1,
-                                                                          500.0f);
+        return g_octree_game_data_00652db0->positional_04->SettleToGround(&ground, hit, 1, 500.0f);
     }
-    float height = position->y;
     if (hit != 0) {
         *hit = 0;
     }
-    return height;
+    return candidate.y;
 }
 
 /* The ground height under `position` plus the footstep surface/material of
@@ -2317,7 +2318,7 @@ void ResetInactiveLevelDataVectors0041EF50(void)
 
 /* Bit eight: read, cleared and set by three neighbouring bodies. */
 // FUNCTION: WIZ8 0x0041efb0
-unsigned int GetLevelDataFlag8(void)
+unsigned char GetLevelDataFlag8(void)
 {
     if (g_level_data_00652dac != 0) {
         return (g_level_data_00652dac->flags >> 8) & 1;
@@ -2342,7 +2343,7 @@ void SetLevelDataFlag8(void)
 }
 
 // FUNCTION: WIZ8 0x0041eff0
-unsigned int GetLevelDataFlag9(void)
+unsigned char GetLevelDataFlag9(void)
 {
     if (g_level_data_00652dac != 0) {
         return (g_level_data_00652dac->flags >> 9) & 1;
@@ -2352,7 +2353,7 @@ unsigned int GetLevelDataFlag9(void)
 
 /* Bit four, read out of the low byte rather than the whole word. */
 // FUNCTION: WIZ8 0x0041f070
-unsigned int GetLevelDataFlag4(void)
+unsigned char GetLevelDataFlag4(void)
 {
     if (g_level_data_00652dac != 0) {
         return ((unsigned char)g_level_data_00652dac->flags >> 4) & 1;
@@ -2370,7 +2371,7 @@ void ClearLevelDataFlags5To7(void)
 }
 
 // FUNCTION: WIZ8 0x0041f140
-unsigned int GetLevelDataFlag6(void)
+unsigned char GetLevelDataFlag6(void)
 {
     if (g_level_data_00652dac != 0) {
         return ((unsigned char)g_level_data_00652dac->flags >> 6) & 1;
@@ -3017,11 +3018,10 @@ unsigned char W8LevelDataRecord::ToggleBoundProps0041FF00()
             toggled = true;
             if (secondary_contact_prop_id >= 0) {
                 prop = *g_world->collidable_props->GetAt(secondary_contact_prop_id);
-                if (prop->IsSetting6FTwo()) {
-                    prop->ToggleSetting6E();
-                } else {
+                if (!prop->IsSetting6FTwo()) {
                     return 0;
                 }
+                prop->ToggleSetting6E();
             }
         }
     }

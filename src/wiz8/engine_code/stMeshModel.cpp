@@ -94,22 +94,27 @@ stMeshModel::stMeshModel(long polygons, long vertices)
     }
 }
 
+// SYNTHETIC: WIZ8 0x00470e90
+// stMeshModel::`scalar deleting destructor'
+
 // FUNCTION: WIZ8 0x00470ED0
 stMeshModel::~stMeshModel()
 {
     if (next != 0) {
-        stMeshModel* link = next;
+        stMeshModel* linked = next;
         next = 0;
-        delete link;
+        delete linked;
     }
     FreeFrameStorage();
     while (skin_table_names.count != 0) {
         RemoveSkinTable00473830(0);
     }
     if ((flags_3a0 & 4) != 0) {
-        int index = g_mesh_models.IndexOf(this);
-        if (index >= 0) {
-            g_mesh_models.RemoveAt(index);
+        for (int index = 0; index < g_mesh_models.count; ++index) {
+            if (g_mesh_models.data[index] == this) {
+                g_mesh_models.RemoveAt(index);
+                break;
+            }
         }
     }
     if (lerp_buffer_448 != 0) {
@@ -117,16 +122,19 @@ stMeshModel::~stMeshModel()
         lerp_buffer_448 = 0;
     }
     if (automap_polygons != 0) {
-        delete[] automap_polygons;
+        delete automap_polygons;
         automap_polygons = 0;
     }
-    delete skin_blanking_apt_458;
-    delete skin_blanking_apt_number_45c;
-    delete skin_blanking_checked_460;
+    if (skin_blanking_apt_458 != 0) {
+        delete skin_blanking_apt_458;
+    }
+    if (skin_blanking_apt_number_45c != 0) {
+        delete skin_blanking_apt_number_45c;
+    }
+    if (skin_blanking_checked_460 != 0) {
+        delete skin_blanking_checked_460;
+    }
 }
-
-// SYNTHETIC: WIZ8 0x00470e90
-// stMeshModel::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x004748c0
 srClass* stMeshModel::vInstance()
@@ -2058,3 +2066,4 @@ srTriMeshPipeline* srTriMeshPipeline::Get004750A0(srGERD* renderer)
    at 0x005AA400 (OptionsScreen.cpp). No separate FUNCTION claim: decomplint
    rejects FOLDED-before-primary when engine_code sorts ahead of OptionsScreen. */
 void stMeshModel::NotifyLinkedModel005AA400(stMeshModel*) {}
+

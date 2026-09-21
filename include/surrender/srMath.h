@@ -610,7 +610,6 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutZ(double sine, doubl
     return this;
 }
 
-// TEMPLATE: WIZ8 0x00467430
 // srMatrix3T<float>::RotateAboutY
 template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutY(double angle)
 {
@@ -639,7 +638,6 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutY(double angle)
     return this;
 }
 
-// TEMPLATE: WIZ8 0x004A5AB0
 // srMatrix3T<float>::RotateAboutX
 template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutX(double angle)
 {
@@ -959,7 +957,6 @@ template <class T> void srMatrix4T<T>::AdjugateFrom(T* source)
 /* Build the homogeneous transform whose upper 3x3 is `rotation` and whose
    last column is `translation`; the bottom row is (0,0,0,1). Wiz8's
    BakeInstanceVertexLighting calls this before bulk-transforming vertices. */
-// TEMPLATE: WIZ8 0x00470200
 // srMatrix4T<float>::Set
 template <class T>
 srMatrix4T<T>* srMatrix4T<T>::Set(const srMatrix3T<T>& rotation, const srVector3T<T>& translation)
@@ -1011,7 +1008,6 @@ template <class T> void srMatrix4x3T<T>::SetRotation(const srMatrix3T<T>& rotati
     rows[2].z = rotation.vectors[2].z;
 }
 
-// TEMPLATE: WIZ8 0x004B8660
 // srMatrix4x3T<float>::SetTranslation
 template <class T>
 srMatrix4x3T<T>* srMatrix4x3T<T>::SetTranslation(const srVector3T<T>& translation)
@@ -1022,7 +1018,6 @@ srMatrix4x3T<T>* srMatrix4x3T<T>::SetTranslation(const srVector3T<T>& translatio
     return this;
 }
 
-// TEMPLATE: WIZ8 0x004B8680
 // srMatrix4x3T<float>::Scale
 template <class T> srMatrix4x3T<T>* srMatrix4x3T<T>::Scale(const srVector3T<T>& scale)
 {
