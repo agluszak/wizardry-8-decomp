@@ -4906,12 +4906,10 @@ void W8Octree::QueueOctreeKind130042E810(int id, const srVector3T<float>* positi
 {
     int point[3];
 
-    point[0] =
-        static_cast<int>(((position->x - spatial_000.minimum_0c.x) / spatial_000.node_extent_70));
-    point[1] =
-        static_cast<int>(((position->y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
-    point[2] =
-        static_cast<int>(((position->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
+    for (int axis = 0; axis < 3; ++axis) {
+        point[axis] = static_cast<int>(((&position->x)[axis] - (&spatial_000.minimum_0c.x)[axis]) /
+                                       spatial_000.node_extent_70);
+    }
     object_registry->RegisterObjectCell(W8_OCTREE_KIND_NAVIGATOR, id + 1, point);
 }
 
