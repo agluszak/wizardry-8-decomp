@@ -826,6 +826,7 @@ def check(repository: Path) -> dict[str, Any]:
     from .source_oracle import validate_source_oracle_ownership
     from .source_units import validate_source_units
     from .structural_lint import validate_structures
+    from .surrender_exports import validate_surrender_exports
     from .template_model_lint import validate_template_model
 
     settings = load_settings()
@@ -856,6 +857,7 @@ def check(repository: Path) -> dict[str, Any]:
         ("placement", lambda: validate_source_placement(settings)),
         ("identities", lambda: validate_identity(repository)),
         ("source-oracle", lambda: validate_source_oracle_ownership(repository)),
+        ("surrender-exports", lambda: validate_surrender_exports(repository)),
         ("structures", lambda: validate_structures(repository)),
     )
     for name, action in validators:
