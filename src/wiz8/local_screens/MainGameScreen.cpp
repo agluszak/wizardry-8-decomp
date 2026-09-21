@@ -270,6 +270,9 @@ int g_monster_list_bottom_647f88;
 // GLOBAL: WIZ8 0x006481b4
 const wchar_t g_format_s_colon_s_paren_d_006481b4[] = L"%s: %s (%d)";
 
+// GLOBAL: WIZ8 0x0061a700
+const wchar_t g_format_s_paren_d_0061a700[] = L"%s (%d)";
+
 // GLOBAL: WIZ8 0x0061c3e0
 const wchar_t g_format_s_colon_s_0061c3e0[] = L"%s: %s";
 // GLOBAL: WIZ8 0x0064da8c
@@ -287,12 +290,9 @@ void ApplyPendingMouselook(void);
 void ApplyPendingTooltip(void);
 void UpdateCombatPortraitStatus0059B4C0(void);
 void Function59B390(void);
-void ApplySavedRedrawInvalidates(void);                                   /* 0x00563D00 */
-void RedrawPanel69B940(void);                                             /* 0x0059BC00 */
-void Function564BA0(int party_slot);                                      /* 0x00564BA0 */
-void Function564D80(int party_slot);                                      /* 0x00564D80 */
-void Function564710(int party_slot);                                      /* 0x00564710 */
-void Function5651F0(int party_slot);                                      /* 0x005651F0 */
+void ApplySavedRedrawInvalidates(void); /* 0x00563D00 */
+void RedrawPanel69B940(void);           /* 0x0059BC00 */
+
 void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled); /* 0x0059A540 */
 
 void Function56AC80(void);               /* 0x0056AC80 */
@@ -3518,7 +3518,8 @@ void ApplyMainGameRedrawFlags(void)
                                 }
                             }
                             g_main_game_mode_0068eddc = 0;
-                            Function564D80(g_level_block->condition_highlight_party_slot);
+                            DrawPortraitStatusOverlay(
+                                g_level_block->condition_highlight_party_slot);
                         }
                     } else {
                         if (g_level_block->highlight_graphic != 0) {
@@ -3551,7 +3552,7 @@ void ApplyMainGameRedrawFlags(void)
                             }
                         }
                         g_main_game_mode_0068eddc = 0;
-                        Function564710(g_level_block->portrait_overlay_party_slot);
+                        DrawPortraitVitalsOverlay(g_level_block->portrait_overlay_party_slot);
                     }
                 } else {
                     if (g_level_block->highlight_graphic != 0) {
@@ -3582,7 +3583,7 @@ void ApplyMainGameRedrawFlags(void)
                         }
                     }
                     g_main_game_mode_0068eddc = 0;
-                    Function5651F0(g_level_block->enchantment_orb_party_slot);
+                    DrawPortraitEnchantmentOverlay(g_level_block->enchantment_orb_party_slot);
                 }
             } else {
                 if (g_level_block->highlight_graphic != 0) {
@@ -3591,7 +3592,7 @@ void ApplyMainGameRedrawFlags(void)
                 }
                 ClearHighlightOverlayRegion();
                 g_main_game_mode_0068eddc = 0;
-                Function564BA0(g_level_block->condition_orb_party_slot);
+                DrawPortraitConditionOverlay(g_level_block->condition_orb_party_slot);
             }
         } else {
             Function56AC80();
@@ -3934,7 +3935,7 @@ void RefreshTrackedPortraitOverlay(void)
             }
         }
         g_main_game_mode_0068eddc = 0;
-        Function564BA0(g_level_block->condition_orb_party_slot);
+        DrawPortraitConditionOverlay(g_level_block->condition_orb_party_slot);
         return;
     }
     if (g_level_block->enchantment_orb_party_slot != -1) {
@@ -3961,7 +3962,7 @@ void RefreshTrackedPortraitOverlay(void)
             }
         }
         g_main_game_mode_0068eddc = 0;
-        Function5651F0(g_level_block->enchantment_orb_party_slot);
+        DrawPortraitEnchantmentOverlay(g_level_block->enchantment_orb_party_slot);
         return;
     }
     if (g_level_block->portrait_overlay_party_slot != -1) {
@@ -3988,7 +3989,7 @@ void RefreshTrackedPortraitOverlay(void)
             }
         }
         g_main_game_mode_0068eddc = 0;
-        Function564710(g_level_block->portrait_overlay_party_slot);
+        DrawPortraitVitalsOverlay(g_level_block->portrait_overlay_party_slot);
         return;
     }
     if (g_level_block->condition_highlight_party_slot != -1) {
@@ -4015,7 +4016,7 @@ void RefreshTrackedPortraitOverlay(void)
             }
         }
         g_main_game_mode_0068eddc = 0;
-        Function564D80(g_level_block->condition_highlight_party_slot);
+        DrawPortraitStatusOverlay(g_level_block->condition_highlight_party_slot);
     }
 }
 
@@ -4517,6 +4518,328 @@ void DrawHighlightOverlay(unsigned int party_slot, int row_count, unsigned int m
     InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
                      g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
                      g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 1);
+}
+
+/* The portrait overlay's vitals content: "HP:"/"Stamina:" label rows then one
+   icon row per spell realm, each "cur/max" value centered in the column right
+   of the labels. Retail seeds the value-column width from the HP/stamina
+   strings; the realm pass widens it only when a realm string beats the label
+   width rather than the running value width. */
+// FUNCTION: WIZ8 0x00564710
+void DrawPortraitVitalsOverlay(int party_slot)
+{
+    int realm_icons[6] = {0x193, 0x194, 0x195, 0x196, 0x197, 0x198};
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+
+    swprintf(g_level_block->text_paint_scratch_000, g_format_s_colon_00648164,
+             gppStringList[0x282]);
+    unsigned int label_width =
+        StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+    swprintf(g_level_block->text_paint_scratch_000, g_format_s_colon_00648164,
+             gppStringList[0x283]);
+    int width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+    if (label_width < static_cast<unsigned int>(width)) {
+        width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+        label_width = width;
+    }
+    if (label_width < 0x12) {
+        label_width = 0x12;
+    }
+    label_width += 10;
+
+    swprintf(g_level_block->text_paint_scratch_000, g_format_d_slash_d_00614b58,
+             character->hp_current, character->hp_max);
+    unsigned int value_width =
+        StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+    swprintf(g_level_block->text_paint_scratch_000, g_format_d_slash_d_00614b58, character->stamina,
+             character->stamina_max);
+    width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+    if (value_width < static_cast<unsigned int>(width)) {
+        width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+        value_width = width;
+    }
+    int realm;
+    for (realm = 0; realm < 6; ++realm) {
+        swprintf(g_level_block->text_paint_scratch_000, g_format_d_slash_d_00614b58,
+                 GetCharacterRealmSpellPoints(character, realm), character->sp_max[realm]);
+        width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+        if (label_width < static_cast<unsigned int>(width)) {
+            width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+            value_width = width;
+        }
+    }
+
+    g_level_block->highlight_row = 0;
+    DrawHighlightOverlay(party_slot, 8, value_width + label_width);
+    if (g_level_block->highlight_graphic != 0) {
+        ClearNodeFlag(g_level_block->highlight_graphic);
+    }
+
+    int text_width = g_level_block->dialogue_text_width_234;
+    int text_x = g_level_block->dialogue_text_x_230;
+    int row_y = g_level_block->dialogue_row_y_22c;
+
+    swprintf(g_level_block->text_paint_scratch_000, g_format_s_colon_00648164,
+             gppStringList[0x282]);
+    gprintf(text_x, row_y, g_level_block->text_paint_scratch_000);
+    swprintf(g_level_block->text_paint_scratch_000, g_format_d_slash_d_00614b58,
+             character->hp_current, character->hp_max);
+    unsigned int value_center = (text_width - label_width) >> 1;
+    width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+    gprintf(value_center - width / 2 + text_x + label_width, row_y,
+            const_cast<wchar_t*>(g_format_s_006068e4), g_level_block->text_paint_scratch_000);
+    row_y += 0x12;
+
+    swprintf(g_level_block->text_paint_scratch_000, g_format_s_colon_00648164,
+             gppStringList[0x283]);
+    gprintf(text_x, row_y, g_level_block->text_paint_scratch_000);
+    swprintf(g_level_block->text_paint_scratch_000, g_format_d_slash_d_00614b58, character->stamina,
+             character->stamina_max);
+    width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+    gprintf(value_center - width / 2 + text_x + label_width, row_y,
+            const_cast<wchar_t*>(g_format_s_006068e4), g_level_block->text_paint_scratch_000);
+    row_y += 0x12;
+
+    for (realm = 0; realm < 6; ++realm) {
+        DrawCatalogImage(-0xe, realm_icons[realm], 0,
+                         static_cast<short>(g_spell_realm_animations_00648c90[realm].initial_frame),
+                         text_x, row_y, 2, 0);
+        swprintf(g_level_block->text_paint_scratch_000, g_format_d_slash_d_00614b58,
+                 GetCharacterRealmSpellPoints(character, realm), character->sp_max[realm]);
+        int text_y = (0x12 - GetFontHeight(g_wiz_text_font_683640)) / 2 + row_y;
+        width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+        gprintf(value_center - width / 2 + text_x + label_width, text_y,
+                const_cast<wchar_t*>(g_format_s_006068e4), g_level_block->text_paint_scratch_000);
+        row_y += 0x12;
+    }
+}
+
+/* The portrait overlay's condition content: one row per active condition with
+   its status icon and notice name, drawn bottom-up. The count covers all
+   twenty condition slots while the measure and draw passes visit 0x13 down to
+   1 only, paired with the four-entry-strided g_condition_notices_0061E570
+   names. */
+// FUNCTION: WIZ8 0x00564BA0
+void DrawPortraitConditionOverlay(int party_slot)
+{
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+
+    int condition = 0;
+    int row_count = 0;
+    for (condition = 0; condition < W8_CONDITION_COUNT; ++condition) {
+        if (character->condition_turns[condition] != 0) {
+            ++row_count;
+        }
+    }
+    unsigned int max_width = 0;
+    for (condition = W8_CONDITION_COUNT - 1; condition > 0; --condition) {
+        if (character->condition_turns[condition] != 0) {
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s_006068e4,
+                     gppStringList[g_condition_notices_0061E570[condition * 4]]);
+            int width =
+                StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+            if (max_width < static_cast<unsigned int>(width)) {
+                width =
+                    StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+                max_width = width;
+            }
+        }
+    }
+
+    g_level_block->highlight_row = 0;
+    DrawHighlightOverlay(party_slot, row_count, max_width + 0x1a);
+    if (g_level_block->highlight_graphic != 0) {
+        ClearNodeFlag(g_level_block->highlight_graphic);
+    }
+
+    int text_x = g_level_block->dialogue_text_x_230;
+    int row_y = g_level_block->dialogue_row_y_22c;
+    int text_width = g_level_block->dialogue_text_width_234;
+    for (condition = W8_CONDITION_COUNT - 1; condition > 0; --condition) {
+        if (character->condition_turns[condition] != 0) {
+            DrawCatalogImage(-0xe, condition + 0xb6, 0, 0, text_x, row_y, 2, 0);
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s_006068e4,
+                     gppStringList[g_condition_notices_0061E570[condition * 4]]);
+            int width =
+                StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+            gprintf((((text_width - 0x1aU) >> 1) - width / 2) + 0x1a + text_x, row_y,
+                    const_cast<wchar_t*>(g_format_s_006068e4),
+                    g_level_block->text_paint_scratch_000);
+            row_y += 0x12;
+        }
+    }
+}
+
+/* The condition-highlight panel's combined content: the active conditions
+   followed by the active enchantments, capped at 0x14 rows. When the lists
+   overflow, the last row instead prints the "more" notice (0x7d8) - the extra
+   enchantment power argument it pushes is dead, "%s" never consumes it. */
+// FUNCTION: WIZ8 0x00564D80
+void DrawPortraitStatusOverlay(int party_slot)
+{
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    unsigned int max_width = 0;
+    bool truncated = false;
+    int condition;
+    int slot;
+
+    int condition_count = 0;
+    for (condition = 0; condition < W8_CONDITION_COUNT; ++condition) {
+        if (character->condition_turns[condition] != 0) {
+            ++condition_count;
+        }
+    }
+    for (condition = W8_CONDITION_COUNT - 1; condition > 0; --condition) {
+        if (character->condition_turns[condition] != 0) {
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s_006068e4,
+                     gppStringList[g_condition_notices_0061E570[condition * 4]]);
+            int width =
+                StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+            if (max_width < static_cast<unsigned int>(width)) {
+                width =
+                    StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+                max_width = width;
+            }
+        }
+    }
+    int enchantment_count = 0;
+    for (slot = 0; slot < 8; ++slot) {
+        if (character->enchantments[slot].value_08 != 0) {
+            ++enchantment_count;
+        }
+    }
+    for (slot = 7; slot > 0; --slot) {
+        if (character->enchantments[slot].value_08 != 0) {
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s_paren_d_0061a700,
+                     gppStringList[g_condition_notices_0061E570[slot + 0x64]],
+                     character->enchantments[slot].value_00);
+            int width =
+                StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+            if (max_width < static_cast<unsigned int>(width)) {
+                width =
+                    StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+                max_width = width;
+            }
+        }
+    }
+
+    int row_count = condition_count + enchantment_count;
+    if (0x14 < row_count) {
+        row_count = 0x14;
+        truncated = true;
+        int width = StringPixLength(gppStringList[0x7d8], g_wiz_text_font_683640);
+        if (max_width < static_cast<unsigned int>(width - 0x1a)) {
+            width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+            max_width = width - 0x1a;
+        }
+    }
+
+    g_level_block->highlight_row = 0;
+    DrawHighlightOverlay(party_slot, row_count, max_width + 0x1a);
+    if (g_level_block->highlight_graphic != 0) {
+        ClearNodeFlag(g_level_block->highlight_graphic);
+    }
+
+    int text_x = g_level_block->dialogue_text_x_230;
+    int row_y = g_level_block->dialogue_row_y_22c;
+    unsigned int text_width = g_level_block->dialogue_text_width_234 - 0x1a;
+    int rows_drawn = 0;
+    for (condition = W8_CONDITION_COUNT - 1; condition > 0; --condition) {
+        if (character->condition_turns[condition] != 0) {
+            DrawCatalogImage(-0xe, condition + 0xb6, 0, 0, text_x, row_y, 2, 0);
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s_006068e4,
+                     gppStringList[g_condition_notices_0061E570[condition * 4]]);
+            int width =
+                StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+            gprintf(((text_width >> 1) - width / 2) + 0x1a + text_x, row_y,
+                    const_cast<wchar_t*>(g_format_s_006068e4),
+                    g_level_block->text_paint_scratch_000);
+            row_y += 0x12;
+            ++rows_drawn;
+        }
+    }
+    for (slot = 7; slot > 0; --slot) {
+        if (rows_drawn == 0x13 && truncated) {
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s_006068e4,
+                     gppStringList[0x7d8], character->enchantments[slot].value_00);
+            int width =
+                StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+            gprintf((((text_width - width) + 0x1a) >> 1) + text_x, row_y,
+                    const_cast<wchar_t*>(g_format_s_006068e4),
+                    g_level_block->text_paint_scratch_000);
+            return;
+        }
+        if (character->enchantments[slot].value_08 != 0) {
+            DrawCatalogImage(-0xe, slot + 0xc9, 0, 0, text_x, row_y, 2, 0);
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s_paren_d_0061a700,
+                     gppStringList[g_condition_notices_0061E570[slot + 0x64]],
+                     character->enchantments[slot].value_00);
+            int width =
+                StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+            gprintf(((text_width >> 1) - width / 2) + 0x1a + text_x, row_y,
+                    const_cast<wchar_t*>(g_format_s_006068e4),
+                    g_level_block->text_paint_scratch_000);
+            row_y += 0x12;
+            ++rows_drawn;
+        }
+    }
+}
+
+/* The enchantment orb's hover content: one row per active enchantment showing
+   its icon and "name (power)" text. The count covers all eight slots while the
+   measure and draw passes visit 7 down to 1 - slot 0's row is counted but
+   never drawn. */
+// FUNCTION: WIZ8 0x005651F0
+void DrawPortraitEnchantmentOverlay(int party_slot)
+{
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+
+    int slot = 0;
+    int row_count = 0;
+    for (slot = 0; slot < 8; ++slot) {
+        if (character->enchantments[slot].value_08 != 0) {
+            ++row_count;
+        }
+    }
+    unsigned int max_width = 0;
+    for (slot = 7; slot > 0; --slot) {
+        if (character->enchantments[slot].value_08 != 0) {
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s_paren_d_0061a700,
+                     gppStringList[g_condition_notices_0061E570[slot + 0x64]],
+                     character->enchantments[slot].value_00);
+            int width =
+                StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+            if (max_width < static_cast<unsigned int>(width)) {
+                width =
+                    StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+                max_width = width;
+            }
+        }
+    }
+
+    g_level_block->highlight_row = 0;
+    DrawHighlightOverlay(party_slot, row_count, max_width + 0x1a);
+    if (g_level_block->highlight_graphic != 0) {
+        ClearNodeFlag(g_level_block->highlight_graphic);
+    }
+
+    int text_x = g_level_block->dialogue_text_x_230;
+    int row_y = g_level_block->dialogue_row_y_22c;
+    int text_width = g_level_block->dialogue_text_width_234;
+    for (slot = 7; slot > 0; --slot) {
+        if (character->enchantments[slot].value_08 != 0) {
+            DrawCatalogImage(-0xe, slot + 0xc9, 0, 0, text_x, row_y, 2, 0);
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s_paren_d_0061a700,
+                     gppStringList[g_condition_notices_0061E570[slot + 0x64]],
+                     character->enchantments[slot].value_00);
+            int width =
+                StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+            gprintf((((text_width - 0x1aU) >> 1) - width / 2) + 0x1a + text_x, row_y,
+                    const_cast<wchar_t*>(g_format_s_006068e4),
+                    g_level_block->text_paint_scratch_000);
+            row_y += 0x12;
+        }
+    }
 }
 
 // FUNCTION: WIZ8 0x005699b0

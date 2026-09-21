@@ -142,6 +142,9 @@ stModelInstance2D* CreateSpriteFromSurface(unsigned int image, const W8ControlsR
 void Position2DNodeUnsnapped004257D0(srNode* node, int x, int y);
 /* 0x004264F0: write the display-state byte of a 2D model instance. */
 void SetModelInstance2DDisplayState004264F0(stModelInstance2D* object, unsigned char state);
+/* 0x00425820: set FLAG_DISABLE on a node; the overlay drawers call it to hide
+   the highlight sprite before redrawing the panel contents. */
+void ClearNodeFlag(srNode* node);
 /* 0x00425840: rotate an srNode in degrees and invalidate the renderer mode. */
 void RotateNodeInDegrees00425840(srNode* node, int degrees);
 /* 0x00427E70: surface-lock helper used while installing a drag cursor. */

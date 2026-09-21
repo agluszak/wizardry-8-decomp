@@ -542,12 +542,16 @@ void DismissHighlightOverlay(void);     /* 0x00563EB0 */
 /* 0x00563FC0: the portrait-hover panel's producer; the four hover entry
    points hand it the slot, a content row count and a minimum plate width. */
 void DrawHighlightOverlay(unsigned int party_slot, int row_count, unsigned int min_width);
-void SelectPartyCharacter(int party_slot);    /* 0x00565740 */
-void Function587A30(void);                    /* 0x00587A30 */
-void EnableLockInteractionPanels(void);       /* 0x00587C20 */
-void Function58A860(void);                    /* 0x0058A860 */
-void EnableTrapInteractionPanelRegions(void); /* 0x0058A880 */
-void OpenAutomapScreen(void);                 /* 0x00561480 */
+void DrawPortraitVitalsOverlay(int party_slot);      /* 0x00564710 */
+void DrawPortraitConditionOverlay(int party_slot);   /* 0x00564BA0 */
+void DrawPortraitStatusOverlay(int party_slot);      /* 0x00564D80 */
+void DrawPortraitEnchantmentOverlay(int party_slot); /* 0x005651F0 */
+void SelectPartyCharacter(int party_slot);           /* 0x00565740 */
+void Function587A30(void);                           /* 0x00587A30 */
+void EnableLockInteractionPanels(void);              /* 0x00587C20 */
+void Function58A860(void);                           /* 0x0058A860 */
+void EnableTrapInteractionPanelRegions(void);        /* 0x0058A880 */
+void OpenAutomapScreen(void);                        /* 0x00561480 */
 /* Clear one slot's pending portrait refresh while the screen is not in
    portrait mode, and disable that slot's portrait region set. */
 void ClearPortraitRefreshSlot(int slot); /* 0x00561DB0 */
