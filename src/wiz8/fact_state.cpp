@@ -27,6 +27,7 @@
 #include <wchar.h>
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/local_screens/PartySelectionScreen.h"
+#include "wiz8/local_code/PartyImport.h"
 
 /* Unresolved fragment: five of the six functions lie in the anchored gap
    between Sight.cpp (ends 0x00505F30) and NPC Scripting Facts.cpp

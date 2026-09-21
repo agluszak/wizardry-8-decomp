@@ -41,6 +41,7 @@
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/local_code/GameplayInit.h"
 #include "wiz8/local_screens/PartySelectionScreen.h"
+#include "wiz8/local_code/PartyImport.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/music_playlist.h"
 #include "wiz8/regions.h"
@@ -63,7 +64,6 @@
 
 void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                                  char right_button, char left_button);
-int Function558C40(const char* path);
 
 /* Two ordinary growable vectors and the scroll origin account for all 0x24
    bytes allocated at party-selection entry. The second vector supplies the names this
