@@ -463,6 +463,12 @@ static_assert(sizeof(W8MainGameScreen) == 0x178, "W8MainGameScreen_size");
 extern W8LevelRuntimeBlock* g_level_block;
 extern W8MainGameScreen* g_main_game_screen;
 
+/* Insanity (spell 0x3c) world-cursor extent rows and the per spell-power
+   index into them; CastSpellFromSource scans the same extents when it
+   places the insanity point. */
+extern double g_world_cursor_extent_table_00616eb0[18];
+extern signed char g_spell_power_extent_index_00616f41[8];
+
 class W8DialogBase;
 struct W8ItemInstance;
 

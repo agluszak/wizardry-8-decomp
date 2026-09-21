@@ -2140,7 +2140,7 @@ void ApplyCombatEffectSlot(W8SpellEffectEntry* effect)
     while (spell_id != *table) {
         ++table;
         ++slot_index;
-        if (table >= g_combat_effect_slot_spells_00616dd8) {
+        if (table >= g_combat_effect_slot_spells_and_cast_success_00616dd8) {
             break;
         }
     }
@@ -2234,11 +2234,11 @@ void ApplyDefenseEffectSlot(W8SpellEffectEntry* effect)
         AdjustIntegerByPercent(&duration, effect->definition.percent);
     }
     slot_index = 0;
-    table = g_combat_effect_slot_spells_00616dd8;
+    table = g_combat_effect_slot_spells_and_cast_success_00616dd8;
     while (spell_id != *table) {
         ++table;
         ++slot_index;
-        if (table >= g_combat_effect_slot_spells_00616dd8 + 9) {
+        if (table >= g_combat_effect_slot_spells_and_cast_success_00616dd8 + 9) {
             srAssertFail("fFound", MAGIC_EFFECTS_CPP, 0x3f1, 0);
             return;
         }
@@ -2951,8 +2951,8 @@ void ReduceCombatEffectDurations(W8SpellEffectEntry* effect)
         AdjustIntegerByPercent(&duration, effect->definition.percent);
     }
     slot_index = 0;
-    for (table = g_combat_effect_slot_spells_00616db4; table < g_combat_effect_slot_spells_00616dd8;
-         ++table, ++slot_index) {
+    for (table = g_combat_effect_slot_spells_00616db4;
+         table < g_combat_effect_slot_spells_and_cast_success_00616dd8; ++table, ++slot_index) {
         switch (*table) {
         case 0x30:
         case 0x4c:

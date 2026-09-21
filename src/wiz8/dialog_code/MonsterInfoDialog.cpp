@@ -189,7 +189,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
     }
     m_text_area_ec.AddEntry(prefix, entry_text, 10, 0xf, 0);
 
-    if (g_status_685170.status_ints_3121[monster_info->monster_species] == 2) {
+    if (g_status_685170.tail_3121.facts.status_ints_3121[monster_info->monster_species] == 2) {
         FormatUnsignedIntegerWithCommas(text, GetMonsterExperience(record));
     } else {
         wcscpy(text, gppStringList[0x13a]);

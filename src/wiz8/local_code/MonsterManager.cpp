@@ -472,8 +472,8 @@ done:
             }
         }
         g_combat_state->value_010 += experience;
-        if (g_status_685170.status_ints_3121[monster_species] == 0) {
-            g_status_685170.status_ints_3121[monster_species] = 1;
+        if (g_status_685170.tail_3121.facts.status_ints_3121[monster_species] == 0) {
+            g_status_685170.tail_3121.facts.status_ints_3121[monster_species] = 1;
         }
     }
 }

@@ -318,11 +318,11 @@ unsigned char EvaluateFact(int fact_id)
             }
             return 0;
         case 0x88:
-            if (g_status_685170.flag_40c1 == 0) {
+            if (g_status_685170.tail_3121.facts.flag_40c1 == 0) {
                 if (CountItemOnParty(0x1c4, 0, 0, 2) < 5) {
                     return 0;
                 }
-                g_status_685170.flag_40c1 = 1;
+                g_status_685170.tail_3121.facts.flag_40c1 = 1;
                 return 1;
             }
             break;
@@ -406,7 +406,8 @@ unsigned char EvaluateFact(int fact_id)
                 unsigned int slot = 0;
                 do {
                     if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
-                        slot == (unsigned int)g_status_685170.value_423d) {
+                        slot ==
+                            static_cast<unsigned int>(g_status_685170.tail_3121.facts.value_423d)) {
                         return 1;
                     }
                     ++slot;

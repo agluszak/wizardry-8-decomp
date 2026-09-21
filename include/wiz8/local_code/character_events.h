@@ -131,6 +131,8 @@ extern int g_special_event_0068c560;  /* 0x0068C560: one of the three blocked-hi
 extern int g_special_event_0068c570;  /* 0x0068C570 */
 extern int g_special_event_0068c574;  /* 0x0068C574 */
 extern unsigned int g_value_0068c57c; /* 0x0068C57C */
+extern int g_special_event_0068c524;  /* 0x0068C524 */
+extern int g_special_event_0068c528;  /* 0x0068C528 */
 extern int g_special_event_0068c530;  /* 0x0068C530: emitted when a slot's action
                                         cannot reach a monster group */
 extern int g_special_event_0068c534;  /* 0x0068C534 */

@@ -117,8 +117,9 @@ const int g_combat_effect_slot_spells_00616db4[9] = {
 /* The same mapping for the second combat effect block, indexed against
    W8CombatState::effect_slots_85a and the monster's effect_slots_d7. */
 // GLOBAL: WIZ8 0x00616DD8
-const int g_combat_effect_slot_spells_00616dd8[9] = {
-    0x2, 0x35, 0x3b, 0x3e, 0, 0, 0x1e, 0x28, 0x32,
+const int g_combat_effect_slot_spells_and_cast_success_00616dd8[23] = {
+    0x2, 0x35, 0x3b, 0x3e, 0,  0,  30,  40,  50,  58,  64,  70,
+    76,  81,   86,   90,   94, 97, 100, 102, 105, 107, 110,
 };
 
 /* The per-slot weights ChooseMonsterSpell rolls against. */
@@ -1490,7 +1491,7 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
             return 1;
         }
         for (index = 0; index < 9; ++index) {
-            if (spell_id == g_combat_effect_slot_spells_00616dd8[index]) {
+            if (spell_id == g_combat_effect_slot_spells_and_cast_success_00616dd8[index]) {
                 if (combat_slot->iType == W8_TARGET_KIND_CHARACTER) {
                     duration = g_combat_state->effect_slots_85a[index].duration_0d;
                 } else {

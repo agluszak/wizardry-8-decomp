@@ -1105,13 +1105,13 @@ void MonsterKilled(int record_id, int killer_party_slot)
                 SetFact(0x2a6, 0, 0);
             }
             if (g_status_685170.flag_2489 != 0) {
-                if (g_status_685170.buffers.characters[g_status_685170.value_423d]
+                if (g_status_685170.buffers.characters[g_status_685170.tail_3121.facts.value_423d]
                         .condition_turns[10] > 0) {
-                    RemoveCharacterCondition(g_status_685170.value_423d, 10, 0);
+                    RemoveCharacterCondition(g_status_685170.tail_3121.facts.value_423d, 10, 0);
                 }
-                QueueCharacterEvent(&g_status_685170.buffers.characters[g_status_685170.value_423d],
-                                    g_effect_005ee6f8, 0, g_effect_argument_005ed8c8,
-                                    g_effect_argument_005ed914);
+                QueueCharacterEvent(
+                    &g_status_685170.buffers.characters[g_status_685170.tail_3121.facts.value_423d],
+                    g_effect_005ee6f8, 0, g_effect_argument_005ed8c8, g_effect_argument_005ed914);
             }
             SetFact(0x1b6, 1, 0);
             return;
