@@ -180,6 +180,11 @@ W8AttachmentOffset g_monster_attachment_offsets_0060e618[8][8] = {{{0.0f, 0.0f, 
 float g_monster_attachment_scales_0060e918[8] = {0.3f,  0.2f,  0.15f, 0.15f,
                                                  0.15f, 0.15f, 0.15f, 0.15f};
 
+// GLOBAL: WIZ8 0x0060e938
+const char* g_monster_marker_bitmaps_0060e938[8] = {"TriRed.tga",  "TriGreen.tga",  "TriPurple.tga",
+                                                    "TriBlue.tga", "TriOrange.tga", "TriYellow.tga",
+                                                    "TriPink.tga", "TriBrown.tga"};
+
 // GLOBAL: WIZ8 0x005ec04c
 const float g_monster_rotation_offset_005ec04c = 3.141592502593994f;
 // GLOBAL: WIZ8 0x005ed1f0
