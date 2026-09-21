@@ -3542,6 +3542,66 @@ unsigned char MainGameScreenLeave(int leaving)
     return 1;
 }
 
+// FUNCTION: WIZ8 0x00560A70
+void MainGameNoticeDialogClosed00560A70(W8DialogBase* dialog)
+{
+    if (GetDialogResult(dialog) == 0) {
+        return;
+    }
+    switch (g_main_game_mode_0068eddc) {
+    case 3:
+        if (gXStatus.fNpcDialogueMode != 0) {
+            EndNpcDialogueSession0056E800(0);
+        }
+        break;
+    case 5:
+        CloseMessageBox();
+        break;
+    case 6:
+        if (g_level_block->highlight_graphic != 0) {
+            ReleaseObject004257F0(g_level_block->highlight_graphic);
+            g_level_block->highlight_graphic = 0;
+            if (g_main_game_mode_0068eddc != 6) {
+                goto mode_reset;
+            }
+        }
+        ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                         g_level_block->dialogue_width_238 + g_level_block->dialogue_x_220,
+                         g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224);
+        InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                         g_level_block->dialogue_width_238 + g_level_block->dialogue_x_220,
+                         g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224, 0);
+        if (g_level_block->dialogue_y_224 <
+                static_cast<unsigned int>(
+                    g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x100;
+        }
+        if (0x166 < g_level_block->dialogue_height_228 + g_level_block->dialogue_y_224 &&
+            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x800;
+        }
+        break;
+    }
+mode_reset:
+    g_main_game_mode_0068eddc = 0;
+    if (IsMessageBoxActive()) {
+        CloseMessageBox();
+    }
+    if (gXStatus.fCombatMode != 0) {
+        EndCombat004EA310(1);
+    } else if (AnyCharacterActive() && gXStatus.party_moving == 0) {
+        AutoSaveIfAllowed(1);
+    }
+    if (gXStatus.fSurprisePossible != 0) {
+        RestoreSurpriseView005029A0();
+    }
+    g_status_685170.game_started = 0;
+    ClearHeldItemDisplay();
+    RequestScreenTransition();
+    SetPrimarySurfaceTextureHint2Enabled(0);
+}
+
 // FUNCTION: WIZ8 0x00560c30
 void OnQuitGameDialogClosed(W8DialogBase* dialog)
 {

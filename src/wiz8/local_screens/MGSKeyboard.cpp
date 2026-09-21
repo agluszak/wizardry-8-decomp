@@ -286,7 +286,8 @@ void DispatchMGSCommand(int command)
                 }
             }
             ClearValue69DA68();
-            ShowMainGameNoticeLine(gppStringList[0x1de4 / 4], Function560A70, 1, 1);
+            ShowMainGameNoticeLine(gppStringList[0x1de4 / 4], MainGameNoticeDialogClosed00560A70, 1,
+                                   1);
         }
         InvalidateRegion(0xa8, 0x16e, 0x1c4, 0x1ba, 0);
         break;

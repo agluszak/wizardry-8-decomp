@@ -483,7 +483,7 @@ void OpenMonsterInfoDialog0056AD60(int location_id);                    /* 0x005
 void OpenAssayDialog0056AE20(W8ItemInstance* item, int character_slot); /* 0x0056AE20 */
 
 void OnQuitGameDialogClosed(W8DialogBase* dialog);
-void Function560A70(W8DialogBase* dialog); /* 0x00560A70 */
+void MainGameNoticeDialogClosed00560A70(W8DialogBase* dialog); /* 0x00560A70 */
 
 void PauseMainGameWorld(void);
 void ResumeMainGameWorld(void);
