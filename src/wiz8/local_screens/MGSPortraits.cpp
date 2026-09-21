@@ -60,6 +60,10 @@ int g_empty_hand_catalog_ids_649dd4[32] = {
 
 // GLOBAL: WIZ8 0x0069B940
 Controls* g_panel_69b940; /* gpLevelButtonsPanel */
+// GLOBAL: WIZ8 0x0061AA9C
+char s_spell_sound_format_0061aa9c[] = "Data\\Spells\\Sounds\\%s.wav";
+// GLOBAL: WIZ8 0x0064C664
+char s_general_magic_sound_0064c664[] = "Data\\Spells\\Sounds\\GeneralMagic.wav";
 
 // GLOBAL: WIZ8 0x0069B920
 W8TextControl* g_portrait_controls_0069b920[8]; /* gpLevelButtons[uiSlot] */
@@ -666,6 +670,95 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
     entry->portrait_stats_dirty = 0;
 }
 
+// FUNCTION: WIZ8 0x0059AF40
+void StageMonsterCastIcon0059AF40(unsigned int party_slot, int realm, char alternate, int spell_id)
+{
+    if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
+        return;
+    }
+    W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[party_slot];
+    entry->effect_icon_active = 1;
+    entry->effect_icon_frame = 0;
+    int catalog;
+    switch (realm) {
+    case 0:
+        catalog = 0xac - (alternate != 0);
+        break;
+    case 1:
+        catalog = 0xae - (alternate != 0);
+        break;
+    case 2:
+        catalog = 0xb0 - (alternate != 0);
+        break;
+    case 3:
+        catalog = 0xb2 - (alternate != 0);
+        break;
+    case 4:
+        catalog = 0xb4 - (alternate != 0);
+        break;
+    case 5:
+        catalog = 0xb6 - (alternate != 0);
+        break;
+    default:
+        catalog = 0xaa;
+    }
+    entry->effect_icon_catalog = catalog;
+    entry->effect_icon_end_frame = GetCatalogVideoObject(catalog, 0, 0)->usNumberOfObjects;
+    char* sound =
+        spell_id != 0 && g_spell_records[spell_id].sound_name[0] != 0
+            ? FormatString(s_spell_sound_format_0061aa9c, g_spell_records[spell_id].sound_name)
+            : s_general_magic_sound_0064c664;
+    SoundPlay(sound, 0);
+    if (g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
+        g_level_block->portrait_refresh_pending[party_slot] == 0) {
+        RefreshSelectedPartyPortrait(party_slot);
+        entry->auto_portrait_refresh = 1;
+        entry->effect_icon_frame = -1;
+    }
+    if (entry->combat_portrait_dirty == 0) {
+        RequestRedraw(1 << (party_slot & 0x1f));
+    }
+    if (entry->damage_splat_active == 0) {
+        entry->portrait_fx_clock = SetCountdownClock(100);
+        return;
+    }
+    entry->effect_icon_frame = -1;
+}
+
+// FUNCTION: WIZ8 0x005993A0
+unsigned char PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int left,
+                                          unsigned int top)
+{
+    if (gXStatus.fNpcDialogueMode != 0 && (party_slot & 1) != 0 &&
+        IsPortraitObscuredByNpcDialogue(party_slot) != 0) {
+        return 0;
+    }
+    if ((g_level_block == 0 ||
+         (g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_FORMATION &&
+          g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_RADAR) ||
+         g_level_block->portrait_refresh_pending[party_slot] != 0) &&
+        g_status_685170.buffers.party_rows[party_slot].occupied != 0) {
+        W8Character* character = &g_status_685170.buffers.characters[party_slot];
+        if (character->hp_current != 0) {
+            int portrait = character->table_value_0079;
+            int flags = 2;
+            if ((g_portrait_descriptors_6483d0[portrait].render_mode == 1 &&
+                 (party_slot & 1) == 0) ||
+                (g_portrait_descriptors_6483d0[portrait].render_mode == 2 &&
+                 (party_slot & 1) != 0)) {
+                flags = 0x1002;
+            }
+            if (BlitPartyPortraitAnimation(portrait, left, top, flags, party_slot, 0) != 0 &&
+                ((gXStatus.fCombatMode != 0 &&
+                  g_combat_state->characters[party_slot].flag_34 != 0) ||
+                 gXStatus.fSurprisePossible != 0 || character->highest_condition == 0x13)) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
 /* Repaint one party-slot portrait band: frame, live or dead portrait, item
    hands, HP/stamina chrome, labels, condition/enchantment icons, and any
    active overlay callees for that slot. */
@@ -1015,6 +1108,23 @@ portrait_fx:
         g_screen_state_00649f1c->script_busy == 0 &&
         g_screen_state_00649f1c->dialogue_cursor_flag == 0 && gXStatus.flag_19b7 == 0) {
         SetNpcDialoguePanelVisible(1);
+    }
+}
+
+// FUNCTION: WIZ8 0x0059A110
+void ShadeStatusBarGap0059A110(int length, int left, int top)
+{
+    if (length != 0) {
+        int rows = (g_settings_6850c8.numeric_hit_points != 0 ? 2 : 0) + 3;
+        unsigned int pitch;
+        char* screen = static_cast<char*>(LockPrimarySurface(&pitch));
+        while (rows != 0) {
+            short color = Get16BPPColor(0x10101);
+            LineDraw(1, left, top, left, top + length, color, screen);
+            ++left;
+            --rows;
+        }
+        UnlockPrimarySurface();
     }
 }
 

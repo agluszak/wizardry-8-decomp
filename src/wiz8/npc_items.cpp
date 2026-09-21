@@ -2,6 +2,7 @@
 #include "wiz8/npc_items.h"
 #include "wiz8/local_code/NPCManager.h"
 #include "wiz8/local_code/NPCScripting.h"
+#include "wiz8/local_code/Strings.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/layouts/item_instance.h"
 #include "wiz8/layouts/gameplay_databases.h"
@@ -647,6 +648,117 @@ W8NpcItemEntry* GetNpcItemAt(W8NpcState* npc, int index)
 unsigned int GetNpcItemCount(W8NpcState* npc)
 {
     return PLLength(npc->items);
+}
+
+/* Hand one offered stack to the NPC: when the record accepts the class the
+   trade price is paid into party gold (unless the caller suppresses payment),
+   the cash sound plays, and the stack is folded into the NPC's stock. */
+// FUNCTION: WIZ8 0x0055B730
+unsigned char SellItemToNpc0055B730(W8NpcState* npc, W8ItemInstance* item, unsigned char quantity,
+                                    char no_payment)
+{
+    W8ItemInstance stack;
+    int amount;
+
+    if ((g_item_records[item->item_id].flags_041 & 2) == 0 && NpcAcceptsTradeItem(npc, item) != 0) {
+        ReplaceOrCreateItem(&stack, item->item_id, 0, item->identified, 0);
+        stack.stack_count = quantity;
+        amount = CalculateTradeStackPrice(npc, &stack, 0);
+        if (no_payment == 0) {
+            AddPartyGold(amount, 0);
+        }
+        SoundPlay("Data\\Sound\\misc\\Cash Transaction.wav", 0);
+        if (item->stack_count == 0) {
+            item->stack_count = 1;
+        }
+        AddNpcItemFromInstance(npc, item, quantity);
+        return 1;
+    }
+    return 0;
+}
+
+/* Take quantity units of one stock slot off the NPC and into the party. Each
+   pass hands over at most one maximum-quantity stack (or one unit for the
+   non-stack quantity kinds) until the request is filled; the price of the
+   accumulated stack then leaves the party purse and the stock entry shrinks.
+   The trailing pass drops entries whose remaining count hit zero. */
+// FUNCTION: WIZ8 0x0055B7E0
+bool CompleteNpcItemPurchase0055B7E0(W8NpcState* npc, int index, unsigned char quantity,
+                                     char no_payment, int* remaining_out)
+{
+    unsigned char available;
+    unsigned char moved;
+    unsigned char unit;
+    unsigned int count;
+    unsigned int price;
+    unsigned int i;
+    W8ItemInstance hand;
+    W8ItemInstance stack;
+    W8NpcItemEntry* entry;
+
+    moved = 0;
+    entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
+    if (entry == 0) {
+        return 0;
+    }
+    available = entry->item.stack_count;
+    for (;;) {
+        ReplaceOrCreateItem(&hand, entry->item.item_id, 1, 1, 0);
+        if (g_item_records[hand.item_id].quantity_kind == 0) {
+            unit = 1;
+        } else if (g_item_records[hand.item_id].quantity_kind != 1) {
+            hand.uses_or_charges = entry->item.uses_or_charges;
+            unit = 1;
+        } else {
+            unit = quantity - moved;
+            if (g_item_records[hand.item_id].maximum_quantity < unit) {
+                unit = g_item_records[hand.item_id].maximum_quantity;
+            }
+            hand.stack_count = unit;
+            if (unit == 0) {
+                unit = 1;
+                hand.stack_count = unit;
+            }
+        }
+        if (AddItemToPartyOrDrop(&hand, 0) == 0 && g_status_685170.item_in_cursor == 0) {
+            DisplayNpcQuote00529570(gppStringList[0x1ac4 / 4], 0);
+        }
+        moved += unit;
+        if (quantity <= moved) {
+            if (moved == 0) {
+                return 0;
+            }
+            ReplaceOrCreateItem(&stack, entry->item.item_id, 0, 1, 0);
+            stack.stack_count = moved;
+            price = CalculateTradeStackPrice(npc, &stack, 1);
+            SoundPlay("Data\\Sound\\misc\\Cash Transaction.wav", 0);
+            if (ConsumeNpcItemQuantity(npc, index, moved) == 0) {
+                return 0;
+            }
+            if (no_payment == 0) {
+                SpendPartyGold(price);
+            }
+            if (remaining_out != 0) {
+                *remaining_out = available - moved;
+            }
+            count = PLLength(npc->items);
+            i = 0;
+            if (count != 0) {
+                do {
+                    entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, i));
+                    if (entry != 0 && entry->quantity == 0) {
+                        delete static_cast<W8NpcItemEntry*>(PLRemoveAt(npc->items, i));
+                        if (i != 0) {
+                            --i;
+                        }
+                        count = PLLength(npc->items);
+                    }
+                    ++i;
+                } while (i < count);
+            }
+            return 1;
+        }
+    }
 }
 
 // FUNCTION: WIZ8 0x0055b290

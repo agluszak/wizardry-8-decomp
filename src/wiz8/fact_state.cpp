@@ -1,6 +1,7 @@
 #include "wiz8/fact_state.h"
 #include "wiz8/layouts/character.h"
 #include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/PartyImport.h"
 #include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/local_code/Factions.h"
@@ -32,10 +33,6 @@
    (0x00506670); 0x005080F0 sits past that hull in the gap before
    NPC Manager.cpp (0x00509CD0). Two clusters, no proven ownership. */
 
-// GLOBAL: WIZ8 0x0068de63
-unsigned char g_import_party_loaded;
-// GLOBAL: WIZ8 0x0068de5d
-unsigned char g_import_flag_0068de5d;
 // GLOBAL: WIZ8 0x00689b78
 unsigned char g_fact_values[1000];
 
@@ -136,10 +133,10 @@ void InitializeFactState(void)
             SetFact(0x4d, 1, 0);
             break;
         }
-        if (g_import_party_loaded) {
+        if (g_import_flags_0068de58[0xb]) {
             SetFact(0x199, 1, 0);
         }
-        if (g_import_flag_0068de5d) {
+        if (g_import_flags_0068de58[5]) {
             SetFact(0x7b, 1, 0);
             SetFactNotificationsSuppressed(0);
             return;

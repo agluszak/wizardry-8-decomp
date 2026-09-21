@@ -43,6 +43,24 @@ const int g_special_attack_realm_table_61f0fc[32] = {
     0, 1, 1, 5, 1, 4, 5, 4, 0, 0, 4, 5, 4, 3, 2, 3, 2, 4, 3, 1, 1, 2, 1, 3, 0, 0, 0, 0, 0, 0, 1, 0,
 };
 
+/* Whether a special attack kind still fires while the attacker's spellcasting
+   is blocked: kinds 5-7 and 0x19-0x1d minus 0x1b ignore the block. */
+// FUNCTION: WIZ8 0x00556050
+unsigned char MonsterSpecialAttackHonorsCastingBlock(int special_attack_kind)
+{
+    switch (special_attack_kind) {
+    case 5:
+    case 6:
+    case 7:
+    case 0x19:
+    case 0x1a:
+    case 0x1c:
+    case 0x1d:
+        return 1;
+    }
+    return 0;
+}
+
 /* Resolve one kind-table entry against every character and monster target in
    the group's attack. The per-slot bound comes from the attacker's current
    stamina fraction - a character source scales off level and stamina, a

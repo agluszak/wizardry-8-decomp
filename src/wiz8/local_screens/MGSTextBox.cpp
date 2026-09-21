@@ -652,6 +652,46 @@ void AppendTextBoxLine0058B300(const wchar_t* text, ...)
     }
 }
 
+/* Re-scroll the dialogue text box to the cursor's shown line. While the
+   dormant dialogue input owns that box its line count shifts the target; the
+   margin is one line in quiet modes and seven under an overlay. */
+// FUNCTION: WIZ8 0x0058BA60
+void ScrollDialogueTextBoxToLine0058BA60(void)
+{
+    W8DialogueTextState* input;
+    int offset;
+
+    if (IsNpcDialogueTextBoxActive577830()) {
+        return;
+    }
+    if (g_level_block->dialogue_text_input_open &&
+        (input = g_level_block->dialogue_text_input) != 0 &&
+        g_status_685170.text_line_cursor_1795 == input->text_box) {
+        if (gXStatus.fNpcDialogueMode != 0) {
+            offset = g_screen_state_00649f1c->flag_261 != 0 ? 1 : 7;
+        } else {
+            offset = gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0 &&
+                             gXStatus.fCampMode == 0
+                         ? 1
+                         : 7;
+        }
+        ScrollTextBoxTo(
+            g_status_685170.text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795] +
+            input->line_count - offset);
+        return;
+    }
+    if (gXStatus.fNpcDialogueMode != 0) {
+        offset = g_screen_state_00649f1c->flag_261 != 0 ? 1 : 7;
+    } else {
+        offset =
+            gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0 && gXStatus.fCampMode == 0
+                ? 1
+                : 7;
+    }
+    ScrollTextBoxTo(
+        g_status_685170.text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795] - offset);
+}
+
 /* Recolour the character span [start, stop) of the most recent line of one
    text box. A -1 box means the one the current game mode posts to. When the
    line was wrapped, the box's split position says where the second row

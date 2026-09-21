@@ -47,6 +47,7 @@
 #include "wiz8/engine_code/ReadLevel.h"
 #include "wiz8/engine_code/Trigger.hpp"
 #include "wiz8/engine_code/stTextureAnim.h"
+#include "wiz8/engine_code/stTextureFile.h"
 #include "wiz8/engine_code/stScript.h"
 #include "wiz8/engine_code/stSound3D.h"
 #include "wiz8/engine_code/World.h"
@@ -290,6 +291,16 @@ enum W8MonsterScriptCommand {
     MONSCR_STAYHOME,
     MONSCR_COUNT
 };
+
+/* Highlight triangle bitmaps indexed by the slot's marching-order position:
+   the marker SetMonsterPartySlotMarker004C4DE0 hangs on a monster. */
+// GLOBAL: WIZ8 0x0060e938
+const char* g_party_target_marker_bitmaps_0060e938[8] = {
+    "TriRed.tga",    "TriGreen.tga",  "TriPurple.tga", "TriBlue.tga",
+    "TriOrange.tga", "TriYellow.tga", "TriPink.tga",   "TriBrown.tga"};
+
+// GLOBAL: WIZ8 0x0060f510
+const char g_monster_bitmap_path_format_0060f510[] = "Data\\Monsters\\Bitmaps\\%s";
 
 // GLOBAL: WIZ8 0x0060e958
 const char* g_monster_script_commands[MONSCR_COUNT] = {"GOTO",
@@ -2739,6 +2750,42 @@ int W8Monster::IsFacingPlayer004C4D40()
     return fabs(bearing - facing) <= g_monster_facing_tolerance_005ec2b0;
 }
 
+/* Attach or remove the party slot's target-marker triangle on a monster's
+   representation: on set it hangs the slot's colored Tri*.tga object on
+   attachment index `party_slot`, on clear it detaches and deletes it. The
+   rep's object count tracks the live markers. */
+// FUNCTION: WIZ8 0x004c4de0
+void SetMonsterPartySlotMarker004C4DE0(int party_slot, int location_id, char on)
+{
+    W8MonsterRep* rep;
+    W8MonsterInfo* info;
+    W8Item* item;
+    char path[260];
+
+    info = MonsterGetScriptPartByLocationIndex(
+        MonsterGetIndexByLocationID(0xf1b, MONSTER_CPP, location_id, 1));
+    rep = info->monster->m_pRep;
+    if (on == 0) {
+        item = rep->objects_5c8[party_slot];
+        if (item != 0) {
+            item->DetachMesh0049FA30(g_world);
+            PListRemove(g_world->plsItems, item);
+            delete item;
+            rep->objects_5c8[party_slot] = 0;
+            rep->value_5c4 = rep->value_5c4 - 1;
+        }
+    } else {
+        if (rep->objects_5c8[party_slot] == 0) {
+            sprintf(path, g_monster_bitmap_path_format_0060f510,
+                    g_party_target_marker_bitmaps_0060e938
+                        [g_status_685170.buffers.party_rows[party_slot].party_order_index]);
+            rep->objects_5c8[party_slot] = CreateMonsterIconItem004C5500(g_world, path, 1);
+            rep->value_5c4 = rep->value_5c4 + 1;
+        }
+    }
+    info->monster->UpdateAttachedObjects004C3F70();
+}
+
 /* Start making the representation visible.  Reversing an active fade-out
    preserves its current scale by seeding the opposite timer at that progress;
    an idle monster starts from zero instead. */
@@ -4613,7 +4660,7 @@ void MonsterSetCycleSubCycle(W8GrCycle* cycle, unsigned char subcycle)
 // FUNCTION: WIZ8 0x004c5eb0
 void NotifyMonsterHighlight(int party_slot, int location_id, int on)
 {
-    Function4C4DE0(party_slot, location_id, on);
+    SetMonsterPartySlotMarker004C4DE0(party_slot, location_id, on);
 }
 
 /* The public forwarding boundary preserves the loader's AL result. Both
@@ -5274,6 +5321,40 @@ void W8Monster::ApplyRepresentationScale()
         m_pRep->monster_light_624->SetRange(movement_0c0.collision_radius_0b0 * g_float_005ec52c);
         m_pRep->monster_light_624->m_vertical_offset_228 = movement_0c0.height_offset_0b8;
     }
+}
+
+/* Build a floating icon item from a bitmap path: clamp-wrapped texture, a
+   500x500 poster quad relocated 250 units up the Y axis with alignment
+   enabled, wrapped in a W8Item whose mesh attachment and bounds are refreshed
+   for the world. Returns 0 when the texture or quad could not be made. */
+// FUNCTION: WIZ8 0x004C5500
+W8Item* CreateMonsterIconItem004C5500(W8World* world, const char* path, int flag)
+{
+    stTextureFile* texture = new stTextureFile(path, 0);
+    texture->setWrapS(srTextureIFace::WRAP_CLAMP);
+    texture->setWrapT(srTextureIFace::WRAP_CLAMP);
+    if (texture != 0) {
+        texture->loadSurface();
+        texture->autoRelease();
+        stModelInstance* instance =
+            static_cast<stModelInstance*>(MakePosterQuad00424BA0(texture, 500.0f, 500.0f, 1));
+        if (instance != 0) {
+            srVector3T<float> offset(0.0f, 250.0f, 0.0f);
+            static_cast<srMeshModel*>(instance->model())->relocateVertices(offset);
+            instance->setAlignment(1);
+            W8Item* item = new W8Item();
+            if (item != 0) {
+                W8ItemRep* rep = static_cast<W8ItemRep*>(item->m_pRep);
+                rep->flags |= 0x40;
+                rep->m_psrMesh = instance;
+                rep->RefreshBounds();
+                item->AttachMesh0049F900(world);
+                instance->scale_194.SetZero();
+                return item;
+            }
+        }
+    }
+    return 0;
 }
 
 // FUNCTION: WIZ8 0x004C5810

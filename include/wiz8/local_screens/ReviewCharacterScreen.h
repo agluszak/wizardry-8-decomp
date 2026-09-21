@@ -196,7 +196,7 @@ void MarkCampCharacterPending005A6020(W8ItemInstance* item);
 bool IsCampActionAllowed005A6090(int party_slot);
 int CommitPartySlotSpell005A6340(int party_slot, int spell_id, int power_level,
                                  W8CombatSlot* target);
-int Function5A6440(int party_slot, W8ItemInstance* item, W8CombatSlot* target);
+int CommitPartySlotItemUse005A6440(int party_slot, W8ItemInstance* item, W8CombatSlot* target);
 
 /* 0x005A5DA0: move a single unit between the clicked stack and the item in
    hand - split one off into the hand, or add one onto the held stack. */

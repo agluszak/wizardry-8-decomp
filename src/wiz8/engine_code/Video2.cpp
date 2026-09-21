@@ -75,8 +75,6 @@
 
 /* Video2-internal helpers. Their only recovered callers are in this unit, so
    they are declared here instead of the released Video2 header. */
-srNode* MakePosterQuad00424BA0(srTextureIFace* texture, float width, float height,
-                               unsigned char positional_3);
 srModelInstance* Video2DRectToSquarePolygon(int* rect, void* source, int source_pitch,
                                             srNode* parent, unsigned char overlay);
 srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch, srNode* parent,

@@ -25,6 +25,7 @@ extern int g_effect_005ee598;
    event the pulse queues on the searcher. */
 extern int g_effect_005ee5e4;
 extern int g_effect_005ee5e8;
+extern int g_effect_005ee5ec;
 extern int g_effect_005ee5f0;
 extern int g_effect_005ee5f8;
 extern int g_effect_005ee5fc;

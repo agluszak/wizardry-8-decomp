@@ -101,3 +101,8 @@ char BuildPreprocessedFiles00492E60(const char* level_path);
 void ReportBuildStatus00497690(int channel, const char* message);
 void ReportStartupMessage004969D0(const char* message);
 char* TrimAndLowercaseString(char* text);
+struct W8OctPreTreeVertex;
+struct W8OctRegionPolygon;
+
+extern W8OctPreTreeVertex* g_gd_vertices_0065bd34;
+extern W8OctRegionPolygon* g_gd_polygons_0065bd38;

@@ -184,6 +184,52 @@ Trigger* FindTriggerForProp00443830(W8World* world, W8Prop* prop)
     return 0;
 }
 
+/* Re-rolls the eight pin bytes of a pickable lock (lock_state[0] == 1) and
+   resets its difficulty-derived seed/state fields. lock_state is
+   &Trigger::value_368. */
+// FUNCTION: WIZ8 0x00445730
+void __fastcall UpdateTriggerLock00445730(int* lock_state)
+{
+    int pins;
+
+    if (*lock_state == 1) {
+        for (int pin = 0; pin < 8; ++pin) {
+            // reinterpret-ok: lock-state pins are byte storage inside the int blob
+            reinterpret_cast<char*>(lock_state)[pin + 9] = static_cast<char>(Random(4));
+        }
+        pins = lock_state[1];
+        if (pins < 8) {
+            if (pins < 2) {
+                lock_state[7] = 6;
+                lock_state[8] = -1;
+                // reinterpret-ok: byte field inside the lock-state int blob
+                reinterpret_cast<char*>(lock_state)[8] = 0;
+                return;
+            }
+            if (pins > 7) {
+                pins = 8;
+            }
+        } else {
+            pins = 8;
+        }
+        lock_state[7] = pins * 3;
+    }
+    lock_state[8] = -1;
+    // reinterpret-ok: byte field inside the lock-state int blob
+    reinterpret_cast<char*>(lock_state)[8] = 0;
+}
+
+/* Ticks the lock countdown at lock_state[7]; returns 1 while a tick remained. */
+// FUNCTION: WIZ8 0x004457A0
+unsigned char __fastcall DecrementLockTimer004457A0(int* lock_state)
+{
+    if (lock_state[7] > 0) {
+        --lock_state[7];
+        return 1;
+    }
+    return 0;
+}
+
 // FUNCTION: WIZ8 0x0043cb30
 void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, bool restoring)
 {

@@ -771,6 +771,12 @@ void PathAISetDiscreteMode004AAA10(W8PathAI* path, unsigned char value)
     path->discrete_mode_1c = value;
 }
 
+// FUNCTION: WIZ8 0x004AAA50
+float PathAIGetScale004AAA50(W8PathAI* path)
+{
+    return path->speed;
+}
+
 // FUNCTION: WIZ8 0x004a9750
 W8PathAI* CreateRecord004A9750(int unused)
 {

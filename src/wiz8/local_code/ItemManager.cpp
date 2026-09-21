@@ -48,10 +48,6 @@
    selection the item manager resets. */
 #define ITEM_MANAGER_CPP "C:\\Projects\\Wizardry 8\\Local Code\\ItemManager.cpp"
 
-/* 0x004F7C50: the item-picker destroy callback InteractWithWorldItem installs;
-   not yet recovered. */
-void Function4F7C50(W8DialogBase* dialog);
-
 /* 0x005ED7B0: 1/360, the half-degree step random item angles are built
    from. */
 // GLOBAL: WIZ8 0x005ed7b0
@@ -869,6 +865,45 @@ void UpdateNearbyWorldItems(void)
     }
 }
 
+/* Destroy callback the item picker installs: the items still held by the
+   dialog come back as a group chain. A two-item group returns the picked
+   extra to the world at the group's position; a lone item is simply dropped.
+   Either way the group's own world entry is found by runtime id, pulled out
+   of its sector, deactivated, freed and removed from the list. */
+// FUNCTION: WIZ8 0x004f7c50
+void OnItemPickerDialogDestroyed004F7C50(W8DialogBase* dialog)
+{
+    W8WorldItem* group;
+    W8WorldItem* item;
+    unsigned int index;
+
+    if (dialog == 0) {
+        return;
+    }
+    group = static_cast<W8TriggerItemPickerDialog*>(dialog)->ReturnItemsToGroup005CF110();
+    if (ItemInfoGetNumInGroup(group) == 2) {
+        item = ItemInfoGroupGetNext(group);
+        item->position = group->position;
+        if (item->p3D == 0) {
+            ActivateItem(item);
+        }
+        PLAdoptAppend(gXStatus.plsItemList, item);
+        group->next = 0;
+    } else if (ItemInfoGetNumInGroup(group) != 1) {
+        return;
+    }
+    index = ItemIndex(group->runtime_id);
+    item = ItemInfo(index);
+    if (item->sector_id > -1) {
+        RemoveItemFromSector(item->sector_id, item);
+    }
+    if (item->fActive != 0) {
+        DeactivateWorldItem(item);
+    }
+    FreeWorldItemGroup(item);
+    PLRemoveAt(gXStatus.plsItemList, index);
+}
+
 /* Interact with one world item by runtime id. Records flagged 0x20 open the
    trigger item-picker instead of being taken; otherwise the item's trigger
    runs, the instance copies into the cursor hand, and the world entry is
@@ -887,7 +922,7 @@ unsigned char InteractWithWorldItem004F7910(int runtime_id)
         W8TriggerItemPickerDialog* dialog = new W8TriggerItemPickerDialog;
         if (dialog != 0) {
             dialog->SetItemGroup005CF0C0(item);
-            dialog->m_destroy_callback = Function4F7C50;
+            dialog->m_destroy_callback = OnItemPickerDialogDestroyed004F7C50;
         }
         g_modal_owner_0068edd0 = dialog;
         return 1;

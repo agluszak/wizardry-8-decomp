@@ -11,6 +11,7 @@ void ReleaseGenericItemNames(void);
 
 struct W8ItemDatabaseRecord;
 struct W8NpcState;
+struct W8CombatSlot;
 
 /* W8Character::equipment index domain. The five body-location slots are fixed
    by CalcArmorClasses' {0,4,10,5,11} location table and the per-location hit
@@ -139,7 +140,9 @@ int CountItemOnCharacter(W8Character* character, int item_id, W8ItemInstance** f
                          int include_backpack);
 /* 0x005223A0: move the departing character's soul-bound equipment to the
    party pool or the held-item display before the slot is released. */
-void Function5223A0(W8Character* character);
+void StashDepartingCharacterItems005223A0(W8Character* character);
+void StagePartySlotItemUse0051DC50(int party_slot, W8ItemInstance* item,
+                                   const W8CombatSlot* target);
 char PartyAttemptsToIdentifyItem(W8ItemInstance* item, int argument_2);
 
 bool CanItemLeaveItsSlot(const W8ItemInstance* item);                              /* 0x0051F2B0 */
@@ -272,7 +275,7 @@ void UpdateGadgeteerOmnigun(W8Character* character);
 unsigned int SwapCharacterWeaponSets(int party_slot, char announce, int refresh);
 void BindEveryPartyItem(void); /* 0x0051D230 */
 /* 0x00522A00: whether the item's equip class is directly usable (0x17/0x19). */
-char IsUsableItemClass00522A00(W8ItemInstance* item);
+bool IsUsableItemClass00522A00(W8ItemInstance* item);
 /* 0x00522B80: validate an item's embedded spell for use now; nonzero reports
    use blocked with the reason notice queued through the callback. */
 char ValidateItemSpellUse(int character_index, W8ItemInstance* item,

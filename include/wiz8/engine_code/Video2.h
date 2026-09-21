@@ -114,6 +114,8 @@ class srTextureIFace;
 class stModelInstance2D;
 template <class T> class srVector3T;
 template <class T> class srVector4T;
+srNode* MakePosterQuad00424BA0(srTextureIFace* texture, float width, float height,
+                               unsigned char positional_3);
 /* 0x00425190: build a 2D marker model instance over a texture. */
 stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width, double height,
                                            char keep_aspect, char a5);

@@ -1,4 +1,5 @@
 #include "wiz8/local_code/PartyImport.h"
+#include "wiz8/local_code/GameplayInit.h"
 #include "wiz8/learned_spells.h"
 
 #include "wiz8/layouts/character.h"
@@ -68,6 +69,163 @@ static int FindItemByLegacyNumber(short item_number)
         ++index;
     }
     return -1;
+}
+
+/* The Wizardry 7 import file state filled by the loader below: the record
+   count, whether the save carries an ending selector, that selector's two
+   nibbles decoded, the ninety-six flag bits and the character records. */
+// GLOBAL: WIZ8 0x0068DE48
+int g_import_character_count_0068de48;
+
+// GLOBAL: WIZ8 0x0068DE4C
+unsigned char g_import_ending_record_0068de4c;
+
+// GLOBAL: WIZ8 0x0068DE50
+int g_value_68de50;
+
+// GLOBAL: WIZ8 0x0068DE54
+int g_import_difficulty_0068de54;
+
+// GLOBAL: WIZ8 0x0068DE58
+unsigned char g_import_flags_0068de58[0x60];
+
+// GLOBAL: WIZ8 0x0068DEB8
+W8Wiz7Character g_imported_characters_0068deb8[6];
+
+/* Load a Wizardry 7 save for import: a 0x34c-byte header (two record-skip
+   counts at 0x2cc/0x2ce, the flag bitmask at 0x200), thirty-two skipped
+   0x100-byte blocks, the 0x4c-byte party block whose last short is the
+   character count and whose first marks the ending selector, five skipped
+   sections, then the character records. Every record must carry the previous
+   one's tag byte. On success the ending and difficulty nibbles decode from
+   the shared tag and the flag bits unpack into g_import_flags_0068de58. */
+// FUNCTION: WIZ8 0x00558D00
+unsigned char LoadWizardry7ImportFile00558D00(char* path)
+{
+    unsigned int bytes_read;
+    unsigned char header[0x34c];
+    short party_block[0x26];
+    unsigned char skip_80[0x80];
+    unsigned char skip_90[0x90];
+    unsigned char skip_68[0x68];
+    unsigned char skip_14a[0x14a];
+    unsigned char skip_344[0x344];
+    unsigned char skip_42[0x42];
+    HWFILE file;
+    int index;
+
+    short record_skip;
+    short bank_skip;
+
+    file = FileOpen(path, FILE_ACCESS_READ, 0);
+    if (file == 0) {
+        return 0;
+    }
+    if (FileRead(file, header, 0x34c, &bytes_read) != 0) {
+        // reinterpret-ok: raw serialized file image; unaligned header short
+        record_skip = *reinterpret_cast<short*>(&header[0x2cc]);
+        // reinterpret-ok: raw serialized file image; unaligned header short
+        bank_skip = *reinterpret_cast<short*>(&header[0x2ce]);
+        if (FileSeek(file, record_skip * 6, FILE_SEEK_FROM_CURRENT) != 0 &&
+            FileSeek(file, bank_skip * 8, FILE_SEEK_FROM_CURRENT) != 0) {
+            for (index = 0; index < 0x20; ++index) {
+                if (FileSeek(file, 0x100, FILE_SEEK_FROM_CURRENT) == 0) {
+                    goto fail;
+                }
+            }
+            if (FileRead(file, party_block, 0x4c, &bytes_read) != 0 && party_block[0x25] != 0 &&
+                party_block[0x25] < 7 && FileRead(file, skip_80, 0x80, &bytes_read) != 0 &&
+                FileRead(file, skip_90, 0x90, &bytes_read) != 0 &&
+                FileRead(file, skip_68, 0x68, &bytes_read) != 0 &&
+                FileRead(file, skip_14a, 0x14a, &bytes_read) != 0 &&
+                FileRead(file, skip_344, 0x344, &bytes_read) != 0 &&
+                FileRead(file, skip_42, 0x42, &bytes_read) != 0 &&
+                FileSeek(file, 100, FILE_SEEK_FROM_CURRENT) != 0) {
+                for (index = 0; index < party_block[0x25]; ++index) {
+                    if (FileRead(file, &g_imported_characters_0068deb8[index], 0x248,
+                                 &bytes_read) == 0) {
+                        goto fail;
+                    }
+                    if (index != 0 && g_imported_characters_0068deb8[index].party_tag_232 !=
+                                          g_imported_characters_0068deb8[index - 1].party_tag_232) {
+                        goto fail;
+                    }
+                }
+                FileClose(file);
+                g_import_character_count_0068de48 = party_block[0x25];
+                g_import_ending_record_0068de4c = party_block[0] == -1;
+                if (g_import_ending_record_0068de4c != 0) {
+                    switch (g_imported_characters_0068deb8[0].party_tag_232 & 0xf0) {
+                    case 0x10:
+                        g_value_68de50 = 0;
+                        break;
+                    case 0x20:
+                        g_value_68de50 = 1;
+                        break;
+                    case 0x40:
+                        g_value_68de50 = 2;
+                        break;
+                    case 0x80:
+                        g_value_68de50 = 3;
+                        break;
+                    default:
+                        return 0;
+                    }
+                } else {
+                    g_value_68de50 = -1;
+                }
+                switch (g_imported_characters_0068deb8[0].party_tag_232 & 0xf) {
+                case 1:
+                    g_import_difficulty_0068de54 = 0;
+                    break;
+                case 2:
+                    g_import_difficulty_0068de54 = 1;
+                    break;
+                case 4:
+                    g_import_difficulty_0068de54 = 2;
+                    break;
+                default:
+                    g_import_difficulty_0068de54 = -1;
+                }
+                for (index = 0; index < 0x60; ++index) {
+                    g_import_flags_0068de58[index] =
+                        (header[0x200 + (index >> 3)] >> (index & 7)) & 1;
+                }
+                return 1;
+            }
+        }
+    }
+fail:
+    FileClose(file);
+    return 0;
+}
+
+/* Apply the loaded Wizardry 7 import: reset the run, seed the party gold,
+   mark the imported-party path and convert each record into a regular member.
+   Reports 1 when the file does not load or a slot cannot take the character,
+   2 when the ending selector holds the value three, 0 otherwise. */
+// FUNCTION: WIZ8 0x00558C40
+unsigned char ImportWizardry7Party00558C40(char* path)
+{
+    W8Character scratch;
+    int index;
+
+    if (LoadWizardry7ImportFile00558D00(path) == 0) {
+        return 1;
+    }
+    ResetForNewGame();
+    g_status_685170.party_gold = 2500;
+    g_status_685170.skip_loose_character_check_2444 = 1;
+    if (g_import_character_count_0068de48 < 7) {
+        for (index = 0; index < g_import_character_count_0068de48; ++index) {
+            ImportWizardry7Character005590B0(&scratch, &g_imported_characters_0068deb8[index]);
+            if (AddCharacterToParty(&scratch, -1) == -1) {
+                return 1;
+            }
+        }
+        return (g_value_68de50 != 3) - 1 & 2;
+    }
+    return 1;
 }
 
 // FUNCTION: WIZ8 0x005590B0
