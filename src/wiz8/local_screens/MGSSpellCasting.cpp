@@ -757,7 +757,7 @@ void BeginSpellCast005A0110(int spell_id, int location_id, int interact_id)
 
     if (gXStatus.fNpcDialogueMode == 0) {
         if (gXStatus.fLockInteractMode != 0) {
-            Function5879A0(0);
+            EndLockInteractMode(0);
         }
     } else {
         EndNpcDialogueSession0056E800(0);

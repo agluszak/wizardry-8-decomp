@@ -1777,7 +1777,7 @@ unsigned char CampScreenEnter(void)
             static_cast<W8CampScreenState0069C0F4*>(malloc(sizeof(W8CampScreenState0069C0F4)));
         if (!g_camp_screen_0069c0f4) {
             if (IsMessageBoxActive()) {
-                Function5187E0();
+                CloseMessageBox();
             }
             BeginCombatRound();
             RequestScreenTransition();
@@ -1905,7 +1905,7 @@ void CampScreenFrame(void)
                 if (!g_camp_screen_0069c0f4->entry_mode || g_camp_screen_0069c0f4->page != 0) {
                     if (!g_camp_character_pending_0069c104) {
                         if (IsMessageBoxActive()) {
-                            Function5187E0();
+                            CloseMessageBox();
                         }
                         BeginCombatRound();
                         RequestScreenTransition();
@@ -2033,7 +2033,7 @@ void DismissSelectedPartyCharacter(void)
         return;
     }
     if (IsMessageBoxActive()) {
-        Function5187E0();
+        CloseMessageBox();
     }
     BeginCombatRound();
     RequestScreenTransition();

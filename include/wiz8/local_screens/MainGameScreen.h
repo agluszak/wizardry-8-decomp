@@ -549,7 +549,7 @@ void DrawPortraitEnchantmentOverlay(int party_slot); /* 0x005651F0 */
 void SelectPartyCharacter(int party_slot);           /* 0x00565740 */
 void Function587A30(void);                           /* 0x00587A30 */
 void EnableLockInteractionPanels(void);              /* 0x00587C20 */
-void Function58A860(void);                           /* 0x0058A860 */
+void RefreshMainGameActionPanel(void);               /* 0x0058A860 */
 void EnableTrapInteractionPanelRegions(void);        /* 0x0058A880 */
 void OpenAutomapScreen(void);                        /* 0x00561480 */
 /* Clear one slot's pending portrait refresh while the screen is not in
@@ -644,10 +644,10 @@ void NpcTradeSplitDialogResult005AE1A0(W8DialogBase* dialog);
 void RefreshFormationPanel005B2980(unsigned char show_portraits); /* 0x005B2980 */
 void Function58BA60(void);                                        /* 0x0058BA60 */
 void Function587510(int value);
-void Function5879A0(int);
+void EndLockInteractMode(char suspend); /* 0x005879A0 */
 void Function58A470(int value);
-void UpdateMainGameScreen(void); /* 0x0058A750 */
-void Function58A790(int);
+void UpdateMainGameScreen(void);        /* 0x0058A750 */
+void EndTrapInteractMode(char suspend); /* 0x0058A790 */
 int GetPartySlotSkill10Level(int slot);
 int OpenLockInteraction00587510(Trigger* trigger);
 int OpenTrapInteraction0058A470(Trigger* trigger);

@@ -38,8 +38,8 @@ W8ItemInstance* GetSelectedOrFallbackValue0059E0D0(void);        /* 0x0059E0D0 *
 void SelectCurrentUseItemLine0059E0E0(void);
 void SetValue69B9A4(W8ItemInstance* value);
 
-void Function59D180(void);
-void SelectUseItemLine0059DDC0(int line);                /* 0x0059DDC0 */
+void CommitSelectedItemUse(void);         /* 0x0059D180: fItemSelectMode per-frame commit */
+void SelectUseItemLine0059DDC0(int line); /* 0x0059DDC0 */
 void OpenUseItemAssayDialog59D880(W8ItemInstance* item); /* 0x0059D880 */
 void RestoreTargetCursor59D930(W8DialogBase* dialog);    /* 0x0059D930 */
 void Function59DFA0(W8ItemInstance* item);               /* 0x0059DFA0 */
@@ -48,5 +48,5 @@ void Function59E0F0(void);                               /* 0x0059E0F0 */
 void CloseUseItemSelectView(void);   /* 0x0059CAC0 */
 void Function59CC40(int party_slot); /* 0x0059CC40 */
 /* 0x0059D690: after dropping a cursor item during use-item select, refresh
-   the selected line. Unresolved gap body; declared for PortraitSelect. */
-void Function59D690(void);
+   the selected line. */
+void RefreshUseItemSelection(void);

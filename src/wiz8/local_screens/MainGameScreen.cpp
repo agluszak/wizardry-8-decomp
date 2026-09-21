@@ -280,6 +280,10 @@ const wchar_t g_format_s_spaced_colon_0064da8c[] = L" %s : ";
 
 // GLOBAL: WIZ8 0x005ec258
 const float g_float_005ec258 = 0.019999999552965164f;
+// GLOBAL: WIZ8 0x005ee998
+const float g_mouselook_yaw_scale_005ee998 = 0.004908738192170858f;
+// GLOBAL: WIZ8 0x005ee99c
+const float g_mouselook_pitch_scale_005ee99c = 0.00654498441144824f;
 // GLOBAL: WIZ8 0x005eebbc
 const float g_float_005eebbc = 120.0f;
 
@@ -289,19 +293,19 @@ bool g_navigator_position_changed_659c11;
 void ApplyPendingMouselook(void);
 void ApplyPendingTooltip(void);
 void UpdateCombatPortraitStatus0059B4C0(void);
-void Function59B390(void);
+void UpdateKeyboardMenu(void);          /* 0x0059B390 */
 void ApplySavedRedrawInvalidates(void); /* 0x00563D00 */
 void RedrawPanel69B940(void);           /* 0x0059BC00 */
 
 void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled); /* 0x0059A540 */
 
-void Function56AC80(void);               /* 0x0056AC80 */
-void Function58C790(void);               /* 0x0058C790 */
-void Function59CF50(int active);         /* 0x0059CF50 */
-void Function587C50(void);               /* 0x00587C50 */
-unsigned char GetOpenDialogueFlag(void); /* 0x0058D7C0 */
-void RedrawTextBoxComplete(void);        /* 0x0058A8C0 */
-unsigned char Function568B50(const InputAtom* input);
+void DrawMainGamePrompt(void);                              /* 0x0056AC80 */
+void Function58C790(void);                                  /* 0x0058C790 */
+void Function59CF50(int active);                            /* 0x0059CF50 */
+void Function587C50(void);                                  /* 0x00587C50 */
+unsigned char GetOpenDialogueFlag(void);                    /* 0x0058D7C0 */
+void RedrawTextBoxComplete(void);                           /* 0x0058A8C0 */
+unsigned char HandleMouselookInput(const InputAtom* input); /* 0x00568B50 */
 
 bool IsPartyPortraitUnderCursor00561980(unsigned int party_slot);
 void UpdateFormationPortraitRefresh0059B2D0(void);
@@ -355,6 +359,33 @@ void RedrawLockInteractionPanels(void)
     g_lock_interaction_68f2c0->m_tumbler_panel_10->Redraw();
     g_lock_interaction_68f2c0->m_info_panel_14->Redraw();
     g_lock_interaction_68f2c0->m_action_panel_18->Redraw();
+}
+
+/* Leave lock interact mode. With `suspend` clear the interaction object is
+   destroyed outright; otherwise its panels go inactive while fLockInteract
+   stays set so the session can resume. Either path re-syncs the text box and
+   UI mode and repaints the portrait, status and action regions. */
+// FUNCTION: WIZ8 0x005879A0
+void EndLockInteractMode(char suspend)
+{
+    W8LockInteraction* interaction = g_lock_interaction_68f2c0;
+    gXStatus.fLockInteractMode = 0;
+    if (suspend != 0) {
+        interaction->m_tumbler_panel_10->EnableRegionSet(0);
+        interaction->m_action_panel_18->EnableRegionSet(0);
+        gXStatus.fLockInteract = 1;
+    } else {
+        if (g_lock_interaction_68f2c0 != 0) {
+            delete g_lock_interaction_68f2c0;
+        }
+        g_lock_interaction_68f2c0 = 0;
+        ClearLevelDataFlag6();
+    }
+    SelectTextBox(0);
+    ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_value_68f2b0), 1);
+    RequestRedraw(0x200);
+    RequestRedraw(0x100);
+    RequestRedraw(0x1000);
 }
 
 /* Re-arm the lock tumbler and action region sets while lock interact is up. */
@@ -850,7 +881,7 @@ void W8LockInteraction::Process()
         if (GetKnockKnockSpellPower00586A70(g_status_685170.selected_character) > -1 &&
             CanCharacterCastSpell(&g_status_685170.buffers.characters[slot], 0x27)) {
             m_spell_button_20->SetAlternateTextEnabled(0);
-            Function5879A0(1);
+            EndLockInteractMode(1);
             BeginSpellCast005A0110(0x27, -1, -1);
             return;
         }
@@ -2186,6 +2217,42 @@ void RedrawTrapInteractionPanels(void)
     g_main_game_screen->m_action_panel_014->Redraw();
 }
 
+/* Leave trap interact mode. With `suspend` clear the main game screen object
+   is destroyed outright; otherwise its text/key-handler/action panels go
+   inactive while fTrapInteract stays set so the session can resume. Either
+   path re-syncs the text box and UI mode and repaints the affected regions. */
+// FUNCTION: WIZ8 0x0058A790
+void EndTrapInteractMode(char suspend)
+{
+    gXStatus.fTrapInteractMode = 0;
+    if (suspend != 0) {
+        W8MainGameTextPanel* panel = g_main_game_screen->m_text_panel_00c;
+        W8MainGameScreen* screen = g_main_game_screen;
+        panel->EnableRegionSet(0);
+        panel->m_key_handler_074->m_range_038.EnableRegionSet(0);
+        screen->m_action_panel_014->EnableRegionSet(0);
+        gXStatus.fTrapInteract = 1;
+    } else {
+        if (g_main_game_screen != 0) {
+            delete g_main_game_screen;
+        }
+        g_main_game_screen = 0;
+        ClearLevelDataFlag6();
+    }
+    SelectTextBox(0);
+    ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_value_68f2c4), 1);
+    RequestRedraw(0x200);
+    RequestRedraw(0x100);
+    RequestRedraw(0x1000);
+}
+
+/* Per-frame trap interact service: repaint the screen's action panel. */
+// FUNCTION: WIZ8 0x0058A860
+void RefreshMainGameActionPanel(void)
+{
+    g_main_game_screen->RefreshActionPanel();
+}
+
 // FUNCTION: WIZ8 0x0055DE40
 W8NpcDialogueTextController::W8NpcDialogueTextController(int panel_left, int panel_top,
                                                          int panel_right, int panel_bottom,
@@ -2813,7 +2880,7 @@ void SetMainGameMode00568390(int mode)
         }
         break;
     case 5:
-        Function5187E0();
+        CloseMessageBox();
         break;
     case 6:
         if (g_level_block->highlight_graphic != 0) {
@@ -2858,7 +2925,7 @@ unsigned char ProcessMainGameInput(void)
     InputAtom input;
     while (DequeueEvent(&input)) {
         handled = 1;
-        if ((g_flag_0068edd8 == 0 || Function568B50(&input) == 0) &&
+        if ((g_flag_0068edd8 == 0 || HandleMouselookInput(&input) == 0) &&
             DispatchRegionInput(&input) == 0 && GetForcedRegion() == 0) {
             SGPMouseGetPos(&mouse);
             switch (input.usEvent) {
@@ -2876,13 +2943,13 @@ unsigned char ProcessMainGameInput(void)
                             EndNpcDialogueSession0056E800(0);
                         }
                     } else if (g_main_game_mode_0068eddc == 5) {
-                        Function5187E0();
+                        CloseMessageBox();
                     } else if (g_main_game_mode_0068eddc == 6) {
                         DismissHighlightOverlay();
                     }
                     g_main_game_mode_0068eddc = 0;
                     if (IsMessageBoxActive()) {
-                        Function5187E0();
+                        CloseMessageBox();
                     }
                     if (gXStatus.fCombatMode == 0) {
                         if (AnyCharacterActive() && gXStatus.party_moving == 0) {
@@ -3029,7 +3096,7 @@ update_screen:
     }
     g_status_685170.value_2390 = 0;
     if (g_level_block->keyboard_menu_open || g_level_block->combat_slot != -1) {
-        Function59B390();
+        UpdateKeyboardMenu();
     }
     UpdateSurpriseMode();
     if (gXStatus.fCombatMode) {
@@ -3212,7 +3279,7 @@ render_world:
         if (gXStatus.fSpellCastMode)
             CommitSpellCastingSelection005A0BC0();
         if (gXStatus.fItemSelectMode)
-            Function59D180();
+            CommitSelectedItemUse();
         if (gXStatus.fNpcDialogueMode)
             ServiceNpcDialogue0056E510();
         if (gXStatus.fLockInteractMode)
@@ -3258,7 +3325,7 @@ unsigned char MainGameScreenLeave(int leaving)
             EndNpcDialogueSession0056E800(0);
         }
     } else if (g_main_game_mode_0068eddc == 5) {
-        Function5187E0();
+        CloseMessageBox();
     } else if (g_main_game_mode_0068eddc == 6) {
         if (g_level_block->highlight_graphic != 0) {
             ReleaseObject004257F0(g_level_block->highlight_graphic);
@@ -3278,9 +3345,9 @@ unsigned char MainGameScreenLeave(int leaving)
     }
     ResetPartyPortraitFx();
     if (gXStatus.fLockInteractMode)
-        Function5879A0(0);
+        EndLockInteractMode(0);
     if (gXStatus.fTrapInteractMode)
-        Function58A790(0);
+        EndTrapInteractMode(0);
     if (gXStatus.fSpellCastMode)
         CloseSpellCastingView();
     if (gXStatus.fItemSelectMode)
@@ -3595,7 +3662,7 @@ void ApplyMainGameRedrawFlags(void)
                 DrawPortraitConditionOverlay(g_level_block->condition_orb_party_slot);
             }
         } else {
-            Function56AC80();
+            DrawMainGamePrompt();
             if (gXStatus.fPartyMovementUi == 0) {
                 goto refresh_tracked_portrait_slot;
             }
@@ -4207,7 +4274,7 @@ void SelectPartyCharacter(int party_slot)
         Function587A30();
     }
     if (gXStatus.fTrapInteractMode != 0) {
-        Function58A860();
+        RefreshMainGameActionPanel();
     }
     if (gXStatus.fReviewCharacterMode != 0) {
         SelectFormationSlotCell(g_status_685170.selected_character);
@@ -4273,7 +4340,7 @@ void RefreshSelectedPartyPortrait(unsigned int party_slot)
             EndNpcDialogueSession0056E800(0);
         }
     } else if (g_main_game_mode_0068eddc == 5) {
-        Function5187E0();
+        CloseMessageBox();
     } else if (g_main_game_mode_0068eddc == 6) {
         if (g_level_block->highlight_graphic != 0) {
             ReleaseObject004257F0(g_level_block->highlight_graphic);
@@ -4347,7 +4414,7 @@ void DrawHighlightOverlay(unsigned int party_slot, int row_count, unsigned int m
             EndNpcDialogueSession0056E800(0);
         }
     } else if (g_main_game_mode_0068eddc == 5) {
-        Function5187E0();
+        CloseMessageBox();
     } else if (g_main_game_mode_0068eddc == 6) {
         if (g_level_block->highlight_graphic != 0) {
             ReleaseObject004257F0(g_level_block->highlight_graphic);
@@ -5201,6 +5268,47 @@ void UpdateCombatPortraitStatus0059B4C0(void)
     }
 }
 
+/* Per-frame keyboard menu service: close the menu when it outlives combat,
+   its party slot becomes ineligible, or the selected slot empties. While the
+   cursor sits outside the menu a 600 ms countdown runs; drifting back in
+   re-arms the slot from the cursor row, and expiry closes the menu. */
+// FUNCTION: WIZ8 0x0059B390
+void UpdateKeyboardMenu(void)
+{
+    RequestRedraw(0x80000000);
+    if ((gXStatus.fCombatMode == 0 && g_level_block->keyboard_menu_open != 0) ||
+        (g_level_block->combat_slot != -1 &&
+         !IsPartySlotEligible00524A10(g_level_block->combat_slot))) {
+        CloseKeyboardMenu();
+        return;
+    }
+    if (gXStatus.fCombatMode != 0 && g_combat_state->flag_001 == 0) {
+        CloseKeyboardMenu();
+        return;
+    }
+    if (g_level_block->keyboard_menu_open != 0) {
+        if (g_level_block->flag_31c == 0) {
+            if (g_status_685170.buffers.party_rows[g_level_block->combat_slot].occupied == 0) {
+                CloseKeyboardMenu();
+                return;
+            }
+            if (!KeyboardMenuContainsCursor()) {
+                g_level_block->flag_31c = 1;
+                g_level_block->countdown_30c = SetCountdownClock(0x258);
+                return;
+            }
+        } else {
+            if (KeyboardMenuContainsCursor()) {
+                g_level_block->countdown_30c = SetCountdownClock(0);
+                g_level_block->combat_slot = GetValue64C1C8();
+                g_level_block->flag_31c = 0;
+            } else if (ClockIsTicking(g_level_block->countdown_30c) == 0) {
+                CloseKeyboardMenu();
+            }
+        }
+    }
+}
+
 /* While the main UI is not in portrait mode, keep each party slot's formation
    portrait refresh latch in sync with dirty flags, occupancy, and hover. */
 // FUNCTION: WIZ8 0x0059B2D0
@@ -5758,7 +5866,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                         GiveHeldItemToCharacterOrParty(slot,
                                                        static_cast<unsigned char>(force_to_party));
                         if (gXStatus.fItemSelectMode != 0) {
-                            Function59D690();
+                            RefreshUseItemSelection();
                         }
                     }
                 } else {
@@ -5789,7 +5897,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                     }
                 } else if (g_main_game_mode_0068eddc == 5) {
                     g_pending_screen_state.parameter_2 = slot;
-                    Function5187E0();
+                    CloseMessageBox();
                 } else {
                     g_pending_screen_state.parameter_2 = slot;
                     if (g_main_game_mode_0068eddc == 6) {
@@ -5827,10 +5935,10 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 g_main_game_mode_0068eddc = 0;
                 SetPendingScreenState(W8_SCREEN_CAMP);
                 if (gXStatus.fLockInteractMode != 0) {
-                    Function5879A0(1);
+                    EndLockInteractMode(1);
                 }
                 if (gXStatus.fTrapInteractMode != 0) {
-                    Function58A790(1);
+                    EndTrapInteractMode(1);
                 }
                 if (gXStatus.fSpellCastMode != 0) {
                     CloseSpellCastingView();
@@ -5872,7 +5980,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                     }
                 } else if (g_main_game_mode_0068eddc == 5) {
                     g_pending_screen_state.parameter_2 = slot;
-                    Function5187E0();
+                    CloseMessageBox();
                 } else {
                     g_pending_screen_state.parameter_2 = slot;
                     if (g_main_game_mode_0068eddc == 6) {
@@ -5996,7 +6104,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                     }
                 } else if (g_main_game_mode_0068eddc == 5) {
                     g_pending_screen_state.parameter_2 = slot;
-                    Function5187E0();
+                    CloseMessageBox();
                 } else {
                     g_pending_screen_state.parameter_2 = slot;
                     if (g_main_game_mode_0068eddc == 6) {
@@ -6034,10 +6142,10 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 g_main_game_mode_0068eddc = 0;
                 SetPendingScreenState(W8_SCREEN_CAMP);
                 if (gXStatus.fLockInteractMode != 0) {
-                    Function5879A0(1);
+                    EndLockInteractMode(1);
                 }
                 if (gXStatus.fTrapInteractMode != 0) {
-                    Function58A790(1);
+                    EndTrapInteractMode(1);
                 }
                 if (gXStatus.fSpellCastMode != 0) {
                     CloseSpellCastingView();
@@ -6053,7 +6161,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
             }
             GiveHeldItemToCharacterOrParty(slot, 1);
             if (gXStatus.fItemSelectMode != 0) {
-                Function59D690();
+                RefreshUseItemSelection();
                 return 1;
             }
         }
@@ -6572,7 +6680,7 @@ unsigned char RadarMapButtonRegionEvent(const InputAtom* event, W8Region* region
                     EndNpcDialogueSession0056E800(0);
                 }
             } else if (g_main_game_mode_0068eddc == 5) {
-                Function5187E0();
+                CloseMessageBox();
             } else if (g_main_game_mode_0068eddc == 6) {
                 if (g_level_block->highlight_graphic != 0) {
                     ReleaseObject004257F0(g_level_block->highlight_graphic);
@@ -7078,7 +7186,7 @@ void OpenAutomapScreen(void)
         }
         break;
     case 5:
-        Function5187E0();
+        CloseMessageBox();
         break;
     case 6:
         DismissHighlightOverlay();
@@ -7137,6 +7245,41 @@ void DisableCombatRegions(void)
         DisableRegionInput(0x59);
         RegionSetDisable(0x14);
     }
+}
+
+/* While the mouselook latch is up, consume button and motion atoms: the left
+   button tracks the hold, and MOUSE_POS folds the cursor's pixel offset from
+   screen centre into the pending yaw/pitch (Y flipped by the invert option).
+   With smoothing off the pending angles are applied immediately. */
+// FUNCTION: WIZ8 0x00568B50
+unsigned char HandleMouselookInput(const InputAtom* input)
+{
+    if (g_level_runtime_flag_0065ba70 == 0 &&
+        (gXStatus.flag_a05 == 0 || gXStatus.fCombatMode != 0)) {
+        if (input->usEvent == LEFT_BUTTON_DOWN) {
+            g_flag_0068edd9 = 1;
+            return 1;
+        }
+        if (input->usEvent == LEFT_BUTTON_UP) {
+            g_flag_0068edd9 = 0;
+            return 1;
+        }
+        if (input->usEvent == MOUSE_POS) {
+            g_mouselook_pending_yaw_0068ede0 =
+                (_EvMouseX(input) - 0x140) * g_mouselook_yaw_scale_005ee998 +
+                g_mouselook_pending_yaw_0068ede0;
+            g_mouselook_pending_pitch_0068ede4 =
+                g_mouselook_pending_pitch_0068ede4 +
+                ((_EvMouseY(input) - 0xf0) * (g_settings_6850c8.invert_mouse_y != 0 ? -1 : 1)) *
+                    g_mouselook_pitch_scale_005ee99c;
+            WarpSystemCursor(0x140, 0xf0);
+            if (g_settings_6850c8.mouselook_smoothing == 0) {
+                ApplyPendingMouselook();
+            }
+            return 1;
+        }
+    }
+    return 0;
 }
 
 /* Drain the pending mouselook yaw/pitch into the camera, optionally scaling
@@ -7478,6 +7621,33 @@ void SetCombatAction(int value)
     }
 }
 
+/* With no modal or NPC dialogue up, draw the bottom prompt strip: the catalog
+   backdrop plus the "choose action" line - the combat variant while combat
+   mode is on. */
+// FUNCTION: WIZ8 0x0056AC80
+void DrawMainGamePrompt(void)
+{
+    W8ControlsRect bounds;
+    W8TextBuffer* buffer;
+
+    if (g_modal_owner_0068edd0 == 0 && gXStatus.fNpcDialogueMode == 0) {
+        DrawCatalogImageAndInvalidate(-0xe, 0xa9, 0, 0, 0xb1, 0x13f, 2, 0);
+        bounds.left = 0xb1;
+        bounds.top = 0x13f;
+        bounds.right = 0x1cf;
+        bounds.bottom = 0x153;
+        buffer = new W8TextBuffer(
+            &bounds, 0, g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C, 0, 4);
+        if (gXStatus.fCombatMode == 0) {
+            buffer->SetText(gppStringList[0x77f], g_font_683660);
+        } else {
+            buffer->SetText(gppStringList[0x780], g_font_683660);
+        }
+        buffer->RenderToTarget(0, 0, -0xe);
+        delete buffer;
+    }
+}
+
 /* Raise or drop the radar map panel and restore the viewport mode when the
    raise latch changes. */
 // FUNCTION: WIZ8 0x00568EB0
@@ -7686,10 +7856,10 @@ void SetFormationBoardVisible(unsigned char visible)
 void UpdateScreenOverlays(int frame)
 {
     if (gXStatus.fLockInteractMode != 0) {
-        Function5879A0(frame);
+        EndLockInteractMode(frame);
     }
     if (gXStatus.fTrapInteractMode != 0) {
-        Function58A790(frame);
+        EndTrapInteractMode(frame);
     }
     if (gXStatus.fSpellCastMode != 0) {
         CloseSpellCastingView();
@@ -8187,7 +8357,7 @@ void OpenCharacterScreenForPartySlot(unsigned int party_slot, int flag)
             EndNpcDialogueSession0056E800(0);
         }
     } else if (g_main_game_mode_0068eddc == 5) {
-        Function5187E0();
+        CloseMessageBox();
     } else if (g_main_game_mode_0068eddc == 6) {
         if (g_level_block->highlight_graphic != 0) {
             ReleaseObject004257F0(g_level_block->highlight_graphic);
@@ -8217,10 +8387,10 @@ done:
     g_main_game_mode_0068eddc = 0;
     SetPendingScreenState(6);
     if (gXStatus.fLockInteractMode != 0) {
-        Function5879A0(1);
+        EndLockInteractMode(1);
     }
     if (gXStatus.fTrapInteractMode != 0) {
-        Function58A790(1);
+        EndTrapInteractMode(1);
     }
     if (gXStatus.fSpellCastMode != 0) {
         CloseSpellCastingView();
@@ -8981,7 +9151,7 @@ void ResetMainGameMode00560C60(void)
         }
         break;
     case 5:
-        Function5187E0();
+        CloseMessageBox();
         break;
     case 6:
         if (g_level_block->highlight_graphic != 0) {
@@ -9012,7 +9182,7 @@ void ResetMainGameMode00560C60(void)
 mode_reset:
     g_main_game_mode_0068eddc = 0;
     if (IsMessageBoxActive()) {
-        Function5187E0();
+        CloseMessageBox();
     }
     if (gXStatus.fCombatMode != 0) {
         EndCombat004EA310(1);
