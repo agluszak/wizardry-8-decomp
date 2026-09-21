@@ -450,7 +450,7 @@ unsigned char SaveGame(const char* name, W8SaveScreenshot* screenshot)
                 ClockIsTicking(g_message_storage_68f2d8[region][index].clock_08);
         }
     }
-    g_gameplay_timer_685067->Restart();
+    gXStatus.gameplay_timer->Restart();
     DestroyUngroupedMonsters();
     SaveMasterFunctions004D8EC0();
     g_status_685170.buffers.save_version = 1.1f;
@@ -1770,8 +1770,6 @@ void CaptureSaveScreenshot(W8SaveScreenshot* screenshot)
 // GLOBAL: WIZ8 0x00689f98
 unsigned char g_save_pending_00689f98;
 
-// GLOBAL: WIZ8 0x0068506b
-unsigned char g_save_notice_shown_0068506b;
 /* 0x0061A144, the save-file extension. It sits in writable .data with 16
    reference sites across 10 functions rather than in .rdata with the format
    literals, so it is a mutable character array rather than a string literal;
@@ -1826,7 +1824,7 @@ unsigned char AutoSaveIfAllowed(char forced)
 {
     char name[64];
 
-    g_save_notice_shown_0068506b = 0;
+    gXStatus.save_notice_shown = 0;
     if (g_status_685170.value_2435 == 0 && AnyMonsterDying() == 0 &&
         ((g_settings_6850c8.auto_save != 0 && forced == 0) || g_status_685170.iron_man != 0) &&
         gXStatus.fCombatMode == 0 && IsSightRangeOverridden() == 0 &&
@@ -1875,7 +1873,7 @@ unsigned char SaveSlotFileExists(const char* slot_name)
 void ReportSaveFailed(char quiet)
 {
     if (quiet == 0 || g_status_685170.iron_man != 0) {
-        g_save_notice_shown_0068506b = 1;
+        gXStatus.save_notice_shown = 1;
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
             ShowNotice(0xc, gppStringList[0x1e0c / 4], -1, -1, 0);
         }
@@ -1917,18 +1915,18 @@ void ProcessMainGameAutoSave(void)
     if (gXStatus.fCampMode != 0) {
         return;
     }
-    if (g_save_notice_shown_0068506b == 0) {
-        if (g_gameplay_timer_685067->GetProgress() <= g_float_005ebb38) {
+    if (gXStatus.save_notice_shown == 0) {
+        if (gXStatus.gameplay_timer->GetProgress() <= g_float_005ebb38) {
             return;
         }
-        g_save_notice_shown_0068506b = 1;
+        gXStatus.save_notice_shown = 1;
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
             ShowNotice(0xc, gppStringList[0x1e0c / 4], -1, -1, 0);
         }
-        g_gameplay_timer_685067->Restart();
+        gXStatus.gameplay_timer->Restart();
         return;
     }
-    g_save_notice_shown_0068506b = 0;
+    gXStatus.save_notice_shown = 0;
     if (g_status_685170.value_2435 == 0 && AnyMonsterDying() == 0 &&
         (g_settings_6850c8.auto_save != 0 || g_status_685170.iron_man != 0) &&
         gXStatus.fCombatMode == 0 && IsSightRangeOverridden() == 0 &&
@@ -2427,7 +2425,7 @@ unsigned char LoadGame(const char* slot_name)
                 SetCountdownClock(g_message_storage_68f2d8[box][index].clock_ticking_0c);
         }
     }
-    g_gameplay_timer_685067->Restart();
+    gXStatus.gameplay_timer->Restart();
     ResetMainGameScreenState();
     if (g_status_685170.item_in_hand_235b.item_id == -1) {
         ClearHeldItemDisplay();

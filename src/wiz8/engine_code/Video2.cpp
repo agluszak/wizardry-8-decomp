@@ -1,3 +1,4 @@
+#include "wiz8/xstatus.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_code/Gameloop.h"
@@ -372,7 +373,7 @@ unsigned char InitializeVideoManager(HINSTANCE instance, unsigned short show_com
     }
     InitializeRendererSceneObjects();
     if (!g_flag_659710) {
-        if (g_flag_006840bc) {
+        if (gXStatus.world_update_blocked) {
             ResumeMainGameWorld();
         }
         if (ghWindow && g_gerd_659634) {
@@ -838,7 +839,7 @@ unsigned char RestoreVideoManager(void)
     if (g_flag_659710) {
         return 1;
     }
-    if (g_flag_006840bc) {
+    if (gXStatus.world_update_blocked) {
         ResumeMainGameWorld();
     }
     if (ghWindow && g_gerd_659634) {

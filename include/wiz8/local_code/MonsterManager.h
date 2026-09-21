@@ -205,7 +205,6 @@ enum { W8_MONSTER_ATTR_COUNT = 5 };
 /* The 0x153-byte combat allocation has two adjacent runs of 0x11-byte records.
    ClearEffectSlot consumes a record whenever its leading active byte is set. */
 #pragma pack(push, 1)
-extern int g_dword_6850be;
 
 struct W8MonsterCombatState {
     /* 0x000: the phase of the round this monster next acts on, zero when it

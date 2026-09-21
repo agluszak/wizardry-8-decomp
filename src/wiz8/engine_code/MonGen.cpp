@@ -100,9 +100,6 @@ short g_generator_interval_min = 100;
 // GLOBAL: WIZ8 0x0060a6b8
 short g_generator_interval_max = -1;
 
-// GLOBAL: WIZ8 0x006850b6
-int g_saved_encounter_budget;
-
 // GLOBAL: WIZ8 0x0060a6c8
 int g_encounter_culling_time_seconds = 180;
 
@@ -483,8 +480,9 @@ unsigned char MonGen::CanGenerateEncounter(unsigned char force)
     srVector3T<float> camera;
     float distance;
 
-    if (g_generator_save_flag != 0 || g_flag_006840bc != 0 || gXStatus.fCombatMode != 0 ||
-        gXStatus.fNpcDialogueMode != 0 || GetFlag68F105() != 0 || generation_enabled == 0) {
+    if (g_generator_save_flag != 0 || gXStatus.world_update_blocked != 0 ||
+        gXStatus.fCombatMode != 0 || gXStatus.fNpcDialogueMode != 0 || GetFlag68F105() != 0 ||
+        generation_enabled == 0) {
         return 0;
     }
 
@@ -724,9 +722,9 @@ unsigned char MonGen::LoadAll(int save_handle)
     DestroyMonsterGenerators();
     FileRead(save_handle, &version, 4, 0);
     if (version > 4) {
-        FileRead(save_handle, &g_saved_encounter_budget, 4, 0);
+        FileRead(save_handle, &gXStatus.saved_encounter_budget, 4, 0);
     } else {
-        g_saved_encounter_budget = 100;
+        gXStatus.saved_encounter_budget = 100;
     }
     FileRead(save_handle, &g_random_encounter_budget, 4, 0);
     if (version > 1) {
@@ -1066,7 +1064,7 @@ void SaveEncounterState(int handle)
     count = g_world->monster_generators->GetCount();
     version = 5;
     FileWrite(handle, &version, 4, 0);
-    FileWrite(handle, &g_saved_encounter_budget, 4, 0);
+    FileWrite(handle, &gXStatus.saved_encounter_budget, 4, 0);
     FileWrite(handle, &g_random_encounter_budget, 4, 0);
     FileWrite(handle, &g_encounter_culling_time_seconds, 4, 0);
     FileWrite(handle, &g_generator_save_flag, 1, 0);

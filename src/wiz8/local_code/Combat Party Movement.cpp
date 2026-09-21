@@ -43,7 +43,7 @@ enum { W8_ACTION_STATUS_FINISHED = 3 };
 // FUNCTION: WIZ8 0x004efbe0
 void BeginPartyMovement(void)
 {
-    g_party_moving_006850b5 = 1;
+    gXStatus.party_moving = 1;
     MoveTimer(1);
 }
 

@@ -134,7 +134,7 @@ unsigned char UpdateMissileAI004A4CF0(W8AIMissile* record)
         delta = 0xfa;
     }
     record->value_10 = count;
-    if (g_flag_006840bc != 0) {
+    if (gXStatus.world_update_blocked != 0) {
         return 1;
     }
     advance = AdvanceMissileAI004A50A0(record, &out, delta);

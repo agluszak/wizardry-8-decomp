@@ -1,3 +1,4 @@
+#include "wiz8/xstatus.h"
 #include <wchar.h>
 #include "wiz8/dialog_code/AssayDialog.h"
 #include "wiz8/dialog_code/SpellInfoDialog.h"
@@ -166,11 +167,11 @@ int W8AssayDialog::CreateControls()
             return 7;
         }
         if (CreateTextBuffers() != 0) {
-            m_buttons[0]->SetVisible(g_flag_00685070 != 0);
-            SetProfessionIconsVisible(g_flag_00685070);
-            m_buttons[1]->SetVisible(g_flag_00685070 == 0);
-            SetRaceIconsVisible(g_flag_00685070 == 0);
-            if (g_flag_00685070 != 0) {
+            m_buttons[0]->SetVisible(gXStatus.flag_19b8 != 0);
+            SetProfessionIconsVisible(gXStatus.flag_19b8);
+            m_buttons[1]->SetVisible(gXStatus.flag_19b8 == 0);
+            SetRaceIconsVisible(gXStatus.flag_19b8 == 0);
+            if (gXStatus.flag_19b8 != 0) {
                 m_buttons[2]->SetPressed(true);
                 return 0;
             }
@@ -731,7 +732,7 @@ void W8AssayDialog::ShowPrimaryTab()
         m_buttons[3]->SetPressed(false);
         m_buttons[3]->m_dirty = 1;
     }
-    g_flag_00685070 = 1;
+    gXStatus.flag_19b8 = 1;
     m_buttons[0]->SetVisible(true);
     SetProfessionIconsVisible(1);
     m_buttons[1]->SetVisible(false);
@@ -752,7 +753,7 @@ void W8AssayDialog::ShowSecondaryTab()
         m_buttons[2]->SetPressed(false);
         m_buttons[2]->m_dirty = 1;
     }
-    g_flag_00685070 = 0;
+    gXStatus.flag_19b8 = 0;
     m_buttons[0]->SetVisible(false);
     SetProfessionIconsVisible(0);
     m_buttons[1]->SetVisible(true);

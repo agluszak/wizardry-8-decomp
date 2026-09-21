@@ -1768,10 +1768,10 @@ unsigned char CampScreenEnter(void)
         SoundPlay("Data\\Spells\\Sounds\\GeneralMagic.wav", 0);
         SetTargetingMode(6);
     }
-    g_flag_00685071 = 0;
-    g_value_00685072 = 0;
-    g_flag_00685076 = 0xff;
-    g_value_00685077 = -1;
+    gXStatus.item_drag_active = 0;
+    gXStatus.dragged_item = 0;
+    gXStatus.dragged_item_origin = 0xff;
+    gXStatus.dragged_character_slot = -1;
     if (!g_camp_screen_0069c0f4) {
         g_camp_screen_0069c0f4 =
             static_cast<W8CampScreenState0069C0F4*>(malloc(sizeof(W8CampScreenState0069C0F4)));
@@ -2490,7 +2490,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
         return;
     }
     if (character->highest_condition >= W8_CONDITION_HOSTILE && origin != 2 &&
-        g_status_685170.item_in_cursor != 0 && g_held_item_source_006840c0 != giReviewCharSlot) {
+        g_status_685170.item_in_cursor != 0 && gXStatus.held_item_source != giReviewCharSlot) {
         text = gppStringList[0x2404 / 4];
         dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
         dialog->SetClientExtent(250, 200);
@@ -2510,7 +2510,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
         if (g_status_685170.item_in_cursor == 0 ||
             ((g_item_records[g_status_685170.item_in_hand_235b.item_id].equip_class == 2 ||
               g_item_records[g_status_685170.item_in_hand_235b.item_id].equip_class == 4) &&
-             g_held_item_source_006840c0 == giReviewCharSlot &&
+             gXStatus.held_item_source == giReviewCharSlot &&
              (origin != 1 || HeldItemFitsPairedSlot0051CDE0(giReviewCharSlot, slot_index) != 0))) {
             if (item->item_id == -1 || g_item_records[item->item_id].equip_class == 2 ||
                 g_item_records[item->item_id].equip_class == 4 || same_kind != 0) {
@@ -2748,7 +2748,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                         }
                     }
                     if (g_status_685170.item_in_cursor != 0) {
-                        choose_character = g_held_item_source_006840c0 == -1;
+                        choose_character = gXStatus.held_item_source == -1;
                         DeliverExceptionalItemReaction(&g_status_685170.item_in_hand_235b,
                                                        choose_character, g_value_0069c0f8);
                     }
@@ -2931,8 +2931,8 @@ void TakeItemUnitToHand005A5DA0(W8ItemInstance* item, unsigned short slot, unsig
         if (origin == 1 || origin == 0) {
             CopyItemInstance(&g_status_685170.item_in_hand_235b, &single,
                              &g_status_685170.buffers.characters[giReviewCharSlot], 1);
-            g_held_item_origin_006840c4 = origin;
-            g_held_item_slot_006840c5 = slot;
+            gXStatus.held_item_origin = origin;
+            gXStatus.held_item_slot = slot;
         } else {
             CopyItemInstance(&g_status_685170.item_in_hand_235b, &single, 0, 1);
         }
@@ -3232,7 +3232,7 @@ void BeginPartyDeath005A68C0(void)
     if (g_level_block->review_transition_active) {
         return;
     }
-    if (g_status_685170.iron_man != 0 && g_party_moving_006850b5 == 0) {
+    if (g_status_685170.iron_man != 0 && gXStatus.party_moving == 0) {
         DeleteCurrentSaveFiles();
     }
     if (gXStatus.fSurprisePossible != 0) {
@@ -3300,7 +3300,7 @@ void DrawPartyDeathScreen005A6A70(void)
     const wchar_t* text;
 
     DrawCatalogImageAndInvalidate(-14, 0x1df, 0, 0, 0, 0, 2, 0);
-    if (g_party_moving_006850b5 != 0) {
+    if (gXStatus.party_moving != 0) {
         text = gppStringList[0x777];
     } else {
         text = gppStringList[0x778];

@@ -675,7 +675,7 @@ void OnDismissCharacterDialogClosed(W8DialogBase* base)
 {
     if (GetDialogResult(base) &&
         g_status_685170.buffers.party_rows[giReviewCharSlot].animation_0fa != -1) {
-        g_value_006840be = static_cast<unsigned short>(giReviewCharSlot);
+        gXStatus.review_character_slot = static_cast<unsigned short>(giReviewCharSlot);
         DismissSelectedPartyCharacter();
     }
 }
@@ -1338,7 +1338,7 @@ void RefreshCampItemActions005B5670(unsigned char invalidate)
                     continue;
                 }
                 if (IsEquippableItemClass005A6310(held) != 0 &&
-                    g_held_item_source_006840c0 == giReviewCharSlot) {
+                    gXStatus.held_item_source == giReviewCharSlot) {
                     control->SetEnabled(1);
                     continue;
                 }

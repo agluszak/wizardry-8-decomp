@@ -46,7 +46,7 @@ enum { W8_NEUTRAL_SPECIES_224 = 0x224 };
 void RecountCombatMonsters(void)
 {
     gXStatus.hostile_monster_count = 0;
-    g_dword_6850be = 0;
+    gXStatus.hostile_group_count = 0;
     for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
         if (monster->fActive && monster->fInCombat) {
@@ -54,7 +54,6 @@ void RecountCombatMonsters(void)
                 ++gXStatus.hostile_monster_count;
             }
             if (monster->condition_turns[13] != 0) {
-                ++g_dword_6850be;
             }
         }
     }

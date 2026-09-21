@@ -1,3 +1,4 @@
+#include "wiz8/xstatus.h"
 #include "wiz8/world_cursor.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Monster.h"
@@ -496,9 +497,9 @@ unsigned int LoadWorldCursorNodes0048E7B0(int handle)
     if (static_cast<unsigned int>(version) == 0xdeadd00d) {
         version = 1;
     } else if (version > 2) {
-        FileRead(handle, &g_mipe_cube_serial_006850ba, 4, 0);
+        FileRead(handle, &gXStatus.mipe_cube_serial, 4, 0);
     } else {
-        g_mipe_cube_serial_006850ba = 100;
+        gXStatus.mipe_cube_serial = 100;
     }
     if (!FileRead(handle, &count, 4, 0)) {
         return 0;
@@ -516,7 +517,7 @@ unsigned int LoadWorldCursorNodes0048E7B0(int handle)
         } else {
             FileRead(handle, cube->name_24, 0x20, 0);
             if (cube->name_24[0] == 0) {
-                sprintf(cube->name_24, "Cube_3_%d", g_mipe_cube_serial_006850ba++);
+                sprintf(cube->name_24, "Cube_3_%d", gXStatus.mipe_cube_serial++);
             }
         }
         for (component = 0; component < 3; ++component) {
@@ -596,7 +597,7 @@ unsigned char SaveWorldCursorNodes0048EAD0(int handle)
     if (!FileWrite(handle, &version, 4, 0)) {
         return 0;
     }
-    FileWrite(handle, &g_mipe_cube_serial_006850ba, 4, 0);
+    FileWrite(handle, &gXStatus.mipe_cube_serial, 4, 0);
     count = g_world_cursor_nodes_65ba58.count;
     if (!FileWrite(handle, &count, 4, 0)) {
         return 0;

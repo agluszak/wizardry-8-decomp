@@ -302,10 +302,10 @@ void UseItem005BA4F0(W8ItemInstance* item)
         LearnSpellFromItem(g_value_0069c0f8, item);
     } else {
         if (IsUsableItemClass00522A00(item) == 0 || IsSpecialItemId004DA0F0(item) != 0) {
-            g_flag_00685071 = 1;
-            g_value_00685072 = item;
-            g_value_00685077 = static_cast<char>(giReviewCharSlot);
-            GetOriginOfCharacterItem(giReviewCharSlot, item, &g_flag_00685076, &slot);
+            gXStatus.item_drag_active = 1;
+            gXStatus.dragged_item = item;
+            gXStatus.dragged_character_slot = static_cast<char>(giReviewCharSlot);
+            GetOriginOfCharacterItem(giReviewCharSlot, item, &gXStatus.dragged_item_origin, &slot);
         } else {
             if (g_status_685170.item_in_cursor == 0) {
                 MarkCampCharacterPending005A6020(item);
@@ -486,9 +486,9 @@ void SplitStackDialogResult005BAA80(W8DialogBase* dialog)
             split.stack_count = (unsigned char)count;
             g_split_item_source_0069c424->stack_count = remaining;
             CopyItemInstance(&g_status_685170.item_in_hand_235b, &split, 0, 1);
-            g_held_item_source_006840c0 = giReviewCharSlot;
+            gXStatus.held_item_source = giReviewCharSlot;
             GetOriginOfCharacterItem(giReviewCharSlot, g_split_item_source_0069c424,
-                                     &g_held_item_origin_006840c4, &g_held_item_slot_006840c5);
+                                     &gXStatus.held_item_origin, &gXStatus.held_item_slot);
             carried = g_status_685170.item_in_hand_235b.stack_count;
         }
     } else {
@@ -497,24 +497,24 @@ void SplitStackDialogResult005BAA80(W8DialogBase* dialog)
         }
         split = *g_split_item_source_0069c424;
         split.stack_count = remaining;
-        if (g_held_item_source_006840c0 == -1) {
+        if (gXStatus.held_item_source == -1) {
             goto add_to_pool;
         }
-        character = g_status_685170.buffers.characters + g_held_item_source_006840c0;
-        if (g_held_item_origin_006840c4 == 1) {
-            if (character->equipment[(short)g_held_item_slot_006840c5].item_id != -1 ||
+        character = g_status_685170.buffers.characters + gXStatus.held_item_source;
+        if (gXStatus.held_item_origin == 1) {
+            if (character->equipment[static_cast<short>(gXStatus.held_item_slot)].item_id != -1 ||
                 CanEquipItemInSlot(character, g_status_685170.item_in_hand_235b.item_id,
-                                   (unsigned char)g_held_item_slot_006840c5, 0) == 0 ||
+                                   static_cast<unsigned char>(gXStatus.held_item_slot), 0) == 0 ||
                 CanCharacterUseItem(character, g_status_685170.item_in_hand_235b.item_id) == 0) {
                 goto add_to_character;
             }
-            destination = character->equipment + (short)g_held_item_slot_006840c5;
+            destination = character->equipment + static_cast<short>(gXStatus.held_item_slot);
         } else {
-            if (g_held_item_origin_006840c4 != 0) {
+            if (gXStatus.held_item_origin != 0) {
                 goto add_to_pool;
             }
-            destination = character->backpack + (short)g_held_item_slot_006840c5;
-            if (character->backpack[(short)g_held_item_slot_006840c5].item_id != -1) {
+            destination = character->backpack + static_cast<short>(gXStatus.held_item_slot);
+            if (character->backpack[static_cast<short>(gXStatus.held_item_slot)].item_id != -1) {
                 goto add_to_character;
             }
         }

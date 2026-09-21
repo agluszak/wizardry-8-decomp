@@ -39,9 +39,6 @@
    0x00558610 sit in the gaps around the anchored CharGeneration.cpp,
    ButtonSound.cpp and Formation & Facing.cpp hulls. No proven ownership. */
 
-// GLOBAL: WIZ8 0x0068506d
-unsigned char g_deferred_skill_notices_0068506d;
-
 // GLOBAL: WIZ8 0x0061ec94
 wchar_t g_format_s_possessive_0061ec94[] = L"%s's";
 
@@ -102,7 +99,7 @@ void FlushDeferredSkillNotices(void)
     count = 0;
     have_line = 0;
     length = 0;
-    if (g_deferred_skill_notices_0068506d == 0) {
+    if (gXStatus.deferred_skill_notices == 0) {
         return;
     }
     text = new wchar_t[0x200];
@@ -146,7 +143,7 @@ void FlushDeferredSkillNotices(void)
     for (slot = 0; slot < 8; ++slot) {
         memset(&gXStatus.monster_manager_entries[slot].skill_notice_pending[0], 0, W8_SKILL_COUNT);
     }
-    g_deferred_skill_notices_0068506d = 0;
+    gXStatus.deferred_skill_notices = 0;
 }
 
 // FUNCTION: WIZ8 0x00558610
@@ -706,7 +703,7 @@ void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_poin
                 UnequipUnusableItems(character);
                 RecalculateCharacterDerivedStats(character);
                 slot = CharacterPointerToPartySlot(character);
-                if (gXStatus.fCombatMode == 0 && IsModalOpen() == 0 && g_flag_0068506e == 0 &&
+                if (gXStatus.fCombatMode == 0 && IsModalOpen() == 0 && gXStatus.flag_19b6 == 0 &&
                     g_current_screen_state.id == W8_SCREEN_MAIN_GAME && IsScreenIdle() != 0 &&
                     suppress_notification == 0) {
                     wchar_t* text = new wchar_t[0x200];
@@ -721,7 +718,7 @@ void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_poin
                     return;
                 }
                 gXStatus.monster_manager_entries[slot].skill_notice_pending[skill_id] = 1;
-                g_deferred_skill_notices_0068506d = 1;
+                gXStatus.deferred_skill_notices = 1;
             }
         }
     }
