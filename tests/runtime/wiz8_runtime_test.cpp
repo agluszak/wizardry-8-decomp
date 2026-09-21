@@ -804,6 +804,87 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
     context->location_id = provoked_info != 0 ? provoked_info->location_id : -1;
 }
 
+/* Everything the hostile-encounter driver needs from live game state, filled
+   entirely on the game thread so the observation loop never walks mutable
+   product structures off-thread. */
+struct HostileEngagementSnapshot {
+    int screen;
+    int pending;
+    unsigned int hostile_count;
+    unsigned int active_monsters;
+    unsigned int engaged_hostiles;
+    unsigned int hostile_condition_monsters;
+    float nearest_engaged_distance;
+    unsigned int party_hp_total;
+    unsigned int provoked_active;
+    int provoked_hp;
+    int provoked_condition;
+    int provoked_in_combat;
+    float provoked_distance;
+    unsigned int combat_mode;
+    unsigned int round_active;
+    int action_status;
+    int action_monster;
+};
+
+struct HostileSnapshotQuery {
+    int location_id;
+    HostileEngagementSnapshot snapshot;
+};
+
+static void ReadHostileEngagementOnGameThread(void* opaque)
+{
+    HostileSnapshotQuery* query = static_cast<HostileSnapshotQuery*>(opaque);
+    HostileEngagementSnapshot* s = &query->snapshot;
+    srVector3T<float> party_position;
+    memset(s, 0, sizeof(*s));
+    GetCameraPosition(&party_position);
+    s->screen = g_current_screen_state.id;
+    s->pending = g_pending_screen_state.id;
+    s->combat_mode = gXStatus.fCombatMode != 0;
+    s->hostile_count = gXStatus.hostile_monster_count;
+    s->nearest_engaged_distance = 1e30f;
+    s->provoked_hp = -1;
+    s->provoked_condition = -1;
+    s->provoked_in_combat = -1;
+    s->provoked_distance = -1.0f;
+    if (gXStatus.plsMonsterList != 0) {
+        for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
+            W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
+            if (info == 0 || info->fActive == 0 || info->monster == 0)
+                continue;
+            ++s->active_monsters;
+            float distance = (info->monster->GetPosition() - party_position).Length();
+            if (info->condition_turns[W8_CONDITION_HOSTILE] != 0)
+                ++s->hostile_condition_monsters;
+            if (info->fInCombat != 0) {
+                ++s->engaged_hostiles;
+                if (distance < s->nearest_engaged_distance)
+                    s->nearest_engaged_distance = distance;
+            }
+            if (info->location_id == query->location_id) {
+                s->provoked_active = 1;
+                s->provoked_hp = static_cast<int>(info->hp_current);
+                s->provoked_condition = static_cast<int>(info->highest_condition);
+                s->provoked_in_combat = info->fInCombat;
+                s->provoked_distance = distance;
+            }
+        }
+    }
+    if (g_status_685170.buffers.characters != 0) {
+        for (int slot = 0; slot < 8; ++slot) {
+            const W8Character* character = &g_status_685170.buffers.characters[slot];
+            if (character->in_party != 0)
+                s->party_hp_total += character->hp_current;
+        }
+    }
+    s->round_active = g_combat_state != 0 ? g_combat_state->flag_000 : 0;
+    s->action_status = g_combat_state != 0 ? g_combat_state->eCombatActionStatus : 0;
+    s->action_monster = g_combat_state != 0 && g_combat_state->pActionMonsterInfo != 0
+                            ? g_combat_state->pActionMonsterInfo->location_id
+                            : -1;
+}
+
 struct ExecutorProbe {
     DWORD thread_id;
     unsigned int calls;
@@ -1254,13 +1335,15 @@ static DWORD RunHostileEncounterScenario()
         return FailScenario("hostile-combat", "combat-not-entered");
     g_observation.combat_aggroed = 1;
     ReportStep("combat-aggroed");
-    GameplaySnapshot state;
+    HostileSnapshotQuery query;
+    query.location_id = context.location_id;
     bool round_requested = false;
     unsigned int started = GetTickCount();
     while (GetTickCount() - started < 10000 && gfProgramIsRunning) {
         Sleep(5);
-        if (!ReadGameplaySnapshot(state))
+        if (!RunOnGameThread(ReadHostileEngagementOnGameThread, &query))
             return FailScenario("hostile-action", "snapshot-failed");
+        const HostileEngagementSnapshot& state = query.snapshot;
         // Combat.cpp schedules at status 1, executes at 2, and retires at 3.
         // Requiring execution/retirement for this actor is stronger than distance or HP drift.
         if (state.action_monster == context.location_id && state.action_status >= 2) {
@@ -1270,12 +1353,26 @@ static DWORD RunHostileEncounterScenario()
         }
         if (state.round_active)
             round_requested = false;
-        if (state.combat && !state.round_active && !round_requested) {
+        if (state.combat_mode && !state.round_active && !round_requested) {
             if (!TapGameplayCommand(W8_MGS_COMMAND_START_COMBAT_ROUND))
                 return FailScenario("hostile-round", "binding-missing");
             round_requested = true;
         }
     }
+    /* First missing product transition report: scheduler, engagement and the
+       provoked monster's own state narrow where the frontier actually is. */
+    fprintf(stderr,
+            "runtime-test hostile-frontier: screen=%d pending=%d hostile=%u active=%u "
+            "engaged=%u cond13=%u nearest=%.0f party_hp=%u provoked active=%u hp=%d "
+            "cond=%d incombat=%d dist=%.0f combat=%u round=%u action=%d monster=%d\n",
+            query.snapshot.screen, query.snapshot.pending, query.snapshot.hostile_count,
+            query.snapshot.active_monsters, query.snapshot.engaged_hostiles,
+            query.snapshot.hostile_condition_monsters, query.snapshot.nearest_engaged_distance,
+            query.snapshot.party_hp_total, query.snapshot.provoked_active,
+            query.snapshot.provoked_hp, query.snapshot.provoked_condition,
+            query.snapshot.provoked_in_combat, query.snapshot.provoked_distance,
+            query.snapshot.combat_mode, query.snapshot.round_active, query.snapshot.action_status,
+            query.snapshot.action_monster);
     return FailScenario("hostile-action", "monster-execution-not-observed");
 }
 
