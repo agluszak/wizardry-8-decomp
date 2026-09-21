@@ -20,7 +20,7 @@ struct W8Region;
    W8CampStatsRange and W8CampStatsControls are authored in RCSStatsPage.cpp
    (declared in RCSStatsPage.h). */
 // VTABLE: WIZ8 0x005eed08
-class W8CampItemRange : public W8RangeListener {
+class W8CampItemRange : public W8CampRangeListener {
 public:
     W8CampItemRange();
     ~W8CampItemRange()
@@ -28,19 +28,14 @@ public:
         delete m_range;
     }
     virtual void OnRangeChanged(W8RangeControl* control) override;
-    /* 0x005C4510: re-invalidates the scrollbar when the visible pool changed
-       and always repaints it. */
-    void UpdateItems(unsigned char items_changed);
-    W8RangeControl* m_range;
 };
 
 // VTABLE: WIZ8 0x005ef298
-class W8CampSpellRange : public W8RangeListener {
+class W8CampSpellRange : public W8CampRangeListener {
 public:
     explicit W8CampSpellRange(int realm);
     ~W8CampSpellRange();
     virtual void OnRangeChanged(W8RangeControl* control) override;
-    W8RangeControl* m_range;
     int m_realm;
 };
 

@@ -33,6 +33,19 @@ public:
     virtual void OnRangeChanged(W8RangeControl* control) = 0;
 };
 
+/* Common base of the camp screen's three range listeners (item, spell-realm
+   and stats): each owns one W8RangeControl. Retail calls 0x005C4510 directly
+   on the stats and spell-realm listeners too, which proves this shared
+   prefix rather than a W8CampItemRange member. Its out-of-line refresh is
+   emitted in RCSStatsPage.cpp. */
+class W8CampRangeListener : public W8RangeListener {
+public:
+    /* 0x005C4510: re-invalidates the range control when the visible pool
+       changed and always repaints it. */
+    void UpdateRange(unsigned char range_changed);
+    W8RangeControl* m_range;
+};
+
 /* The range panel is shared by Controls.cpp and the state-5 party-selection
    controls. Its listener, value and child ownership are therefore part of the
    shared range-control declaration rather than a translation-unit-local sketch. */

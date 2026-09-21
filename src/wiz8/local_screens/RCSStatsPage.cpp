@@ -154,12 +154,13 @@ void W8CampStatsRange::OnRangeChanged(W8RangeControl*)
     g_camp_screen_0069c0f4->redraw_flags |= 0x20000;
 }
 
-/* Emitted inside this unit in both retail and the demo even though
-   W8CampItemRange's other members live in ReviewCharacterScreen.cpp. */
+/* The shared camp-range refresh, emitted inside this unit in both retail and
+   the demo. Retail calls it directly on the stats and spell listeners as
+   well, which is what proves the common W8CampRangeListener base. */
 // FUNCTION: WIZ8 0x005c4510
-void W8CampItemRange::UpdateItems(unsigned char items_changed)
+void W8CampRangeListener::UpdateRange(unsigned char range_changed)
 {
-    if (items_changed != 0) {
+    if (range_changed != 0) {
         m_range->Invalidate(0);
     }
     m_range->Redraw();

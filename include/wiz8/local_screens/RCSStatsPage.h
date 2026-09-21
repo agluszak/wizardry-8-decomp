@@ -16,12 +16,11 @@ struct W8Region;
    button 2 switches the list to equipped items. */
 
 // VTABLE: WIZ8 0x005ef530
-class W8CampStatsRange : public W8RangeListener {
+class W8CampStatsRange : public W8CampRangeListener {
 public:
     W8CampStatsRange();
     ~W8CampStatsRange();
     virtual void OnRangeChanged(W8RangeControl* control) override;
-    W8RangeControl* m_range;
 };
 
 // VTABLE: WIZ8 0x005ef53c Controls

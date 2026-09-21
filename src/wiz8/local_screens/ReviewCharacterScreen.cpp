@@ -662,9 +662,9 @@ void RedrawCampItemsPage005B7D10(void)
     }
     if ((g_camp_screen_0069c0f4->item_redraw_flags & 0x7fc00000) != 0) {
         DrawCampItemPool005B8B20();
-        g_camp_screen_0069c0f4->item_range->UpdateItems(1);
+        g_camp_screen_0069c0f4->item_range->UpdateRange(1);
     } else {
-        g_camp_screen_0069c0f4->item_range->UpdateItems(0);
+        g_camp_screen_0069c0f4->item_range->UpdateRange(0);
     }
     if ((g_camp_screen_0069c0f4->redraw_flags & 0x8000000) != 0) {
         g_camp_action_panel_0069c464->Invalidate(0);
@@ -2103,15 +2103,11 @@ void DrawCampScreen005A42A0(void)
             state->flag_d50 = 1;
         }
     } else if (state->page == 1) {
-        reinterpret_cast<W8CampItemRange*>(state->stats_range)
-            ->UpdateItems(0); /* reinterpret-ok: retail calls W8CampItemRange::UpdateItems
-                                 (0x5c4510) on the identically laid-out stats listener. */
+        state->stats_range->UpdateRange(0);
         state->stats_controls->Redraw();
     } else if (state->page == 3) {
         for (index = 0; index < 6; ++index) {
-            reinterpret_cast<W8CampItemRange*>(state->spell_ranges[index])
-                ->UpdateItems(0); /* reinterpret-ok: retail calls W8CampItemRange::UpdateItems
-                                     (0x5c4510) on each identically laid-out spell listener. */
+            state->spell_ranges[index]->UpdateRange(0);
         }
     }
     RefreshCampItemActions005B5670(0);
