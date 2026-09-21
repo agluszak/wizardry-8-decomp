@@ -176,3 +176,47 @@ EXPORTS
     ??5@YAAAVsrBinIStream@@AAV0@AAVsrVector2i@@@Z
     ??5@YAAAVsrBinIStream@@AAV0@AAVsrVector3i@@@Z
     ??5@YAAAVsrBinIStream@@AAV0@AAVsrVector4i@@@Z
+    ??_7srNode@@6B@
+    ?sceneGraphCSect@srNode@@0VsrCriticalSection@@A
+    ?sceneGraphLockCount@srNode@@0JA
+    ?lockSceneGraph@srNode@@SAXXZ
+    ?unlockSceneGraph@srNode@@SAXXZ
+    ?isSceneGraphLocked@srNode@@SAHXZ
+    ?setNotify@srNode@@IAEXW4e_notify@1@@Z
+    ?clearNotify@srNode@@IAEXW4e_notify@1@@Z
+    ?testNotify@srNode@@IBEHW4e_notify@1@@Z
+    ?getHierarchyLevel@srNode@@QBEJXZ
+    ?getChildCount@srNode@@QBEJXZ
+    ?isChildOf@srNode@@QBEHABV1@@Z
+    ?isParentOf@srNode@@QBEHABV1@@Z
+    ?getChild@srNode@@QBEPAV1@XZ
+    ?getNext@srNode@@QBEPAV1@XZ
+    ?getParent@srNode@@QBEPAV1@XZ
+    ?getPrev@srNode@@QBEPAV1@XZ
+    ?setScale@srNode@@QAEXN@Z
+    ?setFlag@srNode@@QAEXW4e_flag@1@@Z
+    ?clearFlag@srNode@@QAEXW4e_flag@1@@Z
+    ?testFlag@srNode@@QBEHW4e_flag@1@@Z
+    ?vInstance@srNode@@UAEPAVsrClass@@XZ
+    ?sGetClassName@srNode@@SAPBDXZ
+    ?setWSDirty@srNode@@AAEXXZ
+    ?getDistance@srNode@@QBENABV1@@Z
+    ?setRotation@srNode@@QAEXABV?$srMatrix3T@N@@@Z
+    ?setRotation@srNode@@QAEXABV?$srMatrix3T@M@@@Z
+    ?getLocationX@srNode@@QBENXZ
+    ?getLocationY@srNode@@QBENXZ
+    ?getLocationZ@srNode@@QBENXZ
+    ?getLocation@srNode@@QBE?AV?$srVector3T@N@@XZ
+    ?getLocation@srNode@@QBEXAAV?$srVector3T@N@@@Z
+    ?getLocation@srNode@@QBEXAAV?$srVector3T@M@@@Z
+    ?getRotation@srNode@@QBEXAAV?$srMatrix3T@M@@@Z
+    ?getRotation@srNode@@QBEXAAV?$srMatrix3T@N@@@Z
+    ?getScale@srNode@@QBE?AV?$srVector3T@N@@XZ
+    ?offsetLocation@srNode@@QAEXABV?$srVector3T@N@@@Z
+    ?offsetLocation@srNode@@QAEXNNN@Z
+    ?setLocation@srNode@@QAEXABV?$srVector3T@N@@@Z
+    ?setLocation@srNode@@QAEXNNN@Z
+    ?setLocationX@srNode@@QAEXN@Z
+    ?setLocationY@srNode@@QAEXN@Z
+    ?setLocationZ@srNode@@QAEXN@Z
+    ?setScale@srNode@@QAEXABV?$srVector3T@N@@@Z

@@ -1253,6 +1253,41 @@ unsigned char RendererBufferIsLockable(void)
     return 0;
 }
 
+/* The current fog colour copied out as the world colour, each channel snapped
+   to the 0/1 rails. No world means black. */
+// FUNCTION: WIZ8 0x00427290
+void GetWorldColour00427290(EnvironmentColour* colour)
+{
+    if (g_world == 0) {
+        colour->red = 0.0f;
+        colour->green = 0.0f;
+        colour->blue = 0.0f;
+        return;
+    }
+    srVector3T<float> fog;
+    g_world->static_scene->getFogColor(fog);
+    colour->red = fog.x;
+    colour->green = fog.y;
+    colour->blue = fog.z;
+    if (fog.x <= g_float_005ebb34) {
+        colour->red = 0.0f;
+    } else if (fog.x >= g_float_005ebb38) {
+        colour->red = 1.0f;
+    }
+    if (fog.y <= g_float_005ebb34) {
+        colour->green = 0.0f;
+    } else if (fog.y >= g_float_005ebb38) {
+        colour->green = 1.0f;
+    }
+    if (fog.z <= g_float_005ebb34) {
+        colour->blue = 0.0f;
+        return;
+    }
+    if (fog.z >= g_float_005ebb38) {
+        colour->blue = 1.0f;
+    }
+}
+
 // FUNCTION: WIZ8 0x00427830
 void SetWorldModelPickingEnabled(char enabled)
 {
