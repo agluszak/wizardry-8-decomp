@@ -2,18 +2,24 @@
 
 #include "srBinFStream.h"
 
+/* Retail exports every declared srIStreamOpener member, including the private
+   helpers (AAE mangling), but no copy constructor and no Opener vftable
+   (??_7Opener@srIStreamOpener@@6B@ is absent). Consumers import the whole
+   declared surface member by member, so the declaration itself stays unimported. */
 class srIStreamOpener {
 public:
     class __declspec(novtable) Opener {
     public:
-        Opener() {}
-        virtual SR_DLL_IMPORT ~Opener() {}
+        SR_DLL_IMPORT Opener();
+        virtual SR_DLL_IMPORT ~Opener();
         SR_DLL_IMPORT Opener& operator=(const Opener& other);
 
         virtual srBinIStream* open(const char* path) = 0;
         virtual const char* getDescription() const = 0;
     };
 
+    /* The lifecycle emissions are bare bodies; they are defined in
+       stream.cpp. */
     SR_DLL_IMPORT srIStreamOpener();
     SR_DLL_IMPORT ~srIStreamOpener();
     SR_DLL_IMPORT srIStreamOpener& operator=(const srIStreamOpener& other);
@@ -29,35 +35,34 @@ private:
         StreamType* previous_0c;
     };
 
-    static_assert(sizeof(StreamType) == 0x10,
-                  "srIStreamOpener_StreamType_must_be_0x10");
+    static_assert(sizeof(StreamType) == 0x10, "srIStreamOpener_StreamType_must_be_0x10");
 
     SR_DLL_IMPORT Opener* findOpener(const char* extension);
-    SR_DLL_IMPORT srBinIStream* open(
-        const char* path, const char* extension);
-    SR_DLL_IMPORT void parsePrefix(
-        char** prefix, char** path, const char* input);
+    SR_DLL_IMPORT srBinIStream* open(const char* path, const char* extension);
+    SR_DLL_IMPORT void parsePrefix(char** prefix, char** path, const char* input);
 
     long count_00;
     StreamType* first_04;
     StreamType* end_08;
 };
 
-static_assert(sizeof(srIStreamOpener::Opener) == 0x04,
-              "srIStreamOpener_Opener_must_be_0x04");
-static_assert(sizeof(srIStreamOpener) == 0x0c,
-              "srIStreamOpener_must_be_0x0c");
+static_assert(sizeof(srIStreamOpener::Opener) == 0x04, "srIStreamOpener_Opener_must_be_0x04");
+static_assert(sizeof(srIStreamOpener) == 0x0c, "srIStreamOpener_must_be_0x0c");
 
 /* SR's built-in file opener is provider-owned. Consumers use the imported
-   srIStreamOpener surface; no known consumer imports srFStreamOpener itself. */
+   srIStreamOpener surface; no known consumer imports srFStreamOpener itself.
+   The exported vftable (??_7srFStreamOpener@@6B@) is emitted by the provider
+   where the lifecycle bodies live, in stream.cpp (the destructor emission is
+   at retail address 0x10016850, in the unit that instantiates the opener). */
+// VTABLE: SURRENDER 0x10075520 srFStreamOpener
 class srFStreamOpener : public srIStreamOpener::Opener {
 public:
     srFStreamOpener();
     virtual ~srFStreamOpener() override;
+    srFStreamOpener& operator=(const srFStreamOpener& other);
 
     virtual srBinIStream* open(const char* path) override;
     virtual const char* getDescription() const override;
 };
 
-static_assert(sizeof(srFStreamOpener) == 0x04,
-              "srFStreamOpener_must_be_0x04");
+static_assert(sizeof(srFStreamOpener) == 0x04, "srFStreamOpener_must_be_0x04");
