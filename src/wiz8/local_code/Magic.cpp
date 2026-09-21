@@ -909,10 +909,10 @@ unsigned int GetSpellFailureChance(unsigned int skill, int spell_id, int factor)
         return 0;
     }
     chance = (needed * 70 - skill * 70) / needed;
-    if ((int)chance < 0) {
+    if (static_cast<int>(chance) < 0) {
         return 0;
     }
-    if ((int)chance > 100) {
+    if (static_cast<int>(chance) > 100) {
         return 100;
     }
     return chance;

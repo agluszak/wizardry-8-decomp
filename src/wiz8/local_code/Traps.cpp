@@ -6,6 +6,9 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/engine_code/Spells.h"
+#include "wiz8/engine_code/World.h"
+#include "wiz8/engine_code/Levels.h"
+#include "wiz8/engine_code/3dapi.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/local_code/Magic.h"
 #include "wiz8/local_code/Targeting.h"
@@ -15,18 +18,33 @@
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/CharacterScreen.h"
+#include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/vector.h"
 #include "wiz8/utility.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/string_database.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/sr_api.h"
+#include "FileMan.h"
 #include "random.h"
+#include <ctype.h>
+#include <stdio.h>
+#include <string.h>
 
 // GLOBAL: WIZ8 0x0069da6c
 unsigned char g_flag_69da6c;
 // GLOBAL: WIZ8 0x0069da68
 int g_value_69da68;
+/* Record-mode console line buffer and its fill count. Nothing else labels the
+   0x1000 bytes between the buffer and g_value_69da68; the input handler never
+   bounds-checks appends. */
+// GLOBAL: WIZ8 0x0069CA68
+char g_record_mode_text_69ca68[0x1000];
+// GLOBAL: WIZ8 0x0069DA70
+int g_record_mode_text_length_69da70;
+/* Only the record-mode key handler reads this byte; no retail code writes it. */
+// GLOBAL: WIZ8 0x006F0534
+unsigned char g_flag_006f0534;
 // GLOBAL: WIZ8 0x00650434
 unsigned char g_table_650434[15][8] = {
     {0, 1, 0, 0, 0, 1, 0, 0}, {0, 1, 0, 1, 0, 0, 0, 0}, {0, 0, 1, 0, 0, 1, 0, 0},
@@ -36,9 +54,84 @@ unsigned char g_table_650434[15][8] = {
     {0, 1, 0, 0, 1, 0, 1, 0}, {0, 1, 0, 0, 0, 1, 1, 0}, {1, 0, 0, 0, 0, 1, 1, 0},
 };
 
-/* Local Code\Traps.cpp. The three bodies at 0x5E35F0-0x5E3730 sit in the
-   attribution gap before the asserted Traps.cpp body at 0x5E3800 (line 148);
-   their placement here is provisional, not proven ownership. */
+/* Local Code\Traps.cpp. The record-mode console bodies at 0x5E3280-0x5E3730 sit
+   in the attribution gap before the asserted Traps.cpp body at 0x5E3800
+   (line 148); their placement here is provisional, not proven ownership. */
+
+// FUNCTION: WIZ8 0x005E3280
+void WriteRecordModeNote005E3280(void)
+{
+    HWFILE file;
+    unsigned int length;
+    W8WorldCameraState state;
+    char location[32];
+    char text[1024];
+
+    file = FileOpen("data\\notes.txt", FILE_ACCESS_WRITE | FILE_CREATE_ALWAYS, 0);
+    if (file != 0) {
+        FileSeek(file, 0, FILE_SEEK_FROM_END);
+        GetWorldCameraState(GetWorld(), &state);
+        sprintf(text, "%f %f %f\n", state.position.x, state.position.y, state.position.z);
+        FileWrite(file, text, strlen(text), 0);
+        sprintf(text, "%f %f %f %f %f %d\n", state.pitch[0], state.pitch[1], state.pitch[2],
+                state.pitch[3], state.pitch[4],
+                // reinterpret-ok: the note records the angle record's serialized tail byte.
+                *reinterpret_cast<unsigned char*>(&state.pitch[5]));
+        FileWrite(file, text, strlen(text), 0);
+        sprintf(text, "%f %f %f %f %f %d\n", state.yaw[0], state.yaw[1], state.yaw[2], state.yaw[3],
+                state.yaw[4],
+                // reinterpret-ok: the note records the angle record's serialized tail byte.
+                *reinterpret_cast<unsigned char*>(&state.yaw[5]));
+        FileWrite(file, text, strlen(text), 0);
+        if (GetLevelLocationCode(g_status_685170.current_level, location) == 0) {
+            strcpy(location, "tst");
+        }
+        length = strlen(location);
+        location[length] = '\n';
+        FileWrite(file, location, length + 1, 0);
+        length = strlen(g_record_mode_text_69ca68);
+        g_record_mode_text_69ca68[length] = '\n';
+        FileWrite(file, g_record_mode_text_69ca68, length + 1, 0);
+        FileClose(file);
+    }
+    ResetEditorStatusLine0058AA20(-1);
+}
+
+// FUNCTION: WIZ8 0x005E34B0
+void HandleRecordModeCommand005E34B0(void)
+{
+    char text[1024];
+
+    if (_stricmp(g_record_mode_text_69ca68, "DELETE LOG") != 0) {
+        WriteRecordModeNote005E3280();
+        return;
+    }
+    if (FileDelete("data\\notes.txt") == 0) {
+        ResetEditorStatusLine0058AA20(-1);
+        strcpy(text, "Error deleting log file.");
+    } else {
+        ResetEditorStatusLine0058AA20(-1);
+        strcpy(text, "Log file deleted.");
+    }
+    ShowNoticef(6, ConvertStringToWide(text));
+    g_record_mode_text_69ca68[g_record_mode_text_length_69da70] = 0;
+    g_record_mode_text_length_69da70 = 0;
+    g_flag_69da6c = 0;
+    strcpy(text, "Exiting record mode.");
+    ShowNoticef(6, ConvertStringToWide(text));
+}
+
+// FUNCTION: WIZ8 0x005E35A0
+void ShowRecordModePrompt005E35A0(void)
+{
+    wchar_t* wide;
+    char text[96];
+
+    ResetEditorStatusLine0058AA20(-1);
+    strcpy(text, "Type in your text, then ENTER or ESC.");
+    wide = ConvertStringToWide(text);
+    ShowNoticef(6, wide);
+}
 
 // FUNCTION: WIZ8 0x005E35F0
 void ClearValue69DA68(void)
@@ -49,6 +142,53 @@ void ClearValue69DA68(void)
 unsigned char GetFlag69DA6C(void)
 {
     return g_flag_69da6c;
+}
+// FUNCTION: WIZ8 0x005E3610
+char HandleRecordModeInput005E3610(const InputAtom* input, void (*prompt)(void))
+{
+    unsigned int key;
+    char* text;
+
+    if (g_monster_combat_timer_enabled_006f0531) {
+        return 0;
+    }
+    key = toupper(input->usParam);
+    if (input->usEvent == KEY_UP) {
+        switch (static_cast<unsigned short>(key)) {
+        case '\b':
+            if (g_record_mode_text_length_69da70 == 0) {
+                return 0;
+            }
+            g_record_mode_text_69ca68[--g_record_mode_text_length_69da70] = 0;
+            break;
+        case '\r':
+            g_record_mode_text_69ca68[g_record_mode_text_length_69da70] = 0;
+            g_record_mode_text_length_69da70 = 0;
+            g_flag_69da6c = 0;
+            return 1;
+        case 27:
+            g_record_mode_text_69ca68[g_record_mode_text_length_69da70] = 0;
+            g_record_mode_text_length_69da70 = 0;
+            g_flag_69da6c = 0;
+            ResetEditorStatusLine0058AA20(-1);
+            return -1;
+        default:
+            // reinterpret-ok: the key word doubles as a one-character wide string.
+            text = ConvertWideStringToString(reinterpret_cast<const wchar_t*>(&key));
+            if (g_flag_006f0530 == 0 && g_flag_006f0534 == 0 && *text >= 'A' && *text <= 'Z') {
+                *text += ' ';
+            }
+            g_record_mode_text_69ca68[g_record_mode_text_length_69da70] = *text;
+            g_record_mode_text_69ca68[g_record_mode_text_length_69da70 + 1] = 0;
+            ++g_record_mode_text_length_69da70;
+            break;
+        }
+        if (prompt != 0) {
+            prompt();
+        }
+        ShowNoticef(0xf, ConvertStringToWide(g_record_mode_text_69ca68));
+    }
+    return 0;
 }
 // FUNCTION: WIZ8 0x005E3730
 unsigned char GetTable650434Entry(int row, int column)

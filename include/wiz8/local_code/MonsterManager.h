@@ -419,7 +419,7 @@ struct W8MonsterInfo {
     unsigned char unknown_379;
     unsigned char has_missile_37a;
     unsigned char unknown_37b;
-    unsigned char has_spell_37c;
+    bool has_spell_37c;
     unsigned char unknown_37d[0xa8];
 }; /* 0x425 */
 #pragma pack(pop)

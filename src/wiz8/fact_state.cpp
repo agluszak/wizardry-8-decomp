@@ -406,7 +406,7 @@ unsigned char EvaluateFact(int fact_id)
                 unsigned int slot = 0;
                 do {
                     if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
-                        slot == (unsigned int)g_status_685170.value_423d) {
+                        slot == static_cast<unsigned int>(g_status_685170.value_423d)) {
                         return 1;
                     }
                     ++slot;

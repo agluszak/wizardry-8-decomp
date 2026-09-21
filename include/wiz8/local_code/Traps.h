@@ -15,9 +15,9 @@ enum { W8_TRAP_TYPE_COUNT = 15, W8_TRAP_DEVICE_COUNT = 8 };
 void ClearValue69DA68(void);
 unsigned char GetFlag69DA6C(void);
 /* Record-mode console line input and its per-key prompt/apply callbacks. */
-char Function5E3610(const InputAtom* input, void (*prompt)(void)); /* 0x005E3610 */
-void Function5E34B0(void);                                         /* 0x005E34B0 */
-void Function5E35A0(void);                                         /* 0x005E35A0 */
+char HandleRecordModeInput005E3610(const InputAtom* input, void (*prompt)(void)); /* 0x005E3610 */
+void HandleRecordModeCommand005E34B0(void);                                       /* 0x005E34B0 */
+void ShowRecordModePrompt005E35A0(void);                                          /* 0x005E35A0 */
 unsigned char GetTable650434Entry(int trap, int device);
 /* Finishes a successful disarm: completes the item interaction, rolls the
    learn chance, prints the "<trap> disarmed" line and runs the trigger. */
