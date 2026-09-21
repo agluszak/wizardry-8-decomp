@@ -460,6 +460,7 @@ unsigned char LoadMissileCycle004A3550(W8GrCycleLoadContext* context, const char
                                        W8Missile** ppMissile, int)
 {
     W8GrCycle* found;
+    W8GrCycle* loaded_cycle;
     W8Missile* missile;
     W8AIMissile* ai;
     bool loaded;
@@ -548,11 +549,13 @@ unsigned char LoadMissileCycle004A3550(W8GrCycleLoadContext* context, const char
                         for (index = 0; index < 2; ++index) {
                             if (_strnicmp(pacName, g_missile_cycle_names_0060c9c8[index],
                                           strlen(g_missile_cycle_names_0060c9c8[index])) == 0) {
-                                loaded = LoadGrCycle004A67E0(
-                                             context, pacFileName,
-                                             // reinterpret-ok: W8Missile** out-param to W8GrCycle**
-                                             reinterpret_cast<W8GrCycle**>(ppMissile), index, 1,
-                                             "Data\\Missiles", 1, "Data\\Spells\\Bitmaps") != 0;
+                                loaded_cycle = *ppMissile;
+                                loaded = LoadGrCycle004A67E0(context, pacFileName, &loaded_cycle,
+                                                             index, 1, "Data\\Missiles", 1,
+                                                             "Data\\Spells\\Bitmaps") != 0;
+                                if (loaded) {
+                                    *ppMissile = static_cast<W8Missile*>(loaded_cycle);
+                                }
                                 goto next_line;
                             }
                         }
@@ -633,11 +636,11 @@ unsigned char LoadMissileCycle004A3550(W8GrCycleLoadContext* context, const char
         next_line:;
         }
     }
-    loaded = LoadGrCycle004A67E0(context, name,
-                                 // reinterpret-ok: W8Missile** out-param to W8GrCycle**
-                                 reinterpret_cast<W8GrCycle**>(ppMissile), 0, 1, "Data\\Missiles",
-                                 1, "Data\\Spells\\Bitmaps") != 0;
+    loaded_cycle = *ppMissile;
+    loaded = LoadGrCycle004A67E0(context, name, &loaded_cycle, 0, 1, "Data\\Missiles", 1,
+                                 "Data\\Spells\\Bitmaps") != 0;
     if (loaded) {
+        *ppMissile = static_cast<W8Missile*>(loaded_cycle);
         RegisterGrCycle(name, *ppMissile);
     }
     ResumeSharedGameTimers00439CA0();
