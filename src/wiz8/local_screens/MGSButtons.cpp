@@ -1417,7 +1417,7 @@ void DrawSubMenuCharacterAction(void)
                 swprintf(text, L"%s - %s", gppStringList[g_action_kind_message_ids_61e988[5]],
                          name);
             } else {
-                swprintf(text, L"%s", gppStringList[g_action_kind_message_ids_61e988[5]]);
+                swprintf(text, L"%s ", gppStringList[g_action_kind_message_ids_61e988[5]]);
             }
             break;
         case 7:
