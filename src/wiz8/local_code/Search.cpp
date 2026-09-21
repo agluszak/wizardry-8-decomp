@@ -213,7 +213,7 @@ void RunSearchPulse(void)
 {
     if (ClockIsTicking(g_search_pulse_clock_00689fcc) == 0) {
         g_search_pulse_clock_00689fcc = SetCountdownClock(500);
-        if (GetEnvironmentFlag0060A394() != 0 && g_flag_006840bc == 0 &&
+        if (GetEnvironmentFlag0060A394() != 0 && gXStatus.world_update_blocked == 0 &&
             gXStatus.fSurprisePossible == 0 && gXStatus.fLockInteractMode == 0 &&
             gXStatus.fLockInteract == 0 && gXStatus.fTrapInteractMode == 0 &&
             gXStatus.fTrapInteract == 0) {

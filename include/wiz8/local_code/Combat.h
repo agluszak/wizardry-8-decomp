@@ -4,7 +4,6 @@
 
 extern const wchar_t g_combat_log_format_00617664[]; /* 0x00617664 */
 /* 0x0068506C: a friendly NPC's combat-entry script notice is still owed. */
-extern bool g_npc_combat_notice_pending_68506c;
 
 void ChooseAction(int party_slot, int action, int detail, const W8ActionDetailBlock* data, int a,
                   int b); /* 0x004E7CC0 */

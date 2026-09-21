@@ -55,9 +55,6 @@
 /* Local Screens\mipe.cpp. The MIPE state is a diagnostic monster/item
    selection panel used while the debug flag is active. */
 
-// GLOBAL: WIZ8 0x006850ba
-int g_mipe_cube_serial_006850ba;
-
 // GLOBAL: WIZ8 0x0068f0fe
 unsigned char g_mipe_mongen_visible_0068f0fe;
 
@@ -1598,8 +1595,8 @@ int HandleCubeMenuKey0057A310(unsigned int key)
         MoveWorldCursorNode0048DBF0(g_mipe_cube_0068f12c, &position);
         AttachWorldCursorNode0048ED30(g_mipe_cube_0068f12c, 1);
         SetWorldCursorNodeColorComponents0048E420(g_mipe_cube_0068f12c, 0.0f, 1.0f, 0.0f);
-        serial = g_mipe_cube_serial_006850ba;
-        g_mipe_cube_serial_006850ba = g_mipe_cube_serial_006850ba + 1;
+        serial = gXStatus.mipe_cube_serial;
+        gXStatus.mipe_cube_serial = gXStatus.mipe_cube_serial + 1;
         name = FormatString("Cube%3.3", serial);
         SetWorldCursorNodeName0048F110(g_mipe_cube_0068f12c, name);
         return 1;
@@ -1849,7 +1846,7 @@ int HandleMonsterGeneratorKey0057AA00(unsigned short key)
         generator->SetState(&position);
         generator->Reload(1, 0);
         generator->Reset();
-        sprintf(name, "MonGen%3.3d", g_saved_encounter_budget++);
+        sprintf(name, "MonGen%3.3d", gXStatus.saved_encounter_budget++);
         generator->SetName(name);
         AddMonsterGenerator(generator);
         index = 0;

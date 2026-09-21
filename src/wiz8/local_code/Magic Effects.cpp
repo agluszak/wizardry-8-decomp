@@ -859,7 +859,7 @@ bool IsScreenBusy(void)
     if (IsModalOpen()) {
         return true;
     }
-    if (g_flag_0068506e != 0) {
+    if (gXStatus.flag_19b6 != 0) {
         return true;
     }
     if (g_current_screen_state.id != 7) {

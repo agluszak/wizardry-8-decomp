@@ -284,49 +284,13 @@ void ResetGameStatus(unsigned char release)
     memset(g_status_685170.buffers.party_rows, 0, sizeof(W8PartySlotRow) * W8_PARTY_SLOT_COUNT);
 }
 
-/* Retail 0x0054AFD0 zeroes ECX=0x682 dwords plus a trailing word from
-   0x006836B8: a 0x1A0A-byte bulk reset spanning gXStatus and every neighbour
-   global through g_dword_6850be. That span is a reset region the retail linker
-   happened to lay out contiguously, not one C++ object, so it is spelled as
-   the member globals - a fixed byte count would zero whatever this build's
-   linker places after gXStatus. */
+/* Clear the complete status object, including its POD gameplay-state tail. */
 // FUNCTION: WIZ8 0x0054afd0
 void InitializeGameplayRuntimeObjects(void)
 {
     memset(static_cast<void*>(&gXStatus), 0, sizeof(gXStatus));
-    memset(&g_target_position_0068407f, 0, sizeof(g_target_position_0068407f));
-    memset(&g_shared_target_0068408b, 0, sizeof(g_shared_target_0068408b));
-    memset(&g_shared_action_detail_006840ab, 0, sizeof(g_shared_action_detail_006840ab));
-    g_picked_monster = 0;
-    g_picked_group = 0;
-    g_flag_006840bb = 0;
-    g_flag_006840bc = 0;
-    g_flag_006840bd = 0;
-    g_value_006840be = 0;
-    g_held_item_source_006840c0 = 0;
-    g_held_item_origin_006840c4 = 0;
-    g_held_item_slot_006840c5 = 0;
-    memset(g_monster_record_cache, 0, sizeof(g_monster_record_cache));
-    g_gameplay_timer_685067 = 0;
-    g_save_notice_shown_0068506b = 0;
-    g_npc_combat_notice_pending_68506c = false;
-    g_deferred_skill_notices_0068506d = 0;
-    g_flag_0068506e = 0;
-    g_flag_68506f = 0;
-    g_flag_00685070 = 0;
-    g_flag_00685071 = 0;
-    g_value_00685072 = 0;
-    g_flag_00685076 = 0;
-    g_value_00685077 = 0;
-    memset(g_status_block_685078, 0, sizeof(g_status_block_685078));
-    g_combat_countdown_6850b0 = 0;
-    g_combat_difficulty_6850b4 = 0;
-    g_party_moving_006850b5 = 0;
-    g_saved_encounter_budget = 0;
-    g_mipe_cube_serial_006850ba = 0;
-    g_dword_6850be = 0;
     gXStatus.character_event_queue = new W8CharacterEventQueue();
-    g_gameplay_timer_685067 = new W8GameTimer(300.0f, 0);
+    gXStatus.gameplay_timer = new W8GameTimer(300.0f, 0);
 }
 
 /* Loads Data\\Databases\\SpellTables.dbs, replacing whatever is already there.
@@ -344,9 +308,9 @@ void InitializeGameplayRuntimeObjects(void)
 // FUNCTION: WIZ8 0x0054b080
 void ResetGameplayStatusBlock(void)
 {
-    memset(g_status_block_685078, 0, sizeof(g_status_block_685078));
+    memset(gXStatus.status_block, 0, sizeof(gXStatus.status_block));
     gXStatus.character_event_queue->DestroyAllEvents();
-    g_party_moving_006850b5 = 0;
+    gXStatus.party_moving = 0;
     gXStatus.fSurprisePossible = 0;
 }
 
@@ -359,9 +323,8 @@ void DestroyGameplayObjects(void)
         delete owned;
         gXStatus.character_event_queue = 0;
     }
-    if (g_gameplay_timer_685067) {
-        delete g_gameplay_timer_685067;
-        g_gameplay_timer_685067 = 0;
+    if (gXStatus.gameplay_timer) {
+        gXStatus.gameplay_timer = 0;
     }
 }
 
@@ -458,8 +421,8 @@ void ResetTargetingState(void)
     for (slot = 0; slot < 8; ++slot) {
         ResetGameplaySlot(slot);
     }
-    g_picked_monster = -1;
-    g_picked_group = -1;
+    gXStatus.picked_monster = -1;
+    gXStatus.picked_group = -1;
 }
 
 /* Resets one 0x118-byte slot. The tier it stores twice comes from the character
@@ -525,8 +488,6 @@ void ResetGameplaySlot(unsigned int slot)
    neighbouring runtime state. That matches retail exactly, including the
    wiped container headers: every later use is non-virtual (Clear, GetCount,
    direct teardown of a null backing store), so no reconstruction runs. */
-// GLOBAL: WIZ8 0x00685067
-W8GameTimer* g_gameplay_timer_685067;
 
 // FUNCTION: WIZ8 0x0054b470
 void ResetPartySlotRow(int slot)

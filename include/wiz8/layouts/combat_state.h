@@ -299,8 +299,6 @@ static_assert(offsetof(W8CombatState, combat_update_count) == 0xa5c,
               "W8CombatState_combat_update_count_offset");
 #pragma pack(pop)
 
-extern W8CombatState* g_combat_state;            /* 0x006836A8 */
-extern unsigned int g_combat_countdown_6850b0;   /* 0x006850B0 */
-extern unsigned char g_combat_difficulty_6850b4; /* 0x006850B4 */
+extern W8CombatState* g_combat_state; /* 0x006836A8 */
 
 #endif

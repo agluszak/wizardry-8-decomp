@@ -26,15 +26,10 @@ char GetTargetNoticeColor(const W8TargetSource* source,
 
 /* ABS 0x0068407F: cached world-space target point refreshed by the targeting
    refresh path. */
-extern srVector3T<float> g_target_position_0068407f;
-extern int g_picked_monster;
-extern int g_picked_group;
 /* ABS 0x0068408B: the shared combat slot the context-2 outputs name. */
-extern W8CombatSlot g_shared_target_0068408b;
 /* ABS 0x006840AB: one action-detail block following the shared slot; the
-   eight bytes fit exactly before g_picked_monster. Context 2 hands out
+   eight bytes fit exactly before gXStatus.picked_monster. Context 2 hands out
    both addresses and stores the selected use-item value in the block. */
-extern W8ActionDetailBlock g_shared_action_detail_006840ab;
 
 unsigned char GetFactionFlag(char faction);
 /* One faction's last band-change world-clock stamp. */

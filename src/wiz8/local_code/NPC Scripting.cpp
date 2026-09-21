@@ -363,9 +363,6 @@ unsigned char g_message_queue_idle_68c501;
 // GLOBAL: WIZ8 0x0068C358
 int g_pending_npc_travel_level;
 
-// GLOBAL: WIZ8 0x0068506f
-unsigned char g_flag_68506f;
-
 // GLOBAL: WIZ8 0x0061aea0
 int g_sedexus_sound_handle_61aea0 = -1;
 // GLOBAL: WIZ8 0x0061c324
@@ -480,7 +477,7 @@ update_cursor:
                     return;
                 }
             }
-        } else if (g_flag_68506f == 0) {
+        } else if (gXStatus.flag_19b7 == 0) {
             SetTargetCursor(9);
         }
     }
@@ -555,7 +552,7 @@ void ProcessNpcScriptingFrame(void)
                 g_npc_scripting.restore_staged_session = 0;
             }
             if (gXStatus.fNpcDialogueMode != 0 && g_status_685170.value_2435 == 0 &&
-                g_flag_68506f == 0 && g_screen_state_00649f1c->script_busy == 0 &&
+                gXStatus.flag_19b7 == 0 && g_screen_state_00649f1c->script_busy == 0 &&
                 (can_open_dialogue = CanOpenNpcDialogue(), can_open_dialogue != 0)) {
                 EndNpcDialogueSession0056E800(0);
             }
@@ -2673,7 +2670,7 @@ void BeginNpcScriptedScene(void)
 
     g_npc_scripting.scripted_scene_active = 1;
     ResetLevelDataVectors0041F0D0();
-    g_flag_68506f = 1;
+    gXStatus.flag_19b7 = 1;
     SetTargetingMode(1);
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         if (g_status_685170.buffers.party_rows[party_slot].occupied != 0) {
@@ -2699,7 +2696,7 @@ void EndScriptedPortraitPick00529C40(int party_slot)
     unsigned int slot;
     bool other_gender_present;
 
-    if (g_flag_68506f == 0) {
+    if (gXStatus.flag_19b7 == 0) {
         return;
     }
     if (gXStatus.fCombatMode == 0 || gXStatus.fPartyMovementMode != 0) {
@@ -2714,7 +2711,7 @@ void EndScriptedPortraitPick00529C40(int party_slot)
         }
     }
     g_npc_scripting.scripted_scene_active = 0;
-    g_flag_68506f = 0;
+    gXStatus.flag_19b7 = 0;
     other_gender_present = false;
     SetFact(0x1c0, 0, 0);
     SetFact(0x200, 0, 0);

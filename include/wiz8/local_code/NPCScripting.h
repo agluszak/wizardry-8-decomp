@@ -113,7 +113,6 @@ extern W8NpcScriptingState g_npc_scripting;
 extern unsigned char g_message_queue_idle_68c501; /* 0x0068C501 */
 /* 0x0068506F: scripted portrait-pick / cutscene gate PortraitSelectRegionEvent
    and EndScriptedPortraitPick00529C40 clear. */
-extern unsigned char g_flag_68506f;
 
 void TryFinishNpcVoicePlayback(unsigned char force); /* 0x00525D90 */
 int FindNpcScriptQuoteByKeyword(wchar_t* keyword, short* entry_index,

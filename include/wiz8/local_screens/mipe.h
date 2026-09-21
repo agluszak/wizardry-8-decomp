@@ -15,8 +15,6 @@ class W8Prop;
 class W8WorldCursorNode;
 struct MonGen;
 
-extern int g_mipe_cube_serial_006850ba;
-
 enum { W8_MIPE_NO_GROUP = 1000000 };
 
 struct W8MipeMonsterEntry {

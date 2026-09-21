@@ -88,9 +88,6 @@ W8GrowableVector<int> g_location_variable_values_00659990;
 // GLOBAL: WIZ8 0x00606994
 unsigned char g_flag_00606994 = 1;
 
-// GLOBAL: WIZ8 0x0068506e
-unsigned char g_flag_0068506e;
-
 // GLOBAL: WIZ8 0x0068c520
 int g_value_0068c520;
 
@@ -820,7 +817,7 @@ void UpdateWorldTriggers00443AE0(W8World* world)
                     dialog->m_user_data = trigger;
                     dialog->SetItemGroup005CF0C0(trigger->world_item_group_34c);
                     dialog->m_destroy_callback = OnItemDialogClosed004456C0;
-                    g_flag_0068506e = 0;
+                    gXStatus.flag_19b6 = 0;
                     g_modal_owner_0068edd0 = dialog;
                 }
             }
@@ -2968,7 +2965,7 @@ void Trigger::Run(int source)
                     item = item->next;
                 }
                 if (contained_items > 1) {
-                    g_flag_0068506e = 1;
+                    gXStatus.flag_19b6 = 1;
                 }
 
                 if (gold_358 != 0) {

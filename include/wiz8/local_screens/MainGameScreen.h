@@ -507,15 +507,6 @@ void SetTooltipSubject(int kind, int subject); /* 0x00569C60 */
 int IsScreenInputBlocked(void);
 void DisableCombatRegions(void);
 
-extern unsigned short g_value_006840be;
-extern unsigned char g_flag_00685071;
-extern W8ItemInstance* g_value_00685072;
-extern unsigned char g_flag_00685076;
-extern signed char g_value_00685077;
-extern unsigned char g_flag_006840bc;
-extern unsigned char g_flag_006840bd;
-extern unsigned char g_flag_00685070;
-
 void HandleManualCameraHotkeys(void);
 void ApplyWorldRenderHotkeys(void);
 extern unsigned char g_flag_0068edbc;
@@ -531,7 +522,6 @@ void RequestLevelTransition005615F0(int level, int entry, unsigned char flag);
 extern unsigned char g_build_level_links_0065bd2c;
 extern int g_next_link_level_0068ede8;
 extern bool g_navigator_position_changed_659c11;
-extern unsigned char g_flag_006840bb;
 void BeginLevelTransition(void); /* 0x005611A0 */
 void SetViewportMode(int mode);  /* 0x005618F0 */
 /* Apply a main-game UI mode (0=portraits, 1=formation, 2=radar): drop raised

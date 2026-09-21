@@ -81,7 +81,6 @@ unsigned char MeasureLevelStatusChunks00514DF0(W8Chunk* chunk, int level,
                                                unsigned int* empty_percent);
 
 extern unsigned char g_save_pending_00689f98;
-extern unsigned char g_save_notice_shown_0068506b;
 
 /* Mark a matching CHAR payload consumed in Saves\\CurrentGame.SAV. */
 char MarkCurrentGameCharacterChunkConsumed(const char* path); /* 0x005154A0 */
