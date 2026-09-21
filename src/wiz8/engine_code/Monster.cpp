@@ -60,6 +60,7 @@
 #include "wiz8/local_code/Magic.h"
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/engine_code/stMeshModel.h"
+#include "wiz8/engine_code/stTextureFile.h"
 #include "wiz8/monster_runtime.h"
 #include "wiz8/local_code/NPCManager.h"
 #include "wiz8/layouts/gameplay_databases.h"

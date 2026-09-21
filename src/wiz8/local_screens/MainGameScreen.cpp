@@ -3109,6 +3109,19 @@ unsigned char MainGameScreenEnter(void)
     return 1;
 }
 
+/* Queue the level transition on the pending screen state (mode 3 carries the
+   target level and entry id), leave the current main-game mode, and ask for
+   the please-wait screen while the level loads. */
+// FUNCTION: WIZ8 0x005611A0
+void BeginLevelTransition(void)
+{
+    g_pending_screen_state.mode = 3;
+    g_pending_screen_state.parameter = g_level_block->pending_level;
+    g_pending_screen_state.parameter_2 = g_level_block->pending_entry_id;
+    SetMainGameMode00568390(0);
+    SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
+}
+
 /* While the party is idle, arm a one-minute countdown after input and, once the
    cursor has also been still for a minute and that countdown expires, advance
    ambient follow-up chatter. Busy modes keep refreshing the countdown and
