@@ -283,6 +283,9 @@ const wchar_t g_text_enter_default_level_006480b8[] = L"Enter default level ?";
 // GLOBAL: WIZ8 0x006480e4
 const wchar_t g_format_s_s_question_006480e4[] = L"%s %s?";
 
+// GLOBAL: WIZ8 0x0061A700
+const wchar_t g_format_s_paren_d_0061a700[] = L"%s (%d)";
+
 // GLOBAL: WIZ8 0x0061c3e0
 const wchar_t g_format_s_colon_s_0061c3e0[] = L"%s: %s";
 // GLOBAL: WIZ8 0x0064da8c
@@ -299,19 +302,15 @@ bool g_navigator_position_changed_659c11;
 void ApplyPendingMouselook(void);
 void ApplyPendingTooltip(void);
 void UpdateCombatPortraitStatus0059B4C0(void);
-void Function59B390(void);
-void ApplySavedRedrawInvalidates(void);                                   /* 0x00563D00 */
-void RedrawPanel69B940(void);                                             /* 0x0059BC00 */
-void Function564BA0(int party_slot);                                      /* 0x00564BA0 */
-void Function564D80(int party_slot);                                      /* 0x00564D80 */
-void Function564710(int party_slot);                                      /* 0x00564710 */
-void Function5651F0(int party_slot);                                      /* 0x005651F0 */
+void UpdateKeyboardMenu(void);          /* 0x0059B390 */
+void ApplySavedRedrawInvalidates(void); /* 0x00563D00 */
+void RedrawPanel69B940(void);           /* 0x0059BC00 */
+
 void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled); /* 0x0059A540 */
 
-void Function56AC80(void);                  /* 0x0056AC80 */
+void DrawMainGamePrompt(void);              /* 0x0056AC80 */
 void RedrawDialogueTextInput0058C790(void); /* 0x0058C790 */
-void Function59CF50(int active);            /* 0x0059CF50 */
-void Function587C50(void);                  /* 0x00587C50 */
+void InvalidateLockInteractionPanels(void); /* 0x00587C50 */
 unsigned char GetOpenDialogueFlag(void);    /* 0x0058D7C0 */
 void RedrawTextBoxComplete(void);           /* 0x0058A8C0 */
 unsigned char HandleMouselookInput00568B50(const InputAtom* input);
@@ -370,6 +369,97 @@ void RedrawLockInteractionPanels(void)
     g_lock_interaction_68f2c0->m_action_panel_18->Redraw();
 }
 
+/* Leave lock interact mode. With `suspend` clear the interaction object is
+   destroyed outright; otherwise its panels go inactive while fLockInteract
+   stays set so the session can resume. Either path re-syncs the text box and
+   UI mode and repaints the portrait, status and action regions. */
+// FUNCTION: WIZ8 0x005879A0
+void EndLockInteractMode(char suspend)
+{
+    W8LockInteraction* interaction = g_lock_interaction_68f2c0;
+    gXStatus.fLockInteractMode = 0;
+    if (suspend != 0) {
+        interaction->m_tumbler_panel_10->EnableRegionSet(0);
+        interaction->m_action_panel_18->EnableRegionSet(0);
+        gXStatus.fLockInteract = 1;
+    } else {
+        if (g_lock_interaction_68f2c0 != 0) {
+            delete g_lock_interaction_68f2c0;
+        }
+        g_lock_interaction_68f2c0 = 0;
+        ClearLevelDataFlag6();
+    }
+    SelectTextBox(0);
+    ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_value_68f2b0), 1);
+    RequestRedraw(0x200);
+    RequestRedraw(0x100);
+    RequestRedraw(0x1000);
+}
+
+/* Re-derive the lock interaction's control enables for the selected
+   character, matching the constructor's initial pass: tumblers need lockpick
+   skill, the spell button needs a castable knock-knock, and the force button
+   needs enough strength to roll. The info text and action panel repaint
+   either way. */
+// FUNCTION: WIZ8 0x00587A30
+void RefreshLockInteractionControls(void)
+{
+    W8LockInteraction* interaction = g_lock_interaction_68f2c0;
+    W8Character* character;
+    int level;
+    int power;
+    unsigned int figure;
+    unsigned int book;
+    unsigned int realm;
+    int divisor;
+    int i;
+
+    if (!IsPartySlotEligible00524A10(g_status_685170.selected_character)) {
+        level = -1;
+    } else {
+        character = &g_status_685170.buffers.characters[g_status_685170.selected_character];
+        if (character->skills[10].flag_00 == 0 && character->skills[10].level == 0) {
+            level = -1;
+        } else {
+            level = character->skills[10].level;
+        }
+    }
+    for (i = 0; i < interaction->m_tumbler_panel_10->m_tumbler_count_50; i++) {
+        interaction->m_tumbler_panel_10->m_tumblers_54[i]->SetEnabled(level > -1);
+    }
+    character = &g_status_685170.buffers.characters[g_status_685170.selected_character];
+    if (IsPartySlotEligible00524A10(g_status_685170.selected_character) &&
+        character->spell_learned[0x27] == 1) {
+        book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
+        realm = character->skills[0x1c + g_spell_records[0x27].realm].level;
+        book = character->skills[book].level;
+        power = (book + realm * 4) / 5;
+        if (power > -1) {
+            figure = CanCharacterCastSpell(character, 0x27);
+        } else {
+            figure = 0;
+        }
+    } else {
+        figure = 0;
+    }
+    interaction->m_spell_button_20->SetEnabled(figure);
+    if (!IsPartySlotEligible00524A10(g_status_685170.selected_character)) {
+        figure = 0xffffffff;
+    } else {
+        character = &g_status_685170.buffers.characters[g_status_685170.selected_character];
+        if (character->stamina < 0x50 || character->attributes[0].effective <= 0x32) {
+            figure = 0xffffffff;
+        } else {
+            divisor = g_settings_6850c8.difficulty - 1 + interaction->m_tumbler_count_0c;
+            ClampInteger(&divisor, 2, 8);
+            figure = (character->attributes[0].effective - 0x32) / IntegerPower(2, divisor - 2);
+        }
+    }
+    interaction->m_force_button_24->SetEnabled(static_cast<int>(figure) > -1);
+    interaction->m_info_panel_14->RefreshInfo();
+    interaction->m_action_panel_18->Invalidate(0);
+}
+
 /* Re-arm the lock tumbler and action region sets while lock interact is up. */
 // FUNCTION: WIZ8 0x00587C20
 void EnableLockInteractionPanels(void)
@@ -377,6 +467,19 @@ void EnableLockInteractionPanels(void)
     if (g_lock_interaction_68f2c0 != 0) {
         g_lock_interaction_68f2c0->EnablePanels(1);
     }
+}
+
+/* Mark the lock interaction's tumbler and action panels dirty and rebuild the
+   info text; run from the redraw sweep when flag 0x200 is raised while lock
+   interact mode is up. */
+// FUNCTION: WIZ8 0x00587C50
+void InvalidateLockInteractionPanels(void)
+{
+    W8LockInteraction* interaction = g_lock_interaction_68f2c0;
+
+    interaction->m_tumbler_panel_10->Invalidate(0);
+    interaction->m_info_panel_14->RefreshInfo();
+    interaction->m_action_panel_18->Invalidate(0);
 }
 
 // FUNCTION: WIZ8 0x005854B0
@@ -863,7 +966,7 @@ void W8LockInteraction::Process()
         if (GetKnockKnockSpellPower00586A70(g_status_685170.selected_character) > -1 &&
             CanCharacterCastSpell(&g_status_685170.buffers.characters[slot], 0x27)) {
             m_spell_button_20->SetAlternateTextEnabled(0);
-            Function5879A0(1);
+            EndLockInteractMode(1);
             BeginSpellCast005A0110(0x27, -1, -1);
             return;
         }
@@ -2199,6 +2302,42 @@ void RedrawTrapInteractionPanels(void)
     g_main_game_screen->m_action_panel_014->Redraw();
 }
 
+/* Leave trap interact mode. With `suspend` clear the main game screen object
+   is destroyed outright; otherwise its text/key-handler/action panels go
+   inactive while fTrapInteract stays set so the session can resume. Either
+   path re-syncs the text box and UI mode and repaints the affected regions. */
+// FUNCTION: WIZ8 0x0058A790
+void EndTrapInteractMode(char suspend)
+{
+    gXStatus.fTrapInteractMode = 0;
+    if (suspend != 0) {
+        W8MainGameTextPanel* panel = g_main_game_screen->m_text_panel_00c;
+        W8MainGameScreen* screen = g_main_game_screen;
+        panel->EnableRegionSet(0);
+        panel->m_key_handler_074->m_range_038.EnableRegionSet(0);
+        screen->m_action_panel_014->EnableRegionSet(0);
+        gXStatus.fTrapInteract = 1;
+    } else {
+        if (g_main_game_screen != 0) {
+            delete g_main_game_screen;
+        }
+        g_main_game_screen = 0;
+        ClearLevelDataFlag6();
+    }
+    SelectTextBox(0);
+    ApplyMainGameModeFlag(static_cast<W8MainUiMode>(g_value_68f2c4), 1);
+    RequestRedraw(0x200);
+    RequestRedraw(0x100);
+    RequestRedraw(0x1000);
+}
+
+/* Per-frame trap interact service: repaint the screen's action panel. */
+// FUNCTION: WIZ8 0x0058A860
+void RefreshMainGameActionPanel(void)
+{
+    g_main_game_screen->RefreshActionPanel();
+}
+
 // FUNCTION: WIZ8 0x0055DE40
 W8NpcDialogueTextController::W8NpcDialogueTextController(int panel_left, int panel_top,
                                                          int panel_right, int panel_bottom,
@@ -2755,10 +2894,10 @@ unsigned char MainGameScreenEnter(void)
     SetTargetingMode(0);
     SetPrimarySurfaceTextureHint2Enabled(1);
     if (gXStatus.fLockInteract) {
-        Function587510(0);
+        OpenLockInteraction00587510(0);
     }
     if (gXStatus.fTrapInteract) {
-        Function58A470(0);
+        OpenTrapInteraction0058A470(0);
     }
     if (gXStatus.item_drag_active) {
         if (IsPartySlotEligible00524A10(gXStatus.dragged_character_slot)) {
@@ -2799,7 +2938,7 @@ void OnEnterLevelDialogClosed(W8DialogBase* dialog)
             }
             break;
         case 5:
-            Function5187E0();
+            CloseMessageBox();
             break;
         case 6:
             if (g_level_block->highlight_graphic != 0) {
@@ -2852,7 +2991,7 @@ void BeginLevelTransition(void)
         }
         break;
     case 5:
-        Function5187E0();
+        CloseMessageBox();
         break;
     case 6:
         if (g_level_block->highlight_graphic != 0) {
@@ -2927,7 +3066,7 @@ void SetMainGameMode00568390(int mode)
         }
         break;
     case 5:
-        Function5187E0();
+        CloseMessageBox();
         break;
     case 6:
         if (g_level_block->highlight_graphic != 0) {
@@ -2990,13 +3129,13 @@ unsigned char ProcessMainGameInput(void)
                             EndNpcDialogueSession0056E800(0);
                         }
                     } else if (g_main_game_mode_0068eddc == 5) {
-                        Function5187E0();
+                        CloseMessageBox();
                     } else if (g_main_game_mode_0068eddc == 6) {
                         DismissHighlightOverlay();
                     }
                     g_main_game_mode_0068eddc = 0;
                     if (IsMessageBoxActive()) {
-                        Function5187E0();
+                        CloseMessageBox();
                     }
                     if (gXStatus.fCombatMode == 0) {
                         if (AnyCharacterActive() && gXStatus.party_moving == 0) {
@@ -3143,7 +3282,7 @@ update_screen:
     }
     g_status_685170.value_2390 = 0;
     if (g_level_block->keyboard_menu_open || g_level_block->combat_slot != -1) {
-        Function59B390();
+        UpdateKeyboardMenu();
     }
     UpdateSurpriseMode();
     if (gXStatus.fCombatMode) {
@@ -3326,7 +3465,7 @@ render_world:
         if (gXStatus.fSpellCastMode)
             CommitSpellCastingSelection005A0BC0();
         if (gXStatus.fItemSelectMode)
-            CommitUseItemAtTarget0059D180();
+            CommitSelectedItemUse();
         if (gXStatus.fNpcDialogueMode)
             ServiceNpcDialogue0056E510();
         if (gXStatus.fLockInteractMode)
@@ -3372,7 +3511,7 @@ unsigned char MainGameScreenLeave(int leaving)
             EndNpcDialogueSession0056E800(0);
         }
     } else if (g_main_game_mode_0068eddc == 5) {
-        Function5187E0();
+        CloseMessageBox();
     } else if (g_main_game_mode_0068eddc == 6) {
         if (g_level_block->highlight_graphic != 0) {
             ReleaseObject004257F0(g_level_block->highlight_graphic);
@@ -3392,13 +3531,13 @@ unsigned char MainGameScreenLeave(int leaving)
     }
     ResetPartyPortraitFx();
     if (gXStatus.fLockInteractMode)
-        Function5879A0(0);
+        EndLockInteractMode(0);
     if (gXStatus.fTrapInteractMode)
-        Function58A790(0);
+        EndTrapInteractMode(0);
     if (gXStatus.fSpellCastMode)
         CloseSpellCastingView();
     if (gXStatus.fItemSelectMode)
-        Function59C9C0();
+        CloseUseItemSelectView();
     if (gXStatus.fReviewCharacterMode)
         CloseFormationPanel();
     if (gXStatus.fNpcDialogueMode)
@@ -3632,7 +3771,8 @@ void ApplyMainGameRedrawFlags(void)
                                 }
                             }
                             g_main_game_mode_0068eddc = 0;
-                            Function564D80(g_level_block->condition_highlight_party_slot);
+                            DrawPortraitStatusOverlay(
+                                g_level_block->condition_highlight_party_slot);
                         }
                     } else {
                         if (g_level_block->highlight_graphic != 0) {
@@ -3665,7 +3805,7 @@ void ApplyMainGameRedrawFlags(void)
                             }
                         }
                         g_main_game_mode_0068eddc = 0;
-                        Function564710(g_level_block->portrait_overlay_party_slot);
+                        DrawPortraitVitalsOverlay(g_level_block->portrait_overlay_party_slot);
                     }
                 } else {
                     if (g_level_block->highlight_graphic != 0) {
@@ -3696,7 +3836,7 @@ void ApplyMainGameRedrawFlags(void)
                         }
                     }
                     g_main_game_mode_0068eddc = 0;
-                    Function5651F0(g_level_block->enchantment_orb_party_slot);
+                    DrawPortraitEnchantmentOverlay(g_level_block->enchantment_orb_party_slot);
                 }
             } else {
                 if (g_level_block->highlight_graphic != 0) {
@@ -3705,10 +3845,10 @@ void ApplyMainGameRedrawFlags(void)
                 }
                 ClearHighlightOverlayRegion();
                 g_main_game_mode_0068eddc = 0;
-                Function564BA0(g_level_block->condition_orb_party_slot);
+                DrawPortraitConditionOverlay(g_level_block->condition_orb_party_slot);
             }
         } else {
-            Function56AC80();
+            DrawMainGamePrompt();
             if (gXStatus.fPartyMovementUi == 0) {
                 goto refresh_tracked_portrait_slot;
             }
@@ -3798,16 +3938,16 @@ void ApplyMainGameRedrawFlags(void)
             RedrawPanel69B998();
         }
         if ((g_level_block->redraw_flags & 0x200) == 0) {
-            Function59CF50(0);
+            UpdateUseItemSelect0059CF50(0);
         } else {
-            Function59CF50(1);
+            UpdateUseItemSelect0059CF50(1);
         }
         goto finish_mode_overlays;
     }
     if (gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) {
         if (gXStatus.fLockInteractMode != 0) {
             if ((g_level_block->redraw_flags & 0x200) != 0) {
-                Function587C50();
+                InvalidateLockInteractionPanels();
             }
             goto finish_mode_overlays;
         }
@@ -4048,7 +4188,7 @@ void RefreshTrackedPortraitOverlay(void)
             }
         }
         g_main_game_mode_0068eddc = 0;
-        Function564BA0(g_level_block->condition_orb_party_slot);
+        DrawPortraitConditionOverlay(g_level_block->condition_orb_party_slot);
         return;
     }
     if (g_level_block->enchantment_orb_party_slot != -1) {
@@ -4075,7 +4215,7 @@ void RefreshTrackedPortraitOverlay(void)
             }
         }
         g_main_game_mode_0068eddc = 0;
-        Function5651F0(g_level_block->enchantment_orb_party_slot);
+        DrawPortraitEnchantmentOverlay(g_level_block->enchantment_orb_party_slot);
         return;
     }
     if (g_level_block->portrait_overlay_party_slot != -1) {
@@ -4102,7 +4242,7 @@ void RefreshTrackedPortraitOverlay(void)
             }
         }
         g_main_game_mode_0068eddc = 0;
-        Function564710(g_level_block->portrait_overlay_party_slot);
+        DrawPortraitVitalsOverlay(g_level_block->portrait_overlay_party_slot);
         return;
     }
     if (g_level_block->condition_highlight_party_slot != -1) {
@@ -4129,7 +4269,7 @@ void RefreshTrackedPortraitOverlay(void)
             }
         }
         g_main_game_mode_0068eddc = 0;
-        Function564D80(g_level_block->condition_highlight_party_slot);
+        DrawPortraitStatusOverlay(g_level_block->condition_highlight_party_slot);
     }
 }
 
@@ -4311,16 +4451,16 @@ void SelectPartyCharacter(int party_slot)
         SelectSpellCastingCharacter(g_status_685170.selected_character);
     }
     if (gXStatus.fItemSelectMode != 0) {
-        Function59CC40(g_status_685170.selected_character);
+        RefreshUseItemSelectionForSlot0059CC40(g_status_685170.selected_character);
     }
     if (gXStatus.fNpcDialogueMode != 0) {
         SyncNpcServiceButtons0056EE20(g_status_685170.selected_character);
     }
     if (gXStatus.fLockInteractMode != 0) {
-        Function587A30();
+        RefreshLockInteractionControls();
     }
     if (gXStatus.fTrapInteractMode != 0) {
-        Function58A860();
+        RefreshMainGameActionPanel();
     }
     if (gXStatus.fReviewCharacterMode != 0) {
         SelectFormationSlotCell(g_status_685170.selected_character);
@@ -4386,7 +4526,7 @@ void RefreshSelectedPartyPortrait(unsigned int party_slot)
             EndNpcDialogueSession0056E800(0);
         }
     } else if (g_main_game_mode_0068eddc == 5) {
-        Function5187E0();
+        CloseMessageBox();
     } else if (g_main_game_mode_0068eddc == 6) {
         if (g_level_block->highlight_graphic != 0) {
             ReleaseObject004257F0(g_level_block->highlight_graphic);
@@ -4460,7 +4600,7 @@ void DrawHighlightOverlay(unsigned int party_slot, int row_count, unsigned int m
             EndNpcDialogueSession0056E800(0);
         }
     } else if (g_main_game_mode_0068eddc == 5) {
-        Function5187E0();
+        CloseMessageBox();
     } else if (g_main_game_mode_0068eddc == 6) {
         if (g_level_block->highlight_graphic != 0) {
             ReleaseObject004257F0(g_level_block->highlight_graphic);
@@ -4631,6 +4771,328 @@ void DrawHighlightOverlay(unsigned int party_slot, int row_count, unsigned int m
     InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
                      g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
                      g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 1);
+}
+
+/* The portrait overlay's vitals content: "HP:"/"Stamina:" label rows then one
+   icon row per spell realm, each "cur/max" value centered in the column right
+   of the labels. Retail seeds the value-column width from the HP/stamina
+   strings; the realm pass widens it only when a realm string beats the label
+   width rather than the running value width. */
+// FUNCTION: WIZ8 0x00564710
+void DrawPortraitVitalsOverlay(int party_slot)
+{
+    int realm_icons[6] = {0x193, 0x194, 0x195, 0x196, 0x197, 0x198};
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+
+    swprintf(g_level_block->text_paint_scratch_000, g_format_s_colon_00648164,
+             gppStringList[0x282]);
+    unsigned int label_width =
+        StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+    swprintf(g_level_block->text_paint_scratch_000, g_format_s_colon_00648164,
+             gppStringList[0x283]);
+    int width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+    if (label_width < static_cast<unsigned int>(width)) {
+        width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+        label_width = width;
+    }
+    if (label_width < 0x12) {
+        label_width = 0x12;
+    }
+    label_width += 10;
+
+    swprintf(g_level_block->text_paint_scratch_000, g_format_d_slash_d_00614b58,
+             character->hp_current, character->hp_max);
+    unsigned int value_width =
+        StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+    swprintf(g_level_block->text_paint_scratch_000, g_format_d_slash_d_00614b58, character->stamina,
+             character->stamina_max);
+    width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+    if (value_width < static_cast<unsigned int>(width)) {
+        width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+        value_width = width;
+    }
+    int realm;
+    for (realm = 0; realm < 6; ++realm) {
+        swprintf(g_level_block->text_paint_scratch_000, g_format_d_slash_d_00614b58,
+                 GetCharacterRealmSpellPoints(character, realm), character->sp_max[realm]);
+        width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+        if (label_width < static_cast<unsigned int>(width)) {
+            width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+            value_width = width;
+        }
+    }
+
+    g_level_block->highlight_row = 0;
+    DrawHighlightOverlay(party_slot, 8, value_width + label_width);
+    if (g_level_block->highlight_graphic != 0) {
+        ClearNodeFlag(g_level_block->highlight_graphic);
+    }
+
+    int text_width = g_level_block->dialogue_text_width_234;
+    int text_x = g_level_block->dialogue_text_x_230;
+    int row_y = g_level_block->dialogue_row_y_22c;
+
+    swprintf(g_level_block->text_paint_scratch_000, g_format_s_colon_00648164,
+             gppStringList[0x282]);
+    gprintf(text_x, row_y, g_level_block->text_paint_scratch_000);
+    swprintf(g_level_block->text_paint_scratch_000, g_format_d_slash_d_00614b58,
+             character->hp_current, character->hp_max);
+    unsigned int value_center = (text_width - label_width) >> 1;
+    width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+    gprintf(value_center - width / 2 + text_x + label_width, row_y,
+            const_cast<wchar_t*>(g_format_s_006068e4), g_level_block->text_paint_scratch_000);
+    row_y += 0x12;
+
+    swprintf(g_level_block->text_paint_scratch_000, g_format_s_colon_00648164,
+             gppStringList[0x283]);
+    gprintf(text_x, row_y, g_level_block->text_paint_scratch_000);
+    swprintf(g_level_block->text_paint_scratch_000, g_format_d_slash_d_00614b58, character->stamina,
+             character->stamina_max);
+    width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+    gprintf(value_center - width / 2 + text_x + label_width, row_y,
+            const_cast<wchar_t*>(g_format_s_006068e4), g_level_block->text_paint_scratch_000);
+    row_y += 0x12;
+
+    for (realm = 0; realm < 6; ++realm) {
+        DrawCatalogImage(-0xe, realm_icons[realm], 0,
+                         static_cast<short>(g_spell_realm_animations_00648c90[realm].initial_frame),
+                         text_x, row_y, 2, 0);
+        swprintf(g_level_block->text_paint_scratch_000, g_format_d_slash_d_00614b58,
+                 GetCharacterRealmSpellPoints(character, realm), character->sp_max[realm]);
+        int text_y = (0x12 - GetFontHeight(g_wiz_text_font_683640)) / 2 + row_y;
+        width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+        gprintf(value_center - width / 2 + text_x + label_width, text_y,
+                const_cast<wchar_t*>(g_format_s_006068e4), g_level_block->text_paint_scratch_000);
+        row_y += 0x12;
+    }
+}
+
+/* The portrait overlay's condition content: one row per active condition with
+   its status icon and notice name, drawn bottom-up. The count covers all
+   twenty condition slots while the measure and draw passes visit 0x13 down to
+   1 only, paired with the four-entry-strided g_condition_notices_0061E570
+   names. */
+// FUNCTION: WIZ8 0x00564BA0
+void DrawPortraitConditionOverlay(int party_slot)
+{
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+
+    int condition = 0;
+    int row_count = 0;
+    for (condition = 0; condition < W8_CONDITION_COUNT; ++condition) {
+        if (character->condition_turns[condition] != 0) {
+            ++row_count;
+        }
+    }
+    unsigned int max_width = 0;
+    for (condition = W8_CONDITION_COUNT - 1; condition > 0; --condition) {
+        if (character->condition_turns[condition] != 0) {
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s_006068e4,
+                     gppStringList[g_condition_notices_0061E570[condition * 4]]);
+            int width =
+                StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+            if (max_width < static_cast<unsigned int>(width)) {
+                width =
+                    StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+                max_width = width;
+            }
+        }
+    }
+
+    g_level_block->highlight_row = 0;
+    DrawHighlightOverlay(party_slot, row_count, max_width + 0x1a);
+    if (g_level_block->highlight_graphic != 0) {
+        ClearNodeFlag(g_level_block->highlight_graphic);
+    }
+
+    int text_x = g_level_block->dialogue_text_x_230;
+    int row_y = g_level_block->dialogue_row_y_22c;
+    int text_width = g_level_block->dialogue_text_width_234;
+    for (condition = W8_CONDITION_COUNT - 1; condition > 0; --condition) {
+        if (character->condition_turns[condition] != 0) {
+            DrawCatalogImage(-0xe, condition + 0xb6, 0, 0, text_x, row_y, 2, 0);
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s_006068e4,
+                     gppStringList[g_condition_notices_0061E570[condition * 4]]);
+            int width =
+                StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+            gprintf((((text_width - 0x1aU) >> 1) - width / 2) + 0x1a + text_x, row_y,
+                    const_cast<wchar_t*>(g_format_s_006068e4),
+                    g_level_block->text_paint_scratch_000);
+            row_y += 0x12;
+        }
+    }
+}
+
+/* The condition-highlight panel's combined content: the active conditions
+   followed by the active enchantments, capped at 0x14 rows. When the lists
+   overflow, the last row instead prints the "more" notice (0x7d8) - the extra
+   enchantment power argument it pushes is dead, "%s" never consumes it. */
+// FUNCTION: WIZ8 0x00564D80
+void DrawPortraitStatusOverlay(int party_slot)
+{
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    unsigned int max_width = 0;
+    bool truncated = false;
+    int condition;
+    int slot;
+
+    int condition_count = 0;
+    for (condition = 0; condition < W8_CONDITION_COUNT; ++condition) {
+        if (character->condition_turns[condition] != 0) {
+            ++condition_count;
+        }
+    }
+    for (condition = W8_CONDITION_COUNT - 1; condition > 0; --condition) {
+        if (character->condition_turns[condition] != 0) {
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s_006068e4,
+                     gppStringList[g_condition_notices_0061E570[condition * 4]]);
+            int width =
+                StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+            if (max_width < static_cast<unsigned int>(width)) {
+                width =
+                    StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+                max_width = width;
+            }
+        }
+    }
+    int enchantment_count = 0;
+    for (slot = 0; slot < 8; ++slot) {
+        if (character->enchantments[slot].value_08 != 0) {
+            ++enchantment_count;
+        }
+    }
+    for (slot = 7; slot > 0; --slot) {
+        if (character->enchantments[slot].value_08 != 0) {
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s_paren_d_0061a700,
+                     gppStringList[g_condition_notices_0061E570[slot + 0x64]],
+                     character->enchantments[slot].value_00);
+            int width =
+                StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+            if (max_width < static_cast<unsigned int>(width)) {
+                width =
+                    StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+                max_width = width;
+            }
+        }
+    }
+
+    int row_count = condition_count + enchantment_count;
+    if (0x14 < row_count) {
+        row_count = 0x14;
+        truncated = true;
+        int width = StringPixLength(gppStringList[0x7d8], g_wiz_text_font_683640);
+        if (max_width < static_cast<unsigned int>(width - 0x1a)) {
+            width = StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+            max_width = width - 0x1a;
+        }
+    }
+
+    g_level_block->highlight_row = 0;
+    DrawHighlightOverlay(party_slot, row_count, max_width + 0x1a);
+    if (g_level_block->highlight_graphic != 0) {
+        ClearNodeFlag(g_level_block->highlight_graphic);
+    }
+
+    int text_x = g_level_block->dialogue_text_x_230;
+    int row_y = g_level_block->dialogue_row_y_22c;
+    unsigned int text_width = g_level_block->dialogue_text_width_234 - 0x1a;
+    int rows_drawn = 0;
+    for (condition = W8_CONDITION_COUNT - 1; condition > 0; --condition) {
+        if (character->condition_turns[condition] != 0) {
+            DrawCatalogImage(-0xe, condition + 0xb6, 0, 0, text_x, row_y, 2, 0);
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s_006068e4,
+                     gppStringList[g_condition_notices_0061E570[condition * 4]]);
+            int width =
+                StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+            gprintf(((text_width >> 1) - width / 2) + 0x1a + text_x, row_y,
+                    const_cast<wchar_t*>(g_format_s_006068e4),
+                    g_level_block->text_paint_scratch_000);
+            row_y += 0x12;
+            ++rows_drawn;
+        }
+    }
+    for (slot = 7; slot > 0; --slot) {
+        if (rows_drawn == 0x13 && truncated) {
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s_006068e4,
+                     gppStringList[0x7d8], character->enchantments[slot].value_00);
+            int width =
+                StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+            gprintf((((text_width - width) + 0x1a) >> 1) + text_x, row_y,
+                    const_cast<wchar_t*>(g_format_s_006068e4),
+                    g_level_block->text_paint_scratch_000);
+            return;
+        }
+        if (character->enchantments[slot].value_08 != 0) {
+            DrawCatalogImage(-0xe, slot + 0xc9, 0, 0, text_x, row_y, 2, 0);
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s_paren_d_0061a700,
+                     gppStringList[g_condition_notices_0061E570[slot + 0x64]],
+                     character->enchantments[slot].value_00);
+            int width =
+                StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+            gprintf(((text_width >> 1) - width / 2) + 0x1a + text_x, row_y,
+                    const_cast<wchar_t*>(g_format_s_006068e4),
+                    g_level_block->text_paint_scratch_000);
+            row_y += 0x12;
+            ++rows_drawn;
+        }
+    }
+}
+
+/* The enchantment orb's hover content: one row per active enchantment showing
+   its icon and "name (power)" text. The count covers all eight slots while the
+   measure and draw passes visit 7 down to 1 - slot 0's row is counted but
+   never drawn. */
+// FUNCTION: WIZ8 0x005651F0
+void DrawPortraitEnchantmentOverlay(int party_slot)
+{
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+
+    int slot = 0;
+    int row_count = 0;
+    for (slot = 0; slot < 8; ++slot) {
+        if (character->enchantments[slot].value_08 != 0) {
+            ++row_count;
+        }
+    }
+    unsigned int max_width = 0;
+    for (slot = 7; slot > 0; --slot) {
+        if (character->enchantments[slot].value_08 != 0) {
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s_paren_d_0061a700,
+                     gppStringList[g_condition_notices_0061E570[slot + 0x64]],
+                     character->enchantments[slot].value_00);
+            int width =
+                StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+            if (max_width < static_cast<unsigned int>(width)) {
+                width =
+                    StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+                max_width = width;
+            }
+        }
+    }
+
+    g_level_block->highlight_row = 0;
+    DrawHighlightOverlay(party_slot, row_count, max_width + 0x1a);
+    if (g_level_block->highlight_graphic != 0) {
+        ClearNodeFlag(g_level_block->highlight_graphic);
+    }
+
+    int text_x = g_level_block->dialogue_text_x_230;
+    int row_y = g_level_block->dialogue_row_y_22c;
+    int text_width = g_level_block->dialogue_text_width_234;
+    for (slot = 7; slot > 0; --slot) {
+        if (character->enchantments[slot].value_08 != 0) {
+            DrawCatalogImage(-0xe, slot + 0xc9, 0, 0, text_x, row_y, 2, 0);
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s_paren_d_0061a700,
+                     gppStringList[g_condition_notices_0061E570[slot + 0x64]],
+                     character->enchantments[slot].value_00);
+            int width =
+                StringPixLength(g_level_block->text_paint_scratch_000, g_wiz_text_font_683640);
+            gprintf((((text_width - 0x1aU) >> 1) - width / 2) + 0x1a + text_x, row_y,
+                    const_cast<wchar_t*>(g_format_s_006068e4),
+                    g_level_block->text_paint_scratch_000);
+            row_y += 0x12;
+        }
+    }
 }
 
 // FUNCTION: WIZ8 0x005699b0
@@ -4866,7 +5328,7 @@ void RequestLevelTransition005615F0(int level, int entry, unsigned char flag)
             }
             break;
         case 5:
-            Function5187E0();
+            CloseMessageBox();
             break;
         case 6:
             if (g_level_block->highlight_graphic != 0) {
@@ -4895,7 +5357,7 @@ void RequestLevelTransition005615F0(int level, int entry, unsigned char flag)
         }
         break;
     case 5:
-        Function5187E0();
+        CloseMessageBox();
         break;
     case 6:
         if (g_level_block->highlight_graphic != 0) {
@@ -5166,6 +5628,47 @@ void UpdateCombatPortraitStatus0059B4C0(void)
         combat_row->combat_status_8c = status;
         combat_row->portrait_image_084 = image;
         combat_row->portrait_image_alternate_088 = alternate;
+    }
+}
+
+/* Per-frame keyboard menu service: close the menu when it outlives combat,
+   its party slot becomes ineligible, or the selected slot empties. While the
+   cursor sits outside the menu a 600 ms countdown runs; drifting back in
+   re-arms the slot from the cursor row, and expiry closes the menu. */
+// FUNCTION: WIZ8 0x0059B390
+void UpdateKeyboardMenu(void)
+{
+    RequestRedraw(0x80000000);
+    if ((gXStatus.fCombatMode == 0 && g_level_block->keyboard_menu_open != 0) ||
+        (g_level_block->combat_slot != -1 &&
+         !IsPartySlotEligible00524A10(g_level_block->combat_slot))) {
+        CloseKeyboardMenu();
+        return;
+    }
+    if (gXStatus.fCombatMode != 0 && g_combat_state->flag_001 == 0) {
+        CloseKeyboardMenu();
+        return;
+    }
+    if (g_level_block->keyboard_menu_open != 0) {
+        if (g_level_block->flag_31c == 0) {
+            if (g_status_685170.buffers.party_rows[g_level_block->combat_slot].occupied == 0) {
+                CloseKeyboardMenu();
+                return;
+            }
+            if (!KeyboardMenuContainsCursor()) {
+                g_level_block->flag_31c = 1;
+                g_level_block->countdown_30c = SetCountdownClock(0x258);
+                return;
+            }
+        } else {
+            if (KeyboardMenuContainsCursor()) {
+                g_level_block->countdown_30c = SetCountdownClock(0);
+                g_level_block->combat_slot = GetValue64C1C8();
+                g_level_block->flag_31c = 0;
+            } else if (ClockIsTicking(g_level_block->countdown_30c) == 0) {
+                CloseKeyboardMenu();
+            }
+        }
     }
 }
 
@@ -5726,7 +6229,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                         GiveHeldItemToCharacterOrParty(slot,
                                                        static_cast<unsigned char>(force_to_party));
                         if (gXStatus.fItemSelectMode != 0) {
-                            RefreshUseItemList0059D690();
+                            RefreshUseItemSelection();
                         }
                     }
                 } else {
@@ -5757,7 +6260,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                     }
                 } else if (g_main_game_mode_0068eddc == 5) {
                     g_pending_screen_state.parameter_2 = slot;
-                    Function5187E0();
+                    CloseMessageBox();
                 } else {
                     g_pending_screen_state.parameter_2 = slot;
                     if (g_main_game_mode_0068eddc == 6) {
@@ -5795,10 +6298,10 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 g_main_game_mode_0068eddc = 0;
                 SetPendingScreenState(W8_SCREEN_CAMP);
                 if (gXStatus.fLockInteractMode != 0) {
-                    Function5879A0(1);
+                    EndLockInteractMode(1);
                 }
                 if (gXStatus.fTrapInteractMode != 0) {
-                    Function58A790(1);
+                    EndTrapInteractMode(1);
                 }
                 if (gXStatus.fSpellCastMode != 0) {
                     CloseSpellCastingView();
@@ -5840,7 +6343,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                     }
                 } else if (g_main_game_mode_0068eddc == 5) {
                     g_pending_screen_state.parameter_2 = slot;
-                    Function5187E0();
+                    CloseMessageBox();
                 } else {
                     g_pending_screen_state.parameter_2 = slot;
                     if (g_main_game_mode_0068eddc == 6) {
@@ -5964,7 +6467,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                     }
                 } else if (g_main_game_mode_0068eddc == 5) {
                     g_pending_screen_state.parameter_2 = slot;
-                    Function5187E0();
+                    CloseMessageBox();
                 } else {
                     g_pending_screen_state.parameter_2 = slot;
                     if (g_main_game_mode_0068eddc == 6) {
@@ -6002,10 +6505,10 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 g_main_game_mode_0068eddc = 0;
                 SetPendingScreenState(W8_SCREEN_CAMP);
                 if (gXStatus.fLockInteractMode != 0) {
-                    Function5879A0(1);
+                    EndLockInteractMode(1);
                 }
                 if (gXStatus.fTrapInteractMode != 0) {
-                    Function58A790(1);
+                    EndTrapInteractMode(1);
                 }
                 if (gXStatus.fSpellCastMode != 0) {
                     CloseSpellCastingView();
@@ -6021,7 +6524,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
             }
             GiveHeldItemToCharacterOrParty(slot, 1);
             if (gXStatus.fItemSelectMode != 0) {
-                RefreshUseItemList0059D690();
+                RefreshUseItemSelection();
                 return 1;
             }
         }
@@ -6540,7 +7043,7 @@ unsigned char RadarMapButtonRegionEvent(const InputAtom* event, W8Region* region
                     EndNpcDialogueSession0056E800(0);
                 }
             } else if (g_main_game_mode_0068eddc == 5) {
-                Function5187E0();
+                CloseMessageBox();
             } else if (g_main_game_mode_0068eddc == 6) {
                 if (g_level_block->highlight_graphic != 0) {
                     ReleaseObject004257F0(g_level_block->highlight_graphic);
@@ -7046,7 +7549,7 @@ void OpenAutomapScreen(void)
         }
         break;
     case 5:
-        Function5187E0();
+        CloseMessageBox();
         break;
     case 6:
         DismissHighlightOverlay();
@@ -7446,6 +7949,33 @@ void SetCombatAction(int value)
     }
 }
 
+/* With no modal or NPC dialogue up, draw the bottom prompt strip: the catalog
+   backdrop plus the "choose action" line - the combat variant while combat
+   mode is on. */
+// FUNCTION: WIZ8 0x0056AC80
+void DrawMainGamePrompt(void)
+{
+    W8ControlsRect bounds;
+    W8TextBuffer* buffer;
+
+    if (g_modal_owner_0068edd0 == 0 && gXStatus.fNpcDialogueMode == 0) {
+        DrawCatalogImageAndInvalidate(-0xe, 0xa9, 0, 0, 0xb1, 0x13f, 2, 0);
+        bounds.left = 0xb1;
+        bounds.top = 0x13f;
+        bounds.right = 0x1cf;
+        bounds.bottom = 0x153;
+        buffer = new W8TextBuffer(
+            &bounds, 0, g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C, 0, 4);
+        if (gXStatus.fCombatMode == 0) {
+            buffer->SetText(gppStringList[0x77f], g_font_683660);
+        } else {
+            buffer->SetText(gppStringList[0x780], g_font_683660);
+        }
+        buffer->RenderToTarget(0, 0, -0xe);
+        delete buffer;
+    }
+}
+
 /* Raise or drop the radar map panel and restore the viewport mode when the
    raise latch changes. */
 // FUNCTION: WIZ8 0x00568EB0
@@ -7654,10 +8184,10 @@ void SetFormationBoardVisible(unsigned char visible)
 void UpdateScreenOverlays(int frame)
 {
     if (gXStatus.fLockInteractMode != 0) {
-        Function5879A0(frame);
+        EndLockInteractMode(frame);
     }
     if (gXStatus.fTrapInteractMode != 0) {
-        Function58A790(frame);
+        EndTrapInteractMode(frame);
     }
     if (gXStatus.fSpellCastMode != 0) {
         CloseSpellCastingView();
@@ -8191,7 +8721,7 @@ void OpenCharacterScreenForPartySlot(unsigned int party_slot, int flag)
             EndNpcDialogueSession0056E800(0);
         }
     } else if (g_main_game_mode_0068eddc == 5) {
-        Function5187E0();
+        CloseMessageBox();
     } else if (g_main_game_mode_0068eddc == 6) {
         if (g_level_block->highlight_graphic != 0) {
             ReleaseObject004257F0(g_level_block->highlight_graphic);
@@ -8221,10 +8751,10 @@ done:
     g_main_game_mode_0068eddc = 0;
     SetPendingScreenState(6);
     if (gXStatus.fLockInteractMode != 0) {
-        Function5879A0(1);
+        EndLockInteractMode(1);
     }
     if (gXStatus.fTrapInteractMode != 0) {
-        Function58A790(1);
+        EndTrapInteractMode(1);
     }
     if (gXStatus.fSpellCastMode != 0) {
         CloseSpellCastingView();
@@ -8985,7 +9515,7 @@ void ResetMainGameMode00560C60(void)
         }
         break;
     case 5:
-        Function5187E0();
+        CloseMessageBox();
         break;
     case 6:
         if (g_level_block->highlight_graphic != 0) {
@@ -9016,7 +9546,7 @@ void ResetMainGameMode00560C60(void)
 mode_reset:
     g_main_game_mode_0068eddc = 0;
     if (IsMessageBoxActive()) {
-        Function5187E0();
+        CloseMessageBox();
     }
     if (gXStatus.fCombatMode != 0) {
         EndCombat004EA310(1);
