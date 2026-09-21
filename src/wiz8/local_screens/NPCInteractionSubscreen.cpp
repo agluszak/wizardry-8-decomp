@@ -1826,7 +1826,7 @@ void NpcDialogueTextBoxDoubleClick0056F840(int x, int y)
         g_screen_state_00649f1c->selected_trade_row = -1;
         UpdateNpcTradeSelection0056FAC0(slot, 0, 1);
         if (g_screen_state_00649f1c->trade_item != 0) {
-            Function5AD290();
+            ConfirmNpcTrade005AD290();
         }
     }
     if (g_screen_state_00649f1c->value_fc == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX &&
@@ -2808,7 +2808,8 @@ void OpenNpcDialogueOptionLayout(void)
     swprintf(buffer, L"%dg", g_status_685170.party_gold);
     g_screen_state_00649f1c->dialogue_text_190->m_textBuffer.SetText(buffer, g_font_683660);
     g_screen_state_00649f1c->dialogue_text_1a0->SetEnabled(0);
-    g_screen_state_00649f1c->dialogue_text_1a0->m_primaryActivationCallback = Function5AD290;
+    g_screen_state_00649f1c->dialogue_text_1a0->m_primaryActivationCallback =
+        ConfirmNpcTrade005AD290;
     g_screen_state_00649f1c->dialogue_text_120->AddLayoutFlags(g_W8TextControlMask005ED578);
     g_screen_state_00649f1c->dialogue_text_124->AddLayoutFlags(g_W8TextControlMask005ED578);
     g_screen_state_00649f1c->dialogue_text_120->DisableSecondaryState(1);
@@ -2969,7 +2970,7 @@ void CloseNpcDialogueOptionLayout(void)
     }
     g_screen_state_00649f1c->flag_229 = 0;
     SelectTextBox(3);
-    Function58BA60();
+    ScrollTextBoxToBottom0058BA60();
 }
 
 // FUNCTION: WIZ8 0x00572590

@@ -566,7 +566,7 @@ void DispatchMGSCommand(int command)
         ScrollTextBoxTo(0);
         break;
     case W8_MGS_COMMAND_TEXTBOX_BOTTOM:
-        Function58BA60();
+        ScrollTextBoxToBottom0058BA60();
         break;
     case W8_MGS_COMMAND_TEXTBOX_CLEAR:
         if (gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0) {

@@ -108,6 +108,7 @@ W8NpcState* GetNpcStateByKind(int kind);
    record's wanted entries by id or by the shared 0x83 name kind, and a grouped
    NPC whose member already carries more than one declines. */
 bool NpcWantsItem0050DC50(W8NpcState* npc, W8ItemInstance* item);
+bool NpcHasTopic(W8NpcState* npc, int topic); /* 0x0050C190 */
 bool NpcLeadHasNameStyle(unsigned int kind);
 /* 0x00509EA0: clear one NPC binding's monster link and hand the handle to the
    owned item-list teardown. */

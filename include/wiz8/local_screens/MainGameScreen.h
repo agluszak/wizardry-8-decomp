@@ -650,10 +650,10 @@ bool AttemptNpcItemTrade005AE2A0(W8ItemInstance* item, unsigned char quantity, i
    chosen count to the editor slot and refreshes the trade selection. */
 void NpcTradeSplitDialogResult005AE1A0(W8DialogBase* dialog);
 void RefreshFormationPanel005B2980(unsigned char show_portraits); /* 0x005B2980 */
-void Function58BA60(void);                                        /* 0x0058BA60 */
-void EndLockInteractMode(char suspend);                           /* 0x005879A0 */
-void UpdateMainGameScreen(void);                                  /* 0x0058A750 */
-void EndTrapInteractMode(char suspend);                           /* 0x0058A790 */
+
+void EndLockInteractMode(char suspend); /* 0x005879A0 */
+void UpdateMainGameScreen(void);        /* 0x0058A750 */
+void EndTrapInteractMode(char suspend); /* 0x0058A790 */
 int GetPartySlotSkill10Level(int slot);
 int OpenLockInteraction00587510(Trigger* trigger);
 int OpenTrapInteraction0058A470(Trigger* trigger);
@@ -686,6 +686,6 @@ void ShowMainGameNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int
 unsigned char CombatBarRegionEvent(const InputAtom* event);
 unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, struct W8Region* region);
 void SetNpcDialogueSubMode4(void);
-void Function5AD290(void);
+void ConfirmNpcTrade005AD290(void);
 void RestockNpcTradeStock(void);
 void OpenNpcTradeSplitDialog005AE040(void);
