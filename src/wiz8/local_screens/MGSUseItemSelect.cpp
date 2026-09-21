@@ -817,13 +817,228 @@ void CommitSelectedItemUse(void)
     }
 }
 
+/* Reset the detail control and rebuild the use-item list for a mode:
+   -1 clears the view state and disables the action controls, 0 lists the
+   owning character's equipment then backpack, and any other mode lists the
+   party item pool. Each mode appends entries in two passes (usable first,
+   then the rest) through AppendUseItemListEntry0059D450; select re-highlights
+   the line holding that item. */
+// FUNCTION: WIZ8 0x0059D230
+void RebuildUseItemSelectList0059D230(int mode, W8ItemInstance* select)
+{
+    W8Character* character;
+    unsigned char pass;
+    unsigned int i;
+    int slot;
+
+    slot = g_status_685170.selected_character;
+    ResetEditorStatusLine0058AA20(2);
+    ClearTextSlot1E8(2);
+    g_value_69b9a0 = 0;
+    g_use_item_detail_item_0069bf2c = 0;
+    g_use_item_select_controls[0]->m_imageObject = -1;
+    g_use_item_select_controls[0]->m_measured_w = -1;
+    g_use_item_select_controls[0]->m_measured_h = -1;
+    g_use_item_select_controls[0]->m_imageFrame = -1;
+    g_use_item_select_controls[0]->m_normalSprite = -1;
+    g_use_item_select_controls[0]->m_pressedSprite = -1;
+    g_use_item_select_controls[0]->m_textBuffer.SetText(g_wchar_0068ee58, 0);
+    g_use_item_select_controls[0]->Invalidate(1);
+    SelectSpellCastingPartySlot(g_status_685170.selected_character);
+    g_use_item_select_mode_0069b98c = mode;
+    if (mode == -1) {
+        for (i = 1; i <= 6; i++) {
+            g_use_item_select_controls[i]->SetEnabled(0);
+        }
+        return;
+    }
+    g_use_item_select_controls[3]->SetEnabled(1);
+    if (static_cast<unsigned char>(g_use_item_select_controls[3]->m_stateFlags &
+                                   g_W8TextControlMask005ED570) == 0) {
+        g_use_item_select_controls[3]->EnableSecondaryState(1);
+        g_use_item_select_controls[3]->Invalidate(0);
+    }
+    g_use_item_select_flags_0069b984 |= 1;
+    g_use_item_list_count_0069b990 = 0;
+    g_selected_use_item_line_0069b95c = -1;
+    pass = 0;
+    if (mode != 0) {
+        do {
+            for (i = 0; i < static_cast<unsigned int>(g_status_685170.party_item_count_1791); i++) {
+                if (!AppendUseItemListEntry0059D450(&g_status_685170.party_item_pool_0021[i],
+                                                    select, pass)) {
+                    return;
+                }
+            }
+            ScrollTextBoxTo(0);
+            pass++;
+        } while (pass < 2);
+        g_use_item_select_panels_69b994[1]->Invalidate(0);
+        return;
+    }
+    character = &g_status_685170.buffers.characters[slot];
+    do {
+        for (i = 0; i < 12; i++) {
+            if (!AppendUseItemListEntry0059D450(&character->equipment[i], select, pass)) {
+                return;
+            }
+        }
+        for (i = 0; i < 8; i++) {
+            if (!AppendUseItemListEntry0059D450(&character->backpack[i], select, pass)) {
+                return;
+            }
+        }
+        pass++;
+    } while (pass < 2);
+    ScrollTextBoxTo(0);
+    g_use_item_select_panels_69b994[1]->Invalidate(0);
+}
+
+/* Append one item to the use-item list under the active filter. Pass 0 takes
+   items the owner can use; pass 1 takes the rest outside camp/lock/trap
+   contexts (where only the usable pass runs). Entries store the item, select
+   it when it matches select, and show a display name with stack/charge counts
+   or the unidentified "(?)". Returns false when the list is full. */
+// FUNCTION: WIZ8 0x0059D450
+bool AppendUseItemListEntry0059D450(W8ItemInstance* item, W8ItemInstance* select,
+                                    unsigned char pass)
+{
+    wchar_t* text;
+    unsigned int color;
+    short count;
+    bool charged;
+
+    if (item->item_id == -1) {
+        return true;
+    }
+    if (IsUseItemFilteredOut0059D6B0(item)) {
+        return true;
+    }
+    if (pass != 0 || !CanUseItemForAction(g_use_item_owner_index_0069b9b0, item)) {
+        if (gXStatus.fCampMode) {
+            return true;
+        }
+        if (gXStatus.fLockInteract) {
+            return true;
+        }
+        if (gXStatus.fTrapInteract) {
+            return true;
+        }
+        if (pass != 1) {
+            return true;
+        }
+        if (CanUseItemForAction(g_use_item_owner_index_0069b9b0, item)) {
+            return true;
+        }
+        if (g_use_item_list_count_0069b990 + 1U > 0x15e) {
+            g_selected_use_item_line_0069b95c = g_use_item_list_count_0069b990;
+            return false;
+        }
+        if (select != 0 && select == item) {
+            g_selected_use_item_line_0069b95c = g_use_item_list_count_0069b990;
+        }
+        g_use_item_list_0069b9b4[g_use_item_list_count_0069b990] = item;
+        if (g_item_records[item->item_id].equip_class != 0xd ||
+            g_status_685170.buffers.characters[g_use_item_owner_index_0069b9b0]
+                    .condition_turns[8] == 0) {
+            color = 0;
+        } else {
+            color = 4;
+        }
+        ShowNotice(color, FormatItemDisplayName(item, 1), 2, 0xffffffff, false);
+        g_use_item_list_count_0069b990 = g_use_item_list_count_0069b990 + 1;
+        return true;
+    }
+    if (g_use_item_list_count_0069b990 + 1U > 0x15e) {
+        g_selected_use_item_line_0069b95c = g_use_item_list_count_0069b990;
+        return false;
+    }
+    if (select != 0 && select == item) {
+        g_selected_use_item_line_0069b95c = g_use_item_list_count_0069b990;
+    }
+    g_use_item_list_0069b9b4[g_use_item_list_count_0069b990] = item;
+    charged = false;
+    switch (g_item_records[item->item_id].quantity_kind) {
+    case 1:
+        count = item->stack_count;
+        break;
+    case 2:
+    case 3:
+        if (item->identified == 0) {
+            ShowNotice(0xf,
+                       FormatWideString(g_format_s_paren_question_0064c7dc,
+                                        FormatItemDisplayName(item, 0)),
+                       2, 0xffffffff, false);
+            g_use_item_list_count_0069b990 = g_use_item_list_count_0069b990 + 1;
+            return true;
+        }
+        charged = true;
+        count = item->uses_or_charges;
+        break;
+    case 4:
+        charged = true;
+        count = item->uses_or_charges;
+        break;
+    default:
+        ShowNotice(0xf, FormatItemDisplayName(item, 0), 2, 0xffffffff, false);
+        g_use_item_list_count_0069b990 = g_use_item_list_count_0069b990 + 1;
+        return true;
+    }
+    if (count == -1) {
+        text = FormatWideString(g_format_s_paren_question_0064c7dc, FormatItemDisplayName(item, 0));
+    } else if (count > 1 || charged) {
+        text = FormatWideString(g_format_s_paren_d_0061a700, FormatItemDisplayName(item, 0), count);
+    } else {
+        text = FormatItemDisplayName(item, 0);
+    }
+    ShowNotice(0xf, text, 2, 0xffffffff, false);
+    g_use_item_list_count_0069b990 = g_use_item_list_count_0069b990 + 1;
+    return true;
+}
+
+/* Filter predicate for AppendUseItemListEntry0059D450: while the select flags
+   are set, entries the character cannot activate or cast from are dropped,
+   except usable-class items stay unless the slot's bound NPC wants the
+   item. */
+// FUNCTION: WIZ8 0x0059D6B0
+bool IsUseItemFilteredOut0059D6B0(W8ItemInstance* item)
+{
+    W8NpcState* npc;
+
+    if (g_use_item_select_flags_0069b984 == 0) {
+        return false;
+    }
+    if (item->item_id == -1) {
+        return true;
+    }
+    if (!CanCharacterActivateItem(
+            &g_status_685170.buffers.characters[g_status_685170.selected_character], item)) {
+        if (CanCastFromItem(&g_status_685170.buffers.characters[g_status_685170.selected_character],
+                            item)) {
+            return false;
+        }
+        if (!IsUsableItemClass00522A00(item)) {
+            return true;
+        }
+        if ((g_status_685170.selected_character == 0 || g_status_685170.selected_character == 1) &&
+            (npc =
+                 GetNpcState(g_status_685170.buffers.party_rows[g_status_685170.selected_character]
+                                 .animation_0fa),
+             npc != 0) &&
+            NpcWantsItem0050DC50(npc, item)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /* After the cursor item is dropped mid-select, rebuild the list under the
    saved select mode so the rows reflect the new state, then repaint. */
 // FUNCTION: WIZ8 0x0059D690
 void RefreshUseItemSelection(void)
 {
     if (g_use_item_select_mode_0069b98c != -1) {
-        Function59D230(g_use_item_select_mode_0069b98c, 0);
+        RebuildUseItemSelectList0059D230(g_use_item_select_mode_0069b98c, 0);
         RequestRedraw(0x200);
     }
 }
