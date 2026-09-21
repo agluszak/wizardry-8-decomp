@@ -82,8 +82,7 @@ unsigned char PanelTabRegionHandler005BBC70(const InputAtom* event, W8Region* re
 void SetItemTooltip005BBD30(W8ItemInstance* item, W8Region* region);
 void DrawCampItemIcons005BBE30(void);
 
-/* Unresolved gap callees, declared for the call sites in this unit. */
-int Function548E20(int party_slot, unsigned int arg_2);
+/* Unresolved gap callee, declared for the call sites in this unit. */
 char IsSpecialItemId004DA0F0(W8ItemInstance* item);
 
 /* 0x0061E7C4: the twelve equip-slot label message ids indexed by region

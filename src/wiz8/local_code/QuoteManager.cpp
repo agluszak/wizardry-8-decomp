@@ -168,6 +168,10 @@ const char g_quote_personality_names_005ed91c[9][0x14] = {
 };
 // GLOBAL: WIZ8 0x0068c554
 unsigned int g_value_0068c554;
+// GLOBAL: WIZ8 0x0068C53C
+int g_value_0068c53c;
+// GLOBAL: WIZ8 0x0068C54C
+int g_value_0068c54c;
 struct W8PortraitTables {
     unsigned short quote_x[8];
     unsigned short quote_y[8];
@@ -240,6 +244,8 @@ int g_effect_005ee5e0 = 0x16;
 int g_effect_005ee5e4 = 0x17;
 // GLOBAL: WIZ8 0x005EE5E8
 int g_effect_005ee5e8 = 0x18;
+// GLOBAL: WIZ8 0x005EE5EC
+int g_effect_005ee5ec = 0x19;
 // GLOBAL: WIZ8 0x005EE5F0
 int g_effect_005ee5f0 = 0x1a;
 // GLOBAL: WIZ8 0x005EE5F8

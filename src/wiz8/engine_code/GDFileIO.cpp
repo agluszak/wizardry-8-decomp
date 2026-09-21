@@ -1,5 +1,10 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/OctBuildTree.h"
+#include "wiz8/engine_code/OctBuildPreTree.h"
+#include "wiz8/engine_code/OctPreTree.h"
+#include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/LevelFile.h"
+#include "wiz8/engine_code/stHash.hpp"
 #include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/engine_code/game_timer.h"
@@ -37,6 +42,14 @@ float g_float_005ebc58 = 1.0000000116860974e-07f;
 float g_float_005ec028 = 1.0099999904632568f;
 // GLOBAL: WIZ8 0x005ec1a0
 float g_float_005ec1a0 = 0.9959999918937683f;
+// GLOBAL: WIZ8 0x005ec1ac
+const float g_float_005ec1ac = 3000.0f;
+// GLOBAL: WIZ8 0x005ec1b0
+const float g_float_005ec1b0 = 60000.0f;
+// GLOBAL: WIZ8 0x005ec1b4
+const float g_float_005ec1b4 = 900000.0f;
+// GLOBAL: WIZ8 0x005ff56c
+char g_string_005ff56c[] = "\n";
 
 // GLOBAL: WIZ8 0x00659a58
 int g_integrated_trigger_count_00659a58;
@@ -280,9 +293,9 @@ unsigned char W8GameData::ReadWGDList00447660(HANDLE file, int poly_type)
                     surface->vertex_indices_18[2] = header.vertex_indices_00[2] + m_iNumVertices;
                     surface->index_04 = index;
                     surface->trigger_index_08 = 0;
-                    surface->positional_14 = -1;
-                    surface->positional_10 = -1;
-                    surface->positional_0c = -1;
+                    surface->edge_link_0c[2] = -1;
+                    surface->edge_link_0c[1] = -1;
+                    surface->edge_link_0c[0] = -1;
                     surface->hit_plane_38 = 0;
                     ClassifySurfacePlane004498C0(m_pVertices, surface);
                     if (poly_type != 0) {
@@ -535,9 +548,9 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
     for (index = 0; index < 3; ++index) {
         surface->vertex_indices_18[index] += m_iNumVertices;
     }
-    surface->positional_0c = -1;
-    surface->positional_10 = -1;
-    surface->positional_14 = -1;
+    surface->edge_link_0c[0] = -1;
+    surface->edge_link_0c[1] = -1;
+    surface->edge_link_0c[2] = -1;
     surface->hit_plane_38 = 0;
     ++m_iNumTrigSurfaces;
 
@@ -553,9 +566,9 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
     for (index = 0; index < 3; ++index) {
         surface->vertex_indices_18[index] += m_iNumVertices;
     }
-    surface->positional_0c = -1;
-    surface->positional_10 = -1;
-    surface->positional_14 = -1;
+    surface->edge_link_0c[0] = -1;
+    surface->edge_link_0c[1] = -1;
+    surface->edge_link_0c[2] = -1;
     surface->hit_plane_38 = 0;
     ++m_iNumTrigSurfaces;
 }
@@ -613,9 +626,9 @@ void W8GameData::AddLevelPlane004485F0(W8LevelFilePlane* plane)
     for (index = 0; index < 3; ++index) {
         surface->vertex_indices_18[index] += m_iNumVertices;
     }
-    surface->positional_0c = -1;
-    surface->positional_10 = -1;
-    surface->positional_14 = -1;
+    surface->edge_link_0c[0] = -1;
+    surface->edge_link_0c[1] = -1;
+    surface->edge_link_0c[2] = -1;
     surface->hit_plane_38 = 0;
     ++m_iNumTrigSurfaces;
 
@@ -631,9 +644,9 @@ void W8GameData::AddLevelPlane004485F0(W8LevelFilePlane* plane)
     for (index = 0; index < 3; ++index) {
         surface->vertex_indices_18[index] += m_iNumVertices;
     }
-    surface->positional_0c = -1;
-    surface->positional_10 = -1;
-    surface->positional_14 = -1;
+    surface->edge_link_0c[0] = -1;
+    surface->edge_link_0c[1] = -1;
+    surface->edge_link_0c[2] = -1;
     surface->hit_plane_38 = 0;
     ++m_iNumTrigSurfaces;
     ++m_iNumTriggers;
@@ -1326,11 +1339,372 @@ W8GameData::~W8GameData()
     g_octree_game_data_00652db0 = 0;
 }
 
-/* Serializes the processed game-data block WriteOctFile appends after the
-   octree sections: the 0x68-byte versioned header, the vertex and surface
-   banks, the optional switch interface/state and conditional-poly lists, then
-   each environment record.  Every failure returns 0 after logging; the open
-   handle is never closed here. */
+static char ShareSurfaceEdge0044A970(W8GDSurface* first, W8GDSurface* second,
+                                     srVector3T<float>* vertices);
+static void LinkSurfaceEdge0044A7D0(int polygon, int edge, W8HashTable<unsigned int, int>* table,
+                                    W8GDSurface* surfaces, unsigned int multiplier,
+                                    srVector3T<float>* vertices);
+
+/* Welds duplicate vertices through a spatial hash, repacks the surface array
+   collision-flag faces first, fills the shared build vertex/polygon arrays
+   and stitches polygon edge links. */
+// FUNCTION: WIZ8 0x00449D10
+void W8GameData::CompileGameData00449D10()
+{
+    W8HashTable<unsigned int, int> weld_table;
+    W8HashTable<unsigned int, int> edge_table;
+    char message[1024];
+    int i;
+    int j;
+    unsigned int progress = 0;
+    int redundant = 0;
+    int weld_count = 0;
+    bool announce = false;
+    bool found;
+
+    ReportStartupMessage004969D0(g_string_005ff56c);
+    ReportStartupMessage004969D0("Processing GameData geometry...\n");
+    IntegrateTriggerGeometry00448A60();
+    if (m_iNumVertices == 0 || m_iNumSurfaces == 0) {
+        return;
+    }
+
+    W8OctPreTreeVertex* weld_records =
+        static_cast<W8OctPreTreeVertex*>(malloc(m_iNumVertices * sizeof(W8OctPreTreeVertex)));
+    if (weld_records == 0) {
+        ReportBuildStatus00497690(
+            7, reinterpret_cast<const char*>( // reinterpret-ok: String returns UINT8*
+                   String("CompileGameData: Couldn't allocate %d OctVerts (%dK).\n", m_iNumVertices,
+                          m_iNumVertices * sizeof(W8OctPreTreeVertex) / 1024)));
+    }
+    memset(weld_records, 0, m_iNumVertices * sizeof(W8OctPreTreeVertex));
+    g_gd_vertices_0065bd34 =
+        static_cast<W8OctPreTreeVertex*>(malloc(m_iNumVertices * sizeof(W8OctPreTreeVertex)));
+    if (g_gd_vertices_0065bd34 == 0) {
+        ReportBuildStatus00497690(
+            7, reinterpret_cast<const char*>( // reinterpret-ok: String returns UINT8*
+                   String("CompileGameData: Couldn't allocate %d NewGDVerts (%dK)\n",
+                          m_iNumVertices, m_iNumVertices * sizeof(W8OctPreTreeVertex) / 1024)));
+    }
+    memset(g_gd_vertices_0065bd34, 0, m_iNumVertices * sizeof(W8OctPreTreeVertex));
+    int* cond_polys = 0;
+    if (m_iNumCondPolys != 0) {
+        cond_polys = static_cast<int*>(malloc(m_iNumCondPolys * sizeof(int)));
+        if (cond_polys == 0) {
+            ReportBuildStatus00497690(7,
+                                      "CompileGameData: Couldn't allocate piNewCondPolys array.");
+        }
+        memset(cond_polys, 0, m_iNumCondPolys * sizeof(int));
+    }
+    srVector3T<float>* new_vertices = static_cast<srVector3T<float>*>(
+        srHeap.allocate(m_iNumVertices * sizeof(srVector3T<float>)));
+    if (new_vertices == 0) {
+        ReportBuildStatus00497690(7, "CompileGameData: Couldn't allocate New vertex list.");
+    }
+
+    if (m_pVertices != 0 && 0 < m_iNumVertices) {
+        W8OctPreTreeVertex* vertex = weld_records;
+        const srVector3T<float>* source = m_pVertices;
+        srVector3T<float>* new_vertex = new_vertices;
+        W8OctPreTreeVertex* gd_vertex = g_gd_vertices_0065bd34;
+        for (i = 0; i < m_iNumVertices; ++i) {
+            vertex->position_0c = *source;
+            unsigned int percent =
+                static_cast<unsigned int>(i * g_octree_cell_scale_005ebcd0 / m_iNumVertices);
+            if (progress + 10 < percent) {
+                announce = true;
+                progress += 10;
+            }
+            found = false;
+            unsigned int key = static_cast<unsigned int>(
+                vertex->position_0c.z * g_float_005ebc60 * g_float_005ec1b4 +
+                vertex->position_0c.y * g_float_005ebc60 * g_float_005ec1b0 +
+                vertex->position_0c.x * g_float_005ebc60 * g_float_005ec1ac);
+            int linked = 0;
+            int slot = weld_table.bucket_heads[W8HashValue(key) & (weld_table.bucket_count - 1)];
+            while (slot != -1) {
+                if (weld_table.entries[slot].key == key) {
+                    linked = weld_table.entries[slot].value;
+                    break;
+                }
+                slot = weld_table.entries[slot].next_index;
+            }
+            if (linked == 0) {
+                if (weld_table.free_head == -1) {
+                    weld_table.Grow();
+                }
+                slot = weld_table.free_head;
+                weld_table.free_head = weld_table.entries[slot].next_index;
+                unsigned int bucket = W8HashValue(key) & (weld_table.bucket_count - 1);
+                weld_table.entries[slot].key = key;
+                weld_table.entries[slot].value = i + 1;
+                weld_table.entries[slot].next_index = weld_table.bucket_heads[bucket];
+                weld_table.bucket_heads[bucket] = slot;
+            } else {
+                int last = 0;
+                while (linked != 0) {
+                    if (found) {
+                        break;
+                    }
+                    int candidate_index = linked - 1;
+                    W8OctPreTreeVertex* candidate = weld_records + candidate_index;
+                    if (fabs(vertex->position_0c.x - candidate->position_0c.x) >=
+                            g_camera_snap_epsilon_005ebc2c ||
+                        fabs(vertex->position_0c.y - candidate->position_0c.y) >=
+                            g_camera_snap_epsilon_005ebc2c ||
+                        fabs(vertex->position_0c.z - candidate->position_0c.z) >=
+                            g_camera_snap_epsilon_005ebc2c) {
+                        last = candidate_index;
+                        linked = candidate->kind_20;
+                    } else {
+                        vertex->vertex_index_04 = candidate->vertex_index_04;
+                        ++redundant;
+                        found = true;
+                        linked = candidate_index;
+                    }
+                }
+                if (!found) {
+                    weld_records[last].kind_20 = weld_count + 1;
+                }
+            }
+            if (!found) {
+                *new_vertex = *source;
+                vertex->vertex_index_04 = weld_count;
+                *gd_vertex = *vertex;
+                ++weld_count;
+                ++gd_vertex;
+                ++new_vertex;
+            }
+            if (announce) {
+                sprintf(message, "  %d%% Complete:  %d Redundant Vertices  \r", progress,
+                        redundant);
+                ReportStartupMessage004969D0(message);
+            }
+            vertex->flag_0a = 0;
+            ++vertex;
+            ++source;
+            announce = false;
+        }
+    }
+
+    for (i = 0; i < m_iNumSurfaces; ++i) {
+        W8GDSurface* surface = m_pSurfaces + i;
+        for (j = 0; j < 3; ++j) {
+            surface->vertex_indices_18[j] =
+                weld_records[surface->vertex_indices_18[j]].vertex_index_04;
+        }
+    }
+    m_iNumVertices = weld_count;
+    unsigned int multiplier =
+        weld_count < 0xffff ? 0xffff : 0xffffffffu / static_cast<unsigned int>(weld_count);
+
+    g_gd_polygons_0065bd38 =
+        static_cast<W8OctRegionPolygon*>(malloc(m_iNumSurfaces * sizeof(W8OctRegionPolygon)));
+    if (g_gd_polygons_0065bd38 == 0) {
+        ReportBuildStatus00497690(7, "CompileGameData: Couldn't allocate gpGDPolys.");
+    }
+    memset(g_gd_polygons_0065bd38, 0, m_iNumSurfaces * sizeof(W8OctRegionPolygon));
+    W8GDSurface* new_surfaces =
+        static_cast<W8GDSurface*>(malloc(m_iNumSurfaces * sizeof(W8GDSurface)));
+    if (new_surfaces == 0) {
+        ReportBuildStatus00497690(7, "CompileGameData: Couldn't allocate GameSurfaces.");
+    }
+    memset(new_surfaces, 0, m_iNumSurfaces * sizeof(W8GDSurface));
+
+    int polygon_count = 0;
+    int old_index;
+    int old_surface_count;
+    for (old_index = 0; old_index < m_iNumSurfaces; ++old_index) {
+        W8GDSurface* surface = m_pSurfaces + old_index;
+        if (surface->vertex_indices_18[0] != surface->vertex_indices_18[1] &&
+            surface->vertex_indices_18[0] != surface->vertex_indices_18[2] &&
+            surface->vertex_indices_18[1] != surface->vertex_indices_18[2] &&
+            (surface->flags_00 & 4) != 0) {
+            surface->index_04 = polygon_count;
+            W8GDSurface* compiled = new_surfaces + polygon_count;
+            *compiled = *surface;
+            compiled->edge_link_0c[2] = -1;
+            compiled->edge_link_0c[1] = -1;
+            compiled->edge_link_0c[0] = -1;
+            compiled->hit_plane_38 = 0;
+            W8OctRegionPolygon* polygon = g_gd_polygons_0065bd38 + polygon_count;
+            polygon->ordinal_04 = polygon_count;
+            polygon->plane_08[0] = compiled->plane_24[0];
+            polygon->plane_08[1] = compiled->plane_24[1];
+            polygon->plane_08[2] = compiled->plane_24[2];
+            polygon->plane_08[3] = compiled->plane_24[3];
+            polygon->degenerate_30 = 0;
+            polygon->visited_31 = 0;
+            polygon->vertices_34[0] = g_gd_vertices_0065bd34 + compiled->vertex_indices_18[0];
+            polygon->vertices_34[1] = g_gd_vertices_0065bd34 + compiled->vertex_indices_18[1];
+            polygon->vertices_34[2] = g_gd_vertices_0065bd34 + compiled->vertex_indices_18[2];
+            for (j = 0; j < 3; ++j) {
+                LinkSurfaceEdge0044A7D0(polygon_count, j, &edge_table, new_surfaces, multiplier,
+                                        new_vertices);
+            }
+            for (j = 0; j < m_iNumCondPolys; ++j) {
+                if (m_piCondPolys[j] == old_index) {
+                    cond_polys[j] = polygon_count;
+                }
+            }
+            ++polygon_count;
+        }
+    }
+    old_surface_count = m_iNumSurfaces;
+    m_iNumSurfaces = polygon_count;
+    for (old_index = 0; old_index < old_surface_count; ++old_index) {
+        W8GDSurface* surface = m_pSurfaces + old_index;
+        if (surface->vertex_indices_18[0] != surface->vertex_indices_18[1] &&
+            surface->vertex_indices_18[0] != surface->vertex_indices_18[2] &&
+            surface->vertex_indices_18[1] != surface->vertex_indices_18[2] &&
+            (surface->flags_00 & 4) == 0) {
+            surface->index_04 = polygon_count;
+            surface->slope_48 = 0;
+            W8GDSurface* compiled = new_surfaces + polygon_count;
+            *compiled = *surface;
+            compiled->edge_link_0c[2] = -1;
+            compiled->edge_link_0c[1] = -1;
+            compiled->edge_link_0c[0] = -1;
+            compiled->hit_plane_38 = 0;
+            W8OctRegionPolygon* polygon = g_gd_polygons_0065bd38 + polygon_count;
+            polygon->ordinal_04 = polygon_count;
+            polygon->plane_08[0] = compiled->plane_24[0];
+            polygon->plane_08[1] = compiled->plane_24[1];
+            polygon->plane_08[2] = compiled->plane_24[2];
+            polygon->plane_08[3] = compiled->plane_24[3];
+            polygon->degenerate_30 = 0;
+            polygon->visited_31 = 0;
+            polygon->vertices_34[0] = g_gd_vertices_0065bd34 + compiled->vertex_indices_18[0];
+            polygon->vertices_34[1] = g_gd_vertices_0065bd34 + compiled->vertex_indices_18[1];
+            polygon->vertices_34[2] = g_gd_vertices_0065bd34 + compiled->vertex_indices_18[2];
+            for (j = 0; j < 3; ++j) {
+                LinkSurfaceEdge0044A7D0(polygon_count, j, &edge_table, new_surfaces, multiplier,
+                                        new_vertices);
+            }
+            for (j = 0; j < m_iNumCondPolys; ++j) {
+                if (m_piCondPolys[j] == old_index) {
+                    cond_polys[j] = polygon_count;
+                }
+            }
+            ++polygon_count;
+        }
+    }
+    positional_2c_04 = polygon_count - m_iNumSurfaces;
+    positional_2c_00 = m_iNumSurfaces;
+    m_iNumSurfaces = polygon_count;
+    free(weld_records);
+    srHeap.free(m_pVertices);
+    free(m_pSurfaces);
+    if (m_iNumCondPolys != 0) {
+        free(m_piCondPolys);
+        m_piCondPolys = cond_polys;
+    }
+    m_pVertices = new_vertices;
+    m_pSurfaces = new_surfaces;
+    sprintf(message, "GameData:  %d Polygons,  \t%d Vertices.\n\n", polygon_count, weld_count);
+    ReportBuildStatus00497690(6, message);
+}
+
+/* Tests two polygons for a shared vertex pair; when they share an edge the
+   matching corner slot on each surface is linked to the other's index_04. */
+// FUNCTION: WIZ8 0x0044A970
+static char ShareSurfaceEdge0044A970(W8GDSurface* first, W8GDSurface* second,
+                                     srVector3T<float>* vertices)
+{
+    int first_slot = -1;
+    int second_slot = -1;
+    int last_first = -1;
+    int last_second = -1;
+    int* first_index = first->vertex_indices_18;
+    for (int i = 0; i < 3; ++i) {
+        int* second_index = second->vertex_indices_18;
+        for (int j = 0; j < 3; ++j) {
+            if (*first_index == *second_index) {
+                if (first_slot < 0) {
+                    second_slot = j;
+                    first_slot = i;
+                } else {
+                    last_first = i;
+                    last_second = j;
+                }
+            }
+            ++second_index;
+        }
+        ++first_index;
+    }
+    if (last_first < 0) {
+        return 0;
+    }
+    if ((last_first < first_slot && last_first - first_slot < 2) ||
+        (first_slot < last_first && 1 < last_first - first_slot)) {
+        first_slot = last_first;
+    }
+    if ((last_second < second_slot && last_second - second_slot < 2) ||
+        (second_slot < last_second && 1 < last_second - second_slot)) {
+        second_slot = last_second;
+    }
+    first->edge_link_0c[first_slot] = second->index_04;
+    second->edge_link_0c[second_slot] = first->index_04;
+    return 1;
+}
+
+/* Registers one triangle edge in the edge hash under its undirected vertex
+   pair key; when an earlier polygon carries the same key the pair is handed
+   to ShareSurfaceEdge0044A970 to link. */
+// FUNCTION: WIZ8 0x0044A7D0
+static void LinkSurfaceEdge0044A7D0(int polygon, int edge, W8HashTable<unsigned int, int>* table,
+                                    W8GDSurface* surfaces, unsigned int multiplier,
+                                    srVector3T<float>* vertices)
+{
+    W8GDSurface* surface = surfaces + polygon;
+    int next = (edge + 1) % 3;
+    int low = edge;
+    int high = next;
+    if (surface->vertex_indices_18[next] < surface->vertex_indices_18[edge]) {
+        low = next;
+        high = edge;
+    }
+    unsigned int key =
+        surface->vertex_indices_18[low] * multiplier + surface->vertex_indices_18[high];
+    unsigned int hash = W8HashValue(key);
+    int slot = table->bucket_heads[hash & (table->bucket_count - 1)];
+    if (slot != -1) {
+        do {
+            if (table->entries[slot].key == key) {
+                int index = table->entries[slot].value;
+                if (index != 0) {
+                    bool linked = false;
+                    do {
+                        if (linked) {
+                            return;
+                        }
+                        if (ShareSurfaceEdge0044A970(surfaces + index, surface, vertices) != 0) {
+                            linked = true;
+                        } else {
+                            index = table->FindNextEntry(&key, index);
+                        }
+                    } while (index != 0);
+                    if (linked) {
+                        return;
+                    }
+                }
+                break;
+            }
+            slot = table->entries[slot].next_index;
+        } while (slot != -1);
+    }
+    if (table->free_head == -1) {
+        table->Grow();
+    }
+    slot = table->free_head;
+    table->free_head = table->entries[slot].next_index;
+    unsigned int bucket = W8HashValue(key) & (table->bucket_count - 1);
+    table->entries[slot].key = key;
+    table->entries[slot].value = polygon;
+    table->entries[slot].next_index = table->bucket_heads[bucket];
+    table->bucket_heads[bucket] = slot;
+}
+
 // FUNCTION: WIZ8 0x0044aa40
 unsigned char W8GameData::WriteGameData0044AA40(int handle)
 {

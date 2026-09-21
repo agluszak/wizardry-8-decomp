@@ -290,6 +290,16 @@ void CheatDeathRevive00547A50(int party_slot)
     }
 }
 
+/* Reveal the target's item bindings with a strength banded by the party
+   slot's level in its current profession: level/4 + 1, zero percent. */
+// FUNCTION: WIZ8 0x00548E20
+int RevealCharacterItemBindingsByProfession00548E20(int party_slot, unsigned int target_slot)
+{
+    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    return RevealCharacterItemBindings(
+        target_slot, (character->profession_levels[character->current_profession] >> 2) + 1, 0);
+}
+
 /* Alchemist auto-brew candidates as {item_id, minimum alchemist profession
    level, maximum level} triples; -1 in the maximum opens the top end and the
    {-1,0,0} row terminates the walk. */

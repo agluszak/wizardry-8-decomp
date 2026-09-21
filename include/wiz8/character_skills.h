@@ -145,6 +145,7 @@ bool IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
                                const unsigned char* expert_realm_flags);
 void InvalidateAndRecalculateCharacterClassData00558610(W8Character* character);
 bool CharacterHasTrait00547940(const W8Character* character, int trait);
+int RevealCharacterItemBindingsByProfession00548E20(int party_slot, unsigned int target_slot);
 /* 0x00553AD0: propagate a changed attribute base value - the at-maximum
    pseudo-skill flag, the effective value, equipment and derived state. */
 void ApplyAttributeChange(W8Character* character, int attribute);

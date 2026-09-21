@@ -26,6 +26,7 @@
 #include "wiz8/local_code/Magic.h"
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/local_code/party_encumbrance.h"
+#include "wiz8/local_code/PartyImport.h"
 #include "wiz8/local_code/UtilityFunctions.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/layouts/combat_state.h"
@@ -2018,7 +2019,7 @@ void W8PartySelectionController::LoadImportedPartyFile(int selection)
     if (selection >= 0 && selection < collection->names.count) {
         char path[128];
         sprintf(path, "%s\\%s", "Saves\\Import", *collection->names.GetAt(selection));
-        int result = Function558C40(path);
+        int result = ImportWizardry7Party00558C40(path);
         if (result != 0) {
             ResetForNewGame();
             OpenNotification(gppStringList[(result == 2 ? 0x1b60 : 0x1b5c) / 4], 0, 0);
@@ -2278,9 +2279,6 @@ void PartySelectionScreenFrame(void)
     controller->DrawPartySelectionComposition();
     RenderFrame();
 }
-
-// GLOBAL: WIZ8 0x0068DE50
-int g_value_68de50;
 
 /* Lifecycle record 2's frame close-out, and the only slot that record fills:
    its other four are the shared do-nothing filler. Every path asks for a screen

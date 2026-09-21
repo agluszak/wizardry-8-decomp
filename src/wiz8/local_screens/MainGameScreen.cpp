@@ -241,9 +241,6 @@ unsigned short g_value_0061e9ec[] = {
     0x555, 0,     0x556, 0x557, 0x558, 0x559, 0x55a, 0x55b,
 };
 
-// GLOBAL: WIZ8 0x006504e8
-int g_table_6504e8[] = {10, 25, 35, 40, 50, 60, 70, 80, 90, 100, 110, 121, 122, 123, 24, 47};
-
 // GLOBAL: WIZ8 0x0064bbac
 const char* g_trap_sounds_0064bbac[8] = {
     "Data\\Sound\\Misc\\Trap 03.wav", "Data\\Sound\\Misc\\Trap 07.wav",
@@ -251,6 +248,10 @@ const char* g_trap_sounds_0064bbac[8] = {
     "Data\\Sound\\Misc\\Trap 02.wav", "Data\\Sound\\Misc\\Trap 08.wav",
     "Data\\Sound\\Misc\\Trap 06.wav", "Data\\Sound\\Misc\\Trap 04.wav",
 };
+// GLOBAL: WIZ8 0x0064BB88
+char s_lock_open_fail_64bb88[] = "Data\\Sound\\Misc\\Lock_Open_Fail.wav";
+// GLOBAL: WIZ8 0x0064BCF0
+char s_trap_detect_64bcf0[] = "Data\\Sound\\Misc\\Trap Detect.wav";
 
 // GLOBAL: WIZ8 0x0064bcac
 const char g_trap_inspection_sound_0064bcac[] = "Data\\Sound\\Misc\\Trap Inspection.wav";
@@ -351,9 +352,109 @@ unsigned int g_lock_action_region_set_68f2bc;
 W8LockInteraction* g_lock_interaction_68f2c0;
 /* 0x004457A0: thiscall on the embedded lock/trap state at Trigger+0x368;
    decrements the charge count at its +0x1c and reports whether one remained. */
-int __fastcall Function4457A0(int* lock_state);
 /* 0x00586A70: the selected slot's effective power with spell 0x27. */
 int GetKnockKnockSpellPower00586A70(int slot);
+/* Open the lock interaction over a trigger, or re-raise its panels while one
+   is suspended; outside those paths a random party member eats the trigger's
+   event and the failure sound plays. */
+// FUNCTION: WIZ8 0x00587510
+int OpenLockInteraction00587510(Trigger* trigger)
+{
+    W8Character* character;
+    W8LockTumblerPanel* panel;
+    W8CharacterEvent* event;
+    int count;
+    int mode;
+    int skill;
+    int i;
+    unsigned int force;
+    bool can_cast;
+
+    if (gXStatus.fTrapInteractMode != 0 || gXStatus.fTrapInteract != 0) {
+        return 0;
+    }
+    if (gXStatus.fLockInteractMode != 0 || (gXStatus.fLockInteract != 0 && trigger != 0)) {
+        event = ApplyItemEffectToRandomCharacter(g_value_0068c54c, -1, g_event_flag_005ed8e8,
+                                                 g_effect_argument_005ed8c8);
+        if (event != 0) {
+            event->dispatch_delay_ms = 600;
+            event->dispatch_delay_start = GetTickCount();
+        }
+        SoundPlay(s_lock_open_fail_64bb88, 0);
+        return 1;
+    }
+    if (gXStatus.fCombatMode != 0) {
+        event = ApplyItemEffectToRandomCharacter(g_value_0068c54c, -1, g_event_flag_005ed8e8,
+                                                 g_effect_argument_005ed8c8);
+        if (event != 0) {
+            event->dispatch_delay_ms = 600;
+            event->dispatch_delay_start = GetTickCount();
+        }
+        SoundPlay(s_lock_open_fail_64bb88, 0);
+        return 1;
+    }
+    gXStatus.fLockInteractMode = 1;
+    if (g_level_block->combat_end_notification != -1) {
+        DestroySubMenuControls();
+    }
+    CloseMainGameOverlays();
+    mode = g_settings_6850c8.main_ui_mode;
+    if (mode == W8_MAIN_UI_MODE_RADAR) {
+        ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 0);
+    } else {
+        SetViewportMode(GetMainGameViewportMode());
+    }
+    g_value_68f2b0 = mode;
+    SelectTextBox(2);
+    ResetEditorStatusLine0058AA20(-1);
+    ResetLevelDataVectors0041F0D0();
+    RequestRedraw(0x100);
+    RequestRedraw(0x1000);
+    if (gXStatus.fLockInteract == 0) {
+        event = ApplyItemEffectToRandomCharacter(g_value_0068c54c, -1, g_event_flag_005ed8e8,
+                                                 g_effect_argument_005ed8c8);
+        if (event != 0) {
+            event->dispatch_delay_ms = 600;
+            event->dispatch_delay_start = GetTickCount();
+        }
+        SoundPlay(s_lock_open_fail_64bb88, 0);
+        g_lock_interaction_68f2c0 = new W8LockInteraction(trigger);
+        gXStatus.fLockInteract = 0;
+        return 1;
+    }
+    g_lock_interaction_68f2c0->m_tumbler_panel_10->EnableRegionSet(1);
+    g_lock_interaction_68f2c0->m_action_panel_18->EnableRegionSet(1);
+    g_lock_interaction_68f2c0->m_tumbler_panel_10->Invalidate(0);
+    g_lock_interaction_68f2c0->m_info_panel_14->RefreshInfo();
+    g_lock_interaction_68f2c0->m_action_panel_18->Invalidate(0);
+    skill = GetPartySlotSkill10Level(g_status_685170.selected_character);
+    panel = g_lock_interaction_68f2c0->m_tumbler_panel_10;
+    for (i = 0; i < panel->m_tumbler_count_50; ++i) {
+        panel->m_tumblers_54[i]->SetEnabled(skill > -1);
+    }
+    character = &g_status_685170.buffers.characters[g_status_685170.selected_character];
+    if (!IsPartySlotEligible00524A10(g_status_685170.selected_character) ||
+        character->spell_learned[0x27] != 1) {
+        can_cast = false;
+    } else {
+        GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
+        can_cast = CanCharacterCastSpell(character, 0x27) != 0;
+    }
+    g_lock_interaction_68f2c0->m_spell_button_20->SetEnabled(can_cast);
+    if (!IsPartySlotEligible00524A10(g_status_685170.selected_character) ||
+        character->stamina < 0x50 || character->attributes[0].effective <= 0x32) {
+        force = 0xffffffff;
+    } else {
+        count = g_settings_6850c8.difficulty + g_lock_interaction_68f2c0->m_tumbler_count_0c - 1;
+        ClampInteger(&count, 2, 8);
+        force = (character->attributes[0].effective - 0x32) /
+                static_cast<unsigned int>(IntegerPower(2, count - 2));
+    }
+    g_lock_interaction_68f2c0->m_force_button_24->SetEnabled(static_cast<int>(force) >= 0);
+    gXStatus.fLockInteract = 0;
+    return 1;
+}
+
 // FUNCTION: WIZ8 0x00587960
 void ProcessLockInteractMode(void)
 {
@@ -1105,7 +1206,7 @@ void W8LockInteraction::ResolvePick()
     }
     m_slot_attempts_60[m_selected_slot_2c]++;
     m_tumbler_owner_38[m_picked_tumbler_30] = m_selected_slot_2c;
-    if (Random(5) == 0 && Function4457A0(&m_trigger_08->value_368) != 0) {
+    if (Random(5) == 0 && DecrementLockTimer004457A0(&m_trigger_08->value_368) != 0) {
         character = &g_status_685170.buffers.characters[m_selected_slot_2c];
         level = character->skills[10].level;
         PracticeCharacterSkill(character, 10, 1, 0);
@@ -2041,7 +2142,7 @@ void W8MainGameScreen::Update()
         panel->EnableRegionSet(0);
         panel->m_key_handler_074->m_range_038.EnableRegionSet(0);
         m_action_panel_014->EnableRegionSet(0);
-        Function5E3780(m_owner_008);
+        CompleteTrapInteraction005E3780(m_owner_008);
         gXStatus.fTrapInteractMode = 0;
         if (g_main_game_screen != 0) {
             delete g_main_game_screen;
@@ -2061,7 +2162,7 @@ void W8MainGameScreen::Update()
         }
         SoundPlay((STR)g_trap_sprung_sound_0064bcd0, 0);
         EnablePanelRegionSets(0);
-        Function5E3AB0(m_owner_008);
+        TriggerTrapDevice005E3AB0(m_owner_008);
         m_state_018 = 9;
         m_timer_154.SetDuration(2.0f);
         m_timer_154.Restart();
@@ -2285,6 +2386,97 @@ void W8MainGameScreen::UseTrapItem()
     RequestRedraw(0x100);
     RequestRedraw(0x1000);
     OpenUseItemSelectView(g_status_685170.selected_character);
+}
+
+/* Open the trap interaction over a trigger, or re-raise its panels while one
+   is suspended; a trigger in state 9 is already open. Outside those paths a
+   random party member eats the detection event and the detect sound plays. */
+// FUNCTION: WIZ8 0x0058A470
+int OpenTrapInteraction0058A470(Trigger* trigger)
+{
+    W8CharacterEvent* event;
+    W8MainGameScreen* screen;
+    W8MainGameTextPanel* panel;
+    int mode;
+    unsigned int event_type;
+
+    if (gXStatus.fLockInteractMode != 0 || gXStatus.fLockInteract != 0) {
+        return 0;
+    }
+    if (gXStatus.fTrapInteractMode != 0 || (gXStatus.fTrapInteract != 0 && trigger != 0)) {
+        if (g_main_game_screen != 0 && g_main_game_screen->m_state_018 == 9) {
+            return 1;
+        }
+        event = ApplyItemEffectToRandomCharacter(g_value_0068c53c, -1, g_event_flag_005ed8e8,
+                                                 g_effect_argument_005ed8c8);
+        if (event != 0) {
+            event->dispatch_delay_ms = 600;
+            event->dispatch_delay_start = GetTickCount();
+        }
+        SoundPlay(s_trap_detect_64bcf0, 0);
+        return 1;
+    }
+    if (gXStatus.fCombatMode != 0) {
+        event = ApplyItemEffectToRandomCharacter(g_value_0068c53c, -1, g_event_flag_005ed8e8,
+                                                 g_effect_argument_005ed8c8);
+        if (event != 0) {
+            event->dispatch_delay_ms = 600;
+            event->dispatch_delay_start = GetTickCount();
+        }
+        SoundPlay(s_trap_detect_64bcf0, 0);
+        return 1;
+    }
+    gXStatus.fTrapInteractMode = 1;
+    if (g_level_block->combat_end_notification != -1) {
+        DestroySubMenuControls();
+    }
+    CloseMainGameOverlays();
+    mode = g_settings_6850c8.main_ui_mode;
+    g_value_68f2c4 = mode;
+    if (mode == W8_MAIN_UI_MODE_RADAR) {
+        ApplyMainGameModeFlag(W8_MAIN_UI_MODE_FORMATION, 0);
+    } else {
+        SetViewportMode(GetMainGameViewportMode());
+    }
+    SelectTextBox(2);
+    ResetEditorStatusLine0058AA20(-1);
+    ResetLevelDataVectors0041F0D0();
+    RequestRedraw(0x100);
+    RequestRedraw(0x1000);
+    if (gXStatus.fTrapInteract != 0) {
+        screen = g_main_game_screen;
+        panel = screen->m_text_panel_00c;
+        panel->EnableRegionSet(1);
+        panel->m_key_handler_074->m_range_038.EnableRegionSet(1);
+        screen->m_action_panel_014->EnableRegionSet(1);
+        screen->m_text_panel_00c->Invalidate(0);
+        screen->m_status_panel_010->RefreshStatusTexts();
+        screen->m_action_panel_014->Invalidate(0);
+        g_main_game_screen->RefreshActionPanel();
+        gXStatus.fTrapInteract = 0;
+        return 1;
+    }
+    if (trigger->value_37c == -1) {
+        RandomizeTriggerTumblerCount005E3740(trigger);
+    }
+    g_main_game_screen = new W8MainGameScreen(trigger);
+    if (trigger->value_388 == -1 ||
+        0x3840 < static_cast<unsigned int>(g_status_685170.world_clock - trigger->value_388)) {
+        event_type = g_effect_005ee5ec;
+        if (0x13 < Random(100)) {
+            event_type = g_value_0068c53c;
+        }
+        event = ApplyItemEffectToRandomCharacter(event_type, -1, g_event_flag_005ed8e8,
+                                                 g_effect_argument_005ed8c8);
+        if (event != 0) {
+            event->dispatch_delay_ms = 600;
+            event->dispatch_delay_start = GetTickCount();
+        }
+    }
+    trigger->value_388 = g_status_685170.world_clock;
+    SoundPlay(s_trap_detect_64bcf0, 0);
+    gXStatus.fTrapInteract = 0;
+    return 1;
 }
 
 // FUNCTION: WIZ8 0x0058A750
@@ -3652,6 +3844,70 @@ unsigned char MainGameScreenLeave(int leaving)
     DestroyMainGameInterfaceButtons();
     DestroySpellIconHudControls();
     return 1;
+}
+
+/* The "leave the current game" confirmation callback: on accept it tears
+   down whichever modal mode is up (NPC dialogue, message box or the hover
+   overlay), then runs the leave tail - dismiss a live message box, end or
+   autosave the game, restore the surprise view, and hand off to the
+   transition. */
+// FUNCTION: WIZ8 0x00560A70
+void OnLeaveGameConfirmClosed00560A70(W8DialogBase* dialog)
+{
+    if (GetDialogResult(dialog) == 0) {
+        return;
+    }
+    switch (g_main_game_mode_0068eddc) {
+    case 3:
+        if (gXStatus.fNpcDialogueMode != 0) {
+            EndNpcDialogueSession0056E800(0);
+        }
+        break;
+    case 5:
+        CloseMessageBox();
+        break;
+    case 6:
+        if (g_level_block->highlight_graphic != 0) {
+            ReleaseObject004257F0(g_level_block->highlight_graphic);
+            g_level_block->highlight_graphic = 0;
+            if (g_main_game_mode_0068eddc != 6) {
+                break;
+            }
+        }
+        ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                         g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                         g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
+        InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                         g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                         g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
+        if (g_level_block->dialogue_y_224 <
+                static_cast<unsigned int>(
+                    g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x100;
+        }
+        if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166 &&
+            g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+            g_level_block->redraw_flags |= 0x800;
+        }
+        break;
+    }
+    g_main_game_mode_0068eddc = 0;
+    if (IsMessageBoxActive()) {
+        CloseMessageBox();
+    }
+    if (gXStatus.fCombatMode != 0) {
+        EndCombat004EA310(1);
+    } else if (AnyCharacterActive() && gXStatus.party_moving == 0) {
+        AutoSaveIfAllowed(1);
+    }
+    if (gXStatus.fSurprisePossible != 0) {
+        RestoreSurpriseView005029A0();
+    }
+    g_status_685170.game_started = 0;
+    ClearHeldItemDisplay();
+    RequestScreenTransition();
+    SetPrimarySurfaceTextureHint2Enabled(0);
 }
 
 // FUNCTION: WIZ8 0x00560c30
@@ -5101,6 +5357,25 @@ void RequestRedrawCombatBar(void)
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
         g_level_block->redraw_flags |= 0x100;
     }
+}
+
+/* Raise a modal notice line over the main game: enter mode 5 (tearing down
+   whichever of the NPC-dialogue, message-box, or dialogue-highlight modes was
+   current), then create the kind-1 message dialog, size it, and install the
+   caller's destroy callback as the modal owner. */
+// FUNCTION: WIZ8 0x00569A50
+void ShowMainGameNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int confirmation,
+                            int cancel)
+{
+    W8MessageDialogBase* dialog;
+
+    SetMainGameMode00568390(5);
+    dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
+    dialog->SetClientExtent(0xfa, 200);
+    dialog->SetMessage(text, 1, 0x32, confirmation, cancel, 1, 1, 0, 0x15e);
+    SetDialogDestroyCallback(dialog, callback);
+    g_modal_owner_0068edd0 = dialog;
+    ActivateDialogRegion(0x138);
 }
 
 /* Note that the party's state changed. The combat half is only asked for while
@@ -8482,7 +8757,7 @@ unsigned int HitTestPartyPortrait(const InputAtom* event)
             return 0;
         }
     }
-    kind = *(const unsigned short*)((const char*)event + 6);
+    kind = event->usEvent;
     if (kind == 8 || kind == 0x10) {
         return DispatchRegionInput(event);
     }
@@ -8987,6 +9262,177 @@ int g_split_dialog_sell_kind_005efb68 = 1;
 // GLOBAL: WIZ8 0x005EFB6C
 int g_split_dialog_buy_kind_005efb6c = 2;
 
+/* The trade confirm button's activation callback. Selling mode first offers
+   the selected stack outright when the NPC's wanted list matches it; the
+   per-mode cases then move stock between the NPC list and the backpack or
+   party pool, and every exit repaints the purse and price readouts. */
+// FUNCTION: WIZ8 0x005AD290
+void ConfirmNpcTradeItem005AD290(void)
+{
+    W8NpcItemEntry* entry;
+    W8ItemInstance* item;
+    W8Character* trading;
+    W8NpcState* npc;
+    bool wants;
+    unsigned int count;
+    unsigned int i;
+    int selected;
+    int npc_kind;
+    int moved;
+    int shown;
+    int index;
+    int slot;
+    int target;
+
+    wants = false;
+    if (!ValidateNpcTradeSelection005AE1F0()) {
+        return;
+    }
+    if ((g_screen_state_00649f1c->value_100 == 2 || g_screen_state_00649f1c->value_100 == 3) &&
+        (g_screen_state_00649f1c->dialogue_text_120->m_stateFlags & g_W8TextControlMask005ED570) !=
+            0) {
+        selected = g_status_685170.selected_character;
+        npc_kind = g_status_685170.buffers.party_rows[selected].animation_0fa;
+        if (npc_kind != -1) {
+            npc = GetNpcState(npc_kind);
+            if (npc != 0 && g_screen_state_00649f1c->trade_item != 0 &&
+                NpcWantsItem0050DC50(npc, g_screen_state_00649f1c->trade_item) != 0) {
+                QueueCharacterEvent(&g_status_685170.buffers.characters[selected],
+                                    g_effect_005ee6ec, 0, g_effect_argument_005ed8cc,
+                                    g_effect_argument_005ed914);
+                return;
+            }
+        }
+    }
+    switch (g_screen_state_00649f1c->value_100) {
+    case 2:
+        HandleNpcDialogueItemChoice00575B70();
+        break;
+    case 3:
+        wants = NpcHasTopic(g_screen_state_00649f1c->dialogue_npc,
+                            g_screen_state_00649f1c->trade_item->item_id);
+        if (SellItemToNpc0055B730(
+                g_screen_state_00649f1c->dialogue_npc, g_screen_state_00649f1c->trade_item,
+                static_cast<unsigned char>(g_screen_state_00649f1c->trade_quantity), wants) == 0) {
+            break;
+        }
+        slot = GetTextSlot1E8(2);
+        if ((g_screen_state_00649f1c->dialogue_text_120->m_stateFlags &
+             g_W8TextControlMask005ED570) != 0) {
+            trading = &g_status_685170.buffers.characters[g_status_685170.selected_character];
+            shown = 0;
+            for (index = 0; index < 8; ++index) {
+                item = &trading->backpack[index];
+                if (item->item_id == -1 || NpcTradeItemAllowed00573190(item) != 0) {
+                    continue;
+                }
+                if (shown == slot) {
+                    break;
+                }
+                ++shown;
+            }
+            if (index != -1) {
+                if (trading->backpack[index].stack_count > 0) {
+                    trading->backpack[index].stack_count -=
+                        static_cast<unsigned char>(g_screen_state_00649f1c->trade_quantity);
+                }
+                if (trading->backpack[index].stack_count == 0) {
+                    EmptyBackpackSlot00521AC0(trading, index);
+                }
+            }
+        } else if ((g_screen_state_00649f1c->dialogue_text_124->m_stateFlags &
+                    g_W8TextControlMask005ED570) != 0) {
+            shown = 0;
+            target = slot;
+            if (g_screen_state_00649f1c->value_100 != 2 || slot != 0) {
+                if (g_screen_state_00649f1c->value_100 == 2) {
+                    --target;
+                }
+                for (index = 0; index < g_status_685170.party_item_count_1791; ++index) {
+                    item = &g_status_685170.party_item_pool_0021[index];
+                    if (item->item_id == -1 || NpcTradeItemAllowed00573190(item) != 0) {
+                        continue;
+                    }
+                    if (shown == target) {
+                        break;
+                    }
+                    ++shown;
+                }
+                if (index != -1) {
+                    if (g_status_685170.party_item_pool_0021[index].stack_count > 0) {
+                        g_status_685170.party_item_pool_0021[index].stack_count -=
+                            static_cast<unsigned char>(g_screen_state_00649f1c->trade_quantity);
+                    }
+                    if (g_status_685170.party_item_pool_0021[index].stack_count == 0) {
+                        EmptyPartyPoolEntry00521CD0(index);
+                    }
+                }
+            }
+        }
+        RebuildNpcTradeItemList005ADB10(false);
+        g_screen_state_00649f1c->trade_item = 0;
+        SortNpcItems(g_screen_state_00649f1c->dialogue_npc);
+        SelectTextSlot1E8(slot, 2);
+        UpdateNpcTradeSelection0056FAC0(slot, 0, 1);
+        if (wants != 0) {
+            QueueNpcScriptLine(0x15, 0, 0, 0);
+        }
+        break;
+    case 4:
+        slot = GetTextSlot1E8(2);
+        count = GetNpcItemCount(g_screen_state_00649f1c->dialogue_npc);
+        shown = 0;
+        index = -1;
+        for (i = 0; i < count; ++i) {
+            entry = GetNpcItemAt(g_screen_state_00649f1c->dialogue_npc, i);
+            if (entry != 0 && NpcTradeItemAllowed00573190(&entry->item) == 0 &&
+                entry->available_at == 0) {
+                if (shown == slot) {
+                    index = i;
+                    break;
+                }
+                ++shown;
+            }
+        }
+        if (index != -1 && CompleteNpcItemPurchase0055B7E0(
+                               g_screen_state_00649f1c->dialogue_npc, index,
+                               static_cast<unsigned char>(g_screen_state_00649f1c->trade_quantity),
+                               0, &moved) != 0) {
+            RebuildNpcTradeItemList005ADB10(false);
+            g_screen_state_00649f1c->trade_item = 0;
+            RebuildNpcTradeItemList005ADB10(false);
+            SelectTextSlot1E8(slot, 2);
+            UpdateNpcTradeSelection0056FAC0(slot, 0, 1);
+        }
+        break;
+    case 5:
+        slot = GetTextSlot1E8(2);
+        count = GetNpcItemCount(g_screen_state_00649f1c->dialogue_npc);
+        shown = 0;
+        index = -1;
+        for (i = 0; i < count; ++i) {
+            entry = GetNpcItemAt(g_screen_state_00649f1c->dialogue_npc, i);
+            if (entry != 0 && NpcTradeItemAllowed00573190(&entry->item) == 0 &&
+                entry->available_at == 0) {
+                if (shown == slot) {
+                    index = i;
+                    break;
+                }
+                ++shown;
+            }
+        }
+        if (index != -1) {
+            entry = GetNpcItemAt(g_screen_state_00649f1c->dialogue_npc, index);
+            AttemptNpcItemTrade005AE2A0(
+                &entry->item, static_cast<unsigned char>(g_screen_state_00649f1c->trade_quantity),
+                index);
+        }
+        break;
+    }
+    RefreshNpcTradePartyGold00575BC0();
+    RefreshNpcTradePrice00575C00();
+}
+
 // FUNCTION: WIZ8 0x005AD950
 void ShowNpcTradeItemNotice005AD950(W8ItemInstance* item)
 {
@@ -9302,7 +9748,8 @@ bool AttemptNpcItemTrade005AE2A0(W8ItemInstance* item, unsigned char quantity, i
         if (g_item_records[item->item_id].identify_difficulty != 0 && quantity == 1) {
             AddNpcTopic(g_screen_state_00649f1c->dialogue_npc, item->item_id);
         }
-        Function55B7E0(g_screen_state_00649f1c->dialogue_npc, index, quantity, 1, 0);
+        CompleteNpcItemPurchase0055B7E0(g_screen_state_00649f1c->dialogue_npc, index, quantity, 1,
+                                        0);
         ResetEditorStatusLine0058AA20(2);
         ResetNpcDialogueItemEditor();
         EnableNpcTradeFilterButtons00573630();

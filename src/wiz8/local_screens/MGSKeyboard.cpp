@@ -244,8 +244,8 @@ unsigned char HandleMainGameInputEvent(const InputAtom* input)
     }
     if (GetFlag69DA6C() != 0) {
         if (g_monster_combat_timer_enabled_006f0531 == 0 &&
-            Function5E3610(input, Function5E35A0) == 1) {
-            Function5E34B0();
+            HandleRecordModeKey005E3610(input, PromptRecordModeEntry005E35A0) == 1) {
+            ApplyRecordModeLine005E34B0();
             return 1;
         }
     } else {
@@ -286,7 +286,8 @@ void DispatchMGSCommand(int command)
                 }
             }
             ClearValue69DA68();
-            ShowMainGameNoticeLine(gppStringList[0x1de4 / 4], Function560A70, 1, 1);
+            ShowMainGameNoticeLine(gppStringList[0x1de4 / 4], OnLeaveGameConfirmClosed00560A70, 1,
+                                   1);
         }
         InvalidateRegion(0xa8, 0x16e, 0x1c4, 0x1ba, 0);
         break;
@@ -565,7 +566,7 @@ void DispatchMGSCommand(int command)
         ScrollTextBoxTo(0);
         break;
     case W8_MGS_COMMAND_TEXTBOX_BOTTOM:
-        Function58BA60();
+        ScrollDialogueTextBoxToLine0058BA60();
         break;
     case W8_MGS_COMMAND_TEXTBOX_CLEAR:
         if (gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0) {

@@ -1613,6 +1613,74 @@ void GetOriginOfCharacterItem(int character_index, W8ItemInstance* item, unsigne
     *slot = 0xffff;
 }
 
+/* Empty a departing character into the party pool. Equipment that is bound
+   to its slot stays with the body unless the binding was announced, the slot
+   has no cursor icon, or the character is dead. What the pool cannot take is
+   parked in the held-item display - the previous contents are restored after
+   the drop-or-refuse handling - and announced. The backpack loop keeps
+   reading the equipment row's item id, a leftover the retail body shares. */
+// FUNCTION: WIZ8 0x005223a0
+void StashDepartingCharacterItems005223A0(W8Character* character)
+{
+    int item_id;
+    W8ItemInstance saved_hand;
+    bool was_in_cursor;
+
+    for (int equip_slot = 0; equip_slot < 12; ++equip_slot) {
+        W8ItemInstance* item = &character->equipment[equip_slot];
+        item_id = item->item_id;
+        if (item_id != -1 &&
+            (g_item_records[item_id].binds_on_equip == 0 || item->bind_announced != 0 ||
+             g_equip_slot_icons[equip_slot] == -1 ||
+             character->condition_turns[W8_CONDITION_DEAD] != 0) &&
+            AddItemToParty(item, 0, 0) == 0) {
+            was_in_cursor = g_status_685170.item_in_cursor != 0;
+            if (was_in_cursor) {
+                saved_hand = g_status_685170.item_in_hand_235b;
+            }
+            gXStatus.held_item_source = -1;
+            gXStatus.held_item_origin = 0xff;
+            gXStatus.held_item_slot = 0xffff;
+            ClearHeldItemDisplay();
+            CopyItemInstance(&g_status_685170.item_in_hand_235b, item, 0, 1);
+            if ((g_item_records[g_status_685170.item_in_hand_235b.item_id].flags_041 & 2) == 0) {
+                DropHeldItem(0);
+            } else {
+                ShowNoticeLine(gppStringList[0x13bc / 4], 0, 1, 0);
+            }
+            if (was_in_cursor) {
+                g_status_685170.item_in_hand_235b = saved_hand;
+            }
+            ShowNoticef(0, gppStringList[0x1f4c / 4], &g_item_records[item_id]);
+        }
+    }
+
+    for (int slot = 0; slot < 8; ++slot) {
+        W8ItemInstance* item = &character->backpack[slot];
+        item_id = character->equipment[slot].item_id;
+        if (item_id != -1 && AddItemToParty(item, 0, 0) == 0) {
+            was_in_cursor = g_status_685170.item_in_cursor != 0;
+            if (was_in_cursor) {
+                saved_hand = g_status_685170.item_in_hand_235b;
+            }
+            gXStatus.held_item_source = -1;
+            gXStatus.held_item_origin = 0xff;
+            gXStatus.held_item_slot = 0xffff;
+            ClearHeldItemDisplay();
+            CopyItemInstance(&g_status_685170.item_in_hand_235b, item, 0, 1);
+            if ((g_item_records[g_status_685170.item_in_hand_235b.item_id].flags_041 & 2) == 0) {
+                DropHeldItem(0);
+            } else {
+                ShowNoticeLine(gppStringList[0x13bc / 4], 0, 1, 0);
+            }
+            if (was_in_cursor) {
+                g_status_685170.item_in_hand_235b = saved_hand;
+            }
+            ShowNoticef(0, gppStringList[0x1f4c / 4], &g_item_records[item_id]);
+        }
+    }
+}
+
 /* Initialize the fixed item-video-object vector to one entry per item record. */
 // FUNCTION: WIZ8 0x0051b560
 void InitializeItemVideoObjects(void)
@@ -3276,6 +3344,17 @@ void DeliverExceptionalItemReaction(W8ItemInstance* item, unsigned char choose_c
     item->unknown_07[2] |= 1;
 }
 
+/* Whether the item's equip class is directly usable (0x17/0x19). */
+// FUNCTION: WIZ8 0x00522A00
+bool IsUsableItemClass00522A00(W8ItemInstance* item)
+{
+    if (g_item_records[item->item_id].equip_class != 0x17 &&
+        g_item_records[item->item_id].equip_class != 0x19) {
+        return 0;
+    }
+    return 1;
+}
+
 /* Whether the party slot may go through with using this item right now.
    Class-0x17 and -0x19 items and anything the character can cast from answer
    with the out-of-combat gate alone; everything else is refused while the
@@ -3308,6 +3387,94 @@ bool CanUseItemForAction(int party_slot, const W8ItemInstance* item)
         return 0;
     }
     return SpellUsableNow(record->spell_id, 0);
+}
+
+/* Validate an item's embedded spell for use now; nonzero reports use blocked
+   with the reason notice queued through the callback. */
+// FUNCTION: WIZ8 0x00522B80
+char ValidateItemSpellUse(int character_index, W8ItemInstance* item,
+                          W8DialogDestroyCallback callback)
+{
+    const W8ItemDatabaseRecord* record = &g_item_records[item->item_id];
+    W8Character* character = &g_status_685170.buffers.characters[character_index];
+    bool has_target;
+
+    if (record->equip_class == 0x17 || record->equip_class == 0x19 ||
+        CanCastFromItem(character, item)) {
+        if (gXStatus.fCombatMode != 0 || gXStatus.fCampMode != 0 || gXStatus.fLockInteract != 0 ||
+            gXStatus.fTrapInteract != 0) {
+            ShowNoticeLine(gppStringList[0x1e98 / 4], callback, 1, 0);
+            return 1;
+        }
+        return 0;
+    }
+    if (character->condition_turns[W8_CONDITION_SPELLCASTING_BLOCKED] != 0 &&
+        record->equip_class == 0xd) {
+        ShowNoticeLine(gppStringList[0x1e9c / 4], callback, 1, 0);
+        return 1;
+    }
+    if (gXStatus.fItemSelectMode != 0) {
+        SetValue69B9A4(item);
+        has_target = SpellHasAnyValidTarget(character_index, record->spell_id,
+                                            ItemClassNormalizesTarget(record));
+        SetValue69B9A4(0);
+        if (has_target == 0) {
+            ShowNoticeLine(gppStringList[0x1ea0 / 4], callback, 1, 0);
+            return 1;
+        }
+    }
+    if (SpellUsableNow(record->spell_id, 0) == 0) {
+        ShowNoticeLine(gppStringList[0x1e98 / 4], callback, 1, 0);
+        return 1;
+    }
+    return 0;
+}
+
+/* Whether the character carries an activatable service item - an identified
+   casting item whose record holds a service spell (0x03/0x29) - across the
+   backpack, equipment and the party pool. */
+// FUNCTION: WIZ8 0x00522D40
+bool CharacterHasServiceItem(W8Character* character)
+{
+    const W8ItemDatabaseRecord* record;
+    W8ItemInstance* item;
+    unsigned int index;
+
+    item = character->backpack;
+    for (index = 0; index < 8; ++index, ++item) {
+        if (item->item_id != -1 && CanCharacterActivateItem(character, item) != 0) {
+            record = &g_item_records[item->item_id];
+            if (record->equip_class != 0x17 && record->equip_class != 0x19 &&
+                item->identified != 0 && (record->spell_id == 0x3 || record->spell_id == 0x29)) {
+                return true;
+            }
+        }
+    }
+    item = character->equipment;
+    for (index = 0; index < 0xc; ++index, ++item) {
+        if (item->item_id != -1 && CanCharacterActivateItem(character, item) != 0) {
+            record = &g_item_records[item->item_id];
+            if (record->equip_class != 0x17 && record->equip_class != 0x19 &&
+                item->identified != 0 && (record->spell_id == 0x3 || record->spell_id == 0x29)) {
+                return true;
+            }
+        }
+    }
+    if (g_status_685170.party_item_count_1791 != 0) {
+        item = g_status_685170.party_item_pool_0021;
+        for (index = 0; index < static_cast<unsigned int>(g_status_685170.party_item_count_1791);
+             ++index, ++item) {
+            if (item->item_id != -1 && CanCharacterActivateItem(character, item) != 0) {
+                record = &g_item_records[item->item_id];
+                if (record->equip_class != 0x17 && record->equip_class != 0x19 &&
+                    item->identified != 0 &&
+                    (record->spell_id == 0x3 || record->spell_id == 0x29)) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 /* Insert one item into the packed party pool, first coalescing compatible
@@ -3572,6 +3739,20 @@ void AimItemUseAtCurrentTarget0051DB60(W8Character* character, W8ItemInstance* i
         return;
     }
     ChooseAction(party_slot, W8_ACTION_USE_ITEM, -1, &detail, 0, 1);
+}
+
+/* Stage the slot row's item-use detail block, aimed target and provenance for
+   an item use that is about to commit. */
+// FUNCTION: WIZ8 0x0051DC50
+void StagePartySlotItemUse0051DC50(int party_slot, W8ItemInstance* item, const W8CombatSlot* target)
+{
+    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+
+    row->item_detail.item_use.kind = -1;
+    row->item_detail.item_use.item = item;
+    row->item_target = *target;
+    row->item_id_0c9 = item->item_id;
+    GetOriginOfCharacterItem(party_slot, item, &row->item_origin, &row->item_slot);
 }
 
 /* Take one of an item's uses away, and when that was the last one, empty the

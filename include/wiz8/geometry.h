@@ -29,9 +29,7 @@ struct W8GDSurface {
     unsigned int flags_00;
     unsigned int index_04;
     int trigger_index_08;
-    int positional_0c;
-    int positional_10;
-    int positional_14;
+    int edge_link_0c[3];
     int vertex_indices_18[3];
     /* The first three plane coefficients are its surface normal. The region
        word at +0x32 belongs to W8OctRegionPolygon, not this surface. */

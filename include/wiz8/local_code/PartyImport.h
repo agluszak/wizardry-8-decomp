@@ -27,13 +27,18 @@ struct W8Wiz7Character {
     unsigned char skills[0x22];  /* 0x178: ConvertSkill indexes it by the
                                           mapped skill id (highest 0x21) and
                                           reads the contiguous ranges inside */
-    unsigned char unknown_19a[0x9d];
+    unsigned char unknown_19a[0x98];
+    unsigned char party_tag_232;
+    unsigned char unknown_233[4];
     unsigned char race_237;       /* 0x237 */
     unsigned char gender_238;     /* 0x238 */
     unsigned char profession_239; /* 0x239: Wiz7 class byte */
     unsigned char unknown_23a;
     unsigned char status_23b; /* 0x23b: 2 or 3 imports as a dead member */
+    unsigned char unknown_23c[0xc];
 };
+
+static_assert(sizeof(W8Wiz7Character) == 0x248, "W8Wiz7Character_must_be_0x248");
 
 /* Local Code\Party Import.cpp: the Wizardry 7 character-import conversions. */
 void ConvertAttribute(W8Character* character, const W8Wiz7Character* imported); /* 0x005592D0 */
@@ -42,5 +47,14 @@ void ImportEquipment00559650(W8Character* character, const W8Wiz7Character* impo
 unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
                           const W8Wiz7Character* imported); /* 0x00559BC0 */
 void ImportWizardry7Character005590B0(W8Character* character, W8Wiz7Character* imported);
+
+unsigned char LoadWizardry7ImportFile00558D00(char* path);
+unsigned char ImportWizardry7Party00558C40(char* path);
+extern int g_import_character_count_0068de48;
+extern unsigned char g_import_ending_record_0068de4c;
+extern int g_value_68de50;
+extern int g_import_difficulty_0068de54;
+extern unsigned char g_import_flags_0068de58[0x60];
+extern W8Wiz7Character g_imported_characters_0068deb8[6];
 
 #endif

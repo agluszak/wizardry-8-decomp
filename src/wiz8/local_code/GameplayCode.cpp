@@ -939,6 +939,42 @@ void DeriveCharacterPersonality004EFA30(W8Character* character)
     character->unknown_007d = 0;
 }
 
+/* Re-roll the character's voice until no other in-party character shares the
+   same gender/personality/voice triple. The first clash only flips the voice;
+   further clashes re-roll both personality and voice. */
+// FUNCTION: WIZ8 0x004EFAD0
+void EnsureUniquePartyVoice004EFAD0(W8Character* character)
+{
+    W8Character* other;
+    unsigned int slot;
+    int attempts = 0;
+
+    for (;;) {
+        slot = 0;
+        other = g_status_685170.buffers.characters;
+        for (;;) {
+            if (other->in_party != 0 && other != character && other->gender == character->gender &&
+                other->personality_0081 == character->personality_0081 &&
+                other->voice_0085 == character->voice_0085) {
+                break;
+            }
+            ++slot;
+            ++other;
+            if (slot > 7) {
+                return;
+            }
+        }
+        if (attempts == 0) {
+            attempts = 1;
+            character->voice_0085 = (character->voice_0085 == 0);
+        } else {
+            character->personality_0081 = Random(9);
+            character->voice_0085 = Random(2);
+            ++attempts;
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x004ef420
 unsigned int GetAveragePartyLevel(void)
 {
@@ -1074,6 +1110,62 @@ unsigned char RemoveCharacterFromParty(int party_slot, char save_character_data)
         g_status_685170.selected_character = GetNextCharacter(1, 1, -1);
     }
     return 1;
+}
+
+/* Install a finished character record over a party slot: everything the old
+   record still carries goes to the party pool, the slot is cleared out, the
+   record is copied in and the row re-enters the marching order and formation
+   as a regular member. When the caller pays for it, the starting equipment is
+   bought out of the party gold the way a new recruit would bring it. */
+// FUNCTION: WIZ8 0x004ef7e0
+unsigned char RecruitCharacterIntoParty004EF7E0(W8Character* character, W8Character* record,
+                                                char buy_equipment)
+{
+    unsigned int slot = CharacterPointerToPartySlot(character);
+    int index;
+    unsigned int order_index;
+
+    for (index = 0; index < 12; ++index) {
+        if (character->equipment[index].item_id != -1) {
+            AddItemToParty(&character->equipment[index], 0, 0);
+        }
+    }
+    for (index = 0; index < 8; ++index) {
+        if (character->backpack[index].item_id != -1) {
+            AddItemToParty(&character->backpack[index], 0, 0);
+        }
+    }
+    RemoveCharacterFromParty(slot, 0);
+    memcpy(character, record, sizeof(W8Character));
+    character->in_party = 1;
+    ResetPartySlotRow(slot);
+    ResetGameplaySlot(slot);
+    g_status_685170.buffers.party_rows[slot].animation_0fa = -1;
+    for (order_index = 0; order_index < 8; ++order_index) {
+        if (g_status_685170.party_order_slots[order_index] == static_cast<unsigned int>(-1)) {
+            g_status_685170.party_order_slots[order_index] = slot;
+            g_status_685170.buffers.party_rows[slot].party_order_index = order_index;
+            break;
+        }
+    }
+    PlaceCharacterInFormation(&g_status_685170.formation, slot);
+    g_status_685170.formation.positions[slot].bOldQuadrant = 0xff;
+    ++g_status_685170.total_member_count;
+    ++g_status_685170.regular_member_count;
+    RebuildCharacterModifierBlock(character);
+    RecalculateCharacterDerivedStats(character);
+    if (buy_equipment != 0) {
+        unsigned int cost = ComputeStartingEquipmentCost(character);
+        if (g_status_685170.party_gold < cost) {
+            srAssertFail("uiValue <= gStatus.uiPartyGold", GAMEPLAY_CODE_CPP, 0x922, 0);
+        }
+        g_status_685170.party_gold -= cost;
+        AddCharacterStartingEquipment(character);
+    }
+    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+        RefreshPartySlotRegions();
+    }
+    return slot;
 }
 
 // FUNCTION: WIZ8 0x004EEF10

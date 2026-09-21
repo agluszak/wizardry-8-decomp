@@ -37,6 +37,7 @@ extern const wchar_t g_format_s_paren_d_0061a700[];
 
 extern W8MainGameResourceSlot g_main_game_resource_slots[17];
 extern W8ScreenRect g_viewport_modes_647d30[];
+extern unsigned short g_value_0061e9ec[];
 
 #include "wiz8/layouts/screen_state.h"
 
@@ -483,7 +484,7 @@ void OpenMonsterInfoDialog0056AD60(int location_id);                    /* 0x005
 void OpenAssayDialog0056AE20(W8ItemInstance* item, int character_slot); /* 0x0056AE20 */
 
 void OnQuitGameDialogClosed(W8DialogBase* dialog);
-void Function560A70(W8DialogBase* dialog); /* 0x00560A70 */
+void OnLeaveGameConfirmClosed00560A70(W8DialogBase* dialog); /* 0x00560A70 */
 
 void PauseMainGameWorld(void);
 void ResumeMainGameWorld(void);
@@ -650,7 +651,7 @@ bool AttemptNpcItemTrade005AE2A0(W8ItemInstance* item, unsigned char quantity, i
    chosen count to the editor slot and refreshes the trade selection. */
 void NpcTradeSplitDialogResult005AE1A0(W8DialogBase* dialog);
 void RefreshFormationPanel005B2980(unsigned char show_portraits); /* 0x005B2980 */
-void Function58BA60(void);                                        /* 0x0058BA60 */
+void ScrollDialogueTextBoxToLine0058BA60(void);                   /* 0x0058BA60 */
 void EndLockInteractMode(char suspend);                           /* 0x005879A0 */
 void UpdateMainGameScreen(void);                                  /* 0x0058A750 */
 void EndTrapInteractMode(char suspend);                           /* 0x0058A790 */
@@ -686,6 +687,6 @@ void ShowMainGameNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int
 unsigned char CombatBarRegionEvent(const InputAtom* event);
 unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, struct W8Region* region);
 void SetNpcDialogueSubMode4(void);
-void Function5AD290(void);
+void ConfirmNpcTradeItem005AD290(void);
 void RestockNpcTradeStock(void);
 void OpenNpcTradeSplitDialog005AE040(void);
