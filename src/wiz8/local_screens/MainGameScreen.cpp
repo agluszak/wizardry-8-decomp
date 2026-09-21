@@ -8017,7 +8017,8 @@ unsigned int DispatchMainGameMouseButtons(const InputAtom* input)
 // FUNCTION: WIZ8 0x00568B50
 unsigned char HandleMouselookInput00568B50(const InputAtom* input)
 {
-    if (g_level_runtime_flag_0065ba70 == 0 && (g_flag_006840bd == 0 || gXStatus.fCombatMode != 0)) {
+    if (g_level_runtime_flag_0065ba70 == 0 &&
+        (gXStatus.flag_a05 == 0 || gXStatus.fCombatMode != 0)) {
         unsigned int us_event = input->usEvent;
         switch (us_event) {
         case LEFT_BUTTON_DOWN:

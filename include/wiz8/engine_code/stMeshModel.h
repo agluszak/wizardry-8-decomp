@@ -27,7 +27,10 @@ public:
     virtual int getBoundingBox(srVector3T<float>& minimum,
                                srVector3T<float>& maximum) override; /* 0x00471d80 */
     virtual void getTriMesh(TriMesh& mesh) override;                 /* 0x004727e0 */
-    virtual const TriMesh& getTriMesh() override;                    /* 0x00472270 */
+    /* Recomputes the union bounds over every model in the previous/next chain
+       and pushes them to each member via srMeshModel::setBounds. */
+    virtual void calculateBounds() override;      /* 0x00471e10 */
+    virtual const TriMesh& getTriMesh() override; /* 0x00472270 */
     virtual void renderTriMesh(class srGERD& renderer,
                                const TriMesh& mesh) override; /* 0x00470360 */
     /* Shared Wizardry-extended tri-mesh submit. `poly_equations` null skips
@@ -64,6 +67,9 @@ public:
     void FreeFrameStorage();                 /* 0x004715E0 */
     int ReleaseDecompressedFrames();         /* 0x004739E0 */
     void FinalizeVertexFrame00473180(int frame);
+    /* Bounds `frame`'s vertex table into `minimum`/`maximum`, decompressing a
+       scratch copy when the frame is not resident. */
+    void GetFrameBounds00473190(int frame, srVector3T<float>* minimum, srVector3T<float>* maximum);
     unsigned char DecompressFrame(int frame, unsigned char flags,
                                   srVector3T<float>* destination); /* 0x00471930 */
     void ComputeFrameNormals(int frame);                           /* 0x004729F0 */

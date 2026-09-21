@@ -114,6 +114,10 @@ public:
             control_state_390 = state | 8;
         }
     }
+    /* Fills the cached AABB/sphere (bounds_minimum_200..bounds_radius_224)
+       from the supplied box and center/radius. */
+    void setBounds(const srVector3T<float>& minimum, const srVector3T<float>& maximum,
+                   const srVector3T<float>& center, float radius);
 
 protected:
     virtual ~srMeshModel() override;
