@@ -537,11 +537,15 @@ int W8OctBuildTree00446390::CollectLeaf00447110(W8OctBuildNode00446330* node, sh
                 }
             }
             second = 0;
-            /* Retail's kind-10 path indexes the link-head storage at +0x2c,
-               beyond its eight live slots. No recovered producer supplies
-               that mode; retain the observed read without enlarging the
-               source union over the node metadata. */
-            // reinterpret-ok: kind-10's unresolved +0x2c read overlaps metadata in this dead retail path
+            /* Retail's kind-10 path dereferences a link head at +0x2c, beyond
+               the eight-slot union member — in the proven 0x30-byte node that
+               is the positional_2c/positional_2e ushort pair, which
+               OctBuildPreTree writes as the leaf's provisional region index
+               (node->positional_2c = node->positional_28; FinalizeRegionMapping
+               reads it back as a ushort). No producer appends at a kind above
+               4, so the read is of ushort region-index storage; retained as
+               the observed retail read of dead code. */
+            // reinterpret-ok: dead kind-10 path reads the proven ushort region-index pair at +0x2c as a link head
             for (link = *reinterpret_cast<W8OctBuildLink**>(&node->positional_2c); link != 0;
                  link = link->next_04) {
                 if (CollectSurfacePredicate004474C0(static_cast<W8GDSurface*>(link->surface_00),
