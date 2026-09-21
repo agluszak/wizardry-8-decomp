@@ -33,7 +33,10 @@ public:
     void getAmbientLight(srVector3T<float>& color) const;
     srVector3T<float> getAmbientLight() const;
     void getFogColor(srVector3T<float>& color) const;
-    srVector3T<float> getFogColor() const;
+    srVector3T<float> getFogColor() const
+    {
+        return fog_color_180;
+    }
     void getStatistics(Statistics& statistics);
     int isEnabled(e_enable option) const;
     void render(srGERD& renderer, class srCamera* camera);

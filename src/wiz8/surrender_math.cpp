@@ -59,6 +59,9 @@
 // TEMPLATE: WIZ8 0x00446110
 // srVector3T<float>::SetFromDouble
 
+// TEMPLATE: WIZ8 0x004258B0
+// srVector3T<float>::SetSaturated
+
 // TEMPLATE: WIZ8 0x00451A10
 // srVector3T<float>::RotateAboutY
 

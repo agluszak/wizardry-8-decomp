@@ -144,6 +144,9 @@ void Position2DNodeUnsnapped004257D0(srNode* node, int x, int y);
 void SetModelInstance2DDisplayState004264F0(stModelInstance2D* object, unsigned char state);
 /* 0x00425840: rotate an srNode in degrees and invalidate the renderer mode. */
 void RotateNodeInDegrees00425840(srNode* node, int degrees);
+/* 0x00425950: drop a 2D node from the surface-tile table, invalidate its
+   model's texture, and release the node. */
+void ReleaseSurfaceNode00425950(srNode* node);
 /* 0x00427E70: surface-lock helper used while installing a drag cursor. */
 bool ClearMouseSurface(void);
 /* 0x004255F0: place a 2D node at a screen position in normalized
