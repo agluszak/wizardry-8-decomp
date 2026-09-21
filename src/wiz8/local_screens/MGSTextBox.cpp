@@ -668,7 +668,7 @@ void ScrollDialogueTextBoxToLine0058BA60(void)
         (input = g_level_block->dialogue_text_input) != 0 &&
         g_status_685170.text_line_cursor_1795 == input->text_box) {
         if (gXStatus.fNpcDialogueMode != 0) {
-            offset = g_screen_state_00649f1c->flag_261 != 0 ? 1 : 7;
+            offset = g_screen_state_00649f1c->text_box_collapsed != 0 ? 1 : 7;
         } else {
             offset = gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0 &&
                              gXStatus.fCampMode == 0
@@ -681,7 +681,7 @@ void ScrollDialogueTextBoxToLine0058BA60(void)
         return;
     }
     if (gXStatus.fNpcDialogueMode != 0) {
-        offset = g_screen_state_00649f1c->flag_261 != 0 ? 1 : 7;
+        offset = g_screen_state_00649f1c->text_box_collapsed != 0 ? 1 : 7;
     } else {
         offset =
             gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0 && gXStatus.fCampMode == 0
@@ -873,7 +873,7 @@ int GetTextBoxVisibleLineCount(void)
 {
     unsigned char dialogue = gXStatus.fNpcDialogueMode;
     if (dialogue != 0) {
-        if (g_screen_state_00649f1c->flag_261 != 0) {
+        if (g_screen_state_00649f1c->text_box_collapsed != 0) {
             return 1;
         }
     }
@@ -979,9 +979,9 @@ void AdvanceNoticeLine(short text_box)
     record->clock_08 = SetCountdownClock(delay);
     unsigned int shown = ++g_status_685170.text_box_lines_shown_49a7[text_box];
     if (g_level_block->text_scroll_drag_idle) {
-        if (gXStatus.fNpcDialogueMode && g_screen_state_00649f1c->flag_261) {
+        if (gXStatus.fNpcDialogueMode && g_screen_state_00649f1c->text_box_collapsed) {
             ScrollTextBoxTo(shown);
-            g_screen_state_00649f1c->flag_261 = 0;
+            g_screen_state_00649f1c->text_box_collapsed = 0;
         } else if (!gXStatus.fSpellCastMode && !gXStatus.fNpcDialogueMode &&
                    !gXStatus.fItemSelectMode && !gXStatus.fCampMode) {
             if (gXStatus.fCombatMode && g_combat_state->notice_scroll_pending_a57) {

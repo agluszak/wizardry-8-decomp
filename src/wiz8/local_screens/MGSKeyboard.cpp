@@ -432,7 +432,7 @@ void DispatchMGSCommand(int command)
         if (CanOpenNpcDialogue() != 0 || gXStatus.fCampMode != 0 ||
             g_status_685170.selected_character == -1 ||
             (gXStatus.fNpcDialogueMode != 0 &&
-             g_screen_state_00649f1c->value_fc == W8_DIALOGUE_LAYOUT_TRANSCRIPT)) {
+             g_screen_state_00649f1c->dialogue_layout == W8_DIALOGUE_LAYOUT_TRANSCRIPT)) {
             break;
         }
         OpenCharacterScreenForPartySlot(g_status_685170.selected_character, 0);
