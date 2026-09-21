@@ -1200,6 +1200,20 @@ static DWORD WINAPI DriveScenario(void*)
             if (strcmp(g_scenario, "main-game-start") == 0) {
                 srVector3T<float> saved_position;
                 srVector3T<float> walked_position;
+                int forward_index = g_mgs_keyboard != 0
+                                        ? g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_MOVE_FORWARD)
+                                        : -1;
+                MGSKeyBinding* forward_binding =
+                    forward_index >= 0 ? g_mgs_keyboard->GetBinding(forward_index) : 0;
+                int backward_index = g_mgs_keyboard != 0
+                                         ? g_mgs_keyboard->FindBinding(W8_MGS_COMMAND_MOVE_BACKWARD)
+                                         : -1;
+                MGSKeyBinding* backward_binding =
+                    backward_index >= 0 ? g_mgs_keyboard->GetBinding(backward_index) : 0;
+                if (forward_binding == 0) {
+                    fprintf(stderr, "runtime-test movement: MOVE_FORWARD binding missing\n");
+                    return FailScenario();
+                }
                 /* Quick save first, before the walk can latch the level-motion
                    override: the save gate reads flag4/fall state. Tapping the
                    resolved QUICK_SAVE binding dispatches command 314, which
@@ -1297,16 +1311,82 @@ static DWORD WINAPI DriveScenario(void*)
                 }
                 saved_position = walked_position;
                 if (g_observation.game_saved && gfProgramIsRunning) {
-                    SendScenarioKeyHeld(VK_UP, 0);
+                    unsigned char pressed_before_load = 0;
+                    float input_before_load = 0.0f;
+                    float motion_before_load = 0.0f;
+                    SendScenarioKeyHeld(forward_binding->key, 0);
                     started = GetTickCount();
                     while (GetTickCount() - started < 5000 && gfProgramIsRunning) {
                         Sleep(100);
+                        if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_FORWARD)) {
+                            pressed_before_load = 1;
+                        }
+                        if (g_level_data_00652dac != 0) {
+                            float input_motion = g_level_data_00652dac->vector_40.Length();
+                            float world_motion = g_level_data_00652dac->vector_a0.Length();
+                            if (input_motion > input_before_load) {
+                                input_before_load = input_motion;
+                            }
+                            if (world_motion > motion_before_load) {
+                                motion_before_load = world_motion;
+                            }
+                        }
                         GetCameraPosition(&walked_position);
                         if ((walked_position - saved_position).Length() > 1.5f) {
                             break;
                         }
                     }
-                    SendScenarioKeyHeld(VK_UP, 1);
+                    SendScenarioKeyHeld(forward_binding->key, 1);
+                    if ((walked_position - saved_position).Length() <= 1.5f) {
+                        fprintf(stderr,
+                                "runtime-test pre-load movement: pressed=%d input=%.2f "
+                                "motion=%.2f flags=0x%x envload=%d scale=%.3f "
+                                "forward=%.2f integrated=%.2f env38=%.2f env3c=%.2f "
+                                "env20=%.2f\n",
+                                pressed_before_load, input_before_load, motion_before_load,
+                                g_level_data_00652dac != 0 ? g_level_data_00652dac->flags : 0,
+                                g_environment_load_flag_00603ad0,
+                                g_level_data_00652dac != 0 ? g_level_data_00652dac->camera_scale_14
+                                                           : -1.0f,
+                                g_level_data_00652dac != 0
+                                    ? g_level_data_00652dac->camera_forward_4c.Length()
+                                    : -1.0f,
+                                g_level_data_00652dac != 0
+                                    ? g_level_data_00652dac->vector_64.Length()
+                                    : -1.0f,
+                                g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_38 : -1.0f,
+                                g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_3c : -1.0f,
+                                g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_20 : -1.0f);
+                        if (backward_binding != 0) {
+                            unsigned char backward_pressed = 0;
+                            float backward_input = 0.0f;
+                            SendScenarioKeyHeld(backward_binding->key, 0);
+                            started = GetTickCount();
+                            while (GetTickCount() - started < 5000 && gfProgramIsRunning) {
+                                Sleep(100);
+                                if (g_mgs_keyboard->IsCommandPressed(
+                                        W8_MGS_COMMAND_MOVE_BACKWARD)) {
+                                    backward_pressed = 1;
+                                }
+                                if (g_level_data_00652dac != 0 &&
+                                    g_level_data_00652dac->vector_40.Length() > backward_input) {
+                                    backward_input = g_level_data_00652dac->vector_40.Length();
+                                }
+                                GetCameraPosition(&walked_position);
+                                if ((walked_position - saved_position).Length() > 1.5f) {
+                                    break;
+                                }
+                            }
+                            SendScenarioKeyHeld(backward_binding->key, 1);
+                            if ((walked_position - saved_position).Length() <= 1.5f) {
+                                fprintf(stderr,
+                                        "runtime-test pre-load backward: key=0x%x mods=0x%x "
+                                        "pressed=%d input=%.2f\n",
+                                        backward_binding->key, backward_binding->modifiers,
+                                        backward_pressed, backward_input);
+                            }
+                        }
+                    }
                 }
                 /* Quick load after the save file exists: tapping the resolved
                    QUICK_LOAD binding dispatches command 315, which finds the
@@ -1376,6 +1456,17 @@ static DWORD WINAPI DriveScenario(void*)
                             *(volatile int*)&g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
                             g_observation.game_loaded = 1;
                             ReportStep("game-loaded");
+                            fprintf(stderr,
+                                    "runtime-test post-load motion: flags=0x%x envload=%d "
+                                    "scale=%.3f env38=%.2f env3c=%.2f env20=%.2f\n",
+                                    g_level_data_00652dac != 0 ? g_level_data_00652dac->flags : 0,
+                                    g_environment_load_flag_00603ad0,
+                                    g_level_data_00652dac != 0
+                                        ? g_level_data_00652dac->camera_scale_14
+                                        : -1.0f,
+                                    g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_38 : -1.0f,
+                                    g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_3c : -1.0f,
+                                    g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_20 : -1.0f);
                             /* LoadGame + LoadLevel must put the party back at
                                the saved spot: the position walked away from
                                before the load snaps back. */
@@ -1421,7 +1512,7 @@ static DWORD WINAPI DriveScenario(void*)
                                 load_index);
                     }
                 }
-                /* Hold the MOVE_FORWARD binding (UPARROW) through real frames;
+                /* Hold the live MOVE_FORWARD binding through real frames;
                    the camera position is the party's world position. Keep the
                    key held for the whole window so the walk crosses triggers
                    and wall collision, then let the world tick idle while the
@@ -1429,28 +1520,86 @@ static DWORD WINAPI DriveScenario(void*)
                 srVector3T<float> before;
                 srVector3T<float> after;
                 GetCameraPosition(&before);
-                SendScenarioKeyHeld(VK_UP, 0);
+                SendScenarioKeyHeld(forward_binding->key, 0);
+                unsigned char forward_pressed = 0;
+                float maximum_input_motion = 0.0f;
+                float maximum_world_motion = 0.0f;
+                float maximum_camera_forward = 0.0f;
+                unsigned int observed_render_flags = 0;
                 started = GetTickCount();
                 while (GetTickCount() - started < 10000 && gfProgramIsRunning) {
                     Sleep(100);
+                    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_FORWARD)) {
+                        forward_pressed = 1;
+                    }
+                    if (g_level_data_00652dac != 0) {
+                        float input_motion = g_level_data_00652dac->vector_40.Length();
+                        float world_motion = g_level_data_00652dac->vector_a0.Length();
+                        float camera_forward = g_level_data_00652dac->camera_forward_4c.Length();
+                        if (input_motion > maximum_input_motion) {
+                            maximum_input_motion = input_motion;
+                        }
+                        if (world_motion > maximum_world_motion) {
+                            maximum_world_motion = world_motion;
+                        }
+                        if (camera_forward > maximum_camera_forward) {
+                            maximum_camera_forward = camera_forward;
+                        }
+                    }
+                    observed_render_flags |= g_level_block->world_render_flags;
                     GetCameraPosition(&after);
                     if (g_observation.party_moved == 0 && (after - before).Length() > 1.0f) {
                         g_observation.party_moved = 1;
                         ReportStep("party-moved");
                     }
                 }
-                SendScenarioKeyHeld(VK_UP, 1);
+                SendScenarioKeyHeld(forward_binding->key, 1);
+                if (!g_observation.party_moved && backward_binding != 0) {
+                    unsigned char backward_pressed = 0;
+                    float backward_input = 0.0f;
+                    SendScenarioKeyHeld(backward_binding->key, 0);
+                    started = GetTickCount();
+                    while (GetTickCount() - started < 10000 && gfProgramIsRunning) {
+                        Sleep(100);
+                        if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_BACKWARD)) {
+                            backward_pressed = 1;
+                        }
+                        if (g_level_data_00652dac != 0 &&
+                            g_level_data_00652dac->vector_40.Length() > backward_input) {
+                            backward_input = g_level_data_00652dac->vector_40.Length();
+                        }
+                        GetCameraPosition(&after);
+                        if ((after - before).Length() > 1.0f) {
+                            g_observation.party_moved = 1;
+                            ReportStep("party-moved");
+                            break;
+                        }
+                    }
+                    SendScenarioKeyHeld(backward_binding->key, 1);
+                    if (!g_observation.party_moved) {
+                        fprintf(stderr,
+                                "runtime-test backward: key=0x%x mods=0x%x pressed=%d "
+                                "input=%.2f\n",
+                                backward_binding->key, backward_binding->modifiers,
+                                backward_pressed, backward_input);
+                    }
+                }
                 if (!g_observation.party_moved) {
                     GetCameraPosition(&after);
                     fprintf(
                         stderr,
                         "runtime-test movement: before=(%.1f %.1f %.1f) "
-                        "after=(%.1f %.1f %.1f) key_up=%d string_input=%d "
+                        "after=(%.1f %.1f %.1f) key=0x%x modifiers=0x%x "
+                        "pressed=%d input_motion=%.2f world_motion=%.2f "
+                        "camera_forward=%.2f render_flags=0x%x string_input=%d "
                         "cmd200=%d engaged=%d timer_flags=0x%x paused=%d "
                         "d1=%d d2=%d level_flags=0x%x cam_scale=%.3f "
-                        "envload=%d rec=%d mipe=%d/%d modal=%d npc=%d\n",
-                        before.x, before.y, before.z, after.x, after.y, after.z, gfKeyState[VK_UP],
-                        gfCurrentStringInputState,
+                        "envload=%d env38=%.2f env3c=%.2f env20=%.2f "
+                        "transition=%d fade=%d review=%d rec=%d mipe=%d/%d modal=%d npc=%d\n",
+                        before.x, before.y, before.z, after.x, after.y, after.z,
+                        forward_binding->key, forward_binding->modifiers, forward_pressed,
+                        maximum_input_motion, maximum_world_motion, maximum_camera_forward,
+                        observed_render_flags, gfCurrentStringInputState,
                         g_mgs_keyboard != 0
                             ? g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_FORWARD)
                             : 0xff,
@@ -1461,7 +1610,12 @@ static DWORD WINAPI DriveScenario(void*)
                         g_shared_timer_paused, g_shared_timer_flag_d1, g_shared_timer_flag_d2,
                         g_level_data_00652dac != 0 ? g_level_data_00652dac->flags : 0xffffffffU,
                         g_level_data_00652dac != 0 ? g_level_data_00652dac->camera_scale_14 : -1.0f,
-                        g_environment_load_flag_00603ad0, GetFlag69DA6C(), GetFlag68F105(),
+                        g_environment_load_flag_00603ad0,
+                        g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_38 : -1.0f,
+                        g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_3c : -1.0f,
+                        g_environ_00652DB4 != 0 ? g_environ_00652DB4->value_20 : -1.0f,
+                        IsScreenTransitionPending(), g_level_block->flag_328,
+                        g_level_block->review_transition_active, GetFlag69DA6C(), GetFlag68F105(),
                         GetFlag68F104(), g_modal_owner_0068edd0 != 0, gXStatus.fNpcDialogueMode);
                     return FailScenario();
                 }
@@ -1752,32 +1906,33 @@ static DWORD WINAPI DriveScenario(void*)
                                 if (gXStatus.fPartyMovementUi != 0) {
                                     g_observation.combat_action_queued = 1;
                                     ReportStep("combat-action-queued");
-                                    /* Turn-based combat waits for the
-                                       START_COMBAT_ROUND binding before
-                                       BeginCombatExecution promotes the
-                                       queued action to current; only then
-                                       does CanPartyMove let MOVE_FORWARD run
-                                       UpdateActivePartyMovement ->
-                                       HandlePartyMovement and drain
-                                       move_budget_2dc. */
+                                    /* Begin the queued walk while the movement key is held;
+                                       the active combat phase owns movement updates. */
+                                    srVector3T<float> combat_before;
+                                    srVector3T<float> combat_after;
+                                    unsigned char combat_forward_pressed = 0;
+                                    unsigned char combat_backward_pressed = 0;
+                                    float combat_input = 0.0f;
+                                    GetCameraPosition(&combat_before);
+                                    SendScenarioKeyHeld(forward_binding->key, 0);
                                     if (round_binding != 0) {
                                         SendScenarioKeyHeld(round_binding->key, 0);
                                         SendScenarioKeyHeld(round_binding->key, 1);
-                                        started = GetTickCount();
-                                        while (GetTickCount() - started < 3000 &&
-                                               gfProgramIsRunning &&
-                                               g_combat_state->uiCurrentPartyAction == 0) {
-                                            Sleep(100);
-                                        }
                                     }
-                                    srVector3T<float> combat_before;
-                                    srVector3T<float> combat_after;
-                                    GetCameraPosition(&combat_before);
-                                    SendScenarioKeyHeld(VK_UP, 0);
                                     started = GetTickCount();
                                     while (GetTickCount() - started < 5000 && gfProgramIsRunning &&
                                            g_observation.combat_party_moved == 0) {
                                         Sleep(100);
+                                        if (g_mgs_keyboard->IsCommandPressed(
+                                                W8_MGS_COMMAND_MOVE_FORWARD)) {
+                                            combat_forward_pressed = 1;
+                                        }
+                                        if (g_level_data_00652dac != 0 &&
+                                            g_level_data_00652dac->vector_40.Length() >
+                                                combat_input) {
+                                            combat_input =
+                                                g_level_data_00652dac->vector_40.Length();
+                                        }
                                         GetCameraPosition(&combat_after);
                                         if ((combat_after - combat_before).Length() > 1.0f &&
                                             g_level_block->move_budget_2dc < 100) {
@@ -1785,21 +1940,50 @@ static DWORD WINAPI DriveScenario(void*)
                                             ReportStep("combat-party-moved");
                                         }
                                     }
-                                    SendScenarioKeyHeld(VK_UP, 1);
+                                    SendScenarioKeyHeld(forward_binding->key, 1);
+                                    if (!g_observation.combat_party_moved &&
+                                        backward_binding != 0) {
+                                        SendScenarioKeyHeld(backward_binding->key, 0);
+                                        started = GetTickCount();
+                                        while (GetTickCount() - started < 5000 &&
+                                               gfProgramIsRunning &&
+                                               g_observation.combat_party_moved == 0) {
+                                            Sleep(100);
+                                            if (g_mgs_keyboard->IsCommandPressed(
+                                                    W8_MGS_COMMAND_MOVE_BACKWARD)) {
+                                                combat_backward_pressed = 1;
+                                            }
+                                            if (g_level_data_00652dac != 0 &&
+                                                g_level_data_00652dac->vector_40.Length() >
+                                                    combat_input) {
+                                                combat_input =
+                                                    g_level_data_00652dac->vector_40.Length();
+                                            }
+                                            GetCameraPosition(&combat_after);
+                                            if ((combat_after - combat_before).Length() > 1.0f &&
+                                                g_level_block->move_budget_2dc < 100) {
+                                                g_observation.combat_party_moved = 1;
+                                                ReportStep("combat-party-moved");
+                                            }
+                                        }
+                                        SendScenarioKeyHeld(backward_binding->key, 1);
+                                    }
                                     if (!g_observation.combat_party_moved) {
                                         GetCameraPosition(&combat_after);
                                         fprintf(stderr,
                                                 "runtime-test combat-move: "
                                                 "before=(%.1f %.1f %.1f) after=(%.1f %.1f %.1f) "
                                                 "budget=%d ui=%d cur_action=%u next_action=%u "
-                                                "can_move=%d round_key=%d\n",
+                                                "can_move=%d forward=%d backward=%d "
+                                                "input=%.2f round_key=%d\n",
                                                 combat_before.x, combat_before.y, combat_before.z,
                                                 combat_after.x, combat_after.y, combat_after.z,
                                                 g_level_block->move_budget_2dc,
                                                 gXStatus.fPartyMovementUi,
                                                 g_combat_state->uiCurrentPartyAction,
                                                 g_combat_state->uiNextPartyAction, CanPartyMove(),
-                                                round_index);
+                                                combat_forward_pressed, combat_backward_pressed,
+                                                combat_input, round_index);
                                     }
                                 } else {
                                     fprintf(stderr,

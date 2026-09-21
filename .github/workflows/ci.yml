@@ -339,7 +339,7 @@ jobs:
 
       - name: Run full runtime suite
         id: runtime
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        if: env.LICENSED_INPUTS == 'true'
         continue-on-error: true
         run: uv run wiz8 runtime-test --build --check-order
 
@@ -354,7 +354,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Fail if runtime suite failed
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && steps.runtime.outcome == 'failure'
+        if: env.LICENSED_INPUTS == 'true' && steps.runtime.outcome == 'failure'
         run: |
           echo "runtime-test failed; see the runtime-test-diagnostics artifact"
           exit 1
