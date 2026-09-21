@@ -31,6 +31,7 @@ public:
         struct IDIndex;
 
     private:
+        int isSame(ClassNode* other) const;
         int isDerivedOrSame(ClassNode* derived) const;
         long getNumberOfInstances(int exact) const;
         unsigned long getClassID() const;
@@ -49,6 +50,9 @@ public:
 
         ClassNode(ClassNode* parent, const char* class_name, unsigned long class_id);
         ~ClassNode();
+        /* Retail emits the field initialization and parent linkage as a
+           separate out-of-line body the constructor calls (0x1000F5F0). */
+        void initialize(ClassNode* parent, const char* class_name, unsigned long class_id);
         void* operator new(unsigned int size)
         {
             return srHeap.allocate(size);
