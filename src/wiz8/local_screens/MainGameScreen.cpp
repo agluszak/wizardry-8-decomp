@@ -14,6 +14,7 @@
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/engine_code/Levels.h"
+#include "wiz8/level_specific_code/MasterFunctionList.h"
 #include "wiz8/engine_code/Level.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/local_screens/MGSButtons.h"
@@ -174,6 +175,11 @@ float g_mouselook_pending_yaw_0068ede0;
 // GLOBAL: WIZ8 0x0068ede4
 float g_mouselook_pending_pitch_0068ede4;
 
+// GLOBAL: WIZ8 0x005ee998
+const float g_mouselook_yaw_scale_005ee998 = 0.0049087385f;
+// GLOBAL: WIZ8 0x005ee99c
+const float g_mouselook_pitch_scale_005ee99c = 0.0065449844f;
+
 // GLOBAL: WIZ8 0x005ee9a0
 const float g_mouselook_smooth_max_005ee9a0 = 0.39269906f;
 // GLOBAL: WIZ8 0x005ee9a4
@@ -270,6 +276,13 @@ int g_monster_list_bottom_647f88;
 // GLOBAL: WIZ8 0x006481b4
 const wchar_t g_format_s_colon_s_paren_d_006481b4[] = L"%s: %s (%d)";
 
+// GLOBAL: WIZ8 0x0064808c
+const wchar_t g_format_enter_test_level_0064808c[] = L"Enter test level %c ?";
+// GLOBAL: WIZ8 0x006480b8
+const wchar_t g_text_enter_default_level_006480b8[] = L"Enter default level ?";
+// GLOBAL: WIZ8 0x006480e4
+const wchar_t g_format_s_s_question_006480e4[] = L"%s %s?";
+
 // GLOBAL: WIZ8 0x0061c3e0
 const wchar_t g_format_s_colon_s_0061c3e0[] = L"%s: %s";
 // GLOBAL: WIZ8 0x0064da8c
@@ -301,7 +314,7 @@ void Function59CF50(int active);            /* 0x0059CF50 */
 void Function587C50(void);                  /* 0x00587C50 */
 unsigned char GetOpenDialogueFlag(void);    /* 0x0058D7C0 */
 void RedrawTextBoxComplete(void);           /* 0x0058A8C0 */
-unsigned char Function568B50(const InputAtom* input);
+unsigned char HandleMouselookInput00568B50(const InputAtom* input);
 
 bool IsPartyPortraitUnderCursor00561980(unsigned int party_slot);
 void UpdateFormationPortraitRefresh0059B2D0(void);
@@ -2769,6 +2782,107 @@ unsigned char MainGameScreenEnter(void)
    cursor has also been still for a minute and that countdown expires, advance
    ambient follow-up chatter. Busy modes keep refreshing the countdown and
    clear any armed follow-up bits. */
+/* The "Enter <level>?" confirmation's destroy callback: a cancelled dialog
+   restores the camera the trigger cached, a confirmed one runs the pending
+   transition teardown. */
+// FUNCTION: WIZ8 0x00561000
+void OnEnterLevelDialogClosed(W8DialogBase* dialog)
+{
+    if (GetDialogResult(dialog)) {
+        g_pending_screen_state.mode = 3;
+        g_pending_screen_state.parameter = g_level_block->pending_level;
+        g_pending_screen_state.parameter_2 = g_level_block->pending_entry_id;
+        switch (g_main_game_mode_0068eddc) {
+        case 3:
+            if (gXStatus.fNpcDialogueMode != 0) {
+                EndNpcDialogueSession0056E800(0);
+            }
+            break;
+        case 5:
+            Function5187E0();
+            break;
+        case 6:
+            if (g_level_block->highlight_graphic != 0) {
+                ReleaseObject004257F0(g_level_block->highlight_graphic);
+                g_level_block->highlight_graphic = 0;
+            }
+            if (g_main_game_mode_0068eddc == 6) {
+                ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                                 g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                                 g_level_block->dialogue_y_224 +
+                                     g_level_block->dialogue_height_228);
+                InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                                 g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                                 g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228,
+                                 0);
+                if (g_level_block->dialogue_y_224 <
+                        static_cast<unsigned int>(
+                            g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+                    g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                    g_level_block->redraw_flags |= 0x100;
+                }
+                if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166 &&
+                    g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                    g_level_block->redraw_flags |= 0x800;
+                }
+            }
+            break;
+        }
+        g_main_game_mode_0068eddc = 0;
+        SetPendingScreenState(4);
+        return;
+    }
+    WorldSetCameraLocation(g_world, &g_trigger_camera_006599a0.x);
+}
+
+/* Stage the level block's pending transition into the screen state and leave
+   modes 3/5/6, then hand the please-wait transition to the state machine.
+   Retail never calls this out-of-line; the same teardown is emitted inline at
+   the dialog callback and at RequestLevelTransition's unconfirmed path. */
+// FUNCTION: WIZ8 0x005611A0
+void BeginLevelTransition(void)
+{
+    g_pending_screen_state.mode = 3;
+    g_pending_screen_state.parameter = g_level_block->pending_level;
+    g_pending_screen_state.parameter_2 = g_level_block->pending_entry_id;
+    switch (g_main_game_mode_0068eddc) {
+    case 3:
+        if (gXStatus.fNpcDialogueMode != 0) {
+            EndNpcDialogueSession0056E800(0);
+        }
+        break;
+    case 5:
+        Function5187E0();
+        break;
+    case 6:
+        if (g_level_block->highlight_graphic != 0) {
+            ReleaseObject004257F0(g_level_block->highlight_graphic);
+            g_level_block->highlight_graphic = 0;
+        }
+        if (g_main_game_mode_0068eddc == 6) {
+            ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                             g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                             g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
+            InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                             g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                             g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
+            if (g_level_block->dialogue_y_224 <
+                    static_cast<unsigned int>(
+                        g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+                g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                g_level_block->redraw_flags |= 0x100;
+            }
+            if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166 &&
+                g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                g_level_block->redraw_flags |= 0x800;
+            }
+        }
+        break;
+    }
+    g_main_game_mode_0068eddc = 0;
+    SetPendingScreenState(4);
+}
+
 // FUNCTION: WIZ8 0x00561330
 void TickAmbientFollowUpIdle(unsigned char input_handled)
 {
@@ -2858,7 +2972,7 @@ unsigned char ProcessMainGameInput(void)
     InputAtom input;
     while (DequeueEvent(&input)) {
         handled = 1;
-        if ((g_flag_0068edd8 == 0 || Function568B50(&input) == 0) &&
+        if ((g_flag_0068edd8 == 0 || HandleMouselookInput00568B50(&input) == 0) &&
             DispatchRegionInput(&input) == 0 && GetForcedRegion() == 0) {
             SGPMouseGetPos(&mouse);
             switch (input.usEvent) {
@@ -4541,6 +4655,89 @@ void RequestRefreshPartyState(void)
     g_level_block->refresh_party_panel = 1;
 }
 
+/* The party slot's chosen action turned out unreachable: re-arm the matching
+   targeting mode or view so the player can pick a fresh target instead of
+   silently dropping the action. */
+// FUNCTION: WIZ8 0x0056A770
+void FallbackFromUnreachableAction(int party_slot)
+{
+    W8PartySlotRow* row = &g_status_685170.buffers.party_rows[party_slot];
+    if (row->occupied == 0 || g_combat_state->characters[party_slot].flag_34 != 0) {
+        return;
+    }
+    switch (row->action_03d) {
+    case W8_ACTION_ATTACK:
+    case W8_ACTION_BERSERK:
+        if (CanAnyHandReachTarget(party_slot) &&
+            (g_combat_state->flag_001 != 0 || gXStatus.fPartyMovementMode != 0) &&
+            (SelectPartyCharacter(party_slot), party_slot == g_status_685170.selected_character)) {
+            SetTargetingMode(2);
+            return;
+        }
+        break;
+    case W8_ACTION_CAST_SPELL:
+        if (CharacterHasCastableSpell(&g_status_685170.buffers.characters[party_slot]) &&
+            ActionNeedsExplicitTarget(party_slot)) {
+            if (g_combat_state->flag_001 == 0) {
+                if (gXStatus.fPartyMovementMode != 0 &&
+                    (SelectPartyCharacter(party_slot),
+                     party_slot == g_status_685170.selected_character)) {
+                    int spell_id = row->action_detail_041;
+                    unsigned int needed_kind =
+                        GetTargetNeededForSpellFriendly(spell_id, 0, W8_TARGETING_CONTEXT_CURRENT);
+                    ConfigureSpellTargetFilter(GetSpellTargetType(spell_id, 0), needed_kind);
+                    return;
+                }
+            } else {
+                SelectPartyCharacter(party_slot);
+                if (party_slot == g_status_685170.selected_character) {
+                    OpenSpellCastingView(party_slot);
+                    SelectSpellPowerLevel005A06F0(row->action_detail_045.spell.power_level - 1);
+                    return;
+                }
+            }
+        }
+        break;
+    case W8_ACTION_USE_ITEM:
+        if (ItemUseNeedsTarget0053A770(party_slot)) {
+            if (g_combat_state->flag_001 == 0) {
+                if (gXStatus.fPartyMovementMode != 0 &&
+                    (SelectPartyCharacter(party_slot),
+                     party_slot == g_status_685170.selected_character)) {
+                    int spell_id = GetItemSpell(row->action_detail_045.item_use.item);
+                    unsigned int needed_kind =
+                        GetTargetNeededForSpellFriendly(spell_id, 0, W8_TARGETING_CONTEXT_CURRENT);
+                    ConfigureSpellTargetFilter(GetSpellTargetType(spell_id, 0), needed_kind);
+                    return;
+                }
+            } else {
+                SelectPartyCharacter(party_slot);
+                if (party_slot == g_status_685170.selected_character) {
+                    OpenUseItemSelectView(party_slot);
+                    SelectCurrentUseItemLine0059E0E0();
+                    return;
+                }
+            }
+        }
+        break;
+    case W8_ACTION_PROTECT:
+        if (CanCharacterAttack(party_slot) &&
+            (g_combat_state->flag_001 != 0 || gXStatus.fPartyMovementMode != 0) &&
+            (SelectPartyCharacter(party_slot), party_slot == g_status_685170.selected_character)) {
+            SetTargetingMode(1);
+            return;
+        }
+        break;
+    case W8_ACTION_BREATHE:
+        if (CanCharReBreathe(party_slot) &&
+            (g_combat_state->flag_001 != 0 || gXStatus.fPartyMovementMode != 0) &&
+            (SelectPartyCharacter(party_slot), party_slot == g_status_685170.selected_character)) {
+            SetTargetingMode(4);
+        }
+        break;
+    }
+}
+
 /* Whether a modal owner has the screen. */
 // FUNCTION: WIZ8 0x0056aa20
 bool IsModalOpen(void)
@@ -4633,6 +4830,100 @@ void ApplySavedRedrawInvalidates(void)
         }
         InvalidateRegion(left, top, right + 1, bottom + 1, 1);
     }
+}
+
+/* Queue a level change. With `flag` set the request is confirmed with a modal
+   "Enter <level>?" dialog - NPC departure events decide whether the camera is
+   simply snapped to the trigger location or the dialog owns the modal region
+   until OnEnterLevelDialogClosed runs. With it clear the transition is staged
+   straight into the pending screen state and modes 3/5/6 are torn down. */
+// FUNCTION: WIZ8 0x005615F0
+void RequestLevelTransition005615F0(int level, int entry, unsigned char flag)
+{
+    unsigned int normalized = NormalizeMasterFunctionValue004D9700(level);
+
+    g_level_block->pending_level = normalized;
+    g_level_block->pending_entry_id = entry;
+    if (flag != 0) {
+        if (normalized < 0x2f) {
+            swprintf(g_level_block->text_paint_scratch_000, g_format_s_s_question_006480e4,
+                     gppStringList[0x1e64 / 4],
+                     gppStringList[g_level_name_indices_605820[normalized]]);
+        } else if (normalized == 0x38) {
+            wcscpy(g_level_block->text_paint_scratch_000, g_text_enter_default_level_006480b8);
+        } else {
+            swprintf(g_level_block->text_paint_scratch_000, g_format_enter_test_level_0064808c,
+                     normalized + 2);
+        }
+        if (QueueNpcDepartureEvents0050DEC0(normalized) != 0) {
+            WorldSetCameraLocation(g_world, &g_trigger_camera_006599a0.x);
+            return;
+        }
+        switch (g_main_game_mode_0068eddc) {
+        case 3:
+            if (gXStatus.fNpcDialogueMode != 0) {
+                EndNpcDialogueSession0056E800(0);
+            }
+            break;
+        case 5:
+            Function5187E0();
+            break;
+        case 6:
+            if (g_level_block->highlight_graphic != 0) {
+                ReleaseObject004257F0(g_level_block->highlight_graphic);
+                g_level_block->highlight_graphic = 0;
+            }
+            ClearHighlightOverlayRegion();
+            break;
+        }
+        g_main_game_mode_0068eddc = 5;
+        W8MessageDialogBase* dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
+        dialog->SetClientExtent(0xfa, 0xc8);
+        dialog->SetMessage(g_level_block->text_paint_scratch_000, 1, 0x32, 1, 1, 1, 1, 0, 0x15e);
+        SetDialogDestroyCallback(dialog, OnEnterLevelDialogClosed);
+        g_modal_owner_0068edd0 = dialog;
+        ActivateDialogRegion(0x138);
+        return;
+    }
+    g_pending_screen_state.mode = 3;
+    g_pending_screen_state.parameter = g_level_block->pending_level;
+    g_pending_screen_state.parameter_2 = g_level_block->pending_entry_id;
+    switch (g_main_game_mode_0068eddc) {
+    case 3:
+        if (gXStatus.fNpcDialogueMode != 0) {
+            EndNpcDialogueSession0056E800(0);
+        }
+        break;
+    case 5:
+        Function5187E0();
+        break;
+    case 6:
+        if (g_level_block->highlight_graphic != 0) {
+            ReleaseObject004257F0(g_level_block->highlight_graphic);
+            g_level_block->highlight_graphic = 0;
+        }
+        if (g_main_game_mode_0068eddc == 6) {
+            ClearSurfaceRect(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                             g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                             g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
+            InvalidateRegion(g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                             g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                             g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
+            if (g_level_block->dialogue_y_224 <
+                    static_cast<unsigned int>(
+                        g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+                g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                g_level_block->redraw_flags |= 0x100;
+            }
+            if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 > 0x166 &&
+                g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                g_level_block->redraw_flags |= 0x800;
+            }
+        }
+        break;
+    }
+    g_main_game_mode_0068eddc = 0;
+    SetPendingScreenState(4);
 }
 
 /* Active viewport rectangle plus the preceding retail dword at 0x00647f40
@@ -7717,6 +8008,41 @@ unsigned int DispatchMainGameMouseButtons(const InputAtom* input)
     default:
         return 0;
     }
+}
+
+/* Input routed here while mouselook is latched: the left button arms the
+   look flag, and each mouse move accumulates yaw/pitch from the offset off
+   the 320x240 anchor before recentering the cursor. Smoothing defers the
+   apply to the frame tick; otherwise it applies immediately. */
+// FUNCTION: WIZ8 0x00568B50
+unsigned char HandleMouselookInput00568B50(const InputAtom* input)
+{
+    if (g_level_runtime_flag_0065ba70 == 0 && (g_flag_006840bd == 0 || gXStatus.fCombatMode != 0)) {
+        unsigned int us_event = input->usEvent;
+        switch (us_event) {
+        case LEFT_BUTTON_DOWN:
+            g_flag_0068edd9 = 1;
+            return 1;
+        case LEFT_BUTTON_UP:
+            g_flag_0068edd9 = 0;
+            return 1;
+        case MOUSE_POS:
+            g_mouselook_pending_yaw_0068ede0 = (static_cast<int>(input->uiParam & 0xffff) - 0x140) *
+                                                   g_mouselook_yaw_scale_005ee998 +
+                                               g_mouselook_pending_yaw_0068ede0;
+            g_mouselook_pending_pitch_0068ede4 =
+                g_mouselook_pending_pitch_0068ede4 +
+                (static_cast<int>(input->uiParam >> 16) - 0xf0) *
+                    (g_settings_6850c8.invert_mouse_y != 0 ? -1 : 1) *
+                    g_mouselook_pitch_scale_005ee99c;
+            WarpSystemCursor(0x140, 0xf0);
+            if (g_settings_6850c8.mouselook_smoothing == 0) {
+                ApplyPendingMouselook();
+            }
+            return 1;
+        }
+    }
+    return 0;
 }
 
 // FUNCTION: WIZ8 0x0056aa30
