@@ -53,10 +53,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-// GLOBAL: WIZ8 0x006850b5
-unsigned char g_party_moving_006850b5;
-// GLOBAL: WIZ8 0x00685078
-unsigned char g_status_block_685078[56];
 
 /* 0x0054B300 resets one of eight slots. */
 /* The gStatus object owned by GameplayDatabase.cpp. */

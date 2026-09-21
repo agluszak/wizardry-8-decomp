@@ -23,6 +23,7 @@
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/utility.h"
 #include "wiz8/virtual_file.h"
+#include "wiz8/xstatus.h"
 #include "surrender/srCamera.h"
 #include "surrender/srModelInstance.h"
 #include "surrender/srNode.h"
@@ -755,7 +756,7 @@ void W8Prop::AdvanceAnimationValue0044C310(int frames, char total)
                 if (trigger_18 != 0) {
                     trigger_18->RunLinkedTriggers00441590();
                 }
-                g_flag_006840bb = 1;
+                gXStatus.flag_a03 = 1;
             }
         } else if (rep->frame_direction_06e == 3) {
             if (static_cast<int>(frame) - frames > start) {
@@ -767,7 +768,7 @@ void W8Prop::AdvanceAnimationValue0044C310(int frames, char total)
                 if (trigger_18 != 0) {
                     trigger_18->RunLinkedTriggers00441590();
                 }
-                g_flag_006840bb = 1;
+                gXStatus.flag_a03 = 1;
             }
         }
     } else {

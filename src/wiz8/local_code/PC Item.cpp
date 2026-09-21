@@ -257,12 +257,6 @@ extern const unsigned short g_generic_item_name_notice[W8_GENERIC_ITEM_NAME_COUN
 /* Shared scratch returned by the item-name formatter. */
 // GLOBAL: WIZ8 0x0068C0B4
 wchar_t g_item_display_name_buffer[42];
-// GLOBAL: WIZ8 0x006840C0
-int g_held_item_source_006840c0;
-// GLOBAL: WIZ8 0x006840C4
-unsigned char g_held_item_origin_006840c4;
-// GLOBAL: WIZ8 0x006840C5
-unsigned short g_held_item_slot_006840c5;
 
 static_assert(sizeof(W8ItemVideoObjectEntry) == 8, "W8ItemVideoObjectEntry_must_be_8");
 static_assert(sizeof(W8ItemVideoObjectCache) == 0x0c, "W8ItemVideoObjectCache_must_be_0x0c");
@@ -1381,15 +1375,15 @@ char MergeItems(W8Character* character, W8ItemInstance* destination)
         if (held_is_stack) {
             held->stack_count -= quantity;
             if (held->stack_count == 0) {
-                g_held_item_source_006840c0 = -1;
-                g_held_item_origin_006840c4 = 0xff;
-                g_held_item_slot_006840c5 = 0xffff;
+                gXStatus.held_item_source = -1;
+                gXStatus.held_item_origin = 0xff;
+                gXStatus.held_item_slot = 0xffff;
                 ClearHeldItemDisplay();
             }
         } else {
-            g_held_item_source_006840c0 = -1;
-            g_held_item_origin_006840c4 = 0xff;
-            g_held_item_slot_006840c5 = 0xffff;
+            gXStatus.held_item_source = -1;
+            gXStatus.held_item_origin = 0xff;
+            gXStatus.held_item_slot = 0xffff;
             ClearHeldItemDisplay();
         }
 
@@ -1707,9 +1701,9 @@ unsigned char GiveHeldItemToCharacterOrParty(int uiChar, unsigned char party_fir
         stored = AddItemToParty(item, 1, 0);
     }
 
-    g_held_item_source_006840c0 = -1;
-    g_held_item_origin_006840c4 = 0xff;
-    g_held_item_slot_006840c5 = 0xffff;
+    gXStatus.held_item_source = -1;
+    gXStatus.held_item_origin = 0xff;
+    gXStatus.held_item_slot = 0xffff;
     ClearHeldItemDisplay();
     if (stored) {
         return stored;
@@ -1766,9 +1760,9 @@ unsigned char GiveItemToCharacterOrParty(int uiChar, W8ItemInstance* item,
     }
 
     if (item == &g_status_685170.item_in_hand_235b) {
-        g_held_item_source_006840c0 = -1;
-        g_held_item_origin_006840c4 = 0xff;
-        g_held_item_slot_006840c5 = 0xffff;
+        gXStatus.held_item_source = -1;
+        gXStatus.held_item_origin = 0xff;
+        gXStatus.held_item_slot = 0xffff;
         ClearHeldItemDisplay();
     } else {
         memset(item, 0, sizeof(*item));
@@ -1821,9 +1815,9 @@ void CreateItemIntoHandOrPool(int item_id, unsigned char quality)
 {
     W8ItemInstance created;
 
-    g_held_item_source_006840c0 = -1;
-    g_held_item_origin_006840c4 = 0xff;
-    g_held_item_slot_006840c5 = 0xffff;
+    gXStatus.held_item_source = -1;
+    gXStatus.held_item_origin = 0xff;
+    gXStatus.held_item_slot = 0xffff;
     ClearHeldItemDisplay();
     ReplaceOrCreateItem(&created, item_id, 1, quality, 0);
     if (g_status_685170.item_in_cursor != 0) {
@@ -1947,9 +1941,9 @@ void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, unsigned char maximu
     }
 
     if (item == &g_status_685170.item_in_hand_235b) {
-        g_held_item_source_006840c0 = -1;
-        g_held_item_origin_006840c4 = 0xff;
-        g_held_item_slot_006840c5 = 0xffff;
+        gXStatus.held_item_source = -1;
+        gXStatus.held_item_origin = 0xff;
+        gXStatus.held_item_slot = 0xffff;
         ClearHeldItemDisplay();
     } else {
         memset(item, 0, sizeof(*item));
@@ -2805,9 +2799,9 @@ void CopyItemInstance(W8ItemInstance* destination, W8ItemInstance* source, W8Cha
     }
 
     if (source == &g_status_685170.item_in_hand_235b) {
-        g_held_item_source_006840c0 = -1;
-        g_held_item_origin_006840c4 = 0xff;
-        g_held_item_slot_006840c5 = 0xffff;
+        gXStatus.held_item_source = -1;
+        gXStatus.held_item_origin = 0xff;
+        gXStatus.held_item_slot = 0xffff;
         ClearHeldItemDisplay();
     } else {
         memset(source, 0, sizeof(*source));
@@ -2835,9 +2829,9 @@ void CopyItemInstance(W8ItemInstance* destination, W8ItemInstance* source, W8Cha
 
     RefreshAfterItemRecordChange(destination, character, refresh);
     if (destination == &g_status_685170.item_in_hand_235b) {
-        g_held_item_source_006840c0 = held_character;
-        g_held_item_origin_006840c4 = held_origin;
-        g_held_item_slot_006840c5 = held_slot;
+        gXStatus.held_item_source = held_character;
+        gXStatus.held_item_origin = held_origin;
+        gXStatus.held_item_slot = held_slot;
         SetItemCursor(0);
     }
 }
@@ -3054,9 +3048,9 @@ void EmptyItemRecord(W8ItemInstance* item, W8Character* character, unsigned char
     W8ItemInstance shifted[500];
 
     if (item == &g_status_685170.item_in_hand_235b) {
-        g_held_item_source_006840c0 = -1;
-        g_held_item_origin_006840c4 = 0xff;
-        g_held_item_slot_006840c5 = 0xffff;
+        gXStatus.held_item_source = -1;
+        gXStatus.held_item_origin = 0xff;
+        gXStatus.held_item_slot = 0xffff;
         ClearHeldItemDisplay();
     } else {
         memset(item, 0, sizeof(*item));
@@ -3102,9 +3096,9 @@ void EmptyAllCarriedItems(W8Character* character)
     for (index = 0; index < 12; ++index) {
         W8ItemInstance* item = &character->equipment[index];
         if (item == &g_status_685170.item_in_hand_235b) {
-            g_held_item_source_006840c0 = -1;
-            g_held_item_origin_006840c4 = 0xff;
-            g_held_item_slot_006840c5 = 0xffff;
+            gXStatus.held_item_source = -1;
+            gXStatus.held_item_origin = 0xff;
+            gXStatus.held_item_slot = 0xffff;
             ClearHeldItemDisplay();
         } else {
             memset(item, 0, sizeof(*item));
@@ -3134,9 +3128,9 @@ void EmptyAllCarriedItems(W8Character* character)
     for (index = 0; index < 8; ++index) {
         W8ItemInstance* item = &character->backpack[index];
         if (item == &g_status_685170.item_in_hand_235b) {
-            g_held_item_source_006840c0 = -1;
-            g_held_item_origin_006840c4 = 0xff;
-            g_held_item_slot_006840c5 = 0xffff;
+            gXStatus.held_item_source = -1;
+            gXStatus.held_item_origin = 0xff;
+            gXStatus.held_item_slot = 0xffff;
             ClearHeldItemDisplay();
         } else {
             memset(item, 0, sizeof(*item));
@@ -3620,9 +3614,9 @@ void RemoveCharacterItem(W8Character* character, W8ItemInstance* item, char arg_
     }
 
     if (item == &g_status_685170.item_in_hand_235b) {
-        g_held_item_source_006840c0 = -1;
-        g_held_item_origin_006840c4 = 0xff;
-        g_held_item_slot_006840c5 = 0xffff;
+        gXStatus.held_item_source = -1;
+        gXStatus.held_item_origin = 0xff;
+        gXStatus.held_item_slot = 0xffff;
         ClearHeldItemDisplay();
     } else {
         memset(item, 0, sizeof(*item));
@@ -3709,9 +3703,9 @@ unsigned char AddItemToPartyOrDrop(W8ItemInstance* item, unsigned char announce)
         set_aside = g_status_685170.item_in_hand_235b;
     }
 
-    g_held_item_source_006840c0 = -1;
-    g_held_item_origin_006840c4 = 0xff;
-    g_held_item_slot_006840c5 = 0xffff;
+    gXStatus.held_item_source = -1;
+    gXStatus.held_item_origin = 0xff;
+    gXStatus.held_item_slot = 0xffff;
     ClearHeldItemDisplay();
     CopyItemInstance(&g_status_685170.item_in_hand_235b, item, 0, 1);
     if ((g_item_records[g_status_685170.item_in_hand_235b.item_id].flags_041 &
@@ -3920,9 +3914,9 @@ void EmptyBackpackSlot00521AC0(W8Character* character, int slot)
 
     W8ItemInstance* item = &character->backpack[slot];
     if (item == &g_status_685170.item_in_hand_235b) {
-        g_held_item_source_006840c0 = -1;
-        g_held_item_origin_006840c4 = 0xff;
-        g_held_item_slot_006840c5 = 0xffff;
+        gXStatus.held_item_source = -1;
+        gXStatus.held_item_origin = 0xff;
+        gXStatus.held_item_slot = 0xffff;
         ClearHeldItemDisplay();
     } else {
         memset(item, 0, sizeof(*item));
@@ -3954,9 +3948,9 @@ void EmptyPartyPoolEntry00521CD0(int index)
 
     W8ItemInstance* item = &g_status_685170.party_item_pool_0021[index];
     if (item == &g_status_685170.item_in_hand_235b) {
-        g_held_item_source_006840c0 = -1;
-        g_held_item_origin_006840c4 = 0xff;
-        g_held_item_slot_006840c5 = 0xffff;
+        gXStatus.held_item_source = -1;
+        gXStatus.held_item_origin = 0xff;
+        gXStatus.held_item_slot = 0xffff;
         ClearHeldItemDisplay();
     } else {
         memset(item, 0, sizeof(*item));
@@ -4137,9 +4131,9 @@ unsigned char RemovePartyItemByID005215D0(int item_id, char remove_all)
     unsigned char removed = 0;
 
     if (g_status_685170.item_in_cursor && g_status_685170.item_in_hand_235b.item_id == item_id) {
-        g_held_item_source_006840c0 = -1;
-        g_held_item_origin_006840c4 = 0xff;
-        g_held_item_slot_006840c5 = 0xffff;
+        gXStatus.held_item_source = -1;
+        gXStatus.held_item_origin = 0xff;
+        gXStatus.held_item_slot = 0xffff;
         ClearHeldItemDisplay();
         if (!remove_all) {
             return 1;
@@ -4159,9 +4153,9 @@ unsigned char RemovePartyItemByID005215D0(int item_id, char remove_all)
         }
 
         if (found == &g_status_685170.item_in_hand_235b) {
-            g_held_item_source_006840c0 = -1;
-            g_held_item_origin_006840c4 = 0xff;
-            g_held_item_slot_006840c5 = 0xffff;
+            gXStatus.held_item_source = -1;
+            gXStatus.held_item_origin = 0xff;
+            gXStatus.held_item_slot = 0xffff;
             ClearHeldItemDisplay();
         } else {
             memset(found, 0, sizeof(*found));

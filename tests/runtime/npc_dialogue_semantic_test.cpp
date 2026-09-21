@@ -107,7 +107,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     saved_notice = g_pending_notice_68ee60;
     saved_flag_68f0f9 = g_flag_68f0f9;
     saved_flag_6109f0 = g_flag_6109f0;
-    saved_flag_006840bc = g_flag_006840bc;
+    saved_flag_006840bc = gXStatus.world_update_blocked;
     saved_queue_idle = g_message_queue_idle_68c501;
     saved_camp_mode = gXStatus.fCampMode;
     saved_combat_mode = gXStatus.fCombatMode;
@@ -198,7 +198,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     g_pending_notice_68ee60 = saved_notice;
     g_flag_68f0f9 = saved_flag_68f0f9;
     g_flag_6109f0 = saved_flag_6109f0;
-    g_flag_006840bc = saved_flag_006840bc;
+    gXStatus.world_update_blocked = saved_flag_006840bc;
     g_message_queue_idle_68c501 = saved_queue_idle;
     gXStatus.fCampMode = saved_camp_mode;
     gXStatus.fCombatMode = saved_combat_mode;

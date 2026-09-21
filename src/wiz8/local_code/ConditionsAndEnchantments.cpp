@@ -175,7 +175,7 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
             break;
         case 9:
         case 0xC:
-            g_flag_006840bb = 1;
+            gXStatus.flag_a03 = 1;
             break;
         case 0xb:
             if (gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].flag_80 != 0) {
@@ -380,7 +380,7 @@ void ApplyCharacterCondition00523940(int party_slot, int condition, int argument
             RequestRedraw(0x8000);
         }
         if (condition == W8_ENCHANTMENT_SLOT_SPECIAL) {
-            g_flag_006840bb = 1;
+            gXStatus.flag_a03 = 1;
         }
     }
     RebuildConditionsAndDerivedStats(party_slot);
@@ -748,7 +748,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
         character->condition_turns[condition] = duration;
         if (old_duration == 0) {
             if (condition == 9 || condition == 0xC) {
-                g_flag_006840bb = 1;
+                gXStatus.flag_a03 = 1;
             } else if (condition == 0xd) {
                 SetTargetToCharacter(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT);
             }
@@ -865,7 +865,7 @@ void ClearCharacterEnchantmentSlot(int party_slot, int slot)
     }
     RebuildConditionsAndDerivedStats(party_slot);
     if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
-        g_flag_006840bb = 1;
+        gXStatus.flag_a03 = 1;
     }
 }
 
@@ -899,7 +899,7 @@ void TickCharacterEnchantmentSlot(int party_slot, int slot, unsigned int turns)
         }
         RebuildConditionsAndDerivedStats(party_slot);
         if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
-            g_flag_006840bb = 1;
+            gXStatus.flag_a03 = 1;
         }
     } else {
         g_status_685170.buffers.characters[party_slot].enchantments[slot].value_08 =
@@ -1055,7 +1055,7 @@ void RemoveAllEnchantments(void)
                 }
                 RebuildConditionsAndDerivedStats(party_slot);
                 if (enchantment == W8_ENCHANTMENT_SLOT_SPECIAL) {
-                    g_flag_006840bb = 1;
+                    gXStatus.flag_a03 = 1;
                 }
             }
         }

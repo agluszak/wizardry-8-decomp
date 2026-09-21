@@ -91,14 +91,8 @@ W8CombatState* g_combat_state;
 /* 0x0068506C: a friendly NPC's combat-entry script notice was queued by
    StartCombat; while it is set the next call checks the dialogue and script
    deferral gates before clearing it and proceeding. */
-// GLOBAL: WIZ8 0x0068506c
-bool g_npc_combat_notice_pending_68506c;
-// GLOBAL: WIZ8 0x006850b0
-unsigned int g_combat_countdown_6850b0;
 /* 0x006850B4: the once-per-combat difficulty evaluation result - 0 easy,
    1 normal, 2 hard; picks the combat music and gates the victory event. */
-// GLOBAL: WIZ8 0x006850B4
-unsigned char g_combat_difficulty_6850b4;
 
 /*
  * Local Code\Combat.cpp.
@@ -149,7 +143,7 @@ unsigned char StartCombat(int surprise)
     if (g_status_685170.value_2435 != 0) {
         ClearMainGameTargetState();
     }
-    if (g_npc_combat_notice_pending_68506c == 0) {
+    if (gXStatus.npc_combat_notice_pending == 0) {
         for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             monster_info = MonsterGetScriptPartByLocationIndex(index);
             if (monster_info->fInCombat != 0 && monster_info->ubDisposition == DISP_HOSTILE &&
@@ -157,18 +151,18 @@ unsigned char StartCombat(int surprise)
                 npc = GetNpcStateForMonsterInfo(monster_info, 0);
                 if (npc != 0 && npc->record->unknown_2ef[0] != 0) {
                     QueueNpcScriptNotice(npc, 0, -1, 0, 0);
-                    g_npc_combat_notice_pending_68506c = 1;
+                    gXStatus.npc_combat_notice_pending = 1;
                     BeginScriptedWorldAction();
                     break;
                 }
             }
         }
     }
-    if (g_npc_combat_notice_pending_68506c != 0) {
+    if (gXStatus.npc_combat_notice_pending != 0) {
         if (gXStatus.fNpcDialogueMode != 0 || ShouldDeferCharacterEventForNpcScript(0)) {
             return 0;
         }
-        g_npc_combat_notice_pending_68506c = 0;
+        gXStatus.npc_combat_notice_pending = 0;
         ClearMainGameTargetState();
     }
     if (g_status_685170.value_498b == 1) {
@@ -1119,7 +1113,7 @@ void EndCombat004EA310(int mode)
             ++entry;
         }
     }
-    g_combat_countdown_6850b0 = SetCountdownClock(120000);
+    gXStatus.combat_countdown = SetCountdownClock(120000);
     if (g_combat_state->uiNextPartyAction != 0) {
         ClearPendingPartyMovement(-1);
     }
@@ -1156,7 +1150,7 @@ void EndCombat004EA310(int mode)
             CalcArmorClasses(&g_status_685170.buffers.characters[slot]);
         }
     }
-    if (g_flag_006840bc != 0) {
+    if (gXStatus.world_update_blocked != 0) {
         ResumeMainGameWorld();
     }
     ClearLevelDataFlags5To7();
@@ -1364,16 +1358,16 @@ void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_act
                 srAssertFail("gXStatus.fItemSelectMode",
                              "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0x2e0, 0);
             }
-            g_shared_action_detail_006840ab.item_use.item = GetSelectedOrFallbackValue0059E0D0();
+            gXStatus.shared_action_detail.item_use.item = GetSelectedOrFallbackValue0059E0D0();
             kind = 8;
             value_a = -1;
-            target = &g_shared_target_0068408b;
-            detail = &g_shared_action_detail_006840ab;
+            target = &gXStatus.shared_target;
+            detail = &gXStatus.shared_action_detail;
         } else {
             kind = 7;
             value_a = GetSpellCastingSelection005A1350();
-            target = &g_shared_target_0068408b;
-            detail = &g_shared_action_detail_006840ab;
+            target = &gXStatus.shared_target;
+            detail = &gXStatus.shared_action_detail;
         }
         break;
     case 3:
@@ -1948,7 +1942,8 @@ int CheckCombatEnd004E9F90(unsigned int arg_1)
             }
         }
     } else {
-        if (((arg_1 == 0 || gXStatus.hostile_monster_count != 0) || g_dword_6850be != 0) &&
+        if (((arg_1 == 0 || gXStatus.hostile_monster_count != 0) ||
+             gXStatus.hostile_group_count != 0) &&
             g_combat_state->unengaged_rounds_a56 < 2) {
             return 0;
         }
@@ -1974,7 +1969,7 @@ int CheckCombatEnd004E9F90(unsigned int arg_1)
             StartMusicResource0048FC10("CombatWin.MPL", 0, 1);
             ServiceMusicPlaylist0048F9E0();
             StartLevelMusic(1, 0);
-            if (g_combat_difficulty_6850b4 != 0 &&
+            if (gXStatus.combat_difficulty != 0 &&
                 GetRandomPartySlots(0, 0, -1, &party_slot, 1, 0) != 0 &&
                 (event =
                      QueueCharacterEvent(&g_status_685170.buffers.characters[party_slot],
@@ -3064,7 +3059,7 @@ void PointCameraAtCombatTarget(W8TargetSource* source, W8CombatSlot* target)
 // FUNCTION: WIZ8 0x004E8EA0
 void UpdateCombat004E8EA0(void)
 {
-    if (g_flag_006840bc != 0) {
+    if (gXStatus.world_update_blocked != 0) {
         return;
     }
     if (gXStatus.fSurprisePossible != 0) {
@@ -3382,7 +3377,8 @@ void ScheduleCombatActor004E9490(void)
                     apply_delay = true;
                 }
             }
-            if (apply_delay != 0 && (gXStatus.hostile_monster_count != 0 || g_dword_6850be != 0) &&
+            if (apply_delay != 0 &&
+                (gXStatus.hostile_monster_count != 0 || gXStatus.hostile_group_count != 0) &&
                 GetLevelDataFlag6() != 0) {
                 unsigned int delay = g_settings_6850c8.combat_delay_ms;
                 if (g_combat_state->unknown_a60 != 0 &&

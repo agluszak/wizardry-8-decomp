@@ -83,7 +83,7 @@ void UpdateGameClock00502010(int elapsed)
 
     g_status_685170.aging_accumulator_238b += elapsed;
     unsigned int aging_ticks;
-    if (g_flag_00685071 == 0) {
+    if (gXStatus.item_drag_active == 0) {
         aging_ticks = g_status_685170.aging_accumulator_238b / 120000;
         if (aging_ticks != 0) {
             g_status_685170.aging_accumulator_238b %= 120000;
@@ -161,7 +161,7 @@ void UpdateGameClock00502010(int elapsed)
             AnyCharacterActive() && g_status_685170.party_fatigued_2433 == 0 &&
             HasLevelDataVector() == 0 && static_cast<char>(GetLevelDataFlag4()) != 0 &&
             static_cast<char>(IsScreenIdle()) != 0) {
-            if (g_flag_006840bc != 0) {
+            if (gXStatus.world_update_blocked != 0) {
                 ResumeMainGameWorld();
             }
             if (AnyCharacterEngaged() == false) {
@@ -187,7 +187,7 @@ void UpdateGameClock00502010(int elapsed)
             CreateSurpriseFade0056B4E0();
             gXStatus.surprise_phase = 0;
             StartMusicResource0048FC10("Camping.MPL", 0, 1);
-            g_combat_countdown_6850b0 = 0;
+            gXStatus.combat_countdown = 0;
         }
     }
 
@@ -226,7 +226,7 @@ void RequestCamp00502460(void)
         if (static_cast<char>(IsScreenIdle()) == 0) {
             return;
         }
-        if (g_flag_006840bc != 0) {
+        if (gXStatus.world_update_blocked != 0) {
             ResumeMainGameWorld();
         }
         if (AnyCharacterEngaged() == false) {
@@ -252,7 +252,7 @@ void RequestCamp00502460(void)
         CreateSurpriseFade0056B4E0();
         gXStatus.surprise_phase = 0;
         StartMusicResource0048FC10("Camping.MPL", 0, 1);
-        g_combat_countdown_6850b0 = 0;
+        gXStatus.combat_countdown = 0;
         return;
     }
     ShowNotice(0xc, gppStringList[0x796], -1, 0xffffffff, 0);

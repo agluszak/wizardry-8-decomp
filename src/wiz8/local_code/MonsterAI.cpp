@@ -157,9 +157,9 @@ static unsigned char g_special_attack_cycle_error_reported;
 // FUNCTION: WIZ8 0x00530110
 void UpdateMonsterSight(void)
 {
-    if (gXStatus.fCombatMode == 0 || g_flag_006840bb != 0) {
-        if (g_flag_006840bb != 0) {
-            g_flag_006840bb = 0;
+    if (gXStatus.fCombatMode == 0 || gXStatus.flag_a03 != 0) {
+        if (gXStatus.flag_a03 != 0) {
+            gXStatus.flag_a03 = 0;
         }
         RefreshOutwardSightForAllMonsters();
         if (gXStatus.fCombatMode != 0 && g_combat_state->value_004 == 0) {
@@ -190,9 +190,9 @@ void UpdateMonsterGroups(char staggered)
     }
     g_monster_group_tick = g_monster_group_tick + 1;
     if (staggered == 0) {
-        if (gXStatus.fCombatMode == 0 || g_flag_006840bb != 0) {
-            if (g_flag_006840bb != 0) {
-                g_flag_006840bb = 0;
+        if (gXStatus.fCombatMode == 0 || gXStatus.flag_a03 != 0) {
+            if (gXStatus.flag_a03 != 0) {
+                gXStatus.flag_a03 = 0;
             }
             RefreshOutwardSightForAllMonsters();
             if (gXStatus.fCombatMode != 0 && g_combat_state->value_004 == 0) {
@@ -1372,8 +1372,7 @@ bool AimMonsterAtSpellTarget(W8MonsterInfo* monster_info, int spell_id)
    and accepted when at least half of them take the spell. The per-spell
    switch then vetoes targets the spell would not help or cannot affect. */
 // FUNCTION: WIZ8 0x005327E0
-bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id,
-                          W8CombatSlot* combat_slot)
+bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlot* combat_slot)
 {
     W8MonsterInfo* target = 0;
     W8Character* character = 0;

@@ -881,7 +881,7 @@ portrait_fx:
         g_screen_state_00649f1c->flag_252 == 0 &&
         g_screen_state_00649f1c->dialogue_panel_hidden == 0 &&
         g_screen_state_00649f1c->script_busy == 0 &&
-        g_screen_state_00649f1c->dialogue_cursor_flag == 0 && g_flag_68506f == 0) {
+        g_screen_state_00649f1c->dialogue_cursor_flag == 0 && gXStatus.flag_19b7 == 0) {
         SetNpcDialoguePanelVisible(1);
     }
 }

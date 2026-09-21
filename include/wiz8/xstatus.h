@@ -4,16 +4,19 @@
 #include <stddef.h>
 
 #include "wiz8/3d_code/PList.h"
+#include "wiz8/layouts/gameplay_databases.h"
+#include "wiz8/layouts/targeting.h"
 #include "wiz8/local_code/FormationAndFacing.h"
 #include "wiz8/local_code/MonsterManager.h"
 
 struct W8CharacterEventQueue;
+class W8GameTimer;
 
 /* Packed gXStatus at 0x006836B8. The thiscall constructor at 0x004E6970
    constructs eight W8MonsterManagerEntry objects at this, then the growable
    vector at this+0x9B7. The destructor at 0x004E6940 tears those members down
-   in reverse. That is one C++ object of size 0x9C7, not an entries array, a
-   0x73 prefix, and a separate targeting vector.
+   in reverse. These members form the non-trivial prefix of one C++ object,
+   not an entries array, a 0x73 prefix, and a separate targeting vector.
 
    Database loaders and retail assertions name later members of this same
    global (uiItemsInDatabase, fCombatMode, plsMonsterList, ...). Overlapping
@@ -21,10 +24,9 @@ struct W8CharacterEventQueue;
    0x683FC5, 0x683FCD, 0x683FCE, 0x683FD7, 0x684000 and 0x68406F are those
    members, not separate roots.
 
-   Neighbouring state from 0x0068407F (target position) through the monster
-   record cache at 0x006840C7 and the timer at 0x00685067 is not constructed
-   by 0x004E6970. The 0x1A0A-byte stos at 0x0054AFD0 is a reset region, not
-   sizeof(W8XStatus). */
+   The constructor and destructor only visit the non-trivial prefix members.
+   InitializeGameplayRuntimeObjects clears 0x1A0A bytes starting at this
+   object, establishing the POD state through +0x1A09 as its tail. */
 #pragma pack(push, 1)
 struct W8XStatus {
     W8XStatus();
@@ -87,7 +89,38 @@ struct W8XStatus {
        live formation here on open, edits the copy, and either reconciles it
        back or diffs it against live on accept. */
     W8PartyFormationState edited_formation;
-    W8GrowableVector<int> target_markers; /* 0x9b7: 0x0068406F */
+    W8GrowableVector<int> target_markers;        /* 0x9b7: 0x0068406F */
+    srVector3T<float> target_position;           /* 0x9c7: 0x0068407F */
+    W8CombatSlot shared_target;                  /* 0x9d3: 0x0068408B */
+    W8ActionDetailBlock shared_action_detail;    /* 0x9f3: 0x006840AB */
+    int picked_monster;                          /* 0x9fb: 0x006840B3 */
+    int picked_group;                            /* 0x9ff: 0x006840B7 */
+    unsigned char flag_a03;                      /* 0xa03: 0x006840BB */
+    unsigned char world_update_blocked;          /* 0xa04: 0x006840BC */
+    unsigned char flag_a05;                      /* 0xa05: 0x006840BD */
+    unsigned short review_character_slot;        /* 0xa06: 0x006840BE */
+    int held_item_source;                        /* 0xa08: 0x006840C0 */
+    unsigned char held_item_origin;              /* 0xa0c: 0x006840C4 */
+    unsigned short held_item_slot;               /* 0xa0d: 0x006840C5 */
+    W8MonsterRecord* monster_record_cache[1000]; /* 0xa0f: 0x006840C7 */
+    W8GameTimer* gameplay_timer;                 /* 0x19af: 0x00685067 */
+    unsigned char save_notice_shown;             /* 0x19b3: 0x0068506B */
+    bool npc_combat_notice_pending;              /* 0x19b4: 0x0068506C */
+    unsigned char deferred_skill_notices;        /* 0x19b5: 0x0068506D */
+    unsigned char flag_19b6;                     /* 0x19b6: 0x0068506E */
+    unsigned char flag_19b7;                     /* 0x19b7: 0x0068506F */
+    unsigned char flag_19b8;                     /* 0x19b8: 0x00685070 */
+    bool item_drag_active;                       /* 0x19b9: 0x00685071 */
+    W8ItemInstance* dragged_item;                /* 0x19ba: 0x00685072 */
+    unsigned char dragged_item_origin;           /* 0x19be: 0x00685076 */
+    signed char dragged_character_slot;          /* 0x19bf: 0x00685077 */
+    unsigned char status_block[56];              /* 0x19c0: 0x00685078 */
+    unsigned int combat_countdown;               /* 0x19f8: 0x006850B0 */
+    unsigned char combat_difficulty;             /* 0x19fc: 0x006850B4 */
+    unsigned char party_moving;                  /* 0x19fd: 0x006850B5 */
+    int saved_encounter_budget;                  /* 0x19fe: 0x006850B6 */
+    int mipe_cube_serial;                        /* 0x1a02: 0x006850BA */
+    int hostile_group_count;                     /* 0x1a06: 0x006850BE */
 };
 #pragma pack(pop)
 
@@ -120,7 +153,14 @@ static_assert(offsetof(W8XStatus, iCurrentCursor) == 0x923, "W8XStatus_cursor_of
 static_assert(offsetof(W8XStatus, iTargetingMode) == 0x92f, "W8XStatus_targeting_mode_offset");
 static_assert(offsetof(W8XStatus, edited_formation) == 0x933, "W8XStatus_edited_formation_offset");
 static_assert(offsetof(W8XStatus, target_markers) == 0x9b7, "W8XStatus_target_markers_offset");
-static_assert(sizeof(W8XStatus) == 0x9c7, "W8XStatus_size");
+static_assert(offsetof(W8XStatus, target_position) == 0x9c7, "W8XStatus_target_position_offset");
+static_assert(offsetof(W8XStatus, monster_record_cache) == 0xa0f,
+              "W8XStatus_monster_record_cache_offset");
+static_assert(offsetof(W8XStatus, gameplay_timer) == 0x19af, "W8XStatus_timer_offset");
+static_assert(offsetof(W8XStatus, status_block) == 0x19c0, "W8XStatus_status_block_offset");
+static_assert(offsetof(W8XStatus, hostile_group_count) == 0x1a06,
+              "W8XStatus_hostile_group_count_offset");
+static_assert(sizeof(W8XStatus) == 0x1a0a, "W8XStatus_size");
 
 extern W8XStatus gXStatus;
 

@@ -66,8 +66,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
-// GLOBAL: WIZ8 0x006840c7
-W8MonsterRecord* g_monster_record_cache[1000];
 // GLOBAL: WIZ8 0x005ed4f0
 float g_monster_record_float_scale = 20.0f;
 // GLOBAL: WIZ8 0x00683698
@@ -77,8 +75,6 @@ int g_monster_info_iterator_index;
 #define MAX_MONSTERS_IN_DATABASE 1000
 
 void DestroyMonsterActionQueue(W8MonsterInfo* monster_info);
-// GLOBAL: WIZ8 0x006850be
-int g_dword_6850be;
 // FUNCTION: WIZ8 0x0052A780
 int CalculateMonsterFatigueBand(int current, int maximum)
 {
@@ -379,7 +375,7 @@ void RecordMonsterKill(W8MonsterInfo* monster_info, char announce)
     if (monster_species >= MAX_MONSTERS_IN_DATABASE) {
         srAssertFail("uiMonsterSpecies < MAX_MONSTERS_IN_DATABASE", MONSTER_MANAGER_CPP, 0x5f3, 0);
     }
-    W8MonsterRecord* record = g_monster_record_cache[monster_species];
+    W8MonsterRecord* record = gXStatus.monster_record_cache[monster_species];
     if (record == 0) {
         record = static_cast<W8MonsterRecord*>(malloc(sizeof(W8MonsterRecord)));
         if (record != 0) {
@@ -387,7 +383,7 @@ void RecordMonsterKill(W8MonsterInfo* monster_info, char announce)
                 free(record);
                 record = 0;
             } else {
-                g_monster_record_cache[monster_species] = record;
+                gXStatus.monster_record_cache[monster_species] = record;
             }
         }
     }
@@ -562,7 +558,7 @@ static __inline W8MonsterRecord* MonsterDBFromSpeciesInline(unsigned int monster
     if (monster_species >= MAX_MONSTERS_IN_DATABASE) {
         srAssertFail("uiMonsterSpecies < MAX_MONSTERS_IN_DATABASE", MONSTER_MANAGER_CPP, 0x5f3, 0);
     }
-    record = g_monster_record_cache[monster_species];
+    record = gXStatus.monster_record_cache[monster_species];
     if (record == 0) {
         record = (W8MonsterRecord*)malloc(sizeof(W8MonsterRecord));
         if (record == 0) {
@@ -572,7 +568,7 @@ static __inline W8MonsterRecord* MonsterDBFromSpeciesInline(unsigned int monster
             free(record);
             return 0;
         }
-        g_monster_record_cache[monster_species] = record;
+        gXStatus.monster_record_cache[monster_species] = record;
     }
     return record;
 }
@@ -1149,7 +1145,7 @@ bool InitializeMonsterManagerState(void)
     g_status_685170.next_group_id_234a = 1;
     gXStatus.active_monster_count = 0;
     gXStatus.hostile_monster_count = 0;
-    g_dword_6850be = 0;
+    gXStatus.hostile_group_count = 0;
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
         g_level_block->selected_item = -1;
     }
@@ -1221,8 +1217,8 @@ unsigned char ShutdownMonsterManager(void)
         return 0;
     }
     gXStatus.plsMonsterGroupEncounterList = 0;
-    for (slot = g_monster_record_cache; slot < g_monster_record_cache + MAX_MONSTERS_IN_DATABASE;
-         ++slot) {
+    for (slot = gXStatus.monster_record_cache;
+         slot < gXStatus.monster_record_cache + MAX_MONSTERS_IN_DATABASE; ++slot) {
         if (*slot != 0) {
             free(*slot);
             *slot = 0;
@@ -2005,8 +2001,8 @@ void EvaluateCombatDifficulty004E6CE0(void)
         break;
     }
     if ((g_combat_state != 0 && g_combat_state->party_surprised_a52) ||
-        ClockIsTicking(g_combat_countdown_6850b0) == 0 ||
-        difficulty != g_combat_difficulty_6850b4) {
+        ClockIsTicking(gXStatus.combat_countdown) == 0 ||
+        difficulty != gXStatus.combat_difficulty) {
         unsigned int event_type;
         switch (difficulty) {
         case 0:
@@ -2022,7 +2018,7 @@ void EvaluateCombatDifficulty004E6CE0(void)
         ApplyItemEffectToRandomCharacter(event_type, -1, 0, g_effect_argument_005ed8c8);
     }
     ++g_status_685170.combat_difficulty_counts[difficulty];
-    g_combat_difficulty_6850b4 = difficulty;
+    gXStatus.combat_difficulty = difficulty;
 
     for (slot = 0; slot < 2; ++slot) {
         W8PartySlotRow* row = &g_status_685170.buffers.party_rows[slot];

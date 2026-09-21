@@ -61,10 +61,6 @@
 #include <string.h>
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/PolyPick.h"
-// GLOBAL: WIZ8 0x006840b7
-int g_picked_group;
-// GLOBAL: WIZ8 0x006840b3
-int g_picked_monster;
 
 #define TARGETING_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Targeting.cpp"
 
@@ -1469,10 +1465,6 @@ void CollectMonstersWithinRadius(const srVector3T<float>* centre, const srVector
         }
     }
 }
-// GLOBAL: WIZ8 0x0068408b
-W8CombatSlot g_shared_target_0068408b;
-// GLOBAL: WIZ8 0x006840ab
-W8ActionDetailBlock g_shared_action_detail_006840ab;
 
 /* The two dialogue selections that have a targeting context of their own, and
    they are the same two action kinds - casting and using an item. */
@@ -1555,7 +1547,6 @@ W8CombatSlot* GetTargetBlockForContext(int party_slot, W8TargetingContext contex
     case W8_TARGETING_CONTEXT_IN_COMBAT:
         return &row->target_in_combat;
     case W8_TARGETING_CONTEXT_SHARED:
-        return &g_shared_target_0068408b;
     case W8_TARGETING_CONTEXT_SPELL:
         return &row->spell_target;
     case W8_TARGETING_CONTEXT_ITEM:
@@ -1663,9 +1654,6 @@ unsigned int GetActionSpellLikeId(int party_slot, W8TargetingContext context)
 // GLOBAL: WIZ8 0x0061D14C
 static int g_last_visible_monster_0061d14c = -1;
 
-// GLOBAL: WIZ8 0x0068407F
-srVector3T<float> g_target_position_0068407f;
-
 /* Select the cursor and renderer-side targeting mode for one targeting state,
    then clear the cached world point so the following refresh recomputes it. */
 // FUNCTION: WIZ8 0x0053A320
@@ -1699,7 +1687,7 @@ void SetTargetingMode(int state)
     if (cursor != gXStatus.iCurrentCursor) {
         SetTargetCursor(cursor);
     }
-    g_target_position_0068407f.SetZero();
+    gXStatus.target_position.SetZero();
     RequestRefreshPartyState();
     if (state == 4) {
         SetTargetConeEnabled004ADD30(1);
@@ -1888,7 +1876,7 @@ void CommitSelectedSpellTarget(void)
     if (action == 8) {
         GetItemSpell(detail_block->item_use.item);
     }
-    *GetTargetBlockForContext(party_slot, context) = g_shared_target_0068408b;
+    *GetTargetBlockForContext(party_slot, context) = gXStatus.shared_target;
     StartBreathCycle(party_slot, 1);
 }
 
@@ -1998,12 +1986,12 @@ void RefreshSpellTargetHighlightsAtRange(void)
     W8MonsterInfo* monster_info;
 
     GetCameraForwardPoint00421150(GetRangeConstant5EC35C(), &position);
-    if (position.x == g_target_position_0068407f.x && position.y == g_target_position_0068407f.y &&
-        position.z == g_target_position_0068407f.z) {
+    if (position.x == gXStatus.target_position.x && position.y == gXStatus.target_position.y &&
+        position.z == gXStatus.target_position.z) {
         return;
     }
 
-    g_target_position_0068407f = position;
+    gXStatus.target_position = position;
     monster_info = GetNextMonsterInfo(1);
     while (monster_info != 0) {
         if (monster_info->fActive != 0 && monster_info->hp_current != 0 &&
@@ -2042,7 +2030,7 @@ void HighlightSpellTargetsAtCachedPosition(void)
     SetTargetSourceToCharacter(party_slot, &source);
     ResetCombatSlot(&target);
     target.iType = W8_TARGET_KIND_PLACE;
-    target.point = g_target_position_0068407f;
+    target.point = gXStatus.target_position;
     PopulateSpellTargetMarkers(spell_id, 1, &source, &target, &markers, &scratch, 0);
 
     for (int index = 0; index < markers.GetCount(); ++index) {
@@ -2120,9 +2108,9 @@ void RefreshTargetMarker(void)
     srVector3T<float> position;
 
     GetWorldCursorTargetPosition00492500(&position);
-    if (position.x != g_target_position_0068407f.x || position.y != g_target_position_0068407f.y ||
-        position.z != g_target_position_0068407f.z) {
-        g_target_position_0068407f = position;
+    if (position.x != gXStatus.target_position.x || position.y != gXStatus.target_position.y ||
+        position.z != gXStatus.target_position.z) {
+        gXStatus.target_position = position;
         PopulateTargetMarkerForCurrentAction(&position, &gXStatus.target_markers, 1);
     }
 }
@@ -2810,7 +2798,7 @@ int PickNextTargetableMonster(int party_slot)
             targetable.Add(monster_info->location_id);
         }
     }
-    return SelectNextGroupMemberByAngle(&targetable, g_picked_monster);
+    return SelectNextGroupMemberByAngle(&targetable, gXStatus.picked_monster);
 }
 
 // FUNCTION: WIZ8 0x00538280
@@ -2921,13 +2909,13 @@ int PickNextTargetableGroup(int party_slot)
         return BAD_INDEX;
     }
 
-    if (g_picked_group == BAD_INDEX) {
+    if (gXStatus.picked_group == BAD_INDEX) {
         start = 0;
     } else {
-        start = GetMonsterGroupIndexByID(0x414, TARGETING_CPP, g_picked_group, 0);
+        start = GetMonsterGroupIndexByID(0x414, TARGETING_CPP, gXStatus.picked_group, 0);
         if (start == 0xffffffff) {
             start = 0;
-            g_picked_group = BAD_INDEX;
+            gXStatus.picked_group = BAD_INDEX;
         } else {
             ++start;
             if (start == PLLength(gXStatus.plsMonsterGroupList)) {
@@ -2994,7 +2982,7 @@ void CycleToNextTarget(int party_slot)
             target.iType = W8_TARGET_KIND_GROUP;
             target.iGroupID = pick;
             AimAtTarget(party_slot, &target, W8_TARGETING_CONTEXT_CURRENT);
-            g_picked_group = pick;
+            gXStatus.picked_group = pick;
             goto finish;
         }
     }
@@ -3009,7 +2997,7 @@ pick_monster:
     target.iType = W8_TARGET_KIND_MONSTER;
     target.iMonsterID = pick;
     AimAtTarget(party_slot, &target, W8_TARGETING_CONTEXT_CURRENT);
-    g_picked_monster = pick;
+    gXStatus.picked_monster = pick;
 finish:
     StartBreathCycle(party_slot, 0);
     SetTargetSourceToCharacter(party_slot, &source);
@@ -3230,7 +3218,7 @@ void UpdateTargetMarkerHighlight0053B1D0(void)
         int location_id = gXStatus.target_markers.RemoveAt(0);
         W8Monster* monster;
         monster = GetMonsterByLocationID(location_id);
-        point = g_target_position_0068407f;
+        point = gXStatus.target_position;
         if (monster->HasLineOfSightFromPoint004C4C40(point) != 0) {
             block.highlight_red = 0.0f;
             block.highlight_green = 1.0f;
@@ -3579,7 +3567,7 @@ aim_done:
     if (cursor != gXStatus.iCurrentCursor) {
         SetTargetCursor(cursor);
     }
-    g_target_position_0068407f.SetZero();
+    gXStatus.target_position.SetZero();
     RequestRefreshPartyState();
     if (needed_kind == 4) {
         SetTargetConeEnabled004ADD30(1);
@@ -3638,7 +3626,7 @@ void ClearSlotTargeting0053B050(int party_slot)
     if (gXStatus.iCurrentCursor != -1) {
         SetTargetCursor(-1);
     }
-    g_target_position_0068407f.SetZero();
+    gXStatus.target_position.SetZero();
     RequestRefreshPartyState();
     SetTargetConeEnabled004ADD30(0);
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
