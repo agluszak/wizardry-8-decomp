@@ -2568,3 +2568,58 @@ void PostMonsterNotice(W8MonsterInfo* monster_info, const wchar_t* format, ...)
     wcscpy(separator, text[0] == L'\'' || text[0] == L':' ? &g_wchar_00689b34 : L" ");
     ShowNoticef(9, L"%s%s%s", GetMonsterName(monster_info, 0, 0), separator, text);
 }
+
+/* Re-show the resolved text box's newest logical line: on the main-game
+   screens an automatic mode picks the combat box in combat, the party box
+   under the flag, or the NPC-dialogue box while a dialogue is live; the last
+   stored entry and its linked wrapped continuation are rejoined with spaces
+   into one notice line. */
+// FUNCTION: WIZ8 0x00590bd0
+void RefreshTextBoxMode00590BD0(unsigned short mode)
+{
+    wchar_t merged[500];
+
+    if (g_current_screen_state.id != 7 && g_current_screen_state.id != 6) {
+        return;
+    }
+    if (mode == 0xffff) {
+        if ((gXStatus.fNpcDialogueMode == '\0' || CanOpenNpcDialogue()) &&
+            gXStatus.fCampMode == '\0') {
+            mode = GetFlag68F105() == 0 ? static_cast<unsigned short>(gXStatus.fCombatMode != '\0')
+                                        : static_cast<unsigned short>(0);
+        } else {
+            mode = IsNpcDialogueTextBoxActive() ? 0 : 2;
+        }
+    }
+    int box = static_cast<short>(mode);
+    if (g_status_685170.text_box_lines_used_4997[box] == 0) {
+        srAssertFail("gStatus.uiTextBoxLinesUsed[iTextBox] > 0", MGS_TEXT_BOX_CPP, 0x109e, 0);
+    }
+    unsigned int last = g_status_685170.text_box_lines_used_4997[box] - 1;
+    unsigned int links = g_message_storage_68f2d8[box][last].link_10;
+    if (last < links) {
+        srAssertFail("uiLastLineIndex >= uiGroupLineIndex", MGS_TEXT_BOX_CPP, 0x10a6, 0);
+    }
+    unsigned int first = last - links;
+    if (first <= last) {
+        W8MessageStorageRecord* line = &g_message_storage_68f2d8[box][first];
+        size_t total = 0;
+        for (unsigned int index = first; index <= last; ++index, ++line) {
+            if (line->wString == 0) {
+                srAssertFail("pTextLine->wString != NULL", MGS_TEXT_BOX_CPP, 0x10ad, 0);
+            }
+            if (index == first) {
+                wcscpy(merged, line->wString);
+                total = wcslen(line->wString);
+            } else {
+                if (wcslen(line->wString) + 1 + total > 499) {
+                    break;
+                }
+                wcscat(merged, L" ");
+                wcscat(merged, line->wString);
+                total += wcslen(line->wString) + 1;
+            }
+        }
+    }
+    ShowNoticeLine(merged, 0, 1, 0);
+}

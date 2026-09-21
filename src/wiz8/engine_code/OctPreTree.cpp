@@ -1718,6 +1718,9 @@ static char PropFramesDiffer0046C6A0(W8LevelFileAnimObj* anim, unsigned short fi
     return differ;
 }
 
+// TEMPLATE: WIZ8 0x0046a490
+// srVector3T<int>::operator=
+
 // TEMPLATE: WIZ8 0x0046ca50
 // QuickSortByKey<srVector3i>
 

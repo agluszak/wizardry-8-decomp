@@ -342,6 +342,11 @@ float SettlePositionToGround00420BD0(const srVector3T<float>* position, unsigned
 /* 0x00420C30: same ground-settle query with a fixed 500-unit probe range,
    returning the resulting height. */
 float SettlePositionToGround00420C30(srVector3T<float>* position, unsigned char* hit);
+/* Reports the ground height, surface and material at one position through the
+   level's game data: settles a probe with SettleToGround and reads the hit
+   W8GDSurface's footstep_surface_3c/footstep_material_3d. */
+float GetGroundSurfaceInfo(const srVector3T<float>* position, char* surface,
+                           char* material); /* 0x00420CA0 */
 
 void ClearLevelDataFlags5To7(void); /* 0x0041F0C0 */
 srCamera* CreateOrSetGameCamera(srNode* parent, srCamera* camera);

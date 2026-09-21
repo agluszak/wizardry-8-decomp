@@ -69,6 +69,31 @@ float SettlePositionToGround00420BD0(const srVector3T<float>* position, unsigned
     return height;
 }
 
+/* Settle the probe to the ground and report the footstep surface/material of
+   the surface index the last motion probe recorded into value_54. The retail
+   body reads value_54 unconditionally, so a null game-data object faults. */
+// FUNCTION: WIZ8 0x00420ca0
+float GetGroundSurfaceInfo(const srVector3T<float>* position, char* surface, char* material)
+{
+    srVector3T<float> probe = *position;
+    float height;
+    if (g_octree_game_data_00652db0 != 0 && g_octree_game_data_00652db0->positional_04 != 0) {
+        height = g_octree_game_data_00652db0->positional_04->SettleToGround(&probe, 0, 1, 500.0f);
+    } else {
+        height = position->y;
+    }
+    if (g_octree_game_data_00652db0->value_54 != 0) {
+        *surface = g_octree_game_data_00652db0->m_pSurfaces[g_octree_game_data_00652db0->value_54]
+                       .footstep_surface_3c;
+        *material = g_octree_game_data_00652db0->m_pSurfaces[g_octree_game_data_00652db0->value_54]
+                        .footstep_material_3d;
+    } else {
+        *material = 0;
+        *surface = 0;
+    }
+    return height;
+}
+
 /*
  * Engine Code\GameData.cpp.
  *
@@ -566,6 +591,31 @@ unsigned char W8LevelDataRecord::ClampCameraToBounds0041FE20(const srVector3T<fl
         BeginPartyMovement();
     }
     return clamped;
+}
+
+/* Flip the bound props the motion collision path recorded: the primary
+   contact toggles when it is a setting-6f prop, and the secondary only
+   contributes when it is too - an ineligible secondary vetoes the toggle. */
+// FUNCTION: WIZ8 0x0041ff00
+unsigned char W8LevelDataRecord::ToggleBoundProps0041FF00()
+{
+    bool toggled = false;
+    BeginPartyMovement();
+    if (primary_contact_prop_id > -1) {
+        W8Prop* prop = *g_world->collidable_props->GetAt(primary_contact_prop_id);
+        if (prop->IsSetting6FTwo()) {
+            prop->ToggleSetting6E();
+            toggled = 1;
+            if (secondary_contact_prop_id > -1) {
+                prop = *g_world->collidable_props->GetAt(secondary_contact_prop_id);
+                if (!prop->IsSetting6FTwo()) {
+                    return 0;
+                }
+                prop->ToggleSetting6E();
+            }
+        }
+    }
+    return toggled;
 }
 
 // GLOBAL: WIZ8 0x005ebc5c
