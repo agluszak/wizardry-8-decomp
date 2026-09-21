@@ -9778,7 +9778,7 @@ bool AttemptNpcItemTrade005AE2A0(W8ItemInstance* item, unsigned char quantity, i
     if (result == 2) {
         QueueNpcScriptLine(0x17, 0, 0, 0);
         SetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc, 1);
-        ApplyFactionChange(3, 1, g_screen_state_00649f1c->dialogue_npc->record->faction_5f, -5);
+        ApplyFactionChange(3, g_screen_state_00649f1c->dialogue_npc->record->faction_5f, 1, -5);
         CloseNpcDialogueOptionLayout();
         ShowNpcDialogueTopicMenu();
         return false;

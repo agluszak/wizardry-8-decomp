@@ -213,7 +213,11 @@ void W8CharacterScreen::UpdateDialog()
             m_controls_1af0->Invalidate(0);
             m_pages_1b0c[m_page_index_00c]->Refresh();
             m_header_dirty_010 = 1;
-            unsigned char accepted = 0;
+            /* `accepted` is read uninitialized when no result was captured; retail does the
+               same (the local slot holds the entry `this` pointer). */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
+            bool accepted;
             if (m_capture_dialog_result_1b24) {
                 accepted = static_cast<W8MessageDialogBase*>(m_dialog_1b1c)->close_result;
                 m_capture_dialog_result_1b24 = 0;
@@ -221,6 +225,7 @@ void W8CharacterScreen::UpdateDialog()
             delete m_dialog_1b1c;
             m_dialog_1b1c = 0;
             HandleDialogResult(m_dialog_response_1b20, accepted);
+#pragma clang diagnostic pop
         }
     }
 }
@@ -342,7 +347,7 @@ void W8CharacterScreen::ShowDescription(int first, int second)
     ShowMessage(FormatWideString(gppStringList[0x758 / 4],
                                  gppStringList[g_character_description_first_ids_61e3a4[first]],
                                  m_character_018.name,
-                                 gppStringList[g_character_skill_name_ids_61e454[second]], 0, 0),
+                                 gppStringList[g_character_skill_name_ids_61e454[second]]),
                 0, 0);
 }
 
@@ -488,9 +493,9 @@ void W8CharacterScreen::SyncCharacterForPage(int index)
     } else if (index == 1) {
         CountRemainingSpellPoints(&m_character_018, &m_creation_state_187c);
     } else if (index == 3) {
-        if (m_character_018.table_value_0079 < 0)
+        if (m_character_018.personality_0081 < 0)
             DeriveCharacterPersonality004EFA30(&m_character_018);
-        if (m_character_018.current_profession < 0)
+        if (m_character_018.table_value_0079 < 0)
             CalcCharacterTableValue(&m_character_018);
     }
 }
@@ -588,8 +593,8 @@ bool W8CharacterScreen::CommitCharacter()
         memcpy(m_original_014, &m_character_018, sizeof(*m_original_014));
         if (was_in_party)
             m_original_014->in_party = 1;
-        if (m_original_014->current_profession == 8)
-            UpdateGadgeteerOmnigun(m_original_014);
+        if (m_original_014->current_profession == W8_PROFESSION_GADGETEER)
+            UpgradeProfessionClassItem005218C0(m_original_014);
         UnequipUnusableItems(m_original_014);
     }
     return true;
@@ -662,7 +667,7 @@ void W8CharacterScreen::HandleDialogResult(int response, unsigned char accepted)
                 format = gppStringList[0x360 / 4];
                 next_response = 7;
             }
-            ShowMessage(FormatWideString(format, value, 1, next_response), 1, next_response);
+            ShowMessage(FormatWideString(format, value), 1, next_response);
             break;
         }
         case 6:

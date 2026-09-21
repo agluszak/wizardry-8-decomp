@@ -261,7 +261,7 @@ W8CharacterPage::~W8CharacterPage()
 {
     DestroyAllControls();
     while (m_entries_04c.count > 0) {
-        delete m_entries_04c.RemoveAt(m_entries_04c.count - 1);
+        m_entries_04c.RemoveAtAndDelete(m_entries_04c.count - 1);
     }
 }
 
@@ -279,7 +279,7 @@ void W8CharacterPage::Redraw()
 {
     Controls::Redraw();
     for (int index = 0; index < m_entries_04c.count; ++index) {
-        m_entries_04c.data[index]->Redraw();
+        (*m_entries_04c.GetAt(index))->Redraw();
     }
 }
 
@@ -288,9 +288,10 @@ void W8CharacterPage::Invalidate(const W8ControlsRect* rect)
 {
     Controls::Invalidate(rect);
     for (int index = 0; index < m_entries_04c.count; ++index) {
-        m_entries_04c.data[index]->m_decrement_00c->Invalidate(0);
-        m_entries_04c.data[index]->m_increment_008->Invalidate(0);
-        m_entries_04c.data[index]->m_dirty_039 = 1;
+        W8CharacterPageEntry* entry = *m_entries_04c.GetAt(index);
+        entry->m_decrement_00c->Invalidate(0);
+        entry->m_increment_008->Invalidate(0);
+        entry->m_dirty_039 = 1;
     }
 }
 

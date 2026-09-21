@@ -309,7 +309,7 @@ void ShowPartyEffectIconHelp(int slot_index)
 {
     W8SpellRuntimeRecord* records = g_spell_records;
     W8EffectSlot* slot = &g_status_685170.effect_slots_17af[slot_index];
-    signed char amount = slot->amount;
+    int amount = slot->amount;
     unsigned int duration = slot->duration_0d;
     int effect_id = slot->effect_id;
     wchar_t* name;
@@ -379,7 +379,7 @@ void ShowCombatLeftEffectIconHelp(int slot_index)
 {
     W8SpellRuntimeRecord* records = g_spell_records;
     W8EffectSlot* slot = &g_combat_state->effect_slots[slot_index];
-    signed char amount = slot->amount;
+    int amount = slot->amount;
     unsigned int duration = slot->duration_0d;
     int effect_id = slot->effect_id;
     wchar_t* name;
@@ -408,7 +408,7 @@ void ShowCombatRightEffectIconHelp(int slot_index)
 {
     W8SpellRuntimeRecord* records = g_spell_records;
     W8EffectSlot* slot = &g_combat_state->effect_slots_85a[slot_index];
-    signed char amount = slot->amount;
+    int amount = slot->amount;
     unsigned int duration = slot->duration_0d;
     int effect_id = slot->effect_id;
     wchar_t* name;
