@@ -2568,3 +2568,68 @@ void PostMonsterNotice(W8MonsterInfo* monster_info, const wchar_t* format, ...)
     wcscpy(separator, text[0] == L'\'' || text[0] == L':' ? &g_wchar_00689b34 : L" ");
     ShowNoticef(9, L"%s%s%s", GetMonsterName(monster_info, 0, 0), separator, text);
 }
+
+/* Re-show the last wrapped entry of `mode`'s message run as a notice line;
+   0xffff derives the mode from the live dialogue/camp/combat state. Retail
+   only fills `merged` when the run index range is non-empty, so a failing
+   (but returning) srAssertFail can leave it uninitialized at ShowNoticeLine;
+   preserved intentionally. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
+// FUNCTION: WIZ8 0x00590BD0
+void RefreshTextBoxMode00590BD0(unsigned short mode)
+{
+    wchar_t merged[500];
+    W8MessageStorageRecord* line;
+    unsigned int last_line;
+    unsigned int group_lines;
+    unsigned int first_line;
+    unsigned int index;
+    size_t length;
+
+    if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME &&
+        g_current_screen_state.id != W8_SCREEN_CAMP) {
+        return;
+    }
+    if (mode == 0xffff) {
+        if ((gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue()) && gXStatus.fCampMode == 0) {
+            if (GetFlag68F105() == 0) {
+                mode = gXStatus.fCombatMode != 0;
+            } else {
+                mode = 0;
+            }
+        } else {
+            mode = IsNpcDialogueTextBoxActive() ? 0 : 2;
+        }
+    }
+    int text_box = static_cast<short>(mode);
+    if (g_status_685170.text_box_lines_used_4997[text_box] == 0) {
+        srAssertFail("gStatus.uiTextBoxLinesUsed[iTextBuffer] > 0", MGS_TEXT_BOX_CPP, 0x109e, 0);
+    }
+    last_line = g_status_685170.text_box_lines_used_4997[text_box] - 1;
+    group_lines = g_message_storage_68f2d8[text_box][last_line].link_10;
+    if (last_line < group_lines) {
+        srAssertFail("uiLastLineIndex >= uiGroupLine", MGS_TEXT_BOX_CPP, 0x10a6, 0);
+    }
+    first_line = last_line - group_lines;
+    line = &g_message_storage_68f2d8[text_box][first_line];
+    length = 0;
+    for (index = first_line; index <= last_line; index++, line++) {
+        if (line->wString == 0) {
+            srAssertFail("pTextLine->wString != NULL", MGS_TEXT_BOX_CPP, 0x10ad, 0);
+        }
+        if (index == first_line) {
+            wcscpy(merged, line->wString);
+            length = wcslen(line->wString);
+        } else {
+            if (wcslen(line->wString) + 1 + length > 499) {
+                break;
+            }
+            wcscat(merged, g_W8TextSeparator0060CC74);
+            wcscat(merged, line->wString);
+            length += 1 + wcslen(line->wString);
+        }
+    }
+    ShowNoticeLine(merged, 0, 1, 0);
+}
+#pragma clang diagnostic pop
