@@ -1,5 +1,6 @@
 /* Enable the pinned SDK's SendInput declarations for the harness only. */
 #define _WIN32_WINNT 0x0500
+#include "game_thread_executor.h"
 #include "wiz8/regions.h"
 #include "wiz8/layouts/combat_state.h"
 #include "wiz8/cursor.h"
@@ -622,33 +623,45 @@ static bool VerifyPhysicalFileFallback(void)
     return library_id == REAL_FILE_LIBRARY_ID;
 }
 
-static DWORD WINAPI DriveScenario(void*)
-{
-    if (!WaitForMainMenu(30000)) {
-        g_observation.timed_out = 1;
-        fprintf(stderr, "runtime-test timeout: state=%d window=%p regions=%u running=%u\n",
-                g_current_screen_state.id, ghWindow, g_region_sets[1].enabled, gfProgramIsRunning);
-        fflush(stderr);
-        gfProgramIsRunning = 0;
-        if (ghWindow != NULL) {
-            PostMessage(ghWindow, WM_CLOSE, 0, 0);
-        }
-        return 2;
-    }
+struct NpcStateResetContext {
+    int result;
+};
 
-    g_observation.menu_seen = 1;
-    ReportStep("main-menu-reached");
-    g_observation.menu_state = g_current_screen_state.id;
-    g_observation.region_set_enabled = g_region_sets[1].enabled;
-    g_observation.first_region = g_region_sets[1].first_region;
-    g_observation.last_region = g_region_sets[1].last_region;
-    /* The menu music starts on a later frame than the menu state and its
-       regions; the observation is only stable once the list is live. */
-    unsigned int playlist_started = GetTickCount();
-    while (*(volatile unsigned char*)&g_music_playlist_active_65ba7e == 0 &&
-           GetTickCount() - playlist_started < 3000) {
-        Sleep(10);
+static void ResetNpcStateOnGameThread(void* opaque)
+{
+    NpcStateResetContext* context = static_cast<NpcStateResetContext*>(opaque);
+    W8MessageBoxLine* line = new W8MessageBoxLine;
+    memset(line, 0, sizeof(W8MessageBoxLine));
+    /* FINISH_ACTION with a null payload is benign outside dialogue; the
+       reset must drain it without trying to process an active NPC. */
+    line->type = W8_NPC_MSG_FINISH_ACTION;
+    if (g_npc_scripting.message_lines.Add(line) < 0) {
+        delete line;
+        context->result = -1;
+        return;
     }
+    g_npc_scripting.restore_staged_session = 1;
+    g_npc_scripting.voice_handle = 7;
+    g_npc_scripting.staging_restore.current_quote_index = 0x1234;
+    g_npc_scripting.gap_track.mouth_open = 1;
+    g_npc_scripting.last_tick = 99;
+    ResetLiveSessionForLoad();
+    context->result =
+        g_npc_scripting.message_lines.GetCount() == 0 &&
+                g_npc_scripting.pending_script_values.GetCount() == 0 &&
+                g_npc_scripting.restore_staged_session == 0 && g_npc_scripting.voice_handle == 0 &&
+                g_npc_scripting.staging_restore.current_quote_index == 0 &&
+                g_npc_scripting.gap_track.mouth_open == 0 && g_npc_scripting.last_tick == 0
+            ? 1
+            : 0;
+    /* Reset retires the live session. Stop before WinMain can run another
+       frame against it while the driver is waking from the completion event. */
+    gfProgramIsRunning = 0;
+}
+
+static void RunMenuChecksOnGameThread(void* opaque)
+{
+    int* semantic_status = static_cast<int*>(opaque);
     g_observation.playlist_active = g_music_playlist_active_65ba7e;
     g_observation.playlist_tracks = g_music_playlist_track_count_65ba84;
     g_observation.playlist_weight = g_music_playlist_weight_total_65ba80;
@@ -684,76 +697,282 @@ static DWORD WINAPI DriveScenario(void*)
         OctFileSemanticResult oct_result;
         bool oct_ok = RunOctFileSemanticTests(&oct_result);
         PrintOctFileSemanticResults(&oct_result);
-        gfProgramIsRunning = 0;
-        return oct_ok ? 0 : 1;
+        *semantic_status = oct_ok ? 0 : 1;
+        return;
     }
 
     if (strcmp(g_scenario, "sight-threshold") == 0) {
         SightSemanticResult sight_result;
         g_sight_semantic_ok = RunSightSemanticTests(&sight_result);
         PrintSightSemanticResults(&sight_result);
-        gfProgramIsRunning = 0;
-        return g_sight_semantic_ok ? 0 : 1;
+        *semantic_status = g_sight_semantic_ok ? 0 : 1;
+        return;
     }
 
     if (strcmp(g_scenario, "split-stack") == 0) {
         SplitStackSemanticResult split_result;
         g_split_semantic_ok = RunSplitStackSemanticTest(&split_result);
         PrintSplitStackSemanticResults(&split_result);
-        gfProgramIsRunning = 0;
-        return g_split_semantic_ok ? 0 : 1;
+        *semantic_status = g_split_semantic_ok ? 0 : 1;
+        return;
     }
 
     if (strcmp(g_scenario, "party-movement") == 0) {
         PartyMovementSemanticResult movement_result;
         g_party_movement_semantic_ok = RunPartyMovementSemanticTest(&movement_result);
         PrintPartyMovementSemanticResults(&movement_result);
-        gfProgramIsRunning = 0;
-        return g_party_movement_semantic_ok ? 0 : 1;
+        *semantic_status = g_party_movement_semantic_ok ? 0 : 1;
+        return;
     }
 
     if (strcmp(g_scenario, "audio-semantics") == 0) {
         AudioSemanticResult audio_result;
         g_audio_semantic_ok = RunAudioSemanticTests(&audio_result);
         PrintAudioSemanticResults(&audio_result);
-        gfProgramIsRunning = 0;
-        return g_audio_semantic_ok ? 0 : 1;
+        *semantic_status = g_audio_semantic_ok ? 0 : 1;
+        return;
     }
 
     if (strcmp(g_scenario, "keyboard-menu") == 0) {
         KeyboardMenuSemanticResult keyboard_result;
         g_keyboard_semantic_ok = RunKeyboardMenuSemanticTest(&keyboard_result);
         PrintKeyboardMenuSemanticResults(&keyboard_result);
-        gfProgramIsRunning = 0;
-        return g_keyboard_semantic_ok ? 0 : 1;
+        *semantic_status = g_keyboard_semantic_ok ? 0 : 1;
+        return;
     }
 
     if (strcmp(g_scenario, "mouth-gap") == 0) {
         MouthGapSemanticResult mouth_gap_result;
         g_mouth_gap_semantic_ok = RunMouthGapSemanticTest(&mouth_gap_result);
         PrintMouthGapSemanticResults(&mouth_gap_result);
-        gfProgramIsRunning = 0;
-        return g_mouth_gap_semantic_ok ? 0 : 1;
+        *semantic_status = g_mouth_gap_semantic_ok ? 0 : 1;
+        return;
     }
 
     if (strcmp(g_scenario, "npc-dialogue") == 0) {
         NpcDialogueSemanticResult dialogue_result;
         g_dialogue_semantic_ok = RunNpcDialogueSemanticTest(&dialogue_result);
         PrintNpcDialogueSemanticResults(&dialogue_result);
-        gfProgramIsRunning = 0;
-        return g_dialogue_semantic_ok ? 0 : 1;
+        *semantic_status = g_dialogue_semantic_ok ? 0 : 1;
+        return;
     }
 
     if (strcmp(g_scenario, "search-mode") == 0) {
         g_search_semantic_ok = RunSearchModeSemanticTest();
-        gfProgramIsRunning = 0;
-        return g_search_semantic_ok ? 0 : 1;
+        *semantic_status = g_search_semantic_ok ? 0 : 1;
+        return;
     }
 
     if (strcmp(g_scenario, "mongen") == 0) {
         g_mongen_semantic_ok = RunMonGenSemanticTest();
+        *semantic_status = g_mongen_semantic_ok ? 0 : 1;
+        return;
+    }
+}
+
+struct HostileEncounterContext {
+    srVector3T<float> party_position;
+    W8MonsterInfo* info;
+    float distance;
+};
+
+static void ProvokeHostileEncounterOnGameThread(void* opaque)
+{
+    HostileEncounterContext* context = static_cast<HostileEncounterContext*>(opaque);
+    srVector3T<float> party_position;
+    W8MonsterInfo* provoked_info = 0;
+    float provoked_distance = 1e30f;
+    GetCameraPosition(&party_position);
+    for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
+        W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
+        if (info != 0 && info->fActive != 0 && info->monster != 0 && info->monster_group_id != 0 &&
+            info->condition_turns[13] == 0) {
+            float dist = (info->monster->GetPosition() - party_position).Length();
+            if (dist < provoked_distance) {
+                provoked_distance = dist;
+                provoked_info = info;
+            }
+        }
+    }
+    if (provoked_info != 0) {
+        unsigned int provoked_location_id = provoked_info->location_id;
+        int provoked_group_id = provoked_info->monster_group_id;
+        /* At ~17k units the hostile group's own navigation
+           never finds a route to the party, so its combat
+           turn can never commit a move. Relocate the group
+           beside the camera through
+           PositionMonsterGroupNearCamera00511050 - the same
+           placement GroupAttacks uses for summon encounters -
+           so the party stays grounded where it stands. A
+           party teleport drops the collision state the frame
+           loop needs: without ground contact the camera
+           falls below the level bounds, BeginPartyMovement
+           reads as a fall death and PumpReviewTransition
+           unloads the world before StartCombat ever sees a
+           grounded party. */
+        W8MonsterGroup* provoked_group = GetMonsterGroupByListIndex(
+            GetMonsterGroupIndexByID(__LINE__, "runtime-test", provoked_info->monster_group_id, 0));
+        unsigned char placed = 0;
+        if (provoked_group != 0) {
+            placed = PositionMonsterGroupNearCamera00511050(provoked_group, 0.0f, 0.0f, 1);
+            if (placed == 0) {
+                placed = PositionMonsterGroupNearCamera00511050(provoked_group, 1500.0f, 0.0f, 1);
+            }
+            if (placed == 0) {
+                placed = PositionMonsterGroupNearCamera00511050(provoked_group, 3000.0f, 0.0f, 1);
+            }
+        }
+        fprintf(stderr, "runtime-test drop: group=%p placed=%d\n", (void*)provoked_group, placed);
+        if (provoked_group != 0 && placed != 0) {
+            RefreshAllSight();
+            SetMonsterGroupNavigatorDirty(provoked_group, 0);
+        }
+        /* Placement may drop members that found no scatter
+           spot; RemoveMonster detaches their monster and frees
+           the info, so re-resolve the chosen member and fall
+           back to any surviving member of the same group. */
+        {
+            unsigned int re_index =
+                MonsterGetIndexByLocationID(__LINE__, "runtime-test", provoked_location_id, 0);
+            provoked_info =
+                re_index != (unsigned int)-1 ? MonsterGetScriptPartByLocationIndex(re_index) : 0;
+        }
+        if (provoked_info == 0 || provoked_info->monster == 0) {
+            provoked_info = 0;
+            for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
+                W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
+                if (info != 0 && info->fActive != 0 && info->monster != 0 &&
+                    info->monster_group_id == provoked_group_id) {
+                    provoked_info = info;
+                    break;
+                }
+            }
+        }
+    }
+    if (provoked_info != 0 && provoked_info->monster != 0) {
+        provoked_distance = (provoked_info->monster->GetPosition() - party_position).Length();
+        W8TargetSource source;
+        W8CombatSlot target;
+        memset(&target, 0, sizeof(target));
+        target.iChar = -1;
+        target.iMonsterID = -1;
+        target.iGroupID = -1;
+        SetTargetSourceToCharacter(0, &source);
+        target.iType = W8_TARGET_KIND_MONSTER;
+        target.iMonsterID = provoked_info->location_id;
+        MakeTargetGroupHostile(&source, &target);
+        fprintf(stderr,
+                "runtime-test provoke: hp=%d cond=%d active=%d incombat=%d "
+                "hostile=%u combat=%u\n",
+                provoked_info->hp_current, provoked_info->highest_condition, provoked_info->fActive,
+                provoked_info->fInCombat, gXStatus.hostile_monster_count, gXStatus.fCombatMode);
+    }
+    context->party_position = party_position;
+    context->info = provoked_info;
+    context->distance = provoked_distance;
+}
+
+static void CompletePartyFixtureOnGameThread(void* opaque)
+{
+    const char** failure = static_cast<const char**>(opaque);
+    int populated = -1;
+    for (int roster_slot = 0; roster_slot < 8; ++roster_slot) {
+        if (g_status_685170.buffers.party_rows[roster_slot].occupied &&
+            g_status_685170.buffers.characters[roster_slot].hp_current != 0) {
+            populated = roster_slot;
+            break;
+        }
+    }
+    if (populated < 0) {
+        *failure = "populated-character-slot-missing";
+        return;
+    }
+    while (CountActiveCharacters() < 6) {
+        int before = CountActiveCharacters();
+        if (AddCharacterToParty(&g_status_685170.buffers.characters[populated], -1) < 0 ||
+            CountActiveCharacters() <= before) {
+            *failure = "party-member-add-failed";
+            return;
+        }
+    }
+}
+
+static void StartNewGameOnGameThread(void*)
+{
+    RunNewGameOpeningSequence(1, 0);
+}
+
+static void NameCharacterFixtureOnGameThread(void* opaque)
+{
+    W8CharacterScreen* screen = static_cast<W8CharacterScreen*>(opaque);
+    if (screen->m_character_018.name[0] == 0) {
+        wcscpy(screen->m_character_018.name, L"Probe");
+    }
+    if (screen->m_character_018.name_part_2[0] == 0) {
+        wcscpy(screen->m_character_018.name_part_2, L"Probe");
+    }
+}
+
+struct ExecutorProbe {
+    DWORD thread_id;
+    unsigned int calls;
+};
+
+static void ProbeExecutorOnGameThread(void* opaque)
+{
+    ExecutorProbe* probe = static_cast<ExecutorProbe*>(opaque);
+    probe->thread_id = GetCurrentThreadId();
+    ++probe->calls;
+}
+
+static DWORD WINAPI DriveScenario(void*)
+{
+    if (!WaitForMainMenu(30000)) {
+        g_observation.timed_out = 1;
+        fprintf(stderr, "runtime-test timeout: state=%d window=%p regions=%u running=%u\n",
+                g_current_screen_state.id, ghWindow, g_region_sets[1].enabled, gfProgramIsRunning);
+        fflush(stderr);
         gfProgramIsRunning = 0;
-        return g_mongen_semantic_ok ? 0 : 1;
+        if (ghWindow != NULL) {
+            PostMessage(ghWindow, WM_CLOSE, 0, 0);
+        }
+        return 2;
+    }
+
+    if (!InitializeRuntimeGameThreadExecutor(ghWindow)) {
+        return FailScenario("game-thread-executor", "install-failed");
+    }
+    if (strcmp(g_scenario, "main-menu-startup") == 0) {
+        ExecutorProbe probe = {0, 0};
+        DWORD expected_thread = GetWindowThreadProcessId(ghWindow, 0);
+        for (unsigned int index = 0; index < 100; ++index) {
+            if (!RunOnGameThread(ProbeExecutorOnGameThread, &probe) ||
+                probe.thread_id != expected_thread || probe.calls != index + 1) {
+                return FailScenario("game-thread-executor", "callback-thread-or-count-mismatch");
+            }
+        }
+        ReportStep("game-thread-executor-checked");
+    }
+    g_observation.menu_seen = 1;
+    ReportStep("main-menu-reached");
+    g_observation.menu_state = g_current_screen_state.id;
+    g_observation.region_set_enabled = g_region_sets[1].enabled;
+    g_observation.first_region = g_region_sets[1].first_region;
+    g_observation.last_region = g_region_sets[1].last_region;
+    /* The menu music starts on a later frame than the menu state and its
+       regions; the observation is only stable once the list is live. */
+    unsigned int playlist_started = GetTickCount();
+    while (*(volatile unsigned char*)&g_music_playlist_active_65ba7e == 0 &&
+           GetTickCount() - playlist_started < 3000) {
+        Sleep(10);
+    }
+    int semantic_status = -1;
+    if (!RunOnGameThread(RunMenuChecksOnGameThread, &semantic_status)) {
+        return FailScenario("main-menu-checks", "game-thread-executor-failed");
+    }
+    if (semantic_status >= 0) {
+        gfProgramIsRunning = 0;
+        return semantic_status;
     }
 
     if (strcmp(g_scenario, "main-menu-startup") == 0) {
@@ -991,11 +1210,8 @@ static DWORD WINAPI DriveScenario(void*)
         if (strcmp(g_scenario, "main-game-start") == 0 ||
             strcmp(g_scenario, "npc-state-reset") == 0 ||
             strcmp(g_scenario, "new-game-entry") == 0) {
-            if (screen->m_character_018.name[0] == 0) {
-                wcscpy(screen->m_character_018.name, L"Probe");
-            }
-            if (screen->m_character_018.name_part_2[0] == 0) {
-                wcscpy(screen->m_character_018.name_part_2, L"Probe");
+            if (!RunOnGameThread(NameCharacterFixtureOnGameThread, screen)) {
+                return FailScenario("character-name-fixture", "game-thread-executor-failed");
             }
         }
 
@@ -1126,24 +1342,12 @@ static DWORD WINAPI DriveScenario(void*)
                    the remaining members are fixture copies; they still enter
                    through the recovered party-add path rather than by writing
                    occupied flags directly. */
-                int populated = -1;
-                for (int roster_slot = 0; roster_slot < 8; ++roster_slot) {
-                    if (g_status_685170.buffers.party_rows[roster_slot].occupied &&
-                        g_status_685170.buffers.characters[roster_slot].hp_current != 0) {
-                        populated = roster_slot;
-                        break;
-                    }
+                const char* fixture_failure = 0;
+                if (!RunOnGameThread(CompletePartyFixtureOnGameThread, &fixture_failure)) {
+                    return FailScenario("party-fixture", "game-thread-executor-failed");
                 }
-                if (populated < 0) {
-                    return FailScenario("party-fixture", "populated-character-slot-missing");
-                }
-                while (CountActiveCharacters() < 6) {
-                    int before = CountActiveCharacters();
-                    if (AddCharacterToParty(&g_status_685170.buffers.characters[populated], -1) <
-                            0 ||
-                        CountActiveCharacters() <= before) {
-                        return FailScenario("party-fixture", "party-member-add-failed");
-                    }
+                if (fixture_failure != 0) {
+                    return FailScenario("party-fixture", fixture_failure);
                 }
                 unsigned int bottom_set =
                     *(volatile unsigned int*)&g_party_selection_bottom_action_region_set_69c508;
@@ -1169,7 +1373,9 @@ static DWORD WINAPI DriveScenario(void*)
             } else {
                 /* Direct product new-game entry is the low-level bring-up
                    path; the behavioral scenario must not call it. */
-                RunNewGameOpeningSequence(1, 0);
+                if (!RunOnGameThread(StartNewGameOnGameThread, 0)) {
+                    return FailScenario("new-game-entry", "game-thread-executor-failed");
+                }
             }
 
             started = GetTickCount();
@@ -1231,12 +1437,6 @@ static DWORD WINAPI DriveScenario(void*)
                     if (save_binding != 0) {
                         char save_path[0x100];
                         int slot;
-                        for (slot = 1; slot <= 3; ++slot) {
-                            sprintf(save_path, "Saves\\Quick %d.SAV", slot);
-                            if (FileExists(save_path)) {
-                                FileDelete(save_path);
-                            }
-                        }
                         WORD save_modifiers[3];
                         int save_modifier_count = 0;
                         if ((save_binding->modifiers & SHIFT_DOWN) != 0) {
@@ -2109,110 +2309,18 @@ static DWORD WINAPI DriveScenario(void*)
                    the monster takes. The group turns hostile, its faction is
                    alerted, combat stays engaged, and the monsters' own AI
                    pathing toward the party proves the encounter simulates.
-                   The driver-side call races the render loop, so park the
-                   game loop for it the same way npc-state-reset does. */
+                   Select, relocate and provoke the group together on the
+                   game thread before observing the encounter. */
                 if (gfProgramIsRunning && g_observation.combat_ended != 0 &&
                     gXStatus.plsMonsterList != 0) {
-                    srVector3T<float> party_position;
-                    W8MonsterInfo* provoked_info = 0;
-                    float provoked_distance = 1e30f;
-                    GetCameraPosition(&party_position);
-                    for (unsigned int i = 0;
-                         i < ILLength(reinterpret_cast<W8IList*>(gXStatus.plsMonsterList)); ++i) {
-                        W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-                        if (info != 0 && info->fActive != 0 && info->monster != 0 &&
-                            info->monster_group_id != 0 && info->condition_turns[13] == 0) {
-                            float dist = (info->monster->GetPosition() - party_position).Length();
-                            if (dist < provoked_distance) {
-                                provoked_distance = dist;
-                                provoked_info = info;
-                            }
-                        }
+                    HostileEncounterContext context;
+                    if (!RunOnGameThread(ProvokeHostileEncounterOnGameThread, &context)) {
+                        return FailScenario("hostile-encounter", "game-thread-executor-failed");
                     }
-                    if (provoked_info != 0) {
-                        unsigned int provoked_location_id = provoked_info->location_id;
-                        int provoked_group_id = provoked_info->monster_group_id;
-                        gfApplicationActive = 0;
-                        Sleep(200);
-                        /* At ~17k units the hostile group's own navigation
-                           never finds a route to the party, so its combat
-                           turn can never commit a move. Relocate the group
-                           beside the camera through
-                           PositionMonsterGroupNearCamera00511050 - the same
-                           placement GroupAttacks uses for summon encounters -
-                           so the party stays grounded where it stands. A
-                           party teleport drops the collision state the frame
-                           loop needs: without ground contact the camera
-                           falls below the level bounds, BeginPartyMovement
-                           reads as a fall death and PumpReviewTransition
-                           unloads the world before StartCombat ever sees a
-                           grounded party. */
-                        W8MonsterGroup* provoked_group =
-                            GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
-                                __LINE__, "runtime-test", provoked_info->monster_group_id, 0));
-                        unsigned char placed = 0;
-                        if (provoked_group != 0) {
-                            placed = PositionMonsterGroupNearCamera00511050(provoked_group, 0.0f,
-                                                                            0.0f, 1);
-                            if (placed == 0) {
-                                placed = PositionMonsterGroupNearCamera00511050(provoked_group,
-                                                                                1500.0f, 0.0f, 1);
-                            }
-                            if (placed == 0) {
-                                placed = PositionMonsterGroupNearCamera00511050(provoked_group,
-                                                                                3000.0f, 0.0f, 1);
-                            }
-                        }
-                        fprintf(stderr, "runtime-test drop: group=%p placed=%d\n",
-                                (void*)provoked_group, placed);
-                        if (provoked_group != 0 && placed != 0) {
-                            RefreshAllSight();
-                            SetMonsterGroupNavigatorDirty(provoked_group, 0);
-                        }
-                        /* Placement may drop members that found no scatter
-                           spot; RemoveMonster detaches their monster and frees
-                           the info, so re-resolve the chosen member and fall
-                           back to any surviving member of the same group. */
-                        {
-                            unsigned int re_index = MonsterGetIndexByLocationID(
-                                __LINE__, "runtime-test", provoked_location_id, 0);
-                            provoked_info = re_index != (unsigned int)-1
-                                                ? MonsterGetScriptPartByLocationIndex(re_index)
-                                                : 0;
-                        }
-                        if (provoked_info == 0 || provoked_info->monster == 0) {
-                            provoked_info = 0;
-                            for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
-                                W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-                                if (info != 0 && info->fActive != 0 && info->monster != 0 &&
-                                    info->monster_group_id == provoked_group_id) {
-                                    provoked_info = info;
-                                    break;
-                                }
-                            }
-                        }
-                    }
+                    srVector3T<float> party_position = context.party_position;
+                    W8MonsterInfo* provoked_info = context.info;
+                    float provoked_distance = context.distance;
                     if (provoked_info != 0 && provoked_info->monster != 0) {
-                        provoked_distance =
-                            (provoked_info->monster->GetPosition() - party_position).Length();
-                        W8TargetSource source;
-                        W8CombatSlot target;
-                        memset(&target, 0, sizeof(target));
-                        target.iChar = -1;
-                        target.iMonsterID = -1;
-                        target.iGroupID = -1;
-                        SetTargetSourceToCharacter(0, &source);
-                        target.iType = W8_TARGET_KIND_MONSTER;
-                        target.iMonsterID = provoked_info->location_id;
-                        MakeTargetGroupHostile(&source, &target);
-                        gfApplicationActive = 1;
-                        PostMessage(ghWindow, WM_NULL, 0, 0);
-                        fprintf(stderr,
-                                "runtime-test provoke: hp=%d cond=%d active=%d incombat=%d "
-                                "hostile=%u combat=%u\n",
-                                provoked_info->hp_current, provoked_info->highest_condition,
-                                provoked_info->fActive, provoked_info->fInCombat,
-                                gXStatus.hostile_monster_count, gXStatus.fCombatMode);
                         /* The group is hostile and combat is engaged, but the
                            provoked monster only acts on its own turn: in
                            turn-based combat that takes a START_COMBAT_ROUND
@@ -2323,37 +2431,15 @@ static DWORD WINAPI DriveScenario(void*)
                 }
             }
             if (strcmp(g_scenario, "npc-state-reset") == 0) {
-                /* ResetLiveSessionForLoad tears the level down on the game's
-                   behalf; running it on the driver thread while the render
-                   loop is mid-frame races the same world objects, so park the
-                   game loop in WaitMessage first. One frame is ~30ms; the
-                   sleep covers an in-flight GameLoop reaching the gate. */
-                gfApplicationActive = 0;
-                Sleep(200);
-                W8MessageBoxLine* line = new W8MessageBoxLine;
-                memset(line, 0, sizeof(W8MessageBoxLine));
-                /* FINISH_ACTION with a null payload is the benign kind: a
-                   zeroed record reads as QUOTE, and the queue processor then
-                   dereferences g_npc_scripting.npc, which is null outside
-                   dialogue. */
-                line->type = W8_NPC_MSG_FINISH_ACTION;
-                if (g_npc_scripting.message_lines.Add(line) < 0) {
-                    delete line;
+                NpcStateResetContext context;
+                context.result = 0;
+                if (!RunOnGameThread(ResetNpcStateOnGameThread, &context)) {
+                    return FailScenario("npc-state-reset", "game-thread-executor-failed");
+                }
+                if (context.result < 0) {
                     return FailScenario("npc-state-reset", "finish-message-queue-insert-failed");
                 }
-                g_npc_scripting.restore_staged_session = 1;
-                g_npc_scripting.voice_handle = 7;
-                g_npc_scripting.staging_restore.current_quote_index = 0x1234;
-                g_npc_scripting.gap_track.mouth_open = 1;
-                g_npc_scripting.last_tick = 99;
-                ResetLiveSessionForLoad();
-                g_observation.npc_state_reset_ok =
-                    g_npc_scripting.message_lines.GetCount() == 0 &&
-                    g_npc_scripting.pending_script_values.GetCount() == 0 &&
-                    g_npc_scripting.restore_staged_session == 0 &&
-                    g_npc_scripting.voice_handle == 0 &&
-                    g_npc_scripting.staging_restore.current_quote_index == 0 &&
-                    g_npc_scripting.gap_track.mouth_open == 0 && g_npc_scripting.last_tick == 0;
+                g_observation.npc_state_reset_ok = context.result != 0;
                 if (!g_observation.npc_state_reset_ok) {
                     return FailScenario("npc-state-reset", "live-session-state-not-cleared");
                 }
@@ -2487,6 +2573,7 @@ int main(int argc, char** argv)
     DWORD driver_status = 2;
     GetExitCodeThread(driver, &driver_status);
     CloseHandle(driver);
+    ShutdownRuntimeGameThreadExecutor();
 
     if (strcmp(g_scenario, "sight-threshold") == 0 || strcmp(g_scenario, "oct-file") == 0) {
         SGPExit();

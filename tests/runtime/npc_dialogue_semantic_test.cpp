@@ -1,5 +1,5 @@
 /* In-process semantic scenario for the NPC message queue recovered in
-   NPC Scripting.cpp. The scenario runs on the driver thread once the main
+   NPC Scripting.cpp. The scenario runs on the game thread once the main
    menu is live.
 
    It fabricates a script NPC whose record flags (flag_2ea set, no monster, no
@@ -86,6 +86,9 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     fake_npc->record = fake_record;
     fake_npc->name_style = 0x99;
     fake_screen->dialogue_npc = fake_npc;
+    /* The queue/layout fixture has no dialogue controls. Its implicit
+       constructor initializes containers, not this scalar UI state. */
+    fake_screen->dialogue_cursor_flag = 0;
 
     saved_level_block = g_level_block;
     test_level_block = 0;
