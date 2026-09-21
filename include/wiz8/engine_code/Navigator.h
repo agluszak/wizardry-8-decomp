@@ -96,6 +96,12 @@ struct W8NavigatorAttachment {
        exceeded the remainder of the live segment. */
     unsigned char AdvancePositionTowardWaypoint00456F60(srVector3T<float>* position,
                                                         float distance); /* 0x00456F60 */
+    /* Step `position` along the recorded route by the 3-D `distance`,
+       consuming each waypoint the step covers and writing the live segment's
+       unit direction into `out_delta`; returns nonzero once the route's last
+       waypoint is consumed. */
+    unsigned char AdvancePositionAlongPath00457150(srVector3T<float>* position, float distance,
+                                                   srVector3T<float>* out_delta); /* 0x00457150 */
 };
 
 class W8Navigator;

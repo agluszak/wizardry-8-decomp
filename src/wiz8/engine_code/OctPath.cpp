@@ -17,6 +17,9 @@
 #include "wiz8/float_constants.h"
 #include "wiz8/regions.h"
 #include "wiz8/local_code/MonsterManager.h"
+#include "wiz8/local_code/MonsterGroup.h"
+#include "wiz8/local_code/MonsterAI.h"
+#include "wiz8/local_code/Sight.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/sr_api.h"
@@ -3200,6 +3203,59 @@ unsigned char W8PathingService::PrepareLinkedNavigator00466FB0(W8NavigatorMoveme
         }
     }
     return built;
+}
+
+/* One movement step for a monster navigator walking an attachment path. Each
+   iteration caps the scaled substep at five units, advances the position and
+   backfills visit timestamps on the surfaces the route crossed, turns the
+   navigator toward the live segment, and lets a hostile group's sight and
+   real-time AI run inside the step. Returns whether the route's last waypoint
+   was consumed or combat broke the walk. */
+// FUNCTION: WIZ8 0x00467150
+unsigned int W8PathingService::StepMonsterAlongPath00467150(W8NavigatorMovementState* movement,
+                                                            float radius, float separation)
+{
+    g_navigator_position_changed_659c11 = true;
+    unsigned char done = '\0';
+    unsigned int monster_index =
+        MonsterGetIndexByLocationID(0x2a95, OCTPATH_CPP, movement->location_id_004, 1);
+    W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
+    W8MonsterGroup* monster_group = GetMonsterGroupByListIndex(
+        GetMonsterGroupIndexByID(0x2a96, OCTPATH_CPP, monster_info->monster_group_id, 1));
+    monster_info->monster->unknown_0bc[1] = 1;
+    float budget = g_rate_006068EC * g_game_time_accumulator_6598bc->GetValue28();
+    while (budget > g_float_005ebb34) {
+        float step = g_float_005ebc28 < budget ? 5.0f : budget;
+        W8NavigatorAttachment* attachment = movement->attachment_0ac;
+        srVector3T<float> delta;
+        unsigned short previous = attachment->path_cursor_04;
+        done = attachment->AdvancePositionAlongPath00457150(
+            &movement->position_040, step * movement->movement_scale_060 * g_world_scale_005ebc40,
+            &delta);
+        unsigned short cursor = attachment->path_cursor_04;
+        if (previous < cursor) {
+            do {
+                attachment->path_cursor_04 = previous++;
+                m_pSurfaces_048[attachment->path_values_50[attachment->path_cursor_04]]
+                    .positional_14 = g_game_time_accumulator_6598bc->GetValue30();
+            } while (previous < cursor);
+            attachment->path_cursor_04 = cursor;
+        }
+        movement->yaw = movement->target_yaw =
+            NormalizeAngle(static_cast<float>(atan2(delta.x, delta.z)));
+        if (monster_group->ubDisposition == DISP_HOSTILE) {
+            UpdateMonsterSight(monster_info, 1, 0);
+            DoMonsterRTAI(monster_info, 1);
+            if (monster_info->fInCombat != 0) {
+                break;
+            }
+        }
+        budget -= step;
+        if (done != '\0') {
+            break;
+        }
+    }
+    return done != '\0';
 }
 
 /* Give everything the service owns back. The four malloc'd tables and the

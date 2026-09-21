@@ -1393,6 +1393,32 @@ W8NavigatorAttachment::AdvancePositionTowardWaypoint00456F60(srVector3T<float>* 
     return reached;
 }
 
+// FUNCTION: WIZ8 0x00457150
+unsigned char W8NavigatorAttachment::AdvancePositionAlongPath00457150(srVector3T<float>* position,
+                                                                      float distance,
+                                                                      srVector3T<float>* out_delta)
+{
+    while (path_cursor_04 <= path_position_index_08 && distance > g_zero_005ebb40) {
+        *out_delta = position_4c[path_cursor_04] - *position;
+        float length = out_delta->Length();
+        if (length > g_zero_005ebb40) {
+            *out_delta /= length;
+        }
+        if (distance < length) {
+            *position += *out_delta * distance;
+            distance = g_zero_005ebb40;
+        } else {
+            *position = position_4c[path_cursor_04];
+            distance -= length;
+            if (path_cursor_04 == path_position_index_08) {
+                return 1;
+            }
+            ++path_cursor_04;
+        }
+    }
+    return 0;
+}
+
 // FUNCTION: WIZ8 0x00452560
 void W8Navigator::SetScale(float scale)
 {
