@@ -1232,6 +1232,38 @@ void SetRendererOption4Enabled(char enabled)
     }
 }
 
+/* The static scene's fog colour clamped into 0..1 for the caller; an empty
+   world reports black. */
+// FUNCTION: WIZ8 0x00427290
+void GetWorldColour00427290(EnvironmentColour* colour)
+{
+    if (g_world == 0) {
+        colour->red = 0.0f;
+        colour->green = 0.0f;
+        colour->blue = 0.0f;
+    } else {
+        const srVector3T<float> fog = g_world->static_scene->getFogColor();
+        colour->red = fog.x;
+        colour->green = fog.y;
+        colour->blue = fog.z;
+        if (fog.x <= 0.0f) {
+            colour->red = 0.0f;
+        } else if (fog.x >= 1.0f) {
+            colour->red = 1.0f;
+        }
+        if (fog.y <= 0.0f) {
+            colour->green = 0.0f;
+        } else if (fog.y >= 1.0f) {
+            colour->green = 1.0f;
+        }
+        if (fog.z <= 0.0f) {
+            colour->blue = 0.0f;
+        } else if (fog.z >= 1.0f) {
+            colour->blue = 1.0f;
+        }
+    }
+}
+
 // FUNCTION: WIZ8 0x00428e20
 int GetUsedPageFileBytes(void)
 {
