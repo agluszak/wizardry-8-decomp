@@ -71,9 +71,9 @@ struct W8OctBuildTree00446390 {
     int CollectObjectsAlongSegment00446D80(int** results, const srVector3T<float>* from,
                                            const srVector3T<float>* to, float half_angle,
                                            float extent, unsigned short kind);
-    /* Append `surface` to the node's `kind` link list, growing the tail and
+    /* Append `payload` to the node's `kind` link list, growing the tail and
        raising the leaf counter plus the tree's deepest-list watermark. */
-    void AppendLink00446D00(W8OctBuildNode00446330* node, W8GDSurface* surface, short kind);
+    void AppendLink00446D00(W8OctBuildNode00446330* node, void* payload, short kind);
     /* Recursive box descent for the segment collect: classify the state's box
        against `bounds` (six floats: min then max), then collect the leaf,
        descend the octants, or skip the node entirely. */

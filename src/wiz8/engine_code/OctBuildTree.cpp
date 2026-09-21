@@ -322,11 +322,11 @@ unsigned char W8OctBuildTree00446390::InsertSurfaceRecursive004469F0(W8OctSpatia
     return inserted;
 }
 
-/* Append `surface` to the node's `kind` link list: bump the leaf counter and
+/* Append `payload` to the node's `kind` link list: bump the leaf counter and
    the tree watermark, then either extend the tail or seed the head. The same
    body is inlined inside InsertSurfaceRecursive's leaf path. */
 // FUNCTION: WIZ8 0x00446d00
-void W8OctBuildTree00446390::AppendLink00446D00(W8OctBuildNode00446330* node, W8GDSurface* surface,
+void W8OctBuildTree00446390::AppendLink00446D00(W8OctBuildNode00446330* node, void* payload,
                                                 short kind)
 {
     ++node->leaf_kind_2a;
@@ -335,14 +335,14 @@ void W8OctBuildTree00446390::AppendLink00446D00(W8OctBuildNode00446330* node, W8
     }
     W8OctBuildLink* head = node->links_00[kind];
     if (head == 0) {
-        node->links_00[kind] = link_lists_9c->GetNewLink(surface);
+        node->links_00[kind] = link_lists_9c->GetNewLink(payload);
         return;
     }
     W8OctBuildLink* next;
     for (next = head->next_04; next != 0; next = next->next_04) {
         head = next;
     }
-    head->next_04 = link_lists_9c->GetNewLink(surface);
+    head->next_04 = link_lists_9c->GetNewLink(payload);
 }
 
 /* Segment query over the build tree: seed the caller's result array with the

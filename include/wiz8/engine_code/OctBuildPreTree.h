@@ -33,7 +33,7 @@ struct W8OctRegionPolygon {
     unsigned long kind_2c;
     /* Set by the polygon builder when the face collapses. */
     unsigned char degenerate_30;
-    unsigned char positional_31;
+    unsigned char visited_31;
     unsigned short region_32;
     /* Corner vertices of the shared build-vertex array; the material sort
        and SplitVertices repoint these at split copies. */
@@ -46,10 +46,17 @@ struct W8OctRegionPolygon {
     W8ReadMeshFace face_48;
     unsigned char positional_71[3];
 
+    /* Tests the polygon's representative point against six frustum planes;
+       inside means every plane distance is non-negative. */
+    unsigned char InsideFrustumPlanes004CFAE0(const srVector4T<float>* planes) const;
     unsigned char ContainsPoint004CFB30(const srVector3T<float>* bounds) const;
 };
 
 static_assert(sizeof(W8OctRegionPolygon) == 0x74, "W8OctRegionPolygon_must_be_0x74");
+
+/* Grows `*run` to (count + capacity) dwords when count lands on a capacity
+   boundary, preserving existing entries. */
+int CheckArrayLength004CFB70(int** run, unsigned short count, unsigned short capacity);
 
 extern int g_value_65be60;
 extern unsigned long g_value_65be58;
@@ -90,12 +97,34 @@ struct OctBuildPreTree : W8OctBuildTree00446390 {
     unsigned char SortGeometry004AFEA0(W8OctPreTreeGeometry* geometry);
     /* Inserts one region polygon into the octree working state. */
     unsigned char InsertSurface004B02F0(W8OctRegionPolygon* polygon, unsigned long mode);
+    /* Recursive inserter for InsertSurface: subdivides to the leaf, collecting
+       overlapping region ids on first touch and appending the polygon to the
+       leaf's mode link list. */
+    unsigned char InsertSurfaceRecursive004B03E0(W8OctSpatialState* working,
+                                                 W8OctRegionPolygon* polygon, unsigned long mode);
+    /* Fill the leaf's region-id list with every region volume overlapping
+       `bounds`; grows a 50-entry scratch list on first use. */
+    void FindLeafRegions004B1090(W8OctBuildNode00446330* node, const W8BoundingBox* bounds);
     /* Loads the .rlk region file beside the level and folds its bounds into
        the build. */
-    unsigned char LoadRegionFile004B0C90(const char* stem, srVector3T<float>* minimum,
-                                         srVector3T<float>* maximum);
+    unsigned short LoadRegionFile004B0C90(const char* stem, srVector3T<float>* minimum,
+                                          srVector3T<float>* maximum);
     /* Walks the node tree remapping leaf region ids through positional_100. */
     void RemapNodeRegions004B16B0(W8OctBuildNode00446330* node, int depth);
+    /* Assigns a polygon's region_32 from the region volume containing its
+       representative point, falling back to the corner vertices' regions;
+       marks multi-region polygons with flags bit2 and counts the assignment
+       on the volume. */
+    void AssignPolygonRegion004B1190(W8OctRegionPolygon* polygon);
+    /* Region assignment pass run by SortGeometry: builds each vertex's
+       polygon-reference run, assigns vertex and polygon regions against the
+       region volumes, compacts dead regions and finishes in BuildRegions. */
+    unsigned char AssignPolygonRegions004B1280(W8OctPreTreeGeometry* geometry);
+    /* Resolves a shared polygon (flags bit2): histograms the neighboring
+       polygons' regions collected through the corner vertices' face runs,
+       picks the most frequent region the polygon actually touches, assigns it
+       and counts it on the volume. Answers the polygon's region_32. */
+    unsigned short SplitSharedPolygon004B1780(W8OctPreTreeGeometry* geometry, int index);
 
     unsigned long path_capacity_bc;
     unsigned short selected_depth_c0;
@@ -107,7 +136,9 @@ struct OctBuildPreTree : W8OctBuildTree00446390 {
     unsigned char padding_f5[3];
     BitArray* region_bits_f8;
     srVector3T<float>* m_psrvRegCenters;
-    unsigned long positional_100;
+    /* Region remap table indexed by old region id; RemapNodeRegions frees it
+       after rewriting every leaf's region list through it. */
+    unsigned short* positional_100;
     unsigned short* mesh_particle_lookup_104;
     unsigned short* mesh_particles_108;
     unsigned short mesh_particle_count_10c;
