@@ -89,6 +89,11 @@ bool SwampFirePlane004DAA10(Trigger* pTrigger)
    is unset: spawn monster 0x1b5 at the triggering plane's center, fade it in
    under the camera, arm the item-drop master function, and hand the
    location-0xa3 NPC binding a script notice. */
+/* 0x004DAA8A is a split entry Ghidra carved out of this body: it resumes at
+   the SetFact call after the fact-0x16d early return, not a separate
+   authored function. */
+// SYNTHETIC: WIZ8 0x004DAA8A
+// SwampGasFireSpawn004DAA70 post-guard continuation
 // FUNCTION: WIZ8 0x004DAA70
 bool SwampGasFireSpawn004DAA70(Trigger* pTrigger)
 {
