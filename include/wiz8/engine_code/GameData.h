@@ -160,7 +160,14 @@ struct W8GameData {
     void ReadProcessedGameData(int handle); /* 0x00449240 */
     /* Writes the game-data block WriteOctFile appends after the terminator. */
     unsigned char WriteGameData0044AA40(int handle); /* 0x0044AA40 */
-    unsigned char Function447660(HANDLE file, int index);
+    /* Reads one WGD polygon/vertex list section from the open file: a vertex
+       bank and a face bank, appended onto the live arrays when poly_type is
+       nonzero. The nonzero path also reads each face's conditional record,
+       deduplicates its name into m_ppNames and collects the conditional-face
+       triples CompileGDInterfaces consumes. */
+    unsigned char ReadWGDList00447660(HANDLE file, int poly_type); /* 0x00447660 */
+    /* Compiles the collected conditional-face triples into m_pInterfaces. */
+    void CompileGDInterfaces00447FB0(int* cond_faces, int cond_face_count); /* 0x00447FB0 */
     /* Release the level-data record, game-time accumulator and companion
        level-data globals; runs first in ~W8GameData. */
     void ReleaseLevelData0041A9E0();

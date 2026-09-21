@@ -16,6 +16,7 @@
 #include "FileMan.h"
 
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <windows.h>
@@ -65,13 +66,279 @@ W8GameData* ReadGameData00447570(const char* path, bool secondary)
     if (game_data == 0) {
         srAssertFail("pGameData", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0xa7, 0);
     }
-    got_polygons = game_data->Function447660(file, 0);
-    got_vertices = game_data->Function447660(file, 1);
+    got_polygons = game_data->ReadWGDList00447660(file, 0);
+    got_vertices = game_data->ReadWGDList00447660(file, 1);
     if (got_vertices == 0 && got_polygons == 0) {
         ReportBuildStatus00497690(7, "ReadGameData: No polygons or vertices in GameData!\n");
     }
     CloseHandle(file);
     return game_data;
+}
+
+/* Serialized WGD records ReadWGDList pulls from the file stream. The face
+   header is `tfFace` (assertion-proven field iVersion); the attribute record
+   follows it and poly_type != 0 sections append the named conditional-face
+   record. */
+struct W8WgdFace {
+    int vertex_indices_00[3];
+    float plane_0c[3];
+    int iVersion_18;
+};
+static_assert(sizeof(W8WgdFace) == 0x1c, "W8WgdFace must be 0x1c bytes");
+
+struct W8WgdFaceAttributes {
+    int type_00;
+    float slope_04;
+    float value_08;
+    unsigned char footstep_material_0c;
+    unsigned char footstep_surface_0d;
+    unsigned char pad_0e[2];
+    int positional_10;
+    int trigger_14;
+};
+static_assert(sizeof(W8WgdFaceAttributes) == 0x18, "W8WgdFaceAttributes must be 0x18 bytes");
+
+struct W8WgdCondFace {
+    int value_00;
+    char name_04[0x40];
+};
+static_assert(sizeof(W8WgdCondFace) == 0x44, "W8WgdCondFace must be 0x44 bytes");
+
+// FUNCTION: WIZ8 0x00447660
+unsigned char W8GameData::ReadWGDList00447660(HANDLE file, int poly_type)
+{
+    char message[100];
+    int* pCondFaces = 0;
+    unsigned long bytes_read;
+    unsigned char fSuccess;
+    int vertex_count;
+    int polygon_count;
+    int index;
+    int i2;
+    int num_cond_faces = 0;
+    int* pCondFace;
+    srVector3T<float> vertex;
+    W8WgdFace tfFace;
+    W8WgdFaceAttributes attributes;
+    W8WgdCondFace cond_record;
+    float bounds_min[3];
+    float bounds_max[3];
+    srVector3T<float>* old_vertices;
+    W8GDSurface* old_surfaces;
+
+    if (poly_type < 0 || poly_type > 2) {
+        ReportBuildStatus00497690(7, "ReadWGDList: Invalid poly type.\n");
+    }
+
+    fSuccess = ReadFile(file, &vertex_count, 4, &bytes_read, 0);
+    fSuccess &= ReadFile(file, &polygon_count, 4, &bytes_read, 0);
+    if (fSuccess == 0) {
+        srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0xe5,
+                     "Error reading counts from WGD file.");
+    }
+    if (polygon_count <= 0 || vertex_count <= 0) {
+        return 0;
+    }
+    if (polygon_count > 200000) {
+        sprintf(message, "Too many GameData polygons: %d!\n", polygon_count);
+        ReportBuildStatus00497690(7, message);
+        return 0;
+    }
+    if (vertex_count > 200000) {
+        sprintf(message, "Too many GameData vertices: %d!\n", vertex_count);
+        ReportBuildStatus00497690(7, message);
+        return 0;
+    }
+
+    if (poly_type == 0) {
+        m_pVertices = new srVector3T<float>[vertex_count];
+        if (m_pVertices == 0) {
+            srAssertFail("m_pVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                         0x114, "ReadWGDList: Could not allocate vertices.");
+        }
+        m_pSurfaces = static_cast<W8GDSurface*>(malloc(polygon_count * sizeof(W8GDSurface)));
+        if (m_pSurfaces == 0) {
+            srAssertFail("m_pSurfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                         0x116, "ReadWGDList: Could not allocate surfaces.");
+        }
+    } else {
+        old_surfaces = m_pSurfaces;
+        old_vertices = m_pVertices;
+        m_pVertices = new srVector3T<float>[vertex_count + m_iNumVertices];
+        if (m_pVertices == 0) {
+            srAssertFail("m_pVertices", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                         0x101, "ReadWGDList: Could not allocate vertices.");
+        }
+        memcpy(m_pVertices, old_vertices, m_iNumVertices * sizeof(srVector3T<float>));
+        delete[] old_vertices;
+        m_pSurfaces = static_cast<W8GDSurface*>(
+            malloc((m_iNumSurfaces + polygon_count) * sizeof(W8GDSurface)));
+        if (m_pSurfaces == 0) {
+            srAssertFail("m_pSurfaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
+                         0x106, "ReadWGDList: Could not allocate surfaces.");
+        }
+        memcpy(m_pSurfaces, old_surfaces, m_iNumSurfaces * sizeof(W8GDSurface));
+        free(old_surfaces);
+        pCondFaces = static_cast<int*>(malloc(polygon_count * 0xc));
+        if (pCondFaces == 0) {
+            srAssertFail("pCondFaces", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x10c,
+                         "ReadWGDList: Could not allocate pCondFaces.");
+        }
+        m_ppNames = static_cast<char**>(malloc(polygon_count * sizeof(char*)));
+        if (m_ppNames == 0) {
+            srAssertFail("m_ppNames", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x10e,
+                         "ReadWGDList: Could not allocate name list.");
+        }
+        memset(m_ppNames, 0, polygon_count * sizeof(char*));
+    }
+
+    for (index = m_iNumVertices; index < m_iNumVertices + vertex_count; ++index) {
+        fSuccess &= ReadFile(file, &vertex, sizeof(vertex), &bytes_read, 0);
+        if (fSuccess == 0) {
+            srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x120,
+                         "Error reading vertex from WGD file.");
+        }
+        m_pVertices[index].x = vertex.x * g_world_scale_005ebc40;
+        m_pVertices[index].y = vertex.y * g_world_scale_005ebc40;
+        m_pVertices[index].z = vertex.z * g_world_scale_005ebc40;
+        if (index == m_iNumVertices) {
+            minimum_08 = vertex;
+            maximum_14 = vertex;
+        } else {
+            if (vertex.x < minimum_08.x) {
+                minimum_08.x = vertex.x;
+            }
+            if (vertex.x > maximum_14.x) {
+                maximum_14.x = vertex.x;
+            }
+            if (vertex.y < minimum_08.y) {
+                minimum_08.y = vertex.y;
+            }
+            if (vertex.y > maximum_14.y) {
+                maximum_14.y = vertex.y;
+            }
+            if (vertex.z < minimum_08.z) {
+                minimum_08.z = vertex.z;
+            }
+            if (vertex.z > maximum_14.z) {
+                maximum_14.z = vertex.z;
+            }
+        }
+    }
+
+    pCondFace = pCondFaces;
+    for (index = m_iNumSurfaces; index < m_iNumSurfaces + polygon_count; ++index) {
+        W8GDSurface* surface = &m_pSurfaces[index];
+        fSuccess &= ReadFile(file, &tfFace, sizeof(tfFace), &bytes_read, 0);
+        if (tfFace.iVersion_18 != 2) {
+            srAssertFail("(tfFace.iVersion == 2 )",
+                         "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x142,
+                         "Wrong version of WGD data--Get new plugin.");
+        }
+        fSuccess &= ReadFile(file, &attributes, sizeof(attributes), &bytes_read, 0);
+        if (poly_type != 0) {
+            fSuccess &= ReadFile(file, &cond_record, sizeof(cond_record), &bytes_read, 0);
+        }
+        if (fSuccess == 0) {
+            srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x146,
+                         "Error reading face from WGD file.");
+        }
+        surface->value_40 = attributes.value_08;
+        surface->slope_48 = attributes.slope_04;
+        surface->positional_44 = attributes.positional_10;
+        surface->trigger_index_08 = attributes.trigger_14;
+        surface->footstep_material_3d = attributes.footstep_material_0c;
+        surface->footstep_surface_3c = attributes.footstep_surface_0d;
+        surface->flags_00 = attributes.type_00 == 1 ? 0x44 : 0;
+        surface->plane_24[0] = tfFace.plane_0c[0];
+        surface->plane_24[1] = tfFace.plane_0c[1];
+        surface->plane_24[2] = tfFace.plane_0c[2];
+        float largest = fabsf(surface->plane_24[0]);
+        unsigned int dominant_axis = 0;
+        if (largest < fabsf(surface->plane_24[1])) {
+            largest = fabsf(surface->plane_24[1]);
+            dominant_axis = 1;
+        }
+        if (largest < fabsf(surface->plane_24[2])) {
+            dominant_axis = 2;
+        }
+        surface->flags_00 |= dominant_axis;
+        surface->vertex_indices_18[0] = tfFace.vertex_indices_00[0] + m_iNumVertices;
+        surface->vertex_indices_18[1] = tfFace.vertex_indices_00[1] + m_iNumVertices;
+        surface->vertex_indices_18[2] = tfFace.vertex_indices_00[2] + m_iNumVertices;
+        surface->index_04 = index;
+        surface->trigger_index_08 = 0;
+        surface->positional_0c = -1;
+        surface->positional_10 = -1;
+        surface->positional_14 = -1;
+        surface->hit_plane_38 = 0;
+        ClassifySurfacePlane004498C0(m_pVertices, surface);
+        if (poly_type != 0) {
+            pCondFace[1] = index;
+            pCondFace[0] = 0;
+            pCondFace[2] = cond_record.value_00;
+            for (i2 = 0; i2 < m_iNumNames && pCondFace[0] == 0; ++i2) {
+                if (strcmp(cond_record.name_04, m_ppNames[i2]) == 0) {
+                    pCondFace[0] = i2 + 1;
+                }
+            }
+            if (pCondFace[0] == 0) {
+                m_ppNames[i2] = static_cast<char*>(malloc(0x40));
+                if (m_ppNames[i2] == 0) {
+                    srAssertFail("m_ppNames[i2]",
+                                 "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x187,
+                                 "ReadWGDList: Couldn't allocate name string.");
+                }
+                strcpy(m_ppNames[i2], cond_record.name_04);
+                if (m_iNumInterfaces == 0) {
+                    m_iNumInterfaces = 1;
+                }
+                pCondFace[0] = m_iNumInterfaces;
+                ++m_iNumInterfaces;
+                ++m_iNumNames;
+            }
+            surface->trigger_index_08 = pCondFace[0];
+            pCondFace += 3;
+            ++num_cond_faces;
+        }
+    }
+
+    ReadFile(file, &bounds_min[0], 4, &bytes_read, 0);
+    ReadFile(file, &bounds_min[1], 4, &bytes_read, 0);
+    ReadFile(file, &bounds_min[2], 4, &bytes_read, 0);
+    ReadFile(file, &bounds_max[0], 4, &bytes_read, 0);
+    ReadFile(file, &bounds_max[1], 4, &bytes_read, 0);
+    ReadFile(file, &bounds_max[2], 4, &bytes_read, 0);
+    for (index = 0; index < 3; ++index) {
+        bounds_min[index] *= g_world_scale_005ebc40;
+        bounds_max[index] *= g_world_scale_005ebc40;
+    }
+    if (bounds_min[0] < minimum_08.x) {
+        minimum_08.x = bounds_min[0];
+    }
+    if (bounds_min[1] < minimum_08.y) {
+        minimum_08.y = bounds_min[1];
+    }
+    if (bounds_min[2] < minimum_08.z) {
+        minimum_08.z = bounds_min[2];
+    }
+    if (bounds_max[0] > maximum_14.x) {
+        maximum_14.x = bounds_max[0];
+    }
+    if (bounds_max[1] > maximum_14.y) {
+        maximum_14.y = bounds_max[1];
+    }
+    if (bounds_max[2] > maximum_14.z) {
+        maximum_14.z = bounds_max[2];
+    }
+
+    if (m_ppNames != 0 && pCondFaces != 0) {
+        CompileGDInterfaces00447FB0(pCondFaces, num_cond_faces);
+        free(pCondFaces);
+    }
+    m_iNumVertices += vertex_count;
+    m_iNumSurfaces += polygon_count;
+    return 1;
 }
 
 // FUNCTION: WIZ8 0x00448310
