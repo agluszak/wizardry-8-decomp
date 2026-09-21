@@ -32,6 +32,8 @@ extern const wchar_t g_format_s_colon_s_0061c3e0[];
 extern const wchar_t g_format_s_colon_s_paren_d_006481b4[];
 /* MainGameScreen.cpp GLOBAL at 0x0064DA8C: the " %s : " display format. */
 extern const wchar_t g_format_s_spaced_colon_0064da8c[];
+/* MainGameScreen.cpp GLOBAL at 0x0061A700: the "%s (%d)" display format. */
+extern const wchar_t g_format_s_paren_d_0061a700[];
 
 extern W8MainGameResourceSlot g_main_game_resource_slots[17];
 extern W8ScreenRect g_viewport_modes_647d30[];

@@ -299,9 +299,9 @@ void RedrawPanel69B940(void);           /* 0x0059BC00 */
 
 void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled); /* 0x0059A540 */
 
-void DrawMainGamePrompt(void);                              /* 0x0056AC80 */
-void Function58C790(void);                                  /* 0x0058C790 */
-void Function59CF50(int active);                            /* 0x0059CF50 */
+void DrawMainGamePrompt(void); /* 0x0056AC80 */
+void Function58C790(void);     /* 0x0058C790 */
+
 void InvalidateLockInteractionPanels(void);                 /* 0x00587C50 */
 unsigned char GetOpenDialogueFlag(void);                    /* 0x0058D7C0 */
 void RedrawTextBoxComplete(void);                           /* 0x0058A8C0 */
@@ -3829,9 +3829,9 @@ void ApplyMainGameRedrawFlags(void)
             RedrawPanel69B998();
         }
         if ((g_level_block->redraw_flags & 0x200) == 0) {
-            Function59CF50(0);
+            UpdateUseItemSelect0059CF50(0);
         } else {
-            Function59CF50(1);
+            UpdateUseItemSelect0059CF50(1);
         }
         goto finish_mode_overlays;
     }
@@ -4342,7 +4342,7 @@ void SelectPartyCharacter(int party_slot)
         SelectSpellCastingCharacter(g_status_685170.selected_character);
     }
     if (gXStatus.fItemSelectMode != 0) {
-        Function59CC40(g_status_685170.selected_character);
+        RefreshUseItemSelectionForSlot0059CC40(g_status_685170.selected_character);
     }
     if (gXStatus.fNpcDialogueMode != 0) {
         SyncNpcServiceButtons0056EE20(g_status_685170.selected_character);

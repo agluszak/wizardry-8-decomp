@@ -8,7 +8,9 @@ class W8TextControl;
 class W8DialogBase;
 struct W8ItemInstance;
 
-extern Controls* g_panel_69b998;
+/* 0x0069B994: the three use-item select panels; element 1 is the list panel
+   iterated together with its siblings by the per-frame update. */
+extern Controls* g_use_item_select_panels_69b994[3];
 
 /* 0x0069B950: up/down scroll buttons for the use-item select list. */
 extern W8TextControl* g_use_item_select_scroll_buttons[2];
@@ -45,8 +47,13 @@ void RestoreTargetCursor59D930(W8DialogBase* dialog);        /* 0x0059D930 */
 void UpdateUseItemDetailPanel0059DFA0(W8ItemInstance* item); /* 0x0059DFA0 */
 void TakeUseItemIntoHand0059E0F0(void);                      /* 0x0059E0F0 */
 
-void CloseUseItemSelectView(void);   /* 0x0059CAC0 */
-void Function59CC40(int party_slot); /* 0x0059CC40 */
+void CloseUseItemSelectView(void); /* 0x0059CAC0 */
+/* 0x0059CC40: retarget the open use-item list at party_slot (drag, recorded
+   item, or plain refresh paths). */
+void RefreshUseItemSelectionForSlot0059CC40(int party_slot);
+/* 0x0059CF50: fItemSelectMode per-frame update: panel redraws plus the
+   pending-use commit check. */
+void UpdateUseItemSelect0059CF50(unsigned char active);
 /* 0x0059D690: after dropping a cursor item during use-item select, refresh
    the selected line. */
 void RefreshUseItemSelection(void);
