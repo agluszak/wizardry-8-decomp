@@ -12,7 +12,7 @@
 namespace {
 unsigned long next_instance_id = 1;
 
-unsigned long hashInteger(unsigned long value)
+inline unsigned long hashInteger(unsigned long value)
 {
     return ((value >> 10) ^ value) >> 10 ^ value;
 }
@@ -36,7 +36,7 @@ public:
 
     RegistryHash() : buckets_00(0), entries_04(0), free_08(-1), bucket_count_0c(0)
     {
-        resize(4);
+        resize();
     }
 
     ~RegistryHash()
@@ -51,9 +51,6 @@ public:
 
     Value find(Key key) const
     {
-        if (bucket_count_0c == 0) {
-            return 0;
-        }
         int entry = buckets_00[hashInteger((unsigned long)key) & (bucket_count_0c - 1)];
         while (entry != -1) {
             if (entries_04[entry].key_04 == key) {
@@ -66,11 +63,7 @@ public:
 
     void insert(Key key, Value value)
     {
-        if (free_08 == -1) {
-            resize(bucket_count_0c * 2);
-        }
-        int entry = free_08;
-        free_08 = entries_04[entry].next_00;
+        int entry = allocateEntry();
         unsigned long bucket = hashInteger((unsigned long)key) & (bucket_count_0c - 1);
         entries_04[entry].key_04 = key;
         entries_04[entry].value_08 = value;
@@ -80,9 +73,6 @@ public:
 
     Value erase(Key key)
     {
-        if (bucket_count_0c == 0) {
-            return 0;
-        }
         unsigned long bucket = hashInteger((unsigned long)key) & (bucket_count_0c - 1);
         int* link = &buckets_00[bucket];
         while (*link != -1) {
@@ -107,16 +97,27 @@ public:
         entries_04 = 0;
         free_08 = -1;
         bucket_count_0c = 0;
-        resize(4);
+        resize();
     }
 
-    void resize(unsigned long count)
+    int allocateEntry()
     {
+        if (free_08 == -1) {
+            resize();
+        }
+        int entry = free_08;
+        free_08 = entries_04[entry].next_00;
+        return entry;
+    }
+
+    void resize()
+    {
+        unsigned long count = bucket_count_0c * 2;
         if (count < 4) {
             count = 4;
         }
-        int* buckets = static_cast<int*>(operator new(count * sizeof(int)));
         Entry* entries = static_cast<Entry*>(operator new(count * sizeof(Entry)));
+        int* buckets = static_cast<int*>(operator new(count * sizeof(int)));
         for (unsigned long index = 0; index < count; ++index) {
             buckets[index] = -1;
             entries[index].next_00 = -1;
@@ -138,14 +139,14 @@ public:
             operator delete(entries_04);
         }
 
-        for (unsigned long free_index = used; free_index + 1 < count; ++free_index) {
+        for (unsigned long free_index = used; free_index < count; ++free_index) {
             entries[free_index].next_00 = free_index + 1;
         }
         entries[count - 1].next_00 = -1;
-        buckets_00 = buckets;
-        entries_04 = entries;
         free_08 = used;
+        buckets_00 = buckets;
         bucket_count_0c = count;
+        entries_04 = entries;
     }
 
 private:
@@ -297,7 +298,7 @@ private:
         unsigned long old_bucket_count = bucket_count_20;
         bucket_count_20 = bucket_count;
         free_14 = 0;
-        by_instance_00.resize(4);
+        by_instance_00.resize();
         NameEntry* entries = 0;
         NameEntry** buckets = 0;
         if (bucket_count != 0) {
