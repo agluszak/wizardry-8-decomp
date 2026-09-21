@@ -27,6 +27,9 @@ public:
 
     explicit stModelInstance(srNode* parent);                 /* 0x0047EC80 */
     stModelInstance& operator=(const stModelInstance& other); /* 0x0047EDF0 */
+    /* Overrides the srModel::Client slot on the secondary base; retail calls
+       the model's class-id getter before forwarding to the base setter. */
+    virtual void setModel(srModel* model) override; /* 0x0047F0C0 */
     virtual srClass* vInstance() override;
 
     virtual void process(const ProcessInfo& info, e_processType type) override; /* 0x0047F560 */

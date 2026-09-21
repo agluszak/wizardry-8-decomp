@@ -62,6 +62,8 @@ void RefreshWorldCursorNodeLabel0048DCA0(W8WorldCursorNode* entry);
 /* Return the indexed cursor node, or the first node when the index is past the end. */
 W8WorldCursorNode* GetWorldCursorNode0048ED10(int index);
 void AttachWorldCursorNode0048ED30(W8WorldCursorNode* entry, unsigned char attached);
+/* 0x0048F110: copy `name` into the node's 0x20-byte name_24 with a forced
+   terminator. */
 void SetWorldCursorNodeName0048F110(W8WorldCursorNode* entry, const char* name);
 void SetWorldCursorNodeColor0048E400(W8WorldCursorNode* entry, unsigned long color);
 /* 0x0048E3E0: the world-cursor node under the screen point, or 0. */

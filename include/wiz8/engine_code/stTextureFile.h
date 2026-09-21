@@ -5,8 +5,10 @@
 
 class stTextureFile;
 
-/* The 18-byte Truevision TGA file header consumed by the texture loader. */
-#pragma pack(push, 1)
+/* The Truevision TGA file header consumed by the texture loader. The struct
+   is naturally aligned, not packed: LoadSurfacePixels reads width at +0x0e,
+   height at +0x10, pixel_depth at +0x12 and image_descriptor at +0x13, which
+   fixes the 0x14-byte layout with pad bytes at +0x03 and +0x09. */
 struct W8TgaHeader {
     unsigned char id_length;
     unsigned char color_map_type;
@@ -21,12 +23,15 @@ struct W8TgaHeader {
     unsigned char pixel_depth;
     unsigned char image_descriptor;
 };
-#pragma pack(pop)
 
-static_assert(sizeof(W8TgaHeader) == 18, "W8TgaHeader_must_be_18");
+static_assert(sizeof(W8TgaHeader) == 20, "W8TgaHeader_must_be_20");
 
-srColorSurface* LoadSurface0047C090(int handle);
-void LoadSurfacePixels0047BC80(int handle, srColorSurface* surface, const W8TgaHeader* header);
+/* Both loaders clean their own stack arguments. LoadSurface's second
+   parameter is a pointer the callee never dereferences; the sole caller
+   passes the address of a zeroed dword. */
+srColorSurface* __stdcall LoadSurface0047C090(int handle, long* unused_out);
+void __stdcall LoadSurfacePixels0047BC80(int handle, srColorSurface* surface,
+                                         const W8TgaHeader* header);
 
 /* Wizardry's virtual-file-backed texture. SR.DLL exports a parallel
    srTextureFile (id 0x2112) whose 17-slot vtable is:
@@ -72,7 +77,10 @@ public:
         return has_alpha_64;
     }
     void loadSurface(); /* 0x0047BBF0 */
-    void releaseSurface();
+    /* Emitted at 0x47BBD0 for the materials.cpp probe caller and inlined at
+       the invalidate/getMipmapData sites; the pending-defaults flag is part
+       of the release sequence itself. */
+    void releaseSurface(); /* 0x0047BBD0 */
 
     virtual void dump(std::ostream& stream) override;
     virtual srClass* vInstance() override;                      /* 0x0047C7A0 */
@@ -96,7 +104,7 @@ private:
     char* file_name_58;
     srColorSurface* surface_5c;
     unsigned long frame_handle_60;
-    unsigned char has_alpha_64;
+    bool has_alpha_64;
     unsigned char padding_65[3];
 };
 

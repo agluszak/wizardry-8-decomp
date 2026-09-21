@@ -1,5 +1,6 @@
 #include "wiz8/engine_code/Camera.h"
 
+#include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/engine_code/GameData.h"
@@ -32,6 +33,25 @@
 
 // GLOBAL: WIZ8 0x0060AA64
 int g_saved_environment_flag_60aa64 = 1;
+
+/* Find the camera path named `name` in the world's path list and start it
+   running through UpdateCameraPathState0048F2F0. Script commands reach this
+   through NpcScriptTurnToBook and the main game loop's Run. */
+// FUNCTION: WIZ8 0x0048F280
+void SetCameraPathByName0048F280(W8World* world, const char* name, float fTime)
+{
+    unsigned int count;
+
+    if (world->plsCameras != 0 && (count = PLLength(world->plsCameras)) != 0) {
+        for (unsigned int index = 0; index < count; ++index) {
+            W8CameraPath* path = static_cast<W8CameraPath*>(PLGet(world->plsCameras, index));
+            if (_stricmp(path->name_00, name) == 0) {
+                UpdateCameraPathState0048F2F0(world, path, fTime);
+                return;
+            }
+        }
+    }
+}
 
 // FUNCTION: WIZ8 0x0048F2F0
 void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, float fTime)

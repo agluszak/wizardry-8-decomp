@@ -34,8 +34,13 @@ srHeapArray<srVector3T<float> >* g_vertex_scratch_0065a148;
 
 // SYNTHETIC: WIZ8 0x0047F260
 // stModelInstance2D::`scalar deleting destructor'
+// SYNTHETIC: WIZ8 0x00481C20
+// srClassSupport<stModelInstance,srModelInstance,0,65540>::`scalar deleting destructor'
 // SYNTHETIC: WIZ8 0x00481C50
 // srClassSupport<stModelInstance2D,srModelInstance,0,65541>::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x00481920
+// srClassSupport<stModelInstance,srModelInstance,0,65540>::clone
 
 // TEMPLATE: WIZ8 0x00481A40
 // srClassSupport<stModelInstance2D,srModelInstance,0,65541>::getClassID
@@ -279,7 +284,11 @@ void stModelInstance2D::SetModel0047F3A0(srModel* model)
 {
     assignModel(model);
     if (model != 0) {
-        static_cast<srMeshModel*>(model)->enableStartupControls();
+        /* Retail raises bits 5 and 4 of control_state_394 through the
+           changed-bit-marking helper, not enableStartupControls' 0x40/0x30
+           sequence. */
+        static_cast<srMeshModel*>(model)->setControlMask(0x20);
+        static_cast<srMeshModel*>(model)->setControlMask(0x10);
     }
 }
 
@@ -399,7 +408,8 @@ void stModelInstance2D::SetGlowEnabled00480EB0(unsigned char enable)
 int stModelInstance2D::GetWidth00480EF0()
 {
     srVector3T<double> scale = getScale();
-    if (scale.x == 1.0 && scale.y == 1.0 && scale.z == 1.0) {
+    float scale_z = static_cast<float>(scale.z);
+    if (scale.x == 1.0f && scale.y == 1.0f && scale_z == 1.0f) {
         return render_state_164.left;
     }
     return (int)(render_state_164.left * scale.x);
@@ -409,10 +419,12 @@ int stModelInstance2D::GetWidth00480EF0()
 int stModelInstance2D::GetHeight00480F70()
 {
     srVector3T<double> scale = getScale();
-    if (scale.x == 1.0 && scale.y == 1.0 && scale.z == 1.0) {
+    float scale_y = static_cast<float>(scale.y);
+    float scale_z = static_cast<float>(scale.z);
+    if (scale.x == 1.0f && scale_y == 1.0f && scale_z == 1.0f) {
         return render_state_164.top;
     }
-    return (int)(render_state_164.top * scale.y);
+    return static_cast<int>(render_state_164.top * scale_z);
 }
 
 /* Lazily allocate the two glow-color vectors and copy the supplied pair; the
@@ -505,6 +517,17 @@ stModelInstance& stModelInstance::operator=(const stModelInstance& other)
     scale_1a8 = other.scale_1a8;
     value_1ac = 0.0f;
     return *this;
+}
+
+/* Retail touches the incoming model's class id before delegating to the
+   srModel::Client base setter. */
+// FUNCTION: WIZ8 0x0047F0C0
+void stModelInstance::setModel(srModel* model)
+{
+    if (model != 0) {
+        model->getClassID();
+    }
+    srModelInstance::setModel(model);
 }
 
 // FUNCTION: WIZ8 0x0047EF70

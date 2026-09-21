@@ -63,6 +63,21 @@ stLevel::~stLevel() {}
 // TEMPLATE: WIZ8 0x004BA1D0
 // srClassSupport<stLevel,srNode,0,65543>::getClassNode
 
+// SYNTHETIC: WIZ8 0x004B9CE0
+// stLevel::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x004BA240
+// srClassSupport<stLevel,srNode,0,65543>::clone
+
+// TEMPLATE: WIZ8 0x004BA280
+// srClassSupport<stLevel,srNode,0,65543>::~srClassSupport
+
+// SYNTHETIC: WIZ8 0x004BA3A0
+// srClassSupport<stLevel,srNode,0,65543>::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x004BA3D0
+// srClassSupport<stLevel,srNode,0,65543>::vInstance
+
 namespace {
 
 struct W8LevelItemRecord004BC380 {

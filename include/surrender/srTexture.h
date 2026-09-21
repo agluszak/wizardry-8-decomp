@@ -43,8 +43,9 @@ protected:
     Dimensions texture_dimensions_;              /* 0x20 */
     srClass* texture_filter_;                    /* 0x28 */
     srPixelConvert::PixelFormat surface_format_; /* 0x2c */
-    /* enableHint ORs 1<<hint into the first dword. stTextureAnim reads byte
-       +0x42 as an alpha probe, so the span stays byte-addressable. */
+    /* enableHint ORs 1<<hint into the first dword. The span stays
+       byte-addressable; stTextureAnim's alpha probe is
+       surface_format_.alpha_bits, not this array. */
     unsigned char unknown_40_[0x10];
     unsigned long texture_flags_; /* 0x50 */
 };

@@ -289,6 +289,11 @@ unsigned long W8VirtualFileBinIStream::vread(void* buffer, unsigned long size)
     return 0;
 }
 
+/* The global opener's implicit default constructor, emitted for
+   g_virtual_file_stream_opener_65a124; it only installs the vtable. */
+// SYNTHETIC: WIZ8 0x0047CB20
+// W8VirtualFileStreamOpener::W8VirtualFileStreamOpener
+
 // FUNCTION: WIZ8 0x0047CB30
 srBinIStream* W8VirtualFileStreamOpener::open(const char* path)
 {

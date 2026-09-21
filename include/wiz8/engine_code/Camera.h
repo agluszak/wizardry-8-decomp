@@ -20,6 +20,9 @@ struct W8CameraPath {
 /* Engine Code\Camera.cpp. The TU's only anchor; turns a camera path on and
    off for the world and dispatches the per-path end actions. */
 void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, float fTime);
+/* 0x0048F280: activate the world's camera path whose name_00 matches `name`
+   (case-insensitive), then dispatch through UpdateCameraPathState0048F2F0. */
+void SetCameraPathByName0048F280(W8World* world, const char* name, float fTime);
 /* 0x0048F650: face the camera at a monster's head; force overrides the
    tracking-mode gate, animate chooses the eased transition over the snap. */
 void PointCameraAtMonster(W8MonsterInfo* monster_info, unsigned char force, unsigned char animate);

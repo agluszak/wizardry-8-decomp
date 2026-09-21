@@ -337,6 +337,32 @@ bool W8Missile::BlocksEndingCombat004A5790()
     return 0;
 }
 
+/* The launch point starts as a fixed camera-space offset — swung ±75 units to
+   the wielding side by the low index bit and stepped down per character — then
+   rotated into world space by the camera yaw and pitch and added to the camera
+   position. */
+// FUNCTION: WIZ8 0x004A57B0
+void GetCharacterProjectilePosition004A57B0(unsigned int character_index,
+                                            srVector3T<float>* position)
+{
+    srVector3T<float> camera_position;
+    srMatrix3T<float> rotation;
+
+    GetCameraPosition(&camera_position);
+    position->SetZero();
+    if (character_index & 1) {
+        position->x = -75.0f;
+    } else {
+        position->x = 75.0f;
+    }
+    position->y = 81.25f - character_index * g_float_005ebc7c * 32.5f;
+    rotation.SetIdentity();
+    rotation.RotateAboutY(GetCameraYawRadians() - g_monster_rotation_offset_005ec04c);
+    rotation.RotateAboutX(-GetCameraPitchRadians());
+    *position = rotation.Transform(*position);
+    *position += camera_position;
+}
+
 // VTABLE: WIZ8 0x005ecde0 W8MissileRep
 // class W8MissileRep
 

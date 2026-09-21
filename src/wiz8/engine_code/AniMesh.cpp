@@ -59,6 +59,12 @@ void InitializeAniMeshCache(int primary_limit, int secondary_limit)
     PListInit(&g_animesh_cache_list_65be90);
 }
 
+// FUNCTION: WIZ8 0x004b57d0
+void FreeAniMeshCache004B57D0(void)
+{
+    PListFreeData(&g_animesh_cache_list_65be90);
+}
+
 // FUNCTION: WIZ8 0x004b57e0
 W8AniMesh* CreateAniMesh004B57E0()
 {

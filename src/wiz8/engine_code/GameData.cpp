@@ -72,6 +72,21 @@ float SettlePositionToGround00420BD0(const srVector3T<float>* position, unsigned
     return height;
 }
 
+// FUNCTION: WIZ8 0x00420C30
+float SettlePositionToGround00420C30(srVector3T<float>* position, unsigned char* hit)
+{
+    srVector3T<float> candidate = *position;
+    if (g_octree_game_data_00652db0 != 0 && g_octree_game_data_00652db0->positional_04 != 0) {
+        return g_octree_game_data_00652db0->positional_04->SettleToGround(&candidate, hit, 1,
+                                                                          500.0f);
+    }
+    float height = position->y;
+    if (hit != 0) {
+        *hit = 0;
+    }
+    return height;
+}
+
 /* The ground height under `position` plus the footstep surface/material of
    the surface the last trace selected; both outputs stay zero when no
    surface was recorded. */

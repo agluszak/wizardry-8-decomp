@@ -77,6 +77,14 @@ int g_cursor_node_index_0060a9b0 = -1;
 // GLOBAL: WIZ8 0x005ebf50
 double g_world_cursor_scale_005ebf50 = 0.002;
 
+// SYNTHETIC: WIZ8 0x0048F260
+// W8WorldCursorNode::`scalar deleting destructor'
+
+/* 0x0048D070 is a bare JMP to CreateWorldCursorCube0048D080: a tail-jump thunk
+   with no distinct source entity. */
+// SYNTHETIC: WIZ8 0x0048D070
+// CreateWorldCursorCube0048D080 (tail-jump thunk)
+
 /* Build the numbered cube the world cursor table holds: a 500-unit modeller
    cube, a translucent white material, and a 32x32 texture the label painter
    later fills. */
@@ -743,6 +751,34 @@ unsigned char SaveWorldCursorNodes0048EAD0(int handle)
 int GetWorldCursorNodeCount0048ED00(void)
 {
     return g_world_cursor_nodes_65ba58.count;
+}
+
+// FUNCTION: WIZ8 0x0048ED10
+W8WorldCursorNode* GetWorldCursorNode0048ED10(int index)
+{
+    return *g_world_cursor_nodes_65ba58.GetAt(index);
+}
+
+/* Attach or detach one cursor node's scene node to the world camera. */
+// FUNCTION: WIZ8 0x0048ED30
+void AttachWorldCursorNode0048ED30(W8WorldCursorNode* entry, unsigned char attached)
+{
+    if (entry != 0) {
+        if (attached != 0) {
+            entry->node_04->setParent(g_world->static_scene, 1);
+        } else {
+            entry->node_04->setParent(0, 1);
+        }
+    }
+}
+
+/* Copy `name` into the node's fixed 0x20-byte label field, always leaving a
+   terminator. */
+// FUNCTION: WIZ8 0x0048F110
+void SetWorldCursorNodeName0048F110(W8WorldCursorNode* entry, const char* name)
+{
+    strncpy(entry->name_24, name, 0x20);
+    entry->name_24[0x1f] = 0;
 }
 
 /* Reparent the world's cursor-attached nodes onto the dynamic scene, or

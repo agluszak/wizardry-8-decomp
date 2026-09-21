@@ -8,7 +8,6 @@
 
 #include <stdlib.h>
 
-
 // VTABLE: WIZ8 0x005EC9C0
 // class stTextureAnim
 
@@ -35,6 +34,18 @@
 
 // SYNTHETIC: WIZ8 0x00485040
 // stTextureAnim::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x00485A40
+// srClassSupport<srTextureIFace,srClass,1,8448>::sGetClassNode
+
+// SYNTHETIC: WIZ8 0x00485A80
+// W8GrowableVector<srTextureIFace*>::`vector deleting destructor'
+
+// SYNTHETIC: WIZ8 0x00485AB0
+// W8GrowableVector<srTextureIFace*>::`scalar deleting destructor'
+
+// TEMPLATE: WIZ8 0x00485AD0
+// W8GrowableVector<srTextureIFace*>::~W8GrowableVector
 
 // FUNCTION: WIZ8 0x00484BE0
 stTextureAnim::stTextureAnim()
@@ -113,38 +124,38 @@ void stTextureAnim::AddTexture00485420(srTextureIFace* texture)
 // FUNCTION: WIZ8 0x004854B0
 void stTextureAnim::UpdateFrame004854B0()
 {
-    int frame_count;
     int elapsed_frames;
 
     if (flag_60 == 3) {
         return;
     }
 
-    frame_count = textures_54->GetCount();
+    /* Retail scales rand() by the folded constant 1/32768 (0x005ec1e4),
+       not a runtime division by RAND_MAX. */
     if (value_70 == 1) {
-        if ((float)rand() / (float)RAND_MAX < value_74) {
-            frame_58 = (int)(((float)rand() / (float)RAND_MAX) * frame_count);
+        if (rand() * (1.0f / 32768.0f) < value_74) {
+            frame_58 = static_cast<int>(rand() * (1.0f / 32768.0f) * textures_54->GetCount());
         }
         return;
     }
 
     if (value_70 == 2) {
-        if (flag_78 == 0 && (float)rand() / (float)RAND_MAX < value_74) {
+        if (flag_78 == 0 && rand() * (1.0f / 32768.0f) < value_74) {
             flag_78 = 1;
             value_5c = 0;
             frame_58 = 0;
             frame_tick_6c = GetTickCount();
         }
-        if (flag_78 == 0 || frame_count == 0) {
+        if (flag_78 == 0 || textures_54->GetCount() == 0) {
             return;
         }
-    } else if (frame_count == 0) {
+    } else if (textures_54->GetCount() == 0) {
         return;
     }
 
     elapsed_frames = (int)((GetTickCount() - frame_tick_6c) * frame_rate_68 * g_float_005ec128);
     if (flag_60 == 0) {
-        int frame = (value_5c * elapsed_frames) % frame_count;
+        int frame = (value_5c * elapsed_frames) % textures_54->GetCount();
         if (frame < frame_58) {
             frame_58 = 0;
             flag_78 = 0;
@@ -152,21 +163,21 @@ void stTextureAnim::UpdateFrame004854B0()
         }
         frame_58 = frame;
     } else if (flag_60 == 1) {
-        if ((elapsed_frames / frame_count & 1) != 0) {
+        if ((elapsed_frames / textures_54->GetCount() & 1) != 0) {
             value_5c = -1;
-            frame_58 = frame_count - elapsed_frames % frame_count - 1;
+            frame_58 = textures_54->GetCount() - elapsed_frames % textures_54->GetCount() - 1;
         } else {
             if (value_5c == -1) {
                 flag_78 = 0;
                 return;
             }
             value_5c = 1;
-            frame_58 = elapsed_frames % frame_count;
+            frame_58 = elapsed_frames % textures_54->GetCount();
         }
     } else if (flag_60 == 2) {
-        if (elapsed_frames >= frame_count) {
+        if (elapsed_frames >= textures_54->GetCount()) {
             flag_78 = 0;
-            frame_58 = frame_count > 0 ? frame_count - 1 : 0;
+            frame_58 = textures_54->GetCount() - 1 < 0 ? 0 : textures_54->GetCount() - 1;
         } else {
             frame_58 = elapsed_frames;
         }
@@ -181,10 +192,11 @@ int stTextureAnim::IsFinished00485730() const
     }
 
     int final_frame = textures_54->GetCount() - 1;
-    if (final_frame < 0) {
-        final_frame = 0;
+    final_frame = final_frame < 0 ? 0 : final_frame;
+    if (frame_58 != final_frame) {
+        return 0;
     }
-    return frame_58 == final_frame;
+    return 1;
 }
 
 // FUNCTION: WIZ8 0x004856F0
@@ -262,5 +274,5 @@ unsigned char stTextureAnim::Prepare004857B0()
         texture->getTextureFrameHandle();
         return static_cast<stTextureFile*>(texture)->hasAlpha();
     }
-    return unknown_40_[2] != 0;
+    return surface_format_.alpha_bits != 0;
 }

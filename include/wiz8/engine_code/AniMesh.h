@@ -47,6 +47,7 @@ extern int g_animesh_cache_secondary_limit_65be8c;
 extern W8PList g_animesh_cache_list_65be90;
 
 void InitializeAniMeshCache(int primary_limit, int secondary_limit);
+void FreeAniMeshCache004B57D0(void);
 W8AniMesh* CreateAniMesh004B57E0();
 W8AniMesh* CopyAniMesh004B58D0(const W8AniMesh* other);
 float GetAniMeshFrameRadius004B5C10(W8AniMesh* mesh, unsigned char frame);

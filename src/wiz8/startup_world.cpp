@@ -46,3 +46,16 @@ unsigned char InitializeStartupNavigation0044F060(void)
                                      g_startup_depth_603ac8);
     return 1;
 }
+
+/* Shutdown mirror of InitializeStartupNavigation0044F060; runs from
+   ShutdownVideoManager. */
+// FUNCTION: WIZ8 0x0044f190
+void ShutdownStartupNavigation0044F190(void)
+{
+    NoOp();
+    FreeAniMeshCache004B57D0();
+    DestroyRenderQuality0047B570();
+    ClearEnvironmentObjects004823B0();
+    delete g_startup_world_659c0c;
+    g_startup_world_659c0c = 0;
+}

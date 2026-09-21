@@ -72,6 +72,9 @@ void GetLightDirection(EnvironmentColour* direction);
 extern bool g_sky_enabled_0065b9ae;
 void ResetEnvironment(void);
 void InitializeLevelEnvironment00482410(void);
+/* Drop the sky gradients and celestial props, release both environment
+   objects and empty the registered-light list; called by world teardown. */
+void ClearEnvironmentObjects004823B0(void);
 /* Apply one day-phase colour and intensity to the world, its environment
    lights, and the animated cloud material. */
 void ApplyEnvironmentColour00483BA0(W8World* world, float intensity,

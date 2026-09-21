@@ -31,6 +31,9 @@ W8IntervalGate::W8IntervalGate(float duration, unsigned char raw_time, bool set_
 // FUNCTION: WIZ8 0x004218d0
 W8IntervalGate::~W8IntervalGate() {}
 
+// SYNTHETIC: WIZ8 0x004218b0
+// W8IntervalGate::`scalar deleting destructor'
+
 // FUNCTION: WIZ8 0x0043A530
 void W8IntervalGate::Arm()
 {

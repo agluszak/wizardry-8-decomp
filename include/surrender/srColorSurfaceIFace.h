@@ -8,7 +8,9 @@
 #include "srStat.h"
 #include "srTypeRegistry.h"
 
+class srColorSurface;
 class srPalette;
+struct W8TgaHeader;
 
 class srColorSurfaceIFace : public srClassSupport<srColorSurfaceIFace, srClass, true, 0x3100> {
 public:
@@ -143,6 +145,13 @@ protected:
     SR_DLL_IMPORT const srPixelConvert::PixelFormat* getPixelFormat() const;
     SR_DLL_IMPORT int isPixelFormatCompatible(const srColorSurfaceIFace& source) const;
     SR_DLL_IMPORT void setSurfaceDesc(const SurfaceDesc& description);
+
+    /* stTextureFile::loadSurface reads pixel_format_30.alpha_bits directly;
+       Wiz8 imports no alpha accessor, so the read is a field access. The
+       file-scope pixel decoder reads bytes_per_pixel_minus_one the same way. */
+    friend class stTextureFile;
+    friend void __stdcall LoadSurfacePixels0047BC80(int handle, srColorSurface* surface,
+                                                    const W8TgaHeader* header);
 
     unsigned char unknown_18_[0x04];
     unsigned long width_1c;
