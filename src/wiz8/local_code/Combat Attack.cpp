@@ -1153,7 +1153,7 @@ int GetTargetArmorClassModifier005468D0(W8CombatSlot* target, unsigned int attac
     } else if (target->iType == W8_TARGET_KIND_CHARACTER) {
         W8Character* character = &g_status_685170.buffers.characters[target->iChar];
         if (gXStatus.fCombatMode == 0) {
-            distracted = static_cast<unsigned char>(GetLevelDataFlag8());
+            distracted = GetLevelDataFlag8();
         } else {
             int component;
             if (g_combat_state->unaware_9a4 != 0 || g_combat_state->natural_attack_9a5 != 0) {

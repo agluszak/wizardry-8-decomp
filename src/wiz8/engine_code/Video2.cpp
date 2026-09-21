@@ -1351,31 +1351,31 @@ void SetRendererOption4Enabled(char enabled)
 // FUNCTION: WIZ8 0x00427290
 void GetWorldColour00427290(EnvironmentColour* colour)
 {
-    if (g_world == 0) {
-        colour->red = 0.0f;
-        colour->green = 0.0f;
-        colour->blue = 0.0f;
-    } else {
+    if (g_world != 0) {
         const srVector3T<float> fog = g_world->static_scene->getFogColor();
         colour->red = fog.x;
         colour->green = fog.y;
         colour->blue = fog.z;
-        if (fog.x <= 0.0f) {
+        if (colour->red <= 0.0f) {
             colour->red = 0.0f;
-        } else if (fog.x >= 1.0f) {
+        } else if (colour->red >= 1.0f) {
             colour->red = 1.0f;
         }
-        if (fog.y <= 0.0f) {
+        if (colour->green <= 0.0f) {
             colour->green = 0.0f;
-        } else if (fog.y >= 1.0f) {
+        } else if (colour->green >= 1.0f) {
             colour->green = 1.0f;
         }
-        if (fog.z <= 0.0f) {
+        if (colour->blue <= 0.0f) {
             colour->blue = 0.0f;
-        } else if (fog.z >= 1.0f) {
+        } else if (colour->blue >= 1.0f) {
             colour->blue = 1.0f;
         }
+        return;
     }
+    colour->red = 0.0f;
+    colour->green = 0.0f;
+    colour->blue = 0.0f;
 }
 
 // FUNCTION: WIZ8 0x00428e20
@@ -1407,6 +1407,7 @@ void SetWorldModelPickingEnabled(char enabled)
         g_current_model_instance_65962c = 0;
     }
 }
+
 
 /* Mouse cursor scene and rendering. */
 namespace {
@@ -3946,3 +3947,19 @@ void SetPickKey004277F0(void* key)
             reinterpret_cast<unsigned long>(key)); // reinterpret-ok: opaque pick token
     }
 }
+
+/* Compiler emissions between Video2.cpp's authored bodies and Levels.cpp's
+   first anchor: sr refcounted-pointer and class-support template bodies plus
+   their deleting destructors. */
+
+// TEMPLATE: WIZ8 0x00429B00
+// srPtr assignment emission: release the held interface, addref and store the new one
+
+// SYNTHETIC: WIZ8 0x0042A360
+// srVertexProcessor::~srVertexProcessor trivial body
+
+/* srVertexProcessor::MaterialInfo's inline ctor emitted out-of-line inside
+   srMaterial's locally-compiled constructor; the primary is in
+   srVertexProcessor.h. */
+// SYNTHETIC: WIZ8 0x00424A80
+// srVertexProcessor::MaterialInfo::MaterialInfo (Video2.cpp emission)

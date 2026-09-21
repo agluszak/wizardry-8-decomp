@@ -432,10 +432,10 @@ char ResolvePickedProp(W8World* world)
 // FUNCTION: WIZ8 0x0044ba00
 srModelInstance* W8PropRepresentation::ToggleAnimation(int argument)
 {
-    if (AnimationIsRunning(animation)) {
-        return AnimObjDispatchList004A1560(animation, 2, 0);
+    if (AnimationIsRunning(animation) == 0) {
+        return AnimObjDispatch004A14D0(animation, 2, argument);
     }
-    return AnimObjDispatch004A14D0(animation, 2, argument);
+    return AnimObjDispatchList004A1560(animation, 2, 0);
 }
 
 /* Select the animation slot whose second byte carries the requested tag.
@@ -1366,13 +1366,13 @@ void W8Prop::SetPosition0044E310(srVector3T<float>* position)
 }
 
 // FUNCTION: WIZ8 0x0044e360
-char W8Prop::TriggerHasActionMessage0044E360()
+bool W8Prop::TriggerHasActionMessage0044E360()
 {
     return trigger_18 != 0 && trigger_18->HasActionMessage00441780() != 0;
 }
 
 // FUNCTION: WIZ8 0x0044e380
-char W8Prop::TriggerRequiresItem0044E380()
+bool W8Prop::TriggerRequiresItem0044E380()
 {
     return trigger_18 != 0 && trigger_18->RequiresItem00441790() != 0;
 }

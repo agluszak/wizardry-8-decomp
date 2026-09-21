@@ -93,7 +93,7 @@ W8CameraShakeEffect::W8CameraShakeEffect(const W8CameraShakeEffect& other)
    own default put it rather than at the origin. */
 // FUNCTION: WIZ8 0x004aded0
 W8CameraShakeEffect::W8CameraShakeEffect(float duration, char preset, float intensity,
-                                         int value_08_, const srVector3T<float>* position)
+                                         float value_08_, const srVector3T<float>* position)
     : flags_00(0), intensity_04(intensity), value_08(value_08_), timer_18(duration, 0), cycle_3c(0),
       frame_40(0), subcycle_44(0), completion_callback_48(0)
 {
@@ -115,7 +115,7 @@ W8CameraShakeEffect::W8CameraShakeEffect(float duration, char preset, float inte
    afterwards because it keeps its effect across frames and deletes it itself. */
 // FUNCTION: WIZ8 0x004ae080
 W8CameraShakeEffect* CreateCameraShakeEffect004AE080(float duration, char preset, float intensity,
-                                                     int value_08,
+                                                     float value_08,
                                                      const srVector3T<float>* position)
 {
     W8CameraShakeEffect* effect =
@@ -223,6 +223,42 @@ void UpdateShakeEffects004AE310()
         }
     }
     g_trigger_action_active_006599c8 = 0;
+}
+
+/* Bit 2 gates the distance test, bit 3 selects the quadratic falloff, bit 4
+   fades out with the remaining time and bit 5 fades in. */
+// FUNCTION: WIZ8 0x004AE4E0
+unsigned char W8CameraShakeEffect::Evaluate004AE4E0(const srVector3T<float>* position,
+                                                    float* out_amount)
+{
+    float progress = timer_18.GetProgress();
+    if (g_float_005ebb38 <= progress) {
+        return 0;
+    }
+    if ((flags_00 >> 2 & 1) != 0) {
+        float dx = position_0c.x - position->x;
+        float dy = position_0c.y - position->y;
+        float dz = position_0c.z - position->z;
+        float distance = sqrtf(dx * dx + dy * dy + dz * dz);
+        if (value_08 < distance) {
+            *out_amount = 0.0f;
+        } else if ((flags_00 >> 3 & 1) != 0) {
+            float weight = distance / value_08 - g_float_005ebb38;
+            *out_amount = weight * weight;
+        } else {
+            *out_amount = 1.0f;
+        }
+    } else {
+        *out_amount = 1.0f;
+    }
+    if ((flags_00 >> 4 & 1) != 0) {
+        *out_amount = (g_float_005ebb38 - progress) * *out_amount;
+        return 1;
+    }
+    if ((flags_00 >> 5 & 1) != 0) {
+        *out_amount = progress * *out_amount;
+    }
+    return 1;
 }
 
 // GLOBAL: WIZ8 0x005ec128

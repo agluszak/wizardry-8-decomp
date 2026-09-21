@@ -114,10 +114,6 @@ void DestroyWorldLights0046E4A0(W8World* world)
     }
 }
 
-/* 0x0046E490 is the linker's incremental-link jump thunk for
-   GetCameraYawRadians (JMP 0x00420DD0), not an authored second body. */
-// SYNTHETIC: WIZ8 0x0046E490
-// GetCameraYawRadians incremental-link thunk
 
 /* Put static-scene illuminators in group one and the world's camera light in
    group two.  The scene graph access is the ordinary srNode hierarchy API. */
@@ -1191,3 +1187,8 @@ bool BoundsInsideFrustum0046D920(const W8OctRegionVolume* volume, const W8Boundi
    folded array instantiations. The primary template lives in srArray.h. */
 // TEMPLATE: WIZ8 0x004701b0
 // srArray<T>::release
+
+/* srMatrix4T<float>::Set emitted for this TU (BakeInstanceVertexLighting's
+   transform builds); the primary template lives in srMath.h. */
+// TEMPLATE: WIZ8 0x00470200
+// srMatrix4T<float>::Set

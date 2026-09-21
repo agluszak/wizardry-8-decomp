@@ -52,7 +52,7 @@ void DestroyLightVector(W8GrowableVector<stLight*>* vector); /* 0x004A8C50 */
    Trigger sets bit 4 on its own to reverse the shake. */
 class W8CameraShakeEffect {
 public:
-    W8CameraShakeEffect(float duration, char preset, float intensity, int value_08,
+    W8CameraShakeEffect(float duration, char preset, float intensity, float value_08,
                         const srVector3T<float>* position); /* 0x004ADED0 */
     W8CameraShakeEffect(const W8CameraShakeEffect& other);  /* 0x004AE000 */
     /* Per-frame evaluation: answers whether the effect is still active and
@@ -61,7 +61,7 @@ public:
 
     unsigned int flags_00;         /* 0x00 */
     float intensity_04;            /* 0x04 */
-    int value_08;                  /* 0x08 */
+    float value_08;                /* 0x08: distance cap for bit-2 effects */
     srVector3T<float> position_0c; /* 0x0c */
     W8GameTimer timer_18;          /* 0x18 */
     /* The key 0x004AE170 matches an animation event against. */
@@ -79,7 +79,7 @@ extern W8GrowableVector<W8CameraShakeEffect*>* g_shake_effects_0065be2c;
 extern W8GameTimer* g_shake_timer_0065be30;
 
 W8CameraShakeEffect* CreateCameraShakeEffect004AE080(float duration, char preset, float intensity,
-                                                     int value_08,
+                                                     float value_08,
                                                      const srVector3T<float>* position);
 /* Fire every effect in one cycle's vector whose key matches, moving it onto the
    live list and restarting its timer. */

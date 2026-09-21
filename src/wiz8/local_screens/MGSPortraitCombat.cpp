@@ -289,9 +289,58 @@ void SubMenuButtonToggleFlag(W8DialogButton* button)
 // FUNCTION: WIZ8 0x00595110
 void SubMenuButtonUseItem(W8DialogButton* button)
 {
+    int index;
+
     if (gXStatus.fItemSelectMode != 0) {
         CloseUseItemSelectView();
+        return;
     }
+    if (gXStatus.fCombatMode != 0) {
+        if (g_level_block->combat_end_notification != -1) {
+            SetSubMenuButtonTooltips(1);
+            g_level_block->combat_end_notification = -1;
+            g_submenu_entry_count_69b87e = 0;
+            RegionSetDisable(0x27);
+            DisableRegionSetInput(0x27);
+            if (gpSubMenuPanel != 0) {
+                delete gpSubMenuPanel;
+                gpSubMenuPanel = 0;
+            }
+            for (index = 0; index < 5; ++index) {
+                if (g_submenu_rows_69b8ec[index] != 0) {
+                    delete g_submenu_rows_69b8ec[index];
+                    g_submenu_rows_69b8ec[index] = 0;
+                }
+            }
+            RequestRedraw(0x200);
+        }
+        UpdateScreenOverlays(0);
+        if (BuildSubMenuPanel(3) == 0) {
+            SetSubMenuButtonTooltips(1);
+            g_level_block->combat_end_notification = -1;
+            g_submenu_entry_count_69b87e = 0;
+            RegionSetDisable(0x27);
+            DisableRegionSetInput(0x27);
+            if (gpSubMenuPanel != 0) {
+                delete gpSubMenuPanel;
+                gpSubMenuPanel = 0;
+            }
+            for (index = 0; index < 5; ++index) {
+                if (g_submenu_rows_69b8ec[index] != 0) {
+                    delete g_submenu_rows_69b8ec[index];
+                    g_submenu_rows_69b8ec[index] = 0;
+                }
+            }
+            RequestRedraw(0x200);
+        }
+        SetSubMenuButtonTooltips(0);
+        g_submenu_clock_69b880 = SetCountdownClock(0);
+        g_submenu_flag_69b8d4 = 0;
+        RequestRedraw(0x200);
+        ResetClickedMode();
+        return;
+    }
+    OpenUseItemSelectView(g_status_685170.selected_character);
 }
 
 // FUNCTION: WIZ8 0x00595280

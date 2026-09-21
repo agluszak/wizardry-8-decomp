@@ -97,6 +97,9 @@ void RefreshTextBoxMode00590BD0(unsigned short mode);
    same (level, flag, backfire) triple CastSpellAtLockInteraction00587C80
    takes; the body reads the target only. */
 void SetKnockKnockTarget(int target, int flag, int backfire);
+/* 0x0058A930: the trap-mode half of CastSpellAtLockInteraction00587C80;
+   same (level, flag, backfire) triple. */
+void AttemptTrapDisarm0058A930(int level, int flag, char backfire);
 
 /* 0x005905F0: merge text onto a box's last used line, re-posting the combined
    line so wrapping, highlighting and the link counts rebuild; -1 picks the box
