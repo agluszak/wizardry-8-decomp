@@ -178,6 +178,11 @@ W8AttachmentOffset g_monster_attachment_offsets_0060e618[8][8] = {{{0.0f, 0.0f, 
 float g_monster_attachment_scales_0060e918[8] = {0.3f,  0.2f,  0.15f, 0.15f,
                                                  0.15f, 0.15f, 0.15f, 0.15f};
 
+// GLOBAL: WIZ8 0x0060e938
+const char* g_monster_marker_bitmaps_0060e938[8] = {"TriRed.tga",  "TriGreen.tga",  "TriPurple.tga",
+                                                    "TriBlue.tga", "TriOrange.tga", "TriYellow.tga",
+                                                    "TriPink.tga", "TriBrown.tga"};
+
 // GLOBAL: WIZ8 0x005ec04c
 const float g_monster_rotation_offset_005ec04c = 3.141592502593994f;
 // GLOBAL: WIZ8 0x005ed1f0
@@ -2739,6 +2744,39 @@ int W8Monster::IsFacingPlayer004C4D40()
     return fabs(bearing - facing) <= g_monster_facing_tolerance_005ec2b0;
 }
 
+/* Attach or detach the party-coloured TriRed marker object for one party slot
+   on a monster's rep. The rep keeps one marker item per party slot in
+   objects_5c8; the bitmap follows the slot's party-order colour. */
+// FUNCTION: WIZ8 0x004c4de0
+void SetMonsterPartyMarker004C4DE0(int party_slot, int location_id, char on)
+{
+    char path[260];
+
+    W8Monster* monster = MonsterGetScriptPartByLocationIndex(
+                             MonsterGetIndexByLocationID(0xf1b, MONSTER_CPP, location_id, 1))
+                             ->monster;
+    W8MonsterRep* rep = monster->m_pRep;
+    if (on != 0) {
+        if (rep->objects_5c8[party_slot] == 0) {
+            sprintf(path, "Data\\Monsters\\Bitmaps\\%s",
+                    g_monster_marker_bitmaps_0060e938[g_status_685170.buffers.party_rows[party_slot]
+                                                          .party_order_index]);
+            rep->objects_5c8[party_slot] = CreateMonsterIconItem004C5500(g_world, path, 1);
+            ++rep->value_5c4;
+        }
+    } else {
+        W8Item* item = rep->objects_5c8[party_slot];
+        if (item != 0) {
+            item->DetachMesh0049FA30(g_world);
+            PListRemove(g_world->plsItems, item);
+            delete item;
+            rep->objects_5c8[party_slot] = 0;
+            --rep->value_5c4;
+        }
+    }
+    monster->UpdateAttachedObjects004C3F70();
+}
+
 /* Start making the representation visible.  Reversing an active fade-out
    preserves its current scale by seeding the opposite timer at that progress;
    an idle monster starts from zero instead. */
@@ -4613,7 +4651,7 @@ void MonsterSetCycleSubCycle(W8GrCycle* cycle, unsigned char subcycle)
 // FUNCTION: WIZ8 0x004c5eb0
 void NotifyMonsterHighlight(int party_slot, int location_id, int on)
 {
-    Function4C4DE0(party_slot, location_id, on);
+    SetMonsterPartyMarker004C4DE0(party_slot, location_id, on);
 }
 
 /* The public forwarding boundary preserves the loader's AL result. Both

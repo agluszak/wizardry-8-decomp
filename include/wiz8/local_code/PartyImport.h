@@ -33,7 +33,11 @@ struct W8Wiz7Character {
     unsigned char profession_239; /* 0x239: Wiz7 class byte */
     unsigned char unknown_23a;
     unsigned char status_23b; /* 0x23b: 2 or 3 imports as a dead member */
+    /* The on-disk record and the DAT_0068DEB8 import buffer are read and
+       walked at a 0x248 stride; the tail beyond status_23b is unread. */
+    unsigned char unknown_23c[0x0c];
 };
+static_assert(sizeof(W8Wiz7Character) == 0x248, "W8Wiz7Character_size");
 
 /* Local Code\Party Import.cpp: the Wizardry 7 character-import conversions. */
 void ConvertAttribute(W8Character* character, const W8Wiz7Character* imported); /* 0x005592D0 */

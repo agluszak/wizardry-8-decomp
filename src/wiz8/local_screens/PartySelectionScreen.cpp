@@ -39,6 +39,7 @@
 #include "wiz8/geometry.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/local_code/GameplayInit.h"
+#include "wiz8/local_code/PartyImport.h"
 #include "wiz8/local_screens/PartySelectionScreen.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/music_playlist.h"
@@ -62,7 +63,8 @@
 
 void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigned short y,
                                  char right_button, char left_button);
-int Function558C40(const char* path);
+unsigned char Function558D00(const char* path);
+int LoadWizardry7Import00558C40(const char* path);
 
 /* Two ordinary growable vectors and the scroll origin account for all 0x24
    bytes allocated at party-selection entry. The second vector supplies the names this
@@ -99,6 +101,40 @@ unsigned int g_party_selection_party_slot_region_set_69c4f4;
 
 // GLOBAL: WIZ8 0x0069C4F8
 unsigned int g_party_selection_character_grid_region_set_69c4f8;
+
+// GLOBAL: WIZ8 0x0068DE48
+unsigned int g_wiz7_imported_character_count_0068de48;
+
+// GLOBAL: WIZ8 0x0068DEB8
+W8Wiz7Character g_wiz7_import_buffer_0068deb8[6];
+
+/* Validate the selected Wizardry 7 save, reset for a new game, grant the
+   imported party its fixed 2500 gold, then convert and add each stored
+   character. Result 2 selects the alternate failure notice in
+   LoadImportedPartyFile; it is returned only when the save's ending selector
+   imported as 3. */
+// FUNCTION: WIZ8 0x00558c40
+int LoadWizardry7Import00558C40(const char* path)
+{
+    W8Character character;
+
+    if (Function558D00(path) == 0) {
+        return 1;
+    }
+    ResetForNewGame();
+    g_status_685170.party_gold = 0x9c4;
+    g_status_685170.skip_loose_character_check_2444 = 1;
+    if (g_wiz7_imported_character_count_0068de48 <= 6) {
+        for (unsigned int index = 0; index < g_wiz7_imported_character_count_0068de48; ++index) {
+            ImportWizardry7Character005590B0(&character, &g_wiz7_import_buffer_0068deb8[index]);
+            if (AddCharacterToParty(&character, -1) == -1) {
+                return 1;
+            }
+        }
+        return g_value_68de50 == 3 ? 2 : 0;
+    }
+    return 1;
+}
 
 /* Imported characters not installed in the active party are owned here. Name
    strings are separately owned by the second vector. Clearing the counts
@@ -2018,7 +2054,7 @@ void W8PartySelectionController::LoadImportedPartyFile(int selection)
     if (selection >= 0 && selection < collection->names.count) {
         char path[128];
         sprintf(path, "%s\\%s", "Saves\\Import", *collection->names.GetAt(selection));
-        int result = Function558C40(path);
+        int result = LoadWizardry7Import00558C40(path);
         if (result != 0) {
             ResetForNewGame();
             OpenNotification(gppStringList[(result == 2 ? 0x1b60 : 0x1b5c) / 4], 0, 0);
