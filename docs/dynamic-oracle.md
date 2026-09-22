@@ -119,10 +119,55 @@ streams agree through the terminal (`streams_agree`). Any hole - a run that neve
 that never completed, a function missing from the rebuilt image - leaves the comparison
 inconclusive rather than green.
 
+### State fingerprints at the terminal
+
+Event streams say the same code ran; they do not say the world looks the same. Each scenario can
+also declare a set of *state probes* - scalar words read through reviewed `// GLOBAL:` objects - and
+the breakpoint at the terminal event prints them once as `STATE` lines. `load` fingerprints the
+screen state (current and pending `W8ScreenStateRuntime` words) and the camera placement
+(yaw/pitch/position) through `g_gd_camera_65a0f8`, read through a null check so an unset object
+reports `missing` rather than faulting the inferior.
+
+Two rules keep the fingerprint meaningful. It compares state, never addresses: pointer-bearing
+fields legitimately differ between builds, so only scalar values are probed. And each build's probe
+addresses come from its own evidence - retail resolves the reviewed `// GLOBAL:` markers, the
+rebuilt image resolves the same globals through the source index's semantic ids into its own MAP.
+A global the rebuilt image lacks is `unwatched`, which fails `no_unwatched_points` closed like any
+other dropped point.
+
+The verdict gains `state_repeatable` (the two retail runs fingerprint identically - this is what
+proves the chosen fields are deterministic, and any field that later proves volatile fails here
+first) and `state_agrees` (retail and rebuilt fingerprints identical, field by field; `diffs`
+records each mismatching name with both values). `runs.<label>.state` keeps each raw fingerprint.
+
 Every result identifies what produced it: executable name and sha256, launch arguments, fixture
 name and sha256, linker-MAP sha256, the loaded provider (`sr.dll`) sha256, plan/evidence/repository
 digests, tool versions and the timeout. A rebuilt executable traced under a stock provider says
 nothing about a rebuilt provider; the provenance keeps the two claims separate.
+
+## The smoke scenario: the product's own entry and exit
+
+The runtime-test executable calls `WinMain`, invokes `SGPExit` itself and ends through
+`TerminateProcess` - convenient, but not the same evidence as the runnable product's lifecycle.
+`wiz8 analyze smoke` runs `Wiz8Runtime.exe` (the default; `--executable` and `--link-map`
+apply as usual) through its real path: entry, the intro screen, the main menu, the quit path,
+`SGPExit`, and a real process exit.
+
+The run drives itself from breakpoints, not sleeps: when a watched handler fires, its breakpoint
+commands run an input gesture through `xdotool` on the trace's own display. The intro screen's
+frame handler gets a periodic `Escape` (every 30th hit, the same re-arm cadence the runtime
+harness uses to dismiss intro videos); `screen_1_enter` queues `PageDown`+`Return` (the menu's
+exit-screen binding); `screen_12_enter` queues the confirming `Return`. A gesture that never lands
+leaves the run at the timeout and the verdict stays false - `process_exited` requires gdb to
+finish inside the window, which only happens when the inferior really exited.
+
+```sh
+uv run wiz8 analyze smoke --seconds 120
+```
+
+The verdict is affirmative only when every requirement holds: the run started, `WinMain` ran, the
+menu and the exit screen were each entered through their real transitions, `SGPExit` ran, and the
+process exited on its own.
 
 ## Pitfalls
 
