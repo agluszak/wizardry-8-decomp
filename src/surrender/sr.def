@@ -31,6 +31,10 @@ EXPORTS
     ?setShader@srMeshModel@@QAEXVsrShader@@J@Z
     ?setTexture@srMeshModel@@QAEXPAVsrTextureIFace@@JJ@Z
     ?setExclusionMask@srModelInstance@@QAEXK@Z
+    ??0srModelInstance@@QAE@PAVsrNode@@@Z
+    ??0srModelInstance@@QAE@ABV0@@Z
+    ??1srModelInstance@@MAE@XZ
+    ??4srModelInstance@@QAEAAV0@ABV0@@Z
     ?addToTree@srRegistry@@AAEPAVClassNode@1@PAV21@PBDK@Z
     ?allocateID@srRegistry@@QAEKXZ
     ??0srRegistry@@QAE@XZ
@@ -824,8 +828,14 @@ EXPORTS
     ?getPolygonOffset@srGERD@@QBEJXZ
     ?getTextureCacheSize@srGERD@@QBEKXZ
     ?getTextureCacheUsed@srGERD@@QBEKXZ
+    ?getFogColor@srGERD@@QBEXAAV?$srVector4T@M@@@Z
+    ?getPickKey@srGERD@@QBEKXZ
     ?getVertexProcessorCount@srGERD@@QBEKXZ
     ?getVertexProcessors@srGERD@@QBEXPAPAVsrVertexProcessor@@@Z
+    ?pushVertexProcessor@srGERD@@QAEXAAVsrVertexProcessor@@@Z
+    ?popVertexProcessor@srGERD@@QAEXXZ
+    ?getMaxModelViewScale@srGERD@@QAEMXZ
+    ?getEyeSpaceLocation@srGERD@@QAE?AV?$srVector4T@M@@ABV?$srVector3T@M@@@Z
     ?getWidth@srGERD@@QBEJXZ
     ?getWinding@srGERD@@QBE?AW4e_winding@1@XZ
     ?getWindowHandle@srGERD@@QBEKXZ
