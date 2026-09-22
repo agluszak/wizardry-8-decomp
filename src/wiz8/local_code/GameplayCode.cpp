@@ -349,61 +349,6 @@ unsigned int FindFreePartySlot(unsigned int first, unsigned int last)
     return (unsigned int)-1;
 }
 
-/* Swap a party member's record for a newly built one: the outgoing character's
-   items are poured into the party pool, the slot is removed and re-seated, and
-   the replacement pays for its starting equipment when the caller says so. */
-// FUNCTION: WIZ8 0x004EF7E0
-unsigned char ReplacePartyMember004EF7E0(W8Character* old_character, W8Character* new_character,
-                                         char charge_for_equipment)
-{
-    unsigned int slot;
-    unsigned int order;
-    unsigned int cost;
-    int slot_index;
-
-    slot = CharacterPointerToPartySlot(old_character);
-    for (slot_index = 0; slot_index < 12; ++slot_index) {
-        if (old_character->equipment[slot_index].item_id != -1) {
-            AddItemToParty(&old_character->equipment[slot_index], 0, 0);
-        }
-    }
-    for (slot_index = 0; slot_index < 8; ++slot_index) {
-        if (old_character->backpack[slot_index].item_id != -1) {
-            AddItemToParty(&old_character->backpack[slot_index], 0, 0);
-        }
-    }
-    RemoveCharacterFromParty(slot, 0);
-    *old_character = *new_character;
-    old_character->in_party = 1;
-    ResetPartySlotRow(slot);
-    ResetGameplaySlot(slot);
-    g_status_685170.buffers.party_rows[slot].animation_0fa = -1;
-    for (order = 0; order < 8; ++order) {
-        if (g_status_685170.party_order_slots[order] == 0xffffffff) {
-            g_status_685170.party_order_slots[order] = slot;
-            g_status_685170.buffers.party_rows[slot].party_order_index = order;
-            break;
-        }
-    }
-    PlaceCharacterInFormation(&g_status_685170.formation, slot);
-    g_status_685170.formation.positions[slot].bOldQuadrant = -1;
-    ++g_status_685170.total_member_count;
-    ++g_status_685170.regular_member_count;
-    RebuildCharacterModifierBlock(old_character);
-    RecalculateCharacterDerivedStats(old_character);
-    if (charge_for_equipment != 0) {
-        cost = ComputeStartingEquipmentCost(old_character);
-        if (g_status_685170.party_gold < cost) {
-            srAssertFail("uiValue <= gStatus.uiPartyGold", GAMEPLAY_CODE_CPP, 0x922, 0);
-        }
-        g_status_685170.party_gold -= cost;
-        AddCharacterStartingEquipment(old_character);
-    }
-    if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-        RefreshPartySlotRegions();
-    }
-    return slot;
-}
 
 /* Recompute the eight-band ladder over the character's level in their current
    profession. A character who has changed profession is banded on the whole

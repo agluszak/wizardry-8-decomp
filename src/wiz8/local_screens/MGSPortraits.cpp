@@ -1054,7 +1054,7 @@ draw_condition_icons:
 
 portrait_fx:
     if (entry->damage_splat_active != 0) {
-        Function59ADD0(party_slot);
+        DrawDamageSplatOverlay(party_slot);
     }
     if (entry->effect_icon_active != 0) {
         DrawPortraitEffectIcon(party_slot);

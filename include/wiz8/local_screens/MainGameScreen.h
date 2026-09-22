@@ -40,10 +40,6 @@ extern W8ScreenRect g_viewport_modes_647d30[];
 /* String-list ids naming each trap row; Traps.cpp indexes it with the
    trigger's trap type for the disarm/spring notices. */
 extern unsigned short g_value_0061e9ec[];
-/* Spell-id-per-trap-type at index 11+; the opening entries are unrelated
-   chance values used by the lock interaction. */
-extern int g_table_6504e8[];
-
 #include "wiz8/layouts/screen_state.h"
 
 #include "wiz8/local_code/ControlsRect.h"

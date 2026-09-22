@@ -1010,30 +1010,6 @@ void AdvanceNoticeLine(short text_box)
     RequestRedraw(W8_REDRAW_TEXT_BOX);
 }
 
-/* Scroll to the last line of the cursor's text box. The dormant typed-dialogue
-   editor contributes its extra rows when it is open on that box. */
-// FUNCTION: WIZ8 0x0058BA60
-void ScrollTextBoxToBottom0058BA60(void)
-{
-    W8DialogueTextState* input;
-
-    if (IsNpcDialogueTextBoxActive577830()) {
-        return;
-    }
-    if (g_level_block->dialogue_text_input_open != 0 &&
-        (input = g_level_block->dialogue_text_input) != 0 &&
-        g_status_685170.text_line_cursor_1795 == input->text_box) {
-        ScrollTextBoxTo(g_status_685170.text_box_lines_shown_49a7
-                                [g_status_685170.text_line_cursor_1795] +
-                            input->line_count -
-                        W8_TEXT_BOX_VISIBLE_LINE_COUNT());
-        return;
-    }
-    ScrollTextBoxTo(
-        g_status_685170.text_box_lines_shown_49a7[g_status_685170.text_line_cursor_1795] -
-        W8_TEXT_BOX_VISIBLE_LINE_COUNT());
-}
-
 // FUNCTION: WIZ8 0x0058bbc0
 void ScrollTextBoxTo(int line)
 {

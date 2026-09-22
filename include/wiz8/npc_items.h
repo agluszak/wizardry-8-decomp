@@ -31,8 +31,6 @@ unsigned char SellItemToNpc0055B730(W8NpcState* npc, W8ItemInstance* item, unsig
                                     char suppress_payment);
 /* 0x0055B7E0: the stock mutation a completed trade applies for one slot. */
 void DecayNpcInventory(W8NpcState* npc);
-unsigned char SellItemToNpc0055B730(W8NpcState* npc, W8ItemInstance* item, unsigned char quantity,
-                                    char no_payment);
 bool CompleteNpcItemPurchase0055B7E0(W8NpcState* npc, int index, unsigned char quantity,
                                      char no_payment, int* remaining_out);
 

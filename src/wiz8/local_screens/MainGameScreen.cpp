@@ -175,11 +175,6 @@ float g_mouselook_pending_yaw_0068ede0;
 // GLOBAL: WIZ8 0x0068ede4
 float g_mouselook_pending_pitch_0068ede4;
 
-// GLOBAL: WIZ8 0x005ee998
-const float g_mouselook_yaw_scale_005ee998 = 0.0049087385f;
-// GLOBAL: WIZ8 0x005ee99c
-const float g_mouselook_pitch_scale_005ee99c = 0.0065449844f;
-
 // GLOBAL: WIZ8 0x005ee9a0
 const float g_mouselook_smooth_max_005ee9a0 = 0.39269906f;
 // GLOBAL: WIZ8 0x005ee9a4
@@ -2606,7 +2601,7 @@ int OpenTrapInteraction0058A470(Trigger* trigger)
         return 1;
     }
     if (trigger->value_37c == -1) {
-        RandomizeTriggerTumblerCount005E3740(trigger);
+        SelectTrapType005E3740(trigger);
     }
     g_main_game_screen = new W8MainGameScreen(trigger);
     if (trigger->value_388 == -1 ||
@@ -8037,41 +8032,6 @@ void DisableCombatRegions(void)
         DisableRegionInput(0x59);
         RegionSetDisable(0x14);
     }
-}
-
-/* While the mouselook latch is up, consume button and motion atoms: the left
-   button tracks the hold, and MOUSE_POS folds the cursor's pixel offset from
-   screen centre into the pending yaw/pitch (Y flipped by the invert option).
-   With smoothing off the pending angles are applied immediately. */
-// FUNCTION: WIZ8 0x00568B50
-unsigned char HandleMouselookInput(const InputAtom* input)
-{
-    if (g_level_runtime_flag_0065ba70 == 0 &&
-        (gXStatus.flag_a05 == 0 || gXStatus.fCombatMode != 0)) {
-        if (input->usEvent == LEFT_BUTTON_DOWN) {
-            g_flag_0068edd9 = 1;
-            return 1;
-        }
-        if (input->usEvent == LEFT_BUTTON_UP) {
-            g_flag_0068edd9 = 0;
-            return 1;
-        }
-        if (input->usEvent == MOUSE_POS) {
-            g_mouselook_pending_yaw_0068ede0 =
-                (_EvMouseX(input) - 0x140) * g_mouselook_yaw_scale_005ee998 +
-                g_mouselook_pending_yaw_0068ede0;
-            g_mouselook_pending_pitch_0068ede4 =
-                g_mouselook_pending_pitch_0068ede4 +
-                ((_EvMouseY(input) - 0xf0) * (g_settings_6850c8.invert_mouse_y != 0 ? -1 : 1)) *
-                    g_mouselook_pitch_scale_005ee99c;
-            WarpSystemCursor(0x140, 0xf0);
-            if (g_settings_6850c8.mouselook_smoothing == 0) {
-                ApplyPendingMouselook();
-            }
-            return 1;
-        }
-    }
-    return 0;
 }
 
 /* Drain the pending mouselook yaw/pitch into the camera, optionally scaling

@@ -221,7 +221,7 @@ void __fastcall UpdateTriggerLock00445730(int* lock_state)
 
 /* Ticks the lock countdown at lock_state[7]; returns 1 while a tick remained. */
 // FUNCTION: WIZ8 0x004457A0
-unsigned char __fastcall DecrementLockTimer004457A0(int* lock_state)
+unsigned char __fastcall ConsumeLockQuality004457A0(int* lock_state)
 {
     if (lock_state[7] > 0) {
         --lock_state[7];
@@ -1089,64 +1089,6 @@ bool Trigger::HasActorWithinRadius(float radius, bool include_party)
         srVector3T<float> party_position = g_startup_world_659c0c->GetPosition();
         if ((party_position - center).Length() <= radius) {
             return 1;
-        }
-    }
-    return 0;
-}
-
-// FUNCTION: WIZ8 0x00445730
-void __fastcall UpdateTriggerLock00445730(int* lock_state)
-{
-    int index;
-    int size;
-
-    if (lock_state[0] == 1) {
-        for (index = 0; index < 8; ++index) {
-            // reinterpret-ok: int* lock_state overlays the Trigger tail pins
-            reinterpret_cast<unsigned char*>(lock_state)[index + 9] =
-                static_cast<unsigned char>(Random(4));
-        }
-        size = lock_state[1];
-        if (size < 2) {
-            size = 2;
-        } else if (size > 7) {
-            size = 8;
-        }
-        lock_state[7] = size * 3;
-    }
-    lock_state[8] = -1;
-    // reinterpret-ok: byte +8 of the int* lock_state overlay is state_370.state
-    reinterpret_cast<unsigned char*>(lock_state)[8] = 0;
-}
-
-// FUNCTION: WIZ8 0x004457A0
-unsigned char __fastcall ConsumeLockQuality004457A0(int* lock_state)
-{
-    if (lock_state[7] > 0) {
-        --lock_state[7];
-        return 1;
-    }
-    return 0;
-}
-
-/* Whether the point falls inside the annulus of a live destination trigger:
-   action 0x34 sends the party to m_pacRecipients through RunDestination, and
-   flag 0x40 marks a trigger whose countdown event is already queued. */
-// FUNCTION: WIZ8 0x00445940
-unsigned char InsideDestinationTrigger00445940(float x, float y, float z)
-{
-    int trigger_count = g_world->triggers->GetCount();
-    for (int index = 0; index < trigger_count; ++index) {
-        Trigger* trigger = *g_world->triggers->GetAt(index);
-        if (trigger->initial_action_22a == 0x34) {
-            float dx = trigger->position_118.x - x;
-            float dy = trigger->position_118.y - y;
-            float dz = trigger->position_118.z - z;
-            float distance = static_cast<float>(sqrt(dx * dx + dy * dy + dz * dz));
-            if (distance < trigger->range_maximum_0a8 && (trigger->flags_0a0 & 0x40U) == 0 &&
-                distance >= trigger->range_minimum_0a4) {
-                return 1;
-            }
         }
     }
     return 0;

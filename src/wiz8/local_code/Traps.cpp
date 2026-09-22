@@ -31,37 +31,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <stdio.h>
-#include <string.h>
-
-#include "FileMan.h"
-#include "random.h"
-#include "surrender/srDebug.h"
-#include "wiz8/engine_code/3dapi.h"
-#include "wiz8/engine_code/GDCamera.h"
-#include "wiz8/engine_code/GameData.h"
-#include "wiz8/engine_code/Levels.h"
-#include "wiz8/engine_code/Navigator.h"
-#include "wiz8/engine_code/Octree.h"
-#include "wiz8/engine_code/Prop.h"
-#include "wiz8/engine_code/Spells.h"
-#include "wiz8/engine_code/Trigger.hpp"
-#include "wiz8/engine_code/World.h"
-#include "wiz8/float_constants.h"
-#include "wiz8/layouts/combat_state.h"
-#include "wiz8/layouts/game_status.h"
-#include "wiz8/local_code/Magic.h"
-#include "wiz8/local_code/Strings.h"
-#include "wiz8/local_code/Targeting.h"
-#include "wiz8/local_code/character_events.h"
-#include "wiz8/local_screens/CharacterScreen.h"
-#include "wiz8/local_screens/MGSTextBox.h"
-#include "wiz8/local_screens/MainGameScreen.h"
-#include "wiz8/startup_world.h"
-#include "wiz8/string_database.h"
-#include "wiz8/utility.h"
-#include "wiz8/vector.h"
-
 #define TRAPS_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Traps.cpp"
 
 // GLOBAL: WIZ8 0x0069ca68
@@ -259,6 +228,31 @@ unsigned char GetTable650434Entry(int row, int column)
    are rolled. */
 // GLOBAL: WIZ8 0x006504AC
 int g_trap_difficulty_6504ac[W8_TRAP_TYPE_COUNT] = {1, 1, 2, 2, 3, 3, 3, 4, 5, 5, 5, 6, 6, 7, 7};
+
+/* Roll the trigger's trap type (value_37c) on first interaction: rejection-
+   sample the fifteen-row trap table until a type whose per-type difficulty
+   lands within four of the trigger's grade (value_36c, floored at one). */
+// FUNCTION: WIZ8 0x005E3740
+void SelectTrapType005E3740(Trigger* trigger)
+{
+    int* lock_state;
+    int budget;
+    int type;
+
+    lock_state = &trigger->value_368;
+    if (lock_state == 0) {
+        return;
+    }
+    budget = lock_state[1];
+    if (budget < 1) {
+        budget = 1;
+    }
+    do {
+        type = Random(0xf);
+        lock_state[5] = type;
+    } while (g_trap_difficulty_6504ac[type] > budget ||
+             g_trap_difficulty_6504ac[type] + 4 < budget);
+}
 
 void DischargeTrapSpell005E3800(float x, float y, float z, int spell_id, unsigned int power_level,
                                 int num_targets); /* 0x005E3800 */
