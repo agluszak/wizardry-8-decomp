@@ -8,7 +8,6 @@
 #include "surrender/srWindow.h"
 #include "surrender/srHeap.h"
 #include "surrender/srPalette.h"
-#include "surrender/srThread.h"
 #include "surrender/srVectorProcessor.h"
 
 #include <string.h>
