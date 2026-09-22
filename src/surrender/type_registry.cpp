@@ -276,6 +276,11 @@ struct srRegistry::ClassNode::NameIndex {
         if (relative_to != 0) {
             NameEntry* entry = by_instance_00.find(const_cast<srRuntimeClass*>(relative_to));
             if (entry == 0) {
+                /* Retail (inlined at 0x10010156 in findByName 0x100100D0)
+                   returns the hash-bucket head unverified — no namesEqual —
+                   when the relative instance is absent from the side index.
+                   A collision can therefore return a differently-named
+                   instance; genuine retail behavior, preserved. */
                 entry = buckets_18[bucketIndex(name)];
                 return entry == 0 ? 0 : entry->instance_10;
             }
