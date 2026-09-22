@@ -115,23 +115,7 @@
    load paths. It gates the bit-3 clear below. The meaning is not established
    beyond "a level restore is in progress", so the name stays positional. */
 
-/* The object W8WorldItem::owner points at, and the entity it owns at +0x14.
-   Method4B8890 is a 24-byte
-   __thiscall getter with 18 call sites that hands back the entity's position;
-   its body is not ported here, so the declaration stays unresolved at link like
-   the other recovered callees. The canonical RET 4 fits an out-parameter and a
-   12-byte by-value return equally, and both spellings compile to the same call
-   site here, so the weaker of the two is the one declared. */
 #define LOADSAVEGAME_CPP "C:\\Projects\\Wizardry 8\\Local Code\\LoadSaveGame.cpp"
-
-/* 0x0050F6A0 and 0x0048C750, not yet identified; named by address as elsewhere
-   in src/wiz8. The first is told about every group that survives the load, the
-   second only about those two of its flags select. */
-
-/* 0x004E3720, 0x004F69F0 and 0x00443A50, not yet identified; named by address
-   as elsewhere in src/wiz8. All three take no argument and return nothing, and
-   run before the header is read, so they read as teardown of whatever the
-   previous level left behind. */
 
 /* The fixed 0x314-byte header every save begins with. Only the fields
    LoadStatusHeader forwards are established; the rest is read and kept. */
@@ -159,13 +143,6 @@ unsigned char SaveMonsterRecord005147A0(W8Chunk* chunks, unsigned int index);
 unsigned int g_save_filetime_xor_low_0061a134 = 0x6b24e9f0;
 // GLOBAL: WIZ8 0x0061A138
 unsigned int g_save_filetime_xor_high_0061a138 = 0xe77c28c1;
-
-/* Established save-side callees without shared declarations yet. Their
-   positional names preserve the current identity ceiling; the orchestration
-   below establishes only their argument shape and section ownership. */
-
-/* 0x00517A90, not yet identified; named by address as elsewhere in src/wiz8.
-   It builds the failure notice CreateMessageBox posts. */
 
 /* FileWrite, FileExists, FileClearAttributes and FILE_IS_READONLY come from the
    vendored SGP FileMan.h already on this target's include path, so they are not

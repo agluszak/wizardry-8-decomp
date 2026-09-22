@@ -85,7 +85,6 @@ char** g_item_table_category_names;
 W8SpellRuntimeRecord* g_spell_records;
 // GLOBAL: WIZ8 0x0065BE18
 unsigned int g_spell_database_version;
-/* 0x004E8290, not yet identified; notified when a party slot is reset. */
 #define GAMEPLAY_DATABASE_CPP "C:\\Projects\\Wizardry 8\\Local Code\\GameplayDatabase.cpp"
 
 // FUNCTION: WIZ8 0x0054a400

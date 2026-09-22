@@ -39,7 +39,12 @@ unsigned char UseItemSelectScrollRegionEvent(const InputAtom* event,
 /* Action/icon control region callback (catalog ids 0, 3, 8). */
 unsigned char UseItemSelectControlRegionEvent(const InputAtom* event,
                                               W8Region* region); /* 0x0059DA30 */
-W8ItemInstance* GetSelectedOrFallbackValue0059E0D0(void);        /* 0x0059E0D0 */
+/* Text-box body callback while use-item select is active. */
+unsigned char UseItemSelectTextBoxRegionEvent(const InputAtom* event,
+                                              W8Region* region); /* 0x0059DB40 */
+/* Text-box wheel helper while use-item select is active. */
+void UseItemSelectTextBoxWheelAt(short x, unsigned short y, unsigned char flag); /* 0x0059DD30 */
+W8ItemInstance* GetSelectedOrFallbackValue0059E0D0(void);                        /* 0x0059E0D0 */
 void SelectCurrentUseItemLine0059E0E0(void);
 void SetValue69B9A4(W8ItemInstance* value);
 

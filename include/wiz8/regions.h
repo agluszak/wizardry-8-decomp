@@ -54,9 +54,8 @@ struct W8Region {
 
 unsigned char InitializeRegionHelpState(void);
 
-/* Unrecovered static-catalog callbacks are stored as absolute retail VAs in
-   RegionManager.cpp so matching WIZ8 does not need runtime_stubs /
-   /FORCE:UNRESOLVED (which would collapse them to image base). */
+/* Text-box static-catalog callbacks, implemented in Local
+   Screens\MGSTextBox.cpp. */
 unsigned char TextBoxScrollUpRegionEvent(const InputAtom*, W8Region*);    /* 0x0058E2A0 */
 unsigned char TextBoxScrollDownRegionEvent(const InputAtom*, W8Region*);  /* 0x0058E650 */
 unsigned char TextBoxScrollThumbRegionEvent(const InputAtom*, W8Region*); /* 0x0058E9F0 */

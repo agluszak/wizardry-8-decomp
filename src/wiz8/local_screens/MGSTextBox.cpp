@@ -3,6 +3,8 @@
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/sgp_wide_text.h"
 #include "wiz8/local_screens/MainGameScreen.h"
+#include "wiz8/local_screens/MGSUseItemSelect.h"
+#include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/local_screens/mipe.h"
 #include "wiz8/layouts/game_status.h"
@@ -1556,13 +1558,6 @@ unsigned char TextBoxScrollThumbRegionEvent(const InputAtom* input_event, W8Regi
     g_level_block->text_scroll_drag_idle = 0;
     return 1;
 }
-
-/* Unrecovered mode-specific text-box body handlers / wheel helpers. */
-unsigned char UseItemSelectTextBoxRegionEvent(const InputAtom* event,
-                                              W8Region* region);                 /* 0x0059DB40 */
-void UseItemSelectTextBoxWheelAt(short x, unsigned short y, unsigned char flag); /* 0x0059DD30 */
-unsigned char SpellCastTextBoxRegionEvent(const InputAtom* event,
-                                          W8Region* region); /* 0x005A0F70 */
 
 // FUNCTION: WIZ8 0x0058E2A0
 unsigned char TextBoxScrollUpRegionEvent(const InputAtom* event, W8Region* region)
