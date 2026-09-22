@@ -189,7 +189,12 @@ public:
     static SR_DLL_IMPORT void dumpNames(std::ostream& stream, int indent);
 
     /* Implicit copy constructor/assignment: retail emits them via the
-       class-level dllexport, vptr stored after the memberwise copy. */
+       class-level dllexport, vptr stored after the memberwise copy. Not
+       safe value semantics: the copy aliases the owned name_04 buffer
+       (both objects delete[] it) and duplicates the registry-allocated
+       id_08 without running the registration path. Neither export appears
+       in the Wiz8.exe sr.dll import table — genuine but unreachable
+       compiler output. */
     // SYNTHETIC: SURRENDER 0x10011A10
     // srRuntimeClass::srRuntimeClass
     // SYNTHETIC: SURRENDER 0x10011A80
@@ -246,7 +251,11 @@ public:
     /* Assignment is user-defined and copies only the instance name through
        setName; the copy constructor is implicit (memberwise, vptr-last) and
        emitted via the class-level dllexport. novtable leaves the
-       srRuntimeClass construction vtable in place. */
+       srRuntimeClass construction vtable in place. The implicit copy is not
+       safe value semantics: it duplicates reference_count_0c/timestamp_10
+       and aliases update_14, whose instance_14 still points at the source —
+       on top of the base's name_04 aliasing. It is absent from the Wiz8.exe
+       sr.dll import table. */
     SR_DLL_IMPORT srClass& operator=(const srClass& other);
     // SYNTHETIC: SURRENDER 0x1000E290
     // srClass::srClass
