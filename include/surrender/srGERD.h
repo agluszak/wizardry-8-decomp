@@ -182,6 +182,13 @@ public:
     void setPickKey(unsigned long key);
     void ortho(double left, double right, double bottom, double top, double near_plane,
                double far_plane);
+    void frustum(double left, double right, double bottom, double top, double near_plane,
+                 double far_plane);
+    void loadMatrix(srMatrix4T<double>& matrix);
+    void pushEnvironment();
+    void popEnvironment();
+    void setEnvironmentRange(float minimum, float maximum);
+    void setEnvironmentScaleFactor(float scale, float inverse_scale);
     void setClipState(srFlags<srRendererDefs::e_clip> state);
     void setAntiAlias(e_antiAlias mode);
     void setTexture(srTextureIFace* texture, unsigned long layer);
