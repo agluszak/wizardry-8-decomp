@@ -44,8 +44,17 @@ public:
     struct OpenInfo;
     struct OpenResult;
     struct ClearValues;
-    struct Scissor;
-    struct ViewPort;
+    /* Scissor rectangle: setScissor/clamp evidence stores (left, top, right,
+       bottom) and recalcScissor compares right/bottom to width/height. */
+    struct Scissor {
+        unsigned long left, top, right, bottom;
+    };
+    /* setViewPort receives (x, y, width, height) plus four opaque trailing
+       slots applyViewStateChanges copies through unchanged. */
+    struct ViewPort {
+        long x, y, width, height;
+        unsigned long extra[4];
+    };
     /* applyFrameStateChanges builds this 0x20-byte record: dirty bits remap
        3->8, 0->1, 1->4, 2->2 into flags_00, followed by gamma, a constant
        1.0f, swap interval, antialias and the enable_flags low bit. */

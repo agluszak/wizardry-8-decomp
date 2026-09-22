@@ -406,10 +406,11 @@ void srGERD::pushMatrix()
 // FUNCTION: SURRENDER 0x10023560
 void srGERD::popMatrix()
 {
+    srMatrix4T<float>* matrix = &current_matrix_390_[matrix_mode_1650_];
     MatrixStack& stack = matrix_stacks_410_[matrix_mode_1650_];
     if (stack.depth_800 != 0) {
         stack.depth_800--;
-        current_matrix_390_[matrix_mode_1650_] = stack.entries_00[stack.depth_800];
+        *matrix = stack.entries_00[stack.depth_800];
     }
     setMatrixDirty();
 }
@@ -612,4 +613,550 @@ void srGERD::resetTexture()
 {
     dirty_24_ |= 0x400;
     dirty_24_ |= 0x800;
+}
+
+// FUNCTION: SURRENDER 0x100213A0
+srMatrix4T<float>::e_scaleType srGERD::getModelViewScaleType()
+{
+    if ((dirty_24_ & 0x1f0) != 0) {
+        applyViewStateChanges();
+    }
+    return modelview_scale_type_1744_;
+}
+
+// FUNCTION: SURRENDER 0x100213C0
+void srGERD::getNormalMatrix(srMatrix4T<float>& matrix)
+{
+    if ((dirty_24_ & 0x1f0) != 0) {
+        applyViewStateChanges();
+    }
+    if ((enable_flags_20_.value & 8) != 0) {
+        srVector4T<float> negated;
+        negated.Set(-normal_matrix_1704_.vectors[0].x, -normal_matrix_1704_.vectors[0].y,
+                    -normal_matrix_1704_.vectors[0].z, -normal_matrix_1704_.vectors[0].w);
+        matrix.vectors[0] = negated;
+        negated.Set(-normal_matrix_1704_.vectors[1].x, -normal_matrix_1704_.vectors[1].y,
+                    -normal_matrix_1704_.vectors[1].z, -normal_matrix_1704_.vectors[1].w);
+        matrix.vectors[1] = negated;
+        negated.Set(-normal_matrix_1704_.vectors[2].x, -normal_matrix_1704_.vectors[2].y,
+                    -normal_matrix_1704_.vectors[2].z, -normal_matrix_1704_.vectors[2].w);
+        matrix.vectors[2] = negated;
+        matrix.vectors[3] = normal_matrix_1704_.vectors[3];
+        return;
+    }
+    matrix = normal_matrix_1704_;
+}
+
+// FUNCTION: SURRENDER 0x100214F0
+void srGERD::getProjectClipNearMatrix(srMatrix4T<float>& matrix)
+{
+    if ((dirty_24_ & 0x1f0) != 0) {
+        applyViewStateChanges();
+    }
+    matrix = project_clip_near_16c4_;
+}
+
+// FUNCTION: SURRENDER 0x10022190
+void srGERD::ortho(const Frustum& frustum)
+{
+    srMatrix4T<double> ortho_matrix;
+    ortho_matrix.vectors[0].x = 2.0 / (frustum.right - frustum.left);
+    ortho_matrix.vectors[0].w = -((frustum.right + frustum.left) / (frustum.right - frustum.left));
+    ortho_matrix.vectors[1].y = 2.0 / (frustum.top - frustum.bottom);
+    ortho_matrix.vectors[1].w = -((frustum.bottom + frustum.top) / (frustum.top - frustum.bottom));
+    ortho_matrix.vectors[2].z = -2.0 / (frustum.far_plane - frustum.near_plane);
+    ortho_matrix.vectors[2].w =
+        -((frustum.near_plane + frustum.far_plane) / (frustum.far_plane - frustum.near_plane));
+    srMatrix4T<float>& matrix = current_matrix_390_[matrix_mode_1650_];
+    matrix.vectors[0].w = matrix.vectors[0].x * ortho_matrix.vectors[0].w +
+                          matrix.vectors[0].y * ortho_matrix.vectors[1].w +
+                          matrix.vectors[0].z * ortho_matrix.vectors[2].w + matrix.vectors[0].w;
+    matrix.vectors[0].x *= ortho_matrix.vectors[0].x;
+    matrix.vectors[0].y *= ortho_matrix.vectors[1].y;
+    matrix.vectors[0].z *= ortho_matrix.vectors[2].z;
+    matrix.vectors[1].w = matrix.vectors[1].x * ortho_matrix.vectors[0].w +
+                          matrix.vectors[1].y * ortho_matrix.vectors[1].w +
+                          matrix.vectors[1].z * ortho_matrix.vectors[2].w + matrix.vectors[1].w;
+    matrix.vectors[1].x *= ortho_matrix.vectors[0].x;
+    matrix.vectors[1].y *= ortho_matrix.vectors[1].y;
+    matrix.vectors[1].z *= ortho_matrix.vectors[2].z;
+    matrix.vectors[2].w = matrix.vectors[2].x * ortho_matrix.vectors[0].w +
+                          matrix.vectors[2].y * ortho_matrix.vectors[1].w +
+                          matrix.vectors[2].z * ortho_matrix.vectors[2].w + matrix.vectors[2].w;
+    matrix.vectors[2].x *= ortho_matrix.vectors[0].x;
+    matrix.vectors[2].y *= ortho_matrix.vectors[1].y;
+    matrix.vectors[2].z *= ortho_matrix.vectors[2].z;
+    matrix.vectors[3].w = matrix.vectors[3].x * ortho_matrix.vectors[0].w +
+                          matrix.vectors[3].y * ortho_matrix.vectors[1].w +
+                          matrix.vectors[3].z * ortho_matrix.vectors[2].w + matrix.vectors[3].w;
+    matrix.vectors[3].x *= ortho_matrix.vectors[0].x;
+    matrix.vectors[3].y *= ortho_matrix.vectors[1].y;
+    matrix.vectors[3].z *= ortho_matrix.vectors[2].z;
+    setMatrixDirty();
+}
+
+// FUNCTION: SURRENDER 0x10022330
+void srGERD::ortho(double left, double right, double bottom, double top, double near_plane,
+                   double far_plane)
+{
+    Frustum frustum;
+    frustum.left = left;
+    frustum.right = right;
+    frustum.bottom = bottom;
+    frustum.top = top;
+    frustum.near_plane = near_plane;
+    frustum.far_plane = far_plane;
+    ortho(frustum);
+}
+
+// FUNCTION: SURRENDER 0x100223A0
+void srGERD::rotate(double angle, const srVector3T<double>& axis)
+{
+    double length_sq = axis.x * axis.x + axis.y * axis.y + axis.z * axis.z;
+    if (length_sq != 0.0) {
+        srMatrix4T<double> rotation;
+        srVector3T<double> unit_axis = axis;
+        if (length_sq != 1.0) {
+            double inverse = 1.0 / sqrt(length_sq);
+            unit_axis.Set(axis.x * inverse, axis.y * inverse, axis.z * inverse);
+        }
+        double sine = sin(angle);
+        double cosine = cos(angle);
+        double complement = 1.0 - cosine;
+        rotation.vectors[0].x = unit_axis.x * unit_axis.x * complement + cosine;
+        rotation.vectors[0].y = unit_axis.x * unit_axis.y * complement - unit_axis.z * sine;
+        rotation.vectors[0].z = unit_axis.x * unit_axis.z * complement + unit_axis.y * sine;
+        rotation.vectors[1].x = unit_axis.x * unit_axis.y * complement + unit_axis.z * sine;
+        rotation.vectors[1].y = unit_axis.y * unit_axis.y * complement + cosine;
+        rotation.vectors[1].z = unit_axis.y * unit_axis.z * complement - unit_axis.x * sine;
+        rotation.vectors[2].x = unit_axis.x * unit_axis.z * complement - unit_axis.y * sine;
+        rotation.vectors[2].y = unit_axis.y * unit_axis.z * complement + unit_axis.x * sine;
+        rotation.vectors[2].z = unit_axis.z * unit_axis.z * complement + cosine;
+        srMatrix4T<float>& matrix = current_matrix_390_[matrix_mode_1650_];
+        float x = matrix.vectors[0].x;
+        float y = matrix.vectors[0].y;
+        float z = matrix.vectors[0].z;
+        matrix.vectors[0].x =
+            rotation.vectors[0].x * x + rotation.vectors[1].x * y + rotation.vectors[2].x * z;
+        matrix.vectors[0].y =
+            rotation.vectors[0].y * x + rotation.vectors[1].y * y + rotation.vectors[2].y * z;
+        matrix.vectors[0].z =
+            rotation.vectors[0].z * x + rotation.vectors[1].z * y + rotation.vectors[2].z * z;
+        x = matrix.vectors[1].x;
+        y = matrix.vectors[1].y;
+        z = matrix.vectors[1].z;
+        matrix.vectors[1].x =
+            rotation.vectors[0].x * x + rotation.vectors[1].x * y + rotation.vectors[2].x * z;
+        matrix.vectors[1].y =
+            rotation.vectors[0].y * x + rotation.vectors[1].y * y + rotation.vectors[2].y * z;
+        matrix.vectors[1].z =
+            rotation.vectors[0].z * x + rotation.vectors[1].z * y + rotation.vectors[2].z * z;
+        x = matrix.vectors[2].x;
+        y = matrix.vectors[2].y;
+        z = matrix.vectors[2].z;
+        matrix.vectors[2].x =
+            rotation.vectors[0].x * x + rotation.vectors[1].x * y + rotation.vectors[2].x * z;
+        matrix.vectors[2].y =
+            rotation.vectors[0].y * x + rotation.vectors[1].y * y + rotation.vectors[2].y * z;
+        matrix.vectors[2].z =
+            rotation.vectors[0].z * x + rotation.vectors[1].z * y + rotation.vectors[2].z * z;
+        x = matrix.vectors[3].x;
+        y = matrix.vectors[3].y;
+        z = matrix.vectors[3].z;
+        matrix.vectors[3].x =
+            rotation.vectors[0].x * x + rotation.vectors[1].x * y + rotation.vectors[2].x * z;
+        matrix.vectors[3].y =
+            rotation.vectors[0].y * x + rotation.vectors[1].y * y + rotation.vectors[2].y * z;
+        matrix.vectors[3].z =
+            rotation.vectors[0].z * x + rotation.vectors[1].z * y + rotation.vectors[2].z * z;
+        setMatrixDirty();
+        return;
+    }
+    loadIdentity();
+}
+
+// FUNCTION: SURRENDER 0x100226F0
+void srGERD::rotate(double angle, const srVector3T<float>& axis)
+{
+    rotate(angle, srVector3T<double>(axis.x, axis.y, axis.z));
+}
+
+// FUNCTION: SURRENDER 0x10022780
+void srGERD::scale(const srVector3T<double>& factors)
+{
+    srMatrix4T<float>& matrix = current_matrix_390_[matrix_mode_1650_];
+    matrix.vectors[0].x *= factors.x;
+    matrix.vectors[1].x *= factors.x;
+    matrix.vectors[2].x *= factors.x;
+    matrix.vectors[3].x *= factors.x;
+    matrix.vectors[0].y *= factors.y;
+    matrix.vectors[1].y *= factors.y;
+    matrix.vectors[2].y *= factors.y;
+    matrix.vectors[3].y *= factors.y;
+    matrix.vectors[0].z *= factors.z;
+    matrix.vectors[1].z *= factors.z;
+    matrix.vectors[2].z *= factors.z;
+    matrix.vectors[3].z *= factors.z;
+    setMatrixDirty();
+}
+
+// FUNCTION: SURRENDER 0x10022870
+void srGERD::scale(double x, double y, double z)
+{
+    scale(srVector3T<double>(x, y, z));
+}
+
+// FUNCTION: SURRENDER 0x10022960
+void srGERD::translate(const srVector3T<double>& offset)
+{
+    srMatrix4T<float>& matrix = current_matrix_390_[matrix_mode_1650_];
+    matrix.vectors[0].w = matrix.vectors[0].x * offset.x + matrix.vectors[0].y * offset.y +
+                          matrix.vectors[0].z * offset.z + matrix.vectors[0].w;
+    matrix.vectors[1].w = matrix.vectors[1].x * offset.x + matrix.vectors[1].y * offset.y +
+                          matrix.vectors[1].z * offset.z + matrix.vectors[1].w;
+    matrix.vectors[2].w = matrix.vectors[2].x * offset.x + matrix.vectors[2].y * offset.y +
+                          matrix.vectors[2].z * offset.z + matrix.vectors[2].w;
+    matrix.vectors[3].w = matrix.vectors[3].x * offset.x + matrix.vectors[3].y * offset.y +
+                          matrix.vectors[3].z * offset.z + matrix.vectors[3].w;
+    setMatrixDirty();
+}
+
+// FUNCTION: SURRENDER 0x100229F0
+void srGERD::translate(const srVector3T<float>& offset)
+{
+    translate(srVector3T<double>(offset.x, offset.y, offset.z));
+}
+
+// FUNCTION: SURRENDER 0x10022A20
+void srGERD::translate(double x, double y, double z)
+{
+    translate(srVector3T<double>(x, y, z));
+}
+
+// FUNCTION: SURRENDER 0x100231D0
+void srGERD::loadIdentity()
+{
+    srMatrix4T<float>& matrix = current_matrix_390_[matrix_mode_1650_];
+    if (matrix.vectors[0].x != 1.0f || matrix.vectors[1].y != 1.0f || matrix.vectors[2].z != 1.0f ||
+        matrix.vectors[3].w != 1.0f || matrix.vectors[0].y != 0.0f || matrix.vectors[0].z != 0.0f ||
+        matrix.vectors[0].w != 0.0f || matrix.vectors[1].x != 0.0f || matrix.vectors[1].z != 0.0f ||
+        matrix.vectors[1].w != 0.0f || matrix.vectors[2].x != 0.0f || matrix.vectors[2].y != 0.0f ||
+        matrix.vectors[2].w != 0.0f || matrix.vectors[3].x != 0.0f || matrix.vectors[3].y != 0.0f ||
+        matrix.vectors[3].z != 0.0f) {
+        matrix.vectors[0].Set(1.0f, 0.0f, 0.0f, 0.0f);
+        matrix.vectors[1].Set(0.0f, 1.0f, 0.0f, 0.0f);
+        matrix.vectors[2].Set(0.0f, 0.0f, 1.0f, 0.0f);
+        matrix.vectors[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
+        setMatrixDirty();
+    }
+}
+
+// FUNCTION: SURRENDER 0x10023320
+void srGERD::getMatrix(e_matrixMode mode, srMatrix4T<float>& matrix)
+{
+    if ((dirty_24_ & 0x1f0) != 0) {
+        applyViewStateChanges();
+    }
+    matrix = current_matrix_390_[mode];
+}
+
+// FUNCTION: SURRENDER 0x10023510
+void srGERD::getInverseModelViewMatrix(srMatrix4T<float>& matrix)
+{
+    if ((dirty_24_ & 0x1f0) != 0) {
+        applyViewStateChanges();
+    }
+    matrix = inverse_modelview_1684_;
+}
+
+/* Locked-buffer surface created by lockBuffer: a srColorSurfaceIFace-derived
+   class of 0x60 bytes (ctor 0x100205d0) that keeps its own scissor rect. */
+class srGERD::LockSurface {
+public:
+    void setScissor(unsigned long left, unsigned long top, unsigned long right,
+                    unsigned long bottom);
+
+private:
+    unsigned char unknown_00_[0x48];
+    unsigned long left_48_;
+    unsigned long top_4c_;
+    unsigned long right_50_;
+    unsigned long bottom_54_;
+};
+
+// FUNCTION: SURRENDER 0x10020780
+void srGERD::LockSurface::setScissor(unsigned long left, unsigned long top, unsigned long right,
+                                     unsigned long bottom)
+{
+    left_48_ = left;
+    right_50_ = right;
+    top_4c_ = top;
+    bottom_54_ = bottom;
+}
+
+// FUNCTION: SURRENDER 0x1001BC70
+void srGERD::applyViewStateChanges()
+{
+    unsigned long dirty = dirty_24_;
+    statistics_1a78_.value_40 += 1;
+    if ((dirty & 0x20) != 0) {
+        classifyMatrix(MATRIX_MODELVIEW);
+        dirty = dirty_24_ & ~0x20UL;
+        dirty_24_ = dirty;
+        if (dirty == 0) {
+            return;
+        }
+    }
+    if ((dirty & 0x180) != 0) {
+        srDD::ViewPort viewport;
+        viewport.x = view_left_1638_;
+        viewport.y = view_top_163c_;
+        viewport.width = view_right_1640_ - viewport.x;
+        viewport.height = view_bottom_1644_ - viewport.y;
+        viewport.extra[0] = viewport_extra_1618_[0];
+        viewport.extra[1] = viewport_extra_1618_[1];
+        viewport.extra[2] = viewport_extra_1618_[2];
+        viewport.extra[3] = viewport_extra_1618_[3];
+        if ((state_flags_28_ & 0x10) == 0) {
+            getDD()->setViewPort(viewport);
+        }
+    }
+    if ((dirty_24_ & 0x40) != 0) {
+        classifyMatrix(MATRIX_PROJECTION);
+        project_clip_near_16c4_ = current_matrix_390_[MATRIX_PROJECTION];
+        srMatrix4T<float>& projection = current_matrix_390_[MATRIX_PROJECTION];
+        if (((projection.vectors[3].x != 0.0f) || (projection.vectors[3].y != 0.0f) ||
+             (projection.vectors[3].z != 0.0f)) &&
+            ((projection.vectors[3].w + projection.vectors[2].w != 0.0f) &&
+             (fabs((projection.vectors[3].z + projection.vectors[2].z) /
+                   (projection.vectors[3].w + projection.vectors[2].w)) != 1.0))) {
+            float scale = (float)fabs((projection.vectors[3].z + projection.vectors[2].z) /
+                                      (projection.vectors[3].w + projection.vectors[2].w));
+            project_clip_near_16c4_.vectors[0].x *= scale;
+            project_clip_near_16c4_.vectors[0].y *= scale;
+            project_clip_near_16c4_.vectors[0].z *= scale;
+            project_clip_near_16c4_.vectors[0].w *= scale;
+            project_clip_near_16c4_.vectors[1].x *= scale;
+            project_clip_near_16c4_.vectors[1].y *= scale;
+            project_clip_near_16c4_.vectors[1].z *= scale;
+            project_clip_near_16c4_.vectors[1].w *= scale;
+            project_clip_near_16c4_.vectors[2].x *= scale;
+            project_clip_near_16c4_.vectors[2].y *= scale;
+            project_clip_near_16c4_.vectors[2].z *= scale;
+            project_clip_near_16c4_.vectors[2].w *= scale;
+            project_clip_near_16c4_.vectors[3].x *= scale;
+            project_clip_near_16c4_.vectors[3].y *= scale;
+            project_clip_near_16c4_.vectors[3].z *= scale;
+            project_clip_near_16c4_.vectors[3].w *= scale;
+        }
+        if ((state_flags_28_ & 0x10) == 0) {
+            getDD()->setProjectionMatrix(project_clip_near_16c4_,
+                                         matrix_type_174c_[MATRIX_PROJECTION]);
+        }
+    }
+    if ((dirty_24_ & 0x10) != 0) {
+        recalcScissor();
+    }
+    dirty_24_ &= ~0x1f0UL;
+}
+
+// FUNCTION: SURRENDER 0x1001D580
+void srGERD::setScissor(unsigned long x, unsigned long y, unsigned long width, unsigned long height)
+{
+    scissor_1628_.left = x;
+    scissor_1628_.right = x + width;
+    scissor_1628_.top = y;
+    scissor_1628_.bottom = y + height;
+    if (scissor_1628_.left >= (unsigned long)getWidth()) {
+        scissor_1628_.left = getWidth();
+    }
+    if (scissor_1628_.top >= (unsigned long)getHeight()) {
+        scissor_1628_.top = getHeight();
+    }
+    if (scissor_1628_.right >= (unsigned long)getWidth()) {
+        scissor_1628_.right = getWidth();
+    }
+    if (scissor_1628_.bottom >= (unsigned long)getHeight()) {
+        scissor_1628_.bottom = getHeight();
+    }
+    recalcScissor();
+    dirty_24_ |= 0x10;
+}
+
+// FUNCTION: SURRENDER 0x100204C0
+void srGERD::recalcScissor()
+{
+    if (scissor_1628_.left == 0 && scissor_1628_.right == (unsigned long)getWidth() &&
+        scissor_1628_.top == 0 && scissor_1628_.bottom == (unsigned long)getHeight()) {
+        scissor_state_1680_ |= 2;
+    } else {
+        scissor_state_1680_ &= ~2UL;
+    }
+    getDD()->setScissor(scissor_1628_);
+    if (lock_surface_1b00_ != 0) {
+        lock_surface_1b00_->setScissor(scissor_1628_.left, scissor_1628_.top, scissor_1628_.right,
+                                       scissor_1628_.bottom);
+    }
+}
+
+// FUNCTION: SURRENDER 0x100215A0
+void srGERD::classifyMatrix(e_matrixMode mode)
+{
+    statistics_1a78_.value_7c += 1;
+    if (mode == MATRIX_MODELVIEW) {
+        srMatrix4T<float>* modelview = &current_matrix_390_[MATRIX_MODELVIEW];
+        matrix_type_174c_[MATRIX_MODELVIEW] = (srMatrix4T<float>::e_type)0;
+        srMatrix4T<float>* inverse = &inverse_modelview_1684_;
+        double length0 = modelview->vectors[2].x * modelview->vectors[2].x +
+                         modelview->vectors[1].x * modelview->vectors[1].x +
+                         modelview->vectors[0].x * modelview->vectors[0].x;
+        double length1 = modelview->vectors[2].y * modelview->vectors[2].y +
+                         modelview->vectors[1].y * modelview->vectors[1].y +
+                         modelview->vectors[0].y * modelview->vectors[0].y;
+        double length2 = modelview->vectors[2].z * modelview->vectors[2].z +
+                         modelview->vectors[1].z * modelview->vectors[1].z +
+                         modelview->vectors[0].z * modelview->vectors[0].z;
+        if (fabs(length0 - length1) <= 1e-05 && fabs(length0 - length2) <= 1e-05) {
+            if (fabs(length0 - 1.0) > 1e-05) {
+                modelview_scale_type_1744_ = srMatrix4T<float>::SCALE_TYPE_POSITIONAL_1;
+                modelview_scale_1748_ = (float)sqrt(length0);
+                length0 = 1.0 / length0;
+                inverse->vectors[0].x = length0 * modelview->vectors[0].x;
+                inverse->vectors[1].x = length0 * modelview->vectors[0].y;
+                inverse->vectors[2].x = length0 * modelview->vectors[0].z;
+                inverse->vectors[0].y = length0 * modelview->vectors[1].x;
+                inverse->vectors[1].y = length0 * modelview->vectors[1].y;
+                inverse->vectors[2].y = length0 * modelview->vectors[1].z;
+                inverse->vectors[0].z = length0 * modelview->vectors[2].x;
+                inverse->vectors[1].z = length0 * modelview->vectors[2].y;
+                inverse->vectors[2].z = length0 * modelview->vectors[2].z;
+                float scale = modelview_scale_1748_;
+                normal_matrix_1704_.vectors[0].x = scale * inverse->vectors[0].x;
+                normal_matrix_1704_.vectors[0].y = scale * inverse->vectors[1].x;
+                normal_matrix_1704_.vectors[0].z = scale * inverse->vectors[2].x;
+                normal_matrix_1704_.vectors[1].x = scale * inverse->vectors[0].y;
+                normal_matrix_1704_.vectors[1].y = scale * inverse->vectors[1].y;
+                normal_matrix_1704_.vectors[1].z = scale * inverse->vectors[2].y;
+                normal_matrix_1704_.vectors[2].x = scale * inverse->vectors[0].z;
+                normal_matrix_1704_.vectors[2].y = scale * inverse->vectors[1].z;
+                normal_matrix_1704_.vectors[2].z = scale * inverse->vectors[2].z;
+            } else {
+                modelview_scale_type_1744_ = srMatrix4T<float>::SCALE_TYPE_POSITIONAL_0;
+                modelview_scale_1748_ = 1.0f;
+                inverse->vectors[0].x = modelview->vectors[0].x;
+                normal_matrix_1704_.vectors[0].x = modelview->vectors[0].x;
+                inverse->vectors[1].x = modelview->vectors[0].y;
+                normal_matrix_1704_.vectors[0].y = modelview->vectors[0].y;
+                inverse->vectors[2].x = modelview->vectors[0].z;
+                normal_matrix_1704_.vectors[0].z = modelview->vectors[0].z;
+                inverse->vectors[0].y = modelview->vectors[1].x;
+                normal_matrix_1704_.vectors[1].x = modelview->vectors[1].x;
+                inverse->vectors[1].y = modelview->vectors[1].y;
+                normal_matrix_1704_.vectors[1].y = modelview->vectors[1].y;
+                inverse->vectors[2].y = modelview->vectors[1].z;
+                normal_matrix_1704_.vectors[1].z = modelview->vectors[1].z;
+                inverse->vectors[0].z = modelview->vectors[2].x;
+                normal_matrix_1704_.vectors[2].x = modelview->vectors[2].x;
+                inverse->vectors[1].z = modelview->vectors[2].y;
+                normal_matrix_1704_.vectors[2].y = modelview->vectors[2].y;
+                inverse->vectors[2].z = modelview->vectors[2].z;
+                normal_matrix_1704_.vectors[2].z = modelview->vectors[2].z;
+            }
+            inverse->vectors[0].w = -(modelview->vectors[0].w * inverse->vectors[0].x +
+                                      modelview->vectors[1].w * inverse->vectors[0].y +
+                                      modelview->vectors[2].w * inverse->vectors[0].z);
+            inverse->vectors[1].w = -(inverse->vectors[1].x * modelview->vectors[0].w +
+                                      inverse->vectors[1].y * modelview->vectors[1].w +
+                                      inverse->vectors[1].z * modelview->vectors[2].w);
+            inverse->vectors[2].w = -(inverse->vectors[2].x * modelview->vectors[0].w +
+                                      inverse->vectors[2].y * modelview->vectors[1].w +
+                                      inverse->vectors[2].z * modelview->vectors[2].w);
+            inverse->vectors[3].x = 0.0f;
+            inverse->vectors[3].y = 0.0f;
+            inverse->vectors[3].z = 0.0f;
+            inverse->vectors[3].w = 1.0f;
+            return;
+        }
+        float inv0 = (float)(1.0f / sqrt(length0));
+        float inv1 = (float)(1.0f / sqrt(length1));
+        float inv2 = (float)(1.0f / sqrt(length2));
+        if (length0 < length1) {
+            length0 = length1;
+        }
+        if (length0 < length2) {
+            length0 = length2;
+        }
+        modelview_scale_type_1744_ = srMatrix4T<float>::SCALE_TYPE_POSITIONAL_2;
+        modelview_scale_1748_ = (float)sqrt(length0);
+        if (modelview == inverse) {
+            inverse->Invert();
+        } else {
+            inverse->AdjugateFrom(&modelview->vectors[0].x);
+            float det = inverse->Det();
+            if (det != 1.0f) {
+                inverse->Scale(1.0f / det);
+            }
+        }
+        srMatrix4T<float> normalized = *modelview;
+        normalized.vectors[0].x *= inv0;
+        normalized.vectors[0].y *= inv1;
+        normalized.vectors[0].z *= inv2;
+        normalized.vectors[1].x *= inv0;
+        normalized.vectors[1].y *= inv1;
+        normalized.vectors[1].z *= inv2;
+        normalized.vectors[2].x *= inv0;
+        normalized.vectors[2].y *= inv1;
+        normalized.vectors[2].z *= inv2;
+        normalized.vectors[3].x *= inv0;
+        normalized.vectors[3].y *= inv1;
+        normalized.vectors[3].z *= inv2;
+        srMatrix4T<float> adjugate;
+        adjugate.AdjugateFrom(&normalized.vectors[0].x);
+        float det = adjugate.Det();
+        if (det != 1.0f) {
+            adjugate.Scale(1.0f / det);
+        }
+        normal_matrix_1704_.vectors[0].x = adjugate.vectors[0].x;
+        normal_matrix_1704_.vectors[0].y = adjugate.vectors[1].x;
+        normal_matrix_1704_.vectors[0].z = adjugate.vectors[2].x;
+        normal_matrix_1704_.vectors[1].x = adjugate.vectors[0].y;
+        normal_matrix_1704_.vectors[1].y = adjugate.vectors[1].y;
+        normal_matrix_1704_.vectors[1].z = adjugate.vectors[2].y;
+        normal_matrix_1704_.vectors[2].x = adjugate.vectors[0].z;
+        normal_matrix_1704_.vectors[2].y = adjugate.vectors[1].z;
+        normal_matrix_1704_.vectors[2].z = adjugate.vectors[2].z;
+        return;
+    }
+    srMatrix4T<float>& matrix = current_matrix_390_[mode];
+    unsigned long mask = 0;
+    unsigned long bit = 1;
+    for (long row = 0; row < 4; row++) {
+        if (matrix.vectors[row].x == 0.0f) {
+            mask |= bit;
+        }
+        if (matrix.vectors[row].y == 0.0f) {
+            mask |= bit * 2;
+        }
+        if (matrix.vectors[row].z == 0.0f) {
+            mask |= bit * 4;
+        }
+        if (matrix.vectors[row].w == 0.0f) {
+            mask |= bit * 8;
+        }
+        bit *= 0x10;
+    }
+    unsigned long type;
+    if (mask == 0x7bde && matrix.vectors[0].x == 1.0f && matrix.vectors[1].y == 1.0f &&
+        matrix.vectors[2].z == 1.0f && matrix.vectors[3].w == 1.0f) {
+        type = 4;
+    } else if ((mask & 0xb39a) == 0xb39a) {
+        type = 6;
+    } else if ((mask & 0x7356) == 0x7356) {
+        type = 5;
+    } else if ((mask & 0x7000) == 0x7000 && matrix.vectors[3].w == 1.0f) {
+        type = 3;
+    } else {
+        type = 0;
+    }
+    matrix_type_174c_[mode] = (srMatrix4T<float>::e_type)type;
 }

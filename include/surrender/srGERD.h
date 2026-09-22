@@ -32,6 +32,15 @@ public:
         unsigned long value_204;
     };
 
+    struct Frustum {
+        double left;
+        double right;
+        double bottom;
+        double top;
+        double near_plane;
+        double far_plane;
+    };
+
     class Renderer {
     public:
         struct TriInput {
@@ -126,13 +135,16 @@ public:
         unsigned long value_34;
         unsigned char unknown_38[4];
         unsigned long value_3c;
-        unsigned char unknown_40[8];
+        /* applyViewStateChanges increments this counter on every apply. */
+        unsigned long value_40;
+        unsigned char unknown_44[4];
         /* applyFrameStateChanges increments this counter on every apply. */
         unsigned long frame_state_count_48;
         unsigned long value_4c;
         unsigned char unknown_50[0x18];
         unsigned long value_68;
         unsigned char unknown_6c[0x10];
+        unsigned long value_7c;
     };
     void getStatistics(Statistics& statistics);
     unsigned long getTextureCacheUsed() const;
@@ -182,8 +194,11 @@ public:
     void popEnable();
     void loadIdentity();
     void rotate(double angle, const srVector3T<float>& axis);
+    void rotate(double angle, const srVector3T<double>& axis);
     void scale(double x, double y, double z);
+    void scale(const srVector3T<double>& factors);
     void translate(const srVector3T<float>& offset);
+    void translate(const srVector3T<double>& offset);
     void translate(double x, double y, double z);
     e_visibility testBoundingSphere(const srVector3T<float>& center, float radius);
     e_visibility testBoundingBox(const srVector3T<float>& minimum,
@@ -200,6 +215,7 @@ public:
     void setEnvironmentScaleFactor(float scale, float inverse_scale);
     void pushClipPlane(srVector4T<float>& plane, e_clipMode mode);
     void popClipPlane();
+    void ortho(const Frustum& frustum);
     void setClipState(srFlags<srRendererDefs::e_clip> state);
     void setAntiAlias(e_antiAlias mode);
     void setTexture(srTextureIFace* texture, unsigned long layer);
@@ -306,6 +322,10 @@ private:
     void applyFrameStateChanges();
     void invalidateTexture(Texture& texture);
     void markTextureAsDeleted(Texture& texture);
+    void applyViewStateChanges();
+    void classifyMatrix(e_matrixMode mode);
+    void recalcScissor();
+    class LockSurface;
 
     static srGERD* first;
     static srGERD* firstOpen;
@@ -347,7 +367,9 @@ private:
     };
     srMatrix4T<float> current_matrix_390_[2];
     MatrixStack matrix_stacks_410_[2];
-    unsigned char unknown_1418_[0x220];
+    unsigned char unknown_1418_[0x200];
+    unsigned long viewport_extra_1618_[4];
+    srDD::Scissor scissor_1628_;
     unsigned long view_left_1638_;
     unsigned long view_top_163c_;
     unsigned long view_right_1640_;
@@ -355,7 +377,15 @@ private:
     e_cullMode cull_mode_1648_;
     e_winding winding_164c_;
     e_matrixMode matrix_mode_1650_;
-    unsigned char unknown_1654_[0x104];
+    unsigned char unknown_1654_[0x2c];
+    unsigned long scissor_state_1680_;
+    srMatrix4T<float> inverse_modelview_1684_;
+    srMatrix4T<float> project_clip_near_16c4_;
+    srMatrix4T<float> normal_matrix_1704_;
+    srMatrix4T<float>::e_scaleType modelview_scale_type_1744_;
+    float modelview_scale_1748_;
+    srMatrix4T<float>::e_type matrix_type_174c_[2];
+    unsigned char unknown_1754_[4];
     srVector3T<float> gamma_1758_;
     unsigned long swap_interval_1764_;
     e_antiAlias antialias_1768_;
@@ -364,7 +394,9 @@ private:
     unsigned long pick_key_19f0_;
     unsigned char unknown_19f4_[0x84];
     Statistics statistics_1a78_;
-    unsigned char unknown_1af8_[0x10];
+    unsigned char unknown_1af8_[8];
+    LockSurface* lock_surface_1b00_;
+    unsigned char unknown_1b04_[4];
     srVector4T<float> clear_color_1b08_;
     unsigned char unknown_1b18_[0x10];
     double clear_depth_1b28_;

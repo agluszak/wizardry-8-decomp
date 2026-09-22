@@ -605,6 +605,7 @@ EXPORTS
     ?initBaseVP@srVectorProcessor@@SAXXZ
     ?insert@Sampler@srHuffman@@QAEXK@Z
     ?isBusy@srDebugDD@@UAEHXZ
+    ?applyViewStateChanges@srGERD@@AAEXXZ
     ?isFinished@srBinIAsyncStream@@QAEHXZ
     ?isOpen@srBinFStream@@QAEHXZ
     ?load@srDynamicLibrary@@SAPAXPBD@Z
@@ -644,6 +645,7 @@ EXPORTS
     ?save@srFileManager@@UAEXPBDPAXK@Z
     ?scanFiles@srSystem@@SAJAAVsrStringTable@@PBD1@Z
     ?scanFiles@srSystem@@SAJAAVsrStringTable@@PBD@Z
+    ?classifyMatrix@srGERD@@AAEXW4e_matrixMode@1@@Z
     ?scanLibraries@srSystem@@SAJAAVsrStringTable@@PBD1@Z
     ?seek@srBinIAsyncStream@@UAEAAVsrBinStream@@K@Z
     ?seek@srBinIAsyncStream@@UAEAAVsrBinStream@@KW4e_seekDir@2@@Z
@@ -914,3 +916,20 @@ EXPORTS
     ?setWrapS@srTexture@@QAEXW4e_wrap@srTextureIFace@@@Z
     ?setWrapT@srTexture@@QAEXW4e_wrap@srTextureIFace@@@Z
     ?setParent@srNode@@QAEHPAV1@H@Z
+    ?getInverseModelViewMatrix@srGERD@@QAEXAAV?$srMatrix4T@M@@@Z
+    ?getMatrix@srGERD@@QAEXW4e_matrixMode@1@AAV?$srMatrix4T@M@@@Z
+    ?getModelViewScaleType@srGERD@@QAE?AW4e_scaleType@?$srMatrix4T@M@@XZ
+    ?getNormalMatrix@srGERD@@QAEXAAV?$srMatrix4T@M@@@Z
+    ?getProjectClipNearMatrix@srGERD@@QAEXAAV?$srMatrix4T@M@@@Z
+    ?loadIdentity@srGERD@@QAEXXZ
+    ?ortho@srGERD@@QAEXNNNNNN@Z
+    ?ortho@srGERD@@QAEXABUFrustum@1@@Z
+    ?rotate@srGERD@@QAEXNABV?$srVector3T@M@@@Z
+    ?rotate@srGERD@@QAEXNABV?$srVector3T@N@@@Z
+    ?scale@srGERD@@QAEXNNN@Z
+    ?scale@srGERD@@QAEXABV?$srVector3T@N@@@Z
+    ?translate@srGERD@@QAEXNNN@Z
+    ?translate@srGERD@@QAEXABV?$srVector3T@M@@@Z
+    ?translate@srGERD@@QAEXABV?$srVector3T@N@@@Z
+    ?recalcScissor@srGERD@@AAEXXZ
+    ?setScissor@srGERD@@QAEXKKKK@Z
