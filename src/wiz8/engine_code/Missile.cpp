@@ -1321,7 +1321,7 @@ void W8Missile::SetCycle(signed char cycle)
 
             if (event->cycle_00 == cycle) {
                 event->m_pstParticles->SetActive(1);
-                event->m_pstParticles->value_188 = 0;
+                event->m_pstParticles->emission_count_188 = 0;
             } else {
                 event->m_pstParticles->SetActive(0);
             }

@@ -841,7 +841,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (particle != 0) {
             particle->SetActive(0);
             particle->start_frame_264 = 0;
-            particle->value_188 = 0;
+            particle->emission_count_188 = 0;
             particle->SetActive(1);
             particle->SetTraversalEnabled00498D90(1);
         }

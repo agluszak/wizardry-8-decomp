@@ -155,7 +155,7 @@ public:
     char* m_name;          /* 0x20 */
     /* 0x24: UpdatePropAnimation0044C030 stores the animation timer's progress here, then
        reduces it by the whole-frame count - the fractional remainder. */
-    float unknown_024;
+    float anim_frame_fraction_024;
     W8GameTimer* m_pTimer;          /* 0x28 */
     srVector3T<float> position_02c; /* 0x2c: written by ApplyAnimationFrame0044C670 */
     GDProp* m_gd_prop;              /* 0x38 */

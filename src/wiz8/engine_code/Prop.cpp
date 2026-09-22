@@ -92,7 +92,7 @@ W8Prop::W8Prop()
     trigger_18 = 0;
     flags_1c = 0;
     m_name = 0;
-    unknown_024 = 0;
+    anim_frame_fraction_024 = 0;
     kind_004 = 4;
     id_008 = IncrementValue60DFAC();
     m_pRep = new W8PropRepresentation();
@@ -636,7 +636,7 @@ void W8Prop::UpdatePropAnimation0044C030()
         return;
     }
     total = AnimObjValue004A15D0(rep->animation, 2);
-    unknown_024 = 0.0f;
+    anim_frame_fraction_024 = 0.0f;
     if (rep->pending_subcycle_066 != 0xffff) {
         if (static_cast<short>(rep->pending_subcycle_066) < static_cast<int>(total)) {
             rep->subcycle_064 = static_cast<unsigned char>(rep->pending_subcycle_066);
@@ -667,10 +667,10 @@ void W8Prop::UpdatePropAnimation0044C030()
         flags_1c &= ~0x20;
         return;
     }
-    unknown_024 = m_pTimer->GetProgress();
+    anim_frame_fraction_024 = m_pTimer->GetProgress();
     BuildOrRefreshPathingRepresentation();
-    frames = static_cast<int>(unknown_024);
-    unknown_024 -= frames;
+    frames = static_cast<int>(anim_frame_fraction_024);
+    anim_frame_fraction_024 -= frames;
     rep->flag_0ad = static_cast<unsigned char>(frames);
     if (frames != 0) {
         W8AnimObj* animation;
@@ -1065,9 +1065,9 @@ void W8Prop::AttachAnimationInstances0044C830(W8World* world)
             instance->setParent(world->dynamic_scene, 1);
             instance->scale_194 = zero;
             if (g_settings_6850c8.smooth_world_animations != 0) {
-                instance->value_1ac = unknown_024;
+                instance->frame_interpolation_1ac = anim_frame_fraction_024;
             } else {
-                instance->value_1ac = 0.0f;
+                instance->frame_interpolation_1ac = 0.0f;
             }
             mesh = static_cast<stMeshModel*>(instance->getModel());
             if (mesh != 0 && (mesh->flags_3a0 & 1) != 0 && trigger_18 == 0) {
@@ -1079,24 +1079,25 @@ void W8Prop::AttachAnimationInstances0044C830(W8World* world)
             }
             next_frame = static_cast<unsigned char>(NextAnimationValue0044C600());
             if (next_frame > Rep()->last_frame_095) {
-                unknown_024 = 0.0f;
+                anim_frame_fraction_024 = 0.0f;
             }
             rotation = path->rotations_14[Rep()->subcycle_064];
             next = path->rotations_14[next_frame];
             instance->getRotation(rotation_048);
             if (!(rotation == next)) {
-                W8Quaternion::InterpolateRotation(rotation, next, unknown_024, &rotation);
+                W8Quaternion::InterpolateRotation(rotation, next, anim_frame_fraction_024,
+                                                  &rotation);
             }
             rotation_06c = rotation;
             current = **path->nodes_0c->GetAt(Rep()->subcycle_064);
             next_pos = **path->nodes_0c->GetAt(next_frame);
-            inv = g_float_005ebb38 - unknown_024;
-            position = current * inv + next_pos * unknown_024;
+            inv = g_float_005ebb38 - anim_frame_fraction_024;
+            position = current * inv + next_pos * anim_frame_fraction_024;
             if (path->scales_18 != 0) {
                 has_scales = true;
                 current_scale = path->scales_18[Rep()->subcycle_064];
                 next_scale = path->scales_18[next_frame];
-                scale_vector = current_scale * inv + next_scale * unknown_024;
+                scale_vector = current_scale * inv + next_scale * anim_frame_fraction_024;
             }
             node = instance->firstChild();
             if (node == 0) {
@@ -1131,9 +1132,9 @@ void W8Prop::AttachAnimationInstances0044C830(W8World* world)
         instance->setParent(world->dynamic_scene, 1);
         instance->scale_194.SetZero();
         if (g_settings_6850c8.smooth_world_animations != 0) {
-            instance->value_1ac = unknown_024;
+            instance->frame_interpolation_1ac = anim_frame_fraction_024;
         } else {
-            instance->value_1ac = 0.0f;
+            instance->frame_interpolation_1ac = 0.0f;
         }
         mesh = static_cast<stMeshModel*>(instance->getModel());
         if (mesh != 0 && (mesh->flags_3a0 & 1) != 0 && trigger_18 == 0) {

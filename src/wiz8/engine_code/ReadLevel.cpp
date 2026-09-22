@@ -757,7 +757,7 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
         particle->rotateX(1.5707963267948966);
 
         if (record.bounds_origin.x != 0.0f) {
-            particle->unknown_191 = 1;
+            particle->replace_when_full_191 = 1;
             record.bounds_origin.x = 0.0f;
         }
         if (record.bounds_mode == 1) {
@@ -766,39 +766,40 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
 
             center = record.bounds_origin * g_world_scale_005ebc40;
             extent = record.bounds_extent * 250.0f;
-            particle->value_1a4 = 1;
+            particle->bounds_mode_1a4 = 1;
             particle->minimum_21c = center - extent;
             particle->maximum_228 = center + extent;
         } else if (record.bounds_mode == 2 && record.bounds_radius > 0.0f) {
-            particle->value_1a4 = 2;
-            particle->value_234 = record.bounds_origin * g_world_scale_005ebc40;
-            particle->value_240 = record.bounds_radius * g_world_scale_005ebc40;
+            particle->bounds_mode_1a4 = 2;
+            particle->bounds_origin_234 = record.bounds_origin * g_world_scale_005ebc40;
+            particle->bounds_radius_240 = record.bounds_radius * g_world_scale_005ebc40;
         } else {
-            particle->value_1a4 = 0;
+            particle->bounds_mode_1a4 = 0;
         }
 
         if (record.initially_active == 0) {
             particle->SetActive(0);
         }
-        particle->value_140 = record.particle_value;
-        particle->value_1ac = record.positional_088 != 0;
-        particle->value_1cc = record.lifetime;
-        particle->value_1b4 = record.positional_0b8 != 0;
-        particle->value_1c8 = record.emission_interval < 2 ? 1 : record.emission_interval;
+        particle->particle_value_140 = record.particle_value;
+        particle->expiry_mode_1ac = record.positional_088 != 0;
+        particle->lifetime_ms_1cc = record.lifetime;
+        particle->los_check_enabled_1b4 = record.positional_0b8 != 0;
+        particle->emission_interval_1c8 =
+            record.emission_interval < 2 ? 1 : record.emission_interval;
         particle->start_frame_264 = record.start_frame_21d;
         particle->end_frame_268 = record.end_frame_221;
 
         if (record.has_acceleration != 0) {
-            particle->value_1a8 = 1;
+            particle->has_acceleration_1a8 = 1;
             particle->acceleration_1f4 = record.acceleration * g_world_scale_005ebc40;
         }
 
         if (record.velocity_mode == 0) {
-            particle->value_1b0 = 0;
+            particle->emission_mode_1b0 = 0;
         } else if (record.velocity_mode == 1) {
-            particle->value_1b0 = 1;
+            particle->emission_mode_1b0 = 1;
         } else {
-            particle->value_1b0 = 2;
+            particle->emission_mode_1b0 = 2;
             particle->minimum_1d0.x = -record.source_06c * 250.0f;
             particle->minimum_1d0.y = -record.source_070 * 250.0f;
             particle->minimum_1d0.z = 0.0f;
@@ -808,7 +809,7 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
         }
 
         if (record.direction_mode == 0) {
-            particle->value_1b8 = 0;
+            particle->direction_mode_1b8 = 0;
         } else if (record.direction_mode == 1) {
             srMatrix3T<float> rotation;
             srVector3T<float> direction;
@@ -824,41 +825,41 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
             direction.Set(0.0, 0.0, -1.0);
             transformed = rotation.Transform(direction);
             transformed.Unitize();
-            particle->value_1b8 = 1;
+            particle->direction_mode_1b8 = 1;
             particle->direction_1e8 = transformed;
         } else if (record.direction_mode == 2) {
-            particle->value_1b8 = 2;
+            particle->direction_mode_1b8 = 2;
         } else if (record.direction_mode == 3) {
-            particle->value_1b8 = 3;
-            particle->value_208 = record.direction_0e0 * 0.017453292519943295f;
-            particle->value_20c = record.direction_0e4 * 0.017453292519943295f;
+            particle->direction_mode_1b8 = 3;
+            particle->cone_yaw_208 = record.direction_0e0 * 0.017453292519943295f;
+            particle->cone_pitch_20c = record.direction_0e4 * 0.017453292519943295f;
         } else {
-            particle->value_1b8 = 4;
+            particle->direction_mode_1b8 = 4;
         }
 
         if (record.placement_mode == 0) {
-            particle->value_1bc = 0;
+            particle->placement_mode_1bc = 0;
         } else if (record.placement_mode == 1) {
-            particle->value_1bc = 1;
-            particle->value_210 = record.placement_0c0 * g_world_scale_005ebc40;
+            particle->placement_mode_1bc = 1;
+            particle->initial_speed_210 = record.placement_0c0 * g_world_scale_005ebc40;
         } else {
-            particle->value_1bc = 2;
-            particle->value_214 = record.placement_0c4 * g_world_scale_005ebc40;
-            particle->value_218 = record.placement_0c8 * g_world_scale_005ebc40;
+            particle->placement_mode_1bc = 2;
+            particle->speed_min_214 = record.placement_0c4 * g_world_scale_005ebc40;
+            particle->speed_max_218 = record.placement_0c8 * g_world_scale_005ebc40;
         }
 
         if (record.flutter_mode == 0) {
             particle->SetFlutter0049AD10(0);
         } else {
             particle->SetFlutter0049AD10(2);
-            particle->value_200 = record.flutter_value;
-            particle->value_204 = static_cast<unsigned int>(record.flutter_period);
+            particle->flutter_amplitude_200 = record.flutter_value;
+            particle->flutter_period_204 = static_cast<unsigned int>(record.flutter_period);
         }
         if (record.value_216 >= 0) {
             particle->value_260 = record.value_216;
         }
         particle->value_138 = record.value_21c;
-        particle->state_184 = record.state_218;
+        particle->emission_limit_184 = record.state_218;
         particle->active_190 = false;
 
         LoadMaterial004B8A70(pInfo->bitmap_folder, &record.material, &material, &texture,
@@ -870,7 +871,7 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
         if (strncmp(record.name, "CLOUD", 5) == 0) {
             srVector3T<double> current = particle->getLocation();
             particle->camera_offset_244 = current;
-            particle->value_1c4 = 1;
+            particle->camera_relative_1c4 = 1;
             particle->SetActive(1);
         } else if (g_octree_6598a4 != 0) {
             g_octree_6598a4->AddLoadedParticle(particle);

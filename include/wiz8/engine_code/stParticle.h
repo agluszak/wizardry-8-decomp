@@ -46,7 +46,7 @@ protected:
 public:
     unsigned int value_138;
     unsigned char unknown_13c[4];
-    double value_140;
+    double particle_value_140;
     /* Per-particle world positions; the retail allocation assert spells the
        buffer pParticle. */
     srVector3T<float>* particle_positions_148;
@@ -73,12 +73,12 @@ public:
     float* m_pflFlutterAngle; /* 0x17c */
     unsigned int particle_count_180;
     /* Both unsigned: 0x004994D0 gates the particle off with the unsigned
-       `state_184 != 0 && state_184 <= value_188` pair. */
-    unsigned int state_184;
-    unsigned int value_188;
+       `emission_limit_184 != 0 && emission_limit_184 <= emission_count_188` pair. */
+    unsigned int emission_limit_184;
+    unsigned int emission_count_188;
     unsigned int active_particle_count_18c;
     bool active_190;
-    unsigned char unknown_191;
+    unsigned char replace_when_full_191;
     unsigned char trigger_flag_192;
     unsigned char unknown_193;
     /* Per-particle liveness flag byte; the update loop retires it when the
@@ -89,38 +89,38 @@ public:
     /* Unsigned millisecond birth ticks, one per particle. */
     unsigned int* birth_ticks_19c;
     unsigned char active_1a0;
-    unsigned char flag_1a1;
+    unsigned char traversal_enabled_1a1;
     unsigned char unknown_1a2[2];
-    int value_1a4;
-    int value_1a8;
-    int value_1ac;
-    int value_1b0;
-    int value_1b4;
-    int value_1b8;
-    int value_1bc;
-    int value_1c0;
-    int value_1c4;
+    int bounds_mode_1a4;
+    int has_acceleration_1a8;
+    int expiry_mode_1ac;
+    int emission_mode_1b0;
+    int los_check_enabled_1b4;
+    int direction_mode_1b8;
+    int placement_mode_1bc;
+    int flutter_mode_1c0;
+    int camera_relative_1c4;
     /* Emission interval; elapsed comparisons use unsigned subtraction. */
-    unsigned int value_1c8;
+    unsigned int emission_interval_1c8;
     /* Lifetime added to each absolute unsigned birth tick. */
-    unsigned int value_1cc;
+    unsigned int lifetime_ms_1cc;
     srVector3T<float> minimum_1d0;
     srVector3T<float> maximum_1dc;
     srVector3T<float> direction_1e8;
     srVector3T<float> acceleration_1f4;
-    float value_200;
+    float flutter_amplitude_200;
     /* 0x00498DD0 uses this as an unsigned modulus period. */
-    unsigned int value_204;
-    float value_208;
-    float value_20c;
-    float value_210;
-    float value_214;
-    float value_218;
+    unsigned int flutter_period_204;
+    float cone_yaw_208;
+    float cone_pitch_20c;
+    float initial_speed_210;
+    float speed_min_214;
+    float speed_max_218;
     srVector3T<float> minimum_21c;
     srVector3T<float> maximum_228;
-    srVector3T<float> value_234;
-    float value_240;
-    /* Added to the camera position when value_1c4 selects camera-relative
+    srVector3T<float> bounds_origin_234;
+    float bounds_radius_240;
+    /* Added to the camera position when camera_relative_1c4 selects camera-relative
        placement. */
     srVector3T<float> camera_offset_244;
     unsigned int update_flags_250;
@@ -136,9 +136,9 @@ public:
     int start_frame_264;
     int end_frame_268;
     W8MonsterShakeCallback* callback_26c;
-    unsigned int value_270;
-    unsigned int value_274;
-    float value_278;
+    unsigned int emission_gap_270;
+    unsigned int last_emitted_at_274;
+    float size_scale_278;
     unsigned char unknown_27c[4];
 };
 
