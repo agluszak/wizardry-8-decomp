@@ -47,18 +47,28 @@ public:
     unsigned int value_138;
     unsigned char unknown_13c[4];
     double value_140;
-    srVector3T<float>* allocation_148;
+    /* Per-particle world positions; the retail allocation assert spells the
+       buffer pParticle. */
+    srVector3T<float>* particle_positions_148;
     srMaterialIFace* retained_14c;
     srShader render_flags_150;
     srTextureIFace* texture_154;
     unsigned int vertex_count_158;
+    /* particle_count_180 * 2 - the billboard triangle count, and the length of
+       texture_frames_178 where consecutive pairs share one frame. */
     unsigned int texture_frame_count_15c;
-    srVector3T<float>* allocation_160;
-    srVector2T<float>* allocation_164;
-    srVector3i* allocation_168;
-    void* allocation_16c;
-    void* allocation_170;
-    float* allocation_174;
+    /* Per-vertex billboard corners (assert pVertex), texture UVs (pTexCoord)
+       and triangle index triples; srHeap-allocated, vertex_count_158 /
+       texture_frame_count_15c long. */
+    srVector3T<float>* vertex_positions_160;
+    srVector2T<float>* texcoords_164;
+    srVector3i* triangles_168;
+    /* Optional per-vertex arrays handed to the record/pipeline color and
+       extra slots (dig-format vec3 colors and vertex extras/normals). Retail
+       never allocates them - both stay null in every recovered path. */
+    srVector3T<float>* colors_16c;
+    srVector3T<float>* vertex_extras_170;
+    float* alphas_174;
     stTextureAnim** texture_frames_178;
     float* m_pflFlutterAngle; /* 0x17c */
     unsigned int particle_count_180;
@@ -71,10 +81,13 @@ public:
     unsigned char unknown_191;
     unsigned char trigger_flag_192;
     unsigned char unknown_193;
-    unsigned char* allocation_194;
-    srVector3T<float>* allocation_198;
+    /* Per-particle liveness flag byte; the update loop retires it when the
+       birth tick plus lifetime expires. */
+    unsigned char* particle_active_194;
+    /* Per-particle velocity; acceleration_1f4 integrates it each update. */
+    srVector3T<float>* velocities_198;
     /* Unsigned millisecond birth ticks, one per particle. */
-    unsigned int* allocation_19c;
+    unsigned int* birth_ticks_19c;
     unsigned char active_1a0;
     unsigned char flag_1a1;
     unsigned char unknown_1a2[2];
@@ -113,7 +126,7 @@ public:
     unsigned int update_flags_250;
     /* Index pairs, two per still-active particle, rebuilt whenever
        update_flags_250 carries bit 1. */
-    unsigned long* allocation_254;
+    unsigned long* active_triangles_254;
     /* Last accepted particle-integration tick. */
     unsigned int activated_at_258;
     /* Emission schedule tick. */
