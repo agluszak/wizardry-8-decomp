@@ -638,7 +638,7 @@ void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, 
     if (selected->name_style != 0x84 && selected->name_style != 0x85) {
         info = GetNpcMonsterInfo(selected);
         if (info != 0) {
-            MonsterForwardReferencePosition(info->monster, 0);
+            MonsterForwardReferencePosition(info->p3D, 0);
         }
     }
     PauseMainGameWorld();
@@ -650,8 +650,8 @@ void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, 
     if (info == 0) {
         return;
     }
-    position = info->monster->movement_0c0.position_040;
-    position.y += info->monster->movement_0c0.height_offset_0b8;
+    position = info->p3D->movement_0c0.position_040;
+    position.y += info->p3D->movement_0c0.height_offset_0b8;
     g_gd_camera_65a0f8->LookAt(&position, 0);
 }
 
@@ -830,11 +830,11 @@ tail:
         g_screen_state_00649f1c->saved_camera_yaw_244 = g_gd_camera_65a0f8->m_yaw;
         dialogue_info = GetNpcMonsterInfo(g_screen_state_00649f1c->dialogue_npc);
         if (dialogue_info != 0) {
-            position = dialogue_info->monster->movement_0c0.position_040;
-            position.y += dialogue_info->monster->movement_0c0.height_offset_0b8;
+            position = dialogue_info->p3D->movement_0c0.position_040;
+            position.y += dialogue_info->p3D->movement_0c0.height_offset_0b8;
             g_gd_camera_65a0f8->LookAt(&position, 0);
         }
-        MonsterForwardReferencePosition(info->monster, 0);
+        MonsterForwardReferencePosition(info->p3D, 0);
     }
     PauseMainGameWorld();
     RequestRedraw(0x200);
@@ -1089,7 +1089,7 @@ void ServiceNpcDialogue0056E510(void)
     wchar_t field_text[200];
     W8MonsterInfo* monster_info = GetNpcMonsterInfo(g_screen_state_00649f1c->dialogue_npc);
     if (monster_info != 0) {
-        monster_info->monster->UpdateAngles00453990();
+        monster_info->p3D->UpdateAngles00453990();
     }
     if (g_screen_state_00649f1c->scripted_dialogue != 0) {
         return;
@@ -5057,8 +5057,8 @@ void LookAtDialogueNpc(void)
 {
     W8MonsterInfo* info = GetNpcMonsterInfo(g_screen_state_00649f1c->dialogue_npc);
     if (info != 0) {
-        srVector3T<float> position = info->monster->movement_0c0.position_040;
-        position.y += info->monster->movement_0c0.height_offset_0b8;
+        srVector3T<float> position = info->p3D->movement_0c0.position_040;
+        position.y += info->p3D->movement_0c0.height_offset_0b8;
         g_gd_camera_65a0f8->LookAt(&position, 0);
     }
 }
@@ -5379,7 +5379,7 @@ void HandleNpcDialogueDeparture(int value)
 
     if (g_screen_state_00649f1c->dialogue_npc->name_style == 0x2a &&
         (info = GetNpcMonsterInfo(g_screen_state_00649f1c->dialogue_npc)) != 0) {
-        info->monster->SetScript004C7F10("Guard.msf", 1);
+        info->p3D->SetScript004C7F10("Guard.msf", 1);
     }
     if ((value == 0 || g_screen_state_00649f1c->dialogue_npc->dismissed_flag == 0 ||
          g_screen_state_00649f1c->dialogue_npc->record->unknown_2ef[1] != 0) &&

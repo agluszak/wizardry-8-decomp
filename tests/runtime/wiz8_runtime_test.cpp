@@ -633,9 +633,9 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
     float melee_distance = 1e30f;
     for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
         W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-        if (info != 0 && info->fActive != 0 && info->monster != 0 && info->monster_group_id != 0 &&
-            info->condition_turns[13] == 0) {
-            float dist = (info->monster->GetPosition() - party_position).Length();
+        if (info != 0 && info->fActive != 0 && info->p3D != 0 && info->monster_group_id != 0 &&
+            info->uiCondition[13] == 0) {
+            float dist = (info->p3D->GetPosition() - party_position).Length();
             if (dist < provoked_distance) {
                 provoked_distance = dist;
                 provoked_info = info;
@@ -759,11 +759,11 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
             provoked_info =
                 re_index != (unsigned int)-1 ? MonsterGetScriptPartByLocationIndex(re_index) : 0;
         }
-        if (provoked_info == 0 || provoked_info->monster == 0) {
+        if (provoked_info == 0 || provoked_info->p3D == 0) {
             provoked_info = 0;
             for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
                 W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-                if (info != 0 && info->fActive != 0 && info->monster != 0 &&
+                if (info != 0 && info->fActive != 0 && info->p3D != 0 &&
                     info->monster_group_id == provoked_group_id) {
                     provoked_info = info;
                     break;
@@ -771,8 +771,8 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
             }
         }
     }
-    if (provoked_info != 0 && provoked_info->monster != 0) {
-        provoked_distance = (provoked_info->monster->GetPosition() - party_position).Length();
+    if (provoked_info != 0 && provoked_info->p3D != 0) {
+        provoked_distance = (provoked_info->p3D->GetPosition() - party_position).Length();
         W8TargetSource source;
         W8CombatSlot target;
         memset(&target, 0, sizeof(target));
@@ -867,11 +867,11 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
     if (gXStatus.plsMonsterList != 0) {
         for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
             W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-            if (info == 0 || info->fActive == 0 || info->monster == 0)
+            if (info == 0 || info->fActive == 0 || info->p3D == 0)
                 continue;
             ++s->active_monsters;
-            float distance = (info->monster->GetPosition() - party_position).Length();
-            if (info->condition_turns[W8_CONDITION_HOSTILE] != 0)
+            float distance = (info->p3D->GetPosition() - party_position).Length();
+            if (info->uiCondition[W8_CONDITION_HOSTILE] != 0)
                 ++s->hostile_condition_monsters;
             if (info->fInCombat != 0) {
                 ++s->engaged_hostiles;

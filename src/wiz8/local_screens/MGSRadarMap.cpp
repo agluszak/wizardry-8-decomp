@@ -375,7 +375,7 @@ void UpdateRadarBlips(void)
 
     W8MonsterInfo* info = GetNextMonsterInfo(1);
     while (info != 0) {
-        W8Monster* monster = info->monster;
+        W8Monster* monster = info->p3D;
 
         if (monster != 0 && info->fActive != 0 && info->within_viewing_distance != 0 &&
             (monster->disabled_217 == 0 || detect_all != 0)) {

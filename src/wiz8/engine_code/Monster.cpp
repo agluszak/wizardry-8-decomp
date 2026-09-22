@@ -1512,7 +1512,7 @@ void W8Monster::Update()
             UpdateNavigation004553A0(0, 0);
         } else {
             UpdateNavigation004553A0(monster_info->highest_condition >= 0x0e,
-                                     monster_info->condition_turns[5] != 0);
+                                     monster_info->uiCondition[5] != 0);
         }
 
         if (cycle != 0x15 && script_238 != 0 && gXStatus.fCombatMode == 0) {
@@ -1652,7 +1652,7 @@ void W8Monster::Update()
         m_pRep->timer_068 = g_shared_timer_base->getUTime(srTimer::TIMER_READ_DEFAULT);
     }
 
-    if (monster_info != 0 && monster_info->condition_turns[5] != 0) {
+    if (monster_info != 0 && monster_info->uiCondition[5] != 0) {
         TickAnimation(Query(6) == 4 ? movement_0c0.movement_speed_064 * g_float_005ebc7c : 0.5f);
     } else {
         TickAnimation(Query(6) == 4 ? movement_0c0.movement_speed_064 : 1.0f);
@@ -2774,7 +2774,7 @@ void SetMonsterPartySlotMarker004C4DE0(int party_slot, int location_id, char on)
 
     info = MonsterGetScriptPartByLocationIndex(
         MonsterGetIndexByLocationID(0xf1b, MONSTER_CPP, location_id, 1));
-    rep = info->monster->m_pRep;
+    rep = info->p3D->m_pRep;
     if (on == 0) {
         item = rep->objects_5c8[party_slot];
         if (item != 0) {
@@ -2793,7 +2793,7 @@ void SetMonsterPartySlotMarker004C4DE0(int party_slot, int location_id, char on)
             rep->icon_count_5c4 = rep->icon_count_5c4 + 1;
         }
     }
-    info->monster->UpdateAttachedObjects004C3F70();
+    info->p3D->UpdateAttachedObjects004C3F70();
 }
 
 /* Start making the representation visible.  Reversing an active fade-out
@@ -3016,8 +3016,8 @@ void UpdateNearestMonsterGroupMembers004CA570()
                     MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                         0x1efe, MONSTER_CPP, IListGetAt(group->monsters, member_index), 1));
 
-                if (member != 0 && member->monster != 0) {
-                    srVector3T<float> position = member->monster->GetPosition();
+                if (member != 0 && member->p3D != 0) {
+                    srVector3T<float> position = member->p3D->GetPosition();
                     float distance = (position - player_position).Length();
 
                     if (distance < g_monster_group_nearest_range_005ed2c0 &&
@@ -3025,12 +3025,12 @@ void UpdateNearestMonsterGroupMembers004CA570()
                         nearest_distance = distance;
                         nearest = member;
                     } else {
-                        member->monster->nearest_to_party_218 = 0;
+                        member->p3D->nearest_to_party_218 = 0;
                     }
                 }
             }
             if (nearest != 0) {
-                nearest->monster->nearest_to_party_218 = 1;
+                nearest->p3D->nearest_to_party_218 = 1;
             }
         }
     }
@@ -4074,7 +4074,7 @@ prepare_attack:
     }
 
 fire_missile:
-    monster_info->f_missile_released = 1;
+    monster_info->fMissileReleased = 1;
     FireMissileSourceToTarget(missile_type, &source, &monster_info->Target, &attack_block,
                               selected_attack == 0, range_category, accuracy);
 }

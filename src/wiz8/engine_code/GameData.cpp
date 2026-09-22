@@ -816,9 +816,9 @@ unsigned char W8GameData::ProbeMonstersAlongMotion0041BD60(srVector3T<float>* di
         monster_list_index = MonsterGetIndexByLocationID(
             0x3a6, "C:\\Projects\\Wizardry 8\\Engine Code\\GameData.cpp", objects[index], 1);
         monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
-        if (monster_info != 0 && monster_info->monster != 0 &&
-            monster_info->monster->active_088 != 0) {
-            monster = monster_info->monster;
+        if (monster_info != 0 && monster_info->p3D != 0 &&
+            monster_info->p3D->active_088 != 0) {
+            monster = monster_info->p3D;
             time_scale = g_rate_006068EC * g_game_time_accumulator_6598bc->GetFrameDelta();
             monster->GetVelocity(&velocity);
             adjusted_x = direction->x - velocity.x * static_cast<float>(time_scale);

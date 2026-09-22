@@ -397,10 +397,10 @@ bool PositionFacesOppositeToDecided(int arg_1, int position)
 // FUNCTION: WIZ8 0x00555d60
 bool IsPartyLookingAwayFrom(int, W8MonsterInfo* monster_info)
 {
-    srVector3T<float> monster_position = monster_info->monster->GetPosition();
+    srVector3T<float> monster_position = monster_info->p3D->GetPosition();
     srVector3T<float> party_position = g_startup_world_659c0c->GetPosition();
     float bearing = NormalizeAngle(GetHeadingAngle(&monster_position, &party_position));
-    float facing = monster_info->monster->GetYaw();
+    float facing = monster_info->p3D->GetYaw();
 
     return ShortestAngleDistance(bearing, facing) >= g_facing_tolerance_005ee858;
 }
@@ -453,10 +453,10 @@ signed char DecideFacingForPosition(int position, int arg_2)
 // FUNCTION: WIZ8 0x00555ba0
 bool IsPartyLookingAt(W8MonsterInfo* monster_info, srVector3T<float> point)
 {
-    srVector3T<float> monster_position = monster_info->monster->GetPosition();
+    srVector3T<float> monster_position = monster_info->p3D->GetPosition();
     float bearing = NormalizeAngle(GetHeadingAngle(&monster_position, &point));
 
-    return fabsf(bearing - monster_info->monster->GetYaw()) <= g_facing_tolerance_005ebcf4;
+    return fabsf(bearing - monster_info->p3D->GetYaw()) <= g_facing_tolerance_005ebcf4;
 }
 
 /* The five formation rows' display names, indexed by row. */
@@ -829,9 +829,9 @@ void RebuildPartyStatus00555FA0(W8PartyFormationState* status)
 int IsMonsterFacingParty(W8MonsterInfo* monster_info)
 {
     srVector3T<float> party_position = g_startup_world_659c0c->GetPosition();
-    srVector3T<float> monster_position = monster_info->monster->GetPosition();
+    srVector3T<float> monster_position = monster_info->p3D->GetPosition();
     float bearing = NormalizeAngle(GetHeadingAngle(&monster_position, &party_position));
-    float facing = monster_info->monster->GetYaw();
+    float facing = monster_info->p3D->GetYaw();
 
     if (fabsf(bearing - facing) <= g_facing_tolerance_005ebcf4) {
         return 1;
@@ -843,10 +843,10 @@ int IsMonsterFacingParty(W8MonsterInfo* monster_info)
 // FUNCTION: WIZ8 0x00555b00
 int IsMonsterFacingMonster(W8MonsterInfo* first, W8MonsterInfo* second)
 {
-    srVector3T<float> second_position = second->monster->GetPosition();
-    srVector3T<float> first_position = first->monster->GetPosition();
+    srVector3T<float> second_position = second->p3D->GetPosition();
+    srVector3T<float> first_position = first->p3D->GetPosition();
     float bearing = NormalizeAngle(GetHeadingAngle(&first_position, &second_position));
-    float facing = first->monster->GetYaw();
+    float facing = first->p3D->GetYaw();
 
     if (fabsf(bearing - facing) <= g_facing_tolerance_005ebcf4) {
         return 1;
@@ -859,10 +859,10 @@ int IsMonsterFacingMonster(W8MonsterInfo* first, W8MonsterInfo* second)
 // FUNCTION: WIZ8 0x00555de0
 int IsMonsterLookingAwayFrom(W8MonsterInfo* first, W8MonsterInfo* second)
 {
-    srVector3T<float> first_position = first->monster->GetPosition();
-    srVector3T<float> second_position = second->monster->GetPosition();
+    srVector3T<float> first_position = first->p3D->GetPosition();
+    srVector3T<float> second_position = second->p3D->GetPosition();
     float bearing = NormalizeAngle(GetHeadingAngle(&second_position, &first_position));
-    float facing = second->monster->GetYaw();
+    float facing = second->p3D->GetYaw();
 
     if (static_cast<float>(g_facing_tolerance_005ee858) <= ShortestAngleDistance(bearing, facing)) {
         return 1;
@@ -878,7 +878,7 @@ int IsMonsterLookingAwayFrom(W8MonsterInfo* first, W8MonsterInfo* second)
 bool IsCharacterFacingMonster(int party_slot, W8MonsterInfo* monster_info)
 {
     srVector3T<float> camera_position;
-    srVector3T<float> monster_position = monster_info->monster->GetPosition();
+    srVector3T<float> monster_position = monster_info->p3D->GetPosition();
     signed char side;
     int angle;
 
@@ -913,7 +913,7 @@ bool IsCharacterFacingMonster(int party_slot, W8MonsterInfo* monster_info)
 void TurnCharacterTowardMonster(int party_slot, W8MonsterInfo* monster_info)
 {
     srVector3T<float> camera_position;
-    srVector3T<float> monster_position = monster_info->monster->GetPosition();
+    srVector3T<float> monster_position = monster_info->p3D->GetPosition();
     signed char side;
     int angle;
 
@@ -952,7 +952,7 @@ void TurnCharacterTowardMonster(int party_slot, W8MonsterInfo* monster_info)
 int IsMonsterBehindCharacter(W8MonsterInfo* monster_info, int party_slot)
 {
     srVector3T<float> camera_position;
-    srVector3T<float> monster_position = monster_info->monster->GetPosition();
+    srVector3T<float> monster_position = monster_info->p3D->GetPosition();
     signed char side;
     int angle;
     int difference;

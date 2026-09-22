@@ -307,8 +307,8 @@ bool MartensBluff1TransportSpawn004DF160(void)
     if (location_id != 0) {
         info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0x1fd, MARTENSBLUFF1_CPP, location_id, 1));
-        if (info != 0 && info->monster != 0) {
-            info->monster->SetScript004C7F10("M1_Trang_trans.MSF", 1);
+        if (info != 0 && info->p3D != 0) {
+            info->p3D->SetScript004C7F10("M1_Trang_trans.MSF", 1);
         }
     }
     return true;

@@ -9086,7 +9086,7 @@ void OpenMonsterInfoDialog0056AD60(int location_id)
     unsigned int monster_index =
         MonsterGetIndexByLocationID(0x1fa3, MAIN_GAME_SCREEN_CPP, location_id, 1);
     W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-    if (monster_info->fActive == 0 || monster_info->monster->IsDying() != 0 ||
+    if (monster_info->fActive == 0 || monster_info->p3D->IsDying() != 0 ||
         monster_info->hp_current == 0) {
         return;
     }
