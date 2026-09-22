@@ -404,6 +404,7 @@ void GetCharacterProjectilePosition004A57B0(unsigned int character_index,
 // VTABLE: WIZ8 0x005ecdf4 W8Navigator
 // class W8Missile
 
+// GLOBAL: WIZ8 0x0065BDE4
 static int g_missile_iterator_0065bde4;
 
 /* Iterate the world's missile vector. A nonzero argument restarts the shared

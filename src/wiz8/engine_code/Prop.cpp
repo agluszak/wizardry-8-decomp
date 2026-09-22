@@ -58,6 +58,7 @@
 /* This byte is reset before the world Prop update and set when a collidable
    Prop rebuilds its pathing geometry.  Its three retail references establish
    the process-wide storage; no broader state model is yet proved. */
+// GLOBAL: WIZ8 0x00659A64
 unsigned char g_byte_00659a64;
 
 #define PROP_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Prop.cpp"
@@ -296,8 +297,10 @@ void W8Prop::GetCenterPosition(srVector3T<float>* position)
     *position = (first + second) * 0.5;
 }
 
+// GLOBAL: WIZ8 0x00659A60
 Trigger* g_selected_prop_trigger_00659a60;
-int g_selected_prop_index_00607b98;
+// GLOBAL: WIZ8 0x00607B98
+int g_selected_prop_index_00607b98 = -1;
 
 /* Whether the renderer's currently selected model instance is one of the
    instances this prop's animation dispatches.  With a running animation every

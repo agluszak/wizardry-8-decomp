@@ -63,8 +63,11 @@ int g_journal_font_69c4cc;
 unsigned short* g_journal_font_palette_69c4d0;
 // GLOBAL: WIZ8 0x0069C4D8
 unsigned short* g_journal_font_original_palette_69c4d8;
+// GLOBAL: WIZ8 0x0069C4D4
 W8JournalPanel005EF340* g_journal_panel_0069c4d4;
+// GLOBAL: WIZ8 0x0069C4E4
 W8GrowableVector<W8JournalEntry>* g_journal_entries_0069c4e4;
+// GLOBAL: WIZ8 0x0069C4DC
 unsigned int g_journal_region_set_0069c4dc;
 // GLOBAL: WIZ8 0x0068de40
 W8GrowableVector<W8JournalEntry>* g_fact_journal_entries_0068de40;

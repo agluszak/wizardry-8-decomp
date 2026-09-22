@@ -81,8 +81,11 @@ unsigned char g_trigger_action_active_006599c8;
 srVector3T<float> g_trigger_action_scene_offset_006599ac;
 // GLOBAL: WIZ8 0x00659908
 char g_trigger_parse_buffer_00659908[0x88];
+// GLOBAL: WIZ8 0x006598E0
 W8GrowableVector<int> g_location_variable_levels_006598e0;
+// GLOBAL: WIZ8 0x006598F8
 W8GrowableVector<char*> g_location_variable_names_006598f8;
+// GLOBAL: WIZ8 0x00659990
 W8GrowableVector<int> g_location_variable_values_00659990;
 
 // GLOBAL: WIZ8 0x00606994

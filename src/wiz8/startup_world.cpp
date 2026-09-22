@@ -6,6 +6,7 @@
 #include "wiz8/engine_code/Quality.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/engine_code/Environment.h"
+#include "wiz8/engine_code/Levels.h"
 
 #include <new>
 #include <stdlib.h>
@@ -17,7 +18,7 @@ W8Navigator* g_startup_world_659c0c;
 float g_runtime_world_scale_6081e8 = 500.0f;
 // GLOBAL: WIZ8 0x005EBC40
 extern const float g_world_scale_005ebc40 = 500.0f;
-float g_startup_depth_603ac8 = 1000.0f;
+// GLOBAL: WIZ8 0x005EC000
 extern const float g_startup_near_limit_005ec000 = 250.0f;
 
 /* Builds the startup navigation state after the renderer graph is open.
@@ -40,10 +41,10 @@ unsigned char InitializeStartupNavigation0044F060(void)
     if (g_runtime_world_scale_6081e8 < g_world_scale_005ebc40) {
         g_runtime_world_scale_6081e8 = 500.0f;
     }
-    navigator->configureStartupDepth(g_startup_depth_603ac8 < g_startup_near_limit_005ec000
+    navigator->configureStartupDepth(g_default_world_height_00603ac8 < g_startup_near_limit_005ec000
                                          ? g_startup_near_limit_005ec000
-                                         : g_startup_depth_603ac8,
-                                     g_startup_depth_603ac8);
+                                         : g_default_world_height_00603ac8,
+                                     g_default_world_height_00603ac8);
     return 1;
 }
 /* Tears down the startup navigation state InitializeStartupNavigation0044F060

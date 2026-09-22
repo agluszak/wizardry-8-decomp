@@ -102,6 +102,7 @@ const float g_float_005ebcf8 = 0.0055555556900799274f;
 // GLOBAL: WIZ8 0x0060bfe0
 float g_light_scale_0060bfe0 = 1.0f;
 
+// GLOBAL: WIZ8 0x0065970C
 unsigned char g_monster_shadow_updates_enabled_0065970c;
 /* Layout-compatible with srVector3T<float> but POD so VC6 emits static .data
    instead of a dynamic initializer into .bss. */
