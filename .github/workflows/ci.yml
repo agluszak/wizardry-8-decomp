@@ -62,8 +62,12 @@ jobs:
       - name: Fetch PR comparison baseline
         if: github.event_name == 'pull_request'
         run: |
-          git fetch --no-tags --depth=1 origin \
-            "+refs/heads/$GITHUB_BASE_REF:refs/remotes/origin/$GITHUB_BASE_REF"
+          # actions/checkout uses refs/pull/<n>/merge for pull_request events.
+          # Fetch the raw PR head separately: ancestry must be checked against
+          # the branch being proposed, not GitHub's synthetic merge commit.
+          git fetch --no-tags --depth=2 origin \
+            "+refs/heads/$GITHUB_BASE_REF:refs/remotes/origin/$GITHUB_BASE_REF" \
+            "+refs/pull/${{ github.event.pull_request.number }}/head:refs/remotes/origin/pr-head"
 
       - name: Fetch push comparison baseline
         if: >-
@@ -134,19 +138,20 @@ jobs:
       - name: Verify PR base ancestry and marker preservation
         if: github.event_name == 'pull_request'
         run: |
-          # Gate on the fetched base, not a possibly-stale local origin ref:
-          # a branch carrying new work on an old ancestor would silently replay
-          # obsolete recoveries past a stale-local merge-preservation check.
-          # merge-base needs shared history; deepen head and base until it
-          # resolves or the bound is exhausted.
+          # Gate the raw PR head. HEAD is GitHub's synthetic merge commit for
+          # pull_request events, so current base is necessarily its ancestor
+          # and checking HEAD would make the stale-branch gate vacuous.
+          pr_head="refs/remotes/origin/pr-head"
           for _ in 1 2 3 4 5; do
-            if git merge-base HEAD "origin/$GITHUB_BASE_REF" >/dev/null 2>&1; then
+            if git merge-base "$pr_head" "origin/$GITHUB_BASE_REF" >/dev/null 2>&1; then
               break
             fi
             git fetch --no-tags --deepen=256 origin \
-              "+refs/heads/$GITHUB_BASE_REF:refs/remotes/origin/$GITHUB_BASE_REF" HEAD
+              "+refs/heads/$GITHUB_BASE_REF:refs/remotes/origin/$GITHUB_BASE_REF" \
+              "+refs/pull/${{ github.event.pull_request.number }}/head:$pr_head"
           done
-          uv run wiz8 report merge-preservation --base "origin/$GITHUB_BASE_REF"
+          uv run wiz8 report merge-preservation \
+            --base "origin/$GITHUB_BASE_REF" --head "$pr_head"
 
       - name: Validate CI environment
         run: uv run wiz8 doctor
