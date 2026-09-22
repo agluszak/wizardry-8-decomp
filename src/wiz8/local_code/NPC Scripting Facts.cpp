@@ -397,7 +397,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (monster_info == 0) {
             return;
         }
-        monster_info->monster->SetScript004C7F10("Guard.msf", 1);
+        monster_info->p3D->SetScript004C7F10("Guard.msf", 1);
         return;
     case 0xe8:
         if (value != 0) {
@@ -853,8 +853,8 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (monster_info == 0) {
             return;
         }
-        if (monster_info->monster->IsCycleInterruptable(
-                monster_info->monster->m_pRep->pending_cycle) == 0) {
+        if (monster_info->p3D->IsCycleInterruptable(
+                monster_info->p3D->m_pRep->pending_cycle) == 0) {
             return;
         }
         StartMonsterCycle(monster_info, 0x14, 1);
@@ -941,7 +941,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (group != 0) {
             monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                 0x4b4, NPC_SCRIPTING_FACTS_CPP, group->leader_id_9f, 1));
-            monster_info->monster->SetScript004C7F10("MoveSavantBoffo.msf", 1);
+            monster_info->p3D->SetScript004C7F10("MoveSavantBoffo.msf", 1);
         }
         SoundPlayStreamedFile("Data\\Sound\\Misc\\Earthquake_End.wav", 0);
         shake = CreateCameraShakeEffect004AE080(6.0f, 0, 1.0f, 0, 0);
@@ -1052,8 +1052,8 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
          ++entry_index) {
         W8MonsterInfo* entry = MonsterGetScriptPartByLocationIndex(entry_index);
         if (entry->fActive && entry->ubDisposition == DISP_HOSTILE &&
-            entry->monster->IsDying() == 0) {
-            TintHighlightedMonster(entry->monster, 0);
+            entry->p3D->IsDying() == 0) {
+            TintHighlightedMonster(entry->p3D, 0);
             MonsterStartsDying(entry, 1);
         }
     }

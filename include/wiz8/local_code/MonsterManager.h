@@ -126,7 +126,7 @@ struct W8MonsterManagerEntry {
        the level-up notice line and cleared when the character is no longer
        ready to advance. */
     bool level_up_ready;
-    /* 0x0e9: edge latch mirroring the character's condition_turns[19]: the
+    /* 0x0e9: edge latch mirroring the character's uiCondition[19]: the
        periodic party sync copies it in and the reaction pass fires the
        condition-change event once while the latch is still clear. */
     unsigned char condition_19_latch;
@@ -335,7 +335,7 @@ struct W8MonsterInfo {
     int location_id;              /* 0x00 */
     int monster_group_id;         /* 0x04: group lookup input in 0x004e6020 */
     unsigned int monster_species; /* 0x08 */
-    W8Monster* monster;           /* 0x0c: p3D, named by source assertions */
+    W8Monster* p3D;               /* 0x0c: named by the MonsterManager.cpp/mipe assertions */
     /* 0x10: pCombat, named by the MonsterManager.cpp:672 assertion
        "pMonsterInfo->pCombat != NULL" over the malloc 0x004e4390 stores here.
        The allocation is 0x153 bytes, zeroed as 0x54 dwords plus a word and a
@@ -354,8 +354,10 @@ struct W8MonsterInfo {
        floats here and hands the same triple to GetCameraFacingYaw004BE5C0,
        whose result it stores next, and to 0x0042e620 with the new entry's id. */
     srVector3T<float> position_17;
-    float derived_23;        /* 0x23: camera-facing yaw over position_17 */
-    int hp_max;              /* 0x27: signed divisor at 00531657 and 004E5A7A */
+    float derived_23; /* 0x23: camera-facing yaw over position_17 */
+    /* 0x27: uiHPMax, named by the Targeting.cpp:0xeac assertion
+       "pMonsterInfo->uiHPMax > 0"; signed divisor at 00531657 and 004E5A7A. */
+    int uiHPMax;
     unsigned int hp_current; /* 0x2b: unsigned conversion at 0053164B */
     int stamina_max;         /* 0x02f: initialized from MONSTERS.DBS dice */
     int stamina;             /* 0x033: initialized to the same roll */
@@ -373,9 +375,11 @@ struct W8MonsterInfo {
        entry - condition two doubles its action fatigue at 0x05f, eight blocks
        its spellcasting at 0x077, thirteen makes it hostile at 0x08b, fifteen
        at 0x093 and seventeen is exhaustion at 0x09b. */
-    unsigned int condition_turns[W8_CONDITION_COUNT]; /* 0x057 */
-    W8Enchantment enchantments[8];                    /* 0x0a7 */
-    /* 0x107: highest set condition_turns index; 0x12 when deactivated. The
+    /* 0x57: uiCondition, named by the ConditionsAndEnchantments assertions
+       "pMonsterInfo->uiCondition[uiCondition] > 0". */
+    unsigned int uiCondition[W8_CONDITION_COUNT];
+    W8Enchantment enchantments[8]; /* 0x0a7 */
+    /* 0x107: highest set uiCondition index; 0x12 when deactivated. The
        0x0056C5E0 gate compares it unsigned. */
     unsigned int highest_condition;
     /* 0x10b: the argument a condition carries when a monster's conditions are
@@ -424,7 +428,7 @@ struct W8MonsterInfo {
     signed char effect_2de;
     /* 0x2df: the committed attack already launched its missile; asserted by
        ContinueMonsterAttack when an out-of-range attack reports no release. */
-    unsigned char f_missile_released;
+    unsigned char fMissileReleased;
     /* 0x2e0: the committed spell/special attack already released its payload;
        the action step asserts on it in the spell-wait case. */
     unsigned char fSpellReleased;

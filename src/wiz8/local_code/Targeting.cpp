@@ -536,7 +536,7 @@ void ApplyTarget(W8CombatSlot* target, W8TargetingContext context)
     if (target->iType == W8_TARGET_KIND_MONSTER) {
         monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0x638, TARGETING_CPP, target->iMonsterID, 1));
-        MonsterSetHighlightMask(monster_info->monster, 0);
+        MonsterSetHighlightMask(monster_info->p3D, 0);
     }
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
@@ -603,7 +603,7 @@ bool ShowMonsterTargetMarker(W8MonsterInfo* monster_info)
         srAssertFail("pMonsterInfo", TARGETING_CPP, 2040, 0);
     }
     GetCameraPosition(&eye);
-    MonsterGetWorldAnimationBounds004CA4F0(monster_info->monster, &lower, &upper);
+    MonsterGetWorldAnimationBounds004CA4F0(monster_info->p3D, &lower, &upper);
     return ShowTargetMarker(&eye, &lower, &upper);
 }
 
@@ -851,7 +851,7 @@ void SetMonsterHighlight(int party_slot, int location_id, char on)
         return;
     }
     monster_info = MonsterGetScriptPartByLocationIndex(index);
-    monster = monster_info->monster;
+    monster = monster_info->p3D;
     if (monster == 0) {
         srAssertFail("pMonster", TARGETING_CPP, 1888, 0);
     }
@@ -886,22 +886,22 @@ int PickNearestMonsterUnderCursor005396D0(int cursor_x, int cursor_y)
         if (monster_info->fActive == 0) {
             continue;
         }
-        if (monster_info->monster->IsDying() != 0) {
+        if (monster_info->p3D->IsDying() != 0) {
             continue;
         }
-        if (monster_info->monster->hostility_preserved_332 != 0) {
+        if (monster_info->p3D->hostility_preserved_332 != 0) {
             continue;
         }
-        if (!MonsterUsesCurrentModelInstance(monster_info->monster)) {
+        if (!MonsterUsesCurrentModelInstance(monster_info->p3D)) {
             continue;
         }
         if (monster_info->party_threat.use_bounds_24 == 0) {
             UpdateMonsterSight(monster_info, 1, 1);
         }
-        if (monster_info->monster->IsRenderable004C7C00(1) == 0) {
+        if (monster_info->p3D->IsRenderable004C7C00(1) == 0) {
             continue;
         }
-        distance = MonsterDistanceToCamera004BE710(GetWorld(), monster_info->monster);
+        distance = MonsterDistanceToCamera004BE710(GetWorld(), monster_info->p3D);
         if (distance < best_distance) {
             result = monster_info->location_id;
             best_distance = distance;
@@ -916,22 +916,22 @@ int PickNearestMonsterUnderCursor005396D0(int cursor_x, int cursor_y)
             if (monster_info->fActive == 0) {
                 continue;
             }
-            if (monster_info->monster->IsDying() != 0) {
+            if (monster_info->p3D->IsDying() != 0) {
                 continue;
             }
-            if (monster_info->monster->hostility_preserved_332 != 0) {
+            if (monster_info->p3D->hostility_preserved_332 != 0) {
                 continue;
             }
-            if (!MonsterUsesCurrentModelInstance(monster_info->monster)) {
+            if (!MonsterUsesCurrentModelInstance(monster_info->p3D)) {
                 continue;
             }
             if (monster_info->party_threat.use_bounds_24 == 0) {
                 UpdateMonsterSight(monster_info, 1, 1);
             }
-            if (monster_info->monster->IsRenderable004C7C00(1) == 0) {
+            if (monster_info->p3D->IsRenderable004C7C00(1) == 0) {
                 continue;
             }
-            distance = MonsterDistanceToCamera004BE710(GetWorld(), monster_info->monster);
+            distance = MonsterDistanceToCamera004BE710(GetWorld(), monster_info->p3D);
             if (distance < best_distance) {
                 result = monster_info->location_id;
                 best_distance = distance;
@@ -966,7 +966,7 @@ void SetGroupHighlight(int party_slot, int group_id, char on)
             continue;
         }
         monster_info = MonsterGetScriptPartByLocationIndex(index);
-        monster = monster_info->monster;
+        monster = monster_info->p3D;
         if (monster == 0) {
             srAssertFail("pMonster", TARGETING_CPP, 1888, 0);
         }
@@ -1005,7 +1005,7 @@ void UpdateAllMonsterHighlights(int party_slot, int location_id)
         if (location_id == monster_info->location_id) {
             tint = 1;
         } else if (overridden &&
-                   ((1 << (owner & 0x1f)) & MonsterGetHighlightMask(monster_info->monster)) != 0) {
+                   ((1 << (owner & 0x1f)) & MonsterGetHighlightMask(monster_info->p3D)) != 0) {
             tint = 1;
         } else {
             tint = 0;
@@ -1153,19 +1153,19 @@ int ChooseMonsterTarget(int party_slot, int group_id, W8TargetingContext context
 
         /* The first range band whose reach covers where the monster is. */
         for (band = 0; band < 4; ++band) {
-            if (monster_info->monster->GetDistanceToPlayer004C7CB0() <=
+            if (monster_info->p3D->GetDistanceToPlayer004C7CB0() <=
                 CalcRangeDistance(static_cast<W8RangeCategory>(band))) {
                 next->range_band = band;
                 break;
             }
         }
 
-        if (monster_info->hp_max == 0) {
+        if (monster_info->uiHPMax == 0) {
             srAssertFail("pMonsterInfo->uiHPMax > 0", TARGETING_CPP, 0xeac, 0);
         }
         next->hp_current = monster_info->hp_current;
         next->same_group = (unsigned char)(monster_info->monster_group_id == group_id);
-        next->distance = monster_info->monster->GetDistanceToPlayer004C7CB0();
+        next->distance = monster_info->p3D->GetDistanceToPlayer004C7CB0();
 
         ++found;
         ++next;
@@ -1245,7 +1245,7 @@ bool IsTargetStillPresent(const W8CombatSlot* target)
             srAssertFail("pMonsterInfo != NULL", TARGETING_CPP, 0x88, 0);
         }
         if (monster_info->hp_current == 0 ||
-            monster_info->condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] != 0 ||
+            monster_info->uiCondition[W8_CONDITION_REACHABLE_WHEN_DOWN] != 0 ||
             monster_info->fActive == 0) {
             return false;
         }
@@ -1309,7 +1309,7 @@ char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight)
         return 0;
     }
     monster_info = MonsterGetScriptPartByLocationIndex(index);
-    monster = monster_info->monster;
+    monster = monster_info->p3D;
 
     if (highlight == 0) {
         SetMonsterHighlightColour(monster, 0.0f, 0.0f, 0.0f, 0.0f);
@@ -1390,7 +1390,7 @@ void ClearAllMonsterHighlights(void)
 
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
-        W8Monster* monster = monster_info->monster;
+        W8Monster* monster = monster_info->p3D;
         unsigned char flags;
 
         if (monster_info->fActive == 0 || monster == 0) {
@@ -1437,12 +1437,12 @@ void CollectMonstersWithinRadius(const srVector3T<float>* centre, const srVector
 
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
-        W8Monster* monster = monster_info->monster;
+        W8Monster* monster = monster_info->p3D;
         W8MonsterRecord* record;
         srVector3T<float> position;
 
         if (monster_info->fActive == 0 || monster_info->hp_current == 0 ||
-            monster_info->condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] != 0) {
+            monster_info->uiCondition[W8_CONDITION_REACHABLE_WHEN_DOWN] != 0) {
             continue;
         }
         record = GetMonsterDataForInfo(monster_info);
@@ -1460,7 +1460,7 @@ void CollectMonstersWithinRadius(const srVector3T<float>* centre, const srVector
             }
             continue;
         }
-        if (highlighting != 0 || monster_info->monster->HasLineOfSightFromPoint004C4C40(*eye)) {
+        if (highlighting != 0 || monster_info->p3D->HasLineOfSightFromPoint004C4C40(*eye)) {
             found->Add(monster_info->location_id);
         }
     }
@@ -1829,7 +1829,7 @@ void ClearPartySlotMonsterHighlights(unsigned int party_slot)
 
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
-        W8Monster* monster = monster_info->monster;
+        W8Monster* monster = monster_info->p3D;
 
         if (monster_info->fActive != 0 && monster != 0) {
             unsigned char flags = MonsterGetHighlightMask(monster);
@@ -1923,7 +1923,7 @@ void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target)
         for (unsigned int monster_list_index = 0;
              monster_list_index < PLLength(gXStatus.plsMonsterList); ++monster_list_index) {
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
-            W8Monster* monster = monster_info->monster;
+            W8Monster* monster = monster_info->p3D;
 
             if (monster_info->fActive != 0 && monster != 0) {
                 unsigned char flags = MonsterGetHighlightMask(monster);
@@ -1949,7 +1949,7 @@ void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target)
 
         if (monster_index != 0xffffffff) {
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            W8Monster* monster = monster_info->monster;
+            W8Monster* monster = monster_info->p3D;
 
             if (monster == 0) {
                 srAssertFail("pMonster", TARGETING_CPP, 0x760, 0);
@@ -1995,8 +1995,8 @@ void RefreshSpellTargetHighlightsAtRange(void)
     monster_info = GetNextMonsterInfo(1);
     while (monster_info != 0) {
         if (monster_info->fActive != 0 && monster_info->hp_current != 0 &&
-            monster_info->condition_turns[W8_CONDITION_DEAD] == 0) {
-            W8Monster* monster = monster_info->monster;
+            monster_info->uiCondition[W8_CONDITION_DEAD] == 0) {
+            W8Monster* monster = monster_info->p3D;
             float channels[4];
 
             memcpy(channels, &monster->m_pRep->render_state_04c, sizeof(channels));
@@ -2528,7 +2528,7 @@ bool CanTargetMonster(int party_slot, int location_id, int allow_single_target, 
     if (monster_info->hp_current == 0) {
         return 0;
     }
-    if (monster_info->condition_turns[W8_CONDITION_REACHABLE_WHEN_DOWN] != 0) {
+    if (monster_info->uiCondition[W8_CONDITION_REACHABLE_WHEN_DOWN] != 0) {
         return 0;
     }
     if (gXStatus.fCampMode != 0 && g_screen_state_00649f1c->target_location_id_f8 != location_id) {
@@ -2757,7 +2757,7 @@ int SelectNextGroupMemberByAngle(const W8GrowableVector<int>* candidates, int cu
         int location_id = *candidates->GetAt(static_cast<int>(index));
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0x4a1, TARGETING_CPP, location_id, 1));
-        srVector3T<float> position = monster_info->monster->GetPosition();
+        srVector3T<float> position = monster_info->p3D->GetPosition();
 
         sorted[index].location_id = location_id;
         sorted[index].angle = (int)NormalizeAngle(GetHeadingAngle(&party, &position));
@@ -3098,14 +3098,14 @@ void RefreshMonsterTargetCounts005398D0(void)
                 MonsterGetIndexByLocationID(0x81a, TARGETING_CPP, location_id, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
 
-            if (monster_info->monster->IsWithinWorldRange004CA2A0() == 0) {
+            if (monster_info->p3D->IsWithinWorldRange004CA2A0() == 0) {
                 continue;
             }
             if (monster_info == 0) {
                 srAssertFail("pMonsterInfo", TARGETING_CPP, 0x7f8, 0);
             }
             GetCameraPosition(&camera);
-            MonsterGetWorldAnimationBounds004CA4F0(monster_info->monster, &lower, &upper);
+            MonsterGetWorldAnimationBounds004CA4F0(monster_info->p3D, &lower, &upper);
             if (ShowTargetMarker(&camera, &lower, &upper) != 0) {
                 on_screen_count += 1;
             }
@@ -3186,16 +3186,16 @@ bool AnyMonsterVisible0053A1D0(void)
     if (0 <= g_last_visible_monster_0061d14c && g_last_visible_monster_0061d14c < count) {
         W8MonsterInfo* monster_info =
             (W8MonsterInfo*)PLGet(gXStatus.plsMonsterList, g_last_visible_monster_0061d14c);
-        if (monster_info->monster != 0 &&
-            IsMonsterVisibleWithinDistance0053A060(monster_info->monster, &camera, limit) != 0) {
+        if (monster_info->p3D != 0 &&
+            IsMonsterVisibleWithinDistance0053A060(monster_info->p3D, &camera, limit) != 0) {
             return 1;
         }
     }
     for (index = 0; index < count; ++index) {
         W8MonsterInfo* monster_info = (W8MonsterInfo*)PLGet(gXStatus.plsMonsterList, index);
 
-        if (monster_info->monster != 0 &&
-            IsMonsterVisibleWithinDistance0053A060(monster_info->monster, &camera, limit) != 0) {
+        if (monster_info->p3D != 0 &&
+            IsMonsterVisibleWithinDistance0053A060(monster_info->p3D, &camera, limit) != 0) {
             g_last_visible_monster_0061d14c = index;
             return 1;
         }
@@ -3422,7 +3422,7 @@ static unsigned char SourceCanSeeMonster00539A30(const W8TargetSource* source,
     if (source->iType != W8_TARGET_SOURCE_INDIRECT) {
         srAssertFail("pSource->iType != SOURCE_TYPE_3D", TARGETING_CPP, 0x854, 0);
     }
-    return monster_info->monster->HasLineOfSightFromPoint004C4C40(source->point);
+    return monster_info->p3D->HasLineOfSightFromPoint004C4C40(source->point);
 }
 
 /* Whether `target` is inside the aim cone: within `bonus` + `eye_radius` of
@@ -3465,18 +3465,18 @@ int CollectConeMonsterTargets00539CA0(const W8TargetSource* source, const srVect
         radius = g_startup_world_659c0c->radius_084;
     } else if (source->iType == W8_TARGET_SOURCE_MONSTER) {
         W8MonsterInfo* source_info = MonsterInfoFromID(0x8bc, TARGETING_CPP, source->iMonsterID, 1);
-        radius = source_info->monster->radius_084;
+        radius = source_info->p3D->radius_084;
     } else {
         radius = 0.0f;
     }
     W8MonsterInfo* monster_info = GetNextMonsterInfo(1);
     while (monster_info != 0) {
         if (monster_info->fActive != 0 && monster_info->hp_current != 0 &&
-            monster_info->condition_turns[0x12] == 0) {
+            monster_info->uiCondition[0x12] == 0) {
             W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
             if (record->untargetable_24a == 0 &&
                 (monster_info->ubDisposition == disposition || disposition == 3)) {
-                W8Monster* monster = monster_info->monster;
+                W8Monster* monster = monster_info->p3D;
                 srVector3T<float> point;
                 point.x = monster->movement_0c0.position_040.x;
                 point.y =
@@ -3612,7 +3612,7 @@ void ClearSlotTargeting0053B050(int party_slot)
     W8PList* monster_list = gXStatus.plsMonsterList;
     for (unsigned int index = 0; index < PLLength(monster_list); ++index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
-        W8Monster* monster = monster_info->monster;
+        W8Monster* monster = monster_info->p3D;
         if (monster_info->fActive != 0 && monster != 0) {
             unsigned char flag = MonsterGetHighlightMask(monster);
             if ((flag & (1 << (party_slot & 0x1f))) != 0) {
@@ -3655,7 +3655,7 @@ void UpdateSlotMonsterHighlights0053C130(int party_slot, char enable)
         W8PList* monster_list = gXStatus.plsMonsterList;
         for (unsigned int index = 0; index < PLLength(monster_list); ++index) {
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
-            W8Monster* monster = monster_info->monster;
+            W8Monster* monster = monster_info->p3D;
             if (monster_info->fActive != 0 && monster != 0) {
                 unsigned char flag = MonsterGetHighlightMask(monster);
                 W8ModelInstance3DRenderState block;

@@ -1679,7 +1679,7 @@ void ProcessMessageBoxQueue(void)
                 0x916, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
                 group->leader_id_9f, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            monster_info->monster->SetScript004C7F10("MoveSavant.msf", 1);
+            monster_info->p3D->SetScript004C7F10("MoveSavant.msf", 1);
         }
         break;
     }
@@ -1692,7 +1692,7 @@ void ProcessMessageBoxQueue(void)
                 0xb5e, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
                 group->leader_id_9f, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            monster_info->monster->SetScript004C7F10("MoveBela.msf", 1);
+            monster_info->p3D->SetScript004C7F10("MoveBela.msf", 1);
         }
         srVector3T<float> position;
         if (FindEntityByName("NP_DSExit", &position, 0, 0)) {
@@ -1709,7 +1709,7 @@ void ProcessMessageBoxQueue(void)
                 0xb1b, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
                 group->leader_id_9f, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            monster_info->monster->SetScript004C7F10("MoveGolem.msf", 1);
+            monster_info->p3D->SetScript004C7F10("MoveGolem.msf", 1);
         }
         break;
     }
@@ -1750,7 +1750,7 @@ void ProcessMessageBoxQueue(void)
                 0xa3a, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
                 group->leader_id_9f, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            monster_info->monster->SetCycleCallback004CA340(0x12, NpcScriptHenchmanArrives);
+            monster_info->p3D->SetCycleCallback004CA340(0x12, NpcScriptHenchmanArrives);
             StartMonsterCycle(monster_info, 0x12, 1);
         }
         break;
@@ -1764,7 +1764,7 @@ void ProcessMessageBoxQueue(void)
                 group->leader_id_9f, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             StartMonsterCycle(monster_info, 0x12, 1);
-            monster_info->monster->SetCycleCallback004CA340(0x12, NpcScriptHenchmanDeparted);
+            monster_info->p3D->SetCycleCallback004CA340(0x12, NpcScriptHenchmanDeparted);
         }
         ClearMainGameTargetState();
         break;
@@ -1808,7 +1808,7 @@ void ProcessMessageBoxQueue(void)
         npc = GetNpcStateByKind(0x3f);
         W8MonsterInfo* monster_info = GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
-            monster_info->monster->BeginFadeOutAndRemove004C5040(0);
+            monster_info->p3D->BeginFadeOutAndRemove004C5040(0);
         }
         break;
     }
@@ -1820,7 +1820,7 @@ void ProcessMessageBoxQueue(void)
         npc = GetNpcStateByKind(0x3e);
         W8MonsterInfo* monster_info = GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
-            monster_info->monster->BeginFadeOutAndRemove004C5040(0);
+            monster_info->p3D->BeginFadeOutAndRemove004C5040(0);
         }
         break;
     }
@@ -1832,7 +1832,7 @@ void ProcessMessageBoxQueue(void)
         npc = GetNpcStateByKind(0x3d);
         W8MonsterInfo* monster_info = GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
-            monster_info->monster->BeginFadeOutAndRemove004C5040(0);
+            monster_info->p3D->BeginFadeOutAndRemove004C5040(0);
         }
         break;
     }
@@ -1865,7 +1865,7 @@ void ProcessMessageBoxQueue(void)
                 0x983, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
                 group->leader_id_9f, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            monster_info->monster->BeginFadeOutAndRemove004C5040(0);
+            monster_info->p3D->BeginFadeOutAndRemove004C5040(0);
         }
         group = FindFirstMonsterByID(0x15d);
         if (group != 0) {
@@ -1907,8 +1907,8 @@ void ProcessMessageBoxQueue(void)
                     0xc06, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
                     monster_info->location_id, 1);
                 RemoveMonster(monster_index, 1);
-            } else if (monster_info->monster != 0) {
-                monster_info->monster->BeginFadeOutAndRemove004C5040(0);
+            } else if (monster_info->p3D != 0) {
+                monster_info->p3D->BeginFadeOutAndRemove004C5040(0);
             }
         }
         break;
@@ -1922,7 +1922,7 @@ void ProcessMessageBoxQueue(void)
                 0x78d, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
                 group->leader_id_9f, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            monster_info->monster->SetScript004C7F10("MoveGari.msf", 1);
+            monster_info->p3D->SetScript004C7F10("MoveGari.msf", 1);
         }
         break;
     }
@@ -1940,7 +1940,7 @@ void ProcessMessageBoxQueue(void)
                 0x7c1, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
                 group->leader_id_9f, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            monster_info->monster->SetScript004C7F10("Milano.msf", 1);
+            monster_info->p3D->SetScript004C7F10("Milano.msf", 1);
         }
         break;
     }
@@ -1955,7 +1955,7 @@ void ProcessMessageBoxQueue(void)
                     monster_info->location_id, 1);
                 RemoveMonster(monster_index, 1);
             } else {
-                monster_info->monster->BeginFadeOutAndRemove004C5040(0);
+                monster_info->p3D->BeginFadeOutAndRemove004C5040(0);
             }
         }
         break;
@@ -1992,7 +1992,7 @@ void ProcessMessageBoxQueue(void)
                 0x7a8, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
                 group->leader_id_9f, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            monster_info->monster->SetScript004C7F10("MoveRubble.msf", 1);
+            monster_info->p3D->SetScript004C7F10("MoveRubble.msf", 1);
         }
         break;
     }
@@ -2003,7 +2003,7 @@ void ProcessMessageBoxQueue(void)
         W8MonsterInfo* monster_info = npc == 0 ? 0 : GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
             if (monster_info->fActive != 0) {
-                monster_info->monster->BeginFadeOutAndRemove004C5040(0);
+                monster_info->p3D->BeginFadeOutAndRemove004C5040(0);
             } else {
                 unsigned int monster_index = MonsterGetIndexByLocationID(
                     0xbd8, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
@@ -2026,7 +2026,7 @@ void ProcessMessageBoxQueue(void)
         W8MonsterInfo* monster_info = npc == 0 ? 0 : GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
             if (monster_info->fActive != 0) {
-                monster_info->monster->BeginFadeOutAndRemove004C5040(0);
+                monster_info->p3D->BeginFadeOutAndRemove004C5040(0);
             } else {
                 unsigned int monster_index = MonsterGetIndexByLocationID(
                     0xbef, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
@@ -2041,7 +2041,7 @@ void ProcessMessageBoxQueue(void)
         W8MonsterInfo* monster_info = GetNpcMonsterInfo(npc);
         srVector3T<float> position;
         if (monster_info != 0 && FindEntityByName("NP_Balbrakhome", &position, 0, 0)) {
-            monster_info->monster->SetPosition(&position);
+            monster_info->p3D->SetPosition(&position);
         }
         break;
     }
@@ -2075,7 +2075,7 @@ void ProcessMessageBoxQueue(void)
                 group->leader_id_9f, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             StartMonsterCycle(monster_info, 0x19, 1);
-            monster_info->monster->SetCycleCallback004CA340(0x19, NpcScriptSavantHackDone);
+            monster_info->p3D->SetCycleCallback004CA340(0x19, NpcScriptSavantHackDone);
         }
         break;
     }
@@ -2087,7 +2087,7 @@ void ProcessMessageBoxQueue(void)
                 0xa57, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
                 group->leader_id_9f, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            monster_info->monster->SetScript004C7F10("belapath1.msf", 1);
+            monster_info->p3D->SetScript004C7F10("belapath1.msf", 1);
         }
         Trigger* trigger = FindTriggerByName("CC_TRIGGERPLANE3");
         if (trigger != 0) {
@@ -2122,7 +2122,7 @@ void ProcessMessageBoxQueue(void)
                     0xa9e, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp", location_id,
                     1);
                 W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-                MonsterForwardReferencePosition(monster_info->monster, 0);
+                MonsterForwardReferencePosition(monster_info->p3D, 0);
             }
             npc = GetNpcStateByKind(0x84);
             if (npc != 0) {
@@ -2148,7 +2148,7 @@ void ProcessMessageBoxQueue(void)
                     W8MonsterInfo* monster_info =
                         MonsterGetScriptPartByLocationIndex(monster_index);
                     if (FindEntityByName("NP_DS1", &position, 0, 0)) {
-                        monster_info->monster->AimAtPosition(&position);
+                        monster_info->p3D->AimAtPosition(&position);
                     }
                 }
             }
@@ -2168,8 +2168,8 @@ void ProcessMessageBoxQueue(void)
                 0xacf, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
                 group->leader_id_9f, 1);
             monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            monster_info->monster->SetPosition(&position);
-            MonsterForwardReferencePosition(monster_info->monster, 0);
+            monster_info->p3D->SetPosition(&position);
+            MonsterForwardReferencePosition(monster_info->p3D, 0);
             StartMonsterCycle(monster_info, 0x12, 1);
         }
         npc = GetNpcStateByKind(0x8d);
@@ -2210,7 +2210,7 @@ void ProcessMessageBoxQueue(void)
                 0x9a0, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
                 group->leader_id_9f, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            monster_info->monster->BeginFadeOutAndRemove004C5040(0);
+            monster_info->p3D->BeginFadeOutAndRemove004C5040(0);
         }
         break;
     }
@@ -2796,7 +2796,7 @@ void ResolveSedexusCapture(void)
                 0x10e0, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp", location_id, 1);
             info = MonsterGetScriptPartByLocationIndex(monster_list_index);
             if (info != 0) {
-                info->monster->SetScript004C7F10("proximitytemplar.msf", 1);
+                info->p3D->SetScript004C7F10("proximitytemplar.msf", 1);
             }
         }
     }
