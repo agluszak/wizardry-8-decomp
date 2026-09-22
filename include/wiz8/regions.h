@@ -52,7 +52,7 @@ struct W8Region {
     Controls* owner;
 }; /* 0x1c */
 
-void InitializeRegionHelpState(void);
+unsigned char InitializeRegionHelpState(void);
 
 /* Unrecovered static-catalog callbacks are stored as absolute retail VAs in
    RegionManager.cpp so matching WIZ8 does not need runtime_stubs /

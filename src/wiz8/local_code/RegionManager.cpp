@@ -493,9 +493,13 @@ W8Region g_regions[1500] = {
 // clang-format on
 #pragma clang diagnostic pop
 };
+// GLOBAL: WIZ8 0x00689B3C
 unsigned int g_current_region_index;
+// GLOBAL: WIZ8 0x00689B40
 wchar_t* g_default_help_text;
+// GLOBAL: WIZ8 0x00689B44
 unsigned int g_captured_region_index;
+// GLOBAL: WIZ8 0x00689B4C
 unsigned int g_hover_region_index;
 // GLOBAL: WIZ8 0x00689B50
 unsigned char g_region_help_force_enabled;
