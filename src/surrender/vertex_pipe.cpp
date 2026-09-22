@@ -589,6 +589,15 @@ void srVertexPipe::applyFog(const float* values)
     lazy_setup_mask_10 |= 0x10;
 }
 
+/* Retail performs a verbatim memberwise copy of the entire object extent
+   (0x1002BB80 copies scratch_00, processor_heap_04 and every other field,
+   with 16-byte block copies across the embedded material_info_14). That
+   shallow copy aliases the scratch and processor-heap allocations the
+   destructor frees, so assigning between two live pipes leaks the
+   destination's storage and later double-frees the shared pointers — a
+   genuine retail ownership bug. No known consumer calls it: the operator
+   is absent from both audited consumer import tables. Do not use it in
+   rebuilt code unless the same source/dest lifetime preconditions hold. */
 // FUNCTION: SURRENDER 0x1002BB80
 srVertexPipe& srVertexPipe::operator=(const srVertexPipe& other)
 {
