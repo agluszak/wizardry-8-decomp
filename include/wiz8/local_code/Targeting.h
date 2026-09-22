@@ -159,7 +159,7 @@ void PopulateTargetMarkerForCurrentAction(const srVector3T<float>* position,
 W8TargetingContext GetCombatActionContext0053BC90(int party_slot); /* 0x0053BC90 */
 void ReconcilePartyEquipmentAfterCombat0053CD60(void);             /* 0x0053CD60 */
 bool TargetIsInPlay(
-    int party_slot, int value,
+    int party_slot, int hand,
     W8TargetingContext context = W8_TARGETING_CONTEXT_OUT_OF_COMBAT); /* 0x00536F60 */
 
 void ClearAllMonsterHighlights(void); /* 0x0053AE00 */
