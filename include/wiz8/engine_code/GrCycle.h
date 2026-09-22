@@ -52,7 +52,7 @@ void DestroyLightVector(W8GrowableVector<stLight*>* vector); /* 0x004A8C50 */
    Trigger sets bit 4 on its own to reverse the shake. */
 class W8CameraShakeEffect {
 public:
-    W8CameraShakeEffect(float duration, char preset, float intensity, float value_08,
+    W8CameraShakeEffect(float duration, char preset, float intensity, float distance_cap,
                         const srVector3T<float>* position); /* 0x004ADED0 */
     W8CameraShakeEffect(const W8CameraShakeEffect& other);  /* 0x004AE000 */
     /* Per-frame evaluation: answers whether the effect is still active and
@@ -61,7 +61,7 @@ public:
 
     unsigned int flags_00;         /* 0x00 */
     float intensity_04;            /* 0x04 */
-    float value_08;                /* 0x08: distance cap for bit-2 effects */
+    float distance_cap_08;         /* 0x08: distance cap for bit-2 effects */
     srVector3T<float> position_0c; /* 0x0c */
     W8GameTimer timer_18;          /* 0x18 */
     /* The key 0x004AE170 matches an animation event against. */
@@ -79,7 +79,7 @@ extern W8GrowableVector<W8CameraShakeEffect*>* g_shake_effects_0065be2c;
 extern W8GameTimer* g_shake_timer_0065be30;
 
 W8CameraShakeEffect* CreateCameraShakeEffect004AE080(float duration, char preset, float intensity,
-                                                     float value_08,
+                                                     float distance_cap,
                                                      const srVector3T<float>* position);
 /* Fire every effect in one cycle's vector whose key matches, moving it onto the
    live list and restarting its timer. */
@@ -100,7 +100,7 @@ class W8GrCycleParticleAttachment {
 public:
     int cycle_00;
     signed char subcycle_04;
-    unsigned char unknown_05[3];
+    unsigned char padding_05[3];
     stParticle* m_pstParticles;
     srVector3T<float> position_0c;
     /* 0x004A7E50 composes this into the model instance's own rotation with
@@ -169,13 +169,18 @@ public:
     W8GrowableVector<stLight*>* m_plsLights;                  /* 0x1ac */
     W8GrowableVector<W8CameraShakeEffect*>* m_plsShakeEvents; /* 0x1b0 */
     unsigned char m_fDeleteLights;                            /* 0x1b4: named by GrCycle.cpp:1656 */
-    unsigned char unknown_1b5;
-    unsigned char unknown_1b6[2];
+    /* 0x1b5: the subcycle the last update pass left on the representation. */
+    unsigned char last_subcycle_1b5;
+    unsigned char padding_1b6[2];
     W8GrowableVector<W8GrCycleParticleAttachment*>* m_plsParticles; /* 0x1b8 */
-    unsigned char unknown_1bc;
+    /* 0x1bc: set when the frame walk wrapped to first_frame; suppresses the
+       per-subcycle light reset. */
+    unsigned char wrapped_1bc;
     unsigned char enabled_1bd;
-    unsigned char unknown_1be;
-    unsigned char unknown_1bf;
+    /* 0x1be: mirror the model on X (the left-handed strike pick). */
+    unsigned char mirror_x_1be;
+    /* 0x1bf: m_axis_1c0 holds an aim point; mode-3 particles orient along it. */
+    unsigned char aim_set_1bf;
     /* The axis 0x004A7E50 aims a mode-three particle along. */
     srVector3T<float> m_axis_1c0;
     float scale_1cc;

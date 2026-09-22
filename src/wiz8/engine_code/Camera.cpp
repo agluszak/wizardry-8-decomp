@@ -71,7 +71,7 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, int activ
     float pitch;
 
     if (path->active_14 == 0 && active != 0) {
-        g_level_runtime_flag_0065ba70 = 1;
+        g_camera_path_active_0065ba70 = 1;
         path->active_14 = 1;
         PathAISetValue004A9F60(path->path_18, 0.0f);
         path->path_18->last_update_tick = GetTickCount();
@@ -83,7 +83,7 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, int activ
     if (path->active_14 == 0 || active != 0) {
         return;
     }
-    g_level_runtime_flag_0065ba70 = 0;
+    g_camera_path_active_0065ba70 = 0;
     rotation.SetIdentity();
     target.x = 0.0f;
     target.y = 0.0f;

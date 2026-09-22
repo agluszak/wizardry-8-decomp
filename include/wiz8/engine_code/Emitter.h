@@ -38,7 +38,7 @@ public:
        selector at 0x004A7BE0. It doubles as the AnimObj list index, which is
        what makes one animation list per LOD. */
     signed char m_bLOD;
-    unsigned char unknown_099[3];
+    unsigned char padding_099[3];
     /* Two LOD switch distances, scaled by the detail slider before they
        are compared. 0x004A7BE0 reads both with fmul, which types them. */
     float lod_range_09c;
@@ -47,11 +47,13 @@ public:
        cycle/subcycle and pending cycle. Missile and Spell use current_cycle
        for the same role; there is no separate Monster view. Only +0xa6 stays
        positional until behavior outside Monster establishes its meaning. */
-    signed char current_cycle;       /* 0xa4 */
-    signed char current_subcycle;    /* 0xa5 */
-    signed char selection_value_0a6; /* 0xa6 */
-    signed char pending_cycle;       /* 0xa7 */
-    float value_0a8;
+    signed char current_cycle;    /* 0xa4 */
+    signed char current_subcycle; /* 0xa5 */
+    /* 0xa6: a forced subcycle pick; -1 means none, consumed once
+       by the cycle-selection path then reset. */
+    signed char forced_subcycle_0a6;
+    signed char pending_cycle;  /* 0xa7 */
+    float animation_radius_0a8; /* 0xa8: filled by GetAnimationRadius */
 }; /* 0xac */
 
 static_assert(sizeof(W8EmitterHost) == 0xac, "W8EmitterHost_size_must_be_0xac");

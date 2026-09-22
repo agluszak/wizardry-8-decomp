@@ -89,15 +89,19 @@ struct W8XStatus {
        live formation here on open, edits the copy, and either reconciles it
        back or diffs it against live on accept. */
     W8PartyFormationState edited_formation;
-    W8GrowableVector<int> target_markers;        /* 0x9b7: 0x0068406F */
-    srVector3T<float> target_position;           /* 0x9c7: 0x0068407F */
-    W8CombatSlot shared_target;                  /* 0x9d3: 0x0068408B */
-    W8ActionDetailBlock shared_action_detail;    /* 0x9f3: 0x006840AB */
-    int picked_monster;                          /* 0x9fb: 0x006840B3 */
-    int picked_group;                            /* 0x9ff: 0x006840B7 */
-    unsigned char flag_a03;                      /* 0xa03: 0x006840BB */
-    unsigned char world_update_blocked;          /* 0xa04: 0x006840BC */
-    unsigned char flag_a05;                      /* 0xa05: 0x006840BD */
+    W8GrowableVector<int> target_markers;     /* 0x9b7: 0x0068406F */
+    srVector3T<float> target_position;        /* 0x9c7: 0x0068407F */
+    W8CombatSlot shared_target;               /* 0x9d3: 0x0068408B */
+    W8ActionDetailBlock shared_action_detail; /* 0x9f3: 0x006840AB */
+    int picked_monster;                       /* 0x9fb: 0x006840B3 */
+    int picked_group;                         /* 0x9ff: 0x006840B7 */
+    /* 0xa03: one-shot latch set when the combat/party panels refresh; the next
+       UpdateMonsterSight pass consumes and clears it. */
+    bool sight_refresh_pending_a03;
+    unsigned char world_update_blocked; /* 0xa04: 0x006840BC */
+    /* 0xa05: user-pause latch set by ToggleMainGamePause alongside
+       PauseMainGameWorld; cleared by the resume paths. */
+    unsigned char world_paused_a05;
     unsigned short review_character_slot;        /* 0xa06: 0x006840BE */
     int held_item_source;                        /* 0xa08: 0x006840C0 */
     unsigned char held_item_origin;              /* 0xa0c: 0x006840C4 */
@@ -107,20 +111,26 @@ struct W8XStatus {
     unsigned char save_notice_shown;             /* 0x19b3: 0x0068506B */
     bool npc_combat_notice_pending;              /* 0x19b4: 0x0068506C */
     unsigned char deferred_skill_notices;        /* 0x19b5: 0x0068506D */
-    unsigned char flag_19b6;                     /* 0x19b6: 0x0068506E */
-    unsigned char flag_19b7;                     /* 0x19b7: 0x0068506F */
-    unsigned char flag_19b8;                     /* 0x19b8: 0x00685070 */
-    bool item_drag_active;                       /* 0x19b9: 0x00685071 */
-    W8ItemInstance* dragged_item;                /* 0x19ba: 0x00685072 */
-    unsigned char dragged_item_origin;           /* 0x19be: 0x00685076 */
-    signed char dragged_character_slot;          /* 0x19bf: 0x00685077 */
-    unsigned int spell_cooldown_clocks[14];      /* 0x19c0: 0x00685078 */
-    unsigned int combat_countdown;               /* 0x19f8: 0x006850B0 */
-    unsigned char combat_difficulty;             /* 0x19fc: 0x006850B4 */
-    unsigned char party_moving;                  /* 0x19fd: 0x006850B5 */
-    int saved_encounter_budget;                  /* 0x19fe: 0x006850B6 */
-    int mipe_cube_serial;                        /* 0x1a02: 0x006850BA */
-    int hostile_group_count;                     /* 0x1a06: 0x006850BE */
+    /* 0x19b6: a container offered more than one item, so the item-choice
+       dialog is pending; blocks the magic-effects tick until it opens. */
+    bool item_pick_pending_19b6;
+    /* 0x19b7: raised by BeginNpcScriptedScene until EndScriptedPortraitPick;
+       gates the dialogue-cursor and NPC-script input paths. */
+    bool scripted_scene_19b7;
+    /* 0x19b8: which Assay dialog tab is shown - set selects the profession
+       icons/button, clear selects the race side. */
+    unsigned char assay_professions_tab_19b8;
+    bool item_drag_active;                  /* 0x19b9: 0x00685071 */
+    W8ItemInstance* dragged_item;           /* 0x19ba: 0x00685072 */
+    unsigned char dragged_item_origin;      /* 0x19be: 0x00685076 */
+    signed char dragged_character_slot;     /* 0x19bf: 0x00685077 */
+    unsigned int spell_cooldown_clocks[14]; /* 0x19c0: 0x00685078 */
+    unsigned int combat_countdown;          /* 0x19f8: 0x006850B0 */
+    unsigned char combat_difficulty;        /* 0x19fc: 0x006850B4 */
+    unsigned char party_moving;             /* 0x19fd: 0x006850B5 */
+    int saved_encounter_budget;             /* 0x19fe: 0x006850B6 */
+    int mipe_cube_serial;                   /* 0x1a02: 0x006850BA */
+    int hostile_group_count;                /* 0x1a06: 0x006850BE */
 };
 #pragma pack(pop)
 

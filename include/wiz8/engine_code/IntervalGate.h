@@ -8,7 +8,7 @@
 class W8IntervalGate : public W8GameTimer {
 public:
     W8IntervalGate(); /* 0x0043A4E0 */
-    W8IntervalGate(float duration, unsigned char raw_time, bool set_flag_2);
+    W8IntervalGate(float duration, unsigned char raw_time, bool one_shot);
     /* 0x0043A500 */
     virtual ~W8IntervalGate() override;  /* 0x004218D0 */
     void Arm();                          /* 0x0043A530 */

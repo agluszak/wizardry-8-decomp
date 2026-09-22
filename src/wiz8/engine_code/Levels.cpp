@@ -186,7 +186,7 @@ char GetLevelBand(int saved_level)
     /* `<= 0x2f` is the retail bound: it admits the first test-level slot, one
        past the W8_LEVEL_COUNT-entry table. */
     if (level >= 0 && level <= 0x2f) {
-        return g_level_folders[level].unknown_6a;
+        return g_level_folders[level].level_band_6a;
     }
     return 0;
 }
@@ -417,7 +417,7 @@ unsigned short g_level_name_indices_605820[W8_LEVEL_COUNT] = {
 };
 
 // GLOBAL: WIZ8 0x00659756
-unsigned char g_flag_00659756;
+unsigned char g_level_status_loading_00659756;
 
 // GLOBAL: WIZ8 0x00603ac8
 float g_default_world_height_00603ac8 = 1000.0f;
@@ -429,10 +429,10 @@ float g_position_height_epsilon_005ebfdc = 2500.0f;
 unsigned char g_environment_load_flag_00603ad0 = 1;
 
 // GLOBAL: WIZ8 0x0065ba70
-unsigned char g_level_runtime_flag_0065ba70;
+bool g_camera_path_active_0065ba70;
 
 // GLOBAL: WIZ8 0x0068f0fd
-unsigned char g_value_0068f0fd;
+unsigned char g_mipe_trigger_display_0068f0fd;
 
 // GLOBAL: WIZ8 0x006059E0
 char g_ambient_sound_filename_006059e0[] = "SCF";
@@ -568,9 +568,9 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
     ResetAutomapView005817D0();
     if (!LoadLevelStatus("Saves\\CurrentGame.SAV", level)) {
         BuildLevelStatusPath(path, level);
-        g_flag_00659756 = 1;
+        g_level_status_loading_00659756 = 1;
         LoadLevelStatus(path, level);
-        g_flag_00659756 = 0;
+        g_level_status_loading_00659756 = 0;
     }
 
     if (!restoring_game && entrance != -1) {
@@ -632,11 +632,11 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
     if (!g_environment_load_flag_00603ad0) {
         ResetCurrentEnvironment0041AA40();
     }
-    g_level_runtime_flag_0065ba70 = 0;
+    g_camera_path_active_0065ba70 = 0;
     InitializeLevelEnvironment00482410();
     InitializeLevelMasterFunctions004D6C50(level);
     RebindNpcLevelTriggers0050AC60();
-    SetWorldCursorNodesVisible0048ED70(g_value_0068f0fd);
+    SetWorldCursorNodesVisible0048ED70(g_mipe_trigger_display_0068f0fd);
     RebuildPartyEffectBlock0050E700();
 
     if (!restoring_game) {

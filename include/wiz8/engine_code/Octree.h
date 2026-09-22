@@ -358,8 +358,8 @@ public:
     /* Test every buffered (mesh<<16)|polygon key's triangle against the trace
        ray; on a closer hit, end_0c returns the contact point. */
     unsigned char TestProbeResult(W8OctreeTrace* trace); /* 0x00435F00 */
-    int TraceAgainstProps(const srVector3T<float>* from, srVector3T<float>* to, int value_3,
-                          int value_4); /* 0x00436510 */
+    int TraceAgainstProps(const srVector3T<float>* from, srVector3T<float>* to, int skip_flag,
+                          int gate); /* 0x00436510 */
     /* Nearest ray-vs-sphere hit across the kind-12 objects in the segment
        box, then against the camera sphere; writes the hit position into `to`
        and the hit location id into `hit_location` (or -1/0). `excluded`
@@ -382,8 +382,8 @@ public:
                                               char flatten_y);
     unsigned int FindNavigatorPosition(srVector3T<float>* source, float yaw, float radius,
                                        unsigned int count, srVector3T<float>* positions,
-                                       char first_only, char flag_2, char flag_3, int mode,
-                                       char flag_4); /* 0x00437F30 */
+                                       char first_only, char settle_any_height, char avoid_triggers,
+                                       int mode, char require_waypoint_span); /* 0x00437F30 */
     unsigned int AdvanceNavigator(W8NavigatorMovementState* movement, float radius,
                                   float separation);
     unsigned char PrepareNavigatorTarget00434250(W8NavigatorMovementState* movement, float radius,

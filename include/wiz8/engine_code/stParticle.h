@@ -46,7 +46,7 @@ protected:
 public:
     unsigned int requires_positional_138;
     unsigned char padding_13c[4];
-    double particle_value_140;
+    double particle_size_140; /* 0x140: billboard quad scale from particle_size */
     /* Per-particle world positions; the retail allocation assert spells the
        buffer pParticle. */
     srVector3T<float>* particle_positions_148;

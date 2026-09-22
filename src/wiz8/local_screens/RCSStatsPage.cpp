@@ -480,13 +480,13 @@ void RebuildCampEffectList005C4EE0(void)
         }
     }
     for (int index = 7; index >= 0; --index) {
-        if (character->enchantments[index].value_08 != 0) {
+        if (character->enchantments[index].turns_08 != 0) {
             W8CampEffectEntry entry;
             memset(&entry, 0, sizeof(entry));
             entry.kind = 1;
             entry.beneficial = 1;
-            entry.enchantment = character->enchantments[index].value_00;
-            entry.turns = character->enchantments[index].value_08;
+            entry.enchantment = character->enchantments[index].power_00;
+            entry.turns = character->enchantments[index].turns_08;
             entry.lines = 2;
             entry.index = index;
             screen->effect_list =

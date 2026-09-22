@@ -1197,7 +1197,7 @@ unsigned char AdvanceFallingWorldItem(W8WorldItem* item)
     probe.x = item->position.x;
     probe.z = item->position.z;
     probe.y = previous_y + g_world_scale_005ebc40;
-    dt = g_game_time_accumulator_6598bc->GetValue28();
+    dt = g_game_time_accumulator_6598bc->GetFrameDelta();
     if (g_camera_snap_epsilon_005ebc2c < item->vertical_velocity_35) {
         probe.y = dt * item->vertical_velocity_35 + probe.y;
     }

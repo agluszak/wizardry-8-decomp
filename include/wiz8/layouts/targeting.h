@@ -46,7 +46,9 @@ struct W8TargetSource {
                                             SpellTargetString reads */
     unsigned char fReflection;   /* 0x1b */
     unsigned char fBackfire;     /* 0x1c */
-    unsigned char unknown_1d;
+    /* 0x1d: the cast's source was resolved to a point, not a creature;
+       missile/spell paths then skip the monster's spell vertex. */
+    unsigned char point_source_1d;
     /* 0x1e: the attack's target ended up different from the one the slot row
        aimed at - a fumble reroll or a guardian interception replaced it. */
     unsigned char target_diverted;

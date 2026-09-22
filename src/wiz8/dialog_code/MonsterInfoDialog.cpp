@@ -285,7 +285,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
     text[0] = L'\0';
     count = 0;
     for (index = 0; index < 8; ++index) {
-        if (monster_info->enchantments[index].value_08 != 0) {
+        if (monster_info->enchantments[index].turns_08 != 0) {
             if (count > 0) {
                 wcscat(text, g_comma_space_00619794);
             }

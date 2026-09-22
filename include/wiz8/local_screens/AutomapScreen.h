@@ -18,8 +18,8 @@ struct W8AutomapNote {
 static_assert(sizeof(W8AutomapNote) == 0x10, "W8AutomapNote_size");
 
 extern W8GrowableVector<W8AutomapNote*>* g_automap_notes;
-extern int g_value_68f2b0;
-extern int g_value_68f2c4;
+extern int g_ui_mode_current_68f2b0;
+extern int g_ui_mode_saved_68f2c4;
 void SetValue68F2B0(int value); /* 0x00587C10 */
 void SetValue68F2C4(int value); /* 0x0058A870 */
 
@@ -27,8 +27,8 @@ class W8DialogButton;
 extern W8DialogButton** g_automap_buttons;
 extern int g_automap_zoom_mode;
 
-extern unsigned char g_flag_68f104;
-extern unsigned char g_flag_68f105;
+extern bool g_mipe_menu_active_68f104;
+extern bool g_mipe_active_68f105;
 
 unsigned char HasAutomapLayer(int layer);
 void RestoreAutomapCameraPosition(void);

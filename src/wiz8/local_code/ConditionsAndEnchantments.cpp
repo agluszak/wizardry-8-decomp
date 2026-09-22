@@ -176,7 +176,7 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
             break;
         case 9:
         case 0xC:
-            gXStatus.flag_a03 = 1;
+            gXStatus.sight_refresh_pending_a03 = 1;
             break;
         case 0xb:
             if (gXStatus.fCombatMode != 0 &&
@@ -358,20 +358,20 @@ void ApplyCharacterCondition00523940(int party_slot, int condition, int argument
 {
     W8Character* character = &g_status_685170.buffers.Char[party_slot];
     W8Enchantment* enchantment = &character->enchantments[condition];
-    if (enchantment->value_00 < static_cast<unsigned int>(argument)) {
-        enchantment->value_00 = argument;
+    if (enchantment->power_00 < static_cast<unsigned int>(argument)) {
+        enchantment->power_00 = argument;
         enchantment->percent_04 = static_cast<unsigned short>(percent);
-        enchantment->value_08 = duration;
+        enchantment->turns_08 = duration;
         if (condition == 2) {
-            enchantment->value_06 =
+            enchantment->magnitude_06 =
                 static_cast<short>(RollDice(&g_spell_records[0x15].effect_dice) * argument);
-            enchantment->value_06 =
-                static_cast<short>((static_cast<unsigned int>(enchantment->value_06) * percent) /
-                                   100) +
-                enchantment->value_06;
+            enchantment->magnitude_06 =
+                static_cast<short>(
+                    (static_cast<unsigned int>(enchantment->magnitude_06) * percent) / 100) +
+                enchantment->magnitude_06;
         }
         for (int scan = 7; scan >= 0; --scan) {
-            if (character->enchantments[scan].value_08 > 0 || scan == 0) {
+            if (character->enchantments[scan].turns_08 > 0 || scan == 0) {
                 character->enchantment_top = scan;
                 break;
             }
@@ -382,7 +382,7 @@ void ApplyCharacterCondition00523940(int party_slot, int condition, int argument
             RequestRedraw(0x8000);
         }
         if (condition == W8_ENCHANTMENT_SLOT_SPECIAL) {
-            gXStatus.flag_a03 = 1;
+            gXStatus.sight_refresh_pending_a03 = 1;
         }
     }
     RebuildConditionsAndDerivedStats(party_slot);
@@ -751,7 +751,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
         character->uiCondition[condition] = duration;
         if (old_duration == 0) {
             if (condition == 9 || condition == 0xC) {
-                gXStatus.flag_a03 = 1;
+                gXStatus.sight_refresh_pending_a03 = 1;
             } else if (condition == 0xd) {
                 SetTargetToCharacter(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT);
             }
@@ -854,7 +854,7 @@ void ClearCharacterEnchantmentSlot(int party_slot, int slot)
 
     character = &g_status_685170.buffers.Char[party_slot];
     for (scan = 7; scan >= 0; --scan) {
-        if (character->enchantments[scan].value_08 > 0 || scan == 0) {
+        if (character->enchantments[scan].turns_08 > 0 || scan == 0) {
             character->enchantment_top = scan;
             break;
         }
@@ -867,7 +867,7 @@ void ClearCharacterEnchantmentSlot(int party_slot, int slot)
     }
     RebuildConditionsAndDerivedStats(party_slot);
     if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
-        gXStatus.flag_a03 = 1;
+        gXStatus.sight_refresh_pending_a03 = 1;
     }
 }
 
@@ -877,7 +877,7 @@ void ClearCharacterEnchantmentSlot(int party_slot, int slot)
 // FUNCTION: WIZ8 0x00523b30
 void TickCharacterEnchantmentSlot(int party_slot, int slot, unsigned int turns)
 {
-    unsigned int remaining = g_status_685170.buffers.Char[party_slot].enchantments[slot].value_08;
+    unsigned int remaining = g_status_685170.buffers.Char[party_slot].enchantments[slot].turns_08;
     W8Character* character;
     int scan;
 
@@ -887,7 +887,7 @@ void TickCharacterEnchantmentSlot(int party_slot, int slot, unsigned int turns)
 
         character = &g_status_685170.buffers.Char[party_slot];
         for (scan = 7; scan >= 0; --scan) {
-            if (character->enchantments[scan].value_08 > 0 || scan == 0) {
+            if (character->enchantments[scan].turns_08 > 0 || scan == 0) {
                 character->enchantment_top = scan;
                 break;
             }
@@ -900,10 +900,10 @@ void TickCharacterEnchantmentSlot(int party_slot, int slot, unsigned int turns)
         }
         RebuildConditionsAndDerivedStats(party_slot);
         if (slot == W8_ENCHANTMENT_SLOT_SPECIAL) {
-            gXStatus.flag_a03 = 1;
+            gXStatus.sight_refresh_pending_a03 = 1;
         }
     } else {
-        g_status_685170.buffers.Char[party_slot].enchantments[slot].value_08 = remaining - turns;
+        g_status_685170.buffers.Char[party_slot].enchantments[slot].turns_08 = remaining - turns;
     }
 }
 
@@ -919,14 +919,14 @@ void ApplyMonsterCondition005242B0(int location_id, int condition, int argument,
         MonsterGetIndexByLocationID(0x38b, CONDITIONS_CPP, location_id, 1);
     W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
     W8Enchantment* enchantment = &monster_info->enchantments[condition];
-    if (enchantment->value_00 <= static_cast<unsigned int>(argument)) {
-        unsigned int previous = enchantment->value_08;
-        enchantment->value_00 = argument;
+    if (enchantment->power_00 <= static_cast<unsigned int>(argument)) {
+        unsigned int previous = enchantment->turns_08;
+        enchantment->power_00 = argument;
         enchantment->percent_04 = static_cast<unsigned short>(percent);
-        enchantment->value_08 = duration;
+        enchantment->turns_08 = duration;
         if (condition == 2) {
             int roll = RollDice(&g_spell_records[0x15].effect_dice);
-            enchantment->value_06 =
+            enchantment->magnitude_06 =
                 static_cast<short>(
                     (static_cast<unsigned int>(static_cast<unsigned short>(roll * argument)) *
                      percent) /
@@ -967,10 +967,10 @@ void TickMonsterEnchantmentSlot(int location_id, int slot, unsigned int turns)
 {
     W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
         MonsterGetIndexByLocationID(969, CONDITIONS_CPP, location_id, 1));
-    unsigned int remaining = monster_info->enchantments[slot].value_08;
+    unsigned int remaining = monster_info->enchantments[slot].turns_08;
 
     if (turns < remaining) {
-        monster_info->enchantments[slot].value_08 = remaining - turns;
+        monster_info->enchantments[slot].turns_08 = remaining - turns;
         return;
     }
 
@@ -1035,13 +1035,13 @@ void RemoveAllEnchantments(void)
             W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
             if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0 &&
-                character->enchantments[enchantment].value_08 != 0) {
+                character->enchantments[enchantment].turns_08 != 0) {
                 memset(&character->enchantments[enchantment], 0, sizeof(W8Enchantment));
                 int top = 7;
                 W8Enchantment* scan = &character->enchantments[7];
 
                 do {
-                    if (scan->value_08 != 0 || top == 0) {
+                    if (scan->turns_08 != 0 || top == 0) {
                         character->enchantment_top = top;
                         break;
                     }
@@ -1055,14 +1055,14 @@ void RemoveAllEnchantments(void)
                 }
                 RebuildConditionsAndDerivedStats(party_slot);
                 if (enchantment == W8_ENCHANTMENT_SLOT_SPECIAL) {
-                    gXStatus.flag_a03 = 1;
+                    gXStatus.sight_refresh_pending_a03 = 1;
                 }
             }
         }
         for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
 
-            if (monster_info->enchantments[enchantment].value_08 != 0) {
+            if (monster_info->enchantments[enchantment].turns_08 != 0) {
                 int location_id = monster_info->location_id;
 
                 monster_info = MonsterGetScriptPartByLocationIndex(

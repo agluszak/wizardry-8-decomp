@@ -21,7 +21,8 @@ struct W8ModelInstance2DRenderState {
     short right;
     short bottom;
     unsigned char display_state;
-    unsigned char state_0d;
+    /* 0x0d: enables the pulsing glow pass over mesh.materials_70[0]. */
+    unsigned char glow_enabled_0d;
     unsigned char padding_0e[2];
 };
 
@@ -88,8 +89,8 @@ public:
     union {
         unsigned int timer_068;
         struct {
-            unsigned char value_068;
-            unsigned char value_069;
+            unsigned char frame_lo_068;
+            unsigned char frame_hi_069;
             unsigned char animation_padding_06a[2];
         };
     };

@@ -161,9 +161,9 @@ static unsigned char g_special_attack_cycle_error_reported;
 // FUNCTION: WIZ8 0x00530110
 void UpdateMonsterSight(void)
 {
-    if (gXStatus.fCombatMode == 0 || gXStatus.flag_a03 != 0) {
-        if (gXStatus.flag_a03 != 0) {
-            gXStatus.flag_a03 = 0;
+    if (gXStatus.fCombatMode == 0 || gXStatus.sight_refresh_pending_a03 != 0) {
+        if (gXStatus.sight_refresh_pending_a03 != 0) {
+            gXStatus.sight_refresh_pending_a03 = 0;
         }
         RefreshOutwardSightForAllMonsters();
         if (gXStatus.fCombatMode != 0 && g_combat_state->round_count_004 == 0) {
@@ -194,9 +194,9 @@ void UpdateMonsterGroups(char staggered)
     }
     g_monster_group_tick = g_monster_group_tick + 1;
     if (staggered == 0) {
-        if (gXStatus.fCombatMode == 0 || gXStatus.flag_a03 != 0) {
-            if (gXStatus.flag_a03 != 0) {
-                gXStatus.flag_a03 = 0;
+        if (gXStatus.fCombatMode == 0 || gXStatus.sight_refresh_pending_a03 != 0) {
+            if (gXStatus.sight_refresh_pending_a03 != 0) {
+                gXStatus.sight_refresh_pending_a03 = 0;
             }
             RefreshOutwardSightForAllMonsters();
             if (gXStatus.fCombatMode != 0 && g_combat_state->round_count_004 == 0) {
@@ -1578,12 +1578,12 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
         }
         break;
     case 0x15:
-        if (enchantments[2].value_08 != 0) {
+        if (enchantments[2].turns_08 != 0) {
             return 0;
         }
         break;
     case 0x1b:
-        if (enchantments[3].value_08 != 0) {
+        if (enchantments[3].turns_08 != 0) {
             return 0;
         }
         break;
@@ -1676,22 +1676,22 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
         }
         return 1;
     case 0x36:
-        if (enchantments[4].value_08 != 0) {
+        if (enchantments[4].turns_08 != 0) {
             return 0;
         }
         break;
     case 0x38:
-        if (enchantments[5].value_08 != 0) {
+        if (enchantments[5].turns_08 != 0) {
             return 0;
         }
         break;
     case 0x3d:
-        if (enchantments[6].value_08 != 0) {
+        if (enchantments[6].turns_08 != 0) {
             return 0;
         }
         break;
     case 0x41:
-        if (enchantments[7].value_08 != 0) {
+        if (enchantments[7].turns_08 != 0) {
             return 0;
         }
         break;

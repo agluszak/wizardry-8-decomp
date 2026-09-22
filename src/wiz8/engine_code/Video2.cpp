@@ -2375,7 +2375,7 @@ srShader::srShader()
 
 // FUNCTION: WIZ8 0x00424A90
 srNode* VideoMakePoster(srColorSurfaceIFace* surface, float width, float height,
-                        unsigned char positional_3)
+                        unsigned char additive)
 {
     srTextureIFace::e_hint hint;
     srTextureMap* texture = SR_NEW(srTextureMap)(static_cast<srColorSurfaceIFace*>(0));
@@ -2385,13 +2385,13 @@ srNode* VideoMakePoster(srColorSurfaceIFace* surface, float width, float height,
     texture->setSurfacePtr(surface);
     texture->setWrapS(srTextureIFace::WRAP_CLAMP);
     texture->setWrapT(srTextureIFace::WRAP_CLAMP);
-    if (positional_3 == 0) {
+    if (additive == 0) {
         hint = srTextureIFace::HINT_POSITIONAL_1;
     } else {
         hint = srTextureIFace::HINT_POSITIONAL_2;
     }
     texture->enableHint(hint);
-    return MakePosterQuad00424BA0(texture, width, height, positional_3);
+    return MakePosterQuad00424BA0(texture, width, height, additive);
 }
 
 void PresentMenuOverlayFrame(void)
@@ -3804,7 +3804,7 @@ void EndRenderProbe004289C0(void)
 
 // FUNCTION: WIZ8 0x00424BA0
 srNode* MakePosterQuad00424BA0(srTextureIFace* texture, float width, float height,
-                               unsigned char positional_3)
+                               unsigned char additive)
 {
     srShader shader;
     srPtr<srPalette> palette;
@@ -3848,7 +3848,7 @@ srNode* MakePosterQuad00424BA0(srTextureIFace* texture, float width, float heigh
     g_modeler_65963c->discard();
 
     shader.value = 0x100a013;
-    if (positional_3 != 0) {
+    if (additive != 0) {
         shader.value = 0x100c0b3;
         model->setControlMask(0x40);
     }

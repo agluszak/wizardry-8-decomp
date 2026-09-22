@@ -2,7 +2,7 @@
    NPC Scripting.cpp. The scenario runs on the game thread once the main
    menu is live.
 
-   It fabricates a script NPC whose record flags (flag_2ea set, no monster, no
+   It fabricates a script NPC whose record flags (voice_script_2ea set, no monster, no
    script file) keep every dispatch on the shallow path, stages a pending
    script notice, then queues a spacer, a dialogue close and the notice's
    dispatch line, with a marked script quote prepended onto the head. Pumping
@@ -18,7 +18,7 @@
      and appends the notice's quote line;
    - an emptied queue flips g_message_queue_idle_68c501 back on.
 
-   The fake NPC's flag_2ea also keeps BeginNpcDialogueInternal on the quote
+   The fake NPC's voice_script_2ea also keeps BeginNpcDialogueInternal on the quote
    branch, and fCampMode/fCombatMode keep the speaker pick and world pause
    out of the scenario. */
 
@@ -79,10 +79,10 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     memset(fake_record, 0, sizeof(*fake_record));
     memset(fake_npc, 0, sizeof(*fake_npc));
 
-    /* flag_2ea routes the dispatcher's quote handling past the pending-value
+    /* voice_script_2ea routes the dispatcher's quote handling past the pending-value
        rescan and routes BeginNpcDialogueInternal to its quote branch; the
        name style avoids the healer and Savant cases it checks first. */
-    fake_record->flag_2ea = 1;
+    fake_record->voice_script_2ea = 1;
     fake_npc->record = fake_record;
     fake_npc->name_style = 0x99;
     fake_screen->dialogue_npc = fake_npc;

@@ -225,7 +225,7 @@ stModelInstance2D::stModelInstance2D(srNode* parent)
     render_state_164.right = 0;
     render_state_164.bottom = 0;
     overlay_scene_flag_160 = 0;
-    render_state_164.state_0d = 0;
+    render_state_164.glow_enabled_0d = 0;
     render_state_164.render_depth = 2000;
     vector_174 = 0;
     vector_178 = 0;
@@ -266,7 +266,7 @@ stModelInstance2D& stModelInstance2D::operator=(const stModelInstance2D& other)
     if (other.parentNode() != 0) {
         setParent(other.parentNode(), 1);
     }
-    render_state_164.state_0d = other.render_state_164.state_0d;
+    render_state_164.glow_enabled_0d = other.render_state_164.glow_enabled_0d;
     render_state_164.render_depth = other.render_state_164.render_depth;
     if (other.vector_174 != 0) {
         vector_174 = static_cast<srVector4T<float>*>(srHeap.allocate(sizeof(srVector4T<float>)));
@@ -354,7 +354,7 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
     srMeshModel* model = static_cast<srMeshModel*>(getModel());
     model->getTriMesh(mesh);
 
-    if (render_state_164.state_0d != 0) {
+    if (render_state_164.glow_enabled_0d != 0) {
         if (m_pGlowMaterial == 0) {
             m_pGlowMaterial = new stMaterial;
             if (m_pGlowMaterial == 0) {
@@ -401,7 +401,7 @@ void stModelInstance2D::SetGlowEnabled00480EB0(unsigned char enable)
         m_pGlowMaterial->release();
         m_pGlowMaterial = 0;
     }
-    render_state_164.state_0d = enable;
+    render_state_164.glow_enabled_0d = enable;
 }
 
 // FUNCTION: WIZ8 0x00480EF0

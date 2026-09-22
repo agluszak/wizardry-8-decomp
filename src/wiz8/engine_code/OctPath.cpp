@@ -3141,7 +3141,7 @@ unsigned int W8PathingService::StepAlongPath004669B0(W8NavigatorMovementState* m
             srVector3T<float>* position = &movement->position_040;
             srVector3T<float> advanced = *position;
             char on_path = attachment->AdvanceAlongPathPositions00456830(
-                g_game_time_accumulator_6598bc->GetValue28() * movement->movement_speed_064 *
+                g_game_time_accumulator_6598bc->GetFrameDelta() * movement->movement_speed_064 *
                     movement->movement_scale_060 * g_rate_006068EC * g_world_scale_005ebc40,
                 &advanced);
             arrived = on_path == '\0';
@@ -3421,7 +3421,7 @@ unsigned int W8PathingService::StepMonsterAlongPath00467150(W8NavigatorMovementS
     W8MonsterGroup* group = GetMonsterGroupByListIndex(
         GetMonsterGroupIndexByID(0x2a96, OCTPATH_CPP, monster_info->monster_group_id, '\x01'));
     monster_info->monster->group_linked_0bd = 1;
-    float remaining = g_rate_006068EC * g_game_time_accumulator_6598bc->GetValue28();
+    float remaining = g_rate_006068EC * g_game_time_accumulator_6598bc->GetFrameDelta();
     do {
         if (remaining <= g_float_005ebb34) {
             break;
@@ -3443,7 +3443,7 @@ unsigned int W8PathingService::StepMonsterAlongPath00467150(W8NavigatorMovementS
                 attachment->path_cursor_04 = previous;
                 m_pSurfaces_048[attachment->path_values_50[attachment->path_cursor_04]]
                     .visit_stamp_14 =
-                    static_cast<unsigned int>(g_game_time_accumulator_6598bc->GetValue30());
+                    static_cast<unsigned int>(g_game_time_accumulator_6598bc->GetElapsed());
                 previous = previous + 1;
             } while (previous < reached);
             attachment->path_cursor_04 = reached;
@@ -6862,7 +6862,7 @@ void W8PathParameters::IntegrateSteering004CB090()
     unsigned char snapped;
     char direction;
 
-    step = g_rate_006068EC * g_game_time_accumulator_6598bc->GetValue28();
+    step = g_rate_006068EC * g_game_time_accumulator_6598bc->GetFrameDelta();
     if (blocked_49 == 0) {
         force_38.y = 0.0f;
         if (speed_limit_08 <= g_float_005ebb34) {

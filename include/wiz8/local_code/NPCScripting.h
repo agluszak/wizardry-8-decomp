@@ -53,7 +53,9 @@ struct W8NpcScriptingState {
     W8GrowableVector<int*> pending_script_values;
     W8MouthGapTrack gap_track;
     unsigned int last_tick;
-    unsigned char flag_c4;
+    /* 0xc4: latched by CancelNpcDialogue; the response loop checks it at
+       entries_done and abandons the pending response. */
+    unsigned char dialogue_cancelled_c4;
     unsigned char restore_staged_session;
     unsigned char portrait_message_active;
     bool scripted_scene_active;
@@ -90,7 +92,8 @@ static_assert(offsetof(W8NpcScriptingState, gap_track) == 0xac,
               "W8NpcScriptingState_gap_track_offset");
 static_assert(offsetof(W8NpcScriptingState, last_tick) == 0xc0,
               "W8NpcScriptingState_last_tick_offset");
-static_assert(offsetof(W8NpcScriptingState, flag_c4) == 0xc4, "W8NpcScriptingState_flag_c4_offset");
+static_assert(offsetof(W8NpcScriptingState, dialogue_cancelled_c4) == 0xc4,
+              "W8NpcScriptingState_dialogue_cancelled_c4_offset");
 static_assert(offsetof(W8NpcScriptingState, restore_staged_session) == 0xc5,
               "W8NpcScriptingState_restore_staged_session_offset");
 static_assert(offsetof(W8NpcScriptingState, portrait_message_active) == 0xc6,
@@ -157,7 +160,7 @@ void BeginSedexusCapture(void); /* 0x00529EF0 */
 /* ApplyAttributeChange / ApplySkillChange: character_skills.h (0x00553AD0 / 0x00553C10) */
 /* in GameData.h: CameraLookAt (0x00420F90) */
 /* in ReviewCharacterScreen.h: BeginEndgameSequence005A6580 (0x005A6580) */
-void SetFlag68C4F4(void); /* 0x00529560 */
+void CancelNpcDialogue(void); /* 0x00529560 */
 /* 0x00529570: show the NPC quote bubble for the formatted line; a nonzero
    second argument also plays the startup jingle. */
 void DisplayNpcQuote00529570(const wchar_t* text, char play_sound);

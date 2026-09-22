@@ -127,7 +127,7 @@ char GetNpcDisposition(W8NpcState* npc)
         return disposition;
     }
     faction_disposition = GetFactionDispositionScore(npc->record->faction_5f);
-    if (npc->record->unknown_054 != 0) {
+    if (npc->record->monster_bound_054 != 0) {
         return faction_disposition;
     }
     if (GetFactionDispositionToward(npc->record->faction_5f, W8_FACTION_PARTY) == 0) {
@@ -767,7 +767,7 @@ unsigned char FindNpcOfKind(int kind)
             if (npc == 0) {
                 break;
             }
-            return static_cast<unsigned char>(npc->unknown_04);
+            return static_cast<unsigned char>(npc->spawned_04);
         }
     }
     return 0;
@@ -987,7 +987,7 @@ void ProcessNpcPendingEvents0050CA80(void)
             for (int index = 0; index < g_npc_states->count; ++index) {
                 W8NpcState* candidate = *g_npc_states->GetAt(index);
                 if (candidate->record->kind == 0x42) {
-                    if (candidate != 0 && static_cast<unsigned char>(candidate->unknown_04) != 0) {
+                    if (candidate != 0 && static_cast<unsigned char>(candidate->spawned_04) != 0) {
                         flagged = 1;
                     }
                     break;
@@ -1011,15 +1011,15 @@ void ProcessNpcPendingEvents0050CA80(void)
                 }
             }
         }
-        if (g_status_685170.flag_242e != 0 &&
-            (g_status_685170.world_clock - g_status_685170.value_242a) > 0x3c) {
+        if (g_status_685170.binding_reset_pending_242e != 0 &&
+            (g_status_685170.world_clock - g_status_685170.binding_reset_clock_242a) > 0x3c) {
             int service = 0;
             if (g_npc_services[0].service_id != 0xffffffff) {
                 while (g_npc_services[service].service_id !=
                        static_cast<unsigned int>(GetLevelBand(g_status_685170.current_level))) {
                     ++service;
                     if (g_npc_services[service].service_id == 0xffffffff) {
-                        g_status_685170.flag_242e = 0;
+                        g_status_685170.binding_reset_pending_242e = 0;
                         return;
                     }
                 }
@@ -1075,7 +1075,7 @@ void ProcessNpcPendingEvents0050CA80(void)
                                     static_cast<unsigned int>(band)) {
                                     if ((bound->record->service_flags &
                                          g_npc_services[index].bit) != 0) {
-                                        row->flag_fe = 1;
+                                        row->npc_bound_fe = 1;
                                         bound->event_clock_eb = g_status_685170.world_clock;
                                         RebuildConditionsAndDerivedStats(slot);
                                         QueueCharacterEvent(character, 0x56, 0,
@@ -1086,19 +1086,19 @@ void ProcessNpcPendingEvents0050CA80(void)
                                 }
                             }
                         }
-                        npc->flag_e8 = 0;
+                        npc->incapacitated_e8 = 0;
                     } else if (character->highest_condition == 0x11 ||
                                character->highest_condition == 0x10 ||
                                character->highest_condition == 0xf) {
                         all_clear = 0;
-                        npc->flag_e8 = 1;
+                        npc->incapacitated_e8 = 1;
                     }
                 }
                 if (all_clear == 0) {
                     return;
                 }
             }
-            g_status_685170.flag_242e = 0;
+            g_status_685170.binding_reset_pending_242e = 0;
         }
     }
 }
@@ -1357,7 +1357,7 @@ void ResetNpcStates(void)
         g_npc_states->count = 0;
     }
     for (npc_id = 0; npc_id < gXStatus.uiNpcsInDatabase; ++npc_id) {
-        if (g_npc_records[npc_id].unknown_054 == 0) {
+        if (g_npc_records[npc_id].monster_bound_054 == 0) {
             CreateNpcRuntimeNode(npc_id);
         }
     }
@@ -1536,7 +1536,7 @@ void BindNpcToMonster(unsigned char npc_id, int has_monster, int location_id)
             return;
         }
 
-        if (g_npc_records[npc_id].unknown_054 == 0) {
+        if (g_npc_records[npc_id].monster_bound_054 == 0) {
             for (index = 0; index < g_npc_states->count; ++index) {
                 W8NpcState* candidate = *g_npc_states->GetAt(index);
                 if (candidate->record->kind == npc_id) {
@@ -1715,7 +1715,7 @@ void ReleaseNpcBinding(int value)
     npc->has_monster = 0;
     record = npc->record;
     npc->script_file = 0;
-    flag = record->unknown_054;
+    flag = record->monster_bound_054;
     ReleaseNpcScriptFile0055A0A0(file);
     if (flag != 0) {
         npc->binding_unavailable = 1;
@@ -1799,15 +1799,15 @@ void LoadNpcStates00509FC0(W8Chunk* chunks)
             npc->bound_level = g_status_685170.current_level;
             ReloadNpcScriptResources(npc);
         }
-        if (npc->unknown_04 == 0xffff) {
-            npc->unknown_04 = 0;
+        if (npc->spawned_04 == 0xffff) {
+            npc->spawned_04 = 0;
         }
     }
     if (version > 1) {
         LoadNpcItemLists0050AAF0(chunks->m_hFile);
     }
     for (npc_id = 0; npc_id < gXStatus.uiNpcsInDatabase; ++npc_id) {
-        if (g_npc_records[npc_id].unknown_054 == 0 && GetNpcStateByKind(npc_id) == 0) {
+        if (g_npc_records[npc_id].monster_bound_054 == 0 && GetNpcStateByKind(npc_id) == 0) {
             CreateNpcRuntimeNode(npc_id);
         }
     }
@@ -2096,7 +2096,7 @@ char ScoreNpcTheft0050BAF0(W8Character* character, W8NpcState* npc, int item_id,
         skill += character->attributes[4].effective / 0x14;
     }
     score = skill + (GetNpcDisposition(npc) - 0x32) / 4;
-    score -= (Random(5) + 10) * static_cast<signed char>(npc->flag_84);
+    score -= (Random(5) + 10) * static_cast<signed char>(npc->suspicion_84);
     W8MonsterInfo* monster_info = GetNpcMonsterInfo(npc);
     W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
     unsigned int penalty = character->skills[0xd].level >> 2;
@@ -2134,7 +2134,7 @@ int AttemptNpcPickpocket0050BC90(W8Character* character, W8NpcState* npc, W8Item
     int index;
 
     int spins = CharacterPointerToPartySlot(character) + npc->name_style * 0xb +
-                static_cast<signed char>(npc->flag_84) * 7;
+                static_cast<signed char>(npc->suspicion_84) * 7;
     unsigned int seed = 0;
     for (index = 2; index < 8; ++index) {
         if (g_status_685170.buffers.XChar[index].fOccupied != 0) {
@@ -2161,8 +2161,8 @@ int AttemptNpcPickpocket0050BC90(W8Character* character, W8NpcState* npc, W8Item
         ReplaceOrCreateItem(&item, npc->item_ids_30[picked], 1, 1, 0);
         score = ScoreNpcTheft0050BAF0(character, npc, item.iItemNo, 1);
     }
-    if (static_cast<signed char>(npc->flag_84) < 'd') {
-        ++npc->flag_84;
+    if (static_cast<signed char>(npc->suspicion_84) < 'd') {
+        ++npc->suspicion_84;
     }
     char roll = static_cast<char>(Random(100));
     if (roll > '_' || score * 2 < roll) {
@@ -2212,7 +2212,7 @@ char AttemptNpcItemTheft0050C040(W8Character* character, W8NpcState* npc, int it
     int index;
 
     int spins = CharacterPointerToPartySlot(character) + npc->name_style * 0xb +
-                static_cast<signed char>(npc->flag_84) * 7;
+                static_cast<signed char>(npc->suspicion_84) * 7;
     unsigned int seed = 0;
     for (index = 2; index < 8; ++index) {
         if (g_status_685170.buffers.XChar[index].fOccupied != 0) {
@@ -2224,8 +2224,8 @@ char AttemptNpcItemTheft0050C040(W8Character* character, W8NpcState* npc, int it
         Random(100);
     }
     char score = ScoreNpcTheft0050BAF0(character, npc, item_id, count);
-    if (static_cast<signed char>(npc->flag_84) < 'd') {
-        ++npc->flag_84;
+    if (static_cast<signed char>(npc->suspicion_84) < 'd') {
+        ++npc->suspicion_84;
     }
     char roll = static_cast<char>(Random(100));
     if (roll < '`' && roll <= score * 2) {
@@ -2343,7 +2343,7 @@ void UpdateNpcEvents0050D530(void)
 
         for (int slot = 0; slot < g_npc_states->GetCount(); ++slot) {
             npc = *g_npc_states->GetAt(slot);
-            if (npc->binding_unavailable != 0 || npc->flag_ea == 0) {
+            if (npc->binding_unavailable != 0 || npc->restored_ea == 0) {
                 g_status_685170.flag_2430 = 0;
                 continue;
             }
@@ -2377,7 +2377,7 @@ void UpdateNpcEvents0050D530(void)
                 released->has_monster = 0;
                 ReleaseNpcScriptFile0055A0A0(released->script_file);
                 released->script_file = 0;
-                if (released->record->unknown_054 != 0) {
+                if (released->record->monster_bound_054 != 0) {
                     released->binding_unavailable = 1;
                 }
             }
@@ -2392,7 +2392,7 @@ void UpdateNpcEvents0050D530(void)
             for (int search = 0; search < g_npc_states->GetCount(); ++search) {
                 W8NpcState* candidate = *g_npc_states->GetAt(search);
                 if (candidate->record->kind == 99) {
-                    if (candidate != 0 && *(unsigned char*)&candidate->unknown_04 != 0) {
+                    if (candidate != 0 && static_cast<unsigned char>(candidate->spawned_04) != 0) {
                         run_event = true;
                     }
                     break;
@@ -2427,7 +2427,7 @@ void UpdateNpcEvents0050D530(void)
                         npc_state = 0;
                     }
                 }
-                if (row->flag_fe != 0 &&
+                if (row->npc_bound_fe != 0 &&
                     (g_status_685170.world_clock - npc_state->event_clock_eb) > 0x168) {
                     if (Random(2) == 0) {
                         npc_state->event_clock_eb = g_status_685170.world_clock + Random(6) * 0x3c;
@@ -2448,7 +2448,7 @@ void UpdateNpcEvents0050D530(void)
         SetFact(0xb8, 1, 0);
     }
     if (g_status_685170.flag_2497 != 0 &&
-        (g_status_685170.world_clock - g_status_685170.value_242a) > 0x3c) {
+        (g_status_685170.world_clock - g_status_685170.binding_reset_clock_242a) > 0x3c) {
         g_status_685170.flag_2497 = 0;
         SelectStartNpcGreeting();
     }
@@ -2463,15 +2463,15 @@ void UpdateNpcEvents0050D530(void)
 // FUNCTION: WIZ8 0x0050db50
 void ResetNpcBindingsForParty0050DB50(void)
 {
-    g_status_685170.value_242a = g_status_685170.world_clock;
-    g_status_685170.flag_242e = 1;
+    g_status_685170.binding_reset_clock_242a = g_status_685170.world_clock;
+    g_status_685170.binding_reset_pending_242e = 1;
     for (int party_slot = 0; party_slot < 2; ++party_slot) {
         W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
         W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
         if (row->fOccupied != 0 && character->hp_current != 0) {
-            GetNpcState(row->animation_0fa)->flag_e8 = 0;
-            row->flag_fe = 0;
+            GetNpcState(row->animation_0fa)->incapacitated_e8 = 0;
+            row->npc_bound_fe = 0;
             RebuildConditionsAndDerivedStats(party_slot);
         }
     }
@@ -2485,7 +2485,7 @@ void ApplyBoundNpcPenalty0050DBF0(W8Character* character, W8GameplayModifierBloc
 {
     unsigned int index;
 
-    if (g_status_685170.buffers.XChar[CharacterPointerToPartySlot(character)].flag_fe == 0) {
+    if (g_status_685170.buffers.XChar[CharacterPointerToPartySlot(character)].npc_bound_fe == 0) {
         return;
     }
     for (index = 0; index < 7; ++index) {
@@ -2521,7 +2521,7 @@ void RestoreNamedNpcAtLevel0050C1C0(int kind, char level, const char* entity_nam
     }
     if (level == g_status_685170.current_level) {
         RestoreNpcMonster0050C560(npc, entity_name);
-        npc->flag_ea = 0;
+        npc->restored_ea = 0;
         return;
     }
     npc->pending_restore = 1;
@@ -2632,7 +2632,7 @@ void ReleaseNpcMonsterBindings0050C2E0(void)
                         target->has_monster = 0;
                         ReleaseNpcScriptFile0055A0A0(target->script_file);
                         target->script_file = 0;
-                        if (target->record->unknown_054 != 0) {
+                        if (target->record->monster_bound_054 != 0) {
                             target->binding_unavailable = 1;
                         }
                     }
@@ -2690,7 +2690,7 @@ void ReleaseNpcMonsterBinding0050C440(W8NpcState* npc, char level)
                 target->has_monster = 0;
                 ReleaseNpcScriptFile0055A0A0(target->script_file);
                 target->script_file = 0;
-                if (target->record->unknown_054 != 0) {
+                if (target->record->monster_bound_054 != 0) {
                     target->binding_unavailable = 1;
                 }
             }
@@ -2733,7 +2733,7 @@ void ReleaseNpcMonsterByKind(int kind)
             target->has_monster = 0;
             ReleaseNpcScriptFile0055A0A0(target->script_file);
             target->script_file = 0;
-            if (target->record->unknown_054 != 0) {
+            if (target->record->monster_bound_054 != 0) {
                 target->binding_unavailable = 1;
             }
         }
@@ -2902,13 +2902,13 @@ void HandleMarkedNpcEvent0050CF70(W8NpcState* npc, char mode)
                 target->has_monster = 0;
                 ReleaseNpcScriptFile0055A0A0(target->script_file);
                 target->script_file = 0;
-                if (target->record->unknown_054 != 0) {
+                if (target->record->monster_bound_054 != 0) {
                     target->binding_unavailable = 1;
                 }
             }
         }
     } else {
-        npc->flag_ea = 1;
+        npc->restored_ea = 1;
         g_status_685170.flag_2430 = 1;
     }
     if (npc->marked_114 == 0) {
@@ -3001,7 +3001,7 @@ void ReleaseMarkedNpcBindings0050DA00(void)
                             target->has_monster = 0;
                             ReleaseNpcScriptFile0055A0A0(target->script_file);
                             target->script_file = 0;
-                            if (target->record->unknown_054 != 0) {
+                            if (target->record->monster_bound_054 != 0) {
                                 target->binding_unavailable = 1;
                             }
                         }
@@ -3053,12 +3053,12 @@ void RebindNpcLevelTriggers0050AC60(void)
             }
             W8NpcState* npc = *slot;
 
-            if (npc->has_monster && (npc->record->unknown_056 != 0 ||
-                                     (npc->record->flag_2ea != 0 && !npc->is_present))) {
+            if (npc->has_monster && (npc->record->merchant_056 != 0 ||
+                                     (npc->record->voice_script_2ea != 0 && !npc->is_present))) {
                 npc->has_monster = 0;
                 ReleaseNpcScriptFile0055A0A0(npc->script_file);
                 npc->script_file = 0;
-                if (npc->record->unknown_054 != 0) {
+                if (npc->record->monster_bound_054 != 0) {
                     npc->binding_unavailable = 1;
                 }
             }
@@ -3079,7 +3079,7 @@ void RebindNpcLevelTriggers0050AC60(void)
             }
             W8NpcState* npc = *slot;
 
-            if (npc->record->unknown_056 != 0 || npc->record->flag_2ea != 0) {
+            if (npc->record->merchant_056 != 0 || npc->record->voice_script_2ea != 0) {
                 sprintf(trigger_name, "_%S", npc->record->source_name_004);
                 Trigger* trigger = FindTriggerByName(trigger_name);
 

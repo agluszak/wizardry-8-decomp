@@ -961,7 +961,7 @@ unsigned char W8MissileRep::ReadCycleData004A3300(W8ReadLevelInfo* info, W8Missi
     active = 1;
     frame_direction_06e = 1;
     timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-    animation_behaviour_070 = animation->unknown_03;
+    animation_behaviour_070 = animation->behaviour_03;
     frame_method_06f = animation->frame_method_02;
     animation_playing_06d = animation->animation_playing_01;
     emitters[emitter] = animation;
@@ -1466,7 +1466,7 @@ bool W8Missile::OnCollision(W8Navigator* other)
             goto miss;
         }
         W8Monster* monster = static_cast<W8Monster*>(other);
-        int location_id = monster->propagated_value_1e4;
+        int location_id = monster->location_id_1e4;
         unsigned int monster_list_index =
             MonsterGetIndexByLocationID(0x636, MISSILE_CPP, location_id, 1);
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);

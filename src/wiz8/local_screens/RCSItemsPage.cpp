@@ -607,7 +607,7 @@ void UpdateItemCursorForState005BAD20(int flag, W8ItemInstance* item, int slot)
             }
             if (gXStatus.fCombatMode != 0) {
                 if (IsEquippableItemClass005A6310(item) == 0) {
-                    if (g_combat_state->flag_a50 == 0) {
+                    if (g_combat_state->equip_phase_a50 == 0) {
                         return;
                     }
                     if (g_status_685170.buffers.XChar[giReviewCharSlot].pending_action != 9) {
@@ -686,7 +686,7 @@ void UnequipBothHands005BB010(void)
     W8Character* character;
 
     if (gXStatus.fCombatMode != 0 && g_combat_state->round_active_001 == 0 &&
-        gXStatus.fPartyMovementMode == 0 && g_combat_state->flag_a50 == 0) {
+        gXStatus.fPartyMovementMode == 0 && g_combat_state->equip_phase_a50 == 0) {
         ShowCampNoticeLine(gppStringList[0x240c / 4], 0, 1, 0);
         return;
     }
@@ -711,12 +711,12 @@ void UnequipBothHands005BB010(void)
 void TogglePartyRowFlag005BB140(void)
 {
     if ((g_camp_action_buttons_0069c468[1]->m_stateFlags & g_W8TextControlMask005ED570) != 0) {
-        g_status_685170.buffers.XChar[giReviewCharSlot].flag_0f5 = 1;
+        g_status_685170.buffers.XChar[giReviewCharSlot].item_action_pending_0f5 = 1;
         g_camp_action_buttons_0069c468[0]->SetEnabled(0);
         g_camp_action_buttons_0069c468[0]->Invalidate(0);
         return;
     }
-    g_status_685170.buffers.XChar[giReviewCharSlot].flag_0f5 = 0;
+    g_status_685170.buffers.XChar[giReviewCharSlot].item_action_pending_0f5 = 0;
     g_camp_action_buttons_0069c468[0]->SetEnabled(1);
     g_camp_action_buttons_0069c468[0]->Invalidate(0);
 }

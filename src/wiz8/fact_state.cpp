@@ -293,7 +293,7 @@ unsigned char EvaluateFact(int fact_id)
             if (npc == 0) {
                 return 0;
             }
-            return (unsigned char)npc->unknown_04;
+            return static_cast<unsigned char>(npc->spawned_04);
         }
         case 0x81:
             value = EvaluateFact(0x86);

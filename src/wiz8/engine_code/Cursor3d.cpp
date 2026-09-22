@@ -130,7 +130,7 @@ void InitializeWorldCursor00490210(void)
             gp3DCursor->last_published_34.Set(-100000000.0f, -100000000.0f, -100000000.0f);
             gp3DCursor->position_28.Set(0.0f, 0.0f, 0.0f);
             gp3DCursor->offset_18.Set(0.0f, 0.0f, 0.0f);
-            gp3DCursor->monster_00->flag_215 = 1;
+            gp3DCursor->monster_00->inactive_215 = 1;
             WarpSystemCursor(0x140, 0xf0);
             gp3DCursor->input_delta_0c.x = 0;
             gp3DCursor->input_delta_0c.y = 0;
@@ -158,7 +158,7 @@ void InitializeWorldCursor00490210(void)
                 shader.value = 0x100c433;
                 gp3DCursor->particle_04->SetRenderFlags004925A0(shader);
                 gp3DCursor->particle_04->rotateX(-1.5707963);
-                gp3DCursor->particle_04->particle_value_140 = 100.0;
+                gp3DCursor->particle_04->particle_size_140 = 100.0;
                 gp3DCursor->particle_04->emission_interval_1c8 = 300;
                 gp3DCursor->particle_04->acceleration_1f4.Set(0.0f, -1000.0f, 0.0f);
                 gp3DCursor->particle_04->has_acceleration_1a8 = 1;

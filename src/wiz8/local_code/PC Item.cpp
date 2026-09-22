@@ -2649,7 +2649,7 @@ void BindEveryPartyItem(void)
         return;
     }
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status_685170.buffers.XChar[party_slot].flag_0f5 == 0) {
+        if (g_status_685170.buffers.XChar[party_slot].item_action_pending_0f5 == 0) {
             BindCharacterItems(party_slot, 0);
         }
     }
@@ -4472,7 +4472,7 @@ void BindCharacterItems(int party_slot, int arg_2)
 
     if (IsPartySlotEligible00524A10(party_slot) != 0) {
         if (SwapWeaponSetSlots0051D3B0(party_slot, static_cast<char>(arg_2), 1) != 0) {
-            g_status_685170.buffers.XChar[party_slot].flag_105 = 0;
+            g_status_685170.buffers.XChar[party_slot].weapon_swap_pending_105 = 0;
         }
     }
     RequestRedraw(0x200000);

@@ -42,7 +42,9 @@ struct W8FactionRuntimeRecord {
     unsigned char unknown_05;
     /* 0x06: g_status_685170.world_clock at the last band change. */
     int band_changed_clock_06;
-    unsigned char flag_0a;
+    /* 0x0a: raised by the sight pass the first time the party sees one of
+       this faction's monsters; the journal lists encountered factions. */
+    unsigned char encountered_0a;
     unsigned char unknown_0b[3];
 };
 

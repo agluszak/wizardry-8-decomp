@@ -140,7 +140,7 @@ enum {
 // GLOBAL: WIZ8 0x00652dba
 unsigned char g_level_override_00652dba;
 // GLOBAL: WIZ8 0x00652dce
-unsigned char g_flag_00652dce;
+unsigned char g_shared_timers_paused_00652dce;
 
 /* Resolve one surface's three vertex indices through the active processed
    GameData vertex table.  The retail comparison is signed and accepts an index
@@ -189,9 +189,9 @@ void UpdateGameDataRuntime0041F260()
             return;
         }
     }
-    if (g_flag_00652dce != 0) {
+    if (g_shared_timers_paused_00652dce != 0) {
         ResumeSharedGameTimers00439CA0();
-        g_flag_00652dce = 0;
+        g_shared_timers_paused_00652dce = 0;
     }
     g_game_time_accumulator_6598bc->Update();
 }
@@ -252,8 +252,8 @@ void W8GameData::ApplyCameraMotionFlags0041F330(unsigned int flags, srMatrix3T<f
         return;
     }
 
-    if ((g_gd_camera_65a0f8->m_positional_000 & 0x80) != 0) {
-        g_gd_camera_65a0f8->m_positional_000 &= ~0x80u;
+    if ((g_gd_camera_65a0f8->m_state_000 & 0x80) != 0) {
+        g_gd_camera_65a0f8->m_state_000 &= ~0x80u;
         MarkRendererReady();
     }
 
@@ -307,7 +307,7 @@ void W8GameData::ApplyCameraMotionFlags0041F330(unsigned int flags, srMatrix3T<f
     }
     g_gd_camera_65a0f8->ApplyPitchInput(pitch_input);
     g_gd_camera_65a0f8->ApplyYawInput(yaw_input);
-    g_gd_camera_65a0f8->Update(g_game_time_accumulator_6598bc->GetValue28());
+    g_gd_camera_65a0f8->Update(g_game_time_accumulator_6598bc->GetFrameDelta());
     if ((flags & 0x1000) == 0) {
         g_gd_camera_65a0f8->GetRotationMatrix(rotation);
     }
@@ -408,7 +408,7 @@ unsigned char W8GameData::ApplyCameraMotion0041F5F0(unsigned int flags, srVector
     level = g_level_data_00652dac;
     forward_scale = g_camera_level_forward_scale_603aac;
     level->flags &= 0xffffffec;
-    level->camera_scale_14 = g_game_time_accumulator_6598bc->GetValue28();
+    level->camera_scale_14 = g_game_time_accumulator_6598bc->GetFrameDelta();
     level->camera_position_34 = *position;
     level->vector_64.SetZero();
     level->vector_a0.SetZero();
@@ -819,7 +819,7 @@ unsigned char W8GameData::ProbeMonstersAlongMotion0041BD60(srVector3T<float>* di
         if (monster_info != 0 && monster_info->monster != 0 &&
             monster_info->monster->active_088 != 0) {
             monster = monster_info->monster;
-            time_scale = g_rate_006068EC * g_game_time_accumulator_6598bc->GetValue28();
+            time_scale = g_rate_006068EC * g_game_time_accumulator_6598bc->GetFrameDelta();
             monster->GetVelocity(&velocity);
             adjusted_x = direction->x - velocity.x * static_cast<float>(time_scale);
             adjusted_z = direction->z - velocity.z * static_cast<float>(time_scale);
@@ -2587,19 +2587,19 @@ float MoveTimer(int value)
             return g_float_005ebb34;
         }
     }
-    if (g_flag_00652dce != 0) {
+    if (g_shared_timers_paused_00652dce != 0) {
         if ((value == 8 && g_current_screen_state.id == 7) || value == 4) {
             ResumeSharedGameTimers00439CA0();
-            g_flag_00652dce = 0;
+            g_shared_timers_paused_00652dce = 0;
         } else {
             return g_float_005ebb34;
         }
     }
     if (value == 1) {
         PauseSharedGameTimers00439BC0();
-        g_flag_00652dce = 1;
+        g_shared_timers_paused_00652dce = 1;
     }
-    return g_game_time_accumulator_6598bc->GetValue28();
+    return g_game_time_accumulator_6598bc->GetFrameDelta();
 }
 
 // FUNCTION: WIZ8 0x00420D40
@@ -3147,7 +3147,7 @@ void UpdateLevelMovementAudio00420E20(void)
     if (g_level_data_00652dac == 0) {
         return;
     }
-    if (((g_gd_camera_65a0f8->m_positional_000 >> 6) & 1) == 0 ||
+    if (((g_gd_camera_65a0f8->m_state_000 >> 6) & 1) == 0 ||
         (g_level_data_00652dac->flags & W8_LEVEL_FLAG_4) == 0 ||
         g_level_data_00652dac->vector_64.x != g_float_005ebb34 ||
         g_level_data_00652dac->vector_64.y != g_float_005ebb34 ||
@@ -3158,7 +3158,7 @@ void UpdateLevelMovementAudio00420E20(void)
         }
         return;
     }
-    now = g_game_time_accumulator_6598bc->GetValue30();
+    now = g_game_time_accumulator_6598bc->GetElapsed();
     if (g_facing_tolerance_005ebcf4 < now - g_level_footstep_time_00652dd0 &&
         (g_level_footstep_time_00652dd0 = now,
          g_level_footstep_sound_00603ad4 == -1 ||

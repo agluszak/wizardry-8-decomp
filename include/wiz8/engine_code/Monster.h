@@ -82,24 +82,37 @@ struct W8MonsterRep : public W8EmitterHost {
     W8GrowableVector<W8AnimObj*> animations[W8_MONSTER_CYCLE_COUNT];                   /* 0x0ac */
     W8GrowableVector<float> animation_scales[W8_MONSTER_CYCLE_COUNT];                  /* 0x25c */
     W8GrowableVector<W8GrowableVector<stLight*>*> light_lists[W8_MONSTER_CYCLE_COUNT]; /* 0x40c */
-    unsigned char flag_5bc;                                                            /* 0x5bc */
+    /* 0x5bc: per-party-member highlight bitmask - bit N set while party
+       member N has the monster highlighted/targeted. */
+    unsigned char highlight_mask_5bc;
     unsigned char unknown_5bd[3];
     char* name_5c0; /* 0x5c0: owned copy */
-    int value_5c4;
+    /* 0x5c4: number of populated party-icon entries in objects_5c8; the
+       attachment layout read by UpdateAttachedObjects. */
+    int icon_count_5c4;
     W8Item* objects_5c8[8];   /* 0x5c8 */
     W8PList* spell_icons_5e8; /* 0x5e8: W8MonsterSpellIcon records */
     float standing_height_5ec;
     float scale_5f0;
     float minimum_scale_5f4;
     float maximum_scale_5f8;
-    float value_5fc;
-    unsigned char flag_600;
-    unsigned char flag_601;
+    /* 0x5fc: death shrink factor multiplying scale_5f0 on the death path. */
+    float death_scale_5fc;
+    /* 0x600: the rep carries a random idle cycle - animations[1] gets a
+       per-update random playback scale. */
+    unsigned char random_idle_600;
+    /* 0x601: flies, swims or full-transitions - suppresses the grounded
+       transition check at 0x004C0000. */
+    unsigned char special_movement_601;
     unsigned char unknown_602[2];
-    float value_604;
+    /* 0x604: the idle cycle's own playback scale, added to the per-update
+       random roll. */
+    float idle_playback_scale_604;
     float random_idle_fps_min;
     float random_idle_fps_max;
-    int value_610;
+    /* 0x610: left-handed strike chance percent; Random(100) is rolled
+       against it for the mirrored attack anim. */
+    int left_handed_610;
     W8GrowableVector<stModelInstance*> linked_runtime_objects_614;
     class MonsterLight* monster_light_624;
 
@@ -155,7 +168,7 @@ public:
     virtual void SetPosition(const srVector3T<float>* position) override;
 
     int Query(int query);                        /* 0x004C4660 */
-    void SetRuntimeValueA6(signed char value);   /* 0x004C6C00 */
+    void SetForcedSubcycleA6(signed char value); /* 0x004C6C00 */
     void SpawnDamageNumber(unsigned int amount); /* 0x004C6C30 */
     bool IsDying();                              /* 0x004CA4C0 */
     unsigned char IsCycleInterruptable(signed char cycle);
@@ -196,7 +209,7 @@ public:
     unsigned char EvaluateScriptCondition004C9DC0(const char* expression);
     bool CanContinueScript004CA0F0();
     unsigned char SetScriptLabel004CA260(const char* label);
-    unsigned char GetFlag216004CA290() const;
+    bool IsPendingFinalize004CA290() const;
     bool IsWithinWorldRange004CA2A0();
     unsigned char CheckLineOfSightToPlayer004C4810();
     void GetPlayerSightFlags004C4870(unsigned char* primary, unsigned char* secondary);
@@ -225,7 +238,9 @@ public:
 #endif
     unsigned int flags_1dc;
     int value_1e0;
-    int propagated_value_1e4;
+    /* 0x1e4: the monster's location id, stored by MonsterSetLocationId and
+       used throughout for MonsterInfo lookups. */
+    int location_id_1e4;
     float value_1e8;
     /* Y-axis squash scale applied while flags_1dc bit 8 is set (decayed per
        frame by g_float_005ebc3c). */
@@ -251,17 +266,27 @@ public:
     /* 0x214: the current mouth state the dialogue update copies out of the
        active W8MouthGapTrack; forces mouth frame 0 while open. */
     unsigned char mouth_open;
-    unsigned char flag_215;
-    unsigned char flag_216;
-    unsigned char flag_217;
+    /* 0x215: set while the monster is deactivated (active_088 cleared). */
+    unsigned char inactive_215;
+    /* 0x216: raised at construction; cleared once AddMonsterToWorld and the
+       spawn bookkeeping finish - iteration skips monsters still pending. */
+    bool pending_finalize_216;
+    /* 0x217: suppresses rendering and radar/automap display. */
+    bool disabled_217;
     unsigned char flag_218;
     unsigned char unknown_219[3];
-    int value_21c;
-    int value_220;
-    int value_224;
-    int value_228;
-    unsigned char flag_22c;
-    unsigned char flag_22d;
+    /* 0x21c/0x220: hover base-height random range (scaled by
+       g_world_scale_005ebc40 into movement_0c0.vertical_base_07c). */
+    int hover_base_min_21c;
+    int hover_base_max_220;
+    /* 0x224/0x228: bob-amplitude random range (scaled into
+       movement_0c0.vertical_amplitude_080). */
+    int bob_amplitude_min_224;
+    int bob_amplitude_max_228;
+    /* 0x22c: the missing spell-launch-vertex warning already fired once. */
+    unsigned char spell_vertex_warned_22c;
+    /* 0x22d: the missing missile-start-point warning already fired once. */
+    unsigned char missile_point_warned_22d;
     signed char state_22e;
     unsigned char unknown_22f;
     CycleCallback cycle_callback_230;
@@ -294,19 +319,27 @@ public:
     srVector3T<float> move_direction_2bc;
     float look_frequency_2c8;
     float look_duration_2cc;
-    int value_2d0;
+    /* 0x2d0: sun-visibility state for the model light-scale lerp: -1
+       uninitialized, 1 lit (scale toward 0.75), 0 shadowed (toward 0). */
+    int sunlit_state_2d0;
     unsigned char position_dirty_2d4;
     unsigned char unknown_2d5[3];
     W8GameTimer timer_2d8;
     float target_scale_2fc;
     float current_scale_300;
-    unsigned char unknown_304;
+    /* 0x304: one-shot latch; the cycle-25 spell frame fires
+       CreateAttachedSpellEffect once then clears it. */
+    unsigned char spell_effect_armed_304;
     unsigned char unknown_305[3];
     srNode* node_308;
     W8GameTimer timer_30c;
     signed char fade_state_330;
-    unsigned char flag_331;
-    unsigned char copied_flag_332;
+    /* 0x331: this monster is the highlighted target; exempt from the
+       attachment distance-scale clamp. */
+    unsigned char target_highlighted_331;
+    /* 0x332: copied from the source monster; blocks hostility recompute in
+       Targeting and Combat Hostility. */
+    unsigned char hostility_preserved_332;
     unsigned char unknown_333;
     stSound3D* sound_334;
     W8GrowableVector<int> values_338;
@@ -336,8 +369,8 @@ bool MonsterIsCycleSupported(W8Monster* monster, signed char cycle);
 unsigned char MonsterReplacePath(W8Monster* monster, W8PathAI* path);
 unsigned char MonsterGetAnimationRadius(W8Monster* monster, float* radius);
 void MonsterSetFacing004C5B60(W8Monster* monster, float angle);
-unsigned char MonsterGetCycle17State(W8Monster* monster);
-void MonsterSetCycle17State(W8Monster* monster, unsigned char state);
+unsigned char MonsterGetMirrorX(W8Monster* monster);
+void MonsterSetMirrorX(W8Monster* monster, unsigned char state);
 float MonsterGetScale(W8Monster* monster);
 void MonsterSetScale(W8Monster* monster, float scale);
 void MonsterGetScaleRange(W8Monster* monster, float* minimum, float* maximum);
@@ -394,8 +427,8 @@ public:
 static_assert(sizeof(W8MonsterShakeCallback) == 0x10, "W8MonsterShakeCallback_size_must_be_0x10");
 
 void MonsterForward453160(void);
-unsigned char MonsterGetRuntimeFlag5BC(W8Monster* monster);
-void MonsterSetRuntimeFlag5BC(W8Monster* monster, unsigned char flag);
+unsigned char MonsterGetHighlightMask(W8Monster* monster);
+void MonsterSetHighlightMask(W8Monster* monster, unsigned char flag);
 void MonsterSetRuntimeBlock4C(W8Monster* monster, W8MonsterRuntimeBlock4C block);
 unsigned char MonsterSetAnimating(W8Monster* monster, unsigned char animating);
 unsigned char MonsterIsAnimating(W8Monster* monster);
@@ -409,7 +442,7 @@ void MonsterForward4A84A0(W8Monster* monster);
 void DetachMonsterRepresentation(W8Monster* monster, W8World* world);
 void DeleteMonster004C5860(W8Monster* monster);
 void RefreshMonsterStandingHeight(W8Monster* monster);
-void MonsterPropagateValue004C5870(W8Monster* monster, int value);
+void MonsterSetLocationId004C5870(W8Monster* monster, int value);
 void MonsterForward4A7BE0(W8Monster* monster, const srVector3T<float>* position);
 /* The shared forwarder four call sites use to advance a cycle's
    representation; it stays free because its callers pass the object on the

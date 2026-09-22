@@ -103,9 +103,9 @@ static_assert(offsetof(stLightDefinition005ECDBC, rate_34) == 0x34,
 static_assert(offsetof(stLightDefinition005ECDBC, path_speed_38) == 0x38,
               "stLightDefinition005ECDBC_path_speed_38");
 static_assert(offsetof(stLightDefinition005ECDBC, subcycle_min_3c) == 0x3c,
-              "stLightDefinition005ECDBC_value_3c");
+              "stLightDefinition005ECDBC_subcycle_min_3c");
 static_assert(offsetof(stLightDefinition005ECDBC, subcycle_max_40) == 0x40,
-              "stLightDefinition005ECDBC_value_40");
+              "stLightDefinition005ECDBC_subcycle_max_40");
 
 // VTABLE: WIZ8 0x005ecda0
 class stLightDefinition005ECDA0 : public stLightDefinition {
@@ -141,13 +141,13 @@ static_assert(offsetof(stLightDefinition005ECDA0, values_28) == 0x28,
 static_assert(offsetof(stLightDefinition005ECDA0, values_38) == 0x38,
               "stLightDefinition005ECDA0_values_38");
 static_assert(offsetof(stLightDefinition005ECDA0, keyframe_index_48) == 0x48,
-              "stLightDefinition005ECDA0_value_48");
+              "stLightDefinition005ECDA0_keyframe_index_48");
 static_assert(offsetof(stLightDefinition005ECDA0, time_4c) == 0x4c,
               "stLightDefinition005ECDA0_time_4c");
 static_assert(offsetof(stLightDefinition005ECDA0, start_frame_50) == 0x50,
-              "stLightDefinition005ECDA0_value_50");
+              "stLightDefinition005ECDA0_start_frame_50");
 static_assert(offsetof(stLightDefinition005ECDA0, end_frame_54) == 0x54,
-              "stLightDefinition005ECDA0_value_54");
+              "stLightDefinition005ECDA0_end_frame_54");
 
 /*
  * stLight owns the 0x10006 registry identity, so the class that supplies it -

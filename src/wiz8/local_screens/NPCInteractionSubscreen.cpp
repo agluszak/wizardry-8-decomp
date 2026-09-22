@@ -523,7 +523,7 @@ void QueueNpcScriptNotice(W8NpcState* npc, W8ItemInstance* item, int line, int s
     W8MonsterInfo* info;
     unsigned char flag;
 
-    if (FindNpcOfKind(npc->name_style) != 0 && npc->record->unknown_054 == 0) {
+    if (FindNpcOfKind(npc->name_style) != 0 && npc->record->monster_bound_054 == 0) {
         return;
     }
     info = GetNpcMonsterInfo(npc);
@@ -605,8 +605,8 @@ void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, 
         OpenNpcDialoguePanel(npc, item, 1);
         return;
     }
-    if (npc->record->unknown_054 == 0 && npc->record->flag_2ea == 0) {
-        if (GetNpcDispositionBand(npc) == 2 && npc->record->unknown_056 == 0) {
+    if (npc->record->monster_bound_054 == 0 && npc->record->voice_script_2ea == 0) {
+        if (GetNpcDispositionBand(npc) == 2 && npc->record->merchant_056 == 0) {
             QueueNpcScriptLine(0x18, 0, 0, 0);
             return;
         }
@@ -615,7 +615,7 @@ void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, 
             return;
         }
     }
-    if (npc->record->flag_2ea != 0) {
+    if (npc->record->voice_script_2ea != 0) {
         if (item != 0) {
             state = g_screen_state_00649f1c;
             state->pending_item_1ed = *item;
@@ -739,7 +739,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, unsign
     }
     CreateNpcDialogueControls();
     SetRegionBounds(0x8a, 0x17, 0x166, 0x269, 0x1c2);
-    g_level_block->flag_271 = 0;
+    g_level_block->text_box_visible_271 = 0;
     RegionSetEnable(0x15);
     EnableRegionInput(0x52);
     EnableRegionInput(0x53);
@@ -754,7 +754,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, unsign
             state->held_item_pending = 1;
             ClearHeldItemDisplay();
         }
-        if (npc->record->unknown_056 != 0) {
+        if (npc->record->merchant_056 != 0) {
             if (HandleNpcDialogueItem(&state->pending_item_1ed) == 0) {
                 OpenNpcDialogueTranscriptLayout();
                 goto dispatch;
@@ -798,7 +798,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, unsign
         goto tail;
     }
 dispatch:
-    if (g_screen_state_00649f1c->dialogue_npc->record->unknown_056 != 0) {
+    if (g_screen_state_00649f1c->dialogue_npc->record->merchant_056 != 0) {
         QueueNpcScriptLine(0, 0, 0, 0);
         OpenNpcDialogueTranscriptLayout();
     } else {
@@ -873,7 +873,7 @@ void SelectNpcDialogueSpeaker(W8NpcState* npc, int flags)
     state->dialogue_npc->flag_22 = 0;
     state->dialogue_npc->flag_23 = 0;
     if (state->dialogue_npc->greeting_pending != 0) {
-        state->dialogue_npc->flag_84 = 0;
+        state->dialogue_npc->suspicion_84 = 0;
     }
     BeginNpcScriptDialogue(state->dialogue_npc, 0);
     if ((state->dialogue_layout == W8_DIALOGUE_LAYOUT_TRANSCRIPT ||
@@ -1099,7 +1099,7 @@ void ServiceNpcDialogue0056E510(void)
     }
     Get16BitStringFromField(0, field_text);
     if (g_screen_state_00649f1c->pending_layout != 0) {
-        g_level_block->flag_271 = 0;
+        g_level_block->text_box_visible_271 = 0;
         RegionSetEnable(0x15);
         EnableRegionInput(0x52);
         EnableRegionInput(0x53);
@@ -1204,7 +1204,7 @@ void EndNpcDialogueSession0056E800(int param_1)
     if (g_screen_state_00649f1c->dialogue_hidden != 0) {
         SetNpcDialogueHidden(0);
     }
-    if (g_screen_state_00649f1c->dialogue_npc->record->unknown_054 == 0) {
+    if (g_screen_state_00649f1c->dialogue_npc->record->monster_bound_054 == 0) {
         g_screen_state_00649f1c->dialogue_npc->dismissed_flag = 1;
         g_screen_state_00649f1c->dialogue_npc->unknown_ef[0] =
             GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc);
@@ -1258,7 +1258,7 @@ void EndNpcDialogueSession0056E800(int param_1)
     }
     RegionSetDisable(0x18);
     SelectTextBox(0);
-    g_level_block->flag_271 = 1;
+    g_level_block->text_box_visible_271 = 1;
     ApplyMainGameModeFlag(gXStatus.fCampMode != 0 ? g_settings_6850c8.main_ui_mode
                                                   : g_screen_state_00649f1c->saved_main_ui_mode,
                           1);
@@ -1297,7 +1297,7 @@ void EndNpcDialogueSession0056E800(int param_1)
         }
         W8NpcState* npc = g_screen_state_00649f1c->dialogue_npc;
         if (g_screen_state_00649f1c->suppress_parting_reaction == 0 &&
-            npc->record->unknown_056 == 0 && npc->is_grouped == 0 && GetNpcMonsterInfo(npc) != 0) {
+            npc->record->merchant_056 == 0 && npc->is_grouped == 0 && GetNpcMonsterInfo(npc) != 0) {
             int slot = GetRandomCharacter(1, 1, -1, -1);
             if (slot != -1) {
                 W8CharacterEvent* event = QueueCharacterEvent(
@@ -2497,7 +2497,7 @@ void OpenNpcDialogueTranscriptLayout(void)
             DisableRegionInput(0x5a + index);
         }
     }
-    if (g_screen_state_00649f1c->dialogue_npc->record->unknown_056 != 0) {
+    if (g_screen_state_00649f1c->dialogue_npc->record->merchant_056 != 0) {
         g_screen_state_00649f1c->dialogue_text_114->SetEnabled(0);
         g_screen_state_00649f1c->dialogue_text_118->SetEnabled(0);
         g_screen_state_00649f1c->dialogue_text_11c->SetEnabled(0);
@@ -4623,11 +4623,11 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
         return 1;
     }
     if (GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc) == 0 ||
-        g_screen_state_00649f1c->dialogue_npc->record->flag_2ea != 0) {
+        g_screen_state_00649f1c->dialogue_npc->record->voice_script_2ea != 0) {
         if (item != 0) {
             fact_result = FindNpcScriptItemQuote(item->iItemNo, 0, &flag);
             if (fact_result == -1) {
-                if (g_screen_state_00649f1c->dialogue_npc->record->flag_2ea != 0) {
+                if (g_screen_state_00649f1c->dialogue_npc->record->voice_script_2ea != 0) {
                     return 1;
                 }
                 if ((g_item_records[item->iItemNo].flags_041 & 2) != 0) {
@@ -5389,9 +5389,9 @@ void HandleNpcDialogueDeparture(int value)
         } else {
             QueueNpcScriptLine(0, 0, 0, 0);
             g_screen_state_00649f1c->dialogue_npc->greeting_pending = 0;
-            if (g_screen_state_00649f1c->dialogue_npc->record->unknown_054 == 0 &&
-                g_screen_state_00649f1c->dialogue_npc->record->flag_2ea == 0 &&
-                g_screen_state_00649f1c->dialogue_npc->record->unknown_056 == 0) {
+            if (g_screen_state_00649f1c->dialogue_npc->record->monster_bound_054 == 0 &&
+                g_screen_state_00649f1c->dialogue_npc->record->voice_script_2ea == 0 &&
+                g_screen_state_00649f1c->dialogue_npc->record->merchant_056 == 0) {
                 for (index = 0; index < 8; ++index) {
                     character = &g_status_685170.buffers.Char[index];
                     if (g_status_685170.buffers.XChar[index].fOccupied != 0 &&
@@ -5405,8 +5405,8 @@ void HandleNpcDialogueDeparture(int value)
                     g_screen_state_00649f1c->dialogue_npc->record->source_name_004, -1, 1);
                 return;
             }
-            if (g_screen_state_00649f1c->dialogue_npc->record->unknown_054 == 0 &&
-                (g_screen_state_00649f1c->dialogue_npc->record->flag_2ea == 0 ||
+            if (g_screen_state_00649f1c->dialogue_npc->record->monster_bound_054 == 0 &&
+                (g_screen_state_00649f1c->dialogue_npc->record->voice_script_2ea == 0 ||
                  g_screen_state_00649f1c->dialogue_npc->is_present != 0)) {
                 AddDialogueTranscriptKeyword(
                     g_screen_state_00649f1c->dialogue_npc->record->source_name_004, -1);

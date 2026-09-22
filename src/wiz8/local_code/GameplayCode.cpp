@@ -264,7 +264,7 @@ void RefreshLevelUpReadyNotices(void)
                     RequestPartySlotRedraw(party_slot);
                 }
                 *ready_flag = 0;
-                row->flag_103 = 0;
+                row->portrait_advance_103 = 0;
             }
         } else if (character->hp_current != 0) {
             if (character->highest_condition > 0x11 ||
@@ -274,12 +274,12 @@ void RefreshLevelUpReadyNotices(void)
                         RequestPartySlotRedraw(party_slot);
                     }
                     *ready_flag = 0;
-                    row->flag_103 = 0;
+                    row->portrait_advance_103 = 0;
                 }
             } else {
                 gXStatus.unknown_026[1] = 1;
                 if (*ready_flag == 0) {
-                    if (row->flag_103 == 0) {
+                    if (row->portrait_advance_103 == 0) {
                         wchar_t* text;
                         int* extra;
                         size_t length;
@@ -303,7 +303,7 @@ void RefreshLevelUpReadyNotices(void)
                     } else {
                         *ready_flag = 1;
                     }
-                } else if (row->flag_103 != 0) {
+                } else if (row->portrait_advance_103 != 0) {
                     *ready_flag = 1;
                 }
             }

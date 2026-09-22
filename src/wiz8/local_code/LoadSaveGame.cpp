@@ -337,7 +337,7 @@ unsigned char EnumerateSaveSlots(W8GrowableVector<W8SaveSlot*>* slots)
                     chunks.ReleaseCurrentChunk();
                 }
                 chunks.Close();
-                if (status.flag_49bd == 0 && status.flag_49c0 == 0) {
+                if (status.flag_49bd == 0 && status.endgame_started_49c0 == 0) {
                     char* extension = strrchr(find_data.cFileName, '.');
                     if (extension != 0) {
                         *extension = 0;
@@ -691,7 +691,7 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
     }
     chunks->ReleaseCurrentChunk();
 
-    if (g_flag_00659756) {
+    if (g_level_status_loading_00659756) {
         chunks->OpenChunk(0x45425543, 0); /* CUBE */
         SaveWorldCursorNodes0048EAD0(chunks->m_hFile);
         SaveWorldCursorNodeStates0048E6D0(chunks->m_hFile);
@@ -702,13 +702,13 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
         chunks->ReleaseCurrentChunk();
 
         chunks->OpenChunk(0x4b434f4c, 0); /* LOCK */
-        SaveTriggerRuntimeStates0043CB30(g_world, chunks->m_hFile, g_flag_00659756);
+        SaveTriggerRuntimeStates0043CB30(g_world, chunks->m_hFile, g_level_status_loading_00659756);
         chunks->ReleaseCurrentChunk();
 
         chunks->OpenChunk(0x53455254, 0); /* TRES */
         SaveTriggerActionData0043D120(g_world, chunks->m_hFile);
         chunks->ReleaseCurrentChunk();
-        if (g_flag_00659756) {
+        if (g_level_status_loading_00659756) {
             chunks->ReleaseGroup();
             chunks->ReleaseCurrentChunk();
             return 1;
@@ -738,7 +738,7 @@ unsigned char SaveStatusHeader(W8Chunk* chunks)
     chunks->ReleaseCurrentChunk();
 
     chunks->OpenChunk(0x534b434c, 0); /* LCKS */
-    SaveTriggerRuntimeStates0043CB30(g_world, chunks->m_hFile, g_flag_00659756);
+    SaveTriggerRuntimeStates0043CB30(g_world, chunks->m_hFile, g_level_status_loading_00659756);
     chunks->ReleaseCurrentChunk();
 
     chunks->OpenChunk(0x53424d41, 0); /* AMBS */
@@ -968,7 +968,7 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level)
                 stream->OpenGroup();
                 stream->Read(&file_level, 4, 0);
                 if (level == static_cast<int>(file_level)) {
-                    if (g_flag_00659756 == 0) {
+                    if (g_level_status_loading_00659756 == 0) {
                         LoadDefaultLevelStatus(level);
                     }
                     result = 1;
@@ -1008,15 +1008,15 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level)
                                     }
                                 }
                             } else if (chunk_id == 0x45425543) { /* CUBE */
-                                if (g_flag_00659756 == 0) {
+                                if (g_level_status_loading_00659756 == 0) {
                                     ReleaseWorldCursorNodes0048DB30();
                                 }
                                 LoadWorldCursorNodes0048E7B0(stream->m_hFile);
-                                if (g_flag_00659756 != 0) {
+                                if (g_level_status_loading_00659756 != 0) {
                                     LoadWorldCursorNodeStates0048E470(stream->m_hFile);
                                 }
                             } else if (chunk_id == 0x474e4f4d) { /* MONG */
-                                if (g_flag_00659756 == 0) {
+                                if (g_level_status_loading_00659756 == 0) {
                                     DestroyMonsterGenerators();
                                 }
                                 MonGen::LoadAll(stream->m_hFile);
@@ -1292,7 +1292,7 @@ unsigned char LoadMonster(W8Chunk* chunk)
         }
     }
     for (index = 0; index < 8; ++index) {
-        if (monster_info->enchantments[index].value_08 != 0) {
+        if (monster_info->enchantments[index].turns_08 != 0) {
             SetMonsterSpellIcon(monster, index + 0x10, 1);
         }
     }
@@ -1486,7 +1486,7 @@ unsigned char SaveItemFile(int handle, W8WorldItem* item_info)
             item->position = position;
             item->entity_flags = static_cast<W8ItemRep*>(first->p3D->m_pRep)->flags;
         }
-        if (g_flag_00659756 != 0) {
+        if (g_level_status_loading_00659756 != 0) {
             first->entity_flags &= ~8;
         }
         if (!FileWrite(handle, item, sizeof(W8WorldItem), (unsigned int*)&item_info)) {
@@ -1528,7 +1528,7 @@ W8WorldItem* LoadItem(int handle, char add_to_list)
         } else if (add_to_list && PLAdoptAppend(gXStatus.plsItemList, item) == -1) {
             return 0;
         }
-        if (g_flag_00659756 != 0) {
+        if (g_level_status_loading_00659756 != 0) {
             item->entity_flags &= ~8;
         }
         previous = item;

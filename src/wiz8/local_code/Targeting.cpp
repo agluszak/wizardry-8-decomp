@@ -269,13 +269,13 @@ int GetFactionValue(char faction)
 // FUNCTION: WIZ8 0x00536110
 void SetFactionFlag(char faction, unsigned char flag)
 {
-    g_factions[faction].flag_0a = flag;
+    g_factions[faction].encountered_0a = flag;
 }
 
 // FUNCTION: WIZ8 0x00536130
 unsigned char GetFactionFlag(char faction)
 {
-    return g_factions[faction].flag_0a;
+    return g_factions[faction].encountered_0a;
 }
 #pragma clang diagnostic pop
 
@@ -536,7 +536,7 @@ void ApplyTarget(W8CombatSlot* target, W8TargetingContext context)
     if (target->iType == W8_TARGET_KIND_MONSTER) {
         monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0x638, TARGETING_CPP, target->iMonsterID, 1));
-        MonsterSetRuntimeFlag5BC(monster_info->monster, 0);
+        MonsterSetHighlightMask(monster_info->monster, 0);
     }
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
@@ -858,11 +858,11 @@ void SetMonsterHighlight(int party_slot, int location_id, char on)
 
     bit = (unsigned char)(1 << (party_slot & 0x1f));
     if (on) {
-        MonsterSetRuntimeFlag5BC(monster, MonsterGetRuntimeFlag5BC(monster) | bit);
+        MonsterSetHighlightMask(monster, MonsterGetHighlightMask(monster) | bit);
         NotifyMonsterHighlight(party_slot, location_id, 1);
         return;
     }
-    MonsterSetRuntimeFlag5BC(monster, MonsterGetRuntimeFlag5BC(monster) & ~bit);
+    MonsterSetHighlightMask(monster, MonsterGetHighlightMask(monster) & ~bit);
     NotifyMonsterHighlight(party_slot, location_id, 0);
 }
 
@@ -889,7 +889,7 @@ int PickNearestMonsterUnderCursor005396D0(int cursor_x, int cursor_y)
         if (monster_info->monster->IsDying() != 0) {
             continue;
         }
-        if (monster_info->monster->copied_flag_332 != 0) {
+        if (monster_info->monster->hostility_preserved_332 != 0) {
             continue;
         }
         if (!MonsterUsesCurrentModelInstance(monster_info->monster)) {
@@ -919,7 +919,7 @@ int PickNearestMonsterUnderCursor005396D0(int cursor_x, int cursor_y)
             if (monster_info->monster->IsDying() != 0) {
                 continue;
             }
-            if (monster_info->monster->copied_flag_332 != 0) {
+            if (monster_info->monster->hostility_preserved_332 != 0) {
                 continue;
             }
             if (!MonsterUsesCurrentModelInstance(monster_info->monster)) {
@@ -972,9 +972,9 @@ void SetGroupHighlight(int party_slot, int group_id, char on)
         }
         bit = (unsigned char)(1 << (party_slot & 0x1f));
         if (on == 0) {
-            MonsterSetRuntimeFlag5BC(monster, MonsterGetRuntimeFlag5BC(monster) & ~bit);
+            MonsterSetHighlightMask(monster, MonsterGetHighlightMask(monster) & ~bit);
         } else {
-            MonsterSetRuntimeFlag5BC(monster, MonsterGetRuntimeFlag5BC(monster) | bit);
+            MonsterSetHighlightMask(monster, MonsterGetHighlightMask(monster) | bit);
         }
         NotifyMonsterHighlight(party_slot, location_id, on != 0);
     }
@@ -1005,7 +1005,7 @@ void UpdateAllMonsterHighlights(int party_slot, int location_id)
         if (location_id == monster_info->location_id) {
             tint = 1;
         } else if (overridden &&
-                   ((1 << (owner & 0x1f)) & MonsterGetRuntimeFlag5BC(monster_info->monster)) != 0) {
+                   ((1 << (owner & 0x1f)) & MonsterGetHighlightMask(monster_info->monster)) != 0) {
             tint = 1;
         } else {
             tint = 0;
@@ -1396,7 +1396,7 @@ void ClearAllMonsterHighlights(void)
         if (monster_info->fActive == 0 || monster == 0) {
             continue;
         }
-        flags = MonsterGetRuntimeFlag5BC(monster);
+        flags = MonsterGetHighlightMask(monster);
         if (flags == 0) {
             continue;
         }
@@ -1405,7 +1405,7 @@ void ClearAllMonsterHighlights(void)
                 NotifyMonsterHighlight(party_slot, monster_info->location_id, 0);
             }
         }
-        MonsterSetRuntimeFlag5BC(monster, 0);
+        MonsterSetHighlightMask(monster, 0);
     }
 }
 
@@ -1832,11 +1832,11 @@ void ClearPartySlotMonsterHighlights(unsigned int party_slot)
         W8Monster* monster = monster_info->monster;
 
         if (monster_info->fActive != 0 && monster != 0) {
-            unsigned char flags = MonsterGetRuntimeFlag5BC(monster);
+            unsigned char flags = MonsterGetHighlightMask(monster);
             unsigned char bit = static_cast<unsigned char>(1 << (party_slot & 31));
 
             if ((flags & bit) != 0) {
-                MonsterSetRuntimeFlag5BC(monster, static_cast<unsigned char>(flags & ~bit));
+                MonsterSetHighlightMask(monster, static_cast<unsigned char>(flags & ~bit));
                 NotifyMonsterHighlight(party_slot, monster_info->location_id, 0);
             }
         }
@@ -1926,11 +1926,11 @@ void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target)
             W8Monster* monster = monster_info->monster;
 
             if (monster_info->fActive != 0 && monster != 0) {
-                unsigned char flags = MonsterGetRuntimeFlag5BC(monster);
+                unsigned char flags = MonsterGetHighlightMask(monster);
                 unsigned char bit = static_cast<unsigned char>(1 << (party_slot & 31));
 
                 if ((flags & bit) != 0) {
-                    MonsterSetRuntimeFlag5BC(monster, static_cast<unsigned char>(flags & ~bit));
+                    MonsterSetHighlightMask(monster, static_cast<unsigned char>(flags & ~bit));
                     NotifyMonsterHighlight(party_slot, monster_info->location_id, 0);
                 }
             }
@@ -1954,10 +1954,10 @@ void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target)
             if (monster == 0) {
                 srAssertFail("pMonster", TARGETING_CPP, 0x760, 0);
             }
-            unsigned char flags = MonsterGetRuntimeFlag5BC(monster);
+            unsigned char flags = MonsterGetHighlightMask(monster);
             unsigned char bit = static_cast<unsigned char>(1 << (party_slot & 31));
 
-            MonsterSetRuntimeFlag5BC(monster, static_cast<unsigned char>(flags | bit));
+            MonsterSetHighlightMask(monster, static_cast<unsigned char>(flags | bit));
             NotifyMonsterHighlight(party_slot, target->iMonsterID, 1);
         }
     }
@@ -3040,7 +3040,7 @@ void RefreshAllPartyTargets(void)
 
             if (IsPartySlotEligible00524A10(party_slot) != 0 &&
                 (row->action_03d == W8_ACTION_ATTACK || row->action_03d == W8_ACTION_BERSERK) &&
-                (row->flag_105 != 0 ||
+                (row->weapon_swap_pending_105 != 0 ||
                  CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) != 0)) {
                 int group_id = -1;
 
@@ -3614,9 +3614,9 @@ void ClearSlotTargeting0053B050(int party_slot)
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
         W8Monster* monster = monster_info->monster;
         if (monster_info->fActive != 0 && monster != 0) {
-            unsigned char flag = MonsterGetRuntimeFlag5BC(monster);
+            unsigned char flag = MonsterGetHighlightMask(monster);
             if ((flag & (1 << (party_slot & 0x1f))) != 0) {
-                MonsterSetRuntimeFlag5BC(monster, ~(1 << (party_slot & 0x1f)) & flag);
+                MonsterSetHighlightMask(monster, ~(1 << (party_slot & 0x1f)) & flag);
                 NotifyMonsterHighlight(party_slot, monster_info->location_id, 0);
             }
         }
@@ -3657,7 +3657,7 @@ void UpdateSlotMonsterHighlights0053C130(int party_slot, char enable)
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
             W8Monster* monster = monster_info->monster;
             if (monster_info->fActive != 0 && monster != 0) {
-                unsigned char flag = MonsterGetRuntimeFlag5BC(monster);
+                unsigned char flag = MonsterGetHighlightMask(monster);
                 W8ModelInstance3DRenderState block;
                 if (enable != 0 && (flag & (1 << (party_slot & 0x1f))) != 0) {
                     block.highlight_red = 1.0f;
@@ -3692,7 +3692,7 @@ int ChooseFallbackMonsterTarget0053C990(int party_slot, int group_id, W8Targetin
 
     if (g_settings_6850c8.autoswap_weapons != 0 &&
         gXStatus.monster_manager_entries[party_slot].item_swap_in_progress == 0 &&
-        row->flag_0f5 == 0 &&
+        row->item_action_pending_0f5 == 0 &&
         (g_combat_state->flag_000 == 0 || g_combat_state->characters[party_slot].flag_34 == 0 ||
          g_combat_state->characters[party_slot].phase == 0) &&
         !IsItemBoundToWearer(&character->EquippedItem[8]) &&
@@ -3720,7 +3720,7 @@ int ChooseFallbackMonsterTarget0053C990(int party_slot, int group_id, W8Targetin
                 }
             }
         }
-        row->flag_105 ^= 1;
+        row->weapon_swap_pending_105 ^= 1;
         RefreshAfterItemRecordChange(&character->EquippedItem[6], character, 1);
         RefreshAfterItemRecordChange(&character->EquippedItem[7], character, 1);
     }
@@ -3738,9 +3738,10 @@ void ReconcilePartyEquipmentAfterCombat0053CD60(void)
         W8Character* character = &g_status_685170.buffers.Char[party_slot];
         if (row->fOccupied != 0 &&
             (character->hp_current != 0 || character->highest_condition < 0xd) &&
-            row->flag_105 != 0 && g_settings_6850c8.autoswap_weapons != 0 && row->flag_0f5 == 0) {
+            row->weapon_swap_pending_105 != 0 && g_settings_6850c8.autoswap_weapons != 0 &&
+            row->item_action_pending_0f5 == 0) {
             SwapWeaponSetSlots0051D3B0(party_slot, 0, 1);
-            row->flag_105 = 0;
+            row->weapon_swap_pending_105 = 0;
         }
     }
 }

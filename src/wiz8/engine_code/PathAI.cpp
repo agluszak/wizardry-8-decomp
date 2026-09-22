@@ -234,7 +234,7 @@ W8PathAI* ClonePathAI004A98C0(const W8PathAI* source)
     copy->version_01 = source->version_01;
     copy->position = source->position;
     copy->unknown_08 = source->unknown_08;
-    copy->value_10 = source->value_10;
+    copy->entry_index_10 = source->entry_index_10;
     copy->discrete_mode_1c = source->discrete_mode_1c;
     copy->point_index = source->point_index;
     copy->interpolation_fraction = source->interpolation_fraction;

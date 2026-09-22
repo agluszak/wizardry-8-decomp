@@ -1133,7 +1133,7 @@ void EnableCampActionButtons005B9270(void)
     g_camp_action_buttons_0069c468[1]->SetActive(1);
     if (g_status_685170.game_started != 0) {
         g_camp_action_buttons_0069c468[1]->SetEnabled(1);
-        if (g_status_685170.buffers.XChar[giReviewCharSlot].flag_0f5 != 0) {
+        if (g_status_685170.buffers.XChar[giReviewCharSlot].item_action_pending_0f5 != 0) {
             g_camp_action_buttons_0069c468[1]->EnableSecondaryState(0);
             g_camp_action_buttons_0069c468[0]->SetEnabled(0);
         } else {
@@ -1819,8 +1819,8 @@ unsigned char CampScreenEnter(void)
         g_camp_screen_0069c0f4->animation_frames[animation] =
             Random(g_spell_realm_animations_00648c90[animation].frame_count);
     }
-    if (gXStatus.fCombatMode && g_combat_state->flag_a50) {
-        if (g_combat_state->flag_a51 == 1) {
+    if (gXStatus.fCombatMode && g_combat_state->equip_phase_a50) {
+        if (g_combat_state->equip_pending_a51 == 1) {
             for (int slot = 0; slot < 8; ++slot) {
                 if (g_status_685170.buffers.XChar[slot].fOccupied &&
                     IsPartySlotEligible00524A10(slot) &&
@@ -1841,7 +1841,7 @@ unsigned char CampScreenEnter(void)
                         swprintf(g_camp_screen_0069c0f4->caption, L"%s",
                                  g_status_685170.buffers.Char[slot].name);
                     } else {
-                        if (count == g_combat_state->flag_a51) {
+                        if (count == g_combat_state->equip_pending_a51) {
                             wcscat(g_camp_screen_0069c0f4->caption, L" ");
                             wcscat(g_camp_screen_0069c0f4->caption,
                                    FormatWideString(gppStringList[0x2460 / 4],
@@ -2649,7 +2649,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
         if (origin == 1) {
             RebuildEquipmentAndDerivedStatsForSlot(giReviewCharSlot);
             if (GetPairedEquipSlot(slot_index) != -1) {
-                g_status_685170.buffers.XChar[giReviewCharSlot].flag_105 = 0;
+                g_status_685170.buffers.XChar[giReviewCharSlot].weapon_swap_pending_105 = 0;
             }
             RebuildCampItemList005A4A00();
         } else if (origin == 0) {
@@ -2857,7 +2857,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                 if (origin == 1) {
                     RebuildEquipmentAndDerivedStatsForSlot(giReviewCharSlot);
                     if (GetPairedEquipSlot(slot_index) != -1) {
-                        g_status_685170.buffers.XChar[giReviewCharSlot].flag_105 = 0;
+                        g_status_685170.buffers.XChar[giReviewCharSlot].weapon_swap_pending_105 = 0;
                     }
                     RebuildCampItemList005A4A00();
                 } else if (origin == 0) {
@@ -3020,13 +3020,13 @@ bool IsCampActionAllowed005A6090(int party_slot)
         character->uiCondition[W8_CONDITION_EXHAUSTED] != 0 ||
         character->uiCondition[W8_CONDITION_PARALYZED] != 0 ||
         character->uiCondition[W8_CONDITION_ASLEEP] != 0) {
-        if (g_combat_state->flag_a50 != 0) {
+        if (g_combat_state->equip_phase_a50 != 0) {
             return 1;
         }
         message = gppStringList[0x2428 / 4];
     } else {
         row = &g_status_685170.buffers.XChar[party_slot];
-        if (g_combat_state->flag_a50 == 0) {
+        if (g_combat_state->equip_phase_a50 == 0) {
             if (g_combat_state->characters[party_slot].flag_34 != 0) {
                 if (row->pending_action == W8_ACTION_EQUIP) {
                     message = gppStringList[0x240c / 4];
@@ -3152,7 +3152,7 @@ void BeginEndgameSequence005A6580(void)
     int fade_code = 0x5dc;
     int endgame_variant = 0;
 
-    g_status_685170.flag_49c0 = 1;
+    g_status_685170.endgame_started_49c0 = 1;
     UpdateHeldItemCursor();
     if (GetFact(0x1a2) != 0) {
         fade_to_black = 1;
@@ -3185,7 +3185,7 @@ void BeginScreenFade(int fade_to_black, int fade_out, int duration, void (*callb
     g_fade_out_0069c120 = fade_out;
     g_fade_callback_0069c110 = callback;
     g_fade_flag_0069c114 = arg_6;
-    g_level_block->flag_328 = 1;
+    g_level_block->review_transition_done_328 = 1;
     if (flag != 0) {
         SetFullscreenSceneLast004298E0(1);
     }
@@ -3222,12 +3222,12 @@ void BeginScreenFade(int fade_to_black, int fade_out, int duration, void (*callb
 // FUNCTION: WIZ8 0x005A6790
 unsigned char UpdateScreenFade005A6790(void)
 {
-    if (g_level_block->flag_328 == 0) {
+    if (g_level_block->review_transition_done_328 == 0) {
         return 0;
     }
     unsigned long elapsed = GetTickCount() - g_fade_tick_base_0069c10c;
     if (g_fade_duration_0069c118 < elapsed) {
-        g_level_block->flag_328 = 0;
+        g_level_block->review_transition_done_328 = 0;
         if (g_fade_out_0069c120 == 0) {
             static_cast<srMaterial*>(static_cast<srMeshModel*>(g_fade_overlay_0069c11c->model())
                                          ->getMaterial(0, static_cast<srMeshModel::e_side>(0)))
@@ -3296,7 +3296,8 @@ void PumpReviewTransition005A6970(void)
     char name[260];
     bool exit_review;
 
-    if (!g_level_block->review_transition_active || g_level_block->flag_328 != 0) {
+    if (!g_level_block->review_transition_active ||
+        g_level_block->review_transition_done_328 != 0) {
         return;
     }
     if (g_ending_autosave_0069c129 != 0) {

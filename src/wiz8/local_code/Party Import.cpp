@@ -668,11 +668,11 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
     char routed = 0;
     int i;
 
-    if (g_skill_attributes[skill_id].unknown_04 == 2) {
+    if (g_skill_attributes[skill_id].attribute_1_04 == 2) {
         if (g_profession_skill_availability[skill_id][character->iProfession] != 1) {
             return 0;
         }
-    } else if (g_skill_attributes[skill_id].unknown_04 == 3) {
+    } else if (g_skill_attributes[skill_id].attribute_1_04 == 3) {
         return 0;
     }
     switch (skill_id) {

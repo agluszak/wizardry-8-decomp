@@ -31,7 +31,10 @@ struct W8NpcItemEntry {
    placed off it. */
 struct W8NpcState {
     W8NpcScriptFile* script_file; /* 0x00: .nsf script file loaded by 0x0055A480 */
-    unsigned short unknown_04;
+    /* 0x04: spawned flag; FindNpcOfKind returns it as the "in the world"
+       answer, facts/combat paths set it, and 0xffff is the never-set
+       sentinel normalized to zero on load. */
+    unsigned short spawned_04;
     W8NpcDatabaseRecord* record; /* 0x06 */
     W8PList* items;              /* 0x0a: W8NpcItemEntry* elements */
     /* 0x0e and 0x12: two world-clock stamps, both set when the stock is first
@@ -81,7 +84,9 @@ struct W8NpcState {
     int gold_80;
     /* 0x84: cleared by 0x0056D030 when the runtime-node flag at 0x1d is
        set. */
-    unsigned char flag_84;
+    /* 0x84: theft suspicion; each theft attempt raises it toward 0x64 and it
+       scales the theft score down. */
+    unsigned char suspicion_84;
     /* 0x85: bitmask the refusal callback reads and sets one bit per queued
        refusal quote (0x67, 0x68, 0x69); retail accesses it as one dword. */
     unsigned int refusal_flags_85;
@@ -102,11 +107,15 @@ struct W8NpcState {
     int trade_cooldown_clock;
     unsigned char service_flags[0x14];
     /* 0x0e8: cleared by the level-entry NPC-binding reset. */
-    unsigned char flag_e8;
+    /* 0xe8: the bound character's highest condition reached a serious
+       band; cleared when the character recovers. */
+    unsigned char incapacitated_e8;
     /* 0x0e9 and 0x114: two flags raised together when the NPC is marked. */
     unsigned char marked_e9;
     /* 0x0ea: this NPC is a candidate for the scripted event pass. */
-    unsigned char flag_ea;
+    /* 0xea: the NPC is restored into the current level and available for
+       binding; cleared while a restore is pending. */
+    unsigned char restored_ea;
     /* 0x0eb: world clock of the last event that ran for this NPC. */
     int event_clock_eb;
     unsigned char unknown_ef[3];

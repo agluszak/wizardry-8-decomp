@@ -531,30 +531,30 @@ static void CharacterEventSoundEndCallback(void* callback_data)
 }
 
 // FUNCTION: WIZ8 0x0052C810
-W8CharacterEvent::W8CharacterEvent(W8Character* character, unsigned int event_type, int value_0c,
+W8CharacterEvent::W8CharacterEvent(W8Character* character, unsigned int event_type, int argument_0c,
                                    unsigned int flags, int volume)
-    : sound_end_handled(0), character(character), event_type(event_type), value_0c(value_0c),
+    : sound_end_handled(0), character(character), event_type(event_type), argument_0c(argument_0c),
       flags(flags), volume(volume), dispatch_delay_ms(0)
 {
     item.iItemNo = -1;
     switch (event_type) {
     case 2:
     case 3:
-        value_18 = character->hp_current;
+        threshold_18 = character->hp_current;
         break;
     case 5:
     case 6:
     case 9:
     case 0x54:
-        value_18 = character->highest_condition;
+        threshold_18 = character->highest_condition;
         break;
     case 7:
-        value_18 = 12;
+        threshold_18 = 12;
         break;
     case 0x38:
     case 0x55:
-        value_18 = character->hp_current;
-        value_1c = character->highest_condition;
+        threshold_18 = character->hp_current;
+        threshold_1c = character->highest_condition;
         break;
     }
 }
@@ -775,12 +775,12 @@ unsigned char W8CharacterEvent::IsConditionMet(unsigned int event_type)
         switch (event_type) {
         case 2:
         case 3:
-            return static_cast<unsigned int>(value_18) > character->hp_current;
+            return static_cast<unsigned int>(threshold_18) > character->hp_current;
         case 5:
         case 6:
         case 7:
         case 9:
-            return character->highest_condition == static_cast<unsigned int>(value_18);
+            return character->highest_condition == static_cast<unsigned int>(threshold_18);
         case 10:
             event_type = original_event_type;
             break;
@@ -793,12 +793,12 @@ unsigned char W8CharacterEvent::IsConditionMet(unsigned int event_type)
         case 45:
             return character->gender != W8_GENDER_FEMALE;
         case 56:
-            return character->hp_current >= static_cast<unsigned int>(value_18) &&
-                   character->highest_condition >= static_cast<unsigned int>(value_1c);
+            return character->hp_current >= static_cast<unsigned int>(threshold_18) &&
+                   character->highest_condition >= static_cast<unsigned int>(threshold_1c);
         case 84:
-            return static_cast<unsigned int>(value_18) > character->highest_condition;
+            return static_cast<unsigned int>(threshold_18) > character->highest_condition;
         case 85:
-            if (character->hp_current < static_cast<unsigned int>(value_18) ||
+            if (character->hp_current < static_cast<unsigned int>(threshold_18) ||
                 character->highest_condition != 0) {
                 QueueCharacterEvent(character, 84, 0, 1, 0x7f);
                 return 0;

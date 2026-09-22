@@ -867,7 +867,7 @@ static unsigned int FindDialogueTextLine(const W8DialogueTextState* input)
 /* Retail returns 7 when the text box is in a multi-line mode (spell / item /
    camp / NPC dialogue with the transcript collapsed); otherwise 1. */
 #define W8_TEXT_BOX_VISIBLE_LINE_COUNT()                                                           \
-    (((gXStatus.fNpcDialogueMode == 0 || g_screen_state_00649f1c->text_box_collapsed == 0) &&                \
+    (((gXStatus.fNpcDialogueMode == 0 || g_screen_state_00649f1c->text_box_collapsed == 0) &&      \
       (gXStatus.fSpellCastMode != 0 || gXStatus.fNpcDialogueMode != 0 ||                           \
        gXStatus.fItemSelectMode != 0 || gXStatus.fCampMode != 0))                                  \
          ? 7                                                                                       \
@@ -2119,7 +2119,7 @@ void RedrawTextBoxBody(unsigned char skip_invalidate)
                 srAssertFail("pTextLine->wString != NULL", MGS_TEXT_BOX_CPP, 0x43d, 0);
             }
             if (line->wString != 0) {
-                if (text_box == 3 || g_level_block->flag_271 == 0) {
+                if (text_box == 3 || g_level_block->text_box_visible_271 == 0) {
                     x = g_level_block->text_box_left;
                 } else {
                     x = g_level_block->text_box_left +
@@ -2520,7 +2520,8 @@ void HighlightNoticeWordAt(int text_box, unsigned short x, unsigned short y)
     if (g_level_block->text_box_top <= y && y <= g_level_block->text_box_bottom) {
         line = g_level_block->text_lines[text_box] + (y - g_level_block->text_box_top) / 0xb;
         if (line < static_cast<int>(g_status_685170.text_box_lines_shown_49a7[text_box])) {
-            if (g_status_685170.text_line_cursor_1795 == 3 || g_level_block->flag_271 == 0) {
+            if (g_status_685170.text_line_cursor_1795 == 3 ||
+                g_level_block->text_box_visible_271 == 0) {
                 x_base = g_level_block->text_box_left;
             } else {
                 x_base = g_level_block->text_box_left +
@@ -2558,7 +2559,8 @@ W8NoticeWord* HitTestNoticeWord(int text_box, unsigned short x, unsigned short y
     if (g_level_block->text_box_top <= y && y <= g_level_block->text_box_bottom) {
         line = g_level_block->text_lines[text_box] + (y - g_level_block->text_box_top) / 0xb;
         if (line < static_cast<int>(g_status_685170.text_box_lines_shown_49a7[text_box])) {
-            if (g_status_685170.text_line_cursor_1795 == 3 || g_level_block->flag_271 == 0) {
+            if (g_status_685170.text_line_cursor_1795 == 3 ||
+                g_level_block->text_box_visible_271 == 0) {
                 x_base = g_level_block->text_box_left;
             } else {
                 x_base = g_level_block->text_box_left +

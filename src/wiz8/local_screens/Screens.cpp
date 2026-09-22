@@ -426,7 +426,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->countdown_25c = SetCountdownClock(0);
     g_level_block->countdown_26c = SetCountdownClock(0xfa);
     g_level_block->flag_270 = 1;
-    g_level_block->flag_271 = 1;
+    g_level_block->text_box_visible_271 = 1;
     g_level_block->dialogue_text_input_open = 0;
     g_level_block->flag_272 = 0;
     g_level_block->dialogue_text_input = 0;
@@ -466,7 +466,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->combat_slot = -1;
     g_level_block->keyboard_menu_open = 0;
     g_level_block->hover_combat_slot = -1;
-    g_level_block->flag_31c = 0;
+    g_level_block->cursor_grace_31c = 0;
     g_level_block->countdown_320 = SetCountdownClock(0);
     g_level_block->portrait_right_hold_armed = 0;
     g_level_block->formation_board_alternate = 0;

@@ -117,11 +117,13 @@ struct W8GlobalStatus {
     W8PartyFormationState formation;
     int game_time_days;
     unsigned char iron_man;
-    /* 0x242a: world-clock stamp the 0x2497 event compares against. */
-    int value_242a;
-    /* 0x242e: the mark the NPC-binding reset stamps next to the clock. */
-    unsigned char flag_242e;
-    unsigned char unknown_242f;
+    /* 0x242a: world-clock stamp of the last NPC-binding reset; the event
+       pass waits 0x3c ticks past it. */
+    int binding_reset_clock_242a;
+    /* 0x242e: binding-reset grace period in effect; cleared once the sweep
+       runs after the clock elapses. */
+    bool binding_reset_pending_242e;
+    unsigned char padding_242f;
     /* 0x2430: one-shot gate for the NPC event pass. */
     unsigned char flag_2430;
     /* 0x2431: raised by the .nsf quote audit while it runs; ShowNotice counts
@@ -214,7 +216,11 @@ struct W8GlobalStatus {
     unsigned char flag_49bc;
     unsigned char flag_49bd;
     unsigned char unknown_49be[2];
-    unsigned char flag_49c0;
+    /* 0x49c0: set when the endgame transition starts; saves carrying either
+       this or flag_49bd are filtered from the load list. */
+    bool endgame_started_49c0;
+    /* 0x49c1: latched while g_flag_689b32 is set at teardown; persisted into
+       the save slot as flag_263c. */
     unsigned char flag_49c1;
 };
 #pragma pack(pop)

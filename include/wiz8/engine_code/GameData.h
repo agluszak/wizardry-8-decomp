@@ -6,7 +6,7 @@
 #include "wiz8/engine_code/IntervalGate.h"
 #include "wiz8/wiz8_windows.h"
 
-extern unsigned char g_flag_00652dce;
+extern unsigned char g_shared_timers_paused_00652dce;
 
 void ResetLevelMovement0041EEE0(float movement_limit, char reset, char fast_move); /* 0x0041EEE0 */
 

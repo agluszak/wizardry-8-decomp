@@ -195,7 +195,7 @@ unsigned char StartCombat(int surprise)
     g_combat_state->combat_result_00c = 0;
     g_combat_state->experience_pool_010 = 0;
     g_combat_state->experience_bonus_014 = 0;
-    g_combat_state->flag_a54 = gXStatus.hostile_monster_count > 0;
+    g_combat_state->enemies_engaged_a54 = gXStatus.hostile_monster_count > 0;
     g_combat_state->flag_000 = 0;
     g_combat_state->round_active_001 = 1;
     g_combat_state->action_clock_7ac = GetClock();
@@ -209,7 +209,7 @@ unsigned char StartCombat(int surprise)
     g_combat_state->unengaged_rounds_a56 = 0;
     g_combat_state->combat_update_count = 0;
     g_combat_state->notice_scroll_pending_a57 = 0;
-    g_combat_state->flag_a62 = 0;
+    g_combat_state->combat_ready_a62 = 0;
     gXStatus.fCombatMode = 1;
     gXStatus.fPartyMovementUi = 0;
     gXStatus.fPartyMovementMode = 0;
@@ -266,7 +266,7 @@ unsigned char StartCombat(int surprise)
     memset(gXStatus.unknown_049, 0xff, sizeof(gXStatus.unknown_049));
     CopyPartyFormationState(&gXStatus.edited_formation, &g_status_685170.formation);
     SaveCombatFormation();
-    g_combat_state->unknown_a61 = g_status_685170.search_mode;
+    g_combat_state->search_mode_saved_a61 = g_status_685170.search_mode;
     if (g_status_685170.search_mode != 0) {
         ToggleSearchMode();
     }
@@ -424,13 +424,13 @@ bool CombatHasContinuingEffects(void)
     for (enchantment = 0; enchantment < 8; ++enchantment) {
         for (slot = 0; slot < 8; ++slot) {
             if (g_status_685170.buffers.XChar[slot].fOccupied &&
-                g_status_685170.buffers.Char[slot].enchantments[enchantment].value_08 > 0) {
+                g_status_685170.buffers.Char[slot].enchantments[enchantment].turns_08 > 0) {
                 return true;
             }
         }
         for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
-            if (monster->enchantments[enchantment].value_08 > 0) {
+            if (monster->enchantments[enchantment].turns_08 > 0) {
                 return true;
             }
         }
@@ -510,7 +510,7 @@ void BeginCombatExecution004E8370(void)
 {
     int slot;
     unsigned int index;
-    if ((g_combat_state->round_count_004 == 0 && g_combat_state->flag_a54 != 0) ||
+    if ((g_combat_state->round_count_004 == 0 && g_combat_state->enemies_engaged_a54 != 0) ||
         g_combat_state->uiCurrentPartyActionStatus == 3) {
         AlertWorldNoise004F1100();
     }
@@ -526,7 +526,7 @@ void BeginCombatExecution004E8370(void)
     }
     g_combat_state->flag_000 = 1;
     g_combat_state->pending_death_count = 0;
-    g_combat_state->flag_a55 = 1;
+    g_combat_state->passive_round_a55 = 1;
     g_level_block->pick_changed_154 = false;
     g_combat_state->uiCurrentPartyAction = g_combat_state->uiNextPartyAction;
     g_combat_state->uiCurrentPartyActionStatus = 0;
@@ -661,7 +661,7 @@ void BeginCombatExecution004E8370(void)
             }
         }
     }
-    g_combat_state->unknown_a60 = 1;
+    g_combat_state->pacing_latch_a60 = 1;
 }
 
 /* Which of the two engagement counts to report - the forced one when combat
@@ -751,8 +751,8 @@ void BeginCombatRound(void)
             g_status_685170.buffers.XChar[party_slot].pending_action = -1;
         }
     }
-    g_combat_state->flag_a50 = 0;
-    g_combat_state->flag_a51 = 0;
+    g_combat_state->equip_phase_a50 = 0;
+    g_combat_state->equip_pending_a51 = 0;
 }
 
 /* Bring one combatant's clock up to the current round: advance it by however
@@ -962,12 +962,12 @@ void SetUpMonsterTurn(W8MonsterInfo* monster_info)
         if (monster_info->action_kind == 7) {
             speed = 0x96;
         }
-        if (monster_info->enchantments[5].value_08 == 0) {
+        if (monster_info->enchantments[5].turns_08 == 0) {
             if (monster_info->condition_turns[5] != 0) {
                 speed -= 0x32;
             }
         } else {
-            speed += monster_info->enchantments[5].value_00 * 10;
+            speed += monster_info->enchantments[5].power_00 * 10;
         }
     }
 
@@ -1096,7 +1096,7 @@ void EndCombat004EA310(int mode)
         }
         group_count = PLLength(gXStatus.plsMonsterGroupList);
     }
-    if (g_combat_state->flag_a54 != 0) {
+    if (g_combat_state->enemies_engaged_a54 != 0) {
         ShowNotice(0xc, gppStringList[0x233], 1, -1, 0);
     }
     unsigned int active = CountActiveCharacters();
@@ -1124,7 +1124,7 @@ void EndCombat004EA310(int mode)
     RestoreCombatFormation();
     ReconcilePartyEquipmentAfterCombat0053CD60();
     gXStatus.fCombatMode = 0;
-    if (g_combat_state->unknown_a61 != 0) {
+    if (g_combat_state->search_mode_saved_a61 != 0) {
         ToggleSearchMode();
     }
     ZoomRadarMapOut();
@@ -1813,7 +1813,7 @@ void AdvanceCombatRound004E9B20(void)
     W8Dice dice;
     unsigned int index;
 
-    g_combat_state->flag_a62 = 0;
+    g_combat_state->combat_ready_a62 = 0;
     if (gXStatus.fPartyMovementMode != 0) {
         BeginFreeTurnPhase();
     }
@@ -1827,7 +1827,7 @@ void AdvanceCombatRound004E9B20(void)
     }
     g_combat_state->party_surprised_a52 = 0;
     g_combat_state->monsters_surprised_a53 = 0;
-    if (g_combat_state->flag_a55 == 0) {
+    if (g_combat_state->passive_round_a55 == 0) {
         g_combat_state->unengaged_rounds_a56 = 0;
     } else {
         index = 0;
@@ -1952,7 +1952,7 @@ int CheckCombatEnd004E9F90(unsigned int arg_1)
             return 0;
         }
         if (g_combat_state->combat_result_00c == 0) {
-            if (g_combat_state->flag_a54 != 0) {
+            if (g_combat_state->enemies_engaged_a54 != 0) {
                 StartLevelMusic(1, 1);
                 EndCombat004EA310(0);
                 return 1;
@@ -2277,7 +2277,7 @@ void ExecuteCharacterAction004EA5C0(int party_slot)
 action_done:
     if (g_combat_state != NULL) {
         if (action != 4 && action != 5) {
-            g_combat_state->flag_a55 = 0;
+            g_combat_state->passive_round_a55 = 0;
         }
         if (CharacterActionTargetsEnemies(character, action, detail,
                                           &slot->pending_action_detail_015) != 0 &&
@@ -2579,7 +2579,7 @@ void ExecuteMonsterAction004EAE20(W8MonsterInfo* monster_info, W8MonsterRecord* 
             ShowNoticef(9, gppStringList[0x23c], GetMonsterName(monster_info, NULL, '\0'));
         action_done:
             if (monster_info->action_kind != 1 && monster_info->action_kind != 8) {
-                g_combat_state->flag_a55 = 0;
+                g_combat_state->passive_round_a55 = 0;
             }
             if (IsMonsterActionUsable(monster_info) != '\0') {
                 monster_info->pCombat->value_14c = 0;
@@ -2649,12 +2649,12 @@ void AimMonsterBreathAtTarget(W8MonsterInfo* monster_info)
         break;
     case W8_TARGET_KIND_PLACE:
         monster_info->monster->m_axis_1c0 = monster_info->Target.point;
-        monster_info->monster->unknown_1bf = 1;
+        monster_info->monster->aim_set_1bf = 1;
         return;
     default:
         GetCameraPosition(&position);
         monster_info->monster->m_axis_1c0 = position;
-        monster_info->monster->unknown_1bf = 1;
+        monster_info->monster->aim_set_1bf = 1;
         return;
     }
     if (!no_target) {
@@ -2663,7 +2663,7 @@ void AimMonsterBreathAtTarget(W8MonsterInfo* monster_info)
         monster_info->monster->m_axis_1c0.y = target_monster->movement_0c0.position_040.y +
                                               target_monster->movement_0c0.height_offset_0b8;
         monster_info->monster->m_axis_1c0.z = target_monster->movement_0c0.position_040.z;
-        monster_info->monster->unknown_1bf = 1;
+        monster_info->monster->aim_set_1bf = 1;
     }
 }
 
@@ -2684,7 +2684,7 @@ int ExecuteMonsterSpecialAttack(W8MonsterInfo* monster_info, W8MonsterRecord* re
     }
     SetTargetSourceToMonster(monster_info, &source);
     if (g_special_attack_table[record->special_attack_kind_0e3][0] != 6) {
-        monster_info->monster->unknown_1bf = '\0';
+        monster_info->monster->aim_set_1bf = '\0';
         PointCameraAtCombatTarget(&source, &monster_info->Target);
         PopulateSpellTargetMarkers(0x77, 0, &source, &monster_info->Target, &monster_targets,
                                    &char_targets, 0);
@@ -3132,7 +3132,7 @@ void UpdateCombat004E8EA0(void)
             return;
         }
         if (CheckCombatEnd004E9F90(g_combat_state->flag_000 == 0 &&
-                                   g_combat_state->flag_a54 != 0) != 0) {
+                                   g_combat_state->enemies_engaged_a54 != 0) != 0) {
             return;
         }
         if ((g_settings_6850c8.continuous_combat == 0 ||
@@ -3375,7 +3375,7 @@ void ScheduleCombatActor004E9490(void)
                 if (action_kind == 1 || action_kind == 8 || action_kind == -1) {
                     interruptible = true;
                 }
-                if (g_combat_state->unknown_a60 == 0 && interruptible == 0) {
+                if (g_combat_state->pacing_latch_a60 == 0 && interruptible == 0) {
                     apply_delay = true;
                 }
             }
@@ -3383,13 +3383,13 @@ void ScheduleCombatActor004E9490(void)
                 (gXStatus.hostile_monster_count != 0 || gXStatus.hostile_group_count != 0) &&
                 GetLevelDataFlag6() != 0) {
                 unsigned int delay = g_settings_6850c8.combat_delay_ms;
-                if (g_combat_state->unknown_a60 != 0 &&
+                if (g_combat_state->pacing_latch_a60 != 0 &&
                     (g_settings_6850c8.continuous_combat == 0 || free_turn == 0) && delay > 0x31f) {
                     delay = 0x320;
                 }
                 g_combat_state->action_clock_7ac = SetCountdownClock(delay);
             }
-            g_combat_state->unknown_a60 = 0;
+            g_combat_state->pacing_latch_a60 = 0;
         } else {
             if (g_combat_state->uiCurrentPartyActionStatus == 2) {
                 int slot = 0;
@@ -3412,23 +3412,23 @@ void ScheduleCombatActor004E9490(void)
         if (g_combat_state->eCombatActionStatus != 0 || gXStatus.fPartyMovementMode != 0 ||
             free_turn != 0 || g_combat_state->round_counter > 0x64) {
             if (g_combat_state->round_counter > 0x64) {
-                g_combat_state->flag_a50 = 0;
-                g_combat_state->flag_a51 = 0;
+                g_combat_state->equip_phase_a50 = 0;
+                g_combat_state->equip_pending_a51 = 0;
                 if (gXStatus.fCombatMode != 0) {
                     for (unsigned int slot = 0; slot < 8; ++slot) {
                         if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
                             g_status_685170.buffers.Char[slot].hp_current != 0 &&
                             g_status_685170.buffers.Char[slot].highest_condition < 0xd &&
                             g_status_685170.buffers.XChar[slot].pending_action == W8_ACTION_EQUIP) {
-                            ++g_combat_state->flag_a51;
-                            if (g_combat_state->flag_a50 == 0) {
-                                g_combat_state->flag_a50 = 1;
+                            ++g_combat_state->equip_pending_a51;
+                            if (g_combat_state->equip_phase_a50 == 0) {
+                                g_combat_state->equip_phase_a50 = 1;
                                 OpenCharacterScreenForPartySlot(slot, 0);
                             }
                         }
                     }
                 }
-                if (g_combat_state->flag_a50 == 0) {
+                if (g_combat_state->equip_phase_a50 == 0) {
                     AdvanceCombatRound004E9B20();
                     if (CheckCombatEnd004E9F90(1) == 0 &&
                         g_settings_6850c8.continuous_combat != 0) {

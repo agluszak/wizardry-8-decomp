@@ -13,7 +13,7 @@ template <class T> class srVector3T;
 struct W8CameraPath {
     char name_00[0x14];
     bool active_14;
-    unsigned char unknown_15[3];
+    unsigned char padding_15[3];
     W8PathAI* path_18;
 };
 

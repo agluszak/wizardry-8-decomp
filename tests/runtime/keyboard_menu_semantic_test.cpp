@@ -70,7 +70,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     unsigned char saved_keyboard_open;
     unsigned char saved_pending0;
     unsigned char saved_flag_218;
-    unsigned char saved_flag_31c;
+    unsigned char saved_cursor_grace_31c;
     unsigned char saved_pick_changed;
     unsigned char saved_refresh_combat;
     unsigned char saved_refresh_party;
@@ -207,13 +207,13 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     saved_keyboard_open = g_level_block->keyboard_menu_open;
     saved_combat_slot = g_level_block->combat_slot;
     saved_hover_slot = g_level_block->hover_combat_slot;
-    saved_flag_31c = g_level_block->flag_31c;
+    saved_cursor_grace_31c = g_level_block->cursor_grace_31c;
     saved_pending0 = g_level_block->portrait_refresh_pending[0];
 
     gXStatus.monster_manager_entries[0].keyboard_menu_open = 1;
     g_level_block->keyboard_menu_open = 1;
     g_level_block->combat_slot = 3;
-    g_level_block->flag_31c = 1;
+    g_level_block->cursor_grace_31c = 1;
     g_level_block->portrait_refresh_pending[0] = 1;
     CloseKeyboardMenu();
     result->close_cleared_open_flag = g_level_block->keyboard_menu_open == 0;
@@ -368,7 +368,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     g_level_block->keyboard_menu_open = saved_keyboard_open;
     g_level_block->combat_slot = saved_combat_slot;
     g_level_block->hover_combat_slot = saved_hover_slot;
-    g_level_block->flag_31c = saved_flag_31c;
+    g_level_block->cursor_grace_31c = saved_cursor_grace_31c;
     g_level_block->portrait_refresh_pending[0] = saved_pending0;
 
     for (index = 0; index < KEYBOARD_MENU_ROW_COUNT; ++index) {

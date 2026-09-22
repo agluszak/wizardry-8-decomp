@@ -20,10 +20,10 @@
 W8IntervalGate::W8IntervalGate() : W8GameTimer(1.0f, 0), m_finished(0) {}
 
 // FUNCTION: WIZ8 0x0043a500
-W8IntervalGate::W8IntervalGate(float duration, unsigned char raw_time, bool set_flag_2)
+W8IntervalGate::W8IntervalGate(float duration, unsigned char raw_time, bool one_shot)
     : W8GameTimer(duration, raw_time), m_finished(0)
 {
-    if (set_flag_2) {
+    if (one_shot) {
         m_flags |= 2;
     }
 }
