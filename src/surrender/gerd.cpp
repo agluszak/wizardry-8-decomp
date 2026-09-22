@@ -64,6 +64,27 @@ void srGERD::setTextureReduction(long reduction)
     section->releaseAccess();
 }
 
+// FUNCTION: SURRENDER 0x10017AC0
+void srGERD::setTexture(srTextureIFace* texture, unsigned long layer)
+{
+    SectionAccess access(state_section_18_);
+    if (layer < static_cast<unsigned long>(max_texture_stages_78_) &&
+        texture_iface_1ffc_[layer] != texture) {
+        /* Retail keeps this redundant re-test (JZ on the same pair). */
+        if (texture != texture_iface_1ffc_[layer]) {
+            if (texture != 0) {
+                texture->addReference();
+            }
+            if (texture_iface_1ffc_[layer] != 0) {
+                texture_iface_1ffc_[layer]->release();
+            }
+            texture_iface_1ffc_[layer] = texture;
+        }
+        changeTexture(texture, layer, 0);
+        dirty_24_ |= 1 << (layer + 0xa);
+    }
+}
+
 // FUNCTION: SURRENDER 0x10017F30
 unsigned long srGERD::getTextureCacheSize() const
 {
@@ -184,8 +205,8 @@ void srGERD::setAntiAlias(e_antiAlias mode)
 // FUNCTION: SURRENDER 0x1001BE70
 void srGERD::setClipState(srFlags<srRendererDefs::e_clip> state)
 {
-    if (state.value != clip_state_21cc_.value) {
-        clip_state_21cc_ = state;
+    if (state.value != vertex_arrays_21c4_.clip_08.value) {
+        vertex_arrays_21c4_.clip_08 = state;
         dirty_21c0_ |= 1;
     }
 }
@@ -304,6 +325,45 @@ void srGERD::setClearDepth(double depth)
         return;
     }
     clear_depth_1b28_ = depth;
+}
+
+// FUNCTION: SURRENDER 0x1001CC10
+void srGERD::drawArrays(srRendererDefs::e_primitive primitive, long first, unsigned long count)
+{
+    if ((enable_flags_20_.value & 4) == 0) {
+        if ((dirty_24_ & 0x1f0) != 0) {
+            applyViewStateChanges();
+        }
+        if ((dirty_24_ & 0xfe00) != 0) {
+            applyDrawStateChanges();
+        }
+        if ((dirty_21c0_ & 1) != 0) {
+            getDD()->setVertexArrayInfo(&vertex_arrays_21c4_);
+            dirty_21c0_ &= ~1UL;
+        }
+        getDD()->drawArrays(primitive, first, count);
+        statistics_1a78_.draw_calls_60++;
+    }
+}
+
+// FUNCTION: SURRENDER 0x1001CC90
+void srGERD::drawElements(srRendererDefs::e_primitive primitive, unsigned long count,
+                          srRendererDefs::e_indexType type, const void* indices)
+{
+    if ((enable_flags_20_.value & 4) == 0) {
+        if ((dirty_24_ & 0x1f0) != 0) {
+            applyViewStateChanges();
+        }
+        if ((dirty_24_ & 0xfe00) != 0) {
+            applyDrawStateChanges();
+        }
+        if ((dirty_21c0_ & 1) != 0) {
+            getDD()->setVertexArrayInfo(&vertex_arrays_21c4_);
+            dirty_21c0_ &= ~1UL;
+        }
+        getDD()->drawElements(primitive, count, type, indices);
+        statistics_1a78_.draw_calls_60++;
+    }
 }
 
 // FUNCTION: SURRENDER 0x1001CEC0
@@ -585,6 +645,22 @@ srGERD::Renderer* srGERD::_lockRenderer(RendererEntry* entry)
 {
     entry->busy_0c = 1;
     return entry->renderer_08;
+}
+
+// FUNCTION: SURRENDER 0x10019D90
+void srGERD::unlockRenderer(Renderer* renderer, int submit)
+{
+    SectionAccess access(renderers_section_14_);
+    for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
+        if (entry->renderer_08 == renderer) {
+            entry->busy_0c = 0;
+            if (srThread::getHandle() == owner_thread_1c_ &&
+                (submit != 0 || renderer->isBatchFull() != 0)) {
+                renderer->submit();
+            }
+            return;
+        }
+    }
 }
 
 // FUNCTION: SURRENDER 0x10019E30

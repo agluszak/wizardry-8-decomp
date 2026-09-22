@@ -70,23 +70,164 @@ public:
             unsigned long texture_stages;
         };
 
+        /* +0x18/+0x20: per-stage scratch the DD dispatch at 0x10026360
+           repacks into interleaved {st,q} elements when the driver wants
+           combined texture-coordinate+w streams. */
+        struct TexCoordQ {
+            srVector2T<float> st_00;
+            float q_08;
+        };
+        static_assert(sizeof(TexCoordQ) == 0xc, "TexCoordQ_must_be_0xc");
+
+        /* intern() (0x10024280) hashes and compares the first three words;
+           the interned record additionally carries a class derived from the
+           shader's DSTBLEND field (ZERO -> 0, SRC_ALPHA pair -> 1, ONE -> 2,
+           SRC_COLOR pair -> 3). */
+        struct TextureSetKey {
+            srTextureIFace* texture0_00;
+            srTextureIFace* texture1_04;
+            srShader shader_08;
+        };
+        struct TextureSet {
+            srTextureIFace* texture0_00;
+            srTextureIFace* texture1_04;
+            srShader shader_08;
+            unsigned long blend_0c;
+        };
+        /* +0x44: texture-set interning cache. The map's value is the index
+           into sets_04_; reset() runs the map's Clear() and empties the
+           record array. */
+        struct TextureSetCache {
+            srHashTable<TextureSetKey, unsigned long>* map_00;
+            srArray<TextureSet> sets_04;
+            unsigned long count_0c;
+
+            /* Retail's constructor emission allocates the map after the
+               record array and count are zeroed. */
+            TextureSetCache() : count_0c(0)
+            {
+                map_00 = new srHashTable<TextureSetKey, unsigned long>;
+            }
+            /* ~Renderer inlines this sequence as map->Clear(),
+               sets_04.release(), count_0c = 0, delete map_00 followed by the
+               memberwise ~sets_04. */
+            ~TextureSetCache()
+            {
+                clear();
+                delete map_00;
+            }
+            /* Renderer::reset inlines the same triple: clear the interning
+               map, drop the record array, reset the count. */
+            void clear()
+            {
+                map_00->Clear();
+                sets_04.release();
+                count_0c = 0;
+            }
+            unsigned long intern(const TextureSetKey& key);
+        };
+        /* Write pointers alloc() (0x10024460) returns for the reserved
+           triangle range. */
+        struct IndexWrite {
+            srVector3i* triangles_00;
+            unsigned long* texture_set_04;
+            unsigned long* sort_key_08;
+            unsigned long* aux_0c;
+        };
+        /* +0x54: accumulated primitive work. alloc() reserves count entries
+           plus 0x40 headroom across all four streams and returns the write
+           pointers; reset() (0x10024620) always clears the count and only
+           frees when asked. */
+        struct IndexBatch {
+            srHeapArray<srVector3i> triangles_00;
+            srArray<unsigned long> texture_set_08;
+            srArray<unsigned long> sort_key_10;
+            srArray<unsigned long> aux_18;
+            unsigned long count_20;
+
+            /* Retail's constructor emission calls the reserve form with 0
+               on the three operator-new arrays. */
+            IndexBatch() : texture_set_08(0), sort_key_10(0), aux_18(0), count_20(0) {}
+            void alloc(IndexWrite& write, unsigned long count);
+            void reset(int release);
+        };
+        /* +0x78: accumulated vertex streams. alloc() (0x10024680) grows all
+           streams, default-fills the new range (positions {0,0,0,1}, st
+           {0,0}, q 1.0, the rest zeroed/uninitialized) and bind()
+           (0x10027cf0) points an srVertexArray at the reserved range. The
+           +0x00/+0x08/+0x10 streams bind to diffuse/specular/eye locations
+           in that order. */
+        struct VertexArrays {
+            srHeapArray<srVector4T<float> > diffuse_00;
+            srHeapArray<srVector4T<float> > specular_08;
+            srHeapArray<srVector4T<float> > positions_10;
+            srHeapArray<srVector2T<float> > st_18[2];
+            srArray<float> q_28[2];
+            srArray<unsigned char> packed_38;
+            /* isBatchFull compares this signed against batch_limit_dc_. */
+            long count_40;
+            unsigned long capacity_44;
+
+            /* Retail's constructor emission calls the reserve form with 0
+               on the vec4 streams and the packed byte array. */
+            VertexArrays()
+                : diffuse_00(0), specular_08(0), positions_10(0), packed_38(0), count_40(0),
+                  capacity_44(0)
+            {
+            }
+            void alloc(srVertexArray& arrays, unsigned long count);
+            void bind(srVertexArray& arrays, unsigned long base);
+        };
+
         Renderer(const Parameters& parameters);
         void allocVertexArray(srVertexArray& arrays, unsigned long count);
+        /* FUN_10025260: expands/dedups the input triangles into the vertex
+           batch. */
         void render(const TriInput& input);
         /* FUN_10024db0: the accumulated batch count passed the limit. Only
            immediate (non-sorted) renderers report full. */
         int isBatchFull() const;
         /* FUN_100266e0: submit the accumulated batch through the DD. */
         void submit();
+        /* FUN_10025d50/0x10025F40: the immediate (sorted_d8_ == 0) and
+           sorted draw paths over the accumulated index batch. */
+        void drawImmediate();
+        void drawSorted();
+        /* FUN_10027ed0: point the draw state at texture set `index`,
+           updating each of texture0/texture1/shader only on change. */
+        void bindTextureSet(unsigned long index);
+        /* FUN_10026360: repack the per-stage stq scratch streams and program
+           the DD vertex arrays for the bound batch. */
+        void programVertexArrays(srVertexArray* arrays, unsigned long count);
         /* FUN_100268a0: discard accumulated state; nonzero also releases
            the backing arrays. */
         void reset(int release_buffers);
 
-        unsigned char unknown_00_[0xb8];
-        /* Accumulated primitive count; reset() and submit() clear it and
-           isBatchFull() compares it signed against batch_limit_dc_. */
-        long batch_count_b8_;
-        unsigned char unknown_bc_[0x18];
+        /* The checked-free srHeapBuffer family, not srHeapArray: ~Renderer
+           null-checks before freeing these streams. bytes_00_ grows by 1-byte
+           elements, dwords_08_ and remap_10_ by 4-byte elements (the ensure
+           emissions at 0x100271D0/0x10027280 multiply by the element size). */
+        srHeapBuffer<unsigned char> bytes_00_;
+        srHeapBuffer<unsigned long> dwords_08_;
+        /* render()'s per-corner dedup scratch (six slots per triangle). */
+        srHeapBuffer<unsigned long> remap_10_;
+        srHeapBuffer<TexCoordQ> stq_18_[2];
+        /* memset for 0x1c bytes in the ctor; submit() (0x100266E0) bumps
+           [4] per call and accumulates the vertex count into [5] and the
+           index-batch count into [6]. */
+        unsigned long statistics_28_[7];
+        TextureSetCache texture_sets_44_;
+        IndexBatch indices_54_;
+        VertexArrays vertices_78_;
+        /* allocVertexArray() snapshots the vertex count here so render() can
+           offset indices into the reserved range. */
+        long first_vertex_c0_;
+        /* Bound draw state, refreshed per texture set in the immediate and
+           sorted paths. shader_cc_ re-defaults in the ctor body. */
+        srTextureIFace* texture0_c4_;
+        srTextureIFace* texture1_c8_;
+        srShader shader_cc_;
+        unsigned long clip_state_d0_;
         srGERD* gerd_d4_;
         /* lockRenderer matches this against the sorted-mode enable bit;
            flushSort flushes entries where it is 1, flushImmediateRenderers
@@ -192,7 +333,9 @@ public:
         unsigned long palette_binds_58;
         /* setShader calls counted by applyDrawStateChanges. */
         unsigned long shader_sets_5c;
-        unsigned char unknown_60[8];
+        /* drawArrays/drawElements increment this draw-call count. */
+        unsigned long draw_calls_60;
+        unsigned char unknown_64[4];
         unsigned long value_68;
         /* testBoundingSphere call count / visible-result count. */
         unsigned long sphere_tests_6c;
@@ -319,6 +462,8 @@ public:
     void setTextureSubImage(srTextureIFace* texture, long mipmap, long x, long y, long width,
                             long height);
     void drawArrays(srRendererDefs::e_primitive primitive, long first, unsigned long count);
+    void drawElements(srRendererDefs::e_primitive primitive, unsigned long count,
+                      srRendererDefs::e_indexType type, const void* indices);
     void popPick(Pick& pick);
     void pushPick(const Pick& pick);
     void toggle(e_enable option);
@@ -352,6 +497,9 @@ public:
         }
     }
 
+    /* Header inline that also emits the standalone retail 0x1001BB40 copy;
+       drawSorted calls the emission while drawImmediate inlines it. */
+    // FUNCTION: SURRENDER 0x1001BB40
     void setShader(const srShader& shader)
     {
         if (shader_1ff8_.value != shader.value) {
@@ -362,7 +510,7 @@ public:
 
     void setVertexArrayMask(srFlags<srRendererDefs::e_vertexArray> mask)
     {
-        vertex_array_mask_21c4_ = mask;
+        vertex_arrays_21c4_.mask_00 = mask;
         dirty_21c0_ |= 1;
     }
 
@@ -370,22 +518,18 @@ public:
                             const void* values, unsigned long layer)
     {
         unsigned long index = layer + 4;
-        array_components_21d0_[index] = components;
-        array_types_21e8_[index] = type;
-        array_strides_2200_[index] = stride;
-        arrays_2218_[index] = values;
+        vertex_arrays_21c4_.components_0c[index] = components;
+        vertex_arrays_21c4_.types_24[index] = type;
+        vertex_arrays_21c4_.strides_3c[index] = stride;
+        vertex_arrays_21c4_.arrays_54[index] = values;
         dirty_21c0_ |= 1;
     }
 
     void setVertexPointer(long primitive, srRendererDefs::e_type type, unsigned long stride,
                           const void* values, long count)
     {
-        vertex_count_21c8_ = count < 0 ? 0 : count;
-        array_components_21d0_[0] = primitive;
-        array_types_21e8_[0] = type;
-        array_strides_2200_[0] = stride;
-        arrays_2218_[0] = values;
-        dirty_21c0_ |= 1;
+        vertex_arrays_21c4_.count_04 = count < 0 ? 0 : count;
+        setDataPtr(srRendererDefs::VERTEX_ARRAY_POSITIONS, primitive, type, stride, values);
     }
 
 private:
@@ -408,7 +552,23 @@ private:
     static_assert(sizeof(Texture) == 0xa8, "srGERD_Texture_must_be_0xa8");
 
     srGERD& operator=(const srGERD& other);
+    /* Renderer::submit reaches getDD; VC6 does not give nested classes
+       enclosing-member access. */
+    friend class Renderer;
     srDD* getDD() const;
+
+    /* Header inline that also emits the standalone retail 0x1001BC30 copy;
+       the batched renderer programs the six DD array slots through it. */
+    // FUNCTION: SURRENDER 0x1001BC30
+    void setDataPtr(srRendererDefs::e_vertexArray index, long components,
+                    srRendererDefs::e_type type, unsigned long stride, const void* values)
+    {
+        vertex_arrays_21c4_.components_0c[index] = components;
+        vertex_arrays_21c4_.types_24[index] = type;
+        vertex_arrays_21c4_.strides_3c[index] = stride;
+        vertex_arrays_21c4_.arrays_54[index] = values;
+        dirty_21c0_ |= 1;
+    }
 
     /* Handle-hash chain node: {next, handle, texture} at stride 0xc, proven
        by invalidateTextureByFrameHandle's walk. */
@@ -631,15 +791,25 @@ private:
     unsigned long vertex_processor_count_21b8_;
     unsigned long exclusion_mask_21bc_;
     unsigned long dirty_21c0_;
-    srFlags<srRendererDefs::e_vertexArray> vertex_array_mask_21c4_;
-    unsigned long vertex_count_21c8_;
-    srFlags<srRendererDefs::e_clip> clip_state_21cc_;
-    long array_components_21d0_[6];
-    srRendererDefs::e_type array_types_21e8_[6];
-    unsigned long array_strides_2200_[6];
-    const void* arrays_2218_[6];
+    /* The vertex-stream state handed to srDD::setVertexArrayInfo by
+       drawArrays/drawElements; setDataPtr and the pointer setters program it. */
+    srRendererDefs::VertexArrayInfo vertex_arrays_21c4_;
     unsigned char unknown_2230_[8];
 };
+
+/* Retail 0x10027BF0: the three-word texture-set key hash; the interning
+   cache inlines it for the lookup probe and calls this emission when
+   inserting. */
+// FUNCTION: SURRENDER 0x10027BF0
+inline unsigned int srHashValue(const srGERD::Renderer::TextureSetKey& key)
+{
+    // reinterpret-ok: the hash mixes the stored interface addresses.
+    return ((key.shader_08.value >> 10 ^ reinterpret_cast<unsigned long>(key.texture1_04)) >> 1 ^
+            // reinterpret-ok: as above.
+            reinterpret_cast<unsigned long>(key.texture0_00)) >>
+               5 ^
+           key.shader_08.value;
+}
 
 static_assert(sizeof(srGERD) == 0x2238, "srGERD_must_be_0x2238");
 static_assert(sizeof(srGERD::ClipPlanes) == 0x208, "srGERD_ClipPlanes_must_be_0x208");
