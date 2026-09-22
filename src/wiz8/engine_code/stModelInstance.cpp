@@ -706,14 +706,14 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
             poly_normals = 0;
         }
 
-        if (g_flag_0065a146 != 0) {
+        if (g_render_untextured_0065a146 != 0) {
             mesh.shaders_b0[0].value &= 0xffff73ff;
             mesh.poly_shaders_100[0] = 0;
             mesh.poly_textures_e0[0][0] = 0;
             mesh.poly_uv_110[0] = 0;
             mesh.texcoords_18[0][0] = 0;
         }
-        if (g_flag_0065a0ec != 0) {
+        if (g_render_unlit_0065a0ec != 0) {
             mesh.dig_40[0] = 0;
         }
         srPtr<srTextureIFace>*(*poly_textures)[2] = mesh.poly_textures_e0;

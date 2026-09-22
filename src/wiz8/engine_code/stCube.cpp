@@ -469,7 +469,8 @@ static W8WorldCursorNode* FindNearestWorldCursorNode0048E310(int x, int y)
 
     for (int index = 0; index < count; ++index) {
         W8WorldCursorNode* entry = *g_world_cursor_nodes_65ba58.GetAt(index);
-        if (entry != 0 && entry->node_04 != 0 && entry->node_04 == GetValue65962C()) {
+        if (entry != 0 && entry->node_04 != 0 &&
+            entry->node_04 == GetPickedModelInstance00427810()) {
             srVector3T<double> camera;
             g_world->camera->getLocation(camera);
             srVector3T<double> node;

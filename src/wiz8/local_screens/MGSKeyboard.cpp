@@ -296,7 +296,7 @@ void DispatchMGSCommand(int command)
         break;
     case W8_MGS_COMMAND_TOGGLE_FULLSCREEN:
         ResetTransientRenderScenes();
-        SetRendererMode6596EC();
+        SetOverlayRenderMode00428A90();
         SetRendererModePair();
         VideoFullScreen(VideoIsFullScreen() == 0);
         break;

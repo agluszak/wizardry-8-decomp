@@ -102,7 +102,7 @@ void InitializeWorldCursor00490210(void)
     srShader shader;
     srMaterial* material;
 
-    ClearFlag603C60();
+    DisableCursorScene00428010();
     SetMouseCursorHotspot(0, 0);
     if (g_world_cursor_0065ba8c == 0) {
         g_world_cursor_0065ba8c = static_cast<W8WorldCursorState*>(malloc(0xe0));
@@ -263,7 +263,7 @@ void ReleaseWorldCursor004909C0(void)
     }
     cursor->group_bind_pending_09 = 0;
     g_cursor_saved_value_60ab44 = cursor->value_4c;
-    SetFlag603C60();
+    EnableCursorScene00428020();
     RequestRefreshPartyState();
     ClearTargetMarker();
     free(cursor);
@@ -296,7 +296,7 @@ void ShowWorldCursor00490B10(void)
             g_world_cursor_0065ba8c->particle_04->SetActive(1);
         }
         SetMouseCursorHotspot(0, 0);
-        ClearFlag603C60();
+        DisableCursorScene00428010();
         ClearCombatSelection();
     }
 }
@@ -321,7 +321,7 @@ void HideWorldCursor00490B90(void)
     if (cursor->particle_04 != 0) {
         cursor->particle_04->SetActive(0);
     }
-    SetFlag603C60();
+    EnableCursorScene00428020();
     RequestRefreshPartyState();
 }
 

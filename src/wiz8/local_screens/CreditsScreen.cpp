@@ -79,7 +79,7 @@ unsigned char CreditsScreenEnter(void)
     SetViewport(0, 0, 0x280, 0x1e0);
     ResetRegions();
     RegionSetEnable(2);
-    ClearFlag603C60();
+    DisableCursorScene00428010();
     g_credit_lines_0069c4a8 = new W8GrowableVector<W8CreditLine>();
 
     handle = FileOpen((char*)"Data\\Options\\Credits.txt", FILE_ACCESS_READ, 0);
@@ -141,7 +141,7 @@ unsigned char CreditsScreenLeave(int)
     }
     delete g_credit_lines_0069c4a8;
     ResetRegions();
-    SetFlag603C60();
+    EnableCursorScene00428020();
     if (IsCurrentMusicPlaylist("EndCredit.MPL")) {
         StopMusicPlaylist(1);
     }

@@ -74,7 +74,7 @@ void ExitScreenFrame(void)
     } else {
         gfProgramIsRunning = 0;
     }
-    ClearFlag603C60();
+    DisableCursorScene00428010();
     ClearPrimarySurface();
     ResetTransientRenderScenes();
     RenderFrame();

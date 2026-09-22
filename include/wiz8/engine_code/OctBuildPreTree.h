@@ -57,13 +57,13 @@ static_assert(sizeof(W8OctRegionPolygon) == 0x74, "W8OctRegionPolygon_must_be_0x
    boundary, preserving existing entries. */
 int CheckArrayLength004CFB70(int** run, unsigned short count, unsigned short capacity);
 
-extern int g_value_65be60;
-extern unsigned long g_value_65be58;
+extern int g_build_node_instances_65be60;
+extern unsigned long g_poly_list_count_65be58;
 /* Build scratch carries mode-2 region polygons and mode-3 GD surfaces. */
-extern void** g_pointer_65be64;
-extern W8GDSurface** g_pointer_65be68;
-extern unsigned short* g_pointer_65be5c;
-extern unsigned short g_value_65be6c;
+extern void** g_poly_list_65be64;
+extern W8GDSurface** g_gd_surface_list_65be68;
+extern unsigned short* g_region_id_list_65be5c;
+extern unsigned short g_region_id_count_65be6c;
 
 /* Retail assertion text gives the class and member names directly:
    "OctBuildPreTree::m_ppPolyList too long.", "m_pulRegPaths" and

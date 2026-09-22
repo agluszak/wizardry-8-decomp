@@ -1,7 +1,5 @@
 #pragma once
 
-void SetHeapFree(void* block);
-
 #include "wiz8/geometry.h"
 
 class W8Monster;

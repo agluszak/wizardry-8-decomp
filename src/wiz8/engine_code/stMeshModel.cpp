@@ -289,7 +289,7 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
     srVector3T<float> scaled;
     srVector3T<float> ambient_rgb;
 
-    if ((flags_3a0 & 2) != 0 && g_flag_0065a0ec == 0) {
+    if ((flags_3a0 & 2) != 0 && g_render_unlit_0065a0ec == 0) {
         lights = vertex_lights_3b4[vertex_light_table_3b0].data;
         sunlight = vertex_sunlight_3c4.data;
         if (lights != 0 && sunlight != 0) {
@@ -454,7 +454,7 @@ void stMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
 /* Wizardry-extended srMeshModel::renderTriMesh. Optional `poly_equations`
    enables a software backface cull into g_software_cull_active_polygons and
    forces CULL_FRONT; a null table leaves hardware cull at CULL_NONE unless
-   g_flag_0065a0ed already requested front culling. */
+   g_render_cull_front_0065a0ed already requested front culling. */
 // FUNCTION: WIZ8 0x00470380
 void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const TriMesh& mesh,
                                                      const srVector4T<float>* poly_equations)
@@ -464,12 +464,12 @@ void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const Tri
 
     if (mesh.polygon_count_04 != 0 && mesh.vertex_count_00 != 0) {
         renderer.pushEnable();
-        if ((g_flag_0065a0ee != 0 || (mesh.control_flags_0c & 0x40) != 0) &&
+        if ((g_inverted_depth_render_0065a0ee != 0 || (mesh.control_flags_0c & 0x40) != 0) &&
             !renderer.isEnabled(srGERD::ENABLE_POSITIONAL_1)) {
             renderer.toggle(srGERD::ENABLE_POSITIONAL_1);
         }
 
-        if (g_flag_0065a0ed != 0) {
+        if (g_render_cull_front_0065a0ed != 0) {
             renderer.setCullMode(srGERD::CULL_FRONT);
         } else if (poly_equations != 0) {
             renderer.setCullMode(srGERD::CULL_FRONT);
@@ -640,7 +640,7 @@ void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const Tri
 
                     if (mesh.poly_shaders_100[pass] == 0) {
                         shader.value = mesh.shaders_b0[pass].value;
-                        if (g_flag_0065a0ee != 0) {
+                        if (g_inverted_depth_render_0065a0ee != 0) {
                             shader.value = (shader.value & 0xfffffffeUL) | 6UL;
                         }
                         pipeline->SetFlags004752C0(shader);
@@ -2066,4 +2066,3 @@ srTriMeshPipeline* srTriMeshPipeline::Get004750A0(srGERD* renderer)
    at 0x005AA400 (OptionsScreen.cpp). No separate FUNCTION claim: decomplint
    rejects FOLDED-before-primary when engine_code sorts ahead of OptionsScreen. */
 void stMeshModel::NotifyLinkedModel005AA400(stMeshModel*) {}
-

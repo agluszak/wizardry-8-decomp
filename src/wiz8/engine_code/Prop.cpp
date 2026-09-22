@@ -319,7 +319,7 @@ bool W8Prop::IsPickedProp0044D680(W8World* world)
         for (index = 0; index < static_cast<int>(count); ++index) {
             instance =
                 AnimObjDispatchList004A1560(Rep()->animation, 2, static_cast<signed char>(index));
-            if (GetValue65962C() == instance) {
+            if (GetPickedModelInstance00427810() == instance) {
                 return true;
             }
         }
@@ -331,7 +331,7 @@ bool W8Prop::IsPickedProp0044D680(W8World* world)
     } else {
         instance = AnimObjDispatchList004A1560(Rep()->animation, 2, 0);
     }
-    return GetValue65962C() == instance;
+    return GetPickedModelInstance00427810() == instance;
 }
 
 /* Resolve the renderer's picked model instance back to the prop and trigger
@@ -349,7 +349,7 @@ char ResolvePickedProp(W8World* world)
 
     g_selected_prop_trigger_00659a60 = 0;
     g_selected_prop_index_00607b98 = -1;
-    selected = GetValue65962C();
+    selected = GetPickedModelInstance00427810();
     if (selected == 0) {
         return 0;
     }
@@ -381,7 +381,7 @@ char ResolvePickedProp(W8World* world)
             for (instance_index = 0; instance_index < count; ++instance_index) {
                 instance = AnimObjDispatchList004A1560(representation->animation, 2,
                                                        static_cast<signed char>(instance_index));
-                if (GetValue65962C() == instance) {
+                if (GetPickedModelInstance00427810() == instance) {
                     break;
                 }
             }
@@ -390,7 +390,7 @@ char ResolvePickedProp(W8World* world)
             }
         } else {
             instance = representation->ToggleAnimation(representation->subcycle_064);
-            if (GetValue65962C() != instance) {
+            if (GetPickedModelInstance00427810() != instance) {
                 continue;
             }
         }
@@ -420,7 +420,7 @@ char ResolvePickedProp(W8World* world)
                 }
             }
             valid = 0;
-            SetValue65962C(0);
+            SetPickedModelInstance00427820(0);
             g_selected_prop_trigger_00659a60 = 0;
             g_selected_prop_index_00607b98 = -1;
         }
@@ -1970,7 +1970,7 @@ void LoadWorldProps0044E9A0(W8World* world, int handle)
 // FUNCTION: WIZ8 0x0044DA60
 int GetSelectedPropIndex0044DA60(void)
 {
-    if (GetValue65962C() == 0) {
+    if (GetPickedModelInstance00427810() == 0) {
         return g_selected_prop_index_00607b98 = -1;
     }
     return g_selected_prop_index_00607b98;
@@ -1982,7 +1982,7 @@ int GetSelectedPropIndex0044DA60(void)
 // FUNCTION: WIZ8 0x0044DA20
 unsigned char ActivateSelectedProp0044DA20(void)
 {
-    if (GetValue65962C() == 0) {
+    if (GetPickedModelInstance00427810() == 0) {
         g_selected_prop_trigger_00659a60 = 0;
         return 0;
     }
