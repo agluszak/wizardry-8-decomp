@@ -131,6 +131,23 @@ jobs:
       - name: Install Python dependencies
         run: uv sync --frozen
 
+      - name: Verify PR base ancestry and marker preservation
+        if: github.event_name == 'pull_request'
+        run: |
+          # Gate on the fetched base, not a possibly-stale local origin ref:
+          # a branch carrying new work on an old ancestor would silently replay
+          # obsolete recoveries past a stale-local merge-preservation check.
+          # merge-base needs shared history; deepen head and base until it
+          # resolves or the bound is exhausted.
+          for _ in 1 2 3 4 5; do
+            if git merge-base HEAD "origin/$GITHUB_BASE_REF" >/dev/null 2>&1; then
+              break
+            fi
+            git fetch --no-tags --deepen=256 origin \
+              "+refs/heads/$GITHUB_BASE_REF:refs/remotes/origin/$GITHUB_BASE_REF" HEAD
+          done
+          uv run wiz8 report merge-preservation --base "origin/$GITHUB_BASE_REF"
+
       - name: Validate CI environment
         run: uv run wiz8 doctor
 

@@ -70,6 +70,79 @@ def _git(repo_dir: Path, *args: str) -> str:
     ).stdout
 
 
+def _resolve_commit(repo_dir: Path, revision: str) -> str:
+    """Resolve a Jujutsu revset or a Git revision to a commit id."""
+
+    if (repo_dir / ".jj").is_dir():
+        return subprocess.run(
+            ["jj", "log", "-r", revision, "--no-graph", "-T", "commit_id"],
+            cwd=repo_dir,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+    if revision.endswith("@origin"):
+        revision = f"origin/{revision.removesuffix('@origin')}"
+    return _git(repo_dir, "rev-parse", "--verify", f"{revision}^{{commit}}").strip()
+
+
+def base_ancestry_report(repo_dir: Path, base: str, head: str | None = None) -> dict[str, Any]:
+    """Verify ``base`` is an ancestor of ``head`` and report divergence.
+
+    A stale recovery branch puts one new commit on an old base ancestor while
+    current main advanced; comparing such a head against the fetched base would
+    silently replay obsolete recoveries. The report carries the resolved base,
+    merge base and ahead/behind counts, plus the files each side changed since
+    the merge base when the branch has diverged.
+    """
+
+    if head is None:
+        head = "@" if (repo_dir / ".jj").is_dir() else "HEAD"
+    head_sha = _resolve_commit(repo_dir, head)
+    base_sha = _resolve_commit(repo_dir, base)
+    try:
+        merge_base = _git(repo_dir, "merge-base", head_sha, base_sha).strip()
+    except subprocess.CalledProcessError:
+        return {
+            "status": "failed",
+            "base": base_sha,
+            "head": head_sha,
+            "merge_base": None,
+            "error": (
+                f"no common ancestor between base {base_sha[:12]} and head "
+                f"{head_sha[:12]}; fetch deeper history before validating"
+            ),
+        }
+    ancestor = merge_base == base_sha
+    ahead = int(_git(repo_dir, "rev-list", "--count", f"{merge_base}..{head_sha}"))
+    behind = int(_git(repo_dir, "rev-list", "--count", f"{merge_base}..{base_sha}"))
+    report: dict[str, Any] = {
+        "status": "passed" if ancestor else "failed",
+        "base": base_sha,
+        "head": head_sha,
+        "merge_base": merge_base,
+        "ahead": ahead,
+        "behind": behind,
+    }
+    if not ancestor:
+        report["error"] = (
+            f"base {base_sha[:12]} is not an ancestor of head {head_sha[:12]} "
+            f"(merge base {merge_base[:12]}; {ahead} ahead, {behind} behind); "
+            "fetch and rebase onto the current base before validating"
+        )
+        report["changed_files_since_merge_base"] = {
+            side: sorted(
+                line
+                for line in _git(
+                    repo_dir, "diff", "--name-only", "--no-renames", f"{merge_base}..{tip}"
+                ).splitlines()
+                if line
+            )
+            for side, tip in (("head", head_sha), ("base", base_sha))
+        }
+    return report
+
+
 def _tree_sources(repo_dir: Path, revision: str | None) -> dict[str, str]:
     if revision is None:
         listing = _git(

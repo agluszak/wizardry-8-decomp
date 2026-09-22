@@ -51,13 +51,19 @@ def pr_check_command(
     from ..build import check, lint, lint_required
     from ..comparison import changed_files
     from ..config import repository_root
+    from ..merge_preservation import base_ancestry_report
 
     repository = repository_root()
+    ancestry = base_ancestry_report(repository, base)
+    if ancestry["status"] != "passed":
+        cli.emit({"status": "failed", "base": base, "base_ancestry": ancestry})
+        raise typer.Exit(code=1)
     changed_paths = changed_files(repository, base)
     changed = [path.relative_to(repository).as_posix() for path in changed_paths]
     result: dict[str, Any] = {
         "status": "passed",
         "base": base,
+        "base_ancestry": ancestry,
         "changed_files": changed,
         "check": check(repository),
         "lint": None,

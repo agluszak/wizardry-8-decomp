@@ -153,11 +153,25 @@ def merge_preservation_command(
     """Compare FUNCTION/GLOBAL/VTABLE marker identities by retail address between two revisions."""
 
     from .. import command_support as cli
-    from ..merge_preservation import merge_preservation_report, parse_allowed
-
-    report = merge_preservation_report(
-        cli.settings().repo_dir, base, head, parse_allowed(allow or [])
+    from ..merge_preservation import (
+        base_ancestry_report,
+        merge_preservation_report,
+        parse_allowed,
     )
+
+    repository = cli.settings().repo_dir
+    ancestry = base_ancestry_report(repository, base, head)
+    if ancestry["status"] != "passed":
+        cli.emit({"status": "failed", "base": base, "base_ancestry": ancestry})
+        raise typer.Exit(code=1)
+    report = merge_preservation_report(
+        repository,
+        ancestry["base"],
+        ancestry["head"] if head is not None else None,
+        parse_allowed(allow or []),
+    )
+    report["requested_base"] = base
+    report["base_ancestry"] = ancestry
     cli.emit(report)
     if report["status"] != "passed":
         raise typer.Exit(code=1)

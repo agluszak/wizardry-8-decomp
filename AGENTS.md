@@ -185,7 +185,9 @@ disagreement rather than suppressing the finding.
 
 Before publishing a pull request, run `uv run wiz8 pr-check`. It always runs `wiz8 check` and also
 runs `wiz8 lint` when the PR changes C/C++ source or headers; a C/C++ PR is not validated without both
-lanes.
+lanes. `pr-check` and `report merge-preservation` first require the given `--base` to be an ancestor
+of the current head and fail with merge-base/ahead/behind counts when it is not; fetch and rebase onto
+`main@origin` first rather than claiming success against a stale local base.
 
 Format manually owned C/C++ files you changed with `uv run clang-format --style=file -i <paths>` and
 check them with `--dry-run --Werror --fail-on-incomplete-format`. Do not reformat imported/vendor source

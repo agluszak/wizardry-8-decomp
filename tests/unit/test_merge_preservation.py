@@ -297,3 +297,50 @@ def test_allow_is_scoped_to_target_kind_and_transition(tmp_path: Path) -> None:
             tmp_path, base, head, parse_allowed([selector + "=reviewed"])
         )
         assert report["status"] == "failed"
+
+
+def test_base_ancestry_passes_when_base_is_ancestor(tmp_path: Path) -> None:
+    from wiz8decomp.merge_preservation import base_ancestry_report
+
+    _repo(tmp_path)
+    base = _commit(tmp_path, {"src/foo.cpp": "int a;\n"}, "base")
+    head = _commit(tmp_path, {"src/foo.cpp": "int a;\nint b;\n"}, "head")
+
+    report = base_ancestry_report(tmp_path, base, head)
+
+    assert report["status"] == "passed"
+    assert report["base"] == base
+    assert report["merge_base"] == base
+    assert report["ahead"] == 1
+    assert report["behind"] == 0
+
+
+def test_base_ancestry_fails_on_diverged_branch(tmp_path: Path) -> None:
+    from wiz8decomp.merge_preservation import base_ancestry_report
+
+    _repo(tmp_path)
+    stale = _commit(tmp_path, {"src/foo.cpp": "int a;\n"}, "stale-base")
+    # Head carries one commit on the old base while main advances elsewhere.
+    subprocess.run(["git", "-C", str(tmp_path), "checkout", "-qb", "branch"], check=True)
+    _commit(tmp_path, {"src/stale.cpp": "int stale;\n"}, "branch-work")
+    branch_head = subprocess.run(
+        ["git", "-C", str(tmp_path), "rev-parse", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    subprocess.run(["git", "-C", str(tmp_path), "checkout", "-q", "main"], check=True)
+    base = _commit(tmp_path, {"src/new.cpp": "int fresh;\n"}, "main-advanced")
+
+    report = base_ancestry_report(tmp_path, base, branch_head)
+
+    assert report["status"] == "failed"
+    assert report["base"] == base
+    assert report["merge_base"] == stale
+    assert report["ahead"] == 1
+    assert report["behind"] == 1
+    assert "not an ancestor" in report["error"]
+    assert report["changed_files_since_merge_base"] == {
+        "head": ["src/stale.cpp"],
+        "base": ["src/new.cpp"],
+    }
