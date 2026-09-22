@@ -48,8 +48,11 @@ jobs:
       WIZ8_GHIDRA_PROJECT_DIR: /tmp/wiz8-ghidra-project
       WIZ8_RUNTIME_DISPLAY: virtual
       GITHUB_EVENT_BEFORE: ${{ github.event.before }}
-      TRUSTED_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == github.repository_owner }}
-      LICENSED_INPUTS: ${{ (github.event_name != 'pull_request' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == github.repository_owner) }}
+      # Same-repository PRs are allowed to use the licensed CI inputs regardless
+      # of which account authored the PR (human, Devin, or another integration).
+      # Fork PRs remain public-only and do not receive repository secrets.
+      TRUSTED_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+      LICENSED_INPUTS: ${{ (github.event_name != 'pull_request' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -423,7 +426,7 @@ jobs:
   comment-reccmp-status:
     name: Comment reccmp status
     needs: ci
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == github.repository_owner && needs.ci.result == 'success'
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && needs.ci.result == 'success'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
