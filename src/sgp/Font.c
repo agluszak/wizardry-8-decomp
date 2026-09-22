@@ -1300,6 +1300,7 @@ void ShutdownFontManager(void)
 //
 // Destroys the English text->font map table.
 //*****************************************************************************
+// FUNCTION: WIZ8 0x00407E70
 void DestroyEnglishTransTable( void )
 {
 	if(pFManager)

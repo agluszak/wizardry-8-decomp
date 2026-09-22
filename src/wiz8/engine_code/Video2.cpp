@@ -1408,7 +1408,6 @@ void SetWorldModelPickingEnabled(char enabled)
     }
 }
 
-
 /* Mouse cursor scene and rendering. */
 namespace {
 
@@ -3957,6 +3956,9 @@ void SetPickKey004277F0(void* key)
 
 // SYNTHETIC: WIZ8 0x0042A360
 // srVertexProcessor::~srVertexProcessor trivial body
+
+// SYNTHETIC: WIZ8 0x0042B890
+// srVertexProcessor scalar deleting destructor
 
 /* srVertexProcessor::MaterialInfo's inline ctor emitted out-of-line inside
    srMaterial's locally-compiled constructor; the primary is in
