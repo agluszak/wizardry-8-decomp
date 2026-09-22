@@ -335,6 +335,10 @@ unsigned long srVariableTimer::getRawTime(e_timerReadControl control)
     return m_scaled_tick.lo - m_scaled_base.lo;
 }
 
+/* Confirmed unusual retail contract (0x10064190): the out parameter receives
+   the absolute m_scaled_tick, while the return value is the low dword of the
+   elapsed m_scaled_tick - m_scaled_base. The two outputs describe different
+   quantities — this is retail's store sequence, not a recovery slip. */
 // FUNCTION: SURRENDER 0x10064190
 unsigned long srVariableTimer::getRawTime(srQuadWord& out, e_timerReadControl control)
 {
