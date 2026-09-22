@@ -697,3 +697,47 @@ EXPORTS
     ?setRange@srFog@@QAEXNN@Z
     ?vInstance@srFog@@UAEPAVsrClass@@XZ
     ?verify@srFog@@UAEXW4e_verify@srRuntimeClass@@@Z
+    ?getAmbientLight@srGERD@@QAEXAAV?$srVector4T@M@@@Z
+    ?getCullMode@srGERD@@QBE?AW4e_cullMode@1@XZ
+    ?getDD@srGERD@@ABEPAVsrDD@@XZ
+    ?getDisplayMode@srGERD@@QBEJKKK@Z
+    ?getEnvironmentRange@srGERD@@QBEXAAM0@Z
+    ?getEnvironmentScaleFactor@srGERD@@QAEXAAM0@Z
+    ?getExclusionMask@srGERD@@QBEKXZ
+    ?getFirst@srGERD@@SAPAV1@XZ
+    ?getHeight@srGERD@@QBEJXZ
+    ?getNext@srGERD@@QBEPAV1@XZ
+    ?getPolygonOffset@srGERD@@QBEJXZ
+    ?getTextureCacheSize@srGERD@@QBEKXZ
+    ?getTextureCacheUsed@srGERD@@QBEKXZ
+    ?getVertexProcessorCount@srGERD@@QBEKXZ
+    ?getVertexProcessors@srGERD@@QBEXPAPAVsrVertexProcessor@@@Z
+    ?getWidth@srGERD@@QBEJXZ
+    ?getWinding@srGERD@@QBE?AW4e_winding@1@XZ
+    ?getWindowHandle@srGERD@@QBEKXZ
+    ?isContextCreated@srGERD@@QBEHXZ
+    ?isWindowOpen@srGERD@@QBEHXZ
+    ?popEnable@srGERD@@QAEXXZ
+    ?popPick@srGERD@@QAEXAAUPick@1@@Z
+    ?pushEnable@srGERD@@QAEXXZ
+    ?pushPick@srGERD@@QAEXABUPick@1@@Z
+    ?resetTexture@srGERD@@AAEXXZ
+    ?setAmbientLight@srGERD@@QAEXABV?$srVector4T@M@@@Z
+    ?setAmbientLight@srGERD@@QAEXMMMM@Z
+    ?setAntiAlias@srGERD@@QAEXW4e_antiAlias@1@@Z
+    ?setClearColor@srGERD@@QAEXABV?$srVector4T@M@@@Z
+    ?setClearColor@srGERD@@QAEXMMMM@Z
+    ?setClearDepth@srGERD@@QAEXN@Z
+    ?setError@srGERD@@AAEXW4e_error@1@@Z
+    ?setExclusionMask@srGERD@@QAEXK@Z
+    ?setGamma@srGERD@@QAEXABV?$srVector3T@M@@@Z
+    ?setPickKey@srGERD@@QAEXK@Z
+    ?setSwapInterval@srGERD@@QAEXK@Z
+    ?setTextureReduction@srGERD@@QAEXJ@Z
+    ?setViewPort@srGERD@@QAEXKKKK@Z
+    ?setWinding@srGERD@@QAEXW4e_winding@1@@Z
+    ?toggle@srGERD@@QAEXW4e_enable@1@@Z
+    ?setClipState@srGERD@@QAEXV?$srFlags@W4e_clip@srRendererDefs@@@@@Z
+    ?setTextureDefaultMagFilter@srGERD@@QAEXW4e_filter@srTextureIFace@@@Z
+    ?setTextureDefaultMinFilter@srGERD@@QAEXW4e_filter@srTextureIFace@@@Z
+    ?setTextureDefaultMipmap@srGERD@@QAEXW4e_mipmap@srTextureIFace@@@Z

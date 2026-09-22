@@ -10,6 +10,8 @@
 
 #include "srRendererDefs.h"
 #include "srDD.h"
+class srCriticalSection;
+class srDebugDD;
 class srModelInstance;
 class srVertexProcessor;
 struct srVertexArray;
@@ -81,13 +83,17 @@ public:
     virtual void dump(std::ostream& stream) override;
 
     static srGERD* loadDevice(srStringTable& devices, unsigned long flags);
+    static srGERD* getFirst();
+    srGERD* getNext() const;
     e_error createContext(unsigned long window);
+    int isContextCreated() const;
     void deleteContext();
     long getDisplayMode(unsigned long width, unsigned long height, unsigned long depth) const;
     e_error openWindow();
     e_error openWindow(long mode);
     void closeWindow(e_closeHint hint);
     int isWindowOpen() const;
+    unsigned long getWindowHandle() const;
     void setGamma(const srVector3T<float>& gamma);
     e_error beginFrame();
     void endFrame();
@@ -122,6 +128,7 @@ public:
     void getStatistics(Statistics& statistics);
     unsigned long getTextureCacheUsed() const;
     unsigned long getResidentTextureMemUsed() const;
+    void setClearColor(const srVector4T<float>& color);
     void setClearColor(float red, float green, float blue, float alpha);
     void setClearDepth(double depth);
     void setAmbientLight(float red, float green, float blue, float alpha);
@@ -254,18 +261,92 @@ public:
 private:
     srGERD& operator=(const srGERD& other);
 
-    unsigned char unknown_0c_[0x14];
+    srDD* getDD();
+    void setError(e_error error);
+    void resetTexture();
+
+    static srGERD* first;
+
+    unsigned char unknown_0c_[8];
+    srCriticalSection* renderers_section_14_;
+    srCriticalSection* state_section_18_;
+    unsigned char unknown_1c_[4];
     srFlags<e_enable> enable_flags_20_;
     unsigned long dirty_24_;
-    unsigned char unknown_28_[0x50];
+    unsigned long state_flags_28_;
+    e_error last_error_2c_;
+    unsigned char unknown_30_[4];
+    srGERD* next_34_;
+    unsigned char unknown_38_[8];
+    srDD* dd_40_;
+    srDebugDD* debug_dd_44_;
+    srDD* real_dd_48_;
+    unsigned char unknown_4c_[0x2c];
     long max_texture_stages_78_;
-    unsigned char unknown_7c_[0x15cc];
+    unsigned char unknown_7c_[0x2e4];
+    void* texture_formats_360_;
+    long texture_format_count_364_;
+    unsigned long* display_modes_368_;
+    long display_mode_count_36c_;
+    unsigned char unknown_370_[4];
+    unsigned long window_374_;
+    unsigned char unknown_378_[8];
+    long width_380_;
+    long height_384_;
+    unsigned char unknown_388_[0x12b0];
+    unsigned long view_left_1638_;
+    unsigned long view_top_163c_;
+    unsigned long view_right_1640_;
+    unsigned long view_bottom_1644_;
     e_cullMode cull_mode_1648_;
-    unsigned char unknown_164c_[0x3a0];
-    int pick_depth_19ec_; /* 0x19ec */
-    unsigned char unknown_19f0_[0x608];
+    e_winding winding_164c_;
+    unsigned char unknown_1650_[0x108];
+    srVector3T<float> gamma_1758_;
+    unsigned long swap_interval_1764_;
+    e_antiAlias antialias_1768_;
+    Pick pick_stack_176c_[32];
+    unsigned long pick_depth_19ec_; /* 0x19ec */
+    unsigned long pick_key_19f0_;
+    unsigned char unknown_19f4_[0x84];
+    Statistics statistics_1a78_;
+    unsigned char unknown_1af8_[0x10];
+    srVector4T<float> clear_color_1b08_;
+    unsigned char unknown_1b18_[0x10];
+    double clear_depth_1b28_;
+    unsigned char unknown_1b30_[0x43c];
+    unsigned long mag_filter_map_1f6c_[4];
+    unsigned long mag_filter_param_1f7c_;
+    unsigned long min_filter_map_1f80_[4];
+    unsigned long min_filter_param_1f90_;
+    unsigned long mipmap_map_1f94_[3];
+    unsigned long mipmap_param_1fa0_;
+    unsigned char unknown_1fa4_[0x14];
+    srTextureIFace::e_filter default_mag_filter_1fb8_;
+    srTextureIFace::e_filter default_min_filter_1fbc_;
+    srTextureIFace::e_mipmap default_mipmap_1fc0_;
+    unsigned char unknown_1fc4_[0x20];
+    long polygon_offset_1fe4_;
+    unsigned char unknown_1fe8_[0x10];
     srShader shader_1ff8_;
-    unsigned char unknown_1ffc_[0x1c4];
+    unsigned char unknown_1ffc_[8];
+    unsigned char unknown_2004_[0x30];
+    unsigned long texture_cache_used_2034_;
+    unsigned long texture_cache_size_2038_;
+    unsigned char unknown_203c_[4];
+    long texture_reduction_2040_;
+    unsigned char unknown_2044_[4];
+    srVector4T<float> ambient_light_2048_;
+    float environment_min_2058_;
+    float environment_max_205c_;
+    float environment_scale_2060_;
+    float environment_inv_scale_2064_;
+    unsigned char unknown_2068_[0x104];
+    unsigned long enable_stack_216c_[16];
+    unsigned long enable_depth_21ac_;
+    srVertexProcessor** vertex_processors_21b0_;
+    unsigned char unknown_21b4_[4];
+    unsigned long vertex_processor_count_21b8_;
+    unsigned long exclusion_mask_21bc_;
     unsigned long dirty_21c0_;
     srFlags<srRendererDefs::e_vertexArray> vertex_array_mask_21c4_;
     unsigned long vertex_count_21c8_;
