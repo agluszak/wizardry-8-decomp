@@ -1872,7 +1872,7 @@ void DetectMonsterGroups004E4AB0(void)
                 PostCharacterNotice(best_slot, gppStringList[0x1ca], GetMonsterGroupName(group));
                 group->flag_2c = 1;
                 bool vowel;
-                switch (static_cast<wchar_t>(towupper(*GetMonsterGroupName(group)))) {
+                switch (towupper(*GetMonsterGroupName(group))) {
                 case L'A':
                 case L'E':
                 case L'I':

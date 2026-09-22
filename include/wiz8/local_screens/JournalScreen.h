@@ -28,6 +28,8 @@ public:
 };
 
 static_assert(sizeof(W8JournalPanel005EF340) == 0x68, "W8JournalPanel005EF340_size");
+/* Retail secondary vftable 0x005ef338 places W8TextControl::Listener at +0x4c. */
+W8_ASSERT_BASE_END(W8JournalPanel005EF340, W8TextControl::Listener, m_next_050, 0x4c);
 
 struct W8JournalEntry {
     int level;

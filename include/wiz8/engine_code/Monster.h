@@ -357,6 +357,8 @@ void UpdateNearestMonsterGroupMembers004CA570();
 void ApplyMonsterRepresentationScale(W8Monster* monster);
 
 static_assert(sizeof(W8Monster) == 0x348, "W8Monster_size_must_be_0x348");
+/* Secondary vftable 0x005ed218 keeps the W8Navigator subobject at +0x18. */
+W8_ASSERT_BASE_OFFSET(W8Monster, W8Navigator, unknown_004, 0x18);
 
 /* A particle temporarily takes over a monster animation while its shake event
    runs. The derived callback restores the saved representation state when the

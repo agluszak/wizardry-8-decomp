@@ -58,6 +58,8 @@ public:
 static_assert(sizeof(W8CampItemRange) == 8, "W8CampItemRange_size");
 static_assert(sizeof(W8CampSpellRange) == 12, "W8CampSpellRange_size");
 static_assert(sizeof(W8CampCharacterInfo) == 0x6c, "W8CampCharacterInfo_size");
+/* Retail secondary vftable 0x005ef270 places W8TextControl::Listener at +0x4c. */
+W8_ASSERT_BASE_END(W8CampCharacterInfo, W8TextControl::Listener, m_combat_view, 0x4c);
 
 /* malloc(0xd54) in Camp entry owns the record. Suspension destroys this UI;
    the screen-state stack retains the arguments needed to recreate it. */
