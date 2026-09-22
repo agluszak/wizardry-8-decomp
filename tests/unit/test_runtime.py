@@ -256,6 +256,52 @@ def test_registry_rejects_unsafe_or_ambiguous_metadata(row):
         )
 
 
+@pytest.mark.parametrize("all_cases_reported", [False, True])
+def test_batch_error_only_when_the_process_dies(
+    tmp_path: Path, monkeypatch, all_cases_reported
+) -> None:
+    """A reported case failure inside a batch exits the process nonzero; that
+    is an ordinary case result, not a dead batch. Only a process that died
+    before reporting every case produces the batch error."""
+    from wiz8decomp.runtime import _run_runtime_batch, _RuntimeProcessResult
+
+    registry = _registry()
+    scenarios = ("main-menu-startup", "split-stack")
+
+    def drive(*args, **kwargs):
+        stdout = "WIZ8_RUNTIME_TEST scenario=main-menu-startup case_passed=0\n"
+        if all_cases_reported:
+            stdout += "WIZ8_RUNTIME_TEST scenario=split-stack case_passed=1\n"
+        return _RuntimeProcessResult(
+            stdout=stdout,
+            stderr="WIZ8_RUNTIME_FAILURE scenario=main-menu-startup step=x reason=y line=1\n",
+            returncode=1,
+            timed_out=False,
+            failed_early=False,
+            last_step="x",
+            last_step_scenario="split-stack",
+            elapsed=1.0,
+        )
+
+    monkeypatch.setattr("wiz8decomp.runtime._drive_runtime_process", drive)
+    observations, error = _run_runtime_batch(
+        tmp_path / "Wiz8RuntimeTest.exe",
+        tmp_path,
+        {},
+        scenarios,
+        registry,
+    )
+
+    assert observations["main-menu-startup"]["case_passed"] == 0
+    if all_cases_reported:
+        assert len(observations) == 2
+        assert error is None
+    else:
+        assert len(observations) == 1
+        assert "batch process died after 1/2 cases" in error
+        assert "in-flight=split-stack" in error
+
+
 @pytest.mark.parametrize("check_order", [False, True])
 @pytest.mark.parametrize("repeat", [1, 3])
 def test_runtime_suite_selection_and_server_lifetime(
