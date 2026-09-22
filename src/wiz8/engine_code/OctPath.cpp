@@ -2148,7 +2148,7 @@ unsigned int W8PathingService::CollectPathProbes004656A0(W8NavigatorMovementStat
             monster_index = MonsterGetIndexByLocationID(0x26b1, OCTPATH_CPP, location_id, 1);
             W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(monster_index);
             if (info != 0 && info->p3D != 0 && info->p3D->active_088 != 0) {
-                 W8Monster* monster = info->p3D;
+                W8Monster* monster = info->p3D;
                 srVector3T<float> monster_position = monster->GetPosition();
                 srVector3T<float> monster_delta = monster_position - movement->position_040;
                 distance = monster_delta.Length();
@@ -2249,9 +2249,7 @@ unsigned short W8PathingService::PlanMovement00463460(W8NavigatorMovementState* 
             path_candidate_count_094 = 0;
         } else {
             path_candidate_count_094 = 1;
-            path_candidates_098 = reinterpret_cast<unsigned long*>(
-                &movement
-                     ->target_location_id_010); // reinterpret-ok: one target-location slot is used as a single candidate index
+            path_candidates_098 = movement->TargetLocationAsCandidate();
         }
     }
 
