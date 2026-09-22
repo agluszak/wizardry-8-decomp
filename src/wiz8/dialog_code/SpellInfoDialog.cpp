@@ -58,6 +58,7 @@ const wchar_t g_plus_space_0064fdc4[] = L"+ ";
 // GLOBAL: WIZ8 0x0064fdd4
 const wchar_t g_format_d_d_s_0064fdd4[] = L"%d-%d %s";
 
+// GLOBAL: WIZ8 0x0064FD54
 static const char SPELL_INFO_DIALOG_CPP[] =
     "C:\\Projects\\Wizardry 8\\Dialog Code\\SpellInfoDialog.cpp";
 

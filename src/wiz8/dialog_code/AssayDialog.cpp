@@ -99,6 +99,7 @@ const unsigned short g_item_property_name_ids_61e97c[6] = {
 // GLOBAL: WIZ8 0x0069c818
 static wchar_t g_assay_entry_text[0x101];
 
+// GLOBAL: WIZ8 0x0064FAE4
 static const char ASSAY_DIALOG_CPP[] = "C:\\Projects\\Wizardry 8\\Dialog Code\\AssayDialog.cpp";
 
 enum { NUM_RPC_RACES = 5 };

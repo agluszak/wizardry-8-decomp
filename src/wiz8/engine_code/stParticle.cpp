@@ -33,6 +33,7 @@ float g_float_005ecc3c = -1000.0f;
 // GLOBAL: WIZ8 0x005ecc40
 float g_float_005ecc40 = 0.00019174758926965296f;
 
+// GLOBAL: WIZ8 0x0060BF6C
 static const char ST_PARTICLE_CPP[] = "C:\\Projects\\Wizardry 8\\Engine Code\\stParticle.cpp";
 
 // VTABLE: WIZ8 0x005ECBD0
