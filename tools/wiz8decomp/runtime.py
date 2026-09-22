@@ -60,20 +60,23 @@ class RuntimeScenario:
     tier: str
     kind: str
     timeout_ms: int
+    fixture: str
+    path: str
+    batch: bool
 
 
 def _parse_runtime_scenarios(output: str) -> dict[str, RuntimeScenario]:
     lines = output.splitlines()
-    if not lines or lines[0] != "name\tphase\ttier\tkind\ttimeout_ms":
+    if not lines or lines[0] != "name\tphase\ttier\tkind\ttimeout_ms\tfixture\tpath\tbatch":
         raise RuntimeError(
             "runtime executable did not report a scenario registry; rebuild runtime-test"
         )
     scenarios: dict[str, RuntimeScenario] = {}
     for line in lines[1:]:
         fields = line.split("\t")
-        if len(fields) != 5:
+        if len(fields) != 8:
             raise RuntimeError(f"malformed runtime scenario: {line}")
-        name, phase, tier, kind, timeout = fields
+        name, phase, tier, kind, timeout, fixture, path, batch = fields
         if (
             re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", name) is None
             or name in scenarios
@@ -83,9 +86,14 @@ def _parse_runtime_scenarios(output: str) -> dict[str, RuntimeScenario]:
             or not timeout.isascii()
             or not timeout.isdigit()
             or int(timeout) <= 0
+            or re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", fixture) is None
+            or path not in {"natural", "shortcut"}
+            or batch not in {"yes", "no"}
         ):
             raise RuntimeError(f"invalid runtime scenario metadata: {line}")
-        scenarios[name] = RuntimeScenario(name, phase, tier, kind, int(timeout))
+        scenarios[name] = RuntimeScenario(
+            name, phase, tier, kind, int(timeout), fixture, path, batch == "yes"
+        )
     if not scenarios:
         raise RuntimeError("runtime scenario registry is empty")
     return scenarios
@@ -686,36 +694,68 @@ def configure_wine_window_management(
     )
 
 
+def _parse_runtime_observation_fields(fields: str) -> dict[str, str | int]:
+    parsed: dict[str, str | int] = {}
+    for item in fields.split():
+        key, separator, value = item.partition("=")
+        if not separator:
+            raise RuntimeError(f"malformed runtime observation field: {item}")
+        parsed[key] = int(value) if value.lstrip("-").isdigit() else value
+    return parsed
+
+
 def _parse_runtime_observation(stdout: str) -> dict[str, str | int]:
     matches = [match for line in stdout.splitlines() if (match := RUNTIME_OBSERVATION.match(line))]
     if len(matches) != 1:
         raise RuntimeError(f"expected one runtime observation, found {len(matches)}")
-    fields: dict[str, str | int] = {}
-    for item in matches[0].group("fields").split():
-        key, separator, value = item.partition("=")
-        if not separator:
-            raise RuntimeError(f"malformed runtime observation field: {item}")
-        fields[key] = int(value) if value.lstrip("-").isdigit() else value
-    return fields
+    return _parse_runtime_observation_fields(matches[0].group("fields"))
 
 
-def _run_runtime_scenario(
+def _parse_runtime_observations(stdout: str) -> dict[str, dict[str, str | int]]:
+    """Batch runs emit one WIZ8_RUNTIME_TEST line per completed case."""
+    observations: dict[str, dict[str, str | int]] = {}
+    for line in stdout.splitlines():
+        if match := RUNTIME_OBSERVATION.match(line):
+            fields = _parse_runtime_observation_fields(match.group("fields"))
+            scenario = fields.get("scenario")
+            if isinstance(scenario, str):
+                observations[scenario] = fields
+    return observations
+
+
+@dataclass
+class _RuntimeProcessResult:
+    stdout: str
+    stderr: str
+    returncode: int | None
+    timed_out: bool
+    failed_early: bool
+    last_step: str
+    last_step_scenario: str | None
+    elapsed: float
+
+
+def _drive_runtime_process(
     executable: Path,
     stage: Path,
     environment: dict[str, str],
-    scenario: str,
+    argv_tail: list[str],
     timeout_seconds: float,
-    object_root: Path | None = None,
-    map_path: Path | None = None,
-) -> dict[str, str | int]:
+    *,
+    batch: bool = False,
+) -> _RuntimeProcessResult:
+    """Run one runtime-test process. In batch mode per-case WIZ8_RUNTIME_FAILURE
+    lines are ordinary case results, not a dying process, so only the crash
+    marker arms the early-exit grace."""
     started = time.monotonic()
     output: dict[str, bytearray] = {"stdout": bytearray(), "stderr": bytearray()}
     timed_out = False
     failure_deadline: float | None = None
     pending_stderr = b""
     last_step = "process-start"
+    last_step_scenario: str | None = None
     with subprocess.Popen(
-        ["wine", f"./{executable.name}", "--scenario", scenario],
+        ["wine", f"./{executable.name}", *argv_tail],
         cwd=stage,
         env=environment,
         stdout=subprocess.PIPE,
@@ -748,7 +788,7 @@ def _run_runtime_scenario(
                                 line, pending_stderr = pending_stderr.split(b"\n", 1)
                                 if failure_deadline is None and (
                                     line.rstrip(b"\r") == b"WIZ8_RUNTIME_CRASH_END"
-                                    or line.startswith(b"WIZ8_RUNTIME_FAILURE ")
+                                    or (not batch and line.startswith(b"WIZ8_RUNTIME_FAILURE "))
                                 ):
                                     failure_deadline = (
                                         time.monotonic() + RUNTIME_FAILURE_GRACE_SECONDS
@@ -759,8 +799,8 @@ def _run_runtime_scenario(
                                         for item in line.decode(errors="replace").split()[1:]
                                         if "=" in item
                                     )
-                                    if fields.get("scenario") == scenario:
-                                        last_step = fields.get("step", last_step)
+                                    last_step = fields.get("step", last_step)
+                                    last_step_scenario = fields.get("scenario")
                 if not timed_out:
                     try:
                         deadline = started + timeout_seconds
@@ -795,25 +835,53 @@ def _run_runtime_scenario(
     stderr = output["stderr"].decode(errors="replace")
     if timed_out:
         stderr += f"\nruntime-test deadline: last_step={last_step}\n"
-    if timed_out or failure_deadline is not None or process.returncode:
+    return _RuntimeProcessResult(
+        stdout=stdout,
+        stderr=stderr,
+        returncode=process.returncode,
+        timed_out=timed_out,
+        failed_early=failure_deadline is not None,
+        last_step=last_step,
+        last_step_scenario=last_step_scenario,
+        elapsed=time.monotonic() - started,
+    )
+
+
+def _run_runtime_scenario(
+    executable: Path,
+    stage: Path,
+    environment: dict[str, str],
+    scenario: str,
+    timeout_seconds: float,
+    object_root: Path | None = None,
+    map_path: Path | None = None,
+) -> dict[str, str | int]:
+    result = _drive_runtime_process(
+        executable,
+        stage,
+        environment,
+        ["--scenario", scenario],
+        timeout_seconds,
+    )
+    if result.timed_out or result.failed_early or result.returncode:
         raise _runtime_failure(
             scenario,
-            None if timed_out else process.returncode,
-            stdout,
-            stderr,
+            None if result.timed_out else result.returncode,
+            result.stdout,
+            result.stderr,
             stage,
             executable,
             object_root,
             map_path,
         )
     try:
-        observation = _parse_runtime_observation(stdout)
+        observation = _parse_runtime_observation(result.stdout)
     except RuntimeError as error:
         raise _runtime_failure(
             scenario,
-            process.returncode,
-            stdout,
-            stderr,
+            result.returncode,
+            result.stdout,
+            result.stderr,
             stage,
             executable,
             object_root,
@@ -822,19 +890,63 @@ def _run_runtime_scenario(
     if observation.get("scenario") != scenario:
         raise _runtime_failure(
             scenario,
-            process.returncode,
-            stdout,
-            stderr,
+            result.returncode,
+            result.stdout,
+            result.stderr,
             stage,
             executable,
             object_root,
             map_path,
         )
-    phases = _runtime_phase_summary(stderr, scenario)
+    phases = _runtime_phase_summary(result.stderr, scenario)
     if phases:
         print(f"PHASES {scenario} {phases}", file=sys.stderr, flush=True)
-    print(f"PASS {scenario} {time.monotonic() - started:.1f}s", file=sys.stderr, flush=True)
+    print(f"PASS {scenario} {result.elapsed:.1f}s", file=sys.stderr, flush=True)
     return observation
+
+
+def _run_runtime_batch(
+    executable: Path,
+    stage: Path,
+    environment: dict[str, str],
+    scenarios: tuple[str, ...],
+    registry: dict[str, RuntimeScenario],
+    object_root: Path | None = None,
+    map_path: Path | None = None,
+) -> tuple[dict[str, dict[str, str | int]], str | None]:
+    """Run one same-process batch. Returns per-case observations plus a batch
+    error string when the process died before reporting every case (crash,
+    abort, or deadline). Never raises: a poisoned batch must not mask which
+    cases actually ran."""
+    timeout_seconds = sum(registry[name].timeout_ms for name in scenarios) / 1000 + 60
+    result = _drive_runtime_process(
+        executable,
+        stage,
+        environment,
+        ["--scenarios", ",".join(scenarios)],
+        timeout_seconds,
+        batch=True,
+    )
+    observations = _parse_runtime_observations(result.stdout)
+    missing = [name for name in scenarios if name not in observations]
+    error: str | None = None
+    if result.timed_out or result.failed_early or missing:
+        detail = (
+            result.stderr.strip().splitlines()[-1]
+            if result.stderr.strip()
+            else f"exit={result.returncode}"
+        )
+        in_flight = result.last_step_scenario or (missing[0] if missing else "unknown")
+        error = (
+            f"batch process died after {len(observations)}/{len(scenarios)} cases "
+            f"(in-flight={in_flight}, exit={result.returncode}, "
+            f"timed_out={result.timed_out}): {detail[:400]}"
+        )
+    for name in observations:
+        phases = _runtime_phase_summary(result.stderr, name)
+        if phases:
+            print(f"PHASES {name} {phases}", file=sys.stderr, flush=True)
+    return observations, error
 
 
 def run_runtime_suite(
@@ -845,8 +957,14 @@ def run_runtime_suite(
     check_order: bool = False,
     repeat: int = 1,
     renderer: str | None = None,
+    batch: bool = False,
 ) -> dict[str, Any]:
-    """Run selected scenarios, optionally checking reverse-order determinism."""
+    """Run selected scenarios, optionally checking reverse-order determinism.
+
+    With batch=True, consecutive batch-eligible cases sharing a fixture run in
+    one game process. If a batch process dies mid-group, the unreported cases
+    re-run in fresh processes so a poisoned session cannot mask or manufacture
+    per-case failures."""
 
     suite_started = time.monotonic()
     tiers = ("pr", "main", "nightly")
@@ -899,18 +1017,23 @@ def run_runtime_suite(
                     comparisons.append((forward, reverse))
             for order_name, ordered_scenarios in orders:
                 runs[order_name] = {}
-                for scenario in ordered_scenarios:
-                    scenario_stage = stage / order_name / scenario
+
+                def run_single(
+                    scenario: str,
+                    stage_key: str,
+                    stage_name: str,
+                    order_name: str = order_name,
+                ) -> None:
+                    scenario_stage = stage / stage_key
                     shutil.rmtree(scenario_stage, ignore_errors=True)
                     staged = stage_game(
                         settings,
-                        name=f"runtime-test/{order_name}/{scenario}",
+                        name=f"runtime-test/{stage_key}",
                         executable=executable,
                         objects=object_root,
                         reset_saves=True,
                     )
                     scenario_stages[f"{order_name}/{scenario}"] = str(staged.root)
-                    print(f"RUN {scenario} ({order_name})", file=sys.stderr, flush=True)
                     try:
                         runs[order_name][scenario] = _run_runtime_scenario(
                             staged.executable,
@@ -923,15 +1046,101 @@ def run_runtime_suite(
                         )
                     except RuntimeError as error:
                         failure = str(error)
-                        failures.append(f"{order_name}/{scenario}: {failure}")
+                        failures.append(f"{stage_name}: {failure}")
                         runs[order_name][scenario] = {
                             "scenario": scenario,
                             "failure": failure,
                         }
                         print(
-                            f"FAIL {scenario} ({order_name}): {failure}",
+                            f"FAIL {scenario} ({stage_name}): {failure}",
                             file=sys.stderr,
                             flush=True,
+                        )
+
+                # Group consecutive batch-eligible cases sharing one fixture.
+                groups: list[tuple[str, ...]] = []
+                for name in ordered_scenarios:
+                    spec = registry[name]
+                    if (
+                        batch
+                        and spec.batch
+                        and groups
+                        and registry[groups[-1][-1]].batch
+                        and registry[groups[-1][-1]].fixture == spec.fixture
+                    ):
+                        groups[-1] = (*groups[-1], name)
+                    else:
+                        groups.append((name,))
+
+                for group in groups:
+                    if len(group) == 1:
+                        scenario = group[0]
+                        print(f"RUN {scenario} ({order_name})", file=sys.stderr, flush=True)
+                        run_single(
+                            scenario,
+                            f"{order_name}/{scenario}",
+                            f"{order_name}/{scenario}",
+                        )
+                        continue
+                    batch_stage_key = f"{order_name}/batch-{group[0]}-{group[-1]}"
+                    batch_stage = stage / batch_stage_key
+                    shutil.rmtree(batch_stage, ignore_errors=True)
+                    staged = stage_game(
+                        settings,
+                        name=f"runtime-test/{batch_stage_key}",
+                        executable=executable,
+                        objects=object_root,
+                        reset_saves=True,
+                    )
+                    print(
+                        f"RUN batch [{', '.join(group)}] ({order_name})",
+                        file=sys.stderr,
+                        flush=True,
+                    )
+                    observations, batch_error = _run_runtime_batch(
+                        staged.executable,
+                        staged.root,
+                        environment,
+                        group,
+                        registry,
+                        object_root,
+                        staged.map,
+                    )
+                    for scenario in group:
+                        scenario_stages[f"{order_name}/{scenario}"] = str(staged.root)
+                    if batch_error is not None:
+                        failures.append(f"{order_name}/batch[{','.join(group)}]: {batch_error}")
+                    for scenario in group:
+                        observation = observations.get(scenario)
+                        if observation is not None:
+                            runs[order_name][scenario] = observation
+                            if observation.get("case_passed") == 1:
+                                print(
+                                    f"PASS {scenario} ({order_name}, batch)",
+                                    file=sys.stderr,
+                                    flush=True,
+                                )
+                            elif observation.get("case_passed") != 1:
+                                failure = f"{scenario} failed in same-process batch"
+                                failures.append(f"{order_name}/{scenario}: {failure}")
+                                print(
+                                    f"FAIL {scenario} ({order_name}): {failure}",
+                                    file=sys.stderr,
+                                    flush=True,
+                                )
+                            continue
+                        # Unreported: crashed, aborted, or never reached. The
+                        # case did not fail — the batch did — so re-run it in a
+                        # fresh process and report its own result.
+                        print(
+                            f"RE-RUN {scenario} ({order_name}): no result in batch",
+                            file=sys.stderr,
+                            flush=True,
+                        )
+                        run_single(
+                            scenario,
+                            f"{order_name}/{scenario}",
+                            f"{order_name}/{scenario}",
                         )
         finally:
             try:

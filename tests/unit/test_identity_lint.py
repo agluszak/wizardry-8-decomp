@@ -336,6 +336,61 @@ def test_templated_operator_overload_is_not_a_consumer_redeclaration(tmp_path: P
     assert identity_violations(repository) == []
 
 
+def test_inline_overload_definition_is_not_a_consumer_redeclaration(tmp_path: Path) -> None:
+    """An address-owned overload must not collide with sibling inline overloads.
+
+    Reproduces the srHashValue case: SURRENDER 0x10027BF0 owns
+    ``srHashValue(const TextureSetKey&)`` while ``srHashValue(unsigned long)``
+    and ``srHashValue(unsigned short)`` are distinct inline overloads.
+    """
+
+    owned = {
+        **_declaration("srHashValue", is_definition=True),
+        "semantic_id": "?srHashValue@@YAIABUTextureSetKey@Renderer@srGERD@@@Z",
+        "return_type": "unsigned int",
+        "parameter_types": [
+            "const struct srGERD::Renderer::TextureSetKey &",
+        ],
+        "source_file": "include/surrender/srGERD.h",
+        "line": 2,
+        "end_line": 2,
+        "target": "SURRENDER",
+    }
+    sibling = {
+        **_declaration("srHashValue", is_definition=True),
+        "semantic_id": "?srHashValue@@YAIK@Z",
+        "return_type": "unsigned int",
+        "parameter_types": ["unsigned long"],
+        "source_file": "include/surrender/srHash.h",
+        "line": 1,
+        "end_line": 1,
+    }
+    marker = {
+        "address": 0x10027BF0,
+        "marker_kind": "FUNCTION",
+        "source_file": "include/surrender/srGERD.h",
+        "line": 1,
+        "marker_name": None,
+        "folded": False,
+        "target": "SURRENDER",
+        "declaration_key": ["SURRENDER", "?srHashValue@@YAIABUTextureSetKey@Renderer@srGERD@@@Z"],
+    }
+    repository = _repository(tmp_path, [marker], [owned, sibling])
+    (tmp_path / "include/surrender").mkdir(parents=True)
+    (tmp_path / "include/surrender/srGERD.h").write_text(
+        "// FUNCTION: SURRENDER 0x10027BF0\n"
+        "inline unsigned int srHashValue(const struct srGERD::Renderer::TextureSetKey& key) "
+        "{ return 0; }\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "include/surrender/srHash.h").write_text(
+        "inline unsigned int srHashValue(unsigned long key) { return key >> 16; }\n",
+        encoding="utf-8",
+    )
+
+    assert identity_violations(repository) == []
+
+
 def test_inconsistent_ordinary_consumer_prototype_is_still_reported(tmp_path: Path) -> None:
     """A non-template free function redeclared with the wrong prototype still fails."""
 

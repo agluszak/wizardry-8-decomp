@@ -71,6 +71,21 @@ result alone does not prove visible rendering/input: observe the requested prese
 Private-display DirectDraw captures can be black; use host-visible evidence for visual acceptance.
 Report only what was observed and stop at the requested flow; unrelated screens do not expand the task.
 
+## Testing the harness itself
+
+- `--batch` groups consecutive `batch=yes` cases sharing a fixture into one process; verify grouping in
+  the stderr `RUN batch [...]` lines and that `runs` observations match singleton runs of the same set.
+- Exe-level `--scenarios` rejects unknown names, `batch=no` members and mixed fixtures with usage
+  error exit 64 before the game starts — no display needed to check this (`wine ./Wiz8RuntimeTest.exe
+  --scenarios a,b` in a staged tree).
+- To exercise the poisoned-batch re-run path without code edits, SIGKILL the game process mid-batch:
+  `pkill -9 -f 'Wiz8RuntimeTes[t]'` (bracket avoids matching the pkill command itself). Batch processes
+  live ~11-12s; the engine-ready wait (~8.5s) is the only wide kill window — poll stderr for the
+  `RUN batch [...]` line then kill on a fixed timer, because echoed stderr can lag the process >1s and
+  post-startup cases complete in tens of ms, making partial-report kills impractical.
+- For a visible run use `WIZ8_RUNTIME_DISPLAY=host WIZ8_WINE_VIRTUAL_DESKTOP=1`: the game maps inside
+  a 640x480 Wine desktop window on the desktop instead of resizing the real display — recordable.
+
 `runtime-test` is for relevant behavior, not mandatory for every recovered function. Extend its
 existing observations only when needed; do not create a second harness/reporting framework unless the
 existing one fundamentally cannot observe the required behavior. Product architecture and environment

@@ -1084,8 +1084,8 @@ bool Trigger::HasActorWithinRadius(float radius, bool include_party)
             unsigned int monster_index = MonsterGetIndexByLocationID(
                 0x1246, "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", location_id, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            if (monster_info != 0 && monster_info->monster != 0) {
-                srVector3T<float> monster_position = monster_info->monster->GetPosition();
+            if (monster_info != 0 && monster_info->p3D != 0) {
+                srVector3T<float> monster_position = monster_info->p3D->GetPosition();
                 if ((monster_position - center).Length() <= radius) {
                     return 1;
                 }
@@ -2536,7 +2536,7 @@ void Trigger::RunDestination00440DD0(const char* destination)
 
     if (location_id != current_location) {
         RequestLevelTransition005615F0(location_id, entrance,
-                                       m_lData1 < 0 ? 0 : (unsigned char)m_lData1);
+                                       m_lData1 < 0 ? 0 : static_cast<unsigned char>(m_lData1));
         return;
     }
 
@@ -2927,7 +2927,8 @@ void Trigger::Run(int source)
                 if (AnimationIsRunning(animation) == 1) {
                     count = AnimObjListCount004A1620(animation, 2);
                     for (index = 0; index < count; ++index) {
-                        W8PathAI* path = AnimObjListEntry004A16C0(animation, 2, (signed char)index);
+                        W8PathAI* path =
+                            AnimObjListEntry004A16C0(animation, 2, static_cast<signed char>(index));
                         PathAIUpdate004A9260(
                             path, previous <= static_cast<signed char>(state_index) ? 1 : -1);
                     }
@@ -2976,7 +2977,7 @@ void Trigger::Run(int source)
             int tag = source == -1 ? m_lData1 : source;
 
             if (m_bRepType == 2 && m_pProp != 0 && tag != -1) {
-                m_pProp->Rep()->SelectAnimationSlot((unsigned char)tag);
+                m_pProp->Rep()->SelectAnimationSlot(static_cast<unsigned char>(tag));
                 m_pProp->SetRepresentationActive(1, 1);
                 state_index = static_cast<unsigned char>(tag);
                 goto commit_action;
@@ -3151,13 +3152,13 @@ void Trigger::Run(int source)
         }
 
         group->members_active_28 = 1;
-        monster_info->monster->m_pRep->animation_playing_06d = 1;
-        monster_info->monster->m_pRep->animation_playing_06d = 1;
-        monster_info->monster->m_pRep->timer_068 =
+         monster_info->p3D->m_pRep->animation_playing_06d = 1;
+         monster_info->p3D->m_pRep->animation_playing_06d = 1;
+         monster_info->p3D->m_pRep->timer_068 =
             g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-        monster_info->monster->ResetRepresentation004A7420();
-        monster_info->monster->ResetPathAI();
-        monster_info->monster->reactivated_09d = 1;
+        monster_info->p3D->ResetRepresentation004A7420();
+        monster_info->p3D->ResetPathAI();
+        monster_info->p3D->reactivated_09d = 1;
         return;
     }
 
@@ -3244,7 +3245,8 @@ void Trigger::Run(int source)
         if (m_lData3 < 0) {
             m_lData3 = 2;
         }
-        SetDice(&dice, (unsigned char)m_lData1, (unsigned char)m_lData2, (short)m_lData3);
+        SetDice(&dice, static_cast<unsigned char>(m_lData1), static_cast<unsigned char>(m_lData2),
+                static_cast<short>(m_lData3));
         ApplyRolledHealthChangeToParty(&dice, 0, 1);
         if (trigger_kind_018 == 2) {
             flags_0a0 |= W8_TRIGGER_RUNNING;
@@ -3667,7 +3669,7 @@ void Trigger::Run(int source)
             NextTriggerRecipient(&recipient);
             ++count;
         }
-        selected = (unsigned char)(GetTickCount() % count);
+        selected = static_cast<unsigned char>(GetTickCount() % count);
         recipient = m_pacRecipients;
         do {
             NextTriggerRecipient(&recipient);

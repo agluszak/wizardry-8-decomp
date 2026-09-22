@@ -854,17 +854,17 @@ unsigned char SaveMonsterRecord005147A0(W8Chunk* chunks, unsigned int index)
     info = MonsterGetScriptPartByLocationIndex(index);
     chunks->Write(&record_version, 4, 0);
     if (info->fActive != 0) {
-        MonsterGetLocation(info->monster, &location);
+        MonsterGetLocation(info->p3D, &location);
         location.y = SettlePositionToGround00420BD0(&location, 0);
         info->position_17.x = location.x;
         info->position_17.y = location.y;
         info->position_17.z = location.z;
-        info->derived_23 = MonsterGetAngleD4004C5770(info->monster);
+        info->derived_23 = MonsterGetAngleD4004C5770(info->p3D);
     }
     record_size = sizeof(*info);
     chunks->Write(&record_size, 4, 0);
     chunks->Write(info, record_size, 0);
-    if (info->monster->script_238 == 0) {
+    if (info->p3D->script_238 == 0) {
         chunks->Write(&has_script, 1, 0);
     } else {
         has_script = 1;
@@ -872,22 +872,22 @@ unsigned char SaveMonsterRecord005147A0(W8Chunk* chunks, unsigned int index)
         memset(script_name, 0, sizeof(script_name));
         strcpy(reinterpret_cast<char*>(script_name), // reinterpret-ok: the 64-byte
                // save field stores the narrow script name packed as bytes
-               info->monster->script_238 != 0 ? info->monster->script_238->getName() : 0);
-        script_wait = info->monster->script_wait_240;
-        script_line = info->monster->script_line_23c;
+               info->p3D->script_238 != 0 ? info->p3D->script_238->getName() : 0);
+        script_wait = info->p3D->script_wait_240;
+        script_line = info->p3D->script_line_23c;
         chunks->Write(script_name, 0x40, 0);
         chunks->Write(&script_wait, 4, 0);
         chunks->Write(&script_line, 4, 0);
-        queue_count = info->monster->script_conditions_244.GetCount();
+        queue_count = info->p3D->script_conditions_244.GetCount();
         chunks->Write(&queue_count, 4, 0);
         for (i = 0; i < queue_count; ++i) {
-            value = *info->monster->script_conditions_244.GetAt(i);
+            value = *info->p3D->script_conditions_244.GetAt(i);
             chunks->Write(&value, 1, 0);
         }
     }
     unborn = PListIndexOf(gXStatus.plsUnbornMonsterList, info) != -1;
     chunks->Write(&unborn, 1, 0);
-    monster = info->monster;
+    monster = info->p3D;
     monster->SaveMovementState004549D0(chunks->m_hFile);
     value = monster->defining_orders_28c;
     chunks->Write(&value, 1, 0);
@@ -1242,7 +1242,7 @@ unsigned char LoadMonster(W8Chunk* chunk)
         }
     }
     monster_info->fActive = 0;
-    monster_info->monster = 0;
+    monster_info->p3D = 0;
     monster_info->fInCombat = 0;
     monster_info->pCombat = 0;
     if (record_version >= 5) {
@@ -1283,10 +1283,10 @@ unsigned char LoadMonster(W8Chunk* chunk)
     }
     ActivateMonster(monster_info, 0);
     ActivateMonsterInWorld(monster_info);
-    monster = monster_info->monster;
+    monster = monster_info->p3D;
     if (monster_info->highest_condition != 0) {
         for (index = 0; index < W8_CONDITION_COUNT; ++index) {
-            if (monster_info->condition_turns[index] != 0) {
+            if (monster_info->uiCondition[index] != 0) {
                 SetMonsterSpellIcon(monster, index - 1, 1);
             }
         }

@@ -130,6 +130,12 @@ public:
     GameplayWait wait_gameplay_ready(unsigned long budget_ms, const char* step);
     const GameplayReadyCheck& last_ready_check() const;
 
+    /* Schedules fn on the game thread, then records a pass step or fails with
+       required-invariant-failed. */
+    bool run_invariant(const char* step, bool (*fn)(void* ctx), void* ctx,
+                       unsigned long budget_ms = 10000);
+
+    void set_fixture(const char* name, const char* path);
     void finish(bool passed);
 
     unsigned short held_key() const;
@@ -149,6 +155,8 @@ private:
     GameplayReadyCheck last_ready_check_;
     unsigned short held_key_;
     bool finished_;
+    const char* fixture_name_;
+    const char* fixture_path_;
 };
 
 /* Free helpers moved out of wiz8_runtime_test.cpp: every game-state touch

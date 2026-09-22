@@ -2,7 +2,6 @@
 
 struct RuntimeObservation {
     unsigned char engine_ready;
-    unsigned char semantic_ok;
     int menu_state;
     unsigned int region_set_enabled;
     unsigned int first_region;
@@ -58,6 +57,8 @@ struct RuntimeObservation {
 };
 
 enum RuntimePhase { RUNTIME_ENGINE_READY, RUNTIME_MAIN_MENU, RUNTIME_MAIN_GAME };
+enum RuntimeFixtureId { FIXTURE_ENGINE_READY, FIXTURE_MAIN_MENU, FIXTURE_MONASTERY_PARTY };
+enum RuntimeFixturePath { FIXTURE_PATH_NATURAL, FIXTURE_PATH_SHORTCUT };
 enum RuntimeTier { RUNTIME_PR, RUNTIME_MAIN, RUNTIME_NIGHTLY };
 enum RuntimeKind { RUNTIME_ACCEPTANCE, RUNTIME_INTEGRATION, RUNTIME_SEMANTIC };
 
@@ -69,6 +70,7 @@ typedef bool (*RuntimeCaseFn)(RuntimeCase& test);
 struct RuntimeScenario {
     const char* name;
     RuntimePhase phase;
+    RuntimeFixtureId fixture;
     RuntimeTier tier;
     RuntimeKind kind;
     unsigned int timeout_ms;
@@ -77,4 +79,7 @@ struct RuntimeScenario {
     /* New-style cases run under a driver-owned RuntimeCase; trailing member
        zero-initializes for unmigrated scenarios. */
     RuntimeCaseFn case_run;
+    /* Opt-in same-process batching: only cases whose fixture owns explicit
+       cleanup may set this. Zero-initializes for unmigrated scenarios. */
+    unsigned char batch;
 };

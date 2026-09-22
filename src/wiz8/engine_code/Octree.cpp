@@ -2645,10 +2645,10 @@ char W8Octree::ResolveTraceHit(const srVector3T<float>* from, srVector3T<float>*
         }
         unsigned int monster_index = MonsterGetIndexByLocationID(0x1836, OCTREE_CPP, target, 1);
         W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(monster_index);
-        if (info == 0 || info->monster == 0) {
+        if (info == 0 || info->p3D == 0) {
             goto no_probes;
         }
-        navigator = info->monster;
+        navigator = info->p3D;
         radius = navigator->movement_0c0.alternate_radius_0b4;
     }
     if (navigator != 0 && pathing_180 != 0) {
@@ -2666,7 +2666,7 @@ no_probes:;
                 unsigned int monster_index = MonsterGetIndexByLocationID(0x1851, OCTREE_CPP, id, 1);
                 W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(monster_index);
                 if (info != 0) {
-                    W8Monster* monster = info->monster;
+                    W8Monster* monster = info->p3D;
                     if (monster != 0 && monster->active_088 != 0 &&
                         (monster->trace_mask_090 & flags) == 0) {
                         center.x = monster->movement_0c0.position_040.x;
@@ -3623,8 +3623,8 @@ void W8Octree::UpdateMonsterLocation(unsigned short location_id, const srVector3
     }
     monster_list_index = MonsterGetIndexByLocationID(0x4c4, OCTREE_CPP, location_id, 1);
     info = MonsterGetScriptPartByLocationIndex(monster_list_index);
-    if (info != 0 && info->monster != 0) {
-        monster = info->monster;
+    if (info != 0 && info->p3D != 0) {
+        monster = info->p3D;
         sector = GetSectorForPosition(position);
         if (sector == 0 || (mesh = g_world->psrMeshes[m_pSubmeshes[sector].mesh_04]) == 0) {
             monster->node_308 = 0;
@@ -4665,9 +4665,9 @@ unsigned char W8Octree::TestBoxOccupied(const srVector3T<float>* lower,
             unsigned int monster_index = MonsterGetIndexByLocationID(
                 0x62d, "C:\\Projects\\Wizardry 8\\Engine Code\\Octree.cpp", objects[index], 1);
             W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(monster_index);
-            if (info != 0 && info->monster != 0) {
-                srVector3T<float> position = info->monster->GetPosition();
-                float radius = info->monster->radius_084;
+            if (info != 0 && info->p3D != 0) {
+                srVector3T<float> position = info->p3D->GetPosition();
+                float radius = info->p3D->radius_084;
                 if (lower->x - radius < position.x && position.x < radius + upper->x &&
                     lower->y - radius < position.y && position.y < radius + upper->y &&
                     lower->z - radius < position.z && position.z < radius + upper->z) {

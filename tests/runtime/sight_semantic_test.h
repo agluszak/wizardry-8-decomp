@@ -8,6 +8,8 @@ struct SightSemanticResult {
     unsigned char penalty_source_reduces_range;
     unsigned char attribute_scales_range;
     unsigned char same_primitive_party_and_monster;
+    unsigned char far_clip_scales_threshold;
+    unsigned char world_restored_after_failure;
 };
 
 bool RunSightSemanticTests(SightSemanticResult* result);

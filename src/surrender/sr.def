@@ -656,6 +656,7 @@ EXPORTS
     ?allocate@srFileManager@@UAEPAXPBD@Z
     ?allocate@srMemoryAllocator@@QAEPAXKKPBD@Z
     ?allocate@srMemoryAllocator@@QAEPAXKPBD@Z
+    ?allocVertexArray@Renderer@srGERD@@QAEXAAUsrVertexArray@@K@Z
     ?align@srMemoryAllocator@@AAEPAVBlock@1@PAX@Z
     ?applyDrawStateChanges@srGERD@@AAEXXZ
     ?begin@srThread@@SAKP6AXPAX@Z0@Z
@@ -685,6 +686,8 @@ EXPORTS
     ?deleteTexture@srGERD@@AAEXAAUTexture@1@@Z
     ?drawArrays@srDebugDD@@UAEXW4e_primitive@srRendererDefs@@JK@Z
     ?drawElements@srDebugDD@@UAEXW4e_primitive@srRendererDefs@@KW4e_indexType@3@PBX@Z
+    ?drawArrays@srGERD@@QAEXW4e_primitive@srRendererDefs@@JK@Z
+    ?drawElements@srGERD@@QAEXW4e_primitive@srRendererDefs@@KW4e_indexType@3@PBX@Z
     ?dump@srClass@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dump@srFileManager@@QAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dump@srMemoryAllocator@@QBEXXZ
@@ -858,6 +861,7 @@ EXPORTS
     ?setProjectionMatrix@srDebugDD@@UAEXABV?$srMatrix4T@M@@W4e_type@2@@Z
     ?setScissor@srDebugDD@@UAEXABUScissor@srDD@@@Z
     ?setShader@srDebugDD@@UAEXABVsrShader@@@Z
+    ?setShader@srGERD@@QAEXABVsrShader@@@Z
     ?setState@srBinStream@@QAEXW4e_state@1@@Z
     ?setTextureParameters@srDebugDD@@UAEXKABUTexParms@srDD@@@Z
     ?setTextureParameters@srGERD@@AAEXKABUParameters@srTextureIFace@@@Z
@@ -1038,6 +1042,7 @@ EXPORTS
     ?setGamma@srGERD@@QAEXABV?$srVector3T@M@@@Z
     ?setPickKey@srGERD@@QAEXK@Z
     ?setSwapInterval@srGERD@@QAEXK@Z
+    ?setTexture@srGERD@@QAEXPAVsrTextureIFace@@K@Z
     ?setTextureReduction@srGERD@@QAEXJ@Z
     ?setViewPort@srGERD@@QAEXKKKK@Z
     ?setWinding@srGERD@@QAEXW4e_winding@1@@Z
@@ -1103,7 +1108,9 @@ EXPORTS
     ?translate@srGERD@@QAEXABV?$srVector3T@M@@@Z
     ?translate@srGERD@@QAEXABV?$srVector3T@N@@@Z
     ?translate@srGERD@@QAEXNNN@Z
+    ?unlockRenderer@srGERD@@QAEXPAVRenderer@1@H@Z
     ?setClipState@srGERD@@QAEXV?$srFlags@W4e_clip@srRendererDefs@@@@@Z
+    ?setDataPtr@srGERD@@AAEXW4e_vertexArray@srRendererDefs@@JW4e_type@3@KPBX@Z
     ?setTextureDefaultMagFilter@srGERD@@QAEXW4e_filter@srTextureIFace@@@Z
     ?setTextureDefaultMinFilter@srGERD@@QAEXW4e_filter@srTextureIFace@@@Z
     ?setTextureDefaultMipmap@srGERD@@QAEXW4e_mipmap@srTextureIFace@@@Z

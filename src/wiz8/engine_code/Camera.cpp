@@ -111,7 +111,7 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, int activ
                     1);
                 monster_info = MonsterGetScriptPartByLocationIndex(index);
                 PointCameraAtMonster(monster_info, 1, 1);
-                position = monster_info->monster->GetPosition();
+                position = monster_info->p3D->GetPosition();
                 target = position;
                 if (g_settings_6850c8.camera_rotation_mode == 1) {
                     if (g_settings_6850c8.camera_rotation_style == 0) {
@@ -125,7 +125,7 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, int activ
                         g_gd_camera_65a0f8->BeginOrientationTransition(pitch, angle, 0);
                     }
                 }
-                MonsterForwardReferencePosition(monster_info->monster, 0);
+                MonsterForwardReferencePosition(monster_info->p3D, 0);
             }
             npc = GetNpcStateByKind(0x34);
         }
@@ -143,7 +143,7 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, int activ
                     0xd0, "C:\\Projects\\Wizardry 8\\Engine Code\\Camera.cpp", group->leader_id_9f,
                     1);
                 monster_info = MonsterGetScriptPartByLocationIndex(index);
-                MonsterForwardReferencePosition(monster_info->monster, 0);
+                MonsterForwardReferencePosition(monster_info->p3D, 0);
                 return;
             }
         } else if (_stricmp(path->name_00, "CameraPath4") == 0) {
@@ -183,7 +183,7 @@ void PointCameraAtMonster(W8MonsterInfo* monster_info, unsigned char force, unsi
             return;
         }
     }
-    monster = monster_info->monster;
+    monster = monster_info->p3D;
     if (monster->IsRenderable004C7C00(1) == 0) {
         return;
     }

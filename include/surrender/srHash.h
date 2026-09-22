@@ -26,10 +26,14 @@ template <class Key, class Value> struct srHashEntry {
 
 template <class Key, class Value> class srHashTable {
 public:
+    // TEMPLATE: SURRENDER 0x10027840
+    // srHashTable<srGERD::Renderer::TextureSetKey, unsigned long>::srHashTable
     srHashTable() : bucket_heads(0), entries(0), free_head(-1), bucket_count(0)
     {
         Grow();
     }
+    // TEMPLATE: SURRENDER 0x10027860
+    // srHashTable<srGERD::Renderer::TextureSetKey, unsigned long>::~srHashTable
     ~srHashTable()
     {
         if (bucket_heads != 0) {
@@ -49,6 +53,8 @@ public:
     void Grow();
     int AllocateEntry();
 
+    // TEMPLATE: SURRENDER 0x10027890
+    // srHashTable<srGERD::Renderer::TextureSetKey, unsigned long>::Clear
     void Clear()
     {
         if (bucket_count != 0) {
@@ -181,6 +187,8 @@ template <class Key, class Value> void srHashTable<Key, Value>::RemoveAt(int slo
     }
 }
 
+// TEMPLATE: SURRENDER 0x100279E0
+// srHashTable<srGERD::Renderer::TextureSetKey, unsigned long>::Grow
 template <class Key, class Value> void srHashTable<Key, Value>::Grow()
 {
     unsigned int capacity = bucket_count << 1;

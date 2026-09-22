@@ -1459,7 +1459,8 @@ void OctBuildPreTree::FinalizeRegionMapping004B2A20()
         region_path_map_124->Insert(&node->region_28, &path);
         if (node->region_28 >= final_region_count) {
             char message[256];
-            sprintf(message, "Invalid submesh %d\n", static_cast<unsigned int>(node->region_28));
+            sprintf(message, "Invalid submesh %d\n",
+                    static_cast<unsigned int>(node->region_28));
             ReportBuildStatus00497690(6, message);
         }
     }
