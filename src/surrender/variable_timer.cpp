@@ -160,6 +160,14 @@ void srVariableTimer::setTime(float time)
     m_scaled_tick += m_scaled_base;
 }
 
+/* Retail updates m_step_size and m_step_scale here but deliberately does
+   not recompute m_step_ticks (0x10063B90 writes only +0x890/+0x88c after
+   setting the in-step flag): the running quantum keeps the step size that
+   was current at construction/reset until the next reset derives
+   m_step_ticks = m_frequency * m_step_scale. stepForward/stepBack read the
+   stale quantum for the remainder of the step session — confirmed retail
+   behavior, not a missed update. m_step_scale is consumed only by those
+   tick derivations and assignment. */
 // FUNCTION: SURRENDER 0x10063B90
 int srVariableTimer::stepBegin(unsigned long step_size)
 {
