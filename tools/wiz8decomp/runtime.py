@@ -592,8 +592,28 @@ def runtime_test_environment(
     return prefix, environment
 
 
-def configure_wine_window_management(environment: dict[str, str], *, private_display: bool) -> None:
-    """Match Wine's window ownership and desktop geometry to the selected display."""
+def configure_wine_window_management(
+    environment: dict[str, str],
+    *,
+    private_display: bool,
+    virtual_desktop: bool | None = None,
+) -> None:
+    """Match Wine's window ownership and desktop geometry to the selected display.
+
+    Display selection and Wine's virtual-desktop policy are independent:
+    ``private_display`` only controls the ``Managed`` driver flag. The Wine
+    ``Explorer`` virtual desktop is an explicit opt-in via
+    ``WIZ8_WINE_VIRTUAL_DESKTOP`` so a host display maps Wiz8 as an ordinary
+    managed window instead of a 640x480 desktop shell.
+    """
+
+    if virtual_desktop is None:
+        virtual_desktop = os.environ.get("WIZ8_WINE_VIRTUAL_DESKTOP", "").strip().lower() in {
+            "1",
+            "true",
+            "yes",
+            "on",
+        }
 
     subprocess.run(
         [
@@ -611,7 +631,7 @@ def configure_wine_window_management(environment: dict[str, str], *, private_dis
         check=True,
         timeout=60,
     )
-    if private_display:
+    if not virtual_desktop:
         subprocess.run(
             [
                 "wine",
