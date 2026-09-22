@@ -4281,13 +4281,18 @@ void TrackItemSpellSource00501D20(W8Character* character, int spell_id)
         }
         ++item;
     }
+    /* Retail maps spell ids to records directly: record r is gated by
+       storage[r] (the walk reads has_spell[index - 1] with the 0-based
+       record index), so record 0 reads the always-zero leading byte and
+       spell id s marks record s - the same record the cast_count access
+       below increments. */
     W8SpellUsageRecord* record = g_status_685170.item_spell_usage_24a0;
     int index = 0;
     while (record < g_status_685170.item_spell_usage_24a0 + 150) {
-        ++index;
         if (has_spell[index - 1] != '\0') {
             ++record->usable_cast_count;
         }
+        ++index;
         ++record;
     }
     ++g_status_685170.item_spell_usage_24a0[spell_id].cast_count;
