@@ -269,7 +269,7 @@ bool AscensionChaosBTrigger004DFF90(Trigger* pTrigger)
     Trigger* chaos_a = FindTriggerByName("ChaosATrigger");
 
     if (chaos_a != 0) {
-        chaos_a->flags_0a0 |= 0x100;
+        chaos_a->flags_0a0 |= W8_TRIGGER_ENABLED;
     }
     if (GetLocationVarIDByName("AlethidiesChaosActive") != -1 &&
         GetLocationVarValueByName("AlethidiesChaosActive") != 0) {
@@ -302,7 +302,7 @@ bool AscensionChaosATrigger004DFFF0(Trigger* pTrigger)
         QueueNpcMessageLine(W8_NPC_MSG_CALL_4DFAE0, 0);
     }
     QueueNpcMessageLine(W8_NPC_MSG_FINISH_ACTION, 0);
-    pTrigger->flags_0a0 &= ~0x100u;
+    pTrigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
     return true;
 }
 
@@ -315,7 +315,7 @@ bool AscensionLifeBTrigger004E00B0(Trigger* pTrigger)
     Trigger* life_a = FindTriggerByName("LifeATrigger");
 
     if (life_a != 0) {
-        life_a->flags_0a0 |= 0x100;
+        life_a->flags_0a0 |= W8_TRIGGER_ENABLED;
     }
     if (GetLocationVarIDByName("AlethidiesLifeActive") != -1 &&
         GetLocationVarValueByName("AlethidiesLifeActive") != 0) {
@@ -347,7 +347,7 @@ bool AscensionLifeATrigger004E0110(Trigger* pTrigger)
         QueueNpcMessageLine(W8_NPC_MSG_CALL_4DFB40, 0);
     }
     QueueNpcMessageLine(W8_NPC_MSG_FINISH_ACTION, 0);
-    pTrigger->flags_0a0 &= ~0x100u;
+    pTrigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
     return true;
 }
 
@@ -360,7 +360,7 @@ bool AscensionKnowBTrigger004E01D0(Trigger* pTrigger)
     Trigger* know_a = FindTriggerByName("KnowATrigger");
 
     if (know_a != 0) {
-        know_a->flags_0a0 |= 0x100;
+        know_a->flags_0a0 |= W8_TRIGGER_ENABLED;
     }
     if (GetLocationVarIDByName("AlethidiesKnowActive") != -1 &&
         GetLocationVarValueByName("AlethidiesKnowActive") != 0) {
@@ -392,7 +392,7 @@ bool AscensionKnowATrigger004E0230(Trigger* pTrigger)
         QueueNpcMessageLine(W8_NPC_MSG_CALL_4DFB80, 0);
     }
     QueueNpcMessageLine(W8_NPC_MSG_FINISH_ACTION, 0);
-    pTrigger->flags_0a0 &= ~0x100u;
+    pTrigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
     return true;
 }
 
@@ -439,7 +439,7 @@ bool AscensionPath1Camera004E0390(Trigger* pTrigger)
         EndCombat004EA310(1);
     }
     BeginScriptedWorldAction();
-    pTrigger->flags_0a0 &= ~0x10u;
+    pTrigger->flags_0a0 &= ~W8_TRIGGER_ON;
     return true;
 }
 

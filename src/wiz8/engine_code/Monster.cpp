@@ -2505,7 +2505,7 @@ bool W8Monster::CanContinueScript004CA0F0()
         }
         break;
     case 0x16:
-        if (trigger_278 != 0 && (trigger_278->flags_0a0 & 0x40) != 0) {
+        if (trigger_278 != 0 && (trigger_278->flags_0a0 & W8_TRIGGER_RUNNING) != 0) {
             return 0;
         }
         trigger_278 = 0;

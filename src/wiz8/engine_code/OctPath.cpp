@@ -5047,7 +5047,8 @@ void W8PathingService::ActivateMovementTrigger0045B880(W8NavigatorMovementState*
     if (count == 1) {
         W8Prop* prop = *g_world->collidable_props->GetAt(candidates[0]);
         Trigger* trigger = prop->GetGDPropValue24();
-        if (prop->GetSetting6C() == 0 || trigger == 0 || (trigger->flags_0a0 & 0x100) == 0) {
+        if (prop->GetSetting6C() == 0 || trigger == 0 ||
+            (trigger->flags_0a0 & W8_TRIGGER_ENABLED) == 0) {
             return;
         }
         selected = trigger;
@@ -5059,7 +5060,8 @@ void W8PathingService::ActivateMovementTrigger0045B880(W8NavigatorMovementState*
         for (int index = 0; index < count; ++index) {
             W8Prop* prop = *g_world->collidable_props->GetAt(candidates[index]);
             Trigger* trigger = prop->GetGDPropValue24();
-            if (prop->GetSetting6C() != 0 && trigger != 0 && (trigger->flags_0a0 & 0x100) != 0) {
+            if (prop->GetSetting6C() != 0 && trigger != 0 &&
+                (trigger->flags_0a0 & W8_TRIGGER_ENABLED) != 0) {
                 srVector3T<float> center;
                 prop->GetCenterPosition(&center);
                 srVector3T<float> difference = center - midpoint;
