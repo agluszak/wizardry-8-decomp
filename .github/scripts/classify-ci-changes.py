@@ -6,7 +6,6 @@ from __future__ import annotations
 import sys
 from collections.abc import Iterable
 
-
 _DOC_PREFIXES = ("docs/",)
 _DOC_FILES = {
     "README.md",
@@ -102,8 +101,7 @@ def classify(paths: Iterable[str]) -> dict[str, bool]:
 
         if (
             _matches(path, _ANALYSIS_PREFIXES)
-            or path.startswith("evidence/reviewed/")
-            or path.startswith("tools/ghidra/")
+            or path.startswith(("evidence/reviewed/", "tools/ghidra/"))
         ):
             analysis = True
 

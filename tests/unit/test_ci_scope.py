@@ -1,7 +1,6 @@
 from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 
-
 _SCRIPT = Path(__file__).resolve().parents[2] / ".github/scripts/classify-ci-changes.py"
 _SPEC = spec_from_file_location("ci_scope", _SCRIPT)
 assert _SPEC is not None and _SPEC.loader is not None
