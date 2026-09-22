@@ -373,7 +373,8 @@ void HeldCommand::note_snapshot(const GameplaySnapshot& now)
 RuntimeCase::RuntimeCase(const char* name, unsigned long budget_ms)
     : name_(name), started_(GetTickCount()), deadline_(GetTickCount() + budget_ms),
       last_step_("none"), failed_(false), failure_step_("none"), failure_reason_("none"),
-      has_snapshot_(false), held_key_(0), finished_(false)
+      has_snapshot_(false), held_key_(0), finished_(false), fixture_name_("none"),
+      fixture_path_("natural")
 {
     expected_[0] = 0;
     memset(&last_snapshot_, 0, sizeof(last_snapshot_));
@@ -643,9 +644,49 @@ void RuntimeCase::finish(bool passed)
         return;
     }
     finished_ = true;
-    fprintf(stderr, "WIZ8_RUNTIME_CASE scenario=%s outcome=%s last_step=%s elapsed_ms=%lu\n", name_,
-            passed ? "pass" : "fail", last_step_, elapsed_ms());
+    fprintf(stderr,
+            "WIZ8_RUNTIME_CASE scenario=%s fixture=%s path=%s outcome=%s last_step=%s "
+            "elapsed_ms=%lu\n",
+            name_, fixture_name_, fixture_path_, passed ? "pass" : "fail", last_step_,
+            elapsed_ms());
     fflush(stderr);
+}
+
+namespace {
+struct InvariantCall {
+    bool (*fn)(void* ctx);
+    void* ctx;
+    bool result;
+};
+
+static void RunInvariantOnGameThread(void* opaque)
+{
+    InvariantCall* call = static_cast<InvariantCall*>(opaque);
+    call->result = call->fn(call->ctx);
+}
+} // namespace
+
+bool RuntimeCase::run_invariant(const char* step, bool (*fn)(void* ctx), void* ctx,
+                                unsigned long budget_ms)
+{
+    InvariantCall call;
+    call.fn = fn;
+    call.ctx = ctx;
+    call.result = false;
+    if (!on_game_thread(step, RunInvariantOnGameThread, &call, budget_ms)) {
+        return false;
+    }
+    if (!call.result) {
+        return fail(step, "required-invariant-failed");
+    }
+    this->step(step);
+    return true;
+}
+
+void RuntimeCase::set_fixture(const char* name, const char* path)
+{
+    fixture_name_ = name;
+    fixture_path_ = path;
 }
 
 unsigned short RuntimeCase::held_key() const

@@ -36,17 +36,37 @@ static int FindStackableItemId(void)
     return -1;
 }
 
-bool RunSplitStackSemanticTest(SplitStackSemanticResult* result)
+/* Saves and restores the cursor/hand/split-source globals the body drives,
+   so early returns cannot leak test state back into the real UI. */
+struct SplitStackStateScope {
+    unsigned char cursor;
+    W8ItemInstance hand;
+    W8ItemInstance* source;
+
+    SplitStackStateScope()
+    {
+        cursor = g_status_685170.item_in_cursor;
+        hand = g_status_685170.item_in_hand_235b;
+        source = g_split_item_source_0069c424;
+    }
+
+    ~SplitStackStateScope()
+    {
+        g_status_685170.item_in_cursor = cursor;
+        g_status_685170.item_in_hand_235b = hand;
+        g_split_item_source_0069c424 = source;
+    }
+};
+
+static bool RunSplitStackBody(SplitStackSemanticResult* result, bool fail_early)
 {
+    SplitStackStateScope scope;
     W8ItemInstance source;
-    W8ItemInstance saved_hand;
     W8SplitItemDialog* dialog;
     W8SplitItemDialog* cancel_dialog;
-    unsigned char saved_cursor;
     int item_id;
     int expected_split;
 
-    memset(result, 0, sizeof(*result));
     item_id = FindStackableItemId();
     if (item_id < 0) {
         return false;
@@ -56,8 +76,6 @@ bool RunSplitStackSemanticTest(SplitStackSemanticResult* result)
     memset(&source, 0, sizeof(source));
     source.iItemNo = item_id;
     source.stack_count = 6;
-    saved_cursor = g_status_685170.item_in_cursor;
-    saved_hand = g_status_685170.item_in_hand_235b;
     g_status_685170.item_in_cursor = 0;
     g_status_685170.item_in_hand_235b.iItemNo = -1;
 
@@ -66,6 +84,12 @@ bool RunSplitStackSemanticTest(SplitStackSemanticResult* result)
     expected_split = g_item_records[item_id].maximum_quantity <= 0xa ? 1 : 3;
     dialog = new W8SplitItemDialog(0, &source, -1);
     if (dialog == 0) {
+        return false;
+    }
+    if (fail_early) {
+        /* The same early exit a failed check would take: the scope must
+           restore cursor, hand, and split source. */
+        delete dialog;
         return false;
     }
     result->ctor_split_in_range = dialog->split_count_0c0 == expected_split;
@@ -92,21 +116,43 @@ bool RunSplitStackSemanticTest(SplitStackSemanticResult* result)
             source.stack_count == 6 && g_status_685170.item_in_hand_235b.iItemNo == -1;
         delete cancel_dialog;
     }
+    return true;
+}
 
-    g_status_685170.item_in_hand_235b = saved_hand;
-    g_status_685170.item_in_cursor = saved_cursor;
-    g_split_item_source_0069c424 = 0;
-    return result->ctor_split_in_range && result->ctor_counts_sum_to_stack &&
-           result->explicit_count_applied && result->cancel_leaves_stack;
+bool RunSplitStackSemanticTest(SplitStackSemanticResult* result)
+{
+    memset(result, 0, sizeof(*result));
+
+    /* An early-exit body run inside sentinel state must restore all three
+       globals the body touches. */
+    {
+        SplitStackStateScope sentinels;
+        W8ItemInstance sentinel_source;
+
+        memset(&sentinel_source, 0, sizeof(sentinel_source));
+        g_split_item_source_0069c424 = &sentinel_source;
+        g_status_685170.item_in_cursor = 0x5a;
+        g_status_685170.item_in_hand_235b.iItemNo = 0x1234;
+        RunSplitStackBody(result, true);
+        result->state_restored_after_failure = g_split_item_source_0069c424 == &sentinel_source &&
+                                               g_status_685170.item_in_cursor == 0x5a &&
+                                               g_status_685170.item_in_hand_235b.iItemNo == 0x1234;
+    }
+
+    RunSplitStackBody(result, false);
+    return result->stackable_item_found && result->ctor_split_in_range &&
+           result->ctor_counts_sum_to_stack && result->explicit_count_applied &&
+           result->cancel_leaves_stack && result->state_restored_after_failure;
 }
 
 void PrintSplitStackSemanticResults(const SplitStackSemanticResult* result)
 {
     fprintf(stderr,
             "split-stack semantic: item_found=%u ctor_in_range=%u "
-            "ctor_counts_sum=%u explicit_count=%u cancel_untouched=%u\n",
+            "ctor_counts_sum=%u explicit_count=%u cancel_untouched=%u "
+            "state_restored=%u\n",
             result->stackable_item_found, result->ctor_split_in_range,
             result->ctor_counts_sum_to_stack, result->explicit_count_applied,
-            result->cancel_leaves_stack);
+            result->cancel_leaves_stack, result->state_restored_after_failure);
     fflush(stderr);
 }
