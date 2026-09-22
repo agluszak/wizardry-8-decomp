@@ -221,7 +221,7 @@ void __fastcall UpdateTriggerLock00445730(int* lock_state)
 
 /* Ticks the lock countdown at lock_state[7]; returns 1 while a tick remained. */
 // FUNCTION: WIZ8 0x004457A0
-unsigned char __fastcall DecrementLockTimer004457A0(int* lock_state)
+unsigned char __fastcall ConsumeLockQuality004457A0(int* lock_state)
 {
     if (lock_state[7] > 0) {
         --lock_state[7];

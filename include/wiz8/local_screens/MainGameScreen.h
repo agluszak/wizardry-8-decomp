@@ -37,8 +37,9 @@ extern const wchar_t g_format_s_paren_d_0061a700[];
 
 extern W8MainGameResourceSlot g_main_game_resource_slots[17];
 extern W8ScreenRect g_viewport_modes_647d30[];
+/* String-list ids naming each trap row; Traps.cpp indexes it with the
+   trigger's trap type for the disarm/spring notices. */
 extern unsigned short g_value_0061e9ec[];
-
 #include "wiz8/layouts/screen_state.h"
 
 #include "wiz8/local_code/ControlsRect.h"

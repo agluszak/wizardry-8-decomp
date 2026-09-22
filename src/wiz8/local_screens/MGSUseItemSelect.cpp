@@ -1,13 +1,12 @@
 #include "wiz8/layouts/game_status.h"
+#include "wiz8/layouts/combat_state.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/local_screens/MGSUseItemSelect.h"
 #include "wiz8/character_event_queue.h"
 #include "wiz8/dialog_code/AssayDialog.h"
 #include "wiz8/dialog_code/DialogBase.h"
 #include "wiz8/engine_code/Spells.h"
-#include "wiz8/fonts.h"
 #include "wiz8/item_video_object_vector.h"
-#include "wiz8/layouts/combat_state.h"
 #include "wiz8/layouts/item_tables.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/local_code/Configuration.h"
@@ -24,22 +23,25 @@
 #include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 #include "wiz8/local_screens/NPCInteractionSubscreen.h"
+#include "wiz8/npc_interaction.h"
 #include "wiz8/local_screens/OptionsScreen.h"
 #include "wiz8/local_screens/RCSItemsPage.h"
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/level_specific_code/Trynnie2.h"
-#include "wiz8/npc_interaction.h"
 #include "wiz8/regions.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
+#include "wiz8/fonts.h"
 #include "wiz8/xstatus.h"
 
 #define MGSUSEITEMSELECT_CPP "C:\\Projects\\Wizardry 8\\Local Screens\\MGSUseItemSelect.cpp"
 
-// GLOBAL: WIZ8 0x0069b994
-Controls* g_use_item_select_panels_69b994[3];
+// GLOBAL: WIZ8 0x0069B984
+int g_use_item_select_flags_0069b984;
 // GLOBAL: WIZ8 0x0069b988
 W8MainUiMode g_value_69b988;
+// GLOBAL: WIZ8 0x0069B98C
+int g_use_item_select_mode_0069b98c;
 
 // GLOBAL: WIZ8 0x0069B950
 W8TextControl* g_use_item_select_scroll_buttons[3];
@@ -51,16 +53,14 @@ W8TextControl* g_use_item_select_controls[9];
 W8ItemInstance* g_value_69b9a0;
 // GLOBAL: WIZ8 0x0069B9A4
 W8ItemInstance* g_value_69b9a4;
-// GLOBAL: WIZ8 0x0069B98C
-int g_use_item_select_mode_0069b98c;
 // GLOBAL: WIZ8 0x0069B990
 int g_use_item_list_count_0069b990;
+// GLOBAL: WIZ8 0x0069B994
+Controls* g_use_item_select_panels_69b994[3];
 // GLOBAL: WIZ8 0x0069B9A8
 int g_use_item_cursor_x_0069b9a8;
 // GLOBAL: WIZ8 0x0069B9AC
 int g_use_item_cursor_y_0069b9ac;
-// GLOBAL: WIZ8 0x0069B984
-int g_use_item_select_flags_0069b984;
 // GLOBAL: WIZ8 0x0069B9B0
 int g_use_item_owner_index_0069b9b0;
 // GLOBAL: WIZ8 0x0069B9B4
@@ -483,6 +483,58 @@ void UpdateUseItemScrollButtons0059D070(void)
     }
 }
 
+// FUNCTION: WIZ8 0x0059D790
+void UseItemSelectScrollUp0059D790(void)
+{
+    if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[0]->m_stateFlags &
+                                   g_W8TextControlMask005ED570) != 0) {
+        if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[1]->m_stateFlags &
+                                       g_W8TextControlMask005ED570) != 0) {
+            g_use_item_select_scroll_buttons[1]->DisableSecondaryState(0);
+            g_use_item_select_scroll_buttons[1]->Invalidate(0);
+        }
+        RebuildUseItemSelectList0059D230(0, 0);
+        return;
+    }
+    g_use_item_select_scroll_buttons[0]->EnableSecondaryState(0);
+}
+
+// FUNCTION: WIZ8 0x0059D7E0
+void UseItemSelectScrollDown0059D7E0(void)
+{
+    if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[1]->m_stateFlags &
+                                   g_W8TextControlMask005ED570) != 0) {
+        if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[0]->m_stateFlags &
+                                       g_W8TextControlMask005ED570) != 0) {
+            g_use_item_select_scroll_buttons[0]->DisableSecondaryState(0);
+            g_use_item_select_scroll_buttons[0]->Invalidate(0);
+        }
+        RebuildUseItemSelectList0059D230(1, 0);
+        return;
+    }
+    g_use_item_select_scroll_buttons[1]->EnableSecondaryState(0);
+}
+
+// FUNCTION: WIZ8 0x0059D830
+void UseItemSelectFilterToggle0059D830(void)
+{
+    if (static_cast<unsigned char>(g_use_item_select_controls[3]->m_stateFlags &
+                                   g_W8TextControlMask005ED570) == 0) {
+        g_use_item_select_controls[3]->EnableSecondaryState(1);
+        g_use_item_select_controls[3]->Invalidate(0);
+    }
+    g_use_item_select_flags_0069b984 |= 1;
+}
+
+// FUNCTION: WIZ8 0x0059D860
+void UseItemSelectAssayButton0059D860(void)
+{
+    if (g_use_item_detail_item_0069bf2c != 0 &&
+        g_use_item_select_controls[0]->m_imageObject != -1) {
+        OpenUseItemAssayDialog59D880(g_use_item_detail_item_0069bf2c);
+    }
+}
+
 /* Commit the pending use-item action: while the selected item is still usable
    by the owner and its recorded target suits it, commit the target and aim
    the item use. Spell 0x17 keeps the view open for the follow-up pick;
@@ -733,58 +785,6 @@ void RefreshUseItemSelection(void)
     if (g_use_item_select_mode_0069b98c != -1) {
         RebuildUseItemSelectList0059D230(g_use_item_select_mode_0069b98c, 0);
         RequestRedraw(0x200);
-    }
-}
-
-// FUNCTION: WIZ8 0x0059D790
-void UseItemSelectScrollUp0059D790(void)
-{
-    if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[0]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
-        if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[1]->m_stateFlags &
-                                       g_W8TextControlMask005ED570) != 0) {
-            g_use_item_select_scroll_buttons[1]->DisableSecondaryState(0);
-            g_use_item_select_scroll_buttons[1]->Invalidate(0);
-        }
-        RebuildUseItemSelectList0059D230(0, 0);
-        return;
-    }
-    g_use_item_select_scroll_buttons[0]->EnableSecondaryState(0);
-}
-
-// FUNCTION: WIZ8 0x0059D7E0
-void UseItemSelectScrollDown0059D7E0(void)
-{
-    if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[1]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) != 0) {
-        if (static_cast<unsigned char>(g_use_item_select_scroll_buttons[0]->m_stateFlags &
-                                       g_W8TextControlMask005ED570) != 0) {
-            g_use_item_select_scroll_buttons[0]->DisableSecondaryState(0);
-            g_use_item_select_scroll_buttons[0]->Invalidate(0);
-        }
-        RebuildUseItemSelectList0059D230(1, 0);
-        return;
-    }
-    g_use_item_select_scroll_buttons[1]->EnableSecondaryState(0);
-}
-
-// FUNCTION: WIZ8 0x0059D830
-void UseItemSelectFilterToggle0059D830(void)
-{
-    if (static_cast<unsigned char>(g_use_item_select_controls[3]->m_stateFlags &
-                                   g_W8TextControlMask005ED570) == 0) {
-        g_use_item_select_controls[3]->EnableSecondaryState(1);
-        g_use_item_select_controls[3]->Invalidate(0);
-    }
-    g_use_item_select_flags_0069b984 |= 1;
-}
-
-// FUNCTION: WIZ8 0x0059D860
-void UseItemSelectAssayButton0059D860(void)
-{
-    if (g_use_item_detail_item_0069bf2c != 0 &&
-        g_use_item_select_controls[0]->m_imageObject != -1) {
-        OpenUseItemAssayDialog59D880(g_use_item_detail_item_0069bf2c);
     }
 }
 

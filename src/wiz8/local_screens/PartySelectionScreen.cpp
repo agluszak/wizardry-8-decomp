@@ -40,6 +40,7 @@
 #include "wiz8/geometry.h"
 #include "wiz8/local_code/Controls.h"
 #include "wiz8/local_code/GameplayInit.h"
+#include "wiz8/local_code/PartyImport.h"
 #include "wiz8/local_screens/PartySelectionScreen.h"
 #include "wiz8/local_code/PartyImport.h"
 #include "wiz8/local_screens/CharacterScreen.h"

@@ -349,6 +349,7 @@ unsigned int FindFreePartySlot(unsigned int first, unsigned int last)
     return (unsigned int)-1;
 }
 
+
 /* Recompute the eight-band ladder over the character's level in their current
    profession. A character who has changed profession is banded on the whole
    level; one still in their first profession has the starting base taken off

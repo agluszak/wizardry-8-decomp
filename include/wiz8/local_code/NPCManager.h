@@ -103,12 +103,12 @@ void ReleaseNpcMonsterBindings0050C2E0(void);
 void ReleaseMarkedNpcBindings0050DA00(void);
 void RebindNpcLevelTriggers0050AC60(void);
 W8NpcState* GetNpcState(int index);
-bool NpcHasTopic(W8NpcState* npc, int topic);
 W8NpcState* GetNpcStateByKind(int kind);
 /* 0x0050DC50: whether the NPC wants the offered item - it matches one of the
    record's wanted entries by id or by the shared 0x83 name kind, and a grouped
    NPC whose member already carries more than one declines. */
 bool NpcWantsItem0050DC50(W8NpcState* npc, W8ItemInstance* item);
+bool NpcHasTopic(W8NpcState* npc, int topic); /* 0x0050C190 */
 bool NpcLeadHasNameStyle(unsigned int kind);
 /* 0x00509EA0: clear one NPC binding's monster link and hand the handle to the
    owned item-list teardown. */

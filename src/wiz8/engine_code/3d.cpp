@@ -1017,10 +1017,10 @@ bool PointInsideFrustum0046D880(const srVector3T<float>* point, const srVector4T
         float distance = SignedPlaneDistance(planes[index], *point);
 
         if (distance < g_float_005ebb34) {
-            return 0;
+            return false;
         }
     }
-    return 1;
+    return true;
 }
 
 /* Header-visible SetPlaneFromThreePoints. This TU lowers the three-point

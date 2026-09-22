@@ -13,6 +13,7 @@
 #include "wiz8/local_code/GameplayCode.h"
 #include "wiz8/item_spawning.h"
 #include "wiz8/local_code/PC_Item.h"
+#include "wiz8/local_code/Strings.h"
 #include "wiz8/monster_runtime.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/Strings.h"
@@ -654,6 +655,35 @@ unsigned int GetNpcItemCount(W8NpcState* npc)
     return PLLength(npc->items);
 }
 
+// GLOBAL: WIZ8 0x0062A80C
+char g_sound_cash_transaction_62a80c[] = "Data\\Sound\\misc\\Cash Transaction.wav";
+
+// FUNCTION: WIZ8 0x0055B730
+unsigned char SellItemToNpc0055B730(W8NpcState* npc, W8ItemInstance* item, unsigned char quantity,
+                                    char suppress_payment)
+{
+    W8ItemInstance stack;
+    int amount;
+
+    if ((g_item_records[item->item_id].flags_041 & 2) == 0) {
+        if (NpcAcceptsTradeItemClass(npc, item) != 0) {
+            ReplaceOrCreateItem(&stack, item->item_id, 0, item->identified, 0);
+            stack.stack_count = quantity;
+            amount = CalculateTradeStackPrice(npc, &stack, 0);
+            if (suppress_payment == 0) {
+                AddPartyGold(amount, 0);
+            }
+            SoundPlay(g_sound_cash_transaction_62a80c, 0);
+            if (item->stack_count == 0) {
+                item->stack_count = 1;
+            }
+            AddNpcItemFromInstance(npc, item, quantity);
+            return 1;
+        }
+    }
+    return 0;
+}
+
 // FUNCTION: WIZ8 0x0055b290
 bool NpcAcceptsTradeItemClass(W8NpcState* npc, W8ItemInstance* item)
 {
@@ -852,33 +882,6 @@ int CalculateTradeStackPrice(W8NpcState* npc, W8ItemInstance* item, char mode)
     return amount != 0 ? amount : 1;
 }
 
-/* Hand one offered stack to the NPC: when the record accepts the class the
-   trade price is paid into party gold (unless the caller suppresses payment),
-   the cash sound plays, and the stack is folded into the NPC's stock. */
-// FUNCTION: WIZ8 0x0055B730
-unsigned char SellItemToNpc0055B730(W8NpcState* npc, W8ItemInstance* item, unsigned char quantity,
-                                    char no_payment)
-{
-    W8ItemInstance stack;
-    int amount;
-
-    if ((g_item_records[item->item_id].flags_041 & 2) == 0 && NpcAcceptsTradeItem(npc, item) != 0) {
-        ReplaceOrCreateItem(&stack, item->item_id, 0, item->identified, 0);
-        stack.stack_count = quantity;
-        amount = CalculateTradeStackPrice(npc, &stack, 0);
-        if (no_payment == 0) {
-            AddPartyGold(amount, 0);
-        }
-        SoundPlay("Data\\Sound\\misc\\Cash Transaction.wav", 0);
-        if (item->stack_count == 0) {
-            item->stack_count = 1;
-        }
-        AddNpcItemFromInstance(npc, item, quantity);
-        return 1;
-    }
-    return 0;
-}
-
 /* Take quantity units of one stock slot off the NPC and into the party. Each
    pass hands over at most one maximum-quantity stack (or one unit for the
    non-stack quantity kinds) until the request is filled; the price of the
@@ -933,7 +936,7 @@ bool CompleteNpcItemPurchase0055B7E0(W8NpcState* npc, int index, unsigned char q
             ReplaceOrCreateItem(&stack, entry->item.item_id, 0, 1, 0);
             stack.stack_count = moved;
             price = CalculateTradeStackPrice(npc, &stack, 1);
-            SoundPlay("Data\\Sound\\misc\\Cash Transaction.wav", 0);
+            SoundPlay(g_sound_cash_transaction_62a80c, 0);
             if (ConsumeNpcItemQuantity(npc, index, moved) == 0) {
                 return 0;
             }

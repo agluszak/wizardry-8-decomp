@@ -1,35 +1,35 @@
 #include "wiz8/local_code/Traps.h"
-
-#include <stdio.h>
-#include <string.h>
-
-#include "FileMan.h"
-#include "random.h"
-#include "surrender/srDebug.h"
-#include "wiz8/engine_code/3dapi.h"
-#include "wiz8/engine_code/GDCamera.h"
-#include "wiz8/engine_code/GameData.h"
-#include "wiz8/engine_code/Levels.h"
-#include "wiz8/engine_code/Navigator.h"
-#include "wiz8/engine_code/Octree.h"
-#include "wiz8/engine_code/Prop.h"
-#include "wiz8/engine_code/Spells.h"
 #include "wiz8/engine_code/Trigger.hpp"
+#include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_code/Prop.h"
+#include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/GameData.h"
+#include "wiz8/engine_code/Navigator.h"
+#include "wiz8/engine_code/Spells.h"
 #include "wiz8/engine_code/World.h"
-#include "wiz8/float_constants.h"
-#include "wiz8/layouts/combat_state.h"
-#include "wiz8/layouts/game_status.h"
+#include "wiz8/engine_code/Levels.h"
+#include "wiz8/engine_code/3dapi.h"
+#include "wiz8/startup_world.h"
 #include "wiz8/local_code/Magic.h"
-#include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/Targeting.h"
 #include "wiz8/local_code/character_events.h"
+#include "wiz8/layouts/game_status.h"
+#include "wiz8/layouts/character.h"
+#include "wiz8/layouts/combat_state.h"
+#include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/MGSTextBox.h"
-#include "wiz8/local_screens/MainGameScreen.h"
-#include "wiz8/startup_world.h"
-#include "wiz8/string_database.h"
-#include "wiz8/utility.h"
 #include "wiz8/vector.h"
+#include "wiz8/utility.h"
+#include "wiz8/float_constants.h"
+#include "wiz8/string_database.h"
+#include "wiz8/local_code/Strings.h"
+#include "wiz8/sr_api.h"
+#include "FileMan.h"
+#include "random.h"
+#include <ctype.h>
+#include <stdio.h>
+#include <string.h>
 
 #define TRAPS_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Traps.cpp"
 
@@ -223,144 +223,142 @@ unsigned char GetTable650434Entry(int row, int column)
     return g_table_650434[row][column];
 }
 
-/* 0x006504AC: the pin-count ceiling indexed by the rolled tumbler id.
-   Random(0xf) returns 0..14, so the table ends before g_table_6504e8. */
+/* Per-type device floor for the sprung-trap discharge: the type's entry is
+   subtracted from the trigger's device count before extra targets and power
+   are rolled. */
 // GLOBAL: WIZ8 0x006504AC
-int g_tumbler_count_table_006504ac[15] = {1, 1, 2, 2, 3, 3, 3, 4, 5, 5, 5, 6, 6, 7, 7};
+int g_trap_difficulty_6504ac[W8_TRAP_TYPE_COUNT] = {1, 1, 2, 2, 3, 3, 3, 4, 5, 5, 5, 6, 6, 7, 7};
 
+/* Roll the trigger's trap type (value_37c) on first interaction: rejection-
+   sample the fifteen-row trap table until a type whose per-type difficulty
+   lands within four of the trigger's grade (value_36c, floored at one). */
 // FUNCTION: WIZ8 0x005E3740
-void RandomizeTriggerTumblerCount005E3740(Trigger* trigger)
+void SelectTrapType005E3740(Trigger* trigger)
 {
     int* lock_state;
-    int count;
-    int limit;
-    int roll;
+    int budget;
+    int type;
 
     lock_state = &trigger->value_368;
     if (lock_state == 0) {
         return;
     }
-    count = lock_state[1];
-    if (count < 1) {
-        count = 1;
+    budget = lock_state[1];
+    if (budget < 1) {
+        budget = 1;
     }
     do {
-        roll = static_cast<int>(Random(0xf));
-        lock_state[5] = roll;
-        limit = g_tumbler_count_table_006504ac[roll];
-    } while (count < limit || limit + 4 < count);
+        type = Random(0xf);
+        lock_state[5] = type;
+    } while (g_trap_difficulty_6504ac[type] > budget ||
+             g_trap_difficulty_6504ac[type] + 4 < budget);
 }
 
-/* A finished lock/trap interaction completes the pending item action, reports
-   the device result, and hands the trigger back to Run. */
+void DischargeTrapSpell005E3800(float x, float y, float z, int spell_id, unsigned int power_level,
+                                int num_targets); /* 0x005E3800 */
+
 // FUNCTION: WIZ8 0x005E3780
-void CompleteTrapInteraction005E3780(Trigger* trigger)
+void CompleteTrapDisarm005E3780(Trigger* trigger)
 {
+    int type;
+    wchar_t* text;
+
     trigger->CompleteItemInteraction004447F0();
-    if (Random(100) < 0x28) {
+    type = trigger->value_37c;
+    if (Random(100) < 40) {
         ApplyItemEffectToRandomCharacter(g_learn_sound_0068c510, -1, 0, g_effect_argument_005ed8c8);
     }
-    ShowString(FormatWideString(g_format_s_space_s_00617584,
-                                gppStringList[g_value_0061e9ec[trigger->value_37c]],
-                                gppStringList[0x7b2]));
+    text = FormatWideString(g_format_s_space_s_00617584, gppStringList[g_value_0061e9ec[type]],
+                            gppStringList[0x7b2]);
+    ShowString(text);
     trigger->Run(-1);
 }
 
-/* Fires the trap's effect spell from `point` against up to `num_targets`
-   living, non-incapacitated party members (a point-targeted spell casts at the
-   camera position instead). */
 // FUNCTION: WIZ8 0x005E3800
-void CastTrapSpell005E3800(srVector3T<float> point, int spell_id, int power, int num_targets)
+void DischargeTrapSpell005E3800(float x, float y, float z, int spell_id, unsigned int power_level,
+                                int num_targets)
 {
-    W8GrowableVector<int> targets;
-    W8TargetSource source;
-    W8CombatSlot target;
-    srVector3T<float> position;
-    int slot;
-    int collected;
     int index;
+    int eligible;
+    W8GrowableVector<int> targets;
+    W8CombatSlot target;
+    W8TargetSource source;
 
     if (num_targets < 1) {
-        srAssertFail("iNumTargets > 0", TRAPS_CPP, 0x94, 0);
+        srAssertFail("iNumTargets > 0", "C:\\Projects\\Wizardry 8\\Local Code\\Traps.cpp", 0x94, 0);
     }
     ResetTargetSource(&source);
     source.iType = W8_TARGET_SOURCE_INDIRECT;
-    source.point.x = point.x;
-    source.point.y = point.y;
-    source.point.z = point.z;
+    source.point.x = x;
+    source.point.y = y;
+    source.point.z = z;
     if (GetSpellTargetType(spell_id, 0) == W8_TARGET_TYPE_POINT) {
         target.iType = W8_TARGET_KIND_PLACE;
-        position = g_startup_world_659c0c->GetPosition();
-        target.point.x = position.x;
-        target.point.y = position.y;
-        target.point.z = position.z;
-        CastSpellFromSource(spell_id, &source, &target, power, 0, 0, 0, 0, 0, 0, 0);
+        target.point = g_startup_world_659c0c->GetPosition();
+        CastSpellFromSource(spell_id, &source, &target, power_level, 0, 0, 0, 0, 0, 0, 0);
     } else {
         ResetCombatSlot(&target);
         target.iType = W8_TARGET_KIND_PARTY;
-        position = g_startup_world_659c0c->GetPosition();
-        target.point.x = position.x;
-        target.point.y = position.y;
-        target.point.z = position.z;
-        collected = 0;
-        for (slot = 0; slot < 8; ++slot) {
-            if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
-                g_status_685170.buffers.characters[slot].hp_current != 0 &&
-                g_status_685170.buffers.characters[slot].highest_condition < 0x12) {
-                targets.Add(slot);
-                ++collected;
+        target.point = g_startup_world_659c0c->GetPosition();
+        eligible = 0;
+        for (index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
+            if (g_status_685170.buffers.party_rows[index].occupied &&
+                g_status_685170.buffers.characters[index].hp_current != 0 &&
+                g_status_685170.buffers.characters[index].highest_condition < W8_CONDITION_DEAD) {
+                targets.Add(index);
+                ++eligible;
             }
         }
-        if (num_targets >= collected) {
-            num_targets = collected;
+        if (num_targets >= eligible) {
+            num_targets = eligible;
         }
         while (targets.count > num_targets) {
-            index = static_cast<int>(Random(targets.count));
-            if (g_status_685170.selected_character != *targets.GetAt(index)) {
+            index = Random(targets.count);
+            if (*targets.GetAt(index) != g_status_685170.selected_character) {
                 targets.RemoveAt(index);
             }
         }
-        CastSpellFromSource(spell_id, &source, &target, power, 0, 0, 0, 0, 0, &targets, 0);
+        CastSpellFromSource(spell_id, &source, &target, power_level, 0, 0, 0, 0, 0, &targets, 0);
     }
 }
 
-/* A sprung trap/lock device: picks the success or failure notice, then casts
-   the device's spell from the prop (or the camera) toward the party. */
 // FUNCTION: WIZ8 0x005E3AB0
-void TriggerTrapDevice005E3AB0(Trigger* trigger)
+void ResolveSprungTrap005E3AB0(Trigger* trigger)
 {
-    srVector3T<float> origin;
+    int devices;
+    int type;
+    int count;
+    int power;
+    const wchar_t* result;
+    wchar_t* text;
+    srVector3T<float> point;
+    srVector3T<float> camera;
     srVector3T<float> minimum;
     srVector3T<float> maximum;
-    srVector3T<float> camera;
-    wchar_t* result;
-    int difficulty;
-    int device;
-    int power;
-    int num_targets;
 
-    difficulty = trigger->value_36c;
-    if (difficulty > 7) {
-        difficulty = 7;
-    } else if (difficulty < 1) {
-        difficulty = 1;
+    devices = trigger->value_36c;
+    if (devices > 7) {
+        devices = 7;
+    } else if (devices < 1) {
+        devices = 1;
     }
-    device = trigger->value_37c;
+    type = trigger->value_37c;
     if (Random(2) == 0) {
         trigger->CompleteItemInteraction004447F0();
         result = gppStringList[0x7b3];
     } else {
         result = gppStringList[0x7b4];
     }
-    ShowString(FormatWideString(g_format_s_space_s_00617584,
-                                gppStringList[g_value_0061e9ec[device]], result));
-    num_targets = difficulty - static_cast<int>(Random(difficulty / 2));
+    text = FormatWideString(g_format_s_space_s_00617584, gppStringList[g_value_0061e9ec[type]],
+                            result);
+    ShowString(text);
+    count = devices - static_cast<int>(Random(devices / 2));
     power = 4;
-    if (g_tumbler_count_table_006504ac[device] < difficulty) {
-        difficulty = difficulty - g_tumbler_count_table_006504ac[device];
-        power = difficulty + 4;
+    if (devices > g_trap_difficulty_6504ac[type]) {
+        devices -= g_trap_difficulty_6504ac[type];
+        power = devices + 4;
         if (power > 7) {
-            num_targets += static_cast<int>(Random(power - 7));
+            count += static_cast<int>(Random(devices - 3));
             power = 7;
         }
     }
@@ -369,14 +367,14 @@ void TriggerTrapDevice005E3AB0(Trigger* trigger)
                      0x3ed, 0);
     }
     if (trigger->m_pProp == 0) {
-        GetCameraForwardPoint00421150(1000.0, &origin);
+        GetCameraForwardPoint00421150(1000.0f, &point);
     } else {
         trigger->m_pProp->PlayRepAnimation(&minimum, &maximum);
-        origin.x = (minimum.x + maximum.x) * g_double_005ebe80;
-        origin.y = (minimum.y + maximum.y) * g_double_005ebe80;
-        origin.z = (minimum.z + maximum.z) * g_double_005ebe80;
+        point.x = (minimum.x + maximum.x) * g_double_005ebe80;
+        point.y = (minimum.y + maximum.y) * g_double_005ebe80;
+        point.z = (minimum.z + maximum.z) * g_double_005ebe80;
     }
     GetCameraPosition(&camera);
-    g_octree_6598a4->TraceLineOfSight(&camera, &origin, 1, -3, -3, 1, 0);
-    CastTrapSpell005E3800(origin, g_table_6504e8[device + 0xb], power, num_targets);
+    g_octree_6598a4->TraceLineOfSight(&camera, &point, 1, -3, -3, 1, 0);
+    DischargeTrapSpell005E3800(point.x, point.y, point.z, g_table_6504e8[type + 11], power, count);
 }
