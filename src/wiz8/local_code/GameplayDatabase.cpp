@@ -332,3 +332,29 @@ unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int u
     FileClose(handle);
     return 1;
 }
+
+/* Retail places this in the GameplayDatabase.cpp -> Gameplay Init.cpp gap, but
+   the demo build puts its unique match (demo 0x0054F670) between
+   GameplayDatabase.cpp source-path anchors 0x0054F3D0 and 0x0054F6E0, inside a
+   span too narrow to hold a foreign TU. */
+// FUNCTION: WIZ8 0x0054ac90
+void DestroyNpcDatabase(void)
+{
+    unsigned int index;
+
+    if (g_npc_records) {
+        for (index = 0; index < gXStatus.uiNpcsInDatabase; ++index) {
+            if (g_npc_records[index].item_stock_rules) {
+                W8PList* rules = g_npc_records[index].item_stock_rules;
+                while (PLLength(rules) != 0) {
+                    delete static_cast<W8NpcItemStockRule*>(PLRemoveAt(rules, 0));
+                }
+                PListFreeData(rules);
+                PLDestroy(rules);
+                g_npc_records[index].item_stock_rules = 0;
+            }
+        }
+        free(g_npc_records);
+        g_npc_records = 0;
+    }
+}

@@ -7,6 +7,7 @@
 #include "input.h"
 
 class W8DialogBase;
+struct Controls;
 class W8HelpTextControl;
 class W8TextControl;
 class W8Widget;
@@ -145,12 +146,16 @@ extern unsigned int g_camp_spell_region_sets_0069c40c[6];
    CreateItemsTabPanel005B9350 and read here and in RCSItemsPage.cpp. The
    secondary panel owns the Items/Character info page tabs, the character-info
    help text, the seven attribute rows and the four secondary value labels. */
+extern Controls* g_camp_secondary_panel_0069c428;
 extern W8Widget* g_camp_info_labels_0069c42c[4];
 extern W8TextControl* g_camp_page_tabs_0069c43c[2];
 extern W8HelpTextControl* g_camp_help_text_0069c444;
 extern W8Widget* g_camp_stat_labels_0069c448[7];
+extern Controls* g_camp_action_panel_0069c464;
 extern W8TextControl* g_camp_action_buttons_0069c468[2];
 extern W8TextControl* g_camp_realm_tabs_0069c470[7];
+extern Controls* g_camp_realm_tab_panel_0069c48c;
+extern unsigned int g_camp_secondary_region_set_0069c490;
 /* One gppStringList id per primary attribute row; defined in
    ReviewCharacterScreen.cpp, drawn by RCSStatsPage.cpp's stats page. */
 extern int g_attribute_label_ids_64dd30[7];
@@ -213,7 +218,6 @@ unsigned char CampScreenLeave(int leaving);
    spell-list region callback that opens per-spell info dialogs. */
 void SetCampSpellRangesEnabled005B71C0(unsigned char enable);
 void RefreshCampSpellRanges005B7290(void);
-void EnableCampActionButtons005B9270(void);
 void DrawCampSpellPages005B7300(void);
 void DrawCampResistances005B7790(void);
 unsigned char SpellListRegionHandler005B79F0(const InputAtom* event, W8Region* region);

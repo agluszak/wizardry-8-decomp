@@ -6,7 +6,7 @@
 set(WIZ8_SOURCE_UNITS
     "src/wiz8/local_code/PC Item.cpp"
     src/wiz8/local_code/FormationAndFacing.cpp
-    src/wiz8/local_code/CombatDifficultyFragment.cpp
+    src/wiz8/local_code/ThingEditorShared.cpp
     src/wiz8/local_code/Controls.cpp
     src/wiz8/local_code/Factions.cpp
     src/wiz8/local_code/LoadSaveGame.cpp
@@ -113,6 +113,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/local_code/RegionManager.cpp
     src/wiz8/local_code/chunk.cpp
     src/wiz8/local_code/DifficultyScaling.cpp
+    "src/wiz8/local_code/Game Difficulty.cpp"
     src/wiz8/engine_code/GrCycle.cpp
     src/wiz8/engine_code/UpdateMesh.cpp
     src/wiz8/engine_code/stGroundShadow.cpp

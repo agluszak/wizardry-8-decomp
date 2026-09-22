@@ -87,3 +87,16 @@ bool IsSpecialItemId004DA0F0(W8ItemInstance* item);
 /* 0x0061E7C4: the twelve equip-slot label message ids indexed by region
    callback_id; gap-owned table, also read by the AssayDialog TU. */
 extern const unsigned short g_equip_slot_label_ids_61e7c4[12];
+
+/* Camp panel create/enable/disable helpers; retail places them in the
+   ReviewCharacterScreen.cpp span, but each has a direct or bounded
+   RCSItemsPage.cpp anchor in the demo build. */
+int CreateCampActionPanel005B9070(void);      /* 0x005B9070 */
+void EnableCampActionButtons005B9270(void);   /* 0x005B9270 */
+void DisableCampActionButtons005B9310(void);  /* 0x005B9310 */
+int CreateItemsTabPanel005B9350(void);        /* 0x005B9350 */
+void UpdateItemsRealmTabs005B97B0(void);      /* 0x005B97B0 */
+void DisableItemsRealmTabs005B98C0(void);     /* 0x005B98C0 */
+int CreateCampSecondaryPanel005B9900(void);   /* 0x005B9900 */
+void EnableCampSecondaryPanel005B9F00(void);  /* 0x005B9F00 */
+void DisableCampSecondaryPanel005B9F60(void); /* 0x005B9F60 */

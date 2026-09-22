@@ -56,6 +56,11 @@
 #include "wiz8/local_code/ItemManager.h"
 #include "wiz8/level_specific_code/MasterFunctionList.h"
 #include "wiz8/local_code/Factions.h"
+#include "wiz8/local_code/PartyImport.h"
+#include "wiz8/local_screens/JournalScreen.h"
+#include "wiz8/virtual_file.h"
+
+#include <stdio.h>
 
 #define NPC_SCRIPTING_FACTS_CPP "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting Facts.cpp"
 
@@ -853,8 +858,8 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (monster_info == 0) {
             return;
         }
-        if (monster_info->p3D->IsCycleInterruptable(
-                monster_info->p3D->m_pRep->pending_cycle) == 0) {
+        if (monster_info->p3D->IsCycleInterruptable(monster_info->p3D->m_pRep->pending_cycle) ==
+            0) {
             return;
         }
         StartMonsterCycle(monster_info, 0x14, 1);
@@ -1051,8 +1056,7 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
     for (unsigned int entry_index = 0; entry_index < PLLength(gXStatus.plsMonsterList);
          ++entry_index) {
         W8MonsterInfo* entry = MonsterGetScriptPartByLocationIndex(entry_index);
-        if (entry->fActive && entry->ubDisposition == DISP_HOSTILE &&
-            entry->p3D->IsDying() == 0) {
+        if (entry->fActive && entry->ubDisposition == DISP_HOSTILE && entry->p3D->IsDying() == 0) {
             TintHighlightedMonster(entry->p3D, 0);
             MonsterStartsDying(entry, 1);
         }
@@ -1125,4 +1129,127 @@ void MonsterKilled(int record_id, int killer_party_slot)
             return;
         }
     }
+}
+
+/* The fact array's core interface. Retail has no path string here; the demo
+   anchors this unit at demo 0x00509A30 (line 8), 0x00509D70 and 0x00509F60
+   (line 1549), and the retail bodies below uniquely match demo functions
+   inside that hull: SetFact at demo 0x00509A30 itself, GetFact at demo
+   0x00509B50, InitializeFactState at demo 0x00509BE0 and SaveFactState at
+   demo 0x00509D50. */
+// GLOBAL: WIZ8 0x00689b78
+unsigned char g_fact_values[1000];
+
+// FUNCTION: WIZ8 0x00506280
+unsigned char GetFact(int fact_id)
+{
+    unsigned char value;
+    wchar_t display_value[10];
+
+    if (fact_id > 1000) {
+        return 0;
+    }
+
+    value = EvaluateFact(fact_id);
+    if (g_status_685170.log_fact_checks_3120) {
+        if (value) {
+            wcscpy(display_value, L"TRUE");
+        } else {
+            wcscpy(display_value, L"FALSE");
+        }
+        ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[fact_id].symbolic_name,
+                    display_value);
+    }
+    return value;
+}
+
+// FUNCTION: WIZ8 0x005061a0
+void SetFact(int fact_id, unsigned char value, unsigned char suppress_side_effects)
+{
+    unsigned char previous_value;
+    wchar_t display_value[10];
+
+    if (fact_id > 1000) {
+        return;
+    }
+
+    previous_value = g_fact_values[fact_id];
+    g_fact_values[fact_id] = value;
+
+    if (fact_id < (int)gXStatus.uiFactsInDatabase) {
+        if (value) {
+            sprintf((char*)display_value, "TRUE");
+        } else {
+            sprintf((char*)display_value, "FALSE");
+        }
+    }
+
+    if (!suppress_side_effects) {
+        if (g_fact_values[fact_id] != previous_value) {
+            RecordFactChangeForJournal(fact_id);
+        }
+        HandleFactChange(fact_id, value);
+
+        if (g_status_685170.log_fact_checks_3120) {
+            if (value) {
+                wcscpy(display_value, L"TRUE");
+            } else {
+                wcscpy(display_value, L"FALSE");
+            }
+            ShowNoticef(5, L"%S set to %s", g_fact_records[fact_id].symbolic_name, display_value);
+        }
+    }
+}
+
+/* The whole 1001-byte fact array minus its last entry goes to the save file in
+   one write. The original passes the address of its own parameter as the
+   bytes-written out-parameter: the handle has already been copied into a
+   register, so the incoming slot is dead and doubles as the scratch the callee
+   requires. Reproduced literally, because a separate local would cost a stack
+   frame the canonical body does not have. */
+// FUNCTION: WIZ8 0x00506480
+void SaveFactState(int save_handle)
+{
+    FileWrite(save_handle, g_fact_values, 1000, (unsigned int*)&save_handle);
+}
+
+/* Clears every fact, then seeds the ones a fresh party starts with. A party
+   imported from Wizardry 7 is the skip-loose-character-check path: ending
+   choice 1/2/other maps to facts 0x4c/0x4b/0x4d, then two independent import
+   bytes can set 0x199 and 0x7b. The 0x7b path unsuppresses and returns; the
+   other imported path and the new-game path unsuppress at the shared exit. */
+// FUNCTION: WIZ8 0x00506310
+void InitializeFactState(void)
+{
+    /* Retail memsets 1000 of the 1001 bytes - index 1000 stays BSS-zeroed. */
+    memset(g_fact_values, 0, 1000);
+    SetFactNotificationsSuppressed(1);
+    if (g_status_685170.skip_loose_character_check_2444) {
+        SetFact(0x75, 1, 0);
+        switch (g_wiz7_ending_68de50) {
+        case 1:
+            SetFact(0x4c, 1, 0);
+            break;
+        case 2:
+            SetFact(0x4b, 1, 0);
+            break;
+        default:
+            SetFact(0x4d, 1, 0);
+            break;
+        }
+        if (g_import_flags_0068de58[0xb]) {
+            SetFact(0x199, 1, 0);
+        }
+        if (g_import_flags_0068de58[5]) {
+            SetFact(0x7b, 1, 0);
+            SetFactNotificationsSuppressed(0);
+            return;
+        }
+    } else {
+        SetFact(0x4e, 1, 0);
+        SetFact(0x279, 1, 0);
+        SetFact(0x27a, 1, 0);
+        SetFact(0x27b, 1, 0);
+    }
+    SetFactNotificationsSuppressed(0);
 }

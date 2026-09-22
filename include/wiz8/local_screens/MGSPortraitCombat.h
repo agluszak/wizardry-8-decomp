@@ -1,8 +1,9 @@
 #pragma once
 
 /* Local Screens\MGSPortraitCombat.cpp. The portrait combat sub-menu's bank
-   buttons, its action rows and the (menu, entry) state tables: button-bank
-   construction, panel building, per-row callbacks and entry usability. */
+   buttons and the shared (menu, entry) state tables. The panel build/state
+   helpers declared in MGSButtons.h sit in this unit's retail span but carry
+   demo MGSButtons.cpp hull evidence. */
 
 class W8TextControl;
 class W8DialogButton;
@@ -62,18 +63,3 @@ void UpdateSubMenuButton(int index); /* 0x00594D20 */
 void ReopenSubMenuPanel(void); /* 0x00595600 */
 /* Drop the combat-end notification and tear down the panel and its rows. */
 void DestroySubMenuControls(void); /* 0x00595570 */
-/* Enable the panel region set and one input region per live row. */
-void EnableSubMenuRegions(void); /* 0x005957E0 */
-/* Build the panel and one row per available entry of the notification's
-   menu. */
-unsigned char BuildSubMenuPanel(short notification); /* 0x00595850 */
-/* Install the row's primary callback for its (W8SubMenuPage, entry) pair; the
-   retail parameters are word-sized. */
-void AssignSubMenuCallback(W8TextControl* row, short menu, short item); /* 0x00595EA0 */
-/* The row availability states the refresh maps icon frames through. */
-W8SubMenuEntryState GetSubMenuEntryState(short menu, short item, int party_slot); /* 0x00595FE0 */
-/* Store the (W8SubMenuPage, entry) pair's pending command in the level block. */
-void MapSubMenuSelection(short menu, short item); /* 0x00596240 */
-/* Whether the slot may perform the pending command, in entry-state terms:
-   USABLE/UNUSABLE or the _SELECTED variant when it is already queued. */
-W8SubMenuEntryState CheckSubMenuActionUsable(int party_slot); /* 0x00596360 */

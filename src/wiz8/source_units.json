@@ -31,7 +31,6 @@
     "src/wiz8/game_init.cpp",
     "src/wiz8/imports/mss.cpp",
     "src/wiz8/learned_spells.cpp",
-    "src/wiz8/local_code/CombatDifficultyFragment.cpp",
     "src/wiz8/local_code/DifficultyScaling.cpp",
     "src/wiz8/local_code/Text_Input.cpp",
     "src/wiz8/local_code/formation_state.cpp",

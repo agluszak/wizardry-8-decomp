@@ -3040,60 +3040,6 @@ void W8NpcDialogueTextController::RestoreTranscriptEntries()
     }
 }
 
-// FUNCTION: WIZ8 0x005929d0
-void HandleManualCameraHotkeys(void)
-{
-    if (g_modal_owner_0068edd0 == 0 && gXStatus.fNpcDialogueMode == 0) {
-        if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_CAMERA_LOCK)) {
-            BeginManualCameraControl();
-        }
-        ApplyWorldRenderHotkeys();
-    }
-}
-
-// FUNCTION: WIZ8 0x00592a10
-void ApplyWorldRenderHotkeys(void)
-{
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_TURN_LEFT) ||
-        g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_TURN_LEFT_ALT)) {
-        g_level_block->world_render_flags |= 0x100;
-    }
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_TURN_RIGHT) ||
-        g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_TURN_RIGHT_ALT)) {
-        g_level_block->world_render_flags |= 0x200;
-    }
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_FORWARD)) {
-        g_level_block->world_render_flags |= 4;
-    }
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_FORWARD_RUN)) {
-        g_level_block->world_render_flags |= 0x84;
-    }
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_BACKWARD)) {
-        g_level_block->world_render_flags |= 8;
-    }
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_BACKWARD_RUN)) {
-        g_level_block->world_render_flags |= 0x88;
-    }
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_LOOK_UP)) {
-        g_level_block->world_render_flags |= 0x400;
-    }
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_LOOK_DOWN)) {
-        g_level_block->world_render_flags |= 0x800;
-    }
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_STRAFE_LEFT)) {
-        g_level_block->world_render_flags |= 1;
-    }
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_STRAFE_RIGHT)) {
-        g_level_block->world_render_flags |= 2;
-    }
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_STRAFE_LEFT_RUN)) {
-        g_level_block->world_render_flags |= 0x81;
-    }
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_STRAFE_RIGHT_RUN)) {
-        g_level_block->world_render_flags |= 0x82;
-    }
-}
-
 // FUNCTION: WIZ8 0x00593330
 void RefreshFlaggedMainGameState00593330(void)
 {

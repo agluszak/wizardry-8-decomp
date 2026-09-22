@@ -537,8 +537,6 @@ void SetTooltipSubject(int kind, int subject); /* 0x00569C60 */
 int IsScreenInputBlocked(void);
 void DisableCombatRegions(void);
 
-void HandleManualCameraHotkeys(void);
-void ApplyWorldRenderHotkeys(void);
 extern unsigned char g_radar_panel_shown_0068edbc;
 extern unsigned char g_action_panel_shown_0068edc8;
 extern unsigned char g_formation_panel_shown_0068edc9;

@@ -74,7 +74,12 @@
    anchored GameplayDatabase.cpp tail (0x54A9A0, LoadMonsterDatabaseRange) and
    Configuration.cpp (0x54B6D0, SaveGameConfiguration). The demo string cluster
    for this TU is nearly empty - its loaders share the pooled
-   "SaveConfig: ERROR - FileOpen failed on file %s" literal. */
+   "SaveConfig: ERROR - FileOpen failed on file %s" literal.
+
+   Exception: DestroyNpcDatabase at 0x0054AC90 moved to GameplayDatabase.cpp -
+   its unique demo match 0x0054F670 is bounded inside the demo
+   GameplayDatabase.cpp hull (anchors 0x0054F3D0/0x0054F6E0), too narrow for
+   an interleaved foreign TU. */
 
 /* NPC.DBS records carry an optional sub-list, stored after the record when its
    leading count exceeds one and its 0x9D flag is clear: a count, then that many
@@ -144,28 +149,6 @@ unsigned char InitializeNpcDatabase(void)
    destructor under the VC6 ABI. */
 // TEMPLATE: WIZ8 0x0055ADA0
 // unresolved owning PL teardown emission
-
-// FUNCTION: WIZ8 0x0054ac90
-void DestroyNpcDatabase(void)
-{
-    unsigned int index;
-
-    if (g_npc_records) {
-        for (index = 0; index < gXStatus.uiNpcsInDatabase; ++index) {
-            if (g_npc_records[index].item_stock_rules) {
-                W8PList* rules = g_npc_records[index].item_stock_rules;
-                while (PLLength(rules) != 0) {
-                    delete static_cast<W8NpcItemStockRule*>(PLRemoveAt(rules, 0));
-                }
-                PListFreeData(rules);
-                PLDestroy(rules);
-                g_npc_records[index].item_stock_rules = 0;
-            }
-        }
-        free(g_npc_records);
-        g_npc_records = 0;
-    }
-}
 
 /* The three loaders below share one shape: build Data\Databases\<NAME>.DBS,
    open it, read a record count, allocate count * stride, then read the records

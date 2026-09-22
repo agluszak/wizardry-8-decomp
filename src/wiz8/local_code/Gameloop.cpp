@@ -18,18 +18,26 @@
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/fonts.h"
 #include "wiz8/sr_api.h"
+#include "wiz8/local_code/CombatSound.h"
+#include "wiz8/local_code/Configuration.h"
+#include "wiz8/engine_code/Missile.h"
 #include "Container.h"
 #include "Font.h"
+#include "LibraryDataBase.h"
 #include "sgp.h"
 #include "surrender/srTypeRegistry.h"
 
+#include <stdlib.h>
 #include <string.h>
 
 /*
  * Local Code\Gameloop.cpp. GameloopExit at 0x004E34B0 asserts this unit
  * (Gameloop.cpp:630). GameLoop at 0x004E3340 immediately precedes it and no
  * assertion names its unit, so it is placed here with its asserted companion
- * rather than claimed as proven.
+ * rather than claimed as proven. ShutdownGame at 0x004E3290 sits in the
+ * anchored gap before GameLoop; the demo function it matches (0x004E5FF0,
+ * similarity 0.851) itself asserts Local Code\Gameloop.cpp, which places the
+ * body here on direct cross-build evidence rather than adjacency alone.
  *
  * The per-frame tick WinMain calls when no message is waiting and the
  * application is active. It drives a screen-state stack: the current state
@@ -89,6 +97,28 @@ W8ScreenStateHandlers g_screen_handlers[W8_SCREEN_COUNT] = {
 int g_previous_screen_id = -1;
 // GLOBAL: WIZ8 0x00647bc4
 int g_suspended_screen_id = -1;
+
+// FUNCTION: WIZ8 0x004e3290
+void ShutdownGame(void)
+{
+    int index;
+
+    ReleaseHitSoundDatabase();
+    ReleaseMissileDatabase();
+    for (index = 0; index < 15; ++index) {
+        free(g_font_state_palettes_68ee1c[index]);
+        g_font_state_palettes_68ee1c[index] = 0;
+    }
+    for (index = 0; index < W8_SCREEN_COUNT; ++index) {
+        g_screen_handlers[index].finalize();
+    }
+    if (g_screen_return_stack) {
+        DeleteStack(g_screen_return_stack);
+        g_screen_return_stack = 0;
+    }
+    SaveGameConfiguration();
+    ShutDownFileDatabase();
+}
 
 // FUNCTION: WIZ8 0x004e3340
 void GameLoop(void)

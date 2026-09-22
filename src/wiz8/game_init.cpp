@@ -33,10 +33,10 @@
 #include <string.h>
 #include <stdlib.h>
 
-/* Unresolved fragment: both functions (0x004E2F40, 0x004E3290) lie in one
-   contiguous anchored gap between Arnika.cpp (ends 0x004E24E0) and
-   Gameloop.cpp (0x004E34B0), the same interval as startup_subsystems.cpp's
-   0x004E27A0. No proven ownership. */
+/* Unresolved fragment: 0x004E2F40 lies in the contiguous anchored gap between
+   Arnika.cpp (ends 0x004E24E0) and Gameloop.cpp (0x004E34B0), the same
+   interval as startup_subsystems.cpp's 0x004E27A0. No proven ownership; the
+   gap's 0x004E3290 moved to Gameloop.cpp on demo source-path evidence. */
 
 /*
  * The data bring-up gate InitializeStandardGamingPlatform calls last. It stamps the version
@@ -141,26 +141,4 @@ unsigned char InitializeGame(void)
     ok = (unsigned char)(0x4000000 < GetTotalPhysicalMemory());
     g_texture_cache_enabled_65beaf = ok;
     return 1;
-}
-
-// FUNCTION: WIZ8 0x004e3290
-void ShutdownGame(void)
-{
-    int index;
-
-    ReleaseHitSoundDatabase();
-    ReleaseMissileDatabase();
-    for (index = 0; index < 15; ++index) {
-        free(g_font_state_palettes_68ee1c[index]);
-        g_font_state_palettes_68ee1c[index] = 0;
-    }
-    for (index = 0; index < W8_SCREEN_COUNT; ++index) {
-        g_screen_handlers[index].finalize();
-    }
-    if (g_screen_return_stack) {
-        DeleteStack(g_screen_return_stack);
-        g_screen_return_stack = 0;
-    }
-    SaveGameConfiguration();
-    ShutDownFileDatabase();
 }
