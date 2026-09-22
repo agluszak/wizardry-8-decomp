@@ -8,19 +8,9 @@ struct W8MonsterInfo;
 struct W8MonsterGroup;
 
 #pragma pack(push, 1)
-/* Local Code\Targeting.cpp. Field names and the BAD_INDEX sentinel come from
-   the canonical assertions at lines 3299, 3307, 3320 and 3328; offsets come
-   from the asserting bodies. iType 1 selects the character, 2 the monster, and
-   3 either, which is why the type-3 path additionally requires a backfire or
-   reflection flag. */
-/* Where a spell or an attack comes from. Targeting.cpp's assertions name every
-   field here - iType, iChar, iMonsterID, fBackfire and fReflection - and the
-   three source kinds are a character, a monster and a point in the world; a
-   backfired or reflected spell keeps the original's iChar or iMonsterID while
-   reading as a point, which is what the two flags distinguish.
-
-   This was modelled twice before, once from the assertions and once from
-   SpellBackfires' stack frame, and they are one struct. */
+/* Local Code\Targeting.cpp. Assertions name iType, iChar, iMonsterID,
+   fBackfire and fReflection and establish the field offsets; SpellBackfires'
+   stack frame independently agrees with the same source-record layout. */
 /* The source-kind domain. Zero is the empty source, one a character, two a
    monster, and three a source that keeps the original's character or monster
    id while reading as a point - which is what a backfire or a reflection
