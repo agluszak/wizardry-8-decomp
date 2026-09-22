@@ -439,14 +439,14 @@ int GetTextBoxScrollRange(void)
 }
 
 /* Write the four message runs into the open TEXT chunk: a format dword, then
-   per region the used-line count followed by each 0x24-byte record and its
-   wide string. The saved record's wString carries the serialized character
-   count including the terminator, not the live pointer; the copy is patched
-   so the on-disk record stays self-contained. */
+   per region the used-line count followed by each 0x24-byte disk record and
+   its wide string. The disk record copies the live one and replaces the
+   wString slot with the character count including the terminator, so the
+   on-disk record stays self-contained. */
 // FUNCTION: WIZ8 0x0058FB50
 unsigned char SaveMessageStorage0058FB50(int file)
 {
-    W8MessageStorageRecord record;
+    W8MessageStorageDiskRecord record;
     int format = 1;
     unsigned int region;
     unsigned int index;
@@ -455,34 +455,34 @@ unsigned char SaveMessageStorage0058FB50(int file)
     for (region = 0; region < 4; ++region) {
         FileWrite(file, &g_status_685170.text_box_lines_used_4997[region], 4, 0);
         for (index = 0; index < g_status_685170.text_box_lines_used_4997[region]; ++index) {
-            record = g_message_storage_68f2d8[region][index];
-            if (record.wString != 0) {
-                /* The serialized record stores the wide-char count where the
-                   live record keeps its string pointer. */
-                // c-style-cast-ok: patched pointer field carries a count
-                record.wString = (wchar_t*)(wcslen(record.wString) + 1);
+            memcpy(&record, &g_message_storage_68f2d8[region][index], sizeof(record));
+            /* The copied first dword still holds the live wString pointer;
+               a live string serializes as its character count including the
+               terminator. */
+            if (record.character_count != 0) {
+                // reinterpret-ok: the disk slot carries the live wString bits until the count is patched in.
+                wchar_t* text = reinterpret_cast<wchar_t*>(record.character_count);
+                record.character_count = static_cast<unsigned int>(wcslen(text)) + 1;
             }
             FileWrite(file, &record, sizeof(record), 0);
             FileWrite(file, g_message_storage_68f2d8[region][index].wString,
-                      (unsigned int)record.wString * 2, // c-style-cast-ok: reads
-                      // back the patched count for the string payload size
-                      0);
+                      record.character_count * 2, 0);
         }
     }
     return 1;
 }
 
 /* Read the four message runs back from the open TEXT chunk: a format dword,
-   then per region the used-line count followed by each 0x24-byte record and
-   its wide string. The serialized record's wString field is the character
-   count from the save, not a pointer; each live record gets a fresh buffer
-   sized from it, and the stale entries_18 list pointer is dropped. Saves
-   older than the prepath link-height constant never wrote a fourth region, so
-   its count is forced to zero without consuming a count slot. */
+   then per region the used-line count followed by each 0x24-byte disk record
+   and its wide string. Each live record copies the disk record's layout,
+   gets a fresh wString buffer sized from its character count, and drops the
+   stale entries_18 list pointer. Saves older than the prepath link-height
+   constant never wrote a fourth region, so its count is forced to zero
+   without consuming a count slot. */
 // FUNCTION: WIZ8 0x0058FC30
 unsigned char LoadMessageStorage0058FC30(int file)
 {
-    W8MessageStorageRecord record;
+    W8MessageStorageDiskRecord record;
     int format;
     unsigned int region;
     unsigned int index;
@@ -499,12 +499,9 @@ unsigned char LoadMessageStorage0058FC30(int file)
         }
         for (index = 0; index < g_status_685170.text_box_lines_used_4997[region]; ++index) {
             FileRead(file, &record, sizeof(record), 0);
-            g_message_storage_68f2d8[region][index] = record;
+            memcpy(&g_message_storage_68f2d8[region][index], &record, sizeof(record));
             g_message_storage_68f2d8[region][index].entries_18 = 0;
-            /* The serialized wString field is the wide-char count including
-               the terminator, patched over the live pointer on save. */
-            // c-style-cast-ok: reads back the patched count for the buffer size
-            size = (unsigned int)record.wString * 2;
+            size = record.character_count * 2;
             text = static_cast<wchar_t*>(malloc(size));
             g_message_storage_68f2d8[region][index].wString = text;
             if (text != 0) {

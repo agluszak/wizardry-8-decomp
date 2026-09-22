@@ -44,6 +44,28 @@ struct W8MessageStorageRecord {
 
 static_assert(sizeof(W8MessageStorageRecord) == 0x24, "W8MessageStorageRecord_must_be_0x24");
 
+/* The TEXT-chunk form of W8MessageStorageRecord: the same 0x24 bytes, except
+   field 0x00 carries the wide-character count including the terminator where
+   the live record keeps its wString pointer. Save copies the record and then
+   writes the count over that slot; load reads the record, sizes the fresh
+   wString buffer from it and drops the stale entries_18 pointer. */
+struct W8MessageStorageDiskRecord {
+    unsigned int character_count; /* 0x00: wchar count incl. terminator */
+    unsigned char font_palette;
+    unsigned char highlight_color;
+    unsigned char highlight_start;
+    unsigned char highlight_stop;
+    int clock_08;
+    int clock_ticking_0c;
+    int link_10;
+    int length_14;
+    W8PList* entries_18;
+    unsigned char unknown_1c[8];
+};
+
+static_assert(sizeof(W8MessageStorageDiskRecord) == 0x24,
+              "W8MessageStorageDiskRecord_must_be_0x24");
+
 extern W8MessageStorageRecord g_message_storage_68f2d8[4][0x15e];
 
 /* 0x0058AA20: reset one editor status line; -1 selects the current line. */
