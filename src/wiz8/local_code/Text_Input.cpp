@@ -409,6 +409,13 @@ void SetInputFieldStringWith16BitString(unsigned char index, wchar_t* text)
     while (field != 0) {
         if (field->ubID == index) {
             if (text != 0) {
+                /* Retail 0x005D3C10 stores the source length into the byte
+                   ubStrLen (wrapping past 255) and wcsncpy's at most
+                   ubMaxChars with no terminator write — unlike the SFI
+                   oracle, Wiz8 dropped the length assertion and the bounded
+                   swprintf. An over-capacity source leaves szString
+                   unterminated with ubStrLen describing uncopied text;
+                   genuine retail behavior, preserved. */
                 field->ubStrLen = (unsigned char)wcslen(text);
                 wcsncpy(field->szString, text, field->ubMaxChars);
             } else if (!field->fUserField) {
