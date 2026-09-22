@@ -215,7 +215,7 @@ void UpdateMonsterGroups(char staggered)
             continue;
         }
         monster_info = MonsterInfoFromID(113, MONSTER_AI_CPP, monster_group->value_9f, 1);
-        if (monster_info == 0 || monster_info->monster == 0) {
+        if (monster_info == 0 || monster_info->p3D == 0) {
             continue;
         }
         nearest_distance = GetGroupNearestDistance(monster_group);
@@ -249,7 +249,7 @@ void UpdateMonsterGroups(char staggered)
             }
             if (monster_group->leader_group_id == 0) {
                 monster_info = MonsterInfoFromID(215, MONSTER_AI_CPP, monster_group->value_9f, 1);
-                if (monster_info->monster->IsDying() == 0) {
+                if (monster_info->p3D->IsDying() == 0) {
                     DoMonsterRTAI(monster_info, 1);
                 }
             }
@@ -284,7 +284,7 @@ unsigned char GetMonsterGroupPartySightState(W8MonsterGroup* monster_group)
 
         location_id = IListGetAt(monster_group->monsters, index);
         monster_info = MonsterInfoFromID(0xfe, MONSTER_AI_CPP, location_id, 1);
-        if (monster_info->fActive != 0 && monster_info->monster->IsDying() == 0 &&
+        if (monster_info->fActive != 0 && monster_info->p3D->IsDying() == 0 &&
             monster_info->hp_current != 0 && monster_info->highest_condition < 0xc) {
             if (monster_info->player_visibility.sight_state_04 == W8_SIGHT_SEEN) {
                 return 1;
@@ -334,7 +334,7 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, char engage)
                 best_range = record->attacks[attack].range_category;
             }
         }
-        if (MonsterApproachStartupNavigator004C5FF0(monster_info->monster,
+        if (MonsterApproachStartupNavigator004C5FF0(monster_info->p3D,
                                                     CalcRangeDistance((W8RangeCategory)best_range) *
                                                         g_float_005ec390) == 0) {
             return;
@@ -342,11 +342,11 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, char engage)
         monster_group = GetMonsterGroupByListIndex(
             GetMonsterGroupIndexByID(0x12b, MONSTER_AI_CPP, monster_info->monster_group_id, 1));
         MonsterGroupEnterCombat(monster_group);
-        navigator = monster_info->monster->linked_navigator_05c;
+        navigator = monster_info->p3D->linked_navigator_05c;
         if (navigator != 0) {
             navigator->unknown_0bc[1] = 1;
         } else {
-            monster_info->monster->unknown_0bc[1] = 1;
+            monster_info->p3D->unknown_0bc[1] = 1;
         }
         return;
     }
@@ -366,7 +366,7 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, char engage)
                         0x14b, MONSTER_AI_CPP, monster_info->monster_group_id, 1)));
             }
             if (alert == 0) {
-                if (monster_info->monster->orders_finished_28d == 0) {
+                if (monster_info->p3D->orders_finished_28d == 0) {
                     decision = 0;
                 } else {
                     update = ChooseMonsterRTAIMode(monster_info, &decision);
@@ -374,7 +374,7 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, char engage)
             } else if (alert <= 2) {
                 switch (monster_info->ubDisposition) {
                 case 0:
-                    if (monster_info->monster->orders_finished_28d == 0) {
+                    if (monster_info->p3D->orders_finished_28d == 0) {
                         decision = 0;
                     } else {
                         update = ChooseMonsterRTAIMode(monster_info, &decision);
@@ -382,14 +382,14 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, char engage)
                     break;
                 case 1:
                     decision = static_cast<unsigned char>(
-                                   monster_info->hp_current * 100 / monster_info->hp_max <= 0x14) +
+                                   monster_info->hp_current * 100 / monster_info->uiHPMax <= 0x14) +
                                1;
-                    if (monster_info->monster->movement_stopped_024 != 0) {
+                    if (monster_info->p3D->movement_stopped_024 != 0) {
                         update = 1;
                     }
                     break;
                 case 2:
-                    if (monster_info->monster->orders_finished_28d == 0) {
+                    if (monster_info->p3D->orders_finished_28d == 0) {
                         decision = 0;
                     } else {
                         update = ChooseMonsterRTAIMode(monster_info, &decision);
@@ -408,10 +408,9 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, char engage)
 
         mode = monster_info->flag_255 & 0xf;
         if (mode != 6 &&
-            (monster_info->monster->face_party_290 == 0 || monster_info->unknown_246 != 0 ||
+            (monster_info->p3D->face_party_290 == 0 || monster_info->unknown_246 != 0 ||
              mode != 0xa || monster_info->player_visibility.line_of_sight_28 == 0 ||
-             (monster_info->monster->movement_0c0.position_040 -
-              g_startup_world_659c0c->GetPosition())
+             (monster_info->p3D->movement_0c0.position_040 - g_startup_world_659c0c->GetPosition())
                      .Length() >= g_float_005ec2f8)) {
             monster_info->flag_255 &= 0x7f;
         }
@@ -419,7 +418,7 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, char engage)
             update = 1;
         }
     }
-    if (monster_info->ubDisposition == 1 || monster_info->monster->script_wait_240 != 1 ||
+    if (monster_info->ubDisposition == 1 || monster_info->p3D->script_wait_240 != 1 ||
         decision != 0) {
         if (decision != monster_info->flag_255 || update != 0) {
             if (engage == 0 && decision == 1) {
@@ -442,7 +441,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
     char changed;
     char mode;
 
-    monster = monster_info->monster;
+    monster = monster_info->p3D;
     mode = 0;
     changed = 0;
     if (monster->face_party_290 != 0 && monster_info->unknown_246 == 0 &&
@@ -625,7 +624,7 @@ commit:
 // FUNCTION: WIZ8 0x00530f10
 void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decision)
 {
-    W8Monster* monster = monster_info->monster;
+    W8Monster* monster = monster_info->p3D;
     W8MonsterGroup* monster_group;
     W8MonsterRecord* record;
     W8MonsterInfo* member;
@@ -764,7 +763,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
         for (index = 0; index < ILLength(monster_group->monsters); ++index) {
             member = MonsterInfoFromID(0x381, MONSTER_AI_CPP,
                                        IListGetAt(monster_group->monsters, index), 1);
-            member->monster->AimAtPosition(&position);
+            member->p3D->AimAtPosition(&position);
         }
         break;
     case 9:
@@ -870,11 +869,10 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
     }
     if (record->prefer_ranged_actions_1b9 == 0 &&
         (range_category = GetBestMonsterAttackRange(record, 1)) != W8_RANGE_NONE &&
-        (monster_info->condition_turns[0xc] == 0 || record->kind_0cb == 0xc) &&
+        (monster_info->uiCondition[0xc] == 0 || record->kind_0cb == 0xc) &&
         MonsterChooseTarget(monster_info, &chosen, 2) > CalcRangeDistance(range_category)) {
         record = GetMonsterDataForInfo(monster_info);
-        hp_ratio =
-            static_cast<float>(monster_info->hp_current) / static_cast<float>(monster_info->hp_max);
+        hp_ratio = monster_info->hp_current / static_cast<float>(monster_info->uiHPMax);
         backs_off = hp_ratio <= 0.95f && record->prefer_ranged_actions_1b9 == 0;
         monster_info->action_kind = backs_off ? 7 : 5;
     } else {
@@ -888,7 +886,7 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
                 monster_info->action_kind = W8_MONSTER_ACTION_FLEE;
                 if (g_special_attack_table[record->special_attack_kind_0e3][0] ==
                     W8_SPECIAL_ATTACK_EFFECT_SUMMON) {
-                    position = monster_info->monster->GetPosition();
+                    position = monster_info->p3D->GetPosition();
                     ResetCombatSlot(&monster_info->Target);
                     monster_info->Target.iType = W8_TARGET_KIND_PLACE;
                     monster_info->Target.point = position;
@@ -904,7 +902,7 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
                 chance = 100;
             }
             if (record->spell_chance_0e0 != 0) {
-                if (!MonsterIsCycleSupported(monster_info->monster, W8_MONSTER_CYCLE_SPELL)) {
+                if (!MonsterIsCycleSupported(monster_info->p3D, W8_MONSTER_CYCLE_SPELL)) {
                     if (g_spell_cycle_error_reported == 0) {
                         FormatDebugMessage(0, "ERROR: %ls is missing a SPELL animation cycle",
                                            record);
@@ -931,12 +929,12 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
         }
         if (rating != 0) {
             if (rating == W8_MONSTER_ATTACK_OUT_OF_REACH) {
-                if (monster_info->condition_turns[0xc] != 0 && record->kind_0cb != 0xc) {
+                if (monster_info->uiCondition[0xc] != 0 && record->kind_0cb != 0xc) {
                     monster_info->action_kind = 6;
                 } else {
                     record = GetMonsterDataForInfo(monster_info);
                     hp_ratio = static_cast<float>(monster_info->hp_current) /
-                               static_cast<float>(monster_info->hp_max);
+                               static_cast<float>(monster_info->uiHPMax);
                     backs_off = hp_ratio <= 0.95f && record->prefer_ranged_actions_1b9 == 0;
                     monster_info->action_kind = backs_off ? 7 : 5;
                 }
@@ -992,7 +990,7 @@ members:
         member = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0x4a7, MONSTER_AI_CPP, IListGetAt(monster_group->monsters, index), 1));
         record = GetMonsterDataForInfo(member);
-        if (member->fActive == 0 || member->fMotionless != 0 || member->monster->IsDying() != 0 ||
+        if (member->fActive == 0 || member->fMotionless != 0 || member->p3D->IsDying() != 0 ||
             member->hp_current == 0 || member->highest_condition >= 0xc) {
             continue;
         }
@@ -1000,7 +998,7 @@ members:
             return 1;
         }
         if (record->spell_chance_0e0 != 0) {
-            if (MonsterIsCycleSupported(member->monster, W8_MONSTER_CYCLE_SPELL) == 0) {
+            if (MonsterIsCycleSupported(member->p3D, W8_MONSTER_CYCLE_SPELL) == 0) {
                 if (g_spell_cycle_error_reported == 0) {
                     FormatDebugMessage(0, "ERROR: %ls is missing a SPELL animation cycle", record);
                     g_spell_cycle_error_reported = 1;
@@ -1018,13 +1016,13 @@ members:
             return 1;
         }
         if (GetBestMonsterAttackRange(record, 0) <= W8_RANGE_SHORT) {
-            distance = member->monster->GetDistanceToPlayer004C7CB0();
+            distance = member->p3D->GetDistanceToPlayer004C7CB0();
             if (GetMonsterCombatMoveRange(member) * g_float_005ee774 > distance) {
                 if (waypoint_checked == 0) {
                     leader = MonsterInfoFromID(0x4cb, MONSTER_AI_CPP, monster_group->value_9f, 1);
                     if (leader != 0 && leader->fActive != 0) {
                         destination = g_startup_world_659c0c->GetPosition();
-                        source = leader->monster->GetPosition();
+                        source = leader->p3D->GetPosition();
                         waypoint_result = g_octree_6598a4->pathing_180->TestWaypointSpan0045A1B0(
                             &source, &destination, 0, 0);
                     }
@@ -1052,7 +1050,7 @@ unsigned int MonsterAdvanceChance(W8MonsterInfo* monster_info, W8MonsterRecord* 
     W8CombatSlot chosen;
     float distance;
 
-    hp_percent = monster_info->hp_current * 100 / monster_info->hp_max;
+    hp_percent = monster_info->hp_current * 100 / monster_info->uiHPMax;
     if (monster_info->fInCombat == 0) {
         srAssertFail("pMonsterInfo->fInCombat", MONSTER_AI_CPP, 1272, 0);
     }
@@ -1441,8 +1439,8 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
         stat_max = target->stamina_max;
         stat = target->stamina;
         hp = target->hp_current;
-        hp_max = target->hp_max;
-        condition_turns = target->condition_turns;
+        hp_max = target->uiHPMax;
+        condition_turns = target->uiCondition;
         enchantments = target->enchantments;
         if (monster_info->ubDisposition == DISP_HOSTILE && target->ubDisposition == DISP_FRIENDLY &&
             monster_info->fInCombat != 0 && monster_info->pCombat->unknown_151[1] != 0) {
@@ -1615,7 +1613,7 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
                     return 0;
                 }
                 if (record->spell_chance_0e0 != 0) {
-                    if (MonsterIsCycleSupported(target->monster, W8_MONSTER_CYCLE_SPELL) == 0) {
+                    if (MonsterIsCycleSupported(target->p3D, W8_MONSTER_CYCLE_SPELL) == 0) {
                         if (g_spell_cycle_error_reported == 0) {
                             FormatDebugMessage(0, "ERROR: %ls is missing a SPELL animation cycle",
                                                record);
@@ -2039,7 +2037,7 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
         break;
     case W8_TARGET_TYPE_POINT:
         ResetCombatSlot(&slot);
-        slot.point = monster_info->monster->GetPosition();
+        slot.point = monster_info->p3D->GetPosition();
         targets->Add(slot);
         break;
     default:
@@ -2248,7 +2246,7 @@ bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only, int ho
     }
     if (monster_info->player_visibility.sight_state_04 == W8_SIGHT_SEEN &&
         monster_info->player_visibility.los_flags_05[2] != 0 &&
-        (within_reach == 0 || monster_info->monster->GetDistanceToPlayer004C7CB0() <= reach)) {
+        (within_reach == 0 || monster_info->p3D->GetDistanceToPlayer004C7CB0() <= reach)) {
         for (index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
             if (g_status_685170.buffers.XChar[index].fOccupied != 0 &&
                 g_status_685170.buffers.Char[index].hp_current > 0 &&
@@ -2278,8 +2276,7 @@ bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only, int ho
                     if (record != 0 && record->sight_state_04 == W8_SIGHT_SEEN &&
                         record->los_flags_05[2] != 0) {
                         if (within_reach == 0 ||
-                            monster_info->monster->GetDistanceToMonster004C7DD0(other->monster) <=
-                                reach) {
+                            monster_info->p3D->GetDistanceToMonster004C7DD0(other->p3D) <= reach) {
                             return 1;
                         }
                     }
@@ -2305,7 +2302,7 @@ bool CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record, char e
     if (record->special_attack_kind_0e3 == 0) {
         return 0;
     }
-    if (MonsterIsCycleSupported(monster_info->monster, 0x12) == 0) {
+    if (MonsterIsCycleSupported(monster_info->p3D, 0x12) == 0) {
         if (g_special_attack_cycle_error_reported == 0) {
             FormatDebugMessage(0, "ERROR: %ls is missing a SPECIAL ATTACK animation cycle", record);
             g_special_attack_cycle_error_reported = 1;
@@ -2319,14 +2316,13 @@ bool CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record, char e
         static_cast<unsigned int>(monster_info->stamina_max) / 10) {
         return 0;
     }
-    if (monster_info->condition_turns[W8_CONDITION_SPELLCASTING_BLOCKED] != 0 &&
+    if (monster_info->uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] != 0 &&
         MonsterSpecialAttackHonorsCastingBlock(record->special_attack_kind_0e3) != 0) {
         return 0;
     }
     if (g_special_attack_table[record->special_attack_kind_0e3][0] ==
         W8_SPECIAL_ATTACK_EFFECT_SUMMON) {
-        if (CalcRangeDistance(W8_RANGE_LONG) <
-            monster_info->monster->GetDistanceToPlayer004C7CB0()) {
+        if (CalcRangeDistance(W8_RANGE_LONG) < monster_info->p3D->GetDistanceToPlayer004C7CB0()) {
             return 0;
         }
         if (monster_info->ubDisposition == DISP_FRIENDLY) {
@@ -2422,7 +2418,7 @@ float GetGroupNearestDistance(W8MonsterGroup* group)
         location_id = IListGetAt(group->monsters, index);
         monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(1845, MONSTER_AI_CPP, location_id, 1));
-        distance = monster_info->monster->GetDistanceToPlayer004C7CB0();
+        distance = monster_info->p3D->GetDistanceToPlayer004C7CB0();
         if (distance < furthest) {
             furthest = distance;
         }
@@ -2453,11 +2449,10 @@ short IsMonsterControlPointInRange(W8MonsterInfo* monster_info)
         return 0;
     }
     anchor_navigator = visual;
-    in_range =
-        monster_info->monster->SetMovementTargetToNavigator004526C0(anchor_navigator, 2500.0);
+    in_range = monster_info->p3D->SetMovementTargetToNavigator004526C0(anchor_navigator, 2500.0);
     if (in_range == 0) {
         party = anchor_navigator->GetPosition();
-        monster_info->monster->AimAtPosition(&party);
+        monster_info->p3D->AimAtPosition(&party);
     }
     return in_range;
 }
@@ -2549,7 +2544,7 @@ bool MonsterGroupHasReinforcement(W8MonsterGroup* monster_group)
             member->party_threat.los_flags_05[1] == 0) {
             continue;
         }
-        member_distance = member->monster->GetDistanceToPlayer004C7CB0();
+        member_distance = member->p3D->GetDistanceToPlayer004C7CB0();
         if (member_distance > GetRangeConstant5EC360()) {
             continue;
         }
@@ -2558,8 +2553,8 @@ bool MonsterGroupHasReinforcement(W8MonsterGroup* monster_group)
             if (other != member && other->party_threat.los_flags_05[1] != 0 &&
                 other->fActive != 0 && other->fInCombat != 0 && other->hp_current != 0 &&
                 other->ubDisposition == DISP_HOSTILE) {
-                other_distance = other->monster->GetDistanceToPlayer004C7CB0();
-                monster_distance = member->monster->GetDistanceToMonster004C7DD0(other->monster);
+                other_distance = other->p3D->GetDistanceToPlayer004C7CB0();
+                monster_distance = member->p3D->GetDistanceToMonster004C7DD0(other->p3D);
                 if (monster_distance + member_distance < other_distance * g_float_005ee780 &&
                     (member_distance < other_distance || monster_distance < other_distance)) {
                     return 1;
@@ -2711,7 +2706,7 @@ bool ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group)
     }
     if (monster_group->value_9f == -0x32323233 ||
         (leader = MonsterInfoFromID(0xf53, MONSTER_AI_CPP, monster_group->value_9f, 1)) == 0 ||
-        leader->monster == 0) {
+        leader->p3D == 0) {
         FormatDebugMessage(1, "ERROR: Group %d is without an active leader",
                            monster_group->group_id);
         return 0;
@@ -2735,8 +2730,8 @@ bool ShouldMonsterGroupEnterCombat(W8MonsterGroup* monster_group)
                     reach = minimum;
                 }
                 party = g_startup_world_659c0c->GetPosition();
-                if ((leader->monster->movement_0c0.position_040 - party).Length() <= reach &&
-                    leader->monster->FindNavigatorPathDistance(750.0f, &path_distance) &&
+                if ((leader->p3D->movement_0c0.position_040 - party).Length() <= reach &&
+                    leader->p3D->FindNavigatorPathDistance(750.0f, &path_distance) &&
                     path_distance <= reach) {
                     return 1;
                 }

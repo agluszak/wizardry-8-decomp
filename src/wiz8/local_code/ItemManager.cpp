@@ -1358,7 +1358,7 @@ void DropMonsterLoot(W8MonsterInfo* monster_info, int value)
     W8GrowableVector<W8WorldItem*> items(5);
     if (monster_info != 0) {
         W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
-        srVector3T<float> position = monster_info->monster->GetPosition();
+        srVector3T<float> position = monster_info->p3D->GetPosition();
         W8WorldItem* item;
         int gold = 0;
         int slot;

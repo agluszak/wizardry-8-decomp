@@ -335,7 +335,7 @@ void DamageMonstersInRadius(const srVector3T<float>& center, float radius, const
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fActive != 0) {
-            MonsterGetLocation(monster_info->monster, &location);
+            MonsterGetLocation(monster_info->p3D, &location);
             offset = srVector3T<float>(center.x - location.x, center.y - location.y,
                                        center.z - location.z);
             if (offset.Length() <= radius) {
@@ -431,8 +431,8 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
         }
         ClearHighlightIfItIs(&monster_info->location_id);
         UpdateMonsterDamageAppearance(monster_info);
-        if (monster_info->monster != 0) {
-            monster_info->monster->SpawnDamageNumber(amount);
+        if (monster_info->p3D != 0) {
+            monster_info->p3D->SpawnDamageNumber(amount);
         }
     }
     return amount;
@@ -444,20 +444,20 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
 void HealMonster(W8MonsterInfo* monster_info, unsigned int amount, char announce)
 {
     if (monster_info->hp_current == 0 ||
-        monster_info->hp_current == static_cast<unsigned int>(monster_info->hp_max) ||
+        monster_info->hp_current == static_cast<unsigned int>(monster_info->uiHPMax) ||
         amount == 0) {
         return;
     }
 
     monster_info->hp_current += amount;
-    if (monster_info->hp_current > static_cast<unsigned int>(monster_info->hp_max)) {
-        monster_info->hp_current = monster_info->hp_max;
+    if (monster_info->hp_current > static_cast<unsigned int>(monster_info->uiHPMax)) {
+        monster_info->hp_current = monster_info->uiHPMax;
     }
     ClearHighlightIfItIs(&monster_info->location_id);
     UpdateMonsterDamageAppearance(monster_info);
 
     if (announce) {
-        if (monster_info->hp_current == static_cast<unsigned int>(monster_info->hp_max)) {
+        if (monster_info->hp_current == static_cast<unsigned int>(monster_info->uiHPMax)) {
             ShowNoticef(9, gppStringList[0x964 / 4], GetMonsterName(monster_info, 0, 0));
         } else {
             ShowNoticef(9, gppStringList[0x96c / 4], GetMonsterName(monster_info, 0, 0), amount);
@@ -504,7 +504,7 @@ int MonsterActionFatigueCost(const W8MonsterInfo* monster_info)
                                   monster_info->action_kind));
     }
 
-    if (monster_info->condition_turns[W8_CONDITION_FATIGUE_DOUBLED] == 0) {
+    if (monster_info->uiCondition[W8_CONDITION_FATIGUE_DOUBLED] == 0) {
         return cost;
     }
     return cost * 2;
@@ -825,7 +825,7 @@ void FatigueMonster(W8MonsterInfo* monster_info, unsigned int amount,
                                static_cast<unsigned int>(monster_info->stamina_max)));
 
     if (monster_info->stamina == 0 &&
-        monster_info->condition_turns[W8_CONDITION_EXHAUSTED] < W8_CONDITION_INDEFINITE) {
+        monster_info->uiCondition[W8_CONDITION_EXHAUSTED] < W8_CONDITION_INDEFINITE) {
         ResetTargetSource(&target_block);
         SetMonsterCondition(monster_info->location_id, W8_CONDITION_EXHAUSTED,
                             W8_CONDITION_INDEFINITE, 0, &target_block, report_to == 0);
@@ -878,7 +878,7 @@ void RestoreMonsterStamina(W8MonsterInfo* monster_info, int amount, char announc
         100 - static_cast<int>((monster_info->stamina * 100) /
                                static_cast<unsigned int>(monster_info->stamina_max)));
 
-    if (monster_info->condition_turns[W8_CONDITION_EXHAUSTED] == W8_CONDITION_INDEFINITE &&
+    if (monster_info->uiCondition[W8_CONDITION_EXHAUSTED] == W8_CONDITION_INDEFINITE &&
         static_cast<unsigned int>(monster_info->stamina) > W8_STAMINA_TO_SHAKE_OFF_EXHAUSTION) {
         ClearMonsterCondition(monster_info->location_id, W8_CONDITION_EXHAUSTED);
     }
@@ -894,7 +894,7 @@ void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* att
 {
     StartMonsterCycle(monster_info, 0x14, 1);
 
-    if (monster_info->condition_turns[15] != 0 && quiet == 0 &&
+    if (monster_info->uiCondition[15] != 0 && quiet == 0 &&
         Random(100) < static_cast<unsigned int>((monster_info->attributes[4] >> 1) + 0x32)) {
         ClearMonsterCondition(monster_info->location_id, W8_CONDITION_ASLEEP);
     }
@@ -906,7 +906,7 @@ void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* att
         return;
     }
     if (attacker->fBackfire == 0 && attacker->fReflection == 0 && attacker->target_diverted == 0 &&
-        quiet == 0 && monster_info->condition_turns[W8_CONDITION_HOSTILE] != 0) {
+        quiet == 0 && monster_info->uiCondition[W8_CONDITION_HOSTILE] != 0) {
         if (TargetSourceIsCharacter(attacker, 0)) {
             if (MonsterVsCharDisposition(attacker->iChar, monster_info) == 2) {
                 ApplyMonsterCondition(monster_info->location_id, 0xd, 1);

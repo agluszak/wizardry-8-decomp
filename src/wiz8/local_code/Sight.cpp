@@ -169,12 +169,12 @@ bool CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target, W8Visibi
         return 0;
     }
     target_record = GetMonsterDataForInfo(target);
-    source_monster = source->monster;
+    source_monster = source->p3D;
     observer_position.x = source_monster->movement_0c0.position_040.x;
     observer_position.y = source_monster->movement_0c0.position_040.y +
                           source_monster->movement_0c0.height_offset_0b8;
     observer_position.z = source_monster->movement_0c0.position_040.z;
-    target_monster = target->monster;
+    target_monster = target->p3D;
     target_position.x = target_monster->movement_0c0.position_040.x;
     target_position.y = target_monster->movement_0c0.position_040.y +
                         target_monster->movement_0c0.height_offset_0b8;
@@ -198,7 +198,7 @@ bool CanMonsterSeeMonster(W8MonsterInfo* source, W8MonsterInfo* target, W8Visibi
     source_record = GetMonsterDataForInfo(source);
     threshold = ComputeSightThreshold(
         observer_position, target_position, observer_yaw, source->attributes[4], ranged_bonus,
-        static_cast<unsigned char>(source->condition_turns[12] != 0),
+        static_cast<unsigned char>(source->uiCondition[12] != 0),
         static_cast<unsigned char>(source_record->kind_0cb == 12),
         static_cast<int>(target_record->effective_level_24f), penalty_modifier,
         static_cast<int>(record->sight_state_04), 0, distance);
@@ -327,7 +327,7 @@ bool MonsterGroupHasVisibleThreat(W8MonsterGroup* group)
 
     for (index = 0; index < ILLength(group->monsters); ++index) {
         monster_info = MonsterInfoFromID(1120, SIGHT_CPP, IListGetAt(group->monsters, index), 1);
-        if (monster_info->fActive != 0 && !monster_info->monster->IsDying() &&
+        if (monster_info->fActive != 0 && !monster_info->p3D->IsDying() &&
             monster_info->hp_current != 0 && monster_info->highest_condition < 0xc &&
             monster_info->party_threat.sight_state_04 == W8_SIGHT_SEEN) {
             return true;
@@ -501,7 +501,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
         srAssertFail("flViewingDistance > 0", SIGHT_CPP, 0x5e, 0);
     }
     record = GetMonsterDataForInfo(monster_info);
-    monster = monster_info->monster;
+    monster = monster_info->p3D;
     own_position = monster->movement_0c0.position_040;
     own_position.y += monster->movement_0c0.height_offset_0b8;
 
@@ -550,14 +550,14 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                     }
                 }
                 {
-                    W8Monster* other_monster = other->monster;
+                    W8Monster* other_monster = other->p3D;
                     float distance;
 
                     other_position = other_monster->movement_0c0.position_040;
                     other_position.y += other_monster->movement_0c0.height_offset_0b8;
                     entry->can_see_0b = 0;
                     entry->line_of_sight_28 = 0;
-                    distance = monster->GetDistanceToMonster004C7DD0(other->monster);
+                    distance = monster->GetDistanceToMonster004C7DD0(other->p3D);
                     if (viewing_distance >= distance) {
                         unsigned char line_of_sight =
                             monster->HasLineOfSightToMonster004C4AF0(other_monster);
@@ -590,7 +590,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                     if (entry->line_of_sight_28 == 0) {
                         memset(entry->los_flags_05, 0, 4);
                     } else {
-                        monster->GetMonsterSightFlags004C4B70(other->monster, entry->los_flags_05,
+                        monster->GetMonsterSightFlags004C4B70(other->p3D, entry->los_flags_05,
                                                               entry->los_flags_05 + 2);
                         if (monster_info->has_missile_37a != 0) {
                             unsigned char found =
@@ -701,7 +701,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                 {
                     float threshold = ComputeSightThreshold(
                         observer_position, target_position, yaw, monster_info->attributes[4],
-                        fade_flag, monster_info->condition_turns[0xc] != 0, record->kind_0cb == 0xc,
+                        fade_flag, monster_info->uiCondition[0xc] != 0, record->kind_0cb == 0xc,
                         static_cast<int>(minimum_level), static_cast<int>(light),
                         monster_info->player_visibility.sight_state_04, 0, player_distance);
 
@@ -977,8 +977,8 @@ bool MonsterGroupCanSeeGroup(W8MonsterGroup* source, W8MonsterGroup* target)
         MonsterGetIndexByLocationID(0x47c, SIGHT_CPP, source->value_9f, 1));
     target_info = MonsterGetScriptPartByLocationIndex(
         MonsterGetIndexByLocationID(0x47d, SIGHT_CPP, target->value_9f, 1));
-    source_monster = source_info->monster;
-    target_monster = target_info->monster;
+    source_monster = source_info->p3D;
+    target_monster = target_info->p3D;
     if (target_info->fInCombat == 0) {
         distance = source_monster->GetDistanceToMonster004C7DD0(target_monster);
         world = GetWorld();

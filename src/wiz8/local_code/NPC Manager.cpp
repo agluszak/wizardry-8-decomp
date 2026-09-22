@@ -118,7 +118,7 @@ char GetNpcDisposition(W8NpcState* npc)
             MonsterGetIndexByLocationID(0x2a1, NPC_MANAGER_CPP, npc->location_id, 1));
         if (monster_info != 0) {
             disposition += monster_info->effect_2de;
-            if (monster_info->condition_turns[W8_CONDITION_TURNCOAT] > 0) {
+            if (monster_info->uiCondition[W8_CONDITION_TURNCOAT] > 0) {
                 disposition = 0x64;
             }
         }
@@ -543,7 +543,7 @@ int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool ne
             MonsterGetIndexByLocationID(0x6c7, NPC_MANAGER_CPP, group->value_9f, 1));
         if (monster != 0) {
             CopyCharacterConditionsToTarget(npc->character, &monster->location_id);
-            if (monster->condition_turns[17] == 9999) {
+            if (monster->uiCondition[17] == 9999) {
                 unsigned int stamina = static_cast<unsigned int>(npc->character->uiStaminaMax);
                 if (static_cast<unsigned int>(npc->character->stamina) < stamina) {
                     stamina = static_cast<unsigned int>(npc->character->stamina);
@@ -703,7 +703,7 @@ W8Monster* GetNpcMonster(W8NpcState* npc)
     if (monster_info == 0) {
         return 0;
     }
-    return monster_info->monster;
+    return monster_info->p3D;
 }
 
 /* Move the NPC into one disposition band. Each band is written as one
@@ -1257,7 +1257,7 @@ void SelectStartNpcGreeting(void)
             if (monster_info == 0) {
                 return;
             }
-            monster = monster_info->monster;
+            monster = monster_info->p3D;
             head.x = monster->movement_0c0.position_040.x;
             head.y = monster->movement_0c0.position_040.y + monster->movement_0c0.height_offset_0b8;
             head.z = monster->movement_0c0.position_040.z;
@@ -2329,7 +2329,7 @@ void UpdateNpcEvents0050D530(void)
             index = MonsterGetIndexByLocationID(0xc2f, NPC_MANAGER_CPP, group->value_9f, 1);
             monster_info = MonsterGetScriptPartByLocationIndex(index);
             StartMonsterCycle(monster_info, 0x10, 1);
-            monster_info->monster->SetCycleCallback004CA340(0x10, TriggerBelaVoice0050D480);
+            monster_info->p3D->SetCycleCallback004CA340(0x10, TriggerBelaVoice0050D480);
         }
         g_status_685170.bela_cycle_tick = 0;
     }
@@ -2784,7 +2784,7 @@ unsigned char RestoreNpcMonster0050C560(W8NpcState* npc, const char* entity_name
         if (FindEntityByName(entity_name, &position, 0, 0) == 0) {
             return 0;
         }
-        static_cast<W8Navigator*>(monster_info->monster)->SetPosition(&position);
+        static_cast<W8Navigator*>(monster_info->p3D)->SetPosition(&position);
         return 1;
     }
 }
@@ -2816,7 +2816,7 @@ void HandleMarkedNpcEvent0050CF70(W8NpcState* npc, char mode)
         if (GetLocationVarIDByName("CODESgtRubbleTeleport") == -1 ||
             GetLocationVarValueByName("CODESgtRubbleTeleport") == 0) {
             if (FindEntityByName("RubbleCovert", &position, 0, 0)) {
-                static_cast<W8Navigator*>(monster_info->monster)->SetPosition(&position);
+                static_cast<W8Navigator*>(monster_info->p3D)->SetPosition(&position);
                 if (GetLocationVarIDByName("CODESgtRubbleTeleport") == -1) {
                     CreateLocationVar("CODESgtRubbleTeleport", 1);
                 } else {
@@ -2835,7 +2835,7 @@ void HandleMarkedNpcEvent0050CF70(W8NpcState* npc, char mode)
         }
         if (GetLocationVarValueByName("CODESgtRubbleTeleport") == 1) {
             if (FindEntityByName("rubbleUnderWater", &position, 0, 0)) {
-                static_cast<W8Navigator*>(monster_info->monster)->SetPosition(&position);
+                static_cast<W8Navigator*>(monster_info->p3D)->SetPosition(&position);
                 SetTriggerVariableByName00444030("CODESgtRubbleTeleport", 2);
             }
             npc->marked_e9 = 0;
@@ -2848,7 +2848,7 @@ void HandleMarkedNpcEvent0050CF70(W8NpcState* npc, char mode)
 
         monster_info = GetNpcMonsterInfo(npc);
         if (monster_info != 0) {
-            position = monster_info->monster->GetPosition();
+            position = monster_info->p3D->GetPosition();
             W8WorldItem* item = SpawnItem(0x1e6, &position, 3, 1);
 
             if (item != 0) {

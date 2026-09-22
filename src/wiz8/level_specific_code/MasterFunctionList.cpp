@@ -228,7 +228,7 @@ unsigned char DispatchWorldCursorNodeCommand004D9080(W8MonsterInfo* info, int co
     if (info == 0) {
         GetCameraPosition(&position);
     } else {
-        position = info->monster->GetPosition();
+        position = info->p3D->GetPosition();
     }
     position.y = SettlePositionToGround00420BD0(&position, 0) + g_float_005ec3f8;
     node = FindWorldCursorNodeAtPoint0048EDD0(0, &position);

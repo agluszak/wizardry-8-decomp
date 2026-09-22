@@ -227,7 +227,7 @@ unsigned char StartCombat(int surprise)
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fActive != 0 && monster_info->fInCombat != 0 &&
             monster_info->hp_current > 0 && monster_info->ubDisposition == DISP_HOSTILE) {
-            float distance = monster_info->monster->GetDistanceToPlayer004C7CB0();
+            float distance = monster_info->p3D->GetDistanceToPlayer004C7CB0();
             if (distance < nearest_distance) {
                 nearest_distance = distance;
                 nearest_info = monster_info;
@@ -248,12 +248,12 @@ unsigned char StartCombat(int surprise)
             monster_info->pCombat->value_14c = 0;
             RequestRedraw(0x100000);
             if (monster_info->hp_current > 0 && monster_info->highest_condition < 0xe &&
-                monster_info->condition_turns[0xc] == 0) {
+                monster_info->uiCondition[0xc] == 0) {
                 MonsterChooseTarget(monster_info, &chosen, 3);
                 if (chosen.iType == 2) {
-                    MonsterForwardReferencePosition(monster_info->monster, 0);
+                    MonsterForwardReferencePosition(monster_info->p3D, 0);
                 } else if (chosen.iType == 3) {
-                    MonsterAimAtMonster004C62C0(monster_info->monster,
+                    MonsterAimAtMonster004C62C0(monster_info->p3D,
                                                 GetMonsterByLocationID(chosen.iMonsterID), 0);
                 }
             }
@@ -459,7 +459,7 @@ bool CombatHasContinuingEffects(void)
     }
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
-        if (monster->fActive && monster->hp_current != 0 && monster->condition_turns[0x12] == 0 &&
+        if (monster->fActive && monster->hp_current != 0 && monster->uiCondition[0x12] == 0 &&
             monster->summoned_2da != 0) {
             return true;
         }
@@ -810,11 +810,11 @@ void NotifyNearbyMonsters(int what)
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fInCombat != 0 && monster_info->hp_current != 0 &&
-            monster_info->highest_condition < 0xe && monster_info->condition_turns[12] == 0 &&
+            monster_info->highest_condition < 0xe && monster_info->uiCondition[12] == 0 &&
             monster_info->ubDisposition == 1) {
-            if (monster_info->monster->GetDistanceToPlayer004C7CB0() <=
+            if (monster_info->p3D->GetDistanceToPlayer004C7CB0() <=
                 CalcRangeDistance(W8_RANGE_SHORT)) {
-                NotifyMonsterOfSound(monster_info->monster, what);
+                NotifyMonsterOfSound(monster_info->p3D, what);
             }
         }
     }
@@ -923,16 +923,16 @@ void EndMonsterTurn(W8MonsterInfo* monster_info)
     RequestRedraw(0x100000);
 
     if (monster_info->hp_current != 0 && monster_info->highest_condition < 0xe &&
-        monster_info->condition_turns[12] == 0) {
+        monster_info->uiCondition[12] == 0) {
         MonsterChooseTarget(monster_info, &chosen, 3);
         if (chosen.iType == 2) {
-            NotifyMonsterIdle(monster_info->monster, 0);
+            NotifyMonsterIdle(monster_info->p3D, 0);
             monster_info->flag_253 = 0;
             return;
         }
         if (chosen.iType == 3) {
             target_location = chosen.iMonsterID;
-            NotifyMonsterFacing(monster_info->monster, GetMonsterByLocationID(target_location), 0);
+            NotifyMonsterFacing(monster_info->p3D, GetMonsterByLocationID(target_location), 0);
         }
     }
     monster_info->flag_253 = 0;
@@ -949,7 +949,7 @@ void SetUpMonsterTurn(W8MonsterInfo* monster_info)
     float scale;
 
     if (monster_info->pCombat->turn_started != 0) {
-        monster_info->monster->movement_complete_026 = 0;
+        monster_info->p3D->movement_complete_026 = 0;
         return;
     }
 
@@ -961,7 +961,7 @@ void SetUpMonsterTurn(W8MonsterInfo* monster_info)
             speed = 0x96;
         }
         if (monster_info->enchantments[5].value_08 == 0) {
-            if (monster_info->condition_turns[5] != 0) {
+            if (monster_info->uiCondition[5] != 0) {
                 speed -= 0x32;
             }
         } else {
@@ -969,11 +969,11 @@ void SetUpMonsterTurn(W8MonsterInfo* monster_info)
         }
     }
 
-    monster_info->monster->SetMonsterTurnSpeed(speed * scale * g_movement_speed_step_005ed490);
+    monster_info->p3D->SetMonsterTurnSpeed(speed * scale * g_movement_speed_step_005ed490);
     /* Four bytes inside cycle eight's block, cleared together. */
-    monster_info->monster->movement_0c0.callback_progress_05c = 0.0f;
+    monster_info->p3D->movement_0c0.callback_progress_05c = 0.0f;
     monster_info->pCombat->turn_started = 1;
-    monster_info->monster->movement_complete_026 = 0;
+    monster_info->p3D->movement_complete_026 = 0;
 }
 
 /* Finish one monster's attack: charge it the fatigue, drop the party's
@@ -987,7 +987,7 @@ void EndMonsterAttack(W8MonsterInfo* monster_info)
 
     GetMonsterDataForInfo(monster_info);
     FatigueMonster(monster_info, MonsterActionFatigueCost(monster_info), 0);
-    MonsterSetNavigatorFlag25(monster_info->monster, 1);
+    MonsterSetNavigatorFlag25(monster_info->p3D, 1);
     g_combat_state->eCombatActionStatus = 0;
     g_combat_state->pActionMonsterInfo = 0;
 
@@ -1562,7 +1562,7 @@ void OrientMonsterTowardTarget(W8MonsterInfo* monster_info, char alternate)
         break;
     default:
         if (IsMonsterFacingParty(monster_info) == 0) {
-            MonsterForwardReferencePosition(monster_info->monster, alternate);
+            MonsterForwardReferencePosition(monster_info->p3D, alternate);
         }
         break;
     case W8_TARGET_KIND_MONSTER:
@@ -1572,7 +1572,7 @@ void OrientMonsterTowardTarget(W8MonsterInfo* monster_info, char alternate)
                 0x1320, "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", location_id, 1);
             target = MonsterGetScriptPartByLocationIndex(index);
             if (IsMonsterFacingMonster(monster_info, target) == 0) {
-                MonsterAimAtMonster004C62C0(monster_info->monster, target->monster, alternate);
+                MonsterAimAtMonster004C62C0(monster_info->p3D, target->p3D, alternate);
                 return;
             }
         }
@@ -1585,7 +1585,7 @@ void OrientMonsterTowardTarget(W8MonsterInfo* monster_info, char alternate)
                 0x136e, "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", location_id, 1);
             target = MonsterGetScriptPartByLocationIndex(index);
             if (IsMonsterFacingMonster(monster_info, target) == 0) {
-                MonsterAimAtMonster004C62C0(monster_info->monster, target->monster, alternate);
+                MonsterAimAtMonster004C62C0(monster_info->p3D, target->p3D, alternate);
                 return;
             }
         }
@@ -1594,10 +1594,10 @@ void OrientMonsterTowardTarget(W8MonsterInfo* monster_info, char alternate)
         point = monster_info->Target.point;
         if (IsPartyLookingAt(monster_info, point) == 0) {
             if (alternate != 0) {
-                monster_info->monster->SetFacingToward(&point);
+                monster_info->p3D->SetFacingToward(&point);
                 return;
             }
-            monster_info->monster->AimAtPosition(&point);
+            monster_info->p3D->AimAtPosition(&point);
             return;
         }
     }
@@ -1611,7 +1611,7 @@ bool AnyCombatMonsterBusy004E8C30(void)
     unsigned int monster_count = PLLength(gXStatus.plsMonsterList);
     for (unsigned int monster_index = 0; monster_index < monster_count; ++monster_index) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-        W8Monster* monster = monster_info->monster;
+        W8Monster* monster = monster_info->p3D;
         int attack_mode = MonsterQuery(monster, 6);
         if (attack_mode == 0x15 && GetMonsterDataForInfo(monster_info)->record_id_187 == 0x234) {
             return true;
@@ -1632,7 +1632,7 @@ bool AnyCombatMonsterBusy004E8C30(void)
                     if (NormalizeAttackMode(attack_mode) != 7) {
                         return true;
                     }
-                    return monster_info->f_missile_released == 0;
+                    return monster_info->fMissileReleased == 0;
                 }
                 if (MonsterQuery(monster, 4) < MonsterQuery(monster, 0) / 2) {
                     return true;
@@ -1910,13 +1910,13 @@ groups_checked:
     while (index < PLLength(gXStatus.plsMonsterList)) {
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fInCombat != 0 && monster_info->hp_current != 0 &&
-            monster_info->highest_condition < 0xe && monster_info->condition_turns[0xc] == 0) {
+            monster_info->highest_condition < 0xe && monster_info->uiCondition[0xc] == 0) {
             W8CombatSlot chosen;
             MonsterChooseTarget(monster_info, &chosen, 3);
             if (chosen.iType == 2) {
-                MonsterForwardReferencePosition(monster_info->monster, 0);
+                MonsterForwardReferencePosition(monster_info->p3D, 0);
             } else if (chosen.iType == 3) {
-                MonsterAimAtMonster004C62C0(monster_info->monster,
+                MonsterAimAtMonster004C62C0(monster_info->p3D,
                                             GetMonsterByLocationID(chosen.iMonsterID), 0);
             }
         }
@@ -2459,7 +2459,7 @@ void ExecuteMonsterAction004EAE20(W8MonsterInfo* monster_info, W8MonsterRecord* 
             break;
         case 4:
             SetUpMonsterTurn(monster_info);
-            result = MonsterLinkToStartupNavigator004C6030(monster_info->monster) != 0;
+            result = MonsterLinkToStartupNavigator004C6030(monster_info->p3D) != 0;
             if (result != 0) {
                 monster_info->pCombat->advancing_14b = 1;
                 if (interrupt != 0xc) {
@@ -2472,7 +2472,7 @@ void ExecuteMonsterAction004EAE20(W8MonsterInfo* monster_info, W8MonsterRecord* 
             break;
         case 5:
         case 7:
-            if (monster_info->condition_turns[0xc] == 0 || record->kind_0cb == '\f') {
+            if (monster_info->uiCondition[0xc] == 0 || record->kind_0cb == '\f') {
                 if (record->prefer_ranged_actions_1b9 == '\0') {
                     range = GetBestMonsterAttackRange(record, '\x01');
                     sight = 0;
@@ -2487,7 +2487,7 @@ void ExecuteMonsterAction004EAE20(W8MonsterInfo* monster_info, W8MonsterRecord* 
                         approach_distance =
                             CalcRangeDistance(W8_RANGE_SHORT) * g_prepath_link_height_5ed300;
                     }
-                    GetMonsterAttackSourceOffset(monster_info->monster, sight, &position);
+                    GetMonsterAttackSourceOffset(monster_info->p3D, sight, &position);
                     engage_distance = CalcRangeDistance(range);
                     MonsterChooseTarget(monster_info, &monster_info->Target, 0);
                     SetUpMonsterTurn(monster_info);
@@ -2497,14 +2497,14 @@ void ExecuteMonsterAction004EAE20(W8MonsterInfo* monster_info, W8MonsterRecord* 
                             monster_info->Target.iMonsterID, '\x01');
                         target_info = MonsterGetScriptPartByLocationIndex(index);
                         move_result = MonsterConfigureMovementToMonster004C60D0(
-                            monster_info->monster, target_info->monster, approach_distance,
+                            monster_info->p3D, target_info->p3D, approach_distance,
                             engage_distance, position, sight, &move_flag);
                     } else {
                         if (monster_info->ubDisposition != '\x01') {
                             break;
                         }
                         move_result = MonsterConfigureMovementToPlayer004C6070(
-                            monster_info->monster, approach_distance, engage_distance, position,
+                            monster_info->p3D, approach_distance, engage_distance, position,
                             sight, &move_flag);
                     }
                     if (move_result == 1 || (move_result == 3 && move_flag != '\0')) {
@@ -2545,7 +2545,7 @@ void ExecuteMonsterAction004EAE20(W8MonsterInfo* monster_info, W8MonsterRecord* 
                 continue;
             }
             SetUpMonsterTurn(monster_info);
-            result = MonsterLinkToStartupNavigator004C6030(monster_info->monster) != 0;
+            result = MonsterLinkToStartupNavigator004C6030(monster_info->p3D) != 0;
             if (result != 0) {
                 ShowNoticef(9, gppStringList[0x23a], GetMonsterName(monster_info, NULL, '\0'));
             }
@@ -2561,7 +2561,7 @@ void ExecuteMonsterAction004EAE20(W8MonsterInfo* monster_info, W8MonsterRecord* 
         if (result != '\0') {
         action_committed:
             if (monster_info->action_kind != 1 && monster_info->action_kind != 8) {
-                MonsterSetNavigatorFlag25(monster_info->monster, '\0');
+                MonsterSetNavigatorFlag25(monster_info->p3D, '\0');
             }
             goto action_done;
         }
@@ -2648,22 +2648,22 @@ void AimMonsterBreathAtTarget(W8MonsterInfo* monster_info)
         no_target = location_id == -1;
         break;
     case W8_TARGET_KIND_PLACE:
-        monster_info->monster->m_axis_1c0 = monster_info->Target.point;
-        monster_info->monster->unknown_1bf = 1;
+        monster_info->p3D->m_axis_1c0 = monster_info->Target.point;
+        monster_info->p3D->unknown_1bf = 1;
         return;
     default:
         GetCameraPosition(&position);
-        monster_info->monster->m_axis_1c0 = position;
-        monster_info->monster->unknown_1bf = 1;
+        monster_info->p3D->m_axis_1c0 = position;
+        monster_info->p3D->unknown_1bf = 1;
         return;
     }
     if (!no_target) {
         target_monster = GetMonsterByLocationID(location_id);
-        monster_info->monster->m_axis_1c0.x = target_monster->movement_0c0.position_040.x;
-        monster_info->monster->m_axis_1c0.y = target_monster->movement_0c0.position_040.y +
+        monster_info->p3D->m_axis_1c0.x = target_monster->movement_0c0.position_040.x;
+        monster_info->p3D->m_axis_1c0.y = target_monster->movement_0c0.position_040.y +
                                               target_monster->movement_0c0.height_offset_0b8;
-        monster_info->monster->m_axis_1c0.z = target_monster->movement_0c0.position_040.z;
-        monster_info->monster->unknown_1bf = 1;
+        monster_info->p3D->m_axis_1c0.z = target_monster->movement_0c0.position_040.z;
+        monster_info->p3D->unknown_1bf = 1;
     }
 }
 
@@ -2684,7 +2684,7 @@ int ExecuteMonsterSpecialAttack(W8MonsterInfo* monster_info, W8MonsterRecord* re
     }
     SetTargetSourceToMonster(monster_info, &source);
     if (g_special_attack_table[record->special_attack_kind_0e3][0] != 6) {
-        monster_info->monster->unknown_1bf = '\0';
+        monster_info->p3D->unknown_1bf = '\0';
         PointCameraAtCombatTarget(&source, &monster_info->Target);
         PopulateSpellTargetMarkers(0x77, 0, &source, &monster_info->Target, &monster_targets,
                                    &char_targets, 0);
@@ -2824,23 +2824,23 @@ void StepMonsterCombatAction(W8MonsterInfo* monster_info)
     case 7:
     case 9:
         PointCameraAtMonster(monster_info, '\0', '\x01');
-        if (monster_info->monster->movement_complete_026 == '\0') {
+        if (monster_info->p3D->movement_complete_026 == '\0') {
             outcome = 2;
             break;
         }
         if ((monster_info->action_kind == 5 || monster_info->action_kind == 7) &&
             monster_info->hp_current != 0 && monster_info->highest_condition < 0xe &&
-            monster_info->condition_turns[W8_CONDITION_BLIND] == 0) {
+            monster_info->uiCondition[W8_CONDITION_BLIND] == 0) {
             MonsterChooseTarget(monster_info, &chosen, 3);
             if (chosen.iType == 2) {
-                MonsterForwardReferencePosition(monster_info->monster, '\0');
+                MonsterForwardReferencePosition(monster_info->p3D, '\0');
             } else if (chosen.iType == 3) {
-                MonsterAimAtMonster004C62C0(monster_info->monster,
+                MonsterAimAtMonster004C62C0(monster_info->p3D,
                                             GetMonsterByLocationID(chosen.iMonsterID), '\0');
             }
         }
         RefreshAllSight();
-        monster = monster_info->monster;
+        monster = monster_info->p3D;
         combat = monster_info->pCombat;
         if (static_cast<int>((monster->movement_0c0.callback_threshold_058 <= g_float_005ebb34
                                   ? monster->movement_0c0.callback_progress_05c /
@@ -2933,7 +2933,7 @@ int GetConditionInterrupt004EC1E0(W8TargetSource* source)
             MonsterGetIndexByLocationID(0x11aa, "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp",
                                         source->iMonsterID, '\x01'));
         moving = monster_info->action_kind == 4;
-        condition_turns = monster_info->condition_turns;
+        condition_turns = monster_info->uiCondition;
         can_attack =
             RateMonsterBestAttack(monster_info, GetMonsterDataForInfo(monster_info), 0) == 0;
         secondary_flag = monster_info->pCombat->unknown_015;
@@ -3239,7 +3239,7 @@ void UpdateCombat004E8EA0(void)
         }
         GetMonsterDataForInfo(monster_info);
         FatigueMonster(monster_info, MonsterActionFatigueCost(monster_info), 0);
-        MonsterSetNavigatorFlag25(monster_info->monster, '\x01');
+        MonsterSetNavigatorFlag25(monster_info->p3D, '\x01');
         g_combat_state->eCombatActionStatus = 0;
         g_combat_state->pActionMonsterInfo = 0;
         W8MonsterCombatState* combat = monster_info->pCombat;

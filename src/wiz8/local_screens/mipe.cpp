@@ -1255,10 +1255,10 @@ void HandleMonsterDebugKey00579900(unsigned short key)
         if (ILLength(&g_mipe_state_0068f100->monster_ids) == 1) {
             info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                 0x6e3, MIPE_CPP, IListGetAt(&g_mipe_state_0068f100->monster_ids, 0), 1));
-            if (info == 0 || info->monster == 0) {
+            if (info == 0 || info->p3D == 0) {
                 srAssertFail("pMonsterInfo && pMonsterInfo->p3D", MIPE_CPP, 0x6e5, 0);
             }
-            monster = info->monster;
+            monster = info->p3D;
             GetWorldCursorPosition00490BF0(&position);
             MonsterGetLocation(monster, &location);
             MonsterForward453690(monster, &position);
@@ -1276,7 +1276,7 @@ void HandleMonsterDebugKey00579900(unsigned short key)
             if (info == 0) {
                 srAssertFail("pMonsterInfo", MIPE_CPP, 0x705, 0);
             }
-            monster = info->monster;
+            monster = info->p3D;
             if (monster == 0) {
                 srAssertFail("pMonster", MIPE_CPP, 0x707, 0);
             }
@@ -3454,7 +3454,7 @@ void UpdateMipeSelection0057DC20(void)
             if (info == 0) {
                 srAssertFail("pMonsterInfo", MIPE_CPP, 0x10ea, 0);
             }
-            g_mipe_state_0068f100->monster = info->monster;
+            g_mipe_state_0068f100->monster = info->p3D;
         }
         g_mipe_state_0068f100->selected_group_id = group_id;
         SetWorldCursorGroupId004916A0(group_id);
@@ -3478,7 +3478,7 @@ void UpdateMipeSelection0057DC20(void)
     if (info == 0) {
         srAssertFail("pMonsterInfo", MIPE_CPP, 0x110e, 0);
     }
-    g_mipe_state_0068f100->monster = info->monster;
+    g_mipe_state_0068f100->monster = info->p3D;
     SetWorldCursorGroupId004916A0(info->monster_group_id);
 }
 
@@ -3505,11 +3505,11 @@ void DragSelectionWithCursor0057DF80(void)
              ++index) {
             info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                 0x114c, MIPE_CPP, IListGetAt(&g_mipe_state_0068f100->monster_ids, index), 1));
-            MonsterGetLocalLocation(info->monster, &position);
+            MonsterGetLocalLocation(info->p3D, &position);
             moved.x = cursor.x - g_mipe_state_0068f100->drag_anchor.x + position.x;
             moved.y = cursor.y - g_mipe_state_0068f100->drag_anchor.y + position.y;
             moved.z = cursor.z - g_mipe_state_0068f100->drag_anchor.z + position.z;
-            info->monster->SetPosition004A6DF0(&moved);
+            info->p3D->SetPosition004A6DF0(&moved);
         }
     }
     g_mipe_state_0068f100->drag_anchor = cursor;

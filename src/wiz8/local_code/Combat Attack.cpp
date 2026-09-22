@@ -461,7 +461,7 @@ bool MonsterHasAttackOn(W8MonsterInfo* monster_info, W8CombatSlot* target)
             return 0;
         }
         target_level = GetMonsterDataForInfo(target_info)->effective_level_24f;
-        hp_percent = target_info->hp_current * 100 / target_info->hp_max;
+        hp_percent = target_info->hp_current * 100 / target_info->uiHPMax;
         out_of_formation = monster_info->modifiers_1db.out_of_formation;
     } else {
         return 0;
@@ -836,17 +836,17 @@ void ResolveSpellMissileHit(W8Missile* missile)
             monster_list_index =
                 MonsterGetIndexByLocationID(0x1460, COMBAT_ATTACK_CPP, target->iMonsterID, 1);
             monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
-            DamageMonstersInRadius(monster_info->monster->GetPosition(), definition->radius,
+            DamageMonstersInRadius(monster_info->p3D->GetPosition(), definition->radius,
                                    &definition->magnitude, source, &missile->result_280);
             announce = g_settings_6850c8.verbose_combat_messages;
             verbose = g_settings_6850c8.verbose_combat_messages;
-            srVector3T<float> center = monster_info->monster->GetPosition();
+            srVector3T<float> center = monster_info->p3D->GetPosition();
             ResetCombatSlot(&struck);
             struck.iType = W8_TARGET_KIND_MONSTER;
             for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
                 monster_info = MonsterGetScriptPartByLocationIndex(index);
                 if (monster_info->fActive != 0) {
-                    MonsterGetLocation(monster_info->monster, &location);
+                    MonsterGetLocation(monster_info->p3D, &location);
                     srVector3T<float> offset = center - location;
                     if (offset.Length() <= definition->radius) {
                         struck.iMonsterID = monster_info->location_id;
@@ -1401,7 +1401,7 @@ unsigned int CapAttackDamageByTargetHealth00545A00(unsigned int damage)
         monster_list_index =
             MonsterGetIndexByLocationID(0x1697, COMBAT_ATTACK_CPP, target->iMonsterID, 1);
         monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
-        health = monster_info->hp_max;
+        health = monster_info->uiHPMax;
     } else {
         srAssertFail("FALSE", COMBAT_ATTACK_CPP, 0x169c, 0);
         health = 0;
@@ -1463,7 +1463,7 @@ void StartMonsterAttackCycle0053FFE0(W8MonsterInfo* monster_info, int action_det
             FormatString("StartMonsterAttack: ERROR - Invalid attack mode %d", action_detail));
         return;
     }
-    if (MonsterIsCycleSupported(monster_info->monster, cycle) == 0) {
+    if (MonsterIsCycleSupported(monster_info->p3D, cycle) == 0) {
         switch (cycle) {
         case 9:
         case 10:
@@ -1496,7 +1496,7 @@ void StartMonsterAttackCycle0053FFE0(W8MonsterInfo* monster_info, int action_det
 attack_ready:
     range = GetMonsterActionRangeCategory(monster_info, record, attack);
     if (range >= W8_RANGE_LONG) {
-        monster_info->f_missile_released = 0;
+        monster_info->fMissileReleased = 0;
     }
     ResetCombatSlot(&g_combat_state->TargetHit);
     StartMonsterCycle(monster_info, cycle, 1);
@@ -1547,7 +1547,7 @@ void ReportCharacterAttackResult0053FB00(int party_slot, W8SpellEffectResult* re
         if (report->target.iType == W8_TARGET_KIND_MONSTER) {
             monster_info =
                 MonsterInfoFromID(0x68c, COMBAT_ATTACK_CPP, report->target.iMonsterID, 1);
-            condition_turns = monster_info->condition_turns;
+            condition_turns = monster_info->uiCondition;
         } else {
             condition_turns = g_status_685170.buffers.Char[report->target.iChar].uiCondition;
         }
@@ -1718,13 +1718,13 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         }
         PLDestroy(fumble_list);
     } else {
-        if (monster_info->f_missile_released == 0) {
+        if (monster_info->fMissileReleased == 0) {
             srAssertFail("pMonsterInfo->fMissileReleased", COMBAT_ATTACK_CPP, 0x80b,
                          FormatString("ContinueMonsterAttack: ERROR - Missile not released, ID %d, "
                                       "cycle %d, pending %d",
                                       monster_info->location_id,
-                                      MonsterQuery(monster_info->monster, 6),
-                                      monster_info->monster->m_pRep->pending_cycle));
+                                      MonsterQuery(monster_info->p3D, 6),
+                                      monster_info->p3D->m_pRep->pending_cycle));
         }
         if (g_combat_state->missile_hit_result == 1) {
             swing_missed = 0;
@@ -1844,7 +1844,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             }
             if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER &&
                 static_cast<char>(
-                    target_info->monster->IsFacingMonster004C4CA0(monster_info->monster)) != 0 &&
+                    target_info->p3D->IsFacingMonster004C4CA0(monster_info->p3D)) != 0 &&
                 target_info->fMotionless == 0) {
                 StartMonsterCycle(target_info, 0x13, 1);
             }
@@ -2080,7 +2080,7 @@ void ReportMonsterAttackResult005412B0(W8MonsterInfo* monster_info, W8SpellEffec
         if (report->target.iType == W8_TARGET_KIND_MONSTER) {
             monster_info =
                 MonsterInfoFromID(0x9f5, COMBAT_ATTACK_CPP, report->target.iMonsterID, 1);
-            condition_turns = monster_info->condition_turns;
+            condition_turns = monster_info->uiCondition;
         } else {
             condition_turns = g_status_685170.buffers.Char[report->target.iChar].uiCondition;
         }
@@ -2339,7 +2339,7 @@ target_name:
         if (range <= W8_RANGE_SHORT && IsMonsterFacingMonster(second, monster_info) == 0) {
             second_combat = second->pCombat;
             if (second->hp_current != 0 && second->stamina != 0 &&
-                second->highest_condition < 0xe && second->condition_turns[0xc] == 0 &&
+                second->highest_condition < 0xe && second->uiCondition[0xc] == 0 &&
                 second->action_kind == 1) {
                 attempts = second_combat->spot_attempts_13d;
                 if (attempts == 0) {
@@ -2350,7 +2350,7 @@ target_name:
                 }
                 second_combat->spot_attempts_13d = second_combat->spot_attempts_13d + 1;
                 if (notices) {
-                    MonsterAimAtMonster004C62C0(second->monster, monster_info->monster, 0);
+                    MonsterAimAtMonster004C62C0(second->p3D, monster_info->p3D, 0);
                     goto message_tail;
                 }
             }
@@ -2801,7 +2801,7 @@ int GetMonsterAttackScore(W8MonsterInfo* monster_info, W8MonsterAttack* attack, 
                   monster_info->attributes[2] + monster_info->attributes[1] - target_sum) /
                  10;
     }
-    if (monster_info->condition_turns[W8_CONDITION_BLIND] != 0 && 10 < score) {
+    if (monster_info->uiCondition[W8_CONDITION_BLIND] != 0 && 10 < score) {
         score = 10;
     }
     ScaleValueForMonsterDifficulty(monster_info, &score);
@@ -3474,7 +3474,7 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
     } else if (target->iType == W8_TARGET_KIND_MONSTER) {
         index = MonsterGetIndexByLocationID(0x134f, COMBAT_ATTACK_CPP, target->iMonsterID, 1);
         monster_info = MonsterGetScriptPartByLocationIndex(index);
-        monster = monster_info->monster;
+        monster = monster_info->p3D;
         target_position.x = monster->movement_0c0.position_040.x;
         target_position.z = monster->movement_0c0.position_040.z;
         target_position.y =
@@ -3517,7 +3517,7 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
         }
         index = MonsterGetIndexByLocationID(0x1387, COMBAT_ATTACK_CPP, source->iMonsterID, 1);
         monster_info = MonsterGetScriptPartByLocationIndex(index);
-        monster = monster_info->monster;
+        monster = monster_info->p3D;
         if (g_missile_table_65bde0[missile_type].flag_154 == 0) {
             position_ok = monster->GetProjectilePosition004C77F0(&source_position);
         } else if (source->unknown_1d == 0) {
@@ -3536,7 +3536,7 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
             OffsetPositionByYawPitch00421170(radius + radius, &source_position, yaw, pitch);
         }
         target_flag = 0;
-        blind = monster_info->condition_turns[W8_CONDITION_BLIND] != 0;
+        blind = monster_info->uiCondition[W8_CONDITION_BLIND] != 0;
     } else {
         if (source->iType != W8_TARGET_SOURCE_INDIRECT) {
             srAssertFail("FALSE", COMBAT_ATTACK_CPP, 0x13ba, 0);
@@ -3891,7 +3891,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
         if (range <= W8_RANGE_SHORT && !IsMonsterFacingParty(monster_info)) {
             if (monster_info->hp_current != 0 && monster_info->stamina != 0 &&
                 monster_info->highest_condition < 0xe &&
-                monster_info->condition_turns[W8_CONDITION_BLIND] == 0 &&
+                monster_info->uiCondition[W8_CONDITION_BLIND] == 0 &&
                 monster_info->action_kind == 1) {
                 if (monster_info->pCombat->spot_attempts_13d == 0) {
                     noticed = 1;
@@ -3902,7 +3902,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
                 }
                 monster_info->pCombat->spot_attempts_13d++;
                 if (noticed != 0) {
-                    MonsterForwardReferencePosition(monster_info->monster, '\0');
+                    MonsterForwardReferencePosition(monster_info->p3D, '\0');
                 } else {
                     g_combat_state->unaware_9a4 = IsPartyLookingAwayFrom(party_slot, monster_info);
                 }
@@ -4259,7 +4259,7 @@ int ResolveCharacterAttack0053E250(int party_slot)
                                             g_effect_argument_005ed8c8, g_effect_argument_005ed914);
                     }
                     if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER &&
-                        static_cast<char>(monster_info->monster->IsFacingPlayer004C4D40()) != 0 &&
+                        static_cast<char>(monster_info->p3D->IsFacingPlayer004C4D40()) != 0 &&
                         monster_info->fMotionless == 0) {
                         StartMonsterCycle(monster_info, 0x13, 1);
                     }

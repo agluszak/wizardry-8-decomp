@@ -82,7 +82,7 @@ unsigned char AscensionPeakInit004DF870(void)
             }
             info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x17f, ASCENSION_CPP, group->value_9f, 1));
-            info->monster->SetScript004C7F10("proximitylandslide.msf", 1);
+            info->p3D->SetScript004C7F10("proximitylandslide.msf", 1);
             SpawnAscensionAmbush004DFEA0();
             CreateLocationVar("AP_AtLeast2of3Items", 1);
         }
@@ -427,7 +427,7 @@ bool AscensionPath1Camera004E0390(Trigger* pTrigger)
         W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(index);
 
         if (info->fActive != 0 && info->fInCombat != 0 && info->ubDisposition == DISP_HOSTILE &&
-            info->monster->IsDying() == 0) {
+            info->p3D->IsDying() == 0) {
             MonsterStartsDying(info, 1);
         }
     }

@@ -88,7 +88,7 @@ void MtGigas2Setup004DB200(void)
         if (npc != 0) {
             info = GetNpcMonsterInfo(npc);
             if (info != 0 && FindEntityByName("RubbleCovert", &position, 0, 0)) {
-                info->monster->SetPosition(&position);
+                info->p3D->SetPosition(&position);
             }
         }
     }

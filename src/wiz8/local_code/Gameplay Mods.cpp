@@ -385,7 +385,7 @@ void RebuildMonsterDerivedStats(int location_id)
     W8GameplayModifierBlock* modifiers = &monster_info->modifiers_1db;
 
     memset(modifiers, 0, sizeof(W8GameplayModifierBlock));
-    ApplyConditionModifiers(0, monster_info->condition_turns, monster_info->condition_argument,
+    ApplyConditionModifiers(0, monster_info->uiCondition, monster_info->condition_argument,
                             modifiers);
     ApplyEnchantmentModifiers(monster_info->enchantments, modifiers);
     ApplyPartyEffectSlots(monster_info->effect_slots_10f, modifiers);

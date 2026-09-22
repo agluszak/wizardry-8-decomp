@@ -513,8 +513,7 @@ void RebuildMonsterRegenRates00502C50(W8MonsterInfo* monster_info)
 {
     float rate;
 
-    rate = (static_cast<float>(static_cast<unsigned int>(monster_info->hp_max)) *
-                g_navigator_mode3_scale_005ebca4 +
+    rate = (static_cast<unsigned int>(monster_info->uiHPMax) * g_navigator_mode3_scale_005ebca4 +
             g_monster_record_float_scale) *
                0.0041666669f +
            monster_info->modifiers_1db.health_regen_adjustment;
@@ -989,7 +988,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
         TickCombatEffectSlots(monster_info->pCombat->effect_slots_3e, &target);
         goto after_early;
     }
-    monster = monster_info->monster;
+    monster = monster_info->p3D;
     if (monster->stay_home_291 != 0) {
         srVector3T<float> location;
         srVector3T<float> last_seen;
@@ -1177,7 +1176,7 @@ after_early: {
         ApplyDamageToMonster(monster_info, amount, &source, 1, gXStatus.fCombatMode, 0, 0, 0);
     }
 }
-    if (monster_info->condition_turns[2] != 0) {
+    if (monster_info->uiCondition[2] != 0) {
         frost_condition = true;
     }
     {
@@ -1193,7 +1192,7 @@ after_early: {
                 ResetTargetSource(&source);
                 ApplyDamageToMonster(monster_info, -amount, &source, 0, 0, 0, 0, 0);
             }
-        } else if (monster_info->hp_current < static_cast<unsigned int>(monster_info->hp_max)) {
+        } else if (monster_info->hp_current < static_cast<unsigned int>(monster_info->uiHPMax)) {
             HealMonster(monster_info, amount, 0);
         }
     }
@@ -1226,7 +1225,7 @@ after_early: {
             heal_scale *= g_navigator_vertical_phase_step_005ebcc8;
         }
         if (heal_scale > g_float_005ebb34) {
-            if (monster_info->hp_current < static_cast<unsigned int>(monster_info->hp_max)) {
+            if (monster_info->hp_current < static_cast<unsigned int>(monster_info->uiHPMax)) {
                 monster_info->hp_regen_accumulator_4b =
                     minutes * monster_info->hp_regen_rate_47 * heal_scale +
                     monster_info->hp_regen_accumulator_4b;
@@ -1247,8 +1246,8 @@ after_early: {
         }
     }
     for (int condition = 0; condition < 0x14; ++condition) {
-        if (monster_info->condition_turns[condition] != 0 &&
-            monster_info->condition_turns[condition] < 9999) {
+        if (monster_info->uiCondition[condition] != 0 &&
+            monster_info->uiCondition[condition] < 9999) {
             TickMonsterCondition(monster_info->location_id, condition, minutes);
         }
     }
@@ -1264,7 +1263,7 @@ after_early: {
             }
         }
     }
-    if (static_cast<unsigned int>(monster_info->hp_max) <= monster_info->hp_current) {
+    if (static_cast<unsigned int>(monster_info->uiHPMax) <= monster_info->hp_current) {
         monster_info->hp_regen_accumulator_4b = 0.0f;
     }
     if (monster_info->stamina_max <= monster_info->stamina) {

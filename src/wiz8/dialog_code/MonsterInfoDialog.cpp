@@ -151,14 +151,14 @@ unsigned char W8MonsterInfoDialog::PopulateText()
             knowledge = static_cast<unsigned int>(adjusted_knowledge);
         }
     }
-    combat_range = monster_info->monster->GetDistanceToPlayer004C7CB0();
+    combat_range = monster_info->p3D->GetDistanceToPlayer004C7CB0();
     m_text_area_ec.Configure(&bounds, g_font_683660, 0);
     m_text_area_ec.SetEntrySpacing(1);
 
     if (g_flag_689b32 != 0) {
         group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
             0xc8, MONSTER_INFO_DIALOG_CPP, monster_info->monster_group_id, 1));
-        linked = monster_info->monster->linked_navigator_05c;
+        linked = monster_info->p3D->linked_navigator_05c;
         if (linked == 0) {
             leader_location_id = m_location_id;
         } else {
@@ -205,12 +205,12 @@ unsigned char W8MonsterInfoDialog::PopulateText()
     if (knowledge < 5 || is_npc != 0) {
         wcscpy(text, gppStringList[0x13a]);
     } else {
-        wcscat(text, FormatWideString(g_format_d_0060aa20, monster_info->hp_max));
+        wcscat(text, FormatWideString(g_format_d_0060aa20, monster_info->uiHPMax));
     }
     m_text_area_ec.AddEntry(gppStringList[0x13d], text, 10, 0xf, 0);
     if (g_flag_689b32 != 0 && knowledge < 10) {
         wcscpy(text, FormatWideString(g_journal_page_format_0064d7f0, monster_info->hp_current,
-                                      monster_info->hp_max));
+                                      monster_info->uiHPMax));
         m_text_area_ec.AddEntry(gppStringList[0x13d], text, 5, 0xf, 0);
     }
 
@@ -235,7 +235,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
     text[0] = L'\0';
     count = 0;
     for (index = 0; index < W8_CONDITION_COUNT; ++index) {
-        if (monster_info->condition_turns[index] != 0) {
+        if (monster_info->uiCondition[index] != 0) {
             if (count > 0) {
                 wcscat(text, g_comma_space_00619794);
             }
@@ -434,13 +434,13 @@ unsigned char W8MonsterInfoDialog::PopulateText()
     if (g_flag_689b32 != 0) {
         m_text_area_ec.AddEntry(L"Range / Combat Ground",
                                 FormatWideString(L"%.2f / %.2f M", combat_range * g_float_005ebc60,
-                                                 (monster_info->monster->GetPosition() -
+                                                 (monster_info->p3D->GetPosition() -
                                                   g_startup_world_659c0c->GetPosition())
                                                          .Length() *
                                                      g_world_cursor_scale_005ebf50),
                                 5, 0xf, 0);
         leader_info = MonsterInfoFromID(0x1d6, MONSTER_INFO_DIALOG_CPP, leader_location_id, 1);
-        script = leader_info->monster->script_238;
+        script = leader_info->p3D->script_238;
         m_text_area_ec.AddEntry(L"Leader's Current Script",
                                 FormatWideString(L"<%S>", script != 0 ? script->getName() : 0), 5,
                                 0xf, 0);

@@ -130,9 +130,9 @@ bool Trynnie2MeatBox004D9E60(Trigger* pTrigger)
         return 1;
     }
     if (item_id == 0x1b4) {
-        info->monster->SetScript004C7F10("MoveHogar.msf", 1);
+        info->p3D->SetScript004C7F10("MoveHogar.msf", 1);
     } else {
-        info->monster->SetScript004C7F10("MoveHogarDrugged.msf", 1);
+        info->p3D->SetScript004C7F10("MoveHogarDrugged.msf", 1);
         if (GetLocationVarIDByName("HogarDruggedGivenExp") == -1) {
             AwardPartyExperience004EEF10(500, 0);
             CreateLocationVar("HogarDruggedGivenExp", 1);

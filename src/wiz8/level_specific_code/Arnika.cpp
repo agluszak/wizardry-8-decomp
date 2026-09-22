@@ -124,7 +124,7 @@ void ArnikaLevelSetup004E06D0(void)
         GetLocationVarValueByName("ScregActive") == 1) {
         npc = GetNpcStateByKind(0x17);
         if (npc == 0 || (monster_info = GetNpcMonsterInfo(npc)) == 0 ||
-            monster_info->monster == 0) {
+            monster_info->p3D == 0) {
             SetTriggerVariableByName00444030("ScregActive", 0);
         }
     }
@@ -132,9 +132,9 @@ void ArnikaLevelSetup004E06D0(void)
         npc = GetNpcStateByKind(0x18);
         if (npc != 0) {
             monster_info = GetNpcMonsterInfo(npc);
-            if (monster_info != 0 && monster_info->monster != 0 &&
+            if (monster_info != 0 && monster_info->p3D != 0 &&
                 FindEntityByName("Inside_Inn", &position, 0, 0) != 0) {
-                monster_info->monster->SetPosition(&position);
+                monster_info->p3D->SetPosition(&position);
             }
         }
     }
@@ -306,7 +306,7 @@ bool ArnikaMookholo004E0DC0(Trigger* pTrigger)
             info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x193, ARNIKA_CPP, location_id, 1));
             if (info != 0) {
-                g_mookholo_monster_6835e8 = info->monster;
+                g_mookholo_monster_6835e8 = info->p3D;
                 g_flag_6109f0 = 0;
                 g_master_functions_006834d8->Add(ArnikaMookholoWatch004E0F70);
             }
@@ -375,7 +375,7 @@ bool ArnikaYellowButton004E10A0(Trigger* pTrigger)
         if (group != 0) {
             info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x215, ARNIKA_CPP, group->value_9f, 1));
-            info->monster->SetScript004C7F10("guard.msf", 1);
+            info->p3D->SetScript004C7F10("guard.msf", 1);
         }
     }
     return 1;
@@ -1126,8 +1126,8 @@ int ArnikaPedestalItem004E24E0(int* previous_item)
     if (npc != 0) {
         info = GetNpcMonsterInfo(npc);
         if (info != 0) {
-            position = info->monster->movement_0c0.position_040;
-            position.y += info->monster->movement_0c0.height_offset_0b8;
+            position = info->p3D->movement_0c0.position_040;
+            position.y += info->p3D->movement_0c0.height_offset_0b8;
             g_gd_camera_65a0f8->LookAt(&position, 0);
         }
         QueueNpcScriptNotice(npc, 0, 8, 0, 0);

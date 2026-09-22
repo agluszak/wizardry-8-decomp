@@ -131,7 +131,7 @@ struct OctBuildPreTree : W8OctBuildTree00446390 {
     unsigned long level_counts_c4[10];
     unsigned long* m_pulRegPaths;
     unsigned long region_path_count_f0;
-    unsigned char active_f4;
+    bool active_f4;
     unsigned char padding_f5[3];
     BitArray* region_bits_f8;
     srVector3T<float>* m_psrvRegCenters;

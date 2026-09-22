@@ -1971,9 +1971,9 @@ void W8PathingService::AdjustFinalPathEndpoint00465D70(W8NavigatorMovementState*
         unsigned int monster_index =
             MonsterGetIndexByLocationID(0x27b0, OCTPATH_CPP, target_location, 1);
         W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(monster_index);
-        if (info != 0 && info->monster != 0) {
-            target_radius = info->monster->movement_0c0.alternate_radius_0b4;
-            target_position = info->monster->GetPosition();
+        if (info != 0 && info->p3D != 0) {
+            target_radius = info->p3D->movement_0c0.alternate_radius_0b4;
+            target_position = info->p3D->GetPosition();
         }
     }
 
@@ -2150,8 +2150,8 @@ unsigned int W8PathingService::CollectPathProbes004656A0(W8NavigatorMovementStat
         if (monster_index != static_cast<unsigned int>(-1)) {
             monster_index = MonsterGetIndexByLocationID(0x26b1, OCTPATH_CPP, location_id, 1);
             W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(monster_index);
-            if (info != 0 && info->monster != 0 && info->monster->state_088 != 0) {
-                W8Monster* monster = info->monster;
+            if (info != 0 && info->p3D != 0 && info->p3D->state_088 != 0) {
+                W8Monster* monster = info->p3D;
                 srVector3T<float> monster_position = monster->GetPosition();
                 srVector3T<float> monster_delta = monster_position - movement->position_040;
                 distance = monster_delta.Length();
@@ -2779,11 +2779,11 @@ unsigned short W8PathingService::ResolveSearchNodeCollisions00465130(
 
         monster_index = MonsterGetIndexByLocationID(0x262b, OCTPATH_CPP, location_id, 1);
         W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(monster_index);
-        if (info == 0 || info->monster == 0 || info->monster->state_088 == 0) {
+        if (info == 0 || info->p3D == 0 || info->p3D->state_088 == 0) {
             continue;
         }
 
-        W8Monster* monster = info->monster;
+        W8Monster* monster = info->p3D;
         srVector3T<float> monster_position = monster->GetPosition();
         srVector3T<float> delta = node->position_20 - monster_position;
         float distance = delta.Length();
@@ -3421,7 +3421,7 @@ unsigned int W8PathingService::StepMonsterAlongPath00467150(W8NavigatorMovementS
         MonsterGetIndexByLocationID(0x2a95, OCTPATH_CPP, movement->location_id_004, '\x01'));
     W8MonsterGroup* group = GetMonsterGroupByListIndex(
         GetMonsterGroupIndexByID(0x2a96, OCTPATH_CPP, monster_info->monster_group_id, '\x01'));
-    monster_info->monster->unknown_0bc[1] = 1;
+    monster_info->p3D->unknown_0bc[1] = 1;
     float remaining = g_rate_006068EC * g_game_time_accumulator_6598bc->GetValue28();
     do {
         if (remaining <= g_float_005ebb34) {

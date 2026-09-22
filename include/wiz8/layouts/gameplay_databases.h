@@ -441,7 +441,7 @@ struct W8MonsterRecord {
        squares index one and scales it by fifteen for a cache duration, which is
        a use of an attribute rather than a separate field at 0x0d2. */
     unsigned char attribute_values_d1[5]; /* 0x0d1 */
-    W8Dice hit_points_d6;                 /* 0x0d6: rolled into hp_max/hp_current */
+    W8Dice hit_points_d6;                 /* 0x0d6: rolled into uiHPMax/hp_current */
     W8Dice runtime_stat_da;               /* 0x0da: rolled into W8MonsterInfo +0x2f/+0x33 */
     unsigned char unknown_0de[2];
     /* 0x0e0/0x0e1: the percentage chances the AI casts a spell or flees each

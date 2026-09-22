@@ -1076,8 +1076,8 @@ bool Trigger::HasActorWithinRadius(float radius, bool include_party)
             unsigned int monster_index = MonsterGetIndexByLocationID(
                 0x1246, "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", location_id, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
-            if (monster_info != 0 && monster_info->monster != 0) {
-                srVector3T<float> monster_position = monster_info->monster->GetPosition();
+            if (monster_info != 0 && monster_info->p3D != 0) {
+                srVector3T<float> monster_position = monster_info->p3D->GetPosition();
                 if ((monster_position - center).Length() <= radius) {
                     return 1;
                 }
@@ -2224,15 +2224,15 @@ void Trigger::UpdateActionAnimation()
             }
         } else if (action_data_mode_228 == 1) {
             if (action_230 == value_22c) {
-                PlayActionSound((const char*)alternate_action_data_1a8, value_229);
+                PlayActionSound(alternate_action_data_1a8, value_229);
                 return;
             }
         } else if (action_data_mode_228 == 2 && action_230 == fallback_action_22e) {
-            PlayActionSound((const char*)alternate_action_data_1a8, value_229);
+            PlayActionSound(alternate_action_data_1a8, value_229);
             return;
         }
     }
-    PlayActionSound((const char*)action_data, value_229);
+    PlayActionSound(action_data, value_229);
 }
 
 // FUNCTION: WIZ8 0x00441110
@@ -2533,7 +2533,7 @@ void Trigger::RunDestination00440DD0(const char* destination)
 
     if (location_id != current_location) {
         RequestLevelTransition005615F0(location_id, entrance,
-                                       m_lData1 < 0 ? 0 : (unsigned char)m_lData1);
+                                       m_lData1 < 0 ? 0 : static_cast<unsigned char>(m_lData1));
         return;
     }
 
@@ -2892,12 +2892,13 @@ void Trigger::Run(int source)
         }
 
         case 8: {
-            signed char previous = (signed char)value_0b1;
+            signed char previous = static_cast<signed char>(value_0b1);
 
             if (value_0b0 > 1) {
-                signed char next = (signed char)value_0b1 + (signed char)value_0b2;
-                value_0b1 = (unsigned char)next;
-                if ((unsigned char)next == value_0b0) {
+                signed char next =
+                    static_cast<signed char>(value_0b1) + static_cast<signed char>(value_0b2);
+                value_0b1 = static_cast<unsigned char>(next);
+                if (static_cast<unsigned char>(next) == value_0b0) {
                     if (value_0b3 == 0) {
                         value_0b1 = 0;
                     } else {
@@ -2923,11 +2924,13 @@ void Trigger::Run(int source)
                 if (AnimationIsRunning(animation) == 1) {
                     count = AnimObjListCount004A1620(animation, 2);
                     for (index = 0; index < count; ++index) {
-                        W8PathAI* path = AnimObjListEntry004A16C0(animation, 2, (signed char)index);
-                        PathAIUpdate004A9260(path, previous <= (signed char)value_0b1 ? 1 : -1);
+                        W8PathAI* path =
+                            AnimObjListEntry004A16C0(animation, 2, static_cast<signed char>(index));
+                        PathAIUpdate004A9260(
+                            path, previous <= static_cast<signed char>(value_0b1) ? 1 : -1);
                     }
                 } else {
-                    m_pProp->SetSetting66((char)value_0b1);
+                    m_pProp->SetSetting66(static_cast<char>(value_0b1));
                 }
             }
             goto commit_action;
@@ -2971,9 +2974,9 @@ void Trigger::Run(int source)
             int tag = source == -1 ? m_lData1 : source;
 
             if (m_bRepType == 2 && m_pProp != 0 && tag != -1) {
-                m_pProp->Rep()->SelectAnimationSlot((unsigned char)tag);
+                m_pProp->Rep()->SelectAnimationSlot(static_cast<unsigned char>(tag));
                 m_pProp->SetRepresentationActive(1, 1);
-                value_0b1 = (unsigned char)tag;
+                value_0b1 = static_cast<unsigned char>(tag);
                 goto commit_action;
             }
             break;
@@ -3145,13 +3148,13 @@ void Trigger::Run(int source)
         }
 
         group->flag_28 = 1;
-        monster_info->monster->m_pRep->animation_playing_06d = 1;
-        monster_info->monster->m_pRep->animation_playing_06d = 1;
-        monster_info->monster->m_pRep->timer_068 =
+        monster_info->p3D->m_pRep->animation_playing_06d = 1;
+        monster_info->p3D->m_pRep->animation_playing_06d = 1;
+        monster_info->p3D->m_pRep->timer_068 =
             g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-        monster_info->monster->ResetRepresentation004A7420();
-        monster_info->monster->ResetPathAI();
-        monster_info->monster->unknown_09d[0] = 1;
+        monster_info->p3D->ResetRepresentation004A7420();
+        monster_info->p3D->ResetPathAI();
+        monster_info->p3D->unknown_09d[0] = 1;
         return;
     }
 
@@ -3238,7 +3241,8 @@ void Trigger::Run(int source)
         if (m_lData3 < 0) {
             m_lData3 = 2;
         }
-        SetDice(&dice, (unsigned char)m_lData1, (unsigned char)m_lData2, (short)m_lData3);
+        SetDice(&dice, static_cast<unsigned char>(m_lData1), static_cast<unsigned char>(m_lData2),
+                static_cast<short>(m_lData3));
         ApplyRolledHealthChangeToParty(&dice, 0, 1);
         if (trigger_kind_018 == 2) {
             flags_0a0 |= W8_TRIGGER_RUNNING;
@@ -3362,9 +3366,9 @@ void Trigger::Run(int source)
 
     case 0x36:
         if (action_state_232 == 4 && action_data_mode_228 == 2) {
-            PlayActionSound((const char*)alternate_action_data_1a8, 0);
+            PlayActionSound(alternate_action_data_1a8, 0);
         } else {
-            PlayActionSound((const char*)action_data_128, 0);
+            PlayActionSound(action_data_128, 0);
         }
         return;
 
@@ -3495,7 +3499,8 @@ void Trigger::Run(int source)
             char state_name[132];
             int state_id;
 
-            sprintf(state_name, "%s%d", m_pacStateToMod, (int)(signed char)value_0b1);
+            sprintf(state_name, "%s%d", m_pacStateToMod,
+                    static_cast<int>(static_cast<signed char>(value_0b1)));
             state_id = GetLocationVarIDByName(state_name);
             if (state_id == -1) {
                 srAssertFail("iVar != BAD_INDEX",
@@ -3509,7 +3514,8 @@ void Trigger::Run(int source)
             char state_name[132];
             int state_id;
 
-            sprintf(state_name, "%s%d", m_pacStateToMod, (int)(signed char)value_0b1);
+            sprintf(state_name, "%s%d", m_pacStateToMod,
+                    static_cast<int>(static_cast<signed char>(value_0b1)));
             state_id = GetLocationVarIDByName(state_name);
             if (state_id == -1) {
                 srAssertFail("iVar != BAD_INDEX",
@@ -3659,7 +3665,7 @@ void Trigger::Run(int source)
             NextTriggerRecipient(&recipient);
             ++count;
         }
-        selected = (unsigned char)(GetTickCount() % count);
+        selected = static_cast<unsigned char>(GetTickCount() % count);
         recipient = m_pacRecipients;
         do {
             NextTriggerRecipient(&recipient);
