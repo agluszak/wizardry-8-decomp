@@ -15,7 +15,6 @@
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/engine_code/AmbientSound.h"
 #include "wiz8/engine_code/Prop.h"
-#include "wiz8/engine_code/SoundEvent.h"
 #include "wiz8/local_code/CombatPartyMovement.h"
 #include "wiz8/local_code/FormationAndFacing.h"
 #include "wiz8/local_code/GameplayCode.h"
@@ -31,7 +30,6 @@
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/engine_code/Monster.h"
 #include "wiz8/startup_world.h"
-#include "wiz8/engine_code/Prop.h"
 #include "wiz8/engine_code/GDProp.h"
 #include "wiz8/engine_code/3d.h"
 #include "wiz8/float_constants.h"
@@ -49,7 +47,6 @@
 #include <string.h>
 #include <windows.h>
 #include <new>
-#include "wiz8/engine_code/3d.h"
 
 // GLOBAL: WIZ8 0x00652da8
 unsigned int* g_level_flags_00652da8;
