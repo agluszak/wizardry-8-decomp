@@ -82,6 +82,9 @@ public:
     enum e_winding { WINDING_POSITIONAL_0 = 0, WINDING_POSITIONAL_1 = 1 };
     enum e_visibility { VISIBILITY_POSITIONAL_0 = 0 };
 
+    /* Not in the consumer import table and no client emission exists in
+       retail Wiz8 (no "srGERD" literal): the consumer never references it,
+       so the inherited class-wide import decoration is unobservable. */
     static const char* sGetClassName();
     static srRegistry::ClassNode* sGetClassNode();
 
