@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import hashlib
 import os
+import queue
 import re
 import selectors
 import shutil
 import subprocess
 import sys
+import threading
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -173,6 +175,7 @@ def stage_game(
     executable: Path,
     objects: Path | None = None,
     reset_saves: bool = False,
+    input_pinned: bool = False,
 ) -> StagedGame:
     """Materialize one build/runtime game tree around a chosen executable.
 
@@ -209,9 +212,9 @@ def stage_game(
     staged_executable = stage / executable.name
     staged_map = None
     map_written = False
-    # The linker writes both files while holding this same lock. Publish the
-    # complete executable only after its MAP snapshot is safely in place.
-    with build_lock(settings):
+
+    def publish_executable() -> None:
+        nonlocal staged_map, map_written, executable_written
         executable_bytes = executable.read_bytes()
         map_file = executable.with_suffix(".map")
         if map_file.is_file():
@@ -228,6 +231,17 @@ def stage_game(
             staged_map = stage / "diagnostics" / f"{executable.stem}-{identity}.map"
             map_written = write_if_changed(staged_map, map_bytes)
         executable_written = write_if_changed(staged_executable, executable_bytes)
+
+    executable_written = False
+    # The linker writes both files while holding this same lock. Publish the
+    # complete executable only after its MAP snapshot is safely in place. A
+    # pinned input is immutable already, so staging it needs no lock and can
+    # proceed concurrently on several workers.
+    if input_pinned:
+        publish_executable()
+    else:
+        with build_lock(settings):
+            publish_executable()
     return StagedGame(
         stage,
         staged_executable,
@@ -605,6 +619,28 @@ def runtime_test_environment(
     return prefix, environment
 
 
+def _initialize_wine_prefix(prefix: Path, environment: dict[str, str]) -> None:
+    """Populate a fresh prefix once without the WINEDLLOVERRIDES audio set.
+
+    wine's first-run prefix initialization crashes when WINEDLLOVERRIDES
+    disables dsound, so the overrides must not be present until the prefix
+    exists; scenario runs keep the full override set afterwards.
+    """
+
+    if (prefix / "system.reg").exists():
+        return
+    clean = {key: value for key, value in environment.items() if key != "WINEDLLOVERRIDES"}
+    subprocess.run(
+        ["wine", "reg", "query", r"HKCU\Software\Wine"],
+        env=clean,
+        check=False,
+        capture_output=True,
+        timeout=120,
+    )
+    if not (prefix / "system.reg").exists():
+        raise RuntimeError(f"wine failed to initialize prefix {prefix}")
+
+
 def configure_wine_window_management(
     environment: dict[str, str],
     *,
@@ -628,6 +664,7 @@ def configure_wine_window_management(
             "on",
         }
 
+    _initialize_wine_prefix(Path(environment["WINEPREFIX"]), environment)
     subprocess.run(
         [
             "wine",
@@ -812,8 +849,9 @@ def _drive_runtime_process(
             finally:
                 if timed_out or failure_deadline is not None:
                     # A Wine debugger can outlive the executable and retain its pipes/window.
-                    # Scenarios run serially in this checkout-owned prefix; retire it on failure
-                    # so the next isolated stage cannot find the failed scenario's window.
+                    # wineserver -k is scoped by WINEPREFIX, so this only retires the
+                    # worker's own prefix; the next isolated stage cannot find the
+                    # failed scenario's window.
                     # Cleanup is strictly best-effort: its failure must never
                     # replace the scenario's own crash/failure diagnostics.
                     try:
@@ -949,6 +987,41 @@ def _run_runtime_batch(
     return observations, error
 
 
+def _pin_suite_executable(settings: Settings, executable: Path, stage: Path) -> tuple[Path, str]:
+    """Snapshot the suite executable and its MAP once per invocation.
+
+    Every staged case copies from this pinned pair instead of the live build
+    output, so a concurrent relink cannot make one reported suite exercise two
+    different binaries. stage_game re-verifies the same immutable pair per
+    case, retaining the executable/MAP timestamp check.
+    """
+
+    from .build import build_lock
+
+    if not executable.is_file():
+        raise RuntimeError(f"runtime executable is not built: {executable}")
+    map_file = executable.with_suffix(".map")
+    with build_lock(settings):
+        executable_bytes = executable.read_bytes()
+        map_bytes = map_file.read_bytes() if map_file.is_file() else None
+        if map_bytes is not None:
+            timestamp = LinkerMap.read(map_file).timestamp
+            image = detect_image(executable)
+            if (
+                not isinstance(image, PEImage)
+                or timestamp is None
+                or timestamp != image.header.time_date_stamp
+            ):
+                raise RuntimeError(f"executable/MAP link timestamp mismatch; rebuild {executable}")
+        digest = hashlib.sha256(executable_bytes + (map_bytes or b"")).hexdigest()
+    pinned = stage / "pinned"
+    pinned.mkdir(parents=True, exist_ok=True)
+    write_if_changed(pinned / executable.name, executable_bytes)
+    if map_bytes is not None:
+        write_if_changed(pinned / map_file.name, map_bytes)
+    return pinned / executable.name, digest
+
+
 def run_runtime_suite(
     settings: Settings,
     *,
@@ -958,13 +1031,21 @@ def run_runtime_suite(
     repeat: int = 1,
     renderer: str | None = None,
     batch: bool = False,
+    workers: int = 1,
 ) -> dict[str, Any]:
     """Run selected scenarios, optionally checking reverse-order determinism.
 
     With batch=True, consecutive batch-eligible cases sharing a fixture run in
     one game process. If a batch process dies mid-group, the unreported cases
     re-run in fresh processes so a poisoned session cannot mask or manufacture
-    per-case failures."""
+    per-case failures.
+
+    With workers>1, independent jobs run on that many isolated workers: each
+    owns a writable stage per case, its own WINEPREFIX (wineserver -k is
+    prefix-scoped, so one worker's failure cannot kill another's server), and
+    its own virtual display (the game uses real OS input and window focus, so
+    sharing a display is unsafe). The suite executable and MAP are pinned once
+    per invocation so a concurrent relink cannot mix binaries within a run."""
 
     suite_started = time.monotonic()
     tiers = ("pr", "main", "nightly")
@@ -972,6 +1053,13 @@ def run_runtime_suite(
         raise ValueError(f"invalid runtime tier: {tier}")
     if repeat < 1:
         raise ValueError("runtime repeat count must be positive")
+    if workers < 1:
+        raise ValueError("runtime worker count must be positive")
+    if workers > 1 and os.environ.get("WIZ8_RUNTIME_DISPLAY", "virtual") != "virtual":
+        raise RuntimeError(
+            "workers>1 requires a private virtual display per worker: "
+            "unset WIZ8_RUNTIME_DISPLAY or set it to 'virtual'"
+        )
 
     if shutil.which("wine") is None or shutil.which("wineserver") is None:
         raise RuntimeError("wine and wineserver are required to run WIZ8_RUNTIME_TEST")
@@ -979,169 +1067,227 @@ def run_runtime_suite(
     stage.mkdir(parents=True, exist_ok=True)
     executable = settings.product_build_dir / "Wiz8RuntimeTest.exe"
     object_root = settings.recovered_objects_dir
-    prefix, environment = runtime_test_environment(settings, renderer=renderer)
+    pinned_executable, input_digest = _pin_suite_executable(settings, executable, stage)
+
+    base_prefix = os.environ.get(
+        "WIZ8_WINE_PREFIX", str(settings.work_dir / "wine" / "wiz8-runtime")
+    )
+    prefixes: list[Path] = []
+    environments: list[dict[str, str]] = []
+    for index in range(workers):
+        prefix = Path(base_prefix if workers == 1 else f"{base_prefix}-w{index}")
+        prefixes.append(prefix)
+        environments.append(runtime_test_environment(settings, prefix=prefix, renderer=renderer)[1])
+
     runs: dict[str, dict[str, dict[str, str | int]]] = {}
     scenario_stages: dict[str, str] = {}
     failures: list[str] = []
+    timings: dict[str, dict[str, dict[str, Any]]] = {}
+
+    # Read the scenario registry once on worker 0's prefix; the display context
+    # is short-lived — each worker opens its own before running cases.
     with runtime_display(
-        environment, default="virtual", log_path=stage / "xvfb-runtime-test.log"
+        environments[0], default="virtual", log_path=stage / "xvfb-registry.log"
     ) as display:
-        configure_wine_window_management(environment, private_display=display is not None)
-        try:
-            registry_stage = stage_game(
+        configure_wine_window_management(environments[0], private_display=display is not None)
+        registry_stage = stage_game(
+            settings,
+            name="runtime-test/registry",
+            executable=pinned_executable,
+            objects=object_root,
+            reset_saves=True,
+            input_pinned=True,
+        )
+        registry = _read_runtime_scenarios(
+            registry_stage.executable, registry_stage.root, environments[0]
+        )
+    if scenarios is None:
+        scenarios = tuple(
+            name for name, spec in registry.items() if tiers.index(spec.tier) <= tiers.index(tier)
+        )
+    if not scenarios or set(scenarios) - registry.keys():
+        raise ValueError(f"invalid runtime scenario selection: {scenarios}")
+
+    orders = []
+    comparisons = []
+    for repetition in range(1, repeat + 1):
+        suffix = f"-{repetition}" if repeat > 1 else ""
+        forward, reverse = f"forward{suffix}", f"reverse{suffix}"
+        orders.append((forward, scenarios))
+        if check_order:
+            orders.append((reverse, tuple(reversed(scenarios))))
+            comparisons.append((forward, reverse))
+
+    # A job is one process launch: a singleton case, or a batch group of
+    # consecutive batch-eligible cases sharing one fixture.
+    jobs: list[tuple[str, tuple[str, ...]]] = []
+    for order_name, ordered_scenarios in orders:
+        runs[order_name] = {}
+        timings[order_name] = {}
+        groups: list[tuple[str, ...]] = []
+        for name in ordered_scenarios:
+            spec = registry[name]
+            if (
+                batch
+                and spec.batch
+                and groups
+                and registry[groups[-1][-1]].batch
+                and registry[groups[-1][-1]].fixture == spec.fixture
+            ):
+                groups[-1] = (*groups[-1], name)
+            else:
+                groups.append((name,))
+        for group in groups:
+            jobs.append((order_name, group))
+
+    def run_group(
+        order_name: str, group: tuple[str, ...], environment: dict[str, str]
+    ) -> dict[str, Any]:
+        job: dict[str, Any] = {"runs": {}, "stages": {}, "timings": {}, "failures": []}
+
+        def run_single(scenario: str, stage_key: str, stage_name: str) -> None:
+            scenario_stage = stage / stage_key
+            shutil.rmtree(scenario_stage, ignore_errors=True)
+            stage_started = time.monotonic()
+            staged = stage_game(
                 settings,
-                name="runtime-test/registry",
-                executable=executable,
+                name=f"runtime-test/{stage_key}",
+                executable=pinned_executable,
                 objects=object_root,
                 reset_saves=True,
+                input_pinned=True,
             )
-            registry = _read_runtime_scenarios(
-                registry_stage.executable, registry_stage.root, environment
-            )
-            if scenarios is None:
-                scenarios = tuple(
-                    name
-                    for name, spec in registry.items()
-                    if tiers.index(spec.tier) <= tiers.index(tier)
+            stage_seconds = time.monotonic() - stage_started
+            job["stages"][scenario] = str(staged.root)
+            run_started = time.monotonic()
+            try:
+                job["runs"][scenario] = _run_runtime_scenario(
+                    staged.executable,
+                    staged.root,
+                    environment,
+                    scenario,
+                    registry[scenario].timeout_ms / 1000,
+                    object_root,
+                    staged.map,
                 )
-            if not scenarios or set(scenarios) - registry.keys():
-                raise ValueError(f"invalid runtime scenario selection: {scenarios}")
-            orders = []
-            comparisons = []
-            for repetition in range(1, repeat + 1):
-                suffix = f"-{repetition}" if repeat > 1 else ""
-                forward, reverse = f"forward{suffix}", f"reverse{suffix}"
-                orders.append((forward, scenarios))
-                if check_order:
-                    orders.append((reverse, tuple(reversed(scenarios))))
-                    comparisons.append((forward, reverse))
-            for order_name, ordered_scenarios in orders:
-                runs[order_name] = {}
+            except RuntimeError as error:
+                failure = str(error)
+                job["failures"].append(f"{stage_name}: {failure}")
+                job["runs"][scenario] = {
+                    "scenario": scenario,
+                    "failure": failure,
+                }
+                print(
+                    f"FAIL {scenario} ({stage_name}): {failure}",
+                    file=sys.stderr,
+                    flush=True,
+                )
+            job["timings"][scenario] = {
+                "stage_seconds": stage_seconds,
+                "process_seconds": time.monotonic() - run_started,
+            }
 
-                def run_single(
-                    scenario: str,
-                    stage_key: str,
-                    stage_name: str,
-                    order_name: str = order_name,
-                ) -> None:
-                    scenario_stage = stage / stage_key
-                    shutil.rmtree(scenario_stage, ignore_errors=True)
-                    staged = stage_game(
-                        settings,
-                        name=f"runtime-test/{stage_key}",
-                        executable=executable,
-                        objects=object_root,
-                        reset_saves=True,
-                    )
-                    scenario_stages[f"{order_name}/{scenario}"] = str(staged.root)
-                    try:
-                        runs[order_name][scenario] = _run_runtime_scenario(
-                            staged.executable,
-                            staged.root,
-                            environment,
-                            scenario,
-                            registry[scenario].timeout_ms / 1000,
-                            object_root,
-                            staged.map,
-                        )
-                    except RuntimeError as error:
-                        failure = str(error)
-                        failures.append(f"{stage_name}: {failure}")
-                        runs[order_name][scenario] = {
-                            "scenario": scenario,
-                            "failure": failure,
-                        }
-                        print(
-                            f"FAIL {scenario} ({stage_name}): {failure}",
-                            file=sys.stderr,
-                            flush=True,
-                        )
+        if len(group) == 1:
+            scenario = group[0]
+            print(f"RUN {scenario} ({order_name})", file=sys.stderr, flush=True)
+            run_single(scenario, f"{order_name}/{scenario}", f"{order_name}/{scenario}")
+            return job
 
-                # Group consecutive batch-eligible cases sharing one fixture.
-                groups: list[tuple[str, ...]] = []
-                for name in ordered_scenarios:
-                    spec = registry[name]
-                    if (
-                        batch
-                        and spec.batch
-                        and groups
-                        and registry[groups[-1][-1]].batch
-                        and registry[groups[-1][-1]].fixture == spec.fixture
-                    ):
-                        groups[-1] = (*groups[-1], name)
-                    else:
-                        groups.append((name,))
-
-                for group in groups:
-                    if len(group) == 1:
-                        scenario = group[0]
-                        print(f"RUN {scenario} ({order_name})", file=sys.stderr, flush=True)
-                        run_single(
-                            scenario,
-                            f"{order_name}/{scenario}",
-                            f"{order_name}/{scenario}",
-                        )
-                        continue
-                    batch_stage_key = f"{order_name}/batch-{group[0]}-{group[-1]}"
-                    batch_stage = stage / batch_stage_key
-                    shutil.rmtree(batch_stage, ignore_errors=True)
-                    staged = stage_game(
-                        settings,
-                        name=f"runtime-test/{batch_stage_key}",
-                        executable=executable,
-                        objects=object_root,
-                        reset_saves=True,
-                    )
+        batch_stage_key = f"{order_name}/batch-{group[0]}-{group[-1]}"
+        batch_stage = stage / batch_stage_key
+        shutil.rmtree(batch_stage, ignore_errors=True)
+        stage_started = time.monotonic()
+        staged = stage_game(
+            settings,
+            name=f"runtime-test/{batch_stage_key}",
+            executable=pinned_executable,
+            objects=object_root,
+            reset_saves=True,
+            input_pinned=True,
+        )
+        stage_seconds = time.monotonic() - stage_started
+        print(
+            f"RUN batch [{', '.join(group)}] ({order_name})",
+            file=sys.stderr,
+            flush=True,
+        )
+        run_started = time.monotonic()
+        observations, batch_error = _run_runtime_batch(
+            staged.executable,
+            staged.root,
+            environment,
+            group,
+            registry,
+            object_root,
+            staged.map,
+        )
+        process_seconds = time.monotonic() - run_started
+        for scenario in group:
+            job["stages"][scenario] = str(staged.root)
+            job["timings"][scenario] = {
+                "stage_seconds": stage_seconds,
+                "process_seconds": process_seconds,
+                "shared_process": batch_stage_key,
+            }
+        if batch_error is not None:
+            job["failures"].append(f"{order_name}/batch[{','.join(group)}]: {batch_error}")
+        for scenario in group:
+            observation = observations.get(scenario)
+            if observation is not None:
+                job["runs"][scenario] = observation
+                if observation.get("case_passed") == 1:
                     print(
-                        f"RUN batch [{', '.join(group)}] ({order_name})",
+                        f"PASS {scenario} ({order_name}, batch)",
                         file=sys.stderr,
                         flush=True,
                     )
-                    observations, batch_error = _run_runtime_batch(
-                        staged.executable,
-                        staged.root,
-                        environment,
-                        group,
-                        registry,
-                        object_root,
-                        staged.map,
+                else:
+                    failure = f"{scenario} failed in same-process batch"
+                    job["failures"].append(f"{order_name}/{scenario}: {failure}")
+                    print(
+                        f"FAIL {scenario} ({order_name}): {failure}",
+                        file=sys.stderr,
+                        flush=True,
                     )
-                    for scenario in group:
-                        scenario_stages[f"{order_name}/{scenario}"] = str(staged.root)
-                    if batch_error is not None:
-                        failures.append(f"{order_name}/batch[{','.join(group)}]: {batch_error}")
-                    for scenario in group:
-                        observation = observations.get(scenario)
-                        if observation is not None:
-                            runs[order_name][scenario] = observation
-                            if observation.get("case_passed") == 1:
-                                print(
-                                    f"PASS {scenario} ({order_name}, batch)",
-                                    file=sys.stderr,
-                                    flush=True,
-                                )
-                            elif observation.get("case_passed") != 1:
-                                failure = f"{scenario} failed in same-process batch"
-                                failures.append(f"{order_name}/{scenario}: {failure}")
-                                print(
-                                    f"FAIL {scenario} ({order_name}): {failure}",
-                                    file=sys.stderr,
-                                    flush=True,
-                                )
-                            continue
-                        # Unreported: crashed, aborted, or never reached. The
-                        # case did not fail — the batch did — so re-run it in a
-                        # fresh process and report its own result.
-                        print(
-                            f"RE-RUN {scenario} ({order_name}): no result in batch",
-                            file=sys.stderr,
-                            flush=True,
-                        )
-                        run_single(
-                            scenario,
-                            f"{order_name}/{scenario}",
-                            f"{order_name}/{scenario}",
-                        )
+                continue
+            # Unreported: crashed, aborted, or never reached. The case did not
+            # fail — the batch did — so re-run it in a fresh process and
+            # report its own result.
+            print(
+                f"RE-RUN {scenario} ({order_name}): no result in batch",
+                file=sys.stderr,
+                flush=True,
+            )
+            run_single(scenario, f"{order_name}/{scenario}", f"{order_name}/{scenario}")
+        return job
+
+    pending: queue.Queue[int | None] = queue.Queue()
+    for job_index in range(len(jobs)):
+        pending.put(job_index)
+    for _ in range(workers):
+        pending.put(None)
+    results: list[dict[str, Any] | None] = [None] * len(jobs)
+    worker_errors: list[tuple[int, BaseException]] = []
+
+    def worker(index: int, environment: dict[str, str]) -> None:
+        try:
+            with runtime_display(
+                environment,
+                default="virtual",
+                log_path=stage / f"xvfb-worker-{index}.log",
+            ) as display:
+                configure_wine_window_management(environment, private_display=display is not None)
+                while True:
+                    job_index = pending.get()
+                    try:
+                        if job_index is None:
+                            return
+                        order_name, group = jobs[job_index]
+                        results[job_index] = run_group(order_name, group, environment)
+                    finally:
+                        pending.task_done()
+        except Exception as error:  # noqa: BLE001 — surfaced as a suite error after join
+            worker_errors.append((index, error))
         finally:
             try:
                 subprocess.run(
@@ -1157,6 +1303,37 @@ def run_runtime_suite(
                     file=sys.stderr,
                     flush=True,
                 )
+
+    if workers == 1:
+        worker(0, environments[0])
+    else:
+        threads = [
+            threading.Thread(
+                target=worker,
+                args=(index, environments[index]),
+                name=f"runtime-worker-{index}",
+            )
+            for index in range(workers)
+        ]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+    if worker_errors:
+        index, error = worker_errors[0]
+        raise RuntimeError(f"runtime worker {index} failed: {error}")
+
+    for job_index, (order_name, group) in enumerate(jobs):
+        result = results[job_index]
+        if result is None:
+            failures.append(f"{order_name}/[{','.join(group)}]: job never ran (worker aborted)")
+            continue
+        runs[order_name].update(result["runs"])
+        timings[order_name].update(result["timings"])
+        for scenario, staged_path in result["stages"].items():
+            scenario_stages[f"{order_name}/{scenario}"] = staged_path
+        failures.extend(result["failures"])
+
     for forward, reverse in comparisons:
         if any(
             observation != runs[reverse][scenario]
@@ -1164,11 +1341,27 @@ def run_runtime_suite(
             if "failure" not in observation and "failure" not in runs[reverse][scenario]
         ):
             failures.append(f"runtime observations depend on scenario order: {forward}/{reverse}")
+
+    staging_seconds = 0.0
+    execution_seconds = 0.0
+    shared_processes: set[str] = set()
+    for order_timings in timings.values():
+        for entry in order_timings.values():
+            shared = entry.get("shared_process")
+            if shared is not None:
+                if shared in shared_processes:
+                    continue
+                shared_processes.add(shared)
+            staging_seconds += entry["stage_seconds"]
+            execution_seconds += entry["process_seconds"]
+
     elapsed = time.monotonic() - suite_started
     print(
         f"RUNTIME_SUITE scenarios={sum(len(run) for run in runs.values())} "
         f"failures={len(failures)} elapsed_s={elapsed:.1f} "
-        f"renderer={environment.get('GALLIUM_DRIVER', 'default')}",
+        f"stage_s={staging_seconds:.1f} run_s={execution_seconds:.1f} "
+        f"workers={workers} "
+        f"renderer={environments[0].get('GALLIUM_DRIVER', 'default')}",
         file=sys.stderr,
         flush=True,
     )
@@ -1177,11 +1370,18 @@ def run_runtime_suite(
     return {
         "stage": str(stage),
         "executable": str(executable),
+        "input_digest": input_digest,
         "objects": str(object_root),
         "scenario_stages": scenario_stages,
-        "wine_prefix": str(prefix),
-        "display": display or "host",
+        "wine_prefix": str(prefixes[0]),
+        "wine_prefixes": [str(prefix) for prefix in prefixes],
+        "workers": workers,
         "runs": runs,
+        "timings": {
+            "staging_seconds": staging_seconds,
+            "execution_seconds": execution_seconds,
+            "scenarios": timings,
+        },
         "elapsed_seconds": elapsed,
         "deterministic": True if check_order else None,
     }

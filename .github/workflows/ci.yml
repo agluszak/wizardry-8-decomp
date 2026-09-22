@@ -312,40 +312,16 @@ jobs:
         with:
           inputs-token: ${{ secrets.WIZ8_INPUTS_TOKEN }}
           cache-key: ${{ secrets.WIZ8_CACHE_KEY }}
-      - name: Build WIZ8 comparison and runtime products
-        run: |
-          uv run wiz8 build match
-          uv run wiz8 build runtime-test
-      - name: Run WIZ8 comparisons and runtime concurrently
+      - name: Build WIZ8 comparison products
+        run: uv run wiz8 build match
+      - name: Run WIZ8 comparisons
         id: wiz8-checks
         continue-on-error: true
-        env:
-          RUNTIME_RENDERER: ${{ inputs.renderer || 'default' }}
         shell: bash
         run: |
           set -uo pipefail
-          runtime_log="$RUNNER_TEMP/wiz8-runtime.log"
           status_json="$RUNNER_TEMP/reccmp-status.json"
           comment="$RUNNER_TEMP/reccmp-status.md"
-
-          run_runtime() {
-            if [[ "$RUNTIME_RENDERER" == "softpipe" ]]; then export GALLIUM_DRIVER=softpipe; fi
-            if [[ "$GITHUB_EVENT_NAME" == "schedule" ]]; then
-              status=0
-              uv run wiz8 runtime-test --repeat 3 \
-                --scenario main-game-start --scenario save-load-move \
-                --scenario combat-roundtrip --scenario hostile-encounter || status=1
-              uv run wiz8 runtime-test --scenario world-soak || status=1
-              return "$status"
-            elif [[ "$GITHUB_EVENT_NAME" == "pull_request" || "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
-              uv run wiz8 runtime-test
-            else
-              uv run wiz8 runtime-test --tier main --check-order
-            fi
-          }
-
-          run_runtime > >(tee "$runtime_log") 2>&1 &
-          runtime_pid=$!
           comparison_status=0
 
           if uv run wiz8 report status > "$status_json"; then
@@ -401,23 +377,119 @@ jobs:
             uv run pytest -q tests/licensed || comparison_status=1
           fi
 
-          runtime_status=0
-          wait "$runtime_pid" || runtime_status=$?
-          echo "runtime_status=$runtime_status comparison_status=$comparison_status"
-          if (( runtime_status != 0 || comparison_status != 0 )); then exit 1; fi
+          echo "comparison_status=$comparison_status"
+          exit "$comparison_status"
 
-      - name: Upload WIZ8 diagnostics
+      - name: Upload WIZ8 comparison logs
         if: steps.wiz8-checks.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: wiz8-comparison-logs
+          path: build/logs/
+          if-no-files-found: warn
+      - name: Fail if WIZ8 checks failed
+        if: steps.wiz8-checks.outcome == 'failure'
+        run: exit 1
+      - name: Remove plaintext licensed WIZ8 inputs
+        if: always()
+        run: |
+          wineserver -k || true
+          rm -rf "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR" "$RUNNER_TEMP/wiz8-gog-download" config/local-inputs.yml
+
+  wiz8-runtime:
+    name: WIZ8 runtime tests
+    needs: [scope, toolchain]
+    if: >-
+      needs.scope.outputs.wiz8 == 'true' &&
+      needs.toolchain.result == 'success' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      - name: Set up uv
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          version: "0.12.13"
+          enable-cache: true
+      - name: Install WIZ8 runtime host tools
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            cabextract innoextract llvm p7zip-full unshield \
+            wine wine32:i386 wine64 xvfb zstd
+          mkdir -p "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR"
+          command -v llvm-undname
+          command -v wine
+          command -v zstd
+      - name: Load VC6 analysis image
+        uses: ./.github/actions/load-vc6-image
+      - name: Restore compiler-backed analysis cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            build/clang
+            build/reccmp-source
+            build/source-index.json
+          key: analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
+          restore-keys: |
+            analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-
+      - name: Restore incremental WIZ8 product build
+        uses: actions/cache@v4
+        with:
+          path: build/decomp
+          key: product-wiz8-v1-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
+          restore-keys: |
+            product-wiz8-v1-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-
+      - name: Install Python dependencies
+        run: uv sync --frozen
+      - name: Prepare licensed WIZ8 inputs
+        uses: ./.github/actions/prepare-licensed-inputs
+        with:
+          inputs-token: ${{ secrets.WIZ8_INPUTS_TOKEN }}
+          cache-key: ${{ secrets.WIZ8_CACHE_KEY }}
+      - name: Build WIZ8 runtime product
+        run: uv run wiz8 build runtime-test
+      - name: Run WIZ8 runtime tests
+        id: wiz8-runtime
+        continue-on-error: true
+        env:
+          RUNTIME_RENDERER: ${{ inputs.renderer || 'default' }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          if [[ "$RUNTIME_RENDERER" == "softpipe" ]]; then export GALLIUM_DRIVER=softpipe; fi
+          if [[ "$GITHUB_EVENT_NAME" == "schedule" ]]; then
+            status=0
+            uv run wiz8 runtime-test --repeat 3 \
+              --scenario main-game-start --scenario save-load-move \
+              --scenario combat-roundtrip --scenario hostile-encounter || status=1
+            uv run wiz8 runtime-test --scenario world-soak || status=1
+            exit "$status"
+          elif [[ "$GITHUB_EVENT_NAME" == "pull_request" || "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            uv run wiz8 runtime-test --batch --workers 2
+          else
+            uv run wiz8 runtime-test --tier main --check-order --batch --workers 2
+          fi
+      - name: Upload WIZ8 diagnostics
+        if: steps.wiz8-runtime.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: wiz8-runtime-diagnostics
           path: |
             build/runtime/runtime-test/**/diagnostics/
             build/logs/
-            ${{ runner.temp }}/wiz8-runtime.log
           if-no-files-found: warn
-      - name: Fail if WIZ8 checks failed
-        if: steps.wiz8-checks.outcome == 'failure'
+      - name: Fail if WIZ8 runtime tests failed
+        if: steps.wiz8-runtime.outcome == 'failure'
         run: exit 1
       - name: Remove plaintext licensed WIZ8 inputs
         if: always()
