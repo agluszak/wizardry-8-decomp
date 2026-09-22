@@ -31,6 +31,7 @@
 #include <string.h>
 #include <wchar.h>
 
+// GLOBAL: WIZ8 0x0064F6B0
 static const char MONSTER_INFO_DIALOG_CPP[] =
     "C:\\Projects\\Wizardry 8\\Dialog Code\\MonsterInfoDialog.cpp";
 

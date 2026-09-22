@@ -38,6 +38,7 @@ W8AttributeMinimums g_profession_attribute_minimums[W8_PROFESSION_COUNT] = {
    which also supplies the parameter name uiIndex and pins PROF_COUNT to fifteen
    and RACE_COUNT to sixteen. */
 
+// GLOBAL: WIZ8 0x00650168
 static const char PROF_RACE_INFO_DIALOG_CPP[] =
     "C:\\Projects\\Wizardry 8\\Dialog Code\\ProfRaceInfoDialog.cpp";
 

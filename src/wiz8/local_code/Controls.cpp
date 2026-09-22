@@ -109,8 +109,10 @@ Controls::Controls(int left, int top, int right_bound, int bottom_bound, int ren
 __forceinline Controls::~Controls() {}
 
 /* 0x00562A50 takes the redraw-request mask the panel raises. */
+// GLOBAL: WIZ8 0x0060CC74
 const wchar_t g_W8TextSeparator0060CC74[] = L" ";
-const wchar_t g_W8TextBreakCharacters00617C88[] = L" \n";
+// GLOBAL: WIZ8 0x00617C88
+const wchar_t g_W8TextBreakCharacters00617C88[] = L" ";
 
 // GLOBAL: WIZ8 0x005ebb38
 const float g_float_005ebb38 = 1.0f;

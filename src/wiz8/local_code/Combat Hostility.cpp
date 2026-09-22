@@ -39,6 +39,7 @@
  * them.
  */
 
+// GLOBAL: WIZ8 0x0061DC60
 static const char COMBAT_HOSTILITY_CPP[] =
     "C:\\Projects\\Wizardry 8\\Local Code\\Combat Hostility.cpp";
 
