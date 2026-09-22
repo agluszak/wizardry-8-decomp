@@ -1347,6 +1347,12 @@ void W8TriggerItemPickerDialog::TransferSelectedItems(int destination)
 
     for (index = 0; index < items_54.GetCount(); ++index) {
         if (*flags_64.GetAt(index) != 0) {
+            /* Confirmed retail behavior at 0x005CE4C0: the 12-byte copy is
+               handed to AddItemToParty/AddItemToCharacter, which copy/merge it
+               without taking ownership, and retail never frees `instance` —
+               every transfer attempt leaks the allocation. There is also no
+               null check: a failed CopyWorldItemInstance flows straight into
+               the add API. Preserved deliberately. */
             W8ItemInstance* instance = CopyWorldItemInstance(*items_54.GetAt(index));
             bool added;
             if (destination == -1) {
