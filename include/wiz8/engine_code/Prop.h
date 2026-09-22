@@ -32,7 +32,6 @@ struct W8PropAnimationSegment {
    0xc4 bytes, runs the AnimRep constructor, then installs the Prop-owned
    animation pointer, speed, and the slot vector at 0xb0.  The secondary
    vtable at 0xb0 is the growable-vector specialization at 0x005EC1D0. */
-#pragma pack(push, 1)
 class W8PropRepresentation : public W8AnimRep005ED050 {
 public:
     /* Default construction is inlined at Prop::Prop. */
@@ -71,7 +70,6 @@ public:
     unsigned char flag_0c1;                          /* 0xc1 */
     unsigned char unknown_0c2[2];
 }; /* 0xc4 */
-#pragma pack(pop)
 
 static_assert(sizeof(W8PropRepresentation) == 0xc4, "W8PropRepresentation_must_be_0xc4");
 
@@ -119,10 +117,10 @@ public:
        position when the rep is current, else through SetLocation004B8850. */
     void SetPosition0044E310(srVector3T<float>* position); /* 0x0044E310 */
     /* Whether trigger_18 exists and carries the action-message flag. */
-    char TriggerHasActionMessage0044E360(); /* 0x0044E360 */
+    bool TriggerHasActionMessage0044E360(); /* 0x0044E360 */
     /* Whether trigger_18 exists and takes an item (value_23c >= 0 or a
        type-10 action payload naming item_00a). */
-    char TriggerRequiresItem0044E380(); /* 0x0044E380 */
+    bool TriggerRequiresItem0044E380(); /* 0x0044E380 */
     /* The prop's current animation value; -1 when it has none. */
     int GetAnimationState0044EBE0() const; /* 0x0044EBE0 */
     void AttachAnimationInstances0044C830(W8World* world);

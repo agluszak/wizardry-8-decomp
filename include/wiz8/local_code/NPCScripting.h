@@ -20,7 +20,6 @@ struct W8WorldItem;
 class W8Monster;
 class W8DialogBase;
 
-#pragma pack(push, 1)
 struct W8NpcDialogueStagingRestore {
     int current_quote_index;
     int finished_quote_index;
@@ -30,7 +29,6 @@ struct W8NpcDialogueStagingRestore {
     unsigned char unused_49d;
     short staged_short_49e;
 };
-#pragma pack(pop)
 
 static_assert(sizeof(W8NpcDialogueStagingRestore) == 12, "W8NpcDialogueStagingRestore_must_be_12");
 

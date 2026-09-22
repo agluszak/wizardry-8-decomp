@@ -573,7 +573,7 @@ void UpdateRandomEncounterBudget(unsigned char reset_budget)
 void DespawnAllActiveMonsterGroups0048C9F0(void)
 {
     while (g_active_groups.count > 0) {
-        DespawnMonsterGroup(g_active_groups.data[g_active_groups.count - 1]);
+        DespawnMonsterGroup(*g_active_groups.GetAt(g_active_groups.count - 1));
     }
 }
 

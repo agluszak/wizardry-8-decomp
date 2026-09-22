@@ -233,6 +233,12 @@ void W8CharacterSpellList::OnRangeChanged(W8RangeControl* range)
     Invalidate(0);
 }
 
+// SYNTHETIC: WIZ8 0x005C8350
+// W8CharacterPage005EF664::`scalar deleting destructor'
+
+// FUNCTION: WIZ8 0x005C8370
+W8CharacterPage005EF664::~W8CharacterPage005EF664() {}
+
 // FUNCTION: WIZ8 0x005c83d0
 void W8CharacterPage005EF664::SetCharacter(W8Character* character,
                                            W8CharacterCreationState* creation_state, int mode)
@@ -254,6 +260,20 @@ void W8CharacterPage005EF664::Deactivate()
     for (int realm = 0; realm < 6; ++realm) {
         m_realms_074[realm]->m_range->EnableRegionSet(0);
     }
+}
+
+/* Drop every pending pick: clear the per-entry selected flags, return the
+   creation-state spell selections, and repaint. */
+// FUNCTION: WIZ8 0x005C8730
+void W8CharacterPage005EF664::Accept()
+{
+    for (int index = 0; index < 0x72; ++index) {
+        m_SpellData[index].selected = 0;
+    }
+    ResetSpellSelections005585D0(m_character_060, m_creation_state_064);
+    Invalidate(0);
+    m_dirty_06d = 1;
+    m_screen_05c->UpdateNavigation(this);
 }
 
 /* Rebuilds each realm's list from the character's spell_learned states: pass

@@ -5,8 +5,6 @@
 
 #include <stddef.h>
 
-#pragma pack(push, 1)
-
 /* AnimRep and the 3D mesh instance exchange four highlight coefficients. */
 struct W8ModelInstance3DRenderState {
     float highlight_red;
@@ -128,8 +126,6 @@ static_assert(offsetof(W8AnimRepBase005EC1D8, render_state_04c) == 0x4c,
               "W8AnimRepBase_render_state_offset");
 static_assert(sizeof(W8AnimRepBase005EC1D8) == 0x64, "W8AnimRepBase005EC1D8_size_must_be_0x64");
 static_assert(sizeof(W8AnimRep005ED050) == 0x98, "W8AnimRep005ED050_size_must_be_0x98");
-
-#pragma pack(pop)
 
 extern float g_lod_range_default_0060e608;
 extern float g_lod_range_default_0060e60c;

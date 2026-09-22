@@ -21,7 +21,6 @@
    0x10 are the popup background surface and border object the bubble is
    composited from. The byte at 0x14 is set once those two resources exist;
    the byte at 0x15 is set once the whole bubble has been created. */
-#pragma pack(push, 1)
 struct W8PortraitQuoteBubble {
     UINT32 surface;                    /* 0x00 */
     unsigned short width;              /* 0x04 */
@@ -38,7 +37,6 @@ struct W8PortraitQuoteBubble {
     wchar_t* text;  /* 0x1c */
     UINT32 palette; /* 0x20 */
 };
-#pragma pack(pop)
 
 static_assert(sizeof(W8PortraitQuoteBubble) == 0x24, "W8PortraitQuoteBubble_size");
 

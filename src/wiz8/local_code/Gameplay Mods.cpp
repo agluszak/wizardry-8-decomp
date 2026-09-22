@@ -163,7 +163,7 @@ void ApplyModifierBlock(W8GameplayModifierBlock* target, const W8GameplayModifie
     target->value_01 += source->value_01;
     target->value_02 += source->value_02;
     target->value_03 += source->value_03;
-    target->value_4b += source->value_4b;
+    target->armor_class_adjustment_4b += source->armor_class_adjustment_4b;
     target->armor_bonus_04 += source->armor_bonus_04;
     target->armor_bonus_05 += source->armor_bonus_05;
     target->damage_reduction_adjustment += source->damage_reduction_adjustment;
@@ -196,8 +196,8 @@ void ApplyModifierBlock(W8GameplayModifierBlock* target, const W8GameplayModifie
     if (source->flag_46 != 0) {
         target->flag_46 = 1;
     }
-    if (source->flag_4a != 0) {
-        target->flag_4a = 1;
+    if (source->sight_override_4a != 0) {
+        target->sight_override_4a = 1;
     }
     if (target->light_47 < source->light_47) {
         target->light_47 = source->light_47;
@@ -205,8 +205,8 @@ void ApplyModifierBlock(W8GameplayModifierBlock* target, const W8GameplayModifie
     if (target->value_48 < source->value_48) {
         target->value_48 = source->value_48;
     }
-    if (target->value_49 < source->value_49) {
-        target->value_49 = source->value_49;
+    if (target->missile_deflect_chance_49 < source->missile_deflect_chance_49) {
+        target->missile_deflect_chance_49 = source->missile_deflect_chance_49;
     }
 }
 
@@ -238,7 +238,7 @@ void ApplyPartyEffectSlots(const W8EffectSlot* source, W8GameplayModifierBlock* 
             case 0x1a:
                 adjusted = static_cast<unsigned char>((slot->amount + 5) * 5);
                 AdjustByteByPercent(&adjusted, percent);
-                target->value_49 = adjusted;
+                target->missile_deflect_chance_49 = adjusted;
                 break;
             case 0x20:
                 adjusted = static_cast<unsigned char>((slot->amount + 1) / 2);
@@ -255,7 +255,7 @@ void ApplyPartyEffectSlots(const W8EffectSlot* source, W8GameplayModifierBlock* 
                 target->damage_reduction_adjustment += adjusted;
                 break;
             case 0x2d:
-                target->flag_4a = 1;
+                target->sight_override_4a = 1;
                 break;
             }
         }
@@ -421,22 +421,22 @@ void ApplyConditionModifiers(W8Character* character, const unsigned int* conditi
         switch (index) {
         case 3:
             target->value_01 -= 2;
-            target->value_4b -= 2;
+            target->armor_class_adjustment_4b -= 2;
             break;
         case 4:
             target->value_01 -= 5;
-            target->value_4b -= 4;
+            target->armor_class_adjustment_4b -= 4;
             break;
         case 5:
             target->attribute_adjustments[5] -= 0x32;
             break;
         case 6:
             target->value_01 -= 3;
-            target->value_4b -= 2;
+            target->armor_class_adjustment_4b -= 2;
             break;
         case W8_CONDITION_POISONED:
             target->value_01 -= 2;
-            target->value_4b -= 2;
+            target->armor_class_adjustment_4b -= 2;
             target->damage_per_minute += condition_argument;
             break;
         case 9:

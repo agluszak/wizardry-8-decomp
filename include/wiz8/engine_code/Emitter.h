@@ -15,8 +15,6 @@ class srModelInstance;
  * offset apart, which is what makes it one record rather than two.
  */
 
-#pragma pack(push, 1)
-
 /* The 0x005ED058 table adds three pure emitter operations to the two-slot
    AnimRep hierarchy.  Concrete missile and spell hosts supply those slots. */
 class W8EmitterHost : public W8AnimRep005ED050 {
@@ -57,7 +55,5 @@ public:
 }; /* 0xac */
 
 static_assert(sizeof(W8EmitterHost) == 0xac, "W8EmitterHost_size_must_be_0xac");
-
-#pragma pack(pop)
 
 #endif

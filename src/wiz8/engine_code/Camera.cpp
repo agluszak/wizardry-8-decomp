@@ -34,19 +34,18 @@
 // GLOBAL: WIZ8 0x0060AA64
 int g_saved_environment_flag_60aa64 = 1;
 
-/* Find the camera path named `name` in the world's path list and start it
-   running through UpdateCameraPathState0048F2F0. Script commands reach this
-   through NpcScriptTurnToBook and the main game loop's Run. */
+/* Find the named camera path in the world's list and toggle it. Retail
+   callers push the flag as a plain int and the body forwards it raw to
+   UpdateCameraPathState0048F2F0. */
 // FUNCTION: WIZ8 0x0048F280
-void SetCameraPathByName0048F280(W8World* world, const char* name, float fTime)
+void UpdateCameraPathStateByName(W8World* world, const char* name, int active)
 {
-    unsigned int count;
-
-    if (world->plsCameras != 0 && (count = PLLength(world->plsCameras)) != 0) {
-        for (unsigned int index = 0; index < count; ++index) {
+    unsigned int count = PLLength(world->plsCameras);
+    if (world->plsCameras != 0 && count != 0) {
+        for (int index = 0; index < static_cast<int>(count); ++index) {
             W8CameraPath* path = static_cast<W8CameraPath*>(PLGet(world->plsCameras, index));
             if (_stricmp(path->name_00, name) == 0) {
-                UpdateCameraPathState0048F2F0(world, path, fTime);
+                UpdateCameraPathState0048F2F0(world, path, active);
                 return;
             }
         }
@@ -54,7 +53,7 @@ void SetCameraPathByName0048F280(W8World* world, const char* name, float fTime)
 }
 
 // FUNCTION: WIZ8 0x0048F2F0
-void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, float fTime)
+void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, int active)
 {
     W8NpcState* npc;
     W8MonsterGroup* group;
@@ -66,7 +65,7 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, float fTi
     float angle;
     float pitch;
 
-    if (path->active_14 == 0 && fTime != 0.0f) {
+    if (path->active_14 == 0 && active != 0) {
         g_level_runtime_flag_0065ba70 = 1;
         path->active_14 = 1;
         PathAISetValue004A9F60(path->path_18, 0.0f);
@@ -76,7 +75,7 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, float fTi
         g_saved_environment_flag_60aa64 = SetEnvironmentLoadFlag(0);
         return;
     }
-    if (path->active_14 == 0 || fTime != 0.0f) {
+    if (path->active_14 == 0 || active != 0) {
         return;
     }
     g_level_runtime_flag_0065ba70 = 0;

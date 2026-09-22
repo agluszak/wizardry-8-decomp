@@ -156,6 +156,9 @@ W8CharacterStatsValue005EF6B0::W8CharacterStatsValue005EF6B0(
 // SYNTHETIC: WIZ8 0x005c8f40
 // W8CharacterStatsValue005EF6B0::`scalar deleting destructor'
 
+// SYNTHETIC: WIZ8 0x005C8F60
+// W8CharacterStatsValue005EF6B0::~W8CharacterStatsValue005EF6B0 (emitted)
+
 /* Store the record the value control displays. A null record selects the
    default the constructor was handed. */
 // FUNCTION: WIZ8 0x005c8fc0
@@ -228,6 +231,9 @@ W8CharacterStatsRecordControl005EF700::W8CharacterStatsRecordControl005EF700(
 
 // SYNTHETIC: WIZ8 0x005c91a0
 // W8CharacterStatsRecordControl005EF700::`scalar deleting destructor'
+
+// SYNTHETIC: WIZ8 0x005C91C0
+// W8CharacterStatsRecordControl005EF700::~W8CharacterStatsRecordControl005EF700 (emitted)
 
 /* Redraw the record's catalogue image over the entry's own background. */
 // FUNCTION: WIZ8 0x005c9220

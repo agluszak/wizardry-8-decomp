@@ -1356,7 +1356,7 @@ unsigned char ZoomAutomapIn0057FFC0(const srVector3T<float>* point)
     to.z = position.z;
 
     float ground;
-    if (g_octree_game_data_00652db0->positional_04->TraceLineOfSight(&from, &to, 1, -3, -3, 1, 0) ==
+    if (g_octree_game_data_00652db0->octree_04->TraceLineOfSight(&from, &to, 1, -3, -3, 1, 0) ==
         0) {
         ground = g_automap_grid_min_0068f1d8.y;
         if (g_automap_layers.count != 0 && 1 < g_automap_layers.count &&

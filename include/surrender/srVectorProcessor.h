@@ -72,6 +72,26 @@ public:
         vp->_copyIndexed(destination, source, indices, count);
     }
 
+    /* srVertexPipe's record paths dispatch the vertex4 sources through the
+       three-vector4 copyIndexed overloads at vtable +0x84/+0x88/+0x8c. */
+    static inline void copyIndexed(srVector4* destination, const srARGB* source,
+                                   const SRDWORD* indices, SRDWORD count)
+    {
+        vp->_copyIndexed(destination, source, indices, count);
+    }
+
+    static inline void copyIndexed(srVector4* destination, const srVector4* source,
+                                   const SRDWORD* indices, SRDWORD count)
+    {
+        vp->_copyIndexed(destination, source, indices, count);
+    }
+
+    static inline void copyIndexed(srVector4* destination, const srVector3* source,
+                                   const SRDWORD* indices, SRDWORD count)
+    {
+        vp->_copyIndexed(destination, source, indices, count);
+    }
+
     static inline void copy(srVector4* destination, const srVector4& constant, SRDWORD count)
     {
         vp->_copy(destination, constant, count);
@@ -99,6 +119,14 @@ public:
                            const float* float_source, SRDWORD count)
     {
         vp->_add(destination, constant, float_source, count);
+    }
+
+    /* srVertexPipe adds a constant color into a diffuse/specular vector run
+       through the srVector4-source overload. */
+    static inline void add(srVector4* destination, const srVector4& constant,
+                           const srVector4* vector_source, SRDWORD count)
+    {
+        vp->_add(destination, constant, vector_source, count);
     }
 
     static inline void add(srVector4* destination, const srVector4* vector_source,
@@ -172,6 +200,51 @@ public:
         vp->_clampUnit(destination, source, count);
     }
 
+    /* srVertexPipe's finish/setup bodies reach these slots through vp. */
+    static inline void swap(void* first, void* second, SRDWORD bytes)
+    {
+        vp->_swap(first, second, bytes);
+    }
+
+    static inline void sub(float* destination, float constant, const float* source, SRDWORD count)
+    {
+        vp->_sub(destination, constant, source, count);
+    }
+
+    static inline void neg(float* destination, const float* source, SRDWORD count)
+    {
+        vp->_neg(destination, source, count);
+    }
+
+    static inline void axpy(float* destination, const float* add_source, const float* scale_source,
+                            const float* multiply_source, SRDWORD count)
+    {
+        vp->_axpy(destination, add_source, scale_source, multiply_source, count);
+    }
+
+    static inline void axpy(srVector4* destination, const srVector4* add_source,
+                            const srVector4& multiply_constant, const float* multiply_source,
+                            SRDWORD count)
+    {
+        vp->_axpy(destination, add_source, multiply_constant, multiply_source, count);
+    }
+
+    static inline void mulIndexed(srVector4* destination, const srVector4& constant,
+                                  const srVector4* indexed_source, const SRDWORD* indices,
+                                  SRDWORD count)
+    {
+        vp->_mulIndexed(destination, constant, indexed_source, indices, count);
+    }
+
+    /* finishDiffuseAlpha/finishSpecularFog fold an indexed specular array into
+       a linear destination run through the linear-source overload. */
+    static inline void mulIndexed(srVector4* destination, const srVector4* linear_source,
+                                  const srVector4* indexed_source, const SRDWORD* indices,
+                                  SRDWORD count)
+    {
+        vp->_mulIndexed(destination, linear_source, indexed_source, indices, count);
+    }
+
     static inline void minMax(const srVector3* source, srVector3& minimum, srVector3& maximum,
                               SRDWORD count)
     {
@@ -183,6 +256,10 @@ public:
     {
         vp->_minMax(source, minimum, maximum, count);
     }
+
+    /* srVertexPipe::process snapshots the active processor into its own
+       vector_processor_98 and dispatches vtable slots through it. */
+    friend class srVertexPipe;
 
 private:
     static void install(srVP* processor);

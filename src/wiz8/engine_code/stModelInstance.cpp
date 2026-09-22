@@ -614,8 +614,6 @@ void stModelInstance::process(const ProcessInfo& info, e_processType)
    RenderTriMeshWithEquations00470380. When the highlight RGBA is configured
    the chain is submitted again inflated along its normals into a shared
    scratch buffer with reversed winding, skipping the linked "blank" skin. */
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
 // FUNCTION: WIZ8 0x0047F930
 void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
 {
@@ -685,12 +683,11 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
     }
 
     unsigned char first_pass = 1;
-    /* Retail never initializes this cursor: its stack slot is shared with the
-       bounding-box out-parameter and the ambient-light float temporaries, so
-       the FLAG_TERMINATE walk below reads leftover stack data. When vertex
-       lighting is already resolved the slot happens to be zero, degenerating
-       to a plain model->next walk. Preserved as authored. */
-    srNode* child;
+    /* Retail never stores this local: its slot overlaps dead float locals, so
+       the FLAG_TERMINATE walk below ran on leftover stack data and effectively
+       never fired. Seed it deterministically instead of reproducing the
+       uninitialised read, which faults under this build's layout. */
+    srNode* child = 0;
     while (model != 0) {
         model->SetAmbientColor00472990(ambient_color);
         model->getTriMesh(mesh);
@@ -909,7 +906,6 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
     }
     renderer.setAmbientLight(ambient);
 }
-#pragma clang diagnostic pop
 
 // GLOBAL: WIZ8 0x005EC8E0
 const float g_float_005ec8e0 = 1.0f / 1500.0f;

@@ -46,7 +46,6 @@ static_assert(sizeof(W8MipeEditField) == 0x18, "W8MipeEditField_size");
    g_mipe_state_0068f100.  Offset zero is a live W8IList holding the selected
    monster location ids, and callers pass the state pointer itself to
    IListGetAt/ILLength. */
-#pragma pack(push, 1)
 struct W8MipeState {
     W8IList monster_ids; /* 0x00 */
 
@@ -70,7 +69,6 @@ struct W8MipeState {
     signed char edit_selection;   /* 0x61: -1 = no row selected */
     unsigned char unknown_62[2];
 };
-#pragma pack(pop)
 
 static_assert(sizeof(W8MipeState) == 0x64, "W8MipeState_size");
 static_assert(offsetof(W8MipeState, drag_anchor) == 0x24, "W8MipeState_drag_anchor");

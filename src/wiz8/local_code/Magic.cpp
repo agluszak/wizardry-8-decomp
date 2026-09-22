@@ -821,7 +821,6 @@ bool IsTeleportCastMissingAnchor00501D00(W8Character* character, int spell_id)
     }
     return !character->has_saved_location;
 }
-
 /* The 0x4f spell's finalizer. Once its target is gone, the impact spell 0x76
    is cast at the target's last position and the matching notice is posted:
    the monster's own notice for a monster that has died, or the targeted
@@ -4249,4 +4248,48 @@ LAB_00501cc9:
 LAB_00501cee:
     --monster_markers->count;
     goto joined_r0x00501b7a;
+}
+
+// FUNCTION: WIZ8 0x00501D20
+void TrackItemSpellSource00501D20(W8Character* character, int spell_id)
+{
+    unsigned char has_spell_storage[0x96] = {0};
+    unsigned char* has_spell = has_spell_storage + 1;
+    W8ItemInstance* item;
+    int count;
+
+    item = character->equipment;
+    for (count = 0xc; count != 0; --count) {
+        int item_id = item->item_id;
+        if (item_id != -1 && g_item_records[item_id].spell_id != '\0' &&
+            CanCharacterActivateItem(character, item) &&
+            ((g_item_records[item_id].quantity_kind != '\x04' &&
+              g_item_records[item_id].quantity_kind != '\x02') ||
+             item->uses_or_charges != '\0')) {
+            has_spell[g_item_records[item_id].spell_id - 1] = 1;
+        }
+        ++item;
+    }
+    item = character->backpack;
+    for (count = 8; count != 0; --count) {
+        int item_id = item->item_id;
+        if (item_id != -1 && g_item_records[item_id].spell_id != '\0' &&
+            CanCharacterActivateItem(character, item) &&
+            ((g_item_records[item_id].quantity_kind != '\x04' &&
+              g_item_records[item_id].quantity_kind != '\x02') ||
+             item->uses_or_charges != '\0')) {
+            has_spell[g_item_records[item_id].spell_id - 1] = 1;
+        }
+        ++item;
+    }
+    W8SpellUsageRecord* record = g_status_685170.item_spell_usage_24a0;
+    int index = 0;
+    while (record < g_status_685170.item_spell_usage_24a0 + 150) {
+        ++index;
+        if (has_spell[index - 1] != '\0') {
+            ++record->usable_cast_count;
+        }
+        ++record;
+    }
+    ++g_status_685170.item_spell_usage_24a0[spell_id].cast_count;
 }

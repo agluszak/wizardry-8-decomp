@@ -72,10 +72,16 @@ struct W8GameplayModifierBlock {
     unsigned char out_of_formation; /* 0x45 */
     unsigned char flag_46;          /* 0x46: set by effect id 0x11 */
     unsigned char light_47;         /* 0x47: the doubled light value the sky node reads */
-    unsigned char value_48;         /* 0x48: max-combined, effect id 0x21 */
-    unsigned char value_49;         /* 0x49: max-combined, effect id 0x1a */
-    unsigned char flag_4a;          /* 0x4a: set by effect id 0x2d, the sight light gate */
-    unsigned char value_4b;         /* 0x4b: added to armor-class component 8 */
+     unsigned char value_48;         /* 0x48: max-combined, effect id 0x21 */
+    /* 0x49: missile deflection chance in percent; Missile.cpp compares it
+       against Random(100)+1. Max-combined, effect id 0x1a. */
+    unsigned char missile_deflect_chance_49;
+    /* 0x4a: set by effect id 0x2d; feeds ComputeSightThreshold's
+       sight_override and gates the party-surprise pass. */
+    unsigned char sight_override_4a;
+    /* 0x4b: armor-class adjustment; added to character component 8 and the
+       monster target-armor modifier, reduced by conditions. */
+    signed char armor_class_adjustment_4b;
     unsigned char unknown_4c[0x1b]; /* 0x4c .. 0x66 */
 }; /* 0x67 */
 

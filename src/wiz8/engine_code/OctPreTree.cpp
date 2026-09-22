@@ -1724,6 +1724,7 @@ static char PropFramesDiffer0046C6A0(W8LevelFileAnimObj* anim, unsigned short fi
 // TEMPLATE: WIZ8 0x0046ca50
 // QuickSortByKey<srVector3i>
 
+
 // SYNTHETIC: WIZ8 0x0046cc50
 // W8Octree::`scalar deleting destructor'
 

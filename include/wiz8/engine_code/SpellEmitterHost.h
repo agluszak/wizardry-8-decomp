@@ -8,8 +8,6 @@ struct W8ReadLevelInfo;
 class stLight;
 class W8SpellVisual;
 
-#pragma pack(push, 1)
-
 /* Engine Code\Spells.cpp's concrete five-slot emitter host.  The allocation
    in clone slot 0x004ADE70 and the constructor/destructor pair at 0x004AAD20
    and 0x004AB1C0 prove the complete 0x37c-byte extent. */
@@ -39,7 +37,5 @@ public:
 }; /* 0x37c */
 
 static_assert(sizeof(W8SpellEmitterHost) == 0x37c, "W8SpellEmitterHost_size_must_be_0x37c");
-
-#pragma pack(pop)
 
 #endif

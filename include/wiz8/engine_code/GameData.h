@@ -206,7 +206,7 @@ struct W8GameData {
     /* +0x04: the loading octree's back-pointer, stored by W8Octree's file-load
        finish path (retail writes [ESI+4], not +0) and tested by trigger
        integration. geometry_index_00 above is untouched by that store. */
-    W8Octree* positional_04;
+    W8Octree* octree_04;
     srVector3T<float> minimum_08;
     srVector3T<float> maximum_14;
     /* Member names through m_ppEnvirons are proven by retail assertion strings
@@ -238,7 +238,9 @@ struct W8GameData {
     char** m_ppNames;
     int m_iNumEnvirons;
     W8EnvironRecord** m_ppEnvirons;
-    unsigned char value_88;
+    /* Set by W8Octree::SettleToGround around its TestTraceResult calls: while
+       set, only flag-4 surfaces are admitted by the surface trace. */
+    unsigned char trace_flag4_gate_88;
     unsigned char pad_89[3];
 
     void IntegrateTriggers();
@@ -280,7 +282,7 @@ struct W8GameData {
                            char gate); /* 0x0041C140 */
     /* Ray-test `count` surfaces - all of m_pSurfaces when `surface_ids` is
        null, else the listed surface indexes - against the trace record.
-       value_88, flag and mode filters apply; a closer hit stores index_04
+       trace_flag4_gate_88, flag and mode filters apply; a closer hit stores index_04
        into value_54, the contact into the record's end_0c and the distance
        into hit_limit_24. */
     char TestTraceResult(int count, unsigned long* surface_ids, W8OctreeTrace* trace,
@@ -319,18 +321,18 @@ unsigned char LoadSurfaceVertices004214D0(srVector3T<float>* output, const int* 
 void ClearLevelDataFlag6(void);
 void ResetLevelDataVectors0041F0D0(void);
 int IsLevelDataFlag4EffectivelySet(void);
-unsigned int GetLevelDataFlag4(void); /* 0x0041F070 */
-unsigned int GetLevelDataFlag8(void); /* 0x0041EFB0 */
-void ClearLevelDataFlag8(void);       /* 0x0041EFD0 */
-void SetLevelDataFlag8(void);         /* 0x0041EFE0 */
-unsigned int GetLevelDataFlag9(void); /* 0x0041EFF0 */
-bool HasLevelDataVector(void);        /* 0x0041F010 */
+unsigned char GetLevelDataFlag4(void); /* 0x0041F070 */
+unsigned char GetLevelDataFlag8(void); /* 0x0041EFB0 */
+void ClearLevelDataFlag8(void);        /* 0x0041EFD0 */
+void SetLevelDataFlag8(void);          /* 0x0041EFE0 */
+unsigned char GetLevelDataFlag9(void); /* 0x0041EFF0 */
+bool HasLevelDataVector(void);         /* 0x0041F010 */
 void ResetCurrentEnvironment0041AA40(void);
 unsigned char SetEnvironmentLoadFlag(unsigned char flag); /* 0x0041AAE0 */
 void BeginCameraSway0041A960(void);
 void EndCameraSway0041A9A0(void);
 
-unsigned int GetLevelDataFlag6(void);
+unsigned char GetLevelDataFlag6(void);
 unsigned char ConsumeLevelElapsedTime0041F170(float* real_elapsed, float* frame_elapsed);
 /* Retail tests level flag 0x008; when set both outputs are -1. */
 void GetLevelSoundEnvironment0041FCE0(char* environment, char* secondary);

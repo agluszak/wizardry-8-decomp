@@ -59,7 +59,8 @@ void InitializeAniMeshCache(int primary_limit, int secondary_limit)
     PListInit(&g_animesh_cache_list_65be90);
 }
 
-// FUNCTION: WIZ8 0x004b57d0
+/* Releases every cached ani-mesh entry and clears the list. */
+// FUNCTION: WIZ8 0x004B57D0
 void FreeAniMeshCache004B57D0(void)
 {
     PListFreeData(&g_animesh_cache_list_65be90);

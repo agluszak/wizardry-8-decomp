@@ -789,7 +789,7 @@ int ComputeLevelUpSpellPointAward(W8Character* character, W8CharacterCreationSta
     int index;
     int saved[0x72];
 
-    if (character->level < 2) {
+    if (character->level <= 1) {
         if (creation_state->spell_points_total > 0) {
             if (creation_state->spell_points_remaining > 0) {
                 for (index = 0; index < 0x72; ++index) {

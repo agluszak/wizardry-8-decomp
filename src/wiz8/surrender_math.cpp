@@ -83,6 +83,9 @@
 // TEMPLATE: WIZ8 0x00438F90
 // srMatrix3T<float>::RotateAboutY
 
+// TEMPLATE: WIZ8 0x004CAB60
+// srMatrix3T<float>::RotateAboutZ
+
 // TEMPLATE: WIZ8 0x0042B910
 // srMatrix3T<float>::RotateAroundAxis(double, double, const srVector3T<float>&)
 

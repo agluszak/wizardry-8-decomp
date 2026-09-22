@@ -17,12 +17,10 @@ public:
     enum e_clip { CLIP_POSITIONAL_0 = 0 };
 
     srClipPlane(srNode* parent);
+    srClipPlane(const srClipPlane& other);
     srClipPlane& operator=(const srClipPlane& other);
 
-    static const char* sGetClassName()
-    {
-        return "srClipPlane";
-    }
+    static const char* sGetClassName();
 
     virtual void dump(std::ostream& stream) override;
     virtual ~srClipPlane() override;
@@ -30,15 +28,11 @@ public:
     virtual void traverse(TraverseInfo& info) override;
     virtual void process(const ProcessInfo& info, e_processType type) override;
 
-    void setClipPlane(const srVector4T<float>& plane)
-    {
-        clip_plane_ = plane;
-    }
-
-    void setClipType(e_clip type)
-    {
-        clip_type_ = type;
-    }
+    void setClipPlane(const srVector4T<float>& plane);
+    void getClipPlane(srVector4T<float>& plane) const;
+    srVector4T<float> getClipPlane() const;
+    void setClipType(e_clip type);
+    e_clip getClipType() const;
 
 protected:
     srVector4T<float> clip_plane_; /* 0x138 */

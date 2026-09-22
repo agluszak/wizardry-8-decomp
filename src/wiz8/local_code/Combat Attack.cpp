@@ -1136,7 +1136,7 @@ int GetTargetArmorClassModifier005468D0(W8CombatSlot* target, unsigned int attac
             MonsterGetIndexByLocationID(0x1937, COMBAT_ATTACK_CPP, target->iMonsterID, 1);
         monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         record = GetMonsterDataForInfo(monster_info);
-        modifier = monster_info->modifiers_1db.value_4b +
+        modifier = monster_info->modifiers_1db.armor_class_adjustment_4b +
                    monster_info->modifiers_1db.armor_bonus_04 +
                    static_cast<int>(FatigueArmorPenalty(monster_info->fatigue_band) / 10);
         if (gXStatus.fCombatMode != 0) {
@@ -1153,7 +1153,7 @@ int GetTargetArmorClassModifier005468D0(W8CombatSlot* target, unsigned int attac
     } else if (target->iType == W8_TARGET_KIND_CHARACTER) {
         W8Character* character = &g_status_685170.buffers.characters[target->iChar];
         if (gXStatus.fCombatMode == 0) {
-            distracted = static_cast<unsigned char>(GetLevelDataFlag8());
+            distracted = GetLevelDataFlag8();
         } else {
             int component;
             if (g_combat_state->unaware_9a4 != 0 || g_combat_state->natural_attack_9a5 != 0) {

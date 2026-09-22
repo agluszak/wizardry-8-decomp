@@ -436,9 +436,15 @@ W8ItemInstance* CopyWorldItemInstance(const W8WorldItem* item)
     if (copy == 0) {
         return 0;
     }
-    *(int*)copy = *(const int*)&item->item;
-    *((int*)copy + 1) = *((const int*)&item->item + 1);
-    *((int*)copy + 2) = *((const int*)&item->item + 2);
+    copy->item_id = item->item.item_id;
+    copy->stack_count = item->item.stack_count;
+    copy->uses_or_charges = item->item.uses_or_charges;
+    copy->identified = item->item.identified;
+    copy->unknown_07[0] = item->item.unknown_07[0];
+    copy->unknown_07[1] = item->item.unknown_07[1];
+    copy->unknown_07[2] = item->item.unknown_07[2];
+    copy->bind_announced = item->item.bind_announced;
+    copy->bound = item->item.bound;
     return copy;
 }
 
@@ -1292,6 +1298,9 @@ void RebuildAllWorldItemInstances(void)
         ReplaceOrCreateItem(&item->item, item->item.item_id, 0, 0, 0);
     }
 }
+
+// TEMPLATE: WIZ8 0x004F9580
+// W8GrowableVector<W8WorldItem*>::W8GrowableVector
 
 // FUNCTION: WIZ8 0x004f6b90
 W8WorldItem* CreateWorldItem(W8ItemInstance* item, const srVector3T<float>* position,

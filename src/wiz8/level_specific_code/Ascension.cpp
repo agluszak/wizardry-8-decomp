@@ -62,6 +62,10 @@ int CountAscensionPeakItems004DF810(void)
    count selects the staged encounters. Two or more relics run the avalanche
    sequence and the Rapax ambush once; all three additionally spawn the Savants
    and fire the "Bodies" trigger once. */
+/* Standalone JMP thunk onto AscensionPeakInit004DF870. */
+// SYNTHETIC: WIZ8 0x004DF800
+// AscensionPeakInit004DF870 thunk -> AscensionPeakInit004DF870
+
 // FUNCTION: WIZ8 0x004DF870
 unsigned char AscensionPeakInit004DF870(void)
 {

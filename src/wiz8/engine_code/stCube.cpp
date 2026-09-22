@@ -88,6 +88,7 @@ double g_world_cursor_scale_005ebf50 = 0.002;
 /* Build the numbered cube the world cursor table holds: a 500-unit modeller
    cube, a translucent white material, and a 32x32 texture the label painter
    later fills. */
+
 // FUNCTION: WIZ8 0x0048d080
 W8WorldCursorNode* CreateWorldCursorCube0048D080(void)
 {
@@ -759,16 +760,16 @@ W8WorldCursorNode* GetWorldCursorNode0048ED10(int index)
     return *g_world_cursor_nodes_65ba58.GetAt(index);
 }
 
-/* Attach or detach one cursor node's scene node to the world camera. */
+/* Attach or detach the node's scene node under the world's dynamic scene. */
 // FUNCTION: WIZ8 0x0048ED30
 void AttachWorldCursorNode0048ED30(W8WorldCursorNode* entry, unsigned char attached)
 {
     if (entry != 0) {
         if (attached != 0) {
-            entry->node_04->setParent(g_world->static_scene, 1);
-        } else {
-            entry->node_04->setParent(0, 1);
+            entry->node_04->setParent(g_world->dynamic_scene, 1);
+            return;
         }
+        entry->node_04->setParent(0, 1);
     }
 }
 

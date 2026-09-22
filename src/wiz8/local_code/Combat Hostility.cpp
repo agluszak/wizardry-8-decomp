@@ -315,10 +315,10 @@ unsigned char MonsterActionTargetsEnemies(int action_kind, int action_detail,
 {
     int target_type;
 
-    if (action_kind == 0) {
+    switch (action_kind) {
+    case 0:
         return 1;
-    }
-    if (action_kind == 2) {
+    case 2:
         if (action_detail > 0x95) {
             srAssertFail("iType < SPELL_COUNT",
                          "C:\\Projects\\Wizardry 8\\Local Code\\Combat Hostility.cpp", 0x1c2, 0);
@@ -330,11 +330,11 @@ unsigned char MonsterActionTargetsEnemies(int action_kind, int action_detail,
             }
         }
         return 0;
-    }
-    if (action_kind == 3) {
+    case 3:
         return 1;
+    default:
+        return 0;
     }
-    return 0;
 }
 
 /* Whether a spell id can be aimed by monster AI: inside the spell table, not

@@ -331,6 +331,9 @@ signed char g_spell_power_extent_index_00616f41[8] = {0, 0, 0, 1, 1, 2, 2, 0};
 void ServiceNpcDialogue0056E510(void);
 // GLOBAL: WIZ8 0x0064BA80
 int g_lock_pin_target_height_64ba80[4] = {10, 16, 22, 28};
+
+// GLOBAL: WIZ8 0x0064ba90
+int g_knock_knock_chance_0064ba90[8] = {0, 344, 459, 516, 550, 573, 589, 602};
 // GLOBAL: WIZ8 0x0064BAE8
 char s_lock_pin_falling_64bae8[] = "Data\\Sound\\Misc\\Lock_Pin_Falling.wav";
 // GLOBAL: WIZ8 0x0064BABC
@@ -1302,6 +1305,137 @@ void W8LockInteraction::AttemptForce()
     }
 }
 
+/* Roll the knock-knock chance against a shuffled pin order. At most
+   `level + 1` pins are rolled; each success raises an unowned pin (or, on
+   backfire, drops a raised one) and animates the tumbler. The control enables
+   are then re-derived exactly as RefreshLockInteractionControls does and the
+   interaction enters state 7. */
+// FUNCTION: WIZ8 0x005871A0
+void W8LockInteraction::ApplyKnockKnock005871A0(int level, int /*flag*/, char backfire)
+{
+    W8Character* character;
+    int order[8];
+    int slot;
+    int pins;
+    int i;
+    int pin;
+    unsigned int count;
+    unsigned int chance;
+    unsigned int figure;
+    unsigned int book;
+    unsigned int realm;
+    int power;
+    int divisor;
+    bool rolled;
+    W8LockTumbler* tumbler;
+    W8LockTumblerPanel* panel;
+
+    slot = g_status_685170.selected_character;
+    count = m_tumbler_count_0c;
+    rolled = false;
+    for (i = 0; i < static_cast<int>(count); ++i) {
+        order[i] = i;
+    }
+    for (i = 0; i < static_cast<int>(count); ++i) {
+        unsigned int first = Random(count);
+        unsigned int second = Random(m_tumbler_count_0c);
+        if (first != second) {
+            int swap = order[first];
+            order[first] = order[second];
+            order[second] = swap;
+        }
+        count = m_tumbler_count_0c;
+    }
+    pins = level + 1;
+    if (m_tumbler_count_0c <= level + 1) {
+        pins = m_tumbler_count_0c;
+    }
+    chance = g_knock_knock_chance_0064ba90[level];
+    for (i = 0; i < pins; ++i) {
+        if (Random(1000) < chance) {
+            pin = order[i];
+            panel = m_tumbler_panel_10;
+            if (backfire == '\0') {
+                if (m_tumbler_owner_38[pin] == -1) {
+                    tumbler = panel->m_tumblers_54[pin];
+                    tumbler->m_hovered_38 = 0;
+                    tumbler->m_rising_35 = 1;
+                    panel->m_animating_74 = 1;
+                }
+                m_tumbler_panel_10->m_tumblers_54[pin]->m_at_top_37 = 1;
+                m_tumbler_locked_58[pin] = 1;
+                m_tumbler_owner_38[pin] = slot;
+            } else {
+                if (m_tumbler_owner_38[pin] == -1) {
+                    continue;
+                }
+                m_tumbler_locked_58[pin] = 0;
+                m_tumbler_owner_38[pin] = -1;
+                m_tumbler_panel_10->m_tumblers_54[pin]->m_at_top_37 = 0;
+                tumbler = panel->m_tumblers_54[pin];
+                tumbler->m_pin_set_34 = 0;
+                tumbler->m_falling_36 = 1;
+                panel->m_animating_74 = 1;
+            }
+            rolled = true;
+        }
+    }
+    if (rolled) {
+        if (backfire == '\0') {
+            SoundPlay(s_lock_pin_rising_64bb10, 0);
+        } else {
+            SoundPlay(s_lock_pin_falling_64bae8, 0);
+            m_tumbler_panel_10->SetEnabled(0);
+        }
+    }
+    slot = g_status_685170.selected_character;
+    if (!IsPartySlotEligible00524A10(slot)) {
+        pins = -1;
+    } else {
+        character = &g_status_685170.buffers.characters[slot];
+        if (character->skills[10].flag_00 == 0 && character->skills[10].level == 0) {
+            pins = -1;
+        } else {
+            pins = character->skills[10].level;
+        }
+    }
+    panel = m_tumbler_panel_10;
+    for (i = 0; i < panel->m_tumbler_count_50; ++i) {
+        panel->m_tumblers_54[i]->SetEnabled(pins > -1);
+    }
+    character = &g_status_685170.buffers.characters[g_status_685170.selected_character];
+    if (IsPartySlotEligible00524A10(g_status_685170.selected_character) &&
+        character->spell_learned[0x27] == 1) {
+        book = GetBestSpellbookSkillForSpell(character, 0x27, 1, 0, 7);
+        realm = character->skills[0x1c + g_spell_records[0x27].realm].level;
+        power = (character->skills[book].level + realm * 4) / 5;
+        if (power > -1) {
+            figure = CanCharacterCastSpell(character, 0x27);
+        } else {
+            figure = 0;
+        }
+    } else {
+        figure = 0;
+    }
+    m_spell_button_20->SetEnabled(figure);
+    slot = g_status_685170.selected_character;
+    pins = m_tumbler_count_0c;
+    if (IsPartySlotEligible00524A10(slot) &&
+        g_status_685170.buffers.characters[slot].stamina > 0x4f &&
+        g_status_685170.buffers.characters[slot].attributes[0].effective > 0x32) {
+        divisor = pins - 1 + g_settings_6850c8.difficulty;
+        ClampInteger(&divisor, 2, 8);
+        figure = (g_status_685170.buffers.characters[slot].attributes[0].effective - 0x32) /
+                 IntegerPower(2, divisor - 2);
+    } else {
+        figure = 0xffffffff;
+    }
+    m_force_button_24->SetEnabled(static_cast<int>(figure) > -1);
+    m_info_panel_14->RefreshInfo();
+    m_action_panel_18->SetEnabled(0);
+    m_state_34 = 7;
+}
+
 // FUNCTION: WIZ8 0x005874D0
 void W8LockInteraction::BeginUnlock()
 {
@@ -1310,6 +1444,20 @@ void W8LockInteraction::BeginUnlock()
     m_state_34 = 8;
     m_timer_80.SetDuration(1.0f);
     m_timer_80.Restart();
+}
+
+// FUNCTION: WIZ8 0x00587C80
+void CastSpellAtLockInteraction00587C80(unsigned int level, int flag, int backfire)
+{
+    if (gXStatus.fTrapInteractMode != '\0') {
+        AttemptTrapDisarm0058A930(level, flag, backfire);
+        return;
+    }
+    if (gXStatus.fLockInteractMode == '\0') {
+        ShowNotice(0xc, gppStringList[0x1ebc / 4], -1, -1, 0);
+        return;
+    }
+    g_lock_interaction_68f2c0->ApplyKnockKnock005871A0(level, flag, backfire);
 }
 
 // FUNCTION: WIZ8 0x00587cf0
@@ -2785,6 +2933,11 @@ bool __fastcall IsNpcDialogueTextExpanded(W8NpcDialogueTextController* controlle
 {
     return controller->scroll_height == 0xff;
 }
+
+/* Standalone JMP thunk onto W8Widget::~W8Widget; the vtable slot of
+   W8NpcDialogueScrollWidget reaches it. */
+// SYNTHETIC: WIZ8 0x0055E5D0
+// W8NpcDialogueScrollWidget::~W8NpcDialogueScrollWidget thunk -> W8Widget::~W8Widget
 
 // FUNCTION: WIZ8 0x0055E570
 W8NpcDialogueScrollWidget::W8NpcDialogueScrollWidget(Controls* panel, unsigned int region, int left,
@@ -9287,7 +9440,8 @@ void ConfirmNpcTradeItem005AD290(void)
     if (!ValidateNpcTradeSelection005AE1F0()) {
         return;
     }
-    if ((g_screen_state_00649f1c->value_100 == 2 || g_screen_state_00649f1c->value_100 == 3) &&
+    if ((g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_GIVE ||
+         g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_SELL) &&
         (g_screen_state_00649f1c->dialogue_text_120->m_stateFlags & g_W8TextControlMask005ED570) !=
             0) {
         selected = g_status_685170.selected_character;
@@ -9303,11 +9457,11 @@ void ConfirmNpcTradeItem005AD290(void)
             }
         }
     }
-    switch (g_screen_state_00649f1c->value_100) {
-    case 2:
+    switch (g_screen_state_00649f1c->trade_mode) {
+    case W8_NPC_TRADE_GIVE:
         HandleNpcDialogueItemChoice00575B70();
         break;
-    case 3:
+    case W8_NPC_TRADE_SELL:
         wants = NpcHasTopic(g_screen_state_00649f1c->dialogue_npc,
                             g_screen_state_00649f1c->trade_item->item_id);
         if (SellItemToNpc0055B730(
@@ -9343,8 +9497,8 @@ void ConfirmNpcTradeItem005AD290(void)
                     g_W8TextControlMask005ED570) != 0) {
             shown = 0;
             target = slot;
-            if (g_screen_state_00649f1c->value_100 != 2 || slot != 0) {
-                if (g_screen_state_00649f1c->value_100 == 2) {
+            if (g_screen_state_00649f1c->trade_mode != W8_NPC_TRADE_GIVE || slot != 0) {
+                if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_GIVE) {
                     --target;
                 }
                 for (index = 0; index < g_status_685170.party_item_count_1791; ++index) {
@@ -9377,7 +9531,7 @@ void ConfirmNpcTradeItem005AD290(void)
             QueueNpcScriptLine(0x15, 0, 0, 0);
         }
         break;
-    case 4:
+    case W8_NPC_TRADE_BUY:
         slot = GetTextSlot1E8(2);
         count = GetNpcItemCount(g_screen_state_00649f1c->dialogue_npc);
         shown = 0;
@@ -9404,7 +9558,7 @@ void ConfirmNpcTradeItem005AD290(void)
             UpdateNpcTradeSelection0056FAC0(slot, 0, 1);
         }
         break;
-    case 5:
+    case W8_NPC_TRADE_SHOPLIFT:
         slot = GetTextSlot1E8(2);
         count = GetNpcItemCount(g_screen_state_00649f1c->dialogue_npc);
         shown = 0;
@@ -9435,15 +9589,15 @@ void ConfirmNpcTradeItem005AD290(void)
 // FUNCTION: WIZ8 0x005AD950
 void ShowNpcTradeItemNotice005AD950(W8ItemInstance* item)
 {
-    int mode = g_screen_state_00649f1c->value_100;
+    int mode = g_screen_state_00649f1c->trade_mode;
     unsigned int font_palette = 0xf;
     unsigned int price;
     int sell_mode = 0;
 
-    if (mode == 4 || mode == 5) {
+    if (mode == W8_NPC_TRADE_BUY || mode == W8_NPC_TRADE_SHOPLIFT) {
         sell_mode = 1;
     }
-    if (mode == 4 || mode == 5 || mode == 3) {
+    if (mode == W8_NPC_TRADE_BUY || mode == W8_NPC_TRADE_SHOPLIFT || mode == W8_NPC_TRADE_SELL) {
         unsigned char stack_count;
         if (g_item_records[item->item_id].equip_class == 4) {
             stack_count = item->stack_count;
@@ -9455,11 +9609,12 @@ void ShowNpcTradeItemNotice005AD950(W8ItemInstance* item)
     } else {
         price = GetItemStackValue(item);
     }
-    if (g_status_685170.party_gold < price && g_screen_state_00649f1c->value_100 != 5) {
+    if (g_status_685170.party_gold < price &&
+        g_screen_state_00649f1c->trade_mode != W8_NPC_TRADE_SHOPLIFT) {
         font_palette = 0;
     }
-    mode = g_screen_state_00649f1c->value_100;
-    if (mode != 3 && mode != 4 && mode != 5) {
+    mode = g_screen_state_00649f1c->trade_mode;
+    if (mode != W8_NPC_TRADE_SELL && mode != W8_NPC_TRADE_BUY && mode != W8_NPC_TRADE_SHOPLIFT) {
         ShowNotice(font_palette, FormatItemDisplayName(item, 1), 2, 0xffffffff, false);
         return;
     }
@@ -9499,7 +9654,8 @@ void RebuildNpcTradeItemList005ADB10(bool scroll_to_top)
     if (scroll_to_top) {
         ClearTextLineEntry00590D90(2);
     }
-    if (g_screen_state_00649f1c->value_100 == 4 || g_screen_state_00649f1c->value_100 == 5) {
+    if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_BUY ||
+        g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_SHOPLIFT) {
         unsigned int shown = 0;
         unsigned int count = GetNpcItemCount(g_screen_state_00649f1c->dialogue_npc);
         for (int index = 0; index < static_cast<int>(count); ++index) {
@@ -9529,7 +9685,7 @@ void PopulateNpcTradeList005ADBE0(void)
     ResetEditorStatusLine0058AA20(2);
     ResetNpcDialogueItemEditor();
     EnableNpcTradeFilterButtons00573630();
-    if (g_screen_state_00649f1c->value_100 == 2) {
+    if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_GIVE) {
         swprintf(g_level_block->text_paint_scratch_000, L"%d%s", g_status_685170.party_gold,
                  gppStringList[0x1e5c / 4]);
         ShowNotice(0xf, gppStringList[0x1cb4 / 4], 2,
@@ -9552,7 +9708,7 @@ void PopulateNpcTradeList005ADBE0(void)
                     continue;
                 }
                 if (NpcAcceptsTradeItem(g_screen_state_00649f1c->dialogue_npc, item) == 0 &&
-                    g_screen_state_00649f1c->value_100 != 2) {
+                    g_screen_state_00649f1c->trade_mode != W8_NPC_TRADE_GIVE) {
                     font_palette = 0;
                     acceptable = false;
                 } else {
@@ -9565,7 +9721,7 @@ void PopulateNpcTradeList005ADBE0(void)
                 if (shown > 0x15d) {
                     break;
                 }
-                if (g_screen_state_00649f1c->value_100 == 3) {
+                if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_SELL) {
                     unsigned char stack_count;
                     if (g_item_records[item->item_id].equip_class == 4) {
                         stack_count = item->stack_count;
@@ -9608,13 +9764,13 @@ void PopulateNpcTradeList005ADBE0(void)
                 continue;
             }
             if (NpcAcceptsTradeItem(g_screen_state_00649f1c->dialogue_npc, item) == 0 &&
-                g_screen_state_00649f1c->value_100 != 2) {
+                g_screen_state_00649f1c->trade_mode != W8_NPC_TRADE_GIVE) {
                 font_palette = 0;
                 acceptable = false;
             } else {
                 font_palette = 0xf;
             }
-            if (g_screen_state_00649f1c->value_100 == 3) {
+            if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_SELL) {
                 unsigned char stack_count;
                 if (g_item_records[item->item_id].equip_class == 4) {
                     stack_count = item->stack_count;
@@ -9653,11 +9809,12 @@ void OpenNpcTradeSplitDialog005AE040(void)
         g_screen_state_00649f1c->trade_item->stack_count < 2) {
         return;
     }
-    if (g_screen_state_00649f1c->value_100 == 3) {
+    if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_SELL) {
         dialog = new W8SplitItemDialog(g_split_dialog_sell_kind_005efb68,
                                        g_screen_state_00649f1c->trade_item,
                                        g_screen_state_00649f1c->trade_quantity);
-    } else if (g_screen_state_00649f1c->value_100 == 4 || g_screen_state_00649f1c->value_100 == 5) {
+    } else if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_BUY ||
+               g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_SHOPLIFT) {
         dialog = new W8SplitItemDialog(g_split_dialog_buy_kind_005efb6c,
                                        g_screen_state_00649f1c->trade_item,
                                        g_screen_state_00649f1c->trade_quantity);
@@ -9675,7 +9832,7 @@ void OpenNpcTradeSplitDialog005AE040(void)
 // FUNCTION: WIZ8 0x005AE000
 void SetNpcDialogueSubMode4(void)
 {
-    g_screen_state_00649f1c->value_100 = 4;
+    g_screen_state_00649f1c->trade_mode = W8_NPC_TRADE_BUY;
     UpdateNpcDialogueSubMode();
 }
 
@@ -9706,7 +9863,7 @@ bool ValidateNpcTradeSelection005AE1F0(void)
 {
     bool accepted = true;
 
-    if (g_screen_state_00649f1c->value_100 == 3) {
+    if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_SELL) {
         if (g_screen_state_00649f1c->trade_item == 0) {
             return false;
         }
@@ -9715,7 +9872,7 @@ bool ValidateNpcTradeSelection005AE1F0(void)
             accepted = false;
             QueueNpcScriptLine(0x11, 0, 0, 0);
         }
-    } else if (g_screen_state_00649f1c->value_100 == 4) {
+    } else if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_BUY) {
         W8ItemInstance* item = g_screen_state_00649f1c->trade_item;
         if (item == 0) {
             return false;
@@ -9752,7 +9909,8 @@ bool AttemptNpcItemTrade005AE2A0(W8ItemInstance* item, unsigned char quantity, i
         ResetEditorStatusLine0058AA20(2);
         ResetNpcDialogueItemEditor();
         EnableNpcTradeFilterButtons00573630();
-        if (g_screen_state_00649f1c->value_100 != 4 && g_screen_state_00649f1c->value_100 != 5) {
+        if (g_screen_state_00649f1c->trade_mode != W8_NPC_TRADE_BUY &&
+            g_screen_state_00649f1c->trade_mode != W8_NPC_TRADE_SHOPLIFT) {
             PopulateNpcTradeList005ADBE0();
             return true;
         }
@@ -9808,7 +9966,7 @@ void W8NpcDialogueTextController::SelectTranscriptKeywordAtPoint(int x, int y)
     wchar_t keyword[200];
     unsigned int hit;
 
-    if (g_screen_state_00649f1c->flag_250 != 0) {
+    if (g_screen_state_00649f1c->modal_dialog_open != 0) {
         return;
     }
 

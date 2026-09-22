@@ -3,7 +3,6 @@
 
 #include "vobject.h"
 
-#pragma pack(push, 1)
 struct W8VideoObjectSlot {
     int first_frame;
     short y_offset;
@@ -17,7 +16,6 @@ struct W8VideoFrame {
     unsigned char unknown_35[3];
     unsigned int handle;
 };
-#pragma pack(pop)
 
 extern W8VideoObjectSlot g_video_slots_6448c8[494];
 extern W8VideoFrame g_video_frames_62c430[1658];

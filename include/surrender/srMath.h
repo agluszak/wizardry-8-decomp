@@ -472,8 +472,11 @@ public:
     /* The single-angle overloads evaluate the trigonometry themselves. */
     srMatrix3T<T>* RotateAboutY(double angle);
     srMatrix3T<T>* RotateAboutX(double angle);
+    srMatrix3T<T>* RotateAboutZ(double angle);
     srMatrix3T<T>* RotateAroundAxis(double angle, const srVector3T<T>& axis);
     srVector3T<T> Transform(const srVector3T<T>& value) const;
+    /* Column products: result = M^T * value. */
+    srVector3T<T> TransformTransposed(const srVector3T<T>& value) const;
     bool operator==(const srMatrix3T<T>& other) const;
 
     srVector3T<T> vectors[3];
@@ -610,7 +613,6 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutZ(double sine, doubl
     return this;
 }
 
-// TEMPLATE: WIZ8 0x00467430
 // srMatrix3T<float>::RotateAboutY
 template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutY(double angle)
 {
@@ -639,7 +641,6 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutY(double angle)
     return this;
 }
 
-// TEMPLATE: WIZ8 0x004A5AB0
 // srMatrix3T<float>::RotateAboutX
 template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutX(double angle)
 {
@@ -660,6 +661,35 @@ template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutX(double angle)
         basis[2].x = (T)0;
         basis[2].y = sine;
         basis[2].z = cosine;
+        rotation.vectors[0] = basis[0];
+        rotation.vectors[1] = basis[1];
+        rotation.vectors[2] = basis[2];
+        MultiplyBy(rotation);
+    }
+    return this;
+}
+
+// TEMPLATE: WIZ8 0x004CAB60
+// srMatrix3T<float>::RotateAboutZ
+template <class T> srMatrix3T<T>* srMatrix3T<T>::RotateAboutZ(double angle)
+{
+    srVector3T<T> basis[3];
+    srMatrix3T<T> rotation;
+    T cosine;
+    T sine;
+
+    if (angle != 0.0) {
+        cosine = (T)cos(angle);
+        sine = (T)sin(angle);
+        basis[0].x = cosine;
+        basis[0].y = -sine;
+        basis[0].z = (T)0;
+        basis[1].x = sine;
+        basis[1].y = cosine;
+        basis[1].z = (T)0;
+        basis[2].x = (T)0;
+        basis[2].y = (T)0;
+        basis[2].z = (T)1;
         rotation.vectors[0] = basis[0];
         rotation.vectors[1] = basis[1];
         rotation.vectors[2] = basis[2];
@@ -743,6 +773,21 @@ template <class T> srVector3T<T> srMatrix3T<T>::Transform(const srVector3T<T>& v
     result.x = DotProduct(vectors[0], value);
     result.y = DotProduct(vectors[1], value);
     result.z = DotProduct(vectors[2], value);
+    return result;
+}
+
+/* The transposed product: each result component is a column dot, so
+   result = M^T * value. Emitted standalone at 0x004ED950 for the Combat.cpp
+   breath-effect direction rotation. */
+// TEMPLATE: WIZ8 0x004ed950
+// srMatrix3T<float>::TransformTransposed
+template <class T>
+srVector3T<T> srMatrix3T<T>::TransformTransposed(const srVector3T<T>& value) const
+{
+    srVector3T<T> result;
+    result.x = vectors[0].x * value.x + vectors[1].x * value.y + vectors[2].x * value.z;
+    result.y = vectors[0].y * value.x + vectors[1].y * value.y + vectors[2].y * value.z;
+    result.z = vectors[0].z * value.x + vectors[1].z * value.y + vectors[2].z * value.z;
     return result;
 }
 
@@ -959,7 +1004,6 @@ template <class T> void srMatrix4T<T>::AdjugateFrom(T* source)
 /* Build the homogeneous transform whose upper 3x3 is `rotation` and whose
    last column is `translation`; the bottom row is (0,0,0,1). Wiz8's
    BakeInstanceVertexLighting calls this before bulk-transforming vertices. */
-// TEMPLATE: WIZ8 0x00470200
 // srMatrix4T<float>::Set
 template <class T>
 srMatrix4T<T>* srMatrix4T<T>::Set(const srMatrix3T<T>& rotation, const srVector3T<T>& translation)
@@ -1011,7 +1055,6 @@ template <class T> void srMatrix4x3T<T>::SetRotation(const srMatrix3T<T>& rotati
     rows[2].z = rotation.vectors[2].z;
 }
 
-// TEMPLATE: WIZ8 0x004B8660
 // srMatrix4x3T<float>::SetTranslation
 template <class T>
 srMatrix4x3T<T>* srMatrix4x3T<T>::SetTranslation(const srVector3T<T>& translation)
@@ -1022,7 +1065,6 @@ srMatrix4x3T<T>* srMatrix4x3T<T>::SetTranslation(const srVector3T<T>& translatio
     return this;
 }
 
-// TEMPLATE: WIZ8 0x004B8680
 // srMatrix4x3T<float>::Scale
 template <class T> srMatrix4x3T<T>* srMatrix4x3T<T>::Scale(const srVector3T<T>& scale)
 {

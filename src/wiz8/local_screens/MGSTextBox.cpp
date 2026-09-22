@@ -668,7 +668,7 @@ void ScrollDialogueTextBoxToLine0058BA60(void)
         (input = g_level_block->dialogue_text_input) != 0 &&
         g_status_685170.text_line_cursor_1795 == input->text_box) {
         if (gXStatus.fNpcDialogueMode != 0) {
-            offset = g_screen_state_00649f1c->flag_261 != 0 ? 1 : 7;
+            offset = g_screen_state_00649f1c->text_box_collapsed != 0 ? 1 : 7;
         } else {
             offset = gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0 &&
                              gXStatus.fCampMode == 0
@@ -681,7 +681,7 @@ void ScrollDialogueTextBoxToLine0058BA60(void)
         return;
     }
     if (gXStatus.fNpcDialogueMode != 0) {
-        offset = g_screen_state_00649f1c->flag_261 != 0 ? 1 : 7;
+        offset = g_screen_state_00649f1c->text_box_collapsed != 0 ? 1 : 7;
     } else {
         offset =
             gXStatus.fSpellCastMode == 0 && gXStatus.fItemSelectMode == 0 && gXStatus.fCampMode == 0
@@ -866,14 +866,19 @@ static unsigned int FindDialogueTextLine(const W8DialogueTextState* input)
    emission for the few retail CALL sites. */
 /* Retail returns 7 when the text box is in a multi-line mode (spell / item /
    camp / NPC dialogue with the transcript collapsed); otherwise 1. */
-#define W8_TEXT_BOX_VISIBLE_LINE_COUNT() GetTextBoxVisibleLineCount()
+#define W8_TEXT_BOX_VISIBLE_LINE_COUNT()                                                           \
+    (((gXStatus.fNpcDialogueMode == 0 || g_screen_state_00649f1c->text_box_collapsed == 0) &&                \
+      (gXStatus.fSpellCastMode != 0 || gXStatus.fNpcDialogueMode != 0 ||                           \
+       gXStatus.fItemSelectMode != 0 || gXStatus.fCampMode != 0))                                  \
+         ? 7                                                                                       \
+         : 1)
 
 // FUNCTION: WIZ8 0x00590900
 int GetTextBoxVisibleLineCount(void)
 {
     unsigned char dialogue = gXStatus.fNpcDialogueMode;
     if (dialogue != 0) {
-        if (g_screen_state_00649f1c->flag_261 != 0) {
+        if (g_screen_state_00649f1c->text_box_collapsed != 0) {
             return 1;
         }
     }
@@ -979,9 +984,9 @@ void AdvanceNoticeLine(short text_box)
     record->clock_08 = SetCountdownClock(delay);
     unsigned int shown = ++g_status_685170.text_box_lines_shown_49a7[text_box];
     if (g_level_block->text_scroll_drag_idle) {
-        if (gXStatus.fNpcDialogueMode && g_screen_state_00649f1c->flag_261) {
+        if (gXStatus.fNpcDialogueMode && g_screen_state_00649f1c->text_box_collapsed) {
             ScrollTextBoxTo(shown);
-            g_screen_state_00649f1c->flag_261 = 0;
+            g_screen_state_00649f1c->text_box_collapsed = 0;
         } else if (!gXStatus.fSpellCastMode && !gXStatus.fNpcDialogueMode &&
                    !gXStatus.fItemSelectMode && !gXStatus.fCampMode) {
             if (gXStatus.fCombatMode && g_combat_state->notice_scroll_pending_a57) {
@@ -1009,26 +1014,33 @@ void AdvanceNoticeLine(short text_box)
 void ScrollTextBoxTo(int line)
 {
     short text_box = g_status_685170.text_line_cursor_1795;
-    unsigned int count = GetTextBoxLineCount(text_box);
+    unsigned int input_lines;
+    if (g_level_block->dialogue_text_input_open == 0 || g_level_block->dialogue_text_input == 0 ||
+        g_level_block->dialogue_text_input->text_box != text_box) {
+        input_lines = 0;
+    } else {
+        input_lines = g_level_block->dialogue_text_input->line_count;
+    }
+    unsigned int count = g_status_685170.text_box_lines_shown_49a7[text_box];
     unsigned int visible = W8_TEXT_BOX_VISIBLE_LINE_COUNT();
-    if (count <= visible) {
+    if (input_lines + count <= visible) {
         return;
     }
     unsigned int previous = g_level_block->text_lines[text_box];
     unsigned int target = static_cast<unsigned int>(line);
-    if (target + visible <= count) {
+    if (target + visible <= count + input_lines) {
         if (target > 349) {
             target = 350;
         }
         g_level_block->text_lines[text_box] = target;
     } else {
-        g_level_block->text_lines[text_box] = count - visible;
+        g_level_block->text_lines[text_box] = (count - visible) + input_lines;
     }
     if (g_level_block->text_lines[text_box] != previous) {
         g_level_block->text_content_region = (g_level_block->text_lines[text_box] != 0) + 0x56;
         g_level_block->dialogue_content_region =
             (g_level_block->text_lines[text_box] + W8_TEXT_BOX_VISIBLE_LINE_COUNT() <
-             GetTextBoxLineCount(text_box)) +
+             count + input_lines) +
             0x59;
         RequestRedraw(W8_REDRAW_TEXT_BOX);
     }
@@ -2266,6 +2278,33 @@ char TextBoxHandleKey(const InputAtom* event)
    function's own name in the player's words. Its caller passes the same
    (level, flag, backfire) triple CastSpellAtLockInteraction00587C80 takes;
    only the target is read here. */
+/* The trap-mode half of CastSpellAtLockInteraction00587C80: without a
+   backfire the disarm chance is `level * 5 + 0x32 - m_field_038 * 6`, a
+   success parks the screen in state 7 (8 on a miss), and either way the text
+   and action panels go quiet for a 1.5 second timer. */
+// FUNCTION: WIZ8 0x0058A930
+void AttemptTrapDisarm0058A930(int level, int /*flag*/, char backfire)
+{
+    W8MainGameScreen* screen = g_main_game_screen;
+    int chance;
+
+    if (backfire != '\0') {
+        chance = 0;
+    } else {
+        chance = level * 5 + 0x32 + screen->m_field_038 * -6;
+    }
+    if (static_cast<int>(Random(100)) < chance) {
+        screen->m_state_018 = 7;
+    } else {
+        screen->m_state_018 = 8;
+    }
+    screen->m_text_panel_00c->EnableRegionSet(0);
+    screen->m_text_panel_00c->m_key_handler_074->m_range_038.EnableRegionSet(0);
+    screen->m_action_panel_014->EnableRegionSet(0);
+    screen->m_timer_154.SetDuration(1.5f);
+    screen->m_timer_154.Restart();
+}
+
 // FUNCTION: WIZ8 0x0058a9c0
 void SetKnockKnockTarget(int target, int /*flag*/, int /*backfire*/)
 {
