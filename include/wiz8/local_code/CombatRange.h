@@ -83,8 +83,9 @@ W8RangeCategory GetMonsterActionRangeCategory(const W8MonsterInfo* monster_info,
 W8RangeCategory GetBestHandRangeCategory(const W8Character* character);
 /* 0x00519180: whether the slot's chosen action in `context` still reaches its
    selected target - character range and front-rank screen, monster aim, place
-   distance and line of sight, or group reach. */
-bool CharacterActionReachesTarget(int party_slot, int action, W8TargetingContext context);
+   distance and line of sight, or group reach. `hand` selects the attack side;
+   2 asks the range helpers to use the better hand. */
+bool CharacterActionReachesTarget(int party_slot, int hand, W8TargetingContext context);
 /* 0x005197C0: the slot-vs-slot form the target-list builder uses: whether the
    slot's chosen action in `context` can strike `target_slot`. */
 char CharacterActionReachesSlot(int party_slot, int hand, int target_slot, int context);

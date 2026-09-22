@@ -2425,7 +2425,7 @@ done:
    group, spells and item casts ask the spell record - and the stored target
    has to both match that need and still be in range. */
 // FUNCTION: WIZ8 0x00536f60
-bool TargetIsInPlay(int party_slot, int value, W8TargetingContext context)
+bool TargetIsInPlay(int party_slot, int hand, W8TargetingContext context)
 {
     W8TargetingContext resolved;
     W8ActionDetailBlock* detail_block;
@@ -2499,7 +2499,7 @@ bool TargetIsInPlay(int party_slot, int value, W8TargetingContext context)
     if (TargetMatchesNeeded(target, needed) == 0) {
         return 0;
     }
-    return CharacterActionReachesTarget(party_slot, value, context) != 0;
+    return CharacterActionReachesTarget(party_slot, hand, context) != 0;
 }
 
 /* Whether a party slot's chosen action can be aimed at one monster. The
