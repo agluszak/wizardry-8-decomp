@@ -88,6 +88,9 @@ def test_stage_game_refuses_an_unmanaged_asset_directory(tmp_path: Path) -> None
 def test_interactive_run_restores_managed_wine_window(tmp_path: Path, monkeypatch) -> None:
     settings = _settings(tmp_path)
     (settings.product_build_dir / "Wiz8Runtime.exe").write_bytes(b"runtime")
+    prefix = settings.work_dir / "wine" / "wiz8-runtime"
+    prefix.mkdir(parents=True)
+    (prefix / "system.reg").write_text("")
     calls = []
 
     monkeypatch.setattr("wiz8decomp.runtime.shutil.which", lambda name: f"/usr/bin/{name}")
@@ -378,6 +381,42 @@ def test_runtime_suite_preserves_failures_and_continues(
         run_runtime_suite(settings, scenarios=scenarios, check_order=check_order)
     assert "depend on scenario order" not in str(error.value)
     assert visited == list(scenarios) + (list(reversed(scenarios)) if check_order else [])
+
+
+def test_runtime_suite_workers_get_private_prefixes(tmp_path: Path, monkeypatch) -> None:
+    settings = _settings(tmp_path)
+    scenarios = ("main-menu-startup", "split-stack")
+    prefixes = []
+    monkeypatch.setattr("wiz8decomp.runtime.shutil.which", lambda name: f"/usr/bin/{name}")
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.runtime_display", lambda *args, **kwargs: nullcontext(None)
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.configure_wine_window_management", lambda *args, **kwargs: None
+    )
+    monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", lambda *args, **kwargs: None)
+    monkeypatch.setattr("wiz8decomp.runtime._read_runtime_scenarios", lambda *args: _registry())
+
+    def run(executable, stage, environment, scenario, timeout_seconds, object_root, map_path):
+        prefixes.append(environment["WINEPREFIX"])
+        return {"scenario": scenario, "teardown": 1}
+
+    monkeypatch.setattr("wiz8decomp.runtime._run_runtime_scenario", run)
+    result = run_runtime_suite(settings, scenarios=scenarios, workers=2)
+
+    assert len(set(prefixes)) == 2
+    assert result["workers"] == 2
+    assert len(result["wine_prefixes"]) == 2
+    assert result["input_digest"]
+
+
+def test_runtime_suite_workers_require_private_virtual_displays(
+    tmp_path: Path, monkeypatch
+) -> None:
+    settings = _settings(tmp_path)
+    monkeypatch.setenv("WIZ8_RUNTIME_DISPLAY", "host")
+    with pytest.raises(RuntimeError, match="private virtual display"):
+        run_runtime_suite(settings, scenarios=("split-stack",), workers=2)
 
 
 def test_staging_keeps_the_map_for_each_executable_snapshot(
@@ -742,7 +781,7 @@ def test_virtual_runtime_display_fails_closed_without_xvfb(
 
 @pytest.mark.parametrize(("private_display", "managed"), [(True, "N"), (False, "Y")])
 def test_wine_window_management_matches_display_mode(
-    private_display: bool, managed: str, monkeypatch: pytest.MonkeyPatch
+    private_display: bool, managed: str, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     calls = []
     monkeypatch.setattr(
@@ -751,7 +790,10 @@ def test_wine_window_management_matches_display_mode(
     )
     monkeypatch.delenv("WIZ8_WINE_VIRTUAL_DESKTOP", raising=False)
 
-    environment = {"WINEPREFIX": "/prefix"}
+    prefix = tmp_path / "prefix"
+    prefix.mkdir()
+    (prefix / "system.reg").write_text("")
+    environment = {"WINEPREFIX": str(prefix)}
     configure_wine_window_management(environment, private_display=private_display)
 
     argv = calls[0][0][0]
@@ -769,7 +811,7 @@ def test_wine_window_management_matches_display_mode(
 
 @pytest.mark.parametrize("private_display", [True, False])
 def test_wine_window_management_virtual_desktop_is_an_explicit_opt_in(
-    private_display: bool, monkeypatch: pytest.MonkeyPatch
+    private_display: bool, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     calls = []
     monkeypatch.setattr(
@@ -778,8 +820,36 @@ def test_wine_window_management_virtual_desktop_is_an_explicit_opt_in(
     )
     monkeypatch.setenv("WIZ8_WINE_VIRTUAL_DESKTOP", "1")
 
-    environment = {"WINEPREFIX": "/prefix"}
+    prefix = tmp_path / "prefix"
+    prefix.mkdir()
+    (prefix / "system.reg").write_text("")
+    environment = {"WINEPREFIX": str(prefix)}
     configure_wine_window_management(environment, private_display=private_display)
 
     assert calls[1][0][0][-5:] == ["/v", "Desktop", "/d", "Wizardry", "/f"]
     assert calls[2][0][0][-5:] == ["/v", "Wizardry", "/d", "640x480", "/f"]
+
+
+def test_configure_wine_initializes_a_fresh_prefix_without_audio_overrides(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Fresh prefixes are populated without WINEDLLOVERRIDES: wine's first-run
+    init crashes when the overrides disable dsound."""
+    calls = []
+    prefix = tmp_path / "fresh-prefix"
+
+    def run(command, **kwargs):
+        if command[1:3] == ["reg", "query"]:
+            prefix.mkdir(exist_ok=True)
+            (prefix / "system.reg").write_text("")
+        calls.append((command, kwargs))
+
+    monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", run)
+    monkeypatch.delenv("WIZ8_WINE_VIRTUAL_DESKTOP", raising=False)
+
+    environment = {"WINEPREFIX": str(prefix), "WINEDLLOVERRIDES": "dsound=d"}
+    configure_wine_window_management(environment, private_display=True)
+
+    assert calls[0][0][1:3] == ["reg", "query"]
+    assert "WINEDLLOVERRIDES" not in calls[0][1]["env"]
+    assert calls[1][1]["env"] is environment

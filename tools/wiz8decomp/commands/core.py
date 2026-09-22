@@ -311,6 +311,15 @@ def runtime_test_command(
             "process; crashed or poisoned batches re-run leftover cases fresh.",
         ),
     ] = False,
+    workers: Annotated[
+        int,
+        typer.Option(
+            "--workers",
+            min=1,
+            help="Run independent cases on this many isolated workers; each "
+            "gets its own stage, Wine prefix, and virtual display.",
+        ),
+    ] = 1,
 ) -> None:
     """Run deterministic in-process semantic scenarios using the existing product."""
     from .. import command_support as cli
@@ -330,6 +339,7 @@ def runtime_test_command(
             check_order=check_order,
             renderer=renderer,
             batch=batch,
+            workers=workers,
         )
     )
 
