@@ -37,7 +37,6 @@ unsigned __int64 quadWord64(const srQuadWord& value)
 char storage_class[0x2c];
 } // namespace
 
-
 // GLOBAL: SURRENDER 0x1009C710
 unsigned short srTimer::cpuFreqVariancePct = 4;
 
@@ -883,8 +882,7 @@ unsigned long srTimer::getUTime(srQuadWord& out, e_timerReadControl control)
     if (control == TIMER_READ_DEFAULT) {
         m_read_tick(&m_tick);
     }
-    unsigned __int64 units =
-        (unsigned __int64)((m_tick - m_base) * m_units_per_tick);
+    unsigned __int64 units = (unsigned __int64)((m_tick - m_base) * m_units_per_tick);
     out.lo = (unsigned long)units;
     out.hi = (unsigned long)(units >> 0x20);
     return out.lo;
@@ -1003,11 +1001,14 @@ const char* srTimer::getOsIdent() const
         ++front;
     }
     strcpy(info.szCSDVersion, front);
-    char* end = info.szCSDVersion + strlen(info.szCSDVersion) - 1;
-    if (end != info.szCSDVersion) {
-        while (isspace(*end) && end != info.szCSDVersion) {
-            --end;
-        }
+    /* Retail walks from the NUL terminator (not the last character) and tests
+       isspace before decrementing, so the trim is inert: isspace('\0') stops
+       the loop at entry and *end = 0 rewrites the existing terminator. No
+       trailing whitespace is ever removed, but no out-of-bounds access is
+       possible either. Preserved as recovered retail behavior. */
+    char* end = info.szCSDVersion + strlen(info.szCSDVersion);
+    while (end != info.szCSDVersion && isspace(*end)) {
+        --end;
     }
     *end = '\0';
     if (info.dwPlatformId == 2) {
@@ -1058,4 +1059,3 @@ std::ostream& operator<<(std::ostream& stream, const srTimer& timer)
     stream.width(mode);
     return stream;
 }
-
