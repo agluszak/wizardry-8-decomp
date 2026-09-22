@@ -2606,7 +2606,7 @@ unsigned char HandleAutomapKey00584690(const InputAtom* input)
         SetAutomapLayer00580F20(input->usParam - 0x31);
         return 1;
     case 0x41:
-        if (g_flag_689b32 != 0) {
+        if (g_dev_mode_689b32 != 0) {
             g_automap_saved_camera.position = g_automap_position;
             srVector3T<float> center;
             center.Set(g_automap_bounds_min.x + g_automap_bounds_max.x,
@@ -2619,26 +2619,26 @@ unsigned char HandleAutomapKey00584690(const InputAtom* input)
         }
         return 1;
     case 0x43:
-        if (g_flag_689b32 != 0) {
+        if (g_dev_mode_689b32 != 0) {
             g_automap_state->blink_time = GetTickCount() + 200;
             g_automap_state->blink_enabled = 1;
         }
         return 1;
     case 0x49:
-        if (g_flag_689b32 != 0) {
+        if (g_dev_mode_689b32 != 0) {
             g_flag_64b90d = g_flag_64b90d == 0;
             g_automap_redraw = 1;
             g_automap_overlay_redraw = 1;
         }
         return 1;
     case 0x53:
-        if (g_flag_689b32 != 0) {
+        if (g_dev_mode_689b32 != 0) {
             g_automap_state->blink_time = GetTickCount() + 200;
             g_automap_state->blink_enabled = 0;
         }
         return 1;
     case 0x70:
-        if (g_flag_689b32 != 0) {
+        if (g_dev_mode_689b32 != 0) {
             g_automap_saved_camera.position = g_automap_position;
             ResetCurrentEnvironment0041AA40();
             ResetCurrentEnvironment0041AA40();
@@ -2646,7 +2646,7 @@ unsigned char HandleAutomapKey00584690(const InputAtom* input)
         }
         break;
     case 0x79:
-        if (g_flag_689b32 != 0) {
+        if (g_dev_mode_689b32 != 0) {
             g_flag_0068f264 = g_flag_0068f264 == 0;
             g_automap_redraw = 1;
             g_automap_overlay_redraw = 1;

@@ -2221,7 +2221,7 @@ void PartySelectionScreenFrame(void)
     POINT current;
     InputAtom input;
 
-    if (g_flag_689b32) {
+    if (g_dev_mode_689b32) {
         RequestExitScreen();
     }
     SGPMouseGetPos(&point);

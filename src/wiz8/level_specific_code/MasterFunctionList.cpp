@@ -308,7 +308,7 @@ unsigned char WorldCursorNodeShowMessageOnce004D9260(int command, W8WorldCursorN
     type = GetWorldCursorNodeParameter0048E2B0(node, 2);
     enabled = static_cast<unsigned char>(GetWorldCursorNodeParameter0048E2B0(node, 1));
     if (enabled != 0 && g_status_685170.search_mode == 0 &&
-        g_status_685170.party_modifiers_22e3.flag_46 == 0) {
+        g_status_685170.party_modifiers_22e3.detect_secrets_46 == 0) {
         for (slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
             if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
                 CharacterHasTrait00547940(g_status_685170.buffers.Char + slot, 0xc)) {

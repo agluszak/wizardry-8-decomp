@@ -3157,7 +3157,7 @@ void Trigger::Run(int source)
             g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
         monster_info->monster->ResetRepresentation004A7420();
         monster_info->monster->ResetPathAI();
-        monster_info->monster->unknown_09d[0] = 1;
+        monster_info->monster->reactivated_09d = 1;
         return;
     }
 

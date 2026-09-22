@@ -227,7 +227,7 @@ void MainMenuScreenFrame()
     POINT point;
     InputAtom input;
 
-    if (g_flag_689b32 != 0) {
+    if (g_dev_mode_689b32 != 0) {
         RequestExitScreen();
     }
     if (g_main_menu_dialog != 0) {
@@ -253,7 +253,7 @@ void MainMenuScreenFrame()
         while (DequeueEvent(&input) == 1) {
             if (!DispatchRegionInput(&input) && input.usEvent == KEY_DOWN) {
                 if (IgnoreSpellCastingInput(&input)) {
-                    if (g_flag_689b32 != 0) {
+                    if (g_dev_mode_689b32 != 0) {
                         SetFont(g_font_683660);
                         SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
                         gprintfDirty(5, 5, L"Developer mode enabled.");

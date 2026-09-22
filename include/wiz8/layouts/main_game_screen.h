@@ -59,7 +59,7 @@ struct W8DialogueTextState {
     unsigned int cursor;           /* 0x28: insertion point in text */
     unsigned char cursor_dirty_2c; /* 0x2c: repaint just the dialogue cursor */
     bool dirty;                    /* 0x2d: cursor/text redraw pending */
-    unsigned char unknown_2e[2];
+    unsigned char padding_2e[2];
     unsigned int saved_scroll_line; /* 0x30: restored when input closes */
 };
 static_assert(sizeof(W8DialogueTextState) == 0x34, "W8DialogueTextState_size");
@@ -81,7 +81,7 @@ struct W8LevelRuntimeBlock {
     unsigned int hover_region;                 /* 0x104 */
     bool portrait_strip_dirty_108;             /* 0x108: portrait strip needs a redraw */
     unsigned char portrait_refresh_pending[8]; /* 0x109 */
-    unsigned char unknown_111[3];
+    unsigned char padding_111[3];
     int portrait_refresh_image[8]; /* 0x114 */
     int portrait_refresh_mode[8];  /* 0x134 */
     bool pick_changed_154;
@@ -91,7 +91,7 @@ struct W8LevelRuntimeBlock {
     /* 0x158: portraits UI mode selected; picks the portrait-hover layout. */
     unsigned char portrait_mode_158;
     unsigned char text_scroll_drag_idle; /* 0x159: cleared while thumb is dragged */
-    unsigned char unknown_15a[2];
+    unsigned char padding_15a[2];
     /* 0x15c: the x origin the mode-6 hover panel anchors the slot's portrait
        column position against. */
     int portrait_hover_x_origin;
@@ -122,7 +122,7 @@ struct W8LevelRuntimeBlock {
     int text_slots_1d8[4];
     int text_slots_1e8[4];
     bool dialogue_text_input_open;
-    unsigned char unknown_1f9[3];
+    unsigned char padding_1f9[3];
     /* GOG retail retains the complete editor consumer path, but has no writer
        that raises this gate and no allocation/store producer for the pointer.
        The input is therefore dormant in this build rather than an inferred
@@ -136,10 +136,10 @@ struct W8LevelRuntimeBlock {
     int enchantment_orb_party_slot;
     int condition_highlight_party_slot; /* 0x20c: -1 while untracked */
     unsigned char flag_210;             /* 0x210 */
-    unsigned char unknown_211[3];
+    unsigned char padding_211[3];
     unsigned int clock_214;           /* 0x214 */
     unsigned char portrait_flash_218; /* 0x218: 500ms highlight pulse on clock_214 */
-    unsigned char unknown_219[3];
+    unsigned char padding_219[3];
     /* 0x21c: content row count captured by the mode-6 hover overlay draw. */
     int hover_overlay_row_count;
     int dialogue_x_220;
@@ -163,7 +163,7 @@ struct W8LevelRuntimeBlock {
     unsigned char mouselook_debug_24c;
     /* 0x24d: video inspector overlay enabled when no modal mode owns input. */
     bool inspector_enabled_24d;
-    unsigned char unknown_24e[2];
+    unsigned char padding_24e[2];
     unsigned int character_update_timer; /* 0x250 */
     unsigned int world_update_timer;     /* 0x254 */
     unsigned int countdown_258;          /* 0x258 */
@@ -179,7 +179,7 @@ struct W8LevelRuntimeBlock {
        by spell/item/dialogue screens that need it. */
     bool text_box_visible_271;
     bool mipe_editing_272; /* 0x272: MIPE edit session owns the hidden action panel */
-    unsigned char unknown_273;
+    unsigned char padding_273;
     unsigned int tick_274; /* 0x274 */
     int value_278;         /* 0x278 */
     int pending_level;
@@ -203,10 +203,10 @@ struct W8LevelRuntimeBlock {
     int value_2b4; /* 0x2b4 */
     unsigned char unknown_2b8[8];
     unsigned char refresh_combat_panel;
-    unsigned char unknown_2c1[3];
+    unsigned char padding_2c1[3];
     unsigned int combat_panel_timer;
     unsigned char refresh_party_panel;
-    unsigned char unknown_2c9;
+    unsigned char padding_2c9;
     short combat_end_notification;
     int text_box_left;
     int text_box_top;
@@ -220,10 +220,10 @@ struct W8LevelRuntimeBlock {
     int selection_kind;
     int value_2f4; /* 0x2f4 */
     bool selection_settled;
-    unsigned char unknown_2f9[3];
+    unsigned char padding_2f9[3];
     unsigned int tooltip_since;
     unsigned char tooltip_pending;
-    unsigned char unknown_301[3];
+    unsigned char padding_301[3];
     int tooltip_subject;
     int tooltip_kind;
     unsigned int countdown_30c; /* 0x30c */
@@ -231,12 +231,12 @@ struct W8LevelRuntimeBlock {
     /* 0x314: the keyboard-action menu is open; set before BuildKeyboardMenu,
        cleared by CloseKeyboardMenu. */
     bool keyboard_menu_open;
-    unsigned char unknown_315[3];
+    unsigned char padding_315[3];
     int hover_combat_slot; /* 0x318 */
     /* 0x31c: keyboard-menu cursor-left grace countdown armed; expires into
        CloseKeyboardMenu. */
     unsigned char cursor_grace_31c;
-    unsigned char unknown_31d[3];
+    unsigned char padding_31d[3];
     unsigned int countdown_320; /* 0x320: portrait right-hold arm clock */
     /* 0x324: PortraitSelectRegionEvent right-button hold armed for camp. */
     unsigned char portrait_right_hold_armed;
@@ -245,7 +245,7 @@ struct W8LevelRuntimeBlock {
     bool review_transition_active;           /* 0x327: set while leaving into review */
     /* 0x328: the review-screen transition finished; gates its early-out. */
     bool review_transition_done_328;
-    unsigned char unknown_329[3];
+    unsigned char padding_329[3];
     unsigned int countdown_32c;
 };
 #pragma pack(pop)

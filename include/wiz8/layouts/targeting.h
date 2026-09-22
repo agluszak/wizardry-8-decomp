@@ -58,7 +58,13 @@ struct W8TargetSource {
     /* 0x1e: the attack's target ended up different from the one the slot row
        aimed at - a fumble reroll or a guardian interception replaced it. */
     unsigned char target_diverted;
-    unsigned char unknown_1f[0x15];
+    /* 0x1f: the precomputed cast difficulty item/tracked sources carry; the
+       spell engine reads it back when name_known_19 skips recomputation. */
+    unsigned char spell_difficulty_1f;
+    unsigned char unknown_20;
+    /* 0x21: set on sources the item-spell path builds. */
+    unsigned char item_cast_21;
+    unsigned char unknown_22[0x12];
 }; /* 0x34 */
 
 /* The target-kind domain a combat slot's leading field takes. The kinds that

@@ -142,8 +142,8 @@ W8MonsterGroup* FindFirstMonsterByID(int monster_id);
 W8MonsterGroup* FindNextExistingMonsterByID(int monster_id, W8MonsterGroup* previous);
 unsigned char GiveBirthToMonster(W8MonsterGroup* monster_group); /* 0x00511990 */
 W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
-                            const srVector3T<float>* position, unsigned char flag_1,
-                            unsigned char flag_2, unsigned char flag_3);
+                            const srVector3T<float>* position, unsigned char use_alternate_name,
+                            unsigned char announce_spawn, unsigned char place_on_ground);
 
 void ResetMonsterGroupTurnState(void);
 void RebindMonsterGroupScripts(void);

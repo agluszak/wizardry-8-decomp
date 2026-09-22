@@ -467,12 +467,12 @@ void DispatchMGSCommand(int command)
         if (IsScreenInputBlocked() != 0 || IsLevelDataFlag4EffectivelySet() == 0) {
             break;
         }
-        if (g_status_685170.iron_man != 0 && g_flag_689b32 == 0) {
+        if (g_status_685170.iron_man != 0 && g_dev_mode_689b32 == 0) {
             ShowNotice(0xc, gppStringList[0x20b0 / 4], -1, -1, 0);
             break;
         }
         if (gXStatus.fCombatMode != 0) {
-            if (g_flag_689b32 != 0) {
+            if (g_dev_mode_689b32 != 0) {
                 EndCombat004EA310(0);
             } else {
                 ShowNotice(0xc, gppStringList[0x1dd0 / 4], -1, -1, 0);
@@ -493,7 +493,7 @@ void DispatchMGSCommand(int command)
         if (IsScreenInputBlocked() != 0) {
             break;
         }
-        if (g_status_685170.iron_man != 0 && g_flag_689b32 == 0) {
+        if (g_status_685170.iron_man != 0 && g_dev_mode_689b32 == 0) {
             ShowNotice(0xc, gppStringList[0x20b0 / 4], -1, -1, 0);
             break;
         }

@@ -11,10 +11,10 @@ public:
     enum e_enable { ENABLE_POSITIONAL_0 = 0 };
 
     struct Statistics {
-        double value_00;
-        unsigned long value_08;
-        unsigned long value_0c;
-        unsigned long value_10;
+        double elapsed_00;              /* seconds since the last reset */
+        unsigned long render_calls_08;  /* scene renders accumulated */
+        unsigned long node_calls_0c;    /* node visits accumulated per render */
+        unsigned long process_calls_10; /* per-node process calls accumulated */
         unsigned long value_14;
     };
 

@@ -505,7 +505,7 @@ unsigned int g_hover_region_index;
 unsigned char g_region_help_force_enabled;
 
 // GLOBAL: WIZ8 0x00689B32
-unsigned char g_flag_689b32;
+unsigned char g_dev_mode_689b32;
 
 // FUNCTION: WIZ8 0x004f27a0
 void SetRegionHelpDelay(int delay_ms)

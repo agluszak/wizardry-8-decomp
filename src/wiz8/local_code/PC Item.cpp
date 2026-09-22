@@ -3950,7 +3950,7 @@ int CastItemSpell0051EE70(W8Character* character, W8ItemInstance* item, unsigned
     }
 
     SetTargetSourceToCharacter(party_slot, &target);
-    target.unknown_1f[2] = 1;
+    target.item_cast_21 = 1;
     TrackItemSpellSource00501D20(character, spell_id);
 
     if (skill == 9) {
@@ -3968,7 +3968,7 @@ int CastItemSpell0051EE70(W8Character* character, W8ItemInstance* item, unsigned
     }
     /* The spell engine reads the difficulty it worked out off the source's own
        tail bytes: 0x1f here, and the flag above at 0x21. */
-    target.unknown_1f[0] =
+    target.spell_difficulty_1f =
         static_cast<unsigned char>(GetSpellDifficulty(caster_figure, spell_id, power));
 
     if (strlen(record->video_object_name + 0x18) != 0) {

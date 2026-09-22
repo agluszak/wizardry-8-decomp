@@ -60,15 +60,15 @@ public:
     int frame_index_0a0;
     bool animation_running_0a4; /* 0xa4 */
     bool random_play_0a5;       /* 0xa5 */
-    unsigned char unknown_0a6[2];
+    unsigned char padding_0a6[2];
     float play_chance_0a8;            /* 0xa8: constructed as 0.5 */
     unsigned char saved_subcycle_0ac; /* 0xac */
     unsigned char frame_steps_0ad;    /* 0xad */
-    unsigned char unknown_0ae[2];
+    unsigned char padding_0ae[2];
     W8GrowableVector<W8PropAnimationSegment*> slots; /* 0xb0 */
     unsigned char footstep_surface_0c0;              /* 0xc0 */
     unsigned char footstep_material_0c1;             /* 0xc1 */
-    unsigned char unknown_0c2[2];
+    unsigned char padding_0c2[2];
 }; /* 0xc4 */
 
 static_assert(sizeof(W8PropRepresentation) == 0xc4, "W8PropRepresentation_must_be_0xc4");

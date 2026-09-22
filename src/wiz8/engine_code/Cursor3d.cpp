@@ -212,7 +212,7 @@ void InitializeWorldCursor00490210(void)
             gp3DCursor->probe_offsets_60[7].y = minimum.y;
             gp3DCursor->probe_offsets_60[7].z = minimum.z;
             UpdateWorldCursorPlacement00491EC0();
-            if (g_flag_689b32 != 0 &&
+            if (g_dev_mode_689b32 != 0 &&
                 (g_shift_held_006f0530 != 0 || g_monster_combat_timer_enabled_006f0531 != 0)) {
                 g_cursor_pick_latch_0065ba98 = 1;
             }
@@ -362,7 +362,7 @@ void ApplyWorldCursorInput00490C60(void)
     gp3DCursor->input_delta_0c.x = 0;
     gp3DCursor->input_delta_0c.y = 0;
     gp3DCursor->input_delta_0c.z = 0;
-    if (g_flag_689b32 != 0) {
+    if (g_dev_mode_689b32 != 0) {
         if (gfKeyState[0x10] == 0 && gfKeyState[0x11] == 0) {
             if (g_cursor_pick_latch_0065ba98 != 0) {
                 g_cursor_pick_latch_0065ba98 = 0;

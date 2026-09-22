@@ -276,7 +276,7 @@ public:
     /* 0x217: suppresses rendering and radar/automap display. */
     bool disabled_217;
     unsigned char nearest_to_party_218;
-    unsigned char unknown_219[3];
+    unsigned char padding_219[3];
     /* 0x21c/0x220: hover base-height random range (scaled by
        g_world_scale_005ebc40 into movement_0c0.vertical_base_07c). */
     int hover_base_min_21c;
@@ -307,12 +307,12 @@ public:
     unsigned char deaf_28f;
     unsigned char face_party_290;
     unsigned char stay_home_291;
-    unsigned char unknown_292[2];
+    unsigned char padding_292[2];
     float patrol_distance_294;
     float patrol_variation_298;
     W8GrowableVector<srVector3T<float> > vector_29c;
     signed char patrol_index_2ac;
-    unsigned char unknown_2ad[3];
+    unsigned char padding_2ad[3];
     float direction_x_2b0;
     float direction_y_2b4;
     float direction_z_2b8;
@@ -325,14 +325,14 @@ public:
        uninitialized, 1 lit (scale toward 0.75), 0 shadowed (toward 0). */
     int sunlit_state_2d0;
     unsigned char position_dirty_2d4;
-    unsigned char unknown_2d5[3];
+    unsigned char padding_2d5[3];
     W8GameTimer timer_2d8;
     float target_scale_2fc;
     float current_scale_300;
     /* 0x304: one-shot latch; the cycle-25 spell frame fires
        CreateAttachedSpellEffect once then clears it. */
     unsigned char spell_effect_armed_304;
-    unsigned char unknown_305[3];
+    unsigned char padding_305[3];
     srNode* node_308;
     W8GameTimer timer_30c;
     signed char fade_state_330;
@@ -424,7 +424,7 @@ public:
     stParticle* m_pParticles;
     unsigned char saved_behaviour;
     signed char saved_frame_method;
-    unsigned char unknown_0e[2];
+    unsigned char padding_0e[2];
 };
 
 static_assert(sizeof(W8MonsterShakeCallback) == 0x10, "W8MonsterShakeCallback_size_must_be_0x10");

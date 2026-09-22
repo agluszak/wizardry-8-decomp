@@ -227,7 +227,9 @@ struct W8Character {
     unsigned int experience;
     unsigned int experience_goal;
     unsigned int experience_previous_goal;
-    int value_09f9;
+    /* 0x09f9: this character's confirmed kills, shown on the camp stats
+       page and imported from the Wiz7 record. */
+    int kill_count_09f9;
     /* 0x09fd: how many times this character has died. */
     int death_count_09fd;
     /* 0x0a01: one entry per condition, holding how long it has left to run;

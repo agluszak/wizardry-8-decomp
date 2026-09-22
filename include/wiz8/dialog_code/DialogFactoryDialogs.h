@@ -23,7 +23,7 @@ public:
     /* 0x005E1460: the only call site (0x005DDA60) allocates 0x30 bytes, null
        checks the result and merges the returned `this`, which is the ordinary
        VC6 `new T(args)` shape rather than a separate initializer call. Retail
-       leaves m_active and unknown_01e uninitialized. */
+       leaves m_active and padding_01e uninitialized. */
     W8DialogNumericInput(int control_id, const W8ControlsRect* bounds, int value, int font,
                          W8DialogBase* dialog, W8DialogButton* button);
     void SetValue(int value);                                 /* 0x005E14C0 */
@@ -50,7 +50,7 @@ public:
     int m_value;            /* 0x18 */
     unsigned char m_dirty;  /* 0x1c */
     unsigned char m_active; /* 0x1d */
-    unsigned char unknown_01e[2];
+    unsigned char padding_01e[2];
     /* 0x20: -1, then the stack total for the split dialogs. The acceptance
        test in TypeDigit compares unsigned, so -1 is "no maximum". */
     unsigned int m_maximum;
@@ -110,7 +110,7 @@ public:
     int m_text_button_08c;        /* 0x08c */
     int m_second_text_button_090; /* 0x090 */
     short m_inlay_image_094;      /* 0x094: DialogInlay inlay for 0x098 */
-    short unknown_096;
+    short padding_096;
     int m_area_button_098;   /* 0x098: scrolling text area */
     int m_up_button_09c;     /* 0x09c */
     int m_up_image_0a0;      /* 0x0a0 */
@@ -119,7 +119,7 @@ public:
     int m_slider_button_0ac; /* 0x0ac */
     int m_slider_image_0b0;  /* 0x0b0 */
     short m_inlay_image_0b4; /* 0x0b4: DialogInlay inlay for 0x0b8 */
-    short unknown_0b6;
+    short padding_0b6;
     int m_third_text_button_0b8; /* 0x0b8 */
     int m_ok_button_0bc;         /* 0x0bc */
     int m_ok_image_0c0;          /* 0x0c0 */
@@ -130,7 +130,7 @@ public:
     int m_cancel_image_0d8;  /* 0x0d8 */
     W8ControlsRect m_cancel_rect_0dc;
     unsigned char m_scrollable; /* 0x0ec: scrolling area is scrollable */
-    unsigned char unknown_0ed[3];
+    unsigned char padding_0ed[3];
     int m_first_visible_line_0f0; /* 0x0f0 */
     int m_selected_line_0f4;      /* 0x0f4 */
     short m_inlay_image_0f8;      /* 0x0f8: DialogEdge inlay for the text buttons */
@@ -324,7 +324,7 @@ private:
     unsigned int m_kind_0cc;        /* 0x0cc: 0 inventory, 1 and 2 trade modes */
     W8ItemInstance* m_item_0d0;     /* 0x0d0 */
     unsigned char m_first_draw_0d4; /* 0x0d4: draw the item icon once */
-    unsigned char unknown_0d5[3];
+    unsigned char padding_0d5[3];
 };
 
 static_assert(sizeof(W8SplitItemDialog) == 0xd8, "W8SplitItemDialog_must_be_0xd8");

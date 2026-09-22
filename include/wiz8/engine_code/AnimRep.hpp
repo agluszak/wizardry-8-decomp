@@ -60,7 +60,7 @@ public:
     float instance_scale_05c;
     unsigned char flag_060;
     unsigned char apply_instance_scale_061;
-    unsigned char unknown_062[2];
+    unsigned char padding_062[2];
 };
 
 /* AnimRep.cpp's constructor and copy constructor extend the root through
@@ -79,7 +79,7 @@ public:
     /* Current frame/subcycle. GrCycle advances it and all derived renderers
        use it to select the live mesh, event, particle, and light state. */
     unsigned char subcycle_064;
-    unsigned char unknown_065;
+    unsigned char padding_065;
     /* 0xffff means no queued subcycle; ApplyPendingCycle consumes and clears
        this only after the pending cycle is accepted. */
     unsigned short pending_subcycle_066;
@@ -106,7 +106,7 @@ public:
     /* 0xff means no pending change. ApplyPendingCycle applies it to the
        selected representation, then clears the old object's slot. */
     unsigned char pending_behaviour_071;
-    unsigned char unknown_072[2];
+    unsigned char padding_072[2];
     /* Prop computes this pair from the animation's bounds, and stores the
        scaled extent in +0x8c. Other representation families inherit the
        storage even when their own use is not yet established. */
@@ -116,7 +116,7 @@ public:
     unsigned int value_090;
     unsigned char first_frame_094;
     unsigned char last_frame_095;
-    unsigned char unknown_096[2];
+    unsigned char padding_096[2];
 };
 
 static_assert(sizeof(W8ModelInstance3DRenderState) == 0x10,

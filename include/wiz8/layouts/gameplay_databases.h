@@ -76,7 +76,7 @@ struct W8MonsterAttack {
     /* 0x17: the attack's damage dice, packed; the missile path copies it
        into the attack block and the melee path rolls it. */
     W8Dice damage_dice;
-    unsigned char missile_value_1b;
+    unsigned char missile_magnitude_1b;
     /* 0x1c: the attack's weapon class, handed signed to BlockedForSpecialReason
        the way a character's weapon_sound_class_0c5 is. */
     signed char weapon_class_1c;

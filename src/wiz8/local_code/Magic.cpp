@@ -3068,7 +3068,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                                     1);
             caster_figure = GetSpellDifficulty(caster_figure, spell_id, power_level);
         } else {
-            caster_figure = source->unknown_1f[0];
+            caster_figure = source->spell_difficulty_1f;
         }
     } else if (TargetSourceIsMonster(source, 1)) {
         monster_index = MonsterGetIndexByLocationID(0x6ad, MAGIC_CPP, source->iMonsterID, 1);

@@ -444,7 +444,7 @@ done:
         }
         if (killer_party_slot != -1) {
             W8Character* killer = &g_status_685170.buffers.Char[killer_party_slot];
-            ++killer->value_09f9;
+            ++killer->kill_count_09f9;
             if (record->significant_kill_268 != '\0') {
                 unsigned int level_total = 0;
                 int occupied = 0;
@@ -1795,7 +1795,7 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
         }
     }
 
-    if (g_flag_689b32 != 0) {
+    if (g_dev_mode_689b32 != 0) {
         wcscpy(health_text,
                FormatWideString(L"%d/%d", monster_info->hp_current, monster_info->hp_max));
         return;

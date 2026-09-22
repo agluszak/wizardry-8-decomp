@@ -345,7 +345,7 @@ unsigned char W8AssayDialog::PopulateText()
                     if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
                         wcscat(g_assay_entry_text, text);
                     }
-                    text = FormatWideString(L" %d)", record->missile_value_060);
+                    text = FormatWideString(L" %d)", record->missile_magnitude_060);
                     if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
                         wcscat(g_assay_entry_text, text);
                     }

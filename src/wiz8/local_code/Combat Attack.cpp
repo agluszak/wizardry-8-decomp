@@ -1759,7 +1759,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         memcmp(&g_combat_state->TargetHit, &monster_info->Target, sizeof(W8CombatSlot)) != 0;
     if (IsTargetStillPresent(&g_combat_state->TargetHit) == 0) {
     invalid_target:
-        FormatDebugMessage(g_flag_689b32 == 0,
+        FormatDebugMessage(g_dev_mode_689b32 == 0,
                            "InvalidAttackTarget: Target Type %d(char %d,ID %d), Source Type "
                            "%d(char %d,ID %d)",
                            g_combat_state->TargetHit.iType, g_combat_state->TargetHit.iChar,
@@ -1928,7 +1928,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                 effect.power_level =
                     record->effective_level_24f +
                     (record->effective_level_24f > 0xe ? 0xf : record->effective_level_24f);
-                effect.magnitude_base_1c = attack->missile_value_1b;
+                effect.magnitude_base_1c = attack->missile_magnitude_1b;
                 ApplyEffectConditions(&source, &g_combat_state->TargetHit, &effect, verbose, 0,
                                       report);
                 if (range < W8_RANGE_LONG &&
@@ -3616,7 +3616,7 @@ void FireCharacterItemMissile00544B60(int party_slot, W8Character* pc, W8CombatC
     attack_block.power_level = level + capped_level;
     attack_block.magnitude = g_item_records[row->paired_item_id_7c].damage_dice;
     weapon = &g_item_records[pc->EquippedItem[row->current_equip_slot].iItemNo];
-    missile_value = weapon->missile_value_060;
+    missile_value = weapon->missile_magnitude_060;
     modifiers = weapon->missile_values_050;
     if (row->paired_equip_slot != -1) {
         paired = &g_item_records[pc->EquippedItem[row->paired_equip_slot].iItemNo];
@@ -3625,7 +3625,7 @@ void FireCharacterItemMissile00544B60(int party_slot, W8Character* pc, W8CombatC
                 weapon->missile_values_050[0x10 - i] + paired->missile_values_050[0x10 - i];
         }
         modifiers = item_modifiers;
-        missile_value = missile_value + paired->missile_value_060;
+        missile_value = missile_value + paired->missile_magnitude_060;
     }
     memcpy(attack_block.condition_chances, modifiers, 0x10);
     attack_block.magnitude_base_1c = missile_value;
@@ -4042,7 +4042,7 @@ int ResolveCharacterAttack0053E250(int party_slot)
             outcome = 2;
         }
     } else if (TargetIsInPlay(party_slot, hand, W8_TARGETING_CONTEXT_OUT_OF_COMBAT) == 0) {
-        FormatDebugMessage(g_flag_689b32 == 0,
+        FormatDebugMessage(g_dev_mode_689b32 == 0,
                            "InvalidAttackTarget: Target Type %d(char %d,ID %d), Source Type "
                            "%d(char %d,ID %d)",
                            party_row->target_out_of_combat.iType,
@@ -4166,7 +4166,7 @@ int ResolveCharacterAttack0053E250(int party_slot)
             source.target_diverted =
                 memcmp(&target, &g_combat_state->TargetHit, sizeof(W8CombatSlot)) != 0;
             if (IsTargetStillPresent(&g_combat_state->TargetHit) == 0) {
-                FormatDebugMessage(g_flag_689b32 == 0,
+                FormatDebugMessage(g_dev_mode_689b32 == 0,
                                    "InvalidAttackTarget: Target Type %d(char %d,ID %d), Source "
                                    "Type %d(char %d,ID %d)",
                                    g_combat_state->TargetHit.iType, g_combat_state->TargetHit.iChar,
@@ -4209,7 +4209,7 @@ int ResolveCharacterAttack0053E250(int party_slot)
                 }
             } else {
                 if (g_combat_state->TargetHit.iType != W8_TARGET_KIND_CHARACTER) {
-                    FormatDebugMessage(g_flag_689b32 == 0,
+                    FormatDebugMessage(g_dev_mode_689b32 == 0,
                                        "InvalidAttackTarget: Target Type %d(char %d,ID %d), Source "
                                        "Type %d(char %d,ID %d)",
                                        g_combat_state->TargetHit.iType,
@@ -4343,7 +4343,7 @@ int ResolveCharacterAttack0053E250(int party_slot)
                             0x10);
                         effect.magnitude_base_1c =
                             g_item_records[character->EquippedItem[row->current_equip_slot].iItemNo]
-                                .missile_value_060;
+                                .missile_magnitude_060;
                         if (row->paired_equip_slot != -1) {
                             const unsigned char* paired_values =
                                 g_item_records[character->EquippedItem[row->paired_equip_slot]
@@ -4355,7 +4355,7 @@ int ResolveCharacterAttack0053E250(int party_slot)
                             effect.magnitude_base_1c +=
                                 g_item_records[character->EquippedItem[row->paired_equip_slot]
                                                    .iItemNo]
-                                    .missile_value_060;
+                                    .missile_magnitude_060;
                         }
                     }
                     if (fumbled == 0) {
