@@ -470,8 +470,8 @@ done:
             }
         }
         g_combat_state->experience_pool_010 += experience;
-        if (g_status_685170.tail_3121.facts.status_ints_3121[monster_species] == 0) {
-            g_status_685170.tail_3121.facts.status_ints_3121[monster_species] = 1;
+        if (g_status_685170.status_ints_3121[monster_species] == 0) {
+            g_status_685170.status_ints_3121[monster_species] = 1;
         }
     }
 }
@@ -1687,7 +1687,7 @@ wchar_t* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
     }
     if (record->record_id_187 == W8_MONSTER_RECORD_ALTERNATE_NAME) {
         swprintf(g_status_685170.monster_name_buffer_2453, L"Al-%s",
-                 g_status_685170.buffers.Char[g_status_685170.alternate_name_slot_247f].name);
+                 g_status_685170.buffers.Char[g_status_685170.sedexus_party_slot_247f].name);
         return g_status_685170.monster_name_buffer_2453;
     }
     if (monster_info->monster_group_id == 0) {

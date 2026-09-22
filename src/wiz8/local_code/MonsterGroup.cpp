@@ -709,7 +709,7 @@ wchar_t* GetMonsterGroupName(W8MonsterGroup* monster_group)
     name_form = monster_group->member_count != W8_MONSTER_GROUP_SINGULAR;
     if (record->record_id_187 == W8_MONSTER_RECORD_ALTERNATE_NAME) {
         swprintf(g_status_685170.monster_name_buffer_2453, L"Al-%s",
-                 g_status_685170.buffers.Char[g_status_685170.alternate_name_slot_247f].name);
+                 g_status_685170.buffers.Char[g_status_685170.sedexus_party_slot_247f].name);
         return g_status_685170.monster_name_buffer_2453;
     }
     if (monster_group->alternate_name_2c != 0) {
@@ -1616,7 +1616,7 @@ void ShowMonsterGroupInfoNotice(int group_id)
     name_form = group->member_count != W8_MONSTER_GROUP_SINGULAR;
     if (record->record_id_187 == W8_MONSTER_RECORD_ALTERNATE_NAME) {
         swprintf(g_status_685170.monster_name_buffer_2453, L"Al-%s",
-                 g_status_685170.buffers.Char[g_status_685170.alternate_name_slot_247f].name);
+                 g_status_685170.buffers.Char[g_status_685170.sedexus_party_slot_247f].name);
         name = g_status_685170.monster_name_buffer_2453;
     } else if (group->alternate_name_2c != 0) {
         name = record->name_00 + name_form * W8_MONSTER_NAME_STRIDE;

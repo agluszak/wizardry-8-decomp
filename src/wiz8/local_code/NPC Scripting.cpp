@@ -2725,7 +2725,7 @@ void EndScriptedPortraitPick00529C40(int party_slot)
                 SetFact(0x1c1, 0, 0);
                 swprintf(g_status_685170.monster_name_buffer_2453, g_format_al_s_00614b44,
                          character->name);
-                g_status_685170.alternate_name_slot_247f = party_slot;
+                g_status_685170.sedexus_party_slot_247f = party_slot;
                 g_status_685170.rpc_active_2489 = 1;
                 g_status_685170.infatuation_pending_2446 = 1;
                 QueueCharacterEvent(character, g_special_event_0068c50c, 0,
@@ -2750,8 +2750,8 @@ done:
     }
 }
 /* Al-Sedexus takes her pick: the scripted scene opens, the lighting fades,
-   and every still-living occupied slot other than the marked
-   alternate_name_slot_247f character is put under condition 0x11. */
+   and every still-living occupied slot other than the selected character is
+   put under condition 0x11. */
 // FUNCTION: WIZ8 0x00529EF0
 void BeginSedexusCapture(void)
 {
@@ -2766,7 +2766,7 @@ void BeginSedexusCapture(void)
         if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0 &&
             (g_status_685170.buffers.Char[party_slot].hp_current > 0 ||
              g_status_685170.buffers.Char[party_slot].highest_condition < 0x12) &&
-            party_slot != static_cast<unsigned int>(g_status_685170.alternate_name_slot_247f)) {
+            party_slot != static_cast<unsigned int>(g_status_685170.sedexus_party_slot_247f)) {
             SetCharacterCondition(party_slot, 0x11, 9999, 0, 0, 0);
         }
     }

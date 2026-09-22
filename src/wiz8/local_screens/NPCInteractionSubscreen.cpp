@@ -2406,7 +2406,7 @@ void OpenNpcDialogueTranscriptLayout(void)
     RegionSetEnable(0x16);
     if (g_screen_state_00649f1c->dialogue_npc->name_style == 0x32) {
         swprintf(g_status_685170.monster_name_buffer_2453, L"Al-%s",
-                 g_status_685170.buffers.Char[g_status_685170.alternate_name_slot_247f].name);
+                 g_status_685170.buffers.Char[g_status_685170.sedexus_party_slot_247f].name);
         g_screen_state_00649f1c->dialogue_text_10c->m_textBuffer.SetText(
             g_status_685170.monster_name_buffer_2453, g_wiz_text_bold_font_683664);
     } else {

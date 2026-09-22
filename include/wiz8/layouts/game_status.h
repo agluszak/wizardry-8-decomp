@@ -29,23 +29,17 @@ struct W8StatusBuffers {
 
 enum { W8_CHARACTER_SERIALIZED_SIZE = 0x1862 };
 
-struct W8SpellUsageRecord {
+struct W8ItemSpellUsageRecord {
     unsigned int cast_count;
     unsigned int usable_cast_count;
     unsigned char unknown_08[8];
 };
 
-struct W8GlobalStatusFactView {
-    int status_ints_3121[1000];
-    unsigned char fact_88_latch_40c1;
-    unsigned char unknown_40c2[0x17b];
-    int rpc_slot_423d;
-    unsigned char unknown_4241[0x59d];
-};
-
-struct W8GlobalStatusSpellUsageView {
-    unsigned char unknown_3121[0xf9d];
-    W8SpellUsageRecord records[0x72];
+struct W8CharacterSpellUsageRecord {
+    unsigned char unknown_00[4];
+    unsigned int cast_count;
+    unsigned int usable_cast_count;
+    unsigned char unknown_0c[4];
 };
 
 struct W8GlobalStatus {
@@ -154,9 +148,9 @@ struct W8GlobalStatus {
        two data constants; both halves are written as dwords. */
     unsigned int save_filetime_xor_244b[2];
     wchar_t monster_name_buffer_2453[22];
-    /* 0x247f: party-slot index read as a full dword by GetMonsterGroupName and
-       the type-9 world-cursor handler. */
-    int alternate_name_slot_247f;
+    /* 0x247f: party slot selected by the Sedexus path before rpc_active_2489
+       is armed; later capture, fact and death handling reuse the same slot. */
+    int sedexus_party_slot_247f;
     unsigned int stamina_tick_ms_2483;
     unsigned char condition13_clock_2487;
     /* 0x2488: one-shot gate; when set, the next condition-change and
@@ -176,18 +170,19 @@ struct W8GlobalStatus {
     /* 0x24a0: per-spell 0x10-byte stat records; TrackItemSpellSource00501D20
        walks records[0..149] bumping usable_cast_count for spells the character
        carries and cast_count for the selected source spell. */
-    W8SpellUsageRecord item_spell_usage_24a0[200];
+    W8ItemSpellUsageRecord item_spell_usage_24a0[200];
     unsigned char log_fact_checks_3120;
-    /* 0x3121..0x47dd has two proven overlapping retail views. EndCombat walks
-       1000 consecutive dwords from 0x3121, while spell execution indexes two
-       dwords in 0x10-byte records rooted at 0x40be. Fact handlers independently
-       address 0x40c1 and 0x423d. ResetGameStatus clears the complete enclosing
-       0x49c2-byte object, establishing one owner rather than adjacent globals. */
-    // union-ok: retail instructions use both exact overlapping views of the one bulk-cleared status object
-    union {
-        W8GlobalStatusFactView facts;
-        W8GlobalStatusSpellUsageView spell_usage;
-    } tail_3121;
+    int status_ints_3121[1000];
+    unsigned char fact_88_latch_40c1;
+    unsigned char unknown_40c2[0xc];
+    /* Retail addresses cast_count through +0x40c2 + spell_id * 0x10 and
+       usable_cast_count through +0x40c6 + spell_id * 0x10. These are the
+       +4/+8 fields of records rooted at +0x40ce and indexed by spell_id - 1.
+       The typed extent is the proven player-spell domain, IDs 1..0x71.
+       Spell 0x72 is item-routed in the audited producers; the unchecked cast
+       update would enter the following unknown storage if it were supplied,
+       so +0x47de is not an independently established original member boundary. */
+    W8CharacterSpellUsageRecord spell_usage_40ce[0x71];
     unsigned char unknown_47de[0x194];
     /* 0x4972: set once the Cosmic Circle arena monsters have been spawned by
        the level-4 setup; the setup skips its work while this or world_suspended_2390
@@ -226,9 +221,13 @@ struct W8GlobalStatus {
 #pragma pack(pop)
 
 static_assert(sizeof(W8StatusBuffers) == 0x0c, "W8StatusBuffers_must_be_0x0c");
-static_assert(sizeof(W8SpellUsageRecord) == 0x10, "W8SpellUsageRecord_must_be_0x10");
-static_assert(offsetof(W8GlobalStatusSpellUsageView, records) == 0xf9d,
-              "W8GlobalStatusSpellUsageView_records_offset");
+static_assert(sizeof(W8ItemSpellUsageRecord) == 0x10, "W8ItemSpellUsageRecord_must_be_0x10");
+static_assert(sizeof(W8CharacterSpellUsageRecord) == 0x10,
+              "W8CharacterSpellUsageRecord_must_be_0x10");
+static_assert(offsetof(W8CharacterSpellUsageRecord, cast_count) == 0x4,
+              "W8CharacterSpellUsageRecord_cast_count_offset");
+static_assert(offsetof(W8CharacterSpellUsageRecord, usable_cast_count) == 0x8,
+              "W8CharacterSpellUsageRecord_usable_cast_count_offset");
 static_assert(offsetof(W8GlobalStatus, party_gold) == 0x19, "W8GlobalStatus_party_gold_offset");
 static_assert(offsetof(W8GlobalStatus, selected_character) == 0x1d,
               "W8GlobalStatus_selected_character_offset");
@@ -269,8 +268,8 @@ static_assert(offsetof(W8GlobalStatus, rpc_races_243a) == 0x243a,
               "W8GlobalStatus_rpc_races_offset");
 static_assert(offsetof(W8GlobalStatus, monster_name_buffer_2453) == 0x2453,
               "W8GlobalStatus_monster_name_buffer_offset");
-static_assert(offsetof(W8GlobalStatus, alternate_name_slot_247f) == 0x247f,
-              "W8GlobalStatus_alternate_name_slot_offset");
+static_assert(offsetof(W8GlobalStatus, sedexus_party_slot_247f) == 0x247f,
+              "W8GlobalStatus_sedexus_party_slot_offset");
 static_assert(offsetof(W8GlobalStatus, greeting_pending_2497) == 0x2497,
               "W8GlobalStatus_flag_2497_offset");
 static_assert(offsetof(W8GlobalStatus, next_group_id_234a) == 0x234a,
@@ -285,13 +284,11 @@ static_assert(offsetof(W8GlobalStatus, text_box_lines_used_4997) == 0x4997,
               "W8GlobalStatus_migrated_values_offset");
 static_assert(offsetof(W8GlobalStatus, rpc_active_2489) == 0x2489,
               "W8GlobalStatus_flag_2489_offset");
-static_assert(offsetof(W8GlobalStatus, tail_3121) +
-                      offsetof(W8GlobalStatusFactView, fact_88_latch_40c1) ==
-                  0x40c1,
+static_assert(offsetof(W8GlobalStatus, status_ints_3121) == 0x3121,
+              "W8GlobalStatus_status_ints_3121_offset");
+static_assert(offsetof(W8GlobalStatus, fact_88_latch_40c1) == 0x40c1,
               "W8GlobalStatus_fact_88_latch_40c1_offset");
-static_assert(offsetof(W8GlobalStatus, tail_3121) +
-                      offsetof(W8GlobalStatusSpellUsageView, records) ==
-                  0x40be,
+static_assert(offsetof(W8GlobalStatus, spell_usage_40ce) == 0x40ce,
               "W8GlobalStatus_spell_usage_offset");
 static_assert(offsetof(W8GlobalStatus, vi_event_stage_498b) == 0x498b,
               "W8GlobalStatus_value_498b_offset");
@@ -301,10 +298,6 @@ static_assert(offsetof(W8GlobalStatus, endgame3_queued) == 0x4993,
               "W8GlobalStatus_value_4993_offset");
 static_assert(offsetof(W8GlobalStatus, party_slot_249c) == 0x249c,
               "W8GlobalStatus_party_slot_249c_offset");
-static_assert(offsetof(W8GlobalStatus, tail_3121) +
-                      offsetof(W8GlobalStatusFactView, rpc_slot_423d) ==
-                  0x423d,
-              "W8GlobalStatus_value_423d_offset");
 static_assert(offsetof(W8GlobalStatus, regular_member_count) == 0x000d,
               "W8GlobalStatus_regular_member_count_offset");
 static_assert(offsetof(W8GlobalStatus, auxiliary_member_count) == 0x0011,
