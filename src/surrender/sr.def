@@ -1208,9 +1208,20 @@ EXPORTS
     ??4srLight@@QAEAAV0@ABV0@@Z
     ??0srTextureMap@@QAE@PAVsrColorSurfaceIFace@@@Z
     ?setSurfacePtr@srTextureMap@@QAEXPAVsrColorSurfaceIFace@@@Z
+    ??1srTextureMap@@MAE@XZ
+    ??4srTextureMap@@QAEAAV0@ABV0@@Z
+    ?dump@srTextureMap@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?getMipmapData@srTextureMap@@UAEXAAUMultiRequest@srTextureIFace@@@Z
+    ?getSurfacePtr@srTextureMap@@QBEPAVsrColorSurfaceIFace@@XZ
+    ?getTextureFrameHandle@srTextureMap@@UAEKXZ
+    ?invalidate@srTextureMap@@UAEXXZ
+    ?setupDefaultValues@srTextureMap@@MAEXXZ
+    ?vInstance@srTextureMap@@UAEPAVsrClass@@XZ
     ??0srTexture@@IAE@XZ
     ??1srTexture@@MAE@XZ
+    ??4srTexture@@QAEAAV0@ABV0@@Z
     ?disableHint@srTexture@@QAEXW4e_hint@srTextureIFace@@@Z
+    ?dump@srTexture@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?enableHint@srTexture@@QAEXW4e_hint@srTextureIFace@@@Z
     ?getCorrection@srTexture@@QBE?AW4e_correction@srTextureIFace@@XZ
     ?getDimensions@srTexture@@UAEXAAUDimensions@srTextureIFace@@@Z
@@ -1218,9 +1229,14 @@ EXPORTS
     ?getMagFilter@srTexture@@QBE?AW4e_filter@srTextureIFace@@XZ
     ?getMinFilter@srTexture@@QBE?AW4e_filter@srTextureIFace@@XZ
     ?getMipmap@srTexture@@QBE?AW4e_mipmap@srTextureIFace@@XZ
+    ?getMipmapData@srTexture@@UAEXAAUMultiRequest@srTextureIFace@@@Z
+    ?getMipmapLevelPartial@srTexture@@UAEXAAUPartialRequest@srTextureIFace@@@Z
     ?getNewFrameHandle@srTexture@@KAKXZ
     ?getPriority@srTexture@@UAEMXZ
     ?getTextureFrameHandle@srTexture@@UAEKXZ
+    ?getTextureParms@srTexture@@UAEXAAUParameters@srTextureIFace@@@Z
+    ?setDimensions@srTexture@@QAEXABUDimensions@srTextureIFace@@@Z
+    ?setupDefaultValuesFromSurface@srTexture@@IAEXPAVsrColorSurfaceIFace@@@Z
     ?getWrapS@srTexture@@QBE?AW4e_wrap@srTextureIFace@@XZ
     ?getWrapT@srTexture@@QBE?AW4e_wrap@srTextureIFace@@XZ
     ?invalidateFrameHandle@srTexture@@IAEXK@Z
