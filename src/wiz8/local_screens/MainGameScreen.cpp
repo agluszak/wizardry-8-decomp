@@ -10182,7 +10182,7 @@ void ReverseSurpriseFade0056B5F0(void)
         srMaterial* material = static_cast<srMaterial*>(
             static_cast<srMeshModel*>(g_surprise_fade_node_0068edf8->model())
                 ->getMaterial(0, static_cast<srMeshModel::e_side>(0)));
-        float opacity = material->parms_18.diffuse.w;
+        float opacity = material->parms.diffuse.w;
         unsigned long now = GetTickCount();
         g_surprise_fade_in_0068edca = g_surprise_fade_in_0068edca == 0;
         if (g_surprise_fade_in_0068edca != 0) {

@@ -1,3 +1,4 @@
+import subprocess
 import time
 from contextlib import nullcontext
 from pathlib import Path
@@ -97,14 +98,16 @@ def test_interactive_run_restores_managed_wine_window(tmp_path: Path, monkeypatc
             calls.append((args, kwargs)) or SimpleNamespace(returncode=0, stdout="", stderr="")
         ),
     )
+    monkeypatch.delenv("WIZ8_WINE_VIRTUAL_DESKTOP", raising=False)
 
     run_product(settings)
 
     assert calls[0][0][0][-3:] == ["/d", "Y", "/f"]
-    assert calls[1][0][0][-5:] == ["/v", "Desktop", "/d", "Wizardry", "/f"]
-    assert calls[2][0][0][-5:] == ["/v", "Wizardry", "/d", "640x480", "/f"]
-    assert calls[3][0][0][-2:] == ["./Wiz8Runtime.exe", "/WINDOW"]
-    assert calls[3][1]["env"]["WINEPREFIX"] == str(settings.work_dir / "wine" / "wiz8-runtime")
+    # Host display maps Wiz8 as an ordinary managed window: the Wine Explorer
+    # Desktop value is removed rather than pointing at a 640x480 shell.
+    assert calls[1][0][0][-4:] == [r"HKCU\Software\Wine\Explorer", "/v", "Desktop", "/f"]
+    assert calls[2][0][0][-2:] == ["./Wiz8Runtime.exe", "/WINDOW"]
+    assert calls[2][1]["env"]["WINEPREFIX"] == str(settings.work_dir / "wine" / "wiz8-runtime")
 
 
 def test_runtime_observation_is_normalized_to_typed_fields() -> None:
@@ -144,6 +147,50 @@ def test_runtime_failure_reports_native_reason_instead_of_timeout(tmp_path: Path
     assert "step=monster-engagement reason=monster-never-engaged line=2288" in str(failure)
     assert "phases: main-game-entered=13900ms" in str(failure)
     assert "timeout" not in str(failure)
+
+
+@pytest.mark.parametrize(
+    "cleanup_error",
+    [
+        subprocess.TimeoutExpired("wineserver", 5),
+        OSError("wineserver missing"),
+    ],
+)
+def test_scenario_cleanup_failure_preserves_primary_failure(
+    tmp_path: Path, monkeypatch, cleanup_error
+) -> None:
+    import subprocess as real_subprocess
+
+    fake_wine = tmp_path / "fake-wine.sh"
+    fake_wine.write_text(
+        "#!/bin/sh\n"
+        "echo 'WIZ8_RUNTIME_FAILURE scenario=probe step=step-a reason=crashed line=9' >&2\n"
+        "exit 3\n"
+    )
+    fake_wine.chmod(0o755)
+    real_popen = real_subprocess.Popen
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.subprocess.Popen",
+        lambda command, **kwargs: real_popen([str(fake_wine), *command[1:]], **kwargs),
+    )
+
+    def failing_cleanup(*args, **kwargs):
+        raise cleanup_error
+
+    monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", failing_cleanup)
+
+    with pytest.raises(RuntimeError) as error:
+        _run_runtime_scenario(
+            tmp_path / "Wiz8RuntimeTest.exe",
+            tmp_path,
+            {},
+            "probe",
+            30,
+        )
+
+    assert "step=step-a reason=crashed line=9" in str(error.value)
+    artifact = tmp_path / "diagnostics" / "probe-failure.txt"
+    assert "wineserver -k failed" in artifact.read_text()
 
 
 def test_runtime_phase_summary_ignores_other_scenarios_and_unusable_steps() -> None:
@@ -636,6 +683,7 @@ def test_wine_window_management_matches_display_mode(
         "wiz8decomp.runtime.subprocess.run",
         lambda *args, **kwargs: calls.append((args, kwargs)),
     )
+    monkeypatch.delenv("WIZ8_WINE_VIRTUAL_DESKTOP", raising=False)
 
     environment = {"WINEPREFIX": "/prefix"}
     configure_wine_window_management(environment, private_display=private_display)
@@ -643,13 +691,29 @@ def test_wine_window_management_matches_display_mode(
     argv = calls[0][0][0]
     assert argv[-3:] == ["/d", managed, "/f"]
     assert calls[0][1]["env"] is environment
-    if private_display:
-        assert calls[1][0][0][-4:] == [
-            r"HKCU\Software\Wine\Explorer",
-            "/v",
-            "Desktop",
-            "/f",
-        ]
-    else:
-        assert calls[1][0][0][-5:] == ["/v", "Desktop", "/d", "Wizardry", "/f"]
-        assert calls[2][0][0][-5:] == ["/v", "Wizardry", "/d", "640x480", "/f"]
+    # The Wine virtual desktop is off by default on both display modes.
+    assert calls[1][0][0][-4:] == [
+        r"HKCU\Software\Wine\Explorer",
+        "/v",
+        "Desktop",
+        "/f",
+    ]
+    assert len(calls) == 2
+
+
+@pytest.mark.parametrize("private_display", [True, False])
+def test_wine_window_management_virtual_desktop_is_an_explicit_opt_in(
+    private_display: bool, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls = []
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.subprocess.run",
+        lambda *args, **kwargs: calls.append((args, kwargs)),
+    )
+    monkeypatch.setenv("WIZ8_WINE_VIRTUAL_DESKTOP", "1")
+
+    environment = {"WINEPREFIX": "/prefix"}
+    configure_wine_window_management(environment, private_display=private_display)
+
+    assert calls[1][0][0][-5:] == ["/v", "Desktop", "/d", "Wizardry", "/f"]
+    assert calls[2][0][0][-5:] == ["/v", "Wizardry", "/d", "640x480", "/f"]

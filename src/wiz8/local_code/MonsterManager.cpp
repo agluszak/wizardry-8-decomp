@@ -404,7 +404,7 @@ void RecordMonsterKill(W8MonsterInfo* monster_info, char announce)
         notice_channel = 9;
     }
     if (announce != '\0' && monster_info->flag_253 == '\0' &&
-        monster_info->party_threat.state_04 != '\0') {
+        monster_info->party_threat.sight_state_04 != W8_SIGHT_UNSEEN) {
         ShowNoticef(notice_channel, L"%s %s!", GetMonsterName(monster_info, 0, '\0'),
                     gppStringList[g_condition_notices_0061E570[0x49]]);
     }
@@ -1357,8 +1357,8 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
     }
     memset(monster_info->pCombat, 0, 0x153);
     monster_info->fInCombat = 1;
-    if (monster_info->player_visibility.state_04 == 0) {
-        monster_info->player_visibility.state_04 = 2;
+    if (monster_info->player_visibility.sight_state_04 == W8_SIGHT_UNSEEN) {
+        monster_info->player_visibility.sight_state_04 = W8_SIGHT_RECENT;
         monster_info->player_visibility.last_seen_clock_0c = g_status_685170.world_clock;
     }
     ResetCombatSlot(&monster_info->Target);

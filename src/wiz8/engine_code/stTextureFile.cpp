@@ -26,7 +26,12 @@ srHeapArray<unsigned char> g_tga_row_data_0065a130;
    descriptor's right-origin bit is set) and the row step only exists for
    bottom-up images, where it unwinds the row just written plus one more.
    RLE packet payloads land in the row scratch buffer; a packet that
-   overruns the row carries its remainder into the next row's count. */
+   overruns the row carries only its remaining count. Retail reloads the
+   source pointer from the scratch base at every row start (EDI = EBP at
+   0x0047BF39, and the carry path at 0x0047BF49 restores only the count),
+   so a raw packet spanning a scanline boundary replays the packet head
+   instead of its unconsumed tail. That replay is confirmed retail
+   behavior, not a recovery defect. */
 // FUNCTION: WIZ8 0x0047BC80
 void __stdcall LoadSurfacePixels0047BC80(int handle, srColorSurface* surface,
                                          const W8TgaHeader* header)

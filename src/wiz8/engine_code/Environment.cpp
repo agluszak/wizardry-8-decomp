@@ -87,8 +87,8 @@ unsigned char g_environment_colour_refresh_0060a395 = 1;
 // FUNCTION: WIZ8 0x00482010
 W8MaterialMapper00482010::W8MaterialMapper00482010()
 {
-    value_04 = 0.002f;
-    value_08 = 0.0f;
+    scroll_rate_u_04 = 0.002f;
+    scroll_rate_v_08 = 0.0f;
     g_frame_tick_65a154 = GetTickCount();
 }
 
@@ -113,9 +113,9 @@ void W8MaterialMapper00482010::process(srVertexPipe& pipe)
     srCore.getStatisticsManager()->statistics_00.texture_coordinate_operations_34 += count;
     srVector2T<float>* coordinates = pipe.getST(0, 1);
 
-    offset_x = value_04 * g_frame_elapsed_65a158 + offset_14;
+    offset_x = scroll_rate_u_04 * g_frame_elapsed_65a158 + offset_14;
     offset_14 = offset_x - static_cast<float>(floor(offset_x));
-    offset_y = value_08 * g_frame_elapsed_65a158 + offset_18;
+    offset_y = scroll_rate_v_08 * g_frame_elapsed_65a158 + offset_18;
     offset_18 = offset_y - static_cast<float>(floor(offset_y));
 
     for (unsigned long index = 0; index < count; ++index) {
@@ -1032,12 +1032,12 @@ void ApplyEnvironmentColour00483BA0(W8World* world, float intensity,
                 g_double_005ebc30 -
                 fabs((double)g_status_685170.game_time_ms - g_double_005ec990) * g_double_005ec988;
 
-            material->parms_18.ambient.x = (float)brightness;
-            material->parms_18.ambient.y = (float)brightness;
-            material->parms_18.ambient.z = (float)brightness;
-            material->parms_18.ambient.w = (float)brightness;
-            material->parms_18.diffuse.w =
-                (float)(brightness * g_double_005ebf40 + g_double_005ec980);
+            material->parms.ambient.x = static_cast<float>(brightness);
+            material->parms.ambient.y = static_cast<float>(brightness);
+            material->parms.ambient.z = static_cast<float>(brightness);
+            material->parms.ambient.w = static_cast<float>(brightness);
+            material->parms.diffuse.w =
+                static_cast<float>(brightness * g_double_005ebf40 + g_double_005ec980);
             material->dirty_74 = 1;
         }
     }

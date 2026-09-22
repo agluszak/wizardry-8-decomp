@@ -1270,15 +1270,15 @@ wchar_t* SpellTargetString(W8TargetSource* source, W8CombatSlot* target)
 /* What the target's armour starts from before the situational modifier: the
    character's total, or ten minus the monster record's evasion - unless the
    monster is out of formation, which costs it a flat five. */
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized" // retail assertion returns
 // FUNCTION: WIZ8 0x00542ee0
 int GetTargetArmorClass00542EE0(W8CombatSlot* target, int attack_mode)
 {
     W8MonsterInfo* monster_info;
     W8MonsterRecord* record;
     unsigned int monster_list_index;
-    int base;
+    /* Retail continued with an uninitialized base after the assertion; a
+       deterministic zero models that defect path. */
+    int base = 0;
 
     if (target->iType == W8_TARGET_KIND_MONSTER) {
         monster_list_index =
@@ -1293,11 +1293,9 @@ int GetTargetArmorClass00542EE0(W8CombatSlot* target, int attack_mode)
         base = g_status_685170.buffers.Char[target->iChar].armor_class_total;
     } else {
         srAssertFail("FALSE", COMBAT_ATTACK_CPP, 0xec8, 0);
-        /* Retail continues with the uninitialized base after the assertion. */
     }
     return GetTargetArmorClassModifier005468D0(target, attack_mode) + base;
 }
-#pragma clang diagnostic pop
 
 /* The armour class a hit at one location must beat: the base above plus the
    location and attack-mode terms each target kind carries, with the
@@ -3427,11 +3425,9 @@ void QueueFumbleReaction00544530(int party_slot)
                         g_effect_argument_005ed8cc, g_effect_argument_005ed914);
 }
 
-#pragma clang diagnostic push
 /* When GetMonsterByLocationID returns NULL the sight-flag call is skipped and
-   `secondary` is read uninitialized; retail does the same. Suppress only this
-   diagnostic. */
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
+   retail read `secondary` uninitialized; deterministic zero flags model that
+   defect path. */
 /* The missile dispatcher shared by the character and monster attack paths:
    resolves both endpoints' world positions, defers the target when a combat-
    ending missile is already engaged, folds the range category's base speed
@@ -3444,8 +3440,8 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
 {
     unsigned int target_flag;
     unsigned char blind = 0;
-    unsigned char primary;
-    unsigned char secondary;
+    unsigned char primary = 0;
+    unsigned char secondary = 0;
     unsigned char position_ok;
     srVector3T<float> source_position;
     srVector3T<float> target_position;
@@ -3582,7 +3578,6 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
     srAssertFail("pMissileFired", COMBAT_ATTACK_CPP, 0x13e9, 0);
     return NULL;
 }
-#pragma clang diagnostic pop
 
 /* The character-side missile fire: builds the attack block from the wielded
    (and paired) weapon's item records, scores the shot for the current hand's

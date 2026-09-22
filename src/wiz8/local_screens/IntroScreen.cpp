@@ -27,10 +27,12 @@
 
 // GLOBAL: WIZ8 0x0064d8ac
 unsigned long g_intro_video_index = 6;
+// GLOBAL: WIZ8 0x0064D8B0
 static const char g_intro_video_names[7][40] = {
     "Wizardry8.bik", "unaligned.bik", "Umpani.bik",  "T'Rang.bik",
     "virgin.bik",    "darkend.bik",   "sirtech.bik",
 };
+// GLOBAL: WIZ8 0x0069C258
 W8BinkVideo* gpVideo;
 
 // FUNCTION: WIZ8 0x005ae510

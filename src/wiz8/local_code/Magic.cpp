@@ -382,7 +382,7 @@ enum { W8_SPELL_EFFECT_KIND_MONSTER_CONTROL = 0x26 };
 
 enum { W8_PARTY_CONDITION_SLOTS = 12, W8_COMBAT_CONDITION_SLOTS = 9 };
 
-/* 0x00689b58 */
+// GLOBAL: WIZ8 0x00689B58
 W8GrowableVector<W8SpellEffectEntry*> g_spell_effects;
 // GLOBAL: WIZ8 0x005ED7D0
 const float g_ground_settle_fail_005ed7d0 = -1000000.0f;
@@ -3958,7 +3958,7 @@ LAB_004fd26b:
                            (centre.y - player_pos.y) * (centre.y - player_pos.y) +
                            (centre.z - player_pos.z) * (centre.z - player_pos.z);
                 if (sqrtf(distance) <= radius &&
-                    monster_info->player_visibility.sight_flags_05[sight_flag] != '\0') {
+                    monster_info->player_visibility.los_flags_05[sight_flag] != '\0') {
                     marked = true;
                 }
             } else if (monster_info->ubDisposition != '\x01') {
@@ -4017,7 +4017,7 @@ LAB_004fd26b:
                 side = 2;
                 if (TargetInRangeAndArcs00539B70(&camera, g_startup_world_659c0c->radius_084, &eye,
                                                  monster->radius_084, heading, elevation) != 0 &&
-                    monster_info->player_visibility.sight_flags_05[sight_flag] != '\0') {
+                    monster_info->player_visibility.los_flags_05[sight_flag] != '\0') {
                     goto LAB_004fd749;
                 }
             }
@@ -4281,13 +4281,18 @@ void TrackItemSpellSource00501D20(W8Character* character, int spell_id)
         }
         ++item;
     }
+    /* Retail maps spell ids to records directly: record r is gated by
+       storage[r] (the walk reads has_spell[index - 1] with the 0-based
+       record index), so record 0 reads the always-zero leading byte and
+       spell id s marks record s - the same record the cast_count access
+       below increments. */
     W8SpellUsageRecord* record = g_status_685170.item_spell_usage_24a0;
     int index = 0;
     while (record < g_status_685170.item_spell_usage_24a0 + 150) {
-        ++index;
         if (has_spell[index - 1] != '\0') {
             ++record->usable_cast_count;
         }
+        ++index;
         ++record;
     }
     ++g_status_685170.item_spell_usage_24a0[spell_id].cast_count;

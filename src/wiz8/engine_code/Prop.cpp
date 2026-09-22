@@ -1066,7 +1066,7 @@ void W8Prop::AttachAnimationInstances0044C830(W8World* world)
             }
             instance->clearFlag(srNode::FLAG_DISABLE);
             instance->setParent(world->dynamic_scene, 1);
-            instance->scale_194 = zero;
+            instance->light_scale_194 = zero;
             if (g_settings_6850c8.smooth_world_animations != 0) {
                 instance->frame_interpolation_1ac = anim_frame_fraction_024;
             } else {
@@ -1074,7 +1074,7 @@ void W8Prop::AttachAnimationInstances0044C830(W8World* world)
             }
             mesh = static_cast<stMeshModel*>(instance->getModel());
             if (mesh != 0 && (mesh->flags_3a0 & 1) != 0 && trigger_18 == 0) {
-                instance->state_178 |= 0x10;
+                instance->render_flags_178 |= 0x10;
             }
             path = AnimObjListEntry004A16C0(Rep()->animation, 2, static_cast<signed char>(index));
             if (path == 0) {
@@ -1133,7 +1133,7 @@ void W8Prop::AttachAnimationInstances0044C830(W8World* world)
         }
         instance->clearFlag(srNode::FLAG_DISABLE);
         instance->setParent(world->dynamic_scene, 1);
-        instance->scale_194.SetZero();
+        instance->light_scale_194.SetZero();
         if (g_settings_6850c8.smooth_world_animations != 0) {
             instance->frame_interpolation_1ac = anim_frame_fraction_024;
         } else {
@@ -1141,7 +1141,7 @@ void W8Prop::AttachAnimationInstances0044C830(W8World* world)
         }
         mesh = static_cast<stMeshModel*>(instance->getModel());
         if (mesh != 0 && (mesh->flags_3a0 & 1) != 0 && trigger_18 == 0) {
-            instance->state_178 |= 0x10;
+            instance->render_flags_178 |= 0x10;
         }
         if (Rep()->animation->path_24 != 0) {
             PathAIApply004AA520(Rep()->animation->path_24, instance);

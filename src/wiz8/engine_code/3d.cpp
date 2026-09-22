@@ -164,7 +164,7 @@ unsigned char BakeInstanceVertexLighting0046E8A0(stModelInstance* instance, srNo
         srMaterialIFace* material_iface = mesh->getMaterial(0, static_cast<srMeshModel::e_side>(0));
         srVector4T<float> material_diffuse;
         if (material_iface != 0) {
-            material_diffuse = static_cast<srMaterial*>(material_iface)->parms_18.diffuse;
+            material_diffuse = static_cast<srMaterial*>(material_iface)->parms.diffuse;
         }
         if (vertex_lights == 0) {
             srAssertFail("psrDIG", THREE_D_CPP, 0x453, 0);
@@ -297,14 +297,14 @@ unsigned char BakeInstanceVertexLighting0046E8A0(stModelInstance* instance, srNo
                                     srMaterialIFace* vertex_material = vertex_materials[index];
                                     if (vertex_material != 0) {
                                         material_diffuse = static_cast<srMaterial*>(vertex_material)
-                                                               ->parms_18.diffuse;
+                                                               ->parms.diffuse;
                                     } else {
                                         srMaterialIFace* base_material = mesh->getMaterial(
                                             0, static_cast<srMeshModel::e_side>(0));
                                         if (base_material != 0) {
                                             material_diffuse =
                                                 static_cast<srMaterial*>(base_material)
-                                                    ->parms_18.diffuse;
+                                                    ->parms.diffuse;
                                         } else {
                                             material_diffuse.x = 1.0f;
                                             material_diffuse.y = 1.0f;
@@ -354,7 +354,7 @@ unsigned char BakeInstanceVertexLighting0046E8A0(stModelInstance* instance, srNo
 }
 
 /* Bake the dynamic scene's light children into every not-yet-lit model
-   instance under one static-scene subtree. state_178 bit 1 is the instance's
+   instance under one static-scene subtree. render_flags_178 bit 1 is the instance's
    own lit marker; the first-child chain store is the same typed walk
    SetModelInstanceChainExclusionMask performs. */
 // FUNCTION: WIZ8 0x0046F410
@@ -367,8 +367,8 @@ unsigned char FinalizeWorldScenes0046F410(srNode* node, srNode* dynamic_scene)
         if (node->getClassID() == 0x10004) {
             stModelInstance* instance = static_cast<stModelInstance*>(node);
             srNode* lights = dynamic_scene->firstChild();
-            if ((instance->state_178 & 2) == 0) {
-                instance->state_178 |= 2;
+            if ((instance->render_flags_178 & 2) == 0) {
+                instance->render_flags_178 |= 2;
                 for (srModelInstance* chain = instance; chain != 0;
                      chain = static_cast<srModelInstance*>(chain->firstChild())) {
                     chain->setExclusionMask(1);
@@ -380,7 +380,7 @@ unsigned char FinalizeWorldScenes0046F410(srNode* node, srNode* dynamic_scene)
     return 1;
 }
 
-/* Bake dynamic-scene lights into one not-yet-lit model instance. state_178
+/* Bake dynamic-scene lights into one not-yet-lit model instance. render_flags_178
    bit 1 is the lit marker; the first-child walk matches SetModelInstanceChainExclusionMask. */
 // FUNCTION: WIZ8 0x0046F4A0
 unsigned char BakeInstanceVertexLightingIfNeeded0046F4A0(stModelInstance* instance,
@@ -388,8 +388,8 @@ unsigned char BakeInstanceVertexLightingIfNeeded0046F4A0(stModelInstance* instan
 {
     srNode* lights = dynamic_scene->firstChild();
 
-    if ((instance->state_178 & 2) == 0) {
-        instance->state_178 |= 2;
+    if ((instance->render_flags_178 & 2) == 0) {
+        instance->render_flags_178 |= 2;
         for (srModelInstance* chain = instance; chain != 0;
              chain = static_cast<srModelInstance*>(chain->firstChild())) {
             chain->setExclusionMask(1);

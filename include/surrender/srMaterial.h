@@ -17,6 +17,7 @@ class SR_DLL_IMPORT srMaterial : public srClassSupport<srMaterial, srMaterialIFa
 public:
     enum e_oper {};
 
+    // FUNCTION: SURRENDER 0x10034700
     inline srMaterial()
     {
         reset();
@@ -54,32 +55,38 @@ public:
     void getSpecular(srVector4T<float>& specular) const;
     float getTranslucency() const;
     int isEnabled(e_oper operation) const;
+    // FUNCTION: SURRENDER 0x10034930
     void setAmbient(const srVector4T<float>& ambient)
     {
-        setVector(parms_18.ambient, ambient);
+        setVector(parms.ambient, ambient);
     }
     void setAmbientAndDiffuse(const srVector4T<float>& color);
+    // FUNCTION: SURRENDER 0x10034960
     inline void setDiffuse(const srVector4T<float>& diffuse)
     {
-        setVector(parms_18.diffuse, diffuse);
+        setVector(parms.diffuse, diffuse);
     }
+    // FUNCTION: SURRENDER 0x10034990
     inline void setEmissive(const srVector4T<float>& emissive)
     {
-        setVector(parms_18.emissive, emissive);
+        setVector(parms.emissive, emissive);
     }
+    // FUNCTION: SURRENDER 0x10034B40
     inline void setMapper(srVertexProcessor* mapper)
     {
         mapper_70 = mapper;
     }
+    // FUNCTION: SURRENDER 0x10034A80
     inline void setOpacity(double opacity)
     {
-        parms_18.diffuse.w = static_cast<float>(opacity);
+        parms.diffuse.w = static_cast<float>(opacity);
         dirty_74 = 1;
     }
     void setShininess(double shininess);
+    // FUNCTION: SURRENDER 0x100349C0
     inline void setSpecular(const srVector4T<float>& specular)
     {
-        setVector(parms_18.specular, specular);
+        setVector(parms.specular, specular);
     }
     void setTranslucency(double translucency);
 
@@ -90,10 +97,10 @@ public:
     /* ReadLevel.cpp directly edits cloned material parameters before setting
        dirty_74. The original SurRender declaration therefore exposed this
        state to clients; keeping it protected would force a fabricated wrapper. */
-    srVertexProcessor::MaterialInfo parms_18; /* 0x18 */
-    srFlags<e_oper> operations_6c;            /* 0x6c */
-    srVertexProcessor* mapper_70;             /* 0x70 */
-    int dirty_74;                             /* 0x74 */
+    srVertexProcessor::MaterialInfo parms; /* 0x18 */
+    srFlags<e_oper> operations_6c;         /* 0x6c */
+    srVertexProcessor* mapper_70;          /* 0x70 */
+    int dirty_74;                          /* 0x74 */
 };
 
 static_assert((sizeof(srMaterial) == 0x78), "srMaterial_must_be_0x78");

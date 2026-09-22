@@ -1034,6 +1034,9 @@ float Det3(float param_1, float param_2, float param_3, float param_4, float par
    TransformMeshGeometry004B7E50. */
 template <class T> class srMatrix4x3T {
 public:
+    /* sr.dll emits out-of-line copies at 0x10055710 for double and 0x10055770
+       for float; srNode's constructor calls both. */
+    void SetIdentity();
     void SetRotation(const srMatrix3T<T>& rotation);
     srMatrix4x3T<T>* SetTranslation(const srVector3T<T>& translation);
     srMatrix4x3T<T>* Scale(const srVector3T<T>& scale);
@@ -1041,6 +1044,26 @@ public:
 
     srVector4T<T> rows[3];
 };
+
+// TEMPLATE: SURRENDER 0x10055710
+// srMatrix4x3T<double>::SetIdentity
+// TEMPLATE: SURRENDER 0x10055770
+// srMatrix4x3T<float>::SetIdentity
+template <class T> void srMatrix4x3T<T>::SetIdentity()
+{
+    rows[0].x = static_cast<T>(1);
+    rows[0].y = static_cast<T>(0);
+    rows[0].z = static_cast<T>(0);
+    rows[0].w = static_cast<T>(0);
+    rows[1].x = static_cast<T>(0);
+    rows[1].y = static_cast<T>(1);
+    rows[1].z = static_cast<T>(0);
+    rows[1].w = static_cast<T>(0);
+    rows[2].x = static_cast<T>(0);
+    rows[2].y = static_cast<T>(0);
+    rows[2].z = static_cast<T>(1);
+    rows[2].w = static_cast<T>(0);
+}
 
 template <class T> void srMatrix4x3T<T>::SetRotation(const srMatrix3T<T>& rotation)
 {

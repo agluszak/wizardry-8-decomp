@@ -213,11 +213,10 @@ void W8CharacterScreen::UpdateDialog()
             m_controls_1af0->Invalidate(0);
             m_pages_1b0c[m_page_index_00c]->Refresh();
             m_header_dirty_010 = 1;
-            /* `accepted` is read uninitialized when no result was captured; retail does the
-               same (the local slot holds the entry `this` pointer). */
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
-            bool accepted;
+            /* Response paths where the result matters are opened by ShowMessage, which
+               also raises m_capture_dialog_result_1b24; a dialog closed without a captured
+               result carries a response for which `accepted` is not observed. */
+            bool accepted = false;
             if (m_capture_dialog_result_1b24) {
                 accepted = static_cast<W8MessageDialogBase*>(m_dialog_1b1c)->close_result;
                 m_capture_dialog_result_1b24 = 0;
@@ -225,7 +224,6 @@ void W8CharacterScreen::UpdateDialog()
             delete m_dialog_1b1c;
             m_dialog_1b1c = 0;
             HandleDialogResult(m_dialog_response_1b20, accepted);
-#pragma clang diagnostic pop
         }
     }
 }

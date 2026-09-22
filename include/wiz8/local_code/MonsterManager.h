@@ -257,23 +257,39 @@ struct W8MonsterCombatState {
 }; /* 0x153 */
 #pragma pack(pop)
 
+/* The sight state both visibility records carry: unseen, seen this pass, or
+   seen within the decay window since last_seen_clock. Stored as a byte. */
+enum W8SightState {
+    W8_SIGHT_UNSEEN = 0,
+    W8_SIGHT_SEEN = 1,
+    W8_SIGHT_RECENT = 2,
+};
+
 /* 0x286: the party-side sight record for one monster. The live-threat gate,
    the clock and two position triples the player-sight pass stamps, the
    use-bounds flag IsVisibleToPlayer consumes, and its two sight flags. The
    per-turn reset zeroes all 0x30 bytes together, which fixes the extent. */
 struct W8PartyThreatRecord {
     unsigned char unknown_00[4];
-    unsigned char state_04; /* 0x28a: live-threat gate for the group sight query */
+    /* 0x28a: W8SightState - live-threat gate for the group sight query;
+       combat, radar, automap and AI read it. */
+    unsigned char sight_state_04;
     /* 0x28b: the sight-flag pair GetPlayerToMonsterSightFlags writes;
        CanPartyMemberAimAtMonster indexes it by the resolved action's
        ranged flag. */
-    unsigned char sight_flags_05[2];
-    unsigned char flag_07;                /* 0x28d */
+    unsigned char los_flags_05[2];
+    /* 0x28d: the party-detection result after the per-observer threshold and
+       camouflage checks run. */
+    unsigned char party_detected_07;
     int last_seen_clock_08;               /* 0x28e: cleared by the per-turn reset */
     srVector3T<float> camera_position_0c; /* 0x292 */
     srVector3T<float> own_position_18;    /* 0x29e */
-    unsigned char threat_state_24;        /* 0x2aa: use-bounds flag handed to IsVisibleToPlayer */
-    unsigned char flag_25;                /* 0x2ab */
+    /* 0x2aa: the use-bounds mode the last UpdateMonsterSight pass handed to
+       IsVisibleToPlayer. */
+    unsigned char use_bounds_24;
+    /* 0x2ab: the immediate IsVisibleToPlayer result; gates notices, camera
+       and path behavior. */
+    bool visible_to_player_25;
     unsigned char unknown_26[0x0a];
 }; /* 0x30 */
 static_assert(sizeof(W8PartyThreatRecord) == 0x30, "W8PartyThreatRecord_size");
@@ -284,11 +300,15 @@ static_assert(sizeof(W8PartyThreatRecord) == 0x30, "W8PartyThreatRecord_size");
    the observer's position at 0x10 and the observed entity's at 0x1c as
    ordinary floats. The reset zeroes exactly its 0x31 bytes. */
 struct W8VisibilityRecord {
-    int about_location_id;           /* 0x00; always zero in the party record */
-    unsigned char state_04;          /* 0x04 */
-    unsigned char sight_flags_05[4]; /* 0x05: two flag pairs */
+    int about_location_id;        /* 0x00; always zero in the party record */
+    unsigned char sight_state_04; /* 0x04: W8SightState */
+    /* 0x05: two sight-flag pairs - GetMonsterSightFlags writes [0]/[2], and
+       the missile/spell vertex traces overwrite [1]/[3]. */
+    unsigned char los_flags_05[4];
     unsigned char unknown_09[2];
-    unsigned char flag_0b;                 /* 0x0b */
+    /* 0x0b: the CanMonsterSeeMonster result for mon-to-mon records; the
+       party-facing record stores its visible_to_player result here. */
+    bool can_see_0b;
     int last_seen_clock_0c;                /* 0x0c */
     srVector3T<float> subject_position_10; /* 0x10: the observer */
     srVector3T<float> target_position_1c;  /* 0x1c: the observed */
@@ -417,7 +437,7 @@ struct W8MonsterInfo {
     int insanity_summon_344;
     W8VisibilityRecord player_visibility; /* 0x348 */
     unsigned char unknown_379;
-    unsigned char has_missile_37a;
+    bool has_missile_37a;
     unsigned char unknown_37b;
     bool has_spell_37c;
     unsigned char unknown_37d[0xa8];

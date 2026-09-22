@@ -265,24 +265,21 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
 // FUNCTION: WIZ8 0x004BC9D0
 unsigned char ReadWorldEnvironment004BC9D0(W8ReadLevelInfo* pInfo, W8World* pWorld)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
-    /* The decompiled body reads this storage only after the same short-circuit
-   chain that clang's flow analysis cannot see through; retail leaves it
-   uninitialised on the failed-read path. Suppress only this diagnostic. */
+    /* Retail read these uninitialised when a FileRead chain short-circuited;
+       deterministic zeroes model that defect path. */
     EnvironmentColour environment_colour;
     EnvironmentColour white;
     srVector3T<float> position;
     srVector3T<float> axis;
     srMatrix3T<float> rotation;
-    float intensity;
-    float view_distance;
-    float angle;
-    float distance_scale;
-    unsigned char camera_mode;
-    unsigned char has_light_colours;
-    unsigned char has_environment_colours;
-    unsigned char fog_enabled;
+    float intensity = 0.0f;
+    float view_distance = 0.0f;
+    float angle = 0.0f;
+    float distance_scale = 0.0f;
+    unsigned char camera_mode = 0;
+    unsigned char has_light_colours = 0;
+    unsigned char has_environment_colours = 0;
+    unsigned char fog_enabled = 0;
     unsigned char success;
 
     success =
@@ -351,7 +348,6 @@ unsigned char ReadWorldEnvironment004BC9D0(W8ReadLevelInfo* pInfo, W8World* pWor
         UpdateEnvironmentLight004834B0();
     }
     return success;
-#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x004BCE20
@@ -468,7 +464,7 @@ unsigned char ReadWorldProps004BC5E0(W8ReadLevelInfo* pInfo, W8World* pWorld,
             for (model_index = 0; model_index < model_instances.GetCount(); ++model_index) {
                 stModelInstance* instance = *model_instances.GetAt(model_index);
                 if (instance != 0) {
-                    instance->state_178 |= 0x10;
+                    instance->render_flags_178 |= 0x10;
                 }
             }
         }
@@ -856,11 +852,11 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
             particle->flutter_period_204 = static_cast<unsigned int>(record.flutter_period);
         }
         if (record.value_216 >= 0) {
-            particle->value_260 = record.value_216;
+            particle->attachment_key_260 = record.value_216;
         }
-        particle->value_138 = record.value_21c;
+        particle->requires_positional_138 = record.value_21c;
         particle->emission_limit_184 = record.state_218;
-        particle->active_190 = false;
+        particle->release_when_done_190 = false;
 
         LoadMaterial004B8A70(pInfo->bitmap_folder, &record.material, &material, &texture,
                              &render_flags.value, 1);
@@ -1105,11 +1101,11 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
                         srMaterial* copy = static_cast<srMaterial*>(material->clone());
                         copy->setName("Unsunlit Prop Material");
                         copy->autoRelease();
-                        copy->parms_18.ambient = 0.0f;
+                        copy->parms.ambient = 0.0f;
                         copy->dirty_74 = 1;
-                        copy->parms_18.emissive.x += g_environment_offset_00659cd0.x;
-                        copy->parms_18.emissive.y += g_environment_offset_00659cd0.y;
-                        copy->parms_18.emissive.z += g_environment_offset_00659cd0.z;
+                        copy->parms.emissive.x += g_environment_offset_00659cd0.x;
+                        copy->parms.emissive.y += g_environment_offset_00659cd0.y;
+                        copy->parms.emissive.z += g_environment_offset_00659cd0.z;
                         copy->dirty_74 = 1;
                         mesh->setMaterial(copy, 0, (srMeshModel::e_side)0);
                     }

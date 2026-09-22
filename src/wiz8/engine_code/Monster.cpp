@@ -14,6 +14,7 @@
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/engine_code/Environment.h"
+#include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/Quality.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/float_constants.h"
@@ -1386,7 +1387,7 @@ void W8Monster::Update()
         CollectModelInstances004C6350(&g_monster_model_instances_682fd0);
         for (index = 0; index < g_monster_model_instances_682fd0.GetCount(); ++index) {
             stModelInstance* model = *g_monster_model_instances_682fd0.GetAt(index);
-            model->scale_194 = 0.75f;
+            model->light_scale_194 = 0.75f;
         }
         target_scale_2fc = 0.75f;
         timer_2d8.SetDuration(0.025f);
@@ -1441,7 +1442,7 @@ void W8Monster::Update()
         CollectModelInstances004C6350(&g_monster_model_instances_682fd0);
         for (index = 0; index < g_monster_model_instances_682fd0.GetCount(); ++index) {
             stModelInstance* model = *g_monster_model_instances_682fd0.GetAt(index);
-            model->scale_194 = current_scale_300;
+            model->light_scale_194 = current_scale_300;
         }
         timer_2d8.Restart();
     }
@@ -3037,7 +3038,7 @@ float W8Monster::GetDistanceToPlayer004C7CB0()
     float distance;
 
     GetCameraPosition(&player_position);
-    player_position.y -= g_startup_depth_603ac8;
+    player_position.y -= g_default_world_height_00603ac8;
     distance = (position - player_position).Length() - movement_0c0.alternate_radius_0b4 -
                g_startup_world_659c0c->movement_0c0.alternate_radius_0b4;
     if (distance < g_float_005ebb34) {
@@ -3053,7 +3054,7 @@ float W8Monster::GetPointDistanceToPlayer004C7D50(srVector3T<float> point)
     float distance;
 
     GetCameraPosition(&player_position);
-    player_position.y -= g_startup_depth_603ac8;
+    player_position.y -= g_default_world_height_00603ac8;
     distance = (point - player_position).Length() - movement_0c0.alternate_radius_0b4 -
                g_startup_world_659c0c->movement_0c0.alternate_radius_0b4;
     if (distance < g_float_005ebb34) {
@@ -3605,7 +3606,7 @@ void W8Monster::SetCycle(signed char cycle)
     CollectModelInstances004C6350(&g_monster_model_instances_682fd0);
     for (index = 0; index < g_monster_model_instances_682fd0.GetCount(); ++index) {
         stModelInstance* model = *g_monster_model_instances_682fd0.GetAt(index);
-        model->scale_194 = current_scale_300;
+        model->light_scale_194 = current_scale_300;
     }
 
     if (cycle == 0x15) {
@@ -5167,7 +5168,7 @@ void W8Monster::SpawnDamageNumber(unsigned int amount)
             particle->speed_min_214 = 1000.0f;
             particle->speed_max_218 = 3000.0f;
             particle->emission_limit_184 = 8;
-            particle->active_190 = true;
+            particle->release_when_done_190 = true;
             particle->bounds_mode_1a4 = 2;
             particle->bounds_radius_240 = 1000.0f;
             location.SetFromFloat(&position);
@@ -5213,10 +5214,10 @@ unsigned char W8Monster::IsRenderable004C7C00(char alternate)
         MonsterGetIndexByLocationID(0x1977, MONSTER_CPP, location_id, 1));
     record = GetMonsterDataForInfo(monster_info);
     if (record->camouflage_248 > 0) {
-        return monster_info->party_threat.flag_07;
+        return monster_info->party_threat.party_detected_07;
     }
     if (alternate != 0) {
-        return monster_info->party_threat.flag_25;
+        return monster_info->party_threat.visible_to_player_25;
     }
     return monster_info->within_viewing_distance;
 }
@@ -5351,7 +5352,7 @@ W8Item* CreateMonsterIconItem004C5500(W8World* world, const char* path, int flag
                 rep->m_psrMesh = instance;
                 rep->RefreshBounds();
                 item->AttachMesh0049F900(world);
-                instance->scale_194.SetZero();
+                instance->light_scale_194.SetZero();
                 return item;
             }
         }

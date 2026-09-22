@@ -197,7 +197,7 @@ float g_float_005ec050 = 0.00020000000949949026f;
 void W8Octree::UpdateCameraVisibility0042F7E0()
 {
     W8World* world = GetWorld();
-    if (g_octree_update_suspended_00659898 != 0 || m_positional_294 != 0) {
+    if (g_octree_update_suspended_00659898 != 0 || m_visibility_suspended_294 != 0) {
         return;
     }
 
@@ -249,9 +249,10 @@ void W8Octree::UpdateVisibility004304A0()
         m_reset_visibility_168 = 0;
         for (mesh_index = 0; mesh_index < m_meshCount_1b4; ++mesh_index) {
             if (g_world->psrMeshes[mesh_index] != 0) {
-                m_pSubmeshes
-                    [static_cast<stModelInstance*>(g_world->psrMeshes[mesh_index])->state_17c + 1]
-                        .mesh_04 = mesh_index;
+                m_pSubmeshes[static_cast<stModelInstance*>(g_world->psrMeshes[mesh_index])
+                                 ->mesh_index_17c +
+                             1]
+                    .mesh_04 = mesh_index;
                 m_pSubmeshes[mesh_index + 1].flags_00 &= 0xffffffc7;
                 stModelInstance* mesh =
                     static_cast<stModelInstance*>(g_world->psrMeshes[mesh_index]);
@@ -300,7 +301,7 @@ void W8Octree::UpdateVisibility004304A0()
     }
     m_projected_regions_valid_16a = 0;
     m_positional_16b = 0;
-    CollectVisibleRegions00430D50(&camera_location_1c0, m_positional_204, 0, 1);
+    CollectVisibleRegions00430D50(&camera_location_1c0, m_visible_cells_204, 0, 1);
     CollectVisibleCells0042FE90();
     if (pathing_180 != 0) {
         srVector3T<float> dof;
@@ -601,7 +602,7 @@ void W8Octree::MarkMeshLinksVisible00430A70(unsigned int mesh)
 short W8Octree::ProjectLinkedRegionsForLocation00431050(srVector3T<float>* location,
                                                         unsigned short* region_list)
 {
-    if (m_positional_169 == 0) {
+    if (m_region_links_ready_169 == 0) {
         return 0;
     }
 
@@ -1053,30 +1054,30 @@ bool W8Octree::LoadPointFiles(const char* level_name)
         if (first != 0) {
             first = 0;
         } else {
-            m_positional_16d = 1;
+            m_points_dirty_16d = 1;
         }
         int file = FileOpen(name, 1, 0);
         if (file == 0) {
             return 0;
         }
-        if (FileRead(file, &m_positional_170, 4, 0) == 0) {
+        if (FileRead(file, &m_point_count_170, 4, 0) == 0) {
             FileClose(file);
             return 0;
         }
-        m_sr_owned_174 =
-            static_cast<srVector3T<float>*>(srHeap.allocate((m_positional_170 + 1) * 0xc));
-        if (m_sr_owned_174 == 0) {
+        m_sample_points_174 =
+            static_cast<srVector3T<float>*>(srHeap.allocate((m_point_count_170 + 1) * 0xc));
+        if (m_sample_points_174 == 0) {
             FileClose(file);
             return 0;
         }
-        read_ok = FileRead(file, m_sr_owned_174, m_positional_170 * 0xc, 0);
+        read_ok = FileRead(file, m_sample_points_174, m_point_count_170 * 0xc, 0);
         FileClose(file);
     }
     if (read_ok != 0) {
         return read_ok;
     }
-    srHeap.free(m_sr_owned_174);
-    m_positional_170 = 0;
+    srHeap.free(m_sample_points_174);
+    m_point_count_170 = 0;
     return 0;
 }
 
@@ -1105,9 +1106,10 @@ bool W8Octree::SavePoints00432D60(char* path)
     }
     int file = FileOpen(name, 2, 0);
     if (file != 0) {
-        if (m_positional_170 != 0 && m_sr_owned_174 != 0) {
-            unsigned char wrote_count = FileWrite(file, &m_positional_170, 4, 0);
-            unsigned char wrote_points = FileWrite(file, m_sr_owned_174, m_positional_170 * 0xc, 0);
+        if (m_point_count_170 != 0 && m_sample_points_174 != 0) {
+            unsigned char wrote_count = FileWrite(file, &m_point_count_170, 4, 0);
+            unsigned char wrote_points =
+                FileWrite(file, m_sample_points_174, m_point_count_170 * 0xc, 0);
             result = wrote_count | wrote_points;
             FileClose(file);
         }
@@ -1169,7 +1171,7 @@ bool W8Octree::ReadRegionLinkFile(const char* level_name)
     free(keys);
     free(values);
     if (result != 0) {
-        m_positional_169 = 1;
+        m_region_links_ready_169 = 1;
     }
     return result;
 }
@@ -1560,8 +1562,8 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
     W8HashTable<unsigned int, unsigned short>* stale;
     if (rebuild_all == 0) {
         if (!aborted) {
-            for (unsigned int point_index = 0; point_index < m_positional_170; ++point_index) {
-                unsigned int key = SampleRegionLinks(&m_sr_owned_174[point_index], 1, 1, 0);
+            for (unsigned int point_index = 0; point_index < m_point_count_170; ++point_index) {
+                unsigned int key = SampleRegionLinks(&m_sample_points_174[point_index], 1, 1, 0);
                 RecordRegionMeshLinks(key);
             }
         }
@@ -1579,9 +1581,9 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
             }
             DeleteFileA(point_path);
         }
-        srHeap.free(m_sr_owned_174);
-        m_sr_owned_174 = 0;
-        m_positional_170 = 0;
+        srHeap.free(m_sample_points_174);
+        m_sample_points_174 = 0;
+        m_point_count_170 = 0;
     }
     world->camera->setViewPlane(saved_width, saved_height);
     unsigned int camera_count = PLLength(world->plsCameras);
@@ -1608,8 +1610,8 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
     g_render_unlit_0065a0ec = 0;
     g_render_cull_front_0065a0ed = 0;
     SetScaledViewport00425DA0(0, 0, 0x280, 0x1e0);
-    m_positional_16c = 1;
-    m_positional_169 = 1;
+    m_region_links_dirty_16c = 1;
+    m_region_links_ready_169 = 1;
     m_reset_visibility_168 = 1;
     unsigned int elapsed = static_cast<unsigned int>(static_cast<int>(difftime(time(0), started)));
     unsigned int minutes = elapsed / 60;
@@ -1900,7 +1902,8 @@ void W8Octree::ToggleUpdateSuspension00434020(W8World* world)
         return;
     }
     for (unsigned short mesh_index = 0; mesh_index < m_meshCount_1b4; ++mesh_index) {
-        m_pSubmeshes[static_cast<stModelInstance*>(g_world->psrMeshes[mesh_index])->state_17c + 1]
+        m_pSubmeshes[static_cast<stModelInstance*>(g_world->psrMeshes[mesh_index])->mesh_index_17c +
+                     1]
             .mesh_04 = mesh_index;
         m_pSubmeshes[mesh_index + 1].flags_00 &= 0xffffffc7;
         static_cast<stModelInstance*>(world->psrMeshes[mesh_index])->setFlag(srNode::FLAG_DISABLE);
@@ -2463,12 +2466,12 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
         if (span < 2) {
             ProbeCellForTrace(cell);
             blocked = g_octree_game_data_00652db0->TestTraceResult(
-                m_gd_result_count_1b8, m_aulGDObjs, &trace, m_positional_134, 0);
+                m_gd_result_count_1b8, m_aulGDObjs, &trace, m_trace_skip_flag_134, 0);
 
             if (blocked == 0 && span != 0) {
                 ProbeCellForTrace(end_cell);
                 blocked = g_octree_game_data_00652db0->TestTraceResult(
-                    m_gd_result_count_1b8, m_aulGDObjs, &trace, m_positional_134, 0);
+                    m_gd_result_count_1b8, m_aulGDObjs, &trace, m_trace_skip_flag_134, 0);
             }
         } else {
             BuildCellWalk(from, to, &walk);
@@ -2494,7 +2497,7 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
                     }
                     if (ProbeCellForTrace(cell) != 0) {
                         blocked = g_octree_game_data_00652db0->TestTraceResult(
-                            m_gd_result_count_1b8, m_aulGDObjs, &trace, m_positional_134, 0);
+                            m_gd_result_count_1b8, m_aulGDObjs, &trace, m_trace_skip_flag_134, 0);
                     }
                     if (error_0 < error_1) {
                         if (error_0 < 0 && blocked == 0) {
@@ -2502,8 +2505,8 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
                             error_0 += walk.error_reset_30;
                             if (ProbeCellForTrace(cell) != 0) {
                                 blocked = g_octree_game_data_00652db0->TestTraceResult(
-                                    m_gd_result_count_1b8, m_aulGDObjs, &trace, m_positional_134,
-                                    0);
+                                    m_gd_result_count_1b8, m_aulGDObjs, &trace,
+                                    m_trace_skip_flag_134, 0);
                             }
                             if (error_1 < 0 && blocked == 0) {
                                 cell[minor_1] += step[minor_1];
@@ -2511,7 +2514,7 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
                                 if (ProbeCellForTrace(cell) != 0) {
                                     blocked = g_octree_game_data_00652db0->TestTraceResult(
                                         m_gd_result_count_1b8, m_aulGDObjs, &trace,
-                                        m_positional_134, 0);
+                                        m_trace_skip_flag_134, 0);
                                 }
                             }
                         }
@@ -2520,15 +2523,16 @@ short W8Octree::TraceLineOfSight(const srVector3T<float>* from, srVector3T<float
                         error_1 += walk.error_reset_3c;
                         if (ProbeCellForTrace(cell) != 0) {
                             blocked = g_octree_game_data_00652db0->TestTraceResult(
-                                m_gd_result_count_1b8, m_aulGDObjs, &trace, m_positional_134, 0);
+                                m_gd_result_count_1b8, m_aulGDObjs, &trace, m_trace_skip_flag_134,
+                                0);
                         }
                         if (error_0 < 0 && blocked == 0) {
                             cell[minor_0] += step[minor_0];
                             error_0 += walk.error_reset_30;
                             if (ProbeCellForTrace(cell) != 0) {
                                 blocked = g_octree_game_data_00652db0->TestTraceResult(
-                                    m_gd_result_count_1b8, m_aulGDObjs, &trace, m_positional_134,
-                                    0);
+                                    m_gd_result_count_1b8, m_aulGDObjs, &trace,
+                                    m_trace_skip_flag_134, 0);
                             }
                         }
                     }
@@ -4364,10 +4368,10 @@ void W8Octree::AddLoadedParticle(stParticle* particle)
 // FUNCTION: WIZ8 0x0042de60
 W8Octree::~W8Octree()
 {
-    if (m_positional_16c != 0) {
+    if (m_region_links_dirty_16c != 0) {
         SaveRegionLinks004331F0(m_owned_0c0);
     }
-    if (m_positional_16d != 0) {
+    if (m_points_dirty_16d != 0) {
         SavePoints00432D60(m_owned_0c0);
     }
     if (pathing_180 != 0) {
@@ -4416,9 +4420,9 @@ W8Octree::~W8Octree()
     DestroyBitArray(m_particles_to_disable_10c);
     DestroyBitArray(m_props_to_disable_110);
 
-    m_positional_170 = 0;
-    if (m_sr_owned_174 != 0) {
-        srHeap.free(m_sr_owned_174);
+    m_point_count_170 = 0;
+    if (m_sample_points_174 != 0) {
+        srHeap.free(m_sample_points_174);
     }
     free(m_owned_0c0);
     DestroyBitArray(m_owned_194);

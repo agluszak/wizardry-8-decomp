@@ -28,7 +28,7 @@ public:
     float angle_138;
     float depth_13c;
     float width_140;
-    unsigned char unknown_144[4];
+    unsigned char padding_144[4];
 
 private:
     void renderGroundShadow(srGERD* renderer); /* 0x004D66A0 */

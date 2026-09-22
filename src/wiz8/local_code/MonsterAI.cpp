@@ -286,10 +286,10 @@ unsigned char GetMonsterGroupPartySightState(W8MonsterGroup* monster_group)
         monster_info = MonsterInfoFromID(0xfe, MONSTER_AI_CPP, location_id, 1);
         if (monster_info->fActive != 0 && monster_info->monster->IsDying() == 0 &&
             monster_info->hp_current != 0 && monster_info->highest_condition < 0xc) {
-            if (monster_info->player_visibility.state_04 == 1) {
+            if (monster_info->player_visibility.sight_state_04 == W8_SIGHT_SEEN) {
                 return 1;
             }
-            if (monster_info->player_visibility.state_04 == 2) {
+            if (monster_info->player_visibility.sight_state_04 == W8_SIGHT_RECENT) {
                 result = 2;
             }
         }
@@ -722,7 +722,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
             break;
         }
         if (monster->IsWithinWorldRange004CA2A0() == 0 &&
-            monster_info->party_threat.state_04 == 1) {
+            monster_info->party_threat.sight_state_04 == W8_SIGHT_SEEN) {
             monster_group = GetMonsterGroupByListIndex(
                 GetMonsterGroupIndexByID(0x350, MONSTER_AI_CPP, monster_info->monster_group_id, 1));
             position = patrol_point;
@@ -1201,7 +1201,7 @@ targets_chosen:
             continue;
         }
         if (scan_chars != 0 &&
-            monster_info->player_visibility.sight_flags_05[RangeCategoryUsesSightCondition(
+            monster_info->player_visibility.los_flags_05[RangeCategoryUsesSightCondition(
                 monster_info, (W8RangeCategory)record->attacks[attack].range_category)] != 0) {
             for (index = char_lo; index < char_hi; ++index) {
                 if (g_status_685170.buffers.XChar[index].fOccupied != 0 &&
@@ -2174,10 +2174,10 @@ unsigned char MonsterHasNoVisibleEnemy(W8MonsterInfo* monster_info, int party_on
     W8MonsterInfo* other;
     W8VisibilityRecord* record;
 
-    if (monster_info->party_threat.state_04 != 0) {
+    if (monster_info->party_threat.sight_state_04 != W8_SIGHT_UNSEEN) {
         return 0;
     }
-    if (monster_info->player_visibility.state_04 != 0) {
+    if (monster_info->player_visibility.sight_state_04 != W8_SIGHT_UNSEEN) {
         for (index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
             if (g_status_685170.buffers.XChar[index].fOccupied != 0 &&
                 g_status_685170.buffers.Char[index].hp_current > 0 &&
@@ -2194,7 +2194,7 @@ unsigned char MonsterHasNoVisibleEnemy(W8MonsterInfo* monster_info, int party_on
                 other->highest_condition < 0x12 && other->fInCombat != 0 &&
                 MonsterHostility00546F80(monster_info, other) == 1 &&
                 (record = FindMonToMonVisibility(monster_info, other)) != 0 &&
-                record->state_04 != 0) {
+                record->sight_state_04 != W8_SIGHT_UNSEEN) {
                 return 0;
             }
         }
@@ -2246,8 +2246,8 @@ bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only, int ho
             reach = GetRangeConstant5EC360() + g_float_005ee77c;
         }
     }
-    if (monster_info->player_visibility.state_04 == 1 &&
-        monster_info->player_visibility.sight_flags_05[2] != 0 &&
+    if (monster_info->player_visibility.sight_state_04 == W8_SIGHT_SEEN &&
+        monster_info->player_visibility.los_flags_05[2] != 0 &&
         (within_reach == 0 || monster_info->monster->GetDistanceToPlayer004C7CB0() <= reach)) {
         for (index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
             if (g_status_685170.buffers.XChar[index].fOccupied != 0 &&
@@ -2275,7 +2275,8 @@ bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only, int ho
                 if (hostility == 3 || disposition == hostility ||
                     (hostility == 4 && disposition != 0)) {
                     record = FindMonToMonVisibility(monster_info, other);
-                    if (record != 0 && record->state_04 == 1 && record->sight_flags_05[2] != 0) {
+                    if (record != 0 && record->sight_state_04 == W8_SIGHT_SEEN &&
+                        record->los_flags_05[2] != 0) {
                         if (within_reach == 0 ||
                             monster_info->monster->GetDistanceToMonster004C7DD0(other->monster) <=
                                 reach) {
@@ -2545,7 +2546,7 @@ bool MonsterGroupHasReinforcement(W8MonsterGroup* monster_group)
         member = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0xe1d, MONSTER_AI_CPP, IListGetAt(monster_group->monsters, index), 1));
         if ((member->ubDisposition == 0 && GetMonsterDataForInfo(member)->unknown_249 != 0) ||
-            member->party_threat.sight_flags_05[1] == 0) {
+            member->party_threat.los_flags_05[1] == 0) {
             continue;
         }
         member_distance = member->monster->GetDistanceToPlayer004C7CB0();
@@ -2554,7 +2555,7 @@ bool MonsterGroupHasReinforcement(W8MonsterGroup* monster_group)
         }
         for (other_index = 0; other_index < PLLength(gXStatus.plsMonsterList); ++other_index) {
             other = MonsterGetScriptPartByLocationIndex(other_index);
-            if (other != member && other->party_threat.sight_flags_05[1] != 0 &&
+            if (other != member && other->party_threat.los_flags_05[1] != 0 &&
                 other->fActive != 0 && other->fInCombat != 0 && other->hp_current != 0 &&
                 other->ubDisposition == DISP_HOSTILE) {
                 other_distance = other->monster->GetDistanceToPlayer004C7CB0();

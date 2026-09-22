@@ -2010,7 +2010,8 @@ void RollCombatSurprise004ECF50(char arg_1)
                 monster_info = MonsterGetScriptPartByLocationIndex(index);
                 if (monster_info->fActive != 0 && monster_info->fInCombat != 0 &&
                     monster_info->hp_current != 0 && monster_info->highest_condition < 0x10 &&
-                    monster_info->ubDisposition == 1 && monster_info->party_threat.state_04 == 1) {
+                    monster_info->ubDisposition == 1 &&
+                    monster_info->party_threat.sight_state_04 == W8_SIGHT_SEEN) {
                     if (PartyAvoidsSurprise() == 0) {
                         goto party_surprise_done;
                     }
@@ -2038,7 +2039,8 @@ void RollCombatSurprise004ECF50(char arg_1)
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fActive != 0 && monster_info->fInCombat != 0 &&
             monster_info->hp_current != 0 && monster_info->highest_condition < 0x10 &&
-            monster_info->ubDisposition == 1 && monster_info->player_visibility.state_04 == 1) {
+            monster_info->ubDisposition == 1 &&
+            monster_info->player_visibility.sight_state_04 == W8_SIGHT_SEEN) {
             goto monsters_checked;
         }
         ++index;
@@ -2069,12 +2071,9 @@ monsters_checked:
     ShowNotice(0xc, gppStringList[0x23f], -1, -1, 0);
 }
 
-#pragma clang diagnostic push
 /* `relationship` is only read on the interrupt-8/9 retarget paths that assign
    it; the post-switch `if (interrupt == 8)/else if (interrupt == 9)` tails are
-   dead code the authored source carried and clang cannot prove unreachable.
-   Suppress only this diagnostic. */
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
+   dead code the authored source carried and clang cannot prove unreachable. */
 /* Commit the slot's chosen combat action and run it. The in-combat action the
    chooser stored becomes the live pending action; a condition interrupt can
    cancel or redirect it first, then the action-kind switch executes it and
@@ -2130,7 +2129,7 @@ void ExecuteCharacterAction004EA5C0(int party_slot)
         SetTargetSourceToCharacter(party_slot, &source);
         interrupt = GetConditionInterrupt004EC1E0(&source);
         if (interrupt != -1) {
-            char relationship;
+            char relationship = 0;
             PostCharacterNotice(party_slot,
                                 gppStringList[g_condition_notices_0061E570[interrupt + 0x74]]);
             switch (interrupt) {
@@ -2293,7 +2292,6 @@ action_done:
         g_combat_state->eCombatActionStatus = 2;
     }
 }
-#pragma clang diagnostic pop
 
 /* Derive the row's next action phase and settle which hand the slot swings
    with. Only an attack pending action that can still reach a live target

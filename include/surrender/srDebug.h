@@ -7,6 +7,9 @@
 SR_DLL_IMPORT long __cdecl srDebugPrintf(unsigned long level, const char* format, ...);
 SR_DLL_IMPORT long __cdecl srPrintf(const char* format, ...);
 SR_DLL_IMPORT long __cdecl srStreamPrintf(std::ostream& stream, const char* format, ...);
+/* Exported diagnostic helper; srMaterial::dump prints the dirty flag through
+   it. The owning TU is unknown. */
+SR_DLL_IMPORT const char* __cdecl srBoolToString(int value);
 
 /* The provider-facing declaration keeps the variadic export's ZZ mangling;
    consumers see the fixed-arity form declared in wiz8's sr_api.h. */

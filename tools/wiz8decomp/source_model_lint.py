@@ -6,7 +6,10 @@ source model can express them directly:
 * compiler/template output must remain emission provenance, not authored bodies;
 * literal byte offsets into repository-typed objects must use named fields;
 * recovered callables must use real declarations, not inline function-pointer
-  reinterpret casts.
+  reinterpret casts;
+* an object allocated with `new T[n]` must not be released by scalar `delete`;
+  on trivially destructible elements the spellings emit identical code, so a
+  scalar delete is always the wrong authored form.
 
 Unlike the diff-scoped cast hygiene gate, these are whole-tree invariants with
 no source comment waiver.
@@ -66,6 +69,11 @@ _INLINE_FUNCTION_POINTER_CAST = re.compile(
 _COMPILER_SYNTHETIC_NAME = re.compile(
     r"\`(?:scalar|vector) deleting destructor'|\`vtordisp\b|\`adjustor\{",
     re.IGNORECASE,
+)
+_ARRAY_ALLOCATION = re.compile(r"\b(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*new\s+[^;=\n(\[]*\[")
+_SCALAR_DELETE = re.compile(
+    r"\bdelete\s+(?!\[)\s*(?:(?:this|[A-Za-z_][A-Za-z0-9_]*)\s*->\s*)?"
+    r"(?P<name>[A-Za-z_][A-Za-z0-9_]*)\s*;"
 )
 
 
@@ -144,6 +152,26 @@ def _callable_cast_violations(repository: Path) -> list[dict[str, Any]]:
             violations.append(
                 {
                     "kind": "callable-reinterpret-cast",
+                    "file": path.relative_to(repository).as_posix(),
+                    "line": _line(source, match.start()),
+                    "detail": _snippet(source, match.start(), match.end()),
+                }
+            )
+    return violations
+
+
+def _scalar_delete_violations(repository: Path) -> list[dict[str, Any]]:
+    violations: list[dict[str, Any]] = []
+    for path in _source_files(repository):
+        source = path.read_text(encoding="utf-8", errors="ignore")
+        masked = _mask_cpp_noise(source)
+        array_allocated = {match.group("name") for match in _ARRAY_ALLOCATION.finditer(masked)}
+        for match in _SCALAR_DELETE.finditer(masked):
+            if match.group("name") not in array_allocated:
+                continue
+            violations.append(
+                {
+                    "kind": "scalar-delete-of-array-allocation",
                     "file": path.relative_to(repository).as_posix(),
                     "line": _line(source, match.start()),
                     "detail": _snippet(source, match.start(), match.end()),
@@ -252,6 +280,7 @@ def source_model_violations(repository: Path) -> list[dict[str, Any]]:
         *_compiler_emission_violations(repository),
         *_typed_raw_offset_violations(repository),
         *_callable_cast_violations(repository),
+        *_scalar_delete_violations(repository),
     ]
 
 
@@ -272,5 +301,6 @@ def validate_source_model(repository: Path) -> dict[str, Any]:
             "compiler-emission-ownership",
             "typed-object-raw-offsets",
             "callable-reinterpret-casts",
+            "scalar-delete-of-array-allocation",
         ],
     }

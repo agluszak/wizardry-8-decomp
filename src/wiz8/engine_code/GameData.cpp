@@ -1570,7 +1570,7 @@ stModelInstance* W8GameData::CreateTraceModel0041C930()
         }
     }
     mesh->setName("GameData_Mesh");
-    mesh->flag_3cc = 0;
+    mesh->duplicate_on_reuse_3cc = 0;
     mesh->flags_3a0 &= ~2U;
     stModelInstance* instance = CreateModelInstance0046F5C0(mesh);
     instance->setName("GameData_Mesh");

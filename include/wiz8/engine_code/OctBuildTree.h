@@ -38,9 +38,9 @@ struct W8OctBuildNode00446330 {
     };
     unsigned long positional_20;
     unsigned long positional_24;
-    unsigned short positional_28;
+    unsigned short region_28;
     unsigned short leaf_kind_2a;
-    unsigned short positional_2c;
+    unsigned short provisional_region_2c;
     unsigned short positional_2e;
 };
 
@@ -89,15 +89,15 @@ struct W8OctBuildTree00446390 {
 
     W8OctSpatialState spatial_00;
     W8OctBuildLinkLists* link_lists_9c;
-    unsigned long positional_a0;
-    unsigned long positional_a4;
-    unsigned long positional_a8;
-    unsigned short positional_ac;
+    unsigned long leaf_polygon_count_a0;
+    unsigned long gd_surface_count_a4;
+    unsigned long leaf_count_a8;
+    unsigned short max_leaf_regions_ac;
     unsigned short padding_ae;
-    unsigned long positional_b0;
+    unsigned long region_assignments_b0;
     unsigned char use_owned_nodes_b4;
     unsigned char padding_b5[3];
-    unsigned long positional_b8;
+    unsigned long deepest_link_list_b8;
 };
 
 static_assert(sizeof(W8OctBuildLink) == 8, "W8OctBuildLink_must_be_8");

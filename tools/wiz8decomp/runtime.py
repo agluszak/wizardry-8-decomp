@@ -592,8 +592,28 @@ def runtime_test_environment(
     return prefix, environment
 
 
-def configure_wine_window_management(environment: dict[str, str], *, private_display: bool) -> None:
-    """Match Wine's window ownership and desktop geometry to the selected display."""
+def configure_wine_window_management(
+    environment: dict[str, str],
+    *,
+    private_display: bool,
+    virtual_desktop: bool | None = None,
+) -> None:
+    """Match Wine's window ownership and desktop geometry to the selected display.
+
+    Display selection and Wine's virtual-desktop policy are independent:
+    ``private_display`` only controls the ``Managed`` driver flag. The Wine
+    ``Explorer`` virtual desktop is an explicit opt-in via
+    ``WIZ8_WINE_VIRTUAL_DESKTOP`` so a host display maps Wiz8 as an ordinary
+    managed window instead of a 640x480 desktop shell.
+    """
+
+    if virtual_desktop is None:
+        virtual_desktop = os.environ.get("WIZ8_WINE_VIRTUAL_DESKTOP", "").strip().lower() in {
+            "1",
+            "true",
+            "yes",
+            "on",
+        }
 
     subprocess.run(
         [
@@ -611,7 +631,7 @@ def configure_wine_window_management(environment: dict[str, str], *, private_dis
         check=True,
         timeout=60,
     )
-    if private_display:
+    if not virtual_desktop:
         subprocess.run(
             [
                 "wine",
@@ -749,13 +769,20 @@ def _run_runtime_scenario(
                     # A Wine debugger can outlive the executable and retain its pipes/window.
                     # Scenarios run serially in this checkout-owned prefix; retire it on failure
                     # so the next isolated stage cannot find the failed scenario's window.
-                    subprocess.run(
-                        ["wineserver", "-k"],
-                        env=environment,
-                        check=False,
-                        capture_output=True,
-                        timeout=5,
-                    )
+                    # Cleanup is strictly best-effort: its failure must never
+                    # replace the scenario's own crash/failure diagnostics.
+                    try:
+                        subprocess.run(
+                            ["wineserver", "-k"],
+                            env=environment,
+                            check=False,
+                            capture_output=True,
+                            timeout=5,
+                        )
+                    except (subprocess.TimeoutExpired, OSError) as cleanup_error:
+                        output["stderr"].extend(
+                            f"\nruntime-test cleanup: wineserver -k failed: {cleanup_error}\n".encode()
+                        )
                 if process.poll() is None:
                     process.kill()
                 process.wait()
@@ -901,13 +928,20 @@ def run_runtime_suite(
                             flush=True,
                         )
         finally:
-            subprocess.run(
-                ["wineserver", "-k"],
-                cwd=stage,
-                env=environment,
-                check=False,
-                capture_output=True,
-            )
+            try:
+                subprocess.run(
+                    ["wineserver", "-k"],
+                    cwd=stage,
+                    env=environment,
+                    check=False,
+                    capture_output=True,
+                )
+            except OSError as cleanup_error:
+                print(
+                    f"runtime-test cleanup: wineserver -k failed: {cleanup_error}",
+                    file=sys.stderr,
+                    flush=True,
+                )
     for forward, reverse in comparisons:
         if any(
             observation != runs[reverse][scenario]

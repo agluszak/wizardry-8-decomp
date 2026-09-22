@@ -2610,14 +2610,12 @@ void PostMonsterNotice(W8MonsterInfo* monster_info, const wchar_t* format, ...)
 /* Re-show the last wrapped entry of `mode`'s message run as a notice line;
    0xffff derives the mode from the live dialogue/camp/combat state. Retail
    only fills `merged` when the run index range is non-empty, so a failing
-   (but returning) srAssertFail can leave it uninitialized at ShowNoticeLine;
-   preserved intentionally. */
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
+   (but returning) srAssertFail left it uninitialized at ShowNoticeLine; the
+   deterministic empty string models that defect path. */
 // FUNCTION: WIZ8 0x00590BD0
 void RefreshTextBoxMode00590BD0(unsigned short mode)
 {
-    wchar_t merged[500];
+    wchar_t merged[500] = {0};
     W8MessageStorageRecord* line;
     unsigned int last_line;
     unsigned int group_lines;
@@ -2670,4 +2668,3 @@ void RefreshTextBoxMode00590BD0(unsigned short mode)
     }
     ShowNoticeLine(merged, 0, 1, 0);
 }
-#pragma clang diagnostic pop

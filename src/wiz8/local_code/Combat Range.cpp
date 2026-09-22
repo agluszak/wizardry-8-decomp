@@ -290,7 +290,7 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
     int range;
     char rows;
 
-    if (monster_info->party_threat.state_04 != 1) {
+    if (monster_info->party_threat.sight_state_04 != W8_SIGHT_SEEN) {
         return 0;
     }
     if (gXStatus.iTargetingMode == 0 && gXStatus.fCombatMode == 0 && gXStatus.fSpellCastMode == 0 &&
@@ -346,7 +346,7 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
             goto cannot_aim;
         }
     }
-    if (monster_info->party_threat.sight_flags_05[flag] == 0) {
+    if (monster_info->party_threat.los_flags_05[flag] == 0) {
         goto cannot_aim;
     }
     if (CalcRangeDistance(static_cast<W8RangeCategory>(range)) <
@@ -581,7 +581,7 @@ unsigned char MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned i
         if (MonsterVsCharDisposition(party_slot, monster_info) != disposition_needed) {
             continue;
         }
-        if (monster_info->player_visibility.state_04 != 1) {
+        if (monster_info->player_visibility.sight_state_04 != W8_SIGHT_SEEN) {
             continue;
         }
 
@@ -601,7 +601,7 @@ unsigned char MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned i
         } else {
             sight_index = 0;
         }
-        if (monster_info->player_visibility.sight_flags_05[sight_index] == 0) {
+        if (monster_info->player_visibility.los_flags_05[sight_index] == 0) {
             continue;
         }
 
@@ -696,7 +696,7 @@ bool MonsterAttackReachesCharacter(W8MonsterInfo* monster_info, W8MonsterRecord*
     char crossable;
     W8MonsterRecord* attack_record;
 
-    if (monster_info->player_visibility.state_04 != 1) {
+    if (monster_info->player_visibility.sight_state_04 != W8_SIGHT_SEEN) {
         return 0;
     }
 
@@ -716,7 +716,7 @@ bool MonsterAttackReachesCharacter(W8MonsterInfo* monster_info, W8MonsterRecord*
     } else {
         sight_index = 0;
     }
-    if (monster_info->player_visibility.sight_flags_05[sight_index] == 0) {
+    if (monster_info->player_visibility.los_flags_05[sight_index] == 0) {
         return 0;
     }
 
@@ -805,7 +805,7 @@ bool MonsterAttackReachesMonster(W8MonsterInfo* monster_info, W8MonsterRecord* r
     if (visibility == 0) {
         return 0;
     }
-    if (visibility->state_04 != 1) {
+    if (visibility->sight_state_04 != W8_SIGHT_SEEN) {
         return 0;
     }
 
@@ -825,7 +825,7 @@ bool MonsterAttackReachesMonster(W8MonsterInfo* monster_info, W8MonsterRecord* r
     } else {
         sight_index = 0;
     }
-    if (visibility->sight_flags_05[sight_index] == 0) {
+    if (visibility->los_flags_05[sight_index] == 0) {
         return 0;
     }
 
@@ -1430,7 +1430,7 @@ unsigned char MonsterActionReachesTarget(W8MonsterInfo* monster_info, W8MonsterR
 
     if (target->iType == W8_TARGET_KIND_CHARACTER) {
         int party_slot = target->iChar;
-        if (monster_info->player_visibility.state_04 != 1) {
+        if (monster_info->player_visibility.sight_state_04 != W8_SIGHT_SEEN) {
             return 0;
         }
         if (monster_info->action_kind == 0) {
@@ -1445,7 +1445,7 @@ unsigned char MonsterActionReachesTarget(W8MonsterInfo* monster_info, W8MonsterR
         } else {
             sight_index = 0;
         }
-        if (monster_info->player_visibility.sight_flags_05[sight_index] == 0) {
+        if (monster_info->player_visibility.los_flags_05[sight_index] == 0) {
             return 0;
         }
         range = GetMonsterActionRangeCategory(monster_info, record, attack);
@@ -1467,7 +1467,7 @@ unsigned char MonsterActionReachesTarget(W8MonsterInfo* monster_info, W8MonsterR
         return MonsterAttackReachesMonster(monster_info, record, attack, target_monster);
     } else if (target->iType == W8_TARGET_KIND_PARTY) {
         int party_slot = GetRandomCharacter(1, 1, -1, -1);
-        if (monster_info->player_visibility.state_04 != 1) {
+        if (monster_info->player_visibility.sight_state_04 != W8_SIGHT_SEEN) {
             return 0;
         }
         if (monster_info->action_kind == 0) {
@@ -1482,7 +1482,7 @@ unsigned char MonsterActionReachesTarget(W8MonsterInfo* monster_info, W8MonsterR
         } else {
             sight_index = 0;
         }
-        if (monster_info->player_visibility.sight_flags_05[sight_index] == 0) {
+        if (monster_info->player_visibility.los_flags_05[sight_index] == 0) {
             return 0;
         }
         W8RangeCategory range_category =

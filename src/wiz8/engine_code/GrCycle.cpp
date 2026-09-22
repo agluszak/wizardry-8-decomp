@@ -569,7 +569,7 @@ W8GrCycle::~W8GrCycle()
                 delete event;
                 owner->SetActive(1);
                 owner->emission_limit_184 = 1;
-                owner->active_190 = true;
+                owner->release_when_done_190 = true;
             }
         }
         delete m_plsParticles;
@@ -1096,11 +1096,11 @@ void W8GrCycle::UpdateParticleAttachments004A7E50()
     for (index = 0; index < count; ++index) {
         W8GrCycleParticleAttachment* attachment = *m_plsParticles->GetAt(index);
         stParticle* particle = attachment->m_pstParticles;
-        if (particle->active_1a0 == 0) {
+        if (particle->emitting_1a0 == 0) {
             continue;
         }
         if (pMeshModel != 0) {
-            short key = particle->value_260;
+            short key = particle->attachment_key_260;
 
             if (key < 0) {
                 vertex = -1;

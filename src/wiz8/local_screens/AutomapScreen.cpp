@@ -1907,18 +1907,16 @@ bool LoadAutomapNotes(int handle)
             FileRead(handle, &count, 4, 0) != 0) {
             for (unsigned int index = 0; index < count; ++index) {
                 srVector2T<float> position;
-                int layer;
-                int length;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
-                /* Retail feeds this slot to malloc even when the FileRead
-                   chain short-circuits before filling it. */
+                int layer = 0;
+                int length = 0;
+                /* Retail fed `length` to malloc even when the FileRead chain
+                   short-circuited before filling it; a deterministic zero
+                   models that defect path. */
                 unsigned char ok = FileRead(handle, &position.x, 4, 0) != 0 &&
                                    FileRead(handle, &position.y, 4, 0) != 0 &&
                                    FileRead(handle, &layer, 4, 0) != 0 &&
                                    FileRead(handle, &length, 4, 0) != 0;
                 wchar_t* text = static_cast<wchar_t*>(malloc(length * 2));
-#pragma clang diagnostic pop
                 if (ok == 0) {
                     return false;
                 }
@@ -2163,7 +2161,7 @@ void RenderAutomapMarkers00582930(void)
             }
         }
         if (g_flag_0068f264 != 0 || detect_all != 0 ||
-            (monster->flag_217 == 0 && info->party_threat.state_04 == 1)) {
+            (monster->flag_217 == 0 && info->party_threat.sight_state_04 == W8_SIGHT_SEEN)) {
             left = g_automap_position.x - g_automap_zoom * g_float_005ebc7c;
             top = g_automap_position.z - g_automap_zoom * g_float_005ebc7c;
             if (location.x < left || left + g_automap_zoom < location.x || location.z < top ||

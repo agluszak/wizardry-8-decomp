@@ -516,3 +516,5 @@ extern W8GrowableVector<W8Navigator*> g_navigator_group_659bf8;
 /* Runtime scale applied to the startup navigator's radius_084 when the trace
    resolver tests the camera sphere; written during startup, not a constant. */
 extern float g_float_006081f4;
+extern float g_navigator_minimum_speed_006081ec;
+extern float g_navigator_minimum_speed_mode23_006081f0;

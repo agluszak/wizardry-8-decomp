@@ -55,17 +55,18 @@ static unsigned char s_compressed_normal_table_ready;
 // FUNCTION: WIZ8 0x00470B00
 stMeshModel::stMeshModel(long polygons, long vertices)
     : srClassSupport<stMeshModel, srMeshModel, false, 0x10003>(0, 0), next(0), previous(0),
-      flags_3a0(0), vertex_light_table_3b0(0), flag_3cc(0), vertex_lighting_ready_3cd(0),
-      frame_count(0), m_pVertexLoc(0), m_pVertexNormal(0), m_pPolyNormal(0),
-      compressed_vertex_locations(0), compressed_vertex_normals(0), compressed_polygon_normals(0),
-      skin_table_ids(5), skin_texture_tables(5), skin_table_names(5), mapped_values(5),
-      mapped_keys(5), last_decompress_release_tick_440(0), vertex_compression_scale_444(0.0f),
-      lerp_buffer_448(0), automap_polygons(0), automap_polygon_count(0), automap_filter_active(0),
-      skin_blanking_apt_458(0), skin_blanking_apt_number_45c(0), skin_blanking_checked_460(0)
+      flags_3a0(0), vertex_light_table_3b0(0), duplicate_on_reuse_3cc(0),
+      vertex_lighting_ready_3cd(0), frame_count(0), m_pVertexLoc(0), m_pVertexNormal(0),
+      m_pPolyNormal(0), compressed_vertex_locations(0), compressed_vertex_normals(0),
+      compressed_polygon_normals(0), skin_table_ids(5), skin_texture_tables(5), skin_table_names(5),
+      mapped_values(5), mapped_keys(5), last_decompress_release_tick_440(0),
+      vertex_compression_scale_444(0.0f), lerp_buffer_448(0), automap_polygons(0),
+      automap_polygon_count(0), automap_filter_active(0), skin_blanking_apt_458(0),
+      skin_blanking_apt_number_45c(0), skin_blanking_checked_460(0)
 {
     memset(&ambient_color_3a4, 0, sizeof(ambient_color_3a4));
-    memset(unknown_3ce, 0, sizeof(unknown_3ce));
-    memset(unknown_3ec, 0, sizeof(unknown_3ec));
+    memset(padding_3ce, 0, sizeof(padding_3ce));
+    memset(padding_3ec, 0, sizeof(padding_3ec));
 
     if (!s_compressed_normal_table_ready) {
         for (int value = -128; value < 128; ++value) {
@@ -122,7 +123,7 @@ stMeshModel::~stMeshModel()
         lerp_buffer_448 = 0;
     }
     if (automap_polygons != 0) {
-        delete automap_polygons;
+        delete[] automap_polygons;
         automap_polygons = 0;
     }
     if (skin_blanking_apt_458 != 0) {
@@ -312,11 +313,11 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                     }
                 } else {
                     /* Retail indexes material ambient at +0x28; that is
-                       srMaterial::parms_18.ambient on the concrete type. */
+                       srMaterial::parms.ambient on the concrete type. */
                     material = static_cast<srMaterial*>(getMaterial(0, static_cast<e_side>(0)));
-                    ambient_rgb.x = material->parms_18.ambient.x;
-                    ambient_rgb.y = material->parms_18.ambient.y;
-                    ambient_rgb.z = material->parms_18.ambient.z;
+                    ambient_rgb.x = material->parms.ambient.x;
+                    ambient_rgb.y = material->parms.ambient.y;
+                    ambient_rgb.z = material->parms.ambient.z;
                     count = vertex_location_count_22c;
                     scaled.x = ambient_rgb.x * ambient_color_3a4.x;
                     scaled.y = ambient_rgb.y * ambient_color_3a4.y;
@@ -392,9 +393,9 @@ const srMeshModel::TriMesh& stMeshModel::getTriMesh()
                     material_iface = vertex_materials[index];
                     if (material_iface != 0) {
                         material = static_cast<srMaterial*>(material_iface);
-                        scaled.x = material->parms_18.ambient.x;
-                        scaled.y = material->parms_18.ambient.y;
-                        scaled.z = material->parms_18.ambient.z;
+                        scaled.x = material->parms.ambient.x;
+                        scaled.y = material->parms.ambient.y;
+                        scaled.z = material->parms.ambient.z;
                         if (run != 0) {
                             if (IsZeroVector0046FFA0(&scaled) == 0) {
                                 srVectorProcessor::mul(dig + index, scaled, dig + index,

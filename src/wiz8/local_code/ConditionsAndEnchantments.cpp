@@ -548,7 +548,8 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
         MonsterStartsDying(monster_info, announce);
         return;
     }
-    if (announce != 0 && (gXStatus.fCombatMode != 0 || monster_info->party_threat.flag_25 != 0)) {
+    if (announce != 0 &&
+        (gXStatus.fCombatMode != 0 || monster_info->party_threat.visible_to_player_25 != 0)) {
         wchar_t* name = GetMonsterName(monster_info, 0, 0);
         ShowNoticef(9, L"%s %s!", name, g_condition_notices_0061E570[condition * 4]);
     }
@@ -584,7 +585,7 @@ void ClearMonsterCondition(int location_id, int condition)
             monster_group = GetMonsterGroupByListIndex(list_index);
             SetMonsterHostility(monster_info, monster_group->ubDisposition);
         }
-        if (gXStatus.fCombatMode != 0 || monster_info->party_threat.flag_25 != 0) {
+        if (gXStatus.fCombatMode != 0 || monster_info->party_threat.visible_to_player_25 != 0) {
             ShowNoticef(9, gppStringList[0x910 / 4], GetMonsterName(monster_info, 0, 0),
                         g_condition_notices_0061E570[condition * 4]);
         }

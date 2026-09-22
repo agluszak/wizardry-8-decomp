@@ -60,7 +60,7 @@ OctPreTree::OctPreTree() : W8Octree(0, 0)
     game_data_3a4 = 0;
     positional_3a8 = 0;
     positional_3ac = 0;
-    positional_3b0 = 0;
+    deepest_link_list_3b0 = 0;
     m_region_cell_178 = 0.0f;
     path_node_extent_3b4 = 0;
     automesh_cells_29c = 0;
@@ -1723,7 +1723,6 @@ static char PropFramesDiffer0046C6A0(W8LevelFileAnimObj* anim, unsigned short fi
 
 // TEMPLATE: WIZ8 0x0046ca50
 // QuickSortByKey<srVector3i>
-
 
 // SYNTHETIC: WIZ8 0x0046cc50
 // W8Octree::`scalar deleting destructor'

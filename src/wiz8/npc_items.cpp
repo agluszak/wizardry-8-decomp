@@ -46,18 +46,16 @@
 // FUNCTION: WIZ8 0x0055a7b0
 int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
-    /* The decompiled body reads this storage only after the same short-circuit
-   chain that clang's flow analysis cannot see through; retail leaves it
-   uninitialised on the failed-read path. Suppress only this diagnostic. */
+    /* `index` stays -1 when no unit is added at all; retail returned whatever
+       the index register still held, which is stack-layout accident rather
+       than a semantic value. */
     W8ItemDatabaseRecord* record;
     W8NpcItemEntry* entry;
     unsigned int existing_count;
     unsigned int repeats;
     unsigned int added;
     unsigned int search;
-    int index;
+    int index = -1;
 
     if (npc == 0) {
         return -1;
@@ -110,7 +108,6 @@ int AddNpcItem(W8NpcState* npc, int item_id, unsigned int quantity)
         }
     }
     return index;
-#pragma clang diagnostic pop
 }
 
 /* Keep an NPC's stock current. Three passes, each with its own trigger.

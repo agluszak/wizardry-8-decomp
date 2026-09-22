@@ -55,21 +55,21 @@ public:
     virtual ~stModelInstance() override; /* 0x0047EF70 */
 
 public:
-    unsigned long state_160;
+    unsigned long overlay_scene_flag_160;
     W8ModelInstance3DRenderState render_state_164;
     /* Lazily built highlight material; RenderMeshes0047F930 fills it from the
        render-state RGBA and installs it as the pass material. */
     srMaterial* retained_174;
-    unsigned long state_178;
-    unsigned long state_17c;
+    unsigned long render_flags_178;
+    unsigned long mesh_index_17c;
     unsigned int frame_index_180;
     int damage_stage_184;
     srHeapArray<int> damage_stage_tables_188;
-    int value_190;
-    srVector3T<float> scale_194;
+    int highlight_pass_mode_190;
+    srVector3T<float> light_scale_194;
     bool diffuse_scale_enabled_1a0;
     bool emissive_override_enabled_1a1;
-    unsigned char unknown_1a2[2];
+    unsigned char padding_1a2[2];
     float diffuse_scale_1a4;
     float emissive_override_1a8;
     float frame_interpolation_1ac;
@@ -110,7 +110,7 @@ public:
     }
     void configure2D(short width, short height)
     {
-        state_160 = 0;
+        overlay_scene_flag_160 = 0;
         render_state_164.render_depth = 2000;
         render_state_164.left = width;
         render_state_164.top = height;
@@ -127,7 +127,7 @@ public:
         render_state_164.render_depth = depth;
     }
 
-    unsigned long state_160;
+    unsigned long overlay_scene_flag_160;
     W8ModelInstance2DRenderState render_state_164;
     srVector4T<float>* vector_174;
     srVector4T<float>* vector_178;

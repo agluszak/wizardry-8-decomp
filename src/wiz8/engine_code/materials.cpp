@@ -227,7 +227,7 @@ unsigned short* g_status_lines_0065bce8[6];
 // GLOBAL: WIZ8 0x0065BD0C
 int g_oct_node_count_0065bd0c;
 // GLOBAL: WIZ8 0x0065BD10
-int g_oct_leaf_count_0065bd10;
+int g_oct_max_objects_0065bd10;
 // GLOBAL: WIZ8 0x0065BD14
 int g_lights_unblocked_0065bd14;
 // GLOBAL: WIZ8 0x0065BD18
@@ -502,7 +502,7 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                 if (build_tree != 0) {
                     build_tree->LoadRegionFile004B0C90(stem, &minimum, &maximum);
                     if (g_option_mesh_linking_0060ac73 == 0) {
-                        build_tree->active_f4 = 0;
+                        build_tree->mesh_linking_f4 = 0;
                     }
                     build_tree->spatial_00.region_grid_cell_54 = g_option_auto_region_size_0065bd30;
                     int alpha_polys = BuildRegionPolygons00494B90(level, &geometry, classify);
@@ -564,7 +564,7 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                     sprintf(message, "Width of auto-generated regions: %f metres\n",
                             (build_tree->spatial_00.region_grid_cell_54 * g_float_005ebc60));
                     g_oct_node_count_0065bd0c = GetValue65BE60();
-                    g_oct_leaf_count_0065bd10 = build_tree->positional_b8;
+                    g_oct_max_objects_0065bd10 = build_tree->deepest_link_list_b8;
                     ReportBuildStatus00497690(3, message);
                     sprintf(message, "World Minimum Corner: \t%f  \t%f  \t%f\n",
                             build_tree->spatial_00.minimum_0c.x,
@@ -652,7 +652,7 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                     tree->SetPathStem(stem);
                     tree->spatial_000.SetWorkingBounds00467B70(&g_weld_min_0065bab0,
                                                                &g_weld_max_0065bacc);
-                    tree->m_positional_1b0 = alpha_polys;
+                    tree->m_alpha_polygon_count_1b0 = alpha_polys;
                     value->octree_04 = tree;
                     sprintf(message, "Poly List Len: %d\n",
                             static_cast<int>(tree->polygon_cursor_3a0));
@@ -962,7 +962,7 @@ void ReportBuildStatus00497690(int channel, const char* message)
             fprintf(g_log_file_0065bd54, "Number of Nodes: %d             Number of Leaves: %d\n",
                     g_oct_node_count_0065bd0c, g_progress_total_0065bd48);
             fprintf(g_log_file_0065bd54, "Most Objects in Any Node: %d\n\n",
-                    g_oct_leaf_count_0065bd10);
+                    g_oct_max_objects_0065bd10);
             return;
         }
         break;
@@ -1720,10 +1720,10 @@ unsigned char* ClassifyTextures00496000(W8MaterialRecord004B8A70* textures, int 
             W8MaterialRecord004B8A70* record = textures + index;
             unsigned char opaque = 1.0f <= record->opacity_0fd;
             texture[0] = '\0';
-            if (record->positional_001[0] != 0) {
+            if (record->texture_name_001[0] != 0) {
                 strcpy(texture, reinterpret_cast<const char*>(/* reinterpret-ok: texture-name text
                             bytes */
-                                                              record->positional_001));
+                                                              record->texture_name_001));
             }
             if (record->texture_names_029[0][0] == '\0') {
                 if (record->texture_names_029[1][0] == '\0') {
@@ -1858,7 +1858,7 @@ int MaterialSort00496500(W8OctPreTreeGeometry* geometry, W8MaterialRecord004B8A7
             ++record;
             texture_name = reinterpret_cast<const char*>(/* reinterpret-ok: texture-name text
                     bytes */
-                                                         record->positional_001);
+                                                         record->texture_name_001);
             if (*texture_name == '\0') {
                 texture_name = record->texture_names_029[0];
             }
@@ -1889,7 +1889,7 @@ int MaterialSort00496500(W8OctPreTreeGeometry* geometry, W8MaterialRecord004B8A7
             sprintf(name, "Mat:%1.2f %1.2f %1.2f %1.2f %1.2f %1.2f %1.2f %1.2f %1.2f %d %c",
                     record->diffuse_0d5[0], record->diffuse_0d5[1], record->diffuse_0d5[2],
                     record->specular_0ed[0], record->specular_0ed[1], record->specular_0ed[2],
-                    record->positional_0f9, record->opacity_0fd, record->emission_101,
+                    record->shininess_0f9, record->opacity_0fd, record->emission_101,
                     static_cast<int>(record->shader_flags_116), classify[index]);
             for (scan = 0; scan < material_count; ++scan) {
                 if (strcmp(material_names + scan * 0x200, name) == 0) {
@@ -2298,7 +2298,7 @@ unsigned char LoadMaterial004B8A70(const char* bitmap_folder,
             source->ambient_0c9[0], source->ambient_0c9[1], source->ambient_0c9[2],
             source->diffuse_0d5[0], source->diffuse_0d5[1], source->diffuse_0d5[2],
             source->specular_0ed[0], source->specular_0ed[1], source->specular_0ed[2],
-            source->positional_0f9, source->opacity_0fd, source->emission_101, source->emission_101,
+            source->shininess_0f9, source->opacity_0fd, source->emission_101, source->emission_101,
             source->emission_101, static_cast<int>(source->shader_flags_116),
             texture_path[0] == '\0' ? 'F' : 'T');
 
@@ -2325,29 +2325,29 @@ unsigned char LoadMaterial004B8A70(const char* bitmap_folder,
             concrete->setName(material_name);
             concrete->autoRelease();
 
-            concrete->parms_18.specular.Set(source->specular_0ed[0], source->specular_0ed[1],
+            concrete->parms.specular.Set(source->specular_0ed[0], source->specular_0ed[1],
                                             source->specular_0ed[2], 0.0f);
             concrete->dirty_74 = 1;
-            concrete->parms_18.shininess = 1.0f;
+            concrete->parms.shininess = 1.0f;
             concrete->dirty_74 = 1;
 
-            concrete->parms_18.diffuse.x = source->diffuse_0d5[0];
-            concrete->parms_18.diffuse.y = source->diffuse_0d5[1];
-            concrete->parms_18.diffuse.z = source->diffuse_0d5[2];
-            concrete->parms_18.diffuse.w = source->opacity_0fd == 0.0f ? 0.7f : source->opacity_0fd;
+            concrete->parms.diffuse.x = source->diffuse_0d5[0];
+            concrete->parms.diffuse.y = source->diffuse_0d5[1];
+            concrete->parms.diffuse.z = source->diffuse_0d5[2];
+            concrete->parms.diffuse.w = source->opacity_0fd == 0.0f ? 0.7f : source->opacity_0fd;
             concrete->dirty_74 = 1;
             concrete->setOpacity(source->opacity_0fd == 0.0f ? 0.7 : source->opacity_0fd);
 
             if (texture_path[0] == '\0') {
-                concrete->parms_18.ambient.Set(source->diffuse_0d5[0], source->diffuse_0d5[1],
+                concrete->parms.ambient.Set(source->diffuse_0d5[0], source->diffuse_0d5[1],
                                                source->diffuse_0d5[2], 1.0f);
                 concrete->dirty_74 = 1;
-                concrete->parms_18.emissive = 0.0f;
+                concrete->parms.emissive = 0.0f;
             } else {
-                concrete->parms_18.ambient.Set(source->ambient_0c9[0], source->ambient_0c9[1],
+                concrete->parms.ambient.Set(source->ambient_0c9[0], source->ambient_0c9[1],
                                                source->ambient_0c9[2], 0.0f);
                 concrete->dirty_74 = 1;
-                concrete->parms_18.emissive.Set(source->emission_101, source->emission_101,
+                concrete->parms.emissive.Set(source->emission_101, source->emission_101,
                                                 source->emission_101, 1.0f);
             }
             concrete->dirty_74 = 1;
@@ -2402,10 +2402,10 @@ unsigned char CreateDefaultMaterial(srMaterialIFace** material, srTextureIFace**
     color.Set(0.0f, 0.0f, 0.0f, 0.0f);
     concrete->setSpecular(color);
     concrete->dirty_74 = 1;
-    concrete->parms_18.shininess = 1.0f;
-    concrete->parms_18.diffuse.w = 1.0f;
+    concrete->parms.shininess = 1.0f;
+    concrete->parms.diffuse.w = 1.0f;
     concrete->dirty_74 = 1;
-    concrete->parms_18.emissive = 0.0f;
+    concrete->parms.emissive = 0.0f;
     concrete->dirty_74 = 1;
     concrete->m_field_78 = 0;
     return 1;

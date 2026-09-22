@@ -91,12 +91,14 @@ public:
 
     void clear()
     {
-        operator delete(buckets_00);
-        operator delete(entries_04);
+        if (bucket_count_0c != 0) {
+            operator delete(buckets_00);
+            operator delete(entries_04);
+        }
+        bucket_count_0c = 0;
         buckets_00 = 0;
         entries_04 = 0;
         free_08 = -1;
-        bucket_count_0c = 0;
         resize();
     }
 
@@ -274,6 +276,11 @@ struct srRegistry::ClassNode::NameIndex {
         if (relative_to != 0) {
             NameEntry* entry = by_instance_00.find(const_cast<srRuntimeClass*>(relative_to));
             if (entry == 0) {
+                /* Retail (inlined at 0x10010156 in findByName 0x100100D0)
+                   returns the hash-bucket head unverified — no namesEqual —
+                   when the relative instance is absent from the side index.
+                   A collision can therefore return a differently-named
+                   instance; genuine retail behavior, preserved. */
                 entry = buckets_18[bucketIndex(name)];
                 return entry == 0 ? 0 : entry->instance_10;
             }
@@ -298,7 +305,11 @@ private:
         unsigned long old_bucket_count = bucket_count_20;
         bucket_count_20 = bucket_count;
         free_14 = 0;
-        by_instance_00.resize();
+        /* Retail clears by_instance_00 rather than rehashing it: every live
+           instance is re-inserted with its new NameEntry below, so preserving
+           the old mappings would leave duplicate keys pointing into the freed
+           entry array (0x10010F30 calls 0x10011380, RegistryHash::clear). */
+        by_instance_00.clear();
         NameEntry* entries = 0;
         NameEntry** buckets = 0;
         if (bucket_count != 0) {
@@ -543,20 +554,26 @@ private:
         }
     }
 
+    /* Retail clearBlocks (0x10010A90) resets only the block bookkeeping and
+       active_count_00; it deliberately does not touch first_14, last_18 or
+       list_count_1c. Callers update the list head/tail before the count hits
+       zero, and remove() decrements list_count_1c after this call, so the
+       counters stay consistent — zeroing them here would underflow the
+       post-call decrement to 0xffffffff. */
     void clearBlocks()
     {
         for (unsigned long index = 0; index < block_count_10; ++index) {
+            if (block_capacity_0c <= index) {
+                setBlockCapacity(block_capacity_0c + 8 + index);
+            }
             srHeap.free(blocks_08[index]);
         }
         ::operator delete(blocks_08);
-        active_count_00 = 0;
-        free_04 = 0;
         blocks_08 = 0;
         block_capacity_0c = 0;
+        free_04 = 0;
         block_count_10 = 0;
-        first_14 = 0;
-        last_18 = 0;
-        list_count_1c = 0;
+        active_count_00 = 0;
     }
 
     unsigned long active_count_00;

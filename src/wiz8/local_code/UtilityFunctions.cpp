@@ -16,6 +16,7 @@
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/layouts/screen_state.h"
+#include "wiz8/local_screens/OptionsScreen.h"
 #include "wiz8/fonts.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/cursor.h"
@@ -56,9 +57,10 @@ int g_message_box_font;
 unsigned int g_message_box_shade;
 // GLOBAL: WIZ8 0x0068c0b0
 bool g_message_box_accepted;
+// GLOBAL: WIZ8 0x0068BFD0
 char g_format_string_buffer[200];
+// GLOBAL: WIZ8 0x00689FD0
 wchar_t g_wide_string_buffer[4096];
-wchar_t g_empty_wide_string[1];
 
 static __inline int UtilityIntegerPower(int base, unsigned int exponent)
 {
@@ -210,7 +212,7 @@ wchar_t* FormatUnsignedIntegerWithCommas(wchar_t* output, unsigned int value)
     unsigned int divisor;
     int exponent;
 
-    wcscpy(output, g_empty_wide_string);
+    wcscpy(output, &g_wchar_00689b34);
     exponent = 9;
     do {
         unsigned int threshold;

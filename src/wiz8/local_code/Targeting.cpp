@@ -895,7 +895,7 @@ int PickNearestMonsterUnderCursor005396D0(int cursor_x, int cursor_y)
         if (!MonsterUsesCurrentModelInstance(monster_info->monster)) {
             continue;
         }
-        if (monster_info->party_threat.threat_state_24 == 0) {
+        if (monster_info->party_threat.use_bounds_24 == 0) {
             UpdateMonsterSight(monster_info, 1, 1);
         }
         if (monster_info->monster->IsRenderable004C7C00(1) == 0) {
@@ -925,7 +925,7 @@ int PickNearestMonsterUnderCursor005396D0(int cursor_x, int cursor_y)
             if (!MonsterUsesCurrentModelInstance(monster_info->monster)) {
                 continue;
             }
-            if (monster_info->party_threat.threat_state_24 == 0) {
+            if (monster_info->party_threat.use_bounds_24 == 0) {
                 UpdateMonsterSight(monster_info, 1, 1);
             }
             if (monster_info->monster->IsRenderable004C7C00(1) == 0) {
@@ -3400,7 +3400,7 @@ static unsigned char SourceCanSeeMonster00539A30(const W8TargetSource* source,
         if (source->iChar == -1) {
             srAssertFail("pSource->iChar != BAD_INDEX", TARGETING_CPP, 0xce3, 0);
         }
-        return monster_info->party_threat.sight_flags_05[flag_index];
+        return monster_info->party_threat.los_flags_05[flag_index];
     }
     if (source->iType == W8_TARGET_SOURCE_MONSTER) {
         if (source->iMonsterID == -1) {
@@ -3413,7 +3413,7 @@ static unsigned char SourceCanSeeMonster00539A30(const W8TargetSource* source,
             MonsterGetIndexByLocationID(0x84d, TARGETING_CPP, source->iMonsterID, 1);
         W8MonsterInfo* source_info = MonsterGetScriptPartByLocationIndex(monster_index);
         W8VisibilityRecord* visibility = FindMonToMonVisibility(source_info, monster_info);
-        if (visibility != 0 && visibility->sight_flags_05[sight_flag] != 0) {
+        if (visibility != 0 && visibility->los_flags_05[sight_flag] != 0) {
             return 1;
         }
         return 0;

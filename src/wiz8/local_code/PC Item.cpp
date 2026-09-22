@@ -228,6 +228,7 @@ extern const unsigned short g_item_use_messages_61e956[25] = {
 /* 0x0068C108: one lazily built generic name per unidentified-name index, and
    0x0061E810: the notice each index formats from. The table's extent is the
    pointer bound the release walk stops at. */
+// GLOBAL: WIZ8 0x0068C108
 wchar_t* g_generic_item_names[W8_GENERIC_ITEM_NAME_COUNT];
 // GLOBAL: WIZ8 0x00616e84
 const int g_item_spell_presentation[11] = {-1, 20, 20, -1, -1, -1, 12, 9, 23, 7, 0};
@@ -1100,13 +1101,10 @@ int GetItemSpellPresentation(const W8ItemDatabaseRecord* record)
    the spell's presentation skill and the character's own level in it decide how
    hard the attempt is. `out_uses` receives the fatigue cost of the attempt, and
    stays -1 when nothing was attempted. */
-#pragma clang diagnostic push
 /* Several early exits (empty quantity-kind notices, blocked casting aid,
-   casting-aid power reduced to zero) never assign `used`. Retail leaves that
-   local uninitialized; VC6 reuses the `character` parameter's stack slot for
-   it, so those paths happen to return the low byte of the pointer. Preserve
-   the unassigned local rather than encoding that slot reuse as semantics. */
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
+   casting-aid power reduced to zero) never assign `used`; retail returned
+   whatever the VC6 stack slot held, so a deterministic zero models those
+   not-used paths. */
 // FUNCTION: WIZ8 0x0051dde0
 unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_uses)
 {
@@ -1118,7 +1116,7 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
     int event_type;
     int fatigue_cost = -1;
     W8TargetSource target;
-    unsigned char used;
+    unsigned char used = 0;
 
     if (!CanCharacterUseItem(character, item->iItemNo)) {
         PostCharacterNotice(party_slot, gppStringList[0x590 / 4], GetItemDisplayName(item));
@@ -1280,7 +1278,6 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
 finish:
     *out_uses = fatigue_cost;
     return used;
-#pragma clang diagnostic pop
 }
 
 /* Whether the item worn in one slot may be taken off. A binding that has not

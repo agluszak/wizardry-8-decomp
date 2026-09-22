@@ -655,16 +655,13 @@ void ImportEquipment00559650(W8Character* character, const W8Wiz7Character* impo
     RebuildEquipmentAndDerivedStats(character);
 }
 
-/* The `mapped` index is deliberately left without a value on the asserted
-   default path: retail falls through the failed assert and reads the
-   imported skill by whatever index it held. */
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
+/* Retail fell through the failed assert and read `imported->skills` by
+   whatever `mapped` held; a deterministic zero models that defect path. */
 // FUNCTION: WIZ8 0x00559BC0
 unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
                           const W8Wiz7Character* imported)
 {
-    int mapped;
+    int mapped = 0;
     unsigned int unlocks;
     unsigned int roll;
     unsigned int base_value;
@@ -881,4 +878,3 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
     }
     return unlocks;
 }
-#pragma clang diagnostic pop

@@ -190,7 +190,7 @@ bool W8ItemRep::ReadFromFile(W8ReadLevelInfo* info, W8Item* item, bool anonymous
         srAssertFail("fSuccess && psrMesh", ITEM_CPP, 0x8c, 0);
     }
     mesh->setName("ItemRep::ReadFromFile");
-    static_cast<stModelInstance*>(mesh)->state_178 |= 8;
+    static_cast<stModelInstance*>(mesh)->render_flags_178 |= 8;
     SetModelInstanceChainExclusionMask(mesh, 4);
     info->bitmap_folder = bitmap_folder;
     flags |= 0x40;

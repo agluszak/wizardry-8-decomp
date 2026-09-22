@@ -1952,17 +1952,15 @@ unsigned char W8PathingService::CanReachSearchNode00465AF0(const srVector3T<floa
 void W8PathingService::AdjustFinalPathEndpoint00465D70(W8NavigatorMovementState* movement,
                                                        float radius, float separation)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
-    /* The decompiled body reads this storage only after the same short-circuit
-   chain that clang's flow analysis cannot see through; retail leaves it
-   uninitialised on the failed-read path. Suppress only this diagnostic. */
     int target_location = movement->target_location_id_010;
     if (target_location < 0 || flag_09c != 0) {
         return;
     }
 
-    float target_radius;
+    /* Retail read `target_radius` uninitialised when the target's monster
+       info or model was absent; deterministic zero models that defect
+       path. */
+    float target_radius = 0.0f;
     srVector3T<float> target_position;
     if (target_location <= 0) {
         target_radius = g_startup_world_659c0c->movement_0c0.alternate_radius_0b4;
@@ -1995,7 +1993,6 @@ void W8PathingService::AdjustFinalPathEndpoint00465D70(W8NavigatorMovementState*
             g_octree_6598a4->QueueOctreeKind130042E810(movement->location_id_004, &adjusted);
         }
     }
-#pragma clang diagnostic pop
 }
 
 /* Select one conditional frame for a GD prop's path cells. Entries belonging
@@ -5680,7 +5677,7 @@ stModelInstance* W8PathingService::EnsurePathVisualization0045D530()
     shader.CopyValue(&g_oct_mesh_default_shader_00652dc4->value);
     model->setShader(shader, 0);
     model->setName("WayPoint Mesh");
-    model->flag_3cc = 0;
+    model->duplicate_on_reuse_3cc = 0;
 
     srVector3i* polygons = model->getPolyVertex();
     srPtr<srTextureIFace>* textures = model->getPolyTexture(0, 0, 1);
@@ -6775,6 +6772,7 @@ struct W8PathParameter {
     float* value;
 };
 
+// GLOBAL: WIZ8 0x0060FA18
 static W8PathParameter g_path_parameters[] = {
     {"ACCELERATION_FACTOR", &g_path_acceleration_factor_0060f9e8},
     {"ANGULAR_ACCEL_FACTOR", &g_path_angular_acceleration_factor_0060f9ec},
@@ -6788,6 +6786,8 @@ static W8PathParameter g_path_parameters[] = {
     {"PARTY_BOUNDARY_RADIUS", &g_path_party_boundary_radius_0060fa0c},
     {"OBSTACLE_STEER_FACTOR", &g_path_obstacle_steering_factor_0060fa10},
     {"OBSTACLE_BRAKE_FACTOR", &g_path_obstacle_braking_factor_0060fa14},
+    {"MIN_ANIMATION_RATE", &g_navigator_minimum_speed_006081ec},
+    {"FLY_SWIM_MIN_ANIM_RATE", &g_navigator_minimum_speed_mode23_006081f0},
     {0, 0}};
 
 // FUNCTION: WIZ8 0x004cae40

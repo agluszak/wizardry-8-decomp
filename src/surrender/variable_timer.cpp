@@ -160,6 +160,14 @@ void srVariableTimer::setTime(float time)
     m_scaled_tick += m_scaled_base;
 }
 
+/* Retail updates m_step_size and m_step_scale here but deliberately does
+   not recompute m_step_ticks (0x10063B90 writes only +0x890/+0x88c after
+   setting the in-step flag): the running quantum keeps the step size that
+   was current at construction/reset until the next reset derives
+   m_step_ticks = m_frequency * m_step_scale. stepForward/stepBack read the
+   stale quantum for the remainder of the step session — confirmed retail
+   behavior, not a missed update. m_step_scale is consumed only by those
+   tick derivations and assignment. */
 // FUNCTION: SURRENDER 0x10063B90
 int srVariableTimer::stepBegin(unsigned long step_size)
 {
@@ -300,7 +308,9 @@ unsigned long srVariableTimer::getMsTime(e_timerReadControl control)
 unsigned long srVariableTimer::getUTime(srQuadWord& out, e_timerReadControl control)
 {
     getUTime(control);
-    out = m_scaled_tick - m_scaled_base;
+    unsigned __int64 units = (unsigned __int64)((m_scaled_tick - m_scaled_base) * m_units_per_tick);
+    out.lo = (unsigned long)units;
+    out.hi = (unsigned long)(units >> 0x20);
     return out.lo;
 }
 
@@ -325,6 +335,10 @@ unsigned long srVariableTimer::getRawTime(e_timerReadControl control)
     return m_scaled_tick.lo - m_scaled_base.lo;
 }
 
+/* Confirmed unusual retail contract (0x10064190): the out parameter receives
+   the absolute m_scaled_tick, while the return value is the low dword of the
+   elapsed m_scaled_tick - m_scaled_base. The two outputs describe different
+   quantities — this is retail's store sequence, not a recovery slip. */
 // FUNCTION: SURRENDER 0x10064190
 unsigned long srVariableTimer::getRawTime(srQuadWord& out, e_timerReadControl control)
 {

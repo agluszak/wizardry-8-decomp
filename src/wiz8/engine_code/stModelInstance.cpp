@@ -224,7 +224,7 @@ stModelInstance2D::stModelInstance2D(srNode* parent)
     render_state_164.top = 0;
     render_state_164.right = 0;
     render_state_164.bottom = 0;
-    state_160 = 0;
+    overlay_scene_flag_160 = 0;
     render_state_164.state_0d = 0;
     render_state_164.render_depth = 2000;
     vector_174 = 0;
@@ -262,7 +262,7 @@ stModelInstance2D& stModelInstance2D::operator=(const stModelInstance2D& other)
     render_state_164.top = other.render_state_164.top;
     render_state_164.right = other.render_state_164.right;
     render_state_164.bottom = other.render_state_164.bottom;
-    state_160 = other.state_160;
+    overlay_scene_flag_160 = other.overlay_scene_flag_160;
     if (other.parentNode() != 0) {
         setParent(other.parentNode(), 1);
     }
@@ -477,16 +477,16 @@ stModelInstance::stModelInstance(srNode* parent)
     render_state_164.highlight_green = 0.0f;
     render_state_164.highlight_blue = 0.0f;
     render_state_164.highlight_alpha = 0.0f;
-    state_178 = 0;
-    state_17c = static_cast<unsigned long>(-1);
+    render_flags_178 = 0;
+    mesh_index_17c = static_cast<unsigned long>(-1);
     frame_index_180 = 0;
-    value_190 = 0;
+    highlight_pass_mode_190 = 0;
     if (parent != 0) {
         setParent(parent, 1);
     }
     damage_stage_184 = -1;
     retained_174 = 0;
-    scale_194 = 1.0f;
+    light_scale_194 = 1.0f;
     diffuse_scale_enabled_1a0 = 0;
     diffuse_scale_1a4 = 0.0f;
     emissive_override_enabled_1a1 = 0;
@@ -502,15 +502,15 @@ stModelInstance& stModelInstance::operator=(const stModelInstance& other)
     render_state_164.highlight_green = 0.0f;
     render_state_164.highlight_blue = 0.0f;
     render_state_164.highlight_alpha = 0.0f;
-    state_178 = other.state_178;
-    state_17c = other.state_17c;
+    render_flags_178 = other.render_flags_178;
+    mesh_index_17c = other.mesh_index_17c;
     frame_index_180 = other.frame_index_180;
 
     damage_stage_tables_188 = other.damage_stage_tables_188;
     damage_stage_184 = other.damage_stage_184;
-    value_190 = other.value_190;
+    highlight_pass_mode_190 = other.highlight_pass_mode_190;
     retained_174 = 0;
-    scale_194 = other.scale_194;
+    light_scale_194 = other.light_scale_194;
     diffuse_scale_1a4 = 0.0f;
     diffuse_scale_enabled_1a0 = 0;
     emissive_override_enabled_1a1 = other.emissive_override_enabled_1a1;
@@ -640,7 +640,7 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
     }
 
     // c-style-cast-ok: the pick key is an opaque void* token
-    SetPickKey004277F0(((state_178 >> 4) & 1) != 0 ? (void*)0 : (void*)this);
+    SetPickKey004277F0(((render_flags_178 >> 4) & 1) != 0 ? (void*)0 : (void*)this);
 
     srVector4T<float> ambient;
     renderer.getAmbientLight(ambient);
@@ -650,11 +650,11 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
     srVector4T<float> light;
     if (model->vertex_lighting_ready_3cd == 0) {
         light.w = 1.0f;
-        light.x = (ambient_color.x * scale_194.x + g_environment_offset_00659cd0.x) *
+        light.x = (ambient_color.x * light_scale_194.x + g_environment_offset_00659cd0.x) *
                   g_light_scale_0060bfe0;
-        light.y = (ambient_color.y * scale_194.y + g_environment_offset_00659cd0.y) *
+        light.y = (ambient_color.y * light_scale_194.y + g_environment_offset_00659cd0.y) *
                   g_light_scale_0060bfe0;
-        light.z = (ambient_color.z * scale_194.z + g_environment_offset_00659cd0.z) *
+        light.z = (ambient_color.z * light_scale_194.z + g_environment_offset_00659cd0.z) *
                   g_light_scale_0060bfe0;
     } else {
         light.x = 0.0f;
@@ -691,7 +691,7 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
     while (model != 0) {
         model->SetAmbientColor00472990(ambient_color);
         model->getTriMesh(mesh);
-        if (((state_178 >> 3) & 1) != 0 && first_pass != 0) {
+        if (((render_flags_178 >> 3) & 1) != 0 && first_pass != 0) {
             RenderShadow004811D0(renderer, mesh);
         }
 
@@ -739,7 +739,7 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
              (render_state_164.highlight_green == g_float_005ebb34) &&
              (render_state_164.highlight_blue == g_float_005ebb34) &&
              (render_state_164.highlight_alpha == g_float_005ebb34)) ||
-            (value_190 != 1)) {
+            (highlight_pass_mode_190 != 1)) {
             if (diffuse_scale_enabled_1a0 != 0) {
                 g_material_diffuse_scale_0065baa0 = diffuse_scale_1a4;
                 mesh.shaders_b0[0].value = (mesh.shaders_b0[0].value & 0xffffd7bf) | 0x44a0;
@@ -755,7 +755,7 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
             mesh.materials_70[0][0] = retained_174;
         }
 
-        if (((state_178 >> 4) & 1) != 0 && !renderer.isPickStackEmpty()) {
+        if (((render_flags_178 >> 4) & 1) != 0 && !renderer.isPickStackEmpty()) {
             srGERD::Pick pick;
             renderer.popPick(pick);
             model->RenderTriMeshWithEquations00470380(renderer, mesh, poly_normals);
@@ -787,7 +787,7 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
         render_state_164.highlight_blue != g_float_005ebb34 ||
         render_state_164.highlight_alpha != g_float_005ebb34) {
         model = static_cast<stMeshModel*>(getModel());
-        if (value_190 == 0) {
+        if (highlight_pass_mode_190 == 0) {
             renderer.setWinding(srGERD::WINDING_POSITIONAL_1);
         }
         while (model != 0) {
@@ -881,7 +881,7 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
                     mesh.positions_38 = g_vertex_scratch_0065a148->data;
                     mesh.control_flags_0c |= 0x40;
 
-                    if (((state_178 >> 4) & 1) != 0 && !renderer.isPickStackEmpty()) {
+                    if (((render_flags_178 >> 4) & 1) != 0 && !renderer.isPickStackEmpty()) {
                         srGERD::Pick pick;
                         renderer.popPick(pick);
                         model->RenderTriMeshWithEquations00470380(renderer, mesh, poly_normals);
@@ -901,7 +901,7 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
                 child = previous->firstChild();
             }
         }
-        if (value_190 == 0) {
+        if (highlight_pass_mode_190 == 0) {
             renderer.setWinding(srGERD::WINDING_POSITIONAL_0);
         }
     }
@@ -932,7 +932,7 @@ void BuildShadowMesh004813F0()
                 material->setAmbient(color);
                 color.Set(0.0f, 0.0f, 0.0f, 0.0f);
                 material->setSpecular(color);
-                material->parms_18.shininess = 1.0f;
+                material->parms.shininess = 1.0f;
                 material->dirty_74 = 1;
                 color.Set(0.0f, 0.0f, 0.0f, 0.0f);
                 material->setEmissive(color);
