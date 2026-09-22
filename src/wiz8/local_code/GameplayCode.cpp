@@ -100,8 +100,7 @@ const int g_character_table_00616604[480] = {
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0};
 
-static const unsigned char g_armor_class_location_weights[5] = {15, 40, 30, 10, 5};
-
+// GLOBAL: WIZ8 0x006172F0
 static const W8Dice g_unarmed_damage_dice[12] = {{0, 1, 2}, {0, 1, 3}, {0, 2, 2}, {0, 2, 3},
                                                  {0, 2, 4}, {0, 3, 3}, {1, 3, 3}, {2, 3, 3},
                                                  {0, 3, 5}, {0, 4, 4}, {2, 4, 4}, {4, 4, 4}};
@@ -889,7 +888,7 @@ void CalcArmorClasses(W8Character* character)
             armor_class += g_item_records[item_id].armor_class_bonus;
         }
         character->armor_class_by_location[index] = armor_class;
-        weighted_total += g_armor_class_location_weights[index] * armor_class;
+        weighted_total += gubLocalACPercent[index] * armor_class;
     }
     character->armor_class_average =
         weighted_total < 0 ? (weighted_total - 50) / 100 : (weighted_total + 50) / 100;

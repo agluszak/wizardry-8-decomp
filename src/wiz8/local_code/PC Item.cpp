@@ -228,6 +228,7 @@ extern const unsigned short g_item_use_messages_61e956[25] = {
 /* 0x0068C108: one lazily built generic name per unidentified-name index, and
    0x0061E810: the notice each index formats from. The table's extent is the
    pointer bound the release walk stops at. */
+// GLOBAL: WIZ8 0x0068C108
 wchar_t* g_generic_item_names[W8_GENERIC_ITEM_NAME_COUNT];
 // GLOBAL: WIZ8 0x00616e84
 const int g_item_spell_presentation[11] = {-1, 20, 20, -1, -1, -1, 12, 9, 23, 7, 0};

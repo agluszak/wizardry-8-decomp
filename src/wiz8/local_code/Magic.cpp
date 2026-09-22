@@ -382,7 +382,7 @@ enum { W8_SPELL_EFFECT_KIND_MONSTER_CONTROL = 0x26 };
 
 enum { W8_PARTY_CONDITION_SLOTS = 12, W8_COMBAT_CONDITION_SLOTS = 9 };
 
-/* 0x00689b58 */
+// GLOBAL: WIZ8 0x00689B58
 W8GrowableVector<W8SpellEffectEntry*> g_spell_effects;
 // GLOBAL: WIZ8 0x005ED7D0
 const float g_ground_settle_fail_005ed7d0 = -1000000.0f;

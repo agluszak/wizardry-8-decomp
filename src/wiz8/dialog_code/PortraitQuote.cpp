@@ -40,7 +40,9 @@ struct W8PortraitQuoteBubble {
 
 static_assert(sizeof(W8PortraitQuoteBubble) == 0x24, "W8PortraitQuoteBubble_size");
 
+// GLOBAL: WIZ8 0x0069C598
 static W8PortraitQuoteBubble* g_portrait_quotes[10];
+// GLOBAL: WIZ8 0x0069C5C0
 static W8PortraitQuoteBubble* g_current_portrait_quote;
 
 /* The bubble artwork file tables, indexed by the edge and background selector

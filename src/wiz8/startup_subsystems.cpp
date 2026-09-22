@@ -100,6 +100,7 @@ HVOBJECT g_dialog_font_object_683684;
 HVOBJECT g_embossed_font_object_683688;
 // GLOBAL: WIZ8 0x0068368C
 int g_options_title_font_68368c;
+// GLOBAL: WIZ8 0x00683690
 int ghTinyMonoFont;
 // GLOBAL: WIZ8 0x00683694
 int g_smfnt_font_683694;
