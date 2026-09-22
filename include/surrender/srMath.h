@@ -104,6 +104,9 @@ public:
     }
     srVector3T<T>& operator+=(const srVector3T<T>& other);
     srVector3T<T>& operator-=(const srVector3T<T>& other);
+    /* Componentwise scale-assign: emitted out-of-line for the double
+       instantiation by the srNode column normalization paths. */
+    srVector3T<T>& operator*=(const srVector3T<T>& other);
     srVector3T<T>& operator*=(double scalar);
     srVector3T<T>& operator/=(double scalar);
     bool operator==(const srVector3T<T>& other) const;
@@ -158,6 +161,16 @@ template <class T> srVector3T<T>& srVector3T<T>::operator-=(const srVector3T<T>&
     x -= other.x;
     y -= other.y;
     z -= other.z;
+    return *this;
+}
+
+// TEMPLATE: SURRENDER 0x10055480
+// srVector3T<double>::operator*=
+template <class T> srVector3T<T>& srVector3T<T>::operator*=(const srVector3T<T>& other)
+{
+    x = other.x * x;
+    y = other.y * y;
+    z = other.z * z;
     return *this;
 }
 
@@ -817,6 +830,9 @@ public:
     enum e_type {};
 
     srMatrix4T<T>* Invert();
+    srMatrix4T<T>* Inverse(srMatrix4T<T>& source);
+    srMatrix4T<T>* MultiplyBy(const srMatrix4T<T>& other);
+    srMatrix4T<T>* Multiply(const srMatrix4T<T>& other, srMatrix4T<T>& result);
     T* Scale(double scale);
     void AdjugateFrom(T* source);
     srMatrix4T<T>* Set(const srMatrix3T<T>& rotation, const srVector3T<T>& translation);
@@ -827,6 +843,51 @@ public:
 
     srVector4T<T> vectors[4];
 };
+
+/* Row-major 4×4 multiply-assign: result.row_i.j = row_i · other.column_j.
+   Retail emits the double instantiation out-of-line for the srNode
+   world-space setters. */
+// TEMPLATE: SURRENDER 0x10055A60
+// srMatrix4T<double>::MultiplyBy
+template <class T> srMatrix4T<T>* srMatrix4T<T>::MultiplyBy(const srMatrix4T<T>& other)
+{
+    srMatrix4T<T> result;
+    for (int index = 0; index != 4; ++index) {
+        const srVector4T<T>& row = vectors[index];
+        result.vectors[index].Set(row.x * other.vectors[0].x + row.y * other.vectors[1].x +
+                                      row.z * other.vectors[2].x + row.w * other.vectors[3].x,
+                                  row.x * other.vectors[0].y + row.y * other.vectors[1].y +
+                                      row.z * other.vectors[2].y + row.w * other.vectors[3].y,
+                                  row.x * other.vectors[0].z + row.y * other.vectors[1].z +
+                                      row.z * other.vectors[2].z + row.w * other.vectors[3].z,
+                                  row.x * other.vectors[0].w + row.y * other.vectors[1].w +
+                                      row.z * other.vectors[2].w + row.w * other.vectors[3].w);
+    }
+    *this = result;
+    return this;
+}
+
+/* Three-operand row-major multiply: result.row_i.j = row_i · other.column_j.
+   Retail emits the float instantiation out-of-line for
+   srBounder::getChildBoundingBox. */
+// TEMPLATE: SURRENDER 0x1004B4D0
+// srMatrix4T<float>::Multiply
+template <class T>
+srMatrix4T<T>* srMatrix4T<T>::Multiply(const srMatrix4T<T>& other, srMatrix4T<T>& result)
+{
+    for (int index = 0; index != 4; ++index) {
+        const srVector4T<T>& row = vectors[index];
+        result.vectors[index].Set(row.x * other.vectors[0].x + row.y * other.vectors[1].x +
+                                      row.z * other.vectors[2].x + row.w * other.vectors[3].x,
+                                  row.x * other.vectors[0].y + row.y * other.vectors[1].y +
+                                      row.z * other.vectors[2].y + row.w * other.vectors[3].y,
+                                  row.x * other.vectors[0].z + row.y * other.vectors[1].z +
+                                      row.z * other.vectors[2].z + row.w * other.vectors[3].z,
+                                  row.x * other.vectors[0].w + row.y * other.vectors[1].w +
+                                      row.z * other.vectors[2].w + row.w * other.vectors[3].w);
+    }
+    return this;
+}
 
 // TEMPLATE: WIZ8 0x0049BAB0
 // srMatrix4T<float>::Invert
@@ -841,6 +902,22 @@ template <class T> srMatrix4T<T>* srMatrix4T<T>::Invert()
     }
 
     *this = inverse;
+    return this;
+}
+
+/* Assign *this = inverse(source). The float instantiation inside
+   srBounder::updateBounds (0x1004A800) takes a self-source branch that stages
+   the adjugate through a temporary before copying back. */
+template <class T> srMatrix4T<T>* srMatrix4T<T>::Inverse(srMatrix4T<T>& source)
+{
+    if (&source == this) {
+        return Invert();
+    }
+    AdjugateFrom(&source.vectors[0].x);
+    T determinant = source.Det();
+    if (determinant != 1.0) {
+        Scale(1.0 / determinant);
+    }
     return this;
 }
 

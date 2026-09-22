@@ -34,10 +34,10 @@ public:
     srVector3T<float> getAmbientLight() const;
     void getFogColor(srVector3T<float>& color) const;
 #if defined(SURRENDER_BUILD)
+    /* Retail exports out-of-line copies (0x10056C90) even though consumer
+       overlay builders expand the load inline. */
     srVector3T<float> getFogColor() const;
 #else
-    /* Header-visible for consumer callers (Video2 reads it inline); the
-       provider emits its own copy from scene.cpp. */
     srVector3T<float> getFogColor() const
     {
         return fog_color_180;
@@ -50,9 +50,6 @@ public:
 #if defined(SURRENDER_BUILD)
     static const char* sGetClassName();
 #else
-    /* Header-visible like srLight's: the consumer registry emissions read
-       the literal directly. The provider still emits its own copy from
-       scene.cpp. */
     static const char* sGetClassName()
     {
         return "srScene";
@@ -60,29 +57,35 @@ public:
 #endif
     /* The overlay builders expand these component stores at every call site.
        They are the ordinary header-visible SurRender setters, not a Wizardry
-       aggregate helper around the scene object. */
-    // FUNCTION: SURRENDER 0x10056CC0
+       aggregate helper around the scene object. The provider still exports
+       its own out-of-line copies from scene.cpp. */
+#if defined(SURRENDER_BUILD)
+    void setAmbientLight(float red, float green, float blue);
+#else
     inline void setAmbientLight(float red, float green, float blue)
     {
         ambient_light_174.x = red;
         ambient_light_174.y = green;
         ambient_light_174.z = blue;
     }
+#endif
     void setAmbientLight(const srVector3T<float>& color);
-    // FUNCTION: SURRENDER 0x10056D10
+#if defined(SURRENDER_BUILD)
+    void setFogColor(float red, float green, float blue);
+#else
     inline void setFogColor(float red, float green, float blue)
     {
         fog_color_180.x = red;
         fog_color_180.y = green;
         fog_color_180.z = blue;
     }
+#endif
     void setFogColor(const srVector3T<float>& color);
 
 protected:
     srFlags<e_enable> enabled_138;       /* 0x138 */
     Statistics statistics_140;           /* 0x140 */
-    TraverseInfo traversal_158;          /* 0x158 */
-    ProcessInfo process_info_170;        /* 0x170 */
+    TraverseInfo traversal_158;          /* 0x158 (renderer at 0x170) */
     srVector3T<float> ambient_light_174; /* 0x174 */
     srVector3T<float> fog_color_180;     /* 0x180 */
     unsigned long unknown_18c_;          /* 0x18c */

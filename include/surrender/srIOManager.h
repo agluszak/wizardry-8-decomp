@@ -18,10 +18,8 @@ protected:
     SR_DLL_IMPORT srIOManager();
     virtual SR_DLL_IMPORT ~srIOManager();
 
-    SR_DLL_IMPORT void addImporter(
-        Importer* importer, const char* extension);
-    SR_DLL_IMPORT void addExporter(
-        Exporter* exporter, const char* extension);
+    SR_DLL_IMPORT void addImporter(Importer* importer, const char* extension);
+    SR_DLL_IMPORT void addExporter(Exporter* exporter, const char* extension);
     SR_DLL_IMPORT Importer* findImporter(const char* extension);
     SR_DLL_IMPORT Exporter* findExporter(const char* extension);
     SR_DLL_IMPORT void removeImporter(Importer* importer);
@@ -38,8 +36,7 @@ private:
         Registration* previous_0c;
     };
 
-    static_assert(sizeof(Registration) == 0x10,
-                  "srIOManager_Registration_must_be_0x10");
+    static_assert(sizeof(Registration) == 0x10, "srIOManager_Registration_must_be_0x10");
 
     unsigned long importer_count_04;
     Registration* first_importer_08;
@@ -69,12 +66,9 @@ public:
     virtual ~Importer() {}
 
 protected:
-    SR_DLL_IMPORT void addToImporters(
-        srIOManager* manager, const char* extension);
-    SR_DLL_IMPORT void addToImporters(
-        srIOManager* manager,
-        srIOManager::Importer* importer,
-        const char* extension);
+    SR_DLL_IMPORT void addToImporters(srIOManager* manager, const char* extension);
+    SR_DLL_IMPORT void addToImporters(srIOManager* manager, srIOManager::Importer* importer,
+                                      const char* extension);
     SR_DLL_IMPORT void removeFromImporters(srIOManager* manager);
 };
 
@@ -88,19 +82,13 @@ public:
     virtual ~Exporter() {}
 
 protected:
-    SR_DLL_IMPORT void addToExporters(
-        srIOManager* manager, const char* extension);
-    SR_DLL_IMPORT void addToExporters(
-        srIOManager* manager,
-        srIOManager::Exporter* exporter,
-        const char* extension);
+    SR_DLL_IMPORT void addToExporters(srIOManager* manager, const char* extension);
+    SR_DLL_IMPORT void addToExporters(srIOManager* manager, srIOManager::Exporter* exporter,
+                                      const char* extension);
     SR_DLL_IMPORT void removeFromExporters(srIOManager* manager);
 };
 
 static_assert(sizeof(srIOManager) == 0x1c, "srIOManager_must_be_0x1c");
-static_assert(sizeof(srIOManager::Error) == 0x04,
-              "srIOManager_Error_must_be_0x04");
-static_assert(sizeof(srIOManager::Importer) == 0x04,
-              "srIOManager_Importer_must_be_0x04");
-static_assert(sizeof(srIOManager::Exporter) == 0x04,
-              "srIOManager_Exporter_must_be_0x04");
+static_assert(sizeof(srIOManager::Error) == 0x04, "srIOManager_Error_must_be_0x04");
+static_assert(sizeof(srIOManager::Importer) == 0x04, "srIOManager_Importer_must_be_0x04");
+static_assert(sizeof(srIOManager::Exporter) == 0x04, "srIOManager_Exporter_must_be_0x04");

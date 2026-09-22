@@ -644,6 +644,8 @@ unsigned long srBinFStream::ptell()
 // FUNCTION: SURRENDER 0x1002F6B0
 srBinIFStream::srBinIFStream() {}
 
+srBinIFStream::~srBinIFStream() {}
+
 // FUNCTION: SURRENDER 0x1002F760
 srBinIFStream::srBinIFStream(const char* path)
 {
@@ -692,6 +694,8 @@ unsigned long srBinIFStream::tell()
 
 // FUNCTION: SURRENDER 0x1002FC40
 srBinIOFStream::srBinIOFStream() {}
+
+srBinIOFStream::~srBinIOFStream() {}
 
 // FUNCTION: SURRENDER 0x1002FD20
 srBinIOFStream::srBinIOFStream(const char* path)

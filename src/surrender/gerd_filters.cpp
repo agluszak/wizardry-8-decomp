@@ -56,6 +56,6 @@ void srGERD::setTextureDefaultMipmap(srTextureIFace::e_mipmap mipmap)
         mipmap = srTextureIFace::MIPMAP_FASTEST;
     }
     default_mipmap_1fc0_ = mipmap;
-    mipmap_param_1fa0_ = mipmap_map_1f94_[mipmap];
+    mipmap_map_1f94_[3] = mipmap_map_1f94_[mipmap];
     resetTexture();
 }

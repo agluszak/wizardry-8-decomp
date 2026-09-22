@@ -1,7 +1,7 @@
 #include "surrender/srIlluminator.h"
 
+#include "surrender/srCore.h"
 #include "surrender/srGERD.h"
-#include "surrender/srTypeRegistry.h"
 
 // FUNCTION: SURRENDER 0x1004C7D0
 srIlluminator::srIlluminator(srNode* parent)
@@ -28,17 +28,29 @@ srIlluminator& srIlluminator::operator=(const srIlluminator& other)
 void srIlluminator::process(const ProcessInfo& info, e_processType type)
 {
     srGERD* renderer = info.renderer;
-    if (type == static_cast<e_processType>(1) || type == static_cast<e_processType>(3)) {
+    /* The recovered e_processType currently names only 0; retail still
+       compares this override against 1, 2, 3, and 4. Enumerator names remain
+       unknown, so keep the integer tests rather than inventing them. */
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wtautological-compare"
+    if (type == 1 || type == 3) {
         applyWorldSpaceMatrix(*renderer);
-        srVector4T<float> eye = renderer->getEyeSpaceLocation(srVector3T<float>(0.0f, 0.0f, 0.0f));
-        eye_location_140.x = eye.x;
-        eye_location_140.y = eye.y;
-        eye_location_140.z = eye.z;
+        srVector3T<float> origin;
+        origin.x = 0.0f;
+        origin.y = 0.0f;
+        origin.z = 0.0f;
+        const srVector4T<float> location = renderer->getEyeSpaceLocation(origin);
+        eye_location_140.x = location.x;
+        eye_location_140.y = location.y;
+        eye_location_140.z = location.z;
         renderer->popMatrix();
-        renderer->pushVertexProcessor(*this);
-    } else if (type == static_cast<e_processType>(2) || type == static_cast<e_processType>(4)) {
+        renderer->pushVertexProcessor(*static_cast<srVertexProcessor*>(this));
+        return;
+    }
+    if (type == 2 || type == 4) {
         renderer->popVertexProcessor();
     }
+#pragma clang diagnostic pop
 }
 
 // FUNCTION: SURRENDER 0x1004C9E0
@@ -47,32 +59,25 @@ void srIlluminator::traverse(TraverseInfo& info)
     if (nextSibling() != 0) {
         nextSibling()->traverse(info);
     }
-    if (testFlag(FLAG_TERMINATE) == 0) {
-        if (testFlag(FLAG_DISABLE) == 0) {
-            if (testFlag(FLAG_GLOBAL) == 0) {
-                if (info.entries.capacity <= info.entry_count) {
-                    info.entries.setCapacity(info.entries.capacity + 8 + info.entry_count);
-                }
-                info.entries.data[info.entry_count].node = this;
-                info.entries.data[info.entry_count].value = 1;
-                info.entry_count++;
+    if (!testFlag(FLAG_TERMINATE)) {
+        if (!testFlag(FLAG_DISABLE)) {
+            if (!testFlag(FLAG_GLOBAL)) {
+                TraverseInfo::Entry& entry = info.entries[info.entry_count];
+                entry.node = this;
+                entry.value = 1;
+                ++info.entry_count;
             } else {
-                if (info.nodes.capacity <= info.node_count) {
-                    info.nodes.setCapacity(info.nodes.capacity + 8 + info.node_count);
-                }
-                info.nodes.data[info.node_count] = this;
-                info.node_count++;
+                info.nodes[info.node_count] = this;
+                ++info.node_count;
             }
             if (firstChild() != 0) {
                 firstChild()->traverse(info);
             }
-            if (testFlag(FLAG_GLOBAL) == 0) {
-                if (info.entries.capacity <= info.entry_count) {
-                    info.entries.setCapacity(info.entries.capacity + 8 + info.entry_count);
-                }
-                info.entries.data[info.entry_count].node = this;
-                info.entries.data[info.entry_count].value = 2;
-                info.entry_count++;
+            if (!testFlag(FLAG_GLOBAL)) {
+                TraverseInfo::Entry& entry = info.entries[info.entry_count];
+                entry.node = this;
+                entry.value = 2;
+                ++info.entry_count;
             }
         } else if (firstChild() != 0) {
             firstChild()->traverse(info);
@@ -103,18 +108,11 @@ srIlluminator::srIlluminator(const srIlluminator& other)
     : srClassSupport<srIlluminator, srNode, false, 0x1200>(static_cast<srNode*>(0))
 {
     *this = other;
-    group_mask_13c = other.group_mask_13c;
     eye_location_140 = other.eye_location_140;
 }
 
-// TEMPLATE: SURRENDER 0x1004CB10
-// srVertexProcessor secondary-base vptr store emitted by the srIlluminator ctors
-
-// SYNTHETIC: SURRENDER 0x1004CC20
-// srIlluminator default constructor closure
-
-// SYNTHETIC: SURRENDER 0x1004CC30
-// srIlluminator scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x1004CC50
-// srIlluminator vector deleting destructor
+// FUNCTION: SURRENDER 0x1004C6E0
+srIlluminator::~srIlluminator()
+{
+    srCore.getRegistry()->unregisterInstance(sGetClassNode(), this);
+}

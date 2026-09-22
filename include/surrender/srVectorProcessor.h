@@ -342,10 +342,8 @@ public:
     }
 
 private:
-    /* srMaterial::postProcess dispatches the per-vertex blend through vp;
-       srLight::process dispatches the whole lighting pipeline through it. */
+    /* srMaterial::postProcess dispatches the per-vertex blend through vp. */
     friend class srMaterial;
-    friend class srLight;
     static void install(srVP* processor);
     // GLOBAL: SURRENDER 0x100A923C
     static SR_DLL_IMPORT srVP* vp;
@@ -366,4 +364,7 @@ private:
     /* srVertexPipe::process snapshots the active processor into its own
        vector_processor_98 and dispatches vtable slots through it. */
     friend class srVertexPipe;
+    /* srGERD::testBoundingBox dispatches the processor's bounding-box slot
+       through vp (IAT 0x005eb7e8). */
+    friend class srGERD;
 };
