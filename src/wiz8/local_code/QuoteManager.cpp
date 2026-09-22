@@ -639,6 +639,12 @@ W8CharacterEventQueue::~W8CharacterEventQueue()
     delete[] event_character_masks;
 }
 
+/* Retail's bulk teardown is asymmetric: active events are unlinked and
+   Complete()d but never destroyed (Complete clears the slot link and does
+   not delete), while deferred/pending lists are deleted raw without
+   Complete. The active-event objects genuinely leak here; only the
+   single-event paths (CompleteActiveEvent/CompleteFirstActiveEvent) delete
+   after Complete. */
 // FUNCTION: WIZ8 0x0052db80
 void W8CharacterEventQueue::DestroyAllEvents()
 {
@@ -665,6 +671,8 @@ void W8CharacterEventQueue::RemoveCharacterEvents(W8Character* character)
     for (index = 0; index < active_events.count; ++index) {
         entry = *active_events.GetAt(index);
         if (entry->character == character) {
+            /* As in DestroyAllEvents, retail Completes the active event
+               without deleting it; the object leaks. */
             active_events.RemoveAt(index);
             --index;
             entry->Complete();
@@ -704,6 +712,8 @@ void W8CharacterEventQueue::RemoveCharacterEvents(W8Character* character)
     }
 }
 
+/* Same retail leak as DestroyAllEvents: active events are unlinked and
+   Complete()d but never destroyed. */
 // FUNCTION: WIZ8 0x0052DB30
 void W8CharacterEventQueue::CompleteAllActiveEvents()
 {
