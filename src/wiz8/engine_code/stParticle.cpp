@@ -177,12 +177,12 @@ stParticle::stParticle(srNode* parent, unsigned int count)
     setParent(parent, 1);
 
     particle_count_180 = count;
-    allocation_148 = 0;
-    allocation_164 = 0;
-    allocation_160 = 0;
-    allocation_170 = 0;
-    allocation_168 = 0;
-    allocation_16c = 0;
+    particle_positions_148 = 0;
+    texcoords_164 = 0;
+    vertex_positions_160 = 0;
+    vertex_extras_170 = 0;
+    triangles_168 = 0;
+    colors_16c = 0;
     texture_154 = 0;
     value_138 = 0;
     value_140 = 1.0;
@@ -195,47 +195,47 @@ stParticle::stParticle(srNode* parent, unsigned int count)
         srAssertFail("cnt < 10000", ST_PARTICLE_CPP, 0x41, 0);
     }
 
-    allocation_148 =
+    particle_positions_148 =
         static_cast<srVector3T<float>*>(srHeap.allocate(count * sizeof(srVector3T<float>)));
     unsigned int i;
     for (i = 0; i < count; ++i) {
-        allocation_148[i] = 0.0f;
+        particle_positions_148[i] = 0.0f;
     }
 
     vertex_count_158 = count * 4;
     texture_frame_count_15c = count * 2;
-    allocation_164 = static_cast<srVector2T<float>*>(
+    texcoords_164 = static_cast<srVector2T<float>*>(
         srHeap.allocate(vertex_count_158 * sizeof(srVector2T<float>)));
-    allocation_160 = static_cast<srVector3T<float>*>(
+    vertex_positions_160 = static_cast<srVector3T<float>*>(
         srHeap.allocate(vertex_count_158 * sizeof(srVector3T<float>)));
-    allocation_168 = static_cast<srVector3i*>(srHeap.allocate(count * 2 * sizeof(srVector3i)));
-    allocation_174 = new float[vertex_count_158];
+    triangles_168 = static_cast<srVector3i*>(srHeap.allocate(count * 2 * sizeof(srVector3i)));
+    alphas_174 = new float[vertex_count_158];
     texture_frames_178 = 0;
 
     for (i = 0; i < count; ++i) {
         unsigned int vertex = i * 4;
         unsigned int triangle = i * 2;
-        allocation_168[triangle].x = vertex;
-        allocation_168[triangle].y = vertex + 1;
-        allocation_168[triangle].z = vertex + 2;
-        allocation_168[triangle + 1].x = vertex + 2;
-        allocation_168[triangle + 1].y = vertex + 3;
-        allocation_168[triangle + 1].z = vertex;
+        triangles_168[triangle].x = vertex;
+        triangles_168[triangle].y = vertex + 1;
+        triangles_168[triangle].z = vertex + 2;
+        triangles_168[triangle + 1].x = vertex + 2;
+        triangles_168[triangle + 1].y = vertex + 3;
+        triangles_168[triangle + 1].z = vertex;
 
-        allocation_148[i] = 0.0f;
+        particle_positions_148[i] = 0.0f;
 
-        allocation_164[vertex].x = 0.0f;
-        allocation_164[vertex].y = 0.0f;
-        allocation_164[vertex + 1].x = 1.0f;
-        allocation_164[vertex + 1].y = 0.0f;
-        allocation_164[vertex + 2].x = 1.0f;
-        allocation_164[vertex + 2].y = 1.0f;
-        allocation_164[vertex + 3].x = 0.0f;
-        allocation_164[vertex + 3].y = 1.0f;
+        texcoords_164[vertex].x = 0.0f;
+        texcoords_164[vertex].y = 0.0f;
+        texcoords_164[vertex + 1].x = 1.0f;
+        texcoords_164[vertex + 1].y = 0.0f;
+        texcoords_164[vertex + 2].x = 1.0f;
+        texcoords_164[vertex + 2].y = 1.0f;
+        texcoords_164[vertex + 3].x = 0.0f;
+        texcoords_164[vertex + 3].y = 1.0f;
     }
 
     for (i = 0; i < vertex_count_158; ++i) {
-        allocation_174[i] = 1.0f;
+        alphas_174[i] = 1.0f;
     }
 
     active_1a0 = 1;
@@ -245,13 +245,13 @@ stParticle::stParticle(srNode* parent, unsigned int count)
     active_190 = false;
     unknown_191 = 0;
     value_188 = 0;
-    allocation_254 = new unsigned long[texture_frame_count_15c];
+    active_triangles_254 = new unsigned long[texture_frame_count_15c];
     active_particle_count_18c = 0;
-    allocation_198 =
+    velocities_198 =
         static_cast<srVector3T<float>*>(srHeap.allocate(count * sizeof(srVector3T<float>)));
-    allocation_19c = new unsigned int[count];
-    allocation_194 = new unsigned char[count];
-    memset(allocation_194, 0, count);
+    birth_ticks_19c = new unsigned int[count];
+    particle_active_194 = new unsigned char[count];
+    memset(particle_active_194, 0, count);
 
     value_1a8 = 0;
     value_1ac = 0;
@@ -306,12 +306,12 @@ stParticle::stParticle(const stParticle& other)
     setParent(other.getParent(), 1);
     setName(other.getName());
     particle_count_180 = count;
-    allocation_148 = 0;
-    allocation_164 = 0;
-    allocation_160 = 0;
-    allocation_170 = 0;
-    allocation_168 = 0;
-    allocation_16c = 0;
+    particle_positions_148 = 0;
+    texcoords_164 = 0;
+    vertex_positions_160 = 0;
+    vertex_extras_170 = 0;
+    triangles_168 = 0;
+    colors_16c = 0;
     texture_154 = 0;
     value_138 = other.value_138;
     value_140 = other.value_140;
@@ -320,54 +320,54 @@ stParticle::stParticle(const stParticle& other)
     retained_14c->addReference();
     SetRenderFlags004925A0(other.GetRenderFlags00498A10());
 
-    allocation_148 =
+    particle_positions_148 =
         static_cast<srVector3T<float>*>(srHeap.allocate(count * sizeof(srVector3T<float>)));
-    if (allocation_148 == 0) {
+    if (particle_positions_148 == 0) {
         srAssertFail("pParticle", ST_PARTICLE_CPP, 0xda, 0);
     }
     unsigned int i;
     for (i = 0; i < count; ++i) {
-        allocation_148[i] = 0.0f;
+        particle_positions_148[i] = 0.0f;
     }
 
     vertex_count_158 = count * 4;
     texture_frame_count_15c = count * 2;
     SetTexture0049AB00(other.texture_154);
-    allocation_164 = static_cast<srVector2T<float>*>(
+    texcoords_164 = static_cast<srVector2T<float>*>(
         srHeap.allocate(vertex_count_158 * sizeof(srVector2T<float>)));
-    if (allocation_164 == 0) {
+    if (texcoords_164 == 0) {
         srAssertFail("pTexCoord", ST_PARTICLE_CPP, 0xe4, 0);
     }
-    allocation_160 = static_cast<srVector3T<float>*>(
+    vertex_positions_160 = static_cast<srVector3T<float>*>(
         srHeap.allocate(vertex_count_158 * sizeof(srVector3T<float>)));
-    if (allocation_160 == 0) {
+    if (vertex_positions_160 == 0) {
         srAssertFail("pVertex", ST_PARTICLE_CPP, 0xe5, 0);
     }
-    allocation_168 =
+    triangles_168 =
         static_cast<srVector3i*>(srHeap.allocate(texture_frame_count_15c * sizeof(srVector3i)));
-    if (allocation_168 == 0) {
+    if (triangles_168 == 0) {
         srAssertFail("pVertex", ST_PARTICLE_CPP, 0xe7, 0);
     }
-    allocation_174 = new float[vertex_count_158];
+    alphas_174 = new float[vertex_count_158];
 
     for (i = 0; i < count; ++i) {
         unsigned int vertex = i * 4;
         unsigned int triangle = i * 2;
-        allocation_168[triangle].x = vertex;
-        allocation_168[triangle].y = vertex + 1;
-        allocation_168[triangle].z = vertex + 2;
-        allocation_168[triangle + 1].x = vertex + 2;
-        allocation_168[triangle + 1].y = vertex + 3;
-        allocation_168[triangle + 1].z = vertex;
+        triangles_168[triangle].x = vertex;
+        triangles_168[triangle].y = vertex + 1;
+        triangles_168[triangle].z = vertex + 2;
+        triangles_168[triangle + 1].x = vertex + 2;
+        triangles_168[triangle + 1].y = vertex + 3;
+        triangles_168[triangle + 1].z = vertex;
 
-        allocation_148[i] = 0.0f;
-        allocation_164[vertex].Set(0.0f, 0.0f);
-        allocation_164[vertex + 1].Set(1.0f, 0.0f);
-        allocation_164[vertex + 2].Set(1.0f, 1.0f);
-        allocation_164[vertex + 3].Set(0.0f, 1.0f);
+        particle_positions_148[i] = 0.0f;
+        texcoords_164[vertex].Set(0.0f, 0.0f);
+        texcoords_164[vertex + 1].Set(1.0f, 0.0f);
+        texcoords_164[vertex + 2].Set(1.0f, 1.0f);
+        texcoords_164[vertex + 3].Set(0.0f, 1.0f);
     }
     for (i = 0; i < vertex_count_158; ++i) {
-        allocation_174[i] = 1.0f;
+        alphas_174[i] = 1.0f;
     }
 
     state_184 = other.state_184;
@@ -375,11 +375,11 @@ stParticle::stParticle(const stParticle& other)
     active_particle_count_18c = 0;
     active_190 = other.active_190;
     unknown_191 = other.unknown_191;
-    allocation_194 = new unsigned char[count];
-    memset(allocation_194, 0, count);
-    allocation_198 =
+    particle_active_194 = new unsigned char[count];
+    memset(particle_active_194, 0, count);
+    velocities_198 =
         static_cast<srVector3T<float>*>(srHeap.allocate(count * sizeof(srVector3T<float>)));
-    allocation_19c = new unsigned int[count];
+    birth_ticks_19c = new unsigned int[count];
     active_1a0 = other.active_1a0;
     flag_1a1 = 1;
     value_1a4 = other.value_1a4;
@@ -410,7 +410,7 @@ stParticle::stParticle(const stParticle& other)
     value_234 = other.value_234;
     value_240 = other.value_240;
     update_flags_250 = 2;
-    allocation_254 = new unsigned long[texture_frame_count_15c];
+    active_triangles_254 = new unsigned long[texture_frame_count_15c];
     activated_at_258 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     updated_at_25c = activated_at_258;
     value_260 = other.value_260;
@@ -442,7 +442,7 @@ unsigned char stParticle::ActivateParticle00499A50(unsigned int* out_index,
 
     unsigned int index;
     for (index = 0; index < particle_count_180; ++index) {
-        if (allocation_194[index] == 0) {
+        if (particle_active_194[index] == 0) {
             break;
         }
     }
@@ -455,8 +455,8 @@ unsigned char stParticle::ActivateParticle00499A50(unsigned int* out_index,
         unsigned int oldest = 0;
         unsigned int candidate;
         for (candidate = 0; candidate < particle_count_180; ++candidate) {
-            if (allocation_19c[candidate] < allocation_19c[oldest] &&
-                allocation_194[candidate] != 0) {
+            if (birth_ticks_19c[candidate] < birth_ticks_19c[oldest] &&
+                particle_active_194[candidate] != 0) {
                 oldest = candidate;
             }
         }
@@ -465,8 +465,8 @@ unsigned char stParticle::ActivateParticle00499A50(unsigned int* out_index,
     }
 
     *out_index = index;
-    allocation_194[index] = 1;
-    allocation_19c[index] = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
+    particle_active_194[index] = 1;
+    birth_ticks_19c[index] = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
 
     float magnitude = 0.0f;
     if (value_1bc == 1) {
@@ -477,7 +477,7 @@ unsigned char stParticle::ActivateParticle00499A50(unsigned int* out_index,
     }
     magnitude *= value_278;
 
-    srVector3T<float>& velocity = allocation_198[index];
+    srVector3T<float>& velocity = velocities_198[index];
     switch (value_1b8) {
     case 1:
         velocity = direction_1e8 * magnitude;
@@ -523,7 +523,7 @@ unsigned char stParticle::ActivateParticle00499A50(unsigned int* out_index,
     }
 
     srVector3T<double> location = getLocation();
-    allocation_148[index] = location;
+    particle_positions_148[index] = location;
 
     if (m_pflFlutterAngle != 0) {
         m_pflFlutterAngle[index] = (float)(rand() & 0x7fff) * g_float_005ecc40;
@@ -535,7 +535,7 @@ unsigned char stParticle::ActivateParticle00499A50(unsigned int* out_index,
     unsigned int vertex = index * 4;
     unsigned int end = vertex + 4;
     for (; vertex < end; ++vertex) {
-        allocation_174[vertex] = 1.0f;
+        alphas_174[vertex] = 1.0f;
     }
 
     update_flags_250 |= 2;
@@ -547,7 +547,7 @@ unsigned char stParticle::ActivateParticle00499A50(unsigned int* out_index,
 // FUNCTION: WIZ8 0x00499F70
 void stParticle::DeactivateParticle00499F70(unsigned int index)
 {
-    unsigned char* active = allocation_194 + index;
+    unsigned char* active = particle_active_194 + index;
     if (*active != 0) {
         *active = 0;
         update_flags_250 |= 2;
@@ -589,15 +589,15 @@ void stParticle::Update00499FA0()
 
         unsigned int index;
         for (index = 0; index < particle_count_180; ++index) {
-            if (allocation_194[index] == 0) {
+            if (particle_active_194[index] == 0) {
                 continue;
             }
 
             unsigned int vertex = index * 4;
             if (value_1ac == 0) {
-                unsigned int expires_at = allocation_19c[index] + value_1cc;
+                unsigned int expires_at = birth_ticks_19c[index] + value_1cc;
                 if (expires_at < now) {
-                    allocation_194[index] = 0;
+                    particle_active_194[index] = 0;
                     update_flags_250 |= 2;
                     --active_particle_count_18c;
                     continue;
@@ -607,7 +607,7 @@ void stParticle::Update00499FA0()
                     unsigned int alpha_end = vertex + 4;
                     unsigned int alpha_index;
                     for (alpha_index = vertex; alpha_index < alpha_end; ++alpha_index) {
-                        allocation_174[alpha_index] = alpha;
+                        alphas_174[alpha_index] = alpha;
                     }
                 }
             } else if (value_1ac == 1) {
@@ -620,7 +620,7 @@ void stParticle::Update00499FA0()
                     stTextureAnim* animation = texture_frames_178[index * 2];
                     animation->UpdateFrame004854B0();
                     if (animation->IsFinished00485730() != 0) {
-                        allocation_194[index] = 0;
+                        particle_active_194[index] = 0;
                         update_flags_250 |= 2;
                         --active_particle_count_18c;
                         continue;
@@ -629,13 +629,13 @@ void stParticle::Update00499FA0()
             }
 
             if (value_1a8 == 1) {
-                allocation_198[index] += acceleration_step;
+                velocities_198[index] += acceleration_step;
             }
 
-            srVector3T<float> movement = allocation_198[index] * (elapsed * g_double_005ec8d0);
+            srVector3T<float> movement = velocities_198[index] * (elapsed * g_double_005ec8d0);
 
             srVector3T<float> candidate;
-            candidate = allocation_148[index] + movement;
+            candidate = particle_positions_148[index] + movement;
 
             if (value_1a4 == 2) {
                 double distance;
@@ -649,7 +649,7 @@ void stParticle::Update00499FA0()
                 }
 
                 if (value_278 * value_240 < distance) {
-                    allocation_194[index] = 0;
+                    particle_active_194[index] = 0;
                     update_flags_250 |= 2;
                     --active_particle_count_18c;
                     continue;
@@ -660,7 +660,7 @@ void stParticle::Update00499FA0()
                 srVector3T<float> local_point;
                 local_point.Set(transformed.x, transformed.y, transformed.z);
                 if (PointInsideBounds004BE870(&local_point, &minimum_21c, &maximum_228) == 0) {
-                    allocation_194[index] = 0;
+                    particle_active_194[index] = 0;
                     update_flags_250 |= 2;
                     --active_particle_count_18c;
                     continue;
@@ -669,14 +669,14 @@ void stParticle::Update00499FA0()
 
             if (value_1b4 == 1 &&
                 (g_world->octree == 0 ||
-                 !g_world->octree->HasLineOfSight(&allocation_148[index], &candidate, 1))) {
-                allocation_194[index] = 0;
+                 !g_world->octree->HasLineOfSight(&particle_positions_148[index], &candidate, 1))) {
+                particle_active_194[index] = 0;
                 update_flags_250 |= 2;
                 --active_particle_count_18c;
                 continue;
             }
 
-            allocation_148[index] = candidate;
+            particle_positions_148[index] = candidate;
         }
     }
 
@@ -711,14 +711,14 @@ void stParticle::Update00499FA0()
 
         if (value_1a8 == 1) {
             srVector3T<float> acceleration = (acceleration_1f4 * (double)lag) / 1000.0;
-            allocation_198[particle_index] += acceleration;
+            velocities_198[particle_index] += acceleration;
         }
 
-        srVector3T<float> displacement = allocation_198[particle_index];
+        srVector3T<float> displacement = velocities_198[particle_index];
         displacement *= (double)lag;
         displacement /= 1000.0;
-        InitializeParticlePosition0049A990(&allocation_148[particle_index]);
-        allocation_148[particle_index] += displacement;
+        InitializeParticlePosition0049A990(&particle_positions_148[particle_index]);
+        particle_positions_148[particle_index] += displacement;
 
         updated_at_25c += value_1c8;
         if (now - updated_at_25c <= value_1c8) {
@@ -825,11 +825,11 @@ void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
     if (value_1c0 == 0) {
         for (unsigned int direct_index = 0; direct_index < particle_count_180; ++direct_index) {
             unsigned int vertex = direct_index * 4;
-            const srVector3T<float>& position = allocation_148[direct_index];
-            allocation_160[vertex] = position + offsets[0];
-            allocation_160[vertex + 1] = position + offsets[1];
-            allocation_160[vertex + 2] = position + offsets[2];
-            allocation_160[vertex + 3] = position + offsets[3];
+            const srVector3T<float>& position = particle_positions_148[direct_index];
+            vertex_positions_160[vertex] = position + offsets[0];
+            vertex_positions_160[vertex + 1] = position + offsets[1];
+            vertex_positions_160[vertex + 2] = position + offsets[2];
+            vertex_positions_160[vertex + 3] = position + offsets[3];
         }
         return;
     }
@@ -844,29 +844,29 @@ void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
     for (unsigned int particle_index = 0; particle_index < particle_count_180; ++particle_index) {
         srVector3T<float> position;
 
-        if (allocation_198[particle_index].y >= g_float_005ebb34) {
-            position = allocation_148[particle_index];
+        if (velocities_198[particle_index].y >= g_float_005ebb34) {
+            position = particle_positions_148[particle_index];
         } else {
             position.Set(flutter, 0.0f, 0.0f);
 
             if (value_1c0 == 2) {
                 float scale = g_float_005ecc3c;
-                if (g_float_005ecc3c < allocation_198[particle_index].y) {
-                    scale = allocation_198[particle_index].y;
+                if (g_float_005ecc3c < velocities_198[particle_index].y) {
+                    scale = velocities_198[particle_index].y;
                 }
                 position.x = scale * g_float_005ecc38 * flutter;
             }
 
             double angle = m_pflFlutterAngle[particle_index];
             position.RotateAboutY(sin(angle), cos(angle));
-            position += allocation_148[particle_index];
+            position += particle_positions_148[particle_index];
         }
 
         unsigned int vertex = particle_index * 4;
-        allocation_160[vertex] = position + offsets[0];
-        allocation_160[vertex + 1] = position + offsets[1];
-        allocation_160[vertex + 2] = position + offsets[2];
-        allocation_160[vertex + 3] = position + offsets[3];
+        vertex_positions_160[vertex] = position + offsets[0];
+        vertex_positions_160[vertex + 1] = position + offsets[1];
+        vertex_positions_160[vertex + 2] = position + offsets[2];
+        vertex_positions_160[vertex + 3] = position + offsets[3];
     }
 }
 
@@ -952,9 +952,9 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     if ((update_flags_250 & 2) != 0) {
         unsigned int written = 0;
         for (unsigned int index = 0; index < particle_count_180; ++index) {
-            if (allocation_194[index] != 0) {
-                allocation_254[written++] = index * 2;
-                allocation_254[written++] = index * 2 + 1;
+            if (particle_active_194[index] != 0) {
+                active_triangles_254[written++] = index * 2;
+                active_triangles_254[written++] = index * 2 + 1;
             }
         }
         update_flags_250 &= ~2u;
@@ -978,14 +978,14 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
 
     /* Three array/count pairs: the index pairs rebuilt above, the polygon
        index list, and the transformed vertex positions. */
-    pipeline->active_triangles_2c = allocation_254;
+    pipeline->active_triangles_2c = active_triangles_254;
     pipeline->active_triangle_count_24 = active_particle_count_18c * 2;
-    pipeline->triangles_34 = allocation_168;
+    pipeline->triangles_34 = triangles_168;
     pipeline->triangle_count_1c = texture_frame_count_15c;
-    pipeline->positions_38 = allocation_160;
+    pipeline->positions_38 = vertex_positions_160;
     pipeline->vertex_count_20 = vertex_count_158;
-    if (allocation_170 != 0) {
-        pipeline->vertex_extras_3c = allocation_170;
+    if (vertex_extras_170 != 0) {
+        pipeline->vertex_extras_3c = vertex_extras_170;
     }
 
     pipeline->current_record_14->flags_00 = 0;
@@ -993,13 +993,13 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     pipeline->current_pass_18->texture_array_0c = 0;
     pipeline->current_pass_18->value_10 = 0;
 
-    if (allocation_16c != 0) {
-        pipeline->current_record_14->colors_0c = allocation_16c;
+    if (colors_16c != 0) {
+        pipeline->current_record_14->colors_0c = colors_16c;
         pipeline->current_record_14->color_format_10 = 1;
         pipeline->current_record_14->flags_00 |= 1;
     }
-    if (allocation_174 != 0) {
-        pipeline->current_record_14->alphas_1c = allocation_174;
+    if (alphas_174 != 0) {
+        pipeline->current_record_14->alphas_1c = alphas_174;
         pipeline->current_record_14->flags_00 |= 8;
     }
 
@@ -1010,8 +1010,8 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
 
     pipeline->SetFlags004752C0(render_flags_150);
 
-    if (allocation_164 != 0) {
-        pipeline->current_record_14->st0_20 = allocation_164;
+    if (texcoords_164 != 0) {
+        pipeline->current_record_14->st0_20 = texcoords_164;
         pipeline->current_record_14->flags_00 |= 0x10;
     }
 
@@ -1044,41 +1044,41 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
 // FUNCTION: WIZ8 0x00498A20
 stParticle::~stParticle()
 {
-    if (allocation_148 != 0) {
-        srHeap.free(allocation_148);
+    if (particle_positions_148 != 0) {
+        srHeap.free(particle_positions_148);
     }
-    if (allocation_170 != 0) {
-        srHeap.free(allocation_170);
+    if (vertex_extras_170 != 0) {
+        srHeap.free(vertex_extras_170);
     }
-    if (allocation_164 != 0) {
-        srHeap.free(allocation_164);
+    if (texcoords_164 != 0) {
+        srHeap.free(texcoords_164);
     }
-    if (allocation_160 != 0) {
-        srHeap.free(allocation_160);
+    if (vertex_positions_160 != 0) {
+        srHeap.free(vertex_positions_160);
     }
-    if (allocation_168 != 0) {
-        srHeap.free(allocation_168);
+    if (triangles_168 != 0) {
+        srHeap.free(triangles_168);
     }
-    if (allocation_16c != 0) {
-        srHeap.free(allocation_16c);
+    if (colors_16c != 0) {
+        srHeap.free(colors_16c);
     }
-    if (allocation_174 != 0) {
-        delete[] allocation_174;
+    if (alphas_174 != 0) {
+        delete[] alphas_174;
     }
     if (retained_14c != 0) {
         retained_14c->release();
     }
-    if (allocation_198 != 0) {
-        srHeap.free(allocation_198);
+    if (velocities_198 != 0) {
+        srHeap.free(velocities_198);
     }
-    if (allocation_19c != 0) {
-        delete[] allocation_19c;
+    if (birth_ticks_19c != 0) {
+        delete[] birth_ticks_19c;
     }
-    if (allocation_254 != 0) {
-        delete[] allocation_254;
+    if (active_triangles_254 != 0) {
+        delete[] active_triangles_254;
     }
-    if (allocation_194 != 0) {
-        delete[] allocation_194;
+    if (particle_active_194 != 0) {
+        delete[] particle_active_194;
     }
     if (texture_frames_178 != 0) {
         for (unsigned int i = 0; i < texture_frame_count_15c; i += 2) {
