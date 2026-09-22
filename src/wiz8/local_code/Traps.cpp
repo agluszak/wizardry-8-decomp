@@ -203,7 +203,8 @@ char HandleRecordModeKey005E3610(const InputAtom* input, void (*prompt)(void))
         return -1;
     } else {
         text = ConvertWideStringToString(&character);
-        if (g_flag_006f0530 == 0 && g_flag_006f0534 == 0 && *text >= 'A' && *text <= 'Z') {
+        if (g_shift_held_006f0530 == 0 && g_modifier_held_006f0534 == 0 && *text >= 'A' &&
+            *text <= 'Z') {
             *text += 0x20;
         }
         g_record_mode_line_0069ca68[g_record_mode_length_0069da70] = *text;

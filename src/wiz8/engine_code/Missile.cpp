@@ -465,12 +465,12 @@ void UpdateWorldMissiles004A27C0(W8World* world)
    remaining launch values to the missile factory. */
 // FUNCTION: WIZ8 0x004A2D30
 W8Missile* FireMissile004A2D30(unsigned int missile_table_index, srVector3T<float>* source,
-                               srVector3T<float>* target, float value_4, unsigned int value_5,
-                               unsigned int value_6, float speed)
+                               srVector3T<float>* target, float flight_speed,
+                               unsigned int trace_mask, unsigned int block_released, float duration)
 {
     return CreateMissile004A28D0(missile_table_index, source, GetHeadingAngle(source, target),
-                                 GetElevationAngle(source, target), value_4, value_5, value_6,
-                                 speed);
+                                 GetElevationAngle(source, target), flight_speed, trace_mask,
+                                 block_released, duration);
 }
 
 /* Instantiate the missile for `missile_table_index`: load or clone the cycle
@@ -731,8 +731,9 @@ close_file:
    drives the flight. */
 // FUNCTION: WIZ8 0x004A28D0
 W8Missile* CreateMissile004A28D0(unsigned int missile_table_index, srVector3T<float>* source,
-                                 float heading, float pitch, float value_5, unsigned int value_6,
-                                 unsigned char value_7, float speed)
+                                 float heading, float pitch, float flight_speed,
+                                 unsigned int trace_mask, unsigned char block_released,
+                                 float duration)
 {
     W8Missile* missile;
     W8Octree* octree;
@@ -770,7 +771,7 @@ W8Missile* CreateMissile004A28D0(unsigned int missile_table_index, srVector3T<fl
         missile->SetPitch(pitch);
         octree = g_world->octree;
         if (octree != 0) {
-            end.Set(direction.x * speed, direction.y * speed, direction.z * speed);
+            end.Set(direction.x * duration, direction.y * duration, direction.z * duration);
             end = end + *source;
             if (octree->TraceLineOfSight(source, &end, '\0', -3, -3, '\x01', 0) != 0) {
                 end -= *source;
@@ -780,15 +781,15 @@ W8Missile* CreateMissile004A28D0(unsigned int missile_table_index, srVector3T<fl
                 }
             }
         }
-        if (value_5 == g_float_005ebb34) {
-            value_5 = missile->lifetime_1f0;
+        if (flight_speed == g_float_005ebb34) {
+            flight_speed = missile->lifetime_1f0;
         }
         if (missile->m_pAI != 0) {
             free(missile->m_pAI);
         }
         ai = static_cast<W8AIMissile*>(malloc(sizeof(W8AIMissile)));
         if (ai != 0) {
-            float scale = value_5 * g_float_005ec128;
+            float scale = flight_speed * g_float_005ec128;
             memset(ai, 0, sizeof(W8AIMissile));
             ai->speed_per_step_04 = scale;
             ai->kind_00 = 3;
@@ -802,11 +803,11 @@ W8Missile* CreateMissile004A28D0(unsigned int missile_table_index, srVector3T<fl
         if (ai == 0) {
             srAssertFail("pMissile->GrObject::GetAI()", MISSILE_CPP, 0x120, 0);
         }
-        ai->fall_speed_08 = static_cast<float>(sin(-pitch) * value_5 * g_float_005ec128);
+        ai->fall_speed_08 = static_cast<float>(sin(-pitch) * flight_speed * g_float_005ec128);
         ai->limit_18 = limit;
-        missile->trace_mask_090 = value_6;
-        missile->duration_1f8 = speed;
-        missile->block_released_1e2 = value_7;
+        missile->trace_mask_090 = trace_mask;
+        missile->duration_1f8 = duration;
+        missile->block_released_1e2 = block_released;
     }
     return missile;
 }
@@ -1368,7 +1369,7 @@ void W8Missile::DetonateMissileSpell004A49E0()
     source.iChar = m_Source.iChar;
     source.iType = W8_TARGET_SOURCE_CHARACTER;
     source.point = position;
-    source.unknown_18[2] = 1;
+    source.aim_resolved_1a = 1;
     ResetCombatSlot(&target);
     target.iType = W8_TARGET_KIND_PLACE;
     target.point = position;

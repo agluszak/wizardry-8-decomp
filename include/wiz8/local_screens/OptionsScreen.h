@@ -110,7 +110,7 @@ public:
     void Advance();
     void Retreat();
 
-    int m_mode_000;
+    int m_page_count_000;
     int unknown_004;
     unsigned char m_compact_layout;
     unsigned char m_hide_navigation;
@@ -446,7 +446,7 @@ public:
     W8Vector<W8SaveSlot*> m_save_slots;
     unsigned char m_redraw_pending;
     unsigned char m_modal_closing_01d;
-    unsigned char unknown_01e[2];
+    unsigned char padding_01e[2];
     int m_selected_panel_020;
     Controls* m_controls_024;
     W8OptionsMenuSet* m_menu_set_028;

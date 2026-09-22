@@ -75,7 +75,7 @@ bool MtGigas1Lift1004DBB50(Trigger* pTrigger)
         item = &g_status_685170.item_in_hand_235b;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     return false;
 }
 
@@ -94,7 +94,7 @@ bool MtGigas1Lift2004DBB90(Trigger* pTrigger)
         item = &g_status_685170.item_in_hand_235b;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     return false;
 }
 

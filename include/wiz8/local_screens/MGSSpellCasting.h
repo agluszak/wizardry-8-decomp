@@ -34,7 +34,7 @@ struct W8SpellCastingView {
     W8TextControl* spell_name;       /* 0x564 */
     W8TextControl* cancel_button;    /* 0x568 */
     W8MainUiMode saved_game_mode;    /* 0x56c */
-    bool flag_570;                   /* 0x570 */
+    bool input_blocked_570;          /* 0x570 */
     unsigned char pad_571[3];
     int field_574;                  /* 0x574 */
     int interact_id;                /* 0x578 */

@@ -684,7 +684,7 @@ void UpdateCombatStanceButtons(void)
     }
 
     if (g_settings_6850c8.continuous_combat == 0) {
-        stance = g_combat_state->flag_000 != 0 ? 3U : 0U;
+        stance = g_combat_state->combat_over_000 != 0 ? 3U : 0U;
     } else if ((ClockIsTicking(g_combat_state->combat_ui_timer_7a8) == 0 &&
                 CombatMayAdvanceContinuously() != 0) ||
                g_combat_state->party_surprised_a52 != 0) {
@@ -727,7 +727,7 @@ void MainGameCombatConfirmButton(W8DialogButton* button)
     if (gXStatus.fCombatMode == 0) {
         return;
     }
-    if (g_combat_state->flag_000 != 0) {
+    if (g_combat_state->combat_over_000 != 0) {
         TogglePartyCombatStance();
         return;
     }

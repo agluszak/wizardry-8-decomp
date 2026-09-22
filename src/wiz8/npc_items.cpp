@@ -392,7 +392,7 @@ void ClearNpcItems(W8NpcState* npc)
 {
     W8PList* items;
 
-    if (npc->record->flag_055 != 0 && (items = npc->items) != 0) {
+    if (npc->record->owns_stock_055 != 0 && (items = npc->items) != 0) {
         while (PLLength(items) != 0) {
             delete static_cast<W8NpcItemEntry*>(PLRemoveAt(items, 0));
         }
@@ -878,7 +878,6 @@ int CalculateTradeStackPrice(W8NpcState* npc, W8ItemInstance* item, char mode)
     }
     return amount != 0 ? amount : 1;
 }
-
 
 /* Take quantity units of one stock slot off the NPC and into the party. Each
    pass hands over at most one maximum-quantity stack (or one unit for the

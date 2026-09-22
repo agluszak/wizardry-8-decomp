@@ -2221,7 +2221,7 @@ void PartySelectionScreenFrame(void)
     POINT current;
     InputAtom input;
 
-    if (g_flag_689b32) {
+    if (g_dev_mode_689b32) {
         RequestExitScreen();
     }
     SGPMouseGetPos(&point);
@@ -2319,7 +2319,7 @@ void GameStartRouterFrame(void)
     if (!g_status_685170.skip_loose_character_check_2444) {
         code = 4;
     } else {
-        switch (g_value_68de50) {
+        switch (g_wiz7_ending_68de50) {
         case 1:
             code = 2;
             break;

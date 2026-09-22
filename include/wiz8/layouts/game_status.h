@@ -37,9 +37,9 @@ struct W8SpellUsageRecord {
 
 struct W8GlobalStatusFactView {
     int status_ints_3121[1000];
-    unsigned char flag_40c1;
+    unsigned char fact_88_latch_40c1;
     unsigned char unknown_40c2[0x17b];
-    int value_423d;
+    int rpc_slot_423d;
     unsigned char unknown_4241[0x59d];
 };
 
@@ -125,7 +125,7 @@ struct W8GlobalStatus {
     bool binding_reset_pending_242e;
     unsigned char padding_242f;
     /* 0x2430: one-shot gate for the NPC event pass. */
-    unsigned char flag_2430;
+    bool npc_restore_pending_2430;
     /* 0x2431: raised by the .nsf quote audit while it runs; ShowNotice counts
        each notice's wrapped lines under it. */
     unsigned char quote_audit_2431;
@@ -138,7 +138,7 @@ struct W8GlobalStatus {
        updates it while walking the 0x1862-byte character records. */
     unsigned char selected_party_member_2434;
     /* 0x2435: read as a gate by the main-game frame's world-cursor path. */
-    unsigned char value_2435;
+    unsigned char world_cursor_gate_2435;
     unsigned int camp_tick_ms_2436;
     /* 0x243a: the five RPC race ids AssayDialog walks as NUM_RPC_RACES. */
     unsigned char rpc_races_243a[5];
@@ -148,7 +148,7 @@ struct W8GlobalStatus {
     /* 0x2445: latched once the Trynnie2 Zulu/0x1c3 use-item action has been
        handled at a cursor node; later uses take the Mystical Shaman branch. */
     unsigned char use_item_latch_2445;
-    unsigned char flag_2446;
+    bool infatuation_pending_2446;
     int difficulty;
     /* 0x244b: the save file's creation-time pair XOR-masked by SaveGame's
        two data constants; both halves are written as dwords. */
@@ -158,18 +158,18 @@ struct W8GlobalStatus {
        the type-9 world-cursor handler. */
     int alternate_name_slot_247f;
     unsigned int stamina_tick_ms_2483;
-    unsigned char flag_2487;
+    unsigned char condition13_clock_2487;
     /* 0x2488: one-shot gate; when set, the next condition-change and
        condition-cleared reaction is swallowed and the flag cleared. */
     unsigned char skip_next_condition_reaction;
-    unsigned char flag_2489; /* 0x2489: fact 0x14c gate */
+    bool rpc_active_2489; /* 0x2489: fact 0x14c gate */
     /* 0x248a: armed by the long NPC reward event; the event also stamps
        0x2493 with the world clock. */
-    unsigned char flag_248a;
-    unsigned int value_248b;
+    bool fact_b8_pending_248a;
+    unsigned int condition13_stamp_248b;
     int pending_condition_party_slot_248f;
-    int value_2493;
-    unsigned char flag_2497;
+    int fact_b8_clock_2493;
+    bool greeting_pending_2497;
     unsigned int camp_fatigue_count_2498;
     /* 0x249c: party slot fact 0x39 hands to RemoveCharacterCondition. */
     int party_slot_249c;
@@ -203,7 +203,7 @@ struct W8GlobalStatus {
     /* 0x497f: combat difficulty band counters, indexed by EvaluateCombatDifficulty004E6CE0. */
     unsigned int combat_difficulty_counts[3];
     /* 0x498b: NPC group event counter, cleared once the group event runs. */
-    int value_498b;
+    int vi_event_stage_498b;
     /* 0x498f/0x4993: pending-stage flags set by FACT_QUE_ENDGAME2/3; the book
        callback queues ENDGAME2's script notice while either holds. */
     int endgame2_queued;
@@ -211,17 +211,17 @@ struct W8GlobalStatus {
     unsigned int text_box_lines_used_4997[4];
     unsigned int text_box_lines_shown_49a7[4];
     /* 0x49b7: world-clock stamp the 0x49bb reward event compares against. */
-    int value_49b7;
-    unsigned char flag_49bb;
-    unsigned char flag_49bc;
+    int trang_check_clock_49b7;
+    bool trang_check_pending_49bb;
+    unsigned char intro_shown_49bc;
     unsigned char flag_49bd;
-    unsigned char unknown_49be[2];
+    unsigned char padding_49be[2];
     /* 0x49c0: set when the endgame transition starts; saves carrying either
        this or flag_49bd are filtered from the load list. */
     bool endgame_started_49c0;
-    /* 0x49c1: latched while g_flag_689b32 is set at teardown; persisted into
-       the save slot as flag_263c. */
-    unsigned char flag_49c1;
+    /* 0x49c1: latched while g_dev_mode_689b32 is set at teardown; persisted into
+       the save slot as dev_flagged_263c. */
+    unsigned char dev_flagged_49c1;
 };
 #pragma pack(pop)
 
@@ -252,7 +252,8 @@ static_assert(offsetof(W8GlobalStatus, status_header_suffix_19dc) == 0x19dc,
 static_assert(offsetof(W8GlobalStatus, level_progress) == 0x1a04,
               "W8GlobalStatus_level_progress_offset");
 static_assert(offsetof(W8GlobalStatus, iron_man) == 0x2429, "W8GlobalStatus_iron_man_offset");
-static_assert(offsetof(W8GlobalStatus, value_2435) == 0x2435, "W8GlobalStatus_value_2435_offset");
+static_assert(offsetof(W8GlobalStatus, world_cursor_gate_2435) == 0x2435,
+              "W8GlobalStatus_value_2435_offset");
 static_assert(offsetof(W8GlobalStatus, pending_move_location) == 0x22a7,
               "W8GlobalStatus_pending_move_location_offset");
 static_assert(offsetof(W8GlobalStatus, formation) == 0x23a1, "W8GlobalStatus_formation_offset");
@@ -270,32 +271,38 @@ static_assert(offsetof(W8GlobalStatus, monster_name_buffer_2453) == 0x2453,
               "W8GlobalStatus_monster_name_buffer_offset");
 static_assert(offsetof(W8GlobalStatus, alternate_name_slot_247f) == 0x247f,
               "W8GlobalStatus_alternate_name_slot_offset");
-static_assert(offsetof(W8GlobalStatus, flag_2497) == 0x2497, "W8GlobalStatus_flag_2497_offset");
+static_assert(offsetof(W8GlobalStatus, greeting_pending_2497) == 0x2497,
+              "W8GlobalStatus_flag_2497_offset");
 static_assert(offsetof(W8GlobalStatus, next_group_id_234a) == 0x234a,
               "W8GlobalStatus_next_group_id_offset");
 static_assert(offsetof(W8GlobalStatus, log_fact_checks_3120) == 0x3120,
               "W8GlobalStatus_log_fact_checks_offset");
 static_assert(offsetof(W8GlobalStatus, text_box_lines_shown_49a7) == 0x49a7,
               "W8GlobalStatus_text_box_lines_shown_offset");
-static_assert(offsetof(W8GlobalStatus, flag_49bc) == 0x49bc, "W8GlobalStatus_flag_49bc_offset");
+static_assert(offsetof(W8GlobalStatus, intro_shown_49bc) == 0x49bc,
+              "W8GlobalStatus_intro_shown_49bc_offset");
 static_assert(offsetof(W8GlobalStatus, text_box_lines_used_4997) == 0x4997,
               "W8GlobalStatus_migrated_values_offset");
-static_assert(offsetof(W8GlobalStatus, flag_2489) == 0x2489, "W8GlobalStatus_flag_2489_offset");
-static_assert(offsetof(W8GlobalStatus, tail_3121) + offsetof(W8GlobalStatusFactView, flag_40c1) ==
+static_assert(offsetof(W8GlobalStatus, rpc_active_2489) == 0x2489,
+              "W8GlobalStatus_flag_2489_offset");
+static_assert(offsetof(W8GlobalStatus, tail_3121) +
+                      offsetof(W8GlobalStatusFactView, fact_88_latch_40c1) ==
                   0x40c1,
-              "W8GlobalStatus_flag_40c1_offset");
+              "W8GlobalStatus_fact_88_latch_40c1_offset");
 static_assert(offsetof(W8GlobalStatus, tail_3121) +
                       offsetof(W8GlobalStatusSpellUsageView, records) ==
                   0x40be,
               "W8GlobalStatus_spell_usage_offset");
-static_assert(offsetof(W8GlobalStatus, value_498b) == 0x498b, "W8GlobalStatus_value_498b_offset");
+static_assert(offsetof(W8GlobalStatus, vi_event_stage_498b) == 0x498b,
+              "W8GlobalStatus_value_498b_offset");
 static_assert(offsetof(W8GlobalStatus, endgame2_queued) == 0x498f,
               "W8GlobalStatus_value_498f_offset");
 static_assert(offsetof(W8GlobalStatus, endgame3_queued) == 0x4993,
               "W8GlobalStatus_value_4993_offset");
 static_assert(offsetof(W8GlobalStatus, party_slot_249c) == 0x249c,
               "W8GlobalStatus_party_slot_249c_offset");
-static_assert(offsetof(W8GlobalStatus, tail_3121) + offsetof(W8GlobalStatusFactView, value_423d) ==
+static_assert(offsetof(W8GlobalStatus, tail_3121) +
+                      offsetof(W8GlobalStatusFactView, rpc_slot_423d) ==
                   0x423d,
               "W8GlobalStatus_value_423d_offset");
 static_assert(offsetof(W8GlobalStatus, regular_member_count) == 0x000d,

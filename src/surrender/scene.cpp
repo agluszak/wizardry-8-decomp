@@ -147,9 +147,9 @@ void srScene::process(const ProcessInfo& info, e_processType type)
     renderer->setFogColor(fog_color);
     renderer->setAmbientLight(ambient_light);
     renderer->setPickKey(pick_key);
-    statistics_140.value_0c += node_count;
-    ++statistics_140.value_08;
-    statistics_140.value_10 += entry_count;
+    statistics_140.node_calls_0c += node_count;
+    ++statistics_140.render_calls_08;
+    statistics_140.process_calls_10 += entry_count;
 }
 
 // FUNCTION: SURRENDER 0x100564A0
@@ -179,15 +179,15 @@ void srScene::render(srGERD& renderer, srCamera* camera)
 void srScene::getStatistics(Statistics& statistics)
 {
     statistics = statistics_140;
-    statistics.value_00 =
-        srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT) - statistics.value_00;
+    statistics.elapsed_00 =
+        srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT) - statistics.elapsed_00;
 }
 
 // FUNCTION: SURRENDER 0x10056550
 void srScene::resetStatistics()
 {
     memset(&statistics_140, 0, sizeof(statistics_140));
-    statistics_140.value_00 = srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT);
+    statistics_140.elapsed_00 = srCore.getTimer()->getTime(srTimer::TIMER_READ_DEFAULT);
 }
 
 // FUNCTION: SURRENDER 0x10056750
@@ -207,13 +207,14 @@ void srScene::dump(std::ostream& stream)
     Statistics statistics;
     getStatistics(statistics);
     stream.width(0x20);
-    stream << "  Time since stat reset: " << statistics.value_00 << '\n';
+    stream << "  Time since stat reset: " << statistics.elapsed_00 << '\n';
     stream.width(0x20);
-    stream << "  Render calls/sec: " << statistics.value_08 / statistics.value_00 << '\n';
+    stream << "  Render calls/sec: " << statistics.render_calls_08 / statistics.elapsed_00 << '\n';
     stream.width(0x20);
-    stream << "  Global calls/sec: " << statistics.value_0c / statistics.value_00 << '\n';
+    stream << "  Global calls/sec: " << statistics.node_calls_0c / statistics.elapsed_00 << '\n';
     stream.width(0x20);
-    stream << "  Process calls/sec: " << statistics.value_10 / statistics.value_00 << '\n';
+    stream << "  Process calls/sec: " << statistics.process_calls_10 / statistics.elapsed_00
+           << '\n';
     stream.flags(flags & 0x7fff);
 }
 

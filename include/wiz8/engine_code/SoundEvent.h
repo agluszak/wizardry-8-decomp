@@ -68,7 +68,7 @@ public:
     int sound_handle;          /* 0x20: live SGP voice id, -1 when silent */
     unsigned char probability; /* 0x24: mls `probability` percent */
     unsigned char looping;     /* 0x25: script `LOOP`: loops and owns the voice */
-    unsigned char unknown_026[2];
+    unsigned char padding_026[2];
     int location_id;            /* 0x28: tracked monster's location id */
     float falloff;              /* 0x2c: audible range; mls `sound_falloff` scaled */
     int footstep_volume;        /* 0x30: base volume for step/tracked sounds */

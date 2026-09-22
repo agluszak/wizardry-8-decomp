@@ -241,18 +241,19 @@ void CalcXPGoal(W8Character* character)
 
 /* Refresh which party members are ready to level up: raise the pending flag,
    post a notice the first time each ready slot is seen, and clear the marker
-   when a slot is no longer ready. Skipped while flag_2497 is set or the saved
+   when a slot is no longer ready. Skipped while greeting_pending_2497 is set or the saved
    level is in band 0xe. */
 // FUNCTION: WIZ8 0x004ef1f0
 void RefreshLevelUpReadyNotices(void)
 {
     int party_slot;
 
-    if (g_status_685170.flag_2497 != 0 || GetLevelBand(g_status_685170.current_level) == 0xe) {
+    if (g_status_685170.greeting_pending_2497 != 0 ||
+        GetLevelBand(g_status_685170.current_level) == 0xe) {
         return;
     }
 
-    gXStatus.unknown_026[1] = 0;
+    gXStatus.level_up_notice_027 = 0;
     for (party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
         W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
         bool* ready_flag = &gXStatus.monster_manager_entries[party_slot].level_up_ready;
@@ -277,7 +278,7 @@ void RefreshLevelUpReadyNotices(void)
                     row->portrait_advance_103 = 0;
                 }
             } else {
-                gXStatus.unknown_026[1] = 1;
+                gXStatus.level_up_notice_027 = 1;
                 if (*ready_flag == 0) {
                     if (row->portrait_advance_103 == 0) {
                         wchar_t* text;
@@ -481,10 +482,10 @@ void CalcInitiative(W8Character* character)
                             character->attributes[6].effective / 5 - 10 +
                             character->attributes[5].effective / 5;
 
-    if (character->skills[39].flag_00 != 0) {
+    if (character->skills[39].active_00 != 0) {
         character->initiative += character->skills[39].level / 10 + 1;
     }
-    character->initiative += character->bonus_1770.value_00;
+    character->initiative += character->bonus_1770.damage_bonus_00;
 
     switch (character->load_category) {
     case 0:
@@ -685,8 +686,8 @@ void CalcAttacks(W8Character* character)
 
         attack->damage_bonus = 0;
         attack->hit_bonus = 0;
-        attack->value_25 = 0;
-        attack->value_29 = 0;
+        attack->attack_bonus_25 = 0;
+        attack->damage_percent_29 = 0;
         attack->damage_dice.base = 0;
         attack->damage_dice.count = 0;
         attack->damage_dice.sides = 0;
@@ -697,7 +698,7 @@ void CalcAttacks(W8Character* character)
                 attack->hit_bonus += records[hand == 0]->attack_hit_bonus;
             }
             if (ItemHasSingledOutGenericName(equipment[hand]->iItemNo)) {
-                attack->value_29 += records[hand]->damage_dice.base * 10;
+                attack->damage_percent_29 += records[hand]->damage_dice.base * 10;
             }
         } else {
             attack->damage_bonus += attack->combined_skill / 10;
@@ -710,13 +711,13 @@ void CalcAttacks(W8Character* character)
             if (hand == 0) {
                 attack->damage_dice.base += 2;
             }
-            attack->value_33 = 0;
+            attack->condition_chance_33 = 0;
             attack->unknown_37[0] = 0;
             attack->unknown_37[1] = 0;
             attack->strength_bonus_39 = 0;
             attack->unknown_3a = 0;
-            attack->value_3b = 0;
-            attack->value_3f = 0;
+            attack->condition_chance_3b = 0;
+            attack->condition_chance_3f = 0;
             if (character->attributes[0].effective > 49) {
                 attack->strength_bonus_39 = (character->attributes[0].effective - 50) / 5;
             }
@@ -738,11 +739,11 @@ void CalcAttacks(W8Character* character)
 
         if (character->attributes[0].effective < 50) {
             attack->hit_bonus -= (50 - character->attributes[0].effective) / (divisor * 10);
-            attack->value_29 -= (50 - character->attributes[0].effective) / divisor;
+            attack->damage_percent_29 -= (50 - character->attributes[0].effective) / divisor;
         } else if (character->attributes[0].effective > 50) {
             divisor *= hand + 1;
             attack->hit_bonus += (character->attributes[0].effective - 50) / (divisor * 10);
-            attack->value_29 += (character->attributes[0].effective * 2 - 100) / divisor;
+            attack->damage_percent_29 += (character->attributes[0].effective * 2 - 100) / divisor;
         }
 
         if (character->attributes[4].effective < 50) {
@@ -780,10 +781,10 @@ void CalcAttacks(W8Character* character)
             load_penalty /= 2;
         }
         attack->hit_bonus += load_penalty;
-        if (character->skills[40].flag_00 && attack->combat_skill == 17) {
+        if (character->skills[40].active_00 && attack->combat_skill == 17) {
             attack->hit_bonus += character->skills[40].level / 20 + 1;
         }
-        if (character->skills[34].flag_00 && attack->combat_skill == 16) {
+        if (character->skills[34].active_00 && attack->combat_skill == 16) {
             attack->hit_bonus += character->skills[34].level / 20 + 1;
         }
     }
@@ -834,7 +835,7 @@ void CalcArmorClasses(W8Character* character)
         }
 
         character->armor_class_components[2] += character->skills[11].level / 10;
-        if (character->skills[38].flag_00) {
+        if (character->skills[38].active_00) {
             character->armor_class_components[11] += character->skills[38].level / 20 + 1;
         }
 
@@ -1188,7 +1189,7 @@ void AwardPartyExperience004EEF10(int amount, int alternate_message)
                     gained = total;
                 }
             }
-            gXStatus.unknown_026[1] = 1;
+            gXStatus.level_up_notice_027 = 1;
         }
     }
     wchar_t* text = new wchar_t[0x200];

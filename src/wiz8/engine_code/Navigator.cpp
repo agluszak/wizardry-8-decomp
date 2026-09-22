@@ -157,7 +157,7 @@ void W8NavigatorAttachment::GrowPathStorage00456BD0()
 // FUNCTION: WIZ8 0x00451ec0
 W8Navigator::W8Navigator()
 {
-    unknown_09d[0] = 0;
+    reactivated_09d = 0;
     navigation_mode_008 = 0;
     flags_00c = 0;
     collision_margin_010 = 0.0;
@@ -504,7 +504,7 @@ W8Navigator::W8Navigator(const W8Navigator& other)
     trace_mask_090 = other.trace_mask_090;
     unknown_094 = other.unknown_094;
     unknown_098 = 0;
-    unknown_09d[0] = other.unknown_09d[0];
+    reactivated_09d = other.reactivated_09d;
     owned_object_0a0 = 0;
     tracked_distance_0b0 = other.tracked_distance_0b0;
     group_linked_0bd = other.group_linked_0bd;

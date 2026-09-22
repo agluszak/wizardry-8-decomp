@@ -62,7 +62,7 @@ unsigned short g_condition_notices_0061E570[128] = {
 // FUNCTION: WIZ8 0x005248a0
 unsigned char GetConditionRecordFlag(int party_slot, int condition)
 {
-    return g_status_685170.buffers.Char[party_slot].conditions_1817[condition].value_08;
+    return g_status_685170.buffers.Char[party_slot].conditions_1817[condition].active_08;
 }
 
 // FUNCTION: WIZ8 0x005248D0
@@ -84,12 +84,12 @@ void ReleaseMonsterConditionBindings(W8MonsterInfo* monster_info)
                 W8Character* character = &g_status_685170.buffers.Char[party_slot];
                 W8CharacterConditionRecord* record = &character->conditions_1817[slot_kind];
                 if ((condition == 0 || character->uiCondition[condition] != 0) &&
-                    record->value_00 == g_status_685170.current_level &&
-                    record->value_04 == monster_info->location_id) {
+                    record->level_acquired_00 == g_status_685170.current_level &&
+                    record->source_monster_04 == monster_info->location_id) {
                     cleared = true;
-                    record->value_08 = 0;
-                    record->value_00 = 0;
-                    record->value_04 = 0;
+                    record->active_08 = 0;
+                    record->level_acquired_00 = 0;
+                    record->source_monster_04 = 0;
                     if (condition != 0 && character->fInParty != 0) {
                         RemoveCharacterCondition(party_slot, condition, 1);
                     }
@@ -1130,9 +1130,10 @@ void BindMonsterToCharacterDependence(unsigned int party_slot, unsigned int depe
             GetMonsterGroupIndexByID(0x455, CONDITIONS_CPP, monster_info->monster_group_id, 1)));
     }
 
-    g_status_685170.buffers.Char[party_slot].conditions_1817[dependence_slot].value_00 =
+    g_status_685170.buffers.Char[party_slot].conditions_1817[dependence_slot].level_acquired_00 =
         g_status_685170.current_level;
-    g_status_685170.buffers.Char[party_slot].conditions_1817[dependence_slot].value_04 = monster_id;
-    g_status_685170.buffers.Char[party_slot].conditions_1817[dependence_slot].value_08 = 1;
+    g_status_685170.buffers.Char[party_slot].conditions_1817[dependence_slot].source_monster_04 =
+        monster_id;
+    g_status_685170.buffers.Char[party_slot].conditions_1817[dependence_slot].active_08 = 1;
     RebuildConditionsAndDerivedStats(party_slot);
 }

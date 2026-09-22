@@ -108,8 +108,8 @@ static_assert(sizeof(W8CombatHandRecord) == 0x10, "W8CombatHandRecord_must_be_0x
 struct W8CombatCharacterRow {
     unsigned int phase; /* 0x00: combat phase; cleared when the character dies */
     unsigned char unknown_04[0x30];
-    unsigned char flag_34; /* 0x34: raised when the character dies */
-    unsigned char unknown_35[3];
+    bool dead_34; /* 0x34: raised when the character dies */
+    unsigned char padding_35[3];
     /* 0x38: the two hand values GetCharacterTurnValue reuses once this row's
        turn is already set up. Retail indexes them from the combat-state base
        as dword stride 0x35; that is this field, not a second BSS array. */
@@ -138,7 +138,7 @@ struct W8CombatCharacterRow {
     /* 0x81: toggled when the slot swaps to its alternate hand in PC Item;
        while set the pending hand-attack values are rebuilt. */
     bool alternate_hand_81;
-    unsigned char unknown_82[2];
+    unsigned char extra_swings_82[2];
     /* 0x84/0x88: the slot's combat-portrait catalog image and the alternate the
        combat portrait strip draws while the slot is the hovered combat slot
        (party_slots_170[4]); -1 draws nothing. */
@@ -148,7 +148,7 @@ struct W8CombatCharacterRow {
        -1 slot empty or out of the fight, 0 ready, 1 cannot switch to combat,
        2 dead or ineligible, 3 the acting combatant (portrait pulses). */
     char combat_status_8c;
-    unsigned char unknown_8d[3];
+    unsigned char padding_8d[3];
     /* 0x90: how many times the character already rolled to notice an attacker
        this round; the first attempt always succeeds and each later one is 25
        points harder on the senses check. */
@@ -161,7 +161,7 @@ struct W8CombatCharacterRow {
        CanPartySlotPray and CanPartySlotTurnUndead. */
     unsigned char pray_used;
     unsigned char turn_undead_used;
-    unsigned char unknown_9a[2];
+    unsigned char padding_9a[2];
     /* 0x9c: the combat clock value when CatchUpCombatActor last advanced this
        row's phase (its inlined copies stamp g_combat_state->round_counter
        here); the spell-scaling paths read it as the character's combat pace. */
@@ -170,7 +170,9 @@ struct W8CombatCharacterRow {
        hand's attack count before another intercept is allowed and bumped on
        each successful one. */
     unsigned int interception_count;
-    unsigned char flag_a4; /* 0xa4: raised when switching to an attack */
+    /* 0xa4: the queued action just switched to DEFEND; case 4 of the
+       action dispatch routes to the defend notice while set. */
+    unsigned char defend_switched_a4;
     /* 0xa5: the attack's sound/roll state; set once MakePCAttackSound has
        played so a resumed swing does not replay it, cleared when the row's
        attack finishes. */
@@ -184,7 +186,7 @@ struct W8CombatCharacterRow {
        when the target has the skill trained; the round-end pass awards
        practice credit to exactly those three entries and clears them. */
     unsigned char skill_use_flags[0x29];
-    unsigned char unknown_d1[3];
+    unsigned char padding_d1[3];
 }; /* 0xd4 */
 
 static_assert(sizeof(W8CombatCharacterRow) == 0xd4, "W8CombatCharacterRow_must_be_0xd4");
@@ -196,12 +198,12 @@ static_assert(offsetof(W8CombatCharacterRow, saved_attack_value) == 0x38,
    +0x18, 0xd4 apart. Only what a ported body reaches is named, and only where
    the use establishes a meaning. */
 struct W8CombatState {
-    unsigned char flag_000; /* 0x000: blocks ending combat while set */
+    unsigned char combat_over_000; /* 0x000: raised when combat ends; inverse of round_active_001 */
     /* 0x001: set when combat begins and when continuous combat resumes;
        cleared at the round boundary while continuous_combat is off. Gates
        party movement and the combat-sensitive UI panels. */
     bool round_active_001;
-    unsigned char unknown_002[2];
+    unsigned char padding_002[2];
     /* 0x004: current round number - incremented at each round boundary,
        shown in the round notices and gating the round-one specials. */
     unsigned int round_count_004;
@@ -240,7 +242,7 @@ struct W8CombatState {
     /* 0x8c5: exact name from the attack assertions; the slot is unaligned
        after the byte above, which packing makes representable. */
     W8CombatSlot TargetHit;
-    unsigned char unknown_8e5[3];
+    unsigned char padding_8e5[3];
     int pending_deaths[8];   /* 0x8e8 */
     int pending_death_count; /* 0x908 */
     /* 0x90c: the party-action fields the movement assertions pin. */
@@ -271,7 +273,7 @@ struct W8CombatState {
     /* 0xa48: the once-per-combat difficulty evaluation has run; the update
        tick calls the evaluator on the first frame it sees this clear. */
     unsigned char combat_evaluated_a48;
-    unsigned char unknown_a49[3];
+    unsigned char padding_a49[3];
     /* 0xa4c: the in-flight breath visual for a character's special-attack
        action. The executor refuses while its `finished` flag is clear and
        hands the previous one to the world updater through `auto_release`. */
@@ -301,7 +303,7 @@ struct W8CombatState {
        at 0x004ed710 sets a flag after queuing events 0x3a and 0x36; event
        0x36 clears it. 0x004ed460 tests exactly these two slots. */
     bool npc_combat_script_pending[2];
-    unsigned char unknown_a5a[2];
+    unsigned char padding_a5a[2];
     /* 0xa5c: the combat updates elapsed; the engagement sweep waits for the
        third before it touches group states. */
     unsigned int combat_update_count;
@@ -312,8 +314,8 @@ struct W8CombatState {
     /* 0xa61: remembered search-mode state; the combat teardown toggles search
        mode back on when it reads nonzero. */
     unsigned char search_mode_saved_a61;
-    bool combat_ready_a62;             /* 0xa62: party combat-ready bit */
-    unsigned char padding_a63;      /* 0xa63: the allocation is 0xa64 bytes */
+    bool combat_ready_a62;     /* 0xa62: party combat-ready bit */
+    unsigned char padding_a63; /* 0xa63: the allocation is 0xa64 bytes */
 }; /* 0xa64 */
 
 static_assert(sizeof(W8CombatState) == 0xa64, "W8CombatState_must_be_0xa64");

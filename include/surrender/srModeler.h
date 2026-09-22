@@ -10,10 +10,10 @@ public:
     struct MappingInfo {
         unsigned long unknown_00;
         unsigned long unknown_04;
-        unsigned long unknown_08;
-        unsigned long unknown_0c;
-        unsigned long unknown_10;
-        unsigned long unknown_14;
+        unsigned long u_scale_08;  /* float bits: U repeat */
+        unsigned long v_scale_0c;  /* float bits: V repeat */
+        unsigned long u_offset_10; /* float bits: U offset */
+        unsigned long v_offset_14; /* float bits: V offset */
     };
 
     class Vertex {

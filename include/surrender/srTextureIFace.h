@@ -33,7 +33,8 @@ public:
     static_assert(sizeof(Dimensions) == 0x2c, "srTextureIFace_Dimensions_must_be_0x2c");
     struct MultiRequest {
         long mipmap_level;
-        unsigned long unknown_04;
+        /* Last mipmap level filled; iterated level <= last_level_04. */
+        unsigned long last_level_04;
         srColorSurfaceIFace* destinations[1];
     };
     struct PartialRequest {

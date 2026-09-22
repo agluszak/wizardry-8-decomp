@@ -38,7 +38,9 @@ enum {
 #pragma pack(push, 2)
 struct W8ConditionImmunity {
     unsigned char kind;
-    unsigned char unknown_01;
+    /* 0x01: the catch-all flag the monster-info immunity list prints as its
+       final "all" entry. */
+    unsigned char immune_all_01;
     int conditions[20];
 };
 #pragma pack(pop)

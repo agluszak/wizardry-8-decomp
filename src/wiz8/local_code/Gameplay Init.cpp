@@ -110,7 +110,7 @@ unsigned char InitializeNpcDatabase(void)
             return 0;
         }
         g_npc_records[index].item_stock_rules = 0;
-        if (g_npc_records[index].flag_9d == 0 && g_npc_records[index].version > 1) {
+        if (g_npc_records[index].no_item_stock_9d == 0 && g_npc_records[index].version > 1) {
             entry_count = 0;
             if (!FileRead(handle, &entry_count, 4, &transferred)) {
                 FileClose(handle);

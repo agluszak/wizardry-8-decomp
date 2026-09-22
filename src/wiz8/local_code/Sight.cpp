@@ -861,13 +861,13 @@ after_sight:
 
                             if (npc == 0) {
                                 srAssertFail("pNPC != NULL", SIGHT_CPP, 0xe9, 0);
-                            } else if (npc->unknown_2d == 0 &&
+                            } else if (npc->party_noticed_2d == 0 &&
                                        npc->record->monster_bound_054 == 0 &&
                                        ShowMonsterTargetMarker(monster_info) != 0) {
                                 srVector3T<float> delta;
                                 delta = own_position - g_startup_world_659c0c->GetPosition();
                                 if (delta.Length() < 25000.0f &&
-                                    (npc->unknown_2d = 1, gXStatus.fSurprisePossible == 0) &&
+                                    (npc->party_noticed_2d = 1, gXStatus.fSurprisePossible == 0) &&
                                     g_status_685170.current_level != 4) {
                                     int party_slot = GetRandomCharacter(0, 0, -1, -1);
 

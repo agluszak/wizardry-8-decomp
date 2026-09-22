@@ -1153,7 +1153,7 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
 
     spellbook_skill = GetBestSpellbookSkillForSpell(character, spell_id, 0, 0, 0);
     skill_ceiling =
-        (character->skills[W8_SKILL_FIRST_REALM + g_spell_records[spell_id].realm].value_02 / 10 +
+        (character->skills[W8_SKILL_FIRST_REALM + g_spell_records[spell_id].realm].points_02 / 10 +
          character->skills[spellbook_skill].level) /
             15 +
         1;
@@ -1595,7 +1595,7 @@ unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id,
                 best_skill = skill_id;
                 best_level = level;
             }
-            if (prefer_unlocked != 0 && character->skills[skill_id].flag_00 != 0 &&
+            if (prefer_unlocked != 0 && character->skills[skill_id].active_00 != 0 &&
                 (int)unlocked_level < (int)level) {
                 unlocked_skill = skill_id;
                 unlocked_level = level;
@@ -2003,7 +2003,7 @@ wchar_t* SpellTargetString(const W8TargetSource* source, const W8CombatSlot* tar
         if (target->iChar == -1) {
             srAssertFail("pTarget->iChar != BAD_INDEX", MAGIC_CPP, 0xad, 0);
         }
-        if (!TargetSourceIsCharacter(source, 0) || source->unknown_18[1] != 0 ||
+        if (!TargetSourceIsCharacter(source, 0) || source->name_known_19 != 0 ||
             source->iChar != target->iChar) {
             return FormatWideString(gppStringList[W8_MESSAGE_TARGET_AT / 4],
                                     g_status_685170.buffers.Char[target->iChar].name);
@@ -2762,7 +2762,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
         return 0;
     }
     SetTargetSourceToCharacter(party_slot, &source);
-    if (character->skills[0x23].flag_00 == '\0') {
+    if (character->skills[0x23].active_00 == '\0') {
         identify_context = 0;
     } else {
         identify_context = (character->skills[0x23].level >> 2) + 1;
@@ -2886,7 +2886,7 @@ LAB_004faa0f:
             }
             PracticeCharacterSkill(character, best_skill, (index + 2) >> 2, '\0');
             PracticeCharacterSkill(character, realm_skill, index, '\0');
-            if (character->skills[0x23].flag_00 != '\0') {
+            if (character->skills[0x23].active_00 != '\0') {
                 PracticeCharacterSkill(character, 0x23, (index + 2) >> 2, '\0');
             }
         }
@@ -3017,7 +3017,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         c = 0;
         SoundPlay("Data\\Sound\\Misc\\Spell Backfire.wav", 0);
     }
-    if (source->fBackfire == '\0' && source->unknown_18[0] == '\0' && source->fReflection == '\0' &&
+    if (source->fBackfire == '\0' && source->auto_cast_18 == '\0' && source->fReflection == '\0' &&
         g_spell_records[spell_id].realm != 4 && spell_id != 0x83) {
         CheckSpellBackfire004FF220(spell_id, source, target);
     }
@@ -3058,7 +3058,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
     }
     ClearAttackBlock(&block);
     if (TargetSourceIsCharacter(source, 1)) {
-        if (source->unknown_18[1] == '\0') {
+        if (source->name_known_19 == '\0') {
             caster_figure =
                 GetTotalCasterLevel(&g_status_685170.buffers.Char[source->iChar], 0,
                                     (g_spell_records[spell_id].psionics_spell != '\0' ? 8 : 0) |
@@ -3068,7 +3068,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                                     1);
             caster_figure = GetSpellDifficulty(caster_figure, spell_id, power_level);
         } else {
-            caster_figure = source->unknown_1f[0];
+            caster_figure = source->spell_difficulty_1f;
         }
     } else if (TargetSourceIsMonster(source, 1)) {
         monster_index = MonsterGetIndexByLocationID(0x6ad, MAGIC_CPP, source->iMonsterID, 1);

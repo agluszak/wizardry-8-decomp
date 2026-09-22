@@ -506,12 +506,12 @@ int TurnUndead(int party_slot, int* out_cost, char check)
 
     W8TargetSource source;
     SetTargetSourceToCharacter(party_slot, &source);
-    source.unknown_18[2] = 1;
+    source.aim_resolved_1a = 1;
     int power;
     if (!check) {
         power = g_status_685170.buffers.Char[party_slot].profession_levels[0xc] + 10 +
                 g_status_685170.buffers.Char[party_slot].profession_levels[10];
-        source.unknown_18[0] = 1;
+        source.auto_cast_18 = 1;
     } else {
         power = g_status_685170.buffers.Char[party_slot].profession_levels[0xc] +
                 g_status_685170.buffers.Char[party_slot].profession_levels[10];
@@ -607,8 +607,8 @@ int CharacterPrayAction00547FE0(int party_slot)
         }
     }
     SetTargetSourceToCharacter(party_slot, &source);
-    source.unknown_18[0] = 1;
-    source.unknown_18[2] = 1;
+    source.auto_cast_18 = 1;
+    source.aim_resolved_1a = 1;
     ResetCombatSlot(&target);
     PostCharacterNotice(party_slot, gppStringList[0x174]);
     cost = CharacterActionFatigueCost(party_slot, 6);

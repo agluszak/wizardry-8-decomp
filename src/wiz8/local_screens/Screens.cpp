@@ -139,7 +139,7 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
     case W8_SCREEN_CAMP:
         if (giReviewCharSlot == static_cast<int>(party_slot) &&
             g_camp_screen_0069c0f4->input_mode == 0) {
-            if (g_camp_screen_0069c0f4->unknown_d40[0] != 0) {
+            if (g_camp_screen_0069c0f4->portrait_hovered_d40[0] != 0) {
                 g_camp_screen_0069c0f4->redraw_flags |= 0x100;
                 return;
             }
@@ -382,8 +382,8 @@ void InitializeMainGameLevelBlock(void)
     }
     g_level_block->transition_pending = 0;
     g_level_block->camera_mode_100 = 7;
-    g_level_block->flag_0f0 = IsMessageBoxActive();
-    g_level_block->flag_108 = 0;
+    g_level_block->message_box_pending_0f0 = IsMessageBoxActive();
+    g_level_block->portrait_strip_dirty_108 = 0;
     g_level_block->flag_210 = 0;
     g_level_block->value_194 = -1;
     g_level_block->highlight_override = -1;
@@ -410,7 +410,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->highlighted_item = -1;
     g_level_block->selected_item = -1;
     g_level_block->clock_214 = GetClock();
-    g_level_block->flag_218 = 0;
+    g_level_block->portrait_flash_218 = 0;
     for (slot = 0; slot < 8; ++slot) {
         g_level_block->portrait_refresh_pending[slot] = 0;
         g_level_block->portrait_refresh_image[slot] = 0;
@@ -428,14 +428,14 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->flag_270 = 1;
     g_level_block->text_box_visible_271 = 1;
     g_level_block->dialogue_text_input_open = 0;
-    g_level_block->flag_272 = 0;
+    g_level_block->mipe_editing_272 = 0;
     g_level_block->dialogue_text_input = 0;
     g_level_block->value_278 = 0;
     g_level_block->tick_274 = GetTickCount();
-    g_level_block->value_284 = 0;
-    g_level_block->value_288 = 0;
+    g_level_block->group_list_rows_284 = 0;
+    g_level_block->group_list_width_288 = 0;
     DisableRegionInput(0xe5);
-    g_level_block->value_28c = -1;
+    g_level_block->action_group_28c = -1;
     g_level_block->value_2ac = 0;
     g_level_block->value_2b4 = 0;
     g_level_block->value_2b0 = 0;

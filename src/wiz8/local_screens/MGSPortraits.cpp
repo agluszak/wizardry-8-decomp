@@ -749,7 +749,7 @@ unsigned char PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int 
             }
             if (BlitPartyPortraitAnimation(portrait, left, top, flags, party_slot, 0) != 0 &&
                 ((gXStatus.fCombatMode != 0 &&
-                  g_combat_state->characters[party_slot].flag_34 != 0) ||
+                  g_combat_state->characters[party_slot].dead_34 != 0) ||
                  gXStatus.fSurprisePossible != 0 || character->highest_condition == 0x13)) {
                 return 1;
             }
@@ -951,7 +951,8 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
             int highlight_y;
             int highlight_catalog;
 
-            if (highlighted == 0 || gfLeftButtonState != 0 || g_level_block->flag_218 != 0) {
+            if (highlighted == 0 || gfLeftButtonState != 0 ||
+                g_level_block->portrait_flash_218 != 0) {
                 if (g_status_685170.selected_character != static_cast<int>(party_slot)) {
                     goto draw_condition_icons;
                 }
@@ -973,7 +974,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
             if (highlighted == 0 ||
                 (gfLeftButtonState != 0 && gXStatus.fReviewCharacterMode == 0) ||
                 (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-                 g_level_block->flag_218 != 0)) {
+                 g_level_block->portrait_flash_218 != 0)) {
                 if (g_status_685170.selected_character != static_cast<int>(party_slot)) {
                     goto draw_condition_icons;
                 }

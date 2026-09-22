@@ -52,11 +52,11 @@ protected:
     int m_font;                 /* 0x14 */
     unsigned char m_foreground; /* 0x18 */
     unsigned char m_background; /* 0x19 */
-    unsigned char unknown_01a[2];
+    unsigned char padding_01a[2];
     char* m_background_path; /* 0x1c */
     int m_background_flags;  /* 0x20 */
     short m_border;          /* 0x24 */
-    unsigned char unknown_026[2];
+    unsigned char padding_026[2];
     int m_x;      /* 0x28 */
     int m_y;      /* 0x2c */
     int m_width;  /* 0x30 */
@@ -69,7 +69,7 @@ public:
 public:
     /* The trigger update installs its callback with a plain store, so this
        slot is public rather than reachable only through the setter. */
-    unsigned char unknown_042[2];
+    unsigned char padding_042[2];
     W8DialogDestroyCallback m_destroy_callback; /* 0x44 */
     /* Generic owner slot. The item dialog stores its Trigger here and the
        destroy callback reads it back. */
@@ -79,7 +79,7 @@ protected:
        writer of a nonzero value has been recovered. */
     int m_field_4c;
     unsigned char m_right_button_down; /* 0x50 */
-    unsigned char unknown_051[3];
+    unsigned char padding_051[3];
 }; /* 0x54 */
 
 static_assert(sizeof(W8DialogBase) == 0x54, "W8DialogBase_must_be_0x54");

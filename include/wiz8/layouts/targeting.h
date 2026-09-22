@@ -42,17 +42,29 @@ struct W8TargetSource {
        point - that one has a group id at 0x0c and the point at 0x10 - so the
        two blocks are related but not the same shape. */
     srVector3T<float> point;
-    unsigned char unknown_18[3]; /* 0x18..0x1a; [1] is the name-known flag
-                                            SpellTargetString reads */
-    unsigned char fReflection;   /* 0x1b */
-    unsigned char fBackfire;     /* 0x1c */
+    /* 0x18: system-driven cast (retaliation/AI/trap): skips the backfire
+       check and counts as already reported. */
+    unsigned char auto_cast_18;
+    /* 0x19: the name-known flag SpellTargetString reads. */
+    unsigned char name_known_19;
+    /* 0x1a: the cast's aim was already resolved; MonsterCanAimSpell retargeting
+       is skipped. */
+    unsigned char aim_resolved_1a;
+    unsigned char fReflection; /* 0x1b */
+    unsigned char fBackfire;   /* 0x1c */
     /* 0x1d: the cast's source was resolved to a point, not a creature;
        missile/spell paths then skip the monster's spell vertex. */
     unsigned char point_source_1d;
     /* 0x1e: the attack's target ended up different from the one the slot row
        aimed at - a fumble reroll or a guardian interception replaced it. */
     unsigned char target_diverted;
-    unsigned char unknown_1f[0x15];
+    /* 0x1f: the precomputed cast difficulty item/tracked sources carry; the
+       spell engine reads it back when name_known_19 skips recomputation. */
+    unsigned char spell_difficulty_1f;
+    unsigned char unknown_20;
+    /* 0x21: set on sources the item-spell path builds. */
+    unsigned char item_cast_21;
+    unsigned char unknown_22[0x12];
 }; /* 0x34 */
 
 /* The target-kind domain a combat slot's leading field takes. The kinds that

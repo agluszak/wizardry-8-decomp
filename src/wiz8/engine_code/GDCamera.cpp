@@ -687,7 +687,7 @@ void GDCamera::Update(float elapsed)
 void GDCamera::ApplyYawInput(float input)
 {
     if (input != g_float_005ebb34) {
-        if (gXStatus.fNpcDialogueMode == 0 && g_status_685170.value_2435 == 0) {
+        if (gXStatus.fNpcDialogueMode == 0 && g_status_685170.world_cursor_gate_2435 == 0) {
             m_state_000 |= 1;
             m_manual_input_timer->Arm();
             m_transition_active = 0;
@@ -745,7 +745,7 @@ void GDCamera::ApplyYawInput(float input)
 void GDCamera::ApplyPitchInput(float input)
 {
     if (input != g_float_005ebb34 && gXStatus.fNpcDialogueMode == 0 &&
-        g_status_685170.value_2435 == 0) {
+        g_status_685170.world_cursor_gate_2435 == 0) {
         m_state_000 |= 1;
         m_manual_input_timer->Arm();
         m_transition_active = 0;
@@ -947,7 +947,8 @@ void GDCamera::GetForwardPoint(float distance, srVector3T<float>* output)
 // FUNCTION: WIZ8 0x00478E00
 void GDCamera::SetManualControlActive(unsigned char enabled)
 {
-    if (enabled != 0 && gXStatus.fNpcDialogueMode == 0 && g_status_685170.value_2435 == 0) {
+    if (enabled != 0 && gXStatus.fNpcDialogueMode == 0 &&
+        g_status_685170.world_cursor_gate_2435 == 0) {
         m_state_000 |= 1;
         m_manual_input_timer->Arm();
         m_transition_active = 0;

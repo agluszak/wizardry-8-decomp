@@ -84,7 +84,7 @@ bool OnCrankTriggerActivated(Trigger* trigger)
         CreateLocationVar("FlagPosition", 0);
         npc = GetNpcStateByKind(0x2a);
         QueueNpcScriptNotice(npc, 0, 0x90, 1, 0);
-        g_flag_00606994 = 1;
+        g_trigger_feedback_00606994 = 1;
         return false;
     }
     value = GetLocationVarValueByName("FlagPosition");
@@ -215,7 +215,7 @@ void ControlLiftGate(int command)
 // FUNCTION: WIZ8 0x004DC390
 bool OnSecurityButtonActivated(Trigger* trigger)
 {
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     if (GetLocationVarIDByName("UmpaniCampAlarm") != -1) {
         return false;
     }
@@ -298,7 +298,7 @@ bool OnSentryTriggerActivated(Trigger* trigger)
         item = &g_status_685170.item_in_hand_235b;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     return true;
 }
 

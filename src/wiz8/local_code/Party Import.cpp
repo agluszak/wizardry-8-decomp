@@ -84,7 +84,7 @@ int g_import_character_count_0068de48;
 unsigned char g_import_ending_record_0068de4c;
 
 // GLOBAL: WIZ8 0x0068DE50
-int g_value_68de50;
+int g_wiz7_ending_68de50;
 
 // GLOBAL: WIZ8 0x0068DE54
 int g_import_difficulty_0068de54;
@@ -160,22 +160,22 @@ unsigned char LoadWizardry7ImportFile00558D00(char* path)
                 if (g_import_ending_record_0068de4c != 0) {
                     switch (g_imported_characters_0068deb8[0].party_tag_232 & 0xf0) {
                     case 0x10:
-                        g_value_68de50 = 0;
+                        g_wiz7_ending_68de50 = 0;
                         break;
                     case 0x20:
-                        g_value_68de50 = 1;
+                        g_wiz7_ending_68de50 = 1;
                         break;
                     case 0x40:
-                        g_value_68de50 = 2;
+                        g_wiz7_ending_68de50 = 2;
                         break;
                     case 0x80:
-                        g_value_68de50 = 3;
+                        g_wiz7_ending_68de50 = 3;
                         break;
                     default:
                         return 0;
                     }
                 } else {
-                    g_value_68de50 = -1;
+                    g_wiz7_ending_68de50 = -1;
                 }
                 switch (g_imported_characters_0068deb8[0].party_tag_232 & 0xf) {
                 case 1:
@@ -226,7 +226,7 @@ unsigned char ImportWizardry7Party00558C40(char* path)
                 return 1;
             }
         }
-        return (g_value_68de50 != 3) - 1 & 2;
+        return (g_wiz7_ending_68de50 != 3) - 1 & 2;
     }
     return 1;
 }
@@ -296,7 +296,7 @@ void ImportWizardry7Character005590B0(W8Character* character, W8Wiz7Character* i
     }
     AdvanceCharacterToLevel(character, level);
     character->experience = 13000;
-    character->value_09f9 = imported->unknown_010;
+    character->kill_count_09f9 = imported->kill_count_010;
     character->death_count_09fd = imported->deaths_026 - 1;
     character->profession_levels[character->iProfession] = character->uiExpLevel;
     character->original_profession = character->iProfession;
@@ -312,8 +312,8 @@ void ImportWizardry7Character005590B0(W8Character* character, W8Wiz7Character* i
     ConvertAttribute(character, imported);
     GrantStartingSpells005595D0(character, imported);
     for (skill_id = 0; skill_id < 0x29; ++skill_id) {
-        character->skills[skill_id].flag_00 = 0;
-        character->skills[skill_id].value_02 = ConvertSkill(skill_id, character, imported);
+        character->skills[skill_id].active_00 = 0;
+        character->skills[skill_id].points_02 = ConvertSkill(skill_id, character, imported);
     }
     RefreshCharacterSkillAvailability00553CD0(character);
     ImportEquipment00559650(character, imported);

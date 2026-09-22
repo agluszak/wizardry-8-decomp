@@ -376,7 +376,7 @@ void ResolveSurpriseHold00502810(void)
 }
 
 /* End the surprise sequence: post the outcome notice and, if the condition-13
-   rest event armed flag_2487 more than a world-clock day ago, clear the
+   rest event armed condition13_clock_2487 more than a world-clock day ago, clear the
    condition and queue the rest-benefit event for that character. */
 // FUNCTION: WIZ8 0x00502860
 void EndSurprise00502860(void)
@@ -402,10 +402,10 @@ void EndSurprise00502860(void)
     }
     ShowNotice(0xc, text, -1, 0xffffffff, 0);
 
-    if (g_status_685170.flag_2487 != 0 &&
-        0x15180 <
-            static_cast<unsigned int>(g_status_685170.world_clock) - g_status_685170.flag_2487) {
-        g_status_685170.flag_2487 = 0;
+    if (g_status_685170.condition13_clock_2487 != 0 &&
+        0x15180 < static_cast<unsigned int>(g_status_685170.world_clock) -
+                      g_status_685170.condition13_clock_2487) {
+        g_status_685170.condition13_clock_2487 = 0;
         g_status_685170.skip_next_condition_reaction = 1;
         int party_slot = g_status_685170.pending_condition_party_slot_248f;
         RemoveCharacterCondition(party_slot, 0x13, 0);

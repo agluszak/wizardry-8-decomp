@@ -179,10 +179,10 @@ W8DialogButton::W8DialogButton()
     m_right_toggles = 0;
     m_tooltip_index = -1;
     m_dirty = 1;
-    unknown_039 = 0;
-    unknown_03a = 0;
+    silent_039 = 0;
+    hover_silent_03a = 0;
     m_fires_on_press = 0;
-    unknown_03c = 0;
+    press_armed_03c = 0;
     m_owner_040 = 0;
     m_gray_frame = -1;
     m_off_normal_frame = -1;
@@ -350,10 +350,10 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
                             if ((reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) != 0) {
                                 button->Area.uiFlags |= MSYS_MOUSE_IN_AREA;
                                 self->m_dirty = 1;
-                                if (self->unknown_03a != 0) {
+                                if (self->hover_silent_03a != 0) {
                                     return;
                                 }
-                                if (self->unknown_039 != 0) {
+                                if (self->silent_039 != 0) {
                                     return;
                                 }
                                 PlayButtonSound(0);
@@ -361,7 +361,7 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
                             }
                             if ((reason & MSYS_CALLBACK_REASON_LOST_MOUSE) != 0) {
                                 button->Area.uiFlags &= ~MSYS_MOUSE_IN_AREA;
-                                self->unknown_03c = 0;
+                                self->press_armed_03c = 0;
                                 self->m_dirty = 1;
                                 handle = self->m_button_01c;
                                 if (self->m_left_toggles == 0 && handle >= 0 &&
@@ -372,10 +372,10 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
                                         self->m_dirty = 1;
                                     }
                                 }
-                                if (self->unknown_03a != 0) {
+                                if (self->hover_silent_03a != 0) {
                                     return;
                                 }
-                                if (self->unknown_039 != 0) {
+                                if (self->silent_039 != 0) {
                                     return;
                                 }
                                 PlayButtonSound(1);
@@ -399,7 +399,7 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
                         if ((button->uiFlags & BUTTON_CLICKED_ON) == 0) {
                             return;
                         }
-                        self->unknown_03c = 1;
+                        self->press_armed_03c = 1;
                     } else {
                         if (self->m_right_toggles != 0) {
                             return;
@@ -409,8 +409,8 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
                         }
                         button->uiFlags &= ~BUTTON_CLICKED_ON;
                         self->m_dirty = 1;
-                        if (self->m_fires_on_press != 0 && self->unknown_03c != 0) {
-                            self->unknown_03c = 0;
+                        if (self->m_fires_on_press != 0 && self->press_armed_03c != 0) {
+                            self->press_armed_03c = 0;
                             return;
                         }
                     }
@@ -436,7 +436,7 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
                 if ((button->uiFlags & BUTTON_CLICKED_ON) == 0) {
                     return;
                 }
-                self->unknown_03c = 1;
+                self->press_armed_03c = 1;
                 if (left_callback != 0) {
                     left_callback(self);
                 }
@@ -451,8 +451,8 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
         }
         button->uiFlags &= ~BUTTON_CLICKED_ON;
         self->m_dirty = 1;
-        if (self->m_fires_on_press != 0 && self->unknown_03c != 0) {
-            self->unknown_03c = 0;
+        if (self->m_fires_on_press != 0 && self->press_armed_03c != 0) {
+            self->press_armed_03c = 0;
             return;
         }
     } else {
@@ -463,7 +463,7 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
             }
             button->uiFlags |= BUTTON_CLICKED_ON;
             self->m_dirty = 1;
-            if (self->unknown_039 != 0) {
+            if (self->silent_039 != 0) {
                 return;
             }
             PlayButtonSound(2);
@@ -477,7 +477,7 @@ void DialogButtonCallback(GUI_BUTTON* button, INT32 reason)
         left_callback(self);
     }
 play_click:
-    if (self->unknown_039 != 0) {
+    if (self->silent_039 != 0) {
         return;
     }
     PlayButtonSound(3);
