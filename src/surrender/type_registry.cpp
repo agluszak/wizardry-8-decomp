@@ -549,20 +549,26 @@ private:
         }
     }
 
+    /* Retail clearBlocks (0x10010A90) resets only the block bookkeeping and
+       active_count_00; it deliberately does not touch first_14, last_18 or
+       list_count_1c. Callers update the list head/tail before the count hits
+       zero, and remove() decrements list_count_1c after this call, so the
+       counters stay consistent — zeroing them here would underflow the
+       post-call decrement to 0xffffffff. */
     void clearBlocks()
     {
         for (unsigned long index = 0; index < block_count_10; ++index) {
+            if (block_capacity_0c <= index) {
+                setBlockCapacity(block_capacity_0c + 8 + index);
+            }
             srHeap.free(blocks_08[index]);
         }
         ::operator delete(blocks_08);
-        active_count_00 = 0;
-        free_04 = 0;
         blocks_08 = 0;
         block_capacity_0c = 0;
+        free_04 = 0;
         block_count_10 = 0;
-        first_14 = 0;
-        last_18 = 0;
-        list_count_1c = 0;
+        active_count_00 = 0;
     }
 
     unsigned long active_count_00;
