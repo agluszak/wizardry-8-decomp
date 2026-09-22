@@ -307,9 +307,9 @@ struct W8CombatState {
     /* 0xa5c: the combat updates elapsed; the engagement sweep waits for the
        third before it touches group states. */
     unsigned int combat_update_count;
-    /* 0xa60: the scheduler's pacing latch - set by the unrecovered combat
-       code, it suppresses a second action delay for a monster's turn and
-       caps the armed delay at 800 ms. */
+    /* 0xa60: the scheduler's pacing latch - armed by
+       BeginCombatExecution004E8370, it suppresses a second action delay for
+       a monster's turn and caps the armed delay at 800 ms. */
     unsigned char pacing_latch_a60;
     /* 0xa61: remembered search-mode state; the combat teardown toggles search
        mode back on when it reads nonzero. */
