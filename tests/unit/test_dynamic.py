@@ -6,14 +6,18 @@ from inspect import getsource
 from pathlib import Path
 
 import pytest
+from wiz8decomp.binary.linker_map import LinkerMap, MapSymbol
 from wiz8decomp.dynamic import (
     BRING_UP,
+    LOAD,
     SCREENS,
     Event,
     _allocate_port,
     compare_streams,
     gdb_script,
+    load_points,
     parse_events,
+    rebase_plan,
     run_trace,
     screen_points,
     trace_plan,
@@ -38,6 +42,68 @@ def test_the_screens_scenario_includes_the_gates_that_reach_them() -> None:
 
     assert len(screens) > len(gates)
     assert set(gates) <= set(screens)
+
+
+def test_the_load_scenario_watches_the_recovered_loading_chain() -> None:
+    points = trace_plan(REPOSITORY, LOAD)
+    names = [point.name for point in points]
+
+    # Cold-start gates and the dispatcher's screens frame the load: a claim
+    # about the scenario covers the whole path into the world.
+    assert set(trace_plan(REPOSITORY, BRING_UP)) <= set(points)
+    assert set(screen_points(REPOSITORY)) <= set(points)
+    assert "FindStartupQuickSave" in names
+    assert "LoadGame" in names
+    assert all(
+        point.kind == "load"
+        for point in points
+        if point.name in {"FindStartupQuickSave", "LoadGame"}
+    )
+    assert load_points(REPOSITORY)
+
+
+def test_rebase_translates_names_through_the_builds_map(tmp_path: Path, monkeypatch) -> None:
+    # The rebuilt image puts the same reviewed functions at different
+    # addresses; the plan keeps the names and takes each build's addresses
+    # from that build's linker map.
+    load = next(point for point in trace_plan(REPOSITORY, LOAD) if point.name == "LoadGame")
+    symbols = [
+        MapSymbol(
+            segment=1,
+            offset=0x1200,
+            address=0x411200,
+            decorated_name="?LoadGame@@YAEPBD@Z",
+            object_name="LoadSaveGame.obj",
+            is_function=True,
+        )
+    ]
+    monkeypatch.setattr(
+        LinkerMap,
+        "read",
+        classmethod(lambda cls, path: LinkerMap(symbols=symbols, sections=[], source_lines=[])),
+    )
+
+    rebased, dropped = rebase_plan(REPOSITORY, [load], tmp_path / "unused.map")
+
+    assert dropped == []
+    assert [point.name for point in rebased] == ["LoadGame"]
+    assert rebased[0].address == "00411200"
+
+
+def test_rebase_reports_points_the_rebuilt_image_lacks(tmp_path: Path, monkeypatch) -> None:
+    # A point whose reviewed identity is not in the rebuilt image cannot be
+    # watched; it is reported rather than silently dropped.
+    load = next(point for point in trace_plan(REPOSITORY, LOAD) if point.name == "LoadGame")
+    monkeypatch.setattr(
+        LinkerMap,
+        "read",
+        classmethod(lambda cls, path: LinkerMap(symbols=[], sections=[], source_lines=[])),
+    )
+
+    rebased, dropped = rebase_plan(REPOSITORY, [load], tmp_path / "unused.map")
+
+    assert rebased == []
+    assert dropped == ["LoadGame"]
 
 
 def test_an_unknown_scenario_is_refused() -> None:

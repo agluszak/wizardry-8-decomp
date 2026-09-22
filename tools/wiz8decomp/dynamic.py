@@ -55,6 +55,23 @@ READY = "TRACE_READY"
 # here rather than invented per run.
 BRING_UP = "bring-up"
 SCREENS = "screens"
+LOAD = "load"
+
+# A scenario's launch contract is part of the claim too: /LOAD makes the
+# product load the newest quicksave during startup instead of reaching the
+# menu, which gives the differential a deterministic entry with no input
+# injection at all.
+SCENARIO_ARGUMENTS: dict[str, tuple[str, ...]] = {
+    BRING_UP: (),
+    SCREENS: (),
+    LOAD: ("/LOAD",),
+}
+
+# The first event of the steady state a scenario's claim ends at: the
+# semantic window runs through this event's first occurrence, and the
+# periodic frame loop after it is capture noise. For /LOAD that is the first
+# main-game tick - the save is loaded and the world is live.
+SCENARIO_TERMINAL: dict[str, str] = {LOAD: "ProcessMainGameAutoSave"}
 
 
 @dataclass(frozen=True)
@@ -123,12 +140,65 @@ def screen_points(repo: Path) -> list[TracePoint]:
     )
 
 
+def load_points(repo: Path) -> list[TracePoint]:
+    """Recovered save/loading functions: the gates a /LOAD run must reach.
+
+    Derived from the same physical TU ownership as the startup points, so the
+    plan regenerates when the loading chain's recovery moves."""
+
+    from .source_index import source_functions
+
+    points = []
+    for function in source_functions(repo).values():
+        if Path(function.source_file).name != "LoadSaveGame.cpp":
+            continue
+        points.append(
+            TracePoint(address=f"{function.address:08x}", name=function.name, kind="load")
+        )
+    return sorted(points, key=lambda point: point.address)
+
+
 def trace_plan(repo: Path, scenario: str) -> list[TracePoint]:
     if scenario == BRING_UP:
         return bring_up_points(repo)
     if scenario == SCREENS:
         return bring_up_points(repo) + screen_points(repo)
-    raise ValueError(f"unknown scenario: {scenario}; expected {BRING_UP} or {SCREENS}")
+    if scenario == LOAD:
+        return bring_up_points(repo) + screen_points(repo) + load_points(repo)
+    raise ValueError(f"unknown scenario: {scenario}; expected {BRING_UP}, {SCREENS} or {LOAD}")
+
+
+def rebase_plan(
+    repo: Path, points: list[TracePoint], link_map_path: Path
+) -> tuple[list[TracePoint], list[str]]:
+    """Translate a retail plan into a rebuilt image's addresses, by name.
+
+    Two builds put the same function at different addresses; the comparison
+    is by name, so each build's plan resolves the reviewed identity through
+    its own linker map. Points the rebuilt image does not carry (unrecovered
+    functions) cannot be watched and are reported, not silently dropped."""
+
+    from .binary.linker_map import LinkerMap
+    from .source_index import source_functions
+
+    semantic_ids = {
+        function.address: function.declaration.semantic_id
+        for function in source_functions(repo).values()
+        if function.declaration is not None
+    }
+    link_map = LinkerMap.read(link_map_path)
+    rebased = []
+    dropped = []
+    for point in points:
+        semantic_id = semantic_ids.get(int(point.address, 16))
+        symbol = link_map.find_decorated(semantic_id) if semantic_id is not None else None
+        if symbol is None:
+            dropped.append(point.name)
+            continue
+        rebased.append(
+            TracePoint(address=f"{symbol.address:08x}", name=point.name, kind=point.kind)
+        )
+    return rebased, dropped
 
 
 def gdb_script(points: list[TracePoint], port: int) -> str:
@@ -245,6 +315,15 @@ class Sandbox:
     def windows_path(self, name: str) -> str:
         return "Z:" + str(self.game_dir / name).replace("/", "\\")
 
+    def install_save(self, source: Path) -> Path:
+        """Stage a fixture save as the newest quicksave in the sandbox copy."""
+
+        saves = self.game_dir / "Saves"
+        saves.mkdir(exist_ok=True)
+        destination = saves / source.name
+        shutil.copy2(source, destination)
+        return destination
+
 
 def _listening(port: int, deadline: float) -> bool:
     """Wait for the proxy's port without connecting to it.
@@ -323,16 +402,36 @@ def run_trace(
     scenario: str,
     seconds: int = 120,
     port: int | None = None,
+    *,
+    executable: str = "Wiz8.exe",
+    link_map: Path | None = None,
+    arguments: list[str] | None = None,
+    save: Path | None = None,
 ) -> dict[str, Any]:
     """Run one scenario under the debugger and return its event stream."""
 
     for tool in ("winedbg", "wineserver", "gdb", "ss"):
         if shutil.which(tool) is None:
             raise ValueError(f"{tool} is not on PATH; the dynamic oracle needs it")
-    if not (sandbox.game_dir / "Wiz8.exe").is_file():
-        raise ValueError(f"no Wiz8.exe in {sandbox.game_dir}")
+    if not (sandbox.game_dir / executable).is_file():
+        raise ValueError(f"no {executable} in {sandbox.game_dir}")
 
     points = trace_plan(repo, scenario)
+    unwatched: list[str] = []
+    if link_map is not None:
+        # A rebuilt image needs its own addresses; the plan keeps the
+        # reviewed retail names and resolves each through this build's map.
+        points, unwatched = rebase_plan(repo, points, link_map)
+    launch_arguments = (
+        list(arguments) if arguments is not None else list(SCENARIO_ARGUMENTS[scenario])
+    )
+    fixture: dict[str, Any] | None = None
+    if save is not None:
+        staged_save = sandbox.install_save(save)
+        fixture = {
+            "name": save.name,
+            "sha256": sha256_file(staged_save),
+        }
     selected_port = port if port is not None else _allocate_port()
     plan_hash = json_hash(
         [{"address": point.address, "name": point.name, "kind": point.kind} for point in points]
@@ -347,7 +446,8 @@ def run_trace(
             "--no-start",
             "--port",
             str(selected_port),
-            sandbox.windows_path("Wiz8.exe"),
+            sandbox.windows_path(executable),
+            *launch_arguments,
         ],
         cwd=sandbox.game_dir,
         env=sandbox.environment(),
@@ -381,7 +481,28 @@ def run_trace(
         script.unlink(missing_ok=True)
 
     events = parse_events(output)
-    executable = sandbox.game_dir / "Wiz8.exe"
+    image = sandbox.game_dir / executable
+    provenance: dict[str, Any] = {
+        "executable": executable,
+        "executable_sha256": sha256_file(image),
+        "arguments": launch_arguments,
+        "unwatched": unwatched,
+        "variant_identity": os.environ.get("WIZ8_DYNAMIC_VARIANT", f"sha256:{sha256_file(image)}"),
+        "trace_plan_sha256": plan_hash,
+        "reviewed_evidence_sha256": _reviewed_evidence_hash(repo),
+        "repository_revision": _repository_revision(repo),
+        "wine": tool_version("wine", ("--version",)),
+        "gdb": tool_version("gdb", ("--version",)),
+        "timeout_seconds": seconds,
+        "proxy_port": selected_port,
+    }
+    # Which SurRender provider the run actually loaded is part of the claim:
+    # a rebuilt exe under a stock provider says nothing about the provider.
+    provider = sandbox.game_dir / "sr.dll"
+    if provider.is_file():
+        provenance["provider_sha256"] = sha256_file(provider)
+    if fixture is not None:
+        provenance["fixture"] = fixture
     return {
         "scenario": scenario,
         "watched": len(points),
@@ -391,19 +512,7 @@ def run_trace(
             for event in events
         ],
         "started": READY in output,
-        "provenance": {
-            "executable_sha256": sha256_file(executable),
-            "variant_identity": os.environ.get(
-                "WIZ8_DYNAMIC_VARIANT", f"sha256:{sha256_file(executable)}"
-            ),
-            "trace_plan_sha256": plan_hash,
-            "reviewed_evidence_sha256": _reviewed_evidence_hash(repo),
-            "repository_revision": _repository_revision(repo),
-            "wine": tool_version("wine", ("--version",)),
-            "gdb": tool_version("gdb", ("--version",)),
-            "timeout_seconds": seconds,
-            "proxy_port": selected_port,
-        },
+        "provenance": provenance,
     }
 
 

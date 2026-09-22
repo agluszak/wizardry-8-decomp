@@ -403,8 +403,20 @@ unsigned long RuntimeCase::elapsed_ms() const
 
 void RuntimeCase::step(const char* step)
 {
-    fprintf(stderr, "WIZ8_RUNTIME_STEP scenario=%s step=%s state=pass elapsed_ms=%lu\n", name_,
-            step, elapsed_ms());
+    /* Each completed action records the last copied observation alongside
+       its name: the runner turns these lines into the case's compact
+       action/observation history. */
+    if (has_snapshot_) {
+        const GameplaySnapshot& s = last_snapshot_;
+        fprintf(stderr,
+                "WIZ8_RUNTIME_STEP scenario=%s step=%s state=pass elapsed_ms=%lu "
+                "screen=%d pending=%d pos=%d,%d,%d combat=%u motion=%d\n",
+                name_, step, elapsed_ms(), s.screen, s.pending, (int)s.position.x,
+                (int)s.position.y, (int)s.position.z, s.combat ? 1u : 0u, (int)s.world_motion);
+    } else {
+        fprintf(stderr, "WIZ8_RUNTIME_STEP scenario=%s step=%s state=pass elapsed_ms=%lu\n", name_,
+                step, elapsed_ms());
+    }
     fflush(stderr);
     last_step_ = step;
     expected_[0] = 0;
@@ -574,6 +586,9 @@ bool RuntimeCase::wait_until(const char* condition, unsigned long budget_ms, Run
         }
         if (fn(now, ctx)) {
             expected_[0] = 0;
+            /* The satisfying snapshot is the observation this action is
+               recorded against. */
+            this->step(condition);
             return true;
         }
         Sleep(poll_ms);

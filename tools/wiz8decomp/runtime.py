@@ -10,6 +10,7 @@ import subprocess
 import sys
 import threading
 import time
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -594,6 +595,97 @@ def _runtime_phase_summary(output: str, scenario: str) -> str:
     return " -> ".join(phases)
 
 
+def _runtime_history(output: str, scenario: str) -> list[dict[str, Any]]:
+    """The case's completed actions, each with the observation it recorded.
+
+    The executable prints one WIZ8_RUNTIME_STEP line per completed action
+    carrying the last copied gameplay snapshot when one exists; the history
+    keeps identity, timing and that observation, not every field of every
+    frame."""
+    history: list[dict[str, Any]] = []
+    for match in RUNTIME_STEP.finditer(output):
+        fields = _parse_diagnostic_fields(match.group("fields"))
+        if fields.get("scenario") != scenario or "step" not in fields:
+            continue
+        entry: dict[str, Any] = {"action": fields["step"]}
+        if "elapsed_ms" in fields:
+            entry["elapsed_ms"] = int(fields["elapsed_ms"])
+        for key in ("screen", "pending", "combat", "motion"):
+            if key in fields:
+                entry[key] = int(fields[key])
+        if "pos" in fields:
+            parts = fields["pos"].split(",")
+            if len(parts) == 3 and all(part.lstrip("-").isdigit() for part in parts):
+                entry["pos"] = [int(part) for part in parts]
+        history.append(entry)
+    return history
+
+
+# Keys in a case's observation record that carry no semantic claim: the
+# failure text, the action narrative, and any elapsed/timing field. Everything
+# else is compared verbatim across order checks and repetitions; a field only
+# earns a tolerance below with an explicit justification for why two correct
+# runs may legitimately report different values.
+_OBSERVATION_VOLATILE_KEYS = frozenset({"failure", "history"})
+_OBSERVATION_TOLERANCES: dict[str, int] = {}
+
+
+def _semantic_observation(observation: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        key: value
+        for key, value in observation.items()
+        if key not in _OBSERVATION_VOLATILE_KEYS and not key.endswith("_ms")
+    }
+
+
+def _observation_differences(baseline: Mapping[str, Any], repeated: Mapping[str, Any]) -> list[str]:
+    differences = []
+    for key in sorted(set(baseline) | set(repeated)):
+        if key not in baseline:
+            differences.append(f"{key} only observed in the repetition")
+            continue
+        if key not in repeated:
+            differences.append(f"{key} missing in the repetition")
+            continue
+        expected, observed = baseline[key], repeated[key]
+        if expected == observed:
+            continue
+        if (
+            isinstance(expected, int)
+            and isinstance(observed, int)
+            and abs(expected - observed) <= _OBSERVATION_TOLERANCES.get(key, 0)
+        ):
+            continue
+        differences.append(f"{key}: {expected!r} != {observed!r}")
+    return differences
+
+
+def _compare_repetitions(scenario: str, outcomes: list[dict[str, Any]]) -> list[str]:
+    """What repeated forward runs of one case disagree on.
+
+    A case that flips between pass and fail across repetitions is flaky: the
+    earlier failure is already in the suite's failure list, and this report
+    adds the repetition detail instead of letting the later pass turn the
+    first failure green."""
+    problems = []
+    passed = [observation for observation in outcomes if "failure" not in observation]
+    if 0 < len(passed) < len(outcomes):
+        problems.append(
+            f"{scenario}: flaky across {len(outcomes)} repetitions: "
+            f"{len(outcomes) - len(passed)} failed"
+        )
+    if len(passed) >= 2:
+        baseline = _semantic_observation(passed[0])
+        for index, observation in enumerate(passed[1:], start=2):
+            differences = _observation_differences(baseline, _semantic_observation(observation))
+            if differences:
+                problems.append(
+                    f"{scenario}: repetition {index} disagrees with the first run: "
+                    + "; ".join(differences)
+                )
+    return problems
+
+
 def runtime_test_environment(
     settings: Settings, *, prefix: Path | None = None, renderer: str | None = None
 ) -> tuple[Path, dict[str, str]]:
@@ -741,16 +833,16 @@ def _parse_runtime_observation_fields(fields: str) -> dict[str, str | int]:
     return parsed
 
 
-def _parse_runtime_observation(stdout: str) -> dict[str, str | int]:
+def _parse_runtime_observation(stdout: str) -> dict[str, Any]:
     matches = [match for line in stdout.splitlines() if (match := RUNTIME_OBSERVATION.match(line))]
     if len(matches) != 1:
         raise RuntimeError(f"expected one runtime observation, found {len(matches)}")
     return _parse_runtime_observation_fields(matches[0].group("fields"))
 
 
-def _parse_runtime_observations(stdout: str) -> dict[str, dict[str, str | int]]:
+def _parse_runtime_observations(stdout: str) -> dict[str, dict[str, Any]]:
     """Batch runs emit one WIZ8_RUNTIME_TEST line per completed case."""
-    observations: dict[str, dict[str, str | int]] = {}
+    observations: dict[str, dict[str, Any]] = {}
     for line in stdout.splitlines():
         if match := RUNTIME_OBSERVATION.match(line):
             fields = _parse_runtime_observation_fields(match.group("fields"))
@@ -893,7 +985,7 @@ def _run_runtime_scenario(
     timeout_seconds: float,
     object_root: Path | None = None,
     map_path: Path | None = None,
-) -> dict[str, str | int]:
+) -> dict[str, Any]:
     result = _drive_runtime_process(
         executable,
         stage,
@@ -914,6 +1006,7 @@ def _run_runtime_scenario(
         )
     try:
         observation = _parse_runtime_observation(result.stdout)
+        observation["history"] = _runtime_history(result.stderr, scenario)
     except RuntimeError as error:
         raise _runtime_failure(
             scenario,
@@ -951,7 +1044,7 @@ def _run_runtime_batch(
     registry: dict[str, RuntimeScenario],
     object_root: Path | None = None,
     map_path: Path | None = None,
-) -> tuple[dict[str, dict[str, str | int]], str | None]:
+) -> tuple[dict[str, dict[str, Any]], str | None]:
     """Run one same-process batch. Returns per-case observations plus a batch
     error string when the process died before reporting every case (crash,
     abort, or deadline). Never raises: a poisoned batch must not mask which
@@ -966,6 +1059,8 @@ def _run_runtime_batch(
         batch=True,
     )
     observations = _parse_runtime_observations(result.stdout)
+    for name, observation in observations.items():
+        observation["history"] = _runtime_history(result.stderr, name)
     missing = [name for name in scenarios if name not in observations]
     error: str | None = None
     if result.timed_out or result.failed_early or missing:
@@ -1079,7 +1174,7 @@ def run_runtime_suite(
         prefixes.append(prefix)
         environments.append(runtime_test_environment(settings, prefix=prefix, renderer=renderer)[1])
 
-    runs: dict[str, dict[str, dict[str, str | int]]] = {}
+    runs: dict[str, dict[str, dict[str, Any]]] = {}
     scenario_stages: dict[str, str] = {}
     failures: list[str] = []
     timings: dict[str, dict[str, dict[str, Any]]] = {}
@@ -1334,9 +1429,18 @@ def run_runtime_suite(
             scenario_stages[f"{order_name}/{scenario}"] = staged_path
         failures.extend(result["failures"])
 
+    if repeat > 1:
+        forward_orders = [f"forward-{index}" for index in range(1, repeat + 1)]
+        for scenario in scenarios:
+            outcomes = [
+                runs[order][scenario] for order in forward_orders if scenario in runs[order]
+            ]
+            if len(outcomes) > 1:
+                failures.extend(_compare_repetitions(scenario, outcomes))
+
     for forward, reverse in comparisons:
         if any(
-            observation != runs[reverse][scenario]
+            _semantic_observation(observation) != _semantic_observation(runs[reverse][scenario])
             for scenario, observation in runs[forward].items()
             if "failure" not in observation and "failure" not in runs[reverse][scenario]
         ):

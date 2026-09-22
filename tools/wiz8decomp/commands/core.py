@@ -401,6 +401,7 @@ def register(app: typer.Typer) -> None:
     analyze_app.command("crash")(crash_report_command)
     analyze_app.command("inventory")(inventory_command)
     analyze_app.command("trace")(trace_command)
+    analyze_app.command("differential")(differential_command)
     analyze_app.command("source-layouts")(verify_source_layouts_command)
     analyze_app.command("source-index")(source_index_command)
     analyze_app.command("decompiler-quality")(decompiler_quality_command)
@@ -654,9 +655,23 @@ def inventory_command() -> None:
 
 
 def trace_command(
-    scenario: Annotated[str, typer.Argument(help="bring-up or screens.")] = "bring-up",
+    scenario: Annotated[str, typer.Argument(help="bring-up, screens or load.")] = "bring-up",
     seconds: Annotated[int, typer.Option(help="How long to let the scenario run.")] = 120,
     port: Annotated[int | None, typer.Option(help="winedbg gdb proxy port.")] = None,
+    executable: Annotated[str, typer.Option(help="Sandboxed image to trace.")] = "Wiz8.exe",
+    link_map: Annotated[
+        Path | None,
+        typer.Option(
+            "--link-map",
+            exists=True,
+            dir_okay=False,
+            help="Rebuilt image's linker MAP; rebases the plan's retail addresses.",
+        ),
+    ] = None,
+    save: Annotated[
+        Path | None,
+        typer.Option("--save", exists=True, dir_okay=False, help="Fixture save to stage."),
+    ] = None,
     plan_only: Annotated[bool, typer.Option(help="Print the breakpoint plan only.")] = False,
 ) -> None:
     from .. import command_support as cli
@@ -679,8 +694,142 @@ def trace_command(
             scenario,
             seconds=seconds,
             port=port,
+            executable=executable,
+            link_map=link_map,
+            save=save,
         )
         return write_report(result, settings.repo_dir / "build/reports/trace")
+
+    cli.emit(action())
+
+
+def differential_command(
+    scenario: Annotated[str, typer.Argument(help="Scenario to compare.")] = "load",
+    seconds: Annotated[int, typer.Option(help="How long to let each run go.")] = 120,
+    executable: Annotated[
+        str, typer.Option(help="Sandboxed rebuilt image to compare against retail.")
+    ] = "Wiz8Runtime.exe",
+    link_map: Annotated[
+        Path | None,
+        typer.Option(
+            "--link-map",
+            exists=True,
+            dir_okay=False,
+            help="Rebuilt image's linker MAP for breakpoint rebasing.",
+        ),
+    ] = None,
+    save: Annotated[
+        Path | None,
+        typer.Option(
+            "--save", exists=True, dir_okay=False, help="Shared fixture save for all runs."
+        ),
+    ] = None,
+) -> None:
+    """Retail repeatability first, then a retail/rebuilt event comparison.
+
+    All three runs share one sandbox, one fixture save and one scenario, so
+    the streams differ only in the image that produced them. Retail runs
+    twice first: a mismatch retail cannot reproduce against itself is a
+    repeatability finding, not a rebuild defect."""
+    from .. import command_support as cli
+    from ..dynamic import (
+        SCENARIO_TERMINAL,
+        Event,
+        Sandbox,
+        compare_streams,
+        run_trace,
+        write_report,
+    )
+
+    def action():
+        settings = cli.settings()
+        sandbox = Sandbox.from_environment()
+        reports = settings.repo_dir / "build/reports/trace"
+        if link_map is None:
+            candidate = settings.product_build_dir / "Wiz8Runtime.map"
+            resolved_map = candidate if candidate.is_file() else None
+        else:
+            resolved_map = link_map
+
+        runs = {}
+        for label, image, plan_map in (
+            ("retail-a", "Wiz8.exe", None),
+            ("retail-b", "Wiz8.exe", None),
+            ("recomp", executable, resolved_map),
+        ):
+            result = run_trace(
+                settings.repo_dir,
+                sandbox,
+                scenario,
+                seconds=seconds,
+                executable=image,
+                link_map=plan_map,
+                save=save,
+            )
+            runs[label] = result
+            write_report({**result, "scenario": f"{scenario}-{label}"}, reports)
+
+        def events(run: dict) -> list[Event]:
+            return [
+                Event(
+                    order=event["order"],
+                    kind=event["kind"],
+                    name=event["name"],
+                    address=event["address"],
+                )
+                for event in run["events"]
+            ]
+
+        # The scenario's semantic claim ends at its declared terminal event:
+        # after it the game sits in its steady frame loop, and how many
+        # frames a run captured before the timeout is capture noise, not
+        # behavior. The bounded comparison is therefore the verdict; the raw
+        # streams stay in the reports and the post-terminal event set
+        # confirms each run still reached the same steady state. A run that
+        # never reaches the terminal event compares in full.
+        terminal = SCENARIO_TERMINAL.get(scenario)
+
+        def bound(evts: list[Event]) -> int:
+            if terminal is None:
+                return len(evts)
+            for index, event in enumerate(evts):
+                if event.name == terminal:
+                    return index + 1
+            return len(evts)
+
+        streams = {label: events(run) for label, run in runs.items()}
+        bounds = {label: bound(stream) for label, stream in streams.items()}
+        repeatability = compare_streams(streams["retail-a"], streams["retail-b"])
+        differential = compare_streams(streams["retail-a"], streams["recomp"])
+        return {
+            "scenario": scenario,
+            "bounded": {
+                "events": bounds,
+                "retail_repeatability": compare_streams(
+                    streams["retail-a"][: bounds["retail-a"]],
+                    streams["retail-b"][: bounds["retail-b"]],
+                ),
+                "differential": compare_streams(
+                    streams["retail-a"][: bounds["retail-a"]],
+                    streams["recomp"][: bounds["recomp"]],
+                ),
+                "terminal": terminal,
+                "post_terminal_events": {
+                    label: sorted({e.name for e in stream[bounds[label] :]})
+                    for label, stream in streams.items()
+                },
+            },
+            "retail_repeatability": repeatability,
+            "differential": differential,
+            "runs": {
+                label: {
+                    "events": len(run["events"]),
+                    "started": run["started"],
+                    "provenance": run["provenance"],
+                }
+                for label, run in runs.items()
+            },
+        }
 
     cli.emit(action())
 

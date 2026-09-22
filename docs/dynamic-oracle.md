@@ -75,6 +75,42 @@ still come from `frame-dispatch-table.csv`. Each run allocates its own
 proxy port and records the executable, variant, plan, reviewed-evidence and repository identities,
 tool versions and timeout. Results land in `build/reports/trace/`.
 
+## The load scenario and the retail/rebuilt differential
+
+`load` launches the executable with `/LOAD`, which makes the product load the newest quicksave
+during startup instead of reaching the menu - a deterministic gameplay entry that needs no input
+injection. Its plan is the startup gates plus the dispatcher screens plus every recovered function
+in `LoadSaveGame.cpp`.
+
+Stage a shared fixture save with `--save` (it is copied into the sandbox's `Saves/` before launch),
+and trace a rebuilt image with `--executable` plus `--link-map`; the plan keeps its reviewed retail
+names and resolves each build's addresses through that build's MAP. Points the rebuilt image does
+not carry are listed as `unwatched` in the result rather than silently dropped.
+
+```sh
+uv run wiz8 analyze trace load --seconds 100 --save "path/to/Quick 1.SAV"
+```
+
+`wiz8 analyze differential` runs the scenario three times in one sandbox - retail twice, then the
+rebuilt image - and reports retail's own repeatability before the retail/rebuilt comparison:
+
+```sh
+uv run wiz8 analyze differential load --seconds 100 --save "path/to/Quick 1.SAV"
+```
+
+Each scenario declares a terminal event at which its semantic claim ends (`load` ends at the first
+`ProcessMainGameAutoSave`: the save is loaded and the world is live). The bounded verdict compares
+streams only through that event; afterwards the game sits in its steady frame loop and how many
+frames a run captured before the timeout is capture noise, not behavior. The raw full-window
+comparison stays in the report so the tail is visible, and `post_terminal_events` records which
+event names each run reached after the claim's end. A run that never reaches the terminal event
+compares in full, so a load that fails to complete still diverges.
+
+Every result identifies what produced it: executable name and sha256, launch arguments, fixture
+name and sha256, the loaded provider (`sr.dll`) sha256, plan/evidence/repository digests, tool
+versions and the timeout. A rebuilt executable traced under a stock provider says nothing about a
+rebuilt provider; the provenance keeps the two claims separate.
+
 ## Earlier bring-up observation
 
 Before the plan moved to the complete reviewed startup spine, the smaller ten-point scenario
