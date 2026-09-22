@@ -527,11 +527,6 @@ unsigned char OctBuildPreTree::UpdateRegionMap004B07E0(const W8OctSpatialState* 
                                                        const srVector3T<float>* geometry,
                                                        short value, short mode)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
-    /* The decompiled body reads this storage only after the same short-circuit
-   chain that clang's flow analysis cannot see through; retail leaves it
-   uninitialised on the failed-read path. Suppress only this diagnostic. */
     W8OctSpatialState child(spatial);
     unsigned char changed = 0;
 
@@ -551,7 +546,9 @@ unsigned char OctBuildPreTree::UpdateRegionMap004B07E0(const W8OctSpatialState* 
                     child.minimum_0c.z = z * child.extent_04 + spatial->minimum_0c.z;
                     child.maximum_18.z = child.minimum_0c.z + child.extent_04;
 
-                    unsigned char intersects;
+                    /* Retail read this uninitialised for modes outside 5/6;
+                       deterministic zero models that defect path. */
+                    unsigned char intersects = 0;
                     if (mode == 6) {
                         intersects = PointInsideBounds0046D4D0(&child.minimum_0c, geometry);
                     } else if (mode == 5) {
@@ -595,7 +592,6 @@ unsigned char OctBuildPreTree::UpdateRegionMap004B07E0(const W8OctSpatialState* 
         }
     }
     return changed;
-#pragma clang diagnostic pop
 }
 
 #pragma pack(push, 1)
@@ -1463,7 +1459,8 @@ void OctBuildPreTree::FinalizeRegionMapping004B2A20()
         region_path_map_124->Insert(&node->region_28, &path);
         if (node->region_28 >= final_region_count) {
             char message[256];
-            sprintf(message, "Invalid submesh %d\n", static_cast<unsigned int>(node->region_28));
+            sprintf(message, "Invalid submesh %d\n",
+                    static_cast<unsigned int>(node->region_28));
             ReportBuildStatus00497690(6, message);
         }
     }

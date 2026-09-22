@@ -36,11 +36,8 @@ W8AnimObj* CreateAnimObj004A01A0()
 unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* animation, int load_all,
                                           W8GrowableVector<stLight*>* light_list, int unused)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
-    /* The decompiled body reads this storage only after the same short-circuit
-   chain that clang's flow analysis cannot see through; retail leaves it
-   uninitialised on the failed-read path. Suppress only this diagnostic. */
+    /* Retail read `frames` uninitialised when its FileRead short-circuited;
+       a deterministic zero models that defect path. */
     unsigned char version = 0;
     unsigned char success;
     unsigned char discarded[50];
@@ -92,7 +89,7 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
     }
 
     if (version > 6) {
-        unsigned char frames;
+        unsigned char frames = 0;
         FileRead(handle, &frames, 1, 0);
         if (animation->pfKnownBBoxFrames == 0 && frames != 0) {
             animation->pfKnownBBoxFrames = static_cast<unsigned char*>(malloc(frames));
@@ -236,7 +233,7 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
         int mesh_index;
         for (mesh_index = 0; mesh_index < (signed char)animation->group_count; ++mesh_index) {
             W8AniMesh* mesh = CreateAniMesh004B57E0();
-            signed char channel;
+            signed char channel = 0;
 
             success = success && FileRead(handle, &channel, 1, 0);
             mesh->list_index_28 = channel;
@@ -307,7 +304,6 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
         }
     }
     return success;
-#pragma clang diagnostic pop
 }
 
 /* A deep copy of everything the record owns. Every mesh - the three entries and

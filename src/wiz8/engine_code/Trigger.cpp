@@ -692,15 +692,16 @@ bool Trigger::Load0043C1B0(int hFile, char version)
 // FUNCTION: WIZ8 0x0043c860
 bool LoadWorldTriggers0043C860(W8World* world, int hFile)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
     int trigger_count = world->triggers->GetCount();
     int index = 0;
     bool header_ok = true;
     bool finished = false;
 
     for (;;) {
-        char tag;
+        /* Retail read `tag` (and the tag-5 name/id below) uninitialised when a
+           FileRead short-circuited; deterministic values model that defect
+           path. */
+        char tag = 0;
 
         if (finished || trigger_count <= index) {
             return header_ok;
@@ -722,8 +723,8 @@ bool LoadWorldTriggers0043C860(W8World* world, int hFile)
             }
             header_ok = true;
         } else {
-            int trigger_id;
-            char name[0x80];
+            int trigger_id = 0;
+            char name[0x80] = {0};
             Trigger* trigger;
 
             if (!header_ok || !FileRead(hFile, &trigger_id, sizeof(trigger_id), 0) ||
@@ -752,7 +753,6 @@ bool LoadWorldTriggers0043C860(W8World* world, int hFile)
             return false;
         }
     }
-#pragma clang diagnostic pop
 }
 
 /* Write every trigger of a world for the save file's trigger chunk. A trigger
@@ -1479,14 +1479,11 @@ W8TriggerActionData* LoadTriggerActionData004417C0(int handle)
 // FUNCTION: WIZ8 0x00441a20
 Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
-    /* The decompiled body reads this storage only after the same short-circuit
-   chain that clang's flow analysis cannot see through; retail leaves it
-   uninitialised on the failed-read path. Suppress only this diagnostic. */
+    /* Retail read these uninitialised when the FileRead chain short-circuited;
+       deterministic zeroes model that defect path. */
     Trigger* trigger = 0;
-    unsigned char record_version;
-    unsigned char record_type;
+    unsigned char record_version = 0;
+    unsigned char record_type = 0;
     if (handle == 0) {
         srAssertFail("hFile", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0xca3, 0);
     }
@@ -2119,7 +2116,6 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
     }
     }
     return trigger;
-#pragma clang diagnostic pop
 }
 
 // VTABLE: WIZ8 0x005ec0e4
@@ -2495,17 +2491,16 @@ action_complete:
 // FUNCTION: WIZ8 0x00440dd0
 void Trigger::RunDestination00440DD0(const char* destination)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
-    /* The decompiled body reads this storage only after the same short-circuit
-   chain that clang's flow analysis cannot see through; retail leaves it
-   uninitialised on the failed-read path. Suppress only this diagnostic. */
     srVector3T<float> destination_position;
     srVector3T<float> destination_direction;
     srVector3T<float> source_position;
     srMatrix3T<float> rotation;
-    int location_id;
-    int entrance;
+    /* Retail left location_id/entrance uninitialised on the named-entity path
+       and read the stack slot holding `this`. Named entities only resolve in
+       the loaded world, so the deterministic model of the intended same-level
+       move is the current level. */
+    int location_id = g_status_685170.current_level;
+    int entrance = 0;
     int current_location;
     float entity_value;
     float angle;
@@ -2569,7 +2564,6 @@ void Trigger::RunDestination00440DD0(const char* destination)
     }
     ApplyCameraRotation(&rotation);
     SpawnCameraSpellEffect("set_portal", 1, 0, 0);
-#pragma clang diagnostic pop
 }
 
 /* Materialize this trigger's item table once. The two dice fields are the
@@ -4110,17 +4104,17 @@ void SaveLocationVariables004441E0(int handle)
 // FUNCTION: WIZ8 0x00444310
 bool LoadLocationVariables00444310(int handle)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
-    int variable_count;
+    /* Retail read these uninitialised when a FileRead short-circuited;
+       deterministic zeroes model that defect path. */
+    int variable_count = 0;
     int index;
     bool read_ok;
 
     read_ok = FileRead(handle, &variable_count, sizeof(variable_count), 0) != 0;
     for (index = 0; index < variable_count; ++index) {
-        int value;
-        char name[0x80];
-        int level;
+        int value = 0;
+        char name[0x80] = {0};
+        int level = 0;
         char* copy;
 
         if (!read_ok) {
@@ -4140,7 +4134,6 @@ bool LoadLocationVariables00444310(int handle)
         g_location_variable_levels_006598e0.Add(level);
     }
     return read_ok;
-#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x004445b0

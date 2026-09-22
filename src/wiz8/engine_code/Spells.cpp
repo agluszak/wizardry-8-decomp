@@ -1713,16 +1713,14 @@ bool CanSpellBackfire(int spell_id)
 // FUNCTION: WIZ8 0x004acc10
 unsigned char InitializeSpellDatabase(void)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
-    /* The decompiled body reads this storage only after the same short-circuit
-   chain that clang's flow analysis cannot see through; retail leaves it
-   uninitialised on the failed-read path. Suppress only this diagnostic. */
+    /* Retail read allocation_count/row_count uninitialised when the header
+       FileRead pair short-circuited; deterministic zeroes model that defect
+       path. */
     int handle;
     unsigned int index;
     unsigned char ok;
-    int allocation_count;
-    unsigned int row_count;
+    int allocation_count = 0;
+    unsigned int row_count = 0;
 
     if (g_spell_records != 0) {
         delete[] g_spell_records;
@@ -1760,5 +1758,4 @@ unsigned char InitializeSpellDatabase(void)
     FileClose(handle);
     g_spell_database_version = row_count;
     return ok;
-#pragma clang diagnostic pop
 }

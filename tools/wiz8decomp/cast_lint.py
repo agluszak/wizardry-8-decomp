@@ -39,6 +39,14 @@ New unions in recovered Wizardry and SurRender headers require a nearby
 Two accesses with different types at one offset are a reason to audit the
 record or class boundary, not positive union evidence.
 
+Uninitialized-read suppressions (``-Wsometimes-uninitialized`` and the other
+``-W*uninitialized*`` diagnostics) are gated the same way. A retail read of an
+unwritten stack slot is an accident of VC6 frame layout, not source evidence:
+model the path deterministically. A new suppression needs a same-line
+``uninit-ok: <reason>`` comment stating why the read value itself is
+runtime-observable and semantically required; like format suppressions,
+moving one is deliberately re-reviewed.
+
 The gate inspects added lines of the current Jujutsu change stack (or of a Git
 checkout against its baseline branch). Existing casts are not re-litigated;
 ones moved between files are recognized by their removed counterpart. Cast and
@@ -61,6 +69,7 @@ C_STYLE_MARKER = "c-style-cast-ok"
 FORMAT_OFF_MARKER = "format-off-ok"
 RAW_OFFSET_MARKER = "raw-offset-ok"
 UNION_MARKER = "union-ok"
+UNINIT_MARKER = "uninit-ok"
 SCOPE_PREFIXES = ("src/wiz8/", "include/wiz8/", "include/surrender/")
 _CPP_SUFFIXES = (".cpp", ".cc", ".cxx", ".h", ".hpp")
 _SGP_SOURCE_SUFFIXES = (".c", ".cc", ".cpp", ".cxx", ".h", ".hpp")
@@ -75,6 +84,8 @@ _FORMAT_OFF_MARKER = re.compile(r"format-off-ok:\s*\S", re.IGNORECASE)
 _RAW_OFFSET_MARKER = re.compile(r"raw-offset-ok:\s*\S", re.IGNORECASE)
 _UNION = re.compile(r"^\s*(?:typedef\s+)?union\b")
 _UNION_MARKER = re.compile(r"union-ok:\s*\S", re.IGNORECASE)
+_UNINIT_SUPPRESS = re.compile(r'"-W[a-z0-9_-]*uninitialized', re.IGNORECASE)
+_UNINIT_MARKER = re.compile(r"uninit-ok:\s*\S", re.IGNORECASE)
 _RAW_BYTE_OFFSET = re.compile(
     r"reinterpret_cast\s*<\s*(?:const\s+)?(?:unsigned\s+)?char\s*\*\s*>\s*"
     r"\((?:(?![;{}]).)*?\)\s*(?:\+\s*(?:0[xX][0-9A-Fa-f]+|\d+)\b\s*)+",
@@ -261,6 +272,16 @@ def _added_format_off(diff: str) -> list[dict[str, Any]]:
     return added_lines_without_marker(diff, _FORMAT_OFF, _FORMAT_OFF_MARKER, ignore_moved=False)
 
 
+def _added_uninit_suppressions(diff: str) -> list[dict[str, Any]]:
+    return [
+        item
+        for item in added_lines_without_marker(
+            diff, _UNINIT_SUPPRESS, _UNINIT_MARKER, ignore_moved=False
+        )
+        if str(item["file"]).lower().endswith(_CPP_SUFFIXES)
+    ]
+
+
 def _added_source_lines(diff: str) -> dict[str, set[int]]:
     """Return added line numbers for recovered C++ files, keyed by path."""
     added: dict[str, set[int]] = {}
@@ -432,6 +453,7 @@ def validate_cast_markers(repository: Path) -> dict[str, Any]:
     format_violations = _added_format_off(diff)
     raw_offset_violations = _raw_offset_violations(repository, diff)
     sgp_violations = _sgp_notice_violations(repository, diff)
+    uninit_violations = _added_uninit_suppressions(diff)
     union_violations = []
     for item in added_lines_without_marker(diff, _UNION, _UNION_MARKER):
         if not item["file"].startswith(("include/wiz8/", "include/surrender/")):
@@ -465,6 +487,12 @@ def validate_cast_markers(repository: Path) -> dict[str, Any]:
             "genuinely unresolved/external layouts may use 'raw-offset-ok: reason':\n  "
             + _render(raw_offset_violations)
         )
+    if uninit_violations:
+        errors.append(
+            "new uninitialized-read suppressions need an 'uninit-ok: reason' comment "
+            "stating the runtime-observable consequence; model VC6 stack-slot "
+            "accidents deterministically instead:\n  " + _render(uninit_violations)
+        )
     if sgp_violations:
         errors.append(
             "changed pristine SGP source needs the dated Wizardry-reconstruction modification "
@@ -483,6 +511,13 @@ def validate_cast_markers(repository: Path) -> dict[str, Any]:
         "ok": True,
         "gate": "source-cast-format-hygiene",
         "base": base,
-        "markers": [MARKER, C_STYLE_MARKER, FORMAT_OFF_MARKER, RAW_OFFSET_MARKER, UNION_MARKER],
+        "markers": [
+            MARKER,
+            C_STYLE_MARKER,
+            FORMAT_OFF_MARKER,
+            RAW_OFFSET_MARKER,
+            UNION_MARKER,
+            UNINIT_MARKER,
+        ],
         "scope": [*SCOPE_PREFIXES, "src/sgp/"],
     }

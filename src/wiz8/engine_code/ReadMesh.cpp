@@ -924,11 +924,9 @@ unsigned char ReadSingleLevelMeshBody00485C10(W8ReadLevelInfo* info, srModelInst
                                               int positional_0, int positional_1, const char* name,
                                               unsigned char load_materials)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
-    /* The decompiled body reads this storage only after the same short-circuit
-   chain that clang's flow analysis cannot see through; retail leaves it
-   uninitialised on the failed-read path. Suppress only this diagnostic. */
+    /* Retail read mapping_count/value/key/compression_type uninitialised when
+       a FileRead short-circuited; deterministic zeroes model that defect
+       path. */
     W8GrowableVector<short> mapped_values;
     W8GrowableVector<short> mapped_keys;
     int version = 0;
@@ -978,11 +976,11 @@ unsigned char ReadSingleLevelMeshBody00485C10(W8ReadLevelInfo* info, srModelInst
     }
 
     if (version > 3) {
-        signed char mapping_count;
+        signed char mapping_count = 0;
         success = FileRead(file, &mapping_count, sizeof(mapping_count), 0);
         for (short index = 0; index < mapping_count; ++index) {
-            short value;
-            short key;
+            short value = 0;
+            short key = 0;
             if (success == 0 || !FileRead(file, &value, sizeof(value), 0) ||
                 !FileRead(file, &key, sizeof(key), 0)) {
                 success = 0;
@@ -1012,7 +1010,7 @@ unsigned char ReadSingleLevelMeshBody00485C10(W8ReadLevelInfo* info, srModelInst
             vertices[index].z *= 500.0f;
         }
     } else {
-        unsigned char compression_type;
+        unsigned char compression_type = 0;
         FileRead(file, &compression_type, sizeof(compression_type), 0);
         FileRead(file, &frame_count, sizeof(frame_count), 0);
         if (compression_type == 2) {
@@ -1166,7 +1164,6 @@ unsigned char ReadSingleLevelMeshBody00485C10(W8ReadLevelInfo* info, srModelInst
         first_model->getBoundingBox(minimum, maximum);
     }
     return 1;
-#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x00488240
@@ -1319,16 +1316,13 @@ void ReleaseReadMeshScratch004881D0()
 // FUNCTION: WIZ8 0x00487bd0
 unsigned char SkipSingleLevelMesh00487BD0(W8ReadLevelInfo* info)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
-    /* The decompiled body reads this storage only after the same short-circuit
-   chain that clang's flow analysis cannot see through; retail leaves it
-   uninitialised on the failed-read path. Suppress only this diagnostic. */
+    /* Retail read count/group_count uninitialised when a FileRead
+       short-circuited; deterministic zeroes model that defect path. */
     int version;
     int vertex_count;
     int face_count;
     unsigned char flags = 0;
-    unsigned char count;
+    unsigned char count = 0;
     short item_count;
     short index;
     unsigned char success = 1;
@@ -1362,7 +1356,7 @@ unsigned char SkipSingleLevelMesh00487BD0(W8ReadLevelInfo* info)
         vertex_count *= 0xc;
     } else {
         unsigned char ignored;
-        short group_count;
+        short group_count = 0;
 
         FileRead(info->hFile, &ignored, 1, 0);
         FileRead(info->hFile, &group_count, 2, 0);
@@ -1392,5 +1386,4 @@ unsigned char SkipSingleLevelMesh00487BD0(W8ReadLevelInfo* info)
         success = 2;
     }
     return success;
-#pragma clang diagnostic pop
 }
