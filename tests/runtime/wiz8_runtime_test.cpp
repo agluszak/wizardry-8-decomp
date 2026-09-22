@@ -946,6 +946,9 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
    already hold an attack keep it so the repeat does not churn targeting. */
 struct CombatAttackQuery {
     int location_id;
+    /* -1 normally; a location_id here is excluded from the aim search so the
+       queued attacks switch to a different live in-combat monster. */
+    int exclude_location_id;
     int eligible;
     int queued;
     int aimed;
@@ -972,7 +975,8 @@ static void QueuePartyAttacksOnGameThread(void* opaque)
             W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
             if (info != 0 && info->fActive != 0 && info->fInCombat != 0 && info->hp_current != 0 &&
                 info->condition_turns[W8_CONDITION_DEAD] == 0 &&
-                info->location_id == aim_location_id) {
+                info->location_id == aim_location_id &&
+                aim_location_id != query->exclude_location_id) {
                 alive = true;
                 break;
             }
@@ -984,7 +988,8 @@ static void QueuePartyAttacksOnGameThread(void* opaque)
             for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
                 W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
                 if (info == 0 || info->fActive == 0 || info->fInCombat == 0 || info->monster == 0 ||
-                    info->hp_current == 0 || info->condition_turns[W8_CONDITION_DEAD] != 0) {
+                    info->hp_current == 0 || info->condition_turns[W8_CONDITION_DEAD] != 0 ||
+                    info->location_id == query->exclude_location_id) {
                     continue;
                 }
                 float distance = (info->monster->GetPosition() - camera).Length();
@@ -1882,6 +1887,7 @@ static DWORD RunCombatAttackScenario()
         }
         CombatAttackQuery attack;
         attack.location_id = context.location_id;
+        attack.exclude_location_id = -1;
         if (!RunOnGameThread(QueuePartyAttacksOnGameThread, &attack)) {
             return FailScenario("combat-round-queue", "game-thread-unresponsive");
         }
@@ -2235,6 +2241,112 @@ static DWORD RunCombatCasualtyScenario()
     return FailScenario("combat-casualty", g_observation.monster_attack_executed
                                                ? "party-casualty-not-observed"
                                                : "monster-attack-not-observed");
+}
+
+/* The target-switching branch of the attack round-trip: damage the aimed
+   monster, then exclude it from the aim search so the queued attacks move
+   to a second live in-combat monster - the same AimAtTarget retarget the
+   player path runs when picking a new victim mid-fight - and observe that
+   monster lose HP too. */
+static DWORD RunCombatRetargetScenario()
+{
+    HostileEncounterContext context;
+    if (!ScheduleOnGameThread("hostile-fixture", ProvokeHostileEncounterOnGameThread, &context,
+                              240000)) {
+        return FailScenario("hostile-fixture", "game-thread-unresponsive");
+    }
+    if (context.location_id < 0)
+        return FailScenario("hostile-fixture", "active-monster-not-found");
+    if (!WaitForCombatMode(true))
+        return FailScenario("hostile-combat", "combat-not-entered");
+    g_observation.combat_aggroed = 1;
+    ReportStep("combat-aggroed");
+
+    HostileSnapshotQuery query;
+    query.location_id = context.location_id;
+    int aim_id = context.location_id;
+    int baseline_hp = -1;
+    bool retargeted = false;
+    bool round_requested = false;
+    unsigned int started = GetTickCount();
+    unsigned int last_trace = 0;
+    while (GetTickCount() - started < 220000 && gfProgramIsRunning) {
+        Sleep(5);
+        if (!RunOnGameThread(ReadHostileEngagementOnGameThread, &query)) {
+            return FailScenario("combat-retarget", "game-thread-unresponsive");
+        }
+        const HostileEngagementSnapshot& state = query.snapshot;
+        if (GetTickCount() - last_trace > 2000) {
+            last_trace = GetTickCount();
+            fprintf(stderr,
+                    "runtime-test trace: engaged=%u nearest=%.0f party_hp=%u combat=%u "
+                    "round=%u action=%d aim=%d hp=%d active=%u dead=%d target=%d:%d\n",
+                    state.engaged_hostiles, state.nearest_engaged_distance, state.party_hp_total,
+                    state.combat_mode, state.round_active, state.action_status, aim_id,
+                    state.aim_hp, state.aim_active, state.aim_dead, state.first_target_type,
+                    state.first_target_monster);
+        }
+        if (aim_id >= 0 && baseline_hp >= 0 &&
+            (state.aim_dead || !state.aim_active ||
+             (state.aim_hp >= 0 && state.aim_hp < baseline_hp))) {
+            if (!g_observation.target_damaged) {
+                g_observation.target_damaged = 1;
+                ReportStep("first-target-damaged");
+            } else if (retargeted && !g_observation.second_target_damaged) {
+                g_observation.second_target_damaged = 1;
+                ReportStep("second-target-damaged");
+                return FinishGameplayScenario();
+            }
+        }
+        if (state.combat_mode == 0) {
+            return FailScenario("combat-retarget", "combat-ended-early");
+        }
+        if (state.round_active) {
+            round_requested = false;
+        }
+        if (state.combat_mode && !state.round_active && !round_requested) {
+            if (state.nearest_engaged_distance > 800.0f) {
+                bool moved = false;
+                RunOnGameThread(TeleportPartyNearEngagedOnGameThread, &moved);
+            }
+            CombatAttackQuery attack;
+            attack.location_id = aim_id;
+            /* Once the first target is hurt, exclude it once so the aim
+               search lands on another engaged monster; afterwards the row
+               targets track the new aim directly. */
+            attack.exclude_location_id = g_observation.target_damaged && !retargeted ? aim_id : -1;
+            if (!RunOnGameThread(QueuePartyAttacksOnGameThread, &attack)) {
+                return FailScenario("combat-round-queue", "game-thread-unresponsive");
+            }
+            if (attack.queued == 0) {
+                return FailScenario("combat-retarget", "no-attacks-queued");
+            }
+            if (g_observation.target_damaged && !retargeted) {
+                if (attack.aim_location_id == aim_id || attack.aim_location_id < 0) {
+                    return FailScenario("combat-retarget", "second-target-unavailable");
+                }
+                retargeted = true;
+                g_observation.combat_retargeted = 1;
+                ReportStep("combat-retargeted");
+                fprintf(stderr, "runtime-test retarget: %d -> %d hp=%d\n", aim_id,
+                        attack.aim_location_id, attack.aim_hp);
+            }
+            aim_id = attack.aim_location_id;
+            baseline_hp = attack.aim_hp;
+            query.aim_location_id = aim_id;
+            if (!g_observation.combat_attack_queued) {
+                g_observation.combat_attack_queued = 1;
+                ReportStep("combat-attack-queued");
+            }
+            if (!TapGameplayCommand(W8_MGS_COMMAND_START_COMBAT_ROUND))
+                return FailScenario("combat-round", "binding-missing");
+            round_requested = true;
+        }
+    }
+    return FailScenario("combat-retarget",
+                        !g_observation.target_damaged      ? "first-target-not-damaged"
+                        : !g_observation.combat_retargeted ? "retarget-not-executed"
+                                                           : "second-target-not-damaged");
 }
 
 static DWORD RunWorldSoakScenario()
@@ -2940,6 +3052,12 @@ static bool ValidateCombatCasualty(const RuntimeObservation& o)
            o.monster_attack_executed && o.party_casualty;
 }
 
+static bool ValidateCombatRetarget(const RuntimeObservation& o)
+{
+    return o.main_game_entered && o.combat_aggroed && o.combat_attack_queued && o.target_damaged &&
+           o.combat_retargeted && o.second_target_damaged;
+}
+
 static bool ValidateSoak(const RuntimeObservation& o)
 {
     return o.main_game_entered && o.world_soaked;
@@ -2956,6 +3074,8 @@ static const RuntimeScenario kScenarios[] = {
      RunCombatSpellScenario, ValidateCombatSpell, 0},
     {"combat-casualty", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 240000,
      RunCombatCasualtyScenario, ValidateCombatCasualty, 0},
+    {"combat-retarget", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 240000,
+     RunCombatRetargetScenario, ValidateCombatRetarget, 0},
     {"world-soak", RUNTIME_MAIN_GAME, RUNTIME_NIGHTLY, RUNTIME_INTEGRATION, 120000,
      RunWorldSoakScenario, ValidateSoak, 0},
     {"exploration-input", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 120000, 0,
@@ -3096,6 +3216,7 @@ int main(int argc, char** argv)
         "combat_aggroed=%u monster_engaged=%u "
         "party_attack_hit=%u target_damaged=%u party_cast_executed=%u "
         "combat_defend_queued=%u monster_attack_executed=%u party_casualty=%u "
+        "combat_retargeted=%u second_target_damaged=%u "
         "return_observed=%u teardown=%u timed_out=%u "
         "npc_state_reset_ok=%u "
         "character_page_start=%d character_page_after=%d "
@@ -3122,6 +3243,7 @@ int main(int argc, char** argv)
         g_observation.monster_engaged, g_observation.party_attack_hit, g_observation.target_damaged,
         g_observation.party_cast_executed, g_observation.combat_defend_queued,
         g_observation.monster_attack_executed, g_observation.party_casualty,
+        g_observation.combat_retargeted, g_observation.second_target_damaged,
         g_observation.return_observed, teardown_ok ? 1 : 0, g_observation.timed_out,
         g_observation.npc_state_reset_ok, g_observation.character_page_start,
         g_observation.character_page_after, g_observation.tooltip_shown,
