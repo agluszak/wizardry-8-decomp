@@ -26,47 +26,79 @@ bool g_texture_cache_enabled_65beaf;
 int g_calligraphy_shadow_font_6835f4;
 // GLOBAL: WIZ8 0x006835f8
 int g_calligraphy_font_6835f8;
+// GLOBAL: WIZ8 0x006835FC
 HVOBJECT g_button_font_object_6835fc;
+// GLOBAL: WIZ8 0x00683600
 int g_engraved_font_683600;
+// GLOBAL: WIZ8 0x00683604
 HVOBJECT g_wiz_text_font_object_683604;
+// GLOBAL: WIZ8 0x00683608
 int g_monster_damage_font_683608;
+// GLOBAL: WIZ8 0x0068360C
 HVOBJECT g_tiny_mono_font_object_68360c;
+// GLOBAL: WIZ8 0x00683610
 HVOBJECT g_calligraphy_shadow_font_object_683610;
 // GLOBAL: WIZ8 0x00683614
 int g_options_detail_font_683614;
+// GLOBAL: WIZ8 0x00683618
 HVOBJECT g_large_font_object_683618;
+// GLOBAL: WIZ8 0x0068361C
 HVOBJECT g_options_detail_font_object_68361c;
+// GLOBAL: WIZ8 0x00683620
 HVOBJECT g_small_font_object_683620;
+// GLOBAL: WIZ8 0x00683624
 HVOBJECT g_engraved_font_object_683624;
+// GLOBAL: WIZ8 0x00683628
 HVOBJECT g_calligraphy_font_object_683628;
+// GLOBAL: WIZ8 0x0068362C
 HVOBJECT g_profession_font_object_68362c;
+// GLOBAL: WIZ8 0x00683630
 int g_wiz_text_mono_font_683630;
+// GLOBAL: WIZ8 0x00683634
 HVOBJECT g_smfnt_font_object_683634;
+// GLOBAL: WIZ8 0x00683638
 HVOBJECT g_small_font_secondary_object_683638;
+// GLOBAL: WIZ8 0x0068363C
 HVOBJECT g_font12point1_object_68363c;
 // GLOBAL: WIZ8 0x00683640
 int g_wiz_text_font_683640;
+// GLOBAL: WIZ8 0x00683644
 int g_embossed_font_683644;
+// GLOBAL: WIZ8 0x00683648
 int g_font12point1_683648;
+// GLOBAL: WIZ8 0x0068364C
 HVOBJECT g_monster_damage_font_object_68364c;
+// GLOBAL: WIZ8 0x00683650
 HVOBJECT g_options_title_font_object_683650;
+// GLOBAL: WIZ8 0x00683654
 int g_dialog_font_683654;
+// GLOBAL: WIZ8 0x00683658
 int g_profession_font_683658;
+// GLOBAL: WIZ8 0x0068365C
 HVOBJECT g_wiz_text_bold_font_object_68365c;
 // GLOBAL: WIZ8 0x00683660
 int g_font_683660;
 // GLOBAL: WIZ8 0x00683664
 int g_wiz_text_bold_font_683664;
+// GLOBAL: WIZ8 0x00683668
 int g_font10arial_683668;
+// GLOBAL: WIZ8 0x0068366C
 int g_small_font_secondary_68366c;
 // GLOBAL: WIZ8 0x00683670
 int g_button_font_683670;
+// GLOBAL: WIZ8 0x00683674
 int g_large_font_683674;
+// GLOBAL: WIZ8 0x00683678
 int g_small_font_683678;
+// GLOBAL: WIZ8 0x0068367C
 HVOBJECT g_font10arial_object_68367c;
+// GLOBAL: WIZ8 0x00683680
 HVOBJECT g_wiz_text_font_secondary_object_683680;
+// GLOBAL: WIZ8 0x00683684
 HVOBJECT g_dialog_font_object_683684;
+// GLOBAL: WIZ8 0x00683688
 HVOBJECT g_embossed_font_object_683688;
+// GLOBAL: WIZ8 0x0068368C
 int g_options_title_font_68368c;
 int ghTinyMonoFont;
 // GLOBAL: WIZ8 0x00683694
@@ -88,6 +120,7 @@ unsigned short* g_font_palette_smfnt_68ee10;
 unsigned short* g_font_palette_wiz_text_68ee14;
 // GLOBAL: WIZ8 0x0068ee18
 unsigned short* g_font_palette_calligraphy_shadow_68ee18;
+// GLOBAL: WIZ8 0x0068EE1C
 unsigned short* g_font_state_palettes_68ee1c[15];
 
 /* The game-specific font catalog layered over SGP's source-owned font and

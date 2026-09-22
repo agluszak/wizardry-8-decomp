@@ -20,16 +20,26 @@
 
 // GLOBAL: WIZ8 0x0060aae0
 int g_music_sample_handle_60aae0 = -1;
+// GLOBAL: WIZ8 0x0065BA74
 stScript* g_music_playlist_65ba74;
+// GLOBAL: WIZ8 0x0065BA78
 unsigned int g_music_playlist_tick_65ba78;
+// GLOBAL: WIZ8 0x0065BA7E
 unsigned char g_music_playlist_active_65ba7e;
+// GLOBAL: WIZ8 0x0065BA80
 int g_music_playlist_weight_total_65ba80;
+// GLOBAL: WIZ8 0x0065BA84
 int g_music_playlist_track_count_65ba84;
-unsigned char g_music_fade_60aae4;
-unsigned char g_music_force_next_60aae5;
-int g_music_state_60aae8;
-int g_music_state_60aaec;
-int g_music_state_60aaf0;
+// GLOBAL: WIZ8 0x0060AAE4
+unsigned char g_music_fade_60aae4 = 1;
+// GLOBAL: WIZ8 0x0060AAE5
+unsigned char g_music_force_next_60aae5 = 1;
+// GLOBAL: WIZ8 0x0060AAE8
+int g_music_state_60aae8 = 20;
+// GLOBAL: WIZ8 0x0060AAEC
+int g_music_state_60aaec = 60;
+// GLOBAL: WIZ8 0x0060AAF0
+int g_music_state_60aaf0 = 30;
 
 // FUNCTION: WIZ8 0x0048fe50
 void SetMusicVolume(unsigned char volume)
