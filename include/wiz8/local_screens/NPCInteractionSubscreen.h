@@ -476,8 +476,7 @@ void EndNpcDialogueSession0056E800(int);
 unsigned char IsPortraitObscuredByNpcDialogue(unsigned int party_slot); /* 0x0056EC90 */
 void RecordLevelEntryDialogueState(void);
 unsigned char IsNpcDialogueCursorActive(void); /* 0x0056EFB0 */
-/* 0x0056EFF0: forward a portrait pick into an active NPC dialogue. Unresolved
-   gap body; declared for PortraitSelectRegionEvent. */
+/* 0x0056EFF0: forward a portrait pick into an active NPC dialogue. */
 void TryNpcDialoguePickpocket0056EFF0(int party_slot);
 void ShortenTextToWidth00577410(wchar_t* output, const wchar_t* text, unsigned int width, int font);
 unsigned char NpcQuoteBubbleRegionEvent(const InputAtom* event);

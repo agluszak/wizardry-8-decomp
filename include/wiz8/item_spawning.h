@@ -10,11 +10,6 @@
 
 #pragma pack(push, 1)
 
-/* The owner and the entity it holds are Engine Code\Item.cpp's W8Item and
-   W8ItemRep. They were modelled a second time here before that unit was
-   recovered, which declared 0x004B8890 twice; the canonical pair now lives in
-   engine_code/Item.h and this header uses it. */
-
 struct W8WorldItem {
     int runtime_id;      /* 0x00 */
     W8Item* p3D;         /* 0x04: assertion-proven pItemInfo->p3D; owns the live world entity */

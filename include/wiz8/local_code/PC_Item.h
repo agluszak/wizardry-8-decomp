@@ -155,7 +155,7 @@ bool AreAllHandSlotsEmpty(const W8Character* character);                        
 bool CanEquipItemInSlot(W8Character* character, int item_id, unsigned char equip_slot,
                         char ignore_worn_items); /* 0x0051CEA0 */
 /* 0x0051F2F0: merges the held stack into one existing stack, announcing on
-   refusal; unresolved gap body, declared for the RCSItemsPage call site. */
+   refusal. */
 char MergeItems(W8Character* character, W8ItemInstance* item);
 
 /* Same equipment class, and same unidentified display name. */
@@ -186,11 +186,7 @@ void MoveItem(W8ItemInstance* to, W8ItemInstance* from, int arg_3, int arg_4);
    unidentified ("Uncursed item" style) display name. */
 unsigned short GetItemUnidentifiedNameIndex(const W8ItemInstance* item);
 
-/* Defined in Dialog Code\AssayDialog.cpp (GLOBAL 0x0061E7DC): the
-   gppStringList index of each equipment class's display name. */
-
-/* Unresolved gap, declared for the split-stack dialog's trade-price labels:
-   the gold price of a stack in the active trade context. The mode argument
+/* Gold price of a stack in the active trade context. The mode argument
    selects the pricing direction (0 for the buy side, 1 for the sell side). */
 int CalculateTradeStackPrice(W8NpcState* npc, W8ItemInstance* item, char mode); /* 0x0055B5E0 */
 /* 0x0051D7A0: whether any occupied, conscious party member can use the item. */
@@ -248,8 +244,7 @@ unsigned char GiveHeldItemToCharacterOrParty(int uiChar, unsigned char party_fir
    fatigue cost of the attempt, or -1 when nothing was attempted. */
 unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_uses);
 
-/* Unresolved gap callees, declared for the action paths that reach them.
-   0x0051DCD0 rates how hard one attempt at an item's spell is for a character
+/* 0x0051DCD0 rates how hard one attempt at an item's spell is for a character
    of this skill level. 0x0051EE70 applies the item's spell and consumes the
    uses it took. */
 unsigned int GetItemUseDifficulty0051DCD0(const W8Character* character, int skill,
@@ -257,7 +252,6 @@ unsigned int GetItemUseDifficulty0051DCD0(const W8Character* character, int skil
                                           unsigned int power);
 int CastItemSpell0051EE70(W8Character* character, W8ItemInstance* item, unsigned int power);
 
-/* The same batch's remaining bodies, recovered together with them. */
 void AimItemUseAtCurrentTarget0051DB60(W8Character* character, W8ItemInstance* item);
 unsigned char SwapWeaponSetSlots0051D3B0(int party_slot, char announce, unsigned char refresh);
 void SplitThrowableStackBetweenHands0051ED30(W8Character* character, int equip_slot);

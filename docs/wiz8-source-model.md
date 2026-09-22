@@ -23,10 +23,6 @@ The demo-only units are `GDCamera.cpp`, `gap.c`, `PolyPick.cpp`, `Game Difficult
 `RCSStatsPage.cpp`. “Demo-only” here means only that the retained absolute string is demo-only; it
 does not by itself prove that no corresponding code survived in retail.
 
-The older generated `build/evidence/source-paths.csv` is not authoritative for this model because
-its extractor truncates `.cpp` paths to `.c`. The tracked tree was rebuilt from raw NUL-terminated
-binary strings and retains the original extensions.
-
 ## Translation-unit layout
 
 The reviewed assertion paths remain the strongest anchors, but the same absolute source strings also
@@ -47,9 +43,7 @@ matches, which can establish a retail hull for a unit whose retail path string i
 non-unique matches stay unknown. The same layout drives `wiz8 ghidra decompile`/`sym`,
 `wiz8 recover`, and `wiz8 report translation-units`; the placement validator in
 `uv run wiz8 check` compares it against the current source-index placement and enforces every
-anchored function. The earlier provisional Video2
-exemptions are gone: the cursor, window and dirty-tile bodies were consolidated into
-`src/wiz8/engine_code/Video2.cpp` rather than kept in invented semantic units.
+anchored function.
 
 ## Header architecture
 
@@ -165,9 +159,9 @@ This narrows fields the disassembly leaves opaque, but it does not replace consu
 `pWorld->plsProps` is a `PList` because its users call the reviewed PList accessors; `psrMeshes`
 identifies a SurRender-facing pointer independently.
 
-An `m_` member prefix is **not** a project-wide convention, and an earlier revision of this document
-wrongly said it was. Only 90 distinct `m_` identifiers appear, and 266 of the 277 `->` member-access
-assertions contain no `m_` at all — including four of the five examples in the table above. `m_` is
+An `m_` member prefix is **not** a project-wide convention. Only 90 distinct `m_`
+identifiers appear, and 266 of the 277 `->` member-access assertions contain no `m_` at all —
+including four of the five examples in the table above. `m_` is
 used by some classes, notably `Trigger`, the `Oct*` family, `GDFileIO`'s trigger arrays and `Item`'s
 representation object, while most member accesses are plain Hungarian names. Treat `m_` as a
 per-class habit to be checked, not as a rule to apply when naming a recovered field.
