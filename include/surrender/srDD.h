@@ -101,12 +101,27 @@ public:
         long y_10;
         long count_14;
     };
-    struct DriverInfo;
+    /* getDriverInfo block. The caller writes the requested API version
+       (0x128), a capability flag and a debug callback before the call; the
+       device reports its DD API version, driver id, name and API version
+       string back into the same record. */
+    struct DriverInfo {
+        unsigned long api_version_00;
+        unsigned long flags_04;
+        void (*debug_write_08)(const char* text);
+        unsigned long dd_api_version_0c;
+        unsigned long driver_id_10;
+        char name_14[64];
+        char api_name_54[64];
+    };
+    static_assert(sizeof(DriverInfo) == 0x94, "srDD_DriverInfo_must_be_0x94");
     /* getInfo output record, 0x27c bytes. srGERD embeds it verbatim at +0x50
        (initDDInfo clears the block, seeds the defaults below, then hands it
        to srDD::getInfo). The nine trailing 0x40-byte strings are the device
        identity fields initDDInfo fills with "Unknown". */
     struct Info {
+        /* openWindowInternal rejects back-buffer dimensions above these
+           maximums. */
         unsigned long unknown_00_;
         unsigned long unknown_04_;
         /* initDDInfo defaults: 4. */
@@ -116,7 +131,8 @@ public:
         /* initDDInfo defaults: 1.0f / 65536.0f. */
         float unknown_10_;
         float unknown_14_;
-        /* initDDInfo defaults: 0. changeTexture tests bit 5. */
+        /* initDDInfo defaults: 0. changeTexture tests bit 5;
+           getDepthBufferType reads bit 3 of the low byte. */
         unsigned long flags_18_;
         /* initDDInfo defaults: 0x100; createRenderer passes it to each
            Renderer as its batch limit. */
@@ -136,6 +152,9 @@ public:
         /* initDDInfo defaults: 1. getHardwareID result; e_hardwareID is an
            empty enum and cannot be the field type. */
         unsigned long hardware_id_38_;
+        /* Device identity strings in getter order: device name, vendor,
+           platform, driver name, vendor, version, hardware chipset, name,
+           vendor. */
         char text_3c_[9][0x40];
     };
     static_assert(sizeof(Info) == 0x27c, "srDD_Info_must_be_0x27c");
@@ -183,13 +202,19 @@ public:
     };
     /* GERD embeds this verbatim at +0x1b08: setClearColor clamps into
        color_00, the accumulation-buffer clear color occupies accum_10
-       (accumClear clamps it to [-1,1] per channel), and setClearDepth
-       clamps depth_20 to [0,1]. */
+       (accumClear clamps it to [-1,1] per channel), setClearDepth clamps
+       depth_20 to [0,1] and setClearStencil writes stencil_28. */
+#pragma pack(push, 4)
+    /* Retail packs the double at 4-byte alignment: the record occupies
+       exactly 0x2c bytes in front of GERD's palette block. */
     struct ClearValues {
         srVector4T<float> color_00;
         srVector4T<float> accum_10;
         double depth_20;
+        unsigned long stencil_28;
     };
+#pragma pack(pop)
+    static_assert(sizeof(ClearValues) == 0x2c, "srDD_ClearValues_must_be_0x2c");
     /* Scissor rectangle: setScissor/clamp evidence stores (left, top, right,
        bottom) and recalcScissor compares right/bottom to width/height. */
     struct Scissor {
@@ -199,6 +224,8 @@ public:
        slots applyViewStateChanges copies through unchanged. */
     struct ViewPort {
         long x, y, width, height;
+        /* Depth range forwarded by applyViewStateChanges; srGERD stores it
+           as doubles at +0x1618. */
         unsigned long extra[4];
     };
     /* srGERD::applyFrameStateChanges packs the frame dirty bits, gamma,

@@ -64,7 +64,7 @@ struct W8MonsterManagerEntry {
     int target_portrait_pose;
     int portrait_pose_clock;
     int portrait_idle_clock;
-    unsigned char portrait_pose_animation_active;
+    bool portrait_pose_animation_active;
     bool portrait_pose_dirty;
     bool portrait_frame_dirty;
     /* 0x09c..0x0ab: the floating damage-number splat animation. The poster at

@@ -22,7 +22,8 @@ public:
     };
 
     struct BlitInfo {
-        unsigned long words[8];
+        Rectangle destination;
+        Rectangle source;
     };
 
     struct SurfaceDesc {

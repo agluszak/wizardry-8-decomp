@@ -29,6 +29,7 @@ add_library(wiz8_surrender_objects OBJECT
     triangle_culler.cpp
     model.cpp
     model_instance.cpp
+    modeler.cpp
     node.cpp
     scene.cpp
     stream.cpp
@@ -73,6 +74,7 @@ set_source_files_properties(
     light.cpp
     mesh_model.cpp
     model_instance.cpp
+    modeler.cpp
     renderer.cpp
     scene.cpp
     stream.cpp

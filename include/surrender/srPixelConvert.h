@@ -35,6 +35,17 @@ public:
         void getName(char* name);
         int isValid() const;
         unsigned long match(const PixelFormat* formats, unsigned long count) const;
+
+        /* Retail compares the packed format as five dwords in isPixelFormatCompatible,
+           isCompatible and mapPixelFormat rather than field-wise bytes or memcmp. */
+        int operator==(const PixelFormat& other) const
+        {
+            const unsigned long* a = reinterpret_cast<const unsigned long*>(
+                this); // reinterpret-ok: packed pixel-format block compare
+            const unsigned long* b = reinterpret_cast<const unsigned long*>(
+                &other); // reinterpret-ok: packed pixel-format block compare
+            return a[4] == b[4] && b[0] == a[0] && b[1] == a[1] && a[3] == b[3] && a[2] == b[2];
+        }
     };
 
     /* Converters receive the run description by reference; palette carries

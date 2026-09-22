@@ -533,7 +533,7 @@ void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const Tri
                     }
                 }
             } else if (renderer.getWinding() == srGERD::WINDING_POSITIONAL_0) {
-                for (unsigned long index = 0; index < mesh.active_polygon_count_150; ++index) {
+                for (long index = 0; index < mesh.active_polygon_count_150; ++index) {
                     unsigned long polygon = mesh.active_polygons_14c[index];
                     int vertex = mesh.poly_vertices_10[polygon].y;
                     const srVector3T<float>& position = mesh.positions_38[vertex];
@@ -547,7 +547,7 @@ void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const Tri
                     }
                 }
             } else {
-                for (unsigned long index = 0; index < mesh.active_polygon_count_150; ++index) {
+                for (long index = 0; index < mesh.active_polygon_count_150; ++index) {
                     unsigned long polygon = mesh.active_polygons_14c[index];
                     int vertex = mesh.poly_vertices_10[polygon].y;
                     const srVector3T<float>& position = mesh.positions_38[vertex];

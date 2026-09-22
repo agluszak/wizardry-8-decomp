@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "surrender/srCore.h"
+#include "surrender/srFilter.h"
 #include "surrender/srHeap.h"
 #include "surrender/srPalette.h"
 #include "surrender/srVectorProcessor.h"
@@ -282,12 +283,7 @@ const srPixelConvert::PixelFormat* srColorSurfaceIFace::getPixelFormat() const
 // FUNCTION: SURRENDER 0x1005A0E0
 int srColorSurfaceIFace::isPixelFormatCompatible(const srColorSurfaceIFace& source) const
 {
-    return pixel_format_30.flags == source.pixel_format_30.flags &&
-           *(const long*)&source.pixel_format_30 == *(const long*)&pixel_format_30 &&
-           *((const long*)&source.pixel_format_30 + 1) == *((const long*)&pixel_format_30 + 1) &&
-           pixel_format_30.bytes_per_pixel_minus_one ==
-               source.pixel_format_30.bytes_per_pixel_minus_one &&
-           pixel_format_30.conversion_class == source.pixel_format_30.conversion_class;
+    return pixel_format_30 == source.pixel_format_30;
 }
 
 // FUNCTION: SURRENDER 0x1005ADD0
@@ -315,6 +311,122 @@ void srColorSurfaceIFace::copySurfaceParameters(const srColorSurfaceIFace& sourc
         return;
     }
     clamp_modes_28 = clamp_modes_28 & ~2;
+}
+
+// FUNCTION: SURRENDER 0x10057810
+void srColorSurfaceIFace::setLine(long x0, long y0, long x1, long y1, unsigned long pixel)
+{
+    long dx = x1 - x0;
+    long dy = y1 - y0;
+    if (dx == 0) {
+        setVLine(x0, y0, y1, pixel);
+        return;
+    }
+    if (dy == 0) {
+        setHLine(y0, x0, x1, pixel);
+        return;
+    }
+    long width = width_1c;
+    long height = height_20;
+    if ((dy < 0 ? -dy : dy) < (dx < 0 ? -dx : dx)) {
+        long last_x = x1;
+        long last_y = y1;
+        if (dx < 0) {
+            last_x = x0;
+            last_y = y0;
+            y0 = y1;
+            x0 = x1;
+        }
+        long high_y = last_y;
+        long low_y = y0;
+        if (last_y <= y0) {
+            high_y = y0;
+            low_y = last_y;
+        }
+        height = height - 1;
+        if ((-1 < last_x) && (x0 < width) && (-1 < high_y) && (low_y <= height)) {
+            float gradient = (float)dy / dx;
+            long step = (long)(gradient * 65536.0);
+            if (x0 < 0) {
+                y0 = (long)(y0 - x0 * gradient);
+                x0 = 0;
+            }
+            if (y0 < last_y) {
+                if (y0 < 0) {
+                    x0 = x0 - (long)(y0 / gradient);
+                    y0 = 0;
+                }
+                if (height <= last_y) {
+                    last_x = (long)(last_x - (last_y - (float)height) / gradient);
+                }
+            } else {
+                if (last_y < 0) {
+                    last_x = last_x - (long)(last_y / gradient);
+                }
+                if (height <= y0) {
+                    x0 = (long)(x0 - (y0 - (float)height) / gradient);
+                    y0 = height;
+                }
+            }
+            if (width < last_x) {
+                last_x = width;
+            }
+            long y_fixed = y0 << 0x10;
+            for (; x0 < last_x; x0 = x0 + 1) {
+                setPixel(x0, (y_fixed + (y_fixed >> 0x1f & 0xffff)) >> 0x10, pixel);
+                y_fixed = y_fixed + step;
+            }
+        }
+    } else {
+        long last_y = x1;
+        long last_x = y1;
+        if (dy < 0) {
+            last_y = x0;
+            last_x = y0;
+            y0 = y1;
+            x0 = x1;
+        }
+        long high_x = last_y;
+        long low_x = x0;
+        if (last_y <= x0) {
+            high_x = x0;
+            low_x = last_y;
+        }
+        width = width - 1;
+        if (((-1 < low_x) && (high_x <= width) && (-1 < last_x)) && (y0 < height)) {
+            float gradient = dx / (float)dy;
+            long step = (long)(gradient * 65536.0);
+            if (y0 < 0) {
+                x0 = (long)(x0 - y0 * gradient);
+                y0 = 0;
+            }
+            if (x0 < last_y) {
+                if (x0 < 0) {
+                    y0 = y0 - (long)(x0 / gradient);
+                    x0 = 0;
+                }
+                if (width <= last_y) {
+                    last_x = (long)(last_x - (last_y - (float)width) / gradient);
+                }
+            } else {
+                if (last_y < 0) {
+                    last_x = last_x - (long)(last_y / gradient);
+                }
+                if (width <= x0) {
+                    y0 = (long)(y0 - (x0 - (float)width) / gradient);
+                    x0 = width;
+                }
+            }
+            if (height < last_x) {
+                last_x = height;
+            }
+            long x_fixed = x0 << 0x10;
+            for (; y0 < last_x; y0 = y0 + 1) {
+                setPixel((x_fixed + (x_fixed >> 0x1f & 0xffff)) >> 0x10, y0, pixel);
+                x_fixed = x_fixed + step;
+            }
+        }
+    }
 }
 
 // FUNCTION: SURRENDER 0x1005B290
@@ -659,8 +771,7 @@ void srColorSurfaceIFace::adjustSaturation(double saturation)
                 } else {
                     value = 0.0f;
                 }
-                channel = ((pixel[-1] * 0.003921569f - luminance) * (float)saturation +
-                           luminance) *
+                channel = ((pixel[-1] * 0.003921569f - luminance) * (float)saturation + luminance) *
                           255.0f;
                 pixel[0] = (unsigned char)(int)(value + 0.5f);
                 if (0.0f < channel) {
@@ -670,8 +781,7 @@ void srColorSurfaceIFace::adjustSaturation(double saturation)
                 } else {
                     channel = 0.0f;
                 }
-                value = ((pixel[-2] * 0.003921569f - luminance) * (float)saturation +
-                         luminance) *
+                value = ((pixel[-2] * 0.003921569f - luminance) * (float)saturation + luminance) *
                         255.0f;
                 pixel[-1] = (unsigned char)(int)(channel + 0.5f);
                 if (0.0f < value) {
@@ -749,6 +859,39 @@ void srColorSurfaceIFace::remapPixels(const srARGB& from, const srARGB& to)
     srHeap.free(row);
 }
 
+// FUNCTION: SURRENDER 0x10059690
+void srColorSurfaceIFace::scaleFast(srColorSurfaceIFace& source)
+{
+    long height = height_20;
+    long source_width = source.width_1c;
+    long source_height = source.height_20;
+    long width = width_1c;
+    if ((source_width == width) && (source_height == height)) {
+        copyNoScaling(source);
+        return;
+    }
+    long* column_map = new long[width];
+    unsigned long* source_row = (unsigned long*)srHeap.allocate(source_width * 4);
+    unsigned long* row = (unsigned long*)srHeap.allocate(width * 4);
+    for (long x = 0; x < width; x++) {
+        column_map[x] = source.getClampedX((long)((float)x * source_width / width));
+    }
+    long last_y = -1;
+    for (long y = 0; y < height; y++) {
+        long source_y = source.getClampedY((long)((float)y * source_height / height));
+        if ((source_y != last_y) && (source.getPixelRow(source_row, source_y, 0, source_width),
+                                     last_y = source_y, 0 < width)) {
+            for (long x = 0; x < width; x++) {
+                row[x] = source_row[column_map[x]];
+            }
+        }
+        setPixelRow(row, y, 0, width);
+    }
+    delete[] column_map;
+    srHeap.free(source_row);
+    srHeap.free(row);
+}
+
 // FUNCTION: SURRENDER 0x10059420
 void srColorSurfaceIFace::flipColorChannels(srARGB::e_index first, srARGB::e_index second)
 {
@@ -786,6 +929,21 @@ void srColorSurfaceIFace::copyColorChannel(srARGB::e_index destination, srARGB::
                 pixel[3 - destination] = pixel[3 - source];
             }
             setPixelRow((const unsigned long*)row, y, 0, width);
+        }
+        srHeap.free(row);
+    }
+}
+
+// FUNCTION: SURRENDER 0x10059600
+void srColorSurfaceIFace::copyNoScaling(srColorSurfaceIFace& source)
+{
+    if (this != &source) {
+        long height = source.height_20;
+        long width = source.width_1c;
+        unsigned long* row = (unsigned long*)srHeap.allocate(width * 4);
+        for (long y = 0; y < height; y++) {
+            source.getPixelRow(row, y, 0, width);
+            setPixelRow(row, y, 0, width);
         }
         srHeap.free(row);
     }
@@ -887,6 +1045,20 @@ void srColorSurfaceIFace::copy(srColorSurfaceIFace& source)
         }
         scaleFast(source);
     }
+}
+
+// FUNCTION: SURRENDER 0x1005A7A0
+void srColorSurfaceIFace::scale(srColorSurfaceIFace& source)
+{
+    unsigned long source_height = source.height_20;
+    unsigned long width = width_1c;
+    srColorSurface* scaled =
+        new srColorSurface(srPixelConvert::SURFACE_BGRA32, width, source_height);
+    srColorSurfaceIFace* scaled_iface = scaled;
+    scaled_iface->copySurfaceParameters(source);
+    scaled_iface->scaleHorizontal(source);
+    scaleVertical(*scaled);
+    scaled->release();
 }
 
 // FUNCTION: SURRENDER 0x1005AE10
@@ -1233,16 +1405,7 @@ int srColorSurface::changePixelFormat(const srPixelConvert::PixelFormat& format,
     if (surface_flags_50 & 1) {
         return 0;
     }
-    if (format.flags != pixel_format_30.flags || format.red_bits != pixel_format_30.red_bits ||
-        format.red_shift != pixel_format_30.red_shift ||
-        format.green_bits != pixel_format_30.green_bits ||
-        format.green_shift != pixel_format_30.green_shift ||
-        format.blue_bits != pixel_format_30.blue_bits ||
-        format.blue_shift != pixel_format_30.blue_shift ||
-        format.alpha_bits != pixel_format_30.alpha_bits ||
-        format.alpha_shift != pixel_format_30.alpha_shift ||
-        format.conversion_class != pixel_format_30.conversion_class ||
-        format.bytes_per_pixel_minus_one != pixel_format_30.bytes_per_pixel_minus_one) {
+    if (!(format == pixel_format_30)) {
         srColorSurfaceIFace* previous = 0;
         if (preserve != 0) {
             previous = static_cast<srColorSurfaceIFace*>(clone());
@@ -1269,18 +1432,7 @@ int srColorSurface::isCompatible(srColorSurfaceIFace& source)
     if (source.getClassID() != getClassID()) {
         return 0;
     }
-    if (pixel_format_30.flags == source.pixel_format_30.flags &&
-        source.pixel_format_30.red_bits == pixel_format_30.red_bits &&
-        source.pixel_format_30.red_shift == pixel_format_30.red_shift &&
-        source.pixel_format_30.green_bits == pixel_format_30.green_bits &&
-        source.pixel_format_30.green_shift == pixel_format_30.green_shift &&
-        source.pixel_format_30.blue_bits == pixel_format_30.blue_bits &&
-        source.pixel_format_30.blue_shift == pixel_format_30.blue_shift &&
-        source.pixel_format_30.alpha_bits == pixel_format_30.alpha_bits &&
-        source.pixel_format_30.alpha_shift == pixel_format_30.alpha_shift &&
-        pixel_format_30.bytes_per_pixel_minus_one ==
-            source.pixel_format_30.bytes_per_pixel_minus_one &&
-        pixel_format_30.conversion_class == source.pixel_format_30.conversion_class) {
+    if (pixel_format_30 == source.pixel_format_30) {
         if (pixel_format_30.conversion_class == 3 && source.getPalette() != getPalette()) {
             return 0;
         }
@@ -2189,6 +2341,853 @@ void srColorSurface::scaleFast(srColorSurfaceIFace& source)
         dest += dest_pitch;
     }
     delete[] columns;
+}
+
+// FUNCTION: SURRENDER 0x10059AC0
+void srColorSurfaceIFace::scaleHorizontal(srColorSurfaceIFace& source)
+{
+    long height = source.height_20;
+    long width = width_1c;
+    long source_width = source.width_1c;
+    if (width != source_width) {
+        double support = source.filter_2c->getSupport();
+        double scale = (double)width / source_width;
+        long* counts = new long[width * 2];
+        unsigned long* source_row = (unsigned long*)srHeap.allocate(source_width * 4);
+        unsigned long* row = (unsigned long*)srHeap.allocate(width * 4);
+        float* channels = (float*)srHeap.allocate(source_width * 0x10);
+        char* storage;
+        if (1.0 <= scale) {
+            long entries = 1 - (long)(support * -2.0);
+            storage = new char[entries * width * 8];
+            for (long x = 0; x < width; x++) {
+                long* entry = counts + x * 2;
+                entry[0] = 0;
+                entry[1] = (long)(storage + x * entries * 8);
+                double center = x / scale - 0.5;
+                double total = 0.0;
+                long first = (long)ceil(center - support);
+                long last = (long)floor(center + support);
+                for (; first <= last; first++) {
+                    float weight = (float)source.filter_2c->getWeight(center - first);
+                    if (0.0f < weight) {
+                        long index = source.getClampedX(first);
+                        long* slot = (long*)entry[1] + entry[0] * 2;
+                        entry[0] = entry[0] + 1;
+                        slot[0] = index;
+                        *(float*)(slot + 1) = weight;
+                        total = weight + total;
+                    }
+                }
+                for (long i = 0; i < entry[0]; i++) {
+                    float* weight = (float*)((long*)entry[1] + i * 2 + 1);
+                    *weight = (float)(1.0 / total) * *weight;
+                }
+            }
+        } else {
+            double scaled_support = support / scale;
+            double inverse = 1.0 / scale;
+            long entries = 1 - (long)(scaled_support * -2.0);
+            storage = new char[entries * width * 8];
+            for (long x = 0; x < width; x++) {
+                long* entry = counts + x * 2;
+                entry[0] = 0;
+                entry[1] = (long)(storage + x * entries * 8);
+                double center = x / scale + 0.5;
+                double total = 0.0;
+                long first = (long)ceil(center - scaled_support);
+                long last = (long)floor(center + scaled_support);
+                for (; first <= last; first++) {
+                    float weight =
+                        (float)(source.filter_2c->getWeight((center - first) / inverse) / inverse);
+                    if (0.0f < weight) {
+                        long index = source.getClampedX(first);
+                        long* slot = (long*)entry[1] + entry[0] * 2;
+                        entry[0] = entry[0] + 1;
+                        slot[0] = index;
+                        *(float*)(slot + 1) = weight;
+                        total = weight + total;
+                    }
+                }
+                for (long i = 0; i < entry[0]; i++) {
+                    float* weight = (float*)((long*)entry[1] + i * 2 + 1);
+                    *weight = (float)(1.0 / total) * *weight;
+                }
+            }
+        }
+        for (long y = 0; y < height; y++) {
+            source.getPixelRow(source_row, y, 0, source_width);
+            long x;
+            for (x = 0; x < source_width; x++) {
+                unsigned char* pixel = (unsigned char*)&source_row[x];
+                channels[x * 4] = (float)pixel[3];
+                channels[x * 4 + 1] = (float)pixel[2];
+                channels[x * 4 + 2] = (float)pixel[1];
+                channels[x * 4 + 3] = (float)pixel[0];
+            }
+            for (x = 0; x < width; x++) {
+                long* entry = counts + x * 2;
+                long count = entry[0];
+                long* slot = (long*)entry[1];
+                float a = 0.0f;
+                float r = 0.0f;
+                float g = 0.0f;
+                float b = 0.0f;
+                for (; 0 < count; count--) {
+                    float weight = *(float*)(slot + 1);
+                    float* source_pixel = channels + *slot * 4;
+                    slot = slot + 2;
+                    a = *source_pixel * weight + a;
+                    r = source_pixel[1] * weight + r;
+                    g = source_pixel[2] * weight + g;
+                    b = source_pixel[3] * weight + b;
+                }
+                unsigned char* pixel = (unsigned char*)&row[x];
+                pixel[3] = (unsigned char)(long)(a + 0.5f);
+                pixel[2] = (unsigned char)(long)(r + 0.5f);
+                pixel[1] = (unsigned char)(long)(g + 0.5f);
+                pixel[0] = (unsigned char)(long)(b + 0.5f);
+            }
+            setPixelRow(row, y, 0, width);
+        }
+        srHeap.free(channels);
+        srHeap.free(source_row);
+        srHeap.free(row);
+        delete[] counts;
+        delete[] storage;
+        return;
+    }
+    copyNoScaling(source);
+}
+
+// FUNCTION: SURRENDER 0x1005A250
+void srColorSurfaceIFace::scaleVertical(srColorSurfaceIFace& source)
+{
+    long width = width_1c;
+    long height = height_20;
+    long source_height = source.height_20;
+    if (height != source_height) {
+        double support = source.filter_2c->getSupport();
+        double scale = height / (double)source_height;
+        long* counts = new long[height * 2];
+        unsigned long* source_column = (unsigned long*)srHeap.allocate(source_height * 4);
+        unsigned long* column = (unsigned long*)srHeap.allocate(height * 4);
+        float* channels = (float*)srHeap.allocate(source_height * 0x10);
+        char* storage;
+        if (1.0 <= scale) {
+            long entries = 1 - (long)(support * -2.0);
+            storage = new char[entries * height * 8];
+            for (long y = 0; y < height; y++) {
+                long* entry = counts + y * 2;
+                entry[0] = 0;
+                entry[1] = (long)(storage + y * entries * 8);
+                double center = y / scale - 0.5;
+                double total = 0.0;
+                long first = (long)ceil(center - support);
+                long last = (long)floor(center + support);
+                for (; first <= last; first++) {
+                    float weight = (float)source.filter_2c->getWeight(center - first);
+                    if (0.0f < weight) {
+                        long index = source.getClampedY(first);
+                        long* slot = (long*)entry[1] + entry[0] * 2;
+                        entry[0] = entry[0] + 1;
+                        slot[0] = index;
+                        *(float*)(slot + 1) = weight;
+                        total = weight + total;
+                    }
+                }
+                for (long i = 0; i < entry[0]; i++) {
+                    float* weight = (float*)((long*)entry[1] + i * 2 + 1);
+                    *weight = (float)(1.0 / total) * *weight;
+                }
+            }
+        } else {
+            double scaled_support = support / scale;
+            double inverse = 1.0 / scale;
+            long entries = 1 - (long)(scaled_support * -2.0);
+            storage = new char[entries * height * 8];
+            for (long y = 0; y < height; y++) {
+                long* entry = counts + y * 2;
+                entry[0] = 0;
+                entry[1] = (long)(storage + y * entries * 8);
+                double center = y / scale + 0.5;
+                double total = 0.0;
+                long first = (long)ceil(center - scaled_support);
+                long last = (long)floor(center + scaled_support);
+                for (; first <= last; first++) {
+                    float weight =
+                        (float)(source.filter_2c->getWeight((center - first) / inverse) / inverse);
+                    if (0.0f < weight) {
+                        long index = source.getClampedY(first);
+                        long* slot = (long*)entry[1] + entry[0] * 2;
+                        entry[0] = entry[0] + 1;
+                        slot[0] = index;
+                        *(float*)(slot + 1) = weight;
+                        total = weight + total;
+                    }
+                }
+                for (long i = 0; i < entry[0]; i++) {
+                    float* weight = (float*)((long*)entry[1] + i * 2 + 1);
+                    *weight = (float)(1.0 / total) * *weight;
+                }
+            }
+        }
+        for (long x = 0; x < width; x++) {
+            source.getPixelColumn(source_column, x, 0, source_height);
+            long y;
+            for (y = 0; y < source_height; y++) {
+                unsigned char* pixel = (unsigned char*)&source_column[y];
+                channels[y * 4] = (float)pixel[3];
+                channels[y * 4 + 1] = (float)pixel[2];
+                channels[y * 4 + 2] = (float)pixel[1];
+                channels[y * 4 + 3] = (float)pixel[0];
+            }
+            for (y = 0; y < height; y++) {
+                long* entry = counts + y * 2;
+                long count = entry[0];
+                long* slot = (long*)entry[1];
+                float a = 0.0f;
+                float r = 0.0f;
+                float g = 0.0f;
+                float b = 0.0f;
+                for (; 0 < count; count--) {
+                    float weight = *(float*)(slot + 1);
+                    float* source_pixel = channels + *slot * 4;
+                    slot = slot + 2;
+                    a = *source_pixel * weight + a;
+                    r = source_pixel[1] * weight + r;
+                    g = source_pixel[2] * weight + g;
+                    b = source_pixel[3] * weight + b;
+                }
+                unsigned char* pixel = (unsigned char*)&column[y];
+                pixel[3] = (unsigned char)(long)(a + 0.5f);
+                pixel[2] = (unsigned char)(long)(r + 0.5f);
+                pixel[1] = (unsigned char)(long)(g + 0.5f);
+                pixel[0] = (unsigned char)(long)(b + 0.5f);
+            }
+            setPixelColumn(column, x, 0, height);
+        }
+        srHeap.free(channels);
+        srHeap.free(source_column);
+        srHeap.free(column);
+        delete[] counts;
+        delete[] storage;
+        return;
+    }
+    copyNoScaling(source);
+}
+
+// FUNCTION: SURRENDER 0x10058150
+void srColorSurfaceIFace::blit(long x, long y, srColorSurfaceIFace& source, long source_x,
+                               long source_y, long source_right, long source_bottom)
+{
+    long width = width_1c;
+    long source_width = source.width_1c;
+    long source_height = source.height_20;
+    long height = height_20;
+    if ((x < width) && (y < height)) {
+        if (x < 0) {
+            source_x = source_x - x;
+            x = 0;
+        }
+        if (y < 0) {
+            source_y = source_y - y;
+            y = 0;
+        }
+        if (source_x < 0) {
+            x = x - source_x;
+            source_x = 0;
+        }
+        if (source_y < 0) {
+            y = y - source_y;
+            source_y = 0;
+        }
+        long right = source_right;
+        if (source_width < source_right) {
+            right = source_width;
+        }
+        long bottom = source_bottom;
+        if (source_height < source_bottom) {
+            bottom = source_height;
+        }
+        if (((source_x < source_width) && (source_x < right)) &&
+            ((source_y < source_height) && (source_y < bottom))) {
+            long dest_span = x - source_x;
+            if (width < dest_span + right) {
+                right = (width - x) + source_x;
+            }
+            if (height < (y - source_y) + bottom) {
+                bottom = (height - y) + source_y;
+            }
+            if ((source_x < right) && (source_y < bottom)) {
+                if (((&source == this) && (x < right) && (y < bottom)) &&
+                    (source_x < dest_span + right) &&
+                    ((source_y < (y - source_y) + bottom) && (source_y <= y))) {
+                    long span = right - source_x;
+                    unsigned long* temp =
+                        (unsigned long*)srHeap.allocate((bottom - source_y) * span * 4);
+                    if (source_y < bottom) {
+                        long row;
+                        for (row = source_y; row < bottom; row++) {
+                            source.getPixelRow(temp + (row - source_y) * span, row, source_x,
+                                               right);
+                        }
+                        for (row = 0; row < bottom - source_y; row++) {
+                            setPixelRow(temp + row * span, y, x, dest_span + right);
+                            y = y + 1;
+                        }
+                    }
+                    srHeap.free(temp);
+                    return;
+                }
+                unsigned long* temp = (unsigned long*)srHeap.allocate((right - source_x) * 4);
+                for (; source_y < bottom; source_y++) {
+                    source.getPixelRow(temp, source_y, source_x, right);
+                    setPixelRow(temp, y, x, dest_span + right);
+                    y = y + 1;
+                }
+                srHeap.free(temp);
+            }
+        }
+    }
+}
+
+// FUNCTION: SURRENDER 0x10058450
+void srColorSurfaceIFace::blit(const BlitInfo& info, srColorSurfaceIFace& source)
+{
+    if (info.destination.left == info.destination.right) {
+        return;
+    }
+    if (info.destination.top == info.destination.bottom) {
+        return;
+    }
+    if (info.source.left == info.source.right) {
+        return;
+    }
+    if (info.source.top == info.source.bottom) {
+        return;
+    }
+    int flip_h = info.destination.right < info.destination.left;
+    int flip_v = info.destination.bottom < info.destination.top;
+    if (info.source.right < info.source.left) {
+        flip_h = flip_h == 0;
+    }
+    if (info.source.bottom < info.source.top) {
+        flip_v = flip_v == 0;
+    }
+    Rectangle destination = info.destination;
+    long source_left = info.source.left;
+    long source_top = info.source.top;
+    long source_right = info.source.right;
+    long source_bottom = info.source.bottom;
+    if (source_right < source_left) {
+        long swap = source_left;
+        source_left = source_right;
+        source_right = swap;
+    }
+    if (source_bottom < source_top) {
+        long swap = source_top;
+        source_top = source_bottom;
+        source_bottom = swap;
+    }
+    if (destination.right < destination.left) {
+        long swap = destination.left;
+        destination.left = destination.right;
+        destination.right = swap;
+    }
+    if (destination.bottom < destination.top) {
+        long swap = destination.top;
+        destination.top = destination.bottom;
+        destination.bottom = swap;
+    }
+    if (width_1c <= destination.left) {
+        return;
+    }
+    if (height_20 <= destination.top) {
+        return;
+    }
+    if (destination.right < 1) {
+        return;
+    }
+    if (destination.bottom < 1) {
+        return;
+    }
+    if (source_left < 0) {
+        return;
+    }
+    if (source.width_1c < source_right) {
+        return;
+    }
+    if (source_top < 0) {
+        return;
+    }
+    if (source.height_20 < source_bottom) {
+        return;
+    }
+    int full_destination = 0;
+    if ((destination.left != 0) || (destination.top != 0) || (destination.right != width_1c)) {
+        full_destination = 0;
+    } else {
+        full_destination = destination.bottom == height_20;
+    }
+    int full_source = 0;
+    if ((source_left == 0) && (source_top == 0) && (source_right == source.width_1c) &&
+        (source_bottom == source.height_20)) {
+        full_source = 1;
+    }
+    int clipped = 0;
+    if ((destination.left < 0) || (width_1c < destination.right) || (destination.top < 0) ||
+        (height_20 < destination.bottom)) {
+        clipped = 1;
+    }
+    if ((full_destination != 0) && (full_source != 0)) {
+        copy(source);
+        Rectangle rectangle;
+        if (flip_h == 0) {
+            if (flip_v == 0) {
+                return;
+            }
+            rectangle.left = 0;
+            rectangle.top = height_20;
+            rectangle.right = width_1c;
+            rectangle.bottom = 0;
+            flipRectangle(rectangle);
+            return;
+        }
+        if (flip_v != 0) {
+            rectangle.left = width_1c;
+            rectangle.top = height_20;
+            rectangle.right = 0;
+            rectangle.bottom = 0;
+            flipRectangle(rectangle);
+            return;
+        }
+        rectangle.left = width_1c;
+        rectangle.top = 0;
+        rectangle.right = 0;
+        rectangle.bottom = height_20;
+        flipRectangle(rectangle);
+        return;
+    }
+    long destination_width = destination.right - destination.left;
+    long source_width = source_right - source_left;
+    srColorSurface* temporary = 0;
+    if (destination_width == source_width) {
+        if ((flip_h == 0) && (flip_v == 0)) {
+            blit(destination.left, destination.top, source, source_left, source_top, source_right,
+                 source_bottom);
+            return;
+        }
+        if (clipped == 0) {
+            blit(destination.left, destination.top, source, source_left, source_top, source_right,
+                 source_bottom);
+            Rectangle rectangle;
+            rectangle.left = destination.left;
+            rectangle.top = destination.top;
+            rectangle.right = destination.right;
+            rectangle.bottom = destination.bottom;
+            if (flip_h != 0) {
+                long swap = rectangle.left;
+                rectangle.left = rectangle.right;
+                rectangle.right = swap;
+            }
+            if (flip_v != 0) {
+                long swap = rectangle.top;
+                rectangle.top = rectangle.bottom;
+                rectangle.bottom = swap;
+            }
+            flipRectangle(rectangle);
+            return;
+        }
+    }
+    srColorSurfaceIFace* scaled = 0;
+    if ((full_source == 0) || (flip_h != 0) || (flip_v != 0)) {
+        srPixelConvert::PixelFormat format;
+        source.getPixelFormat(format);
+        scaled = new srColorSurface(format, source_width, source_bottom - source_top);
+        srColorSurfaceIFace* scaled_iface = scaled;
+        scaled_iface->copySurfaceParameters(source);
+        scaled_iface->blit(0, 0, source, source_left, source_top, source_right, source_bottom);
+        Rectangle rectangle;
+        if (flip_h == 0) {
+            if (flip_v != 0) {
+                rectangle.left = 0;
+                rectangle.top = scaled->height_20;
+                rectangle.right = scaled->width_1c;
+                rectangle.bottom = 0;
+                scaled->flipRectangle(rectangle);
+            }
+        } else {
+            if (flip_v == 0) {
+                rectangle.left = scaled->width_1c;
+                rectangle.top = 0;
+                rectangle.right = 0;
+                rectangle.bottom = scaled->height_20;
+            } else {
+                rectangle.left = scaled->width_1c;
+                rectangle.top = scaled->height_20;
+                rectangle.right = 0;
+                rectangle.bottom = 0;
+            }
+            scaled->flipRectangle(rectangle);
+        }
+    } else {
+        scaled = &source;
+    }
+    if (full_destination == 0) {
+        srPixelConvert::PixelFormat format = pixel_format_30;
+        temporary =
+            new srColorSurface(format, destination_width, destination.bottom - destination.top);
+        srColorSurfaceIFace* temporary_iface = temporary;
+        temporary_iface->copySurfaceParameters(*this);
+        temporary->copy(*scaled);
+        blit(destination.left, destination.top, *temporary, 0, 0, destination.right,
+             destination.bottom);
+        temporary->release();
+    } else {
+        copy(*scaled);
+    }
+    if (scaled != &source) {
+        ((srColorSurface*)scaled)->release();
+    }
+}
+
+// FUNCTION: SURRENDER 0x100589D0
+void srColorSurfaceIFace::composite(long x, long y, srColorSurfaceIFace& source, long source_x,
+                                    long source_y, long source_right, long source_bottom,
+                                    double alpha)
+{
+    long width = width_1c;
+    long height = height_20;
+    long source_height = source.height_20;
+    if (0.0 < alpha) {
+        if (1.0 <= alpha) {
+            alpha = 1.0;
+        }
+        if ((source.pixel_format_30.alpha_bits == 0) && (alpha == 1.0)) {
+            blit(x, y, source, source_x, source_y, source_right, source_bottom);
+            return;
+        }
+        if ((x < width) && (y < height)) {
+            if (x < 0) {
+                source_x = source_x - x;
+                x = 0;
+            }
+            if (y < 0) {
+                source_y = source_y - y;
+                y = 0;
+            }
+            if (source_x < 0) {
+                x = x - source_x;
+                source_x = 0;
+            }
+            if (source_y < 0) {
+                y = y - source_y;
+                source_y = 0;
+            }
+            if (source.width_1c < source_right) {
+                source_right = source.width_1c;
+            }
+            if (source_height < source_bottom) {
+                source_bottom = source_height;
+            }
+            if (((source_x < source.width_1c) && (source_x < source_right)) &&
+                ((source_y < source_height) && (source_y < source_bottom))) {
+                long dest_span = x - source_x;
+                if (width < dest_span + source_right) {
+                    source_right = (width - x) + source_x;
+                }
+                if (height < source_bottom + (y - source_y)) {
+                    source_bottom = (height - y) + source_y;
+                }
+                if ((source_x < source_right) && (source_y < source_bottom)) {
+                    if ((((&source == this) && (x < source_right) && (y < source_bottom)) &&
+                         (source_x < dest_span + source_right)) &&
+                        ((source_y < source_bottom + (y - source_y)) && (source_y <= y))) {
+                        long rows = source_bottom - source_y;
+                        long span = source_right - source_x;
+                        unsigned long* temp = (unsigned long*)srHeap.allocate(rows * span * 4);
+                        unsigned long* row = (unsigned long*)srHeap.allocate(span * 4);
+                        long r;
+                        for (r = source_y; r < source_bottom; r++) {
+                            source.getPixelRow(temp + (r - source_y) * span, r, source_x,
+                                               source_right);
+                        }
+                        for (r = source_bottom - source_y; r != 0; r--) {
+                            getPixelRow(row, y, x, dest_span + source_right);
+                            for (long i = 0; i < span; i++) {
+                                unsigned char* source_pixel =
+                                    (unsigned char*)&temp[(source_bottom - source_y - r) * span +
+                                                          i];
+                                unsigned char* dest_pixel = (unsigned char*)&row[i];
+                                double blend = alpha;
+                                if ((source_pixel[3] != 0) && (0.0 < alpha)) {
+                                    if (1.0 < alpha) {
+                                        blend = 1.0;
+                                    }
+                                    blend = source_pixel[3] * 0.00392156862745098 * blend;
+                                    double inverse = 1.0 - blend;
+                                    dest_pixel[2] =
+                                        (unsigned char)(long)(dest_pixel[2] * inverse +
+                                                              source_pixel[2] * blend + 0.5);
+                                    dest_pixel[1] =
+                                        (unsigned char)(long)(dest_pixel[1] * inverse +
+                                                              source_pixel[1] * blend + 0.5);
+                                    dest_pixel[0] =
+                                        (unsigned char)(long)(dest_pixel[0] * inverse +
+                                                              source_pixel[0] * blend + 0.5);
+                                    dest_pixel[3] =
+                                        (unsigned char)(long)(blend * 255.0 +
+                                                              dest_pixel[3] * inverse + 0.5);
+                                }
+                            }
+                            setPixelRow(row, y, x, dest_span + source_right);
+                            y = y + 1;
+                        }
+                        srHeap.free(temp);
+                        srHeap.free(row);
+                        return;
+                    }
+                    long span = source_right - source_x;
+                    unsigned long* source_row = (unsigned long*)srHeap.allocate(span * 4);
+                    unsigned long* row = (unsigned long*)srHeap.allocate(span * 4);
+                    if (alpha == 1.0) {
+                        for (; source_y < source_bottom; source_y++) {
+                            getPixelRow(row, y, x, dest_span + source_right);
+                            source.getPixelRow(source_row, source_y, source_x, source_right);
+                            for (long i = 0; i < span; i++) {
+                                unsigned char* source_pixel = (unsigned char*)&source_row[i];
+                                unsigned char* dest_pixel = (unsigned char*)&row[i];
+                                unsigned char alpha_byte = source_pixel[3];
+                                if (alpha_byte != 0) {
+                                    if (alpha_byte == 0xff) {
+                                        row[i] = source_row[i];
+                                    } else {
+                                        double blend = alpha_byte * 0.00392156862745098;
+                                        double inverse = 1.0 - blend;
+                                        dest_pixel[2] =
+                                            (unsigned char)(long)(dest_pixel[2] * inverse +
+                                                                  source_pixel[2] * blend + 0.5);
+                                        dest_pixel[1] =
+                                            (unsigned char)(long)(dest_pixel[1] * inverse +
+                                                                  source_pixel[1] * blend + 0.5);
+                                        dest_pixel[0] =
+                                            (unsigned char)(long)(dest_pixel[0] * inverse +
+                                                                  source_pixel[0] * blend + 0.5);
+                                        dest_pixel[3] =
+                                            (unsigned char)(long)(blend * 255.0 +
+                                                                  dest_pixel[3] * inverse + 0.5);
+                                    }
+                                }
+                            }
+                            setPixelRow(row, y, x, dest_span + source_right);
+                            y = y + 1;
+                        }
+                    } else {
+                        for (; source_y < source_bottom; source_y++) {
+                            getPixelRow(row, y, x, dest_span + source_right);
+                            source.getPixelRow(source_row, source_y, source_x, source_right);
+                            for (long i = 0; i < span; i++) {
+                                unsigned char* source_pixel = (unsigned char*)&source_row[i];
+                                unsigned char* dest_pixel = (unsigned char*)&row[i];
+                                double blend = alpha;
+                                if ((source_pixel[3] != 0) && (0.0 < alpha)) {
+                                    if (1.0 < alpha) {
+                                        blend = 1.0;
+                                    }
+                                    blend = source_pixel[3] * 0.00392156862745098 * blend;
+                                    double inverse = 1.0 - blend;
+                                    dest_pixel[2] =
+                                        (unsigned char)(long)(dest_pixel[2] * inverse +
+                                                              source_pixel[2] * blend + 0.5);
+                                    dest_pixel[1] =
+                                        (unsigned char)(long)(dest_pixel[1] * inverse +
+                                                              source_pixel[1] * blend + 0.5);
+                                    dest_pixel[0] =
+                                        (unsigned char)(long)(dest_pixel[0] * inverse +
+                                                              source_pixel[0] * blend + 0.5);
+                                    dest_pixel[3] =
+                                        (unsigned char)(long)(blend * 255.0 +
+                                                              dest_pixel[3] * inverse + 0.5);
+                                }
+                            }
+                            setPixelRow(row, y, x, dest_span + source_right);
+                            y = y + 1;
+                        }
+                    }
+                    srHeap.free(source_row);
+                    srHeap.free(row);
+                }
+            }
+        }
+    }
+}
+
+// FUNCTION: SURRENDER 0x1005A840
+static void __cdecl minifyRow_MMX(unsigned long* destination, const unsigned long* first,
+                                  const unsigned long* second, unsigned long count)
+{
+    __asm {
+        mov ecx, count
+        test ecx, ecx
+        jz minifyRow_MMX_done
+        mov edi, destination
+        mov eax, first
+        mov ebx, second
+        pcmpeqw mm6, mm6
+        psrlw mm6, 0xe
+        pxor mm7, mm7
+        test edi, 0x4
+        jz minifyRow_MMX_pairs
+    minifyRow_MMX_single:
+        movq mm0, qword ptr [eax]
+        movq mm1, qword ptr [ebx]
+        movq mm4, mm0
+        movq mm5, mm1
+        punpcklbw mm0, mm7
+        punpcklbw mm1, mm7
+        punpckhbw mm4, mm7
+        punpckhbw mm5, mm7
+        paddw mm0, mm4
+        paddw mm1, mm5
+        paddw mm0, mm1
+        paddw mm0, mm6
+        psrlw mm0, 0x2
+        packuswb mm0, mm0
+        movd dword ptr [edi], mm0
+        add eax, 0x8
+        add ebx, 0x8
+        add edi, 0x4
+        dec ecx
+        jz minifyRow_MMX_done
+    minifyRow_MMX_pairs:
+        push ecx
+        and ecx, 0xfffffffe
+        jz minifyRow_MMX_tail
+        lea eax, [eax + ecx*0x8]
+        lea ebx, [ebx + ecx*0x8]
+        lea edi, [edi + ecx*0x4]
+        neg ecx
+    minifyRow_MMX_pair_loop:
+        movq mm0, qword ptr [eax + ecx*0x8]
+        movq mm1, qword ptr [ebx + ecx*0x8]
+        movq mm2, qword ptr [eax + ecx*0x8 + 0x8]
+        movq mm3, qword ptr [ebx + ecx*0x8 + 0x8]
+        movq mm4, mm0
+        movq mm5, mm1
+        punpcklbw mm0, mm7
+        punpcklbw mm1, mm7
+        punpckhbw mm4, mm7
+        punpckhbw mm5, mm7
+        paddw mm0, mm4
+        paddw mm1, mm5
+        movq mm4, mm2
+        movq mm5, mm3
+        punpcklbw mm2, mm7
+        punpcklbw mm3, mm7
+        punpckhbw mm4, mm7
+        punpckhbw mm5, mm7
+        paddw mm2, mm4
+        paddw mm3, mm5
+        paddw mm0, mm1
+        paddw mm2, mm3
+        paddw mm0, mm6
+        paddw mm2, mm6
+        psrlw mm0, 0x2
+        psrlw mm2, 0x2
+        packuswb mm0, mm2
+        movq qword ptr [edi + ecx*0x4], mm0
+        add ecx, 0x2
+        js minifyRow_MMX_pair_loop
+    minifyRow_MMX_tail:
+        pop ecx
+        and ecx, 0x1
+        jnz minifyRow_MMX_single
+    minifyRow_MMX_done:
+        emms
+    }
+}
+
+// FUNCTION: SURRENDER 0x1005A930
+void srColorSurfaceIFace::minify(srColorSurfaceIFace& source)
+{
+    long height = height_20;
+    unsigned long width = width_1c;
+    long source_width = source.width_1c;
+    if (((width == (unsigned long)(source_width / 2)) && (height == source.height_20 / 2)) &&
+        (this != &source)) {
+        unsigned long* buffer = (unsigned long*)srHeap.allocate((width + source_width * 2) * 4);
+        unsigned long* second = buffer + source_width;
+        unsigned long* row = buffer + source_width * 2;
+        if ((srCore.getTimer()->m_cpu_features & 0x800000) == 0) {
+            for (long y = 0; y < height; y++) {
+                source.getPixelRow(buffer, y * 2, 0, source_width);
+                source.getPixelRow(second, y * 2 + 1, 0, source_width);
+                for (unsigned long x = 0; x < width; x++) {
+                    unsigned char* top = (unsigned char*)&buffer[x * 2];
+                    unsigned char* bottom = (unsigned char*)&second[x * 2];
+                    unsigned char* pixel = (unsigned char*)&row[x];
+                    pixel[0] = (unsigned char)((top[0] + top[4] + bottom[0] + bottom[4] + 3) >> 2);
+                    pixel[1] = (unsigned char)((top[1] + top[5] + bottom[1] + bottom[5] + 3) >> 2);
+                    pixel[2] = (unsigned char)((top[2] + top[6] + bottom[2] + bottom[6] + 3) >> 2);
+                    pixel[3] = (unsigned char)((top[3] + top[7] + bottom[3] + bottom[7] + 3) >> 2);
+                }
+                setPixelRow(row, y, 0, width);
+            }
+        } else {
+            for (long y = 0; y < height; y++) {
+                source.getPixelRow(buffer, y * 2, 0, source_width);
+                source.getPixelRow(second, y * 2 + 1, 0, source_width);
+                minifyRow_MMX(row, buffer, second, width);
+                setPixelRow(row, y, 0, width);
+            }
+        }
+        srHeap.free(buffer);
+    }
+}
+
+// FUNCTION: SURRENDER 0x1005ABB0
+void srColorSurfaceIFace::magnify(srColorSurfaceIFace& source)
+{
+    long source_height = source.height_20;
+    long width = width_1c;
+    long source_width = source.width_1c;
+    if (width == source_width * 2 && height_20 == source_height * 2 && this != &source) {
+        unsigned long* buffer = (unsigned long*)srHeap.allocate((source_width + width * 2) * 4);
+        if (buffer == 0) {
+            buffer = 0;
+        }
+        unsigned long* even = buffer + source_width;
+        unsigned long* odd = even + width;
+        source.getPixelRow(buffer, 0, 0, source_width);
+        long x;
+        for (x = 0; x < source_width - 1; x++) {
+            even[x * 2] = buffer[x];
+            even[x * 2 + 1] = (buffer[x + 1] >> 1 & 0x7f7f7f7f) + (buffer[x] >> 1 & 0x7f7f7f7f);
+        }
+        even[(source_width - 1) * 2] = buffer[source_width - 1];
+        even[(source_width - 1) * 2 + 1] = buffer[source_width - 1];
+        setPixelRow(even, 0, 0, width);
+        for (long y = 1; y < source_height; y++) {
+            source.getPixelRow(buffer, y, 0, source_width);
+            for (x = 0; x < source_width - 1; x++) {
+                odd[x * 2] = buffer[x];
+                odd[x * 2 + 1] = (buffer[x + 1] >> 1 & 0x7f7f7f7f) + (buffer[x] >> 1 & 0x7f7f7f7f);
+            }
+            odd[(source_width - 1) * 2] = buffer[source_width - 1];
+            odd[(source_width - 1) * 2 + 1] = buffer[source_width - 1];
+            for (x = 0; x < width; x++) {
+                even[x] = (even[x] >> 1 & 0x7f7f7f7f) + (odd[x] >> 1 & 0x7f7f7f7f);
+            }
+            setPixelRow(even, y * 2 - 1, 0, width);
+            setPixelRow(odd, y * 2, 0, width);
+            unsigned long* swap = even;
+            even = odd;
+            odd = swap;
+        }
+        setPixelRow(even, height_20 - 1, 0, width);
+        srHeap.free(buffer);
+    }
 }
 
 // FUNCTION: SURRENDER 0x1005DBE0

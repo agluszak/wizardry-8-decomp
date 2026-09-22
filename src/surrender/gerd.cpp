@@ -13,7 +13,6 @@
 #include "surrender/srWindow.h"
 #include "surrender/srHeap.h"
 #include "surrender/srPalette.h"
-#include "surrender/srThread.h"
 #include "surrender/srVectorProcessor.h"
 
 #include <ctype.h>
@@ -21,6 +20,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#if defined(WIZ8_CLANG_LINT)
+/* The lint lane's stub <ostream> declares only the operator<< overloads the
+   recovered ABI references. dump calls std::endl - the real VC6 header
+   resolves it to the _CRTIMP char overload imported from MSVCP60 - so the
+   compile-only lane needs this declaration to parse. */
+namespace std {
+ostream& endl(ostream& stream);
+}
+#endif
 
 // GLOBAL: SURRENDER 0x100A4780
 srGERD* srGERD::first;
@@ -1119,7 +1128,7 @@ const char* srGERD::getDriverName() const
 {
     const char* name = info_50_.text_3c_[3];
     if (isContextCreated() == 0) {
-        name = driver_name_2e0_;
+        name = driver_info_2cc_.name_14;
     }
     return name;
 }
@@ -2071,10 +2080,7 @@ void srGERD::applyViewStateChanges()
         viewport.y = view_top_163c_;
         viewport.width = view_right_1640_ - viewport.x;
         viewport.height = view_bottom_1644_ - viewport.y;
-        viewport.extra[0] = viewport_extra_1618_[0];
-        viewport.extra[1] = viewport_extra_1618_[1];
-        viewport.extra[2] = viewport_extra_1618_[2];
-        viewport.extra[3] = viewport_extra_1618_[3];
+        memcpy(viewport.extra, &depth_min_1618_, sizeof(viewport.extra));
         if ((state_flags_28_ & 0x10) == 0) {
             getDD()->setViewPort(viewport);
         }
@@ -4014,26 +4020,6 @@ void srGERD::deleteContext()
     }
 }
 
-// FUNCTION: SURRENDER 0x10029600
-void srGERD::initGlobalPalette()
-{
-    /* BGRA grayscale ramp: each channel is scale*255 converted by FISTP in
-       round-to-nearest mode; +0.5 spells the same round for this ramp. */
-    float scale = 0.0f;
-    /* reinterpret-ok: retail walks the palette as bytes. */
-    unsigned char* entry = reinterpret_cast<unsigned char*>(global_palette_1b38_);
-    for (long index = 0x100; index != 0; index--) {
-        double gray = scale * 255.0;
-        entry[3] = 0xff;
-        entry[2] = static_cast<unsigned char>(gray + 0.5);
-        entry[1] = static_cast<unsigned char>(gray + 0.5);
-        entry[0] = static_cast<unsigned char>(gray + 0.5);
-        entry += 4;
-        scale += 0.003921569f;
-    }
-    getDD()->setGlobalPalette(global_palette_1b38_, 0x100);
-}
-
 // FUNCTION: SURRENDER 0x10019EB0
 void srGERD::deleteRenderers()
 {
@@ -4666,4 +4652,1110 @@ srGERD::Texture* srGERD::createNewTexture(srTextureIFace* texture)
         dimensions.palette->release();
     }
     return result;
+}
+
+// FUNCTION: SURRENDER 0x10017930
+long srGERD::getMaxTextureWidth() const
+{
+    return info_50_.texture_max_dim_30_;
+}
+
+// FUNCTION: SURRENDER 0x10017940
+long srGERD::getMaxTextureHeight() const
+{
+    return info_50_.texture_max_dim_30_;
+}
+
+// FUNCTION: SURRENDER 0x10017950
+long srGERD::getMaxTextureAspectRatio() const
+{
+    return info_50_.texture_max_aspect_34_;
+}
+
+// FUNCTION: SURRENDER 0x10017960
+void srGERD::setGlobalPalette(const srPalette& palette)
+{
+    SectionAccess access(state_section_18_);
+    if (palette.matchPalette(global_palette_1b38_, 0x100) != 0) {
+        return;
+    }
+    long count = palette.getPaletteSize();
+    if (count > 0x100) {
+        count = 0x100;
+    }
+    for (long i = 0; i < count; ++i) {
+        global_palette_1b38_[i] = palette.getColor(i);
+    }
+    /* reinterpret-ok: the DD receives the palette entries as raw dwords. */
+    getDD()->setGlobalPalette(reinterpret_cast<unsigned long*>(global_palette_1b38_), 0x100);
+}
+
+// FUNCTION: SURRENDER 0x10017AA0
+long srGERD::getTextureReduction() const
+{
+    srCriticalSection* section = state_section_18_;
+    section->getAccess();
+    long reduction = texture_reduction_2040_;
+    section->releaseAccess();
+    return reduction;
+}
+
+// FUNCTION: SURRENDER 0x10017B70
+void srGERD::invalidateResidentPalette(srPalette* palette)
+{
+    if (palette != 0 && palette == palette_1fdc_) {
+        if (palette_1fdc_ != 0) {
+            palette_1fdc_->release();
+            palette_1fdc_ = 0;
+        }
+        dirty_24_ |= 0x400;
+        dirty_24_ |= 0x800;
+    }
+}
+
+// FUNCTION: SURRENDER 0x10017D00
+int srGERD::isTextureCached(srTextureIFace* texture)
+{
+    SectionAccess access(state_section_18_);
+    if (texture != 0) {
+        unsigned long handle = texture->getTextureFrameHandle();
+        long index =
+            texture_lookup_2004_
+                .bucket_heads[srHashValue(handle) & (texture_lookup_2004_.bucket_count - 1)];
+        if (index != -1) {
+            srHashEntry<unsigned long, Texture*>* entries = texture_lookup_2004_.entries;
+            do {
+                if (entries[index].key == handle) {
+                    if (entries[index].value != 0) {
+                        return 1;
+                    }
+                    break;
+                }
+                index = entries[index].next_index;
+            } while (index != -1);
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: SURRENDER 0x10017DD0
+int srGERD::isTextureResident(srTextureIFace* texture)
+{
+    SectionAccess access(state_section_18_);
+    if (texture != 0 && isWindowOpen() != 0) {
+        unsigned long handle = texture->getTextureFrameHandle();
+        long index =
+            texture_lookup_2004_
+                .bucket_heads[srHashValue(handle) & (texture_lookup_2004_.bucket_count - 1)];
+        if (index != -1) {
+            srHashEntry<unsigned long, Texture*>* entries = texture_lookup_2004_.entries;
+            do {
+                if (entries[index].key == handle) {
+                    Texture* resident = entries[index].value;
+                    if (resident != 0 && resident->device_2c.resident_data_68 != 0 &&
+                        resident->device_2c.resident_size_6c != 0) {
+                        return 1;
+                    }
+                    break;
+                }
+                index = entries[index].next_index;
+            } while (index != -1);
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: SURRENDER 0x10017F70
+int srGERD::getTextureInfo(srTextureIFace* texture, TextureInfo& info)
+{
+    SectionAccess access(state_section_18_);
+    if (isWindowOpen() == 0) {
+        return 0;
+    }
+    unsigned long handle = texture->getTextureFrameHandle();
+    long index = texture_lookup_2004_
+                     .bucket_heads[srHashValue(handle) & (texture_lookup_2004_.bucket_count - 1)];
+    if (index != -1) {
+        srHashEntry<unsigned long, Texture*>* entries = texture_lookup_2004_.entries;
+        while (entries[index].key != handle) {
+            index = entries[index].next_index;
+            if (index == -1) {
+                return 0;
+            }
+        }
+        Texture* resident = entries[index].value;
+        if (resident != 0) {
+            info.pixel_format_00 = resident->pixel_format_0c;
+            info.width_14 = resident->device_2c.width_20;
+            info.height_18 = resident->device_2c.height_24;
+            info.last_level_1c = resident->device_2c.last_level_2c;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+// FUNCTION: SURRENDER 0x10029600
+void srGERD::initGlobalPalette()
+{
+    float level = 0.0f;
+    for (long i = 0; i < 0x100; ++i) {
+        unsigned char gray = (unsigned char)(long)(level * 255.0f + 0.5f);
+        global_palette_1b38_[i].blue = gray;
+        global_palette_1b38_[i].green = gray;
+        global_palette_1b38_[i].red = gray;
+        global_palette_1b38_[i].alpha = 0xff;
+        level += 0.003921569f;
+    }
+    /* reinterpret-ok: the DD receives the palette entries as raw dwords. */
+    getDD()->setGlobalPalette(reinterpret_cast<unsigned long*>(global_palette_1b38_), 0x100);
+}
+
+// FUNCTION: SURRENDER 0x10018C70
+void srGERD::scanDevices(const char* path, srStringTable& devices)
+{
+    srStringTable libraries;
+    char entry[512];
+    long count = srSystem::scanLibraries(libraries, path, "srDD*");
+    for (long index = 0; index < count; ++index) {
+        void* library = srDynamicLibrary::load(libraries.getString(index));
+        unsigned long device = 0;
+        srGERD* gerd = loadDeviceWithFileName(libraries.getString(index), device);
+        while (gerd != 0) {
+            sprintf(entry, "%s(%ld)", libraries.getString(index), device);
+            devices.addString(entry);
+            delete gerd;
+            device++;
+            gerd = loadDeviceWithFileName(libraries.getString(index), device);
+        }
+        if (library != 0) {
+            srDynamicLibrary::free(library);
+        }
+    }
+}
+
+// FUNCTION: SURRENDER 0x10018E40
+void srGERD::debugWrite(const char* text)
+{
+    if (text != 0 && *text != '\0') {
+        srOut << text;
+    }
+}
+
+// FUNCTION: SURRENDER 0x10018E60
+void srGERD::releaseAll()
+{
+    srGERD* gerd = getFirst();
+    while (gerd != 0) {
+        delete gerd;
+        gerd = getFirst();
+    }
+}
+
+// FUNCTION: SURRENDER 0x1001AFD0
+void srGERD::setHint(e_hint hint, e_hintMode mode)
+{
+    if (hints_370_[hint] != mode) {
+        hints_370_[hint] = mode;
+    }
+}
+
+// FUNCTION: SURRENDER 0x1001AFF0
+const char* srGERD::getErrorString(e_error error)
+{
+    if (0 <= error && error < 10) {
+        return errStrings[error];
+    }
+    return "UNKNOWN ERROR";
+}
+
+const char* srGERD::errStrings[10] = {"ERROR_NONE",
+                                      "ERROR_INVALID_ENUM",
+                                      "ERROR_INVALID_VALUE",
+                                      "ERROR_WINDOW_OPEN_FAILED",
+                                      "ERROR_WINDOW_NOT_OPEN",
+                                      "ERROR_BUFFER_LOCK_FAILED",
+                                      "ERROR_INVALID_WHANDLE",
+                                      "ERROR_SHARED_CONTEXT",
+                                      "ERROR_CONTEXT_CREATION_FAILED",
+                                      "ERROR_NO_CONTEXT"};
+
+// FUNCTION: SURRENDER 0x1001B400
+long srGERD::getGERDCount()
+{
+    long count = 0;
+    for (srGERD* gerd = first; gerd != 0; gerd = gerd->getNext()) {
+        count++;
+    }
+    return count;
+}
+
+// FUNCTION: SURRENDER 0x1001B420
+srGERD* srGERD::getGERD(unsigned long index)
+{
+    unsigned long current = 0;
+    for (srGERD* gerd = first; gerd != 0; gerd = gerd->getNext()) {
+        if (current == index) {
+            return gerd;
+        }
+        current++;
+    }
+    return 0;
+}
+
+// FUNCTION: SURRENDER 0x10020DD0
+int srGERD::isBufferLocked()
+{
+    return lock_surface_1b00_ != 0;
+}
+
+// FUNCTION: SURRENDER 0x1001C830
+long srGERD::getAccumAlphaBits() const
+{
+    return 0x10;
+}
+
+// FUNCTION: SURRENDER 0x1001C840
+long srGERD::getAccumRedBits() const
+{
+    return 0x10;
+}
+
+// FUNCTION: SURRENDER 0x1001C850
+long srGERD::getAccumGreenBits() const
+{
+    return 0x10;
+}
+
+// FUNCTION: SURRENDER 0x1001C860
+long srGERD::getAccumBlueBits() const
+{
+    return 0x10;
+}
+
+// FUNCTION: SURRENDER 0x1001C870
+void srGERD::setPolygonMode(e_polygonMode mode)
+{
+    if (mode != (e_polygonMode)polygon_mode_1fe0_) {
+        flushImmediateRenderers();
+        polygon_mode_1fe0_ = mode;
+        dirty_24_ |= 0x4000;
+    }
+}
+
+// FUNCTION: SURRENDER 0x1001C8E0
+srGERD::e_polygonMode srGERD::getPolygonMode() const
+{
+    return (e_polygonMode)polygon_mode_1fe0_;
+}
+
+// FUNCTION: SURRENDER 0x1001C8F0
+void srGERD::getClearAccum(srVector4T<float>& color) const
+{
+    color = clear_values_1b08_.accum_10;
+}
+
+// FUNCTION: SURRENDER 0x1001C920
+void srGERD::setClearAccum(float red, float green, float blue, float alpha)
+{
+    srVector4T<float> color;
+    color.x = red;
+    color.y = green;
+    color.z = blue;
+    color.w = alpha;
+    setClearAccum(color);
+}
+
+// FUNCTION: SURRENDER 0x1001C960
+void srGERD::setClearAccum(const srVector4T<float>& color)
+{
+    clear_values_1b08_.accum_10 = color;
+    float* clear = &clear_values_1b08_.accum_10.x;
+    if (clear[0] < -1.0f) {
+        clear[0] = -1.0f;
+    }
+    if (clear[1] < -1.0f) {
+        clear[1] = -1.0f;
+    }
+    if (clear[2] < -1.0f) {
+        clear[2] = -1.0f;
+    }
+    if (clear[3] < -1.0f) {
+        clear[3] = -1.0f;
+    }
+    if (1.0f < clear[0]) {
+        clear[0] = 1.0f;
+    }
+    if (1.0f < clear[1]) {
+        clear[1] = 1.0f;
+    }
+    if (1.0f < clear[2]) {
+        clear[2] = 1.0f;
+    }
+    if (1.0f < clear[3]) {
+        clear[3] = 1.0f;
+    }
+}
+
+// FUNCTION: SURRENDER 0x1001CB40
+void srGERD::getClearColor(srVector4T<float>& color) const
+{
+    color = clear_values_1b08_.color_00;
+}
+
+// FUNCTION: SURRENDER 0x1001CBE0
+void srGERD::setClearStencil(unsigned long stencil)
+{
+    clear_values_1b08_.stencil_28 = stencil;
+}
+
+// FUNCTION: SURRENDER 0x1001CBF0
+double srGERD::getClearDepth() const
+{
+    return clear_values_1b08_.depth_20;
+}
+
+// FUNCTION: SURRENDER 0x1001CC00
+unsigned long srGERD::getClearStencil() const
+{
+    return clear_values_1b08_.stencil_28;
+}
+
+// FUNCTION: SURRENDER 0x1001CF00
+unsigned long srGERD::getDDAPIVersion() const
+{
+    return driver_info_2cc_.dd_api_version_0c;
+}
+
+// FUNCTION: SURRENDER 0x1001CF60
+srGERD* srGERD::getPrev() const
+{
+    return prev_30_;
+}
+
+// FUNCTION: SURRENDER 0x1001CF70
+srGERD* srGERD::getPrevOpen() const
+{
+    return prev_open_38_;
+}
+
+// FUNCTION: SURRENDER 0x1001CFA0
+void srGERD::extCommand(unsigned long command, void* data, unsigned long size)
+{
+    getDD()->extCommand(command, data, size);
+}
+
+// FUNCTION: SURRENDER 0x1001CFD0
+srGERD::e_hintMode srGERD::getHint(e_hint hint) const
+{
+    return hints_370_[hint];
+}
+
+// FUNCTION: SURRENDER 0x1001CFE0
+void srGERD::getGamma(srVector3T<float>& gamma) const
+{
+    gamma = gamma_1758_;
+}
+
+// FUNCTION: SURRENDER 0x1001D000
+srGERD::e_antiAlias srGERD::getAntiAlias() const
+{
+    return antialias_1768_;
+}
+
+// FUNCTION: SURRENDER 0x1001D010
+srGERD::e_error srGERD::getError()
+{
+    e_error error = last_error_2c_;
+    setError(ERROR_NONE);
+    return error;
+}
+
+// FUNCTION: SURRENDER 0x1001D0C0
+int srGERD::isFlipped() const
+{
+    return (state_flags_28_ >> 3) & 1;
+}
+
+// FUNCTION: SURRENDER 0x1001D0F0
+const char* srGERD::getApiVersion() const
+{
+    return driver_info_2cc_.api_name_54;
+}
+
+// FUNCTION: SURRENDER 0x1001D1B0
+srGERD::e_depthBuffer srGERD::getDepthBufferType() const
+{
+    return (e_depthBuffer)((info_50_.flags_18_ & 0xff) >> 3 & 1);
+}
+
+// FUNCTION: SURRENDER 0x1001D1C0
+srDD::e_driverID srGERD::getDriverID() const
+{
+    return (srDD::e_driverID)driver_info_2cc_.driver_id_10;
+}
+
+// FUNCTION: SURRENDER 0x1001D1E0
+unsigned long srGERD::getSwapInterval() const
+{
+    return swap_interval_1764_;
+}
+
+// FUNCTION: SURRENDER 0x1001D210
+void srGERD::getTextureFormat(unsigned long index, srPixelConvert::PixelFormat& format) const
+{
+    if (texture_format_count_364_ <= (long)index) {
+        index = 0;
+    }
+    format = texture_formats_360_[index];
+}
+
+// FUNCTION: SURRENDER 0x1001D240
+unsigned long srGERD::getTextureFormatCount() const
+{
+    return texture_format_count_364_;
+}
+
+// FUNCTION: SURRENDER 0x1001D250
+void srGERD::getDisplayModeInfo(long index, DisplayModeInfo& info) const
+{
+    if (display_mode_count_36c_ <= index) {
+        index = 0;
+    }
+    info.width_00 = display_modes_368_[index * 3];
+    info.height_04 = display_modes_368_[index * 3 + 1];
+    info.depth_08 = display_modes_368_[index * 3 + 2];
+}
+
+// FUNCTION: SURRENDER 0x1001D290
+unsigned long srGERD::getDisplayModeCount() const
+{
+    return display_mode_count_36c_;
+}
+
+// FUNCTION: SURRENDER 0x1001D330
+void srGERD::getDepthRange(double& minimum, double& maximum) const
+{
+    minimum = depth_min_1618_;
+    maximum = depth_max_1620_;
+}
+
+// FUNCTION: SURRENDER 0x1001D360
+void srGERD::setDepthRange(double minimum, double maximum)
+{
+    if (minimum <= 0.0) {
+        minimum = 0.0;
+    } else if (minimum >= 1.0) {
+        minimum = 1.0;
+    }
+    depth_min_1618_ = minimum;
+    if (maximum <= 0.0) {
+        depth_max_1620_ = 0.0;
+    } else if (maximum < 1.0) {
+        depth_max_1620_ = maximum;
+    } else {
+        depth_max_1620_ = 1.0;
+    }
+    dirty_24_ |= 0x100;
+}
+
+// FUNCTION: SURRENDER 0x1001BB00
+const srShader& srGERD::getShader() const
+{
+    return shader_1ff8_;
+}
+
+// FUNCTION: SURRENDER 0x1001BAA0
+void srGERD::disable(e_enable option)
+{
+    if ((enable_flags_20_.value & (1UL << option)) != 0) {
+        toggle(option);
+    }
+}
+
+// FUNCTION: SURRENDER 0x1001BAC0
+void srGERD::enable(e_enable option)
+{
+    if ((enable_flags_20_.value & (1UL << option)) == 0) {
+        toggle(option);
+    }
+}
+
+// FUNCTION: SURRENDER 0x1001BBB0
+void srGERD::drawTriangle(const srVector3i& triangle)
+{
+    if ((enable_flags_20_.value & 4) == 0) {
+        if ((dirty_24_ & 0x1f0) != 0) {
+            applyViewStateChanges();
+        }
+        if ((dirty_24_ & 0xfe00) != 0) {
+            applyDrawStateChanges();
+        }
+        if ((dirty_21c0_ & 1) != 0) {
+            getDD()->setVertexArrayInfo(&vertex_arrays_21c4_);
+            dirty_21c0_ &= ~1UL;
+        }
+        getDD()->drawElements(static_cast<srRendererDefs::e_primitive>(3), 3,
+                              srRendererDefs::INDEX_ULONG, &triangle);
+        statistics_1a78_.draw_calls_60++;
+    }
+}
+
+// FUNCTION: SURRENDER 0x1001BB60
+void srGERD::fenceVertexArrays()
+{
+    getDD()->fence();
+}
+
+// FUNCTION: SURRENDER 0x1001BC30
+void srGERD::setDataPtr(srRendererDefs::e_vertexArray index, long components,
+                        srRendererDefs::e_type type, unsigned long stride, const void* values)
+{
+    vertex_arrays_21c4_.components_0c[index] = components;
+    vertex_arrays_21c4_.types_24[index] = type;
+    vertex_arrays_21c4_.strides_3c[index] = stride;
+    vertex_arrays_21c4_.arrays_54[index] = values;
+    dirty_21c0_ |= 1;
+}
+
+// FUNCTION: SURRENDER 0x1001BF10
+void srGERD::setDiffusePointer(long components, srRendererDefs::e_type type, unsigned long stride,
+                               const void* values)
+{
+    setDataPtr(srRendererDefs::VERTEX_ARRAY_DIFFUSE, components, type, stride, values);
+}
+
+// FUNCTION: SURRENDER 0x1001BF50
+void srGERD::setSpecularPointer(long components, srRendererDefs::e_type type, unsigned long stride,
+                                const void* values)
+{
+    vertex_arrays_21c4_.components_0c[2] = components;
+    vertex_arrays_21c4_.types_24[2] = type;
+    vertex_arrays_21c4_.strides_3c[2] = stride;
+    vertex_arrays_21c4_.arrays_54[2] = values;
+    dirty_21c0_ |= 1;
+}
+
+// FUNCTION: SURRENDER 0x1001BF90
+void srGERD::setFogPointer(long components, srRendererDefs::e_type type, unsigned long stride,
+                           const void* values)
+{
+    vertex_arrays_21c4_.components_0c[3] = components;
+    vertex_arrays_21c4_.types_24[3] = type;
+    vertex_arrays_21c4_.strides_3c[3] = stride;
+    vertex_arrays_21c4_.arrays_54[3] = values;
+    dirty_21c0_ |= 1;
+}
+
+// FUNCTION: SURRENDER 0x10020550
+void srGERD::initClearColors()
+{
+    srVector4T<float> color;
+    color.Set(0.0f, 0.0f, 0.0f, 0.0f);
+    setClearAccum(color);
+    color.Set(0.0f, 0.0f, 0.0f, 0.0f);
+    setClearColor(color);
+    setClearDepth(1.0);
+    setClearStencil(0);
+}
+
+// FUNCTION: SURRENDER 0x1001D2E0
+void srGERD::initView()
+{
+    depth_min_1618_ = 0.0;
+    depth_max_1620_ = 1.0;
+    clip_plane_count_167c_ = 0;
+    clip_mask_1674_ = 0x3f;
+    clip_mode1_mask_1678_ = 0;
+    cull_mode_1648_ = static_cast<e_cullMode>(0);
+    winding_164c_ = static_cast<e_winding>(0);
+}
+
+// FUNCTION: SURRENDER 0x10027F60
+void srGERD::initTextureParameterMatrix()
+{
+    correction_map_1f5c_[0] = 0;
+    correction_map_1f5c_[1] = 1;
+    correction_map_1f5c_[2] = 2;
+    correction_map_1f5c_[3] = 1;
+    mag_filter_map_1f6c_[0] = 0;
+    mag_filter_map_1f6c_[1] = 1;
+    mag_filter_map_1f6c_[2] = 2;
+    mag_filter_map_1f6c_[3] = 3;
+    mag_filter_map_1f6c_[4] = 2;
+    min_filter_map_1f80_[0] = 0;
+    min_filter_map_1f80_[1] = 1;
+    min_filter_map_1f80_[2] = 2;
+    min_filter_map_1f80_[3] = 3;
+    min_filter_map_1f80_[4] = 2;
+    mipmap_map_1f94_[0] = 0;
+    mipmap_map_1f94_[1] = 1;
+    mipmap_map_1f94_[2] = 2;
+    mipmap_map_1f94_[3] = 1;
+    wrap_s_map_1fa4_[0] = 0;
+    wrap_s_map_1fa4_[1] = 1;
+    wrap_t_map_1fac_[0] = 0;
+    wrap_t_map_1fac_[1] = 1;
+    default_correction_1fb4_ = static_cast<srTextureIFace::e_correction>(1);
+    default_mag_filter_1fb8_ = static_cast<srTextureIFace::e_filter>(2);
+    default_min_filter_1fbc_ = static_cast<srTextureIFace::e_filter>(2);
+    default_mipmap_1fc0_ = static_cast<srTextureIFace::e_mipmap>(1);
+    default_texture_params_1fc4_[0] = 0;
+    default_texture_params_1fc4_[1] = 1;
+    default_texture_params_1fc4_[2] = 2;
+    default_texture_params_1fc4_[3] = 3;
+    default_texture_params_1fc4_[4] = 0;
+    default_compression_1fd8_ = static_cast<srTextureIFace::e_compression>(0);
+}
+
+// FUNCTION: SURRENDER 0x1001CDF0
+const char* srGERD::sGetClassName()
+{
+    return "srGERD";
+}
+
+// FUNCTION: SURRENDER 0x1001CD90
+srRegistry::ClassNode* srGERD::sGetClassNode()
+{
+    srRegistry* registry = srCore.getRegistry();
+    srRegistry::ClassNode* node = registry->getClassNode(0x4000);
+    if (node == 0) {
+        node = registry->registerClass("srGERD", srRuntimeClass::sGetClassNode(), 0x4000, 1);
+    }
+    return node;
+}
+
+// FUNCTION: SURRENDER 0x1001CDD0
+unsigned long srGERD::sGetClassID()
+{
+    return srCore.getRegistry()->getClassID(sGetClassNode());
+}
+
+// FUNCTION: SURRENDER 0x1001CD30
+srRegistry::ClassNode* srGERD::getClassNode() const
+{
+    return sGetClassNode();
+}
+
+// FUNCTION: SURRENDER 0x1001CD40
+const char* srGERD::getClassName() const
+{
+    return "srGERD";
+}
+
+// FUNCTION: SURRENDER 0x1001CD50
+unsigned long srGERD::getClassID() const
+{
+    return sGetClassID();
+}
+
+// FUNCTION: SURRENDER 0x1001FA30
+void __cdecl srGERD::accumAccum_MMX(AccumPixel* accum, const srARGB* pixels, long scale, long count)
+{
+    __asm {
+        mov edi, accum
+        mov esi, pixels
+        mov ecx, count
+        movd mm5, scale
+        punpcklwd mm5, mm5
+        punpckhdq mm5, mm5
+        movd mm6, scale
+        punpcklwd mm6, mm6
+        punpckldq mm6, mm6
+        psrlw mm6, 1
+        lea edi, [edi + ecx*8]
+        lea esi, [esi + ecx*4]
+        neg ecx
+    accumAccum_MMX_loop:
+        movd mm0, dword ptr [esi + ecx*4]
+        punpcklbw mm0, mm0
+        psrlw mm0, 1
+        movq mm1, mm0
+        pmullw mm0, mm5
+        pmulhw mm1, mm6
+        paddw mm1, mm1
+        paddw mm0, mm1
+        movq mm1, qword ptr [edi + ecx*8]
+        paddsw mm0, mm1
+        movq qword ptr [edi + ecx*8], mm0
+        inc ecx
+        js accumAccum_MMX_loop
+        emms
+    }
+}
+
+// FUNCTION: SURRENDER 0x1001FA90
+void __cdecl srGERD::accumLoad_MMX(AccumPixel* accum, const srARGB* pixels, long scale, long count)
+{
+    __asm {
+        mov edi, accum
+        mov esi, pixels
+        mov ecx, count
+        movd mm5, scale
+        punpcklwd mm5, mm5
+        punpckhdq mm5, mm5
+        movd mm6, scale
+        punpcklwd mm6, mm6
+        punpckldq mm6, mm6
+        psrlw mm6, 1
+        lea edi, [edi + ecx*8]
+        lea esi, [esi + ecx*4]
+        neg ecx
+    accumLoad_MMX_loop:
+        movd mm0, dword ptr [esi + ecx*4]
+        punpcklbw mm0, mm0
+        psrlw mm0, 1
+        movq mm1, mm0
+        pmullw mm0, mm5
+        pmulhw mm1, mm6
+        paddw mm1, mm1
+        paddw mm0, mm1
+        movq qword ptr [edi + ecx*8], mm0
+        inc ecx
+        js accumLoad_MMX_loop
+        emms
+    }
+}
+
+// FUNCTION: SURRENDER 0x1001FB70
+void __cdecl srGERD::accumReturn_MMX(srARGB* pixels, const AccumPixel* accum, long scale,
+                                     long count)
+{
+    __asm {
+        mov edi, accum
+        mov esi, pixels
+        mov ecx, count
+        movd mm5, scale
+        punpcklwd mm5, mm5
+        punpckhdq mm5, mm5
+        movd mm6, scale
+        punpcklwd mm6, mm6
+        punpckldq mm6, mm6
+        psrlw mm6, 1
+        lea edi, [edi + ecx*8]
+        lea esi, [esi + ecx*4]
+        neg ecx
+    accumReturn_MMX_loop:
+        movq mm0, qword ptr [edi + ecx*8]
+        movq mm1, mm0
+        pmullw mm0, mm5
+        pmulhw mm1, mm6
+        paddw mm1, mm1
+        paddw mm0, mm1
+        psraw mm0, 7
+        movq mm1, mm0
+        psraw mm0, 0xf
+        pandn mm0, mm1
+        packuswb mm0, mm0
+        movd dword ptr [esi + ecx*4], mm0
+        inc ecx
+        js accumReturn_MMX_loop
+        emms
+    }
+}
+
+// FUNCTION: SURRENDER 0x1001FBD0
+void srGERD::accumulate(e_accum operation, float scale)
+{
+    if (!isWindowOpen()) {
+        return;
+    }
+    long width = scissor_1628_.right - scissor_1628_.left;
+    long height = scissor_1628_.bottom - scissor_1628_.top;
+    if (width == 0 || height == 0) {
+        return;
+    }
+    if (accum_buffer_1af8_ == 0) {
+        accumAlloc();
+        if (accum_buffer_1af8_ == 0) {
+            return;
+        }
+    }
+    srColorSurfaceIFace* surface = 0;
+    if ((operation == ACCUM_LOAD || operation == ACCUM_ACCUMULATE || operation == ACCUM_RETURN) &&
+        (surface = lockBuffer()) == 0) {
+        setError(ERROR_BUFFER_LOCK_FAILED);
+        return;
+    }
+    AccumPixel* row = accum_buffer_1af8_ + getWidth() * scissor_1628_.top + scissor_1628_.left;
+    /* reinterpret-ok: the accum row scratch is raw dword storage reused as
+       an ARGB pixel row. */
+    srARGB* pixels = reinterpret_cast<srARGB*>(accum_scratch_1afc_);
+    if ((srCore.getTimer()->m_cpu_features & 0x800000) != 0) {
+        long scale16 = (long)(scale * (operation == ACCUM_MULTIPLY ? 32767.0 : 65536.0));
+        switch (operation) {
+        case ACCUM_LOAD: {
+            for (long y = 0; y < height; y++) {
+                surface->getPixelRow(
+                    reinterpret_cast<unsigned long*>(
+                        pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
+                    scissor_1628_.top + y, scissor_1628_.left, scissor_1628_.right);
+                __asm {
+                    mov edi, row
+                    mov esi, pixels
+                    mov ecx, width
+                    movd mm5, scale16
+                    punpcklwd mm5, mm5
+                    punpckhdq mm5, mm5
+                    movd mm6, scale16
+                    punpcklwd mm6, mm6
+                    punpckldq mm6, mm6
+                    psrlw mm6, 1
+                    lea edi, [edi + ecx*8]
+                    lea esi, [esi + ecx*4]
+                    neg ecx
+                accumulate_load_loop:
+                    movd mm0, dword ptr [esi + ecx*4]
+                    punpcklbw mm0, mm0
+                    psrlw mm0, 1
+                    movq mm1, mm0
+                    pmullw mm0, mm5
+                    pmulhw mm1, mm6
+                    paddw mm1, mm1
+                    paddw mm0, mm1
+                    movq mm1, qword ptr [edi + ecx*8]
+                    paddsw mm0, mm1
+                    movq qword ptr [edi + ecx*8], mm0
+                    inc ecx
+                    js accumulate_load_loop
+                    emms
+                }
+                row += getWidth();
+            }
+            break;
+        }
+        case ACCUM_ACCUMULATE: {
+            for (long y = 0; y < height; y++) {
+                surface->getPixelRow(
+                    reinterpret_cast<unsigned long*>(
+                        pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
+                    scissor_1628_.top + y, scissor_1628_.left, scissor_1628_.right);
+                __asm {
+                    mov edi, row
+                    mov esi, pixels
+                    mov ecx, width
+                    movd mm5, scale16
+                    punpcklwd mm5, mm5
+                    punpckhdq mm5, mm5
+                    movd mm6, scale16
+                    punpcklwd mm6, mm6
+                    punpckldq mm6, mm6
+                    psrlw mm6, 1
+                    lea edi, [edi + ecx*8]
+                    lea esi, [esi + ecx*4]
+                    neg ecx
+                accumulate_accum_loop:
+                    movd mm0, dword ptr [esi + ecx*4]
+                    punpcklbw mm0, mm0
+                    psrlw mm0, 1
+                    movq mm1, mm0
+                    pmullw mm0, mm5
+                    pmulhw mm1, mm6
+                    paddw mm1, mm1
+                    paddw mm0, mm1
+                    movq qword ptr [edi + ecx*8], mm0
+                    inc ecx
+                    js accumulate_accum_loop
+                    emms
+                }
+                row += getWidth();
+            }
+            break;
+        }
+        case ACCUM_MULTIPLY: {
+            for (long y = 0; y < height; y++) {
+                __asm {
+                    mov edi, row
+                    mov ecx, width
+                    movd mm6, scale16
+                    punpcklwd mm6, mm6
+                    punpckldq mm6, mm6
+                    lea edi, [edi + ecx*8]
+                    neg ecx
+                accumulate_add_loop:
+                    movq mm0, qword ptr [edi + ecx*8]
+                    paddw mm0, mm6
+                    movq qword ptr [edi + ecx*8], mm0
+                    inc ecx
+                    js accumulate_add_loop
+                    emms
+                }
+                row += getWidth();
+            }
+            break;
+        }
+        case ACCUM_ADD: {
+            for (long y = 0; y < height; y++) {
+                __asm {
+                    mov edi, row
+                    mov ecx, width
+                    movd mm5, scale16
+                    punpcklwd mm5, mm5
+                    punpckhdq mm5, mm5
+                    movd mm6, scale16
+                    punpcklwd mm6, mm6
+                    punpckldq mm6, mm6
+                    psrlw mm6, 1
+                    lea edi, [edi + ecx*8]
+                    neg ecx
+                accumulate_mult_loop:
+                    movq mm0, qword ptr [edi + ecx*8]
+                    movq mm1, mm0
+                    pmullw mm0, mm5
+                    pmulhw mm1, mm6
+                    paddw mm1, mm1
+                    paddw mm0, mm1
+                    movq qword ptr [edi + ecx*8], mm0
+                    inc ecx
+                    js accumulate_mult_loop
+                    emms
+                }
+                row += getWidth();
+            }
+            break;
+        }
+        case ACCUM_RETURN: {
+            for (long y = 0; y < height; y++) {
+                __asm {
+                    mov edi, row
+                    mov esi, pixels
+                    mov ecx, width
+                    movd mm5, scale16
+                    punpcklwd mm5, mm5
+                    punpckhdq mm5, mm5
+                    movd mm6, scale16
+                    punpcklwd mm6, mm6
+                    punpckldq mm6, mm6
+                    psrlw mm6, 1
+                    lea edi, [edi + ecx*8]
+                    lea esi, [esi + ecx*4]
+                    neg ecx
+                accumulate_return_loop:
+                    movq mm0, qword ptr [edi + ecx*8]
+                    movq mm1, mm0
+                    pmullw mm0, mm5
+                    pmulhw mm1, mm6
+                    paddw mm1, mm1
+                    paddw mm0, mm1
+                    psraw mm0, 7
+                    movq mm1, mm0
+                    psraw mm0, 0xf
+                    pandn mm0, mm1
+                    packuswb mm0, mm0
+                    movd dword ptr [esi + ecx*4], mm0
+                    inc ecx
+                    js accumulate_return_loop
+                    emms
+                }
+                surface->setPixelRow(
+                    reinterpret_cast<const unsigned long*>(
+                        pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
+                    scissor_1628_.top + y, scissor_1628_.left, scissor_1628_.right);
+                row += getWidth();
+            }
+            break;
+        }
+        default:
+            setError(ERROR_INVALID_ENUM);
+        }
+    } else {
+        short addend = accumConvert(scale);
+        switch (operation) {
+        case ACCUM_LOAD: {
+            short table[256];
+            for (long i = 0; i < 256; i++) {
+                table[i] = (short)(long)(i * (scale * (32767.0f / 255.0f)));
+            }
+            for (long y = 0; y < height; y++) {
+                surface->getPixelRow(
+                    reinterpret_cast<unsigned long*>(
+                        pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
+                    scissor_1628_.top + y, scissor_1628_.left, scissor_1628_.right);
+                for (long x = 0; x < width; x++) {
+                    row[x].red_00 = row[x].red_00 + table[pixels[x].blue];
+                    row[x].green_02 = row[x].green_02 + table[pixels[x].green];
+                    row[x].blue_04 = row[x].blue_04 + table[pixels[x].red];
+                    row[x].alpha_06 = row[x].alpha_06 + table[pixels[x].alpha];
+                }
+                row += getWidth();
+            }
+            break;
+        }
+        case ACCUM_ACCUMULATE: {
+            short table[256];
+            for (long i = 0; i < 256; i++) {
+                table[i] = (short)(long)(i * (scale * (32767.0f / 255.0f)));
+            }
+            for (long y = 0; y < height; y++) {
+                surface->getPixelRow(
+                    reinterpret_cast<unsigned long*>(
+                        pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
+                    scissor_1628_.top + y, scissor_1628_.left, scissor_1628_.right);
+                for (long x = 0; x < width; x++) {
+                    row[x].red_00 = table[pixels[x].blue];
+                    row[x].green_02 = table[pixels[x].green];
+                    row[x].blue_04 = table[pixels[x].red];
+                    row[x].alpha_06 = table[pixels[x].alpha];
+                }
+                row += getWidth();
+            }
+            break;
+        }
+        case ACCUM_MULTIPLY: {
+            for (long y = 0; y < height; y++) {
+                for (long x = 0; x < width; x++) {
+                    row[x].red_00 = row[x].red_00 + addend;
+                    row[x].green_02 = row[x].green_02 + addend;
+                    row[x].blue_04 = row[x].blue_04 + addend;
+                    row[x].alpha_06 = row[x].alpha_06 + addend;
+                }
+                row += getWidth();
+            }
+            break;
+        }
+        case ACCUM_ADD: {
+            for (long y = 0; y < height; y++) {
+                for (long x = 0; x < width; x++) {
+                    row[x].red_00 = (short)(long)(row[x].red_00 * scale);
+                    row[x].green_02 = (short)(long)(row[x].green_02 * scale);
+                    row[x].blue_04 = (short)(long)(row[x].blue_04 * scale);
+                    row[x].alpha_06 = (short)(long)(row[x].alpha_06 * scale);
+                }
+                row += getWidth();
+            }
+            break;
+        }
+        case ACCUM_RETURN: {
+            unsigned char table[512];
+            for (long i = 0; i < 512; i++) {
+                float level = i * (1.0f / 255.0f);
+                if (level <= 0.0f) {
+                    level = 0.0f;
+                } else if (level >= 1.0f) {
+                    level = 1.0f;
+                }
+                table[i] = (unsigned char)(long)(level * scale * 255.0f + 0.5f);
+            }
+            for (long y = 0; y < height; y++) {
+                for (long x = 0; x < width; x++) {
+                    pixels[x].blue = table[((unsigned short)row[x].red_00) >> 7];
+                    pixels[x].green = table[((unsigned short)row[x].green_02) >> 7];
+                    pixels[x].red = table[((unsigned short)row[x].blue_04) >> 7];
+                    pixels[x].alpha = table[((unsigned short)row[x].alpha_06) >> 7];
+                }
+                surface->setPixelRow(
+                    reinterpret_cast<const unsigned long*>(
+                        pixels), // reinterpret-ok: ARGB row buffer through the dword pixel-row ABI
+                    scissor_1628_.top + y, scissor_1628_.left, scissor_1628_.right);
+                row += getWidth();
+            }
+            break;
+        }
+        default:
+            setError(ERROR_INVALID_ENUM);
+        }
+    }
+    if (surface != 0) {
+        unlockBuffer();
+    }
 }

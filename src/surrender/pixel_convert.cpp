@@ -325,7 +325,7 @@ srPixelConvert::e_surfaceType srPixelConvert::mapPixelFormat(const PixelFormat& 
 {
     initFormats();
     for (unsigned long i = 0; i < 25; i++) {
-        if (memcmp(&format_table[i].format, &format, sizeof(PixelFormat)) == 0) {
+        if (format_table[i].format == format) {
             return static_cast<e_surfaceType>(i);
         }
     }
@@ -353,7 +353,7 @@ void srPixelConvert::selectFuncs(const PixelFormat& format, ConversionFunc& writ
                          format.bytes_per_pixel_minus_one;
     FormatEntry* entry = format_hash[(hash >> 5 & 0x1f) ^ (hash & 0x1f)];
     while (entry != 0) {
-        if (memcmp(&entry->format, &format, sizeof(PixelFormat)) == 0) {
+        if (entry->format == format) {
             read = entry->read;
             write = entry->write;
             return;
