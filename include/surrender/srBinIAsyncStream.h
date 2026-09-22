@@ -28,7 +28,7 @@ public:
     /* Class-level dllexport also emits a memberwise copy constructor and
        vbase destructor. Retail exports no assignment operator. */
     // SYNTHETIC: SURRENDER 0x1002EDC0
-    // srBinIAsyncStream::srBinIAsyncStream
+    // ??0srBinIAsyncStream@@QAE@ABV0@@Z
     // SYNTHETIC: SURRENDER 0x1002EE70
     // srBinIAsyncStream::`vbase destructor'
 

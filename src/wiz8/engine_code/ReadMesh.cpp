@@ -220,10 +220,12 @@ struct W8MeshStripBuilder {
 // W8GrowableVector<int>::IndexOf
 
 // TEMPLATE: WIZ8 0x0048A530
-// W8GrowableVector<int>::Grow
+// W8GrowableVector<int>::Grow (ReadMesh.cpp emission)
 
+/* Stores the W8Vector<srMaterialIFace*> table 0x005ECA58, not a
+   W8GrowableVector<short> table. */
 // SYNTHETIC: WIZ8 0x0048A160
-// W8GrowableVector<short>::`scalar deleting destructor'
+// W8Vector<srMaterialIFace*>::`scalar deleting destructor'
 
 /* Sorts each run of equal group ids by its key, then renumbers the groups so
    equal keys within a group stay together. */

@@ -2818,7 +2818,7 @@ no_probes:;
 /* Second Remove emission (0x00438C90 above is the other), serving the
    keyboard/automap tables' callers. */
 // TEMPLATE: WIZ8 0x0055DD60
-// W8HashTable<unsigned int,int>::Remove
+// W8HashTable<unsigned int,int>::Remove (second emission)
 
 // FUNCTION: WIZ8 0x00436840
 W8OctreeObjectRegistry::W8OctreeObjectRegistry()

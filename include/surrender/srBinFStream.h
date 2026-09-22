@@ -28,7 +28,7 @@ public:
     /* Implicit copy constructor/assignment: retail emits them via the
        class-level dllexport as memberwise copies over the inline-string path. */
     // SYNTHETIC: SURRENDER 0x1002F430
-    // srBinFStream::srBinFStream
+    // ??0srBinFStream@@QAE@ABV0@@Z
     // SYNTHETIC: SURRENDER 0x1002F530
     // srBinFStream::operator=
     // SYNTHETIC: SURRENDER 0x1002F5F0
@@ -82,7 +82,7 @@ private:
     /* Implicit copy constructor/assignment and vbase destructor: emitted via
        the class-level dllexport as memberwise copies. */
     // SYNTHETIC: SURRENDER 0x1002F8D0
-    // srBinIFStream::srBinIFStream
+    // ??0srBinIFStream@@QAE@ABV0@@Z
     // SYNTHETIC: SURRENDER 0x1002FA20
     // srBinIFStream::operator=
     // SYNTHETIC: SURRENDER 0x1002E480
@@ -123,7 +123,7 @@ private:
     /* Implicit copy constructor/assignment and vbase destructor: emitted via
        the class-level dllexport as memberwise copies. */
     // SYNTHETIC: SURRENDER 0x1002FF00
-    // srBinIOFStream::srBinIOFStream
+    // ??0srBinIOFStream@@QAE@ABV0@@Z
     // SYNTHETIC: SURRENDER 0x10030070
     // srBinIOFStream::operator=
     // SYNTHETIC: SURRENDER 0x100301E0
