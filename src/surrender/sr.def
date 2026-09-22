@@ -797,10 +797,10 @@ EXPORTS
     ?overflow@srDummyStreamBuf@@EAEHH@Z
     ?parsePrefix@srIStreamOpener@@AAEXPAPAD0PBD@Z
     ?preBindTexture@srDebugDD@@UAEXKAAUTexture@srDD@@@Z
+    ?process@srIlluminator@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
     ?process@srLight@@UAEXAAVsrVertexPipe@@@Z
-     ?process@srIlluminator@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
-     ?process@srLight@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
-     ?process@srScene@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
+    ?process@srLight@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
+    ?process@srScene@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
     ?pseek@srBinFStream@@MAEAAVsrBinStream@@K@Z
     ?pseek@srBinFStream@@MAEAAVsrBinStream@@KW4e_seekDir@2@@Z
     ?ptell@srBinFStream@@MAEKXZ
@@ -840,6 +840,11 @@ EXPORTS
     ?seek@srBinOMStream@@UAEAAVsrBinStream@@K@Z
     ?seek@srBinOMStream@@UAEAAVsrBinStream@@KW4e_seekDir@2@@Z
     ?selectFuncs@srPixelConvert@@SAXABUPixelFormat@1@AAP6AXABUConversionInfo@1@@Z2@Z
+     ?setAmbient@srLight@@QAEXABV?$srVector3T@M@@@Z
+     ?setAmbientLight@srScene@@QAEXABV?$srVector3T@M@@@Z
+     ?setAmbientLight@srScene@@QAEXMMM@Z
+     ?setAttenuation@srLight@@QAEXABV?$srVector3T@M@@@Z
+     ?setAttenuationModel@srLight@@QAEXW4e_attenuationModel@1@@Z
     ?setAlignment@srMemoryAllocator@@QAEXW4e_alignSize@1@@Z
     ?setByteOrder@srBinStream@@QAEXW4e_byteOrder@1@@Z
     ?setClearValues@srDebugDD@@UAEXABUClearValues@srDD@@@Z
@@ -1128,72 +1133,7 @@ EXPORTS
     ?setViewPlane@srCamera@@QAEXNN@Z
     ?unproject@srCamera@@QAEHAAV?$srVector3T@M@@ABV?$srVector3T@N@@@Z
     ?vInstance@srCamera@@UAEPAVsrClass@@XZ
-     ??0srClipPlane@@QAE@ABV0@@Z
-     ??0srClipPlane@@QAE@PAVsrNode@@@Z
-     ??1srClipPlane@@UAE@XZ
-     ??4srClipPlane@@QAEAAV0@ABV0@@Z
-    ??_7srClipPlane@@6B@ DATA
     ??_FsrClipPlane@@QAEXXZ
-    ?dump@srClipPlane@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
-    ?getClipPlane@srClipPlane@@QBE?AV?$srVector4T@M@@XZ
-    ?getClipPlane@srClipPlane@@QBEXAAV?$srVector4T@M@@@Z
-    ?getClipType@srClipPlane@@QBE?AW4e_clip@1@XZ
-    ?process@srClipPlane@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
-    ?sGetClassName@srClipPlane@@SAPBDXZ
-    ?setClipPlane@srClipPlane@@QAEXABV?$srVector4T@M@@@Z
-    ?setClipType@srClipPlane@@QAEXW4e_clip@1@@Z
-    ?traverse@srClipPlane@@UAEXAAVTraverseInfo@srNode@@@Z
-    ?vInstance@srClipPlane@@UAEPAVsrClass@@XZ
-    ??0srVertexPipe@@QAE@XZ
-    ??1srVertexPipe@@QAE@XZ
-    ??4srVertexPipe@@QAEAAV0@ABV0@@Z
-    ?applyDiffuseLight@srVertexPipe@@QAEXABV?$srVector4T@M@@@Z
-    ?applyDiffuseLight@srVertexPipe@@QAEXPBMABV?$srVector4T@M@@@Z
-    ?applyFog@srVertexPipe@@QAEXPBM@Z
-    ?copyDiffuseToSpecular@srVertexPipe@@QAEXXZ
-    ?copySpecularToDiffuse@srVertexPipe@@QAEXXZ
-    ?disableChannel@srVertexPipe@@QAEXW4e_channel@srVertexProcessor@@@Z
-    ?enableChannel@srVertexPipe@@QAEXW4e_channel@srVertexProcessor@@@Z
-    ?finishDiffuseAlpha@srVertexPipe@@AAEXXZ
-    ?finishSpecularFog@srVertexPipe@@AAEXXZ
-    ?getAVT@srVertexPipe@@QBEPBKXZ
-    ?getAlpha@srVertexPipe@@QAEPAMXZ
-    ?getChannelMask@srVertexPipe@@QBE?AV?$srFlags@W4e_channel@srVertexProcessor@@@@XZ
-    ?getDepthCue@srVertexPipe@@QAEPBMXZ
-    ?getDiffuse@srVertexPipe@@QAEPAV?$srVector4T@M@@XZ
-    ?getExclusionMask@srVertexPipe@@QBEKXZ
-    ?getEyeSpaceBoundingSphere@srVertexPipe@@QBEXAAV?$srVector3T@M@@AAM@Z
-    ?getEyeSpaceDir@srVertexPipe@@QAEPBV?$srVector3T@M@@XZ
-    ?getEyeSpaceDist@srVertexPipe@@QAEPBMXZ
-    ?getEyeSpaceLocation@srVertexPipe@@QAEPBV?$srVector4T@M@@XZ
-    ?getEyeSpaceNormal@srVertexPipe@@QAEPBV?$srVector3T@M@@XZ
-    ?getEyeSpaceZDist@srVertexPipe@@QAEPBMXZ
-    ?getFog@srVertexPipe@@QAEPAMXZ
-    ?getMaterialInfo@srVertexPipe@@QBEABUMaterialInfo@srVertexProcessor@@XZ
-    ?getQ@srVertexPipe@@QAEPAMKH@Z
-    ?getST@srVertexPipe@@QAEPAV?$srVector2T@M@@KH@Z
-    ?getShaderDisableMask@srVertexPipe@@SA?AV?$srFlags@W4e_channel@srVertexProcessor@@@@ABVsrShader@@@Z
-    ?getShaderDisableMask@srVertexPipe@@SA?AV?$srFlags@W4e_channel@srVertexProcessor@@@@PBVsrShader@@PBKK@Z
-    ?getSpecular@srVertexPipe@@QAEPAV?$srVector4T@M@@XZ
-    ?getUserArray@srVertexPipe@@QAEPAXK@Z
-    ?getVertexCount@srVertexPipe@@QBEKXZ
-    ?isChannelAvailable@srVertexPipe@@QBEHW4e_channel@srVertexProcessor@@@Z
-    ?process@srVertexPipe@@QAEXABUInput@1@@Z
-    ?processVertexBuffer@srVertexPipe@@AAEXXZ
-    ?scanChangeIndexed@srVertexPipe@@CAKPBKK0K@Z
-    ?setMaterial@srVertexPipe@@AAEXPAVsrMaterialIFace@@@Z
-    ?setupAlpha@srVertexPipe@@AAEXXZ
-    ?setupDepthCue@srVertexPipe@@AAEXXZ
-    ?setupDiffuse@srVertexPipe@@AAEXXZ
-    ?setupEyeSpaceDirAndDist@srVertexPipe@@AAEXXZ
-    ?setupEyeSpaceNormal@srVertexPipe@@AAEXXZ
-    ?setupEyeSpaceZDist@srVertexPipe@@AAEXXZ
-    ?setupFog@srVertexPipe@@AAEXXZ
-    ?setupQ@srVertexPipe@@AAEXK@Z
-    ?setupST@srVertexPipe@@AAEXK@Z
-    ?setupSpecular@srVertexPipe@@AAEXXZ
-    ?swapDiffuseAndSpecular@srVertexPipe@@QAEXXZ
-    ?testEyeSpaceBounds@srVertexPipe@@QBEHABV?$srVector3T@M@@M@Z
     ??0srMaterial@@QAE@ABV0@@Z
     ??0srMaterial@@QAE@XZ
     ??0srMaterialIFace@@QAE@ABV0@@Z
@@ -1283,7 +1223,6 @@ EXPORTS
     ??0srIlluminator@@QAE@ABV0@@Z
     ??1srIlluminator@@UAE@XZ
     ??4srIlluminator@@QAEAAV0@ABV0@@Z
-    ?process@srIlluminator@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
     ?traverse@srIlluminator@@UAEXAAVTraverseInfo@srNode@@@Z
     ??_7srLight@@6B?$srClassSupport@VsrIlluminator@@VsrNode@@$0A@$0BCAA@@@@ DATA
     ??_7srLight@@6BsrVertexProcessor@@@ DATA
@@ -1304,12 +1243,7 @@ EXPORTS
     ?getSpotExponent@srLight@@QBEMXZ
     ?isActive@srLight@@UAEHAAVsrVertexPipe@@@Z
     ?isEnabled@srLight@@QBEHW4e_enable@1@@Z
-    ?process@srLight@@UAEXAAVsrVertexPipe@@@Z
-    ?process@srLight@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
     ?sGetClassName@srLight@@SAPBDXZ
-    ?setAmbient@srLight@@QAEXABV?$srVector3T@M@@@Z
-    ?setAttenuation@srLight@@QAEXABV?$srVector3T@M@@@Z
-    ?setAttenuationModel@srLight@@QAEXW4e_attenuationModel@1@@Z
     ?setDiffuse@srLight@@QAEXABV?$srVector3T@M@@@Z
     ?setFarAttenuationRange@srLight@@QAEXNN@Z
     ?setIntensity@srLight@@QAEXM@Z
@@ -1333,11 +1267,8 @@ EXPORTS
     ?getFogColor@srScene@@QBE?AV?$srVector3T@M@@XZ
     ?getStatistics@srScene@@QAEXAAUStatistics@1@@Z
     ?isEnabled@srScene@@QBEHW4e_enable@1@@Z
-    ?process@srScene@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
     ?render@srScene@@QAEXAAVsrGERD@@PAVsrCamera@@@Z
     ?sGetClassName@srScene@@SAPBDXZ
-    ?setAmbientLight@srScene@@QAEXMMM@Z
-    ?setAmbientLight@srScene@@QAEXABV?$srVector3T@M@@@Z
     ?setFogColor@srScene@@QAEXMMM@Z
     ?setFogColor@srScene@@QAEXABV?$srVector3T@M@@@Z
     ?traverse@srScene@@UAEXAAVTraverseInfo@srNode@@@Z
