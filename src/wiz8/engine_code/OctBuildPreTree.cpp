@@ -456,10 +456,8 @@ unsigned char OctBuildPreTree::InsertSurfaceRecursive004B03E0(W8OctSpatialState*
                         for (int corner = 0; corner != 3; ++corner) {
                             vertices[corner] = polygon->vertices_34[corner]->position_0c;
                         }
-                        if (TestSpatialTriangle0046CE60(
-                                &child.minimum_0c, vertices,
-                                reinterpret_cast< // reinterpret-ok: plane_08's leading three floats are the unit normal
-                                    const srVector3T<float>*>(polygon->plane_08)) != 0) {
+                        if (TestSpatialTriangle0046CE60(&child.minimum_0c, vertices,
+                                                        &polygon->plane_08.normal) != 0) {
                             W8OctBuildNode00446330* parent = working->root_90;
                             if (parent->children_00[octant] == 0) {
                                 ++level_counts_c4[working->depth_44];
@@ -1459,8 +1457,7 @@ void OctBuildPreTree::FinalizeRegionMapping004B2A20()
         region_path_map_124->Insert(&node->region_28, &path);
         if (node->region_28 >= final_region_count) {
             char message[256];
-            sprintf(message, "Invalid submesh %d\n",
-                    static_cast<unsigned int>(node->region_28));
+            sprintf(message, "Invalid submesh %d\n", static_cast<unsigned int>(node->region_28));
             ReportBuildStatus00497690(6, message);
         }
     }

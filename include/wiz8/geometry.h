@@ -25,30 +25,39 @@ struct W8BoundingBox {
 
 static_assert(sizeof(W8BoundingBox) == 0x18, "W8BoundingBox_must_be_0x18");
 
+/* Plane equation record n·p + w = 0: a unit normal plus the signed origin
+   distance. The canonical coefficient quad shared by GD surfaces, build-time
+   region polygons and frustum culling volumes. */
+struct W8Plane {
+    srVector3T<float> normal;
+    float w;
+};
+
+static_assert(sizeof(W8Plane) == 0x10, "W8Plane_must_be_0x10");
+
 struct W8GDSurface {
     unsigned int flags_00;
     unsigned int index_04;
     int trigger_index_08;
     int edge_link_0c[3];
     int vertex_indices_18[3];
-    /* The first three plane coefficients are its surface normal. The region
-       word at +0x32 belongs to W8OctRegionPolygon, not this surface. */
-    float plane_24[4];
+    /* The region word at +0x32 belongs to W8OctRegionPolygon, not this
+       surface. */
+    W8Plane plane_24;
     float distance_34;
     /* Hit plane ProbePropsAlongMotion fills for ResolveCollision0041DC10. */
-    srVector4T<float>* hit_plane_38;
+    W8Plane* hit_plane_38;
     unsigned char footstep_surface_3c;  /* W8FootstepSurface selector */
     unsigned char footstep_material_3d; /* W8FootstepMaterial selector */
     unsigned char positional_3e[2];
     float contact_margin_40;
     unsigned int chance_44;
-    float slope_48; /* face slope; generated surfaces derive it from plane_24[1] */
+    float slope_48; /* face slope; generated surfaces derive it from plane_24.normal.y */
 
-    /* The plane's leading three floats read as the surface normal. */
+    /* The plane's unit normal. */
     const srVector3T<float>* Normal() const
     {
-        // reinterpret-ok: plane_24's leading three floats are the unit normal
-        return reinterpret_cast<const srVector3T<float>*>(&plane_24);
+        return &plane_24.normal;
     }
 
     /* 0x0041CF90: segment-vs-surface test used by env motion. On a hit `from`
@@ -82,7 +91,7 @@ static_assert(sizeof(W8GDSurface) == 0x4c, "W8GDSurface_must_be_0x4c");
    the Newell and distance loops; the three-point copy lowers as unrolled
    vector assignment in one TU and a component countdown in the other.
    Counted fors are the authored form. No Wiz8 COMDAT. */
-inline void SetPlaneFromThreePoints(srVector4T<float>* plane, const srVector3T<float>* first,
+inline void SetPlaneFromThreePoints(W8Plane* plane, const srVector3T<float>* first,
                                     const srVector3T<float>* second, const srVector3T<float>* third)
 {
     srVector3T<float> vertices[3];
@@ -90,40 +99,40 @@ inline void SetPlaneFromThreePoints(srVector4T<float>* plane, const srVector3T<f
     vertices[1] = *second;
     vertices[2] = *third;
 
-    plane->x = 0.0f;
-    plane->y = 0.0f;
-    plane->z = 0.0f;
+    plane->normal.x = 0.0f;
+    plane->normal.y = 0.0f;
+    plane->normal.z = 0.0f;
     plane->w = 0.0f;
 
     for (int index = 0; index < 3; ++index) {
         const srVector3T<float>& current = vertices[index];
         const srVector3T<float>& next = vertices[(index + 1) % 3];
         const srVector3T<float>& previous = vertices[(index + 2) % 3];
-        plane->x += current.y * (next.z - previous.z);
-        plane->y += current.z * (next.x - previous.x);
-        plane->z += current.x * (next.y - previous.y);
+        plane->normal.x += current.y * (next.z - previous.z);
+        plane->normal.y += current.z * (next.x - previous.x);
+        plane->normal.z += current.x * (next.y - previous.y);
     }
 
-    srVector3T<float> normal(plane->x, plane->y, plane->z);
+    srVector3T<float> normal(plane->normal);
     float scale = g_float_005ebb38 / normal.Length();
-    plane->x *= scale;
-    plane->y *= scale;
-    plane->z *= scale;
+    plane->normal.x *= scale;
+    plane->normal.y *= scale;
+    plane->normal.z *= scale;
 
     float distances[3];
     for (int vertex_index = 0; vertex_index < 3; ++vertex_index) {
-        distances[vertex_index] = plane->x * vertices[vertex_index].x +
-                                  plane->y * vertices[vertex_index].y +
-                                  plane->z * vertices[vertex_index].z;
+        distances[vertex_index] = plane->normal.x * vertices[vertex_index].x +
+                                  plane->normal.y * vertices[vertex_index].y +
+                                  plane->normal.z * vertices[vertex_index].z;
     }
     plane->w = (distances[0] + distances[1] + distances[2]) * g_float_005ec1a8;
 }
 
 /* Signed plane distance n·p + w. Independent TUs: 3d.cpp PointInsideFrustum
    0x0046D880 and stLight ContainsPoint 0x0049E460. No Wiz8 COMDAT. */
-inline float SignedPlaneDistance(const srVector4T<float>& plane, const srVector3T<float>& point)
+inline float SignedPlaneDistance(const W8Plane& plane, const srVector3T<float>& point)
 {
-    return plane.x * point.x + plane.y * point.y + plane.z * point.z + plane.w;
+    return plane.normal.x * point.x + plane.normal.y * point.y + plane.normal.z * point.z + plane.w;
 }
 
 /* Rotation keyframes interpolate through a quaternion: the scalar term is
@@ -222,6 +231,6 @@ inline void W8Quaternion::InterpolateRotation(const srMatrix3T<float>& from,
 }
 
 void ClassifySurfacePlane004498C0(const srVector3T<float>* vertices, W8GDSurface* surface);
-void BuildTrianglePlane00449A40(srVector4T<float>* plane, const srVector3T<float>* first,
+void BuildTrianglePlane00449A40(W8Plane* plane, const srVector3T<float>* first,
                                 const srVector3T<float>* second, const srVector3T<float>* third);
 #endif

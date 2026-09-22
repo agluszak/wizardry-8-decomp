@@ -275,16 +275,16 @@ unsigned char W8GameData::ReadWGDList00447660(HANDLE file, int poly_type)
                     } else {
                         surface->flags_00 = 0;
                     }
-                    surface->plane_24[0] = header.plane_0c[0];
-                    surface->plane_24[1] = header.plane_0c[1];
-                    surface->plane_24[2] = header.plane_0c[2];
-                    float largest = static_cast<float>(fabs(surface->plane_24[0]));
+                    surface->plane_24.normal.x = header.plane_0c[0];
+                    surface->plane_24.normal.y = header.plane_0c[1];
+                    surface->plane_24.normal.z = header.plane_0c[2];
+                    float largest = static_cast<float>(fabs(surface->plane_24.normal.x));
                     unsigned int axis = 0;
-                    if (largest < static_cast<float>(fabs(surface->plane_24[1]))) {
-                        largest = static_cast<float>(fabs(surface->plane_24[1]));
+                    if (largest < static_cast<float>(fabs(surface->plane_24.normal.y))) {
+                        largest = static_cast<float>(fabs(surface->plane_24.normal.y));
                         axis = 1;
                     }
-                    if (largest < static_cast<float>(fabs(surface->plane_24[2]))) {
+                    if (largest < static_cast<float>(fabs(surface->plane_24.normal.z))) {
                         axis = 2;
                     }
                     surface->flags_00 |= axis;
@@ -872,11 +872,11 @@ void W8GameData::CreateGDEnviron00448E60(const W8GDSurface* surface, float scale
         ReportBuildStatus00497690(7, "CreateGDEnviron: Could not allocate GD_Environ.");
     }
     m_ppEnvirons[m_iNumEnvirons]->gravity_x_10 =
-        g_navigator_gravity_00603acc * surface->plane_24[0] * scale;
+        g_navigator_gravity_00603acc * surface->plane_24.normal.x * scale;
     m_ppEnvirons[m_iNumEnvirons]->gravity_y_14 =
-        (scale * surface->plane_24[1] - g_float_005ebb38) * g_navigator_gravity_00603acc;
+        (scale * surface->plane_24.normal.y - g_float_005ebb38) * g_navigator_gravity_00603acc;
     m_ppEnvirons[m_iNumEnvirons]->gravity_z_18 =
-        g_navigator_gravity_00603acc * surface->plane_24[2] * scale;
+        g_navigator_gravity_00603acc * surface->plane_24.normal.z * scale;
 }
 
 struct W8ProcessedGameDataHeader {
@@ -1206,18 +1206,16 @@ unsigned char InitializeGameData004497C0(W8GameData* game_data)
 // FUNCTION: WIZ8 0x004498c0
 void ClassifySurfacePlane004498C0(const srVector3T<float>* vertices, W8GDSurface* surface)
 {
-    BuildTrianglePlane00449A40(
-        reinterpret_cast<srVector4T<float>*>(&surface->plane_24), /* reinterpret-ok:
-            the union's plane arm is a 4-float vector */
-        &vertices[surface->vertex_indices_18[0]], &vertices[surface->vertex_indices_18[1]],
-        &vertices[surface->vertex_indices_18[2]]);
+    BuildTrianglePlane00449A40(&surface->plane_24, &vertices[surface->vertex_indices_18[0]],
+                               &vertices[surface->vertex_indices_18[1]],
+                               &vertices[surface->vertex_indices_18[2]]);
 
     unsigned int flags = surface->flags_00;
     if ((flags & 0x80) != 0) {
         float largest = g_float_005ebb34;
         unsigned int dominant_axis = 0;
         for (int axis = 0; axis < 3; ++axis) {
-            float magnitude = static_cast<float>(fabs(surface->plane_24[axis]));
+            float magnitude = static_cast<float>(fabs((&surface->plane_24.normal.x)[axis]));
             if (largest < magnitude) {
                 largest = magnitude;
                 dominant_axis = axis;
@@ -1232,8 +1230,8 @@ void ClassifySurfacePlane004498C0(const srVector3T<float>* vertices, W8GDSurface
     }
 
     float upper_value = g_float_005ebb38;
-    if (g_float_005ebc7c < surface->plane_24[1]) {
-        if ((surface->flags_00 & 4) == 0 && g_float_005ec1a0 < surface->plane_24[1]) {
+    if (g_float_005ebc7c < surface->plane_24.normal.y) {
+        if ((surface->flags_00 & 4) == 0 && g_float_005ec1a0 < surface->plane_24.normal.y) {
             surface->flags_00 |= 4;
             surface->slope_48 = g_float_005ebb38;
         }
@@ -1252,8 +1250,8 @@ void ClassifySurfacePlane004498C0(const srVector3T<float>* vertices, W8GDSurface
     if ((flags & 4) == 0) {
         surface->slope_48 = g_float_005ebb34;
     } else if (surface->slope_48 < g_float_005ebc58 && (flags & 0x20) == 0) {
-        if (surface->plane_24[1] <= g_float_005ebccc) {
-            upper_value = surface->plane_24[1];
+        if (surface->plane_24.normal.y <= g_float_005ebccc) {
+            upper_value = surface->plane_24.normal.y;
         }
         surface->slope_48 = upper_value;
     }
@@ -1263,7 +1261,7 @@ void ClassifySurfacePlane004498C0(const srVector3T<float>* vertices, W8GDSurface
 /* Header-visible SetPlaneFromThreePoints. This TU unrolls the three-point
    copy; 0x0046D660 lowers the same assignments as a component countdown. */
 // FUNCTION: WIZ8 0x00449a40
-void BuildTrianglePlane00449A40(srVector4T<float>* plane, const srVector3T<float>* first,
+void BuildTrianglePlane00449A40(W8Plane* plane, const srVector3T<float>* first,
                                 const srVector3T<float>* second, const srVector3T<float>* third)
 {
     SetPlaneFromThreePoints(plane, first, second, third);
@@ -1532,10 +1530,7 @@ void W8GameData::CompileGameData00449D10()
             compiled->hit_plane_38 = 0;
             W8OctRegionPolygon* polygon = g_gd_polygons_0065bd38 + polygon_count;
             polygon->ordinal_04 = polygon_count;
-            polygon->plane_08[0] = compiled->plane_24[0];
-            polygon->plane_08[1] = compiled->plane_24[1];
-            polygon->plane_08[2] = compiled->plane_24[2];
-            polygon->plane_08[3] = compiled->plane_24[3];
+            polygon->plane_08 = compiled->plane_24;
             polygon->degenerate_30 = 0;
             polygon->visited_31 = 0;
             polygon->vertices_34[0] = g_gd_vertices_0065bd34 + compiled->vertex_indices_18[0];
@@ -1571,10 +1566,7 @@ void W8GameData::CompileGameData00449D10()
             compiled->hit_plane_38 = 0;
             W8OctRegionPolygon* polygon = g_gd_polygons_0065bd38 + polygon_count;
             polygon->ordinal_04 = polygon_count;
-            polygon->plane_08[0] = compiled->plane_24[0];
-            polygon->plane_08[1] = compiled->plane_24[1];
-            polygon->plane_08[2] = compiled->plane_24[2];
-            polygon->plane_08[3] = compiled->plane_24[3];
+            polygon->plane_08 = compiled->plane_24;
             polygon->degenerate_30 = 0;
             polygon->visited_31 = 0;
             polygon->vertices_34[0] = g_gd_vertices_0065bd34 + compiled->vertex_indices_18[0];

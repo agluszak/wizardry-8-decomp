@@ -875,9 +875,9 @@ void W8Octree::BuildFrustumPlanes004302E0()
         (&corners[5].x)[axis] += (&camera_location_1c0.x)[axis];
         (&corners[6].x)[axis] += (&camera_location_1c0.x)[axis];
         (&corners[7].x)[axis] += (&camera_location_1c0.x)[axis];
-        (&m_frustum_planes_21c[4].x)[axis] = dof;
+        (&m_frustum_planes_21c[4].normal.x)[axis] = dof;
         m_frustum_planes_21c[4].w -= dof * (&corners[0].x)[axis];
-        (&m_frustum_planes_21c[5].x)[axis] = -dof;
+        (&m_frustum_planes_21c[5].normal.x)[axis] = -dof;
         m_frustum_planes_21c[5].w -= -dof * (&corners[4].x)[axis];
     }
     BuildPlaneFromPoints0046D660(&m_frustum_planes_21c[0], &corners[0], &corners[5], &corners[4]);

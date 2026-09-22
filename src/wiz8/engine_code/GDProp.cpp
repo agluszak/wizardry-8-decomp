@@ -162,18 +162,15 @@ void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigne
 
         for (int surface_index = 0; surface_index < surface_total; ++surface_index) {
             W8GDSurface* surface = &m_pGDSurfaces[surface_index];
-            BuildTrianglePlane00449A40(
-                reinterpret_cast<srVector4T<float>*>(&surface->plane_24), /* reinterpret-ok:
-                    the union's plane arm is a 4-float vector */
-
-                &m_pVertices[surface->vertex_indices_18[0]],
-                &m_pVertices[surface->vertex_indices_18[1]],
-                &m_pVertices[surface->vertex_indices_18[2]]);
+            BuildTrianglePlane00449A40(&surface->plane_24,
+                                       &m_pVertices[surface->vertex_indices_18[0]],
+                                       &m_pVertices[surface->vertex_indices_18[1]],
+                                       &m_pVertices[surface->vertex_indices_18[2]]);
 
             int dominant_axis;
             float largest = 0.0f;
             for (int axis = 0; axis < 3; ++axis) {
-                float magnitude = (float)fabs(surface->plane_24[axis]);
+                float magnitude = static_cast<float>(fabs((&surface->plane_24.normal.x)[axis]));
                 if (largest < magnitude) {
                     largest = magnitude;
                     dominant_axis = axis;
@@ -187,13 +184,13 @@ void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigne
                 surface->flags_00 |= 0x8000;
             }
 
-            if (g_float_005ebc7c <= surface->plane_24[1]) {
+            if (g_float_005ebc7c <= surface->plane_24.normal.y) {
                 surface->contact_margin_40 = 500.0f;
                 surface->flags_00 |= 4;
-                if (g_float_005ebccc < surface->plane_24[1]) {
+                if (g_float_005ebccc < surface->plane_24.normal.y) {
                     surface->slope_48 = 1.0f;
                 } else {
-                    surface->slope_48 = surface->plane_24[1];
+                    surface->slope_48 = surface->plane_24.normal.y;
                 }
             } else {
                 surface->slope_48 = 0.0f;
@@ -651,17 +648,14 @@ void GDProp::TransformMeshGeometry004B7E50(const W8LevelFileScaledPathNode* node
 
     for (int index = surface_base; index < m_surface_count_14; ++index) {
         W8GDSurface* surface = &m_pGDSurfaces[index];
-        BuildTrianglePlane00449A40(
-            reinterpret_cast<srVector4T<float>*>(&surface->plane_24), /* reinterpret-ok:
-                    the union's plane arm is a 4-float vector */
-            &m_pVertices[surface->vertex_indices_18[0]],
-            &m_pVertices[surface->vertex_indices_18[1]],
-            &m_pVertices[surface->vertex_indices_18[2]]);
+        BuildTrianglePlane00449A40(&surface->plane_24, &m_pVertices[surface->vertex_indices_18[0]],
+                                   &m_pVertices[surface->vertex_indices_18[1]],
+                                   &m_pVertices[surface->vertex_indices_18[2]]);
 
         int dominant_axis;
         float largest = g_float_005ebb34;
         for (int axis = 0; axis < 3; ++axis) {
-            float magnitude = static_cast<float>(fabs(surface->plane_24[axis]));
+            float magnitude = static_cast<float>(fabs((&surface->plane_24.normal.x)[axis]));
             if (largest < magnitude) {
                 largest = magnitude;
                 dominant_axis = axis;
@@ -669,7 +663,7 @@ void GDProp::TransformMeshGeometry004B7E50(const W8LevelFileScaledPathNode* node
         }
         surface->flags_00 = dominant_axis + 0x800;
         surface->hit_plane_38 = 0;
-        if (g_float_005ebc7c <= surface->plane_24[1]) {
+        if (g_float_005ebc7c <= surface->plane_24.normal.y) {
             surface->contact_margin_40 = 500.0f;
             surface->flags_00 |= 4;
         } else {

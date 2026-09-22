@@ -589,7 +589,7 @@ public:
     int m_visible_cells_204[6];
     /* The six frustum planes 0x004302E0 builds; 0x0046D880 tests a point
        against all six. */
-    srVector4T<float> m_frustum_planes_21c[6]; /* 0x21c */
+    W8Plane m_frustum_planes_21c[6]; /* 0x21c */
     unsigned long m_padding_27c[6];
     unsigned char m_visibility_suspended_294;
     unsigned char m_padding_295;

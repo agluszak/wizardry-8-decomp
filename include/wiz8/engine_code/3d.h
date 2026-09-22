@@ -47,20 +47,20 @@ void SetSceneMeshShaderLowBits0046E750(srNode* node, int argument);
    mark the mesh dirty for rebake (automap lighting uses table 1). */
 void SetWorldMeshVertexLightTable0046F760(W8World* world, int table);
 
-void BuildPlaneFromPoints0046D660(srVector4T<float>* plane, const srVector3T<float>* first,
+void BuildPlaneFromPoints0046D660(W8Plane* plane, const srVector3T<float>* first,
                                   const srVector3T<float>* second, const srVector3T<float>* third);
 /* Report whether a point satisfies all six frustum planes. */
-bool PointInsideFrustum0046D880(const srVector3T<float>* point, const srVector4T<float>* planes);
+bool PointInsideFrustum0046D880(const srVector3T<float>* point, const W8Plane* planes);
 /* Report whether a sphere of `radius` at `point` reaches all six frustum
    planes (each plane distance may be as low as -radius). */
 unsigned char SphereInsideFrustum0046D8D0(const srVector3T<float>* point, float radius,
-                                          const srVector4T<float>* planes);
+                                          const W8Plane* planes);
 /* Point-in-triangle test via dominant-axis projection: `axis` selects the two
    planar components used. */
 unsigned char PointInsideTriangle0046D530(const srVector3T<float>* vertices, short axis,
                                           const srVector3T<float>* point);
 /* Build the six frustum planes from the eight sorted corner points. */
-void BuildFrustumPlanes0046D7E0(const srVector3T<float>* points, srVector4T<float>* planes);
+void BuildFrustumPlanes0046D7E0(const srVector3T<float>* points, W8Plane* planes);
 /* Order a volume's eight corner points into the canonical (y,z,x)-sorted
    sequence the frustum plane builder expects. */
 void SortFrustumCorners0046DA20(srVector3T<float>* points);

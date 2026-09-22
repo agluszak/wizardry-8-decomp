@@ -1004,7 +1004,7 @@ void __stdcall SetOctreeGameData0046D7D0(W8GameData* value)
 /* Test one point against all six frustum planes: outside if any signed
    distance is negative. */
 // FUNCTION: WIZ8 0x0046d880
-bool PointInsideFrustum0046D880(const srVector3T<float>* point, const srVector4T<float>* planes)
+bool PointInsideFrustum0046D880(const srVector3T<float>* point, const W8Plane* planes)
 {
     for (int index = 0; index < 6; ++index) {
         float distance = SignedPlaneDistance(planes[index], *point);
@@ -1019,7 +1019,7 @@ bool PointInsideFrustum0046D880(const srVector3T<float>* point, const srVector4T
 /* Header-visible SetPlaneFromThreePoints. This TU lowers the three-point
    copy as a component countdown; 0x00449A40 unrolls the same assignments. */
 // FUNCTION: WIZ8 0x0046d660
-void BuildPlaneFromPoints0046D660(srVector4T<float>* plane, const srVector3T<float>* first,
+void BuildPlaneFromPoints0046D660(W8Plane* plane, const srVector3T<float>* first,
                                   const srVector3T<float>* second, const srVector3T<float>* third)
 {
     SetPlaneFromThreePoints(plane, first, second, third);
@@ -1055,7 +1055,7 @@ unsigned char PointInsideTriangle0046D530(const srVector3T<float>* vertices, sho
 /* Build the six face planes of the frustum described by `points` in the
    canonical corner order SortFrustumCorners produces. */
 // FUNCTION: WIZ8 0x0046d7e0
-void BuildFrustumPlanes0046D7E0(const srVector3T<float>* points, srVector4T<float>* planes)
+void BuildFrustumPlanes0046D7E0(const srVector3T<float>* points, W8Plane* planes)
 {
     BuildPlaneFromPoints0046D660(&planes[0], &points[1], &points[5], &points[4]);
     BuildPlaneFromPoints0046D660(&planes[1], &points[6], &points[7], &points[3]);
@@ -1129,13 +1129,13 @@ void SortFrustumCorners0046DA20(srVector3T<float>* points)
    inside every frustum plane or any volume corner sits inside the box. */
 // FUNCTION: WIZ8 0x0046d8d0
 unsigned char SphereInsideFrustum0046D8D0(const srVector3T<float>* point, float radius,
-                                          const srVector4T<float>* planes)
+                                          const W8Plane* planes)
 {
     char inside = 1;
 
     for (short plane = 0; plane < 6 && inside != 0; ++plane) {
-        if (point->x * planes[plane].x + point->y * planes[plane].y + point->z * planes[plane].z +
-                planes[plane].w <
+        if (point->x * planes[plane].normal.x + point->y * planes[plane].normal.y +
+                point->z * planes[plane].normal.z + planes[plane].w <
             -radius) {
             inside = 0;
         }
@@ -1151,9 +1151,9 @@ bool BoundsInsideFrustum0046D920(const W8OctRegionVolume* volume, const W8Boundi
             for (short z = 0; z < 2; ++z) {
                 short plane = 0;
                 while (true) {
-                    if ((&bounds->minimum)[x].x * volume->planes_88[plane].x +
-                            (&bounds->minimum)[y].y * volume->planes_88[plane].y +
-                            (&bounds->minimum)[z].z * volume->planes_88[plane].z +
+                    if ((&bounds->minimum)[x].x * volume->planes_88[plane].normal.x +
+                            (&bounds->minimum)[y].y * volume->planes_88[plane].normal.y +
+                            (&bounds->minimum)[z].z * volume->planes_88[plane].normal.z +
                             volume->planes_88[plane].w <
                         g_float_005ebb34) {
                         break;
