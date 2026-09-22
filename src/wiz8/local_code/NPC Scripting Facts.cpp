@@ -186,8 +186,8 @@ void HandleFactChange(int fact_id, unsigned char value)
         }
         return;
     case 0x39:
-        if (value != 0 && g_status_685170.buffers.characters[g_status_685170.party_slot_249c]
-                                  .condition_turns[0x13] != 0) {
+        if (value != 0 &&
+            g_status_685170.buffers.Char[g_status_685170.party_slot_249c].uiCondition[0x13] != 0) {
             RemoveCharacterCondition(g_status_685170.party_slot_249c, 0x13, 1);
         }
         return;
@@ -226,10 +226,10 @@ void HandleFactChange(int fact_id, unsigned char value)
     case 0x86:
         if (value != 0) {
             for (slot = 0; slot < 8; ++slot) {
-                character = &g_status_685170.buffers.characters[slot];
-                if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+                character = &g_status_685170.buffers.Char[slot];
+                if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
                     character->highest_condition < 0x12 &&
-                    g_profession_skill_availability[7][character->current_profession] != 0 &&
+                    g_profession_skill_availability[7][character->iProfession] != 0 &&
                     character->skills[7].value_02 < 10) {
                     character->skills[7].value_02 = 10;
                     ApplySkillChange(character, 7);
@@ -519,9 +519,9 @@ void HandleFactChange(int fact_id, unsigned char value)
             return;
         }
         for (slot = 0; slot < 8; ++slot) {
-            character = &g_status_685170.buffers.characters[slot];
-            if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
-                character->hp_current != 0 && character->highest_condition < 0x12) {
+            character = &g_status_685170.buffers.Char[slot];
+            if (g_status_685170.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
+                character->highest_condition < 0x12) {
                 added = 100 - character->attributes[1].value;
                 if (added > 5) {
                     added = 5;
@@ -1012,8 +1012,8 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
     int index;
     int pick;
     for (slot = 0; slot < 8; ++slot) {
-        W8Character* character = &g_status_685170.buffers.characters[slot];
-        if (g_status_685170.buffers.party_rows[slot].occupied != 0 && character->hp_current != 0 &&
+        W8Character* character = &g_status_685170.buffers.Char[slot];
+        if (g_status_685170.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
             character->highest_condition < 0xf) {
             eligible_slots[eligible_count] = slot;
             ++eligible_count;
@@ -1021,7 +1021,7 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
     }
     for (index = 0; index < eligible_count; ++index) {
         if (eligible_slots[index] == lead_index) {
-            QueueCharacterEvent(&g_status_685170.buffers.characters[eligible_slots[index]],
+            QueueCharacterEvent(&g_status_685170.buffers.Char[eligible_slots[index]],
                                 g_effect_005ee618, g_event_flag_005ed8e0,
                                 g_effect_argument_005ed8c8, g_effect_argument_005ed914);
         }
@@ -1030,13 +1030,13 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
         do {
             pick = Random(eligible_count);
         } while (eligible_slots[pick] == lead_index);
-        QueueCharacterEvent(&g_status_685170.buffers.characters[eligible_slots[pick]],
-                            g_effect_005ee618, g_event_flag_005ed8e0, g_effect_argument_005ed8c8,
+        QueueCharacterEvent(&g_status_685170.buffers.Char[eligible_slots[pick]], g_effect_005ee618,
+                            g_event_flag_005ed8e0, g_effect_argument_005ed8c8,
                             g_effect_argument_005ed914);
     }
     for (slot = 0; slot < 8; ++slot) {
-        W8Character* character = &g_status_685170.buffers.characters[slot];
-        if (g_status_685170.buffers.party_rows[slot].occupied != 0 && character->hp_current != 0 &&
+        W8Character* character = &g_status_685170.buffers.Char[slot];
+        if (g_status_685170.buffers.XChar[slot].fOccupied != 0 && character->hp_current != 0 &&
             character->highest_condition < 0xf) {
             QueueCharacterEvent(character, g_effect_005ee630, g_event_flag_005ed8e0,
                                 g_effect_argument_005ed8c8, g_effect_argument_005ed914);
@@ -1105,12 +1105,12 @@ void MonsterKilled(int record_id, int killer_party_slot)
                 SetFact(0x2a6, 0, 0);
             }
             if (g_status_685170.flag_2489 != 0) {
-                if (g_status_685170.buffers.characters[g_status_685170.tail_3121.facts.value_423d]
-                        .condition_turns[10] > 0) {
+                if (g_status_685170.buffers.Char[g_status_685170.tail_3121.facts.value_423d]
+                        .uiCondition[10] > 0) {
                     RemoveCharacterCondition(g_status_685170.tail_3121.facts.value_423d, 10, 0);
                 }
                 QueueCharacterEvent(
-                    &g_status_685170.buffers.characters[g_status_685170.tail_3121.facts.value_423d],
+                    &g_status_685170.buffers.Char[g_status_685170.tail_3121.facts.value_423d],
                     g_effect_005ee6f8, 0, g_effect_argument_005ed8c8, g_effect_argument_005ed914);
             }
             SetFact(0x1b6, 1, 0);

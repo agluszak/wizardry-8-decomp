@@ -233,9 +233,9 @@ unsigned char W8AssayDialog::PopulateText()
     bounds.bottom = m_y + g_assay_text_area_offsets.bottom;
     m_text_area.Configure(&bounds, g_font_683660, 0);
     m_text_area.SetEntrySpacing(1);
-    record = &g_item_records[m_item->item_id];
+    record = &g_item_records[m_item->iItemNo];
     if (m_item->identified != 0 && record->damage_dice.count + record->damage_dice.base > 0) {
-        if (!ItemHasSingledOutGenericName(m_item->item_id) || record->damage_dice.base == 0) {
+        if (!ItemHasSingledOutGenericName(m_item->iItemNo) || record->damage_dice.base == 0) {
             text = FormatWideString(
                 L"%d - %d", record->damage_dice.base + record->damage_dice.count,
                 record->damage_dice.sides * record->damage_dice.count + record->damage_dice.base);
@@ -254,7 +254,7 @@ unsigned char W8AssayDialog::PopulateText()
             gppStringList[0x22c4 / 4],
             FormatWideString(g_format_plus_d_0064dc24, record->attack_damage_bonus), 10, 0xf, 0);
     }
-    slot_mask = GetItemEquipSlotMask(m_item->item_id, 1, 1, 1, 1);
+    slot_mask = GetItemEquipSlotMask(m_item->iItemNo, 1, 1, 1, 1);
     count = 0;
     for (bit = 0; bit < 12; ++bit) {
         if (bit != 8 && bit != 9 && (slot_mask & (1 << bit)) != 0) {
@@ -273,8 +273,8 @@ unsigned char W8AssayDialog::PopulateText()
     if (count != 0) {
         m_text_area.AddEntry(gppStringList[0x2394 / 4], g_assay_entry_text, 10, 0xf, 0);
     }
-    if (GetItemDefaultEquipSlot(m_item->item_id) != -1 &&
-        g_item_records[m_item->item_id].equip_class != 4) {
+    if (GetItemDefaultEquipSlot(m_item->iItemNo) != -1 &&
+        g_item_records[m_item->iItemNo].equip_class != 4) {
         unsigned int palette;
         if (m_item->bound == 0) {
             text = gppStringList[0x23f0 / 4];
@@ -634,7 +634,7 @@ unsigned char W8AssayDialog::PopulateText()
                              0xf, 0);
     }
     strcpy(path, "Data\\Databases\\ItemDesc.dbs");
-    GetStringFromStringDatabase(path, m_item->item_id, description, 0, 0);
+    GetStringFromStringDatabase(path, m_item->iItemNo, description, 0, 0);
     if (wcslen(description) != 0 && m_item->identified != 0) {
         m_text_area.AddEntry(gppStringList[0x243c / 4], description, 10, 0xf, 0);
     }
@@ -677,7 +677,7 @@ void W8AssayDialog::Draw()
     }
     if (m_item_portrait_dirty != 0) {
         DrawCatalogImageAndInvalidate(
-            -0xe, g_item_video_objects_68ec68.GetOrCreateVideoObject(m_item->item_id), 0, 0,
+            -0xe, g_item_video_objects_68ec68.GetOrCreateVideoObject(m_item->iItemNo), 0, 0,
             m_x + 0x45, m_y + 0xe, 2, 0);
         if (m_item->identified == 0) {
             DrawCatalogImageAndInvalidate(-0xe, 0x11b, 0, 0, m_x + 0x45, m_y + 0xe, 2, 0);
@@ -975,7 +975,7 @@ unsigned char W8AssayDialog::CreateTextBuffers()
     m_text_buffers[2]->SetText(gppStringList[g_equip_class_name_ids_61e7dc[equip_class]],
                                g_font_683660);
     item = m_item;
-    if (g_item_records[item->item_id].quantity_kind == 1 && item->stack_count > 1) {
+    if (g_item_records[item->iItemNo].quantity_kind == 1 && item->stack_count > 1) {
         unsigned int unit_weight = GetItemUnitWeight(item);
         text = FormatWideString(g_assay_format_1f_1f_s_0064fbc0,
                                 (double)((float)GetItemStackWeight(m_item) * g_float_005ed8b8),
@@ -994,7 +994,7 @@ void W8AssayDialog::SetProfessionIconsVisible(int show)
 {
     unsigned int profession;
     int button_index;
-    const W8ItemDatabaseRecord* record = &g_item_records[m_item->item_id];
+    const W8ItemDatabaseRecord* record = &g_item_records[m_item->iItemNo];
 
     for (profession = 0; profession < 15; ++profession) {
         switch (profession) {
@@ -1061,7 +1061,7 @@ void W8AssayDialog::SetRaceIconsVisible(int show)
     unsigned int race;
     unsigned int us_index;
     int button_index;
-    const W8ItemDatabaseRecord* record = &g_item_records[m_item->item_id];
+    const W8ItemDatabaseRecord* record = &g_item_records[m_item->iItemNo];
 
     for (race = 0; race < 16; ++race) {
         switch (race) {

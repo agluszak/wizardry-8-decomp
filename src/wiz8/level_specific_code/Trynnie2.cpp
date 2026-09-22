@@ -157,14 +157,14 @@ bool Trynnie2UseItem004D9F60(W8ItemInstance* item)
     srVector3T<float> position;
     W8ItemInstance destination;
 
-    if (item->item_id != 0x1b3 && item->item_id != 0x1c3) {
+    if (item->iItemNo != 0x1b3 && item->iItemNo != 0x1c3) {
         return 0;
     }
     if (DispatchWorldCursorNodeCommand004D9080(0, 8, 0) == 0) {
         ShowString(gppStringList[0x2598 / 4]);
         return 1;
     }
-    if (item->item_id == 0x1b3) {
+    if (item->iItemNo == 0x1b3) {
         ShowString(gppStringList[0x25a0 / 4]);
     } else {
         ShowString(gppStringList[0x259c / 4]);
@@ -177,7 +177,7 @@ bool Trynnie2UseItem004D9F60(W8ItemInstance* item)
             SpawnMonsters(0xec, 1, &position, 0, 1, 0, 0);
         }
     }
-    destination.item_id = -1;
+    destination.iItemNo = -1;
     CopyItemInstance(&destination, item, 0, 1);
     return 1;
 }

@@ -2144,8 +2144,8 @@ unsigned char MeasureLevelStatusChunks00514DF0(W8Chunk* chunk, int level,
 // FUNCTION: WIZ8 0x00515cf0
 void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status)
 {
-    W8Character* characters = status->buffers.characters;
-    W8PartySlotRow* party_rows = status->buffers.party_rows;
+    W8Character* characters = status->buffers.Char;
+    W8PartySlotRow* party_rows = status->buffers.XChar;
     unsigned int size;
     unsigned int slot;
 
@@ -2172,8 +2172,8 @@ void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status)
         status->text_box_lines_shown_49a7[3] = 0;
     }
 
-    status->buffers.characters = characters;
-    status->buffers.party_rows = party_rows;
+    status->buffers.Char = characters;
+    status->buffers.XChar = party_rows;
 
     W8Character* character = characters;
     for (slot = 0; slot != 8; ++slot, ++character) {
@@ -2185,7 +2185,7 @@ void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status)
         chunks->Read(character, size, 0);
         if (character->record_version < 2 && character->original_profession == 0 &&
             character->profession_levels[0] == 0) {
-            character->original_profession = character->current_profession;
+            character->original_profession = character->iProfession;
         }
     }
 
@@ -2202,7 +2202,7 @@ void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status)
             W8ItemInstance* item = 0;
             signed char origin = static_cast<signed char>(party_row->item_origin);
             short item_slot = static_cast<short>(party_row->item_slot);
-            if (party_row->occupied != 0 && party_row->pending_action == 8 && origin != -1 &&
+            if (party_row->fOccupied != 0 && party_row->pending_action == 8 && origin != -1 &&
                 item_slot != -1) {
                 item = FindCharacterItemAt(slot, static_cast<unsigned char>(origin),
                                            static_cast<unsigned short>(item_slot));
@@ -2233,12 +2233,12 @@ void SaveGlobalStatus(W8Chunk* chunks, W8GlobalStatus* status)
     for (slot = 0; slot != 8; ++slot) {
         size = sizeof(W8Character);
         chunks->Write(&size, sizeof(size), 0);
-        chunks->Write(&status->buffers.characters[slot], size, 0);
+        chunks->Write(&status->buffers.Char[slot], size, 0);
     }
     for (slot = 0; slot != 8; ++slot) {
         size = sizeof(W8PartySlotRow);
         chunks->Write(&size, sizeof(size), 0);
-        chunks->Write(&status->buffers.party_rows[slot], size, 0);
+        chunks->Write(&status->buffers.XChar[slot], size, 0);
     }
     chunks->ReleaseCurrentChunk();
 }
@@ -2427,7 +2427,7 @@ unsigned char LoadGame(const char* slot_name)
     }
     gXStatus.gameplay_timer->Restart();
     ResetMainGameScreenState();
-    if (g_status_685170.item_in_hand_235b.item_id == -1) {
+    if (g_status_685170.item_in_hand_235b.iItemNo == -1) {
         ClearHeldItemDisplay();
     } else {
         SetItemCursor(0);

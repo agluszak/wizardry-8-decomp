@@ -95,11 +95,11 @@ void SyncPartyPortraitVitalsBars(void)
         unsigned int spell_bar = 0;
         W8Character* character;
 
-        if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
+        if (g_status_685170.buffers.XChar[slot].fOccupied == 0) {
             continue;
         }
 
-        character = &g_status_685170.buffers.characters[slot];
+        character = &g_status_685170.buffers.Char[slot];
         if (character->hp_current == 0) {
             hp_bar = 0;
             stamina_bar = 0;
@@ -108,14 +108,14 @@ void SyncPartyPortraitVitalsBars(void)
             int left;
             int total;
 
-            hp_bar = (character->hp_current * 0x2d) / static_cast<unsigned int>(character->hp_max);
+            hp_bar = (character->hp_current * 0x2d) / static_cast<unsigned int>(character->uiHPMax);
             if (hp_bar == 0) {
                 hp_bar = 1;
             }
 
             stamina = character->stamina;
             stamina_bar = ((((static_cast<int>(stamina) < 0) - 1) & stamina) * 0x2d) /
-                          static_cast<unsigned int>(character->stamina_max);
+                          static_cast<unsigned int>(character->uiStaminaMax);
             if (stamina_bar == 0 && stamina != 0) {
                 stamina_bar = 1;
             }
@@ -176,7 +176,7 @@ void RecordCharacterDamage(int party_slot, unsigned int amount)
         } else {
             entry->damage_splat_catalog = 0x91;
         }
-        if (g_status_685170.buffers.characters[party_slot].hp_current == 0) {
+        if (g_status_685170.buffers.Char[party_slot].hp_current == 0) {
             entry->damage_splat_death_variant = 1;
             entry->damage_splat_end_frame = 0x1e;
         } else {
@@ -194,7 +194,7 @@ void RecordCharacterDamage(int party_slot, unsigned int amount)
     } else {
         entry->damage_splat_amount += amount;
         entry->damage_splat_frame = 0;
-        if (g_status_685170.buffers.characters[party_slot].hp_current == 0 &&
+        if (g_status_685170.buffers.Char[party_slot].hp_current == 0 &&
             entry->damage_splat_death_variant == 0) {
             entry->damage_splat_death_variant = 1;
             entry->damage_splat_end_frame = 0x1e;
@@ -302,7 +302,7 @@ void TickPartyPortraitFx(void)
         unsigned char clock_expired;
         bool dirty = 0;
 
-        if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
+        if (g_status_685170.buffers.XChar[slot].fOccupied == 0) {
             continue;
         }
 
@@ -349,7 +349,7 @@ void ResetPartyPortraitFx(void)
     for (slot = 0; slot < 8; ++slot) {
         W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[slot];
 
-        if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
+        if (g_status_685170.buffers.XChar[slot].fOccupied == 0) {
             continue;
         }
         entry->effect_icon_active = 0;
@@ -378,12 +378,12 @@ void RedrawCombatPortraits0059B720(void)
     int slot;
 
     for (slot = 0; slot < 8; ++slot) {
-        W8PartySlotRow* party_row = &g_status_685170.buffers.party_rows[slot];
-        W8Character* character = &g_status_685170.buffers.characters[slot];
+        W8PartySlotRow* party_row = &g_status_685170.buffers.XChar[slot];
+        W8Character* character = &g_status_685170.buffers.Char[slot];
         W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[slot];
         W8CombatCharacterRow* combat_row = &g_combat_state->characters[slot];
 
-        if (party_row->occupied == 0 || character->hp_current == 0 ||
+        if (party_row->fOccupied == 0 || character->hp_current == 0 ||
             character->highest_condition >= W8_CONDITION_DEAD ||
             combat_row->portrait_image_084 == -1 || entry->combat_portrait_dirty == 0 ||
             slot == g_level_block->combat_slot) {
@@ -414,8 +414,7 @@ void RedrawCombatPortraits0059B720(void)
         } else if (party_row->target_in_combat.iType == W8_TARGET_KIND_CHARACTER) {
             DrawCatalogImageAndInvalidate(
                 -0xe, 0x8c, 0,
-                g_status_685170.buffers.party_rows[party_row->target_in_combat.iChar]
-                    .party_order_index,
+                g_status_685170.buffers.XChar[party_row->target_in_combat.iChar].party_order_index,
                 badge_x, row_y + 0x38, 2, 0);
         }
         entry->combat_portrait_dirty = 0;
@@ -534,7 +533,7 @@ void GetPartySlotMenuAnchor(int party_slot, int* menu_x, int* menu_y, int* band_
 void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
 {
     W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[party_slot];
-    W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    W8Character* character = &g_status_685170.buffers.Char[party_slot];
     int menu_x;
     int menu_y;
     int band_menu_edge;
@@ -737,10 +736,10 @@ unsigned char PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int 
          (g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_FORMATION &&
           g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_RADAR) ||
          g_level_block->portrait_refresh_pending[party_slot] != 0) &&
-        g_status_685170.buffers.party_rows[party_slot].occupied != 0) {
-        W8Character* character = &g_status_685170.buffers.characters[party_slot];
+        g_status_685170.buffers.XChar[party_slot].fOccupied != 0) {
+        W8Character* character = &g_status_685170.buffers.Char[party_slot];
         if (character->hp_current != 0) {
-            int portrait = character->table_value_0079;
+            int portrait = character->portrait_index;
             int flags = 2;
             if ((g_portrait_descriptors_6483d0[portrait].render_mode == 1 &&
                  (party_slot & 1) == 0) ||
@@ -796,26 +795,26 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
     GetPartySlotMenuAnchor(party_slot, &menu_x, &menu_y, &band_menu_edge, &band_portrait_edge,
                            &grid_row, &column_x, slot_enabled);
 
-    party_row = &g_status_685170.buffers.party_rows[party_slot];
-    character = &g_status_685170.buffers.characters[party_slot];
+    party_row = &g_status_685170.buffers.XChar[party_slot];
+    character = &g_status_685170.buffers.Char[party_slot];
     entry = &gXStatus.monster_manager_entries[party_slot];
 
-    if (party_row->occupied == 0) {
+    if (party_row->fOccupied == 0) {
         DrawCatalogImage(-14, 0x31, 0, 0, menu_x + 0x14, menu_y, 2, 0);
     }
 
     if (overlay_ready != 0) {
-        if (party_row->occupied == 0) {
+        if (party_row->fOccupied == 0) {
             portrait_catalog = 0x34;
             portrait_flags = 2;
             DrawCatalogImage(-14, portrait_catalog, 0, 0, menu_x + 0x14, menu_y, portrait_flags, 0);
         } else if (character->hp_current == 0 &&
                    (entry->damage_splat_death_variant == 0 || entry->dead_portrait_revealed != 0)) {
-            portrait_catalog = g_dead_portrait_catalog_ids_6488d0[character->race][1];
+            portrait_catalog = g_dead_portrait_catalog_ids_6488d0[character->iRace][1];
             portrait_flags = (party_slot & 1) == 0 ? 2 : 0x1002;
             DrawCatalogImage(-14, portrait_catalog, 0, 0, menu_x + 0x14, menu_y, portrait_flags, 0);
         } else {
-            portrait_catalog = character->table_value_0079;
+            portrait_catalog = character->portrait_index;
             portrait_flags = 2;
             if ((g_portrait_descriptors_6483d0[portrait_catalog].render_mode == 1 &&
                  (party_slot & 1) == 0) ||
@@ -831,11 +830,11 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
 
     DrawCatalogImage(-14, 0x82, 0, 0x10, menu_x + 0x17, menu_y, 2, 0);
 
-    if (party_row->occupied != 0) {
+    if (party_row->fOccupied != 0) {
         if (overlay_ready != 0) {
             if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS ||
                 g_level_block->portrait_refresh_pending[party_slot] != 0) {
-                main_hand_item_id = character->equipment[6].item_id;
+                main_hand_item_id = character->EquippedItem[6].iItemNo;
                 if (main_hand_item_id == -1 ||
                     (g_item_records[main_hand_item_id].flags_041 & 4) == 0) {
                     show_off_hand_row = 0;
@@ -848,15 +847,15 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
                                  menu_y, 2, 0);
 
                 if (main_hand_item_id == -1) {
-                    DrawCatalogImage(-14, g_empty_hand_catalog_ids_649dd4[character->race * 2], 0,
+                    DrawCatalogImage(-14, g_empty_hand_catalog_ids_649dd4[character->iRace * 2], 0,
                                      0, band_menu_edge + 4, menu_y + 0x17, 2, 0);
                 } else {
                     DrawCatalogImage(
                         -14, g_item_video_objects_68ec68.GetOrCreateVideoObject(main_hand_item_id),
                         0, 2, band_menu_edge + 3, menu_y + 0x17, 2, 0);
-                    if (character->equipment[6].stack_count != 0) {
+                    if (character->EquippedItem[6].stack_count != 0) {
                         swprintf(text, g_format_d_0060aa20,
-                                 static_cast<int>(character->equipment[6].stack_count));
+                                 static_cast<int>(character->EquippedItem[6].stack_count));
                         SetFont(g_smfnt_font_683694);
                         SetFontObjectPalette16BPP(g_smfnt_font_683694, g_font_palette_smfnt_68ee10);
                         text_width = StringPixLength(text, g_smfnt_font_683694);
@@ -866,19 +865,19 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
                 }
 
                 if (show_off_hand_row == 0) {
-                    off_hand_item_id = character->equipment[7].item_id;
+                    off_hand_item_id = character->EquippedItem[7].iItemNo;
                     if (off_hand_item_id == -1) {
                         DrawCatalogImage(-14,
-                                         g_empty_hand_catalog_ids_649dd4[character->race * 2 + 1],
+                                         g_empty_hand_catalog_ids_649dd4[character->iRace * 2 + 1],
                                          0, 0, band_menu_edge + 4, menu_y + 0x2f, 2, 0);
                     } else {
                         DrawCatalogImage(
                             -14,
                             g_item_video_objects_68ec68.GetOrCreateVideoObject(off_hand_item_id), 0,
                             2, band_menu_edge + 3, menu_y + 0x2f, 2, 0);
-                        if (character->equipment[7].stack_count != 0) {
+                        if (character->EquippedItem[7].stack_count != 0) {
                             swprintf(text, g_format_d_0060aa20,
-                                     static_cast<int>(character->equipment[7].stack_count));
+                                     static_cast<int>(character->EquippedItem[7].stack_count));
                             SetFont(g_smfnt_font_683694);
                             SetFontObjectPalette16BPP(g_smfnt_font_683694,
                                                       g_font_palette_smfnt_68ee10);
@@ -912,9 +911,9 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
                         const_cast<UINT16*>(g_format_s_006068e4), text);
             }
 
-            wcscpy(text,
-                   gppStringList
-                       [g_profession_name_message_ids_61e3f0[character->current_profession + 16]]);
+            wcscpy(
+                text,
+                gppStringList[g_profession_name_message_ids_61e3f0[character->iProfession + 16]]);
             if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
                 SetFontObjectPalette16BPP(
                     g_smfnt_font_683694,
@@ -1011,7 +1010,7 @@ draw_condition_icons:
     }
     DrawCatalogImage(-14, enchantment_frame, 0, 0, right_condition_x, menu_y + 3, 2, 0);
 
-    if (party_row->occupied != 0 && g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+    if (party_row->fOccupied != 0 && g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
         if (g_level_block->party_slots_170[0] == static_cast<int>(party_slot)) {
             DrawCatalogImage(-14, 0x60, 0, 0, left_condition_x - 1, menu_y + 2, 2, 0);
         } else if (character->highest_condition != 0) {
@@ -1077,7 +1076,7 @@ portrait_fx:
         DrawCatalogImage(-14, hp_overlay_catalog, 0, 0, hp_overlay_x, hp_overlay_y, 2, 0);
     }
 
-    if (gXStatus.fCombatMode == 0 && party_slot < 8 && party_row->occupied != 0) {
+    if (gXStatus.fCombatMode == 0 && party_slot < 8 && party_row->fOccupied != 0) {
         g_portrait_controls_0069b920[party_slot]->Invalidate(0);
     }
 
@@ -1223,7 +1222,7 @@ void EnablePortraitAdvanceRegions0059BB70(void)
     int party_slot = 0;
     do {
         if (!IsCharacterReadyToAdvance(party_slot) ||
-            g_status_685170.buffers.party_rows[party_slot].flag_103 == 0) {
+            g_status_685170.buffers.XChar[party_slot].flag_103 == 0) {
             DisableRegionInput(party_slot + 0x12);
         } else {
             EnableRegionInput(party_slot + 0x12);
@@ -1236,7 +1235,7 @@ void EnablePortraitAdvanceRegions0059BB70(void)
 // FUNCTION: WIZ8 0x0059BBD0
 void InvalidatePortraitControl0059BBD0(unsigned int party_slot)
 {
-    if (party_slot < 8 && g_status_685170.buffers.party_rows[party_slot].occupied) {
+    if (party_slot < 8 && g_status_685170.buffers.XChar[party_slot].fOccupied) {
         g_portrait_controls_0069b920[party_slot]->Invalidate(0);
     }
 }
@@ -1259,7 +1258,7 @@ void UpdatePortraitAdvanceButtons0059BC10(void)
     for (slot = 0, control = g_portrait_controls_0069b920;
          control < &g_portrait_controls_0069b920[8]; ++slot, ++control) {
         if (IsCharacterReadyToAdvance(slot) && gXStatus.fNpcDialogueMode == 0 &&
-            g_status_685170.buffers.party_rows[slot].flag_103 != 0) {
+            g_status_685170.buffers.XChar[slot].flag_103 != 0) {
             if (!(*control)->m_active) {
                 (*control)->SetActive(true);
                 g_panel_69b940->Invalidate(0);
@@ -1280,11 +1279,11 @@ void OnLevelButtonActivate(void)
     if (slot == -1 || slot >= 8) {
         return;
     }
-    if (g_status_685170.buffers.party_rows[slot].occupied == 0) {
+    if (g_status_685170.buffers.XChar[slot].fOccupied == 0) {
         srAssertFail("fCHAR_OCCUPIED(giLevelUpChar)",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\MGSPortraits.cpp", 0x988, 0);
     }
-    g_pending_screen_state.parameter_3 = &g_status_685170.buffers.characters[slot];
+    g_pending_screen_state.parameter_3 = &g_status_685170.buffers.Char[slot];
     g_pending_screen_state.mode = 2;
     SetPendingScreenState(W8_SCREEN_CHARACTER);
 }
@@ -1512,11 +1511,11 @@ void UpdateConditionButtons0059C080(void)
         W8ConditionButton* button = g_condition_buttons_0069b900[slot];
         W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[slot];
         image = 0;
-        if (g_status_685170.buffers.party_rows[slot].occupied != 0 &&
+        if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
             g_level_block->portrait_refresh_pending[slot] == 0 && entry->keyboard_menu_open == 0) {
-            image = g_status_685170.buffers.characters[slot].highest_condition;
+            image = g_status_685170.buffers.Char[slot].highest_condition;
             if (image == 0) {
-                image = g_status_685170.buffers.characters[slot].enchantment_top;
+                image = g_status_685170.buffers.Char[slot].enchantment_top;
                 if (image != 0) {
                     if (button->m_image_object_bc != image) {
                         button->m_image_object_bc = image;

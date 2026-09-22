@@ -29,7 +29,7 @@ extern unsigned char g_submenu_flag_69b8d4;
    lands at [built-1] where built is the available-entry count plus one, so
    the array is only safe because W8_SUBMENU_ATTACK's Berserk (fighter trait
    0x14) and Pray (priest trait 0x0b) entries can never be available together -
-   current_profession is one index into g_profession_abilities. */
+   iProfession is one index into g_profession_abilities. */
 extern W8TextControl* g_submenu_rows_69b8ec[5];
 extern W8DialogButton* g_submenu_buttons_69b8b0[9];
 /* The action-kind message indexes the caption draw maps through. */
@@ -69,7 +69,7 @@ void RedrawLayoutArrowButtons(void); /* 0x00598490 */
 unsigned char CreateLayoutArrowButtons(void); /* 0x005982D0 */
 /* MainGameScreenEnter's interface-button bank: submenu, scroll, panel,
    options disk, combat stance, roof, and layout arrows. */
-void CreateMainGameInterfaceButtons(void); /* 0x00598AB0 */
+void CreateMainGameInterfaceButtons(void);  /* 0x00598AB0 */
 void DestroyMainGameInterfaceButtons(void); /* 0x00598AE0 */
 /* Draw the selected character's name/profession line and the caption for
    their queued action. */

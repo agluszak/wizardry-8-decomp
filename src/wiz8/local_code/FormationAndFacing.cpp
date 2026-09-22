@@ -76,11 +76,11 @@ void ReconcilePartyFormation(W8PartyFormationState* edited, W8PartyFormationStat
 
     InitializePartyFormation(&working);
     for (slot = 0; slot < 8; ++slot) {
-        const W8Character* character = &g_status_685170.buffers.characters[slot];
+        const W8Character* character = &g_status_685170.buffers.Char[slot];
         signed char row;
         bool row_changed;
 
-        if (g_status_685170.buffers.party_rows[slot].occupied == 0 || character->hp_current <= 0 ||
+        if (g_status_685170.buffers.XChar[slot].fOccupied == 0 || character->hp_current <= 0 ||
             character->highest_condition >= W8_CONDITION_HOSTILE) {
             continue;
         }
@@ -99,11 +99,11 @@ void ReconcilePartyFormation(W8PartyFormationState* edited, W8PartyFormationStat
         }
     }
     for (slot = 0; slot < 8; ++slot) {
-        const W8Character* character = &g_status_685170.buffers.characters[slot];
+        const W8Character* character = &g_status_685170.buffers.Char[slot];
         W8PartyFormationPosition* live_position = &live->positions[slot];
         W8PartyFormationPosition* edited_position = &edited->positions[slot];
 
-        if (g_status_685170.buffers.party_rows[slot].occupied == 0 ||
+        if (g_status_685170.buffers.XChar[slot].fOccupied == 0 ||
             (character->hp_current > 0 && character->highest_condition < W8_CONDITION_HOSTILE)) {
             continue;
         }
@@ -209,7 +209,7 @@ float g_facing_tolerance_005ebcf4 = 0.05f;
 // FUNCTION: WIZ8 0x005549e0
 bool CanHoldFormationPlace(int party_slot)
 {
-    const W8Character* character = &g_status_685170.buffers.characters[party_slot];
+    const W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
     return character->hp_current > 0 && character->highest_condition < W8_CONDITION_HOSTILE;
 }
@@ -629,7 +629,7 @@ void UpdateFormationSlotState(W8PartyFormationState* formation, int slot)
     signed char seat;
     int index;
 
-    if (g_status_685170.buffers.characters[slot].highest_condition >= W8_CONDITION_DEAD) {
+    if (g_status_685170.buffers.Char[slot].highest_condition >= W8_CONDITION_DEAD) {
         if (position->bQuadrant == -1) {
             return;
         }
@@ -815,7 +815,7 @@ void RebuildPartyStatus00555FA0(W8PartyFormationState* status)
 {
     unsigned int slot;
     for (slot = 0; slot < 8; ++slot) {
-        if (g_status_685170.buffers.party_rows[slot].occupied == 0 &&
+        if (g_status_685170.buffers.XChar[slot].fOccupied == 0 &&
             status->positions[slot].bQuadrant != -1 &&
             status->positions[slot].bQuadrantSlot != -1) {
             SetFormationPosition(status, slot, -1, -1, 0, 1, 1);

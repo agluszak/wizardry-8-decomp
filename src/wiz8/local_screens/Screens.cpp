@@ -215,10 +215,10 @@ void SetTargetCursor(int cursor)
         if ((g_current_screen_state.id == W8_SCREEN_MAIN_GAME ||
              g_current_screen_state.id == W8_SCREEN_CAMP) &&
             g_status_685170.item_in_cursor) {
-            if (g_status_685170.item_in_hand_235b.item_id != -1) {
+            if (g_status_685170.item_in_hand_235b.iItemNo != -1) {
                 g_status_685170.item_in_cursor = 1;
                 object = g_item_video_objects_68ec68.GetOrCreateVideoObject(
-                    g_status_685170.item_in_hand_235b.item_id);
+                    g_status_685170.item_in_hand_235b.iItemNo);
                 SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(object, 0),
                                               GetCatalogVideoObjectYOffset(object), 0, 0);
                 BlitToMouseCursor(GetCatalogVideoObjectHandle(0, 0),
@@ -249,10 +249,10 @@ void UpdateHeldItemCursor(void)
     if ((g_current_screen_state.id == W8_SCREEN_MAIN_GAME ||
          g_current_screen_state.id == W8_SCREEN_CAMP) &&
         g_status_685170.item_in_cursor) {
-        if (g_status_685170.item_in_hand_235b.item_id != -1) {
+        if (g_status_685170.item_in_hand_235b.iItemNo != -1) {
             g_status_685170.item_in_cursor = 1;
             object = g_item_video_objects_68ec68.GetOrCreateVideoObject(
-                g_status_685170.item_in_hand_235b.item_id);
+                g_status_685170.item_in_hand_235b.iItemNo);
             SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(object, 0),
                                           GetCatalogVideoObjectYOffset(object), 0, 0);
             BlitToMouseCursor(GetCatalogVideoObjectHandle(0, 0), GetCatalogVideoObjectYOffset(0), 0,
@@ -304,7 +304,7 @@ void ClearHeldItemDisplay(void)
 {
     memset(&g_status_685170.item_in_hand_235b, 0, sizeof(g_status_685170.item_in_hand_235b));
     g_status_685170.item_in_cursor = 0;
-    g_status_685170.item_in_hand_235b.item_id = -1;
+    g_status_685170.item_in_hand_235b.iItemNo = -1;
 
     if (gXStatus.iCurrentCursor != -1) {
         SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(0, 0),
@@ -342,10 +342,10 @@ void SetItemCursor(int item_id)
     unsigned short y_offset;
     unsigned int handle;
 
-    if (g_status_685170.item_in_hand_235b.item_id != -1) {
+    if (g_status_685170.item_in_hand_235b.iItemNo != -1) {
         g_status_685170.item_in_cursor = 1;
         object = g_item_video_objects_68ec68.GetOrCreateVideoObject(
-            g_status_685170.item_in_hand_235b.item_id);
+            g_status_685170.item_in_hand_235b.iItemNo);
         y_offset = GetCatalogVideoObjectYOffset(object);
         handle = GetCatalogVideoObjectHandle(object, 0);
         SetMouseCursorFromVideoObject(handle, y_offset, 0, 0);

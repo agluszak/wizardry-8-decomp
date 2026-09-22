@@ -2778,8 +2778,8 @@ void SetMonsterPartySlotMarker004C4DE0(int party_slot, int location_id, char on)
     } else {
         if (rep->objects_5c8[party_slot] == 0) {
             sprintf(path, g_monster_bitmap_path_format_0060f510,
-                    g_party_target_marker_bitmaps_0060e938
-                        [g_status_685170.buffers.party_rows[party_slot].party_order_index]);
+                    g_party_target_marker_bitmaps_0060e938[g_status_685170.buffers.XChar[party_slot]
+                                                               .party_order_index]);
             rep->objects_5c8[party_slot] = CreateMonsterIconItem004C5500(g_world, path, 1);
             rep->value_5c4 = rep->value_5c4 + 1;
         }
@@ -3273,7 +3273,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
     {
         float angle = NormalizeAngle(GetYaw() + g_monster_rotation_offset_005ec04c);
         if (angle != 0.0f) {
-            rotation.RotateAboutY(sin((double)angle), cos((double)angle));
+            rotation.RotateAboutY(sin(angle), cos(angle));
         }
     }
     {
@@ -4298,18 +4298,18 @@ void MonsterSetFacing004C5B60(W8Monster* monster, float angle)
     rotation.SetIdentity();
 
     angle = NormalizeAngle(monster->GetYaw() + g_monster_rotation_offset_005ec04c);
-    if ((double)angle != g_zero_005ebb40) {
-        rotation.RotateAboutY(sin((double)angle), cos((double)angle));
+    if (angle != g_zero_005ebb40) {
+        rotation.RotateAboutY(sin(angle), cos(angle));
     }
 
     angle = monster->GetPitch();
-    if (angle != g_float_005ebb34 && (double)angle != g_zero_005ebb40) {
-        rotation.RotateAboutX(sin((double)angle), cos((double)angle));
+    if (angle != g_float_005ebb34 && angle != g_zero_005ebb40) {
+        rotation.RotateAboutX(sin(angle), cos(angle));
     }
 
     angle = monster->movement_0c0.roll_028;
-    if (angle != g_float_005ebb34 && (double)angle != g_zero_005ebb40) {
-        rotation.RotateAboutZ(sin((double)angle), cos((double)angle));
+    if (angle != g_float_005ebb34 && angle != g_zero_005ebb40) {
+        rotation.RotateAboutZ(sin(angle), cos(angle));
     }
 
     monster->m_pRep->SetRotation004B88D0(&rotation);
