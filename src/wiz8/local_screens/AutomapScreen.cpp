@@ -2163,7 +2163,7 @@ void RenderAutomapMarkers00582930(void)
             }
         }
         if (g_flag_0068f264 != 0 || detect_all != 0 ||
-            (monster->flag_217 == 0 && info->party_threat.state_04 == 1)) {
+            (monster->flag_217 == 0 && info->party_threat.sight_state_04 == W8_SIGHT_SEEN)) {
             left = g_automap_position.x - g_automap_zoom * g_float_005ebc7c;
             top = g_automap_position.z - g_automap_zoom * g_float_005ebc7c;
             if (location.x < left || left + g_automap_zoom < location.x || location.z < top ||
