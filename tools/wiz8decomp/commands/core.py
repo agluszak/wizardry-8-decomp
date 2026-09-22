@@ -295,6 +295,14 @@ def runtime_test_command(
         bool,
         typer.Option("--build", help="Build a fresh runtime-test product before running."),
     ] = False,
+    renderer: Annotated[
+        str | None,
+        typer.Option(
+            "--renderer",
+            help="Set GALLIUM_DRIVER for this run (e.g. softpipe, llvmpipe); "
+            "default keeps the caller's environment.",
+        ),
+    ] = None,
 ) -> None:
     """Run deterministic in-process semantic scenarios using the existing product."""
     from .. import command_support as cli
@@ -312,6 +320,7 @@ def runtime_test_command(
             tier=tier,
             repeat=repeat,
             check_order=check_order,
+            renderer=renderer,
         )
     )
 
