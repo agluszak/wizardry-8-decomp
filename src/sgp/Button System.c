@@ -125,6 +125,7 @@ void AssertFailIfIdenticalButtonAttributesFound( GUI_BUTTON *b )
 //it.  This follows the Windows 95 convention.
 // GLOBAL: WIZ8 0x006e1198
 GUI_BUTTON *gpAnchoredButton;
+// GLOBAL: WIZ8 0x006E10C0
 GUI_BUTTON *gpPrevAnchoredButton;
 // GLOBAL: WIZ8 0x006e1880
 BOOLEAN gfAnchoredState;
@@ -190,10 +191,14 @@ INT16 GenericButtonOffsetY[MAX_GENERIC_PICS];
 HVOBJECT GenericButtonIcons[MAX_BUTTON_ICONS];
 
 // flag to state we wish to render buttons on the one after the next pass through render buttons
+// GLOBAL: WIZ8 0x00650EA8
 BOOLEAN fPausedMarkButtonsDirtyFlag = FALSE;
+// GLOBAL: WIZ8 0x00650EA9
 BOOLEAN fDisableHelpTextRestoreFlag = FALSE;
 
+// GLOBAL: WIZ8 0x00650EAA
 BOOLEAN gfDelayButtonDeletion = FALSE;
+// GLOBAL: WIZ8 0x00650EAB
 BOOLEAN gfPendingButtonDeletion = FALSE;
 void RemoveButtonsMarkedForDeletion();
 
