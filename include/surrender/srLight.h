@@ -38,13 +38,13 @@ public:
     SR_DLL_IMPORT srLight(const srLight& other);
     SR_DLL_IMPORT srLight& operator=(const srLight& other);
 
+    /* Pushed as the literal at 0x00606E48 wherever the registry chain runs,
+       never called through SR.DLL's import table, so this level's name is
+       header-visible unlike srNode's and srIlluminator's. The provider still
+       exports its own copy from light.cpp. */
 #if defined(SURRENDER_BUILD)
     static const char* sGetClassName();
 #else
-    /* Pushed as the literal at 0x00606E48 wherever the registry chain runs,
-       never called through SR.DLL's import table, so this level's name is
-       header-visible unlike srNode's and srIlluminator's. The provider
-       still emits its own copy from light.cpp. */
     static const char* sGetClassName()
     {
         return "srLight";
@@ -54,11 +54,18 @@ public:
     virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;
 
 public:
-    /* Public per the SR.DLL export (??1srLight@@UAE@XZ) and inline so
-       0x0049C430 expands the empty body rather than calling an import.
-       SR.DLL also emits the out-of-line copy at 0x1004ED70. */
-    // FUNCTION: SURRENDER 0x1004ED70
+    /* Header-visible for the same reason srIlluminator's is: 0x0049C430
+       expands it rather than calling an import. The inline body expands to
+       the srClassSupport registry teardown, which is SR.DLL's out-of-line
+       emission at 0x1004ED70. Retail exports the destructor under its public
+       spelling. */
+#if defined(SURRENDER_BUILD)
+    virtual SR_DLL_IMPORT ~srLight() override;
+#else
     virtual ~srLight() override {}
+#endif
+
+public:
     virtual SR_DLL_IMPORT void traverse(srNode::TraverseInfo& info) override;
     virtual SR_DLL_IMPORT void process(const srNode::ProcessInfo& info,
                                        srNode::e_processType type) override;
@@ -101,12 +108,15 @@ public:
     double near_end_160;   /* 0x160 */
     double far_start_168;  /* 0x168 */
     double far_end_170;    /* 0x170 */
-    /* 3DStudio ranges scaled by the current model-view scale, and the
-       inverse range factors (1.0 when the range is degenerate). */
-    float near_start_scaled_178; /* 0x178 */
-    float far_end_scaled_17c;    /* 0x17c */
-    float near_inverse_180;      /* 0x180 */
-    float far_inverse_184;       /* 0x184 */
+    /* Eye-space derived state filled by process(ProcessInfo): the near/far
+       attenuation ranges rescaled by the model-view scale, their reciprocal
+       slopes, the intensity-scaled colors, the eye-space spot direction and
+       cone cutoff, the cull range, the derived light flags and the channel
+       mask the vertex processor gates on. */
+    float scaled_near_start_178; /* 0x178 */
+    float scaled_far_end_17c;    /* 0x17c */
+    float near_attenuation_180;  /* 0x180 */
+    float far_attenuation_184;   /* 0x184 */
     /* BakeInstanceVertexLighting copies this wholesale into a local vec3;
        setLinearAttenuation stores the linear coefficient in .y. */
     srVector3T<float> opengl_attenuation_188; /* 0x188 */
@@ -119,18 +129,15 @@ public:
     float spot_exponent_1cc;                  /* 0x1cc */
     float intensity_1d0;                      /* 0x1d0 */
     float safe_range_1d4;                     /* 0x1d4 */
-    /* Eye-space state computed by process(ProcessInfo): the three
-       intensity-scaled channel colors (w zero), the eye-space spot
-       direction, cos(spot_angle), and the scaled far range end. */
-    srVector4T<float> eye_ambient_1d8;  /* 0x1d8 */
-    srVector4T<float> eye_diffuse_1e8;  /* 0x1e8 */
-    srVector4T<float> eye_specular_1f8; /* 0x1f8 */
-    srVector3T<float> eye_spot_dir_208; /* 0x208 */
-    float spot_cos_214;                 /* 0x214 */
-    float far_end_current_218;          /* 0x218 */
-    unsigned long activity_21c;         /* 0x21c: activity bitfield; bit 0 = lit */
-    unsigned long channel_bits_220;     /* 0x220: vp channel bits this light feeds */
-    unsigned char unknown_224_[4];
+    srVector4T<float> scaled_ambient_1d8;     /* 0x1d8: ambient * intensity */
+    srVector4T<float> scaled_diffuse_1e8;     /* 0x1e8: diffuse * intensity */
+    srVector4T<float> scaled_specular_1f8;    /* 0x1f8: specular * intensity */
+    srVector3T<float> spot_direction_eye_208; /* 0x208 */
+    float spot_cutoff_214;                    /* 0x214: cos(spot_angle) */
+    float attenuation_range_218;              /* 0x218: scaled far end */
+    unsigned long derived_flags_21c;          /* 0x21c */
+    unsigned long channel_mask_220;           /* 0x220 */
+    unsigned char pad_224_[4];                /* 0x224 */
 };
 #pragma pack(pop)
 

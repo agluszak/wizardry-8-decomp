@@ -544,6 +544,120 @@ void srHeap::free(void* allocation, unsigned int)
     free(allocation);
 }
 
+// FUNCTION: SURRENDER 0x10036500
+srMemoryAllocator::srMemoryAllocator()
+{
+    first_block_00 = 0;
+    allocated_bytes_04 = 0;
+    allocation_count_08 = 0;
+    alignment_0c = ALIGN_SIZE_32;
+    clear_10 = 1;
+}
+
+// FUNCTION: SURRENDER 0x10036520
+srMemoryAllocator::~srMemoryAllocator() {}
+
+// FUNCTION: SURRENDER 0x100042E0
+srMemoryAllocator& srMemoryAllocator::operator=(const srMemoryAllocator& other)
+{
+    first_block_00 = other.first_block_00;
+    allocated_bytes_04 = other.allocated_bytes_04;
+    allocation_count_08 = other.allocation_count_08;
+    alignment_0c = other.alignment_0c;
+    clear_10 = other.clear_10;
+    return *this;
+}
+
+// FUNCTION: SURRENDER 0x100042D0
+void srMemoryAllocator::setAlignment(e_alignSize alignment)
+{
+    alignment_0c = alignment;
+}
+
+// FUNCTION: SURRENDER 0x10036530
+srMemoryAllocator::Block* srMemoryAllocator::align(void* allocation)
+{
+    /* Block headers sit 0x20 bytes below the user pointer; the user address is
+       rounded up to alignment_0c. */
+    // reinterpret-ok: block alignment is computed on the raw allocation bits.
+    return reinterpret_cast<Block*>(
+        ((reinterpret_cast<unsigned long>(allocation) + alignment_0c + 0x1f) &
+         ~(alignment_0c - 1)) -
+        0x20);
+}
+
+// FUNCTION: SURRENDER 0x10036570
+void* srMemoryAllocator::allocate(unsigned long count, unsigned long size, const char* name)
+{
+    unsigned long requested = count * size;
+    unsigned long allocation_size = alignment_0c + 0x1f + requested;
+    if (name != 0) {
+        allocation_size += strlen(name) + 1;
+    }
+    void* raw = operator new(allocation_size);
+    memset(raw, 0, allocation_size);
+    if (raw == 0) {
+        return 0;
+    }
+    Block* block = align(raw);
+    block->requested_size_14 = requested;
+    block->raw_allocation_08 = raw;
+    block->allocation_size_10 = allocation_size;
+    if (name == 0) {
+        block->name_0c = 0;
+    } else {
+        // reinterpret-ok: the name string is stored right after the user area.
+        block->name_0c = reinterpret_cast<char*>(block) + 0x20 + requested;
+        strcpy(block->name_0c, name);
+    }
+    block->next_00 = first_block_00;
+    block->previous_04 = 0;
+    if (first_block_00 != 0) {
+        first_block_00->previous_04 = block;
+    }
+    first_block_00 = block;
+    ++allocation_count_08;
+    allocated_bytes_04 += block->allocation_size_10;
+    return block + 1;
+}
+
+// FUNCTION: SURRENDER 0x10036550
+void* srMemoryAllocator::allocate(unsigned long size, const char* name)
+{
+    return allocate(1, size, name);
+}
+
+// FUNCTION: SURRENDER 0x100366F0
+unsigned long srMemoryAllocator::getSize(void* allocation) const
+{
+    return (static_cast<Block*>(allocation) - 1)->requested_size_14;
+}
+
+// FUNCTION: SURRENDER 0x10036700
+const char* srMemoryAllocator::getName(void* allocation) const
+{
+    return (static_cast<Block*>(allocation) - 1)->name_0c;
+}
+
+// FUNCTION: SURRENDER 0x10036710
+void srMemoryAllocator::dump() const
+{
+    srPrintf("Memory dump\n");
+    srPrintf("\nAddress      Size    Tag  Name\n");
+    srPrintf("-------------------------------------------------------------------\n");
+    for (Block* block = first_block_00; block != 0; block = block->next_00) {
+        const char* name = block->name_0c;
+        if (name == 0) {
+            name = "<unnamed>";
+        }
+        srPrintf("%8p %8d %s\n", block + 1, block->requested_size_14, name);
+    }
+    srPrintf("-------------------------------------------------------------------\n");
+    srPrintf("Total memory used %d bytes (%d Kb) for %d entries.\n", allocated_bytes_04,
+             (long)(allocated_bytes_04 + 0x3ff) / 1024, allocation_count_08);
+    srPrintf("Alignment: %d Clear: %s\n", alignment_0c, clear_10 != 0 ? "Yes" : "No");
+}
+
 // FUNCTION: SURRENDER 0x100366A0
 void srMemoryAllocator::free(void* allocation)
 {

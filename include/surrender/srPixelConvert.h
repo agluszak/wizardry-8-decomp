@@ -26,7 +26,10 @@ public:
         unsigned char blue_shift;
         unsigned char alpha_bits;
         unsigned char alpha_shift;
-        e_surfaceType surface_type;
+        /* Colorspace/conversion class 0..3, not the surface type: getName
+           reads the channel letters "RGBA"/"YUVA"/"IXXA"/"PXXA" by it and
+           selectFuncs dispatches on it. */
+        long conversion_class;
         long bytes_per_pixel_minus_one;
         unsigned long flags;
 
@@ -38,8 +41,7 @@ public:
     static e_surfaceType mapPixelFormat(const PixelFormat& format);
     /* This overload is imported by both Wiz8 and the JPEG extension. */
     static SR_DLL_IMPORT void mapPixelFormat(e_surfaceType type, PixelFormat& format);
-    static void selectFuncs(const PixelFormat& format, ConversionFunc& write,
-                            ConversionFunc& read);
+    static void selectFuncs(const PixelFormat& format, ConversionFunc& write, ConversionFunc& read);
 };
 
 static_assert(sizeof(srPixelConvert::PixelFormat) == 0x14,

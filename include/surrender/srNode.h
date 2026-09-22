@@ -28,6 +28,9 @@ public:
         srArray<Entry> entries;   /* 0x08 */
         unsigned int entry_count; /* 0x10 */
         unsigned int node_count;  /* 0x14 */
+        /* srScene::process stores the active renderer here; srBounder::traverse
+           reads it for the child volume tests. */
+        class srGERD* renderer; /* 0x18 */
     };
     struct ProcessInfo {
         class srGERD* renderer;
@@ -209,19 +212,21 @@ private:
     static SR_DLL_IMPORT srCriticalSection sceneGraphCSect;
     static SR_DLL_IMPORT long sceneGraphLockCount;
 
-    srMatrix3T<double> rotation_18;          /* 0x018 */
-    srVector3T<double> location_60;          /* 0x060 */
-    srVector3T<double> scale_78;             /* 0x078 */
-    srMatrix4x3T<double> world_transform_90; /* 0x090: cached affine world transform */
-    srMatrix4x3T<float> world_transform_f0;  /* 0x0f0 */
-    srFlags<e_notify> notifications_120;     /* 0x120 */
-    srFlags<e_flag> flags_124;               /* 0x124 */
-    srNode* next_sibling_;                   /* 0x128 */
-    srNode* previous_sibling_;               /* 0x12c */
-    srNode* parent_;                         /* 0x130 */
-    srNode* first_child_;                    /* 0x134 */
+    srMatrix3T<double> rotation_18; /* 0x018 */
+    srVector3T<double> location_60; /* 0x060 */
+    srVector3T<double> scale_78;    /* 0x078 */
+    /* Cached world transforms and the notification word mutate inside the
+       const updateTransformation/getter family. */
+    mutable srMatrix4x3T<double> world_transform_90; /* 0x090: cached affine world transform */
+    mutable srMatrix4x3T<float> world_transform_f0;  /* 0x0f0 */
+    mutable srFlags<e_notify> notifications_120;     /* 0x120 */
+    srFlags<e_flag> flags_124;                       /* 0x124 */
+    srNode* next_sibling_;                           /* 0x128 */
+    srNode* previous_sibling_;                       /* 0x12c */
+    srNode* parent_;                                 /* 0x130 */
+    srNode* first_child_;                            /* 0x134 */
 };
 
 static_assert((sizeof(srNode) == 0x138), "srNode_must_be_0x138");
-static_assert((sizeof(srNode::TraverseInfo) == 0x18), "srNode_TraverseInfo_must_be_0x18");
+static_assert((sizeof(srNode::TraverseInfo) == 0x1c), "srNode_TraverseInfo_must_be_0x1c");
 static_assert((sizeof(srNode::BoundInfo) == 0x2c), "srNode_BoundInfo_must_be_0x2c");

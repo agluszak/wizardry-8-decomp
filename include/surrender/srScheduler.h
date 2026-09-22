@@ -44,12 +44,26 @@ private:
         QueueEntry* queue_entry_08;
     };
 
-    static_assert(sizeof(WorkerSlot) == 0x08,
-                  "srScheduler_WorkerSlot_must_be_0x08");
-    static_assert(sizeof(QueueEntry) == 0x10,
-                  "srScheduler_QueueEntry_must_be_0x10");
-    static_assert(sizeof(LookupEntry) == 0x0c,
-                  "srScheduler_LookupEntry_must_be_0x0c");
+    static_assert(sizeof(WorkerSlot) == 0x08, "srScheduler_WorkerSlot_must_be_0x08");
+    static_assert(sizeof(QueueEntry) == 0x10, "srScheduler_QueueEntry_must_be_0x10");
+    static_assert(sizeof(LookupEntry) == 0x0c, "srScheduler_LookupEntry_must_be_0x0c");
+
+    /* FUN_10014750: doubles the lookup table (minimum 4) and rehashes. */
+    void growLookup();
+    /* FUN_10014620: starts a worker thread on the first idle slot when queued
+       jobs outnumber busy workers. */
+    void wakeWorker();
+    /* FUN_100143A0: removes the entry from the lookup and job queue, deletes
+       it and decrements the job count. */
+    void removeQueueEntry(QueueEntry* entry);
+    /* FUN_10013FE0: spins until the job's queue entry clears. */
+    void waitForJob(Job* job);
+    /* FUN_100144B0: pops the head job, executes it and retires its entry;
+       returns 0 when the queue is empty. */
+    long executeNextJob();
+    /* FUN_100146E0: worker thread entry; drains the queue then clears the
+       slot's handle. Takes the WorkerSlot as the raw void* thread argument. */
+    static void __cdecl workerEntry(void* argument);
 
     WorkerSlot workers_00[4];
     long* lookup_buckets_20;

@@ -20,6 +20,7 @@ COMMENT_RE = re.compile(r"//[^\n]*|/\*.*?\*/", re.DOTALL)
 # one: class dllimport changes implicit special members, vtable emission and call
 # shape. Change this set only together with consumer/import or assembly evidence.
 AUDITED_CLASS_IMPORTS = {
+    "Client",  # nested srModel::Client: Wiz8 imports its ctor/dtor and virtuals
     "srBSplineFilter",
     "srBellFilter",
     "srBinStream",

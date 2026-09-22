@@ -35,7 +35,10 @@ private:
 
     e_boundMode bound_mode_138_;
     BoundInfo bounds_13c_;
-    unsigned long unknown_168_[16];
+    /* updateBounds stores the inverse of this node's world matrix here;
+       getChildBoundingBox composes it with each child's world matrix to bring
+       child bounding boxes into bounder space. */
+    srMatrix4T<float> inverse_world_168_;
 };
 
 static_assert((sizeof(srBounder) == 0x1a8), "srBounder_must_be_0x1a8");

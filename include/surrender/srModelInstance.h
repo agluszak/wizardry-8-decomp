@@ -12,10 +12,14 @@ public:
     srModelInstance(const srModelInstance& other);
     srModelInstance& operator=(const srModelInstance& other);
 
+#if defined(SURRENDER_BUILD)
+    static const char* sGetClassName();
+#else
     static const char* sGetClassName()
     {
         return "srModelInstance";
     }
+#endif
 
     virtual void dump(std::ostream& stream) override;
     virtual srClass* vInstance() override;
@@ -34,21 +38,33 @@ public:
     }
 
     double getAlignAngle() const;
+#if defined(SURRENDER_BUILD)
+    srVector3T<float> getAlignAxis() const;
+#else
     srVector3T<float> getAlignAxis() const
     {
         return align_axis_14c;
     }
+#endif
     unsigned long getExclusionMask() const;
+#if defined(SURRENDER_BUILD)
+    int isAligned() const;
+#else
     int isAligned() const
     {
         return (int)(alignment_flags_148.value & 1);
     }
+#endif
     void setAlignAngle(double angle);
     /* Header-visible in Wiz8: the EXE does not import these. SR.DLL still
        exports out-of-line copies. setAlignAxis stores the by-value axis,
        unitizes with the guarded reciprocal-sqrt form (z²+y²+x² order), then
        enables alignment. Prop 0x0044aee0 is setAlignment(1) plus this call,
        not a hand-written field expansion. */
+#if defined(SURRENDER_BUILD)
+    void setAlignAxis(srVector3T<float> axis);
+    void setAlignment(int enabled);
+#else
     void setAlignAxis(srVector3T<float> axis)
     {
         float length_squared;
@@ -71,6 +87,7 @@ public:
         }
         alignment_flags_148.value &= ~1u;
     }
+#endif
     /* Wiz8 inlines this store; SR.DLL also exports an out-of-line copy. */
 #if defined(SURRENDER_BUILD)
     void setExclusionMask(unsigned long mask);

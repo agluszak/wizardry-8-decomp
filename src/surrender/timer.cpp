@@ -42,7 +42,7 @@ char storage_class[0x1c];
 unsigned short srTimer::cpuFreqVariancePct = 4;
 
 // GLOBAL: SURRENDER 0x1009C712
-unsigned short srTimer::osThreadState = 0xffff;
+short srTimer::osThreadState = -1;
 
 // GLOBAL: SURRENDER 0x1009C714
 const char* srTimer::default_storage = "hkcu:SOFTWARE/Hybrid";
@@ -720,7 +720,7 @@ char* srTimer::getStorage(char* buffer, unsigned long size)
 // FUNCTION: SURRENDER 0x10062750
 int srTimer::fastThreads()
 {
-    if (osThreadState == 0xffff) {
+    if (osThreadState == -1) {
         getOsIdent();
     }
     return osThreadState == 1;
@@ -987,7 +987,7 @@ void srTimer::setStorage(char* const storage)
 // FUNCTION: SURRENDER 0x10060CC0
 const char* srTimer::getOsIdent() const
 {
-    if (osThreadState != 0xffff) {
+    if (osThreadState != -1) {
         return osIdent;
     }
     osThreadState = 1;
