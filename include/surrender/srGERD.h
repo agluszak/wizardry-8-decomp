@@ -8,6 +8,7 @@
 #include "srShader.h"
 #include "srFlags.h"
 
+#include "srArray.h"
 #include "srRendererDefs.h"
 #include "srDD.h"
 class srCriticalSection;
@@ -166,7 +167,7 @@ public:
     void setViewPort(unsigned long x, unsigned long y, unsigned long width, unsigned long height);
     void matrixMode(e_matrixMode mode);
     void getMatrix(e_matrixMode mode, srMatrix4T<float>& matrix);
-    srVector3T<float>* getEyeSpaceLocation(srVector3T<float>* location);
+    srVector4T<float> getEyeSpaceLocation(const srVector3T<float>& position);
     void getEyeSpaceBounds(srVector3T<float>& center, float& radius,
                            const srVector3T<float>& object_center, float object_radius);
     void getInverseModelViewMatrix(srMatrix4T<float>& matrix);
@@ -184,7 +185,7 @@ public:
     void unlockBuffer();
     unsigned long getVertexProcessorCount() const;
     void getVertexProcessors(srVertexProcessor** processors) const;
-    void pushVertexProcessor(srVertexProcessor* processor);
+    void pushVertexProcessor(srVertexProcessor& processor);
     void popVertexProcessor();
     void getAmbientLight(srVector4T<float>& light);
     void getFogColor(srVector4T<float>& color) const;
@@ -424,7 +425,7 @@ private:
     srTextureIFace::e_mipmap default_mipmap_1fc0_;
     unsigned char unknown_1fc4_[0x20];
     long polygon_offset_1fe4_;
-    unsigned char unknown_1fe8_[0x10];
+    srVector4T<float> fog_color_1fe8_;
     srShader shader_1ff8_;
     unsigned char unknown_1ffc_[8];
     long* texture_hash_heads_2004_;
@@ -449,8 +450,7 @@ private:
     unsigned char unknown_2068_[0x104];
     unsigned long enable_stack_216c_[16];
     unsigned long enable_depth_21ac_;
-    srVertexProcessor** vertex_processors_21b0_;
-    unsigned char unknown_21b4_[4];
+    srArray<srVertexProcessor*> vertex_processors_21b0_;
     unsigned long vertex_processor_count_21b8_;
     unsigned long exclusion_mask_21bc_;
     unsigned long dirty_21c0_;

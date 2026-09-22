@@ -187,6 +187,12 @@ void srGERD::getAmbientLight(srVector4T<float>& light)
     light = ambient_light_2048_;
 }
 
+// FUNCTION: SURRENDER 0x1001C680
+void srGERD::getFogColor(srVector4T<float>& color) const
+{
+    color = fog_color_1fe8_;
+}
+
 // FUNCTION: SURRENDER 0x1001C480
 void srGERD::setAmbientLight(float red, float green, float blue, float alpha)
 {
@@ -276,6 +282,21 @@ void srGERD::setClearDepth(double depth)
     clear_depth_1b28_ = depth;
 }
 
+// FUNCTION: SURRENDER 0x1001CE00
+void srGERD::pushVertexProcessor(srVertexProcessor& processor)
+{
+    vertex_processors_21b0_[vertex_processor_count_21b8_] = &processor;
+    vertex_processor_count_21b8_++;
+}
+
+// FUNCTION: SURRENDER 0x1001CEA0
+void srGERD::popVertexProcessor()
+{
+    if (vertex_processor_count_21b8_ > 0) {
+        vertex_processor_count_21b8_--;
+    }
+}
+
 // FUNCTION: SURRENDER 0x1001CEC0
 unsigned long srGERD::getVertexProcessorCount() const
 {
@@ -288,7 +309,7 @@ void srGERD::getVertexProcessors(srVertexProcessor** processors) const
     if (processors != 0) {
         unsigned long count = vertex_processor_count_21b8_;
         for (unsigned long i = 0; i < count; i++) {
-            processors[i] = vertex_processors_21b0_[i];
+            processors[i] = vertex_processors_21b0_.data[i];
         }
     }
 }
@@ -413,6 +434,27 @@ void srGERD::popMatrix()
         *matrix = stack.entries_00[stack.depth_800];
     }
     setMatrixDirty();
+}
+
+/* Transforms by the modelview matrix (slot 0) and keeps the w component:
+   each row is dot(row, position) + row.w. */
+// FUNCTION: SURRENDER 0x100235F0
+srVector4T<float> srGERD::getEyeSpaceLocation(const srVector3T<float>& position)
+{
+    if ((dirty_24_ & 0x1f0) != 0) {
+        applyViewStateChanges();
+    }
+    const srMatrix4T<float>& matrix = current_matrix_390_[0];
+    srVector4T<float> result;
+    result.x = matrix.vectors[0].x * position.x + matrix.vectors[0].y * position.y +
+               matrix.vectors[0].z * position.z + matrix.vectors[0].w;
+    result.y = matrix.vectors[1].x * position.x + matrix.vectors[1].y * position.y +
+               matrix.vectors[1].z * position.z + matrix.vectors[1].w;
+    result.z = matrix.vectors[2].x * position.x + matrix.vectors[2].y * position.y +
+               matrix.vectors[2].z * position.z + matrix.vectors[2].w;
+    result.w = matrix.vectors[3].x * position.x + matrix.vectors[3].y * position.y +
+               matrix.vectors[3].z * position.z + matrix.vectors[3].w;
+    return result;
 }
 
 // FUNCTION: SURRENDER 0x100236D0
@@ -596,6 +638,12 @@ void srGERD::setPickKey(unsigned long key)
     pick_key_19f0_ = key;
 }
 
+// FUNCTION: SURRENDER 0x1001DB20
+unsigned long srGERD::getPickKey() const
+{
+    return pick_key_19f0_;
+}
+
 // FUNCTION: SURRENDER 0x1001EE50
 void srGERD::setExclusionMask(unsigned long mask)
 {
@@ -613,6 +661,15 @@ void srGERD::resetTexture()
 {
     dirty_24_ |= 0x400;
     dirty_24_ |= 0x800;
+}
+
+// FUNCTION: SURRENDER 0x10021380
+float srGERD::getMaxModelViewScale()
+{
+    if ((dirty_24_ & 0x1f0) != 0) {
+        applyViewStateChanges();
+    }
+    return modelview_scale_1748_;
 }
 
 // FUNCTION: SURRENDER 0x100213A0

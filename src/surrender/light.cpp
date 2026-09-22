@@ -382,7 +382,7 @@ void srLight::process(const ProcessInfo& info, e_processType type)
     }
     renderer->popMatrix();
     if ((activity_21c & 1) != 0) {
-        renderer->pushVertexProcessor(this);
+        renderer->pushVertexProcessor(*this);
     }
 }
 

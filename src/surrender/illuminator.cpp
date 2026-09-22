@@ -30,10 +30,12 @@ void srIlluminator::process(const ProcessInfo& info, e_processType type)
     srGERD* renderer = info.renderer;
     if (type == static_cast<e_processType>(1) || type == static_cast<e_processType>(3)) {
         applyWorldSpaceMatrix(*renderer);
-        srVector3T<float> eye;
-        eye_location_140 = *renderer->getEyeSpaceLocation(&eye);
+        srVector4T<float> eye = renderer->getEyeSpaceLocation(srVector3T<float>(0.0f, 0.0f, 0.0f));
+        eye_location_140.x = eye.x;
+        eye_location_140.y = eye.y;
+        eye_location_140.z = eye.z;
         renderer->popMatrix();
-        renderer->pushVertexProcessor(this);
+        renderer->pushVertexProcessor(*this);
     } else if (type == static_cast<e_processType>(2) || type == static_cast<e_processType>(4)) {
         renderer->popVertexProcessor();
     }
