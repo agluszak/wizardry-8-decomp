@@ -53,6 +53,7 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/PolyPick.h"
 
+// GLOBAL: WIZ8 0x0065BE40
 W8GrowableVector<stSound3D*> g_sound3d_instances_65be40;
 
 /* Names of the seven bitmap cycles in each of the four spell-visual groups,

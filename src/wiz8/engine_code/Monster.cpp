@@ -242,6 +242,7 @@ unsigned char g_monster_gib_option_0060e614 = 1;
 // GLOBAL: WIZ8 0x005ed280
 extern const double g_monster_light_color_scale_005ed280 = 0.00392156862745098;
 
+// GLOBAL: WIZ8 0x00682FD0
 static W8GrowableVector<stModelInstance*> g_monster_model_instances_682fd0;
 
 #define MONSTER_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Monster.cpp"

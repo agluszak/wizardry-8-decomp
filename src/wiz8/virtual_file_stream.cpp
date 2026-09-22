@@ -306,6 +306,7 @@ const char* W8VirtualFileStreamOpener::getDescription() const
     return "stBinIStream";
 }
 
+// GLOBAL: WIZ8 0x0065A124
 W8VirtualFileStreamOpener g_virtual_file_stream_opener_65a124;
 
 // SYNTHETIC: WIZ8 0x0047CBB0

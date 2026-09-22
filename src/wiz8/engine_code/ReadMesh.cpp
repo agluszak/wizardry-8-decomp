@@ -75,11 +75,17 @@ void ReadMeshTransform(int file, srVector3T<float>* location, srMatrix3T<float>*
 
 /* The material reader retains its three parallel result tables together with
    the normalized serialized records used to identify a reusable table. */
+// GLOBAL: WIZ8 0x0065B9E8
 static srMaterialIFace** g_read_mesh_materials_65b9e8;
+// GLOBAL: WIZ8 0x0065B9EC
 static srTextureIFace** g_read_mesh_textures_65b9ec;
+// GLOBAL: WIZ8 0x0065B9F0
 static unsigned long* g_read_mesh_render_flags_65b9f0;
+// GLOBAL: WIZ8 0x0065B9F4
 static W8MaterialRecord004B8A70* g_read_mesh_material_records_65b9f4;
+// GLOBAL: WIZ8 0x0065B9F8
 static int g_read_mesh_scratch_count_65b9f8;
+// GLOBAL: WIZ8 0x0065B9CC
 static int g_read_mesh_material_count_65b9cc;
 
 // FUNCTION: WIZ8 0x00489A80
@@ -107,10 +113,14 @@ unsigned char IsReadMeshMaterial00489AC0(const srClass* material)
     }
     return 0;
 }
+// GLOBAL: WIZ8 0x0065B9E4
 static int g_read_mesh_index_65b9e4;
+// GLOBAL: WIZ8 0x0065BA00
 static srMaterialIFace** g_multi_mesh_materials_65ba00;
+// GLOBAL: WIZ8 0x0065B9FC
 static srTextureIFace** g_multi_mesh_textures_65b9fc;
 
+// GLOBAL: WIZ8 0x0065BA04
 static unsigned long* g_multi_mesh_render_flags_65ba04;
 /* The retained-material list is a real W8GrowableVector object at 0x0065B9D0:
    its static initializer at 0x00485AF0 constructs it with capacity five and

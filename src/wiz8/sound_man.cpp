@@ -5,6 +5,7 @@
    stMeshModel.cpp (ends 0x00473BF0) and AmbientSound.cpp (0x0047A670), the
    same interval that holds the unproven GDCamera cluster. */
 
+// GLOBAL: WIZ8 0x0065A104
 int g_dword_65a104;
 
 // FUNCTION: WIZ8 0x00479010

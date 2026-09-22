@@ -1424,8 +1424,7 @@ void W8LockInteraction::ApplyKnockKnock005871A0(int level, int /*flag*/, char ba
     m_spell_button_20->SetEnabled(figure);
     slot = g_status_685170.selected_character;
     pins = m_tumbler_count_0c;
-    if (IsPartySlotEligible00524A10(slot) &&
-        g_status_685170.buffers.Char[slot].stamina > 0x4f &&
+    if (IsPartySlotEligible00524A10(slot) && g_status_685170.buffers.Char[slot].stamina > 0x4f &&
         g_status_685170.buffers.Char[slot].attributes[0].effective > 0x32) {
         divisor = pins - 1 + g_settings_6850c8.difficulty;
         ClampInteger(&divisor, 2, 8);
@@ -3101,28 +3100,31 @@ void RefreshFlaggedMainGameState00593330(void)
     }
 }
 
-struct W8StartupGridRow {
-    int x1;
-    int y1;
-    int x2;
-    int y2;
-    int unknown_10;
-    int unknown_14;
-    int unknown_18;
+/* Second-pass invalidate rectangles keyed by saved_redraw_flags bits. The
+   first eight entries are the portrait-slot columns (zero base rects, scaled
+   by portrait_hover_x_origin and shifted by portrait_refresh_image). */
+struct W8MainGameInvalidateRect {
+    int left;
+    int top;
+    int right;
+    int bottom;
+    int x_scale;
+    int apply_y_offset;
+    unsigned int refresh_image_index;
 };
 
-W8StartupGridRow g_startup_grid_647da0[8];
+extern W8MainGameInvalidateRect g_main_game_invalidate_rects_647da0[23];
 
 // FUNCTION: WIZ8 0x0055f7b0
 unsigned char MainGameScreenInitialize(void)
 {
     unsigned int index;
     for (index = 0; index != 8; ++index) {
-        W8StartupGridRow& row = g_startup_grid_647da0[index];
-        row.x1 = (index & 1) << 9;
-        row.y1 = (index >> 1) * 0x55 + 0x12;
-        row.x2 = row.x1 + 0x7f;
-        row.y2 = row.y1 + 0x55;
+        W8MainGameInvalidateRect& row = g_main_game_invalidate_rects_647da0[index];
+        row.left = (index & 1) << 9;
+        row.top = (index >> 1) * 0x55 + 0x12;
+        row.right = row.left + 0x7f;
+        row.bottom = row.top + 0x55;
     }
     return 1;
 }
@@ -4104,7 +4106,7 @@ void ApplyMainGameRedrawFlags(void)
     SGPRect saved_clip;
     SGPRect combat_clip;
     short health_percent;
-    W8StartupGridRow* portrait_rect;
+    W8MainGameInvalidateRect* portrait_rect;
 
     redraw_flags = g_level_block->redraw_flags;
     if (redraw_flags == static_cast<unsigned int>(-1)) {
@@ -4300,7 +4302,7 @@ void ApplyMainGameRedrawFlags(void)
         RefreshFormationPanel005B2980(show_portraits);
     }
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        portrait_rect = &g_startup_grid_647da0[party_slot];
+        portrait_rect = &g_main_game_invalidate_rects_647da0[party_slot];
         if ((g_level_block->redraw_flags & (1U << (party_slot & 0x1f))) == 0) {
             if (gXStatus.monster_manager_entries[party_slot].portrait_stats_dirty != 0) {
                 RedrawPartyPortraitBars(party_slot,
@@ -4319,8 +4321,8 @@ void ApplyMainGameRedrawFlags(void)
             RedrawPartyPortraitOverlay(party_slot, keyboard_menu_invalidate, 1,
                                        g_level_block->portrait_refresh_pending[party_slot] == 0);
             if (g_level_block->portrait_refresh_pending[party_slot] != 0) {
-                InvalidateRegion(portrait_rect->x1, portrait_rect->y1, portrait_rect->x2,
-                                 portrait_rect->y2, 1);
+                InvalidateRegion(portrait_rect->left, portrait_rect->top, portrait_rect->right,
+                                 portrait_rect->bottom, 1);
             }
             if (gXStatus.monster_manager_entries[party_slot].keyboard_menu_open != 0) {
                 RedrawKeyboardMenuPanel(1);
@@ -5644,19 +5646,6 @@ W8ScreenRect g_viewport_modes_647d30[7] = {
     {128, 18, 512, 450}, {128, 18, 512, 416}, {23, 18, 617, 416},
 };
 
-/* Second-pass invalidate rectangles keyed by saved_redraw_flags bits. The
-   first eight entries are the portrait-slot columns (zero base rects, scaled
-   by portrait_hover_x_origin and shifted by portrait_refresh_image). */
-struct W8MainGameInvalidateRect {
-    int left;
-    int top;
-    int right;
-    int bottom;
-    int x_scale;
-    int apply_y_offset;
-    unsigned int refresh_image_index;
-};
-
 // GLOBAL: WIZ8 0x00647DA0
 W8MainGameInvalidateRect g_main_game_invalidate_rects_647da0[23] = {
     {0, 0, 0, 0, -1, 0, 0},          {0, 0, 0, 0, 1, 0, 1},
@@ -5855,17 +5844,17 @@ void SetViewportMode(int mode)
 // FUNCTION: WIZ8 0x00561980
 bool IsPartyPortraitUnderCursor00561980(unsigned int party_slot)
 {
-    W8StartupGridRow& row = g_startup_grid_647da0[party_slot];
+    W8MainGameInvalidateRect& row = g_main_game_invalidate_rects_647da0[party_slot];
     int image = g_level_block->portrait_refresh_image[party_slot];
     int left;
     int right;
 
     if ((party_slot & 1) == 0) {
-        left = (row.x1 - g_level_block->portrait_hover_x_origin) + image;
-        right = (row.x2 - g_level_block->portrait_hover_x_origin) + image;
+        left = (row.left - g_level_block->portrait_hover_x_origin) + image;
+        right = (row.right - g_level_block->portrait_hover_x_origin) + image;
     } else {
-        left = (row.x1 - image) + g_level_block->portrait_hover_x_origin;
-        right = (row.x2 - image) + g_level_block->portrait_hover_x_origin;
+        left = (row.left - image) + g_level_block->portrait_hover_x_origin;
+        right = (row.right - image) + g_level_block->portrait_hover_x_origin;
     }
     if (right < 0) {
         return 0;
@@ -5873,7 +5862,7 @@ bool IsPartyPortraitUnderCursor00561980(unsigned int party_slot)
     if (left < 0) {
         left = 0;
     }
-    return IsCursorInRectangle(left, row.y1, right, row.y2) != 0;
+    return IsCursorInRectangle(left, row.top, right, row.bottom) != 0;
 }
 
 /* The combat-strip portrait catalog index for one slot's chosen action and
@@ -6138,7 +6127,7 @@ void UpdateFormationPortraitRefresh0059B2D0(void)
 // FUNCTION: WIZ8 0x00561DB0
 void ClearPortraitRefreshSlot(int slot)
 {
-    W8StartupGridRow* row;
+    W8MainGameInvalidateRect* row;
 
     if (g_level_block->main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
         g_level_block->portrait_refresh_pending[slot] != 0) {
@@ -6147,9 +6136,9 @@ void ClearPortraitRefreshSlot(int slot)
         gXStatus.monster_manager_entries[slot].portrait_refresh_pinned = 0;
         g_level_block->portrait_refresh_mode[slot] = 0;
         g_level_block->portrait_refresh_image[slot] = 0;
-        row = &g_startup_grid_647da0[slot];
-        ClearSurfaceRect(row->x1 - 1, row->y1, row->x2 + 1, row->y2);
-        InvalidateRegion(row->x1 - 1, row->y1, row->x2 + 1, row->y2, 1);
+        row = &g_main_game_invalidate_rects_647da0[slot];
+        ClearSurfaceRect(row->left - 1, row->top, row->right + 1, row->bottom);
+        InvalidateRegion(row->left - 1, row->top, row->right + 1, row->bottom, 1);
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
             g_level_block->redraw_flags |= 1 << (slot & 0x1f);
         }

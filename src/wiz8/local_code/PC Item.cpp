@@ -261,6 +261,7 @@ wchar_t g_item_display_name_buffer[42];
 static_assert(sizeof(W8ItemVideoObjectEntry) == 8, "W8ItemVideoObjectEntry_must_be_8");
 static_assert(sizeof(W8ItemVideoObjectCache) == 0x0c, "W8ItemVideoObjectCache_must_be_0x0c");
 
+// GLOBAL: WIZ8 0x0068EC68
 W8ItemVideoObjectCache g_item_video_objects_68ec68;
 
 // FUNCTION: WIZ8 0x0055cdb0

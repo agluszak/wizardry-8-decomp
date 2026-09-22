@@ -21,7 +21,9 @@
 
 #define COMBAT_SOUND_CPP "C:\\Projects\\Wizardry 8\\Local Code\\Combat Sound.cpp"
 
+// GLOBAL: WIZ8 0x0068DD90
 char* g_weapon_attack_sounds_68dd90[38];
+// GLOBAL: WIZ8 0x0068D850
 char* g_material_impact_sounds_68d850[28][12];
 
 /* Play one combat sound under Data\Sound\Combat\.  When the name carries more
