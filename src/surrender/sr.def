@@ -101,6 +101,7 @@ EXPORTS
     ??1srEnvironmentMapper@@UAE@XZ
     ??4srEnvironmentMapper@@QAEAAV0@ABV0@@Z
     ?isActive@srEnvironmentMapper@@UAEHAAVsrVertexPipe@@@Z
+    ?process@srEnvironmentMapper@@UAEXAAVsrVertexPipe@@@Z
     ?srEnvironmentMapper@@3V0@A DATA
     ?sameSide@srTriangulator@@AAEHABV?$srVector2T@M@@000@Z
     ?isInsideTriangle@srTriangulator@@AAEHABV?$srVector2T@M@@000@Z
