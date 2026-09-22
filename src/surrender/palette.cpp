@@ -667,6 +667,10 @@ srPalette::Sampler::Sampler(long sample_limit)
     memset(mask_colors, 0, 0x400);
 }
 
+/* Retail copies the owning colors/links pointers verbatim (offsets 0x524 /
+   0x528): a Sampler copy aliases the source's tables, so destruction or
+   discard() of either object leaves the other's pointers dangling —
+   double-free semantics proven in the original. */
 // FUNCTION: SURRENDER 0x10004BA0
 srPalette::Sampler::Sampler(const Sampler& other)
 {
@@ -690,6 +694,8 @@ srPalette::Sampler::~Sampler()
     discard();
 }
 
+/* Same retail aliasing as the copy constructor: colors and links are copied
+   as raw pointers, so assignment shares ownership of both tables. */
 // FUNCTION: SURRENDER 0x10004C40
 srPalette::Sampler& srPalette::Sampler::operator=(const Sampler& other)
 {
@@ -805,12 +811,15 @@ void srPalette::Sampler::reallocColors(long new_capacity)
 {
     ColorEntry* new_colors =
         static_cast<ColorEntry*>(::operator new(new_capacity * sizeof(ColorEntry)));
+    /* Retail tests the first allocation and stores 0 on failure — a no-op
+       check identical in shape to addSurface's pixels guard. The second
+       allocation is never tested. */
+    if (new_colors == 0) {
+        new_colors = 0;
+    }
     long* new_links = static_cast<long*>(::operator new(new_capacity * sizeof(long)));
     for (long index = 0; index < new_capacity; ++index) {
-        new_colors[index].color.blue = 0;
-        new_colors[index].color.green = 0;
-        new_colors[index].color.red = 0;
-        new_colors[index].color.alpha = 0;
+        new_colors[index].color = srARGB();
         new_colors[index].count = 0;
         new_links[index] = -1;
     }
@@ -967,6 +976,9 @@ void srPalette::Sampler::addSurface(srColorSurfaceIFace& surface, long weight)
     if (sample_factor == 1.0) {
         unsigned long* pixels = static_cast<unsigned long*>(
             srHeap.allocate(width * 4)); /* reinterpret-ok: raw pixel row storage */
+        /* Retail shape (0x1000644F): the allocation result is tested and 0 is
+           stored on failure — a no-op null check; pixels then flows into
+           getPixelRow regardless. */
         if (pixels == 0) {
             pixels = 0;
         }
@@ -1149,6 +1161,8 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
         static_cast<HashEntry*>(::operator new(info.color_count * sizeof(HashEntry)));
     HashEntry** rehash = static_cast<HashEntry**>(::operator new(0x20000));
     srARGB* palette_colors = static_cast<srARGB*>(srHeap.allocate(info.palette_size * 4));
+    /* The retail epilogue frees palette_colors, two node pools and the five
+       level arrays — lut is never deleted. Proven retail leak. */
     LUT* lut = static_cast<LUT*>(::operator new(sizeof(LUT)));
     memset(palette_colors, 0, info.palette_size * 4);
     memset(buckets, 0, 0x20000);
