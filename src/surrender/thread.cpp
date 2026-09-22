@@ -5,6 +5,12 @@
 // GLOBAL: SURRENDER 0x100A49A4
 long srThread::yieldCount;
 
+// FUNCTION: SURRENDER 0x100458C0
+srThread& srThread::operator=(const srThread& thread)
+{
+    return *this;
+}
+
 // FUNCTION: SURRENDER 0x10045B10
 unsigned long srThread::begin(void(__cdecl* entry)(void*), void* argument)
 {

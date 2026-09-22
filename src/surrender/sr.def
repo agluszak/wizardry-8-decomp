@@ -1006,6 +1006,13 @@ EXPORTS
     ?getTextureBytesNeeded@srGERD@@ABEKAAUTexture@1@@Z
     ?getTextureCacheSize@srGERD@@QBEKXZ
     ?getTextureCacheUsed@srGERD@@QBEKXZ
+    ?flushRenderers@srGERD@@QAEXXZ
+    ?flushSort@srGERD@@AAEXXZ
+    ?flushImmediateRenderers@srGERD@@QAEXXZ
+    ?createRenderer@srGERD@@AAEPAURendererEntry@1@H@Z
+    ?lockRenderer@srGERD@@QAEPAVRenderer@1@XZ
+    ?_lockRenderer@srGERD@@AAEPAVRenderer@1@PAURendererEntry@1@@Z
+    ?flushNonBusyRenderers@srGERD@@AAEXXZ
     ?getVertexProcessorCount@srGERD@@QBEKXZ
     ?getVertexProcessors@srGERD@@QBEXPAPAVsrVertexProcessor@@@Z
     ?getWidth@srGERD@@QBEJXZ
@@ -1041,7 +1048,6 @@ EXPORTS
     ?checkClipPlaneChanges@srGERD@@AAEXXZ
     ?checkDrawStateChanges@srGERD@@AAEXXZ
     ?checkViewStateChanges@srGERD@@AAEXXZ
-    ?flushImmediateRenderers@srGERD@@QAEXXZ
     ?frustum@srGERD@@QAEXABUFrustum@1@@Z
     ?frustum@srGERD@@QAEXNNNNNN@Z
     ?getClipPlanes@srGERD@@QAEXAAUClipPlanes@1@@Z
@@ -1273,3 +1279,5 @@ EXPORTS
     ?setFogColor@srScene@@QAEXABV?$srVector3T@M@@@Z
     ?traverse@srScene@@UAEXAAVTraverseInfo@srNode@@@Z
     ?vInstance@srScene@@UAEPAVsrClass@@XZ
+    ??4srThread@@QAEAAV0@ABV0@@Z
+    ?yieldCount@srThread@@0JA DATA
