@@ -54,7 +54,12 @@ public:
             for (unsigned long index = 0; index < entry_block_count; ++index) {
                 srHeap.free(entry_blocks[index]);
             }
-            entry_blocks.~srArray<Entry*>();
+            /* Retail ~EntryPool (0x10012B40) releases the array storage and
+               zeroes the counters; the member's own ~srArray teardown then
+               emits a second delete on the nulled fields. The pool stays
+               live after release(), so this is release, not member
+               teardown. */
+            entry_blocks.release();
             free_entries = 0;
             entry_block_count = 0;
             entry_count = 0;

@@ -103,7 +103,7 @@ inline srInlineString::~srInlineString()
    performs the copy without a second call. */
 inline srInlineString& srInlineString::operator=(const srInlineString& source)
 {
-    this->~srInlineString();
+    this->~srInlineString(); // member-dtor-ok: Wiz8's unit emits the destroy-then-copy call (0x47CDD0 expansion in insert's tail)
     if (source.data_ != 0 && *source.data_ != '\0') {
         size_ = strlen(source.data_) + 1;
         data_ = static_cast<char*>(srHeap.allocate(size_));

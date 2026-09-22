@@ -47,6 +47,11 @@ model the path deterministically. A new suppression needs a same-line
 runtime-observable and semantically required; like format suppressions,
 moving one is deliberately re-reviewed.
 
+New explicit member destructor calls (``member.~Type()``/``ptr->~Type()``) in
+recovered C++ require a ``member-dtor-ok: <reason>`` comment citing positive
+manual-lifetime evidence: a data member whose owner stays live should use the
+member's reset/release operation instead of ending its lifetime.
+
 The gate inspects added lines of the current Jujutsu change stack (or of a Git
 checkout against its baseline branch). Existing casts are not re-litigated;
 ones moved between files are recognized by their removed counterpart. Cast and
@@ -70,7 +75,9 @@ FORMAT_OFF_MARKER = "format-off-ok"
 RAW_OFFSET_MARKER = "raw-offset-ok"
 UNION_MARKER = "union-ok"
 UNINIT_MARKER = "uninit-ok"
+MEMBER_DTOR_MARKER = "member-dtor-ok"
 SCOPE_PREFIXES = ("src/wiz8/", "include/wiz8/", "include/surrender/")
+MEMBER_DTOR_PREFIXES = SCOPE_PREFIXES + ("src/surrender/",)
 _CPP_SUFFIXES = (".cpp", ".cc", ".cxx", ".h", ".hpp")
 _SGP_SOURCE_SUFFIXES = (".c", ".cc", ".cpp", ".cxx", ".h", ".hpp")
 _GIT_BASES: tuple[str, ...] = ("@{upstream}", "origin/main", "origin/master", "main", "master")
@@ -86,6 +93,8 @@ _UNION = re.compile(r"^\s*(?:typedef\s+)?union\b")
 _UNION_MARKER = re.compile(r"union-ok:\s*\S", re.IGNORECASE)
 _UNINIT_SUPPRESS = re.compile(r'"-W[a-z0-9_-]*uninitialized', re.IGNORECASE)
 _UNINIT_MARKER = re.compile(r"uninit-ok:\s*\S", re.IGNORECASE)
+_MEMBER_DTOR = re.compile(r"(?:\.|->)\s*~[A-Za-z_]")
+_MEMBER_DTOR_MARKER = re.compile(r"member-dtor-ok:\s*\S", re.IGNORECASE)
 _RAW_BYTE_OFFSET = re.compile(
     r"reinterpret_cast\s*<\s*(?:const\s+)?(?:unsigned\s+)?char\s*\*\s*>\s*"
     r"\((?:(?![;{}]).)*?\)\s*(?:\+\s*(?:0[xX][0-9A-Fa-f]+|\d+)\b\s*)+",
@@ -183,6 +192,7 @@ def added_lines_without_marker(
     marker: re.Pattern[str],
     *,
     ignore_moved: bool = True,
+    prefixes: tuple[str, ...] = SCOPE_PREFIXES,
 ) -> list[dict[str, Any]]:
     """Added source lines matching ``needle`` that lack ``marker``.
 
@@ -205,7 +215,7 @@ def added_lines_without_marker(
                 stripped = content.strip()
                 if (
                     current
-                    and current.startswith(SCOPE_PREFIXES)
+                    and current.startswith(prefixes)
                     and needle.search(content)
                     and not marker.search(content)
                 ):
@@ -454,6 +464,17 @@ def validate_cast_markers(repository: Path) -> dict[str, Any]:
     raw_offset_violations = _raw_offset_violations(repository, diff)
     sgp_violations = _sgp_notice_violations(repository, diff)
     uninit_violations = _added_uninit_suppressions(diff)
+    member_dtor_violations = _unmarked_statements(
+        repository,
+        [
+            item
+            for item in added_lines_without_marker(
+                diff, _MEMBER_DTOR, _MEMBER_DTOR_MARKER, prefixes=MEMBER_DTOR_PREFIXES
+            )
+            if str(item["file"]).lower().endswith(_CPP_SUFFIXES)
+        ],
+        _MEMBER_DTOR_MARKER,
+    )
     union_violations = []
     for item in added_lines_without_marker(diff, _UNION, _UNION_MARKER):
         if not item["file"].startswith(("include/wiz8/", "include/surrender/")):
@@ -498,6 +519,13 @@ def validate_cast_markers(repository: Path) -> dict[str, Any]:
             "changed pristine SGP source needs the dated Wizardry-reconstruction modification "
             "notice before it can become a product derivative:\n  " + _render(sgp_violations)
         )
+    if member_dtor_violations:
+        errors.append(
+            "new explicit member destructor calls need positive manual-lifetime "
+            "evidence and a 'member-dtor-ok: reason' comment; an ordinary data "
+            "member stays live and should use the reset/release method instead:\n  "
+            + _render(member_dtor_violations)
+        )
     if union_violations:
         errors.append(
             "new recovered layout unions need a preceding 'union-ok: positive source evidence' "
@@ -518,6 +546,7 @@ def validate_cast_markers(repository: Path) -> dict[str, Any]:
             RAW_OFFSET_MARKER,
             UNION_MARKER,
             UNINIT_MARKER,
+            MEMBER_DTOR_MARKER,
         ],
         "scope": [*SCOPE_PREFIXES, "src/sgp/"],
     }
