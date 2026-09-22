@@ -2,6 +2,8 @@
 
 #include "srHeap.h"
 
+class srPalette;
+
 class srPixelConvert {
 public:
     enum e_surfaceType {
@@ -13,9 +15,6 @@ public:
         SURFACE_BGRA32 = 0x0e,
         SURFACE_COPY = 0x18
     };
-
-    struct ConversionInfo;
-    typedef void(__cdecl* ConversionFunc)(const ConversionInfo& info);
 
     struct PixelFormat {
         unsigned char red_bits;
@@ -37,6 +36,17 @@ public:
         int isValid() const;
         unsigned long match(const PixelFormat* formats, unsigned long count) const;
     };
+
+    /* Converters receive the run description by reference; palette carries
+       the surface's srPalette for paletted conversion classes. */
+    struct ConversionInfo {
+        void* dest;
+        const void* source;
+        unsigned long count;
+        srPalette* palette;
+        const PixelFormat* format;
+    };
+    typedef void(__cdecl* ConversionFunc)(const ConversionInfo& info);
 
     static e_surfaceType mapPixelFormat(const PixelFormat& format);
     /* This overload is imported by both Wiz8 and the JPEG extension. */
