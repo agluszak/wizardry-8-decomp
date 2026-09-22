@@ -36,7 +36,7 @@ public:
        table used to build the active-polygon scratch at 0x00659ce0. */
     void
     RenderTriMeshWithEquations00470380(class srGERD& renderer, const TriMesh& mesh,
-                                       const srVector4T<float>* poly_equations); /* 0x00470380 */
+                                       const srVector3T<float>* poly_equations); /* 0x00470380 */
 
     int FindMappedIndex(short key); /* 0x004712D0 */
     void SetMappedVertex00471160(short vertex, short key);

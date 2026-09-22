@@ -43,6 +43,7 @@
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/Sight.h"
 #include "random.h"
+#include "wiz8/sgp_wide_text.h"
 
 #include "Font.h"
 #include "input.h"
@@ -3598,17 +3599,17 @@ W8PathingService::W8PathingService()
    of that box scaled, and the cell count is that span plus one. */
 // FUNCTION: WIZ8 0x00458a50
 void W8PathingService::ConfigureForLevel(int size, float grid_scale, int path_clearance,
-                                         const W8BoundingBox* bounds, const char* name)
+                                         const srVector3T<float>* bounds, const char* name)
 {
     size_004 = size;
     grid_scale_01c = grid_scale;
     path_clearance_028 = path_clearance;
-    level_bounds[0] = bounds->minimum.x;
-    level_bounds[1] = bounds->minimum.y;
-    level_bounds[2] = bounds->minimum.z;
-    level_bounds[3] = bounds->maximum.x;
-    level_bounds[4] = bounds->maximum.y;
-    level_bounds[5] = bounds->maximum.z;
+    level_bounds[0] = bounds[0].x;
+    level_bounds[1] = bounds[0].y;
+    level_bounds[2] = bounds[0].z;
+    level_bounds[3] = bounds[1].x;
+    level_bounds[4] = bounds[1].y;
+    level_bounds[5] = bounds[1].z;
     span_020 = (level_bounds[4] - level_bounds[1]) * g_path_span_scale_005ec344;
     cell_count_024 = static_cast<short>(static_cast<int>(span_020)) + 1;
     level_name = name;
@@ -6549,7 +6550,7 @@ unsigned int W8PathingService::EditWaypointLinkFlags0045F530(const char* title, 
             }
         draw:
             wide[line][length] = 0;
-            gprintfDirty(0x1f, 0x65 + line * 0xd, const_cast<UINT16*>(g_format_s_006068e4),
+            gprintfDirty(0x1f, 0x65 + line * 0xd, Wiz8ToSgpWideText(g_format_s_006068e4),
                          wide[line]);
         }
         InvalidateRegion(0x1e, 0x64, 0x262, 0xcc, 4);
@@ -6675,7 +6676,7 @@ unsigned int W8PathingService::EditWaypointLinkFlags0045F530(const char* title, 
     ClearSurfaceRect(0x1e, 0x64, 0x262, 0xd9);
     for (line = 0; line < 9; ++line) {
         wide[line][0x50] = 0;
-        gprintfDirty(0x1f, 0x65 + line * 0xd, const_cast<UINT16*>(g_format_s_006068e4), wide[line]);
+        gprintfDirty(0x1f, 0x65 + line * 0xd, Wiz8ToSgpWideText(g_format_s_006068e4), wide[line]);
     }
     InvalidateRegion(0x1e, 0x64, 0x262, 0xd9, 4);
     RenderFrame();

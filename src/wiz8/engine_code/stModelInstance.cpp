@@ -677,9 +677,10 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
             retained_174->setSpecular(zero);
             retained_174->setOpacity(0.35);
         }
-        retained_174->setEmissive(
-            // reinterpret-ok: the render-state block carries the highlight RGBA verbatim.
-            *reinterpret_cast<const srVector4T<float>*>(&render_state_164));
+        srVector4T<float> highlight;
+        highlight.Set(render_state_164.highlight_red, render_state_164.highlight_green,
+                      render_state_164.highlight_blue, render_state_164.highlight_alpha);
+        retained_174->setEmissive(highlight);
     }
 
     unsigned char first_pass = 1;
@@ -695,14 +696,14 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
             RenderShadow004811D0(renderer, mesh);
         }
 
-        srVector4T<float>* poly_normals;
+        /* The equation table is the polygon-normal table; both are 12-byte
+           triples per polygon. */
+        srVector3T<float>* poly_normals;
         if ((model->flags_3a0 >> 2) & 1) {
             mesh.positions_38 =
                 model->GetVertexLocations00471AD0(frame_index_180, 1, frame_interpolation_1ac);
             mesh.normals_3c = model->GetVertexNormals00471CA0(frame_index_180, 1);
-            // reinterpret-ok: the equation table aliases the polygon normals.
-            poly_normals = reinterpret_cast<srVector4T<float>*>(
-                model->GetPolygonNormals00471D00(frame_index_180, 1));
+            poly_normals = model->GetPolygonNormals00471D00(frame_index_180, 1);
         } else {
             poly_normals = 0;
         }
@@ -815,14 +816,12 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
                         }
                     }
 
-                    const srVector4T<float>* poly_normals = 0;
+                    const srVector3T<float>* poly_normals = 0;
                     if ((model->flags_3a0 >> 2) & 1) {
                         mesh.dig_40[0] = model->GetVertexLocations00471AD0(frame_index_180, 1,
                                                                            frame_interpolation_1ac);
                         mesh.dig_40[1] = model->GetVertexNormals00471CA0(frame_index_180, 1);
-                        // reinterpret-ok: the equation table aliases the polygon normals.
-                        poly_normals = reinterpret_cast<const srVector4T<float>*>(
-                            model->GetPolygonNormals00471D00(frame_index_180, 1));
+                        poly_normals = model->GetPolygonNormals00471D00(frame_index_180, 1);
                     }
                     srPtr<srTextureIFace>*(*poly_textures)[2] = mesh.poly_textures_e0;
                     if (poly_textures != 0 && mesh.active_polygons_14c == 0) {

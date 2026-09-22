@@ -4048,9 +4048,7 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                                 }
                                                 pathing_180->ConfigureForLevel(
                                                     header.path_nodes_7e, header.region_cell_ac,
-                                                    header.path_clearance_b4,
-                                                    reinterpret_cast< // reinterpret-ok: bounds_0e is serialized min/max vector pairs
-                                                        const W8BoundingBox*>(&header.bounds_0e[0]),
+                                                    header.path_clearance_b4, &header.bounds_0e[0],
                                                     m_owned_0c0);
                                                 fLoaded = pathing_180->Load00458CE0(hOctFile);
                                             }

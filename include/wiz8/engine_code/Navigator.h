@@ -456,9 +456,11 @@ public:
        wait began, its millisecond duration and the arming cycle id. */
     W8MonsterCycleDelayState* CycleDelay018()
     {
-        return reinterpret_cast<W8MonsterCycleDelayState*>( // reinterpret-ok: monster cycle
-            &movement_target_018);                          /* states reuse the 12 target
-            bytes as a timer record while no navigation target is live */
+        /* The 12 target bytes are deliberately reinterpreted as a timer record
+           while no navigation target is live. */
+        // reinterpret-ok: monster cycle states reuse the 12 target bytes as a timer record
+        return reinterpret_cast<W8MonsterCycleDelayState*>(
+            static_cast<void*>(&movement_target_018));
     }
     /* Set when the navigator's movement has stopped - the constructors raise
        it, SetMovementStopped00453880 raises it when motion halts (levelling

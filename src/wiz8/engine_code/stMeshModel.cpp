@@ -457,7 +457,7 @@ void stMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
    g_render_cull_front_0065a0ed already requested front culling. */
 // FUNCTION: WIZ8 0x00470380
 void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const TriMesh& mesh,
-                                                     const srVector4T<float>* poly_equations)
+                                                     const srVector3T<float>* poly_equations)
 {
     unsigned long active_count = 0;
     srShader shader;
@@ -506,7 +506,7 @@ void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const Tri
                     for (long polygon = 0; polygon < mesh.polygon_count_04; ++polygon) {
                         int vertex = mesh.poly_vertices_10[polygon].y;
                         const srVector3T<float>& position = mesh.positions_38[vertex];
-                        const srVector4T<float>& equation = poly_equations[polygon];
+                        const srVector3T<float>& equation = poly_equations[polygon];
                         float facing = (eye.x - position.x) * equation.x +
                                        (eye.y - position.y) * equation.y +
                                        (eye.z - position.z) * equation.z;
@@ -520,7 +520,7 @@ void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const Tri
                     for (long polygon = 0; polygon < mesh.polygon_count_04; ++polygon) {
                         int vertex = mesh.poly_vertices_10[polygon].y;
                         const srVector3T<float>& position = mesh.positions_38[vertex];
-                        const srVector4T<float>& equation = poly_equations[polygon];
+                        const srVector3T<float>& equation = poly_equations[polygon];
                         float facing = (eye.x - position.x) * equation.x +
                                        (eye.y - position.y) * equation.y +
                                        (eye.z - position.z) * equation.z;
@@ -536,7 +536,7 @@ void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const Tri
                     unsigned long polygon = mesh.active_polygons_14c[index];
                     int vertex = mesh.poly_vertices_10[polygon].y;
                     const srVector3T<float>& position = mesh.positions_38[vertex];
-                    const srVector4T<float>& equation = poly_equations[polygon];
+                    const srVector3T<float>& equation = poly_equations[polygon];
                     float facing = (eye.x - position.x) * equation.x +
                                    (eye.y - position.y) * equation.y +
                                    (eye.z - position.z) * equation.z;
@@ -550,7 +550,7 @@ void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const Tri
                     unsigned long polygon = mesh.active_polygons_14c[index];
                     int vertex = mesh.poly_vertices_10[polygon].y;
                     const srVector3T<float>& position = mesh.positions_38[vertex];
-                    const srVector4T<float>& equation = poly_equations[polygon];
+                    const srVector3T<float>& equation = poly_equations[polygon];
                     float facing = (eye.x - position.x) * equation.x +
                                    (eye.y - position.y) * equation.y +
                                    (eye.z - position.z) * equation.z;

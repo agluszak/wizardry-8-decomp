@@ -103,9 +103,9 @@ char SphereNearBounds(const srVector3T<float>* point, float radius,
 inline bool ReadVectorArray(int file, srVector3i* values, int count)
 {
     return ReadVector3Array004374E0(
-        file, reinterpret_cast<srVector3T<float>*>(values), /* reinterpret-ok: the
-            float reader's raw 12-byte record is the index-triple record */
-        count);
+        file,
+        // reinterpret-ok: the float reader's raw 12-byte record is the index-triple record
+        reinterpret_cast<srVector3T<float>*>(static_cast<void*>(values)), count);
 }
 inline bool ReadVectorArray(int file, srVector3T<float>* values, int count)
 {
@@ -125,9 +125,9 @@ inline bool ReadVectorArray(int file, srVector2T<float>* values, int count)
 inline bool WriteVectorArray(int file, const srVector3i* values, int count)
 {
     return WriteVector3Array00437390(
-        file, reinterpret_cast<const srVector3T<float>*>(values), /* reinterpret-ok: the
-            float writer's raw 12-byte record is the index-triple record */
-        count);
+        file,
+        // reinterpret-ok: the float writer's raw 12-byte record is the index-triple record
+        reinterpret_cast<const srVector3T<float>*>(static_cast<const void*>(values)), count);
 }
 inline bool WriteVectorArray(int file, const srVector3T<float>* values, int count)
 {
