@@ -132,15 +132,15 @@ public:
 
     /* The preserving single-argument grow `operator[]` reaches; retail emits
        it out of line at 0x004700D0 for the automap scratch array and inlines
-       the same shape at 0x00580C76: element construction comes from `new T[]`
-       through the element type's class operator new[], then the old storage
-       is released unconditionally. */
+       the same shape at 0x00580C76: it allocates raw storage through
+       srHeap.allocate like release() and the other members, then the old
+       storage is released unconditionally — no element construction. */
     inline void setCapacity(unsigned long new_capacity)
     {
         if (capacity != new_capacity) {
             T* replacement = 0;
             if (new_capacity > 0) {
-                replacement = new T[new_capacity];
+                replacement = allocate(new_capacity);
                 if (data != 0 && capacity > 0) {
                     unsigned long copy_count = capacity;
                     if (copy_count >= new_capacity) {
