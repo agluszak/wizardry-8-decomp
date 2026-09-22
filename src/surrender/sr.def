@@ -1,5 +1,6 @@
 LIBRARY sr
 EXPORTS
+    ??0srIlluminator@@QAE@ABV0@@Z
     ?getActivePolygonCount@srMeshModel@@QAEJXZ
     ?getActivePolygonTable@srMeshModel@@QAEPAKH@Z
     ?getPolyEq@srMeshModel@@QAEPAV?$srVector4T@M@@XZ
@@ -28,10 +29,12 @@ EXPORTS
     ??4srRegistry@@QAEAAV0@ABV0@@Z
     ??0srClass@@IAE@XZ
     ??0srClass@@QAE@ABV0@@Z
+    ??0srIlluminator@@QAE@PAVsrNode@@@Z
     ??1srClass@@MAE@XZ
     ??4srClass@@QAEAAV0@ABV0@@Z
     ??0srRuntimeClass@@IAE@XZ
     ??0srRuntimeClass@@QAE@ABV0@@Z
+    ??0srScene@@QAE@ABV0@@Z
     ??1srRuntimeClass@@MAE@XZ
     ??4srRuntimeClass@@QAEAAV0@ABV0@@Z
     ?checkValidity@srRegistry@@QAEHXZ
@@ -477,6 +480,8 @@ EXPORTS
     ??1srFStreamOpener@@UAE@XZ
     ??1srFileManager@@UAE@XZ
     ??1srIStreamOpener@@QAE@XZ
+    ??1srIlluminator@@UAE@XZ
+    ??1srScene@@UAE@XZ
     ??1srStringTable@@QAE@XZ
     ??4BitOStream@srHuffman@@AAEAAV01@ABV01@@Z
     ??4Compressor@srHuffman@@QAEAAV01@ABV01@@Z
@@ -493,10 +498,17 @@ EXPORTS
     ??4srExtension@@QAEAAV0@ABV0@@Z
     ??4srFStreamOpener@@QAEAAV0@ABV0@@Z
     ??4srIStreamOpener@@QAEAAV0@ABV0@@Z
+    ??4srIlluminator@@QAEAAV0@ABV0@@Z
+    ??4srScene@@QAEAAV0@ABV0@@Z
     ??4srStringTable@@QAEAAV0@ABV0@@Z
     ??7srBinStream@@QBE_NXZ
     ??AsrStringTable@@QAEPADH@Z
     ??BsrBinStream@@QBEPAXXZ
+    ??_7srIlluminator@@6B?$srClassSupport@VsrIlluminator@@VsrNode@@$0A@$0BCAA@@@@ DATA
+    ??_7srIlluminator@@6BsrVertexProcessor@@@ DATA
+    ??_7srLight@@6B?$srClassSupport@VsrIlluminator@@VsrNode@@$0A@$0BCAA@@@@ DATA
+    ??_7srLight@@6BsrVertexProcessor@@@ DATA
+    ??_7srScene@@6B@ DATA
     ??_DsrBinFStream@@QAEXXZ
     ??_DsrBinIAsyncStream@@QAEXXZ
     ??_DsrBinIFStream@@QAEXXZ
@@ -506,6 +518,9 @@ EXPORTS
     ??_DsrBinOFStream@@QAEXXZ
     ??_DsrBinOMStream@@QAEXXZ
     ??_DsrBinOStream@@QAEXXZ
+    ??_FsrIlluminator@@QAEXXZ
+    ??_FsrLight@@QAEXXZ
+    ??_FsrScene@@QAEXXZ
     ?addPath@srFileManager@@QAEXPBD@Z
     ?addSeparatedStrings@srStringTable@@QAEXPBD0H@Z
     ?addStreamType@srIStreamOpener@@QAEXPAVOpener@1@PBD@Z
@@ -531,14 +546,20 @@ EXPORTS
     ?deleteContext@srDebugDD@@UAEXXZ
     ?deletePalette@srDebugDD@@UAEXAAUPalette@srDD@@@Z
     ?deleteTexture@srDebugDD@@UAEXAAUTexture@srDD@@@Z
+    ?disable@srLight@@QAEXW4e_enable@1@@Z
+    ?disable@srScene@@QAEXW4e_enable@1@@Z
     ?drawArrays@srDebugDD@@UAEXW4e_primitive@srRendererDefs@@JK@Z
     ?drawElements@srDebugDD@@UAEXW4e_primitive@srRendererDefs@@KW4e_indexType@3@PBX@Z
     ?dump@srClass@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dump@srFileManager@@QAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?dump@srLight@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dump@srRuntimeClass@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?dump@srScene@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dump@srVectorProcessor@@SAXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dumpAll@srExtension@@SAXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dumpNode@Compressor@srHuffman@@AAEXAAVBitOStream@2@PAUNode@12@@Z
+    ?enable@srLight@@QAEXW4e_enable@1@@Z
+    ?enable@srScene@@QAEXW4e_enable@1@@Z
     ?endDebug@srVectorProcessor@@SAXXZ
     ?endFrame@srDebugDD@@UAEXXZ
     ?exceptions@srBinStream@@QAE_N_N@Z
@@ -557,6 +578,11 @@ EXPORTS
     ?free@srMemoryAllocator@@QAEXPAX@Z
     ?fullPath@srSystem@@SAPADPADPBDK@Z
     ?get@BitIStream@srHuffman@@QAEKK@Z
+    ?getAmbient@srLight@@QBE?AV?$srVector3T@M@@XZ
+    ?getAmbientLight@srScene@@QBE?AV?$srVector3T@M@@XZ
+    ?getAmbientLight@srScene@@QBEXAAV?$srVector3T@M@@@Z
+    ?getAttenuation@srLight@@QBE?AV?$srVector3T@M@@XZ
+    ?getAttenuationModel@srLight@@QBE?AW4e_attenuationModel@1@XZ
     ?getBit@BitIStream@srHuffman@@QAEKXZ
     ?getBufferPixelFormat@srDebugDD@@UAEXAAUPixelFormat@srDD@@@Z
     ?getByte@BitIStream@srHuffman@@AAEKJ@Z
@@ -570,28 +596,40 @@ EXPORTS
     ?getDataCount@Decompressor@srHuffman@@QBEKXZ
     ?getDescription@srExtension@@QAEPBDXZ
     ?getDescription@srFStreamOpener@@UBEPBDXZ
+    ?getDiffuse@srLight@@QBE?AV?$srVector3T@M@@XZ
     ?getDouble@srBinIStream@@QAENXZ
     ?getDriverInfo@srDebugDD@@UAEXAAUDriverInfo@srDD@@@Z
+    ?getFarAttenuationRange@srLight@@QBEXAAN0@Z
     ?getFirst@srExtension@@SAPAV1@XZ
     ?getFirstPath@srFileManager@@QBEPAVPath@1@XZ
     ?getFloat@srBinIStream@@QAEMXZ
+    ?getFogColor@srScene@@QBE?AV?$srVector3T@M@@XZ
+    ?getFogColor@srScene@@QBEXAAV?$srVector3T@M@@@Z
     ?getFunction@srDynamicLibrary@@SAPAXPAXPBD@Z
     ?getFunctionName@srDebugDD@@QBEPBDW4e_command@srDD@@@Z
     ?getInfo@srDebugDD@@UAEXAAUInfo@srDD@@@Z
+    ?getIntensity@srLight@@QBEMXZ
     ?getMemoryAllocator@srCore@@QBEPAVsrMemoryAllocator@@XZ
     ?getName@Path@srFileManager@@QBEPBDXZ
     ?getName@srExtension@@QAEPBDXZ
+    ?getNearAttenuationRange@srLight@@QBEXAAN0@Z
     ?getNext@Path@srFileManager@@QBEPAV12@XZ
     ?getNext@srExtension@@QAEPAV1@XZ
     ?getNumSymbols@Sampler@srHuffman@@QBEKXZ
     ?getPath@srBinFStream@@QBEPBDXZ
     ?getPtr@srBinOMStream@@QAEPAXXZ
     ?getQuadWord@srBinIStream@@QAE?AVsrQuadWord@@XZ
+    ?getSafeRange@srLight@@QBEMXZ
     ?getSize@srBinIMStream@@UAEKXZ
     ?getSize@srBinOMStream@@UAEKXZ
     ?getSize@srBinStream@@UAEKXZ
     ?getSize@srFileManager@@UAEJPBD@Z
+    ?getSpecular@srLight@@QBE?AV?$srVector3T@M@@XZ
+    ?getSpotAngle@srLight@@QBEMXZ
+    ?getSpotDirection@srLight@@QBE?AV?$srVector3T@M@@XZ
+    ?getSpotExponent@srLight@@QBEMXZ
     ?getStatistics@srDebugDD@@UAEXAAUStatistics@srDD@@@Z
+    ?getStatistics@srScene@@QAEXAAUStatistics@1@@Z
     ?getString@srStringTable@@QBEPADJ@Z
     ?getSymbolFrequency@Sampler@srHuffman@@QBEKK@Z
     ?getSymbolValue@Sampler@srHuffman@@QBEKK@Z
@@ -604,8 +642,11 @@ EXPORTS
     ?increaseCallTime@srDebugDD@@QAEXW4e_command@srDD@@N@Z
     ?initBaseVP@srVectorProcessor@@SAXXZ
     ?insert@Sampler@srHuffman@@QAEXK@Z
+    ?isActive@srLight@@UAEHAAVsrVertexPipe@@@Z
     ?isBusy@srDebugDD@@UAEHXZ
     ?applyViewStateChanges@srGERD@@AAEXXZ
+    ?isEnabled@srLight@@QBEHW4e_enable@1@@Z
+    ?isEnabled@srScene@@QBEHW4e_enable@1@@Z
     ?isFinished@srBinIAsyncStream@@QAEHXZ
     ?isOpen@srBinFStream@@QAEHXZ
     ?load@srDynamicLibrary@@SAPAXPBD@Z
@@ -624,6 +665,10 @@ EXPORTS
     ?overflow@srDummyStreamBuf@@EAEHH@Z
     ?parsePrefix@srIStreamOpener@@AAEXPAPAD0PBD@Z
     ?preBindTexture@srDebugDD@@UAEXKAAUTexture@srDD@@@Z
+    ?process@srIlluminator@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
+    ?process@srLight@@UAEXAAVsrVertexPipe@@@Z
+    ?process@srLight@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
+    ?process@srScene@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
     ?pseek@srBinFStream@@MAEAAVsrBinStream@@K@Z
     ?pseek@srBinFStream@@MAEAAVsrBinStream@@KW4e_seekDir@2@@Z
     ?ptell@srBinFStream@@MAEKXZ
@@ -638,10 +683,13 @@ EXPORTS
     ?read@srBinIStream@@QAEAAV1@PAXK@Z
     ?releaseAll@srExtension@@SAXXZ
     ?removePath@srFileManager@@QAEXPBD@Z
+    ?render@srScene@@QAEXAAVsrGERD@@PAVsrCamera@@@Z
     ?reset@srStringTable@@QAEXXZ
     ?resetStatistics@srDebugDD@@UAEXXZ
     ?resetStatistics@srVectorProcessor@@SAXXZ
     ?rewind@BitIStream@srHuffman@@QAEXJ@Z
+    ?sGetClassName@srLight@@SAPBDXZ
+    ?sGetClassName@srScene@@SAPBDXZ
     ?save@srFileManager@@UAEXPBDPAXK@Z
     ?scanFiles@srSystem@@SAJAAVsrStringTable@@PBD1@Z
     ?scanFiles@srSystem@@SAJAAVsrStringTable@@PBD@Z
@@ -659,18 +707,34 @@ EXPORTS
     ?seek@srBinOFStream@@UAEAAVsrBinStream@@KW4e_seekDir@2@@Z
     ?seek@srBinOMStream@@UAEAAVsrBinStream@@K@Z
     ?seek@srBinOMStream@@UAEAAVsrBinStream@@KW4e_seekDir@2@@Z
+    ?setAmbient@srLight@@QAEXABV?$srVector3T@M@@@Z
+    ?setAmbientLight@srScene@@QAEXABV?$srVector3T@M@@@Z
+    ?setAmbientLight@srScene@@QAEXMMM@Z
+    ?setAttenuation@srLight@@QAEXABV?$srVector3T@M@@@Z
+    ?setAttenuationModel@srLight@@QAEXW4e_attenuationModel@1@@Z
     ?setByteOrder@srBinStream@@QAEXW4e_byteOrder@1@@Z
     ?setClearValues@srDebugDD@@UAEXABUClearValues@srDD@@@Z
     ?setCullMode@srDebugDD@@UAEXW4e_cullMode@srDD@@@Z
+    ?setDiffuse@srLight@@QAEXABV?$srVector3T@M@@@Z
+    ?setFarAttenuationRange@srLight@@QAEXNN@Z
     ?setFogColor@srDebugDD@@UAEXABV?$srVector4T@M@@@Z
+    ?setFogColor@srScene@@QAEXABV?$srVector3T@M@@@Z
+    ?setFogColor@srScene@@QAEXMMM@Z
     ?setGlobalPalette@srDebugDD@@UAEXPAKK@Z
+    ?setIntensity@srLight@@QAEXM@Z
+    ?setNearAttenuationRange@srLight@@QAEXNN@Z
     ?setPath@srBinFStream@@AAEXPBD@Z
     ?setPath@srFileManager@@QAEXPBD@Z
     ?setPolygonMode@srDebugDD@@UAEXW4e_polygonMode@srDD@@@Z
     ?setPolygonOffset@srDebugDD@@UAEXJ@Z
     ?setProjectionMatrix@srDebugDD@@UAEXABV?$srMatrix4T@M@@W4e_type@2@@Z
+    ?setSafeRange@srLight@@QAEXM@Z
     ?setScissor@srDebugDD@@UAEXABUScissor@srDD@@@Z
     ?setShader@srDebugDD@@UAEXABVsrShader@@@Z
+    ?setSpecular@srLight@@QAEXABV?$srVector3T@M@@@Z
+    ?setSpotAngle@srLight@@QAEXM@Z
+    ?setSpotDirection@srLight@@QAEXABV?$srVector3T@M@@@Z
+    ?setSpotExponent@srLight@@QAEXM@Z
     ?setState@srBinStream@@QAEXW4e_state@1@@Z
     ?setTextureParameters@srDebugDD@@UAEXKABUTexParms@srDD@@@Z
     ?setVertexArrayInfo@srDebugDD@@UAEXPBUVertexArrayInfo@srRendererDefs@@@Z
@@ -933,3 +997,7 @@ EXPORTS
     ?translate@srGERD@@QAEXABV?$srVector3T@N@@@Z
     ?recalcScissor@srGERD@@AAEXXZ
     ?setScissor@srGERD@@QAEXKKKK@Z
+    ?traverse@srIlluminator@@UAEXAAVTraverseInfo@srNode@@@Z
+    ?traverse@srLight@@UAEXAAVTraverseInfo@srNode@@@Z
+    ?traverse@srScene@@UAEXAAVTraverseInfo@srNode@@@Z
+    ?vInstance@srScene@@UAEPAVsrClass@@XZ

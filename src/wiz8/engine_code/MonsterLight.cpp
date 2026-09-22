@@ -57,7 +57,10 @@ MonsterLight::MonsterLight(const MonsterLight& other) : srLight(0)
     near_end_160 = other.near_end_160;
     far_start_168 = other.far_start_168;
     far_end_170 = other.far_end_170;
-    memcpy(unknown_178_, other.unknown_178_, sizeof(unknown_178_));
+    near_start_scaled_178 = other.near_start_scaled_178;
+    far_end_scaled_17c = other.far_end_scaled_17c;
+    near_inverse_180 = other.near_inverse_180;
+    far_inverse_184 = other.far_inverse_184;
     opengl_attenuation_188 = other.opengl_attenuation_188;
     enable_flags_194 = other.enable_flags_194;
     ambient_198 = other.ambient_198;
@@ -68,7 +71,14 @@ MonsterLight::MonsterLight(const MonsterLight& other) : srLight(0)
     spot_exponent_1cc = other.spot_exponent_1cc;
     intensity_1d0 = other.intensity_1d0;
     safe_range_1d4 = other.safe_range_1d4;
-    memcpy(unknown_1d8_, other.unknown_1d8_, sizeof(unknown_1d8_));
+    eye_ambient_1d8 = other.eye_ambient_1d8;
+    eye_diffuse_1e8 = other.eye_diffuse_1e8;
+    eye_specular_1f8 = other.eye_specular_1f8;
+    eye_spot_dir_208 = other.eye_spot_dir_208;
+    spot_cos_214 = other.spot_cos_214;
+    far_end_current_218 = other.far_end_current_218;
+    activity_21c = other.activity_21c;
+    channel_bits_220 = other.channel_bits_220;
 
     m_vertical_offset_228 = other.m_vertical_offset_228;
     m_color_first_22c = other.m_color_first_22c;

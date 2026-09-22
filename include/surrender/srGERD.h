@@ -156,14 +156,17 @@ public:
     void setClearColor(float red, float green, float blue, float alpha);
     void setClearDepth(double depth);
     void setAmbientLight(float red, float green, float blue, float alpha);
+    void setAmbientLight(const srVector3T<float>& light);
     void setAmbientLight(const srVector4T<float>& light);
     void setFogColor(const srVector3T<float>& color);
+    void setFogColor(const srVector4T<float>& color);
     void setScissor(unsigned long x, unsigned long y, unsigned long width, unsigned long height);
     void flipFrame();
     void setTextureReduction(long reduction);
     void setViewPort(unsigned long x, unsigned long y, unsigned long width, unsigned long height);
     void matrixMode(e_matrixMode mode);
     void getMatrix(e_matrixMode mode, srMatrix4T<float>& matrix);
+    srVector3T<float>* getEyeSpaceLocation(srVector3T<float>* location);
     void getEyeSpaceBounds(srVector3T<float>& center, float& radius,
                            const srVector3T<float>& object_center, float object_radius);
     void getInverseModelViewMatrix(srMatrix4T<float>& matrix);
@@ -171,6 +174,7 @@ public:
     void getProjectClipNearMatrix(srMatrix4T<float>& matrix);
     void getNormalMatrix(srMatrix4T<float>& matrix);
     srMatrix4T<float>::e_scaleType getModelViewScaleType();
+    float getMaxModelViewScale();
     e_cullMode getCullMode() const;
     e_winding getWinding() const;
     void setWinding(e_winding winding);
@@ -180,7 +184,10 @@ public:
     void unlockBuffer();
     unsigned long getVertexProcessorCount() const;
     void getVertexProcessors(srVertexProcessor** processors) const;
+    void pushVertexProcessor(srVertexProcessor* processor);
+    void popVertexProcessor();
     void getAmbientLight(srVector4T<float>& light);
+    void getFogColor(srVector4T<float>& color) const;
     void getEnvironmentRange(float& minimum, float& maximum) const;
     void getEnvironmentScaleFactor(float& scale, float& inverse_scale);
     unsigned long getExclusionMask() const;
@@ -207,6 +214,7 @@ public:
     e_visibility testBoundingBox(const srVector3T<float>& minimum,
                                  const srVector3T<float>& maximum);
     void setPickKey(unsigned long key);
+    unsigned long getPickKey() const;
     void ortho(double left, double right, double bottom, double top, double near_plane,
                double far_plane);
     void frustum(double left, double right, double bottom, double top, double near_plane,

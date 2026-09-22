@@ -185,8 +185,10 @@ public:
     }
 
 private:
-    /* srMaterial::postProcess dispatches the per-vertex blend through vp. */
+    /* srMaterial::postProcess dispatches the per-vertex blend through vp;
+       srLight::process dispatches the whole lighting pipeline through it. */
     friend class srMaterial;
+    friend class srLight;
     static void install(srVP* processor);
     // GLOBAL: SURRENDER 0x100A923C
     static SR_DLL_IMPORT srVP* vp;
