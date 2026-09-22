@@ -1370,6 +1370,12 @@ static void TeleportPartyNearEngagedOnGameThread(void* opaque)
             }
             nav.y = anchor.y + 2000.0f;
             nav.y = SettlePositionToGround00420BD0(&nav, 0);
+            /* SettleFrom-above lands on the highest floor under the start
+               point; a raised ledge or roof leaves the party out of every
+               band, so only accept landings near the monster's own level. */
+            if (nav.y - anchor.y > 400.0f || anchor.y - nav.y > 400.0f) {
+                continue;
+            }
             float cam[3] = {nav.x, nav.y + g_default_world_height_00603ac8, nav.z};
             WorldSetCameraLocation(GetWorld659AB8(), cam);
             g_startup_world_659c0c->SetPositionInternal00453590(&nav);
