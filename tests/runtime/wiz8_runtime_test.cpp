@@ -1989,9 +1989,73 @@ static bool WaitForCombatMode(bool enabled)
     return false;
 }
 
+struct CombatModeRequest {
+    bool enabled;
+    bool achieved;
+    bool waiting_on_ground;
+    bool input_blocked;
+};
+
+/* Manual combat entry has a one-frame ground-contact precondition in retail.
+   Do the readiness check and command dispatch on the game thread in one
+   callback; polling flag4 from the driver and injecting the key afterward
+   races ApplyCameraMotion clearing the flag on the next frame. */
+static void RequestCombatModeOnGameThread(void* opaque)
+{
+    CombatModeRequest* request = static_cast<CombatModeRequest*>(opaque);
+    request->achieved = (gXStatus.fCombatMode != 0) == request->enabled;
+    request->waiting_on_ground = false;
+    request->input_blocked = IsScreenInputBlocked() != 0;
+    if (request->achieved || request->input_blocked) {
+        return;
+    }
+    if (request->enabled && GetLevelDataFlag4() == 0) {
+        request->waiting_on_ground = true;
+        return;
+    }
+    DispatchMGSCommand(W8_MGS_COMMAND_TOGGLE_COMBAT);
+    request->achieved = (gXStatus.fCombatMode != 0) == request->enabled;
+}
+
+static bool RequestCombatMode(bool enabled, unsigned int timeout_ms)
+{
+    unsigned int started = GetTickCount();
+    bool nudging = false;
+    CombatModeRequest last = {enabled, false, false, false};
+    while (GetTickCount() - started < timeout_ms && gfProgramIsRunning) {
+        CombatModeRequest request = {enabled, false, false, false};
+        unsigned long elapsed = GetTickCount() - started;
+        if (elapsed >= timeout_ms) {
+            break;
+        }
+        if (!RunOnGameThread(RequestCombatModeOnGameThread, &request, timeout_ms - elapsed)) {
+            break;
+        }
+        last = request;
+        if (request.achieved) {
+            if (nudging) {
+                SendGameplayCommand(W8_MGS_COMMAND_MOVE_FORWARD, true);
+            }
+            return true;
+        }
+        if (enabled && request.waiting_on_ground) {
+            nudging = SendGameplayCommand(W8_MGS_COMMAND_MOVE_FORWARD, false) || nudging;
+        }
+        Sleep(20);
+    }
+    if (nudging) {
+        SendGameplayCommand(W8_MGS_COMMAND_MOVE_FORWARD, true);
+    }
+    fprintf(stderr,
+            "runtime-test combat-mode: desired=%d achieved=%d waiting_on_ground=%d "
+            "input_blocked=%d\n",
+            enabled, last.achieved, last.waiting_on_ground, last.input_blocked);
+    return false;
+}
+
 static DWORD RunCombatRoundtripScenario()
 {
-    if (!TapGameplayCommand(W8_MGS_COMMAND_TOGGLE_COMBAT) || !WaitForCombatMode(true)) {
+    if (!RequestCombatMode(true, 3000)) {
         return FailScenario("combat-start", "combat-not-entered");
     }
     g_observation.combat_started = 1;
@@ -2029,9 +2093,7 @@ static DWORD RunCombatRoundtripScenario()
     }
     if (state.round_active)
         return FailScenario("combat-round", "round-did-not-finish");
-    if (state.combat && !TapGameplayCommand(W8_MGS_COMMAND_TOGGLE_COMBAT))
-        return FailScenario("combat-end", "binding-missing");
-    if (!WaitForCombatMode(false))
+    if (!RequestCombatMode(false, 3000))
         return FailScenario("combat-end", "combat-not-ended");
     g_observation.combat_ended = 1;
     ReportStep("combat-ended");
@@ -2095,9 +2157,11 @@ static DWORD RunHostileEncounterScenario()
 }
 
 /* Beyond engagement: queue real melee attacks aimed at a live monster on
-   every living slot, drive bounded rounds, and require evidence that a party
-   member's attack struck the aimed monster and that monster durably lost HP
-   or died. Enemy actions and party damage are never evidence. */
+   every living slot, drive bounded rounds, and require durable HP loss or
+   death of that aimed monster after the round starts. The fixture queues only
+   party melee against this target; hostile actions target the party, so this
+   is durable evidence of a party hit. attack_report is diagnostic only:
+   retail consumes and clears it synchronously before the harness can poll it. */
 static DWORD RunCombatAttackScenario()
 {
     HostileEncounterContext context;
@@ -2176,9 +2240,11 @@ static DWORD RunCombatAttackScenario()
             return FailScenario("combat-round-start", "round-start-not-consumed");
         }
 
-        /* combat-round-resolve: latch a party hit only when the executed
-           action's own report names the aimed monster, and latch damage only
-           from that monster's durable HP loss or death. */
+        /* combat-round-resolve: attack_report is transient scratch state and
+           ReportCharacterAttackResult0053FB00 clears it before returning.
+           Observe the durable consequence instead: this round queued only
+           party melee at aim_id, so HP loss/deactivation of that monster is
+           the integration proof that a queued party attack landed. */
         stage_started = GetTickCount();
         bool round_finished = false;
         while (GetTickCount() - stage_started < 90000 && gfProgramIsRunning) {
@@ -2204,20 +2270,19 @@ static DWORD RunCombatAttackScenario()
                         state.provoked_threat_state, state.first_target_type,
                         state.first_target_monster);
             }
-            if (!g_observation.party_attack_hit && state.action_char >= 0 &&
-                state.action_status >= 2 && state.report_target_type == W8_TARGET_KIND_MONSTER &&
-                state.report_target_monster == aim_id && state.report_count > 0) {
-                g_observation.party_attack_hit = 1;
-                ReportStep("party-attack-hit");
-                fprintf(stderr, "runtime-test hit: char=%d target=%d amount=%u\n",
-                        state.action_char, state.report_target_monster, state.report_amount);
-            }
-            if (g_observation.party_attack_hit && !g_observation.target_damaged && aim_id >= 0 &&
-                baseline_hp >= 0 &&
+            if (!g_observation.target_damaged && aim_id >= 0 && baseline_hp >= 0 &&
                 (state.aim_dead || !state.aim_active ||
                  (state.aim_hp >= 0 && state.aim_hp < baseline_hp))) {
+                g_observation.party_attack_hit = 1;
                 g_observation.target_damaged = 1;
+                ReportStep("party-attack-hit");
                 ReportStep("target-damaged");
+                fprintf(stderr,
+                        "runtime-test hit: target=%d baseline_hp=%d hp=%d active=%u dead=%d "
+                        "action=%d char=%d report=%u/%u\n",
+                        aim_id, baseline_hp, state.aim_hp, state.aim_active, state.aim_dead,
+                        state.action_status, state.action_char, state.report_count,
+                        state.report_amount);
             }
             /* A kill ends combat in the same frame: the latched success and
                a finished round outrank the combat-mode drop. */
