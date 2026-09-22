@@ -137,8 +137,7 @@ Use `uv run wiz8 --help` for the complete command set.
 
 More detailed developer documentation:
 
-- [Contributor workflow](docs/contributor-workflow.md)
+- [Repository policy and task workflows](AGENTS.md)
 - [Evidence and artifact policy](docs/evidence-policy.md)
 - [Wizardry evidence and provenance model](docs/wiz8-evidence-model.md)
-- [Wizardry symbol evidence](docs/wiz8-symbol-evidence.md)
 - [Runtime/build target](docs/targets/wiz8-executable.md)

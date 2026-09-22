@@ -113,6 +113,16 @@ jj git push --remote origin --change @
 Use the bookmark name reported by Jujutsu to open the PR. For an existing PR, use the tracked-bookmark
 flow above instead of creating a new publication bookmark.
 
-Direct publication to `main` requires explicit authorization and follows the short recipe in
-`docs/contributor-workflow.md`. A successful push ends publication; do not fetch, revalidate, create an
-empty child, or perform tree-equivalence proofs merely to reassure yourself after a successful push.
+Direct publication to `main` requires explicit authorization:
+
+```sh
+jj git fetch --remote origin
+jj rebase --destination main@origin
+# resolve/review and run invalidated checks
+jj bookmark set main -r @
+jj git push --remote origin --bookmark main
+```
+
+Never rewrite remote `main`. If the push is rejected, fetch and integrate the competing change,
+rerun affected checks, and retry. A successful push ends publication; do not fetch, revalidate,
+create an empty child, or perform tree-equivalence proofs merely to reassure yourself after success.

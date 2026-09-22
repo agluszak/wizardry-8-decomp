@@ -218,5 +218,4 @@ work is needed or immediately before authorized integration. After a rebase or m
 `uv run wiz8 report merge-preservation --base origin/main`; every removed or duplicated retail-address
 identity needs an explicit `--allow` reason. Successful push completes publication;
 do not perform routine post-push proofs. Jujutsu mechanics live in
-[jujutsu-workflow](.agents/skills/jujutsu-workflow/SKILL.md); the short command reference remains in
-[docs/contributor-workflow.md](docs/contributor-workflow.md).
+[jujutsu-workflow](.agents/skills/jujutsu-workflow/SKILL.md).

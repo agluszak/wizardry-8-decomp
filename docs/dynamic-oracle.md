@@ -124,20 +124,6 @@ name and sha256, linker-MAP sha256, the loaded provider (`sr.dll`) sha256, plan/
 digests, tool versions and the timeout. A rebuilt executable traced under a stock provider says
 nothing about a rebuilt provider; the provenance keeps the two claims separate.
 
-## Earlier bring-up observation
-
-Before the plan moved to the complete reviewed startup spine, the smaller ten-point scenario
-reached nine watched bodies in this order:
-
-```
-WinMain, ProcessCommandLine, QueryAvailableMemory, CheckCdPresent,
-InitializeStandardGamingPlatform, SetModuleSubdirectory, GetRuntimeSettings,
-InitializeInputManager, VerifyDataSubdirs
-```
-
-That remains an independent observation of the recovered control flow, but its count is not a
-current-plan expectation. Rerun the generated plan before comparing current event counts.
-
 ## Pitfalls
 
 - **Do not probe the proxy port by connecting to it.** `winedbg --gdb` accepts

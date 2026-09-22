@@ -72,14 +72,3 @@ preserved rather than linking unused upstream code.
   spurious `_purecall` dependency.
 - Exception settings are translation-unit evidence. Enabling them globally changes unrelated
   prologues; disabling them globally deletes required cleanup state.
-
-## Runtime replacement proof
-
-The replacement was exercised against the original `sr.dll` in an isolated copy of the game tree.
-A VC6 harness called the real plug-in factory and importer/exporter vtables, covering JPEG metadata,
-pixel import, export options, cleanup, repeated loading, and unload. Runtime artifacts belong under
-the external work directory; they are not duplicated as tracked status tables here.
-
-The target demonstrated the complete compiler, linker, Ghidra, comparison, and replacement-DLL
-workflow. Further progress should focus on recovered Wizardry translation units rather than growing
-this document's historical match inventory.
