@@ -17,6 +17,7 @@ from wiz8decomp.runtime import (
     _runtime_failure,
     _runtime_history,
     _runtime_phase_summary,
+    _runtime_test_command,
     _semantic_observation,
     _symbolize_addresses,
     analyze_runtime_crash,
@@ -26,6 +27,18 @@ from wiz8decomp.runtime import (
     runtime_test_environment,
     stage_game,
 )
+
+
+@pytest.fixture(autouse=True)
+def _isolate_runtime_environment(monkeypatch) -> None:
+    for name in (
+        "WIZ8_RUNTIME_VIDEO_CONFIG",
+        "WIZ8_RUNTIME_RUNNER",
+        "WIZ8_UMU_RUN",
+        "WIZ8_UMU_WINESERVER",
+        "PROTONPATH",
+    ):
+        monkeypatch.delenv(name, raising=False)
 
 
 def _settings(tmp_path: Path) -> Settings:
@@ -75,6 +88,29 @@ def test_stage_game_uses_managed_links_and_materialized_cfg(tmp_path: Path) -> N
     assert (stage / "Wiz8.CFG").read_bytes() == b"\x00\xff"
 
 
+def test_selected_glide_config_reaches_runtime_test_stage_and_display(
+    tmp_path: Path, monkeypatch
+) -> None:
+    settings = _settings(tmp_path)
+    config = settings.repo_dir / "config" / "runtime" / "3DVideo.Glide2x.CFG"
+    config.write_text("Glide2x\n800\n600\n16\nAudio\n")
+    monkeypatch.setenv("WIZ8_RUNTIME_VIDEO_CONFIG", str(config))
+    stage = stage_game(
+        settings,
+        name="runtime-test",
+        executable=settings.product_build_dir / "Wiz8RuntimeTest.exe",
+    )
+    assert (stage.root / "3DVideo.CFG").read_bytes() == config.read_bytes()
+    _, environment = runtime_test_environment(settings)
+    assert environment["WIZ8_RUNTIME_SCREEN_GEOMETRY"] == "800x600x24"
+    environment["WIZ8_RUNTIME_RUNNER"] = "umu"
+    environment["WIZ8_UMU_RUN"] = "/path/to/umu-run"
+    assert _runtime_test_command(stage.executable, environment) == [
+        "/path/to/umu-run",
+        str(stage.executable),
+    ]
+
+
 def test_stage_game_refuses_an_unmanaged_asset_directory(tmp_path: Path) -> None:
     settings = _settings(tmp_path)
     unmanaged = settings.runtime_stage("runtime-test") / "Data"
@@ -89,6 +125,9 @@ def test_stage_game_refuses_an_unmanaged_asset_directory(tmp_path: Path) -> None
 
 
 def test_interactive_run_restores_managed_wine_window(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.delenv("WIZ8_RUNTIME_RUNNER", raising=False)
+    monkeypatch.delenv("WIZ8_RUNTIME_VIDEO_CONFIG", raising=False)
+    monkeypatch.delenv("WIZ8_WINE_PREFIX", raising=False)
     settings = _settings(tmp_path)
     (settings.product_build_dir / "Wiz8Runtime.exe").write_bytes(b"runtime")
     prefix = settings.work_dir / "wine" / "wiz8-runtime"
@@ -671,6 +710,9 @@ def test_staging_without_map_never_reuses_a_previous_map(tmp_path: Path) -> None
 def test_interactive_crash_uses_staged_map_after_build_map_changes(
     tmp_path: Path, synthetic_pe: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    monkeypatch.delenv("WIZ8_RUNTIME_RUNNER", raising=False)
+    monkeypatch.delenv("WIZ8_RUNTIME_VIDEO_CONFIG", raising=False)
+    monkeypatch.delenv("WIZ8_WINE_PREFIX", raising=False)
     settings = _settings(tmp_path)
     executable = settings.product_build_dir / "Wiz8Runtime.exe"
     executable.write_bytes(synthetic_pe.read_bytes())

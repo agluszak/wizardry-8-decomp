@@ -18,7 +18,8 @@ typedef struct W8MouthGapTrack {
     W8MouthGapRange* head;
     /* Initialized to the first range at load; no retail reader. */
     W8MouthGapRange* cursor;
-    unsigned char mouth_open;
+    unsigned char
+        mouth_open; /* bool-byte-ok: C gap.c uses this one-byte state and VC6 C has no bool */
     unsigned char padding_11[3];
 } W8MouthGapTrack;
 

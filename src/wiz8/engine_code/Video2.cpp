@@ -1,4 +1,7 @@
 #include "wiz8/xstatus.h"
+#ifdef WIZ8_RUNTIME_TESTS
+#include "runtime_instrumentation.h"
+#endif
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_code/Gameloop.h"
@@ -205,13 +208,7 @@ int g_surface_state_6595dc;
 // GLOBAL: WIZ8 0x654ad8
 int g_surface_state_654ad8;
 // GLOBAL: WIZ8 0x6595e8
-int g_viewport_left_6595e8;
-// GLOBAL: WIZ8 0x6595ec
-int g_viewport_top_6595ec;
-// GLOBAL: WIZ8 0x6595f0
-int g_viewport_right_6595f0;
-// GLOBAL: WIZ8 0x6595f4
-int g_viewport_bottom_6595f4;
+W8ViewportRect g_viewport_6595e8;
 // GLOBAL: WIZ8 0x00659AB4
 W8World* g_world;
 // GLOBAL: WIZ8 0x00659AB8
@@ -596,7 +593,7 @@ unsigned char CreateWizardryWindow(void)
     DWORD style;
 
     memset(&window_class, 0, sizeof(window_class));
-    window_class.style = CS_VREDRAW | CS_HREDRAW | CS_OWNDC | CS_DBLCLKS;
+    window_class.style = CS_VREDRAW | CS_HREDRAW | CS_NOCLOSE | CS_DBLCLKS;
     window_class.lpfnWndProc = g_window_proc_6595f8;
     window_class.hInstance = g_instance_654ac4;
     window_class.hIcon = LoadIconA(g_instance_654ac4, MAKEINTRESOURCEA(106));
@@ -1033,6 +1030,10 @@ srVector3T<float>* __fastcall SaturateColor004299B0(srVector3T<float>* color)
 /* Render one scene into either the full output or a logical 640x480 viewport.
    Scene fog follows the current world's static scene for ordinary overlays;
    the world passes retain their own fog by selecting preserve_fog. */
+#ifdef WIZ8_RUNTIME_TESTS
+static RuntimeWorldRenderData ObserveWorldRenderState();
+#endif
+
 // FUNCTION: WIZ8 0x00427850
 void RenderScene(srScene* scene, srCamera* camera, const int* viewport, char preserve_fog)
 {
@@ -1049,6 +1050,16 @@ void RenderScene(srScene* scene, srCamera* camera, const int* viewport, char pre
         unsigned long viewport_height = (viewport[3] - viewport[1]) * height / 480;
         g_gerd_659634->setViewPort(left, top, viewport_width, viewport_height);
         g_gerd_659634->setScissor(left, top, viewport_width, viewport_height);
+#ifdef WIZ8_RUNTIME_TESTS
+        if (g_world != 0 && scene == g_world->static_scene) {
+            RuntimeWorldRenderData data = ObserveWorldRenderState();
+            data.applied_viewport[0] = left;
+            data.applied_viewport[1] = top;
+            data.applied_viewport[2] = viewport_width;
+            data.applied_viewport[3] = viewport_height;
+            RuntimeObserveWorld(RUNTIME_WORLD_VIEWPORT_APPLIED, data);
+        }
+#endif
     }
     if (!preserve_fog) {
         srVector3T<float> fog;
@@ -1067,6 +1078,40 @@ void RenderScene(srScene* scene, srCamera* camera, const int* viewport, char pre
         g_gerd_659634->setScissor(0, 0, width, height);
     }
 }
+
+#ifdef WIZ8_RUNTIME_TESTS
+static RuntimeWorldRenderData ObserveWorldRenderState()
+{
+    RuntimeWorldRenderData data;
+    memset(&data, 0, sizeof(data));
+    data.level = g_status_685170.current_level;
+    data.flags = (g_world_render_enabled_65970d ? 1UL : 0UL) |
+                 (g_world_blacked_out_65970e ? 2UL : 0UL) | (g_video_active_659710 ? 4UL : 0UL) |
+                 (g_monster_shadow_updates_enabled_0065970c ? 8UL : 0UL) |
+                 (g_render_flag_603c6c ? 16UL : 0UL) | (g_world_pick_enabled_603c38 ? 32UL : 0UL);
+    data.scene_children = g_world->static_scene->getChildCount();
+    if (g_world->octree != 0 && g_world->psrMeshes != 0) {
+        for (unsigned long index = 0; index < g_world->octree->m_meshCount_1b4; ++index) {
+            srModelInstance* instance = g_world->psrMeshes[index];
+            if (instance != 0 && !instance->testFlag(srNode::FLAG_DISABLE)) {
+                ++data.visible_meshes;
+            }
+        }
+    }
+    data.viewport[0] = g_viewport_6595e8.left;
+    data.viewport[1] = g_viewport_6595e8.top;
+    data.viewport[2] = g_viewport_6595e8.right;
+    data.viewport[3] = g_viewport_6595e8.bottom;
+    data.renderer_size[0] = g_gerd_659634->getWidth();
+    data.renderer_size[1] = g_gerd_659634->getHeight();
+    srVector3T<float> camera;
+    GetCameraPosition(&camera);
+    data.camera[0] = camera.x;
+    data.camera[1] = camera.y;
+    data.camera[2] = camera.z;
+    return data;
+}
+#endif
 
 /* The central renderer frame transaction. It owns the page flip, every scene
    pass, optional world picking, transient-node retirement, and frame timing;
@@ -1124,6 +1169,10 @@ void RenderFrame(void)
     }
     srCore.getStatisticsManager()->reset();
     g_gerd_659634->beginFrame();
+#ifdef WIZ8_RUNTIME_TESTS
+    RuntimeObserve(RUNTIME_FRAME_BEGIN, g_fps_frame_count_6596fc, g_current_screen_state.id,
+                   g_video_active_659710);
+#endif
     UpdateRenderElapsedTime00482140();
 
     if (!g_monster_shadow_updates_enabled_0065970c) {
@@ -1135,9 +1184,9 @@ void RenderFrame(void)
         unsigned long height = g_gerd_659634->getHeight();
         unsigned long width = g_gerd_659634->getWidth();
         g_gerd_659634->setScissor(
-            g_viewport_left_6595e8 * width / 640, g_viewport_top_6595ec * height / 480,
-            (g_viewport_right_6595f0 - g_viewport_left_6595e8) * width / 640,
-            (g_viewport_bottom_6595f4 - g_viewport_top_6595ec) * height / 480);
+            g_viewport_6595e8.left * width / 640, g_viewport_6595e8.top * height / 480,
+            (g_viewport_6595e8.right - g_viewport_6595e8.left) * width / 640,
+            (g_viewport_6595e8.bottom - g_viewport_6595e8.top) * height / 480);
         g_gerd_659634->clear(srFlags<srGERD::e_buffer>(3));
         g_gerd_659634->setScissor(0, 0, width, height);
     }
@@ -1150,56 +1199,71 @@ void RenderFrame(void)
     g_gerd_659634->setTextureReduction(g_resident_texture_policy_659714);
 
     if (g_render_flag_603c6c && g_world_659ab8 != 0 && g_monster_shadow_updates_enabled_0065970c) {
-        RenderScene(g_world_659ab8->static_scene, g_world_659ab8->camera, &g_viewport_left_6595e8,
+        RenderScene(g_world_659ab8->static_scene, g_world_659ab8->camera, &g_viewport_6595e8.left,
                     0);
     }
     if (g_world != 0 && g_world_render_enabled_65970d) {
+#ifdef WIZ8_RUNTIME_TESTS
+        RuntimeWorldRenderData world_observation = ObserveWorldRenderState();
+        RuntimeObserveWorld(RUNTIME_WORLD_RENDER_BEGIN, world_observation);
+#endif
         g_gerd_659634->setTextureReduction(g_resident_texture_policy_659714);
         if (!g_world_pick_enabled_603c38 ||
-            g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0 < g_viewport_left_6595e8 ||
-            g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4 < g_viewport_top_6595ec ||
-            g_viewport_right_6595f0 < g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0 ||
-            g_viewport_bottom_6595f4 < g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4) {
-            RenderScene(g_world->static_scene, g_world->camera, &g_viewport_left_6595e8, 1);
+            g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0 < g_viewport_6595e8.left ||
+            g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4 < g_viewport_6595e8.top ||
+            g_viewport_6595e8.right < g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0 ||
+            g_viewport_6595e8.bottom < g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4) {
+            RenderScene(g_world->static_scene, g_world->camera, &g_viewport_6595e8.left, 1);
         } else {
-            int half_width = (g_viewport_right_6595f0 - g_viewport_left_6595e8) / 2;
-            int half_height = (g_viewport_bottom_6595f4 - g_viewport_top_6595ec) / 2;
+            int half_width = (g_viewport_6595e8.right - g_viewport_6595e8.left) / 2;
+            int half_height = (g_viewport_6595e8.bottom - g_viewport_6595e8.top) / 2;
             srGERD::Pick pick;
-            pick.x_00 = (g_cursor_hotspot_x_6596bc - half_width - g_viewport_left_6595e8 +
+            pick.x_00 = (g_cursor_hotspot_x_6596bc - half_width - g_viewport_6595e8.left +
                          g_cursor_width_654ad0) /
                         static_cast<float>(half_width);
             pick.y_04 = -static_cast<float>(g_cursor_hotspot_y_6596c0 - half_height -
-                                            g_viewport_top_6595ec + g_cursor_height_654ad4) /
+                                            g_viewport_6595e8.top + g_cursor_height_654ad4) /
                         static_cast<float>(half_height);
             pick.z_08 = 1.0f;
             pick.selected_model_0c = 0;
             pick.value_10 = 0;
             g_gerd_659634->setPickKey(0);
             g_gerd_659634->pushPick(pick);
-            RenderScene(g_world->static_scene, g_world->camera, &g_viewport_left_6595e8, 1);
+            RenderScene(g_world->static_scene, g_world->camera, &g_viewport_6595e8.left, 1);
             g_gerd_659634->popPick(pick);
             g_current_model_instance_65962c = pick.selected_model_0c;
             ResolvePickedProp(g_world);
         }
+#ifdef WIZ8_RUNTIME_TESTS
+        RuntimeObserveWorld(RUNTIME_WORLD_RENDER_END, world_observation);
+#endif
     }
 
     g_gerd_659634->setTextureReduction(0);
-    if (g_overlay_scenes_enabled_603c6d) {
-        const int* overlay_viewport = g_overlay_viewport_659668;
-        if (!g_fullscreen_scene_last_603c4c) {
-            RenderScene(g_scene_fullscreen_659644, g_overlay_camera_659670, overlay_viewport, 0);
+#ifdef WIZ8_RUNTIME_TESTS
+    if (getenv("WIZ8_RUNTIME_HIDE_OVERLAY") == 0)
+#endif
+        if (g_overlay_scenes_enabled_603c6d) {
+            const int* overlay_viewport = g_overlay_viewport_659668;
+            if (!g_fullscreen_scene_last_603c4c) {
+                RenderScene(g_scene_fullscreen_659644, g_overlay_camera_659670, overlay_viewport,
+                            0);
+            }
+            RenderScene(g_scene_overlay0_659654, g_overlay_camera_659670, 0, 0);
+            RenderScene(g_scene_user_659640, g_overlay_camera_659670, 0, 0);
+            RenderScene(g_scene_square_65965c, g_square_camera_659674, overlay_viewport, 0);
+            if (g_fullscreen_scene_last_603c4c) {
+                RenderScene(g_scene_fullscreen_659644, g_overlay_camera_659670, overlay_viewport,
+                            0);
+            }
+            if (g_cursor_scene_enabled_603c60) {
+                RenderScene(g_cursor_scene_659684, g_overlay_camera_659670, 0, 0);
+            }
         }
-        RenderScene(g_scene_overlay0_659654, g_overlay_camera_659670, 0, 0);
-        RenderScene(g_scene_user_659640, g_overlay_camera_659670, 0, 0);
-        RenderScene(g_scene_square_65965c, g_square_camera_659674, overlay_viewport, 0);
-        if (g_fullscreen_scene_last_603c4c) {
-            RenderScene(g_scene_fullscreen_659644, g_overlay_camera_659670, overlay_viewport, 0);
-        }
-        if (g_cursor_scene_enabled_603c60) {
-            RenderScene(g_cursor_scene_659684, g_overlay_camera_659670, 0, 0);
-        }
-    }
     g_gerd_659634->endFrame();
+#ifdef WIZ8_RUNTIME_TESTS
+    RuntimeObserve(RUNTIME_FRAME_SUBMITTED, g_fps_frame_count_6596fc, g_current_screen_state.id, 0);
+#endif
 
     if (g_screenshot_pending_659711) {
         SaveJpegScreenshot();
@@ -1265,10 +1329,10 @@ unsigned char RenderWorldToSurface00426F80(srColorSurface* target, W8ScreenRect*
                           (rect->bottom - rect->top) * gerd->getHeight() / 480);
     } else {
         gerd->setViewPort(
-            g_viewport_left_6595e8 * gerd->getWidth() / 640,
-            g_viewport_top_6595ec * gerd->getHeight() / 480,
-            (g_viewport_right_6595f0 - g_viewport_left_6595e8) * gerd->getWidth() / 640,
-            (g_viewport_bottom_6595f4 - g_viewport_top_6595ec) * gerd->getHeight() / 480);
+            g_viewport_6595e8.left * gerd->getWidth() / 640,
+            g_viewport_6595e8.top * gerd->getHeight() / 480,
+            (g_viewport_6595e8.right - g_viewport_6595e8.left) * gerd->getWidth() / 640,
+            (g_viewport_6595e8.bottom - g_viewport_6595e8.top) * gerd->getHeight() / 480);
     }
     if (IsFogEnabled()) {
         GetLightDirection(&clear_color);
@@ -1717,10 +1781,10 @@ bool ClearMouseSurface(void)
 // FUNCTION: WIZ8 0x00428030
 bool IsCursorImageInsideViewport(void)
 {
-    if (g_cursor_width_654ad0 >= g_viewport_left_6595e8 &&
-        g_cursor_height_654ad4 >= g_viewport_top_6595ec &&
-        g_cursor_width_654ad0 + g_cursor_image_width_6596b4 <= g_viewport_right_6595f0 &&
-        g_cursor_height_654ad4 + g_cursor_image_height_6596b8 <= g_viewport_bottom_6595f4) {
+    if (g_cursor_width_654ad0 >= g_viewport_6595e8.left &&
+        g_cursor_height_654ad4 >= g_viewport_6595e8.top &&
+        g_cursor_width_654ad0 + g_cursor_image_width_6596b4 <= g_viewport_6595e8.right &&
+        g_cursor_height_654ad4 + g_cursor_image_height_6596b8 <= g_viewport_6595e8.bottom) {
         return true;
     }
     return false;
@@ -1731,8 +1795,8 @@ bool IsCursorInsideViewport(void)
 {
     int x = g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0;
     int y = g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4;
-    return x >= g_viewport_left_6595e8 && y >= g_viewport_top_6595ec &&
-           x <= g_viewport_right_6595f0 && y <= g_viewport_bottom_6595f4;
+    return x >= g_viewport_6595e8.left && y >= g_viewport_6595e8.top &&
+           x <= g_viewport_6595e8.right && y <= g_viewport_6595e8.bottom;
 }
 
 // FUNCTION: WIZ8 0x004280c0
@@ -1788,12 +1852,12 @@ unsigned char GetCursorPositionInViewport(srVector3T<float>* position)
 {
     int x = g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0;
     int y = g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4;
-    if (x >= g_viewport_left_6595e8 && y >= g_viewport_top_6595ec && x <= g_viewport_right_6595f0 &&
-        y <= g_viewport_bottom_6595f4) {
-        position->x = static_cast<float>(x - g_viewport_left_6595e8) /
-                      static_cast<float>(g_viewport_right_6595f0 - g_viewport_left_6595e8);
-        position->y = static_cast<float>(y - g_viewport_top_6595ec) /
-                      static_cast<float>(g_viewport_bottom_6595f4 - g_viewport_top_6595ec);
+    if (x >= g_viewport_6595e8.left && y >= g_viewport_6595e8.top && x <= g_viewport_6595e8.right &&
+        y <= g_viewport_6595e8.bottom) {
+        position->x = (x - g_viewport_6595e8.left) /
+                      static_cast<float>(g_viewport_6595e8.right - g_viewport_6595e8.left);
+        position->y = (y - g_viewport_6595e8.top) /
+                      static_cast<float>(g_viewport_6595e8.bottom - g_viewport_6595e8.top);
         position->z = 0.0f;
         return 1;
     }
@@ -2035,10 +2099,10 @@ static void InvalidateDirtyTile004259B0(int cell, unsigned int flags)
     int right = (cell % 0x50) * 8 + 8;
     int left = (cell % 0x50) * 8;
     if (g_world_render_enabled_65970d &&
-        ((g_viewport_left_6595e8 <= left && left <= g_viewport_right_6595f0) ||
-         (g_viewport_left_6595e8 <= right && right <= g_viewport_right_6595f0)) &&
-        ((g_viewport_top_6595ec <= top && top <= g_viewport_bottom_6595f4) ||
-         (g_viewport_top_6595ec <= bottom && bottom <= g_viewport_bottom_6595f4))) {
+        ((g_viewport_6595e8.left <= left && left <= g_viewport_6595e8.right) ||
+         (g_viewport_6595e8.left <= right && right <= g_viewport_6595e8.right)) &&
+        ((g_viewport_6595e8.top <= top && top <= g_viewport_6595e8.bottom) ||
+         (g_viewport_6595e8.top <= bottom && bottom <= g_viewport_6595e8.bottom))) {
         g_tile_dirty_flags_652ddc[cell] = state | 3;
         g_viewport_tiles_dirty_6596ea = 1;
     }
@@ -2169,18 +2233,18 @@ void FlushDirtyTiles00425B40(void)
 // FUNCTION: WIZ8 0x00425C90
 void SetScaledViewport00425C90(int left, int top, int right, int bottom)
 {
-    if (left == g_viewport_left_6595e8 && top == g_viewport_top_6595ec &&
-        right == g_viewport_right_6595f0 && bottom == g_viewport_bottom_6595f4) {
+    if (left == g_viewport_6595e8.left && top == g_viewport_6595e8.top &&
+        right == g_viewport_6595e8.right && bottom == g_viewport_6595e8.bottom) {
         return;
     }
     g_gerd_659634->setViewPort(g_gerd_659634->getWidth() * left / 640,
                                g_gerd_659634->getHeight() * top / 480,
                                g_gerd_659634->getWidth() * (right - left) / 640,
                                g_gerd_659634->getHeight() * (bottom - top) / 480);
-    g_viewport_left_6595e8 = left;
-    g_viewport_top_6595ec = top;
-    g_viewport_right_6595f0 = right;
-    g_viewport_bottom_6595f4 = bottom;
+    g_viewport_6595e8.left = left;
+    g_viewport_6595e8.top = top;
+    g_viewport_6595e8.right = right;
+    g_viewport_6595e8.bottom = bottom;
 }
 
 /*
@@ -2208,13 +2272,13 @@ void SetViewport(int left, int top, int right, int bottom)
         g_gerd_659634->flush();
     }
     fractional_left = (float)left * g_scale_x_5ebb1c;
-    g_viewport_right_6595f0 = right + 1;
-    g_viewport_left_6595e8 = left;
-    g_viewport_bottom_6595f4 = bottom + 1;
+    g_viewport_6595e8.right = right + 1;
+    g_viewport_6595e8.left = left;
+    g_viewport_6595e8.bottom = bottom + 1;
     fractional_top = (float)top * g_scale_y_5ebb20;
-    g_viewport_top_6595ec = top;
-    fractional_right = (float)g_viewport_right_6595f0 * g_scale_x_5ebb1c;
-    fractional_bottom = (float)g_viewport_bottom_6595f4 * g_scale_y_5ebb20;
+    g_viewport_6595e8.top = top;
+    fractional_right = g_viewport_6595e8.right * g_scale_x_5ebb1c;
+    fractional_bottom = g_viewport_6595e8.bottom * g_scale_y_5ebb20;
 
     if (g_world != 0 && g_world->camera != 0) {
         g_world->camera->setViewPlane(3.14159265358979323846 * g_float_005ebcf8 * 85.0f,
@@ -2526,13 +2590,13 @@ unsigned char InitializeRendererSceneObjects(void)
 
     memset(g_surface_nodes_654adc, 0, sizeof(g_surface_nodes_654adc));
     memset(g_tile_dirty_flags_652ddc, 0, sizeof(g_tile_dirty_flags_652ddc));
-    g_viewport_left_6595e8 = 0;
-    g_viewport_top_6595ec = 0;
-    g_viewport_right_6595f0 = 0;
+    g_viewport_6595e8.left = 0;
+    g_viewport_6595e8.top = 0;
+    g_viewport_6595e8.right = 0;
     g_surface_state_6595dc = 0x100a017;
     g_surface_state_654ad8 = 0x100c0b7;
     g_dirty_tile_count_6596d8 = 0;
-    g_viewport_bottom_6595f4 = 0;
+    g_viewport_6595e8.bottom = 0;
 
     memset(&surface_description, 0, sizeof(surface_description));
     surface_description.dwSize = sizeof(surface_description);
@@ -3893,13 +3957,13 @@ void DrawColorSurface00425590(srColorSurface* surface, int x, int y)
 // FUNCTION: WIZ8 0x00425DA0
 void SetScaledViewport00425DA0(int left, int top, int right, int bottom)
 {
-    if (left == g_viewport_left_6595e8 && top == g_viewport_top_6595ec &&
-        right == g_viewport_right_6595f0 && bottom == g_viewport_bottom_6595f4) {
+    if (left == g_viewport_6595e8.left && top == g_viewport_6595e8.top &&
+        right == g_viewport_6595e8.right && bottom == g_viewport_6595e8.bottom) {
         return;
     }
-    if (left == g_viewport_left_6595e8) {
-        if (top == g_viewport_top_6595ec && right == g_viewport_right_6595f0 &&
-            bottom == g_viewport_bottom_6595f4) {
+    if (left == g_viewport_6595e8.left) {
+        if (top == g_viewport_6595e8.top && right == g_viewport_6595e8.right &&
+            bottom == g_viewport_6595e8.bottom) {
             goto store;
         }
     }
@@ -3908,10 +3972,10 @@ void SetScaledViewport00425DA0(int left, int top, int right, int bottom)
                                g_gerd_659634->getWidth() * (right - left) / 640,
                                g_gerd_659634->getHeight() * (bottom - top) / 480);
 store:
-    g_viewport_left_6595e8 = left;
-    g_viewport_top_6595ec = top;
-    g_viewport_right_6595f0 = right;
-    g_viewport_bottom_6595f4 = bottom;
+    g_viewport_6595e8.left = left;
+    g_viewport_6595e8.top = top;
+    g_viewport_6595e8.right = right;
+    g_viewport_6595e8.bottom = bottom;
 }
 
 // FUNCTION: WIZ8 0x00426490
@@ -3929,10 +3993,10 @@ void DrawBufferLine00426490(long x0, long y0, long x1, long y1, unsigned long* p
 // FUNCTION: WIZ8 0x004273F0
 void GetScaledViewportBounds004273F0(float* left_top, float* right_bottom)
 {
-    left_top[0] = g_viewport_left_6595e8 * g_scale_x_5ebb1c;
-    left_top[1] = g_viewport_top_6595ec * g_scale_y_5ebb20;
-    right_bottom[0] = g_viewport_right_6595f0 * g_scale_x_5ebb1c;
-    right_bottom[1] = g_viewport_bottom_6595f4 * g_scale_y_5ebb20;
+    left_top[0] = g_viewport_6595e8.left * g_scale_x_5ebb1c;
+    left_top[1] = g_viewport_6595e8.top * g_scale_y_5ebb20;
+    right_bottom[0] = g_viewport_6595e8.right * g_scale_x_5ebb1c;
+    right_bottom[1] = g_viewport_6595e8.bottom * g_scale_y_5ebb20;
 }
 
 // FUNCTION: WIZ8 0x004277F0

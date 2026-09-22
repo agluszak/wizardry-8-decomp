@@ -4,6 +4,7 @@
 #define _WIN32_WINNT 0x0500
 
 #include "game_thread_executor.h"
+#include "runtime_instrumentation.h"
 #include "surrender/srMath.h"
 
 struct GameplaySnapshot {
@@ -126,6 +127,8 @@ public:
 
     bool wait_until(const char* condition, unsigned long budget_ms, RuntimeConditionFn fn,
                     void* ctx, HeldCommand* held = 0, unsigned long poll_ms = 10);
+    unsigned long event_count(RuntimeEventKind kind) const;
+    bool wait_for_event(RuntimeEventKind kind, unsigned long budget_ms);
 
     GameplayWait wait_gameplay_ready(unsigned long budget_ms, const char* step);
     const GameplayReadyCheck& last_ready_check() const;
@@ -155,6 +158,8 @@ private:
     GameplayReadyCheck last_ready_check_;
     unsigned short held_key_;
     bool finished_;
+    unsigned long event_baseline_[RUNTIME_EVENT_KIND_COUNT];
+    unsigned long event_seen_[RUNTIME_EVENT_KIND_COUNT];
     const char* fixture_name_;
     const char* fixture_path_;
 };
@@ -165,6 +170,7 @@ private:
 void SendScenarioKeyHeld(unsigned short key, unsigned char release);
 void SendScenarioKeyPress(unsigned short key, unsigned long flags);
 void SendScenarioMouseClick(int client_x, int client_y);
+void SendScenarioRightMouseButton(bool release);
 int IsExtendedScenarioKey(unsigned short key);
 void ParkMouseOutsideActiveRegions();
 bool PointHitsEnabledRegion(int x, int y);

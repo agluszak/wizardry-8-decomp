@@ -8,6 +8,7 @@
 #include "wiz8/wiz8_windows.h"
 #include "surrender/srMaterial.h"
 #include "surrender/srTriangleCuller.h"
+
 #include "surrender/srTriMeshPipeline.h"
 #include "surrender/srTypeRegistry.h"
 #include "surrender/srVectorProcessor.h"
@@ -55,8 +56,8 @@ static unsigned char s_compressed_normal_table_ready;
 // FUNCTION: WIZ8 0x00470B00
 stMeshModel::stMeshModel(long polygons, long vertices)
     : srClassSupport<stMeshModel, srMeshModel, false, 0x10003>(0, 0), next(0), previous(0),
-      flags_3a0(0), vertex_light_table_3b0(0), duplicate_on_reuse_3cc(0),
-      vertex_lighting_ready_3cd(0), frame_count(0), m_pVertexLoc(0), m_pVertexNormal(0),
+      flags_3a0(2), vertex_light_table_3b0(0), duplicate_on_reuse_3cc(1),
+      vertex_lighting_ready_3cd(0), frame_count(1), m_pVertexLoc(0), m_pVertexNormal(0),
       m_pPolyNormal(0), compressed_vertex_locations(0), compressed_vertex_normals(0),
       compressed_polygon_normals(0), skin_table_ids(5), skin_texture_tables(5), skin_table_names(5),
       mapped_values(5), mapped_keys(5), last_decompress_release_tick_440(0),
@@ -64,7 +65,7 @@ stMeshModel::stMeshModel(long polygons, long vertices)
       automap_polygon_count(0), automap_filter_active(0), skin_blanking_apt_458(0),
       skin_blanking_apt_number_45c(0), skin_blanking_checked_460(0)
 {
-    memset(&ambient_color_3a4, 0, sizeof(ambient_color_3a4));
+    ambient_color_3a4.Set(-1.0f, -1.0f, -1.0f);
     memset(padding_3ce, 0, sizeof(padding_3ce));
     memset(padding_3ec, 0, sizeof(padding_3ec));
 
@@ -147,7 +148,7 @@ srClass* stMeshModel::vInstance()
 int stMeshModel::getBoundingSphere(srVector3T<float>& center, float& radius)
 {
     if ((control_state_390 & 1) != 0) {
-        stMeshModel::calculateBounds();
+        CalculateLinkedBounds00471E10();
     }
     center = bounds_center_218;
     radius = bounds_radius_224;
@@ -158,7 +159,7 @@ int stMeshModel::getBoundingSphere(srVector3T<float>& center, float& radius)
 int stMeshModel::getBoundingBox(srVector3T<float>& minimum, srVector3T<float>& maximum)
 {
     if ((control_state_390 & 1) != 0) {
-        stMeshModel::calculateBounds();
+        CalculateLinkedBounds00471E10();
     }
     minimum = bounds_minimum_200;
     maximum = bounds_maximum_20c;
@@ -171,7 +172,7 @@ int stMeshModel::getBoundingBox(srVector3T<float>& minimum, srVector3T<float>& m
    flags_3a0 bit 2 is clear answer from the base-class bounding box; the rest
    decompress each frame's vertex table. */
 // FUNCTION: WIZ8 0x00471E10
-void stMeshModel::calculateBounds()
+void stMeshModel::CalculateLinkedBounds00471E10()
 {
     bounds_minimum_200.SetZero();
     bounds_maximum_20c.SetZero();
@@ -458,7 +459,7 @@ void stMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
    g_render_cull_front_0065a0ed already requested front culling. */
 // FUNCTION: WIZ8 0x00470380
 void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const TriMesh& mesh,
-                                                     const srVector4T<float>* poly_equations)
+                                                     const srVector3T<float>* poly_equations)
 {
     unsigned long active_count = 0;
     srShader shader;
@@ -507,7 +508,7 @@ void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const Tri
                     for (long polygon = 0; polygon < mesh.polygon_count_04; ++polygon) {
                         int vertex = mesh.poly_vertices_10[polygon].y;
                         const srVector3T<float>& position = mesh.positions_38[vertex];
-                        const srVector4T<float>& equation = poly_equations[polygon];
+                        const srVector3T<float>& equation = poly_equations[polygon];
                         float facing = (eye.x - position.x) * equation.x +
                                        (eye.y - position.y) * equation.y +
                                        (eye.z - position.z) * equation.z;
@@ -521,7 +522,7 @@ void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const Tri
                     for (long polygon = 0; polygon < mesh.polygon_count_04; ++polygon) {
                         int vertex = mesh.poly_vertices_10[polygon].y;
                         const srVector3T<float>& position = mesh.positions_38[vertex];
-                        const srVector4T<float>& equation = poly_equations[polygon];
+                        const srVector3T<float>& equation = poly_equations[polygon];
                         float facing = (eye.x - position.x) * equation.x +
                                        (eye.y - position.y) * equation.y +
                                        (eye.z - position.z) * equation.z;
@@ -537,7 +538,7 @@ void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const Tri
                     unsigned long polygon = mesh.active_polygons_14c[index];
                     int vertex = mesh.poly_vertices_10[polygon].y;
                     const srVector3T<float>& position = mesh.positions_38[vertex];
-                    const srVector4T<float>& equation = poly_equations[polygon];
+                    const srVector3T<float>& equation = poly_equations[polygon];
                     float facing = (eye.x - position.x) * equation.x +
                                    (eye.y - position.y) * equation.y +
                                    (eye.z - position.z) * equation.z;
@@ -551,7 +552,7 @@ void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const Tri
                     unsigned long polygon = mesh.active_polygons_14c[index];
                     int vertex = mesh.poly_vertices_10[polygon].y;
                     const srVector3T<float>& position = mesh.positions_38[vertex];
-                    const srVector4T<float>& equation = poly_equations[polygon];
+                    const srVector3T<float>& equation = poly_equations[polygon];
                     float facing = (eye.x - position.x) * equation.x +
                                    (eye.y - position.y) * equation.y +
                                    (eye.z - position.z) * equation.z;

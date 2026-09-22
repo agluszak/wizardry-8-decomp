@@ -62,9 +62,8 @@ struct W8OctSpatialState {
     unsigned short region_count_46;
     unsigned short item_limit_48;
     unsigned char padding_4a[6];
-    /* Packed auto-region cell coordinate bound per axis; never loaded from
-       the file, so it stays 0 on loaded trees and every cell bound check
-       fails there. */
+    /* Packed auto-region cell coordinate bound per axis, derived from the
+       leaf level when a loaded octree is initialized. */
     unsigned short region_cells_per_axis_50;
     /* The bottom octree level: insertion stops and masks saturate here. */
     unsigned short leaf_level_52;
@@ -246,8 +245,8 @@ struct W8OctFileHeader {
     /* u16 length of the per-leaf 0-terminated region-id stream. */
     unsigned long region_list_len_92;
     unsigned short region_count_96;
-    /* The spatial state's leaf level; written but never read - the reader
-       derives its leaf level from depth_62 instead. */
+    /* The spatial state's leaf level; the reader derives the region mask and
+       packed cell bound from it. */
     unsigned short leaf_level_98;
     /* Kind-0 emitted submesh count; carries the same value as
        mesh_total_9e. */

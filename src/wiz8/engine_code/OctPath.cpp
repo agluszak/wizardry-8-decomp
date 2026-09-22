@@ -2313,6 +2313,7 @@ unsigned short W8PathingService::PlanMovement00463460(W8NavigatorMovementState* 
         unsigned int current_height = current->path_height_08;
 
         for (int direction = 0; direction < 8; ++direction) {
+            current = &m_owned_0c8[best_node];
             unsigned int neighbor_x = current_x;
             unsigned int neighbor_z = current_z;
             if (direction >= 1 && direction <= 3) {
@@ -2419,7 +2420,7 @@ unsigned short W8PathingService::PlanMovement00463460(W8NavigatorMovementState* 
                 node->flags_00 |= 0x0100;
                 continue;
             }
-            if (collision == 3 && (current->flags_00 & 0x0100) == 0) {
+            if (collision == 3 && (m_owned_0c8[best_node].flags_00 & 0x0100) == 0) {
                 stop_search = 1;
                 result = 1;
                 probe_cell_key_078 = node_index;
@@ -2459,7 +2460,7 @@ unsigned short W8PathingService::PlanMovement00463460(W8NavigatorMovementState* 
         } else {
             path_heap_06c->root_node_04 = heap->Delete().node_00;
         }
-        current->flags_00 |= 4;
+        m_owned_0c8[best_node].flags_00 |= 4;
         best_node = path_heap_06c->root_node_04;
         if (best_node > search_node_count_0cc) {
             char message[80];

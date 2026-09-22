@@ -2952,7 +2952,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
     if (owner == 0) {
         return 0;
     }
-    owner->Source = *source;
+    owner->OrigSource = *source;
     memcpy(owner->unknown_03c, target, sizeof(owner->unknown_03c));
     if (TargetSourceIsCharacter(source, 0)) {
         local_a0 = source->iChar;
