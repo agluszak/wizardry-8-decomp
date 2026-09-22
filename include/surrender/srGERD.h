@@ -202,6 +202,8 @@ public:
         /* FUN_100268a0: discard accumulated state; nonzero also releases
            the backing arrays. */
         void reset(int release_buffers);
+        void resetStatistics();
+        void getStatistics(unsigned long* statistics);
 
         /* The checked-free srHeapBuffer family, not srHeapArray: ~Renderer
            null-checks before freeing these streams. bytes_00_ grows by 1-byte
@@ -285,10 +287,25 @@ public:
     int isContextCreated() const;
     void deleteContext();
     long getDisplayMode(unsigned long width, unsigned long height, unsigned long depth) const;
+    /* openWindowInternal parameter block: the current client size and the
+       requested backbuffer size plus the display-mode index (-1 windowed). */
+    struct OpenInfo {
+        long window_width_00;
+        long window_height_04;
+        long width_08;
+        long height_0c;
+        long display_mode_10;
+    };
+    /* Number of back buffers in the swap chain; openWindowInternal stores
+       the device result at +0x38c (1, 2 or 3). */
+    enum e_backBuffer {};
     e_error openWindow();
+    e_error openWindow(long width, long height);
     e_error openWindow(long mode);
     void closeWindow(e_closeHint hint);
+    e_backBuffer getBackBufferType() const;
     int isWindowOpen() const;
+    int isFullScreen() const;
     unsigned long getWindowHandle() const;
     void setGamma(const srVector3T<float>& gamma);
     e_error beginFrame();
@@ -305,16 +322,22 @@ public:
        +0x08/+0x0c (the TT pair), +0x20 (PO), +0x24 (VO), +0x34 (PI),
        +0x3c (VI), +0x4c (TC) and +0x68 (DD). */
     struct Statistics {
-        unsigned char unknown_00[8];
+        /* Epoch written by resetStatistics; getStatistics returns the
+           seconds elapsed since then. */
+        double elapsed_00;
         unsigned long value_08;
         unsigned long value_0c;
         double value_10;
-        unsigned char unknown_18[8];
+        unsigned long value_18;
+        unsigned long value_1c;
         unsigned long value_20;
         unsigned long value_24;
-        unsigned char unknown_28[0xc];
+        unsigned long value_28;
+        /* Frames presented: flipFrame increments once per call. */
+        unsigned long frames_2c;
+        unsigned long value_30;
         unsigned long value_34;
-        unsigned char unknown_38[4];
+        unsigned long value_38;
         unsigned long value_3c;
         /* applyViewStateChanges increments this counter on every apply. */
         unsigned long view_state_applies_40;
@@ -335,7 +358,7 @@ public:
         unsigned long shader_sets_5c;
         /* drawArrays/drawElements increment this draw-call count. */
         unsigned long draw_calls_60;
-        unsigned char unknown_64[4];
+        unsigned long value_64;
         unsigned long value_68;
         /* testBoundingSphere call count / visible-result count. */
         unsigned long sphere_tests_6c;
@@ -362,7 +385,13 @@ public:
        this overload. */
     void setFogColor(const srVector4T<float>& color);
     void setScissor(unsigned long x, unsigned long y, unsigned long width, unsigned long height);
+    /* Dirty-rectangle pair handed to flipFrame in {x,y,width,height} form;
+       GERD converts each to srDD::Scissor left/top/right/bottom. */
+    struct Rectangle {
+        long x, y, width, height;
+    };
     void flipFrame();
+    void flipFrame(const Rectangle* first, const Rectangle* second, unsigned long count);
     void setTextureReduction(long reduction);
     void setViewPort(unsigned long x, unsigned long y, unsigned long width, unsigned long height);
     void matrixMode(e_matrixMode mode);
@@ -408,7 +437,7 @@ public:
     /* The pipeline's single-stage mask branch inlines this exported getter. */
     long getMaxTextureStages() const
     {
-        return max_texture_stages_78_;
+        return info_50_.max_texture_stages_28_;
     }
     void pushMatrix();
     void pushMultMatrix(const srMatrix4x3T<float>& matrix);
@@ -468,6 +497,7 @@ public:
     void pushPick(const Pick& pick);
     void toggle(e_enable option);
     void invalidateResidentTextures();
+    void invalidateResidentTexture(srTextureIFace* texture);
     void invalidateTextureCache();
     void invalidateTexture(srTextureIFace* texture);
     void invalidateTextureByFrameHandle(unsigned long handle);
@@ -618,13 +648,37 @@ private:
     unsigned long getTextureBytesNeeded(const Texture& texture) const;
     Texture* findLowestPriority();
     void invalidateTexture(Texture& texture);
+    void invalidateResidentTexture(Texture& texture);
+    void resetCurrentTexPointers();
     void markTextureAsDeleted(Texture& texture);
     static void convertPixelFormat(srDD::PixelFormat& device,
                                    const srPixelConvert::PixelFormat& format);
+    static void convertPixelFormat(srPixelConvert::PixelFormat& format,
+                                   const srDD::PixelFormat& device);
+    void getPixelFormat(srPixelConvert::PixelFormat& format) const;
+    srDD::e_error _lockBuffer();
+    srDD::e_error _unlockBuffer();
+    void accumAlloc();
+    void accumClear();
+    void accumRelease();
+    short accumConvert(float value) const;
+    void initDDInfo();
+    void initTextureFormats();
+    void initDisplayModeList();
+    void initGlobalPalette();
+    void deleteRenderers();
+    void closeTexCache();
+    void initTexCache();
+    e_error openWindowInternal(const OpenInfo& info);
     RendererEntry* createRenderer(int sorted);
     void flushNonBusyRenderers();
     void flushSort();
     Renderer* _lockRenderer(RendererEntry* entry);
+    /* 8-byte fixed-point accumulation cell; accumConvert maps one clamped
+       [-1,1] channel to a signed 16-bit component. */
+    struct AccumPixel {
+        short channels_00[4];
+    };
     class LockSurface;
 
     static srGERD* first;
@@ -646,34 +700,35 @@ private:
     e_error last_error_2c_;
     unsigned char unknown_30_[4];
     srGERD* next_34_;
-    unsigned char unknown_38_[4];
+    /* Open-GERD list links; closeWindow splices via prev->next_open_3c_ and
+       next->prev_open_38_. */
+    srGERD* prev_open_38_;
     srGERD* next_open_3c_;
     srDD* dd_40_;
     srDebugDD* debug_dd_44_;
     srDD* real_dd_48_;
-    unsigned char unknown_4c_[0x1c];
-    /* changeTexture tests bit 5 to release resident surface data after a
-       texture-stage swap. */
-    unsigned long flags_68_;
-    /* createRenderer passes this to each Renderer as its batch limit. */
-    unsigned long renderer_batch_limit_6c_;
-    unsigned char unknown_70_[8];
-    long max_texture_stages_78_;
-    /* Texture-dimension clamps applied by evaluateTextureDimensions. */
-    unsigned long texture_min_dim_7c_;
-    unsigned long texture_max_dim_80_;
-    unsigned long texture_max_aspect_84_;
-    unsigned char unknown_88_[0x2d8];
+    unsigned char unknown_4c_[4];
+    /* Device info record handed to srDD::getInfo by initDDInfo; GERD reads
+       the staging/clamp fields out of it. */
+    srDD::Info info_50_;
+    unsigned char unknown_2cc_[0x94];
     srPixelConvert::PixelFormat* texture_formats_360_;
     long texture_format_count_364_;
     unsigned long* display_modes_368_;
     long display_mode_count_36c_;
     unsigned char unknown_370_[4];
     unsigned long window_374_;
-    unsigned char unknown_378_[8];
+    /* openWindowInternal copies the OpenInfo record verbatim: windowed dims,
+       backbuffer dims, then the display-mode index into fullscreen_388_. */
+    long window_width_378_;
+    long window_height_37c_;
     long width_380_;
     long height_384_;
-    unsigned char unknown_388_[8];
+    /* Fullscreen device index; isFullScreen tests it against -1, and
+       openWindow leaves it -1 for the windowed path. */
+    long fullscreen_388_;
+    /* e_backBuffer result of srDD::openWindow; getBackBufferType reads it. */
+    unsigned long back_buffer_type_38c_;
     /* Per-mode current matrices at 0x390; pushMatrix indexes by mode. */
     srMatrix4T<float> matrix_current_390_[2];
     /* Per-mode 32-deep matrix stacks; each block ends with its depth counter
@@ -720,15 +775,25 @@ private:
     Pick pick_stack_176c_[32];
     unsigned long pick_depth_19ec_; /* 0x19ec */
     unsigned long pick_key_19f0_;
-    unsigned char unknown_19f4_[0x84];
+    unsigned char unknown_19f4_[4];
+    /* Snapshot getStatistics refreshes on every flipFrame; dump prints it. */
+    Statistics statistics_19f8_;
     Statistics statistics_1a78_;
-    unsigned char unknown_1af8_[8];
+    /* accumAlloc sizes this width*height*8 accumulation pixel buffer plus a
+       width*4 scratch block; accumClear fills it from clear_values_1b08_'s
+       accum color over the current scissor. */
+    AccumPixel* accum_buffer_1af8_;
+    unsigned long* accum_scratch_1afc_;
     LockSurface* lock_surface_1b00_;
-    unsigned char unknown_1b04_[4];
-    srVector4T<float> clear_color_1b08_;
-    unsigned char unknown_1b18_[0x10];
-    double clear_depth_1b28_;
-    unsigned char unknown_1b30_[0x408];
+    /* Buffer-lock nesting depth; _lockBuffer only locks the device on the
+       first entry and _unlockBuffer unlocks when this returns to zero. */
+    long buffer_lock_count_1b04_;
+    /* srDD::ClearValues record passed straight to setClearValues. */
+    srDD::ClearValues clear_values_1b08_;
+    unsigned char unknown_1b30_[8];
+    /* Grayscale ramp built by initGlobalPalette and handed to
+       srDD::setGlobalPalette. */
+    unsigned long global_palette_1b38_[0x100];
     /* Bound Texture per stage, swapped by changeTexture. */
     Texture* texture_slots_1f38_[2];
     /* Per-stage packed device parameters written by setTextureParameters. */
@@ -795,7 +860,9 @@ private:
     /* The vertex-stream state handed to srDD::setVertexArrayInfo by
        drawArrays/drawElements; setDataPtr and the pointer setters program it. */
     srRendererDefs::VertexArrayInfo vertex_arrays_21c4_;
-    unsigned char unknown_2230_[8];
+    /* srHeap-allocated block released by closeWindow. */
+    void* unknown_2230_;
+    unsigned long unknown_2234_;
 };
 
 /* Retail 0x10027BF0: the three-word texture-set key hash; the interning

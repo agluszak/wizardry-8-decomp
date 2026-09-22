@@ -5,4 +5,6 @@
 class srWindow {
 public:
     static int isWindow(unsigned long handle);
+    static long getWidth(unsigned long handle);
+    static long getHeight(unsigned long handle);
 };

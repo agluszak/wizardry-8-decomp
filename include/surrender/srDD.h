@@ -77,22 +77,108 @@ public:
         unsigned long format_index_30;
         unsigned long parameter_34;
         void* levels_38[12];
-        unsigned long unknown_68;
-        unsigned long unknown_6c;
+        /* Resident device-surface record and its byte size: written by the
+           device texture-upload path, cleared on invalidate, summed by
+           srGERD::getResidentTextureMemUsed. */
+        unsigned long resident_data_68;
+        unsigned long resident_size_6c;
         /* markTextureAsDeleted sets this once the texture is on the
            GERD-side deleted list. */
         unsigned long deleted_70;
         unsigned long resident_74;
     };
-    struct BufferCommand;
+    /* Two-dword buffer command handed to bufferOp: srGERD::_lockBuffer
+       sends {0,0} and _unlockBuffer sends {0,1}. */
+    struct BufferCommand {
+        unsigned long buffer_00;
+        unsigned long unlock_04;
+    };
     struct DriverInfo;
-    struct Info;
-    struct Statistics;
-    struct PixelFormatList;
-    struct WindowInfoList;
-    struct OpenInfo;
-    struct OpenResult;
-    struct ClearValues;
+    /* getInfo output record, 0x27c bytes. srGERD embeds it verbatim at +0x50
+       (initDDInfo clears the block, seeds the defaults below, then hands it
+       to srDD::getInfo). The nine trailing 0x40-byte strings are the device
+       identity fields initDDInfo fills with "Unknown". */
+    struct Info {
+        unsigned long unknown_00_;
+        unsigned long unknown_04_;
+        /* initDDInfo defaults: 4. */
+        unsigned long unknown_08_;
+        /* initDDInfo defaults: 0x10. */
+        unsigned long unknown_0c_;
+        /* initDDInfo defaults: 1.0f / 65536.0f. */
+        float unknown_10_;
+        float unknown_14_;
+        /* initDDInfo defaults: 0. changeTexture tests bit 5. */
+        unsigned long flags_18_;
+        /* initDDInfo defaults: 0x100; createRenderer passes it to each
+           Renderer as its batch limit. */
+        unsigned long renderer_batch_limit_1c_;
+        /* initDDInfo defaults: 0x3b808081 / 0x200000. */
+        unsigned long unknown_20_;
+        unsigned long unknown_24_;
+        /* initDDInfo defaults: 1, 1, 0x100, 1; texture-dimension clamps
+           applied by evaluateTextureDimensions. initDDInfo clamps
+           max_texture_stages to 2 after getInfo. */
+        unsigned long max_texture_stages_28_;
+        unsigned long texture_min_dim_2c_;
+        unsigned long texture_max_dim_30_;
+        unsigned long texture_max_aspect_34_;
+        /* initDDInfo defaults: 1. */
+        unsigned long unknown_38_;
+        char text_3c_[9][0x40];
+    };
+    static_assert(sizeof(Info) == 0x27c, "srDD_Info_must_be_0x27c");
+    /* getStatistics output record, 0x28 bytes: srGERD::getStatistics
+       zero-initialises the whole record and mirrors the first nine dwords
+       into its own Statistics block at +0x08; the dword pair at +0x08 is
+       read through the double Statistics::value_10 in the GERD copy. */
+    struct Statistics {
+        unsigned long value_00;
+        unsigned long value_04;
+        double value_08;
+        unsigned long value_10;
+        unsigned long value_14;
+        unsigned long value_18;
+        unsigned long value_1c;
+        unsigned long value_20;
+        unsigned long value_24;
+    };
+    /* getTextureFormats / getWindowList fill {count, pointer} out-records;
+       GERD copies the pointed arrays into its own storage. */
+    struct PixelFormatList {
+        long count;
+        PixelFormat* formats;
+    };
+    /* getDisplayMode matches {width, height, depth} triples. */
+    struct WindowInfo {
+        unsigned long width;
+        unsigned long height;
+        unsigned long depth;
+    };
+    struct WindowInfoList {
+        long count;
+        WindowInfo* entries;
+    };
+    /* srGERD::openWindowInternal forwards the requested backbuffer size and
+       display-mode index; the device reports the back-buffer count in the
+       single-dword result. */
+    struct OpenInfo {
+        unsigned long width;
+        unsigned long height;
+        long display_mode;
+    };
+    struct OpenResult {
+        unsigned long back_buffer_type;
+    };
+    /* GERD embeds this verbatim at +0x1b08: setClearColor clamps into
+       color_00, the accumulation-buffer clear color occupies accum_10
+       (accumClear clamps it to [-1,1] per channel), and setClearDepth
+       clamps depth_20 to [0,1]. */
+    struct ClearValues {
+        srVector4T<float> color_00;
+        srVector4T<float> accum_10;
+        double depth_20;
+    };
     /* Scissor rectangle: setScissor/clamp evidence stores (left, top, right,
        bottom) and recalcScissor compares right/bottom to width/height. */
     struct Scissor {
