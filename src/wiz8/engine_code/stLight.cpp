@@ -46,7 +46,7 @@ const float g_float_005ec1e4 = 3.0518509447574615e-05f;
 // FUNCTION: WIZ8 0x0049C2C0
 stLight::stLight(srNode* parent)
 {
-    m_positional_23a = 0;
+    m_save_marked_23a = 0;
     m_prop_254 = 0;
     if (parent != 0) {
         setParent(parent, 0);
@@ -56,10 +56,10 @@ stLight::stLight(srNode* parent)
     m_direction_239 = 1;
     m_path_index_248 = 0;
     m_path_direction_250 = 1;
-    m_positional_228.SetZero();
+    m_position_228.SetZero();
     m_level_240 = 0;
     m_definition_234 = 0;
-    m_positional_238 = 0;
+    m_padding_238 = 0;
     m_level_time_23c = m_path_time_24c = GetTickCount() * 0.0025f;
 }
 
@@ -87,13 +87,13 @@ stLight& stLight::operator=(const stLight& other)
 {
     srLight::operator=(other);
     setParent(other.parentNode(), 0);
-    m_positional_228 = other.m_positional_228;
+    m_position_228 = other.m_position_228;
     if (other.m_definition_234 != 0) {
         m_definition_234 = other.m_definition_234->Clone();
     } else {
         m_definition_234 = 0;
     }
-    m_positional_238 = other.m_positional_238;
+    m_padding_238 = other.m_padding_238;
     m_direction_239 = other.m_direction_239;
     if (other.m_owned_244 != 0) {
         m_owned_244 = ClonePathAI004A98C0(other.m_owned_244);
@@ -105,7 +105,7 @@ stLight& stLight::operator=(const stLight& other)
     m_level_240 = other.m_level_240;
     m_level_time_23c = m_path_time_24c = GetTickCount() * 0.0025f;
     m_prop_254 = other.m_prop_254;
-    m_positional_23a = other.m_positional_23a;
+    m_save_marked_23a = other.m_save_marked_23a;
     return *this;
 }
 
@@ -175,7 +175,7 @@ void stLight::SetDefinitionTime0049C940(float time)
 }
 
 /* Advance the light's definition-driven state by one update. A keyframed
-   (type 2) definition walks value_48 through the time table and lerps
+   (type 2) definition walks keyframe_index_48 through the time table and lerps
    intensity and diffuse color between the surrounding keys; a flags-driven
    definition either oscillates intensity between intensity_28 and
    intensity_to_2c (optionally lerping color toward color_to_*), ramps it
@@ -194,25 +194,25 @@ void stLight::Update0049C960()
         int last = count - 1;
         int* slot = definition->values_18.GetAt(last);
         if (time <= *slot) {
-            definition->value_48 = 0;
+            definition->keyframe_index_48 = 0;
             if (definition->values_18.count != 1 && -1 < definition->values_18.count - 1) {
                 do {
-                    int next = definition->value_48 + 1;
+                    int next = definition->keyframe_index_48 + 1;
                     slot = definition->values_18.GetAt(next);
                     if (*slot <= time) {
-                        definition->value_48 = next;
+                        definition->keyframe_index_48 = next;
                     } else {
                         break;
                     }
-                } while (definition->value_48 < count - 1);
+                } while (definition->keyframe_index_48 < count - 1);
             }
         } else {
             slot = definition->values_18.GetAt(last);
             time = *slot;
-            definition->value_48 = count - 2;
+            definition->keyframe_index_48 = count - 2;
         }
         if (*definition->values_18.data <= time) {
-            int index = definition->value_48;
+            int index = definition->keyframe_index_48;
             if (count - 2 <= index) {
                 return;
             }
@@ -227,7 +227,7 @@ void stLight::Update0049C960()
             float* key_to = definition->values_28.GetAt(index + 1);
             float inverse = g_float_005ebb38 - blend;
             intensity_1d0 = inverse * *key_from + blend * *key_to;
-            index = definition->value_48;
+            index = definition->keyframe_index_48;
             srVector3T<float>* color_to = definition->values_38.GetAt(index + 1);
             srVector3T<float>* color_from = definition->values_38.GetAt(index);
             float red = color_from->x * inverse + color_to->x * blend;
@@ -380,10 +380,10 @@ void stLight::Update0049C960()
         }
     }
     if ((path == 0) || (PathAIEntryCount004A9F20(path) == 0) ||
-        ((seconds - m_path_time_24c) * definition->path_value_38 < g_float_005ebb38)) {
+        ((seconds - m_path_time_24c) * definition->path_speed_38 < g_float_005ebb38)) {
         return;
     }
-    int index = static_cast<int>((seconds - m_path_time_24c) * definition->path_value_38);
+    int index = static_cast<int>((seconds - m_path_time_24c) * definition->path_speed_38);
     index = index * m_path_direction_250 + m_path_index_248;
     if (index < static_cast<int>(PathAIEntryCount004A9F20(path))) {
         if (index < 0) {
@@ -414,7 +414,7 @@ void stLight::Reset0049D070()
             stLightDefinition005ECDA0* definition =
                 static_cast<stLightDefinition005ECDA0*>(m_definition_234);
             definition->time_4c = 0.0f;
-            definition->value_48 = 0;
+            definition->keyframe_index_48 = 0;
             m_path_index_248 = 0;
             m_path_direction_250 = 1;
         } else {
@@ -446,7 +446,7 @@ void SaveLightStates0049D120(int handle)
     stLight* light = static_cast<stLight*>(srCore.getRegistry()->find(
         stLight::sGetClassNode(), static_cast<const srRuntimeClass*>(0)));
     while (light != 0) {
-        if (light->m_positional_23a != 0) {
+        if (light->m_save_marked_23a != 0) {
             ++count;
         }
         light = static_cast<stLight*>(srCore.getRegistry()->find(stLight::sGetClassNode(), light));
@@ -457,7 +457,7 @@ void SaveLightStates0049D120(int handle)
     light = static_cast<stLight*>(srCore.getRegistry()->find(
         stLight::sGetClassNode(), static_cast<const srRuntimeClass*>(0)));
     while (light != 0) {
-        if (light->m_positional_23a != 0) {
+        if (light->m_save_marked_23a != 0) {
             strcpy(reinterpret_cast<char*>(name), // reinterpret-ok: the
                    // 0x80-byte save field stores the narrow name packed as
                    // bytes

@@ -1003,8 +1003,8 @@ bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
                     pInvis->pRecord_23d = pRecord;
                 }
                 if ((ok & okRecord) != 0) {
-                    pInvis->pRecord_23d->value_1b3 = pInvis->field_01;
-                    pInvis->pRecord_23d->value_1b7 = 1.0f;
+                    pInvis->pRecord_23d->normal_scale_1b3 = pInvis->field_01;
+                    pInvis->pRecord_23d->forward_scale_1b7 = 1.0f;
                     pTrigger->pData_02 = pInvis;
                     return ok & okRecord;
                 }
@@ -1326,8 +1326,8 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
             if ((fSuccess & ok) == 0) {
                 return 0;
             }
-            pSuper->pRecord_863->value_1b3 = pSuper->field_7cb;
-            pSuper->pRecord_863->value_1b7 = pSuper->direction_4a7;
+            pSuper->pRecord_863->normal_scale_1b3 = pSuper->field_7cb;
+            pSuper->pRecord_863->forward_scale_1b7 = pSuper->direction_4a7;
             fSuccess &= ok;
         }
     }
@@ -1988,7 +1988,7 @@ W8LevelFileProp* ReadPropsFile004D4CB0(int hFile, int count)
                         FileRead(hFile, &pProp->position_03, sizeof(pProp->position_03), 0);
         }
         if (pProp->version_00 > 5) {
-            fSuccess &= FileRead(hFile, pProp->unknown_0f, 4, 0);
+            fSuccess &= FileRead(hFile, pProp->flags_0f, 4, 0);
         }
         if (pProp->version_00 > 6) {
             fSuccess &= FileRead(hFile, pProp->name_13, 0x40, 0);
@@ -2072,7 +2072,7 @@ bool WritePropsFile004D4FC0(int hFile, int count, W8LevelFileProp* pProps)
                         FileWrite(hFile, &pProp->position_03, sizeof(pProp->position_03), 0);
         }
         if (pProp->version_00 > 5) {
-            fSuccess &= FileWrite(hFile, pProp->unknown_0f, 4, 0);
+            fSuccess &= FileWrite(hFile, pProp->flags_0f, 4, 0);
         }
         if (pProp->version_00 > 6) {
             fSuccess &= FileWrite(hFile, pProp->name_13, 0x40, 0);

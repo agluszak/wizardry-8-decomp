@@ -74,11 +74,11 @@ bool MoveMonsterGroupToPosition(W8MonsterGroup* group, const srVector3T<float>* 
                                 bool proximity_check, bool include_allies, bool flatten_y,
                                 bool alternate_radius)
 {
-    if (group->flag_28 == 0) {
+    if (group->members_active_28 == 0) {
         return false;
     }
     W8MonsterInfo* leader = MonsterGetScriptPartByLocationIndex(
-        MonsterGetIndexByLocationID(0x67c, MONSTER_GROUP_CPP, group->value_9f, 1));
+        MonsterGetIndexByLocationID(0x67c, MONSTER_GROUP_CPP, group->leader_id_9f, 1));
     float radius = alternate_radius ? leader->monster->movement_0c0.alternate_radius_0b4
                                     : leader->monster->radius_084;
     int location_ids[45];
@@ -94,7 +94,7 @@ bool MoveMonsterGroupToPosition(W8MonsterGroup* group, const srVector3T<float>* 
                 W8MonsterGroup* ally = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
                     0x692, MONSTER_GROUP_CPP, group->allied_group_ids[ally_index], 1));
                 W8MonsterInfo* ally_leader = MonsterGetScriptPartByLocationIndex(
-                    MonsterGetIndexByLocationID(0x693, MONSTER_GROUP_CPP, ally->value_9f, 1));
+                    MonsterGetIndexByLocationID(0x693, MONSTER_GROUP_CPP, ally->leader_id_9f, 1));
                 float ally_radius = alternate_radius
                                         ? ally_leader->monster->movement_0c0.alternate_radius_0b4
                                         : ally_leader->monster->radius_084;
@@ -139,7 +139,7 @@ bool MoveMonsterGroupToPosition(W8MonsterGroup* group, const srVector3T<float>* 
             MonsterGetIndexByLocationID(0x6d5, MONSTER_GROUP_CPP, location_id, 1));
         member->monster->SetAngles004538F0(yaw);
         member->monster->position_dirty_09c = 1;
-        if (location_id == group->value_9f) {
+        if (location_id == group->leader_id_9f) {
             member->monster->SetPositionInternal00453590(&target);
         } else {
             if (position_index < found - 1) {
@@ -262,7 +262,7 @@ unsigned char MonsterGroupCalcDefaultDisposition(W8MonsterGroup* monster_group)
 /* Out-of-combat disposition refresh for a loaded group that still has a live
    member. Unaligned non-NPC neutrals that carry a finite hostility radius and
    can see the party within that scaled distance are promoted to hostile first.
-   Then the default disposition is reapplied unless the group's value_cb stamp
+   Then the default disposition is reapplied unless the group's hostility_set_at_cb stamp
    is still inside the intelligence-squared cooldown and the faction band has
    not moved since that stamp. */
 // FUNCTION: WIZ8 0x005113A0
@@ -305,19 +305,20 @@ void RefreshMonsterGroupHostility005113A0(W8MonsterGroup* monster_group)
         SetMonsterGroupHostility(monster_group, DISP_HOSTILE, 0);
     }
     cooldown = IntegerPower(record->attribute_values_d1[1], 2) * 0x3c;
-    if (monster_group->value_cb != 0 &&
-        static_cast<unsigned int>(g_status_685170.world_clock - monster_group->value_cb) <=
+    if (monster_group->hostility_set_at_cb != 0 &&
+        static_cast<unsigned int>(g_status_685170.world_clock -
+                                  monster_group->hostility_set_at_cb) <=
             static_cast<unsigned int>(cooldown)) {
         if (record->faction_id_25f == 0) {
             return;
         }
-        if (static_cast<unsigned int>(monster_group->value_cb) >=
+        if (static_cast<unsigned int>(monster_group->hostility_set_at_cb) >=
             static_cast<unsigned int>(GetFactionValue(static_cast<char>(record->faction_id_25f)))) {
             return;
         }
     }
     SetMonsterGroupHostility(monster_group, MonsterGroupCalcDefaultDisposition(monster_group), 0);
-    monster_group->value_cb = g_status_685170.world_clock;
+    monster_group->hostility_set_at_cb = g_status_685170.world_clock;
 }
 
 /* The group at one list index. Indices from 10000 to 19999 select the encounter
@@ -494,12 +495,12 @@ void RefreshMonsterGroup(W8MonsterGroup* monster_group)
         srAssertFail("pMonsterGroup", MONSTER_GROUP_CPP, 0x478, 0);
     }
     if (monster_group->leader_group_id == 0) {
-        leader = GetMonsterByLocationID(monster_group->value_9f);
+        leader = GetMonsterByLocationID(monster_group->leader_id_9f);
         static_cast<W8Navigator*>(leader)->LinkGroupNavigator00452BD0(0, 0.0, 0);
     } else {
         W8MonsterGroup* leader_group = GetMonsterGroupByListIndex(
             GetMonsterGroupIndexByID(0x480, MONSTER_GROUP_CPP, monster_group->leader_group_id, 1));
-        leader = GetMonsterByLocationID(leader_group->value_9f);
+        leader = GetMonsterByLocationID(leader_group->leader_id_9f);
     }
     if (leader == 0) {
         srAssertFail("pLeader", MONSTER_GROUP_CPP, 0x482, 0);
@@ -535,7 +536,7 @@ static __inline void RefreshMonsterGroupAndAlliesInline(W8MonsterGroup* monster_
                 0x4a8, MONSTER_GROUP_CPP, monster_group->allied_group_ids[index], 1)));
         }
     }
-    GetMonsterByLocationID(monster_group->value_9f)->PropagateGroupPosition();
+    GetMonsterByLocationID(monster_group->leader_id_9f)->PropagateGroupPosition();
 }
 
 // FUNCTION: WIZ8 0x005106d0
@@ -549,7 +550,7 @@ void RefreshMonsterGroupAndAllies(W8MonsterGroup* monster_group)
 void DetachMonsterGroup(W8MonsterGroup* monster_group)
 {
     SetTargetToGroup(monster_group->group_id, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
-    monster_group->flag_28 = 0;
+    monster_group->members_active_28 = 0;
 }
 
 /* Whether a group is live: loaded, still flagged, and with members left. A
@@ -558,7 +559,7 @@ void DetachMonsterGroup(W8MonsterGroup* monster_group)
 // FUNCTION: WIZ8 0x00510b30
 bool IsMonsterGroupLive(W8MonsterGroup* monster_group)
 {
-    if (monster_group->flag_28 != 0 && monster_group->fInCombat != 0 &&
+    if (monster_group->members_active_28 != 0 && monster_group->fInCombat != 0 &&
         monster_group->member_count > 0) {
         if (monster_group->ubDisposition != 1 && CombatAllowsLiveGroups() == 0) {
             return 0;
@@ -580,7 +581,7 @@ W8MonsterGroup* GetLiveMonsterGroupAtIndex(int index)
     if (count != 0) {
         do {
             group = GetMonsterGroupByListIndex(group_list_index);
-            if (group->flag_28 != 0 && group->fInCombat != 0 && group->member_count > 0 &&
+            if (group->members_active_28 != 0 && group->fInCombat != 0 && group->member_count > 0 &&
                 (group->ubDisposition == 1 || CombatAllowsLiveGroups() != 0)) {
                 if (index == 0) {
                     return group;
@@ -611,7 +612,7 @@ unsigned char ApplyToMonsterGroupLeader(W8MonsterGroup* monster_group,
             }
         }
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
-            MonsterGetIndexByLocationID(0x21e, MONSTER_GROUP_CPP, monster_group->value_9f, 1));
+            MonsterGetIndexByLocationID(0x21e, MONSTER_GROUP_CPP, monster_group->leader_id_9f, 1));
         monster_info->monster->ConfigureMovementToPosition00452630(position);
     }
     return 1;
@@ -631,7 +632,7 @@ void ReapplyMonsterGroupFormations(void)
     for (group_list_index = 0; group_list_index < PLLength(gXStatus.plsMonsterGroupList);
          ++group_list_index) {
         monster_group = GetMonsterGroupByListIndex(group_list_index);
-        monster_info = MonsterInfoFromID(0x4ef, MONSTER_GROUP_CPP, monster_group->value_9f, 1);
+        monster_info = MonsterInfoFromID(0x4ef, MONSTER_GROUP_CPP, monster_group->leader_id_9f, 1);
         monster_info->monster->formation = monster_group->formation;
     }
 }
@@ -673,17 +674,17 @@ void RetireMonsterGroupAndAllies(W8MonsterGroup* monster_group)
         monster_group = GetMonsterGroupByListIndex(
             GetMonsterGroupIndexByID(0x553, MONSTER_GROUP_CPP, monster_group->leader_group_id, 1));
     }
-    if (monster_group->flag_c3 != 0) {
+    if (monster_group->encounter_registered_c3 != 0) {
         UnregisterActiveEncounterGroup(monster_group);
-        monster_group->flag_c3 = 0;
-        monster_group->flag_d3 = 1;
+        monster_group->encounter_registered_c3 = 0;
+        monster_group->encounter_ended_d3 = 1;
         for (index = 0; index < W8_MONSTER_GROUP_ALLY_COUNT; ++index) {
             if (monster_group->allied_group_ids[index] != 0) {
                 ally = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
                     0x564, MONSTER_GROUP_CPP, monster_group->allied_group_ids[index], 1));
                 UnregisterActiveEncounterGroup(ally);
-                ally->flag_c3 = 0;
-                ally->flag_d3 = 1;
+                ally->encounter_registered_c3 = 0;
+                ally->encounter_ended_d3 = 1;
             }
         }
     }
@@ -711,7 +712,7 @@ wchar_t* GetMonsterGroupName(W8MonsterGroup* monster_group)
                  g_status_685170.buffers.Char[g_status_685170.alternate_name_slot_247f].name);
         return g_status_685170.monster_name_buffer_2453;
     }
-    if (monster_group->flag_2c != 0) {
+    if (monster_group->alternate_name_2c != 0) {
         return record->name_00 + name_form * W8_MONSTER_NAME_STRIDE;
     }
     return record->name_60 + name_form * W8_MONSTER_NAME_STRIDE;
@@ -740,8 +741,8 @@ void MonsterGroupLeaveCombat(W8MonsterGroup* monster_group)
     }
     monster_group->fInCombat = 0;
     RequestRedrawParty();
-    lead = MonsterInfoFromID(0x1fd, MONSTER_GROUP_CPP, monster_group->value_9f, 1);
-    lead->flag_255 |= 0x80;
+    lead = MonsterInfoFromID(0x1fd, MONSTER_GROUP_CPP, monster_group->leader_id_9f, 1);
+    lead->ai_mode_255 |= 0x80;
 }
 
 /* Removes a group and everything allied to it from the world. Each ally is
@@ -779,7 +780,7 @@ void LoadMonsterGroupMembers(W8MonsterGroup* monster_group)
             ActivateMonsterInWorld(monster_info);
         }
     }
-    monster_group->flag_28 = 1;
+    monster_group->members_active_28 = 1;
 }
 
 /* Clears the per-turn scratch on every loaded group and every monster entry.
@@ -791,7 +792,7 @@ void ResetMonsterGroupTurnState(void)
     W8MonsterInfo* monster_info;
 
     for (index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
-        GetMonsterGroupByListIndex(index)->value_cb = 0;
+        GetMonsterGroupByListIndex(index)->hostility_set_at_cb = 0;
     }
     for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
@@ -808,7 +809,7 @@ void RebindMonsterGroupScripts(void)
 {
     for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
         W8MonsterGroup* group = GetMonsterGroupByListIndex(index);
-        W8MonsterInfo* info = MonsterInfoFromID(0x7f3, MONSTER_GROUP_CPP, group->value_9f, 1);
+        W8MonsterInfo* info = MonsterInfoFromID(0x7f3, MONSTER_GROUP_CPP, group->leader_id_9f, 1);
         if (info->monster->script_238 != 0) {
             char script_name[256];
             strcpy(script_name, info->monster->script_238->getName());
@@ -835,7 +836,7 @@ void SetMonsterGroupControlState(W8MonsterGroup* monster_group, int control_stat
 // FUNCTION: WIZ8 0x00511B40
 bool MonsterGroupHasRenderableMember(W8MonsterGroup* monster_group, char require_threat)
 {
-    if (monster_group->flag_28 == 0) {
+    if (monster_group->members_active_28 == 0) {
         return false;
     }
     for (unsigned int index = 0; index < ILLength(monster_group->monsters); ++index) {
@@ -893,7 +894,7 @@ void GetMonsterGroupCentre(W8MonsterGroup* monster_group, srVector3T<float>* cen
     if (monster_group == 0) {
         return;
     }
-    if (monster_group->flag_28 != 0) {
+    if (monster_group->members_active_28 != 0) {
         monster_group->centre.SetZero();
         count = ILLength(monster_group->monsters);
         for (index = 0; index < count; ++index) {
@@ -996,7 +997,7 @@ unsigned char LinkMonsterGroupToLeader(W8MonsterGroup* leader, W8MonsterGroup* m
     if (leader != 0 && leader->group_id == monster_group->group_id) {
         return 0;
     }
-    if (monster_group->flag_c3 != 0 && monster_group->leader_group_id == 0) {
+    if (monster_group->encounter_registered_c3 != 0 && monster_group->leader_group_id == 0) {
         UnregisterActiveEncounterGroup(monster_group);
     }
     RefreshMonsterGroup(UnlinkMonsterGroupFromLeaderInline(monster_group));
@@ -1012,7 +1013,7 @@ unsigned char LinkMonsterGroupToLeader(W8MonsterGroup* leader, W8MonsterGroup* m
         }
         return 0;
     }
-    if (monster_group->flag_c3 != 0) {
+    if (monster_group->encounter_registered_c3 != 0) {
         RegisterActiveEncounterGroup(monster_group);
     }
     return 1;
@@ -1062,13 +1063,13 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
     group->active_member_count = 0;
     group->monster_id = monster_id;
     group->centre = *position;
-    group->flag_28 = 0;
+    group->members_active_28 = 0;
     group->fInCombat = 0;
     group->unknown_2b = 3;
     if (use_alternate_name != 0 || (record->flags_0d0 & 0x10) != 0) {
-        group->flag_2c = 1;
+        group->alternate_name_2c = 1;
     } else {
-        group->flag_2c = 0;
+        group->alternate_name_2c = 0;
     }
     group->unknown_2d[0] = 0;
     group->unknown_2d[1] = 0;
@@ -1105,7 +1106,7 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
         } while (created < count);
     }
 
-    group->value_9f = g_status_685170.next_monster_location_id_234e - 1;
+    group->leader_id_9f = g_status_685170.next_monster_location_id_234e - 1;
     group->highlighted_member = -1;
 
     index = 0;
@@ -1121,7 +1122,7 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
         ++index;
     }
 
-    group->flag_28 = 1;
+    group->members_active_28 = 1;
     yaw = GetCameraFacingYaw004BE5C0(position);
     MoveMonsterGroupToPosition(group, position, yaw, 0, 0, 0, 0);
     RefreshMonsterGroup(group);
@@ -1132,7 +1133,7 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
         const wchar_t* verb = count == 1 ? L"appears" : L"appear";
         const wchar_t* name = record->name_00;
 
-        if (group->flag_2c == 0) {
+        if (group->alternate_name_2c == 0) {
             name += (group->member_count != 1) + 2;
         } else if (group->member_count != 1) {
             name += 1;
@@ -1159,12 +1160,12 @@ bool DestroyMonsterGroup(W8MonsterGroup* monster_group, W8MonsterInfo* monster_i
     W8PList* list;
     void* removed;
 
-    if (monster_group->flag_28 != 0) {
+    if (monster_group->members_active_28 != 0) {
         SetTargetToGroup(monster_group->group_id, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
-        monster_group->flag_28 = 0;
+        monster_group->members_active_28 = 0;
     }
     if (monster_group->leader_group_id == 0) {
-        if (monster_group->flag_c3 != 0) {
+        if (monster_group->encounter_registered_c3 != 0) {
             UnregisterActiveEncounterGroup(monster_group);
         }
         ElectAlliedLeaderGroup(monster_group, monster_info);
@@ -1203,8 +1204,8 @@ void ApplyDefaultMonsterGroupSounds(void)
     count = PLLength(gXStatus.plsMonsterGroupList);
     for (group_list_index = 0; group_list_index < count; ++group_list_index) {
         monster_group = GetMonsterGroupByListIndex(group_list_index);
-        lead = MonsterInfoFromID(0x501, MONSTER_GROUP_CPP, monster_group->value_9f, 1);
-        if (monster_group->flag_c3 != 0 && lead->monster->script_238 == 0) {
+        lead = MonsterInfoFromID(0x501, MONSTER_GROUP_CPP, monster_group->leader_id_9f, 1);
+        if (monster_group->encounter_registered_c3 != 0 && lead->monster->script_238 == 0) {
             lead->monster->SetScript004C7F10("Default.MSF", 1);
         }
     }
@@ -1283,7 +1284,7 @@ done:
 }
 
 /* Pick the group's new leader member: the live member carrying the highest
-   navigator value_008, or the first member when none qualify, then hand the
+   navigator leadership_rank_008, or the first member when none qualify, then hand the
    outgoing leader's script and heard-noise state to the new leader's
    MonsterInfo. */
 // FUNCTION: WIZ8 0x005103E0
@@ -1296,7 +1297,7 @@ void ElectGroupLeaderMember(W8MonsterGroup* monster_group)
         srAssertFail("ILLength(pMonsterGroup->plsMonsterIDList)", MONSTER_GROUP_CPP, 0x439, 0);
     }
     W8MonsterInfo* old_info =
-        MonsterInfoFromID(0x43b, MONSTER_GROUP_CPP, monster_group->value_9f, 1);
+        MonsterInfoFromID(0x43b, MONSTER_GROUP_CPP, monster_group->leader_id_9f, 1);
     W8Monster* old_monster = old_info->monster;
     int leader_id = 0;
     unsigned int best = 0;
@@ -1308,21 +1309,21 @@ void ElectGroupLeaderMember(W8MonsterGroup* monster_group)
             W8MonsterInfo* member_info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x443, MONSTER_GROUP_CPP, member_id, 1));
             if (member_info->highest_condition < 0xd && ((member->flags_1dc >> 9) & 1) == 0 &&
-                best < static_cast<unsigned int>(member->movement_0c0.value_008)) {
-                best = member->movement_0c0.value_008;
+                best < static_cast<unsigned int>(member->movement_0c0.leadership_rank_008)) {
+                best = member->movement_0c0.leadership_rank_008;
                 leader_id = member_id;
             }
             ++index;
         }
         if (leader_id != 0) {
-            monster_group->value_9f = leader_id;
+            monster_group->leader_id_9f = leader_id;
             goto done;
         }
     }
-    monster_group->value_9f = IListGetAt(monster_group->monsters, 0);
+    monster_group->leader_id_9f = IListGetAt(monster_group->monsters, 0);
 done:
     W8MonsterInfo* leader_info =
-        MonsterInfoFromID(0x454, MONSTER_GROUP_CPP, monster_group->value_9f, 1);
+        MonsterInfoFromID(0x454, MONSTER_GROUP_CPP, monster_group->leader_id_9f, 1);
     stScript* script = old_monster->script_238;
     W8Monster* leader_monster = leader_info->monster;
     if (script != 0 && script->getName() != 0) {
@@ -1334,7 +1335,7 @@ done:
 }
 
 /* Detach every allied group, promote the one whose members hold the highest
-   navigator value_008 to lead the rest, and carry the fallen leader's script
+   navigator leadership_rank_008 to lead the rest, and carry the fallen leader's script
    and heard-noise state to the new leader's MonsterInfo. */
 // FUNCTION: WIZ8 0x0050FD40
 void ElectAlliedLeaderGroup(W8MonsterGroup* monster_group, W8MonsterInfo* leader_info)
@@ -1363,7 +1364,8 @@ void ElectAlliedLeaderGroup(W8MonsterGroup* monster_group, W8MonsterInfo* leader
                 W8Monster* member =
                     GetMonsterByLocationID(IListGetAt(candidate->monsters, member_index));
                 if (member != 0) {
-                    unsigned int value = static_cast<unsigned int>(member->movement_0c0.value_008);
+                    unsigned int value =
+                        static_cast<unsigned int>(member->movement_0c0.leadership_rank_008);
                     if (high < value) {
                         high = value;
                     }
@@ -1397,7 +1399,7 @@ void ElectAlliedLeaderGroup(W8MonsterGroup* monster_group, W8MonsterInfo* leader
     W8MonsterGroup* leader = GetMonsterGroupByListIndex(
         GetMonsterGroupIndexByID(0x2e4, MONSTER_GROUP_CPP, leader_group_id, 1));
     W8MonsterInfo* new_leader_info =
-        MonsterInfoFromID(0x2e7, MONSTER_GROUP_CPP, leader->value_9f, 1);
+        MonsterInfoFromID(0x2e7, MONSTER_GROUP_CPP, leader->leader_id_9f, 1);
     stScript* script = leader_info->monster->script_238;
     if (script != 0 && script->getName() != 0) {
         script = leader_info->monster->script_238;
@@ -1416,8 +1418,8 @@ void ElectAlliedLeaderGroup(W8MonsterGroup* monster_group, W8MonsterInfo* leader
 void MonsterGroupEnterCombat(W8MonsterGroup* monster_group)
 {
     while (true) {
-        if (g_status_685170.value_2390 != '\0' && monster_group->ubDisposition == '\x01' &&
-            gXStatus.fCombatMode == '\0') {
+        if (g_status_685170.world_suspended_2390 != '\0' &&
+            monster_group->ubDisposition == '\x01' && gXStatus.fCombatMode == '\0') {
             return;
         }
         if (GetFlag68F105() != '\0') {
@@ -1492,12 +1494,12 @@ void MonsterGroupEnterCombat(W8MonsterGroup* monster_group)
             }
             monster_group->fInCombat = '\x01';
             if (monster_group->ubDisposition == '\x01' && gXStatus.fCombatMode != '\0' &&
-                g_combat_state->value_004 != 0) {
+                g_combat_state->round_count_004 != 0) {
                 unsigned int live_groups = 0;
                 unsigned int group_list_index = 0;
                 while (group_list_index < PLLength(gXStatus.plsMonsterGroupList)) {
                     W8MonsterGroup* other = GetMonsterGroupByListIndex(group_list_index);
-                    if (other->flag_28 != '\0' && other->fInCombat != '\0' &&
+                    if (other->members_active_28 != '\0' && other->fInCombat != '\0' &&
                         other->member_count != 0 &&
                         (other->ubDisposition == '\x01' || CombatAllowsLiveGroups() != '\0')) {
                         ++live_groups;
@@ -1567,7 +1569,7 @@ unsigned char PositionMonsterGroupNearCamera00511050(W8MonsterGroup* group, floa
         return MoveMonsterGroupToPosition(group, &target, 0.0f, true, true, false, true);
     }
     member_info = MonsterGetScriptPartByLocationIndex(
-        MonsterGetIndexByLocationID(0x719, MONSTER_GROUP_CPP, group->value_9f, 1));
+        MonsterGetIndexByLocationID(0x719, MONSTER_GROUP_CPP, group->leader_id_9f, 1));
     angle = NormalizeAngle(GetCameraYawRadians() + Random(1000) * g_float_005ed828 +
                            g_monster_rotation_offset_005ec04c - g_float_005ebb30);
     radius = member_info->monster->radius_084;
@@ -1576,7 +1578,7 @@ unsigned char PositionMonsterGroupNearCamera00511050(W8MonsterGroup* group, floa
             ally = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
                 0x727, MONSTER_GROUP_CPP, group->allied_group_ids[index], 1));
             member_info = MonsterGetScriptPartByLocationIndex(
-                MonsterGetIndexByLocationID(0x728, MONSTER_GROUP_CPP, ally->value_9f, 1));
+                MonsterGetIndexByLocationID(0x728, MONSTER_GROUP_CPP, ally->leader_id_9f, 1));
             if (radius < member_info->monster->radius_084) {
                 radius = member_info->monster->radius_084;
             }
@@ -1616,13 +1618,13 @@ void ShowMonsterGroupInfoNotice(int group_id)
         swprintf(g_status_685170.monster_name_buffer_2453, L"Al-%s",
                  g_status_685170.buffers.Char[g_status_685170.alternate_name_slot_247f].name);
         name = g_status_685170.monster_name_buffer_2453;
-    } else if (group->flag_2c != 0) {
+    } else if (group->alternate_name_2c != 0) {
         name = record->name_00 + name_form * W8_MONSTER_NAME_STRIDE;
     } else {
         name = record->name_60 + name_form * W8_MONSTER_NAME_STRIDE;
     }
     ShowNoticef(0xc, g_format_d_s_0061a128, group->member_count, name);
-    if (group->flag_2c == 0) {
+    if (group->alternate_name_2c == 0) {
         ShowNotice(0xc, gppStringList[0x1c5], -1, 0xffffffff, false);
     }
     ShowNoticef(0xc, gppStringList[0x1c6], group->active_member_count);

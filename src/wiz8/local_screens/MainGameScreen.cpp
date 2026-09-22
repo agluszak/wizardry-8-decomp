@@ -3628,7 +3628,7 @@ update_screen:
     if (gXStatus.fCombatMode) {
         UpdateCombatPortraitStatus0059B4C0();
     }
-    g_status_685170.value_2390 = 0;
+    g_status_685170.world_suspended_2390 = 0;
     if (g_level_block->keyboard_menu_open || g_level_block->combat_slot != -1) {
         UpdateKeyboardMenu();
     }
@@ -4279,7 +4279,7 @@ void ApplyMainGameRedrawFlags(void)
         RefreshSpellIconHudRows();
     }
     if ((g_level_block->redraw_flags & 0x100000) != 0 && gXStatus.fCombatMode != 0 &&
-        g_combat_state->flag_001 != 0) {
+        g_combat_state->round_active_001 != 0) {
         health_percent = GetCombatActionProgress004EC610(0);
         GetClippingRect(&saved_clip);
         combat_clip.iRight = (health_percent * 0x11e) / 100 + 0xb1;
@@ -5561,7 +5561,7 @@ void FallbackFromUnreachableAction(int party_slot)
     case W8_ACTION_ATTACK:
     case W8_ACTION_BERSERK:
         if (CanAnyHandReachTarget(party_slot) &&
-            (g_combat_state->flag_001 != 0 || gXStatus.fPartyMovementMode != 0) &&
+            (g_combat_state->round_active_001 != 0 || gXStatus.fPartyMovementMode != 0) &&
             (SelectPartyCharacter(party_slot), party_slot == g_status_685170.selected_character)) {
             SetTargetingMode(2);
             return;
@@ -5570,7 +5570,7 @@ void FallbackFromUnreachableAction(int party_slot)
     case W8_ACTION_CAST_SPELL:
         if (CharacterHasCastableSpell(&g_status_685170.buffers.Char[party_slot]) &&
             ActionNeedsExplicitTarget(party_slot)) {
-            if (g_combat_state->flag_001 == 0) {
+            if (g_combat_state->round_active_001 == 0) {
                 if (gXStatus.fPartyMovementMode != 0 &&
                     (SelectPartyCharacter(party_slot),
                      party_slot == g_status_685170.selected_character)) {
@@ -5592,7 +5592,7 @@ void FallbackFromUnreachableAction(int party_slot)
         break;
     case W8_ACTION_USE_ITEM:
         if (ItemUseNeedsTarget0053A770(party_slot)) {
-            if (g_combat_state->flag_001 == 0) {
+            if (g_combat_state->round_active_001 == 0) {
                 if (gXStatus.fPartyMovementMode != 0 &&
                     (SelectPartyCharacter(party_slot),
                      party_slot == g_status_685170.selected_character)) {
@@ -5614,7 +5614,7 @@ void FallbackFromUnreachableAction(int party_slot)
         break;
     case W8_ACTION_PROTECT:
         if (CanCharacterAttack(party_slot) &&
-            (g_combat_state->flag_001 != 0 || gXStatus.fPartyMovementMode != 0) &&
+            (g_combat_state->round_active_001 != 0 || gXStatus.fPartyMovementMode != 0) &&
             (SelectPartyCharacter(party_slot), party_slot == g_status_685170.selected_character)) {
             SetTargetingMode(1);
             return;
@@ -5622,7 +5622,7 @@ void FallbackFromUnreachableAction(int party_slot)
         break;
     case W8_ACTION_BREATHE:
         if (CanCharReBreathe(party_slot) &&
-            (g_combat_state->flag_001 != 0 || gXStatus.fPartyMovementMode != 0) &&
+            (g_combat_state->round_active_001 != 0 || gXStatus.fPartyMovementMode != 0) &&
             (SelectPartyCharacter(party_slot), party_slot == g_status_685170.selected_character)) {
             SetTargetingMode(4);
         }
@@ -6062,7 +6062,7 @@ void UpdateKeyboardMenu(void)
         CloseKeyboardMenu();
         return;
     }
-    if (gXStatus.fCombatMode != 0 && g_combat_state->flag_001 == 0) {
+    if (gXStatus.fCombatMode != 0 && g_combat_state->round_active_001 == 0) {
         CloseKeyboardMenu();
         return;
     }
@@ -7377,7 +7377,7 @@ unsigned char PartyCombatActionRegionEvent(const InputAtom* event, W8Region* reg
                 slot != static_cast<unsigned int>(g_level_block->combat_slot)) {
                 CloseKeyboardMenu();
             }
-            if (g_combat_state->flag_001 != 0) {
+            if (g_combat_state->round_active_001 != 0) {
                 g_level_block->combat_slot = slot;
                 OpenKeyboardMenuForSlot(slot);
                 return 1;
@@ -7405,7 +7405,7 @@ unsigned char PartyCombatActionRegionEvent(const InputAtom* event, W8Region* reg
         if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {
             return 0;
         }
-        if (g_combat_state->flag_001 != 0) {
+        if (g_combat_state->round_active_001 != 0) {
             g_level_block->party_slots_170[4] = slot;
             gXStatus.monster_manager_entries[slot].combat_portrait_dirty = 1;
         }
@@ -7757,7 +7757,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
                     }
                 }
             }
-        } else if (g_combat_state->flag_001 == 0 && gXStatus.fPartyMovementMode == 0) {
+        } else if (g_combat_state->round_active_001 == 0 && gXStatus.fPartyMovementMode == 0) {
             ShowNotice(0xc, gppStringList[0x1f74 / 4], -1, -1, 0);
             assign = 0;
         } else if (g_flag_006f0530 != 0) {
@@ -8667,7 +8667,7 @@ recheck:
             return 0;
         }
     } else {
-        if (g_combat_state->flag_001 == 0) {
+        if (g_combat_state->round_active_001 == 0) {
             return 0;
         }
         switch (command) {
@@ -8931,7 +8931,7 @@ void LoadMainGameCursorResources(void)
                                           static_cast<unsigned short>(slot->frame_count), 1);
             slot->object = animation;
             animation->addReference();
-            animation->flag_60 = 3;
+            animation->animation_mode_60 = 3;
         }
     }
 }

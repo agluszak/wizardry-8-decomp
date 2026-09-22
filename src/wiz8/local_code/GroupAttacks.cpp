@@ -495,7 +495,7 @@ void SpawnSummonedMonsterGroup00556B10(int special_attack_kind, W8TargetSource* 
     if (group == 0) {
         srAssertFail("pGroup", GROUP_ATTACKS_CPP, 600, 0);
     }
-    MonsterInfoFromID(0x25a, GROUP_ATTACKS_CPP, group->value_9f, 1);
+    MonsterInfoFromID(0x25a, GROUP_ATTACKS_CPP, group->leader_id_9f, 1);
     monster_info = MonsterInfoFromID(0x25b, GROUP_ATTACKS_CPP, pAttackerSlot->iMonsterID, 1);
     if (monster_info->ubDisposition == 2) {
         disposition = 2;

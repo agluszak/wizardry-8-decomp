@@ -55,7 +55,7 @@ static void CollectViewQuadCells004BA530(W8World* world, long* x_list, long* y_l
     srMatrix3T<float> rotation;
     world->camera->getRotation(rotation);
 
-    srVector3T<float> direction(0.0f, 0.0f, world->value_78);
+    srVector3T<float> direction(0.0f, 0.0f, world->render_range_78);
     srMatrix3T<float> work = rotation;
     double angle = -g_float_00609c88 * g_float_005ed168;
     if (angle != 0.0) {
@@ -67,7 +67,7 @@ static void CollectViewQuadCells004BA530(W8World* world, long* x_list, long* y_l
 
     direction.x = 0.0f;
     direction.y = 0.0f;
-    direction.z = world->value_78;
+    direction.z = world->render_range_78;
     work = rotation;
     angle = g_float_00609c88 * g_float_005ed168;
     if (angle != 0.0) {
@@ -345,8 +345,8 @@ void UpdateWorldMeshFromQuads004BAD40(W8World* world)
                                 .cells[g_visible_quad_columns_0066f738[index]];
         if (cell != 0 && (cell->polygon_indices != 0 || cell->objects != 0)) {
             long j;
-            if (cell->objects != 0 && cell->value_08 < quad->dirty) {
-                cell->value_08 = quad->dirty;
+            if (cell->objects != 0 && cell->dirty_stamp_08 < quad->dirty) {
+                cell->dirty_stamp_08 = quad->dirty;
                 long object_count = static_cast<long>(PLLength(cell->objects));
                 for (j = 0; j < object_count; ++j) {
                     char* item = static_cast<char*>(PLGet(cell->objects, j));

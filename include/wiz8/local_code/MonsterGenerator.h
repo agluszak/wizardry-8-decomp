@@ -12,19 +12,19 @@ template <class T> class W8GrowableVector;
 /* Retail allocates 0x48 bytes for every MonGen. The unnamed bytes at +0x05,
    +0x0a..+0x0b and +0x45..+0x47 are ordinary alignment padding, not fields. */
 struct MonGen {
-    unsigned int flags;            /* 0x00 */
+    unsigned int flags;              /* 0x00 */
     signed char custom_spawn_chance; /* 0x04: MIPE edits 0..100 in steps of ten */
     short custom_interval_seconds;   /* 0x06: MIPE's custom "every N s" value */
     short unknown_08;                /* 0x08: persisted, initialized to -1 */
     /* 0x0c: world position, saved as three dwords and handed to GenerateEncounter. */
-    srVector3T<float> state_0c;
-    W8Item* marker_item;         /* 0x18: loaded Data\Items3D\Bitmaps\mongen.itm marker */
-    int encounter_table_index;   /* 0x1c: index into g_encounter_tables, -1 means none */
+    srVector3T<float> spawn_position_0c;
+    W8Item* marker_item;       /* 0x18: loaded Data\Items3D\Bitmaps\mongen.itm marker */
+    int encounter_table_index; /* 0x1c: index into g_encounter_tables, -1 means none */
     /* 0x20: m_pTimer, named by the MonGen.cpp:535 assertion, whose message also
        gives the owning class and method - "MonGen::Reset() out of memory
        allocating m_pTimer". */
     W8IntervalGate* m_pTimer;
-    char name[32];                 /* 0x24 */
+    char name[32];                    /* 0x24 */
     unsigned char generation_enabled; /* 0x44: MIPE "Toggle Active"; gates CanGenerate */
 
     /* 0x0048A680 */

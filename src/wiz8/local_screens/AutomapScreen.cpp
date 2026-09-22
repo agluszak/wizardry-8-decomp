@@ -123,7 +123,7 @@ struct W8AutomapState {
     unsigned char unknown_000[0xf4];
     unsigned int blink_time;
     unsigned char blink_enabled;
-    unsigned char unknown_0f9[3];
+    unsigned char flags_0f9[3];
 };
 static_assert(sizeof(W8AutomapState) == 0xfc, "W8AutomapState_size");
 // GLOBAL: WIZ8 0x0068f268
@@ -642,7 +642,7 @@ unsigned char AutomapScreenEnter(void)
     GetWorldLightValue(g_world, &g_automap_saved_ambient_light);
     GetWorldCameraState(GetWorld(), &g_automap_saved_camera);
     g_automap_saved_far_clip = static_cast<float>(WorldGetFarClip(g_world));
-    g_automap_saved_world_value = WorldGetValue78(g_world);
+    g_automap_saved_world_value = WorldGetRenderRange(g_world);
     g_automap_saved_sky = g_sky_enabled_0065b9ae;
     g_automap_saved_render_flags[0] = GetRenderOptionState(11);
     g_automap_saved_render_flags[1] = GetRenderOptionState(10);
@@ -659,7 +659,7 @@ unsigned char AutomapScreenEnter(void)
     g_world_render_enabled_65970d = 1;
     DisableSky();
     g_world->camera->setClipRange(1.0, 1500000.0);
-    WorldSetValue74(g_world, 1500000.0f);
+    WorldSetRenderRange(g_world, 1500000.0f);
     g_world->camera->setRotation(3.141592653589793 * (1.0f / 180.0f) * 90.0f, 0.0, 0.0);
     int layer_number = 1;
     g_world->camera->setProjectionType(static_cast<srCamera::e_project>(1));
@@ -1055,7 +1055,7 @@ void RestoreAutomapWorldSettings(void)
     SetLightDirection(&g_automap_saved_light_direction);
     RestoreWorldCameraState(GetWorld(), 0, &g_automap_saved_camera);
     WorldSetFarClip(g_world, g_automap_saved_far_clip);
-    WorldSetValue74(g_world, g_automap_saved_world_value);
+    WorldSetRenderRange(g_world, g_automap_saved_world_value);
     if (g_automap_saved_sky)
         EnableSky();
     SetRenderOption(11, g_automap_saved_render_flags[0]);
@@ -1499,11 +1499,11 @@ unsigned int LightPendingAutomapCells005807B0(unsigned int max_count)
 // FUNCTION: WIZ8 0x00580760
 void RefreshDirtyAutomap00580760(void)
 {
-    if (g_automap_state != 0 && g_automap_state->unknown_0f9[0] != 0) {
+    if (g_automap_state != 0 && g_automap_state->flags_0f9[0] != 0) {
         SetWorldMeshVertexLightTable0046F760(g_world, 1);
         unsigned int lit = LightPendingAutomapCells005807B0(10);
         if (lit == 0) {
-            g_automap_state->unknown_0f9[0] = 0;
+            g_automap_state->flags_0f9[0] = 0;
         }
         SetWorldMeshVertexLightTable0046F760(g_world, 0);
     }
@@ -1897,7 +1897,7 @@ bool LoadAutomapNotes(int handle)
     if (g_bits_68f288 != 0 && 1 < g_bits_68f288->bit_count) {
         g_bits_68f288->Load(handle);
         if (g_bits_68f288->bit_count == static_cast<unsigned int>(g_automap_cell_count_0068f27c)) {
-            g_automap_state->unknown_0f9[0] = 1;
+            g_automap_state->flags_0f9[0] = 1;
         } else {
             g_bits_68f288->SetSize(g_automap_cell_count_0068f27c);
         }

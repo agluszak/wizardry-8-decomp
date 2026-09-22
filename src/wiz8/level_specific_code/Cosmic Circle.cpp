@@ -72,7 +72,7 @@ void CosmicCircleSetup004D9B40(void)
     int uiMonsterID;
     unsigned int index;
 
-    if (g_status_685170.value_2390 == 0 && g_status_685170.cc_arena_spawned_4972 == 0) {
+    if (g_status_685170.world_suspended_2390 == 0 && g_status_685170.cc_arena_spawned_4972 == 0) {
         if (FindEntityByName("NP_ALTHEIDESARENA", &positionAltheides, 0, 0)) {
             group = SpawnMonsters(0x1b3, 1, &positionAltheides, 0, 1, 0, 0);
             uiMonsterID = IListGetAt(group->monsters, 0);

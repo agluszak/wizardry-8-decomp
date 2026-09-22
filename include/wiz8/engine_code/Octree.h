@@ -249,7 +249,7 @@ static_assert(sizeof(W8OctreeWalk) == 0x40, "W8OctreeWalk_must_be_0x40");
    followed by eight child indices; a leaf retains offsets into the region and
    two polygon-index streams.  The rest of the leaf is still positional. */
 struct W8OctPreTreeBranch {
-    unsigned short positional_00;
+    unsigned short provisional_region_00;
     /* The region/owner id VerifyPolygonRegions and the runtime region reads
        compare against a polygon's region_32. */
     unsigned short region_02;
@@ -262,7 +262,9 @@ struct W8OctPreTreeLeaf {
     unsigned long region_offset_04;
     unsigned long polygon_offset_08;
     unsigned long gd_polygon_offset_0c;
-    unsigned char positional_10[0x18];
+    /* Stream offsets for object kinds 4-9: QueryKinds indexes the leaf as a
+       flat ten-dword table (kind + leaf_index * 10). */
+    unsigned long kind_offsets_10[6];
 };
 
 static_assert(sizeof(W8OctPreTreeBranch) == 0x24, "W8OctPreTreeBranch_must_be_0x24");
@@ -362,7 +364,7 @@ public:
        box, then against the camera sphere; writes the hit position into `to`
        and the hit location id into `hit_location` (or -1/0). `excluded`
        skips one location id, `location` carries the in/out location id used
-       for the pathing-probe set, `flags` masks navigator unknown_090, and
+       for the pathing-probe set, `flags` masks navigator trace_mask_090, and
        `noise_adjust` applies the g_float_005ebc3c/noise penalty. */
     char ResolveTraceHit(const srVector3T<float>* from, srVector3T<float>* to, int excluded,
                          int* hit_location, int location, unsigned int flags,
@@ -485,7 +487,7 @@ public:
     W8OctreeObjectRegistry* object_registry;
     char* m_owned_0c0;
     unsigned char m_fAccumulating;
-    unsigned char m_positional_0c5[3];
+    unsigned char m_padding_0c5[3];
     unsigned long m_vertex_count_0c8;
     unsigned long m_leaf_polygon_stream_len_0cc;
     unsigned long* m_owned_0d0;
@@ -528,17 +530,17 @@ public:
     unsigned short* m_owned_130;
     unsigned long m_trace_skip_flag_134;
     unsigned long m_region_list_len_138;
-    unsigned long m_positional_13c;
+    unsigned long m_padding_13c;
     /* The leaf-level mask: VerifyPolygonRegions rebuilds it as
        (1 << leaf_level_52) - 1 and the packed-cell writers emit it as the top
        byte of each (mask<<24 | x<<16 | y<<8 | z) key. */
     unsigned long m_region_mask_140;
-    unsigned long m_positional_144;
+    unsigned long m_padding_144;
     unsigned short* m_owned_148;
     unsigned char* m_pfRegsVisited;
     W8HashTable<unsigned int, unsigned short>* m_pRegionLinks_150;
     BitArray* m_owned_154;
-    unsigned long m_positional_158;
+    unsigned long m_padding_158;
     BitArray* m_projected_regions_15c;
     BitArray* m_current_regions_160;
     BitArray* m_previous_regions_164;
@@ -588,12 +590,7 @@ public:
     /* The six frustum planes 0x004302E0 builds; 0x0046D880 tests a point
        against all six. */
     srVector4T<float> m_frustum_planes_21c[6]; /* 0x21c */
-    unsigned long m_positional_27c;
-    unsigned long m_positional_280;
-    unsigned long m_positional_284;
-    unsigned long m_positional_288;
-    unsigned long m_positional_28c;
-    unsigned long m_positional_290;
+    unsigned long m_padding_27c[6];
     unsigned char m_visibility_suspended_294;
     unsigned char m_padding_295;
     /* The build's directional-sun count: the driver stores the light total
@@ -601,7 +598,7 @@ public:
        sizes the per-sun vertex light arrays from it. */
     unsigned short m_sun_count_296;
     unsigned char m_padding_298;
-    unsigned char m_positional_299;
+    unsigned char m_padding_299;
     unsigned char m_padding_29a[2];
 };
 
@@ -638,8 +635,8 @@ public:
     int m_lBlocks_328[30];
     unsigned long polygon_cursor_3a0;
     W8OctPreTreeGeometry* game_data_3a4;
-    unsigned long positional_3a8;
-    unsigned long positional_3ac;
+    unsigned long padding_3a8;
+    unsigned long padding_3ac;
     unsigned long deepest_link_list_3b0;
     /* Path-node grid pitch: BuildPathLists sets it to m_region_cell_178 * 2. */
     float path_node_extent_3b4;

@@ -52,14 +52,14 @@ stTextureAnim::stTextureAnim()
 {
     textures_54 = 0;
     frame_58 = 0;
-    value_5c = 1;
-    flag_60 = 0;
-    value_64 = 0;
+    direction_5c = 1;
+    animation_mode_60 = 0;
+    initial_frame_64 = 0;
     frame_rate_68 = 15.0f;
     frame_tick_6c = GetTickCount();
-    value_70 = 0;
-    value_74 = -1.0f;
-    flag_78 = 0;
+    trigger_mode_70 = 0;
+    probability_74 = -1.0f;
+    running_78 = 0;
     textures_54 = new W8GrowableVector<srTextureIFace*>;
 }
 
@@ -76,14 +76,14 @@ stTextureAnim::stTextureAnim(const stTextureAnim& other)
 
     textures_54 = 0;
     frame_58 = 0;
-    value_5c = 1;
-    flag_60 = other.flag_60;
-    value_64 = other.value_64;
+    direction_5c = 1;
+    animation_mode_60 = other.animation_mode_60;
+    initial_frame_64 = other.initial_frame_64;
     frame_rate_68 = other.frame_rate_68;
     frame_tick_6c = GetTickCount();
-    value_70 = other.value_70;
-    value_74 = other.value_74;
-    flag_78 = other.flag_78;
+    trigger_mode_70 = other.trigger_mode_70;
+    probability_74 = other.probability_74;
+    running_78 = other.running_78;
     textures_54 = new W8GrowableVector<srTextureIFace*>;
 
     for (i = 0; i < other.textures_54->GetCount(); ++i) {
@@ -126,27 +126,27 @@ void stTextureAnim::UpdateFrame004854B0()
 {
     int elapsed_frames;
 
-    if (flag_60 == 3) {
+    if (animation_mode_60 == 3) {
         return;
     }
 
     /* Retail scales rand() by the folded constant 1/32768 (0x005ec1e4),
        not a runtime division by RAND_MAX. */
-    if (value_70 == 1) {
-        if (rand() * (1.0f / 32768.0f) < value_74) {
+    if (trigger_mode_70 == 1) {
+        if (rand() * (1.0f / 32768.0f) < probability_74) {
             frame_58 = static_cast<int>(rand() * (1.0f / 32768.0f) * textures_54->GetCount());
         }
         return;
     }
 
-    if (value_70 == 2) {
-        if (flag_78 == 0 && rand() * (1.0f / 32768.0f) < value_74) {
-            flag_78 = 1;
-            value_5c = 0;
+    if (trigger_mode_70 == 2) {
+        if (running_78 == 0 && rand() * (1.0f / 32768.0f) < probability_74) {
+            running_78 = 1;
+            direction_5c = 0;
             frame_58 = 0;
             frame_tick_6c = GetTickCount();
         }
-        if (flag_78 == 0 || textures_54->GetCount() == 0) {
+        if (running_78 == 0 || textures_54->GetCount() == 0) {
             return;
         }
     } else if (textures_54->GetCount() == 0) {
@@ -154,29 +154,29 @@ void stTextureAnim::UpdateFrame004854B0()
     }
 
     elapsed_frames = (int)((GetTickCount() - frame_tick_6c) * frame_rate_68 * g_float_005ec128);
-    if (flag_60 == 0) {
-        int frame = (value_5c * elapsed_frames) % textures_54->GetCount();
+    if (animation_mode_60 == 0) {
+        int frame = (direction_5c * elapsed_frames) % textures_54->GetCount();
         if (frame < frame_58) {
             frame_58 = 0;
-            flag_78 = 0;
+            running_78 = 0;
             return;
         }
         frame_58 = frame;
-    } else if (flag_60 == 1) {
+    } else if (animation_mode_60 == 1) {
         if ((elapsed_frames / textures_54->GetCount() & 1) != 0) {
-            value_5c = -1;
+            direction_5c = -1;
             frame_58 = textures_54->GetCount() - elapsed_frames % textures_54->GetCount() - 1;
         } else {
-            if (value_5c == -1) {
-                flag_78 = 0;
+            if (direction_5c == -1) {
+                running_78 = 0;
                 return;
             }
-            value_5c = 1;
+            direction_5c = 1;
             frame_58 = elapsed_frames % textures_54->GetCount();
         }
-    } else if (flag_60 == 2) {
+    } else if (animation_mode_60 == 2) {
         if (elapsed_frames >= textures_54->GetCount()) {
-            flag_78 = 0;
+            running_78 = 0;
             frame_58 = textures_54->GetCount() - 1 < 0 ? 0 : textures_54->GetCount() - 1;
         } else {
             frame_58 = elapsed_frames;
@@ -187,7 +187,7 @@ void stTextureAnim::UpdateFrame004854B0()
 // FUNCTION: WIZ8 0x00485730
 int stTextureAnim::IsFinished00485730() const
 {
-    if (flag_60 != 2) {
+    if (animation_mode_60 != 2) {
         return 0;
     }
 

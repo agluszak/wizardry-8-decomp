@@ -31,7 +31,10 @@ struct W8MonsterGroup {
     int monster_id;              /* 0x18 */
     /* 0x1c: the mean of the live members' positions, recomputed on demand. */
     srVector3T<float> centre;
-    unsigned char flag_28; /* 0x28: cleared after the record loads */
+    /* 0x28: set once the group's members are activated and positioned in the
+       world; targeting and the AI walk skip groups without it. Cleared at
+       load/init. */
+    bool members_active_28;
     /* 0x29: in-combat flag, named by the MonsterGroup.cpp:492 assertion.
        Cleared after the record loads and again when the group leaves
        combat. */
@@ -45,14 +48,14 @@ struct W8MonsterGroup {
     /* 0x2c: selects which of the record's two name sets a member is displayed
        under. Group creation presets it for alternate-name records, and the
        wandering-group detection pass sets it once the party spots the group. */
-    unsigned char flag_2c;
+    bool alternate_name_2c;
     unsigned char unknown_2d[0x6e];
     /* 0x9b: which member of the group the party currently has picked out,
        by location id, and -1 when none - which is how the group loads. Cycling
        through the group's targetable members reads it to know where it is and
        writes back where it got to. */
     int highlighted_member;
-    int value_9f; /* 0x9f: a member location id; RemoveMonster
+    int leader_id_9f; /* 0x9f: a member location id; RemoveMonster
                                              compares it against the departing
                                              member's before renotifying */
     /* 0xa3: the group this one follows. Walking it is how a member request is
@@ -67,17 +70,26 @@ struct W8MonsterGroup {
        is re-applied. Unaligned inside this packed record, which is why the copy
        comes out as twelve byte moves rather than three dword ones. */
     srVector3T<float> formation;
-    unsigned char flag_c3; /* 0xc3: gates the trailing notification */
+    /* 0xc3: set by MonGen when the group is spawned as an active encounter;
+       cleared by UnregisterActiveEncounterGroup, which also raises
+       encounter_ended_d3. */
+    bool encounter_registered_c3;
     /* 0xc4 is a saved-record version: at 2 and above the loader reads one more
        byte, and below 3 it clears flag_ca that older saves never wrote. */
     unsigned int version; /* 0xc4 */
     unsigned char unknown_c8[2];
-    unsigned char flag_ca; /* 0xca */
-    int value_cb;          /* 0xcb: cleared by the per-turn reset */
+    /* 0xca: set when a script/NPC pass forces the group neutral; cleared on
+       load and when hostility is recomputed. Older saves never wrote it. */
+    bool forced_neutral_ca;
+    /* 0xcb: world_clock stamp of the last hostility application; the
+       faction-reaction pass refuses to reapply inside the record cooldown. */
+    int hostility_set_at_cb;
     /* 0xcf: when this group was last budgeted. UpdateRandomEncounterBudget
        advances it by the elapsed time and the culling pass measures against it. */
     int spawn_time;
-    unsigned char flag_d3; /* 0xd3: raised as flag_c3 is cleared */
+    /* 0xd3: raised as encounter_registered_c3 is cleared - the group was an
+       active encounter once. */
+    bool encounter_ended_d3;
     unsigned char unknown_d4[0x57];
 }; /* 0x12b */
 #pragma pack(pop)
@@ -154,11 +166,11 @@ void LoadMonsterGroupMembers(W8MonsterGroup* monster_group);             /* 0x00
 void RefreshMonsterGroupHostility005113A0(W8MonsterGroup* monster_group); /* 0x005113A0 */
 void MonsterGroupEnterCombat(W8MonsterGroup* monster_group);              /* 0x0050F720 */
 /* Re-elect the group's leader member: the live member carrying the highest
-   navigator value_008 takes over value_9f, else the first member does, and
+   navigator leadership_rank_008 takes over leader_id_9f, else the first member does, and
    the outgoing leader's script and heard-noise state move across. */
 void ElectGroupLeaderMember(W8MonsterGroup* monster_group); /* 0x005103E0 */
 /* Re-elect the allied leader group when this group's leader falls: the allied
-   group whose members hold the highest navigator value_008 leads the rest,
+   group whose members hold the highest navigator leadership_rank_008 leads the rest,
    and the fallen leader's script and heard-noise state carry to the new
    leader's MonsterInfo. */
 void ElectAlliedLeaderGroup(W8MonsterGroup* monster_group,

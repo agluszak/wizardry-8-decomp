@@ -106,7 +106,7 @@ struct W8GlobalStatus {
     /* 0x2390: cleared by the main-game frame; HP/SP and condition updates
        skip work while it is set, and encounter culling treats it as the
        force-despawn gate. */
-    unsigned char value_2390;
+    unsigned char world_suspended_2390;
     /* 0x2391/0x2395: session accumulators ConsumeLevelElapsedTime0041F170
        folds the level's pending elapsed times into; the 0x00502D00 wait
        pass sums them against zero. */
@@ -188,7 +188,7 @@ struct W8GlobalStatus {
     } tail_3121;
     unsigned char unknown_47de[0x194];
     /* 0x4972: set once the Cosmic Circle arena monsters have been spawned by
-       the level-4 setup; the setup skips its work while this or value_2390
+       the level-4 setup; the setup skips its work while this or world_suspended_2390
        holds. */
     unsigned char cc_arena_spawned_4972;
     /* 0x4973/0x4977: GetTickCount stamps. NpcScriptSavantHackDone writes the
@@ -250,7 +250,8 @@ static_assert(offsetof(W8GlobalStatus, value_2435) == 0x2435, "W8GlobalStatus_va
 static_assert(offsetof(W8GlobalStatus, pending_move_location) == 0x22a7,
               "W8GlobalStatus_pending_move_location_offset");
 static_assert(offsetof(W8GlobalStatus, formation) == 0x23a1, "W8GlobalStatus_formation_offset");
-static_assert(offsetof(W8GlobalStatus, value_2390) == 0x2390, "W8GlobalStatus_value_2390_offset");
+static_assert(offsetof(W8GlobalStatus, world_suspended_2390) == 0x2390,
+              "W8GlobalStatus_world_suspended_2390_offset");
 static_assert(offsetof(W8GlobalStatus, skip_loose_character_check_2444) == 0x2444,
               "W8GlobalStatus_skip_loose_character_check_offset");
 static_assert(offsetof(W8GlobalStatus, use_item_latch_2445) == 0x2445,

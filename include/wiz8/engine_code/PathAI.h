@@ -20,10 +20,12 @@ struct W8AIRecord {
 };
 
 struct W8PathAI : W8AIRecord {
-    unsigned char unknown_01[3];
+    /* Serialized record selector: value 2 adds a per-point scale array. */
+    unsigned char version_01;
+    unsigned char padding_02[2];
     /* Normalized for interpolated movement, point units in discrete mode. */
     float position;                                 /* 0x04 */
-    unsigned int unknown_08;                        /* 0x08 */
+    unsigned int unknown_08;                        /* 0x08: serialized; no recovered consumer */
     W8GrowableVector<srVector3T<float>*>* nodes_0c; /* 0x0c */
     int value_10;                                   /* 0x10 */
     /* 0x004A98C0 sizes both from the node count: 0x24 a record here, and a
@@ -31,7 +33,7 @@ struct W8PathAI : W8AIRecord {
     srMatrix3T<float>* rotations_14; /* 0x14 */
     srVector3T<float>* scales_18;    /* 0x18 */
     unsigned char discrete_mode_1c;  /* 0x1c */
-    unsigned char unknown_1d[3];
+    unsigned char padding_1d[3];
     unsigned int point_index;      /* 0x20 */
     float interpolation_fraction;  /* 0x24 */
     unsigned int last_update_tick; /* 0x28 */
@@ -41,9 +43,11 @@ struct W8PathAI : W8AIRecord {
     unsigned char looping;         /* 0x38 */
     unsigned char step_by_node_39; /* 0x39 */
     unsigned char animated_3a;     /* 0x3a */
-    unsigned char unknown_3b;
+    /* When set the emitter target is pitched upright (rotateX pi/2); camera
+       paths raise it. */
+    unsigned char upright_3b;
     unsigned char timed_3c; /* 0x3c */
-    unsigned char unknown_3d[3];
+    unsigned char padding_3d[3];
 };
 
 static_assert(sizeof(W8GrowableVector<srVector3T<float>*>) == 0x10,

@@ -58,8 +58,8 @@ OctPreTree* g_oct_pre_tree_659c74 = 0;
 OctPreTree::OctPreTree() : W8Octree(0, 0)
 {
     game_data_3a4 = 0;
-    positional_3a8 = 0;
-    positional_3ac = 0;
+    padding_3a8 = 0;
+    padding_3ac = 0;
     deepest_link_list_3b0 = 0;
     m_region_cell_178 = 0.0f;
     path_node_extent_3b4 = 0;
@@ -1592,7 +1592,7 @@ int OctPreTree::CreatePathProps0046C0F0(W8LevelFile* level, W8PreProp** preprops
         for (int i = 0; i < count; ++i) {
             W8LevelFileProp* prop = level->pProps + i;
             W8PreProp* record = records + i;
-            if ((prop->unknown_0f[0] & 1) == 0)
+            if ((prop->flags_0f[0] & 1) == 0)
                 continue;
             if (prop->num_frame_pos_b7 == 0) {
                 record->num_stop_meshes_40 =
@@ -1762,7 +1762,7 @@ W8OctSpatialState::W8OctSpatialState(const W8OctSpatialState* source)
         leaf_grid_stride_y_68 = source->leaf_grid_stride_y_68;
         node_extent_70 = source->node_extent_70;
         root_90 = source->root_90;
-        positional_94 = source->positional_94;
+        node_index_94 = source->node_index_94;
         owned_98 = source->owned_98;
         flags_00 = source->flags_00;
         item_count_40 = source->item_count_40;

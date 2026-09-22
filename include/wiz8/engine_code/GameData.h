@@ -56,12 +56,12 @@ struct W8LevelDataRecord {
        constructor writes 1.0f). Remaining 8 bytes stay unresolved. */
     srVector3T<float> contact_normal_ac; /* 0xac */
     float contact_normal_scale_b8;       /* 0xb8 */
-    unsigned char unknown_bc[8];         /* 0xbc */
+    unsigned char padding_bc[8];         /* 0xbc */
     W8IntervalGate interval_gate_c4;     /* 0xc4 */
     unsigned char flag_ec;               /* 0xec */
     unsigned char flag_ed;               /* 0xed */
     unsigned char pad_ee[2];
-    float value_f0; /* 0xf0 */
+    float vertical_motion_f0; /* 0xf0 */
 
     W8LevelDataRecord();  /* 0x0041FD10 */
     ~W8LevelDataRecord(); /* 0x00421890 */
@@ -99,23 +99,23 @@ class BitArray;
 /* One environment record: seventeen dwords mixing counters and factors. */
 struct W8EnvironRecord {
     int value_00;
-    unsigned char value_04;
-    unsigned char value_05;
+    unsigned char ground_latch_04;
+    unsigned char airborne_05;
     unsigned char pad_06[2];
     int value_08;
     /* Per-frame scale copied from the level camera_scale; 0x00421850 multiplies
        vector_24 by it when advancing the camera under environment load. */
     float scale_0c;
-    float value_10;
-    float value_14;
-    float value_18;
-    float value_1c;
-    float value_20;
+    float gravity_x_10;
+    float gravity_y_14;
+    float gravity_z_18;
+    float motion_step_1c;
+    float motion_factor_20;
     srVector3T<float> vector_24;
-    float value_30;
-    float value_34;
-    float value_38;
-    float value_3c;
+    float world_height_30;
+    float forward_scale_34;
+    float motion_limit_38;
+    float momentum_scale_3c;
     float value_40;
 
     unsigned char RescaleToReference(const W8EnvironRecord* reference);
@@ -215,8 +215,8 @@ struct W8GameData {
     int m_iNumVertices;
     srVector3T<float>* m_pVertices;
     int m_iNumSurfaces;
-    int positional_2c_00;
-    int positional_2c_04;
+    int trigger_surface_base_2c_00;
+    int trigger_surface_count_2c_04;
     int integrated_surface_count_34;
     W8GDSurface* m_pSurfaces;
     int m_iNumTrigSurfaces;
@@ -225,7 +225,7 @@ struct W8GameData {
     W8GDSurface* m_pTrigSurfaces;
     srVector3T<float>* m_pTrigVertices;
     Trigger** m_ppTriggers;
-    int value_54;
+    int last_hit_surface_54;
     BitArray* bits_58;
     BitArray* bits_5c;
     int m_iNumInterfaces;
@@ -283,7 +283,7 @@ struct W8GameData {
     /* Ray-test `count` surfaces - all of m_pSurfaces when `surface_ids` is
        null, else the listed surface indexes - against the trace record.
        trace_flag4_gate_88, flag and mode filters apply; a closer hit stores index_04
-       into value_54, the contact into the record's end_0c and the distance
+       into last_hit_surface_54, the contact into the record's end_0c and the distance
        into hit_limit_24. */
     char TestTraceResult(int count, unsigned long* surface_ids, W8OctreeTrace* trace,
                          char skip_flag, int mode); /* 0x0041C330 */

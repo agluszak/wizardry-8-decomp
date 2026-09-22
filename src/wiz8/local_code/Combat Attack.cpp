@@ -1737,7 +1737,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         }
     }
     if (verbose == 0) {
-        report->flag_80 = 1;
+        report->deferred_80 = 1;
     }
     if (swing_missed != 0) {
         if (g_settings_6850c8.verbose_combat_messages != 0) {
@@ -1927,7 +1927,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                 effect.power_level =
                     record->effective_level_24f +
                     (record->effective_level_24f > 0xe ? 0xf : record->effective_level_24f);
-                effect.value_1c = attack->missile_value_1b;
+                effect.magnitude_base_1c = attack->missile_value_1b;
                 ApplyEffectConditions(&source, &g_combat_state->TargetHit, &effect, verbose, 0,
                                       report);
                 if (range < W8_RANGE_LONG &&
@@ -1998,7 +1998,7 @@ swings:
                 repicked = 1;
                 if (memcmp(&repick_target, &monster_info->Target, sizeof(W8CombatSlot)) != 0) {
                     ReportMonsterAttackResult005412B0(monster_info, report);
-                    if (fumbled != 0 && g_combat_state->attack_report.flag_80 != 0) {
+                    if (fumbled != 0 && g_combat_state->attack_report.deferred_80 != 0) {
                         ReportMonsterAttackResult005412B0(monster_info,
                                                           &g_combat_state->attack_report);
                     }
@@ -2028,7 +2028,7 @@ swings:
         if (fumbled != 0 || source.target_diverted != 0) {
             PostMonsterNotice(monster_info, gppStringList[0x269],
                               SpellTargetString(&source, &monster_info->Target));
-            if (g_combat_state->attack_report.flag_80 != 0) {
+            if (g_combat_state->attack_report.deferred_80 != 0) {
                 ReportMonsterAttackResult005412B0(monster_info, &g_combat_state->attack_report);
             }
         }
@@ -3004,12 +3004,13 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                 case 2:
                     magnitude = RollEffectDuration(definition);
                     if (magnitude < 2) {
-                        SetDice(&definition->magnitude, count_base * 3, 2, definition->value_1c);
+                        SetDice(&definition->magnitude, count_base * 3, 2,
+                                definition->magnitude_base_1c);
                         magnitude = RollEffectMagnitude(definition) + 1;
                     }
                     resisted = ResolveAttackOnTarget00551BA0(
                         source, target, W8_CONDITION_POISONED, 1, definition->power_level,
-                        definition->value_1c, magnitude, verbose, announce, 0);
+                        definition->magnitude_base_1c, magnitude, verbose, announce, 0);
                     if (accumulator != NULL) {
                         accumulator->condition_counts[W8_CONDITION_POISONED] += (resisted == 0);
                     }
@@ -3460,7 +3461,7 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
         return NULL;
     }
     if (TargetSourceIsCharacter(source, 0) && target->iType == W8_TARGET_KIND_CHARACTER &&
-        g_missile_table_65bde0[missile_type].flag_154 == 0) {
+        g_missile_table_65bde0[missile_type].spell_missile_154 == 0) {
         if (use_default_accuracy) {
             return NULL;
         }
@@ -3500,7 +3501,7 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
                                                               &source_position);
             }
             if (secondary == 0 ||
-                (g_missile_table_65bde0[missile_type].flag_154 == 0 && primary == 0)) {
+                (g_missile_table_65bde0[missile_type].spell_missile_154 == 0 && primary == 0)) {
                 GetCameraPosition(&source_position);
             }
         }
@@ -3517,7 +3518,7 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
         index = MonsterGetIndexByLocationID(0x1387, COMBAT_ATTACK_CPP, source->iMonsterID, 1);
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         monster = monster_info->monster;
-        if (g_missile_table_65bde0[missile_type].flag_154 == 0) {
+        if (g_missile_table_65bde0[missile_type].spell_missile_154 == 0) {
             position_ok = monster->GetProjectilePosition004C77F0(&source_position);
         } else if (source->unknown_1d == 0) {
             position_ok = monster->GetSpellPosition004C78E0(&source_position);
@@ -3625,7 +3626,7 @@ void FireCharacterItemMissile00544B60(int party_slot, W8Character* pc, W8CombatC
         missile_value = missile_value + paired->missile_value_060;
     }
     memcpy(attack_block.condition_chances, modifiers, 0x10);
-    attack_block.value_1c = missile_value;
+    attack_block.magnitude_base_1c = missile_value;
     accuracy = GetTargetAttackAttributes(
         party_slot, row->current_hand,
         g_status_685170.buffers.XChar[party_slot].attack_mode[row->current_hand], 0);
@@ -4152,7 +4153,7 @@ int ResolveCharacterAttack0053E250(int party_slot)
             }
         }
         if (verbose == 0) {
-            report->flag_80 = 1;
+            report->deferred_80 = 1;
         }
         if (swing_missed != 0) {
             if (g_settings_6850c8.verbose_combat_messages != 0) {
@@ -4331,14 +4332,14 @@ int ResolveCharacterAttack0053E250(int party_slot)
                 if (applied != 0) {
                     if (hand_attack->uiHolds == HOLDS_NOTHING) {
                         memcpy(effect.condition_chances, &hand_attack->value_33, 0x10);
-                        effect.value_1c = 0;
+                        effect.magnitude_base_1c = 0;
                     } else {
                         memcpy(
                             effect.condition_chances,
                             g_item_records[character->EquippedItem[row->current_equip_slot].iItemNo]
                                 .missile_values_050,
                             0x10);
-                        effect.value_1c =
+                        effect.magnitude_base_1c =
                             g_item_records[character->EquippedItem[row->current_equip_slot].iItemNo]
                                 .missile_value_060;
                         if (row->paired_equip_slot != -1) {
@@ -4349,7 +4350,7 @@ int ResolveCharacterAttack0053E250(int party_slot)
                             for (int i = 0; i < 0x10; ++i) {
                                 effect.condition_chances[i] += paired_values[i];
                             }
-                            effect.value_1c +=
+                            effect.magnitude_base_1c +=
                                 g_item_records[character->EquippedItem[row->paired_equip_slot]
                                                    .iItemNo]
                                     .missile_value_060;
@@ -4576,7 +4577,7 @@ int ResolveCharacterAttack0053E250(int party_slot)
         if (fumbled != 0 || source.target_diverted != 0) {
             PostCharacterNotice(party_slot, gppStringList[0x269],
                                 SpellTargetString(&source, &party_row->target_out_of_combat));
-            if (g_combat_state->attack_report.flag_80 != 0) {
+            if (g_combat_state->attack_report.deferred_80 != 0) {
                 ReportCharacterAttackResult0053FB00(party_slot, &g_combat_state->attack_report);
             }
         }

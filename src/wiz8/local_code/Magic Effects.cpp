@@ -683,7 +683,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
     if (group == 0) {
         srAssertFail("pGroup", MAGIC_EFFECTS_CPP, 0xa0c, 0);
     }
-    summon = MonsterInfoFromID(0xa0e, MAGIC_EFFECTS_CPP, group->value_9f, 1);
+    summon = MonsterInfoFromID(0xa0e, MAGIC_EFFECTS_CPP, group->leader_id_9f, 1);
     summon->monster->SetAngles004538F0(
         HeadingTowardNearestMonster(effect->target.point, disposition, summon->location_id));
     SetMonsterGroupHostility(group, disposition, 0);
@@ -3947,7 +3947,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
                              -1);
         effect->reported_124 = 1;
     }
-    if (effect->flag_120 != 0 && applied == 0) {
+    if (effect->recast_120 != 0 && applied == 0) {
         if (effect->Source.unknown_18[0] != 0) {
             CastSpellFromSource(spell_id, &effect->Source, &effect->target,
                                 effect->definition.duration_scale, 0, 0, 1, &cost, 0, 0, 0);

@@ -1150,7 +1150,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
         stream->Read(&is_encounter, 1, 0);
     }
     if (group->version < 3) {
-        group->flag_ca = 0;
+        group->forced_neutral_ca = 0;
     }
     record = MonsterDBFromSpecies(group->monster_id);
     if (record == 0) {
@@ -1165,7 +1165,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
         }
         group->member_count = 0;
         group->active_member_count = 0;
-        group->flag_28 = 0;
+        group->members_active_28 = 0;
         group->fInCombat = 0;
         if (is_encounter) {
             index = PLAdoptAppend(gXStatus.plsMonsterGroupEncounterList, group);
@@ -1177,7 +1177,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
             return 0;
         }
         ActivateGroupMembers(group, 0);
-        if (group->flag_c3 != 0 && group->leader_group_id == 0) {
+        if (group->encounter_registered_c3 != 0 && group->leader_group_id == 0) {
             RegisterActiveEncounterGroup(group);
         }
     }
@@ -1270,10 +1270,10 @@ unsigned char LoadMonster(W8Chunk* chunk)
             return 0;
         }
         IListAdd(monster_group->monsters, monster_info->location_id);
-        if (static_cast<unsigned int>(monster_group->value_9f) == 0xcdcdcdcdU ||
-            static_cast<unsigned int>(monster_group->value_9f) <
+        if (static_cast<unsigned int>(monster_group->leader_id_9f) == 0xcdcdcdcdU ||
+            static_cast<unsigned int>(monster_group->leader_id_9f) <
                 static_cast<unsigned int>(monster_info->location_id)) {
-            monster_group->value_9f = monster_info->location_id;
+            monster_group->leader_id_9f = monster_info->location_id;
         }
         ++monster_group->member_count;
         RequestRedrawParty();
@@ -1352,10 +1352,10 @@ unsigned char LoadMonster(W8Chunk* chunk)
             chunk->Read(&value, 1, 0);
             monster->stay_home_291 = value;
         }
-        monster_info->flag_255 |= 0x80;
+        monster_info->ai_mode_255 |= 0x80;
     }
     if (script_name[0] != '\0') {
-        monster_info->flag_255 |= 0x10;
+        monster_info->ai_mode_255 |= 0x10;
         monster->SetScript004C7F10(script_name, 0);
         monster->script_wait_240 = script_wait;
         monster->script_line_23c = script_line;
@@ -1969,10 +1969,10 @@ void SaveMonsterControlSpellEffect00516580(W8Chunk* chunks)
     chunks->Write(&lure->target, sizeof(lure->target), 0);
     chunks->Write(&lure->OrigSource, sizeof(lure->OrigSource), 0);
     chunks->Write(lure->unknown_03c, sizeof(lure->unknown_03c), 0);
-    chunks->Write(&lure->flag_120, 1, 0);
-    chunks->Write(&lure->flag_121, 1, 0);
-    chunks->Write(&lure->flag_122, 1, 0);
-    chunks->Write(&lure->flag_123, 1, 0);
+    chunks->Write(&lure->recast_120, 1, 0);
+    chunks->Write(&lure->sustained_121, 1, 0);
+    chunks->Write(&lure->missiles_pending_122, 1, 0);
+    chunks->Write(&lure->targets_resolved_123, 1, 0);
     chunks->Write(&lure->definition, sizeof(lure->definition), 0);
 }
 
@@ -2455,10 +2455,10 @@ void LoadMonsterControlSpellEffect00516310(W8Chunk* chunks)
     chunks->Read(&effect->target, 0x20, 0);
     chunks->Read(&effect->OrigSource, 0x34, 0);
     chunks->Read(effect->unknown_03c, 0x20, 0);
-    chunks->Read(&effect->flag_120, 1, 0);
-    chunks->Read(&effect->flag_121, 1, 0);
-    chunks->Read(&effect->flag_122, 1, 0);
-    chunks->Read(&effect->flag_123, 1, 0);
+    chunks->Read(&effect->recast_120, 1, 0);
+    chunks->Read(&effect->sustained_121, 1, 0);
+    chunks->Read(&effect->missiles_pending_122, 1, 0);
+    chunks->Read(&effect->targets_resolved_123, 1, 0);
     chunks->Read(&effect->definition, sizeof(effect->definition), 0);
     AddSpellEffect(effect);
 }

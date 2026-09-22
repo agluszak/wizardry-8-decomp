@@ -71,7 +71,7 @@ struct W8LevelRuntimeBlock {
        formatter reuse the leading 0xf0 bytes as wchar_t storage. */
     wchar_t text_paint_scratch_000[0xf0 / sizeof(wchar_t)];
     unsigned char flag_0f0; /* 0x0f0 */
-    unsigned char unknown_0f1[3];
+    unsigned char flags_0f1[3];
     unsigned int redraw_flags; /* 0x0f4 */
     /* Snapshot of redraw_flags taken before the two redraw passes; the second
        pass consumes this copy while the live word may still change. */

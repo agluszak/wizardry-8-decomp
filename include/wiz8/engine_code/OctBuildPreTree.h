@@ -38,12 +38,12 @@ struct W8OctRegionPolygon {
        and SplitVertices repoint these at split copies. */
     W8OctPreTreeVertex* vertices_34[3];
     unsigned short face_count_40;
-    unsigned char positional_42[2];
+    unsigned char padding_42[2];
     /* Growable per-polygon run the cleanup releases. */
     int* face_indices_44;
     /* Whole source mesh face copied by the polygon builder. */
     W8ReadMeshFace face_48;
-    unsigned char positional_71[3];
+    unsigned char padding_71[3];
 
     /* Tests the polygon's representative point against six frustum planes;
        inside means every plane distance is non-negative. */
@@ -149,12 +149,14 @@ struct OctBuildPreTree : W8OctBuildTree00446390 {
     unsigned long particle_count_11c;
     unsigned long prop_count_120;
     W8HashTable<unsigned short, unsigned long>* region_path_map_124;
+    /* Allocated next to region_path_map_124 but never read, inserted into, or
+       freed in recovered code - dead table kept for layout fidelity. */
     W8HashTable<unsigned int, short>* positional_128;
     W8HashTable<unsigned short, short>* inside_region_map_12c;
     W8HashTable<unsigned short, short>* overlap_region_map_130;
     W8OctPreTreeGeometry* game_data_134;
-    unsigned long positional_138;
-    unsigned long positional_13c;
+    unsigned long padding_138;
+    unsigned long padding_13c;
 };
 
 static_assert(sizeof(OctBuildPreTree) == 0x140, "OctBuildPreTree_must_be_0x140");

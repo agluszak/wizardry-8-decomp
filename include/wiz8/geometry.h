@@ -40,8 +40,8 @@ struct W8GDSurface {
     unsigned char footstep_surface_3c;  /* W8FootstepSurface selector */
     unsigned char footstep_material_3d; /* W8FootstepMaterial selector */
     unsigned char positional_3e[2];
-    float value_40;
-    unsigned int positional_44;
+    float contact_margin_40;
+    unsigned int chance_44;
     float slope_48; /* face slope; generated surfaces derive it from plane_24[1] */
 
     /* The plane's leading three floats read as the surface normal. */

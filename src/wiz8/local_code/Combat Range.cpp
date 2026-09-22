@@ -81,7 +81,7 @@ char CanPartySlotAttackAnyTarget(int party_slot, int category, int flag, char ha
     char side;
     int first = party_slot;
 
-    if (gXStatus.fCombatMode == 0 || g_combat_state->characters[party_slot].flag_80 == 0) {
+    if (gXStatus.fCombatMode == 0 || g_combat_state->characters[party_slot].berserk_80 == 0) {
         side = hand;
     } else {
         side = 1;
@@ -539,7 +539,7 @@ bool RangeCategoryUsesSightCondition(const W8MonsterInfo* monster, W8RangeCatego
 }
 
 /* Whether the monster's attack `attack` reaches anyone at all; `hostile_only`
-   counts only those it is hostile to. In combat with unknown_015 set the
+   counts only those it is hostile to. In combat with berserk_015 set the
    hostile filter is forced on. Party members are tested inline; other monsters
    defer to MonsterAttackReachesMonster. */
 // FUNCTION: WIZ8 0x00519c00
@@ -559,7 +559,7 @@ unsigned char MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned i
     W8MonsterInfo* other;
     W8MonsterRecord* attack_record;
 
-    if (monster_info->fInCombat == 0 || monster_info->pCombat->unknown_015 == 0) {
+    if (monster_info->fInCombat == 0 || monster_info->pCombat->berserk_015 == 0) {
         disposition_needed = hostile_only;
     } else {
         disposition_needed = 1;
@@ -1393,7 +1393,7 @@ float MonsterChooseTarget(W8MonsterInfo* monster_info, W8CombatSlot* out, int ki
         (best = monster_info->monster->GetDistanceToPlayer004C7CB0(), best < 1000000.0f)) {
         out->iType = W8_TARGET_KIND_CHARACTER;
     }
-    if (out->iType == W8_TARGET_KIND_NONE || monster_info->pCombat->unknown_151[1] == 0) {
+    if (out->iType == W8_TARGET_KIND_NONE || monster_info->pCombat->reconsider_action_152 == 0) {
         unsigned int count = PLLength(gXStatus.plsMonsterList);
 
         for (unsigned int index = 0; index < count; ++index) {

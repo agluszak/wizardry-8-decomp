@@ -19,13 +19,13 @@ struct W8NavigatorAttachment {
     /* Live waypoint cursor. AdvanceAlongPathPositions compacts consumed
        waypoints and returns this cursor to one. */
     unsigned short path_cursor_04;
-    unsigned short unknown_06;
+    unsigned short position_cursor_06;
     unsigned short path_position_index_08;
     /* 0x00456210 sets this to ten and allocates position_4c as ten
        srVector3T<float>, so it is that array's capacity. */
     unsigned short capacity_0a;
-    unsigned short value_0c;
-    unsigned short unknown_0e;
+    unsigned short follow_offset_0c;
+    unsigned short padding_0e;
     srVector3T<float> position_10;
     srVector3T<float> position_1c;
     srVector3T<float> position_28;
@@ -42,7 +42,7 @@ struct W8NavigatorAttachment {
     /* Direct segment length after initialization; MeasurePathLength later
        replaces it with the eligible route length and latches flag 0x00400000. */
     float path_length_058;
-    unsigned char unknown_05c[4];
+    unsigned char padding_05c[4];
 
     W8NavigatorAttachment(); /* 0x00456210 */
     /* The from/to form 0x004604B0 constructs on the stack: both endpoints of
@@ -127,11 +127,11 @@ public:
    independently. World collision routines receive this subobject, while the
    surrounding Navigator owns the path and group-following state. */
 struct W8NavigatorMovementState {
-    unsigned int unknown_000;
+    unsigned int flags_000;
     unsigned short location_id_004;
-    unsigned short unknown_006;
-    int value_008;
-    int value_00c;
+    unsigned short padding_006;
+    int leadership_rank_008;
+    int active_rank_00c;
     /* -1 means no resolved target. Navigation and OctPath use this as the
        location id of the tracked target; one OctPath path overlays the slot
        as a single candidate index while building a path. */
@@ -144,7 +144,7 @@ struct W8NavigatorMovementState {
     float target_pitch_024;
     float roll_028;
     float target_roll_02c;
-    float unknown_030;
+    float padding_030;
     srVector3T<float> velocity_034;
     srVector3T<float> position_040;
     srVector3T<float> target_position_04c;
@@ -153,11 +153,12 @@ struct W8NavigatorMovementState {
     float movement_scale_060;
     float movement_speed_064;
     float turn_rate_068;
-    unsigned short flag_06c;
-    unsigned char unknown_06e[6];
+    unsigned short flags_06c;
+    unsigned char padding_06e[6];
     char pitch_enabled_074;
     char roll_enabled_075;
-    unsigned char unknown_076[2];
+    bool boundary_enabled_076;
+    unsigned char padding_077;
     float vertical_velocity_078;
     float vertical_base_07c;
     float vertical_amplitude_080;
@@ -177,7 +178,7 @@ struct W8NavigatorMovementState {
     float vertical_offset_0c0;
     float scale_0c4;
     bool position_adjusted_0c8;
-    unsigned char unknown_0c9[3];
+    unsigned char padding_0c9[3];
 
     W8NavigatorMovementState(); /* 0x004572C0 */
     /* A second, different set of defaults over the same subobject, run by
@@ -196,9 +197,9 @@ struct W8NavigatorMovementState {
    at 0x00457530 only proves it reaches +0x50. */
 static_assert(sizeof(W8NavigatorAttachment) == 0x60, "W8NavigatorAttachment_size_must_be_0x60");
 static_assert(offsetof(W8NavigatorAttachment, path_cursor_04) == 0x04,
-              "W8NavigatorAttachment_value_04");
-static_assert(offsetof(W8NavigatorAttachment, unknown_06) == 0x06,
-              "W8NavigatorAttachment_unknown_06");
+              "W8NavigatorAttachment_path_cursor_04");
+static_assert(offsetof(W8NavigatorAttachment, position_cursor_06) == 0x06,
+              "W8NavigatorAttachment_position_cursor_06");
 static_assert(offsetof(W8NavigatorAttachment, path_position_index_08) == 0x08,
               "W8NavigatorAttachment_path_position_index_08");
 static_assert(offsetof(W8NavigatorAttachment, capacity_0a) == 0x0a,
@@ -220,7 +221,7 @@ static_assert(offsetof(W8NavigatorAttachment, path_values_50) == 0x50,
 static_assert(offsetof(W8NavigatorAttachment, separation_54) == 0x54,
               "W8NavigatorAttachment_separation_54");
 static_assert(offsetof(W8NavigatorAttachment, path_length_058) == 0x58,
-              "W8NavigatorAttachment_value_058");
+              "W8NavigatorAttachment_path_length_058");
 static_assert(sizeof(W8NavigatorMovementState) == 0xcc,
               "W8NavigatorMovementState_size_must_be_0xcc");
 static_assert(offsetof(W8NavigatorMovementState, location_id_004) == 0x04,
@@ -252,8 +253,8 @@ static_assert(offsetof(W8NavigatorMovementState, movement_speed_064) == 0x64,
               "W8NavigatorMovementState_movement_speed_064");
 static_assert(offsetof(W8NavigatorMovementState, turn_rate_068) == 0x68,
               "W8NavigatorMovementState_turn_rate_068");
-static_assert(offsetof(W8NavigatorMovementState, flag_06c) == 0x6c,
-              "W8NavigatorMovementState_flag_06c");
+static_assert(offsetof(W8NavigatorMovementState, flags_06c) == 0x6c,
+              "W8NavigatorMovementState_flags_06c");
 static_assert(offsetof(W8NavigatorMovementState, pitch_enabled_074) == 0x74,
               "W8NavigatorMovementState_pitch_enabled_074");
 static_assert(offsetof(W8NavigatorMovementState, roll_enabled_075) == 0x75,
@@ -275,7 +276,7 @@ static_assert(offsetof(W8NavigatorMovementState, vector_0a0) == 0xa0,
 static_assert(offsetof(W8NavigatorMovementState, attachment_0ac) == 0xac,
               "W8NavigatorMovementState_attachment_0ac");
 static_assert(offsetof(W8NavigatorMovementState, collision_radius_0b0) == 0xb0,
-              "W8NavigatorMovementState_value_0b0");
+              "W8NavigatorMovementState_collision_radius_0b0");
 static_assert(offsetof(W8NavigatorMovementState, alternate_radius_0b4) == 0xb4,
               "W8NavigatorMovementState_alternate_radius_0b4");
 static_assert(offsetof(W8NavigatorMovementState, height_offset_0b8) == 0xb8,
@@ -285,7 +286,7 @@ static_assert(offsetof(W8NavigatorMovementState, secondary_height_offset_0bc) ==
 static_assert(offsetof(W8NavigatorMovementState, vertical_offset_0c0) == 0xc0,
               "W8NavigatorMovementState_vertical_offset_0c0");
 static_assert(offsetof(W8NavigatorMovementState, scale_0c4) == 0xc4,
-              "W8NavigatorMovementState_value_0c4");
+              "W8NavigatorMovementState_scale_0c4");
 static_assert(offsetof(W8NavigatorMovementState, position_adjusted_0c8) == 0xc8,
               "W8NavigatorMovementState_position_adjusted_0c8");
 
@@ -429,8 +430,7 @@ public:
        a body that does not exist - and while it existed it made this a union
        member, which C++98 forbids from having a constructor or destructor and
        which therefore blocked both of the movement tail's special members. */
-    unsigned char unknown_004;
-    unsigned char unknown_005[3];
+    unsigned char padding_004[4];
     int navigation_mode_008;
     unsigned int flags_00c;
     double collision_margin_010;
@@ -456,9 +456,12 @@ public:
        monster scripts wait on it: CanContinueScript004CA0F0 blocks a WALKTO
        until it is set. */
     bool movement_stopped_024;
-    bool flag_025;
+    /* The stop latch the default callback and StopAllNavigators raise and
+       ResumeAllNavigators clears; distinct from movement_stopped_024, which
+       reports motion actually halting. */
+    bool halted_025;
     bool movement_complete_026;
-    unsigned char unknown_027;
+    unsigned char padding_027;
     srVector3T<float> position_028;
     float minimum_height_034;
     float maximum_height_038;
@@ -474,10 +477,15 @@ public:
     srVector3T<float> minimum_06c;
     srVector3T<float> maximum_078;
     float radius_084;
-    unsigned char state_088;
-    unsigned char unknown_089[3];
+    /* Whether the navigator participates in world queries: cleared when the
+       owner deactivates (monster despawn, cursor teardown), restored on
+       activation; ResolveTraceHit and GameData skip navigators with it zero. */
+    bool active_088;
+    unsigned char padding_089[3];
     void(__cdecl* movement_callback_08c)(W8Navigator* navigator);
-    unsigned int unknown_090;
+    /* Trace-hit exclusion mask: ResolveTraceHit skips monsters whose
+       (trace_mask_090 & flags) is nonzero; configureStartupRange raises bit 0. */
+    unsigned int trace_mask_090;
     unsigned int unknown_094;
     unsigned int unknown_098;
     /* 0x09c: byte flag - SetMonsterGroupNavigatorDirty stores its uchar
@@ -490,7 +498,12 @@ public:
     bool tracked_dirty_0b4;
     unsigned char unknown_0b5[3];
     int linked_update_time_0b8;
-    unsigned char unknown_0bc[4];
+    unsigned char unknown_0bc;
+    /* Raised on combat entry for the group leader's navigator (or the monster
+       itself when unlinked); SetNavigatorLinkMode uses it to re-base the group
+       onto the navigator's path when free-roam resumes. */
+    bool group_linked_0bd;
+    unsigned char padding_0be[2];
     /* Constructed first as its own 0xcc-byte subobject, then Reset by this
        owner. Copy construction constructs a fresh attachment and transfers
        selected settings; it never shares the source's path allocation. */
@@ -509,7 +522,7 @@ void NavigatorDefaultCallback00451EA0(W8Navigator* navigator);
 
 extern float g_navigator_vertical_phase_step_005ebcc8;
 extern float g_navigator_snap_angle_005ec2f0;
-extern unsigned char g_flag_006081e4;
+extern unsigned char g_combat_inactive_006081e4;
 extern unsigned char g_navigator_link_mode_00659c10;
 extern float g_navigator_linked_radius_scale_005ebc98;
 extern W8GrowableVector<W8Navigator*> g_navigator_group_659bf8;

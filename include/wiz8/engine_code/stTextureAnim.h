@@ -39,14 +39,14 @@ public:
 
     W8GrowableVector<srTextureIFace*>* textures_54;
     int frame_58;
-    int value_5c;
-    unsigned char flag_60;
-    int value_64;
+    int direction_5c;
+    unsigned char animation_mode_60;
+    int initial_frame_64;
     float frame_rate_68;
     unsigned long frame_tick_6c;
-    int value_70;
-    float value_74;
-    unsigned char flag_78;
+    int trigger_mode_70;
+    float probability_74;
+    bool running_78;
 };
 
 static_assert(sizeof(stTextureAnim) == 0x7c, "stTextureAnim_size_must_be_0x7c");

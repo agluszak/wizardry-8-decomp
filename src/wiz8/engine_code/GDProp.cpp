@@ -188,7 +188,7 @@ void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigne
             }
 
             if (g_float_005ebc7c <= surface->plane_24[1]) {
-                surface->value_40 = 500.0f;
+                surface->contact_margin_40 = 500.0f;
                 surface->flags_00 |= 4;
                 if (g_float_005ebccc < surface->plane_24[1]) {
                     surface->slope_48 = 1.0f;
@@ -197,7 +197,7 @@ void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigne
                 }
             } else {
                 surface->slope_48 = 0.0f;
-                surface->value_40 = 500.0f;
+                surface->contact_margin_40 = 500.0f;
             }
         }
         mesh = mesh->next;
@@ -670,11 +670,11 @@ void GDProp::TransformMeshGeometry004B7E50(const W8LevelFileScaledPathNode* node
         surface->flags_00 = dominant_axis + 0x800;
         surface->hit_plane_38 = 0;
         if (g_float_005ebc7c <= surface->plane_24[1]) {
-            surface->value_40 = 500.0f;
+            surface->contact_margin_40 = 500.0f;
             surface->flags_00 |= 4;
         } else {
             surface->slope_48 = 0.0f;
-            surface->value_40 = 500.0f;
+            surface->contact_margin_40 = 500.0f;
         }
     }
 }

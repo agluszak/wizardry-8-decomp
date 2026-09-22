@@ -52,8 +52,8 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
     handle = info->hFile;
     success = FileRead(handle, &version, 1, 0);
     success = success && FileRead(handle, &animation->group_count, 1, 0);
-    success = success && FileRead(handle, &animation->unknown_01, 1, 0);
-    success = success && FileRead(handle, &animation->value_02, 1, 0);
+    success = success && FileRead(handle, &animation->animation_playing_01, 1, 0);
+    success = success && FileRead(handle, &animation->frame_method_02, 1, 0);
     success = success && FileRead(handle, &animation->unknown_03, 1, 0);
     success = success && FileRead(handle, &animation->cycle, 1, 0);
     success = success && FileRead(handle, &animation->flag_05, 1, 0);
@@ -150,9 +150,9 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
                 FileRead(handle, &typed->intensity_to_2c, 4, 0);
                 FileRead(handle, &typed->period_30, 4, 0);
                 FileRead(handle, &typed->rate_34, 4, 0);
-                FileRead(handle, &typed->path_value_38, 4, 0);
-                FileRead(handle, &typed->value_3c, 4, 0);
-                FileRead(handle, &typed->value_40, 4, 0);
+                FileRead(handle, &typed->path_speed_38, 4, 0);
+                FileRead(handle, &typed->subcycle_min_3c, 4, 0);
+                FileRead(handle, &typed->subcycle_max_40, 4, 0);
                 definition = typed;
             } else if (definition_kind == 2) {
                 stLightDefinition005ECDA0* typed = new stLightDefinition005ECDA0;
@@ -160,8 +160,8 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
                 int key;
 
                 FileRead(handle, &ignored, 1, 0);
-                FileRead(handle, &typed->value_50, 4, 0);
-                FileRead(handle, &typed->value_54, 4, 0);
+                FileRead(handle, &typed->start_frame_50, 4, 0);
+                FileRead(handle, &typed->end_frame_54, 4, 0);
                 for (key = 0; key < 6; ++key) {
                     int frame;
                     float value;
@@ -173,8 +173,8 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
                     if (frame < previous) {
                         frame = previous + 1;
                     }
-                    if (typed->value_54 <= frame) {
-                        frame = static_cast<int>(typed->value_54);
+                    if (typed->end_frame_54 <= frame) {
+                        frame = static_cast<int>(typed->end_frame_54);
                     }
                     previous = frame;
                     typed->values_18.Add(frame);
@@ -200,7 +200,7 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
                 ConfigureWorldLight0046E300(light, range * g_world_scale_005ebc40);
                 light->intensity_1d0 = intensity;
                 light->setLocation(position.x, position.y, position.z);
-                light->m_positional_228 = position;
+                light->m_position_228 = position;
                 light->m_definition_234 = definition;
                 light->setGroupMask(2);
                 light_list->Add(light);
@@ -327,8 +327,8 @@ W8AnimObj* CloneAnimObj004A0320(const W8AnimObj* source)
     }
     memset(copy, 0, sizeof(W8AnimObj));
     copy->group_count = source->group_count;
-    copy->unknown_01 = source->unknown_01;
-    copy->value_02 = source->value_02;
+    copy->animation_playing_01 = source->animation_playing_01;
+    copy->frame_method_02 = source->frame_method_02;
     copy->unknown_03 = source->unknown_03;
     copy->cycle = source->cycle;
     copy->flag_05 = source->flag_05;
@@ -807,10 +807,10 @@ stLightDefinition* stLightDefinition005ECDA0::Clone() const
         copy->values_28.Add(*values_28.GetAt(index));
         copy->values_38.Add(*values_38.GetAt(index));
     }
-    copy->value_48 = value_48;
+    copy->keyframe_index_48 = keyframe_index_48;
     copy->time_4c = time_4c;
-    copy->value_50 = value_50;
-    copy->value_54 = value_54;
+    copy->start_frame_50 = start_frame_50;
+    copy->end_frame_54 = end_frame_54;
     return copy;
 }
 

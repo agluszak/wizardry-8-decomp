@@ -41,9 +41,9 @@ public:
         intensity_to_2c = other.intensity_to_2c;
         period_30 = other.period_30;
         rate_34 = other.rate_34;
-        path_value_38 = other.path_value_38;
-        value_3c = other.value_3c;
-        value_40 = other.value_40;
+        path_speed_38 = other.path_speed_38;
+        subcycle_min_3c = other.subcycle_min_3c;
+        subcycle_max_40 = other.subcycle_max_40;
     }
 
     // FUNCTION: WIZ8 0x004A2140
@@ -55,7 +55,7 @@ public:
     // FUNCTION: WIZ8 0x004A21E0
     virtual bool IsEnabledForSubcycle(unsigned char subcycle) override
     {
-        if (subcycle >= value_3c && subcycle <= value_40) {
+        if (subcycle >= subcycle_min_3c && subcycle <= subcycle_max_40) {
             return true;
         }
         return false;
@@ -77,9 +77,9 @@ public:
     float period_30;
     /* Elapsed-time multiplier applied to the sweep step. */
     float rate_34;
-    float path_value_38;
-    int value_3c;
-    int value_40;
+    float path_speed_38;
+    int subcycle_min_3c;
+    int subcycle_max_40;
 };
 
 static_assert(sizeof(stLightDefinition005ECDBC) == 0x44,
@@ -100,18 +100,19 @@ static_assert(offsetof(stLightDefinition005ECDBC, period_30) == 0x30,
               "stLightDefinition005ECDBC_period_30");
 static_assert(offsetof(stLightDefinition005ECDBC, rate_34) == 0x34,
               "stLightDefinition005ECDBC_rate_34");
-static_assert(offsetof(stLightDefinition005ECDBC, path_value_38) == 0x38,
-              "stLightDefinition005ECDBC_path_value_38");
-static_assert(offsetof(stLightDefinition005ECDBC, value_3c) == 0x3c,
+static_assert(offsetof(stLightDefinition005ECDBC, path_speed_38) == 0x38,
+              "stLightDefinition005ECDBC_path_speed_38");
+static_assert(offsetof(stLightDefinition005ECDBC, subcycle_min_3c) == 0x3c,
               "stLightDefinition005ECDBC_value_3c");
-static_assert(offsetof(stLightDefinition005ECDBC, value_40) == 0x40,
+static_assert(offsetof(stLightDefinition005ECDBC, subcycle_max_40) == 0x40,
               "stLightDefinition005ECDBC_value_40");
 
 // VTABLE: WIZ8 0x005ecda0
 class stLightDefinition005ECDA0 : public stLightDefinition {
 public:
     stLightDefinition005ECDA0()
-        : values_08(5), values_18(5), values_28(5), values_38(5), value_48(0), time_4c(0.0f)
+        : values_08(5), values_18(5), values_28(5), values_38(5), keyframe_index_48(0),
+          time_4c(0.0f)
     {
         type_04 = 2;
     }
@@ -123,10 +124,10 @@ public:
     W8GrowableVector<int> values_18;
     W8GrowableVector<float> values_28;
     W8GrowableVector<srVector3T<float> > values_38;
-    int value_48;
+    int keyframe_index_48;
     float time_4c;
-    int value_50;
-    float value_54;
+    int start_frame_50;
+    float end_frame_54;
 };
 
 static_assert(sizeof(stLightDefinition005ECDA0) == 0x58,
@@ -139,13 +140,13 @@ static_assert(offsetof(stLightDefinition005ECDA0, values_28) == 0x28,
               "stLightDefinition005ECDA0_values_28");
 static_assert(offsetof(stLightDefinition005ECDA0, values_38) == 0x38,
               "stLightDefinition005ECDA0_values_38");
-static_assert(offsetof(stLightDefinition005ECDA0, value_48) == 0x48,
+static_assert(offsetof(stLightDefinition005ECDA0, keyframe_index_48) == 0x48,
               "stLightDefinition005ECDA0_value_48");
 static_assert(offsetof(stLightDefinition005ECDA0, time_4c) == 0x4c,
               "stLightDefinition005ECDA0_time_4c");
-static_assert(offsetof(stLightDefinition005ECDA0, value_50) == 0x50,
+static_assert(offsetof(stLightDefinition005ECDA0, start_frame_50) == 0x50,
               "stLightDefinition005ECDA0_value_50");
-static_assert(offsetof(stLightDefinition005ECDA0, value_54) == 0x54,
+static_assert(offsetof(stLightDefinition005ECDA0, end_frame_54) == 0x54,
               "stLightDefinition005ECDA0_value_54");
 
 /*
@@ -191,15 +192,15 @@ public:
 
     float positionalX() const
     {
-        return m_positional_228.x;
+        return m_position_228.x;
     }
     float positionalY() const
     {
-        return m_positional_228.y;
+        return m_position_228.y;
     }
     float positionalZ() const
     {
-        return m_positional_228.z;
+        return m_position_228.z;
     }
     stLightDefinition* definition() const
     {
@@ -216,12 +217,14 @@ public:
     /* One value, not three floats: 0x0049C690 copies it through the base-pointer
        form VC6 emits for a class type's memberwise assignment, not through three
        independent displacement loads. */
-    srVector3T<float> m_positional_228;  /* 0x228 */
+    srVector3T<float> m_position_228;    /* 0x228 */
     stLightDefinition* m_definition_234; /* 0x234: owned */
-    unsigned char m_positional_238;      /* 0x238 */
+    unsigned char m_padding_238;         /* 0x238 */
     /* Oscillation direction: zero sweeps intensity down, nonzero sweeps up. */
     unsigned char m_direction_239;
-    unsigned char m_positional_23a; /* 0x23a */
+    /* Raised by light-toggle triggers; the save path serializes the names of
+       lights carrying it so their toggled state persists in savegames. */
+    bool m_save_marked_23a; /* 0x23a */
     unsigned char m_padding_23b;
     /* GetTickCount()/1000 timestamp of the last intensity/color update. */
     float m_level_time_23c;

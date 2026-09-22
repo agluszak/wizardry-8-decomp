@@ -59,7 +59,10 @@ struct W8World {
     W8PList* plsAmbientSounds;
     float environment_range_start_014;
     float environment_range_end_018;
-    float m_positional_01c;
+    /* Third serialized environment channel (loaded from
+       environment_colour.blue like the start/end fractions); no recovered
+       consumer reads it. */
+    float environment_range_blue_01c;
     float view_distance_020;
     float environment_intensity_024;
     /* Snapshot of environment_intensity_024 taken when a fade-out starts; the
@@ -74,14 +77,14 @@ struct W8World {
     W8GameData* m_owned_04c;
     W8Octree* octree;
     stLight* camera_light;
-    unsigned char m_positional_058[0x11];
+    unsigned char m_padding_058[0x11];
     unsigned char m_loaded;
     unsigned char m_padding_06a[2];
     W8Quad* m_owned_06c;
     srModelInstance* update_mesh_source;
-    float value_74;
-    float value_78;
-    unsigned char m_positional_07c[0x20];
+    float render_range_74;
+    float render_range_78;
+    unsigned char m_padding_07c[0x20];
     W8PList m_list_09c;
     W8PList m_lights_0a8;
     W8GrowableVector<W8SpellVisual*>* spell_visuals;
@@ -92,7 +95,7 @@ struct W8World {
     W8GrowableVector<Trigger*>* triggers;
     W8GrowableVector<stParticle*>* particles;
     W8GrowableVector<W8NamedPosition*>* named_positions;
-    unsigned char m_positional_0d4[8];
+    unsigned char m_padding_0d4[8];
 };
 
 static_assert(sizeof(W8World) == 0xdc, "W8World_must_be_0xdc");

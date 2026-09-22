@@ -227,10 +227,14 @@ public:
     int value_1e0;
     int propagated_value_1e4;
     float value_1e8;
-    float value_1ec;
+    /* Y-axis squash scale applied while flags_1dc bit 8 is set (decayed per
+       frame by g_float_005ebc3c). */
+    float scale_y_1ec;
     float value_1f0;
-    int value_1f4;
-    int value_1f8;
+    /* Attack-animation frame that triggers the missile launch. */
+    int missile_frame_1f4;
+    /* Cycle-25 animation frame that triggers the attached spell effect. */
+    int spell_frame_1f8;
     /* 0x1fc: talking state armed by StartTalking; cleared by StopTalking. */
     unsigned char talking;
     /* 0x1fd: the StartTalking argument; mouth texture animation only runs
@@ -352,13 +356,13 @@ void MonsterSetCycle(W8Monster* monster, signed char cycle);
 void MonsterSetStateA0(W8Monster* monster, unsigned char state); /* 0x004C6160 */
 void MonsterSetCycleBehaviour(W8GrCycle* cycle, signed char behaviour);
 void MonsterSetCycleSubCycle(W8GrCycle* cycle, unsigned char subcycle);
-void SetFlag6081E4(unsigned char value);
+void SetCombatInactiveFlag(unsigned char value);
 void UpdateNearestMonsterGroupMembers004CA570();
 void ApplyMonsterRepresentationScale(W8Monster* monster);
 
 static_assert(sizeof(W8Monster) == 0x348, "W8Monster_size_must_be_0x348");
 /* Secondary vftable 0x005ed218 keeps the W8Navigator subobject at +0x18. */
-W8_ASSERT_BASE_OFFSET(W8Monster, W8Navigator, unknown_004, 0x18);
+W8_ASSERT_BASE_OFFSET(W8Monster, W8Navigator, padding_004, 0x18);
 
 /* A particle temporarily takes over a monster animation while its shake event
    runs. The derived callback restores the saved representation state when the

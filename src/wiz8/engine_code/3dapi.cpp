@@ -257,7 +257,7 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
 
     world->m_owned_06c = 0;
     world->update_mesh_source = 0;
-    memset(world->m_positional_07c, 0, 0x10);
+    memset(world->m_padding_07c, 0, 0x10);
 
     int handle = FileOpen(level_path, FILE_ACCESS_READ | FILE_OPEN_EXISTING, FALSE);
     if (handle == 0) {
@@ -272,7 +272,7 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
     /* ReadLevel failure is assertion-only in the canonical body. LoadWorld
        still performs the mesh update and returns success. */
 
-    world->m_positional_0d4[0] = 0;
+    world->m_padding_0d4[0] = 0;
     if (world->octree != 0) {
         UpdateWorldOctree004BAF50(world);
     } else if (world->m_owned_06c != 0) {
@@ -318,7 +318,7 @@ W8World* CreateWorld()
     SetSceneAmbientLightWhite(world->static_scene);
     ConstructWorldCollections(world);
     world->environment_range_end_018 = 1.0f;
-    world->m_positional_01c = 1.0f;
+    world->environment_range_blue_01c = 1.0f;
     world->environment_range_start_014 = 0.75f;
     return world;
 }
@@ -328,7 +328,7 @@ void UpdateWorlds0044F400(void)
 {
     g_navigator_vertical_enabled_006081f8 =
         !(gfKeyState[0x11] != 0 && g_combat_state != 0 &&
-          (g_combat_state->flag_001 != 0 || gXStatus.fPartyMovementMode != 0));
+          (g_combat_state->round_active_001 != 0 || gXStatus.fPartyMovementMode != 0));
 
     {
         int count = g_worlds_00659a80.GetCount();
@@ -1023,7 +1023,7 @@ void ApplyWorldUpdateFlags(W8World* world, unsigned int flags)
         if (WorldGetFarClip(world) >= 50000.0f) {
             scale = 1.5f;
         }
-        WorldSetValue74(world, static_cast<float>(WorldGetFarClip(world)) * scale);
+        WorldSetRenderRange(world, static_cast<float>(WorldGetFarClip(world)) * scale);
     }
     if ((flags & 2) != 0) {
         WorldSetFarClip(world, static_cast<float>(WorldGetFarClip(world)) -
@@ -1032,7 +1032,7 @@ void ApplyWorldUpdateFlags(W8World* world, unsigned int flags)
         if (WorldGetFarClip(world) >= 50000.0f) {
             scale = 1.5f;
         }
-        WorldSetValue74(world, static_cast<float>(WorldGetFarClip(world)) * scale);
+        WorldSetRenderRange(world, static_cast<float>(WorldGetFarClip(world)) * scale);
     }
     if ((flags & 4) != 0 && g_float_00609c88 < 180.0f) {
         g_float_00609c88 += g_float_005ebc88;
@@ -1074,7 +1074,7 @@ W8World* ForwardCreateWorld00451100(void)
 
 /* Resolve the PARTY alias or a named position stored with the current world.
    The third out-param is float* at every call site (World.h); retail still
-   stores named-position value_08c as int bits into that slot. */
+   stores named-position angle_bits_08c as int bits into that slot. */
 // FUNCTION: WIZ8 0x004512C0
 bool FindEntityByName(const char* name, srVector3T<float>* position, float* angle,
                       srVector3T<float>* direction)
@@ -1093,13 +1093,13 @@ bool FindEntityByName(const char* name, srVector3T<float>* position, float* angl
         if (_stricmp(name, entry->name) == 0) {
             *position = entry->position;
             if (angle != 0) {
-                // c-style-cast-ok: value_08c is int storage written through float* out-param
-                *(int*)angle = entry->value_08c;
+                // c-style-cast-ok: angle_bits_08c is int storage written through float* out-param
+                *(int*)angle = entry->angle_bits_08c;
             }
             if (direction != 0) {
-                direction->x = entry->value_090;
-                direction->y = entry->value_094;
-                direction->z = entry->value_098;
+                direction->x = entry->direction_090.x;
+                direction->y = entry->direction_090.y;
+                direction->z = entry->direction_090.z;
             }
             return true;
         }

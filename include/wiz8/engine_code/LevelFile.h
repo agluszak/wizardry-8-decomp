@@ -173,9 +173,10 @@ struct W8LevelFileLinkedRecord {
     unsigned char unknown_1b2;
     /* 0x1b3: float factor handed to the environment-record builder
        (0x00448E60), which multiplies the surface normal by it. */
-    float value_1b3;
-    /* 0x1b7: float factor applied to the new environment record's +0x34. */
-    float value_1b7;
+    float normal_scale_1b3;
+    /* 0x1b7: float factor applied to the new environment record's
+       forward_scale_34. */
+    float forward_scale_1b7;
 };
 
 struct W8LevelFileSwitch { /* 0x271 */
@@ -363,8 +364,10 @@ struct W8LevelFileProp { /* 0xbf */
        CreatePathProps assertion text (frame-count upper bound) */
     unsigned char unknown_02;      /* version_00 > 4 */
     srVector3T<float> position_03; /* version_00 > 4: serialized prop position */
-    unsigned char unknown_0f[4];   /* version_00 > 5 */
-    char name_13[0x40];            /* version_00 > 6 */
+    /* version_00 > 5; bit 0 marks the prop for stop-mesh record emission
+       in OctPreTree. */
+    unsigned char flags_0f[4];
+    char name_13[0x40]; /* version_00 > 6 */
     W8LevelFileAnimObj anim_obj_53;
     char has_trigger_b2;
     W8LevelFileTrigger* pTrigger; /* 0xb3 */
@@ -553,7 +556,7 @@ static_assert(offsetof(W8LevelFileProp, version_00) == 0x00, "W8LevelFileProp_ve
 static_assert(offsetof(W8LevelFileProp, bNumFrames) == 0x01, "W8LevelFileProp_bNumFrames");
 static_assert(offsetof(W8LevelFileProp, unknown_02) == 0x02, "W8LevelFileProp_unknown_02");
 static_assert(offsetof(W8LevelFileProp, position_03) == 0x03, "W8LevelFileProp_position_03");
-static_assert(offsetof(W8LevelFileProp, unknown_0f) == 0x0f, "W8LevelFileProp_unknown_0f");
+static_assert(offsetof(W8LevelFileProp, flags_0f) == 0x0f, "W8LevelFileProp_flags_0f");
 static_assert(offsetof(W8LevelFileProp, name_13) == 0x13, "W8LevelFileProp_name_13");
 static_assert(offsetof(W8LevelFileProp, anim_obj_53) == 0x53, "W8LevelFileProp_anim_obj_53");
 static_assert(offsetof(W8LevelFileProp, has_trigger_b2) == 0xb2, "W8LevelFileProp_has_trigger_b2");

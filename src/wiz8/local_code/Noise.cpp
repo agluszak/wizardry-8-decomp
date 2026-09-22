@@ -27,7 +27,7 @@ int NoiseHearingMargin004F0E50(int radius, int range, int hops)
 // FUNCTION: WIZ8 0x004F0E80
 void AlertMonsterGroupsToNoise004F0E80(const srVector3T<float>* position, int radius, int flag)
 {
-    if (g_status_685170.value_2390 != 0) {
+    if (g_status_685170.world_suspended_2390 != 0) {
         return;
     }
     srVector3T<float> noise_position = *position;
@@ -35,7 +35,7 @@ void AlertMonsterGroupsToNoise004F0E80(const srVector3T<float>* position, int ra
          ++group_index) {
         W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
         W8MonsterInfo* info = MonsterInfoFromID(
-            0x2e, "C:\\Projects\\Wizardry 8\\Local Code\\Noise.cpp", group->value_9f, 1);
+            0x2e, "C:\\Projects\\Wizardry 8\\Local Code\\Noise.cpp", group->leader_id_9f, 1);
         if (info->monster->deaf_28f != 0) {
             continue;
         }
@@ -61,7 +61,7 @@ void AlertMonsterGroupsToNoise004F0E80(const srVector3T<float>* position, int ra
                 0x54, "C:\\Projects\\Wizardry 8\\Local Code\\Noise.cpp", group->leader_group_id, 1);
             W8MonsterGroup* leader = GetMonsterGroupByListIndex(leader_index);
             info = MonsterInfoFromID(0x55, "C:\\Projects\\Wizardry 8\\Local Code\\Noise.cpp",
-                                     leader->value_9f, 1);
+                                     leader->leader_id_9f, 1);
             if (info->monster->deaf_28f != 0) {
                 continue;
             }
@@ -100,7 +100,7 @@ void AlertWorldNoise004F1100(void)
 // FUNCTION: WIZ8 0x004F1150
 void AlertCombatNoise004F1150(char large_radius)
 {
-    if (g_status_685170.value_2390 != 0) {
+    if (g_status_685170.world_suspended_2390 != 0) {
         return;
     }
     srVector3T<float> position = g_startup_world_659c0c->GetPosition();

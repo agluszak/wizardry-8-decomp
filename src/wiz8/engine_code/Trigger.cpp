@@ -1145,7 +1145,7 @@ void W8TriggerEvent::Update()
     if (action_004 == 2) {
         unsigned short flags = timer_008.m_flags;
 
-        if (g_flag_006081e4 == 0) {
+        if (g_combat_inactive_006081e4 == 0) {
             if ((flags & 8) != 0 || (g_shared_timer_paused != 0 && (flags & 1) == 0) ||
                 g_shared_timer_flag_d1 != 0) {
                 return;
@@ -2305,7 +2305,7 @@ void Trigger::FinishAction()
 
                 stLight* light = FindLightByName00445A10(g_trigger_parse_buffer_00659908, 0);
                 if (light != 0) {
-                    light->m_positional_23a = 1;
+                    light->m_save_marked_23a = 1;
                     if (light->testFlag(srNode::FLAG_DISABLE) == 0) {
                         light->setFlag(srNode::FLAG_DISABLE);
                     } else {
@@ -3097,7 +3097,7 @@ void Trigger::Run(int source)
         while (recipient != 0) {
             stLight* light = FindLightByName00445A10(NextTriggerRecipient(&recipient), 0);
             if (light != 0) {
-                light->m_positional_23a = 1;
+                light->m_save_marked_23a = 1;
                 if (action_230 == 4) {
                     if (light->testFlag(srNode::FLAG_DISABLE) == 0) {
                         light->setFlag(srNode::FLAG_DISABLE);
@@ -3148,7 +3148,7 @@ void Trigger::Run(int source)
             return;
         }
 
-        group->flag_28 = 1;
+        group->members_active_28 = 1;
         monster_info->monster->m_pRep->animation_playing_06d = 1;
         monster_info->monster->m_pRep->animation_playing_06d = 1;
         monster_info->monster->m_pRep->timer_068 =
@@ -3724,7 +3724,7 @@ bool Trigger::SelectAction()
     bool fallback_selected = false;
     bool result = true;
 
-    if (g_flag_006081e4 == 0 && m_pActionData != 0 && m_pActionData->type_004 == 10 &&
+    if (g_combat_inactive_006081e4 == 0 && m_pActionData != 0 && m_pActionData->type_004 == 10 &&
         (static_cast<W8DoorTriggerActionData*>(m_pActionData)->flags_008 & 1) != 0) {
         return 0;
     }

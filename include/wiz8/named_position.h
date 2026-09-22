@@ -7,18 +7,16 @@ struct W8NamedPosition {
     {
         name[0] = '\0';
         position.SetZero();
-        value_08c = 0;
-        value_090 = 0.0f;
-        value_094 = 0.0f;
-        value_098 = 0.0f;
+        angle_bits_08c = 0;
+        direction_090.SetZero();
     }
 
     char name[0x80];
     srVector3T<float> position;
-    int value_08c;
-    float value_090;
-    float value_094;
-    float value_098;
+    /* Stored as int bits and returned through a float* out-param by
+       FindEntityByName. */
+    int angle_bits_08c;
+    srVector3T<float> direction_090;
 };
 
 static_assert(sizeof(W8NamedPosition) == 0x9c, "W8NamedPosition_must_be_0x9c");

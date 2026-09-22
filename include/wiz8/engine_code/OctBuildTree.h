@@ -36,8 +36,8 @@ struct W8OctBuildNode00446330 {
         void** surface_arrays_00[8]; /* elements follow the insert mode */
         unsigned short* region_arrays_00[8];
     };
-    unsigned long positional_20;
-    unsigned long positional_24;
+    unsigned long padding_20;
+    unsigned long padding_24;
     unsigned short region_28;
     unsigned short leaf_kind_2a;
     unsigned short provisional_region_2c;
