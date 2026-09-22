@@ -100,9 +100,15 @@ srTimer::srTimer(int argument_0, int argument_1, int argument_2)
     reset(argument_0, argument_1, argument_2);
 }
 
-/* Retail copies the two 0x400 strings and the 13-byte CPU signature with
-   byte-at-a-time loops, not memcpy, and reloads kernel32 instead of sharing
-   the source's handle. */
+/* Retail's copy ctor store sequence (0x10060B90): byte loops for the two
+   0x400 strings, copies +0x808..+0x828 (frequency/base/tick/pause/
+   units_per_interval), copies +0x844 read_tick, reloads kernel32 with
+   LoadLibraryA when the source has a handle instead of sharing it, copies
+   only 0xd of the 0x10 m_cpu_vendor bytes, then +0x85c..+0x864, and finally
+   zeroes m_pause. It never writes +0x82c..+0x840 — a copied timer keeps
+   uninitialized m_seconds_per_tick, m_units_per_tick and m_cpu_count until
+   reset() re-derives them, which is confirmed retail behavior rather than a
+   recovery omission. */
 // FUNCTION: SURRENDER 0x10060B90
 srTimer::srTimer(const srTimer& other)
 {
@@ -130,6 +136,12 @@ srTimer::srTimer(const srTimer& other)
     m_pause.hi = 0;
 }
 
+/* Retail's assignment (0x10062480) uses the same store map as the copy
+   ctor — +0x82c..+0x840 stay untouched (the destination keeps its existing
+   m_seconds_per_tick/m_units_per_tick/m_cpu_count) — but preserves the
+   copied m_pause verbatim instead of zeroing it, and a non-null
+   m_kernel32 handle is overwritten by the fresh LoadLibraryA result without
+   release: a confirmed retail leak. */
 // FUNCTION: SURRENDER 0x10062480
 srTimer& srTimer::operator=(const srTimer& other)
 {
