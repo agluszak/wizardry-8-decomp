@@ -69,6 +69,9 @@ void SpellCastingNoticeClosed005A02F0(W8DialogBase* dialog);
 unsigned char SpellRealmButtonRegionEvent(const InputAtom* event,
                                           W8Region* region);                      /* 0x005A0C80 */
 unsigned char SpellPowerPipRegionEvent(const InputAtom* event, W8Region* region); /* 0x005A0E50 */
+/* Text-box body callback while spell casting is active. */
+unsigned char SpellCastTextBoxRegionEvent(const InputAtom* event,
+                                          W8Region* region); /* 0x005A0F70 */
 
 /* 0x0069BF3C: live spell-casting view, or null when the panel is closed. */
 extern W8SpellCastingView* gpSCSV;
