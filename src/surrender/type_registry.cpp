@@ -91,12 +91,14 @@ public:
 
     void clear()
     {
-        operator delete(buckets_00);
-        operator delete(entries_04);
+        if (bucket_count_0c != 0) {
+            operator delete(buckets_00);
+            operator delete(entries_04);
+        }
+        bucket_count_0c = 0;
         buckets_00 = 0;
         entries_04 = 0;
         free_08 = -1;
-        bucket_count_0c = 0;
         resize();
     }
 
@@ -298,7 +300,11 @@ private:
         unsigned long old_bucket_count = bucket_count_20;
         bucket_count_20 = bucket_count;
         free_14 = 0;
-        by_instance_00.resize();
+        /* Retail clears by_instance_00 rather than rehashing it: every live
+           instance is re-inserted with its new NameEntry below, so preserving
+           the old mappings would leave duplicate keys pointing into the freed
+           entry array (0x10010F30 calls 0x10011380, RegistryHash::clear). */
+        by_instance_00.clear();
         NameEntry* entries = 0;
         NameEntry** buckets = 0;
         if (bucket_count != 0) {
