@@ -565,6 +565,12 @@ unsigned char W8ListBoxDialog::ProcessInput()
     InputAtom input;
 
     if (gfLeftButtonState != 0) {
+        /* Confirmed retail bug: nothing in the dialog lifecycle ever writes
+           m_ok_rect_0c4 or m_cancel_rect_0dc. The ctor (0x005CBB40) stores
+           0xbc/0xc0 then jumps to 0xd4/0xd8, skipping both rectangles, and no
+           member function or stListBox callback stores to +0xc4..+0xd3 or
+           +0xdc..+0xeb. Retail hit-tests whatever heap bytes occupy the two
+           rect slots, so these reads stay uninitialized by design. */
         if (m_selected_line_0f4 != -1 &&
             IsCursorInRectangle(m_ok_rect_0c4.left, m_ok_rect_0c4.top, m_ok_rect_0c4.right,
                                 m_ok_rect_0c4.bottom)) {
