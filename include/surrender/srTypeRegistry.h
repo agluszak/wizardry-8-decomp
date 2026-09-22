@@ -77,6 +77,9 @@ public:
 
     SR_DLL_IMPORT srRegistry();
     SR_DLL_IMPORT ~srRegistry();
+    /* Compiler-generated memberwise copy required by the dllexport model:
+       shallow-copies the owning root/index/critical-section pointers and is
+       unsafe as ordinary assignment. Not called by any known consumer. */
     SR_DLL_IMPORT srRegistry& operator=(const srRegistry& other);
 
     SR_DLL_IMPORT unsigned long allocateID();

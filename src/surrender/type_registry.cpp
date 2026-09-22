@@ -1042,6 +1042,15 @@ srRegistry::~srRegistry()
     delete critical_section_0c;
 }
 
+/* Retail emits a verbatim memberwise copy of all four owning fields
+   (root_00, class_index_04, valid_08, critical_section_0c): this is the
+   compiler-generated operator= the dllexport class requires, not safe
+   value semantics. Assigning a live registry aliases the source's entire
+   ownership graph and leaks the destination's root, index and critical
+   section; destructing either then double-frees them. No copy ctor is
+   emitted for srRegistry and no consumer imports this export (absent
+   from the Wiz8.exe sr.dll import table), so the shared-ownership hazard
+   is genuine but unreachable retail behavior. */
 // FUNCTION: SURRENDER 0x1000EBA0
 srRegistry& srRegistry::operator=(const srRegistry& other)
 {
