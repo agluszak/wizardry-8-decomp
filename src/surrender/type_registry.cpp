@@ -817,6 +817,13 @@ srClass::srClass() : reference_count_0c(1), update_14(0)
     touch();
 }
 
+/* Retail ~srClass is exactly unregisterInstance + base teardown; it does
+   NOT unlink update_14. A class destroyed while updates remain enabled
+   leaves a leaked Update node on the global _firstUpdate list with a
+   dangling instance_14 that performUpdates later calls into — genuine
+   retail lifetime bug. The ownership contract is that derived classes (or
+   their owners) call setUpdate(0, 0) before destruction; the destructor is
+   kept faithful rather than "fixed". */
 // FUNCTION: SURRENDER 0x1000E1A0
 srClass::~srClass()
 {
