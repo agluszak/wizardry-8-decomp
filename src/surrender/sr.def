@@ -3,6 +3,13 @@ EXPORTS
     ??0srIlluminator@@QAE@ABV0@@Z
     ?getActivePolygonCount@srMeshModel@@QAEJXZ
     ?getActivePolygonTable@srMeshModel@@QAEPAKH@Z
+    ??0srMeshModel@@QAE@ABV0@@Z
+    ??0srMeshModel@@QAE@JJ@Z
+    ??1srMeshModel@@MAE@XZ
+    ?freeAll@srMeshModel@@IAEXXZ
+    ?setDirty@srMeshModel@@QAEXW4e_flags@1@@Z
+    ?clearDirty@srMeshModel@@QAEXW4e_flags@1@@Z
+    ?testDirty@srMeshModel@@QBEHW4e_flags@1@@Z
     ?getPolyEq@srMeshModel@@QAEPAV?$srVector4T@M@@XZ
     ?getPolyShader@srMeshModel@@QAEPAVsrShader@@JH@Z
     ?getPolyTexture@srMeshModel@@QAEPAV?$srPtr@VsrTextureIFace@@@@JJH@Z
@@ -17,6 +24,8 @@ EXPORTS
     ?getMaterial@srMeshModel@@QBEPAVsrMaterialIFace@@JW4e_side@1@@Z
     ?getShader@srMeshModel@@QBE?AVsrShader@@J@Z
     ?getTexture@srMeshModel@@QBEPAVsrTextureIFace@@JJ@Z
+    ??4srMeshModel@@QAEAAV0@ABV0@@Z
+    ?reset@srMeshModel@@QAEXJJ@Z
     ?setActivePolygonCount@srMeshModel@@QAEXJ@Z
     ?setMaterial@srMeshModel@@QAEXPAVsrMaterialIFace@@JW4e_side@1@@Z
     ?setShader@srMeshModel@@QAEXVsrShader@@J@Z
