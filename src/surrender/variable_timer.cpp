@@ -300,7 +300,9 @@ unsigned long srVariableTimer::getMsTime(e_timerReadControl control)
 unsigned long srVariableTimer::getUTime(srQuadWord& out, e_timerReadControl control)
 {
     getUTime(control);
-    out = m_scaled_tick - m_scaled_base;
+    unsigned __int64 units = (unsigned __int64)((m_scaled_tick - m_scaled_base) * m_units_per_tick);
+    out.lo = (unsigned long)units;
+    out.hi = (unsigned long)(units >> 0x20);
     return out.lo;
 }
 
