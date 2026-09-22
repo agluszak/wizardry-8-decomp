@@ -404,7 +404,7 @@ char TargetResistsCondition(W8CombatSlot* target, int realm, unsigned int power_
     if (static_cast<int>(Random(100)) < chance) {
         if (target->iType == W8_TARGET_KIND_CHARACTER) {
             character = &g_status_685170.buffers.Char[target->iChar];
-            if (character->skills[W8_RESISTANCE_BONUS_SKILL].flag_00 != 0) {
+            if (character->skills[W8_RESISTANCE_BONUS_SKILL].active_00 != 0) {
                 PracticeCharacterSkill(character, W8_RESISTANCE_BONUS_SKILL, 2, 0);
             }
         }
@@ -878,7 +878,7 @@ void RecalculateCharacterResistances(W8Character* character)
 
         resistance->base = 25;
         resistance->base = character->skills[W8_FIRST_RESISTANCE_SKILL + index].level / 10 + 25;
-        if (character->skills[W8_RESISTANCE_BONUS_SKILL].flag_00 != 0) {
+        if (character->skills[W8_RESISTANCE_BONUS_SKILL].active_00 != 0) {
             resistance->base += character->skills[W8_RESISTANCE_BONUS_SKILL].level / 5 + 5;
         }
         if (character->iProfession == 14) {
@@ -3021,7 +3021,7 @@ void FinishSpellEffectTargets(W8SpellEffectEntry* effect)
     character = 0;
     monster_info = 0;
     best = 0;
-    if (MonsterCanAimSpell005474B0(effect->kind) != 0 && effect->Source.unknown_18[2] == 0 &&
+    if (MonsterCanAimSpell005474B0(effect->kind) != 0 && effect->Source.aim_resolved_1a == 0 &&
         effect->Source.fBackfire == 0 && effect->Source.fReflection == 0) {
         for (index = 0; index < effect->target_indices_0f0.GetCount(); ++index) {
             W8Character* member =
@@ -3483,7 +3483,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         target_type != W8_TARGET_TYPE_PARTY) {
         return;
     }
-    if (effect->Source.unknown_18[0] != 0 && spell_id != 9) {
+    if (effect->Source.auto_cast_18 != 0 && spell_id != 9) {
         effect->reported_124 = 1;
     }
     switch (spell_id) {
@@ -3576,7 +3576,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         if (6 < level) {
             level = 7;
         }
-        SetKnockKnockTarget(level, effect->Source.unknown_18[1], effect->Source.fBackfire);
+        SetKnockKnockTarget(level, effect->Source.name_known_19, effect->Source.fBackfire);
         effect->reported_124 = 1;
         break;
     case 0x13:
@@ -3689,7 +3689,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         if (6 < level) {
             level = 7;
         }
-        CastSpellAtLockInteraction00587C80(level, effect->Source.unknown_18[1],
+        CastSpellAtLockInteraction00587C80(level, effect->Source.name_known_19,
                                            effect->Source.fBackfire);
         effect->reported_124 = 1;
         break;
@@ -3948,7 +3948,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         effect->reported_124 = 1;
     }
     if (effect->recast_120 != 0 && applied == 0) {
-        if (effect->Source.unknown_18[0] != 0) {
+        if (effect->Source.auto_cast_18 != 0) {
             CastSpellFromSource(spell_id, &effect->Source, &effect->target,
                                 effect->definition.duration_scale, 0, 0, 1, &cost, 0, 0, 0);
         } else if (TargetSourceIsCharacter(&effect->Source, 0) != 0) {

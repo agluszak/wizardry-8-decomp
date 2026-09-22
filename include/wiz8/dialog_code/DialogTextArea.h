@@ -59,9 +59,9 @@ private:
 public:
     /* Owning dialogs raise this before Draw, the same way they dirty the
        contained button and scrollbar. */
-    unsigned char m_dirty; /* 0x3d */
+    bool m_dirty; /* 0x3d */
 private:
-    unsigned char unknown_03e;
+    bool selection_dirty_03e; /* repaint after a selection change */
     unsigned char unknown_03f;
     int m_entry_spacing;             /* 0x40 */
     int m_behavior_flags;            /* 0x44 */

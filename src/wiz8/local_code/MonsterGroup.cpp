@@ -1071,12 +1071,12 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
     } else {
         group->alternate_name_2c = 0;
     }
-    group->unknown_2d[0] = 0;
-    group->unknown_2d[1] = 0;
-    group->unknown_2d[2] = 0xff;
-    group->unknown_2d[3] = 0xff;
-    group->unknown_2d[4] = 0xff;
-    group->unknown_2d[5] = 0xff;
+    group->group_state_2d[0] = 0;
+    group->group_state_2d[1] = 0;
+    group->group_state_2d[2] = 0xff;
+    group->group_state_2d[3] = 0xff;
+    group->group_state_2d[4] = 0xff;
+    group->group_state_2d[5] = 0xff;
     group->spawn_time = g_status_685170.world_clock;
 
     group->monsters = ILCreate();
@@ -1737,23 +1737,23 @@ void SetMonsterGroupEngagementState(int group_id, unsigned char state)
     if ((group->monster_id == 0x1b6 || group->monster_id == 0x234) && state == 1) {
         return;
     }
-    if (group->unknown_c8[0] != state) {
-        group->unknown_c8[0] = state;
-        group->unknown_c8[1] = 0;
+    if (group->engagement_c8 != state) {
+        group->engagement_c8 = state;
+        group->engagement_ticks_c9 = 0;
     }
-    if (group->unknown_c8[0] != 0) {
-        group->unknown_c8[1] = group->unknown_c8[1] + 1;
+    if (group->engagement_c8 != 0) {
+        group->engagement_ticks_c9 = group->engagement_ticks_c9 + 1;
     }
     for (ally_index = 0; ally_index < W8_MONSTER_GROUP_ALLY_COUNT; ++ally_index) {
         if (group->allied_group_ids[ally_index] != 0) {
             group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
                 0x932, MONSTER_GROUP_CPP, group->allied_group_ids[ally_index], 1));
-            if (group->unknown_c8[0] != state) {
-                group->unknown_c8[0] = state;
-                group->unknown_c8[1] = 0;
+            if (group->engagement_c8 != state) {
+                group->engagement_c8 = state;
+                group->engagement_ticks_c9 = 0;
             }
-            if (group->unknown_c8[0] != 0) {
-                group->unknown_c8[1] = group->unknown_c8[1] + 1;
+            if (group->engagement_c8 != 0) {
+                group->engagement_ticks_c9 = group->engagement_ticks_c9 + 1;
             }
         }
     }
@@ -1761,11 +1761,11 @@ void SetMonsterGroupEngagementState(int group_id, unsigned char state)
 
 /* The group's engagement byte at +0xc8, looked up by group id. */
 // FUNCTION: WIZ8 0x00511CB0
-unsigned char GetMonsterGroupFlagC8(int group_id)
+unsigned char GetMonsterGroupEngagementState(int group_id)
 {
     return GetMonsterGroupByListIndex(
                GetMonsterGroupIndexByID(0x946, MONSTER_GROUP_CPP, group_id, 1))
-        ->unknown_c8[0];
+        ->engagement_c8;
 }
 
 /* Marks every member's navigator position dirty (or clean). */

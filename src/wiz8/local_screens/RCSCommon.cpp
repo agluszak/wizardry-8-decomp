@@ -265,7 +265,7 @@ void OpenLevelUpCharacterScreen(void)
 }
 
 /* Dismiss-confirm portrait/name hitbox (help 2368): click dismisses the
-   reviewed party member; mouse enter/leave toggles unknown_d40[0]. */
+   reviewed party member; mouse enter/leave toggles portrait_hovered_d40[0]. */
 // FUNCTION: WIZ8 0x005B5E90
 unsigned char CampDismissPortraitRegionEvent(const InputAtom* event, W8Region* region)
 {
@@ -283,9 +283,9 @@ unsigned char CampDismissPortraitRegionEvent(const InputAtom* event, W8Region* r
             if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {
                 return 0;
             }
-            g_camp_screen_0069c0f4->unknown_d40[0] = 1;
+            g_camp_screen_0069c0f4->portrait_hovered_d40[0] = 1;
         } else {
-            g_camp_screen_0069c0f4->unknown_d40[0] = 0;
+            g_camp_screen_0069c0f4->portrait_hovered_d40[0] = 0;
         }
         g_camp_screen_0069c0f4->redraw_flags |= 0x100;
         return 0;
@@ -873,7 +873,7 @@ void DrawCampHeader005B4000(void)
                                         giReviewCharSlot);
         }
         DrawCatalogImage(-14, 0x10f, 0, 9, 0xa4, 0xc, 2, 0);
-        if (state->unknown_d40[0] != 0) {
+        if (state->portrait_hovered_d40[0] != 0) {
             DrawCatalogImage(-14, 0x116, 0, 0, 0xa4, 0xc, 2, 0);
         }
         if (gXStatus.fCombatMode == 0) {

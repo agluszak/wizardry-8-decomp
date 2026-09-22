@@ -52,9 +52,9 @@ struct W8MipeState {
     int selected_group_id;   /* 0x0c: group id of the last group pick; W8_MIPE_NO_GROUP = none */
     unsigned char selecting; /* 0x10 */
     unsigned char unknown_11[0x13];
-    srVector3T<float> drag_anchor; /* 0x24 */
-    unsigned char unknown_30;
-    unsigned char dragging; /* 0x31 */
+    srVector3T<float> drag_anchor;    /* 0x24 */
+    unsigned char creation_method_30; /* 0 exact, 1 placeholder, 2 selection */
+    unsigned char dragging;           /* 0x31 */
     unsigned char unknown_32[2];
     float value_34;               /* 0x34: initialised to 1.0 */
     int waypoint_count;           /* 0x38 */

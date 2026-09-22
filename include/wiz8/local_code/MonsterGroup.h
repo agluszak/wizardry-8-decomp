@@ -49,7 +49,10 @@ struct W8MonsterGroup {
        under. Group creation presets it for alternate-name records, and the
        wandering-group detection pass sets it once the party spots the group. */
     bool alternate_name_2c;
-    unsigned char unknown_2d[0x6e];
+    /* 0x2d..0x9a: per-group state blob; [0] is the monster-awareness grant
+       latch (MonsterManager fills each member's awareness once), [0x6d] is
+       the MIPE-written tail byte. */
+    unsigned char group_state_2d[0x6e];
     /* 0x9b: which member of the group the party currently has picked out,
        by location id, and -1 when none - which is how the group loads. Cycling
        through the group's targetable members reads it to know where it is and
@@ -77,7 +80,10 @@ struct W8MonsterGroup {
     /* 0xc4 is a saved-record version: at 2 and above the loader reads one more
        byte, and below 3 it clears flag_ca that older saves never wrote. */
     unsigned int version; /* 0xc4 */
-    unsigned char unknown_c8[2];
+    /* 0xc8: group engagement state; 0xc9 ticks spent in it (reset on change,
+       the AI checks < 3 for "just engaged"). */
+    unsigned char engagement_c8;
+    unsigned char engagement_ticks_c9;
     /* 0xca: set when a script/NPC pass forces the group neutral; cleared on
        load and when hostility is recomputed. Older saves never wrote it. */
     bool forced_neutral_ca;
@@ -98,7 +104,7 @@ unsigned int GetMonsterGroupIndexByID(int caller_line, const char* caller_file, 
                                       unsigned char assert_on_failure);
 W8MonsterGroup* GetMonsterGroupByListIndex(unsigned int group_list_index);
 /* The group's flag at 0xc8, looked up by group id. */
-unsigned char GetMonsterGroupFlagC8(int group_id); /* 0x00511CB0 */
+unsigned char GetMonsterGroupEngagementState(int group_id); /* 0x00511CB0 */
 unsigned char ApplyToMonsterGroupLeader(W8MonsterGroup* monster_group,
                                         const srVector3T<float>* position,
                                         char follow_leader); /* 0x0050FBA0 */

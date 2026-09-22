@@ -29,7 +29,7 @@ bool RapaxMainFloorAltarBox004DA3C0(Trigger* pTrigger)
     srVector3T<float> position;
     int var_id;
 
-    if (g_status_685170.flag_2489 == 0) {
+    if (g_status_685170.rpc_active_2489 == 0) {
         var_id = GetLocationVarIDByName("LezboDemonAppeared");
         if (var_id != -1) {
             var_id = GetLocationVarValueByName("LezboDemonAppeared");

@@ -382,7 +382,7 @@ bool IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
     }
     if (skill_id >= 0x1c && skill_id <= 0x21) {
         for (index = 0x18; index <= 0x1b; ++index) {
-            if (character->skills[index].flag_00) {
+            if (character->skills[index].active_00) {
                 break;
             }
         }
@@ -485,7 +485,7 @@ void ResetCharacterSkills00553A60(W8Character* character)
     unsigned int index;
 
     for (index = 0; index < 0x29; ++index) {
-        int value = character->skills[index].value_02;
+        int value = character->skills[index].points_02;
         if (index == static_cast<unsigned int>(g_profession_bonus_skills[character->iProfession])) {
             unsigned int bonus = (unsigned int)(value * 0x19) / 100;
             if (bonus == 0) {
@@ -493,7 +493,7 @@ void ResetCharacterSkills00553A60(W8Character* character)
             }
             value += bonus;
         }
-        value += character->bonus_1770.unknown_13[index];
+        value += character->bonus_1770.skill_bonus_13[index];
         if (value > 0x7d) {
             value = 0x7d;
         } else if (value < 0) {
@@ -516,8 +516,8 @@ void ApplyAttributeChange(W8Character* character, int attribute)
     int skill_id = attribute + 0x22;
 
     if (character->attributes[attribute].value >= 0x64) {
-        if (character->skills[skill_id].flag_00 == 0) {
-            character->skills[skill_id].flag_00 = 1;
+        if (character->skills[skill_id].active_00 == 0) {
+            character->skills[skill_id].active_00 = 1;
             if (g_current_screen_state.id == 3) {
                 ResetCharacterScreenSkill(skill_id);
             }
@@ -532,8 +532,8 @@ void ApplyAttributeChange(W8Character* character, int attribute)
             }
         }
     } else {
-        if (character->skills[skill_id].flag_00 != 0) {
-            character->skills[skill_id].flag_00 = 0;
+        if (character->skills[skill_id].active_00 != 0) {
+            character->skills[skill_id].active_00 = 0;
             if (g_current_screen_state.id == 3) {
                 RefundCharacterScreenSkill(skill_id);
             }
@@ -562,7 +562,7 @@ void ApplySkillChange(W8Character* character, int skill_id)
 {
     RefreshCharacterSkillAvailability00553CD0(character);
 
-    int level = character->skills[skill_id].value_02;
+    int level = character->skills[skill_id].points_02;
     if (skill_id == g_profession_bonus_skills[character->iProfession]) {
         unsigned int bonus = static_cast<unsigned int>(level * 0x19) / 100;
         if (bonus == 0) {
@@ -570,7 +570,7 @@ void ApplySkillChange(W8Character* character, int skill_id)
         }
         level += bonus;
     }
-    level += character->bonus_1770.unknown_13[skill_id];
+    level += character->bonus_1770.skill_bonus_13[skill_id];
     if (level > 0x7d) {
         level = 0x7d;
     } else if (level < 0) {
@@ -615,14 +615,14 @@ void RefreshCharacterSkillAvailability00553CD0(W8Character* character)
     for (index = 0; index < 0x29; ++index) {
         bool available = IsCharacterSkillAvailable(character, index, expert_realm_flags);
         if (!available) {
-            if (character->skills[index].flag_00) {
-                character->skills[index].flag_00 = 0;
+            if (character->skills[index].active_00) {
+                character->skills[index].active_00 = 0;
                 if (g_current_screen_state.id == W8_SCREEN_CHARACTER) {
                     RefundCharacterScreenSkill(index);
                 }
             }
-        } else if (!character->skills[index].flag_00) {
-            character->skills[index].flag_00 = 1;
+        } else if (!character->skills[index].active_00) {
+            character->skills[index].active_00 = 1;
             if (g_current_screen_state.id == W8_SCREEN_CHARACTER) {
                 ResetCharacterScreenSkill(index);
             }
@@ -635,7 +635,7 @@ void RefreshCharacterSkillAvailability00553CD0(W8Character* character)
 // FUNCTION: WIZ8 0x00553ee0
 unsigned int GetSkillQuarterValue00553EE0(W8Character* character, int skill_id)
 {
-    unsigned int value = (character->skills[skill_id].value_02 * 0x19) / 100;
+    unsigned int value = (character->skills[skill_id].points_02 * 0x19) / 100;
     if (value == 0) {
         value = 1;
     }
@@ -662,19 +662,19 @@ void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_poin
         g_profession_skill_availability[skill_id][character->iProfession] != 0) {
         W8CharacterSkill* skill = &character->skills[skill_id];
         skill->available_13 = true;
-        if (skill->flag_00 == 0) {
+        if (skill->active_00 == 0) {
             if (IsCharacterSkillAvailable(character, skill_id, NULL) == 0) {
                 return;
             }
-            skill->flag_00 = 1;
+            skill->active_00 = 1;
             if (g_current_screen_state.id == W8_SCREEN_CHARACTER) {
                 ResetCharacterScreenSkill(skill_id);
             }
         }
         if (usage_points != 0) {
             do {
-                if (skill->value_02 < 100) {
-                    threshold = (100 - (skill->value_02 * 100) / 100) * skill->base_level_0a / 100;
+                if (skill->points_02 < 100) {
+                    threshold = (100 - (skill->points_02 * 100) / 100) * skill->base_level_0a / 100;
                     if (g_skill_attributes[skill_id].category == 4) {
                         threshold = threshold / 2;
                     }
@@ -684,7 +684,7 @@ void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_poin
                     if (Random(100) < threshold) {
                         ++skill->practice_count_0e;
                         if (skill->practice_count_0e >= 8) {
-                            ++skill->value_02;
+                            ++skill->points_02;
                             skill->practice_count_0e = 0;
                             skill->improved_12 = 1;
                             improved = true;
@@ -694,7 +694,7 @@ void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_poin
             } while (--usage_points != 0);
             if (improved) {
                 RefreshCharacterSkillAvailability00553CD0(character);
-                int level = skill->value_02;
+                int level = skill->points_02;
                 if (skill_id == g_profession_bonus_skills[character->iProfession]) {
                     unsigned int bonus = static_cast<unsigned int>(level * 0x19) / 100;
                     if (bonus == 0) {
@@ -702,7 +702,7 @@ void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_poin
                     }
                     level += bonus;
                 }
-                level += character->bonus_1770.unknown_13[skill_id];
+                level += character->bonus_1770.skill_bonus_13[skill_id];
                 if (level > 0x7d) {
                     level = 0x7d;
                 } else if (level < 0) {

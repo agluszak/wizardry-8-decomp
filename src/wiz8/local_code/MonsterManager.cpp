@@ -722,9 +722,9 @@ int GetMonsterCycleFallbackValue004E5B50(unsigned int monster_species)
         return 0;
     }
     if (GetRenderOptionState(0xe) != 0) {
-        return record->value_257;
+        return record->alternate_model_index_257;
     }
-    return record->value_253;
+    return record->model_index_253;
 }
 
 // FUNCTION: WIZ8 0x004e5c00
@@ -856,7 +856,7 @@ void DestroyUngroupedMonsters(void)
             if (monster != 0) {
                 unsigned int flags = monster->flags_1dc;
                 flags >>= 8;
-                if ((flags & 1) != 0 && monster->state_22e != 0) {
+                if ((flags & 1) != 0 && monster->removal_state_22e != 0) {
                     monster->ApplyRemovalStateEffects();
                 }
             }
@@ -1437,7 +1437,7 @@ void TogglePartyCombatStance(void)
     if (g_settings_6850c8.continuous_combat != 0) {
         g_settings_6850c8.continuous_combat = 0;
         if (gXStatus.fCombatMode != 0) {
-            g_combat_state->round_active_001 = (g_combat_state->flag_000 == 0);
+            g_combat_state->round_active_001 = (g_combat_state->combat_over_000 == 0);
             g_combat_state->combat_ready_a62 = 1;
         }
         if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
@@ -1501,7 +1501,7 @@ void ToggleCombatMode(void)
             return;
         }
     }
-    if (g_combat_state->flag_000 != 0) {
+    if (g_combat_state->combat_over_000 != 0) {
         ShowNotice(0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END_PENDING], -1, -1, 1);
         return;
     }
@@ -1587,7 +1587,7 @@ void ProcessMonsterManagerFrame(void)
 
         if ((monster->flags_1dc & 0x100) != 0) {
             if (monster->fade_state_330 == 0) {
-                if (monster->state_22e != 0) {
+                if (monster->removal_state_22e != 0) {
                     monster->ApplyRemovalStateEffects();
                 }
                 monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
@@ -1619,7 +1619,7 @@ void ProcessMonsterManagerFrame(void)
                 TryStartMonsterCycle2(monster_info, monster, query_state);
                 if (MonsterQuery(monster, 7) != 0) {
                     if (gXStatus.fCombatMode != 0 && query_state == 0x12) {
-                        monster_info->pCombat->unknown_145[0] = 1;
+                        monster_info->pCombat->special_ready_145 = 1;
                     }
                     switch (query_state) {
                     case 1:
@@ -1834,7 +1834,7 @@ void DetectMonsterGroups004E4AB0(void)
          ++group_index) {
         W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
         if (group->members_active_28 == 0 ||
-            (group->alternate_name_2c != 0 && group->unknown_2d[0] != 0) ||
+            (group->alternate_name_2c != 0 && group->group_state_2d[0] != 0) ||
             (gXStatus.fCombatMode != 0 && group->fInCombat == 0) ||
             MonsterGroupHasRenderableMember(group, 0) == 0) {
             continue;
@@ -1860,7 +1860,7 @@ void DetectMonsterGroups004E4AB0(void)
                     continue;
                 }
                 unsigned int margin = score - roll;
-                if (character->skills[W8_SKILL_MYTHOLOGY].flag_00 != 0) {
+                if (character->skills[W8_SKILL_MYTHOLOGY].active_00 != 0) {
                     PracticeCharacterSkill(character, W8_SKILL_MYTHOLOGY, 10, 0);
                 }
                 if (margin > best_margin) {
@@ -1894,7 +1894,7 @@ void DetectMonsterGroups004E4AB0(void)
                 noticed = true;
             }
         }
-        if (group->unknown_2d[0] == 0) {
+        if (group->group_state_2d[0] == 0) {
             for (unsigned int slot = 0; slot < 8; ++slot) {
                 W8Character* character = &g_status_685170.buffers.Char[slot];
                 if (g_status_685170.buffers.XChar[slot].fOccupied == 0 ||
@@ -1910,7 +1910,7 @@ void DetectMonsterGroups004E4AB0(void)
                 character->monster_awareness_12b6[group->monster_id] =
                     static_cast<unsigned char>(awareness);
             }
-            group->unknown_2d[0] = 1;
+            group->group_state_2d[0] = 1;
         }
     }
     if (noticed) {
@@ -2027,12 +2027,12 @@ void EvaluateCombatDifficulty004E6CE0(void)
             if (npc != 0) {
                 W8Character* character = &g_status_685170.buffers.Char[slot];
                 if (character->highest_condition == 0x12) {
-                    npc->unknown_ef[2] = 0;
+                    npc->item_assist_f1 = 0;
                 } else if (npc->name_style == W8_NPC_VI_DOMINA ||
                            npc->name_style == W8_NPC_DRAZIC || npc->name_style == W8_NPC_RODAN) {
-                    npc->unknown_ef[1] = 1;
+                    npc->healer_assist_f0 = 1;
                 } else {
-                    npc->unknown_ef[2] = 1;
+                    npc->item_assist_f1 = 1;
                 }
             }
         }

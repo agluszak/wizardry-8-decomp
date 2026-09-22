@@ -118,8 +118,9 @@ W8PropRepresentation::W8PropRepresentation(const W8PropRepresentation& other)
     : W8AnimRep005ED050(other), animation_speed(other.animation_speed),
       frame_index_0a0(other.frame_index_0a0), animation_running_0a4(other.animation_running_0a4),
       random_play_0a5(other.random_play_0a5), play_chance_0a8(other.play_chance_0a8),
-      flag_0ac(other.flag_0ac), flag_0ad(other.flag_0ad), slots(5), flag_0c0(other.flag_0c0),
-      flag_0c1(other.flag_0c1)
+      flag_0ac(other.flag_0ac), flag_0ad(other.flag_0ad), slots(5),
+      footstep_surface_0c0(other.footstep_surface_0c0),
+      footstep_material_0c1(other.footstep_material_0c1)
 {
     animation = CloneAnimObj004A0320(other.animation);
 }
@@ -1328,13 +1329,14 @@ int W8Prop::BuildOrRefreshPathingRepresentation()
 
     if (m_gd_prop == 0) {
         m_gd_prop = new GDProp(instance, m_name, static_cast<unsigned short>(Rep()->subcycle_064),
-                               Rep()->flag_0c0, Rep()->flag_0c1);
+                               Rep()->footstep_surface_0c0, Rep()->footstep_material_0c1);
     } else {
         if ((flags_1c & 0x20) != 0) {
             m_gd_prop->Initialize(instance, 1, static_cast<unsigned short>(Rep()->subcycle_064),
-                                  Rep()->flag_0c0, Rep()->flag_0c1);
+                                  Rep()->footstep_surface_0c0, Rep()->footstep_material_0c1);
         } else {
-            m_gd_prop->Initialize(instance, 0, 0, Rep()->flag_0c0, Rep()->flag_0c1);
+            m_gd_prop->Initialize(instance, 0, 0, Rep()->footstep_surface_0c0,
+                                  Rep()->footstep_material_0c1);
         }
         if (Rep()->animation_behaviour_070 == 1) {
             g_byte_00659a64 = 1;
@@ -1794,8 +1796,8 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
             result = success;
         }
         if (extra != 0) {
-            if (result && (success = FileRead(hFile, &this->flag_0c0, 1, 0), success) &&
-                (success = FileRead(hFile, &this->flag_0c1, 1, 0), success)) {
+            if (result && (success = FileRead(hFile, &this->footstep_surface_0c0, 1, 0), success) &&
+                (success = FileRead(hFile, &this->footstep_material_0c1, 1, 0), success)) {
                 result = 1;
             } else {
                 result = false;

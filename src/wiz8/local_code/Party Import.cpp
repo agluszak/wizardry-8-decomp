@@ -312,8 +312,8 @@ void ImportWizardry7Character005590B0(W8Character* character, W8Wiz7Character* i
     ConvertAttribute(character, imported);
     GrantStartingSpells005595D0(character, imported);
     for (skill_id = 0; skill_id < 0x29; ++skill_id) {
-        character->skills[skill_id].flag_00 = 0;
-        character->skills[skill_id].value_02 = ConvertSkill(skill_id, character, imported);
+        character->skills[skill_id].active_00 = 0;
+        character->skills[skill_id].points_02 = ConvertSkill(skill_id, character, imported);
     }
     RefreshCharacterSkillAvailability00553CD0(character);
     ImportEquipment00559650(character, imported);

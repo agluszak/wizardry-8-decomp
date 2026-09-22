@@ -99,9 +99,9 @@ struct W8ItemDatabaseRecord {
     signed char modifier_06d;
     signed char modifier_06e;
     signed char resistance_bonus_06f[6]; /* 0x06f .. 0x074 */
-    unsigned char unknown_075;
-    unsigned short profession_mask; /* 0x076 */
-    unsigned int race_mask;         /* 0x078 */
+    unsigned char property_075;          /* assay special-property label index */
+    unsigned short profession_mask;      /* 0x076 */
+    unsigned int race_mask;              /* 0x078 */
     /* 0x07c: one bit per sex; three admits either, and
        CanCharacterUseItem indexes it with the character's own field. */
     unsigned char gender_mask;
@@ -134,7 +134,7 @@ struct W8ItemDatabaseRecord {
     int weapon_sound_class_0c5;
     signed char merge_skill_0c9; /* skill required to create this item */
     unsigned char merge_skill_level_0ca;
-    unsigned char unknown_0cb;
+    unsigned char editor_excluded_0cb; /* hidden from the MIPE item list */
     /* 0x0cc: the missile table entry the item fires; the missile resolver
        bounds it against g_missile_table_count_65bddc. */
     signed char missile_type;

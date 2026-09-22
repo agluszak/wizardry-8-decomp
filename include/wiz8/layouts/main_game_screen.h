@@ -57,7 +57,7 @@ struct W8DialogueTextState {
     short unknown_22;              /* 0x22: never consumed by the retail cluster */
     unsigned int wrap_width;       /* 0x24: pixel budget and notice width */
     unsigned int cursor;           /* 0x28: insertion point in text */
-    unsigned char unknown_2c;      /* 0x2c: never consumed by the retail cluster */
+    unsigned char cursor_dirty_2c; /* 0x2c: repaint just the dialogue cursor */
     bool dirty;                    /* 0x2d: cursor/text redraw pending */
     unsigned char unknown_2e[2];
     unsigned int saved_scroll_line; /* 0x30: restored when input closes */
@@ -98,7 +98,7 @@ struct W8LevelRuntimeBlock {
     /* 0x160/0x164/0x168: layout offsets ApplyMainGameModeFlag writes when the
        action panel or portrait chrome is down (0x76/6 and 0x69/6); cleared to
        zero while the matching panel is up. Semantic names still open. */
-    int unknown_160;
+    int portrait_y_shift_160;
     int unknown_164;
     int unknown_168;
     int highlight_override; /* 0x16c */
@@ -137,8 +137,8 @@ struct W8LevelRuntimeBlock {
     int condition_highlight_party_slot; /* 0x20c: -1 while untracked */
     unsigned char flag_210;             /* 0x210 */
     unsigned char unknown_211[3];
-    unsigned int clock_214; /* 0x214 */
-    unsigned char flag_218; /* 0x218 */
+    unsigned int clock_214;           /* 0x214 */
+    unsigned char portrait_flash_218; /* 0x218: 500ms highlight pulse on clock_214 */
     unsigned char unknown_219[3];
     /* 0x21c: content row count captured by the mode-6 hover overlay draw. */
     int hover_overlay_row_count;
@@ -184,10 +184,12 @@ struct W8LevelRuntimeBlock {
     int value_278;         /* 0x278 */
     int pending_level;
     int pending_entry_id;
-    int value_284; /* 0x284 */
-    int value_288; /* 0x288 */
-    int value_28c; /* 0x28c */
-    unsigned char unknown_290[0x10];
+    int group_list_rows_284;  /* 0x284 */
+    int group_list_width_288; /* 0x288 */
+    int action_group_28c;     /* 0x28c */
+    /* 0x290: result of HighlightMonsterAsTarget for the current pick; [0]
+       drives the group tint and the target cursor shape. */
+    unsigned char target_highlight_ok_290[0x10];
     /* 0x2a0..0x2a8: the formation board's three stModelInstance2D-family
        sprites - the board art with slot markers baked in, the rotating compass
        needle tracking party_facing against party_heading, and a lazily

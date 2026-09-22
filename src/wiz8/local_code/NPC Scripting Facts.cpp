@@ -230,8 +230,8 @@ void HandleFactChange(int fact_id, unsigned char value)
                 if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
                     character->highest_condition < 0x12 &&
                     g_profession_skill_availability[7][character->iProfession] != 0 &&
-                    character->skills[7].value_02 < 10) {
-                    character->skills[7].value_02 = 10;
+                    character->skills[7].points_02 < 10) {
+                    character->skills[7].points_02 = 10;
                     ApplySkillChange(character, 7);
                 }
             }
@@ -906,7 +906,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (value == 0) {
             return;
         }
-        g_status_685170.value_498b = 1;
+        g_status_685170.vi_event_stage_498b = 1;
         group = FindFirstMonsterByID(0x234);
         if (group != 0) {
             SetMonsterGroupHostility(group, 2, 0);
@@ -1104,13 +1104,13 @@ void MonsterKilled(int record_id, int killer_party_slot)
             if (value != 0) {
                 SetFact(0x2a6, 0, 0);
             }
-            if (g_status_685170.flag_2489 != 0) {
-                if (g_status_685170.buffers.Char[g_status_685170.tail_3121.facts.value_423d]
+            if (g_status_685170.rpc_active_2489 != 0) {
+                if (g_status_685170.buffers.Char[g_status_685170.tail_3121.facts.rpc_slot_423d]
                         .uiCondition[10] > 0) {
-                    RemoveCharacterCondition(g_status_685170.tail_3121.facts.value_423d, 10, 0);
+                    RemoveCharacterCondition(g_status_685170.tail_3121.facts.rpc_slot_423d, 10, 0);
                 }
                 QueueCharacterEvent(
-                    &g_status_685170.buffers.Char[g_status_685170.tail_3121.facts.value_423d],
+                    &g_status_685170.buffers.Char[g_status_685170.tail_3121.facts.rpc_slot_423d],
                     g_effect_005ee6f8, 0, g_effect_argument_005ed8c8, g_effect_argument_005ed914);
             }
             SetFact(0x1b6, 1, 0);

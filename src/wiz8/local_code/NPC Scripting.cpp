@@ -551,7 +551,7 @@ void ProcessNpcScriptingFrame(void)
                 g_npc_scripting.staging_restore.current_quote_index = g_staged_value_68c3c4;
                 g_npc_scripting.restore_staged_session = 0;
             }
-            if (gXStatus.fNpcDialogueMode != 0 && g_status_685170.value_2435 == 0 &&
+            if (gXStatus.fNpcDialogueMode != 0 && g_status_685170.world_cursor_gate_2435 == 0 &&
                 gXStatus.scripted_scene_19b7 == 0 && g_screen_state_00649f1c->script_busy == 0 &&
                 (can_open_dialogue = CanOpenNpcDialogue(), can_open_dialogue != 0)) {
                 EndNpcDialogueSession0056E800(0);
@@ -622,8 +622,8 @@ int SelectNpcQuoteResponse(W8NpcQuoteEntry* entry)
     }
     while (index < entry->sub_entry_count) {
         expected = (unsigned char)entry->sub_entries[index + 1]
-                       .value_00 /* c-style-cast-ok: packed byte operand */;
-        if (GetFact(entry->sub_entries[index].value_00) != expected) {
+                       .operand_00 /* c-style-cast-ok: packed byte operand */;
+        if (GetFact(entry->sub_entries[index].operand_00) != expected) {
             return -1;
         }
         index += 2;
@@ -892,7 +892,7 @@ void FinishNpcVoicePlayback(unsigned char resume_script)
 // FUNCTION: WIZ8 0x00525D90
 void TryFinishNpcVoicePlayback(unsigned char force)
 {
-    if (g_status_685170.value_2435 == 0 || g_status_685170.current_level != 4) {
+    if (g_status_685170.world_cursor_gate_2435 == 0 || g_status_685170.current_level != 4) {
         if (force == 0 && GetTickCount() - g_npc_scripting.last_tick <= 500) {
             return;
         }
@@ -1301,7 +1301,8 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
                 }
                 if (target->is_grouped == 0) {
                     SelectNpcDialogueSpeaker(target, 0);
-                    if (g_status_685170.current_level != 4 || g_status_685170.value_2435 == 0) {
+                    if (g_status_685170.current_level != 4 ||
+                        g_status_685170.world_cursor_gate_2435 == 0) {
                         LookAtDialogueNpc();
                     }
                 } else {
@@ -1342,7 +1343,8 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
             if (target != 0) {
                 if (target->is_grouped == 0) {
                     SelectNpcDialogueSpeaker(target, 0);
-                    if (g_status_685170.current_level != 4 || g_status_685170.value_2435 == 0) {
+                    if (g_status_685170.current_level != 4 ||
+                        g_status_685170.world_cursor_gate_2435 == 0) {
                         LookAtDialogueNpc();
                     }
                 } else {
@@ -1721,7 +1723,7 @@ void ProcessMessageBoxQueue(void)
                 int party_slot = skill_changes->party_slots[index];
                 int skill = skill_changes->skills[index];
                 W8Character* character = &g_status_685170.buffers.Char[party_slot];
-                unsigned int value = character->skills[skill].value_02;
+                unsigned int value = character->skills[skill].points_02;
                 if (skill == g_profession_bonus_skills[character->iProfession]) {
                     value = value * 125 / 100;
                 }
@@ -1847,7 +1849,7 @@ void ProcessMessageBoxQueue(void)
         int party_slot = line->payload_10.argument;
         g_status_685170.skip_next_condition_reaction = 1;
         SetCharacterCondition(party_slot, 0x13, 9999, 0, 0, 0);
-        g_status_685170.flag_2487 = 1;
+        g_status_685170.condition13_clock_2487 = 1;
         g_status_685170.value_248b = g_status_685170.world_clock;
         g_status_685170.pending_condition_party_slot_248f = party_slot;
         break;
@@ -2724,7 +2726,7 @@ void EndScriptedPortraitPick00529C40(int party_slot)
                 swprintf(g_status_685170.monster_name_buffer_2453, g_format_al_s_00614b44,
                          character->name);
                 g_status_685170.alternate_name_slot_247f = party_slot;
-                g_status_685170.flag_2489 = 1;
+                g_status_685170.rpc_active_2489 = 1;
                 g_status_685170.flag_2446 = 1;
                 QueueCharacterEvent(character, g_special_event_0068c50c, 0,
                                     g_effect_argument_005ed8c8, g_effect_argument_005ed914);

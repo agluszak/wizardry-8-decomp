@@ -1262,7 +1262,7 @@ W8Monster::W8Monster()
     value_1e8 = 1.0f;
     scale_y_1ec = 1.0f;
     value_1f0 = 1.0f;
-    value_210 = -1;
+    talk_state_210 = -1;
     pending_finalize_216 = 1;
     script_238 = 0;
     script_line_23c = 0;
@@ -1281,10 +1281,10 @@ W8Monster::W8Monster(const W8Monster& rhs)
     : W8GrCycle(rhs), flags_1dc(rhs.flags_1dc), value_1e0(rhs.value_1e0),
       location_id_1e4(rhs.location_id_1e4), value_1e8(1.0f), scale_y_1ec(1.0f), value_1f0(1.0f),
       missile_frame_1f4(rhs.missile_frame_1f4), spell_frame_1f8(rhs.spell_frame_1f8), talking(0),
-      animate_mouth(0), mouth_frame_clock(0), mouth_frame(0), value_208(0), value_210(-1),
-      inactive_215(rhs.inactive_215), pending_finalize_216(1), disabled_217(0), flag_218(0),
-      hover_base_min_21c(rhs.hover_base_min_21c), hover_base_max_220(rhs.hover_base_max_220),
-      bob_amplitude_min_224(rhs.bob_amplitude_min_224),
+      animate_mouth(0), mouth_frame_clock(0), mouth_frame(0), talk_start_208(0), talk_state_210(-1),
+      inactive_215(rhs.inactive_215), pending_finalize_216(1), disabled_217(0),
+      nearest_to_party_218(0), hover_base_min_21c(rhs.hover_base_min_21c),
+      hover_base_max_220(rhs.hover_base_max_220), bob_amplitude_min_224(rhs.bob_amplitude_min_224),
       bob_amplitude_max_228(rhs.bob_amplitude_max_228), spell_vertex_warned_22c(0),
       missile_point_warned_22d(0), script_238(0), script_wait_240(-1), trigger_278(0),
       registry_weight_27c(rhs.registry_weight_27c), spell_effect_armed_304(0), node_308(0),
@@ -1318,7 +1318,7 @@ W8Monster::W8Monster(const W8Monster& rhs)
     target_scale_2fc = 1.0f;
     current_scale_300 = 1.0f;
     flags_1dc &= 0xfffffcb6;
-    state_22e = 0;
+    removal_state_22e = 0;
     cycle_callback_230 = 0;
     if (hostility_preserved_332 != 0) {
         active_088 = 0;
@@ -2847,7 +2847,7 @@ void W8Monster::BeginFadeOutAndRemove004C5040(signed char state)
         fade_state_330 = -1;
     }
     RemoveMonster(MonsterGetIndexByLocationID(0x1021, MONSTER_CPP, location_id_1e4, 1), 0);
-    state_22e = state;
+    removal_state_22e = state;
 }
 
 // FUNCTION: WIZ8 0x004c5150
@@ -2878,9 +2878,9 @@ void W8Monster::StartTalking004C73F0(unsigned char animate_mouth)
         this->animate_mouth = animate_mouth;
         mouth_frame_clock = GetTickCount();
         mouth_open = 0;
-        value_210 = -1;
-        value_208 = GetTickCount();
-        value_20c = Random(2000) + 2000;
+        talk_state_210 = -1;
+        talk_start_208 = GetTickCount();
+        talk_duration_20c = Random(2000) + 2000;
         m_pRep->pending_cycle = 0x18;
         m_pRep->pending_behaviour_071 = 1;
     }
@@ -3025,12 +3025,12 @@ void UpdateNearestMonsterGroupMembers004CA570()
                         nearest_distance = distance;
                         nearest = member;
                     } else {
-                        member->monster->flag_218 = 0;
+                        member->monster->nearest_to_party_218 = 0;
                     }
                 }
             }
             if (nearest != 0) {
-                nearest->monster->flag_218 = 1;
+                nearest->monster->nearest_to_party_218 = 1;
             }
         }
     }
@@ -3192,7 +3192,7 @@ void W8Monster::ApplyRemovalStateEffects()
 {
     srVector3T<float> position;
 
-    switch (state_22e) {
+    switch (removal_state_22e) {
     case 2:
         if (FindEntityByName("NP_Balbrakhome", &position, 0, 0) != 0) {
             SetPosition(&position);

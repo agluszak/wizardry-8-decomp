@@ -1318,7 +1318,7 @@ int W8CharacterEventQueue::QueueEntry(W8CharacterEvent* entry)
         delete entry;
         return 0;
     }
-    if (g_status_685170.flag_2497 != 0) {
+    if (g_status_685170.greeting_pending_2497 != 0) {
         delete entry;
         return 0;
     }
@@ -2114,7 +2114,7 @@ void RenderPartyPortrait0052EB00(int portrait, int left, int top, int flags, int
         char drawn = BlitPartyPortraitAnimation(portrait, left, top, flags, party_slot, 1);
         value = drawn == 0;
     }
-    if ((((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].flag_34 != 0) ||
+    if ((((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].dead_34 != 0) ||
           gXStatus.fSurprisePossible != 0) ||
          g_status_685170.buffers.Char[party_slot].highest_condition == 0x13) &&
         value != 0) {
@@ -2151,7 +2151,7 @@ char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
         rect.right = width + rect.left;
         rect.bottom = height + rect.top;
         if (animate == 0 &&
-            ((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].flag_34 != 0) ||
+            ((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].dead_34 != 0) ||
              gXStatus.fSurprisePossible != 0)) {
             RenderPartyPortrait0052EB00(portrait, left, top, flags, 0, party_slot);
         }
@@ -2184,7 +2184,7 @@ char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
         GetCatalogImageSize(0x12, portrait, state->portrait_frame, &width, &height);
         GetCatalogImagePosition00549700(0x12, portrait, state->portrait_frame, &image_x, &image_y);
         if (animate == 0 && drawn == 0 && gXStatus.fCombatMode != 0 &&
-            g_combat_state->characters[party_slot].flag_34 != 0) {
+            g_combat_state->characters[party_slot].dead_34 != 0) {
             RenderPartyPortrait0052EB00(portrait, left, top, flags, 0, party_slot);
         }
         DrawCatalogImage(-0xe, 0x12, portrait, state->portrait_frame, left, top, flags, 0);
@@ -2207,7 +2207,7 @@ char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
         state->previous_portrait_frame = state->previous_portrait_frame;
         state->portrait_frame_dirty = 0;
     }
-    if (((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].flag_34 != 0) ||
+    if (((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].dead_34 != 0) ||
          gXStatus.fSurprisePossible != 0) ||
         g_status_685170.buffers.Char[party_slot].highest_condition == 0x13) {
         ShadowVideoSurfaceRect(-0xe, left, top, left + 0x59, top + 0x47);

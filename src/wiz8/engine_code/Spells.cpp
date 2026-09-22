@@ -875,7 +875,7 @@ W8SpellVisual* SpawnSpellEffect(const srVector3T<float>* position, const char* r
         visual->mode_1d8 = W8_SPELL_VISUAL_EXPLOSION;
         visual->host->pending_cycle = (signed char)cycle;
         visual->host->billboard_378 = 1;
-        visual->value_1f0 = value;
+        visual->effect_value_1f0 = value;
         visual->flags_1f4 = flags;
         visual->SetPositionInternal00453590(position);
     }
@@ -937,7 +937,7 @@ placed:
 
         visual->mode_1d8 = W8_SPELL_VISUAL_FLASH;
         visual->host->pending_cycle = (signed char)cycle;
-        visual->value_1f0 = value;
+        visual->effect_value_1f0 = value;
         visual->flags_1f4 = flags;
         GetCameraPosition(&position);
         visual->SetPosition004A6DF0(&position);
@@ -1016,7 +1016,7 @@ placed:
         visual->mode_1d8 = W8_SPELL_VISUAL_TARGET;
         visual->host->pending_cycle = static_cast<signed char>(cycle);
         visual->host->billboard_378 = 1;
-        visual->value_1f0 = value;
+        visual->effect_value_1f0 = value;
         visual->flags_1f4 = flags;
         visual->location_id_1ec = monster->location_id_1e4;
         monster->GetAnimationBounds(&minimum, &maximum);
@@ -1087,7 +1087,7 @@ placed:
 
         visual->mode_1d8 = W8_SPELL_VISUAL_CONE;
         visual->host->pending_cycle = (signed char)cycle;
-        visual->value_1f0 = value;
+        visual->effect_value_1f0 = value;
         visual->flags_1f4 = flags;
         if (parent != 0) {
             srVector3T<float> minimum;
@@ -1171,7 +1171,7 @@ placed:
     if (visual != 0) {
         visual->mode_1d8 = W8_SPELL_VISUAL_CONE;
         visual->host->pending_cycle = static_cast<signed char>(cycle);
-        visual->value_1f0 = value;
+        visual->effect_value_1f0 = value;
         visual->flags_1f4 = flags;
         visual->SetPosition004A6DF0(position);
         visual->host->SetRotation004B88D0(rotation);

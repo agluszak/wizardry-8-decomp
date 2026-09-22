@@ -1220,7 +1220,7 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
                 AimAtCharacter(party_slot, party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
             }
         }
-        target.unknown_18[1] = 1;
+        target.name_known_19 = 1;
 
         if (record->category >= W8_ITEM_USE_TYPE_COUNT) {
             srAssertFail("pItemDB->ubUseType < USE_TYPE_COUNT", PC_ITEM_CPP, 0x906, 0);
@@ -2147,8 +2147,8 @@ void ApplyIdentifyAttempt(W8ItemInstance* item, unsigned int strength, unsigned 
             srAssertFail("pPCItem", PC_ITEM_CPP, 2875, 0);
         }
         item->identified = 1;
-        item->unknown_07[0] = 1;
-        item->unknown_07[1] = 1;
+        item->spell_hint_07 = 1;
+        item->unknown_08 = 1;
         item->bound = 1;
     }
 }
@@ -2622,8 +2622,8 @@ bool TryIdentifyItemFor(W8Character* character, W8ItemInstance* item)
         srAssertFail("pPCItem", PC_ITEM_CPP, 2875, 0);
     }
     item->identified = 1;
-    item->unknown_07[0] = 1;
-    item->unknown_07[1] = 1;
+    item->spell_hint_07 = 1;
+    item->unknown_08 = 1;
     if (static_cast<char>(g_item_records[item->iItemNo].identify_difficulty + 3) <= strength) {
         item->bound = 1;
     }
@@ -3293,7 +3293,7 @@ void DeliverExceptionalItemReaction(W8ItemInstance* item, unsigned char choose_c
         }
         character = &g_status_685170.buffers.Char[party_slot];
     }
-    if ((item->unknown_07[2] & 1) != 0) {
+    if ((item->effect_used_09 & 1) != 0) {
         return;
     }
 
@@ -3340,7 +3340,7 @@ void DeliverExceptionalItemReaction(W8ItemInstance* item, unsigned char choose_c
 
     QueueCharacterEvent(character, message, 0, g_effect_argument_005ed8c8,
                         g_effect_argument_005ed914);
-    item->unknown_07[2] |= 1;
+    item->effect_used_09 |= 1;
 }
 
 /* Whether the item's equip class is directly usable (0x17/0x19). */
@@ -3623,7 +3623,7 @@ int ChooseCharacterEquipSlot(W8Character* character, int item_id)
     switch (g_item_records[item_id].equip_class) {
     case 0:
     case 1:
-        if (character->skills[0x12].value_02 != 0) {
+        if (character->skills[0x12].points_02 != 0) {
             if (CanEquipItemInSlot(character, item_id, 7, 0)) {
                 if (primary_right != -1 && primary_left == -1 &&
                     (g_item_records[primary_right].equip_class == 0 ||
@@ -3994,7 +3994,7 @@ int CastItemSpell0051EE70(W8Character* character, W8ItemInstance* item, unsigned
                 SetTextBoxMode(1, -1);
             }
         }
-        item->unknown_07[0] = 1;
+        item->spell_hint_07 = 1;
     } else if (effect == 3) {
         PostCharacterNotice(party_slot,
                             FormatWideString(gppStringList[0x1a9], FormatItemDisplayName(item, 0)));

@@ -70,7 +70,9 @@ struct W8NpcState {
        CreateNpcRuntimeNode; the release pass follows the index a partner
        names. */
     unsigned char partner_index_2c;
-    unsigned char unknown_2d;
+    /* 0x2d: the NPC's monster has noticed the party once; the sight path
+       raises it to fire the one-shot surprise/bark event. */
+    unsigned char party_noticed_2d;
     /* 0x2e: the naming-style id a fact can substitute; values run to 0x85,
        past the signed-char range. */
     unsigned char name_style;
@@ -118,7 +120,11 @@ struct W8NpcState {
     unsigned char restored_ea;
     /* 0x0eb: world clock of the last event that ran for this NPC. */
     int event_clock_eb;
-    unsigned char unknown_ef[3];
+    /* 0x0ef: disposition band snapshot taken when dialogue opens. */
+    unsigned char disposition_at_open_ef;
+    /* 0x0f0/0x0f1: death-save assist offer, selected by name style. */
+    unsigned char healer_assist_f0;
+    unsigned char item_assist_f1;
     /* 0x0f2: fourteen facts, appended in order and terminated by zero. */
     short known_facts[14];
     /* 0x10e: the item-count dice of the item table 0x0050B9E0 copied. */

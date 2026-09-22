@@ -79,8 +79,8 @@ public:
     unsigned char fixed_transform;
     float scale_1e8;
     int location_id_1ec;
-    int value_1f0; /* 0x1f0 */
-    int flags_1f4; /* 0x1f4 */
+    int effect_value_1f0; /* 0x1f0: spawn `value` payload */
+    int flags_1f4;        /* 0x1f4 */
 };
 
 static_assert(sizeof(W8SpellVisual) == 0x1f8, "W8SpellVisual_size_must_be_0x1f8");

@@ -134,8 +134,8 @@ void ResetMessageStorage(void)
                 while ((cursor = GetNextNoticeWord(cursor, record->wString, &word)) != -1) {
                     W8NoticeWord* stored = static_cast<W8NoticeWord*>(malloc(sizeof(W8NoticeWord)));
                     *stored = word;
-                    stored->flag_08 = 0;
-                    stored->flag_09 = 0;
+                    stored->keyword_08 = 0;
+                    stored->redraw_09 = 0;
                     PLAdoptAppend(record->entries_18, stored);
                 }
             }
@@ -231,15 +231,15 @@ void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, short tex
         while ((cursor = GetNextNoticeWord(cursor, record->wString, &word)) != -1) {
             W8NoticeWord* stored = static_cast<W8NoticeWord*>(malloc(sizeof(W8NoticeWord)));
             *stored = word;
-            stored->flag_08 = 0;
-            stored->flag_09 = 0;
+            stored->keyword_08 = 0;
+            stored->redraw_09 = 0;
             PLAdoptAppend(record->entries_18, stored);
         }
     }
     record->font_palette = font_palette;
     record->highlight_color = 0xff;
     record->link_10 = wrapped_line;
-    record->value_14 = -1;
+    record->length_14 = -1;
     ++g_notice_line_count_0069b7bc;
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
         g_status_685170.text_line_cursor_1795 == text_box) {
@@ -639,7 +639,7 @@ void AppendTextBoxLine0058B300(const wchar_t* text, ...)
     if (line->wString == 0) {
         srAssertFail("pTextLine->wString != NULL", MGS_TEXT_BOX_CPP, 0x223, 0);
     }
-    line->value_14 = wcslen(line->wString);
+    line->length_14 = wcslen(line->wString);
     wchar_t* previous = line->wString;
     line->wString = static_cast<wchar_t*>(
         malloc((wcslen(previous) + wcslen(text)) * sizeof(wchar_t) + sizeof(wchar_t)));
@@ -1214,7 +1214,7 @@ static void DrawDialogueTextInputLines0058CA30(int x, int y, unsigned int first_
 void RedrawDialogueTextInput0058C790(void)
 {
     W8DialogueTextState* input = g_level_block->dialogue_text_input;
-    if ((input->dirty != 0 || input->unknown_2c != 0)) {
+    if ((input->dirty != 0 || input->cursor_dirty_2c != 0)) {
         short text_box = g_status_685170.text_line_cursor_1795;
         int offset = g_status_685170.text_box_lines_shown_49a7[text_box] -
                      g_level_block->text_lines[text_box];
@@ -1230,7 +1230,7 @@ void RedrawDialogueTextInput0058C790(void)
                 y = g_level_block->text_box_top;
             }
             if (input->dirty == 0) {
-                if (input->unknown_2c != 0) {
+                if (input->cursor_dirty_2c != 0) {
                     DrawDialogueTextCursor0058C8E0(g_level_block->text_box_left, y);
                 }
             } else {
@@ -1939,11 +1939,11 @@ void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, unsigned char s
                 palette = g_font_state_palettes_68ee1c[5];
             }
             SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
-            if (line->value_14 == -1) {
+            if (line->length_14 == -1) {
                 mprintf(x, y, Wiz8ToSgpWideText(g_format_s_006068e4), line->wString);
             } else {
-                wcsncpy(scratch, line->wString, line->value_14);
-                scratch[line->value_14] = 0;
+                wcsncpy(scratch, line->wString, line->length_14);
+                scratch[line->length_14] = 0;
                 mprintf(x, y, Wiz8ToSgpWideText(g_format_s_006068e4), scratch);
             }
         } else if (line->highlight_color == 0xff) {
@@ -1953,11 +1953,11 @@ void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, unsigned char s
                 palette = g_level_block->palette_2ec;
             }
             SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
-            if (line->value_14 == -1) {
+            if (line->length_14 == -1) {
                 mprintf(x, y, Wiz8ToSgpWideText(g_format_s_006068e4), line->wString);
             } else {
-                wcsncpy(scratch, line->wString, line->value_14);
-                scratch[line->value_14] = 0;
+                wcsncpy(scratch, line->wString, line->length_14);
+                scratch[line->length_14] = 0;
                 mprintf(x, y, Wiz8ToSgpWideText(g_format_s_006068e4), scratch);
             }
         } else {
@@ -1978,11 +1978,11 @@ void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, unsigned char s
                 srAssertFail("pTextLine->ubStopChar >= pTextLine->ubStartChar", MGS_TEXT_BOX_CPP,
                              0x5da, 0);
             }
-            if (line->value_14 == -1 ||
-                line->highlight_stop <= static_cast<unsigned int>(line->value_14)) {
+            if (line->length_14 == -1 ||
+                line->highlight_stop <= static_cast<unsigned int>(line->length_14)) {
                 length = line->highlight_stop - line->highlight_start;
             } else {
-                length = line->value_14 - line->highlight_start;
+                length = line->length_14 - line->highlight_start;
             }
             if (length > 0) {
                 if (line->highlight_color < 0xf) {
@@ -2002,15 +2002,15 @@ void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, unsigned char s
                              FormatString("DrawTextMessage: ERROR - String length %d, stop %d",
                                           wcslen(line->wString), line->highlight_stop));
             }
-            if (line->value_14 == -1) {
+            if (line->length_14 == -1) {
                 length = static_cast<int>(wcslen(line->wString)) - line->highlight_stop;
             } else {
-                length = line->value_14 - line->highlight_stop;
+                length = line->length_14 - line->highlight_stop;
             }
             if (length > 0) {
                 unsigned char palette_index;
-                if (line->value_14 == -1 ||
-                    line->highlight_stop <= static_cast<unsigned int>(line->value_14)) {
+                if (line->length_14 == -1 ||
+                    line->highlight_stop <= static_cast<unsigned int>(line->length_14)) {
                     palette_index = line->font_palette;
                 } else {
                     palette_index = line->highlight_color;
@@ -2028,17 +2028,17 @@ void DrawTextBoxLine(W8MessageStorageRecord* line, int x, int y, unsigned char s
         }
     } else {
         SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
-        if (line->value_14 == -1) {
+        if (line->length_14 == -1) {
             mprintf(x, y, Wiz8ToSgpWideText(g_format_s_006068e4), line->wString);
         } else {
-            wcsncpy(scratch, line->wString, line->value_14);
-            scratch[line->value_14] = 0;
+            wcsncpy(scratch, line->wString, line->length_14);
+            scratch[line->length_14] = 0;
             mprintf(x, y, Wiz8ToSgpWideText(g_format_s_006068e4), scratch);
         }
     }
 
-    if (line->value_14 != -1) {
-        wcscpy(scratch, line->wString + line->value_14);
+    if (line->length_14 != -1) {
+        wcscpy(scratch, line->wString + line->length_14);
         width = StringPixLength(Wiz8ToSgpWideText(scratch), g_level_block->text_box_font);
         mprintf(g_level_block->text_box_right - width, y, Wiz8ToSgpWideText(g_format_s_006068e4),
                 scratch);
@@ -2278,7 +2278,7 @@ char TextBoxHandleKey(const InputAtom* event)
    (level, flag, backfire) triple CastSpellAtLockInteraction00587C80 takes;
    only the target is read here. */
 /* The trap-mode half of CastSpellAtLockInteraction00587C80: without a
-   backfire the disarm chance is `level * 5 + 0x32 - m_field_038 * 6`, a
+   backfire the disarm chance is `level * 5 + 0x32 - m_difficulty_038 * 6`, a
    success parks the screen in state 7 (8 on a miss), and either way the text
    and action panels go quiet for a 1.5 second timer. */
 // FUNCTION: WIZ8 0x0058A930
@@ -2290,12 +2290,12 @@ void AttemptTrapDisarm0058A930(int level, int /*flag*/, char backfire)
     if (backfire != '\0') {
         chance = 0;
     } else {
-        chance = level * 5 + 0x32 + screen->m_field_038 * -6;
+        chance = level * 5 + 0x32 + screen->m_difficulty_038 * -6;
     }
     if (static_cast<int>(Random(100)) < chance) {
-        screen->m_state_018 = 7;
+        screen->m_disarm_state_018 = 7;
     } else {
-        screen->m_state_018 = 8;
+        screen->m_disarm_state_018 = 8;
     }
     screen->m_text_panel_00c->EnableRegionSet(0);
     screen->m_text_panel_00c->m_key_handler_074->m_range_038.EnableRegionSet(0);
@@ -2313,7 +2313,7 @@ void SetKnockKnockTarget(int target, int /*flag*/, int /*backfire*/)
         ShowNotice(0xc, L"You can't cast Knock Knock here!", -1, -1, 0);
         return;
     }
-    screen->m_target_14c = target;
+    screen->m_target_difficulty_14c = target;
     screen->m_status_panel_010->m_target_068 = target;
     screen->m_text_panel_00c->m_target_changed_140 = 1;
 }
@@ -2423,17 +2423,17 @@ void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
     unsigned int count = PLLength(line->entries_18);
     for (int i = 0; i < static_cast<int>(count); ++i) {
         W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(line->entries_18, i));
-        if (word->flag_08 != 0) {
-            unsigned short* palette = word->flag_08 == 2 ? g_font_state_palettes_68ee1c[3]
-                                                         : g_font_state_palettes_68ee1c[5];
+        if (word->keyword_08 != 0) {
+            unsigned short* palette = word->keyword_08 == 2 ? g_font_state_palettes_68ee1c[3]
+                                                            : g_font_state_palettes_68ee1c[5];
             SetFontObjectPalette16BPP(g_level_block->text_box_font, palette);
             memset(word_text, 0, sizeof(word_text));
             wcsncpy(word_text, line->wString + word->start, word->end - word->start + 1);
             gprintfDirty(word->x_start + x, y, Wiz8ToSgpWideText(g_format_s_006068e4),
                          Wiz8ToSgpWideText(word_text));
-            word->flag_09 = 0;
+            word->redraw_09 = 0;
         }
-        if (word->flag_09 != 0) {
+        if (word->redraw_09 != 0) {
             unsigned short* palette;
             if (line->font_palette < 0xf) {
                 palette = g_font_state_palettes_68ee1c[line->font_palette];
@@ -2445,7 +2445,7 @@ void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
             wcsncpy(word_text, line->wString + word->start, word->end - word->start + 1);
             gprintfDirty(word->x_start + x, y, Wiz8ToSgpWideText(g_format_s_006068e4),
                          Wiz8ToSgpWideText(word_text));
-            word->flag_09 = 0;
+            word->redraw_09 = 0;
         }
     }
 }
@@ -2460,9 +2460,9 @@ void ResetUsedNoticeWords(int text_box, unsigned char redraw)
             unsigned int count = PLLength(list);
             for (int j = 0; j < static_cast<int>(count); ++j) {
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
-                if (word->flag_08 == 2) {
-                    word->flag_08 = 0;
-                    word->flag_09 = 1;
+                if (word->keyword_08 == 2) {
+                    word->keyword_08 = 0;
+                    word->redraw_09 = 1;
                 }
             }
         }
@@ -2482,9 +2482,9 @@ void ClearNoticeWordHover(int text_box, unsigned char redraw)
             unsigned int count = PLLength(list);
             for (int j = 0; j < static_cast<int>(count); ++j) {
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
-                if (word->flag_08 != 2) {
-                    word->flag_08 = 0;
-                    word->flag_09 = 1;
+                if (word->keyword_08 != 2) {
+                    word->keyword_08 = 0;
+                    word->redraw_09 = 1;
                 }
             }
         }
@@ -2510,9 +2510,9 @@ void HighlightNoticeWordAt(int text_box, unsigned short x, unsigned short y)
             count = PLLength(list);
             for (int j = 0; j < static_cast<int>(count); ++j) {
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
-                if (word->flag_08 != 2) {
-                    word->flag_08 = 0;
-                    word->flag_09 = 1;
+                if (word->keyword_08 != 2) {
+                    word->keyword_08 = 0;
+                    word->redraw_09 = 1;
                 }
             }
         }
@@ -2537,8 +2537,8 @@ void HighlightNoticeWordAt(int text_box, unsigned short x, unsigned short y)
             offset = x - x_base;
             for (int i = 0; i < static_cast<int>(count); ++i) {
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, i));
-                if (word->x_start <= offset && offset <= word->x_end && word->flag_08 != 2) {
-                    word->flag_08 = 1;
+                if (word->x_start <= offset && offset <= word->x_end && word->keyword_08 != 2) {
+                    word->keyword_08 = 1;
                 }
             }
         }
