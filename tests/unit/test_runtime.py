@@ -8,13 +8,16 @@ import pytest
 from wiz8decomp.config import Settings
 from wiz8decomp.display import runtime_display
 from wiz8decomp.runtime import (
+    _compare_repetitions,
     _crash_detail,
     _parse_runtime_crash,
     _parse_runtime_observation,
     _parse_wine_dump,
     _run_runtime_scenario,
     _runtime_failure,
+    _runtime_history,
     _runtime_phase_summary,
+    _semantic_observation,
     _symbolize_addresses,
     analyze_runtime_crash,
     configure_wine_window_management,
@@ -145,6 +148,76 @@ def test_runtime_observation_is_normalized_to_typed_fields() -> None:
 def test_runtime_observation_requires_one_owned_record() -> None:
     with pytest.raises(RuntimeError, match="expected one runtime observation"):
         _parse_runtime_observation("wine diagnostics only")
+
+
+def test_runtime_history_collects_completed_actions_with_observations() -> None:
+    output = (
+        "WIZ8_RUNTIME_STEP scenario=save-load-move step=game-saved state=pass "
+        "elapsed_ms=100 screen=9 pending=-1 pos=1,2,3 combat=0 motion=2\n"
+        "WIZ8_RUNTIME_STEP scenario=other-case step=engine-ready state=pass elapsed_ms=50\n"
+        "WIZ8_RUNTIME_STEP scenario=save-load-move step=quickload state=pass "
+        "elapsed_ms=200 screen=9 pending=-1 combat=0 motion=0\n"
+    )
+
+    assert _runtime_history(output, "save-load-move") == [
+        {
+            "action": "game-saved",
+            "elapsed_ms": 100,
+            "screen": 9,
+            "pending": -1,
+            "combat": 0,
+            "motion": 2,
+            "pos": [1, 2, 3],
+        },
+        {
+            "action": "quickload",
+            "elapsed_ms": 200,
+            "screen": 9,
+            "pending": -1,
+            "combat": 0,
+            "motion": 0,
+        },
+    ]
+
+
+def test_semantic_observation_drops_volatile_fields() -> None:
+    observation = {
+        "scenario": "save-load-move",
+        "case_passed": 1,
+        "elapsed_ms": 1200,
+        "history": [{"action": "game-saved"}],
+    }
+
+    assert _semantic_observation(observation) == {"scenario": "save-load-move", "case_passed": 1}
+
+
+def test_repetition_comparison_reports_diverging_observations() -> None:
+    first = {"scenario": "s", "menu_seen": 1, "playlist_tracks": 4}
+    repeated = {"scenario": "s", "menu_seen": 1, "playlist_tracks": 3}
+
+    problems = _compare_repetitions("s", [first, repeated])
+
+    assert problems == ["s: repetition 2 disagrees with the first run: playlist_tracks: 4 != 3"]
+
+
+def test_repetition_comparison_keeps_a_flake_a_failure() -> None:
+    passed = {"scenario": "s", "menu_seen": 1}
+    failed = {"scenario": "s", "failure": "condition-not-met"}
+
+    problems = _compare_repetitions("s", [passed, failed, passed])
+
+    assert problems == ["s: flaky across 3 repetitions: 1 failed"]
+
+
+def test_repetition_comparison_accepts_identical_runs() -> None:
+    passed = {"scenario": "s", "menu_seen": 1, "history": [{"action": "a", "elapsed_ms": 9}]}
+
+    assert (
+        _compare_repetitions(
+            "s", [passed, dict(passed, history=[{"action": "a", "elapsed_ms": 20}])]
+        )
+        == []
+    )
 
 
 def test_runtime_failure_reports_native_reason_instead_of_timeout(tmp_path: Path) -> None:
