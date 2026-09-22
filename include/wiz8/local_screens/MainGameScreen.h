@@ -278,7 +278,7 @@ public:
 
 /* One lock-picking pin widget (0x48 bytes, created inline inside the
    W8LockTumblerPanel constructor loop, final table 0x005eea60). +0x3c is the
-   per-pin pattern byte copied from Trigger::device_state.pins; +0x40 is the
+   per-pin pattern byte copied from Trigger::lock_state.device_state.pins; +0x40 is the
    pin's current pixel offset, 0x22 at rest. */
 // VTABLE: WIZ8 0x005eea60
 class W8LockTumbler : public W8Widget {
@@ -407,7 +407,7 @@ public:
     void ApplyKnockKnock005871A0(int level, int flag, char backfire); /* 0x005871A0 */
 
     Trigger* m_trigger_08;  /* 0x08 */
-    int m_tumbler_count_0c; /* 0x0c: trigger->difficulty clamped to [2,8] */
+    int m_tumbler_count_0c; /* 0x0c: trigger->lock_state.difficulty clamped to [2,8] */
     W8LockTumblerPanel* m_tumbler_panel_10;
     W8LockInfoPanel* m_info_panel_14;
     Controls* m_action_panel_18;

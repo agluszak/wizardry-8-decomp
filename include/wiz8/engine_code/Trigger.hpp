@@ -126,6 +126,27 @@ struct W8TriggerDeviceState {
 
 static_assert(sizeof(W8TriggerDeviceState) == 9, "W8TriggerDeviceState_must_be_9");
 
+/* The locks & traps device record embedded at the tail of Trigger. This is
+   the block `UpdateTriggerLock00445730`/`ConsumeLockQuality004457A0` take by
+   pointer (`&trigger->lock_state`). `lock_type` is the editor "Type" (0 none,
+   1 pickable lock, 2 trap, 3 key lock); `difficulty` is the editor "Difficulty"
+   grade — it doubles as the pickable lock's pin budget; `device_id` indexes
+   the tumbler/trap tables (-1 = roll on first use); `lock_countdown` ticks the
+   pick interaction (pins remaining, difficulty * 3); `last_interaction_clock`
+   is the world clock of the last attempt (-1 = never). */
+struct W8LockState {
+    int lock_type;
+    int difficulty;
+    W8TriggerDeviceState device_state;
+    unsigned char unknown_011[3];
+    int device_id;
+    int key_id;
+    int lock_countdown;
+    int last_interaction_clock;
+};
+
+static_assert(sizeof(W8LockState) == 0x24, "W8LockState_must_be_0x24");
+
 /* Engine Code\Trigger.cpp. Trigger is registered directly below srClass. It is
    not an srNode: the temporary table installed while srClassSupport is under
    construction has the same +0 vptr as the final Trigger table, and neither
@@ -232,30 +253,18 @@ public:
     ActivationCallback activation_callback_360;
     bool running;
     unsigned char unknown_365[3];
-    /* Locks & traps device block, addressed as the `lock_state` int blob by
-       UpdateTriggerLock00445730/ConsumeLockQuality004457A0. `lock_type` is the
-       editor "Type" (0 none, 1 pickable lock, 2 trap, 3 key lock);
-       `device_id` indexes the tumbler/trap tables (-1 = roll on first use);
-       `lock_countdown` ticks the pick interaction; `last_interaction_clock`
-       is the world clock of the last attempt (-1 = never). */
-    int lock_type;
-    int difficulty;
-    W8TriggerDeviceState device_state;
-    unsigned char unknown_379[3];
-    int device_id;
-    int key_id;
-    int lock_countdown;
-    int last_interaction_clock;
+    /* Locks & traps device block — the record UpdateTriggerLock00445730/
+       ConsumeLockQuality004457A0 take by pointer. */
+    W8LockState lock_state;
 };
 
 void InitializeStateDrivenPropVariables00445200(Trigger* trigger);
-/* Re-rolls the eight pin bytes of a pickable lock (lock_state[0] == 1) and
-   resets its difficulty-derived seed/state fields. lock_state is
-   &Trigger::lock_type. */
-void __fastcall UpdateTriggerLock00445730(int* lock_state); /* 0x00445730 */
-/* Spends one point of the lock's quality budget (lock_state[7] ==
-   Trigger::lock_countdown) and reports whether one remained to spend. */
-unsigned char __fastcall ConsumeLockQuality004457A0(int* lock_state); /* 0x004457A0 */
+/* Re-rolls the eight pin bytes of a pickable lock (lock_type == 1) and
+   resets its difficulty-derived seed/state fields. */
+void __fastcall UpdateTriggerLock00445730(W8LockState* lock_state); /* 0x00445730 */
+/* Spends one point of the lock's quality budget (lock_countdown) and reports
+   whether one remained to spend. */
+unsigned char __fastcall ConsumeLockQuality004457A0(W8LockState* lock_state); /* 0x004457A0 */
 
 static_assert(sizeof(Trigger) == 0x38c, "Trigger_must_be_0x38c");
 
