@@ -88,7 +88,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     fake_screen->dialogue_npc = fake_npc;
     /* The queue/layout fixture has no dialogue controls. Its implicit
        constructor initializes containers, not this scalar UI state. */
-    fake_screen->dialogue_cursor_flag = 0;
+    fake_screen->dialogue_hidden = 0;
 
     saved_level_block = g_level_block;
     test_level_block = 0;
@@ -129,7 +129,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     g_message_queue_idle_68c501 = 1;
 
     g_pending_notice_68ee60.npc = fake_npc;
-    g_pending_notice_68ee60.item.item_id = -1;
+    g_pending_notice_68ee60.item.iItemNo = -1;
     g_pending_notice_68ee60.line = NOTICE_QUOTE;
     g_pending_notice_68ee60.flag = 0;
     g_pending_notice_68ee60.force = 0;
@@ -157,7 +157,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
 
     ProcessMessageBoxQueue(); /* DISPATCH_PENDING_NOTICE */
     result->notice_dispatched =
-        g_flag_68f0f9 == 0 && gXStatus.fNpcDialogueMode != 0 && fake_screen->flag_252 != 0;
+        g_flag_68f0f9 == 0 && gXStatus.fNpcDialogueMode != 0 && fake_screen->scripted_dialogue != 0;
     tail = 0;
     if (g_npc_scripting.message_lines.GetCount() == 2) {
         tail = *g_npc_scripting.message_lines.GetAt(1);
@@ -176,16 +176,16 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
         g_npc_scripting.message_lines.GetCount() == 0 && g_message_queue_idle_68c501 != 0;
 
     /* SetNpcDialogueLayoutMode: with the dialogue cursor down, a zero value
-       retires the current layout into previous_dialogue_layout and parks value_fc on NONE,
+       retires the current layout into previous_dialogue_layout and parks dialogue_layout on NONE,
        while a nonzero value installs directly. The fake screen is freed below,
        so the layout fields need no restore. */
-    fake_screen->value_fc = W8_DIALOGUE_LAYOUT_TOPIC_MENU;
+    fake_screen->dialogue_layout = W8_DIALOGUE_LAYOUT_TOPIC_MENU;
     SetNpcDialogueLayoutMode(0);
     result->layout_retired =
         fake_screen->previous_dialogue_layout == W8_DIALOGUE_LAYOUT_TOPIC_MENU &&
-        fake_screen->value_fc == W8_DIALOGUE_LAYOUT_NONE;
+        fake_screen->dialogue_layout == W8_DIALOGUE_LAYOUT_NONE;
     SetNpcDialogueLayoutMode(W8_DIALOGUE_LAYOUT_TRANSCRIPT);
-    result->layout_installed = fake_screen->value_fc == W8_DIALOGUE_LAYOUT_TRANSCRIPT;
+    result->layout_installed = fake_screen->dialogue_layout == W8_DIALOGUE_LAYOUT_TRANSCRIPT;
 
     while (g_npc_scripting.message_lines.GetCount() > 0) {
         delete g_npc_scripting.message_lines.RemoveAt(0);

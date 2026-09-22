@@ -186,6 +186,8 @@ public:
 }; /* 0x1d8 */
 
 static_assert(sizeof(W8GrCycle) == 0x1d8, "W8GrCycle_size_must_be_0x1d8");
+/* Secondary vftable 0x005eceb8 places the W8Navigator subobject at +0x18. */
+W8_ASSERT_BASE_OFFSET(W8GrCycle, W8Navigator, unknown_004, 0x18);
 
 /* 0x005EC128: hundredth-second scale shared by the monster and trigger
    durations. */

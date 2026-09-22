@@ -39,3 +39,6 @@ public:
 #pragma pack(pop)
 
 static_assert((sizeof(srIlluminator) == 0x150), "srIlluminator_must_be_0x150");
+/* The secondary srVertexProcessor subobject sits at +0x138 (retail secondary
+   vftable); the group's own members begin at +0x13c. */
+W8_ASSERT_BASE_END(srIlluminator, srVertexProcessor, group_mask_13c, 0x138);
