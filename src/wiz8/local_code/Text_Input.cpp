@@ -117,23 +117,40 @@ static_assert(sizeof(TextInputColors) == 0x18, "text input style must match the 
 static_assert(sizeof(STACKTEXTINPUTNODE) == 0x0c,
               "text input session must match the retail allocation");
 
+// GLOBAL: WIZ8 0x0069C808
 unsigned char gfEditingText;
 
+// GLOBAL: WIZ8 0x0069C7EC
 static TextInputColors* pColors;
+// GLOBAL: WIZ8 0x0069C7F0
 static STACKTEXTINPUTNODE* pInputStack;
+// GLOBAL: WIZ8 0x0069C7F4
 static TEXTINPUTNODE* gpTextInputHead;
+// GLOBAL: WIZ8 0x0069C7F8
 static TEXTINPUTNODE* gpTextInputTail;
+// GLOBAL: WIZ8 0x0069C7FC
 static TEXTINPUTNODE* gpActive;
+// GLOBAL: WIZ8 0x0069C809
 static unsigned char gfTextInputMode;
+// GLOBAL: WIZ8 0x0069C80A
 static unsigned char gfHiliteMode;
+// GLOBAL: WIZ8 0x0069C80B
 static unsigned char gubCursorPos;
+// GLOBAL: WIZ8 0x0069C80C
 static unsigned char gubStartHilite;
+// GLOBAL: WIZ8 0x0069C80D
 static unsigned char gubEndHilite;
+// GLOBAL: WIZ8 0x0069C80E
 static unsigned char gubParkingPos;
+// GLOBAL: WIZ8 0x0069C80F
 static unsigned char gubVisibleStart;
+// GLOBAL: WIZ8 0x0069C7E8
 static unsigned char gfHorizontalKey;
+// GLOBAL: WIZ8 0x0069C7E9
 static unsigned char gubMouseDownPos;
+// GLOBAL: WIZ8 0x0069C5D8
 static int gsCursorX;
+// GLOBAL: WIZ8 0x0069C7E4
 static size_t guiVisibleCount;
 
 // FUNCTION: WIZ8 0x005D3470

@@ -132,13 +132,16 @@ BOOLEAN		SoundSetVolumeIndex(UINT32 uiChannel, UINT32 uiVolume);
 // Global variables
 // GLOBAL: WIZ8 0x005ff644
 UINT32		guiSoundDefaultVolume = 127;
+// GLOBAL: WIZ8 0x005ff648
 UINT32		guiSoundMemoryLimit=SOUND_DEFAULT_MEMORY;			// Maximum memory used for sounds
+// GLOBAL: WIZ8 0x00650e4c
 UINT32		guiSoundMemoryUsed=0;													// Memory currently in use
 // GLOBAL: WIZ8 0x005ff64c
 UINT32		guiSoundCacheThreshold=SOUND_DEFAULT_THRESH;	// Double-buffered threshold
 
 // GLOBAL: WIZ8 0x006e4104
 HDIGDRIVER hSoundDriver;																// Sound driver handle
+// GLOBAL: WIZ8 0x005ff650
 BOOLEAN		fDirectSound=TRUE;														// Using Direct Sound
 
 // Local module variables
@@ -159,6 +162,7 @@ SOUNDTAG	pSoundList[SOUND_MAX_CHANNELS];
 CHAR8				*gpProviderName=NULL;
 // GLOBAL: WIZ8 0x00650e58
 HPROVIDER		gh3DProvider=0;
+// GLOBAL: WIZ8 0x00650e5c
 H3DPOBJECT	gh3DListener=0;
 // GLOBAL: WIZ8 0x005ff652
 BOOLEAN			gfUsingEAX=TRUE;
