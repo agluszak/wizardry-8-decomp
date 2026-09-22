@@ -79,4 +79,7 @@ struct RuntimeScenario {
     /* New-style cases run under a driver-owned RuntimeCase; trailing member
        zero-initializes for unmigrated scenarios. */
     RuntimeCaseFn case_run;
+    /* Opt-in same-process batching: only cases whose fixture owns explicit
+       cleanup may set this. Zero-initializes for unmigrated scenarios. */
+    unsigned char batch;
 };
