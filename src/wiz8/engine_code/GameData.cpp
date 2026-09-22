@@ -45,6 +45,7 @@
 #include "random.h"
 
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <windows.h>
@@ -499,6 +500,32 @@ unsigned char W8GameData::ApplyCameraMotion0041F5F0(unsigned int flags, srVector
 
     if (g_environment_load_flag_00603ad0 == 0) {
         *delta = g_level_data_00652dac->vector_a0;
+        {
+            static int s_diag_count;
+            if (s_diag_count < 40 && g_level_data_00652dac->vector_40.Length() > 0.001f) {
+                ++s_diag_count;
+                fprintf(stderr,
+                        "DIAGMOTION scale=%.4f flags=%x v40=%.3f v70=%.3f v64=%.3f a0=%.3f "
+                        "fwd=%.3f paused=%u accfl=%x d1=%u d2=%u dce=%u env=%p limit=%.3f mom=%.3f fac=%.3f\n",
+                        g_level_data_00652dac->camera_scale_14, flags,
+                        g_level_data_00652dac->vector_40.Length(),
+                        g_level_data_00652dac->vector_70.Length(),
+                        g_level_data_00652dac->vector_64.Length(),
+                        g_level_data_00652dac->vector_a0.Length(),
+                        g_level_data_00652dac->camera_forward_4c.Length(),
+                        static_cast<unsigned>(g_shared_timer_paused),
+                        g_game_time_accumulator_6598bc == 0 ? 0xFFFF
+                                                            : g_game_time_accumulator_6598bc->m_flags,
+                        static_cast<unsigned>(g_shared_timer_flag_d1),
+                        static_cast<unsigned>(g_shared_timer_flag_d2),
+                        static_cast<unsigned>(g_shared_timers_paused_00652dce),
+                        static_cast<void*>(g_environ_00652DB4),
+                        g_environ_00652DB4 == 0 ? -1.0f : g_environ_00652DB4->motion_limit_38,
+                        g_environ_00652DB4 == 0 ? -1.0f : g_environ_00652DB4->momentum_scale_3c,
+                        g_environ_00652DB4 == 0 ? -1.0f : g_environ_00652DB4->motion_factor_20);
+                fflush(stderr);
+            }
+        }
         moved = static_cast<float>(g_motion_delta_epsilon_005ebc50) < delta->Length();
         g_level_data_00652dac->UpdateMotionProgress0041FF90(g_level_motion_fast_00652dcd, moved);
         if (moved == 0) {
@@ -2598,6 +2625,18 @@ float MoveTimer(int value)
     if (value == 1) {
         PauseSharedGameTimers00439BC0();
         g_shared_timers_paused_00652dce = 1;
+    }
+    {
+        static int s_diag_timer;
+        if (s_diag_timer < 30) {
+            ++s_diag_timer;
+            fprintf(stderr,
+                    "DIAGTIMER value=%d dce=%u paused=%u screen=%d acc=%p\n", value,
+                    static_cast<unsigned>(g_shared_timers_paused_00652dce),
+                    static_cast<unsigned>(g_shared_timer_paused), g_current_screen_state.id,
+                    static_cast<void*>(g_game_time_accumulator_6598bc));
+            fflush(stderr);
+        }
     }
     return g_game_time_accumulator_6598bc->GetFrameDelta();
 }
