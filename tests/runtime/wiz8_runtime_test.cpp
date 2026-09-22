@@ -28,6 +28,7 @@
 #include "wiz8/local_code/Search.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/local_screens/MGSKeyboard.h"
 #include "wiz8/local_screens/MainGameScreen.h"
 #include "wiz8/utility.h"
@@ -36,6 +37,7 @@
 #include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/CombatRange.h"
 #include "wiz8/local_code/Targeting.h"
+#include "wiz8/local_code/Magic.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/Sight.h"
@@ -1154,6 +1156,129 @@ static void QueuePartyAttacksOnGameThread(void* opaque)
     }
 }
 
+struct CombatSpellQuery {
+    int location_id;
+    int spell_id;
+    int queued;
+    int aimed;
+};
+
+/* Queue a single-enemy combat spell on every living slot: the fixture grants
+   the learned flag and spell points directly (the party-builder path never
+   produced a caster), then runs the product's own SetCharacterSpell so the
+   cast lands in the same state a player-queued one would. The spell_target
+   block comes out of AimAtTarget the same way combat melee aims do. */
+static void QueuePartySpellsOnGameThread(void* opaque)
+{
+    CombatSpellQuery* query = static_cast<CombatSpellQuery*>(opaque);
+    query->queued = 0;
+    query->aimed = 0;
+    if (g_status_685170.buffers.XChar == 0 || g_spell_records == 0) {
+        return;
+    }
+    if (query->spell_id <= 0) {
+        for (int id = 1; id < W8_SPELL_COUNT; ++id) {
+            const W8SpellRuntimeRecord* record = &g_spell_records[id];
+            if (record->target_type == W8_TARGET_TYPE_ENEMY && record->spell_point_cost > 0 &&
+                record->spell_level <= 2 && record->usable_when <= W8_SPELL_USABLE_IN_COMBAT &&
+                record->effect_dice.count != 0) {
+                query->spell_id = id;
+                break;
+            }
+        }
+        if (query->spell_id <= 0) {
+            return;
+        }
+    }
+    int aim_location_id = query->location_id;
+    if (gXStatus.plsMonsterList != 0) {
+        bool alive = false;
+        for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
+            W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
+            if (info != 0 && info->fActive != 0 && info->fInCombat != 0 && info->hp_current != 0 &&
+                info->condition_turns[W8_CONDITION_DEAD] == 0 &&
+                info->location_id == aim_location_id) {
+                alive = true;
+                break;
+            }
+        }
+        if (!alive) {
+            srVector3T<float> camera;
+            float best = 1e30f;
+            GetCameraPosition(&camera);
+            for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
+                W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
+                if (info == 0 || info->fActive == 0 || info->fInCombat == 0 || info->monster == 0 ||
+                    info->hp_current == 0 || info->condition_turns[W8_CONDITION_DEAD] != 0) {
+                    continue;
+                }
+                float distance = (info->monster->GetPosition() - camera).Length();
+                if (distance < best) {
+                    best = distance;
+                    aim_location_id = info->location_id;
+                }
+            }
+        }
+    }
+    for (int slot = 0; slot < 8; ++slot) {
+        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
+        W8Character* character = &g_status_685170.buffers.Char[slot];
+        if (row->fOccupied == 0 || character->hp_current == 0 ||
+            character->highest_condition >= W8_CONDITION_DEAD) {
+            continue;
+        }
+        const W8SpellRuntimeRecord* record = &g_spell_records[query->spell_id];
+        character->spell_learned[query->spell_id] = 1;
+        if (character->iSPLeft[record->realm] < record->spell_point_cost * 8) {
+            character->iSPLeft[record->realm] = record->spell_point_cost * 8;
+        }
+        if (aim_location_id >= 0) {
+            W8CombatSlot target;
+            memset(&target, 0, sizeof(target));
+            target.iChar = -1;
+            target.iMonsterID = -1;
+            target.iGroupID = -1;
+            target.iType = W8_TARGET_KIND_MONSTER;
+            target.iMonsterID = aim_location_id;
+            /* The spell dialog holds fSpellCastMode and gpSCSV while a cast is
+               picked; without them SetCharacterCombatAction clears the current
+               target before SetCharacterSpell can copy it, and the SHARED
+               branch of ChooseCombatAction dereferences the view. SHARED
+               resolves to the spell block for the selected slot, IN_COMBAT
+               for the rest. */
+            W8SpellCastingView* held_view = gpSCSV;
+            unsigned char held_mode = gXStatus.fSpellCastMode;
+            if (gpSCSV == 0) {
+                gpSCSV = static_cast<W8SpellCastingView*>(calloc(1, sizeof(W8SpellCastingView)));
+            }
+            gpSCSV->override_spell_104 = query->spell_id;
+            gpSCSV->caster = character;
+            gXStatus.fSpellCastMode = 1;
+            AimAtTarget(slot, &target, W8_TARGETING_CONTEXT_SPELL);
+            AimAtTarget(slot, &target, W8_TARGETING_CONTEXT_IN_COMBAT);
+            AimAtTarget(slot, &target, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
+            SetCharacterSpell(character, query->spell_id, 1);
+            gXStatus.fSpellCastMode = held_mode;
+            /* The view block stays allocated: UI code may still read it while
+               a cast is in flight, and the real dialog only frees it on close. */
+            (void)held_view;
+        } else {
+            SetCharacterSpell(character, query->spell_id, 1);
+        }
+        if (row->action_03d == W8_ACTION_CAST_SPELL) {
+            ++query->queued;
+            if (row->spell_target.iType == W8_TARGET_KIND_MONSTER) {
+                ++query->aimed;
+            }
+        }
+    }
+}
+
+static void NoopOnGameThread(void* opaque)
+{
+    (void)opaque;
+}
+
 /* Drop the party on the nearest engaged monster's doorstep: a ring of
    snap-tested offsets around its live position, settled to ground, then the
    WorldSetCameraLocation + navigator reinstall save-load uses. The monster
@@ -2014,6 +2139,150 @@ static DWORD RunCombatAttackScenario()
     return FailScenario("combat-attack", "attack-resolution-not-observed");
 }
 
+/* The spell twin of the attack round-trip: queue a learned single-enemy
+   spell on every living slot, drive rounds until a cast resolves - spell
+   damage, a resisted effect, or a kill - and report which product transition
+   never arrived on failure. */
+static DWORD RunCombatSpellScenario()
+{
+    HostileEncounterContext context;
+    if (!RunOnGameThreadOrDirect(ProvokeHostileEncounterOnGameThread, &context, 240000)) {
+        return FailScenario("hostile-fixture", "game-thread-executor-failed");
+    }
+    if (context.location_id < 0)
+        return FailScenario("hostile-fixture", "active-monster-not-found");
+    if (!WaitForCombatMode(true))
+        return FailScenario("hostile-combat", "combat-not-entered");
+    g_observation.combat_aggroed = 1;
+    ReportStep("combat-aggroed");
+
+    HostileSnapshotQuery query;
+    query.location_id = context.location_id;
+    bool round_requested = false;
+    unsigned int initial_engaged_hp = 0;
+    unsigned int initial_party_hp = 0;
+    bool baseline_taken = false;
+    int spell_id = 0;
+    unsigned int started = GetTickCount();
+    unsigned int last_trace = 0;
+    while (GetTickCount() - started < 180000 && gfProgramIsRunning) {
+        Sleep(5);
+        if (!RunOnGameThread(ReadHostileEngagementOnGameThread, &query))
+            continue;
+        if (GetTickCount() - last_trace > 2000) {
+            last_trace = GetTickCount();
+            const HostileEngagementSnapshot& t = query.snapshot;
+            fprintf(stderr,
+                    "runtime-test trace: engaged=%u nearest=%.0f party_hp=%u "
+                    "ehp=%u dead=%u combat=%u round=%u action=%d char=%d monster=%d "
+                    "report(hits=%u dmg=%u miss=%u) threat=%d target=%d:%d\n",
+                    t.engaged_hostiles, t.nearest_engaged_distance, t.party_hp_total,
+                    t.engaged_hp_total, t.engaged_dead, t.combat_mode, t.round_active,
+                    t.action_status, t.action_char, t.action_monster, t.report_count,
+                    t.report_amount, t.report_missed, t.provoked_threat_state, t.first_target_type,
+                    t.first_target_monster);
+        }
+        const HostileEngagementSnapshot& state = query.snapshot;
+        if (!baseline_taken && state.engaged_hostiles != 0) {
+            initial_engaged_hp = state.engaged_hp_total;
+            initial_party_hp = state.party_hp_total;
+            baseline_taken = true;
+        }
+        if (baseline_taken &&
+            (state.engaged_hp_total < initial_engaged_hp || state.engaged_dead != 0) &&
+            !g_observation.monster_damaged) {
+            g_observation.monster_damaged = 1;
+            ReportStep("monster-damaged");
+        }
+        if (baseline_taken && state.party_hp_total < initial_party_hp &&
+            !g_observation.party_damaged) {
+            g_observation.party_damaged = 1;
+            ReportStep("party-damaged");
+        }
+        if (state.action_char >= 0 && state.action_status >= 2 &&
+            !g_observation.combat_attack_executed) {
+            g_observation.combat_attack_executed = 1;
+            ReportStep("party-cast-executed");
+        }
+        if ((state.engaged_dead != 0 || (baseline_taken && state.engaged_hostiles == 0)) &&
+            !g_observation.monster_killed) {
+            g_observation.monster_killed = 1;
+            ReportStep("monster-killed");
+        }
+        if (baseline_taken && state.engaged_hostiles == 0 && !state.combat_mode) {
+            g_observation.combat_ended = 1;
+            ReportStep("combat-ended");
+            /* A cast still queued when combat ends resolves through the
+               out-of-combat spell UI, which runs its own modal loop and never
+               reaches the quit flag. Dismiss it through the cancel binding. */
+            for (int probe = 0; probe < 8; ++probe) {
+                if (!IsModalOpen()) {
+                    break;
+                }
+                TapGameplayCommand(W8_MGS_COMMAND_CANCEL);
+                Sleep(500);
+            }
+            return FinishGameplayScenario();
+        }
+        if (state.round_active)
+            round_requested = false;
+        if (state.combat_mode && !state.round_active && !round_requested) {
+            if (state.nearest_engaged_distance > 800.0f) {
+                bool moved = false;
+                RunOnGameThread(TeleportPartyNearEngagedOnGameThread, &moved);
+                fprintf(stderr, "runtime-test approach: moved=%d dist=%.0f\n", moved,
+                        state.nearest_engaged_distance);
+            }
+            CombatSpellQuery cast;
+            cast.location_id = context.location_id;
+            cast.spell_id = spell_id;
+            if (!RunOnGameThread(QueuePartySpellsOnGameThread, &cast))
+                continue;
+            if (cast.spell_id <= 0)
+                return FailScenario("combat-spell", "no-single-enemy-spell");
+            spell_id = cast.spell_id;
+            fprintf(stderr, "runtime-test cast: spell=%d queued=%d aimed=%d\n", cast.spell_id,
+                    cast.queued, cast.aimed);
+            if (cast.queued > 0 && !g_observation.combat_action_queued) {
+                g_observation.combat_action_queued = 1;
+                ReportStep("combat-cast-queued");
+            }
+            if (!TapGameplayCommand(W8_MGS_COMMAND_START_COMBAT_ROUND))
+                return FailScenario("combat-round", "binding-missing");
+            round_requested = true;
+        }
+        if (!state.combat_mode && g_observation.combat_attack_executed) {
+            return FinishGameplayScenario();
+        }
+    }
+    fprintf(stderr,
+            "runtime-test cast-frontier: screen=%d pending=%d hostile=%u active=%u "
+            "engaged=%u party_hp=%u nearest=%.0f provoked active=%u hp=%d cond=%d incombat=%d "
+            "dead=%d dist=%.0f threat=%d combat=%u round=%u action=%d char=%d monster=%d "
+            "spell=%d queued=%d target=%d:%d report(hits=%u dmg=%u miss=%u) "
+            "obs(q=%u exec=%u mdmg=%u pdmg=%u kill=%u)\n",
+            query.snapshot.screen, query.snapshot.pending, query.snapshot.hostile_count,
+            query.snapshot.active_monsters, query.snapshot.engaged_hostiles,
+            query.snapshot.party_hp_total, query.snapshot.nearest_engaged_distance,
+            query.snapshot.provoked_active, query.snapshot.provoked_hp,
+            query.snapshot.provoked_condition, query.snapshot.provoked_in_combat,
+            query.snapshot.provoked_dead, query.snapshot.provoked_distance,
+            query.snapshot.provoked_threat_state, query.snapshot.combat_mode,
+            query.snapshot.round_active, query.snapshot.action_status, query.snapshot.action_char,
+            query.snapshot.action_monster, spell_id, query.snapshot.queued_attacks,
+            query.snapshot.first_target_type, query.snapshot.first_target_monster,
+            query.snapshot.report_count, query.snapshot.report_amount, query.snapshot.report_missed,
+            g_observation.combat_action_queued, g_observation.combat_attack_executed,
+            g_observation.monster_damaged, g_observation.party_damaged,
+            g_observation.monster_killed);
+    if (g_observation.combat_action_queued && g_observation.combat_attack_executed &&
+        (g_observation.monster_damaged || g_observation.monster_killed ||
+         g_observation.combat_ended)) {
+        return FinishGameplayScenario();
+    }
+    return FailScenario("combat-spell", "cast-resolution-not-observed");
+}
+
 static DWORD RunWorldSoakScenario()
 {
     GameplaySnapshot state;
@@ -2684,6 +2953,12 @@ static bool ValidateCombatAttack(const RuntimeObservation& o)
            (o.monster_damaged || o.party_damaged || o.monster_killed);
 }
 
+static bool ValidateCombatSpell(const RuntimeObservation& o)
+{
+    return o.main_game_entered && o.combat_aggroed && o.combat_action_queued &&
+           o.combat_attack_executed && (o.monster_damaged || o.party_damaged || o.monster_killed);
+}
+
 static bool ValidateSoak(const RuntimeObservation& o)
 {
     return o.main_game_entered && o.world_soaked;
@@ -2696,6 +2971,8 @@ static const RuntimeScenario kScenarios[] = {
      RunHostileEncounterScenario, ValidateHostile},
     {"combat-attack", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 540000,
      RunCombatAttackScenario, ValidateCombatAttack},
+    {"combat-spell", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 180000,
+     RunCombatSpellScenario, ValidateCombatSpell},
     {"world-soak", RUNTIME_MAIN_GAME, RUNTIME_NIGHTLY, RUNTIME_INTEGRATION, 120000,
      RunWorldSoakScenario, ValidateSoak},
     {"exploration-input", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 120000,

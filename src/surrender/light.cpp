@@ -832,8 +832,5 @@ srLight::srLight(const srLight& other)
     channel_bits_220 = other.channel_bits_220;
 }
 
-// FUNCTION: SURRENDER 0x1004ED70
-srLight::~srLight() {}
-
 // SYNTHETIC: SURRENDER 0x1004EEF0
 // srLight default_constructor_closure

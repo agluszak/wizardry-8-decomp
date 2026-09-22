@@ -107,6 +107,10 @@ enum W8SpellUsage {
     W8_SPELL_USAGE_COUNT = 5
 };
 
+/* SPELL_COUNT, named by the SpellUsableNow assertion that bounds its
+   argument: the number of rows in the spell database. */
+enum { W8_SPELL_COUNT = 0x96 };
+
 /* The range bands an attack or spell works at, and the one value that means it
    has no range at all. CalcRangeDistance is the one place the band and a
    world distance are related. */

@@ -1713,14 +1713,14 @@ bool CanSpellBackfire(int spell_id)
 // FUNCTION: WIZ8 0x004acc10
 unsigned char InitializeSpellDatabase(void)
 {
-    /* Retail read allocation_count/row_count uninitialised when the header
-       FileRead pair short-circuited; deterministic zeroes model that defect
-       path. */
+    /* Retail read allocation_count/database_version uninitialised when the
+       header FileRead pair short-circuited; deterministic zeroes model that
+       defect path. */
     int handle;
     unsigned int index;
     unsigned char ok;
     int allocation_count = 0;
-    unsigned int row_count = 0;
+    unsigned int database_version = 0;
 
     if (g_spell_records != 0) {
         delete[] g_spell_records;
@@ -1732,7 +1732,7 @@ unsigned char InitializeSpellDatabase(void)
         return 0;
     }
     ok = 0;
-    if (FileRead(handle, &allocation_count, 4, 0) && FileRead(handle, &row_count, 4, 0)) {
+    if (FileRead(handle, &allocation_count, 4, 0) && FileRead(handle, &database_version, 4, 0)) {
         ok = 1;
     }
     g_spell_records = new W8SpellRuntimeRecord[allocation_count];
@@ -1740,7 +1740,7 @@ unsigned char InitializeSpellDatabase(void)
         srAssertFail("s_pSpellTable", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x774,
                      0);
     }
-    for (index = 0; index < row_count; ++index) {
+    for (index = 0; index < static_cast<unsigned int>(allocation_count); ++index) {
         if (ok == 0) {
             goto discard;
         }
@@ -1756,6 +1756,6 @@ unsigned char InitializeSpellDatabase(void)
         g_spell_records = 0;
     }
     FileClose(handle);
-    g_spell_database_version = row_count;
+    g_spell_database_version = database_version;
     return ok;
 }

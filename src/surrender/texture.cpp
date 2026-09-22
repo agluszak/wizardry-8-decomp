@@ -28,7 +28,7 @@ srTexture::srTexture()
     texture_dimensions_.palette = srCore.getPalette();
     texture_dimensions_.filter = srCore.getFilter();
     texture_dimensions_.hints = 0;
-    texture_dimensions_.compression = 4;
+    texture_dimensions_.compression = srTextureIFace::COMPRESSION_DEFAULT;
     srPixelConvert::mapPixelFormat(static_cast<srPixelConvert::e_surfaceType>(0xb),
                                    texture_dimensions_.format);
     texture_flags_ = 0;
