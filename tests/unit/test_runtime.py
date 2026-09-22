@@ -226,28 +226,34 @@ def _registry():
     from wiz8decomp.runtime import _parse_runtime_scenarios
 
     return _parse_runtime_scenarios(
-        "name\tphase\ttier\tkind\ttimeout_ms\tfixture\tpath\n"
-        "main-menu-startup\tmain-menu\tpr\tintegration\t15000\tmain-menu\tnatural\n"
-        "split-stack\tengine-ready\tpr\tsemantic\t15000\tengine-ready\tnatural\n"
+        "name\tphase\ttier\tkind\ttimeout_ms\tfixture\tpath\tbatch\n"
+        "main-menu-startup\tmain-menu\tpr\tintegration\t15000\tmain-menu\tnatural\tno\n"
+        "split-stack\tengine-ready\tpr\tsemantic\t15000\tengine-ready\tnatural\tyes\n"
     )
 
 
 @pytest.mark.parametrize(
     "row",
     [
-        "../escape\tengine-ready\tpr\tsemantic\t15000\tengine-ready\tnatural",
-        "probe\tunknown\tpr\tsemantic\t15000\tengine-ready\tnatural",
-        "probe\tengine-ready\tpr\tsemantic\t0\tengine-ready\tnatural",
-        "probe\tengine-ready\tpr\tsemantic\t-1\tengine-ready\tnatural",
-        "probe\tengine-ready\tpr\tsemantic\t15000\tengine-ready\tunknown",
-        "probe\tengine-ready\tpr\tsemantic\t15000\nprobe\tengine-ready\tpr\tsemantic\t15000",
+        "../escape\tengine-ready\tpr\tsemantic\t15000\tengine-ready\tnatural\tno",
+        "probe\tunknown\tpr\tsemantic\t15000\tengine-ready\tnatural\tno",
+        "probe\tengine-ready\tpr\tsemantic\t0\tengine-ready\tnatural\tno",
+        "probe\tengine-ready\tpr\tsemantic\t-1\tengine-ready\tnatural\tno",
+        "probe\tengine-ready\tpr\tsemantic\t15000\tengine-ready\tunknown\tno",
+        "probe\tengine-ready\tpr\tsemantic\t15000\tengine-ready\tnatural\tmaybe",
+        (
+            "probe\tengine-ready\tpr\tsemantic\t15000\tengine-ready\tnatural\tno\n"
+            "probe\tengine-ready\tpr\tsemantic\t15000\tengine-ready\tnatural\tno"
+        ),
     ],
 )
 def test_registry_rejects_unsafe_or_ambiguous_metadata(row):
     from wiz8decomp.runtime import _parse_runtime_scenarios
 
     with pytest.raises(RuntimeError):
-        _parse_runtime_scenarios("name\tphase\ttier\tkind\ttimeout_ms\tfixture\tpath\n" + row)
+        _parse_runtime_scenarios(
+            "name\tphase\ttier\tkind\ttimeout_ms\tfixture\tpath\tbatch\n" + row
+        )
 
 
 @pytest.mark.parametrize("check_order", [False, True])
