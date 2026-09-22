@@ -23,7 +23,7 @@
    method out-of-line - even the trivial default constructor - and its
    (const char*) constructor contains a spelled-out copy of the assignment
    rather than delegating to it, its reference assignment delegates where
-   Wiz8's performs destroy-then-copy, and its copy constructor copies inline
+   Wiz8's performs release-then-copy, and its copy constructor copies inline
    where Wiz8's delegates to the reference assignment - which proves the two
    products do not share the same method bodies. Only the members below are
    identical in both products. */
@@ -48,6 +48,11 @@ struct srInlineString {
        emission - the function retail lists at 0x0047D290. In the provider
        unit reset itself releases non-inline storage (0x10012C80). */
     void reset();
+
+    /* Releases the object's contents and returns it to the empty state - the
+       operation the destructor and copy assignment share. In the Wiz8 unit
+       its only emitted form is the destructor body (0x0047CDD0). */
+    void release();
 
     srInlineString& operator=(const char* source);
     srInlineString& operator=(const srInlineString& source);

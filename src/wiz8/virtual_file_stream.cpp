@@ -86,10 +86,22 @@ inline srInlineString::srInlineString(const srInlineString& source, long begin, 
     srHeap.free(temporary);
 }
 
-/* Retail expands this destructor at shallow sites and calls the emission from
-   deeper ones (insert's `*this =` tail). Our build splits the same way. */
+/* Retail expands this destructor at shallow sites and calls the emission
+   from deeper ones: insert's `*this =` tail and the EH unwind entries. Our
+   build splits the same way. */
 // FUNCTION: WIZ8 0x0047CDD0
 inline srInlineString::~srInlineString()
+{
+    release();
+}
+
+/* Releases this object's contents and returns it to the empty state. The
+   destructor and copy assignment share it. Retail keeps only the destructor
+   emission above: operator='s expansion and the EH unwinders call the same
+   body, so whether retail spelled a separate release member is unprovable -
+   the claims treat the two identities as folded onto the one emission. */
+// FUNCTION: WIZ8 0x0047CDD0 FOLDED
+inline void srInlineString::release()
 {
     if (data_ != inline_) {
         srHeap.free(data_);
@@ -99,11 +111,11 @@ inline srInlineString::~srInlineString()
 
 /* Releases this object's contents, then copies the source text. Where
    srEXT_Unzip delegates to the (const char*) overload, this product's copy
-   destroys first and copies inline - insert's tail calls the destructor and
-   performs the copy without a second call. */
+   releases first and copies inline - insert's tail calls the shared
+   emission and performs the copy without a second call. */
 inline srInlineString& srInlineString::operator=(const srInlineString& source)
 {
-    this->~srInlineString(); // member-dtor-ok: Wiz8's unit emits the destroy-then-copy call (0x47CDD0 expansion in insert's tail)
+    release();
     if (source.data_ != 0 && *source.data_ != '\0') {
         size_ = strlen(source.data_) + 1;
         data_ = static_cast<char*>(srHeap.allocate(size_));
