@@ -81,6 +81,42 @@ public:
 static_assert(sizeof(W8TriggerActionData005EC158) == 0x0c,
               "W8TriggerActionData005EC158_must_be_0x0c");
 
+
+/* The flags_0a0 bits whose roles are established by recovered producers and
+   consumers:
+   - ON arms a trigger plane / state-driven prop; scripts toggle it, mipe uses
+     it for the rep item's highlight state.
+   - RUNNING marks an in-flight action; FinishAction clears it.
+   - FIRE_LINKED enables linked-recipient dispatch from CommitActionResult or
+     RunLinkedTriggers; LINK_ON_DEACTIVATE selects the latter path.
+   - ENABLED makes the trigger interactable (picking, prop activation, door
+     pathing); scripts clear it to retire spent levers and triggers.
+   - POSITIONED records that position_118 is live (kind-2 record or
+     SetPosition); the proximity scan requires it.
+   - EXCLUSIVE lets at most one flagged proximity trigger run per update scan.
+   - CAN_RUN_LINKED is the bit CanRunLinkedTriggers reports.
+   - REACTIVATE_LINKED re-fires linked recipients when a finished trigger
+     reactivates.
+   - ALTERNATE_ACTION alternates action_data_128 with
+     alternate_action_data_1a8, tracked by ALTERNATE_SELECTED.
+   - ITEM_PICKER marks the item-picker dialog open for this trigger.
+   - SEARCHED marks an already-searched trigger; loading unregisters it. */
+enum W8TriggerFlag {
+    W8_TRIGGER_ON = 0x10,
+    W8_TRIGGER_RUNNING = 0x40,
+    W8_TRIGGER_FIRE_LINKED = 0x80,
+    W8_TRIGGER_ENABLED = 0x100,
+    W8_TRIGGER_LINK_ON_DEACTIVATE = 0x200,
+    W8_TRIGGER_POSITIONED = 0x800,
+    W8_TRIGGER_CAN_RUN_LINKED = 0x20000,
+    W8_TRIGGER_EXCLUSIVE = 0x100000,
+    W8_TRIGGER_REACTIVATE_LINKED = 0x200000,
+    W8_TRIGGER_ALTERNATE_ACTION = 0x800000,
+    W8_TRIGGER_ALTERNATE_SELECTED = 0x1000000,
+    W8_TRIGGER_ITEM_PICKER = 0x2000000,
+    W8_TRIGGER_SEARCHED = 0x4000000,
+};
+
 /* Persisted lock/trap device state: `completed` latches once the pick/disarm
    interaction finishes; `pins` holds the eight tumbler bytes of a pickable
    lock, re-rolled by UpdateTriggerLock00445730. */
@@ -141,6 +177,9 @@ public:
     int trigger_kind_018;
     char name_01c[0x80];
     int trigger_id_09c;
+    /* W8TriggerFlag bits with established producer/consumer semantics. The
+       rest of the word is record-loaded or unresolved state and stays masked
+       by literal. */
     unsigned int flags_0a0;
     float range_minimum_0a4;
     float range_maximum_0a8;

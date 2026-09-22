@@ -3569,7 +3569,7 @@ unsigned char MipeWorldViewEvent0057E0E0(int event, const POINT* point)
 
                 trigger->flags_0a0 &= ~0x20u;
                 item = trigger->rep_item_114;
-                if ((trigger->flags_0a0 & 0x10) != 0 && item != 0) {
+                if ((trigger->flags_0a0 & W8_TRIGGER_ON) != 0 && item != 0) {
                     static_cast<W8ItemRep*>(item->m_pRep)->SetFlags(0x10, 0);
                     item->SetHighlight(0);
                 }

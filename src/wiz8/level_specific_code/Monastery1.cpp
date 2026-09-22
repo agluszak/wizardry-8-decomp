@@ -22,7 +22,7 @@ void ClearTextForBarTrigger004DC8D0(void)
     if (trigger != 0 && trigger->state_index == 1) {
         trigger = FindTriggerByName("Textforbar");
         if (trigger != 0) {
-            trigger->flags_0a0 &= ~0x100u;
+            trigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
         }
     }
 }
@@ -78,7 +78,7 @@ bool OnBarTriggerActivated(Trigger* trigger)
     Trigger* textTrigger = FindTriggerByName("Textforbar");
 
     if (textTrigger != 0) {
-        textTrigger->flags_0a0 &= ~0x100u;
+        textTrigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
     }
     return true;
 }

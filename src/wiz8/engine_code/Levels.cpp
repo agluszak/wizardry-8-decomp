@@ -581,7 +581,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
             sprintf(trigger_name, "%3s%02d", g_level_folders[level].location_code, entrance);
             trigger = FindTriggerByName(trigger_name);
         }
-        if (trigger != 0 && ((trigger->flags_0a0 & 0x800U) != 0)) {
+        if (trigger != 0 && ((trigger->flags_0a0 & W8_TRIGGER_POSITIONED) != 0)) {
             srVector3T<float> trigger_position;
             srVector3T<float> position;
 
