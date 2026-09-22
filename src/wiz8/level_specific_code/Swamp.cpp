@@ -44,7 +44,7 @@ bool SwampOilPool004DA960(Trigger* pTrigger)
         ClearHeldItemDisplay();
         ReplaceOrCreateItem(&g_status_685170.item_in_hand_235b, 0x15e, 0, 1, 0);
         SetItemCursor(0);
-        g_flag_00606994 = 1;
+        g_trigger_feedback_00606994 = 1;
     }
     return 0;
 }

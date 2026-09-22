@@ -124,7 +124,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
        cost comparison, so fCombatMode keeps the target-validity half out of
        the scenario. */
     saved_combat_mode = gXStatus.fCombatMode;
-    saved_menu_slot = g_value_64c1c8;
+    saved_menu_slot = g_selected_party_slot_64c1c8;
     saved_spell_id = g_status_685170.buffers.XChar[0].spell_id;
     saved_power_level = g_status_685170.buffers.XChar[0].spell_detail.spell.power_level;
     saved_spell_learned = g_status_685170.buffers.Char[0].spell_learned[spell_id];
@@ -134,7 +134,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     saved_spell_point_cost = g_spell_records[spell_id].spell_point_cost;
 
     gXStatus.fCombatMode = 1;
-    g_value_64c1c8 = 0;
+    g_selected_party_slot_64c1c8 = 0;
     g_status_685170.buffers.XChar[0].spell_id = spell_id;
     g_status_685170.buffers.XChar[0].spell_detail.spell.power_level = 1;
     g_status_685170.buffers.Char[0].spell_learned[spell_id] = 1;
@@ -171,7 +171,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
         g_spell_records[spell_id].usable_when = saved_usable_when;
         g_spell_records[spell_id].realm = saved_realm;
         g_spell_records[spell_id].spell_point_cost = saved_spell_point_cost;
-        g_value_64c1c8 = saved_menu_slot;
+        g_selected_party_slot_64c1c8 = saved_menu_slot;
         gXStatus.fCombatMode = saved_combat_mode;
         if (test_level_block != 0) {
             g_level_block = saved_level_block;
@@ -387,7 +387,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     g_spell_records[spell_id].usable_when = saved_usable_when;
     g_spell_records[spell_id].realm = saved_realm;
     g_spell_records[spell_id].spell_point_cost = saved_spell_point_cost;
-    g_value_64c1c8 = saved_menu_slot;
+    g_selected_party_slot_64c1c8 = saved_menu_slot;
     gXStatus.fCombatMode = saved_combat_mode;
     if (test_level_block != 0) {
         g_level_block = saved_level_block;

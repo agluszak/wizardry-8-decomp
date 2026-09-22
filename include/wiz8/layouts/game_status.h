@@ -37,7 +37,7 @@ struct W8SpellUsageRecord {
 
 struct W8GlobalStatusFactView {
     int status_ints_3121[1000];
-    unsigned char flag_40c1;
+    unsigned char fact_88_latch_40c1;
     unsigned char unknown_40c2[0x17b];
     int rpc_slot_423d;
     unsigned char unknown_4241[0x59d];
@@ -148,7 +148,7 @@ struct W8GlobalStatus {
     /* 0x2445: latched once the Trynnie2 Zulu/0x1c3 use-item action has been
        handled at a cursor node; later uses take the Mystical Shaman branch. */
     unsigned char use_item_latch_2445;
-    unsigned char flag_2446;
+    bool infatuation_pending_2446;
     int difficulty;
     /* 0x244b: the save file's creation-time pair XOR-masked by SaveGame's
        two data constants; both halves are written as dwords. */
@@ -165,10 +165,10 @@ struct W8GlobalStatus {
     bool rpc_active_2489; /* 0x2489: fact 0x14c gate */
     /* 0x248a: armed by the long NPC reward event; the event also stamps
        0x2493 with the world clock. */
-    unsigned char flag_248a;
-    unsigned int value_248b;
+    bool fact_b8_pending_248a;
+    unsigned int condition13_stamp_248b;
     int pending_condition_party_slot_248f;
-    int value_2493;
+    int fact_b8_clock_2493;
     bool greeting_pending_2497;
     unsigned int camp_fatigue_count_2498;
     /* 0x249c: party slot fact 0x39 hands to RemoveCharacterCondition. */
@@ -211,17 +211,17 @@ struct W8GlobalStatus {
     unsigned int text_box_lines_used_4997[4];
     unsigned int text_box_lines_shown_49a7[4];
     /* 0x49b7: world-clock stamp the 0x49bb reward event compares against. */
-    int value_49b7;
-    unsigned char flag_49bb;
-    unsigned char flag_49bc;
+    int trang_check_clock_49b7;
+    bool trang_check_pending_49bb;
+    unsigned char intro_shown_49bc;
     unsigned char flag_49bd;
-    unsigned char unknown_49be[2];
+    unsigned char padding_49be[2];
     /* 0x49c0: set when the endgame transition starts; saves carrying either
        this or flag_49bd are filtered from the load list. */
     bool endgame_started_49c0;
     /* 0x49c1: latched while g_flag_689b32 is set at teardown; persisted into
-       the save slot as flag_263c. */
-    unsigned char flag_49c1;
+       the save slot as dev_flagged_263c. */
+    unsigned char dev_flagged_49c1;
 };
 #pragma pack(pop)
 
@@ -279,14 +279,16 @@ static_assert(offsetof(W8GlobalStatus, log_fact_checks_3120) == 0x3120,
               "W8GlobalStatus_log_fact_checks_offset");
 static_assert(offsetof(W8GlobalStatus, text_box_lines_shown_49a7) == 0x49a7,
               "W8GlobalStatus_text_box_lines_shown_offset");
-static_assert(offsetof(W8GlobalStatus, flag_49bc) == 0x49bc, "W8GlobalStatus_flag_49bc_offset");
+static_assert(offsetof(W8GlobalStatus, intro_shown_49bc) == 0x49bc,
+              "W8GlobalStatus_intro_shown_49bc_offset");
 static_assert(offsetof(W8GlobalStatus, text_box_lines_used_4997) == 0x4997,
               "W8GlobalStatus_migrated_values_offset");
 static_assert(offsetof(W8GlobalStatus, rpc_active_2489) == 0x2489,
               "W8GlobalStatus_flag_2489_offset");
-static_assert(offsetof(W8GlobalStatus, tail_3121) + offsetof(W8GlobalStatusFactView, flag_40c1) ==
+static_assert(offsetof(W8GlobalStatus, tail_3121) +
+                      offsetof(W8GlobalStatusFactView, fact_88_latch_40c1) ==
                   0x40c1,
-              "W8GlobalStatus_flag_40c1_offset");
+              "W8GlobalStatus_fact_88_latch_40c1_offset");
 static_assert(offsetof(W8GlobalStatus, tail_3121) +
                       offsetof(W8GlobalStatusSpellUsageView, records) ==
                   0x40be,

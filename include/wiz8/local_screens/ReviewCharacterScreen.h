@@ -71,7 +71,7 @@ struct W8CampScreenState0069C0F4 {
     unsigned int item_redraw_flags;
     W8LearnedSpellState learned_spells; /* 0x100 */
     unsigned char realm_flags[6];       /* 0x4dc */
-    unsigned char unknown_4e2[2];
+    unsigned char padding_4e2[2];
     unsigned int item_scroll;
     /* 0x4e8: the displayed item-pool indices - the count and the list of pool
        slots RCSItemsPage.cpp renders. RebuildCampItemList005A4A00 rebuilds it; the pool
@@ -85,7 +85,7 @@ struct W8CampScreenState0069C0F4 {
     unsigned int item_timer; /* 0xce0 */
     unsigned char item_timer_active;
     unsigned char item_timer_expired;
-    unsigned char unknown_ce6[2];
+    unsigned char padding_ce6[2];
     unsigned int animation_timer;
     unsigned int animation_frames[6];
     int input_mode; /* 0xd04 */
@@ -93,7 +93,7 @@ struct W8CampScreenState0069C0F4 {
        by RebuildCampEffectList005C4EE0 and refiltered by
        FilterCampEffectList005C5240. */
     unsigned char effect_items_only; /* 0xd08: 1 lists equipped items, 0 conditions/enchantments */
-    unsigned char unknown_d09[3];
+    unsigned char padding_d09[3];
     int effect_filter; /* 0xd0c: 0 all, 1 beneficial only, 2 detrimental only */
     int effect_beneficial_count;
     int effect_detrimental_count;
@@ -112,10 +112,12 @@ struct W8CampScreenState0069C0F4 {
     unsigned char portrait_hovered_d40[4];
     W8DialogBase* dialog;
     unsigned char item_mode;
-    unsigned char unknown_d49[3];
+    unsigned char padding_d49[3];
     W8CampCharacterInfo* character_info;
-    unsigned char flag_d50;
-    unsigned char unknown_d51[3];
+    /* 0xd50: the camp item icons were drawn while the monster/combat
+       timer was enabled; its stop forces a full redraw to drop them. */
+    unsigned char item_icons_drawn_d50;
+    unsigned char padding_d51[3];
 };
 static_assert(sizeof(W8CampScreenState0069C0F4) == 0xd54, "W8CampScreenState_size");
 static_assert(offsetof(W8CampScreenState0069C0F4, learned_spells) == 0x100,
@@ -131,7 +133,7 @@ static_assert(offsetof(W8CampScreenState0069C0F4, learned_spells) +
 
 extern W8CampScreenState0069C0F4* g_camp_screen_0069c0f4;
 extern int giReviewCharSlot;
-extern W8Character* g_value_0069c0f8;
+extern W8Character* g_review_character_0069c0f8;
 extern W8Character* g_camp_entry_parameter_0069c0fc; /* gpIdentifyingPC */
 extern W8Character* g_camp_character_0069c100;
 extern bool g_camp_character_pending_0069c104;

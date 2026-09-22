@@ -70,7 +70,7 @@ struct W8LevelRuntimeBlock {
     /* 0x000: notice/list paint scratch. DrawTextBoxLine and the monster-list
        formatter reuse the leading 0xf0 bytes as wchar_t storage. */
     wchar_t text_paint_scratch_000[0xf0 / sizeof(wchar_t)];
-    unsigned char flag_0f0; /* 0x0f0 */
+    bool message_box_pending_0f0; /* 0x0f0: message box lived last frame; render deferred */
     unsigned char flags_0f1[3];
     unsigned int redraw_flags; /* 0x0f4 */
     /* Snapshot of redraw_flags taken before the two redraw passes; the second
@@ -79,7 +79,7 @@ struct W8LevelRuntimeBlock {
     W8MainUiMode main_ui_mode;                 /* 0x0fc: portraits / formation / radar */
     int camera_mode_100;                       /* 0x100 */
     unsigned int hover_region;                 /* 0x104 */
-    unsigned char flag_108;                    /* 0x108 */
+    bool portrait_strip_dirty_108;             /* 0x108: portrait strip needs a redraw */
     unsigned char portrait_refresh_pending[8]; /* 0x109 */
     unsigned char unknown_111[3];
     int portrait_refresh_image[8]; /* 0x114 */
@@ -178,7 +178,7 @@ struct W8LevelRuntimeBlock {
     /* 0x271: text box visible; toggled by the keyboard shortcut and raised
        by spell/item/dialogue screens that need it. */
     bool text_box_visible_271;
-    unsigned char flag_272;
+    bool mipe_editing_272; /* 0x272: MIPE edit session owns the hidden action panel */
     unsigned char unknown_273;
     unsigned int tick_274; /* 0x274 */
     int value_278;         /* 0x278 */
@@ -253,7 +253,8 @@ struct W8LevelRuntimeBlock {
 static_assert(offsetof(W8LevelRuntimeBlock, text_paint_scratch_000) == 0x0,
               "W8LevelRuntimeBlock_text_paint_scratch_000");
 static_assert(sizeof(W8LevelRuntimeBlock) == 0x330, "W8LevelRuntimeBlock_must_be_0x330");
-static_assert(offsetof(W8LevelRuntimeBlock, flag_0f0) == 0x0f0, "W8LevelRuntimeBlock_flag_0f0");
+static_assert(offsetof(W8LevelRuntimeBlock, message_box_pending_0f0) == 0x0f0,
+              "W8LevelRuntimeBlock_message_box_pending_0f0");
 static_assert(offsetof(W8LevelRuntimeBlock, saved_redraw_flags) == 0x0f8,
               "W8LevelRuntimeBlock_saved_redraw_flags");
 static_assert(offsetof(W8LevelRuntimeBlock, main_ui_mode) == 0x0fc,

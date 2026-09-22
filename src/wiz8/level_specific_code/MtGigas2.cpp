@@ -116,7 +116,7 @@ bool MtGigas2Train004DB380(Trigger* pTrigger)
         item_id = GetItemInHand();
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     value = GetLocationVarValueByName("WirePanel");
     if (value == 3) {
         return false;
@@ -141,7 +141,7 @@ bool MtGigas2RedWire004DB420(Trigger* pTrigger)
     if (value == 3) {
         return true;
     }
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     if (value != 0) {
         MtGigas2WireShock004DB530();
         return false;
@@ -159,7 +159,7 @@ bool MtGigas2BlueWire004DB460(Trigger* pTrigger)
     if (value == 3) {
         return true;
     }
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     if (value != 1) {
         MtGigas2WireShock004DB530();
         return false;
@@ -179,7 +179,7 @@ bool MtGigas2YellowWire004DB4A0(Trigger* pTrigger)
     if (value == 3) {
         return true;
     }
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     if (value != 2) {
         MtGigas2WireShock004DB530();
         return false;
@@ -263,7 +263,7 @@ bool MtGigas2Lift3004DB650(Trigger* pTrigger)
         item = &g_status_685170.item_in_hand_235b;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     return false;
 }
 
@@ -282,7 +282,7 @@ bool MtGigas2TopDoor1004DB690(Trigger* pTrigger)
         item = &g_status_685170.item_in_hand_235b;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     return false;
 }
 
@@ -316,7 +316,7 @@ bool MtGigas2Officer1004DB6D0(Trigger* pTrigger)
         item = &g_status_685170.item_in_hand_235b;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     return false;
 }
 
@@ -350,7 +350,7 @@ bool MtGigas2Officer2004DB770(Trigger* pTrigger)
         item = &g_status_685170.item_in_hand_235b;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     return false;
 }
 
@@ -360,7 +360,7 @@ bool MtGigas2Officer2004DB770(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DB810
 bool MtGigas2LaserAlarm004DB810(Trigger* pTrigger)
 {
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     if (GetFact(0xa5) != 0) {
         return false;
     }

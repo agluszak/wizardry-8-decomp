@@ -87,7 +87,10 @@ struct W8ItemDatabaseRecord {
     unsigned char slays_kind_061;
     signed char armor_class_bonus; /* 0x062 */
     unsigned char spell_id;        /* 0x063 */
-    unsigned char unknown_064[2];
+    /* 0x064: the cast spell's power level - Assay prints "(Pwr %d)" and the
+       use path consumes it as the casting power. */
+    unsigned char spell_power_064;
+    unsigned char unknown_065;
     unsigned char quantity_kind; /* 0x066 */
     W8Dice initial_quantity;     /* 0x067 */
     /* The stack merge path clamps quantity-kind 1 items to this byte. */

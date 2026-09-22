@@ -1850,7 +1850,7 @@ void ProcessMessageBoxQueue(void)
         g_status_685170.skip_next_condition_reaction = 1;
         SetCharacterCondition(party_slot, 0x13, 9999, 0, 0, 0);
         g_status_685170.condition13_clock_2487 = 1;
-        g_status_685170.value_248b = g_status_685170.world_clock;
+        g_status_685170.condition13_stamp_248b = g_status_685170.world_clock;
         g_status_685170.pending_condition_party_slot_248f = party_slot;
         break;
     }
@@ -2727,7 +2727,7 @@ void EndScriptedPortraitPick00529C40(int party_slot)
                          character->name);
                 g_status_685170.alternate_name_slot_247f = party_slot;
                 g_status_685170.rpc_active_2489 = 1;
-                g_status_685170.flag_2446 = 1;
+                g_status_685170.infatuation_pending_2446 = 1;
                 QueueCharacterEvent(character, g_special_event_0068c50c, 0,
                                     g_effect_argument_005ed8c8, g_effect_argument_005ed914);
                 goto done;

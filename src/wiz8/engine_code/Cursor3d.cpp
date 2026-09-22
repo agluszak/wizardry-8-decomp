@@ -213,7 +213,7 @@ void InitializeWorldCursor00490210(void)
             gp3DCursor->probe_offsets_60[7].z = minimum.z;
             UpdateWorldCursorPlacement00491EC0();
             if (g_flag_689b32 != 0 &&
-                (g_flag_006f0530 != 0 || g_monster_combat_timer_enabled_006f0531 != 0)) {
+                (g_shift_held_006f0530 != 0 || g_monster_combat_timer_enabled_006f0531 != 0)) {
                 g_cursor_pick_latch_0065ba98 = 1;
             }
         }

@@ -1165,7 +1165,7 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
             if (g_item_spell_presentation[record->category] == 9) {
                 fatigue_cost = 10;
             }
-            power = record->unknown_064[0];
+            power = record->spell_power_064;
         } else {
             /* A casting aid has to beat the difficulty of the character's own
                level in the skill that presents the spell. Each attempt that
@@ -3252,8 +3252,8 @@ void UpdateFactsAfterAcquiringItem(const W8ItemInstance* item)
         if (GetFact(0x167)) {
             SetFact(0x167, 0, 0);
         }
-        g_status_685170.flag_248a = 1;
-        g_status_685170.value_2493 = g_status_685170.world_clock;
+        g_status_685170.fact_b8_pending_248a = 1;
+        g_status_685170.fact_b8_clock_2493 = g_status_685170.world_clock;
         break;
     case 0x264:
         if (!GetFact(0x182)) {

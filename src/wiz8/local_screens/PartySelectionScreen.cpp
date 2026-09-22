@@ -2319,7 +2319,7 @@ void GameStartRouterFrame(void)
     if (!g_status_685170.skip_loose_character_check_2444) {
         code = 4;
     } else {
-        switch (g_value_68de50) {
+        switch (g_wiz7_ending_68de50) {
         case 1:
             code = 2;
             break;

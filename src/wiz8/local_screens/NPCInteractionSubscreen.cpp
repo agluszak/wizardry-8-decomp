@@ -722,7 +722,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, unsign
     state->price_check_skip_fact = 0;
     state->dialogue_hidden = 0;
     state->modal_dialog_open = 0;
-    state->flag_251 = 0;
+    state->farewell_queued_251 = 0;
     state->reopen_topics = 0;
     state->trade_gold = 0;
     state->pending_layout = 0;
@@ -818,9 +818,9 @@ dispatch:
 tail:
     RequestRedraw(0x100);
     RequestRedraw(0x1000);
-    if (g_flag_0068edd8 != 0) {
+    if (g_mouselook_active_0068edd8 != 0) {
         EnableCursorScene00428020();
-        g_flag_0068edd8 = 0;
+        g_mouselook_active_0068edd8 = 0;
         gfTrackMousePos = 0;
     }
     info = GetNpcMonsterInfo(npc);
@@ -1315,8 +1315,8 @@ void EndNpcDialogueSession0056E800(int param_1)
         g_gd_camera_65a0f8->SetPitch(g_screen_state_00649f1c->saved_camera_pitch_240);
     }
     if (g_screen_state_00649f1c->dialogue_npc->name_style == 0xf && GetFact(0x3c) != 0) {
-        g_status_685170.value_49b7 = g_status_685170.world_clock;
-        g_status_685170.flag_49bb = 1;
+        g_status_685170.trang_check_clock_49b7 = g_status_685170.world_clock;
+        g_status_685170.trang_check_pending_49bb = 1;
     }
 }
 
@@ -1697,7 +1697,7 @@ void NpcDialogueTextBoxLeftUp0056F530(int x, int y)
         if (word == 0 || word->keyword_08 != 1) {
             return;
         }
-        if (g_flag_006f0530 == 0) {
+        if (g_shift_held_006f0530 == 0) {
             ClearNoticeWordSelection(3, 1);
             word_text[0] = 0;
             SetInputFieldStringWith16BitString(0, word_text);
@@ -1720,7 +1720,7 @@ void NpcDialogueTextBoxLeftUp0056F530(int x, int y)
         if (slot == -1) {
             return;
         }
-        UpdateNpcTradeSelection0056FAC0(slot, g_flag_006f0530 != 0 ? 1 : 0, 1);
+        UpdateNpcTradeSelection0056FAC0(slot, g_shift_held_006f0530 != 0 ? 1 : 0, 1);
         return;
     }
 }
@@ -1744,7 +1744,7 @@ void NpcDialogueTextBoxRightUp0056F6B0(int x, int y)
         if (slot == -1) {
             return;
         }
-        UpdateNpcTradeSelection0056FAC0(slot, g_flag_006f0530 != 0 ? 1 : 0, 1);
+        UpdateNpcTradeSelection0056FAC0(slot, g_shift_held_006f0530 != 0 ? 1 : 0, 1);
         item = ResolveNpcTradeRow005729C0(slot, 0, 0, 1);
         if (item == 0) {
             return;
@@ -1791,7 +1791,7 @@ void NpcDialogueTextBoxDoubleClick0056F840(int x, int y)
         if (word == 0) {
             return;
         }
-        if (g_flag_006f0530 == 0) {
+        if (g_shift_held_006f0530 == 0) {
             ClearNoticeWordSelection(3, 1);
             word_text[0] = 0;
             SetInputFieldStringWith16BitString(0, word_text);
@@ -2097,7 +2097,7 @@ void LeaveNpcDialogueLayout(void)
     if (g_screen_state_00649f1c->modal_dialog_open == 0) {
         if (GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc) == 0) {
             g_screen_state_00649f1c->suppress_parting_reaction = 0;
-            g_screen_state_00649f1c->flag_251 = 1;
+            g_screen_state_00649f1c->farewell_queued_251 = 1;
             QueueNpcScriptLine(0x5c, 0, 0, 0);
             return;
         }
@@ -4302,7 +4302,7 @@ void HandleNpcDialogueKeyEvent00574BB0(const InputAtom* event)
         switch (g_screen_state_00649f1c->dialogue_layout) {
         case W8_DIALOGUE_LAYOUT_TRANSCRIPT:
             g_screen_state_00649f1c->suppress_parting_reaction = 0;
-            g_screen_state_00649f1c->flag_251 = 1;
+            g_screen_state_00649f1c->farewell_queued_251 = 1;
             QueueNpcScriptLine(0x5c, 0, 0, 0);
             return;
         case W8_DIALOGUE_LAYOUT_TOPIC_MENU:
@@ -4881,9 +4881,9 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
         unsigned short width;
         unsigned short height;
 
-        if (g_flag_0068edd8) {
+        if (g_mouselook_active_0068edd8) {
             EnableCursorScene00428020();
-            g_flag_0068edd8 = 0;
+            g_mouselook_active_0068edd8 = 0;
             gfTrackMousePos = 0;
         }
         memset(normalized, 0, sizeof(normalized));

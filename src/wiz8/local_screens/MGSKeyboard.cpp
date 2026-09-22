@@ -702,10 +702,10 @@ void KeyboardMenuUseRecordedItem(void);
 void OpenKeyboardMenuForSlot(int slot)
 {
     memset(g_keyboard_menu_rows_69b820, 0, sizeof(g_keyboard_menu_rows_69b820));
-    g_value_64c1c8 = slot;
+    g_selected_party_slot_64c1c8 = slot;
     g_keyboard_menu_panel_69b804 = 0;
     g_level_block->keyboard_menu_open = 1;
-    SelectPartyCharacter(g_value_64c1c8);
+    SelectPartyCharacter(g_selected_party_slot_64c1c8);
     if (BuildKeyboardMenu() == 0) {
         CloseKeyboardMenu();
         return;
@@ -725,10 +725,10 @@ __forceinline void CloseKeyboardMenu(void)
 {
     int index;
 
-    gXStatus.monster_manager_entries[g_value_64c1c8].keyboard_menu_open = 0;
+    gXStatus.monster_manager_entries[g_selected_party_slot_64c1c8].keyboard_menu_open = 0;
     g_level_block->keyboard_menu_open = 0;
     g_level_block->combat_slot = -1;
-    g_level_block->hover_combat_slot = g_value_64c1c8;
+    g_level_block->hover_combat_slot = g_selected_party_slot_64c1c8;
     g_level_block->cursor_grace_31c = 0;
     RefreshPartySlotRegions();
     if (gXStatus.fCombatMode != 0) {
@@ -738,7 +738,7 @@ __forceinline void CloseKeyboardMenu(void)
     }
     RegionSetDisable(0x26);
     DisableRegionSetInput(0x26);
-    if (g_level_block->portrait_refresh_pending[g_value_64c1c8] == 0) {
+    if (g_level_block->portrait_refresh_pending[g_selected_party_slot_64c1c8] == 0) {
         ClearSurfaceRect(g_keyboard_menu_panel_69b804->origin_x,
                          g_keyboard_menu_panel_69b804->origin_y,
                          g_keyboard_menu_panel_69b804->origin_x + 0x52,
@@ -758,7 +758,7 @@ __forceinline void CloseKeyboardMenu(void)
             g_keyboard_menu_rows_69b820[index] = 0;
         }
     }
-    RequestRedraw(1 << g_value_64c1c8);
+    RequestRedraw(1 << g_selected_party_slot_64c1c8);
 }
 
 // FUNCTION: WIZ8 0x00592F90
@@ -777,8 +777,8 @@ unsigned char BuildKeyboardMenu(void)
     short message;
     int index;
 
-    GetPartySlotMenuAnchor(g_value_64c1c8, &left, &top, &unused_4, &unused_5, &unused_6, &unused_7,
-                           0);
+    GetPartySlotMenuAnchor(g_selected_party_slot_64c1c8, &left, &top, &unused_4, &unused_5,
+                           &unused_6, &unused_7, 0);
     left += 0x17;
     g_keyboard_menu_panel_69b804 = new Controls(left, top, left + 0x52, top + 0x4a, 0xa6, 0, 0);
     if (g_keyboard_menu_panel_69b804 == 0) {
@@ -872,7 +872,7 @@ void RefreshKeyboardMenuRows(void)
         item = g_keyboard_menu_items_69b7ec[index];
         menu = g_keyboard_menu_pages_69b808[index];
         message = g_submenu_entry_message_ids_64c548[menu * 5 + item];
-        switch (GetSubMenuEntryState(menu, item, g_value_64c1c8)) {
+        switch (GetSubMenuEntryState(menu, item, g_selected_party_slot_64c1c8)) {
         case W8_SUBMENU_ENTRY_USABLE:
             icon = message + 2;
             break;
@@ -894,20 +894,24 @@ void RefreshKeyboardMenuRows(void)
         }
         if (message == -1) {
             if (menu == W8_SUBMENU_SPELLS && item == 1) {
-                icon +=
-                    g_spell_records[g_status_685170.buffers.XChar[g_value_64c1c8].spell_id].realm *
-                    7;
+                icon += g_spell_records[g_status_685170.buffers.XChar[g_selected_party_slot_64c1c8]
+                                            .spell_id]
+                            .realm *
+                        7;
             }
             row->SetEnabled(0);
         } else {
             if (menu == W8_SUBMENU_SPELLS && item == 1) {
-                adjust =
-                    g_spell_records[g_status_685170.buffers.XChar[g_value_64c1c8].spell_id].realm *
-                    7;
+                adjust = g_spell_records[g_status_685170.buffers.XChar[g_selected_party_slot_64c1c8]
+                                             .spell_id]
+                             .realm *
+                         7;
                 message += adjust;
                 icon += adjust;
             } else if (menu == W8_SUBMENU_ATTACK && item == 0) {
-                switch (g_status_685170.buffers.Char[g_value_64c1c8].Hand[0].weapon_skill) {
+                switch (g_status_685170.buffers.Char[g_selected_party_slot_64c1c8]
+                            .Hand[0]
+                            .weapon_skill) {
                 case 1:
                     adjust = 4;
                     break;
@@ -1015,7 +1019,7 @@ void RedrawKeyboardMenuPanel(unsigned char invalidate)
 void KeyboardMenuSelectAttack(void)
 {
 
-    ChooseAction(g_value_64c1c8, W8_ACTION_ATTACK, -1, 0, 0, 1);
+    ChooseAction(g_selected_party_slot_64c1c8, W8_ACTION_ATTACK, -1, 0, 0, 1);
     RequestRedraw(0x200000);
     CloseKeyboardMenu();
 }
@@ -1024,7 +1028,7 @@ void KeyboardMenuSelectAttack(void)
 void KeyboardMenuSelectBerserk(void)
 {
 
-    ChooseAction(g_value_64c1c8, W8_ACTION_BERSERK, -1, 0, 0, 1);
+    ChooseAction(g_selected_party_slot_64c1c8, W8_ACTION_BERSERK, -1, 0, 0, 1);
     RequestRedraw(0x200000);
     CloseKeyboardMenu();
 }
@@ -1033,7 +1037,7 @@ void KeyboardMenuSelectBerserk(void)
 void KeyboardMenuSelectBreathe(void)
 {
 
-    ChooseAction(g_value_64c1c8, W8_ACTION_BREATHE, -1, 0, 0, 1);
+    ChooseAction(g_selected_party_slot_64c1c8, W8_ACTION_BREATHE, -1, 0, 0, 1);
     RequestRedraw(0x200000);
     CloseKeyboardMenu();
 }
@@ -1042,7 +1046,7 @@ void KeyboardMenuSelectBreathe(void)
 void KeyboardMenuSelectTurnUndead(void)
 {
 
-    ChooseAction(g_value_64c1c8, W8_ACTION_TURN_UNDEAD, -1, 0, 0, 1);
+    ChooseAction(g_selected_party_slot_64c1c8, W8_ACTION_TURN_UNDEAD, -1, 0, 0, 1);
     RequestRedraw(0x200000);
     CloseKeyboardMenu();
 }
@@ -1051,7 +1055,7 @@ void KeyboardMenuSelectTurnUndead(void)
 void KeyboardMenuSelectPray(void)
 {
 
-    ChooseAction(g_value_64c1c8, W8_ACTION_PRAY, -1, 0, 0, 1);
+    ChooseAction(g_selected_party_slot_64c1c8, W8_ACTION_PRAY, -1, 0, 0, 1);
     RequestRedraw(0x200000);
     CloseKeyboardMenu();
 }
@@ -1060,7 +1064,7 @@ void KeyboardMenuSelectPray(void)
 void KeyboardMenuSelectDefend(void)
 {
 
-    ChooseAction(g_value_64c1c8, W8_ACTION_DEFEND, -1, 0, 0, 1);
+    ChooseAction(g_selected_party_slot_64c1c8, W8_ACTION_DEFEND, -1, 0, 0, 1);
     RequestRedraw(0x200000);
     CloseKeyboardMenu();
 }
@@ -1069,7 +1073,7 @@ void KeyboardMenuSelectDefend(void)
 void KeyboardMenuSelectProtect(void)
 {
 
-    ChooseAction(g_value_64c1c8, W8_ACTION_PROTECT, -1, 0, 0, 1);
+    ChooseAction(g_selected_party_slot_64c1c8, W8_ACTION_PROTECT, -1, 0, 0, 1);
     RequestRedraw(0x200000);
     CloseKeyboardMenu();
 }
@@ -1080,7 +1084,7 @@ void KeyboardMenuOpenSpellView(void)
 
     CloseKeyboardMenu();
     if (gXStatus.fSpellCastMode == 0) {
-        OpenSpellCastingView(g_value_64c1c8);
+        OpenSpellCastingView(g_selected_party_slot_64c1c8);
     }
 }
 
@@ -1089,8 +1093,8 @@ void KeyboardMenuCastRecordedSpell(void)
 {
 
     CloseKeyboardMenu();
-    if (CanPartySlotCastRecordedSpell(g_value_64c1c8) != 0) {
-        StartCharacterSpellCast(g_value_64c1c8, 0);
+    if (CanPartySlotCastRecordedSpell(g_selected_party_slot_64c1c8) != 0) {
+        StartCharacterSpellCast(g_selected_party_slot_64c1c8, 0);
         RequestRedraw(0x200000);
     }
 }
@@ -1099,7 +1103,7 @@ void KeyboardMenuCastRecordedSpell(void)
 void KeyboardMenuSelectEquip(void)
 {
 
-    ChooseAction(g_value_64c1c8, W8_ACTION_EQUIP, -1, 0, 0, 1);
+    ChooseAction(g_selected_party_slot_64c1c8, W8_ACTION_EQUIP, -1, 0, 0, 1);
     RequestRedraw(0x200000);
     CloseKeyboardMenu();
 }
@@ -1110,7 +1114,7 @@ void KeyboardMenuOpenUseItemView(void)
 
     CloseKeyboardMenu();
     if (gXStatus.fItemSelectMode == 0) {
-        OpenUseItemSelectView(g_value_64c1c8);
+        OpenUseItemSelectView(g_selected_party_slot_64c1c8);
     }
 }
 
@@ -1119,7 +1123,7 @@ void KeyboardMenuUseRecordedItem(void)
 {
 
     CloseKeyboardMenu();
-    StartCharacterItemUse(g_value_64c1c8);
+    StartCharacterItemUse(g_selected_party_slot_64c1c8);
     RequestRedraw(0x200000);
 }
 
@@ -1176,9 +1180,10 @@ unsigned char KeyboardMenuRowRegionEvent(const InputAtom* event, W8Region* regio
                 SetRegionHelpText(gppStringList[0x168 / 4]);
                 return 1;
             }
-            name = g_spell_records[g_status_685170.buffers.XChar[g_value_64c1c8].spell_id]
+            name = g_spell_records[g_status_685170.buffers.XChar[g_selected_party_slot_64c1c8]
+                                       .spell_id]
                        .display_name;
-            power = GetAffordableSpellPowerLevel(g_value_64c1c8);
+            power = GetAffordableSpellPowerLevel(g_selected_party_slot_64c1c8);
             SetRegionHelpText(FormatWideString(g_format_s_colon_s_paren_d_006481b4,
                                                gppStringList[0x168 / 4], name, power));
             return 1;
@@ -1194,8 +1199,9 @@ unsigned char KeyboardMenuRowRegionEvent(const InputAtom* event, W8Region* regio
             SetRegionHelpText(gppStringList[0x174 / 4]);
             return 1;
         }
-        party_row = &g_status_685170.buffers.XChar[g_value_64c1c8];
-        item = FindCharacterItemAt(g_value_64c1c8, party_row->item_origin, party_row->item_slot);
+        party_row = &g_status_685170.buffers.XChar[g_selected_party_slot_64c1c8];
+        item = FindCharacterItemAt(g_selected_party_slot_64c1c8, party_row->item_origin,
+                                   party_row->item_slot);
         name = FormatItemDisplayName(item, 0);
         SetRegionHelpText(
             FormatWideString(g_format_s_colon_s_0061c3e0, gppStringList[0x174 / 4], name));

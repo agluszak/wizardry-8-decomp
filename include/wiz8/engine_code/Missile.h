@@ -152,8 +152,9 @@ static_assert(sizeof(W8Missile) == 0x328, "W8Missile_size_must_be_0x328");
 W8_ASSERT_BASE_OFFSET(W8Missile, W8Navigator, padding_004, 0x18);
 
 W8Missile* FireMissile004A2D30(unsigned int missile_table_index, srVector3T<float>* source,
-                               srVector3T<float>* target, float value_4, unsigned int value_5,
-                               unsigned int value_6, float speed);
+                               srVector3T<float>* target, float flight_speed,
+                               unsigned int trace_mask, unsigned int block_released,
+                               float duration);
 void DestroyMissile(W8Missile* missile); /* 0x004A4180 */
 /* The world position `character_index`'s current hand fires a missile from:
    the camera's launch point swung to the wielding side. */
@@ -200,6 +201,7 @@ unsigned char LoadMissileCycle004A3550(W8GrCycleLoadContext* context, const char
                                        W8Missile** ppMissile, int unused);
 
 W8Missile* CreateMissile004A28D0(unsigned int missile_table_index, srVector3T<float>* source,
-                                 float value_3, float value_4, float value_5, unsigned int value_6,
-                                 unsigned char value_7, float speed);
+                                 float heading, float pitch, float flight_speed,
+                                 unsigned int trace_mask, unsigned char block_released,
+                                 float duration);
 void UpdateWorldMissiles004A27C0(W8World* world);

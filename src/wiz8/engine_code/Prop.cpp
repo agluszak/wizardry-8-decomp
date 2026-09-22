@@ -118,8 +118,8 @@ W8PropRepresentation::W8PropRepresentation(const W8PropRepresentation& other)
     : W8AnimRep005ED050(other), animation_speed(other.animation_speed),
       frame_index_0a0(other.frame_index_0a0), animation_running_0a4(other.animation_running_0a4),
       random_play_0a5(other.random_play_0a5), play_chance_0a8(other.play_chance_0a8),
-      flag_0ac(other.flag_0ac), flag_0ad(other.flag_0ad), slots(5),
-      footstep_surface_0c0(other.footstep_surface_0c0),
+      saved_subcycle_0ac(other.saved_subcycle_0ac), frame_steps_0ad(other.frame_steps_0ad),
+      slots(5), footstep_surface_0c0(other.footstep_surface_0c0),
       footstep_material_0c1(other.footstep_material_0c1)
 {
     animation = CloneAnimObj004A0320(other.animation);
@@ -675,7 +675,7 @@ void W8Prop::UpdatePropAnimation0044C030()
     BuildOrRefreshPathingRepresentation();
     frames = static_cast<int>(anim_frame_fraction_024);
     anim_frame_fraction_024 -= frames;
-    rep->flag_0ad = static_cast<unsigned char>(frames);
+    rep->frame_steps_0ad = static_cast<unsigned char>(frames);
     if (frames != 0) {
         W8AnimObj* animation;
 
@@ -916,7 +916,7 @@ char W8Prop::GetDelta0044E130(srVector3T<float>* out, const srVector3T<float>* p
 
     if (abs(next - Rep()->subcycle_064) == 1) {
         *out = position_02c - position_03c;
-        return Rep()->flag_0ad;
+        return Rep()->frame_steps_0ad;
     }
     out->SetZero();
     return 0;
@@ -1171,7 +1171,7 @@ void W8Prop::AttachAnimationInstances0044C830(W8World* world)
 }
 
 /* The detach counterpart to AttachAnimationInstances0044C830: the current frame is stashed in
-   flag_0ac, then every dispatched instance is flagged disabled and detached
+   saved_subcycle_0ac, then every dispatched instance is flagged disabled and detached
    from the scene.  While the animation runs the whole list is walked;
    otherwise only the snapshot frame's instance (or the first dispatch-list
    entry when a run is in progress) is pulled. */
@@ -1185,7 +1185,7 @@ void W8Prop::DetachAnimationInstances0044D360(W8World* world)
     if (world == 0) {
         srAssertFail("pWorld", PROP_CPP, 0x66b, 0);
     }
-    Rep()->flag_0ac = Rep()->subcycle_064;
+    Rep()->saved_subcycle_0ac = Rep()->subcycle_064;
     if (AnimationIsRunning(Rep()->animation) == 1) {
         count = AnimObjListCount004A1620(Rep()->animation, 2);
         for (index = 0; index < static_cast<int>(count); ++index) {
@@ -1993,7 +1993,7 @@ unsigned char ActivateSelectedProp0044DA20(void)
         return 0;
     }
     if (g_selected_prop_trigger_00659a60 != 0) {
-        g_flag_00606994 = 0;
+        g_trigger_feedback_00606994 = 0;
         g_selected_prop_trigger_00659a60->Run(-1);
         g_selected_prop_trigger_00659a60->PrintNothingHappenedOrSpecialItemRequired004456E0();
         return 1;

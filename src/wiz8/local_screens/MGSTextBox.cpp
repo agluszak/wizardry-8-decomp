@@ -2095,7 +2095,7 @@ void RedrawTextBoxBody(unsigned char skip_invalidate)
         rows = 7;
     }
 
-    if (g_level_block->action_panel_visible == 0 && g_level_block->flag_272 == 0) {
+    if (g_level_block->action_panel_visible == 0 && g_level_block->mipe_editing_272 == 0) {
         can_scroll_down = scroll + static_cast<unsigned int>(GetTextBoxVisibleLineCount()) <
                           GetTextBoxLineCount(text_box);
         if (!can_scroll_down &&
