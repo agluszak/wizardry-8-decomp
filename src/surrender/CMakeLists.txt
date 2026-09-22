@@ -12,6 +12,8 @@ add_library(wiz8_surrender_objects OBJECT
     fog.cpp
     file_stream.cpp
     generic_vp.cpp
+    gerd.cpp
+    gerd_filters.cpp
     heap.cpp
     huffman.cpp
     io_managers.cpp
@@ -39,6 +41,7 @@ set_source_files_properties(
     extension.cpp
     fog.cpp
     file_stream.cpp
+    gerd_filters.cpp
     heap.cpp
     huffman.cpp
     stream.cpp
