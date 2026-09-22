@@ -276,11 +276,8 @@ struct srRegistry::ClassNode::NameIndex {
         if (relative_to != 0) {
             NameEntry* entry = by_instance_00.find(const_cast<srRuntimeClass*>(relative_to));
             if (entry == 0) {
-                /* Retail (inlined at 0x10010156 in findByName 0x100100D0)
-                   returns the hash-bucket head unverified — no namesEqual —
-                   when the relative instance is absent from the side index.
-                   A collision can therefore return a differently-named
-                   instance; genuine retail behavior, preserved. */
+                /* Retail returns the bucket head without namesEqual when the
+                   relative instance is absent from the side index. */
                 entry = buckets_18[bucketIndex(name)];
                 return entry == 0 ? 0 : entry->instance_10;
             }
@@ -825,13 +822,8 @@ srClass::srClass() : reference_count_0c(1), update_14(0)
     touch();
 }
 
-/* Retail ~srClass is exactly unregisterInstance + base teardown; it does
-   NOT unlink update_14. A class destroyed while updates remain enabled
-   leaves a leaked Update node on the global _firstUpdate list with a
-   dangling instance_14 that performUpdates later calls into — genuine
-   retail lifetime bug. The ownership contract is that derived classes (or
-   their owners) call setUpdate(0, 0) before destruction; the destructor is
-   kept faithful rather than "fixed". */
+/* Retail ~srClass unregisters the instance and proceeds to base teardown;
+   no update_14 unlink or deletion is emitted here. */
 // FUNCTION: SURRENDER 0x1000E1A0
 srClass::~srClass()
 {
@@ -1057,15 +1049,8 @@ srRegistry::~srRegistry()
     delete critical_section_0c;
 }
 
-/* Retail emits a verbatim memberwise copy of all four owning fields
-   (root_00, class_index_04, valid_08, critical_section_0c): this is the
-   compiler-generated operator= the dllexport class requires, not safe
-   value semantics. Assigning a live registry aliases the source's entire
-   ownership graph and leaks the destination's root, index and critical
-   section; destructing either then double-frees them. No copy ctor is
-   emitted for srRegistry and no consumer imports this export (absent
-   from the Wiz8.exe sr.dll import table), so the shared-ownership hazard
-   is genuine but unreachable retail behavior. */
+/* Retail 0x1000EBA0 is a memberwise copy of root_00, class_index_04,
+   valid_08 and critical_section_0c. No srRegistry copy constructor is emitted. */
 // FUNCTION: SURRENDER 0x1000EBA0
 srRegistry& srRegistry::operator=(const srRegistry& other)
 {

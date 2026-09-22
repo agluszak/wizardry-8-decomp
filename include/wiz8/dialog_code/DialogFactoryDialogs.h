@@ -123,11 +123,8 @@ public:
     int m_third_text_button_0b8; /* 0x0b8 */
     int m_ok_button_0bc;         /* 0x0bc */
     int m_ok_image_0c0;          /* 0x0c0 */
-    /* 0x0c4 and 0x0dc are the inclusive click rectangles ProcessInput tests
-       with the cursor position. Retail never writes either member anywhere in
-       the dialog lifecycle: the ctor stores 0xbc/0xc0 then 0xd4/0xd8 and skips
-       both rect ranges, so ProcessInput hit-tests uninitialized heap storage.
-       This is confirmed retail behavior, not a missing producer. */
+    /* 0x0c4 and 0x0dc are click rectangles read by ProcessInput. The audited
+       ctor/lifecycle/callback bodies contain no writes to either range. */
     W8ControlsRect m_ok_rect_0c4;
     int m_cancel_button_0d4; /* 0x0d4 */
     int m_cancel_image_0d8;  /* 0x0d8 */

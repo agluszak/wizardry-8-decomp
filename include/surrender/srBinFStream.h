@@ -26,11 +26,7 @@ public:
     int isOpen();
 
     /* Implicit copy constructor/assignment: retail emits them via the
-       class-level dllexport as memberwise copies. file_08 aliases the
-       source's FILE* — two live copies fclose the same stream and
-       assignment leaks the destination's open handle — while path_0c
-       deep-copies, so copying an open stream is unsafe. Genuine but
-       unreachable retail behavior: no consumer imports the family. */
+       class-level dllexport as memberwise copies over the inline-string path. */
     // SYNTHETIC: SURRENDER 0x1002F430
     // srBinFStream::srBinFStream
     // SYNTHETIC: SURRENDER 0x1002F530
@@ -83,10 +79,8 @@ public:
     virtual unsigned long tell() override;
 
 private:
-    /* Implicit copy constructor/assignment, vtordisp thunk and vbase
-       destructor: emitted via the class-level dllexport as memberwise
-       copies. They inherit srBinFStream's unsafe file_08 FILE* aliasing;
-       copying an open stream is not safe value semantics. */
+    /* Implicit copy constructor/assignment and vbase destructor: emitted via
+       the class-level dllexport as memberwise copies. */
     // SYNTHETIC: SURRENDER 0x1002F8D0
     // srBinIFStream::srBinIFStream
     // SYNTHETIC: SURRENDER 0x1002FA20
@@ -126,10 +120,8 @@ public:
     virtual unsigned long tell() override;
 
 private:
-    /* Implicit copy constructor/assignment, vtordisp thunk and vbase
-       destructor: emitted via the class-level dllexport as memberwise
-       copies. They inherit srBinFStream's unsafe file_08 FILE* aliasing;
-       copying an open stream is not safe value semantics. */
+    /* Implicit copy constructor/assignment and vbase destructor: emitted via
+       the class-level dllexport as memberwise copies. */
     // SYNTHETIC: SURRENDER 0x1002FF00
     // srBinIOFStream::srBinIOFStream
     // SYNTHETIC: SURRENDER 0x10030070
@@ -174,9 +166,7 @@ public:
 
 private:
     /* Implicit copy constructor/assignment and vbase destructor: emitted via
-       the class-level dllexport as memberwise copies. They inherit
-       srBinFStream's unsafe file_08 FILE* aliasing; copying an open stream
-       is not safe value semantics. */
+       the class-level dllexport as memberwise copies. */
     // SYNTHETIC: SURRENDER 0x100305D0
     // srBinOFStream::srBinOFStream
     // SYNTHETIC: SURRENDER 0x10030760
