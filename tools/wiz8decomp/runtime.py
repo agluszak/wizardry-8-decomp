@@ -85,7 +85,7 @@ def _parse_runtime_scenarios(output: str) -> dict[str, RuntimeScenario]:
             or not timeout.isascii()
             or not timeout.isdigit()
             or int(timeout) <= 0
-            or fixture not in {"engine-ready", "main-menu", "monastery-party"}
+            or re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", fixture) is None
             or path not in {"natural", "shortcut"}
         ):
             raise RuntimeError(f"invalid runtime scenario metadata: {line}")
