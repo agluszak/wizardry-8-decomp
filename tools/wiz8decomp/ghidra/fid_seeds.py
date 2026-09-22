@@ -5,6 +5,7 @@ import json
 import re
 import shutil
 import struct
+import sys
 import tarfile
 import tempfile
 import time
@@ -34,6 +35,10 @@ class SourceArchive(BaseModel):
     url: str
     sha256: str | None
     archive_root: str
+    # Additional reviewed mirrors for the identical pinned archive. Each is
+    # tried in order after `url`; a payload is accepted only when it matches
+    # `sha256`, so a mirror can never substitute different bytes.
+    mirrors: list[str] = Field(default_factory=list)
 
 
 class SourceOverlayArchive(SourceArchive):
@@ -296,20 +301,40 @@ def _download(url: str, *, attempts: int = 3) -> bytes:
     raise last_error
 
 
-def _download_verified(url: str, expected_sha256: str, *, label: str) -> bytes:
-    """Download ``url`` until the payload matches ``expected_sha256``."""
+def _download_verified(urls: list[str], expected_sha256: str, *, label: str) -> bytes:
+    """Download the pinned archive from the first reviewed source that matches.
 
-    last_hash: str | None = None
-    for attempt in range(1, 4):
-        payload = _download(url)
+    Sources are tried in order. A network failure or a hash mismatch falls
+    through to the next reviewed mirror; a payload is accepted only when its
+    SHA-256 equals ``expected_sha256``. The exhaustion error lists each
+    source's outcome so logs distinguish dead mirrors from mutated archives.
+    """
+
+    failures: list[str] = []
+    for url in urls:
+        try:
+            payload = _download(url)
+        except Exception as exc:  # noqa: BLE001 — fall through to the next mirror
+            print(
+                f"download {label}: source {url} failed (network): {exc}",
+                file=sys.stderr,
+                flush=True,
+            )
+            failures.append(f"{url}: network error: {exc}")
+            continue
         digest = hashlib.sha256(payload).hexdigest()
         if digest == expected_sha256:
             return payload
-        last_hash = digest
-        if attempt < 3:
-            time.sleep(min(2**attempt, 8))
+        print(
+            f"download {label}: source {url} hash mismatch: got {digest}, "
+            f"expected {expected_sha256}",
+            file=sys.stderr,
+            flush=True,
+        )
+        failures.append(f"{url}: hash mismatch: got {digest}")
     raise RuntimeError(
-        f"download hash mismatch for {label}: got {last_hash}, expected {expected_sha256}"
+        f"all reviewed sources exhausted for {label} "
+        f"(expected sha256 {expected_sha256}): " + "; ".join(failures)
     )
 
 
@@ -356,7 +381,9 @@ def fetch_seed_sources(settings: Settings) -> dict[str, Any]:
         suffix = ".tar.gz" if source.url.endswith((".tar.gz", ".tgz")) else Path(source.url).suffix
         archive = archives / f"{library.id}{suffix}"
         if not archive.is_file() or sha256_file(archive) != source.sha256:
-            payload = _download_verified(source.url, source.sha256, label=library.id)
+            payload = _download_verified(
+                [source.url, *source.mirrors], source.sha256, label=library.id
+            )
             atomic_write(archive, payload)
         destination = unpacked / library.id
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -383,7 +410,7 @@ def fetch_seed_sources(settings: Settings) -> dict[str, Any]:
                 overlay_archive = archives / f"{library.id}-overlay-{index}{suffix}"
                 if not overlay_archive.is_file() or sha256_file(overlay_archive) != overlay.sha256:
                     payload = _download_verified(
-                        overlay.url,
+                        [overlay.url, *overlay.mirrors],
                         overlay.sha256,
                         label=f"{library.id} overlay {index}",
                     )
