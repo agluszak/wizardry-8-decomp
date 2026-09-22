@@ -398,9 +398,9 @@ void srScheduler::wakeWorker()
 // FUNCTION: SURRENDER 0x100146E0
 void __cdecl srScheduler::workerEntry(void* argument)
 {
-    // reinterpret-ok: thread-proc ABI; the argument is the WorkerSlot passed
-    // to srThread::begin in wakeWorker.
-    WorkerSlot* slot = reinterpret_cast<WorkerSlot*>(argument);
+    /* The thread-proc ABI arrives as void*; the argument is the WorkerSlot
+       passed to srThread::begin in wakeWorker. */
+    WorkerSlot* slot = static_cast<WorkerSlot*>(argument);
     while (slot->scheduler_04->executeNextJob() != 0) {
         srThread::yield(0);
     }

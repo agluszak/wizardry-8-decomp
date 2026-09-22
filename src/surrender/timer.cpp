@@ -31,6 +31,14 @@ unsigned __int64 quadWord64(const srQuadWord& value)
     return ((unsigned __int64)value.hi << 32) | value.lo;
 }
 
+/* GetProcAddress hands back an untyped FARPROC; the imported prototype is
+   supplied once here so call sites stay signature-typed. */
+template <typename T> T win32ProcAddress(HMODULE module, const char* name)
+{
+    // reinterpret-ok: Win32 FARPROC carries no parameter typing
+    return reinterpret_cast<T>(reinterpret_cast<void*>(GetProcAddress(module, name)));
+}
+
 /* Empty lpClass/empty-string storage. Bounded by the flag-name cursor global
    srLight::dump reads at 0x100A49D0, so the retail object is at most 0x1C
    bytes. */
@@ -431,16 +439,14 @@ int srTimer::reset(int detect, int argument_1, int save)
     if (m_read_tick == 0) {
         m_kernel32 = GetModuleHandleA("kernel32");
         if (m_kernel32 != 0) {
-            // reinterpret-ok: Win32 GetProcAddress returns untyped FARPROC; retail calls the
-            // result through the QueryPerformanceFrequency prototype
+            /* Retail calls the import through the QueryPerformanceFrequency
+               prototype. */
             BOOL(__stdcall * query_frequency)(LARGE_INTEGER*) =
-                reinterpret_cast<BOOL(__stdcall*)(LARGE_INTEGER*)>(reinterpret_cast<void*>(
-                    GetProcAddress((HMODULE)m_kernel32, "QueryPerformanceFrequency")));
+                win32ProcAddress<BOOL(__stdcall*)(LARGE_INTEGER*)>((HMODULE)m_kernel32,
+                                                                   "QueryPerformanceFrequency");
             if (query_frequency != 0 && query_frequency((LARGE_INTEGER*)&m_frequency) != 0) {
-                // reinterpret-ok: Win32 FARPROC has no parameter typing
-                m_read_tick =
-                    reinterpret_cast<int(__stdcall*)(srQuadWord*)>(reinterpret_cast<void*>(
-                        GetProcAddress((HMODULE)m_kernel32, "QueryPerformanceCounter")));
+                m_read_tick = win32ProcAddress<int(__stdcall*)(srQuadWord*)>(
+                    (HMODULE)m_kernel32, "QueryPerformanceCounter");
             }
             if (m_read_tick == 0) {
                 m_kernel32 = 0;
