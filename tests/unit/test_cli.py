@@ -326,12 +326,17 @@ def test_cli_groups_subcommands_instead_of_exposing_them_at_the_root() -> None:
 
 @pytest.mark.parametrize("changed,expects_lint", [("src/wiz8/a.cpp", True), ("README.md", False)])
 def test_pr_check_requires_lint_for_product_source(monkeypatch, changed, expects_lint) -> None:
-    from wiz8decomp import build, comparison, config
+    from wiz8decomp import build, comparison, config, merge_preservation
 
     events = []
     repository = Path("/repo")
     monkeypatch.setattr(config, "repository_root", lambda: repository)
     monkeypatch.setattr(command_support, "settings", lambda: object())
+    monkeypatch.setattr(
+        merge_preservation,
+        "base_ancestry_report",
+        lambda _repository, _base, _head=None: {"status": "passed"},
+    )
     monkeypatch.setattr(build, "check", lambda actual: events.append(("check", actual)) or {})
     monkeypatch.setattr(
         build,
@@ -351,6 +356,34 @@ def test_pr_check_requires_lint_for_product_source(monkeypatch, changed, expects
     if expects_lint:
         expected.append(("lint",))
     assert events == expected
+
+
+def test_pr_check_rejects_diverged_base(monkeypatch) -> None:
+    from wiz8decomp import build, config, merge_preservation
+
+    events = []
+    repository = Path("/repo")
+    monkeypatch.setattr(config, "repository_root", lambda: repository)
+    monkeypatch.setattr(command_support, "settings", lambda: object())
+    monkeypatch.setattr(
+        merge_preservation,
+        "base_ancestry_report",
+        lambda _repository, _base, _head=None: {
+            "status": "failed",
+            "base": "b" * 40,
+            "head": "h" * 40,
+            "merge_base": "m" * 40,
+            "ahead": 1,
+            "behind": 6,
+            "error": "base is not an ancestor of head",
+        },
+    )
+    monkeypatch.setattr(build, "check", lambda actual: events.append(("check", actual)) or {})
+
+    result = CliRunner().invoke(app, ["pr-check"])
+
+    assert result.exit_code != 0
+    assert events == []
 
 
 def test_corpus_extract_accepts_multiple_roles(monkeypatch) -> None:
