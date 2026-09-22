@@ -14,6 +14,9 @@
 class SR_DLL_IMPORT srMeshModel : public srClassSupport<srMeshModel, srModel, 0, 0x2010> {
 public:
     enum e_side {};
+    /* Bit indices into control_state_390; setDirty(0..3) marks per-pass dirty
+       flags and updateAllClients(0) runs when flag 0 is newly raised. */
+    enum e_flags {};
     /* Bit indices into control_state_394. renderTriMesh tests bits 0/1 as
        front/back sides. updateTriMesh skips auto box when bit 4 is set and
        auto sphere when bit 5 is set. enableStartupControls ORs bits 4–6. */
@@ -93,6 +96,9 @@ public:
     srTextureIFace* getTexture(long polygon, long layer) const;
     void setMaterial(srMaterialIFace* material, long polygon, e_side side);
     void setTexture(srTextureIFace* texture, long polygon, long layer);
+    void setDirty(e_flags flag);
+    void clearDirty(e_flags flag);
+    int testDirty(e_flags flag) const;
     srShader* getPolyShader(long polygon, int layer);
     srShader getShader(long polygon) const;
     void setShader(srShader shader, long pass);
@@ -126,15 +132,18 @@ public:
 
 protected:
     virtual ~srMeshModel() override;
+    void freeAll();
     virtual void updateTriMesh();
     virtual void calculateBounds();
     virtual void calculatePolygonNormals();
     virtual void calculateVertexNormals();
 
 public:
-    /* setMaterial indexes [pass][side]; ctor default-constructs eight slots. */
-    srMaterialIFace* materials_1c[4][2];
-    srTextureIFace* textures_3c[4][2];
+    /* setMaterial indexes [pass][side]; ctor default-constructs eight slots.
+       The ctor/dtor array emissions prove srPtr elements (4 x 8 bytes via
+       __eharray, single srPtr ctor/dtor each). */
+    srPtr<srMaterialIFace> materials_1c[4][2];
+    srPtr<srTextureIFace> textures_3c[4][2];
     srShader shaders_5c[4];
     /* Lazily grown mesh table pair. Retail's constructor/destructor emit the
        pair records through array ctors/dtors; every table accessor resizes

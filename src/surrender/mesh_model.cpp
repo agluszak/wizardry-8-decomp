@@ -35,15 +35,7 @@ srMaterialIFace* srMeshModel::getMaterial(long pass, e_side side) const
 void srMeshModel::setMaterial(srMaterialIFace* material, long pass, e_side side)
 {
     if (pass >= 0 && pass < 4 && (int)side >= 0 && (int)side < 2) {
-        if (material != materials_1c[pass][side]) {
-            if (material != 0) {
-                material->addReference();
-            }
-            if (materials_1c[pass][side] != 0) {
-                materials_1c[pass][side]->release();
-            }
-            materials_1c[pass][side] = material;
-        }
+        materials_1c[pass][side] = material;
     }
 }
 
@@ -60,15 +52,7 @@ srTextureIFace* srMeshModel::getTexture(long pass, long layer) const
 void srMeshModel::setTexture(srTextureIFace* texture, long pass, long layer)
 {
     if (pass >= 0 && pass < 4 && layer >= 0 && layer < 2) {
-        if (texture != textures_3c[pass][layer]) {
-            if (texture != 0) {
-                texture->addReference();
-            }
-            if (textures_3c[pass][layer] != 0) {
-                textures_3c[pass][layer]->release();
-            }
-            textures_3c[pass][layer] = texture;
-        }
+        textures_3c[pass][layer] = texture;
     }
 }
 
@@ -463,4 +447,77 @@ unsigned long* srMeshModel::getVertexShadeIndex(int table)
         }
     }
     return vertex_shade_indices_1ec.data;
+}
+
+// FUNCTION: SURRENDER 0x10041710
+void srMeshModel::setDirty(e_flags flag)
+{
+    unsigned long mask = 1 << (flag & 0x1f);
+    if ((control_state_390 & mask) == 0) {
+        control_state_390 |= mask;
+        control_state_390 |= 8;
+        if (flag == 0) {
+            updateAllClients(static_cast<Client::e_update>(0));
+        }
+    }
+}
+
+// FUNCTION: SURRENDER 0x10041750
+void srMeshModel::clearDirty(e_flags flag)
+{
+    control_state_390 &= ~(1 << (flag & 0x1f));
+}
+
+// FUNCTION: SURRENDER 0x10041770
+int srMeshModel::testDirty(e_flags flag) const
+{
+    return (control_state_390 & (1 << (flag & 0x1f))) != 0;
+}
+
+// FUNCTION: SURRENDER 0x1003DEA0
+void srMeshModel::freeAll()
+{
+    bounds_minimum_200.x = 0.0f;
+    bounds_minimum_200.y = 0.0f;
+    bounds_minimum_200.z = 0.0f;
+    bounds_maximum_20c.x = 0.0f;
+    bounds_maximum_20c.y = 0.0f;
+    bounds_maximum_20c.z = 0.0f;
+    bounds_center_218.x = 0.0f;
+    bounds_center_218.y = 0.0f;
+    bounds_center_218.z = 0.0f;
+    bounds_radius_224 = 0.0f;
+    uv_count_234 = 0;
+    vertex_location_count_22c = 0;
+    polygon_count_230 = 0;
+    active_polygon_count_1fc = 0;
+    setDirty(static_cast<e_flags>(0));
+    setDirty(static_cast<e_flags>(1));
+    setDirty(static_cast<e_flags>(2));
+    setDirty(static_cast<e_flags>(3));
+    active_polygons_1f4.Release();
+    poly_vertices_10c.Release();
+    poly_equations_134.Release();
+    vertex_locations_1dc.Release();
+    vertex_normals_1e4.Release();
+    vertex_shade_indices_1ec.Release();
+    for (long pass = 0; pass < 4; ++pass) {
+        vertex_materials_cc[pass][0].Release();
+        vertex_materials_cc[pass][1].Release();
+        poly_textures_6c[pass][0].Release();
+        poly_textures_6c[pass][1].Release();
+        texcoords_13c[pass][0].Release();
+        texcoords_13c[pass][1].Release();
+        poly_uv_indices_114[pass].Release();
+        poly_shaders_ac[pass].Release();
+        dig_17c[pass].Release();
+        dcg_19c[pass].Release();
+        scg_1bc[pass].Release();
+    }
+}
+
+// FUNCTION: SURRENDER 0x1003D320
+srMeshModel::~srMeshModel()
+{
+    freeAll();
 }

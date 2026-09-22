@@ -2,6 +2,11 @@ LIBRARY sr
 EXPORTS
     ?getActivePolygonCount@srMeshModel@@QAEJXZ
     ?getActivePolygonTable@srMeshModel@@QAEPAKH@Z
+    ??1srMeshModel@@MAE@XZ
+    ?freeAll@srMeshModel@@IAEXXZ
+    ?setDirty@srMeshModel@@QAEXW4e_flags@1@@Z
+    ?clearDirty@srMeshModel@@QAEXW4e_flags@1@@Z
+    ?testDirty@srMeshModel@@QBEHW4e_flags@1@@Z
     ?getPolyEq@srMeshModel@@QAEPAV?$srVector4T@M@@XZ
     ?getPolyShader@srMeshModel@@QAEPAVsrShader@@JH@Z
     ?getPolyTexture@srMeshModel@@QAEPAV?$srPtr@VsrTextureIFace@@@@JJH@Z
