@@ -25,11 +25,8 @@ public:
     virtual unsigned long tell() override;
     virtual unsigned long vread(void* destination, unsigned long size) override;
 
-    /* Implicit copy constructor (shallow over all three owning members —
-       buffer_08, job_0c, stream_10 — so a copy shares the owned buffer,
-       job and stream and double-frees/cancels on destruction) and vbase
-       destructor: emitted via the class-level dllexport. Retail does not
-       export an assignment operator. */
+    /* Class-level dllexport also emits a memberwise copy constructor and
+       vbase destructor. Retail exports no assignment operator. */
     // SYNTHETIC: SURRENDER 0x1002EDC0
     // srBinIAsyncStream::srBinIAsyncStream
     // SYNTHETIC: SURRENDER 0x1002EE70

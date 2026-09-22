@@ -88,6 +88,13 @@ printing and put large disposable output under `build/`. Detailed operational re
 - Preserve retail bugs/UB when evidence establishes them. Do not initialize, clamp, guard or otherwise
   normalize recovered code merely to make the recomp safer or deterministic. An explicitly requested
   compatibility deviation must be isolated and documented, never disguised as the recovered body.
+- Treat suspicious recovered code as an investigation, not a mandate to produce a fix. If retail does
+  the same thing, record the evidence in the issue/review and close the investigation; do not manufacture
+  a comment-only C++ change unless a short source note prevents a likely future semantic mis-recovery.
+- State only what the evidence establishes. A missing writer/check/free/import proves that operation is
+  absent in the audited scope; it does not by itself prove intent, an authored ownership contract,
+  global reachability, "by design", or that the behavior is a bug. "Not imported by Wiz8.exe" means no
+  static import in that consumer, not that an export is unreachable.
 - A vtable, lifecycle body, deleting destructor, address or template emission alone does not prove an
   authored class. Compare canonical bases/templates first. Compiler-generated deleting destructors,
   vtordisp/adjustor thunks and other compiler helpers are marker-only `SYNTHETIC`; template

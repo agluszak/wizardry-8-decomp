@@ -135,13 +135,8 @@ srFileManager::Path* srFileManager::Path::getNext() const
     return next_04;
 }
 
-/* Retail emits a verbatim memberwise copy of all three fields including the
-   owning name_00 and the intrusive next_04/previous_08 links: the
-   compiler-generated operator= the dllexport class requires, not authored
-   value semantics. Assigning a linked Path aliases the source's name
-   (double-free on destruction) and splices unrelated list topology. No Path
-   copy ctor is emitted and srFileManager is absent from the Wiz8.exe sr.dll
-   import table, so the hazard is genuine but unreachable retail behavior. */
+/* Retail 0x100163A0 copies name_00, next_04 and previous_08 memberwise.
+   No Path copy constructor is emitted. */
 // FUNCTION: SURRENDER 0x100163A0
 srFileManager::Path& srFileManager::Path::operator=(const Path& other)
 {
@@ -392,13 +387,8 @@ srBinIAsyncStream::srBinIAsyncStream(const char* path)
     }
     e_state state = SR_STREAM_ERROR;
     if (stream_10 != 0 && stream_10->good()) {
-        /* Retail performs no allocation-failure checks: buffer_08's
-           srHeap::allocate result is untested, job_0c uses the VC6
-           null-returning new (operator_new + null check, ctor skipped on
-           failure), and queue() + SR_STREAM_OK are unconditional — so a
-           failed job allocation queues a null Job and a failed buffer
-           allocation leaves read() to source from null. Genuine retail
-           behavior, preserved. */
+        /* Retail does not branch on either allocation result before queueing
+           job_0c and setting SR_STREAM_OK. */
         size_18 = stream_10->getSize();
         buffer_08 = static_cast<unsigned char*>(srHeap.allocate(size_18));
         job_0c = new ReadJob(stream_10, buffer_08, size_18);

@@ -75,12 +75,8 @@ inline unsigned long srHuffman::BitIStream::getDWord(long position)
     return *reinterpret_cast<unsigned long*>(cache_04 + offset);
 }
 
-/* Retail copies table_00 memberwise (the implicit srHashTable copy) and
-   symbols_10 through srArray::operator=: a copy aliases the source's hash
-   arrays while duplicating the symbol array. Both Samplers then free the
-   same hash storage - a genuine retail double-free, kept because these
-   exported copy operations are emitted from the dllexport-ed class and
-   no retail consumer copies a Sampler. */
+/* Retail copies table_00 memberwise and assigns symbols_10 through
+   srArray::operator=. */
 // FUNCTION: SURRENDER 0x100014F0
 srHuffman::Sampler::Sampler(const Sampler& other) : table_00(other.table_00)
 {
@@ -99,9 +95,7 @@ inline unsigned long srHuffman::BitIStream::getByte(long position)
     return cache_04[offset];
 }
 
-/* Same retail semantics as the copy constructor: table_00's implicit
-   memberwise assignment aliases the source hash arrays and leaks the
-   destination's previous hash storage. Genuine retail behavior. */
+/* Retail assigns table_00 memberwise and symbols_10 through srArray::operator=. */
 // FUNCTION: SURRENDER 0x10001630
 srHuffman::Sampler& srHuffman::Sampler::operator=(const Sampler& other)
 {
@@ -130,10 +124,7 @@ srHuffman::BitOStream::~BitOStream()
     flush();
 }
 
-/* Retail is a verbatim 0x28-byte memberwise copy (rep movsd of ten
-   dwords): it aliases table_00's hash arrays and nodes_10, and leaks the
-   destination's previous storage. Genuine retail behavior - the export
-   exists because the class is dllexport-ed, not because copies are safe. */
+/* Retail 0x10001740 is a 0x28-byte memberwise copy emitted as rep movsd. */
 // FUNCTION: SURRENDER 0x10001740
 srHuffman::Compressor& srHuffman::Compressor::operator=(const Compressor& other)
 {

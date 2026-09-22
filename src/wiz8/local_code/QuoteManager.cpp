@@ -596,13 +596,8 @@ unsigned char FormatCharacterQuoteText(W8Character* character, unsigned int even
             return 0;
         }
         GetStringFromStringDatabase(path, event_type, g_character_text_0068c580, 0, metadata);
-        /* Retail trims unconditionally: the reader accepts zero-length
-           records (length <= 0x7d0) and its return is untested here, so an
-           empty result writes buffer[-1]. The store is
-           g_value_0068c57c + len*2 + 2 in retail, i.e. buffer[len - 1]. The
-           trim expects the quote record's trailing code unit (the MSG
-           format's line terminator); records without one lose their last
-           character — genuine retail behavior, preserved. */
+        /* Retail does not test the reader result or length before storing
+           zero at buffer[wcslen(buffer) - 1]. */
         g_character_text_0068c580[wcslen(g_character_text_0068c580) - 1] = 0;
     } else {
         W8NpcState* npc = GetNpcState(npc_index);
@@ -646,12 +641,8 @@ W8CharacterEventQueue::~W8CharacterEventQueue()
     delete[] event_character_masks;
 }
 
-/* Retail's bulk teardown is asymmetric: active events are unlinked and
-   Complete()d but never destroyed (Complete clears the slot link and does
-   not delete), while deferred/pending lists are deleted raw without
-   Complete. The active-event objects genuinely leak here; only the
-   single-event paths (CompleteActiveEvent/CompleteFirstActiveEvent) delete
-   after Complete. */
+/* Retail bulk teardown removes active events and calls Complete() without
+   deleting them here; the single-event completion paths delete after Complete(). */
 // FUNCTION: WIZ8 0x0052db80
 void W8CharacterEventQueue::DestroyAllEvents()
 {
@@ -678,8 +669,6 @@ void W8CharacterEventQueue::RemoveCharacterEvents(W8Character* character)
     for (index = 0; index < active_events.count; ++index) {
         entry = *active_events.GetAt(index);
         if (entry->character == character) {
-            /* As in DestroyAllEvents, retail Completes the active event
-               without deleting it; the object leaks. */
             active_events.RemoveAt(index);
             --index;
             entry->Complete();
@@ -719,8 +708,6 @@ void W8CharacterEventQueue::RemoveCharacterEvents(W8Character* character)
     }
 }
 
-/* Same retail leak as DestroyAllEvents: active events are unlinked and
-   Complete()d but never destroyed. */
 // FUNCTION: WIZ8 0x0052DB30
 void W8CharacterEventQueue::CompleteAllActiveEvents()
 {

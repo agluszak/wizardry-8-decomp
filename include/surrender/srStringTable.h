@@ -29,12 +29,8 @@ public:
     void reset();
 
 private:
-    /* The copy constructor emits srArray's assignment shape verbatim
-       (member self-check on the table pointers, release, unsigned
-       capacity>0 grow, elementwise copy bounded by capacity), and
-       ~srStringTable's only teardown is reset() plus the implicit
-       ~srArray member release - the slot array is an ordinary srArray
-       member, not a hand-rolled pair. */
+    /* Copy construction uses srArray assignment and destruction includes the
+       implicit srArray teardown, identifying this slot storage as srArray<char*>. */
     srArray<char*> strings_00;
     long count_08;
 };

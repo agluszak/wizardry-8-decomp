@@ -26,8 +26,7 @@ void srStringTable::reset()
 // FUNCTION: SURRENDER 0x10003910
 srStringTable::~srStringTable()
 {
-    /* The trailing array teardown is the implicit ~srArray member
-       destruction, not an authored release. */
+    /* The trailing array teardown is the implicit srArray member destruction. */
     reset();
 }
 
@@ -38,9 +37,7 @@ void srStringTable::addString(const char* string)
         return;
     }
 
-    /* Retail grows once per add: the operator[] expansion runs before the
-       allocation and the slot is reused for the store, so the source binds
-       the slot rather than indexing twice. */
+    /* This spelling emits one operator[] grow path before allocation, matching retail. */
     char*& slot = strings_00[count_08];
     char* copy = static_cast<char*>(srHeap.allocate(strlen(string) + 1));
     slot = copy;
@@ -75,11 +72,8 @@ srStringTable& srStringTable::operator=(const srStringTable& other)
     return *this;
 }
 
-/* Retail copies the slot array memberwise through srArray::operator= -
-   a shallow pointer copy bounded by capacity, leaving both tables owning
-   the same strings. That is genuine retail behavior: each table's
-   reset()/destructor frees every live slot, so a copied table aliases the
-   original's storage and double-frees on destruction. */
+/* Retail copy construction assigns strings_00 through srArray::operator=;
+   the element pointers are copied shallowly. */
 // FUNCTION: SURRENDER 0x10003AC0
 srStringTable::srStringTable(const srStringTable& other)
 {

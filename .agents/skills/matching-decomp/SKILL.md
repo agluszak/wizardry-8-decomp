@@ -91,10 +91,19 @@ For a substantial body, reconstruct the source contract before transcribing cont
   -> destruction before deciding between `new/delete`, `malloc/free`, container ownership, or no free.
 - **Retail oddities:** preserve established bugs and UB. Do not add initialization, bounds checks,
   clamping, guards or deterministic defaults unless retail/source evidence says they existed.
+- **Suspicious code:** first ask whether the recovery diverges from retail. If retail emits the same
+  behavior, the audit can end without a source edit. Do not turn a false-positive audit into a
+  comment-only PR merely to produce a deliverable.
+- **Claim strength:** describe the observed scope precisely. Missing cleanup, checks, writers or static
+  imports do not establish author intent, a source-level ownership contract, whole-program reachability,
+  or a "bug" label. In particular, absence from the Wiz8.exe import table means no static Wiz8.exe
+  import; it does not mean an sr.dll export is unreachable.
 
-Comments should record non-obvious evidence, intentional retail oddities and unresolved facts. Do not
-narrate obvious control flow. Re-read comments after renames/TU moves and delete stale provenance or
-claims that no longer agree mechanically with the body.
+Comments should record non-obvious evidence, intentional retail oddities and unresolved facts. Prefer a
+short mechanical statement such as "retail emits no null check here" over a narrative about why the
+authors supposedly intended it. Do not narrate obvious control flow. Re-read comments after renames/TU
+moves and delete stale provenance, speculative intent, or claims that no longer agree mechanically with
+the body.
 
 Do not incidentally edit `src/sgp` during ordinary Wizardry/SurRender recovery. If the evidence points
 to an SGP source difference, treat that as an SGP/source-oracle task and preserve its modification
