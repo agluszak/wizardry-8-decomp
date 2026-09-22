@@ -125,7 +125,7 @@ void MartensBluff2Setup004DCB50(void)
         }
     }
     pTrigger = FindTriggerByName("DoorBolt");
-    if (pTrigger != 0 && pTrigger->value_0b1 == 1) {
+    if (pTrigger != 0 && pTrigger->state_index == 1) {
         pTrigger = FindTriggerByName("SideGateText");
         if (pTrigger != 0) {
             pTrigger->flags_0a0 &= ~0x100u;
@@ -456,7 +456,7 @@ bool MartensBluff2PerfumeBox004DDDC0(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004DDEB0
 bool MartensBluff2DoorControls004DDEB0(Trigger* pTrigger)
 {
-    if (pTrigger->value_0b1 == 0) {
+    if (pTrigger->state_index == 0) {
         Trigger* pDoor = FindTriggerByName("SquisherDoor");
         W8TriggerActionData* action = pDoor->m_pActionData;
         if (action == 0 || action->type_004 != '\n') {

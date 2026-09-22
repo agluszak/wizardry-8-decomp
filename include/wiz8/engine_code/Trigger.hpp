@@ -81,12 +81,15 @@ public:
 static_assert(sizeof(W8TriggerActionData005EC158) == 0x0c,
               "W8TriggerActionData005EC158_must_be_0x0c");
 
-struct W8TriggerState370 {
-    unsigned char state;
-    unsigned char bytes_01[8];
+/* Persisted lock/trap device state: `completed` latches once the pick/disarm
+   interaction finishes; `pins` holds the eight tumbler bytes of a pickable
+   lock, re-rolled by UpdateTriggerLock00445730. */
+struct W8TriggerDeviceState {
+    unsigned char completed;
+    unsigned char pins[8];
 };
 
-static_assert(sizeof(W8TriggerState370) == 9, "W8TriggerState370_must_be_9");
+static_assert(sizeof(W8TriggerDeviceState) == 9, "W8TriggerDeviceState_must_be_9");
 
 /* Engine Code\Trigger.cpp. Trigger is registered directly below srClass. It is
    not an srNode: the temporary table installed while srClassSupport is under
@@ -123,14 +126,14 @@ public:
     /* flag_0a0_17: loaded from the level record's message packed flag; gates
        the m_lData1..3 action message at the end of Run. */
     bool HasActionMessage00441780();
-    /* Whether the trigger takes an item: value_23c >= 0 (the special-item
+    /* Whether the trigger takes an item: required_item_id >= 0 (the special-item
        notice path) or a type-10 action payload naming item_00a. */
     bool RequiresItem00441790();
     bool SelectAction();
     void GenerateItemGroup();
     W8WorldItem* GetOrCreateItemGroup00445670(char create);
     /* After a selected-prop Run: while g_flag_00606994 is clear, post either
-       the special-item notice (value_23c != -1) or the nothing-happened notice. */
+       the special-item notice (required_item_id != -1) or the nothing-happened notice. */
     void PrintNothingHappenedOrSpecialItemRequired004456E0(); /* 0x004456E0 */
     void RunDestination00440DD0(const char* destination);
     void Run(int source);
@@ -141,18 +144,18 @@ public:
     unsigned int flags_0a0;
     float range_minimum_0a4;
     float range_maximum_0a8;
-    int value_0ac;
-    unsigned char value_0b0;
-    unsigned char value_0b1;
-    unsigned char value_0b2;
-    unsigned char value_0b3;
-    unsigned char value_0b4;
+    int action_value;
+    unsigned char state_count;
+    unsigned char state_index;
+    unsigned char state_direction;
+    unsigned char cycle_bounce;
+    unsigned char state_mod_mode;
     unsigned char unknown_0b5[3];
-    int value_0b8;
+    int surface_id;
     int m_lData1;
     int m_lData2;
     int m_lData3;
-    unsigned short value_0c8;
+    unsigned short searchable;
     unsigned char unknown_0ca[2];
     srVector3T<float> representation_vectors_0cc[4];
     float angle_0fc;
@@ -166,48 +169,54 @@ public:
     char action_data_128[0x80];
     char alternate_action_data_1a8[0x80];
     signed char action_data_mode_228;
-    signed char value_229;
+    signed char sound_volume;
     unsigned short initial_action_22a;
-    unsigned short value_22c;
+    unsigned short alternate_action;
     unsigned short fallback_action_22e;
     unsigned short action_230;
     unsigned char action_state_232;
     unsigned char unknown_233;
     W8TriggerActionData* m_pActionData;
     char* m_pacRecipients;
-    int value_23c;
+    int required_item_id;
     char* m_pacRequiredStates;
     char* m_pacStateToMod;
     W8TriggerEvent* m_pEvent;
     char inline_action_data_24c[0x100];
     W8WorldItem* world_item_group_34c;
-    unsigned char flag_350;
+    unsigned char items_generated;
     unsigned char unknown_351[3];
     /* Sampled during construction, persisted in saves and used to reseed
        item-table generation so a trigger's generated loot is repeatable. */
     unsigned int item_group_seed_354;
     int gold_358;
-    int value_35c;
+    int uses_remaining;
     ActivationCallback activation_callback_360;
-    unsigned char flag_364;
+    bool running;
     unsigned char unknown_365[3];
-    int value_368;
-    int value_36c;
-    W8TriggerState370 state_370;
+    /* Locks & traps device block, addressed as the `lock_state` int blob by
+       UpdateTriggerLock00445730/ConsumeLockQuality004457A0. `lock_type` is the
+       editor "Type" (0 none, 1 pickable lock, 2 trap, 3 key lock);
+       `device_id` indexes the tumbler/trap tables (-1 = roll on first use);
+       `lock_countdown` ticks the pick interaction; `last_interaction_clock`
+       is the world clock of the last attempt (-1 = never). */
+    int lock_type;
+    int difficulty;
+    W8TriggerDeviceState device_state;
     unsigned char unknown_379[3];
-    int value_37c;
-    int value_380;
-    int value_384;
-    int value_388;
+    int device_id;
+    int key_id;
+    int lock_countdown;
+    int last_interaction_clock;
 };
 
 void InitializeStateDrivenPropVariables00445200(Trigger* trigger);
 /* Re-rolls the eight pin bytes of a pickable lock (lock_state[0] == 1) and
    resets its difficulty-derived seed/state fields. lock_state is
-   &Trigger::value_368. */
+   &Trigger::lock_type. */
 void __fastcall UpdateTriggerLock00445730(int* lock_state); /* 0x00445730 */
 /* Spends one point of the lock's quality budget (lock_state[7] ==
-   Trigger::value_384) and reports whether one remained to spend. */
+   Trigger::lock_countdown) and reports whether one remained to spend. */
 unsigned char __fastcall ConsumeLockQuality004457A0(int* lock_state); /* 0x004457A0 */
 
 static_assert(sizeof(Trigger) == 0x38c, "Trigger_must_be_0x38c");

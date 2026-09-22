@@ -229,9 +229,9 @@ unsigned char GetTable650434Entry(int row, int column)
 // GLOBAL: WIZ8 0x006504AC
 int g_trap_difficulty_6504ac[W8_TRAP_TYPE_COUNT] = {1, 1, 2, 2, 3, 3, 3, 4, 5, 5, 5, 6, 6, 7, 7};
 
-/* Roll the trigger's trap type (value_37c) on first interaction: rejection-
+/* Roll the trigger's trap type (device_id) on first interaction: rejection-
    sample the fifteen-row trap table until a type whose per-type difficulty
-   lands within four of the trigger's grade (value_36c, floored at one). */
+   lands within four of the trigger's grade (difficulty, floored at one). */
 // FUNCTION: WIZ8 0x005E3740
 void SelectTrapType005E3740(Trigger* trigger)
 {
@@ -239,7 +239,7 @@ void SelectTrapType005E3740(Trigger* trigger)
     int budget;
     int type;
 
-    lock_state = &trigger->value_368;
+    lock_state = &trigger->lock_type;
     if (lock_state == 0) {
         return;
     }
@@ -264,7 +264,7 @@ void CompleteTrapDisarm005E3780(Trigger* trigger)
     wchar_t* text;
 
     trigger->CompleteItemInteraction004447F0();
-    type = trigger->value_37c;
+    type = trigger->device_id;
     if (Random(100) < 40) {
         ApplyItemEffectToRandomCharacter(g_learn_sound_0068c510, -1, 0, g_effect_argument_005ed8c8);
     }
@@ -336,13 +336,13 @@ void ResolveSprungTrap005E3AB0(Trigger* trigger)
     srVector3T<float> minimum;
     srVector3T<float> maximum;
 
-    devices = trigger->value_36c;
+    devices = trigger->difficulty;
     if (devices > 7) {
         devices = 7;
     } else if (devices < 1) {
         devices = 1;
     }
-    type = trigger->value_37c;
+    type = trigger->device_id;
     if (Random(2) == 0) {
         trigger->CompleteItemInteraction004447F0();
         result = gppStringList[0x7b3];
