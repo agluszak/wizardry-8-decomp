@@ -305,6 +305,7 @@ def _registry():
         "name\tphase\ttier\tkind\ttimeout_ms\tfixture\tpath\tbatch\n"
         "main-menu-startup\tmain-menu\tpr\tintegration\t15000\tmain-menu\tnatural\tno\n"
         "split-stack\tengine-ready\tpr\tsemantic\t15000\tengine-ready\tnatural\tyes\n"
+        "oct-file\tengine-ready\tpr\tsemantic\t15000\tengine-ready\tnatural\tyes\n"
     )
 
 
@@ -377,6 +378,47 @@ def test_batch_error_only_when_the_process_dies(
         assert len(observations) == 1
         assert "batch process died after 1/2 cases" in error
         assert "in-flight=split-stack" in error
+
+
+def test_batch_case_failure_poisons_the_rest(tmp_path: Path, monkeypatch) -> None:
+    """A failed case stops the batch after reporting itself: the abort marker
+    distinguishes a deliberate poison from a dead process, and the unreported
+    remainder stays missing so the runner re-runs it in a fresh process."""
+    from wiz8decomp.runtime import _run_runtime_batch, _RuntimeProcessResult
+
+    registry = _registry()
+
+    def drive(*args, **kwargs):
+        return _RuntimeProcessResult(
+            stdout=(
+                "WIZ8_RUNTIME_TEST scenario=main-menu-startup case_passed=1\n"
+                "WIZ8_RUNTIME_TEST scenario=split-stack case_passed=0\n"
+                "WIZ8_RUNTIME_SESSION cases=3 driver=2 teardown=1\n"
+            ),
+            stderr=(
+                "WIZ8_RUNTIME_FAILURE scenario=split-stack step=case reason=x line=0\n"
+                "WIZ8_RUNTIME_BATCH scenario=oct-file event=aborted reason=case-failed\n"
+            ),
+            returncode=1,
+            timed_out=False,
+            failed_early=False,
+            last_step="split-stack",
+            last_step_scenario="split-stack",
+            elapsed=1.0,
+        )
+
+    monkeypatch.setattr("wiz8decomp.runtime._drive_runtime_process", drive)
+    observations, error = _run_runtime_batch(
+        tmp_path / "Wiz8RuntimeTest.exe",
+        tmp_path,
+        {},
+        ("main-menu-startup", "split-stack", "oct-file"),
+        registry,
+    )
+
+    assert len(observations) == 2
+    assert "oct-file" not in observations
+    assert error is not None and error.startswith("batch aborted after 2/3 cases")
 
 
 def test_batch_teardown_failure_fails_the_suite(tmp_path: Path, monkeypatch) -> None:
