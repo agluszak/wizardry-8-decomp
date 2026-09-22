@@ -309,7 +309,8 @@ struct W8MainScreenState {
     /* 0x250: a modal W8NpcDialog is up over the dialogue; transcript word
        clicks, layout keys other than Escape and layout leave paths bail. */
     bool modal_dialog_open;
-    unsigned char flag_251;
+    /* 0x251: a refusal/farewell line 0x5c was queued for the exit path. */
+    unsigned char farewell_queued_251;
     /* 0x252: the dialogue session runs as queued script lines without the
        interactive panel; input, portrait and panel paths gate on it. */
     unsigned char scripted_dialogue;

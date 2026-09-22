@@ -37,8 +37,8 @@ public:
     /* Default construction is inlined at Prop::Prop. */
     W8PropRepresentation()
         : animation(0), animation_speed(0.0f), frame_index_0a0(0), animation_running_0a4(0),
-          random_play_0a5(0), play_chance_0a8(0.5f), flag_0ac(0), flag_0ad(0), slots(5),
-          footstep_surface_0c0(0xff), footstep_material_0c1(0xff)
+          random_play_0a5(0), play_chance_0a8(0.5f), saved_subcycle_0ac(0), frame_steps_0ad(0),
+          slots(5), footstep_surface_0c0(0xff), footstep_material_0c1(0xff)
     {
     }
     W8PropRepresentation(const W8PropRepresentation& other);
@@ -61,9 +61,9 @@ public:
     bool animation_running_0a4; /* 0xa4 */
     bool random_play_0a5;       /* 0xa5 */
     unsigned char unknown_0a6[2];
-    float play_chance_0a8;  /* 0xa8: constructed as 0.5 */
-    unsigned char flag_0ac; /* 0xac */
-    unsigned char flag_0ad; /* 0xad */
+    float play_chance_0a8;            /* 0xa8: constructed as 0.5 */
+    unsigned char saved_subcycle_0ac; /* 0xac */
+    unsigned char frame_steps_0ad;    /* 0xad */
     unsigned char unknown_0ae[2];
     W8GrowableVector<W8PropAnimationSegment*> slots; /* 0xb0 */
     unsigned char footstep_surface_0c0;              /* 0xc0 */

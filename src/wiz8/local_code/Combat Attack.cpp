@@ -3980,9 +3980,9 @@ char StartCharacterAttack(int party_slot, int attack_mode)
         MakePCAttackSound00549EF0(row, &character->Hand[hand], mode, 0, -1);
         row->attack_sound_played_a5 = 1;
     } else {
-        event_ids[0] = g_value_0068c57c;
+        event_ids[0] = g_event_range_min_0068c57c;
         event_ids[1] = g_special_event_0068c56c;
-        event_ids[2] = g_value_0068c554;
+        event_ids[2] = g_event_range_max_0068c554;
         QueueCharacterEvent(character, event_ids[Random(3)], 0, g_effect_argument_005ed8c8,
                             g_effect_argument_005ed914);
     }
@@ -4333,7 +4333,7 @@ int ResolveCharacterAttack0053E250(int party_slot)
                                      (character->uiExpLevel > 0xe ? 0xf : character->uiExpLevel);
                 if (applied != 0) {
                     if (hand_attack->uiHolds == HOLDS_NOTHING) {
-                        memcpy(effect.condition_chances, &hand_attack->value_33, 0x10);
+                        memcpy(effect.condition_chances, &hand_attack->condition_chance_33, 0x10);
                         effect.magnitude_base_1c = 0;
                     } else {
                         memcpy(

@@ -1259,9 +1259,9 @@ W8Monster::W8Monster()
     flags_1dc = 0;
     value_1e0 = -1;
     location_id_1e4 = -1;
-    value_1e8 = 1.0f;
+    scale_x_1e8 = 1.0f;
     scale_y_1ec = 1.0f;
-    value_1f0 = 1.0f;
+    scale_z_1f0 = 1.0f;
     talk_state_210 = -1;
     pending_finalize_216 = 1;
     script_238 = 0;
@@ -1279,7 +1279,7 @@ W8Monster::W8Monster()
 // FUNCTION: WIZ8 0x004bfe00
 W8Monster::W8Monster(const W8Monster& rhs)
     : W8GrCycle(rhs), flags_1dc(rhs.flags_1dc), value_1e0(rhs.value_1e0),
-      location_id_1e4(rhs.location_id_1e4), value_1e8(1.0f), scale_y_1ec(1.0f), value_1f0(1.0f),
+      location_id_1e4(rhs.location_id_1e4), scale_x_1e8(1.0f), scale_y_1ec(1.0f), scale_z_1f0(1.0f),
       missile_frame_1f4(rhs.missile_frame_1f4), spell_frame_1f8(rhs.spell_frame_1f8), talking(0),
       animate_mouth(0), mouth_frame_clock(0), mouth_frame(0), talk_start_208(0), talk_state_210(-1),
       inactive_215(rhs.inactive_215), pending_finalize_216(1), disabled_217(0),
@@ -4823,28 +4823,31 @@ unsigned char MonsterLinkToStartupNavigator004C6030(W8Monster* monster)
 }
 
 // FUNCTION: WIZ8 0x004c6070
-unsigned short MonsterConfigureMovementToPlayer004C6070(W8Monster* monster, float value_1,
-                                                        float value_2, srVector3T<float> position,
-                                                        int value_3, unsigned char* value_4)
+unsigned short MonsterConfigureMovementToPlayer004C6070(W8Monster* monster, float separation,
+                                                        float maximum_distance,
+                                                        srVector3T<float> position, int trace_mode,
+                                                        unsigned char* probe_result)
 {
     if (monster != 0) {
         W8Navigator* target = g_startup_world_659c0c;
 
-        return monster->ConfigureMovementToNavigator004529A0(target, value_1, value_2, position,
-                                                             value_3, monster->GetYaw(), value_4);
+        return monster->ConfigureMovementToNavigator004529A0(target, separation, maximum_distance,
+                                                             position, trace_mode,
+                                                             monster->GetYaw(), probe_result);
     }
     return 0;
 }
 
 // FUNCTION: WIZ8 0x004c60d0
 unsigned short MonsterConfigureMovementToMonster004C60D0(W8Monster* monster, W8Monster* target,
-                                                         float value_1, float value_2,
-                                                         srVector3T<float> position, int value_3,
-                                                         unsigned char* value_4)
+                                                         float separation, float maximum_distance,
+                                                         srVector3T<float> position, int trace_mode,
+                                                         unsigned char* probe_result)
 {
     if (monster != 0 && target != 0) {
-        return monster->ConfigureMovementToNavigator004529A0(target, value_1, value_2, position,
-                                                             value_3, monster->GetYaw(), value_4);
+        return monster->ConfigureMovementToNavigator004529A0(target, separation, maximum_distance,
+                                                             position, trace_mode,
+                                                             monster->GetYaw(), probe_result);
     }
     return 0;
 }

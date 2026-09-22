@@ -144,12 +144,15 @@ struct W8HandAttack {
     int damage_percent_29; /* 0x29: percent damage multiplier, paired with modifier damage_percent_03 */
     W8Dice damage_dice;          /* 0x2d */
     unsigned short attack_flags; /* 0x31 */
-    int value_33;
+    /* 0x33..0x42: the 16-byte block unarmed attacks memcpy into the effect's
+       condition_chances; strength_bonus_39 doubles as the unarmed strength
+       bonus. */
+    int condition_chance_33;
     unsigned char unknown_37[2];
     signed char strength_bonus_39;
     unsigned char unknown_3a;
-    int value_3b;
-    int value_3f;
+    int condition_chance_3b;
+    int condition_chance_3f;
     unsigned char unknown_43[0x18];
 }; /* 0x5b */
 

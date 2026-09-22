@@ -132,7 +132,7 @@ bool MartensBluff1FHandlock004DEDB0(Trigger* pTrigger)
     SetDice(&dice, 2, 4, 1);
     ApplyRolledHealthChangeToParty(&dice, 0, 1);
     SoundPlay("Data\\Sound\\Ambients\\Electricity 04.wav", 0);
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     return false;
 }
 
@@ -240,7 +240,7 @@ bool MartensBluff1JDoorController004DEFB0(Trigger* pTrigger)
     if ((state & 0xf000) != 0) {
         return false;
     }
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     particle = FindRegisteredParticle0049ADB0("GasSpray-00");
     if (particle != 0) {
         particle->SetActive(1);
@@ -271,7 +271,7 @@ bool MartensBluff1Controller004DF120(Trigger* pTrigger)
     } else {
         SetFact(0x42, 0, 0);
     }
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     return true;
 }
 
@@ -417,7 +417,7 @@ bool MartensBluff1ButtonGigas004DF540(Trigger* pTrigger)
     if (g_teleport_running_683558 == 0) {
         return MartensBluff1TeleportState004DF5C0(1);
     }
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     return true;
 }
 
@@ -428,7 +428,7 @@ bool MartensBluff1ButtonTrang004DF560(Trigger* pTrigger)
     if (g_teleport_running_683558 == 0) {
         return MartensBluff1TeleportState004DF5C0(2);
     }
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     return true;
 }
 
@@ -439,7 +439,7 @@ bool MartensBluff1ButtonRift004DF580(Trigger* pTrigger)
     if (g_teleport_running_683558 == 0) {
         return MartensBluff1TeleportState004DF5C0(3);
     }
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     return true;
 }
 
@@ -450,7 +450,7 @@ bool MartensBluff1ButtonMaten004DF5A0(Trigger* pTrigger)
     if (g_teleport_running_683558 == 0) {
         return MartensBluff1TeleportState004DF5C0(4);
     }
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     return true;
 }
 
@@ -529,7 +529,7 @@ bool MartensBluff1WireTrigger004DF710(Trigger* pTrigger)
 {
     Trigger* pTelTrigger;
 
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     pTelTrigger = FindTriggerByName("MR109");
     if (pTelTrigger == 0) {
         srAssertFail("pTelTrigger", MARTENSBLUFF1_CPP, 0x329,

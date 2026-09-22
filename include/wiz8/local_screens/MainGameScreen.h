@@ -132,7 +132,9 @@ public:
     int m_selection_078;
     W8MainGameScreen* m_screen_07c;
     int* m_values_080;
-    unsigned char m_flag_084;
+    /* 0x84: the timed progress text block (m_field_088 duration,
+       m_field_08c clock) is displayed. */
+    unsigned char m_progress_display_084;
     unsigned char m_pad_085[3];
     float m_field_088;
     float m_field_08c;
@@ -142,8 +144,10 @@ public:
     W8TextBuffer m_text_buffer_0c8;
     W8GameTimer m_timer_118;
     int m_field_13c;
-    unsigned char m_target_changed_140;
-    unsigned char m_flag_141;
+    bool m_target_changed_140;
+    /* 0x141: draw the animated target-changed marker this frame;
+       raised while m_fDirty, consumed by Redraw. */
+    bool m_target_marker_pending_141;
     unsigned char m_pad_142[2];
 };
 static_assert(sizeof(W8MainGameTextPanel) == 0x144, "W8MainGameTextPanel_size");
@@ -535,14 +539,14 @@ void DisableCombatRegions(void);
 
 void HandleManualCameraHotkeys(void);
 void ApplyWorldRenderHotkeys(void);
-extern unsigned char g_flag_0068edbc;
-extern unsigned char g_flag_0068edc8;
-extern unsigned char g_flag_0068edc9;
-extern unsigned char g_flag_0068edd8;
-extern unsigned char g_flag_0068edd9;
-extern unsigned char g_flag_0068edda;
+extern unsigned char g_radar_panel_shown_0068edbc;
+extern unsigned char g_action_panel_shown_0068edc8;
+extern unsigned char g_formation_panel_shown_0068edc9;
+extern bool g_mouselook_active_0068edd8;
+extern unsigned char g_mouselook_left_held_0068edd9;
+extern bool g_node_cull_pending_0068edda;
 extern int g_main_game_mode_0068eddc;
-extern int g_value_64c1c8;
+extern int g_selected_party_slot_64c1c8;
 int GetValue64C1C8(void); /* 0x00593320 */
 void RequestLevelTransition005615F0(int level, int entry, unsigned char flag);
 extern unsigned char g_build_level_links_0065bd2c;

@@ -329,7 +329,7 @@ void PleaseWaitScreenFrame(void)
         delete g_swap_disc_dialog_69b7cc;
         g_swap_disc_dialog_69b7cc = 0;
         RequestScreenTransition();
-        if (g_load_descriptor_69b7c8->mode == 1 && g_status_685170.flag_49bc) {
+        if (g_load_descriptor_69b7c8->mode == 1 && g_status_685170.intro_shown_49bc) {
             SetValue64D8AC(4);
             SetPendingScreenState(W8_SCREEN_INTRO);
             return;

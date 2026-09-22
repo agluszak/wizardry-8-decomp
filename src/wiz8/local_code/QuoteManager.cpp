@@ -152,7 +152,7 @@ int PickRandomPartySpeaker(unsigned int event_type, int excluded_slot)
 // GLOBAL: WIZ8 0x0068C578
 int g_special_event_0068c578;
 // GLOBAL: WIZ8 0x0068c57c
-unsigned int g_value_0068c57c;
+unsigned int g_event_range_min_0068c57c;
 /* 0x0068C580: the shared wide buffer formatted character text lands in. The
    message reader admits at most 0x7D0 code units, so the buffer holds exactly
    the two thousand characters that reach the next global at 0x0068D520. */
@@ -166,11 +166,11 @@ const char g_quote_personality_names_005ed91c[9][0x14] = {
     "aggr", "intell", "burly", "chaos", "cun", "ecc", "kind", "laid", "loner",
 };
 // GLOBAL: WIZ8 0x0068c554
-unsigned int g_value_0068c554;
+unsigned int g_event_range_max_0068c554;
 // GLOBAL: WIZ8 0x0068C53C
-int g_value_0068c53c;
+int g_trap_notice_event_0068c53c;
 // GLOBAL: WIZ8 0x0068C54C
-int g_value_0068c54c;
+int g_lock_notice_event_0068c54c;
 struct W8PortraitTables {
     unsigned short quote_x[8];
     unsigned short quote_y[8];
@@ -302,7 +302,7 @@ int g_effect_005ee6d8 = 0x54;
 // GLOBAL: WIZ8 0x005EE6DC
 int g_effect_005ee6dc = 0x55;
 // GLOBAL: WIZ8 0x005ee6f0
-const int g_value_005ee6f0 = 129;
+const int g_fact_check_event_005ee6f0 = 129;
 // GLOBAL: WIZ8 0x005ee6fc
 int g_item_message_005ee6fc = 132;
 // GLOBAL: WIZ8 0x005EE70C
@@ -1807,9 +1807,9 @@ void QueueConditionChangeReaction(W8Character* character)
     case 7:
     case 9:
     case 10:
-        reaction = g_value_005ee59c;
+        reaction = g_condition_reaction_005ee59c;
         if (Random(2) == 0) {
-            reaction = g_value_005ee5a0;
+            reaction = g_condition_reaction_alt_005ee5a0;
         }
         QueueCharacterEvent(character, reaction, 0, g_effect_argument_005ed8cc,
                             g_effect_argument_005ed914);
@@ -2035,8 +2035,8 @@ int UpdateCharacterEventState(void)
                             int direction = ChooseDifferentMonsterDirection004C2E00(
                                                 (short)record->portrait_frame - 6) +
                                             6;
-                            if (g_value_0068c57c <= record->pending_event_type_114 &&
-                                record->pending_event_type_114 <= g_value_0068c554) {
+                            if (g_event_range_min_0068c57c <= record->pending_event_type_114 &&
+                                record->pending_event_type_114 <= g_event_range_max_0068c554) {
                                 direction = 8;
                             }
                             record->previous_portrait_frame = record->portrait_frame;

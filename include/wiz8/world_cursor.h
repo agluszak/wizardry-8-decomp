@@ -17,7 +17,7 @@ struct W8WorldCursorState {
     /* 0x09: set by the right-button path while light_24 exists; the group
        bind consumes and clears it. */
     bool group_bind_pending_09;
-    unsigned char unknown_0a[2];
+    unsigned char padding_0a[2];
     /* 0x0c: accumulated cursor input - screen dx, right-drag dy and screen
        dy - scaled by g_float_005ebc88 into the movement vector each update,
        then cleared. The group-bind paths also bump .z. */
@@ -40,14 +40,14 @@ struct W8WorldCursorState {
        while set and re-arms it when the result lands near the ground, and
        the cursor update settles position_28 to the terrain while set. */
     bool track_ground_41;
-    unsigned char unknown_42[2];
+    unsigned char padding_42[2];
     /* 0x44: the cursor's march range, initialized to 50000; both movement
        paths clamp the step/offset length to it. */
     float range_44;
     /* 0x48: left-button latch - releasing the button while set is the
        placement click. */
     bool left_held_48;
-    unsigned char unknown_49[3];
+    unsigned char padding_49[3];
     /* 0x4c: the selected monster group id - passed to
        GetMonsterGroupIndexByID, assigned from monster_group->group_id,
        written by SetWorldCursorGroupId004916A0 and seeded from/restored to
@@ -60,7 +60,7 @@ struct W8WorldCursorState {
     /* 0x51: while detached, run the ground/sight march on the moved
        point. */
     bool march_enabled_51;
-    unsigned char unknown_52[2];
+    unsigned char padding_52[2];
     /* 0x54: midpoint of the probe box; the target march traces its sight fan
        from this offset. */
     srVector3T<float> probe_center_54;
@@ -72,7 +72,7 @@ struct W8WorldCursorState {
        fixed probe offsets and the click path requires the occupied-box
        test before placing. */
     bool footprint_mode_c0;
-    unsigned char unknown_c1[3];
+    unsigned char padding_c1[3];
     /* 0xc4: first fixed probe offset used when footprint_mode_c0 is set. */
     srVector3T<float> offset_c4;
     /* 0xd0: second fixed probe offset used when footprint_mode_c0 is set. */

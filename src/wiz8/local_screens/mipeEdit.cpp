@@ -118,7 +118,7 @@ void HandleMipeEditPropKey005C3880(unsigned short key)
             }
             len = wcslen(field->text);
             if (static_cast<int>(len) < 0x7e) {
-                if (key != 0x20 && g_flag_006f0530 == 0 && (key < 0x30 || key > 0x39)) {
+                if (key != 0x20 && g_shift_held_006f0530 == 0 && (key < 0x30 || key > 0x39)) {
                     key += 0x20;
                 }
                 field->text[len] = key;

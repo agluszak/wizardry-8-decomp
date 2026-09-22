@@ -711,13 +711,13 @@ void CalcAttacks(W8Character* character)
             if (hand == 0) {
                 attack->damage_dice.base += 2;
             }
-            attack->value_33 = 0;
+            attack->condition_chance_33 = 0;
             attack->unknown_37[0] = 0;
             attack->unknown_37[1] = 0;
             attack->strength_bonus_39 = 0;
             attack->unknown_3a = 0;
-            attack->value_3b = 0;
-            attack->value_3f = 0;
+            attack->condition_chance_3b = 0;
+            attack->condition_chance_3f = 0;
             if (character->attributes[0].effective > 49) {
                 attack->strength_bonus_39 = (character->attributes[0].effective - 50) / 5;
             }

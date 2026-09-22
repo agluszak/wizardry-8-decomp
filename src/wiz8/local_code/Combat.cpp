@@ -567,7 +567,7 @@ void BeginCombatExecution004E8370(void)
             row->interception_count = 0;
             row->dead_34 = character->hp_current == 0 || character->highest_condition >= 0xf;
             row->phase_clock_stamp = 0;
-            row->flag_a4 = 0;
+            row->defend_switched_a4 = 0;
             CalcArmorClasses(character);
         }
     }
@@ -1062,7 +1062,7 @@ void SwitchCharacterTo(int party_slot, int action)
     g_combat_state->characters[party_slot].dead_34 = 1;
     RequestRedraw(1 << party_slot | 0x100000);
     if (action == W8_ACTION_DEFEND && row->action_03d != action) {
-        g_combat_state->characters[party_slot].flag_a4 = 1;
+        g_combat_state->characters[party_slot].defend_switched_a4 = 1;
     }
 }
 
@@ -2220,7 +2220,7 @@ void ExecuteCharacterAction004EA5C0(int party_slot)
         }
         goto action_failed;
     case 4:
-        if (g_combat_state->characters[party_slot].flag_a4 == '\0') {
+        if (g_combat_state->characters[party_slot].defend_switched_a4 == '\0') {
             goto action_done;
         }
         goto defend_notice;

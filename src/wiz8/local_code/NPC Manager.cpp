@@ -982,7 +982,7 @@ void ProcessNpcPendingEvents0050CA80(void)
     unsigned char all_clear = 1; // bool-byte-ok: retail byte flag
 
     if (gXStatus.fCombatMode == 0 && gXStatus.fSurprisePossible == 0) {
-        if (g_status_685170.flag_2446 != 0) {
+        if (g_status_685170.infatuation_pending_2446 != 0) {
             unsigned char flagged = 0;
             for (int index = 0; index < g_npc_states->count; ++index) {
                 W8NpcState* candidate = *g_npc_states->GetAt(index);
@@ -994,7 +994,7 @@ void ProcessNpcPendingEvents0050CA80(void)
                 }
             }
             if (flagged != 0) {
-                g_status_685170.flag_2446 = 0;
+                g_status_685170.infatuation_pending_2446 = 0;
             } else {
                 char band = GetLevelBand(g_status_685170.current_level);
                 if (band != 9 && band != 0xa) {
@@ -1006,7 +1006,7 @@ void ProcessNpcPendingEvents0050CA80(void)
                     }
                     SetCharacterCondition(g_status_685170.alternate_name_slot_247f,
                                           W8_CONDITION_INFATUATED, 9999, 0, 0, 1);
-                    g_status_685170.flag_2446 = 0;
+                    g_status_685170.infatuation_pending_2446 = 0;
                     SetFact(0x2a6, 1, 0);
                 }
             }
@@ -1220,7 +1220,8 @@ void SelectStartNpcGreeting(void)
                     display_value);
     }
     if (value != 0) {
-        ApplyItemEffectToRandomCharacter(g_value_005ee6f0, -1, 0, g_effect_argument_005ed8c8);
+        ApplyItemEffectToRandomCharacter(g_fact_check_event_005ee6f0, -1, 0,
+                                         g_effect_argument_005ed8c8);
         return;
     }
 
@@ -2308,12 +2309,13 @@ void UpdateNpcEvents0050D530(void)
     W8NpcState* npc;
     unsigned int index;
 
-    if (g_status_685170.flag_49bb != 0 &&
-        (unsigned int)(g_status_685170.world_clock - g_status_685170.value_49b7) > 0x2a30) {
+    if (g_status_685170.trang_check_pending_49bb != 0 &&
+        static_cast<unsigned int>(g_status_685170.world_clock - g_status_685170.trang_check_clock_49b7) >
+            0x2a30) {
         if (GetFact(W8_FACT_ALIGNMENT_UMPANI) != 0 && Random(100) < 6) {
             SetFact(W8_FACT_TRANG_YOU_ARE_BUSTED, 1, 0);
         }
-        g_status_685170.flag_49bb = 0;
+        g_status_685170.trang_check_pending_49bb = 0;
     }
     if (g_status_685170.savant_hack_tick != 0 &&
         static_cast<unsigned int>(GetTickCount() - g_status_685170.savant_hack_tick) > 0x32) {
@@ -2442,9 +2444,10 @@ void UpdateNpcEvents0050D530(void)
         }
     }
 
-    if (g_status_685170.flag_248a != 0 &&
-        (unsigned int)(g_status_685170.world_clock - g_status_685170.value_2493) > 0x2a300) {
-        g_status_685170.flag_248a = 0;
+    if (g_status_685170.fact_b8_pending_248a != 0 &&
+        static_cast<unsigned int>(g_status_685170.world_clock - g_status_685170.fact_b8_clock_2493) >
+            0x2a300) {
+        g_status_685170.fact_b8_pending_248a = 0;
         SetFact(0xb8, 1, 0);
     }
     if (g_status_685170.greeting_pending_2497 != 0 &&

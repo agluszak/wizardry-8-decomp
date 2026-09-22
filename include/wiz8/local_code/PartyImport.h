@@ -63,7 +63,7 @@ unsigned char ImportWizardry7Party00558C40(char* path);
 
 extern int g_import_character_count_0068de48;         /* 0x0068DE48 */
 extern unsigned char g_import_ending_record_0068de4c; /* 0x0068DE4C */
-extern int g_value_68de50;                            /* 0x0068DE50: ending selector */
+extern int g_wiz7_ending_68de50;                      /* 0x0068DE50: ending selector */
 extern int g_import_difficulty_0068de54;              /* 0x0068DE54 */
 /* 0x0068DE58: the 96 file flags; index 5 doubles as the unsuppress byte and
    index 0xb as the loaded marker the fact seeder reads. */

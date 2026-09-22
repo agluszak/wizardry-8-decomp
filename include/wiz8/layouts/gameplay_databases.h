@@ -332,7 +332,9 @@ struct W8NpcDatabaseRecord {
     char restore_level;
     unsigned char unknown_071[3];
     char restore_entity_name[0x29];
-    unsigned char flag_9d; /* 0x09d: and only when this is clear */
+    /* 0x09d: set when the record carries no appended item-stock
+       rules; the load path reads them only while this is clear. */
+    unsigned char no_item_stock_9d;
     /* 0x09e: what the NPC is called, unless a fact substitutes another name.
        The wide RPC-character name at 0x0c4 bounds the string extent. */
     char display_name[0x26];

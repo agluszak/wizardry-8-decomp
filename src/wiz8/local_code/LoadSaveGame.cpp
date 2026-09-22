@@ -321,7 +321,7 @@ unsigned char EnumerateSaveSlots(W8GrowableVector<W8SaveSlot*>* slots)
                             AllocateStatusBuffers(&status.buffers);
                             LoadGameStatus(&chunks, &status);
                             FreeStatusBuffers(&status.buffers);
-                            slot->flag_263c = status.flag_49c1;
+                            slot->dev_flagged_263c = status.dev_flagged_49c1;
                             break;
                         case 0x52455647:
                             chunks.Read(&slot->version_major, 4, 0);

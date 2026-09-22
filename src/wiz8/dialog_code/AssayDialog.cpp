@@ -437,7 +437,7 @@ unsigned char W8AssayDialog::PopulateText()
                                     g_spell_records[record->spell_id].display_name);
         } else {
             text = FormatWideString(L"%s (Pwr %d)", g_spell_records[record->spell_id].display_name,
-                                    record->unknown_064[0]);
+                                    record->spell_power_064);
         }
         m_text_area.AddEntry(gppStringList[0x23a8 / 4], text, 10, 0xf, 0);
         if (record->equip_class == 0x13) {

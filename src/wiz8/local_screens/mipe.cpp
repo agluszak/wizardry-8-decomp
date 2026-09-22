@@ -107,7 +107,7 @@ void ToggleMipePanel0057D740(void)
 {
     if (g_mipe_active_68f105 != 0) {
         g_level_block->text_box_visible_271 = 1;
-        g_level_block->flag_272 = 0;
+        g_level_block->mipe_editing_272 = 0;
         ResetEditorStatusLine0058AA20(-1);
         if (gXStatus.fCombatMode != 0) {
             SelectTextBox(1);
@@ -142,7 +142,7 @@ void ToggleMipePanel0057D740(void)
     }
 
     g_level_block->text_box_visible_271 = 0;
-    g_level_block->flag_272 = 1;
+    g_level_block->mipe_editing_272 = 1;
     SelectTextBox(0);
     ResetEditorStatusLine0058AA20(-1);
     g_mipe_active_68f105 = 1;

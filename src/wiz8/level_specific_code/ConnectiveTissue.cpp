@@ -27,7 +27,7 @@ bool ConnectiveTissueLiche004E05F0(Trigger* pTrigger)
 
     if (GetItemInHand() != 0x15d && pTrigger->action_230 == 0) {
         ShowLevelMessage004D9960(6);
-        g_flag_00606994 = 1;
+        g_trigger_feedback_00606994 = 1;
         return false;
     }
     ShowLevelMessage004D9960(7);
