@@ -20,6 +20,7 @@ from wiz8decomp.runtime import (
     configure_wine_window_management,
     run_product,
     run_runtime_suite,
+    runtime_test_environment,
     stage_game,
 )
 
@@ -108,6 +109,17 @@ def test_interactive_run_restores_managed_wine_window(tmp_path: Path, monkeypatc
     assert calls[1][0][0][-4:] == [r"HKCU\Software\Wine\Explorer", "/v", "Desktop", "/f"]
     assert calls[2][0][0][-2:] == ["./Wiz8Runtime.exe", "/WINDOW"]
     assert calls[2][1]["env"]["WINEPREFIX"] == str(settings.work_dir / "wine" / "wiz8-runtime")
+
+
+def test_runtime_test_environment_honours_explicit_renderer(tmp_path: Path, monkeypatch) -> None:
+    settings = _settings(tmp_path)
+    monkeypatch.delenv("GALLIUM_DRIVER", raising=False)
+
+    _, environment = runtime_test_environment(settings)
+    assert "GALLIUM_DRIVER" not in environment
+
+    _, environment = runtime_test_environment(settings, renderer="softpipe")
+    assert environment["GALLIUM_DRIVER"] == "softpipe"
 
 
 def test_runtime_observation_is_normalized_to_typed_fields() -> None:

@@ -573,7 +573,7 @@ def _runtime_phase_summary(output: str, scenario: str) -> str:
 
 
 def runtime_test_environment(
-    settings: Settings, *, prefix: Path | None = None
+    settings: Settings, *, prefix: Path | None = None, renderer: str | None = None
 ) -> tuple[Path, dict[str, str]]:
     if prefix is None:
         prefix = Path(
@@ -590,11 +590,9 @@ def runtime_test_environment(
         **os.environ,
         "WINEPREFIX": str(prefix),
         "WINEDLLOVERRIDES": overrides,
-        # Mesa llvmpipe aborts inside the 32-bit process with "Unable to
-        # allocate section memory" (WIZ8_RUNTIME_CRASH 80000101). softpipe has
-        # no LLVM JIT and never takes that path.
-        "GALLIUM_DRIVER": "softpipe",
     }
+    if renderer is not None:
+        environment["GALLIUM_DRIVER"] = renderer
     environment["WINEDEBUG"] = "-all"
     return prefix, environment
 
@@ -846,6 +844,7 @@ def run_runtime_suite(
     tier: str = "pr",
     check_order: bool = False,
     repeat: int = 1,
+    renderer: str | None = None,
 ) -> dict[str, Any]:
     """Run selected scenarios, optionally checking reverse-order determinism."""
 
@@ -862,7 +861,7 @@ def run_runtime_suite(
     stage.mkdir(parents=True, exist_ok=True)
     executable = settings.product_build_dir / "Wiz8RuntimeTest.exe"
     object_root = settings.recovered_objects_dir
-    prefix, environment = runtime_test_environment(settings)
+    prefix, environment = runtime_test_environment(settings, renderer=renderer)
     runs: dict[str, dict[str, dict[str, str | int]]] = {}
     scenario_stages: dict[str, str] = {}
     failures: list[str] = []

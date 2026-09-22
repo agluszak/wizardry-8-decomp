@@ -49,6 +49,7 @@
 #include "wiz8/startup_world.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/local_code/Traps.h"
+#include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
 #include "wiz8/engine_code/Levels.h"
@@ -961,10 +962,16 @@ struct HostileEngagementSnapshot {
     unsigned int report_count;
     unsigned int report_amount;
     unsigned int report_missed;
+    unsigned int aim_active;
+    int aim_hp;
+    int aim_dead;
+    int report_target_type;
+    int report_target_monster;
 };
 
 struct HostileSnapshotQuery {
     int location_id;
+    int aim_location_id;
     HostileEngagementSnapshot snapshot;
 };
 
@@ -984,6 +991,10 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
     s->provoked_condition = -1;
     s->provoked_in_combat = -1;
     s->provoked_distance = -1.0f;
+    s->aim_hp = -1;
+    s->aim_dead = 0;
+    s->report_target_type = -1;
+    s->report_target_monster = -1;
     if (gXStatus.plsMonsterList != 0) {
         for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
             W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
@@ -1011,6 +1022,12 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
                 s->provoked_distance = distance;
                 s->provoked_dead = info->condition_turns[W8_CONDITION_DEAD] != 0;
                 s->provoked_threat_state = info->party_threat.sight_state_04;
+            }
+            if (info->location_id == query->aim_location_id) {
+                s->aim_active = 1;
+                s->aim_hp = static_cast<int>(info->hp_current);
+                s->aim_dead =
+                    info->condition_turns[W8_CONDITION_DEAD] != 0 || info->hp_current == 0;
             }
         }
     }
@@ -1045,6 +1062,8 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
         s->report_count = g_combat_state->attack_report.count;
         s->report_amount = g_combat_state->attack_report.amount;
         s->report_missed = g_combat_state->attack_report.missed;
+        s->report_target_type = g_combat_state->attack_report.target.iType;
+        s->report_target_monster = g_combat_state->attack_report.target.iMonsterID;
     }
 }
 
@@ -1056,6 +1075,8 @@ struct CombatAttackQuery {
     int eligible;
     int queued;
     int aimed;
+    int aim_location_id;
+    int aim_hp;
 };
 
 static void QueuePartyAttacksOnGameThread(void* opaque)
@@ -1097,6 +1118,17 @@ static void QueuePartyAttacksOnGameThread(void* opaque)
                     best = distance;
                     aim_location_id = info->location_id;
                 }
+            }
+        }
+    }
+    query->aim_location_id = aim_location_id;
+    query->aim_hp = -1;
+    if (aim_location_id >= 0 && gXStatus.plsMonsterList != 0) {
+        for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
+            W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
+            if (info != 0 && info->location_id == aim_location_id) {
+                query->aim_hp = static_cast<int>(info->hp_current);
+                break;
             }
         }
     }
@@ -1161,6 +1193,8 @@ struct CombatSpellQuery {
     int spell_id;
     int queued;
     int aimed;
+    int aim_location_id;
+    int aim_hp;
 };
 
 /* Queue a single-enemy combat spell on every living slot: the fixture grants
@@ -1217,6 +1251,17 @@ static void QueuePartySpellsOnGameThread(void* opaque)
                     best = distance;
                     aim_location_id = info->location_id;
                 }
+            }
+        }
+    }
+    query->aim_location_id = aim_location_id;
+    query->aim_hp = -1;
+    if (aim_location_id >= 0 && gXStatus.plsMonsterList != 0) {
+        for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
+            W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
+            if (info != 0 && info->location_id == aim_location_id) {
+                query->aim_hp = static_cast<int>(info->hp_current);
+                break;
             }
         }
     }
@@ -1454,37 +1499,20 @@ static void PrepareMainGameFixtureOnGameThread(void* opaque)
 
 static bool SendGameplayCommand(int command, bool release);
 
-/* The game thread can starve the message hook for stretches far longer than
-   any single call's timeout (level load and first frames on a software
-   display). Retry pending requests until the overall budget lapses. */
-static bool RunOnGameThreadRetry(RuntimeGameThreadCallback callback, void* context,
-                                 unsigned long budget_ms)
+/* Schedule a callback within budget. A timeout means the game thread never
+   reached the hook; that is not evidence it is stopped or that its objects
+   are safe to touch, so the callback never runs on the driver thread. */
+static bool ScheduleOnGameThread(const char* step, RuntimeGameThreadCallback callback,
+                                 void* context, unsigned long budget_ms)
 {
     unsigned int started = GetTickCount();
-    while (GetTickCount() - started < budget_ms && gfProgramIsRunning) {
-        if (RunOnGameThread(callback, context)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-/* A starved hook means the game thread is blocked inside load or a modal
-   stretch, not running its main loop, so ordinary fixture state cannot race
-   it. Run the callback directly rather than losing the whole scenario. */
-static bool RunOnGameThreadOrDirect(RuntimeGameThreadCallback callback, void* context,
-                                    unsigned long budget_ms)
-{
-    if (RunOnGameThreadRetry(callback, context, budget_ms)) {
+    if (RunOnGameThread(callback, context, budget_ms))
         return true;
-    }
-    fprintf(stderr, "runtime-test drop: game-thread hook starved, running fixture direct\n");
-    __try {
-        callback(context);
-    } __except (EXCEPTION_EXECUTE_HANDLER) {
-        return false;
-    }
-    return true;
+    fprintf(stderr,
+            "WIZ8_RUNTIME_SYNC scenario=%s step=%s state=game-thread-unresponsive waited_ms=%lu\n",
+            g_scenario, step, GetTickCount() - started);
+    fflush(stderr);
+    return false;
 }
 
 static unsigned int g_ready_check_calls;
@@ -1493,8 +1521,26 @@ struct GameplayReadyCheck {
     bool ready;
     bool waiting_on_ground;
     unsigned int calls;
-    int blocked;
+    int screen;
+    int pending;
+    int keyboard_present;
+    int level_block_present;
+    int flag_328;
+    int review_transition_active;
+    int level_data_present;
     unsigned int flags;
+    int flag4_effective;
+    int blocked;
+    float camera_x;
+    float camera_y;
+    float camera_z;
+    unsigned int timer_flags;
+    int timer_paused;
+    int timer_d1;
+    int timer_d2;
+    float timer_scale;
+    int ground_latch;
+    unsigned int world_update_blocked;
 };
 
 static GameplayReadyCheck g_last_ready_check;
@@ -1517,8 +1563,36 @@ static void CheckGameplayReadyOnGameThread(void* opaque)
                    !g_level_block->flag_328 && !g_level_block->review_transition_active &&
                    g_level_data_00652dac != 0 && !IsScreenInputBlocked() &&
                    gXStatus.world_update_blocked == 0;
+    check->screen = g_current_screen_state.id;
+    check->pending = g_pending_screen_state.id;
+    check->keyboard_present = g_mgs_keyboard != 0;
+    check->level_block_present = g_level_block != 0;
+    check->flag_328 = g_level_block != 0 ? g_level_block->flag_328 : -1;
+    check->review_transition_active =
+        g_level_block != 0 ? g_level_block->review_transition_active : -1;
+    check->level_data_present = g_level_data_00652dac != 0;
     check->blocked = IsScreenInputBlocked();
     check->flags = g_level_data_00652dac != 0 ? g_level_data_00652dac->flags : 0;
+    check->flag4_effective = IsLevelDataFlag4EffectivelySet();
+    /* GetCameraPosition dereferences the camera record unconditionally; it
+       does not exist until the world does. */
+    srVector3T<float> camera;
+    camera.Set(0, 0, 0);
+    if (g_gd_camera_65a0f8 != 0) {
+        GetCameraPosition(&camera);
+    }
+    check->camera_x = camera.x;
+    check->camera_y = camera.y;
+    check->camera_z = camera.z;
+    check->timer_flags =
+        g_game_time_accumulator_6598bc != 0 ? g_game_time_accumulator_6598bc->m_flags : 0;
+    check->timer_paused = g_shared_timer_paused;
+    check->timer_d1 = g_shared_timer_flag_d1;
+    check->timer_d2 = g_shared_timer_flag_d2;
+    check->timer_scale =
+        g_game_time_accumulator_6598bc != 0 ? g_game_time_accumulator_6598bc->GetValue28() : -1.0f;
+    check->ground_latch = g_environ_ground_latch_00652db8;
+    check->world_update_blocked = gXStatus.world_update_blocked;
     /* flag4 is the per-frame walkable-contact bit: ApplyEnvironContact sets
        it while the party capsule touches ground and ApplyCameraMotion clears
        it at the top of each motion step. If it stays clear the party has no
@@ -1528,18 +1602,31 @@ static void CheckGameplayReadyOnGameThread(void* opaque)
     check->waiting_on_ground = settled && !check->ready;
 }
 
-static bool WaitForGameplay(unsigned int timeout_ms)
+enum GameplayWait { GAMEPLAY_READY, GAMEPLAY_NOT_READY, GAMEPLAY_EXECUTOR_UNRESPONSIVE };
+
+static GameplayWait WaitForGameplay(unsigned int timeout_ms)
 {
     unsigned int started = GetTickCount();
     bool walking = false;
     while (GetTickCount() - started < timeout_ms && gfProgramIsRunning) {
-        GameplayReadyCheck check = {false, false, 0, 0, 0};
-        if (!RunOnGameThread(CheckGameplayReadyOnGameThread, &check)) {
-            /* The load transition can starve the message hook for a long
-               stretch on a software display. The readiness predicate is only
-               global reads, so sample it directly and keep waiting - the hook
-               resumes once the world is up. */
-            CheckGameplayReadyOnGameThread(&check);
+        GameplayReadyCheck check;
+        memset(&check, 0, sizeof(check));
+        unsigned long elapsed = GetTickCount() - started;
+        if (elapsed >= timeout_ms)
+            break;
+        unsigned long remaining = timeout_ms - elapsed;
+        if (!RunOnGameThread(CheckGameplayReadyOnGameThread, &check, remaining)) {
+            /* A starved hook means the game thread never reached the
+               callback; its objects are not safe to sample off-thread. */
+            if (walking) {
+                SendGameplayCommand(W8_MGS_COMMAND_MOVE_FORWARD, true);
+            }
+            fprintf(stderr,
+                    "WIZ8_RUNTIME_SYNC scenario=%s step=gameplay-ready "
+                    "state=game-thread-unresponsive waited_ms=%lu\n",
+                    g_scenario, GetTickCount() - started);
+            fflush(stderr);
+            return GAMEPLAY_EXECUTOR_UNRESPONSIVE;
         }
         g_last_ready_check = check;
         if (check.ready) {
@@ -1548,7 +1635,7 @@ static bool WaitForGameplay(unsigned int timeout_ms)
             }
             g_observation.main_game_entered = 1;
             ReportStep("main-game-entered");
-            return true;
+            return GAMEPLAY_READY;
         }
         /* Ground contact only latches while a move resolves collision, so a
            party that spawned already at rest needs a real step before
@@ -1557,7 +1644,7 @@ static bool WaitForGameplay(unsigned int timeout_ms)
         if (check.waiting_on_ground) {
             walking = SendGameplayCommand(W8_MGS_COMMAND_MOVE_FORWARD, false) || walking;
         }
-        if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_INTRO) {
+        if (check.screen == W8_SCREEN_INTRO) {
             SendScenarioKey(VK_ESCAPE);
         }
         Sleep(20);
@@ -1565,14 +1652,15 @@ static bool WaitForGameplay(unsigned int timeout_ms)
     if (walking) {
         SendGameplayCommand(W8_MGS_COMMAND_MOVE_FORWARD, true);
     }
-    return false;
+    return GAMEPLAY_NOT_READY;
 }
 
 static DWORD PrepareMainGameFixture()
 {
     const char* failure = 0;
-    if (!RunOnGameThread(PrepareMainGameFixtureOnGameThread, &failure)) {
-        return FailScenario("main-game-fixture", "game-thread-executor-failed");
+    if (!ScheduleOnGameThread("main-game-fixture", PrepareMainGameFixtureOnGameThread, &failure,
+                              60000)) {
+        return FailScenario("main-game-fixture", "game-thread-unresponsive");
     }
     if (failure != 0) {
         return FailScenario("main-game-fixture", failure);
@@ -1580,29 +1668,25 @@ static DWORD PrepareMainGameFixture()
     /* The load transition pumps few messages on a slow display, so polls are
        sparse; once the world is up the held forward key produces the ground
        contact frame the readiness check is waiting for. */
-    if (!WaitForGameplay(300000)) {
-        srVector3T<float> camera;
-        camera.Set(0, 0, 0);
-        GetCameraPosition(&camera);
+    GameplayWait ready = WaitForGameplay(300000);
+    if (ready == GAMEPLAY_EXECUTOR_UNRESPONSIVE) {
+        return FailScenario("main-game-fixture", "game-thread-unresponsive");
+    }
+    if (ready == GAMEPLAY_NOT_READY) {
+        /* Report the last snapshot the game thread itself filled; live state
+           is not safe to read from here. */
+        const GameplayReadyCheck& last = g_last_ready_check;
         fprintf(stderr,
-                "runtime-test readiness: screen=%d pending=%d keyboard=%p "
-                "level_block=%p flag328=%d transition=%d level_data=%p flags=%04x "
+                "runtime-test readiness: screen=%d pending=%d keyboard=%d "
+                "level_block=%d flag328=%d transition=%d level_data=%d flags=%04x "
                 "flag4_eff=%d input_blocked=%d camera=(%.0f %.0f %.0f) "
                 "timer_flags=%02x paused=%d d1=%d d2=%d scale=%.3f latch=%d "
-                "ready_calls=%u last_blocked=%d last_flags=%04x\n",
-                g_current_screen_state.id, g_pending_screen_state.id, (void*)g_mgs_keyboard,
-                (void*)g_level_block, g_level_block != 0 ? g_level_block->flag_328 : -1,
-                g_level_block != 0 ? g_level_block->review_transition_active : -1,
-                (void*)g_level_data_00652dac,
-                g_level_data_00652dac != 0 ? g_level_data_00652dac->flags : 0,
-                IsLevelDataFlag4EffectivelySet(), IsScreenInputBlocked(), camera.x, camera.y,
-                camera.z,
-                g_game_time_accumulator_6598bc != 0 ? g_game_time_accumulator_6598bc->m_flags : 0,
-                g_shared_timer_paused, g_shared_timer_flag_d1, g_shared_timer_flag_d2,
-                g_game_time_accumulator_6598bc != 0 ? g_game_time_accumulator_6598bc->GetValue28()
-                                                    : -1.0f,
-                g_environ_ground_latch_00652db8, g_ready_check_calls, g_last_ready_check.blocked,
-                g_last_ready_check.flags);
+                "world_blocked=%u ready_calls=%u\n",
+                last.screen, last.pending, last.keyboard_present, last.level_block_present,
+                last.flag_328, last.review_transition_active, last.level_data_present, last.flags,
+                last.flag4_effective, last.blocked, last.camera_x, last.camera_y, last.camera_z,
+                last.timer_flags, last.timer_paused, last.timer_d1, last.timer_d2, last.timer_scale,
+                last.ground_latch, last.world_update_blocked, g_ready_check_calls);
         return FailScenario("main-game-fixture", "main-game-not-ready");
     }
     return 0;
@@ -1873,7 +1957,14 @@ static DWORD RunAutomapRoundtripScenario()
     }
     if (!g_observation.automap_opened)
         return FailScenario("automap-open", "not-observed");
-    if (!TapGameplayCommand(W8_MGS_COMMAND_AUTOMAP) || !WaitForGameplay(3000)) {
+    if (!TapGameplayCommand(W8_MGS_COMMAND_AUTOMAP)) {
+        return FailScenario("automap-close", "main-game-not-restored");
+    }
+    GameplayWait restored = WaitForGameplay(3000);
+    if (restored == GAMEPLAY_EXECUTOR_UNRESPONSIVE) {
+        return FailScenario("automap-close", "game-thread-unresponsive");
+    }
+    if (restored != GAMEPLAY_READY) {
         return FailScenario("automap-close", "main-game-not-restored");
     }
     g_observation.automap_closed = 1;
@@ -1947,8 +2038,9 @@ static DWORD RunCombatRoundtripScenario()
 static DWORD RunHostileEncounterScenario()
 {
     HostileEncounterContext context;
-    if (!RunOnGameThreadOrDirect(ProvokeHostileEncounterOnGameThread, &context, 240000)) {
-        return FailScenario("hostile-fixture", "game-thread-executor-failed");
+    if (!ScheduleOnGameThread("hostile-fixture", ProvokeHostileEncounterOnGameThread, &context,
+                              240000)) {
+        return FailScenario("hostile-fixture", "game-thread-unresponsive");
     }
     if (context.location_id < 0)
         return FailScenario("hostile-fixture", "active-monster-not-found");
@@ -1958,6 +2050,7 @@ static DWORD RunHostileEncounterScenario()
     ReportStep("combat-aggroed");
     HostileSnapshotQuery query;
     query.location_id = context.location_id;
+    query.aim_location_id = context.location_id;
     bool round_requested = false;
     unsigned int started = GetTickCount();
     while (GetTickCount() - started < 10000 && gfProgramIsRunning) {
@@ -1998,14 +2091,16 @@ static DWORD RunHostileEncounterScenario()
     return FailScenario("hostile-action", "monster-execution-not-observed");
 }
 
-/* Beyond engagement: queue real melee attacks on every living slot, drive
-   rounds until an attack resolves - party damage, monster damage or the
-   kill - and report which product transition never arrived on failure. */
+/* Beyond engagement: queue real melee attacks aimed at a live monster on
+   every living slot, drive bounded rounds, and require evidence that a party
+   member's attack struck the aimed monster and that monster durably lost HP
+   or died. Enemy actions and party damage are never evidence. */
 static DWORD RunCombatAttackScenario()
 {
     HostileEncounterContext context;
-    if (!RunOnGameThreadOrDirect(ProvokeHostileEncounterOnGameThread, &context, 240000)) {
-        return FailScenario("hostile-fixture", "game-thread-executor-failed");
+    if (!ScheduleOnGameThread("hostile-fixture", ProvokeHostileEncounterOnGameThread, &context,
+                              240000)) {
+        return FailScenario("hostile-fixture", "game-thread-unresponsive");
     }
     if (context.location_id < 0)
         return FailScenario("hostile-fixture", "active-monster-not-found");
@@ -2016,103 +2111,138 @@ static DWORD RunCombatAttackScenario()
 
     HostileSnapshotQuery query;
     query.location_id = context.location_id;
-    bool round_requested = false;
-    unsigned int initial_engaged_hp = 0;
-    unsigned int initial_party_hp = 0;
-    bool baseline_taken = false;
-    unsigned int started = GetTickCount();
+    query.aim_location_id = context.location_id;
     unsigned int last_trace = 0;
-    /* A frame can take several seconds on a software display, and each combat
-       round needs several frames, so give the exchange real time. */
-    while (GetTickCount() - started < 180000 && gfProgramIsRunning) {
-        Sleep(5);
-        if (!RunOnGameThread(ReadHostileEngagementOnGameThread, &query))
-            continue;
-        if (GetTickCount() - last_trace > 2000) {
-            last_trace = GetTickCount();
-            const HostileEngagementSnapshot& t = query.snapshot;
-            fprintf(stderr,
-                    "runtime-test trace: engaged=%u nearest=%.0f party_hp=%u "
-                    "ehp=%u dead=%u combat=%u round=%u action=%d char=%d monster=%d "
-                    "report(hits=%u dmg=%u miss=%u) threat=%d target=%d:%d\n",
-                    t.engaged_hostiles, t.nearest_engaged_distance, t.party_hp_total,
-                    t.engaged_hp_total, t.engaged_dead, t.combat_mode, t.round_active,
-                    t.action_status, t.action_char, t.action_monster, t.report_count,
-                    t.report_amount, t.report_missed, t.provoked_threat_state, t.first_target_type,
-                    t.first_target_monster);
+    int aim_id = context.location_id;
+    int baseline_hp = -1;
+    /* Success requires evidence that a party member's attack struck the aimed
+       monster and that monster durably lost HP or died. Enemy actions and
+       party damage are never evidence. Each round is bounded so a stall in
+       the product pipeline fails at the stage that stopped, not at one
+       monolithic timeout. */
+    const int kMaxRounds = 6;
+    for (int round = 0; round < kMaxRounds && gfProgramIsRunning; ++round) {
+        /* combat-round-queue: close on the nearest engaged monster if the
+           party is outside melee reach, then queue a real attack aimed at a
+           live monster on every living slot. */
+        if (!RunOnGameThread(ReadHostileEngagementOnGameThread, &query)) {
+            return FailScenario("combat-round-queue", "game-thread-unresponsive");
         }
-        const HostileEngagementSnapshot& state = query.snapshot;
-        if (!baseline_taken && state.engaged_hostiles != 0) {
-            initial_engaged_hp = state.engaged_hp_total;
-            initial_party_hp = state.party_hp_total;
-            baseline_taken = true;
+        if (query.snapshot.nearest_engaged_distance > 800.0f) {
+            bool moved = false;
+            RunOnGameThread(TeleportPartyNearEngagedOnGameThread, &moved);
+            fprintf(stderr, "runtime-test approach: moved=%d dist=%.0f\n", moved,
+                    query.snapshot.nearest_engaged_distance);
         }
-        if (baseline_taken &&
-            (state.engaged_hp_total < initial_engaged_hp || state.engaged_dead != 0) &&
-            !g_observation.monster_damaged) {
-            g_observation.monster_damaged = 1;
-            ReportStep("monster-damaged");
+        CombatAttackQuery attack;
+        attack.location_id = context.location_id;
+        if (!RunOnGameThread(QueuePartyAttacksOnGameThread, &attack)) {
+            return FailScenario("combat-round-queue", "game-thread-unresponsive");
         }
-        if (baseline_taken && state.party_hp_total < initial_party_hp &&
-            !g_observation.party_damaged) {
-            g_observation.party_damaged = 1;
-            ReportStep("party-damaged");
+        fprintf(stderr, "runtime-test aim: queued=%d aimed=%d aim=%d hp=%d\n", attack.queued,
+                attack.aimed, attack.aim_location_id, attack.aim_hp);
+        if (attack.queued == 0) {
+            return FailScenario("combat-round-queue", "no-attack-queued");
         }
-        if (state.action_char >= 0 && state.action_status >= 2 &&
-            !g_observation.combat_attack_executed) {
-            g_observation.combat_attack_executed = 1;
-            ReportStep("party-attack-executed");
+        if (!g_observation.combat_attack_queued) {
+            g_observation.combat_attack_queued = 1;
+            ReportStep("combat-attack-queued");
         }
-        if (state.action_monster == context.location_id && state.action_status >= 2 &&
-            !g_observation.monster_engaged) {
-            g_observation.monster_engaged = 1;
-            ReportStep("monster-action-executed");
+        baseline_hp = attack.aim_hp;
+        aim_id = attack.aim_location_id;
+        query.aim_location_id = aim_id;
+
+        /* combat-round-start: the injected command must be consumed into an
+           active round or the exchange never begins. */
+        if (!TapGameplayCommand(W8_MGS_COMMAND_START_COMBAT_ROUND)) {
+            return FailScenario("combat-round-start", "binding-missing");
         }
-        if ((state.engaged_dead != 0 || (baseline_taken && state.engaged_hostiles == 0)) &&
-            !g_observation.monster_killed) {
-            g_observation.monster_killed = 1;
-            ReportStep("monster-killed");
+        unsigned int stage_started = GetTickCount();
+        bool round_started = false;
+        while (GetTickCount() - stage_started < 15000 && gfProgramIsRunning) {
+            Sleep(5);
+            if (!RunOnGameThread(ReadHostileEngagementOnGameThread, &query)) {
+                return FailScenario("combat-round-start", "game-thread-unresponsive");
+            }
+            if (query.snapshot.round_active != 0) {
+                round_started = true;
+                break;
+            }
         }
-        if (baseline_taken && state.engaged_hostiles == 0 && !state.combat_mode) {
-            g_observation.combat_ended = 1;
-            ReportStep("combat-ended");
+        if (!round_started) {
+            return FailScenario("combat-round-start", "round-start-not-consumed");
+        }
+
+        /* combat-round-resolve: latch a party hit only when the executed
+           action's own report names the aimed monster, and latch damage only
+           from that monster's durable HP loss or death. */
+        stage_started = GetTickCount();
+        bool round_finished = false;
+        while (GetTickCount() - stage_started < 90000 && gfProgramIsRunning) {
+            Sleep(5);
+            if (!RunOnGameThread(ReadHostileEngagementOnGameThread, &query)) {
+                return FailScenario("combat-round-resolve", "game-thread-unresponsive");
+            }
+            const HostileEngagementSnapshot& state = query.snapshot;
+            if (GetTickCount() - last_trace > 2000) {
+                last_trace = GetTickCount();
+                fprintf(stderr,
+                        "runtime-test trace: engaged=%u nearest=%.0f party_hp=%u "
+                        "ehp=%u dead=%u combat=%u round=%u action=%d char=%d monster=%d "
+                        "aim=%d hp=%d active=%u dead=%d "
+                        "report(hits=%u dmg=%u miss=%u target=%d:%d) "
+                        "threat=%d target=%d:%d\n",
+                        state.engaged_hostiles, state.nearest_engaged_distance,
+                        state.party_hp_total, state.engaged_hp_total, state.engaged_dead,
+                        state.combat_mode, state.round_active, state.action_status,
+                        state.action_char, state.action_monster, aim_id, state.aim_hp,
+                        state.aim_active, state.aim_dead, state.report_count, state.report_amount,
+                        state.report_missed, state.report_target_type, state.report_target_monster,
+                        state.provoked_threat_state, state.first_target_type,
+                        state.first_target_monster);
+            }
+            if (!g_observation.party_attack_hit && state.action_char >= 0 &&
+                state.action_status >= 2 && state.report_target_type == W8_TARGET_KIND_MONSTER &&
+                state.report_target_monster == aim_id && state.report_count > 0) {
+                g_observation.party_attack_hit = 1;
+                ReportStep("party-attack-hit");
+                fprintf(stderr, "runtime-test hit: char=%d target=%d amount=%u\n",
+                        state.action_char, state.report_target_monster, state.report_amount);
+            }
+            if (g_observation.party_attack_hit && !g_observation.target_damaged && aim_id >= 0 &&
+                baseline_hp >= 0 &&
+                (state.aim_dead || !state.aim_active ||
+                 (state.aim_hp >= 0 && state.aim_hp < baseline_hp))) {
+                g_observation.target_damaged = 1;
+                ReportStep("target-damaged");
+            }
+            /* A kill ends combat in the same frame: the latched success and
+               a finished round outrank the combat-mode drop. */
+            if (state.round_active == 0 ||
+                (g_observation.party_attack_hit && g_observation.target_damaged)) {
+                round_finished = true;
+                break;
+            }
+            if (state.combat_mode == 0) {
+                return FailScenario("combat-attack", "combat-ended-without-party-hit");
+            }
+        }
+        if (g_observation.party_attack_hit && g_observation.target_damaged) {
             return FinishGameplayScenario();
         }
-        /* Beyond melee reach, close on the nearest engaged monster before
-           the round starts - the monster AI holds a standoff at its attack
-           band edge, so a party that never moves never lands a swing. */
-        if (state.round_active)
-            round_requested = false;
-        if (state.combat_mode && !state.round_active && !round_requested) {
-            if (state.nearest_engaged_distance > 800.0f) {
-                bool moved = false;
-                RunOnGameThread(TeleportPartyNearEngagedOnGameThread, &moved);
-                fprintf(stderr, "runtime-test approach: moved=%d dist=%.0f\n", moved,
-                        state.nearest_engaged_distance);
-            }
-            CombatAttackQuery attack;
-            attack.location_id = context.location_id;
-            if (!RunOnGameThread(QueuePartyAttacksOnGameThread, &attack))
-                continue;
-            fprintf(stderr, "runtime-test aim: queued=%d aimed=%d\n", attack.queued, attack.aimed);
-            if (attack.queued > 0 && !g_observation.combat_attack_queued) {
-                g_observation.combat_attack_queued = 1;
-                ReportStep("combat-attack-queued");
-            }
-            if (!TapGameplayCommand(W8_MGS_COMMAND_START_COMBAT_ROUND))
-                return FailScenario("combat-round", "binding-missing");
-            round_requested = true;
+        if (!round_finished) {
+            return FailScenario("combat-round-resolve", "round-did-not-resolve");
         }
-        if (!state.combat_mode && g_observation.combat_attack_executed) {
-            return FinishGameplayScenario();
+        if (query.snapshot.combat_mode == 0) {
+            return FailScenario("combat-attack", "combat-ended-without-party-hit");
         }
     }
     fprintf(stderr,
             "runtime-test attack-frontier: screen=%d pending=%d hostile=%u active=%u "
             "engaged=%u party_hp=%u nearest=%.0f provoked active=%u hp=%d cond=%d incombat=%d "
             "dead=%d dist=%.0f threat=%d combat=%u round=%u action=%d char=%d monster=%d "
-            "queued=%d target=%d:%d report(hits=%u dmg=%u miss=%u) "
-            "obs(q=%u exec=%u mdmg=%u pdmg=%u kill=%u)\n",
+            "aim=%d aim_hp=%d aim_active=%u aim_dead=%d queued=%d target=%d:%d "
+            "report(hits=%u dmg=%u miss=%u target=%d:%d) obs(q=%u hit=%u tdmg=%u)\n",
             query.snapshot.screen, query.snapshot.pending, query.snapshot.hostile_count,
             query.snapshot.active_monsters, query.snapshot.engaged_hostiles,
             query.snapshot.party_hp_total, query.snapshot.nearest_engaged_distance,
@@ -2121,33 +2251,28 @@ static DWORD RunCombatAttackScenario()
             query.snapshot.provoked_dead, query.snapshot.provoked_distance,
             query.snapshot.provoked_threat_state, query.snapshot.combat_mode,
             query.snapshot.round_active, query.snapshot.action_status, query.snapshot.action_char,
-            query.snapshot.action_monster, query.snapshot.queued_attacks,
+            query.snapshot.action_monster, aim_id, query.snapshot.aim_hp, query.snapshot.aim_active,
+            query.snapshot.aim_dead, query.snapshot.queued_attacks,
             query.snapshot.first_target_type, query.snapshot.first_target_monster,
             query.snapshot.report_count, query.snapshot.report_amount, query.snapshot.report_missed,
-            g_observation.combat_attack_queued, g_observation.combat_attack_executed,
-            g_observation.monster_damaged, g_observation.party_damaged,
-            g_observation.monster_killed);
-    fprintf(stderr, "runtime-test attack-frontier: engaged_hp=%u engaged_dead=%u\n",
-            query.snapshot.engaged_hp_total, query.snapshot.engaged_dead);
-    /* A timed-out exchange still reports what resolved: the validator only
-       needs an executed attack and damage on either side. */
-    if (g_observation.combat_attack_executed &&
-        (g_observation.monster_damaged || g_observation.party_damaged ||
-         g_observation.monster_killed)) {
-        return FinishGameplayScenario();
-    }
-    return FailScenario("combat-attack", "attack-resolution-not-observed");
+            query.snapshot.report_target_type, query.snapshot.report_target_monster,
+            g_observation.combat_attack_queued, g_observation.party_attack_hit,
+            g_observation.target_damaged);
+    return FailScenario("combat-attack", g_observation.party_attack_hit
+                                             ? "target-damage-not-observed"
+                                             : "party-attack-hit-not-observed");
 }
 
 /* The spell twin of the attack round-trip: queue a learned single-enemy
-   spell on every living slot, drive rounds until a cast resolves - spell
-   damage, a resisted effect, or a kill - and report which product transition
-   never arrived on failure. */
+   spell on every living slot, drive rounds until a party cast executes and
+   the aimed monster durably loses HP or dies - and report which product
+   transition never arrived on failure. */
 static DWORD RunCombatSpellScenario()
 {
     HostileEncounterContext context;
-    if (!RunOnGameThreadOrDirect(ProvokeHostileEncounterOnGameThread, &context, 240000)) {
-        return FailScenario("hostile-fixture", "game-thread-executor-failed");
+    if (!ScheduleOnGameThread("hostile-fixture", ProvokeHostileEncounterOnGameThread, &context,
+                              240000)) {
+        return FailScenario("hostile-fixture", "game-thread-unresponsive");
     }
     if (context.location_id < 0)
         return FailScenario("hostile-fixture", "active-monster-not-found");
@@ -2158,11 +2283,12 @@ static DWORD RunCombatSpellScenario()
 
     HostileSnapshotQuery query;
     query.location_id = context.location_id;
+    query.aim_location_id = context.location_id;
     bool round_requested = false;
-    unsigned int initial_engaged_hp = 0;
-    unsigned int initial_party_hp = 0;
     bool baseline_taken = false;
     int spell_id = 0;
+    int aim_id = context.location_id;
+    int baseline_hp = -1;
     unsigned int started = GetTickCount();
     unsigned int last_trace = 0;
     while (GetTickCount() - started < 180000 && gfProgramIsRunning) {
@@ -2175,39 +2301,31 @@ static DWORD RunCombatSpellScenario()
             fprintf(stderr,
                     "runtime-test trace: engaged=%u nearest=%.0f party_hp=%u "
                     "ehp=%u dead=%u combat=%u round=%u action=%d char=%d monster=%d "
+                    "aim=%d hp=%d active=%u dead=%d "
                     "report(hits=%u dmg=%u miss=%u) threat=%d target=%d:%d\n",
                     t.engaged_hostiles, t.nearest_engaged_distance, t.party_hp_total,
                     t.engaged_hp_total, t.engaged_dead, t.combat_mode, t.round_active,
-                    t.action_status, t.action_char, t.action_monster, t.report_count,
-                    t.report_amount, t.report_missed, t.provoked_threat_state, t.first_target_type,
-                    t.first_target_monster);
+                    t.action_status, t.action_char, t.action_monster, aim_id, t.aim_hp,
+                    t.aim_active, t.aim_dead, t.report_count, t.report_amount, t.report_missed,
+                    t.provoked_threat_state, t.first_target_type, t.first_target_monster);
         }
         const HostileEngagementSnapshot& state = query.snapshot;
         if (!baseline_taken && state.engaged_hostiles != 0) {
-            initial_engaged_hp = state.engaged_hp_total;
-            initial_party_hp = state.party_hp_total;
             baseline_taken = true;
         }
-        if (baseline_taken &&
-            (state.engaged_hp_total < initial_engaged_hp || state.engaged_dead != 0) &&
-            !g_observation.monster_damaged) {
-            g_observation.monster_damaged = 1;
-            ReportStep("monster-damaged");
-        }
-        if (baseline_taken && state.party_hp_total < initial_party_hp &&
-            !g_observation.party_damaged) {
-            g_observation.party_damaged = 1;
-            ReportStep("party-damaged");
-        }
+        /* Monsters never own iActionChar: an executing char action is a party
+           actor. The melee attack_report target does not describe spells. */
         if (state.action_char >= 0 && state.action_status >= 2 &&
-            !g_observation.combat_attack_executed) {
-            g_observation.combat_attack_executed = 1;
+            !g_observation.party_cast_executed) {
+            g_observation.party_cast_executed = 1;
             ReportStep("party-cast-executed");
         }
-        if ((state.engaged_dead != 0 || (baseline_taken && state.engaged_hostiles == 0)) &&
-            !g_observation.monster_killed) {
-            g_observation.monster_killed = 1;
-            ReportStep("monster-killed");
+        if (g_observation.party_cast_executed && !g_observation.target_damaged && aim_id >= 0 &&
+            baseline_hp >= 0 &&
+            (state.aim_dead || !state.aim_active ||
+             (state.aim_hp >= 0 && state.aim_hp < baseline_hp))) {
+            g_observation.target_damaged = 1;
+            ReportStep("target-damaged");
         }
         if (baseline_taken && state.engaged_hostiles == 0 && !state.combat_mode) {
             g_observation.combat_ended = 1;
@@ -2222,7 +2340,10 @@ static DWORD RunCombatSpellScenario()
                 TapGameplayCommand(W8_MGS_COMMAND_CANCEL);
                 Sleep(500);
             }
-            return FinishGameplayScenario();
+            if (g_observation.target_damaged) {
+                return FinishGameplayScenario();
+            }
+            return FailScenario("combat-spell", "combat-ended-without-target-damage");
         }
         if (state.round_active)
             round_requested = false;
@@ -2241,8 +2362,11 @@ static DWORD RunCombatSpellScenario()
             if (cast.spell_id <= 0)
                 return FailScenario("combat-spell", "no-single-enemy-spell");
             spell_id = cast.spell_id;
-            fprintf(stderr, "runtime-test cast: spell=%d queued=%d aimed=%d\n", cast.spell_id,
-                    cast.queued, cast.aimed);
+            baseline_hp = cast.aim_hp;
+            aim_id = cast.aim_location_id;
+            query.aim_location_id = aim_id;
+            fprintf(stderr, "runtime-test cast: spell=%d queued=%d aimed=%d aim=%d hp=%d\n",
+                    cast.spell_id, cast.queued, cast.aimed, cast.aim_location_id, cast.aim_hp);
             if (cast.queued > 0 && !g_observation.combat_action_queued) {
                 g_observation.combat_action_queued = 1;
                 ReportStep("combat-cast-queued");
@@ -2251,7 +2375,8 @@ static DWORD RunCombatSpellScenario()
                 return FailScenario("combat-round", "binding-missing");
             round_requested = true;
         }
-        if (!state.combat_mode && g_observation.combat_attack_executed) {
+        if (g_observation.combat_action_queued && g_observation.party_cast_executed &&
+            g_observation.target_damaged) {
             return FinishGameplayScenario();
         }
     }
@@ -2259,8 +2384,8 @@ static DWORD RunCombatSpellScenario()
             "runtime-test cast-frontier: screen=%d pending=%d hostile=%u active=%u "
             "engaged=%u party_hp=%u nearest=%.0f provoked active=%u hp=%d cond=%d incombat=%d "
             "dead=%d dist=%.0f threat=%d combat=%u round=%u action=%d char=%d monster=%d "
-            "spell=%d queued=%d target=%d:%d report(hits=%u dmg=%u miss=%u) "
-            "obs(q=%u exec=%u mdmg=%u pdmg=%u kill=%u)\n",
+            "spell=%d aim=%d aim_hp=%d aim_active=%u aim_dead=%d queued=%d target=%d:%d "
+            "report(hits=%u dmg=%u miss=%u) obs(q=%u exec=%u tdmg=%u)\n",
             query.snapshot.screen, query.snapshot.pending, query.snapshot.hostile_count,
             query.snapshot.active_monsters, query.snapshot.engaged_hostiles,
             query.snapshot.party_hp_total, query.snapshot.nearest_engaged_distance,
@@ -2269,18 +2394,15 @@ static DWORD RunCombatSpellScenario()
             query.snapshot.provoked_dead, query.snapshot.provoked_distance,
             query.snapshot.provoked_threat_state, query.snapshot.combat_mode,
             query.snapshot.round_active, query.snapshot.action_status, query.snapshot.action_char,
-            query.snapshot.action_monster, spell_id, query.snapshot.queued_attacks,
+            query.snapshot.action_monster, spell_id, aim_id, query.snapshot.aim_hp,
+            query.snapshot.aim_active, query.snapshot.aim_dead, query.snapshot.queued_attacks,
             query.snapshot.first_target_type, query.snapshot.first_target_monster,
             query.snapshot.report_count, query.snapshot.report_amount, query.snapshot.report_missed,
-            g_observation.combat_action_queued, g_observation.combat_attack_executed,
-            g_observation.monster_damaged, g_observation.party_damaged,
-            g_observation.monster_killed);
-    if (g_observation.combat_action_queued && g_observation.combat_attack_executed &&
-        (g_observation.monster_damaged || g_observation.monster_killed ||
-         g_observation.combat_ended)) {
-        return FinishGameplayScenario();
-    }
-    return FailScenario("combat-spell", "cast-resolution-not-observed");
+            g_observation.combat_action_queued, g_observation.party_cast_executed,
+            g_observation.target_damaged);
+    return FailScenario("combat-spell", g_observation.party_cast_executed
+                                            ? "target-damage-not-observed"
+                                            : "party-cast-not-observed");
 }
 
 static DWORD RunWorldSoakScenario()
@@ -2949,14 +3071,13 @@ static bool ValidateHostile(const RuntimeObservation& o)
 static bool ValidateCombatAttack(const RuntimeObservation& o)
 {
     return o.main_game_entered && o.combat_aggroed && o.combat_attack_queued &&
-           (o.combat_attack_executed || o.monster_engaged) &&
-           (o.monster_damaged || o.party_damaged || o.monster_killed);
+           o.party_attack_hit && o.target_damaged;
 }
 
 static bool ValidateCombatSpell(const RuntimeObservation& o)
 {
     return o.main_game_entered && o.combat_aggroed && o.combat_action_queued &&
-           o.combat_attack_executed && (o.monster_damaged || o.party_damaged || o.monster_killed);
+           o.party_cast_executed && o.target_damaged;
 }
 
 static bool ValidateSoak(const RuntimeObservation& o)
@@ -3113,6 +3234,7 @@ int main(int argc, char** argv)
         "game_saved=%u game_loaded=%u load_restored=%u "
         "combat_started=%u combat_action_queued=%u combat_party_moved=%u combat_ended=%u "
         "combat_aggroed=%u monster_engaged=%u "
+        "party_attack_hit=%u target_damaged=%u party_cast_executed=%u "
         "return_observed=%u teardown=%u timed_out=%u "
         "npc_state_reset_ok=%u "
         "character_page_start=%d character_page_after=%d "
@@ -3139,7 +3261,8 @@ int main(int argc, char** argv)
         g_observation.game_loaded, g_observation.load_position_restored,
         g_observation.combat_started, g_observation.combat_action_queued,
         g_observation.combat_party_moved, g_observation.combat_ended, g_observation.combat_aggroed,
-        g_observation.monster_engaged, g_observation.return_observed, teardown_ok ? 1 : 0,
+        g_observation.monster_engaged, g_observation.party_attack_hit, g_observation.target_damaged,
+        g_observation.party_cast_executed, g_observation.return_observed, teardown_ok ? 1 : 0,
         g_observation.timed_out, g_observation.npc_state_reset_ok,
         g_observation.character_page_start, g_observation.character_page_after,
         g_observation.tooltip_shown, g_observation.tooltip_removed,
