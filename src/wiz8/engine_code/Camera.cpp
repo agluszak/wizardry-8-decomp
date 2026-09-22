@@ -44,8 +44,7 @@ void UpdateCameraPathStateByName(W8World* world, const char* name, int active)
     /* Retail calls ILLength unconditionally (0x0048F28C) before testing the
        list pointer; ILLength is null-tolerant (returns 0 on a null head),
        so the call precedes the guard in the original. */
-    /* c-style-cast-ok: retail calls ILLength on this W8PList field at
-       0x0048F28C; the circa-2000 authored spelling is the C cast. */
+    // c-style-cast-ok: retail calls ILLength on this W8PList field at 0x0048F28C; the circa-2000 authored spelling is the C cast.
     unsigned int count = ILLength((W8IList*)world->plsCameras);
     if (world->plsCameras != 0 && count != 0) {
         for (int index = 0; index < static_cast<int>(count); ++index) {
