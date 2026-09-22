@@ -149,8 +149,7 @@ extern stTextureAnim* g_sky_gradient_animations_0065a168[3];
 extern srVector3T<float> g_celestial_origin_65ad88;
 
 /* The registered environment lights, ambient-filled by ApplyEnvironmentColour.
-   Its count is the 0x0065B99C word the module reset previously carried as an
-   address-named global. */
+   The vector count occupies 0x0065B99C. */
 extern W8GrowableVector<stLight*> g_environment_lights_0065b998;
 
 void SetGameTimeDays(int value);
