@@ -50,7 +50,15 @@ public:
         vp->_memcopy(destination, source, bytes);
     }
 
+    /* Retail also emits a guarded variant at 0x10027BA0 that skips the call
+       when count is zero. */
+    // FUNCTION: SURRENDER 0x10027BC0
     static inline void copy(SRDWORD* destination, SRDWORD constant, SRDWORD count)
+    {
+        vp->_copy(destination, constant, count);
+    }
+
+    static inline void copy(srVector2* destination, const srVector2& constant, SRDWORD count)
     {
         vp->_copy(destination, constant, count);
     }
@@ -241,6 +249,13 @@ public:
     static inline int isZero(const float* source, SRDWORD count)
     {
         return vp->_isZero(source, count);
+    }
+
+    /* srGERD::Renderer::drawImmediate tests whether the whole batch shares
+       one texture set through the constant overload at vtable +0x70. */
+    static inline int isEqual(const SRDWORD* source, SRDWORD constant, SRDWORD count)
+    {
+        return vp->_isEqual(source, constant, count);
     }
 
     static inline void srSpecularPow(float* destination, const float* source, float exponent,

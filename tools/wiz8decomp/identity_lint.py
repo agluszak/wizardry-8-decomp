@@ -322,6 +322,11 @@ def _consumer_violations(
     for entry in index["declarations"]:
         if entry.get("semantic_kind") != "free_function":
             continue
+        # A definition with a different prototype is a genuine overload (an
+        # inline sibling), never a consumer redeclaration of the
+        # address-owned symbol.
+        if entry.get("is_definition"):
+            continue
         semantic_id = entry.get("semantic_id") or ""
         if _is_function_template(semantic_id):
             continue
