@@ -54,11 +54,8 @@ void MoveScenarioMouse(int client_x, int client_y)
     SendInput(1, &event, sizeof(INPUT));
 }
 
-/* SGP's queue belongs to the game thread. SendInput reaches its WH_KEYBOARD
-   hook; posting WM_KEYDOWN directly does not. The private display parks the
-   pointer at the window centre, which sits on the Load Game item, so every
-   key send first moves it off every enabled region: otherwise hover overrules
-   the keyboard selection non-deterministically. */
+/* Region sets live on the game thread; this predicate may only run inside
+   game-thread callbacks (FindFreeSpotOnGameThread below). */
 bool PointHitsEnabledRegion(int x, int y)
 {
     unsigned short px = static_cast<unsigned short>(x);
@@ -79,6 +76,55 @@ bool PointHitsEnabledRegion(int x, int y)
     return false;
 }
 
+struct FreeSpotQuery {
+    int width;
+    int height;
+    int x;
+    int y;
+    int found;
+};
+
+/* The private display parks the pointer at the window centre, which sits on
+   the Load Game item. The scan for a point outside every enabled region
+   must inspect live region state, so it runs on the game thread and copies
+   one {x, y} back; the driver only sends the OS move. */
+static void FindFreeSpotOnGameThread(void* opaque)
+{
+    FreeSpotQuery* query = static_cast<FreeSpotQuery*>(opaque);
+    const int width = query->width;
+    const int height = query->height;
+    int candidates[8][2] = {
+        {width - 1, 0},          {0, 0},
+        {width - 1, height - 1}, {0, height - 1},
+        {width / 2, 0},          {width - 1, height / 2},
+        {0, height / 2},         {width / 2, height - 1},
+    };
+    for (int index = 0; index < 8; ++index) {
+        if (!PointHitsEnabledRegion(candidates[index][0], candidates[index][1])) {
+            query->x = candidates[index][0];
+            query->y = candidates[index][1];
+            query->found = 1;
+            return;
+        }
+    }
+    for (int top_x = 0; top_x < width; ++top_x) {
+        if (!PointHitsEnabledRegion(top_x, 0)) {
+            query->x = top_x;
+            query->y = 0;
+            query->found = 1;
+            return;
+        }
+    }
+    for (int bottom_x = 0; bottom_x < width; ++bottom_x) {
+        if (!PointHitsEnabledRegion(bottom_x, height - 1)) {
+            query->x = bottom_x;
+            query->y = height - 1;
+            query->found = 1;
+            return;
+        }
+    }
+}
+
 void ParkMouseOutsideActiveRegions()
 {
     RECT client;
@@ -90,33 +136,23 @@ void ParkMouseOutsideActiveRegions()
     if (width < 1 || height < 1) {
         return;
     }
-    int candidates[8][2] = {
-        {width - 1, 0},          {0, 0},
-        {width - 1, height - 1}, {0, height - 1},
-        {width / 2, 0},          {width - 1, height / 2},
-        {0, height / 2},         {width / 2, height - 1},
-    };
-    for (int index = 0; index < 8; ++index) {
-        int x = candidates[index][0];
-        int y = candidates[index][1];
-        if (!PointHitsEnabledRegion(x, y)) {
-            MoveScenarioMouse(x, y);
-            return;
-        }
+    FreeSpotQuery query;
+    query.width = width;
+    query.height = height;
+    query.x = width - 1;
+    query.y = 0;
+    query.found = 0;
+    if (!RunOnGameThread(FindFreeSpotOnGameThread, &query, 3000)) {
+        /* An unresponsive executor is a reported sync event, not permission
+           to walk live regions from the driver thread. The blind corner
+           move is the same fallback a scan that finds no free spot uses. */
+        fprintf(stderr,
+                "WIZ8_RUNTIME_SYNC scenario=%s step=park-mouse "
+                "state=game-thread-unresponsive waited_ms=3000\n",
+                g_case_scenario);
+        fflush(stderr);
     }
-    for (int top_x = 0; top_x < width; ++top_x) {
-        if (!PointHitsEnabledRegion(top_x, 0)) {
-            MoveScenarioMouse(top_x, 0);
-            return;
-        }
-    }
-    for (int bottom_x = 0; bottom_x < width; ++bottom_x) {
-        if (!PointHitsEnabledRegion(bottom_x, height - 1)) {
-            MoveScenarioMouse(bottom_x, height - 1);
-            return;
-        }
-    }
-    MoveScenarioMouse(width - 1, 0);
+    MoveScenarioMouse(query.x, query.y);
 }
 
 /* The navigation cluster is always extended on PC keyboards; Wine's
