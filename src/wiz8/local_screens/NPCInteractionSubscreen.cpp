@@ -819,7 +819,7 @@ tail:
     RequestRedraw(0x100);
     RequestRedraw(0x1000);
     if (g_flag_0068edd8 != 0) {
-        SetFlag603C60();
+        EnableCursorScene00428020();
         g_flag_0068edd8 = 0;
         gfTrackMousePos = 0;
     }
@@ -4882,7 +4882,7 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
         unsigned short height;
 
         if (g_flag_0068edd8) {
-            SetFlag603C60();
+            EnableCursorScene00428020();
             g_flag_0068edd8 = 0;
             gfTrackMousePos = 0;
         }

@@ -148,7 +148,7 @@ unsigned char PleaseWaitScreenEnter(void)
     SetClippingRegionAndImageWidth(0x500, 0, 0, 0x280, 0x1e0);
     SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
     SetPrimarySurfaceTextureHint2Enabled(0);
-    ClearFlag603C60();
+    DisableCursorScene00428010();
     g_load_descriptor_69b7c8->caption_y = 0;
     g_load_descriptor_69b7c8->entered_tick = GetTickCount();
     g_value_69b7c4 = 0;
@@ -182,7 +182,7 @@ unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
             wchar_t* message = FormatWideString(L"%s%d", gppStringList[0x1bb8 / 4],
                                                 GetLevelCdNumber0042B720(level));
             g_swap_disc_dialog_69b7cc->SetMessage(message, 1, 0x32, 1, 1, 1, 0, 0, 0);
-            SetFlag603C60();
+            EnableCursorScene00428020();
             return 0;
         }
         ReopenCDLibraries();
@@ -276,7 +276,7 @@ void PleaseWaitScreenFrame(void)
     PLEASE_WAIT_SCREEN_DRAW();
     RenderFrame();
     RenderFrame();
-    ClearFlag603C60();
+    DisableCursorScene00428010();
 
     switch (g_load_descriptor_69b7c8->mode) {
     case 0:
@@ -354,7 +354,7 @@ unsigned char PleaseWaitScreenLeave(int leaving)
     NoOp();
     MSYS_Shutdown();
     ResetRegions();
-    SetFlag603C60();
+    EnableCursorScene00428020();
     return 1;
 }
 

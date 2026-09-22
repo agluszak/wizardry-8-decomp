@@ -20,7 +20,7 @@
    as game_init.cpp's two functions. No original-TU ownership is proven. */
 
 // GLOBAL: WIZ8 0x0065beaf
-unsigned char g_flag_65beaf;
+bool g_texture_cache_enabled_65beaf;
 
 // GLOBAL: WIZ8 0x006835f4
 int g_calligraphy_shadow_font_6835f4;

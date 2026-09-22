@@ -3187,7 +3187,7 @@ void BeginScreenFade(int fade_to_black, int fade_out, int duration, void (*callb
     g_fade_flag_0069c114 = arg_6;
     g_level_block->flag_328 = 1;
     if (flag != 0) {
-        SetFlag603C4C(1);
+        SetFullscreenSceneLast004298E0(1);
     }
     if (fade_to_black != 0) {
         color.x = 1.0f;
@@ -3236,7 +3236,7 @@ unsigned char UpdateScreenFade005A6790(void)
             RenderFrame();
         }
         g_fade_overlay_0069c11c->release();
-        SetFlag603C4C(0);
+        SetFullscreenSceneLast004298E0(0);
         if (g_fade_callback_0069c110 != 0) {
             g_fade_callback_0069c110();
         }
@@ -3346,7 +3346,7 @@ void DrawPartyDeathScreen005A6A70(void)
     SetRadarMapVisible(0);
     SetFormationBoardVisible(0);
     VideoRemoveToolTip();
-    g_flag_65970d = 0;
+    g_world_render_enabled_65970d = 0;
     BeginScreenFade(1, 1, 0x4b0, 0, 1, 1);
 }
 
@@ -3362,7 +3362,7 @@ void EndReviewTransition005A6B20(void)
         SoundStop(g_ending_sound_0069c124);
         g_ending_sound_0069c124 = 0;
     }
-    g_flag_65970d = 1;
+    g_world_render_enabled_65970d = 1;
     ResetMainGameMode00560C60();
     g_level_block->review_transition_active = 0;
     if (g_ending_screen_0069c128 != 0) {
@@ -3434,7 +3434,7 @@ void ShowEndingScreen005A6B90(void)
     SetRadarMapVisible(0);
     SetFormationBoardVisible(0);
     VideoRemoveToolTip();
-    g_flag_65970d = 0;
+    g_world_render_enabled_65970d = 0;
     if (*music != 0) {
         StartMusicResource0048FC10(music, 0, 1);
     }

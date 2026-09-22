@@ -3190,7 +3190,7 @@ unsigned char MainGameScreenEnter(void)
     ScrollTextBoxToCursor();
     SetClippingRegionAndImageWidth(0x500, 0, 0, 0x280, 0x1e0);
     SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
-    g_flag_65970d = 1;
+    g_world_render_enabled_65970d = 1;
     g_monster_shadow_updates_enabled_0065970c = 1;
     ClearPrimarySurface();
     if (IsFogEnabled()) {
@@ -3546,7 +3546,7 @@ update_screen:
     ApplyPendingTooltip();
     if (IsMessageBoxActive() || g_modal_owner_0068edd0) {
         if (g_flag_0068edd8) {
-            SetFlag603C60();
+            EnableCursorScene00428020();
             g_flag_0068edd8 = 0;
             gfTrackMousePos = 0;
         }
@@ -3867,7 +3867,7 @@ unsigned char MainGameScreenLeave(int leaving)
     g_main_game_mode_0068eddc = 0;
 
     if (g_flag_0068edd8) {
-        SetFlag603C60();
+        EnableCursorScene00428020();
         g_flag_0068edd8 = 0;
         gfTrackMousePos = 0;
     }
@@ -3991,7 +3991,7 @@ unsigned char MainGameScreenLeave(int leaving)
     NoOp();
     MSYS_Shutdown();
     ResetRegions();
-    g_flag_65970d = 0;
+    g_world_render_enabled_65970d = 0;
     g_monster_shadow_updates_enabled_0065970c = 0;
     DisableSky();
     DestroyMainGameInterfaceButtons();
@@ -4111,7 +4111,7 @@ void ApplyMainGameRedrawFlags(void)
     } else if ((redraw_flags & 0x200) != 0) {
         g_level_block->redraw_flags = redraw_flags | 0x2c7c00U;
         g_level_block->saved_redraw_flags &= 0xffd383ffU;
-        SetRendererMode6596EC();
+        SetOverlayRenderMode00428A90();
     }
     if ((g_level_block->redraw_flags & 0x8000) != 0) {
         if (gXStatus.fCombatMode != 0) {
@@ -7550,7 +7550,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
             if (g_flag_0068edd8 != 0 && g_settings_6850c8.mouselook_toggle == 0) {
                 WarpSystemCursor(g_mouselook_cursor_pos_0068edc0.x,
                                  g_mouselook_cursor_pos_0068edc0.y);
-                SetFlag603C60();
+                EnableCursorScene00428020();
                 g_flag_0068edd8 = 0;
                 g_flag_0068edd9 = 0;
                 gfTrackMousePos = 0;
@@ -7640,7 +7640,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
                 if (g_flag_0068edd8 != 0) {
                     WarpSystemCursor(g_mouselook_cursor_pos_0068edc0.x,
                                      g_mouselook_cursor_pos_0068edc0.y);
-                    SetFlag603C60();
+                    EnableCursorScene00428020();
                     g_flag_0068edd8 = 0;
                     g_flag_0068edd9 = 0;
                     gfTrackMousePos = 0;
@@ -7651,7 +7651,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
                 return 1;
             }
             SGPMouseGetPos(&g_mouselook_cursor_pos_0068edc0);
-            ClearFlag603C60();
+            DisableCursorScene00428010();
             SetMouseCursorHotspot(0, 0);
             WarpSystemCursor(0x140, 0xf0);
             g_flag_0068edd8 = 1;
@@ -10168,7 +10168,7 @@ void CreateSurpriseFade0056B4E0(void)
     srShader shader;
     srVector4T<float> color;
 
-    SetFlag603C4C(0);
+    SetFullscreenSceneLast004298E0(0);
     color.x = 0.0f;
     color.y = 0.0f;
     color.z = 0.0f;
@@ -10224,8 +10224,8 @@ void DestroySurpriseFade0056B690(void)
         g_surprise_fade_node_0068edf8->release();
         g_surprise_fade_node_0068edf8 = 0;
     }
-    SetFlag603C4C(1);
-    g_flag_65970d = 1;
+    SetFullscreenSceneLast004298E0(1);
+    g_world_render_enabled_65970d = 1;
 }
 
 // FUNCTION: WIZ8 0x0056b6f0
@@ -10270,14 +10270,14 @@ unsigned char UpdateSurpriseFade0056B6F0(void)
             g_surprise_snapshot_overlay_0068edf4->updateRectangle(g_gerd_659634, pixels, pitch, 0,
                                                                   0, 0x280, 0x1e0);
             UnlockCatalogFrameSurface(0x1e0, 0);
-            g_flag_65970d = 0;
+            g_world_render_enabled_65970d = 0;
             g_surprise_fade_tick_base_0068edb8 = GetTickCount();
         } else {
             g_surprise_snapshot_overlay_0068edf4->release();
             g_surprise_snapshot_overlay_0068edf4 = 0;
             g_surprise_snapshot_surface_0068edf0->release();
             g_surprise_snapshot_surface_0068edf0 = 0;
-            g_flag_65970d = 1;
+            g_world_render_enabled_65970d = 1;
         }
         return done;
     }
@@ -10288,7 +10288,7 @@ unsigned char UpdateSurpriseFade0056B6F0(void)
         }
         g_surprise_fade_node_0068edf8->release();
         g_surprise_fade_node_0068edf8 = 0;
-        SetFlag603C4C(1);
+        SetFullscreenSceneLast004298E0(1);
     }
     return done;
 }

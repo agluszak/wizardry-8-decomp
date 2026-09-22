@@ -4240,7 +4240,7 @@ bool MonsterHasPendingCycle(W8Monster* monster)
 bool MonsterUsesCurrentModelInstance(W8GrCycle* cycle)
 {
     srModelInstance* current = cycle->GetCurrentModelInstance004A8250();
-    return current == GetValue65962C();
+    return current == GetPickedModelInstance00427810();
 }
 
 // FUNCTION: WIZ8 0x004c5730

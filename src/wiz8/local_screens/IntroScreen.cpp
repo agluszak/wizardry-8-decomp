@@ -56,7 +56,7 @@ unsigned char IntroScreenEnter(void)
         }
     }
     StopMusicPlaylist(1);
-    ClearFlag603C60();
+    DisableCursorScene00428010();
     gpVideo = new W8BinkVideo();
     if (gpVideo == 0) {
         srAssertFail("gpVideo", "C:\\Projects\\Wizardry 8\\Local Screens\\IntroScreen.cpp", 98, 0);
@@ -159,7 +159,7 @@ cleared:
         ShowModalMessage005A6620(0, 0, 1, ContinueAfterDarkEndingVideo005AE770, 1, 1);
         break;
     }
-    SetFlag603C60();
+    EnableCursorScene00428020();
 }
 
 // FUNCTION: WIZ8 0x005ae940

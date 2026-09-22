@@ -421,7 +421,7 @@ void W8Item::SetHighlight(bool enabled)
 // FUNCTION: WIZ8 0x0049FF40
 bool W8Item::IsSelected()
 {
-    srModelInstance* selected = GetValue65962C();
+    srModelInstance* selected = GetPickedModelInstance00427810();
     srVector3T<float> location;
     /* The selection-point helper is inlined here even though its result is
        not used by the final mesh-identity test. */

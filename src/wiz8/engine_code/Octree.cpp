@@ -136,25 +136,28 @@ W8Octree* g_octree_6598a4;
 char g_region_link_extension_006068a4[] = ".rlk";
 
 // GLOBAL: WIZ8 0x006598a8
-unsigned char g_flag_6598a8;
+bool g_octree_disabled_6598a8;
 // GLOBAL: WIZ8 0x006598b0
 unsigned short g_octree_region_debug_last_006598b0;
 
-/* Renderer switches toggled across a region-link build; their other
-   consumers are unrecovered render routines. */
+/* Renderer switches toggled across a region-link build: while sampling,
+   meshes render without baked vertex lighting or textures and with front
+   faces culled.  The inverted-depth switch is read by the surface-capture
+   path (RenderWorldToSurface and the tri-mesh renderer) but no Wiz8 code
+   ever writes it. */
 // GLOBAL: WIZ8 0x0065a0ec
-unsigned char g_flag_0065a0ec;
+unsigned char g_render_unlit_0065a0ec;
 // GLOBAL: WIZ8 0x0065a0ed
-unsigned char g_flag_0065a0ed;
+unsigned char g_render_cull_front_0065a0ed;
 // GLOBAL: WIZ8 0x0065a0ee
-unsigned char g_flag_0065a0ee;
+unsigned char g_inverted_depth_render_0065a0ee;
 // GLOBAL: WIZ8 0x0065a146
-unsigned char g_flag_0065a146;
+unsigned char g_render_untextured_0065a146;
 
 // FUNCTION: WIZ8 0x0042bc00
 void NoOct(void)
 {
-    g_flag_6598a8 = 1;
+    g_octree_disabled_6598a8 = 1;
 }
 
 // GLOBAL: WIZ8 0x005ec02c
@@ -1474,10 +1477,10 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
     world->camera->getLocation(saved_location);
     world->camera->getRotation(saved_rotation);
     g_light_update_flags_0060bfdc &= ~1u;
-    g_flag_0065a146 = 1;
+    g_render_untextured_0065a146 = 1;
     SetCameraLightMode00483E80(2);
-    g_flag_0065a0ec = 1;
-    g_flag_0065a0ed = 1;
+    g_render_unlit_0065a0ec = 1;
+    g_render_cull_front_0065a0ed = 1;
     double saved_width = world->camera->getHorizontalFOV();
     double saved_height = world->camera->getVerticalFOV();
     world->camera->setViewPlane(2.094395102, 2.094395102);
@@ -1552,7 +1555,7 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
             }
         }
     }
-    g_flag_0065a146 = 0;
+    g_render_untextured_0065a146 = 0;
     EnableAllRenderOptions();
     W8HashTable<unsigned int, unsigned short>* stale;
     if (rebuild_all == 0) {
@@ -1602,8 +1605,8 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
     world->camera->setRotation(saved_rotation);
     g_light_update_flags_0060bfdc |= 1u;
     SetCameraLightMode00483E80(3);
-    g_flag_0065a0ec = 0;
-    g_flag_0065a0ed = 0;
+    g_render_unlit_0065a0ec = 0;
+    g_render_cull_front_0065a0ed = 0;
     SetScaledViewport00425DA0(0, 0, 0x280, 0x1e0);
     m_positional_16c = 1;
     m_positional_169 = 1;
@@ -4140,7 +4143,7 @@ int CheckLevelAssetSet0042CCC0(const char* level_path)
     int file;
     char* extension;
 
-    if (g_flag_6598a8 != 0) {
+    if (g_octree_disabled_6598a8 != 0) {
         return -1;
     }
 
@@ -4163,7 +4166,7 @@ int CheckLevelAssetSet0042CCC0(const char* level_path)
         (file = FileOpen(const_cast<char*>(level_path), 1, 0)) != 0 &&
         FileRead(file, &version, 2, 0) != 0) {
         if (version < 0x22) {
-            if (g_flag_6598a8 != 0) {
+            if (g_octree_disabled_6598a8 != 0) {
                 return -1;
             }
             rebuild = 1;

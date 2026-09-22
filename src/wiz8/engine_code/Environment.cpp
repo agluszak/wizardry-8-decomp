@@ -627,9 +627,9 @@ void BeginWorldLightingFade(float duration)
     if (duration == g_float_005ebb34) {
         g_environment_lighting_mode_0060a3a8 = 2;
         g_environment_transition_rate_0065b9b8 = 0.0f;
-        g_flag_65970d = 1;
+        g_world_render_enabled_65970d = 1;
         g_monster_shadow_updates_enabled_0065970c = 1;
-        g_flag_65970e = 0;
+        g_world_blacked_out_65970e = 0;
         g_light_scale_0060bfe0 = 1.0f;
 
         world = g_world;
@@ -804,26 +804,26 @@ void UpdateEnvironmentLighting00484300(void)
 
     if (intensity == g_float_005ebb34) {
         g_environment_lighting_mode_0060a3a8 = 0;
-        g_flag_65970d = 0;
+        g_world_render_enabled_65970d = 0;
         g_monster_shadow_updates_enabled_0065970c = 0;
-        g_flag_65970e = 1;
+        g_world_blacked_out_65970e = 1;
         g_environment_transition_rate_0065b9b8 = 0.0f;
         g_environment_transition_tick_0065b9bc = now;
         return;
     }
     if (scale == g_float_005ebb38) {
         g_environment_lighting_mode_0060a3a8 = 2;
-        g_flag_65970d = 1;
+        g_world_render_enabled_65970d = 1;
         g_monster_shadow_updates_enabled_0065970c = 1;
-        g_flag_65970e = 0;
+        g_world_blacked_out_65970e = 0;
         g_environment_transition_rate_0065b9b8 = 0.0f;
         g_environment_transition_tick_0065b9bc = now;
         return;
     }
-    g_flag_65970e = 0;
+    g_world_blacked_out_65970e = 0;
     g_environment_transition_tick_0065b9bc = now;
     g_environment_lighting_mode_0060a3a8 = 1;
-    g_flag_65970d = 1;
+    g_world_render_enabled_65970d = 1;
     g_monster_shadow_updates_enabled_0065970c = 1;
 }
 

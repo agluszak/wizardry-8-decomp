@@ -94,7 +94,7 @@ void InvalidateScreenRects(W8ScreenRect* rects, unsigned int count, int flags);
 /* Renderer state and helpers with only product C++ consumers. The C block
    above is the SGP video-manager surface the SGP C translation units
    reference; these stay ordinary C++ linkage because no C unit names them. */
-extern unsigned char g_flag_6596f4;
+extern unsigned char g_auto_capture_6596f4;
 extern int g_cursor_image_height_6596b8;
 /* 0x00652DA4: set while the swaying camera view is active; see
    SetCameraSwayMode in 3dapi.cpp. */
@@ -130,7 +130,7 @@ struct W8ControlsRect;
 /* 0x00424790: build a solid-color quad sprite; width/height are pixel counts
    and `color` becomes the material's emissive vector. MGSRadarMap's blip
    templates are its observed callers. */
-void SetFlag603C4C(unsigned char value); /* 0x004298E0 */
+void SetFullscreenSceneLast004298E0(unsigned char value); /* 0x004298E0 */
 stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVector4T<float>* color,
                                               char a4);
 /* 0x004253F0: the render-target sprite factory CreateSpriteFromSurface wraps; the
@@ -180,7 +180,7 @@ class stTextureAnim;
 stTextureAnim* VideoVObjectToTextureAnim(HVOBJECT object, unsigned short start_frame,
                                          unsigned short frame_count, char use_argb1555);
 /* 0x00428A90: mark the primary renderer mode word dirty. */
-void SetRendererMode6596EC(void);
+void SetOverlayRenderMode00428A90(void);
 /* 0x00428AA0: mark both renderer mode words dirty. */
 void SetRendererModePair(void);
 /* 0x00428910 / 0x004289C0 / 0x004289E0: the render-probe bracket the region
@@ -211,11 +211,11 @@ template <class T> class srVector3T;
 
 extern int g_pixel_format_603c48;
 extern unsigned char g_fullscreen_603c39;
-extern unsigned char g_flag_659711;
-extern unsigned char g_flag_65970f;
-extern unsigned char g_flag_603c60;
-extern unsigned char g_flag_603c4c;
-extern const int* g_value_659668;
+extern bool g_screenshot_pending_659711;
+extern bool g_video_inspector_enabled_65970f;
+extern bool g_cursor_scene_enabled_603c60;
+extern unsigned char g_fullscreen_scene_last_603c4c;
+extern const int* g_overlay_viewport_659668;
 extern srModeler* g_modeler_65963c;
 extern srScene* g_scene_user_659640;
 extern srScene* g_scene_fullscreen_659644;
@@ -231,7 +231,7 @@ srNode* VideoMakePoster(srColorSurfaceIFace* surface, float width, float height,
                         unsigned char positional_3); /* 0x00424A90 */
 extern srCamera* g_overlay_camera_659670;
 extern srCamera* g_square_camera_659674;
-extern unsigned char g_flag_65beaf;
+extern bool g_texture_cache_enabled_65beaf;
 extern srGERD* g_gerd_659634;
 /* Secondary renderer device preferred by the offscreen world-render path. */
 extern srGERD* g_secondary_gerd_65971c;
@@ -246,8 +246,8 @@ extern IDirectDrawSurface* g_video_primary_surface1_6596ac;
 extern IDirectDrawSurface2* g_video_primary_surface2_6596b0;
 extern srModelInstance* g_current_model_instance_65962c;
 extern int g_renderer_mode_603d74;
-extern int g_dword_6596ec;
-extern int g_dword_6596f0;
+extern int g_overlay_render_mode_6596ec;
+extern int g_paired_render_mode_6596f0;
 extern float g_surface_scale_659680;
 extern int g_surface_state_6595dc;
 extern int g_surface_state_654ad8;
@@ -255,10 +255,10 @@ extern int g_viewport_left_6595e8;
 extern int g_viewport_top_6595ec;
 extern int g_viewport_right_6595f0;
 extern int g_viewport_bottom_6595f4;
-extern int g_dword_6596d8;
+extern int g_dirty_tile_count_6596d8;
 extern int g_resident_texture_policy_659714;
-extern unsigned char g_flag_65970d;
-extern unsigned char g_flag_65970e;
+extern unsigned char g_world_render_enabled_65970d;
+extern unsigned char g_world_blacked_out_65970e;
 
 void SetResidentTexturePolicy(int policy);
 void SetSurfaceScale004297E0(float scale);
@@ -299,17 +299,17 @@ unsigned char InitializeVideoDevice(void);
 unsigned char OpenRendererWindow(void);
 void InvalidateRendererTextureCache(void);
 void AssertFailureHandler(const char* expression, const char* file, long line, const char* message);
-unsigned char ClearFlag603C60(void);
-unsigned char SetFlag603C60(void);
-void SetValue659668(const int* value);
+unsigned char DisableCursorScene00428010(void);
+unsigned char EnableCursorScene00428020(void);
+void SetOverlayViewport00429200(const int* value);
 void SetWorldModelPickingEnabled(char enabled);
 unsigned char RendererBufferIsLockable(void);
 void SetRendererOption4Enabled(char enabled);
 unsigned char HasEnoughFreeDiskSpace(void);
 int GetUsedPageFileBytes(void);
-srModelInstance* GetValue65962C(void);
-void SetValue65962C(srModelInstance* value);
-bool IsCursorInsideViewport(void);               /* 0x00428070 */
+srModelInstance* GetPickedModelInstance00427810(void);
+void SetPickedModelInstance00427820(srModelInstance* value);
+bool IsCursorInsideViewport(void);      /* 0x00428070 */
 bool IsCursorImageInsideViewport(void); /* 0x00428030 */
 
 #endif

@@ -87,9 +87,7 @@ void FlushDirtyTiles00425B40(void);
 
 /*
  * The renderer window and extension loading gate InitializeStandardGamingPlatform calls after the
- * input manager. Its callees and globals are almost all unidentified, so they
- * carry address-derived names; only the SR.DLL entry points and the window
- * handle have real ones.
+ * input manager.
  */
 
 /* The released SGP video unit owns this platform handle.  Wiz8 replaces the
@@ -98,13 +96,13 @@ void FlushDirtyTiles00425B40(void);
 HWND ghWindow;
 
 // GLOBAL: WIZ8 0x603c38
-unsigned char g_flag_603c38 = 1;
+unsigned char g_world_pick_enabled_603c38 = 1;
 // GLOBAL: WIZ8 0x603c4c
-unsigned char g_flag_603c4c = 1;
+unsigned char g_fullscreen_scene_last_603c4c = 1;
 // GLOBAL: WIZ8 0x603c60
-unsigned char g_flag_603c60 = 1;
+bool g_cursor_scene_enabled_603c60 = true;
 // GLOBAL: WIZ8 0x603c6d
-unsigned char g_flag_603c6d = 1;
+bool g_overlay_scenes_enabled_603c6d = true;
 // GLOBAL: WIZ8 0x603c68
 int g_frame_reset_interval_603c68 = 50;
 // GLOBAL: WIZ8 0x603c39
@@ -124,15 +122,15 @@ int g_renderer_mode_603d74 = 1;
 // GLOBAL: WIZ8 0x65962c
 srModelInstance* g_current_model_instance_65962c;
 // GLOBAL: WIZ8 0x6596fc
-int g_dword_6596fc;
+int g_fps_frame_count_6596fc;
 // GLOBAL: WIZ8 0x659700
-unsigned int g_tick_659700;
+unsigned int g_fps_window_tick_659700;
+/* Per-page counters reset as each overlay page is retired; retail stores
+   through g_active_page_6596e4 as an index, so this is one two-entry array. */
 // GLOBAL: WIZ8 0x6596dc
-int g_dword_6596dc;
-// GLOBAL: WIZ8 0x6596e0
-int g_dword_6596e0;
+int g_overlay_page_counters_6596dc[2];
 // GLOBAL: WIZ8 0x6596e8
-unsigned char g_flags_6596e8[2];
+unsigned char g_page_full_redraw_6596e8[2];
 // GLOBAL: WIZ8 0x654ac4
 HINSTANCE g_instance_654ac4;
 // GLOBAL: WIZ8 0x659620
@@ -140,13 +138,13 @@ unsigned short g_show_command_659620;
 // GLOBAL: WIZ8 0x6595f8
 WNDPROC g_window_proc_6595f8;
 // GLOBAL: WIZ8 0x659710
-unsigned char g_flag_659710;
+bool g_video_active_659710;
 // GLOBAL: WIZ8 0x65970e
-unsigned char g_flag_65970e;
+unsigned char g_world_blacked_out_65970e;
 // GLOBAL: WIZ8 0x659711
-unsigned char g_flag_659711;
+bool g_screenshot_pending_659711;
 // GLOBAL: WIZ8 0x65970f
-unsigned char g_flag_65970f;
+bool g_video_inspector_enabled_65970f;
 // GLOBAL: WIZ8 0x00659634
 srGERD* g_gerd_659634;
 // GLOBAL: WIZ8 0x65971c
@@ -226,19 +224,19 @@ extern const float g_scale_x_5ebb1c = 1.0f / 640.0f;
 extern const float g_scale_y_5ebb20 = 1.0f / 480.0f;
 
 // GLOBAL: WIZ8 0x652ddc
-unsigned char g_block_652ddc[0x12c0];
+unsigned char g_tile_dirty_flags_652ddc[0x12c0];
 // GLOBAL: WIZ8 0x006596e4
-unsigned int g_index_6596e4;
+unsigned int g_active_page_6596e4;
 // GLOBAL: WIZ8 0x006596d4
 int g_video_inspector_mode_6596d4;
 // GLOBAL: WIZ8 0x6596d8
-int g_dword_6596d8;
+int g_dirty_tile_count_6596d8;
 // GLOBAL: WIZ8 0x006596ec
-int g_dword_6596ec;
+int g_overlay_render_mode_6596ec;
 // GLOBAL: WIZ8 0x006596f0
-int g_dword_6596f0;
+int g_paired_render_mode_6596f0;
 // GLOBAL: WIZ8 0x659668
-const int* g_value_659668;
+const int* g_overlay_viewport_659668;
 // GLOBAL: WIZ8 0x65966c
 srClass* g_render_object_65966c;
 // GLOBAL: WIZ8 0x659678
@@ -246,7 +244,7 @@ srClass* g_render_object_659678;
 // GLOBAL: WIZ8 0x659720
 HWND g_window_659720;
 // GLOBAL: WIZ8 0x65409c
-unsigned int g_tick_65409c;
+unsigned int g_last_capture_tick_65409c;
 // GLOBAL: WIZ8 0x659704
 float g_frames_per_second_659704;
 // GLOBAL: WIZ8 0x659708
@@ -327,12 +325,12 @@ void ResetVideoFrameState00422B10(void)
     DDLockSurface(g_primary_surface_6596a8, NULL, &description, 0, NULL);
     memset(description.lpSurface, 0, description.lPitch * 480);
     DDUnlockSurface(g_primary_surface_6596a8, NULL);
-    memset(g_block_652ddc, 0, sizeof(g_block_652ddc));
+    memset(g_tile_dirty_flags_652ddc, 0, sizeof(g_tile_dirty_flags_652ddc));
     memset(g_surface_nodes_654adc, 0, sizeof(g_surface_nodes_654adc));
-    active = g_index_6596e4;
-    g_flags_6596e8[active ^ 1] = 0;
-    g_flags_6596e8[active] = 0;
-    g_dword_6596d8 = 0;
+    active = g_active_page_6596e4;
+    g_page_full_redraw_6596e8[active ^ 1] = 0;
+    g_page_full_redraw_6596e8[active] = 0;
+    g_dirty_tile_count_6596d8 = 0;
     PurgeInactiveSceneInstances(g_scene_prerender0_65964c);
     PurgeInactiveSceneInstances(g_scene_overlay0_659654);
     PurgeInactiveSceneInstances(g_scene_prerender1_659650);
@@ -354,14 +352,14 @@ unsigned char InitializeVideoManager(HINSTANCE instance, unsigned short show_com
     memset(&status, 0, sizeof(status));
     status.dwLength = sizeof(status);
     GlobalMemoryStatus(&status);
-    g_flag_603c38 = 1;
+    g_world_pick_enabled_603c38 = 1;
     g_current_model_instance_65962c = 0;
-    g_dword_6596fc = 0;
-    g_tick_659700 = GetTickCount();
-    g_dword_6596dc = 0;
-    g_dword_6596e0 = 0;
-    g_flags_6596e8[0] = 0;
-    g_flags_6596e8[1] = 0;
+    g_fps_frame_count_6596fc = 0;
+    g_fps_window_tick_659700 = GetTickCount();
+    g_overlay_page_counters_6596dc[0] = 0;
+    g_overlay_page_counters_6596dc[1] = 0;
+    g_page_full_redraw_6596e8[0] = 0;
+    g_page_full_redraw_6596e8[1] = 0;
     g_instance_654ac4 = instance;
     g_show_command_659620 = show_command;
     g_window_proc_6595f8 = (WNDPROC)window_proc;
@@ -376,12 +374,12 @@ unsigned char InitializeVideoManager(HINSTANCE instance, unsigned short show_com
         return 0;
     }
     InitializeRendererSceneObjects();
-    if (!g_flag_659710) {
+    if (!g_video_active_659710) {
         if (gXStatus.world_update_blocked) {
             ResumeMainGameWorld();
         }
         if (ghWindow && g_gerd_659634) {
-            g_flag_659710 = 1;
+            g_video_active_659710 = 1;
             ShowWindow(ghWindow, 9);
             if (g_gerd_659634->isWindowOpen() == 0) {
                 if (!OpenRendererWindow()) {
@@ -390,23 +388,23 @@ unsigned char InitializeVideoManager(HINSTANCE instance, unsigned short show_com
             }
             OpenIcon(ghWindow);
             SetFocus(ghWindow);
-            memset(g_block_652ddc, 0, sizeof(g_block_652ddc));
-            active = g_index_6596e4;
-            g_flags_6596e8[g_index_6596e4 ^ 1] = 0;
-            g_dword_6596d8 = 0;
-            g_flags_6596e8[active] = 0;
+            memset(g_tile_dirty_flags_652ddc, 0, sizeof(g_tile_dirty_flags_652ddc));
+            active = g_active_page_6596e4;
+            g_page_full_redraw_6596e8[g_active_page_6596e4 ^ 1] = 0;
+            g_dirty_tile_count_6596d8 = 0;
+            g_page_full_redraw_6596e8[active] = 0;
             PurgeInactiveSceneInstances(g_scene_prerender0_65964c);
             PurgeInactiveSceneInstances(g_scene_overlay0_659654);
             PurgeInactiveSceneInstances(g_scene_prerender1_659650);
             PurgeInactiveSceneInstances(g_scene_overlay1_659658);
             InvalidateRegion(0, 0, 0x280, 0x1e0, 0);
-            g_dword_6596f0 = 2;
-            g_dword_6596ec = 2;
+            g_paired_render_mode_6596f0 = 2;
+            g_overlay_render_mode_6596ec = 2;
         }
     }
 done:
     SetViewport(0, 0, 0x280, 0x1e0);
-    if (g_flag_65970f) {
+    if (g_video_inspector_enabled_65970f) {
         _chdir("DLL");
         srExtension::load("INSPECTOR", 0);
         _chdir(".");
@@ -428,9 +426,9 @@ void ShutdownVideoManager(void)
     FreeMouseCursor();
     ShutdownVideoScenes00423F30();
     ShutdownStartupNavigation0044F190();
-    if (g_flag_659710) {
+    if (g_video_active_659710) {
         PauseMainGameWorld();
-        g_flag_659710 = 0;
+        g_video_active_659710 = 0;
         if (g_gerd_659634) {
             g_flush_pending_603c3a = 0;
             g_gerd_659634->closeWindow(static_cast<srGERD::e_closeHint>(0));
@@ -871,8 +869,8 @@ unsigned char VideoResizeWindow(void)
     if (g_gerd_659634->openWindow() == static_cast<srGERD::e_error>(3)) {
         return 0;
     }
-    g_dword_6596f0 = 2;
-    g_dword_6596ec = 2;
+    g_paired_render_mode_6596f0 = 2;
+    g_overlay_render_mode_6596ec = 2;
     ResetTransientRenderScenes();
     g_flush_pending_603c3a = 1;
     return 1;
@@ -892,11 +890,11 @@ void VideoFullScreen(unsigned char enabled)
 // FUNCTION: WIZ8 0x00422f10
 void ResetTransientRenderScenes(void)
 {
-    memset(g_block_652ddc, 0, sizeof(g_block_652ddc));
-    unsigned int active = g_index_6596e4;
-    g_flags_6596e8[active ^ 1] = 0;
-    g_flags_6596e8[active] = 0;
-    g_dword_6596d8 = 0;
+    memset(g_tile_dirty_flags_652ddc, 0, sizeof(g_tile_dirty_flags_652ddc));
+    unsigned int active = g_active_page_6596e4;
+    g_page_full_redraw_6596e8[active ^ 1] = 0;
+    g_page_full_redraw_6596e8[active] = 0;
+    g_dirty_tile_count_6596d8 = 0;
     PurgeInactiveSceneInstances(g_scene_prerender0_65964c);
     PurgeInactiveSceneInstances(g_scene_overlay0_659654);
     PurgeInactiveSceneInstances(g_scene_prerender1_659650);
@@ -909,11 +907,11 @@ void ResetTransientRenderScenes(void)
 // FUNCTION: WIZ8 0x00423150
 void ClearVideoDirtyBlocks00423150(void)
 {
-    memset(g_block_652ddc, 0, sizeof(g_block_652ddc));
-    unsigned int active = g_index_6596e4;
-    g_flags_6596e8[active ^ 1] = 0;
-    g_flags_6596e8[active] = 0;
-    g_dword_6596d8 = 0;
+    memset(g_tile_dirty_flags_652ddc, 0, sizeof(g_tile_dirty_flags_652ddc));
+    unsigned int active = g_active_page_6596e4;
+    g_page_full_redraw_6596e8[active ^ 1] = 0;
+    g_page_full_redraw_6596e8[active] = 0;
+    g_dirty_tile_count_6596d8 = 0;
     PurgeInactiveSceneInstances(g_scene_prerender0_65964c);
     PurgeInactiveSceneInstances(g_scene_overlay0_659654);
     PurgeInactiveSceneInstances(g_scene_prerender1_659650);
@@ -924,15 +922,15 @@ void ClearVideoDirtyBlocks00423150(void)
 // FUNCTION: WIZ8 0x004277e0
 unsigned char VideoInspectorIsEnabled(void)
 {
-    return g_flag_65970f;
+    return g_video_inspector_enabled_65970f;
 }
 
 // FUNCTION: WIZ8 0x00422050
 void SuspendVideoManager(void)
 {
-    if (g_flag_659710) {
+    if (g_video_active_659710) {
         PauseMainGameWorld();
-        g_flag_659710 = 0;
+        g_video_active_659710 = 0;
         if (g_gerd_659634) {
             g_flush_pending_603c3a = 0;
             g_gerd_659634->closeWindow((srGERD::e_closeHint)0);
@@ -948,29 +946,29 @@ void SuspendVideoManager(void)
 // FUNCTION: WIZ8 0x004220b0
 unsigned char RestoreVideoManager(void)
 {
-    if (g_flag_659710) {
+    if (g_video_active_659710) {
         return 1;
     }
     if (gXStatus.world_update_blocked) {
         ResumeMainGameWorld();
     }
     if (ghWindow && g_gerd_659634) {
-        g_flag_659710 = 1;
+        g_video_active_659710 = 1;
         ShowWindow(ghWindow, SW_RESTORE);
         if (g_gerd_659634->isWindowOpen() != 0 || OpenRendererWindow()) {
             OpenIcon(ghWindow);
             SetFocus(ghWindow);
-            memset(g_block_652ddc, 0, sizeof(g_block_652ddc));
-            g_dword_6596d8 = 0;
-            g_flags_6596e8[g_index_6596e4 ^ 1] = 0;
-            g_flags_6596e8[g_index_6596e4] = 0;
+            memset(g_tile_dirty_flags_652ddc, 0, sizeof(g_tile_dirty_flags_652ddc));
+            g_dirty_tile_count_6596d8 = 0;
+            g_page_full_redraw_6596e8[g_active_page_6596e4 ^ 1] = 0;
+            g_page_full_redraw_6596e8[g_active_page_6596e4] = 0;
             PurgeInactiveSceneInstances(g_scene_prerender0_65964c);
             PurgeInactiveSceneInstances(g_scene_overlay0_659654);
             PurgeInactiveSceneInstances(g_scene_prerender1_659650);
             PurgeInactiveSceneInstances(g_scene_overlay1_659658);
             InvalidateRegion(0, 0, 0x280, 0x1e0, 0);
-            g_dword_6596f0 = 2;
-            g_dword_6596ec = 2;
+            g_paired_render_mode_6596f0 = 2;
+            g_overlay_render_mode_6596ec = 2;
         }
     }
     return 0;
@@ -1090,7 +1088,7 @@ void RenderFrame(void)
 
     clear_color.SetZero();
     SaturateColor004299B0(&clear_color);
-    if (!g_flag_659710) {
+    if (!g_video_active_659710) {
         return;
     }
 
@@ -1129,10 +1127,10 @@ void RenderFrame(void)
     UpdateRenderElapsedTime00482140();
 
     if (!g_monster_shadow_updates_enabled_0065970c) {
-        if (g_flag_65970e) {
+        if (g_world_blacked_out_65970e) {
             goto clear_viewport;
         }
-    } else if (g_flag_65970e || !g_render_flag_603c6c || g_world_659ab8 == 0) {
+    } else if (g_world_blacked_out_65970e || !g_render_flag_603c6c || g_world_659ab8 == 0) {
     clear_viewport: {
         unsigned long height = g_gerd_659634->getHeight();
         unsigned long width = g_gerd_659634->getWidth();
@@ -1145,8 +1143,8 @@ void RenderFrame(void)
     }
     }
 
-    first_page = g_index_6596e4 ? g_scene_prerender0_65964c : g_scene_prerender1_659650;
-    second_page = g_index_6596e4 ? g_scene_prerender1_659650 : g_scene_prerender0_65964c;
+    first_page = g_active_page_6596e4 ? g_scene_prerender0_65964c : g_scene_prerender1_659650;
+    second_page = g_active_page_6596e4 ? g_scene_prerender1_659650 : g_scene_prerender0_65964c;
     RenderScene(first_page, g_overlay_camera_659670, 0, 0);
     RenderScene(second_page, g_overlay_camera_659670, 0, 0);
     g_gerd_659634->setTextureReduction(g_resident_texture_policy_659714);
@@ -1155,9 +1153,9 @@ void RenderFrame(void)
         RenderScene(g_world_659ab8->static_scene, g_world_659ab8->camera, &g_viewport_left_6595e8,
                     0);
     }
-    if (g_world != 0 && g_flag_65970d) {
+    if (g_world != 0 && g_world_render_enabled_65970d) {
         g_gerd_659634->setTextureReduction(g_resident_texture_policy_659714);
-        if (!g_flag_603c38 ||
+        if (!g_world_pick_enabled_603c38 ||
             g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0 < g_viewport_left_6595e8 ||
             g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4 < g_viewport_top_6595ec ||
             g_viewport_right_6595f0 < g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0 ||
@@ -1186,54 +1184,52 @@ void RenderFrame(void)
     }
 
     g_gerd_659634->setTextureReduction(0);
-    if (g_flag_603c6d) {
-        const int* overlay_viewport = g_value_659668;
-        if (!g_flag_603c4c) {
+    if (g_overlay_scenes_enabled_603c6d) {
+        const int* overlay_viewport = g_overlay_viewport_659668;
+        if (!g_fullscreen_scene_last_603c4c) {
             RenderScene(g_scene_fullscreen_659644, g_overlay_camera_659670, overlay_viewport, 0);
         }
         RenderScene(g_scene_overlay0_659654, g_overlay_camera_659670, 0, 0);
         RenderScene(g_scene_user_659640, g_overlay_camera_659670, 0, 0);
         RenderScene(g_scene_square_65965c, g_square_camera_659674, overlay_viewport, 0);
-        if (g_flag_603c4c) {
+        if (g_fullscreen_scene_last_603c4c) {
             RenderScene(g_scene_fullscreen_659644, g_overlay_camera_659670, overlay_viewport, 0);
         }
-        if (g_flag_603c60) {
+        if (g_cursor_scene_enabled_603c60) {
             RenderScene(g_cursor_scene_659684, g_overlay_camera_659670, 0, 0);
         }
     }
     g_gerd_659634->endFrame();
 
-    if (g_flag_659711) {
+    if (g_screenshot_pending_659711) {
         SaveJpegScreenshot();
-        g_flag_659711 = 0;
+        g_screenshot_pending_659711 = 0;
     }
-    if (g_flag_6596f4) {
+    if (g_auto_capture_6596f4) {
         now = GetTickCount();
-        if (now < g_tick_65409c || g_tick_65409c + g_frame_reset_interval_603c68 < now) {
-            g_flag_659711 = 1;
-            g_tick_65409c = now;
+        if (now < g_last_capture_tick_65409c ||
+            g_last_capture_tick_65409c + g_frame_reset_interval_603c68 < now) {
+            g_screenshot_pending_659711 = 1;
+            g_last_capture_tick_65409c = now;
         }
     }
 
-    next_page = g_index_6596e4 ^ 1;
-    g_index_6596e4 = next_page;
-    if (next_page == 0)
-        g_dword_6596dc = 0;
-    else
-        g_dword_6596e0 = 0;
-    g_flags_6596e8[next_page] = 0;
-    ++g_dword_6596fc;
+    next_page = g_active_page_6596e4 ^ 1;
+    g_active_page_6596e4 = next_page;
+    g_overlay_page_counters_6596dc[next_page] = 0;
+    g_page_full_redraw_6596e8[next_page] = 0;
+    ++g_fps_frame_count_6596fc;
     retire_prerender = next_page ? g_scene_prerender1_659650 : g_scene_prerender0_65964c;
     retire_overlay = next_page ? g_scene_overlay1_659658 : g_scene_overlay0_659654;
     PurgeInactiveSceneInstances(retire_prerender);
     PurgeInactiveSceneInstances(retire_overlay);
 
     now = GetTickCount();
-    elapsed = static_cast<float>(now - g_tick_659700);
-    frames_per_second = static_cast<float>(g_dword_6596fc) / elapsed * 1000.0f;
-    if (g_dword_6596fc > 50) {
-        g_tick_659700 = GetTickCount();
-        g_dword_6596fc = 0;
+    elapsed = static_cast<float>(now - g_fps_window_tick_659700);
+    frames_per_second = g_fps_frame_count_6596fc / elapsed * 1000.0f;
+    if (g_fps_frame_count_6596fc > 50) {
+        g_fps_window_tick_659700 = GetTickCount();
+        g_fps_frame_count_6596fc = 0;
     }
     g_seconds_per_frame_659708 = 1.0f / frames_per_second;
     g_frames_per_second_659704 = frames_per_second;
@@ -1280,7 +1276,7 @@ unsigned char RenderWorldToSurface00426F80(srColorSurface* target, W8ScreenRect*
         GetWorldLightValue(g_world, &clear_color);
     }
     gerd->setClearColor(clear_color.red, clear_color.green, clear_color.blue, 1.0f);
-    if (g_flag_0065a0ee != 0) {
+    if (g_inverted_depth_render_0065a0ee != 0) {
         gerd->setClearDepth(0.0);
     }
     gerd->clear(srFlags<srGERD::e_buffer>(3));
@@ -1289,7 +1285,7 @@ unsigned char RenderWorldToSurface00426F80(srColorSurface* target, W8ScreenRect*
     }
     g_world->static_scene->render(*gerd, g_world->camera);
     gerd->endFrame();
-    if (g_flag_0065a0ee != 0) {
+    if (g_inverted_depth_render_0065a0ee != 0) {
         gerd->setClearDepth(1.0);
     }
     gerd->flushRenderers();
@@ -1402,7 +1398,7 @@ unsigned char RendererBufferIsLockable(void)
 // FUNCTION: WIZ8 0x00427830
 void SetWorldModelPickingEnabled(char enabled)
 {
-    g_flag_603c38 = enabled;
+    g_world_pick_enabled_603c38 = enabled;
     if (enabled == 0) {
         g_current_model_instance_65962c = 0;
     }
@@ -1962,9 +1958,9 @@ unsigned char InitializeMouseCursorScene(void)
  */
 
 // GLOBAL: WIZ8 0x65970d
-unsigned char g_flag_65970d;
+unsigned char g_world_render_enabled_65970d;
 // GLOBAL: WIZ8 0x6596ea
-unsigned char g_flag_6596ea;
+bool g_viewport_tiles_dirty_6596ea;
 /* The initial full-screen invalidation runs before any 2D node occupies the
    tile table. A cell occupied by a 2D instance releases that instance and
    recursively invalidates the cells its extent covers; the flags the caller
@@ -1982,7 +1978,7 @@ void ReleaseSurfaceNode00425950(srNode* node)
          ++slot, ++index) {
         if (*slot == node) {
             *slot = 0;
-            g_block_652ddc[index] = 0;
+            g_tile_dirty_flags_652ddc[index] = 0;
         }
     }
     srMeshModel* model = static_cast<srMeshModel*>(static_cast<stModelInstance2D*>(node)->model());
@@ -2009,7 +2005,7 @@ static void InvalidateDirtyTile004259B0(int cell, unsigned int flags)
         for (int index = 0; index != 0x12c0; ++index) {
             if (g_surface_nodes_654adc[index] == node) {
                 g_surface_nodes_654adc[index] = 0;
-                g_block_652ddc[index] = 0;
+                g_tile_dirty_flags_652ddc[index] = 0;
             }
         }
         srMeshModel* model = static_cast<srMeshModel*>(node->model());
@@ -2030,20 +2026,21 @@ static void InvalidateDirtyTile004259B0(int cell, unsigned int flags)
             start += 0x50;
         }
     }
-    unsigned char state = g_block_652ddc[cell] | static_cast<unsigned char>(flags) | 0x40;
-    g_block_652ddc[cell] = state;
-    ++g_dword_6596d8;
+    unsigned char state =
+        g_tile_dirty_flags_652ddc[cell] | static_cast<unsigned char>(flags) | 0x40;
+    g_tile_dirty_flags_652ddc[cell] = state;
+    ++g_dirty_tile_count_6596d8;
     int bottom = (cell / 0x50) * 8 + 8;
     int top = (cell / 0x50) * 8;
     int right = (cell % 0x50) * 8 + 8;
     int left = (cell % 0x50) * 8;
-    if (g_flag_65970d &&
+    if (g_world_render_enabled_65970d &&
         ((g_viewport_left_6595e8 <= left && left <= g_viewport_right_6595f0) ||
          (g_viewport_left_6595e8 <= right && right <= g_viewport_right_6595f0)) &&
         ((g_viewport_top_6595ec <= top && top <= g_viewport_bottom_6595f4) ||
          (g_viewport_top_6595ec <= bottom && bottom <= g_viewport_bottom_6595f4))) {
-        g_block_652ddc[cell] = state | 3;
-        g_flag_6596ea = 1;
+        g_tile_dirty_flags_652ddc[cell] = state | 3;
+        g_viewport_tiles_dirty_6596ea = 1;
     }
 }
 
@@ -2056,7 +2053,7 @@ void InvalidateRegion(int left, int top, int right, int bottom, unsigned int fla
     unsigned int x;
 
     cell_flags = 0;
-    if (g_flags_6596e8[g_index_6596e4] == 0) {
+    if (g_page_full_redraw_6596e8[g_active_page_6596e4] == 0) {
         clipped_right = 0x280;
         /* The low clamp is a conditional expression because the original is
            branchless there and branches on the high one, and it is written
@@ -2084,7 +2081,7 @@ void InvalidateRegion(int left, int top, int right, int bottom, unsigned int fla
         }
         if ((int)(clipped_right - clipped_left) > 0 && bottom - top > 0) {
             if (clipped_right - clipped_left == 0x280 && bottom - top == 0x1e0) {
-                g_flags_6596e8[g_index_6596e4] = 1;
+                g_page_full_redraw_6596e8[g_active_page_6596e4] = 1;
             }
             if (flags & 4) {
                 cell_flags = 0x80;
@@ -2112,7 +2109,7 @@ void InvalidateScreenRects(W8ScreenRect* rects, unsigned int count, int flags)
     unsigned int index;
 
     for (index = 0; index < count; ++index) {
-        if (g_flags_6596e8[g_index_6596e4] != 0) {
+        if (g_page_full_redraw_6596e8[g_active_page_6596e4] != 0) {
             return;
         }
         InvalidateRegion(rects[index].left, rects[index].top, rects[index].right,
@@ -2128,7 +2125,7 @@ void FlushDirtyTiles00425B40(void)
 {
     DDSURFACEDESC description;
 
-    if (g_dword_6596d8 == 0) {
+    if (g_dirty_tile_count_6596d8 == 0) {
         return;
     }
     DDLockSurface(g_primary_surface_6596a8, 0, &description, 0, 0);
@@ -2136,17 +2133,18 @@ void FlushDirtyTiles00425B40(void)
         int column = 0;
         while (column < 80) {
             int cell = row * 80 + column;
-            if ((g_block_652ddc[cell] & 0x40) == 0) {
+            if ((g_tile_dirty_flags_652ddc[cell] & 0x40) == 0) {
                 ++column;
                 continue;
             }
 
             int width = 0;
-            while (column + width < 80 && (g_block_652ddc[cell + width] & 0x40) != 0) {
+            while (column + width < 80 && (g_tile_dirty_flags_652ddc[cell + width] & 0x40) != 0) {
                 ++width;
             }
             int height = 0;
-            while (row + height < 60 && (g_block_652ddc[cell + height * 80] & 0x40) != 0) {
+            while (row + height < 60 &&
+                   (g_tile_dirty_flags_652ddc[cell + height * 80] & 0x40) != 0) {
                 ++height;
             }
 
@@ -2155,14 +2153,14 @@ void FlushDirtyTiles00425B40(void)
                                                    (column + width) * 8, (row + height) * 8);
             for (int y = 0; y != height; ++y) {
                 for (int x = 0; x != width; ++x) {
-                    g_block_652ddc[cell + y * 80 + x] &= 0x3f;
+                    g_tile_dirty_flags_652ddc[cell + y * 80 + x] &= 0x3f;
                 }
             }
             column += width;
         }
     }
     DDUnlockSurface(g_primary_surface_6596a8, 0);
-    g_dword_6596d8 = 0;
+    g_dirty_tile_count_6596d8 = 0;
 }
 
 /* Viewport. */
@@ -2248,7 +2246,7 @@ char g_video_config_file[260] = "3DVideo.CFG";
 // FUNCTION: WIZ8 0x004229d0
 void PrintScreen(void)
 {
-    g_flag_659711 = 1;
+    g_screenshot_pending_659711 = 1;
 }
 
 /* The debug stats readout drawn over the primary surface: a black band plus
@@ -2339,7 +2337,7 @@ void DrawVideoInspector00427460(int left, unsigned int top)
 // FUNCTION: WIZ8 0x004277d0
 void VideoInspectorEnable(void)
 {
-    g_flag_65970f = 1;
+    g_video_inspector_enabled_65970f = 1;
 }
 
 // GLOBAL: WIZ8 0x006548a0
@@ -2529,13 +2527,13 @@ unsigned char InitializeRendererSceneObjects(void)
     material->setOpacity(1.0);
 
     memset(g_surface_nodes_654adc, 0, sizeof(g_surface_nodes_654adc));
-    memset(g_block_652ddc, 0, sizeof(g_block_652ddc));
+    memset(g_tile_dirty_flags_652ddc, 0, sizeof(g_tile_dirty_flags_652ddc));
     g_viewport_left_6595e8 = 0;
     g_viewport_top_6595ec = 0;
     g_viewport_right_6595f0 = 0;
     g_surface_state_6595dc = 0x100a017;
     g_surface_state_654ad8 = 0x100c0b7;
-    g_dword_6596d8 = 0;
+    g_dirty_tile_count_6596d8 = 0;
     g_viewport_bottom_6595f4 = 0;
 
     memset(&surface_description, 0, sizeof(surface_description));
@@ -2616,7 +2614,7 @@ void PurgeInactiveSceneInstances(srScene* scene)
             for (index = 0; index != 0x12c0; ++index) {
                 if (g_surface_nodes_654adc[index] == node) {
                     g_surface_nodes_654adc[index] = 0;
-                    g_block_652ddc[index] = 0;
+                    g_tile_dirty_flags_652ddc[index] = 0;
                 }
             }
             if (instance->model()) {
@@ -2642,28 +2640,28 @@ void ClearNodeFlag(srNode* node)
 }
 
 // FUNCTION: WIZ8 0x00427810
-srModelInstance* GetValue65962C(void)
+srModelInstance* GetPickedModelInstance00427810(void)
 {
     return g_current_model_instance_65962c;
 }
 
 // FUNCTION: WIZ8 0x00427820
-void SetValue65962C(srModelInstance* value)
+void SetPickedModelInstance00427820(srModelInstance* value)
 {
     g_current_model_instance_65962c = value;
 }
 
 // FUNCTION: WIZ8 0x00428010
-unsigned char ClearFlag603C60(void)
+unsigned char DisableCursorScene00428010(void)
 {
-    g_flag_603c60 = 0;
+    g_cursor_scene_enabled_603c60 = 0;
     return 1;
 }
 
 // FUNCTION: WIZ8 0x00428020
-unsigned char SetFlag603C60(void)
+unsigned char EnableCursorScene00428020(void)
 {
-    g_flag_603c60 = 1;
+    g_cursor_scene_enabled_603c60 = 1;
     return 1;
 }
 
@@ -2674,10 +2672,10 @@ unsigned char SetFlag603C60(void)
 void ReleaseObject004257F0(srClass* object)
 {
     if ((static_cast<stModelInstance2D*>(object)->state_160 & 1) != 0) {
-        g_dword_6596ec = 2;
+        g_overlay_render_mode_6596ec = 2;
     } else {
-        g_dword_6596f0 = 2;
-        g_dword_6596ec = 2;
+        g_paired_render_mode_6596f0 = 2;
+        g_overlay_render_mode_6596ec = 2;
     }
     object->release();
 }
@@ -2689,24 +2687,24 @@ void RotateNodeInDegrees00425840(srNode* node, int degrees)
 {
     node->setRotation(0.0, 0.0, 3.141592653589793 * g_float_005ebcf8 * degrees);
     if ((static_cast<stModelInstance2D*>(node)->state_160 & 1) != 0) {
-        g_dword_6596ec = 2;
+        g_overlay_render_mode_6596ec = 2;
     } else {
-        g_dword_6596f0 = 2;
-        g_dword_6596ec = 2;
+        g_paired_render_mode_6596f0 = 2;
+        g_overlay_render_mode_6596ec = 2;
     }
 }
 
 // FUNCTION: WIZ8 0x00428A90
-void SetRendererMode6596EC(void)
+void SetOverlayRenderMode00428A90(void)
 {
-    g_dword_6596ec = 2;
+    g_overlay_render_mode_6596ec = 2;
 }
 
 // FUNCTION: WIZ8 0x00428AA0
 void SetRendererModePair(void)
 {
-    g_dword_6596f0 = 2;
-    g_dword_6596ec = 2;
+    g_paired_render_mode_6596f0 = 2;
+    g_overlay_render_mode_6596ec = 2;
 }
 
 /* Install a texture (often an stTextureAnim) on the mouse-cursor mesh. A null
@@ -2732,9 +2730,9 @@ unsigned char GetRendererModeByte(void)
 }
 
 // FUNCTION: WIZ8 0x00429200
-void SetValue659668(const int* value)
+void SetOverlayViewport00429200(const int* value)
 {
-    g_value_659668 = value;
+    g_overlay_viewport_659668 = value;
 }
 
 // FUNCTION: WIZ8 0x004297D0
@@ -2751,9 +2749,9 @@ void SetSurfaceScale004297E0(float scale)
 }
 
 // FUNCTION: WIZ8 0x004298E0
-void SetFlag603C4C(unsigned char value)
+void SetFullscreenSceneLast004298E0(unsigned char value)
 {
-    g_flag_603c4c = value;
+    g_fullscreen_scene_last_603c4c = value;
 }
 
 // FUNCTION: WIZ8 0x004298F0
@@ -2871,7 +2869,7 @@ IDirectDraw2* GetDirectDraw2Object(void)
 }
 
 // GLOBAL: WIZ8 0x006596f4
-unsigned char g_flag_6596f4;
+unsigned char g_auto_capture_6596f4;
 // GLOBAL: WIZ8 0x00659724
 int g_screenshot_index_659724;
 // GLOBAL: WIZ8 0x00659728
@@ -2894,7 +2892,7 @@ void SaveJpegScreenshot(void)
 
         ++g_screenshot_index_659724;
         sprintf(filename, "Wiz8%5.5d.JPG", screenshot_index);
-        if (g_flag_6596f4 == 0) {
+        if (g_auto_capture_6596f4 == 0) {
             surface_io_manager->exportSurface(filename, *surface, options);
         } else {
             options.option_string = "QUALITY=0.35";
@@ -2965,12 +2963,12 @@ void PositionToolTipNode(srNode* node, int x, int y, char positional)
     location.z = -0.0001;
     if ((instance->state_160 & 1U) == 0) {
         location.y = g_double_005ebc30 - (half_height + position_y);
-        g_dword_6596f0 = 2;
+        g_paired_render_mode_6596f0 = 2;
     } else {
         location.y = g_double_005ebf40 - (half_height + position_y) * g_double_005ebf40;
     }
     node->setLocation(location);
-    g_dword_6596ec = 2;
+    g_overlay_render_mode_6596ec = 2;
     instance->render_state_164.right = (short)x;
     instance->render_state_164.bottom = (short)y;
 }
@@ -3017,7 +3015,8 @@ srModelInstance* Video2DRectToSquarePolygon(int* rect, void* source, int source_
                                                      scale_y, mapping_x, mapping_y, overlay);
             node->setName("Video2DRectToSquarePolygon");
             stModelInstance2D* instance = static_cast<stModelInstance2D*>(node);
-            instance->render_state_164.display_state = static_cast<unsigned char>(g_index_6596e4);
+            instance->render_state_164.display_state =
+                static_cast<unsigned char>(g_active_page_6596e4);
             instance->state_160 |= 1;
             instance->render_state_164.left = static_cast<short>(size);
             instance->render_state_164.top = static_cast<short>(size);
@@ -3085,9 +3084,9 @@ stModelInstance2D* CreateSpriteFromVideoSurface(int target, const W8ControlsRect
     } else {
         node = Video2DRectToPolygon(source_rect, pixels, static_cast<int>(pitch),
                                     g_scene_user_659640, a5);
-        g_dword_6596f0 = 2;
+        g_paired_render_mode_6596f0 = 2;
     }
-    g_dword_6596ec = 2;
+    g_overlay_render_mode_6596ec = 2;
     UnLockVideoSurface(static_cast<UINT32>(target));
     instance = static_cast<stModelInstance2D*>(node);
     if (instance != 0) {
@@ -3309,7 +3308,7 @@ srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch,
                                              mapping_x, mapping_y, overlay);
     if (node != 0) {
         stModelInstance2D* instance = static_cast<stModelInstance2D*>(node);
-        instance->state_160 = g_index_6596e4;
+        instance->state_160 = g_active_page_6596e4;
         instance->render_state_164.left = (short)(rect[2] - rect[0]);
         instance->render_state_164.top = (short)(rect[3] - rect[1]);
         instance->render_state_164.right = (short)rect[0];

@@ -19,6 +19,7 @@
 #include "wiz8/geometry.h"
 #include "wiz8/sr_api.h"
 #include "surrender/srCamera.h"
+#include "surrender/srHeap.h"
 #include "surrender/srIlluminator.h"
 #include "surrender/srMaterial.h"
 #include "surrender/srScene.h"
@@ -113,7 +114,6 @@ void DestroyWorldLights0046E4A0(W8World* world)
         }
     }
 }
-
 
 /* Put static-scene illuminators in group one and the world's camera light in
    group two.  The scene graph access is the ordinary srNode hierarchy API. */
@@ -910,7 +910,7 @@ void SetSceneMeshShaderLowBits0046E750(srNode* node, int argument)
 // FUNCTION: WIZ8 0x0046f3f0
 void FreeThroughRenderHeap(void* block)
 {
-    SetHeapFree(block);
+    srHeap.free(block);
 }
 
 /* Propagate the model-instance exclusion mask through the first-child chain. */

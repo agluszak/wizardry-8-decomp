@@ -689,7 +689,7 @@ extern OctPreTree* g_oct_pre_tree_659c74;
 
 /* The SGP /NOOCT startup switch sets this flag; an Octree-unit body reads it. */
 extern "C" void NoOct(void); // C-LINKAGE: src/sgp/sgp.c invokes the /NOOCT switch
-extern unsigned char g_flag_6598a8;
+extern bool g_octree_disabled_6598a8;
 
 unsigned char __stdcall IsNavigatorAtTarget004347D0(W8NavigatorMovementState* movement);
 
@@ -703,14 +703,14 @@ extern unsigned long g_octree_bytes_read_00659888;
 extern int g_prop_sun_index_006598ac;
 extern unsigned char g_octree_update_suspended_00659898;
 extern unsigned char g_octree_trace_enabled_00659899;
-/* Renderer switches the region-link build toggles; their other consumers are
-   unrecovered render routines, so the names stay address-qualified. */
-extern unsigned char g_flag_0065a0ec;
-extern unsigned char g_flag_0065a0ed;
+/* Renderer switches the region-link build toggles: suppress baked vertex
+   lighting, force front-face culling and strip textures while sampling. */
+extern unsigned char g_render_unlit_0065a0ec;
+extern unsigned char g_render_cull_front_0065a0ed;
 /* Inverted-depth / alternate pass-compare mode; renderTriMesh forces GEQUAL
    and the frame clear path uses a zero clear-depth while this is set. */
-extern unsigned char g_flag_0065a0ee;
-extern unsigned char g_flag_0065a146;
+extern unsigned char g_inverted_depth_render_0065a0ee;
+extern unsigned char g_render_untextured_0065a146;
 
 int CheckLevelAssetSet0042CCC0(const char* level_path);
 

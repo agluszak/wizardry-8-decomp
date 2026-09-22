@@ -139,7 +139,7 @@ unsigned char InitializeGame(void)
         return 0;
     }
     ok = (unsigned char)(0x4000000 < GetTotalPhysicalMemory());
-    g_flag_65beaf = ok;
+    g_texture_cache_enabled_65beaf = ok;
     return 1;
 }
 

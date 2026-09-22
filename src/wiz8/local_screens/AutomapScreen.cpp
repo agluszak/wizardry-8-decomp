@@ -647,7 +647,7 @@ unsigned char AutomapScreenEnter(void)
     g_automap_saved_render_flags[0] = GetRenderOptionState(11);
     g_automap_saved_render_flags[1] = GetRenderOptionState(10);
     g_automap_saved_render_flags[2] = g_monster_shadow_updates_enabled_0065970c;
-    g_automap_saved_render_flags[3] = g_flag_65970d;
+    g_automap_saved_render_flags[3] = g_world_render_enabled_65970d;
     g_automap_saved_texture_policy = g_resident_texture_policy_659714;
     EnvironmentColour direction;
     direction = 0.0;
@@ -656,7 +656,7 @@ unsigned char AutomapScreenEnter(void)
     DisableSky();
     DisableRenderOption(10);
     g_monster_shadow_updates_enabled_0065970c = 1;
-    g_flag_65970d = 1;
+    g_world_render_enabled_65970d = 1;
     DisableSky();
     g_world->camera->setClipRange(1.0, 1500000.0);
     WorldSetValue74(g_world, 1500000.0f);
@@ -712,7 +712,7 @@ unsigned char AutomapScreenEnter(void)
     g_class_68f29c->setParent(0, 1);
     g_automap_surface_mode = RendererBufferIsLockable();
     if (g_automap_surface_mode) {
-        g_flag_65970d = 0;
+        g_world_render_enabled_65970d = 0;
         g_monster_shadow_updates_enabled_0065970c = 0;
         if (!g_automap_surface) {
             srColorSurface* surface =
@@ -726,7 +726,7 @@ unsigned char AutomapScreenEnter(void)
     g_automap_overlay_redraw = 1;
     SetPrimarySurfaceTextureHint2Enabled(0);
     ClearSurfaceRect(0, 0, 640, 480);
-    ClearFlag603C60();
+    DisableCursorScene00428010();
     DrawCatalogImageAndInvalidate(-14, 0x14a, 0, 0, 0, 0, 2, 0);
     UpdateAutomapPageButtons00581200();
     for (int button = 0; button < 16; ++button) {
@@ -738,7 +738,7 @@ unsigned char AutomapScreenEnter(void)
     ResetTransientRenderScenes();
     RenderFrame();
     RenderFrame();
-    SetFlag603C60();
+    EnableCursorScene00428020();
     SetScaledViewport00425C90(12, 32, 467, 467);
     UpdateAutomapBounds00580380();
     if (script.Load004CF3B0("Data\\Automap\\MapFilters.txt")) {
@@ -1009,7 +1009,7 @@ void AutomapScreenFrame(void)
                                            point.z - g_automap_saved_camera.position.z);
                 if (distance.Length() < g_automap_zoom * 0.05f && g_automap_tool == 0 &&
                     g_automap_zoom_mode != 2) {
-                    ClearFlag603C60();
+                    DisableCursorScene00428010();
                     srVector3T<double> scale(0.44f, 0.44f, 0.44f);
                     g_class_68f29c->setScale(scale);
                     continue;
@@ -1018,7 +1018,7 @@ void AutomapScreenFrame(void)
             float factor = (1.0f / (g_automap_zoom * 0.00004f)) * 0.44f;
             srVector3T<double> scale(factor, factor, factor);
             g_class_68f29c->setScale(scale);
-            SetFlag603C60();
+            EnableCursorScene00428020();
         }
     }
     bool moved = false;
@@ -1061,7 +1061,7 @@ void RestoreAutomapWorldSettings(void)
     SetRenderOption(11, g_automap_saved_render_flags[0]);
     SetRenderOption(10, g_automap_saved_render_flags[1]);
     g_monster_shadow_updates_enabled_0065970c = g_automap_saved_render_flags[2];
-    g_flag_65970d = g_automap_saved_render_flags[3];
+    g_world_render_enabled_65970d = g_automap_saved_render_flags[3];
     g_world->camera->setRotation(0.0, 0.0, 0.0);
     g_world->camera->flags_138.value &= ~1ul;
     SetWorldMeshVertexLightTable0046F760(g_world, 0);
@@ -1077,7 +1077,7 @@ unsigned char AutomapScreenLeave(int)
     free(g_automap_state);
     g_automap_state = 0;
     MarkRendererReady();
-    SetValue659668(0);
+    SetOverlayViewport00429200(0);
     ResumeMainGameWorld();
     srClass* clipping_plane = static_cast<srClass*>(srCore.getRegistry()->find(
         srClipPlane::ClientType::sGetClassNode(), "Clipping Plane 1", 0));
@@ -1106,7 +1106,7 @@ unsigned char AutomapScreenLeave(int)
     g_automap_buttons = 0;
     MSYS_Shutdown();
     UpdateHeldItemCursor();
-    SetFlag603C60();
+    EnableCursorScene00428020();
     for (unsigned int mesh = 0; mesh < g_world->octree->m_meshCount_1b4; ++mesh) {
         for (stMeshModel* model = static_cast<stMeshModel*>(g_world->psrMeshes[mesh]->model());
              model; model = model->next) {

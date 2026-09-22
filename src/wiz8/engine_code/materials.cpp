@@ -2463,7 +2463,7 @@ srTexture* LoadTexture004B95D0(const char* folder, const char* name, unsigned ch
     if (texture == 0) {
         strcat(extension, "tga");
         if (required != 0) {
-            texture = new stTextureFile(path, g_flag_65beaf);
+            texture = new stTextureFile(path, g_texture_cache_enabled_65beaf);
             if (texture == 0) {
                 srAssertFail("psrTexture", MATERIALS_CPP, 0x191, 0);
             }
@@ -2493,7 +2493,7 @@ srTexture* LoadTexture004B95D0(const char* folder, const char* name, unsigned ch
                         reinterpret_cast<const char*>(String("Missing texture file: %s", path)));
                 }
             }
-            texture = new stTextureFile(path, g_flag_65beaf);
+            texture = new stTextureFile(path, g_texture_cache_enabled_65beaf);
             if (texture == 0) {
                 srAssertFail("psrTexture", MATERIALS_CPP, 0x1a7, 0);
             }
