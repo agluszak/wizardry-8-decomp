@@ -140,6 +140,12 @@ long __cdecl srStreamPrintf(std::ostream& stream, const char* format, ...)
     return 0;
 }
 
+// FUNCTION: SURRENDER 0x10002E40
+const char* __cdecl srBoolToString(int value)
+{
+    return value != 0 ? "true" : "false";
+}
+
 /* The stock handler SurRender ships for hosts that want a dialog. Retail
    links it in its own TU far from the assert setter/getter/fail cluster. */
 // FUNCTION: SURRENDER 0x100466A0

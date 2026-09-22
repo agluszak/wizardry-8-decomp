@@ -1032,12 +1032,12 @@ void ApplyEnvironmentColour00483BA0(W8World* world, float intensity,
                 g_double_005ebc30 -
                 fabs((double)g_status_685170.game_time_ms - g_double_005ec990) * g_double_005ec988;
 
-            material->parms_18.ambient.x = (float)brightness;
-            material->parms_18.ambient.y = (float)brightness;
-            material->parms_18.ambient.z = (float)brightness;
-            material->parms_18.ambient.w = (float)brightness;
-            material->parms_18.diffuse.w =
-                (float)(brightness * g_double_005ebf40 + g_double_005ec980);
+            material->parms.ambient.x = static_cast<float>(brightness);
+            material->parms.ambient.y = static_cast<float>(brightness);
+            material->parms.ambient.z = static_cast<float>(brightness);
+            material->parms.ambient.w = static_cast<float>(brightness);
+            material->parms.diffuse.w =
+                static_cast<float>(brightness * g_double_005ebf40 + g_double_005ec980);
             material->dirty_74 = 1;
         }
     }

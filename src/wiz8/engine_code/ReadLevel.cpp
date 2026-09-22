@@ -1105,11 +1105,11 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
                         srMaterial* copy = static_cast<srMaterial*>(material->clone());
                         copy->setName("Unsunlit Prop Material");
                         copy->autoRelease();
-                        copy->parms_18.ambient = 0.0f;
+                        copy->parms.ambient = 0.0f;
                         copy->dirty_74 = 1;
-                        copy->parms_18.emissive.x += g_environment_offset_00659cd0.x;
-                        copy->parms_18.emissive.y += g_environment_offset_00659cd0.y;
-                        copy->parms_18.emissive.z += g_environment_offset_00659cd0.z;
+                        copy->parms.emissive.x += g_environment_offset_00659cd0.x;
+                        copy->parms.emissive.y += g_environment_offset_00659cd0.y;
+                        copy->parms.emissive.z += g_environment_offset_00659cd0.z;
                         copy->dirty_74 = 1;
                         mesh->setMaterial(copy, 0, (srMeshModel::e_side)0);
                     }

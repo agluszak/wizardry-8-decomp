@@ -185,6 +185,8 @@ public:
     }
 
 private:
+    /* srMaterial::postProcess dispatches the per-vertex blend through vp. */
+    friend class srMaterial;
     static void install(srVP* processor);
     // GLOBAL: SURRENDER 0x100A923C
     static SR_DLL_IMPORT srVP* vp;

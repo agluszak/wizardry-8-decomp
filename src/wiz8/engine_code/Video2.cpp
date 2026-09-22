@@ -3139,8 +3139,8 @@ stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVec
     zero.w = 0.0f;
     material->setDiffuse(zero);
     material->setSpecular(zero);
-    material->parms_18.shininess = 1.0f;
-    material->parms_18.diffuse.w = 1.0f;
+    material->parms.shininess = 1.0f;
+    material->parms.diffuse.w = 1.0f;
     material->dirty_74 = 1;
     model->setMaterial(material, 0, static_cast<srMeshModel::e_side>(0));
 

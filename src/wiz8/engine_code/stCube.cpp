@@ -170,8 +170,8 @@ W8WorldCursorNode* CreateWorldCursorCube0048D080(void)
     material->setDiffuse(colour);
     colour = 0.0f;
     material->setSpecular(colour);
-    material->parms_18.diffuse.w = 0.35f;
-    material->parms_18.shininess = 1.0f;
+    material->parms.diffuse.w = 0.35f;
+    material->parms.shininess = 1.0f;
     material->dirty_74 = 1;
     modeller.setMaterial(material, 0, static_cast<srMeshModel::e_side>(0));
 

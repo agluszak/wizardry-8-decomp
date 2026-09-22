@@ -1,10 +1,21 @@
 #include "surrender/srNode.h"
 
+#include "surrender/srCore.h"
+
 // GLOBAL: SURRENDER 0x100A49E0
 srCriticalSection srNode::sceneGraphCSect;
 
 // GLOBAL: SURRENDER 0x100A49FC
 long srNode::sceneGraphLockCount;
+
+/* Comma-separated flag/notify name lists dumped beside the bit values. Both
+   are zero-initialized on disk; the constructor lazily installs the flag
+   names. */
+// GLOBAL: SURRENDER 0x100A4A00
+static const char* s_flag_names_100a4a00;
+
+// GLOBAL: SURRENDER 0x100A4A04
+static const char* s_notify_names_100a4a04;
 
 // FUNCTION: SURRENDER 0x10050340
 void srNode::lockSceneGraph()
@@ -111,6 +122,22 @@ void srNode::getLocalBounds(BoundInfo& bounds)
     bounds.state_28 = 0;
 }
 
+// FUNCTION: SURRENDER 0x100505E0
+srNode& srNode::operator=(const srNode& other)
+{
+    if (this != &other) {
+        sceneGraphCSect.getAccess();
+        srClass::operator=(other);
+        flags_124.value = other.flags_124.value;
+        location_60 = other.location_60;
+        scale_78 = other.scale_78;
+        rotation_18 = other.rotation_18;
+        notifyDependent();
+        sceneGraphCSect.releaseAccess();
+    }
+    return *this;
+}
+
 // FUNCTION: SURRENDER 0x10050690
 int srNode::processSignal(unsigned long signal, void* value)
 {
@@ -151,6 +178,122 @@ long srNode::getHierarchyLevel() const
         ++level;
     }
     return level;
+}
+
+// FUNCTION: SURRENDER 0x10050C10
+srNode::srNode(srNode* parent)
+{
+    world_transform_90.SetIdentity();
+    world_transform_f0.SetIdentity();
+    if (s_flag_names_100a4a00 == 0) {
+        s_flag_names_100a4a00 = "DISABLE,TERMINATE,GLOBAL,IGNORE";
+    }
+    sceneGraphCSect.getAccess();
+    next_sibling_ = 0;
+    previous_sibling_ = 0;
+    parent_ = 0;
+    first_child_ = 0;
+    location_60.Set(0.0, 0.0, 0.0);
+    rotation_18.SetRows(srVector3T<double>(1.0, 0.0, 0.0), srVector3T<double>(0.0, 1.0, 0.0),
+                        srVector3T<double>(0.0, 0.0, 1.0));
+    scale_78.Set(1.0, 1.0, 1.0);
+    notifications_120.value = 0;
+    setParent(parent, 0);
+    sceneGraphCSect.releaseAccess();
+}
+
+/* Destroying a node detaches it and deletes its whole child list through the
+   deleting destructor at vtable slot 5. The support base runs the registry
+   unregister after the scene-graph lock is released. */
+// FUNCTION: SURRENDER 0x10050E20
+srNode::~srNode()
+{
+    sceneGraphCSect.getAccess();
+    unlink();
+    while (first_child_ != 0) {
+        delete first_child_;
+    }
+    sceneGraphCSect.releaseAccess();
+}
+
+/* Reparenting under the scene-graph lock; preserve_world_transform decomposes
+   the current world transform into the local slots before unlinking, then
+   rebuilds them against the new parent's inverse basis (orthonormalized by
+   Gram-Schmidt) so the node's world placement survives the move. */
+// FUNCTION: SURRENDER 0x10050F00
+int srNode::setParent(srNode* parent, int preserve_world_transform)
+{
+    sceneGraphCSect.getAccess();
+    if (parent == this) {
+        sceneGraphCSect.releaseAccess();
+        return 0;
+    }
+    if (parent != 0 && isParentOf(*parent)) {
+        sceneGraphCSect.releaseAccess();
+        return 0;
+    }
+    if (preserve_world_transform != 0) {
+        getWorldSpaceCoordinates(rotation_18, location_60, scale_78);
+    }
+    unlink();
+    if (parent != 0 || ((parent = srCore.getRootNode()) != this && parent != 0)) {
+        parent_ = parent;
+        next_sibling_ = parent->first_child_;
+        if (next_sibling_ != 0) {
+            next_sibling_->previous_sibling_ = this;
+        }
+        parent->first_child_ = this;
+        if (preserve_world_transform != 0) {
+            srMatrix3T<double> parent_rotation;
+            srVector3T<double> parent_location;
+            srVector3T<double> parent_scale;
+            parent->getWorldSpaceCoordinates(parent_rotation, parent_location, parent_scale);
+            srVector3T<double> columns[3];
+            columns[0].x = parent_rotation.vectors[0].x;
+            columns[0].y = parent_rotation.vectors[1].x;
+            columns[0].z = parent_rotation.vectors[2].x;
+            columns[1].x = parent_rotation.vectors[0].y;
+            columns[1].y = parent_rotation.vectors[1].y;
+            columns[1].z = parent_rotation.vectors[2].y;
+            columns[2].x = parent_rotation.vectors[0].z;
+            columns[2].y = parent_rotation.vectors[1].z;
+            columns[2].z = parent_rotation.vectors[2].z;
+            srVector3T<double> rows[3];
+            for (int row = 0; row < 3; ++row) {
+                rows[row].x = DotProduct(columns[0], rotation_18.vectors[row]);
+                rows[row].y = DotProduct(columns[1], rotation_18.vectors[row]);
+                rows[row].z = DotProduct(columns[2], rotation_18.vectors[row]);
+            }
+            rotation_18.SetRows(rows[0], rows[1], rows[2]);
+            for (int axis = 0; axis < 3; ++axis) {
+                for (int prior = 0; prior < axis; ++prior) {
+                    rotation_18.vectors[axis] -=
+                        rotation_18.vectors[prior] *
+                        DotProduct(rotation_18.vectors[axis], rotation_18.vectors[prior]);
+                }
+                rotation_18.vectors[axis] /= rotation_18.vectors[axis].Length();
+            }
+            srVector3T<double> inverse_scale;
+            inverse_scale.x = 1.0 / parent_scale.x;
+            inverse_scale.y = 1.0 / parent_scale.y;
+            inverse_scale.z = 1.0 / parent_scale.z;
+            location_60 -= parent_location;
+            location_60.x *= inverse_scale.x;
+            location_60.y *= inverse_scale.y;
+            location_60.z *= inverse_scale.z;
+            location_60 = parent_rotation.TransformTransposed(location_60);
+            scale_78.x *= inverse_scale.x;
+            scale_78.y *= inverse_scale.y;
+            scale_78.z *= inverse_scale.z;
+        }
+    }
+    notifyDependent();
+    setWSDirty();
+    if (testNotify(static_cast<e_notify>(1)) != 0) {
+        updateTransformation();
+    }
+    sceneGraphCSect.releaseAccess();
+    return 1;
 }
 
 // FUNCTION: SURRENDER 0x10050B70
@@ -319,6 +462,18 @@ void srNode::setRotation(const srMatrix3T<float>& rotation)
     widened.vectors[2].y = rotation.vectors[2].y;
     widened.vectors[2].z = rotation.vectors[2].z;
     rotation_18 = widened;
+    setWSDirty();
+}
+
+/* Euler form: reset to identity, then apply each nonzero axis rotation in
+   X, Y, Z order through the matrix's own guarded helpers. */
+// FUNCTION: SURRENDER 0x10053740
+void srNode::setRotation(double x, double y, double z)
+{
+    rotation_18.SetIdentity();
+    rotation_18.RotateAboutX(x);
+    rotation_18.RotateAboutY(y);
+    rotation_18.RotateAboutZ(z);
     setWSDirty();
 }
 

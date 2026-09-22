@@ -1,0 +1,466 @@
+#include "surrender/srMeshModel.h"
+
+/* Bounds-checked pass/side slots. Retail rejects out-of-range indices and
+   leaves the slot untouched; setMaterial/setTexture keep the reference
+   counts balanced through addReference/release. */
+// FUNCTION: SURRENDER 0x100403E0
+void srMeshModel::setShader(srShader shader, long pass)
+{
+    if (pass >= 0 && pass < 4) {
+        shaders_5c[pass] = shader;
+    }
+}
+
+// FUNCTION: SURRENDER 0x10040400
+srShader srMeshModel::getShader(long pass) const
+{
+    if (pass >= 0 && pass < 4) {
+        return shaders_5c[pass];
+    }
+    srShader shader;
+    shader.value = 0x0100241b;
+    return shader;
+}
+
+// FUNCTION: SURRENDER 0x10040330
+srMaterialIFace* srMeshModel::getMaterial(long pass, e_side side) const
+{
+    if (pass >= 0 && pass < 4 && (int)side >= 0 && (int)side < 2) {
+        return materials_1c[pass][side];
+    }
+    return 0;
+}
+
+// FUNCTION: SURRENDER 0x100402E0
+void srMeshModel::setMaterial(srMaterialIFace* material, long pass, e_side side)
+{
+    if (pass >= 0 && pass < 4 && (int)side >= 0 && (int)side < 2) {
+        if (material != materials_1c[pass][side]) {
+            if (material != 0) {
+                material->addReference();
+            }
+            if (materials_1c[pass][side] != 0) {
+                materials_1c[pass][side]->release();
+            }
+            materials_1c[pass][side] = material;
+        }
+    }
+}
+
+// FUNCTION: SURRENDER 0x100403B0
+srTextureIFace* srMeshModel::getTexture(long pass, long layer) const
+{
+    if (pass >= 0 && pass < 4 && layer >= 0 && layer < 2) {
+        return textures_3c[pass][layer];
+    }
+    return 0;
+}
+
+// FUNCTION: SURRENDER 0x10040360
+void srMeshModel::setTexture(srTextureIFace* texture, long pass, long layer)
+{
+    if (pass >= 0 && pass < 4 && layer >= 0 && layer < 2) {
+        if (texture != textures_3c[pass][layer]) {
+            if (texture != 0) {
+                texture->addReference();
+            }
+            if (textures_3c[pass][layer] != 0) {
+                textures_3c[pass][layer]->release();
+            }
+            textures_3c[pass][layer] = texture;
+        }
+    }
+}
+
+// FUNCTION: SURRENDER 0x10042800
+long srMeshModel::getActivePolygonCount()
+{
+    return active_polygon_count_1fc;
+}
+
+// FUNCTION: SURRENDER 0x10042810
+void srMeshModel::setActivePolygonCount(long count)
+{
+    active_polygon_count_1fc = count;
+}
+
+/* The lazily grown table accessors below share one retail shape: a table is
+   supplied only when its governing count is nonzero; on first use the pair
+   reallocs through srHeap, copies the shorter extent when the element type
+   preserves old data, and then clears or seeds the whole table. */
+// FUNCTION: SURRENDER 0x1003FFD0
+srVector3T<float>* srMeshModel::getVertexLoc()
+{
+    if (vertex_location_count_22c == 0) {
+        return 0;
+    }
+    if (vertex_locations_1dc.data == 0) {
+        if (vertex_locations_1dc.count != vertex_location_count_22c) {
+            if (vertex_location_count_22c == 0) {
+                vertex_locations_1dc.Release();
+            } else {
+                srVector3T<float>* replacement =
+                    MeshTable<srVector3T<float> >::Allocate(vertex_location_count_22c);
+                if (vertex_locations_1dc.data != 0 && vertex_locations_1dc.count != 0) {
+                    long copy = vertex_locations_1dc.count;
+                    if (vertex_location_count_22c < copy) {
+                        copy = vertex_location_count_22c;
+                    }
+                    for (long index = 0; index < copy; ++index) {
+                        replacement[index] = vertex_locations_1dc.data[index];
+                    }
+                }
+                if (vertex_locations_1dc.data != 0) {
+                    srHeap.free(vertex_locations_1dc.data);
+                }
+                vertex_locations_1dc.data = replacement;
+                vertex_locations_1dc.count = vertex_location_count_22c;
+            }
+        }
+        for (long index = 0; index < vertex_locations_1dc.count; ++index) {
+            vertex_locations_1dc.data[index].x = 0.0f;
+            vertex_locations_1dc.data[index].y = 0.0f;
+            vertex_locations_1dc.data[index].z = 0.0f;
+        }
+    }
+    return vertex_locations_1dc.data;
+}
+
+// FUNCTION: SURRENDER 0x100400D0
+srVector3T<float>* srMeshModel::getVertexNormal()
+{
+    if (vertex_location_count_22c == 0) {
+        return 0;
+    }
+    if (vertex_normals_1e4.data == 0 && vertex_normals_1e4.count != vertex_location_count_22c) {
+        if (vertex_location_count_22c == 0) {
+            vertex_normals_1e4.Release();
+        } else {
+            srVector3T<float>* replacement =
+                MeshTable<srVector3T<float> >::Allocate(vertex_location_count_22c);
+            if (vertex_normals_1e4.data != 0) {
+                srHeap.free(vertex_normals_1e4.data);
+            }
+            vertex_normals_1e4.data = replacement;
+            vertex_normals_1e4.count = vertex_location_count_22c;
+        }
+    }
+    if ((control_state_390 & 4) != 0) {
+        calculateVertexNormals();
+    }
+    return vertex_normals_1e4.data;
+}
+
+// FUNCTION: SURRENDER 0x10040160
+srVector4T<float>* srMeshModel::getPolyEq()
+{
+    if (polygon_count_230 == 0) {
+        return 0;
+    }
+    if (poly_equations_134.data == 0 && poly_equations_134.count != polygon_count_230) {
+        if (polygon_count_230 == 0) {
+            poly_equations_134.Release();
+        } else {
+            srVector4T<float>* replacement =
+                MeshTable<srVector4T<float> >::Allocate(polygon_count_230);
+            if (poly_equations_134.data != 0 && poly_equations_134.count != 0) {
+                long copy = poly_equations_134.count;
+                if (polygon_count_230 < copy) {
+                    copy = polygon_count_230;
+                }
+                for (long index = 0; index < copy; ++index) {
+                    replacement[index] = poly_equations_134.data[index];
+                }
+            }
+            if (poly_equations_134.data != 0) {
+                srHeap.free(poly_equations_134.data);
+            }
+            poly_equations_134.data = replacement;
+            poly_equations_134.count = polygon_count_230;
+        }
+    }
+    if ((control_state_390 & 2) != 0) {
+        calculatePolygonNormals();
+    }
+    return poly_equations_134.data;
+}
+
+// FUNCTION: SURRENDER 0x10040250
+unsigned long* srMeshModel::getActivePolygonTable(int table)
+{
+    if (active_polygons_1f4.data == 0) {
+        if (table != 0) {
+            if (active_polygons_1f4.count != polygon_count_230) {
+                if (polygon_count_230 == 0) {
+                    active_polygons_1f4.Release();
+                } else {
+                    unsigned long* replacement =
+                        MeshTable<unsigned long>::Allocate(polygon_count_230);
+                    if (active_polygons_1f4.data != 0) {
+                        srHeap.free(active_polygons_1f4.data);
+                    }
+                    active_polygons_1f4.data = replacement;
+                    active_polygons_1f4.count = polygon_count_230;
+                }
+            }
+            for (long index = 0; index < polygon_count_230; ++index) {
+                active_polygons_1f4.data[index] = index;
+            }
+        }
+    }
+    return active_polygons_1f4.data;
+}
+
+// FUNCTION: SURRENDER 0x1003FED0
+srVector3i* srMeshModel::getPolyVertex()
+{
+    if (polygon_count_230 == 0) {
+        return 0;
+    }
+    if (poly_vertices_10c.data == 0) {
+        if (poly_vertices_10c.count != polygon_count_230) {
+            if (polygon_count_230 == 0) {
+                poly_vertices_10c.Release();
+            } else {
+                srVector3i* replacement = MeshTable<srVector3i>::Allocate(polygon_count_230);
+                if (poly_vertices_10c.data != 0 && poly_vertices_10c.count != 0) {
+                    long copy = poly_vertices_10c.count;
+                    if (polygon_count_230 < copy) {
+                        copy = polygon_count_230;
+                    }
+                    for (long index = 0; index < copy; ++index) {
+                        replacement[index] = poly_vertices_10c.data[index];
+                    }
+                }
+                if (poly_vertices_10c.data != 0) {
+                    srHeap.free(poly_vertices_10c.data);
+                }
+                poly_vertices_10c.data = replacement;
+                poly_vertices_10c.count = polygon_count_230;
+            }
+        }
+        for (long index = 0; index < poly_vertices_10c.count; ++index) {
+            poly_vertices_10c.data[index].x = 0;
+            poly_vertices_10c.data[index].y = 0;
+            poly_vertices_10c.data[index].z = 0;
+        }
+    }
+    return poly_vertices_10c.data;
+}
+
+// FUNCTION: SURRENDER 0x10040430
+srPtr<srMaterialIFace>* srMeshModel::getVertexMaterial(long vertex, e_side side, int table)
+{
+    if (vertex < 0 || vertex > 3 || (int)side < 0 || (int)side > 1) {
+        return 0;
+    }
+    MeshTable<srPtr<srMaterialIFace> >& slot = vertex_materials_cc[vertex][side];
+    if (slot.data == 0) {
+        if (table != 0) {
+            if (slot.count != vertex_location_count_22c) {
+                if (vertex_location_count_22c == 0) {
+                    slot.Release();
+                } else {
+                    srPtr<srMaterialIFace>* replacement =
+                        MeshTable<srPtr<srMaterialIFace> >::Allocate(vertex_location_count_22c);
+                    slot.Release();
+                    slot.data = replacement;
+                    slot.count = vertex_location_count_22c;
+                }
+            }
+            for (long index = 0; index < slot.count; ++index) {
+                slot.data[index] = srPtr<srMaterialIFace>();
+            }
+        }
+    }
+    return slot.data;
+}
+
+// FUNCTION: SURRENDER 0x10040560
+srPtr<srTextureIFace>* srMeshModel::getPolyTexture(long polygon, long layer, int table)
+{
+    if (polygon < 0 || polygon > 3 || layer < 0 || layer > 1) {
+        return 0;
+    }
+    MeshTable<srPtr<srTextureIFace> >& slot = poly_textures_6c[polygon][layer];
+    if (slot.data == 0) {
+        if (table != 0) {
+            if (slot.count != polygon_count_230) {
+                if (polygon_count_230 == 0) {
+                    slot.Release();
+                } else {
+                    srPtr<srTextureIFace>* replacement =
+                        MeshTable<srPtr<srTextureIFace> >::Allocate(polygon_count_230);
+                    slot.Release();
+                    slot.data = replacement;
+                    slot.count = polygon_count_230;
+                }
+            }
+            for (long index = 0; index < slot.count; ++index) {
+                slot.data[index] = srPtr<srTextureIFace>();
+            }
+        }
+    }
+    return slot.data;
+}
+
+// FUNCTION: SURRENDER 0x10040690
+srShader* srMeshModel::getPolyShader(long polygon, int layer)
+{
+    if (polygon < 0 || polygon > 3) {
+        return 0;
+    }
+    MeshTable<srShader>& slot = poly_shaders_ac[polygon];
+    if (slot.data == 0) {
+        if (layer != 0 && slot.count != polygon_count_230) {
+            if (polygon_count_230 != 0) {
+                srShader* replacement = MeshTable<srShader>::Allocate(polygon_count_230);
+                if (slot.data != 0) {
+                    srHeap.free(slot.data);
+                }
+                slot.data = replacement;
+                slot.count = polygon_count_230;
+            } else {
+                slot.Release();
+            }
+        }
+    }
+    return slot.data;
+}
+
+// FUNCTION: SURRENDER 0x10040720
+srVector3i* srMeshModel::getPolyUVIndex(long layer, int table)
+{
+    if (layer < 0 || layer > 3) {
+        return 0;
+    }
+    MeshTable<srVector3i>& slot = poly_uv_indices_114[layer];
+    if (slot.data == 0) {
+        if (table != 0) {
+            if (slot.count != polygon_count_230) {
+                if (polygon_count_230 == 0) {
+                    slot.Release();
+                } else {
+                    srVector3i* replacement = MeshTable<srVector3i>::Allocate(polygon_count_230);
+                    if (slot.data != 0) {
+                        srHeap.free(slot.data);
+                    }
+                    slot.data = replacement;
+                    slot.count = polygon_count_230;
+                }
+            }
+            srVector3i* source = getPolyVertex();
+            for (long index = 0; index < polygon_count_230; ++index) {
+                slot.data[index] = source[index];
+            }
+        }
+    }
+    return slot.data;
+}
+
+// FUNCTION: SURRENDER 0x100407E0
+srVector3T<float>* srMeshModel::getVertexDIG(long vertex, int table)
+{
+    if (vertex < 0 || vertex > 3) {
+        return 0;
+    }
+    MeshTable<srVector3T<float> >& slot = dig_17c[vertex];
+    if (slot.data == 0) {
+        if (table != 0) {
+            if (slot.count != vertex_location_count_22c) {
+                if (vertex_location_count_22c == 0) {
+                    slot.Release();
+                } else {
+                    srVector3T<float>* replacement =
+                        MeshTable<srVector3T<float> >::Allocate(vertex_location_count_22c);
+                    if (slot.data != 0) {
+                        srHeap.free(slot.data);
+                    }
+                    slot.data = replacement;
+                    slot.count = vertex_location_count_22c;
+                }
+            }
+            for (long index = 0; index < slot.count; ++index) {
+                slot.data[index].x = 0.0f;
+                slot.data[index].y = 0.0f;
+                slot.data[index].z = 0.0f;
+            }
+        }
+    }
+    return slot.data;
+}
+
+// FUNCTION: SURRENDER 0x10040A70
+srVector2T<float>* srMeshModel::getVertexTexCoords(long vertex, long layer, int table)
+{
+    if (vertex < 0 || vertex > 3 || layer < 0 || layer > 1) {
+        return 0;
+    }
+    MeshTable<srVector2T<float> >& slot = texcoords_13c[vertex][layer];
+    if (slot.data == 0) {
+        if (table != 0) {
+            if (slot.count != uv_count_234) {
+                if (uv_count_234 == 0) {
+                    slot.Release();
+                } else {
+                    srVector2T<float>* replacement =
+                        MeshTable<srVector2T<float> >::Allocate(uv_count_234);
+                    if (slot.data != 0 && slot.count != 0) {
+                        long copy = slot.count;
+                        if (uv_count_234 < copy) {
+                            copy = uv_count_234;
+                        }
+                        for (long index = 0; index < copy; ++index) {
+                            replacement[index] = slot.data[index];
+                        }
+                    }
+                    if (slot.data != 0) {
+                        srHeap.free(slot.data);
+                    }
+                    slot.data = replacement;
+                    slot.count = uv_count_234;
+                }
+            }
+            for (long index = 0; index < slot.count; ++index) {
+                slot.data[index].x = 0.0f;
+                slot.data[index].y = 0.0f;
+            }
+        }
+    }
+    return slot.data;
+}
+
+// FUNCTION: SURRENDER 0x10040B80
+unsigned long* srMeshModel::getVertexShadeIndex(int table)
+{
+    if (vertex_shade_indices_1ec.data == 0) {
+        if (table != 0) {
+            if (vertex_shade_indices_1ec.count != vertex_location_count_22c) {
+                if (vertex_location_count_22c == 0) {
+                    vertex_shade_indices_1ec.Release();
+                } else {
+                    unsigned long* replacement =
+                        MeshTable<unsigned long>::Allocate(vertex_location_count_22c);
+                    if (vertex_shade_indices_1ec.data != 0 && vertex_shade_indices_1ec.count != 0) {
+                        long copy = vertex_shade_indices_1ec.count;
+                        if (vertex_location_count_22c < copy) {
+                            copy = vertex_location_count_22c;
+                        }
+                        for (long index = 0; index < copy; ++index) {
+                            replacement[index] = vertex_shade_indices_1ec.data[index];
+                        }
+                    }
+                    if (vertex_shade_indices_1ec.data != 0) {
+                        srHeap.free(vertex_shade_indices_1ec.data);
+                    }
+                    vertex_shade_indices_1ec.data = replacement;
+                    vertex_shade_indices_1ec.count = vertex_location_count_22c;
+                }
+            }
+            for (long index = 0; index < vertex_shade_indices_1ec.count; ++index) {
+                vertex_shade_indices_1ec.data[index] = 0;
+            }
+        }
+    }
+    return vertex_shade_indices_1ec.data;
+}
