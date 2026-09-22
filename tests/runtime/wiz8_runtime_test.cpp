@@ -272,16 +272,54 @@ static void SendScenarioMouse(int client_x, int client_y)
     }
 }
 
+/* Product controls and their registered regions are live game state: the
+   game thread reads them and copies a centre point out, and the driver only
+   sends the OS events at that copied point. */
+struct ControlCenterQuery {
+    W8TextControl* control;
+    int ok;
+    int x;
+    int y;
+};
+
+static void ReadControlCenterOnGameThread(void* opaque)
+{
+    ControlCenterQuery* query = static_cast<ControlCenterQuery*>(opaque);
+    if (query->control == 0 || query->control->m_region < 0 ||
+        static_cast<unsigned int>(query->control->m_region) >= g_region_count) {
+        query->ok = 0;
+        return;
+    }
+    W8Region* bounds = &g_regions[query->control->m_region];
+    query->x = (bounds->x1 + bounds->x2) / 2;
+    query->y = (bounds->y1 + bounds->y2) / 2;
+    query->ok = 1;
+}
+
+static bool ControlCenter(W8TextControl* control, int* x, int* y)
+{
+    ControlCenterQuery query;
+    query.control = control;
+    query.ok = 0;
+    query.x = 0;
+    query.y = 0;
+    if (!RunOnGameThread(ReadControlCenterOnGameThread, &query, 5000) || !query.ok) {
+        return false;
+    }
+    *x = query.x;
+    *y = query.y;
+    return true;
+}
+
 /* Click the live centre of a product control through its registered region,
    the same rectangle the input dispatch uses. */
 static void ClickControl(W8TextControl* control)
 {
-    if (control == 0 || control->m_region < 0 ||
-        static_cast<unsigned int>(control->m_region) >= g_region_count) {
-        return;
+    int x;
+    int y;
+    if (ControlCenter(control, &x, &y)) {
+        SendScenarioMouse(x, y);
     }
-    W8Region* bounds = &g_regions[control->m_region];
-    SendScenarioMouse((bounds->x1 + bounds->x2) / 2, (bounds->y1 + bounds->y2) / 2);
 }
 
 static DWORD FailScenarioAt(const char* step, const char* reason, int line)
@@ -309,15 +347,40 @@ static DWORD FailScenarioAt(const char* step, const char* reason, int line)
 
 #define FailScenario(step, reason) FailScenarioAt(step, reason, __LINE__)
 
+struct RegionCenterQuery {
+    int region_index;
+    int ok;
+    int x;
+    int y;
+};
+
+static void ReadRegionCenterOnGameThread(void* opaque)
+{
+    RegionCenterQuery* query = static_cast<RegionCenterQuery*>(opaque);
+    if (query->region_index < 0 ||
+        static_cast<unsigned int>(query->region_index) >= g_region_count) {
+        query->ok = 0;
+        return;
+    }
+    W8Region* region = &g_regions[query->region_index];
+    query->x = (region->x1 + region->x2) / 2;
+    query->y = (region->y1 + region->y2) / 2;
+    query->ok = 1;
+}
+
 /* Walk a live region's current bounds instead of a fixed pixel. */
 static bool RegionCenter(int region_index, int* x, int* y)
 {
-    if (region_index < 0 || static_cast<unsigned int>(region_index) >= g_region_count) {
+    RegionCenterQuery query;
+    query.region_index = region_index;
+    query.ok = 0;
+    query.x = 0;
+    query.y = 0;
+    if (!RunOnGameThread(ReadRegionCenterOnGameThread, &query, 5000) || !query.ok) {
         return false;
     }
-    W8Region* region = &g_regions[region_index];
-    *x = (region->x1 + region->x2) / 2;
-    *y = (region->y1 + region->y2) / 2;
+    *x = query.x;
+    *y = query.y;
     return true;
 }
 
@@ -339,22 +402,51 @@ static void ClickRegion(int region_index)
     }
 }
 
+struct HelpTextRegionQuery {
+    unsigned int region_set;
+    int help_text_id;
+    int region;
+};
+
+static void FindHelpTextRegionOnGameThread(void* opaque)
+{
+    HelpTextRegionQuery* query = static_cast<HelpTextRegionQuery*>(opaque);
+    query->region = -1;
+    if (query->region_set >= g_region_set_count) {
+        return;
+    }
+    unsigned int first = g_region_sets[query->region_set].first_region;
+    unsigned int last = g_region_sets[query->region_set].last_region;
+    for (unsigned int region = first; region <= last && region < g_region_count; ++region) {
+        if (g_regions[region].help_text_id == query->help_text_id) {
+            query->region = (int)region;
+            return;
+        }
+    }
+}
+
 /* The region a control registered for its help text. The party-builder start
    control is the only one in the bottom action panel with help id 0x6cb, so
    the scenario clicks the product control rather than a fixed pixel. */
 static int RegionWithHelpText(unsigned int region_set, int help_text_id)
 {
-    if (region_set >= g_region_set_count) {
+    HelpTextRegionQuery query;
+    query.region_set = region_set;
+    query.help_text_id = help_text_id;
+    query.region = -1;
+    if (!RunOnGameThread(FindHelpTextRegionOnGameThread, &query, 5000)) {
         return -1;
     }
-    unsigned int first = g_region_sets[region_set].first_region;
-    unsigned int last = g_region_sets[region_set].last_region;
-    for (unsigned int region = first; region <= last && region < g_region_count; ++region) {
-        if (g_regions[region].help_text_id == help_text_id) {
-            return (int)region;
-        }
-    }
-    return -1;
+    return query.region;
+}
+
+struct TransitionObjectsProbe {
+    int present;
+};
+
+static void ProbeTransitionObjectsOnGameThread(void* opaque)
+{
+    static_cast<TransitionObjectsProbe*>(opaque)->present = HasScreenTransitionObjects() ? 1 : 0;
 }
 
 /* The tooltip's owning object count is the structural marker; the pixel
@@ -363,7 +455,10 @@ static bool WaitForTooltip(bool present, unsigned int timeout_ms)
 {
     unsigned int started = GetTickCount();
     while (GetTickCount() - started < timeout_ms) {
-        if (HasScreenTransitionObjects() == present) {
+        TransitionObjectsProbe probe;
+        probe.present = 0;
+        if (RunOnGameThread(ProbeTransitionObjectsOnGameThread, &probe, 5000) &&
+            (probe.present != 0) == present) {
             return true;
         }
         Sleep(5);
@@ -371,30 +466,37 @@ static bool WaitForTooltip(bool present, unsigned int timeout_ms)
     return false;
 }
 
-static bool WaitForMainMenu(unsigned int timeout_ms)
+/* Everything the menu wait needs from the product, copied on the game
+   thread; the driver only sends the intro-dismiss key between reads. The
+   video pointer is an identity token for debouncing - never dereferenced
+   off-thread. */
+struct MainMenuCheck {
+    int ready;
+    int screen;
+    unsigned int region_enabled;
+    unsigned int first_region;
+    unsigned int last_region;
+    int playlist_active;
+    int game_initialized;
+    int app_active;
+    int intro_screen;
+    W8BinkVideo* video;
+};
+
+static void CheckMainMenuOnGameThread(void* opaque)
 {
-    unsigned int started = GetTickCount();
-    W8BinkVideo* dismissed_video = 0;
-    unsigned int dismissed_at = 0;
-    while (GetTickCount() - started < timeout_ms) {
-        if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_MAIN_MENU &&
-            *(HWND volatile*)&ghWindow != NULL && g_region_sets[1].enabled) {
-            return true;
-        }
-        // State zero also exists before input initialization clears the queue.
-        // Wait until startup finishes before posting the intro-dismiss events.
-        W8BinkVideo* video = *(W8BinkVideo* volatile*)&gpVideo;
-        unsigned int now = GetTickCount();
-        if (gfGameInitialized && gfApplicationActive &&
-            *(volatile int*)&g_current_screen_state.id == W8_SCREEN_INTRO && video != NULL &&
-            (video != dismissed_video || now - dismissed_at > 1000)) {
-            SendScenarioKey(VK_ESCAPE);
-            dismissed_video = video;
-            dismissed_at = now;
-        }
-        Sleep(10);
-    }
-    return false;
+    MainMenuCheck* check = static_cast<MainMenuCheck*>(opaque);
+    check->ready = g_current_screen_state.id == W8_SCREEN_MAIN_MENU && ghWindow != NULL &&
+                   g_region_sets[1].enabled;
+    check->screen = g_current_screen_state.id;
+    check->region_enabled = g_region_sets[1].enabled;
+    check->first_region = g_region_sets[1].first_region;
+    check->last_region = g_region_sets[1].last_region;
+    check->playlist_active = g_music_playlist_active_65ba7e;
+    check->game_initialized = gfGameInitialized;
+    check->app_active = gfApplicationActive;
+    check->intro_screen = g_current_screen_state.id == W8_SCREEN_INTRO;
+    check->video = gpVideo;
 }
 
 static bool VerifyPatchPrecedence(void)
@@ -1527,20 +1629,44 @@ static void LeaveFixture(RuntimeCase&) {}
 
 static bool EnterMainMenuFixture(RuntimeCase& test)
 {
-    if (!WaitForMainMenu(test.remaining_ms())) {
+    /* The menu wait polls a copied MainMenuCheck: product globals are read
+       on the game thread, and the driver only sends the intro-dismiss key. */
+    unsigned int started = GetTickCount();
+    W8BinkVideo* dismissed_video = 0;
+    unsigned int dismissed_at = 0;
+    MainMenuCheck check;
+    memset(&check, 0, sizeof(check));
+    while (!check.ready && GetTickCount() - started < test.remaining_ms() && gfProgramIsRunning) {
+        if (!test.on_game_thread("main-menu", CheckMainMenuOnGameThread, &check, 5000)) {
+            return false;
+        }
+        unsigned int now = GetTickCount();
+        if (!check.ready && check.game_initialized && check.app_active && check.intro_screen &&
+            check.video != 0 && (check.video != dismissed_video || now - dismissed_at > 1000)) {
+            SendScenarioKey(VK_ESCAPE);
+            dismissed_video = check.video;
+            dismissed_at = now;
+        }
+        if (!check.ready) {
+            Sleep(10);
+        }
+    }
+    if (!check.ready) {
         return test.fail("main-menu", "startup-timeout");
     }
     g_observation.menu_seen = 1;
     ReportStep("main-menu-reached");
-    g_observation.menu_state = g_current_screen_state.id;
-    g_observation.region_set_enabled = g_region_sets[1].enabled;
-    g_observation.first_region = g_region_sets[1].first_region;
-    g_observation.last_region = g_region_sets[1].last_region;
+    g_observation.menu_state = check.screen;
+    g_observation.region_set_enabled = check.region_enabled;
+    g_observation.first_region = check.first_region;
+    g_observation.last_region = check.last_region;
     /* The menu music starts on a later frame than the menu state and its
        regions; the observation is only stable once the list is live. */
     unsigned int playlist_started = GetTickCount();
-    while (*(volatile unsigned char*)&g_music_playlist_active_65ba7e == 0 &&
-           GetTickCount() - playlist_started < 3000) {
+    while (!check.playlist_active && GetTickCount() - playlist_started < 3000) {
+        if (!test.on_game_thread("main-menu", CheckMainMenuOnGameThread, &check, 5000)) {
+            return false;
+        }
         Sleep(10);
     }
     return test.on_game_thread("main-menu-checks", RunMenuChecksOnGameThread, 0, 5000);
