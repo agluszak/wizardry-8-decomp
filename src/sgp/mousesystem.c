@@ -61,8 +61,11 @@
 //
 //Records and stores the last place the user clicked.  These values are compared to the current
 //click to determine if a double click event has been detected.
+// GLOBAL: WIZ8 0x00650E6C
 MOUSE_REGION	*gpRegionLastLButtonDown = NULL;
+// GLOBAL: WIZ8 0x00650E70
 MOUSE_REGION	*gpRegionLastLButtonUp = NULL;
+// GLOBAL: WIZ8 0x00650E74
 UINT32				guiRegionLastLButtonDownTime = 0;
 
 
