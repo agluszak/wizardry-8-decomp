@@ -164,13 +164,14 @@ char CanPartySlotAttackAnyTarget(int party_slot, int category, int flag, char ha
     return 0;
 }
 
-/* Whether the slot's chosen action reaches the target it was aimed at: a
-   monster must be aimable, another party member takes the action's range
-   (with the front-rank screen on melee), a point on the ground must sit
-   inside the spell's distance and its line of sight, and a group target
-   defers to the shared group range test. */
+/* Whether the slot's chosen action reaches the target it was aimed at:
+   `hand` selects the attack side (2 asks for the better hand). A monster
+   must be aimable, another party member takes the action's range (with the
+   front-rank screen on melee), a point on the ground must sit inside the
+   spell's distance and its line of sight, and a group target defers to the
+   shared group range test. */
 // FUNCTION: WIZ8 0x00519180
-bool CharacterActionReachesTarget(int party_slot, int action, W8TargetingContext context)
+bool CharacterActionReachesTarget(int party_slot, int hand, W8TargetingContext context)
 {
     W8CombatSlot* target = GetTargetBlockForContext(party_slot, context);
     context = ResolveTargetingContext(party_slot, context);
@@ -182,12 +183,12 @@ bool CharacterActionReachesTarget(int party_slot, int action, W8TargetingContext
         }
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         GetMonsterDataForInfo(monster_info);
-        return CanPartyMemberAimAtMonster(party_slot, action, monster_info, context, 0) != 0;
+        return CanPartyMemberAimAtMonster(party_slot, hand, monster_info, context, 0) != 0;
     }
     if (target->iType == W8_TARGET_KIND_CHARACTER) {
         int target_slot = target->iChar;
         if (static_cast<char>(party_slot) != target_slot) {
-            int range = GetCharActionRange(party_slot, action, context);
+            int range = GetCharActionRange(party_slot, hand, context);
             if (range == -1) {
                 return false;
             }
