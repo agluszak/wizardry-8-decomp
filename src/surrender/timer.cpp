@@ -31,10 +31,11 @@ unsigned __int64 quadWord64(const srQuadWord& value)
     return ((unsigned __int64)value.hi << 32) | value.lo;
 }
 
-/* Empty lpClass/empty-string storage. Bounded by srNode::sceneGraphCSect at
-   0x100A49E0, so the retail object is at most 0x2C bytes. */
+/* Empty lpClass/empty-string storage. Bounded by the flag-name cursor global
+   srLight::dump reads at 0x100A49D0, so the retail object is at most 0x1C
+   bytes. */
 // GLOBAL: SURRENDER 0x100A49B4
-char storage_class[0x2c];
+char storage_class[0x1c];
 } // namespace
 
 // GLOBAL: SURRENDER 0x1009C710

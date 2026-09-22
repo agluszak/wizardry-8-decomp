@@ -142,6 +142,135 @@ public:
         vp->_mul(destination, constant, source, count);
     }
 
+    /* srLight::process multiplies work arrays elementwise through +0x12c and
+       subtracts a constant through +0x104. */
+    static inline void mul(float* destination, const float* source_0, const float* source_1,
+                           SRDWORD count)
+    {
+        vp->_mul(destination, source_0, source_1, count);
+    }
+
+    static inline void sub(float* destination, float constant, const float* source, SRDWORD count)
+    {
+        vp->_sub(destination, constant, source, count);
+    }
+
+    /* srLight::process subtracts the per-vertex view directions from the half
+       vectors elementwise through +0x100. */
+    static inline void sub(float* destination, const float* source_0, const float* source_1,
+                           SRDWORD count)
+    {
+        vp->_sub(destination, source_0, source_1, count);
+    }
+
+    /* Light direction vectors: eye-space positions copied out of the vertex
+       array (+0x2c), then rebased to the light (+0xFC), normalized with the
+       lengths kept (+0x22C). */
+    static inline void copy(srVector3* destination, const srVector4* source, SRDWORD count)
+    {
+        vp->_copy(destination, source, count);
+    }
+
+    static inline void sub(srVector3* destination, const srVector3& constant,
+                           const srVector3* vector_source, SRDWORD count)
+    {
+        vp->_sub(destination, constant, vector_source, count);
+    }
+
+    static inline void dir(srVector3* destination, float* lengths, const srVector3* source,
+                           SRDWORD count)
+    {
+        vp->_dir(destination, lengths, source, count);
+    }
+
+    static inline void dot(float* destination, const srVector3& constant, const srVector3* vectors,
+                           SRDWORD count)
+    {
+        vp->_dot(destination, constant, vectors, count);
+    }
+
+    static inline void dot(float* destination, const srVector3* vectors_0,
+                           const srVector3* vectors_1, SRDWORD count)
+    {
+        vp->_dot(destination, vectors_0, vectors_1, count);
+    }
+
+    /* Attenuation evaluation: 1/(poly.x + poly.y*d + poly.z*d^2) through
+       +0x1E4, lower clamp through +0x164, all-zero test through +0x184, and
+       the specular power through +0x258. */
+    static inline void invPoly(float* destination, const float* source, const srVector3& poly,
+                               SRDWORD count)
+    {
+        vp->_invPoly(destination, source, poly, count);
+    }
+
+    static inline void clampMin(float* destination, const float* source, float minimum,
+                                SRDWORD count)
+    {
+        vp->_clampMin(destination, source, minimum, count);
+    }
+
+    static inline int isZero(const float* source, SRDWORD count)
+    {
+        return vp->_isZero(source, count);
+    }
+
+    static inline void srSpecularPow(float* destination, const float* source, float exponent,
+                                     SRDWORD count)
+    {
+        vp->_srSpecularPow(destination, source, exponent, count);
+    }
+
+    /* srVertexPipe's finish/setup bodies reach these slots through vp. */
+    static inline void swap(void* first, void* second, SRDWORD bytes)
+    {
+        vp->_swap(first, second, bytes);
+    }
+
+    static inline void neg(float* destination, const float* source, SRDWORD count)
+    {
+        vp->_neg(destination, source, count);
+    }
+
+    static inline void axpy(float* destination, const float* add_source, const float* scale_source,
+                            const float* multiply_source, SRDWORD count)
+    {
+        vp->_axpy(destination, add_source, scale_source, multiply_source, count);
+    }
+
+    static inline void mulIndexed(srVector4* destination, const srVector4& constant,
+                                  const srVector4* indexed_source, const SRDWORD* indices,
+                                  SRDWORD count)
+    {
+        vp->_mulIndexed(destination, constant, indexed_source, indices, count);
+    }
+
+    /* finishDiffuseAlpha/finishSpecularFog fold an indexed specular array into
+       a linear destination run through the linear-source overload. */
+    static inline void mulIndexed(srVector4* destination, const srVector4* linear_source,
+                                  const srVector4* indexed_source, const SRDWORD* indices,
+                                  SRDWORD count)
+    {
+        vp->_mulIndexed(destination, linear_source, indexed_source, indices, count);
+    }
+
+    /* Per-vertex light accumulation into the output rows: destination[i] +=
+       constant * source[i] ( * source_1[i] ) through +0x1A4/+0x198. */
+    static inline void axpy(srVector4* destination, const srVector4* add_source,
+                            const srVector4& multiply_constant, const float* multiply_source,
+                            SRDWORD count)
+    {
+        vp->_axpy(destination, add_source, multiply_constant, multiply_source, count);
+    }
+
+    static inline void axpy(srVector4* destination, const srVector4* add_source,
+                            const srVector4& multiply_constant, const float* multiply_source_0,
+                            const float* multiply_source_1, SRDWORD count)
+    {
+        vp->_axpy(destination, add_source, multiply_constant, multiply_source_0, multiply_source_1,
+                  count);
+    }
+
     static inline void mul(srVector3* destination, const srVector3& constant,
                            const srVector3* vector_source, SRDWORD count)
     {
