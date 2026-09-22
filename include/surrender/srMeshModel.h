@@ -66,7 +66,9 @@ public:
         long active_polygon_count_150;
     };
 
-    srMeshModel(long polygons, long vertices);
+    /* The default-constructor closure 0x100425A0 proves both arguments
+       default to zero for paren-less new expressions. */
+    srMeshModel(long polygons = 0, long vertices = 0);
     srMeshModel(const srMeshModel& other);
     void reset(long polygons, long vertices);
     void scale(const srVector3T<float>& scale);
@@ -117,12 +119,18 @@ public:
     void setMaterial(srMaterialIFace* material, long polygon, e_side side);
     void setTexture(srTextureIFace* texture, long polygon, long layer);
     /* In-class inlines: srModeler::convert expands these bodies inside the
-       srModeler TU; dllexport still emits the standalone copies below. */
+       srModeler TU. Member-level dllexport still emits the standalone copies
+       below; class-level dllexport cannot be used because srMeshModel's
+       srClassSupport template base eagerly instantiates forwarding
+       constructors its bases do not provide. */
     // FUNCTION: SURRENDER 0x10041710 SYMBOL
     // ?setDirty@srMeshModel@@QAEXW4e_flags@1@@Z
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     void setDirty(e_flags flag)
     {
-        unsigned long mask = 1 << (flag & 0x1f);
+        unsigned long mask = 1 << flag;
         if ((control_state_390 & mask) == 0) {
             control_state_390 |= mask;
             control_state_390 |= 8;
@@ -133,15 +141,21 @@ public:
     }
     // FUNCTION: SURRENDER 0x10041750 SYMBOL
     // ?clearDirty@srMeshModel@@QAEXW4e_flags@1@@Z
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     void clearDirty(e_flags flag)
     {
-        control_state_390 &= ~(1 << (flag & 0x1f));
+        control_state_390 &= ~(1 << flag);
     }
     // FUNCTION: SURRENDER 0x10041770 SYMBOL
     // ?testDirty@srMeshModel@@QBEHW4e_flags@1@@Z
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     int testDirty(e_flags flag) const
     {
-        return (control_state_390 & (1 << (flag & 0x1f))) != 0;
+        return (control_state_390 & (1 << flag)) != 0;
     }
     srShader* getPolyShader(long polygon, int layer);
     srShader getShader(long polygon) const;

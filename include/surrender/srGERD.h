@@ -192,6 +192,9 @@ public:
            into the output ids. */
         void assignTextureSets(unsigned long* texture_set, const unsigned long* indices,
                                unsigned long count, const srTriMeshPipeline::Pass* pass);
+        /* Retail 0x10024DE0: while a vertex range is reserved
+           (first_vertex_c0_ != -1), give count accumulated vertices back. */
+        void rewindVertexArray(unsigned long count);
         /* FUN_10025260: expands/dedups the input triangles into the index and
            vertex batches, per record. */
         void expandTriangles(const TriInput& input, int sorted);
@@ -518,12 +521,42 @@ public:
     void getEnvironmentScaleFactor(float& scale, float& inverse_scale);
     unsigned long getExclusionMask() const;
     void setExclusionMask(unsigned long mask);
-    /* The pipeline's single-stage mask branch inlines this exported getter. */
-    // FUNCTION: SURRENDER 0x1001BB70 SYMBOL
-    // ?getMaxTextureStages@srGERD@@QBEJXZ
+/* The pipeline's single-stage mask branch inlines this exported getter. */
+// FUNCTION: SURRENDER 0x1001BB70 SYMBOL
+// ?getMaxTextureStages@srGERD@@QBEJXZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     long getMaxTextureStages() const
     {
         return info_50_.max_texture_stages_28_;
+    }
+// FUNCTION: SURRENDER 0x1001CF10 SYMBOL
+// ?getMaxPickStackDepth@srGERD@@QBEJXZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    long getMaxPickStackDepth() const
+    {
+        return 0x20;
+    }
+// FUNCTION: SURRENDER 0x1001CF20 SYMBOL
+// ?getMaxModelviewStackDepth@srGERD@@QBEJXZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    long getMaxModelviewStackDepth() const
+    {
+        return 0x20;
+    }
+// FUNCTION: SURRENDER 0x1001CF30 SYMBOL
+// ?getMaxProjectionStackDepth@srGERD@@QBEJXZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    long getMaxProjectionStackDepth() const
+    {
+        return 0x20;
     }
     void pushMatrix();
     void pushMultMatrix(const srMatrix4x3T<float>& matrix);
@@ -608,7 +641,6 @@ public:
     static void scanDevices(const char* path, srStringTable& devices);
     /* Retail 0x10018E60: releases every GERD on the global list. */
     static void releaseAll();
-    static void debugWrite(const char* text);
     /* Retail 0x1001AFF0: static error-string table lookup. */
     const char* getErrorString(e_error error);
     e_error getError();
@@ -641,7 +673,6 @@ public:
     void disable(e_enable option);
     void enable(e_enable option);
     srShader getShader() const;
-    void fenceVertexArrays();
     /* Retail 0x1001BBB0: submits one triangle through drawElements. */
     void drawTriangle(const srVector3i& triangle);
     void setDepthRange(double minimum, double maximum);
@@ -660,8 +691,14 @@ public:
     long getAccumGreenBits() const;
     long getAccumBlueBits() const;
     void accumulate(e_accum operation, float scale);
-    int isTextureCached(srTextureIFace* texture);
-    int isTextureResident(srTextureIFace* texture);
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    int isTextureCached(srTextureIFace* texture) const;
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    int isTextureResident(srTextureIFace* texture) const;
     int getTextureInfo(srTextureIFace* texture, TextureInfo& info);
     srTextureIFace::e_compression getTextureDefaultCompression() const;
     srTextureIFace::e_correction getTextureDefaultCorrection() const;
@@ -675,27 +712,35 @@ public:
     long getMaxTextureHeight() const;
     long getMaxTextureAspectRatio() const;
     static unsigned long sGetClassID();
-    void dumpTextureCache(std::ostream& stream);
     static void dumpDeviceList(std::ostream& stream);
 
-    /* These ordinary methods are header-visible in Wiz8 call sites even
+/* These ordinary methods are header-visible in Wiz8 call sites even
        though SR.DLL also exports out-of-line copies. */
-    // FUNCTION: SURRENDER 0x1001BB80 SYMBOL
-    // ?isPickStackEmpty@srGERD@@QBEHXZ
+// FUNCTION: SURRENDER 0x1001BB80 SYMBOL
+// ?isPickStackEmpty@srGERD@@QBEHXZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     int isPickStackEmpty() const
     {
         return pick_depth_19ec_ == 0;
     }
 
-    // FUNCTION: SURRENDER 0x1001BAE0 SYMBOL
-    // ?isEnabled@srGERD@@QBEHW4e_enable@1@@Z
+// FUNCTION: SURRENDER 0x1001BAE0 SYMBOL
+// ?isEnabled@srGERD@@QBEHW4e_enable@1@@Z
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     int isEnabled(e_enable option) const
     {
         return (enable_flags_20_.value & (1UL << option)) != 0;
     }
 
-    // FUNCTION: SURRENDER 0x1001BB90 SYMBOL
-    // ?setCullMode@srGERD@@QAEXW4e_cullMode@1@@Z
+// FUNCTION: SURRENDER 0x1001BB90 SYMBOL
+// ?setCullMode@srGERD@@QAEXW4e_cullMode@1@@Z
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     void setCullMode(e_cullMode mode)
     {
         if (cull_mode_1648_ != mode) {
@@ -704,10 +749,13 @@ public:
         }
     }
 
-    /* Header inline that also emits the standalone retail 0x1001BB40 copy;
+/* Header inline that also emits the standalone retail 0x1001BB40 copy;
        drawSorted calls the emission while drawImmediate inlines it. */
-    // FUNCTION: SURRENDER 0x1001BB40 SYMBOL
-    // ?setShader@srGERD@@QAEXABVsrShader@@@Z
+// FUNCTION: SURRENDER 0x1001BB40 SYMBOL
+// ?setShader@srGERD@@QAEXABVsrShader@@@Z
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     void setShader(const srShader& shader)
     {
         if (shader_1ff8_.value != shader.value) {
@@ -716,16 +764,22 @@ public:
         }
     }
 
-    // FUNCTION: SURRENDER 0x1001BEF0 SYMBOL
-    // ?setVertexArrayMask@srGERD@@QAEXV?$srFlags@W4e_vertexArray@srRendererDefs@@@@@Z
+// FUNCTION: SURRENDER 0x1001BEF0 SYMBOL
+// ?setVertexArrayMask@srGERD@@QAEXV?$srFlags@W4e_vertexArray@srRendererDefs@@@@@Z
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     void setVertexArrayMask(srFlags<srRendererDefs::e_vertexArray> mask)
     {
         vertex_arrays_21c4_.mask_00 = mask;
         dirty_21c0_ |= 1;
     }
 
-    // FUNCTION: SURRENDER 0x1001BEE0 SYMBOL
-    // ?getVertexArrayMask@srGERD@@QBE?AV?$srFlags@W4e_vertexArray@srRendererDefs@@@@XZ
+// FUNCTION: SURRENDER 0x1001BEE0 SYMBOL
+// ?getVertexArrayMask@srGERD@@QBE?AV?$srFlags@W4e_vertexArray@srRendererDefs@@@@XZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     srFlags<srRendererDefs::e_vertexArray> getVertexArrayMask() const
     {
         return vertex_arrays_21c4_.mask_00;
@@ -740,11 +794,12 @@ public:
                             const void* values);
     void setFogPointer(long components, srRendererDefs::e_type type, unsigned long stride,
                        const void* values);
-    void setDataPtr(srRendererDefs::e_vertexArray index, long components,
-                    srRendererDefs::e_type type, unsigned long stride, const void* values);
 
-    // FUNCTION: SURRENDER 0x1001BFD0 SYMBOL
-    // ?setTexCoordPointer@srGERD@@QAEXJW4e_type@srRendererDefs@@KPBXK@Z
+// FUNCTION: SURRENDER 0x1001BFD0 SYMBOL
+// ?setTexCoordPointer@srGERD@@QAEXJW4e_type@srRendererDefs@@KPBXK@Z
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     void setTexCoordPointer(long components, srRendererDefs::e_type type, unsigned long stride,
                             const void* values, unsigned long layer)
     {
@@ -756,8 +811,11 @@ public:
         dirty_21c0_ |= 1;
     }
 
-    // FUNCTION: SURRENDER 0x1001BE90 SYMBOL
-    // ?setVertexPointer@srGERD@@QAEXJW4e_type@srRendererDefs@@KPBXJ@Z
+// FUNCTION: SURRENDER 0x1001BE90 SYMBOL
+// ?setVertexPointer@srGERD@@QAEXJW4e_type@srRendererDefs@@KPBXJ@Z
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     void setVertexPointer(long primitive, srRendererDefs::e_type type, unsigned long stride,
                           const void* values, long count)
     {
@@ -805,6 +863,28 @@ private:
     /* Renderer::submit and LockSurface's pixel transfers reach getDD; VC6
        does not give nested classes enclosing-member access. */
     srDD* getDD() const;
+
+    /* The members marked dllexport below are retail exports no recovered
+       caller references; without the annotation the linker garbage-collects
+       the emissions and the provider exports dangle. Retail mangles them
+       private. */
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    static void debugWrite(const char* text);
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    void fenceVertexArrays();
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    void dumpTextureCache(std::ostream& stream);
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    void setDataPtr(srRendererDefs::e_vertexArray index, long components,
+                    srRendererDefs::e_type type, unsigned long stride, const void* values);
 
     /* Renderer member functions reach GERD's array-state fields directly;
        VC6 extended enclosing-class access to nested members, clang-cl
@@ -863,7 +943,10 @@ private:
                                    const srTextureIFace::Dimensions& dimensions);
     void evaluateTexturePixelFormat(Texture& texture, const srTextureIFace::Dimensions& dimensions);
     void releaseTextureMemory(long bytes);
-    unsigned long getTextureBytesNeeded(const Texture& texture) const;
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    unsigned long getTextureBytesNeeded(Texture& texture) const;
     Texture* findLowestPriority();
     void invalidateTexture(Texture& texture);
     void invalidateResidentTexture(Texture& texture);
@@ -899,6 +982,8 @@ private:
                                       long count);
     static void __cdecl accumReturn_MMX(srARGB* pixels, const AccumPixel* accum, long scale,
                                         long count);
+    static void __cdecl accumAdd_MMX(AccumPixel* accum, long value, long count);
+    static void __cdecl accumMult_MMX(AccumPixel* accum, long value, long count);
     static void convertPixelFormat(srDD::PixelFormat& device,
                                    const srPixelConvert::PixelFormat& format);
     static void convertPixelFormat(srPixelConvert::PixelFormat& format,

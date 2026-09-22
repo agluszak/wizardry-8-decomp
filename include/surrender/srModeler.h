@@ -20,8 +20,15 @@ public:
        planarMap and never this constructor, so the consumer TUs inlined the
        six-field store while the dllexport standalone emission stays at
        0x10037BD0. */
-    struct MappingInfo {
-        // FUNCTION: SURRENDER 0x10037BD0 SYMBOL
+    /* Retail exports the MappingInfo constructor, implicit assignment and the
+       default-constructor closure, so the declaration is dllexport under
+       SURRENDER_BUILD. */
+    struct
+#if defined(SURRENDER_BUILD)
+        __declspec(dllexport)
+#endif
+        MappingInfo {
+        // FUNCTION: SURRENDER 0x10037BD0
         // ??0MappingInfo@srModeler@@QAE@W4e_axis@1@0MMMM@Z
         MappingInfo(e_axis axis_u = AXIS_X, e_axis axis_v = AXIS_Y, float u_scale = 1.0f,
                     float v_scale = 1.0f, float u_offset = 0.0f, float v_offset = 0.0f)
@@ -42,14 +49,21 @@ public:
        the three per-pass attribute vectors convert() feeds into the mesh's
        DCG/DIG/SCG streams, the eight UV slots (pass*2 + layer), and the
        per-pass weights convert() writes as the DCG alpha. */
-    class Vertex {
+    /* Retail exports the full Vertex lifecycle sweep including the implicit
+       copy/assignment bodies, so the declaration is dllexport under
+       SURRENDER_BUILD. */
+    class
+#if defined(SURRENDER_BUILD)
+        __declspec(dllexport)
+#endif
+        Vertex {
     public:
         /* Retail inlines the reset() call into the modeler-TU
            new Vertex[]/vertices_30[3] array-construction loops
            (Polygon::Polygon 0x10038890, Triangle::Triangle 0x10038B50) while
            Wiz8.exe imports the standalone copy - so the body is an inline
            definition in modeler.cpp, not visible to consumers. */
-        // FUNCTION: SURRENDER 0x10037BC0 SYMBOL
+        // FUNCTION: SURRENDER 0x10037BC0
         // ??0Vertex@srModeler@@QAE@XZ
         Vertex();
         void reset();
@@ -70,7 +84,14 @@ public:
         float weights_100[4];
     };
 
-    class Triangle {
+    /* Retail exports the full Triangle lifecycle sweep including the implicit
+       copy/assignment bodies, so the declaration is dllexport under
+       SURRENDER_BUILD. */
+    class
+#if defined(SURRENDER_BUILD)
+        __declspec(dllexport)
+#endif
+        Triangle {
     public:
         Triangle();
         void reset();
@@ -83,7 +104,14 @@ public:
         unsigned long disabled_364;
     };
 
-    class Polygon {
+    /* Retail exports the full Polygon lifecycle sweep including the implicit
+       copy/assignment bodies, so the declaration is dllexport under
+       SURRENDER_BUILD. */
+    class
+#if defined(SURRENDER_BUILD)
+        __declspec(dllexport)
+#endif
+        Polygon {
     public:
         Polygon(int vertices);
         ~Polygon();

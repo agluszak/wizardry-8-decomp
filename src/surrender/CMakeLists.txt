@@ -26,11 +26,13 @@ add_library(wiz8_surrender_objects OBJECT
     io_managers.cpp
     light.cpp
     material.cpp
+    memory_pool.cpp
     mesh_model.cpp
     triangle_culler.cpp
     model.cpp
     model_instance.cpp
     modeler.cpp
+    mutex.cpp
     node.cpp
     scene.cpp
     stream.cpp
@@ -40,6 +42,7 @@ add_library(wiz8_surrender_objects OBJECT
     pixel_convert.cpp
     renderer.cpp
     texture.cpp
+    texture_file.cpp
     texture_map.cpp
     scheduler.cpp
     statistics.cpp
@@ -74,14 +77,17 @@ set_source_files_properties(
     heap.cpp
     huffman.cpp
     illuminator.cpp
+    io_managers.cpp
     light.cpp
     mesh_model.cpp
     model_instance.cpp
     modeler.cpp
+    mutex.cpp
     renderer.cpp
     scene.cpp
     stream.cpp
     texture.cpp
+    texture_file.cpp
     texture_map.cpp
     type_registry.cpp
     vector_processor.cpp

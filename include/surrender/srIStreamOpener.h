@@ -10,7 +10,17 @@ class srIStreamOpener {
 public:
     class __declspec(novtable) Opener {
     public:
-        SR_DLL_IMPORT Opener();
+        /* srInit inlines the trivial construction through srFStreamOpener.
+           The member dllexport keeps the header body for that folding while
+           still emitting the exported standalone copy consumers import. */
+        // FUNCTION: SURRENDER 0x10032680
+        // ??0Opener@srIStreamOpener@@QAE@XZ
+#if defined(SURRENDER_BUILD)
+        __declspec(dllexport)
+#endif
+        Opener()
+        {
+        }
         virtual SR_DLL_IMPORT ~Opener();
         SR_DLL_IMPORT Opener& operator=(const Opener& other);
 
@@ -18,9 +28,22 @@ public:
         virtual const char* getDescription() const = 0;
     };
 
-    /* The lifecycle emissions are bare bodies; they are defined in
-       stream.cpp. */
-    SR_DLL_IMPORT srIStreamOpener();
+    /* srInit inlines the constructor including its sentinel allocation.
+       The member dllexport keeps the header body for that folding while
+       still emitting the exported standalone copy consumers import. */
+    // FUNCTION: SURRENDER 0x100326B0
+    // ??0srIStreamOpener@@QAE@XZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    srIStreamOpener()
+    {
+        first_04 = new StreamType;
+        end_08 = first_04;
+        first_04->next_08 = 0;
+        first_04->previous_0c = 0;
+        count_00 = 0;
+    }
     SR_DLL_IMPORT ~srIStreamOpener();
     SR_DLL_IMPORT srIStreamOpener& operator=(const srIStreamOpener& other);
 
@@ -57,8 +80,17 @@ static_assert(sizeof(srIStreamOpener) == 0x0c, "srIStreamOpener_must_be_0x0c");
 // VTABLE: SURRENDER 0x10075520 srFStreamOpener
 class srFStreamOpener : public srIStreamOpener::Opener {
 public:
-    srFStreamOpener();
-    virtual ~srFStreamOpener() override;
+    /* srInit inlines the trivial construction. The member dllexport keeps the
+       header body for that folding while still emitting the exported
+       standalone copy. */
+    // FUNCTION: SURRENDER 0x10032440
+    // ??0srFStreamOpener@@QAE@XZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    srFStreamOpener()
+    {
+    }
     srFStreamOpener& operator=(const srFStreamOpener& other);
 
     virtual srBinIStream* open(const char* path) override;

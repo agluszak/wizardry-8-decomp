@@ -58,28 +58,82 @@ public:
 
     const char* getIdent() const;
     const char* getOsIdent() const;
-    const char* getCPUIdent() const;
-    unsigned long getCPUCount() const;
+    /* srCore::dump inlines the trivial field accessors. The member dllexport
+       marks keep the header bodies for that folding while still emitting the
+       exported standalone copies. */
+    // FUNCTION: SURRENDER 0x10062340
+    // ?getCPUIdent@srTimer@@QBEPBDXZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    const char* getCPUIdent() const
+    {
+        return m_cpu_ident;
+    }
+    // FUNCTION: SURRENDER 0x10062330
+    // ?getCPUCount@srTimer@@QBEKXZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    unsigned long getCPUCount() const
+    {
+        return m_cpu_count;
+    }
     e_cpuTypeId getCPUType() const;
     unsigned short getCPUFamily() const;
     unsigned short getCPUModel() const;
     unsigned short getCPUStepping() const;
     int getFeature(long feature) const;
     int getCPUIDSupport() const;
-    int getFPUSupport() const;
-    int getMMXSupport() const;
-    int getRDTSCSupport() const;
+    // FUNCTION: SURRENDER 0x100623B0
+    // ?getFPUSupport@srTimer@@QBEHXZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    int getFPUSupport() const
+    {
+        return m_cpu_features & 1;
+    }
+    // FUNCTION: SURRENDER 0x100623D0
+    // ?getMMXSupport@srTimer@@QBEHXZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    int getMMXSupport() const
+    {
+        return m_cpu_features >> 0x17 & 1;
+    }
+    // FUNCTION: SURRENDER 0x100623C0
+    // ?getRDTSCSupport@srTimer@@QBEHXZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    int getRDTSCSupport() const
+    {
+        return m_cpu_features >> 4 & 1;
+    }
     void getFreq(srQuadWord& out) const;
-    double getFreqf() const;
+    // FUNCTION: SURRENDER 0x100621E0
+    // ?getFreqf@srTimer@@QBENXZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    double getFreqf() const
+    {
+        return m_frequency.lo * 1e-06 + m_frequency.hi * 4294.967296;
+    }
     unsigned long getUnits() const;
     void setUnits(unsigned long units);
     int isPaused() const;
     /* Header-visible like srCore::getRegistry: srInit expands the
        osThreadState/getOsIdent sequence inline rather than calling the
        out-of-line emission, so the original header carried this body. The
-       provider's standalone export still binds the retail emission. */
-    // FUNCTION: SURRENDER 0x10062750 SYMBOL
+       member dllexport emits the exported standalone copy. */
+    // FUNCTION: SURRENDER 0x10062750
     // ?fastThreads@srTimer@@QAEHXZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     int fastThreads()
     {
         if (osThreadState == -1) {
