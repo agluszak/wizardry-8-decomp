@@ -392,6 +392,13 @@ srBinIAsyncStream::srBinIAsyncStream(const char* path)
     }
     e_state state = SR_STREAM_ERROR;
     if (stream_10 != 0 && stream_10->good()) {
+        /* Retail performs no allocation-failure checks: buffer_08's
+           srHeap::allocate result is untested, job_0c uses the VC6
+           null-returning new (operator_new + null check, ctor skipped on
+           failure), and queue() + SR_STREAM_OK are unconditional — so a
+           failed job allocation queues a null Job and a failed buffer
+           allocation leaves read() to source from null. Genuine retail
+           behavior, preserved. */
         size_18 = stream_10->getSize();
         buffer_08 = static_cast<unsigned char*>(srHeap.allocate(size_18));
         job_0c = new ReadJob(stream_10, buffer_08, size_18);
