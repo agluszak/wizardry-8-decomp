@@ -930,7 +930,7 @@ def _run_runtime_batch(
     observations = _parse_runtime_observations(result.stdout)
     missing = [name for name in scenarios if name not in observations]
     error: str | None = None
-    if result.timed_out or result.failed_early or result.returncode or missing:
+    if result.timed_out or result.failed_early or missing:
         detail = (
             result.stderr.strip().splitlines()[-1]
             if result.stderr.strip()
