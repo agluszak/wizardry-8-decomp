@@ -62,7 +62,7 @@ def test_the_load_scenario_watches_the_recovered_loading_chain() -> None:
     assert load_points(REPOSITORY)
 
 
-def test_rebase_translates_names_through_the_builds_map(tmp_path: Path, monkeypatch) -> None:
+def test_rebase_translates_names_through_the_builds_map() -> None:
     # The rebuilt image puts the same reviewed functions at different
     # addresses; the plan keeps the names and takes each build's addresses
     # from that build's linker map.
@@ -77,33 +77,81 @@ def test_rebase_translates_names_through_the_builds_map(tmp_path: Path, monkeypa
             is_function=True,
         )
     ]
-    monkeypatch.setattr(
-        LinkerMap,
-        "read",
-        classmethod(lambda cls, path: LinkerMap(symbols=symbols, sections=[], source_lines=[])),
-    )
+    link_map = LinkerMap(symbols=symbols, sections=[], source_lines=[])
 
-    rebased, dropped = rebase_plan(REPOSITORY, [load], tmp_path / "unused.map")
+    rebased, dropped = rebase_plan(REPOSITORY, [load], link_map)
 
     assert dropped == []
     assert [point.name for point in rebased] == ["LoadGame"]
     assert rebased[0].address == "00411200"
 
 
-def test_rebase_reports_points_the_rebuilt_image_lacks(tmp_path: Path, monkeypatch) -> None:
+def test_rebase_reports_points_the_rebuilt_image_lacks() -> None:
     # A point whose reviewed identity is not in the rebuilt image cannot be
     # watched; it is reported rather than silently dropped.
     load = next(point for point in trace_plan(REPOSITORY, LOAD) if point.name == "LoadGame")
-    monkeypatch.setattr(
-        LinkerMap,
-        "read",
-        classmethod(lambda cls, path: LinkerMap(symbols=[], sections=[], source_lines=[])),
-    )
+    link_map = LinkerMap(symbols=[], sections=[], source_lines=[])
 
-    rebased, dropped = rebase_plan(REPOSITORY, [load], tmp_path / "unused.map")
+    rebased, dropped = rebase_plan(REPOSITORY, [load], link_map)
 
     assert rebased == []
     assert dropped == ["LoadGame"]
+
+
+def test_rebase_resolves_a_point_by_its_canonical_name() -> None:
+    # Marker-emitted functions have no declaration to decorate, and the
+    # linker may keep another unit's instantiation: the comparison is by
+    # name, so a unique map symbol with the same canonical name resolves the
+    # point.
+    grow = next(
+        point
+        for point in trace_plan(REPOSITORY, LOAD)
+        if point.name == "W8GrowableVector<unsigned char>::Grow"
+    )
+    symbols = [
+        MapSymbol(
+            segment=1,
+            offset=0xD420,
+            address=0x4AD420,
+            decorated_name="?Grow@?$W8GrowableVector@E@@QAEHH@Z",
+            object_name="DialogFactoryDialogs.obj",
+            is_function=True,
+        )
+    ]
+    link_map = LinkerMap(symbols=symbols, sections=[], source_lines=[])
+
+    rebased, dropped = rebase_plan(REPOSITORY, [grow], link_map)
+
+    assert dropped == []
+    assert [point.name for point in rebased] == ["W8GrowableVector<unsigned char>::Grow"]
+    assert rebased[0].address == "004ad420"
+
+
+def test_an_ambiguous_canonical_name_stays_dropped() -> None:
+    # Two emissions with the same name could bind the wrong one; inconclusive
+    # is honest where an arbitrary pick would silently watch the wrong code.
+    grow = next(
+        point
+        for point in trace_plan(REPOSITORY, LOAD)
+        if point.name == "W8GrowableVector<unsigned char>::Grow"
+    )
+    duplicates = [
+        MapSymbol(
+            segment=1,
+            offset=offset,
+            address=0x4AD420 + index,
+            decorated_name="?Grow@?$W8GrowableVector@E@@QAEHH@Z",
+            object_name="DialogFactoryDialogs.obj",
+            is_function=True,
+        )
+        for index, offset in enumerate((0xD420, 0xD430))
+    ]
+    link_map = LinkerMap(symbols=duplicates, sections=[], source_lines=[])
+
+    rebased, dropped = rebase_plan(REPOSITORY, [grow], link_map)
+
+    assert rebased == []
+    assert dropped == ["W8GrowableVector<unsigned char>::Grow"]
 
 
 def test_an_unknown_scenario_is_refused() -> None:

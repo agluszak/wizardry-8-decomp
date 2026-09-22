@@ -750,6 +750,10 @@ def differential_command(
             resolved_map = candidate if candidate.is_file() else None
         else:
             resolved_map = link_map
+        # The rebuilt image gets retail breakpoints without its own MAP;
+        # tracing that is silent nonsense, so it fails before any run.
+        if resolved_map is None:
+            raise RuntimeError(f"no linker MAP for {executable}; pass --link-map or build it")
 
         runs = {}
         for label, image, plan_map in (
@@ -801,18 +805,39 @@ def differential_command(
         bounds = {label: bound(stream) for label, stream in streams.items()}
         repeatability = compare_streams(streams["retail-a"], streams["retail-b"])
         differential = compare_streams(streams["retail-a"], streams["recomp"])
+        bounded_repeatability = compare_streams(
+            streams["retail-a"][: bounds["retail-a"]],
+            streams["retail-b"][: bounds["retail-b"]],
+        )
+        bounded_differential = compare_streams(
+            streams["retail-a"][: bounds["retail-a"]],
+            streams["recomp"][: bounds["recomp"]],
+        )
+        # An affirmative verdict needs every precondition, not just equal
+        # prefixes: each run must have started under the debugger and reached
+        # the scenario's terminal event, retail must be repeatable against
+        # itself, and every watched point must exist in the rebuilt image.
+        reached_terminal = {
+            label: terminal is None or any(e.name == terminal for e in stream)
+            for label, stream in streams.items()
+        }
+        unwatched = {label: run["provenance"].get("unwatched", []) for label, run in runs.items()}
+        requirements = {
+            "all_started": all(run["started"] for run in runs.values()),
+            "all_reached_terminal": all(reached_terminal.values()),
+            "retail_repeatable": bounded_repeatability["agrees"],
+            "no_unwatched_points": not any(unwatched.values()),
+            "streams_agree": bounded_differential["agrees"],
+        }
         return {
             "scenario": scenario,
+            "affirmative": all(requirements.values()),
+            "requirements": requirements,
+            "reached_terminal": reached_terminal,
             "bounded": {
                 "events": bounds,
-                "retail_repeatability": compare_streams(
-                    streams["retail-a"][: bounds["retail-a"]],
-                    streams["retail-b"][: bounds["retail-b"]],
-                ),
-                "differential": compare_streams(
-                    streams["retail-a"][: bounds["retail-a"]],
-                    streams["recomp"][: bounds["recomp"]],
-                ),
+                "retail_repeatability": bounded_repeatability,
+                "differential": bounded_differential,
                 "terminal": terminal,
                 "post_terminal_events": {
                     label: sorted({e.name for e in stream[bounds[label] :]})

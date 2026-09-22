@@ -3171,6 +3171,11 @@ int main(int argc, char** argv)
                 g_scenario);
         fflush(stderr);
     }
+    /* The session record is the authoritative teardown verdict: per-case
+       lines already say how each case ended, and the exit code alone cannot
+       say whether final SGPExit teardown held. */
+    printf("WIZ8_RUNTIME_SESSION cases=%u driver=%lu teardown=%u\n", g_scenario_count,
+           driver_status, teardown_ok ? 1u : 0u);
     fflush(stdout);
     TerminateProcess(GetCurrentProcess(), result);
     return result;

@@ -35,6 +35,7 @@ def _managed_link(source: Path, destination: Path) -> None:
 
 
 RUNTIME_OBSERVATION = re.compile(r"^WIZ8_RUNTIME_TEST (?P<fields>.+)$")
+RUNTIME_SESSION = re.compile(r"^WIZ8_RUNTIME_SESSION (?P<fields>.+)$", re.MULTILINE)
 RUNTIME_FAILURE = re.compile(r"^WIZ8_RUNTIME_FAILURE (?P<fields>.+)$", re.MULTILINE)
 RUNTIME_STEP = re.compile(r"^WIZ8_RUNTIME_STEP (?P<fields>.+)$", re.MULTILINE)
 RUNTIME_CRASH = re.compile(r"^WIZ8_RUNTIME_CRASH (?P<fields>.+)$", re.MULTILINE)
@@ -840,6 +841,11 @@ def _parse_runtime_observation(stdout: str) -> dict[str, Any]:
     return _parse_runtime_observation_fields(matches[0].group("fields"))
 
 
+def _runtime_session(stdout: str) -> dict[str, str] | None:
+    match = RUNTIME_SESSION.search(stdout)
+    return _parse_diagnostic_fields(match.group("fields")) if match is not None else None
+
+
 def _parse_runtime_observations(stdout: str) -> dict[str, dict[str, Any]]:
     """Batch runs emit one WIZ8_RUNTIME_TEST line per completed case."""
     observations: dict[str, dict[str, Any]] = {}
@@ -1075,6 +1081,25 @@ def _run_runtime_batch(
             f"(in-flight={in_flight}, exit={result.returncode}, "
             f"timed_out={result.timed_out}): {detail[:400]}"
         )
+    else:
+        # Every case reported, so a nonzero exit is only acceptable when a
+        # reported case itself failed. The session record is the authority
+        # on final teardown: without it a bad SGPExit would exit 1 while
+        # every case says case_passed=1.
+        session = _runtime_session(result.stdout)
+        failed = [
+            name
+            for name, observation in observations.items()
+            if observation.get("case_passed") != 1
+        ]
+        if session is None:
+            error = "batch ended without a session record"
+        elif session.get("teardown") != "1":
+            error = "batch teardown failed (session teardown=0)"
+        elif session.get("driver") != "0" and not failed:
+            error = "batch driver reported failure with no failed case"
+        elif result.returncode not in (0, None) and not failed:
+            error = f"batch exited {result.returncode} with every case reporting success"
     for name in observations:
         phases = _runtime_phase_summary(result.stderr, name)
         if phases:
