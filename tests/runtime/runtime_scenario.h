@@ -21,15 +21,8 @@ struct RuntimeObservation {
     unsigned char character_in_party;
     unsigned char main_game_entered;
     unsigned char party_moved;
-    unsigned char party_moved_backward;
-    unsigned char moved_after_load;
-    unsigned char party_turned;
     unsigned char world_soaked;
-    unsigned char automap_opened;
-    unsigned char automap_closed;
-    unsigned char game_saved;
-    unsigned char game_loaded;
-    unsigned char load_position_restored;
+    unsigned char case_passed;
     unsigned char combat_started;
     unsigned char combat_action_queued;
     unsigned char combat_party_moved;
@@ -70,6 +63,8 @@ enum RuntimeKind { RUNTIME_ACCEPTANCE, RUNTIME_INTEGRATION, RUNTIME_SEMANTIC };
 
 typedef unsigned long (*RuntimeScenarioFn)();
 typedef bool (*RuntimeValidateFn)(const RuntimeObservation& observation);
+class RuntimeCase;
+typedef bool (*RuntimeCaseFn)(RuntimeCase& test);
 
 struct RuntimeScenario {
     const char* name;
@@ -79,4 +74,7 @@ struct RuntimeScenario {
     unsigned int timeout_ms;
     RuntimeScenarioFn run;
     RuntimeValidateFn validate;
+    /* New-style cases run under a driver-owned RuntimeCase; trailing member
+       zero-initializes for unmigrated scenarios. */
+    RuntimeCaseFn case_run;
 };
