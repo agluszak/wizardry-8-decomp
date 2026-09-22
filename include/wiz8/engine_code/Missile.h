@@ -58,8 +58,8 @@ public:
                                               signed char lod) override;
     virtual unsigned int ApplyEmitterSetting(char emitter) override;
     virtual W8AniMesh* GetEmitterAniMesh(char emitter) override;
-    unsigned char ReadCycleData004A3300(W8ReadLevelInfo* info, W8Missile* missile, int positional_2,
-                                        int emitter_index);
+    unsigned char ReadCycleData004A3300(W8ReadLevelInfo* info, W8Missile* missile, int cycle_index,
+                                        int positional_3);
 
     unsigned int value_0ac;
     unsigned int value_0b0;

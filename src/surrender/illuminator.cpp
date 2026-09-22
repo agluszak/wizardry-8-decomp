@@ -3,9 +3,6 @@
 #include "surrender/srGERD.h"
 #include "surrender/srTypeRegistry.h"
 
-// FUNCTION: SURRENDER 0x1004C6E0
-srIlluminator::~srIlluminator() {}
-
 // FUNCTION: SURRENDER 0x1004C7D0
 srIlluminator::srIlluminator(srNode* parent)
     : srClassSupport<srIlluminator, srNode, false, 0x1200>(static_cast<srNode*>(0))

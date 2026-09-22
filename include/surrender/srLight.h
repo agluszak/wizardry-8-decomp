@@ -53,13 +53,12 @@ public:
 
     virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;
 
-protected:
-    /* Header-visible for the same reason srIlluminator's is: 0x0049C430
-       expands it rather than calling an import. SR.DLL also emits the
-       out-of-line copy defined in light.cpp. */
-    virtual ~srLight() override;
-
 public:
+    /* Public per the SR.DLL export (??1srLight@@UAE@XZ) and inline so
+       0x0049C430 expands the empty body rather than calling an import.
+       SR.DLL also emits the out-of-line copy at 0x1004ED70. */
+    // FUNCTION: SURRENDER 0x1004ED70
+    virtual ~srLight() override {}
     virtual SR_DLL_IMPORT void traverse(srNode::TraverseInfo& info) override;
     virtual SR_DLL_IMPORT void process(const srNode::ProcessInfo& info,
                                        srNode::e_processType type) override;

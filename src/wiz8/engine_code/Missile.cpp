@@ -282,7 +282,7 @@ unsigned char LoadMissileDatabase(void)
 {
     char path[] = "Data\\Databases\\MissileTables.dbs";
     int allocated_count;
-    unsigned int record_count;
+    unsigned int database_version;
     unsigned int index;
     int handle;
 
@@ -293,7 +293,7 @@ unsigned char LoadMissileDatabase(void)
     }
     handle = FileOpen(path, 0x41, 0);
     if (!handle || !FileRead(handle, &allocated_count, 4, 0) ||
-        !FileRead(handle, &record_count, 4, 0)) {
+        !FileRead(handle, &database_version, 4, 0)) {
         if (handle) {
             FileClose(handle);
         }
@@ -304,7 +304,7 @@ unsigned char LoadMissileDatabase(void)
         FileClose(handle);
         return 0;
     }
-    for (index = 0; index < record_count; ++index) {
+    for (index = 0; index < static_cast<unsigned int>(allocated_count); ++index) {
         if (!FileSeek(handle, 0x101, 4) ||
             !FileRead(handle, &g_missile_table_65bde0[index], sizeof(W8MissileTableRecord), 0)) {
             delete[] g_missile_table_65bde0;
@@ -314,7 +314,7 @@ unsigned char LoadMissileDatabase(void)
             return 0;
         }
     }
-    g_missile_table_count_65bddc = record_count;
+    g_missile_table_count_65bddc = allocated_count;
     FileClose(handle);
     return 1;
 }
@@ -930,8 +930,8 @@ W8AnimRepBase005EC1D8* W8MissileRep::Clone()
 }
 
 // FUNCTION: WIZ8 0x004A3300
-unsigned char W8MissileRep::ReadCycleData004A3300(W8ReadLevelInfo* info, W8Missile* missile, int,
-                                                  int emitter_index)
+unsigned char W8MissileRep::ReadCycleData004A3300(W8ReadLevelInfo* info, W8Missile* missile,
+                                                  int cycle_index, int)
 {
     W8GrowableVector<stLight*>* lights = new W8GrowableVector<stLight*>;
     W8AnimObj* animation;
@@ -951,10 +951,10 @@ unsigned char W8MissileRep::ReadCycleData004A3300(W8ReadLevelInfo* info, W8Missi
     } else {
         missile->SetLights(lights);
     }
-    light_lists[emitter_index].Add(lights);
+    light_lists[cycle_index].Add(lights);
 
-    if (emitter_index != -1) {
-        emitter = static_cast<signed char>(emitter_index);
+    if (cycle_index != -1) {
+        emitter = static_cast<signed char>(cycle_index);
         current_cycle = emitter;
     }
     emitter_values[emitter] = animation->playback_scale_08;
@@ -966,7 +966,7 @@ unsigned char W8MissileRep::ReadCycleData004A3300(W8ReadLevelInfo* info, W8Missi
     animation_playing_06d = animation->animation_playing_01;
     emitters[emitter] = animation;
 
-    if (missile != 0) {
+    if (missile->m_pRep != 0) {
         if (SetCycleFrameLod(current_cycle, 0, 2) != 0) {
             m_bLOD = 2;
         } else if (SetCycleFrameLod(current_cycle, 0, 1) != 0) {

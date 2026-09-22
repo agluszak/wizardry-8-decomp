@@ -139,11 +139,6 @@ enum {
     W8_SKILL_PSIONICS = 0x1b
 };
 
-/* SPELL_COUNT, named by the SpellUsableNow assertion that bounds its
-   argument. The usable-when domain is W8SpellUsage, declared with the spell
-   record. */
-enum { W8_SPELL_COUNT = 0x96 };
-
 /* Whether a spellcasting block stops this character casting this spell. The
    block stops everything except alchemy in the hands of someone who has the
    skill for it. */
@@ -650,57 +645,55 @@ void UpdateSpellEffects00500930(void)
             }
         }
 
-        if ((g_spell_records[effect->kind].missile_delivered != 0 ||
-             effect->missiles_pending_122 != 0) &&
-            effect->sustained_121 == 0 && !alive) {
-            continue;
-        }
-        if (effect->targets_resolved_123 != 0) {
-            continue;
-        }
+        bool process = ((g_spell_records[effect->kind].missile_delivered == 0 &&
+                         effect->missiles_pending_122 == 0) ||
+                        effect->sustained_121 != 0 || alive) &&
+                       effect->targets_resolved_123 == 0;
+        if (process) {
 
-        if (effect->missiles_pending_122 != 0) {
-            W8Missile* missile = 0;
+            if (effect->missiles_pending_122 != 0) {
+                W8Missile* missile = 0;
 
-            for (int missile_index = 0; missile_index < effect->missiles.GetCount();
-                 ++missile_index) {
-                missile = *effect->missiles.GetAt(missile_index);
-                missile->block_released_1e2 = 1;
-                effect->missiles.RemoveAt(missile_index);
-            }
-            if (missile != 0) {
-                srVector3T<float> position = missile->GetPosition();
-                position.y -= g_float_005ebc64;
-                W8SpellVisual* visual =
-                    SpawnSpellEffect(&position, g_spell_records[effect->kind].resource_name,
-                                     missile->definition_1fc.duration_scale, 0, 0);
-                if (visual != 0) {
-                    visual->auto_release = 0;
-                    effect->spell_visuals.Add(visual);
-                    alive = false;
+                for (int missile_index = 0; missile_index < effect->missiles.GetCount();
+                     ++missile_index) {
+                    missile = *effect->missiles.GetAt(missile_index);
+                    missile->block_released_1e2 = 1;
+                    effect->missiles.RemoveAt(missile_index);
                 }
-            }
-            effect->missiles_pending_122 = 0;
-            handled = true;
-        } else {
-            effect->targets_resolved_123 = 1;
-            if (MonsterCanAimSpell005474B0(effect->kind) != 0 && effect->Source.fBackfire == 0 &&
-                effect->Source.fReflection == 0) {
-                ProvokeListedMonsterGroups(&effect->Source, &effect->monster_ids_0e0);
-            }
-            ProcessSpellEffectTargets(effect);
-            if (TargetSourceIsMonster(&effect->OrigSource, 0) != 0) {
-                if (effect->OrigSource.iMonsterID == -1) {
-                    srAssertFail("pOrigSource->iMonsterID != -1", MAGIC_CPP, 0x1504, 0);
+                if (missile != 0) {
+                    srVector3T<float> position = missile->GetPosition();
+                    position.y -= g_float_005ebc64;
+                    W8SpellVisual* visual =
+                        SpawnSpellEffect(&position, g_spell_records[effect->kind].resource_name,
+                                         missile->definition_1fc.duration_scale, 0, 0);
+                    if (visual != 0) {
+                        visual->auto_release = 0;
+                        effect->spell_visuals.Add(visual);
+                        alive = false;
+                    }
                 }
-                unsigned int monster_list_index = MonsterGetIndexByLocationID(
-                    0x1505, MAGIC_CPP, effect->OrigSource.iMonsterID, 1);
-                W8MonsterInfo* monster_info =
-                    MonsterGetScriptPartByLocationIndex(monster_list_index);
-                if (gXStatus.fCombatMode != 0 && g_combat_state->eCombatActionStatus != 0 &&
-                    g_combat_state->pActionMonsterInfo != 0 &&
-                    *(int*)g_combat_state->pActionMonsterInfo == monster_info->location_id) {
-                    g_combat_state->eCombatActionStatus = 3;
+                effect->missiles_pending_122 = 0;
+                handled = true;
+            } else {
+                effect->targets_resolved_123 = 1;
+                if (MonsterCanAimSpell005474B0(effect->kind) != 0 &&
+                    effect->Source.fBackfire == 0 && effect->Source.fReflection == 0) {
+                    ProvokeListedMonsterGroups(&effect->Source, &effect->monster_ids_0e0);
+                }
+                ProcessSpellEffectTargets(effect);
+                if (TargetSourceIsMonster(&effect->OrigSource, 0) != 0) {
+                    if (effect->OrigSource.iMonsterID == -1) {
+                        srAssertFail("pOrigSource->iMonsterID != -1", MAGIC_CPP, 0x1504, 0);
+                    }
+                    unsigned int monster_list_index = MonsterGetIndexByLocationID(
+                        0x1505, MAGIC_CPP, effect->OrigSource.iMonsterID, 1);
+                    W8MonsterInfo* monster_info =
+                        MonsterGetScriptPartByLocationIndex(monster_list_index);
+                    if (gXStatus.fCombatMode != 0 && g_combat_state->eCombatActionStatus != 0 &&
+                        g_combat_state->pActionMonsterInfo != 0 &&
+                        *(int*)g_combat_state->pActionMonsterInfo == monster_info->location_id) {
+                        g_combat_state->eCombatActionStatus = 3;
+                    }
                 }
             }
         }
@@ -1158,7 +1151,7 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
         }
     }
 
-    spellbook_skill = GetSpellbookForSpell(character, spell_id, 0, 0, 0);
+    spellbook_skill = GetBestSpellbookSkillForSpell(character, spell_id, 0, 0, 0);
     skill_ceiling =
         (character->skills[W8_SKILL_FIRST_REALM + g_spell_records[spell_id].realm].value_02 / 10 +
          character->skills[spellbook_skill].level) /

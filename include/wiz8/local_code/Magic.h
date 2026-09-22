@@ -96,7 +96,6 @@ int GetProfessionCasterLevel(W8Character* character, int profession_id);
    at for its current target; zero when none is castable. */
 unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int identify_context);
 extern unsigned char g_profession_spellbooks[W8_PROFESSION_COUNT];
-int GetSpellbookForSpell(const W8Character* character, int spell_id, int a, int b, int c);
 /* 0x00501A60: the spell a missile type carries, or W8_SPELL_NONE. */
 int MissileSpellId(int missile_type);
 /* Whether the party as a whole is under one particular condition. */
