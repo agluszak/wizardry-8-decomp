@@ -73,8 +73,10 @@ Report only what was observed and stop at the requested flow; unrelated screens 
 
 ## Testing the harness itself
 
-- `--batch` groups consecutive `batch=yes` cases sharing a fixture into one process; verify grouping in
-  the stderr `RUN batch [...]` lines and that `runs` observations match singleton runs of the same set.
+- Batching is the default: consecutive `batch=yes` cases sharing a fixture run in one process; verify
+  grouping in the stderr `RUN batch [...]` lines and that `runs` observations match singleton runs of
+  the same set. `--isolate` gives every case a fresh process; `--workers 1` serializes jobs (default
+  `--workers 2`, capped at the job count so a single-case run spawns one worker).
 - Exe-level `--scenarios` rejects unknown names, `batch=no` members and mixed fixtures with usage
   error exit 64 before the game starts — no display needed to check this (`wine ./Wiz8RuntimeTest.exe
   --scenarios a,b` in a staged tree).

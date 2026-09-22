@@ -496,9 +496,9 @@ jobs:
             uv run wiz8 runtime-test --scenario world-soak || status=1
             exit "$status"
           elif [[ "$GITHUB_EVENT_NAME" == "pull_request" || "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
-            uv run wiz8 runtime-test --batch --workers 2
+            uv run wiz8 runtime-test
           else
-            uv run wiz8 runtime-test --tier main --check-order --batch --workers 2
+            uv run wiz8 runtime-test --tier main --check-order
           fi
       - name: Upload WIZ8 diagnostics
         if: steps.wiz8-runtime.outcome == 'failure'

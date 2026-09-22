@@ -314,12 +314,12 @@ def runtime_test_command(
             "default keeps the caller's environment.",
         ),
     ] = None,
-    batch: Annotated[
+    isolate: Annotated[
         bool,
         typer.Option(
-            "--batch",
-            help="Run batch-eligible semantic cases grouped by fixture in one "
-            "process; crashed or poisoned batches re-run leftover cases fresh.",
+            "--isolate",
+            help="Give every case a fresh process instead of batching "
+            "batch-eligible cases that share a fixture.",
         ),
     ] = False,
     workers: Annotated[
@@ -330,7 +330,7 @@ def runtime_test_command(
             help="Run independent cases on this many isolated workers; each "
             "gets its own stage, Wine prefix, and virtual display.",
         ),
-    ] = 1,
+    ] = 2,
 ) -> None:
     """Run deterministic in-process semantic scenarios using the existing product."""
     from .. import command_support as cli
@@ -349,7 +349,7 @@ def runtime_test_command(
             repeat=repeat,
             check_order=check_order,
             renderer=renderer,
-            batch=batch,
+            batch=not isolate,
             workers=workers,
         )
     )
