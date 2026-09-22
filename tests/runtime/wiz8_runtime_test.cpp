@@ -807,6 +807,7 @@ struct HostileEngagementSnapshot {
     unsigned int hostile_condition_monsters;
     float nearest_engaged_distance;
     unsigned int party_hp_total;
+    unsigned int incapacitated_members;
     unsigned int provoked_active;
     int provoked_hp;
     int provoked_condition;
@@ -903,8 +904,12 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
     if (g_status_685170.buffers.Char != 0) {
         for (int slot = 0; slot < 8; ++slot) {
             const W8Character* character = &g_status_685170.buffers.Char[slot];
-            if (character->fInParty != 0)
+            if (character->fInParty != 0) {
                 s->party_hp_total += character->hp_current;
+                if (character->hp_current == 0 ||
+                    character->highest_condition >= W8_CONDITION_UNCONSCIOUS)
+                    ++s->incapacitated_members;
+            }
         }
     }
     if (g_status_685170.buffers.XChar != 0) {
@@ -1053,6 +1058,55 @@ static void QueuePartyAttacksOnGameThread(void* opaque)
         }
         if (row->action_03d == W8_ACTION_ATTACK) {
             ++query->queued;
+        }
+    }
+}
+
+/* Pre-wound every living party slot to a single hit point - the fixture
+   equivalent of arriving at the encounter already battered - so the first
+   landed monster swing crosses the incapacitation threshold and exercises
+   the damage-to-condition transition deterministically. */
+static void WeakenPartyOnGameThread(void* opaque)
+{
+    int* weakened = static_cast<int*>(opaque);
+    *weakened = 0;
+    if (g_status_685170.buffers.XChar == 0 || g_status_685170.buffers.Char == 0) {
+        return;
+    }
+    for (int slot = 0; slot < 8; ++slot) {
+        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
+        W8Character* character = &g_status_685170.buffers.Char[slot];
+        if (row->fOccupied == 0 || character->fInParty == 0 || character->hp_current == 0 ||
+            character->highest_condition >= W8_CONDITION_DEAD) {
+            continue;
+        }
+        character->hp_current = 1;
+        ++*weakened;
+    }
+}
+
+/* Queue DEFEND on every living party slot - the same ChooseAction call the
+   DEFEND command dispatches - so the round resolves monster swings without
+   the party killing the attackers first. */
+static void QueuePartyDefendOnGameThread(void* opaque)
+{
+    int* queued = static_cast<int*>(opaque);
+    *queued = 0;
+    if (g_status_685170.buffers.XChar == 0 || g_status_685170.buffers.Char == 0) {
+        return;
+    }
+    for (int slot = 0; slot < 8; ++slot) {
+        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
+        W8Character* character = &g_status_685170.buffers.Char[slot];
+        if (row->fOccupied == 0 || character->hp_current == 0 ||
+            character->highest_condition >= W8_CONDITION_DEAD) {
+            continue;
+        }
+        if (row->action_03d != W8_ACTION_DEFEND) {
+            ChooseAction(slot, W8_ACTION_DEFEND, -1, 0, 0, 1);
+        }
+        if (row->action_03d == W8_ACTION_DEFEND) {
+            ++*queued;
         }
     }
 }
@@ -2098,6 +2152,91 @@ static DWORD RunCombatSpellScenario()
                                             : "party-cast-not-observed");
 }
 
+/* The defensive twin of the attack round-trip: pre-wound the party, queue
+   DEFEND on every slot, and drive rounds until a monster action executes and
+   a member's durable incapacitation (hp 0 / UNCONSCIOUS-or-worse) is
+   observed - the monster-swing and condition-transition branch the attack
+   and spell scenarios never reach. */
+static DWORD RunCombatCasualtyScenario()
+{
+    HostileEncounterContext context;
+    if (!ScheduleOnGameThread("hostile-fixture", ProvokeHostileEncounterOnGameThread, &context,
+                              240000)) {
+        return FailScenario("hostile-fixture", "game-thread-unresponsive");
+    }
+    if (context.location_id < 0)
+        return FailScenario("hostile-fixture", "active-monster-not-found");
+    if (!WaitForCombatMode(true))
+        return FailScenario("hostile-combat", "combat-not-entered");
+    g_observation.combat_aggroed = 1;
+    ReportStep("combat-aggroed");
+
+    int weakened = 0;
+    if (!RunOnGameThread(WeakenPartyOnGameThread, &weakened) || weakened == 0)
+        return FailScenario("combat-casualty", "party-weaken-failed");
+    fprintf(stderr, "runtime-test casualty: weakened=%d\n", weakened);
+
+    HostileSnapshotQuery query;
+    query.location_id = context.location_id;
+    query.aim_location_id = context.location_id;
+    bool round_requested = false;
+    unsigned int started = GetTickCount();
+    unsigned int last_trace = 0;
+    while (GetTickCount() - started < 220000 && gfProgramIsRunning) {
+        Sleep(5);
+        if (!RunOnGameThread(ReadHostileEngagementOnGameThread, &query)) {
+            return FailScenario("combat-casualty", "game-thread-unresponsive");
+        }
+        const HostileEngagementSnapshot& state = query.snapshot;
+        if (GetTickCount() - last_trace > 2000) {
+            last_trace = GetTickCount();
+            fprintf(stderr,
+                    "runtime-test trace: engaged=%u party_hp=%u down=%u combat=%u "
+                    "round=%u action=%d char=%d monster=%d\n",
+                    state.engaged_hostiles, state.party_hp_total, state.incapacitated_members,
+                    state.combat_mode, state.round_active, state.action_status, state.action_char,
+                    state.action_monster);
+        }
+        /* Monsters never own iActionChar: an executing monster action is a
+           monster actor resolving its queued swing. */
+        if (!g_observation.monster_attack_executed && state.action_monster >= 0 &&
+            state.action_status >= 2) {
+            g_observation.monster_attack_executed = 1;
+            ReportStep("monster-attack-executed");
+        }
+        if (!g_observation.party_casualty && state.incapacitated_members != 0) {
+            g_observation.party_casualty = 1;
+            ReportStep("party-casualty");
+        }
+        /* A wipe ends combat in the same frame: the latched casualty outranks
+           the combat-mode drop. */
+        if (g_observation.monster_attack_executed && g_observation.party_casualty) {
+            return FinishGameplayScenario();
+        }
+        if (state.combat_mode == 0) {
+            return FailScenario("combat-casualty", "combat-ended-without-casualty");
+        }
+        if (state.round_active) {
+            round_requested = false;
+        }
+        if (state.combat_mode && !state.round_active && !round_requested) {
+            int queued = 0;
+            if (!RunOnGameThread(QueuePartyDefendOnGameThread, &queued))
+                continue;
+            if (queued > 0 && !g_observation.combat_defend_queued) {
+                g_observation.combat_defend_queued = 1;
+                ReportStep("combat-defend-queued");
+            }
+            if (!TapGameplayCommand(W8_MGS_COMMAND_START_COMBAT_ROUND))
+                return FailScenario("combat-round", "binding-missing");
+            round_requested = true;
+        }
+    }
+    return FailScenario("combat-casualty", g_observation.monster_attack_executed
+                                               ? "party-casualty-not-observed"
+                                               : "monster-attack-not-observed");
+}
+
 static DWORD RunWorldSoakScenario()
 {
     GameplaySnapshot state;
@@ -2795,6 +2934,12 @@ static bool ValidateCombatSpell(const RuntimeObservation& o)
            o.party_cast_executed && o.target_damaged;
 }
 
+static bool ValidateCombatCasualty(const RuntimeObservation& o)
+{
+    return o.main_game_entered && o.combat_aggroed && o.combat_defend_queued &&
+           o.monster_attack_executed && o.party_casualty;
+}
+
 static bool ValidateSoak(const RuntimeObservation& o)
 {
     return o.main_game_entered && o.world_soaked;
@@ -2809,6 +2954,8 @@ static const RuntimeScenario kScenarios[] = {
      RunCombatAttackScenario, ValidateCombatAttack, 0},
     {"combat-spell", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 180000,
      RunCombatSpellScenario, ValidateCombatSpell, 0},
+    {"combat-casualty", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 240000,
+     RunCombatCasualtyScenario, ValidateCombatCasualty, 0},
     {"world-soak", RUNTIME_MAIN_GAME, RUNTIME_NIGHTLY, RUNTIME_INTEGRATION, 120000,
      RunWorldSoakScenario, ValidateSoak, 0},
     {"exploration-input", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 120000, 0,
@@ -2948,6 +3095,7 @@ int main(int argc, char** argv)
         "combat_started=%u combat_action_queued=%u combat_party_moved=%u combat_ended=%u "
         "combat_aggroed=%u monster_engaged=%u "
         "party_attack_hit=%u target_damaged=%u party_cast_executed=%u "
+        "combat_defend_queued=%u monster_attack_executed=%u party_casualty=%u "
         "return_observed=%u teardown=%u timed_out=%u "
         "npc_state_reset_ok=%u "
         "character_page_start=%d character_page_after=%d "
@@ -2972,12 +3120,13 @@ int main(int argc, char** argv)
         g_observation.combat_started, g_observation.combat_action_queued,
         g_observation.combat_party_moved, g_observation.combat_ended, g_observation.combat_aggroed,
         g_observation.monster_engaged, g_observation.party_attack_hit, g_observation.target_damaged,
-        g_observation.party_cast_executed, g_observation.return_observed, teardown_ok ? 1 : 0,
-        g_observation.timed_out, g_observation.npc_state_reset_ok,
-        g_observation.character_page_start, g_observation.character_page_after,
-        g_observation.tooltip_shown, g_observation.tooltip_removed,
-        g_observation.skill_tooltip_shown, g_observation.skill_tooltip_removed,
-        g_observation.skill_interacted);
+        g_observation.party_cast_executed, g_observation.combat_defend_queued,
+        g_observation.monster_attack_executed, g_observation.party_casualty,
+        g_observation.return_observed, teardown_ok ? 1 : 0, g_observation.timed_out,
+        g_observation.npc_state_reset_ok, g_observation.character_page_start,
+        g_observation.character_page_after, g_observation.tooltip_shown,
+        g_observation.tooltip_removed, g_observation.skill_tooltip_shown,
+        g_observation.skill_tooltip_removed, g_observation.skill_interacted);
 
     const int result =
         driver_status == 0 && g_scenario_spec->validate(g_observation) && teardown_ok ? 0 : 1;
