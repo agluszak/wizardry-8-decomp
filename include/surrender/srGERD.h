@@ -499,7 +499,8 @@ public:
 
     /* Header inline that also emits the standalone retail 0x1001BB40 copy;
        drawSorted calls the emission while drawImmediate inlines it. */
-    // FUNCTION: SURRENDER 0x1001BB40
+    // FUNCTION: SURRENDER 0x1001BB40 SYMBOL
+    // ?setShader@srGERD@@QAEXABVsrShader@@@Z
     void setShader(const srShader& shader)
     {
         if (shader_1ff8_.value != shader.value) {
@@ -800,7 +801,8 @@ private:
 /* Retail 0x10027BF0: the three-word texture-set key hash; the interning
    cache inlines it for the lookup probe and calls this emission when
    inserting. */
-// FUNCTION: SURRENDER 0x10027BF0
+// FUNCTION: SURRENDER 0x10027BF0 SYMBOL
+// ?srHashValue@@YAIABUTextureSetKey@Renderer@srGERD@@@Z
 inline unsigned int srHashValue(const srGERD::Renderer::TextureSetKey& key)
 {
     // reinterpret-ok: the hash mixes the stored interface addresses.

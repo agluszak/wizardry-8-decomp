@@ -52,7 +52,8 @@ public:
 
     /* Retail also emits a guarded variant at 0x10027BA0 that skips the call
        when count is zero. */
-    // FUNCTION: SURRENDER 0x10027BC0
+    // FUNCTION: SURRENDER 0x10027BC0 SYMBOL
+    // ?copy@srVectorProcessor@@SAXPAKKK@Z
     static inline void copy(SRDWORD* destination, SRDWORD constant, SRDWORD count)
     {
         vp->_copy(destination, constant, count);

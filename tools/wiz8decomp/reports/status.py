@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import logging
 from collections import Counter
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
@@ -23,10 +25,34 @@ _SOURCE_KINDS = (
     (MarkerType.SYNTHETIC, "synthetic"),
     (MarkerType.TEMPLATE, "template"),
 )
+_DIAGNOSTIC_LIMIT = 50
 
 
-def _source_statistics(engine: Compare) -> tuple[dict[str, int], set[int]]:
-    """Count function-like source markers by kind and return FUNCTION addresses."""
+class _ReccmpDiagnostics(logging.Handler):
+    """Collect reccmp WARNING+ records emitted while an engine is built/queried."""
+
+    def __init__(self) -> None:
+        super().__init__(level=logging.WARNING)
+        self.records: list[logging.LogRecord] = []
+
+    def emit(self, record: logging.LogRecord) -> None:
+        self.records.append(record)
+
+
+@contextmanager
+def _capture_reccmp_diagnostics() -> Iterator[_ReccmpDiagnostics]:
+    capture = _ReccmpDiagnostics()
+    reccmp_logger = logging.getLogger("reccmp")
+    reccmp_logger.addHandler(capture)
+    try:
+        yield capture
+    finally:
+        reccmp_logger.removeHandler(capture)
+
+
+def _source_statistics(engine: Compare) -> tuple[dict[str, int], set[int], set[int]]:
+    """Count function-like source markers by kind; return FUNCTION addresses and
+    the subset bound by name (SYMBOL/name-reference markers) rather than line."""
 
     codebase = engine.codebase
     markers = (
@@ -40,11 +66,19 @@ def _source_statistics(engine: Compare) -> tuple[dict[str, int], set[int]]:
         if count:
             source[key] = count
     source_addresses = {marker.offset for marker in markers if marker.type == MarkerType.FUNCTION}
-    return source, source_addresses
+    name_ref_addresses = {
+        marker.offset
+        for marker in markers
+        if marker.type == MarkerType.FUNCTION and marker.is_nameref()
+    }
+    return source, source_addresses, name_ref_addresses
 
 
 def _comparison_statistics(
-    engine: Compare, target: RecCmpPartialTarget, source_addresses: set[int]
+    engine: Compare,
+    target: RecCmpPartialTarget,
+    source_addresses: set[int],
+    name_ref_addresses: set[int],
 ) -> tuple[dict[str, Any], float]:
     """Classify every recovered source function and total its effective score."""
 
@@ -66,6 +100,7 @@ def _comparison_statistics(
         counts[entity.analysis.status.value] += 1
         effective_score += entity.effective_accuracy
     paired = sum(counts.values())
+    unpaired = source_addresses - entities.keys()
     return (
         {
             "paired": paired,
@@ -73,12 +108,37 @@ def _comparison_statistics(
             "effective": counts["effective"],
             "mismatch": counts["mismatch"],
             "inconclusive": counts["inconclusive"],
-            "unpaired": len(source_addresses - entities.keys()),
+            "unpaired": len(unpaired),
+            # Line-reference FUNCTION markers are bound through recomp PDB line
+            # records; an unpaired one is exactly the failure reccmp logs as
+            # "Failed to find function symbol" at engine-build time. Counting
+            # them here keeps that diagnostic visible when the prepared
+            # analysis cache serves the engine without re-emitting log records.
+            # Name-reference markers (SYMBOL) may legitimately stay unpaired
+            # when the recomp emits no standalone copy of a header inline.
+            "unpaired_line_refs": len(unpaired - name_ref_addresses),
             "ignored": len(ignored),
             "accuracy": effective_score / paired if paired else 0.0,
         },
         effective_score,
     )
+
+
+def _diagnostics(capture: _ReccmpDiagnostics) -> dict[str, Any]:
+    def render(record: logging.LogRecord) -> str:
+        return f"{record.name}: {record.getMessage()}"
+
+    errors = [render(r) for r in capture.records if r.levelno >= logging.ERROR]
+    warnings = [render(r) for r in capture.records if r.levelno < logging.ERROR]
+    return {
+        "error_count": len(errors),
+        "warning_count": len(warnings),
+        "errors": errors[:_DIAGNOSTIC_LIMIT],
+        "warnings": warnings[:_DIAGNOSTIC_LIMIT],
+        "truncated": (
+            max(0, len(errors) - _DIAGNOSTIC_LIMIT) + max(0, len(warnings) - _DIAGNOSTIC_LIMIT)
+        ),
+    }
 
 
 def _comparison_product_available(target: RecCmpPartialTarget) -> bool:
@@ -100,15 +160,19 @@ def _target_status(
     if not _comparison_product_available(partial):
         return {**binary, "state": "unbuilt"}, 0.0
 
-    engine = Compare.from_target(project.get(target_id))
-    source, source_addresses = _source_statistics(engine)
-    comparison, effective_score = _comparison_statistics(engine, partial, source_addresses)
+    with _capture_reccmp_diagnostics() as capture:
+        engine = Compare.from_target(project.get(target_id))
+        source, source_addresses, name_ref_addresses = _source_statistics(engine)
+        comparison, effective_score = _comparison_statistics(
+            engine, partial, source_addresses, name_ref_addresses
+        )
     original_functions = known_functions_by_hash.get(partial.sha256)
     row = {
         **binary,
         "state": "comparison",
         "source": source,
         "comparison": comparison,
+        "diagnostics": _diagnostics(capture),
         "original_functions": original_functions,
         "source_coverage": (
             source.get("functions", 0) / original_functions if original_functions else None
@@ -146,7 +210,13 @@ def _totals(targets: Mapping[str, dict[str, Any]], scores: Mapping[str, float]) 
             targets[target_id]["comparison"]["inconclusive"] for target_id in comparison
         ),
         "unpaired": sum(targets[target_id]["comparison"]["unpaired"] for target_id in comparison),
+        "unpaired_line_refs": sum(
+            targets[target_id]["comparison"]["unpaired_line_refs"] for target_id in comparison
+        ),
         "ignored": sum(targets[target_id]["comparison"]["ignored"] for target_id in comparison),
+        "diagnostic_errors": sum(
+            targets[target_id]["diagnostics"]["error_count"] for target_id in comparison
+        ),
         "accuracy": effective_score / paired if paired else 0.0,
         "known_original_scope": {
             "targets": len(known),
