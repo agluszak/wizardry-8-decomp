@@ -156,6 +156,8 @@ public:
         Compressor(const Compressor& other);
 
         void dumpNode(BitOStream& stream, Node* node);
+
+    public:
         void setupPath(Node* node, unsigned long code, unsigned long depth);
     };
 

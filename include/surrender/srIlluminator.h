@@ -23,14 +23,14 @@ public:
     SR_DLL_IMPORT unsigned long getGroupMask() const;
     SR_DLL_IMPORT void setGroupMask(unsigned long mask);
 
-public:
-    /* Public per the SR.DLL export (??1srIlluminator@@UAE@XZ) and inline so
-       stLight's destructor at 0x0049C430 expands the empty body instead of
-       calling an import; retail reaches SR.DLL only for srNode::~srNode.
-       SR.DLL also emits the out-of-line copy at 0x1004C6E0. The registry
-       teardown at this level belongs to the srClassSupport base. */
-    // FUNCTION: SURRENDER 0x1004C6E0
-    virtual ~srIlluminator() override {}
+    /* Empty body; stLight's destructor at 0x0049C430 expands this level and
+       srLight's inline instead of calling either, and reaches SR.DLL only for
+       srNode::~srNode. The registry teardown belongs to the srClassSupport
+       base. SR.DLL exports the out-of-line emission at 0x1004C6E0 under its
+       public spelling (??1srIlluminator@@UAE@XZ), so the declaration is
+       public here to keep the consumer import name matching. */
+    virtual SR_DLL_IMPORT ~srIlluminator() override;
+
     unsigned long group_mask_13c;       /* 0x13c */
     srVector3T<float> eye_location_140; /* 0x140 */
     unsigned char pad_14c_[4];          /* 0x14c: keep derived doubles at 0x150 */

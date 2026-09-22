@@ -242,6 +242,29 @@ srBinOMStream::srBinOMStream(const srBinOMStream& other) : srBinOStream(other)
 // FUNCTION: SURRENDER 0x10031330
 srBinOMStream::~srBinOMStream() {}
 
+// FUNCTION: SURRENDER 0x10031C80
+srBinIStream::srBinIStream(const srBinIStream& stream) : srBinStream(stream) {}
+
+// FUNCTION: SURRENDER 0x10031CE0
+srBinIStream& srBinIStream::operator=(const srBinIStream& stream)
+{
+    srBinStream::operator=(stream);
+    return *this;
+}
+
+// FUNCTION: SURRENDER 0x10032020
+srBinOStream::srBinOStream() {}
+
+// FUNCTION: SURRENDER 0x10032060
+srBinOStream::srBinOStream(const srBinOStream& stream) : srBinStream(stream) {}
+
+// FUNCTION: SURRENDER 0x100320C0
+srBinOStream& srBinOStream::operator=(const srBinOStream& stream)
+{
+    srBinStream::operator=(stream);
+    return *this;
+}
+
 // FUNCTION: SURRENDER 0x10031490
 srBinIStream& srBinIStream::read(void* destination, unsigned long size)
 {

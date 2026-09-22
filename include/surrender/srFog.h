@@ -38,7 +38,10 @@ public:
 
 public:
     virtual SR_DLL_IMPORT srClass* vInstance() override;
-    virtual SR_DLL_IMPORT srClass* clone() override;
+    /* Slot 7 binds the inherited srClassSupport<srIlluminator, ...>::clone
+       emission - the exported vftable name
+       ??_7srFog@@6B?$srClassSupport@VsrIlluminator@@VsrNode@@$0A@$0BCAA@@@@
+       proves no srFog-level override exists. */
     virtual SR_DLL_IMPORT int isActive(srVertexPipe& pipe) override;
     virtual SR_DLL_IMPORT void process(srVertexPipe& pipe) override;
 

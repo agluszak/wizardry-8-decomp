@@ -498,6 +498,13 @@ void srInlineString::reset()
     size_ = 1;
 }
 
+inline srInlineString::srInlineString()
+{
+    inline_[0] = '\0';
+    data_ = inline_;
+    size_ = 1;
+}
+
 inline srInlineString::srInlineString(const char* source)
 {
     init();

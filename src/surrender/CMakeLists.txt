@@ -25,6 +25,7 @@ add_library(wiz8_surrender_objects OBJECT
     light.cpp
     material.cpp
     mesh_model.cpp
+    model.cpp
     model_instance.cpp
     node.cpp
     scene.cpp
@@ -32,8 +33,11 @@ add_library(wiz8_surrender_objects OBJECT
     string_table.cpp
     system.cpp
     palette.cpp
+    pixel_convert.cpp
     texture.cpp
     texture_map.cpp
+    scheduler.cpp
+    thread.cpp
     timer.cpp
     variable_timer.cpp
     triangulator.cpp

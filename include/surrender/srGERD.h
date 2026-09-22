@@ -1,5 +1,7 @@
 #pragma once
 
+#include "srArray.h"
+#include "srHash.h"
 #include "srStringTable.h"
 #include "srTexture.h"
 #include "srTypeRegistry.h"
@@ -8,7 +10,6 @@
 #include "srShader.h"
 #include "srFlags.h"
 
-#include "srArray.h"
 #include "srRendererDefs.h"
 #include "srDD.h"
 class srCriticalSection;
@@ -33,6 +34,7 @@ public:
         unsigned long value_204;
     };
 
+    /* ortho/frustum take this packed six-double box. */
     struct Frustum {
         double left;
         double right;
@@ -41,7 +43,6 @@ public:
         double near_plane;
         double far_plane;
     };
-
     class Renderer {
     public:
         struct TriInput {
@@ -59,6 +60,24 @@ public:
 
         void allocVertexArray(srVertexArray& arrays, unsigned long count);
         void render(const TriInput& input);
+        /* Retail 0x100266E0: drains the renderer's queued work. */
+        void flush();
+
+    private:
+        friend class srGERD;
+        /* +0xd4 is the owning srGERD; +0xd8 nonzero marks a queued/deferred
+           renderer that flushImmediateRenderers skips. */
+        unsigned char unknown_00_[0xd4];
+        srGERD* gerd_d4_;
+        unsigned long deferred_d8_;
+    };
+
+    struct RendererEntry {
+        unsigned long unknown_00;
+        RendererEntry* next_04;
+        Renderer* renderer_08;
+        /* +0x0c: in-flight work count; flushImmediateRenderers yields until 0. */
+        long work_count_0c;
     };
 
     enum e_error {};
@@ -141,13 +160,23 @@ public:
         unsigned long value_3c;
         /* applyViewStateChanges increments this counter on every apply. */
         unsigned long value_40;
-        unsigned char unknown_44[4];
+        unsigned long value_44;
         /* applyFrameStateChanges increments this counter on every apply. */
         unsigned long frame_state_count_48;
         unsigned long value_4c;
-        unsigned char unknown_50[0x18];
+        /* Texture-parameter updates, palette binds and shader updates
+           counted by setTextureParameters/changeTexture/applyDrawStateChanges. */
+        unsigned long value_50;
+        /* createNewTexture increments this created-texture count. */
+        unsigned long value_54;
+        unsigned long value_58;
+        unsigned long value_5c;
+        unsigned char unknown_60[8];
         unsigned long value_68;
-        unsigned char unknown_6c[0x10];
+        unsigned long value_6c;
+        unsigned long value_70;
+        unsigned long value_74;
+        unsigned long value_78;
         unsigned long value_7c;
     };
     void getStatistics(Statistics& statistics);
@@ -157,24 +186,40 @@ public:
     void setClearColor(float red, float green, float blue, float alpha);
     void setClearDepth(double depth);
     void setAmbientLight(float red, float green, float blue, float alpha);
-    void setAmbientLight(const srVector3T<float>& light);
     void setAmbientLight(const srVector4T<float>& light);
+    /* Retail 0x1001C440: the scene's process installs its v3 ambient through
+       this overload. */
+    void setAmbientLight(const srVector3T<float>& light);
     void setFogColor(const srVector3T<float>& color);
+    /* Retail 0x1001C6B0: the scene restores the saved v4 fog color through
+       this overload. */
     void setFogColor(const srVector4T<float>& color);
     void setScissor(unsigned long x, unsigned long y, unsigned long width, unsigned long height);
     void flipFrame();
     void setTextureReduction(long reduction);
     void setViewPort(unsigned long x, unsigned long y, unsigned long width, unsigned long height);
     void matrixMode(e_matrixMode mode);
+    e_matrixMode getMatrixMode() const;
+    void getMatrix(srMatrix4T<float>& matrix);
+    void getMatrix(srMatrix4T<double>& matrix);
     void getMatrix(e_matrixMode mode, srMatrix4T<float>& matrix);
-    srVector4T<float> getEyeSpaceLocation(const srVector3T<float>& position);
+    void getMatrix(e_matrixMode mode, srMatrix4T<double>& matrix);
     void getEyeSpaceBounds(srVector3T<float>& center, float& radius,
                            const srVector3T<float>& object_center, float object_radius);
+    /* srIlluminator::process stores the eye-space camera position for the
+       current model view through this export. */
+    srVector4T<float> getEyeSpaceLocation(const srVector3T<float>& object_location);
+    void pushVertexProcessor(srVertexProcessor& processor);
+    void popVertexProcessor();
     void getInverseModelViewMatrix(srMatrix4T<float>& matrix);
     void getClipPlanes(ClipPlanes& planes);
+    void pushClipPlane(const srVector4T<float>& plane, e_clipMode mode);
+    void popClipPlane();
     void getProjectClipNearMatrix(srMatrix4T<float>& matrix);
     void getNormalMatrix(srMatrix4T<float>& matrix);
     srMatrix4T<float>::e_scaleType getModelViewScaleType();
+
+    /* Retail 0x10021380. */
     float getMaxModelViewScale();
     e_cullMode getCullMode() const;
     e_winding getWinding() const;
@@ -185,9 +230,9 @@ public:
     void unlockBuffer();
     unsigned long getVertexProcessorCount() const;
     void getVertexProcessors(srVertexProcessor** processors) const;
-    void pushVertexProcessor(srVertexProcessor& processor);
-    void popVertexProcessor();
     void getAmbientLight(srVector4T<float>& light);
+    /* Retail 0x1001C680: the scene saves the current v4 fog color through
+       this overload. */
     void getFogColor(srVector4T<float>& color) const;
     void getEnvironmentRange(float& minimum, float& maximum) const;
     void getEnvironmentScaleFactor(float& scale, float& inverse_scale);
@@ -204,10 +249,16 @@ public:
     void pushEnable();
     void popEnable();
     void loadIdentity();
+    void multMatrix(const srMatrix4T<float>& matrix);
+    void multMatrix(const srMatrix4T<double>& matrix);
+    void perspective(double fov_y, double aspect, double near_plane, double far_plane);
     void rotate(double angle, const srVector3T<float>& axis);
     void rotate(double angle, const srVector3T<double>& axis);
+    void rotate(double angle, double x, double y, double z);
     void scale(double x, double y, double z);
+    void scale(const srVector3T<float>& factors);
     void scale(const srVector3T<double>& factors);
+    void scale(double factor);
     void translate(const srVector3T<float>& offset);
     void translate(const srVector3T<double>& offset);
     void translate(double x, double y, double z);
@@ -215,19 +266,27 @@ public:
     e_visibility testBoundingBox(const srVector3T<float>& minimum,
                                  const srVector3T<float>& maximum);
     void setPickKey(unsigned long key);
+    /* Retail 0x1001DB20. */
     unsigned long getPickKey() const;
     void ortho(double left, double right, double bottom, double top, double near_plane,
                double far_plane);
+    void ortho(const Frustum& frustum);
     void frustum(double left, double right, double bottom, double top, double near_plane,
                  double far_plane);
-    void loadMatrix(srMatrix4T<double>& matrix);
+    void frustum(const Frustum& frustum);
+    void loadMatrix(const srMatrix4T<double>& matrix);
+    void loadMatrix(const srMatrix4T<float>& matrix);
+    void loadMatrix(const srMatrix3T<double>& matrix);
+    void loadMatrix(const srMatrix3T<float>& matrix);
+    void getScissor(unsigned long& x, unsigned long& y, unsigned long& width,
+                    unsigned long& height) const;
+    void getViewPort(unsigned long& x, unsigned long& y, unsigned long& width,
+                     unsigned long& height) const;
+    void flushImmediateRenderers();
     void pushEnvironment();
     void popEnvironment();
     void setEnvironmentRange(float minimum, float maximum);
     void setEnvironmentScaleFactor(float scale, float inverse_scale);
-    void pushClipPlane(srVector4T<float>& plane, e_clipMode mode);
-    void popClipPlane();
-    void ortho(const Frustum& frustum);
     void setClipState(srFlags<srRendererDefs::e_clip> state);
     void setAntiAlias(e_antiAlias mode);
     void setTexture(srTextureIFace* texture, unsigned long layer);
@@ -307,45 +366,75 @@ public:
     }
 
 private:
-    srGERD& operator=(const srGERD& other);
-
-    /* Resident-texture record owned by the device. The {next, prev} links are
-       proven by markTextureAsDeleted's doubly-linked unlink/push and the
-       0x9c deletion flag; the middle is unmodeled. */
+    /* Pooled device-texture record, 0xa8 bytes. allocTexture links chunks
+       through +0x00, keeps live/deleted lists in {prev_00, next_04} and the
+       texture-interface id at +0x08 as the hash key. The embedded
+       srDD::Texture at +0x2c is handed to the device. */
     struct Texture {
-        Texture* next_00;
-        Texture* prev_04;
-        unsigned char unknown_08_[0x94];
-        long deleted_9c_;
+        Texture* prev_00;
+        Texture* next_04;
+        unsigned long id_08;
+        /* evaluateTexturePixelFormat copies the matched device format here. */
+        srPixelConvert::PixelFormat pixel_format_0c;
+        void* surface_data_20;
+        srPalette* palette_24;
+        char* name_28;
+        srDD::Texture device_2c;
+        unsigned long unknown_a4;
     };
-    /* Handle-hash chain node: {next, handle, texture} at stride 0xc, proven
-       by invalidateTextureByFrameHandle's walk. */
-    struct TextureEntry {
-        long next_00;
-        unsigned long handle_04;
-        Texture* texture_08;
-    };
+    static_assert(sizeof(Texture) == 0xa8, "srGERD_Texture_must_be_0xa8");
 
-    srDD* getDD();
+    srGERD& operator=(const srGERD& other);
+    srDD* getDD() const;
     void setError(e_error error);
     void resetTexture();
+    void assertContext() const;
     void setMatrixDirty();
-    void checkFrameStateChanges();
+    void classifyMatrix(e_matrixMode mode);
+    void applyViewStateChanges();
+    void applyClipPlaneChanges();
+    void applyDrawStateChanges();
     void applyFrameStateChanges();
+    void checkViewStateChanges();
+    void checkClipPlaneChanges();
+    void checkDrawStateChanges();
+    void checkFrameStateChanges();
+    void checkAllStateChanges();
+    void recalcScissor();
+    void changeTexture(srTextureIFace* texture, unsigned long stage, int apply_parms);
+    Texture* createNewTexture(srTextureIFace* texture);
+    Texture* allocTexture(unsigned long id);
+    void allocTextureData(Texture& texture);
+    void deleteTexture(Texture& texture);
+    void removeDeletedTextures();
+    void invalidatePalette();
+    void releaseTextureSurfaceData(Texture& texture);
+    void setTextureParameters(unsigned long stage, const srTextureIFace::Parameters& parameters);
+    void evaluateTextureDimensions(srDD::Texture& device,
+                                   const srTextureIFace::Dimensions& dimensions);
+    void evaluateTexturePixelFormat(Texture& texture, const srTextureIFace::Dimensions& dimensions);
+    void releaseTextureMemory(long bytes);
+    unsigned long getTextureBytesNeeded(const Texture& texture) const;
+    Texture* findLowestPriority();
     void invalidateTexture(Texture& texture);
     void markTextureAsDeleted(Texture& texture);
-    void applyViewStateChanges();
-    void classifyMatrix(e_matrixMode mode);
-    void recalcScissor();
+    static void convertPixelFormat(srDD::PixelFormat& device,
+                                   const srPixelConvert::PixelFormat& format);
     class LockSurface;
 
     static srGERD* first;
     static srGERD* firstOpen;
 
-    unsigned char unknown_0c_[8];
+    struct MatrixStack {
+        srMatrix4T<float> stack_00[32];
+        unsigned long depth_800;
+    };
+
+    unsigned char unknown_0c_[4];
+    RendererEntry* renderers_10_;
     srCriticalSection* renderers_section_14_;
     srCriticalSection* state_section_18_;
-    unsigned char unknown_1c_[4];
+    unsigned long owner_thread_1c_;
     srFlags<e_enable> enable_flags_20_;
     unsigned long dirty_24_;
     unsigned long state_flags_28_;
@@ -357,10 +446,18 @@ private:
     srDD* dd_40_;
     srDebugDD* debug_dd_44_;
     srDD* real_dd_48_;
-    unsigned char unknown_4c_[0x2c];
+    unsigned char unknown_4c_[0x1c];
+    /* changeTexture tests bit 5 to release resident surface data after a
+       texture-stage swap. */
+    unsigned long flags_68_;
+    unsigned char unknown_6c_[0xc];
     long max_texture_stages_78_;
-    unsigned char unknown_7c_[0x2e4];
-    void* texture_formats_360_;
+    /* Texture-dimension clamps applied by evaluateTextureDimensions. */
+    unsigned long texture_min_dim_7c_;
+    unsigned long texture_max_dim_80_;
+    unsigned long texture_max_aspect_84_;
+    unsigned char unknown_88_[0x2d8];
+    srPixelConvert::PixelFormat* texture_formats_360_;
     long texture_format_count_364_;
     unsigned long* display_modes_368_;
     long display_mode_count_36c_;
@@ -370,16 +467,18 @@ private:
     long width_380_;
     long height_384_;
     unsigned char unknown_388_[8];
-    /* Per-matrix-mode stacks proven by pushMatrix/popMatrix: the live matrix
-       at 0x390+mode*0x40, then two {entries[32], depth} blocks of stride
-       0x804 starting at 0x410. */
-    struct MatrixStack {
-        srMatrix4T<float> entries_00[32];
-        unsigned long depth_800;
-    };
-    srMatrix4T<float> current_matrix_390_[2];
+    /* Per-mode current matrices at 0x390; pushMatrix indexes by mode. */
+    srMatrix4T<float> matrix_current_390_[2];
+    /* Per-mode 32-deep matrix stacks; each block ends with its depth counter
+       (0x410 and 0xC14, stride 0x804). */
     MatrixStack matrix_stacks_410_[2];
-    unsigned char unknown_1418_[0x200];
+    /* Six eye-space frustum planes maintained by applyClipPlaneChanges. */
+    srVector4T<float> frustum_planes_1418_[6];
+    /* User clip planes pushed by pushClipPlane; mask bits 6..31 of
+       clip_mask_1674_. */
+    srVector4T<float> user_clip_planes_1478_[26];
+    /* Extra viewport parameters copied into srDD::ViewPort by
+       applyViewStateChanges. */
     unsigned long viewport_extra_1618_[4];
     srDD::Scissor scissor_1628_;
     unsigned long view_left_1638_;
@@ -389,14 +488,24 @@ private:
     e_cullMode cull_mode_1648_;
     e_winding winding_164c_;
     e_matrixMode matrix_mode_1650_;
-    unsigned char unknown_1654_[0x2c];
-    unsigned long scissor_state_1680_;
+    unsigned char unknown_1654_[6];
+    /* Per-user-plane e_clipMode bytes written by pushClipPlane. */
+    unsigned char clip_modes_165a_[26];
+    /* Plane-enable mask: bits 0..5 frustum, bits 6..31 user planes. */
+    unsigned long clip_mask_1674_;
+    /* Subset of clip_mask_1674_ carrying mode-1 user planes. */
+    unsigned long clip_mode1_mask_1678_;
+    long clip_plane_count_167c_;
+    /* Bit 1: recalcScissor marks the scissor as the full view. */
+    unsigned long scissor_flags_1680_;
     srMatrix4T<float> inverse_modelview_1684_;
     srMatrix4T<float> project_clip_near_16c4_;
     srMatrix4T<float> normal_matrix_1704_;
     srMatrix4T<float>::e_scaleType modelview_scale_type_1744_;
-    float modelview_scale_1748_;
-    srMatrix4T<float>::e_type matrix_type_174c_[2];
+    float max_modelview_scale_1748_;
+    /* classifyMatrix writes the per-mode projection-shape class here; the
+       projection class at +0x1750 feeds srDD::setProjectionMatrix. */
+    srMatrix4T<float>::e_type matrix_class_174c_[2];
     unsigned char unknown_1754_[4];
     srVector3T<float> gamma_1758_;
     unsigned long swap_interval_1764_;
@@ -412,42 +521,64 @@ private:
     srVector4T<float> clear_color_1b08_;
     unsigned char unknown_1b18_[0x10];
     double clear_depth_1b28_;
-    unsigned char unknown_1b30_[0x43c];
+    unsigned char unknown_1b30_[0x408];
+    /* Bound Texture per stage, swapped by changeTexture. */
+    Texture* texture_slots_1f38_[2];
+    /* Per-stage packed device parameters written by setTextureParameters. */
+    srDD::TexParms texture_parms_1f40_[2];
+    /* Device palette record handed to bindPalette/deletePalette. */
+    srDD::Palette palette_1f50_;
+    /* setTextureParameters packs the stage parameters through these filter
+       tables, indexed by bits of the texture's packed state. */
+    unsigned long wrap_map_1f5c_[4];
     unsigned long mag_filter_map_1f6c_[4];
     unsigned long mag_filter_param_1f7c_;
     unsigned long min_filter_map_1f80_[4];
     unsigned long min_filter_param_1f90_;
-    unsigned long mipmap_map_1f94_[3];
-    unsigned long mipmap_param_1fa0_;
-    unsigned char unknown_1fa4_[0x14];
+    /* The fourth entry doubles as the current mipmap parameter written by
+       setTextureDefaultMipmap. */
+    unsigned long mipmap_map_1f94_[4];
+    unsigned long correction_map_1fa4_[2];
+    unsigned long detail_map_1fac_[2];
+    unsigned char unknown_1fb4_[4];
     srTextureIFace::e_filter default_mag_filter_1fb8_;
     srTextureIFace::e_filter default_min_filter_1fbc_;
     srTextureIFace::e_mipmap default_mipmap_1fc0_;
-    unsigned char unknown_1fc4_[0x20];
+    /* Per-type default device parameters; evaluateTexturePixelFormat copies
+       entry [Dimensions::parameter_index] into srDD::Texture::parameter_34. */
+    unsigned long default_texture_params_1fc4_[5];
+    /* Default Dimensions::parameter_index for newly created textures. */
+    unsigned long default_parameter_index_1fd8_;
+    /* Palette currently bound to the device. */
+    srPalette* palette_1fdc_;
+    /* srDD::e_polygonMode value; the empty enum cannot be a field type. */
+    unsigned long polygon_mode_1fe0_;
     long polygon_offset_1fe4_;
     srVector4T<float> fog_color_1fe8_;
     srShader shader_1ff8_;
-    unsigned char unknown_1ffc_[8];
-    long* texture_hash_heads_2004_;
-    TextureEntry* texture_hash_entries_2008_;
-    unsigned char unknown_200c_[4];
-    unsigned long texture_hash_size_2010_;
-    unsigned char unknown_2014_[0x14];
-    Texture* deleted_textures_2028_;
-    Texture* active_textures_202c_;
-    Texture* current_texture_2030_;
+    /* Texture interfaces requested through setTexture for stages 0/1. */
+    srTextureIFace* texture_iface_1ffc_[2];
+    /* Live textures keyed by the texture interface's frame handle. */
+    srHashTable<unsigned long, Texture*> texture_lookup_2004_;
+    unsigned long texture_count_2014_;
+    Texture* texture_free_2018_;
+    /* Chunk pointers backing the 0xa8-byte Texture pool. */
+    srArray<Texture*> texture_pool_201c_;
+    unsigned long texture_pool_count_2024_;
+    Texture* texture_deleted_2028_;
+    Texture* texture_head_202c_;
+    Texture* texture_default_2030_;
     unsigned long texture_cache_used_2034_;
     unsigned long texture_cache_size_2038_;
-    unsigned char unknown_203c_[4];
+    unsigned long texture_sequence_203c_;
     long texture_reduction_2040_;
     bool texture_hash_enabled_2044_;
     unsigned char unknown_2045_[3];
     srVector4T<float> ambient_light_2048_;
-    float environment_min_2058_;
-    float environment_max_205c_;
-    float environment_scale_2060_;
-    float environment_inv_scale_2064_;
-    unsigned char unknown_2068_[0x104];
+    srVector4T<float> environment_2058_;
+    /* pushEnvironment/popEnvironment stack of {min, max, scale, inv_scale}. */
+    srVector4T<float> environment_stack_2068_[16];
+    unsigned long environment_depth_2168_;
     unsigned long enable_stack_216c_[16];
     unsigned long enable_depth_21ac_;
     srArray<srVertexProcessor*> vertex_processors_21b0_;

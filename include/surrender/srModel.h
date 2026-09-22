@@ -8,7 +8,7 @@ class srGERD;
 
 class SR_DLL_IMPORT srModel : public srClassSupport<srModel, srClass, true, 0x2000> {
 public:
-    class Client {
+    class SR_DLL_IMPORT Client {
     public:
         enum e_update {};
 
@@ -23,6 +23,7 @@ public:
         Client* getPrevClient() const;
 
     private:
+        friend class srModel;
         srPtr<srModel> model_04;
         Client* previous_08;
         Client* next_0c;
@@ -30,11 +31,17 @@ public:
 
     srModel();
     srModel(const srModel& other);
+    srModel& operator=(const srModel& other);
+    friend class Client;
 
+#if defined(SURRENDER_BUILD)
+    static const char* sGetClassName();
+#else
     static const char* sGetClassName()
     {
         return "srModel";
     }
+#endif
 
     virtual void dump(std::ostream& stream) override;
 

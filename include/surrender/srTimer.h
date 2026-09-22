@@ -110,7 +110,7 @@ protected:
 
     static int __stdcall getTick(srQuadWord* out);
     static int __stdcall RDTSC(srQuadWord* out);
-    static unsigned short osThreadState;
+    static short osThreadState;
     static char osIdent[0x400];
     static unsigned short cpuFreqVariancePct;
     static const char* default_storage;

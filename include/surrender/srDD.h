@@ -2,9 +2,11 @@
 
 #include "srFlags.h"
 #include "srMath.h"
+#include "srPixelConvert.h"
 #include "srRendererDefs.h"
 #include "srShader.h"
 
+class srARGB;
 class srDD;
 
 // Dynamic driver entrypoints, proven by DirectX7 and the srGERD loader.
@@ -32,10 +34,57 @@ class srDDEmptyBase {};
 
 class __declspec(novtable) srDD : public srDDEmptyBase {
 public:
-    struct Palette;
-    struct Texture;
+    /* srGERD::changeTexture fills the device palette record at its +0x1f50
+       from srPalette::getPaletteDataPtr/getPaletteSize and passes it to
+       bindPalette; invalidatePalette hands the same record to deletePalette.
+    */
+    struct Palette {
+        const srARGB* data_00;
+        unsigned long size_04;
+        unsigned long flags_08;
+    };
+    /* Device pixel format written by srGERD::convertPixelFormat: the channel
+       bit/shift bytes, surface type and bytes-per-pixel-minus-one of
+       srPixelConvert::PixelFormat without its trailing flags word. */
+    struct PixelFormat {
+        unsigned char red_bits;
+        unsigned char red_shift;
+        unsigned char green_bits;
+        unsigned char green_shift;
+        unsigned char blue_bits;
+        unsigned char blue_shift;
+        unsigned char alpha_bits;
+        unsigned char alpha_shift;
+        /* +8 conversion class of srPixelConvert::PixelFormat, copied
+           verbatim by convertPixelFormat. */
+        long conversion_class;
+        long bytes_per_pixel_minus_one;
+    };
+    /* Device texture record embedded at +0x2c of srGERD::Texture and handed
+       to bindTexture/deleteTexture. evaluateTextureDimensions and
+       evaluateTexturePixelFormat fill it from the interface's Dimensions;
+       allocTextureData lays out per-level data pointers in levels_38. */
+    struct Texture {
+        unsigned long flags_00;
+        PixelFormat format_04;
+        float priority_14;
+        unsigned long last_use_18;
+        unsigned long size_1c;
+        unsigned long width_20;
+        unsigned long height_24;
+        unsigned long first_level_28;
+        unsigned long last_level_2c;
+        unsigned long format_index_30;
+        unsigned long parameter_34;
+        void* levels_38[12];
+        unsigned long unknown_68;
+        unsigned long unknown_6c;
+        /* markTextureAsDeleted sets this once the texture is on the
+           GERD-side deleted list. */
+        unsigned long deleted_70;
+        unsigned long resident_74;
+    };
     struct BufferCommand;
-    struct PixelFormat;
     struct DriverInfo;
     struct Info;
     struct Statistics;
@@ -55,9 +104,9 @@ public:
         long x, y, width, height;
         unsigned long extra[4];
     };
-    /* applyFrameStateChanges builds this 0x20-byte record: dirty bits remap
-       3->8, 0->1, 1->4, 2->2 into flags_00, followed by gamma, a constant
-       1.0f, swap interval, antialias and the enable_flags low bit. */
+    /* srGERD::applyFrameStateChanges packs the frame dirty bits, gamma,
+       a constant 1.0f, swap interval, antialias mode and enable bit 0 into
+       this 0x20-byte block and passes it to update(). */
     struct Update {
         unsigned long flags_00;
         srVector3T<float> gamma_04;
@@ -66,7 +115,12 @@ public:
         unsigned long antialias_18;
         unsigned long enabled_1c;
     };
-    struct TexParms;
+    /* srGERD::setTextureParameters repacks the texture's Parameters into
+       this per-stage record and passes it to the device. */
+    struct TexParms {
+        unsigned long packed_00;
+        float mipmap_bias_04;
+    };
 
     enum e_error {};
     enum e_buffer {};

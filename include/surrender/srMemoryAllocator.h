@@ -4,18 +4,14 @@
 
 class srMemoryAllocator {
 public:
-    enum e_alignSize {
-        ALIGN_SIZE_32 = 0x20
-    };
+    enum e_alignSize { ALIGN_SIZE_32 = 0x20 };
 
     SR_DLL_IMPORT srMemoryAllocator();
     SR_DLL_IMPORT ~srMemoryAllocator();
-    SR_DLL_IMPORT srMemoryAllocator& operator=(
-        const srMemoryAllocator& other);
+    SR_DLL_IMPORT srMemoryAllocator& operator=(const srMemoryAllocator& other);
 
     SR_DLL_IMPORT void* allocate(unsigned long size, const char* name);
-    SR_DLL_IMPORT void* allocate(
-        unsigned long count, unsigned long size, const char* name);
+    SR_DLL_IMPORT void* allocate(unsigned long count, unsigned long size, const char* name);
     SR_DLL_IMPORT void dump() const;
     SR_DLL_IMPORT void free(void* allocation);
     SR_DLL_IMPORT const char* getName(void* allocation) const;
@@ -27,7 +23,9 @@ private:
         Block* next_00;
         Block* previous_04;
         void* raw_allocation_08;
-        const char* name_0c;
+        /* Written through by allocate's strcpy - mutable storage despite the
+           read-only getName accessor. */
+        char* name_0c;
         unsigned long allocation_size_10;
         unsigned long requested_size_14;
         unsigned long reserved_18[2];
@@ -42,5 +40,4 @@ private:
     int clear_10;
 };
 
-static_assert(sizeof(srMemoryAllocator) == 0x14,
-              "srMemoryAllocator_must_be_0x14");
+static_assert(sizeof(srMemoryAllocator) == 0x14, "srMemoryAllocator_must_be_0x14");
