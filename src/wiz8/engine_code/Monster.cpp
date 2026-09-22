@@ -3957,10 +3957,9 @@ W8MonsterShakeCallback::~W8MonsterShakeCallback() {}
 // W8MonsterShakeCallbackBase::`scalar deleting destructor'
 
 /* Cycle 25 launches either the queued spell visual or the monster's pending
-   spell action when its animation crosses the configured frame. The cast
-   returns the stamina charge; passing that value straight to FatigueMonster
-   is why MonsterCastsSpell cannot have the void return type previously used
-   by Magic.cpp. */
+   spell action when its animation crosses the configured frame. The cast's
+   return is the stamina charge passed directly to FatigueMonster, establishing
+   MonsterCastsSpell's non-void return. */
 // FUNCTION: WIZ8 0x004c74d0
 void W8Monster::HandleAnimationFrame004C74D0(unsigned char previous_frame)
 {

@@ -178,8 +178,6 @@ extern int g_load_category_palettes_648c48[5];
    party strip. */
 extern int g_race_portrait_images_64cda0[0x30];
 
-/* Camp-screen gap functions, declared here for the call sites in
-   RCSCommon.cpp and RCSItemsPage.cpp. */
 void SwitchCampPage005A4540(int page);
 void ClearOtherRealmFilters005A49D0(unsigned int realm);
 void RebuildCampItemList005A4A00(void);

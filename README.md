@@ -29,9 +29,7 @@ There are three useful views of the reconstruction:
   exercised under Wine.
 
 The runnable build is intentionally incomplete. Unrecovered first-party calls trap instead of being
-silently replaced with fake implementations. The automated runtime suite currently reaches the main
-menu, the new-game path, and main-game startup, and exercises several gameplay subsystems such as
-party movement, NPC dialogue, search mode, audio, and monster generation.
+silently replaced with fake implementations.
 
 For exact, current recovery and matching statistics, developers can run:
 
@@ -70,7 +68,7 @@ is not used as an excuse to write decompiler-shaped or compiler-shaped C++.
 
 Some useful starting points are the
 [Wizardry executable overview](docs/targets/wiz8-executable.md),
-[recovered-source notes](docs/targets/wiz8-recovered-source.md), and
+[source and class model](docs/wiz8-source-model.md), and
 [data-format documentation](docs/wiz8-data-formats.md).
 
 ## Game files and licensing

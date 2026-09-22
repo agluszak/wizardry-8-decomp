@@ -60,7 +60,7 @@ Two further columns apply where a layout rather than a name is at stake:
 
 `sgp-source` is deliberately narrower than `original-source`: it also asserts the licence and
 non-commercial source handling described in
-[docs/libraries/sgp.md](libraries/sgp.md).
+[src/sgp/README.md](../src/sgp/README.md).
 
 ## `authority` vocabulary and its ceiling rule
 
@@ -132,7 +132,7 @@ address,claimed_name,owner,confidence,name_origin,authority,aliases
 Sir-Tech renamed it. Had the compile refuted the identity, the `sgp-source` token would simply never
 have been added and the row would have stayed at `external-semantic` — the ceiling rule makes that
 the only way to express the difference. See
-[docs/libraries/sgp.md](libraries/sgp.md).
+[src/sgp/README.md](../src/sgp/README.md).
 
 ## Authority ranking of the full source list
 
@@ -156,7 +156,7 @@ This is the ordering used when two sources disagree.
 Note that boundary authority and name authority diverge sharply in the middle of this table. The
 demo is "High" for boundaries and effectively absent for names; CodeView paths are "High" for
 ownership and give no function names at all. The `name_origin`/`authority` pair only governs names;
-boundary decisions are recorded in the cross-build model instead.
+boundary decisions live in the reviewed `evidence/reviewed/cross-build/` mappings, rejections, and oracle records.
 
 ## Why `Wiz8.exe` forces this
 

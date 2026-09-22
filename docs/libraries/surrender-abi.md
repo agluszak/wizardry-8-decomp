@@ -48,7 +48,7 @@ and may retain unresolved provider internals while recovery is incomplete.
 
 The recovered extension and VP loaders deliberately retain their calls to unrecovered
 `srConfig::get`, the `srConfig` global, `srDebugPrintf`, and `srStreamPrintf`. Consequently
-`SURRENDER` now uses `/FORCE:UNRESOLVED` explicitly as a comparison image. Those unresolved calls
+`SURRENDER` uses `/FORCE:UNRESOLVED` explicitly as a comparison image. Those unresolved calls
 are not stubs or retail self-imports. Do not deploy this image; recovering the configuration,
 heap/index ownership and logging dependency closure remains necessary before runtime use.
 
@@ -90,7 +90,7 @@ remain unrecovered; no empty replacement backend is built.
 
 Apply import/export and inline attributes where evidence reaches, not with a global import bypass.
 ZIP's `srZipOpener::open` at `0x1001080C` reads the `srStringTable` count directly from object+8;
-`getCount()` is now header-visible while retaining its exported out-of-line identity at
+`getCount()` is header-visible while retaining its exported out-of-line identity at
 `0x10003A60`. Its unnecessary ZIP import is gone. `srSystem` uses member-level visibility because
 class-wide export generated an assignment export absent from retail. Other class-wide declarations
 are not mechanically rewritten without comparable evidence.
@@ -188,23 +188,14 @@ Header layout is one header per substantial top-level SurRender type; nested typ
 owner (`srHuffman::BitIStream`, `srModeler::Polygon`, `srTextureIFace::Dimensions`). Do not split
 four-line nested records into their own files.
 
-| Class / family | Wizardry relevance | What we did / what remains |
-| --- | --- | --- |
-| `srHuffman` | Very high. Wiz8 imports BitIStream, BitOStream, Sampler, Compressor, Decompressor and the bit/symbol APIs. Every Huffman IAT xref collapses to `BitArray::Load` (`0x0043aec0`) and `BitArray::Save` (`0x0043b0e0`) in `Engine Code\BitArray.cpp`. Octree assertions name `m_pAlphaBits->Load/Save(hOctFile)` and `m_pPropSunBits->Load/Save(hOctFile)` (magic `0xDEADD00D`). | Nested family recovered in `srHuffman.h`. `BitArray::Load` recovered; compare is now **0.780** because Save's EH in the same TU changed the prologue handler cookie (previously 0.981 on the decode-cursor vs `JBE` leftover). `BitArray::Save` recovered as straightforward C++: Sampler destroys its `srArray<Symbol>` member through folded local teardown (`0x004701b0`) plus the hash member, not the imported `~Sampler`. Remaining Save gap: non-isomorphic CFG (20 vs 27 blocks) from VC6 inlining header `Lookup`/`~srHashTable` and calling imported `~srBinOMStream` where retail `operator delete`s the buffer. Those helpers stay ordinary header definitions; no inline pragmas. |
-| `srVP` / `srVectorProcessor` | Very high. Wiz8 imports `?vp@srVectorProcessor@@0PAVsrVP@@A` at `0x005eb7e8`. Uses are far more than `stMeshModel`'s `minMax`: `FlushSlots00475600`, `FUN_0046e8a0`, `FUN_00472270`, `FUN_004729f0`, `FUN_0047f930`, `FUN_00486970`, `PrepareGeometry004B6F30` / `GDProp::Initialize`, and others. Confirmed CALLIND slots include `+0x10` `_memcopy(SRBYTE)`, `+0x30`/`+0x38` `_copy`, `+0xd4`/`+0xd8` `_add`, `+0x11c`/`+0x124` `_mul`, `+0x18c` `_minMax`. Offsets `+0x210`/`+0x218`/`+0x224` sit past the 100-slot table and are not vp methods. | `srVP.h` split from the facade. Header inlines added for the confirmed Wiz8 slots. `FillDwordBuffer00474700` / `AddFloatBuffer00474730` recovered next to `CopyDwordBuffer00470180`. Authored `_copy(SRDWORD*, SRDWORD, SRDWORD)` / `_add(float*, dest, source, count)` compare exact at retail CALLIND `+0x38` / `+0xd8`. `srDebugVP` is declared; ctor and `resetInternalStatistics` stay imported (layout past the wrapped `srVP*` is unproven). |
-| `srTextureFile` | High as an oracle. Wiz8 does not import it. `stTextureFile` (`0x10001`, sizeof `0x68`) shares SR's 17-slot interface (id `0x2112`, sizeof `0x64`); Wizardry adds `has_alpha_64`. | `srTextureFile.h` reconstructed. Slot list is commented on `stTextureFile`. |
-| `srBounder` | Medium. No Wiz8 string, ctor import, or registry construction. ClassID `0x1600`, vInstance allocates `0x1a8`. Mode at `+0x138`, `BoundInfo` at `+0x13c` (`0x2c`), 16 unknown dwords at `+0x168`. `registerClass` last arg is `0`, but the handwritten ctor still `registerInstance`s. | Class recovered in `srBounder.h` / `bounder.cpp`. Small methods and `sGetClassName` compare **exact**. Ctor/dtor stay inconclusive (EH plus support vtable `0x10076f64` then `registerInstance` before the derived vptr write). `vInstance` is 0.920: same `srHeap::allocate(0x1a8)` shape, unresolved allocate in the comparison image. `updateBounds` / `process` / `traverse` / `dump` / `getChildBoundingBox` / copy stay imported. |
-| `srModeler` | Already used: ctor, `createGrid`, `planarMap`, `scale`, `convert`, `discard`, `addPolygon`, `setMaterial`, `setShader`, nested Polygon/Vertex, plus `g_modeler_65963c` in Video2. | `srModeler.h`. Polygon/Vertex sizes from SR ctor (`Vertex` `0x110`, Polygon writes through `+0x40`). World-cursor cube hull `CreateWorldCursorCube0048D080` recovered in `stCube.cpp`; remaining gap is constructor emission (`FUN_00429d70` / imported `srMaterial` ctor vs `SR_NEW`, heap `srShader` vs stack value). |
-| `srShader` | Very high, used in particles, surfaces, meshes, levels, path rendering and the pipeline. | `srShader.h`. Remains an `unsigned long` value; no SR export names the bits. |
-| `srPixelConvert` | High. Video2 creates surfaces from its formats. | `srPixelConvert.h`. |
-| `srDD` / `srDebugDD` | Low. Video2 builds `srDD_%s` and calls `srGERD::loadDevice`; Wizardry never consumes the returned `srDD`. | `srDD` is the 43-slot virtual device (DebugDD vtable `0x100765f0` slots 0–42). Nested records stay incomplete. DebugDD wraps `srDD*` at `+0x04`; call times are 43 doubles at `+0x18`, counts 43 dwords at `+0x170`. Recovered dtor, `resetInternalStatistics`, `getFunctionCallCount`, `getFunctionCallTime`, and `increaseCallCount` compare **exact**. Ctor calibration loop and forwarding virtuals stay imported. |
-| `srModelIOManager` / `srHierarchyIOManager` | Currently low. Only `srCore` exposes them; no Wizardry calls to the getters. | Default ctors compare **exact** (`srIOManager()` plus derived vtable). `ImportInfo` / `ExportInfo` are one-byte classes. Nested importer/exporter empty ctors are compiler-ish declarations. `import*` / `export*` stay imported. `srCore` getters compare **exact**. |
-| `srVideoManager` | Currently low. Wizardry's recovered movie path uses Bink through `W8BinkVideo`. | Declared as an `srIOManager`. `VStream` is `0x80` from `openVStream`'s `operator new`. `Stream` / `VStream::init` / `decompress` / `openVStream` stay imported: Stream's virtual interface is unproven beyond CALLIND slots. |
-| `srEnvironmentMapper`, `srTriangulator`, exponent tables | No Wizardry path. Environment mapper appears only in provider vtable evidence. | `srEnvironmentMapper` is a vptr-only `srVertexProcessor`; default/copy ctor, `operator=`, dtor, and `isActive` (returns 1) compare **exact**. `process` stays imported (vertex-pipe internals). Global instance `srEnvironmentMapper` at `0x100A48CC`. `srTriangulator::sameSide` / `isInsideTriangle` compare **exact**; list/`next` stay imported. `srExponentTable` is `0x1004` (`float[1024]` plus exponent); ctor/`setExponent`/`getExponent` compare **exact**. `getValue` stays inconclusive: retail `FISTP`s `x*1023` while this TU emits `__ftol` with `-1023`/`SUB`. |
+Current recovery status is intentionally not tracked in this document. Use the
+consumer import observations, the canonical source declarations, and focused
+reccmp/report output for what is recovered or still missing; this page owns ABI
+rules and durable evidence, not a moving TODO/score table.
 
 `srCore` forward-declares `srHierarchyIOManager`, `srModelIOManager` and `srVideoManager`;
 the complete types live in `srImporter.h` / `srVideoManager.h`. Nested `srDD::*` records stay
-incomplete; `srDD.h` now carries the virtual device interface that `srDebugDD` implements.
+incomplete; `srDD.h` carries the virtual device interface that `srDebugDD` implements.
 
 ## The Wizardry side derives from these classes
 
@@ -214,7 +205,7 @@ constructors: `srMaterial` in a family of builders, `srLight` under
 virtually and adjust `this` through a vbtable displacement. So the surface has to support real
 derivation, not just calls.
 
-That is now proven possible. `W8VirtualFileBinIStream` derives from `srBinIStream`, with the virtual
+`W8VirtualFileBinIStream` derives from `srBinIStream`, with the virtual
 `srBinStream` base landing at `+0x10`, and its one recovered body stays byte-exact:
 
 | Table | Offset | Slots | Contents |
@@ -230,9 +221,7 @@ is independently fixed by the allocation its constructor's sole caller makes.
 One measurable consequence outside the game image: declaring `srBinIStream`'s second slot pure, which
 the exported vftable proves, makes the ZIP extension emit a `vtordisp` adjustor thunk for
 `srBinIMStream::getSize` that our source did not emit before. The original `srEXT_Unzip.dll` contains
-that thunk, so emitting it is the more faithful shape; it currently matches at 66.67%, and being a
-new imperfect row it lowers that target's reported accuracy average while making the class model
-closer to the original rather than further from it.
+that thunk, independently supporting the pure-slot declaration.
 
 ## srClassSupport is a real base, and srNode proves it
 
@@ -389,15 +378,11 @@ The slots:
 | `0x005ECB6C` | 13 | local, stMaterial's | `srMaterial::dump`, `srMaterial::verify` |
 | `0x005ECB38` | 13 | local, stMaterial's | `srMaterial::dump`, `srMaterial::verify` |
 
-This page previously concluded that these could not be one ladder, on the grounds that a derived
-class cannot replace an inherited method with a *different* class's, and left the sequence
-unexplained. That reasoning was wrong, and the uniform `srClass*` clone return supersedes it.
-
-The rule it applied holds only for a *final* vtable. These are construction and destruction tables,
-and during a base's phase the derived class's overrides are deliberately not yet installed, so slots
-3 and 4 legitimately still hold `srClass`'s implementations while the object is only an
-`srMaterialIFace` or an `srMaterial`. That is ordinary MSVC construction dispatch, not evidence of
-siblings.
+These are construction and destruction tables, not final vtables. During a base's
+construction/destruction phase the derived overrides are not installed yet, so slots 3 and 4
+legitimately still hold `srClass` implementations while the object is only an
+`srMaterialIFace` or an `srMaterial`. The uniform `srClass*` clone return and the
+single-inheritance flow make this ordinary MSVC construction dispatch, not evidence of siblings.
 
 Read as nested `srClassSupport` levels the sequence is exactly what the ABI predicts. The ascending
 8, 11, 13, 13 slot counts in construction order, one registration and one unregistration per level,
@@ -423,9 +408,8 @@ destructor behavior, and Wiz8's `0x0049e290` array growth allocates scalar
 storage, copies the overlapping elements, then deletes the old storage. Other
 Wiz8 callers of `0x004701b0` pass different two-word objects, so the address
 is a folded emission rather than evidence for a separate `W8OwnedPtr` class or
-one particular element type. The former stand-in has been removed. The
-template marker records the retail identity; the current recomp does not emit
-an independently comparable copy of that folded helper.
+one particular element type. The template marker records the retail identity
+without inventing a separate authored class for that folded helper.
 
 `srHeapArray` is a different family. Its `0x004701d0` teardown calls
 `srHeap.free`, and its preserving and scratch growth paths have different

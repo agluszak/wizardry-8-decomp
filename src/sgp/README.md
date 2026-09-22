@@ -68,6 +68,7 @@ both link this same archive. Extra retained comparison-image functions are a
 linker diagnostic, not a reason to build a different platform implementation.
 
 Ghidra owns live identities and types. Accepted source identities are projected
-from the ordinary provenance records into disposable reccmp data. The old
-cross-build observations remain in `evidence/snapshots/sgp/harness.csv`; they are
-historical results, not an active comparator, unit inventory, or current score.
+from ordinary provenance records into disposable reccmp data.
+`evidence/snapshots/sgp/harness.csv` is retained only as reviewed provenance for
+claims that still cite the proprietary-input cross-build observation; it is not
+an active comparator, unit inventory, or status report.

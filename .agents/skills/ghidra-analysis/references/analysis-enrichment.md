@@ -10,15 +10,14 @@ Known source/retail facts may enter the reviewed program. Speculative Param-ID,
 RTTI, or heuristic guesses must not land in reviewed GZF state. Soft inferences
 belong on disposable copies until they become independently established.
 
-**A category path is organization, not provenance.** Do not maintain two mutable
-runtime type graphs (for example root PDB Structures and a parallel
-`/wiz8/classes` copy set). One authoritative live Structure per class, bound to
-its `GhidraClass` namespace the way Ghidra and reccmp already expect.
+A category path is organization, not provenance. Keep one authoritative live
+Structure per class, bound to the `GhidraClass` namespace Ghidra and reccmp use;
+do not maintain a parallel mutable `/wiz8/classes` type graph.
 
 `doctor` reports reviewed-seed origin and source-projection freshness separately.
 A current seed does not imply current source projection.
 
-## Class binding (foundation)
+## Class binding
 
 Ghidra types automatic `this` through
 `VariableUtilities.findOrCreateClassStruct(function)` from the function's
@@ -27,97 +26,69 @@ category (typically `/ClassName`) and creates the matching class namespace.
 
 Enrichment must:
 
-1. Ensure the source class identity maps to that `GhidraClass`.
-2. Ensure the Structure `findExistingClassStruct` returns is the reviewed layout.
-3. Keep dynamic storage so auto `this` picks up that Structure.
-4. Keep `VtableResolver.classNamespace()` able to resolve the same class
-   (leaf-name fallback when category mapping is ambiguous).
+1. map the source class identity to that `GhidraClass`;
+2. make `findExistingClassStruct` resolve the reviewed Structure;
+3. keep dynamic storage so automatic `this` uses that Structure;
+4. let `VtableResolver.classNamespace()` resolve the same class, using the
+   leaf-name fallback only when the category mapping is ambiguous.
 
-**Collect/plan is read-only.** `collect_*` helpers use `find_ghidra_class` and
-emit `missing-class` / `create-class` actions; `ensure_ghidra_class` runs only
+Collect/plan is read-only. `collect_*` helpers use `find_ghidra_class` and emit
+`missing-class` / `create-class` actions; `ensure_ghidra_class` runs only
 inside apply transactions owned by `ghidra sync`.
 
-Custom storage is an exceptional ABI operation, not the normal way to pick a
-class Structure. Ordinary class-this typing **skips** functions that already
-have custom variable storage (`skip-custom-storage`) and never calls
-`setCustomVariableStorage(False)` to silence ABI. Explicit convention
-hard-disagreements are skipped rather than overridden to `__thiscall`.
+Custom variable storage is an ABI fact, not a normal class-typing mechanism.
+Ordinary class-this typing skips functions that already use custom storage and
+does not disable custom storage to force a convenient `this` type. Explicit
+calling-convention disagreements are reported rather than overwritten.
 
-Synthetic `wiz8::classes::…` namespaces must not be invented to justify a
-directory layout.
+The ordinary, derived, and secondary-base cases are integration-tested through
+the lifecycle fixture and `tests/ghidra/test_class_binding_integration.py`.
 
-Acceptance cases (ordinary method, derived, secondary-base) should bind without
-custom storage. Full ProgramBuilder / lifecycle-fixture coverage is required for
-those shapes; CI gates that via ``tests/ghidra/test_class_binding_integration.py``
-after the recovery lifecycle self-test. Unit tests document the policy and skip
-cleanly when the fixture project is unavailable (see ``tests/unit/test_class_binding.py``
-and ``tests/unit/test_enrichment_ghidra.py``).
+## Projection rules
 
-## Ordered work
+- Compiler-backed PDB procedure/member-function definitions, unions, bools and
+  varargs come from the pinned reccmp importer. Do not duplicate that parsing
+  in project-specific declaration code.
+- `callback_typing` and `function_attributes` are narrow audit/fallback
+  layers for already-named sites. Compiler-backed
+  `Pointer(FunctionDefinition)` fields are left alone. Do not grow manual
+  callback-family inventories.
+- Type-graph projection reconciles fields onto the one bound Structure.
+  Equal-authority disagreements remain conflicts; do not use "richer wins".
+  Legacy `/wiz8/classes` copies are cleanup targets, not a second owner.
+- Vtable census extents are preserved. Unresolved slots stay explicit rather
+  than being truncated. Slot ABI comes from the source declaration when
+  available, then source-backed live analysis, then the callee.
+- Secondary-table `this` is the base subobject, or a proven ComponentOffset
+  view of it. Construction/base tables never retarget the complete-object
+  `vfptr`.
+- Vbtables remain integer displacements. ComponentOffset is applied only to an
+  already-present `VBasePtr` / `o_*` pointer or a proven secondary-subobject
+  receiver; never invent one from a generic offset.
+- SurRender IAT sync projects calling conventions and resolved demangled types
+  onto thunk/external imports and types the IAT cell itself. A fully resolved
+  callable contract is `IMPORTED`; convention-only evidence remains
+  `ANALYSIS`. Ordinary `CALL [IAT]` callers are not the import.
+- `uv run wiz8 analyze parameter-id` is collect-only. Never apply it over
+  `IMPORTED` or `USER_DEFINED` signatures or silently promote it into sync.
+- The Java recovery engine uses its recovery decompiler profile; ordinary
+  `ghidra decompile` uses the analysis profile. Diagnostic profile differences
+  are not evidence for source changes.
+- `decompiler-quality` and `high-function-debt` measure the current ProgramDB.
+  They do not apply facts or create reviewed evidence.
 
-| Step | Goal | Status |
-| --- | --- | --- |
-| Foundation | Source class ↔ `GhidraClass` ↔ Structure binding; auto `this` without custom storage | `class_binding` plus sync-owned class-this / class-structure projection |
-| 10 | Objective decompiler-quality benchmark (oracle + pain) | `wiz8 analyze decompiler-quality` |
-| 1 | Calling-convention / prototype repair before Param ID | source-backed conventions applied by `wiz8 ghidra sync` |
-| 2 | One ProgramDB apply path | `wiz8 ghidra sync`; no trial/promote choreography |
-| 5–8 | Globals, callbacks, CF, attributes | applied by the same sync; see notes below |
-| 9 | Dual decompiler profiles | Ordinary `ghidra decompile` uses one analysis-profile session. Java `RecoveryEngine` stays on the recovery profile and is not an unavoidable cost of asking for one function |
-
-Score a sync with `uv run wiz8 analyze decompiler-quality` before promoting the
-live project into a reviewed GZF.
-
-## Projection notes
-
-Parser template/qualifier bugs on the Wiz8 side are closed (digit-only array
-extents, order-independent qualifier stripping). **reccmp importer gaps for
-`LF_PROCEDURE`, unions, trailing `T_NOTYPE` variadics, and `T_BOOL08` are fixed
-upstream** (pin `76ba6f9a` on the current matching lineage). Curated
-`callback_typing` / `function_attributes` still exist as audit/fallback for
-already-named field sites; compiler-backed `Pointer(FunctionDefinition)` fields
-are left alone (`compiler-backed`). Do not expand callback families. Resolve
-Wizardry callback field sites through class identity → `GhidraClass` →
-`find_class_structure()`, never `/wiz8/classes`. Keep `/_GUI_BUTTON` and
-`/_MOUSE_REGION` as absolute paths. `_field_already_typed` compares
-FunctionDefinition ABI contracts (parameter names are not ABI).
-
-1. **Class binding first** — ordinary, derived, and secondary-base cases without custom storage. *(done)*
-2. **Compiler projection** — extend reccmp importer gaps (callbacks/unions/variadics) upstream; retire overlapping handwritten declaration parsers only after that lands.
-3. **Type graph projection** — identity map + field reconciliation onto bound Structures. Nested Pointer/Array/Structure/Union/FunctionDef refs remap through `class_binding`; equal-richness disagreements are `conflict` (never richer-wins). Opaque shells + rich evidence → `reconcile-fields`. *(done)*
-4. **Legacy `/wiz8/classes` leftovers** — historical split identities remain in reviewed seed as agreeing duplicates (replaceable), field/size mismatches (conflict), and leftover copies with no non-legacy `/ClassName` Structure yet. Do not invent a second apply command for that cleanup.
-
-`stLight::vInstance` (`0x0049e3a0`) pain +1 was a false `updateCategoryPath=True`
-move plus a later leftover `replaceDataType`/`remove()`, which untyped `this` to
-`undefined4` so the decompiler emitted `(void *)0x0`. Source is
-`return new stLight(0);`. With `updateCategoryPath=False` and a `/stLight` path
-lookup even when the parent is still a plain Namespace, the leftover copy
-disappears and `this` becomes `/stLight *`. `ensure_ghidra_class` is a separate
-step so auto `this` can bind. Do not add +1 tolerance.
-
-5. **Vtable slots as ABI declarations** — census extents preserved (unresolved slots marked, never silently truncated). Construction and agreement share `desired_slot_contract` (source declaration, else source-backed live function, else callee). Unresolved source types skip the table rather than silently demoting to analysis. Parameter names are not ABI. Namespace-safe `/wiz8/vftables/…` paths landed; source-index `base_vtables` (for-clause / secondary base) are typed. Secondary slot `this` is the Base subobject (or a proven Derived ComponentOffset), not the Derived implementation body. Derived-specific subobject views live under `/wiz8/subobjects/Derived/Base_at_0x20` and replace the Base component inside Derived; canonical `/Base` stays untouched. Unmarked construction-phase tables that share a census construction family with a marked table are typed as `Class_vftable_ctor` and do not retarget the complete-object `vfptr`. Secondary `vfptr`/`vbptr` fields retarget only at a unique incoming-ECX offset. Confirmed vbtables installed by the same lifecycle function as a marked vftable are typed under `/wiz8/vbtables` as integer displacements; existing `VBasePtr`/`o_*` PointerTypedefs at `vbptr + displacement` may receive a ComponentOffset, but those typedefs are never invented.
-6. **Validation** — `decompiler-quality` and `high-function-debt` measure current ProgramDB. They do not apply facts.
-
-## Follow-through (landed with this architecture)
-
-1. **reccmp `LF_PROCEDURE` / `LF_MFUNCTION`** as FunctionDefinitions; trailing `T_NOTYPE` → varargs; `LF_UNION` writes `UnionDataType`; `T_BOOL08` maps to Ghidra `bool` (wider PDB bools stay integers). Procedure definitions at `/pdb/procedures/PDB_xxxx` are refreshed in place (`REPLACE`, not `KEEP`). `overwrite_ghidra_function()` always writes `setVarArgs`. Plain leaf Namespaces are converted to `GhidraClass`. Unsupported PDB leaves are censused (not implemented speculatively). Pin is the current matching lineage plus that importer. Master's indexer currently SIGSEGVs after `bounder.cpp`, so the pin is not default master.
-2. **SurRender IAT ABI** — sync projects CSV calling conventions and resolved demangled types onto thunk/external imports, and types the IAT cell itself (`Pointer(FunctionDefinition)` for callables; `T*`/`T**`/vftable pointer for data rows). Each imported callable gets a unique FunctionDefinition at `/wiz8/surrender-iat/functions/<iat-address>_<symbol>`; callbacks at `/wiz8/surrender-iat/callbacks/` share only when the complete contract matches. Exact audit compares calling convention, return type, every parameter type, varargs, and thiscall `this`. External prototype agreement and IAT-cell type are independent facts. Ordinary `CALL [IAT]` callers never qualify as the import. Full resolved ABI → `IMPORTED`; convention-only → `ANALYSIS`. Nested `ns::X` datatypes resolve at `/ns/X` before class binding.
-3. **Parameter ID** is `uv run wiz8 analyze parameter-id`: collect-only investigation. It must not silently become an established sync fact. Never apply it to IMPORTED/USER_DEFINED signatures.
-4. **Secondary / for-clause vtables** — `vftable_typing` consumes source-index `base_vtables`, unmarked construction-phase census families, and confirmed vbtables. Slot ABI for `Derived::{for Base}` comes from Base's virtual slot. Construction/base tables never retarget the complete-object `vfptr`.
-5. **vbptr ComponentOffset** — reccmp no longer writes a generic `-4`. Enrichment sets ComponentOffset only on already-present `VBasePtr`/`o_*` PointerTypedefs at a vbtable-proven virtual-base offset, or on proven secondary-subobject `this` receivers. Vbtables stay integer displacements.
-6. **Recovery decompiler profile** — Java `RecoveryEngine` uses compiled-in defaults plus explicit recovery knobs (does not `grabFromProgram`). Prettier transformations stay off the recovery profile.
-7. **HighFunction census** — `wiz8 analyze high-function-debt` (CAST/CALLIND, untyped `this`/params/return, untyped CALLIND, *suspicious* PTRADD/PTRSUB, unaff locals, ranked by debt × callers); typed PTRSUB to a known component and matching PTRADD are healthy. Not part of the decompiler-quality debt gate.
-
-Do **not** bulk-import PDB locals into retail Ghidra, guess enums/bools from value patterns, or add more manual callback families.
-
-Also deferred:
-
-- **RTTI on `Wiz8.exe`**: retail is `/GR-`. Optional probes on RTTI-bearing modules only.
-- **FID / source-backed library signatures**: next broad lane after C++ subobject work.
+Do not bulk-import PDB locals into retail Ghidra, guess enums/bools from value
+patterns, or add more manual callback families.
 
 ## Enrichment discipline
 
-1. Repair obvious calling conventions and known signatures from compiler-backed facts.
-2. Bind classes so auto `this` and the exporter share one Structure.
-3. Only then consider `uv run wiz8 analyze parameter-id` on disposable candidates.
-4. Project globals/callbacks/vftables through the same identity map.
-5. Apply through `wiz8 ghidra sync`; do not treat a second live apply of a subset as equivalent.
+1. Repair calling conventions and known signatures from compiler-backed facts.
+2. Bind classes so automatic `this` and the exporter share one Structure.
+3. Project globals, callbacks, class fields, vftables and vbtables through the
+   same identity map.
+4. Use Param-ID only as a disposable investigation when established facts are
+   insufficient.
+5. Apply reviewed facts through `wiz8 ghidra sync`; do not treat a second live
+   apply path for a subset as equivalent.
+6. Measure the resulting ProgramDB with
+   `uv run wiz8 analyze decompiler-quality` when quality changes are the task.
