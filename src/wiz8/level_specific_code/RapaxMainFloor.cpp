@@ -43,7 +43,7 @@ bool RapaxMainFloorAltarBox004DA3C0(Trigger* pTrigger)
         if (FindEntityByName("NP_Al-Sedexus", &position, 0, 0)) {
             SpawnMonsters(0x124, 1, &position, 0, 1, 0, 0);
         }
-        pTrigger->value_23c = 0x1fc;
+        pTrigger->required_item_id = 0x1fc;
     }
     return true;
 }

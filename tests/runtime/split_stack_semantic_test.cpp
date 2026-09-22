@@ -54,12 +54,12 @@ bool RunSplitStackSemanticTest(SplitStackSemanticResult* result)
     result->stackable_item_found = 1;
 
     memset(&source, 0, sizeof(source));
-    source.item_id = item_id;
+    source.iItemNo = item_id;
     source.stack_count = 6;
     saved_cursor = g_status_685170.item_in_cursor;
     saved_hand = g_status_685170.item_in_hand_235b;
     g_status_685170.item_in_cursor = 0;
-    g_status_685170.item_in_hand_235b.item_id = -1;
+    g_status_685170.item_in_hand_235b.iItemNo = -1;
 
     /* The constructor picks the split count: half the stack for stacks whose
        record allows more than ten, one for small-capacity stacks. */
@@ -89,7 +89,7 @@ bool RunSplitStackSemanticTest(SplitStackSemanticResult* result)
         cancel_dialog->split_result_0c8 = g_split_result_kind_005efb44 + 1;
         SplitStackDialogResult005BAA80(cancel_dialog);
         result->cancel_leaves_stack =
-            source.stack_count == 6 && g_status_685170.item_in_hand_235b.item_id == -1;
+            source.stack_count == 6 && g_status_685170.item_in_hand_235b.iItemNo == -1;
         delete cancel_dialog;
     }
 

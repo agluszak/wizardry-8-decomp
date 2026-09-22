@@ -17,7 +17,7 @@
    edges are rotated off the camera forward vector; retail never writes it, so
    both rotations collapse to zero and the triangle degenerates to a ray. */
 // GLOBAL: WIZ8 0x005ED168
-float g_float_005ed168;
+float g_float_005ed168 = 0.01745329424738884f;
 
 /* Camera-visible quad-cell coordinates and count: rows[]/cells[] index pairs
    into W8Quad, filled by CollectViewQuadCells004BA530 and consumed by
@@ -306,8 +306,7 @@ static void RasterizeQuadTriangle004BABE0(W8World* world, long x1, long y1, long
         ScanQuadTriangleBase004BAA00(world, x1, y1, x2, y2, x3, y3, x_list, y_list, count);
         return;
     }
-    long split =
-        static_cast<long>(static_cast<float>(x3 - x1) * (y2 - y1) / (y3 - y1));
+    long split = static_cast<long>(static_cast<float>(x3 - x1) * (y2 - y1) / (y3 - y1));
     int emitted =
         ScanQuadTriangleBase004BAA00(world, x1, y1, x1 + split, y2, x2, y2, x_list, y_list, count);
     ScanQuadTriangleTop004BA800(world, x2, y2, x1 + split, y2, x3, y3, x_list, y_list, count,

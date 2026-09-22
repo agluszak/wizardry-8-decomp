@@ -24,8 +24,8 @@ char HandleRecordModeKey005E3610(const InputAtom* input, void (*prompt)(void)); 
 void ApplyRecordModeLine005E34B0(void);                                         /* 0x005E34B0 */
 void PromptRecordModeEntry005E35A0(void);                                       /* 0x005E35A0 */
 unsigned char GetTable650434Entry(int trap, int device);
-/* Picks the trigger's trap type (value_37c) by rejection-rolling a table row
-   whose difficulty sits within four of the trigger's grade (value_36c). */
+/* Picks the trigger's trap type (device_id) by rejection-rolling a table row
+   whose difficulty sits within four of the trigger's grade (difficulty). */
 void SelectTrapType005E3740(Trigger* trigger); /* 0x005E3740 */
 /* Finishes a successful disarm: completes the item interaction, rolls the
    learn chance, prints the "<trap> disarmed" line and runs the trigger. */

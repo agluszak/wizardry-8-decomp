@@ -3004,11 +3004,13 @@ unsigned char W8PathingService::ResolvePathCell004648D0(unsigned int key,
    0 north, 1 north-west, 2 west, 3 south-west, 4 south, 5 south-east, 6 east,
    7 north-east. */
 // GLOBAL: WIZ8 0x00608280
-static float s_path_direction_x_00608280[8] = {0.0f, -0.70710677f, -1.0f, -0.70710677f,
-                                               0.0f, 0.70710677f,  1.0f,  0.70710677f};
+static float s_path_direction_x_00608280[8] = {
+    0.0f, -0.7071070075035095f, -1.0f, -0.7071070075035095f,
+    0.0f, 0.7071070075035095f,  1.0f,  0.7071070075035095f};
 // GLOBAL: WIZ8 0x006082a0
-static float s_path_direction_z_006082a0[8] = {-1.0f, -0.70710677f, 0.0f, 0.70710677f,
-                                               1.0f,  0.70710677f,  0.0f, -0.70710677f};
+static float s_path_direction_z_006082a0[8] = {
+    -1.0f, -0.7071070075035095f, 0.0f, 0.7071070075035095f,
+    1.0f,  0.7071070075035095f,  0.0f, -0.7071070075035095f};
 
 /* Sum the blocked-direction unit vectors among the directions `delta` points
    toward; the normalized sum is the slide direction. `mask` uses the

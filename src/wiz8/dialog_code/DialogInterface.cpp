@@ -16,13 +16,13 @@
  */
 
 // GLOBAL: WIZ8 0x0064fde8
-int g_dialog_font_64fde8;
+int g_dialog_font_64fde8 = -1;
 // GLOBAL: WIZ8 0x0069ca32
 BOOLEAN g_dialog_font_enabled_69ca32;
 // GLOBAL: WIZ8 0x0064fdec
-unsigned char g_dialog_font_foreground_64fdec;
+unsigned char g_dialog_font_foreground_64fdec = 255;
 // GLOBAL: WIZ8 0x0064fded
-unsigned char g_dialog_font_background_64fded;
+unsigned char g_dialog_font_background_64fded = 255;
 
 // FUNCTION: WIZ8 0x005cf280
 W8DialogBase* CreateCharacterSummaryDialog(W8Character* character)

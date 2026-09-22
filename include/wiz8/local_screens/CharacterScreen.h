@@ -221,6 +221,10 @@ public:
     W8TextControl* m_attribute_controls_08c[5];
 };
 static_assert(sizeof(W8CharacterPage005EF778) == 0xa0, "W8CharacterPage005EF778_size");
+/* Retail places the secondary bases W8CharacterStatsRowListener005EF768 at
+   +0x70, W8CharacterPageEntryListener at +0x74 and W8TextControl::Listener at
+   +0x78; the rows begin at +0x7c. */
+W8_ASSERT_BASE_END(W8CharacterPage005EF778, W8TextControl::Listener, m_profession_row_07c, 0x78);
 
 struct W8CharacterSpellEntry {
     int realm;
@@ -269,6 +273,8 @@ private:
     unsigned int m_last_selected_620;
 };
 static_assert(sizeof(W8CharacterPage005EF664) == 0x624, "W8CharacterPage005EF664_size");
+/* Retail places the W8CharacterSpellListListener secondary base at +0x70,
+   immediately after the 0x70-byte W8CharacterPage primary base. */
 
 class W8CharacterPage005EF5C8 : public W8CharacterPage, public W8CharacterPageEntryListener {
 public:
@@ -292,6 +298,8 @@ private:
     unsigned char unknown_077;
 };
 static_assert(sizeof(W8CharacterPage005EF5C8) == 0x78, "W8CharacterPage005EF5C8_size");
+/* Retail secondary vftable 0x005ef5c0 places W8CharacterPageEntryListener at
+   +0x70, immediately after the 0x70-byte W8CharacterPage primary base. */
 
 class W8CharacterPage005EF57C : public W8CharacterPage,
                                 public W8ControlSelectionListener,
@@ -329,6 +337,9 @@ private:
     unsigned char pad_0ff;
 };
 static_assert(sizeof(W8CharacterPage005EF57C) == 0x100, "W8CharacterPage005EF57C_size");
+/* Retail secondary vftables 0x005ef578/0x005ef570 place
+   W8ControlSelectionListener at +0x70 and W8TextControl::Listener at +0x74,
+   immediately after the 0x70-byte W8CharacterPage primary base. */
 
 W8CharacterPage005EF778* CreateCharacterPage005CBA90();
 W8CharacterPage005EF664* CreateCharacterPage005C8DE0();
@@ -446,6 +457,8 @@ public:
     unsigned char pad_1b25[3];
 };
 static_assert(sizeof(W8CharacterScreen) == 0x1b28, "W8CharacterScreen_size");
+/* Retail secondary vftable 0x005ef21c places W8TextControl::Listener at +0x4. */
+W8_ASSERT_BASE_END(W8CharacterScreen, W8TextControl::Listener, m_mode_008, 0x4);
 
 extern W8CharacterScreen* g_character_screen_0069c2e8;
 

@@ -95,3 +95,6 @@ protected:
 };
 
 static_assert((sizeof(srModelInstance) == 0x160), "srModelInstance_must_be_0x160");
+/* Retail places the srModel::Client subobject at +0x138; the model instance's
+   own members begin at +0x148. */
+W8_ASSERT_BASE_END(srModelInstance, srModel::Client, alignment_flags_148, 0x138);

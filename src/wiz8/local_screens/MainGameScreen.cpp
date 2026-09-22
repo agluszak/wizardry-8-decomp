@@ -264,10 +264,14 @@ const wchar_t g_format_s_006068e4[] = L"%s";
 const wchar_t g_format_d_s_paren_d_slash_d_slash_d_00648170[] = L"%d %s (%d/%d/%d)";
 
 // GLOBAL: WIZ8 0x00647f84
-int g_monster_list_right_647f84;
+#pragma bss_seg(".data")
+int g_monster_list_right_647f84 = 0;
+#pragma bss_seg()
 
 // GLOBAL: WIZ8 0x00647f88
-int g_monster_list_bottom_647f88;
+#pragma bss_seg(".data")
+int g_monster_list_bottom_647f88 = 0;
+#pragma bss_seg()
 
 // GLOBAL: WIZ8 0x006481b4
 const wchar_t g_format_s_colon_s_paren_d_006481b4[] = L"%s: %s (%d)";
@@ -285,7 +289,7 @@ const wchar_t g_format_s_paren_d_0061a700[] = L"%s (%d)";
 // GLOBAL: WIZ8 0x0061c3e0
 const wchar_t g_format_s_colon_s_0061c3e0[] = L"%s: %s";
 // GLOBAL: WIZ8 0x0064da8c
-const wchar_t g_format_s_spaced_colon_0064da8c[] = L" %s : ";
+const wchar_t g_format_s_spaced_colon_0064da8c[] = L"%s :  ";
 
 // GLOBAL: WIZ8 0x005ec258
 const float g_float_005ec258 = 0.019999999552965164f;
@@ -320,7 +324,11 @@ extern unsigned char g_flag_00652da7;
 /* Insanity (spell 0x3c) world-cursor extent rows: six doubles per row.
    Three rows fill through 0x00616f40, immediately before the power index. */
 // GLOBAL: WIZ8 0x00616eb0
-double g_world_cursor_extent_table_00616eb0[18];
+double g_world_cursor_extent_table_00616eb0[18] = {
+    -750.0,  0.0, -750.0,  750.0,  1349.9999642372131, 750.0,
+    -1125.0, 0.0, -1125.0, 1125.0, 2024.9999463558197, 1125.0,
+    -1500.0, 0.0, -1500.0, 1500.0, 2699.9999284744263, 1500.0,
+};
 /* Per spell-power index into g_world_cursor_extent_table_00616eb0. The
    Insanity cursor reads it byte-indexed by the power field; the eleven bytes
    run to 0x00616f4c, where the separate Magic Effects dword table starts. */
@@ -894,13 +902,13 @@ W8LockInteraction::W8LockInteraction(Trigger* trigger) : m_timer_80()
 
     m_trigger_08 = trigger;
     m_state_34 = 0;
-    m_tumbler_count_0c = trigger->value_36c;
+    m_tumbler_count_0c = trigger->difficulty;
     if (m_tumbler_count_0c < 2) {
         m_tumbler_count_0c = 2;
     } else if (m_tumbler_count_0c > 8) {
         m_tumbler_count_0c = 8;
     }
-    m_tumbler_panel_10 = new W8LockTumblerPanel(m_tumbler_count_0c, trigger->state_370.bytes_01);
+    m_tumbler_panel_10 = new W8LockTumblerPanel(m_tumbler_count_0c, trigger->device_state.pins);
     m_tumbler_panel_10->m_listener_e8 = this;
     m_info_panel_14 = new W8LockInfoPanel(m_tumbler_count_0c);
     m_action_panel_18 = new Controls(0x1e7, 0x166, 0, 0, 0x1af, 0, 2);
@@ -1204,7 +1212,7 @@ void W8LockInteraction::ResolvePick()
     }
     m_slot_attempts_60[m_selected_slot_2c]++;
     m_tumbler_owner_38[m_picked_tumbler_30] = m_selected_slot_2c;
-    if (Random(5) == 0 && ConsumeLockQuality004457A0(&m_trigger_08->value_368) != 0) {
+    if (Random(5) == 0 && ConsumeLockQuality004457A0(&m_trigger_08->lock_type) != 0) {
         character = &g_status_685170.buffers.Char[m_selected_slot_2c];
         level = character->skills[10].level;
         PracticeCharacterSkill(character, 10, 1, 0);
@@ -2017,8 +2025,8 @@ void W8MainGameStatusPanel005EEBC0::Redraw()
 W8MainGameScreen::W8MainGameScreen(Trigger* owner)
     : m_owner_008(owner), m_state_018(0), m_target_14c(0), m_field_150(0)
 {
-    m_field_034 = owner->value_37c;
-    m_field_038 = owner->value_36c;
+    m_field_034 = owner->device_id;
+    m_field_038 = owner->difficulty;
     m_text_panel_00c = new W8MainGameTextPanel();
     m_text_panel_00c->m_screen_07c = this;
     m_status_panel_010 = new W8MainGameStatusPanel005EEBC0();
@@ -2596,12 +2604,13 @@ int OpenTrapInteraction0058A470(Trigger* trigger)
         gXStatus.fTrapInteract = 0;
         return 1;
     }
-    if (trigger->value_37c == -1) {
+    if (trigger->device_id == -1) {
         SelectTrapType005E3740(trigger);
     }
     g_main_game_screen = new W8MainGameScreen(trigger);
-    if (trigger->value_388 == -1 ||
-        0x3840 < static_cast<unsigned int>(g_status_685170.world_clock - trigger->value_388)) {
+    if (trigger->last_interaction_clock == -1 ||
+        0x3840 < static_cast<unsigned int>(g_status_685170.world_clock -
+                                           trigger->last_interaction_clock)) {
         event_type = g_effect_005ee5ec;
         if (0x13 < Random(100)) {
             event_type = g_value_0068c53c;
@@ -2613,7 +2622,7 @@ int OpenTrapInteraction0058A470(Trigger* trigger)
             event->dispatch_delay_start = GetTickCount();
         }
     }
-    trigger->value_388 = g_status_685170.world_clock;
+    trigger->last_interaction_clock = g_status_685170.world_clock;
     SoundPlay(s_trap_detect_64bcf0, 0);
     gXStatus.fTrapInteract = 0;
     return 1;

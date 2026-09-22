@@ -186,7 +186,7 @@ Trigger* FindTriggerForProp00443830(W8World* world, W8Prop* prop)
 
 /* Re-rolls the eight pin bytes of a pickable lock (lock_state[0] == 1) and
    resets its difficulty-derived seed/state fields. lock_state is
-   &Trigger::value_368. */
+   &Trigger::lock_type. */
 // FUNCTION: WIZ8 0x00445730
 void __fastcall UpdateTriggerLock00445730(int* lock_state)
 {
@@ -266,7 +266,7 @@ void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, bool restoring
 
     for (index = 0; index < trigger_count; ++index) {
         Trigger* trigger = *world->triggers->GetAt(index);
-        if (trigger->value_368 != 0) {
+        if (trigger->lock_type != 0) {
             ++saved_count;
         }
     }
@@ -277,24 +277,27 @@ void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, bool restoring
 
     for (index = 0; index < trigger_count; ++index) {
         Trigger* trigger = *world->triggers->GetAt(index);
-        if (trigger->value_368 != 0) {
+        if (trigger->lock_type != 0) {
             FileWrite(handle, trigger->name_01c, 0x80, 0);
             FileWrite(handle, &version, sizeof(version), 0);
             if (restoring) {
-                FileWrite(handle, &trigger->value_368, sizeof(trigger->value_368), 0);
-                FileWrite(handle, &trigger->value_36c, sizeof(trigger->value_36c), 0);
-                FileWrite(handle, &trigger->state_370.state, sizeof(trigger->state_370.state), 0);
-                FileWrite(handle, trigger->state_370.bytes_01, sizeof(trigger->state_370.bytes_01),
+                FileWrite(handle, &trigger->lock_type, sizeof(trigger->lock_type), 0);
+                FileWrite(handle, &trigger->difficulty, sizeof(trigger->difficulty), 0);
+                FileWrite(handle, &trigger->device_state.completed,
+                          sizeof(trigger->device_state.completed), 0);
+                FileWrite(handle, trigger->device_state.pins, sizeof(trigger->device_state.pins),
                           0);
-                FileWrite(handle, &trigger->value_37c, sizeof(trigger->value_37c), 0);
-                FileWrite(handle, &trigger->value_380, sizeof(trigger->value_380), 0);
-                FileWrite(handle, &trigger->value_384, sizeof(trigger->value_384), 0);
+                FileWrite(handle, &trigger->device_id, sizeof(trigger->device_id), 0);
+                FileWrite(handle, &trigger->key_id, sizeof(trigger->key_id), 0);
+                FileWrite(handle, &trigger->lock_countdown, sizeof(trigger->lock_countdown), 0);
             } else {
-                FileWrite(handle, &trigger->state_370.state, sizeof(trigger->state_370.state), 0);
-                FileWrite(handle, trigger->state_370.bytes_01, sizeof(trigger->state_370.bytes_01),
+                FileWrite(handle, &trigger->device_state.completed,
+                          sizeof(trigger->device_state.completed), 0);
+                FileWrite(handle, trigger->device_state.pins, sizeof(trigger->device_state.pins),
                           0);
-                FileWrite(handle, &trigger->value_384, sizeof(trigger->value_384), 0);
-                FileWrite(handle, &trigger->value_388, sizeof(trigger->value_388), 0);
+                FileWrite(handle, &trigger->lock_countdown, sizeof(trigger->lock_countdown), 0);
+                FileWrite(handle, &trigger->last_interaction_clock,
+                          sizeof(trigger->last_interaction_clock), 0);
             }
         }
     }
@@ -331,24 +334,25 @@ bool LoadTriggerRuntimeStates0043CCF0(int handle)
 
             if (restoring == 0 && version > 1) {
                 FileRead(handle, &record_version, sizeof(record_version), 0);
-                FileRead(handle, &scratch->state_370.state, sizeof(scratch->state_370.state), 0);
-                FileRead(handle, scratch->state_370.bytes_01, sizeof(scratch->state_370.bytes_01),
-                         0);
-                FileRead(handle, &scratch->value_384, sizeof(scratch->value_384), 0);
+                FileRead(handle, &scratch->device_state.completed,
+                         sizeof(scratch->device_state.completed), 0);
+                FileRead(handle, scratch->device_state.pins, sizeof(scratch->device_state.pins), 0);
+                FileRead(handle, &scratch->lock_countdown, sizeof(scratch->lock_countdown), 0);
                 if (record_version > 1) {
-                    FileRead(handle, &scratch->value_388, sizeof(scratch->value_388), 0);
+                    FileRead(handle, &scratch->last_interaction_clock,
+                             sizeof(scratch->last_interaction_clock), 0);
                 }
             } else {
                 FileRead(handle, &record_version, sizeof(record_version), 0);
-                FileRead(handle, &scratch->value_368, sizeof(scratch->value_368), 0);
-                FileRead(handle, &scratch->value_36c, sizeof(scratch->value_36c), 0);
-                FileRead(handle, &scratch->state_370.state, sizeof(scratch->state_370.state), 0);
-                FileRead(handle, scratch->state_370.bytes_01, sizeof(scratch->state_370.bytes_01),
-                         0);
-                FileRead(handle, &scratch->value_37c, sizeof(scratch->value_37c), 0);
-                FileRead(handle, &scratch->value_380, sizeof(scratch->value_380), 0);
+                FileRead(handle, &scratch->lock_type, sizeof(scratch->lock_type), 0);
+                FileRead(handle, &scratch->difficulty, sizeof(scratch->difficulty), 0);
+                FileRead(handle, &scratch->device_state.completed,
+                         sizeof(scratch->device_state.completed), 0);
+                FileRead(handle, scratch->device_state.pins, sizeof(scratch->device_state.pins), 0);
+                FileRead(handle, &scratch->device_id, sizeof(scratch->device_id), 0);
+                FileRead(handle, &scratch->key_id, sizeof(scratch->key_id), 0);
                 if (record_version > 1) {
-                    FileRead(handle, &scratch->value_384, sizeof(scratch->value_384), 0);
+                    FileRead(handle, &scratch->lock_countdown, sizeof(scratch->lock_countdown), 0);
                 }
             }
             delete scratch;
@@ -358,43 +362,44 @@ bool LoadTriggerRuntimeStates0043CCF0(int handle)
 
             if (restoring == 0 && version > 1) {
                 FileRead(handle, &record_version, sizeof(record_version), 0);
-                FileRead(handle, &trigger->state_370.state, sizeof(trigger->state_370.state), 0);
-                FileRead(handle, trigger->state_370.bytes_01, sizeof(trigger->state_370.bytes_01),
-                         0);
-                FileRead(handle, &trigger->value_384, sizeof(trigger->value_384), 0);
+                FileRead(handle, &trigger->device_state.completed,
+                         sizeof(trigger->device_state.completed), 0);
+                FileRead(handle, trigger->device_state.pins, sizeof(trigger->device_state.pins), 0);
+                FileRead(handle, &trigger->lock_countdown, sizeof(trigger->lock_countdown), 0);
                 if (record_version > 1) {
-                    FileRead(handle, &trigger->value_388, sizeof(trigger->value_388), 0);
+                    FileRead(handle, &trigger->last_interaction_clock,
+                             sizeof(trigger->last_interaction_clock), 0);
                 }
             } else {
                 FileRead(handle, &record_version, sizeof(record_version), 0);
-                FileRead(handle, &trigger->value_368, sizeof(trigger->value_368), 0);
-                FileRead(handle, &trigger->value_36c, sizeof(trigger->value_36c), 0);
-                FileRead(handle, &trigger->state_370.state, sizeof(trigger->state_370.state), 0);
-                FileRead(handle, trigger->state_370.bytes_01, sizeof(trigger->state_370.bytes_01),
-                         0);
-                FileRead(handle, &trigger->value_37c, sizeof(trigger->value_37c), 0);
-                FileRead(handle, &trigger->value_380, sizeof(trigger->value_380), 0);
+                FileRead(handle, &trigger->lock_type, sizeof(trigger->lock_type), 0);
+                FileRead(handle, &trigger->difficulty, sizeof(trigger->difficulty), 0);
+                FileRead(handle, &trigger->device_state.completed,
+                         sizeof(trigger->device_state.completed), 0);
+                FileRead(handle, trigger->device_state.pins, sizeof(trigger->device_state.pins), 0);
+                FileRead(handle, &trigger->device_id, sizeof(trigger->device_id), 0);
+                FileRead(handle, &trigger->key_id, sizeof(trigger->key_id), 0);
                 if (record_version > 1) {
-                    FileRead(handle, &trigger->value_384, sizeof(trigger->value_384), 0);
+                    FileRead(handle, &trigger->lock_countdown, sizeof(trigger->lock_countdown), 0);
                 }
                 if (restoring != 0) {
-                    if (trigger->value_368 == 1) {
+                    if (trigger->lock_type == 1) {
                         int size;
 
                         for (int byte_index = 0; byte_index < 8; ++byte_index) {
-                            trigger->state_370.bytes_01[byte_index] =
+                            trigger->device_state.pins[byte_index] =
                                 static_cast<unsigned char>(Random(4));
                         }
-                        size = trigger->value_36c;
+                        size = trigger->difficulty;
                         if (size < 2) {
                             size = 2;
                         } else if (size > 7) {
                             size = 8;
                         }
-                        trigger->value_384 = size * 3;
+                        trigger->lock_countdown = size * 3;
                     }
-                    trigger->value_388 = -1;
-                    trigger->state_370.state = 0;
+                    trigger->last_interaction_clock = -1;
+                    trigger->device_state.completed = 0;
                 }
             }
             action_data = trigger->m_pActionData;
@@ -402,10 +407,10 @@ bool LoadTriggerRuntimeStates0043CCF0(int handle)
                 ((static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 & 4) == 0 ||
                  static_cast<W8DoorTriggerActionData*>(action_data)->item_00a == -1)) {
                 static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 =
-                    ((trigger->state_370.state == 0) << 2) |
+                    ((trigger->device_state.completed == 0) << 2) |
                     (static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 & 0xfb);
                 static_cast<W8DoorTriggerActionData*>(action_data)->item_00a =
-                    static_cast<short>(trigger->value_380);
+                    static_cast<short>(trigger->key_id);
             }
         }
         ++index;
@@ -440,11 +445,11 @@ bool Trigger::Save0043BE60(int hFile)
                 FileWrite(hFile, reserved, sizeof(reserved), 0) &&
                 FileWrite(hFile, name_01c, 0x80, 0) &&
                 FileWrite(hFile, &flags_0a0, sizeof(flags_0a0), 0) &&
-                FileWrite(hFile, &value_0b1, sizeof(value_0b1), 0) &&
-                FileWrite(hFile, &value_0b2, sizeof(value_0b2), 0) &&
+                FileWrite(hFile, &state_index, sizeof(state_index), 0) &&
+                FileWrite(hFile, &state_direction, sizeof(state_direction), 0) &&
                 FileWrite(hFile, &action_230, sizeof(action_230), 0) &&
                 FileWrite(hFile, &action_state_232, sizeof(action_state_232), 0) &&
-                FileWrite(hFile, &value_23c, sizeof(value_23c), 0);
+                FileWrite(hFile, &required_item_id, sizeof(required_item_id), 0);
     action_data = m_pActionData;
     has_action_data = action_data != 0;
     FileWrite(hFile, &has_action_data, sizeof(has_action_data), 0);
@@ -507,10 +512,10 @@ bool Trigger::Save0043BE60(int hFile)
     if (has_world_item != 0) {
         SaveItemFile(hFile, world_item_group_34c);
     }
-    FileWrite(hFile, &flag_350, sizeof(flag_350), 0);
+    FileWrite(hFile, &items_generated, sizeof(items_generated), 0);
     FileWrite(hFile, &item_group_seed_354, sizeof(item_group_seed_354), 0);
     FileWrite(hFile, &gold_358, sizeof(gold_358), 0);
-    FileWrite(hFile, &value_35c, sizeof(value_35c), 0);
+    FileWrite(hFile, &uses_remaining, sizeof(uses_remaining), 0);
     return header_ok;
 }
 
@@ -530,11 +535,11 @@ bool Trigger::Load0043C1B0(int hFile, char version)
         srAssertFail("hFile", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x1f0, 0);
     }
     header_ok = FileRead(hFile, &flags_0a0, sizeof(flags_0a0), 0) &&
-                FileRead(hFile, &value_0b1, sizeof(value_0b1), 0) &&
-                FileRead(hFile, &value_0b2, sizeof(value_0b2), 0) &&
+                FileRead(hFile, &state_index, sizeof(state_index), 0) &&
+                FileRead(hFile, &state_direction, sizeof(state_direction), 0) &&
                 FileRead(hFile, &action_230, sizeof(action_230), 0) &&
                 FileRead(hFile, &action_state_232, sizeof(action_state_232), 0) &&
-                FileRead(hFile, &value_23c, sizeof(value_23c), 0);
+                FileRead(hFile, &required_item_id, sizeof(required_item_id), 0);
     if ((flags_0a0 & 0x4000000) != 0) {
         UnregisterSearchableTrigger00516FE0(this);
     }
@@ -666,10 +671,10 @@ bool Trigger::Load0043C1B0(int hFile, char version)
         if (has_world_item != 0) {
             world_item_group_34c = LoadItem(hFile, 0);
         }
-        FileRead(hFile, &flag_350, sizeof(flag_350), 0);
+        FileRead(hFile, &items_generated, sizeof(items_generated), 0);
         FileRead(hFile, &item_group_seed_354, sizeof(item_group_seed_354), 0);
         FileRead(hFile, &gold_358, sizeof(gold_358), 0);
-        FileRead(hFile, &value_35c, sizeof(value_35c), 0);
+        FileRead(hFile, &uses_remaining, sizeof(uses_remaining), 0);
     }
     if (version == 3) {
         FileSeek(hFile, 0x1d, FILE_SEEK_FROM_CURRENT);
@@ -1013,7 +1018,7 @@ bool CreateTriggerShakeEvent00444F70(int intensity, float duration, float countd
 void Trigger::CompleteItemInteraction004447F0()
 {
     W8TriggerActionData* action_data = m_pActionData;
-    state_370.state = 1;
+    device_state.completed = 1;
     if (action_data != 0 && action_data->type_004 == 10) {
         static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 &= ~4;
     }
@@ -1028,12 +1033,12 @@ void Trigger::Activate00444750()
 {
     W8TriggerActionData* action_data = m_pActionData;
     if (action_data != 0 && action_data->type_004 == 10 &&
-        (value_368 == 0 || state_370.state != 0) &&
+        (lock_type == 0 || device_state.completed != 0) &&
         (static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 & 4) == 0) {
         if ((static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 & 1) == 0) {
-            flag_364 = 1;
+            running = 1;
             Run(-1);
-            flag_364 = 0;
+            running = 0;
         } else {
             W8TriggerEvent* event = m_pEvent;
             if (event != 0 && g_timed_events_006599b8.IndexOf(event) != -1) {
@@ -1216,7 +1221,7 @@ void W8TriggerEvent::Update()
     case 0x29:
     case 0x2a:
     case 0x2b:
-        trigger_030->value_35c = trigger_030->m_lData1;
+        trigger_030->uses_remaining = trigger_030->m_lData1;
         completed_035 = 1;
         break;
 
@@ -1530,14 +1535,14 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         _strupr(trigger->name_01c);
         _strupr(recipients);
 
-        trigger->value_0b8 = -1;
+        trigger->surface_id = -1;
         if (version > 1) {
             char surface_id[0x40];
             FileRead(handle, &minimum_range, 4, 0);
             FileRead(handle, surface_id, sizeof(surface_id), 0);
             if (surface_id[0] == 0 && world->m_owned_04c != 0 &&
                 world->m_owned_04c->geometry_index_00 != 0) {
-                trigger->value_0b8 = atoi(surface_id + 1);
+                trigger->surface_id = atoi(surface_id + 1);
             }
         }
         if (version > 2) {
@@ -1548,7 +1553,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
                 FileRead(handle, &action_data_kind, 1, 0);
                 if (action_data_kind == 1) {
                     trigger->m_pActionData = LoadTriggerActionData004417C0(handle);
-                    trigger->value_0b1 =
+                    trigger->state_index =
                         (static_cast<W8DoorTriggerActionData*>(trigger->m_pActionData)->flags_008 &
                          1) != 0;
                 }
@@ -1563,11 +1568,11 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         trigger->range_minimum_0a4 = minimum_range * 500.0f;
         trigger->m_pacRecipients = new char[strlen(recipients) + 1];
         strcpy(trigger->m_pacRecipients, recipients);
-        trigger->value_0b0 = static_cast<unsigned char>(byte_b0);
-        trigger->value_0b1 = 0;
-        trigger->value_0b2 = 1;
-        trigger->value_0b3 = byte_b3;
-        trigger->value_0ac = action_value;
+        trigger->state_count = static_cast<unsigned char>(byte_b0);
+        trigger->state_index = 0;
+        trigger->state_direction = 1;
+        trigger->cycle_bounce = byte_b3;
+        trigger->action_value = action_value;
         trigger->initial_action_22a = action;
         if (flag_0 != 0.0f)
             trigger->flags_0a0 |= 1;
@@ -1687,9 +1692,9 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         trigger->position_118.z = z * 500.0f;
         trigger->range_maximum_0a8 = range * 500.0f;
         trigger->m_bRepType = 3;
-        trigger->value_0ac = value_ac;
+        trigger->action_value = value_ac;
         trigger->initial_action_22a = static_cast<unsigned short>(action);
-        trigger->value_0c8 = value_c8;
+        trigger->searchable = value_c8;
         trigger->flags_0a0 |= 0x800;
         if (flag_7 != 0)
             trigger->flags_0a0 |= 0x80;
@@ -1849,7 +1854,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             FileRead(handle, &initial_location_value, 1, 0);
             FileRead(handle, &flag_23, 1, 0);
             FileRead(handle, &trigger->action_data_mode_228, 1, 0);
-            FileRead(handle, &trigger->value_229, 1, 0);
+            FileRead(handle, &trigger->sound_volume, 1, 0);
             int unused;
             FileRead(handle, &unused, 4, 0);
             FileRead(handle, &unused, 4, 0);
@@ -1878,11 +1883,11 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             }
             strcpy(trigger->m_pacRecipients, recipients);
         }
-        trigger->value_23c = location_variable[0] == 0 ? -1 : atoi(location_variable);
-        trigger->value_22c = static_cast<unsigned short>(alternate_action);
+        trigger->required_item_id = location_variable[0] == 0 ? -1 : atoi(location_variable);
+        trigger->alternate_action = static_cast<unsigned short>(alternate_action);
         trigger->initial_action_22a = static_cast<unsigned short>(initial_action);
         trigger->fallback_action_22e = static_cast<unsigned short>(fallback_action);
-        trigger->value_0c8 = searchable;
+        trigger->searchable = searchable;
         if (flag_8 != 0)
             trigger->flags_0a0 |= 0x100;
         else
@@ -1915,7 +1920,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             trigger->flags_0a0 |= 0x8000;
         else
             trigger->flags_0a0 &= ~0x8000U;
-        if (trigger->value_22c != 0)
+        if (trigger->alternate_action != 0)
             trigger->flags_0a0 |= 0x2000;
 
         unsigned char value_b0;
@@ -1950,9 +1955,9 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             }
             strcpy(trigger->m_pacStateToMod, state_to_modify);
         }
-        trigger->value_0b0 = value_b0;
-        trigger->value_0b3 = value_b3;
-        trigger->value_0b4 = value_b4;
+        trigger->state_count = value_b0;
+        trigger->cycle_bounce = value_b3;
+        trigger->state_mod_mode = value_b4;
         if (flag_0 != 0)
             trigger->flags_0a0 |= 1;
         else
@@ -2038,7 +2043,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             FileRead(handle, &action_data_kind, 1, 0);
             if (action_data_kind == 1) {
                 trigger->m_pActionData = LoadTriggerActionData004417C0(handle);
-                trigger->value_0b1 =
+                trigger->state_index =
                     (static_cast<W8DoorTriggerActionData*>(trigger->m_pActionData)->flags_008 &
                      1) != 0;
             } else if (action_data_kind == 2) {
@@ -2104,7 +2109,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             }
         } else if (trigger->initial_action_22a > 0x24 && trigger->initial_action_22a < 0x2c &&
                    trigger->m_lData1 >= 0) {
-            trigger->value_35c = trigger->m_lData1;
+            trigger->uses_remaining = trigger->m_lData1;
         }
         break;
     }
@@ -2133,7 +2138,7 @@ bool Trigger::HasActionMessage00441780()
 // FUNCTION: WIZ8 0x00441790
 bool Trigger::RequiresItem00441790()
 {
-    if (value_23c >= 0) {
+    if (required_item_id >= 0) {
         return true;
     }
     if (m_pActionData != 0 && m_pActionData->type_004 == 0xa && m_pActionData != 0 &&
@@ -2154,20 +2159,20 @@ Trigger::Trigger()
     flags_0a0 = 0;
     range_minimum_0a4 = 0.0f;
     range_maximum_0a8 = 0.0f;
-    value_0ac = 0;
-    value_0b0 = 0;
-    value_0b1 = 0;
-    value_0b2 = 0;
-    value_0b3 = 0;
-    value_0b4 = 0;
-    value_0c8 = 0;
+    action_value = 0;
+    state_count = 0;
+    state_index = 0;
+    state_direction = 0;
+    cycle_bounce = 0;
+    state_mod_mode = 0;
+    searchable = 0;
     angle_0fc = 0.0f;
     m_bRepType = 0;
     m_pProp = 0;
     rep_item_114 = 0;
     m_pWorld = 0;
     initial_action_22a = 0;
-    value_22c = 0;
+    alternate_action = 0;
     fallback_action_22e = 0;
     action_230 = 0;
     action_state_232 = 1;
@@ -2177,21 +2182,21 @@ Trigger::Trigger()
     m_pacStateToMod = 0;
     m_pEvent = 0;
     world_item_group_34c = 0;
-    flag_350 = 0;
+    items_generated = 0;
     activation_callback_360 = 0;
-    flag_364 = 0;
+    running = 0;
 
-    value_0b8 = -1;
-    value_229 = -1;
-    value_23c = -1;
-    value_37c = -1;
-    value_380 = -1;
-    value_388 = -1;
-    value_368 = 0;
-    value_36c = 0;
-    state_370.state = 0;
-    value_384 = 0;
-    memset(state_370.bytes_01, 0, sizeof(state_370.bytes_01));
+    surface_id = -1;
+    sound_volume = -1;
+    required_item_id = -1;
+    device_id = -1;
+    key_id = -1;
+    last_interaction_clock = -1;
+    lock_type = 0;
+    difficulty = 0;
+    device_state.completed = 0;
+    lock_countdown = 0;
+    memset(device_state.pins, 0, sizeof(device_state.pins));
 
     flags_0a0 |= 0x10;
     name_01c[0] = 0;
@@ -2201,7 +2206,7 @@ Trigger::Trigger()
     action_data_128[0] = 0;
     item_group_seed_354 = GetTickCount() + Random(30000);
     gold_358 = 0;
-    value_35c = 0;
+    uses_remaining = 0;
     trigger_id_09c = g_status_685170.next_trigger_id_2356++;
 }
 
@@ -2222,16 +2227,16 @@ void Trigger::UpdateActionAnimation()
                 flags_0a0 &= ~0x1000000U;
             }
         } else if (action_data_mode_228 == 1) {
-            if (action_230 == value_22c) {
-                PlayActionSound((const char*)alternate_action_data_1a8, value_229);
+            if (action_230 == alternate_action) {
+                PlayActionSound(alternate_action_data_1a8, sound_volume);
                 return;
             }
         } else if (action_data_mode_228 == 2 && action_230 == fallback_action_22e) {
-            PlayActionSound((const char*)alternate_action_data_1a8, value_229);
+            PlayActionSound(alternate_action_data_1a8, sound_volume);
             return;
         }
     }
-    PlayActionSound((const char*)action_data, value_229);
+    PlayActionSound(action_data, sound_volume);
 }
 
 // FUNCTION: WIZ8 0x00441110
@@ -2411,21 +2416,21 @@ void Trigger::CommitActionResult(bool apply_state_changes)
         int state_id;
         int state_value;
 
-        if (value_0b4 == 1) {
+        if (state_mod_mode == 1) {
             state_id = GetLocationVarIDByName(m_pacStateToMod);
             if (state_id == -1) {
                 srAssertFail("iVar != BAD_INDEX",
                              "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 4297, 0);
             }
             state_value = 1;
-        } else if (value_0b4 == 2) {
+        } else if (state_mod_mode == 2) {
             state_id = GetLocationVarIDByName(m_pacStateToMod);
             if (state_id == -1) {
                 srAssertFail("iVar != BAD_INDEX",
                              "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 4297, 0);
             }
             state_value = 0;
-        } else if (value_0b4 == 3) {
+        } else if (state_mod_mode == 3) {
             state_id = GetLocationVarIDByName(m_pacStateToMod);
             if (state_id == -1) {
                 srAssertFail("iVar != BAD_INDEX",
@@ -2572,7 +2577,7 @@ void Trigger::GenerateItemGroup()
     unsigned int maximum_items;
     int index;
 
-    if (inline_action_data_24c[0] == '\0' || flag_350 != 0) {
+    if (inline_action_data_24c[0] == '\0' || items_generated != 0) {
         return;
     }
 
@@ -2591,7 +2596,7 @@ void Trigger::GenerateItemGroup()
         ItemInfoAddToGroup(world_item_group_34c, *items.GetAt(index));
     }
     gold_358 = RollDice(&g_item_tables[table_id]->gold_dice);
-    flag_350 = 1;
+    items_generated = 1;
 }
 
 /* The trigger's container world item, materialized on demand: when asked to
@@ -2609,14 +2614,14 @@ W8WorldItem* Trigger::GetOrCreateItemGroup00445670(char create)
 }
 
 /* After a selected-prop Run: while g_flag_00606994 is clear, post either the
-   special-item notice (value_23c != -1) or the nothing-happened notice. */
+   special-item notice (required_item_id != -1) or the nothing-happened notice. */
 // FUNCTION: WIZ8 0x004456E0
 void Trigger::PrintNothingHappenedOrSpecialItemRequired004456E0()
 {
     if (g_flag_00606994 != 0) {
         return;
     }
-    if (value_23c != -1) {
+    if (required_item_id != -1) {
         ShowNotice(0xf, gppStringList[0x96b], -1, -1, 0);
         return;
     }
@@ -2816,7 +2821,7 @@ void Trigger::Run(int source)
         case 1: {
             W8DoorTriggerActionData* action_data = 0;
 
-            if (m_bRepType != 2 || m_pProp == 0 || value_0b1 != 0 ||
+            if (m_bRepType != 2 || m_pProp == 0 || state_index != 0 ||
                 m_pProp->Rep()->animation_playing_06d != 0) {
                 break;
             }
@@ -2832,9 +2837,9 @@ void Trigger::Run(int source)
             }
 
             m_pProp->SetRepresentationActive(1, 1);
-            value_0b1 = 1;
-            if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
-                m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, 1);
+            state_index = 1;
+            if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
+                m_pWorld->m_owned_04c->SetInterfaceState(surface_id, 1);
             }
             flags_0a0 |= 0x40U;
             if (action_data != 0) {
@@ -2871,14 +2876,14 @@ void Trigger::Run(int source)
             if (active) {
                 break;
             }
-            value_0b1 = value_0b1 == 1 ? 0 : 1;
-            m_pProp->SetRepresentationActive(value_0b1, 1);
-            if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
-                m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, value_0b1);
+            state_index = state_index == 1 ? 0 : 1;
+            m_pProp->SetRepresentationActive(state_index, 1);
+            if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
+                m_pWorld->m_owned_04c->SetInterfaceState(surface_id, state_index);
             }
             flags_0a0 |= 0x40U;
             if (m_pActionData != 0 && m_pActionData->type_004 == 10) {
-                if (value_0b1 == 0) {
+                if (state_index == 0) {
                     static_cast<W8DoorTriggerActionData*>(m_pActionData)->flags_008 &= ~1;
                 } else {
                     static_cast<W8DoorTriggerActionData*>(m_pActionData)->flags_008 |= 1;
@@ -2888,21 +2893,22 @@ void Trigger::Run(int source)
         }
 
         case 8: {
-            signed char previous = (signed char)value_0b1;
+            signed char previous = static_cast<signed char>(state_index);
 
-            if (value_0b0 > 1) {
-                signed char next = (signed char)value_0b1 + (signed char)value_0b2;
-                value_0b1 = (unsigned char)next;
-                if ((unsigned char)next == value_0b0) {
-                    if (value_0b3 == 0) {
-                        value_0b1 = 0;
+            if (state_count > 1) {
+                signed char next = static_cast<signed char>(state_index) +
+                                   static_cast<signed char>(state_direction);
+                state_index = static_cast<unsigned char>(next);
+                if (static_cast<unsigned char>(next) == state_count) {
+                    if (cycle_bounce == 0) {
+                        state_index = 0;
                     } else {
-                        value_0b1 = value_0b0 - 2;
-                        value_0b2 = 0xff;
+                        state_index = state_count - 2;
+                        state_direction = 0xff;
                     }
                 } else if (next < 0) {
-                    value_0b1 = 1;
-                    value_0b2 = 1;
+                    state_index = 1;
+                    state_direction = 1;
                 }
             }
 
@@ -2920,10 +2926,11 @@ void Trigger::Run(int source)
                     count = AnimObjListCount004A1620(animation, 2);
                     for (index = 0; index < count; ++index) {
                         W8PathAI* path = AnimObjListEntry004A16C0(animation, 2, (signed char)index);
-                        PathAIUpdate004A9260(path, previous <= (signed char)value_0b1 ? 1 : -1);
+                        PathAIUpdate004A9260(
+                            path, previous <= static_cast<signed char>(state_index) ? 1 : -1);
                     }
                 } else {
-                    m_pProp->SetSetting66((char)value_0b1);
+                    m_pProp->SetSetting66(static_cast<char>(state_index));
                 }
             }
             goto commit_action;
@@ -2948,9 +2955,9 @@ void Trigger::Run(int source)
             }
             was_active = m_pProp->Rep()->animation_playing_06d;
             m_pProp->SetRepresentationActive(!was_active, 1);
-            value_0b1 = value_0b1 == 0;
-            if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
-                m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, value_0b1);
+            state_index = state_index == 0;
+            if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
+                m_pWorld->m_owned_04c->SetInterfaceState(surface_id, state_index);
             }
             if (!was_active) {
                 flags_0a0 |= 0x40U;
@@ -2958,7 +2965,7 @@ void Trigger::Run(int source)
                 flags_0a0 &= ~0x40U;
             }
             if (action_data != 0) {
-                action_data->flags_008 = (action_data->flags_008 & ~1) | (value_0b1 & 1);
+                action_data->flags_008 = (action_data->flags_008 & ~1) | (state_index & 1);
             }
             goto commit_action;
         }
@@ -2969,7 +2976,7 @@ void Trigger::Run(int source)
             if (m_bRepType == 2 && m_pProp != 0 && tag != -1) {
                 m_pProp->Rep()->SelectAnimationSlot((unsigned char)tag);
                 m_pProp->SetRepresentationActive(1, 1);
-                value_0b1 = (unsigned char)tag;
+                state_index = static_cast<unsigned char>(tag);
                 goto commit_action;
             }
             break;
@@ -3015,7 +3022,7 @@ void Trigger::Run(int source)
             }
 
             g_flag_00606994 = 1;
-            if (flag_350 == 0) {
+            if (items_generated == 0) {
                 GenerateItemGroup();
             }
             if (world_item_group_34c != 0) {
@@ -3069,9 +3076,9 @@ void Trigger::Run(int source)
 
     toggle_item_prop:
         m_pProp->SetRepresentationActive(!was_active, 1);
-        value_0b1 = value_0b1 == 0;
-        if (m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
-            m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, value_0b1);
+        state_index = state_index == 0;
+        if (m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
+            m_pWorld->m_owned_04c->SetInterfaceState(surface_id, state_index);
         }
         if (!was_active) {
             flags_0a0 |= 0x40U;
@@ -3248,7 +3255,7 @@ void Trigger::Run(int source)
     case 0x29:
     case 0x2a:
     case 0x2b: {
-        if (value_35c != 0 || m_lData1 == -1) {
+        if (uses_remaining != 0 || m_lData1 == -1) {
             if (action_230 == 0x25) {
                 RestorePartyStaminaByDice(0, 0, (short)m_lData3);
                 PlayActionSound("Data\\Sound\\misc\\fountain_magic.wav", 0);
@@ -3281,12 +3288,12 @@ void Trigger::Run(int source)
             }
         }
 
-        if (value_35c == 0) {
+        if (uses_remaining == 0) {
             if (m_lData1 != -1) {
                 return;
             }
         } else {
-            --value_35c;
+            --uses_remaining;
             if (m_lData2 > 0 && m_pEvent == 0) {
                 m_pEvent = new W8TriggerEvent;
                 if (m_pEvent == 0) {
@@ -3344,9 +3351,9 @@ void Trigger::Run(int source)
             return;
         }
         m_pProp->SetRepresentationActive(action_230 == 0x32, 1);
-        value_0b1 = value_0b1 == 0;
-        if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
-            m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, value_0b1);
+        state_index = state_index == 0;
+        if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
+            m_pWorld->m_owned_04c->SetInterfaceState(surface_id, state_index);
         }
         if (action_230 == 0x32) {
             flags_0a0 |= 0x40U;
@@ -3357,9 +3364,9 @@ void Trigger::Run(int source)
 
     case 0x36:
         if (action_state_232 == 4 && action_data_mode_228 == 2) {
-            PlayActionSound((const char*)alternate_action_data_1a8, 0);
+            PlayActionSound(alternate_action_data_1a8, 0);
         } else {
-            PlayActionSound((const char*)action_data_128, 0);
+            PlayActionSound(action_data_128, 0);
         }
         return;
 
@@ -3426,9 +3433,9 @@ void Trigger::Run(int source)
             return;
         }
         m_pProp->SetRepresentationActive(m_pProp->Rep()->animation_playing_06d == 0, 1);
-        value_0b1 = value_0b1 == 0;
-        if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
-            m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, value_0b1);
+        state_index = state_index == 0;
+        if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
+            m_pWorld->m_owned_04c->SetInterfaceState(surface_id, state_index);
         }
         break;
 
@@ -3437,9 +3444,9 @@ void Trigger::Run(int source)
             return;
         }
         m_pProp->SetRepresentationActive(m_pProp->Rep()->animation_playing_06d == 0, 1);
-        value_0b1 = value_0b1 == 0;
-        if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
-            m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, value_0b1);
+        state_index = state_index == 0;
+        if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
+            m_pWorld->m_owned_04c->SetInterfaceState(surface_id, state_index);
         }
         break;
 
@@ -3490,7 +3497,8 @@ void Trigger::Run(int source)
             char state_name[132];
             int state_id;
 
-            sprintf(state_name, "%s%d", m_pacStateToMod, (int)(signed char)value_0b1);
+            sprintf(state_name, "%s%d", m_pacStateToMod,
+                    static_cast<int>(static_cast<signed char>(state_index)));
             state_id = GetLocationVarIDByName(state_name);
             if (state_id == -1) {
                 srAssertFail("iVar != BAD_INDEX",
@@ -3498,13 +3506,14 @@ void Trigger::Run(int source)
             }
             g_location_variable_values_00659990.SetAt(state_id, 0);
         }
-        value_0b1 = m_pProp->Rep()->AdvanceAnimationSegment();
+        state_index = m_pProp->Rep()->AdvanceAnimationSegment();
         m_pProp->SetRepresentationActive(1, 0);
         if (m_pacStateToMod != 0) {
             char state_name[132];
             int state_id;
 
-            sprintf(state_name, "%s%d", m_pacStateToMod, (int)(signed char)value_0b1);
+            sprintf(state_name, "%s%d", m_pacStateToMod,
+                    static_cast<int>(static_cast<signed char>(state_index)));
             state_id = GetLocationVarIDByName(state_name);
             if (state_id == -1) {
                 srAssertFail("iVar != BAD_INDEX",
@@ -3672,7 +3681,7 @@ void Trigger::Run(int source)
     }
 
 commit_action:
-    if (flag_364 == 0) {
+    if (running == 0) {
         g_flag_00606994 = 1;
     }
     CommitActionResult(apply_state_changes);
@@ -3774,11 +3783,11 @@ bool Trigger::SelectAction()
     }
 
     if (m_pActionData == 0 || m_pActionData->type_004 != 10) {
-        if (value_23c >= 0) {
-            if (GetItemInHand() == value_23c) {
+        if (required_item_id >= 0) {
+            if (GetItemInHand() == required_item_id) {
                 if ((flags_0a0 & 0x10000U) != 0) {
-                    RemovePartyItemByID005215D0(value_23c, 0);
-                    value_23c = -1;
+                    RemovePartyItemByID005215D0(required_item_id, 0);
+                    required_item_id = -1;
                 }
             } else {
                 if (m_lData2 == 1 && activation_callback_360 != 0) {
@@ -3815,7 +3824,7 @@ bool Trigger::SelectAction()
             if (m_pEvent->m_pCountdown != 0) {
                 m_pEvent->m_pCountdown->Restart();
             }
-            if (flag_364 == 0) {
+            if (running == 0) {
                 g_flag_00606994 = 1;
             }
             return 0;
@@ -3830,7 +3839,7 @@ bool Trigger::SelectAction()
                 action_state_232 = 4;
                 fallback_selected = true;
             } else {
-                state_370.state = 1;
+                device_state.completed = 1;
                 action_data->flags_008 &= ~4;
                 if (action_data->linked_trigger_00c[0] != '\0') {
                     Trigger* linked_trigger;
@@ -3839,7 +3848,7 @@ bool Trigger::SelectAction()
                     linked_trigger = FindTriggerByName(action_data->linked_trigger_00c);
                     if (linked_trigger != 0) {
                         linked_trigger->Run(-1);
-                        if (flag_364 == 0) {
+                        if (running == 0) {
                             g_flag_00606994 = 1;
                         }
                     }
@@ -3848,13 +3857,13 @@ bool Trigger::SelectAction()
         }
     }
 
-    if (value_368 != 0 && state_370.state == 0 && flag_364 == 0) {
-        if (value_368 == 1) {
+    if (lock_type != 0 && device_state.completed == 0 && running == 0) {
+        if (lock_type == 1) {
             g_flag_00606994 = 1;
             OpenLockInteraction00587510(this);
             return 0;
         }
-        if (value_368 == 2) {
+        if (lock_type == 2) {
             g_flag_00606994 = 1;
             OpenTrapInteraction0058A470(this);
             return 0;
@@ -3869,7 +3878,7 @@ bool Trigger::SelectAction()
                 flags_0a0 |= 0x4000U;
             }
         } else {
-            action_230 = value_22c;
+            action_230 = alternate_action;
             action_state_232 = 3;
             if ((flags_0a0 & 0x8000U) != 0) {
                 flags_0a0 &= ~0x4000U;

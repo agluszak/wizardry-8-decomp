@@ -326,6 +326,8 @@ public:
 };
 static_assert(sizeof(W8PartySelectionListControl005EF464) == 0x4c,
               "W8PartySelectionListControl005EF464_size");
+/* The secondary W8RangeListener subobject sits at +0x34. */
+W8_ASSERT_BASE_END(W8PartySelectionListControl005EF464, W8RangeListener, m_visible_rows, 0x34);
 
 // SYNTHETIC: WIZ8 0x005bff20
 // W8PartySelectionListControl005EF464::`scalar deleting destructor'
@@ -492,6 +494,11 @@ public:
 };
 static_assert(sizeof(W8PartySelectionCharacterPanel005EF3C8) == 0x84,
               "W8PartySelectionCharacterPanel005EF3C8_size");
+/* Retail secondary vftable 0x005ef3b4 places
+   W8PartySelectionPanelSelectionListener005EF3B4 at +0x54 after the
+   W8ControlSelectionListener (+0x4c) and W8RangeListener (+0x50) bases. */
+W8_ASSERT_BASE_END(W8PartySelectionCharacterPanel005EF3C8,
+                   W8PartySelectionPanelSelectionListener005EF3B4, m_control_58, 0x54);
 
 // VTABLE: WIZ8 0x005ef448 W8TextControl::Listener
 class W8PartySelectionCharacterGridPanel005EF450 : public Controls, public W8TextControl::Listener {
@@ -503,6 +510,9 @@ public:
 };
 static_assert(sizeof(W8PartySelectionCharacterGridPanel005EF450) == 0x50,
               "W8PartySelectionCharacterGridPanel005EF450_size");
+/* Retail secondary vftable 0x005ef448 places W8TextControl::Listener at
+   +0x4c; the panel adds no members, so its extent ends that subobject. */
+W8_ASSERT_BASE_TAIL(W8PartySelectionCharacterGridPanel005EF450, W8TextControl::Listener, 0x4c);
 
 class W8PartySelectionPartySlotRow005EF3E4 : public W8TextControl {
 public:
@@ -530,6 +540,9 @@ public:
 };
 static_assert(sizeof(W8PartySelectionPartySlotPanel005EF438) == 0x74,
               "W8PartySelectionPartySlotPanel005EF438_size");
+/* The secondary W8ControlSelectionListener subobject sits at +0x4c. */
+W8_ASSERT_BASE_END(W8PartySelectionPartySlotPanel005EF438, W8ControlSelectionListener, m_control_50,
+                   0x4c);
 
 class W8PartySelectionCharacterSummaryPanel005EF4E0 : public Controls {
 public:
@@ -627,6 +640,10 @@ public:
     int m_dialog_value_6c;
 };
 static_assert(sizeof(W8PartySelectionController) == 0x70, "W8PartySelectionController_size");
+/* The secondary bases sit at +0x4 for W8PartySelectionListSelectionListener005EF4C8
+   and +0x8 for W8PartySelectionDecisionListener005EF4C0; m_mode follows at +0x0c. */
+W8_ASSERT_BASE_END(W8PartySelectionController, W8PartySelectionDecisionListener005EF4C0, m_mode,
+                   0x8);
 
 // GLOBAL: WIZ8 0x0069C4E8
 W8PartySelectionController* g_party_selection_controller;

@@ -125,20 +125,20 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
        the scenario. */
     saved_combat_mode = gXStatus.fCombatMode;
     saved_menu_slot = g_value_64c1c8;
-    saved_spell_id = g_status_685170.buffers.party_rows[0].spell_id;
-    saved_power_level = g_status_685170.buffers.party_rows[0].spell_detail.spell.power_level;
-    saved_spell_learned = g_status_685170.buffers.characters[0].spell_learned[spell_id];
-    saved_sp_left = g_status_685170.buffers.characters[0].sp_left[realm];
+    saved_spell_id = g_status_685170.buffers.XChar[0].spell_id;
+    saved_power_level = g_status_685170.buffers.XChar[0].spell_detail.spell.power_level;
+    saved_spell_learned = g_status_685170.buffers.Char[0].spell_learned[spell_id];
+    saved_sp_left = g_status_685170.buffers.Char[0].iSPLeft[realm];
     saved_usable_when = g_spell_records[spell_id].usable_when;
     saved_realm = g_spell_records[spell_id].realm;
     saved_spell_point_cost = g_spell_records[spell_id].spell_point_cost;
 
     gXStatus.fCombatMode = 1;
     g_value_64c1c8 = 0;
-    g_status_685170.buffers.party_rows[0].spell_id = spell_id;
-    g_status_685170.buffers.party_rows[0].spell_detail.spell.power_level = 1;
-    g_status_685170.buffers.characters[0].spell_learned[spell_id] = 1;
-    g_status_685170.buffers.characters[0].sp_left[realm] = TEST_SPELL_COST * 2;
+    g_status_685170.buffers.XChar[0].spell_id = spell_id;
+    g_status_685170.buffers.XChar[0].spell_detail.spell.power_level = 1;
+    g_status_685170.buffers.Char[0].spell_learned[spell_id] = 1;
+    g_status_685170.buffers.Char[0].iSPLeft[realm] = TEST_SPELL_COST * 2;
     g_spell_records[spell_id].usable_when = W8_SPELL_USABLE_IN_COMBAT;
     g_spell_records[spell_id].realm = static_cast<W8SpellRealm>(realm);
     g_spell_records[spell_id].spell_point_cost = TEST_SPELL_COST;
@@ -164,10 +164,10 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
                 g_keyboard_menu_rows_69b820[index] = 0;
             }
         }
-        g_status_685170.buffers.party_rows[0].spell_id = saved_spell_id;
-        g_status_685170.buffers.party_rows[0].spell_detail.spell.power_level = saved_power_level;
-        g_status_685170.buffers.characters[0].spell_learned[spell_id] = saved_spell_learned;
-        g_status_685170.buffers.characters[0].sp_left[realm] = saved_sp_left;
+        g_status_685170.buffers.XChar[0].spell_id = saved_spell_id;
+        g_status_685170.buffers.XChar[0].spell_detail.spell.power_level = saved_power_level;
+        g_status_685170.buffers.Char[0].spell_learned[spell_id] = saved_spell_learned;
+        g_status_685170.buffers.Char[0].iSPLeft[realm] = saved_sp_left;
         g_spell_records[spell_id].usable_when = saved_usable_when;
         g_spell_records[spell_id].realm = saved_realm;
         g_spell_records[spell_id].spell_point_cost = saved_spell_point_cost;
@@ -189,7 +189,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     /* The transition: the realm pool no longer covers the recorded spell, so
        the entry's state becomes W8_SUBMENU_ENTRY_UNAVAILABLE while the menu
        stays up. */
-    g_status_685170.buffers.characters[0].sp_left[realm] = 0;
+    g_status_685170.buffers.Char[0].iSPLeft[realm] = 0;
     RefreshKeyboardMenuRows();
 
     result->entry_disabled_after_transition = rows[0]->m_enabled == 0;
@@ -228,8 +228,8 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     /* SelectPartyCharacter: slot one is made occupied and healthy while the
        camera is parked and every open-mode flag stays down, so the switch
        only moves the selection and raises the refresh bookkeeping. */
-    saved_occupied1 = g_status_685170.buffers.party_rows[1].occupied;
-    saved_condition1 = g_status_685170.buffers.characters[1].highest_condition;
+    saved_occupied1 = g_status_685170.buffers.XChar[1].fOccupied;
+    saved_condition1 = g_status_685170.buffers.Char[1].highest_condition;
     saved_selected = g_status_685170.selected_character;
     saved_rotation_mode = g_settings_6850c8.camera_rotation_mode;
     saved_cursor = gXStatus.iCurrentCursor;
@@ -241,8 +241,8 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     saved_pick_changed = g_level_block->pick_changed_154;
     saved_clock_214 = g_level_block->clock_214;
 
-    g_status_685170.buffers.party_rows[1].occupied = 1;
-    g_status_685170.buffers.characters[1].highest_condition = 0;
+    g_status_685170.buffers.XChar[1].fOccupied = 1;
+    g_status_685170.buffers.Char[1].highest_condition = 0;
     g_status_685170.selected_character = 0;
     g_settings_6850c8.camera_rotation_mode = 1;
     gXStatus.iCurrentCursor = -1;
@@ -278,34 +278,34 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
        self-target spell - so the whole CanPartySlotUseRecordedItem chain
        answers yes. Then the instance empties and the entry must flip to
        unavailable. */
-    saved_backpack_item = g_status_685170.buffers.characters[0].backpack[0];
+    saved_backpack_item = g_status_685170.buffers.Char[0].backpack[0];
     saved_item_record = g_item_records[item_id];
-    saved_profession0 = g_status_685170.buffers.characters[0].current_profession;
-    saved_gender0 = g_status_685170.buffers.characters[0].gender;
-    saved_race0 = g_status_685170.buffers.characters[0].race;
+    saved_profession0 = g_status_685170.buffers.Char[0].iProfession;
+    saved_gender0 = g_status_685170.buffers.Char[0].gender;
+    saved_race0 = g_status_685170.buffers.Char[0].iRace;
     saved_condition8 =
-        g_status_685170.buffers.characters[0].condition_turns[W8_CONDITION_SPELLCASTING_BLOCKED];
-    saved_item_origin = g_status_685170.buffers.party_rows[0].item_origin;
-    saved_item_slot = g_status_685170.buffers.party_rows[0].item_slot;
-    saved_item_id_0c9 = g_status_685170.buffers.party_rows[0].item_id_0c9;
-    saved_item_target_char = g_status_685170.buffers.party_rows[0].item_target.iChar;
-    saved_item_use_ptr = g_status_685170.buffers.party_rows[0].item_detail.item_use.item;
+        g_status_685170.buffers.Char[0].uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED];
+    saved_item_origin = g_status_685170.buffers.XChar[0].item_origin;
+    saved_item_slot = g_status_685170.buffers.XChar[0].item_slot;
+    saved_item_id_0c9 = g_status_685170.buffers.XChar[0].item_id_0c9;
+    saved_item_target_char = g_status_685170.buffers.XChar[0].item_target.iChar;
+    saved_item_use_ptr = g_status_685170.buffers.XChar[0].item_detail.item_use.item;
     saved_target_type = g_spell_records[spell_id].target_type;
     saved_camp_mode = gXStatus.fCampMode;
     saved_lock_interact = gXStatus.fLockInteract;
     saved_trap_interact = gXStatus.fTrapInteract;
 
-    g_status_685170.buffers.characters[0].backpack[0].item_id = item_id;
-    g_status_685170.buffers.characters[0].backpack[0].identified = 1;
-    g_status_685170.buffers.characters[0].backpack[0].uses_or_charges = 1;
-    g_status_685170.buffers.characters[0].current_profession = static_cast<W8Profession>(0);
-    g_status_685170.buffers.characters[0].gender = static_cast<W8Gender>(0);
-    g_status_685170.buffers.characters[0].race = 0;
-    g_status_685170.buffers.characters[0].condition_turns[W8_CONDITION_SPELLCASTING_BLOCKED] = 0;
-    g_status_685170.buffers.party_rows[0].item_origin = W8_ITEM_ORIGIN_BACKPACK;
-    g_status_685170.buffers.party_rows[0].item_slot = 0;
-    g_status_685170.buffers.party_rows[0].item_id_0c9 = item_id;
-    g_status_685170.buffers.party_rows[0].item_target.iChar = 0;
+    g_status_685170.buffers.Char[0].backpack[0].iItemNo = item_id;
+    g_status_685170.buffers.Char[0].backpack[0].identified = 1;
+    g_status_685170.buffers.Char[0].backpack[0].uses_or_charges = 1;
+    g_status_685170.buffers.Char[0].iProfession = static_cast<W8Profession>(0);
+    g_status_685170.buffers.Char[0].gender = static_cast<W8Gender>(0);
+    g_status_685170.buffers.Char[0].iRace = 0;
+    g_status_685170.buffers.Char[0].uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] = 0;
+    g_status_685170.buffers.XChar[0].item_origin = W8_ITEM_ORIGIN_BACKPACK;
+    g_status_685170.buffers.XChar[0].item_slot = 0;
+    g_status_685170.buffers.XChar[0].item_id_0c9 = item_id;
+    g_status_685170.buffers.XChar[0].item_target.iChar = 0;
     g_item_records[item_id].profession_mask = 0xffff;
     g_item_records[item_id].race_mask = 0xffffffff;
     g_item_records[item_id].gender_mask = 3;
@@ -326,22 +326,22 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     result->item_recorded_usable =
         GetSubMenuEntryState(W8_SUBMENU_ITEMS, 2, 0) == W8_SUBMENU_ENTRY_USABLE;
 
-    g_status_685170.buffers.characters[0].backpack[0].item_id = -1;
+    g_status_685170.buffers.Char[0].backpack[0].iItemNo = -1;
     result->item_unavailable_after_loss =
         GetSubMenuEntryState(W8_SUBMENU_ITEMS, 2, 0) == W8_SUBMENU_ENTRY_UNAVAILABLE;
 
-    g_status_685170.buffers.characters[0].backpack[0] = saved_backpack_item;
+    g_status_685170.buffers.Char[0].backpack[0] = saved_backpack_item;
     g_item_records[item_id] = saved_item_record;
-    g_status_685170.buffers.characters[0].current_profession = saved_profession0;
-    g_status_685170.buffers.characters[0].gender = saved_gender0;
-    g_status_685170.buffers.characters[0].race = saved_race0;
-    g_status_685170.buffers.characters[0].condition_turns[W8_CONDITION_SPELLCASTING_BLOCKED] =
+    g_status_685170.buffers.Char[0].iProfession = saved_profession0;
+    g_status_685170.buffers.Char[0].gender = saved_gender0;
+    g_status_685170.buffers.Char[0].iRace = saved_race0;
+    g_status_685170.buffers.Char[0].uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] =
         saved_condition8;
-    g_status_685170.buffers.party_rows[0].item_origin = saved_item_origin;
-    g_status_685170.buffers.party_rows[0].item_slot = saved_item_slot;
-    g_status_685170.buffers.party_rows[0].item_id_0c9 = saved_item_id_0c9;
-    g_status_685170.buffers.party_rows[0].item_target.iChar = saved_item_target_char;
-    g_status_685170.buffers.party_rows[0].item_detail.item_use.item = saved_item_use_ptr;
+    g_status_685170.buffers.XChar[0].item_origin = saved_item_origin;
+    g_status_685170.buffers.XChar[0].item_slot = saved_item_slot;
+    g_status_685170.buffers.XChar[0].item_id_0c9 = saved_item_id_0c9;
+    g_status_685170.buffers.XChar[0].item_target.iChar = saved_item_target_char;
+    g_status_685170.buffers.XChar[0].item_detail.item_use.item = saved_item_use_ptr;
     g_spell_records[spell_id].target_type = saved_target_type;
     gXStatus.fCampMode = saved_camp_mode;
     gXStatus.fLockInteract = saved_lock_interact;
@@ -351,8 +351,8 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     g_level_block->value_2f4 = saved_value_2f4;
     g_level_block->selection_settled = saved_settled;
 
-    g_status_685170.buffers.party_rows[1].occupied = saved_occupied1;
-    g_status_685170.buffers.characters[1].highest_condition = saved_condition1;
+    g_status_685170.buffers.XChar[1].fOccupied = saved_occupied1;
+    g_status_685170.buffers.Char[1].highest_condition = saved_condition1;
     g_status_685170.selected_character = saved_selected;
     g_settings_6850c8.camera_rotation_mode = saved_rotation_mode;
     gXStatus.iCurrentCursor = saved_cursor;
@@ -380,10 +380,10 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
         g_keyboard_menu_items_69b7ec[index] = 0;
     }
 
-    g_status_685170.buffers.party_rows[0].spell_id = saved_spell_id;
-    g_status_685170.buffers.party_rows[0].spell_detail.spell.power_level = saved_power_level;
-    g_status_685170.buffers.characters[0].spell_learned[spell_id] = saved_spell_learned;
-    g_status_685170.buffers.characters[0].sp_left[realm] = saved_sp_left;
+    g_status_685170.buffers.XChar[0].spell_id = saved_spell_id;
+    g_status_685170.buffers.XChar[0].spell_detail.spell.power_level = saved_power_level;
+    g_status_685170.buffers.Char[0].spell_learned[spell_id] = saved_spell_learned;
+    g_status_685170.buffers.Char[0].iSPLeft[realm] = saved_sp_left;
     g_spell_records[spell_id].usable_when = saved_usable_when;
     g_spell_records[spell_id].realm = saved_realm;
     g_spell_records[spell_id].spell_point_cost = saved_spell_point_cost;

@@ -939,7 +939,7 @@ bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, char notify)
     if (action == 0 || action->type_004 != 10) {
         action = 0;
     }
-    if ((owner->value_368 != 0 && owner->state_370.state == 0) ||
+    if ((owner->lock_type != 0 && owner->device_state.completed == 0) ||
         (action != 0 && (static_cast<W8DoorTriggerActionData*>(action)->flags_008 & 5) != 0)) {
         return false;
     }
