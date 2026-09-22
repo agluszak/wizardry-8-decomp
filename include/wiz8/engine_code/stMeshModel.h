@@ -20,7 +20,7 @@ public:
     }
 
     stMeshModel(long polygons, long vertices);
-    virtual ~stMeshModel() override; /* 0x00470ED0 */
+    virtual ~stMeshModel() override;       /* 0x00470ED0 */
     virtual srClass* vInstance() override; /* 0x004748c0 */
     virtual int getBoundingSphere(srVector3T<float>& center,
                                   float& radius) override; /* 0x00471dd0 */
@@ -87,10 +87,10 @@ public:
     srHeapArray<srVector3T<float> > vertex_lights_3b4[2];
     /* Per-vertex sunlight intensity, filled with 1.0f on demand. */
     srHeapArray<float> vertex_sunlight_3c4;
-    unsigned char flag_3cc;
+    unsigned char duplicate_on_reuse_3cc;
     /* Set once both vertex lights and sunlight exist. */
     bool vertex_lighting_ready_3cd;
-    unsigned char unknown_3ce[2];
+    unsigned char padding_3ce[2];
     /* uiFrames: per-frame tables below hold one pointer per frame. The
        decompressed float caches are srHeap allocations and are counted in
        g_decompressed_mesh_bytes; the compressed tables are operator new. */
@@ -101,7 +101,7 @@ public:
     short** compressed_vertex_locations;        /* 0x3e0 m_psCompVertexLoc */
     unsigned char** compressed_vertex_normals;  /* 0x3e4 m_pbCompVertexNormal */
     unsigned char** compressed_polygon_normals; /* 0x3e8 m_pbCompPolyNormal */
-    unsigned char unknown_3ec[4];
+    unsigned char padding_3ec[4];
     W8GrowableVector<int> skin_table_ids;                         /* 0x3f0; count at 0x3f4 */
     W8GrowableVector<srPtr<srTextureIFace>*> skin_texture_tables; /* 0x400 */
     W8GrowableVector<char*> skin_table_names;                     /* 0x410 */
@@ -115,7 +115,7 @@ public:
     unsigned int* automap_polygons;     /* 0x44c */
     unsigned int automap_polygon_count; /* 0x450 */
     bool automap_filter_active;         /* 0x454 */
-    unsigned char unknown_455[3];
+    unsigned char padding_455[3];
     W8GrowableVector<int*>* skin_blanking_apt_458;
     W8GrowableVector<int>* skin_blanking_apt_number_45c;
     W8GrowableVector<unsigned char>* skin_blanking_checked_460;

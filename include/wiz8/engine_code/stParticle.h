@@ -44,8 +44,8 @@ protected:
     virtual ~stParticle() override; /* 0x00498A20 */
 
 public:
-    unsigned int value_138;
-    unsigned char unknown_13c[4];
+    unsigned int requires_positional_138;
+    unsigned char padding_13c[4];
     double particle_value_140;
     /* Per-particle world positions; the retail allocation assert spells the
        buffer pParticle. */
@@ -77,10 +77,10 @@ public:
     unsigned int emission_limit_184;
     unsigned int emission_count_188;
     unsigned int active_particle_count_18c;
-    bool active_190;
+    bool release_when_done_190;
     unsigned char replace_when_full_191;
-    unsigned char trigger_flag_192;
-    unsigned char unknown_193;
+    unsigned char persisted_192;
+    unsigned char padding_193;
     /* Per-particle liveness flag byte; the update loop retires it when the
        birth tick plus lifetime expires. */
     unsigned char* particle_active_194;
@@ -88,9 +88,9 @@ public:
     srVector3T<float>* velocities_198;
     /* Unsigned millisecond birth ticks, one per particle. */
     unsigned int* birth_ticks_19c;
-    unsigned char active_1a0;
+    unsigned char emitting_1a0;
     unsigned char traversal_enabled_1a1;
-    unsigned char unknown_1a2[2];
+    unsigned char padding_1a2[2];
     int bounds_mode_1a4;
     int has_acceleration_1a8;
     int expiry_mode_1ac;
@@ -131,15 +131,15 @@ public:
     unsigned int activated_at_258;
     /* Emission schedule tick. */
     unsigned int updated_at_25c;
-    short value_260;
-    unsigned char unknown_262[2];
+    short attachment_key_260;
+    unsigned char padding_262[2];
     int start_frame_264;
     int end_frame_268;
     W8MonsterShakeCallback* callback_26c;
     unsigned int emission_gap_270;
     unsigned int last_emitted_at_274;
     float size_scale_278;
-    unsigned char unknown_27c[4];
+    unsigned char padding_27c[4];
 };
 
 static_assert(sizeof(stParticle) == 0x280, "stParticle_size_must_be_0x280");

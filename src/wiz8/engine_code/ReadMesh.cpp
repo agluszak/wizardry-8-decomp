@@ -896,7 +896,7 @@ unsigned char ReadSingleLevelMesh00485B20(W8ReadLevelInfo* info, srModelInstance
         }
 
         stMeshModel* model = static_cast<stMeshModel*>(registry->find(node, name, 0));
-        if (model != 0 && model->flag_3cc != 0) {
+        if (model != 0 && model->duplicate_on_reuse_3cc != 0) {
             stModelInstance* duplicate = CreateModelInstance0046F5C0(model);
             duplicate->setName("Read Mesh Duplicate Instance");
             *instance = duplicate;
@@ -1098,7 +1098,7 @@ unsigned char ReadSingleLevelMeshBody00485C10(W8ReadLevelInfo* info, srModelInst
             loaded_instance->setRotation(rotation);
         }
         *instance = loaded_instance;
-        first_model->flag_3cc = MeshHasAnimatedTexture004B9AA0(first_model) ? 0 : 1;
+        first_model->duplicate_on_reuse_3cc = MeshHasAnimatedTexture004B9AA0(first_model) ? 0 : 1;
     }
 
     if ((flags & 1) == 0) {
@@ -1236,8 +1236,8 @@ unsigned char ReadMultipleLevelMeshes00488240(W8ReadLevelInfo* info, srModelInst
         if (model->previous == 0) {
             stModelInstance* instance = CreateModelInstance0046F5C0(model);
             instance->setName("Multi Mesh Instance");
-            instance->state_17c = g_read_mesh_index_65b9e4;
-            model->flag_3cc = MeshHasAnimatedTexture004B9AA0(model);
+            instance->mesh_index_17c = g_read_mesh_index_65b9e4;
+            model->duplicate_on_reuse_3cc = MeshHasAnimatedTexture004B9AA0(model);
             instances[g_read_mesh_index_65b9e4] = instance;
         }
     }
@@ -1277,7 +1277,7 @@ void ClearMaterialRecordPadding(W8MaterialRecord004B8A70* material)
     if (material == 0) {
         return;
     }
-    memset(material->positional_001, 0, sizeof(material->positional_001));
+    memset(material->texture_name_001, 0, sizeof(material->texture_name_001));
     for (int index = 0; index < 4; ++index) {
         char* name = material->texture_names_029[index];
         memset(name + strlen(name), 0, sizeof(material->texture_names_029[index]) - strlen(name));

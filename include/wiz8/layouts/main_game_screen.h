@@ -167,7 +167,7 @@ struct W8LevelRuntimeBlock {
     unsigned int countdown_25c;          /* 0x25c */
     bool transition_active;              /* 0x260 */
     bool transition_pending;             /* 0x261 */
-    unsigned char unknown_262[2];
+    unsigned char padding_262[2];
     int highlighted_item;
     int selected_item;
     unsigned int countdown_26c; /* 0x26c */

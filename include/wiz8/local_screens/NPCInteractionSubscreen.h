@@ -171,7 +171,7 @@ struct W8MainScreenState {
     W8Widget* dialogue_scroll_down_button; /* 0x138 */
     W8TextControl* dialogue_text_13c;
     W8TextControl* dialogue_text_140;
-    unsigned char unknown_144[4];
+    unsigned char padding_144[4];
     /* 0x148: the "Sort Alphabetically" toggle. 0x150..0x160: the five
        transcript category buttons in People/Places/Items/Misc/All label
        order, each wired to its SelectNpcDialogueCategory* callback. */

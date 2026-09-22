@@ -364,7 +364,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
 
     srModelInstance* instance = GetCurrentModelInstance004A8250();
     if (instance != 0) {
-        static_cast<stModelInstance*>(instance)->state_178 |= 0x10;
+        static_cast<stModelInstance*>(instance)->render_flags_178 |= 0x10;
     }
     W8GrCycle::UpdateRepresentation(world);
 }
