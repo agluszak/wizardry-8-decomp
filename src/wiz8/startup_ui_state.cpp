@@ -10,14 +10,13 @@
 
 // GLOBAL: WIZ8 0x00689b48
 int g_region_help_delay;
-// GLOBAL: WIZ8 0x00689b4c
+// GLOBAL: WIZ8 0x00689b38
 int g_region_help_clock;
 
 // FUNCTION: WIZ8 0x004f11d0
-void InitializeRegionHelpState(void)
+unsigned char InitializeRegionHelpState(void)
 {
     g_region_help_delay = g_settings_6850c8.tooltip_delay_ms;
-    g_region_help_clock = 0;
     g_current_region_index = 0;
     g_captured_region_index = 0;
     g_hover_region_index = 0;
@@ -26,4 +25,5 @@ void InitializeRegionHelpState(void)
         delete[] g_default_help_text;
     }
     g_default_help_text = 0;
+    return 1;
 }
