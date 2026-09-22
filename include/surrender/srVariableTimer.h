@@ -59,7 +59,8 @@ private:
     unsigned long m_step_size; /* 0x890 */
     int m_stepping;            /* 0x894 */
 
-    friend std::ostream& operator<<(std::ostream& stream, const srVariableTimer& timer);
+    friend SR_DLL_IMPORT std::ostream& operator<<(std::ostream& stream,
+                                                  const srVariableTimer& timer);
 };
 
 static_assert(sizeof(srVariableTimer) == 0x898, "srVariableTimer_must_be_0x898");

@@ -168,6 +168,35 @@ def test_fstream_opener_stays_provider_only() -> None:
     )
 
 
+IMPORTED_FUNCTION_RE = re.compile(
+    r"^SR_DLL_IMPORT\s+[\w:<>,&*\s]+?\b(operator[^\s(]*|[A-Za-z_]\w*)\s*\(", re.MULTILINE
+)
+FRIEND_RE = re.compile(r"\bfriend\s+(SR_DLL_IMPORT\s+)?[\w:<>,&*\s]+?\b(operator[^\s(]*)\s*\(")
+
+
+def test_repeated_declarations_do_not_contradict_import_decoration() -> None:
+    """A redeclared import must keep SR_DLL_IMPORT on every declaration.
+
+    MSVC reports the mismatch as C4273 and clang as -Winconsistent-dllimport;
+    both assume dllexport on the undecorated repeat, silently flipping the
+    provider build's linkage for that symbol. The practical check covers the
+    observed shape: a namespace-scope SR_DLL_IMPORT free function redeclared
+    as a class friend without the attribute.
+    """
+    errors = []
+    for header in sorted(SURRENDER_HEADERS.glob("*.h")):
+        text = _code(header)
+        imported = {match.group(1) for match in IMPORTED_FUNCTION_RE.finditer(text)}
+        for match in FRIEND_RE.finditer(text):
+            if match.group(1) is None and match.group(2) in imported:
+                errors.append(
+                    f"{header.name}: friend redeclaration of {match.group(2)} "
+                    "drops SR_DLL_IMPORT from an imported function"
+                )
+
+    assert not errors, "\n".join(errors)
+
+
 def test_sr_core_proven_inline_accessors_stay_header_visible() -> None:
     header = _code(SURRENDER_HEADERS / "srCore.h")
 

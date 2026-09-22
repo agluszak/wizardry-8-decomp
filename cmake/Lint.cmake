@@ -42,7 +42,6 @@ set(WIZ8_CLANG_COMPAT_FLAGS
     -Wno-deprecated-non-prototype
     -Wno-deprecated-register
     -Wno-delete-non-abstract-non-virtual-dtor
-    -Wno-inconsistent-dllimport
     -Wno-missing-braces
     -Wno-microsoft-cast
     -Wno-microsoft-enum-value
