@@ -604,7 +604,7 @@ unsigned char ReadMonsterPaths004BC140(W8ReadLevelInfo* pInfo, W8World* pWorld)
         monster_index = MonsterGetIndexByLocationID(0x315, READ_LEVEL_CPP, location_id, 1);
         monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
         ActivateMonster(monster_info, 0);
-        monster = monster_info->monster;
+        monster = monster_info->p3D;
 
         {
             srVector3T<double> camera_location = pWorld->camera->getLocation();

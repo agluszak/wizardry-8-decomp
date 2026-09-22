@@ -1202,8 +1202,8 @@ W8Navigator* W8Navigator::ResolveBlockingNavigator00453230(const srVector3T<floa
                 MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                     0x5d7, "C:\\Projects\\Wizardry 8\\Engine Code\\Navigator.cpp", hit_location,
                     1));
-            if (monster_info->monster != 0) {
-                return monster_info->monster;
+            if (monster_info->p3D != 0) {
+                return monster_info->p3D;
             }
         }
     }
@@ -2245,7 +2245,7 @@ void W8Navigator::CollectGroupNavigators(W8GrowableVector<W8Navigator*>* navigat
         if (location_id != movement_0c0.location_id_004) {
             monster_info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0xe82, NAVIGATOR_CPP, location_id, 1));
-            navigators->Add(monster_info->monster);
+            navigators->Add(monster_info->p3D);
         }
     }
 
@@ -2256,7 +2256,7 @@ void W8Navigator::CollectGroupNavigators(W8GrowableVector<W8Navigator*>* navigat
             for (member = 0; member < allied_group->member_count; ++member) {
                 monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                     0xe8e, NAVIGATOR_CPP, IListGetAt(allied_group->monsters, member), 1));
-                navigators->Add(monster_info->monster);
+                navigators->Add(monster_info->p3D);
             }
         }
     }

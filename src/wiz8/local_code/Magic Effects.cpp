@@ -174,7 +174,7 @@ void ClearMonsterEffect2DE(W8MonsterInfo* monster_info)
     if (monster_info->effect_2de != 0) {
         PostMonsterNotice(monster_info, gppStringList[0x6b4 / 4]);
         monster_info->effect_2de = 0;
-        SetMonsterSpellIcon(monster_info->monster, SPELL_ICON_CHARMED, 0);
+        SetMonsterSpellIcon(monster_info->p3D, SPELL_ICON_CHARMED, 0);
     }
 }
 
@@ -212,7 +212,7 @@ bool MonsterResistsSpellEffect(const W8CombatSlot* target, int power)
 void ClearEffectSlot(W8MonsterInfo* monster_info, W8EffectSlot* slot)
 {
     if (slot->active != 0) {
-        SetMonsterSpellIcon(monster_info->monster, g_effect_visual_table[slot->effect_id][1], 0);
+        SetMonsterSpellIcon(monster_info->p3D, g_effect_visual_table[slot->effect_id][1], 0);
     }
     slot->active = false;
     slot->effect_id = 0;
@@ -249,7 +249,7 @@ void ResetCombatEffects(void)
                 slot = &monster_info->pCombat->effect_slots_3e[i];
                 if (slot->active != 0) {
                     if (slot->active != 0) {
-                        SetMonsterSpellIcon(monster_info->monster,
+                        SetMonsterSpellIcon(monster_info->p3D,
                                             g_effect_visual_table[slot->effect_id][1], 0);
                     }
                     slot->active = 0;
@@ -277,7 +277,7 @@ void ResetCombatEffects(void)
                 slot = &monster_info->pCombat->effect_slots_d7[i];
                 if (slot->active != 0) {
                     if (slot->active != 0) {
-                        SetMonsterSpellIcon(monster_info->monster,
+                        SetMonsterSpellIcon(monster_info->p3D,
                                             g_effect_visual_table[slot->effect_id][1], 0);
                     }
                     slot->active = 0;
@@ -684,7 +684,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
         srAssertFail("pGroup", MAGIC_EFFECTS_CPP, 0xa0c, 0);
     }
     summon = MonsterInfoFromID(0xa0e, MAGIC_EFFECTS_CPP, group->leader_id_9f, 1);
-    summon->monster->SetAngles004538F0(
+    summon->p3D->SetAngles004538F0(
         HeadingTowardNearestMonster(effect->target.point, disposition, summon->location_id));
     SetMonsterGroupHostility(group, disposition, 0);
     if (disposition == W8_DISPOSITION_FRIENDLY) {
@@ -696,7 +696,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
             }
             if (member->summoned_2da == 0) {
                 member->summoned_2da = 1;
-                SetMonsterSpellIcon(member->monster, 0x27, 1);
+                SetMonsterSpellIcon(member->p3D, 0x27, 1);
             }
         }
     } else {
@@ -708,7 +708,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
             }
             if (member->summoned_2da == 0) {
                 member->summoned_2da = 2;
-                SetMonsterSpellIcon(member->monster, 0x27, 1);
+                SetMonsterSpellIcon(member->p3D, 0x27, 1);
             }
         }
     }
@@ -797,7 +797,7 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
                     }
                     effect_slot = &summon->effect_slots_10f[index];
                     if (effect_slot->active == 0 || effect_slot->effect_id != spell_id) {
-                        SetMonsterSpellIcon(summon->monster, g_effect_visual_table[spell_id][1], 1);
+                        SetMonsterSpellIcon(summon->p3D, g_effect_visual_table[spell_id][1], 1);
                     }
                     effect_slot->active = 1;
                     effect_slot->effect_id = spell_id;
@@ -1076,8 +1076,8 @@ void ApplyConditionToTargets(W8SpellEffectEntry* effect, int condition)
         if (monster_info == 0) {
             srAssertFail("pMonsterInfo", MAGIC_EFFECTS_CPP, 0x5c9, 0);
         }
-        if (condition == 5 && monster_info->condition_turns[5] != 0) {
-            remaining = duration - monster_info->condition_turns[5];
+        if (condition == 5 && monster_info->uiCondition[5] != 0) {
+            remaining = duration - monster_info->uiCondition[5];
             TickMonsterCondition(monster_info->location_id, 5, duration);
             if (remaining > 0) {
                 ApplyMonsterCondition005242B0(monster_info->location_id, 5,
@@ -1231,7 +1231,7 @@ unsigned int GetTargetConditionTurns(W8SpellEffectEntry* effect, int condition, 
         if (condition == 7 && argument != 0) {
             *argument = monster_info->condition_argument;
         }
-        return monster_info->condition_turns[condition];
+        return monster_info->uiCondition[condition];
     }
     srAssertFail("0", MAGIC_EFFECTS_CPP, 0x128a, 0);
     return 0;
@@ -1429,14 +1429,14 @@ char HealTargets(W8SpellEffectEntry* effect)
         if (monster_info == 0) {
             srAssertFail("pMonsterInfo", MAGIC_EFFECTS_CPP, 0x77e, 0);
         }
-        missing = monster_info->hp_max - monster_info->hp_current;
+        missing = monster_info->uiHPMax - monster_info->hp_current;
         if (missing != 0) {
             healed = RollEffectMagnitude(&effect->definition);
             if (missing <= healed) {
                 healed = missing;
             }
             HealMonster(monster_info, healed, verbose);
-            if (monster_info->hp_current < static_cast<unsigned int>(monster_info->hp_max)) {
+            if (monster_info->hp_current < static_cast<unsigned int>(monster_info->uiHPMax)) {
                 all_full = 0;
             }
             if (verbose == 0) {
@@ -1545,7 +1545,7 @@ void ApplyDamageToTargets(W8SpellEffectEntry* effect)
                     PostCharacterNotice(target.iChar, gppStringList[0x1b3]);
                 }
             }
-            monster_info->monster->SpawnDamageNumber(magnitude);
+            monster_info->p3D->SpawnDamageNumber(magnitude);
         } else {
             if (verbose == 0) {
                 result = &effect->result_126;
@@ -1781,7 +1781,7 @@ char TryCureConditionOnTargets(W8SpellEffectEntry* effect, int condition, char f
         if (monster_info == 0) {
             srAssertFail("pMonsterInfo", MAGIC_EFFECTS_CPP, 0x559, 0);
         }
-        turns = monster_info->condition_turns[condition];
+        turns = monster_info->uiCondition[condition];
         if (turns != 0) {
             if (turns == W8_EFFECT_PERMANENT || turns <= power || force != 0) {
                 if (condition == 0x12 || condition == 1 || turns <= power || force != 0) {
@@ -1796,7 +1796,7 @@ char TryCureConditionOnTargets(W8SpellEffectEntry* effect, int condition, char f
                     all_cured = 0;
                 }
             } else {
-                monster_info->condition_turns[condition] = turns - power;
+                monster_info->uiCondition[condition] = turns - power;
                 ++remaining_count;
                 all_cured = 0;
                 effect->applied_125 = 1;
@@ -2020,7 +2020,7 @@ void ApplyBeingEffectSlot(W8SpellEffectEntry* effect)
         }
         slot = &monster_info->effect_slots_10f[slot_index];
         if (slot->active == 0 || slot->effect_id != effect->kind) {
-            SetMonsterSpellIcon(monster_info->monster, g_effect_visual_table[effect->kind][1], 1);
+            SetMonsterSpellIcon(monster_info->p3D, g_effect_visual_table[effect->kind][1], 1);
         }
         slot->active = 1;
         slot->effect_id = effect->kind;
@@ -2169,7 +2169,7 @@ void ApplyCombatEffectSlot(W8SpellEffectEntry* effect)
             }
             slot = &monster_info->pCombat->effect_slots_3e[slot_index];
             if (slot->active == 0 || slot->effect_id != spell_id) {
-                SetMonsterSpellIcon(monster_info->monster, g_effect_visual_table[spell_id][1], 1);
+                SetMonsterSpellIcon(monster_info->p3D, g_effect_visual_table[spell_id][1], 1);
             }
             slot->active = 1;
             slot->effect_id = spell_id;
@@ -2264,7 +2264,7 @@ void ApplyDefenseEffectSlot(W8SpellEffectEntry* effect)
         }
         slot = &monster_info->pCombat->effect_slots_d7[slot_index];
         if (slot->active == 0 || slot->effect_id != spell_id) {
-            SetMonsterSpellIcon(monster_info->monster, g_effect_visual_table[spell_id][1], 1);
+            SetMonsterSpellIcon(monster_info->p3D, g_effect_visual_table[spell_id][1], 1);
         }
         slot->active = 1;
         slot->effect_id = spell_id;
@@ -2725,22 +2725,22 @@ void ApplyMonsterControlToNearbyMonsters(W8SpellEffectEntry* effect)
     count = g_octree_6598a4->QueryLocationsInBox(&location_ids, &lower, &upper, 0);
     for (index = 0; index < count; ++index) {
         monster_info = MonsterInfoFromID(0xc7c, MAGIC_EFFECTS_CPP, location_ids[index], 1);
-        if (monster_info->monster->IsDying() != 0) {
+        if (monster_info->p3D->IsDying() != 0) {
             continue;
         }
-        if ((gXStatus.fCombatMode == 0 && monster_info->monster->linked_navigator_05c != 0) ||
+        if ((gXStatus.fCombatMode == 0 && monster_info->p3D->linked_navigator_05c != 0) ||
             monster_info->ubDisposition != W8_DISPOSITION_HOSTILE) {
             continue;
         }
-        eye = monster_info->monster->movement_0c0.position_040;
-        eye.y += monster_info->monster->movement_0c0.height_offset_0b8;
+        eye = monster_info->p3D->movement_0c0.position_040;
+        eye.y += monster_info->p3D->movement_0c0.height_offset_0b8;
         if (g_octree_6598a4->HasLineOfSight(&eye, &center, 1) == 0) {
             continue;
         }
         if (monster_info->control_state < 0 || monster_info->control_state >= 2) {
             continue;
         }
-        if (monster_info->condition_turns[0xc] != 0 || monster_info->highest_condition >= 0xf) {
+        if (monster_info->uiCondition[0xc] != 0 || monster_info->highest_condition >= 0xf) {
             SetMonsterControlState(monster_info, 0);
             continue;
         }
@@ -2863,7 +2863,7 @@ void ApplyCharmToMonsterTarget(W8SpellEffectEntry* effect)
         return;
     }
     if (monster_info->effect_2de == 0) {
-        SetMonsterSpellIcon(monster_info->monster, 0x26, 1);
+        SetMonsterSpellIcon(monster_info->p3D, 0x26, 1);
     }
     monster_info->effect_2de = static_cast<char>(magnitude);
     if (g_settings_6850c8.verbose_combat_messages != 0) {
@@ -2984,7 +2984,7 @@ void ReduceCombatEffectDurations(W8SpellEffectEntry* effect)
                             slot->duration_0d -= reduce;
                         } else {
                             if (slot->active != 0) {
-                                SetMonsterSpellIcon(monster_info->monster,
+                                SetMonsterSpellIcon(monster_info->p3D,
                                                     g_effect_visual_table[slot->effect_id][1], 0);
                             }
                             slot->active = 0;
