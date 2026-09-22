@@ -164,7 +164,7 @@ unsigned char BakeInstanceVertexLighting0046E8A0(stModelInstance* instance, srNo
         srMaterialIFace* material_iface = mesh->getMaterial(0, static_cast<srMeshModel::e_side>(0));
         srVector4T<float> material_diffuse;
         if (material_iface != 0) {
-            material_diffuse = static_cast<srMaterial*>(material_iface)->parms_18.diffuse;
+            material_diffuse = static_cast<srMaterial*>(material_iface)->parms.diffuse;
         }
         if (vertex_lights == 0) {
             srAssertFail("psrDIG", THREE_D_CPP, 0x453, 0);
@@ -297,14 +297,14 @@ unsigned char BakeInstanceVertexLighting0046E8A0(stModelInstance* instance, srNo
                                     srMaterialIFace* vertex_material = vertex_materials[index];
                                     if (vertex_material != 0) {
                                         material_diffuse = static_cast<srMaterial*>(vertex_material)
-                                                               ->parms_18.diffuse;
+                                                               ->parms.diffuse;
                                     } else {
                                         srMaterialIFace* base_material = mesh->getMaterial(
                                             0, static_cast<srMeshModel::e_side>(0));
                                         if (base_material != 0) {
                                             material_diffuse =
                                                 static_cast<srMaterial*>(base_material)
-                                                    ->parms_18.diffuse;
+                                                    ->parms.diffuse;
                                         } else {
                                             material_diffuse.x = 1.0f;
                                             material_diffuse.y = 1.0f;

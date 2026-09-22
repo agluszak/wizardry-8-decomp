@@ -78,6 +78,9 @@ public:
     SR_DLL_IMPORT int testEyeSpaceBounds(const srVector3T<float>& center, float radius) const;
 
 private:
+    /* srMaterial::postProcess blends diffuse/specular/alpha through the batch
+       scratch, setup stages and batch state; the SDK friended it. */
+    friend class srMaterial;
     SR_DLL_IMPORT void finishDiffuseAlpha();
     SR_DLL_IMPORT void finishSpecularFog();
     SR_DLL_IMPORT void processVertexBuffer();

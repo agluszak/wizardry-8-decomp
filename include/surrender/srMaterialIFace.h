@@ -8,4 +8,7 @@ class SR_DLL_IMPORT srMaterialIFace
     : public srClassSupport<srMaterialIFace, srClass, true, 0x2200> {
 public:
     static const char* sGetClassName();
+    /* Retail exports the out-of-line assignment (srMaterial.cpp TU); it only
+       forwards the srClass base assignment. */
+    srMaterialIFace& operator=(const srMaterialIFace& other);
 };

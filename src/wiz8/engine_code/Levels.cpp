@@ -365,9 +365,9 @@ unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
     colour.Set(0.0f, 0.0f, 0.0f, 0.0f);
     material->setDiffuse(colour);
     material->setSpecular(colour);
-    material->parms_18.shininess = 1.0f;
-    material->parms_18.diffuse.w = 1.0f;
-    material->parms_18.emissive = 0.0f;
+    material->parms.shininess = 1.0f;
+    material->parms.diffuse.w = 1.0f;
+    material->parms.emissive = 0.0f;
     material->dirty_74 = 1;
     material->m_field_78 = 0;
     material->setMapper(&g_material_mapper_00659738);

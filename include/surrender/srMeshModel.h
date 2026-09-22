@@ -1,5 +1,8 @@
 #pragma once
 
+#include <new>
+
+#include "srHeap.h"
 #include "srMaterial.h"
 #include "srMath.h"
 #include "srModel.h"
@@ -95,6 +98,7 @@ public:
     void setShader(srShader shader, long pass);
     void setUVCount(long count);
     void setActivePolygonCount(long count);
+    long getActivePolygonCount();
     unsigned long* getActivePolygonTable(int table);
     srVector3T<float>* getVertexLoc();
     void enableStartupControls()
@@ -132,10 +136,64 @@ public:
     srMaterialIFace* materials_1c[4][2];
     srTextureIFace* textures_3c[4][2];
     srShader shaders_5c[4];
-    /* 0x6c..0x200: still-unmodeled mesh tables. getBoundingBox/Sphere read the
-       cached AABB/sphere that calculateBounds writes immediately before
-       pass_count_228. */
-    unsigned char unknown_6c_[0x194];
+    /* Lazily grown mesh table pair. Retail's constructor/destructor emit the
+       pair records through array ctors/dtors; every table accessor resizes
+       `data` to its governing count on first use. POD elements zero-fill;
+       srPtr elements release through their own destructor. */
+    template <class T> struct MeshTable {
+        MeshTable() : data(0), count(0) {}
+        ~MeshTable()
+        {
+            Release();
+        }
+
+        /* Retail emits one allocation emission per element type: the
+           srPtr/srShader copies default-construct every element while the POD
+           copies allocate only, exactly as VC6 lowers an array new through
+           srHeap. */
+        static T* Allocate(long elements)
+        {
+            T* replacement = static_cast<T*>(srHeap.allocate(elements * sizeof(T)));
+            for (long index = 0; index < elements; ++index) {
+                new (&replacement[index]) T;
+            }
+            return replacement;
+        }
+
+        /* Release each element, free the allocation, and zero the pair; the
+           srPtr copies emit per-element releases while POD copies fold to a
+           bare free. */
+        void Release()
+        {
+            for (long index = 0; index < count; ++index) {
+                data[index].~T();
+            }
+            if (data != 0) {
+                srHeap.free(data);
+            }
+            data = 0;
+            count = 0;
+        }
+
+        T* data;
+        long count;
+    };
+
+    MeshTable<srPtr<srTextureIFace> > poly_textures_6c[4][2];
+    MeshTable<srShader> poly_shaders_ac[4];
+    MeshTable<srPtr<srMaterialIFace> > vertex_materials_cc[4][2];
+    MeshTable<srVector3i> poly_vertices_10c;
+    MeshTable<srVector3i> poly_uv_indices_114[4];
+    MeshTable<srVector4T<float> > poly_equations_134;
+    MeshTable<srVector2T<float> > texcoords_13c[4][2];
+    MeshTable<srVector3T<float> > dig_17c[4];
+    MeshTable<srVector4T<float> > dcg_19c[4];
+    MeshTable<srVector4T<float> > scg_1bc[4];
+    MeshTable<srVector3T<float> > vertex_locations_1dc;
+    MeshTable<srVector3T<float> > vertex_normals_1e4;
+    MeshTable<unsigned long> vertex_shade_indices_1ec;
+    MeshTable<unsigned long> active_polygons_1f4;
+    long active_polygon_count_1fc;
     srVector3T<float> bounds_minimum_200;
     srVector3T<float> bounds_maximum_20c;
     srVector3T<float> bounds_center_218;

@@ -2325,29 +2325,29 @@ unsigned char LoadMaterial004B8A70(const char* bitmap_folder,
             concrete->setName(material_name);
             concrete->autoRelease();
 
-            concrete->parms_18.specular.Set(source->specular_0ed[0], source->specular_0ed[1],
+            concrete->parms.specular.Set(source->specular_0ed[0], source->specular_0ed[1],
                                             source->specular_0ed[2], 0.0f);
             concrete->dirty_74 = 1;
-            concrete->parms_18.shininess = 1.0f;
+            concrete->parms.shininess = 1.0f;
             concrete->dirty_74 = 1;
 
-            concrete->parms_18.diffuse.x = source->diffuse_0d5[0];
-            concrete->parms_18.diffuse.y = source->diffuse_0d5[1];
-            concrete->parms_18.diffuse.z = source->diffuse_0d5[2];
-            concrete->parms_18.diffuse.w = source->opacity_0fd == 0.0f ? 0.7f : source->opacity_0fd;
+            concrete->parms.diffuse.x = source->diffuse_0d5[0];
+            concrete->parms.diffuse.y = source->diffuse_0d5[1];
+            concrete->parms.diffuse.z = source->diffuse_0d5[2];
+            concrete->parms.diffuse.w = source->opacity_0fd == 0.0f ? 0.7f : source->opacity_0fd;
             concrete->dirty_74 = 1;
             concrete->setOpacity(source->opacity_0fd == 0.0f ? 0.7 : source->opacity_0fd);
 
             if (texture_path[0] == '\0') {
-                concrete->parms_18.ambient.Set(source->diffuse_0d5[0], source->diffuse_0d5[1],
+                concrete->parms.ambient.Set(source->diffuse_0d5[0], source->diffuse_0d5[1],
                                                source->diffuse_0d5[2], 1.0f);
                 concrete->dirty_74 = 1;
-                concrete->parms_18.emissive = 0.0f;
+                concrete->parms.emissive = 0.0f;
             } else {
-                concrete->parms_18.ambient.Set(source->ambient_0c9[0], source->ambient_0c9[1],
+                concrete->parms.ambient.Set(source->ambient_0c9[0], source->ambient_0c9[1],
                                                source->ambient_0c9[2], 0.0f);
                 concrete->dirty_74 = 1;
-                concrete->parms_18.emissive.Set(source->emission_101, source->emission_101,
+                concrete->parms.emissive.Set(source->emission_101, source->emission_101,
                                                 source->emission_101, 1.0f);
             }
             concrete->dirty_74 = 1;
@@ -2402,10 +2402,10 @@ unsigned char CreateDefaultMaterial(srMaterialIFace** material, srTextureIFace**
     color.Set(0.0f, 0.0f, 0.0f, 0.0f);
     concrete->setSpecular(color);
     concrete->dirty_74 = 1;
-    concrete->parms_18.shininess = 1.0f;
-    concrete->parms_18.diffuse.w = 1.0f;
+    concrete->parms.shininess = 1.0f;
+    concrete->parms.diffuse.w = 1.0f;
     concrete->dirty_74 = 1;
-    concrete->parms_18.emissive = 0.0f;
+    concrete->parms.emissive = 0.0f;
     concrete->dirty_74 = 1;
     concrete->m_field_78 = 0;
     return 1;

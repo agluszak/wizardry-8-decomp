@@ -932,7 +932,7 @@ void BuildShadowMesh004813F0()
                 material->setAmbient(color);
                 color.Set(0.0f, 0.0f, 0.0f, 0.0f);
                 material->setSpecular(color);
-                material->parms_18.shininess = 1.0f;
+                material->parms.shininess = 1.0f;
                 material->dirty_74 = 1;
                 color.Set(0.0f, 0.0f, 0.0f, 0.0f);
                 material->setEmissive(color);
