@@ -1,3 +1,4 @@
+import subprocess
 import time
 from contextlib import nullcontext
 from pathlib import Path
@@ -144,6 +145,50 @@ def test_runtime_failure_reports_native_reason_instead_of_timeout(tmp_path: Path
     assert "step=monster-engagement reason=monster-never-engaged line=2288" in str(failure)
     assert "phases: main-game-entered=13900ms" in str(failure)
     assert "timeout" not in str(failure)
+
+
+@pytest.mark.parametrize(
+    "cleanup_error",
+    [
+        subprocess.TimeoutExpired("wineserver", 5),
+        OSError("wineserver missing"),
+    ],
+)
+def test_scenario_cleanup_failure_preserves_primary_failure(
+    tmp_path: Path, monkeypatch, cleanup_error
+) -> None:
+    import subprocess as real_subprocess
+
+    fake_wine = tmp_path / "fake-wine.sh"
+    fake_wine.write_text(
+        "#!/bin/sh\n"
+        "echo 'WIZ8_RUNTIME_FAILURE scenario=probe step=step-a reason=crashed line=9' >&2\n"
+        "exit 3\n"
+    )
+    fake_wine.chmod(0o755)
+    real_popen = real_subprocess.Popen
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.subprocess.Popen",
+        lambda command, **kwargs: real_popen([str(fake_wine), *command[1:]], **kwargs),
+    )
+
+    def failing_cleanup(*args, **kwargs):
+        raise cleanup_error
+
+    monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", failing_cleanup)
+
+    with pytest.raises(RuntimeError) as error:
+        _run_runtime_scenario(
+            tmp_path / "Wiz8RuntimeTest.exe",
+            tmp_path,
+            {},
+            "probe",
+            30,
+        )
+
+    assert "step=step-a reason=crashed line=9" in str(error.value)
+    artifact = tmp_path / "diagnostics" / "probe-failure.txt"
+    assert "wineserver -k failed" in artifact.read_text()
 
 
 def test_runtime_phase_summary_ignores_other_scenarios_and_unusable_steps() -> None:

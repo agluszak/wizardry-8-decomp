@@ -749,13 +749,20 @@ def _run_runtime_scenario(
                     # A Wine debugger can outlive the executable and retain its pipes/window.
                     # Scenarios run serially in this checkout-owned prefix; retire it on failure
                     # so the next isolated stage cannot find the failed scenario's window.
-                    subprocess.run(
-                        ["wineserver", "-k"],
-                        env=environment,
-                        check=False,
-                        capture_output=True,
-                        timeout=5,
-                    )
+                    # Cleanup is strictly best-effort: its failure must never
+                    # replace the scenario's own crash/failure diagnostics.
+                    try:
+                        subprocess.run(
+                            ["wineserver", "-k"],
+                            env=environment,
+                            check=False,
+                            capture_output=True,
+                            timeout=5,
+                        )
+                    except (subprocess.TimeoutExpired, OSError) as cleanup_error:
+                        output["stderr"].extend(
+                            f"\nruntime-test cleanup: wineserver -k failed: {cleanup_error}\n".encode()
+                        )
                 if process.poll() is None:
                     process.kill()
                 process.wait()
@@ -901,13 +908,20 @@ def run_runtime_suite(
                             flush=True,
                         )
         finally:
-            subprocess.run(
-                ["wineserver", "-k"],
-                cwd=stage,
-                env=environment,
-                check=False,
-                capture_output=True,
-            )
+            try:
+                subprocess.run(
+                    ["wineserver", "-k"],
+                    cwd=stage,
+                    env=environment,
+                    check=False,
+                    capture_output=True,
+                )
+            except OSError as cleanup_error:
+                print(
+                    f"runtime-test cleanup: wineserver -k failed: {cleanup_error}",
+                    file=sys.stderr,
+                    flush=True,
+                )
     for forward, reverse in comparisons:
         if any(
             observation != runs[reverse][scenario]
