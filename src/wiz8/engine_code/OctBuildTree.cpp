@@ -63,9 +63,9 @@ W8OctBuildLink* W8OctBuildLinkLists::GetNewLink(void* surface)
 W8OctBuildNode00446330::W8OctBuildNode00446330()
 {
     memset(this, 0, 10 * sizeof(unsigned long));
-    positional_28 = 0;
+    region_28 = 0;
     leaf_kind_2a = 0;
-    positional_2c = 0;
+    provisional_region_2c = 0;
 }
 
 // FUNCTION: WIZ8 0x00446350
@@ -91,17 +91,17 @@ W8OctBuildTree00446390::W8OctBuildTree00446390(float leaf_size, srVector3T<float
 {
     spatial_00.Reset0046CDC0();
     link_lists_9c = 0;
-    positional_a0 = 0;
-    positional_a4 = 0;
-    positional_a8 = 0;
-    positional_ac = 0;
+    leaf_polygon_count_a0 = 0;
+    gd_surface_count_a4 = 0;
+    leaf_count_a8 = 0;
+    max_leaf_regions_ac = 0;
     padding_ae = 0;
-    positional_b0 = 0;
+    region_assignments_b0 = 0;
     use_owned_nodes_b4 = 0;
     padding_b5[0] = 0;
     padding_b5[1] = 0;
     padding_b5[2] = 0;
-    positional_b8 = 0;
+    deepest_link_list_b8 = 0;
 
     if (leaf_size < g_float_005ebc64) {
         ReportBuildStatus00497690(7, "Leaf Size too small--try a larger leaf size!");
@@ -272,8 +272,8 @@ unsigned char W8OctBuildTree00446390::InsertSurfaceRecursive004469F0(W8OctSpatia
     if (working->extent_04 <= working->cell_size_08) {
         W8OctBuildNode00446330* node = working->root_90;
         ++node->leaf_kind_2a;
-        if (positional_b8 < node->leaf_kind_2a) {
-            positional_b8 = node->leaf_kind_2a;
+        if (deepest_link_list_b8 < node->leaf_kind_2a) {
+            deepest_link_list_b8 = node->leaf_kind_2a;
         }
 
         W8OctBuildLink*& head = node->links_00[(short)mode];
@@ -335,8 +335,8 @@ void W8OctBuildTree00446390::AppendLink00446D00(W8OctBuildNode00446330* node, vo
                                                 short kind)
 {
     ++node->leaf_kind_2a;
-    if (positional_b8 < node->leaf_kind_2a) {
-        positional_b8 = node->leaf_kind_2a;
+    if (deepest_link_list_b8 < node->leaf_kind_2a) {
+        deepest_link_list_b8 = node->leaf_kind_2a;
     }
     W8OctBuildLink* head = node->links_00[kind];
     if (head == 0) {
@@ -544,15 +544,15 @@ int W8OctBuildTree00446390::CollectLeaf00447110(W8OctBuildNode00446330* node, sh
             second = 0;
             /* Retail's kind-10 path dereferences a link head at +0x2c, beyond
                the eight-slot union member — in the proven 0x30-byte node that
-               is the positional_2c/positional_2e ushort pair, which
+               is the provisional_region_2c/positional_2e ushort pair, which
                OctBuildPreTree writes as the leaf's provisional region index
-               (node->positional_2c = node->positional_28; FinalizeRegionMapping
+               (node->provisional_region_2c = node->region_28; FinalizeRegionMapping
                reads it back as a ushort). No producer appends at a kind above
                4, so the read is of ushort region-index storage; retained as
                the observed retail read of dead code. */
             // reinterpret-ok: dead kind-10 path reads the proven ushort region-index pair at +0x2c as a link head
-            for (link = *reinterpret_cast<W8OctBuildLink**>(&node->positional_2c); link != 0;
-                 link = link->next_04) {
+            for (link = *reinterpret_cast<W8OctBuildLink**>(&node->provisional_region_2c);
+                 link != 0; link = link->next_04) {
                 if (CollectSurfacePredicate004474C0(static_cast<W8GDSurface*>(link->surface_00),
                                                     0xb) != 0) {
                     static_cast<W8GDSurface**>(

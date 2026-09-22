@@ -1251,7 +1251,7 @@ void W8TriggerEvent::Update()
             }
             stParticle* particle = FindParticleByName(g_world, buffer);
             if (particle != 0) {
-                particle->trigger_flag_192 = 1;
+                particle->persisted_192 = 1;
                 particle->SetActive(0);
             }
         }
@@ -3565,13 +3565,13 @@ void Trigger::Run(int source)
         while (recipient != 0) {
             stParticle* particle = FindParticleByName(g_world, NextTriggerRecipient(&recipient));
             if (particle != 0) {
-                particle->trigger_flag_192 = 1;
+                particle->persisted_192 = 1;
                 if (action_230 == 0x44) {
                     particle->SetActive(1);
                 } else if (action_230 == 0x45) {
                     particle->SetActive(0);
                 } else {
-                    particle->SetActive(particle->active_1a0 == 0);
+                    particle->SetActive(particle->emitting_1a0 == 0);
                 }
                 action_succeeded = true;
             }
@@ -3592,7 +3592,7 @@ void Trigger::Run(int source)
         while (recipient != 0) {
             stParticle* particle = FindParticleByName(g_world, NextTriggerRecipient(&recipient));
             if (particle != 0) {
-                particle->trigger_flag_192 = 1;
+                particle->persisted_192 = 1;
                 particle->SetActive(1);
                 action_succeeded = true;
             }

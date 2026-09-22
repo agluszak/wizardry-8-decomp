@@ -5680,7 +5680,7 @@ stModelInstance* W8PathingService::EnsurePathVisualization0045D530()
     shader.CopyValue(&g_oct_mesh_default_shader_00652dc4->value);
     model->setShader(shader, 0);
     model->setName("WayPoint Mesh");
-    model->flag_3cc = 0;
+    model->duplicate_on_reuse_3cc = 0;
 
     srVector3i* polygons = model->getPolyVertex();
     srPtr<srTextureIFace>* textures = model->getPolyTexture(0, 0, 1);

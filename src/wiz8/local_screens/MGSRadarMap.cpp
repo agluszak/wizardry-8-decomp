@@ -149,7 +149,7 @@ static stModelInstance2D* AcquireRadarBlip(int sector, unsigned char lit)
         icon->clearFlag(srNode::FLAG_DISABLE);
         icon->setParent(0, 1);
         icon->setParent(g_scene_square_65965c, 1);
-        icon->state_160 |= 1;
+        icon->overlay_scene_flag_160 |= 1;
         if (lit == 0) {
             icon->SetGlowEnabled00480EB0(0);
         } else {
@@ -304,7 +304,7 @@ void RefreshRadarMap(void)
         color.w = 1.0f;
         icon = CreateColoredPolygonSprite(2, 2, &color, 0);
         g_radar_icon_pools_0069bf68[sector].Add(icon);
-        icon->state_160 |= 1;
+        icon->overlay_scene_flag_160 |= 1;
     }
     UpdateRadarBlips();
 }

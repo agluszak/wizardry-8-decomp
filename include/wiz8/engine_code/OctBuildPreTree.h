@@ -108,7 +108,7 @@ struct OctBuildPreTree : W8OctBuildTree00446390 {
        the build. */
     unsigned short LoadRegionFile004B0C90(const char* stem, srVector3T<float>* minimum,
                                           srVector3T<float>* maximum);
-    /* Walks the node tree remapping leaf region ids through positional_100. */
+    /* Walks the node tree remapping leaf region ids through region_remap_100. */
     void RemapNodeRegions004B16B0(W8OctBuildNode00446330* node, int depth);
     /* Assigns a polygon's region_32 from the region volume containing its
        representative point, falling back to the corner vertices' regions;
@@ -131,13 +131,13 @@ struct OctBuildPreTree : W8OctBuildTree00446390 {
     unsigned long level_counts_c4[10];
     unsigned long* m_pulRegPaths;
     unsigned long region_path_count_f0;
-    unsigned char active_f4;
+    unsigned char mesh_linking_f4;
     unsigned char padding_f5[3];
     BitArray* region_bits_f8;
     srVector3T<float>* m_psrvRegCenters;
     /* Region remap table indexed by old region id; RemapNodeRegions frees it
        after rewriting every leaf's region list through it. */
-    unsigned short* positional_100;
+    unsigned short* region_remap_100;
     unsigned short* mesh_particle_lookup_104;
     unsigned short* mesh_particles_108;
     unsigned short mesh_particle_count_10c;
@@ -148,10 +148,10 @@ struct OctBuildPreTree : W8OctBuildTree00446390 {
     unsigned short padding_11a;
     unsigned long particle_count_11c;
     unsigned long prop_count_120;
-    W8HashTable<unsigned short, unsigned long>* positional_124;
+    W8HashTable<unsigned short, unsigned long>* region_path_map_124;
     W8HashTable<unsigned int, short>* positional_128;
-    W8HashTable<unsigned short, short>* positional_12c;
-    W8HashTable<unsigned short, short>* positional_130;
+    W8HashTable<unsigned short, short>* inside_region_map_12c;
+    W8HashTable<unsigned short, short>* overlap_region_map_130;
     W8OctPreTreeGeometry* game_data_134;
     unsigned long positional_138;
     unsigned long positional_13c;

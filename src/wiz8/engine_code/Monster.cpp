@@ -1386,7 +1386,7 @@ void W8Monster::Update()
         CollectModelInstances004C6350(&g_monster_model_instances_682fd0);
         for (index = 0; index < g_monster_model_instances_682fd0.GetCount(); ++index) {
             stModelInstance* model = *g_monster_model_instances_682fd0.GetAt(index);
-            model->scale_194 = 0.75f;
+            model->light_scale_194 = 0.75f;
         }
         target_scale_2fc = 0.75f;
         timer_2d8.SetDuration(0.025f);
@@ -1441,7 +1441,7 @@ void W8Monster::Update()
         CollectModelInstances004C6350(&g_monster_model_instances_682fd0);
         for (index = 0; index < g_monster_model_instances_682fd0.GetCount(); ++index) {
             stModelInstance* model = *g_monster_model_instances_682fd0.GetAt(index);
-            model->scale_194 = current_scale_300;
+            model->light_scale_194 = current_scale_300;
         }
         timer_2d8.Restart();
     }
@@ -3605,7 +3605,7 @@ void W8Monster::SetCycle(signed char cycle)
     CollectModelInstances004C6350(&g_monster_model_instances_682fd0);
     for (index = 0; index < g_monster_model_instances_682fd0.GetCount(); ++index) {
         stModelInstance* model = *g_monster_model_instances_682fd0.GetAt(index);
-        model->scale_194 = current_scale_300;
+        model->light_scale_194 = current_scale_300;
     }
 
     if (cycle == 0x15) {
@@ -5167,7 +5167,7 @@ void W8Monster::SpawnDamageNumber(unsigned int amount)
             particle->speed_min_214 = 1000.0f;
             particle->speed_max_218 = 3000.0f;
             particle->emission_limit_184 = 8;
-            particle->active_190 = true;
+            particle->release_when_done_190 = true;
             particle->bounds_mode_1a4 = 2;
             particle->bounds_radius_240 = 1000.0f;
             location.SetFromFloat(&position);
@@ -5351,7 +5351,7 @@ W8Item* CreateMonsterIconItem004C5500(W8World* world, const char* path, int flag
                 rep->m_psrMesh = instance;
                 rep->RefreshBounds();
                 item->AttachMesh0049F900(world);
-                instance->scale_194.SetZero();
+                instance->light_scale_194.SetZero();
                 return item;
             }
         }

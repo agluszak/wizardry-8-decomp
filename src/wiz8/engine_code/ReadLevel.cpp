@@ -468,7 +468,7 @@ unsigned char ReadWorldProps004BC5E0(W8ReadLevelInfo* pInfo, W8World* pWorld,
             for (model_index = 0; model_index < model_instances.GetCount(); ++model_index) {
                 stModelInstance* instance = *model_instances.GetAt(model_index);
                 if (instance != 0) {
-                    instance->state_178 |= 0x10;
+                    instance->render_flags_178 |= 0x10;
                 }
             }
         }
@@ -856,11 +856,11 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
             particle->flutter_period_204 = static_cast<unsigned int>(record.flutter_period);
         }
         if (record.value_216 >= 0) {
-            particle->value_260 = record.value_216;
+            particle->attachment_key_260 = record.value_216;
         }
-        particle->value_138 = record.value_21c;
+        particle->requires_positional_138 = record.value_21c;
         particle->emission_limit_184 = record.state_218;
-        particle->active_190 = false;
+        particle->release_when_done_190 = false;
 
         LoadMaterial004B8A70(pInfo->bitmap_folder, &record.material, &material, &texture,
                              &render_flags.value, 1);

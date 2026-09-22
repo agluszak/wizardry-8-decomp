@@ -1529,7 +1529,7 @@ stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width
         instance->setName("Video2DMakePolygonBrush");
         instance->SetModel0047F3A0(model);
         if (a5) {
-            instance->state_160 |= 1;
+            instance->overlay_scene_flag_160 |= 1;
         }
     }
     return instance;
@@ -2666,12 +2666,12 @@ unsigned char EnableCursorScene00428020(void)
 }
 
 /* Release an srClass, leaving the renderer in 2D mode, or in the paired
-   mode when state_160 bit 0 says otherwise. Recovered callers pass
+   mode when overlay_scene_flag_160 bit 0 says otherwise. Recovered callers pass
    stModelInstance2D sprites (highlight / formation board). */
 // FUNCTION: WIZ8 0x004257F0
 void ReleaseObject004257F0(srClass* object)
 {
-    if ((static_cast<stModelInstance2D*>(object)->state_160 & 1) != 0) {
+    if ((static_cast<stModelInstance2D*>(object)->overlay_scene_flag_160 & 1) != 0) {
         g_overlay_render_mode_6596ec = 2;
     } else {
         g_paired_render_mode_6596f0 = 2;
@@ -2681,12 +2681,12 @@ void ReleaseObject004257F0(srClass* object)
 }
 
 /* Rotate a 2D sprite node by `degrees` about z and dirty the renderer mode
-   word its state_160 bit 0 selects. */
+   word its overlay_scene_flag_160 bit 0 selects. */
 // FUNCTION: WIZ8 0x00425840
 void RotateNodeInDegrees00425840(srNode* node, int degrees)
 {
     node->setRotation(0.0, 0.0, 3.141592653589793 * g_float_005ebcf8 * degrees);
-    if ((static_cast<stModelInstance2D*>(node)->state_160 & 1) != 0) {
+    if ((static_cast<stModelInstance2D*>(node)->overlay_scene_flag_160 & 1) != 0) {
         g_overlay_render_mode_6596ec = 2;
     } else {
         g_paired_render_mode_6596f0 = 2;
@@ -2961,7 +2961,7 @@ void PositionToolTipNode(srNode* node, int x, int y, char positional)
     srVector3T<double> location;
     location.x = half_width + position_x;
     location.z = -0.0001;
-    if ((instance->state_160 & 1U) == 0) {
+    if ((instance->overlay_scene_flag_160 & 1U) == 0) {
         location.y = g_double_005ebc30 - (half_height + position_y);
         g_paired_render_mode_6596f0 = 2;
     } else {
@@ -3017,7 +3017,7 @@ srModelInstance* Video2DRectToSquarePolygon(int* rect, void* source, int source_
             stModelInstance2D* instance = static_cast<stModelInstance2D*>(node);
             instance->render_state_164.display_state =
                 static_cast<unsigned char>(g_active_page_6596e4);
-            instance->state_160 |= 1;
+            instance->overlay_scene_flag_160 |= 1;
             instance->render_state_164.left = static_cast<short>(size);
             instance->render_state_164.top = static_cast<short>(size);
             PositionToolTipNode(node, rect[0], rect[1], 0);
@@ -3308,7 +3308,7 @@ srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch,
                                              mapping_x, mapping_y, overlay);
     if (node != 0) {
         stModelInstance2D* instance = static_cast<stModelInstance2D*>(node);
-        instance->state_160 = g_active_page_6596e4;
+        instance->overlay_scene_flag_160 = g_active_page_6596e4;
         instance->render_state_164.left = (short)(rect[2] - rect[0]);
         instance->render_state_164.top = (short)(rect[3] - rect[1]);
         instance->render_state_164.right = (short)rect[0];
@@ -3865,7 +3865,7 @@ srNode* MakePosterQuad00424BA0(srTextureIFace* texture, float width, float heigh
     if (instance != 0) {
         instance->setModel(model);
     }
-    instance->state_178 |= 0x10;
+    instance->render_flags_178 |= 0x10;
     return instance;
 }
 

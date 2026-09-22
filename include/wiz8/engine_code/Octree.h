@@ -526,7 +526,7 @@ public:
     /* Trigger list: serialized as 2-byte elements (ReadOctFile allocates
        count * 2 + 4) even though WriteOctFile emits them four bytes wide. */
     unsigned short* m_owned_130;
-    unsigned long m_positional_134;
+    unsigned long m_trace_skip_flag_134;
     unsigned long m_region_list_len_138;
     unsigned long m_positional_13c;
     /* The leaf-level mask: VerifyPolygonRegions rebuilds it as
@@ -543,14 +543,14 @@ public:
     BitArray* m_current_regions_160;
     BitArray* m_previous_regions_164;
     unsigned char m_reset_visibility_168;
-    unsigned char m_positional_169;
+    bool m_region_links_ready_169;
     unsigned char m_projected_regions_valid_16a;
     unsigned char m_positional_16b;
-    unsigned char m_positional_16c;
-    unsigned char m_positional_16d;
+    bool m_region_links_dirty_16c;
+    bool m_points_dirty_16d;
     unsigned char m_padding_16e[2];
-    unsigned long m_positional_170;
-    srVector3T<float>* m_sr_owned_174;
+    unsigned long m_point_count_170;
+    srVector3T<float>* m_sample_points_174;
     /* Region-link sample cell size read from .oct offset 0xac; the link
        builder strides the x/z grid by it (times three for a sparse pass). */
     float m_region_cell_178;
@@ -571,7 +571,7 @@ public:
     BitArray* m_owned_1a4;
     unsigned long m_root_mesh_count_1a8;
     unsigned long m_kind1_submesh_count_1ac;
-    unsigned long m_positional_1b0;
+    unsigned long m_alpha_polygon_count_1b0;
     unsigned long m_meshCount_1b4;
     unsigned long m_gd_result_count_1b8;
     unsigned long* m_aulGDObjs; /* 0x1bc */
@@ -584,7 +584,7 @@ public:
     float horizontal_fov_cosine_1f8;
     float vertical_fov_cosine_1fc;
     float far_clip_200;
-    int m_positional_204[6];
+    int m_visible_cells_204[6];
     /* The six frustum planes 0x004302E0 builds; 0x0046D880 tests a point
        against all six. */
     srVector4T<float> m_frustum_planes_21c[6]; /* 0x21c */
@@ -594,7 +594,7 @@ public:
     unsigned long m_positional_288;
     unsigned long m_positional_28c;
     unsigned long m_positional_290;
-    unsigned char m_positional_294;
+    unsigned char m_visibility_suspended_294;
     unsigned char m_padding_295;
     /* The build's directional-sun count: the driver stores the light total
        and CreateSubMeshes emits it as each OctMeshModel's version_00 and
@@ -640,7 +640,7 @@ public:
     W8OctPreTreeGeometry* game_data_3a4;
     unsigned long positional_3a8;
     unsigned long positional_3ac;
-    unsigned long positional_3b0;
+    unsigned long deepest_link_list_3b0;
     /* Path-node grid pitch: BuildPathLists sets it to m_region_cell_178 * 2. */
     float path_node_extent_3b4;
     /* The registered prop objects the path-bounds test collides against;

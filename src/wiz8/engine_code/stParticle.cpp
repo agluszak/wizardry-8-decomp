@@ -117,7 +117,7 @@ void SaveParticleStates0049B150(HWFILE handle)
     stParticle* particle = static_cast<stParticle*>(srCore.getRegistry()->find(
         stParticle::sGetClassNode(), static_cast<const srRuntimeClass*>(0)));
     while (particle != 0) {
-        if (particle->trigger_flag_192 != 0) {
+        if (particle->persisted_192 != 0) {
             ++count;
         }
         particle = static_cast<stParticle*>(
@@ -129,10 +129,10 @@ void SaveParticleStates0049B150(HWFILE handle)
     particle = static_cast<stParticle*>(srCore.getRegistry()->find(
         stParticle::sGetClassNode(), static_cast<const srRuntimeClass*>(0)));
     while (particle != 0) {
-        if (particle->trigger_flag_192 != 0) {
+        if (particle->persisted_192 != 0) {
             strcpy(name, particle->getName());
             FileWrite(handle, name, sizeof(name), 0);
-            FileWrite(handle, &particle->active_1a0, sizeof(particle->active_1a0), 0);
+            FileWrite(handle, &particle->emitting_1a0, sizeof(particle->emitting_1a0), 0);
         }
         particle = static_cast<stParticle*>(
             srCore.getRegistry()->find(stParticle::sGetClassNode(), particle));
@@ -166,9 +166,9 @@ void LoadParticleStates0049B3B0(int handle)
 stParticle::stParticle(srNode* parent, unsigned int count)
     : srClassSupport<stParticle, srNode, 0, 0x10009>(static_cast<srNode*>(0))
 {
-    trigger_flag_192 = 0;
+    persisted_192 = 0;
     update_flags_250 = 0;
-    value_260 = -1;
+    attachment_key_260 = -1;
     start_frame_264 = -1;
     end_frame_268 = -1;
     callback_26c = 0;
@@ -184,7 +184,7 @@ stParticle::stParticle(srNode* parent, unsigned int count)
     triangles_168 = 0;
     colors_16c = 0;
     texture_154 = 0;
-    value_138 = 0;
+    requires_positional_138 = 0;
     particle_value_140 = 1.0;
 
     if (count == 0) {
@@ -238,11 +238,11 @@ stParticle::stParticle(srNode* parent, unsigned int count)
         alphas_174[i] = 1.0f;
     }
 
-    active_1a0 = 1;
+    emitting_1a0 = 1;
     traversal_enabled_1a1 = 1;
     retained_14c = 0;
     emission_limit_184 = 0;
-    active_190 = false;
+    release_when_done_190 = false;
     replace_when_full_191 = 0;
     emission_count_188 = 0;
     active_triangles_254 = new unsigned long[texture_frame_count_15c];
@@ -291,7 +291,7 @@ stParticle::stParticle(srNode* parent, unsigned int count)
 stParticle::stParticle(const stParticle& other)
     : srClassSupport<stParticle, srNode, 0, 0x10009>(static_cast<srNode*>(0))
 {
-    trigger_flag_192 = other.trigger_flag_192;
+    persisted_192 = other.persisted_192;
     update_flags_250 = 0;
     start_frame_264 = other.start_frame_264;
     end_frame_268 = other.end_frame_268;
@@ -313,7 +313,7 @@ stParticle::stParticle(const stParticle& other)
     triangles_168 = 0;
     colors_16c = 0;
     texture_154 = 0;
-    value_138 = other.value_138;
+    requires_positional_138 = other.requires_positional_138;
     particle_value_140 = other.particle_value_140;
     texture_frames_178 = 0;
     retained_14c = other.retained_14c;
@@ -373,14 +373,14 @@ stParticle::stParticle(const stParticle& other)
     emission_limit_184 = other.emission_limit_184;
     emission_count_188 = 0;
     active_particle_count_18c = 0;
-    active_190 = other.active_190;
+    release_when_done_190 = other.release_when_done_190;
     replace_when_full_191 = other.replace_when_full_191;
     particle_active_194 = new unsigned char[count];
     memset(particle_active_194, 0, count);
     velocities_198 =
         static_cast<srVector3T<float>*>(srHeap.allocate(count * sizeof(srVector3T<float>)));
     birth_ticks_19c = new unsigned int[count];
-    active_1a0 = other.active_1a0;
+    emitting_1a0 = other.emitting_1a0;
     traversal_enabled_1a1 = 1;
     bounds_mode_1a4 = other.bounds_mode_1a4;
     has_acceleration_1a8 = other.has_acceleration_1a8;
@@ -413,7 +413,7 @@ stParticle::stParticle(const stParticle& other)
     active_triangles_254 = new unsigned long[texture_frame_count_15c];
     activated_at_258 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     updated_at_25c = activated_at_258;
-    value_260 = other.value_260;
+    attachment_key_260 = other.attachment_key_260;
     callback_26c = 0;
 
     setLocation(other.getLocation());
@@ -684,7 +684,7 @@ void stParticle::Update00499FA0()
 
     activated_at_258 = now;
 
-    if (active_1a0 == 0 || emission_mode_1b0 == 0) {
+    if (emitting_1a0 == 0 || emission_mode_1b0 == 0) {
         return;
     }
 
@@ -765,7 +765,7 @@ void stParticle::traverse(srNode::TraverseInfo& info)
     }
 
     if (!testFlag(FLAG_DISABLE)) {
-        if ((active_1a0 != 0 || active_particle_count_18c != 0) && traversal_enabled_1a1 != 0) {
+        if ((emitting_1a0 != 0 || active_particle_count_18c != 0) && traversal_enabled_1a1 != 0) {
             srNode::TraverseInfo::Entry& entry = info.entries[info.entry_count];
             entry.node = this;
             entry.value = 0;
@@ -879,7 +879,7 @@ void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
    finally handed to the shared triangle-mesh pipeline as a single slot.
 
    The retired path is the only one that can drop the system: a particle whose
-   activity has run out notifies its shake callback and, when active_190 marks
+   activity has run out notifies its shake callback and, when release_when_done_190 marks
    it as self-owned, releases itself. */
 // FUNCTION: WIZ8 0x004994D0
 void stParticle::SubmitToRenderer(srGERD* renderer)
@@ -904,14 +904,14 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     Update00499FA0();
 
     if (emission_limit_184 != 0 && emission_count_188 >= emission_limit_184) {
-        active_1a0 = 0;
+        emitting_1a0 = 0;
     }
 
-    if (active_1a0 == 0 && active_particle_count_18c == 0) {
+    if (emitting_1a0 == 0 && active_particle_count_18c == 0) {
         if (callback_26c != 0) {
             callback_26c->RestoreAnimation();
         }
-        if (active_190) {
+        if (release_when_done_190) {
             release();
         }
         return;
@@ -971,7 +971,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     view.Invert();
     PrepareRenderer00498DD0(view);
 
-    if (value_138 != 0 && !renderer->isEnabled(srGERD::ENABLE_POSITIONAL_1)) {
+    if (requires_positional_138 != 0 && !renderer->isEnabled(srGERD::ENABLE_POSITIONAL_1)) {
         renderer->toggle(srGERD::ENABLE_POSITIONAL_1);
     }
     renderer->setCullMode(srGERD::CULL_FRONT);
@@ -1128,12 +1128,12 @@ void stParticle::SetTexture0049AB00(srTextureIFace* texture)
 // FUNCTION: WIZ8 0x0049acd0
 void stParticle::SetActive(unsigned char active)
 {
-    if (active != 0 && active_1a0 == 0) {
+    if (active != 0 && emitting_1a0 == 0) {
         unsigned int now = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
         activated_at_258 = now;
         updated_at_25c = now;
     }
-    active_1a0 = active;
+    emitting_1a0 = active;
 }
 
 // FUNCTION: WIZ8 0x0049ac30
