@@ -80,14 +80,17 @@ struct W8ItemDatabaseRecord {
     unsigned char missile_values_050[0x10];
     /* 0x060: the item's missile bonus, summed across both weapons into the
        effect definition's value_1c. */
-    unsigned char missile_value_060;
+    unsigned char missile_magnitude_060;
     /* 0x061: the monster kind the weapon slays for an extra damage die,
        compared against W8MonsterRecord::kind_0cb by the character damage
        resolver; 0xff means the weapon slays nothing. */
     unsigned char slays_kind_061;
     signed char armor_class_bonus; /* 0x062 */
     unsigned char spell_id;        /* 0x063 */
-    unsigned char unknown_064[2];
+    /* 0x064: the cast spell's power level - Assay prints "(Pwr %d)" and the
+       use path consumes it as the casting power. */
+    unsigned char spell_power_064;
+    unsigned char unknown_065;
     unsigned char quantity_kind; /* 0x066 */
     W8Dice initial_quantity;     /* 0x067 */
     /* The stack merge path clamps quantity-kind 1 items to this byte. */
@@ -99,9 +102,9 @@ struct W8ItemDatabaseRecord {
     signed char modifier_06d;
     signed char modifier_06e;
     signed char resistance_bonus_06f[6]; /* 0x06f .. 0x074 */
-    unsigned char unknown_075;
-    unsigned short profession_mask; /* 0x076 */
-    unsigned int race_mask;         /* 0x078 */
+    unsigned char property_075;          /* assay special-property label index */
+    unsigned short profession_mask;      /* 0x076 */
+    unsigned int race_mask;              /* 0x078 */
     /* 0x07c: one bit per sex; three admits either, and
        CanCharacterUseItem indexes it with the character's own field. */
     unsigned char gender_mask;
@@ -134,7 +137,7 @@ struct W8ItemDatabaseRecord {
     int weapon_sound_class_0c5;
     signed char merge_skill_0c9; /* skill required to create this item */
     unsigned char merge_skill_level_0ca;
-    unsigned char unknown_0cb;
+    unsigned char editor_excluded_0cb; /* hidden from the MIPE item list */
     /* 0x0cc: the missile table entry the item fires; the missile resolver
        bounds it against g_missile_table_count_65bddc. */
     signed char missile_type;

@@ -69,7 +69,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     unsigned char saved_entry_flag;
     unsigned char saved_keyboard_open;
     unsigned char saved_pending0;
-    unsigned char saved_flag_218;
+    unsigned char saved_portrait_flash_218;
     unsigned char saved_cursor_grace_31c;
     unsigned char saved_pick_changed;
     unsigned char saved_refresh_combat;
@@ -124,7 +124,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
        cost comparison, so fCombatMode keeps the target-validity half out of
        the scenario. */
     saved_combat_mode = gXStatus.fCombatMode;
-    saved_menu_slot = g_value_64c1c8;
+    saved_menu_slot = g_selected_party_slot_64c1c8;
     saved_spell_id = g_status_685170.buffers.XChar[0].spell_id;
     saved_power_level = g_status_685170.buffers.XChar[0].spell_detail.spell.power_level;
     saved_spell_learned = g_status_685170.buffers.Char[0].spell_learned[spell_id];
@@ -134,7 +134,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     saved_spell_point_cost = g_spell_records[spell_id].spell_point_cost;
 
     gXStatus.fCombatMode = 1;
-    g_value_64c1c8 = 0;
+    g_selected_party_slot_64c1c8 = 0;
     g_status_685170.buffers.XChar[0].spell_id = spell_id;
     g_status_685170.buffers.XChar[0].spell_detail.spell.power_level = 1;
     g_status_685170.buffers.Char[0].spell_learned[spell_id] = 1;
@@ -171,7 +171,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
         g_spell_records[spell_id].usable_when = saved_usable_when;
         g_spell_records[spell_id].realm = saved_realm;
         g_spell_records[spell_id].spell_point_cost = saved_spell_point_cost;
-        g_value_64c1c8 = saved_menu_slot;
+        g_selected_party_slot_64c1c8 = saved_menu_slot;
         gXStatus.fCombatMode = saved_combat_mode;
         if (test_level_block != 0) {
             g_level_block = saved_level_block;
@@ -235,7 +235,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     saved_cursor = gXStatus.iCurrentCursor;
     saved_confirmations = g_settings_6850c8.pc_confirmations;
     saved_combat_notification = g_level_block->combat_end_notification;
-    saved_flag_218 = g_level_block->flag_218;
+    saved_portrait_flash_218 = g_level_block->portrait_flash_218;
     saved_refresh_combat = g_level_block->refresh_combat_panel;
     saved_refresh_party = g_level_block->refresh_party_panel;
     saved_pick_changed = g_level_block->pick_changed_154;
@@ -248,7 +248,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     gXStatus.iCurrentCursor = -1;
     g_settings_6850c8.pc_confirmations = 0;
     g_level_block->combat_end_notification = -1;
-    g_level_block->flag_218 = 0;
+    g_level_block->portrait_flash_218 = 0;
     g_level_block->refresh_combat_panel = 0;
     g_level_block->refresh_party_panel = 0;
     g_level_block->pick_changed_154 = 0;
@@ -256,7 +256,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     SelectPartyCharacter(1);
     result->select_moved_selection = g_status_685170.selected_character == 1;
     result->select_flagged_refresh =
-        g_level_block->flag_218 != 0 && g_level_block->refresh_combat_panel != 0 &&
+        g_level_block->portrait_flash_218 != 0 && g_level_block->refresh_combat_panel != 0 &&
         g_level_block->refresh_party_panel != 0 && g_level_block->pick_changed_154 != 0;
 
     /* MapSubMenuSelection: an attack entry lands as the unsettled action
@@ -358,7 +358,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     gXStatus.iCurrentCursor = saved_cursor;
     g_settings_6850c8.pc_confirmations = saved_confirmations;
     g_level_block->combat_end_notification = saved_combat_notification;
-    g_level_block->flag_218 = saved_flag_218;
+    g_level_block->portrait_flash_218 = saved_portrait_flash_218;
     g_level_block->refresh_combat_panel = saved_refresh_combat;
     g_level_block->refresh_party_panel = saved_refresh_party;
     g_level_block->pick_changed_154 = saved_pick_changed;
@@ -387,7 +387,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     g_spell_records[spell_id].usable_when = saved_usable_when;
     g_spell_records[spell_id].realm = saved_realm;
     g_spell_records[spell_id].spell_point_cost = saved_spell_point_cost;
-    g_value_64c1c8 = saved_menu_slot;
+    g_selected_party_slot_64c1c8 = saved_menu_slot;
     gXStatus.fCombatMode = saved_combat_mode;
     if (test_level_block != 0) {
         g_level_block = saved_level_block;

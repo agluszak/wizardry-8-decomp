@@ -85,7 +85,7 @@ struct W8MonsterRep : public W8EmitterHost {
     /* 0x5bc: per-party-member highlight bitmask - bit N set while party
        member N has the monster highlighted/targeted. */
     unsigned char highlight_mask_5bc;
-    unsigned char unknown_5bd[3];
+    unsigned char padding_5bd[3];
     char* name_5c0; /* 0x5c0: owned copy */
     /* 0x5c4: number of populated party-icon entries in objects_5c8; the
        attachment layout read by UpdateAttachedObjects. */
@@ -104,7 +104,7 @@ struct W8MonsterRep : public W8EmitterHost {
     /* 0x601: flies, swims or full-transitions - suppresses the grounded
        transition check at 0x004C0000. */
     unsigned char special_movement_601;
-    unsigned char unknown_602[2];
+    unsigned char padding_602[2];
     /* 0x604: the idle cycle's own playback scale, added to the per-update
        random roll. */
     float idle_playback_scale_604;
@@ -241,11 +241,13 @@ public:
     /* 0x1e4: the monster's location id, stored by MonsterSetLocationId and
        used throughout for MonsterInfo lookups. */
     int location_id_1e4;
-    float value_1e8;
+    /* 0x1e8/0x1f0: the X/Z siblings of scale_y_1ec; mirror_x_1be flips the
+       X term for left-handed strikes. */
+    float scale_x_1e8;
     /* Y-axis squash scale applied while flags_1dc bit 8 is set (decayed per
        frame by g_float_005ebc3c). */
     float scale_y_1ec;
-    float value_1f0;
+    float scale_z_1f0;
     /* Attack-animation frame that triggers the missile launch. */
     int missile_frame_1f4;
     /* Cycle-25 animation frame that triggers the attached spell effect. */
@@ -255,14 +257,14 @@ public:
     /* 0x1fd: the StartTalking argument; mouth texture animation only runs
        while it is set. */
     unsigned char animate_mouth;
-    unsigned char unknown_1fe[2];
+    unsigned char padding_1fe[2];
     /* 0x200/0x204: the 120 ms clock and the last frame of the random mouth
        flicker used while the gap track reports the mouth closed. */
     int mouth_frame_clock;
     int mouth_frame;
-    int value_208;
-    int value_20c;
-    int value_210;
+    int talk_start_208;
+    int talk_duration_20c;
+    int talk_state_210;
     /* 0x214: the current mouth state the dialogue update copies out of the
        active W8MouthGapTrack; forces mouth frame 0 while open. */
     unsigned char mouth_open;
@@ -273,8 +275,8 @@ public:
     bool pending_finalize_216;
     /* 0x217: suppresses rendering and radar/automap display. */
     bool disabled_217;
-    unsigned char flag_218;
-    unsigned char unknown_219[3];
+    unsigned char nearest_to_party_218;
+    unsigned char padding_219[3];
     /* 0x21c/0x220: hover base-height random range (scaled by
        g_world_scale_005ebc40 into movement_0c0.vertical_base_07c). */
     int hover_base_min_21c;
@@ -287,8 +289,8 @@ public:
     unsigned char spell_vertex_warned_22c;
     /* 0x22d: the missing missile-start-point warning already fired once. */
     unsigned char missile_point_warned_22d;
-    signed char state_22e;
-    unsigned char unknown_22f;
+    signed char removal_state_22e;
+    unsigned char padding_22f;
     CycleCallback cycle_callback_230;
     int callback_cycle_234;
     stScript* script_238;
@@ -305,12 +307,12 @@ public:
     unsigned char deaf_28f;
     unsigned char face_party_290;
     unsigned char stay_home_291;
-    unsigned char unknown_292[2];
+    unsigned char padding_292[2];
     float patrol_distance_294;
     float patrol_variation_298;
     W8GrowableVector<srVector3T<float> > vector_29c;
     signed char patrol_index_2ac;
-    unsigned char unknown_2ad[3];
+    unsigned char padding_2ad[3];
     float direction_x_2b0;
     float direction_y_2b4;
     float direction_z_2b8;
@@ -323,14 +325,14 @@ public:
        uninitialized, 1 lit (scale toward 0.75), 0 shadowed (toward 0). */
     int sunlit_state_2d0;
     unsigned char position_dirty_2d4;
-    unsigned char unknown_2d5[3];
+    unsigned char padding_2d5[3];
     W8GameTimer timer_2d8;
     float target_scale_2fc;
     float current_scale_300;
     /* 0x304: one-shot latch; the cycle-25 spell frame fires
        CreateAttachedSpellEffect once then clears it. */
     unsigned char spell_effect_armed_304;
-    unsigned char unknown_305[3];
+    unsigned char padding_305[3];
     srNode* node_308;
     W8GameTimer timer_30c;
     signed char fade_state_330;
@@ -340,7 +342,7 @@ public:
     /* 0x332: copied from the source monster; blocks hostility recompute in
        Targeting and Combat Hostility. */
     unsigned char hostility_preserved_332;
-    unsigned char unknown_333;
+    unsigned char padding_333;
     stSound3D* sound_334;
     W8GrowableVector<int> values_338;
 };
@@ -377,13 +379,14 @@ void MonsterGetScaleRange(W8Monster* monster, float* minimum, float* maximum);
 void MonsterSetAdjustedPosition004C5F00(W8Monster* monster, const srVector3T<float>* position);
 unsigned short MonsterApproachStartupNavigator004C5FF0(W8Monster* monster, double separation);
 unsigned char MonsterLinkToStartupNavigator004C6030(W8Monster* monster);
-unsigned short MonsterConfigureMovementToPlayer004C6070(W8Monster* monster, float value_1,
-                                                        float value_2, srVector3T<float> position,
-                                                        int value_3, unsigned char* value_4);
+unsigned short MonsterConfigureMovementToPlayer004C6070(W8Monster* monster, float separation,
+                                                        float maximum_distance,
+                                                        srVector3T<float> position, int trace_mode,
+                                                        unsigned char* probe_result);
 unsigned short MonsterConfigureMovementToMonster004C60D0(W8Monster* monster, W8Monster* target,
-                                                         float value_1, float value_2,
-                                                         srVector3T<float> position, int value_3,
-                                                         unsigned char* value_4);
+                                                         float separation, float maximum_distance,
+                                                         srVector3T<float> position, int trace_mode,
+                                                         unsigned char* probe_result);
 void MonsterAimAtMonster004C62C0(W8Monster* monster, W8Monster* target, char alternate);
 void MonsterSetCycle(W8Monster* monster, signed char cycle);
 void MonsterSetStateA0(W8Monster* monster, unsigned char state); /* 0x004C6160 */
@@ -421,7 +424,7 @@ public:
     stParticle* m_pParticles;
     unsigned char saved_behaviour;
     signed char saved_frame_method;
-    unsigned char unknown_0e[2];
+    unsigned char padding_0e[2];
 };
 
 static_assert(sizeof(W8MonsterShakeCallback) == 0x10, "W8MonsterShakeCallback_size_must_be_0x10");

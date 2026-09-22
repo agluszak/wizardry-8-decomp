@@ -1039,7 +1039,7 @@ void srGERD::LockSurface::setScissor(unsigned long left, unsigned long top, unsi
 void srGERD::applyViewStateChanges()
 {
     unsigned long dirty = dirty_24_;
-    statistics_1a78_.value_40 += 1;
+    statistics_1a78_.view_state_applies_40 += 1;
     if ((dirty & 0x20) != 0) {
         classifyMatrix(MATRIX_MODELVIEW);
         dirty = dirty_24_ & ~0x20UL;
@@ -1143,7 +1143,7 @@ void srGERD::recalcScissor()
 // FUNCTION: SURRENDER 0x100215A0
 void srGERD::classifyMatrix(e_matrixMode mode)
 {
-    statistics_1a78_.value_7c += 1;
+    statistics_1a78_.matrix_classifications_7c += 1;
     if (mode == MATRIX_MODELVIEW) {
         srMatrix4T<float>* modelview = &matrix_current_390_[MATRIX_MODELVIEW];
         matrix_class_174c_[MATRIX_MODELVIEW] = (srMatrix4T<float>::e_type)0;
@@ -1903,7 +1903,7 @@ unsigned long srGERD::getPickKey() const
 // FUNCTION: SURRENDER 0x1001DB30
 srGERD::e_visibility srGERD::testBoundingSphere(const srVector3T<float>& center, float radius)
 {
-    statistics_1a78_.value_6c++;
+    statistics_1a78_.sphere_tests_6c++;
     if ((dirty_24_ & 0x1f0) != 0) {
         applyViewStateChanges();
     }
@@ -1953,7 +1953,7 @@ srGERD::e_visibility srGERD::testBoundingSphere(const srVector3T<float>& center,
             }
         }
     }
-    statistics_1a78_.value_70++;
+    statistics_1a78_.sphere_visible_70++;
     return static_cast<e_visibility>(1);
 }
 
@@ -1961,14 +1961,14 @@ srGERD::e_visibility srGERD::testBoundingSphere(const srVector3T<float>& center,
 srGERD::e_visibility srGERD::testBoundingBox(const srVector3T<float>& minimum,
                                              const srVector3T<float>& maximum)
 {
-    statistics_1a78_.value_74++;
+    statistics_1a78_.box_tests_74++;
     if ((dirty_24_ & 0x1f0) != 0) {
         applyViewStateChanges();
     }
     srMatrix4T<float> combined = matrix_current_390_[MATRIX_PROJECTION];
     combined.MultiplyBy(matrix_current_390_[MATRIX_MODELVIEW]);
     if (srVectorProcessor::vp->_srTestBoundingBox(combined, minimum, maximum) != 0) {
-        statistics_1a78_.value_78++;
+        statistics_1a78_.box_visible_78++;
         return static_cast<e_visibility>(1);
     }
     return VISIBILITY_POSITIONAL_0;
@@ -2031,7 +2031,7 @@ void srGERD::applyDrawStateChanges()
     }
     if ((dirty_24_ & 0x1000) != 0) {
         getDD()->setShader(shader_1ff8_);
-        statistics_1a78_.value_5c++;
+        statistics_1a78_.shader_sets_5c++;
     }
     removeDeletedTextures();
     if ((dirty_24_ & 0x400) != 0) {
@@ -2065,7 +2065,7 @@ void srGERD::applyDrawStateChanges()
         getDD()->setPolygonOffset(polygon_offset_1fe4_);
     }
     dirty_24_ &= 0xffff01ff;
-    statistics_1a78_.value_44++;
+    statistics_1a78_.draw_state_applies_44++;
 }
 
 // FUNCTION: SURRENDER 0x100281B0
@@ -2290,7 +2290,7 @@ void srGERD::setTextureParameters(unsigned long stage, const srTextureIFace::Par
     }
     parms->packed_00 = packed;
     parms->mipmap_bias_04 = bias;
-    ++statistics_1a78_.value_50;
+    ++statistics_1a78_.texture_parameter_sets_50;
     getDD()->setTextureParameters(stage, *parms);
 }
 
@@ -2333,7 +2333,7 @@ bound:
         return;
     }
     if (found->palette_24 != 0 && found->palette_24 != palette_1fdc_) {
-        ++statistics_1a78_.value_58;
+        ++statistics_1a78_.palette_binds_58;
         invalidatePalette();
         srPalette* palette = found->palette_24;
         palette_1f50_.flags_08 = 0;
@@ -2362,7 +2362,7 @@ bound:
             found->surface_data_20 != 0 && (flags_68_ & 0x20) != 0) {
             releaseTextureSurfaceData(*found);
         }
-        ++statistics_1a78_.value_4c;
+        ++statistics_1a78_.texture_binds_4c;
     }
     srTextureIFace::Parameters parameters;
     texture->getTextureParms(parameters);
@@ -2621,11 +2621,11 @@ srGERD::Texture* srGERD::createNewTexture(srTextureIFace* texture)
     allocTextureData(*result);
     srTextureIFace::MultiRequest request;
     request.mipmap_level = (long)result->device_2c.first_level_28;
-    request.unknown_04 = result->device_2c.last_level_2c;
+    request.last_level_04 = result->device_2c.last_level_2c;
     unsigned long width = result->device_2c.width_20;
     unsigned long height = result->device_2c.height_24;
     long level = request.mipmap_level;
-    for (; level <= (long)request.unknown_04; ++level) {
+    for (; level <= (long)request.last_level_04; ++level) {
         srColorSurface* surface = new srColorSurface(
             result->pixel_format_0c, result->device_2c.levels_38[level], width, height,
             (unsigned long)(result->pixel_format_0c.bytes_per_pixel_minus_one + 1) * width);
@@ -2638,12 +2638,12 @@ srGERD::Texture* srGERD::createNewTexture(srTextureIFace* texture)
         height >>= 1;
     }
     texture->getMipmapData(request);
-    for (level = request.mipmap_level; level <= (long)request.unknown_04; ++level) {
+    for (level = request.mipmap_level; level <= (long)request.last_level_04; ++level) {
         request.destinations[level]->release();
     }
     result->device_2c.unknown_68 = 0;
     result->device_2c.priority_14 = texture->getPriority();
-    ++statistics_1a78_.value_54;
+    ++statistics_1a78_.textures_created_54;
     if (dimensions.palette != 0) {
         dimensions.palette->release();
     }

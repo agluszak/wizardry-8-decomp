@@ -213,7 +213,7 @@ struct W8MonsterCombatState {
     bool active; /* 0x004 */
     /* 0x005: the round's attack count staged beside attacks_per_round when a
        chosen attack is committed; a four-byte store. */
-    unsigned int unknown_005;
+    unsigned int attacks_per_round_005; /* runtime copy of the record field */
     /* 0x009: how many attacks it gets this round, which is what divides the
        remaining phases between them. */
     int attacks_per_round;
@@ -243,7 +243,11 @@ struct W8MonsterCombatState {
        the character row's pending_action_repick_count; the attack-score
        surprise penalty scales with it. */
     unsigned int pending_action_repick_count;
-    unsigned char unknown_145[2];
+    /* 0x145: the special/breath attack is available this round. */
+    bool special_ready_145;
+    /* 0x146: rounds until the special attack can fire again, loaded from the
+       record's special_attack_cooldown_15c after each use. */
+    unsigned char special_cooldown_146;
     /* 0x147: the round's interception count, checked against the record's
        attacks_per_round before another intercept is allowed and bumped on
        each successful one. */
@@ -252,7 +256,9 @@ struct W8MonsterCombatState {
        action executor starts the advance and cleared when an enemy is inside
        short range or when the forcing condition is removed. */
     unsigned char advancing_14b;
-    int value_14c; /* 0x14c */
+    /* 0x14c: combat ticks since the member last acted; the AI treats a value
+       under three as still settling. */
+    int settle_ticks_14c;
     /* 0x150: the monster's turn has been set up already, so the setup runs
        once per turn however often it is asked for. */
     bool turn_started;

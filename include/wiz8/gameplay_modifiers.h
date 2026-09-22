@@ -45,12 +45,12 @@ static_assert(offsetof(W8EffectSlot, duration_0d) == 0x0d, "W8EffectSlot_duratio
    keep the larger value. Only the offsets another recovered pass names are
    labelled; the rest stay runs. */
 struct W8GameplayModifierBlock {
-    signed char value_00;       /* 0x00: added to initiative and to displayed hand damage */
-    signed char value_01;       /* 0x01: added to the hand attack hit bonus */
-    signed char value_02;       /* 0x02 */
-    signed char value_03;       /* 0x03: added to the hand attack damage bonus */
-    signed char armor_bonus_04; /* 0x04 */
-    signed char armor_bonus_05; /* 0x05 */
+    signed char damage_bonus_00;   /* 0x00: added to initiative and to displayed hand damage */
+    signed char hit_bonus_01;      /* 0x01: added to the hand attack hit bonus */
+    signed char attack_bonus_02;   /* 0x02: added to the hand attack score term */
+    signed char damage_percent_03; /* 0x03: added to the hand attack damage bonus */
+    signed char armor_bonus_04;    /* 0x04 */
+    signed char armor_bonus_05;    /* 0x05 */
     signed char damage_reduction_adjustment; /* 0x06: added to damage reduction */
     signed char resistance_bonus_all;        /* 0x07: added to every resistance */
     /* 0x08: flat damage applied once per elapsed minute. The character and
@@ -63,16 +63,18 @@ struct W8GameplayModifierBlock {
     signed char stamina_regen_adjustment;
     signed char spell_regen_adjustment;
     signed char attribute_adjustments[7]; /* 0x0c .. 0x12 */
-    signed char unknown_13[0x29];         /* 0x13 .. 0x3b: one per skill id */
+    signed char skill_bonus_13[0x29];     /* 0x13 .. 0x3b: one per skill id */
     signed char resistance_bonus[6];      /* 0x3c .. 0x41 */
     /* 0x42..0x44: independent +50% regeneration-rate latches. */
     unsigned char boost_health_regen;
     unsigned char boost_stamina_regen;
     unsigned char boost_spell_regen;
     unsigned char out_of_formation; /* 0x45 */
-    unsigned char flag_46;          /* 0x46: set by effect id 0x11 */
-    unsigned char light_47;         /* 0x47: the doubled light value the sky node reads */
-     unsigned char value_48;         /* 0x48: max-combined, effect id 0x21 */
+    /* 0x46: set by effect id 0x11; the secret-search pass treats every
+       slot as a finder while it holds. */
+    unsigned char detect_secrets_46;
+    unsigned char light_47; /* 0x47: the doubled light value the sky node reads */
+    unsigned char value_48; /* 0x48: max-combined, effect id 0x21 */
     /* 0x49: missile deflection chance in percent; Missile.cpp compares it
        against Random(100)+1. Max-combined, effect id 0x1a. */
     unsigned char missile_deflect_chance_49;

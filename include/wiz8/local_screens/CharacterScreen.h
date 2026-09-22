@@ -170,7 +170,7 @@ public:
     void BuildSubpanel();            /* 0x005c94e0 */
     void SetValue(int index);        /* 0x005c96c0 */
 
-    int m_value_004;
+    int m_index_004; /* current stat index */
     unsigned short m_count_008;
     unsigned char pad_00a[2];
     int m_x_00c;
@@ -299,7 +299,7 @@ private:
     unsigned char m_force_redraw_074;
     unsigned char m_show_fifth_category_075;
     bool m_navigation_state_076;
-    unsigned char unknown_077;
+    unsigned char padding_077;
 };
 static_assert(sizeof(W8CharacterPage005EF5C8) == 0x78, "W8CharacterPage005EF5C8_size");
 /* Retail secondary vftable 0x005ef5c0 places W8CharacterPageEntryListener at

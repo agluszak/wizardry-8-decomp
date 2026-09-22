@@ -365,8 +365,8 @@ void W8CharacterStatsRow005EF750::SetValue(int index)
     } else {
         m_value_control_024->SetRecord(&m_table_018[index]);
     }
-    int previous = m_value_004;
-    m_value_004 = index;
+    int previous = m_index_004;
+    m_index_004 = index;
     m_value_control_024->Invalidate(1);
     if (m_listener_030 != 0 && previous != index) {
         m_listener_030->OnRowValueChanged(this, index);
@@ -377,7 +377,7 @@ void W8CharacterStatsRow005EF750::SetValue(int index)
 void W8CharacterStatsRow005EF750::OnPrimary(W8TextControl* control)
 {
     if (control == m_decrement_01c) {
-        int previous = m_value_004;
+        int previous = m_index_004;
         int index = previous - 1;
         if (index >= 0) {
             const W8CharacterStatsRecord* record = &m_table_018[index];
@@ -385,7 +385,7 @@ void W8CharacterStatsRow005EF750::OnPrimary(W8TextControl* control)
                 if (record->enabled_0e != 0) {
                     m_value_control_024->SetRecord(index == -1 ? 0 : &m_table_018[index]);
                     unsigned char changed = previous != index;
-                    m_value_004 = index;
+                    m_index_004 = index;
                     m_value_control_024->Invalidate(1);
                     if (m_listener_030 == 0 || !changed) {
                         return;
@@ -409,14 +409,14 @@ void W8CharacterStatsRow005EF750::OnPrimary(W8TextControl* control)
             }
             m_value_control_024->SetRecord(index == -1 ? 0 : &m_table_018[index]);
             unsigned char changed = previous != index;
-            m_value_004 = index;
+            m_index_004 = index;
             m_value_control_024->Invalidate(1);
             if (m_listener_030 != 0 && changed) {
                 m_listener_030->OnRowValueChanged(this, index);
             }
         }
     } else if (control == m_increment_020) {
-        int previous = m_value_004;
+        int previous = m_index_004;
         int index = previous + 1;
         if (index < (int)(unsigned int)m_count_008) {
             const W8CharacterStatsRecord* record = &m_table_018[index];
@@ -424,7 +424,7 @@ void W8CharacterStatsRow005EF750::OnPrimary(W8TextControl* control)
                 if (record->enabled_0e != 0) {
                     m_value_control_024->SetRecord(index == -1 ? 0 : &m_table_018[index]);
                     unsigned char changed = previous != index;
-                    m_value_004 = index;
+                    m_index_004 = index;
                     m_value_control_024->Invalidate(1);
                     if (m_listener_030 == 0 || !changed) {
                         return;
@@ -448,7 +448,7 @@ void W8CharacterStatsRow005EF750::OnPrimary(W8TextControl* control)
             }
             m_value_control_024->SetRecord(index == -1 ? 0 : &m_table_018[index]);
             unsigned char changed = previous != index;
-            m_value_004 = index;
+            m_index_004 = index;
             m_value_control_024->Invalidate(1);
             if (m_listener_030 != 0 && changed) {
                 m_listener_030->OnRowValueChanged(this, index);
@@ -490,8 +490,8 @@ void W8CharacterStatsRow005EF750::OnSecondary(W8TextControl* control)
 {
     if (control != m_decrement_01c && control != m_increment_020) {
         if (control == m_value_control_024) {
-            if (m_value_004 != -1) {
-                m_listener_030->OnRowInfoRequested(this, m_value_004);
+            if (m_index_004 != -1) {
+                m_listener_030->OnRowInfoRequested(this, m_index_004);
             }
         } else {
             for (unsigned int index = 0; index < m_count_008; ++index) {
@@ -506,7 +506,7 @@ void W8CharacterStatsRow005EF750::OnSecondary(W8TextControl* control)
 
 /* The row's default state: no selection, no table, no child controls. */
 W8CharacterStatsRow005EF750::W8CharacterStatsRow005EF750()
-    : m_value_004(-1), m_count_008(0), m_table_018(0), m_decrement_01c(0), m_increment_020(0),
+    : m_index_004(-1), m_count_008(0), m_table_018(0), m_decrement_01c(0), m_increment_020(0),
       m_value_control_024(0), m_subpanel_028(0), m_subpanel_entries_02c(0), m_listener_030(0)
 {
 }
@@ -576,8 +576,8 @@ void W8CharacterPage005EF778::UpdateRowValues()
     } else {
         row->m_value_control_024->SetRecord(&row->m_table_018[profession]);
     }
-    int previous = row->m_value_004;
-    row->m_value_004 = profession;
+    int previous = row->m_index_004;
+    row->m_index_004 = profession;
     row->m_value_control_024->Invalidate(1);
     if (row->m_listener_030 != 0 && previous != profession) {
         row->m_listener_030->OnRowValueChanged(row, profession);
@@ -596,8 +596,8 @@ void W8CharacterPage005EF778::UpdateRowValues()
     } else {
         row->m_value_control_024->SetRecord(&row->m_table_018[race]);
     }
-    previous = row->m_value_004;
-    row->m_value_004 = race;
+    previous = row->m_index_004;
+    row->m_index_004 = race;
     row->m_value_control_024->Invalidate(1);
     if (row->m_listener_030 != 0 && previous != race) {
         row->m_listener_030->OnRowValueChanged(row, race);
@@ -616,8 +616,8 @@ void W8CharacterPage005EF778::UpdateRowValues()
     } else {
         row->m_value_control_024->SetRecord(&row->m_table_018[gender]);
     }
-    previous = row->m_value_004;
-    row->m_value_004 = gender;
+    previous = row->m_index_004;
+    row->m_index_004 = gender;
     row->m_value_control_024->Invalidate(1);
     if (row->m_listener_030 != 0 && previous != gender) {
         row->m_listener_030->OnRowValueChanged(row, gender);
@@ -764,7 +764,7 @@ void W8CharacterPage005EF778::AdjustEntry(W8CharacterPageEntry* entry, int delta
     if (m_character_060->attributes[entry->m_id_02c].value >= 100) {
         for (int skill = 0x22; skill < 0x29; ++skill) {
             if (g_skill_attributes[skill].category == entry->m_id_02c &&
-                m_character_060->skills[skill].flag_00 != 0) {
+                m_character_060->skills[skill].active_00 != 0) {
                 m_screen_05c->ShowDescription(entry->m_id_02c, skill);
             }
         }

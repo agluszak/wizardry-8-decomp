@@ -1049,7 +1049,7 @@ void stModelInstance::RenderShadow004811D0(srGERD& renderer, srMeshModel::TriMes
     pipeline->current_pass_18->value_10 = 0;
     pipeline->current_pass_18->shader_14 = 0;
     pipeline->current_pass_18->st_18 = 0;
-    pipeline->current_pass_18->value_1c = 0;
+    pipeline->current_pass_18->poly_uv_1c = 0;
     pipeline->FlushIfCurrent();
     renderer.popMatrix();
     renderer.popEnable();

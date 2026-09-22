@@ -107,7 +107,7 @@ void ToggleMipePanel0057D740(void)
 {
     if (g_mipe_active_68f105 != 0) {
         g_level_block->text_box_visible_271 = 1;
-        g_level_block->flag_272 = 0;
+        g_level_block->mipe_editing_272 = 0;
         ResetEditorStatusLine0058AA20(-1);
         if (gXStatus.fCombatMode != 0) {
             SelectTextBox(1);
@@ -142,7 +142,7 @@ void ToggleMipePanel0057D740(void)
     }
 
     g_level_block->text_box_visible_271 = 0;
-    g_level_block->flag_272 = 1;
+    g_level_block->mipe_editing_272 = 1;
     SelectTextBox(0);
     ResetEditorStatusLine0058AA20(-1);
     g_mipe_active_68f105 = 1;
@@ -176,7 +176,7 @@ void ToggleMipePanel0057D740(void)
         }
         wcscpy(entry->name, records[index].name_00);
         entry->kind = records[index].kind_0cb;
-        entry->selectable = records[index].deleted == 0 && records[index].value_1c1 == -1;
+        entry->selectable = records[index].deleted == 0 && records[index].editor_index_1c1 == -1;
         PLAdoptAppend(g_mipe_monster_entries_0068f124, entry);
     }
     free(records);
@@ -221,14 +221,14 @@ void ToggleMipePanel0057D740(void)
     } else {
         W8MonsterRecord record;
         LoadMonsterDatabaseRecord(monster_index, &record);
-        g_mipe_monster_index_0068f112 = record.value_1c1;
+        g_mipe_monster_index_0068f112 = record.editor_index_1c1;
     }
 
     unsigned int item_index = 0;
     visible = 0;
     while (item_index < gXStatus.uiItemsInDatabase) {
         if (g_item_records[item_index].equip_class == g_mipe_category_0068f114 &&
-            g_item_records[item_index].unknown_0cb == 0) {
+            g_item_records[item_index].editor_excluded_0cb == 0) {
             if (visible == selection) {
                 break;
             }
@@ -278,12 +278,12 @@ static void ShowMipeMonsterStatus00577BF0(void)
     ShowNoticef(6, L"OR type O to edit the creation method.      ");
     ShowNoticef(3, L"How many: %d", g_mipe_count_0068f10c);
     ShowNoticef(0xf, &g_wchar_00689b34);
-    if (g_mipe_state_0068f100->unknown_30 == 0) {
+    if (g_mipe_state_0068f100->creation_method_30 == 0) {
         method = L"Creation Method: Exact #";
-    } else if (g_mipe_state_0068f100->unknown_30 == 1) {
+    } else if (g_mipe_state_0068f100->creation_method_30 == 1) {
         method = L"Creation Method: Placeholder";
     } else {
-        if (g_mipe_state_0068f100->unknown_30 != 2) {
+        if (g_mipe_state_0068f100->creation_method_30 != 2) {
             ShowNoticef(0xf, L"Monster:   %s        ", name);
             return;
         }
@@ -704,9 +704,9 @@ static unsigned char HandleMipeMonsterCreateKey00578500(unsigned short key)
         ShowMipeTableRows00577D80(list);
         return 1;
     case 0x4f:
-        g_mipe_state_0068f100->unknown_30 = g_mipe_state_0068f100->unknown_30 + 1;
-        if (2 < g_mipe_state_0068f100->unknown_30) {
-            g_mipe_state_0068f100->unknown_30 = 0;
+        g_mipe_state_0068f100->creation_method_30 = g_mipe_state_0068f100->creation_method_30 + 1;
+        if (2 < g_mipe_state_0068f100->creation_method_30) {
+            g_mipe_state_0068f100->creation_method_30 = 0;
         }
         ShowMipeMonsterStatus00577BF0();
         return 1;
@@ -747,7 +747,7 @@ static unsigned char HandleMipeMonsterCreateKey00578500(unsigned short key)
         formation.y = anchor.y;
         formation.z = anchor.z;
         SetMonsterGroupFormation(monster_group, &formation);
-        monster_group->unknown_2d[0x6d] = g_mipe_state_0068f100->unknown_30;
+        monster_group->group_state_2d[0x6d] = g_mipe_state_0068f100->creation_method_30;
     }
     return 1;
 }
@@ -773,7 +773,7 @@ static void HandleMipeItemCategoryKey00578850(unsigned short key)
         if (0 < static_cast<int>(gXStatus.uiItemsInDatabase)) {
             do {
                 if (g_item_records[item_index].equip_class == g_mipe_category_0068f114 &&
-                    g_item_records[item_index].unknown_0cb == 0) {
+                    g_item_records[item_index].editor_excluded_0cb == 0) {
                     if (found == g_mipe_table_base_0068f120 + g_mipe_table_row_0068f118) {
                         break;
                     }
@@ -834,7 +834,8 @@ static void HandleMipeItemCategoryKey00578850(unsigned short key)
             if (0 < static_cast<int>(gXStatus.uiItemsInDatabase)) {
                 do {
                     entry = &g_item_records[found];
-                    if (entry->equip_class == g_mipe_category_0068f114 && entry->unknown_0cb == 0) {
+                    if (entry->equip_class == g_mipe_category_0068f114 &&
+                        entry->editor_excluded_0cb == 0) {
                         PLAdoptAppend(list, entry);
                     }
                     ++found;
@@ -864,7 +865,8 @@ static void HandleMipeItemCategoryKey00578850(unsigned short key)
             if (0 < static_cast<int>(gXStatus.uiItemsInDatabase)) {
                 do {
                     entry = &g_item_records[found];
-                    if (entry->equip_class == g_mipe_category_0068f114 && entry->unknown_0cb == 0) {
+                    if (entry->equip_class == g_mipe_category_0068f114 &&
+                        entry->editor_excluded_0cb == 0) {
                         PLAdoptAppend(list, entry);
                     }
                     ++found;
@@ -918,7 +920,7 @@ static unsigned char HandleMipeItemCreateKey00578D00(unsigned short key)
             if (0 < static_cast<int>(gXStatus.uiItemsInDatabase)) {
                 do {
                     if (g_item_records[index].equip_class == g_mipe_category_0068f114 &&
-                        g_item_records[index].unknown_0cb == 0) {
+                        g_item_records[index].editor_excluded_0cb == 0) {
                         PLAdoptAppend(list, &g_item_records[index]);
                     }
                     ++index;
@@ -940,7 +942,7 @@ static unsigned char HandleMipeItemCreateKey00578D00(unsigned short key)
         if (0 < static_cast<int>(gXStatus.uiItemsInDatabase)) {
             do {
                 if (g_item_records[item_index].equip_class == g_mipe_category_0068f114 &&
-                    g_item_records[item_index].unknown_0cb == 0) {
+                    g_item_records[item_index].editor_excluded_0cb == 0) {
                     if (found == g_mipe_table_base_0068f120 + g_mipe_table_row_0068f118) {
                         break;
                     }
@@ -1067,8 +1069,8 @@ static void HandleMipeMonsterCategoryKey00579300(unsigned short key)
             LoadMonsterDatabaseRecord(monster_index, &record);
         }
         g_mipe_monster_index_0068f112 = record.record_id_187;
-        if (g_mipe_state_0068f100->unknown_30 != 1) {
-            if (g_mipe_state_0068f100->unknown_30 == 2) {
+        if (g_mipe_state_0068f100->creation_method_30 != 1) {
+            if (g_mipe_state_0068f100->creation_method_30 == 2) {
                 LoadMonsterDatabaseRecord(static_cast<int>(record.record_id_187), &selected);
                 g_mipe_count_0068f10c =
                     selected.group_size_dice_0c1.sides * selected.group_size_dice_0c1.count +

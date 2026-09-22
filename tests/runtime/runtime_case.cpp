@@ -249,7 +249,7 @@ void ReadGameplaySnapshotOnGameThread(void* opaque)
     s->combat = gXStatus.fCombatMode != 0;
     s->movement_ui = gXStatus.fPartyMovementUi != 0;
     s->movement_budget = g_level_block != 0 ? g_level_block->move_budget_2dc : 0;
-    s->round_active = g_combat_state != 0 ? g_combat_state->flag_000 : 0;
+    s->round_active = g_combat_state != 0 ? g_combat_state->combat_over_000 : 0;
     s->party_action_status = g_combat_state != 0 ? g_combat_state->uiCurrentPartyActionStatus : 0;
     s->action_status = g_combat_state != 0 ? g_combat_state->eCombatActionStatus : 0;
     s->action_monster = g_combat_state != 0 && g_combat_state->pActionMonsterInfo != 0

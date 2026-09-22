@@ -95,7 +95,7 @@ W8GrowableVector<W8NpcState*>* g_npc_states;
 // FUNCTION: WIZ8 0x0050aa00
 bool NpcRecordHasValue002(W8NpcState* npc)
 {
-    return npc->record->value_002 != 0;
+    return npc->record->trade_pool_002 != 0;
 }
 
 /* The NPC's effective disposition: the state's byte plus its bound monster's
@@ -629,7 +629,7 @@ bool RecruitNpcIntoParty(W8NpcState* npc)
     }
     int index;
     for (index = 0; index < 0x29; ++index) {
-        if (g_status_685170.buffers.Char[party_slot].skills[index].value_02 > 0) {
+        if (g_status_685170.buffers.Char[party_slot].skills[index].points_02 > 0) {
             g_status_685170.buffers.Char[party_slot].skills[index].available_13 = true;
         }
     }
@@ -982,7 +982,7 @@ void ProcessNpcPendingEvents0050CA80(void)
     unsigned char all_clear = 1; // bool-byte-ok: retail byte flag
 
     if (gXStatus.fCombatMode == 0 && gXStatus.fSurprisePossible == 0) {
-        if (g_status_685170.flag_2446 != 0) {
+        if (g_status_685170.infatuation_pending_2446 != 0) {
             unsigned char flagged = 0;
             for (int index = 0; index < g_npc_states->count; ++index) {
                 W8NpcState* candidate = *g_npc_states->GetAt(index);
@@ -994,7 +994,7 @@ void ProcessNpcPendingEvents0050CA80(void)
                 }
             }
             if (flagged != 0) {
-                g_status_685170.flag_2446 = 0;
+                g_status_685170.infatuation_pending_2446 = 0;
             } else {
                 char band = GetLevelBand(g_status_685170.current_level);
                 if (band != 9 && band != 0xa) {
@@ -1006,7 +1006,7 @@ void ProcessNpcPendingEvents0050CA80(void)
                     }
                     SetCharacterCondition(g_status_685170.alternate_name_slot_247f,
                                           W8_CONDITION_INFATUATED, 9999, 0, 0, 1);
-                    g_status_685170.flag_2446 = 0;
+                    g_status_685170.infatuation_pending_2446 = 0;
                     SetFact(0x2a6, 1, 0);
                 }
             }
@@ -1144,7 +1144,7 @@ void ChooseNewGameStartLocation(int* level, int* entrance)
     }
     *level = start_level;
     *entrance = 0;
-    g_status_685170.flag_2497 = 1;
+    g_status_685170.greeting_pending_2497 = 1;
 
     value = EvaluateFact(0x4e);
     if (g_status_685170.log_fact_checks_3120) {
@@ -1194,7 +1194,7 @@ void ChooseNewGameStartLocation(int* level, int* entrance)
     RestoreNamedNpcAtLevel0050C1C0(0x18, 8, "NP_ViMon");
 }
 
-/* Runs when the pending flag_2497 transition times out: new-game parties get
+/* Runs when the pending greeting_pending_2497 transition times out: new-game parties get
    the opening scripted effect, imported parties instead pull focus to the NPC
    their ending selected — ending 0x4c the kind-0x0c greeter, ending 0x4b the
    kind-0x8c greeter with the camera swung onto its head — and anything else
@@ -1220,7 +1220,8 @@ void SelectStartNpcGreeting(void)
                     display_value);
     }
     if (value != 0) {
-        ApplyItemEffectToRandomCharacter(g_value_005ee6f0, -1, 0, g_effect_argument_005ed8c8);
+        ApplyItemEffectToRandomCharacter(g_fact_check_event_005ee6f0, -1, 0,
+                                         g_effect_argument_005ed8c8);
         return;
     }
 
@@ -1348,7 +1349,7 @@ void ResetNpcStates(void)
 
             ReleaseNpcScriptFile0055A0A0(npc->script_file);
             npc->script_file = 0;
-            if (npc->record != 0 && npc->record->flag_055 != 0) {
+            if (npc->record != 0 && npc->record->owns_stock_055 != 0) {
                 ClearNpcItems(npc);
             }
             delete npc->character;
@@ -1376,7 +1377,7 @@ void ReleaseNpcStates005099D0(void)
             if (g_npc_states != 0) {
                 ReleaseNpcScriptFile0055A0A0(npc->script_file);
                 npc->script_file = 0;
-                if (npc->record != 0 && npc->record->flag_055 != 0) {
+                if (npc->record != 0 && npc->record->owns_stock_055 != 0) {
                     ClearNpcItems(npc);
                 }
                 delete npc->character;
@@ -1485,7 +1486,7 @@ W8NpcState* CreateNpcRuntimeNode(int npc_id)
         npc->character = new W8Character;
         InitializeNpcCharacter(npc, npc->character);
     }
-    if (npc->record->flag_055 != 0) {
+    if (npc->record->owns_stock_055 != 0) {
         PopulateNpcStock(npc);
     }
     InitializeNpcItemTable(npc);
@@ -1494,7 +1495,7 @@ W8NpcState* CreateNpcRuntimeNode(int npc_id)
     npc->disposition = g_npc_records[npc_id].disposition;
     npc->gold_80 = g_npc_records[npc_id].gold;
     npc->greeting_pending = 1;
-    npc->trade_pool_ca = g_npc_records[npc_id].value_002;
+    npc->trade_pool_ca = g_npc_records[npc_id].trade_pool_002;
 
     for (index = 0; index < g_npc_states->count; ++index) {
         released = *g_npc_states->GetAt(index);
@@ -1624,7 +1625,7 @@ unsigned char InitializeNpcCharacter(W8NpcState* npc, W8Character* character)
         character->attributes[index].value = source->attributes[index];
     }
     for (index = 0; index < 0x29; ++index) {
-        character->skills[index].value_02 = source->skills[index];
+        character->skills[index].points_02 = source->skills[index];
     }
     for (index = 0; index < 12; ++index) {
         if (source->equipment_present[index] != 0 && source->equipment_ids[index] != 0xffff) {
@@ -1753,7 +1754,7 @@ void LoadNpcStates00509FC0(W8Chunk* chunks)
 
             ReleaseNpcScriptFile0055A0A0(npc->script_file);
             npc->script_file = 0;
-            if (npc->record != 0 && npc->record->flag_055 != 0) {
+            if (npc->record != 0 && npc->record->owns_stock_055 != 0) {
                 ClearNpcItems(npc);
             }
             delete npc->character;
@@ -2028,7 +2029,7 @@ void ApplyNpcInteraction0050A570(W8NpcState* npc, int kind, int value, W8ItemIns
         if (level != 0) {
             npc->disposition = 0x4b;
         }
-        npc->trade_pool_ca = g_npc_records[npc->name_style].value_002;
+        npc->trade_pool_ca = g_npc_records[npc->name_style].trade_pool_002;
         break;
     }
     case 3: {
@@ -2056,7 +2057,7 @@ void ApplyNpcInteraction0050A570(W8NpcState* npc, int kind, int value, W8ItemIns
         if (level != 0) {
             npc->disposition = 0x4b;
         }
-        npc->trade_pool_ca = g_npc_records[npc->name_style].value_002;
+        npc->trade_pool_ca = g_npc_records[npc->name_style].trade_pool_002;
         break;
     }
     case 4: {
@@ -2308,12 +2309,13 @@ void UpdateNpcEvents0050D530(void)
     W8NpcState* npc;
     unsigned int index;
 
-    if (g_status_685170.flag_49bb != 0 &&
-        (unsigned int)(g_status_685170.world_clock - g_status_685170.value_49b7) > 0x2a30) {
+    if (g_status_685170.trang_check_pending_49bb != 0 &&
+        static_cast<unsigned int>(g_status_685170.world_clock - g_status_685170.trang_check_clock_49b7) >
+            0x2a30) {
         if (GetFact(W8_FACT_ALIGNMENT_UMPANI) != 0 && Random(100) < 6) {
             SetFact(W8_FACT_TRANG_YOU_ARE_BUSTED, 1, 0);
         }
-        g_status_685170.flag_49bb = 0;
+        g_status_685170.trang_check_pending_49bb = 0;
     }
     if (g_status_685170.savant_hack_tick != 0 &&
         static_cast<unsigned int>(GetTickCount() - g_status_685170.savant_hack_tick) > 0x32) {
@@ -2338,13 +2340,13 @@ void UpdateNpcEvents0050D530(void)
         g_status_685170.bela_cycle_tick = 0;
     }
 
-    if (g_status_685170.flag_2430 != 0) {
+    if (g_status_685170.npc_restore_pending_2430 != 0) {
         W8NpcState* partner = 0;
 
         for (int slot = 0; slot < g_npc_states->GetCount(); ++slot) {
             npc = *g_npc_states->GetAt(slot);
             if (npc->binding_unavailable != 0 || npc->restored_ea == 0) {
-                g_status_685170.flag_2430 = 0;
+                g_status_685170.npc_restore_pending_2430 = 0;
                 continue;
             }
             unsigned int kind = npc->name_style;
@@ -2358,7 +2360,7 @@ void UpdateNpcEvents0050D530(void)
                 }
             }
             if (!partner->has_monster) {
-                g_status_685170.flag_2430 = 0;
+                g_status_685170.npc_restore_pending_2430 = 0;
                 continue;
             }
             if (partner->is_present) {
@@ -2381,11 +2383,11 @@ void UpdateNpcEvents0050D530(void)
                     released->binding_unavailable = 1;
                 }
             }
-            g_status_685170.flag_2430 = 0;
+            g_status_685170.npc_restore_pending_2430 = 0;
         }
     }
 
-    if (gXStatus.fCombatMode == 0 && g_status_685170.value_498b > 1) {
+    if (gXStatus.fCombatMode == 0 && g_status_685170.vi_event_stage_498b > 1) {
         bool run_event = GetFact(W8_FACT_VI_IS_DEAD) != 0;
 
         if (!run_event) {
@@ -2400,7 +2402,7 @@ void UpdateNpcEvents0050D530(void)
             }
         }
         if (run_event) {
-            g_status_685170.value_498b = 0;
+            g_status_685170.vi_event_stage_498b = 0;
             for (int search = 0; search < g_npc_states->GetCount(); ++search) {
                 W8NpcState* candidate = *g_npc_states->GetAt(search);
                 if (candidate->record->kind == 0x8d) {
@@ -2442,14 +2444,15 @@ void UpdateNpcEvents0050D530(void)
         }
     }
 
-    if (g_status_685170.flag_248a != 0 &&
-        (unsigned int)(g_status_685170.world_clock - g_status_685170.value_2493) > 0x2a300) {
-        g_status_685170.flag_248a = 0;
+    if (g_status_685170.fact_b8_pending_248a != 0 &&
+        static_cast<unsigned int>(g_status_685170.world_clock - g_status_685170.fact_b8_clock_2493) >
+            0x2a300) {
+        g_status_685170.fact_b8_pending_248a = 0;
         SetFact(0xb8, 1, 0);
     }
-    if (g_status_685170.flag_2497 != 0 &&
+    if (g_status_685170.greeting_pending_2497 != 0 &&
         (g_status_685170.world_clock - g_status_685170.binding_reset_clock_242a) > 0x3c) {
-        g_status_685170.flag_2497 = 0;
+        g_status_685170.greeting_pending_2497 = 0;
         SelectStartNpcGreeting();
     }
 }
@@ -2492,7 +2495,7 @@ void ApplyBoundNpcPenalty0050DBF0(W8Character* character, W8GameplayModifierBloc
         target->attribute_adjustments[index] -= 0x14;
     }
     for (index = 0; index < 0x29; ++index) {
-        target->unknown_13[index] -= 0x14;
+        target->skill_bonus_13[index] -= 0x14;
     }
 }
 
@@ -2909,7 +2912,7 @@ void HandleMarkedNpcEvent0050CF70(W8NpcState* npc, char mode)
         }
     } else {
         npc->restored_ea = 1;
-        g_status_685170.flag_2430 = 1;
+        g_status_685170.npc_restore_pending_2430 = 1;
     }
     if (npc->marked_114 == 0) {
         if (npc->name_style == 7 && GetFact(0x1f) != 0) {

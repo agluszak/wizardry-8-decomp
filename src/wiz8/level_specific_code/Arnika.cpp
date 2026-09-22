@@ -369,7 +369,7 @@ bool ArnikaYellowButton004E10A0(Trigger* pTrigger)
     W8MonsterGroup* group;
     W8MonsterInfo* info;
 
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     if (FindEntityByName("Bguards", &position, 0, 0) != 0) {
         group = SpawnMonsters(0xc, 6, &position, 1, 1, 0, 0);
         if (group != 0) {
@@ -388,7 +388,7 @@ bool ArnikaVaultAlarmDoor004E1120(Trigger* pTrigger)
 {
     W8MonsterGroup* group;
 
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     SoundPlay("Data\\Sound\\Ambients\\VaultAlarm.wav", 0);
     group = FindNextExistingMonsterByID(0xc, 0);
     while (group != 0) {
@@ -420,7 +420,7 @@ bool ArnikaExitButton004E1180(Trigger* pTrigger)
     } else {
         SetTriggerVariableByName00444030("Teleporting", 0);
     }
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     SetFact(0xcd, 1, 0);
     SetFact(0xe0, 1, 0);
     return 1;
@@ -571,7 +571,7 @@ bool ArnikaRedButton004E1740(Trigger* pTrigger)
     g_red_button_armed_613dcc = 0;
     SetFact(0xc7, 1, 0);
     g_red_button_armed_613dcc = 1;
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     if (gEl01.state != 3) {
         if (gEl01.button_down == 2) {
             return false;
@@ -637,7 +637,7 @@ void ArnikaEl1Button004E17C0(int command)
 // FUNCTION: WIZ8 0x004E1930
 bool ArnikaEl1TopButtons004E1930(Trigger* pTrigger)
 {
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     if (gEl01.button_down != 2 && (gEl01.state == 1 || gEl01.state == 3 || gEl01.state == 7)) {
         ArnikaElevatorAdvance004E2010(1);
     }
@@ -648,7 +648,7 @@ bool ArnikaEl1TopButtons004E1930(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004E1970
 bool ArnikaEl1BottomButtons004E1970(Trigger* pTrigger)
 {
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     if (gEl01.button_down != 2 && (gEl01.state == 1 || gEl01.state == 3 || gEl01.state == 7)) {
         ArnikaElevatorAdvance004E2010(1);
     }
@@ -789,7 +789,7 @@ bool ArnikaGreenButton004E1DC0(Trigger* pTrigger)
         return false;
     }
     SetFactionDispositionBand(0xa, W8_FACTION_HOSTILE);
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     if (gEl02.state != 3) {
         gEl02.pElevator->Run(-1);
     }
@@ -1155,7 +1155,7 @@ bool ArnikaBallSlot004E26F0(Trigger* pTrigger)
         ReplaceOrCreateItem(&item, 0x240, 1, 1, 0);
         QueueNpcScriptNotice(npc, &item, -1, 0, 0);
     }
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     return true;
 }
 
@@ -1171,7 +1171,7 @@ bool ArnikaFlightRecorder004E2760(Trigger* pTrigger)
     if (gXStatus.fNpcDialogueMode != 0) {
         return false;
     }
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     npc = GetNpcStateByKind(0x14);
     item = 0;
     if (g_status_685170.item_in_cursor != 0) {

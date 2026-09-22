@@ -16,8 +16,8 @@ struct W8NoticeWord {
     short end;
     short x_start;
     short x_end;
-    unsigned char flag_08;
-    unsigned char flag_09;
+    unsigned char keyword_08; /* 0x08: 0 none, 1 keyword, 2 selected */
+    unsigned char redraw_09;  /* 0x09: repaint once after deselection */
 };
 static_assert(sizeof(W8NoticeWord) == 10, "W8NoticeWord_must_be_10");
 
@@ -37,7 +37,7 @@ struct W8MessageStorageRecord {
     int clock_ticking_0c;
     /* 0x10: continuation link count of a wrapped entry; -1 when unlinked. */
     int link_10;
-    int value_14;
+    int length_14; /* 0x14: wString length, -1 when unset */
     W8PList* entries_18;
     unsigned char unknown_1c[8];
 };

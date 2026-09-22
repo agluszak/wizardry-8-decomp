@@ -429,7 +429,7 @@ bool MartensBluff2PerfumeBox004DDDC0(Trigger* pTrigger)
     if (GetItemInHand() != 0x2ea) {
         return false;
     }
-    g_flag_00606994 = 1;
+    g_trigger_feedback_00606994 = 1;
     ClearHeldItemDisplay();
     pTrigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
     quest_state = 2;

@@ -458,7 +458,7 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
         LinkMonsterGroupToLeader(group, companion_group);
     }
 
-    if (g_flag_689b32 != 0 && gfCapturingVideo == 0 &&
+    if (g_dev_mode_689b32 != 0 && gfCapturingVideo == 0 &&
         g_current_screen_state.id != W8_SCREEN_PLEASE_WAIT) {
         W8MonsterRecord* group_record = MonsterGroupGetRecord(group);
         const wchar_t* group_name =

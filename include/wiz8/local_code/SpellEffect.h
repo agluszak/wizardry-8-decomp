@@ -48,7 +48,7 @@ struct W8SpellEffectDefinition {
     unsigned char condition_chances[0x10];
     int power_level; /* 0x18 */
     /* 0x1c: flat base added to the effect dice (SetDice's `base`); sourced
-       from the attack's missile_value_1b, the item's missile_value_060, or
+       from the attack's missile_magnitude_1b, the item's missile_magnitude_060, or
        the missile table's magnitude_base_150. */
     int magnitude_base_1c;
     int duration_scale;     /* 0x20 */

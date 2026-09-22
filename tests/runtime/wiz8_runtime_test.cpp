@@ -933,7 +933,7 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
             }
         }
     }
-    s->round_active = g_combat_state != 0 ? g_combat_state->flag_000 : 0;
+    s->round_active = g_combat_state != 0 ? g_combat_state->combat_over_000 : 0;
     s->action_status = g_combat_state != 0 ? g_combat_state->eCombatActionStatus : 0;
     s->action_monster = g_combat_state != 0 && g_combat_state->pActionMonsterInfo != 0
                             ? g_combat_state->pActionMonsterInfo->location_id
@@ -1433,7 +1433,7 @@ static void PrepareMainGameFixtureOnGameThread(void* opaque)
                                  creation.attribute_points_remaining);
     }
     for (unsigned int skill = 0; skill < 0x29; ++skill) {
-        if (character.skills[skill].flag_00) {
+        if (character.skills[skill].active_00) {
             InitializeLevelUpAttributePool(&character, &creation, skill,
                                            creation.skill_points_remaining);
         }
@@ -2440,21 +2440,21 @@ static DWORD RunCharacterFlow(CharacterFlow flow)
     /* Take the first profession, race and sex record. */
     ClickControl(stats_page->m_profession_row_07c->m_increment_020);
     started = GetTickCount();
-    while (stats_page->m_profession_row_07c->m_value_004 == -1) {
+    while (stats_page->m_profession_row_07c->m_index_004 == -1) {
         if (GetTickCount() - started > 3000)
             return FailScenario("character-attributes", "profession-selection-timeout");
         Sleep(10);
     }
     ClickControl(stats_page->m_race_row_080->m_increment_020);
     started = GetTickCount();
-    while (stats_page->m_race_row_080->m_value_004 == -1) {
+    while (stats_page->m_race_row_080->m_index_004 == -1) {
         if (GetTickCount() - started > 3000)
             return FailScenario("character-attributes", "race-selection-timeout");
         Sleep(10);
     }
     ClickControl(stats_page->m_gender_row_084->m_increment_020);
     started = GetTickCount();
-    while (stats_page->m_gender_row_084->m_value_004 == -1) {
+    while (stats_page->m_gender_row_084->m_index_004 == -1) {
         if (GetTickCount() - started > 3000)
             return FailScenario("character-attributes", "gender-selection-timeout");
         Sleep(10);
@@ -2750,7 +2750,7 @@ static DWORD RunCharacterFlow(CharacterFlow flow)
                         "skip=%u router=%d\n",
                         observed_state, *(volatile int*)&g_pending_screen_state.id,
                         *(volatile unsigned long*)&g_intro_video_index,
-                        g_status_685170.skip_loose_character_check_2444, g_value_68de50);
+                        g_status_685170.skip_loose_character_check_2444, g_wiz7_ending_68de50);
                 fflush(stderr);
             }
             if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&

@@ -33,7 +33,7 @@ public:
     /* Set for spawned visuals: UpdateRepresentation then adds the
        camera-facing yaw rotation on top of the mode's orientation. */
     unsigned char billboard_378;
-    unsigned char unknown_379[3];
+    unsigned char padding_379[3];
 }; /* 0x37c */
 
 static_assert(sizeof(W8SpellEmitterHost) == 0x37c, "W8SpellEmitterHost_size_must_be_0x37c");

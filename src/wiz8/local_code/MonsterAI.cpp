@@ -695,7 +695,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
         monster_group = GetMonsterGroupByListIndex(
             GetMonsterGroupIndexByID(0x2de, MONSTER_AI_CPP, monster_info->monster_group_id, 1));
         if (monster_group->encounter_registered_c3 != 0) {
-            if (g_flag_689b32 != 0 && gfCapturingVideo == 0) {
+            if (g_dev_mode_689b32 != 0 && gfCapturingVideo == 0) {
                 FormatDebugMessage(0,
                                    "Monster %d and associated monsters killed because it "
                                    "couldn't patrol",
@@ -703,7 +703,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
             }
             MarkMonsterGroupForRemoval(monster_info->monster_group_id);
         } else {
-            if (g_flag_689b32 != 0 && gfCapturingVideo == 0) {
+            if (g_dev_mode_689b32 != 0 && gfCapturingVideo == 0) {
                 FormatDebugMessage(0, "%S %d can't path!", GetMonsterName(monster_info, 0, 0),
                                    monster_info->location_id);
             }
@@ -735,7 +735,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
         monster_group = GetMonsterGroupByListIndex(
             GetMonsterGroupIndexByID(0x2de, MONSTER_AI_CPP, monster_info->monster_group_id, 1));
         if (monster_group->encounter_registered_c3 != 0) {
-            if (g_flag_689b32 != 0 && gfCapturingVideo == 0) {
+            if (g_dev_mode_689b32 != 0 && gfCapturingVideo == 0) {
                 FormatDebugMessage(0,
                                    "Monster %d and associated monsters killed because it "
                                    "couldn't patrol",
@@ -743,7 +743,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
             }
             MarkMonsterGroupForRemoval(monster_info->monster_group_id);
         } else {
-            if (g_flag_689b32 != 0 && gfCapturingVideo == 0) {
+            if (g_dev_mode_689b32 != 0 && gfCapturingVideo == 0) {
                 FormatDebugMessage(0, "%S %d can't path!", GetMonsterName(monster_info, 0, 0),
                                    monster_info->location_id);
             }
@@ -860,7 +860,7 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
         goto validate;
     }
     if (monster_info->ubDisposition == 0) {
-        if (record->unknown_249 != 0) {
+        if (record->camouflage_249 != 0) {
             monster_info->action_kind = -1;
             monster_info->pCombat->phase = 0;
             monster_info->pCombat->active = 1;
@@ -950,7 +950,7 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
     }
 validate:
     if (!IsMonsterActionUsable(monster_info) &&
-        GetMonsterGroupFlagC8(monster_info->monster_group_id)) {
+        GetMonsterGroupEngagementState(monster_info->monster_group_id)) {
         monster_info->action_kind = 6;
     }
 }
@@ -1309,7 +1309,7 @@ unsigned char ChooseRandomMonsterAction(W8MonsterInfo* monster_info, int arg_2, 
         monster_info->pCombat->attack_index_11 = entry->attack_index;
         monster_info->action_detail = entry->action_detail;
         if (set_attack_rate != 0) {
-            monster_info->pCombat->unknown_005 = record->attacks_per_round_0e5;
+            monster_info->pCombat->attacks_per_round_005 = record->attacks_per_round_0e5;
             monster_info->pCombat->attacks_per_round = record->attacks_per_round_0e5;
         }
         break;
@@ -2122,7 +2122,7 @@ void CheckMonsterGroupsLeaveCombat(void)
                 break;
             }
             leader = MonsterInfoFromID(0xbcd, MONSTER_AI_CPP, group->leader_id_9f, 1);
-            if (GetMonsterGroupFlagC8(group->group_id) != 0 && leader != 0 &&
+            if (GetMonsterGroupEngagementState(group->group_id) != 0 && leader != 0 &&
                 leader->fActive != 0) {
                 nearest = GetGroupNearestDistance(group);
                 reach = CalcRangeDistance(GetMonsterBestRangeCategory(leader, 1, &sight)) +
@@ -2314,7 +2314,7 @@ bool CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record, char e
         }
         return 0;
     }
-    if (gXStatus.fCombatMode != 0 && monster_info->pCombat->unknown_145[1] != 0) {
+    if (gXStatus.fCombatMode != 0 && monster_info->pCombat->special_cooldown_146 != 0) {
         return 0;
     }
     if (static_cast<unsigned int>(monster_info->stamina) <
@@ -2547,7 +2547,7 @@ bool MonsterGroupHasReinforcement(W8MonsterGroup* monster_group)
     for (index = 0; index < ILLength(monster_group->monsters); ++index) {
         member = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0xe1d, MONSTER_AI_CPP, IListGetAt(monster_group->monsters, index), 1));
-        if ((member->ubDisposition == 0 && GetMonsterDataForInfo(member)->unknown_249 != 0) ||
+        if ((member->ubDisposition == 0 && GetMonsterDataForInfo(member)->camouflage_249 != 0) ||
             member->party_threat.los_flags_05[1] == 0) {
             continue;
         }
@@ -2585,7 +2585,7 @@ static inline W8MonsterInfo* GetGroupMemberInfo(W8MonsterGroup* group, unsigned 
 }
 
 /* Recompute each unled hostile group's engagement byte once the combat state
-   has settled: a member still finding its feet (value_14c under three) in the
+   has settled: a member still finding its feet (settle_ticks_14c under three) in the
    group or an allied group drops it, and past that the group's own counter
    decides. */
 // FUNCTION: WIZ8 0x00535200
@@ -2613,7 +2613,7 @@ void UpdateMonsterGroupEngagement(void)
             member = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                 0xee7, MONSTER_AI_CPP, IListGetAt(group->monsters, index), 1));
             if (member->fActive != 0 && member->fInCombat != 0 &&
-                (unsigned int)member->pCombat->value_14c < 3) {
+                static_cast<unsigned int>(member->pCombat->settle_ticks_14c) < 3) {
                 member_starting = 1;
                 break;
             }
@@ -2626,7 +2626,7 @@ void UpdateMonsterGroupEngagement(void)
                     member = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
                         0xee7, MONSTER_AI_CPP, IListGetAt(allied->monsters, index), 1));
                     if (member->fActive != 0 && member->fInCombat != 0 &&
-                        (unsigned int)member->pCombat->value_14c < 3) {
+                        static_cast<unsigned int>(member->pCombat->settle_ticks_14c) < 3) {
                         member_starting = 1;
                         break;
                     }
@@ -2634,7 +2634,7 @@ void UpdateMonsterGroupEngagement(void)
             }
         }
         SetMonsterGroupEngagementState(group->group_id,
-                                       member_starting == 0 ? group->unknown_c8[1] < 3 : 0);
+                                       member_starting == 0 ? group->engagement_ticks_c9 < 3 : 0);
     }
 }
 

@@ -647,7 +647,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
             RecordLevelEntryDialogueState();
             gXStatus.combat_countdown = 0;
         }
-        if (g_status_685170.flag_2497 && (GetFact(0x4c) || GetFact(0x4b))) {
+        if (g_status_685170.greeting_pending_2497 && (GetFact(0x4c) || GetFact(0x4b))) {
             DespawnAllActiveMonsterGroups0048C9F0();
         } else {
             UpdateRandomEncounterBudget(first_visit);

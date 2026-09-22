@@ -81,7 +81,6 @@ public:
 static_assert(sizeof(W8TriggerActionData005EC158) == 0x0c,
               "W8TriggerActionData005EC158_must_be_0x0c");
 
-
 /* The flags_0a0 bits whose roles are established by recovered producers and
    consumers:
    - ON arms a trigger plane / state-driven prop; scripts toggle it, mipe uses
@@ -168,7 +167,7 @@ public:
     bool SelectAction();
     void GenerateItemGroup();
     W8WorldItem* GetOrCreateItemGroup00445670(char create);
-    /* After a selected-prop Run: while g_flag_00606994 is clear, post either
+    /* After a selected-prop Run: while g_trigger_feedback_00606994 is clear, post either
        the special-item notice (required_item_id != -1) or the nothing-happened notice. */
     void PrintNothingHappenedOrSpecialItemRequired004456E0(); /* 0x004456E0 */
     void RunDestination00440DD0(const char* destination);
@@ -272,7 +271,7 @@ bool LoadTriggerRuntimeStates0043CCF0(int handle);
 void SaveTriggerActionData0043D120(W8World* world, int handle);
 bool LoadTriggerActionData0043D1F0(int handle);
 
-extern unsigned char g_flag_00606994;
+extern unsigned char g_trigger_feedback_00606994;
 extern unsigned char g_flag_0068506e;
 /* Camera position cached by the per-frame trigger walk. */
 extern srVector3T<float> g_trigger_camera_006599a0;
@@ -280,12 +279,12 @@ extern srVector3T<float> g_trigger_camera_006599a0;
    action is active, and the flag that says one is. */
 extern unsigned char g_trigger_action_active_006599c8;
 extern srVector3T<float> g_trigger_action_scene_offset_006599ac;
-extern int g_value_0068c520;
-extern int g_value_0068c53c;
-extern int g_value_0068c54c;
-extern int g_value_0068c548;
-extern int g_value_005ee59c;
-extern int g_value_005ee5a0;
+extern int g_container_event_alt_0068c520;
+extern int g_trap_notice_event_0068c53c;
+extern int g_lock_notice_event_0068c54c;
+extern int g_container_event_0068c548;
+extern int g_condition_reaction_005ee59c;
+extern int g_condition_reaction_alt_005ee5a0;
 
 bool CreateTriggerShakeEvent00444F70(int intensity, float duration, float countdown_duration,
                                      bool reverse);

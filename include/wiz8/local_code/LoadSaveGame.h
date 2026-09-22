@@ -14,7 +14,7 @@ int GetSaveGameLevel(const char* slot_name);
 struct W8SaveScreenshot {
     float version;
     unsigned char capture_result;
-    unsigned char unknown_05;
+    unsigned char padding_05;
     unsigned short pixels[60][80];
 };
 
@@ -30,13 +30,13 @@ struct W8SaveSlot {
     int game_time_ms;
     int level_id;
     unsigned char iron_man;
-    unsigned char unknown_0a5[3];
+    unsigned char padding_0a5[3];
     W8SaveScreenshot screenshot;
     int version_major;
     int version_minor;
     int version_patch;
-    unsigned char flag_263c;
-    unsigned char unknown_263d[3];
+    unsigned char dev_flagged_263c; /* saved copy of status dev_flagged_49c1 */
+    unsigned char padding_263d[3];
 };
 
 static_assert(sizeof(W8SaveSlot) == 0x2640, "W8SaveSlot_size");

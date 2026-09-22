@@ -309,7 +309,8 @@ struct W8MainScreenState {
     /* 0x250: a modal W8NpcDialog is up over the dialogue; transcript word
        clicks, layout keys other than Escape and layout leave paths bail. */
     bool modal_dialog_open;
-    unsigned char flag_251;
+    /* 0x251: a refusal/farewell line 0x5c was queued for the exit path. */
+    unsigned char farewell_queued_251;
     /* 0x252: the dialogue session runs as queued script lines without the
        interactive panel; input, portrait and panel paths gate on it. */
     unsigned char scripted_dialogue;
@@ -446,7 +447,7 @@ void SetNpcDialogueHidden(char value);                                          
 /* While NPC script deferral holds character events, drain Escape / click so
    the open dialogue layout can dismiss without the normal input path. */
 void DrainNpcDialogueDeferralInput(void); /* 0x00575C50 */
-/* When value_2435 is set, discard queued input after a mouse-position hook so
+/* When world_cursor_gate_2435 is set, discard queued input after a mouse-position hook so
    the world-cursor gate does not process stale events. */
 void FlushInputWhileWorldCursorGate(void);                  /* 0x00577560 */
 void HandleNpcDialogueReply(wchar_t* text, char echo);      /* 0x00574250 */

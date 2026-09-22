@@ -301,7 +301,7 @@ void RunSearchPulse(void)
             }
             if (g_status_685170.search_mode != 0 && (g_level_data_00652dac->flags & 0x100) == 0 &&
                 !found && Random(100) == 0) {
-                ApplyItemEffectToRandomCharacter(g_value_0068c548, -1, 0,
+                ApplyItemEffectToRandomCharacter(g_container_event_0068c548, -1, 0,
                                                  g_effect_argument_005ed8c8);
             }
         }
@@ -359,7 +359,7 @@ int W8Searchable::PickBestSearcher()
                 best_slot = slot;
             }
         }
-        if (g_status_685170.party_modifiers_22e3.flag_46 != 0) {
+        if (g_status_685170.party_modifiers_22e3.detect_secrets_46 != 0) {
             if (best_slot != -1 && Random(2) == 0) {
                 continue;
             }

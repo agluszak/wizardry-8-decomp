@@ -486,7 +486,7 @@ void W8PathingService::BuildWaypointFileData0045E440()
                         ++removed;
                     }
                 }
-                if (g_flag_689b32 != 0) {
+                if (g_dev_mode_689b32 != 0) {
                     const char* message = removed == 0 ? "Deleting Isolated WayPt at:  %1f, %1f"
                                                        : "Deleting Dead End WayPt at:  %1f, %1f";
                     FormatDebugMessage(0, message, surface->position_04.x, surface->position_04.y);

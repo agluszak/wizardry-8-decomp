@@ -698,7 +698,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, unsign
     UpdateScreenOverlays(0);
     gXStatus.fNpcDialogueMode = 1;
     CloseMainGameOverlays();
-    if (npc->record->flag_055 != 0) {
+    if (npc->record->owns_stock_055 != 0) {
         RestockNpcInventory(npc);
     }
     state = g_screen_state_00649f1c;
@@ -722,7 +722,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, unsign
     state->price_check_skip_fact = 0;
     state->dialogue_hidden = 0;
     state->modal_dialog_open = 0;
-    state->flag_251 = 0;
+    state->farewell_queued_251 = 0;
     state->reopen_topics = 0;
     state->trade_gold = 0;
     state->pending_layout = 0;
@@ -818,9 +818,9 @@ dispatch:
 tail:
     RequestRedraw(0x100);
     RequestRedraw(0x1000);
-    if (g_flag_0068edd8 != 0) {
+    if (g_mouselook_active_0068edd8 != 0) {
         EnableCursorScene00428020();
-        g_flag_0068edd8 = 0;
+        g_mouselook_active_0068edd8 = 0;
         gfTrackMousePos = 0;
     }
     info = GetNpcMonsterInfo(npc);
@@ -903,7 +903,7 @@ void SelectNpcDialogueSpeaker(W8NpcState* npc, int flags)
     }
     selected = g_screen_state_00649f1c->dialogue_npc;
     if (selected->dismissed_flag != 0 &&
-        selected->unknown_ef[0] != GetNpcDispositionBand(selected)) {
+        selected->disposition_at_open_ef != GetNpcDispositionBand(selected)) {
         selected->dismissed_flag = 0;
     }
 }
@@ -1206,7 +1206,7 @@ void EndNpcDialogueSession0056E800(int param_1)
     }
     if (g_screen_state_00649f1c->dialogue_npc->record->monster_bound_054 == 0) {
         g_screen_state_00649f1c->dialogue_npc->dismissed_flag = 1;
-        g_screen_state_00649f1c->dialogue_npc->unknown_ef[0] =
+        g_screen_state_00649f1c->dialogue_npc->disposition_at_open_ef =
             GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc);
         W8NpcState* npc = g_screen_state_00649f1c->dialogue_npc;
         npc->dismissed_timer = 0;
@@ -1315,8 +1315,8 @@ void EndNpcDialogueSession0056E800(int param_1)
         g_gd_camera_65a0f8->SetPitch(g_screen_state_00649f1c->saved_camera_pitch_240);
     }
     if (g_screen_state_00649f1c->dialogue_npc->name_style == 0xf && GetFact(0x3c) != 0) {
-        g_status_685170.value_49b7 = g_status_685170.world_clock;
-        g_status_685170.flag_49bb = 1;
+        g_status_685170.trang_check_clock_49b7 = g_status_685170.world_clock;
+        g_status_685170.trang_check_pending_49bb = 1;
     }
 }
 
@@ -1694,15 +1694,15 @@ void NpcDialogueTextBoxLeftUp0056F530(int x, int y)
     switch (g_screen_state_00649f1c->dialogue_layout) {
     case W8_DIALOGUE_LAYOUT_TRANSCRIPT:
         word = FindNoticeWordAt(3, x, y, &line);
-        if (word == 0 || word->flag_08 != 1) {
+        if (word == 0 || word->keyword_08 != 1) {
             return;
         }
-        if (g_flag_006f0530 == 0) {
+        if (g_shift_held_006f0530 == 0) {
             ClearNoticeWordSelection(3, 1);
             word_text[0] = 0;
             SetInputFieldStringWith16BitString(0, word_text);
         }
-        word->flag_08 = 2;
+        word->keyword_08 = 2;
         CopyNoticeWordText(word, word_text, 0xc8, 3, line);
         Get16BitStringFromField(0, field_text);
         StripNpcKeywordPunctuation(field_text);
@@ -1720,7 +1720,7 @@ void NpcDialogueTextBoxLeftUp0056F530(int x, int y)
         if (slot == -1) {
             return;
         }
-        UpdateNpcTradeSelection0056FAC0(slot, g_flag_006f0530 != 0 ? 1 : 0, 1);
+        UpdateNpcTradeSelection0056FAC0(slot, g_shift_held_006f0530 != 0 ? 1 : 0, 1);
         return;
     }
 }
@@ -1744,7 +1744,7 @@ void NpcDialogueTextBoxRightUp0056F6B0(int x, int y)
         if (slot == -1) {
             return;
         }
-        UpdateNpcTradeSelection0056FAC0(slot, g_flag_006f0530 != 0 ? 1 : 0, 1);
+        UpdateNpcTradeSelection0056FAC0(slot, g_shift_held_006f0530 != 0 ? 1 : 0, 1);
         item = ResolveNpcTradeRow005729C0(slot, 0, 0, 1);
         if (item == 0) {
             return;
@@ -1791,13 +1791,13 @@ void NpcDialogueTextBoxDoubleClick0056F840(int x, int y)
         if (word == 0) {
             return;
         }
-        if (g_flag_006f0530 == 0) {
+        if (g_shift_held_006f0530 == 0) {
             ClearNoticeWordSelection(3, 1);
             word_text[0] = 0;
             SetInputFieldStringWith16BitString(0, word_text);
         }
-        if (word->flag_08 != 2) {
-            word->flag_08 = 2;
+        if (word->keyword_08 != 2) {
+            word->keyword_08 = 2;
             CopyNoticeWordText(word, word_text, 0xc8, 3, line);
             Get16BitStringFromField(0, field_text);
             StripNpcKeywordPunctuation(field_text);
@@ -2097,7 +2097,7 @@ void LeaveNpcDialogueLayout(void)
     if (g_screen_state_00649f1c->modal_dialog_open == 0) {
         if (GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc) == 0) {
             g_screen_state_00649f1c->suppress_parting_reaction = 0;
-            g_screen_state_00649f1c->flag_251 = 1;
+            g_screen_state_00649f1c->farewell_queued_251 = 1;
             QueueNpcScriptLine(0x5c, 0, 0, 0);
             return;
         }
@@ -2842,7 +2842,7 @@ void OpenNpcDialogueOptionLayout(void)
         g_screen_state_00649f1c->dialogue_text_114->SetEnabled(1);
         g_screen_state_00649f1c->dialogue_text_11c->SetEnabled(1);
     }
-    if (g_screen_state_00649f1c->dialogue_npc->record->flag_055 == 0) {
+    if (g_screen_state_00649f1c->dialogue_npc->record->owns_stock_055 == 0) {
         g_screen_state_00649f1c->dialogue_text_110->SetEnabled(0);
         g_screen_state_00649f1c->dialogue_text_114->SetEnabled(0);
         g_screen_state_00649f1c->dialogue_text_11c->SetEnabled(0);
@@ -3456,7 +3456,7 @@ void OpenNpcDialogueMode5Layout(void)
     for (index = 0; index < 6; ++index) {
         g_screen_state_00649f1c->option_buttons_170[index]->SetEnabled(0);
     }
-    if (g_screen_state_00649f1c->dialogue_npc->record->flag_055 == 0) {
+    if (g_screen_state_00649f1c->dialogue_npc->record->owns_stock_055 == 0) {
         g_screen_state_00649f1c->dialogue_text_110->SetEnabled(0);
         g_screen_state_00649f1c->dialogue_text_114->SetEnabled(0);
     }
@@ -4302,7 +4302,7 @@ void HandleNpcDialogueKeyEvent00574BB0(const InputAtom* event)
         switch (g_screen_state_00649f1c->dialogue_layout) {
         case W8_DIALOGUE_LAYOUT_TRANSCRIPT:
             g_screen_state_00649f1c->suppress_parting_reaction = 0;
-            g_screen_state_00649f1c->flag_251 = 1;
+            g_screen_state_00649f1c->farewell_queued_251 = 1;
             QueueNpcScriptLine(0x5c, 0, 0, 0);
             return;
         case W8_DIALOGUE_LAYOUT_TOPIC_MENU:
@@ -4881,9 +4881,9 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
         unsigned short width;
         unsigned short height;
 
-        if (g_flag_0068edd8) {
+        if (g_mouselook_active_0068edd8) {
             EnableCursorScene00428020();
-            g_flag_0068edd8 = 0;
+            g_mouselook_active_0068edd8 = 0;
             gfTrackMousePos = 0;
         }
         memset(normalized, 0, sizeof(normalized));
@@ -4952,7 +4952,7 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
             int slot = skills->party_slots[index];
             int skill = skills->skills[index];
             W8Character* character = &g_status_685170.buffers.Char[slot];
-            unsigned int value = character->skills[skill].value_02;
+            unsigned int value = character->skills[skill].points_02;
             if (skill == g_profession_bonus_skills[character->iProfession]) {
                 value = value * 125 / 100;
             }
@@ -5445,7 +5445,7 @@ void ShortenTextToWidth00577410(wchar_t* output, const wchar_t* text, unsigned i
 // FUNCTION: WIZ8 0x00577520
 void BeginScriptedWorldAction(void)
 {
-    g_status_685170.value_2435 = 1;
+    g_status_685170.world_cursor_gate_2435 = 1;
     ResetLevelDataVectors0041F0D0();
     SetTargetCursor(W8_CURSOR_MAP_LOAD);
 }
@@ -5453,12 +5453,12 @@ void BeginScriptedWorldAction(void)
 // FUNCTION: WIZ8 0x00577540
 void ClearMainGameTargetState(void)
 {
-    g_status_685170.value_2435 = 0;
+    g_status_685170.world_cursor_gate_2435 = 0;
     ClearLevelDataFlag6();
     SetTargetCursor(W8_CURSOR_NONE);
 }
 
-/* When the world-cursor gate (value_2435) is raised, discard queued input
+/* When the world-cursor gate (world_cursor_gate_2435) is raised, discard queued input
    after refreshing the mouse-system position so stale events do not fire. */
 // FUNCTION: WIZ8 0x00577560
 void FlushInputWhileWorldCursorGate(void)
@@ -5466,7 +5466,7 @@ void FlushInputWhileWorldCursorGate(void)
     POINT mouse;
     InputAtom input;
 
-    if (g_status_685170.value_2435 == 0) {
+    if (g_status_685170.world_cursor_gate_2435 == 0) {
         return;
     }
     SGPMouseGetPos(&mouse);

@@ -16,7 +16,7 @@ struct W8Wiz7Item {
    size assertion). */
 struct W8Wiz7Character {
     char name_000[0x10]; /* 0x000: ASCII name TitleCaseString reads */
-    int unknown_010;     /* 0x010: stored verbatim to value_09f9 */
+    int kill_count_010;  /* 0x010: stored verbatim to kill_count_09f9 */
     unsigned char unknown_014[0x10];
     short level_024;  /* 0x024: positive values import as level 1 */
     short deaths_026; /* 0x026: stored to death_count_09fd minus one */
@@ -63,7 +63,7 @@ unsigned char ImportWizardry7Party00558C40(char* path);
 
 extern int g_import_character_count_0068de48;         /* 0x0068DE48 */
 extern unsigned char g_import_ending_record_0068de4c; /* 0x0068DE4C */
-extern int g_value_68de50;                            /* 0x0068DE50: ending selector */
+extern int g_wiz7_ending_68de50;                      /* 0x0068DE50: ending selector */
 extern int g_import_difficulty_0068de54;              /* 0x0068DE54 */
 /* 0x0068DE58: the 96 file flags; index 5 doubles as the unsuppress byte and
    index 0xb as the loaded marker the fact seeder reads. */

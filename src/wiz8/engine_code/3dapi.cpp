@@ -101,11 +101,11 @@ float g_float_00609c88 = 60.0f;
 unsigned char g_flag_00609c8c = 1;
 
 // GLOBAL: WIZ8 0x006f0530
-unsigned char g_flag_006f0530;
+unsigned char g_shift_held_006f0530;
 // GLOBAL: WIZ8 0x006f0531
 bool g_monster_combat_timer_enabled_006f0531;
 // GLOBAL: WIZ8 0x006f0534
-unsigned char g_flag_006f0534;
+unsigned char g_modifier_held_006f0534;
 
 // FUNCTION: WIZ8 0x00450B10
 void ConstructWorldCollections(W8World* world)

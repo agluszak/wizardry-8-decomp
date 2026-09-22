@@ -50,7 +50,10 @@ struct W8XStatus {
     unsigned char fCampMode;                          /* 0x8e3: 0x00683F9B */
     unsigned char fLockInteract;                      /* 0x8e4: lock session; admits lock spells */
     unsigned char fTrapInteract;                      /* 0x8e5: trap session; admits trap spells */
-    unsigned char unknown_026[2];
+    /* 0x026: dialogue NPC state needs re-syncing once the frame settles. */
+    bool dialogue_sync_pending_026;
+    /* 0x027: re-check level-up notices when the UI is idle again. */
+    unsigned char level_up_notice_027;
     unsigned char fEncumbranceDirty; /* 0x8e8: pending party-weight recalc */
     int active_monster_count;        /* 0x8e9 */
     /* 0x8ed: active in-combat monsters with DISP_HOSTILE, recomputed by

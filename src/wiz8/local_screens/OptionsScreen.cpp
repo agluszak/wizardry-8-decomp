@@ -156,7 +156,8 @@ W8OptionsKeyboardPage g_options_keyboard_pages[5] = {
     {0x835, 200, 214}, {0x836, 300, 305}, {0x837, 402, 401}, {0x838, 500, 504}, {0x839, 600, 614}};
 
 W8OptionsPanelSet::W8OptionsPanelSet()
-    : m_mode_000(0), m_compact_layout(0), m_hide_navigation(0), m_active(false), m_current_00c(0)
+    : m_page_count_000(0), m_compact_layout(0), m_hide_navigation(0), m_active(false),
+      m_current_00c(0)
 {
 }
 
@@ -536,10 +537,10 @@ void W8OptionsSaveLoadPanel::DeleteSelectedSave()
     }
 
     if (g_options_screen_0069c254->m_selected_panel_020 == 4) {
-        g_options_screen_0069c254->m_panel_038[4]->m_mode_000 =
+        g_options_screen_0069c254->m_panel_038[4]->m_page_count_000 =
             (g_options_screen_0069c254->m_save_slots.count - 2) / 5 + 1;
     } else if (g_options_screen_0069c254->m_selected_panel_020 == 5) {
-        g_options_screen_0069c254->m_panel_038[5]->m_mode_000 =
+        g_options_screen_0069c254->m_panel_038[5]->m_page_count_000 =
             (g_options_screen_0069c254->m_save_slots.count - 1) / 5 + 1;
     }
     g_options_screen_0069c254->m_menu_set_028->UpdateMenuSet();
@@ -1438,9 +1439,9 @@ void W8OptionsScreen::SelectPanel(int selected, unsigned char notify)
         m_menu_set_028->m_pMenuSet = m_panel_038[m_selected_panel_020];
         m_menu_set_028->UpdateMenuSet();
         if (m_selected_panel_020 == 4) {
-            m_panel_038[4]->m_mode_000 = (m_save_slots.count - 2) / 5 + 1;
+            m_panel_038[4]->m_page_count_000 = (m_save_slots.count - 2) / 5 + 1;
         } else if (m_selected_panel_020 == 5) {
-            m_panel_038[5]->m_mode_000 = (m_save_slots.count - 1) / 5 + 1;
+            m_panel_038[5]->m_page_count_000 = (m_save_slots.count - 1) / 5 + 1;
         }
         m_menu_set_028->UpdateMenuSet();
     }
@@ -1947,7 +1948,7 @@ void W8OptionsPanelSet::Advance()
 {
     int current;
 
-    if (m_mode_000 == 0) {
+    if (m_page_count_000 == 0) {
         current = m_current_00c;
         if (current < m_panels_010.count - 1) {
             (*m_panels_010.GetAt(current))->SetActive(0);
@@ -1955,7 +1956,7 @@ void W8OptionsPanelSet::Advance()
             m_current_00c = current;
             (*m_panels_010.GetAt(current))->SetActive(1);
         }
-    } else if (m_panels_010.data[0]->m_current_04c < m_mode_000 - 1) {
+    } else if (m_panels_010.data[0]->m_current_04c < m_page_count_000 - 1) {
         m_panels_010.data[0]->SetCurrent(m_panels_010.data[0]->m_current_04c + 1);
     }
 }
@@ -1965,7 +1966,7 @@ void W8OptionsPanelSet::Retreat()
 {
     int current;
 
-    if (m_mode_000 == 0) {
+    if (m_page_count_000 == 0) {
         current = m_current_00c;
         if (current > 0) {
             (*m_panels_010.GetAt(current))->SetActive(0);
@@ -1996,12 +1997,12 @@ void W8OptionsMenuSet::UpdateMenuSet()
                      0x5c9, 0);
     }
     panel_set = m_pMenuSet;
-    if (panel_set->m_mode_000 == 0) {
+    if (panel_set->m_page_count_000 == 0) {
         current = panel_set->m_current_00c;
         count = panel_set->m_panels_010.count;
     } else {
         current = panel_set->m_panels_010.data[0]->m_current_04c;
-        count = panel_set->m_mode_000;
+        count = panel_set->m_page_count_000;
     }
     bounds.top = panel_set->m_compact_layout != 0 ? 0x180 : 0x1a8;
     bounds.bottom = height + bounds.top;
@@ -2155,7 +2156,7 @@ void OptionsScreenFrame()
     POINT current;
     InputAtom input;
 
-    if (g_flag_689b32) {
+    if (g_dev_mode_689b32) {
         RequestExitScreen();
     }
     RepositionAmbientSounds0047A600(g_world);

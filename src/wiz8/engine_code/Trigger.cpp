@@ -89,19 +89,19 @@ W8GrowableVector<char*> g_location_variable_names_006598f8;
 W8GrowableVector<int> g_location_variable_values_00659990;
 
 // GLOBAL: WIZ8 0x00606994
-unsigned char g_flag_00606994 = 1;
+unsigned char g_trigger_feedback_00606994 = 1;
 
 // GLOBAL: WIZ8 0x0068c520
-int g_value_0068c520;
+int g_container_event_alt_0068c520;
 
 // GLOBAL: WIZ8 0x0068c548
-int g_value_0068c548;
+int g_container_event_0068c548;
 
 // GLOBAL: WIZ8 0x005ee59c
-int g_value_005ee59c = 5;
+int g_condition_reaction_005ee59c = 5;
 
 // GLOBAL: WIZ8 0x005ee5a0
-int g_value_005ee5a0 = 6;
+int g_condition_reaction_alt_005ee5a0 = 6;
 
 // GLOBAL: WIZ8 0x005ec124
 const float g_float_005ec124 = 64.0f;
@@ -2614,12 +2614,12 @@ W8WorldItem* Trigger::GetOrCreateItemGroup00445670(char create)
     return world_item_group_34c;
 }
 
-/* After a selected-prop Run: while g_flag_00606994 is clear, post either the
+/* After a selected-prop Run: while g_trigger_feedback_00606994 is clear, post either the
    special-item notice (required_item_id != -1) or the nothing-happened notice. */
 // FUNCTION: WIZ8 0x004456E0
 void Trigger::PrintNothingHappenedOrSpecialItemRequired004456E0()
 {
-    if (g_flag_00606994 != 0) {
+    if (g_trigger_feedback_00606994 != 0) {
         return;
     }
     if (required_item_id != -1) {
@@ -2756,7 +2756,8 @@ void Trigger::Run(int source)
             if (m_pacRecipients == 0 || _stricmp(m_pacRecipients, "party") != 0) {
                 break;
             }
-            ApplyItemEffectToRandomCharacter(Random(2) != 0 ? g_value_005ee59c : g_value_005ee5a0,
+            ApplyItemEffectToRandomCharacter(Random(2) != 0 ? g_condition_reaction_005ee59c
+                                                            : g_condition_reaction_alt_005ee5a0,
                                              -1, 0, g_effect_argument_005ed8c8);
             flags_0a0 |= W8_TRIGGER_RUNNING;
             goto commit_action;
@@ -3015,14 +3016,14 @@ void Trigger::Run(int source)
                     }
                     ItemInfoAddToGroup(world_item_group_34c, item);
                 }
-                g_flag_00606994 = 1;
+                g_trigger_feedback_00606994 = 1;
                 return;
             }
             if ((flags_0a0 & W8_TRIGGER_ITEM_PICKER) != 0) {
                 return;
             }
 
-            g_flag_00606994 = 1;
+            g_trigger_feedback_00606994 = 1;
             if (items_generated == 0) {
                 GenerateItemGroup();
             }
@@ -3054,8 +3055,9 @@ void Trigger::Run(int source)
 
                 if (item_count == 1) {
                     if (m_pProp->Rep()->subcycle_064 == 0) {
-                        ApplyItemEffectToRandomCharacter(Random(2) != 0 ? g_value_0068c548
-                                                                        : g_value_0068c520,
+                        ApplyItemEffectToRandomCharacter(Random(2) != 0
+                                                             ? g_container_event_0068c548
+                                                             : g_container_event_alt_0068c520,
                                                          -1, 0, g_effect_argument_005ed8c8);
                     }
                 } else if (item_count == 2 && g_status_685170.item_in_cursor == 0) {
@@ -3155,7 +3157,7 @@ void Trigger::Run(int source)
             g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
         monster_info->monster->ResetRepresentation004A7420();
         monster_info->monster->ResetPathAI();
-        monster_info->monster->unknown_09d[0] = 1;
+        monster_info->monster->reactivated_09d = 1;
         return;
     }
 
@@ -3684,7 +3686,7 @@ void Trigger::Run(int source)
 
 commit_action:
     if (running == 0) {
-        g_flag_00606994 = 1;
+        g_trigger_feedback_00606994 = 1;
     }
     CommitActionResult(apply_state_changes);
 }
@@ -3828,7 +3830,7 @@ bool Trigger::SelectAction()
                 m_pEvent->m_pCountdown->Restart();
             }
             if (running == 0) {
-                g_flag_00606994 = 1;
+                g_trigger_feedback_00606994 = 1;
             }
             return 0;
         }
@@ -3852,7 +3854,7 @@ bool Trigger::SelectAction()
                     if (linked_trigger != 0) {
                         linked_trigger->Run(-1);
                         if (running == 0) {
-                            g_flag_00606994 = 1;
+                            g_trigger_feedback_00606994 = 1;
                         }
                     }
                 }
@@ -3862,12 +3864,12 @@ bool Trigger::SelectAction()
 
     if (lock_type != 0 && device_state.completed == 0 && running == 0) {
         if (lock_type == 1) {
-            g_flag_00606994 = 1;
+            g_trigger_feedback_00606994 = 1;
             OpenLockInteraction00587510(this);
             return 0;
         }
         if (lock_type == 2) {
-            g_flag_00606994 = 1;
+            g_trigger_feedback_00606994 = 1;
             OpenTrapInteraction0058A470(this);
             return 0;
         }

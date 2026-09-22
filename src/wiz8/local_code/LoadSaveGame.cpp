@@ -321,7 +321,7 @@ unsigned char EnumerateSaveSlots(W8GrowableVector<W8SaveSlot*>* slots)
                             AllocateStatusBuffers(&status.buffers);
                             LoadGameStatus(&chunks, &status);
                             FreeStatusBuffers(&status.buffers);
-                            slot->flag_263c = status.flag_49c1;
+                            slot->dev_flagged_263c = status.dev_flagged_49c1;
                             break;
                         case 0x52455647:
                             chunks.Read(&slot->version_major, 4, 0);
@@ -1825,7 +1825,7 @@ unsigned char AutoSaveIfAllowed(char forced)
     char name[64];
 
     gXStatus.save_notice_shown = 0;
-    if (g_status_685170.value_2435 == 0 && AnyMonsterDying() == 0 &&
+    if (g_status_685170.world_cursor_gate_2435 == 0 && AnyMonsterDying() == 0 &&
         ((g_settings_6850c8.auto_save != 0 && forced == 0) || g_status_685170.iron_man != 0) &&
         gXStatus.fCombatMode == 0 && IsSightRangeOverridden() == 0 &&
         IsLevelDataFlag4EffectivelySet() != 0 && gXStatus.fNpcDialogueMode == 0 &&
@@ -1891,7 +1891,7 @@ void ProcessMainGameAutoSave(void)
     char name[64];
     char saved;
 
-    if (g_status_685170.value_2435 != 0) {
+    if (g_status_685170.world_cursor_gate_2435 != 0) {
         return;
     }
     if (AnyMonsterDying() != 0) {
@@ -1927,7 +1927,7 @@ void ProcessMainGameAutoSave(void)
         return;
     }
     gXStatus.save_notice_shown = 0;
-    if (g_status_685170.value_2435 == 0 && AnyMonsterDying() == 0 &&
+    if (g_status_685170.world_cursor_gate_2435 == 0 && AnyMonsterDying() == 0 &&
         (g_settings_6850c8.auto_save != 0 || g_status_685170.iron_man != 0) &&
         gXStatus.fCombatMode == 0 && IsSightRangeOverridden() == 0 &&
         IsLevelDataFlag4EffectivelySet() != 0 && gXStatus.fNpcDialogueMode == 0 &&

@@ -123,7 +123,7 @@ void InitializeFactState(void)
     SetFactNotificationsSuppressed(1);
     if (g_status_685170.skip_loose_character_check_2444) {
         SetFact(0x75, 1, 0);
-        switch (g_value_68de50) {
+        switch (g_wiz7_ending_68de50) {
         case 1:
             SetFact(0x4c, 1, 0);
             break;
@@ -316,11 +316,11 @@ unsigned char EvaluateFact(int fact_id)
             }
             return 0;
         case 0x88:
-            if (g_status_685170.tail_3121.facts.flag_40c1 == 0) {
+            if (g_status_685170.tail_3121.facts.fact_88_latch_40c1 == 0) {
                 if (CountItemOnParty(0x1c4, 0, 0, 2) < 5) {
                     return 0;
                 }
-                g_status_685170.tail_3121.facts.flag_40c1 = 1;
+                g_status_685170.tail_3121.facts.fact_88_latch_40c1 = 1;
                 return 1;
             }
             break;
@@ -400,12 +400,12 @@ unsigned char EvaluateFact(int fact_id)
         case 0x11e:
             return GetFactionDisposition(W8_FACTION_TRANG) == W8_FACTION_FRIENDLY;
         case 0x14c:
-            if (g_status_685170.flag_2489 != 0) {
+            if (g_status_685170.rpc_active_2489 != 0) {
                 unsigned int slot = 0;
                 do {
                     if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
-                        slot ==
-                            static_cast<unsigned int>(g_status_685170.tail_3121.facts.value_423d)) {
+                        slot == static_cast<unsigned int>(
+                                    g_status_685170.tail_3121.facts.rpc_slot_423d)) {
                         return 1;
                     }
                     ++slot;

@@ -32,8 +32,8 @@
    entry read at 0x005251F0 consumes sub-entry pairs whose +0 dwords are the
    fact id and the expected value. */
 struct W8NpcQuoteSubEntry {
-    int value_00; /* 0x00 */
-    char* text;   /* 0x04 */
+    int operand_00; /* 0x00: fact id on even slots, the expected value on odd */
+    char* text;     /* 0x04 */
 }; /* 0x08 */
 
 /* One 0x12-byte entry. Byte 0 is the kind discriminator read by 0x00576060;

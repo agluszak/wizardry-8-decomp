@@ -122,14 +122,15 @@ void AccumulateEquipmentModifiers(W8Character* character, W8GameplayModifierBloc
         }
         const W8ItemDatabaseRecord* record = &g_item_records[item_id];
         if (slot != 6 && slot != 7) {
-            equipment_bonus->value_00 += record->attack_damage_bonus;
-            equipment_bonus->value_01 += record->attack_hit_bonus;
+            equipment_bonus->damage_bonus_00 += record->attack_damage_bonus;
+            equipment_bonus->hit_bonus_01 += record->attack_hit_bonus;
         }
         equipment_bonus->health_regen_adjustment += record->modifier_06c;
         equipment_bonus->stamina_regen_adjustment += record->modifier_06d;
         equipment_bonus->spell_regen_adjustment += record->modifier_06e;
         if (record->modifier_0b1_index != -1) {
-            equipment_bonus->unknown_13[record->modifier_0b1_index] += record->modifier_0b1_value;
+            equipment_bonus->skill_bonus_13[record->modifier_0b1_index] +=
+                record->modifier_0b1_value;
         }
         if (record->modifier_0b3_index != -1) {
             equipment_bonus->attribute_adjustments[record->modifier_0b3_index] +=
@@ -158,10 +159,10 @@ void ApplyModifierBlock(W8GameplayModifierBlock* target, const W8GameplayModifie
 {
     unsigned int index;
 
-    target->value_00 += source->value_00;
-    target->value_01 += source->value_01;
-    target->value_02 += source->value_02;
-    target->value_03 += source->value_03;
+    target->damage_bonus_00 += source->damage_bonus_00;
+    target->hit_bonus_01 += source->hit_bonus_01;
+    target->attack_bonus_02 += source->attack_bonus_02;
+    target->damage_percent_03 += source->damage_percent_03;
     target->armor_class_adjustment_4b += source->armor_class_adjustment_4b;
     target->armor_bonus_04 += source->armor_bonus_04;
     target->armor_bonus_05 += source->armor_bonus_05;
@@ -175,7 +176,7 @@ void ApplyModifierBlock(W8GameplayModifierBlock* target, const W8GameplayModifie
         target->attribute_adjustments[index] += source->attribute_adjustments[index];
     }
     for (index = 0; index < 0x29; ++index) {
-        target->unknown_13[index] += source->unknown_13[index];
+        target->skill_bonus_13[index] += source->skill_bonus_13[index];
     }
     for (index = 0; index < 6; ++index) {
         target->resistance_bonus[index] += source->resistance_bonus[index];
@@ -192,8 +193,8 @@ void ApplyModifierBlock(W8GameplayModifierBlock* target, const W8GameplayModifie
     if (source->out_of_formation != 0) {
         target->out_of_formation = 1;
     }
-    if (source->flag_46 != 0) {
-        target->flag_46 = 1;
+    if (source->detect_secrets_46 != 0) {
+        target->detect_secrets_46 = 1;
     }
     if (source->sight_override_4a != 0) {
         target->sight_override_4a = 1;
@@ -232,7 +233,7 @@ void ApplyPartyEffectSlots(const W8EffectSlot* source, W8GameplayModifierBlock* 
             case 0x14:
                 adjusted = static_cast<unsigned char>((slot->amount + 1) / 2);
                 AdjustByteByPercent(&adjusted, percent);
-                target->value_01 += adjusted;
+                target->hit_bonus_01 += adjusted;
                 break;
             case 0x1a:
                 adjusted = static_cast<unsigned char>((slot->amount + 5) * 5);
@@ -277,7 +278,7 @@ void ApplyCombatEffectSlots(const W8EffectSlot* source, W8GameplayModifierBlock*
                 adjusted = 2;
                 AdjustByteByPercent(&adjusted, percent);
                 target->armor_bonus_04 += adjusted;
-                target->value_01 += adjusted;
+                target->hit_bonus_01 += adjusted;
                 break;
             case 0x35:
                 adjusted = static_cast<unsigned char>(slot->amount * 7);
@@ -419,32 +420,32 @@ void ApplyConditionModifiers(W8Character* character, const unsigned int* conditi
         }
         switch (index) {
         case 3:
-            target->value_01 -= 2;
+            target->hit_bonus_01 -= 2;
             target->armor_class_adjustment_4b -= 2;
             break;
         case 4:
-            target->value_01 -= 5;
+            target->hit_bonus_01 -= 5;
             target->armor_class_adjustment_4b -= 4;
             break;
         case 5:
             target->attribute_adjustments[5] -= 0x32;
             break;
         case 6:
-            target->value_01 -= 3;
+            target->hit_bonus_01 -= 3;
             target->armor_class_adjustment_4b -= 2;
             break;
         case W8_CONDITION_POISONED:
-            target->value_01 -= 2;
+            target->hit_bonus_01 -= 2;
             target->armor_class_adjustment_4b -= 2;
             target->damage_per_minute += condition_argument;
             break;
         case 9:
-            target->value_01 -= 5;
+            target->hit_bonus_01 -= 5;
             for (i = 0; i < 7; ++i) {
                 target->attribute_adjustments[i] -= 0x14;
             }
             for (i = 0; i < 0x29; ++i) {
-                target->unknown_13[i] -= 0x14;
+                target->skill_bonus_13[i] -= 0x14;
             }
             break;
         case 0xb:
@@ -472,9 +473,11 @@ void ApplyConditionModifiers(W8Character* character, const unsigned int* conditi
         case 0x13:
             if (GetConditionRecordFlag(CharacterPointerToPartySlot(character), 1) != 0) {
                 W8MonsterInfo* bound;
-                if (character->conditions_1817[1].value_00 == g_status_685170.current_level &&
+                if (character->conditions_1817[1].level_acquired_00 ==
+                        g_status_685170.current_level &&
                     (bound = MonsterInfoFromID(0x16b, GAMEPLAY_MODS_CPP,
-                                               character->conditions_1817[1].value_04, 1)) != 0) {
+                                               character->conditions_1817[1].source_monster_04,
+                                               1)) != 0) {
                     W8MonsterRecord* monster = GetMonsterDataForInfo(bound);
                     target->health_regen_adjustment += -1 - (monster->effective_level_24f >> 1);
                 } else {
