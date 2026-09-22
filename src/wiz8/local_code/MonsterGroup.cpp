@@ -1541,7 +1541,7 @@ void MonsterGroupEnterCombat(W8MonsterGroup* monster_group)
    radian offset the sum is biased by. Retail keeps both as addressable .data
    floats; only PositionMonsterGroupNearCamera reads them. */
 // GLOBAL: WIZ8 0x005ed828
-const float g_float_005ed828 = 0.0016f;
+const float g_float_005ed828 = 0.001600000075995922f;
 // GLOBAL: WIZ8 0x005ebb30
 const float g_float_005ebb30 = 0.8f;
 

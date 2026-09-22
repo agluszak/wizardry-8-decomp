@@ -95,7 +95,7 @@ W8WorldCursorNode* g_mipe_cube_0068f12c;
 /* 0x0064A1CC: 'C' toggles between single-monster ("Choosing: One") and
    whole-group ("Choosing: Group") selection in UpdateMipeSelection0057DC20. */
 // GLOBAL: WIZ8 0x0064a1cc
-static unsigned char g_mipe_choose_group_0064a1cc;
+static unsigned char g_mipe_choose_group_0064a1cc = 1;
 
 int FindCategoryItemTable0057DBD0(unsigned int category, int ordinal);
 

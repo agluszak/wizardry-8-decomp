@@ -557,7 +557,7 @@ unsigned char CanPartySlotPray(int party_slot)
 }
 
 // GLOBAL: WIZ8 0x0061DD38
-int g_pray_roll_weights_0061dd38[14];
+int g_pray_roll_weights_0061dd38[14] = {5, 5, 10, 10, 10, 20, 10, 10, 10, 5, 5, 5, 5, 5};
 
 // GLOBAL: WIZ8 0x0068D814
 int g_pray_roll_sums_0068d814[14];
