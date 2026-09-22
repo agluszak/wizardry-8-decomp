@@ -12,6 +12,45 @@ static const char* s_flag_names_100a4a20;
 // srTexture::_frameHandle
 unsigned long srTexture::_frameHandle;
 
+/* Same comma-separated bit-name walker srNode::dump uses; each TU keeps its
+   own copy. */
+static void dumpFlags(std::ostream& stream, unsigned long flags, const char* names)
+{
+    if (flags == 0) {
+        stream << "[NONE]";
+        return;
+    }
+    stream << '[';
+    bool first = true;
+    for (unsigned long bit = 0; bit < 0x20; ++bit) {
+        if ((flags & (1 << bit)) != 0) {
+            if (first) {
+                first = false;
+            } else {
+                stream << ',';
+            }
+            if (names == 0 || *names == 0) {
+                stream << bit;
+            } else {
+                while (*names != 0 && *names != ',') {
+                    stream << *names++;
+                }
+                if (*names == ',') {
+                    ++names;
+                }
+            }
+        } else if (names != 0) {
+            while (*names != 0 && *names != ',') {
+                ++names;
+            }
+            if (*names == ',') {
+                ++names;
+            }
+        }
+    }
+    stream << ']';
+}
+
 // FUNCTION: SURRENDER 0x1005EDE0
 const char* srTexture::sGetClassName()
 {
@@ -44,6 +83,139 @@ srTexture::srTexture()
 // FUNCTION: SURRENDER 0x1005E570
 srTexture::~srTexture() {}
 
+// FUNCTION: SURRENDER 0x1005E390
+srTexture& srTexture::operator=(const srTexture& other)
+{
+    if (this != &other) {
+        invalidate();
+        srClass::operator=(other);
+        packed_state_18 = other.packed_state_18;
+        mipmap_bias_1c = other.mipmap_bias_1c;
+        texture_priority_4c = other.texture_priority_4c;
+        texture_dimensions_ = other.texture_dimensions_;
+        texture_flags_ = other.texture_flags_;
+    }
+    return *this;
+}
+
+// FUNCTION: SURRENDER 0x1005E690
+void srTexture::dump(std::ostream& stream)
+{
+    srClass::dump(stream);
+    std::ios::fmtflags flags = stream.flags();
+    stream.setf(std::ios::left, std::ios::adjustfield);
+    stream.width(0x20);
+    stream << "  Filter: " << getFilter()->getName() << '\n';
+    const char* name;
+    e_correction correction = getCorrection();
+    e_filter mag_filter = getMagFilter();
+    e_filter min_filter = getMinFilter();
+    e_mipmap mipmap = getMipmap();
+    e_wrap wrap_s = getWrapS();
+    e_wrap wrap_t = getWrapT();
+    stream.width(0x20);
+    stream << "  Correction: ";
+    switch (correction) {
+    case CORRECTION_FASTEST:
+        name = "FASTEST";
+        break;
+    case CORRECTION_GOOD:
+        name = "GOOD";
+        break;
+    case CORRECTION_BEST:
+        name = "BEST";
+        break;
+    default:
+        name = "DEFAULT";
+        break;
+    }
+    stream << name << '\n';
+    stream.width(0x20);
+    stream << "  Mag. filter: ";
+    switch (mag_filter) {
+    case FILTER_NONE:
+        name = "NONE";
+        break;
+    case FILTER_FASTEST:
+        name = "FASTEST";
+        break;
+    case FILTER_GOOD:
+        name = "GOOD";
+        break;
+    case FILTER_BEST:
+        name = "BEST";
+        break;
+    default:
+        name = "DEFAULT";
+        break;
+    }
+    stream << name << '\n';
+    stream.width(0x20);
+    stream << "  Min. filter: ";
+    switch (min_filter) {
+    case FILTER_NONE:
+        name = "NONE";
+        break;
+    case FILTER_FASTEST:
+        name = "FASTEST";
+        break;
+    case FILTER_GOOD:
+        name = "GOOD";
+        break;
+    case FILTER_BEST:
+        name = "BEST";
+        break;
+    default:
+        name = "DEFAULT";
+        break;
+    }
+    stream << name << '\n';
+    stream.width(0x20);
+    stream << "  Mipmap: ";
+    switch (mipmap) {
+    case MIPMAP_NONE:
+        name = "NONE";
+        break;
+    case MIPMAP_FASTEST:
+        name = "FASTEST";
+        break;
+    case MIPMAP_BEST:
+        name = "BEST";
+        break;
+    default:
+        name = "DEFAULT";
+        break;
+    }
+    stream << name << '\n';
+    stream.width(0x20);
+    stream << "  Wrap S: ";
+    if (wrap_s == WRAP_REPEAT) {
+        name = "REPEAT";
+    } else {
+        name = "CLAMP";
+    }
+    stream << name << '\n';
+    stream.width(0x20);
+    stream << "  Wrap T: ";
+    if (wrap_t == WRAP_REPEAT) {
+        name = "REPEAT";
+    } else {
+        name = "CLAMP";
+    }
+    stream << name << '\n';
+    stream.width(0x20);
+    stream << "  Mipmap bias: " << mipmap_bias_1c << '\n';
+    stream.width(0x20);
+    stream << "  Priority: ";
+    stream.width(0x20);
+    stream << getPriority() << '\n';
+    stream.width(0x20);
+    stream << "  Flags: ";
+    dumpFlags(stream, texture_flags_, s_flag_names_100a4a20);
+    stream << '\n';
+    stream.flags(static_cast<std::ios::fmtflags>(flags & 0x7fff));
+}
+
 // FUNCTION: SURRENDER 0x1005EEF0
 unsigned long srTexture::getNewFrameHandle()
 {
@@ -56,6 +228,28 @@ void srTexture::invalidateFrameHandle(unsigned long handle)
 {
     for (srGERD* device = srGERD::getFirstOpen(); device != 0; device = device->getNextOpen()) {
         device->invalidateTextureByFrameHandle(handle);
+    }
+}
+
+// FUNCTION: SURRENDER 0x1005EB50
+void srTexture::setDimensions(const Dimensions& dimensions)
+{
+    texture_dimensions_ = dimensions;
+    texture_flags_ &= ~(1 << FLAG_DIRTY_DEFAULTS);
+}
+
+// FUNCTION: SURRENDER 0x1005EBE0
+void srTexture::setupDefaultValuesFromSurface(srColorSurfaceIFace* surface)
+{
+    if (surface != 0) {
+        texture_dimensions_.width = surface->getWidth();
+        texture_dimensions_.height = surface->getHeight();
+        surface->getPixelFormat(texture_dimensions_.format);
+        texture_dimensions_.palette = surface->getPalette();
+    } else {
+        texture_dimensions_.width = 1;
+        texture_dimensions_.height = 1;
+        texture_dimensions_.palette = 0;
     }
 }
 
@@ -174,4 +368,17 @@ void srTexture::getDimensions(Dimensions& dimensions)
         setupDefaultValues();
     }
     dimensions = texture_dimensions_;
+}
+
+// FUNCTION: SURRENDER 0x1005EE90
+void srTexture::getMipmapData(MultiRequest& request) {}
+
+// FUNCTION: SURRENDER 0x1005EEA0
+void srTexture::getMipmapLevelPartial(PartialRequest& request) {}
+
+// FUNCTION: SURRENDER 0x1005EEB0
+void srTexture::getTextureParms(Parameters& parameters)
+{
+    parameters.packed_state_00 = packed_state_18;
+    parameters.mipmap_bias_04 = mipmap_bias_1c;
 }
