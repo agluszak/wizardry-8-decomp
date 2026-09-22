@@ -1592,7 +1592,7 @@ int OctPreTree::CreatePathProps0046C0F0(W8LevelFile* level, W8PreProp** preprops
         for (int i = 0; i < count; ++i) {
             W8LevelFileProp* prop = level->pProps + i;
             W8PreProp* record = records + i;
-            if ((prop->flags_0f[0] & 1) == 0)
+            if ((prop->flags_0f & 1) == 0)
                 continue;
             if (prop->num_frame_pos_b7 == 0) {
                 record->num_stop_meshes_40 =

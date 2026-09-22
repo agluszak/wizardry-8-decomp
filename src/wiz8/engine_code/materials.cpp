@@ -589,9 +589,9 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                     ReportBuildStatus00497690(6, message);
                     for (i = 0; i < level->num_switch_triggers_6c1; ++i) {
                         int slot = value->FindPointerByName004482A0(
-                            level->switch_triggers_6c5[i]->switch_name_223 + 1);
-                        level->switch_triggers_6c5[i]->switch_name_223[0] = '\0';
-                        sprintf(level->switch_triggers_6c5[i]->switch_name_223 + 1, "%d", slot);
+                            level->switch_triggers_6c5[i]->surface_id_223 + 1);
+                        level->switch_triggers_6c5[i]->surface_id_223[0] = '\0';
+                        sprintf(level->switch_triggers_6c5[i]->surface_id_223 + 1, "%d", slot);
                     }
                     for (i = 0; i < level->num_invisible_planes_1665; ++i) {
                         value->AddLevelPlane004485F0(level->invisible_planes_1669[i]);
@@ -685,8 +685,7 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                             src_light = lights;
                             for (i = light_total; i != 0; --i) {
                                 if (src_light->version_00 < 2 ||
-                                    ((src_light->flags_02 & 0xff) == 0 &&
-                                     (src_light->flags_02 & 0xff00) != 0)) {
+                                    (src_light->create_02 == 0 && src_light->visible_03 != 0)) {
                                     live_lights = live_lights + 1;
                                 }
                                 ++src_light;
@@ -1594,8 +1593,7 @@ int AccumulateVertexLight00495CF0(OctPreTree* tree, W8OctPreTreeVertex* vertex, 
     light = lights;
     sun = sun_map;
     do {
-        if ((light->version_00 < 2) ||
-            (((light->flags_02 & 0xff) == 0) && ((light->flags_02 & 0xff00) != 0))) {
+        if ((light->version_00 < 2) || ((light->create_02 == 0) && (light->visible_03 != 0))) {
             delta_x = light->position_08.x - vertex->position_0c.x;
             delta_y = light->position_08.y - vertex->position_0c.y;
             delta_z = light->position_08.z - vertex->position_0c.z;
