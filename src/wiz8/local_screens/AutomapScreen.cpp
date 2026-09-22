@@ -56,6 +56,8 @@
 #include "surrender/srMeshModel.h"
 #include "surrender/srVectorProcessor.h"
 
+#include "wiz8/sgp_wide_text.h"
+
 #include <stdlib.h>
 #include <wchar.h>
 #include <stdio.h>
@@ -2268,17 +2270,14 @@ void RenderAutomapMarkers00582930(void)
                     y += ((height & 0xffff) >> 1) - ((font_height & 0xffff) >> 1);
                     width = marker->GetWidth00480EF0();
                     x += (width & 0xffff) + 2;
-                    // reinterpret-ok: SGP text APIs take UINT16*; wchar_t*.
-                    gprintfDirty(x, y, reinterpret_cast<UINT16*>(note->text));
+                    gprintfDirty(x, y, Wiz8ToSgpWideText(note->text));
                     if (note == g_automap_editing_note) {
                         marker->setScale(srVector3T<double>(0.22f, 0.22f, 0.22f));
                         unsigned int pitch;
                         char* buffer = static_cast<char*>(LockPrimarySurface(&pitch));
                         SetClippingRegionAndImageWidth(pitch, 0xc, 0x20, 0x1c7, 0x1b3);
                         int color = Get16BPPColor(0x569bef);
-                        int length =
-                            // reinterpret-ok: SGP text APIs take UINT16*.
-                            StringPixLength(reinterpret_cast<UINT16*>(note->text), g_font_683660);
+                        int length = StringPixLength(Wiz8ToSgpWideText(note->text), g_font_683660);
                         RectangleDraw(TRUE, x - 1, y, x + length + 2, y + (font_height & 0xffff),
                                       color, buffer);
                         UnlockPrimarySurface();

@@ -95,6 +95,7 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/GrCycle.h"
 #include "input.h"
+#include "wiz8/sgp_narrow_text.h"
 // GLOBAL: WIZ8 0x00659c14
 int g_value_659c14;
 
@@ -591,7 +592,7 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
                 sscanf(line, "%s %s %s", command, old_name, new_name);
                 if (damage_stage != -1 &&
                     (*monster)->ReplaceSkinTexture004C6700(damage_stage, old_name, new_name) == 0) {
-                    ShutdownWithErrorBox(reinterpret_cast<const char*>(
+                    ShutdownWithErrorBox(SgpToWiz8NarrowText(
                         String("The skin texture %s not found in %s", old_name, monster_name)));
                 }
             } else {
@@ -748,7 +749,7 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
         idle_fps_end = 3.0f;
     }
     if (representation->animations[1].GetCount() < 1) {
-        ShutdownWithErrorBox(reinterpret_cast<const char*>(
+        ShutdownWithErrorBox(SgpToWiz8NarrowText(
             String("Monster %s: Missing CYCLE %s sub %d", representation->name_5c0, "IDLE", 0)));
     }
     W8AnimObj* idle = *representation->animations[1].GetAt(0);

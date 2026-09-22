@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "wiz8/sgp_narrow_text.h"
 /* VC6 places `float x = 0.0f` in .bss; retail keeps this slot in initialized
    .data next to g_float_005ebb38. Const storage lands in .rdata with physical
    zeros so datacmp agrees. */
@@ -217,9 +218,8 @@ unsigned char LoadAniMesh004B5D00(int file, W8AniMesh* mesh, unsigned char load_
     if (handle == 0) {
         handle = FileOpen(mesh->filename_30, FILE_ACCESS_READ | FILE_OPEN_EXISTING, 0);
         if (handle == 0) {
-            srAssertFail(
-                "0", ANI_MESH_CPP, 0x199,
-                reinterpret_cast<const char*>(String("Couldn't open %s", mesh->filename_30)));
+            srAssertFail("0", ANI_MESH_CPP, 0x199,
+                         SgpToWiz8NarrowText(String("Couldn't open %s", mesh->filename_30)));
             return 0;
         }
     }
@@ -391,9 +391,8 @@ static unsigned char LoadAniMeshFrameCount004B6290(int file, W8AniMesh* mesh)
     if (handle == 0) {
         handle = FileOpen(mesh->filename_30, FILE_ACCESS_READ | FILE_OPEN_EXISTING, 0);
         if (handle == 0) {
-            srAssertFail(
-                "fi.hFile", ANI_MESH_CPP, 0x23f,
-                reinterpret_cast<const char*>(String("Couldn't open %s", mesh->filename_30)));
+            srAssertFail("fi.hFile", ANI_MESH_CPP, 0x23f,
+                         SgpToWiz8NarrowText(String("Couldn't open %s", mesh->filename_30)));
             return 0;
         }
     }

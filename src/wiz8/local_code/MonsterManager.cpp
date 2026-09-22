@@ -66,6 +66,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
+#include "wiz8/sgp_narrow_text.h"
 // GLOBAL: WIZ8 0x005ed4f0
 float g_monster_record_float_scale = 20.0f;
 // GLOBAL: WIZ8 0x00683698
@@ -317,8 +318,8 @@ void ActivateMonster(W8MonsterInfo* monster_info, int mode)
         monster_info->scale_24f = CalculateMonsterScale(monster_info);
         MonsterSetScale(monster_info->p3D, monster_info->scale_24f);
     } else {
-         MonsterSetScale(monster_info->p3D, monster_info->scale_24f);
-         MonsterSetMirrorX(monster_info->p3D, monster_info->cycle17_state);
+        MonsterSetScale(monster_info->p3D, monster_info->scale_24f);
+        MonsterSetMirrorX(monster_info->p3D, monster_info->cycle17_state);
     }
 
     ApplyMonsterRepresentationScale(monster_info->p3D);
@@ -498,10 +499,9 @@ unsigned int MonsterGetIndexByLocationID(int caller_line, const char* caller_fil
     }
 
     if (assert_on_failure != 0) {
-        srAssertFail(
-            "FALSE", MONSTER_MANAGER_CPP, 0x5c1,
-            reinterpret_cast<const char*>(String("MonsterIndex: ID %d not found (%s line %d)",
-                                                 location_id, caller_file, caller_line)));
+        srAssertFail("FALSE", MONSTER_MANAGER_CPP, 0x5c1,
+                     SgpToWiz8NarrowText(String("MonsterIndex: ID %d not found (%s line %d)",
+                                                location_id, caller_file, caller_line)));
     }
     return 0xffffffff;
 }
@@ -522,9 +522,8 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
         if (result != 0) {
             return result;
         }
-        detail = reinterpret_cast<const char*>(
-            String("MonsterInfo: ERROR - PLGet failed, index %d, pList %d", monster_list_index,
-                   gXStatus.plsMonsterList));
+        detail = SgpToWiz8NarrowText(String("MonsterInfo: ERROR - PLGet failed, index %d, pList %d",
+                                            monster_list_index, gXStatus.plsMonsterList));
         line = 0x5de;
     } else {
         if (monster_list_index - 10000 >= PLLength(gXStatus.plsUnbornMonsterList)) {
@@ -536,9 +535,8 @@ W8MonsterInfo* MonsterGetScriptPartByLocationIndex(unsigned int monster_list_ind
         if (result != 0) {
             return result;
         }
-        detail = reinterpret_cast<const char*>(
-            String("MonsterInfo: ERROR - PLGet failed, index %d, pList %d", monster_list_index,
-                   gXStatus.plsMonsterList));
+        detail = SgpToWiz8NarrowText(String("MonsterInfo: ERROR - PLGet failed, index %d, pList %d",
+                                            monster_list_index, gXStatus.plsMonsterList));
         line = 0x5d5;
     }
     /* One tail, reached from both branches with only the line number differing.
@@ -598,10 +596,9 @@ static __inline W8MonsterInfo* MonsterInfoFromIDInline(int caller_line, const ch
         monster = MonsterGetScriptPartByLocationIndex(index);
     }
     if (monster == 0 && assert_on_failure != 0) {
-        srAssertFail(
-            "FALSE", MONSTER_MANAGER_CPP, 0x626,
-            reinterpret_cast<const char*>(String("MonsterInfoFromID: ID %d not found (%s line %d)",
-                                                 location_id, caller_file, caller_line)));
+        srAssertFail("FALSE", MONSTER_MANAGER_CPP, 0x626,
+                     SgpToWiz8NarrowText(String("MonsterInfoFromID: ID %d not found (%s line %d)",
+                                                location_id, caller_file, caller_line)));
     }
     return monster;
 }
@@ -743,7 +740,7 @@ void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup)
             ReleaseMonsterConditionBindings(monster_info);
             if (forced_cleanup == 0) {
                 monster_info->death_processed_253 = 1;
-                 if (monster_info->p3D->IsDying() == 0) {
+                if (monster_info->p3D->IsDying() == 0) {
                     StartMonsterCycle(monster_info, 0x15, 1);
                     DeactivateMonster(monster_info);
                     RecordMonsterKill(monster_info, 1);
@@ -890,8 +887,8 @@ void SetMonsterControlState(W8MonsterInfo* monster_info, int control_state)
     switch (control_state) {
     case 0:
     case 2:
-         if (monster_info->control_state == 1 && monster_info->p3D->linked_navigator_05c == 0) {
-             monster_info->p3D->ClearMovement();
+        if (monster_info->control_state == 1 && monster_info->p3D->linked_navigator_05c == 0) {
+            monster_info->p3D->ClearMovement();
             monster_info->ai_mode_255 = 0;
         }
         break;
@@ -946,10 +943,10 @@ void MoveMonsterToLiveList(W8MonsterInfo* monster_info)
         MonsterSetCycle(monster_info->p3D, 1);
         MonsterSetCycleBehaviour(monster_info->p3D, 3);
     }
-     MonsterSetCycleSubCycle(monster_info->p3D, 0);
-     MonsterSetAnimating(monster_info->p3D, 1);
-     monster_info->p3D->active_088 = 1;
-     monster_info->p3D->inactive_215 = 0;
+    MonsterSetCycleSubCycle(monster_info->p3D, 0);
+    MonsterSetAnimating(monster_info->p3D, 1);
+    monster_info->p3D->active_088 = 1;
+    monster_info->p3D->inactive_215 = 0;
 }
 
 static __forceinline double DistanceBetweenPositions(const srVector3T<float>* first,
@@ -1299,8 +1296,8 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
         monster_info->hp_current = 0;
         monster_info->stamina = 0;
         monster_info->p3D->active_088 = 0;
-         monster_info->p3D->flags_00c = 0x200000;
-         ClearMonsterSpellIcons(monster_info->p3D);
+        monster_info->p3D->flags_00c = 0x200000;
+        ClearMonsterSpellIcons(monster_info->p3D);
         ReleaseMonToMonVisibilityList(monster_info);
         MonsterGetLocalLocation(monster_info->p3D, &position);
         monster_info->position_17 = position;
@@ -1545,7 +1542,7 @@ void StartMonsterCycle(W8MonsterInfo* monster_info, int cycle, int behavior)
             }
             srAssertFail(
                 "FALSE", MONSTER_MANAGER_CPP, 0x497,
-                reinterpret_cast<const char*>(String(
+                SgpToWiz8NarrowText(String(
                     "%ls starting new cycle (%s) with an uninterruptable cycle pending (%s)!",
                     GetMonsterName(monster_info, 0, 0),
                     g_cycle_names[static_cast<signed char>(cycle)].name,

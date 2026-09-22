@@ -65,6 +65,8 @@
 #include "random.h"
 #include "timer.h"
 
+#include "wiz8/sgp_wide_text.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
@@ -422,12 +424,12 @@ void DrawCampSpellPages005B7300(void)
             mprintf(left + 0x72, top + 8, gppStringList[0x2324 / 4]);
             SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
             width = StringPixLengthArg(g_font_683660, wcslen(gppStringList[0x231c / 4]) + 2,
-                                       const_cast<UINT16*>(g_format_s_colon_00648164),
+                                       Wiz8ToSgpWideText(g_format_s_colon_00648164),
                                        gppStringList[0x231c / 4]);
             mprintf(left + 0x1b + width, top + 8, const_cast<wchar_t*>(g_format_d_0064dd20),
                     character->skills[0x1c + realm].level);
             width = StringPixLengthArg(
-                g_font_683660, 7, const_cast<UINT16*>(g_format_d_slash_d_00614b58),
+                g_font_683660, 7, Wiz8ToSgpWideText(g_format_d_slash_d_00614b58),
                 GetCharacterRealmSpellPoints(character, realm), character->sp_max[realm]);
             mprintf(left + 0xc8 - width, top + 8, const_cast<wchar_t*>(g_format_d_slash_d_00614b58),
                     GetCharacterRealmSpellPoints(character, realm), character->sp_max[realm]);
@@ -452,7 +454,7 @@ void DrawCampSpellPages005B7300(void)
                 }
                 SetFontObjectPalette16BPP(g_font_683660, palette);
                 width =
-                    StringPixLengthArg(g_font_683660, 3, const_cast<UINT16*>(g_format_3d_0064dd14),
+                    StringPixLengthArg(g_font_683660, 3, Wiz8ToSgpWideText(g_format_3d_0064dd14),
                                        g_spell_records[spell_id].spell_point_cost);
                 mprintf(left + 0x1c, row_top, const_cast<wchar_t*>(g_format_s_006068e4),
                         g_spell_records[spell_id].display_name);
@@ -506,10 +508,7 @@ void DrawCampResistances005B7790(void)
 
     DrawCatalogImageAndInvalidate(-14, 0x140, 0, 0, 0x136, 0, 2, 0);
     text = gppStringList[0x2328 / 4];
-    width = StringPixLengthArg(
-        g_font_683660, wcslen(text),
-        reinterpret_cast< // reinterpret-ok: SGP's historical UINT16 text ABI stores wchar_t data
-            UINT16*>(text));
+    width = StringPixLengthArg(g_font_683660, wcslen(text), Wiz8ToSgpWideText(text));
     mprintf((0x134 - width) / 2 + 0x144, 0x1e, text);
     for (index = 0; index < 6; ++index) {
         animation = &g_spell_realm_animations_00648c90[index];
@@ -546,7 +545,7 @@ void DrawCampResistances005B7790(void)
             DrawCatalogImageAndInvalidate(-14, 0x143, 0, 2, left + 0x18, top + 4, 2, 0);
         }
         SetClippingRect(&saved_clip);
-        width = StringPixLengthArg(g_font_683660, 5, const_cast<UINT16*>(g_format_d_0060aa20),
+        width = StringPixLengthArg(g_font_683660, 5, Wiz8ToSgpWideText(g_format_d_0060aa20),
                                    character->resistances[index].total);
         mprintf(left + 0x93 - width, top + 3, const_cast<wchar_t*>(g_format_d_0060aa20),
                 character->resistances[index].total);

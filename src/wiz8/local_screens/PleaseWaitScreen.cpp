@@ -12,6 +12,7 @@
 #include "wiz8/local_screens/IntroScreen.h"
 #include "wiz8/local_screens/PleaseWaitScreen.h"
 #include "wiz8/local_screens/Screens.h"
+#include "wiz8/sgp_narrow_text.h"
 #include "wiz8/dialog_code/MessageDialogBase.h"
 #include "wiz8/fact_state.h"
 #include "wiz8/local_code/Strings.h"
@@ -98,7 +99,7 @@ unsigned char PleaseWaitScreenInitialize(void)
         g_cd_marker_present_69b7d0 = 1;
     }
     g_level_load_font_69b7c0 =
-        LoadFontFile((UINT8*)const_cast<char*>("Data\\Level Load\\levelload_font.sti"));
+        LoadFontFile(Wiz8ToSgpNarrowText("Data\\Level Load\\levelload_font.sti"));
     return 1;
 }
 

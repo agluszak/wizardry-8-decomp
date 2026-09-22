@@ -16,6 +16,7 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/engine_code/GDFileIO.h"
 #include "wiz8/engine_code/materials.h"
+#include "wiz8/sgp_narrow_text.h"
 
 #include "DEBUG.H"
 #include "FileMan.h"
@@ -947,7 +948,7 @@ void W8GameData::ReadProcessedGameData(int handle)
     if (header.version_00 != 1) {
         srAssertFail("(FileGD.iVersion == GAMEDATA_VERSION)",
                      "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x46c,
-                     reinterpret_cast<const char*>( // reinterpret-ok: String returns UINT8*
+                     SgpToWiz8NarrowText(
                          String("ReadProcessedGameData: File version %d does not match program "
                                 "version %d.",
                                 header.version_00, 1)));
@@ -1374,16 +1375,16 @@ void W8GameData::CompileGameData00449D10()
         static_cast<W8OctPreTreeVertex*>(malloc(m_iNumVertices * sizeof(W8OctPreTreeVertex)));
     if (weld_records == 0) {
         ReportBuildStatus00497690(
-            7, reinterpret_cast<const char*>( // reinterpret-ok: String returns UINT8*
-                   String("CompileGameData: Couldn't allocate %d OctVerts (%dK).\n", m_iNumVertices,
-                          m_iNumVertices * sizeof(W8OctPreTreeVertex) / 1024)));
+            7, SgpToWiz8NarrowText(String("CompileGameData: Couldn't allocate %d OctVerts (%dK).\n",
+                                          m_iNumVertices,
+                                          m_iNumVertices * sizeof(W8OctPreTreeVertex) / 1024)));
     }
     memset(weld_records, 0, m_iNumVertices * sizeof(W8OctPreTreeVertex));
     g_gd_vertices_0065bd34 =
         static_cast<W8OctPreTreeVertex*>(malloc(m_iNumVertices * sizeof(W8OctPreTreeVertex)));
     if (g_gd_vertices_0065bd34 == 0) {
         ReportBuildStatus00497690(
-            7, reinterpret_cast<const char*>( // reinterpret-ok: String returns UINT8*
+            7, SgpToWiz8NarrowText(
                    String("CompileGameData: Couldn't allocate %d NewGDVerts (%dK)\n",
                           m_iNumVertices, m_iNumVertices * sizeof(W8OctPreTreeVertex) / 1024)));
     }

@@ -26,6 +26,10 @@
 #include "DEBUG.H"
 #include "random.h"
 
+#include "wiz8/sgp_wide_text.h"
+
+#include "wiz8/sgp_narrow_text.h"
+
 #include <stdarg.h>
 #include <ctype.h>
 #include <float.h>
@@ -352,9 +356,9 @@ unsigned int CharacterPointerToPartySlot(const W8Character* character)
         }
     }
 
-    srAssertFail("FALSE", "C:\\Projects\\Wizardry 8\\Local Code\\UtilityFunctions.cpp", 0x1d1,
-                 reinterpret_cast<const char*>(
-                     String("PCPtrToPCSlot: ERROR - no match on ptr %d", character)));
+    srAssertFail(
+        "FALSE", "C:\\Projects\\Wizardry 8\\Local Code\\UtilityFunctions.cpp", 0x1d1,
+        SgpToWiz8NarrowText(String("PCPtrToPCSlot: ERROR - no match on ptr %d", character)));
     return 0;
 }
 
@@ -569,7 +573,7 @@ int RPCPtrToPCSlot(const W8MonsterManagerEntry* rpc)
     }
     UINT8* message = String("RPCPtrToPCSlot: ERROR - no match on ptr %d", rpc);
     srAssertFail("FALSE", "C:\\Projects\\Wizardry 8\\Local Code\\UtilityFunctions.cpp", 0x385,
-                 reinterpret_cast<const char*>(message));
+                 SgpToWiz8NarrowText(message));
     return 0;
 }
 
@@ -614,21 +618,14 @@ bool CreateMessageBox(wchar_t* text, int font, unsigned int shade, bool has_acce
         width = 0x78;
     }
     g_message_box_background_image = LoadGenericButtonImages(
-        0,
-        reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
-            const_cast<char*>(DEFAULT_GENERIC_BUTTON_OFF)),
-        0,
-        reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
-            const_cast<char*>(DEFAULT_GENERIC_BUTTON_ON)),
-        0,
-        reinterpret_cast<unsigned char*>( // reinterpret-ok: SGP image API takes UINT8*
-            const_cast<char*>("Data\\Dialogs\\DialogBackground.STI")),
-        0, 0, 0);
+        0, Wiz8ToSgpNarrowText(DEFAULT_GENERIC_BUTTON_OFF), 0,
+        Wiz8ToSgpNarrowText(DEFAULT_GENERIC_BUTTON_ON), 0,
+        Wiz8ToSgpNarrowText("Data\\Dialogs\\DialogBackground.STI"), 0, 0, 0);
     int yloc = (0x1e0 - height) / 2;
     g_message_box_background_button = CreateTextButton(
-        reinterpret_cast<unsigned short*>(text), // reinterpret-ok: SGP text API takes UINT16*
-        (unsigned short)font, 0xff, 0, g_message_box_background_image, (0x280 - width) / 2, yloc,
-        width, height, 4, 0x7d, 0, MessageBoxAcceptClickCallback);
+        Wiz8ToSgpWideText(text), static_cast<unsigned short>(font), 0xff, 0,
+        g_message_box_background_image,
+        (0x280 - width) / 2, yloc, width, height, 4, 0x7d, 0, MessageBoxAcceptClickCallback);
     if (g_message_box_background_button < 0) {
         return false;
     }
@@ -640,9 +637,7 @@ bool CreateMessageBox(wchar_t* text, int font, unsigned int shade, bool has_acce
        reads again. The byte-true layout is kept. */
     if (has_accept) {
         strcpy(filename, "Data\\Message Box\\Ok.sti");
-        g_message_box_accept_image = LoadButtonImage(
-            reinterpret_cast<unsigned char*>(filename), // reinterpret-ok: SGP image API
-            0, 1, 2, 3, 4);
+        g_message_box_accept_image = LoadButtonImage(Wiz8ToSgpNarrowText(filename), 0, 1, 2, 3, 4);
         if (g_message_box_accept_image < 0) {
             return false;
         }
@@ -657,9 +652,7 @@ bool CreateMessageBox(wchar_t* text, int font, unsigned int shade, bool has_acce
     }
     if (has_cancel) {
         strcpy(filename, "Data\\Message Box\\Cancel.sti");
-        g_message_box_cancel_image = LoadButtonImage(
-            reinterpret_cast<unsigned char*>(filename), // reinterpret-ok: SGP image API
-            0, 1, 2, 3, 4);
+        g_message_box_cancel_image = LoadButtonImage(Wiz8ToSgpNarrowText(filename), 0, 1, 2, 3, 4);
         if (g_message_box_cancel_image < 0) {
             return false;
         }

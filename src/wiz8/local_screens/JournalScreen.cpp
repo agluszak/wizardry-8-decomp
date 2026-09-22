@@ -12,6 +12,8 @@
 #include "wiz8/dialog_code/DialogInterface.h"
 #include "wiz8/local_screens/Screens.h"
 
+#include "wiz8/sgp_narrow_text.h"
+
 #include "wiz8/cursor.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/fonts.h"
@@ -406,9 +408,7 @@ void W8JournalPanel005EF340::OnPrimary(W8TextControl* control)
 // FUNCTION: WIZ8 0x005bddd0
 unsigned char JournalScreenInitialize(void)
 {
-    g_journal_font_69c4cc =
-        LoadFontFile(reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Journal\\journal_font.sti")));
+    g_journal_font_69c4cc = LoadFontFile(Wiz8ToSgpNarrowText("Data\\Journal\\journal_font.sti"));
     g_journal_font_original_palette_69c4d8 = GetFontObjectPalette16BPP(g_journal_font_69c4cc);
     g_journal_font_palette_69c4d0 = CopyCatalogImagePalette16BPP(0x1b9, 0);
     return 1;

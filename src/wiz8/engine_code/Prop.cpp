@@ -10,6 +10,7 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/3d_code/PList.h"
+#include "wiz8/sgp_narrow_text.h"
 
 #include <string.h>
 
@@ -1607,9 +1608,11 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
                 slot->tag = static_cast<unsigned char>(tag_tmp);
                 if (frame_count <= frame_tmp) {
                     srAssertFail("(usTemp < (UINT16)ubNumFrames)", PROP_CPP, 0x11f,
-                                 reinterpret_cast<const char*>(
-                                     String("%s Prop Error Segment %d frame n", prop->m_name,
-                                            (unsigned int)tag_tmp, (unsigned int)frame_tmp)));
+                                 SgpToWiz8NarrowText(String("%s Prop Error Segment %d frame n",
+                                                            prop->m_name,
+                                                            static_cast<unsigned int>(tag_tmp),
+                                                            static_cast<unsigned int>(
+                                                                frame_tmp))));
                 }
                 this->slots.Add(slot);
             }

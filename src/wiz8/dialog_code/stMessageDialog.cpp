@@ -5,6 +5,8 @@
 #include "wiz8/cursor.h"
 #include "wiz8/utility.h"
 
+#include "wiz8/sgp_narrow_text.h"
+
 #include "english.h"
 #include "mousesystem_macros.h"
 #include "Button System.h"
@@ -232,16 +234,9 @@ int W8MessageDialogBase::CreateControls()
     W8DialogBase::CreateControls();
     if (m_edge_image == -1) {
         m_edge_image = LoadGenericButtonImages(
-            0,
-            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-                const_cast<char*>("Data\\Dialogs\\DialogEdge.STI")),
-            0,
-            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-                const_cast<char*>("Data\\Dialogs\\DialogEdge.STI")),
-            0,
-            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-                m_background_path),
-            static_cast<short>(m_background_flags), 0, 0);
+            0, Wiz8ToSgpNarrowText("Data\\Dialogs\\DialogEdge.STI"), 0,
+            Wiz8ToSgpNarrowText("Data\\Dialogs\\DialogEdge.STI"), 0,
+            Wiz8ToSgpNarrowText(m_background_path), static_cast<short>(m_background_flags), 0, 0);
         if (m_edge_image == -1) {
             return m_error = 3;
         }
@@ -252,19 +247,15 @@ int W8MessageDialogBase::CreateControls()
                          static_cast<short>(m_y + 9), static_cast<short>(m_width - 0x12),
                          static_cast<short>(m_height - 0x12), 0x8004, 0x7e, 0, 0);
 
-    m_confirm_image = LoadButtonImage(
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogConfirmation.sti")),
-        3, 0, 1, 2, 2);
+    m_confirm_image = LoadButtonImage(Wiz8ToSgpNarrowText("Data\\Dialogs\\DialogConfirmation.sti"),
+                                      3, 0, 1, 2, 2);
     if (m_confirm_image != -1) {
         m_confirm_button =
             QuickCreateButton(m_confirm_image, 0, 0, 4, 0x7f, MessageDialogConfirmCallback,
                               MessageDialogConfirmCallback);
     }
-    m_cancel_image = LoadButtonImage(
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogConfirmation.sti")),
-        7, 4, 5, 6, 6);
+    m_cancel_image = LoadButtonImage(Wiz8ToSgpNarrowText("Data\\Dialogs\\DialogConfirmation.sti"),
+                                     7, 4, 5, 6, 6);
     if (m_cancel_image != -1) {
         m_cancel_button =
             QuickCreateButton(m_cancel_image, 0, 0, 4, 0x7f, MessageDialogCancelCallback,

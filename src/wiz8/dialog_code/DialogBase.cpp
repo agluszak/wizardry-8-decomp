@@ -4,6 +4,8 @@
 #include "wiz8/dialog_code/DialogButton.h"
 #include "wiz8/dialog_code/DialogInterface.h"
 
+#include "wiz8/sgp_narrow_text.h"
+
 #include "wiz8/utility.h"
 
 #include "input.h"
@@ -155,16 +157,9 @@ int W8DialogBase::CreateControls()
     }
     if (m_border == -1) {
         m_border = LoadGenericButtonImages(
-            0,
-            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-                const_cast<char*>("Data\\Dialogs\\DialogBorder.STI")),
-            0,
-            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-                const_cast<char*>("Data\\Dialogs\\DialogBorder.STI")),
-            0,
-            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-                m_background_path),
-            static_cast<short>(m_background_flags), 0, 0);
+            0, Wiz8ToSgpNarrowText("Data\\Dialogs\\DialogBorder.STI"), 0,
+            Wiz8ToSgpNarrowText("Data\\Dialogs\\DialogBorder.STI"), 0,
+            Wiz8ToSgpNarrowText(m_background_path), static_cast<short>(m_background_flags), 0, 0);
         if (m_border == -1) {
             return m_error = 4;
         }

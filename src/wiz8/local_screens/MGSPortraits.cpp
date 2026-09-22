@@ -37,6 +37,7 @@
 #include "timer.h"
 #include "vobject.h"
 #include "vsurface.h"
+#include "wiz8/sgp_wide_text.h"
 
 void DrawDamageSplatOverlay(unsigned int party_slot); /* 0x0059ADD0 */
 void DrawPortraitEffectIcon(unsigned int party_slot); /* 0x0059B0F0 */
@@ -860,7 +861,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
                         SetFontObjectPalette16BPP(g_smfnt_font_683694, g_font_palette_smfnt_68ee10);
                         text_width = StringPixLength(text, g_smfnt_font_683694);
                         gprintf((band_menu_edge - (text_width + 1) / 2) + 8, menu_y + 0x26,
-                                const_cast<UINT16*>(g_format_s_006068e4), text);
+                                Wiz8ToSgpWideText(g_format_s_006068e4), text);
                     }
                 }
 
@@ -883,7 +884,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
                                                       g_font_palette_smfnt_68ee10);
                             text_width = StringPixLength(text, g_smfnt_font_683694);
                             gprintf((band_menu_edge - (text_width + 1) / 2) + 0xb, menu_y + 0x3e,
-                                    const_cast<UINT16*>(g_format_s_006068e4), text);
+                                    Wiz8ToSgpWideText(g_format_s_006068e4), text);
                         }
                     }
                 }
@@ -908,7 +909,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
                 }
                 text_width = StringPixLength(text, g_smfnt_font_683694);
                 gprintf((0xd - text_width) / 2 + 3 + band_menu_edge, menu_y + 3,
-                        const_cast<UINT16*>(g_format_s_006068e4), text);
+                        Wiz8ToSgpWideText(g_format_s_006068e4), text);
             }
 
             wcscpy(
@@ -921,7 +922,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
             }
             text_width = StringPixLength(text, g_smfnt_font_683694);
             gprintf((0x12 - text_width) / 2 + 2 + band_portrait_edge, menu_y + 3,
-                    const_cast<UINT16*>(g_format_s_006068e4), text);
+                    Wiz8ToSgpWideText(g_format_s_006068e4), text);
 
             SetFont(g_font_683660);
             if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME ||
@@ -934,7 +935,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
             SetObjectShade(g_wiz_text_font_secondary_object_683680, text_shade);
             text_width = StringPixLength(character->name, g_font_683660);
             gprintf((0x54 - text_width) / 2 + 0x15 + menu_x, menu_y + 0x49,
-                    const_cast<UINT16*>(g_format_s_006068e4), character->name);
+                    Wiz8ToSgpWideText(g_format_s_006068e4), character->name);
             SetObjectShade(g_wiz_text_font_secondary_object_683680, 4);
 
             if (gXStatus.fCombatMode != 0) {

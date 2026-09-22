@@ -11,6 +11,7 @@
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/vector.h"
+#include "wiz8/sgp_narrow_text.h"
 
 #include "FileMan.h"
 #include "DEBUG.H"
@@ -1645,7 +1646,7 @@ int OctPreTree::CreatePathProps0046C0F0(W8LevelFile* level, W8PreProp** preprops
                             "(UINT16)(pLVL->pProps[i].bNumFrames))", /* c-style-cast-ok: verbatim
                                 retail assertion text, kept for .rdata match */
                             OCTPRETREE_CPP, 0x8b4,
-                            reinterpret_cast<const char*>( // reinterpret-ok: String returns UINT8*
+                            SgpToWiz8NarrowText(
                                 String("%s Prop Error:Segment frame number %d is out of range",
                                        prop->name_13, frame)));
                     }

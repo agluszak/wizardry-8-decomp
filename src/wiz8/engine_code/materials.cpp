@@ -31,6 +31,8 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/utility.h"
 #include "wiz8/virtual_file.h"
+#include "wiz8/sgp_wide_text.h"
+#include "wiz8/sgp_narrow_text.h"
 
 #include "DEBUG.H"
 #include "FileMan.h"
@@ -1074,7 +1076,7 @@ void ReportStartupMessage004969D0(const char* message)
         ClearSurfaceRect(0, 400, 0x27f, 0x1df);
         index = 0x191;
         for (top = 0; top < 6; ++top) {
-            gprintfDirty(1, index, const_cast<UINT16*>(L"%s"), g_status_lines_0065bce8[top]);
+            gprintfDirty(1, index, Wiz8ToSgpWideText(L"%s"), g_status_lines_0065bce8[top]);
             index = index + 0xd;
         }
         InvalidateRegion(0, 400, 0x27f, 0x1df, 4);
@@ -1082,7 +1084,7 @@ void ReportStartupMessage004969D0(const char* message)
         index = (g_status_cursor_0065bd44 - 1) * 0xd;
         top = index + 400;
         ClearSurfaceRect(0, top, 0x27f, g_status_cursor_0065bd44 * 0xd + 400);
-        gprintfDirty(1, index + 0x191, const_cast<UINT16*>(L"%s"), line);
+        gprintfDirty(1, index + 0x191, Wiz8ToSgpWideText(L"%s"), line);
         InvalidateRegion(0, top, 0x27f, g_status_cursor_0065bd44 * 0xd + 400, 4);
     }
     g_status_scroll_0060ac8c = scroll;
@@ -1720,9 +1722,7 @@ unsigned char* ClassifyTextures00496000(W8MaterialRecord004B8A70* textures, int 
             unsigned char opaque = 1.0f <= record->opacity_0fd;
             texture[0] = '\0';
             if (record->texture_name_001[0] != 0) {
-                strcpy(texture, reinterpret_cast<const char*>(/* reinterpret-ok: texture-name text
-                            bytes */
-                                                              record->texture_name_001));
+                strcpy(texture, record->texture_name_001);
             }
             if (record->texture_names_029[0][0] == '\0') {
                 if (record->texture_names_029[1][0] == '\0') {
@@ -1855,9 +1855,7 @@ int MaterialSort00496500(W8OctPreTreeGeometry* geometry, W8MaterialRecord004B8A7
         for (index = 1; index < count; ++index) {
             ++material_slot;
             ++record;
-            texture_name = reinterpret_cast<const char*>(/* reinterpret-ok: texture-name text
-                    bytes */
-                                                         record->texture_name_001);
+            texture_name = record->texture_name_001;
             if (*texture_name == '\0') {
                 texture_name = record->texture_names_029[0];
             }
@@ -2057,7 +2055,7 @@ void OctBuildOptions00496CD0(char* stem)
                 }
             draw:
                 wide[line][length] = 0;
-                gprintfDirty(1, 0x184 + line * 0xd, const_cast<UINT16*>(g_format_s_006068e4),
+                gprintfDirty(1, 0x184 + line * 0xd, Wiz8ToSgpWideText(g_format_s_006068e4),
                              wide[line]);
             }
             InvalidateRegion(0, 0x183, 0x27f, 0x1df, 4);
@@ -2194,7 +2192,7 @@ accepted:
     }
 shown:
     wide[1][length] = 0;
-    gprintfDirty(1, 0x184, const_cast<UINT16*>(g_format_s_006068e4), wide[1]);
+    gprintfDirty(1, 0x184, Wiz8ToSgpWideText(g_format_s_006068e4), wide[1]);
     InvalidateRegion(0, 0x183, 0x27f, 0x1df, 4);
     RenderFrame();
     RenderFrame();
@@ -2480,7 +2478,7 @@ srTexture* LoadTexture004B95D0(const char* folder, const char* name, unsigned ch
                 }
                 if (texture->getTextureFrameHandle() == 0) {
                     ShutdownWithErrorBox(
-                        reinterpret_cast<const char*>(String("Missing texture file: %s", path)));
+                        SgpToWiz8NarrowText(String("Missing texture file: %s", path)));
                 }
             }
         } else {
@@ -2489,7 +2487,7 @@ srTexture* LoadTexture004B95D0(const char* folder, const char* name, unsigned ch
                 strcat(extension, "jpg");
                 if (!FileExists(path)) {
                     ShutdownWithErrorBox(
-                        reinterpret_cast<const char*>(String("Missing texture file: %s", path)));
+                        SgpToWiz8NarrowText(String("Missing texture file: %s", path)));
                 }
             }
             texture = new stTextureFile(path, g_texture_cache_enabled_65beaf);
@@ -2518,8 +2516,7 @@ stTextureAnim* LoadAnimatedTexture004B98F0(const char* folder, const char* name,
     strcat(buffer, name);
     handle = FileOpen(buffer, 0x41, 0);
     if (handle == 0) {
-        ShutdownWithErrorBox(
-            reinterpret_cast<const char*>(String("Cannot load/find material: %s", buffer)));
+        ShutdownWithErrorBox(SgpToWiz8NarrowText(String("Cannot load/find material: %s", buffer)));
     }
 
     animation = new stTextureAnim;

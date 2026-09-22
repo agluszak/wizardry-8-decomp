@@ -3,6 +3,7 @@
 #include "wiz8/sr_api.h"
 #include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/float_constants.h"
+#include "wiz8/sgp_narrow_text.h"
 
 #include "FileMan.h"
 #include "DEBUG.H"
@@ -256,10 +257,9 @@ W8LevelFile* ReadLevelFile004CFDC0(int hFile)
         for (i = 0; i < pLevel->nNamedPositions; ++i) {
             W8LevelFileNamedPosition* pPosition = pLevel->pNamedPositions + i;
             ReportBuildStatus00497690(
-                5, reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
-                       String("Named Position: %s (%f, %f, %f)", pPosition->name_01,
-                              pPosition->position_81.x, pPosition->position_81.y,
-                              pPosition->position_81.z)));
+                5, SgpToWiz8NarrowText(String("Named Position: %s (%f, %f, %f)", pPosition->name_01,
+                                              pPosition->position_81.x, pPosition->position_81.y,
+                                              pPosition->position_81.z)));
         }
     }
 
@@ -867,9 +867,8 @@ bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
         if (pSwitch->version_00 > 1) {
             ok &= FileRead(hFile, &pSwitch->minimum_range_21f, 4, 0);
             ok &= FileRead(hFile, pSwitch->surface_id_223, 0x40, 0);
-            ReportBuildStatus00497690(
-                5, reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
-                       String("Switch Trigger name: %s\n", pSwitch->surface_id_223)));
+            ReportBuildStatus00497690(5, SgpToWiz8NarrowText(String("Switch Trigger name: %s\n",
+                                                                    pSwitch->surface_id_223)));
         }
         if (pSwitch->version_00 > 2) {
             ok &= FileRead(hFile, &pSwitch->has_door_trigger_263, 1, 0);
@@ -1196,7 +1195,7 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
     fSuccess &= FileRead(hFile, &pSuper->activation_count_86, 1, 0);
     fSuccess &= FileRead(hFile, &pSuper->inactive_count_87, 1, 0);
     ReportBuildStatus00497690(
-        5, reinterpret_cast<const char*>(String( // reinterpret-ok: String returns a logging buffer
+        5, SgpToWiz8NarrowText(String(
                "     Active: %d Kind: %d WhenActive: %d PropIndex: %d, activated %d "
                "times, inactive %d times, interaction: %d",
                pSuper->active_82, pSuper->kind_83, pSuper->when_active_84, pSuper->prop_index_85,
@@ -1206,10 +1205,9 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
     fSuccess &= FileRead(hFile, &pSuper->trigger_off_90, 4, 0);
     fSuccess &= FileRead(hFile, pSuper->recipients_94, 0x100, 0);
     ReportBuildStatus00497690(
-        5,
-        reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
-            String("     trigger: %d (on %d, off %d) name: %s", pSuper->trigger_88,
-                   pSuper->trigger_on_8c, pSuper->trigger_off_90, pSuper->recipients_94)));
+        5, SgpToWiz8NarrowText(String("     trigger: %d (on %d, off %d) name: %s",
+                                      pSuper->trigger_88, pSuper->trigger_on_8c,
+                                      pSuper->trigger_off_90, pSuper->recipients_94)));
     fSuccess &= FileRead(hFile, &pSuper->ataxia_or_cure_194, 1, 0);
     fSuccess &= FileRead(hFile, pSuper->ps_events_195, 0x100, 0);
     ReportBuildStatus00497690(
@@ -1223,9 +1221,9 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
     fSuccess &= FileRead(hFile, &pSuper->door_kind_29a, 1, 0);
     fSuccess &= FileRead(hFile, pSuper->animation_29b, 0x80, 0);
     ReportBuildStatus00497690(
-        5, reinterpret_cast<const char*>(String( // reinterpret-ok: String returns a logging buffer
-               "     allow save: %d, price: %d door kind %d anim: %s", pSuper->allow_save_295,
-               pSuper->price_296, pSuper->door_kind_29a, pSuper->animation_29b)));
+        5, SgpToWiz8NarrowText(String("     allow save: %d, price: %d door kind %d anim: %s",
+                                      pSuper->allow_save_295, pSuper->price_296,
+                                      pSuper->door_kind_29a, pSuper->animation_29b)));
     if (pSuper->version_00 > 1) {
         fSuccess &= FileRead(hFile, pSuper->size_49b, 0xc, 0);
         fSuccess &= FileRead(hFile, &pSuper->direction_4a7, 4, 0);
@@ -1235,7 +1233,7 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
         fSuccess &= FileRead(hFile, &pSuper->loop_4ae, 1, 0);
         fSuccess &= FileRead(hFile, &pSuper->speed_4af, 0x10, 0);
         ReportBuildStatus00497690(
-            5, reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
+            5, SgpToWiz8NarrowText(
                    String("     size: (%f, %f, %f) direction: %f speed: %f wait (%d,%d,%d) loop %d",
                           (double)pSuper->size_49b[0], (double)pSuper->size_49b[1],
                           (double)pSuper->size_49b[2], (double)pSuper->direction_4a7,
@@ -1247,26 +1245,24 @@ bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
         fSuccess &= FileRead(hFile, pSuper->groups_4c2, 0x100, 0);
         fSuccess &= FileRead(hFile, pSuper->objects_5c2, 0x100, 0);
         ReportBuildStatus00497690(
-            5, reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
-                   String("     ignore: %d Group %d set_group %d groups %s objects %s",
-                          pSuper->ignore_4bf, pSuper->group_4c0, pSuper->set_group_4c1,
-                          pSuper->groups_4c2, pSuper->objects_5c2)));
+            5,
+            SgpToWiz8NarrowText(String("     ignore: %d Group %d set_group %d groups %s objects %s",
+                                       pSuper->ignore_4bf, pSuper->group_4c0, pSuper->set_group_4c1,
+                                       pSuper->groups_4c2, pSuper->objects_5c2)));
         fSuccess &= FileRead(hFile, &pSuper->close_door_6c2, 1, 0);
         fSuccess &= FileRead(hFile, &pSuper->wait_6c3, 4, 0);
         fSuccess &= FileRead(hFile, &pSuper->field_6c7, 4, 0);
         fSuccess &= FileRead(hFile, pSuper->event_6cb, 0x100, 0);
         ReportBuildStatus00497690(
-            5,
-            reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
-                String("     close door: %d wait: %d 5fCount %d event: %s", pSuper->close_door_6c2,
-                       pSuper->wait_6c3, pSuper->field_6c7, pSuper->event_6cb)));
+            5, SgpToWiz8NarrowText(String("     close door: %d wait: %d 5fCount %d event: %s",
+                                          pSuper->close_door_6c2, pSuper->wait_6c3,
+                                          pSuper->field_6c7, pSuper->event_6cb)));
         fSuccess &= FileRead(hFile, &pSuper->field_7cb, 4, 0);
     }
     if (pSuper->version_00 > 2) {
         fSuccess &= FileRead(hFile, pSuper->particle_system_7cf, 0x80, 0);
-        ReportBuildStatus00497690(
-            5, reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
-                   String("     attach particle system: %s", pSuper->particle_system_7cf)));
+        ReportBuildStatus00497690(5, SgpToWiz8NarrowText(String("     attach particle system: %s",
+                                                                pSuper->particle_system_7cf)));
     }
     if ((fSuccess & 1) == 0) {
         return 0;
@@ -2146,12 +2142,11 @@ bool ReadParticleSystemFile004D5240(int hFile, W8LevelFileParticleSystem* pSyste
         srAssertFail("fSuccess", LEVELFILE_CPP, 0xa03, "Couldn't read particle system.\n");
     }
     ReportBuildStatus00497690(
-        5,
-        reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
-            String("Particle System: %s Position (%f, %f, %f)", pSystem->particle_01.name,
-                   pSystem->particle_01.location.x * g_world_scale_005ebc40,
-                   pSystem->particle_01.location.y * g_world_scale_005ebc40,
-                   pSystem->particle_01.location.z * g_world_scale_005ebc40)));
+        5, SgpToWiz8NarrowText(String("Particle System: %s Position (%f, %f, %f)",
+                                      pSystem->particle_01.name,
+                                      pSystem->particle_01.location.x * g_world_scale_005ebc40,
+                                      pSystem->particle_01.location.y * g_world_scale_005ebc40,
+                                      pSystem->particle_01.location.z * g_world_scale_005ebc40)));
     return fSuccess;
 }
 

@@ -13,6 +13,7 @@
 #include "wiz8/local_code/GameplayTime.h"
 #include "wiz8/local_code/HealthStaminaMana.h"
 #include "wiz8/local_code/Magic.h"
+#include "wiz8/sgp_wide_text.h"
 #include "wiz8/local_code/MagicEffects.h"
 #include "wiz8/local_code/party_encumbrance.h"
 #include "wiz8/local_code/PC_Item.h"
@@ -1359,8 +1360,8 @@ void DrawSubMenuCharacterAction(void)
     character = &g_status_685170.buffers.Char[slot];
     swprintf(text, L"%s - %s", character->name,
              gppStringList[g_profession_name_message_ids_61e3f0[character->iProfession]]);
-    gprintf((0xb9 - StringPixLength((UINT16*)text, g_smfnt_font_683694)) / 2 + 0x157, 0x1c6,
-            (UINT16*)g_format_s_006068e4, text);
+    gprintf((0xb9 - StringPixLength(Wiz8ToSgpWideText(text), g_smfnt_font_683694)) / 2 + 0x157,
+            0x1c6, Wiz8ToSgpWideText(g_format_s_006068e4), text);
     if (gXStatus.fCombatMode != 1) {
         if (character->highest_condition == 0) {
             return;
@@ -1396,9 +1397,9 @@ void DrawSubMenuCharacterAction(void)
                 if (character->Hand[0].in_play == 0) {
                     wcscat(text, second);
                 } else {
-                    width = StringPixLength((UINT16*)text, g_smfnt_font_683694);
-                    separator = StringPixLength((UINT16*)L"/)", g_smfnt_font_683694);
-                    trailing = StringPixLength((UINT16*)second, g_smfnt_font_683694);
+                    width = StringPixLength(Wiz8ToSgpWideText(text), g_smfnt_font_683694);
+                    separator = StringPixLength(Wiz8ToSgpWideText(L"/)"), g_smfnt_font_683694);
+                    trailing = StringPixLength(Wiz8ToSgpWideText(second), g_smfnt_font_683694);
                     if ((unsigned int)(trailing + width + separator) < 0xb9) {
                         wcscat(text, L"/");
                         wcscat(text, second);
@@ -1440,8 +1441,8 @@ void DrawSubMenuCharacterAction(void)
             break;
         }
     }
-    gprintf((0xb9 - StringPixLength((UINT16*)text, g_smfnt_font_683694)) / 2 + 0x157, 0x1d1,
-            (UINT16*)text);
+    gprintf((0xb9 - StringPixLength(Wiz8ToSgpWideText(text), g_smfnt_font_683694)) / 2 + 0x157,
+            0x1d1, Wiz8ToSgpWideText(text));
 }
 
 /* Enable the fight/review panel buttons from combat engagement and mode

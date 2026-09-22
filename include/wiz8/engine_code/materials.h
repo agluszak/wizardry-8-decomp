@@ -50,22 +50,22 @@ static_assert((sizeof(stMaterial) == 0x7C), "stMaterial_must_be_0x7c");
    level particles and animated-texture descriptors. The four 40-byte texture
    names and the unaligned tail fields are fixed by 0x004B8A70/0x004B98F0. */
 struct W8MaterialRecord004B8A70 {
-    unsigned char version_00;             /* 0x000 */
-    unsigned char texture_name_001[0x28]; /* 0x001 */
-    char texture_names_029[4][0x28];      /* 0x029 */
-    float ambient_0c9[3];                 /* 0x0c9 */
-    float diffuse_0d5[3];                 /* 0x0d5 */
-    float emissive_colour_0e1[3];         /* 0x0e1 */
-    float specular_0ed[3];                /* 0x0ed */
-    float shininess_0f9;                  /* 0x0f9 */
-    float opacity_0fd;                    /* 0x0fd */
-    float emission_101;                   /* 0x101 */
-    unsigned char padding_105[8];         /* 0x105 */
-    unsigned char animation_mode_10d;     /* 0x10d */
-    int animation_frame_10e;              /* 0x10e */
-    float animation_rate_112;             /* 0x112 */
-    unsigned long shader_flags_116;       /* 0x116 */
-    float texture_modes_11a[4];           /* 0x11a */
+    unsigned char version_00;         /* 0x000 */
+    char texture_name_001[0x28];      /* 0x001 */
+    char texture_names_029[4][0x28];  /* 0x029 */
+    float ambient_0c9[3];             /* 0x0c9 */
+    float diffuse_0d5[3];             /* 0x0d5 */
+    float emissive_colour_0e1[3];     /* 0x0e1 */
+    float specular_0ed[3];            /* 0x0ed */
+    float shininess_0f9;              /* 0x0f9 */
+    float opacity_0fd;                /* 0x0fd */
+    float emission_101;               /* 0x101 */
+    unsigned char padding_105[8];     /* 0x105 */
+    unsigned char animation_mode_10d; /* 0x10d */
+    int animation_frame_10e;          /* 0x10e */
+    float animation_rate_112;         /* 0x112 */
+    unsigned long shader_flags_116;   /* 0x116 */
+    float texture_modes_11a[4];       /* 0x11a */
 };
 
 #pragma pack(pop)

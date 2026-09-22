@@ -11,6 +11,8 @@
 #include "FileMan.h"
 #include "vobject.h"
 
+#include "wiz8/sgp_narrow_text.h"
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -136,8 +138,7 @@ unsigned char InitializeMenuFonts(void)
 
 #define LOAD_FONT(destination, filename)                                                           \
     strcpy(path, filename);                                                                        \
-    destination = LoadFontFile(                                                                    \
-        reinterpret_cast<UINT8*>(path) /* reinterpret-ok: SGP API declared UINT8* for text */)
+    destination = LoadFontFile(Wiz8ToSgpNarrowText(path))
 
     LOAD_FONT(g_large_font_683674, "Data\\Fonts\\LargeFont.sti");
     LOAD_FONT(g_small_font_683678, "Data\\Fonts\\SmallFont.sti");

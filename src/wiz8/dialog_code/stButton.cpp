@@ -11,6 +11,10 @@
 #include "mousesystem.h"
 #include "mousesystem_macros.h"
 
+#include "wiz8/sgp_wide_text.h"
+
+#include "wiz8/sgp_narrow_text.h"
+
 /* Dialog Code\stButton.cpp. The live hull is the singleton assertion at
    0x005DB620 (DialogButtonCallback). The rest of W8DialogButton sits in the
    gap between AssayDialog.cpp (upper 0x005D9460) and that hull; those methods
@@ -132,11 +136,7 @@ void W8DialogButton::SetTooltipEnabled(unsigned char enabled)
 {
     if (enabled) {
         if (m_tooltip_index != -1 && g_settings_6850c8.tooltips_enabled != 0) {
-            SetButtonFastHelpText(
-                m_button_01c,
-                reinterpret_cast<UINT16*>(
-                    gppStringList
-                        [m_tooltip_index])); // reinterpret-ok: SGP help text is UINT16*, string table is wchar_t*
+            SetButtonFastHelpText(m_button_01c, Wiz8ToSgpWideText(gppStringList[m_tooltip_index]));
         }
     } else {
         SetButtonFastHelpText(m_button_01c, 0);
@@ -149,11 +149,7 @@ void W8DialogButton::SetTooltipIndex(int tooltip_index)
     if (m_button_01c != -1) {
         m_tooltip_index = tooltip_index;
         if (g_settings_6850c8.tooltips_enabled != 0) {
-            SetButtonFastHelpText(
-                m_button_01c,
-                reinterpret_cast<UINT16*>(
-                    gppStringList
-                        [tooltip_index])); // reinterpret-ok: SGP help text is UINT16*, string table is wchar_t*
+            SetButtonFastHelpText(m_button_01c, Wiz8ToSgpWideText(gppStringList[tooltip_index]));
         }
     }
 }
@@ -246,11 +242,9 @@ unsigned char W8DialogButton::ConfigureTextButton(const wchar_t* text, unsigned 
                                                   W8DialogButtonCallback left_callback,
                                                   int user_data)
 {
-    INT32 handle =
-        CreateTextButton(reinterpret_cast<UINT16*>(const_cast<wchar_t*>(
-                             text)), // reinterpret-ok: SGP API declared UINT16* for text
-                         font, fore_color, shadow_color, -1, x, y, width, height, BUTTON_NO_TOGGLE,
-                         0x7f, DialogButtonCallback, DialogButtonCallback);
+    INT32 handle = CreateTextButton(Wiz8ToSgpWideText(text), font, fore_color, shadow_color, -1, x,
+                                    y, width, height, BUTTON_NO_TOGGLE, 0x7f, DialogButtonCallback,
+                                    DialogButtonCallback);
     m_button_01c = handle;
     if (handle != -1) {
         SetButtonUserDataPointer(handle, this);
@@ -273,10 +267,8 @@ unsigned char W8DialogButton::Configure(const char* image_path, int gray_frame,
                                         int tooltip_index, W8DialogButtonCallback right_callback,
                                         W8DialogButtonCallback double_click_callback)
 {
-    m_image_018 = LoadButtonImage(
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>(image_path)),
-        gray_frame, off_normal_frame, off_hover_frame, on_normal_frame, on_hover_frame);
+    m_image_018 = LoadButtonImage(Wiz8ToSgpNarrowText(image_path), gray_frame, off_normal_frame,
+                                  off_hover_frame, on_normal_frame, on_hover_frame);
     if (m_image_018 != -1) {
         m_button_01c = QuickCreateButton(m_image_018, 0, 0, BUTTON_NO_TOGGLE, priority,
                                          DialogButtonCallback, DialogButtonCallback);
@@ -295,11 +287,7 @@ unsigned char W8DialogButton::Configure(const char* image_path, int gray_frame,
         m_left_toggles = left_toggles;
         m_tooltip_index = tooltip_index;
         if (tooltip_index != -1 && g_settings_6850c8.tooltips_enabled != 0) {
-            SetButtonFastHelpText(
-                m_button_01c,
-                reinterpret_cast<UINT16*>(
-                    gppStringList
-                        [tooltip_index])); // reinterpret-ok: SGP help text is UINT16*, string table is wchar_t*
+            SetButtonFastHelpText(m_button_01c, Wiz8ToSgpWideText(gppStringList[tooltip_index]));
         }
         m_dirty = 1;
         return 1;

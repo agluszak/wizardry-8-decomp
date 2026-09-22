@@ -97,6 +97,8 @@
 #include "wiz8/world_cursor.h"
 #include "wiz8/local_code/MonsterGroup.h"
 
+#include "wiz8/sgp_wide_text.h"
+
 #include "font.h"
 #include "FileMan.h"
 #include "input.h"
@@ -908,7 +910,8 @@ W8LockInteraction::W8LockInteraction(Trigger* trigger) : m_timer_80()
     } else if (m_tumbler_count_0c > 8) {
         m_tumbler_count_0c = 8;
     }
-    m_tumbler_panel_10 = new W8LockTumblerPanel(m_tumbler_count_0c, trigger->lock_state.device_state.pins);
+    m_tumbler_panel_10 =
+        new W8LockTumblerPanel(m_tumbler_count_0c, trigger->lock_state.device_state.pins);
     m_tumbler_panel_10->m_listener_e8 = this;
     m_info_panel_14 = new W8LockInfoPanel(m_tumbler_count_0c);
     m_action_panel_18 = new Controls(0x1e7, 0x166, 0, 0, 0x1af, 0, 2);
@@ -3756,7 +3759,7 @@ render_world:
                 unsigned char frame = monster->m_pRep->subcycle_064;
                 const char* cycle = g_cycle_names[monster->Query(6)].name;
                 unsigned char subcycles = static_cast<unsigned char>(monster->GetNumSubCycles());
-                mprintf(0x122, 0x159, (UINT16*)L"%2d/%2d %hs", frame, subcycles, cycle);
+                mprintf(0x122, 0x159, Wiz8ToSgpWideText(L"%2d/%2d %hs"), frame, subcycles, cycle);
             }
         }
         if (!gXStatus.fCombatMode) {
@@ -4526,7 +4529,7 @@ void DrawMainGameScreen(void)
             ClearSurfaceRect(0xdc, 0x1e, 0x154, 0x26);
             SetFont(g_smfnt_font_683694);
             SetFontObjectPalette16BPP(g_smfnt_font_683694, g_font_palette_smfnt_68ee10);
-            gprintfDirty(0xdc, 0x1e, const_cast<UINT16*>(g_format_mouselook_angles_006480f4),
+            gprintfDirty(0xdc, 0x1e, Wiz8ToSgpWideText(g_format_mouselook_angles_006480f4),
                          g_mouselook_pending_pitch_0068ede4, g_mouselook_pending_yaw_0068ede0);
         }
         if (GetTickCount() - g_level_block->tick_274 > 499) {
@@ -4786,8 +4789,7 @@ void RedrawCombatMonsterList(void)
                         }
                     }
                     SetFontObjectPalette16BPP(g_font_683660, palette);
-                    gprintfDirty(0xfa, row_y, const_cast<UINT16*>(g_format_s_006068e4),
-                                 scratch_text);
+                    gprintfDirty(0xfa, row_y, Wiz8ToSgpWideText(g_format_s_006068e4), scratch_text);
                     row_y = row_y + 0xb;
                     live_row_count = live_row_count + 1;
                     if (max_text_width < static_cast<unsigned int>(text_width)) {
@@ -8192,8 +8194,7 @@ void SetCombatSelection(int value)
                 FormatMonsterHealth(monster_info, health);
                 wcscat(text, health);
                 wcscat(text, L")");
-                VideoToolTip(
-                    reinterpret_cast<UINT16*>(text)); // reinterpret-ok: SGP wide-text API boundary
+                VideoToolTip(Wiz8ToSgpWideText(text));
                 int y = point.y - g_cursor_image_height_6596b8 / 2;
                 if (point.x < 0) {
                     point.x = 2;
@@ -8311,8 +8312,7 @@ void SetCombatTarget(int value)
             wchar_t* text = FormatItemDisplayName(&item->item, 1);
             int y;
 
-            VideoToolTip(
-                reinterpret_cast<UINT16*>(text)); // reinterpret-ok: SGP wide-text API boundary
+            VideoToolTip(Wiz8ToSgpWideText(text));
             y = point.y - g_cursor_image_height_6596b8 / 2;
             if (point.x < 0) {
                 point.x = 2;

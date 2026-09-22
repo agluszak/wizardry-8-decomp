@@ -20,6 +20,8 @@
 #include "wiz8/local_screens/NPCInteractionSubscreen.h"
 #include "wiz8/video_object_catalog.h"
 
+#include "wiz8/sgp_narrow_text.h"
+
 #include "Button System.h"
 #include "Font.h"
 #include "english.h"
@@ -221,16 +223,9 @@ int W8ListBoxDialog::CreateControls()
         return m_error;
     }
     m_inlay_image_0f8 = LoadGenericButtonImages(
-        0,
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogEdge.STI")),
-        0,
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogEdge.STI")),
-        0,
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            m_background_path),
-        static_cast<short>(m_background_flags), 0, 0);
+        0, Wiz8ToSgpNarrowText("Data\\Dialogs\\DialogEdge.STI"), 0,
+        Wiz8ToSgpNarrowText("Data\\Dialogs\\DialogEdge.STI"), 0,
+        Wiz8ToSgpNarrowText(m_background_path), static_cast<short>(m_background_flags), 0, 0);
     m_text_button_08c = CreateTextButton(
         m_text, g_dialog_font_64fde8, g_dialog_font_foreground_64fdec,
         g_dialog_font_background_64fded, m_inlay_image_0f8, static_cast<short>(m_x) + 9,
@@ -249,16 +244,9 @@ int W8ListBoxDialog::CreateControls()
     }
     SpecifyButtonMultiColorFont(m_text_button_08c, g_dialog_font_enabled_69ca32);
     m_inlay_image_094 = LoadGenericButtonImages(
-        0,
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogInlay.STI")),
-        0,
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogInlay.STI")),
-        0,
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogBackground_dark.STI")),
-        0, 3, 3);
+        0, Wiz8ToSgpNarrowText("Data\\Dialogs\\DialogInlay.STI"), 0,
+        Wiz8ToSgpNarrowText("Data\\Dialogs\\DialogInlay.STI"), 0,
+        Wiz8ToSgpNarrowText("Data\\Dialogs\\DialogBackground_dark.STI"), 0, 3, 3);
     if (m_inlay_image_094 == -1) {
         m_error = 4;
         return 4;
@@ -275,41 +263,31 @@ int W8ListBoxDialog::CreateControls()
         return 7;
     }
     SetButtonUserDataPointer(m_area_button_098, this);
-    m_up_image_0a0 = LoadButtonImage(
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogUpArrow.STI")),
-        3, 0, 1, 2, 2);
+    m_up_image_0a0 =
+        LoadButtonImage(Wiz8ToSgpNarrowText("Data\\Dialogs\\DialogUpArrow.STI"), 3, 0, 1, 2, 2);
     if (m_up_image_0a0 != -1) {
         m_up_button_09c =
             QuickCreateButton(m_up_image_0a0, 0, 0, 4, 0x7e, UpButtonCallback, UpButtonCallback);
     }
-    m_down_image_0a8 = LoadButtonImage(
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogDownArrow.STI")),
-        3, 0, 1, 2, 2);
+    m_down_image_0a8 =
+        LoadButtonImage(Wiz8ToSgpNarrowText("Data\\Dialogs\\DialogDownArrow.STI"), 3, 0, 1, 2, 2);
     if (m_down_image_0a8 != -1) {
         m_down_button_0a4 = QuickCreateButton(m_down_image_0a8, 0, 0, 4, 0x7e, DownButtonCallback,
                                               DownButtonCallback);
     }
-    m_slider_image_0b0 = LoadButtonImage(
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogSlideBar.STI")),
-        -1, 0, -1, -1, -1);
+    m_slider_image_0b0 = LoadButtonImage(Wiz8ToSgpNarrowText("Data\\Dialogs\\DialogSlideBar.STI"),
+                                         -1, 0, -1, -1, -1);
     if (m_slider_image_0b0 != -1) {
         m_slider_button_0ac = QuickCreateButton(m_slider_image_0b0, 0, 0, 4, 0x7d, 0, 0);
     }
-    m_ok_image_0c0 = LoadButtonImage(
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogConfirmation.STI")),
-        3, 0, 1, 2, 2);
+    m_ok_image_0c0 = LoadButtonImage(Wiz8ToSgpNarrowText("Data\\Dialogs\\DialogConfirmation.STI"),
+                                     3, 0, 1, 2, 2);
     if (m_ok_image_0c0 != -1) {
         m_ok_button_0bc =
             QuickCreateButton(m_ok_image_0c0, 0, 0, 4, 0x7f, OkButtonCallback, OkButtonCallback);
     }
     m_cancel_image_0d8 = LoadButtonImage(
-        reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogConfirmation.STI")),
-        7, 4, 5, 6, 6);
+        Wiz8ToSgpNarrowText("Data\\Dialogs\\DialogConfirmation.STI"), 7, 4, 5, 6, 6);
     if (m_cancel_image_0d8 != -1) {
         m_cancel_button_0d4 = QuickCreateButton(m_cancel_image_0d8, 0, 0, 4, 0x7f,
                                                 CancelButtonCallback, CancelButtonCallback);
@@ -324,16 +302,9 @@ int W8ListBoxDialog::CreateControls()
         SetButtonUserDataPointer(m_ok_button_0bc, this);
         SetButtonUserDataPointer(m_cancel_button_0d4, this);
         m_inlay_image_0b4 = LoadGenericButtonImages(
-            0,
-            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-                const_cast<char*>("Data\\Dialogs\\DialogInlay.STI")),
-            0,
-            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-                const_cast<char*>("Data\\Dialogs\\DialogInlay.STI")),
-            0,
-            reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-                const_cast<char*>("Data\\Dialogs\\DialogBackground_dark.STI")),
-            0, 3, 3);
+            0, Wiz8ToSgpNarrowText("Data\\Dialogs\\DialogInlay.STI"), 0,
+            Wiz8ToSgpNarrowText("Data\\Dialogs\\DialogInlay.STI"), 0,
+            Wiz8ToSgpNarrowText("Data\\Dialogs\\DialogBackground_dark.STI"), 0, 3, 3);
         if (m_inlay_image_0b4 != -1) {
             m_third_text_button_0b8 =
                 CreateTextButton(0, g_dialog_font_64fde8, g_dialog_font_foreground_64fdec,
