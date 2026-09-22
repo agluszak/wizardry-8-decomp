@@ -4,6 +4,7 @@
 #include "wiz8/vector.h"
 #include "wiz8/layouts/item_instance.h"
 #include "wiz8/layouts/main_game_screen.h"
+#include "wiz8/message_box.h"
 #include "wiz8/local_code/Controls.h"
 
 /* Local Screens\NPCInteractionSubscreen.cpp owns the NPC dialogue state and
@@ -301,11 +302,10 @@ struct W8MainScreenState {
     float saved_camera_yaw_244;
     unsigned char quote_notice_kind;
     unsigned char unknown_249[3];
-    /* 0x24c: notice payload discriminated by quote_notice_kind: 1 takes a
-       W8ExperienceNoticePayload*, 2 a W8SkillNoticePayload*, 3 an int party
-       slot pointer; producers arrive through a void* SetNpcQuoteBubbleVisible
-       parameter. */
-    void* quote_notice_payload;
+    /* 0x24c: notice payload discriminated by quote_notice_kind: 1 takes
+       `experience`, 2 `skill_notices`, 3 `level_up_slot`; producers arrive
+       through the `raw` member of a SetNpcQuoteBubbleVisible parameter. */
+    W8MessageBoxPayload quote_notice_payload;
     /* 0x250: a modal W8NpcDialog is up over the dialogue; transcript word
        clicks, layout keys other than Escape and layout leave paths bail. */
     bool modal_dialog_open;
