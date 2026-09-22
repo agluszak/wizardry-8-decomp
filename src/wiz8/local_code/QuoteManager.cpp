@@ -596,6 +596,13 @@ unsigned char FormatCharacterQuoteText(W8Character* character, unsigned int even
             return 0;
         }
         GetStringFromStringDatabase(path, event_type, g_character_text_0068c580, 0, metadata);
+        /* Retail trims unconditionally: the reader accepts zero-length
+           records (length <= 0x7d0) and its return is untested here, so an
+           empty result writes buffer[-1]. The store is
+           g_value_0068c57c + len*2 + 2 in retail, i.e. buffer[len - 1]. The
+           trim expects the quote record's trailing code unit (the MSG
+           format's line terminator); records without one lose their last
+           character — genuine retail behavior, preserved. */
         g_character_text_0068c580[wcslen(g_character_text_0068c580) - 1] = 0;
     } else {
         W8NpcState* npc = GetNpcState(npc_index);
