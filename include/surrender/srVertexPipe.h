@@ -103,8 +103,28 @@ private:
     SR_DLL_IMPORT void setupST(unsigned long index);
     SR_DLL_IMPORT void setupSpecular();
 
+    /* srEnvironmentMapper::process reaches the scratch arrays, vertex array
+       pointer, lazy mask and vertex count directly rather than through the
+       lazy getters (which retail inlines into it). */
+    friend class srEnvironmentMapper;
+    /* srLight::isActive reads the input record (exclusion mask, bounding
+       sphere) and process reaches the scratch flags, vertex array rows and
+       batch offsets directly; retail inlines the equivalent getters. */
+    friend class srLight;
+
     /* Getter/setup/process bodies in sr.dll. Scratch is operator_new(0xb04)
        with a flags dword at +0xb00. */
+    struct Scratch {
+        srVector3T<float> dir_000[0x40];
+        srVector3T<float> normals_300[0x40];
+        float dist_600[0x40];
+        float z_dist_700[0x40];
+        float depth_cue_800[0x40];
+        float alpha_900[0x40];
+        float fog_a00[0x40];
+        unsigned long flags_b00;
+    };
+
     void* scratch_00;                                 /* 0x00 */
     srVertexProcessor** processor_heap_04;            /* 0x04 */
     unsigned long processor_heap_capacity_08;         /* 0x08 */
