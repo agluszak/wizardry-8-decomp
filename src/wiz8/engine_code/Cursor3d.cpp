@@ -41,7 +41,7 @@
    range reset the update path calls. */
 
 // GLOBAL: WIZ8 0x0065ba8c
-W8WorldCursorState* g_world_cursor_0065ba8c;
+W8WorldCursorState* gp3DCursor;
 
 // GLOBAL: WIZ8 0x0065ba94
 srNode* g_cursor_value_0065ba94;
@@ -55,11 +55,10 @@ srNode* g_cursor_node_0065ba90;
 // GLOBAL: WIZ8 0x0065ba98
 unsigned char g_cursor_pick_latch_0065ba98;
 
-/* 0x60ab44: the world cursor's saved slot value; -1 until a cursor is torn
-   down. Only ever copied whole between here and the cursor, so its domain is
-   still unknown. */
+/* 0x60ab44: the saved world-cursor monster group id; -1 until a cursor is
+   torn down. Seeds and restores monster_group_id_4c. */
 // GLOBAL: WIZ8 0x0060ab44
-int g_cursor_saved_value_60ab44 = -1;
+int g_cursor_saved_group_id_60ab44 = -1;
 
 // GLOBAL: WIZ8 0x0060ab48
 float g_float_60ab48 = 4000.0f;
@@ -104,118 +103,114 @@ void InitializeWorldCursor00490210(void)
 
     ClearFlag603C60();
     SetMouseCursorHotspot(0, 0);
-    if (g_world_cursor_0065ba8c == 0) {
-        g_world_cursor_0065ba8c = static_cast<W8WorldCursorState*>(malloc(0xe0));
-        if (g_world_cursor_0065ba8c != 0) {
-            memset(g_world_cursor_0065ba8c, 0, 0xe0);
-            g_world_cursor_0065ba8c->monster_00 = 0;
-            g_world_cursor_0065ba8c->unknown_08 = 1;
-            g_world_cursor_0065ba8c->group_bind_pending_09 = 0;
-            g_world_cursor_0065ba8c->input_delta_0c.x = 0;
-            g_world_cursor_0065ba8c->input_delta_0c.y = 0;
-            g_world_cursor_0065ba8c->input_delta_0c.z = 0;
-            g_world_cursor_0065ba8c->light_24 = 0;
-            g_world_cursor_0065ba8c->enabled_40 = 1;
-            g_world_cursor_0065ba8c->track_ground_41 = 1;
-            g_world_cursor_0065ba8c->range_44 = 50000.0f;
-            g_world_cursor_0065ba8c->left_held_48 = 0;
-            g_world_cursor_0065ba8c->value_4c = g_cursor_saved_value_60ab44;
-            g_world_cursor_0065ba8c->detached_50 = 0;
-            g_world_cursor_0065ba8c->march_enabled_51 = 1;
-            g_world_cursor_0065ba8c->footprint_mode_c0 = 0;
-            g_world_cursor_0065ba8c->dragged_info_dc = 0;
+    if (gp3DCursor == 0) {
+        gp3DCursor = static_cast<W8WorldCursorState*>(malloc(0xe0));
+        if (gp3DCursor != 0) {
+            memset(gp3DCursor, 0, 0xe0);
+            gp3DCursor->monster_00 = 0;
+            gp3DCursor->unknown_08 = 1;
+            gp3DCursor->group_bind_pending_09 = 0;
+            gp3DCursor->input_delta_0c.x = 0;
+            gp3DCursor->input_delta_0c.y = 0;
+            gp3DCursor->input_delta_0c.z = 0;
+            gp3DCursor->light_24 = 0;
+            gp3DCursor->enabled_40 = 1;
+            gp3DCursor->track_ground_41 = 1;
+            gp3DCursor->range_44 = 50000.0f;
+            gp3DCursor->left_held_48 = 0;
+            gp3DCursor->monster_group_id_4c = g_cursor_saved_group_id_60ab44;
+            gp3DCursor->detached_50 = 0;
+            gp3DCursor->march_enabled_51 = 1;
+            gp3DCursor->footprint_mode_c0 = 0;
+            gp3DCursor->dragged_info_dc = 0;
             context.directory_08 = "Data\\Monsters";
             context.world_00 = g_world;
-            LoadMonsterCycle004C5910(&context, "3DCursor", &g_world_cursor_0065ba8c->monster_00, -1,
-                                     1);
-            MonsterSetCycle(g_world_cursor_0065ba8c->monster_00, 0);
-            g_world_cursor_0065ba8c->last_published_34.Set(-100000000.0f, -100000000.0f,
-                                                           -100000000.0f);
-            g_world_cursor_0065ba8c->position_28.Set(0.0f, 0.0f, 0.0f);
-            g_world_cursor_0065ba8c->offset_18.Set(0.0f, 0.0f, 0.0f);
-            g_world_cursor_0065ba8c->monster_00->flag_215 = 1;
+            LoadMonsterCycle004C5910(&context, "3DCursor", &gp3DCursor->monster_00, -1, 1);
+            MonsterSetCycle(gp3DCursor->monster_00, 0);
+            gp3DCursor->last_published_34.Set(-100000000.0f, -100000000.0f, -100000000.0f);
+            gp3DCursor->position_28.Set(0.0f, 0.0f, 0.0f);
+            gp3DCursor->offset_18.Set(0.0f, 0.0f, 0.0f);
+            gp3DCursor->monster_00->flag_215 = 1;
             WarpSystemCursor(0x140, 0xf0);
-            g_world_cursor_0065ba8c->input_delta_0c.x = 0;
-            g_world_cursor_0065ba8c->input_delta_0c.y = 0;
-            g_world_cursor_0065ba8c->input_delta_0c.z = 0;
-            position = g_world_cursor_0065ba8c->position_28;
-            MonsterSetAdjustedPosition004C5F00(g_world_cursor_0065ba8c->monster_00, &position);
-            PLAdoptAppend(g_world->plsMonsters, g_world_cursor_0065ba8c->monster_00);
-            UpdateCycleRepresentation004C59B0(g_world_cursor_0065ba8c->monster_00, g_world);
-            MonsterSetStateA0(g_world_cursor_0065ba8c->monster_00, 0);
-            g_world_cursor_0065ba8c->light_24 =
-                CreateWorldLight0046E140(g_world, "3D Cursor Light");
-            g_world_cursor_0065ba8c->light_24->intensity_1d0 = 1.0f;
-            ConfigureWorldLight0046E300(g_world_cursor_0065ba8c->light_24, 2500.0f);
-            g_world_cursor_0065ba8c->light_24->ambient_198.Set(0.0f, 0.0f, 0.0f);
-            g_world_cursor_0065ba8c->light_24->diffuse_1a4.Set(1.0f, 1.0f, 1.0f);
-            g_world_cursor_0065ba8c->light_24->specular_1b0.Set(0.0f, 0.0f, 0.0f);
-            g_world_cursor_0065ba8c->light_24->setLocation(0.0, 1000.0, 0.0);
-            if (g_world_cursor_0065ba8c->particle_04 != 0) {
+            gp3DCursor->input_delta_0c.x = 0;
+            gp3DCursor->input_delta_0c.y = 0;
+            gp3DCursor->input_delta_0c.z = 0;
+            position = gp3DCursor->position_28;
+            MonsterSetAdjustedPosition004C5F00(gp3DCursor->monster_00, &position);
+            PLAdoptAppend(g_world->plsMonsters, gp3DCursor->monster_00);
+            UpdateCycleRepresentation004C59B0(gp3DCursor->monster_00, g_world);
+            MonsterSetStateA0(gp3DCursor->monster_00, 0);
+            gp3DCursor->light_24 = CreateWorldLight0046E140(g_world, "3D Cursor Light");
+            gp3DCursor->light_24->intensity_1d0 = 1.0f;
+            ConfigureWorldLight0046E300(gp3DCursor->light_24, 2500.0f);
+            gp3DCursor->light_24->ambient_198.Set(0.0f, 0.0f, 0.0f);
+            gp3DCursor->light_24->diffuse_1a4.Set(1.0f, 1.0f, 1.0f);
+            gp3DCursor->light_24->specular_1b0.Set(0.0f, 0.0f, 0.0f);
+            gp3DCursor->light_24->setLocation(0.0, 1000.0, 0.0);
+            if (gp3DCursor->particle_04 != 0) {
                 material = SR_NEW(srMaterial);
                 colour.Set(0.0f, 0.0f, 0.0f, 1.0f);
                 material->setEmissive(colour);
                 material->setDiffuse(colour);
-                g_world_cursor_0065ba8c->particle_04->SetRetainedObject0049ACA0(material);
-                g_world_cursor_0065ba8c->particle_04->SetTexture0049AB00(
+                gp3DCursor->particle_04->SetRetainedObject0049ACA0(material);
+                gp3DCursor->particle_04->SetTexture0049AB00(
                     LoadTexture004B95D0("Data\\Monsters\\Bitmaps\\", "particle.tga", 1));
                 shader.value = 0x100c433;
-                g_world_cursor_0065ba8c->particle_04->SetRenderFlags004925A0(shader);
-                g_world_cursor_0065ba8c->particle_04->rotateX(-1.5707963);
-                g_world_cursor_0065ba8c->particle_04->value_140 = 100.0;
-                g_world_cursor_0065ba8c->particle_04->value_1c8 = 300;
-                g_world_cursor_0065ba8c->particle_04->acceleration_1f4.Set(0.0f, -1000.0f, 0.0f);
-                g_world_cursor_0065ba8c->particle_04->value_1a8 = 1;
-                g_world_cursor_0065ba8c->particle_04->value_210 = 500.0f;
-                g_world_cursor_0065ba8c->particle_04->value_1bc = 2;
-                g_world_cursor_0065ba8c->particle_04->value_1b0 = 1;
-                g_world_cursor_0065ba8c->particle_04->value_1a4 = 0;
-                g_world_cursor_0065ba8c->particle_04->value_1ac = 0;
-                g_world_cursor_0065ba8c->particle_04->value_1cc = 6000;
-                g_world_cursor_0065ba8c->particle_04->value_208 = 1.5707963f;
-                g_world_cursor_0065ba8c->particle_04->value_20c = 1.5707963f;
-                g_world_cursor_0065ba8c->particle_04->value_214 = 500.0f;
-                g_world_cursor_0065ba8c->particle_04->value_218 = 1000.0f;
-                g_world_cursor_0065ba8c->particle_04->SetFlutter0049AD10(2);
-                g_world_cursor_0065ba8c->particle_04->value_200 = 50.0f;
-                g_world_cursor_0065ba8c->particle_04->value_204 = 1000;
+                gp3DCursor->particle_04->SetRenderFlags004925A0(shader);
+                gp3DCursor->particle_04->rotateX(-1.5707963);
+                gp3DCursor->particle_04->value_140 = 100.0;
+                gp3DCursor->particle_04->value_1c8 = 300;
+                gp3DCursor->particle_04->acceleration_1f4.Set(0.0f, -1000.0f, 0.0f);
+                gp3DCursor->particle_04->value_1a8 = 1;
+                gp3DCursor->particle_04->value_210 = 500.0f;
+                gp3DCursor->particle_04->value_1bc = 2;
+                gp3DCursor->particle_04->value_1b0 = 1;
+                gp3DCursor->particle_04->value_1a4 = 0;
+                gp3DCursor->particle_04->value_1ac = 0;
+                gp3DCursor->particle_04->value_1cc = 6000;
+                gp3DCursor->particle_04->value_208 = 1.5707963f;
+                gp3DCursor->particle_04->value_20c = 1.5707963f;
+                gp3DCursor->particle_04->value_214 = 500.0f;
+                gp3DCursor->particle_04->value_218 = 1000.0f;
+                gp3DCursor->particle_04->SetFlutter0049AD10(2);
+                gp3DCursor->particle_04->value_200 = 50.0f;
+                gp3DCursor->particle_04->value_204 = 1000;
             }
             ApplyWorldCursorInput00490C60();
-            if (g_world_cursor_0065ba8c != 0) {
+            if (gp3DCursor != 0) {
                 GetCameraPosition(&camera_position);
-                if (g_world_cursor_0065ba8c->detached_50 == 0) {
-                    g_world_cursor_0065ba8c->offset_18.x += camera_position.x;
-                    g_world_cursor_0065ba8c->offset_18.y += camera_position.y;
-                    g_world_cursor_0065ba8c->offset_18.z += camera_position.z;
+                if (gp3DCursor->detached_50 == 0) {
+                    gp3DCursor->offset_18.x += camera_position.x;
+                    gp3DCursor->offset_18.y += camera_position.y;
+                    gp3DCursor->offset_18.z += camera_position.z;
                 }
-                g_world_cursor_0065ba8c->detached_50 = 1;
+                gp3DCursor->detached_50 = 1;
             }
             ClearCombatSelection();
-            g_world_cursor_0065ba8c->monster_00->GetAnimationBounds(&minimum, &maximum);
-            g_world_cursor_0065ba8c->probe_center_54.Set(
-                (maximum.x + minimum.x) * g_double_005ebe80,
-                (minimum.y + maximum.y) * g_double_005ebe80,
-                (minimum.z + maximum.z) * g_double_005ebe80);
-            g_world_cursor_0065ba8c->probe_offsets_60[0] = maximum;
-            g_world_cursor_0065ba8c->probe_offsets_60[1].x = minimum.x;
-            g_world_cursor_0065ba8c->probe_offsets_60[1].y = maximum.y;
-            g_world_cursor_0065ba8c->probe_offsets_60[1].z = maximum.z;
-            g_world_cursor_0065ba8c->probe_offsets_60[2].x = minimum.x;
-            g_world_cursor_0065ba8c->probe_offsets_60[2].y = maximum.y;
-            g_world_cursor_0065ba8c->probe_offsets_60[2].z = minimum.z;
-            g_world_cursor_0065ba8c->probe_offsets_60[3].x = maximum.x;
-            g_world_cursor_0065ba8c->probe_offsets_60[3].y = maximum.y;
-            g_world_cursor_0065ba8c->probe_offsets_60[3].z = minimum.z;
-            g_world_cursor_0065ba8c->probe_offsets_60[4].x = maximum.x;
-            g_world_cursor_0065ba8c->probe_offsets_60[4].y = minimum.y;
-            g_world_cursor_0065ba8c->probe_offsets_60[4].z = maximum.z;
-            g_world_cursor_0065ba8c->probe_offsets_60[5].x = minimum.x;
-            g_world_cursor_0065ba8c->probe_offsets_60[5].y = minimum.y;
-            g_world_cursor_0065ba8c->probe_offsets_60[5].z = maximum.z;
-            g_world_cursor_0065ba8c->probe_offsets_60[6] = minimum;
-            g_world_cursor_0065ba8c->probe_offsets_60[7].x = maximum.x;
-            g_world_cursor_0065ba8c->probe_offsets_60[7].y = minimum.y;
-            g_world_cursor_0065ba8c->probe_offsets_60[7].z = minimum.z;
+            gp3DCursor->monster_00->GetAnimationBounds(&minimum, &maximum);
+            gp3DCursor->probe_center_54.Set((maximum.x + minimum.x) * g_double_005ebe80,
+                                            (minimum.y + maximum.y) * g_double_005ebe80,
+                                            (minimum.z + maximum.z) * g_double_005ebe80);
+            gp3DCursor->probe_offsets_60[0] = maximum;
+            gp3DCursor->probe_offsets_60[1].x = minimum.x;
+            gp3DCursor->probe_offsets_60[1].y = maximum.y;
+            gp3DCursor->probe_offsets_60[1].z = maximum.z;
+            gp3DCursor->probe_offsets_60[2].x = minimum.x;
+            gp3DCursor->probe_offsets_60[2].y = maximum.y;
+            gp3DCursor->probe_offsets_60[2].z = minimum.z;
+            gp3DCursor->probe_offsets_60[3].x = maximum.x;
+            gp3DCursor->probe_offsets_60[3].y = maximum.y;
+            gp3DCursor->probe_offsets_60[3].z = minimum.z;
+            gp3DCursor->probe_offsets_60[4].x = maximum.x;
+            gp3DCursor->probe_offsets_60[4].y = minimum.y;
+            gp3DCursor->probe_offsets_60[4].z = maximum.z;
+            gp3DCursor->probe_offsets_60[5].x = minimum.x;
+            gp3DCursor->probe_offsets_60[5].y = minimum.y;
+            gp3DCursor->probe_offsets_60[5].z = maximum.z;
+            gp3DCursor->probe_offsets_60[6] = minimum;
+            gp3DCursor->probe_offsets_60[7].x = maximum.x;
+            gp3DCursor->probe_offsets_60[7].y = minimum.y;
+            gp3DCursor->probe_offsets_60[7].z = minimum.z;
             UpdateWorldCursorPlacement00491EC0();
             if (g_flag_689b32 != 0 &&
                 (g_flag_006f0530 != 0 || g_monster_combat_timer_enabled_006f0531 != 0)) {
@@ -233,7 +228,7 @@ void InitializeWorldCursor00490210(void)
 // FUNCTION: WIZ8 0x004909C0
 void ReleaseWorldCursor004909C0(void)
 {
-    W8WorldCursorState* cursor = g_world_cursor_0065ba8c;
+    W8WorldCursorState* cursor = gp3DCursor;
     srVector3T<float> camera;
     srVector3T<float> delta;
 
@@ -262,20 +257,20 @@ void ReleaseWorldCursor004909C0(void)
         cursor->light_24 = 0;
     }
     cursor->group_bind_pending_09 = 0;
-    g_cursor_saved_value_60ab44 = cursor->value_4c;
+    g_cursor_saved_group_id_60ab44 = cursor->monster_group_id_4c;
     SetFlag603C60();
     RequestRefreshPartyState();
     ClearTargetMarker();
     free(cursor);
-    g_world_cursor_0065ba8c = 0;
+    gp3DCursor = 0;
 }
 
 /* The tracked cursor position, or the origin while there is no cursor. */
 // FUNCTION: WIZ8 0x00490BF0
 void GetWorldCursorPosition00490BF0(srVector3T<float>* position)
 {
-    if (g_world_cursor_0065ba8c != 0) {
-        *position = g_world_cursor_0065ba8c->position_28;
+    if (gp3DCursor != 0) {
+        *position = gp3DCursor->position_28;
     } else {
         position->SetZero();
     }
@@ -287,13 +282,13 @@ void GetWorldCursorPosition00490BF0(srVector3T<float>* position)
 // FUNCTION: WIZ8 0x00490B10
 void ShowWorldCursor00490B10(void)
 {
-    if (g_world_cursor_0065ba8c != 0 && g_world_cursor_0065ba8c->enabled_40 == 0) {
-        UpdateMonster(g_world_cursor_0065ba8c->monster_00);
-        UpdateCycleRepresentation004C59B0(g_world_cursor_0065ba8c->monster_00, g_world);
-        PLAdoptAppend(g_world->plsMonsters, g_world_cursor_0065ba8c->monster_00);
-        g_world_cursor_0065ba8c->enabled_40 = 1;
-        if (g_world_cursor_0065ba8c->particle_04 != 0) {
-            g_world_cursor_0065ba8c->particle_04->SetActive(1);
+    if (gp3DCursor != 0 && gp3DCursor->enabled_40 == 0) {
+        UpdateMonster(gp3DCursor->monster_00);
+        UpdateCycleRepresentation004C59B0(gp3DCursor->monster_00, g_world);
+        PLAdoptAppend(g_world->plsMonsters, gp3DCursor->monster_00);
+        gp3DCursor->enabled_40 = 1;
+        if (gp3DCursor->particle_04 != 0) {
+            gp3DCursor->particle_04->SetActive(1);
         }
         SetMouseCursorHotspot(0, 0);
         ClearFlag603C60();
@@ -308,7 +303,7 @@ void HideWorldCursor00490B90(void)
 {
     W8World* world;
     W8Monster* monster;
-    W8WorldCursorState* cursor = g_world_cursor_0065ba8c;
+    W8WorldCursorState* cursor = gp3DCursor;
 
     if (cursor == 0 || cursor->enabled_40 == 0) {
         return;
@@ -328,8 +323,8 @@ void HideWorldCursor00490B90(void)
 // FUNCTION: WIZ8 0x00490C20
 void GetWorldCursorAnchor00490C20(srVector3T<float>* position)
 {
-    if (g_world_cursor_0065ba8c != 0) {
-        *position = g_world_cursor_0065ba8c->position_28;
+    if (gp3DCursor != 0) {
+        *position = gp3DCursor->position_28;
     } else {
         position->SetZero();
     }
@@ -353,56 +348,52 @@ void ApplyWorldCursorInput00490C60(void)
     srVector3T<float> delta;
     srVector3T<float> lifted;
     srVector3T<float> clamped;
-    float saved_y = g_world_cursor_0065ba8c->position_28.y;
+    float saved_y = gp3DCursor->position_28.y;
 
-    if (g_world_cursor_0065ba8c == 0) {
+    if (gp3DCursor == 0) {
         srAssertFail("gp3DCursor", CURSOR3D_CPP, 0x188, 0);
     }
-    if (g_world_cursor_0065ba8c->enabled_40 == 0) {
+    if (gp3DCursor->enabled_40 == 0) {
         srAssertFail("gp3DCursor->fEnabled", CURSOR3D_CPP, 0x189, 0);
     }
-    delta.x = g_world_cursor_0065ba8c->input_delta_0c.x * g_float_005ebc88;
-    delta.y = g_world_cursor_0065ba8c->input_delta_0c.y * g_float_005ebc88;
-    delta.z = g_world_cursor_0065ba8c->input_delta_0c.z * g_float_005ebc88;
-    g_world_cursor_0065ba8c->input_delta_0c.x = 0;
-    g_world_cursor_0065ba8c->input_delta_0c.y = 0;
-    g_world_cursor_0065ba8c->input_delta_0c.z = 0;
+    delta.x = gp3DCursor->input_delta_0c.x * g_float_005ebc88;
+    delta.y = gp3DCursor->input_delta_0c.y * g_float_005ebc88;
+    delta.z = gp3DCursor->input_delta_0c.z * g_float_005ebc88;
+    gp3DCursor->input_delta_0c.x = 0;
+    gp3DCursor->input_delta_0c.y = 0;
+    gp3DCursor->input_delta_0c.z = 0;
     if (g_flag_689b32 != 0) {
         if (gfKeyState[0x10] == 0 && gfKeyState[0x11] == 0) {
             if (g_cursor_pick_latch_0065ba98 != 0) {
                 g_cursor_pick_latch_0065ba98 = 0;
             }
-            if (g_world_cursor_0065ba8c->dragged_info_dc != 0) {
-                g_world_cursor_0065ba8c->dragged_info_dc = 0;
+            if (gp3DCursor->dragged_info_dc != 0) {
+                gp3DCursor->dragged_info_dc = 0;
             }
-        } else if (g_cursor_pick_latch_0065ba98 == 0 &&
-                   g_world_cursor_0065ba8c->dragged_info_dc == 0) {
-            g_world_cursor_0065ba8c->dragged_info_dc =
-                FindNearestMonsterInfo(&g_world_cursor_0065ba8c->position_28, 2500.0);
+        } else if (g_cursor_pick_latch_0065ba98 == 0 && gp3DCursor->dragged_info_dc == 0) {
+            gp3DCursor->dragged_info_dc = FindNearestMonsterInfo(&gp3DCursor->position_28, 2500.0);
         }
     }
-    if (g_world_cursor_0065ba8c->detached_50 == 0) {
+    if (gp3DCursor->detached_50 == 0) {
         lifted.x = delta.x;
         lifted.y = delta.y + g_float_005ebc64;
         lifted.z = delta.z;
-        if (g_world_cursor_0065ba8c->range_44 > g_float_005ebb34 &&
-            g_world_cursor_0065ba8c->range_44 < lifted.Length()) {
-            delta.SetLength(g_world_cursor_0065ba8c->range_44);
+        if (gp3DCursor->range_44 > g_float_005ebb34 && gp3DCursor->range_44 < lifted.Length()) {
+            delta.SetLength(gp3DCursor->range_44);
         }
         g_world->dynamic_scene->getRotation(rotation);
-        g_world_cursor_0065ba8c->offset_18 += delta;
-        g_world_cursor_0065ba8c->position_28 =
-            rotation.Transform(g_world_cursor_0065ba8c->offset_18);
+        gp3DCursor->offset_18 += delta;
+        gp3DCursor->position_28 = rotation.Transform(gp3DCursor->offset_18);
         node_location = g_world->dynamic_scene->getLocation();
-        g_world_cursor_0065ba8c->position_28.x += node_location.x;
-        g_world_cursor_0065ba8c->position_28.y += node_location.y;
-        g_world_cursor_0065ba8c->position_28.z += node_location.z;
-        if (g_world_cursor_0065ba8c->track_ground_41 != 0) {
-            if (g_world_cursor_0065ba8c->position_28.y < saved_y) {
-                g_world_cursor_0065ba8c->position_28.y = saved_y;
+        gp3DCursor->position_28.x += node_location.x;
+        gp3DCursor->position_28.y += node_location.y;
+        gp3DCursor->position_28.z += node_location.z;
+        if (gp3DCursor->track_ground_41 != 0) {
+            if (gp3DCursor->position_28.y < saved_y) {
+                gp3DCursor->position_28.y = saved_y;
             }
-            g_world_cursor_0065ba8c->position_28.y = g_octree_6598a4->SettleToGround(
-                &g_world_cursor_0065ba8c->position_28, &hit, 1, 500.0f);
+            gp3DCursor->position_28.y =
+                g_octree_6598a4->SettleToGround(&gp3DCursor->position_28, &hit, 1, 500.0f);
         }
     } else {
         GetCameraPosition(&camera);
@@ -412,11 +403,11 @@ void ApplyWorldCursorInput00490C60(void)
             rotation.RotateAboutY(sin(g_gd_camera_65a0f8->m_yaw), cos(g_gd_camera_65a0f8->m_yaw));
         }
         delta = rotation.Transform(delta);
-        delta += g_world_cursor_0065ba8c->position_28;
-        if (g_world_cursor_0065ba8c->range_44 > g_float_005ebb34 &&
-            g_world_cursor_0065ba8c->range_44 < (camera - delta).Length()) {
+        delta += gp3DCursor->position_28;
+        if (gp3DCursor->range_44 > g_float_005ebb34 &&
+            gp3DCursor->range_44 < (camera - delta).Length()) {
             clamped = delta - camera;
-            clamped.SetLength(g_world_cursor_0065ba8c->range_44);
+            clamped.SetLength(gp3DCursor->range_44);
             delta = camera + clamped;
         }
         if ((camera - delta).Length() < g_monster_poster_max_distance_005ec3d8) {
@@ -424,45 +415,43 @@ void ApplyWorldCursorInput00490C60(void)
             clamped.SetLength(g_monster_poster_max_distance_005ec3d8);
             delta = camera + clamped;
         }
-        if (g_world_cursor_0065ba8c->march_enabled_51 != 0) {
+        if (gp3DCursor->march_enabled_51 != 0) {
             MarchWorldCursorTarget004919E0(&delta);
         }
-        g_world_cursor_0065ba8c->position_28 = delta;
-        g_world_cursor_0065ba8c->offset_18 = delta;
+        gp3DCursor->position_28 = delta;
+        gp3DCursor->offset_18 = delta;
     }
-    if (g_world_cursor_0065ba8c->last_published_34.x != g_world_cursor_0065ba8c->position_28.x ||
-        g_world_cursor_0065ba8c->last_published_34.y != g_world_cursor_0065ba8c->position_28.y ||
-        g_world_cursor_0065ba8c->last_published_34.z != g_world_cursor_0065ba8c->position_28.z) {
-        lifted = g_world_cursor_0065ba8c->position_28;
-        MonsterSetAdjustedPosition004C5F00(g_world_cursor_0065ba8c->monster_00, &lifted);
+    if (gp3DCursor->last_published_34.x != gp3DCursor->position_28.x ||
+        gp3DCursor->last_published_34.y != gp3DCursor->position_28.y ||
+        gp3DCursor->last_published_34.z != gp3DCursor->position_28.z) {
+        lifted = gp3DCursor->position_28;
+        MonsterSetAdjustedPosition004C5F00(gp3DCursor->monster_00, &lifted);
         if (g_cursor_node_0065ba90 != 0) {
-            node_location.SetFromFloat(&g_world_cursor_0065ba8c->position_28);
+            node_location.SetFromFloat(&gp3DCursor->position_28);
             g_cursor_node_0065ba90->setLocation(node_location);
         }
         if (g_cursor_value_0065ba94 != 0) {
-            node_location.SetFromFloat(&g_world_cursor_0065ba8c->position_28);
+            node_location.SetFromFloat(&gp3DCursor->position_28);
             g_cursor_value_0065ba94->setLocation(node_location);
         }
-        if (g_world_cursor_0065ba8c->particle_04 != 0) {
-            node_location.SetFromFloat(&g_world_cursor_0065ba8c->position_28);
-            g_world_cursor_0065ba8c->particle_04->setLocation(node_location);
+        if (gp3DCursor->particle_04 != 0) {
+            node_location.SetFromFloat(&gp3DCursor->position_28);
+            gp3DCursor->particle_04->setLocation(node_location);
         }
-        if (g_world_cursor_0065ba8c->light_24 != 0) {
-            node_location.SetFromFloat(&g_world_cursor_0065ba8c->position_28);
-            g_world_cursor_0065ba8c->light_24->setLocation(node_location);
+        if (gp3DCursor->light_24 != 0) {
+            node_location.SetFromFloat(&gp3DCursor->position_28);
+            gp3DCursor->light_24->setLocation(node_location);
         }
-        if (g_world_cursor_0065ba8c->dragged_info_dc != 0) {
-            g_world_cursor_0065ba8c->dragged_info_dc->monster->SetPositionInternal00453590(
-                &g_world_cursor_0065ba8c->position_28);
-            g_octree_6598a4->UpdateMonsterLocation(
-                g_world_cursor_0065ba8c->dragged_info_dc->location_id,
-                &g_world_cursor_0065ba8c->position_28);
+        if (gp3DCursor->dragged_info_dc != 0) {
+            gp3DCursor->dragged_info_dc->monster->SetPositionInternal00453590(
+                &gp3DCursor->position_28);
+            g_octree_6598a4->UpdateMonsterLocation(gp3DCursor->dragged_info_dc->location_id,
+                                                   &gp3DCursor->position_28);
             if (gfKeyState[0x10] != 0) {
-                MonsterForwardReferencePosition(g_world_cursor_0065ba8c->dragged_info_dc->monster,
-                                                1);
+                MonsterForwardReferencePosition(gp3DCursor->dragged_info_dc->monster, 1);
             }
         }
-        g_world_cursor_0065ba8c->last_published_34 = g_world_cursor_0065ba8c->position_28;
+        gp3DCursor->last_published_34 = gp3DCursor->position_28;
     }
     g_octree_6598a4->UpdatePathVisualization();
 }
@@ -470,7 +459,7 @@ void ApplyWorldCursorInput00490C60(void)
 // FUNCTION: WIZ8 0x004914C0
 bool IsWorldCursorVisible(void)
 {
-    return g_world_cursor_0065ba8c != 0 && g_world_cursor_0065ba8c->enabled_40 != 0;
+    return gp3DCursor != 0 && gp3DCursor->enabled_40 != 0;
 }
 
 /* Bind the cursor monster to its monster group once flagged: reset the
@@ -486,21 +475,20 @@ void BindCursorMonsterToGroup004914E0(void)
     W8MonsterInfo* monster_info;
     unsigned int index;
 
-    if (g_world_cursor_0065ba8c->group_bind_pending_09 != 0 &&
-        g_world_cursor_0065ba8c->light_24 != 0) {
-        g_world_cursor_0065ba8c->group_bind_pending_09 = 0;
-        g_world_cursor_0065ba8c->input_delta_0c.z = g_world_cursor_0065ba8c->input_delta_0c.z + 1;
-        if (g_world_cursor_0065ba8c->particle_04 != 0) {
-            g_world_cursor_0065ba8c->particle_04->value_214 = 1000.0f;
-            g_world_cursor_0065ba8c->particle_04->value_218 = 2000.0f;
-            g_world_cursor_0065ba8c->particle_04->value_1c8 = 300;
+    if (gp3DCursor->group_bind_pending_09 != 0 && gp3DCursor->light_24 != 0) {
+        gp3DCursor->group_bind_pending_09 = 0;
+        gp3DCursor->input_delta_0c.z = gp3DCursor->input_delta_0c.z + 1;
+        if (gp3DCursor->particle_04 != 0) {
+            gp3DCursor->particle_04->value_214 = 1000.0f;
+            gp3DCursor->particle_04->value_218 = 2000.0f;
+            gp3DCursor->particle_04->value_1c8 = 300;
         }
-        if (g_world_cursor_0065ba8c == 0) {
+        if (gp3DCursor == 0) {
             position.SetZero();
         } else {
-            position = g_world_cursor_0065ba8c->position_28;
+            position = gp3DCursor->position_28;
         }
-        index = GetMonsterGroupIndexByID(0x237, CURSOR3D_CPP, g_world_cursor_0065ba8c->value_4c, 0);
+        index = GetMonsterGroupIndexByID(0x237, CURSOR3D_CPP, gp3DCursor->monster_group_id_4c, 0);
         if (index == 0xffffffff) {
             index = PLLength(gXStatus.plsMonsterGroupList);
             if (index == 0) {
@@ -509,7 +497,7 @@ void BindCursorMonsterToGroup004914E0(void)
             index = 0;
         }
         monster_group = GetMonsterGroupByListIndex(index);
-        g_world_cursor_0065ba8c->value_4c = monster_group->group_id;
+        gp3DCursor->monster_group_id_4c = monster_group->group_id;
         if (monster_group != 0) {
             if (monster_group->leader_group_id != 0) {
                 index = GetMonsterGroupIndexByID(0x245, CURSOR3D_CPP,
@@ -545,13 +533,13 @@ float g_float_005ec260 = 50000.0f;
 // FUNCTION: WIZ8 0x00491650
 void SetWorldCursorRange00491650(float distance)
 {
-    if (g_world_cursor_0065ba8c != 0) {
+    if (gp3DCursor != 0) {
         distance = distance - (g_float_005ebcdc / distance) * g_world_scale_005ebc40;
         if (distance >= g_float_005ec260) {
             distance = g_float_005ec260;
         }
-        g_world_cursor_0065ba8c->range_44 = distance;
-        g_world_cursor_0065ba8c->last_published_34 = -100000000.0f;
+        gp3DCursor->range_44 = distance;
+        gp3DCursor->last_published_34 = -100000000.0f;
     }
 }
 
@@ -559,8 +547,8 @@ void SetWorldCursorRange00491650(float distance)
 // FUNCTION: WIZ8 0x004916a0
 void SetWorldCursorGroupId004916A0(int group_id)
 {
-    if (g_world_cursor_0065ba8c != 0) {
-        g_world_cursor_0065ba8c->value_4c = group_id;
+    if (gp3DCursor != 0) {
+        gp3DCursor->monster_group_id_4c = group_id;
     }
 }
 
@@ -569,7 +557,7 @@ void SetWorldCursorGroupId004916A0(int group_id)
 // FUNCTION: WIZ8 0x00490af0
 void ToggleWorldCursor(void)
 {
-    if (g_world_cursor_0065ba8c != 0) {
+    if (gp3DCursor != 0) {
         ReleaseWorldCursor004909C0();
     } else {
         InitializeWorldCursor00490210();
@@ -603,57 +591,52 @@ void UpdateWorldCursor004916C0(void)
     srVector3T<float> box_min;
     srVector3T<float> box_max;
 
-    if (g_world_cursor_0065ba8c == 0 || g_world_cursor_0065ba8c->enabled_40 == 0) {
+    if (gp3DCursor == 0 || gp3DCursor->enabled_40 == 0) {
         return;
     }
-    old_position = g_world_cursor_0065ba8c->position_28;
+    old_position = gp3DCursor->position_28;
     SyncSystemCursor();
     SGPMouseGetPos(&cursor_point);
     if (gfRightButtonState != 0) {
-        if (g_world_cursor_0065ba8c->group_bind_pending_09 == 0 &&
-            g_world_cursor_0065ba8c->light_24 != 0) {
-            g_world_cursor_0065ba8c->group_bind_pending_09 = 1;
-            g_world_cursor_0065ba8c->input_delta_0c.z =
-                g_world_cursor_0065ba8c->input_delta_0c.z + 1;
-            if (g_world_cursor_0065ba8c->particle_04 != 0) {
-                g_world_cursor_0065ba8c->particle_04->value_214 = 3000.0f;
-                g_world_cursor_0065ba8c->particle_04->value_218 = 6000.0f;
-                g_world_cursor_0065ba8c->particle_04->value_1c8 = 0x14;
+        if (gp3DCursor->group_bind_pending_09 == 0 && gp3DCursor->light_24 != 0) {
+            gp3DCursor->group_bind_pending_09 = 1;
+            gp3DCursor->input_delta_0c.z = gp3DCursor->input_delta_0c.z + 1;
+            if (gp3DCursor->particle_04 != 0) {
+                gp3DCursor->particle_04->value_214 = 3000.0f;
+                gp3DCursor->particle_04->value_218 = 6000.0f;
+                gp3DCursor->particle_04->value_1c8 = 0x14;
             }
         }
     } else {
         BindCursorMonsterToGroup004914E0();
     }
     if (gfRightButtonState != 0) {
-        if (g_world_cursor_0065ba8c->detached_50 != 0) {
-            g_world_cursor_0065ba8c->track_ground_41 = 0;
+        if (gp3DCursor->detached_50 != 0) {
+            gp3DCursor->track_ground_41 = 0;
         }
-        g_world_cursor_0065ba8c->input_delta_0c.y =
-            g_world_cursor_0065ba8c->input_delta_0c.y + (0xf0 - cursor_point.y);
+        gp3DCursor->input_delta_0c.y = gp3DCursor->input_delta_0c.y + (0xf0 - cursor_point.y);
     } else {
-        g_world_cursor_0065ba8c->input_delta_0c.x =
-            g_world_cursor_0065ba8c->input_delta_0c.x + (cursor_point.x - 0x140);
-        g_world_cursor_0065ba8c->input_delta_0c.z =
-            g_world_cursor_0065ba8c->input_delta_0c.z + (0xf0 - cursor_point.y);
+        gp3DCursor->input_delta_0c.x = gp3DCursor->input_delta_0c.x + (cursor_point.x - 0x140);
+        gp3DCursor->input_delta_0c.z = gp3DCursor->input_delta_0c.z + (0xf0 - cursor_point.y);
     }
     WarpSystemCursor(0x140, 0xf0);
     ApplyWorldCursorInput00490C60();
-    if (g_world_cursor_0065ba8c != 0) {
-        position = g_world_cursor_0065ba8c->position_28;
+    if (gp3DCursor != 0) {
+        position = gp3DCursor->position_28;
     } else {
         position.Set(0.0, 0.0, 0.0);
     }
     if (gfLeftButtonState == 0) {
-        if (g_world_cursor_0065ba8c->left_held_48 != 0 && gXStatus.iTargetingMode == 3) {
+        if (gp3DCursor->left_held_48 != 0 && gXStatus.iTargetingMode == 3) {
             GetCameraPosition(&camera);
             if (ResolveWorldCursorTarget004921E0(&resolved) != 0 &&
                 g_octree_6598a4->TraceLineOfSight(&camera, &resolved, 1, -3, -3, 1, 0) == 0) {
-                box_min = resolved + g_world_cursor_0065ba8c->offset_c4;
-                box_max = resolved + g_world_cursor_0065ba8c->offset_d0;
-                if (g_world_cursor_0065ba8c->footprint_mode_c0 == 0 ||
+                box_min = resolved + gp3DCursor->offset_c4;
+                box_max = resolved + gp3DCursor->offset_d0;
+                if (gp3DCursor->footprint_mode_c0 == 0 ||
                     g_octree_6598a4->TestBoxOccupied(&box_min, &box_max) == 0) {
                     AimAtPlace(g_status_685170.selected_character);
-                    if (g_world_cursor_0065ba8c == 0) {
+                    if (gp3DCursor == 0) {
                         InitializeWorldCursor00490210();
                     } else {
                         ReleaseWorldCursor004909C0();
@@ -665,13 +648,13 @@ void UpdateWorldCursor004916C0(void)
             // documented historical ABI boundary.
             SoundPlay((STR) "Data\\Sound\\Misc\\ErrorBeep.wav", 0);
         }
-        g_world_cursor_0065ba8c->left_held_48 = 0;
+        gp3DCursor->left_held_48 = 0;
     } else {
-        g_world_cursor_0065ba8c->left_held_48 = 1;
+        gp3DCursor->left_held_48 = 1;
     }
     if (old_position.x != position.x || old_position.y != position.y ||
         old_position.z != position.z) {
-        if (g_world_cursor_0065ba8c->detached_50 != 0) {
+        if (gp3DCursor->detached_50 != 0) {
             position.y += g_float_005ecb08;
             PointCameraAtTarget(&position, 1, 0);
         }
@@ -702,13 +685,13 @@ char MarchWorldCursorTarget004919E0(srVector3T<float>* target)
     bool upper_found;
     int i;
 
-    trace_from = *target + g_world_cursor_0065ba8c->probe_center_54;
-    origin = g_world_cursor_0065ba8c->position_28;
+    trace_from = *target + gp3DCursor->probe_center_54;
+    origin = gp3DCursor->position_28;
     dist = (*target - origin).Length();
     if (dist == g_zero_005ebb40) {
         return 0;
     }
-    last_valid = g_world_cursor_0065ba8c->position_28;
+    last_valid = gp3DCursor->position_28;
     step = 0.0;
     if (g_zero_005ebb40 < dist) {
         do {
@@ -726,7 +709,7 @@ char MarchWorldCursorTarget004919E0(srVector3T<float>* target)
             step_pos = origin + scaled;
             end_pos = step_pos;
             for (i = 4; i < 8; i++) {
-                probe = g_world_cursor_0065ba8c->probe_offsets_60[i];
+                probe = gp3DCursor->probe_offsets_60[i];
                 probe *= g_double_005ecb18;
                 probe += step_pos;
                 ground = g_octree_6598a4->SettleToGround(&probe, &hit, 1, 500.0f);
@@ -742,7 +725,7 @@ char MarchWorldCursorTarget004919E0(srVector3T<float>* target)
                     upper_best = ground;
                 }
             }
-            if (g_world_cursor_0065ba8c->track_ground_41 != 0) {
+            if (gp3DCursor->track_ground_41 != 0) {
                 if (upper_found) {
                     end_pos.y = upper_best + g_float_005ecb10;
                     target->y = end_pos.y;
@@ -753,9 +736,9 @@ char MarchWorldCursorTarget004919E0(srVector3T<float>* target)
                     origin.y = end_pos.y;
                 }
             }
-            trace_from = end_pos + g_world_cursor_0065ba8c->probe_center_54;
+            trace_from = end_pos + gp3DCursor->probe_center_54;
             for (i = 0; i < 8; i++) {
-                probe = end_pos + g_world_cursor_0065ba8c->probe_offsets_60[i];
+                probe = end_pos + gp3DCursor->probe_offsets_60[i];
                 if (g_octree_6598a4->TraceLineOfSight(&trace_from, &probe, 1, -3, -3, 1, 0) != 0) {
                     *target = last_valid;
                     return 1;
@@ -766,7 +749,7 @@ char MarchWorldCursorTarget004919E0(srVector3T<float>* target)
     }
     *target = last_valid;
     if (target->y - lower_best < g_float_005ecb0c) {
-        g_world_cursor_0065ba8c->track_ground_41 = 1;
+        gp3DCursor->track_ground_41 = 1;
     }
     return 0;
 }
@@ -801,7 +784,7 @@ void UpdateWorldCursorPlacement00491EC0(void)
     }
     GetCameraPosition(&camera);
     camera.y = camera.y - g_default_world_height_00603ac8;
-    cursor = g_world_cursor_0065ba8c;
+    cursor = gp3DCursor;
     cursor->last_published_34 = -100000000.0f;
     forward.Set(0.0, 0.0, g_float_60ab48);
     target = camera + rotation.Transform(forward);
@@ -826,12 +809,12 @@ void UpdateWorldCursorPlacement00491EC0(void)
 void SetWorldCursorExtents00492190(const srVector3T<float>* minimum,
                                    const srVector3T<float>* maximum)
 {
-    if (g_world_cursor_0065ba8c == 0) {
+    if (gp3DCursor == 0) {
         return;
     }
-    g_world_cursor_0065ba8c->footprint_mode_c0 = 1;
-    g_world_cursor_0065ba8c->offset_c4 = *minimum;
-    g_world_cursor_0065ba8c->offset_d0 = *maximum;
+    gp3DCursor->footprint_mode_c0 = 1;
+    gp3DCursor->offset_c4 = *minimum;
+    gp3DCursor->offset_d0 = *maximum;
 }
 
 /* Resolve the world cursor's target position: start from the cursor's stored
@@ -842,7 +825,7 @@ void SetWorldCursorExtents00492190(const srVector3T<float>* minimum,
 // FUNCTION: WIZ8 0x004921E0
 int ResolveWorldCursorTarget004921E0(srVector3T<float>* position)
 {
-    W8WorldCursorState* cursor = g_world_cursor_0065ba8c;
+    W8WorldCursorState* cursor = gp3DCursor;
     srVector3T<float> probe;
     float best = g_float_005ecb20;
     int i;

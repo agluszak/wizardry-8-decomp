@@ -40,22 +40,24 @@ struct W8WorldCursorState {
        update; the target march lifts each step to the settled ground height
        while set and re-arms it when the result lands near the ground, and
        the cursor update settles position_28 to the terrain while set. */
-    unsigned char track_ground_41;
+    bool track_ground_41;
     unsigned char unknown_42[2];
     /* 0x44: the cursor's march range, initialized to 50000; both movement
        paths clamp the step/offset length to it. */
     float range_44;
     /* 0x48: left-button latch - releasing the button while set is the
        placement click. */
-    unsigned char left_held_48;
+    bool left_held_48;
     unsigned char unknown_49[3];
-    /* 0x4c: seeded from and restored to g_cursor_saved_value_60ab44; both
-       ends only copy the whole word. */
-    int value_4c;
+    /* 0x4c: the selected monster group id - passed to
+       GetMonsterGroupIndexByID, assigned from monster_group->group_id,
+       written by SetWorldCursorGroupId004916A0 and seeded from/restored to
+       g_cursor_saved_group_id_60ab44. */
+    int monster_group_id_4c;
     /* 0x50: when set the cursor is detached from the camera - input moves
        position_28 directly and the placement update skips the
        camera-relative offset_18 store. */
-    unsigned char detached_50;
+    bool detached_50;
     /* 0x51: while detached, run the ground/sight march on the moved
        point. */
     bool march_enabled_51;
@@ -70,7 +72,7 @@ struct W8WorldCursorState {
     /* 0xc0: footprint-placement mode - the target resolver uses the two
        fixed probe offsets and the click path requires the occupied-box
        test before placing. */
-    unsigned char footprint_mode_c0;
+    bool footprint_mode_c0;
     unsigned char unknown_c1[3];
     /* 0xc4: first fixed probe offset used when footprint_mode_c0 is set. */
     srVector3T<float> offset_c4;
@@ -84,7 +86,8 @@ struct W8WorldCursorState {
 
 static_assert(sizeof(W8WorldCursorState) == 0xe0, "W8WorldCursorState_size");
 
-extern W8WorldCursorState* g_world_cursor_0065ba8c;
+/* 0x65ba8c: authored name gp3DCursor - the cursor update asserts it. */
+extern W8WorldCursorState* gp3DCursor;
 /* Build the 3D cursor, light, particle and initial camera-relative bounds. */
 void InitializeWorldCursor00490210(void);
 bool IsWorldCursorVisible(void);
