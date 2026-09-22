@@ -10,6 +10,10 @@
    srClassSupport<srClipPlane, srClipPlane, ...> instantiation over this
    imported class; its client-emitted registry slots and vtable are not
    evidence for another authored class. */
+/* The Wiz8 consumer import table covers only the lifecycle/virtual members;
+   the three small accessors below carry no IAT entry, so consumers expand
+   them from the in-class bodies while the provider emits the standalone
+   exports from clipplane.cpp. */
 class SR_DLL_IMPORT srClipPlane : public srClassSupport<srClipPlane, srNode, false, 0x1500> {
 public:
     typedef srClassSupport<srClipPlane, srClipPlane, false, 0x1500> ClientType;
@@ -22,7 +26,14 @@ public:
     srClipPlane(const srClipPlane& other);
     srClipPlane& operator=(const srClipPlane& other);
 
+#if defined(SURRENDER_BUILD)
     static const char* sGetClassName();
+#else
+    static const char* sGetClassName()
+    {
+        return "srClipPlane";
+    }
+#endif
 
     virtual void dump(std::ostream& stream) override;
     virtual ~srClipPlane() override;
@@ -30,11 +41,25 @@ public:
     virtual void traverse(TraverseInfo& info) override;
     virtual void process(const ProcessInfo& info, e_processType type) override;
 
+#if defined(SURRENDER_BUILD)
     void setClipPlane(const srVector4T<float>& plane);
+#else
+    void setClipPlane(const srVector4T<float>& plane)
+    {
+        clip_plane_ = plane;
+    }
+#endif
     void getClipPlane(srVector4T<float>& plane) const;
     srVector4T<float> getClipPlane() const;
 
+#if defined(SURRENDER_BUILD)
     void setClipType(e_clip type);
+#else
+    void setClipType(e_clip type)
+    {
+        clip_type_ = type;
+    }
+#endif
     e_clip getClipType() const;
 
 protected:
