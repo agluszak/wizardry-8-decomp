@@ -227,9 +227,9 @@ unsigned char W8OctBuildTree00446390::InsertSurface00446820(W8GDSurface* surface
         if (LoadSurfaceVertices004214D0(vertices, surface->vertex_indices_18) == 0) {
             plane = 0;
         } else {
-            plane_point.x = surface->plane_24[0];
-            plane_point.y = surface->plane_24[1];
-            plane_point.z = surface->plane_24[2];
+            plane_point.x = surface->plane_24.normal.x;
+            plane_point.y = surface->plane_24.normal.y;
+            plane_point.z = surface->plane_24.normal.z;
         }
     }
     if (TestSpatialTriangle0046CE60(&spatial_00.minimum_0c, vertices, plane) == 0) {

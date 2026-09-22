@@ -21,7 +21,7 @@ struct W8OctRegionPolygon {
     unsigned long flags_00;
     /* 1-based ordinal into the geometry polygon array. */
     unsigned long ordinal_04;
-    float plane_08[4]; /* normal xyz and offset d */
+    W8Plane plane_08; /* unit normal plus signed distance */
     srVector3T<float> position_18;
     /* Canonical material-group index assigned by the material sort. */
     unsigned long material_24;
@@ -47,7 +47,7 @@ struct W8OctRegionPolygon {
 
     /* Tests the polygon's representative point against six frustum planes;
        inside means every plane distance is non-negative. */
-    unsigned char InsideFrustumPlanes004CFAE0(const srVector4T<float>* planes) const;
+    unsigned char InsideFrustumPlanes004CFAE0(const W8Plane* planes) const;
     unsigned char ContainsPoint004CFB30(const srVector3T<float>* bounds) const;
 };
 

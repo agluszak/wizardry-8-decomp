@@ -224,7 +224,7 @@ bool OctPreTree::TestCollectedPolygons004681E0(W8OctreeTrace* trace)
             break;
         }
         W8OctRegionPolygon* polygon = &game_data_3a4->polygons_0c[m_aulGDObjs[index]];
-        const float* plane = polygon->plane_08;
+        const float* plane = &polygon->plane_08.normal.x;
         if (plane[0] * trace->step_18.x + trace->step_18.y * plane[1] +
                 trace->step_18.z * plane[2] <=
             g_float_005ebb34) {
@@ -602,13 +602,13 @@ OctMeshModel* OctPreTree::CreateSubMeshes00468C30(W8OctPreTreeGeometry* geometry
                             m_aulPolyLookup[id] = model_index * 0x10000 + polygon;
                             model->poly_textures_28[polygon] = geometry->polygons_0c[id].texture_28;
                             model->poly_equations_34[polygon].x =
-                                geometry->polygons_0c[id].plane_08[0];
+                                geometry->polygons_0c[id].plane_08.normal.x;
                             model->poly_equations_34[polygon].y =
-                                geometry->polygons_0c[id].plane_08[1];
+                                geometry->polygons_0c[id].plane_08.normal.y;
                             model->poly_equations_34[polygon].z =
-                                geometry->polygons_0c[id].plane_08[2];
+                                geometry->polygons_0c[id].plane_08.normal.z;
                             model->poly_equations_34[polygon].w =
-                                geometry->polygons_0c[id].plane_08[3];
+                                geometry->polygons_0c[id].plane_08.w;
                         }
                         model->material_index_0c =
                             geometry->vertices_04[record->vertex_ids_20[0]].material_1c;

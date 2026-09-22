@@ -8,11 +8,12 @@
 /* Test the polygon's representative point against six frustum planes; inside
    means every plane distance is non-negative. */
 // FUNCTION: WIZ8 0x004cfae0
-unsigned char W8OctRegionPolygon::InsideFrustumPlanes004CFAE0(const srVector4T<float>* planes) const
+unsigned char W8OctRegionPolygon::InsideFrustumPlanes004CFAE0(const W8Plane* planes) const
 {
     for (short plane = 0; plane < 6; ++plane) {
-        float distance = planes[plane].x * position_18.x + planes[plane].y * position_18.y +
-                         planes[plane].z * position_18.z + planes[plane].w;
+        float distance = planes[plane].normal.x * position_18.x +
+                         planes[plane].normal.y * position_18.y +
+                         planes[plane].normal.z * position_18.z + planes[plane].w;
         if (distance < g_float_005ebb34) {
             return 0;
         }

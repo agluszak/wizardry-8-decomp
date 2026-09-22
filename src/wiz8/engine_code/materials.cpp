@@ -1328,17 +1328,17 @@ int BuildRegionPolygons00494B90(W8LevelFile* level, W8OctPreTreeGeometry* geomet
                 offset = offset * g_float_005ec1a8;
                 axis = 0;
                 largest = 0.0f;
-                polygon->plane_08[0] = normal.x;
-                polygon->plane_08[1] = normal.y;
-                polygon->plane_08[2] = normal.z;
+                polygon->plane_08.normal.x = normal.x;
+                polygon->plane_08.normal.y = normal.y;
+                polygon->plane_08.normal.z = normal.z;
                 for (corner = 0; corner < 3; ++corner) {
-                    float component = polygon->plane_08[corner];
+                    float component = (&polygon->plane_08.normal.x)[corner];
                     if (largest < fabs(component)) {
                         largest = fabs(component);
                         axis = corner;
                     }
                 }
-                polygon->plane_08[3] = offset;
+                polygon->plane_08.w = offset;
                 polygon->flags_00 = axis;
                 opposing = 0;
                 for (corner = 0; corner < 3; ++corner) {
@@ -1410,10 +1410,10 @@ int BuildRegionPolygons00494B90(W8LevelFile* level, W8OctPreTreeGeometry* geomet
                         back->vertices_34[0] = vertices + vertex_index[1];
                         back->vertices_34[1] = vertices + vertex_index[0];
                         back->vertices_34[2] = vertices + vertex_index[2];
-                        back->plane_08[0] = back->plane_08[0] * g_negative_one_005ebc38;
-                        back->plane_08[1] = back->plane_08[1] * g_negative_one_005ebc38;
-                        back->plane_08[2] = back->plane_08[2] * g_negative_one_005ebc38;
-                        back->plane_08[3] = back->plane_08[3] * g_negative_one_005ebc38;
+                        back->plane_08.normal.x = back->plane_08.normal.x * g_negative_one_005ebc38;
+                        back->plane_08.normal.y = back->plane_08.normal.y * g_negative_one_005ebc38;
+                        back->plane_08.normal.z = back->plane_08.normal.z * g_negative_one_005ebc38;
+                        back->plane_08.w = back->plane_08.w * g_negative_one_005ebc38;
                         back->face_48.vertices[0] = vertex_index[1];
                         back->face_48.vertices[1] = vertex_index[0];
                         back->face_48.vertices[2] = vertex_index[2];

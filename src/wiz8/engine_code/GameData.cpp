@@ -659,7 +659,7 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion0041B770(srVector3T<float>* direct
     /* Function-local static plane ResolveCollision reads through hit_plane_38;
        atexit thunk at 0x0041BD50. Declared after the early-out so the guard
        matches retail control flow. */
-    static srVector4T<float> s_prop_hit_plane_00652d90;
+    static W8Plane s_prop_hit_plane_00652d90;
     objects = 0;
     count = static_cast<unsigned int>(
         octree_04->CollectObjectsAlongSegment(&objects, position, direction, 504.0f, 8));
@@ -692,9 +692,9 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion0041B770(srVector3T<float>* direct
                 surface = &gd_prop->m_pGDSurfaces[surface_index];
                 surface->hit_plane_38 = 0;
                 if (direction_zero != 0) {
-                    test_direction.x = surface->plane_24[0];
-                    test_direction.y = surface->plane_24[1];
-                    test_direction.z = surface->plane_24[2];
+                    test_direction.x = surface->plane_24.normal.x;
+                    test_direction.y = surface->plane_24.normal.y;
+                    test_direction.z = surface->plane_24.normal.z;
                 }
                 if (surface->TestSegment0041CF90(&probe, &test_direction, &hit_distance,
                                                  gd_prop->m_pVertices) != 0) {
@@ -714,16 +714,16 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion0041B770(srVector3T<float>* direct
         level = g_level_data_00652dac;
     }
     if (nearest_surface != 0) {
-        s_prop_hit_plane_00652d90.x = nearest_surface->plane_24[0];
-        s_prop_hit_plane_00652d90.y = nearest_surface->plane_24[1];
-        s_prop_hit_plane_00652d90.z = nearest_surface->plane_24[2];
-        s_prop_hit_plane_00652d90.w = nearest_surface->plane_24[3];
+        s_prop_hit_plane_00652d90.normal.x = nearest_surface->plane_24.normal.x;
+        s_prop_hit_plane_00652d90.normal.y = nearest_surface->plane_24.normal.y;
+        s_prop_hit_plane_00652d90.normal.z = nearest_surface->plane_24.normal.z;
+        s_prop_hit_plane_00652d90.w = nearest_surface->plane_24.w;
         slope = nearest_surface->slope_48;
         projected.Set(scratch->x, scratch->y, scratch->z);
         residual.Set(scratch->x, scratch->y, scratch->z);
         along_normal.Set(scratch->x, scratch->y, scratch->z);
-        normal.Set(s_prop_hit_plane_00652d90.x, s_prop_hit_plane_00652d90.y,
-                   s_prop_hit_plane_00652d90.z);
+        normal.Set(s_prop_hit_plane_00652d90.normal.x, s_prop_hit_plane_00652d90.normal.y,
+                   s_prop_hit_plane_00652d90.normal.z);
         if (g_float_005ebc58 < normal.LengthSquared()) {
             along_normal = normal * (DotProduct(along_normal, normal) / normal.LengthSquared());
         }
@@ -816,8 +816,7 @@ unsigned char W8GameData::ProbeMonstersAlongMotion0041BD60(srVector3T<float>* di
         monster_list_index = MonsterGetIndexByLocationID(
             0x3a6, "C:\\Projects\\Wizardry 8\\Engine Code\\GameData.cpp", objects[index], 1);
         monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
-        if (monster_info != 0 && monster_info->p3D != 0 &&
-            monster_info->p3D->active_088 != 0) {
+        if (monster_info != 0 && monster_info->p3D != 0 && monster_info->p3D->active_088 != 0) {
             monster = monster_info->p3D;
             time_scale = g_rate_006068EC * g_game_time_accumulator_6598bc->GetFrameDelta();
             monster->GetVelocity(&velocity);
@@ -1318,19 +1317,21 @@ char W8GameData::TestTraceResult(int count, unsigned long* surface_ids, W8Octree
                   (mode != 1 ||
                    (static_cast<int>(surface->chance_44) < 100 &&
                     static_cast<int>(surface->chance_44) < static_cast<int>(Random(100)))))) &&
-                surface->plane_24[0] * trace->step_18.x + surface->plane_24[1] * trace->step_18.y +
-                        surface->plane_24[2] * trace->step_18.z <=
+                surface->plane_24.normal.x * trace->step_18.x +
+                        surface->plane_24.normal.y * trace->step_18.y +
+                        surface->plane_24.normal.z * trace->step_18.z <=
                     g_float_005ebb34) {
-                float hit_distance = surface->plane_24[0] * trace->start_00.x +
-                                     surface->plane_24[1] * trace->start_00.y +
-                                     surface->plane_24[2] * trace->start_00.z +
-                                     surface->plane_24[3];
+                float hit_distance = surface->plane_24.normal.x * trace->start_00.x +
+                                     surface->plane_24.normal.y * trace->start_00.y +
+                                     surface->plane_24.normal.z * trace->start_00.z +
+                                     surface->plane_24.w;
                 if (hit_distance <= trace->hit_limit_24 && g_float_005ebb34 < hit_distance) {
                     srVector3T<float> contact;
                     if (g_float_005ebb38 <= hit_distance) {
-                        float back = surface->plane_24[0] * trace->end_0c.x +
-                                     surface->plane_24[1] * trace->end_0c.y +
-                                     surface->plane_24[2] * trace->end_0c.z + surface->plane_24[3];
+                        float back = surface->plane_24.normal.x * trace->end_0c.x +
+                                     surface->plane_24.normal.y * trace->end_0c.y +
+                                     surface->plane_24.normal.z * trace->end_0c.z +
+                                     surface->plane_24.w;
                         if (g_float_005ebb38 <= back) {
                             goto next;
                         }
@@ -1641,9 +1642,9 @@ unsigned char W8GDSurface::TestSegment0041CF90(srVector3T<float>* from,
     srVector3T<float> unit_dir = *direction;
     unit_dir.Normalize();
     srVector3T<float> normal;
-    normal.x = plane_24[0];
-    normal.y = plane_24[1];
-    normal.z = plane_24[2];
+    normal.x = plane_24.normal.x;
+    normal.y = plane_24.normal.y;
+    normal.z = plane_24.normal.z;
     float segment_length = direction->Length();
     if (segment_length < g_float_005ebc90) {
         if (special == 0) {
@@ -1656,8 +1657,8 @@ unsigned char W8GDSurface::TestSegment0041CF90(srVector3T<float>* from,
         return 0;
     }
     srVector3T<float> end = point + *direction;
-    float dist_start =
-        point.x * plane_24[0] + point.y * plane_24[1] + point.z * plane_24[2] + plane_24[3];
+    float dist_start = point.x * plane_24.normal.x + point.y * plane_24.normal.y +
+                       point.z * plane_24.normal.z + plane_24.w;
     if (special == 0 && dist_start < g_float_005ebb34) {
         return 0;
     }
@@ -1665,7 +1666,8 @@ unsigned char W8GDSurface::TestSegment0041CF90(srVector3T<float>* from,
     if ((flags & 4) == 0 && special == 0) {
         limit = contact_margin_40 - (g_float_005ebb38 - fabsf(normal.y)) * g_float_005ebc8c;
     }
-    float dist_end = end.x * plane_24[0] + end.y * plane_24[1] + end.z * plane_24[2] + plane_24[3];
+    float dist_end = end.x * plane_24.normal.x + end.y * plane_24.normal.y +
+                     end.z * plane_24.normal.z + plane_24.w;
     if (special != 0) {
         if (dist_end * dist_start > g_camera_snap_epsilon_005ebc2c) {
             if (contact_margin_40 < g_float_005ebb38 || dist_end < g_float_005ebb34) {
@@ -1889,12 +1891,12 @@ unsigned char W8GDSurface::ClampHitToEdge0041D9D0(const srVector3T<float>* point
     if (nearest_dist > *limit) {
         return 0;
     }
-    float offset =
-        -(point->x * plane_24[0] + point->y * plane_24[1] + point->z * plane_24[2] + plane_24[3]);
+    float offset = -(point->x * plane_24.normal.x + point->y * plane_24.normal.y +
+                     point->z * plane_24.normal.z + plane_24.w);
     srVector3T<float> projected;
-    projected.x = plane_24[0] * offset + point->x;
-    projected.y = plane_24[1] * offset + point->y;
-    projected.z = plane_24[2] * offset + point->z;
+    projected.x = plane_24.normal.x * offset + point->x;
+    projected.y = plane_24.normal.y * offset + point->y;
+    projected.z = plane_24.normal.z * offset + point->z;
     float edge_dist =
         PointToSegmentDistance00437540(&projected, vertices + vertex_indices_18[nearest_edge],
                                        vertices + vertex_indices_18[(nearest_edge + 1) % 3], 0, 0);
@@ -1905,7 +1907,7 @@ unsigned char W8GDSurface::ClampHitToEdge0041D9D0(const srVector3T<float>* point
         }
     }
     if ((flags_00 & 4) == 0) {
-        if (plane_24[1] < g_float_005ebc9c) {
+        if (plane_24.normal.y < g_float_005ebc9c) {
             edge_dist = edge_dist * g_navigator_linked_radius_scale_005ebc98;
         }
     } else {
@@ -1971,18 +1973,18 @@ unsigned char W8GDSurface::ResolveCollision0041DC10(srVector3T<float>* origin,
     }
     /* ProbePropsAlongMotion stores the prop's hit plane here; level surfaces
        leave it zero and use the embedded plane_24. */
-    const srVector4T<float>* override_plane = hit_plane_38;
+    const W8Plane* override_plane = hit_plane_38;
     srVector3T<float> normal;
     float plane_distance;
     if (override_plane == 0) {
-        normal.x = plane_24[0];
-        normal.y = plane_24[1];
-        normal.z = plane_24[2];
-        plane_distance = plane_24[3];
+        normal.x = plane_24.normal.x;
+        normal.y = plane_24.normal.y;
+        normal.z = plane_24.normal.z;
+        plane_distance = plane_24.w;
     } else {
-        normal.x = override_plane->x;
-        normal.y = override_plane->y;
-        normal.z = override_plane->z;
+        normal.x = override_plane->normal.x;
+        normal.y = override_plane->normal.y;
+        normal.z = override_plane->normal.z;
         plane_distance = override_plane->w;
     }
     float adjusted_d = plane_distance - distance_34;
@@ -2232,9 +2234,9 @@ unsigned char W8GDSurface::ApplyEnvironContact0041EA90(srVector3T<float>* direct
     level->sound_environment_0c = footstep_surface_3c;
     level->sound_environment_alt_0d = footstep_material_3d;
     srVector3T<float> normal;
-    normal.x = plane_24[0];
-    normal.y = plane_24[1];
-    normal.z = plane_24[2];
+    normal.x = plane_24.normal.x;
+    normal.y = plane_24.normal.y;
+    normal.z = plane_24.normal.z;
     float factor = g_environ_00652DB4->motion_factor_20;
     srVector3T<float> slide = g_environ_00652DB4->vector_24 * g_environ_00652DB4->scale_0c;
     srVector3T<float> unit = slide;

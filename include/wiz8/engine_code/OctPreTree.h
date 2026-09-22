@@ -2,6 +2,7 @@
 #define WIZ8_ENGINE_CODE_OCT_PRE_TREE_H
 
 #include "surrender/srMath.h"
+#include "wiz8/geometry.h"
 
 #include <stddef.h>
 
@@ -26,7 +27,7 @@ struct W8OctRegionVolume {
     /* Nine 12-byte points from +0x1c to +0x88; 0x004301C0 projects the first
        against the camera and falls back to the other eight. */
     srVector3T<float> points_1c[9];
-    srVector4T<float> planes_88[6];
+    W8Plane planes_88[6];
 
     unsigned char ContainsPoint0049E460(const srVector3T<float>* point) const;
 };
