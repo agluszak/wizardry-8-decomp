@@ -140,6 +140,9 @@ libraries:
       - "inflate 1.0.4 Copyright 1995-1996 Mark Adler"
     source:
       url: https://zlib.net/fossils/zlib-1.0.4.tar.gz
+      mirrors:
+        # Reviewed immutable mirror; serves the identical pinned archive.
+        - https://web.archive.org/web/2id_/https://zlib.net/fossils/zlib-1.0.4.tar.gz
       sha256: e5c260cd3db1370fb3e0c193e9cbd9f127a9bd055d622b3fb55b82747f6e5b24
       archive_root: zlib-1.0.4
     seed_variants:
