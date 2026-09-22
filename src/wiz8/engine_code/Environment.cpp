@@ -429,22 +429,22 @@ void UpdateEnvironmentLight004834B0(void)
 }
 
 // VTABLE: WIZ8 0x005EC94C
-// class srClassSupport<srFog,srFog,0,4624>
+// class srClientSupport<srFog,4624>
 
 // TEMPLATE: WIZ8 0x00484700
-// srClassSupport<srFog,srFog,0,4624>::getClassID
+// srClientSupport<srFog,4624>::getClassID
 
 // TEMPLATE: WIZ8 0x00484710
-// srClassSupport<srFog,srFog,0,4624>::getClassName
+// srClientSupport<srFog,4624>::getClassName
 
 // TEMPLATE: WIZ8 0x00484720
-// srClassSupport<srFog,srFog,0,4624>::getClassNode
+// srClientSupport<srFog,4624>::getClassNode
 
 // TEMPLATE: WIZ8 0x004847C0
-// srClassSupport<srFog,srFog,0,4624>::clone
+// srClientSupport<srFog,4624>::clone
 
 // SYNTHETIC: WIZ8 0x00484840
-// srClassSupport<srFog,srFog,0,4624>::`scalar deleting destructor'
+// srClientSupport<srFog,4624>::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x00483750
 void SetSkyEnabled(bool enabled)
@@ -1022,7 +1022,7 @@ void ApplyEnvironmentColour00483BA0(W8World* world, float intensity,
 
         if (node == 0) {
             node = registry->registerClass(
-                "stMaterial", srClassSupport<srMaterial, srMaterial, false, 8720>::sGetClassNode(),
+                "stMaterial", srClientSupport<srMaterial,8720>::sGetClassNode(),
                 0x10002, 0);
         }
         srMaterial* material = static_cast<srMaterial*>(

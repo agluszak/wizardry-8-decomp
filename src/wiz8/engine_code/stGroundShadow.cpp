@@ -141,7 +141,9 @@ stGroundShadow::stGroundShadow(const stGroundShadow& other)
     width_140 = other.width_140;
 }
 
-/* Retail ICF folds this onto stSurface2D::traverse at 0x004D6540. */
+/* Retail ICF folds this onto stSurface2D::traverse at 0x004D6540. No separate
+   FUNCTION claim: decomplint rejects FOLDED-before-primary when engine_code
+   sorts ahead of surface2d.cpp. */
 void stGroundShadow::traverse(TraverseInfo& info)
 {
     if (nextSibling() != 0) {

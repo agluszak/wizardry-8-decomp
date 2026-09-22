@@ -634,21 +634,21 @@ class W8Navigator;
 class srClipPlane;
 
 // VTABLE: WIZ8 0x005ed1b8
-// class W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>
+// class W8GrowableVector<srClientSupport<srClipPlane,5376>*>
 
 // TEMPLATE: WIZ8 0x00585340
-// W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>::W8GrowableVector
+// W8GrowableVector<srClientSupport<srClipPlane,5376>*>::W8GrowableVector
 
 // SYNTHETIC: WIZ8 0x004be030
-// W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>::`scalar deleting destructor'
+// W8GrowableVector<srClientSupport<srClipPlane,5376>*>::`scalar deleting destructor'
 
 /* Second emission of the same specialization's ctor (0x004BE050 sits beside
    this unit's other clip-plane vector emissions). */
 // TEMPLATE: WIZ8 0x004be050
-// W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>::W8GrowableVector
+// W8GrowableVector<srClientSupport<srClipPlane,5376>*>::W8GrowableVector
 
 // TEMPLATE: WIZ8 0x004bdfe0
-// W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>::~W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>
+// W8GrowableVector<srClientSupport<srClipPlane,5376>*>::~W8GrowableVector<srClientSupport<srClipPlane,5376>*>
 
 /* Engine Code\Monster.cpp's W8GrowableVector<W8AnimObj*> emission: the 0x1B
    elements at W8MonsterRep+0xAC (the per-cycle animations array) are built

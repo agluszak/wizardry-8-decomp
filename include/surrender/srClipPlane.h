@@ -7,16 +7,16 @@
    ctor/dtor registration dance proves the srClassSupport base (0x1500 under
    srNode's 0x1000). Wiz8's level reader establishes the four-float plane,
    clip mode, and complete size. Wiz8 constructs an ordinary
-   srClassSupport<srClipPlane, srClipPlane, ...> instantiation over this
-   imported class; its client-emitted registry slots and vtable are not
-   evidence for another authored class. */
+   srClientSupport<srClipPlane, ...> instantiation over this imported
+   class; its client-emitted registry slots and vtable are not evidence for
+   another authored class. */
 /* The Wiz8 consumer import table covers only the lifecycle/virtual members;
    the three small accessors below carry no IAT entry, so consumers expand
    them from the in-class bodies while the provider emits the standalone
    exports from clipplane.cpp. */
 class SR_DLL_IMPORT srClipPlane : public srClassSupport<srClipPlane, srNode, false, 0x1500> {
 public:
-    typedef srClassSupport<srClipPlane, srClipPlane, false, 0x1500> ClientType;
+    typedef srClientSupport<srClipPlane, 0x1500> ClientType;
 
     /* Dump prints +0x148 as a decimal "Clip type"; no name table. Wizardry
        always writes 0. */

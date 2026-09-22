@@ -3966,7 +3966,7 @@ stLight* FindLightByName00445A10(const char* name, const srRuntimeClass* relativ
 }
 
 // TEMPLATE: WIZ8 0x00445EF0
-// srClassSupport<srNode,srNode,0,4096>::getClassNode
+// srClientSupport<srNode,4096>::getClassNode
 
 // TEMPLATE: WIZ8 0x00445f30
 // srClassSupport<Trigger,srClass,1,65544>::getClassNode
