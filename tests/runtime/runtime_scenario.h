@@ -20,18 +20,7 @@ struct RuntimeObservation {
     unsigned char character_in_party;
     unsigned char main_game_entered;
     unsigned char party_moved;
-    unsigned char world_soaked;
     unsigned char case_passed;
-    unsigned char combat_started;
-    unsigned char combat_action_queued;
-    unsigned char combat_party_moved;
-    unsigned char combat_ended;
-    unsigned char combat_aggroed;
-    unsigned char monster_engaged;
-    unsigned char combat_attack_queued;
-    unsigned char party_attack_hit;
-    unsigned char target_damaged;
-    unsigned char party_cast_executed;
     unsigned char return_observed;
     unsigned char timed_out;
     int character_page_start;
@@ -41,7 +30,6 @@ struct RuntimeObservation {
     unsigned char skill_tooltip_shown;
     unsigned char skill_tooltip_removed;
     unsigned char skill_interacted;
-    unsigned char npc_state_reset_ok;
     unsigned char playlist_active;
     int playlist_tracks;
     int playlist_weight;
