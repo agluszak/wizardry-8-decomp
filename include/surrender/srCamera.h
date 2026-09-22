@@ -43,10 +43,7 @@ public:
     e_projectionResult project(srVector3T<float>& output, const srVector3T<double>& input);
     void setProjectionType(e_project projection);
     void normalizeViewPlane();
-    static const char* sGetClassName()
-    {
-        return "srCamera";
-    }
+    static const char* sGetClassName();
     void setEnvironmentScale(float near_scale, float far_scale);
     void setFocalLength(double focal_length, double aspect_ratio);
     void setFOV(double field_of_view, double aspect_ratio);
