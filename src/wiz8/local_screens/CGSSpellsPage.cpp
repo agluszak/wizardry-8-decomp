@@ -59,6 +59,8 @@ public:
     int m_y;                                  /* 0x5c */
 };
 static_assert(sizeof(W8CharacterSpellList) == 0x60, "W8CharacterSpellList_size");
+/* Retail secondary vftable 0x005ef610 places W8RangeListener at +0x34. */
+W8_ASSERT_BASE_END(W8CharacterSpellList, W8RangeListener, m_range, 0x34);
 
 W8CharacterSpellList::W8CharacterSpellList(Controls* owner, int x, int y,
                                            W8CharacterSpellEntry* entries, unsigned int* region_set)

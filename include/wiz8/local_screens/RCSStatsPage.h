@@ -35,6 +35,8 @@ public:
 
 static_assert(sizeof(W8CampStatsRange) == 8, "W8CampStatsRange_size");
 static_assert(sizeof(W8CampStatsControls) == 0x5c, "W8CampStatsControls_size");
+/* Retail secondary vftable 0x005ef534 places W8TextControl::Listener at +0x4c. */
+W8_ASSERT_BASE_END(W8CampStatsControls, W8TextControl::Listener, m_buttons, 0x4c);
 
 /* 0x005C48B0: camp page-1 renderer - attributes, traits and the effect list
    trigger; 0x005C5D80: camp page-2 renderer - the five skill categories. Both

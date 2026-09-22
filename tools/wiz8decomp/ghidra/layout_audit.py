@@ -132,6 +132,30 @@ def audit_source_layouts(program: Any, source_index: dict[str, Any]) -> dict[str
         if original is None:
             fail("missing-bound-class", name)
             continue
+        # A secondary or virtual base can move while sizeof stays identical;
+        # compare each bound base subobject's offset against the compiled one.
+        # offsetof cannot name a base, so this is the check that covers bases
+        # the compile-time member asserts cannot reach.
+        rebuilt_base_offsets = {}
+        for component in components:
+            if is_base(component):
+                base_name = str(unwrap(component.getDataType()).getDisplayName())
+                rebuilt_base_offsets.setdefault(base_name, []).append(component.getOffset())
+        for component in original.getDefinedComponents():
+            if not is_base(component):
+                continue
+            base_name = str(unwrap(component.getDataType()).getDisplayName())
+            offsets = rebuilt_base_offsets.get(base_name) or []
+            if component.getOffset() in offsets:
+                checks["bases"] += 1
+                continue
+            fail(
+                "base-offset",
+                name,
+                base_name,
+                expected=component.getOffset(),
+                actual=offsets,
+            )
         source_spans = flatten(rebuilt)
         for component in original.getDefinedComponents():
             field_name = component.getFieldName()

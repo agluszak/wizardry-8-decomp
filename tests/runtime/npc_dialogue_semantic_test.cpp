@@ -129,7 +129,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     g_message_queue_idle_68c501 = 1;
 
     g_pending_notice_68ee60.npc = fake_npc;
-    g_pending_notice_68ee60.item.item_id = -1;
+    g_pending_notice_68ee60.item.iItemNo = -1;
     g_pending_notice_68ee60.line = NOTICE_QUOTE;
     g_pending_notice_68ee60.flag = 0;
     g_pending_notice_68ee60.force = 0;

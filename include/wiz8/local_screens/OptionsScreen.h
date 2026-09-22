@@ -355,6 +355,22 @@ static_assert(sizeof(W8OptionsAudioPanel) == 0xa0, "W8OptionsAudioPanel_size");
 static_assert(sizeof(W8OptionsGraphicsPanel) == 0x7c, "W8OptionsGraphicsPanel_size");
 static_assert(sizeof(W8OptionsKeyboardPanel) == 0xb4, "W8OptionsKeyboardPanel_size");
 static_assert(sizeof(W8OptionsSaveLoadPanel) == 0x150, "W8OptionsSaveLoadPanel_size");
+/* Retail secondary vftables place W8HorizontalRangeThumbListener at +0x78 and
+   W8TextControl::Listener at +0x7c on the interface/audio panels; the first
+   own member follows at +0x80. */
+W8_ASSERT_BASE_END(W8OptionsInterfacePanel, W8TextControl::Listener, m_tooltip_delay, 0x7c);
+W8_ASSERT_BASE_END(W8OptionsAudioPanel, W8TextControl::Listener, m_sliders, 0x7c);
+/* W8OptionsGraphicsPanel adds no members, so its extent ends the
+   W8HorizontalRangeThumbListener subobject at +0x78. */
+W8_ASSERT_BASE_TAIL(W8OptionsGraphicsPanel, W8HorizontalRangeThumbListener, 0x78);
+/* The keyboard panel's secondary bases run W8TextControl::Listener at +0x78,
+   W8ControlSelectionListener at +0x7c, W8OptionsKeyCapture at +0x80 and
+   W8DialogCloseListener at +0x84; m_panel begins at +0x88. */
+W8_ASSERT_BASE_END(W8OptionsKeyboardPanel, W8DialogCloseListener, m_panel, 0x84);
+/* The save/load panel's secondary bases run W8TextControl::Listener at +0x78,
+   W8DialogCloseListener at +0x7c, W8OptionsTextEditor::Listener at +0x80,
+   W8OptionsSaveRowListener at +0x84 and W8ControlSelectionListener at +0x88. */
+W8_ASSERT_BASE_END(W8OptionsSaveLoadPanel, W8ControlSelectionListener, m_panel, 0x88);
 
 /* The 0xc0-byte menu-row class constructed at 0x005A7370.  It is a concrete
    W8TextControl with an independent listener subobject and a source-table item
@@ -372,6 +388,8 @@ public:
 };
 
 static_assert(sizeof(W8OptionsMenuButton) == 0xc0, "W8OptionsMenuButton_must_be_0xc0");
+/* Retail secondary vftable 0x005eed34 places W8TextControl::Listener at +0xb8. */
+W8_ASSERT_BASE_END(W8OptionsMenuButton, W8TextControl::Listener, m_item_id_0bc, 0xb8);
 
 /* The 0x60-byte controls-derived menu-set object constructed at 0x005A8C90.
    Its independent allocation, constructor, secondary listener vptr, and the
@@ -394,6 +412,8 @@ public:
 };
 
 static_assert(sizeof(W8OptionsMenuSet) == 0x60, "W8OptionsMenuSet_must_be_0x60");
+/* Retail secondary vftable 0x005eefe4 places W8TextControl::Listener at +0x4c. */
+W8_ASSERT_BASE_END(W8OptionsMenuSet, W8TextControl::Listener, m_pMenuSet, 0x4c);
 
 /* Local Screens\OptionsScreen.cpp owns the state-10 controller.  Its source
    identity is established by the m_pMenuSet assertion at 0x005A8F14; the
@@ -439,6 +459,9 @@ public:
 };
 
 static_assert(sizeof(W8OptionsScreen) == 0x64, "W8OptionsScreen_must_be_0x64");
+/* Retail secondary vftables place W8TextControl::Listener at +0x4 and
+   W8DialogCloseListener at +0x8; the first own member follows at +0x0c. */
+W8_ASSERT_BASE_END(W8OptionsScreen, W8DialogCloseListener, m_save_slots, 0x8);
 
 extern W8OptionsScreen* g_options_screen_0069c254;
 extern wchar_t g_options_last_save_name_0069c1cc[64];

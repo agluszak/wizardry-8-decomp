@@ -87,6 +87,8 @@ public:
     W8RangeListener* m_range_listener_0bc;
 };
 static_assert(sizeof(W8MainGameTextKeyHandler) == 0xc0, "W8MainGameTextKeyHandler_size");
+/* The secondary W8RangeListener subobject sits at +0x34. */
+W8_ASSERT_BASE_END(W8MainGameTextKeyHandler, W8RangeListener, m_range_038, 0x34);
 
 /* 0xc0-byte text-panel cell. W8TextControl is 0xb8; the extra dword at +0xb8
    holds the displayed catalog image (or -1) and +0xbc gates mouse handling.
@@ -145,6 +147,9 @@ public:
     unsigned char m_pad_142[2];
 };
 static_assert(sizeof(W8MainGameTextPanel) == 0x144, "W8MainGameTextPanel_size");
+/* Retail secondary vftable 0x005eeba0 places W8TextControl::Listener at +0x4c
+   and W8RangeListener at +0x50; the panel's own members begin at +0x54. */
+W8_ASSERT_BASE_END(W8MainGameTextPanel, W8RangeListener, m_entries_054, 0x50);
 
 /* The 0x00588A90 constructor establishes a Controls-derived status panel.
    Ordinary destructor 0x00588DB0; 0x00588D90 is the scalar deleting wrapper. */
@@ -340,6 +345,9 @@ public:
     W8LockTumblerPanelListener* m_listener_e8; /* 0xe8 */
 };
 static_assert(sizeof(W8LockTumblerPanel) == 0xec, "W8LockTumblerPanel_size");
+/* The secondary W8LockTumblerListener subobject sits at +0x4c (secondary
+   vftable 0x005eeaa8). */
+W8_ASSERT_BASE_END(W8LockTumblerPanel, W8LockTumblerListener, m_tumbler_count_50, 0x4c);
 static_assert(offsetof(W8LockTumblerPanel, m_tumblers_54) == 0x54, "W8LockTumblerPanel_tumblers");
 static_assert(offsetof(W8LockTumblerPanel, m_listener_e8) == 0xe8, "W8LockTumblerPanel_listener");
 
@@ -412,6 +420,8 @@ public:
     W8GameTimer m_timer_80;               /* 0x80: state-8 completion delay */
 };
 static_assert(sizeof(W8LockInteraction) == 0xa4, "W8LockInteraction_size");
+/* Retail secondary vftable 0x005eead0 places W8TextControl::Listener at +0x4. */
+W8_ASSERT_BASE_END(W8LockInteraction, W8TextControl::Listener, m_trigger_08, 0x4);
 static_assert(offsetof(W8LockInteraction, m_trigger_08) == 0x08, "W8LockInteraction_trigger");
 static_assert(offsetof(W8LockInteraction, m_tumbler_panel_10) == 0x10,
               "W8LockInteraction_tumbler_panel");
@@ -465,6 +475,8 @@ public:
     W8GameTimer m_timer_154;
 };
 static_assert(sizeof(W8MainGameScreen) == 0x178, "W8MainGameScreen_size");
+/* Retail secondary vftable 0x005eebd0 places W8TextControl::Listener at +0x4. */
+W8_ASSERT_BASE_END(W8MainGameScreen, W8TextControl::Listener, m_owner_008, 0x4);
 
 extern W8LevelRuntimeBlock* g_level_block;
 extern W8MainGameScreen* g_main_game_screen;
