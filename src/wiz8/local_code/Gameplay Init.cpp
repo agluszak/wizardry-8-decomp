@@ -324,6 +324,7 @@ void DestroyGameplayObjects(void)
         gXStatus.character_event_queue = 0;
     }
     if (gXStatus.gameplay_timer) {
+        delete gXStatus.gameplay_timer;
         gXStatus.gameplay_timer = 0;
     }
 }
