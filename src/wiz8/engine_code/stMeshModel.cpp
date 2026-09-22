@@ -123,7 +123,7 @@ stMeshModel::~stMeshModel()
         lerp_buffer_448 = 0;
     }
     if (automap_polygons != 0) {
-        delete automap_polygons;
+        delete[] automap_polygons;
         automap_polygons = 0;
     }
     if (skin_blanking_apt_458 != 0) {
