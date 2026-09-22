@@ -1267,15 +1267,11 @@ void EndNpcDialogueSession0056E800(int param_1)
        controls (dialogue_text_10c..dialogue_text_1a4) through the virtual
        one. The members stay dangling until the next dialogue rebuilds them. */
     int i;
-    Controls** panel = reinterpret_cast<
-        Controls**>( // reinterpret-ok: contiguous pointer-member run the retail loop walks
-        &g_screen_state_00649f1c->panel_1a8);
+    Controls** panel = g_screen_state_00649f1c->DialoguePanels();
     for (i = 0; i < 7; i++) {
         delete panel[i];
     }
-    W8Widget** control = reinterpret_cast<
-        W8Widget**>( // reinterpret-ok: contiguous pointer-member run the retail loop walks
-        &g_screen_state_00649f1c->dialogue_text_10c);
+    W8Widget** control = g_screen_state_00649f1c->DialogueControls();
     for (i = 0; i < 39; i++) {
         delete control[i];
     }
@@ -1353,9 +1349,7 @@ void ActivateNpcDialoguePanels0056ECF0(unsigned char active)
 {
     bool redraw_scroll = false;
     if (g_screen_state_00649f1c->scripted_dialogue == 0) {
-        Controls** panel = reinterpret_cast<
-            Controls**>( // reinterpret-ok: contiguous pointer-member run the retail loop walks
-            &g_screen_state_00649f1c->panel_1a8);
+        Controls** panel = g_screen_state_00649f1c->DialoguePanels();
         for (int i = 0; i < 7; i++) {
             if (panel[i]->m_fEnabled != 0) {
                 if (active != 0) {
@@ -1381,9 +1375,7 @@ void ActivateNpcDialoguePanels0056ECF0(unsigned char active)
 bool HasNpcDialogueDirtyPanels0056ED80(void)
 {
     if (g_screen_state_00649f1c->scripted_dialogue == 0) {
-        Controls** panel = reinterpret_cast<
-            Controls**>( // reinterpret-ok: contiguous pointer-member run the retail loop walks
-            &g_screen_state_00649f1c->panel_1a8);
+        Controls** panel = g_screen_state_00649f1c->DialoguePanels();
         for (int i = 0; i < 7; i++) {
             if (panel[i]->m_fEnabled != 0 &&
                 (panel[i]->m_fDirty != 0 || panel[i]->m_fLayoutDirty != 0)) {
@@ -1491,9 +1483,7 @@ unsigned char MainScreenControlRegionEvent(const InputAtom* event, W8Region* reg
     if (callback_id == 0x27) {
         return 0;
     }
-    control =
-        // reinterpret-ok: retail indexes contiguous control* slots from dialogue_text_10c
-        reinterpret_cast<W8Widget**>(&g_screen_state_00649f1c->dialogue_text_10c)[callback_id];
+    control = g_screen_state_00649f1c->DialogueControls()[callback_id];
     if (control == 0) {
         return 0;
     }

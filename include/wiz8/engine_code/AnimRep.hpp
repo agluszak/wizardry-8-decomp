@@ -10,7 +10,15 @@ struct W8ModelInstance3DRenderState {
     float highlight_red;
     float highlight_green;
     float highlight_blue;
-    float highlight_alpha;
+    /* PurgeInactiveSceneInstances reads a single byte at this offset as the
+       instance's display state (CMP byte ptr [node+0x170],3) while the rest
+       of the engine writes the dword as the alpha float; the byte aliases
+       the float's low byte. */
+    // union-ok: positive source evidence: authored dword float writes plus a CMP byte ptr read target the same storage at +0x170
+    union {
+        float highlight_alpha;
+        unsigned char display_state_low;
+    };
 };
 
 /* The 2D instance has a different sixteen-byte block at the same class offset. */

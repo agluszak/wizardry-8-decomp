@@ -7,15 +7,14 @@ struct W8NamedPosition {
     {
         name[0] = '\0';
         position.SetZero();
-        angle_bits_08c = 0;
+        angle_08c = 0.0f;
         direction_090.SetZero();
     }
 
     char name[0x80];
     srVector3T<float> position;
-    /* Stored as int bits and returned through a float* out-param by
-       FindEntityByName. */
-    int angle_bits_08c;
+    /* Returned through the float* angle out-param of FindEntityByName. */
+    float angle_08c;
     srVector3T<float> direction_090;
 };
 

@@ -332,6 +332,31 @@ struct W8MainScreenState {
     bool dialogue_panel_hidden; /* 0x262 */
     unsigned char unknown_263;
     int last_notice_npc_kind; /* 0x264 */
+
+    /* The dialogue teardown deletes the seven panel slots
+       panel_1a8..text_input_panel_1c0 through the non-virtual Controls
+       destructor in an indexed loop; ActivateNpcDialoguePanels0056ECF0 and
+       HasNpcDialogueDirtyPanels0056ED80 walk the same run. The accessor
+       keeps that contiguous member-run reinterpretation inside the type. */
+    Controls** DialoguePanels()
+    {
+        // reinterpret-ok: contiguous Controls* member run retail indexes as an array
+        return reinterpret_cast<Controls**>(&panel_1a8);
+    }
+
+    /* The same teardown deletes the control-pointer run
+       dialogue_text_10c..dialogue_text_1a4 through the virtual W8Widget
+       destructor, and MainScreenControlRegionEvent indexes it by region
+       callback id. The accessor keeps that member-run reinterpretation
+       inside the type. */
+    W8Widget** DialogueControls()
+    {
+        /* Contiguous member run of mixed W8Widget-derived pointer slots (and
+           dead slots) that retail indexes as an array; the void* hop spells
+           raw storage reinterpretation, not a record-type conversion. */
+        // reinterpret-ok: heterogeneous pointer-slot member run indexed as W8Widget* array
+        return reinterpret_cast<W8Widget**>(static_cast<void*>(&dialogue_text_10c));
+    }
 };
 static_assert(sizeof(W8MainScreenState) == 0x268, "W8MainScreenState_size");
 static_assert(offsetof(W8MainScreenState, dialogue_scroll_up_button) == 0x134,

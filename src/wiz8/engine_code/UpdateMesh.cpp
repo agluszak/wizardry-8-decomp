@@ -349,17 +349,12 @@ void UpdateWorldMeshFromQuads004BAD40(W8World* world)
                 cell->dirty_stamp_08 = quad->dirty;
                 long object_count = static_cast<long>(PLLength(cell->objects));
                 for (j = 0; j < object_count; ++j) {
-                    char* item = static_cast<char*>(PLGet(cell->objects, j));
-                    if (item[0] == 1) {
-                        long entry =
-                            *reinterpret_cast< // reinterpret-ok: quad-cell object elements are never populated in retail; element layout is unresolved
-                                long*>(item + 0x14);
+                    W8QuadCellObject* item =
+                        static_cast<W8QuadCellObject*>(PLGet(cell->objects, j));
+                    if (item->kind_000 == 1) {
                         void** nodes =
-                            *reinterpret_cast< // reinterpret-ok: embedded pair-table at +0x1c resolved by retail offset
-                                void***>(item + entry * 8 + 0x1c);
-                        long slot = *reinterpret_cast< // reinterpret-ok: slot index field at +0x30
-                            long*>(item + 0x30);
-                        PLAdoptAppend(&world->m_list_09c, nodes[slot]);
+                            static_cast<void**>(item->pairs_01c[item->pair_index_014].node_table);
+                        PLAdoptAppend(&world->m_list_09c, nodes[item->node_slot_030]);
                     }
                 }
             }

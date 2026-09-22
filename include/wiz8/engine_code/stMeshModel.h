@@ -5,8 +5,6 @@
 #include "wiz8/vector.h"
 #include "surrender/srTypeRegistry.h"
 
-struct W8EncounterScriptName;
-
 /* Engine Code\stMeshModel.cpp. Only fields reached by reviewed bodies are
    modeled. The two short-vector pairs are parallel key/value tables; their
    semantic domain is not established, so the names stay positional. */
@@ -74,8 +72,7 @@ public:
                                   srVector3T<float>* destination); /* 0x00471930 */
     void ComputeFrameNormals(int frame);                           /* 0x004729F0 */
     void ClearAutomapPolygonFilter();
-    void
-    ApplyAutomapPolygonFilter(const W8GrowableVector<W8EncounterScriptName*>* excluded_textures);
+    void ApplyAutomapPolygonFilter(const W8GrowableVector<char*>* excluded_textures);
 
     stMeshModel* next;     /* 0x398 */
     stMeshModel* previous; /* 0x39c */
