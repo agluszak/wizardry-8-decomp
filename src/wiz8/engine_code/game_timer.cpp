@@ -13,14 +13,22 @@
    The globals live at 0x006598B8..0x006598D2 and are declared, not defined:
    their addresses in the original data segment are the authority. */
 
-srTimer* g_shared_timer_base;         /* 0x006598B8 */
-srTimer* g_shared_timer;              /* 0x006598C0 */
-int g_shared_timer_pause_base;        /* 0x006598C4 */
-int g_shared_timer_pause_time;        /* 0x006598C8 */
-int g_shared_timer_refs;              /* 0x006598CC */
-unsigned char g_shared_timer_paused;  /* 0x006598D0 */
-unsigned char g_shared_timer_flag_d1; /* 0x006598D1 */
-unsigned char g_shared_timer_flag_d2; /* 0x006598D2 */
+// GLOBAL: WIZ8 0x006598B8
+srTimer* g_shared_timer_base;
+// GLOBAL: WIZ8 0x006598C0
+srTimer* g_shared_timer;
+// GLOBAL: WIZ8 0x006598C4
+int g_shared_timer_pause_base;
+// GLOBAL: WIZ8 0x006598C8
+int g_shared_timer_pause_time;
+// GLOBAL: WIZ8 0x006598CC
+int g_shared_timer_refs;
+// GLOBAL: WIZ8 0x006598D0
+unsigned char g_shared_timer_paused;
+// GLOBAL: WIZ8 0x006598D1
+unsigned char g_shared_timer_flag_d1;
+// GLOBAL: WIZ8 0x006598D2
+unsigned char g_shared_timer_flag_d2;
 
 // GLOBAL: WIZ8 0x005ec0a8
 const float g_float_005ec0a8 = 10000.0f;

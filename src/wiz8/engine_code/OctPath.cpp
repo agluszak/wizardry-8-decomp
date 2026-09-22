@@ -6775,6 +6775,7 @@ struct W8PathParameter {
     float* value;
 };
 
+// GLOBAL: WIZ8 0x0060FA18
 static W8PathParameter g_path_parameters[] = {
     {"ACCELERATION_FACTOR", &g_path_acceleration_factor_0060f9e8},
     {"ANGULAR_ACCEL_FACTOR", &g_path_angular_acceleration_factor_0060f9ec},
@@ -6788,6 +6789,8 @@ static W8PathParameter g_path_parameters[] = {
     {"PARTY_BOUNDARY_RADIUS", &g_path_party_boundary_radius_0060fa0c},
     {"OBSTACLE_STEER_FACTOR", &g_path_obstacle_steering_factor_0060fa10},
     {"OBSTACLE_BRAKE_FACTOR", &g_path_obstacle_braking_factor_0060fa14},
+    {"MIN_ANIMATION_RATE", &g_navigator_minimum_speed_006081ec},
+    {"FLY_SWIM_MIN_ANIM_RATE", &g_navigator_minimum_speed_mode23_006081f0},
     {0, 0}};
 
 // FUNCTION: WIZ8 0x004cae40

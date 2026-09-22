@@ -172,6 +172,7 @@ struct W8ItemLevelScaleRange {
     unsigned int maximum_item_value;
 };
 
+// GLOBAL: WIZ8 0x00617CE0
 static const W8ItemLevelScaleRange g_item_level_scale_ranges[7] = {
     {1, 0, 500},      {6, 50, 1000},    {11, 100, 3000},     {16, 300, 5000},
     {21, 600, 10000}, {26, 800, 20000}, {31, 1000, 1000000},
