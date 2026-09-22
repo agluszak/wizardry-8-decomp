@@ -1663,8 +1663,10 @@ void stMeshModel::FinalizeVertexFrame00473180(int frame)
 // SYNTHETIC: WIZ8 0x00474DB0
 // W8GrowableVector<short>::`scalar deleting destructor'
 
+/* Stores table 0x005EC518, the W8GrowableVector<W8VectorElement005EC514*>
+   specialization's one-slot table - not 0x005EC514 of W8GrowableVector<stMeshModel*>. */
 // SYNTHETIC: WIZ8 0x00474DE0
-// W8GrowableVector<stMeshModel*>::`scalar deleting destructor'
+// W8GrowableVector<W8VectorElement005EC514*>::`scalar deleting destructor'
 
 // SYNTHETIC: WIZ8 0x00474E60
 // W8GrowableVector<int*>::`scalar deleting destructor'

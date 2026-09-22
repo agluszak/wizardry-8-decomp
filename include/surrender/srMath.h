@@ -164,8 +164,8 @@ template <class T> srVector3T<T>& srVector3T<T>::operator-=(const srVector3T<T>&
     return *this;
 }
 
-// TEMPLATE: SURRENDER 0x10055480
-// srVector3T<double>::operator*=
+// TEMPLATE: SURRENDER 0x10055480 SYMBOL
+// ??X?$srVector3T@N@@QAEAAV0@ABV0@@Z
 template <class T> srVector3T<T>& srVector3T<T>::operator*=(const srVector3T<T>& other)
 {
     x = other.x * x;

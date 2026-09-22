@@ -1,0 +1,8 @@
+# Per-TU duplicate COMDAT emissions proven instruction-identical to the
+# canonical body, modulo the stored vftable operand. Each duplicate vftable
+# is a one-slot table pointing back at its own destructor emission.
+# member_orig_address|canonical_orig_address|name|kind
+0x00474e90|0x0042bb70|W8GrowableVector<int>::`scalar deleting destructor'|function
+0x005ec508|0x005ebfe0|W8GrowableVector<int> vftable|data
+0x00474e60|0x0052a2c0|W8GrowableVector<int*>::`scalar deleting destructor'|function
+0x005ec50c|0x005ed894|W8GrowableVector<int*> vftable|data
