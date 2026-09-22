@@ -10,6 +10,10 @@ class srFileManager {
 public:
     class Path {
     public:
+        /* Compiler-generated memberwise copy required by the dllexport model:
+           shallow-copies the owned name_00 and the intrusive list links;
+           unsafe as ordinary assignment and not called by any known
+           consumer. */
         SR_DLL_IMPORT Path& operator=(const Path& other);
 
         SR_DLL_IMPORT const char* getName() const;
