@@ -231,11 +231,21 @@ public:
             return *this;
         }
 
-        /* Retail emits one allocation emission per element type: the
-           srPtr/srShader copies default-construct every element while the POD
-           copies allocate only, exactly as VC6 lowers an array new through
-           srHeap. */
-        static T* Allocate(long elements)
+        /* Retail emits one allocation emission per element type, each a
+           thiscall on the table (the member never reads it): the srPtr/srShader
+           copies default-construct every element while the POD copies allocate
+           only, exactly as VC6 lowers an array new through srHeap. */
+        // TEMPLATE: SURRENDER 0x10043CA0
+        // srMeshModel::MeshTable<srVector3i>::Allocate
+        // TEMPLATE: SURRENDER 0x10043D00
+        // srMeshModel::MeshTable<srVector4T<float> >::Allocate
+        // TEMPLATE: SURRENDER 0x10043D50
+        // srMeshModel::MeshTable<srVector2T<float> >::Allocate
+        // TEMPLATE: SURRENDER 0x10043DB0
+        // srMeshModel::MeshTable<srVector3T<float> >::Allocate
+        // TEMPLATE: SURRENDER 0x10044E10
+        // srMeshModel::MeshTable<unsigned long>::Allocate
+        T* Allocate(long elements)
         {
             T* replacement = static_cast<T*>(srHeap.allocate(elements * sizeof(T)));
             for (long index = 0; index < elements; ++index) {
@@ -246,7 +256,20 @@ public:
 
         /* Release each element, free the allocation, and zero the pair; the
            srPtr copies emit per-element releases while POD copies fold to a
-           bare free. */
+           bare free. Retail also emits standalone destructor copies for the
+           unwind funclets; those fold to this same leaf shape. */
+        // TEMPLATE: SURRENDER 0x10042D30
+        // srMeshModel::MeshTable<srShader>::Release
+        // TEMPLATE: SURRENDER 0x10043100
+        // srMeshModel::MeshTable<srVector3i>::Release
+        // TEMPLATE: SURRENDER 0x10043300
+        // srMeshModel::MeshTable<srVector4T<float> >::Release
+        // TEMPLATE: SURRENDER 0x100434E0
+        // srMeshModel::MeshTable<srVector2T<float> >::Release
+        // TEMPLATE: SURRENDER 0x100436D0
+        // srMeshModel::MeshTable<srVector3T<float> >::Release
+        // TEMPLATE: SURRENDER 0x100438A0
+        // srMeshModel::MeshTable<unsigned long>::Release
         void Release()
         {
             for (long index = 0; index < count; ++index) {
