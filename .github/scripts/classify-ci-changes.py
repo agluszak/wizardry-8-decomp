@@ -99,9 +99,8 @@ def classify(paths: Iterable[str]) -> dict[str, bool]:
         if _matches(path, _SURRENDER_PREFIXES):
             surrender = True
 
-        if (
-            _matches(path, _ANALYSIS_PREFIXES)
-            or path.startswith(("evidence/reviewed/", "tools/ghidra/"))
+        if _matches(path, _ANALYSIS_PREFIXES) or path.startswith(
+            ("evidence/reviewed/", "tools/ghidra/")
         ):
             analysis = True
 
