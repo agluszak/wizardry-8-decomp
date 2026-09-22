@@ -927,6 +927,9 @@ static bool SaveLoadMoveCase(RuntimeCase& test)
     RT_REQUIRE(test, MoveUntilDisplaced(test, W8_MGS_COMMAND_MOVE_FORWARD, "moved-before-save"));
     RuntimeCheckpoint saved;
     RT_REQUIRE(test, QuickSave(test, saved));
+    test.observe("quick_slot", saved.quick_slot);
+    test.observe("saved_x", saved.anchor.position.x);
+    test.observe("saved_z", saved.anchor.position.z);
     RT_REQUIRE(test, MoveAwayFrom(test, W8_MGS_COMMAND_MOVE_BACKWARD, saved, "moved-after-save"));
     RT_REQUIRE(test, QuickLoad(test, saved));
     RT_REQUIRE(test, ExpectRestoredPosition(test, saved));
@@ -1065,6 +1068,15 @@ static bool MenuStartupCase(RuntimeCase& test)
     memset(&checks, 0, sizeof(checks));
     RT_REQUIRE(test,
                test.on_game_thread("main-menu-checks", ReadMenuChecksOnGameThread, &checks, 5000));
+    test.observe("menu_state", checks.menu_state);
+    test.observe("region_set_enabled", checks.region_set_enabled);
+    test.observe("first_region", checks.first_region);
+    test.observe("last_region", checks.last_region);
+    test.observe("playlist_tracks", checks.playlist_tracks);
+    test.observe("patch_catalog_count", checks.patch_catalog_count);
+    test.observe("item_database_count", checks.item_database_count);
+    test.observe("monster_database_count", checks.monster_database_count);
+    test.observe("npc_database_count", checks.npc_database_count);
     if (checks.menu_state != W8_SCREEN_MAIN_MENU || checks.region_set_enabled == 0 ||
         checks.playlist_active == 0 || checks.playlist_tracks <= 0 ||
         checks.patch_precedence_ok == 0 || checks.physical_fallback_ok == 0 ||

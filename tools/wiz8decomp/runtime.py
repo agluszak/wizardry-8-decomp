@@ -35,6 +35,7 @@ def _managed_link(source: Path, destination: Path) -> None:
 
 
 RUNTIME_OBSERVATION = re.compile(r"^WIZ8_RUNTIME_TEST (?P<fields>.+)$")
+RUNTIME_OBSERVE = re.compile(r"^WIZ8_RUNTIME_OBSERVE (?P<fields>.+)$", re.MULTILINE)
 RUNTIME_SESSION = re.compile(r"^WIZ8_RUNTIME_SESSION (?P<fields>.+)$", re.MULTILINE)
 RUNTIME_FAILURE = re.compile(r"^WIZ8_RUNTIME_FAILURE (?P<fields>.+)$", re.MULTILINE)
 RUNTIME_STEP = re.compile(r"^WIZ8_RUNTIME_STEP (?P<fields>.+)$", re.MULTILINE)
@@ -687,12 +688,24 @@ _OBSERVATION_VOLATILE_KEYS = frozenset({"failure", "history"})
 _OBSERVATION_TOLERANCES: dict[str, int] = {}
 
 
-def _semantic_observation(observation: Mapping[str, Any]) -> dict[str, Any]:
-    return {
+def _semantic_observation(
+    observation: Mapping[str, Any], *, include_history: bool = False
+) -> dict[str, Any]:
+    semantic = {
         key: value
         for key, value in observation.items()
         if key not in _OBSERVATION_VOLATILE_KEYS and not key.endswith("_ms")
     }
+    if include_history:
+        # The sequence of completed action names is semantic: ["saved",
+        # "restored"] versus ["saved"] is meaningful nondeterminism, while
+        # the timings and positions each action carried are not.
+        history = observation.get("history")
+        if isinstance(history, list):
+            semantic["history_actions"] = [
+                entry.get("action") for entry in history if isinstance(entry, Mapping)
+            ]
+    return semantic
 
 
 def _observation_differences(baseline: Mapping[str, Any], repeated: Mapping[str, Any]) -> list[str]:
@@ -732,9 +745,11 @@ def _compare_repetitions(scenario: str, outcomes: list[dict[str, Any]]) -> list[
             f"{len(outcomes) - len(passed)} failed"
         )
     if len(passed) >= 2:
-        baseline = _semantic_observation(passed[0])
+        baseline = _semantic_observation(passed[0], include_history=True)
         for index, observation in enumerate(passed[1:], start=2):
-            differences = _observation_differences(baseline, _semantic_observation(observation))
+            differences = _observation_differences(
+                baseline, _semantic_observation(observation, include_history=True)
+            )
             if differences:
                 problems.append(
                     f"{scenario}: repetition {index} disagrees with the first run: "
@@ -885,13 +900,21 @@ def configure_wine_window_management(
     )
 
 
-def _parse_runtime_observation_fields(fields: str) -> dict[str, str | int]:
-    parsed: dict[str, str | int] = {}
+_OBSERVATION_FLOAT_VALUE = re.compile(r"-?\d+\.\d+([eE][+-]?\d+)?|-?\d+[eE][+-]?\d+")
+
+
+def _parse_runtime_observation_fields(fields: str) -> dict[str, str | int | float]:
+    parsed: dict[str, str | int | float] = {}
     for item in fields.split():
         key, separator, value = item.partition("=")
         if not separator:
             raise RuntimeError(f"malformed runtime observation field: {item}")
-        parsed[key] = int(value) if value.lstrip("-").isdigit() else value
+        if value.lstrip("-").isdigit():
+            parsed[key] = int(value)
+        elif _OBSERVATION_FLOAT_VALUE.fullmatch(value):
+            parsed[key] = float(value)
+        else:
+            parsed[key] = value
     return parsed
 
 
@@ -917,6 +940,22 @@ def _parse_runtime_observations(stdout: str) -> dict[str, dict[str, Any]]:
             if isinstance(scenario, str):
                 observations[scenario] = fields
     return observations
+
+
+def _merge_case_observations(observation: dict[str, Any], stdout: str, scenario: str) -> None:
+    """Fold a case's RuntimeCase.observe() emissions into its record.
+
+    The executable prints WIZ8_RUNTIME_OBSERVE lines as the case runs, each a
+    typed name/value pair the case chose to expose. They land in the
+    observation record under obs.<name> so repetition and order checks
+    compare actual semantic outputs instead of only pass/fail."""
+    for match in RUNTIME_OBSERVE.finditer(stdout):
+        fields = _parse_runtime_observation_fields(match.group("fields"))
+        if fields.get("scenario") != scenario or "name" not in fields:
+            continue
+        name = fields["name"]
+        if isinstance(name, str):
+            observation[f"obs.{name}"] = fields.get("value")
 
 
 @dataclass
@@ -1093,6 +1132,7 @@ def _run_runtime_scenario(
     try:
         observation = _parse_runtime_observation(result.stdout)
         observation["history"] = _runtime_history(result.stderr, scenario)
+        _merge_case_observations(observation, result.stdout, scenario)
     except RuntimeError as error:
         raise _runtime_failure(
             scenario,
@@ -1147,6 +1187,7 @@ def _run_runtime_batch(
     observations = _parse_runtime_observations(result.stdout)
     for name, observation in observations.items():
         observation["history"] = _runtime_history(result.stderr, name)
+        _merge_case_observations(observation, result.stdout, name)
     missing = [name for name in scenarios if name not in observations]
     error: str | None = None
     if result.timed_out or result.failed_early or missing:

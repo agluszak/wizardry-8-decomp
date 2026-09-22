@@ -133,6 +133,20 @@ public:
     GameplayWait wait_gameplay_ready(unsigned long budget_ms, const char* step);
     const GameplayReadyCheck& last_ready_check() const;
 
+    /* Typed case-local observations: each call emits a WIZ8_RUNTIME_OBSERVE
+       line the runner folds into the case's observation record as
+       obs.<name>, where repetition and order checks compare it. Names and
+       string values must not contain whitespace. */
+    void observe(const char* name, int value);
+    void observe(const char* name, unsigned int value);
+    void observe(const char* name, long value);
+    void observe(const char* name, unsigned long value);
+    void observe(const char* name, double value);
+    void observe(const char* name, const char* value);
+    /* observe(actual) plus a named expectation failure when they differ. */
+    bool expect_eq(const char* name, long expected_value, long actual_value);
+    bool expect_eq(const char* name, const char* expected_value, const char* actual_value);
+
     /* Schedules fn on the game thread, then records a pass step or fails with
        required-invariant-failed. */
     bool run_invariant(const char* step, bool (*fn)(void* ctx), void* ctx,
@@ -162,6 +176,8 @@ private:
     unsigned long event_seen_[RUNTIME_EVENT_KIND_COUNT];
     const char* fixture_name_;
     const char* fixture_path_;
+    void observe_long(const char* name, long value);
+    void observe_ulong(const char* name, unsigned long value);
 };
 
 /* Free helpers moved out of wiz8_runtime_test.cpp: every game-state touch
