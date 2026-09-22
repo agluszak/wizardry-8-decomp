@@ -2502,7 +2502,7 @@ static DWORD RunCharacterFlow(CharacterFlow flow)
                         "skip=%u router=%d\n",
                         observed_state, *(volatile int*)&g_pending_screen_state.id,
                         *(volatile unsigned long*)&g_intro_video_index,
-                        g_status_685170.skip_loose_character_check_2444, g_value_68de50);
+                        g_status_685170.skip_loose_character_check_2444, g_wiz7_ending_68de50);
                 fflush(stderr);
             }
             if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
