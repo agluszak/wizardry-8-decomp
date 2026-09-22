@@ -478,7 +478,7 @@ stModelInstance::stModelInstance(srNode* parent)
     render_state_164.highlight_blue = 0.0f;
     render_state_164.highlight_alpha = 0.0f;
     render_flags_178 = 0;
-    mesh_index_17c = static_cast<unsigned long>(-1);
+    mesh_index_17c = -1;
     frame_index_180 = 0;
     highlight_pass_mode_190 = 0;
     if (parent != 0) {

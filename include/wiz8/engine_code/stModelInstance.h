@@ -61,7 +61,7 @@ public:
        render-state RGBA and installs it as the pass material. */
     srMaterial* retained_174;
     unsigned long render_flags_178;
-    unsigned long mesh_index_17c;
+    long mesh_index_17c;
     unsigned int frame_index_180;
     int damage_stage_184;
     srHeapArray<int> damage_stage_tables_188;
