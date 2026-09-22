@@ -1,4 +1,6 @@
 #include "surrender/srMeshModel.h"
+#include <string.h>
+#pragma intrinsic(memset)
 
 /* Bounds-checked pass/side slots. Retail rejects out-of-range indices and
    leaves the slot untouched; setMaterial/setTexture keep the reference
@@ -516,8 +518,91 @@ void srMeshModel::freeAll()
     }
 }
 
+// FUNCTION: SURRENDER 0x1003CF30
+srMeshModel::srMeshModel(long polygons, long vertices)
+{
+    control_state_390 = 0;
+    control_state_394 = 0;
+    memset(&tri_mesh_23c, 0, sizeof(tri_mesh_23c));
+    reset(polygons, vertices);
+    sort_bias_238 = 0.0f;
+    for (long pass = 0; pass < 4; ++pass) {
+        materials_1c[pass][0] = 0;
+        materials_1c[pass][1] = 0;
+        textures_3c[pass][0] = 0;
+        textures_3c[pass][1] = 0;
+        shaders_5c[pass] = srShader();
+    }
+}
+
+// FUNCTION: SURRENDER 0x10041BF0
+srMeshModel::srMeshModel(const srMeshModel& other)
+{
+    *this = other;
+}
+
+// FUNCTION: SURRENDER 0x1003D2C0
+void srMeshModel::reset(long polygons, long vertices)
+{
+    freeAll();
+    vertex_location_count_22c = vertices;
+    uv_count_234 = vertices;
+    polygon_count_230 = polygons;
+    active_polygon_count_1fc = polygons;
+    pass_count_228 = 1;
+    control_state_394 = 0;
+    control_state_394 |= 1;
+    control_state_394 |= 0x10;
+}
+
 // FUNCTION: SURRENDER 0x1003D320
 srMeshModel::~srMeshModel()
 {
     freeAll();
+}
+
+/* Deep copy: reset re-allocates the destination to the source's polygon and
+   vertex counts, then every table, pass slot and scalar is copied over. The
+   changed bit is set in control_state_390 after the state words transfer. */
+// FUNCTION: SURRENDER 0x1003D5D0
+srMeshModel& srMeshModel::operator=(const srMeshModel& other)
+{
+    if (this != &other) {
+        srModel::operator=(other);
+        reset(other.polygon_count_230, other.vertex_location_count_22c);
+        control_state_390 = other.control_state_390;
+        control_state_394 = other.control_state_394;
+        pass_count_228 = other.pass_count_228;
+        control_state_390 |= 8;
+        bounds_minimum_200 = other.bounds_minimum_200;
+        bounds_maximum_20c = other.bounds_maximum_20c;
+        bounds_center_218 = other.bounds_center_218;
+        bounds_radius_224 = other.bounds_radius_224;
+        active_polygon_count_1fc = other.active_polygon_count_1fc;
+        active_polygons_1f4 = other.active_polygons_1f4;
+        poly_vertices_10c = other.poly_vertices_10c;
+        poly_equations_134 = other.poly_equations_134;
+        vertex_locations_1dc = other.vertex_locations_1dc;
+        vertex_normals_1e4 = other.vertex_normals_1e4;
+        vertex_shade_indices_1ec = other.vertex_shade_indices_1ec;
+        for (long pass = 0; pass < 4; ++pass) {
+            long side;
+            for (side = 0; side < 2; ++side) {
+                materials_1c[pass][side] = other.materials_1c[pass][side];
+                vertex_materials_cc[pass][side] = other.vertex_materials_cc[pass][side];
+            }
+            for (side = 0; side < 2; ++side) {
+                textures_3c[pass][side] = other.textures_3c[pass][side];
+                poly_textures_6c[pass][side] = other.poly_textures_6c[pass][side];
+                texcoords_13c[pass][side] = other.texcoords_13c[pass][side];
+            }
+            shaders_5c[pass] = other.shaders_5c[pass];
+            poly_shaders_ac[pass] = other.poly_shaders_ac[pass];
+            poly_uv_indices_114[pass] = other.poly_uv_indices_114[pass];
+            dig_17c[pass] = other.dig_17c[pass];
+            dcg_19c[pass] = other.dcg_19c[pass];
+            scg_1bc[pass] = other.scg_1bc[pass];
+        }
+    }
+    return *this;
 }
