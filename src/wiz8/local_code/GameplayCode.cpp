@@ -349,7 +349,6 @@ unsigned int FindFreePartySlot(unsigned int first, unsigned int last)
     return (unsigned int)-1;
 }
 
-
 /* Recompute the eight-band ladder over the character's level in their current
    profession. A character who has changed profession is banded on the whole
    level; one still in their first profession has the starting base taken off
@@ -396,7 +395,7 @@ void CalcCharacterTableValue(W8Character* character)
 }
 
 // GLOBAL: WIZ8 0x00617894
-char s_fall_impact_wav_00617894[] = "Data\\Sound\\Misc\\Fall_Impact.wav";
+char s_fall_impact_wav_00617894[] = "Data\\Sound\\Misc\\Fall Impact.wav";
 
 /* Level-motion override landing: the accumulated fall magnitude becomes
    pow(8.0, fall + 0.7) six-sided dice of damage against the whole party,

@@ -264,10 +264,14 @@ const wchar_t g_format_s_006068e4[] = L"%s";
 const wchar_t g_format_d_s_paren_d_slash_d_slash_d_00648170[] = L"%d %s (%d/%d/%d)";
 
 // GLOBAL: WIZ8 0x00647f84
-int g_monster_list_right_647f84;
+#pragma bss_seg(".data")
+int g_monster_list_right_647f84 = 0;
+#pragma bss_seg()
 
 // GLOBAL: WIZ8 0x00647f88
-int g_monster_list_bottom_647f88;
+#pragma bss_seg(".data")
+int g_monster_list_bottom_647f88 = 0;
+#pragma bss_seg()
 
 // GLOBAL: WIZ8 0x006481b4
 const wchar_t g_format_s_colon_s_paren_d_006481b4[] = L"%s: %s (%d)";
@@ -285,7 +289,7 @@ const wchar_t g_format_s_paren_d_0061a700[] = L"%s (%d)";
 // GLOBAL: WIZ8 0x0061c3e0
 const wchar_t g_format_s_colon_s_0061c3e0[] = L"%s: %s";
 // GLOBAL: WIZ8 0x0064da8c
-const wchar_t g_format_s_spaced_colon_0064da8c[] = L" %s : ";
+const wchar_t g_format_s_spaced_colon_0064da8c[] = L"%s :  ";
 
 // GLOBAL: WIZ8 0x005ec258
 const float g_float_005ec258 = 0.019999999552965164f;
@@ -320,7 +324,11 @@ extern unsigned char g_flag_00652da7;
 /* Insanity (spell 0x3c) world-cursor extent rows: six doubles per row.
    Three rows fill through 0x00616f40, immediately before the power index. */
 // GLOBAL: WIZ8 0x00616eb0
-double g_world_cursor_extent_table_00616eb0[18];
+double g_world_cursor_extent_table_00616eb0[18] = {
+    -750.0,  0.0, -750.0,  750.0,  1349.9999642372131, 750.0,
+    -1125.0, 0.0, -1125.0, 1125.0, 2024.9999463558197, 1125.0,
+    -1500.0, 0.0, -1500.0, 1500.0, 2699.9999284744263, 1500.0,
+};
 /* Per spell-power index into g_world_cursor_extent_table_00616eb0. The
    Insanity cursor reads it byte-indexed by the power field; the eleven bytes
    run to 0x00616f4c, where the separate Magic Effects dword table starts. */
