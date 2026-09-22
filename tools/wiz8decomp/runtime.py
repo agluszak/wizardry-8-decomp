@@ -1076,8 +1076,10 @@ def _run_runtime_batch(
             else f"exit={result.returncode}"
         )
         in_flight = result.last_step_scenario or (missing[0] if missing else "unknown")
+        aborted = "event=aborted" in result.stderr
         error = (
-            f"batch process died after {len(observations)}/{len(scenarios)} cases "
+            f"batch {'aborted' if aborted else 'process died'} after "
+            f"{len(observations)}/{len(scenarios)} cases "
             f"(in-flight={in_flight}, exit={result.returncode}, "
             f"timed_out={result.timed_out}): {detail[:400]}"
         )

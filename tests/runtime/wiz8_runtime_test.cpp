@@ -2843,11 +2843,22 @@ static DWORD WINAPI DriveScenario(void*)
             result = case_result;
         }
         if (index + 1 < g_scenario_count) {
-            if (!entered || !SessionHealthy()) {
+            /* A failed case poisons this process even when the executor still
+               answers its probe: its dirty state must not contaminate the
+               cases still queued. The reported case keeps its own result; the
+               runner re-runs the unreported remainder in fresh processes. */
+            const char* abort_reason = !entered            ? "fixture-enter-failed"
+                                       : case_result != 0  ? "case-failed"
+                                       : !SessionHealthy() ? "session-unhealthy"
+                                                           : 0;
+            if (abort_reason != 0) {
                 fprintf(stderr, "WIZ8_RUNTIME_BATCH scenario=%s event=aborted reason=%s\n",
-                        g_scenario_specs[index + 1]->name,
-                        !entered ? "fixture-enter-failed" : "session-unhealthy");
+                        g_scenario_specs[index + 1]->name, abort_reason);
                 fflush(stderr);
+                /* Returning without finishing leaves WinMain's loop running
+                   until the process deadline; stop the game so teardown and
+                   the session record run promptly. */
+                FinishGameplayScenario();
                 return result != 0 ? result : 1;
             }
         }
