@@ -12,6 +12,7 @@ public:
     virtual unsigned long getTextureFrameHandle() override;
     virtual float getPriority() override;
     virtual void getDimensions(Dimensions& dimensions) override;
+    void setDimensions(const Dimensions& dimensions);
     virtual void getMipmapData(MultiRequest& request) override;
     virtual void getMipmapLevelPartial(PartialRequest& request) override;
     virtual void getTextureParms(Parameters& parameters) override;

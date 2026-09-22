@@ -348,6 +348,7 @@ def test_batch_error_only_when_the_process_dies(
         stdout = "WIZ8_RUNTIME_TEST scenario=main-menu-startup case_passed=0\n"
         if all_cases_reported:
             stdout += "WIZ8_RUNTIME_TEST scenario=split-stack case_passed=1\n"
+            stdout += "WIZ8_RUNTIME_SESSION cases=2 driver=2 teardown=1\n"
         return _RuntimeProcessResult(
             stdout=stdout,
             stderr="WIZ8_RUNTIME_FAILURE scenario=main-menu-startup step=x reason=y line=1\n",
@@ -376,6 +377,76 @@ def test_batch_error_only_when_the_process_dies(
         assert len(observations) == 1
         assert "batch process died after 1/2 cases" in error
         assert "in-flight=split-stack" in error
+
+
+def test_batch_teardown_failure_fails_the_suite(tmp_path: Path, monkeypatch) -> None:
+    """Every case reports case_passed=1 but final SGPExit teardown failed:
+    the session record, not the exit code, is the verdict."""
+    from wiz8decomp.runtime import _run_runtime_batch, _RuntimeProcessResult
+
+    registry = _registry()
+
+    def drive(*args, **kwargs):
+        return _RuntimeProcessResult(
+            stdout=(
+                "WIZ8_RUNTIME_TEST scenario=main-menu-startup case_passed=1\n"
+                "WIZ8_RUNTIME_TEST scenario=split-stack case_passed=1\n"
+                "WIZ8_RUNTIME_SESSION cases=2 driver=0 teardown=0\n"
+            ),
+            stderr="",
+            returncode=1,
+            timed_out=False,
+            failed_early=False,
+            last_step="winmain-returned",
+            last_step_scenario="split-stack",
+            elapsed=1.0,
+        )
+
+    monkeypatch.setattr("wiz8decomp.runtime._drive_runtime_process", drive)
+    observations, error = _run_runtime_batch(
+        tmp_path / "Wiz8RuntimeTest.exe",
+        tmp_path,
+        {},
+        ("main-menu-startup", "split-stack"),
+        registry,
+    )
+
+    assert all(observation["case_passed"] == 1 for observation in observations.values())
+    assert error == "batch teardown failed (session teardown=0)"
+
+
+def test_batch_without_a_session_record_fails_closed(tmp_path: Path, monkeypatch) -> None:
+    """All cases reported success but no session record exists: the verdict
+    cannot be established, so it is not silently a pass."""
+    from wiz8decomp.runtime import _run_runtime_batch, _RuntimeProcessResult
+
+    registry = _registry()
+
+    def drive(*args, **kwargs):
+        return _RuntimeProcessResult(
+            stdout=(
+                "WIZ8_RUNTIME_TEST scenario=main-menu-startup case_passed=1\n"
+                "WIZ8_RUNTIME_TEST scenario=split-stack case_passed=1\n"
+            ),
+            stderr="",
+            returncode=0,
+            timed_out=False,
+            failed_early=False,
+            last_step="winmain-returned",
+            last_step_scenario="split-stack",
+            elapsed=1.0,
+        )
+
+    monkeypatch.setattr("wiz8decomp.runtime._drive_runtime_process", drive)
+    _, error = _run_runtime_batch(
+        tmp_path / "Wiz8RuntimeTest.exe",
+        tmp_path,
+        {},
+        ("main-menu-startup", "split-stack"),
+        registry,
+    )
+
+    assert error == "batch ended without a session record"
 
 
 @pytest.mark.parametrize("check_order", [False, True])

@@ -26,20 +26,7 @@ srModel::Client::~Client()
 // FUNCTION: SURRENDER 0x1003C750
 srModel::Client& srModel::Client::operator=(const Client& other)
 {
-    if (&other.model_04 != &model_04) {
-        if (other.model_04.get() == 0) {
-            if (model_04.get() != 0) {
-                model_04->release();
-            }
-            model_04 = 0;
-        } else {
-            other.model_04->addReference();
-            if (model_04.get() != 0) {
-                model_04->release();
-            }
-            model_04 = other.model_04.get();
-        }
-    }
+    model_04 = other.model_04;
     previous_08 = other.previous_08;
     next_0c = other.next_0c;
     return *this;

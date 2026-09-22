@@ -82,10 +82,15 @@ during startup instead of reaching the menu - a deterministic gameplay entry tha
 injection. Its plan is the startup gates plus the dispatcher screens plus every recovered function
 in `LoadSaveGame.cpp`.
 
-Stage a shared fixture save with `--save` (it is copied into the sandbox's `Saves/` before launch),
-and trace a rebuilt image with `--executable` plus `--link-map`; the plan keeps its reviewed retail
-names and resolves each build's addresses through that build's MAP. Points the rebuilt image does
-not carry are listed as `unwatched` in the result rather than silently dropped.
+`--save` is mandatory for `load`: the fixture is staged as the sandbox's only quicksave
+(existing `Saves/Quick*.SAV` are cleared and it is copied in as `Quick 1.SAV`), so `/LOAD` can
+only select the known file. Trace a rebuilt image with `--executable` plus `--link-map`; the plan
+keeps its reviewed retail names and resolves each build's addresses through that build's MAP,
+whose link timestamp must match the executable's PE header - a MAP from another build fails
+before any run. When a point's decorated name is absent (marker-emitted functions have no
+declaration, and the linker may keep another unit's instantiation), a unique map symbol with the
+same canonical name resolves it instead. Points that still resolve to nothing are listed as
+`unwatched` in the result rather than silently dropped.
 
 ```sh
 uv run wiz8 analyze trace load --seconds 100 --save "path/to/Quick 1.SAV"
@@ -106,10 +111,18 @@ comparison stays in the report so the tail is visible, and `post_terminal_events
 event names each run reached after the claim's end. A run that never reaches the terminal event
 compares in full, so a load that fails to complete still diverges.
 
+The verdict fails closed. `affirmative` is true only when every requirement in `requirements`
+holds: all three runs started under the debugger (`all_started`), all reached the terminal event
+(`all_reached_terminal`), the two retail runs agree through the terminal (`retail_repeatable`),
+no watched point failed to resolve in any run (`no_unwatched_points`), and the retail/rebuilt
+streams agree through the terminal (`streams_agree`). Any hole - a run that never started, a load
+that never completed, a function missing from the rebuilt image - leaves the comparison
+inconclusive rather than green.
+
 Every result identifies what produced it: executable name and sha256, launch arguments, fixture
-name and sha256, the loaded provider (`sr.dll`) sha256, plan/evidence/repository digests, tool
-versions and the timeout. A rebuilt executable traced under a stock provider says nothing about a
-rebuilt provider; the provenance keeps the two claims separate.
+name and sha256, linker-MAP sha256, the loaded provider (`sr.dll`) sha256, plan/evidence/repository
+digests, tool versions and the timeout. A rebuilt executable traced under a stock provider says
+nothing about a rebuilt provider; the provenance keeps the two claims separate.
 
 ## Earlier bring-up observation
 

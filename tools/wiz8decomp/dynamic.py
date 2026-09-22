@@ -168,8 +168,63 @@ def trace_plan(repo: Path, scenario: str) -> list[TracePoint]:
     raise ValueError(f"unknown scenario: {scenario}; expected {BRING_UP}, {SCREENS} or {LOAD}")
 
 
+def verified_link_map(image: Path, link_map_path: Path) -> Any:
+    """The rebuilt image's own linker map - and proof it belongs to that image.
+
+    A MAP from another build would rebase every breakpoint to wrong
+    addresses and silently trace nothing useful, so the link timestamps must
+    agree before the plan is translated."""
+
+    from reccmp.formats import detect_image
+    from reccmp.formats.pe import PEImage
+
+    from .binary.linker_map import LinkerMap
+
+    link_map = LinkerMap.read(link_map_path)
+    detected = detect_image(image)
+    if (
+        not isinstance(detected, PEImage)
+        or link_map.timestamp is None
+        or link_map.timestamp != detected.header.time_date_stamp
+    ):
+        raise ValueError(f"executable/MAP link timestamp mismatch: {image} vs {link_map_path}")
+    return link_map
+
+
+def _bare_symbol_name(demangled: str) -> str:
+    """The qualified name a demangled symbol spells: no access, return type,
+    calling convention or parameter list. The name itself may contain spaces
+    (template arguments), so the prefix ends at the convention keyword, not
+    at a space."""
+
+    text = demangled
+    if text.startswith(("public:", "private:", "protected:")):
+        text = text.split(":", 1)[1].strip()
+    convention = re.search(r"__cdecl\s+|__thiscall\s+|__stdcall\s+|__fastcall\s+", text)
+    if convention is not None:
+        text = text[convention.end() :]
+    return text.split("(", 1)[0].strip()
+
+
+def _map_functions_by_name(link_map: Any) -> dict[str, list[Any]]:
+    """The map's function symbols indexed by their canonical (undecorated)
+    name - the identity the stream comparison actually uses."""
+
+    from .binary.linker_map import demangle_names
+
+    decorated = [symbol.decorated_name for symbol in link_map.symbols if symbol.is_function]
+    demangled = demangle_names(decorated)
+    by_name: dict[str, list[Any]] = {}
+    for symbol in link_map.symbols:
+        if not symbol.is_function:
+            continue
+        bare = _bare_symbol_name(demangled.get(symbol.decorated_name) or symbol.decorated_name)
+        by_name.setdefault(bare, []).append(symbol)
+    return by_name
+
+
 def rebase_plan(
-    repo: Path, points: list[TracePoint], link_map_path: Path
+    repo: Path, points: list[TracePoint], link_map: Any
 ) -> tuple[list[TracePoint], list[str]]:
     """Translate a retail plan into a rebuilt image's addresses, by name.
 
@@ -178,20 +233,32 @@ def rebase_plan(
     its own linker map. Points the rebuilt image does not carry (unrecovered
     functions) cannot be watched and are reported, not silently dropped."""
 
-    from .binary.linker_map import LinkerMap
     from .source_index import source_functions
 
+    functions = source_functions(repo)
     semantic_ids = {
-        function.address: function.declaration.semantic_id
-        for function in source_functions(repo).values()
+        address: function.declaration.semantic_id
+        for address, function in functions.items()
         if function.declaration is not None
     }
-    link_map = LinkerMap.read(link_map_path)
     rebased = []
     dropped = []
+    by_name: dict[str, list[Any]] | None = None
     for point in points:
-        semantic_id = semantic_ids.get(int(point.address, 16))
+        address = int(point.address, 16)
+        semantic_id = semantic_ids.get(address)
         symbol = link_map.find_decorated(semantic_id) if semantic_id is not None else None
+        if symbol is None:
+            # The linker may keep another unit's instantiation or spell the
+            # declaration differently: retry on the canonical name, which is
+            # the identity the comparison uses anyway. Ambiguous candidates
+            # stay dropped rather than binding to an arbitrary emission.
+            if by_name is None:
+                by_name = _map_functions_by_name(link_map)
+            function = functions.get(address)
+            candidates = by_name.get(function.name, []) if function is not None else []
+            if len(candidates) == 1:
+                symbol = candidates[0]
         if symbol is None:
             dropped.append(point.name)
             continue
@@ -316,12 +383,18 @@ class Sandbox:
         return "Z:" + str(self.game_dir / name).replace("/", "\\")
 
     def install_save(self, source: Path) -> Path:
-        """Stage a fixture save as the newest quicksave in the sandbox copy."""
+        """Stage a fixture as the only quicksave the loader can select.
+
+        /LOAD picks the newest ``Saves\\Quick*.SAV``; leaving other quicksaves
+        in place, or preserving the fixture's name/mtime, could make it load
+        something else. Clear the slots and stage exactly one known file."""
 
         saves = self.game_dir / "Saves"
         saves.mkdir(exist_ok=True)
-        destination = saves / source.name
-        shutil.copy2(source, destination)
+        for stale in saves.glob("Quick*.SAV"):
+            stale.unlink()
+        destination = saves / "Quick 1.SAV"
+        shutil.copyfile(source, destination)
         return destination
 
 
@@ -415,13 +488,17 @@ def run_trace(
             raise ValueError(f"{tool} is not on PATH; the dynamic oracle needs it")
     if not (sandbox.game_dir / executable).is_file():
         raise ValueError(f"no {executable} in {sandbox.game_dir}")
+    if scenario == LOAD and save is None:
+        raise ValueError("the load scenario requires --save: stage one known fixture")
 
     points = trace_plan(repo, scenario)
     unwatched: list[str] = []
     if link_map is not None:
         # A rebuilt image needs its own addresses; the plan keeps the
-        # reviewed retail names and resolves each through this build's map.
-        points, unwatched = rebase_plan(repo, points, link_map)
+        # reviewed retail names and resolves each through this build's map,
+        # which must provably belong to the traced image.
+        resolved_map = verified_link_map(sandbox.game_dir / executable, link_map)
+        points, unwatched = rebase_plan(repo, points, resolved_map)
     launch_arguments = (
         list(arguments) if arguments is not None else list(SCENARIO_ARGUMENTS[scenario])
     )
@@ -487,6 +564,7 @@ def run_trace(
         "executable_sha256": sha256_file(image),
         "arguments": launch_arguments,
         "unwatched": unwatched,
+        "link_map_sha256": sha256_file(link_map) if link_map is not None else None,
         "variant_identity": os.environ.get("WIZ8_DYNAMIC_VARIANT", f"sha256:{sha256_file(image)}"),
         "trace_plan_sha256": plan_hash,
         "reviewed_evidence_sha256": _reviewed_evidence_hash(repo),
