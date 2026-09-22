@@ -751,6 +751,13 @@ void srVertexPipe::setupDiffuse()
     }
 }
 
+/* Retail mixes scopes deliberately here: the destination is the depth_cue
+   base while the source is dist offset by the sub-batch and the count is the
+   whole batch (0x1002C0D0 reads dist_600 + sub_batch_offset_84, writes
+   depth_cue_800, and iterates batch_count_8c). For multi-material records a
+   later sub-batch therefore reads past its own dist tail and can exceed the
+   0x40 scratch entries; that is confirmed retail behavior, not a recovery
+   defect. */
 // FUNCTION: SURRENDER 0x1002C0D0
 void srVertexPipe::setupDepthCue()
 {
