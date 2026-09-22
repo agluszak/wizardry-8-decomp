@@ -691,8 +691,8 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
             fprintf(stderr, "runtime-test pathing: party snap=%d y=%f\n", snap, probe.y);
             for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
                 W8MonsterInfo* mi = MonsterGetScriptPartByLocationIndex(i);
-                if (mi != 0 && mi->fActive != 0 && mi->monster != 0) {
-                    srVector3T<float> mp = mi->monster->GetPosition();
+                if (mi != 0 && mi->fActive != 0 && mi->p3D != 0) {
+                    srVector3T<float> mp = mi->p3D->GetPosition();
                     unsigned char msnap = pathing->SnapWaypointPosition00462E60(&mp, 0);
                     fprintf(stderr,
                             "runtime-test pathing: monster=%u pos=(%.0f %.0f %.0f) snap=%d y=%f\n",
@@ -707,9 +707,9 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
     float melee_distance = 1e30f;
     for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
         W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-        if (info != 0 && info->fActive != 0 && info->monster != 0 && info->monster_group_id != 0 &&
-            info->condition_turns[13] == 0) {
-            float dist = (info->monster->GetPosition() - party_position).Length();
+        if (info != 0 && info->fActive != 0 && info->p3D != 0 && info->monster_group_id != 0 &&
+            info->uiCondition[13] == 0) {
+            float dist = (info->p3D->GetPosition() - party_position).Length();
             if (dist < provoked_distance) {
                 provoked_distance = dist;
                 provoked_info = info;
@@ -779,7 +779,7 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
             }
         }
         fprintf(stderr, "runtime-test drop: group=%p placed=%d\n", (void*)provoked_group, placed);
-        if (placed == 0 && provoked_info != 0 && provoked_info->monster != 0 &&
+        if (placed == 0 && provoked_info != 0 && provoked_info->p3D != 0 &&
             g_pathing_00659c60 != 0) {
             /* The Monastery start point sits off the pathing grid - the snap
                query finds no path cell under the party, so retail's own
@@ -788,7 +788,7 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
                near the monster and reinstall the camera and navigator the
                way WorldSetCameraLocation / save-load do. The next move nudge
                re-latches ground contact. */
-            srVector3T<float> anchor = provoked_info->monster->GetPosition();
+            srVector3T<float> anchor = provoked_info->p3D->GetPosition();
             /* Ring-search path-valid spots around the monster at melee
                distance: SnapWaypointPosition with snap_to_cell=0 only tests
                the enclosing cell, and SettlePositionToGround restores the
@@ -833,11 +833,11 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
             provoked_info =
                 re_index != (unsigned int)-1 ? MonsterGetScriptPartByLocationIndex(re_index) : 0;
         }
-        if (provoked_info == 0 || provoked_info->monster == 0) {
+        if (provoked_info == 0 || provoked_info->p3D == 0) {
             provoked_info = 0;
             for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
                 W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-                if (info != 0 && info->fActive != 0 && info->monster != 0 &&
+                if (info != 0 && info->fActive != 0 && info->p3D != 0 &&
                     info->monster_group_id == provoked_group_id) {
                     provoked_info = info;
                     break;
@@ -845,8 +845,8 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
             }
         }
     }
-    if (provoked_info != 0 && provoked_info->monster != 0) {
-        provoked_distance = (provoked_info->monster->GetPosition() - party_position).Length();
+    if (provoked_info != 0 && provoked_info->p3D != 0) {
+        provoked_distance = (provoked_info->p3D->GetPosition() - party_position).Length();
         W8TargetSource source;
         W8CombatSlot target;
         memset(&target, 0, sizeof(target));
@@ -941,17 +941,17 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
     if (gXStatus.plsMonsterList != 0) {
         for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
             W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-            if (info == 0 || info->fActive == 0 || info->monster == 0)
+            if (info == 0 || info->fActive == 0 || info->p3D == 0)
                 continue;
             ++s->active_monsters;
-            float distance = (info->monster->GetPosition() - party_position).Length();
-            if (info->condition_turns[W8_CONDITION_HOSTILE] != 0)
+            float distance = (info->p3D->GetPosition() - party_position).Length();
+            if (info->uiCondition[W8_CONDITION_HOSTILE] != 0)
                 ++s->hostile_condition_monsters;
             if (info->fInCombat != 0) {
                 ++s->engaged_hostiles;
                 if (distance < s->nearest_engaged_distance)
                     s->nearest_engaged_distance = distance;
-                if (info->hp_current == 0 || info->condition_turns[W8_CONDITION_DEAD] != 0) {
+                if (info->hp_current == 0 || info->uiCondition[W8_CONDITION_DEAD] != 0) {
                     ++s->engaged_dead;
                 } else {
                     s->engaged_hp_total += info->hp_current;
@@ -963,14 +963,14 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
                 s->provoked_condition = static_cast<int>(info->highest_condition);
                 s->provoked_in_combat = info->fInCombat;
                 s->provoked_distance = distance;
-                s->provoked_dead = info->condition_turns[W8_CONDITION_DEAD] != 0;
+                s->provoked_dead = info->uiCondition[W8_CONDITION_DEAD] != 0;
                 s->provoked_threat_state = info->party_threat.sight_state_04;
             }
             if (info->location_id == query->aim_location_id) {
                 s->aim_active = 1;
                 s->aim_hp = static_cast<int>(info->hp_current);
                 s->aim_dead =
-                    info->condition_turns[W8_CONDITION_DEAD] != 0 || info->hp_current == 0;
+                    info->uiCondition[W8_CONDITION_DEAD] != 0 || info->hp_current == 0;
             }
         }
     }
@@ -1040,7 +1040,7 @@ static void QueuePartyAttacksOnGameThread(void* opaque)
         for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
             W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
             if (info != 0 && info->fActive != 0 && info->fInCombat != 0 && info->hp_current != 0 &&
-                info->condition_turns[W8_CONDITION_DEAD] == 0 &&
+                info->uiCondition[W8_CONDITION_DEAD] == 0 &&
                 info->location_id == aim_location_id) {
                 alive = true;
                 break;
@@ -1052,11 +1052,11 @@ static void QueuePartyAttacksOnGameThread(void* opaque)
             GetCameraPosition(&camera);
             for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
                 W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-                if (info == 0 || info->fActive == 0 || info->fInCombat == 0 || info->monster == 0 ||
-                    info->hp_current == 0 || info->condition_turns[W8_CONDITION_DEAD] != 0) {
+                if (info == 0 || info->fActive == 0 || info->fInCombat == 0 || info->p3D == 0 ||
+                    info->hp_current == 0 || info->uiCondition[W8_CONDITION_DEAD] != 0) {
                     continue;
                 }
-                float distance = (info->monster->GetPosition() - camera).Length();
+                float distance = (info->p3D->GetPosition() - camera).Length();
                 if (distance < best) {
                     best = distance;
                     aim_location_id = info->location_id;
@@ -1173,7 +1173,7 @@ static void QueuePartySpellsOnGameThread(void* opaque)
         for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
             W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
             if (info != 0 && info->fActive != 0 && info->fInCombat != 0 && info->hp_current != 0 &&
-                info->condition_turns[W8_CONDITION_DEAD] == 0 &&
+                info->uiCondition[W8_CONDITION_DEAD] == 0 &&
                 info->location_id == aim_location_id) {
                 alive = true;
                 break;
@@ -1185,11 +1185,11 @@ static void QueuePartySpellsOnGameThread(void* opaque)
             GetCameraPosition(&camera);
             for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
                 W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-                if (info == 0 || info->fActive == 0 || info->fInCombat == 0 || info->monster == 0 ||
-                    info->hp_current == 0 || info->condition_turns[W8_CONDITION_DEAD] != 0) {
+                if (info == 0 || info->fActive == 0 || info->fInCombat == 0 || info->p3D == 0 ||
+                    info->hp_current == 0 || info->uiCondition[W8_CONDITION_DEAD] != 0) {
                     continue;
                 }
-                float distance = (info->monster->GetPosition() - camera).Length();
+                float distance = (info->p3D->GetPosition() - camera).Length();
                 if (distance < best) {
                     best = distance;
                     aim_location_id = info->location_id;
@@ -1288,13 +1288,13 @@ static void TeleportPartyNearEngagedOnGameThread(void* opaque)
     }
     for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
         W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-        if (info == 0 || info->fActive == 0 || info->monster == 0 || info->fInCombat == 0) {
+        if (info == 0 || info->fActive == 0 || info->p3D == 0 || info->fInCombat == 0) {
             continue;
         }
-        float distance = (info->monster->GetPosition() - camera).Length();
+        float distance = (info->p3D->GetPosition() - camera).Length();
         if (distance < best) {
             best = distance;
-            anchor = info->monster->GetPosition();
+            anchor = info->p3D->GetPosition();
         }
     }
     if (best == 1e30f) {
@@ -1357,10 +1357,10 @@ static void FaceNearestEngagedOnGameThread(void* opaque)
     }
     for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
         W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-        if (info == 0 || info->fActive == 0 || info->monster == 0 || info->fInCombat == 0) {
+        if (info == 0 || info->fActive == 0 || info->p3D == 0 || info->fInCombat == 0) {
             continue;
         }
-        srVector3T<float> position = info->monster->GetPosition();
+        srVector3T<float> position = info->p3D->GetPosition();
         float distance = (position - camera).Length();
         if (distance < best) {
             best = distance;

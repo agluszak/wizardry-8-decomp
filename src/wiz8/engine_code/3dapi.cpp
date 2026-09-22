@@ -1168,7 +1168,7 @@ unsigned char AdjustWorldCollisionPosition00451390(float radius, srVector3T<floa
     if (check_monsters != 0) {
         W8MonsterInfo* info = GetNextMonsterInfo(1);
         while (info != 0) {
-            W8Monster* monster = info->monster;
+            W8Monster* monster = info->p3D;
             if (monster != 0) {
                 srVector3T<float> center;
                 float other_radius;

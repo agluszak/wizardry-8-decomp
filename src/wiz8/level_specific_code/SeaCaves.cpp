@@ -94,10 +94,10 @@ bool SeaCavesDoorTomb004DAF70(Trigger* pTrigger)
     if (monster_info == 0) {
         return true;
     }
-    if (monster_info->monster == 0) {
+    if (monster_info->p3D == 0) {
         return true;
     }
-    if (MonsterQuery(monster_info->monster, 6) != 0) {
+    if (MonsterQuery(monster_info->p3D, 6) != 0) {
         return true;
     }
     group = GetMonsterGroupByListIndex(

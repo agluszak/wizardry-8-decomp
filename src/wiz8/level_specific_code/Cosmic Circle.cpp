@@ -102,8 +102,8 @@ void CosmicCircleSetup004D9B40(void)
             SpawnMonsters(0x197, 1, &positionPhoonzang, 2, 1, 0, 0);
         }
         g_status_685170.cc_arena_spawned_4972 = 1;
-        pMonsterInfoDs->monster->AimAtPosition(&positionAltheides);
-        pMonsterInfoAltheides->monster->AimAtPosition(&positionDs);
+        pMonsterInfoDs->p3D->AimAtPosition(&positionAltheides);
+        pMonsterInfoAltheides->p3D->AimAtPosition(&positionDs);
         pTrigger = FindTriggerByName("CC_TRIGGERPLANE2");
         if (pTrigger != 0) {
             pTrigger->flags_0a0 &= ~W8_TRIGGER_ON;

@@ -115,8 +115,8 @@ void MartensBluff2Setup004DCB50(void)
                     if (location_id != 0) {
                         info = MonsterGetScriptPartByLocationIndex(
                             MonsterGetIndexByLocationID(0x1d2, MARTENSBLUFF2_CPP, location_id, 1));
-                        if (info != 0 && info->monster != 0) {
-                            info->monster->SetScript004C7F10("MB_MoveRapax.msf", 1);
+                        if (info != 0 && info->p3D != 0) {
+                            info->p3D->SetScript004C7F10("MB_MoveRapax.msf", 1);
                             SetTriggerVariableByName00444030("RavenQuest", 3);
                         }
                     }
@@ -439,8 +439,8 @@ bool MartensBluff2PerfumeBox004DDDC0(Trigger* pTrigger)
         if (location_id != 0) {
             info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x1d2, MARTENSBLUFF2_CPP, location_id, 1));
-            if (info != 0 && info->monster != 0) {
-                info->monster->SetScript004C7F10("MB_MoveRapax.msf", 1);
+            if (info != 0 && info->p3D != 0) {
+                info->p3D->SetScript004C7F10("MB_MoveRapax.msf", 1);
                 quest_state = 3;
             }
         }
@@ -639,10 +639,10 @@ void MartensBluff2MonsterCrusher004DDF40(int command)
     for (i = 0; i < count; i++) {
         index = MonsterGetIndexByLocationID(0x28d, MARTENSBLUFF2_CPP, location_ids[i], 1);
         info = MonsterGetScriptPartByLocationIndex(index);
-        if (info != 0 && info->monster != 0 &&
-            (g_crusher_excluded_flag_68352d == 0 || info->monster != g_crusher_excluded_683538) &&
-            info->monster->flags_00c != 0x200000) {
-            monster = info->monster;
+        if (info != 0 && info->p3D != 0 &&
+            (g_crusher_excluded_flag_68352d == 0 || info->p3D != g_crusher_excluded_683538) &&
+            info->p3D->flags_00c != 0x200000) {
+            monster = info->p3D;
             position = monster->GetPosition();
             radius = monster->movement_0c0.alternate_radius_0b4;
             if (left <= position.x - radius) {

@@ -58,7 +58,7 @@ void RecountCombatMonsters(void)
             if (monster->ubDisposition == DISP_HOSTILE) {
                 ++gXStatus.hostile_monster_count;
             }
-            if (monster->condition_turns[13] != 0) {
+            if (monster->uiCondition[13] != 0) {
             }
         }
     }
@@ -100,7 +100,7 @@ char MonsterHostility00546F80(W8MonsterInfo* first, W8MonsterInfo* second)
     if (second_faction == 0 || first_faction != second_faction) {
         return 1;
     }
-    if ((first->condition_turns[13] != 0) == (second->condition_turns[13] != 0)) {
+    if ((first->uiCondition[13] != 0) == (second->uiCondition[13] != 0)) {
         return 0;
     }
     return 1;
@@ -162,7 +162,7 @@ char GetOppositeDisposition(W8TargetSource* source)
             return 0;
         }
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
-        if (monster_info->condition_turns[13] == 0) {
+        if (monster_info->uiCondition[13] == 0) {
             if (monster_info->ubDisposition == DISP_FRIENDLY) {
                 return DISP_HOSTILE;
             }
@@ -216,7 +216,7 @@ void MakeTargetGroupHostile(W8TargetSource* source, W8CombatSlot* target)
         unsigned int monster_list_index =
             MonsterGetIndexByLocationID(0x146, COMBAT_HOSTILITY_CPP, target->iMonsterID, '\x01');
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
-        if (monster_info->condition_turns[13] != 0) {
+        if (monster_info->uiCondition[13] != 0) {
             return;
         }
         group_id = monster_info->monster_group_id;
@@ -236,7 +236,7 @@ void MakeTargetGroupHostile(W8TargetSource* source, W8CombatSlot* target)
             unsigned int monster_list_index =
                 MonsterGetIndexByLocationID(500, COMBAT_HOSTILITY_CPP, monster_id, '\x01');
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
-            if (monster_info->condition_turns[13] == 0) {
+            if (monster_info->uiCondition[13] == 0) {
                 break;
             }
             if (ILLength(group->monsters) <= ++index) {
@@ -387,7 +387,7 @@ void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, cha
         return;
     }
     W8MonsterInfo* leader = MonsterInfoFromID(0x21e, COMBAT_HOSTILITY_CPP, group->leader_id_9f, 1);
-    if (leader != 0 && leader->monster->hostility_preserved_332) {
+    if (leader != 0 && leader->p3D->hostility_preserved_332) {
         return;
     }
     W8Disposition previous = group->ubDisposition;
@@ -449,7 +449,7 @@ void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, cha
 void SetMonsterHostility(W8MonsterInfo* monster, unsigned char hostility)
 {
     W8Disposition previous = monster->ubDisposition;
-    if (previous == hostility || monster->monster->hostility_preserved_332) {
+    if (previous == hostility || monster->p3D->hostility_preserved_332) {
         return;
     }
     monster->ubDisposition = hostility;
@@ -788,7 +788,7 @@ int CharacterPrayAction00547FE0(int party_slot)
                 W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
                 if (monster->fActive && monster->fInCombat && monster->ubDisposition == 1 &&
                     monster->hp_current != 0 &&
-                    monster->monster->GetDistanceToPlayer004C7CB0() <= range) {
+                    monster->p3D->GetDistanceToPlayer004C7CB0() <= range) {
                     ++in_range;
                 }
             }
@@ -798,7 +798,7 @@ int CharacterPrayAction00547FE0(int party_slot)
                     W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
                     if (monster->fActive && monster->fInCombat && monster->ubDisposition == 1 &&
                         monster->hp_current != 0 &&
-                        monster->monster->GetDistanceToPlayer004C7CB0() <= range && --pick == 0) {
+                        monster->p3D->GetDistanceToPlayer004C7CB0() <= range && --pick == 0) {
                         AppendToLastTextLine(gppStringList[0x179], -1);
                         target.iType = W8_TARGET_KIND_MONSTER;
                         target.iMonsterID = monster->location_id;
@@ -864,7 +864,7 @@ int CharacterPrayAction00547FE0(int party_slot)
             for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
                 W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
                 if (monster->fActive && monster->fInCombat && monster->ubDisposition == 1 &&
-                    monster->hp_current != 0 && monster->condition_turns[6] == 0) {
+                    monster->hp_current != 0 && monster->uiCondition[6] == 0) {
                     AppendToLastTextLine(
                         FormatWideString(
                             gppStringList[0x17c],
@@ -886,7 +886,7 @@ int CharacterPrayAction00547FE0(int party_slot)
                     W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
                     if (monster->fActive && monster->fInCombat && monster->ubDisposition == 1 &&
                         monster->hp_current != 0 &&
-                        monster->monster->GetDistanceToPlayer004C7CB0() <= range) {
+                        monster->p3D->GetDistanceToPlayer004C7CB0() <= range) {
                         AppendToLastTextLine(gppStringList[0x179], -1);
                         ResetCombatSlot(&target);
                         CastSpellFromSource(0x60, &source, &target, power_level, 0, 0, 0, &outcome,

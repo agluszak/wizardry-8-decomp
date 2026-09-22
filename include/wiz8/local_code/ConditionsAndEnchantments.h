@@ -81,7 +81,7 @@ void BindMonsterToCharacterDependence(unsigned int party_slot, unsigned int depe
                                       int monster_id);
 
 void ApplyMonsterCondition(int location_id, int condition, int arg_3);
-/* 0x005237E0: rescan condition_turns from slot 0x13 downward and write the
+/* 0x005237E0: rescan uiCondition from slot 0x13 downward and write the
    first live index into W8Character::highest_condition. */
 void RecomputeCharacterHighestCondition(int party_slot);
 /* 0x005248D0: clear the character condition records a dead monster sourced,
