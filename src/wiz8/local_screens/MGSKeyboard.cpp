@@ -578,7 +578,7 @@ void DispatchMGSCommand(int command)
             gXStatus.fItemSelectMode != 0) {
             break;
         }
-        if (g_combat_state->flag_000 == 0) {
+        if (g_combat_state->combat_over_000 == 0) {
             BeginCombatExecution004E8370();
         } else if (gXStatus.fPartyMovementUi != 0 && CanPartyMove() == 0 &&
                    GetLevelDataFlag6() == 0) {

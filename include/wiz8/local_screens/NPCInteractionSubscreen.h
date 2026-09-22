@@ -446,7 +446,7 @@ void SetNpcDialogueHidden(char value);                                          
 /* While NPC script deferral holds character events, drain Escape / click so
    the open dialogue layout can dismiss without the normal input path. */
 void DrainNpcDialogueDeferralInput(void); /* 0x00575C50 */
-/* When value_2435 is set, discard queued input after a mouse-position hook so
+/* When world_cursor_gate_2435 is set, discard queued input after a mouse-position hook so
    the world-cursor gate does not process stale events. */
 void FlushInputWhileWorldCursorGate(void);                  /* 0x00577560 */
 void HandleNpcDialogueReply(wchar_t* text, char echo);      /* 0x00574250 */

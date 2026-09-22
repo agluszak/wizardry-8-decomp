@@ -91,7 +91,7 @@ const unsigned short g_item_flag_name_ids_61e938[8] = {
 const unsigned short g_quantity_kind_name_ids_61e948[7] = {
     1264, 1265, 1266, 1267, 1268, 0, 1269,
 };
-/* String-list label ids indexed by W8ItemDatabaseRecord::unknown_075. */
+/* String-list label ids indexed by W8ItemDatabaseRecord::property_075. */
 // GLOBAL: WIZ8 0x0061e97c
 const unsigned short g_item_property_name_ids_61e97c[6] = {
     1289, 1290, 1291, 1292, 1293, 1294,
@@ -375,9 +375,9 @@ unsigned char W8AssayDialog::PopulateText()
                 FormatWideString(g_format_plus_d_0064dc24, record->armor_class_bonus), 10, 0xf, 0);
         }
     }
-    if (record->unknown_075 != 0) {
+    if (record->property_075 != 0) {
         m_text_area.AddEntry(gppStringList[0x23a4 / 4],
-                             gppStringList[g_item_property_name_ids_61e97c[record->unknown_075]],
+                             gppStringList[g_item_property_name_ids_61e97c[record->property_075]],
                              10, 0xf, 0);
     }
     switch (record->equip_class) {
@@ -430,7 +430,7 @@ unsigned char W8AssayDialog::PopulateText()
     if (count != 0) {
         m_text_area.AddEntry(gppStringList[0x235c / 4], g_assay_entry_text, 10, 0xf, 0);
     }
-    if ((m_item->identified != 0 || m_item->unknown_07[0] != 0) && record->spell_id != 0) {
+    if ((m_item->identified != 0 || m_item->spell_hint_07 != 0) && record->spell_id != 0) {
         if (record->equip_class == 0xd || record->equip_class == 0xe ||
             record->equip_class == 0x13) {
             text = FormatWideString(g_format_s_006068e4,
@@ -620,7 +620,7 @@ unsigned char W8AssayDialog::PopulateText()
     if (count != 0) {
         m_text_area.AddEntry(gppStringList[0x23d0 / 4], g_assay_entry_text, 10, 0xf, 0);
     }
-    if (record->equip_class == 0x13 && (m_item->identified != 0 || m_item->unknown_07[0] != 0) &&
+    if (record->equip_class == 0x13 && (m_item->identified != 0 || m_item->spell_hint_07 != 0) &&
         m_character != 0) {
         if (m_character->spell_learned[record->spell_id] == 1) {
             m_text_area.AddEntry(0, gppStringList[0x23b4 / 4], 10, 1, 0);

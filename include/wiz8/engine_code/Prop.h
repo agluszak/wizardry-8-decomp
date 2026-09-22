@@ -38,7 +38,7 @@ public:
     W8PropRepresentation()
         : animation(0), animation_speed(0.0f), frame_index_0a0(0), animation_running_0a4(0),
           random_play_0a5(0), play_chance_0a8(0.5f), flag_0ac(0), flag_0ad(0), slots(5),
-          flag_0c0(0xff), flag_0c1(0xff)
+          footstep_surface_0c0(0xff), footstep_material_0c1(0xff)
     {
     }
     W8PropRepresentation(const W8PropRepresentation& other);
@@ -66,8 +66,8 @@ public:
     unsigned char flag_0ad; /* 0xad */
     unsigned char unknown_0ae[2];
     W8GrowableVector<W8PropAnimationSegment*> slots; /* 0xb0 */
-    unsigned char flag_0c0;                          /* 0xc0 */
-    unsigned char flag_0c1;                          /* 0xc1 */
+    unsigned char footstep_surface_0c0;              /* 0xc0 */
+    unsigned char footstep_material_0c1;             /* 0xc1 */
     unsigned char unknown_0c2[2];
 }; /* 0xc4 */
 

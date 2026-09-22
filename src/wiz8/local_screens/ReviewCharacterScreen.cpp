@@ -895,8 +895,8 @@ void DrawCampEquipmentItems005B8690(void)
             DrawCampItemQuantity005B8EC0(&character->EquippedItem[slot], region->x + 2,
                                          region->y + region->height - 0xd, region->width - 4);
             if (character->EquippedItem[slot].identified == 0) {
-                DrawCatalogImage(-14, 0x11b, 0, static_cast<short>(region->unknown_14), region->x,
-                                 region->y, 2, 0);
+                DrawCatalogImage(-14, 0x11b, 0, static_cast<short>(region->unidentified_frame_14),
+                                 region->x, region->y, 2, 0);
             }
         }
         switch (slot) {
@@ -923,11 +923,11 @@ void DrawCampEquipmentItems005B8690(void)
         DrawRcsText(state->caption, region->x + 2, region->y + 2, 0x11,
                     g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
     no_armor_label:
-        DrawCatalogImageAndInvalidate(-14, 0x115, 0, region->unknown_10 + 3, region->x - 2,
+        DrawCatalogImageAndInvalidate(-14, 0x115, 0, region->frame_10 + 3, region->x - 2,
                                       region->y - 2, 2, 0);
         if (item_id != -1 && g_item_records[item_id].binds_on_equip != 0 &&
             character->EquippedItem[slot].bound != 0) {
-            DrawCatalogImageAndInvalidate(-14, 0x115, 0, region->unknown_10 + 2, region->x - 2,
+            DrawCatalogImageAndInvalidate(-14, 0x115, 0, region->frame_10 + 2, region->x - 2,
                                           region->y - 2, 2, 0);
         }
         if (state->hover_region == slot + 0xfc) {
@@ -946,7 +946,7 @@ void DrawCampEquipmentItems005B8690(void)
                     continue;
                 }
             }
-            frame = region->unknown_10;
+            frame = region->frame_10;
         } else {
             if (g_status_685170.item_in_cursor == 0 || state->entry_mode == 1 ||
                 !IsPartySlotEligible00524A10(giReviewCharSlot) ||
@@ -955,7 +955,7 @@ void DrawCampEquipmentItems005B8690(void)
                 !CanCharacterUseItem(character, g_status_685170.item_in_hand_235b.iItemNo)) {
                 continue;
             }
-            frame = region->unknown_10 + 1;
+            frame = region->frame_10 + 1;
         }
         DrawCatalogImageAndInvalidate(-14, 0x115, 0, frame, region->x - 2, region->y - 2, 2, 0);
     }
@@ -1582,12 +1582,12 @@ void W8CampCharacterInfo::Redraw()
                 minimum = 1;
             if (maximum < 2)
                 maximum = 1;
-            int hit_bonus = attack->hit_bonus + g_value_0069c0f8->bonus_1770.value_01;
+            int hit_bonus = attack->hit_bonus + g_value_0069c0f8->bonus_1770.hit_bonus_01;
             int skill_bonus =
                 (attack->attack_score < 0 ? attack->attack_score - 2 : attack->attack_score + 2) /
                 5;
             swprintf(g_camp_screen_0069c0f4->caption, L"%+d",
-                     attack->damage_bonus + g_value_0069c0f8->bonus_1770.value_00);
+                     attack->damage_bonus + g_value_0069c0f8->bonus_1770.damage_bonus_00);
             DrawRcsText(g_camp_screen_0069c0f4->caption, x, 0x30, 0x20,
                         g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
             swprintf(g_camp_screen_0069c0f4->caption, L"%d-%d", minimum, maximum);
@@ -1620,7 +1620,7 @@ void W8CampCharacterInfo::Redraw()
             DrawRcsText(g_camp_screen_0069c0f4->caption, x, 0x76, 0x20,
                         g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
             swprintf(g_camp_screen_0069c0f4->caption, L"%+d",
-                     attack->value_25 + g_value_0069c0f8->bonus_1770.value_02);
+                     attack->attack_bonus_25 + g_value_0069c0f8->bonus_1770.attack_bonus_02);
             DrawRcsText(g_camp_screen_0069c0f4->caption, x, 0x84, 0x20,
                         g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
             swprintf(g_camp_screen_0069c0f4->caption, L"%+d%%", damage_bonus);
@@ -1891,7 +1891,7 @@ void CampScreenFrame(void)
         g_camp_screen_0069c0f4->dialog = 0;
         g_camp_screen_0069c0f4->redraw_flags |= 0x0fffffff;
     }
-    if (gXStatus.unknown_026[1] && g_suspended_screen_id != W8_SCREEN_CHARACTER &&
+    if (gXStatus.level_up_notice_027 && g_suspended_screen_id != W8_SCREEN_CHARACTER &&
         !gXStatus.fCombatMode && !IsScreenTransitionPending()) {
         RefreshLevelUpReadyNotices();
     }
@@ -2003,7 +2003,7 @@ unsigned char CampScreenLeave(int)
     MSYS_Shutdown();
     ResetRegions();
     if (gXStatus.fCampMode) {
-        gXStatus.unknown_026[0] = 1;
+        gXStatus.dialogue_sync_pending_026 = 1;
     }
     return 1;
 }
@@ -3027,7 +3027,7 @@ bool IsCampActionAllowed005A6090(int party_slot)
     } else {
         row = &g_status_685170.buffers.XChar[party_slot];
         if (g_combat_state->equip_phase_a50 == 0) {
-            if (g_combat_state->characters[party_slot].flag_34 != 0) {
+            if (g_combat_state->characters[party_slot].dead_34 != 0) {
                 if (row->pending_action == W8_ACTION_EQUIP) {
                     message = gppStringList[0x240c / 4];
                 } else if (row->action_03d == W8_ACTION_EQUIP) {

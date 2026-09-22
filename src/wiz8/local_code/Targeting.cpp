@@ -3693,7 +3693,8 @@ int ChooseFallbackMonsterTarget0053C990(int party_slot, int group_id, W8Targetin
     if (g_settings_6850c8.autoswap_weapons != 0 &&
         gXStatus.monster_manager_entries[party_slot].item_swap_in_progress == 0 &&
         row->item_action_pending_0f5 == 0 &&
-        (g_combat_state->flag_000 == 0 || g_combat_state->characters[party_slot].flag_34 == 0 ||
+        (g_combat_state->combat_over_000 == 0 ||
+         g_combat_state->characters[party_slot].dead_34 == 0 ||
          g_combat_state->characters[party_slot].phase == 0) &&
         !IsItemBoundToWearer(&character->EquippedItem[8]) &&
         !IsItemBoundToWearer(&character->EquippedItem[9]) &&

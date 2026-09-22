@@ -170,7 +170,7 @@ public:
     void BuildSubpanel();            /* 0x005c94e0 */
     void SetValue(int index);        /* 0x005c96c0 */
 
-    int m_value_004;
+    int m_index_004; /* current stat index */
     unsigned short m_count_008;
     unsigned char pad_00a[2];
     int m_x_00c;

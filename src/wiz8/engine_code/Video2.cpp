@@ -1441,10 +1441,10 @@ srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, 
     g_modeler_65963c->createGrid(1, 1);
     mapping.unknown_00 = 0;
     mapping.unknown_04 = 1;
-    mapping.unknown_08 = float_bits(mapping_width);
-    mapping.unknown_0c = float_bits(mapping_height);
-    mapping.unknown_10 = float_bits(mapping_x);
-    mapping.unknown_14 = float_bits(mapping_y);
+    mapping.u_scale_08 = float_bits(mapping_width);
+    mapping.v_scale_0c = float_bits(mapping_height);
+    mapping.u_offset_10 = float_bits(mapping_x);
+    mapping.v_offset_14 = float_bits(mapping_y);
     g_modeler_65963c->planarMap(0, 0, mapping);
     scale.x = static_cast<float>(width);
     scale.y = static_cast<float>(height);
@@ -1503,8 +1503,8 @@ stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width
     g_modeler_65963c->createGrid(1, 1);
     mapping.unknown_00 = 0;
     mapping.unknown_04 = 1;
-    mapping.unknown_08 = mapping.unknown_0c = float_bits(g_float_005ebb38 - (step + step));
-    mapping.unknown_10 = mapping.unknown_14 = float_bits(step);
+    mapping.u_scale_08 = mapping.v_scale_0c = float_bits(g_float_005ebb38 - (step + step));
+    mapping.u_offset_10 = mapping.v_offset_14 = float_bits(step);
     g_modeler_65963c->planarMap(0, 0, mapping);
     scale.x = static_cast<float>(width);
     scale.y = static_cast<float>(height);
@@ -3831,13 +3831,13 @@ srNode* MakePosterQuad00424BA0(srTextureIFace* texture, float width, float heigh
     mapping.unknown_00 = 0;
     mapping.unknown_04 = 1;
     // reinterpret-ok: the planarMap UV slots carry raw float bits
-    *reinterpret_cast<float*>(&mapping.unknown_08) = g_float_005ebb38 - extent_w;
+    *reinterpret_cast<float*>(&mapping.u_scale_08) = g_float_005ebb38 - extent_w;
     // reinterpret-ok: the planarMap UV slots carry raw float bits
-    *reinterpret_cast<float*>(&mapping.unknown_0c) = g_float_005ebb38 - extent_h;
+    *reinterpret_cast<float*>(&mapping.v_scale_0c) = g_float_005ebb38 - extent_h;
     // reinterpret-ok: the planarMap UV slots carry raw float bits
-    mapping.unknown_10 = *reinterpret_cast<unsigned long*>(&extent_w);
+    mapping.u_offset_10 = *reinterpret_cast<unsigned long*>(&extent_w);
     // reinterpret-ok: the planarMap UV slots carry raw float bits
-    mapping.unknown_14 = *reinterpret_cast<unsigned long*>(&extent_h);
+    mapping.v_offset_14 = *reinterpret_cast<unsigned long*>(&extent_h);
     g_modeler_65963c->planarMap(0, 0, mapping);
     srVector3T<float> scale;
     scale.x = width;

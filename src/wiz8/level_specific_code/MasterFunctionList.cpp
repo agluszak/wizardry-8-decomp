@@ -420,7 +420,7 @@ unsigned char WorldCursorNodeMaleCharacterEvent004D9590(int command, W8WorldCurs
 {
     W8Character* character;
 
-    if (command == 1 && g_status_685170.flag_2489 != 0) {
+    if (command == 1 && g_status_685170.rpc_active_2489 != 0) {
         character = g_status_685170.buffers.Char + g_status_685170.alternate_name_slot_247f;
         if (character->gender == W8_GENDER_MALE) {
             QueueCharacterEvent(character, g_character_event_kind_005ee63c, 0,

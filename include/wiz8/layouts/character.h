@@ -74,12 +74,12 @@ struct W8CharacterAttribute {
    establishes the stride and the leading flag it sets when a skill first
    becomes available; IsCharacterSkillAvailable reads the same flag. */
 struct W8CharacterSkill {
-    unsigned char flag_00; /* 0x00 */
-    unsigned char unknown_01;
+    bool active_00; /* 0x00: skill slot in use */
+    unsigned char padding_01;
     /* 0x02: a second figure the spell-learning ceiling divides by ten, the
        same way the resistances divide `level`. The two are distinct fields of
        one skill, not one field read two ways. */
-    unsigned int value_02;
+    unsigned int points_02;
     /* 0x06: the skill's current level. Resistance recalculation divides it by
        ten for skills 28..33 and by five for skill 36, which is what places it. */
     unsigned int level;
@@ -140,8 +140,8 @@ struct W8HandAttack {
     int swings;                  /* 0x19 */
     int damage_bonus;            /* 0x1d */
     int hit_bonus;               /* 0x21 */
-    int value_25;                /* 0x25 */
-    int value_29;                /* 0x29 */
+    int attack_bonus_25;         /* 0x25: attack-score term, paired with modifier attack_bonus_02 */
+    int damage_percent_29; /* 0x29: percent damage multiplier, paired with modifier damage_percent_03 */
     W8Dice damage_dice;          /* 0x2d */
     unsigned short attack_flags; /* 0x31 */
     int value_33;
@@ -157,9 +157,9 @@ struct W8HandAttack {
    one of the four; 0x0050EAC0's condition-0x13 fold reads record one's leading
    dwords as the level the binding was made on and the bound monster's id. */
 struct W8CharacterConditionRecord {
-    int value_00;
-    int value_04;
-    unsigned char value_08;
+    int level_acquired_00; /* 0x00: level the condition attached on */
+    int source_monster_04; /* 0x04: monster id/location the dependence is bound to */
+    bool active_08;
     unsigned char unknown_09[8];
 }; /* 0x11 */
 static_assert(sizeof(W8CharacterConditionRecord) == 0x11, "W8CharacterConditionRecord_size");
@@ -371,7 +371,7 @@ struct W8Character {
     /* 0x185c: one cost per skill id 0x18..0x1b, read by the profession-change
        cost diff with the skill id biased down. */
     unsigned char skill_costs_185c[4];
-    unsigned char unknown_1860;
+    unsigned char magic_bonus_pool_1860;
     /* 0x1861: the anchor above has been set. Recall does nothing without it. */
     bool has_saved_location;
 }; /* 0x1862 */

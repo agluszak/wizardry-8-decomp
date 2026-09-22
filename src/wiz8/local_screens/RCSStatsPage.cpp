@@ -829,7 +829,7 @@ void DrawCampSkillsPage005C5D80(void)
         bool has_fifth = false;
         int skill;
         for (skill = 0; skill < 0x29; ++skill) {
-            if ((g_value_0069c0f8->skills[skill].flag_00 != 0 ||
+            if ((g_value_0069c0f8->skills[skill].active_00 != 0 ||
                  g_value_0069c0f8->skills[skill].level != 0) &&
                 g_skill_attributes[skill].category == 4) {
                 has_fifth = true;
@@ -855,7 +855,7 @@ void DrawCampSkillsPage005C5D80(void)
         int category_count[5] = {0, 0, 0, 0, 0};
         for (skill = 0; skill < 0x29; ++skill) {
             W8CharacterSkill* value = &g_value_0069c0f8->skills[skill];
-            if (value->flag_00 != 0 || value->value_02 != 0 || value->level != 0) {
+            if (value->active_00 != 0 || value->points_02 != 0 || value->level != 0) {
                 int category = g_skill_attributes[skill].category;
                 int left = g_camp_skill_category_positions_64ef40[category][0];
                 int top = g_camp_skill_category_positions_64ef40[category][1];
@@ -867,7 +867,7 @@ void DrawCampSkillsPage005C5D80(void)
                 top += category_count[category] * 0xe;
                 DrawCatalogImage(-0xe, 0x141, 0, 3, left, top, 2, 0);
                 unsigned int level = value->level;
-                unsigned int base = value->value_02;
+                unsigned int base = value->points_02;
                 int gained;
                 int lost;
                 if (level < base) {
@@ -907,7 +907,7 @@ void DrawCampSkillsPage005C5D80(void)
                 unsigned short* palette;
                 if (!g_status_685170.game_started || value->level == 0) {
                     palette = g_font_state_palettes_68ee1c[11];
-                    if (value->flag_00 != 0) {
+                    if (value->active_00 != 0) {
                         palette = g_colour_68ee08;
                     }
                 } else {
@@ -921,12 +921,12 @@ void DrawCampSkillsPage005C5D80(void)
                     }
                     if (!best) {
                         palette = g_font_state_palettes_68ee1c[11];
-                        if (value->flag_00 != 0) {
+                        if (value->active_00 != 0) {
                             palette = g_colour_68ee08;
                         }
                     } else {
                         palette = g_font_state_palettes_68ee1c[12];
-                        if (value->flag_00 != 0) {
+                        if (value->active_00 != 0) {
                             palette = g_font_state_palettes_68ee1c[5];
                         }
                     }
@@ -966,7 +966,7 @@ unsigned char CampSkillListRegionHandler005C6230(const InputAtom* event, W8Regio
     int occurrence = 0;
     for (int index = 0; index < 0x29; ++index) {
         if (g_skill_attributes[index].category == static_cast<int>(region->callback_id) &&
-            (g_value_0069c0f8->skills[index].flag_00 != 0 ||
+            (g_value_0069c0f8->skills[index].active_00 != 0 ||
              g_value_0069c0f8->skills[index].level != 0)) {
             if (occurrence == row) {
                 skill = index;
@@ -1005,7 +1005,7 @@ unsigned char CampSkillListRegionHandler005C6230(const InputAtom* event, W8Regio
             }
         }
         W8SkillInfoDialog* dialog = new W8SkillInfoDialog(
-            skill, best, g_value_0069c0f8->skills[skill].flag_00 == 0,
+            skill, best, g_value_0069c0f8->skills[skill].active_00 == 0,
             skill == g_profession_bonus_skills[g_value_0069c0f8->iProfession]);
         DisplayCampDialog(dialog);
     }
@@ -1550,7 +1550,7 @@ void W8CharacterPage005EF5C8::UpdateEntries()
     m_show_fifth_category_075 = 0;
     for (int skill = 0; skill < 0x29; ++skill) {
         W8CharacterSkill* value = &m_character_060->skills[skill];
-        if (value->flag_00 || value->value_02 != 0) {
+        if (value->active_00 || value->points_02 != 0) {
             int category = g_skill_attributes[skill].category;
             int entry_index = 0;
             int occurrence = 0;
@@ -1565,7 +1565,7 @@ void W8CharacterPage005EF5C8::UpdateEntries()
             if (category == 4)
                 m_show_fifth_category_075 = 1;
             entry->SetContent(skill, gppStringList[g_character_skill_name_ids_61e454[skill]],
-                              &value->value_02, &m_creation_state_064->skill_points_spent[skill],
+                              &value->points_02, &m_creation_state_064->skill_points_spent[skill],
                               &m_creation_state_064->skill_limits[skill], 0x101);
             entry->SetLabelFontState(
                 skill == g_profession_bonus_skills[m_character_060->iProfession] ? 3 : -1);

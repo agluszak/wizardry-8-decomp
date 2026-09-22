@@ -105,7 +105,7 @@ void GetCharacterHandDamageDice(const W8Character* character, int hand, W8Dice* 
 // FUNCTION: WIZ8 0x00546b10
 int GetCharacterHandDamageBonus(const W8Character* character, int hand)
 {
-    return character->Hand[hand].value_29 + character->bonus_1770.value_03;
+    return character->Hand[hand].damage_percent_29 + character->bonus_1770.damage_percent_03;
 }
 
 /* Nine attack modes, one bit each, held in the low half of a word. */
@@ -347,7 +347,7 @@ int ApplyCharacterDamageReduction(W8Character* character, int damage)
     if (damage < 0) {
         damage = 0;
     }
-    if (character->skills[W8_SKILL_DAMAGE_REDUCTION].flag_00 != 0) {
+    if (character->skills[W8_SKILL_DAMAGE_REDUCTION].active_00 != 0) {
         PracticeCharacterSkill(character, W8_SKILL_DAMAGE_REDUCTION, 1, 0);
     }
     return damage;
@@ -404,7 +404,7 @@ bool CharacterHasAttackOn(int party_slot, W8CombatSlot* target)
             return 0;
         }
         if (CanPartyMemberAimAtMonster(party_slot, 0, monster_info,
-                                       g_combat_state->characters[party_slot].flag_34 == 0,
+                                       g_combat_state->characters[party_slot].dead_34 == 0,
                                        0) == 0) {
             return 0;
         }
@@ -520,12 +520,12 @@ int ResolveGuardianInterception00545E50(W8TargetSource* source, W8CombatSlot* ta
             TryCharacterAction(slot, W8_ACTION_PROTECT, 0) != 0 &&
             row->interception_count < character->Hand[0].attacks) {
             W8CombatSlot* guarded =
-                row->flag_34 == 0 ? &party_row->target_in_combat : &party_row->target_out_of_combat;
+                row->dead_34 == 0 ? &party_row->target_in_combat : &party_row->target_out_of_combat;
             if (memcmp(target, guarded, sizeof(W8CombatSlot)) == 0 &&
                 CharacterHasAttackOn(slot, target) != 0) {
                 SetTargetSourceToCharacter(slot, &guardian);
                 candidates.Add(guardian);
-                if (row->flag_34 == 0) {
+                if (row->dead_34 == 0) {
                     SwitchCharacterTo(slot, W8_ACTION_PROTECT);
                 }
             }
@@ -571,7 +571,7 @@ int ResolveGuardianInterception00545E50(W8TargetSource* source, W8CombatSlot* ta
                 penalty >>= 1;
             }
             guardian_score = defender->attributes[W8_ATTRIBUTE_SPEED].effective - penalty + armed +
-                             defender->bonus_1770.value_01 * 5;
+                             defender->bonus_1770.hit_bonus_01 * 5;
         } else if (candidate->iType == W8_TARGET_SOURCE_MONSTER) {
             W8MonsterInfo* defender = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x182b, COMBAT_ATTACK_CPP, candidate->iMonsterID, 1));
@@ -588,8 +588,8 @@ int ResolveGuardianInterception00545E50(W8TargetSource* source, W8CombatSlot* ta
                     break;
                 }
             }
-            guardian_score =
-                defender->attributes[3] - penalty + armed + defender->modifiers_1db.value_01 * 5;
+            guardian_score = defender->attributes[3] - penalty + armed +
+                             defender->modifiers_1db.hit_bonus_01 * 5;
         } else {
             srAssertFail("FALSE", COMBAT_ATTACK_CPP, 0x182f, 0);
         }
@@ -604,7 +604,7 @@ int ResolveGuardianInterception00545E50(W8TargetSource* source, W8CombatSlot* ta
                 penalty >>= 1;
             }
             attacker_score = attacker->attributes[W8_ATTRIBUTE_SPEED].effective - penalty + armed +
-                             attacker->bonus_1770.value_01 * 5;
+                             attacker->bonus_1770.hit_bonus_01 * 5;
         } else if (source->iType == W8_TARGET_SOURCE_MONSTER) {
             W8MonsterInfo* attacker = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x1839, COMBAT_ATTACK_CPP, source->iMonsterID, 1));
@@ -621,8 +621,8 @@ int ResolveGuardianInterception00545E50(W8TargetSource* source, W8CombatSlot* ta
                     break;
                 }
             }
-            attacker_score =
-                attacker->attributes[3] - penalty + armed + attacker->modifiers_1db.value_01 * 5;
+            attacker_score = attacker->attributes[3] - penalty + armed +
+                             attacker->modifiers_1db.hit_bonus_01 * 5;
         } else {
             srAssertFail("FALSE", COMBAT_ATTACK_CPP, 0x183d, 0);
         }
@@ -1258,7 +1258,7 @@ wchar_t* SpellTargetString(W8TargetSource* source, W8CombatSlot* target)
     if (target->iChar == -1) {
         srAssertFail("pTarget->iChar != BAD_INDEX", COMBAT_ATTACK_CPP, 0x19f6, 0);
     }
-    if (TargetSourceIsCharacter(source, 0) != 0 && source->unknown_18[1] == 0 &&
+    if (TargetSourceIsCharacter(source, 0) != 0 && source->name_known_19 == 0 &&
         source->iChar == target->iChar) {
         return FormatWideString(
             gppStringList[g_gender_name_message_rows_61e430
@@ -1651,15 +1651,15 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
     entry_target = monster_info->Target;
     if (entry_target.iType == W8_TARGET_KIND_CHARACTER) {
         W8Character* defender = &g_status_685170.buffers.Char[entry_target.iChar];
-        if (defender->skills[W8_SKILL_LOCKS_TRAPS].flag_00 != 0) {
+        if (defender->skills[W8_SKILL_LOCKS_TRAPS].active_00 != 0) {
             g_combat_state->characters[entry_target.iChar].skill_use_flags[W8_SKILL_LOCKS_TRAPS] =
                 1;
         }
-        if (defender->skills[W8_SKILL_SHIELD].flag_00 != 0 && g_combat_state->unaware_9a4 == 0 &&
+        if (defender->skills[W8_SKILL_SHIELD].active_00 != 0 && g_combat_state->unaware_9a4 == 0 &&
             g_combat_state->natural_attack_9a5 == 0 && defender->armor_class_components[3] > 0) {
             g_combat_state->characters[entry_target.iChar].skill_use_flags[W8_SKILL_SHIELD] = 1;
         }
-        if (defender->skills[W8_SKILL_REFLEXTION].flag_00 != 0) {
+        if (defender->skills[W8_SKILL_REFLEXTION].active_00 != 0) {
             g_combat_state->characters[entry_target.iChar].skill_use_flags[W8_SKILL_REFLEXTION] = 1;
         }
     }
@@ -1854,9 +1854,10 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             ShowNoticef(9, gppStringList[0x20c], location_name);
         }
         queued_fatigue = 2;
-        int penetration =
-            (monster_info->modifiers_1db.value_02 + monster_info->modifiers_1db.value_01) * 5 +
-            attack->attack_score_04;
+        int penetration = (monster_info->modifiers_1db.attack_bonus_02 +
+                           monster_info->modifiers_1db.hit_bonus_01) *
+                              5 +
+                          attack->attack_score_04;
         penetration += AttackModeMod(1, action_detail);
         for (int i = 0; i < 0x12; ++i) {
             if (attack->ubWeaponNameIndex == g_low_fatigue_attack_verbs_0061d284[i]) {
@@ -2157,7 +2158,7 @@ char StartMonsterAttack0053FEA0(W8MonsterInfo* monster_info, W8MonsterRecord* re
     if (combat->attacks_per_round == 0) {
         FormatDebugMessage(
             1, "ERROR: Monster ID %d is starting attack with 0 of %d attacks remaining!",
-            monster_info->location_id, combat->unknown_005);
+            monster_info->location_id, combat->attacks_per_round_005);
         return 0;
     }
     attack = combat->attack_index_11;
@@ -2411,7 +2412,7 @@ int GetTargetAttackAttributes(int party_slot, int hand, int attack_mode, char ar
     W8MonsterInfo* monster_info;
 
     score = attack->attack_score + attack->hit_bonus * 5;
-    score += character->bonus_1770.value_01 * 5;
+    score += character->bonus_1770.hit_bonus_01 * 5;
     score += AttackModeMod(0, attack_mode);
     if (g_combat_state->unaware_9a4 != 0) {
         score += 10;
@@ -2504,9 +2505,9 @@ int GetTargetHitAttackAttributes00541EC0(int party_slot, int hand, int attack_mo
     W8CombatSlot* target = &g_combat_state->TargetHit;
 
     score = attack->attack_score + attack->hit_bonus * 5;
-    score += attack->value_25 * 5;
-    score += character->bonus_1770.value_01 * 5;
-    score += character->bonus_1770.value_02 * 5;
+    score += attack->attack_bonus_25 * 5;
+    score += character->bonus_1770.hit_bonus_01 * 5;
+    score += character->bonus_1770.attack_bonus_02 * 5;
     score += AttackModeMod(1, attack_mode);
     if (attack->weapon_skill != W8_SKILL_MODERN_WEAPONS) {
         score -= FatigueArmorPenalty(character->fatigue_band);
@@ -2696,7 +2697,8 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
                             g_effect_argument_005ed914);
     }
 
-    int damage = (pPC->bonus_1770.value_03 + 100 + pPC->Hand[hand].value_29) * rolled + 50;
+    int damage =
+        (pPC->bonus_1770.damage_percent_03 + 100 + pPC->Hand[hand].damage_percent_29) * rolled + 50;
     damage = damage / 100;
     if (damage < 1) {
         damage = 1;
@@ -2717,7 +2719,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
         if (damage < 0) {
             damage = 0;
         }
-        if (target->skills[W8_SKILL_IRON_SKIN].flag_00 != 0) {
+        if (target->skills[W8_SKILL_IRON_SKIN].active_00 != 0) {
             PracticeCharacterSkill(target, W8_SKILL_IRON_SKIN, 1, 0);
         }
     }
@@ -2738,7 +2740,7 @@ int GetMonsterAttackScore(W8MonsterInfo* monster_info, W8MonsterAttack* attack, 
                           char arg_4)
 {
     W8MonsterCombatState* combat = monster_info->pCombat;
-    int score = monster_info->modifiers_1db.value_01 * 5 + attack->attack_score_04;
+    int score = monster_info->modifiers_1db.hit_bonus_01 * 5 + attack->attack_score_04;
     score += AttackModeMod(0, attack_mode);
     if (g_combat_state != NULL) {
         if (g_combat_state->unaware_9a4 != 0) {
@@ -2907,7 +2909,7 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
         if (rolled < 0) {
             rolled = 0;
         }
-        if (target->skills[W8_SKILL_IRON_SKIN].flag_00 != 0) {
+        if (target->skills[W8_SKILL_IRON_SKIN].active_00 != 0) {
             PracticeCharacterSkill(target, W8_SKILL_IRON_SKIN, 1, 0);
         }
     }
@@ -3813,7 +3815,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
             g_item_records[character->EquippedItem[row->current_equip_slot].iItemNo]
                 .swings_bonus_0ad;
     }
-    if (row->unknown_82[0] != 0 && hand == 0) {
+    if (row->extra_swings_82[0] != 0 && hand == 0) {
         if (character->Hand[0].weapon_skill == 0 &&
             character->uiCondition[W8_CONDITION_SLOWED] == 0) {
             PostCharacterNotice(party_slot, gppStringList[0x203]);
@@ -3823,7 +3825,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
                 row->uiSwingsRemaining += 4;
             }
         }
-        row->unknown_82[0] = 0;
+        row->extra_swings_82[0] = 0;
     }
     row->weapon_item_id_78 = character->EquippedItem[row->current_equip_slot].iItemNo;
     if (row->paired_equip_slot == -1) {
@@ -4059,15 +4061,15 @@ int ResolveCharacterAttack0053E250(int party_slot)
         range = GetCharAttackRange(character, hand);
         if (target.iType == W8_TARGET_KIND_CHARACTER) {
             W8Character* defender = &g_status_685170.buffers.Char[target.iChar];
-            if (defender->skills[W8_SKILL_LOCKS_TRAPS].flag_00 != 0) {
+            if (defender->skills[W8_SKILL_LOCKS_TRAPS].active_00 != 0) {
                 g_combat_state->characters[target.iChar].skill_use_flags[W8_SKILL_LOCKS_TRAPS] = 1;
             }
-            if (defender->skills[W8_SKILL_SHIELD].flag_00 != 0 &&
+            if (defender->skills[W8_SKILL_SHIELD].active_00 != 0 &&
                 g_combat_state->unaware_9a4 == 0 && g_combat_state->natural_attack_9a5 == 0 &&
                 defender->armor_class_components[3] > 0) {
                 g_combat_state->characters[target.iChar].skill_use_flags[W8_SKILL_SHIELD] = 1;
             }
-            if (defender->skills[W8_SKILL_REFLEXTION].flag_00 != 0) {
+            if (defender->skills[W8_SKILL_REFLEXTION].active_00 != 0) {
                 g_combat_state->characters[target.iChar].skill_use_flags[W8_SKILL_REFLEXTION] = 1;
             }
         }
@@ -4473,18 +4475,18 @@ int ResolveCharacterAttack0053E250(int party_slot)
             outcome = 1;
         } else if (outcome > 3) {
             if (character->Hand[hand].combat_skill == W8_SKILL_CLOSE_COMBAT) {
-                if (character->skills[W8_SKILL_CRITICAL_STRIKE].flag_00 != 0) {
+                if (character->skills[W8_SKILL_CRITICAL_STRIKE].active_00 != 0) {
                     PracticeCharacterSkill(character, W8_SKILL_CRITICAL_STRIKE, 1, 0);
                 }
-                if (character->skills[W8_SKILL_POWER_STRIKE].flag_00 != 0) {
+                if (character->skills[W8_SKILL_POWER_STRIKE].active_00 != 0) {
                     PracticeCharacterSkill(character, W8_SKILL_POWER_STRIKE, 1, 0);
                 }
             } else if (character->Hand[hand].combat_skill == W8_SKILL_RANGED_COMBAT) {
-                if (character->skills[W8_SKILL_EAGLE_EYE].flag_00 != 0) {
+                if (character->skills[W8_SKILL_EAGLE_EYE].active_00 != 0) {
                     PracticeCharacterSkill(character, W8_SKILL_EAGLE_EYE, 1, 0);
                 }
                 if (CharacterHasTrait00547940(character, W8_TRAIT_THROWN_CRITICALS) != 0 &&
-                    character->skills[W8_SKILL_CRITICAL_STRIKE].flag_00 != 0) {
+                    character->skills[W8_SKILL_CRITICAL_STRIKE].active_00 != 0) {
                     PracticeCharacterSkill(character, W8_SKILL_CRITICAL_STRIKE, 1, 0);
                 }
             }

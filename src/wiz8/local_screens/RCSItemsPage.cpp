@@ -1191,7 +1191,7 @@ void SetItemTooltip005BBD30(W8ItemInstance* item, W8Region* region)
                          "C:\\Projects\\Wizardry 8\\Local Screens\\RCSItemsPage.cpp", 0xa7a, 0);
         }
         if (g_value_0069c0f8->spell_learned[record->spell_id] == 1 &&
-            (item->identified != 0 || item->unknown_07[0] != 0)) {
+            (item->identified != 0 || item->spell_hint_07 != 0)) {
             wcscat(g_camp_screen_0069c0f4->caption, L" (");
             wcscat(g_camp_screen_0069c0f4->caption, gppStringList[0x24c0 / 4]);
             wcscat(g_camp_screen_0069c0f4->caption, L")");
@@ -1245,8 +1245,8 @@ void DrawCampItemIcons005BBE30(void)
     for (index = 0; index < 12; ++index) {
         item = &character->EquippedItem[index];
         if (item->iItemNo != -1) {
-            DrawCampItemLabel005BBF40(item, region->unknown_18, region->unknown_1c,
-                                      static_cast<char>(region->unknown_20));
+            DrawCampItemLabel005BBF40(item, region->label_x_18, region->label_y_1c,
+                                      static_cast<char>(region->label_flag_20));
         }
         ++region;
     }

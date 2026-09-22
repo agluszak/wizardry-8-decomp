@@ -260,9 +260,9 @@ public:
        flicker used while the gap track reports the mouth closed. */
     int mouth_frame_clock;
     int mouth_frame;
-    int value_208;
-    int value_20c;
-    int value_210;
+    int talk_start_208;
+    int talk_duration_20c;
+    int talk_state_210;
     /* 0x214: the current mouth state the dialogue update copies out of the
        active W8MouthGapTrack; forces mouth frame 0 while open. */
     unsigned char mouth_open;
@@ -273,7 +273,7 @@ public:
     bool pending_finalize_216;
     /* 0x217: suppresses rendering and radar/automap display. */
     bool disabled_217;
-    unsigned char flag_218;
+    unsigned char nearest_to_party_218;
     unsigned char unknown_219[3];
     /* 0x21c/0x220: hover base-height random range (scaled by
        g_world_scale_005ebc40 into movement_0c0.vertical_base_07c). */
@@ -287,7 +287,7 @@ public:
     unsigned char spell_vertex_warned_22c;
     /* 0x22d: the missing missile-start-point warning already fired once. */
     unsigned char missile_point_warned_22d;
-    signed char state_22e;
+    signed char removal_state_22e;
     unsigned char unknown_22f;
     CycleCallback cycle_callback_230;
     int callback_cycle_234;

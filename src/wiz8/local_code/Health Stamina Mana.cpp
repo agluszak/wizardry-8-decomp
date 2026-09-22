@@ -1143,7 +1143,7 @@ void CharacterDies(int party_slot)
         }
         row->pending_action = -1;
         g_combat_state->characters[party_slot].phase = 0;
-        g_combat_state->characters[party_slot].flag_34 = 1;
+        g_combat_state->characters[party_slot].dead_34 = 1;
         DropCharacterFromRound(party_slot);
     }
 

@@ -56,7 +56,7 @@ protected:
     char* m_background_path; /* 0x1c */
     int m_background_flags;  /* 0x20 */
     short m_border;          /* 0x24 */
-    unsigned char unknown_026[2];
+    unsigned char padding_026[2];
     int m_x;      /* 0x28 */
     int m_y;      /* 0x2c */
     int m_width;  /* 0x30 */

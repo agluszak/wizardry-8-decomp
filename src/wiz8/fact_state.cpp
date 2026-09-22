@@ -400,12 +400,12 @@ unsigned char EvaluateFact(int fact_id)
         case 0x11e:
             return GetFactionDisposition(W8_FACTION_TRANG) == W8_FACTION_FRIENDLY;
         case 0x14c:
-            if (g_status_685170.flag_2489 != 0) {
+            if (g_status_685170.rpc_active_2489 != 0) {
                 unsigned int slot = 0;
                 do {
                     if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
-                        slot ==
-                            static_cast<unsigned int>(g_status_685170.tail_3121.facts.value_423d)) {
+                        slot == static_cast<unsigned int>(
+                                    g_status_685170.tail_3121.facts.rpc_slot_423d)) {
                         return 1;
                     }
                     ++slot;

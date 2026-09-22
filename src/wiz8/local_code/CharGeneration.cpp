@@ -48,10 +48,10 @@ int ComputeRealmSkillDebt(W8Character* original, W8Character* edited)
         int index;
 
         for (index = 0x18; index <= 0x1b; ++index) {
-            if (original->skills[index].flag_00 == 0) {
+            if (original->skills[index].active_00 == 0) {
                 continue;
             }
-            if (edited->skills[index].flag_00 != 0) {
+            if (edited->skills[index].active_00 != 0) {
                 continue;
             }
             total += original->skill_costs_185c[index - 0x18];
@@ -65,12 +65,12 @@ int ComputeRealmSkillDebt(W8Character* original, W8Character* edited)
         int index;
 
         for (index = 0x18; index <= 0x1b; ++index) {
-            if (original->skills[index].flag_00 == 0) {
+            if (original->skills[index].active_00 == 0) {
                 continue;
             }
             total += original->skill_costs_185c[index - 0x18];
         }
-        total += original->unknown_1860;
+        total += original->magic_bonus_pool_1860;
     }
     return total;
 }
@@ -197,16 +197,16 @@ void InitializeCharacterLevelUp(W8Character* character, W8CharacterCreationState
 void ResetSkillContribution(W8Character* character, W8CharacterCreationState* creation_state,
                             int skill_id)
 {
-    character->skills[skill_id].flag_00 = 1;
+    character->skills[skill_id].active_00 = 1;
     creation_state->skill_points_spent[skill_id] = 0;
 
     if (skill_id >= 0x18 && skill_id < 0x1c) {
         int offset = g_profession_magic_level_offsets[character->iProfession];
         if (offset < 0 && offset > -0xff &&
             character->profession_levels[character->iProfession] + offset == 1) {
-            int missing = 5 - character->skills[skill_id].value_02;
+            int missing = 5 - character->skills[skill_id].points_02;
             if (missing > 0) {
-                character->skills[skill_id].value_02 += missing;
+                character->skills[skill_id].points_02 += missing;
                 character->skills[skill_id].level += missing;
                 creation_state->skill_baselines_1bc[skill_id] += missing;
             }
@@ -223,10 +223,10 @@ void RefundSkillAllocation(W8Character* character, W8CharacterCreationState* cre
     int spent = creation_state->skill_points_spent[skill_id];
     if (spent > 0) {
         creation_state->skill_points_remaining += spent;
-        character->skills[skill_id].value_02 -= spent;
+        character->skills[skill_id].points_02 -= spent;
         creation_state->skill_points_spent[skill_id] = 0;
     }
-    character->skills[skill_id].level = character->skills[skill_id].value_02;
+    character->skills[skill_id].level = character->skills[skill_id].points_02;
 }
 
 /* Every point the edited character has already committed is spent from the
@@ -541,12 +541,12 @@ void RecomputeSkillLimits(W8Character* character, W8CharacterCreationState* crea
     creation_state->skill_step_limit = step;
 
     for (int index = 0; index < 0x29; ++index) {
-        if (character->skills[index].flag_00 == 0) {
+        if (character->skills[index].active_00 == 0) {
             creation_state->skill_limits[index] = 0;
             continue;
         }
         int limit =
-            (creation_state->skill_points_spent[index] - character->skills[index].value_02) + 0x4b;
+            (creation_state->skill_points_spent[index] - character->skills[index].points_02) + 0x4b;
         int value = step;
         if (limit <= step) {
             value = limit;
@@ -575,7 +575,7 @@ void ClampSkillsToBudget(W8Character* character, W8CharacterCreationState* creat
         int excess = spent - creation_state->skill_limits[index];
         if (excess > 0) {
             creation_state->skill_points_spent[index] = spent - excess;
-            character->skills[index].value_02 -= excess;
+            character->skills[index].points_02 -= excess;
             character->skills[index].level -= excess;
         }
     }
@@ -589,7 +589,7 @@ void ClampSkillsToBudget(W8Character* character, W8CharacterCreationState* creat
         while (creation_state->skill_points_total < total) {
             if (creation_state->skill_points_spent[index] > 0) {
                 --creation_state->skill_points_spent[index];
-                --character->skills[index].value_02;
+                --character->skills[index].points_02;
                 --character->skills[index].level;
                 --total;
             }
@@ -629,11 +629,11 @@ void FinalizeSpellPointPool(W8Character* character, W8CharacterCreationState* cr
         int total = 0;
         if (GetProfessionCasterLevel(character, -1) > 0) {
             for (unsigned int realm = 0x18; realm < 0x1c; ++realm) {
-                if (character->skills[realm].flag_00 != 0) {
+                if (character->skills[realm].active_00 != 0) {
                     total += character->skill_costs_185c[realm - 0x18];
                 }
             }
-            total += character->unknown_1860;
+            total += character->magic_bonus_pool_1860;
         }
         creation_state->spell_points_total = total + creation_state->magic_skill_bonus;
     }
@@ -676,13 +676,13 @@ int CountRemainingSpellPoints(W8Character* character, W8CharacterCreationState* 
         for (index = 0; index < 4; ++index) {
             int skill = 0x18 + index;
             int points = creation_state->skill_points_spent[skill];
-            character->skills[skill].value_02 -= points;
+            character->skills[skill].points_02 -= points;
             character->skills[skill].level -= points;
         }
         for (index = 0; index < 6; ++index) {
             int skill = 0x1c + index;
             int points = creation_state->skill_points_spent[skill];
-            character->skills[skill].value_02 -= points;
+            character->skills[skill].points_02 -= points;
             character->skills[skill].level -= points;
         }
         for (index = 0; index < 0x72; ++index) {
@@ -704,13 +704,13 @@ int CountRemainingSpellPoints(W8Character* character, W8CharacterCreationState* 
         for (index = 0; index < 4; ++index) {
             int skill = 0x18 + index;
             int points = creation_state->skill_points_spent[skill];
-            character->skills[skill].value_02 += points;
+            character->skills[skill].points_02 += points;
             character->skills[skill].level += points;
         }
         for (index = 0; index < 6; ++index) {
             int skill = 0x1c + index;
             int points = creation_state->skill_points_spent[skill];
-            character->skills[skill].value_02 += points;
+            character->skills[skill].points_02 += points;
             character->skills[skill].level += points;
         }
     }
@@ -742,7 +742,7 @@ void RebuildSkillAllocations(W8Character* character, W8CharacterCreationState* c
     int index;
 
     for (index = 0; index < 0x29; ++index) {
-        character->skills[index].value_02 = 0;
+        character->skills[index].points_02 = 0;
         character->skills[index].level = 0;
     }
     InitializeSkillBaseLevels00553C90(character);
@@ -763,17 +763,17 @@ void RebuildSkillAllocations(W8Character* character, W8CharacterCreationState* c
         int skill = g_profession_skills[profession][index];
         if (skill != -1) {
             int value = (character->skills[skill].base_level_0a * step) / 100;
-            character->skills[skill].value_02 = value;
+            character->skills[skill].points_02 = value;
             character->skills[skill].level = value;
         }
     }
     int bonus_skill = g_profession_bonus_skills[profession];
     int value = (character->skills[bonus_skill].base_level_0a * step) / 100;
-    character->skills[bonus_skill].value_02 = value;
+    character->skills[bonus_skill].points_02 = value;
     character->skills[bonus_skill].level = value;
     for (index = 0; index < 0x29; ++index) {
-        character->skills[index].value_02 += creation_state->skill_points_spent[index];
-        character->skills[index].level = character->skills[index].value_02;
+        character->skills[index].points_02 += creation_state->skill_points_spent[index];
+        character->skills[index].level = character->skills[index].points_02;
     }
     character->skills[bonus_skill].level += GetSkillQuarterValue00553EE0(character, bonus_skill);
 }
@@ -999,25 +999,25 @@ void RebuildLevelUpPoolsForProfession(W8Character* character,
         for (index = 0; index < 0x29; ++index) {
             int baseline = creation_state->skill_baselines_1bc[index];
             if (baseline > 0) {
-                character->skills[index].value_02 -= baseline;
+                character->skills[index].points_02 -= baseline;
                 character->skills[index].level -= baseline;
                 creation_state->skill_baselines_1bc[index] = 0;
             }
         }
         int bonus_skill = g_profession_bonus_skills[character->iProfession];
-        int base = character->skills[bonus_skill].value_02;
+        int base = character->skills[bonus_skill].points_02;
         int missing = (creation_state->skill_points_spent[bonus_skill] - base) + 5;
         if (missing > 0) {
-            character->skills[bonus_skill].value_02 = base + missing;
+            character->skills[bonus_skill].points_02 = base + missing;
             character->skills[bonus_skill].level += missing;
             creation_state->skill_baselines_1bc[bonus_skill] += missing;
         }
         for (index = 0; index < 4; ++index) {
             int skill = g_profession_skills[character->iProfession][index];
-            int value = character->skills[skill].value_02;
+            int value = character->skills[skill].points_02;
             int missing = (creation_state->skill_points_spent[skill] - value) + 5;
             if (missing > 0) {
-                character->skills[skill].value_02 = value + missing;
+                character->skills[skill].points_02 = value + missing;
                 character->skills[skill].level += missing;
                 creation_state->skill_baselines_1bc[skill] += missing;
             }
@@ -1136,7 +1136,7 @@ void InitializeLevelUpAttributePool(W8Character* character,
     if (creation_state->skill_limits[skill] < spent + modifier) {
         modifier = creation_state->skill_limits[skill] - spent;
     }
-    character->skills[skill].value_02 += modifier;
+    character->skills[skill].points_02 += modifier;
     character->skills[skill].level += modifier;
     creation_state->skill_points_remaining -= modifier;
     creation_state->skill_points_spent[skill] += modifier;
@@ -1177,10 +1177,10 @@ void FinalizeCreatedCharacter(W8Character* character, W8CharacterCreationState* 
     }
 
     if (character->iProfession == 0xc) {
-        character->unknown_1860 += creation_state->magic_skill_bonus;
+        character->magic_bonus_pool_1860 += creation_state->magic_skill_bonus;
     } else {
         for (realm = 0x18; realm <= 0x1b; ++realm) {
-            if (character->skills[realm].flag_00 != 0) {
+            if (character->skills[realm].active_00 != 0) {
                 character->skill_costs_185c[realm - 0x18] += creation_state->magic_skill_bonus;
                 break;
             }
@@ -1214,17 +1214,17 @@ void FinalizeCreatedCharacter(W8Character* character, W8CharacterCreationState* 
                     continue;
                 break;
             }
-            if (character->skills[realm].flag_00 != 0 &&
+            if (character->skills[realm].active_00 != 0 &&
                 character->skill_costs_185c[realm - 0x18] > 0) {
                 --character->skill_costs_185c[realm - 0x18];
                 goto spell_done;
             }
         }
-        if (character->unknown_1860 > 0) {
-            --character->unknown_1860;
+        if (character->magic_bonus_pool_1860 > 0) {
+            --character->magic_bonus_pool_1860;
         } else if (character->iProfession == 0xc) {
             for (realm = 0x18; realm <= 0x1b; ++realm) {
-                if (character->skills[realm].flag_00 != 0 &&
+                if (character->skills[realm].active_00 != 0 &&
                     character->skill_costs_185c[realm - 0x18] > 0) {
                     --character->skill_costs_185c[realm - 0x18];
                     break;

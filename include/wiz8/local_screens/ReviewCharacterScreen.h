@@ -107,7 +107,9 @@ struct W8CampScreenState0069C0F4 {
     int selected_spell_row; /* 0xd34 */
     unsigned char unknown_d38[7];
     unsigned char entry_mode;
-    unsigned char unknown_d40[4];
+    /* 0xd40[0]: mouse is over the reviewed portrait; drives the highlight
+       frame and a redraw. */
+    unsigned char portrait_hovered_d40[4];
     W8DialogBase* dialog;
     unsigned char item_mode;
     unsigned char unknown_d49[3];
@@ -155,15 +157,15 @@ extern int g_attribute_label_ids_64dd30[7];
    given as explicit rectangles. The region initializer reads the first four
    fields; the trailing five are never touched there and stay positional. */
 struct W8CampScreenRegion {
-    int x;      /* 0x00 */
-    int y;      /* 0x04 */
-    int width;  /* 0x08 */
-    int height; /* 0x0c */
-    int unknown_10;
-    int unknown_14;
-    int unknown_18;
-    int unknown_1c;
-    int unknown_20;
+    int x;                     /* 0x00 */
+    int y;                     /* 0x04 */
+    int width;                 /* 0x08 */
+    int height;                /* 0x0c */
+    int frame_10;              /* 0x10: catalog frame for the slot border */
+    int unidentified_frame_14; /* 0x14: overlay frame while the item is unidentified */
+    int label_x_18;            /* 0x18: item label left */
+    int label_y_1c;            /* 0x1c: item label top */
+    int label_flag_20;         /* 0x20: label draw flag */
 };
 
 extern const W8CampScreenRegion g_camp_screen_regions_64cbf0[12];

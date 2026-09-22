@@ -64,7 +64,7 @@ void W8DialogTextArea::Configure(const W8ControlsRect* bounds, int font, unsigne
 void W8DialogTextArea::Draw(unsigned char force)
 {
     unsigned int font_height = GetFontHeight(m_font);
-    if (force || m_dirty || unknown_03e) {
+    if (force || m_dirty || selection_dirty_03e) {
         W8ControlsRect bounds;
         if (m_relayout_needed) {
             bounds.left = m_bounds.left;
@@ -83,7 +83,7 @@ void W8DialogTextArea::Draw(unsigned char force)
         }
         m_relayout_needed = 0;
         m_dirty = 0;
-        unknown_03e = 0;
+        selection_dirty_03e = 0;
     }
 }
 
@@ -169,7 +169,7 @@ unsigned char W8DialogTextArea::SelectEntry(int index)
     if (m_visible_lines_02c.count != 0 && !(*m_visible_lines_02c.GetAt(index))->m_selected) {
         (*m_visible_lines_02c.GetAt(index))->SetSelected(1);
         m_selected_visible_entry = index;
-        unknown_03e = 1;
+        selection_dirty_03e = 1;
         return 1;
     }
     return 0;
@@ -182,7 +182,7 @@ unsigned char W8DialogTextArea::ClearSelection()
         m_selected_visible_entry = -1;
     } else if (m_selected_visible_entry != -1) {
         (*m_visible_lines_02c.GetAt(m_selected_visible_entry))->SetSelected(0);
-        unknown_03e = 1;
+        selection_dirty_03e = 1;
         m_selected_visible_entry = -1;
         return 1;
     }
@@ -266,7 +266,7 @@ unsigned char W8DialogTextArea::SetEntryState5D(int index)
             entry->m_geometryDirty = 1;
         }
         m_state_5d_entry = index;
-        unknown_03e = 1;
+        selection_dirty_03e = 1;
         return 1;
     }
     return 0;
@@ -283,7 +283,7 @@ unsigned char W8DialogTextArea::ClearEntryState5D()
             entry->m_state_5d = 0;
             entry->m_geometryDirty = 1;
         }
-        unknown_03e = 1;
+        selection_dirty_03e = 1;
         m_state_5d_entry = -1;
         return 1;
     }
@@ -317,7 +317,7 @@ void W8DialogTextArea::SetEntryState60(int index, unsigned char state)
         entry->m_state_60 = state;
         entry->m_geometryDirty = 1;
     }
-    unknown_03e = 1;
+    selection_dirty_03e = 1;
 }
 
 // FUNCTION: WIZ8 0x005d16c0
@@ -405,7 +405,7 @@ void W8DialogTextArea::RebuildVisibleEntries()
 void W8DialogTextArea::SetCategoryFilter(signed char category)
 {
     m_category_filter = category;
-    unknown_03e = 1;
+    selection_dirty_03e = 1;
     m_relayout_needed = 1;
     RebuildVisibleEntries();
 }
@@ -414,7 +414,7 @@ void W8DialogTextArea::SetCategoryFilter(signed char category)
 void W8DialogTextArea::SetSorted(unsigned char sorted)
 {
     m_sorted = sorted;
-    unknown_03e = 1;
+    selection_dirty_03e = 1;
     m_relayout_needed = 1;
     RebuildVisibleEntries();
 }
@@ -502,7 +502,7 @@ W8DialogTextArea::W8DialogTextArea()
     m_font = 0;
     m_layout_initialized = 0;
     m_dirty = 0;
-    unknown_03e = 0;
+    selection_dirty_03e = 0;
     m_entry_spacing = 0;
     m_behavior_flags = 0;
     m_relayout_needed = 0;

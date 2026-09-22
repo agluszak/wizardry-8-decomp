@@ -69,7 +69,7 @@ void RecalculateCharacterDerivedStats(W8Character* character)
         character->damage_reduction += static_cast<int>(
             ScaleValueByProfessionLevel005479B0(character, W8_TRAIT_MONK_DAMAGE_RESISTANCE, 30.0f));
     }
-    if (character->skills[W8_SKILL_IRON_SKIN].flag_00 != 0) {
+    if (character->skills[W8_SKILL_IRON_SKIN].active_00 != 0) {
         character->damage_reduction += (character->skills[W8_SKILL_IRON_SKIN].level >> 2) + 5;
     }
     character->damage_reduction += character->bonus_1770.damage_reduction_adjustment;

@@ -69,7 +69,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     unsigned char saved_entry_flag;
     unsigned char saved_keyboard_open;
     unsigned char saved_pending0;
-    unsigned char saved_flag_218;
+    unsigned char saved_portrait_flash_218;
     unsigned char saved_cursor_grace_31c;
     unsigned char saved_pick_changed;
     unsigned char saved_refresh_combat;
@@ -235,7 +235,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     saved_cursor = gXStatus.iCurrentCursor;
     saved_confirmations = g_settings_6850c8.pc_confirmations;
     saved_combat_notification = g_level_block->combat_end_notification;
-    saved_flag_218 = g_level_block->flag_218;
+    saved_portrait_flash_218 = g_level_block->portrait_flash_218;
     saved_refresh_combat = g_level_block->refresh_combat_panel;
     saved_refresh_party = g_level_block->refresh_party_panel;
     saved_pick_changed = g_level_block->pick_changed_154;
@@ -248,7 +248,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     gXStatus.iCurrentCursor = -1;
     g_settings_6850c8.pc_confirmations = 0;
     g_level_block->combat_end_notification = -1;
-    g_level_block->flag_218 = 0;
+    g_level_block->portrait_flash_218 = 0;
     g_level_block->refresh_combat_panel = 0;
     g_level_block->refresh_party_panel = 0;
     g_level_block->pick_changed_154 = 0;
@@ -256,7 +256,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     SelectPartyCharacter(1);
     result->select_moved_selection = g_status_685170.selected_character == 1;
     result->select_flagged_refresh =
-        g_level_block->flag_218 != 0 && g_level_block->refresh_combat_panel != 0 &&
+        g_level_block->portrait_flash_218 != 0 && g_level_block->refresh_combat_panel != 0 &&
         g_level_block->refresh_party_panel != 0 && g_level_block->pick_changed_154 != 0;
 
     /* MapSubMenuSelection: an attack entry lands as the unsettled action
@@ -358,7 +358,7 @@ bool RunKeyboardMenuSemanticTest(KeyboardMenuSemanticResult* result)
     gXStatus.iCurrentCursor = saved_cursor;
     g_settings_6850c8.pc_confirmations = saved_confirmations;
     g_level_block->combat_end_notification = saved_combat_notification;
-    g_level_block->flag_218 = saved_flag_218;
+    g_level_block->portrait_flash_218 = saved_portrait_flash_218;
     g_level_block->refresh_combat_panel = saved_refresh_combat;
     g_level_block->refresh_party_panel = saved_refresh_party;
     g_level_block->pick_changed_154 = saved_pick_changed;

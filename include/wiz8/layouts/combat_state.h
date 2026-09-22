@@ -108,7 +108,7 @@ static_assert(sizeof(W8CombatHandRecord) == 0x10, "W8CombatHandRecord_must_be_0x
 struct W8CombatCharacterRow {
     unsigned int phase; /* 0x00: combat phase; cleared when the character dies */
     unsigned char unknown_04[0x30];
-    unsigned char flag_34; /* 0x34: raised when the character dies */
+    bool dead_34; /* 0x34: raised when the character dies */
     unsigned char unknown_35[3];
     /* 0x38: the two hand values GetCharacterTurnValue reuses once this row's
        turn is already set up. Retail indexes them from the combat-state base
@@ -138,7 +138,7 @@ struct W8CombatCharacterRow {
     /* 0x81: toggled when the slot swaps to its alternate hand in PC Item;
        while set the pending hand-attack values are rebuilt. */
     bool alternate_hand_81;
-    unsigned char unknown_82[2];
+    unsigned char extra_swings_82[2];
     /* 0x84/0x88: the slot's combat-portrait catalog image and the alternate the
        combat portrait strip draws while the slot is the hovered combat slot
        (party_slots_170[4]); -1 draws nothing. */
@@ -196,7 +196,7 @@ static_assert(offsetof(W8CombatCharacterRow, saved_attack_value) == 0x38,
    +0x18, 0xd4 apart. Only what a ported body reaches is named, and only where
    the use establishes a meaning. */
 struct W8CombatState {
-    unsigned char flag_000; /* 0x000: blocks ending combat while set */
+    unsigned char combat_over_000; /* 0x000: raised when combat ends; inverse of round_active_001 */
     /* 0x001: set when combat begins and when continuous combat resumes;
        cleared at the round boundary while continuous_combat is off. Gates
        party movement and the combat-sensitive UI panels. */
@@ -312,8 +312,8 @@ struct W8CombatState {
     /* 0xa61: remembered search-mode state; the combat teardown toggles search
        mode back on when it reads nonzero. */
     unsigned char search_mode_saved_a61;
-    bool combat_ready_a62;             /* 0xa62: party combat-ready bit */
-    unsigned char padding_a63;      /* 0xa63: the allocation is 0xa64 bytes */
+    bool combat_ready_a62;     /* 0xa62: party combat-ready bit */
+    unsigned char padding_a63; /* 0xa63: the allocation is 0xa64 bytes */
 }; /* 0xa64 */
 
 static_assert(sizeof(W8CombatState) == 0xa64, "W8CombatState_must_be_0xa64");

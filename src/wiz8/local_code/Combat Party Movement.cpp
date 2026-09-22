@@ -265,11 +265,11 @@ void CompletePartyMovementTurns(void)
             continue;
         }
         W8CombatCharacterRow* combat_row = &g_combat_state->characters[party_slot];
-        if (combat_row->flag_34 == 0 && Random(100) < remaining) {
+        if (combat_row->dead_34 == 0 && Random(100) < remaining) {
             CatchUpCombatActor(combat_row);
             continue;
         }
-        combat_row->flag_34 = 1;
+        combat_row->dead_34 = 1;
         combat_row->phase = 0;
         party_row->pending_event_type_ff = static_cast<unsigned int>(-1);
     }
@@ -315,7 +315,7 @@ static void AlignCombatantsToPartyMovementPhase(void)
     RoundPhaseToStep(&g_combat_state->uiPartyActionPhase, g_combat_state->round_counter);
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
         W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
-        if (row->phase >= g_combat_state->round_counter && row->flag_34 == 0) {
+        if (row->phase >= g_combat_state->round_counter && row->dead_34 == 0) {
             RoundPhaseToStep(&row->phase, g_combat_state->round_counter);
         }
     }
@@ -449,12 +449,12 @@ void InterruptActivePartyMovement(void)
             continue;
         }
         W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
-        if (row->phase < g_combat_state->round_counter && row->flag_34 == 0) {
+        if (row->phase < g_combat_state->round_counter && row->dead_34 == 0) {
             row->phase = g_combat_state->round_counter;
         }
         row->phase_clock_stamp = g_combat_state->round_counter;
         if (row->phase > W8_PHASES_PER_ROUND) {
-            row->flag_34 = 1;
+            row->dead_34 = 1;
             row->phase = 0;
             party_row->pending_event_type_ff = static_cast<unsigned int>(-1);
             RequestRedraw((1 << party_slot) | 0x100000);

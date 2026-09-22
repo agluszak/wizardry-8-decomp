@@ -277,10 +277,9 @@ static_assert(sizeof(W8NpcCharacterTemplate) == 0x206, "W8NpcCharacterTemplate_s
 struct W8NpcDatabaseRecord {
     unsigned short
         version; /* 0x000: two in the corpus; the rule tail loads only when this exceeds 1 */
-    /* 0x002: non-zero marks the record as carrying whatever the NPC manager's
-       first predicate asks about. CreateNpcRuntimeNode copies it into the
-       runtime state's word at 0x0ca. */
-    short value_002;
+    /* 0x002: trade-pool stock count; CreateNpcRuntimeNode copies it into the
+       runtime state's trade_pool_ca. */
+    short trade_pool_002;
     /* 0x004: the wide source name the level-entry rebinding prefixes with an
        underscore to build the NPC's trigger name. */
     wchar_t source_name_004[0x28];
@@ -290,7 +289,7 @@ struct W8NpcDatabaseRecord {
     unsigned char monster_bound_054;
     /* 0x055: gates the owned item-list teardown at 0x0055A5D0, which only
        releases the NPC's stock while this is set. */
-    unsigned char flag_055;
+    unsigned char owns_stock_055;
     /* 0x056: merchant: still opens dialogue when the disposition band is
        hostile, and item drops go through the trade transcript layout. */
     unsigned char merchant_056;
@@ -507,7 +506,7 @@ struct W8MonsterRecord {
     unsigned char combat_morale_1c0;
     /* 0x1c1: the MIPE monster list only admits records carrying -1 here, and
        stores the value itself as the selected monster index. */
-    short value_1c1;
+    short editor_index_1c1;
     /* 0x1c3: the monster's treasure table. DropMonsterLoot fires each slot
        whose count is nonzero once Random(100) stays under its chance, rolling
        the slot dice for the drop count; type 0 creates the item id directly,
@@ -517,7 +516,7 @@ struct W8MonsterRecord {
     unsigned char attack_multiple_targets_247;
     /* 0x248: Monster Editor camouflage rating; retail sight code consumes it. */
     unsigned char camouflage_248;
-    unsigned char unknown_249;
+    unsigned char camouflage_249;
     /* 0x24a: the monster cannot be targeted at all. Every sweep that gathers
        candidates drops it before any other test. */
     unsigned char untargetable_24a;
@@ -529,11 +528,11 @@ struct W8MonsterRecord {
     /* 0x251: monster level shown by MonsterInfo and related UI. */
     unsigned char display_level_251;
     unsigned char unknown_252;
-    int value_253;            /* 0x253: selected by 0x004e5b50 */
-    int value_257;            /* 0x257: alternate selected value */
-    int hostility_radius_25b; /* 0x25b: Minimal Neutrality Distance / Hostility Radius */
-    int faction_id_25f;       /* 0x25f: W8Faction value, domain 0..20 */
-    int material_263;         /* 0x263: Monster Editor Material selector */
+    int model_index_253;           /* 0x253: selected by 0x004e5b50 */
+    int alternate_model_index_257; /* 0x257: alternate selected value */
+    int hostility_radius_25b;      /* 0x25b: Minimal Neutrality Distance / Hostility Radius */
+    int faction_id_25f;            /* 0x25f: W8Faction value, domain 0..20 */
+    int material_263;              /* 0x263: Monster Editor Material selector */
     /* Carved out because LoadMonsterGroup skips every live-group step for a
        record that has it set. */
     unsigned char deleted; /* 0x267 */
