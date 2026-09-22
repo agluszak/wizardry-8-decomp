@@ -218,12 +218,13 @@ enum { W8_EQUIP_CLASS_FIRST_NON_WEAPON = 4 };
 
 /* 0x0061E956: the gppStringList message each item use kind shows for whatever
    the item was used on. Retail reads a word at a four-byte stride from this
-   run of consecutive ids - every other entry - so the access doubles the use
-   kind. The run's extent ends where g_action_kind_message_ids_61e988 starts. */
+   run of consecutive ids, so only the even entries through index 18 have a
+   recovered role. The odd entries remain unknown; the run ends where
+   g_item_property_name_ids_61e97c starts. */
 // GLOBAL: WIZ8 0x0061e956
-extern const unsigned short g_item_use_messages_61e956[25] = {
-    0x4f6, 0x4f7, 0x4f8, 0x4f9, 0x4fa, 0x4fb, 0x4fc, 0x4fd, 0x4fe, 0x4ff, 0x500, 0x501, 0x502,
-    0x503, 0x504, 0x505, 0x506, 0x507, 0x508, 0x509, 0x50a, 0x50b, 0x50c, 0x50d, 0x50e,
+extern const unsigned short g_item_use_messages_61e956[19] = {
+    0x4f6, 0x4f7, 0x4f8, 0x4f9, 0x4fa, 0x4fb, 0x4fc, 0x4fd, 0x4fe, 0x4ff,
+    0x500, 0x501, 0x502, 0x503, 0x504, 0x505, 0x506, 0x507, 0x508,
 };
 /* 0x0068C108: one lazily built generic name per unidentified-name index, and
    0x0061E810: the notice each index formats from. The table's extent is the
@@ -236,11 +237,8 @@ const int g_item_spell_presentation[11] = {-1, 20, 20, -1, -1, -1, 12, 9, 23, 7,
    none, which is the value the bound-item predicates refuse a binding behind. */
 // GLOBAL: WIZ8 0x00648c5c
 const int g_equip_slot_icons[12] = {0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0};
-/* The leading entries are an offset alias of the tail of
-   g_equip_class_name_ids_61e7dc; retail reads both views of one block. */
+/* One notice id per unidentified-name index. */
 // GLOBAL: WIZ8 0x0061E810
-// offset alias of the tail of g_equip_class_name_ids_61e7dc; shared retail
-// storage.
 extern const unsigned short g_generic_item_name_notice[W8_GENERIC_ITEM_NAME_COUNT] = {
     0x45a, 0x45b, 0x45c, 0x45d, 0x45e, 0x45f, 0x460, 0x461, 0x462, 0x463, 0x464, 0x465, 0x466,
     0x467, 0x468, 0x469, 0x46a, 0x46b, 0x46c, 0x46d, 0x46e, 0x46f, 0x470, 0x471, 0x472, 0x473,

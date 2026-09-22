@@ -50,6 +50,9 @@ struct W8OctSpatialState {
     unsigned long flags_00;
     float extent_04;
     float cell_size_08;
+    /* Retail consumers also pass each adjacent minimum/maximum pair to APIs
+       taking W8BoundingBox, but no recovered lifecycle establishes embedded
+       box members rather than these four independently copied vectors. */
     srVector3T<float> minimum_0c;
     srVector3T<float> maximum_18;
     srVector3T<float> clipped_minimum_24;

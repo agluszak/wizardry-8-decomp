@@ -3085,8 +3085,11 @@ void FinishSpellEffectTargets(W8SpellEffectEntry* effect)
 
 /* Per-tick handler for the active 0x3e party combat effect: each live slot
    detonates a radius blast around the party - every monster in range takes a
-   resistance-checked dice roll scaled by the slot's stored magnitude.  In
-   verbose mode each damage line goes straight out; otherwise the results
+   resistance-checked dice roll scaled by the slot's stored magnitude. Retail
+   advances through nine 0x11-byte records; the only recovered caller supplies
+   the six-slot party-effect region whose following storage has independent
+   missile/target lifetimes. The authored enclosing abstraction is unresolved.
+   In verbose mode each damage line goes straight out; otherwise the results
    accumulate and print as one summary plus per-target condition reports. */
 // FUNCTION: WIZ8 0x00552ef0
 void TickRadiusBlastEffectSlots(W8EffectSlot* effect_slots)

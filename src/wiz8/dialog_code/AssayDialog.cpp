@@ -2,6 +2,7 @@
 #include <wchar.h>
 #include "wiz8/dialog_code/AssayDialog.h"
 #include "wiz8/dialog_code/SpellInfoDialog.h"
+#include "wiz8/dialog_code/StatInfoDialogs.h"
 #include "wiz8/layouts/character.h"
 #include "wiz8/layouts/gameplay_databases.h"
 #include "wiz8/character_skills.h"
@@ -74,9 +75,9 @@ W8ControlsRect g_assay_text_area_offsets = {0x48, 0x4a, 0x156, 0xef};
 // GLOBAL: WIZ8 0x0064faa8
 int g_assay_text_buffer_string_ids[W8_ASSAY_TEXT_BUFFER_COUNT] = {270, 271, 270, 272, 270};
 // GLOBAL: WIZ8 0x0061e7dc
-unsigned short g_equip_class_name_ids_61e7dc[32] = {
-    1087, 1088, 1089, 1090, 1091, 1092, 1093, 1094, 1095, 1096, 1097, 1098, 1099, 1100, 1101, 1102,
-    1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1112, 1114, 1115, 1116, 1117, 1118, 1119};
+unsigned short g_equip_class_name_ids_61e7dc[26] = {
+    1087, 1088, 1089, 1090, 1091, 1092, 1093, 1094, 1095, 1096, 1097, 1098, 1099,
+    1100, 1101, 1102, 1103, 1104, 1105, 1106, 1107, 1108, 1109, 1110, 1111, 1112};
 // GLOBAL: WIZ8 0x0064fbb4
 const wchar_t g_assay_format_1f_0064fbb4[] = L"%.1f";
 // GLOBAL: WIZ8 0x0064fbc0
@@ -534,7 +535,7 @@ unsigned char W8AssayDialog::PopulateText()
                 if (wcslen(g_assay_entry_text) + 1 + wcslen(L" vs. ") < 0x101) {
                     wcscat(g_assay_entry_text, L" vs. ");
                 }
-                text = gppStringList[g_realm_message_offsets[index]];
+                text = gppStringList[g_attr_table_61E50C[6 + index]];
                 if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
                     wcscat(g_assay_entry_text, text);
                 }

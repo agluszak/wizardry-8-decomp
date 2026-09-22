@@ -133,8 +133,8 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     g_pending_notice_68ee60.line = NOTICE_QUOTE;
     g_pending_notice_68ee60.flag = 0;
     g_pending_notice_68ee60.force = 0;
-    g_pending_notice_68ee60.unused_16[0] = 0;
-    g_pending_notice_68ee60.unused_16[1] = 0;
+    g_pending_notice_68ee60.unknown_16[0] = 0;
+    g_pending_notice_68ee60.unknown_16[1] = 0;
 
     result->state_ready = 1;
 

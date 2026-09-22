@@ -70,17 +70,17 @@ struct W8PendingNoticeLine {
 };
 
 /* 0x0068EE60: the NPC script notice queued between 0x0056C5E0 and its
-   DispatchPendingNpcScriptNotice dispatch. flag and force are stored as
+   DispatchPendingNpcScriptNotice dispatch. Producers store flag and force as
    independent bytes at +0x14/+0x15; the dispatch reloads +0x14 as one dword
-   for the BeginNpcDialogueInternal flags argument and takes force back out of
-   its high byte, leaving +0x16/+0x17 as dead tail bytes. */
+   and takes force back out of its high byte. No recovered producer establishes
+   an authored aggregate spanning the two unknown tail bytes. */
 struct W8PendingNotice {
     W8NpcState* npc;
     W8ItemInstance item;
     int line;
     unsigned char flag;
     unsigned char force;
-    unsigned char unused_16[2];
+    unsigned char unknown_16[2];
 };
 extern W8PendingNotice g_pending_notice_68ee60;
 extern wchar_t g_wchar_0068ee58[4];

@@ -254,8 +254,8 @@ unsigned char W8OctBuildTree00446390::InsertSurface00446820(W8GDSurface* surface
     return 1;
 }
 
-/* Descend through every overlapping octant.  Branch nodes own child nodes;
-   leaf nodes reuse the same eight slots as per-mode linked-list heads. */
+/* Descend through every overlapping octant. Branch nodes own eight child
+   nodes; leaf nodes use the complete ten-slot region as per-mode link heads. */
 // FUNCTION: WIZ8 0x004469f0
 unsigned char W8OctBuildTree00446390::InsertSurfaceRecursive004469F0(W8OctSpatialState* working,
                                                                      W8GDSurface* surface,
@@ -543,8 +543,8 @@ int W8OctBuildTree00446390::CollectLeaf00447110(W8OctBuildNode00446330* node, sh
             }
             second = 0;
             /* Retail's kind-10 path dereferences a link head at +0x2c, beyond
-               the eight-slot union member — in the proven 0x30-byte node that
-               is the provisional_region_2c/positional_2e ushort pair, which
+               the ten-slot leaf region — in the proven 0x30-byte node that
+               is the provisional_region_2c/unknown_2e ushort pair, which
                OctBuildPreTree writes as the leaf's provisional region index
                (node->provisional_region_2c = node->region_28; FinalizeRegionMapping
                reads it back as a ushort). No producer appends at a kind above

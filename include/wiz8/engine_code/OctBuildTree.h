@@ -32,16 +32,14 @@ struct W8OctBuildNode00446330 {
 
     union {
         W8OctBuildNode00446330* children_00[8];
-        W8OctBuildLink* links_00[8];
-        void** surface_arrays_00[8]; /* elements follow the insert mode */
-        unsigned short* region_arrays_00[8];
+        W8OctBuildLink* links_00[10];
+        void** surface_arrays_00[10]; /* elements follow the insert mode */
+        unsigned short* region_arrays_00[10];
     };
-    unsigned long padding_20;
-    unsigned long padding_24;
     unsigned short region_28;
     unsigned short leaf_kind_2a;
     unsigned short provisional_region_2c;
-    unsigned short positional_2e;
+    unsigned short unknown_2e;
 };
 
 /* A zero-storage node variant with independently evidenced behavior: its

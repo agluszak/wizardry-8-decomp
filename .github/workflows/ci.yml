@@ -173,7 +173,9 @@ jobs:
               "+refs/heads/$GITHUB_BASE_REF:refs/remotes/origin/$GITHUB_BASE_REF" \
               "+refs/pull/${{ github.event.pull_request.number }}/head:$pr_head"
           done
-          uv run wiz8 report merge-preservation --base "origin/$GITHUB_BASE_REF" --head "$pr_head"
+          uv run wiz8 report merge-preservation --base "origin/$GITHUB_BASE_REF" --head "$pr_head" \
+            --allow "WIZ8:GLOBAL:0x0061E436:loss=row 0 column 3 of g_gender_name_message_rows_61e430" \
+            --allow "WIZ8:GLOBAL:0x0061E518:loss=realm-name element 6 of g_attr_table_61E50C"
       - name: Install host analysis tools
         run: |
           sudo apt-get update

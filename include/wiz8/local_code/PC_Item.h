@@ -67,7 +67,7 @@ wchar_t* GetItemDisplayName(const W8ItemInstance* item);
    rather than a duplicated helper body. */
 bool ItemHasSingledOutGenericName(int item_id);
 
-/* PC Item.cpp GLOBAL at 0x0061E810: the per-item-class notice index. */
+/* PC Item.cpp GLOBAL at 0x0061E810: one notice id per unidentified-name index. */
 extern const unsigned short g_generic_item_name_notice[147];
 
 /* 0x0068C108: one lazily built generic name per unidentified-name index. */

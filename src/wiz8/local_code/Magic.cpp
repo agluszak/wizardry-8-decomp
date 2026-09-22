@@ -38,6 +38,7 @@
 #include "wiz8/engine_code/Missile.h"
 #include "wiz8/engine_code/Spells.h"
 #include "wiz8/dialog_code/DialogInterface.h"
+#include "wiz8/dialog_code/StatInfoDialogs.h"
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_code/Gameloop.h"
 #include "wiz8/local_code/SpellEffect.h"
@@ -56,6 +57,7 @@
 #include <wchar.h>
 #include "wiz8/local_screens/OptionsScreen.h"
 #include "wiz8/local_screens/Screens.h"
+#include "wiz8/local_screens/CharacterScreen.h"
 
 /* Local Code\Magic.cpp, named by the assertion this body embeds. */
 
@@ -477,9 +479,9 @@ bool CombatHasCondition(int condition_id)
             }
         }
         /* 0x00501250: nine 0x11-byte strides from g_combat_state+0x85a.
-           The first six occupy effect_slots_85a; the rest overlap
-           engaged_missile and TargetHit. Retail does that overlapping
-           walk; it is a raw stride, not a typed array of nine. */
+           The independently recovered six-slot lifetime ends at +0x8c0, so
+           the final three strides cross engaged_missile and TargetHit. No
+           authored enclosing record or alternate owner is established. */
         // clang-format off
         for (index = 0; index < W8_COMBAT_CONDITION_SLOTS; ++index) {
             slot = g_combat_state->effect_slots_85a + index;
@@ -1162,16 +1164,6 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
     return (char)(1 - (ceiling < (unsigned int)g_spell_records[spell_id].spell_level));
 }
 
-/* 0x0068C09C: the loaded message table, one wide string per entry. Bodies
-   name entries by their byte offset into it, which is why the index is
-   spelled as one. */
-/* One message-table index per realm, for the realm's name. */
-// GLOBAL: WIZ8 0x0061E518
-// offset alias of the tail of g_attr_table_61E50C; shared retail storage.
-extern const unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT] = {
-    0x30b, 0x30c, 0x30d, 0x30e, 0x30f, 0x310,
-};
-
 /* Take one spell on. The spell is marked known, its realm's known count goes
    up, the spell-point pools are recomputed, and - when the caller asks for it -
    the character says so in a line built from the character's name, the spell's
@@ -1203,7 +1195,7 @@ void LearnSpell(W8Character* character, int spell_id, char announce)
     piece = FormatWideString(gppStringList[0x6e4 / 4], character->name);
     name_length = wcslen(piece);
     spell_length = wcslen(g_spell_records[spell_id].display_name);
-    wcscpy(realm_name, gppStringList[g_realm_message_offsets[realm]]);
+    wcscpy(realm_name, gppStringList[g_attr_table_61E50C[6 + realm]]);
     piece = FormatWideString(gppStringList[0x6e8 / 4], realm_name, character->sp_max[realm]);
     points_length = wcslen(piece);
 
@@ -1962,16 +1954,6 @@ enum {
     W8_MESSAGE_TARGET_ITEM = 0x620,
     W8_MESSAGE_TARGET_UNKNOWN = 0x624
 };
-/* 0x0061E436: the name-prefix table, eight-byte rows, holding a message-table
-   offset rather than a string. A character indexes it by sex and a monster
-   by its own name group at record+0x0cc, which is what makes the two one
-   table. */
-// GLOBAL: WIZ8 0x0061E436
-// offset alias of g_gender_name_message_rows_61e430; shared retail storage.
-extern const unsigned short g_name_prefix_messages[15] = {
-    0x2da, 0x2d2, 0x2d5, 0x2d8, 0x2db, 0x2d3, 0x2d6, 0x2d9,
-    0x2dc, 0x2dd, 0x2de, 0x2df, 0x2e0, 0x2e1, 0,
-};
 /* 0x00689B34: the empty string every no-target kind is described by. */
 
 /* Say in words what a spell is aimed at. Each target kind reads its own field,
@@ -1979,10 +1961,9 @@ extern const unsigned short g_name_prefix_messages[15] = {
    name two different fields of one block rather than one field twice.
 
    A character or a monster whose name the party does not have is described by
-   its name-prefix instead, looked up in the table at 0x0061E436 - by sex
-   for a character and by name group for a monster, which is what makes the two
-   one table. The entry is a message-table offset rather than a string, so it
-   is resolved twice. Everything else is a fixed word. Its error
+   its name-prefix instead, looked up in column three of the gender/name-group
+   table at 0x0061E430. The entry is a message-table offset rather than a
+   string, so it is resolved twice. Everything else is a fixed word. Its error
    text names the function. */
 // FUNCTION: WIZ8 0x004f97a0
 wchar_t* SpellTargetString(const W8TargetSource* source, const W8CombatSlot* target)
@@ -2009,7 +1990,8 @@ wchar_t* SpellTargetString(const W8TargetSource* source, const W8CombatSlot* tar
                                     g_status_685170.buffers.Char[target->iChar].name);
         }
         name_prefix =
-            g_name_prefix_messages[g_status_685170.buffers.Char[target->iChar].gender * 4];
+            g_gender_name_message_rows_61e430[g_status_685170.buffers.Char[target->iChar].gender]
+                                             [3];
         break;
 
     case 2:
@@ -2029,7 +2011,7 @@ wchar_t* SpellTargetString(const W8TargetSource* source, const W8CombatSlot* tar
             return FormatWideString(gppStringList[W8_MESSAGE_TARGET_AT / 4],
                                     GetMonsterName(monster_info, record, 0));
         }
-        name_prefix = g_name_prefix_messages[record->name_group_0cc * 4];
+        name_prefix = g_gender_name_message_rows_61e430[record->name_group_0cc][3];
         break;
     }
 

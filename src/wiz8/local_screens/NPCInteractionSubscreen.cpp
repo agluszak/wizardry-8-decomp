@@ -662,7 +662,8 @@ void BeginNpcDialogue(W8NpcState* npc, W8ItemInstance* item, int quote, int flag
 }
 
 /* Dispatch the queued NPC script notice: the item goes across only while it
-   still carries an id, and the flag pair at +0x14 travels as one dword. */
+   still carries an id. Retail reloads the separately written flag/force bytes
+   and the unknown tail at +0x14 as one dword. */
 // FUNCTION: WIZ8 0x0056CA90
 void DispatchPendingNpcScriptNotice(void)
 {
@@ -673,8 +674,8 @@ void DispatchPendingNpcScriptNotice(void)
     if (g_pending_notice_68ee60.item.iItemNo != -1) {
         item = &g_pending_notice_68ee60.item;
     }
-    flags = *reinterpret_cast<int*>(&g_pending_notice_68ee60.flag); /* reinterpret-ok: the queued
-            flag/force bytes are dispatched to BeginNpcDialogueInternal as one packed dword */
+    flags = *reinterpret_cast<int*>(&g_pending_notice_68ee60.flag); /* reinterpret-ok: unresolved
+            retail dword reload spanning the queued flag/force bytes and unknown tail */
     BeginNpcDialogueInternal(g_pending_notice_68ee60.npc, item, g_pending_notice_68ee60.line, flags,
                              (flags >> 8) & 0xff);
 }

@@ -541,9 +541,9 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
 
     previous_level = g_status_685170.current_level;
     g_status_685170.current_level = level;
-    sprintf(music_path, "Data\\Music\\%s.MPL", g_level_folders[level].folder_name);
+    sprintf(music_path, "Data\\Music\\%s.MPL", g_level_folders[level].level_name);
     if (FileExists(music_path)) {
-        sprintf(music_path, "%s.MPL", g_level_folders[g_status_685170.current_level].folder_name);
+        sprintf(music_path, "%s.MPL", g_level_folders[g_status_685170.current_level].level_name);
         StartMusicResource0048FC10(music_path, 1, 1);
     } else {
         StartMusicResource0048FC10("", 1, 1);

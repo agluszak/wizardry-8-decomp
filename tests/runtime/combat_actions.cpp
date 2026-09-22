@@ -354,35 +354,24 @@ static void QueuePartyAttacksOnGameThread(void* opaque)
     if (g_status_685170.buffers.XChar == 0) {
         return;
     }
-    /* Aim each slot at a live target: once the provoked monster dies the
-       queued attack needs to retarget or the round swings at a corpse. Fall
-       back to the nearest live in-combat monster. */
+    /* Aim each slot at the nearest live in-combat target. The provoked
+       monster can remain active after another hostile has closed to melee
+       range, so retaining its id can queue every swing out of reach. */
     int aim_location_id = query->location_id;
     if (gXStatus.plsMonsterList != 0) {
-        bool alive = false;
+        srVector3T<float> camera;
+        float best = 1e30f;
+        GetCameraPosition(&camera);
         for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
             W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-            if (info != 0 && info->fActive != 0 && info->fInCombat != 0 && info->hp_current != 0 &&
-                info->uiCondition[W8_CONDITION_DEAD] == 0 && info->location_id == aim_location_id) {
-                alive = true;
-                break;
+            if (info == 0 || info->fActive == 0 || info->fInCombat == 0 || info->p3D == 0 ||
+                info->hp_current == 0 || info->uiCondition[W8_CONDITION_DEAD] != 0) {
+                continue;
             }
-        }
-        if (!alive) {
-            srVector3T<float> camera;
-            float best = 1e30f;
-            GetCameraPosition(&camera);
-            for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
-                W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
-                if (info == 0 || info->fActive == 0 || info->fInCombat == 0 || info->p3D == 0 ||
-                    info->hp_current == 0 || info->uiCondition[W8_CONDITION_DEAD] != 0) {
-                    continue;
-                }
-                float distance = (info->p3D->GetPosition() - camera).Length();
-                if (distance < best) {
-                    best = distance;
-                    aim_location_id = info->location_id;
-                }
+            float distance = (info->p3D->GetPosition() - camera).Length();
+            if (distance < best) {
+                best = distance;
+                aim_location_id = info->location_id;
             }
         }
     }

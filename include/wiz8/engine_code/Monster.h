@@ -262,6 +262,8 @@ public:
        flicker used while the gap track reports the mouth closed. */
     int mouth_frame_clock;
     int mouth_frame;
+    /* Talking cycle timer and the cycle selected before entering its idle
+       delay. */
     int talk_start_208;
     int talk_duration_20c;
     int talk_state_210;

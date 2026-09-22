@@ -37,10 +37,9 @@ struct W8ItemRequirement {
    locations.
 
    That slot-mask coverage does not bound the database field. The Assay display
-   table g_equip_class_name_ids_61e7dc has 32 entries, and recovered Assay /
-   item paths also use higher values (including 0x0d, 0x0e, 0x11, 0x12, and
-   0x13). Keep equip_class a byte: this enum names the proven subset and is not
-   a completeness claim. */
+   table g_equip_class_name_ids_61e7dc covers values 0..25, and recovered item
+   paths use higher values through 0x19. Keep equip_class a byte: this enum
+   names the proven subset and is not a completeness claim. */
 enum W8ItemEquipClass {
     W8_ITEM_EQUIP_CLASS_WEAPON_0 = 0,
     W8_ITEM_EQUIP_CLASS_WEAPON_1 = 1,

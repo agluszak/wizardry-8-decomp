@@ -145,7 +145,6 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
                                           unsigned int power);
 void TrackItemSpellSource00501D20(W8Character* character, int spell_id);
 bool IsTeleportCastMissingAnchor00501D00(W8Character* character, int spell_id); /* 0x00501D00 */
-extern const unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT];
 
 void DetachMissileReferences005019A0(W8Missile* missile);
 /* Whether every queued effect still has time left on it. */

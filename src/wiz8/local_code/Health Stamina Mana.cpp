@@ -39,6 +39,7 @@
 #include "random.h"
 #include "wiz8/local_code/character_events.h"
 #include "wiz8/dialog_code/DialogInterface.h"
+#include "wiz8/dialog_code/StatInfoDialogs.h"
 #include "wiz8/local_screens/MGSTextBox.h"
 
 #include "wiz8/local_code/GameplayDatabase.h"
@@ -712,7 +713,7 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
             SpendCharacterSpellPoints(party_slot, realm, taken);
             if (announce) {
                 ShowNoticef(8, gppStringList[0x98c / 4], amount,
-                            gppStringList[g_realm_message_offsets[realm]]);
+                            gppStringList[g_attr_table_61E50C[6 + realm]]);
             }
             remaining = amount - taken;
             amount = remaining;
@@ -1083,7 +1084,7 @@ void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amou
 
     if (g_status_685170.world_suspended_2390 != 0) {
         PostCharacterNotice(party_slot, gppStringList[0x988 / 4], amount,
-                            gppStringList[g_realm_message_offsets[realm]]);
+                            gppStringList[g_attr_table_61E50C[6 + realm]]);
         return;
     }
 
@@ -1099,7 +1100,7 @@ void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amou
     SpendCharacterSpellPoints(party_slot, realm, amount);
     if (announce) {
         ShowNoticef(8, gppStringList[0x98c / 4], amount,
-                    gppStringList[g_realm_message_offsets[realm]]);
+                    gppStringList[g_attr_table_61E50C[6 + realm]]);
     }
 }
 
