@@ -58,26 +58,40 @@ public:
             unsigned long value_24;
         };
 
+        /* createRenderer packs this record on the stack for the ctor
+           (0x10024900, size 0xe4), which stores it verbatim at
+           +0xd4..+0xe0. */
+        struct Parameters {
+            srGERD* gerd;
+            long sorted;
+            long batch_limit;
+            unsigned long texture_stages;
+        };
+
+        Renderer(const Parameters& parameters);
         void allocVertexArray(srVertexArray& arrays, unsigned long count);
         void render(const TriInput& input);
-        /* Retail 0x100266E0: drains the renderer's queued work. */
-        void flush();
+        /* FUN_10024db0: the accumulated batch count passed the limit. Only
+           immediate (non-sorted) renderers report full. */
+        int isBatchFull() const;
+        /* FUN_100266e0: submit the accumulated batch through the DD. */
+        void submit();
+        /* FUN_100268a0: discard accumulated state; nonzero also releases
+           the backing arrays. */
+        void reset(int release_buffers);
 
-    private:
-        friend class srGERD;
-        /* +0xd4 is the owning srGERD; +0xd8 nonzero marks a queued/deferred
-           renderer that flushImmediateRenderers skips. */
-        unsigned char unknown_00_[0xd4];
+        unsigned char unknown_00_[0xb8];
+        /* Accumulated primitive count; reset() and submit() clear it and
+           isBatchFull() compares it signed against batch_limit_dc_. */
+        long batch_count_b8_;
+        unsigned char unknown_bc_[0x18];
         srGERD* gerd_d4_;
-        unsigned long deferred_d8_;
-    };
-
-    struct RendererEntry {
-        unsigned long unknown_00;
-        RendererEntry* next_04;
-        Renderer* renderer_08;
-        /* +0x0c: in-flight work count; flushImmediateRenderers yields until 0. */
-        long work_count_0c;
+        /* lockRenderer matches this against the sorted-mode enable bit;
+           flushSort flushes entries where it is 1, flushImmediateRenderers
+           where it is 0. */
+        long sorted_d8_;
+        long batch_limit_dc_;
+        unsigned long texture_stages_e0_;
     };
 
     enum e_error {};
@@ -138,6 +152,7 @@ public:
     void endFrame();
     void flush();
     void flushRenderers();
+    void flushImmediateRenderers();
     void clear(const srFlags<e_buffer>& buffers);
     long getHeight() const;
     long getWidth() const;
@@ -282,7 +297,6 @@ public:
                     unsigned long& height) const;
     void getViewPort(unsigned long& x, unsigned long& y, unsigned long& width,
                      unsigned long& height) const;
-    void flushImmediateRenderers();
     void pushEnvironment();
     void popEnvironment();
     void setEnvironmentRange(float minimum, float maximum);
@@ -386,6 +400,23 @@ private:
 
     srGERD& operator=(const srGERD& other);
     srDD* getDD() const;
+
+    /* Handle-hash chain node: {next, handle, texture} at stride 0xc, proven
+       by invalidateTextureByFrameHandle's walk. */
+    struct TextureEntry {
+        long next_00;
+        unsigned long handle_04;
+        Texture* texture_08;
+    };
+    /* Doubly-linked renderer list node proven by createRenderer's prepend
+       and the lock/flush walks; +0x0c is the busy flag _lockRenderer
+       raises. */
+    struct RendererEntry {
+        RendererEntry* prev_00;
+        RendererEntry* next_04;
+        Renderer* renderer_08;
+        long busy_0c;
+    };
     void setError(e_error error);
     void resetTexture();
     void assertContext() const;
@@ -420,6 +451,10 @@ private:
     void markTextureAsDeleted(Texture& texture);
     static void convertPixelFormat(srDD::PixelFormat& device,
                                    const srPixelConvert::PixelFormat& format);
+    RendererEntry* createRenderer(int sorted);
+    void flushNonBusyRenderers();
+    void flushSort();
+    Renderer* _lockRenderer(RendererEntry* entry);
     class LockSurface;
 
     static srGERD* first;
@@ -450,7 +485,9 @@ private:
     /* changeTexture tests bit 5 to release resident surface data after a
        texture-stage swap. */
     unsigned long flags_68_;
-    unsigned char unknown_6c_[0xc];
+    /* createRenderer passes this to each Renderer as its batch limit. */
+    unsigned long renderer_batch_limit_6c_;
+    unsigned char unknown_70_[8];
     long max_texture_stages_78_;
     /* Texture-dimension clamps applied by evaluateTextureDimensions. */
     unsigned long texture_min_dim_7c_;

@@ -34,6 +34,7 @@ add_library(wiz8_surrender_objects OBJECT
     system.cpp
     palette.cpp
     pixel_convert.cpp
+    renderer.cpp
     texture.cpp
     texture_map.cpp
     scheduler.cpp
@@ -53,18 +54,28 @@ set_source_files_properties(
     bounder.cpp
     camera.cpp
     clipplane.cpp
+    color_surface.cpp
     config.cpp
     debug.cpp
     debug_vp.cpp
+    dynamic_library.cpp
     extension.cpp
     fog.cpp
     vertex_pipe.cpp
     file_stream.cpp
+    gerd.cpp
     gerd_filters.cpp
     heap.cpp
     huffman.cpp
     illuminator.cpp
+    light.cpp
+    mesh_model.cpp
+    model_instance.cpp
+    renderer.cpp
+    scene.cpp
     stream.cpp
+    texture.cpp
+    texture_map.cpp
     type_registry.cpp
     vector_processor.cpp
     PROPERTIES COMPILE_OPTIONS "$<$<CXX_COMPILER_ID:MSVC>:/GX>")

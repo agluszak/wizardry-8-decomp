@@ -4,6 +4,7 @@
 #include "surrender/srCore.h"
 #include "surrender/srCriticalSection.h"
 #include "surrender/srDebugDD.h"
+#include "surrender/srThread.h"
 #include "surrender/srWindow.h"
 #include "surrender/srHeap.h"
 #include "surrender/srPalette.h"
@@ -17,6 +18,28 @@ srGERD* srGERD::first;
 
 // GLOBAL: SURRENDER 0x100A4784
 srGERD* srGERD::firstOpen;
+
+/* Retail EH funclet FUN_10010660 proves a scoped guard whose dtor releases
+   the renderers critical section; every renderer-list function enters it
+   once per lock acquisition. */
+namespace {
+
+class SectionAccess {
+public:
+    SectionAccess(srCriticalSection* section) : section_(section)
+    {
+        section_->getAccess();
+    }
+    ~SectionAccess()
+    {
+        section_->releaseAccess();
+    }
+
+private:
+    srCriticalSection* section_;
+};
+
+} // namespace
 
 // FUNCTION: SURRENDER 0x10017920
 srDD* srGERD::getDD() const
@@ -465,6 +488,116 @@ void srGERD::applyFrameStateChanges()
     getDD()->update(update);
     dirty_24_ &= ~0xfUL;
     statistics_1a78_.frame_state_count_48++;
+}
+
+// FUNCTION: SURRENDER 0x10019A40
+void srGERD::flushRenderers()
+{
+    if (srThread::getHandle() == owner_thread_1c_) {
+        flushImmediateRenderers();
+        flushSort();
+        SectionAccess access(renderers_section_14_);
+        for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
+            while (entry->busy_0c != 0) {
+                srThread::yield(0);
+            }
+            entry->renderer_08->reset(0);
+        }
+    }
+}
+
+// FUNCTION: SURRENDER 0x10019AD0
+void srGERD::flushSort()
+{
+    if (srThread::getHandle() == owner_thread_1c_) {
+        SectionAccess access(renderers_section_14_);
+        for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
+            if (entry->renderer_08->sorted_d8_ == 1) {
+                while (entry->busy_0c != 0) {
+                    srThread::yield(0);
+                }
+                entry->renderer_08->submit();
+            }
+        }
+    }
+}
+
+// FUNCTION: SURRENDER 0x10019B60
+void srGERD::flushImmediateRenderers()
+{
+    if (srThread::getHandle() == owner_thread_1c_) {
+        SectionAccess access(renderers_section_14_);
+        for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
+            if (entry->renderer_08->sorted_d8_ == 0) {
+                while (entry->busy_0c != 0) {
+                    srThread::yield(0);
+                }
+                entry->renderer_08->submit();
+            }
+        }
+    }
+}
+
+// FUNCTION: SURRENDER 0x10019BF0
+srGERD::RendererEntry* srGERD::createRenderer(int sorted)
+{
+    SectionAccess access(renderers_section_14_);
+    Renderer::Parameters parameters;
+    parameters.gerd = this;
+    parameters.sorted = sorted != 0;
+    parameters.batch_limit = renderer_batch_limit_6c_;
+    parameters.texture_stages = max_texture_stages_78_;
+    RendererEntry* entry = new RendererEntry;
+    entry->renderer_08 = new Renderer(parameters);
+    entry->busy_0c = 0;
+    entry->prev_00 = 0;
+    entry->next_04 = renderers_10_;
+    if (renderers_10_ != 0) {
+        renderers_10_->prev_00 = entry;
+    }
+    renderers_10_ = entry;
+    return entry;
+}
+
+// FUNCTION: SURRENDER 0x10019CC0
+srGERD::Renderer* srGERD::lockRenderer()
+{
+    int sorted = 0;
+    if ((enable_flags_20_.value & 2) != 0) {
+        sorted = 1;
+    }
+    for (;;) {
+        SectionAccess access(renderers_section_14_);
+        flushNonBusyRenderers();
+        for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
+            if (entry->busy_0c == 0 && entry->renderer_08->sorted_d8_ == sorted) {
+                return _lockRenderer(entry);
+            }
+        }
+        if (sorted == 0) {
+            return _lockRenderer(createRenderer((enable_flags_20_.value >> 1) & 1));
+        }
+    }
+}
+
+// FUNCTION: SURRENDER 0x10019D70
+srGERD::Renderer* srGERD::_lockRenderer(RendererEntry* entry)
+{
+    entry->busy_0c = 1;
+    return entry->renderer_08;
+}
+
+// FUNCTION: SURRENDER 0x10019E30
+void srGERD::flushNonBusyRenderers()
+{
+    if (srThread::getHandle() == owner_thread_1c_) {
+        SectionAccess access(renderers_section_14_);
+        for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
+            if (entry->busy_0c == 0 && entry->renderer_08->isBatchFull() != 0) {
+                entry->renderer_08->submit();
+            }
+        }
+    }
 }
 
 // FUNCTION: SURRENDER 0x1001A790
@@ -1696,57 +1829,45 @@ void srGERD::pushVertexProcessor(srVertexProcessor& processor)
 // FUNCTION: SURRENDER 0x1001CEA0
 void srGERD::popVertexProcessor()
 {
-    if (vertex_processor_count_21b8_ != 0) {
-        vertex_processor_count_21b8_ -= 1;
+    if (vertex_processor_count_21b8_ > 0) {
+        vertex_processor_count_21b8_--;
     }
 }
 
 // FUNCTION: SURRENDER 0x1001C640
 void srGERD::setFogColor(const srVector3T<float>& color)
 {
-    srVector4T<float> expanded;
-    expanded.x = color.x;
-    expanded.w = 0.0f;
-    expanded.y = color.y;
-    expanded.z = color.z;
-    setFogColor(expanded);
+    srVector4T<float> clamped;
+    clamped.Set(color.x, color.y, color.z, 0.0f);
+    setFogColor(clamped);
 }
 
+/* Each component clamps through (0,1) — strictly positive keeps the value,
+   1.0 or above saturates, anything else becomes 0. The color only updates
+   (and dirties state) when a clamped component differs. */
 // FUNCTION: SURRENDER 0x1001C6B0
 void srGERD::setFogColor(const srVector4T<float>& color)
 {
-    srVector4T<float> clamped;
-    clamped.x = color.x;
-    clamped.y = color.y;
-    clamped.z = color.z;
-    clamped.w = color.w;
-    if (0.0f < clamped.x) {
-        if (1.0f <= clamped.x) {
-            clamped.x = 1.0f;
-        }
-    } else {
+    srVector4T<float> clamped = color;
+    if (clamped.x <= 0.0f) {
         clamped.x = 0.0f;
+    } else if (clamped.x >= 1.0f) {
+        clamped.x = 1.0f;
     }
-    if (0.0f < clamped.y) {
-        if (1.0f <= clamped.y) {
-            clamped.y = 1.0f;
-        }
-    } else {
+    if (clamped.y <= 0.0f) {
         clamped.y = 0.0f;
+    } else if (clamped.y >= 1.0f) {
+        clamped.y = 1.0f;
     }
-    if (0.0f < clamped.z) {
-        if (1.0f <= clamped.z) {
-            clamped.z = 1.0f;
-        }
-    } else {
+    if (clamped.z <= 0.0f) {
         clamped.z = 0.0f;
+    } else if (clamped.z >= 1.0f) {
+        clamped.z = 1.0f;
     }
-    if (0.0f < clamped.w) {
-        if (1.0f <= clamped.w) {
-            clamped.w = 1.0f;
-        }
-    } else {
+    if (clamped.w <= 0.0f) {
         clamped.w = 0.0f;
+    } else if (clamped.w >= 1.0f) {
+        clamped.w = 1.0f;
     }
     if (clamped.x != fog_color_1fe8_.x || clamped.y != fog_color_1fe8_.y ||
         clamped.z != fog_color_1fe8_.z || clamped.w != fog_color_1fe8_.w) {
@@ -1777,23 +1898,6 @@ void srGERD::setAmbientLight(const srVector3T<float>& light)
 unsigned long srGERD::getPickKey() const
 {
     return pick_key_19f0_;
-}
-
-// FUNCTION: SURRENDER 0x10019B60
-void srGERD::flushImmediateRenderers()
-{
-    if (srThread::getHandle() == owner_thread_1c_) {
-        renderers_section_14_->getAccess();
-        for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
-            if (entry->renderer_08->deferred_d8_ == 0) {
-                while (entry->work_count_0c != 0) {
-                    srThread::yield(0);
-                }
-                entry->renderer_08->flush();
-            }
-        }
-        renderers_section_14_->releaseAccess();
-    }
 }
 
 // FUNCTION: SURRENDER 0x1001DB30
