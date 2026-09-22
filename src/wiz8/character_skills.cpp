@@ -22,7 +22,6 @@
 #include "wiz8/local_screens/Screens.h"
 #include "wiz8/message_box.h"
 #include "wiz8/utility.h"
-#include "wiz8/float_constants.h"
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/layouts/combat_state.h"
