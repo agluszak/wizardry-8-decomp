@@ -76,4 +76,4 @@ int GetCharacterRealmSpellPoints(const W8Character* character, int realm);
 void RecalculateCharacterStamina(W8Character* character);
 void RecalculateRealmSpellPoints(W8Character* character);
 int RebuildRealmSpellPointCeilings0052A540(W8Character* character);
-void ApplyCharacterEffect(W8Character* character, int effect, int arg_3, int arg_4, int arg_5);
+

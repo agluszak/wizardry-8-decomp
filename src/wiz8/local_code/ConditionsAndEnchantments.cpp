@@ -552,7 +552,8 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
     if (announce != 0 &&
         (gXStatus.fCombatMode != 0 || monster_info->party_threat.visible_to_player_25 != 0)) {
         wchar_t* name = GetMonsterName(monster_info, 0, 0);
-        ShowNoticef(9, L"%s %s!", name, g_condition_notices_0061E570[condition * 4]);
+        ShowNoticef(9, L"%s %s!", name,
+                    gppStringList[g_condition_notices_0061E570[condition * 4 + 1]]);
     }
     if (monster_info->monster->IsCycleInterruptable(monster_info->monster->m_pRep->pending_cycle) !=
         0) {
@@ -588,7 +589,7 @@ void ClearMonsterCondition(int location_id, int condition)
         }
         if (gXStatus.fCombatMode != 0 || monster_info->party_threat.visible_to_player_25 != 0) {
             ShowNoticef(9, gppStringList[0x910 / 4], GetMonsterName(monster_info, 0, 0),
-                        g_condition_notices_0061E570[condition * 4]);
+                        gppStringList[g_condition_notices_0061E570[condition * 4]]);
         }
         monster_info->condition_turns[condition] = 0;
         slot = 0x13;

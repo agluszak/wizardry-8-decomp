@@ -271,5 +271,5 @@ unsigned char stTextureAnim::Prepare004857B0()
         texture->getTextureFrameHandle();
         return static_cast<stTextureFile*>(texture)->hasAlpha();
     }
-    return surface_format_.alpha_bits != 0;
+    return texture_dimensions_.format.alpha_bits != 0;
 }

@@ -2,6 +2,7 @@
 
 #include "srColorSurfaceIFace.h"
 #include "srPalette.h"
+#include "srPixelConvert.h"
 #include "srPtr.h"
 #include "srTypeRegistry.h"
 
@@ -11,13 +12,25 @@ class stSurface2D;
 
 class SR_DLL_IMPORT srTextureIFace : public srClassSupport<srTextureIFace, srClass, true, 0x2100> {
 public:
-    /* srTexture::getDimensions is a memberwise copy of the texture's
-       dimensions record; the palette slot fills through srPtr assignment. */
+    /* srGERD::setTextureDefaultCompression remaps DEFAULT (4) to 0; the
+       srTexture ctor seeds Dimensions::compression with DEFAULT. */
+    enum e_compression { COMPRESSION_DEFAULT = 4 };
+    /* srTexture::getDimensions copies the embedded 0x2c-byte state block at
+       srTexture+0x20 wholesale: width/height, an srPtr<srPalette> assigned
+       through srPtr::operator= (so the output object must be constructed), the
+       surface PixelFormat, the e_hint bitmask, the compression selector and
+       the raw srFilter*. The srTexture ctor seeds palette from
+       srCore::getPalette() and filter from srCore::getFilter(). */
     struct Dimensions {
         unsigned long width;
         unsigned long height;
         srPtr<srPalette> palette;
+        srPixelConvert::PixelFormat format;
+        unsigned long hints;
+        e_compression compression;
+        srFilter* filter;
     };
+    static_assert(sizeof(Dimensions) == 0x2c, "srTextureIFace_Dimensions_must_be_0x2c");
     struct MultiRequest {
         long mipmap_level;
         unsigned long unknown_04;

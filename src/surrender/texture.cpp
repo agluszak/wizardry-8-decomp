@@ -21,23 +21,23 @@ const char* srTexture::sGetClassName()
 // FUNCTION: SURRENDER 0x1005E440
 srTexture::srTexture()
 {
-    surface_format_.flags = 0;
-    hints_40 = 0;
+    texture_dimensions_.format.flags = 0;
+    texture_dimensions_.hints = 0;
     texture_dimensions_.width = 0x40;
     texture_dimensions_.height = 0x40;
     texture_dimensions_.palette = srCore.getPalette();
-    filter_48 = srCore.getFilter();
-    hints_40 = 0;
-    value_44 = 4;
+    texture_dimensions_.filter = srCore.getFilter();
+    texture_dimensions_.hints = 0;
+    texture_dimensions_.compression = 4;
     srPixelConvert::mapPixelFormat(static_cast<srPixelConvert::e_surfaceType>(0xb),
-                                   surface_format_);
+                                   texture_dimensions_.format);
     texture_flags_ = 0;
     if (s_flag_names_100a4a20 == 0) {
         s_flag_names_100a4a20 = "GENERATESURFACE_FAILURE,DIRTY_DEFAULTS";
     }
     mipmap_bias_1c = 0.0f;
     packed_state_18 = 0xe43;
-    priority_4c = 0.5f;
+    texture_priority_4c = 0.5f;
     texture_flags_ |= 1 << FLAG_DIRTY_DEFAULTS;
 }
 
@@ -62,13 +62,13 @@ void srTexture::invalidateFrameHandle(unsigned long handle)
 // FUNCTION: SURRENDER 0x1005EB00
 srFilter* srTexture::getFilter() const
 {
-    return filter_48;
+    return texture_dimensions_.filter;
 }
 
 // FUNCTION: SURRENDER 0x1005EB20
 float srTexture::getPriority()
 {
-    return priority_4c;
+    return texture_priority_4c;
 }
 
 // FUNCTION: SURRENDER 0x1005EB40
@@ -152,13 +152,13 @@ srTextureIFace::e_wrap srTexture::getWrapT() const
 // FUNCTION: SURRENDER 0x1005ED80
 void srTexture::enableHint(e_hint hint)
 {
-    hints_40 |= 1 << hint;
+    texture_dimensions_.hints |= 1 << hint;
 }
 
 // FUNCTION: SURRENDER 0x1005EDA0
 void srTexture::disableHint(e_hint hint)
 {
-    hints_40 &= ~(1 << hint);
+    texture_dimensions_.hints &= ~(1 << hint);
 }
 
 // FUNCTION: SURRENDER 0x1005EDF0

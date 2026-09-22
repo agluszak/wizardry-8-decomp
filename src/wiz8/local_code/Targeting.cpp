@@ -321,7 +321,7 @@ bool IsSpellTargetStillValidIn(int party_slot, int spell_id, W8TargetingContext 
     if (!TargetMatchesNeeded(GetTargetBlockForContext(party_slot, context), needed)) {
         return false;
     }
-    return IsCurrentTargetInRange(party_slot, 0, context) != 0;
+    return CharacterActionReachesTarget(party_slot, 0, context) != 0;
 }
 
 /* The same check without the range half, and with one target kind that a
@@ -1131,7 +1131,8 @@ int ChooseMonsterTarget(int party_slot, int group_id, W8TargetingContext context
         unsigned int band;
 
         if (monster_info->fActive == 0 || monster_info->fInCombat == 0 ||
-            monster_info->hp_current == 0 || MonsterIsHostileTo(party_slot, monster_info) != 1 ||
+            monster_info->hp_current == 0 ||
+            MonsterVsCharDisposition(party_slot, monster_info) != DISP_HOSTILE ||
             !CanPartyMemberAimAtMonster(party_slot, 2, monster_info, context, 0)) {
             continue;
         }
@@ -2391,8 +2392,8 @@ bool RepickActionTarget(int party_slot, W8TargetingContext context, int arg)
                         &kind_2, &action_2, &target_2, &detail_block_2);
                     needed = GetTargetNeededForAction(kind_2, action_2, detail_block_2);
                     if (TargetMatchesNeeded(target_2, needed) == 0 ||
-                        IsCurrentTargetInRange(party_slot, 2, W8_TARGETING_CONTEXT_IN_COMBAT) ==
-                            0) {
+                        CharacterActionReachesTarget(party_slot, 2,
+                                                     W8_TARGETING_CONTEXT_IN_COMBAT) == 0) {
                         AimAtTarget(party_slot, target, W8_TARGETING_CONTEXT_IN_COMBAT);
                     }
                 }
@@ -2498,7 +2499,7 @@ bool TargetIsInPlay(int party_slot, int value, W8TargetingContext context)
     if (TargetMatchesNeeded(target, needed) == 0) {
         return 0;
     }
-    return IsCurrentTargetInRange(party_slot, action, context) != 0;
+    return CharacterActionReachesTarget(party_slot, value, context) != 0;
 }
 
 /* Whether a party slot's chosen action can be aimed at one monster. The

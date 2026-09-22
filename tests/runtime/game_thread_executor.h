@@ -11,4 +11,4 @@ typedef void (*RuntimeGameThreadCallback)(void* context);
 bool InitializeRuntimeGameThreadExecutor(HWND window);
 void ShutdownRuntimeGameThreadExecutor();
 bool RunOnGameThread(RuntimeGameThreadCallback callback, void* context,
-                     unsigned long timeout_ms = 5000);
+                     unsigned long timeout_ms = 60000);

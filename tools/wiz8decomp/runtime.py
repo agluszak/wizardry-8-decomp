@@ -582,11 +582,18 @@ def runtime_test_environment(
     prefix.mkdir(parents=True, exist_ok=True)
     # The scenarios never assert audible output. Force the soundless-machine
     # path so Wine's stub audio drivers cannot perturb semantic observations.
-    overrides = "winemenubuilder.exe=d;winealsa.drv=d;wineoss.drv=d;winepulse.drv=d;winemm.drv=d"
+    overrides = (
+        "winemenubuilder.exe=d;winealsa.drv=d;wineoss.drv=d;winepulse.drv=d;winemm.drv=d;"
+        "mmdevapi=d;dsound=d"
+    )
     environment = {
         **os.environ,
         "WINEPREFIX": str(prefix),
         "WINEDLLOVERRIDES": overrides,
+        # Mesa llvmpipe aborts inside the 32-bit process with "Unable to
+        # allocate section memory" (WIZ8_RUNTIME_CRASH 80000101). softpipe has
+        # no LLVM JIT and never takes that path.
+        "GALLIUM_DRIVER": "softpipe",
     }
     environment["WINEDEBUG"] = "-all"
     return prefix, environment
