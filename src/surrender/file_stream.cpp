@@ -502,7 +502,12 @@ void srBinFStream::close()
 {
     fclose(file_08);
     file_08 = 0;
-    path_0c.~srInlineString();
+    /* Retail inlines the empty-state sequence: release non-inline storage,
+       zero inline_, repoint data_, size 1. reset() itself stays out of line
+       in this unit (0x10012C80), so the authored spelling here is the
+       null-string assignment, which folds to that sequence; the stream
+       stays usable afterwards, so it is not member teardown. */
+    path_0c = 0;
     setState(SR_STREAM_STATE_2);
 }
 
