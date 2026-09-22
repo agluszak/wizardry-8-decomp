@@ -388,7 +388,7 @@ void UpdateRadarBlips(void)
                 hostile = 1;
             }
             if (monster->IsRenderable004C7C00(1) == 0 && detect_all == 0) {
-                if (info->party_threat.state_04 == 2) {
+                if (info->party_threat.sight_state_04 == W8_SIGHT_RECENT) {
                     monster->GetAnimationBounds(&bounds_min, &bounds_max);
                     center.Set((bounds_min.x + bounds_max.x) * g_double_005ebe80,
                                (bounds_min.y + bounds_max.y) * g_double_005ebe80,

@@ -2010,7 +2010,8 @@ void RollCombatSurprise004ECF50(char arg_1)
                 monster_info = MonsterGetScriptPartByLocationIndex(index);
                 if (monster_info->fActive != 0 && monster_info->fInCombat != 0 &&
                     monster_info->hp_current != 0 && monster_info->highest_condition < 0x10 &&
-                    monster_info->ubDisposition == 1 && monster_info->party_threat.state_04 == 1) {
+                    monster_info->ubDisposition == 1 &&
+                    monster_info->party_threat.sight_state_04 == W8_SIGHT_SEEN) {
                     if (PartyAvoidsSurprise() == 0) {
                         goto party_surprise_done;
                     }
@@ -2038,7 +2039,8 @@ void RollCombatSurprise004ECF50(char arg_1)
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fActive != 0 && monster_info->fInCombat != 0 &&
             monster_info->hp_current != 0 && monster_info->highest_condition < 0x10 &&
-            monster_info->ubDisposition == 1 && monster_info->player_visibility.state_04 == 1) {
+            monster_info->ubDisposition == 1 &&
+            monster_info->player_visibility.sight_state_04 == W8_SIGHT_SEEN) {
             goto monsters_checked;
         }
         ++index;

@@ -3959,7 +3959,7 @@ LAB_004fd26b:
                            (centre.y - player_pos.y) * (centre.y - player_pos.y) +
                            (centre.z - player_pos.z) * (centre.z - player_pos.z);
                 if (sqrtf(distance) <= radius &&
-                    monster_info->player_visibility.sight_flags_05[sight_flag] != '\0') {
+                    monster_info->player_visibility.los_flags_05[sight_flag] != '\0') {
                     marked = true;
                 }
             } else if (monster_info->ubDisposition != '\x01') {
@@ -4018,7 +4018,7 @@ LAB_004fd26b:
                 side = 2;
                 if (TargetInRangeAndArcs00539B70(&camera, g_startup_world_659c0c->radius_084, &eye,
                                                  monster->radius_084, heading, elevation) != 0 &&
-                    monster_info->player_visibility.sight_flags_05[sight_flag] != '\0') {
+                    monster_info->player_visibility.los_flags_05[sight_flag] != '\0') {
                     goto LAB_004fd749;
                 }
             }

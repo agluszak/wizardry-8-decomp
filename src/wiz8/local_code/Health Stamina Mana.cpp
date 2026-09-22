@@ -383,7 +383,7 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
         ++result_stats->count;
     }
     if (amount != 0) {
-        if (gXStatus.fCombatMode != 0 || monster_info->party_threat.flag_25 != 0) {
+        if (gXStatus.fCombatMode != 0 || monster_info->party_threat.visible_to_player_25 != 0) {
             PointCameraAtMonster(monster_info, 0, 1);
             category = 9;
             if (TargetSourceIsCharacter(source, 0) != 0 && source->iChar != -1) {

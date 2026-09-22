@@ -5212,10 +5212,10 @@ unsigned char W8Monster::IsRenderable004C7C00(char alternate)
         MonsterGetIndexByLocationID(0x1977, MONSTER_CPP, location_id, 1));
     record = GetMonsterDataForInfo(monster_info);
     if (record->camouflage_248 > 0) {
-        return monster_info->party_threat.flag_07;
+        return monster_info->party_threat.party_detected_07;
     }
     if (alternate != 0) {
-        return monster_info->party_threat.flag_25;
+        return monster_info->party_threat.visible_to_player_25;
     }
     return monster_info->within_viewing_distance;
 }
