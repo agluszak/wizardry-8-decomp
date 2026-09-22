@@ -1,6 +1,5 @@
 #include "wiz8/engine_code/Camera.h"
 
-#include "wiz8/3d_code/IList.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/float_constants.h"
@@ -41,11 +40,12 @@ int g_saved_environment_flag_60aa64 = 1;
 // FUNCTION: WIZ8 0x0048F280
 void UpdateCameraPathStateByName(W8World* world, const char* name, int active)
 {
-    /* Retail calls ILLength unconditionally (0x0048F28C) before testing the
-       list pointer; ILLength is null-tolerant (returns 0 on a null head),
-       so the call precedes the guard in the original. */
-    // c-style-cast-ok: retail calls ILLength on this W8PList field at 0x0048F28C; the circa-2000 authored spelling is the C cast.
-    unsigned int count = ILLength((W8IList*)world->plsCameras);
+    /* Retail calls the length accessor unconditionally (0x0048F28C) before
+       testing the list pointer; {PLLength, ILLength} is one linker-folded
+       equivalence class, so PLLength is the correctly spelled name here.
+       The accessor is null-tolerant (returns 0 on a null head), so the call
+       precedes the guard in the original. */
+    unsigned int count = PLLength(world->plsCameras);
     if (world->plsCameras != 0 && count != 0) {
         for (int index = 0; index < static_cast<int>(count); ++index) {
             W8CameraPath* path = static_cast<W8CameraPath*>(PLGet(world->plsCameras, index));

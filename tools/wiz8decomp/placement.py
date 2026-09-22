@@ -75,7 +75,21 @@ def placement_violations(
     repo_dir: Path, layout: TranslationUnitLayout, markers: list[dict[str, Any]]
 ) -> list[dict[str, Any]]:
     violations: list[dict[str, Any]] = []
-    function_markers = [marker for marker in markers if marker["marker_kind"] == "FUNCTION"]
+    # FOLDED claims on an address a canonical claim owns elsewhere are aliases,
+    # not placements: the owner claim already answers for that address.
+    # Folded claims are only themselves placed when an address has folded
+    # claims alone, matching the importer's FOLDED-only promotion rule.
+    owned_addresses = {
+        int(marker["address"])
+        for marker in markers
+        if marker["marker_kind"] == "FUNCTION" and not marker.get("folded")
+    }
+    function_markers = [
+        marker
+        for marker in markers
+        if marker["marker_kind"] == "FUNCTION"
+        and not (marker.get("folded") and int(marker["address"]) in owned_addresses)
+    ]
     expected_by_unit: dict[str, str | None] = {}
     classes: dict[str, str] = {}
     if (repo_dir / CLASSIFICATION_PATH).is_file():
