@@ -982,6 +982,10 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
     srVector3T<float> party_position;
     memset(s, 0, sizeof(*s));
     GetCameraPosition(&party_position);
+    /* The camera rides the environ's world_height above the party's feet;
+       monster distances are ground distances, so measure from the feet. */
+    party_position.y -= g_environ_00652DB4 != 0 ? g_environ_00652DB4->world_height_30
+                                                : g_default_world_height_00603ac8;
     s->screen = g_current_screen_state.id;
     s->pending = g_pending_screen_state.id;
     s->combat_mode = gXStatus.fCombatMode != 0;
