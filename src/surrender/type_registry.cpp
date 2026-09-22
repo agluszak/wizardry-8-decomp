@@ -390,7 +390,12 @@ struct srRegistry::ClassNode::IDIndex {
     {
     }
 
-    ~IDIndex()
+    /* Retail ~ClassNode (0x1000F73C-0x1000F77D) tears an IDIndex down as
+       authored cleanup, not through a destructor: it destroys by_id_20
+       first, runs the link and block teardown, then frees the object
+       through operator delete. No implicit RegistryHash member teardown
+       follows, so this sequence cannot be an ~IDIndex destructor body. */
+    void destroy()
     {
         by_id_20.~RegistryHash();
         clearLinks();
@@ -584,6 +589,9 @@ private:
     InstanceLink* first_14;
     InstanceLink* last_18;
     unsigned long list_count_1c;
+    /* Manually destroyed by the owner (see destroy()): teardown through an
+       ordinary destructor would make the compiler emit a second by_id_20
+       destruction after the body, which retail does not have. */
     RegistryHash<unsigned long, InstanceLink*> by_id_20;
 };
 
@@ -1297,7 +1305,12 @@ srRegistry::ClassNode::~ClassNode()
         delete link->node_00;
     }
     delete named_instances_18;
-    delete instances_by_id_20;
+    /* Retail runs IDIndex teardown explicitly (see IDIndex::destroy) and
+       frees the object through operator delete rather than delete. */
+    if (instances_by_id_20 != 0) {
+        instances_by_id_20->destroy();
+        IDIndex::operator delete(instances_by_id_20);
+    }
     while (first_child_04 != child_end_08) {
         ChildLink* link = first_child_04;
         first_child_04 = link->next_04;
