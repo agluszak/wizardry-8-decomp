@@ -564,7 +564,14 @@ jobs:
         run: |
           status_json="$RUNNER_TEMP/surrender-status.json"
           uv run wiz8 report status > "$status_json"
-          jq -e '.targets.SURRENDER.state == "comparison"' "$status_json" >/dev/null
+          # error_count covers live reccmp diagnostics; unpaired_line_refs covers
+          # the same "Failed to find function symbol" failures when the prepared
+          # analysis cache serves the engine without re-emitting log records.
+          jq -e '
+            .targets.SURRENDER.state == "comparison"
+            and .targets.SURRENDER.diagnostics.error_count == 0
+            and .targets.SURRENDER.comparison.unpaired_line_refs == 0
+          ' "$status_json" >/dev/null
           jq '.targets.SURRENDER' "$status_json"
       - name: Remove plaintext licensed SURRENDER inputs
         if: always()
