@@ -34,6 +34,7 @@ public:
 template <typename E, typename T> class basic_ostream : public ios {
 public:
     basic_ostream(basic_streambuf<E, T>* buffer);
+    basic_ostream& operator<<(int value);
     basic_ostream& operator<<(long value);
     basic_ostream& operator<<(unsigned long value);
     basic_ostream& operator<<(double value);

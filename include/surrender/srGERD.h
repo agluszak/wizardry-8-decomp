@@ -59,6 +59,9 @@ public:
        GL_PROJECTION (0x1701) for those two stacks. */
     enum e_matrixMode { MATRIX_MODELVIEW = 0, MATRIX_PROJECTION = 1 };
     enum e_antiAlias { ANTIALIAS_NONE = 0 };
+    /* srClipPlane::process passes its clip_type_ through unchanged; Wizardry
+       always writes 0. */
+    enum e_clipMode { CLIPMODE_POSITIONAL_0 = 0 };
     /* OpenGL: 0 disables GL_CULL_FACE, 1 enables + GL_BACK, 2 enables + GL_FRONT.
        DirectX7: D3DCULL_NONE / D3DCULL_CCW / D3DCULL_CW. */
     enum e_cullMode { CULL_NONE = 0, CULL_BACK = 1, CULL_FRONT = 2 };
@@ -195,6 +198,8 @@ public:
     void popEnvironment();
     void setEnvironmentRange(float minimum, float maximum);
     void setEnvironmentScaleFactor(float scale, float inverse_scale);
+    void pushClipPlane(srVector4T<float>& plane, e_clipMode mode);
+    void popClipPlane();
     void setClipState(srFlags<srRendererDefs::e_clip> state);
     void setAntiAlias(e_antiAlias mode);
     void setTexture(srTextureIFace* texture, unsigned long layer);
