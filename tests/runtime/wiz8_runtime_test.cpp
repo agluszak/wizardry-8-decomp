@@ -1997,7 +1997,7 @@ struct CombatModeRequest {
 };
 
 /* Manual combat entry has a one-frame ground-contact precondition in retail.
-   Do the readiness check and ToggleCombatMode on the game thread in one
+   Do the readiness check and command dispatch on the game thread in one
    callback; polling flag4 from the driver and injecting the key afterward
    races ApplyCameraMotion clearing the flag on the next frame. */
 static void RequestCombatModeOnGameThread(void* opaque)
@@ -2013,7 +2013,7 @@ static void RequestCombatModeOnGameThread(void* opaque)
         request->waiting_on_ground = true;
         return;
     }
-    ToggleCombatMode();
+    DispatchMGSCommand(W8_MGS_COMMAND_TOGGLE_COMBAT);
     request->achieved = (gXStatus.fCombatMode != 0) == request->enabled;
 }
 
