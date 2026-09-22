@@ -68,7 +68,7 @@ unsigned char LoadPathAI004A92A0(W8PathAI** output, int handle)
     memset(path, 0, sizeof(W8PathAI));
     path->nodes_0c = new W8GrowableVector<srVector3T<float>*>(5);
 
-    success = FileRead(handle, &path->unknown_01[0], 1, 0);
+    success = FileRead(handle, &path->version_01, 1, 0);
     success = success && FileRead(handle, &path->position, 4, 0);
     success = success && FileRead(handle, &path->unknown_08, 4, 0);
     success = success && FileRead(handle, &point_count, 4, 0);
@@ -82,7 +82,7 @@ unsigned char LoadPathAI004A92A0(W8PathAI** output, int handle)
         if (path->rotations_14 == 0) {
             srAssertFail("pPathAI->pRotations", PATH_AI_CPP, 0x104, 0);
         }
-        if (path->unknown_01[0] == 2) {
+        if (path->version_01 == 2) {
             path->scales_18 = static_cast<srVector3T<float>*>(
                 srHeap.allocate(point_count * sizeof(srVector3T<float>)));
             if (path->scales_18 == 0) {
@@ -114,7 +114,7 @@ unsigned char LoadPathAI004A92A0(W8PathAI** output, int handle)
                 rotation.RotateAroundAxis(sin(angle), cos(angle), axis);
             }
             path->rotations_14[index] = rotation;
-            if (path->unknown_01[0] == 2) {
+            if (path->version_01 == 2) {
                 success = success &&
                           FileRead(handle, &path->scales_18[index], sizeof(srVector3T<float>), 0);
             }
@@ -231,7 +231,7 @@ W8PathAI* ClonePathAI004A98C0(const W8PathAI* source)
         srAssertFail("pPathAI", PATH_AI_CPP, 0x1ef, 0);
     }
     copy->kind_00 = source->kind_00;
-    copy->unknown_01[0] = source->unknown_01[0];
+    copy->version_01 = source->version_01;
     copy->position = source->position;
     copy->unknown_08 = source->unknown_08;
     copy->value_10 = source->value_10;
@@ -245,7 +245,7 @@ W8PathAI* ClonePathAI004A98C0(const W8PathAI* source)
     copy->looping = source->looping;
     copy->step_by_node_39 = source->step_by_node_39;
     copy->animated_3a = source->animated_3a;
-    copy->unknown_3b = source->unknown_3b;
+    copy->upright_3b = source->upright_3b;
     if (source->nodes_0c != 0) {
         count = source->nodes_0c->GetCount();
     } else {
@@ -742,7 +742,7 @@ void PathAIApply004AA520(W8PathAI* path, srNode* target)
             }
         }
 
-        if (path->unknown_3b != 0) {
+        if (path->upright_3b != 0) {
             target->rotateX(1.5707963);
         }
     }

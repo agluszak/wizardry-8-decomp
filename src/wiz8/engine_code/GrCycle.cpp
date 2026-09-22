@@ -733,7 +733,8 @@ void W8GrCycle::UpdateLights004A7150()
                     if (light->parentNode() != 0) {
                         light->setParent(0, 0);
                     }
-                } else if ((representation->subcycle_064 == 0 && cycle_definition->value_3c == 0) ||
+                } else if ((representation->subcycle_064 == 0 &&
+                            cycle_definition->subcycle_min_3c == 0) ||
                            light->parentNode() == srCore.getRootNode()) {
                     light->setParent(g_world->dynamic_scene, 0);
                     light->m_path_index_248 = 0;
@@ -981,7 +982,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
         pRep->GetRotation004B88F0(&rotation);
         for (index = 0; index < count; ++index) {
             stLight* light = *m_plsLights->GetAt(index);
-            srVector3T<float> offset = light->m_positional_228;
+            srVector3T<float> offset = light->m_position_228;
 
             srVector3T<float> placed = rotation.Transform(offset) + origin;
             location.SetFromFloat(&placed);

@@ -226,7 +226,10 @@ struct W8MonsterCombatState {
        selected this monster. It is asserted below MAX_MONSTER_ATTACKS before
        indexing the database record. */
     unsigned int attack_index_11;
-    unsigned char unknown_015;
+    /* Berserk latch: interrupt case 8 raises it so the monster attacks
+       indiscriminately (friends included); Combat Range counts allies as
+       hostile while set. */
+    unsigned char berserk_015;
     /* 0x016: the queue of actions the monster's AI has decided on, one
        W8MonsterAction each. The AI owns the list and destroys it outright. */
     W8PList* plsCombatActionList;
@@ -253,7 +256,12 @@ struct W8MonsterCombatState {
     /* 0x150: the monster's turn has been set up already, so the setup runs
        once per turn however often it is asked for. */
     bool turn_started;
-    unsigned char unknown_151[2];
+    /* 0x151: set when a navigator completes movement while this monster is in
+       combat; the combat tick then refreshes its sight and clears it. */
+    bool sight_refresh_pending_151;
+    /* 0x152: per-turn ~75% roll made during turn setup; while set the monster
+       skips friendly targets and gets one extra action repick. */
+    bool reconsider_action_152;
 }; /* 0x153 */
 #pragma pack(pop)
 
@@ -370,15 +378,25 @@ struct W8MonsterInfo {
     W8EffectSlot effect_slots_10f[12];
     W8GameplayModifierBlock modifiers_1db; /* 0x1db */
     int fatigue_band;                      /* 0x242: derived from stamina */
-    unsigned char unknown_246;
+    /* 0x246: countdown set on pathing failure (0x14) or after a long stall
+       (0x1e); each AI tick decrements it, and reaching zero clears
+       sp_budget_bonus. Also gates the face-party proximity check. */
+    unsigned char pathing_cooldown_246;
     unsigned char attributes[W8_MONSTER_ATTR_COUNT]; /* 0x247: values clamped to 1..125 */
     unsigned char condition_binding_mask_24c;
     unsigned char within_viewing_distance; /* 0x24d: cycle-2 eligibility gate */
     unsigned char fMotionless;             /* 0x24e: fMotionless in the demo diagnostic */
     float scale_24f;                       /* 0x24f: HP-dependent live Monster scale */
-    unsigned char flag_253;                /* 0x253: set by 0x004e5c00 after processing */
-    unsigned char unknown_254;
-    unsigned char flag_255; /* 0x255: reset by 0x004e5ea0 and 0x004e6020 */
+    /* 0x253: set once the non-forced death path has run MonsterDies; gates
+       the death notice and skips repeat processing. */
+    bool death_processed_253;
+    /* 0x254: movement-stall tick counter - incremented each watch tick while
+       the monster is unlinked, floored at 2 on pathing failure, reset when
+       the watch cycle clears. Compared as signed char at the read sites. */
+    unsigned char movement_stall_ticks_254;
+    /* 0x255: monster AI mode in the low nibble (0..8), bit 0x80 marks a
+       pending decision write, bit 0x10 set on load. */
+    unsigned char ai_mode_255;
     unsigned char unknown_256[0x30];
     W8PartyThreatRecord party_threat; /* 0x286 */
     /* 0x2b6: what this monster can see of other monsters, one heap record per

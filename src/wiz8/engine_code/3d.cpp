@@ -927,14 +927,14 @@ void SetModelInstanceChainExclusionMask(srModelInstance* node, int value)
    rather than a range check. The assertion at 3d.cpp:651 is what names the
    receiver pWorld. */
 // FUNCTION: WIZ8 0x0046e350
-void WorldSetValue74(W8World* world, float value)
+void WorldSetRenderRange(W8World* world, float value)
 {
     if (!world) {
         srAssertFail("pWorld", THREE_D_CPP, 0x28b, 0);
     }
     if (value != 0.0f) {
-        world->value_74 = value;
-        world->value_78 = value;
+        world->render_range_74 = value;
+        world->render_range_78 = value;
         MarkRendererReady();
     }
 }
@@ -942,12 +942,12 @@ void WorldSetValue74(W8World* world, float value)
 /* Reads back only the second of the pair, which is what makes 0x78 the live
    copy and 0x74 the one nothing here consumes. */
 // FUNCTION: WIZ8 0x0046e3a0
-float WorldGetValue78(W8World* world)
+float WorldGetRenderRange(W8World* world)
 {
     if (!world) {
         srAssertFail("pWorld", THREE_D_CPP, 0x297, 0);
     }
-    return world->value_78;
+    return world->render_range_78;
 }
 
 /* Pushes the world's view distance into the camera as the far clip plane; the

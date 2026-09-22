@@ -360,7 +360,7 @@ bool MonsterCanAimSpell005474B0(int spell_id)
 bool CombatAllowsLiveGroups(void)
 {
     return gXStatus.fCombatMode != 0 && g_combat_state->flag_a54 == 0 &&
-           g_combat_state->value_004 <= 1;
+           g_combat_state->round_count_004 <= 1;
 }
 
 // GLOBAL: WIZ8 0x0061ec0c
@@ -385,7 +385,7 @@ void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, cha
     if (MonsterGroupAllMembersDying00511850(group)) {
         return;
     }
-    W8MonsterInfo* leader = MonsterInfoFromID(0x21e, COMBAT_HOSTILITY_CPP, group->value_9f, 1);
+    W8MonsterInfo* leader = MonsterInfoFromID(0x21e, COMBAT_HOSTILITY_CPP, group->leader_id_9f, 1);
     if (leader != 0 && leader->monster->copied_flag_332) {
         return;
     }
@@ -394,14 +394,14 @@ void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, cha
         return;
     }
     group->ubDisposition = static_cast<unsigned char>(hostility);
-    group->flag_ca = 0;
+    group->forced_neutral_ca = 0;
     if (MonsterGroupHasVisibleThreat(group)) {
         ShowNoticef(
             9, L"%s %s %s!", GetMonsterGroupName(group),
             gppStringList[0x1d7 + (group->member_count != 1)],
             gppStringList[g_group_hostility_notice_ids[static_cast<unsigned char>(hostility)]]);
     }
-    group->value_cb = g_status_685170.world_clock;
+    group->hostility_set_at_cb = g_status_685170.world_clock;
     if (previous != 0) {
         SetTargetToGroup(group->group_id, W8_TARGETING_CONTEXT_IN_COMBAT);
     }
@@ -432,7 +432,8 @@ void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, cha
             for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
                 W8MonsterGroup* other = GetMonsterGroupByListIndex(index);
                 W8MonsterRecord* other_record = MonsterGroupGetRecord(other);
-                if (other != group && ((other_record->flags_0d0 & 1) == 0 || !other->flag_ca) &&
+                if (other != group &&
+                    ((other_record->flags_0d0 & 1) == 0 || !other->forced_neutral_ca) &&
                     record->faction_id_25f == other_record->faction_id_25f &&
                     MonsterGroupCanSeeGroup(other, group)) {
                     SetMonsterGroupHostility(other, group->ubDisposition, 0);
@@ -621,9 +622,9 @@ int CharacterPrayAction00547FE0(int party_slot)
         SetTextBoxMode(1, -1);
     }
     roll = Random(g_pray_roll_total_0068d84c);
-    if (g_combat_state->value_004 < 4) {
-        roll += (g_combat_state->value_004 * 3 - 12) * 5;
-    } else if (g_combat_state->value_004 > 8) {
+    if (g_combat_state->round_count_004 < 4) {
+        roll += (g_combat_state->round_count_004 * 3 - 12) * 5;
+    } else if (g_combat_state->round_count_004 > 8) {
         roll += Random(10);
     }
     if (g_settings_6850c8.difficulty == 0) {
@@ -647,7 +648,7 @@ int CharacterPrayAction00547FE0(int party_slot)
         case 0:
             if (Random(2) == 0) {
                 AppendToLastTextLine(gppStringList[0x178], -1);
-                g_combat_state->value_014 += 10;
+                g_combat_state->experience_bonus_014 += 10;
             } else {
                 AppendToLastTextLine(gppStringList[0x177], -1);
                 AddPartyGold(100, 1);
@@ -915,7 +916,7 @@ void AlertSameFactionGroups(W8MonsterGroup* monster_group)
             W8MonsterGroup* other = GetMonsterGroupByListIndex(index);
             W8MonsterRecord* other_record = MonsterGroupGetRecord(other);
             if (other != monster_group &&
-                ((other_record->flags_0d0 & 1) == 0 || other->flag_ca == 0) &&
+                ((other_record->flags_0d0 & 1) == 0 || other->forced_neutral_ca == 0) &&
                 record->faction_id_25f == other_record->faction_id_25f &&
                 MonsterGroupCanSeeGroup(other, monster_group) != 0) {
                 SetMonsterGroupHostility(other, monster_group->ubDisposition, 0);

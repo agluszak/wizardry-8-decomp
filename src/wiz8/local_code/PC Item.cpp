@@ -2643,7 +2643,7 @@ void BindEveryPartyItem(void)
 {
     int party_slot;
 
-    if (gXStatus.fCombatMode != 0 && g_combat_state->flag_001 == 0 &&
+    if (gXStatus.fCombatMode != 0 && g_combat_state->round_active_001 == 0 &&
         gXStatus.fPartyMovementMode == 0) {
         ShowNotice(0xc, gppStringList[0x7d8 / 4], -1, -1, 0);
         return;
@@ -3089,7 +3089,7 @@ void RefreshAfterItemRecordChange(W8ItemInstance* item, W8Character* character,
                     RepickActionTarget(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0);
                 }
             }
-            g_combat_state->characters[party_slot].flag_81 ^= 1;
+            g_combat_state->characters[party_slot].alternate_hand_81 ^= 1;
             if (party_slot == static_cast<unsigned int>(g_status_685170.selected_character)) {
                 RequestRefreshPartyState();
             }
@@ -4458,7 +4458,7 @@ unsigned char SwapWeaponSetSlots0051D3B0(int party_slot, char announce, unsigned
 void BindCharacterItems(int party_slot, int arg_2)
 {
     if (gXStatus.fCombatMode != 0) {
-        if (g_combat_state->flag_001 == 0 && gXStatus.fPartyMovementMode == 0) {
+        if (g_combat_state->round_active_001 == 0 && gXStatus.fPartyMovementMode == 0) {
             ShowNotice(0xc, gppStringList[0x7d8 / 4], -1, 0xffffffff, 0);
             return;
         }

@@ -374,7 +374,7 @@ bool ArnikaYellowButton004E10A0(Trigger* pTrigger)
         group = SpawnMonsters(0xc, 6, &position, 1, 1, 0, 0);
         if (group != 0) {
             info = MonsterGetScriptPartByLocationIndex(
-                MonsterGetIndexByLocationID(0x215, ARNIKA_CPP, group->value_9f, 1));
+                MonsterGetIndexByLocationID(0x215, ARNIKA_CPP, group->leader_id_9f, 1));
             info->monster->SetScript004C7F10("guard.msf", 1);
         }
     }

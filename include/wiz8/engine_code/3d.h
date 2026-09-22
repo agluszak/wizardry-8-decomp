@@ -76,10 +76,10 @@ unsigned char ShowTargetMarker(const srVector3T<float>* eye, const srVector3T<fl
                                const srVector3T<float>* upper); /* 0x0046F820 */
 
 void WorldUpdateLights(W8World* world);
-float WorldGetValue78(W8World* world);
+float WorldGetRenderRange(W8World* world);
 double WorldGetFarClip(W8World* world);
 void WorldSetFarClip(W8World* world, float distance);
-void WorldSetValue74(W8World* world, float value);
+void WorldSetRenderRange(W8World* world, float value);
 stLight* CreateLight0046DF90(srNode* parent, const char* name);
 stLight* CreateWorldLight0046E030(W8World* world, const char* name);
 stLight* CreateWorldLight0046E140(W8World* world, const char* name);

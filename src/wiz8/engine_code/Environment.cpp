@@ -220,13 +220,13 @@ void AdvanceEnvironmentTime00482A20(int elapsed)
 void SetEnvironmentTimeEnabled00482990(bool enabled)
 {
     if (!enabled) {
-        g_environment_flag_0060a394 = 0;
+        g_environment_time_enabled_60a394 = 0;
         return;
     }
 
-    g_environment_flag_0060a394 = 1;
+    g_environment_time_enabled_60a394 = 1;
     g_tick_65b9a8 = GetTickCount();
-    if (g_environment_flag_0060a394 != 0) {
+    if (g_environment_time_enabled_60a394 != 0) {
         unsigned long now = GetTickCount();
         unsigned long elapsed = now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
         if (elapsed != 0) {
@@ -248,7 +248,7 @@ void UpdateEnvironment482770(void)
         UpdateEnvironmentLighting00484300();
         return;
     }
-    if (g_environment_flag_0060a394 == 0) {
+    if (g_environment_time_enabled_60a394 == 0) {
         return;
     }
     if (g_environment_lighting_mode_0060a3a8 == 2) {
@@ -268,7 +268,7 @@ void UpdateEnvironment482770(void)
             }
         }
         if (g_environment_colour_refresh_0060a395 != 0) {
-            if (g_environment_flag_0060a394 != 0) {
+            if (g_environment_time_enabled_60a394 != 0) {
                 unsigned long now = GetTickCount();
                 unsigned long elapsed =
                     now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
@@ -411,7 +411,7 @@ void BuildLightColourRamp00483360(void)
 // FUNCTION: WIZ8 0x004834B0
 void UpdateEnvironmentLight004834B0(void)
 {
-    if (g_environment_flag_0060a394 != 0) {
+    if (g_environment_time_enabled_60a394 != 0) {
         unsigned long now = GetTickCount();
         unsigned long elapsed = now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
         if (elapsed != 0) {
@@ -514,7 +514,7 @@ float GetViewDistance(void)
 // FUNCTION: WIZ8 0x00482a10
 unsigned char GetEnvironmentFlag0060A394(void)
 {
-    return g_environment_flag_0060a394;
+    return g_environment_time_enabled_60a394;
 }
 
 // FUNCTION: WIZ8 0x004842f0
@@ -545,7 +545,7 @@ void EnableSky(void)
 {
     SetSkyEnabled(1);
     g_sky_enabled_0065b9ae = 1;
-    if (g_environment_flag_0060a394 != 0) {
+    if (g_environment_time_enabled_60a394 != 0) {
         unsigned long now = GetTickCount();
         unsigned long elapsed = now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
         if (elapsed != 0) {
@@ -568,7 +568,7 @@ int g_last_environment_colour_phase_0060a3b0 = -1;
 // FUNCTION: WIZ8 0x00483560
 void RefreshEnvironment00483560(void)
 {
-    if (g_environment_flag_0060a394 != 0) {
+    if (g_environment_time_enabled_60a394 != 0) {
         unsigned long now = GetTickCount();
         unsigned long elapsed = now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
         if (elapsed != 0) {
@@ -1038,6 +1038,7 @@ void ApplyEnvironmentColour00483BA0(W8World* world, float intensity,
             material->parms.ambient.w = static_cast<float>(brightness);
             material->parms.diffuse.w =
                 static_cast<float>(brightness * g_double_005ebf40 + g_double_005ec980);
+
             material->dirty_74 = 1;
         }
     }
@@ -1173,12 +1174,12 @@ void InitializeLevelEnvironment00482410(void)
 
                 g_sky_gradient_animations_0065a168[index] = animation;
                 if (animation != 0) {
-                    animation->flag_60 = 3;
+                    animation->animation_mode_60 = 3;
                 }
             }
         }
     }
-    if (g_environment_flag_0060a394 != 0) {
+    if (g_environment_time_enabled_60a394 != 0) {
         unsigned int now = GetTickCount();
         unsigned int elapsed;
 

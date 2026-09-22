@@ -97,7 +97,7 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
     if (character->hp_current == 0) {
         return 0;
     }
-    if (g_status_685170.value_2390 != 0) {
+    if (g_status_685170.world_suspended_2390 != 0) {
         PostCharacterNotice(party_slot, gppStringList[0x94c / 4], amount);
         return 0;
     }
@@ -695,7 +695,7 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
     if (character->hp_current == 0) {
         return;
     }
-    if (g_status_685170.value_2390 != 0) {
+    if (g_status_685170.world_suspended_2390 != 0) {
         PostCharacterNotice(party_slot, gppStringList[0x980 / 4], amount);
         return;
     }
@@ -1079,7 +1079,7 @@ void DrainCharacterRealmSpellPoints(int party_slot, int realm, unsigned int amou
         return;
     }
 
-    if (g_status_685170.value_2390 != 0) {
+    if (g_status_685170.world_suspended_2390 != 0) {
         PostCharacterNotice(party_slot, gppStringList[0x988 / 4], amount,
                             gppStringList[g_realm_message_offsets[realm]]);
         return;

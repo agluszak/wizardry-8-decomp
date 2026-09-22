@@ -85,13 +85,13 @@ W8AIMissile* CopyAIMissile004A53A0(const W8AIMissile* source)
         srAssertFail("pAIMissile", MISSILE_CPP, 0x86d, 0);
     }
     copy->kind_00 = source->kind_00;
-    copy->flag_01 = source->flag_01;
-    copy->value_04 = source->value_04;
-    copy->value_08 = source->value_08;
-    copy->value_10 = source->value_10;
+    copy->gravity_01 = source->gravity_01;
+    copy->speed_per_step_04 = source->speed_per_step_04;
+    copy->fall_speed_08 = source->fall_speed_08;
+    copy->last_half_tick_10 = source->last_half_tick_10;
     copy->elapsed_14 = source->elapsed_14;
     copy->limit_18 = source->limit_18;
-    copy->flag_1c = source->flag_1c;
+    copy->padding_1c = source->padding_1c;
     return copy;
 }
 
@@ -117,8 +117,8 @@ unsigned char UpdateMissileAI004A4CF0(W8AIMissile* record)
         return 0;
     }
     missile = record->missile_0c;
-    if (missile->flag_1e1 != 0) {
-        if (missile->flag_1e6 == 0) {
+    if (missile->impacting_1e1 != 0) {
+        if (missile->align_explosion_1e6 == 0) {
             return 1;
         }
         position = missile->GetPosition();
@@ -133,11 +133,11 @@ unsigned char UpdateMissileAI004A4CF0(W8AIMissile* record)
     }
     position = missile->GetPosition();
     count = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT) >> 1;
-    delta = count - record->value_10;
+    delta = count - record->last_half_tick_10;
     if (delta > 0xfa) {
         delta = 0xfa;
     }
-    record->value_10 = count;
+    record->last_half_tick_10 = count;
     if (gXStatus.world_update_blocked != 0) {
         return 1;
     }
@@ -154,7 +154,8 @@ unsigned char UpdateMissileAI004A4CF0(W8AIMissile* record)
     }
     record->elapsed_14 = advance + record->elapsed_14;
     missile->SetPosition004A6DF0(&out);
-    if (missile->CheckNavigatorCollision00453540(&position, &out) == 0 && missile->flag_1e4 != 0) {
+    if (missile->CheckNavigatorCollision00453540(&position, &out) == 0 &&
+        missile->align_camera_1e4 != 0) {
         pitch = ElevationToTargetCPP(&out);
         yaw = HeadingToTargetCPP(&out);
         rotation.SetIdentity();
@@ -173,12 +174,12 @@ unsigned char UpdateMissileAI004A4CF0(W8AIMissile* record)
         }
         return 1;
     }
-    missile->flag_1e0 = 1;
+    missile->flight_done_1e0 = 1;
     if (missile->missile_table_index_1d8 == 0x23 &&
         (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
         missile->DetonateMissileSpell004A49E0();
     }
-    if (g_missile_table_65bde0[missile->missile_table_index_1d8].flag_154 != 0) {
+    if (g_missile_table_65bde0[missile->missile_table_index_1d8].spell_missile_154 != 0) {
         AbsorbMissileDamage00500460(missile);
     }
     return 1;
@@ -208,7 +209,7 @@ float AdvanceMissileAI004A50A0(W8AIMissile* record, srVector3T<float>* out, unsi
         *out = representation->location_004;
         return 0.0f;
     }
-    advance = (float)steps * record->value_04;
+    advance = steps * record->speed_per_step_04;
     record->missile_0c->GetVelocity(&direction);
     *out = direction;
     position = record->missile_0c->GetPosition();
@@ -221,12 +222,13 @@ float AdvanceMissileAI004A50A0(W8AIMissile* record, srVector3T<float>* out, unsi
         prop = *g_world->collidable_props->GetAt(entity - 1);
         prop->RunMissileTrigger0044E230(record);
     }
-    if (record->flag_01 != 0) {
+    if (record->gravity_01 != 0) {
         float dx;
         float dy;
         float dz;
 
-        record->value_08 = record->value_08 - (float)steps * (float)g_double_005ece50;
+        record->fall_speed_08 =
+            record->fall_speed_08 - steps * static_cast<float>(g_double_005ece50);
         position = record->missile_0c->GetPosition();
         if (out->y != position.y) {
             dx = representation->location_004.x - out->x;
@@ -334,7 +336,7 @@ void ReleaseMissileDatabase(void)
 // FUNCTION: WIZ8 0x004a5790
 bool W8Missile::BlocksEndingCombat004A5790()
 {
-    if (flag_1e0 == 0) {
+    if (flight_done_1e0 == 0) {
         if (GetAnimationState004A4640(6) != 1) {
             return 1;
         }
@@ -444,7 +446,7 @@ void UpdateWorldMissiles004A27C0(W8World* world)
         W8Missile* missile = *world->missiles->GetAt(index);
         if (missile != 0) {
             missile->DetachRepresentation004A7A70(world);
-            if (missile->flag_1e0 == 0 || missile->flag_1e2 == 0) {
+            if (missile->flight_done_1e0 == 0 || missile->block_released_1e2 == 0) {
                 missile->StartIfHostActive();
                 missile->UpdateRepresentation(world);
                 missile->UpdateNavigation004553A0(0, 0);
@@ -492,22 +494,22 @@ W8Missile* AllocateMissile004A5450(int missile_table_index)
     }
     missile->missile_table_index_1d8 = missile_table_index;
     missile->m_pRep->pending_cycle = 0;
-    missile->flag_1e0 = 0;
-    if (missile->flag_1e0 != 0) {
+    missile->flight_done_1e0 = 0;
+    if (missile->flight_done_1e0 != 0) {
         if (missile->missile_table_index_1d8 == 0x23 &&
             (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
             missile->DetonateMissileSpell004A49E0();
         }
-        if (g_missile_table_65bde0[missile->missile_table_index_1d8].flag_154 != 0) {
+        if (g_missile_table_65bde0[missile->missile_table_index_1d8].spell_missile_154 != 0) {
             AbsorbMissileDamage00500460(missile);
         }
     }
-    missile->flag_1e1 = 0;
+    missile->impacting_1e1 = 0;
     g_world->missiles->Add(missile);
     minimum.Set(-125.0, -125.0, -125.0);
     maximum.Set(125.0, 125.0, 125.0);
     missile->SetBounds(&minimum, &maximum);
-    missile->state_088 = 1;
+    missile->active_088 = 1;
     return missile;
 }
 
@@ -710,10 +712,10 @@ unsigned char LoadMissileCycle004A3550(W8GrCycleLoadContext* context, const char
 close_file:
     FileClose(handle);
     if (*ppMissile != 0) {
-        (*ppMissile)->flag_1e3 = gravity;
-        (*ppMissile)->flag_1e4 = align_camera;
-        (*ppMissile)->flag_1e5 = explode_ground;
-        (*ppMissile)->flag_1e6 = align_explosion;
+        (*ppMissile)->gravity_1e3 = gravity;
+        (*ppMissile)->align_camera_1e4 = align_camera;
+        (*ppMissile)->explode_ground_1e5 = explode_ground;
+        (*ppMissile)->align_explosion_1e6 = align_explosion;
         (*ppMissile)->lifetime_1f0 = velocity * g_world_scale_005ebc40;
     }
     if (loaded) {
@@ -788,22 +790,23 @@ W8Missile* CreateMissile004A28D0(unsigned int missile_table_index, srVector3T<fl
         if (ai != 0) {
             float scale = value_5 * g_float_005ec128;
             memset(ai, 0, sizeof(W8AIMissile));
-            ai->value_04 = scale;
+            ai->speed_per_step_04 = scale;
             ai->kind_00 = 3;
-            ai->flag_01 = missile->flag_1e3;
+            ai->gravity_01 = missile->gravity_1e3;
             ai->limit_18 = limit;
-            ai->value_10 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT) >> 1;
+            ai->last_half_tick_10 =
+                g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT) >> 1;
             ai->missile_0c = missile;
         }
         missile->m_pAI = ai;
         if (ai == 0) {
             srAssertFail("pMissile->GrObject::GetAI()", MISSILE_CPP, 0x120, 0);
         }
-        ai->value_08 = static_cast<float>(sin(-pitch) * value_5 * g_float_005ec128);
+        ai->fall_speed_08 = static_cast<float>(sin(-pitch) * value_5 * g_float_005ec128);
         ai->limit_18 = limit;
-        missile->unknown_090 = value_6;
+        missile->trace_mask_090 = value_6;
         missile->duration_1f8 = speed;
-        missile->flag_1e2 = value_7;
+        missile->block_released_1e2 = value_7;
     }
     return missile;
 }
@@ -959,8 +962,8 @@ unsigned char W8MissileRep::ReadCycleData004A3300(W8ReadLevelInfo* info, W8Missi
     frame_direction_06e = 1;
     timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     animation_behaviour_070 = animation->unknown_03;
-    frame_method_06f = animation->value_02;
-    animation_playing_06d = animation->unknown_01;
+    frame_method_06f = animation->frame_method_02;
+    animation_playing_06d = animation->animation_playing_01;
     emitters[emitter] = animation;
 
     if (missile != 0) {
@@ -981,9 +984,10 @@ unsigned char W8MissileRep::ReadCycleData004A3300(W8ReadLevelInfo* info, W8Missi
    ordering is preserved because it is present explicitly in the product. */
 // FUNCTION: WIZ8 0x004A3C10
 W8Missile::W8Missile()
-    : missile_table_index_1d8(-1), m_pRep(0), flag_1e0(0), flag_1e1(0), flag_1e2(1), flag_1e3(0),
-      flag_1e4(0), flag_1e5(0), flag_1e6(0), flag_1e7(1), value_1e8(0), value_1ec(0),
-      lifetime_1f0(15000.0f), value_1f4(0), retargeted_322(false)
+    : missile_table_index_1d8(-1), m_pRep(0), flight_done_1e0(0), impacting_1e1(0),
+      block_released_1e2(1), gravity_1e3(0), align_camera_1e4(0), explode_ground_1e5(0),
+      align_explosion_1e6(0), flag_1e7(1), value_1e8(0), value_1ec(0), lifetime_1f0(15000.0f),
+      flags_1f4(0), retargeted_322(false)
 {
     W8GrObject::kind_004 = 1;
     radius_084 = 1.0f;
@@ -1018,11 +1022,13 @@ W8Missile::W8Missile()
    does. */
 // FUNCTION: WIZ8 0x004A3E50
 W8Missile::W8Missile(const W8Missile& other)
-    : W8GrCycle(other), missile_table_index_1d8(other.missile_table_index_1d8), flag_1e0(0),
-      flag_1e1(0), flag_1e2(other.flag_1e2), flag_1e3(other.flag_1e3), flag_1e4(other.flag_1e4),
-      flag_1e5(other.flag_1e5), flag_1e6(other.flag_1e6), flag_1e7(other.flag_1e7),
-      value_1e8(other.value_1e8), value_1ec(other.value_1ec), lifetime_1f0(other.lifetime_1f0),
-      value_1f4(other.value_1f4), duration_1f8(0.0f), retargeted_322(false)
+    : W8GrCycle(other), missile_table_index_1d8(other.missile_table_index_1d8), flight_done_1e0(0),
+      impacting_1e1(0), block_released_1e2(other.block_released_1e2),
+      gravity_1e3(other.gravity_1e3), align_camera_1e4(other.align_camera_1e4),
+      explode_ground_1e5(other.explode_ground_1e5), align_explosion_1e6(other.align_explosion_1e6),
+      flag_1e7(other.flag_1e7), value_1e8(other.value_1e8), value_1ec(other.value_1ec),
+      lifetime_1f0(other.lifetime_1f0), flags_1f4(other.flags_1f4), duration_1f8(0.0f),
+      retargeted_322(false)
 {
     W8GrObject::kind_004 = 1;
     id_008 = IncrementValue60DFAC();
@@ -1090,18 +1096,18 @@ void W8Missile::StartIfHostActive()
     if (m_pRep->active == 0) {
         return;
     }
-    if (GetAnimationState004A4640(2) == 0 || flag_1e1 == 0) {
+    if (GetAnimationState004A4640(2) == 0 || impacting_1e1 == 0) {
         if (m_pAI != 0) {
             PathAIUpdate004A9260(m_pAI, 1);
         }
         TickAnimation(1.0f);
     } else {
-        flag_1e0 = 1;
+        flight_done_1e0 = 1;
         if (missile_table_index_1d8 == 0x23 &&
             (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
             DetonateMissileSpell004A49E0();
         }
-        if (g_missile_table_65bde0[missile_table_index_1d8].flag_154 != 0) {
+        if (g_missile_table_65bde0[missile_table_index_1d8].spell_missile_154 != 0) {
             AbsorbMissileDamage00500460(this);
         }
     }
@@ -1299,8 +1305,8 @@ void W8Missile::SetCycle(signed char cycle)
         m_pRep->m_bLOD = 0;
     }
     m_pRep->timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-    m_pRep->frame_method_06f = animation->value_02;
-    m_pRep->animation_playing_06d = animation->unknown_01;
+    m_pRep->frame_method_06f = animation->frame_method_02;
+    m_pRep->animation_playing_06d = animation->animation_playing_01;
     m_pRep->subcycle_064 = 0;
 
     lights = *m_pRep->light_lists[cycle].GetAt(0);
@@ -1413,18 +1419,18 @@ void W8Missile::EnterImpactCycle()
             srVector3T<float> position = representation->location_004;
             representation->pending_cycle = 1;
             representation->pending_behaviour_071 = 1;
-            flag_1e1 = 1;
-            if (flag_1e5 != 0) {
+            impacting_1e1 = 1;
+            if (explode_ground_1e5 != 0) {
                 representation->location_004.y = SettlePositionToGround00420BD0(&position, 0);
             }
         }
     } else {
-        flag_1e0 = 1;
+        flight_done_1e0 = 1;
         if (missile_table_index_1d8 == 0x23 &&
             (g_combat_state == 0 || g_combat_state->missile_hit_result != 2)) {
             DetonateMissileSpell004A49E0();
         }
-        if (g_missile_table_65bde0[missile_table_index_1d8].flag_154 != 0) {
+        if (g_missile_table_65bde0[missile_table_index_1d8].spell_missile_154 != 0) {
             AbsorbMissileDamage00500460(this);
         }
     }
@@ -1442,7 +1448,7 @@ bool W8Missile::OnCollision(W8Navigator* other)
         }
         if (combat_slot_260.iType != W8_TARGET_KIND_PARTY &&
             combat_slot_260.iType != W8_TARGET_KIND_CHARACTER) {
-            if (g_missile_table_65bde0[missile_table_index_1d8].flag_154 != 0) {
+            if (g_missile_table_65bde0[missile_table_index_1d8].spell_missile_154 != 0) {
                 goto miss;
             }
             if (combat_slot_260.iType != W8_TARGET_KIND_NONE) {
@@ -1472,7 +1478,7 @@ bool W8Missile::OnCollision(W8Navigator* other)
         }
         if (combat_slot_260.iType != W8_TARGET_KIND_MONSTER ||
             combat_slot_260.iMonsterID != location_id) {
-            if (g_missile_table_65bde0[missile_table_index_1d8].flag_154 != 0) {
+            if (g_missile_table_65bde0[missile_table_index_1d8].spell_missile_154 != 0) {
                 goto miss;
             }
             if (combat_slot_260.iType != W8_TARGET_KIND_NONE) {
@@ -1488,7 +1494,7 @@ bool W8Missile::OnCollision(W8Navigator* other)
     }
 
     hit_result = 1;
-    if (g_missile_table_65bde0[missile_table_index_1d8].flag_154 == 0) {
+    if (g_missile_table_65bde0[missile_table_index_1d8].spell_missile_154 == 0) {
         if (combat_slot_260.iType == W8_TARGET_KIND_CHARACTER) {
             deflect_chance = g_status_685170.buffers.Char[combat_slot_260.iChar]
                                  .bonus_1770.missile_deflect_chance_49;
@@ -1507,13 +1513,13 @@ bool W8Missile::OnCollision(W8Navigator* other)
     } else if (g_combat_state != 0 && g_combat_state->engaged_missile != 0) {
         g_combat_state->missile_hit_result = hit_result;
         g_combat_state->TargetHit = combat_slot_260;
-    } else if (g_missile_table_65bde0[missile_table_index_1d8].flag_154 != 0) {
+    } else if (g_missile_table_65bde0[missile_table_index_1d8].spell_missile_154 != 0) {
         ResolveSpellMissileHit(this);
     } else {
         ResolveMissileHit(this, hit_result == 2);
     }
     EnterImpactCycle();
-    state_088 = 0;
+    active_088 = 0;
     return true;
 
 miss:

@@ -1032,8 +1032,9 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
     if (GetViewDistance() != g_sight_default_005ec254) {
         goto after_early;
     }
-    if ((monster->linked_navigator_05c == 0 && monster->flag_025 == 0) &&
-        ((signed char)monster_info->unknown_254 > 1 || monster->movement_stopped_024 == 0)) {
+    if ((monster->linked_navigator_05c == 0 && monster->halted_025 == 0) &&
+        (static_cast<signed char>(monster_info->movement_stall_ticks_254) > 1 ||
+         monster->movement_stopped_024 == 0)) {
         srVector3T<float> location;
         srVector3T<float> previous;
         srVector3T<float> delta;
@@ -1044,7 +1045,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
         previous.y = static_cast<float>(monster_info->movement_watch_position[1]);
         previous.z = static_cast<float>(monster_info->movement_watch_position[2]);
         monster_info->position_17.y = location.y;
-        cycle = monster_info->unknown_254;
+        cycle = monster_info->movement_stall_ticks_254;
         delta = location - previous;
         monster_info->position_17.x = location.x;
         monster_info->position_17.z = location.z;
@@ -1148,15 +1149,15 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
                 }
             }
             if (cycle_cleared) {
-                monster_info->unknown_254 = 0;
+                monster_info->movement_stall_ticks_254 = 0;
             }
             if (flags_cleared) {
-                monster_info->flag_255 = 0;
-                monster_info->unknown_246 = 0;
+                monster_info->ai_mode_255 = 0;
+                monster_info->pathing_cooldown_246 = 0;
             }
         }
-        if ((signed char)monster_info->unknown_254 > 0) {
-            ++monster_info->unknown_254;
+        if (static_cast<signed char>(monster_info->movement_stall_ticks_254) > 0) {
+            ++monster_info->movement_stall_ticks_254;
         }
         monster_info->movement_watch_position[0] = static_cast<int>(monster_info->position_17.x);
         monster_info->movement_watch_position[1] = static_cast<int>(monster_info->position_17.y);
@@ -1323,7 +1324,7 @@ after_early: {
 // FUNCTION: WIZ8 0x005044d0
 void UpdateCampFatigue005044D0(int ticks)
 {
-    if (g_status_685170.value_2390 != 0) {
+    if (g_status_685170.world_suspended_2390 != 0) {
         return;
     }
     bool any_rolled = false;

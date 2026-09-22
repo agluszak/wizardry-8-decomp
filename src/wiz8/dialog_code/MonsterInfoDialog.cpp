@@ -168,12 +168,12 @@ unsigned char W8MonsterInfoDialog::PopulateText()
         if (leader_group_id == 0) {
             leader_group_id = monster_info->monster_group_id;
         }
-        m_text_area_ec.AddEntry(L"ID/Group (Leader)",
-                                FormatWideString(L"%d/%d (%d/%d) %s", m_location_id,
-                                                 monster_info->monster_group_id, leader_location_id,
-                                                 leader_group_id,
-                                                 group->flag_c3 != 0 ? L"random" : L"placed"),
-                                5, 0xf, 0);
+        m_text_area_ec.AddEntry(
+            L"ID/Group (Leader)",
+            FormatWideString(L"%d/%d (%d/%d) %s", m_location_id, monster_info->monster_group_id,
+                             leader_location_id, leader_group_id,
+                             group->encounter_registered_c3 != 0 ? L"random" : L"placed"),
+            5, 0xf, 0);
     }
 
     if (is_npc != 0) {
@@ -445,7 +445,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
                                 FormatWideString(L"<%S>", script != 0 ? script->getName() : 0), 5,
                                 0xf, 0);
         m_text_area_ec.AddEntry(L"Leader's AI Mode",
-                                FormatWideString(g_format_d_0060aa20, leader_info->flag_255), 5,
+                                FormatWideString(g_format_d_0060aa20, leader_info->ai_mode_255), 5,
                                 0xf, 0);
         const wchar_t* strategy = L"Close";
         if (record->prefer_ranged_actions_1b9 != 0) {

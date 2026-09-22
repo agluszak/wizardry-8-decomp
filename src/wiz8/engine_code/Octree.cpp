@@ -1787,7 +1787,7 @@ unsigned char W8Octree::ValidateRegionMeshLinks00433AB0()
     W8OctSpatialState spatial(&spatial_000);
     spatial.depth_44 = 0;
     spatial.level_kind_6c = 1;
-    spatial.positional_94 = 1;
+    spatial.node_index_94 = 1;
     int bad_links = CountBadRegionMeshLinks00433B90(&spatial);
     if (bad_links != 0) {
         CreateMessageBox(FormatWideString(L" %d Bad Region-Mesh Links!", bad_links),
@@ -1809,7 +1809,7 @@ int W8Octree::CountBadRegionMeshLinks00433B90(W8OctSpatialState* spatial)
     int bad_links = 0;
     if (spatial->depth_44 < 0x10) {
         if (spatial->depth_44 == spatial_000.leaf_level_52) {
-            unsigned short link = m_owned_09c[spatial->positional_94].region_02;
+            unsigned short link = m_owned_09c[spatial->node_index_94].region_02;
             if (link != 0) {
                 stModelInstance* mesh =
                     static_cast<stModelInstance*>(g_world->psrMeshes[m_pSubmeshes[link].mesh_04]);
@@ -1855,7 +1855,7 @@ int W8Octree::CountBadRegionMeshLinks00433B90(W8OctSpatialState* spatial)
             do {
                 for (int y = 0; y < 2; ++y) {
                     for (int z = 0; z < 2; ++z) {
-                        if (m_owned_09c[spatial->positional_94].children_04[child] != 0) {
+                        if (m_owned_09c[spatial->node_index_94].children_04[child] != 0) {
                             local.minimum_0c.x =
                                 static_cast<float>(x) * local.extent_04 + spatial->minimum_0c.x;
                             local.maximum_18.x = local.minimum_0c.x + local.extent_04;
@@ -1958,7 +1958,7 @@ unsigned char W8Octree::PrepareNavigatorTarget00434250(W8NavigatorMovementState*
                                                                     &target);
                 movement->attachment_0ac->separation_54 = separation;
                 result = pathing_180->BuildAttachmentPath00460950(movement->attachment_0ac,
-                                                                  movement->unknown_000);
+                                                                  movement->flags_000);
                 if (result != 0) {
                     W8NavigatorAttachment* attachment = movement->attachment_0ac;
                     attachment->position_4c[attachment->path_position_index_08] =
@@ -2038,9 +2038,9 @@ unsigned char W8Octree::PrepareNavigatorPatrol00434880(W8NavigatorMovementState*
         srVector3T<float> velocity = movement->velocity_034;
         movement->attachment_0ac->InitializeSegment004563E0(&movement->position_040,
                                                             &movement->target_position_04c);
-        result = pathing_180->BuildPatrolPath00461960(
-            movement->attachment_0ac, movement->unknown_000, &movement->target_position_04c,
-            minimum, &velocity, maximum);
+        result = pathing_180->BuildPatrolPath00461960(movement->attachment_0ac, movement->flags_000,
+                                                      &movement->target_position_04c, minimum,
+                                                      &velocity, maximum);
         if (result == 0) {
             return 0;
         }
@@ -2063,7 +2063,7 @@ unsigned char W8Octree::LinkNavigatorTarget00434A00(W8NavigatorMovementState* mo
 {
     if (pathing_180 != 0) {
         return pathing_180->LinkAttachmentTarget004612A0(movement->attachment_0ac,
-                                                         movement->unknown_000, target, separation);
+                                                         movement->flags_000, target, separation);
     }
     return 0;
 }
@@ -2574,7 +2574,7 @@ resolve:
    location id in (a null or negative in-value skips the to-exclusion and the
    probe set) and receives the winning id, 0 for the camera, or -1 on a miss.
    `excluded`/`location` skip the two endpoint objects; `flags` masks each
-   monster's navigator unknown_090; `noise_adjust` applies the range-scaled
+   monster's navigator trace_mask_090; `noise_adjust` applies the range-scaled
    noise penalty. The winning offset is the last colliding candidate's, not
    necessarily the nearest id's - the retail quirk is preserved. */
 // FUNCTION: WIZ8 0x004353f0
@@ -2667,8 +2667,8 @@ no_probes:;
                 W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(monster_index);
                 if (info != 0) {
                     W8Monster* monster = info->monster;
-                    if (monster != 0 && monster->state_088 != 0 &&
-                        (monster->unknown_090 & flags) == 0) {
+                    if (monster != 0 && monster->active_088 != 0 &&
+                        (monster->trace_mask_090 & flags) == 0) {
                         center.x = monster->movement_0c0.position_040.x;
                         center.z = monster->movement_0c0.position_040.z;
                         center.y = monster->movement_0c0.position_040.y +
@@ -4241,12 +4241,12 @@ void W8Octree::Initialize(const W8OctFileHeader* header)
         spatial_000.cell_size_08 = header->cell_size_06;
         spatial_000.node_extent_70 = header->node_extent_0a;
 
-        m_positional_27c = 0;
-        m_positional_280 = 0;
-        m_positional_284 = 0;
-        m_positional_288 = 0;
-        m_positional_28c = 0;
-        m_positional_290 = 0;
+        m_padding_27c[0] = 0;
+        m_padding_27c[1] = 0;
+        m_padding_27c[2] = 0;
+        m_padding_27c[3] = 0;
+        m_padding_27c[4] = 0;
+        m_padding_27c[5] = 0;
         for (axis = 0; axis < 3; ++axis) {
             (&spatial_000.minimum_0c.x)[axis] = (&header->bounds_0e[0].x)[axis];
             (&spatial_000.maximum_18.x)[axis] = (&header->bounds_0e[1].x)[axis];
@@ -5032,7 +5032,7 @@ void W8Octree::AdjustPortalDestination(srVector3T<float>* destination,
     if (pathing_180 == 0) {
         return;
     }
-    if (pathing_180->flag_1c8 == 0 && pathing_180->m_ulNumWayPoints != 0) {
+    if (pathing_180->waypoint_editing_1c8 == 0 && pathing_180->m_ulNumWayPoints != 0) {
         return;
     }
     local_destination = *destination;

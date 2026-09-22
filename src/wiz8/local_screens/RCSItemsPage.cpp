@@ -685,7 +685,7 @@ void UnequipBothHands005BB010(void)
 {
     W8Character* character;
 
-    if (gXStatus.fCombatMode != 0 && g_combat_state->flag_001 == 0 &&
+    if (gXStatus.fCombatMode != 0 && g_combat_state->round_active_001 == 0 &&
         gXStatus.fPartyMovementMode == 0 && g_combat_state->flag_a50 == 0) {
         ShowCampNoticeLine(gppStringList[0x240c / 4], 0, 1, 0);
         return;

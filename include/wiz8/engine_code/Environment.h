@@ -131,7 +131,7 @@ extern unsigned char g_environment_colour_refresh_0060a395;
    Sight.cpp and GameplayTime.cpp consume it through SetViewDistance and
    GetViewDistance, so the rename waits for those owners. */
 extern float g_view_distance_0060a390;
-extern unsigned char g_environment_flag_0060a394;
+extern bool g_environment_time_enabled_60a394;
 /* Half the Sun-to-Moon distance, which is the radius of the circle the active
    celestial prop travels; -1 until InitializeLevelEnvironment measures it. */
 extern float g_celestial_orbit_radius_0060a3a4;

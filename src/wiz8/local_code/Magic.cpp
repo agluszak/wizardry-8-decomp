@@ -638,7 +638,7 @@ void UpdateSpellEffects00500930(void)
         for (int missile_index = 0; missile_index < effect->missiles.GetCount() && alive;
              ++missile_index) {
             W8Missile* missile = *effect->missiles.GetAt(missile_index);
-            if (missile->flag_1e0 == 0) {
+            if (missile->flight_done_1e0 == 0) {
                 alive = false;
             }
         }
@@ -650,21 +650,22 @@ void UpdateSpellEffects00500930(void)
             }
         }
 
-        if ((g_spell_records[effect->kind].missile_delivered != 0 || effect->flag_122 != 0) &&
-            effect->flag_121 == 0 && !alive) {
+        if ((g_spell_records[effect->kind].missile_delivered != 0 ||
+             effect->missiles_pending_122 != 0) &&
+            effect->sustained_121 == 0 && !alive) {
             continue;
         }
-        if (effect->flag_123 != 0) {
+        if (effect->targets_resolved_123 != 0) {
             continue;
         }
 
-        if (effect->flag_122 != 0) {
+        if (effect->missiles_pending_122 != 0) {
             W8Missile* missile = 0;
 
             for (int missile_index = 0; missile_index < effect->missiles.GetCount();
                  ++missile_index) {
                 missile = *effect->missiles.GetAt(missile_index);
-                missile->flag_1e2 = 1;
+                missile->block_released_1e2 = 1;
                 effect->missiles.RemoveAt(missile_index);
             }
             if (missile != 0) {
@@ -679,10 +680,10 @@ void UpdateSpellEffects00500930(void)
                     alive = false;
                 }
             }
-            effect->flag_122 = 0;
+            effect->missiles_pending_122 = 0;
             handled = true;
         } else {
-            effect->flag_123 = 1;
+            effect->targets_resolved_123 = 1;
             if (MonsterCanAimSpell005474B0(effect->kind) != 0 && effect->Source.fBackfire == 0 &&
                 effect->Source.fReflection == 0) {
                 ProvokeListedMonsterGroups(&effect->Source, &effect->monster_ids_0e0);
@@ -704,11 +705,11 @@ void UpdateSpellEffects00500930(void)
             }
         }
 
-        if (effect->flag_121 != 0) {
+        if (effect->sustained_121 != 0) {
             if (effect->turns_remaining != 0) {
                 continue;
             }
-        } else if (!alive || effect->flag_123 == 0) {
+        } else if (!alive || effect->targets_resolved_123 == 0) {
             continue;
         }
 
@@ -729,14 +730,14 @@ void UpdateSpellEffects00500930(void)
              ++release_visual) {
             W8SpellVisual* visual = *effect->spell_visuals.GetAt(release_visual);
             visual->auto_release = 1;
-            if (effect->flag_121 != 0) {
+            if (effect->sustained_121 != 0) {
                 visual->finished = 1;
             }
         }
         for (int release_missile = 0; release_missile < effect->missiles.GetCount();
              ++release_missile) {
             W8Missile* missile = *effect->missiles.GetAt(release_missile);
-            missile->flag_1e2 = 1;
+            missile->block_released_1e2 = 1;
         }
         g_spell_effects.RemoveAt(index);
         if (effect != 0) {
@@ -3292,11 +3293,11 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
             if (missile != 0) {
                 owner->missiles.Add(missile);
             }
-            owner->flag_122 = '\x01';
+            owner->missiles_pending_122 = '\x01';
         } else {
             memcpy(block.condition_chances,
                    g_missile_table_65bde0[missile_index].condition_chances_155, 0x10);
-            block.value_1c = g_missile_table_65bde0[missile_index].value_150;
+            block.magnitude_base_1c = g_missile_table_65bde0[missile_index].magnitude_base_150;
             for (index = 0; index < local_d8.GetCount(); ++index) {
                 ResetCombatSlot(&point_target);
                 point_target.iType = W8_TARGET_KIND_MONSTER;
@@ -3328,9 +3329,9 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
     owner->definition = block;
     owner->monster_ids_0e0 = local_d8;
     owner->target_indices_0f0 = local_c8;
-    owner->flag_120 = static_cast<unsigned char>(c);
+    owner->recast_120 = static_cast<unsigned char>(c);
     if (spell_id == 0x26) {
-        owner->flag_121 = '\x01';
+        owner->sustained_121 = '\x01';
         owner->turns_remaining = RollEffectDuration(&owner->definition);
         for (index = 0; index < g_spell_effects.GetCount(); ++index) {
             W8SpellEffectEntry* previous = *g_spell_effects.GetAt(index);
@@ -3510,7 +3511,7 @@ void RedirectBackfiredSpellTarget004FE740(W8TargetSource* source, W8CombatSlot* 
     case W8_TARGET_KIND_GROUP:
         list_index = GetMonsterGroupIndexByID(0xc33, MAGIC_CPP, target_copy.iGroupID, '\x01');
         group = GetMonsterGroupByListIndex(list_index);
-        list_index = MonsterGetIndexByLocationID(0xc33, MAGIC_CPP, group->value_9f, '\x01');
+        list_index = MonsterGetIndexByLocationID(0xc33, MAGIC_CPP, group->leader_id_9f, '\x01');
         monster_info = MonsterGetScriptPartByLocationIndex(list_index);
         SetTargetSourceToMonster(monster_info, source);
         ResetCombatSlot(target);

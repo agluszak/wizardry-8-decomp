@@ -124,8 +124,13 @@ struct W8CombatCharacterRow {
        and of the paired weapon (the primary's own when nothing is paired). */
     int weapon_item_id_78;
     int paired_item_id_7c;
-    unsigned char flag_80; /* 0x80 */
-    unsigned char flag_81; /* 0x81: toggled when an attack action is chosen */
+    /* 0x80: berserk latch - interrupt case 8 sets it; while set the slot
+       retargets onto friends and skips the enemy-hostility bookkeeping.
+       Same interrupt sets berserk_015 on monsters. */
+    bool berserk_80;
+    /* 0x81: toggled when the slot swaps to its alternate hand in PC Item;
+       while set the pending hand-attack values are rebuilt. */
+    bool alternate_hand_81;
     unsigned char unknown_82[2];
     /* 0x84/0x88: the slot's combat-portrait catalog image and the alternate the
        combat portrait strip draws while the slot is the hovered combat slot
@@ -185,16 +190,25 @@ static_assert(offsetof(W8CombatCharacterRow, saved_attack_value) == 0x38,
    the use establishes a meaning. */
 struct W8CombatState {
     unsigned char flag_000; /* 0x000: blocks ending combat while set */
-    unsigned char flag_001;
+    /* 0x001: set when combat begins and when continuous combat resumes;
+       cleared at the round boundary while continuous_combat is off. Gates
+       party movement and the combat-sensitive UI panels. */
+    bool round_active_001;
     unsigned char unknown_002[2];
-    unsigned int value_004;     /* 0x004: blocks ending combat while non-zero */
+    /* 0x004: current round number - incremented at each round boundary,
+       shown in the round notices and gating the round-one specials. */
+    unsigned int round_count_004;
     unsigned int round_counter; /* 0x008: bounded combat phase, 1..100 */
     /* 0x00c: the combat outcome the end-of-combat pass reports - zero while no
        result is recorded, otherwise the kill count formatted next to
        "kill"/"kills". */
     int combat_result_00c;
-    int value_010;
-    int value_014;
+    /* 0x010: experience from kills, divided among the active party members
+       at combat end. */
+    int experience_pool_010;
+    /* 0x014: flat bonus experience accumulated by hostility events, added to
+       the pool at award time. */
+    int experience_bonus_014;
     W8CombatCharacterRow characters[8]; /* 0x018, 0xd4 stride */
     /* 0x6b8: the attack announcement the monster-attack message builder
        swprintf's into and ShowNotice displays; 0x78 wide chars. */

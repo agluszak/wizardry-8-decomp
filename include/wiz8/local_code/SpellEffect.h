@@ -46,8 +46,11 @@ struct W8SpellEffectDefinition {
     /* 0x08: the percentage chance of each condition the effect can inflict,
        rolled by ApplyEffectConditions. */
     unsigned char condition_chances[0x10];
-    int power_level;        /* 0x18 */
-    int value_1c;           /* 0x1c */
+    int power_level; /* 0x18 */
+    /* 0x1c: flat base added to the effect dice (SetDice's `base`); sourced
+       from the attack's missile_value_1b, the item's missile_value_060, or
+       the missile table's magnitude_base_150. */
+    int magnitude_base_1c;
     int duration_scale;     /* 0x20 */
     unsigned int percent;   /* 0x24 */
     int duration_base;      /* 0x28 */
@@ -73,7 +76,9 @@ struct W8SpellEffectResult {
        [3] and [4] are the running damage totals the character and monster
        damage paths add to. */
     unsigned int notice_values[6];
-    unsigned char flag_80; /* 0x80 */
+    /* 0x80: the report came from a non-verbose resolution pass and still
+       needs to be folded into the shared attack report. */
+    bool deferred_80;
     /* 0x81: raised when the swing missed entirely, which is what lets the
        notice pass distinguish "missed" from "no effect". */
     unsigned char missed;
@@ -97,10 +102,10 @@ struct W8SpellEffectEntry {
         memset(&Source, 0, sizeof(Source));
         memset(&target, 0, sizeof(target));
         memset(&definition, 0, sizeof(definition));
-        flag_120 = 0;
-        flag_121 = 0;
-        flag_122 = 0;
-        flag_123 = 0;
+        recast_120 = 0;
+        sustained_121 = 0;
+        missiles_pending_122 = 0;
+        targets_resolved_123 = 0;
         reported_124 = 0;
         applied_125 = 0;
         /* The retail rep-stosd zeroes the whole result block, including the
@@ -133,10 +138,18 @@ struct W8SpellEffectEntry {
        W8GrowableVector construction/final tables, not derived-vector proof. */
     W8GrowableVector<W8SpellVisual*> spell_visuals; /* 0x100 */
     W8GrowableVector<W8Missile*> missiles;          /* 0x110 */
-    unsigned char flag_120;                         /* 0x120 */
-    unsigned char flag_121;                         /* 0x121 */
-    unsigned char flag_122;                         /* 0x122 */
-    unsigned char flag_123;                         /* 0x123 */
+    /* 0x120: when the effect ends without having applied, the tick re-casts
+       the spell from the stored source. CastSpellFromSource's `c` argument. */
+    bool recast_120;
+    /* 0x121: sustained effect - ticks once per turn while turns_remaining
+       counts down (set for the monster-control spell 0x26). */
+    bool sustained_121;
+    /* 0x122: missiles carrying the effect are still in flight; the tick
+       releases them and spawns the impact visual before resolving. */
+    bool missiles_pending_122;
+    /* 0x123: the non-missile path has already run ProcessSpellEffectTargets;
+       skips re-resolution and gates the post-resolution bookkeeping. */
+    bool targets_resolved_123;
     /* 0x124: set once this effect's result has been reported. */
     unsigned char reported_124;
     /* 0x125: set by a handler that actually landed its effect; the result

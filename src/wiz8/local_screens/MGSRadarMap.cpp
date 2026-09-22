@@ -453,7 +453,7 @@ void UpdateRadarBlips(void)
 
     W8Missile* missile = NextMissile004A2760(1);
     while (missile != 0) {
-        if (missile->flag_1e1 == 0) {
+        if (missile->impacting_1e1 == 0) {
             missile->GetAnimationBounds(&bounds_min, &bounds_max);
             center.x = (bounds_min.x + bounds_max.x) * g_double_005ebe80;
             center.y = (bounds_min.y + bounds_max.y) * g_double_005ebe80;

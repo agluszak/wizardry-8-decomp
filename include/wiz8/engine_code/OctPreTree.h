@@ -11,7 +11,7 @@ struct W8OctBuildNode00446330;
    region id at +4 is consumed by the particle-region builder, and the six
    plane equations at +0x88 are consumed by 0x0049E460. */
 struct W8OctRegionVolume {
-    unsigned long positional_00;
+    unsigned long flags_00;
     unsigned short region_04;
     unsigned char positional_06[6];
     /* The bit the visibility pass tests and sets for this volume. */
@@ -19,7 +19,9 @@ struct W8OctRegionVolume {
     /* Two record dwords LoadRegionFile copies from the .cub record at +0x10
        and +0x18, and the dword it zeroes at +0x14. */
     unsigned long value_10;
-    unsigned long value_14;
+    /* Region polygon count: the assignment pass increments it per contained
+       polygon, and compaction remaps away regions where it stays zero. */
+    unsigned long polygon_count_14;
     unsigned long value_18;
     /* Nine 12-byte points from +0x1c to +0x88; 0x004301C0 projects the first
        against the camera and falls back to the other eight. */
@@ -58,7 +60,7 @@ struct W8OctSpatialState {
     unsigned short depth_44;
     unsigned short region_count_46;
     unsigned short item_limit_48;
-    unsigned char positional_4a[6];
+    unsigned char padding_4a[6];
     /* Packed auto-region cell coordinate bound per axis; never loaded from
        the file, so it stays 0 on loaded trees and every cell bound check
        fails there. */
@@ -71,7 +73,7 @@ struct W8OctSpatialState {
     /* Auto-region id allocator bound: each new region takes this value and
        bumps it; region_count_46 mirrors it during the build. */
     unsigned short region_id_bound_58;
-    unsigned short positional_5a;
+    unsigned short padding_5a;
     W8OctRegionVolume* owned_5c;
     /* Maximum vertex distance from its region's center across the
        auto-regions. */
@@ -81,7 +83,7 @@ struct W8OctSpatialState {
     unsigned long leaf_grid_stride_x_64;
     unsigned long leaf_grid_stride_y_68;
     unsigned short level_kind_6c;
-    unsigned short positional_6e;
+    unsigned short padding_6e;
     float node_extent_70;
     /* Emitted submesh record bound: the build packs kind-0 then kind-1
        records beneath it. */
@@ -91,7 +93,7 @@ struct W8OctSpatialState {
     /* The build octree root: W8OctBuildNode00446330 or the counted subclass
        when the owning build tree counts surfaces per node. */
     W8OctBuildNode00446330* root_90;
-    unsigned long positional_94;
+    unsigned long node_index_94;
     /* The working triangle's three vertices, borrowed from the inserter's
        stack for the recursion's bounds tests. */
     const srVector3T<float>* owned_98;
@@ -124,14 +126,15 @@ struct W8OctPreTreeVertex {
     unsigned long vertex_index_04;
     /* Owning auto-region id written by the region assignment pass. */
     unsigned short region_08;
-    /* Weld/split touch marker the driver and SplitVertices clear per pass. */
-    unsigned char flag_0a;
-    unsigned char positional_0b;
+    /* Per-vertex traversal latch the shared-polygon split raises so each
+       vertex's face run is walked once per pass. */
+    bool visited_0a;
+    unsigned char padding_0b;
     srVector3T<float> position_0c;
     /* Number of polygons referencing this vertex; SortGeometry counts and
        the region pass tracks the run bound. */
     short normal_count_18;
-    unsigned char positional_1a[2];
+    unsigned char padding_1a[2];
     int material_1c;
     /* The polygon automesh kind SplitVertices copies onto material-split
        duplicates. */
@@ -140,7 +143,7 @@ struct W8OctPreTreeVertex {
     srVector3T<float> light_30;
     float* sun_lights_3c;
     unsigned short face_count_40;
-    unsigned char positional_42[2];
+    unsigned char padding_42[2];
     /* Growable run of polygon ordinals sharing this vertex, built by the
        region pass; consecutive vertices may share one allocation. */
     int* face_indices_44;

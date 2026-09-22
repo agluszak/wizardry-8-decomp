@@ -140,7 +140,7 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
     monster_info->effect_2de = 0;
     memset(&monster_info->modifiers_1db, 0, sizeof(monster_info->modifiers_1db));
     monster_info->fMotionless = 0;
-    monster_info->flag_255 = 0;
+    monster_info->ai_mode_255 = 0;
     monster_info->summoned_2da = 0;
     monster_info->insanity_summon_344 = -1;
     memset(monster_info->movement_watch_position, 0, sizeof(monster_info->movement_watch_position));
@@ -205,7 +205,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
             }
             MonsterSetCycleSubCycle(monster_info->monster, 0);
             MonsterSetAnimating(monster_info->monster, 0);
-            monster_info->monster->state_088 = 0;
+            monster_info->monster->active_088 = 0;
             monster_info->monster->flag_215 = 1;
         } else {
             MonsterSetCycle(monster_info->monster, 1);
@@ -222,7 +222,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
         AddMonsterToWorld0046E580(GetWorld(), monster_info->monster);
         MonsterSetFacing004C5B60(monster_info->monster, monster_info->derived_23);
         RebuildMonsterDerivedStats(monster_info->location_id);
-        monster_info->monster->movement_0c0.value_008 =
+        monster_info->monster->movement_0c0.leadership_rank_008 =
             static_cast<unsigned int>(record->effective_level_24f) * 0x10000U +
             monster_info->location_id;
         MonsterPropagateValue004C5870(monster_info->monster, monster_info->location_id);
@@ -266,7 +266,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
     RequestRefreshPartyState();
     RefreshFlaggedMainGameState00593330();
     if (record->can_open_doors_0c0 != 0) {
-        monster_info->monster->movement_0c0.unknown_000 |= 0x10000000;
+        monster_info->monster->movement_0c0.flags_000 |= 0x10000000;
     }
     BindNpcToMonster(record->npc_kind_0cd, 1, monster_info->location_id);
 }
@@ -403,7 +403,7 @@ void RecordMonsterKill(W8MonsterInfo* monster_info, char announce)
     } else {
         notice_channel = 9;
     }
-    if (announce != '\0' && monster_info->flag_253 == '\0' &&
+    if (announce != '\0' && monster_info->death_processed_253 == '\0' &&
         monster_info->party_threat.sight_state_04 != W8_SIGHT_UNSEEN) {
         ShowNoticef(notice_channel, L"%s %s!", GetMonsterName(monster_info, 0, '\0'),
                     gppStringList[g_condition_notices_0061E570[0x49]]);
@@ -412,7 +412,7 @@ void RecordMonsterKill(W8MonsterInfo* monster_info, char announce)
     if (monster_info->summoned_2da == 1) {
         return;
     }
-    if (monster_info->flag_253 != '\0') {
+    if (monster_info->death_processed_253 != '\0') {
         return;
     }
     if (killer_party_slot == -1) {
@@ -471,7 +471,7 @@ done:
                 FormatDebugMessage(0, "DATA ERROR: %s is worth 0 XPs", record);
             }
         }
-        g_combat_state->value_010 += experience;
+        g_combat_state->experience_pool_010 += experience;
         if (g_status_685170.tail_3121.facts.status_ints_3121[monster_species] == 0) {
             g_status_685170.tail_3121.facts.status_ints_3121[monster_species] = 1;
         }
@@ -745,7 +745,7 @@ void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup)
             }
             ReleaseMonsterConditionBindings(monster_info);
             if (forced_cleanup == 0) {
-                monster_info->flag_253 = 1;
+                monster_info->death_processed_253 = 1;
                 if (monster_info->monster->IsDying() == 0) {
                     StartMonsterCycle(monster_info, 0x15, 1);
                     DeactivateMonster(monster_info);
@@ -836,8 +836,8 @@ void ResetLivingMonstersAfterCombat(void)
 
         if (monster_info->hp_current > 0) {
             monster_info->monster->ResetMovementAndGroupState00452C90();
-            if (monster_info->flag_255 > 0 && monster_info->flag_255 <= 3) {
-                monster_info->flag_255 = 0;
+            if (monster_info->ai_mode_255 > 0 && monster_info->ai_mode_255 <= 3) {
+                monster_info->ai_mode_255 = 0;
             }
         }
     }
@@ -895,7 +895,7 @@ void SetMonsterControlState(W8MonsterInfo* monster_info, int control_state)
     case 2:
         if (monster_info->control_state == 1 && monster_info->monster->linked_navigator_05c == 0) {
             monster_info->monster->ClearMovement();
-            monster_info->flag_255 = 0;
+            monster_info->ai_mode_255 = 0;
         }
         break;
     }
@@ -951,7 +951,7 @@ void MoveMonsterToLiveList(W8MonsterInfo* monster_info)
     }
     MonsterSetCycleSubCycle(monster_info->monster, 0);
     MonsterSetAnimating(monster_info->monster, 1);
-    monster_info->monster->state_088 = 1;
+    monster_info->monster->active_088 = 1;
     monster_info->monster->flag_215 = 0;
 }
 
@@ -1246,7 +1246,7 @@ unsigned char RemoveMonster(unsigned int monster_list_index, unsigned char destr
             DestroyMonsterGroup(monster_group, monster_info);
         } else {
             RecountActiveMonsterGroupMembers(monster_group);
-            if (monster_group->value_9f == monster_info->location_id) {
+            if (monster_group->leader_id_9f == monster_info->location_id) {
                 ElectGroupLeaderMember(monster_group);
                 if (monster_group->leader_group_id == 0) {
                     RefreshMonsterGroupAndAllies(monster_group);
@@ -1301,7 +1301,7 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
         monster_info->highest_condition = 0x12;
         monster_info->hp_current = 0;
         monster_info->stamina = 0;
-        monster_info->monster->state_088 = 0;
+        monster_info->monster->active_088 = 0;
         monster_info->monster->flags_00c = 0x200000;
         ClearMonsterSpellIcons(monster_info->monster);
         ReleaseMonToMonVisibilityList(monster_info);
@@ -1438,7 +1438,7 @@ void TogglePartyCombatStance(void)
     if (g_settings_6850c8.continuous_combat != 0) {
         g_settings_6850c8.continuous_combat = 0;
         if (gXStatus.fCombatMode != 0) {
-            g_combat_state->flag_001 = (g_combat_state->flag_000 == 0);
+            g_combat_state->round_active_001 = (g_combat_state->flag_000 == 0);
             g_combat_state->flag_a62 = 1;
         }
         if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
@@ -1448,7 +1448,7 @@ void TogglePartyCombatStance(void)
     } else {
         g_settings_6850c8.continuous_combat = 1;
         if (gXStatus.fCombatMode != 0 && g_combat_state->flag_a62 != 0) {
-            g_combat_state->flag_001 = 1;
+            g_combat_state->round_active_001 = 1;
             g_combat_state->flag_a62 = 0;
         }
         if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
@@ -1480,14 +1480,14 @@ void ToggleCombatMode(void)
         return;
     }
     if (gXStatus.hostile_monster_count != 0 || g_combat_state->flag_a54 != 0) {
-        if (g_combat_state->value_004 != 0) {
+        if (g_combat_state->round_count_004 != 0) {
             ShowNotice(0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END], -1, -1, 0);
             return;
         }
         for (group_list_index = 0; group_list_index < PLLength(gXStatus.plsMonsterGroupList);
              ++group_list_index) {
             monster_group = GetMonsterGroupByListIndex(group_list_index);
-            if (monster_group->flag_28 != 0 && monster_group->fInCombat != 0 &&
+            if (monster_group->members_active_28 != 0 && monster_group->fInCombat != 0 &&
                 MonsterGroupCanEngage(monster_group) != 0) {
                 ShowNotice(0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END], -1, -1, 0);
                 return;
@@ -1496,7 +1496,7 @@ void ToggleCombatMode(void)
     }
     for (missile = NextMissile004A2760(1); missile != 0; missile = NextMissile004A2760(0)) {
         if ((missile == g_combat_state->engaged_missile ||
-             g_missile_table_65bde0[missile->missile_table_index_1d8].flag_154 != 0) &&
+             g_missile_table_65bde0[missile->missile_table_index_1d8].spell_missile_154 != 0) &&
             missile->BlocksEndingCombat004A5790() != 0) {
             ShowNotice(0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END_ENGAGED], -1, -1, 0);
             return;
@@ -1703,7 +1703,7 @@ wchar_t* GetMonsterName(W8MonsterInfo* monster_info, W8MonsterRecord* record,
         if (monster_group == 0) {
             srAssertFail("pMonsterGroup", MONSTER_MANAGER_CPP, 0x54d, 0);
         }
-        if (monster_group->flag_2c != 0) {
+        if (monster_group->alternate_name_2c != 0) {
             return record->name_00 + name_form * 24;
         }
     }
@@ -1834,12 +1834,13 @@ void DetectMonsterGroups004E4AB0(void)
     for (unsigned int group_index = 0; group_index < PLLength(gXStatus.plsMonsterGroupList);
          ++group_index) {
         W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
-        if (group->flag_28 == 0 || (group->flag_2c != 0 && group->unknown_2d[0] != 0) ||
+        if (group->members_active_28 == 0 ||
+            (group->alternate_name_2c != 0 && group->unknown_2d[0] != 0) ||
             (gXStatus.fCombatMode != 0 && group->fInCombat == 0) ||
             MonsterGroupHasRenderableMember(group, 0) == 0) {
             continue;
         }
-        if (group->flag_2c == 0) {
+        if (group->alternate_name_2c == 0) {
             W8MonsterRecord* record = MonsterGroupGetRecord(group);
             int best_slot = -1;
             unsigned int best_margin = 0;
@@ -1870,7 +1871,7 @@ void DetectMonsterGroups004E4AB0(void)
             }
             if (best_slot != -1) {
                 PostCharacterNotice(best_slot, gppStringList[0x1ca], GetMonsterGroupName(group));
-                group->flag_2c = 1;
+                group->alternate_name_2c = 1;
                 bool vowel;
                 switch (towupper(*GetMonsterGroupName(group))) {
                 case L'A':
@@ -1956,7 +1957,7 @@ void EvaluateCombatDifficulty004E6CE0(void)
                     for (unsigned int group_index = 0;
                          group_index < PLLength(gXStatus.plsMonsterGroupList); ++group_index) {
                         W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
-                        if (group->flag_28 && group->fInCombat &&
+                        if (group->members_active_28 && group->fInCombat &&
                             group->ubDisposition == DISP_HOSTILE &&
                             MonsterGroupGetRecord(group)->faction_id_25f == faction) {
                             count_character = false;

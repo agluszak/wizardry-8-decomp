@@ -137,7 +137,7 @@ public:
     int m_first_visible_line_0f0; /* 0x0f0 */
     int m_selected_line_0f4;      /* 0x0f4 */
     short m_inlay_image_0f8;      /* 0x0f8: DialogEdge inlay for the text buttons */
-    short unknown_0fa;
+    short flags_0fa;
 }; /* 0xfc */
 
 // VTABLE: WIZ8 0x005ef9f0

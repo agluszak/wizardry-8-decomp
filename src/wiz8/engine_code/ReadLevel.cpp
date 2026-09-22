@@ -133,7 +133,7 @@ void AssociateWorldLights004BC060(W8World* world)
                 if (prop->m_name != 0 && _stricmp(prop->m_name, light->getName()) == 0) {
                     srModelInstance* instance = prop->ToggleRepAnimationDefault();
                     light->m_prop_254 = prop;
-                    GetModelAnimatedTexture004B9B50(instance)->flag_60 = 3;
+                    GetModelAnimatedTexture004B9B50(instance)->animation_mode_60 = 3;
                 }
             }
         }
@@ -185,9 +185,9 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
                 FileRead(hFile, &definition->intensity_to_2c, 4, 0);
                 FileRead(hFile, &definition->period_30, 4, 0);
                 FileRead(hFile, &definition->rate_34, 4, 0);
-                FileRead(hFile, &definition->path_value_38, 4, 0);
-                FileRead(hFile, &definition->value_3c, 4, 0);
-                FileRead(hFile, &definition->value_40, 4, 0);
+                FileRead(hFile, &definition->path_speed_38, 4, 0);
+                FileRead(hFile, &definition->subcycle_min_3c, 4, 0);
+                FileRead(hFile, &definition->subcycle_max_40, 4, 0);
 
                 if ((definition->flags_08 & 0x10) != 0) {
                     path_success = LoadPathAI004A92A0(&path, hFile);
@@ -196,7 +196,7 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
                     }
                     path->discrete_mode_1c = 1;
                     path->animated_3a = 0;
-                    path->speed = definition->path_value_38;
+                    path->speed = definition->path_speed_38;
                 }
             }
         }
@@ -336,10 +336,10 @@ unsigned char ReadWorldEnvironment004BC9D0(W8ReadLevelInfo* pInfo, W8World* pWor
     distance_scale = view_distance < g_octree_cell_scale_005ebcd0
                          ? g_environment_near_scale_005ec0b0
                          : g_float_005ec3b8;
-    WorldSetValue74(pWorld, distance_scale * pWorld->view_distance_020);
+    WorldSetRenderRange(pWorld, distance_scale * pWorld->view_distance_020);
     pWorld->environment_range_start_014 = environment_colour.red;
     pWorld->environment_range_end_018 = environment_colour.green;
-    pWorld->m_positional_01c = environment_colour.blue;
+    pWorld->environment_range_blue_01c = environment_colour.blue;
 
     if (fog_enabled == 0) {
         SetFogEnabled(0);
@@ -632,7 +632,7 @@ unsigned char ReadMonsterPaths004BC140(W8ReadLevelInfo* pInfo, W8World* pWorld)
                 PathAISetLooping004AA9D0(path, 1);
             }
             if (!active) {
-                group->flag_28 = 0;
+                group->members_active_28 = 0;
                 monster->m_pRep->animation_playing_06d = 0;
             }
             if (!update_representation) {
@@ -905,10 +905,10 @@ unsigned char ReadNamedPositions004BDC90(W8ReadLevelInfo* pInfo,
         FileRead(hFile, &pNamedPos->position.y, sizeof(pNamedPos->position.y), 0);
         FileRead(hFile, &pNamedPos->position.z, sizeof(pNamedPos->position.z), 0);
         pNamedPos->position *= 500.0;
-        FileRead(hFile, &pNamedPos->value_08c, sizeof(pNamedPos->value_08c), 0);
-        FileRead(hFile, &pNamedPos->value_090, sizeof(pNamedPos->value_090), 0);
-        FileRead(hFile, &pNamedPos->value_094, sizeof(pNamedPos->value_094), 0);
-        FileRead(hFile, &pNamedPos->value_098, sizeof(pNamedPos->value_098), 0);
+        FileRead(hFile, &pNamedPos->angle_bits_08c, sizeof(pNamedPos->angle_bits_08c), 0);
+        FileRead(hFile, &pNamedPos->direction_090.x, sizeof(pNamedPos->direction_090.x), 0);
+        FileRead(hFile, &pNamedPos->direction_090.y, sizeof(pNamedPos->direction_090.y), 0);
+        FileRead(hFile, &pNamedPos->direction_090.z, sizeof(pNamedPos->direction_090.z), 0);
         named_positions->Add(pNamedPos);
     }
     return 1;
@@ -1014,7 +1014,7 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
     FileRead(info.hFile, &section_count, sizeof(section_count), 0);
     if (section_count == 0) {
         WorldSetFarClip(world, 42500.0f);
-        WorldSetValue74(world, 37500.0f);
+        WorldSetRenderRange(world, 37500.0f);
         if (!IsSkyEnabled()) {
             DisableSky();
         } else {

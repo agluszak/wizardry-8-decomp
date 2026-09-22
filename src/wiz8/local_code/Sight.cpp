@@ -564,8 +564,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
 
                         entry->line_of_sight_28 = line_of_sight;
                         if (line_of_sight != 0) {
-                            bool can_see =
-                                CanMonsterSeeMonster(monster_info, other, entry);
+                            bool can_see = CanMonsterSeeMonster(monster_info, other, entry);
 
                             entry->can_see_0b = can_see;
                             if (can_see != 0) {
@@ -974,9 +973,9 @@ bool MonsterGroupCanSeeGroup(W8MonsterGroup* source, W8MonsterGroup* target)
     int index;
 
     source_info = MonsterGetScriptPartByLocationIndex(
-        MonsterGetIndexByLocationID(0x47c, SIGHT_CPP, source->value_9f, 1));
+        MonsterGetIndexByLocationID(0x47c, SIGHT_CPP, source->leader_id_9f, 1));
     target_info = MonsterGetScriptPartByLocationIndex(
-        MonsterGetIndexByLocationID(0x47d, SIGHT_CPP, target->value_9f, 1));
+        MonsterGetIndexByLocationID(0x47d, SIGHT_CPP, target->leader_id_9f, 1));
     source_monster = source_info->monster;
     target_monster = target_info->monster;
     if (target_info->fInCombat == 0) {

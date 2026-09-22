@@ -126,7 +126,7 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
     W8Character* found_character;
     bool can_rest;
 
-    if (character->uiCondition[condition] != 0 || g_status_685170.value_2390 == 0) {
+    if (character->uiCondition[condition] != 0 || g_status_685170.world_suspended_2390 == 0) {
         if (row->fOccupied == 0) {
             srAssertFail("fCHAR_OCCUPIED(uiChar)",
                          "C:\\Projects\\Wizardry 8\\Local Code\\Conditions & Enchantments.cpp",
@@ -179,7 +179,8 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
             gXStatus.flag_a03 = 1;
             break;
         case 0xb:
-            if (gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].flag_80 != 0) {
+            if (gXStatus.fCombatMode != 0 &&
+                g_combat_state->characters[party_slot].berserk_80 != 0) {
                 row->target_out_of_combat = row->target_in_combat;
             }
             break;
@@ -710,7 +711,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
         }
         break;
     }
-    if (g_status_685170.value_2390 != 0) {
+    if (g_status_685170.world_suspended_2390 != 0) {
         PostCharacterNotice(party_slot, gppStringList[0x908 / 4],
                             gppStringList[g_condition_notices_0061E570[condition * 4]]);
         return 0;

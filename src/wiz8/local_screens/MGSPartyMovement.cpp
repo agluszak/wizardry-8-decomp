@@ -172,7 +172,7 @@ void DrawPartyMovementPanel(void)
         if (g_free_turn_button->m_active != 0) {
             g_free_turn_button->SetActive(0);
         }
-        if (g_combat_state->flag_001 == 0) {
+        if (g_combat_state->round_active_001 == 0) {
             g_cancel_party_movement_button->SetEnabled(0);
         } else {
             g_cancel_party_movement_button->SetEnabled(1);

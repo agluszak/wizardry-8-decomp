@@ -540,7 +540,7 @@ int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool ne
         }
         W8MonsterGroup* group = CreateGroup(species, 1, &position, 1, 0, 1);
         W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(
-            MonsterGetIndexByLocationID(0x6c7, NPC_MANAGER_CPP, group->value_9f, 1));
+            MonsterGetIndexByLocationID(0x6c7, NPC_MANAGER_CPP, group->leader_id_9f, 1));
         if (monster != 0) {
             CopyCharacterConditionsToTarget(npc->character, &monster->location_id);
             if (monster->condition_turns[17] == 9999) {
@@ -552,7 +552,7 @@ int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool ne
             }
             if (neutral) {
                 SetMonsterGroupHostility(group, 0, 0);
-                group->flag_ca = 1;
+                group->forced_neutral_ca = 1;
             }
         }
     }
@@ -2319,7 +2319,7 @@ void UpdateNpcEvents0050D530(void)
         static_cast<unsigned int>(GetTickCount() - g_status_685170.savant_hack_tick) > 0x32) {
         group = FindFirstMonsterByID(0x1b3);
         if (group != 0) {
-            index = MonsterGetIndexByLocationID(0xc17, NPC_MANAGER_CPP, group->value_9f, 1);
+            index = MonsterGetIndexByLocationID(0xc17, NPC_MANAGER_CPP, group->leader_id_9f, 1);
             monster_info = MonsterGetScriptPartByLocationIndex(index);
             MonsterStartsDying(monster_info, 1);
         }
@@ -2330,7 +2330,7 @@ void UpdateNpcEvents0050D530(void)
         static_cast<unsigned int>(GetTickCount() - g_status_685170.bela_cycle_tick) > 0x1388) {
         group = FindFirstMonsterByID(0x1b6);
         if (group != 0) {
-            index = MonsterGetIndexByLocationID(0xc2f, NPC_MANAGER_CPP, group->value_9f, 1);
+            index = MonsterGetIndexByLocationID(0xc2f, NPC_MANAGER_CPP, group->leader_id_9f, 1);
             monster_info = MonsterGetScriptPartByLocationIndex(index);
             StartMonsterCycle(monster_info, 0x10, 1);
             monster_info->monster->SetCycleCallback004CA340(0x10, TriggerBelaVoice0050D480);

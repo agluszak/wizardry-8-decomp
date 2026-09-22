@@ -205,7 +205,7 @@ void UpdateSubMenuButton(int index)
         g_submenu_buttons_69b8b0[index]->SetEnabled(0);
         return;
     }
-    if (gXStatus.fCombatMode != 0 && g_combat_state->flag_001 == 0) {
+    if (gXStatus.fCombatMode != 0 && g_combat_state->round_active_001 == 0) {
         g_submenu_buttons_69b8b0[index]->SetEnabled(0);
         return;
     }

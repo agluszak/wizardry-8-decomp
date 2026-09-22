@@ -634,9 +634,10 @@ static void RunOctFileRoundTrip(OctFileSemanticResult* result)
             loaded->m_owned_12c[0] == 0xdeadbeef && loaded->m_owned_148[0] == 0x5a5a &&
             loaded->m_pSubmeshes[1].polygon_count_0c == 5 &&
             memcmp(loaded->m_owned_0b0, tree->m_owned_0b0, 8 * 4) == 0;
-        result->gamedata_roundtrip =
-            loaded_data->m_iNumEnvirons == 1 && loaded_data->m_ppEnvirons != 0 &&
-            loaded_data->m_ppEnvirons[0] != 0 && loaded_data->m_ppEnvirons[0]->value_1c == 0.05f;
+        result->gamedata_roundtrip = loaded_data->m_iNumEnvirons == 1 &&
+                                     loaded_data->m_ppEnvirons != 0 &&
+                                     loaded_data->m_ppEnvirons[0] != 0 &&
+                                     loaded_data->m_ppEnvirons[0]->motion_step_1c == 0.05f;
     }
 
 restore:

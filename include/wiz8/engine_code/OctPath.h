@@ -100,7 +100,7 @@ public:
 
 private:
     W8NavigatorMovementState* movement_00;
-    unsigned char unknown_04[4];
+    unsigned char padding_04[4];
     float speed_limit_08;
     float acceleration_0c;
     float velocity_length_10;
@@ -111,7 +111,7 @@ private:
     float radius_44;
     unsigned char nearby_queried_48;
     unsigned char blocked_49;
-    unsigned char unknown_4a[2];
+    unsigned char padding_4a[2];
     unsigned int nearby_count_4c;
     unsigned long* nearby_locations_50;
     W8Monster* monster_54;
@@ -127,15 +127,18 @@ struct W8PathSurface {
     unsigned short index_02;
     srVector3T<float> position_04;
     unsigned short parent_10;
-    unsigned char positional_12[0x02];
-    unsigned int positional_14;
+    unsigned char padding_12[0x02];
+    /* Monotonic visit stamp: patrol selection picks the smallest value, and
+       the mover writes the game-time tick (or accumulated distance) as each
+       waypoint is consumed. */
+    unsigned int visit_stamp_14;
     /* A* heuristic: distance to the goal scaled by g_float_005ec394, cached by
        FindPath while the surface is open. */
     float heuristic_18;
     float cost_1c;
     float remaining_cost_20;
     unsigned short first_edge_24;
-    unsigned short positional_26;
+    unsigned short padding_26;
 };
 
 /* The compact surface record written to a .WPT file. It retains only the
@@ -195,17 +198,17 @@ static_assert(sizeof(GDPropCondPaths) == 0x44, "GDPropCondPaths_must_be_0x44");
    its Bresenham step; the remaining slots are zeroed by the builder. */
 struct W8PathGridWalk {
     int cell_00[2];    /* 0x00: starting X/Z path cells */
-    int value_08;      /* 0x08: zero */
+    int padding_08;    /* 0x08: zero */
     int step_0c[2];    /* 0x0c: +1 or -1 per axis */
-    int value_14;      /* 0x14: zero */
+    int padding_14;    /* 0x14: zero */
     int major_axis_18; /* 0x18: 0 for X, 1 for Z */
     int minor_axis_1c; /* 0x1c: (major + 1) % 2 */
-    int value_20;      /* 0x20: zero */
+    int padding_20;    /* 0x20: zero */
     int count_24;      /* 0x24: cells to visit */
     int error_28;      /* 0x28 */
     int error_2c;      /* 0x2c */
     int cell_size_30;  /* 0x30 */
-    int value_34[3];   /* 0x34: zero */
+    int padding_34[3]; /* 0x34: zero */
 };
 
 static_assert(sizeof(W8PathGridWalk) == 0x40, "W8PathGridWalk_must_be_0x40");
@@ -457,11 +460,12 @@ public:
     /* PrePathing's CreatePathNodeArray counts edge nodes here starting from
        one, and WriteOctFile serializes it beside the node count. */
     int edge_node_count_008;
-    /* ReadOctFile tests this beside flag_1c8 before settling a portal. */
+    /* ReadOctFile tests this beside waypoint_editing_1c8 before settling a portal. */
     unsigned int m_ulNumWayPoints;  /* 0x0c */
     unsigned int m_ulNumWayPtLinks; /* 0x10 */
-    int m_positional_014;
-    int m_positional_018;
+    int m_padding_014;
+    /* Incremented for each edge removed by the waypoint editor; never read. */
+    int m_removed_edge_count_018;
     /* The grid divisor both linking walks divide by. */
     float grid_scale_01c; /* 0x1c */
     float span_020;       /* 0x20 */
@@ -499,15 +503,15 @@ public:
     unsigned int probe_cell_key_078;                            /* 0x78 */
     srVector3T<float> probe_position_07c;                       /* 0x7c */
     unsigned int probe_limit_088;                               /* 0x88 */
-    unsigned char flag_08c;                                     /* 0x8c */
-    unsigned char m_positional_08d[3];
+    bool probe_bounded_08c;                                     /* 0x8c */
+    unsigned char m_padding_08d[3];
     unsigned int planner_location_090;
     unsigned int path_candidate_count_094;
     unsigned long* path_candidates_098;
-    unsigned char flag_09c; /* 0x9c */
-    unsigned char m_positional_09d[3];
+    bool explicit_target_09c; /* 0x9c */
+    unsigned char m_padding_09d[3];
     unsigned int waypoint_neighbor_mask_0a0; /* 0xa0 */
-    unsigned char flag_0a4;                  /* 0xa4 */
+    bool trace_configured_0a4;               /* 0xa4 */
     unsigned char m_padding_0a5[3];
     float trace_max_distance_0a8;
     srVector3T<float> trace_offset_0ac;
@@ -520,19 +524,19 @@ public:
     unsigned int search_node_capacity_0d0;
     unsigned int path_probe_count_0d4;
     W8PathProbeVolume path_probes_0d8[10];
-    unsigned char flag_1c8; /* 0x1c8 */
+    unsigned char waypoint_editing_1c8; /* 0x1c8 */
     unsigned char flag_1c9;
     unsigned char flag_1ca;
-    unsigned char flag_1cb;
-    unsigned char flag_1cc;
+    bool search_visualization_1cb;
+    bool waypoints_dirty_1cc;
     unsigned char m_padding_1cd;
-    unsigned short value_1ce; /* 0x1ce: starts 4 */
-    int m_positional_1d0;
-    unsigned short value_1d4;
-    unsigned short value_1d6;
-    unsigned short value_1d8;
-    unsigned char path_direction_valid_1da;
-    unsigned char m_positional_1db;
+    unsigned short path_flags_1ce; /* 0x1ce: starts 4 */
+    int link_flags_1d0;
+    unsigned short start_waypoint_1d4;
+    unsigned short destination_waypoint_1d6;
+    unsigned short saved_surface_1d8;
+    bool path_direction_valid_1da;
+    unsigned char m_padding_1db;
     /* Patrol-search state laid down by BuildPatrolPath and consulted by the
        recursive FindPatrolPath: the argmin-key candidate node, the accepted
        min/max start-to-destination range, the randomized target path cost,
@@ -544,7 +548,7 @@ public:
     float patrol_distance_1e8;
     srVector3T<float> patrol_start_1ec;
     srVector3T<float> patrol_destination_1f8;
-    unsigned char m_positional_204[0x0c];
+    unsigned char m_padding_204[0x0c];
     float patrol_cost_210;
     W8PathParameters* path_parameters_214; /* 0x214 */
     W8NavigatorAttachment* linked_attachment_218;
@@ -560,7 +564,7 @@ public:
     unsigned short* m_pusCondNodeFrames; /* 0x230 */
     unsigned int* m_pulCondNodeKeys;     /* 0x234 */
     unsigned int* m_pulCondNodeValues;   /* 0x238 */
-    unsigned char flag_23c;
+    bool span_blocked_23c;
     unsigned char m_padding_23d[3];
 };
 

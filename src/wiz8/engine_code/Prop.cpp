@@ -403,7 +403,7 @@ char ResolvePickedProp(W8World* world)
             g_selected_prop_trigger_00659a60 = trigger;
             if (trigger != 0 && (trigger->flags_0a0 & W8_TRIGGER_ENABLED) != 0 &&
                 ((trigger->flags_0a0 & 0x40000) == 0 || (trigger->flags_0a0 & 0x80000) == 0) &&
-                (g_flag_006081e4 ||
+                (g_combat_inactive_006081e4 ||
                  (trigger->m_pActionData != 0 && trigger->m_pActionData->type_004 == 10 &&
                   (static_cast<W8DoorTriggerActionData*>(trigger->m_pActionData)->flags_008 & 1) ==
                       0)) &&
@@ -1529,8 +1529,8 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
         animation = CreateAnimObj004A01A0();
         animation->entries_18[2] = mesh;
         animation->group_count = 1;
-        animation->unknown_01 = b0;
-        animation->value_02 = b1;
+        animation->animation_playing_01 = b0;
+        animation->frame_method_02 = b1;
         animation->unknown_03 = b2;
         animation->cycle = 0;
         animation->flag_05 = 0;
@@ -1667,8 +1667,8 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
 
     this->active = 1;
     this->animation_behaviour_070 = animation->unknown_03;
-    this->frame_method_06f = animation->value_02;
-    this->animation_playing_06d = animation->unknown_01;
+    this->frame_method_06f = animation->frame_method_02;
+    this->animation_playing_06d = animation->animation_playing_01;
     this->frame_direction_06e = 1;
     this->animation_speed = animation->playback_scale_08;
     this->timer_068 = GetTickCount();

@@ -427,7 +427,7 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                 vertices[i].original_position_54.x = source[0];
                 vertices[i].original_position_54.y = source[1];
                 vertices[i].original_position_54.z = source[2];
-                vertices[i].flag_0a = 0;
+                vertices[i].visited_0a = 0;
                 for (j = 0; j < 3; ++j) {
                     float v = (&vertices[i].position_0c.x)[j];
                     if (v <= (&maximum.x)[j]) {
@@ -473,7 +473,7 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                         ReportStartupMessage004969D0(message);
                     }
                     report = 0;
-                    vertices[i - 1].flag_0a = 0;
+                    vertices[i - 1].visited_0a = 0;
                 } while (i < mesh->num_vertices_04);
             }
             sprintf(message, "\n\nNumber of Verticies: %d   Number of polygons: %d\n",
@@ -598,8 +598,9 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                     }
                     for (i = 0; i < level->num_linked_records_2609; ++i) {
                         W8LevelFileLinkedRecord* record = level->linked_records_260d[i];
-                        value->AddLinkedRecord00448BF0(record->vertices_01, record->value_1b3,
-                                                       record->value_1b7, &record->linked_face_1b1);
+                        value->AddLinkedRecord00448BF0(
+                            record->vertices_01, record->normal_scale_1b3,
+                            record->forward_scale_1b7, &record->linked_face_1b1);
                     }
                     value->geometry_index_00 = build_tree;
                     value->CompileGameData00449D10();
@@ -637,7 +638,7 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                     build_tree->spatial_00.root_90->RearrangeNodePolys004AF7B0(
                         0, build_tree->spatial_00.depth_44);
                     for (i = 0; i < static_cast<int>(geometry.vertex_count_00); ++i) {
-                        vertices[i].flag_0a = 0;
+                        vertices[i].visited_0a = 0;
                     }
                     for (i = 0; i < static_cast<int>(geometry.polygon_count_08); ++i) {
                         geometry.polygons_0c[i].visited_31 = 0;
@@ -1482,7 +1483,7 @@ int SplitVerticesByMaterial00495860(W8OctPreTreeGeometry* geometry)
     }
     memset(split, 0, geometry->vertex_count_00 * 0x180);
     for (source = 1; source < geometry->vertex_count_00; ++source) {
-        geometry->vertices_04[source].flag_0a = 0;
+        geometry->vertices_04[source].visited_0a = 0;
     }
     next = 1;
     for (source = 1; source < geometry->vertex_count_00; ++source, ++next) {
@@ -1490,7 +1491,7 @@ int SplitVerticesByMaterial00495860(W8OctPreTreeGeometry* geometry)
         record = split + next;
         memcpy(record, geometry->vertices_04 + source, 0x60);
         record->vertex_index_04 = next;
-        record->flag_0a = 1;
+        record->visited_0a = 1;
         faces = geometry->vertices_04[source].face_indices_44;
         remaining = geometry->vertices_04[source].face_count_40 - 1;
         polygon = geometry->polygons_0c + *faces;
@@ -1498,7 +1499,7 @@ int SplitVerticesByMaterial00495860(W8OctPreTreeGeometry* geometry)
         record->kind_20 = polygon->kind_2c;
         for (corner = 0; corner < 3; ++corner) {
             corner_vertex = polygon->vertices_34 + corner;
-            if ((*corner_vertex)->vertex_index_04 == source && (*corner_vertex)->flag_0a == 0) {
+            if ((*corner_vertex)->vertex_index_04 == source && (*corner_vertex)->visited_0a == 0) {
                 *corner_vertex = record;
                 record->uv_4c = polygon->face_48.texture_coordinates[corner];
             }
@@ -1516,7 +1517,7 @@ int SplitVerticesByMaterial00495860(W8OctPreTreeGeometry* geometry)
                 for (corner = 0; corner < 3; ++corner) {
                     corner_vertex = polygon->vertices_34 + corner;
                     if ((*corner_vertex)->vertex_index_04 == source &&
-                        (*corner_vertex)->flag_0a == 0 &&
+                        (*corner_vertex)->visited_0a == 0 &&
                         candidate->material_1c == static_cast<int>(polygon->material_24)) {
                         *corner_vertex = candidate;
                         fresh = 0;
@@ -1530,13 +1531,13 @@ int SplitVerticesByMaterial00495860(W8OctPreTreeGeometry* geometry)
                 record = split + next;
                 memcpy(record, geometry->vertices_04 + source, 0x60);
                 record->vertex_index_04 = next;
-                record->flag_0a = 1;
+                record->visited_0a = 1;
                 record->material_1c = polygon->material_24;
                 record->kind_20 = polygon->kind_2c;
                 for (corner = 0; corner < 3; ++corner) {
                     corner_vertex = polygon->vertices_34 + corner;
                     if ((*corner_vertex)->vertex_index_04 == source &&
-                        (*corner_vertex)->flag_0a == 0) {
+                        (*corner_vertex)->visited_0a == 0) {
                         *corner_vertex = record;
                         record->uv_4c = polygon->face_48.texture_coordinates[corner];
                     }
@@ -2273,12 +2274,12 @@ unsigned char LoadMaterial004B8A70(const char* bitmap_folder,
             if (source->version_00 > 3 && source->texture_modes_11a[texture_index] > 0.0f) {
                 float mode = source->texture_modes_11a[texture_index];
                 if (mode <= 1.0f) {
-                    animation->value_70 = 1;
+                    animation->trigger_mode_70 = 1;
                 } else {
-                    animation->value_70 = 2;
+                    animation->trigger_mode_70 = 2;
                     mode -= 1.0f;
                 }
-                animation->value_74 = mode;
+                animation->probability_74 = mode;
             }
         }
     }
@@ -2326,7 +2327,7 @@ unsigned char LoadMaterial004B8A70(const char* bitmap_folder,
             concrete->autoRelease();
 
             concrete->parms.specular.Set(source->specular_0ed[0], source->specular_0ed[1],
-                                            source->specular_0ed[2], 0.0f);
+                                         source->specular_0ed[2], 0.0f);
             concrete->dirty_74 = 1;
             concrete->parms.shininess = 1.0f;
             concrete->dirty_74 = 1;
@@ -2340,15 +2341,15 @@ unsigned char LoadMaterial004B8A70(const char* bitmap_folder,
 
             if (texture_path[0] == '\0') {
                 concrete->parms.ambient.Set(source->diffuse_0d5[0], source->diffuse_0d5[1],
-                                               source->diffuse_0d5[2], 1.0f);
+                                            source->diffuse_0d5[2], 1.0f);
                 concrete->dirty_74 = 1;
                 concrete->parms.emissive = 0.0f;
             } else {
                 concrete->parms.ambient.Set(source->ambient_0c9[0], source->ambient_0c9[1],
-                                               source->ambient_0c9[2], 0.0f);
+                                            source->ambient_0c9[2], 0.0f);
                 concrete->dirty_74 = 1;
                 concrete->parms.emissive.Set(source->emission_101, source->emission_101,
-                                                source->emission_101, 1.0f);
+                                             source->emission_101, 1.0f);
             }
             concrete->dirty_74 = 1;
             concrete->m_field_78 = source->shader_flags_116;
@@ -2545,8 +2546,8 @@ stTextureAnim* LoadAnimatedTexture004B98F0(const char* folder, const char* name,
     FileClose(handle);
     if (source != 0) {
         int frame = source->animation_frame_10e;
-        animation->flag_60 = source->animation_mode_10d;
-        animation->value_64 = frame;
+        animation->animation_mode_60 = source->animation_mode_10d;
+        animation->initial_frame_64 = frame;
         animation->frame_58 = frame;
         animation->frame_rate_68 = source->animation_rate_112;
     }

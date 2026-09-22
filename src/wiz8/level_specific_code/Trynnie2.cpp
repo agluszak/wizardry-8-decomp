@@ -124,7 +124,7 @@ bool Trynnie2MeatBox004D9E60(Trigger* pTrigger)
         ShowNotice(0xf, gppStringList[0x2590 / 4]);
         return 1;
     }
-    index = MonsterGetIndexByLocationID(0x68, TRYNNIE2_CPP, group->value_9f, 1);
+    index = MonsterGetIndexByLocationID(0x68, TRYNNIE2_CPP, group->leader_id_9f, 1);
     info = MonsterGetScriptPartByLocationIndex(index);
     if (info->highest_condition >= 0xf) {
         return 1;

@@ -32,7 +32,7 @@ EnvironmentColour g_environment_colours_65ad98[256];
 // GLOBAL: WIZ8 0x0065A168
 stTextureAnim* g_sky_gradient_animations_0065a168[3];
 // GLOBAL: WIZ8 0x0060A394
-unsigned char g_environment_flag_0060a394 = 1;
+bool g_environment_time_enabled_60a394 = true;
 // GLOBAL: WIZ8 0x0065A160
 W8Prop* g_sun_prop_0065a160;
 // GLOBAL: WIZ8 0x0065AD84
@@ -74,7 +74,7 @@ unsigned char InitializeEnvironmentColours(void)
     }
     g_sky_gradient_animations_0065a168[0] = 0;
     g_sky_gradient_animations_0065a168[1] = 0;
-    g_environment_flag_0060a394 = 0;
+    g_environment_time_enabled_60a394 = 0;
     g_sun_prop_0065a160 = 0;
     g_moon_prop_0065ad84 = 0;
     g_environment_lights_0065b998.Clear();

@@ -415,13 +415,13 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
     }
 
     group = CreateGroup(species, count, &spawn_position, 0, 0, 1);
-    group->flag_c3 = 1;
-    SetMonsterGroupFormation(group, &state_0c);
-    if (group != 0 && group->flag_c3 != 0 && g_active_groups.IndexOf(group) == -1) {
+    group->encounter_registered_c3 = 1;
+    SetMonsterGroupFormation(group, &spawn_position_0c);
+    if (group != 0 && group->encounter_registered_c3 != 0 && g_active_groups.IndexOf(group) == -1) {
         g_active_groups.Add(group);
     }
 
-    W8Monster* monster = GetMonsterByLocationID(group->value_9f);
+    W8Monster* monster = GetMonsterByLocationID(group->leader_id_9f);
     if (monster != 0) {
         monster->SetScript004C7F10(script != 0 && script[0] != '\0' ? script : "Default.MSF", 1);
     }
@@ -452,8 +452,8 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
         companion_count += companion_group_count;
         W8MonsterGroup* companion_group =
             CreateGroup(companion_species, companion_group_count, &spawn_position, 0, 0, 1);
-        companion_group->flag_c3 = 1;
-        SetMonsterGroupFormation(companion_group, &state_0c);
+        companion_group->encounter_registered_c3 = 1;
+        SetMonsterGroupFormation(companion_group, &spawn_position_0c);
         LinkMonsterGroupToLeader(group, companion_group);
     }
 
@@ -487,14 +487,15 @@ unsigned char MonGen::CanGenerateEncounter(unsigned char force)
     }
 
     GetCameraPosition(&camera);
-    srVector3T<float> delta = state_0c - camera;
+    srVector3T<float> delta = spawn_position_0c - camera;
     distance = delta.Length();
 
-    if (force == 0 && g_status_685170.value_2390 == 0) {
+    if (force == 0 && g_status_685170.world_suspended_2390 == 0) {
         if (distance > 200000.0f || distance < 35000.0f) {
             return 0;
         }
-        if (g_octree_6598a4 != 0 && g_octree_6598a4->HasLineOfSight(&camera, &state_0c, 1) != 0) {
+        if (g_octree_6598a4 != 0 &&
+            g_octree_6598a4->HasLineOfSight(&camera, &spawn_position_0c, 1) != 0) {
             return 0;
         }
     }
@@ -511,8 +512,10 @@ unsigned char MonGen::CanGenerateEncounter(unsigned char force)
     }
 
     if (g_encounter_culling_scale_fast == 1.0f) {
-        srVector3T<float> lower(state_0c.x - 5000.0f, state_0c.y - 5000.0f, state_0c.z - 5000.0f);
-        srVector3T<float> upper(state_0c.x + 5000.0f, state_0c.y + 5000.0f, state_0c.z + 5000.0f);
+        srVector3T<float> lower(spawn_position_0c.x - 5000.0f, spawn_position_0c.y - 5000.0f,
+                                spawn_position_0c.z - 5000.0f);
+        srVector3T<float> upper(spawn_position_0c.x + 5000.0f, spawn_position_0c.y + 5000.0f,
+                                spawn_position_0c.z + 5000.0f);
         unsigned long* locations = 0;
         if (g_octree_6598a4->QueryLocationsInBox(&locations, &lower, &upper, 0) > 0) {
             return 0;
@@ -633,12 +636,13 @@ void CullExpiredEncounters(void)
 
         if (span < static_cast<float>(static_cast<unsigned int>(g_status_685170.world_clock -
                                                                 group->spawn_time))) {
-            W8Monster* monster = GetMonsterByLocationID(group->value_9f);
+            W8Monster* monster = GetMonsterByLocationID(group->leader_id_9f);
 
             position = monster->GetPosition();
             srVector3T<float> delta = position - party;
 
-            if (g_encounter_culling_distance < delta.Length() || g_status_685170.value_2390 != 0) {
+            if (g_encounter_culling_distance < delta.Length() ||
+                g_status_685170.world_suspended_2390 != 0) {
                 DespawnMonsterGroup(group);
             }
         }
@@ -821,7 +825,7 @@ void RunMonsterGenerators(void)
         generator = *g_world->monster_generators->GetAt(index);
         if (generator->m_pTimer != 0 && generator->m_pTimer->PollElapsedIntervals() != 0) {
             if (generator->CanGenerateEncounter(0) != 0) {
-                generator->GenerateEncounter(&generator->state_0c);
+                generator->GenerateEncounter(&generator->spawn_position_0c);
             }
             generator->Reset();
         }
@@ -834,7 +838,7 @@ void RunMonsterGenerators(void)
 // FUNCTION: WIZ8 0x0048c670
 void UnregisterActiveEncounterGroup(W8MonsterGroup* group)
 {
-    if (group == 0 || group->flag_c3 == 0) {
+    if (group == 0 || group->encounter_registered_c3 == 0) {
         return;
     }
     unsigned char removed = g_active_groups.Remove(group);
@@ -855,7 +859,7 @@ void UnregisterActiveEncounterGroup(W8MonsterGroup* group)
 // FUNCTION: WIZ8 0x0048c750
 void RegisterActiveEncounterGroup(W8MonsterGroup* group)
 {
-    if (group == 0 || group->flag_c3 == 0 || g_active_groups.IndexOf(group) != -1) {
+    if (group == 0 || group->encounter_registered_c3 == 0 || g_active_groups.IndexOf(group) != -1) {
         return;
     }
     g_active_groups.Add(group);
@@ -921,9 +925,9 @@ void MonGen::Save(int handle)
     FileWrite(handle, &custom_spawn_chance, 1, 0);
     FileWrite(handle, &custom_interval_seconds, 2, 0);
     FileWrite(handle, &unknown_08, 2, 0);
-    FileWrite(handle, &state_0c.x, 4, 0);
-    FileWrite(handle, &state_0c.y, 4, 0);
-    FileWrite(handle, &state_0c.z, 4, 0);
+    FileWrite(handle, &spawn_position_0c.x, 4, 0);
+    FileWrite(handle, &spawn_position_0c.y, 4, 0);
+    FileWrite(handle, &spawn_position_0c.z, 4, 0);
     FileWrite(handle, &encounter_table_index, 4, 0);
     m_pTimer->Save(handle);
 }
@@ -948,8 +952,9 @@ unsigned char MonGen::Load(int handle)
     }
     loaded = ok && FileRead(handle, &flags, 4, 0) && FileRead(handle, &custom_spawn_chance, 1, 0) &&
              FileRead(handle, &custom_interval_seconds, 2, 0) &&
-             FileRead(handle, &unknown_08, 2, 0) && FileRead(handle, &state_0c.x, 4, 0) &&
-             FileRead(handle, &state_0c.y, 4, 0) && FileRead(handle, &state_0c.z, 4, 0) &&
+             FileRead(handle, &unknown_08, 2, 0) && FileRead(handle, &spawn_position_0c.x, 4, 0) &&
+             FileRead(handle, &spawn_position_0c.y, 4, 0) &&
+             FileRead(handle, &spawn_position_0c.z, 4, 0) &&
              FileRead(handle, &encounter_table_index, 4, 0);
     Reset();
     if (static_cast<signed char>(version) > 1) {
@@ -1020,7 +1025,7 @@ static __inline void LoadMonsterGeneratorMarkerInline(MonGen* generator)
     }
     generator->marker_item = marker;
     if (marker != 0) {
-        marker->SetLocation0049F720(&generator->state_0c);
+        marker->SetLocation0049F720(&generator->spawn_position_0c);
         marker->ApplyRepTransform0049FAA0();
     }
 }
@@ -1104,7 +1109,7 @@ void RollRandomEncounters(void)
     for (int index = 0; index < count; ++index) {
         MonGen* generator = *generators.GetAt(index);
         if (generator->CanGenerateEncounter(1) != 0) {
-            generator->GenerateEncounter(&generator->state_0c);
+            generator->GenerateEncounter(&generator->spawn_position_0c);
         }
     }
 }
@@ -1143,7 +1148,7 @@ MonGen::~MonGen()
 // FUNCTION: WIZ8 0x0048b730
 void MonGen::SetState(const srVector3T<float>* state)
 {
-    state_0c = *state;
+    spawn_position_0c = *state;
     if (marker_item != 0) {
         marker_item->SetLocation0049F720(state);
         marker_item->ApplyRepTransform0049FAA0();

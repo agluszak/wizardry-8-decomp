@@ -318,7 +318,7 @@ struct W8Character {
        counterpart of the monster's own at 0x1e1. */
     int damage_reduction;
     W8CharacterResistance resistances[W8_RESISTANCE_COUNT]; /* 0x0edd */
-    unsigned char unknown_0f3d[0x20];
+    unsigned char flags_0f3d[0x20];
     /* 0x0f5d: EquippedItem, the twelve worn/held slots spelled by the
        Combat Attack.cpp assertion pPC->EquippedItem[uiWeaponSlot].iItemNo,
        indexed by the same slot numbering GetItemDefaultEquipSlot answers and
@@ -326,7 +326,7 @@ struct W8Character {
        hands and eight and nine the alternate pair, which is what the
        two-handed and off-hand tests read. */
     W8ItemInstance EquippedItem[12]; /* 0x0f5d */
-    unsigned char unknown_0fed[0x3c];
+    unsigned char flags_0fed[0x3c];
     /* 0x1029: the eight per-character carried slots. GetOriginOfCharacterItem
        reports this array as origin zero and the equipment array as origin one. */
     W8ItemInstance backpack[8]; /* 0x1029 */

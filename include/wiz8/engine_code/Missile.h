@@ -21,16 +21,23 @@ class W8Missile;
    half-tick baseline, +0x14 the elapsed flight clock, +0x18 the early-impact
    limit and +0x1c a trailing flag. */
 struct W8AIMissile : W8AIRecord {
-    unsigned char flag_01;
-    unsigned char unknown_02[2];
-    float value_04;
-    float value_08;
+    /* Gravity latch copied from the missile's gravity_1e3: when set, the
+       vertical fall rate decays each step. */
+    unsigned char gravity_01;
+    unsigned char padding_02[2];
+    /* Per-step advance scale (speed units per step tick). */
+    float speed_per_step_04;
+    /* Current vertical fall rate, seeded from launch pitch and decayed by
+       gravity_01. */
+    float fall_speed_08;
     W8Missile* missile_0c;
-    int value_10;
+    /* Half-tick baseline (getMsTime()>>1) the delta against the current
+       half-tick is clamped to 0xfa. */
+    int last_half_tick_10;
     float elapsed_14;
     float limit_18;
-    unsigned char flag_1c;
-    unsigned char unknown_1d[3];
+    unsigned char padding_1c;
+    unsigned char padding_1d[3];
 };
 
 W8AIMissile* CopyAIMissile004A53A0(const W8AIMissile* source);
@@ -112,18 +119,23 @@ public:
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #endif
-    unsigned char flag_1e0;
-    unsigned char flag_1e1;
-    unsigned char flag_1e2;
-    unsigned char flag_1e3;
-    unsigned char flag_1e4;
-    unsigned char flag_1e5;
-    unsigned char flag_1e6;
+    /* Flight exhausted its duration; the world updater destroys the missile
+       once block_released_1e2 is also set. */
+    bool flight_done_1e0;
+    /* Set by EnterImpactCycle while the impact animation plays. */
+    unsigned char impacting_1e1;
+    /* Set once the missile no longer blocks combat end (BlocksEndingCombat
+       returned 0 or combat already resolved). */
+    unsigned char block_released_1e2;
+    unsigned char gravity_1e3;
+    unsigned char align_camera_1e4;
+    unsigned char explode_ground_1e5;
+    unsigned char align_explosion_1e6;
     unsigned char flag_1e7;
     void* value_1e8;
     void* value_1ec;
     float lifetime_1f0;
-    int value_1f4;
+    int flags_1f4;
     float duration_1f8;
     W8SpellEffectDefinition definition_1fc;
     W8TargetSource m_Source;
@@ -137,7 +149,7 @@ public:
 
 static_assert(sizeof(W8Missile) == 0x328, "W8Missile_size_must_be_0x328");
 /* Secondary vftable 0x005ecdf4 keeps the W8Navigator subobject at +0x18. */
-W8_ASSERT_BASE_OFFSET(W8Missile, W8Navigator, unknown_004, 0x18);
+W8_ASSERT_BASE_OFFSET(W8Missile, W8Navigator, padding_004, 0x18);
 
 W8Missile* FireMissile004A2D30(unsigned int missile_table_index, srVector3T<float>* source,
                                srVector3T<float>* target, float value_4, unsigned int value_5,
@@ -162,9 +174,11 @@ struct W8MissileTableRecord {
     float radius_140;    /* 0x140: replaces the launched effect's radius */
     int attack_mode_144; /* 0x144: the attack mode the hit is resolved with */
     unsigned char unknown_148[8];
-    /* 0x150: copied into the launched effect block's value_1c. */
-    int value_150;
-    unsigned char flag_154; /* 0x154: blocks ending combat while set */
+    /* 0x150: copied into the launched effect block's magnitude_base_1c. */
+    int magnitude_base_150;
+    /* 0x154: nonzero marks a spell missile - its hits resolve through
+       ResolveSpellMissileHit instead of the physical hit/deflect path. */
+    bool spell_missile_154;
     /* 0x155: the percentage chances the missile's hit effect assigns each
        condition; CastSpellFromSource copies them into its effect block. */
     unsigned char condition_chances_155[0x10];
