@@ -95,12 +95,12 @@ stParticle* FindRegisteredParticle0049ADB0(const char* name)
 // FUNCTION: WIZ8 0x0049AE90
 void stParticle::SetParticleScale(float scale)
 {
-    float inverse_scale = 1.0f / value_278;
+    float inverse_scale = 1.0f / size_scale_278;
     // Retail uses the extent as its offset, not the midpoint of the bounds.
     srVector3T<float> offset = maximum_228 - minimum_21c;
     minimum_21c = (minimum_21c - offset) * inverse_scale + offset;
     maximum_228 = (maximum_228 - offset) * inverse_scale + offset;
-    value_278 = scale;
+    size_scale_278 = scale;
     minimum_21c = (minimum_21c - offset) * scale + offset;
     maximum_228 = (maximum_228 - offset) * scale + offset;
 }
@@ -172,7 +172,7 @@ stParticle::stParticle(srNode* parent, unsigned int count)
     start_frame_264 = -1;
     end_frame_268 = -1;
     callback_26c = 0;
-    value_278 = 1.0f;
+    size_scale_278 = 1.0f;
 
     setParent(parent, 1);
 
@@ -185,7 +185,7 @@ stParticle::stParticle(srNode* parent, unsigned int count)
     colors_16c = 0;
     texture_154 = 0;
     value_138 = 0;
-    value_140 = 1.0;
+    particle_value_140 = 1.0;
 
     if (count == 0) {
         return;
@@ -239,12 +239,12 @@ stParticle::stParticle(srNode* parent, unsigned int count)
     }
 
     active_1a0 = 1;
-    flag_1a1 = 1;
+    traversal_enabled_1a1 = 1;
     retained_14c = 0;
-    state_184 = 0;
+    emission_limit_184 = 0;
     active_190 = false;
-    unknown_191 = 0;
-    value_188 = 0;
+    replace_when_full_191 = 0;
+    emission_count_188 = 0;
     active_triangles_254 = new unsigned long[texture_frame_count_15c];
     active_particle_count_18c = 0;
     velocities_198 =
@@ -253,38 +253,38 @@ stParticle::stParticle(srNode* parent, unsigned int count)
     particle_active_194 = new unsigned char[count];
     memset(particle_active_194, 0, count);
 
-    value_1a8 = 0;
-    value_1ac = 0;
-    value_1b0 = 0;
-    value_1b4 = 0;
-    value_1b8 = 3;
-    value_1c4 = 0;
-    value_1c8 = 50;
-    value_1cc = 1500;
-    value_1a4 = 2;
-    value_1bc = 2;
+    has_acceleration_1a8 = 0;
+    expiry_mode_1ac = 0;
+    emission_mode_1b0 = 0;
+    los_check_enabled_1b4 = 0;
+    direction_mode_1b8 = 3;
+    camera_relative_1c4 = 0;
+    emission_interval_1c8 = 50;
+    lifetime_ms_1cc = 1500;
+    bounds_mode_1a4 = 2;
+    placement_mode_1bc = 2;
     minimum_1d0 = -250.0f;
     maximum_1dc = 250.0f;
     direction_1e8.Set(0.0f, -1.0f, 0.0f);
-    value_210 = 500.0f;
+    initial_speed_210 = 500.0f;
     acceleration_1f4.Set(0.0f, -4905.0f, 0.0f);
-    value_1c0 = 0;
+    flutter_mode_1c0 = 0;
     m_pflFlutterAngle = 0;
-    value_200 = 0.0f;
-    value_204 = 0;
-    value_218 = 4000.0f;
-    value_208 = 0.39269906f;
-    value_20c = 0.39269906f;
-    value_214 = 1000.0f;
+    flutter_amplitude_200 = 0.0f;
+    flutter_period_204 = 0;
+    speed_max_218 = 4000.0f;
+    cone_yaw_208 = 0.39269906f;
+    cone_pitch_20c = 0.39269906f;
+    speed_min_214 = 1000.0f;
     minimum_21c = -1000.0f;
     maximum_228 = 1000.0f;
-    value_234.SetZero();
-    value_240 = 2000.0f;
+    bounds_origin_234.SetZero();
+    bounds_radius_240 = 2000.0f;
     update_flags_250 = 0;
     activated_at_258 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     updated_at_25c = activated_at_258;
-    value_270 = 25;
-    value_274 = 0;
+    emission_gap_270 = 25;
+    last_emitted_at_274 = 0;
 }
 
 // FUNCTION: WIZ8 0x00498180
@@ -295,8 +295,8 @@ stParticle::stParticle(const stParticle& other)
     update_flags_250 = 0;
     start_frame_264 = other.start_frame_264;
     end_frame_268 = other.end_frame_268;
-    value_270 = other.value_270;
-    value_278 = other.value_278;
+    emission_gap_270 = other.emission_gap_270;
+    size_scale_278 = other.size_scale_278;
 
     unsigned int count = other.particle_count_180;
     if (count == 0) {
@@ -314,7 +314,7 @@ stParticle::stParticle(const stParticle& other)
     colors_16c = 0;
     texture_154 = 0;
     value_138 = other.value_138;
-    value_140 = other.value_140;
+    particle_value_140 = other.particle_value_140;
     texture_frames_178 = 0;
     retained_14c = other.retained_14c;
     retained_14c->addReference();
@@ -370,45 +370,45 @@ stParticle::stParticle(const stParticle& other)
         alphas_174[i] = 1.0f;
     }
 
-    state_184 = other.state_184;
-    value_188 = 0;
+    emission_limit_184 = other.emission_limit_184;
+    emission_count_188 = 0;
     active_particle_count_18c = 0;
     active_190 = other.active_190;
-    unknown_191 = other.unknown_191;
+    replace_when_full_191 = other.replace_when_full_191;
     particle_active_194 = new unsigned char[count];
     memset(particle_active_194, 0, count);
     velocities_198 =
         static_cast<srVector3T<float>*>(srHeap.allocate(count * sizeof(srVector3T<float>)));
     birth_ticks_19c = new unsigned int[count];
     active_1a0 = other.active_1a0;
-    flag_1a1 = 1;
-    value_1a4 = other.value_1a4;
-    value_1a8 = other.value_1a8;
-    value_1ac = other.value_1ac;
-    value_1b0 = other.value_1b0;
-    value_1b4 = other.value_1b4;
-    value_1b8 = other.value_1b8;
-    value_1bc = other.value_1bc;
-    value_1c4 = other.value_1c4;
+    traversal_enabled_1a1 = 1;
+    bounds_mode_1a4 = other.bounds_mode_1a4;
+    has_acceleration_1a8 = other.has_acceleration_1a8;
+    expiry_mode_1ac = other.expiry_mode_1ac;
+    emission_mode_1b0 = other.emission_mode_1b0;
+    los_check_enabled_1b4 = other.los_check_enabled_1b4;
+    direction_mode_1b8 = other.direction_mode_1b8;
+    placement_mode_1bc = other.placement_mode_1bc;
+    camera_relative_1c4 = other.camera_relative_1c4;
     m_pflFlutterAngle = 0;
-    value_200 = other.value_200;
-    value_204 = other.value_204;
-    SetFlutter0049AD10(other.value_1c0);
-    value_1c8 = other.value_1c8;
-    value_1cc = other.value_1cc;
+    flutter_amplitude_200 = other.flutter_amplitude_200;
+    flutter_period_204 = other.flutter_period_204;
+    SetFlutter0049AD10(other.flutter_mode_1c0);
+    emission_interval_1c8 = other.emission_interval_1c8;
+    lifetime_ms_1cc = other.lifetime_ms_1cc;
     minimum_1d0 = other.minimum_1d0;
     maximum_1dc = other.maximum_1dc;
     direction_1e8 = other.direction_1e8;
     acceleration_1f4 = other.acceleration_1f4;
-    value_208 = other.value_208;
-    value_20c = other.value_20c;
-    value_210 = other.value_210;
-    value_214 = other.value_214;
-    value_218 = other.value_218;
+    cone_yaw_208 = other.cone_yaw_208;
+    cone_pitch_20c = other.cone_pitch_20c;
+    initial_speed_210 = other.initial_speed_210;
+    speed_min_214 = other.speed_min_214;
+    speed_max_218 = other.speed_max_218;
     minimum_21c = other.minimum_21c;
     maximum_228 = other.maximum_228;
-    value_234 = other.value_234;
-    value_240 = other.value_240;
+    bounds_origin_234 = other.bounds_origin_234;
+    bounds_radius_240 = other.bounds_radius_240;
     update_flags_250 = 2;
     active_triangles_254 = new unsigned long[texture_frame_count_15c];
     activated_at_258 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
@@ -429,14 +429,14 @@ stParticle::stParticle(const stParticle& other)
                              source_world.vectors[i].z, source_world.vectors[i].w);
     }
     setWorldSpaceMatrix(world);
-    value_274 = 0;
+    last_emitted_at_274 = 0;
 }
 
 // FUNCTION: WIZ8 0x00499A50
 unsigned char stParticle::ActivateParticle00499A50(unsigned int* out_index,
                                                    unsigned char replace_when_full)
 {
-    if (state_184 != 0 && value_188 >= state_184) {
+    if (emission_limit_184 != 0 && emission_count_188 >= emission_limit_184) {
         return 0;
     }
 
@@ -469,16 +469,16 @@ unsigned char stParticle::ActivateParticle00499A50(unsigned int* out_index,
     birth_ticks_19c[index] = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
 
     float magnitude = 0.0f;
-    if (value_1bc == 1) {
-        magnitude = value_210;
-    } else if (value_1bc == 2) {
+    if (placement_mode_1bc == 1) {
+        magnitude = initial_speed_210;
+    } else if (placement_mode_1bc == 2) {
         magnitude =
-            (value_218 - value_214) * (float)(rand() & 0x7fff) * g_float_005ec438 + value_214;
+            (speed_max_218 - speed_min_214) * (rand() & 0x7fff) * g_float_005ec438 + speed_min_214;
     }
-    magnitude *= value_278;
+    magnitude *= size_scale_278;
 
     srVector3T<float>& velocity = velocities_198[index];
-    switch (value_1b8) {
+    switch (direction_mode_1b8) {
     case 1:
         velocity = direction_1e8 * magnitude;
         break;
@@ -493,10 +493,10 @@ unsigned char stParticle::ActivateParticle00499A50(unsigned int* out_index,
         srVector3T<float> direction;
         direction.Set(g_float_005ebb34, g_float_005ebb34, magnitude);
 
-        double angle = ((float)(rand() & 0x7fff) * g_float_005ec438 - g_float_005ebc7c) * value_20c;
+        double angle = ((rand() & 0x7fff) * g_float_005ec438 - g_float_005ebc7c) * cone_pitch_20c;
         direction.RotateAboutX(sin(angle), cos(angle));
 
-        angle = ((float)(rand() & 0x7fff) * g_float_005ec438 - g_float_005ebc7c) * value_208;
+        angle = ((rand() & 0x7fff) * g_float_005ec438 - g_float_005ebc7c) * cone_yaw_208;
         direction.RotateAboutY(sin(angle), cos(angle));
 
         srMatrix3T<float> rotation;
@@ -507,9 +507,9 @@ unsigned char stParticle::ActivateParticle00499A50(unsigned int* out_index,
 
     case 4: {
         srVector3T<float> direction;
-        direction.x = (float)(rand() & 0x7fff) * g_float_005ec438 - g_float_005ebc7c;
-        direction.y = (float)(rand() & 0x7fff) * g_float_005ec438 - g_float_005ebc7c;
-        direction.z = (float)(rand() & 0x7fff) * g_float_005ec438 - g_float_005ebc7c;
+        direction.x = (rand() & 0x7fff) * g_float_005ec438 - g_float_005ebc7c;
+        direction.y = (rand() & 0x7fff) * g_float_005ec438 - g_float_005ebc7c;
+        direction.z = (rand() & 0x7fff) * g_float_005ec438 - g_float_005ebc7c;
 
         direction.Normalize();
 
@@ -526,7 +526,7 @@ unsigned char stParticle::ActivateParticle00499A50(unsigned int* out_index,
     particle_positions_148[index] = location;
 
     if (m_pflFlutterAngle != 0) {
-        m_pflFlutterAngle[index] = (float)(rand() & 0x7fff) * g_float_005ecc40;
+        m_pflFlutterAngle[index] = (rand() & 0x7fff) * g_float_005ecc40;
     }
     if (texture_frames_178 != 0) {
         texture_frames_178[index * 2]->SetFrame00485400(0);
@@ -539,7 +539,7 @@ unsigned char stParticle::ActivateParticle00499A50(unsigned int* out_index,
     }
 
     update_flags_250 |= 2;
-    ++value_188;
+    ++emission_count_188;
     ++active_particle_count_18c;
     return 1;
 }
@@ -559,11 +559,11 @@ void stParticle::DeactivateParticle00499F70(unsigned int index)
 void stParticle::Update00499FA0()
 {
     unsigned int now = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-    if (now - value_274 < value_270) {
+    if (now - last_emitted_at_274 < emission_gap_270) {
         return;
     }
 
-    value_274 = now;
+    last_emitted_at_274 = now;
     if (active_particle_count_18c != 0) {
         unsigned int elapsed_ticks = now - activated_at_258;
 
@@ -594,8 +594,8 @@ void stParticle::Update00499FA0()
             }
 
             unsigned int vertex = index * 4;
-            if (value_1ac == 0) {
-                unsigned int expires_at = birth_ticks_19c[index] + value_1cc;
+            if (expiry_mode_1ac == 0) {
+                unsigned int expires_at = birth_ticks_19c[index] + lifetime_ms_1cc;
                 if (expires_at < now) {
                     particle_active_194[index] = 0;
                     update_flags_250 |= 2;
@@ -610,11 +610,11 @@ void stParticle::Update00499FA0()
                         alphas_174[alpha_index] = alpha;
                     }
                 }
-            } else if (value_1ac == 1) {
+            } else if (expiry_mode_1ac == 1) {
                 if (texture_frames_178 == 0) {
-                    value_1ac = 0;
-                    if (value_1cc == 0) {
-                        value_1cc = 1000;
+                    expiry_mode_1ac = 0;
+                    if (lifetime_ms_1cc == 0) {
+                        lifetime_ms_1cc = 1000;
                     }
                 } else {
                     stTextureAnim* animation = texture_frames_178[index * 2];
@@ -628,7 +628,7 @@ void stParticle::Update00499FA0()
                 }
             }
 
-            if (value_1a8 == 1) {
+            if (has_acceleration_1a8 == 1) {
                 velocities_198[index] += acceleration_step;
             }
 
@@ -637,24 +637,26 @@ void stParticle::Update00499FA0()
             srVector3T<float> candidate;
             candidate = particle_positions_148[index] + movement;
 
-            if (value_1a4 == 2) {
+            if (bounds_mode_1a4 == 2) {
                 double distance;
-                if (value_234.x == g_float_005ebb34 && value_234.y == g_float_005ebb34 &&
-                    value_234.z == g_float_005ebb34) {
+                if (bounds_origin_234.x == g_float_005ebb34 &&
+                    bounds_origin_234.y == g_float_005ebb34 &&
+                    bounds_origin_234.z == g_float_005ebb34) {
                     distance = (candidate - node_location).Length();
                 } else {
-                    srVector3T<float> center = rotation.Transform(value_234) + node_location;
+                    srVector3T<float> center =
+                        rotation.Transform(bounds_origin_234) + node_location;
                     srVector3T<float> difference = candidate - center;
                     distance = difference.Length();
                 }
 
-                if (value_278 * value_240 < distance) {
+                if (size_scale_278 * bounds_radius_240 < distance) {
                     particle_active_194[index] = 0;
                     update_flags_250 |= 2;
                     --active_particle_count_18c;
                     continue;
                 }
-            } else if (value_1a4 == 1) {
+            } else if (bounds_mode_1a4 == 1) {
                 srVector3T<float> local = candidate - node_location;
                 srVector4T<float> transformed = transform.Transform(local);
                 srVector3T<float> local_point;
@@ -667,7 +669,7 @@ void stParticle::Update00499FA0()
                 }
             }
 
-            if (value_1b4 == 1 &&
+            if (los_check_enabled_1b4 == 1 &&
                 (g_world->octree == 0 ||
                  !g_world->octree->HasLineOfSight(&particle_positions_148[index], &candidate, 1))) {
                 particle_active_194[index] = 0;
@@ -682,34 +684,34 @@ void stParticle::Update00499FA0()
 
     activated_at_258 = now;
 
-    if (active_1a0 == 0 || value_1b0 == 0) {
+    if (active_1a0 == 0 || emission_mode_1b0 == 0) {
         return;
     }
 
     unsigned int emission_elapsed = now - updated_at_25c;
-    if (emission_elapsed < value_1c8) {
+    if (emission_elapsed < emission_interval_1c8) {
         return;
     }
 
-    if (value_1b0 == 1) {
+    if (emission_mode_1b0 == 1) {
         unsigned int particle_index;
-        ActivateParticle00499A50(&particle_index, unknown_191);
+        ActivateParticle00499A50(&particle_index, replace_when_full_191);
         updated_at_25c = now;
         return;
     }
-    if (value_1b0 != 2 || emission_elapsed <= value_1c8) {
+    if (emission_mode_1b0 != 2 || emission_elapsed <= emission_interval_1c8) {
         return;
     }
 
     for (;;) {
-        unsigned int lag = now - value_1c8 - updated_at_25c;
+        unsigned int lag = now - emission_interval_1c8 - updated_at_25c;
         unsigned int particle_index;
-        if (ActivateParticle00499A50(&particle_index, unknown_191) == 0) {
+        if (ActivateParticle00499A50(&particle_index, replace_when_full_191) == 0) {
             updated_at_25c = now;
             return;
         }
 
-        if (value_1a8 == 1) {
+        if (has_acceleration_1a8 == 1) {
             srVector3T<float> acceleration = (acceleration_1f4 * (double)lag) / 1000.0;
             velocities_198[particle_index] += acceleration;
         }
@@ -720,8 +722,8 @@ void stParticle::Update00499FA0()
         InitializeParticlePosition0049A990(&particle_positions_148[particle_index]);
         particle_positions_148[particle_index] += displacement;
 
-        updated_at_25c += value_1c8;
-        if (now - updated_at_25c <= value_1c8) {
+        updated_at_25c += emission_interval_1c8;
+        if (now - updated_at_25c <= emission_interval_1c8) {
             return;
         }
     }
@@ -730,14 +732,14 @@ void stParticle::Update00499FA0()
 // FUNCTION: WIZ8 0x0049A990
 void stParticle::InitializeParticlePosition0049A990(srVector3T<float>* output)
 {
-    output->x = (maximum_1dc.x - minimum_1d0.x) * (float)(rand() & 0x7fff) * g_float_005ec438 +
-                minimum_1d0.x;
-    output->y = (maximum_1dc.y - minimum_1d0.y) * (float)(rand() & 0x7fff) * g_float_005ec438 +
-                minimum_1d0.y;
-    output->z = (maximum_1dc.z - minimum_1d0.z) * (float)(rand() & 0x7fff) * g_float_005ec438 +
-                minimum_1d0.z;
+    output->x =
+        (maximum_1dc.x - minimum_1d0.x) * (rand() & 0x7fff) * g_float_005ec438 + minimum_1d0.x;
+    output->y =
+        (maximum_1dc.y - minimum_1d0.y) * (rand() & 0x7fff) * g_float_005ec438 + minimum_1d0.y;
+    output->z =
+        (maximum_1dc.z - minimum_1d0.z) * (rand() & 0x7fff) * g_float_005ec438 + minimum_1d0.z;
 
-    *output *= value_278;
+    *output *= size_scale_278;
 
     srMatrix3T<float> rotation;
     getRotation(rotation);
@@ -763,7 +765,7 @@ void stParticle::traverse(srNode::TraverseInfo& info)
     }
 
     if (!testFlag(FLAG_DISABLE)) {
-        if ((active_1a0 != 0 || active_particle_count_18c != 0) && flag_1a1 != 0) {
+        if ((active_1a0 != 0 || active_particle_count_18c != 0) && traversal_enabled_1a1 != 0) {
             srNode::TraverseInfo::Entry& entry = info.entries[info.entry_count];
             entry.node = this;
             entry.value = 0;
@@ -781,10 +783,10 @@ void stParticle::traverse(srNode::TraverseInfo& info)
 // FUNCTION: WIZ8 0x00498D90
 void stParticle::SetTraversalEnabled00498D90(unsigned char enabled)
 {
-    if (enabled != 0 && flag_1a1 == 0) {
+    if (enabled != 0 && traversal_enabled_1a1 == 0) {
         updated_at_25c = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
     }
-    flag_1a1 = enabled;
+    traversal_enabled_1a1 = enabled;
 }
 
 // FUNCTION: WIZ8 0x00498D60
@@ -817,12 +819,12 @@ void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
     for (unsigned int index = 0; index < 4; ++index) {
         srVector4T<float> transformed = view.Transform(corners[index]);
 
-        float scale = (float)value_140 * value_278;
+        float scale = static_cast<float>(particle_value_140) * size_scale_278;
         offsets[index] =
             srVector3T<float>(transformed.x, transformed.y, transformed.z) * (double)scale;
     }
 
-    if (value_1c0 == 0) {
+    if (flutter_mode_1c0 == 0) {
         for (unsigned int direct_index = 0; direct_index < particle_count_180; ++direct_index) {
             unsigned int vertex = direct_index * 4;
             const srVector3T<float>& position = particle_positions_148[direct_index];
@@ -835,11 +837,12 @@ void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
     }
 
     float phase = g_float_005ebb34;
-    if (value_204 != 0) {
-        phase = (float)(g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT) % value_204) /
-                (int)value_204 * g_camera_angle_period_005ec014;
+    if (flutter_period_204 != 0) {
+        phase = static_cast<float>(g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT) %
+                                   flutter_period_204) /
+                static_cast<int>(flutter_period_204) * g_camera_angle_period_005ec014;
     }
-    float flutter = (float)sin(phase) * value_200 * value_278;
+    float flutter = static_cast<float>(sin(phase)) * flutter_amplitude_200 * size_scale_278;
 
     for (unsigned int particle_index = 0; particle_index < particle_count_180; ++particle_index) {
         srVector3T<float> position;
@@ -849,7 +852,7 @@ void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
         } else {
             position.Set(flutter, 0.0f, 0.0f);
 
-            if (value_1c0 == 2) {
+            if (flutter_mode_1c0 == 2) {
                 float scale = g_float_005ecc3c;
                 if (g_float_005ecc3c < velocities_198[particle_index].y) {
                     scale = velocities_198[particle_index].y;
@@ -883,7 +886,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
 {
     srVector3T<float> position;
 
-    if (value_1c4 == 1) {
+    if (camera_relative_1c4 == 1) {
         srVector3T<float> camera_position;
         GetCameraPosition(&camera_position);
         position = camera_position + camera_offset_244;
@@ -900,7 +903,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
 
     Update00499FA0();
 
-    if (state_184 != 0 && value_188 >= state_184) {
+    if (emission_limit_184 != 0 && emission_count_188 >= emission_limit_184) {
         active_1a0 = 0;
     }
 
@@ -916,27 +919,27 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
 
     srMatrix3T<float> rotation;
 
-    if (value_1a4 == 2) {
+    if (bounds_mode_1a4 == 2) {
         srGERD::e_visibility visibility;
 
         /* Bound once: the retail body keeps the extent address in a register
            across the three comparisons and the three projections. */
-        const srVector3T<float>& extent = value_234;
+        const srVector3T<float>& extent = bounds_origin_234;
 
         if (extent.x == g_float_005ebb34 && extent.y == g_float_005ebb34 &&
             extent.z == g_float_005ebb34) {
-            visibility = renderer->testBoundingSphere(position, value_278 * value_240);
+            visibility = renderer->testBoundingSphere(position, size_scale_278 * bounds_radius_240);
         } else {
             getRotation(rotation);
             srVector3T<float> center = rotation.Transform(extent) + position;
-            visibility = renderer->testBoundingSphere(center, value_278 * value_240);
+            visibility = renderer->testBoundingSphere(center, size_scale_278 * bounds_radius_240);
         }
         if (visibility == srGERD::VISIBILITY_POSITIONAL_0) {
             return;
         }
     }
 
-    if (value_1a4 == 1) {
+    if (bounds_mode_1a4 == 1) {
         getRotation(rotation);
         srVector3T<float> minimum = rotation.Transform(minimum_21c) + position;
         srVector3T<float> maximum = rotation.Transform(maximum_228) + position;
@@ -1162,7 +1165,7 @@ void stParticle::SetFlutter0049AD10(int enabled)
 {
     unsigned int i;
 
-    value_1c0 = enabled;
+    flutter_mode_1c0 = enabled;
     if (enabled == 0) {
         if (m_pflFlutterAngle != 0) {
             delete[] m_pflFlutterAngle;

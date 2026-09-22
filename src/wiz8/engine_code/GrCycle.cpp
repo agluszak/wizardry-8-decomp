@@ -568,7 +568,7 @@ W8GrCycle::~W8GrCycle()
                 event->m_pstParticles = 0;
                 delete event;
                 owner->SetActive(1);
-                owner->state_184 = 1;
+                owner->emission_limit_184 = 1;
                 owner->active_190 = true;
             }
         }
@@ -897,10 +897,10 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             psrMesh->render_state_164 = pRep->render_state_04c;
             if (pRep->apply_instance_scale_061 != 0) {
                 if (pRep->instance_scale_05c == g_float_005ebb38) {
-                    psrMesh->flag_1a0 = 0;
+                    psrMesh->diffuse_scale_enabled_1a0 = 0;
                 } else {
-                    psrMesh->flag_1a0 = 1;
-                    psrMesh->scale_1a4 = pRep->instance_scale_05c;
+                    psrMesh->diffuse_scale_enabled_1a0 = 1;
+                    psrMesh->diffuse_scale_1a4 = pRep->instance_scale_05c;
                 }
             }
             psrMesh->clearFlag(srNode::FLAG_DISABLE);
@@ -931,10 +931,10 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
         psrMesh->render_state_164 = pRep->render_state_04c;
         if (pRep->apply_instance_scale_061 != 0) {
             if (pRep->instance_scale_05c == g_float_005ebb38) {
-                psrMesh->flag_1a0 = 0;
+                psrMesh->diffuse_scale_enabled_1a0 = 0;
             } else {
-                psrMesh->flag_1a0 = 1;
-                psrMesh->scale_1a4 = pRep->instance_scale_05c;
+                psrMesh->diffuse_scale_enabled_1a0 = 1;
+                psrMesh->diffuse_scale_1a4 = pRep->instance_scale_05c;
             }
         }
         vecPos = movement_0c0.position_040;
@@ -1143,11 +1143,11 @@ void W8GrCycle::UpdateParticleAttachments004A7E50()
         anchor.SetFromDouble(&location);
         placed += anchor;
 
-        if (unknown_1bf != 0 && particle->value_1b8 == 3) {
+        if (unknown_1bf != 0 && particle->direction_mode_1b8 == 3) {
             target.SetFromFloat(&placed);
             axis.SetFromFloat(&m_axis_1c0);
             particle->setRotation(axis, target, 0.0);
-        } else if (particle->value_1b8 != 4) {
+        } else if (particle->direction_mode_1b8 != 4) {
             combined = rotation;
             combined.MultiplyBy(attachment->rotation_18);
             world.vectors[0].SetFromFloat(&combined.vectors[0]);

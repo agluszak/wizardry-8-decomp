@@ -487,11 +487,11 @@ stModelInstance::stModelInstance(srNode* parent)
     damage_stage_184 = -1;
     retained_174 = 0;
     scale_194 = 1.0f;
-    flag_1a0 = 0;
-    scale_1a4 = 0.0f;
-    flag_1a1 = 0;
-    scale_1a8 = 0.0f;
-    value_1ac = 0.0f;
+    diffuse_scale_enabled_1a0 = 0;
+    diffuse_scale_1a4 = 0.0f;
+    emissive_override_enabled_1a1 = 0;
+    emissive_override_1a8 = 0.0f;
+    frame_interpolation_1ac = 0.0f;
 }
 
 // FUNCTION: WIZ8 0x0047EDF0
@@ -511,11 +511,11 @@ stModelInstance& stModelInstance::operator=(const stModelInstance& other)
     value_190 = other.value_190;
     retained_174 = 0;
     scale_194 = other.scale_194;
-    scale_1a4 = 0.0f;
-    flag_1a0 = 0;
-    flag_1a1 = other.flag_1a1;
-    scale_1a8 = other.scale_1a8;
-    value_1ac = 0.0f;
+    diffuse_scale_1a4 = 0.0f;
+    diffuse_scale_enabled_1a0 = 0;
+    emissive_override_enabled_1a1 = other.emissive_override_enabled_1a1;
+    emissive_override_1a8 = other.emissive_override_1a8;
+    frame_interpolation_1ac = 0.0f;
     return *this;
 }
 
@@ -697,7 +697,8 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
 
         srVector4T<float>* poly_normals;
         if ((model->flags_3a0 >> 2) & 1) {
-            mesh.positions_38 = model->GetVertexLocations00471AD0(frame_index_180, 1, value_1ac);
+            mesh.positions_38 =
+                model->GetVertexLocations00471AD0(frame_index_180, 1, frame_interpolation_1ac);
             mesh.normals_3c = model->GetVertexNormals00471CA0(frame_index_180, 1);
             // reinterpret-ok: the equation table aliases the polygon normals.
             poly_normals = reinterpret_cast<srVector4T<float>*>(
@@ -739,14 +740,14 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
              (render_state_164.highlight_blue == g_float_005ebb34) &&
              (render_state_164.highlight_alpha == g_float_005ebb34)) ||
             (value_190 != 1)) {
-            if (flag_1a0 != 0) {
-                g_material_diffuse_scale_0065baa0 = scale_1a4;
+            if (diffuse_scale_enabled_1a0 != 0) {
+                g_material_diffuse_scale_0065baa0 = diffuse_scale_1a4;
                 mesh.shaders_b0[0].value = (mesh.shaders_b0[0].value & 0xffffd7bf) | 0x44a0;
                 mesh.control_flags_0c |= 0x40;
                 g_material_diffuse_scale_enabled_0065ba9e = 1;
             }
-            if (flag_1a1 != 0) {
-                g_material_emissive_override_0065baa8 = scale_1a8;
+            if (emissive_override_enabled_1a1 != 0) {
+                g_material_emissive_override_0065baa8 = emissive_override_1a8;
                 g_material_emissive_override_enabled_0065baa4 = 1;
             }
         } else {
@@ -773,10 +774,10 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
         } else {
             model = 0;
         }
-        if (flag_1a0 != 0) {
+        if (diffuse_scale_enabled_1a0 != 0) {
             g_material_diffuse_scale_enabled_0065ba9e = 0;
         }
-        if (flag_1a1 != 0) {
+        if (emissive_override_enabled_1a1 != 0) {
             g_material_emissive_override_enabled_0065baa4 = 0;
         }
     }
@@ -816,8 +817,8 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
 
                     const srVector4T<float>* poly_normals = 0;
                     if ((model->flags_3a0 >> 2) & 1) {
-                        mesh.dig_40[0] =
-                            model->GetVertexLocations00471AD0(frame_index_180, 1, value_1ac);
+                        mesh.dig_40[0] = model->GetVertexLocations00471AD0(frame_index_180, 1,
+                                                                           frame_interpolation_1ac);
                         mesh.dig_40[1] = model->GetVertexNormals00471CA0(frame_index_180, 1);
                         // reinterpret-ok: the equation table aliases the polygon normals.
                         poly_normals = reinterpret_cast<const srVector4T<float>*>(

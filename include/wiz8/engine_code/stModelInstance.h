@@ -67,12 +67,12 @@ public:
     srHeapArray<int> damage_stage_tables_188;
     int value_190;
     srVector3T<float> scale_194;
-    unsigned char flag_1a0;
-    unsigned char flag_1a1;
+    bool diffuse_scale_enabled_1a0;
+    bool emissive_override_enabled_1a1;
     unsigned char unknown_1a2[2];
-    float scale_1a4;
-    float scale_1a8;
-    float value_1ac;
+    float diffuse_scale_1a4;
+    float emissive_override_1a8;
+    float frame_interpolation_1ac;
 };
 
 static_assert(offsetof(stModelInstance, render_state_164) == 0x164,

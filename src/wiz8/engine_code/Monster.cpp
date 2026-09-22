@@ -772,8 +772,8 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
         (*monster)->CollectModelInstances004C6350(&instances);
         for (int index = 0; index < instances.GetCount(); ++index) {
             stModelInstance* instance = *instances.GetAt(index);
-            instance->flag_1a1 = 1;
-            instance->scale_1a8 = glow;
+            instance->emissive_override_enabled_1a1 = 1;
+            instance->emissive_override_1a8 = glow;
         }
     }
 
@@ -3337,7 +3337,7 @@ void W8Monster::UpdateRepresentation(W8World* world)
         W8GrCycle::UpdateRepresentation(world);
         model = GetCurrentModelInstance004A8250();
         if (model != 0) {
-            static_cast<stModelInstance*>(model)->value_1ac =
+            static_cast<stModelInstance*>(model)->frame_interpolation_1ac =
                 g_settings_6850c8.smooth_monster_animations != 0 ? frame_fraction_1d4 : 0.0f;
             SetModelInstanceChainExclusionMask(model, 4);
         }
@@ -4129,7 +4129,7 @@ void W8Monster::UpdateShakeEvents004C3380(unsigned char previous_frame)
             animation->start_frame_14 <= m_pRep->subcycle_064) {
             if (enabled_1bd != 0) {
                 particle->SetActive(1);
-                particle->value_188 = 0;
+                particle->emission_count_188 = 0;
                 if (index == 0) {
                     callback = new W8MonsterShakeCallback;
                     callback->m_pMonster = this;
@@ -4161,7 +4161,7 @@ void W8Monster::UpdateShakeEvents004C3380(unsigned char previous_frame)
             if ((unsigned int)previous_frame == (unsigned int)particle->start_frame_264) {
                 if (enabled_1bd != 0) {
                     particle->SetActive(1);
-                    particle->value_188 = 0;
+                    particle->emission_count_188 = 0;
                 }
             } else if (static_cast<unsigned int>(m_pRep->subcycle_064) ==
                        static_cast<unsigned int>(particle->end_frame_268)) {
@@ -5152,23 +5152,23 @@ void W8Monster::SpawnDamageNumber(unsigned int amount)
                 LoadTexture004B95D0("Data\\Monsters\\Bitmaps\\", "BloodParticle.tga", 1));
             shader.value = 0x100c4b3;
             particle->SetRenderFlags004925A0(shader);
-            particle->value_140 = 20.0;
-            particle->value_1ac = 0;
-            particle->value_234.Set(0.0f, 0.0f, 0.0f);
-            particle->value_208 = 1.5707963f;
-            particle->value_20c = 1.5707963f;
-            particle->value_1c8 = 1;
-            particle->value_1a8 = 1;
-            particle->value_1bc = 2;
-            particle->value_1b0 = 1;
-            particle->value_1cc = 10000;
-            particle->value_1b8 = 3;
-            particle->value_214 = 1000.0f;
-            particle->value_218 = 3000.0f;
-            particle->state_184 = 8;
+            particle->particle_value_140 = 20.0;
+            particle->expiry_mode_1ac = 0;
+            particle->bounds_origin_234.Set(0.0f, 0.0f, 0.0f);
+            particle->cone_yaw_208 = 1.5707963f;
+            particle->cone_pitch_20c = 1.5707963f;
+            particle->emission_interval_1c8 = 1;
+            particle->has_acceleration_1a8 = 1;
+            particle->placement_mode_1bc = 2;
+            particle->emission_mode_1b0 = 1;
+            particle->lifetime_ms_1cc = 10000;
+            particle->direction_mode_1b8 = 3;
+            particle->speed_min_214 = 1000.0f;
+            particle->speed_max_218 = 3000.0f;
+            particle->emission_limit_184 = 8;
             particle->active_190 = true;
-            particle->value_1a4 = 2;
-            particle->value_240 = 1000.0f;
+            particle->bounds_mode_1a4 = 2;
+            particle->bounds_radius_240 = 1000.0f;
             location.SetFromFloat(&position);
             particle->setLocation(location);
             GetCurrentModelInstance004A8250()->getRotation(rotation);

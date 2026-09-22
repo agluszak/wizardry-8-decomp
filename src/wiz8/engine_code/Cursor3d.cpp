@@ -162,23 +162,23 @@ void InitializeWorldCursor00490210(void)
                 shader.value = 0x100c433;
                 g_world_cursor_0065ba8c->particle_04->SetRenderFlags004925A0(shader);
                 g_world_cursor_0065ba8c->particle_04->rotateX(-1.5707963);
-                g_world_cursor_0065ba8c->particle_04->value_140 = 100.0;
-                g_world_cursor_0065ba8c->particle_04->value_1c8 = 300;
+                g_world_cursor_0065ba8c->particle_04->particle_value_140 = 100.0;
+                g_world_cursor_0065ba8c->particle_04->emission_interval_1c8 = 300;
                 g_world_cursor_0065ba8c->particle_04->acceleration_1f4.Set(0.0f, -1000.0f, 0.0f);
-                g_world_cursor_0065ba8c->particle_04->value_1a8 = 1;
-                g_world_cursor_0065ba8c->particle_04->value_210 = 500.0f;
-                g_world_cursor_0065ba8c->particle_04->value_1bc = 2;
-                g_world_cursor_0065ba8c->particle_04->value_1b0 = 1;
-                g_world_cursor_0065ba8c->particle_04->value_1a4 = 0;
-                g_world_cursor_0065ba8c->particle_04->value_1ac = 0;
-                g_world_cursor_0065ba8c->particle_04->value_1cc = 6000;
-                g_world_cursor_0065ba8c->particle_04->value_208 = 1.5707963f;
-                g_world_cursor_0065ba8c->particle_04->value_20c = 1.5707963f;
-                g_world_cursor_0065ba8c->particle_04->value_214 = 500.0f;
-                g_world_cursor_0065ba8c->particle_04->value_218 = 1000.0f;
+                g_world_cursor_0065ba8c->particle_04->has_acceleration_1a8 = 1;
+                g_world_cursor_0065ba8c->particle_04->initial_speed_210 = 500.0f;
+                g_world_cursor_0065ba8c->particle_04->placement_mode_1bc = 2;
+                g_world_cursor_0065ba8c->particle_04->emission_mode_1b0 = 1;
+                g_world_cursor_0065ba8c->particle_04->bounds_mode_1a4 = 0;
+                g_world_cursor_0065ba8c->particle_04->expiry_mode_1ac = 0;
+                g_world_cursor_0065ba8c->particle_04->lifetime_ms_1cc = 6000;
+                g_world_cursor_0065ba8c->particle_04->cone_yaw_208 = 1.5707963f;
+                g_world_cursor_0065ba8c->particle_04->cone_pitch_20c = 1.5707963f;
+                g_world_cursor_0065ba8c->particle_04->speed_min_214 = 500.0f;
+                g_world_cursor_0065ba8c->particle_04->speed_max_218 = 1000.0f;
                 g_world_cursor_0065ba8c->particle_04->SetFlutter0049AD10(2);
-                g_world_cursor_0065ba8c->particle_04->value_200 = 50.0f;
-                g_world_cursor_0065ba8c->particle_04->value_204 = 1000;
+                g_world_cursor_0065ba8c->particle_04->flutter_amplitude_200 = 50.0f;
+                g_world_cursor_0065ba8c->particle_04->flutter_period_204 = 1000;
             }
             ApplyWorldCursorInput00490C60();
             if (g_world_cursor_0065ba8c != 0) {
@@ -491,9 +491,9 @@ void BindCursorMonsterToGroup004914E0(void)
         g_world_cursor_0065ba8c->group_bind_pending_09 = 0;
         g_world_cursor_0065ba8c->input_delta_0c.z = g_world_cursor_0065ba8c->input_delta_0c.z + 1;
         if (g_world_cursor_0065ba8c->particle_04 != 0) {
-            g_world_cursor_0065ba8c->particle_04->value_214 = 1000.0f;
-            g_world_cursor_0065ba8c->particle_04->value_218 = 2000.0f;
-            g_world_cursor_0065ba8c->particle_04->value_1c8 = 300;
+            g_world_cursor_0065ba8c->particle_04->speed_min_214 = 1000.0f;
+            g_world_cursor_0065ba8c->particle_04->speed_max_218 = 2000.0f;
+            g_world_cursor_0065ba8c->particle_04->emission_interval_1c8 = 300;
         }
         if (g_world_cursor_0065ba8c == 0) {
             position.SetZero();
@@ -616,9 +616,9 @@ void UpdateWorldCursor004916C0(void)
             g_world_cursor_0065ba8c->input_delta_0c.z =
                 g_world_cursor_0065ba8c->input_delta_0c.z + 1;
             if (g_world_cursor_0065ba8c->particle_04 != 0) {
-                g_world_cursor_0065ba8c->particle_04->value_214 = 3000.0f;
-                g_world_cursor_0065ba8c->particle_04->value_218 = 6000.0f;
-                g_world_cursor_0065ba8c->particle_04->value_1c8 = 0x14;
+                g_world_cursor_0065ba8c->particle_04->speed_min_214 = 3000.0f;
+                g_world_cursor_0065ba8c->particle_04->speed_max_218 = 6000.0f;
+                g_world_cursor_0065ba8c->particle_04->emission_interval_1c8 = 0x14;
             }
         }
     } else {
