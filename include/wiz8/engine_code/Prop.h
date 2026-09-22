@@ -118,7 +118,7 @@ public:
     void SetPosition0044E310(srVector3T<float>* position); /* 0x0044E310 */
     /* Whether trigger_18 exists and carries the action-message flag. */
     bool TriggerHasActionMessage0044E360(); /* 0x0044E360 */
-    /* Whether trigger_18 exists and takes an item (value_23c >= 0 or a
+    /* Whether trigger_18 exists and takes an item (required_item_id >= 0 or a
        type-10 action payload naming item_00a). */
     bool TriggerRequiresItem0044E380(); /* 0x0044E380 */
     /* The prop's current animation value; -1 when it has none. */

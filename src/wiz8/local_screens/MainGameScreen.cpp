@@ -902,13 +902,13 @@ W8LockInteraction::W8LockInteraction(Trigger* trigger) : m_timer_80()
 
     m_trigger_08 = trigger;
     m_state_34 = 0;
-    m_tumbler_count_0c = trigger->value_36c;
+    m_tumbler_count_0c = trigger->difficulty;
     if (m_tumbler_count_0c < 2) {
         m_tumbler_count_0c = 2;
     } else if (m_tumbler_count_0c > 8) {
         m_tumbler_count_0c = 8;
     }
-    m_tumbler_panel_10 = new W8LockTumblerPanel(m_tumbler_count_0c, trigger->state_370.bytes_01);
+    m_tumbler_panel_10 = new W8LockTumblerPanel(m_tumbler_count_0c, trigger->device_state.pins);
     m_tumbler_panel_10->m_listener_e8 = this;
     m_info_panel_14 = new W8LockInfoPanel(m_tumbler_count_0c);
     m_action_panel_18 = new Controls(0x1e7, 0x166, 0, 0, 0x1af, 0, 2);
@@ -1212,7 +1212,7 @@ void W8LockInteraction::ResolvePick()
     }
     m_slot_attempts_60[m_selected_slot_2c]++;
     m_tumbler_owner_38[m_picked_tumbler_30] = m_selected_slot_2c;
-    if (Random(5) == 0 && ConsumeLockQuality004457A0(&m_trigger_08->value_368) != 0) {
+    if (Random(5) == 0 && ConsumeLockQuality004457A0(&m_trigger_08->lock_type) != 0) {
         character = &g_status_685170.buffers.Char[m_selected_slot_2c];
         level = character->skills[10].level;
         PracticeCharacterSkill(character, 10, 1, 0);
@@ -2025,8 +2025,8 @@ void W8MainGameStatusPanel005EEBC0::Redraw()
 W8MainGameScreen::W8MainGameScreen(Trigger* owner)
     : m_owner_008(owner), m_state_018(0), m_target_14c(0), m_field_150(0)
 {
-    m_field_034 = owner->value_37c;
-    m_field_038 = owner->value_36c;
+    m_field_034 = owner->device_id;
+    m_field_038 = owner->difficulty;
     m_text_panel_00c = new W8MainGameTextPanel();
     m_text_panel_00c->m_screen_07c = this;
     m_status_panel_010 = new W8MainGameStatusPanel005EEBC0();
@@ -2604,12 +2604,13 @@ int OpenTrapInteraction0058A470(Trigger* trigger)
         gXStatus.fTrapInteract = 0;
         return 1;
     }
-    if (trigger->value_37c == -1) {
+    if (trigger->device_id == -1) {
         SelectTrapType005E3740(trigger);
     }
     g_main_game_screen = new W8MainGameScreen(trigger);
-    if (trigger->value_388 == -1 ||
-        0x3840 < static_cast<unsigned int>(g_status_685170.world_clock - trigger->value_388)) {
+    if (trigger->last_interaction_clock == -1 ||
+        0x3840 < static_cast<unsigned int>(g_status_685170.world_clock -
+                                           trigger->last_interaction_clock)) {
         event_type = g_effect_005ee5ec;
         if (0x13 < Random(100)) {
             event_type = g_value_0068c53c;
@@ -2621,7 +2622,7 @@ int OpenTrapInteraction0058A470(Trigger* trigger)
             event->dispatch_delay_start = GetTickCount();
         }
     }
-    trigger->value_388 = g_status_685170.world_clock;
+    trigger->last_interaction_clock = g_status_685170.world_clock;
     SoundPlay(s_trap_detect_64bcf0, 0);
     gXStatus.fTrapInteract = 0;
     return 1;

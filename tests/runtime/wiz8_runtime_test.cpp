@@ -51,6 +51,7 @@
 #include "oct_file_semantic_test.h"
 #include "keyboard_menu_semantic_test.h"
 #include "npc_dialogue_semantic_test.h"
+#include "lock_device_semantic_test.h"
 #include "mongen_semantic_test.h"
 #include "mouth_gap_semantic_test.h"
 #include "sight_semantic_test.h"
@@ -688,6 +689,14 @@ static DWORD RunNpcDialogueScenario()
     return g_observation.semantic_ok ? 0 : 1;
 }
 
+static DWORD RunLockDeviceScenario()
+{
+    LockDeviceSemanticResult lock_result;
+    g_observation.semantic_ok = RunLockDeviceSemanticTest(&lock_result);
+    PrintLockDeviceSemanticResults(&lock_result);
+    return g_observation.semantic_ok ? 0 : 1;
+}
+
 static DWORD RunSearchModeScenario()
 {
     g_observation.semantic_ok = RunSearchModeSemanticTest();
@@ -871,10 +880,10 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
             }
         }
     }
-    if (g_status_685170.buffers.characters != 0) {
+    if (g_status_685170.buffers.Char != 0) {
         for (int slot = 0; slot < 8; ++slot) {
-            const W8Character* character = &g_status_685170.buffers.characters[slot];
-            if (character->in_party != 0)
+            const W8Character* character = &g_status_685170.buffers.Char[slot];
+            if (character->fInParty != 0)
                 s->party_hp_total += character->hp_current;
         }
     }
@@ -2074,6 +2083,8 @@ static const RuntimeScenario kScenarios[] = {
     {"mouth-gap", RUNTIME_MAIN_MENU, RUNTIME_PR, RUNTIME_SEMANTIC, 20000, RunMouthGapScenario,
      ValidateSemantic},
     {"npc-dialogue", RUNTIME_MAIN_MENU, RUNTIME_PR, RUNTIME_SEMANTIC, 20000, RunNpcDialogueScenario,
+     ValidateSemantic},
+    {"lock-device", RUNTIME_MAIN_MENU, RUNTIME_PR, RUNTIME_SEMANTIC, 20000, RunLockDeviceScenario,
      ValidateSemantic},
     {"search-mode", RUNTIME_MAIN_MENU, RUNTIME_PR, RUNTIME_SEMANTIC, 20000, RunSearchModeScenario,
      ValidateSemantic},

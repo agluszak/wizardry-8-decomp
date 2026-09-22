@@ -96,6 +96,7 @@ set(WIZ8_RUNTIME_TEST_SOURCES
     "${PROJECT_SOURCE_DIR}/tests/runtime/oct_file_semantic_test.cpp"
     "${PROJECT_SOURCE_DIR}/tests/runtime/keyboard_menu_semantic_test.cpp"
     "${PROJECT_SOURCE_DIR}/tests/runtime/npc_dialogue_semantic_test.cpp"
+    "${PROJECT_SOURCE_DIR}/tests/runtime/lock_device_semantic_test.cpp"
     "${PROJECT_SOURCE_DIR}/tests/runtime/mongen_semantic_test.cpp"
     "${PROJECT_SOURCE_DIR}/tests/runtime/sight_semantic_test.cpp"
     "${PROJECT_SOURCE_DIR}/tests/runtime/split_stack_semantic_test.cpp"

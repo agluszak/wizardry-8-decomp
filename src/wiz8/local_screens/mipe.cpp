@@ -255,7 +255,7 @@ int g_mipe_cube_param_0068f130;
 // GLOBAL: WIZ8 0x0068f134
 int g_mipe_scale_plane_0068f134;
 
-/* Lock/trap kind names for the selected trigger's value_368, printed by the
+/* Lock/trap kind names for the selected trigger's lock_type, printed by the
    prop-edit menu and the locks & traps editor. */
 // GLOBAL: WIZ8 0x0064a1d0
 static const wchar_t* g_lock_type_names_0064a1d0[4] = {L"None", L"Pickable Lock", L"Trap",
@@ -1473,15 +1473,15 @@ static void HandleMipePropEditKey00579FF0(unsigned short key)
                 trigger = g_mipe_state_0068f100->prop->GetValue18();
                 ResetEditorStatusLine0058AA20(-1);
                 ShowNoticef(6, L"Edit Locks & Traps");
-                ShowNoticef(0xf, L"1) Type: %s", g_lock_type_names_0064a1d0[trigger->value_368]);
-                index = trigger->value_380;
+                ShowNoticef(0xf, L"1) Type: %s", g_lock_type_names_0064a1d0[trigger->lock_type]);
+                index = trigger->key_id;
                 if (index < 0) {
                     key_name = &g_wchar_00689b34;
                 } else {
                     key_name = g_item_records[index].display_name;
                 }
                 ShowNoticef(0xf, L"2) Key Id: (%d) %s", index, key_name);
-                ShowNoticef(0xf, L" Difficulty (3+/4-): %d", trigger->value_36c);
+                ShowNoticef(0xf, L" Difficulty (3+/4-): %d", trigger->difficulty);
             } else if (key == 0x32) {
                 trigger = prop->GetValue18();
                 table_index = FindItemTableByName(trigger->inline_action_data_24c);
@@ -2355,7 +2355,7 @@ static void HandleMipeLockTrapKey0057B880(unsigned short key)
     bool pending;
 
     trigger = g_mipe_state_0068f100->prop->GetValue18();
-    lock_state = &trigger->value_368;
+    lock_state = &trigger->lock_type;
     action_trigger = g_mipe_state_0068f100->prop->GetValue18();
     action = action_trigger->m_pActionData;
     if (action == 0 || action->type_004 != '\n') {
@@ -2370,13 +2370,13 @@ static void HandleMipeLockTrapKey0057B880(unsigned short key)
         UpdateTriggerLock00445730(lock_state);
         if (action == 0) {
             if (*lock_state == 3) {
-                key_id = trigger->value_380;
-                g_mipe_state_0068f100->prop->GetValue18()->value_23c = key_id;
+                key_id = trigger->key_id;
+                g_mipe_state_0068f100->prop->GetValue18()->required_item_id = key_id;
             } else {
-                g_mipe_state_0068f100->prop->GetValue18()->value_23c = 0xffffffff;
+                g_mipe_state_0068f100->prop->GetValue18()->required_item_id = 0xffffffff;
             }
         } else {
-            if (*lock_state == 0 || trigger->state_370.state != 0) {
+            if (*lock_state == 0 || trigger->device_state.completed != 0) {
                 pending = 0;
             } else {
                 pending = 1;
@@ -2384,7 +2384,7 @@ static void HandleMipeLockTrapKey0057B880(unsigned short key)
             static_cast<W8DoorTriggerActionData*>(action)->flags_008 =
                 (pending << 2) | (static_cast<W8DoorTriggerActionData*>(action)->flags_008 & 0xfb);
             static_cast<W8DoorTriggerActionData*>(action)->item_00a =
-                static_cast<short>(trigger->value_380);
+                static_cast<short>(trigger->key_id);
         }
         break;
     case 0x32:
@@ -2392,32 +2392,32 @@ static void HandleMipeLockTrapKey0057B880(unsigned short key)
         trigger = g_mipe_state_0068f100->prop->GetValue18();
         ResetEditorStatusLine0058AA20(-1);
         ShowNoticef(6, L"Enter Key ID:");
-        ShowNoticef(0xf, g_format_d_0060aa20, trigger->value_380);
+        ShowNoticef(0xf, g_format_d_0060aa20, trigger->key_id);
         return;
     case 0x33:
-        trigger->value_36c = trigger->value_36c + 1;
-        if (10 < trigger->value_36c) {
-            trigger->value_36c = 10;
+        trigger->difficulty = trigger->difficulty + 1;
+        if (10 < trigger->difficulty) {
+            trigger->difficulty = 10;
         }
         break;
     case 0x34:
-        trigger->value_36c = trigger->value_36c - 1;
-        if (trigger->value_36c < 0) {
-            trigger->value_36c = 0;
+        trigger->difficulty = trigger->difficulty - 1;
+        if (trigger->difficulty < 0) {
+            trigger->difficulty = 0;
         }
     }
     trigger = g_mipe_state_0068f100->prop->GetValue18();
     ResetEditorStatusLine0058AA20(-1);
     ShowNoticef(6, L"Edit Locks & Traps");
-    ShowNoticef(0xf, L"1) Type: %s", g_lock_type_names_0064a1d0[trigger->value_368]);
-    key_id = trigger->value_380;
+    ShowNoticef(0xf, L"1) Type: %s", g_lock_type_names_0064a1d0[trigger->lock_type]);
+    key_id = trigger->key_id;
     if (key_id < 0) {
         key_name = &g_wchar_00689b34;
     } else {
         key_name = g_item_records[key_id].display_name;
     }
     ShowNoticef(0xf, L"2) Key Id: (%d) %s", key_id, key_name);
-    ShowNoticef(0xf, L" Difficulty (3+/4-): %d", trigger->value_36c);
+    ShowNoticef(0xf, L" Difficulty (3+/4-): %d", trigger->difficulty);
 }
 
 /* The digit keys editing the selected prop trigger's key id. */
@@ -2434,7 +2434,7 @@ void EditTriggerKeyID0057BA60(unsigned int key)
     if (action == 0 || action->type_004 != '\n') {
         action = 0;
     }
-    key_id = trigger->value_380;
+    key_id = trigger->key_id;
     switch (key & 0xffff) {
     case 8:
         key_id = key_id / 10;
@@ -2455,15 +2455,15 @@ void EditTriggerKeyID0057BA60(unsigned int key)
         key_id = ((key & 0xffff) - 0x30) + key_id * 10;
         break;
     }
-    trigger->value_380 = key_id;
+    trigger->key_id = key_id;
     if (action == 0) {
-        if (trigger->value_368 == 3) {
-            g_mipe_state_0068f100->prop->GetValue18()->value_23c = key_id;
+        if (trigger->lock_type == 3) {
+            g_mipe_state_0068f100->prop->GetValue18()->required_item_id = key_id;
         } else {
-            g_mipe_state_0068f100->prop->GetValue18()->value_23c = 0xffffffff;
+            g_mipe_state_0068f100->prop->GetValue18()->required_item_id = 0xffffffff;
         }
     } else {
-        if (trigger->value_368 == 0 || trigger->state_370.state != 0) {
+        if (trigger->lock_type == 0 || trigger->device_state.completed != 0) {
             pending = 0;
         } else {
             pending = 1;
@@ -2471,12 +2471,12 @@ void EditTriggerKeyID0057BA60(unsigned int key)
         static_cast<W8DoorTriggerActionData*>(action)->flags_008 =
             (pending << 2) | (static_cast<W8DoorTriggerActionData*>(action)->flags_008 & 0xfb);
         static_cast<W8DoorTriggerActionData*>(action)->item_00a =
-            static_cast<short>(trigger->value_380);
+            static_cast<short>(trigger->key_id);
     }
     trigger = g_mipe_state_0068f100->prop->GetValue18();
     ResetEditorStatusLine0058AA20(-1);
     ShowNoticef(6, L"Enter Key ID:");
-    ShowNoticef(0xf, g_format_d_0060aa20, trigger->value_380);
+    ShowNoticef(0xf, g_format_d_0060aa20, trigger->key_id);
 }
 
 /* Mode-0x1d key handler: the prop trigger's treasure-table picker. Enter
@@ -2504,7 +2504,7 @@ static void HandleMipeItemTableKey0057BBD0(unsigned short key)
             table = g_item_tables[table_index & 0xffff];
             trigger = g_mipe_state_0068f100->prop->GetValue18();
             strcpy(trigger->inline_action_data_24c, table->name);
-            trigger->flag_350 = 0;
+            trigger->items_generated = 0;
         }
         ShowMipePropMenu00577EB0();
         g_mipe_mode_0068f108 = 0xd;
@@ -2901,8 +2901,8 @@ unsigned char HandleMipeKey0057C230(const InputAtom* event)
                                         ResetEditorStatusLine0058AA20(-1);
                                         ShowNoticef(6, L"Edit Locks & Traps");
                                         ShowNoticef(0xf, L"1) Type: %s",
-                                                    g_lock_type_names_0064a1d0[trigger->value_368]);
-                                        key_id = trigger->value_380;
+                                                    g_lock_type_names_0064a1d0[trigger->lock_type]);
+                                        key_id = trigger->key_id;
                                         if (key_id < 0) {
                                             key_name = &g_wchar_00689b34;
                                         } else {
@@ -2910,7 +2910,7 @@ unsigned char HandleMipeKey0057C230(const InputAtom* event)
                                         }
                                         ShowNoticef(0xf, L"2) Key Id: (%d) %s", key_id, key_name);
                                         ShowNoticef(0xf, L" Difficulty (3+/4-): %d",
-                                                    trigger->value_36c);
+                                                    trigger->difficulty);
                                     } else {
                                         if (g_mipe_mode_0068f108 == 0x1d) {
                                             g_mipe_mode_0068f108 = 0xd;
