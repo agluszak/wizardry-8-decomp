@@ -13,6 +13,7 @@
 
 #define QUAD_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\quad.cpp"
 
+// GLOBAL: WIZ8 0x0060E5D0
 float g_quad_cell_size_0060e5d0 = 5500.0f;
 
 // FUNCTION: WIZ8 0x004BE0A0

@@ -20,11 +20,17 @@
 
 // GLOBAL: WIZ8 0x0068368c
 int g_font_bold_0068368c;
+// GLOBAL: WIZ8 0x0069C4A8
 W8GrowableVector<W8CreditLine>* g_credit_lines_0069c4a8;
+// GLOBAL: WIZ8 0x0069C494
 int g_credit_elapsed_steps_0069c494;
+// GLOBAL: WIZ8 0x0069C498
 unsigned char g_credit_redraw_0069c498;
+// GLOBAL: WIZ8 0x0069C49C
 unsigned long g_credit_started_at_0069c49c;
+// GLOBAL: WIZ8 0x0069C4A0
 int g_credit_y_0069c4a0;
+// GLOBAL: WIZ8 0x0069C4A4
 int g_credit_line_0069c4a4;
 
 /* Read one wide line, stopping at a newline, capacity, or the end of the
