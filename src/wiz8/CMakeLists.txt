@@ -92,6 +92,8 @@ wiz8_lint_target(wiz8_recovered_objects)
 
 set(WIZ8_RUNTIME_TEST_SOURCES
     "${PROJECT_SOURCE_DIR}/tests/runtime/game_thread_executor.cpp"
+    "${PROJECT_SOURCE_DIR}/tests/runtime/runtime_case.cpp"
+    "${PROJECT_SOURCE_DIR}/tests/runtime/gameplay_actions.cpp"
     "${PROJECT_SOURCE_DIR}/tests/runtime/wiz8_runtime_test.cpp"
     "${PROJECT_SOURCE_DIR}/tests/runtime/oct_file_semantic_test.cpp"
     "${PROJECT_SOURCE_DIR}/tests/runtime/keyboard_menu_semantic_test.cpp"
