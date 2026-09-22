@@ -123,7 +123,7 @@ bool MartensBluff1FHandlock004DEDB0(Trigger* pTrigger)
 {
     W8Dice dice;
 
-    if (pTrigger->flag_364 != 0) {
+    if (pTrigger->running != 0) {
         return true;
     }
     if (g_status_685170.item_in_cursor != 0 && GetItemInHand() == 0x26f) {
@@ -230,7 +230,7 @@ bool MartensBluff1JDoorController004DEFB0(Trigger* pTrigger)
     stParticle* particle;
     int state;
 
-    if (g_door_controller_68355c == 0 || pTrigger->flag_364 != 0) {
+    if (g_door_controller_68355c == 0 || pTrigger->running != 0) {
         return false;
     }
     state = GetLocationVarValueByName("DialState");

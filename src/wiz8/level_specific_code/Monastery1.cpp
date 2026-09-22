@@ -19,7 +19,7 @@
 void ClearTextForBarTrigger004DC8D0(void)
 {
     Trigger* trigger = FindTriggerByName("Bartrigger");
-    if (trigger != 0 && trigger->value_0b1 == 1) {
+    if (trigger != 0 && trigger->state_index == 1) {
         trigger = FindTriggerByName("Textforbar");
         if (trigger != 0) {
             trigger->flags_0a0 &= ~0x100u;
