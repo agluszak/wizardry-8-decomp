@@ -603,7 +603,7 @@ void stParticle::Update00499FA0()
                     continue;
                 }
                 if (expires_at - 500 < now) {
-                    float alpha = (float)(expires_at - now) * g_float_005ebc60;
+                    float alpha = (expires_at - now) * g_float_005ebc60;
                     unsigned int alpha_end = vertex + 4;
                     unsigned int alpha_index;
                     for (alpha_index = vertex; alpha_index < alpha_end; ++alpha_index) {
@@ -746,9 +746,9 @@ void stParticle::InitializeParticlePosition0049A990(srVector3T<float>* output)
     output->Transform(rotation);
 
     srVector3T<double> location = getLocation();
-    output->x += (float)location.x;
-    output->y += (float)location.y;
-    output->z += (float)location.z;
+    output->x += static_cast<float>(location.x);
+    output->y += static_cast<float>(location.y);
+    output->z += static_cast<float>(location.z);
 }
 
 // FUNCTION: WIZ8 0x004980E0
@@ -811,7 +811,7 @@ void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
     view.vectors[1].w = 0.0f;
     view.vectors[2].w = 0.0f;
 
-    float normalization = (float)(g_double_005ebc30 / view.vectors[0].Length());
+    float normalization = static_cast<float>(g_double_005ebc30 / view.vectors[0].Length());
     view.vectors[0] *= normalization;
     view.vectors[1] *= normalization;
     view.vectors[2] *= normalization;

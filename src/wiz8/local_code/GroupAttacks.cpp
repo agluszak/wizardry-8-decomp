@@ -503,7 +503,7 @@ void SpawnSummonedMonsterGroup00556B10(int special_attack_kind, W8TargetSource* 
         disposition = 1;
     }
     SetMonsterGroupHostility(group, disposition, 0);
-    if (monster_info->player_visibility.state_04 == 1) {
+    if (monster_info->player_visibility.sight_state_04 == W8_SIGHT_SEEN) {
         placed = PositionMonsterGroupNearCamera00511050(group, 0.0f, 0.0f, 1);
         if (placed == 0) {
             placed = PositionMonsterGroupNearCamera00511050(group, 1500.0f, 0.0f, 1);

@@ -1060,7 +1060,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
 
                     if (g_pathing_00659c60->SnapWaypointPosition00462E60(&navigator_position, 0) ==
                             0 &&
-                        monster_info->party_threat.flag_25 == 0) {
+                        monster_info->party_threat.visible_to_player_25 == 0) {
                         srVector3T<float> next_position;
 
                         monster->movement_0c0.attachment_0ac->GetNextPosition00456660(

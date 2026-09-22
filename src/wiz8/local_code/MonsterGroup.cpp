@@ -843,7 +843,7 @@ bool MonsterGroupHasRenderableMember(W8MonsterGroup* monster_group, char require
             0x8e6, MONSTER_GROUP_CPP, IListGetAt(monster_group->monsters, index), 1));
         if (info->monster->IsWithinWorldRange004CA2A0() != 0 &&
             info->monster->IsRenderable004C7C00(1) != 0 &&
-            (require_threat == 0 || info->party_threat.sight_flags_05[1] != 0)) {
+            (require_threat == 0 || info->party_threat.los_flags_05[1] != 0)) {
             return true;
         }
     }
