@@ -208,7 +208,7 @@ unsigned char StartMusicResource0048FC10(const char* resource, int fade, int rep
     if (resource == 0) {
         return 0;
     }
-    if (g_flag_689b32 != 0) {
+    if (g_dev_mode_689b32 != 0) {
         RequestExitScreen();
     }
 

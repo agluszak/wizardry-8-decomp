@@ -144,7 +144,7 @@ public:
        folded into the owning spell effect by 0x00500460. */
     W8SpellEffectResult result_280;
     bool retargeted_322; /* the missile struck something other than its intended target */
-    unsigned char unknown_323[5];
+    unsigned char padding_323[5];
 };
 
 static_assert(sizeof(W8Missile) == 0x328, "W8Missile_size_must_be_0x328");

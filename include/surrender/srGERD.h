@@ -21,9 +21,11 @@ struct srVertexArray;
 class SR_DLL_IMPORT srGERD : public srRuntimeClass {
 public:
     struct Pick {
-        float value_00;
-        float value_04;
-        float value_08;
+        /* Normalized pick point the caller fills: x and y are the cursor's
+           viewport-space coordinates, z is the fixed 1.0 far value. */
+        float x_00;
+        float y_04;
+        float z_08;
         srModelInstance* selected_model_0c;
         unsigned long value_10;
     };
@@ -174,25 +176,32 @@ public:
         unsigned char unknown_38[4];
         unsigned long value_3c;
         /* applyViewStateChanges increments this counter on every apply. */
-        unsigned long value_40;
-        unsigned long value_44;
+        unsigned long view_state_applies_40;
+        /* applyDrawStateChanges increments this counter on every apply. */
+        unsigned long draw_state_applies_44;
         /* applyFrameStateChanges increments this counter on every apply. */
         unsigned long frame_state_count_48;
-        unsigned long value_4c;
-        /* Texture-parameter updates, palette binds and shader updates
-           counted by setTextureParameters/changeTexture/applyDrawStateChanges. */
-        unsigned long value_50;
+        /* Texture binds counted by changeTexture after the stage's bound
+           texture actually changes; the debug overlay prints it as "TC". */
+        unsigned long texture_binds_4c;
+        /* Texture-parameter updates counted by setTextureParameters. */
+        unsigned long texture_parameter_sets_50;
         /* createNewTexture increments this created-texture count. */
-        unsigned long value_54;
-        unsigned long value_58;
-        unsigned long value_5c;
+        unsigned long textures_created_54;
+        /* Palette binds counted when a changed texture carries a new palette. */
+        unsigned long palette_binds_58;
+        /* setShader calls counted by applyDrawStateChanges. */
+        unsigned long shader_sets_5c;
         unsigned char unknown_60[8];
         unsigned long value_68;
-        unsigned long value_6c;
-        unsigned long value_70;
-        unsigned long value_74;
-        unsigned long value_78;
-        unsigned long value_7c;
+        /* testBoundingSphere call count / visible-result count. */
+        unsigned long sphere_tests_6c;
+        unsigned long sphere_visible_70;
+        /* testBoundingBox call count / visible-result count. */
+        unsigned long box_tests_74;
+        unsigned long box_visible_78;
+        /* classifyMatrix call count. */
+        unsigned long matrix_classifications_7c;
     };
     void getStatistics(Statistics& statistics);
     unsigned long getTextureCacheUsed() const;

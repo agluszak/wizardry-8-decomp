@@ -1498,7 +1498,7 @@ void W8CampCharacterInfo::Redraw()
     InvalidateCampPanel005B9EF0();
     DrawRcsText(gppStringList[0x24d4 / 4], 0x15e, 0x84, 0x4e,
                 g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED548);
-    swprintf(g_camp_screen_0069c0f4->caption, L"%d", g_review_character_0069c0f8->value_09f9);
+    swprintf(g_camp_screen_0069c0f4->caption, L"%d", g_review_character_0069c0f8->kill_count_09f9);
     DrawRcsText(g_camp_screen_0069c0f4->caption, 0x1ae, 0x84, 0x20,
                 g_W8TextBufferLayoutMask005ED54C | g_W8TextBufferLayoutMask005ED554);
     DrawRcsText(gppStringList[0x24d8 / 4], 0x15e, 0x92, 0x4e,
@@ -1883,7 +1883,7 @@ unsigned char CampScreenEnter(void)
 // FUNCTION: WIZ8 0x005a3ae0
 void CampScreenFrame(void)
 {
-    if (g_flag_689b32) {
+    if (g_dev_mode_689b32) {
         RequestExitScreen();
     }
     if (IsMessageBoxActive()) {

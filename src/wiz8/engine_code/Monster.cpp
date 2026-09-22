@@ -1802,7 +1802,7 @@ unsigned char W8Monster::GetProjectilePosition004C77F0(srVector3T<float>* positi
 
     result = GetCycleMappedPosition004C7960(cycle, 5, position);
     if (result == 0 && missile_point_warned_22d == 0) {
-        if (g_flag_689b32 != 0) {
+        if (g_dev_mode_689b32 != 0) {
             W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x18c3, MONSTER_CPP, location_id_1e4, 1));
             FormatDebugMessage(0, "WARNING: %ls does not have a MISSILE_START_POINT defined",
@@ -1825,7 +1825,7 @@ unsigned char W8Monster::GetSpellPosition004C78E0(srVector3T<float>* position)
     }
     found = GetCycleMappedPosition004C7960(0x19, 6, position);
     if (found == 0 && spell_vertex_warned_22c == 0) {
-        if (g_flag_689b32 != 0) {
+        if (g_dev_mode_689b32 != 0) {
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x18e4, MONSTER_CPP, location_id_1e4, 1));
             W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
@@ -3114,7 +3114,7 @@ unsigned char W8Monster::CanEnterCycle(signed char cycle)
     }
     if (m_pRep->animation_playing_06d == 0) {
         if (cycle != 0x14 && cycle != 0x15 && cycle != 0 && monster_info->fMotionless != 0) {
-            if (g_flag_689b32 == 0) {
+            if (g_dev_mode_689b32 == 0) {
                 return 0;
             }
             srAssertFail("FALSE", MONSTER_CPP, 0x97f, 0);
@@ -4063,7 +4063,7 @@ prepare_attack:
     memcpy(attack_block.condition_chances, attack->missile_values_05, 0x10);
     monster_value = record->effective_level_24f;
     attack_block.power_level = monster_value + (monster_value < 15 ? monster_value : 15);
-    attack_block.magnitude_base_1c = attack->missile_value_1b;
+    attack_block.magnitude_base_1c = attack->missile_magnitude_1b;
 
     if (selected_attack != 0) {
         accuracy =

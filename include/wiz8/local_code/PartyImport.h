@@ -16,7 +16,7 @@ struct W8Wiz7Item {
    size assertion). */
 struct W8Wiz7Character {
     char name_000[0x10]; /* 0x000: ASCII name TitleCaseString reads */
-    int unknown_010;     /* 0x010: stored verbatim to value_09f9 */
+    int kill_count_010;  /* 0x010: stored verbatim to kill_count_09f9 */
     unsigned char unknown_014[0x10];
     short level_024;  /* 0x024: positive values import as level 1 */
     short deaths_026; /* 0x026: stored to death_count_09fd minus one */

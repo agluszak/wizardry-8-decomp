@@ -80,7 +80,7 @@ struct W8ItemDatabaseRecord {
     unsigned char missile_values_050[0x10];
     /* 0x060: the item's missile bonus, summed across both weapons into the
        effect definition's value_1c. */
-    unsigned char missile_value_060;
+    unsigned char missile_magnitude_060;
     /* 0x061: the monster kind the weapon slays for an extra damage die,
        compared against W8MonsterRecord::kind_0cb by the character damage
        resolver; 0xff means the weapon slays nothing. */

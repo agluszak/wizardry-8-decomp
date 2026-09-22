@@ -677,7 +677,7 @@ static void DrawCampEffectEntry005C54A0(W8CampEffectEntry* entry, int* line_out)
                 if (index == 2) {
                     wcscat(g_camp_screen_0069c0f4->caption, L" (");
                     wcscat(g_camp_screen_0069c0f4->caption, gppStringList[0x8d5]);
-                    swprintf(value_text, L"%d)", record->missile_value_060);
+                    swprintf(value_text, L"%d)", record->missile_magnitude_060);
                     wcscat(g_camp_screen_0069c0f4->caption, value_text);
                 }
                 gprintf(0x15e, line * 0xe + 0xbf, const_cast<wchar_t*>(g_format_s_colon_s_0061c3e0),

@@ -320,7 +320,7 @@ unsigned char HandleMouselookInput00568B50(const InputAtom* input);
 
 bool IsPartyPortraitUnderCursor00561980(unsigned int party_slot);
 void UpdateFormationPortraitRefresh0059B2D0(void);
-extern unsigned char g_flag_00652da7;
+extern unsigned char g_mouselook_manual_00652da7;
 /* Insanity (spell 0x3c) world-cursor extent rows: six doubles per row.
    Three rows fill through 0x00616f40, immediately before the power index. */
 // GLOBAL: WIZ8 0x00616eb0
@@ -3520,7 +3520,7 @@ void MainGameScreenFrame(void)
     /* Retail compiled this comparison with VC6's mixed-sign operands; the
    signedness is part of the recovered body and changing it would change
    the compare and branch. Suppress only this diagnostic here. */
-    if (g_flag_689b32) {
+    if (g_dev_mode_689b32) {
         RequestExitScreen();
     }
     if (g_build_level_links_0065bd2c) {
@@ -4566,7 +4566,7 @@ void DrawMainGameScreen(void)
             }
             g_node_cull_pending_0068edda = 0;
         }
-        if (g_flag_689b32 != 0) {
+        if (g_dev_mode_689b32 != 0) {
             g_status_685170.dev_flagged_49c1 = 1;
         }
     }
@@ -7547,7 +7547,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
                 g_mouselook_active_0068edd8 = 0;
                 g_mouselook_left_held_0068edd9 = 0;
                 gfTrackMousePos = 0;
-                g_flag_00652da7 = 0;
+                g_mouselook_manual_00652da7 = 0;
                 return 1;
             }
             if (GetFlag68F105() == 0) {
@@ -7637,7 +7637,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
                     g_mouselook_active_0068edd8 = 0;
                     g_mouselook_left_held_0068edd9 = 0;
                     gfTrackMousePos = 0;
-                    g_flag_00652da7 = 0;
+                    g_mouselook_manual_00652da7 = 0;
                     return 1;
                 }
             } else if (g_mouselook_active_0068edd8 != 0) {
@@ -7649,7 +7649,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
             WarpSystemCursor(0x140, 0xf0);
             g_mouselook_active_0068edd8 = 1;
             g_mouselook_left_held_0068edd9 = 0;
-            g_flag_00652da7 = 1;
+            g_mouselook_manual_00652da7 = 1;
             gfTrackMousePos = 1;
         }
         return 1;

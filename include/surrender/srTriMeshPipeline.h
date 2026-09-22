@@ -58,7 +58,8 @@ public:
         unsigned long value_10;
         const srShader* shader_14;
         srVector2T<float>* st_18;
-        unsigned long value_1c;
+        /* The mesh's poly UV index table, stored through the ulong slot. */
+        unsigned long poly_uv_1c;
     };
 
     static_assert(sizeof(Record) == 0x5c, "srTriMeshPipeline_Record_must_be_0x5c");

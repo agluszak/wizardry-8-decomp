@@ -156,7 +156,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
     m_text_area_ec.Configure(&bounds, g_font_683660, 0);
     m_text_area_ec.SetEntrySpacing(1);
 
-    if (g_flag_689b32 != 0) {
+    if (g_dev_mode_689b32 != 0) {
         group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
             0xc8, MONSTER_INFO_DIALOG_CPP, monster_info->monster_group_id, 1));
         linked = monster_info->monster->linked_navigator_05c;
@@ -209,7 +209,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
         wcscat(text, FormatWideString(g_format_d_0060aa20, monster_info->hp_max));
     }
     m_text_area_ec.AddEntry(gppStringList[0x13d], text, 10, 0xf, 0);
-    if (g_flag_689b32 != 0 && knowledge < 10) {
+    if (g_dev_mode_689b32 != 0 && knowledge < 10) {
         wcscpy(text, FormatWideString(g_journal_page_format_0064d7f0, monster_info->hp_current,
                                       monster_info->hp_max));
         m_text_area_ec.AddEntry(gppStringList[0x13d], text, 5, 0xf, 0);
@@ -227,7 +227,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
         wcscat(text, FormatWideString(g_format_d_0060aa20, monster_info->stamina_max));
     }
     m_text_area_ec.AddEntry(gppStringList[0x13e], text, 10, 0xf, 0);
-    if (g_flag_689b32 != 0 && knowledge < 0x14) {
+    if (g_dev_mode_689b32 != 0 && knowledge < 0x14) {
         wcscpy(text, FormatWideString(g_journal_page_format_0064d7f0, monster_info->stamina,
                                       monster_info->stamina_max));
         m_text_area_ec.AddEntry(gppStringList[0x13e], text, 5, 0xf, 0);
@@ -409,7 +409,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
                                [g_condition_notices_0061E570[immunity->conditions[slot] * 4 + 3]]);
                     ++count;
                 }
-                if (immunity->unknown_01 != 0) {
+                if (immunity->immune_all_01 != 0) {
                     if (count > 0) {
                         wcscat(text, g_comma_space_00619794);
                     }
@@ -432,7 +432,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
         }
     }
 
-    if (g_flag_689b32 != 0) {
+    if (g_dev_mode_689b32 != 0) {
         m_text_area_ec.AddEntry(L"Range / Combat Ground",
                                 FormatWideString(L"%.2f / %.2f M", combat_range * g_float_005ebc60,
                                                  (monster_info->monster->GetPosition() -

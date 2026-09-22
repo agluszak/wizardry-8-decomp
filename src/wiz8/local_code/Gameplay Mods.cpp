@@ -193,8 +193,8 @@ void ApplyModifierBlock(W8GameplayModifierBlock* target, const W8GameplayModifie
     if (source->out_of_formation != 0) {
         target->out_of_formation = 1;
     }
-    if (source->flag_46 != 0) {
-        target->flag_46 = 1;
+    if (source->detect_secrets_46 != 0) {
+        target->detect_secrets_46 = 1;
     }
     if (source->sight_override_4a != 0) {
         target->sight_override_4a = 1;

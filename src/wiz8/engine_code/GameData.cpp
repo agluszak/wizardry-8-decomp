@@ -56,7 +56,7 @@ unsigned int* g_level_flags_00652da8;
 // GLOBAL: WIZ8 0x00652dac
 W8LevelDataRecord* g_level_data_00652dac;
 // GLOBAL: WIZ8 0x00652da7
-unsigned char g_flag_00652da7;
+unsigned char g_mouselook_manual_00652da7;
 
 // FUNCTION: WIZ8 0x00420bd0
 float SettlePositionToGround00420BD0(const srVector3T<float>* position, unsigned char* hit)
@@ -302,7 +302,7 @@ void W8GameData::ApplyCameraMotionFlags0041F330(unsigned int flags, srMatrix3T<f
         (g_level_data_00652dac->flags & W8_LEVEL_FLAG_6) == 0) {
         g_navigator_position_changed_659c11 = 1;
     }
-    if (g_flag_00652da7 != 0) {
+    if (g_mouselook_manual_00652da7 != 0) {
         g_gd_camera_65a0f8->SetManualControlActive(1);
     }
     g_gd_camera_65a0f8->ApplyPitchInput(pitch_input);
@@ -2658,7 +2658,7 @@ int GetCameraYawAndRotation00420F40(srMatrix3T<float>* rotation)
 void LevelCamera()
 {
     g_gd_camera_65a0f8->BeginLeveling();
-    g_flag_00652da7 = 0;
+    g_mouselook_manual_00652da7 = 0;
 }
 
 // FUNCTION: WIZ8 0x00420F90

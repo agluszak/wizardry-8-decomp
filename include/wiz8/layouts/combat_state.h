@@ -109,7 +109,7 @@ struct W8CombatCharacterRow {
     unsigned int phase; /* 0x00: combat phase; cleared when the character dies */
     unsigned char unknown_04[0x30];
     bool dead_34; /* 0x34: raised when the character dies */
-    unsigned char unknown_35[3];
+    unsigned char padding_35[3];
     /* 0x38: the two hand values GetCharacterTurnValue reuses once this row's
        turn is already set up. Retail indexes them from the combat-state base
        as dword stride 0x35; that is this field, not a second BSS array. */
@@ -148,7 +148,7 @@ struct W8CombatCharacterRow {
        -1 slot empty or out of the fight, 0 ready, 1 cannot switch to combat,
        2 dead or ineligible, 3 the acting combatant (portrait pulses). */
     char combat_status_8c;
-    unsigned char unknown_8d[3];
+    unsigned char padding_8d[3];
     /* 0x90: how many times the character already rolled to notice an attacker
        this round; the first attempt always succeeds and each later one is 25
        points harder on the senses check. */
@@ -161,7 +161,7 @@ struct W8CombatCharacterRow {
        CanPartySlotPray and CanPartySlotTurnUndead. */
     unsigned char pray_used;
     unsigned char turn_undead_used;
-    unsigned char unknown_9a[2];
+    unsigned char padding_9a[2];
     /* 0x9c: the combat clock value when CatchUpCombatActor last advanced this
        row's phase (its inlined copies stamp g_combat_state->round_counter
        here); the spell-scaling paths read it as the character's combat pace. */
@@ -186,7 +186,7 @@ struct W8CombatCharacterRow {
        when the target has the skill trained; the round-end pass awards
        practice credit to exactly those three entries and clears them. */
     unsigned char skill_use_flags[0x29];
-    unsigned char unknown_d1[3];
+    unsigned char padding_d1[3];
 }; /* 0xd4 */
 
 static_assert(sizeof(W8CombatCharacterRow) == 0xd4, "W8CombatCharacterRow_must_be_0xd4");
@@ -203,7 +203,7 @@ struct W8CombatState {
        cleared at the round boundary while continuous_combat is off. Gates
        party movement and the combat-sensitive UI panels. */
     bool round_active_001;
-    unsigned char unknown_002[2];
+    unsigned char padding_002[2];
     /* 0x004: current round number - incremented at each round boundary,
        shown in the round notices and gating the round-one specials. */
     unsigned int round_count_004;
@@ -242,7 +242,7 @@ struct W8CombatState {
     /* 0x8c5: exact name from the attack assertions; the slot is unaligned
        after the byte above, which packing makes representable. */
     W8CombatSlot TargetHit;
-    unsigned char unknown_8e5[3];
+    unsigned char padding_8e5[3];
     int pending_deaths[8];   /* 0x8e8 */
     int pending_death_count; /* 0x908 */
     /* 0x90c: the party-action fields the movement assertions pin. */
@@ -273,7 +273,7 @@ struct W8CombatState {
     /* 0xa48: the once-per-combat difficulty evaluation has run; the update
        tick calls the evaluator on the first frame it sees this clear. */
     unsigned char combat_evaluated_a48;
-    unsigned char unknown_a49[3];
+    unsigned char padding_a49[3];
     /* 0xa4c: the in-flight breath visual for a character's special-attack
        action. The executor refuses while its `finished` flag is clear and
        hands the previous one to the world updater through `auto_release`. */
@@ -303,7 +303,7 @@ struct W8CombatState {
        at 0x004ed710 sets a flag after queuing events 0x3a and 0x36; event
        0x36 clears it. 0x004ed460 tests exactly these two slots. */
     bool npc_combat_script_pending[2];
-    unsigned char unknown_a5a[2];
+    unsigned char padding_a5a[2];
     /* 0xa5c: the combat updates elapsed; the engagement sweep waits for the
        third before it touches group states. */
     unsigned int combat_update_count;

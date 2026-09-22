@@ -868,7 +868,7 @@ void SetMonsterHighlight(int party_slot, int location_id, char on)
 
 /* The location id of the nearest live monster whose current model instance is
    under the cursor, or -1. Born monsters come first; the unborn list joins the
-   scan only while g_flag_689b32 is set. The cursor coordinates are carried but
+   scan only while g_dev_mode_689b32 is set. The cursor coordinates are carried but
    unused - the hover test is MonsterUsesCurrentModelInstance. */
 // FUNCTION: WIZ8 0x005396d0
 int PickNearestMonsterUnderCursor005396D0(int cursor_x, int cursor_y)
@@ -907,7 +907,7 @@ int PickNearestMonsterUnderCursor005396D0(int cursor_x, int cursor_y)
             best_distance = distance;
         }
     }
-    if (g_flag_689b32 != 0) {
+    if (g_dev_mode_689b32 != 0) {
         for (index = 0; index < PLLength(gXStatus.plsUnbornMonsterList); ++index) {
             W8MonsterInfo* monster_info =
                 static_cast<W8MonsterInfo*>(PLGet(gXStatus.plsUnbornMonsterList, index));

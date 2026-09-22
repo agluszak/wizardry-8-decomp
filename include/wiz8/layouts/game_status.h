@@ -219,7 +219,7 @@ struct W8GlobalStatus {
     /* 0x49c0: set when the endgame transition starts; saves carrying either
        this or flag_49bd are filtered from the load list. */
     bool endgame_started_49c0;
-    /* 0x49c1: latched while g_flag_689b32 is set at teardown; persisted into
+    /* 0x49c1: latched while g_dev_mode_689b32 is set at teardown; persisted into
        the save slot as dev_flagged_263c. */
     unsigned char dev_flagged_49c1;
 };

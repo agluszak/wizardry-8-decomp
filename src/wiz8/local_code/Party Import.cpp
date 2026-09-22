@@ -296,7 +296,7 @@ void ImportWizardry7Character005590B0(W8Character* character, W8Wiz7Character* i
     }
     AdvanceCharacterToLevel(character, level);
     character->experience = 13000;
-    character->value_09f9 = imported->unknown_010;
+    character->kill_count_09f9 = imported->kill_count_010;
     character->death_count_09fd = imported->deaths_026 - 1;
     character->profession_levels[character->iProfession] = character->uiExpLevel;
     character->original_profession = character->iProfession;

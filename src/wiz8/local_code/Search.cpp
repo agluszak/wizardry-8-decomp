@@ -359,7 +359,7 @@ int W8Searchable::PickBestSearcher()
                 best_slot = slot;
             }
         }
-        if (g_status_685170.party_modifiers_22e3.flag_46 != 0) {
+        if (g_status_685170.party_modifiers_22e3.detect_secrets_46 != 0) {
             if (best_slot != -1 && Random(2) == 0) {
                 continue;
             }

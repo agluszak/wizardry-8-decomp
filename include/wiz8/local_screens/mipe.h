@@ -55,7 +55,7 @@ struct W8MipeState {
     srVector3T<float> drag_anchor;    /* 0x24 */
     unsigned char creation_method_30; /* 0 exact, 1 placeholder, 2 selection */
     unsigned char dragging;           /* 0x31 */
-    unsigned char unknown_32[2];
+    unsigned char padding_32[2];
     float value_34;               /* 0x34: initialised to 1.0 */
     int waypoint_count;           /* 0x38 */
     W8PList waypoints;            /* 0x3c */
@@ -67,7 +67,7 @@ struct W8MipeState {
     W8MipeEditField* edit_fields; /* 0x5c: mipeEdit.cpp prop field table */
     signed char edit_field_count; /* 0x60 */
     signed char edit_selection;   /* 0x61: -1 = no row selected */
-    unsigned char unknown_62[2];
+    unsigned char padding_62[2];
 };
 
 static_assert(sizeof(W8MipeState) == 0x64, "W8MipeState_size");

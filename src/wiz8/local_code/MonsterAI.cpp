@@ -695,7 +695,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
         monster_group = GetMonsterGroupByListIndex(
             GetMonsterGroupIndexByID(0x2de, MONSTER_AI_CPP, monster_info->monster_group_id, 1));
         if (monster_group->encounter_registered_c3 != 0) {
-            if (g_flag_689b32 != 0 && gfCapturingVideo == 0) {
+            if (g_dev_mode_689b32 != 0 && gfCapturingVideo == 0) {
                 FormatDebugMessage(0,
                                    "Monster %d and associated monsters killed because it "
                                    "couldn't patrol",
@@ -703,7 +703,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
             }
             MarkMonsterGroupForRemoval(monster_info->monster_group_id);
         } else {
-            if (g_flag_689b32 != 0 && gfCapturingVideo == 0) {
+            if (g_dev_mode_689b32 != 0 && gfCapturingVideo == 0) {
                 FormatDebugMessage(0, "%S %d can't path!", GetMonsterName(monster_info, 0, 0),
                                    monster_info->location_id);
             }
@@ -735,7 +735,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
         monster_group = GetMonsterGroupByListIndex(
             GetMonsterGroupIndexByID(0x2de, MONSTER_AI_CPP, monster_info->monster_group_id, 1));
         if (monster_group->encounter_registered_c3 != 0) {
-            if (g_flag_689b32 != 0 && gfCapturingVideo == 0) {
+            if (g_dev_mode_689b32 != 0 && gfCapturingVideo == 0) {
                 FormatDebugMessage(0,
                                    "Monster %d and associated monsters killed because it "
                                    "couldn't patrol",
@@ -743,7 +743,7 @@ void ApplyMonsterRTAIDecision(W8MonsterInfo* monster_info, unsigned char decisio
             }
             MarkMonsterGroupForRemoval(monster_info->monster_group_id);
         } else {
-            if (g_flag_689b32 != 0 && gfCapturingVideo == 0) {
+            if (g_dev_mode_689b32 != 0 && gfCapturingVideo == 0) {
                 FormatDebugMessage(0, "%S %d can't path!", GetMonsterName(monster_info, 0, 0),
                                    monster_info->location_id);
             }

@@ -1128,7 +1128,7 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
     RefreshMonsterGroup(group);
     SetMonsterGroupHostility(group, MonsterGroupCalcDefaultDisposition(group), 0);
 
-    if (announce_spawn != 0 && g_flag_689b32 != 0) {
+    if (announce_spawn != 0 && g_dev_mode_689b32 != 0) {
         int registry_after = GetUsedPageFileBytes();
         const wchar_t* verb = count == 1 ? L"appears" : L"appear";
         const wchar_t* name = record->name_00;

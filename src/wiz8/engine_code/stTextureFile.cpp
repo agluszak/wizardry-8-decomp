@@ -428,7 +428,7 @@ void stTextureFile::getMipmapData(MultiRequest& request)
     if (request.destinations[level] != 0) {
         request.destinations[level]->copy(*surface_5c);
     }
-    for (++level; level <= static_cast<long>(request.unknown_04); ++level) {
+    for (++level; level <= static_cast<long>(request.last_level_04); ++level) {
         if (request.destinations[level] != 0 && request.destinations[level - 1] != 0) {
             request.destinations[level]->copy(*request.destinations[level - 1]);
         }

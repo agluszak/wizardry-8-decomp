@@ -491,12 +491,15 @@ public:
     /* 0x09c: byte flag - SetMonsterGroupNavigatorDirty stores its uchar
        parameter raw, with no bool normalization. */
     unsigned char position_dirty_09c;
-    unsigned char unknown_09d[3];
+    /* 0x09d: raised by the trigger sweep after it reactivates the monster
+       (members_active, animation restart, rep/path reset). */
+    unsigned char reactivated_09d;
+    unsigned char padding_09e[2];
     W8NavigatorOwned0A0* owned_object_0a0;
     srVector3T<float> tracked_position_0a4;
     float tracked_distance_0b0;
     bool tracked_dirty_0b4;
-    unsigned char unknown_0b5[3];
+    unsigned char padding_0b5[3];
     int linked_update_time_0b8;
     unsigned char unknown_0bc;
     /* Raised on combat entry for the group leader's navigator (or the monster
