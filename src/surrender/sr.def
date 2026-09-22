@@ -773,3 +773,18 @@ EXPORTS
     ?setViewPlane@srCamera@@QAEXNN@Z
     ?unproject@srCamera@@QAEHAAV?$srVector3T@M@@ABV?$srVector3T@N@@@Z
     ?vInstance@srCamera@@UAEPAVsrClass@@XZ
+    ??0srClipPlane@@QAE@ABV0@@Z
+    ??0srClipPlane@@QAE@PAVsrNode@@@Z
+    ??1srClipPlane@@UAE@XZ
+    ??4srClipPlane@@QAEAAV0@ABV0@@Z
+    ??_FsrClipPlane@@QAEXXZ
+    ?dump@srClipPlane@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?getClipPlane@srClipPlane@@QBE?AV?$srVector4T@M@@XZ
+    ?getClipPlane@srClipPlane@@QBEXAAV?$srVector4T@M@@@Z
+    ?getClipType@srClipPlane@@QBE?AW4e_clip@1@XZ
+    ?process@srClipPlane@@UAEXABUProcessInfo@srNode@@W4e_processType@3@@Z
+    ?sGetClassName@srClipPlane@@SAPBDXZ
+    ?setClipPlane@srClipPlane@@QAEXABV?$srVector4T@M@@@Z
+    ?setClipType@srClipPlane@@QAEXW4e_clip@1@@Z
+    ?traverse@srClipPlane@@UAEXAAVTraverseInfo@srNode@@@Z
+    ?vInstance@srClipPlane@@UAEPAVsrClass@@XZ

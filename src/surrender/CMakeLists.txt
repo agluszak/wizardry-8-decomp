@@ -1,6 +1,7 @@
 add_library(wiz8_surrender_objects OBJECT
     bounder.cpp
     camera.cpp
+    clipplane.cpp
     config.cpp
     core.cpp
     debug.cpp
@@ -37,6 +38,7 @@ target_compile_options(wiz8_surrender_objects PRIVATE
 set_source_files_properties(
     bounder.cpp
     camera.cpp
+    clipplane.cpp
     config.cpp
     debug.cpp
     debug_vp.cpp
