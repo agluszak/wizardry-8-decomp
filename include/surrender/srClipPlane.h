@@ -29,6 +29,9 @@ public:
 #if defined(SURRENDER_BUILD)
     static const char* sGetClassName();
 #else
+    /* Header-visible like srFog's and srCamera's: the consumer import table
+       has no entry, so the client emission returns the literal directly. The
+       provider still exports its own copy from clipplane.cpp. */
     static const char* sGetClassName()
     {
         return "srClipPlane";
@@ -43,23 +46,22 @@ public:
 
 #if defined(SURRENDER_BUILD)
     void setClipPlane(const srVector4T<float>& plane);
+    void setClipType(e_clip type);
 #else
+    /* Not in the consumer import table: consumer objects emit the stores
+       inline. The provider still exports its own copies from clipplane.cpp. */
     void setClipPlane(const srVector4T<float>& plane)
     {
         clip_plane_ = plane;
     }
-#endif
-    void getClipPlane(srVector4T<float>& plane) const;
-    srVector4T<float> getClipPlane() const;
 
-#if defined(SURRENDER_BUILD)
-    void setClipType(e_clip type);
-#else
     void setClipType(e_clip type)
     {
         clip_type_ = type;
     }
 #endif
+    void getClipPlane(srVector4T<float>& plane) const;
+    srVector4T<float> getClipPlane() const;
     e_clip getClipType() const;
 
 protected:
