@@ -94,7 +94,6 @@ int CalculateMonsterFatigueBand(int current, int maximum)
    cycle a motionless monster is still allowed to enter, and 0x15 is death. */
 enum { W8_CYCLE_NONE = 0xff, W8_CYCLE_STOP = 0x14, W8_CYCLE_DEATH = 0x15 };
 enum { W8_BEHAVIOUR_NEVER_STOP = 3 };
-void MonsterDies(W8MonsterInfo* monster_info, char display_message);
 /* The character array the alternate-name form indexes, and the slot it uses. */
 
 // FUNCTION: WIZ8 0x004e3930
@@ -353,7 +352,7 @@ void MonsterStartsDying(W8MonsterInfo* monster_info, char display_message)
     if (monster_info->monster->IsDying() == 0) {
         StartMonsterCycle(monster_info, 0x15, 1);
         DeactivateMonster(monster_info);
-        MonsterDies(monster_info, display_message);
+        RecordMonsterKill(monster_info, display_message);
         RemoveMonster(
             MonsterGetIndexByLocationID(0x31f, MONSTER_MANAGER_CPP, monster_info->location_id, 1),
             0);
@@ -749,7 +748,7 @@ void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup)
                 if (monster_info->monster->IsDying() == 0) {
                     StartMonsterCycle(monster_info, 0x15, 1);
                     DeactivateMonster(monster_info);
-                    MonsterDies(monster_info, 1);
+                    RecordMonsterKill(monster_info, 1);
                     RemoveMonster(MonsterGetIndexByLocationID(0x31f, MONSTER_MANAGER_CPP,
                                                               monster_info->location_id, 1),
                                   0);

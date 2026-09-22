@@ -19,7 +19,6 @@ unsigned char TraceModeRejectsNoHit0051B3F0(int mode);
    reach: zero when they share a row, otherwise occupants ahead of the monster
    and (when the gap is exactly two rows) the front rank. */
 char CountRowsBetween(int party_slot, W8MonsterInfo* monster_info); /* 0x0051AEC0 */
-unsigned char IsCurrentTargetInRange(int party_slot, int action, W8TargetingContext context);
 /* 0x005194E0: whether `party_slot` may aim at `monster_info`: live threat, the
    resolved action's range category (less the rows between in combat), the
    info's aim flag for the action's ranged-ness, and the band distance. A miss

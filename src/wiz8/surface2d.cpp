@@ -73,7 +73,7 @@ void stTexture2D::invalidate()
 void stTexture2D::setupDefaultValues()
 {
     if (surface) {
-        surface->getPixelFormat(surface_format_);
+        surface->getPixelFormat(texture_dimensions_.format);
         texture_dimensions_.palette = 0;
     }
     texture_flags_ &= ~(1UL << FLAG_DIRTY_DEFAULTS);

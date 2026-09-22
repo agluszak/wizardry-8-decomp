@@ -903,8 +903,8 @@ unsigned char TryPanicWoundedCharacter(const W8CombatSlot* target)
     if (Random(100) >= g_flee_chance_005ed908) {
         return 0;
     }
-    ApplyCharacterEffect(character, g_effect_005ee610, 0, g_effect_argument_005ed8c8,
-                         g_effect_argument_005ed914);
+    QueueCharacterEvent(character, g_effect_005ee610, 0, g_effect_argument_005ed8c8,
+                        g_effect_argument_005ed914);
     return 1;
 }
 
@@ -1413,7 +1413,8 @@ void ChooseCombatAction(int party_slot, int context, int* out_kind, int* out_act
         kind = context;
         break;
     }
-    if (CanPartySlotParticipate(context) == 0 && kind != W8_ACTION_WALK && kind != W8_ACTION_RUN) {
+    if (CanPartySlotParticipate(party_slot) == 0 && kind != W8_ACTION_WALK &&
+        kind != W8_ACTION_RUN) {
         kind = -1;
         value_a = -1;
         target = 0;

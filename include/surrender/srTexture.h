@@ -51,16 +51,13 @@ protected:
 
     unsigned long packed_state_18; /* 0x18: correction/mag/min/mipmap/wrap bits */
     float mipmap_bias_1c;          /* 0x1c */
-    /* 0x20..0x2b: width, height and the refcounted palette at +8. The old
-       `texture_filter_` name belonged to this palette slot. */
-    Dimensions texture_dimensions_;              /* 0x20 */
-    srPixelConvert::PixelFormat surface_format_; /* 0x2c */
-    /* enableHint ORs 1<<hint and disableHint clears the same bit. */
-    unsigned long hints_40;       /* 0x40 */
-    unsigned long value_44;       /* 0x44: ctor stores 4 */
-    srFilter* filter_48;          /* 0x48: getFilter; ctor stores srCore.getFilter() */
-    float priority_4c;            /* 0x4c: getPriority; ctor stores 0.5f */
-    unsigned long texture_flags_; /* 0x50 */
+    /* The embedded Dimensions owns the rest of the state block:
+       width/height at 0x20/0x24, palette srPtr at 0x28, surface PixelFormat
+       at 0x2c, the e_hint bitmask at 0x40, e_compression at 0x44 and the raw
+       srFilter* at 0x48 (getFilter/setFilter). */
+    Dimensions texture_dimensions_; /* 0x20 */
+    float texture_priority_4c;      /* 0x4c: getPriority; the ctor seeds 0.5f */
+    unsigned long texture_flags_;   /* 0x50 */
 };
 
 static_assert((sizeof(srTexture) == 0x54), "srTexture_must_be_0x54");

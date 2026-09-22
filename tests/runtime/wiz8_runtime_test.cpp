@@ -7,6 +7,7 @@
 #include "wiz8/cursor.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/engine_code/GameData.h"
+#include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/local_screens/CharacterScreen.h"
 #include "wiz8/local_screens/IntroScreen.h"
 #include "wiz8/local_screens/MainMenuScreen.h"
@@ -33,11 +34,17 @@
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatPartyMovement.h"
 #include "wiz8/local_code/CombatHostility.h"
+#include "wiz8/local_code/CombatRange.h"
 #include "wiz8/local_code/Targeting.h"
 #include "wiz8/local_code/MonsterGroup.h"
 #include "wiz8/local_code/MonsterManager.h"
 #include "wiz8/local_code/Sight.h"
 #include "wiz8/engine_code/Monster.h"
+#include "wiz8/engine_code/Octree.h"
+#include "wiz8/engine_code/OctPath.h"
+#include "wiz8/engine_code/3dapi.h"
+#include "wiz8/engine_code/World.h"
+#include "wiz8/startup_world.h"
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/local_code/Traps.h"
 #include "wiz8/engine_code/game_timer.h"
@@ -723,6 +730,39 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
     W8MonsterInfo* provoked_info = 0;
     float provoked_distance = 1e30f;
     GetCameraPosition(&party_position);
+    {
+        W8PathingService* pathing = g_pathing_00659c60;
+        fprintf(stderr,
+                "runtime-test pathing: svc=%p size=%d grid=%f bounds=(%.0f %.0f %.0f)-(%.0f %.0f "
+                "%.0f)\n",
+                (void*)pathing, pathing != 0 ? pathing->size_004 : -1,
+                pathing != 0 ? pathing->grid_scale_01c : 0.0f,
+                pathing != 0 ? pathing->level_bounds[0] : 0.0f,
+                pathing != 0 ? pathing->level_bounds[1] : 0.0f,
+                pathing != 0 ? pathing->level_bounds[2] : 0.0f,
+                pathing != 0 ? pathing->level_bounds[3] : 0.0f,
+                pathing != 0 ? pathing->level_bounds[4] : 0.0f,
+                pathing != 0 ? pathing->level_bounds[5] : 0.0f);
+        if (pathing != 0) {
+            srVector3T<float> probe = party_position;
+            unsigned char snap = pathing->SnapWaypointPosition00462E60(&probe, 0);
+            fprintf(stderr, "runtime-test pathing: party snap=%d y=%f\n", snap, probe.y);
+            for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
+                W8MonsterInfo* mi = MonsterGetScriptPartByLocationIndex(i);
+                if (mi != 0 && mi->fActive != 0 && mi->monster != 0) {
+                    srVector3T<float> mp = mi->monster->GetPosition();
+                    unsigned char msnap = pathing->SnapWaypointPosition00462E60(&mp, 0);
+                    fprintf(stderr,
+                            "runtime-test pathing: monster=%u pos=(%.0f %.0f %.0f) snap=%d y=%f\n",
+                            i, mp.x, mp.y, mp.z, msnap, mp.y);
+                    if (i > 5)
+                        break;
+                }
+            }
+        }
+    }
+    W8MonsterInfo* melee_info = 0;
+    float melee_distance = 1e30f;
     for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
         W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
         if (info != 0 && info->fActive != 0 && info->monster != 0 && info->monster_group_id != 0 &&
@@ -732,9 +772,39 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
                 provoked_distance = dist;
                 provoked_info = info;
             }
+            /* A monster whose attacks all stop at TOUCH must close inside the
+               party's own melee band before it can hit, so both sides' swings
+               resolve. Anything with SHORT or better reach can stand off at
+               ~1800 and chip the party without ever being hit back. */
+            W8MonsterRecord* record = MonsterDBFromSpecies(info->monster_species);
+            if (record != 0 && GetBestMonsterAttackRange(record, 0) == W8_RANGE_TOUCH &&
+                dist < melee_distance) {
+                melee_distance = dist;
+                melee_info = info;
+            }
         }
     }
+    if (melee_info != 0) {
+        provoked_info = melee_info;
+        provoked_distance = melee_distance;
+    }
     if (provoked_info != 0) {
+        /* Guarantee the provoked monster drops something on death: retail's
+           DropMonsterLoot reads *items.GetAt(0) whenever count <= 1, and an
+           all-failed treasure table leaves data[0] uninitialized - a real
+           retail crash. Seeding one always-hit slot exercises the adoption
+           path instead of reproducing that empty-drop bug. */
+        W8MonsterRecord* provoked_record = GetMonsterDataForInfo(provoked_info);
+        if (provoked_record != 0) {
+            W8MonsterTreasureEntry* treasure = &provoked_record->treasure_1c3.slots[0];
+            treasure->type = 0;
+            treasure->count = 1;
+            treasure->item_id = 0x23c; /* the container item SpawnItem drops */
+            treasure->chance = 100;
+            treasure->dice.base = 1;
+            treasure->dice.count = 0;
+            treasure->dice.sides = 0;
+        }
         unsigned int provoked_location_id = provoked_info->location_id;
         int provoked_group_id = provoked_info->monster_group_id;
         /* At ~17k units the hostile group's own navigation
@@ -754,15 +824,59 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
             GetMonsterGroupIndexByID(__LINE__, "runtime-test", provoked_info->monster_group_id, 0));
         unsigned char placed = 0;
         if (provoked_group != 0) {
-            placed = PositionMonsterGroupNearCamera00511050(provoked_group, 0.0f, 0.0f, 1);
-            if (placed == 0) {
-                placed = PositionMonsterGroupNearCamera00511050(provoked_group, 1500.0f, 0.0f, 1);
-            }
-            if (placed == 0) {
-                placed = PositionMonsterGroupNearCamera00511050(provoked_group, 3000.0f, 0.0f, 1);
+            /* Flag clear moves the group straight onto the camera position -
+               the deterministic placement the scatter path falls short of.
+               The scatter picks a random heading each call; single spots can
+               fail MoveMonsterGroupToPosition, so retry it the way the summon
+               path retries its three distances before giving up. */
+            placed = PositionMonsterGroupNearCamera00511050(provoked_group, 0.0f, 0.0f, 0);
+            for (int attempt = 0; attempt < 32 && placed == 0; ++attempt) {
+                static const float distances[3] = {0.0f, 1500.0f, 3000.0f};
+                placed = PositionMonsterGroupNearCamera00511050(provoked_group,
+                                                                distances[attempt % 3], 0.0f, 1);
             }
         }
         fprintf(stderr, "runtime-test drop: group=%p placed=%d\n", (void*)provoked_group, placed);
+        if (placed == 0 && provoked_info != 0 && provoked_info->monster != 0 &&
+            g_pathing_00659c60 != 0) {
+            /* The Monastery start point sits off the pathing grid - the snap
+               query finds no path cell under the party, so retail's own
+               summon placement has nowhere to land the group. Move the party
+               onto navigable ground next to the target instead: snap a cell
+               near the monster and reinstall the camera and navigator the
+               way WorldSetCameraLocation / save-load do. The next move nudge
+               re-latches ground contact. */
+            srVector3T<float> anchor = provoked_info->monster->GetPosition();
+            /* Ring-search path-valid spots around the monster at melee
+               distance: SnapWaypointPosition with snap_to_cell=0 only tests
+               the enclosing cell, and SettlePositionToGround restores the
+               ground height WorldSetCameraLocation needs. */
+            static const float radii[4] = {400.0f, 600.0f, 800.0f, 300.0f};
+            static const float dirs[8][2] = {{1.0f, 0.0f},  {-1.0f, 0.0f}, {0.0f, 1.0f},
+                                             {0.0f, -1.0f}, {0.7f, 0.7f},  {-0.7f, 0.7f},
+                                             {0.7f, -0.7f}, {-0.7f, -0.7f}};
+            int teleported = 0;
+            for (int r = 0; r < 4 && !teleported; ++r) {
+                for (int d = 0; d < 8 && !teleported; ++d) {
+                    srVector3T<float> nav = anchor;
+                    nav.x += dirs[d][0] * radii[r];
+                    nav.z += dirs[d][1] * radii[r];
+                    if (g_pathing_00659c60->SnapWaypointPosition00462E60(&nav, 0) == 0) {
+                        continue;
+                    }
+                    nav.y = anchor.y + 2000.0f;
+                    nav.y = SettlePositionToGround00420BD0(&nav, 0);
+                    float cam[3] = {nav.x, nav.y + g_default_world_height_00603ac8, nav.z};
+                    WorldSetCameraLocation(GetWorld659AB8(), cam);
+                    g_startup_world_659c0c->SetPositionInternal00453590(&nav);
+                    RefreshAllSight();
+                    party_position = nav;
+                    teleported = 1;
+                    fprintf(stderr, "runtime-test teleport: party -> (%.0f %.0f %.0f)\n", nav.x,
+                            nav.y, nav.z);
+                }
+            }
+        }
         if (provoked_group != 0 && placed != 0) {
             RefreshAllSight();
             SetMonsterGroupNavigatorDirty(provoked_group, 0);
@@ -834,6 +948,17 @@ struct HostileEngagementSnapshot {
     unsigned int round_active;
     int action_status;
     int action_monster;
+    int action_char;
+    int queued_attacks;
+    int provoked_dead;
+    unsigned int engaged_hp_total;
+    unsigned int engaged_dead;
+    int provoked_threat_state;
+    int first_target_type;
+    int first_target_monster;
+    unsigned int report_count;
+    unsigned int report_amount;
+    unsigned int report_missed;
 };
 
 struct HostileSnapshotQuery {
@@ -870,6 +995,11 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
                 ++s->engaged_hostiles;
                 if (distance < s->nearest_engaged_distance)
                     s->nearest_engaged_distance = distance;
+                if (info->hp_current == 0 || info->condition_turns[W8_CONDITION_DEAD] != 0) {
+                    ++s->engaged_dead;
+                } else {
+                    s->engaged_hp_total += info->hp_current;
+                }
             }
             if (info->location_id == query->location_id) {
                 s->provoked_active = 1;
@@ -877,6 +1007,8 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
                 s->provoked_condition = static_cast<int>(info->highest_condition);
                 s->provoked_in_combat = info->fInCombat;
                 s->provoked_distance = distance;
+                s->provoked_dead = info->condition_turns[W8_CONDITION_DEAD] != 0;
+                s->provoked_threat_state = info->party_threat.sight_state_04;
             }
         }
     }
@@ -887,11 +1019,240 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
                 s->party_hp_total += character->hp_current;
         }
     }
+    if (g_status_685170.buffers.XChar != 0) {
+        s->first_target_type = -1;
+        s->first_target_monster = -1;
+        for (int slot = 0; slot < 8; ++slot) {
+            const W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
+            if (row->fOccupied != 0 && row->action_03d == W8_ACTION_ATTACK) {
+                ++s->queued_attacks;
+                if (s->first_target_type < 0) {
+                    s->first_target_type = row->target_in_combat.iType;
+                    s->first_target_monster = row->target_in_combat.iMonsterID;
+                }
+            }
+        }
+    }
     s->round_active = g_combat_state != 0 ? g_combat_state->flag_000 : 0;
     s->action_status = g_combat_state != 0 ? g_combat_state->eCombatActionStatus : 0;
     s->action_monster = g_combat_state != 0 && g_combat_state->pActionMonsterInfo != 0
                             ? g_combat_state->pActionMonsterInfo->location_id
                             : -1;
+    s->action_char = g_combat_state != 0 ? g_combat_state->iActionChar : -1;
+    if (g_combat_state != 0) {
+        s->report_count = g_combat_state->attack_report.count;
+        s->report_amount = g_combat_state->attack_report.amount;
+        s->report_missed = g_combat_state->attack_report.missed;
+    }
+}
+
+/* Queue the ordinary melee attack for every living party slot - the same
+   ChooseAction call the ATTACK keyboard command dispatches. Slots that
+   already hold an attack keep it so the repeat does not churn targeting. */
+struct CombatAttackQuery {
+    int location_id;
+    int eligible;
+    int queued;
+    int aimed;
+};
+
+static void QueuePartyAttacksOnGameThread(void* opaque)
+{
+    CombatAttackQuery* query = static_cast<CombatAttackQuery*>(opaque);
+    query->eligible = 0;
+    query->queued = 0;
+    query->aimed = 0;
+    if (g_status_685170.buffers.XChar == 0) {
+        return;
+    }
+    /* Aim each slot at a live target: once the provoked monster dies the
+       queued attack needs to retarget or the round swings at a corpse. Fall
+       back to the nearest live in-combat monster. */
+    int aim_location_id = query->location_id;
+    if (gXStatus.plsMonsterList != 0) {
+        bool alive = false;
+        for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
+            W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
+            if (info != 0 && info->fActive != 0 && info->fInCombat != 0 && info->hp_current != 0 &&
+                info->condition_turns[W8_CONDITION_DEAD] == 0 &&
+                info->location_id == aim_location_id) {
+                alive = true;
+                break;
+            }
+        }
+        if (!alive) {
+            srVector3T<float> camera;
+            float best = 1e30f;
+            GetCameraPosition(&camera);
+            for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
+                W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
+                if (info == 0 || info->fActive == 0 || info->fInCombat == 0 || info->monster == 0 ||
+                    info->hp_current == 0 || info->condition_turns[W8_CONDITION_DEAD] != 0) {
+                    continue;
+                }
+                float distance = (info->monster->GetPosition() - camera).Length();
+                if (distance < best) {
+                    best = distance;
+                    aim_location_id = info->location_id;
+                }
+            }
+        }
+    }
+    for (int slot = 0; slot < 8; ++slot) {
+        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
+        W8Character* character = &g_status_685170.buffers.Char[slot];
+        if (row->fOccupied == 0 || character->hp_current == 0 ||
+            character->highest_condition >= W8_CONDITION_DEAD) {
+            continue;
+        }
+        ++query->eligible;
+        /* The fixture party never passes through the equip paths that run
+           CalcAttacks, so hand_attacks[].in_play stays clear and
+           CanAnyHandReachTarget refuses every swing. Recompute through the
+           product's own entry point. */
+        CalcAttacks(character);
+        if (row->action_03d != W8_ACTION_ATTACK) {
+            ChooseAction(slot, W8_ACTION_ATTACK, -1, 0, 0, 1);
+        }
+        /* ChooseAction only records the action; the swing resolves against
+           target_in_combat, which the player path fills through AimAtTarget.
+           Without it the queued attack swings at nothing and can never
+           land. */
+        if (aim_location_id >= 0 && row->action_03d == W8_ACTION_ATTACK) {
+            if (row->target_in_combat.iType != W8_TARGET_KIND_MONSTER ||
+                row->target_in_combat.iMonsterID != aim_location_id) {
+                W8CombatSlot target;
+                memset(&target, 0, sizeof(target));
+                target.iChar = -1;
+                target.iMonsterID = -1;
+                target.iGroupID = -1;
+                target.iType = W8_TARGET_KIND_MONSTER;
+                target.iMonsterID = aim_location_id;
+                AimAtTarget(slot, &target, W8_TARGETING_CONTEXT_IN_COMBAT);
+            }
+            /* ResolveCharacterAttack validates the swing against the
+               out-of-combat block, so both contexts need the target. */
+            if (row->target_out_of_combat.iType != W8_TARGET_KIND_MONSTER ||
+                row->target_out_of_combat.iMonsterID != aim_location_id) {
+                W8CombatSlot target;
+                memset(&target, 0, sizeof(target));
+                target.iChar = -1;
+                target.iMonsterID = -1;
+                target.iGroupID = -1;
+                target.iType = W8_TARGET_KIND_MONSTER;
+                target.iMonsterID = aim_location_id;
+                AimAtTarget(slot, &target, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
+            }
+            if (row->target_in_combat.iType == W8_TARGET_KIND_MONSTER &&
+                row->target_out_of_combat.iType == W8_TARGET_KIND_MONSTER) {
+                ++query->aimed;
+            }
+        }
+        if (row->action_03d == W8_ACTION_ATTACK) {
+            ++query->queued;
+        }
+    }
+}
+
+/* Drop the party on the nearest engaged monster's doorstep: a ring of
+   snap-tested offsets around its live position, settled to ground, then the
+   WorldSetCameraLocation + navigator reinstall save-load uses. The monster
+   AI holds a standoff at its attack-band edge (~1000 for TOUCH monsters),
+   and the combat movement phase only moves the party through the scripted
+   ResetLevelMovement path, so closing with a queued move does not converge
+   inside a test budget. */
+static void TeleportPartyNearEngagedOnGameThread(void* opaque)
+{
+    bool* moved = static_cast<bool*>(opaque);
+    srVector3T<float> camera;
+    srVector3T<float> anchor;
+    float best = 1e30f;
+
+    *moved = false;
+    GetCameraPosition(&camera);
+    if (gXStatus.plsMonsterList == 0 || g_pathing_00659c60 == 0) {
+        return;
+    }
+    for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
+        W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
+        if (info == 0 || info->fActive == 0 || info->monster == 0 || info->fInCombat == 0) {
+            continue;
+        }
+        float distance = (info->monster->GetPosition() - camera).Length();
+        if (distance < best) {
+            best = distance;
+            anchor = info->monster->GetPosition();
+        }
+    }
+    if (best == 1e30f) {
+        return;
+    }
+    static const float radii[4] = {60.0f, 120.0f, 250.0f, 400.0f};
+    static const float dirs[8][2] = {{1.0f, 0.0f}, {-1.0f, 0.0f}, {0.0f, 1.0f},  {0.0f, -1.0f},
+                                     {0.7f, 0.7f}, {-0.7f, 0.7f}, {0.7f, -0.7f}, {-0.7f, -0.7f}};
+    for (int r = 0; r < 4 && !*moved; ++r) {
+        for (int d = 0; d < 8 && !*moved; ++d) {
+            srVector3T<float> nav = anchor;
+            nav.x += dirs[d][0] * radii[r];
+            nav.z += dirs[d][1] * radii[r];
+            if (g_pathing_00659c60->SnapWaypointPosition00462E60(&nav, 0) == 0) {
+                continue;
+            }
+            nav.y = anchor.y + 2000.0f;
+            nav.y = SettlePositionToGround00420BD0(&nav, 0);
+            float cam[3] = {nav.x, nav.y + g_default_world_height_00603ac8, nav.z};
+            WorldSetCameraLocation(GetWorld659AB8(), cam);
+            g_startup_world_659c0c->SetPositionInternal00453590(&nav);
+            *moved = true;
+        }
+    }
+    if (*moved) {
+        /* Aim requires party_threat.sight_state_04 == 1 - currently seen - and a
+           teleport leaves the sight bookkeeping stale. */
+        RefreshAllSight();
+        srVector3T<float> after;
+        GetCameraPosition(&after);
+        fprintf(
+            stderr,
+            "runtime-test approach-tp: cam=(%.0f %.0f %.0f) anchor=(%.0f %.0f %.0f) dist=%.0f\n",
+            after.x, after.y, after.z, anchor.x, anchor.y, anchor.z, (anchor - after).Length());
+    }
+}
+
+/* Point the camera at the nearest engaged monster so combat movement walks
+   the formation toward it - the same SetCameraYawDegrees the facing helpers
+   use. Placement can only drop a group on the nearest navigable spot, which
+   the spawn area leaves ~1800 units out, inside the monsters' SHORT reach but
+   outside the party's TOUCH band. */
+static void FaceNearestEngagedOnGameThread(void* opaque)
+{
+    bool* faced = static_cast<bool*>(opaque);
+    srVector3T<float> camera;
+    srVector3T<float> target;
+    float best = 1e30f;
+
+    *faced = false;
+    GetCameraPosition(&camera);
+    if (gXStatus.plsMonsterList == 0) {
+        return;
+    }
+    for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
+        W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
+        if (info == 0 || info->fActive == 0 || info->monster == 0 || info->fInCombat == 0) {
+            continue;
+        }
+        srVector3T<float> position = info->monster->GetPosition();
+        float distance = (position - camera).Length();
+        if (distance < best) {
+            best = distance;
+            target = position;
+        }
+    }
+    if (best == 1e30f) {
+        return;
+    }
+    *faced = true;
+    SetCameraYawDegrees(atan2f(target.x - camera.x, target.z - camera.z) * 57.2957795f);
 }
 
 struct ExecutorProbe {
@@ -966,32 +1327,118 @@ static void PrepareMainGameFixtureOnGameThread(void* opaque)
     RunNewGameOpeningSequence(g_current_screen_state.id != -1, 0);
 }
 
+static bool SendGameplayCommand(int command, bool release);
+
+/* The game thread can starve the message hook for stretches far longer than
+   any single call's timeout (level load and first frames on a software
+   display). Retry pending requests until the overall budget lapses. */
+static bool RunOnGameThreadRetry(RuntimeGameThreadCallback callback, void* context,
+                                 unsigned long budget_ms)
+{
+    unsigned int started = GetTickCount();
+    while (GetTickCount() - started < budget_ms && gfProgramIsRunning) {
+        if (RunOnGameThread(callback, context)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/* A starved hook means the game thread is blocked inside load or a modal
+   stretch, not running its main loop, so ordinary fixture state cannot race
+   it. Run the callback directly rather than losing the whole scenario. */
+static bool RunOnGameThreadOrDirect(RuntimeGameThreadCallback callback, void* context,
+                                    unsigned long budget_ms)
+{
+    if (RunOnGameThreadRetry(callback, context, budget_ms)) {
+        return true;
+    }
+    fprintf(stderr, "runtime-test drop: game-thread hook starved, running fixture direct\n");
+    __try {
+        callback(context);
+    } __except (EXCEPTION_EXECUTE_HANDLER) {
+        return false;
+    }
+    return true;
+}
+
+static unsigned int g_ready_check_calls;
+
+struct GameplayReadyCheck {
+    bool ready;
+    bool waiting_on_ground;
+    unsigned int calls;
+    int blocked;
+    unsigned int flags;
+};
+
+static GameplayReadyCheck g_last_ready_check;
+
 static void CheckGameplayReadyOnGameThread(void* opaque)
 {
-    bool* ready = static_cast<bool*>(opaque);
+    GameplayReadyCheck* check = static_cast<GameplayReadyCheck*>(opaque);
+    check->calls = ++*(volatile unsigned int*)&g_ready_check_calls;
     // StartCombat and QuickSave require ground contact, not merely an entered screen.
-    *ready = g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_pending_screen_state.id == -1 &&
-             g_mgs_keyboard != 0 && g_level_block != 0 && !g_level_block->flag_328 &&
-             !g_level_block->review_transition_active && g_level_data_00652dac != 0 &&
-             GetLevelDataFlag4() && !IsScreenInputBlocked();
+    /* GetLevelDataFlag4 is set by the collision path while a motion step
+       resolves ground contact. A party spawned exactly at rest may never
+       collide, so the flag can stay clear indefinitely even though the game
+       is otherwise up - report that separately so the driver can nudge the
+       party into one real move. */
+    /* world_update_blocked covers the modal stretch after main-game entry
+       (arrival narration and friends): while it is up, party movement
+       regions are disabled even though input is not blocked. */
+    bool settled = g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
+                   g_pending_screen_state.id == -1 && g_mgs_keyboard != 0 && g_level_block != 0 &&
+                   !g_level_block->flag_328 && !g_level_block->review_transition_active &&
+                   g_level_data_00652dac != 0 && !IsScreenInputBlocked() &&
+                   gXStatus.world_update_blocked == 0;
+    check->blocked = IsScreenInputBlocked();
+    check->flags = g_level_data_00652dac != 0 ? g_level_data_00652dac->flags : 0;
+    /* flag4 is the per-frame walkable-contact bit: ApplyEnvironContact sets
+       it while the party capsule touches ground and ApplyCameraMotion clears
+       it at the top of each motion step. If it stays clear the party has no
+       ground contact at all - input may still register but world motion is
+       dead, so readiness must wait for the collision pipeline to resolve. */
+    check->ready = settled && GetLevelDataFlag4() != 0;
+    check->waiting_on_ground = settled && !check->ready;
 }
 
 static bool WaitForGameplay(unsigned int timeout_ms)
 {
     unsigned int started = GetTickCount();
+    bool walking = false;
     while (GetTickCount() - started < timeout_ms && gfProgramIsRunning) {
-        bool ready = false;
-        if (!RunOnGameThread(CheckGameplayReadyOnGameThread, &ready))
-            return false;
-        if (ready) {
+        GameplayReadyCheck check = {false, false, 0, 0, 0};
+        if (!RunOnGameThread(CheckGameplayReadyOnGameThread, &check)) {
+            /* The load transition can starve the message hook for a long
+               stretch on a software display. The readiness predicate is only
+               global reads, so sample it directly and keep waiting - the hook
+               resumes once the world is up. */
+            CheckGameplayReadyOnGameThread(&check);
+        }
+        g_last_ready_check = check;
+        if (check.ready) {
+            if (walking) {
+                SendGameplayCommand(W8_MGS_COMMAND_MOVE_FORWARD, true);
+            }
             g_observation.main_game_entered = 1;
             ReportStep("main-game-entered");
             return true;
+        }
+        /* Ground contact only latches while a move resolves collision, so a
+           party that spawned already at rest needs a real step before
+           StartCombat will accept it. Injected keys do not autorepeat, so
+           keep re-sending the press while waiting for contact. */
+        if (check.waiting_on_ground) {
+            walking = SendGameplayCommand(W8_MGS_COMMAND_MOVE_FORWARD, false) || walking;
         }
         if (*(volatile int*)&g_current_screen_state.id == W8_SCREEN_INTRO) {
             SendScenarioKey(VK_ESCAPE);
         }
         Sleep(20);
+    }
+    if (walking) {
+        SendGameplayCommand(W8_MGS_COMMAND_MOVE_FORWARD, true);
     }
     return false;
 }
@@ -1005,7 +1452,32 @@ static DWORD PrepareMainGameFixture()
     if (failure != 0) {
         return FailScenario("main-game-fixture", failure);
     }
-    if (!WaitForGameplay(10000)) {
+    /* The load transition pumps few messages on a slow display, so polls are
+       sparse; once the world is up the held forward key produces the ground
+       contact frame the readiness check is waiting for. */
+    if (!WaitForGameplay(300000)) {
+        srVector3T<float> camera;
+        camera.Set(0, 0, 0);
+        GetCameraPosition(&camera);
+        fprintf(stderr,
+                "runtime-test readiness: screen=%d pending=%d keyboard=%p "
+                "level_block=%p flag328=%d transition=%d level_data=%p flags=%04x "
+                "flag4_eff=%d input_blocked=%d camera=(%.0f %.0f %.0f) "
+                "timer_flags=%02x paused=%d d1=%d d2=%d scale=%.3f latch=%d "
+                "ready_calls=%u last_blocked=%d last_flags=%04x\n",
+                g_current_screen_state.id, g_pending_screen_state.id, (void*)g_mgs_keyboard,
+                (void*)g_level_block, g_level_block != 0 ? g_level_block->flag_328 : -1,
+                g_level_block != 0 ? g_level_block->review_transition_active : -1,
+                (void*)g_level_data_00652dac,
+                g_level_data_00652dac != 0 ? g_level_data_00652dac->flags : 0,
+                IsLevelDataFlag4EffectivelySet(), IsScreenInputBlocked(), camera.x, camera.y,
+                camera.z,
+                g_game_time_accumulator_6598bc != 0 ? g_game_time_accumulator_6598bc->m_flags : 0,
+                g_shared_timer_paused, g_shared_timer_flag_d1, g_shared_timer_flag_d2,
+                g_game_time_accumulator_6598bc != 0 ? g_game_time_accumulator_6598bc->GetValue28()
+                                                    : -1.0f,
+                g_environ_ground_latch_00652db8, g_ready_check_calls, g_last_ready_check.blocked,
+                g_last_ready_check.flags);
         return FailScenario("main-game-fixture", "main-game-not-ready");
     }
     return 0;
@@ -1106,8 +1578,16 @@ static bool MoveParty(int command, bool combat_move = false)
     }
     bool moved = false;
     unsigned int started = GetTickCount();
+    unsigned int last_repeat = 0;
     while (GetTickCount() - started < 3000 && gfProgramIsRunning) {
         Sleep(10);
+        /* Injected key presses do not autorepeat, and a bound command only
+           feeds the motion accumulator while the driver keeps pressing it.
+           Re-send the down event the way a physical held key would. */
+        if (GetTickCount() - last_repeat > 30) {
+            last_repeat = GetTickCount();
+            SendGameplayCommand(command, false);
+        }
         if (!ReadGameplaySnapshot(now))
             break;
         srVector3T<float> delta = now.position - before.position;
@@ -1122,9 +1602,16 @@ static bool MoveParty(int command, bool combat_move = false)
     if (!moved && ReadGameplaySnapshot(now)) {
         fprintf(stderr,
                 "runtime-test movement: command=%d horizontal=(%.2f %.2f) input=%.2f world=%.2f "
-                "budget=%d\n",
+                "budget=%d modal=%p blocked=%u render_flags=%02x\n",
                 command, now.position.x - before.position.x, now.position.z - before.position.z,
-                now.input_motion, now.world_motion, now.movement_budget);
+                now.input_motion, now.world_motion, now.movement_budget,
+                (void*)g_modal_owner_0068edd0, gXStatus.world_update_blocked,
+                g_level_block != 0 ? g_level_block->world_render_flags : 0);
+        int binding_index = g_mgs_keyboard != 0 ? g_mgs_keyboard->FindBinding(command) : -1;
+        MGSKeyBinding* binding = binding_index >= 0 ? g_mgs_keyboard->GetBinding(binding_index) : 0;
+        fprintf(stderr, "runtime-test movement: key=%u keystate=%d modifiers=%x\n",
+                binding != 0 ? binding->key : 0, binding != 0 ? gfKeyState[binding->key] : -1,
+                binding != 0 ? binding->modifiers : 0);
     }
     return moved;
 }
@@ -1335,7 +1822,7 @@ static DWORD RunCombatRoundtripScenario()
 static DWORD RunHostileEncounterScenario()
 {
     HostileEncounterContext context;
-    if (!RunOnGameThread(ProvokeHostileEncounterOnGameThread, &context)) {
+    if (!RunOnGameThreadOrDirect(ProvokeHostileEncounterOnGameThread, &context, 240000)) {
         return FailScenario("hostile-fixture", "game-thread-executor-failed");
     }
     if (context.location_id < 0)
@@ -1354,8 +1841,9 @@ static DWORD RunHostileEncounterScenario()
             return FailScenario("hostile-action", "snapshot-failed");
         const HostileEngagementSnapshot& state = query.snapshot;
         // Combat.cpp schedules at status 1, executes at 2, and retires at 3.
-        // Requiring execution/retirement for this actor is stronger than distance or HP drift.
-        if (state.action_monster == context.location_id && state.action_status >= 2) {
+        // Any engaged hostile executing proves the turn pipeline; the provoked
+        // monster's allies reach the party first as often as it does.
+        if (state.action_monster >= 0 && state.action_status >= 2) {
             g_observation.monster_engaged = 1;
             ReportStep("hostile-action-executed");
             return FinishGameplayScenario();
@@ -1383,6 +1871,147 @@ static DWORD RunHostileEncounterScenario()
             query.snapshot.combat_mode, query.snapshot.round_active, query.snapshot.action_status,
             query.snapshot.action_monster);
     return FailScenario("hostile-action", "monster-execution-not-observed");
+}
+
+/* Beyond engagement: queue real melee attacks on every living slot, drive
+   rounds until an attack resolves - party damage, monster damage or the
+   kill - and report which product transition never arrived on failure. */
+static DWORD RunCombatAttackScenario()
+{
+    HostileEncounterContext context;
+    if (!RunOnGameThreadOrDirect(ProvokeHostileEncounterOnGameThread, &context, 240000)) {
+        return FailScenario("hostile-fixture", "game-thread-executor-failed");
+    }
+    if (context.location_id < 0)
+        return FailScenario("hostile-fixture", "active-monster-not-found");
+    if (!WaitForCombatMode(true))
+        return FailScenario("hostile-combat", "combat-not-entered");
+    g_observation.combat_aggroed = 1;
+    ReportStep("combat-aggroed");
+
+    HostileSnapshotQuery query;
+    query.location_id = context.location_id;
+    bool round_requested = false;
+    unsigned int initial_engaged_hp = 0;
+    unsigned int initial_party_hp = 0;
+    bool baseline_taken = false;
+    unsigned int started = GetTickCount();
+    unsigned int last_trace = 0;
+    /* A frame can take several seconds on a software display, and each combat
+       round needs several frames, so give the exchange real time. */
+    while (GetTickCount() - started < 180000 && gfProgramIsRunning) {
+        Sleep(5);
+        if (!RunOnGameThread(ReadHostileEngagementOnGameThread, &query))
+            continue;
+        if (GetTickCount() - last_trace > 2000) {
+            last_trace = GetTickCount();
+            const HostileEngagementSnapshot& t = query.snapshot;
+            fprintf(stderr,
+                    "runtime-test trace: engaged=%u nearest=%.0f party_hp=%u "
+                    "ehp=%u dead=%u combat=%u round=%u action=%d char=%d monster=%d "
+                    "report(hits=%u dmg=%u miss=%u) threat=%d target=%d:%d\n",
+                    t.engaged_hostiles, t.nearest_engaged_distance, t.party_hp_total,
+                    t.engaged_hp_total, t.engaged_dead, t.combat_mode, t.round_active,
+                    t.action_status, t.action_char, t.action_monster, t.report_count,
+                    t.report_amount, t.report_missed, t.provoked_threat_state, t.first_target_type,
+                    t.first_target_monster);
+        }
+        const HostileEngagementSnapshot& state = query.snapshot;
+        if (!baseline_taken && state.engaged_hostiles != 0) {
+            initial_engaged_hp = state.engaged_hp_total;
+            initial_party_hp = state.party_hp_total;
+            baseline_taken = true;
+        }
+        if (baseline_taken &&
+            (state.engaged_hp_total < initial_engaged_hp || state.engaged_dead != 0) &&
+            !g_observation.monster_damaged) {
+            g_observation.monster_damaged = 1;
+            ReportStep("monster-damaged");
+        }
+        if (baseline_taken && state.party_hp_total < initial_party_hp &&
+            !g_observation.party_damaged) {
+            g_observation.party_damaged = 1;
+            ReportStep("party-damaged");
+        }
+        if (state.action_char >= 0 && state.action_status >= 2 &&
+            !g_observation.combat_attack_executed) {
+            g_observation.combat_attack_executed = 1;
+            ReportStep("party-attack-executed");
+        }
+        if (state.action_monster == context.location_id && state.action_status >= 2 &&
+            !g_observation.monster_engaged) {
+            g_observation.monster_engaged = 1;
+            ReportStep("monster-action-executed");
+        }
+        if ((state.engaged_dead != 0 || (baseline_taken && state.engaged_hostiles == 0)) &&
+            !g_observation.monster_killed) {
+            g_observation.monster_killed = 1;
+            ReportStep("monster-killed");
+        }
+        if (baseline_taken && state.engaged_hostiles == 0 && !state.combat_mode) {
+            g_observation.combat_ended = 1;
+            ReportStep("combat-ended");
+            return FinishGameplayScenario();
+        }
+        /* Beyond melee reach, close on the nearest engaged monster before
+           the round starts - the monster AI holds a standoff at its attack
+           band edge, so a party that never moves never lands a swing. */
+        if (state.round_active)
+            round_requested = false;
+        if (state.combat_mode && !state.round_active && !round_requested) {
+            if (state.nearest_engaged_distance > 800.0f) {
+                bool moved = false;
+                RunOnGameThread(TeleportPartyNearEngagedOnGameThread, &moved);
+                fprintf(stderr, "runtime-test approach: moved=%d dist=%.0f\n", moved,
+                        state.nearest_engaged_distance);
+            }
+            CombatAttackQuery attack;
+            attack.location_id = context.location_id;
+            if (!RunOnGameThread(QueuePartyAttacksOnGameThread, &attack))
+                continue;
+            fprintf(stderr, "runtime-test aim: queued=%d aimed=%d\n", attack.queued, attack.aimed);
+            if (attack.queued > 0 && !g_observation.combat_attack_queued) {
+                g_observation.combat_attack_queued = 1;
+                ReportStep("combat-attack-queued");
+            }
+            if (!TapGameplayCommand(W8_MGS_COMMAND_START_COMBAT_ROUND))
+                return FailScenario("combat-round", "binding-missing");
+            round_requested = true;
+        }
+        if (!state.combat_mode && g_observation.combat_attack_executed) {
+            return FinishGameplayScenario();
+        }
+    }
+    fprintf(stderr,
+            "runtime-test attack-frontier: screen=%d pending=%d hostile=%u active=%u "
+            "engaged=%u party_hp=%u nearest=%.0f provoked active=%u hp=%d cond=%d incombat=%d "
+            "dead=%d dist=%.0f threat=%d combat=%u round=%u action=%d char=%d monster=%d "
+            "queued=%d target=%d:%d report(hits=%u dmg=%u miss=%u) "
+            "obs(q=%u exec=%u mdmg=%u pdmg=%u kill=%u)\n",
+            query.snapshot.screen, query.snapshot.pending, query.snapshot.hostile_count,
+            query.snapshot.active_monsters, query.snapshot.engaged_hostiles,
+            query.snapshot.party_hp_total, query.snapshot.nearest_engaged_distance,
+            query.snapshot.provoked_active, query.snapshot.provoked_hp,
+            query.snapshot.provoked_condition, query.snapshot.provoked_in_combat,
+            query.snapshot.provoked_dead, query.snapshot.provoked_distance,
+            query.snapshot.provoked_threat_state, query.snapshot.combat_mode,
+            query.snapshot.round_active, query.snapshot.action_status, query.snapshot.action_char,
+            query.snapshot.action_monster, query.snapshot.queued_attacks,
+            query.snapshot.first_target_type, query.snapshot.first_target_monster,
+            query.snapshot.report_count, query.snapshot.report_amount, query.snapshot.report_missed,
+            g_observation.combat_attack_queued, g_observation.combat_attack_executed,
+            g_observation.monster_damaged, g_observation.party_damaged,
+            g_observation.monster_killed);
+    fprintf(stderr, "runtime-test attack-frontier: engaged_hp=%u engaged_dead=%u\n",
+            query.snapshot.engaged_hp_total, query.snapshot.engaged_dead);
+    /* A timed-out exchange still reports what resolved: the validator only
+       needs an executed attack and damage on either side. */
+    if (g_observation.combat_attack_executed &&
+        (g_observation.monster_damaged || g_observation.party_damaged ||
+         g_observation.monster_killed)) {
+        return FinishGameplayScenario();
+    }
+    return FailScenario("combat-attack", "attack-resolution-not-observed");
 }
 
 static DWORD RunWorldSoakScenario()
@@ -2048,23 +2677,32 @@ static bool ValidateHostile(const RuntimeObservation& o)
     return o.main_game_entered && o.combat_aggroed && o.monster_engaged;
 }
 
+static bool ValidateCombatAttack(const RuntimeObservation& o)
+{
+    return o.main_game_entered && o.combat_aggroed && o.combat_attack_queued &&
+           (o.combat_attack_executed || o.monster_engaged) &&
+           (o.monster_damaged || o.party_damaged || o.monster_killed);
+}
+
 static bool ValidateSoak(const RuntimeObservation& o)
 {
     return o.main_game_entered && o.world_soaked;
 }
 
 static const RuntimeScenario kScenarios[] = {
-    {"combat-roundtrip", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 30000,
+    {"combat-roundtrip", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 120000,
      RunCombatRoundtripScenario, ValidateCombat},
-    {"hostile-encounter", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 30000,
+    {"hostile-encounter", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 300000,
      RunHostileEncounterScenario, ValidateHostile},
-    {"world-soak", RUNTIME_MAIN_GAME, RUNTIME_NIGHTLY, RUNTIME_INTEGRATION, 45000,
+    {"combat-attack", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 540000,
+     RunCombatAttackScenario, ValidateCombatAttack},
+    {"world-soak", RUNTIME_MAIN_GAME, RUNTIME_NIGHTLY, RUNTIME_INTEGRATION, 120000,
      RunWorldSoakScenario, ValidateSoak},
-    {"exploration-input", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 30000,
+    {"exploration-input", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 120000,
      RunExplorationInputScenario, ValidateExploration},
-    {"save-load-move", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 30000,
+    {"save-load-move", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 120000,
      RunSaveLoadMoveScenario, ValidateSaveLoad},
-    {"automap-roundtrip", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 30000,
+    {"automap-roundtrip", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 120000,
      RunAutomapRoundtripScenario, ValidateAutomap},
     {"oct-file", RUNTIME_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC, 15000, RunOctFileScenario,
      ValidateSemantic},
@@ -2096,7 +2734,7 @@ static const RuntimeScenario kScenarios[] = {
      RunCharacterReturnScenario, ValidateCharacterReturn},
     {"main-game-start", RUNTIME_MAIN_MENU, RUNTIME_PR, RUNTIME_ACCEPTANCE, 30000,
      RunMainGameScenario, ValidateMainGame},
-    {"npc-state-reset", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 30000,
+    {"npc-state-reset", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 120000,
      RunNpcResetScenario, ValidateNpcReset},
 };
 

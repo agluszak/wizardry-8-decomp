@@ -36,6 +36,11 @@ struct RuntimeObservation {
     unsigned char combat_ended;
     unsigned char combat_aggroed;
     unsigned char monster_engaged;
+    unsigned char combat_attack_queued;
+    unsigned char combat_attack_executed;
+    unsigned char monster_damaged;
+    unsigned char party_damaged;
+    unsigned char monster_killed;
     unsigned char return_observed;
     unsigned char timed_out;
     int character_page_start;

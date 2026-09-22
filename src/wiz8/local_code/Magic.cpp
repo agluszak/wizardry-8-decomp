@@ -543,7 +543,7 @@ bool PartySlotSpellTargetStillValid(int party_slot)
                              needed)) {
         return false;
     }
-    return IsCurrentTargetInRange(party_slot, 0, W8_TARGETING_CONTEXT_SPELL) != 0;
+    return CharacterActionReachesTarget(party_slot, 0, W8_TARGETING_CONTEXT_SPELL) != 0;
 }
 
 /* Start one character's breath attack. The assertion names the predicate it

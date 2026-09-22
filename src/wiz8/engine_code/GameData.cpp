@@ -981,7 +981,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion0041AB40()
     level->contact_normal_ac.x = 0.0f;
     level->contact_normal_ac.y = 0.0f;
     level->contact_normal_ac.z = 0.0f;
-    collision_count = 0;
+    collision_count = -1;
     level->contact_facing_1c = 0.0f;
     first_pass = 1;
     nearest_surface = 0;
@@ -1075,6 +1075,9 @@ unsigned char W8GameData::AdvanceEnvironmentMotion0041AB40()
                 probe_position.x = (camera_position.x + motion_delta.x) - adjusted_position.x;
                 probe_position.y = (camera_position.y + motion_delta.y) - adjusted_position.y;
                 probe_position.z = (camera_position.z + motion_delta.z) - adjusted_position.z;
+                if (collision_count < 0) {
+                    collision_count = 0;
+                }
                 collisions[collision_count] = nearest_surface;
                 collision_count = collision_count + 1;
                 if (99 < collision_count) {
