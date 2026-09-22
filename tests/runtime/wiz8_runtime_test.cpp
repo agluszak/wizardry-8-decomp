@@ -982,6 +982,10 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
     srVector3T<float> party_position;
     memset(s, 0, sizeof(*s));
     GetCameraPosition(&party_position);
+    /* The camera rides the environ's world_height above the party's feet;
+       monster distances are ground distances, so measure from the feet. */
+    party_position.y -= g_environ_00652DB4 != 0 ? g_environ_00652DB4->world_height_30
+                                                : g_default_world_height_00603ac8;
     s->screen = g_current_screen_state.id;
     s->pending = g_pending_screen_state.id;
     s->combat_mode = gXStatus.fCombatMode != 0;
@@ -1370,6 +1374,12 @@ static void TeleportPartyNearEngagedOnGameThread(void* opaque)
             }
             nav.y = anchor.y + 2000.0f;
             nav.y = SettlePositionToGround00420BD0(&nav, 0);
+            /* SettleFrom-above lands on the highest floor under the start
+               point; a raised ledge or roof leaves the party out of every
+               band, so only accept landings near the monster's own level. */
+            if (nav.y - anchor.y > 400.0f || anchor.y - nav.y > 400.0f) {
+                continue;
+            }
             float cam[3] = {nav.x, nav.y + g_default_world_height_00603ac8, nav.z};
             WorldSetCameraLocation(GetWorld659AB8(), cam);
             g_startup_world_659c0c->SetPositionInternal00453590(&nav);
