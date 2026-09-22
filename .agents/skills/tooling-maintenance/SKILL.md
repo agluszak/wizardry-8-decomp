@@ -79,11 +79,9 @@ existing checks missed. Avoid tests of source spelling, documentation text, inve
 snapshots, deleted files or implementation-private helper order. Delete obsolete tests/helpers with
 the machinery they protected.
 
-Retired Ghidra apply/query surfaces (`analyze prototype-repair`, `report context`, `report data`,
-`report class`, `report flow`, `recover function`, `recover explain`, enrichment checkpoint/promote,
-`ghidra/query.py`, `legacy_classes_cleanup`, `convention_heuristics`) are deleted, not aliased.
-`analyze parameter-id` is the read-only planner; it is never a project apply path. Convention repair
-stays inside `ghidra sync` (`prototype_repair` collect/apply), not as a standalone command.
+Do not add compatibility aliases for removed command/query surfaces. `analyze parameter-id`
+is the read-only planner; it is never a project apply path. Convention repair stays inside
+`ghidra sync` (`prototype_repair` collect/apply), not as a standalone command.
 
 ## Commands and output
 
