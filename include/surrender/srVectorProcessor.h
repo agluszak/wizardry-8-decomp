@@ -72,6 +72,26 @@ public:
         vp->_copyIndexed(destination, source, indices, count);
     }
 
+    /* srVertexPipe's record paths dispatch the vertex4 sources through the
+       three-vector4 copyIndexed overloads at vtable +0x84/+0x88/+0x8c. */
+    static inline void copyIndexed(srVector4* destination, const srARGB* source,
+                                   const SRDWORD* indices, SRDWORD count)
+    {
+        vp->_copyIndexed(destination, source, indices, count);
+    }
+
+    static inline void copyIndexed(srVector4* destination, const srVector4* source,
+                                   const SRDWORD* indices, SRDWORD count)
+    {
+        vp->_copyIndexed(destination, source, indices, count);
+    }
+
+    static inline void copyIndexed(srVector4* destination, const srVector3* source,
+                                   const SRDWORD* indices, SRDWORD count)
+    {
+        vp->_copyIndexed(destination, source, indices, count);
+    }
+
     static inline void copy(srVector4* destination, const srVector4& constant, SRDWORD count)
     {
         vp->_copy(destination, constant, count);
@@ -99,6 +119,14 @@ public:
                            const float* float_source, SRDWORD count)
     {
         vp->_add(destination, constant, float_source, count);
+    }
+
+    /* srVertexPipe adds a constant color into a diffuse/specular vector run
+       through the srVector4-source overload. */
+    static inline void add(srVector4* destination, const srVector4& constant,
+                           const srVector4* vector_source, SRDWORD count)
+    {
+        vp->_add(destination, constant, vector_source, count);
     }
 
     static inline void add(srVector4* destination, const srVector4* vector_source,
@@ -334,4 +362,8 @@ private:
     static unsigned long debug_active;
     // GLOBAL: SURRENDER 0x100A924C
     static void* module;
+
+    /* srVertexPipe::process snapshots the active processor into its own
+       vector_processor_98 and dispatches vtable slots through it. */
+    friend class srVertexPipe;
 };

@@ -29,9 +29,9 @@ public:
     virtual void verify(srRuntimeClass::e_verify mode) override;
     virtual srClass* vInstance() override;
 
-    virtual void getMaterialInfo(srVertexProcessor::MaterialInfo& info);
-    virtual void preProcess(srVertexPipe& pipe);
-    virtual void postProcess(srVertexPipe& pipe);
+    virtual void getMaterialInfo(srVertexProcessor::MaterialInfo& info) override;
+    virtual void preProcess(srVertexPipe& pipe) override;
+    virtual void postProcess(srVertexPipe& pipe) override;
 
 protected:
     virtual ~srMaterial() override;
