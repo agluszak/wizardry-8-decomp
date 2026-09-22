@@ -311,32 +311,19 @@ dedicated constructors at `0x004925B0` and `0x00492720` build, and `0x78` for on
 builders. The other inlined sites still allocate through a register, where no size exists at the
 site at all.
 
-What that does not settle is where `srMaterial` ends and the first-party class begins - but chasing
-it caught a defect in the vftable decoder, which is worth recording because the check that was
-supposed to catch it did not.
+A vftable boundary also begins at any data address referenced as a relocated
+operand in code. Without that rule, the `srMaterial` table runs directly into
+the adjacent table and appears to have 24 slots. Applying the referenced-table
+boundary gives `srMaterial` 13 slots, aligned with its subclasses: slots 3, 4,
+6 and 8 through 12 reach imported implementations, while slots 0, 1, 2, 5 and
+7 are locally overridden.
 
-`??_7srMaterial@@6B@` first decoded to 24 slots while all three first-party vtables the builders
-install had 13, and a class cannot have fewer virtual slots than its base. The first-party tables
-were right. Slots 13 to 23 were a second table sitting immediately behind srMaterial's: the same
-three leading targets repeated, then `srClass::dump` and `srClass::verify` where srMaterial has its
-own, then pure stubs. Relocations and executable targets do not end a table that another table
-follows, so the run walked straight through the boundary - and the three-build agreement did not
-notice, because every build lays the two tables out the same way. A systematic over-read is
-systematic.
+The constructor registers the literal class name `stMaterial` with class id
+`0x10002`, under `srMaterialIFace` (`0x2200`) and `srMaterial`
+(`0x2210`). Assertions in `Engine Code\materials.cpp` independently use
+`ppstMaterial`, so `stMaterial` is source-backed rather than descriptive.
 
-The fix is the rule the first-party census already uses: a table has to be referred to to be used at
-all, so any data address appearing as a relocated operand in code begins one. With that boundary
-`srMaterial` decodes to 13 slots and lines up with its subclasses exactly - slots 3, 4, 6 and 8
-through 12 reached by import thunk, slots 0, 1, 2, 5 and 7 overridden locally. `srBinStream` and
-`srBinIStream` are unchanged at 5 and 2, so the stream pilot's evidence stands.
-
-The reviewed classification was right all along, and the constructor names the class outright. It
-registers with `srRegistry` under the literal `stMaterial` and the class id `0x10002`, spelling the
-parent chain as it goes - `srMaterialIFace` at `0x2200`, `srMaterial` at `0x2210`, then this - and
-`Engine Code\materials.cpp` is the unit, whose own assertions call the pointer `ppstMaterial`. So
-`stMaterial` is the original's name, not a descriptive one.
-
-That is enough to declare both classes and port. srMaterial derives from `srClass`, which
+srMaterial derives from `srClass`, which
 `include/surrender/srTypeRegistry.h` already declared: its first seven slots are srClass's, and the
 four stMaterial overrides plus the destructor are exactly the five SurRender does not export, in
 srClass's own declaration order. So slots 0, 1, 2 and 5 are not positional after all - they are
@@ -351,23 +338,16 @@ already registered and builds the tree back up, and slot 7 at `0x00492A00` calls
 instance, assigns through `srMaterial::operator=`, then copies the field at `0x78`. A wrong slot
 index or a wrong base extent would show up in either.
 
-The destructor is the one override still outstanding, and taking it apart moved two things forward.
+The shared slot-5 scalar deleting destructor frees through the SurRender heap,
+not global `operator delete`. The identical 34-byte body appears on classes
+rooted in `srClass`, so `srClass::operator delete(void*)` owns that allocation
+contract; `0x00492C40` is the `stMaterial` support-template emission.
 
-Its slot-5 body is freed through the SurRender heap, not the global `operator delete`, and that
-routing belongs to `srClass`: the identical 34-byte scalar deleting destructor sits at slot 5 of
-first-party classes derived from `srClass` itself, from `srModel`/`srMeshModel`, from
-`srTexture`/`srTextureIFace` and from `srNode`, so their common root is the only place it can come
-from. Declaring `void operator delete(void*)` there reproduces the tail exactly - `mov ecx, [srHeap]`,
-`push`, `call [srHeap::free]`, `mov eax, esi`, `pop`, `ret 4`, instruction for instruction against
-`0x00492C40`.
-
-The body itself stays unclaimed, because the complete destructor it calls is not recovered and the
-compiler will not emit a deleting destructor for a class nothing constructs. And the complete destructor at `0x00492A30` opens a question the current model does not answer.
-Across its 425 bytes it unregisters the instance three times, restoring a first-party vtable before
-each - `0x005ECB6C`, then `0x005EBF68`, then `0x005EBF94` - before calling the imported
-`srClass::~srClass`. `uv run wiz8 ghidra flow 0x00492A30 --root this` puts every write in that family at `this+0x00`,
-so this is single-inheritance vtable churn rather than subobjects, and the slot counts ascend 8, 11,
-13, 13 in construction order the way an inheritance ladder does.
+The support-template destructor at `0x00492A30` unregisters the instance three
+times, restoring `0x005ECB6C`, `0x005EBF68`, and `0x005EBF94` before the
+imported `srClass::~srClass`. Every write in that family targets `this+0x00`,
+so the sequence is single-inheritance construction/destruction vtable churn,
+not embedded subobjects.
 
 The slots:
 
