@@ -209,6 +209,7 @@ W8EncounterTableRuntime::~W8EncounterTableRuntime()
     }
 }
 
+// GLOBAL: WIZ8 0x0060A6E0
 static const char MON_GEN_CPP[] = "C:\\Projects\\Wizardry 8\\Engine Code\\MonGen.cpp";
 
 /* Flag bits on a generator: bit 0 suppresses spawning, bit 2 is armed, bit 3
