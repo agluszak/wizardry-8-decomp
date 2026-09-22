@@ -187,26 +187,23 @@ Trigger* FindTriggerForProp00443830(W8World* world, W8Prop* prop)
     return 0;
 }
 
-/* Re-rolls the eight pin bytes of a pickable lock (lock_state[0] == 1) and
-   resets its difficulty-derived seed/state fields. lock_state is
-   &Trigger::lock_type. */
+/* Re-rolls the eight pin bytes of a pickable lock (lock_type == 1) and
+   resets its difficulty-derived seed/state fields. */
 // FUNCTION: WIZ8 0x00445730
-void __fastcall UpdateTriggerLock00445730(int* lock_state)
+void __fastcall UpdateTriggerLock00445730(W8LockState* lock_state)
 {
     int pins;
 
-    if (*lock_state == 1) {
+    if (lock_state->lock_type == 1) {
         for (int pin = 0; pin < 8; ++pin) {
-            // reinterpret-ok: lock-state pins are byte storage inside the int blob
-            reinterpret_cast<char*>(lock_state)[pin + 9] = static_cast<char>(Random(4));
+            lock_state->device_state.pins[pin] = static_cast<char>(Random(4));
         }
-        pins = lock_state[1];
+        pins = lock_state->difficulty;
         if (pins < 8) {
             if (pins < 2) {
-                lock_state[7] = 6;
-                lock_state[8] = -1;
-                // reinterpret-ok: byte field inside the lock-state int blob
-                reinterpret_cast<char*>(lock_state)[8] = 0;
+                lock_state->lock_countdown = 6;
+                lock_state->last_interaction_clock = -1;
+                lock_state->device_state.completed = 0;
                 return;
             }
             if (pins > 7) {
@@ -215,19 +212,18 @@ void __fastcall UpdateTriggerLock00445730(int* lock_state)
         } else {
             pins = 8;
         }
-        lock_state[7] = pins * 3;
+        lock_state->lock_countdown = pins * 3;
     }
-    lock_state[8] = -1;
-    // reinterpret-ok: byte field inside the lock-state int blob
-    reinterpret_cast<char*>(lock_state)[8] = 0;
+    lock_state->last_interaction_clock = -1;
+    lock_state->device_state.completed = 0;
 }
 
-/* Ticks the lock countdown at lock_state[7]; returns 1 while a tick remained. */
+/* Ticks the lock countdown; returns 1 while a tick remained. */
 // FUNCTION: WIZ8 0x004457A0
-unsigned char __fastcall ConsumeLockQuality004457A0(int* lock_state)
+unsigned char __fastcall ConsumeLockQuality004457A0(W8LockState* lock_state)
 {
-    if (lock_state[7] > 0) {
-        --lock_state[7];
+    if (lock_state->lock_countdown > 0) {
+        --lock_state->lock_countdown;
         return 1;
     }
     return 0;
@@ -269,7 +265,7 @@ void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, bool restoring
 
     for (index = 0; index < trigger_count; ++index) {
         Trigger* trigger = *world->triggers->GetAt(index);
-        if (trigger->lock_type != 0) {
+        if (trigger->lock_state.lock_type != 0) {
             ++saved_count;
         }
     }
@@ -280,27 +276,27 @@ void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, bool restoring
 
     for (index = 0; index < trigger_count; ++index) {
         Trigger* trigger = *world->triggers->GetAt(index);
-        if (trigger->lock_type != 0) {
+        if (trigger->lock_state.lock_type != 0) {
             FileWrite(handle, trigger->name_01c, 0x80, 0);
             FileWrite(handle, &version, sizeof(version), 0);
             if (restoring) {
-                FileWrite(handle, &trigger->lock_type, sizeof(trigger->lock_type), 0);
-                FileWrite(handle, &trigger->difficulty, sizeof(trigger->difficulty), 0);
-                FileWrite(handle, &trigger->device_state.completed,
-                          sizeof(trigger->device_state.completed), 0);
-                FileWrite(handle, trigger->device_state.pins, sizeof(trigger->device_state.pins),
+                FileWrite(handle, &trigger->lock_state.lock_type, sizeof(trigger->lock_state.lock_type), 0);
+                FileWrite(handle, &trigger->lock_state.difficulty, sizeof(trigger->lock_state.difficulty), 0);
+                FileWrite(handle, &trigger->lock_state.device_state.completed,
+                          sizeof(trigger->lock_state.device_state.completed), 0);
+                FileWrite(handle, trigger->lock_state.device_state.pins, sizeof(trigger->lock_state.device_state.pins),
                           0);
-                FileWrite(handle, &trigger->device_id, sizeof(trigger->device_id), 0);
-                FileWrite(handle, &trigger->key_id, sizeof(trigger->key_id), 0);
-                FileWrite(handle, &trigger->lock_countdown, sizeof(trigger->lock_countdown), 0);
+                FileWrite(handle, &trigger->lock_state.device_id, sizeof(trigger->lock_state.device_id), 0);
+                FileWrite(handle, &trigger->lock_state.key_id, sizeof(trigger->lock_state.key_id), 0);
+                FileWrite(handle, &trigger->lock_state.lock_countdown, sizeof(trigger->lock_state.lock_countdown), 0);
             } else {
-                FileWrite(handle, &trigger->device_state.completed,
-                          sizeof(trigger->device_state.completed), 0);
-                FileWrite(handle, trigger->device_state.pins, sizeof(trigger->device_state.pins),
+                FileWrite(handle, &trigger->lock_state.device_state.completed,
+                          sizeof(trigger->lock_state.device_state.completed), 0);
+                FileWrite(handle, trigger->lock_state.device_state.pins, sizeof(trigger->lock_state.device_state.pins),
                           0);
-                FileWrite(handle, &trigger->lock_countdown, sizeof(trigger->lock_countdown), 0);
-                FileWrite(handle, &trigger->last_interaction_clock,
-                          sizeof(trigger->last_interaction_clock), 0);
+                FileWrite(handle, &trigger->lock_state.lock_countdown, sizeof(trigger->lock_state.lock_countdown), 0);
+                FileWrite(handle, &trigger->lock_state.last_interaction_clock,
+                          sizeof(trigger->lock_state.last_interaction_clock), 0);
             }
         }
     }
@@ -337,25 +333,25 @@ bool LoadTriggerRuntimeStates0043CCF0(int handle)
 
             if (restoring == 0 && version > 1) {
                 FileRead(handle, &record_version, sizeof(record_version), 0);
-                FileRead(handle, &scratch->device_state.completed,
-                         sizeof(scratch->device_state.completed), 0);
-                FileRead(handle, scratch->device_state.pins, sizeof(scratch->device_state.pins), 0);
-                FileRead(handle, &scratch->lock_countdown, sizeof(scratch->lock_countdown), 0);
+                FileRead(handle, &scratch->lock_state.device_state.completed,
+                         sizeof(scratch->lock_state.device_state.completed), 0);
+                FileRead(handle, scratch->lock_state.device_state.pins, sizeof(scratch->lock_state.device_state.pins), 0);
+                FileRead(handle, &scratch->lock_state.lock_countdown, sizeof(scratch->lock_state.lock_countdown), 0);
                 if (record_version > 1) {
-                    FileRead(handle, &scratch->last_interaction_clock,
-                             sizeof(scratch->last_interaction_clock), 0);
+                    FileRead(handle, &scratch->lock_state.last_interaction_clock,
+                             sizeof(scratch->lock_state.last_interaction_clock), 0);
                 }
             } else {
                 FileRead(handle, &record_version, sizeof(record_version), 0);
-                FileRead(handle, &scratch->lock_type, sizeof(scratch->lock_type), 0);
-                FileRead(handle, &scratch->difficulty, sizeof(scratch->difficulty), 0);
-                FileRead(handle, &scratch->device_state.completed,
-                         sizeof(scratch->device_state.completed), 0);
-                FileRead(handle, scratch->device_state.pins, sizeof(scratch->device_state.pins), 0);
-                FileRead(handle, &scratch->device_id, sizeof(scratch->device_id), 0);
-                FileRead(handle, &scratch->key_id, sizeof(scratch->key_id), 0);
+                FileRead(handle, &scratch->lock_state.lock_type, sizeof(scratch->lock_state.lock_type), 0);
+                FileRead(handle, &scratch->lock_state.difficulty, sizeof(scratch->lock_state.difficulty), 0);
+                FileRead(handle, &scratch->lock_state.device_state.completed,
+                         sizeof(scratch->lock_state.device_state.completed), 0);
+                FileRead(handle, scratch->lock_state.device_state.pins, sizeof(scratch->lock_state.device_state.pins), 0);
+                FileRead(handle, &scratch->lock_state.device_id, sizeof(scratch->lock_state.device_id), 0);
+                FileRead(handle, &scratch->lock_state.key_id, sizeof(scratch->lock_state.key_id), 0);
                 if (record_version > 1) {
-                    FileRead(handle, &scratch->lock_countdown, sizeof(scratch->lock_countdown), 0);
+                    FileRead(handle, &scratch->lock_state.lock_countdown, sizeof(scratch->lock_state.lock_countdown), 0);
                 }
             }
             delete scratch;
@@ -365,44 +361,44 @@ bool LoadTriggerRuntimeStates0043CCF0(int handle)
 
             if (restoring == 0 && version > 1) {
                 FileRead(handle, &record_version, sizeof(record_version), 0);
-                FileRead(handle, &trigger->device_state.completed,
-                         sizeof(trigger->device_state.completed), 0);
-                FileRead(handle, trigger->device_state.pins, sizeof(trigger->device_state.pins), 0);
-                FileRead(handle, &trigger->lock_countdown, sizeof(trigger->lock_countdown), 0);
+                FileRead(handle, &trigger->lock_state.device_state.completed,
+                         sizeof(trigger->lock_state.device_state.completed), 0);
+                FileRead(handle, trigger->lock_state.device_state.pins, sizeof(trigger->lock_state.device_state.pins), 0);
+                FileRead(handle, &trigger->lock_state.lock_countdown, sizeof(trigger->lock_state.lock_countdown), 0);
                 if (record_version > 1) {
-                    FileRead(handle, &trigger->last_interaction_clock,
-                             sizeof(trigger->last_interaction_clock), 0);
+                    FileRead(handle, &trigger->lock_state.last_interaction_clock,
+                             sizeof(trigger->lock_state.last_interaction_clock), 0);
                 }
             } else {
                 FileRead(handle, &record_version, sizeof(record_version), 0);
-                FileRead(handle, &trigger->lock_type, sizeof(trigger->lock_type), 0);
-                FileRead(handle, &trigger->difficulty, sizeof(trigger->difficulty), 0);
-                FileRead(handle, &trigger->device_state.completed,
-                         sizeof(trigger->device_state.completed), 0);
-                FileRead(handle, trigger->device_state.pins, sizeof(trigger->device_state.pins), 0);
-                FileRead(handle, &trigger->device_id, sizeof(trigger->device_id), 0);
-                FileRead(handle, &trigger->key_id, sizeof(trigger->key_id), 0);
+                FileRead(handle, &trigger->lock_state.lock_type, sizeof(trigger->lock_state.lock_type), 0);
+                FileRead(handle, &trigger->lock_state.difficulty, sizeof(trigger->lock_state.difficulty), 0);
+                FileRead(handle, &trigger->lock_state.device_state.completed,
+                         sizeof(trigger->lock_state.device_state.completed), 0);
+                FileRead(handle, trigger->lock_state.device_state.pins, sizeof(trigger->lock_state.device_state.pins), 0);
+                FileRead(handle, &trigger->lock_state.device_id, sizeof(trigger->lock_state.device_id), 0);
+                FileRead(handle, &trigger->lock_state.key_id, sizeof(trigger->lock_state.key_id), 0);
                 if (record_version > 1) {
-                    FileRead(handle, &trigger->lock_countdown, sizeof(trigger->lock_countdown), 0);
+                    FileRead(handle, &trigger->lock_state.lock_countdown, sizeof(trigger->lock_state.lock_countdown), 0);
                 }
                 if (restoring != 0) {
-                    if (trigger->lock_type == 1) {
+                    if (trigger->lock_state.lock_type == 1) {
                         int size;
 
                         for (int byte_index = 0; byte_index < 8; ++byte_index) {
-                            trigger->device_state.pins[byte_index] =
+                            trigger->lock_state.device_state.pins[byte_index] =
                                 static_cast<unsigned char>(Random(4));
                         }
-                        size = trigger->difficulty;
+                        size = trigger->lock_state.difficulty;
                         if (size < 2) {
                             size = 2;
                         } else if (size > 7) {
                             size = 8;
                         }
-                        trigger->lock_countdown = size * 3;
+                        trigger->lock_state.lock_countdown = size * 3;
                     }
-                    trigger->last_interaction_clock = -1;
-                    trigger->device_state.completed = 0;
+                    trigger->lock_state.last_interaction_clock = -1;
+                    trigger->lock_state.device_state.completed = 0;
                 }
             }
             action_data = trigger->m_pActionData;
@@ -410,10 +406,10 @@ bool LoadTriggerRuntimeStates0043CCF0(int handle)
                 ((static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 & 4) == 0 ||
                  static_cast<W8DoorTriggerActionData*>(action_data)->item_00a == -1)) {
                 static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 =
-                    ((trigger->device_state.completed == 0) << 2) |
+                    ((trigger->lock_state.device_state.completed == 0) << 2) |
                     (static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 & 0xfb);
                 static_cast<W8DoorTriggerActionData*>(action_data)->item_00a =
-                    static_cast<short>(trigger->key_id);
+                    static_cast<short>(trigger->lock_state.key_id);
             }
         }
         ++index;
@@ -1021,7 +1017,7 @@ bool CreateTriggerShakeEvent00444F70(int intensity, float duration, float countd
 void Trigger::CompleteItemInteraction004447F0()
 {
     W8TriggerActionData* action_data = m_pActionData;
-    device_state.completed = 1;
+    lock_state.device_state.completed = 1;
     if (action_data != 0 && action_data->type_004 == 10) {
         static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 &= ~4;
     }
@@ -1036,7 +1032,7 @@ void Trigger::Activate00444750()
 {
     W8TriggerActionData* action_data = m_pActionData;
     if (action_data != 0 && action_data->type_004 == 10 &&
-        (lock_type == 0 || device_state.completed != 0) &&
+        (lock_state.lock_type == 0 || lock_state.device_state.completed != 0) &&
         (static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 & 4) == 0) {
         if ((static_cast<W8DoorTriggerActionData*>(action_data)->flags_008 & 1) == 0) {
             running = 1;
@@ -2189,14 +2185,14 @@ Trigger::Trigger()
     surface_id = -1;
     sound_volume = -1;
     required_item_id = -1;
-    device_id = -1;
-    key_id = -1;
-    last_interaction_clock = -1;
-    lock_type = 0;
-    difficulty = 0;
-    device_state.completed = 0;
-    lock_countdown = 0;
-    memset(device_state.pins, 0, sizeof(device_state.pins));
+    lock_state.device_id = -1;
+    lock_state.key_id = -1;
+    lock_state.last_interaction_clock = -1;
+    lock_state.lock_type = 0;
+    lock_state.difficulty = 0;
+    lock_state.device_state.completed = 0;
+    lock_state.lock_countdown = 0;
+    memset(lock_state.device_state.pins, 0, sizeof(lock_state.device_state.pins));
 
     flags_0a0 |= W8_TRIGGER_ON;
     name_01c[0] = 0;
@@ -3846,7 +3842,7 @@ bool Trigger::SelectAction()
                 action_state_232 = 4;
                 fallback_selected = true;
             } else {
-                device_state.completed = 1;
+                lock_state.device_state.completed = 1;
                 action_data->flags_008 &= ~4;
                 if (action_data->linked_trigger_00c[0] != '\0') {
                     Trigger* linked_trigger;
@@ -3864,13 +3860,13 @@ bool Trigger::SelectAction()
         }
     }
 
-    if (lock_type != 0 && device_state.completed == 0 && running == 0) {
-        if (lock_type == 1) {
+    if (lock_state.lock_type != 0 && lock_state.device_state.completed == 0 && running == 0) {
+        if (lock_state.lock_type == 1) {
             g_trigger_feedback_00606994 = 1;
             OpenLockInteraction00587510(this);
             return 0;
         }
-        if (lock_type == 2) {
+        if (lock_state.lock_type == 2) {
             g_trigger_feedback_00606994 = 1;
             OpenTrapInteraction0058A470(this);
             return 0;

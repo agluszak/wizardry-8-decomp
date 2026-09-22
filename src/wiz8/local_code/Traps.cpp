@@ -236,21 +236,21 @@ int g_trap_difficulty_6504ac[W8_TRAP_TYPE_COUNT] = {1, 1, 2, 2, 3, 3, 3, 4, 5, 5
 // FUNCTION: WIZ8 0x005E3740
 void SelectTrapType005E3740(Trigger* trigger)
 {
-    int* lock_state;
+    W8LockState* lock_state;
     int budget;
     int type;
 
-    lock_state = &trigger->lock_type;
+    lock_state = &trigger->lock_state;
     if (lock_state == 0) {
         return;
     }
-    budget = lock_state[1];
+    budget = lock_state->difficulty;
     if (budget < 1) {
         budget = 1;
     }
     do {
         type = Random(0xf);
-        lock_state[5] = type;
+        lock_state->device_id = type;
     } while (g_trap_difficulty_6504ac[type] > budget ||
              g_trap_difficulty_6504ac[type] + 4 < budget);
 }
@@ -265,7 +265,7 @@ void CompleteTrapDisarm005E3780(Trigger* trigger)
     wchar_t* text;
 
     trigger->CompleteItemInteraction004447F0();
-    type = trigger->device_id;
+    type = trigger->lock_state.device_id;
     if (Random(100) < 40) {
         ApplyItemEffectToRandomCharacter(g_learn_sound_0068c510, -1, 0, g_effect_argument_005ed8c8);
     }
@@ -337,13 +337,13 @@ void ResolveSprungTrap005E3AB0(Trigger* trigger)
     srVector3T<float> minimum;
     srVector3T<float> maximum;
 
-    devices = trigger->difficulty;
+    devices = trigger->lock_state.difficulty;
     if (devices > 7) {
         devices = 7;
     } else if (devices < 1) {
         devices = 1;
     }
-    type = trigger->device_id;
+    type = trigger->lock_state.device_id;
     if (Random(2) == 0) {
         trigger->CompleteItemInteraction004447F0();
         result = gppStringList[0x7b3];

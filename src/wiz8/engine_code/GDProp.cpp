@@ -223,7 +223,7 @@ void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigne
         W8TriggerActionData* action = owner->m_pActionData;
         if (action != 0 && action->type_004 == 10) {
             unsigned int flags = 0x08000000;
-            if ((owner->lock_type != 0 && owner->device_state.completed == 0) ||
+            if ((owner->lock_state.lock_type != 0 && owner->lock_state.device_state.completed == 0) ||
                 ((owner->flags_0a0 & W8_TRIGGER_ENABLED) == 0 ||
                  (static_cast<W8DoorTriggerActionData*>(action)->flags_008 & 5) != 0)) {
                 flags = 0x28000000;
@@ -257,7 +257,7 @@ void GDProp::BindTrigger(Trigger* owner)
         if (action != 0) {
             m_flags_00 |= 2;
             unsigned int path_flags = 0x08000000;
-            if ((owner->lock_type == 0 || owner->device_state.completed != 0) &&
+            if ((owner->lock_state.lock_type == 0 || owner->lock_state.device_state.completed != 0) &&
                 (owner->flags_0a0 & W8_TRIGGER_ENABLED) != 0 &&
                 (static_cast<W8DoorTriggerActionData*>(action)->flags_008 & 5) == 0) {
                 m_flags_00 |= 8;
