@@ -17,8 +17,6 @@
 // FUNCTION: WIZ8 0x005cce70
 void W8ListBoxDialog::TextAreaButtonCallback(GUI_BUTTON* button, INT32 reason)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
     W8ListBoxDialog* dialog = GetButtonUserDataPointer<W8ListBoxDialog>(button);
     if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
         if (dialog == 0) {
@@ -27,9 +25,10 @@ void W8ListBoxDialog::TextAreaButtonCallback(GUI_BUTTON* button, INT32 reason)
         }
         POINT cursor;
         SGPMouseGetPos(&cursor);
-        /* Retail reads this top edge uninitialized when the area button is
-           absent; the value is the leftover argument slot. */
-        int top;
+        /* Retail read this top edge uninitialized when the area button is
+           absent (the leftover argument slot); deterministic zero models
+           that defect path. */
+        int top = 0;
         if (dialog->m_area_button_098 != -1) {
             SGPRect area;
             GetButtonArea(dialog->m_area_button_098, &area);
@@ -44,7 +43,6 @@ void W8ListBoxDialog::TextAreaButtonCallback(GUI_BUTTON* button, INT32 reason)
         dialog->SetCurrentLine(line);
     }
 }
-#pragma clang diagnostic pop
 
 // FUNCTION: WIZ8 0x005ccf30
 void W8ListBoxDialog::UpButtonCallback(GUI_BUTTON* button, INT32 reason)
@@ -158,8 +156,6 @@ void W8ListBoxDialog::CancelButtonCallback(GUI_BUTTON* button, INT32 reason)
 // FUNCTION: WIZ8 0x005cd1e0
 void W8ListBoxDialog::SliderTrackButtonCallback(GUI_BUTTON* button, INT32 reason)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
     W8ListBoxDialog* dialog = GetButtonUserDataPointer<W8ListBoxDialog>(button);
     if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
         if (dialog == 0) {
@@ -168,10 +164,11 @@ void W8ListBoxDialog::SliderTrackButtonCallback(GUI_BUTTON* button, INT32 reason
         }
         POINT cursor;
         SGPMouseGetPos(&cursor);
-        /* Retail reads both track edges uninitialized when the text-area
-           button is absent; they are the leftover argument slots. */
-        int top;
-        int bottom;
+        /* Retail read both track edges uninitialized when the text-area
+           button is absent (the leftover argument slots); deterministic
+           zeroes model that defect path. */
+        int top = 0;
+        int bottom = 0;
         if (dialog->m_third_text_button_0b8 != -1) {
             SGPRect area;
             GetButtonArea(dialog->m_third_text_button_0b8, &area);
@@ -187,4 +184,3 @@ void W8ListBoxDialog::SliderTrackButtonCallback(GUI_BUTTON* button, INT32 reason
         dialog->SetCurrentLine((cursor.y - top) * dialog->m_lines_054.count / (bottom - top));
     }
 }
-#pragma clang diagnostic pop

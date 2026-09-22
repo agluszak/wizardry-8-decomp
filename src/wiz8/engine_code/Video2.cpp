@@ -2262,11 +2262,10 @@ void DrawVideoInspector00427460(int left, unsigned int top)
     unsigned int bottom;
     unsigned char* row;
     int rows;
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
-    /* Retail leaves the band height uninitialised for inspector modes outside
-       1..3 and reads that storage into bottom. */
-    int height;
+    /* Retail left the band height uninitialised for inspector modes outside
+       1..3 and read that storage into bottom; deterministic zero models
+       that defect path. */
+    int height = 0;
 
     if (g_video_inspector_mode_6596d4 == 1) {
         height = 0xb;
@@ -2331,7 +2330,6 @@ void DrawVideoInspector00427460(int left, unsigned int top)
             gprintfDirty(left, top + 0x1e, L" Z: %.2f", position.z);
         }
     }
-#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x004277d0

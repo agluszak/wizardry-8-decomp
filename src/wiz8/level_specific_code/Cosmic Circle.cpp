@@ -58,12 +58,11 @@ bool CosmicCircleTriggerPlane1Hedra004D9AD0(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004D9B40
 void CosmicCircleSetup004D9B40(void)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
-    /* Retail dereferences both monster infos unconditionally; on a missing
-       named entity or failed id the pointer is left uninitialised. */
-    W8MonsterInfo* pMonsterInfoDs;
-    W8MonsterInfo* pMonsterInfoAltheides;
+    /* Retail dereferenced both monster infos unconditionally, leaving the
+       pointer uninitialised on a missing named entity or failed id; null
+       models that defect path deterministically. */
+    W8MonsterInfo* pMonsterInfoDs = 0;
+    W8MonsterInfo* pMonsterInfoAltheides = 0;
     srVector3T<float> positionAltheides;
     srVector3T<float> positionDs;
     srVector3T<float> positionBela;
@@ -115,4 +114,3 @@ void CosmicCircleSetup004D9B40(void)
         }
     }
 }
-#pragma clang diagnostic pop

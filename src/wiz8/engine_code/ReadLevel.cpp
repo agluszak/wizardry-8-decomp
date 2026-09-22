@@ -265,24 +265,21 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
 // FUNCTION: WIZ8 0x004BC9D0
 unsigned char ReadWorldEnvironment004BC9D0(W8ReadLevelInfo* pInfo, W8World* pWorld)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
-    /* The decompiled body reads this storage only after the same short-circuit
-   chain that clang's flow analysis cannot see through; retail leaves it
-   uninitialised on the failed-read path. Suppress only this diagnostic. */
+    /* Retail read these uninitialised when a FileRead chain short-circuited;
+       deterministic zeroes model that defect path. */
     EnvironmentColour environment_colour;
     EnvironmentColour white;
     srVector3T<float> position;
     srVector3T<float> axis;
     srMatrix3T<float> rotation;
-    float intensity;
-    float view_distance;
-    float angle;
-    float distance_scale;
-    unsigned char camera_mode;
-    unsigned char has_light_colours;
-    unsigned char has_environment_colours;
-    unsigned char fog_enabled;
+    float intensity = 0.0f;
+    float view_distance = 0.0f;
+    float angle = 0.0f;
+    float distance_scale = 0.0f;
+    unsigned char camera_mode = 0;
+    unsigned char has_light_colours = 0;
+    unsigned char has_environment_colours = 0;
+    unsigned char fog_enabled = 0;
     unsigned char success;
 
     success =
@@ -351,7 +348,6 @@ unsigned char ReadWorldEnvironment004BC9D0(W8ReadLevelInfo* pInfo, W8World* pWor
         UpdateEnvironmentLight004834B0();
     }
     return success;
-#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x004BCE20

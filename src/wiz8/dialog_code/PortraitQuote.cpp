@@ -490,9 +490,10 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
     unsigned int height;
     int width_px;
     int height_px;
-    // Retail assigns these only on the background/palette paths below.
-    unsigned char colour;
-    unsigned char foreground;
+    /* Retail left these unset on the nonzero-background/no-palette path and
+       still consumed them; deterministic defaults model that defect path. */
+    unsigned char colour = 0;
+    unsigned char foreground = 0;
     unsigned short count;
     unsigned short x;
     unsigned short y;
@@ -683,12 +684,6 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
         BltVideoObject(bubble->surface, object, 2, width_px - 0x10, 0, 2, 0);
         BltVideoObject(bubble->surface, object, 5, 0, height_px - 0x10, 2, 0);
         BltVideoObject(bubble->surface, object, 7, width_px - 0x10, height_px - 0x10, 2, 0);
-        // Retail 005CFE5D skips both stores for a nonzero background; 005CFE82
-        // still consumes foreground. Preserve that uninitialized path.
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsometimes-uninitialized"
-#endif
         if (background_index == 0) {
             colour = 0xd0;
             foreground = 0;
@@ -701,9 +696,6 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
         SetFontDestBuffer(bubble->surface, 0, 0, width_px, height_px, 0);
         DrawWrappedText(margin_x + 0xc, margin_top + 0xc, max_line, 2, g_font12point1_683648,
                         colour, text, 0, 0, 1);
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif
         SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
         SetFontForeground(2);
         if (quote_handle == -1 && bubble != 0) {
