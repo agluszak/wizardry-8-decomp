@@ -60,20 +60,22 @@ class RuntimeScenario:
     tier: str
     kind: str
     timeout_ms: int
+    fixture: str
+    path: str
 
 
 def _parse_runtime_scenarios(output: str) -> dict[str, RuntimeScenario]:
     lines = output.splitlines()
-    if not lines or lines[0] != "name\tphase\ttier\tkind\ttimeout_ms":
+    if not lines or lines[0] != "name\tphase\ttier\tkind\ttimeout_ms\tfixture\tpath":
         raise RuntimeError(
             "runtime executable did not report a scenario registry; rebuild runtime-test"
         )
     scenarios: dict[str, RuntimeScenario] = {}
     for line in lines[1:]:
         fields = line.split("\t")
-        if len(fields) != 5:
+        if len(fields) != 7:
             raise RuntimeError(f"malformed runtime scenario: {line}")
-        name, phase, tier, kind, timeout = fields
+        name, phase, tier, kind, timeout, fixture, path = fields
         if (
             re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", name) is None
             or name in scenarios
@@ -83,9 +85,11 @@ def _parse_runtime_scenarios(output: str) -> dict[str, RuntimeScenario]:
             or not timeout.isascii()
             or not timeout.isdigit()
             or int(timeout) <= 0
+            or fixture not in {"engine-ready", "main-menu", "monastery-party"}
+            or path not in {"natural", "shortcut"}
         ):
             raise RuntimeError(f"invalid runtime scenario metadata: {line}")
-        scenarios[name] = RuntimeScenario(name, phase, tier, kind, int(timeout))
+        scenarios[name] = RuntimeScenario(name, phase, tier, kind, int(timeout), fixture, path)
     if not scenarios:
         raise RuntimeError("runtime scenario registry is empty")
     return scenarios

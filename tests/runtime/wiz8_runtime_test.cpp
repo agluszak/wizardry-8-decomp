@@ -59,6 +59,7 @@
 #include "wiz8/notices.h"
 #include "wiz8_crash_report.h"
 #include "runtime_case.h"
+#include "runtime_fixture.h"
 #include "gameplay_actions.h"
 #include "oct_file_semantic_test.h"
 #include "keyboard_menu_semantic_test.h"
@@ -500,88 +501,161 @@ static void RunMenuChecksOnGameThread(void*)
     fflush(stderr);
 }
 
-static DWORD RunOctFileScenario()
+static bool OctFileInvariant(void* ctx)
 {
-    OctFileSemanticResult oct_result;
-    g_observation.semantic_ok = RunOctFileSemanticTests(&oct_result);
-    PrintOctFileSemanticResults(&oct_result);
-    return g_observation.semantic_ok ? 0 : 1;
+    OctFileSemanticResult* result = static_cast<OctFileSemanticResult*>(ctx);
+    bool ok = RunOctFileSemanticTests(result) != 0;
+    PrintOctFileSemanticResults(result);
+    return ok;
 }
 
-static DWORD RunSightScenario()
+static bool OctFileCase(RuntimeCase& test)
 {
-    SightSemanticResult sight_result;
-    g_observation.semantic_ok = RunSightSemanticTests(&sight_result);
-    PrintSightSemanticResults(&sight_result);
-    return g_observation.semantic_ok ? 0 : 1;
+    OctFileSemanticResult result;
+    RT_REQUIRE(test, test.run_invariant("oct-file", OctFileInvariant, &result));
+    return true;
 }
 
-static DWORD RunSplitStackScenario()
+static bool SightInvariant(void* ctx)
 {
-    SplitStackSemanticResult split_result;
-    g_observation.semantic_ok = RunSplitStackSemanticTest(&split_result);
-    PrintSplitStackSemanticResults(&split_result);
-    return g_observation.semantic_ok ? 0 : 1;
+    SightSemanticResult* result = static_cast<SightSemanticResult*>(ctx);
+    bool ok = RunSightSemanticTests(result) != 0;
+    PrintSightSemanticResults(result);
+    return ok;
 }
 
-static DWORD RunPartyMovementScenario()
+static bool SightThresholdCase(RuntimeCase& test)
 {
-    PartyMovementSemanticResult movement_result;
-    g_observation.semantic_ok = RunPartyMovementSemanticTest(&movement_result);
-    PrintPartyMovementSemanticResults(&movement_result);
-    return g_observation.semantic_ok ? 0 : 1;
+    SightSemanticResult result;
+    RT_REQUIRE(test, test.run_invariant("sight-threshold", SightInvariant, &result));
+    return true;
 }
 
-static DWORD RunAudioScenario()
+static bool SplitStackInvariant(void* ctx)
 {
-    AudioSemanticResult audio_result;
-    g_observation.semantic_ok = RunAudioSemanticTests(&audio_result);
-    PrintAudioSemanticResults(&audio_result);
-    return g_observation.semantic_ok ? 0 : 1;
+    SplitStackSemanticResult* result = static_cast<SplitStackSemanticResult*>(ctx);
+    bool ok = RunSplitStackSemanticTest(result) != 0;
+    PrintSplitStackSemanticResults(result);
+    return ok;
 }
 
-static DWORD RunKeyboardMenuScenario()
+static bool SplitStackCase(RuntimeCase& test)
 {
-    KeyboardMenuSemanticResult keyboard_result;
-    g_observation.semantic_ok = RunKeyboardMenuSemanticTest(&keyboard_result);
-    PrintKeyboardMenuSemanticResults(&keyboard_result);
-    return g_observation.semantic_ok ? 0 : 1;
+    SplitStackSemanticResult result;
+    RT_REQUIRE(test, test.run_invariant("split-stack", SplitStackInvariant, &result));
+    return true;
 }
 
-static DWORD RunMouthGapScenario()
+static bool PartyMovementInvariant(void* ctx)
 {
-    MouthGapSemanticResult mouth_gap_result;
-    g_observation.semantic_ok = RunMouthGapSemanticTest(&mouth_gap_result);
-    PrintMouthGapSemanticResults(&mouth_gap_result);
-    return g_observation.semantic_ok ? 0 : 1;
+    PartyMovementSemanticResult* result = static_cast<PartyMovementSemanticResult*>(ctx);
+    bool ok = RunPartyMovementSemanticTest(result) != 0;
+    PrintPartyMovementSemanticResults(result);
+    return ok;
 }
 
-static DWORD RunNpcDialogueScenario()
+static bool PartyMovementCase(RuntimeCase& test)
 {
-    NpcDialogueSemanticResult dialogue_result;
-    g_observation.semantic_ok = RunNpcDialogueSemanticTest(&dialogue_result);
-    PrintNpcDialogueSemanticResults(&dialogue_result);
-    return g_observation.semantic_ok ? 0 : 1;
+    PartyMovementSemanticResult result;
+    RT_REQUIRE(test, test.run_invariant("party-movement", PartyMovementInvariant, &result));
+    return true;
 }
 
-static DWORD RunLockDeviceScenario()
+static bool AudioInvariant(void* ctx)
 {
-    LockDeviceSemanticResult lock_result;
-    g_observation.semantic_ok = RunLockDeviceSemanticTest(&lock_result);
-    PrintLockDeviceSemanticResults(&lock_result);
-    return g_observation.semantic_ok ? 0 : 1;
+    AudioSemanticResult* result = static_cast<AudioSemanticResult*>(ctx);
+    bool ok = RunAudioSemanticTests(result) != 0;
+    PrintAudioSemanticResults(result);
+    return ok;
 }
 
-static DWORD RunSearchModeScenario()
+static bool AudioSemanticsCase(RuntimeCase& test)
 {
-    g_observation.semantic_ok = RunSearchModeSemanticTest();
-    return g_observation.semantic_ok ? 0 : 1;
+    AudioSemanticResult result;
+    RT_REQUIRE(test, test.run_invariant("audio-semantics", AudioInvariant, &result));
+    return true;
 }
 
-static DWORD RunMonGenScenario()
+static bool KeyboardMenuInvariant(void* ctx)
 {
-    g_observation.semantic_ok = RunMonGenSemanticTest();
-    return g_observation.semantic_ok ? 0 : 1;
+    KeyboardMenuSemanticResult* result = static_cast<KeyboardMenuSemanticResult*>(ctx);
+    bool ok = RunKeyboardMenuSemanticTest(result) != 0;
+    PrintKeyboardMenuSemanticResults(result);
+    return ok;
+}
+
+static bool KeyboardMenuCase(RuntimeCase& test)
+{
+    KeyboardMenuSemanticResult result;
+    RT_REQUIRE(test, test.run_invariant("keyboard-menu", KeyboardMenuInvariant, &result));
+    return true;
+}
+
+static bool MouthGapInvariant(void* ctx)
+{
+    MouthGapSemanticResult* result = static_cast<MouthGapSemanticResult*>(ctx);
+    bool ok = RunMouthGapSemanticTest(result) != 0;
+    PrintMouthGapSemanticResults(result);
+    return ok;
+}
+
+static bool MouthGapCase(RuntimeCase& test)
+{
+    MouthGapSemanticResult result;
+    RT_REQUIRE(test, test.run_invariant("mouth-gap", MouthGapInvariant, &result));
+    return true;
+}
+
+static bool NpcDialogueInvariant(void* ctx)
+{
+    NpcDialogueSemanticResult* result = static_cast<NpcDialogueSemanticResult*>(ctx);
+    bool ok = RunNpcDialogueSemanticTest(result) != 0;
+    PrintNpcDialogueSemanticResults(result);
+    return ok;
+}
+
+static bool NpcDialogueCase(RuntimeCase& test)
+{
+    NpcDialogueSemanticResult result;
+    RT_REQUIRE(test, test.run_invariant("npc-dialogue", NpcDialogueInvariant, &result));
+    return true;
+}
+
+static bool LockDeviceInvariant(void* ctx)
+{
+    LockDeviceSemanticResult* result = static_cast<LockDeviceSemanticResult*>(ctx);
+    bool ok = RunLockDeviceSemanticTest(result) != 0;
+    PrintLockDeviceSemanticResults(result);
+    return ok;
+}
+
+static bool LockDeviceCase(RuntimeCase& test)
+{
+    LockDeviceSemanticResult result;
+    RT_REQUIRE(test, test.run_invariant("lock-device", LockDeviceInvariant, &result));
+    return true;
+}
+
+static bool SearchModeInvariant(void*)
+{
+    return RunSearchModeSemanticTest() != 0;
+}
+
+static bool SearchModeCase(RuntimeCase& test)
+{
+    RT_REQUIRE(test, test.run_invariant("search-mode", SearchModeInvariant, 0));
+    return true;
+}
+
+static bool MonGenInvariant(void*)
+{
+    return RunMonGenSemanticTest() != 0;
+}
+
+static bool MonGenCase(RuntimeCase& test)
+{
+    RT_REQUIRE(test, test.run_invariant("mongen", MonGenInvariant, 0));
+    return true;
 }
 
 struct HostileEncounterContext {
@@ -1390,22 +1464,23 @@ static bool ScheduleOnGameThread(const char* step, RuntimeGameThreadCallback cal
     return false;
 }
 
-static DWORD PrepareMainGameFixture(RuntimeCase& test)
+static bool PrepareMainGameFixture(RuntimeCase& test)
 {
     const char* failure = 0;
     if (!test.on_game_thread("main-game-fixture", PrepareMainGameFixtureOnGameThread, &failure,
                              60000)) {
-        return 1;
+        return false;
     }
     if (failure != 0) {
-        return FailScenario("main-game-fixture", failure);
+        FailScenario("main-game-fixture", failure);
+        return false;
     }
     /* The load transition pumps few messages on a slow display, so polls are
        sparse; once the world is up the held forward key produces the ground
        contact frame the readiness check is waiting for. */
     GameplayWait ready = test.wait_gameplay_ready(300000, "main-game-ready");
     if (ready == GAMEPLAY_EXECUTOR_UNRESPONSIVE) {
-        return 1;
+        return false;
     }
     if (ready == GAMEPLAY_NOT_READY) {
         /* Report the last snapshot the game thread itself filled; live state
@@ -1423,17 +1498,78 @@ static DWORD PrepareMainGameFixture(RuntimeCase& test)
                 last.camera_x, last.camera_y, last.camera_z, last.timer_flags, last.timer_paused,
                 last.timer_d1, last.timer_d2, last.timer_scale, last.ground_latch,
                 last.world_update_blocked, last.calls);
-        return FailScenario("main-game-fixture", "main-game-not-ready");
+        FailScenario("main-game-fixture", "main-game-not-ready");
+        return false;
     }
     g_observation.main_game_entered = 1;
     ReportStep("main-game-entered");
-    return 0;
+    return true;
 }
 
 static DWORD FinishGameplayScenario()
 {
     gfProgramIsRunning = 0;
     PostMessage(ghWindow, WM_NULL, 0, 0);
+    return 0;
+}
+
+static void ReleaseHeldGameplayCommands();
+
+static bool EnterEngineReadyFixture(RuntimeCase&)
+{
+    /* DriveScenario already established engine-ready before fixtures run. */
+    return true;
+}
+
+static void LeaveFixture(RuntimeCase&) {}
+
+static bool EnterMainMenuFixture(RuntimeCase& test)
+{
+    if (!WaitForMainMenu(test.remaining_ms())) {
+        return test.fail("main-menu", "startup-timeout");
+    }
+    g_observation.menu_seen = 1;
+    ReportStep("main-menu-reached");
+    g_observation.menu_state = g_current_screen_state.id;
+    g_observation.region_set_enabled = g_region_sets[1].enabled;
+    g_observation.first_region = g_region_sets[1].first_region;
+    g_observation.last_region = g_region_sets[1].last_region;
+    /* The menu music starts on a later frame than the menu state and its
+       regions; the observation is only stable once the list is live. */
+    unsigned int playlist_started = GetTickCount();
+    while (*(volatile unsigned char*)&g_music_playlist_active_65ba7e == 0 &&
+           GetTickCount() - playlist_started < 3000) {
+        Sleep(10);
+    }
+    return test.on_game_thread("main-menu-checks", RunMenuChecksOnGameThread, 0, 5000);
+}
+
+static bool EnterMonasteryPartyFixture(RuntimeCase& test)
+{
+    return PrepareMainGameFixture(test);
+}
+
+static void LeaveMonasteryPartyFixture(RuntimeCase&)
+{
+    ReleaseHeldGameplayCommands();
+}
+
+static const RuntimeFixtureSpec kFixtures[] = {
+    {FIXTURE_ENGINE_READY, "engine-ready", RUNTIME_ENGINE_READY, FIXTURE_PATH_NATURAL,
+     EnterEngineReadyFixture, LeaveFixture},
+    {FIXTURE_MAIN_MENU, "main-menu", RUNTIME_MAIN_MENU, FIXTURE_PATH_NATURAL, EnterMainMenuFixture,
+     LeaveFixture},
+    {FIXTURE_MONASTERY_PARTY, "monastery-party", RUNTIME_MAIN_GAME, FIXTURE_PATH_SHORTCUT,
+     EnterMonasteryPartyFixture, LeaveMonasteryPartyFixture},
+};
+
+const RuntimeFixtureSpec* FindRuntimeFixture(RuntimeFixtureId id)
+{
+    for (unsigned int index = 0; index < sizeof(kFixtures) / sizeof(kFixtures[0]); ++index) {
+        if (kFixtures[index].id == id) {
+            return &kFixtures[index];
+        }
+    }
     return 0;
 }
 
@@ -2632,13 +2768,6 @@ static DWORD RunMenuStartupScenario()
     return 0;
 }
 
-static void RunSemanticScenarioOnGameThread(void* opaque)
-{
-    DWORD* result = static_cast<DWORD*>(opaque);
-    *result = g_scenario_spec->run();
-    gfProgramIsRunning = 0;
-}
-
 static DWORD WINAPI DriveScenario(void*)
 {
     if (!WaitForEngineReady(g_scenario_spec->timeout_ms)) {
@@ -2649,79 +2778,48 @@ static DWORD WINAPI DriveScenario(void*)
     if (!InitializeRuntimeGameThreadExecutor(ghWindow)) {
         return FailScenario("game-thread-executor", "install-failed");
     }
-    if (g_scenario_spec->phase == RUNTIME_MAIN_MENU) {
-        if (!WaitForMainMenu(g_scenario_spec->timeout_ms)) {
-            return FailScenario("main-menu", "startup-timeout");
-        }
-        g_observation.menu_seen = 1;
-        ReportStep("main-menu-reached");
-        g_observation.menu_state = g_current_screen_state.id;
-        g_observation.region_set_enabled = g_region_sets[1].enabled;
-        g_observation.first_region = g_region_sets[1].first_region;
-        g_observation.last_region = g_region_sets[1].last_region;
-        /* The menu music starts on a later frame than the menu state and its
-           regions; the observation is only stable once the list is live. */
-        unsigned int playlist_started = GetTickCount();
-        while (*(volatile unsigned char*)&g_music_playlist_active_65ba7e == 0 &&
-               GetTickCount() - playlist_started < 3000) {
-            Sleep(10);
-        }
-        if (!RunOnGameThread(RunMenuChecksOnGameThread, 0)) {
-            return FailScenario("main-menu-checks", "game-thread-executor-failed");
-        }
+    const RuntimeFixtureSpec* fixture = FindRuntimeFixture(g_scenario_spec->fixture);
+    if (fixture == 0) {
+        FailScenario("fixture", "fixture-unknown");
+        return 1;
     }
-    if (g_scenario_spec->kind == RUNTIME_SEMANTIC) {
-        DWORD result = 1;
-        if (!RunOnGameThread(RunSemanticScenarioOnGameThread, &result)) {
-            return FailScenario("semantic-check", "game-thread-executor-failed");
-        }
-        if (result != 0) {
-            return FailScenario("semantic-check", "required-invariant-failed");
-        }
-        return result;
-    }
-    /* Integration drivers own one case for the whole session so the
-       compatibility input helpers also resolve bindings on the game thread
-       for menu-phase scenarios that enter the world mid-run. */
+    /* The driver owns one case for the whole session so fixture entry and
+       compatibility input helpers resolve bindings on the game thread for
+       every phase. */
     unsigned long elapsed = GetTickCount() - g_scenario_started;
     unsigned long budget =
         g_scenario_spec->timeout_ms > elapsed ? g_scenario_spec->timeout_ms - elapsed : 0;
     RuntimeCase test(g_scenario, budget);
+    test.set_fixture(fixture->name,
+                     fixture->path == FIXTURE_PATH_SHORTCUT ? "shortcut" : "natural");
     g_case = &test;
-    if (g_scenario_spec->phase == RUNTIME_MAIN_GAME) {
-        if (PrepareMainGameFixture(test) != 0) {
-            test.finish(false);
-            /* The runner still owns game shutdown even when the fixture
-               already failed through FailScenario. */
-            FinishGameplayScenario();
-            ReleaseHeldGameplayCommands();
-            g_case = 0;
-            return 1;
+    bool entered = fixture->enter(test);
+    DWORD result = 1;
+    bool passed = false;
+    if (entered && g_scenario_spec->case_run != 0) {
+        passed = g_scenario_spec->case_run(test);
+        if (test.failed()) {
+            passed = false;
+        } else if (!passed) {
+            test.fail("case", "returned-false-without-failure");
         }
-        if (g_scenario_spec->case_run != 0) {
-            bool passed = g_scenario_spec->case_run(test);
-            if (test.failed()) {
-                passed = false;
-            } else if (!passed) {
-                test.fail("case", "returned-false-without-failure");
-            }
-            g_observation.case_passed = passed ? 1 : 0;
-            test.finish(passed);
-            FinishGameplayScenario();
-            ReleaseHeldGameplayCommands();
-            g_case = 0;
-            return passed ? 0 : 2;
-        }
+        g_observation.case_passed = passed ? 1 : 0;
+        result = passed ? 0 : 2;
+    } else if (entered && g_scenario_spec->run != 0) {
+        result = g_scenario_spec->run();
+        passed = result == 0;
+    } else {
+        result = test.failed() ? 2 : 1;
     }
-    DWORD result = g_scenario_spec->run();
-    ReleaseHeldGameplayCommands();
+    fixture->leave(test);
+    if (g_scenario_spec->case_run != 0) {
+        test.finish(passed);
+    }
+    /* The runner owns shutdown; scenarios that already stopped the program
+       make this a harmless repeat. */
+    FinishGameplayScenario();
     g_case = 0;
     return result;
-}
-
-static bool ValidateSemantic(const RuntimeObservation& o)
-{
-    return o.engine_ready && o.semantic_ok;
 }
 
 static bool ValidateMenuStartup(const RuntimeObservation& o)
@@ -2769,7 +2867,7 @@ static bool ValidateMenuExit(const RuntimeObservation& o)
 
 static bool ValidateCase(const RuntimeObservation& o)
 {
-    return o.main_game_entered && o.case_passed;
+    return o.case_passed != 0;
 }
 
 static bool ValidateCombat(const RuntimeObservation& o)
@@ -2801,54 +2899,54 @@ static bool ValidateSoak(const RuntimeObservation& o)
 }
 
 static const RuntimeScenario kScenarios[] = {
-    {"combat-roundtrip", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 120000,
-     RunCombatRoundtripScenario, ValidateCombat, 0},
-    {"hostile-encounter", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 300000,
-     RunHostileEncounterScenario, ValidateHostile, 0},
-    {"combat-attack", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 540000,
-     RunCombatAttackScenario, ValidateCombatAttack, 0},
-    {"combat-spell", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 180000,
-     RunCombatSpellScenario, ValidateCombatSpell, 0},
-    {"world-soak", RUNTIME_MAIN_GAME, RUNTIME_NIGHTLY, RUNTIME_INTEGRATION, 120000,
-     RunWorldSoakScenario, ValidateSoak, 0},
-    {"exploration-input", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 120000, 0,
-     ValidateCase, ExplorationInputCase},
-    {"save-load-move", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 120000, 0, ValidateCase,
-     SaveLoadMoveCase},
-    {"automap-roundtrip", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 120000, 0,
-     ValidateCase, AutomapRoundtripCase},
-    {"oct-file", RUNTIME_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC, 15000, RunOctFileScenario,
-     ValidateSemantic, 0},
-    {"sight-threshold", RUNTIME_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC, 15000, RunSightScenario,
-     ValidateSemantic, 0},
-    {"split-stack", RUNTIME_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC, 15000,
-     RunSplitStackScenario, ValidateSemantic, 0},
-    {"party-movement", RUNTIME_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC, 15000,
-     RunPartyMovementScenario, ValidateSemantic, 0},
-    {"audio-semantics", RUNTIME_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC, 15000, RunAudioScenario,
-     ValidateSemantic, 0},
-    {"mongen", RUNTIME_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC, 15000, RunMonGenScenario,
-     ValidateSemantic, 0},
-    {"keyboard-menu", RUNTIME_MAIN_MENU, RUNTIME_PR, RUNTIME_SEMANTIC, 20000,
-     RunKeyboardMenuScenario, ValidateSemantic, 0},
-    {"mouth-gap", RUNTIME_MAIN_MENU, RUNTIME_PR, RUNTIME_SEMANTIC, 20000, RunMouthGapScenario,
-     ValidateSemantic, 0},
-    {"npc-dialogue", RUNTIME_MAIN_MENU, RUNTIME_PR, RUNTIME_SEMANTIC, 20000, RunNpcDialogueScenario,
-     ValidateSemantic, 0},
-    {"lock-device", RUNTIME_MAIN_MENU, RUNTIME_PR, RUNTIME_SEMANTIC, 20000, RunLockDeviceScenario,
-     ValidateSemantic, 0},
-    {"search-mode", RUNTIME_MAIN_MENU, RUNTIME_PR, RUNTIME_SEMANTIC, 20000, RunSearchModeScenario,
-     ValidateSemantic, 0},
-    {"main-menu-startup", RUNTIME_MAIN_MENU, RUNTIME_PR, RUNTIME_INTEGRATION, 20000,
-     RunMenuStartupScenario, ValidateMenuStartup, 0},
-    {"main-menu-exit-auto-repeat", RUNTIME_MAIN_MENU, RUNTIME_PR, RUNTIME_ACCEPTANCE, 20000,
-     RunMenuExitScenario, ValidateMenuExit, 0},
-    {"main-menu-new-game", RUNTIME_MAIN_MENU, RUNTIME_MAIN, RUNTIME_ACCEPTANCE, 30000,
-     RunCharacterReturnScenario, ValidateCharacterReturn, 0},
-    {"main-game-start", RUNTIME_MAIN_MENU, RUNTIME_PR, RUNTIME_ACCEPTANCE, 30000,
+    {"combat-roundtrip", RUNTIME_MAIN_GAME, FIXTURE_MONASTERY_PARTY, RUNTIME_PR,
+     RUNTIME_INTEGRATION, 120000, RunCombatRoundtripScenario, ValidateCombat, 0},
+    {"hostile-encounter", RUNTIME_MAIN_GAME, FIXTURE_MONASTERY_PARTY, RUNTIME_PR,
+     RUNTIME_INTEGRATION, 300000, RunHostileEncounterScenario, ValidateHostile, 0},
+    {"combat-attack", RUNTIME_MAIN_GAME, FIXTURE_MONASTERY_PARTY, RUNTIME_PR, RUNTIME_INTEGRATION,
+     540000, RunCombatAttackScenario, ValidateCombatAttack, 0},
+    {"combat-spell", RUNTIME_MAIN_GAME, FIXTURE_MONASTERY_PARTY, RUNTIME_PR, RUNTIME_INTEGRATION,
+     180000, RunCombatSpellScenario, ValidateCombatSpell, 0},
+    {"world-soak", RUNTIME_MAIN_GAME, FIXTURE_MONASTERY_PARTY, RUNTIME_NIGHTLY, RUNTIME_INTEGRATION,
+     120000, RunWorldSoakScenario, ValidateSoak, 0},
+    {"exploration-input", RUNTIME_MAIN_GAME, FIXTURE_MONASTERY_PARTY, RUNTIME_PR,
+     RUNTIME_INTEGRATION, 120000, 0, ValidateCase, ExplorationInputCase},
+    {"save-load-move", RUNTIME_MAIN_GAME, FIXTURE_MONASTERY_PARTY, RUNTIME_PR, RUNTIME_INTEGRATION,
+     120000, 0, ValidateCase, SaveLoadMoveCase},
+    {"automap-roundtrip", RUNTIME_MAIN_GAME, FIXTURE_MONASTERY_PARTY, RUNTIME_PR,
+     RUNTIME_INTEGRATION, 120000, 0, ValidateCase, AutomapRoundtripCase},
+    {"oct-file", RUNTIME_ENGINE_READY, FIXTURE_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC, 15000, 0,
+     ValidateCase, OctFileCase},
+    {"sight-threshold", RUNTIME_ENGINE_READY, FIXTURE_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC,
+     15000, 0, ValidateCase, SightThresholdCase},
+    {"split-stack", RUNTIME_ENGINE_READY, FIXTURE_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC, 15000,
+     0, ValidateCase, SplitStackCase},
+    {"party-movement", RUNTIME_ENGINE_READY, FIXTURE_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC,
+     15000, 0, ValidateCase, PartyMovementCase},
+    {"audio-semantics", RUNTIME_ENGINE_READY, FIXTURE_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC,
+     15000, 0, ValidateCase, AudioSemanticsCase},
+    {"mongen", RUNTIME_ENGINE_READY, FIXTURE_ENGINE_READY, RUNTIME_PR, RUNTIME_SEMANTIC, 15000, 0,
+     ValidateCase, MonGenCase},
+    {"keyboard-menu", RUNTIME_MAIN_MENU, FIXTURE_MAIN_MENU, RUNTIME_PR, RUNTIME_SEMANTIC, 20000, 0,
+     ValidateCase, KeyboardMenuCase},
+    {"mouth-gap", RUNTIME_MAIN_MENU, FIXTURE_MAIN_MENU, RUNTIME_PR, RUNTIME_SEMANTIC, 20000, 0,
+     ValidateCase, MouthGapCase},
+    {"npc-dialogue", RUNTIME_MAIN_MENU, FIXTURE_MAIN_MENU, RUNTIME_PR, RUNTIME_SEMANTIC, 20000, 0,
+     ValidateCase, NpcDialogueCase},
+    {"lock-device", RUNTIME_MAIN_MENU, FIXTURE_MAIN_MENU, RUNTIME_PR, RUNTIME_SEMANTIC, 20000, 0,
+     ValidateCase, LockDeviceCase},
+    {"search-mode", RUNTIME_MAIN_MENU, FIXTURE_MAIN_MENU, RUNTIME_PR, RUNTIME_SEMANTIC, 20000, 0,
+     ValidateCase, SearchModeCase},
+    {"main-menu-startup", RUNTIME_MAIN_MENU, FIXTURE_MAIN_MENU, RUNTIME_PR, RUNTIME_INTEGRATION,
+     20000, RunMenuStartupScenario, ValidateMenuStartup, 0},
+    {"main-menu-exit-auto-repeat", RUNTIME_MAIN_MENU, FIXTURE_MAIN_MENU, RUNTIME_PR,
+     RUNTIME_ACCEPTANCE, 20000, RunMenuExitScenario, ValidateMenuExit, 0},
+    {"main-menu-new-game", RUNTIME_MAIN_MENU, FIXTURE_MAIN_MENU, RUNTIME_MAIN, RUNTIME_ACCEPTANCE,
+     30000, RunCharacterReturnScenario, ValidateCharacterReturn, 0},
+    {"main-game-start", RUNTIME_MAIN_MENU, FIXTURE_MAIN_MENU, RUNTIME_PR, RUNTIME_ACCEPTANCE, 30000,
      RunMainGameScenario, ValidateMainGame, 0},
-    {"npc-state-reset", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 120000,
-     RunNpcResetScenario, ValidateNpcReset, 0},
+    {"npc-state-reset", RUNTIME_MAIN_GAME, FIXTURE_MONASTERY_PARTY, RUNTIME_PR, RUNTIME_INTEGRATION,
+     120000, RunNpcResetScenario, ValidateNpcReset, 0},
 };
 
 static void ListScenarios()
@@ -2856,11 +2954,15 @@ static void ListScenarios()
     static const char* phases[] = {"engine-ready", "main-menu", "main-game"};
     static const char* tiers[] = {"pr", "main", "nightly"};
     static const char* kinds[] = {"acceptance", "integration", "semantic"};
-    printf("name\tphase\ttier\tkind\ttimeout_ms\n");
+    static const char* paths[] = {"natural", "shortcut"};
+    printf("name\tphase\ttier\tkind\ttimeout_ms\tfixture\tpath\n");
     for (unsigned int index = 0; index < sizeof(kScenarios) / sizeof(kScenarios[0]); ++index) {
         const RuntimeScenario& scenario = kScenarios[index];
-        printf("%s\t%s\t%s\t%s\t%u\n", scenario.name, phases[scenario.phase], tiers[scenario.tier],
-               kinds[scenario.kind], scenario.timeout_ms);
+        const RuntimeFixtureSpec* fixture = FindRuntimeFixture(scenario.fixture);
+        printf("%s\t%s\t%s\t%s\t%u\t%s\t%s\n", scenario.name, phases[scenario.phase],
+               tiers[scenario.tier], kinds[scenario.kind], scenario.timeout_ms,
+               fixture != 0 ? fixture->name : "unknown",
+               fixture != 0 ? paths[fixture->path] : "unknown");
     }
 }
 
@@ -2881,6 +2983,14 @@ int main(int argc, char** argv)
     if (g_scenario_spec == 0) {
         fprintf(stderr, "usage: Wiz8RuntimeTest --list-scenarios | --scenario NAME\n");
         return 64;
+    }
+    const RuntimeFixtureSpec* fixture = FindRuntimeFixture(g_scenario_spec->fixture);
+    if (fixture == 0 || fixture->phase != g_scenario_spec->phase) {
+        fprintf(stderr,
+                "WIZ8_RUNTIME_FAILURE scenario=%s step=fixture "
+                "reason=fixture-phase-mismatch line=0\n",
+                g_scenario_spec->name);
+        return 2;
     }
     W8SetCrashContextWriter(WriteRuntimeTestContext);
     g_scenario = g_scenario_spec->name;
@@ -2932,7 +3042,7 @@ int main(int argc, char** argv)
                              gFileDataBase.RealFiles.pRealFilesOpen == NULL;
 
     printf(
-        "WIZ8_RUNTIME_TEST scenario=%s engine_ready=%u semantic_ok=%u menu_seen=%u menu_state=%d "
+        "WIZ8_RUNTIME_TEST scenario=%s engine_ready=%u menu_seen=%u menu_state=%d "
         "regions_enabled=%u first_region=%u last_region=%u "
         "playlist_active=%u playlist_tracks=%d playlist_weight=%d "
         "playlist_pause_min=%d playlist_pause_max=%d playlist_pause_chance=%d "
@@ -2954,22 +3064,21 @@ int main(int argc, char** argv)
         "tooltip_shown=%u tooltip_removed=%u "
         "skill_tooltip_shown=%u skill_tooltip_removed=%u "
         "skill_interacted=%u\n",
-        g_scenario, g_observation.engine_ready, g_observation.semantic_ok, g_observation.menu_seen,
-        g_observation.menu_state, g_observation.region_set_enabled, g_observation.first_region,
-        g_observation.last_region, g_observation.playlist_active, g_observation.playlist_tracks,
-        g_observation.playlist_weight, g_observation.playlist_pause_min,
-        g_observation.playlist_pause_max, g_observation.playlist_pause_chance,
-        g_observation.patch_catalog_count, g_observation.item_database_count,
-        g_observation.monster_database_count, g_observation.npc_database_count,
-        g_observation.patch_precedence_ok, g_observation.physical_fallback_ok,
-        g_observation.shade_table_ok, g_observation.exit_observed,
-        g_observation.transition_observed, g_observation.character_entered,
-        g_observation.character_returned, g_observation.final_page_entered,
-        g_observation.final_page_redrawn, g_observation.character_name_typed,
-        g_observation.character_summary_opened, g_observation.character_committed,
-        g_observation.character_in_party, g_observation.main_game_entered,
-        g_observation.party_moved, g_observation.world_soaked, g_observation.case_passed,
-        g_observation.combat_started, g_observation.combat_action_queued,
+        g_scenario, g_observation.engine_ready, g_observation.menu_seen, g_observation.menu_state,
+        g_observation.region_set_enabled, g_observation.first_region, g_observation.last_region,
+        g_observation.playlist_active, g_observation.playlist_tracks, g_observation.playlist_weight,
+        g_observation.playlist_pause_min, g_observation.playlist_pause_max,
+        g_observation.playlist_pause_chance, g_observation.patch_catalog_count,
+        g_observation.item_database_count, g_observation.monster_database_count,
+        g_observation.npc_database_count, g_observation.patch_precedence_ok,
+        g_observation.physical_fallback_ok, g_observation.shade_table_ok,
+        g_observation.exit_observed, g_observation.transition_observed,
+        g_observation.character_entered, g_observation.character_returned,
+        g_observation.final_page_entered, g_observation.final_page_redrawn,
+        g_observation.character_name_typed, g_observation.character_summary_opened,
+        g_observation.character_committed, g_observation.character_in_party,
+        g_observation.main_game_entered, g_observation.party_moved, g_observation.world_soaked,
+        g_observation.case_passed, g_observation.combat_started, g_observation.combat_action_queued,
         g_observation.combat_party_moved, g_observation.combat_ended, g_observation.combat_aggroed,
         g_observation.monster_engaged, g_observation.party_attack_hit, g_observation.target_damaged,
         g_observation.party_cast_executed, g_observation.return_observed, teardown_ok ? 1 : 0,

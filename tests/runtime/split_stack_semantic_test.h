@@ -6,6 +6,7 @@ struct SplitStackSemanticResult {
     unsigned char ctor_counts_sum_to_stack;
     unsigned char explicit_count_applied;
     unsigned char cancel_leaves_stack;
+    unsigned char state_restored_after_failure;
 };
 
 bool RunSplitStackSemanticTest(SplitStackSemanticResult* result);
