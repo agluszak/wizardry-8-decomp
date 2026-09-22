@@ -734,6 +734,12 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
                     }
                     nav.y = anchor.y + 2000.0f;
                     nav.y = SettlePositionToGround00420BD0(&nav, 0);
+                    /* SettleFrom-above lands on the highest floor under the start
+                       point; a raised ledge or roof leaves the party out of every
+                       band, so only accept landings near the monster's own level. */
+                    if (nav.y - anchor.y > 400.0f || anchor.y - nav.y > 400.0f) {
+                        continue;
+                    }
                     float cam[3] = {nav.x, nav.y + g_default_world_height_00603ac8, nav.z};
                     WorldSetCameraLocation(GetWorld659AB8(), cam);
                     g_startup_world_659c0c->SetPositionInternal00453590(&nav);
@@ -832,6 +838,9 @@ struct HostileEngagementSnapshot {
     int aim_dead;
     int report_target_type;
     int report_target_monster;
+    float party_x;
+    float party_z;
+    unsigned int movement_ui;
 };
 
 struct HostileSnapshotQuery {
@@ -851,9 +860,12 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
        monster distances are ground distances, so measure from the feet. */
     party_position.y -= g_environ_00652DB4 != 0 ? g_environ_00652DB4->world_height_30
                                                 : g_default_world_height_00603ac8;
+    s->party_x = party_position.x;
+    s->party_z = party_position.z;
     s->screen = g_current_screen_state.id;
     s->pending = g_pending_screen_state.id;
     s->combat_mode = gXStatus.fCombatMode != 0;
+    s->movement_ui = gXStatus.fPartyMovementUi != 0;
     s->hostile_count = gXStatus.hostile_monster_count;
     s->nearest_engaged_distance = 1e30f;
     s->provoked_hp = -1;
@@ -1057,6 +1069,56 @@ static void QueuePartyAttacksOnGameThread(void* opaque)
     }
 }
 
+/* Queue the flee action - the same ChooseAction(W8_ACTION_RUN) the RUN
+   combat button dispatches. Party movement is a single party-level action,
+   so one eligible slot carries it. */
+struct CombatFleeQuery {
+    int eligible;
+    int queued;
+};
+
+static void QueuePartyFleeOnGameThread(void* opaque)
+{
+    CombatFleeQuery* query = static_cast<CombatFleeQuery*>(opaque);
+    query->eligible = 0;
+    query->queued = 0;
+    if (g_status_685170.buffers.XChar == 0) {
+        return;
+    }
+    for (int slot = 0; slot < 8; ++slot) {
+        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
+        W8Character* character = &g_status_685170.buffers.Char[slot];
+        if (row->fOccupied == 0 || character->hp_current == 0 ||
+            character->highest_condition >= W8_CONDITION_DEAD) {
+            continue;
+        }
+        ++query->eligible;
+        ChooseAction(slot, W8_ACTION_RUN, -1, 0, 0, 1);
+        ++query->queued;
+    }
+}
+
+static void QueuePartyDefendOnGameThread(void* opaque)
+{
+    CombatFleeQuery* query = static_cast<CombatFleeQuery*>(opaque);
+    query->eligible = 0;
+    query->queued = 0;
+    if (g_status_685170.buffers.XChar == 0) {
+        return;
+    }
+    for (int slot = 0; slot < 8; ++slot) {
+        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
+        W8Character* character = &g_status_685170.buffers.Char[slot];
+        if (row->fOccupied == 0 || character->hp_current == 0 ||
+            character->highest_condition >= W8_CONDITION_DEAD) {
+            continue;
+        }
+        ++query->eligible;
+        ChooseAction(slot, W8_ACTION_DEFEND, -1, 0, 0, 1);
+        ++query->queued;
+    }
+}
+
 struct CombatSpellQuery {
     int location_id;
     int spell_id;
@@ -1239,12 +1301,6 @@ static void TeleportPartyNearEngagedOnGameThread(void* opaque)
             }
             nav.y = anchor.y + 2000.0f;
             nav.y = SettlePositionToGround00420BD0(&nav, 0);
-            /* SettleFrom-above lands on the highest floor under the start
-               point; a raised ledge or roof leaves the party out of every
-               band, so only accept landings near the monster's own level. */
-            if (nav.y - anchor.y > 400.0f || anchor.y - nav.y > 400.0f) {
-                continue;
-            }
             float cam[3] = {nav.x, nav.y + g_default_world_height_00603ac8, nav.z};
             WorldSetCameraLocation(GetWorld659AB8(), cam);
             g_startup_world_659c0c->SetPositionInternal00453590(&nav);
@@ -1298,6 +1354,40 @@ static void FaceNearestEngagedOnGameThread(void* opaque)
     }
     *faced = true;
     SetCameraYawDegrees(atan2f(target.x - camera.x, target.z - camera.z) * 57.2957795f);
+}
+
+/* The mirror of FaceNearestEngagedOnGameThread: point the camera directly away
+   from the nearest engaged monster so combat-movement "forward" is the flee
+   direction. */
+static void FaceAwayFromEngagedOnGameThread(void* opaque)
+{
+    bool* faced = static_cast<bool*>(opaque);
+    srVector3T<float> camera;
+    srVector3T<float> threat;
+    float best = 1e30f;
+
+    *faced = false;
+    GetCameraPosition(&camera);
+    if (gXStatus.plsMonsterList == 0) {
+        return;
+    }
+    for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
+        W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(i);
+        if (info == 0 || info->fActive == 0 || info->monster == 0 || info->fInCombat == 0) {
+            continue;
+        }
+        srVector3T<float> position = info->monster->GetPosition();
+        float distance = (position - camera).Length();
+        if (distance < best) {
+            best = distance;
+            threat = position;
+        }
+    }
+    if (best == 1e30f) {
+        return;
+    }
+    *faced = true;
+    SetCameraYawDegrees(atan2f(camera.x - threat.x, camera.z - threat.z) * 57.2957795f);
 }
 
 struct ExecutorProbe {
@@ -1559,6 +1649,33 @@ static bool MoveParty(int command, bool combat_move = false)
                 last.held_key, last.held_key_down);
     }
     return moved;
+}
+
+/* Hold a movement command for `hold_ms`, re-sending the down event the way a
+   physical held key would (injected presses do not autorepeat). Unlike
+   MoveParty this does not stop at the first detected step - combat fleeing
+   needs sustained displacement, not a movement probe. Returns the horizontal
+   displacement covered. */
+static float DrivePartyMovement(int command, unsigned int hold_ms)
+{
+    GameplaySnapshot before, now;
+    if (!ReadGameplaySnapshot(before) || !SendGameplayCommand(command, false))
+        return 0.0f;
+    unsigned int started = GetTickCount();
+    unsigned int last_repeat = 0;
+    while (GetTickCount() - started < hold_ms && gfProgramIsRunning) {
+        Sleep(10);
+        if (GetTickCount() - last_repeat > 30) {
+            last_repeat = GetTickCount();
+            SendGameplayCommand(command, false);
+        }
+    }
+    SendGameplayCommand(command, true);
+    if (!ReadGameplaySnapshot(now))
+        return 0.0f;
+    srVector3T<float> delta = now.position - before.position;
+    delta.y = 0;
+    return delta.Length();
 }
 
 static DWORD RunAcceptanceMovement()
@@ -2096,6 +2213,137 @@ static DWORD RunCombatSpellScenario()
     return FailScenario("combat-spell", g_observation.party_cast_executed
                                             ? "target-damage-not-observed"
                                             : "party-cast-not-observed");
+}
+
+/* The flee branch: queue W8_ACTION_RUN, prove the party actually displaces
+   during the round, then park it out of pursuit range so CheckCombatEnd's
+   unengaged-rounds path ends combat with every monster still alive. */
+static DWORD RunCombatFleeScenario()
+{
+    HostileEncounterContext context;
+    if (!RunOnGameThread(ProvokeHostileEncounterOnGameThread, &context, 240000)) {
+        return FailScenario("hostile-fixture", "game-thread-executor-failed");
+    }
+    if (context.location_id < 0)
+        return FailScenario("hostile-fixture", "active-monster-not-found");
+    if (!WaitForCombatMode(true))
+        return FailScenario("hostile-combat", "combat-not-entered");
+    g_observation.combat_aggroed = 1;
+    ReportStep("combat-aggroed");
+
+    HostileSnapshotQuery query;
+    query.location_id = context.location_id;
+    bool round_requested = false;
+    int flee_rounds = 0;
+    int movement_drives = 0;
+    bool origin_taken = false;
+    float origin_x = 0.0f;
+    float origin_z = 0.0f;
+    int rounds_driven = 0;
+    unsigned int started = GetTickCount();
+    unsigned int last_trace = 0;
+    while (GetTickCount() - started < 180000 && gfProgramIsRunning) {
+        Sleep(5);
+        if (!RunOnGameThread(ReadHostileEngagementOnGameThread, &query))
+            continue;
+        if (GetTickCount() - last_trace > 2000) {
+            last_trace = GetTickCount();
+            const HostileEngagementSnapshot& t = query.snapshot;
+            fprintf(stderr,
+                    "runtime-test trace: engaged=%u nearest=%.0f party_hp=%u "
+                    "pos=(%.0f %.0f) combat=%u round=%u action=%d char=%d monster=%d\n",
+                    t.engaged_hostiles, t.nearest_engaged_distance, t.party_hp_total, t.party_x,
+                    t.party_z, t.combat_mode, t.round_active, t.action_status, t.action_char,
+                    t.action_monster);
+        }
+        const HostileEngagementSnapshot& state = query.snapshot;
+        if (!origin_taken && state.engaged_hostiles != 0) {
+            origin_x = state.party_x;
+            origin_z = state.party_z;
+            origin_taken = true;
+        }
+        if (origin_taken && state.combat_mode && !g_observation.combat_party_moved) {
+            float dx = state.party_x - origin_x;
+            float dz = state.party_z - origin_z;
+            if (dx * dx + dz * dz > 100.0f * 100.0f) {
+                g_observation.combat_party_moved = 1;
+                ReportStep("party-fled");
+            }
+        }
+        if (!state.combat_mode && g_observation.combat_action_queued) {
+            g_observation.combat_ended = 1;
+            ReportStep("combat-ended");
+            for (int probe = 0; probe < 8; ++probe) {
+                if (!IsModalOpen()) {
+                    break;
+                }
+                TapGameplayCommand(W8_MGS_COMMAND_CANCEL);
+                Sleep(500);
+            }
+            return FinishGameplayScenario();
+        }
+        if (state.round_active)
+            round_requested = false;
+        if (state.combat_mode && !state.round_active && !round_requested) {
+            /* Keep RUN queued while anything engaged is still close, then
+               hold DEFEND: out of sight and reach, MonsterGroupCanEngage fails
+               and unengaged_rounds_a56 climbs to the CheckCombatEnd threshold
+               with live monsters. The round cap bounds the path search - the
+               retail planner heap overflows on cross-map chases. */
+            bool keep_fleeing = flee_rounds < 6 && (!g_observation.combat_party_moved ||
+                                                    state.nearest_engaged_distance < 4000.0f);
+            CombatFleeQuery flee;
+            if (!RunOnGameThread(keep_fleeing ? QueuePartyFleeOnGameThread
+                                              : QueuePartyDefendOnGameThread,
+                                 &flee))
+                continue;
+            if (keep_fleeing)
+                ++flee_rounds;
+            fprintf(stderr, "runtime-test flee: queued=%d eligible=%d round=%d\n", flee.queued,
+                    flee.eligible, rounds_driven);
+            if (flee.queued > 0 && !g_observation.combat_action_queued) {
+                g_observation.combat_action_queued = 1;
+                ReportStep("combat-flee-queued");
+            }
+            if (!TapGameplayCommand(W8_MGS_COMMAND_START_COMBAT_ROUND))
+                return FailScenario("combat-round", "binding-missing");
+            round_requested = true;
+            ++rounds_driven;
+        }
+        /* The RUN action opens the party-movement phase inside the round,
+           which waits on held movement keys the way the player drives it.
+           Hold forward a bounded number of drives while the flee still needs
+           distance, then tap START_COMBAT_ROUND - the same input that opens
+           the phase closes it and ends the round. */
+        if (state.combat_mode && state.round_active && state.movement_ui) {
+            if (movement_drives < 4 && flee_rounds < 6 &&
+                state.nearest_engaged_distance < 4000.0f) {
+                ++movement_drives;
+                bool faced = false;
+                RunOnGameThread(FaceAwayFromEngagedOnGameThread, &faced);
+                float drove = DrivePartyMovement(W8_MGS_COMMAND_MOVE_FORWARD, 2500);
+                fprintf(stderr, "runtime-test flee-drive: %.0f nearest=%.0f\n", drove,
+                        state.nearest_engaged_distance);
+            } else {
+                TapGameplayCommand(W8_MGS_COMMAND_START_COMBAT_ROUND);
+                movement_drives = 0;
+                Sleep(200);
+            }
+        }
+    }
+    fprintf(stderr,
+            "runtime-test flee-frontier: combat=%u round=%u engaged=%u nearest=%.0f "
+            "pos=(%.0f %.0f) origin=(%.0f %.0f) rounds=%d obs(q=%u moved=%u end=%u)\n",
+            query.snapshot.combat_mode, query.snapshot.round_active,
+            query.snapshot.engaged_hostiles, query.snapshot.nearest_engaged_distance,
+            query.snapshot.party_x, query.snapshot.party_z, origin_x, origin_z, rounds_driven,
+            g_observation.combat_action_queued, g_observation.combat_party_moved,
+            g_observation.combat_ended);
+    if (g_observation.combat_action_queued && g_observation.combat_party_moved &&
+        g_observation.combat_ended) {
+        return FinishGameplayScenario();
+    }
+    return FailScenario("combat-flee", "flee-resolution-not-observed");
 }
 
 static DWORD RunWorldSoakScenario()
@@ -2795,6 +3043,12 @@ static bool ValidateCombatSpell(const RuntimeObservation& o)
            o.party_cast_executed && o.target_damaged;
 }
 
+static bool ValidateCombatFlee(const RuntimeObservation& o)
+{
+    return o.main_game_entered && o.combat_aggroed && o.combat_action_queued &&
+           o.combat_party_moved && o.combat_ended;
+}
+
 static bool ValidateSoak(const RuntimeObservation& o)
 {
     return o.main_game_entered && o.world_soaked;
@@ -2809,6 +3063,8 @@ static const RuntimeScenario kScenarios[] = {
      RunCombatAttackScenario, ValidateCombatAttack, 0},
     {"combat-spell", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 180000,
      RunCombatSpellScenario, ValidateCombatSpell, 0},
+    {"combat-flee", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 300000,
+     RunCombatFleeScenario, ValidateCombatFlee, 0},
     {"world-soak", RUNTIME_MAIN_GAME, RUNTIME_NIGHTLY, RUNTIME_INTEGRATION, 120000,
      RunWorldSoakScenario, ValidateSoak, 0},
     {"exploration-input", RUNTIME_MAIN_GAME, RUNTIME_PR, RUNTIME_INTEGRATION, 120000, 0,
