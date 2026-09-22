@@ -159,6 +159,7 @@ bool WaitCameraSettled(RuntimeCase& test, GameplaySnapshot& settled, unsigned lo
         }
         settled = now;
     }
+    test.expected("camera position stable within 0.05 between consecutive snapshots");
     return test.fail("save-position", "camera-not-settled");
 }
 
@@ -169,7 +170,7 @@ bool QuickSave(RuntimeCase& test, RuntimeCheckpoint& out)
     }
     out.quick_slot = -1;
     if (!test.tap(W8_MGS_COMMAND_QUICK_SAVE, "save")) {
-        return test.fail("save", "binding-missing");
+        return false;
     }
     QuickSaveCheck check;
     check.slot = -1;
@@ -185,7 +186,7 @@ bool QuickSave(RuntimeCase& test, RuntimeCheckpoint& out)
 bool QuickLoad(RuntimeCase& test, const RuntimeCheckpoint&)
 {
     if (!test.tap(W8_MGS_COMMAND_QUICK_LOAD, "load")) {
-        return test.fail("load", "binding-missing");
+        return false;
     }
     QuickLoadCheck check;
     check.saw_loading = false;
@@ -215,7 +216,7 @@ bool ExpectRestoredPosition(RuntimeCase& test, const RuntimeCheckpoint& anchor, 
 bool OpenAutomap(RuntimeCase& test)
 {
     if (!test.tap(W8_MGS_COMMAND_AUTOMAP, "automap-open")) {
-        return test.fail("automap-open", "binding-missing");
+        return false;
     }
     test.expected("automap screen active and no pending transition");
     if (!test.wait_until("automap-screen-active", 3000, AutomapScreenActive, 0)) {
@@ -228,7 +229,7 @@ bool OpenAutomap(RuntimeCase& test)
 bool CloseAutomap(RuntimeCase& test)
 {
     if (!test.tap(W8_MGS_COMMAND_AUTOMAP, "automap-close")) {
-        return test.fail("automap-close", "binding-missing");
+        return false;
     }
     GameplayWait restored = test.wait_gameplay_ready(3000, "automap-close");
     if (restored == GAMEPLAY_EXECUTOR_UNRESPONSIVE) {

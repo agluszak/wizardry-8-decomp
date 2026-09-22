@@ -1449,6 +1449,19 @@ struct HeldGameplayCommand {
 
 static HeldGameplayCommand g_held_commands[8];
 
+/* HeldCommand objects borrow the driver-owned RuntimeCase, so every tracked
+   hold must be released before the case goes out of scope; destruction sends
+   the matching key-ups. */
+static void ReleaseHeldGameplayCommands()
+{
+    for (int slot = 0; slot < 8; ++slot) {
+        if (g_held_commands[slot].held != 0) {
+            delete g_held_commands[slot].held;
+            g_held_commands[slot].held = 0;
+        }
+    }
+}
+
 static bool SendGameplayCommand(int command, bool release)
 {
     if (g_case == 0) {
@@ -1568,8 +1581,7 @@ static bool AutomapRoundtripCase(RuntimeCase& test)
 
 static bool ExplorationInputCase(RuntimeCase& test)
 {
-    RT_REQUIRE(test,
-               MoveUntilDisplaced(test, W8_MGS_COMMAND_MOVE_FORWARD, "party-moved"));
+    RT_REQUIRE(test, MoveUntilDisplaced(test, W8_MGS_COMMAND_MOVE_FORWARD, "party-moved"));
     RT_REQUIRE(test,
                MoveUntilDisplaced(test, W8_MGS_COMMAND_MOVE_BACKWARD, "party-moved-backward"));
     RT_REQUIRE(test, TurnUntilYawChanged(test, W8_MGS_COMMAND_TURN_LEFT, "party-turned"));
@@ -2679,6 +2691,10 @@ static DWORD WINAPI DriveScenario(void*)
     if (g_scenario_spec->phase == RUNTIME_MAIN_GAME) {
         if (PrepareMainGameFixture(test) != 0) {
             test.finish(false);
+            /* The runner still owns game shutdown even when the fixture
+               already failed through FailScenario. */
+            FinishGameplayScenario();
+            ReleaseHeldGameplayCommands();
             g_case = 0;
             return 1;
         }
@@ -2692,11 +2708,13 @@ static DWORD WINAPI DriveScenario(void*)
             g_observation.case_passed = passed ? 1 : 0;
             test.finish(passed);
             FinishGameplayScenario();
+            ReleaseHeldGameplayCommands();
             g_case = 0;
             return passed ? 0 : 2;
         }
     }
     DWORD result = g_scenario_spec->run();
+    ReleaseHeldGameplayCommands();
     g_case = 0;
     return result;
 }

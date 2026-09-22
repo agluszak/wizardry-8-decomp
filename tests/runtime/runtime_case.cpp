@@ -406,6 +406,7 @@ void RuntimeCase::step(const char* step)
             step, elapsed_ms());
     fflush(stderr);
     last_step_ = step;
+    expected_[0] = 0;
 }
 
 const char* RuntimeCase::last_step() const
@@ -532,7 +533,13 @@ bool RuntimeCase::resolve_binding(int command, CommandBinding& out, const char* 
 bool RuntimeCase::tap(int command, const char* step)
 {
     CommandBinding binding;
-    if (!resolve_binding(command, binding, step) || binding.key == 0) {
+    memset(&binding, 0, sizeof(binding));
+    if (!resolve_binding(command, binding, step)) {
+        /* resolve_binding already reported an unresponsive game thread; the
+           remaining false path is a resolved-but-empty binding. */
+        if (!failed()) {
+            fail(step, "binding-missing");
+        }
         return false;
     }
     SendBindingKeys(binding, 0);
@@ -565,6 +572,7 @@ bool RuntimeCase::wait_until(const char* condition, unsigned long budget_ms, Run
             held->note_snapshot(now);
         }
         if (fn(now, ctx)) {
+            expected_[0] = 0;
             return true;
         }
         Sleep(poll_ms);
