@@ -3,17 +3,14 @@ name: CI
 on:
   pull_request:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
     inputs:
       renderer:
         description: Runtime renderer experiment
         type: choice
         default: default
-        options:
-          - default
-          - softpipe
+        options: [default, softpipe]
   schedule:
     - cron: '17 2 * * *'
 
@@ -33,400 +30,506 @@ env:
   GOG_INPUT_REPO: agluszak/wiz8-ci-inputs
   GOG_RELEASE_TAG: gog-22306
   GOG_CACHE_VERSION: v1-aes256cbc-pbkdf2-200000
+  GHIDRA_INSTALL_DIR: /tmp/wiz8-ci/ghidra_12.1.3_PUBLIC
+  WIZ8_INPUT_DIR: /tmp/wiz8-inputs
+  WIZ8_WORK_DIR: /tmp/wiz8-work
+  WIZ8_GHIDRA_PROJECT_DIR: /tmp/wiz8-ghidra-project
+  WIZ8_RUNTIME_DISPLAY: virtual
+  GITHUB_EVENT_BEFORE: ${{ github.event.before }}
 
 jobs:
-  ci:
-    name: Public checks, lints, and tests
+  scope:
+    name: Select CI lanes
     runs-on: ubuntu-24.04
-    timeout-minutes: 150
     outputs:
-      reccmp-comment: ${{ steps.reccmp-status.outputs.comment }}
-    env:
-      GHIDRA_INSTALL_DIR: /tmp/wiz8-ci/ghidra_12.1.3_PUBLIC
-      WIZ8_INPUT_DIR: /tmp/wiz8-inputs
-      WIZ8_WORK_DIR: /tmp/wiz8-work
-      WIZ8_GHIDRA_PROJECT_DIR: /tmp/wiz8-ghidra-project
-      WIZ8_RUNTIME_DISPLAY: virtual
-      GITHUB_EVENT_BEFORE: ${{ github.event.before }}
-      # Same-repository PRs are allowed to use the licensed CI inputs regardless
-      # of which account authored the PR (human, Devin, or another integration).
-      # Fork PRs remain public-only and do not receive repository secrets.
-      TRUSTED_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
-      LICENSED_INPUTS: ${{ (github.event_name != 'pull_request' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
+      public: ${{ steps.scope.outputs.public }}
+      analysis: ${{ steps.scope.outputs.analysis }}
+      wiz8: ${{ steps.scope.outputs.wiz8 }}
+      surrender: ${{ steps.scope.outputs.surrender }}
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          # Push lint selects against event.before / HEAD^; keep one parent as
-          # a fallback when event.before is unavailable (e.g. force-push zero).
           fetch-depth: 2
 
+      - name: Classify changed paths
+        id: scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_EVENT_NAME" == "schedule" || "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            printf '%s\n' public=true analysis=true wiz8=true surrender=true >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            git fetch --no-tags --depth=2 origin \
+              "+refs/heads/$GITHUB_BASE_REF:refs/remotes/origin/$GITHUB_BASE_REF" \
+              "+refs/pull/${{ github.event.pull_request.number }}/head:refs/remotes/origin/pr-head"
+            base="refs/remotes/origin/$GITHUB_BASE_REF"
+            head="refs/remotes/origin/pr-head"
+          elif [[ "$GITHUB_EVENT_NAME" == "push" && "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]]; then
+            git fetch --no-tags --depth=1 origin "${{ github.event.before }}"
+            base="${{ github.event.before }}"
+            head="$GITHUB_SHA"
+          else
+            printf '%s\n' public=true analysis=true wiz8=true surrender=true >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          changed="$RUNNER_TEMP/changed-files.txt"
+          git diff --name-only "$base" "$head" > "$changed"
+          echo "Changed paths:"
+          cat "$changed"
+          python3 .github/scripts/classify-ci-changes.py < "$changed" | tee -a "$GITHUB_OUTPUT"
+
+  toolchain:
+    name: Prepare VC6 analysis image
+    needs: scope
+    if: >-
+      needs.scope.outputs.public == 'true' ||
+      needs.scope.outputs.analysis == 'true' ||
+      needs.scope.outputs.wiz8 == 'true' ||
+      needs.scope.outputs.surrender == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check VC6 image cache
+        id: vc6-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/wiz8-vc6-image
+          key: vc6-image-v1-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml', 'tools/wiz8decomp/ghidra/fid_seeds.py') }}
+          lookup-only: true
+      - name: Set up Python for VC6 cache miss
+        if: steps.vc6-cache.outputs.cache-hit != 'true'
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      - name: Set up uv for VC6 cache miss
+        if: steps.vc6-cache.outputs.cache-hit != 'true'
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          version: "0.12.13"
+          enable-cache: true
+      - name: Install Python dependencies for VC6 cache miss
+        if: steps.vc6-cache.outputs.cache-hit != 'true'
+        run: uv sync --frozen
+      - name: Build pinned VC6 analysis image
+        if: steps.vc6-cache.outputs.cache-hit != 'true'
+        run: |
+          uv run wiz8 toolchain build vc6-sp5
+          mkdir -p "$RUNNER_TEMP/wiz8-vc6-image"
+          docker save wizardry8-msvc600:sp5 | gzip -1 > "$RUNNER_TEMP/wiz8-vc6-image/vc6-sp5.tar.gz"
+      - name: Save VC6 image cache
+        if: steps.vc6-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/wiz8-vc6-image
+          key: vc6-image-v1-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml', 'tools/wiz8decomp/ghidra/fid_seeds.py') }}
+
+  repository:
+    name: Repository checks
+    needs: [scope, toolchain]
+    if: needs.scope.outputs.public == 'true' && needs.toolchain.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 2
       - name: Fetch PR comparison baseline
         if: github.event_name == 'pull_request'
         run: |
-          # actions/checkout uses refs/pull/<n>/merge for pull_request events.
-          # Fetch the raw PR head separately: ancestry must be checked against
-          # the branch being proposed, not GitHub's synthetic merge commit.
           git fetch --no-tags --depth=2 origin \
             "+refs/heads/$GITHUB_BASE_REF:refs/remotes/origin/$GITHUB_BASE_REF" \
             "+refs/pull/${{ github.event.pull_request.number }}/head:refs/remotes/origin/pr-head"
-
       - name: Fetch push comparison baseline
-        if: >-
-          github.event_name == 'push' &&
-          github.event.before != '0000000000000000000000000000000000000000'
-        run: |
-          # fetch-depth: 2 only guarantees HEAD^ for a single-commit tip; a
-          # multi-commit push needs the explicit before SHA for changed_files().
-          git fetch --no-tags --depth=1 origin "${{ github.event.before }}"
-
+        if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
+        run: git fetch --no-tags --depth=1 origin "${{ github.event.before }}"
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.13"
-
       - name: Set up uv
         uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
         with:
           version: "0.12.13"
-          enable-cache: false
-
-      - name: Set up Java 21
-        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
-        with:
-          distribution: temurin
-          java-version: "21"
-
-      - name: Install host tools
+          enable-cache: true
+      - name: Install Python dependencies
+        run: uv sync --frozen
+      - name: Verify PR base ancestry and marker preservation
+        if: github.event_name == 'pull_request'
         run: |
-          sudo dpkg --add-architecture i386
+          pr_head="refs/remotes/origin/pr-head"
+          for _ in 1 2 3 4 5; do
+            if git merge-base "$pr_head" "origin/$GITHUB_BASE_REF" >/dev/null 2>&1; then break; fi
+            git fetch --no-tags --deepen=256 origin \
+              "+refs/heads/$GITHUB_BASE_REF:refs/remotes/origin/$GITHUB_BASE_REF" \
+              "+refs/pull/${{ github.event.pull_request.number }}/head:$pr_head"
+          done
+          uv run wiz8 report merge-preservation --base "origin/$GITHUB_BASE_REF" --head "$pr_head"
+      - name: Install host analysis tools
+        run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            cabextract \
-            innoextract \
-            llvm \
-            p7zip-full \
-            unshield \
-            unzip \
-            wine \
-            wine32:i386 \
-            wine64 \
-            xvfb
-          mkdir -p "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR"
-          # Docker creates missing bind-mount source paths as root. Keep the
-          # empty placeholders runner-owned; `wiz8 prepare` materializes the
-          # actual pinned source trees later, only in the licensed lane.
+          sudo apt-get install -y --no-install-recommends llvm
           mkdir -p \
             "$WIZ8_WORK_DIR/fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4" \
             "$WIZ8_WORK_DIR/fid/sources/unpacked/ijg-jpeg-6/jpeg-6" \
             "$WIZ8_WORK_DIR/fid/sources/unpacked/infozip-unzip-5.4"
           command -v llvm-undname
-          command -v wine
+      - name: Load VC6 analysis image
+        uses: ./.github/actions/load-vc6-image
+      - name: Restore compiler-backed analysis cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            build/clang
+            build/reccmp-source
+            build/source-index.json
+          key: analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
+          restore-keys: |
+            analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-
+      - name: Run repository checks and Python tests
+        run: uv run wiz8 check
+      - name: Run clang-cl and clang-tidy lints
+        run: uv run wiz8 lint
 
+  analysis:
+    name: Ghidra and recovery integration
+    needs: [scope, toolchain]
+    if: needs.scope.outputs.analysis == 'true' && needs.toolchain.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      - name: Set up uv
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          version: "0.12.13"
+          enable-cache: true
+      - name: Set up Java 21
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Install host analysis tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends llvm unzip
+          command -v llvm-undname
+      - name: Load VC6 analysis image
+        uses: ./.github/actions/load-vc6-image
       - name: Install pinned Ghidra
         run: |
           archive="$RUNNER_TEMP/$GHIDRA_ARCHIVE"
-          curl --fail --location --retry 3 \
-            --output "$archive" \
+          curl --fail --location --retry 3 --output "$archive" \
             "https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_12.1.3_build/$GHIDRA_ARCHIVE"
           echo "$GHIDRA_SHA256  $archive" | sha256sum --check -
           mkdir -p "$(dirname "$GHIDRA_INSTALL_DIR")"
           unzip -q "$archive" -d "$(dirname "$GHIDRA_INSTALL_DIR")"
           test -x "$GHIDRA_INSTALL_DIR/support/analyzeHeadless"
-
       - name: Install Python dependencies
         run: uv sync --frozen
-
-      - name: Verify PR base ancestry and marker preservation
-        if: github.event_name == 'pull_request'
-        run: |
-          # Gate the raw PR head. HEAD is GitHub's synthetic merge commit for
-          # pull_request events, so current base is necessarily its ancestor
-          # and checking HEAD would make the stale-branch gate vacuous.
-          pr_head="refs/remotes/origin/pr-head"
-          for _ in 1 2 3 4 5; do
-            if git merge-base "$pr_head" "origin/$GITHUB_BASE_REF" >/dev/null 2>&1; then
-              break
-            fi
-            git fetch --no-tags --deepen=256 origin \
-              "+refs/heads/$GITHUB_BASE_REF:refs/remotes/origin/$GITHUB_BASE_REF" \
-              "+refs/pull/${{ github.event.pull_request.number }}/head:$pr_head"
-          done
-          uv run wiz8 report merge-preservation \
-            --base "origin/$GITHUB_BASE_REF" --head "$pr_head"
-
-      - name: Validate CI environment
-        run: uv run wiz8 doctor
-
-      - name: Build pinned VC6 analysis image
-        run: uv run wiz8 toolchain build vc6-sp5
-
-      - name: Run repository checks and Python tests
-        run: uv run wiz8 check
-
-      - name: Run clang-cl and clang-tidy lints
-        run: uv run wiz8 lint
-
       - name: Run recovery lifecycle self-test
         run: uv run wiz8 recover self-test
-
       - name: Restore reviewed Ghidra checkpoint
         run: uv run wiz8 ghidra restore
-
       - name: Run Ghidra enrichment integration tests
         run: uv run pytest -q tests/ghidra
 
-      - name: Restore encrypted GOG installer cache
-        id: gog-cache
-        if: env.LICENSED_INPUTS == 'true'
+  wiz8:
+    name: WIZ8 comparison and runtime
+    needs: [scope, toolchain]
+    if: >-
+      needs.scope.outputs.wiz8 == 'true' &&
+      needs.toolchain.result == 'success' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    outputs:
+      reccmp-comment: ${{ steps.wiz8-checks.outputs.comment }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      - name: Set up uv
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          version: "0.12.13"
+          enable-cache: true
+      - name: Install WIZ8 runtime host tools
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            cabextract innoextract llvm p7zip-full unshield \
+            wine wine32:i386 wine64 xvfb zstd
+          mkdir -p "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR"
+          command -v llvm-undname
+          command -v wine
+          command -v zstd
+      - name: Load VC6 analysis image
+        uses: ./.github/actions/load-vc6-image
+      - name: Restore compiler-backed analysis cache
         uses: actions/cache/restore@v4
         with:
-          path: ${{ runner.temp }}/wiz8-gog-cache
-          key: wiz8-gog-${{ env.GOG_INSTALLER_SHA256 }}-${{ env.GOG_CACHE_VERSION }}
-
-      - name: Fetch and encrypt GOG installer on cache miss
-        if: env.LICENSED_INPUTS == 'true' && steps.gog-cache.outputs.cache-hit != 'true'
-        env:
-          GH_TOKEN: ${{ secrets.WIZ8_INPUTS_TOKEN }}
-          WIZ8_CACHE_KEY: ${{ secrets.WIZ8_CACHE_KEY }}
-        run: |
-          set -euo pipefail
-
-          if [ -z "$GH_TOKEN" ]; then
-            echo "WIZ8_INPUTS_TOKEN repository secret is required for a licensed cache miss" >&2
-            exit 1
-          fi
-          if [ -z "$WIZ8_CACHE_KEY" ]; then
-            echo "WIZ8_CACHE_KEY repository secret is required for licensed CI" >&2
-            exit 1
-          fi
-
-          cache_dir="$RUNNER_TEMP/wiz8-gog-cache"
-          download_dir="$RUNNER_TEMP/wiz8-gog-download"
-          downloaded="$download_dir/$GOG_RELEASE_ASSET_NAME"
-          installer="$download_dir/$GOG_INSTALLER_NAME"
-          encrypted="$cache_dir/$GOG_INSTALLER_NAME.enc"
-
-          rm -rf "$cache_dir" "$download_dir"
-          mkdir -p "$cache_dir" "$download_dir"
-
-          gh release download "$GOG_RELEASE_TAG" \
-            --repo "$GOG_INPUT_REPO" \
-            --pattern "$GOG_RELEASE_ASSET_NAME" \
-            --dir "$download_dir"
-
-          test -s "$downloaded"
-          mv "$downloaded" "$installer"
-          echo "$GOG_INSTALLER_SHA256  $installer" | sha256sum --check -
-
-          openssl enc \
-            -aes-256-cbc \
-            -pbkdf2 \
-            -iter 200000 \
-            -salt \
-            -in "$installer" \
-            -out "$encrypted" \
-            -pass env:WIZ8_CACHE_KEY
-
-          rm -rf "$download_dir"
-          test -s "$encrypted"
-
-      - name: Save encrypted GOG installer cache
-        if: >-
-          env.LICENSED_INPUTS == 'true' &&
-          steps.gog-cache.outputs.cache-hit != 'true' &&
-          github.event_name != 'pull_request' &&
-          github.ref == 'refs/heads/main'
-        uses: actions/cache/save@v4
+          path: |
+            build/clang
+            build/reccmp-source
+            build/source-index.json
+          key: analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
+          restore-keys: |
+            analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-
+      - name: Restore incremental WIZ8 product build
+        uses: actions/cache@v4
         with:
-          path: ${{ runner.temp }}/wiz8-gog-cache
-          key: wiz8-gog-${{ env.GOG_INSTALLER_SHA256 }}-${{ env.GOG_CACHE_VERSION }}
-
-      - name: Materialize licensed GOG input
-        if: env.LICENSED_INPUTS == 'true'
-        env:
-          WIZ8_CACHE_KEY: ${{ secrets.WIZ8_CACHE_KEY }}
+          path: build/decomp
+          key: product-wiz8-v1-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
+          restore-keys: |
+            product-wiz8-v1-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-
+      - name: Install Python dependencies
+        run: uv sync --frozen
+      - name: Prepare licensed WIZ8 inputs
+        uses: ./.github/actions/prepare-licensed-inputs
+        with:
+          inputs-token: ${{ secrets.WIZ8_INPUTS_TOKEN }}
+          cache-key: ${{ secrets.WIZ8_CACHE_KEY }}
+      - name: Build WIZ8 comparison and runtime products
         run: |
-          set -euo pipefail
-
-          if [ -z "$WIZ8_CACHE_KEY" ]; then
-            echo "WIZ8_CACHE_KEY repository secret is required for licensed CI" >&2
-            exit 1
-          fi
-
-          encrypted="$RUNNER_TEMP/wiz8-gog-cache/$GOG_INSTALLER_NAME.enc"
-          installer="$WIZ8_INPUT_DIR/$GOG_INSTALLER_NAME"
-
-          test -s "$encrypted"
-          mkdir -p "$WIZ8_INPUT_DIR"
-
-          openssl enc \
-            -d \
-            -aes-256-cbc \
-            -pbkdf2 \
-            -iter 200000 \
-            -in "$encrypted" \
-            -out "$installer" \
-            -pass env:WIZ8_CACHE_KEY
-
-          echo "$GOG_INSTALLER_SHA256  $installer" | sha256sum --check -
-
-          cat > config/local-inputs.yml <<EOF
-          schema: wiz8.local-inputs
-          inputs:
-            gog-media: $GOG_INSTALLER_NAME
-          EOF
-
-      - name: Prepare licensed corpus
-        if: env.LICENSED_INPUTS == 'true'
-        run: uv run wiz8 prepare
-
-      - name: Build WIZ8 comparison product
-        if: env.LICENSED_INPUTS == 'true'
-        run: uv run wiz8 build match
-
-      - name: Build SURRENDER comparison product
-        if: env.LICENSED_INPUTS == 'true'
-        run: uv run wiz8 build SURRENDER
-
-      - name: Generate reccmp PR status
-        id: reccmp-status
-        if: env.TRUSTED_PR == 'true'
-        run: |
-          status_json="$RUNNER_TEMP/reccmp-status.json"
-          comment="$RUNNER_TEMP/reccmp-status.md"
-          uv run wiz8 report status > "$status_json"
-          jq -r '
-            def pct:
-              if . == null then "n/a"
-              else (((. * 10000 | round) / 100) | tostring) + "%"
-              end;
-            .totals as $t |
-            $t.known_original_scope as $k |
-            (
-              [
-                "<!-- wiz8-reccmp-status -->",
-                "### reccmp status",
-                "",
-                "| Metric | Value |",
-                "| --- | ---: |",
-                "| Source functions | \($t.source_functions) |",
-                "| Source coverage (known scope) | \($k.source_functions) / \($k.original_functions) (\($k.source_coverage | pct)) |",
-                "| Effective progress (known scope) | \($k.progress | pct) |",
-                "| Paired source functions | \($t.paired) |",
-                "| Exact | \($t.exact) |",
-                "| Effective | \($t.effective) |",
-                "| Mismatch | \($t.mismatch) |",
-                "| Inconclusive | \($t.inconclusive) |",
-                "| Unpaired | \($t.unpaired) |",
-                "| Ignored | \($t.ignored) |",
-                "| Pair accuracy | \($t.accuracy | pct) |",
-                "",
-                "#### Per target",
-                "",
-                "| Target | Source | Coverage | Progress | Exact | Effective | Mismatch | Inconclusive | Unpaired | Accuracy |",
-                "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"
-              ]
-              + (
-                  .targets
-                  | to_entries
-                  | map(select(.value.state == "comparison"))
-                  | map(
-                      .value as $v
-                      | "| `\(.key)` | \($v.source.functions // 0) | \($v.source_coverage | pct) | \($v.progress | pct) | \($v.comparison.exact) | \($v.comparison.effective) | \($v.comparison.mismatch) | \($v.comparison.inconclusive) | \($v.comparison.unpaired) | \($v.comparison.accuracy | pct) |"
-                    )
-                )
-              + [""]
-            ) | join("\n")
-          ' "$status_json" > "$comment"
-          printf '\n\n_Updated from CI merge result `%s`._\n' "${GITHUB_SHA:0:12}" >> "$comment"
-          {
-            echo 'comment<<__RECCMP_STATUS__'
-            cat "$comment"
-            echo '__RECCMP_STATUS__'
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Audit vtable comparisons
-        id: vtable
-        if: env.LICENSED_INPUTS == 'true'
-        continue-on-error: true
-        run: uv run wiz8 vtable
-
-      - name: Audit datacmp comparisons
-        id: datacmp
-        if: env.LICENSED_INPUTS == 'true'
-        continue-on-error: true
-        run: uv run wiz8 datacmp
-
-      # Historical vtable/datacmp inventories still carry reconstruction debt.
-      # Keep the audits visible and non-vacuous (commands still exit non-zero on
-      # issues) but do not suppress licensed tests or the full runtime suite.
-      - name: Summarize specialized comparison debt
-        if: env.LICENSED_INPUTS == 'true' && (steps.vtable.outcome == 'failure' || steps.datacmp.outcome == 'failure')
-        run: |
-          echo "::warning::specialized comparison debt: vtable=${{ steps.vtable.outcome }} datacmp=${{ steps.datacmp.outcome }}"
-          echo "vtable=${{ steps.vtable.outcome }} datacmp=${{ steps.datacmp.outcome }}"
-
-      - name: Run licensed comparison tests
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        run: uv run pytest -q tests/licensed
-
-      - name: Run full runtime suite
-        id: runtime
-        if: env.LICENSED_INPUTS == 'true'
+          uv run wiz8 build match
+          uv run wiz8 build runtime-test
+      - name: Run WIZ8 comparisons and runtime concurrently
+        id: wiz8-checks
         continue-on-error: true
         env:
           RUNTIME_RENDERER: ${{ inputs.renderer || 'default' }}
+        shell: bash
         run: |
-          if [[ "$RUNTIME_RENDERER" == "softpipe" ]]; then
-            export GALLIUM_DRIVER=softpipe
-          fi
-          if [[ "$GITHUB_EVENT_NAME" == "schedule" ]]; then
-            status=0
-            uv run wiz8 runtime-test --build --repeat 3 \
-              --scenario main-game-start --scenario save-load-move \
-              --scenario combat-roundtrip --scenario hostile-encounter || status=1
-            uv run wiz8 runtime-test --scenario world-soak || status=1
-            exit "$status"
-          elif [[ "$GITHUB_EVENT_NAME" == "pull_request" || "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
-            # Renderer experiments use the same forward workload as trusted PRs.
-            uv run wiz8 runtime-test --build
+          set -uo pipefail
+          runtime_log="$RUNNER_TEMP/wiz8-runtime.log"
+          status_json="$RUNNER_TEMP/reccmp-status.json"
+          comment="$RUNNER_TEMP/reccmp-status.md"
+
+          run_runtime() {
+            if [[ "$RUNTIME_RENDERER" == "softpipe" ]]; then export GALLIUM_DRIVER=softpipe; fi
+            if [[ "$GITHUB_EVENT_NAME" == "schedule" ]]; then
+              status=0
+              uv run wiz8 runtime-test --repeat 3 \
+                --scenario main-game-start --scenario save-load-move \
+                --scenario combat-roundtrip --scenario hostile-encounter || status=1
+              uv run wiz8 runtime-test --scenario world-soak || status=1
+              return "$status"
+            elif [[ "$GITHUB_EVENT_NAME" == "pull_request" || "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+              uv run wiz8 runtime-test
+            else
+              uv run wiz8 runtime-test --tier main --check-order
+            fi
+          }
+
+          run_runtime > >(tee "$runtime_log") 2>&1 &
+          runtime_pid=$!
+          comparison_status=0
+
+          if uv run wiz8 report status > "$status_json"; then
+            jq -e '.targets.WIZ8.state == "comparison"' "$status_json" >/dev/null || comparison_status=1
           else
-            uv run wiz8 runtime-test --build --tier main --check-order
+            comparison_status=1
           fi
 
-      - name: Upload runtime-test diagnostics
-        if: env.LICENSED_INPUTS == 'true' && steps.runtime.outcome == 'failure'
+          if [[ -s "$status_json" ]]; then
+            jq -r '
+              def pct:
+                if . == null then "n/a"
+                else (((. * 10000 | round) / 100) | tostring) + "%"
+                end;
+              .targets.WIZ8 as $v |
+              .totals.known_original_scope as $k |
+              [
+                "<!-- wiz8-reccmp-status -->",
+                "### WIZ8 reccmp status",
+                "",
+                "| Metric | Value |",
+                "| --- | ---: |",
+                "| Source functions | \($v.source.functions // 0) |",
+                "| Source coverage | \($k.source_functions) / \($k.original_functions) (\($k.source_coverage | pct)) |",
+                "| Effective progress | \($k.progress | pct) |",
+                "| Paired source functions | \($v.comparison.paired) |",
+                "| Exact | \($v.comparison.exact) |",
+                "| Effective | \($v.comparison.effective) |",
+                "| Mismatch | \($v.comparison.mismatch) |",
+                "| Inconclusive | \($v.comparison.inconclusive) |",
+                "| Unpaired | \($v.comparison.unpaired) |",
+                "| Pair accuracy | \($v.comparison.accuracy | pct) |",
+                ""
+              ] | join("\n")
+            ' "$status_json" > "$comment"
+            printf '\n_Updated from CI merge result %s._\n' "${GITHUB_SHA:0:12}" >> "$comment"
+            {
+              echo 'comment<<__RECCMP_STATUS__'
+              cat "$comment"
+              echo '__RECCMP_STATUS__'
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+          vtable_status=0
+          datacmp_status=0
+          uv run wiz8 vtable || vtable_status=$?
+          uv run wiz8 datacmp || datacmp_status=$?
+          if (( vtable_status != 0 || datacmp_status != 0 )); then
+            echo "::warning::specialized WIZ8 comparison debt: vtable=$vtable_status datacmp=$datacmp_status"
+          fi
+
+          if [[ "$GITHUB_EVENT_NAME" != "pull_request" && "$GITHUB_REF" == "refs/heads/main" ]]; then
+            uv run pytest -q tests/licensed || comparison_status=1
+          fi
+
+          runtime_status=0
+          wait "$runtime_pid" || runtime_status=$?
+          echo "runtime_status=$runtime_status comparison_status=$comparison_status"
+          if (( runtime_status != 0 || comparison_status != 0 )); then exit 1; fi
+
+      - name: Upload WIZ8 diagnostics
+        if: steps.wiz8-checks.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
-          name: runtime-test-diagnostics
+          name: wiz8-runtime-diagnostics
           path: |
             build/runtime/runtime-test/**/diagnostics/
             build/logs/
+            ${{ runner.temp }}/wiz8-runtime.log
           if-no-files-found: warn
-
-      - name: Fail if runtime suite failed
-        if: env.LICENSED_INPUTS == 'true' && steps.runtime.outcome == 'failure'
-        run: |
-          echo "runtime-test failed; see the runtime-test-diagnostics artifact"
-          exit 1
-
-      - name: Remove licensed inputs and derived trees
-        if: always() && env.LICENSED_INPUTS == 'true'
+      - name: Fail if WIZ8 checks failed
+        if: steps.wiz8-checks.outcome == 'failure'
+        run: exit 1
+      - name: Remove plaintext licensed WIZ8 inputs
+        if: always()
         run: |
           wineserver -k || true
-          rm -rf \
-            "$WIZ8_INPUT_DIR" \
-            "$WIZ8_WORK_DIR" \
-            "$RUNNER_TEMP/wiz8-gog-cache" \
-            "$RUNNER_TEMP/wiz8-gog-download" \
-            config/local-inputs.yml
+          rm -rf "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR" "$RUNNER_TEMP/wiz8-gog-download" config/local-inputs.yml
+
+  surrender:
+    name: SURRENDER comparison
+    needs: [scope, toolchain]
+    if: >-
+      needs.scope.outputs.surrender == 'true' &&
+      needs.toolchain.result == 'success' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      - name: Set up uv
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          version: "0.12.13"
+          enable-cache: true
+      - name: Install SURRENDER comparison host tools
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            cabextract innoextract llvm p7zip-full unshield zstd \
+            wine wine32:i386 wine64
+          mkdir -p "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR"
+          command -v llvm-undname
+          command -v wine
+          command -v winepath
+          command -v zstd
+      - name: Load VC6 analysis image
+        uses: ./.github/actions/load-vc6-image
+      - name: Restore compiler-backed analysis cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            build/clang
+            build/reccmp-source
+            build/source-index.json
+          key: analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
+          restore-keys: |
+            analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-
+      - name: Restore incremental SURRENDER product build
+        uses: actions/cache@v4
+        with:
+          path: build/decomp
+          key: product-surrender-v1-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
+          restore-keys: |
+            product-surrender-v1-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-
+      - name: Install Python dependencies
+        run: uv sync --frozen
+      - name: Prepare licensed SURRENDER inputs
+        uses: ./.github/actions/prepare-licensed-inputs
+        with:
+          inputs-token: ${{ secrets.WIZ8_INPUTS_TOKEN }}
+          cache-key: ${{ secrets.WIZ8_CACHE_KEY }}
+      - name: Build SURRENDER comparison product
+        run: uv run wiz8 build SURRENDER
+      - name: Verify SURRENDER comparison surface
+        run: |
+          status_json="$RUNNER_TEMP/surrender-status.json"
+          uv run wiz8 report status > "$status_json"
+          jq -e '.targets.SURRENDER.state == "comparison"' "$status_json" >/dev/null
+          jq '.targets.SURRENDER' "$status_json"
+      - name: Remove plaintext licensed SURRENDER inputs
+        if: always()
+        run: rm -rf "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR" "$RUNNER_TEMP/wiz8-gog-download" config/local-inputs.yml
+
+  ci:
+    name: Public checks, lints, and tests
+    needs: [scope, toolchain, repository, analysis, wiz8, surrender]
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require every selected lane to pass
+        env:
+          SCOPE_RESULT: ${{ needs.scope.result }}
+          TOOLCHAIN_RESULT: ${{ needs.toolchain.result }}
+          REPOSITORY_RESULT: ${{ needs.repository.result }}
+          ANALYSIS_RESULT: ${{ needs.analysis.result }}
+          WIZ8_RESULT: ${{ needs.wiz8.result }}
+          SURRENDER_RESULT: ${{ needs.surrender.result }}
+        run: |
+          set -euo pipefail
+          for result in "$SCOPE_RESULT" "$TOOLCHAIN_RESULT" "$REPOSITORY_RESULT" "$ANALYSIS_RESULT" "$WIZ8_RESULT" "$SURRENDER_RESULT"; do
+            case "$result" in
+              success|skipped) ;;
+              *) echo "selected CI lane failed or was cancelled: $result" >&2; exit 1 ;;
+            esac
+          done
 
   comment-reccmp-status:
-    name: Comment reccmp status
-    needs: ci
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && needs.ci.result == 'success'
+    name: Comment WIZ8 reccmp status
+    needs: wiz8
+    if: >-
+      always() &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      needs.wiz8.result == 'success' &&
+      needs.wiz8.outputs.reccmp-comment != ''
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -436,23 +539,18 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          COMMENT_BODY: ${{ needs.ci.outputs.reccmp-comment }}
+          COMMENT_BODY: ${{ needs.wiz8.outputs.reccmp-comment }}
         run: |
           test -n "$COMMENT_BODY"
           marker='<!-- wiz8-reccmp-status -->'
           payload="$RUNNER_TEMP/reccmp-status-comment.json"
           comment_id="$(
             gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
-              --jq ".[] | select(.body | contains(\"$marker\")) | .id" \
-              | head -n1
+              --jq ".[] | select(.body | contains(\"$marker\")) | .id" | head -n1
           )"
           printf '%s' "$COMMENT_BODY" | jq -Rs '{body: .}' > "$payload"
           if [ -n "$comment_id" ]; then
-            gh api --method PATCH \
-              "repos/$GITHUB_REPOSITORY/issues/comments/$comment_id" \
-              --input "$payload" >/dev/null
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$comment_id" --input "$payload" >/dev/null
           else
-            gh api --method POST \
-              "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
-              --input "$payload" >/dev/null
+            gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" --input "$payload" >/dev/null
           fi

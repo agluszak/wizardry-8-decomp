@@ -1,0 +1,24 @@
+name: Load cached VC6 image
+description: Restore the pinned VC6 analysis image prepared by the toolchain CI job.
+
+runs:
+  using: composite
+  steps:
+    - name: Restore VC6 image archive
+      id: vc6-cache
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ runner.temp }}/wiz8-vc6-image
+        key: vc6-image-v1-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml', 'tools/wiz8decomp/ghidra/fid_seeds.py') }}
+
+    - name: Load VC6 image
+      shell: bash
+      run: |
+        set -euo pipefail
+        archive="$RUNNER_TEMP/wiz8-vc6-image/vc6-sp5.tar.gz"
+        if [[ "${{ steps.vc6-cache.outputs.cache-hit }}" != "true" || ! -s "$archive" ]]; then
+          echo "cached VC6 image is unavailable; the toolchain job should have populated it" >&2
+          exit 1
+        fi
+        gzip -dc "$archive" | docker load
+        docker image inspect wizardry8-msvc600:sp5 >/dev/null
