@@ -2088,11 +2088,11 @@ void ProcessMessageBoxQueue(void)
         }
         Trigger* trigger = FindTriggerByName("CC_TRIGGERPLANE3");
         if (trigger != 0) {
-            trigger->flags_0a0 &= ~0x10;
+            trigger->flags_0a0 &= ~W8_TRIGGER_ON;
         }
         trigger = FindTriggerByName("CC_TRIGGERPLANE2");
         if (trigger != 0) {
-            trigger->flags_0a0 |= 0x10;
+            trigger->flags_0a0 |= W8_TRIGGER_ON;
             trigger->Run(-1);
         }
         break;
@@ -2100,7 +2100,7 @@ void ProcessMessageBoxQueue(void)
     case W8_NPC_MSG_MOVE_TO_BOOK2: {
         Trigger* trigger = FindTriggerByName("CC_TRIGGERPLANE3");
         if (trigger != 0) {
-            trigger->flags_0a0 |= 0x10;
+            trigger->flags_0a0 |= W8_TRIGGER_ON;
             trigger->Run(-1);
         }
         npc = GetNpcStateByKind(0x8d);

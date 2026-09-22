@@ -535,7 +535,7 @@ bool Trigger::Load0043C1B0(int hFile, char version)
                 FileRead(hFile, &action_230, sizeof(action_230), 0) &&
                 FileRead(hFile, &action_state_232, sizeof(action_state_232), 0) &&
                 FileRead(hFile, &value_23c, sizeof(value_23c), 0);
-    if ((flags_0a0 & 0x4000000) != 0) {
+    if ((flags_0a0 & W8_TRIGGER_SEARCHED) != 0) {
         UnregisterSearchableTrigger00516FE0(this);
     }
     FileRead(hFile, &has_action_data, sizeof(has_action_data), 0);
@@ -878,7 +878,7 @@ void UpdateWorldTriggers00443AE0(W8World* world)
     int count = world->triggers->GetCount();
     for (int index = 0; index < count; ++index) {
         Trigger* trigger = *world->triggers->GetAt(index);
-        if ((trigger->flags_0a0 & 0x2000000U) != 0 && trigger->m_pProp != 0 &&
+        if ((trigger->flags_0a0 & W8_TRIGGER_ITEM_PICKER) != 0 && trigger->m_pProp != 0 &&
             (trigger->m_pProp->GetAnimationState0044EBE0() < 2 ||
              trigger->m_pProp->Rep()->animation_playing_06d == 0)) {
             trigger->GenerateItemGroup();
@@ -894,19 +894,19 @@ void UpdateWorldTriggers00443AE0(W8World* world)
             }
         }
         if (g_environment_load_flag_00603ad0 != 0 && trigger->trigger_kind_018 == 2 &&
-            (trigger->flags_0a0 & 0x100U) != 0 && (trigger->flags_0a0 & 0x800U) != 0 &&
-            (trigger->flags_0a0 & 0x4U) == 0) {
+            (trigger->flags_0a0 & W8_TRIGGER_ENABLED) != 0 &&
+            (trigger->flags_0a0 & W8_TRIGGER_POSITIONED) != 0 && (trigger->flags_0a0 & 0x4U) == 0) {
             srVector3T<float> trigger_position(trigger->position_118.x, trigger->position_118.y,
                                                trigger->position_118.z);
             float distance = (trigger_position - camera).Length();
             if (trigger->range_maximum_0a8 <= distance) {
-                if ((trigger->flags_0a0 & 0x40U) != 0) {
+                if ((trigger->flags_0a0 & W8_TRIGGER_RUNNING) != 0) {
                     trigger->FinishAction();
                 }
-            } else if ((trigger->flags_0a0 & 0x40U) == 0 &&
+            } else if ((trigger->flags_0a0 & W8_TRIGGER_RUNNING) == 0 &&
                        trigger->range_minimum_0a4 <= distance) {
                 activated = true;
-                if ((trigger->flags_0a0 & 0x100000U) == 0 || !running) {
+                if ((trigger->flags_0a0 & W8_TRIGGER_EXCLUSIVE) == 0 || !running) {
                     trigger->Run(-1);
                     running = true;
                 }
@@ -927,7 +927,7 @@ void OnItemDialogClosed004456C0(W8DialogBase* base)
 
     if (dialog != 0) {
         dialog->ReturnItemsToGroup();
-        static_cast<Trigger*>(dialog->m_user_data)->flags_0a0 &= 0xfdffffff;
+        static_cast<Trigger*>(dialog->m_user_data)->flags_0a0 &= ~W8_TRIGGER_ITEM_PICKER;
     }
 }
 
@@ -1051,7 +1051,7 @@ bool Trigger::HasActorWithinRadius(float radius, bool include_party)
 {
     srVector3T<float> center;
 
-    if ((flags_0a0 & 0x800U) != 0 || m_pProp != 0) {
+    if ((flags_0a0 & W8_TRIGGER_POSITIONED) != 0 || m_pProp != 0) {
         if (m_pProp == 0) {
             center.Set(position_118.x, position_118.y, position_118.z);
         } else {
@@ -1102,7 +1102,7 @@ bool Trigger::PlayActionSound(const char* sound_name, int volume)
     if (volume == 0) {
         volume = 100;
     }
-    if ((flags_0a0 & 0x800U) == 0) {
+    if ((flags_0a0 & W8_TRIGGER_POSITIONED) == 0) {
         if (m_pProp == 0) {
             SOUNDPARMS options;
             memset(&options, -1, sizeof(options));
@@ -1383,8 +1383,9 @@ void Trigger::RunLinkedTriggers00441590()
 {
     char* recipient;
 
-    flags_0a0 &= ~0x40U;
-    if ((flags_0a0 & 0x80U) != 0 && (flags_0a0 & 0x200U) != 0 && m_pacRecipients != 0) {
+    flags_0a0 &= ~W8_TRIGGER_RUNNING;
+    if ((flags_0a0 & W8_TRIGGER_FIRE_LINKED) != 0 &&
+        (flags_0a0 & W8_TRIGGER_LINK_ON_DEACTIVATE) != 0 && m_pacRecipients != 0) {
         recipient = m_pacRecipients;
         while (recipient != 0) {
             strcpy(g_trigger_parse_buffer_00659908, recipient);
@@ -1409,7 +1410,7 @@ void Trigger::RunLinkedTriggers00441590()
 // FUNCTION: WIZ8 0x004416f0
 void Trigger::SetPosition004416F0(srVector3T<float>* position)
 {
-    flags_0a0 |= 0x800;
+    flags_0a0 |= W8_TRIGGER_POSITIONED;
     position_118.x = position->x;
     position_118.y = position->y;
     position_118.z = position->z;
@@ -1493,7 +1494,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         }
         trigger->trigger_id_09c = g_status_685170.next_trigger_id_2356++;
         trigger->m_pWorld = world;
-        trigger->flags_0a0 = (trigger->flags_0a0 & ~0x20U) | 0x10;
+        trigger->flags_0a0 = (trigger->flags_0a0 & ~0x20U) | W8_TRIGGER_ON;
     }
 
     switch (record_type) {
@@ -1578,17 +1579,17 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         else
             trigger->flags_0a0 &= ~2U;
         if (flag_8 != 0)
-            trigger->flags_0a0 |= 0x100;
+            trigger->flags_0a0 |= W8_TRIGGER_ENABLED;
         else
-            trigger->flags_0a0 &= ~0x100U;
+            trigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
         if ((packed_flags & 2) != 0)
-            trigger->flags_0a0 |= 0x200;
+            trigger->flags_0a0 |= W8_TRIGGER_LINK_ON_DEACTIVATE;
         else
-            trigger->flags_0a0 &= ~0x200U;
+            trigger->flags_0a0 &= ~W8_TRIGGER_LINK_ON_DEACTIVATE;
         if ((packed_flags & 1) != 0)
-            trigger->flags_0a0 |= 0x80;
+            trigger->flags_0a0 |= W8_TRIGGER_FIRE_LINKED;
         else
-            trigger->flags_0a0 &= ~0x80U;
+            trigger->flags_0a0 &= ~W8_TRIGGER_FIRE_LINKED;
         world->triggers->Add(trigger);
         if (trigger->name_01c[0] != 0) {
             trigger->setName(trigger->name_01c);
@@ -1690,15 +1691,15 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         trigger->value_0ac = value_ac;
         trigger->initial_action_22a = static_cast<unsigned short>(action);
         trigger->value_0c8 = value_c8;
-        trigger->flags_0a0 |= 0x800;
+        trigger->flags_0a0 |= W8_TRIGGER_POSITIONED;
         if (flag_7 != 0)
-            trigger->flags_0a0 |= 0x80;
+            trigger->flags_0a0 |= W8_TRIGGER_FIRE_LINKED;
         else
-            trigger->flags_0a0 &= ~0x80U;
+            trigger->flags_0a0 &= ~W8_TRIGGER_FIRE_LINKED;
         if (flag_8 != 0)
-            trigger->flags_0a0 |= 0x100;
+            trigger->flags_0a0 |= W8_TRIGGER_ENABLED;
         else
-            trigger->flags_0a0 &= ~0x100U;
+            trigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
         if (flag_3 != 0)
             trigger->flags_0a0 |= 8;
         else
@@ -1859,13 +1860,13 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
 
         trigger->trigger_kind_018 = ((packed_flags & 1) != 0 || searchable == 1) ? 1 : 2;
         if ((packed_flags & 2) != 0)
-            trigger->flags_0a0 |= 0x20000;
+            trigger->flags_0a0 |= W8_TRIGGER_CAN_RUN_LINKED;
         if ((packed_flags & 4) != 0)
             trigger->flags_0a0 |= 0x40000;
         if ((packed_flags & 8) != 0)
-            trigger->flags_0a0 |= 0x100000;
+            trigger->flags_0a0 |= W8_TRIGGER_EXCLUSIVE;
         if ((packed_flags & 0x10) != 0)
-            trigger->flags_0a0 |= 0x200000;
+            trigger->flags_0a0 |= W8_TRIGGER_REACTIVATE_LINKED;
         if ((packed_flags & 0x20) != 0)
             trigger->flags_0a0 |= 0x400000;
 
@@ -1884,17 +1885,17 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         trigger->fallback_action_22e = static_cast<unsigned short>(fallback_action);
         trigger->value_0c8 = searchable;
         if (flag_8 != 0)
-            trigger->flags_0a0 |= 0x100;
+            trigger->flags_0a0 |= W8_TRIGGER_ENABLED;
         else
-            trigger->flags_0a0 &= ~0x100U;
+            trigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
         if (flag_7 != 0)
-            trigger->flags_0a0 |= 0x80;
+            trigger->flags_0a0 |= W8_TRIGGER_FIRE_LINKED;
         else
-            trigger->flags_0a0 &= ~0x80U;
+            trigger->flags_0a0 &= ~W8_TRIGGER_FIRE_LINKED;
         if (flag_9 != 0)
-            trigger->flags_0a0 |= 0x200;
+            trigger->flags_0a0 |= W8_TRIGGER_LINK_ON_DEACTIVATE;
         else
-            trigger->flags_0a0 &= ~0x200U;
+            trigger->flags_0a0 &= ~W8_TRIGGER_LINK_ON_DEACTIVATE;
         if (flag_3 != 0)
             trigger->flags_0a0 |= 8;
         else
@@ -1996,9 +1997,9 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             FileRead(handle, sound, sizeof(sound), 0);
             sprintf(trigger->alternate_action_data_1a8, "data\\sound\\%s", sound);
             if (flag_23 != 0)
-                trigger->flags_0a0 |= 0x800000;
+                trigger->flags_0a0 |= W8_TRIGGER_ALTERNATE_ACTION;
             else
-                trigger->flags_0a0 &= ~0x800000U;
+                trigger->flags_0a0 &= ~W8_TRIGGER_ALTERNATE_ACTION;
         }
 
         if ((packed_flags & 1) == 0) {
@@ -2010,7 +2011,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
                 trigger->position_118.x *= 500.0f;
                 trigger->position_118.y *= 500.0f;
                 trigger->position_118.z *= 500.0f;
-                trigger->flags_0a0 |= 0x800;
+                trigger->flags_0a0 |= W8_TRIGGER_POSITIONED;
             } else if (representation_kind == 2) {
                 FileRead(handle, trigger->representation_vectors_0cc,
                          sizeof(trigger->representation_vectors_0cc), 0);
@@ -2099,7 +2100,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
                     static_cast<float>(abs(trigger->m_lData2)) * 0.001f);
                 trigger->m_pEvent->timer_008.Restart();
                 trigger->m_pEvent->trigger_030 = trigger;
-                trigger->flags_0a0 |= 0x40;
+                trigger->flags_0a0 |= W8_TRIGGER_RUNNING;
                 g_timed_events_006599b8.Add(trigger->m_pEvent);
             }
         } else if (trigger->initial_action_22a > 0x24 && trigger->initial_action_22a < 0x2c &&
@@ -2127,7 +2128,7 @@ void Trigger::GetPosition(srVector3T<float>* position) const
 // FUNCTION: WIZ8 0x00441780
 bool Trigger::HasActionMessage00441780()
 {
-    return (flags_0a0 & 0x20000U) != 0;
+    return (flags_0a0 & W8_TRIGGER_CAN_RUN_LINKED) != 0;
 }
 
 // FUNCTION: WIZ8 0x00441790
@@ -2193,7 +2194,7 @@ Trigger::Trigger()
     value_384 = 0;
     memset(state_370.bytes_01, 0, sizeof(state_370.bytes_01));
 
-    flags_0a0 |= 0x10;
+    flags_0a0 |= W8_TRIGGER_ON;
     name_01c[0] = 0;
     position_118.x = 0.0f;
     position_118.y = 0.0f;
@@ -2210,16 +2211,16 @@ void Trigger::UpdateActionAnimation()
 {
     char* action_data = action_data_128;
 
-    if ((flags_0a0 & 0x2U) == 0 && (flags_0a0 & 0x800000U) == 0) {
+    if ((flags_0a0 & 0x2U) == 0 && (flags_0a0 & W8_TRIGGER_ALTERNATE_ACTION) == 0) {
         return;
     }
-    if ((flags_0a0 & 0x800000U) != 0) {
+    if ((flags_0a0 & W8_TRIGGER_ALTERNATE_ACTION) != 0) {
         if (action_data_mode_228 == 0) {
-            if ((flags_0a0 & 0x1000000U) == 0) {
-                flags_0a0 |= 0x1000000U;
+            if ((flags_0a0 & W8_TRIGGER_ALTERNATE_SELECTED) == 0) {
+                flags_0a0 |= W8_TRIGGER_ALTERNATE_SELECTED;
             } else {
                 action_data = alternate_action_data_1a8;
-                flags_0a0 &= ~0x1000000U;
+                flags_0a0 &= ~W8_TRIGGER_ALTERNATE_SELECTED;
             }
         } else if (action_data_mode_228 == 1) {
             if (action_230 == value_22c) {
@@ -2237,11 +2238,11 @@ void Trigger::UpdateActionAnimation()
 // FUNCTION: WIZ8 0x00441110
 void Trigger::FinishAction()
 {
-    bool was_running = ((flags_0a0 & 0x40U) != 0);
+    bool was_running = ((flags_0a0 & W8_TRIGGER_RUNNING) != 0);
     bool action_completed = false;
     char* recipient;
 
-    flags_0a0 &= ~0x40U;
+    flags_0a0 &= ~W8_TRIGGER_RUNNING;
 
     if (trigger_kind_018 == 1) {
         if (action_230 != 0x39) {
@@ -2328,7 +2329,7 @@ void Trigger::FinishAction()
     }
 
 finish_linked_triggers:
-    if ((flags_0a0 & 0x80U) != 0) {
+    if ((flags_0a0 & W8_TRIGGER_FIRE_LINKED) != 0) {
         recipient = m_pacRecipients;
         while (recipient != 0) {
             strcpy(g_trigger_parse_buffer_00659908, recipient);
@@ -2348,7 +2349,8 @@ finish_linked_triggers:
     }
 
 reactivate_linked_triggers:
-    if (was_running != 0 && (flags_0a0 & 0x10U) != 0 && (flags_0a0 & 0x200000U) != 0) {
+    if (was_running != 0 && (flags_0a0 & W8_TRIGGER_ON) != 0 &&
+        (flags_0a0 & W8_TRIGGER_REACTIVATE_LINKED) != 0) {
         recipient = m_pacRecipients;
         while (recipient != 0) {
             strcpy(g_trigger_parse_buffer_00659908, recipient);
@@ -2394,15 +2396,17 @@ void Trigger::CommitActionResult(bool apply_state_changes)
 
     UpdateActionAnimation();
 
-    if (m_pacRecipients != 0 && (flags_0a0 & 0x80U) != 0 && (flags_0a0 & 0x200U) == 0) {
+    if (m_pacRecipients != 0 && (flags_0a0 & W8_TRIGGER_FIRE_LINKED) != 0 &&
+        (flags_0a0 & W8_TRIGGER_LINK_ON_DEACTIVATE) == 0) {
         recipient = m_pacRecipients;
         while (recipient != 0) {
             Trigger* trigger = FindTriggerByName(NextTriggerRecipient(&recipient));
             if (trigger != 0) {
-                bool was_running = ((flags_0a0 & 0x40U) != 0);
-                flags_0a0 |= 0x40U;
+                bool was_running = ((flags_0a0 & W8_TRIGGER_RUNNING) != 0);
+                flags_0a0 |= W8_TRIGGER_RUNNING;
                 trigger->Run(m_lData1);
-                flags_0a0 = (flags_0a0 & ~0x40U) | (was_running != 0 ? 0x40U : 0);
+                flags_0a0 =
+                    (flags_0a0 & ~W8_TRIGGER_RUNNING) | (was_running != 0 ? W8_TRIGGER_RUNNING : 0);
             }
         }
     }
@@ -2444,7 +2448,7 @@ void Trigger::CommitActionResult(bool apply_state_changes)
     }
 
 show_action_message:
-    if ((flags_0a0 & 0x20000U) != 0) {
+    if ((flags_0a0 & W8_TRIGGER_CAN_RUN_LINKED) != 0) {
         const char* level_folder = GetLevelFolderName(GetLoadedLevelID());
         int message_id;
 
@@ -2752,14 +2756,14 @@ void Trigger::Run(int source)
             }
             ApplyItemEffectToRandomCharacter(Random(2) != 0 ? g_value_005ee59c : g_value_005ee5a0,
                                              -1, 0, g_effect_argument_005ed8c8);
-            flags_0a0 |= 0x40U;
+            flags_0a0 |= W8_TRIGGER_RUNNING;
             goto commit_action;
 
         case 0x11:
-            if ((flags_0a0 & 0x40U) != 0) {
+            if ((flags_0a0 & W8_TRIGGER_RUNNING) != 0) {
                 break;
             }
-            flags_0a0 |= 0x40U;
+            flags_0a0 |= W8_TRIGGER_RUNNING;
             goto commit_action;
 
         case 0x22: {
@@ -2771,7 +2775,7 @@ void Trigger::Run(int source)
             static_cast<W8EnvironmentTriggerActionData*>(m_pActionData)->previous_environment_008 =
                 previous_value;
             SetWorldEnvironmentValue00483AE0(g_world, 0.0f);
-            flags_0a0 |= 0x40U;
+            flags_0a0 |= W8_TRIGGER_RUNNING;
             goto commit_action;
         }
 
@@ -2796,7 +2800,7 @@ void Trigger::Run(int source)
                 m_pEvent->m_pCountdown->Restart();
             }
             g_timed_events_006599b8.Add(m_pEvent);
-            flags_0a0 |= 0x40U;
+            flags_0a0 |= W8_TRIGGER_RUNNING;
             goto commit_action;
 
         case 0x34:
@@ -2836,7 +2840,7 @@ void Trigger::Run(int source)
             if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
                 m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, 1);
             }
-            flags_0a0 |= 0x40U;
+            flags_0a0 |= W8_TRIGGER_RUNNING;
             if (action_data != 0) {
                 action_data->flags_008 |= 1;
             }
@@ -2876,7 +2880,7 @@ void Trigger::Run(int source)
             if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && value_0b8 >= 0) {
                 m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, value_0b1);
             }
-            flags_0a0 |= 0x40U;
+            flags_0a0 |= W8_TRIGGER_RUNNING;
             if (m_pActionData != 0 && m_pActionData->type_004 == 10) {
                 if (value_0b1 == 0) {
                     static_cast<W8DoorTriggerActionData*>(m_pActionData)->flags_008 &= ~1;
@@ -2953,9 +2957,9 @@ void Trigger::Run(int source)
                 m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, value_0b1);
             }
             if (!was_active) {
-                flags_0a0 |= 0x40U;
+                flags_0a0 |= W8_TRIGGER_RUNNING;
             } else {
-                flags_0a0 &= ~0x40U;
+                flags_0a0 &= ~W8_TRIGGER_RUNNING;
             }
             if (action_data != 0) {
                 action_data->flags_008 = (action_data->flags_008 & ~1) | (value_0b1 & 1);
@@ -3010,7 +3014,7 @@ void Trigger::Run(int source)
                 g_flag_00606994 = 1;
                 return;
             }
-            if ((flags_0a0 & 0x2000000U) != 0) {
+            if ((flags_0a0 & W8_TRIGGER_ITEM_PICKER) != 0) {
                 return;
             }
 
@@ -3058,7 +3062,7 @@ void Trigger::Run(int source)
                         goto toggle_item_prop;
                     }
                 } else {
-                    flags_0a0 |= 0x2000000U;
+                    flags_0a0 |= W8_TRIGGER_ITEM_PICKER;
                 }
 
                 if (!action_succeeded) {
@@ -3074,9 +3078,9 @@ void Trigger::Run(int source)
             m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, value_0b1);
         }
         if (!was_active) {
-            flags_0a0 |= 0x40U;
+            flags_0a0 |= W8_TRIGGER_RUNNING;
         } else {
-            flags_0a0 &= ~0x40U;
+            flags_0a0 &= ~W8_TRIGGER_RUNNING;
         }
         break;
     }
@@ -3107,7 +3111,7 @@ void Trigger::Run(int source)
             }
         }
         if (trigger_kind_018 == 2) {
-            flags_0a0 |= 0x40U;
+            flags_0a0 |= W8_TRIGGER_RUNNING;
         }
         if (!action_succeeded) {
             return;
@@ -3160,10 +3164,11 @@ void Trigger::Run(int source)
         while (recipient != 0) {
             Trigger* target = FindTriggerByName(NextTriggerRecipient(&recipient));
             if (target != 0) {
-                bool was_running = ((flags_0a0 & 0x40U) != 0);
-                flags_0a0 |= 0x40U;
+                bool was_running = ((flags_0a0 & W8_TRIGGER_RUNNING) != 0);
+                flags_0a0 |= W8_TRIGGER_RUNNING;
                 target->Run(m_lData1);
-                flags_0a0 = (flags_0a0 & ~0x40U) | (was_running != 0 ? 0x40U : 0);
+                flags_0a0 =
+                    (flags_0a0 & ~W8_TRIGGER_RUNNING) | (was_running != 0 ? W8_TRIGGER_RUNNING : 0);
                 action_succeeded = true;
             }
         }
@@ -3212,7 +3217,7 @@ void Trigger::Run(int source)
             m_pEvent->timer_008.SetDuration(duration);
             m_pEvent->timer_008.Restart();
             m_pEvent->trigger_030 = this;
-            flags_0a0 |= 0x40U;
+            flags_0a0 |= W8_TRIGGER_RUNNING;
             g_timed_events_006599b8.Add(m_pEvent);
         }
         break;
@@ -3236,7 +3241,7 @@ void Trigger::Run(int source)
         SetDice(&dice, (unsigned char)m_lData1, (unsigned char)m_lData2, (short)m_lData3);
         ApplyRolledHealthChangeToParty(&dice, 0, 1);
         if (trigger_kind_018 == 2) {
-            flags_0a0 |= 0x40U;
+            flags_0a0 |= W8_TRIGGER_RUNNING;
         }
         break;
     }
@@ -3302,7 +3307,7 @@ void Trigger::Run(int source)
             }
         }
         if (trigger_kind_018 == 2) {
-            flags_0a0 |= 0x40U;
+            flags_0a0 |= W8_TRIGGER_RUNNING;
         }
         break;
     }
@@ -3319,11 +3324,11 @@ void Trigger::Run(int source)
             Trigger* target = FindTriggerByName(NextTriggerRecipient(&recipient));
             if (target != 0) {
                 if (action_230 == 0x2d) {
-                    target->flags_0a0 |= 0x10U;
+                    target->flags_0a0 |= W8_TRIGGER_ON;
                 } else if (action_230 == 0x2e) {
-                    target->flags_0a0 &= ~0x10U;
+                    target->flags_0a0 &= ~W8_TRIGGER_ON;
                 } else {
-                    target->flags_0a0 ^= 0x10U;
+                    target->flags_0a0 ^= W8_TRIGGER_ON;
                 }
                 action_succeeded = true;
             }
@@ -3349,9 +3354,9 @@ void Trigger::Run(int source)
             m_pWorld->m_owned_04c->SetInterfaceState(value_0b8, value_0b1);
         }
         if (action_230 == 0x32) {
-            flags_0a0 |= 0x40U;
+            flags_0a0 |= W8_TRIGGER_RUNNING;
         } else {
-            flags_0a0 &= ~0x40U;
+            flags_0a0 &= ~W8_TRIGGER_RUNNING;
         }
         break;
 
@@ -3402,10 +3407,10 @@ void Trigger::Run(int source)
             }
         }
 
-        if ((flags_0a0 & 0x40U) == 0) {
+        if ((flags_0a0 & W8_TRIGGER_RUNNING) == 0) {
             g_timed_events_006599b8.Add(m_pEvent);
             if (trigger_kind_018 == 2) {
-                flags_0a0 |= 0x40U;
+                flags_0a0 |= W8_TRIGGER_RUNNING;
             } else if (m_lData3 == -1) {
                 srAssertFail("m_lData3 != -1", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
                              0x7e4, "Non invisible triggers with shake must have a duration.");
@@ -3718,7 +3723,8 @@ bool Trigger::SelectAction()
         return 0;
     }
 
-    if (((flags_0a0 & 0x40U) != 0 && action_230 != 0x39) || (flags_0a0 & 0x10U) == 0 ||
+    if (((flags_0a0 & W8_TRIGGER_RUNNING) != 0 && action_230 != 0x39) ||
+        (flags_0a0 & W8_TRIGGER_ON) == 0 ||
         ((flags_0a0 & 0x40000U) != 0 && (flags_0a0 & 0x80000U) != 0)) {
         action_state_232 = 1;
         return 0;

@@ -398,7 +398,7 @@ char ResolvePickedProp(W8World* world)
         {
             Trigger* trigger = prop->trigger_18;
             g_selected_prop_trigger_00659a60 = trigger;
-            if (trigger != 0 && (trigger->flags_0a0 & 0x100) != 0 &&
+            if (trigger != 0 && (trigger->flags_0a0 & W8_TRIGGER_ENABLED) != 0 &&
                 ((trigger->flags_0a0 & 0x40000) == 0 || (trigger->flags_0a0 & 0x80000) == 0) &&
                 (g_flag_006081e4 ||
                  (trigger->m_pActionData != 0 && trigger->m_pActionData->type_004 == 10 &&
@@ -1391,7 +1391,7 @@ bool W8Prop::IsTriggerInView0044E3A0(srVector3T<float>* position)
     srVector3T<float> projected;
     float distance;
 
-    if (trigger != 0 && (trigger->flags_0a0 & 0x100) != 0 &&
+    if (trigger != 0 && (trigger->flags_0a0 & W8_TRIGGER_ENABLED) != 0 &&
         ((trigger->flags_0a0 & 0x40000) == 0 || (trigger->flags_0a0 & 0x80000) == 0)) {
         AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->subcycle_064, &minimum, &maximum);
         center.Set((minimum.x + maximum.x) * g_double_005ebe80,

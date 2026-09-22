@@ -78,7 +78,7 @@ void MartensBluff1Setup004DEB40(void)
     MartensBluff1Transporter004DF260(static_cast<int>(0xEFFFFFFF));
     position = GetWorld()->camera->getLocation();
     pTrigger = FindTriggerByName("MR101");
-    if (pTrigger != 0 && (pTrigger->flags_0a0 & 0x800U) != 0) {
+    if (pTrigger != 0 && (pTrigger->flags_0a0 & W8_TRIGGER_POSITIONED) != 0) {
         pTrigger->GetPosition(&trigger_position);
         if ((trigger_position - position).Length() < g_double_005ec150) {
             FindTriggerByName("Lift2Marten2");

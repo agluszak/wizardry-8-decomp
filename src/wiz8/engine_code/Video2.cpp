@@ -1230,7 +1230,7 @@ void RenderFrame(void)
 
     now = GetTickCount();
     elapsed = static_cast<float>(now - g_tick_659700);
-    frames_per_second = static_cast<float>(g_dword_6596fc) / elapsed * 1000.0f;
+    frames_per_second = g_dword_6596fc / elapsed * 1000.0f;
     if (g_dword_6596fc > 50) {
         g_tick_659700 = GetTickCount();
         g_dword_6596fc = 0;

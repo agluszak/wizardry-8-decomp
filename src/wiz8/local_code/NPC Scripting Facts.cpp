@@ -300,7 +300,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (trigger == 0) {
             return;
         }
-        trigger->flags_0a0 &= ~0x100u;
+        trigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
         return;
     case 0xb6:
         if (value != 0) {
@@ -409,7 +409,7 @@ void HandleFactChange(int fact_id, unsigned char value)
             if (trigger == 0) {
                 return;
             }
-            trigger->flags_0a0 &= ~0x100u;
+            trigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
             return;
         }
         trigger = FindTriggerByName("Muraltrigger");
@@ -430,7 +430,7 @@ void HandleFactChange(int fact_id, unsigned char value)
     case 0x151:
         trigger = FindTriggerByName("ChaosBTrigger");
         if (trigger != 0) {
-            trigger->flags_0a0 &= ~0x100u;
+            trigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
         }
         trigger = FindTriggerByName("ChaosDoor01");
         if (trigger != 0) {
@@ -441,7 +441,7 @@ void HandleFactChange(int fact_id, unsigned char value)
     case 0x153:
         trigger = FindTriggerByName("KnowBTrigger");
         if (trigger != 0) {
-            trigger->flags_0a0 &= ~0x100u;
+            trigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
         }
         trigger = FindTriggerByName("DoorKnow03");
         if (trigger != 0) {
@@ -452,7 +452,7 @@ void HandleFactChange(int fact_id, unsigned char value)
     case 0x155:
         trigger = FindTriggerByName("LifeBTrigger");
         if (trigger != 0) {
-            trigger->flags_0a0 &= ~0x100u;
+            trigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
         }
         trigger = FindTriggerByName("DoorLife03");
         if (trigger != 0) {
@@ -535,7 +535,7 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (trigger == 0) {
             return;
         }
-        trigger->flags_0a0 &= ~0x100u;
+        trigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
         return;
     case 0x197:
         QueueNpcMessageLine(W8_NPC_MSG_MILANO_RAT_DOOR, 0);

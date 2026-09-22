@@ -76,7 +76,7 @@ void W8Searchable::Reveal()
             return;
         }
         trigger->Run(-1);
-        trigger->flags_0a0 |= 0x4000000;
+        trigger->flags_0a0 |= W8_TRIGGER_SEARCHED;
     }
     g_searchables_00689fa8.Remove(this);
     delete this;
