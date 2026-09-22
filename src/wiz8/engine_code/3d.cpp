@@ -1,4 +1,3 @@
-#include "wiz8/3d_code/IList.h"
 #include "wiz8/3d_code/PList.h"
 #include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/GDCamera.h"
@@ -96,10 +95,7 @@ void DestroyWorldLights0046E4A0(W8World* world)
 {
     W8PList* lights = &world->m_lights_0a8;
 
-    /* Retail really does call the IList accessor here; W8IList and W8PList
-       share the same three-field layout. */
-    while (ILLength(reinterpret_cast<W8IList*>(lights)) !=
-           0) { // reinterpret-ok: retail calls ILLength on a W8PList field
+    while (PLLength(lights) != 0) {
         stLight* light = static_cast<stLight*>(PLGet(lights, 0));
         if (world == 0) {
             srAssertFail("pWorld", THREE_D_CPP, 0x278, 0);
@@ -800,10 +796,7 @@ void RemoveItemFromWorld0046E5E0(W8World* unused, W8Item* item)
 // FUNCTION: WIZ8 0x0046e600
 int WorldGetPropCount(W8World* unused)
 {
-    /* Retail really does call the IList accessor here; W8IList and W8PList
-       share the same three-field layout. */
-    return ILLength(reinterpret_cast<W8IList*>(
-        g_world->plsProps)); // reinterpret-ok: retail calls ILLength on a W8PList field
+    return PLLength(g_world->plsProps);
 }
 
 // FUNCTION: WIZ8 0x0046e620

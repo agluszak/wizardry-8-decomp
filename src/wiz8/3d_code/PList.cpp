@@ -204,8 +204,7 @@ void* PListRemove(W8PList* ppl, void* pEntry)
                 ppl->data[shift_index] = ppl->data[shift_index + 1];
             }
             --ppl->iNumUsed;
-            if (static_cast<double>(ppl->iNumUsed) / ppl->capacity < 0.25 &&
-                !ppl) {
+            if (static_cast<double>(ppl->iNumUsed) / ppl->capacity < 0.25 && !ppl) {
                 srAssertFail("ppl", PLIST_CPP, 0x1f8, 0);
             }
             return removed;
@@ -271,13 +270,12 @@ done:
 }
 
 /* The retail linker folds this ordinary PList.cpp function with ILLength. The
-   retained body and address marker belong to the IList.cpp contribution.
-   {PLLength, ILLength} is therefore one linker-equivalence class: callers may
-   spell either name, and the two differ only once /OPT:NOICF gives each body
-   its own address. The linked comparison reports that alias difference as a
-   call-target mismatch; reccmp's relocation-masked object comparison is the
-   authority for the body. Never cast a W8PList* to W8IList* to force a call to
-   the retained address. */
+   retained body and canonical address marker belong to the IList.cpp
+   contribution; the FOLDED alias binds our separate /OPT:NOICF emission to
+   the same original address. {PLLength, ILLength} is therefore one
+   linker-equivalence class: callers spell whichever name their argument type
+   takes, and the call lands on the folded address either way. */
+// FUNCTION: WIZ8 0x005e2c70 FOLDED
 unsigned int PLLength(W8PList* ppl)
 {
     if (!ppl) {
