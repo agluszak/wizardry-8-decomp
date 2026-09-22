@@ -12,6 +12,7 @@ add_library(wiz8_surrender_objects OBJECT
     exponent_table.cpp
     extension.cpp
     fog.cpp
+    vertex_pipe.cpp
     file_stream.cpp
     color_surface.cpp
     generic_vp.cpp
@@ -53,6 +54,7 @@ set_source_files_properties(
     debug_vp.cpp
     extension.cpp
     fog.cpp
+    vertex_pipe.cpp
     file_stream.cpp
     gerd_filters.cpp
     heap.cpp
