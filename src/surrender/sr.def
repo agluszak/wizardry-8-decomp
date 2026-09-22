@@ -729,8 +729,23 @@ EXPORTS
     ?getEnvironmentScaleFactor@srGERD@@QAEXAAM0@Z
     ?getExclusionMask@srGERD@@QBEKXZ
     ?getFirst@srGERD@@SAPAV1@XZ
+    ?getFirstOpen@srGERD@@SAPAV1@XZ
     ?getHeight@srGERD@@QBEJXZ
     ?getNext@srGERD@@QBEPAV1@XZ
+    ?getNextOpen@srGERD@@QBEPAV1@XZ
+    ?invalidateTexture@srGERD@@AAEXAAUTexture@1@@Z
+    ?invalidateTexture@srGERD@@QAEXPAVsrTextureIFace@@@Z
+    ?invalidateTextureByFrameHandle@srGERD@@QAEXK@Z
+    ?markTextureAsDeleted@srGERD@@AAEXAAUTexture@1@@Z
+    ?applyFrameStateChanges@srGERD@@AAEXXZ
+    ?beginFrame@srGERD@@QAE?AW4e_error@1@XZ
+    ?checkFrameStateChanges@srGERD@@AAEXXZ
+    ?endFrame@srGERD@@QAEXXZ
+    ?matrixMode@srGERD@@QAEXW4e_matrixMode@1@@Z
+    ?popMatrix@srGERD@@QAEXXZ
+    ?pushMatrix@srGERD@@QAEXXZ
+    ?setMatrixDirty@srGERD@@AAEXXZ
+    ?isWindow@srWindow@@SAHK@Z
     ?getPolygonOffset@srGERD@@QBEJXZ
     ?getTextureCacheSize@srGERD@@QBEKXZ
     ?getTextureCacheUsed@srGERD@@QBEKXZ
@@ -840,4 +855,47 @@ EXPORTS
     ?updateParms@srMaterial@@MAEXXZ
     ?vInstance@srMaterial@@UAEPAVsrClass@@XZ
     ?verify@srMaterial@@UAEXW4e_verify@srRuntimeClass@@@Z
+    ?getGroupMask@srIlluminator@@QBEKXZ
+    ?sGetClassName@srIlluminator@@SAPBDXZ
+    ?setGroupMask@srIlluminator@@QAEXK@Z
+    ??0srLight@@QAE@PAVsrNode@@W4e_preset@0@@Z
+    ??1srLight@@UAE@XZ
+    ?setLinearAttenuation@srLight@@QAEXMM@Z
+    ??0srScene@@QAE@PAVsrNode@@@Z
+    ?resetStatistics@srScene@@QAEXXZ
+    ??0srColorSurface@@QAE@ABUPixelFormat@srPixelConvert@@KK@Z
+    ??0srColorSurface@@QAE@W4e_surfaceType@srPixelConvert@@KK@Z
+    ??0srColorSurface@@QAE@ABUPixelFormat@srPixelConvert@@PAXKKK@Z
+    ??0srColorSurface@@QAE@ABV0@@Z
+    ??0srColorSurface@@QAE@W4e_surfaceType@srPixelConvert@@PAXKKK@Z
+    ??4srColorSurface@@QAEAAV0@ABV0@@Z
+    ??4srColorSurfaceIFace@@QAEAAV0@ABV0@@Z
+    ??0srLight@@QAE@ABV0@@Z
+    ??4srLight@@QAEAAV0@ABV0@@Z
+    ??0srTextureMap@@QAE@PAVsrColorSurfaceIFace@@@Z
+    ?setSurfacePtr@srTextureMap@@QAEXPAVsrColorSurfaceIFace@@@Z
+    ??0srTexture@@IAE@XZ
+    ??1srTexture@@MAE@XZ
+    ?disableHint@srTexture@@QAEXW4e_hint@srTextureIFace@@@Z
+    ?enableHint@srTexture@@QAEXW4e_hint@srTextureIFace@@@Z
+    ?getCorrection@srTexture@@QBE?AW4e_correction@srTextureIFace@@XZ
+    ?getDimensions@srTexture@@UAEXAAUDimensions@srTextureIFace@@@Z
+    ?getFilter@srTexture@@QBEPAVsrFilter@@XZ
+    ?getMagFilter@srTexture@@QBE?AW4e_filter@srTextureIFace@@XZ
+    ?getMinFilter@srTexture@@QBE?AW4e_filter@srTextureIFace@@XZ
+    ?getMipmap@srTexture@@QBE?AW4e_mipmap@srTextureIFace@@XZ
+    ?getNewFrameHandle@srTexture@@KAKXZ
+    ?getPriority@srTexture@@UAEMXZ
+    ?getTextureFrameHandle@srTexture@@UAEKXZ
+    ?getWrapS@srTexture@@QBE?AW4e_wrap@srTextureIFace@@XZ
+    ?getWrapT@srTexture@@QBE?AW4e_wrap@srTextureIFace@@XZ
+    ?invalidateFrameHandle@srTexture@@IAEXK@Z
+    ?sGetClassName@srTexture@@SAPBDXZ
+    ?setCorrection@srTexture@@QAEXW4e_correction@srTextureIFace@@@Z
+    ?setMagFilter@srTexture@@QAEXW4e_filter@srTextureIFace@@@Z
+    ?setMinFilter@srTexture@@QAEXW4e_filter@srTextureIFace@@@Z
+    ?setMipmap@srTexture@@QAEXW4e_mipmap@srTextureIFace@@@Z
+    ?setMipmapBias@srTexture@@QAEXM@Z
+    ?setWrapS@srTexture@@QAEXW4e_wrap@srTextureIFace@@@Z
+    ?setWrapT@srTexture@@QAEXW4e_wrap@srTextureIFace@@@Z
     ?setParent@srNode@@QAEHPAV1@H@Z

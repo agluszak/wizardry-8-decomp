@@ -1,6 +1,8 @@
 #pragma once
 
 #include "srColorSurfaceIFace.h"
+#include "srPalette.h"
+#include "srPtr.h"
 #include "srTypeRegistry.h"
 
 class srFilter;
@@ -9,9 +11,12 @@ class stSurface2D;
 
 class SR_DLL_IMPORT srTextureIFace : public srClassSupport<srTextureIFace, srClass, true, 0x2100> {
 public:
+    /* srTexture::getDimensions is a memberwise copy of the texture's
+       dimensions record; the palette slot fills through srPtr assignment. */
     struct Dimensions {
         unsigned long width;
         unsigned long height;
+        srPtr<srPalette> palette;
     };
     struct MultiRequest {
         long mipmap_level;

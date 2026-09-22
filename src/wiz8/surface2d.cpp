@@ -74,10 +74,7 @@ void stTexture2D::setupDefaultValues()
 {
     if (surface) {
         surface->getPixelFormat(surface_format_);
-        if (texture_filter_) {
-            texture_filter_->release();
-            texture_filter_ = 0;
-        }
+        texture_dimensions_.palette = 0;
     }
     texture_flags_ &= ~(1UL << FLAG_DIRTY_DEFAULTS);
 }

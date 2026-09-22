@@ -258,10 +258,7 @@ void stTextureAnim::setupDefaultValues()
     } else {
         texture_dimensions_.width = 1;
         texture_dimensions_.height = 1;
-        if (texture_filter_ != 0) {
-            texture_filter_->release();
-            texture_filter_ = 0;
-        }
+        texture_dimensions_.palette = 0;
     }
 }
 

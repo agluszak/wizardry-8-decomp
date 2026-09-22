@@ -36,6 +36,7 @@ public:
 
     SR_DLL_IMPORT srColorSurfaceIFace();
     SR_DLL_IMPORT srColorSurfaceIFace(const srColorSurfaceIFace& other);
+    SR_DLL_IMPORT srColorSurfaceIFace& operator=(const srColorSurfaceIFace& other);
 
     static SR_DLL_IMPORT const char* sGetClassName();
 
