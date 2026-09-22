@@ -90,6 +90,7 @@ def test_interactive_run_restores_managed_wine_window(tmp_path: Path, monkeypatc
     (settings.product_build_dir / "Wiz8Runtime.exe").write_bytes(b"runtime")
     calls = []
 
+    monkeypatch.setattr("wiz8decomp.runtime.shutil.which", lambda name: f"/usr/bin/{name}")
     monkeypatch.setattr(
         "wiz8decomp.runtime.runtime_display", lambda *args, **kwargs: nullcontext(None)
     )
