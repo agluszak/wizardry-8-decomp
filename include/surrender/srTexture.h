@@ -16,6 +16,14 @@ public:
     virtual void getMipmapLevelPartial(PartialRequest& request) override;
     virtual void getTextureParms(Parameters& parameters) override;
     srFilter* getFilter() const;
+    /* The flag getters unpack the packed_state_18 fields retail writes
+       through the setters below; all six are exported at 0x1005ED20..70. */
+    e_correction getCorrection() const;
+    e_filter getMagFilter() const;
+    e_filter getMinFilter() const;
+    e_mipmap getMipmap() const;
+    e_wrap getWrapS() const;
+    e_wrap getWrapT() const;
     void setMipmap(e_mipmap mipmap);
     void setMipmapBias(float bias);
     void enableHint(e_hint hint);
@@ -35,18 +43,23 @@ protected:
     srTexture();
     virtual ~srTexture() override;
     static unsigned long getNewFrameHandle();
+    /* Monotonic frame-handle counter at 0x100A4A1C; getNewFrameHandle
+       increments then returns it. */
+    static unsigned long _frameHandle;
     void invalidateFrameHandle(unsigned long handle);
     void setupDefaultValuesFromSurface(srColorSurfaceIFace* surface);
 
-    unsigned long packed_state_18;               /* 0x18: correction/mag/min/mipmap/wrap bits */
-    float mipmap_bias_1c;                        /* 0x1c */
+    unsigned long packed_state_18; /* 0x18: correction/mag/min/mipmap/wrap bits */
+    float mipmap_bias_1c;          /* 0x1c */
+    /* 0x20..0x2b: width, height and the refcounted palette at +8. The old
+       `texture_filter_` name belonged to this palette slot. */
     Dimensions texture_dimensions_;              /* 0x20 */
-    srClass* texture_filter_;                    /* 0x28 */
     srPixelConvert::PixelFormat surface_format_; /* 0x2c */
-    /* enableHint ORs 1<<hint into the first dword. The span stays
-       byte-addressable; stTextureAnim's alpha probe is
-       surface_format_.alpha_bits, not this array. */
-    unsigned char unknown_40_[0x10];
+    /* enableHint ORs 1<<hint and disableHint clears the same bit. */
+    unsigned long hints_40;       /* 0x40 */
+    unsigned long value_44;       /* 0x44: ctor stores 4 */
+    srFilter* filter_48;          /* 0x48: getFilter; ctor stores srCore.getFilter() */
+    float priority_4c;            /* 0x4c: getPriority; ctor stores 0.5f */
     unsigned long texture_flags_; /* 0x50 */
 };
 

@@ -46,7 +46,17 @@ public:
     struct ClearValues;
     struct Scissor;
     struct ViewPort;
-    struct Update;
+    /* applyFrameStateChanges builds this 0x20-byte record: dirty bits remap
+       3->8, 0->1, 1->4, 2->2 into flags_00, followed by gamma, a constant
+       1.0f, swap interval, antialias and the enable_flags low bit. */
+    struct Update {
+        unsigned long flags_00;
+        srVector3T<float> gamma_04;
+        float value_10;
+        unsigned long swap_interval_14;
+        unsigned long antialias_18;
+        unsigned long enabled_1c;
+    };
     struct TexParms;
 
     enum e_error {};

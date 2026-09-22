@@ -12,25 +12,32 @@ add_library(wiz8_surrender_objects OBJECT
     extension.cpp
     fog.cpp
     file_stream.cpp
+    color_surface.cpp
     generic_vp.cpp
     gerd.cpp
     gerd_filters.cpp
     heap.cpp
     huffman.cpp
+    illuminator.cpp
     io_managers.cpp
+    light.cpp
     material.cpp
     mesh_model.cpp
     model_instance.cpp
     node.cpp
+    scene.cpp
     stream.cpp
     string_table.cpp
     system.cpp
     palette.cpp
+    texture.cpp
+    texture_map.cpp
     timer.cpp
     variable_timer.cpp
     triangulator.cpp
     type_registry.cpp
     vc6_runtime.cpp
+    window.cpp
     vector_processor.cpp
 )
 target_compile_definitions(wiz8_surrender_objects PRIVATE SURRENDER_BUILD)

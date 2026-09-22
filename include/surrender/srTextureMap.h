@@ -26,7 +26,8 @@ public:
 
 protected:
     virtual void setupDefaultValues() override;
-    unsigned char unknown_54_[0x08];
+    srColorSurfaceIFace* surface_54_; /* 0x54: setSurfacePtr, refcounted */
+    unsigned long frame_handle_58_;   /* 0x58: ctor stores getNewFrameHandle() */
 };
 
 static_assert((sizeof(srTextureMap) == 0x5c), "srTextureMap_must_be_0x5c");

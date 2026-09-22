@@ -85,6 +85,10 @@ public:
     static srGERD* loadDevice(srStringTable& devices, unsigned long flags);
     static srGERD* getFirst();
     srGERD* getNext() const;
+    /* Open-device list used by srTexture::invalidateFrameHandle; the links
+       live in the object (getNextOpen reads +0x3c). */
+    static srGERD* getFirstOpen();
+    srGERD* getNextOpen() const;
     e_error createContext(unsigned long window);
     int isContextCreated() const;
     void deleteContext();
@@ -119,7 +123,9 @@ public:
         unsigned long value_34;
         unsigned char unknown_38[4];
         unsigned long value_3c;
-        unsigned char unknown_40[0xc];
+        unsigned char unknown_40[8];
+        /* applyFrameStateChanges increments this counter on every apply. */
+        unsigned long frame_state_count_48;
         unsigned long value_4c;
         unsigned char unknown_50[0x18];
         unsigned long value_68;
@@ -203,6 +209,8 @@ public:
     void toggle(e_enable option);
     void invalidateResidentTextures();
     void invalidateTextureCache();
+    void invalidateTexture(srTextureIFace* texture);
+    void invalidateTextureByFrameHandle(unsigned long handle);
     unsigned long getTextureCacheSize() const;
     void setTextureCacheSize(unsigned long bytes);
     void setSwapInterval(unsigned long interval);
@@ -268,11 +276,34 @@ public:
 private:
     srGERD& operator=(const srGERD& other);
 
+    /* Resident-texture record owned by the device. The {next, prev} links are
+       proven by markTextureAsDeleted's doubly-linked unlink/push and the
+       0x9c deletion flag; the middle is unmodeled. */
+    struct Texture {
+        Texture* next_00;
+        Texture* prev_04;
+        unsigned char unknown_08_[0x94];
+        long deleted_9c_;
+    };
+    /* Handle-hash chain node: {next, handle, texture} at stride 0xc, proven
+       by invalidateTextureByFrameHandle's walk. */
+    struct TextureEntry {
+        long next_00;
+        unsigned long handle_04;
+        Texture* texture_08;
+    };
+
     srDD* getDD();
     void setError(e_error error);
     void resetTexture();
+    void setMatrixDirty();
+    void checkFrameStateChanges();
+    void applyFrameStateChanges();
+    void invalidateTexture(Texture& texture);
+    void markTextureAsDeleted(Texture& texture);
 
     static srGERD* first;
+    static srGERD* firstOpen;
 
     unsigned char unknown_0c_[8];
     srCriticalSection* renderers_section_14_;
@@ -284,7 +315,8 @@ private:
     e_error last_error_2c_;
     unsigned char unknown_30_[4];
     srGERD* next_34_;
-    unsigned char unknown_38_[8];
+    unsigned char unknown_38_[4];
+    srGERD* next_open_3c_;
     srDD* dd_40_;
     srDebugDD* debug_dd_44_;
     srDD* real_dd_48_;
@@ -300,14 +332,25 @@ private:
     unsigned char unknown_378_[8];
     long width_380_;
     long height_384_;
-    unsigned char unknown_388_[0x12b0];
+    unsigned char unknown_388_[8];
+    /* Per-matrix-mode stacks proven by pushMatrix/popMatrix: the live matrix
+       at 0x390+mode*0x40, then two {entries[32], depth} blocks of stride
+       0x804 starting at 0x410. */
+    struct MatrixStack {
+        srMatrix4T<float> entries_00[32];
+        unsigned long depth_800;
+    };
+    srMatrix4T<float> current_matrix_390_[2];
+    MatrixStack matrix_stacks_410_[2];
+    unsigned char unknown_1418_[0x220];
     unsigned long view_left_1638_;
     unsigned long view_top_163c_;
     unsigned long view_right_1640_;
     unsigned long view_bottom_1644_;
     e_cullMode cull_mode_1648_;
     e_winding winding_164c_;
-    unsigned char unknown_1650_[0x108];
+    e_matrixMode matrix_mode_1650_;
+    unsigned char unknown_1654_[0x104];
     srVector3T<float> gamma_1758_;
     unsigned long swap_interval_1764_;
     e_antiAlias antialias_1768_;
@@ -336,12 +379,20 @@ private:
     unsigned char unknown_1fe8_[0x10];
     srShader shader_1ff8_;
     unsigned char unknown_1ffc_[8];
-    unsigned char unknown_2004_[0x30];
+    long* texture_hash_heads_2004_;
+    TextureEntry* texture_hash_entries_2008_;
+    unsigned char unknown_200c_[4];
+    unsigned long texture_hash_size_2010_;
+    unsigned char unknown_2014_[0x14];
+    Texture* deleted_textures_2028_;
+    Texture* active_textures_202c_;
+    Texture* current_texture_2030_;
     unsigned long texture_cache_used_2034_;
     unsigned long texture_cache_size_2038_;
     unsigned char unknown_203c_[4];
     long texture_reduction_2040_;
-    unsigned char unknown_2044_[4];
+    bool texture_hash_enabled_2044_;
+    unsigned char unknown_2045_[3];
     srVector4T<float> ambient_light_2048_;
     float environment_min_2058_;
     float environment_max_205c_;

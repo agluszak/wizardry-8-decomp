@@ -2,9 +2,13 @@
 
 #include "surrender/srCriticalSection.h"
 #include "surrender/srDebugDD.h"
+#include "surrender/srWindow.h"
 
 // GLOBAL: SURRENDER 0x100A4780
 srGERD* srGERD::first;
+
+// GLOBAL: SURRENDER 0x100A4784
+srGERD* srGERD::firstOpen;
 
 // FUNCTION: SURRENDER 0x10017920
 srDD* srGERD::getDD()
@@ -299,6 +303,197 @@ void srGERD::setError(e_error error)
 srGERD* srGERD::getNext() const
 {
     return next_34_;
+}
+
+// FUNCTION: SURRENDER 0x1001CF50
+srGERD* srGERD::getFirstOpen()
+{
+    return firstOpen;
+}
+
+// FUNCTION: SURRENDER 0x1001CF90
+srGERD* srGERD::getNextOpen() const
+{
+    return next_open_3c_;
+}
+
+// FUNCTION: SURRENDER 0x10018330
+void srGERD::invalidateTexture(srTextureIFace* texture)
+{
+    srCriticalSection* section = state_section_18_;
+    section->getAccess();
+    if (texture != 0) {
+        invalidateTextureByFrameHandle(texture->getTextureFrameHandle());
+    }
+    section->releaseAccess();
+}
+
+// FUNCTION: SURRENDER 0x100281E0
+void srGERD::invalidateTexture(Texture& texture)
+{
+    Texture* candidate = &texture;
+    if (candidate != 0 && candidate != current_texture_2030_) {
+        markTextureAsDeleted(texture);
+    }
+}
+
+// FUNCTION: SURRENDER 0x10028150
+void srGERD::markTextureAsDeleted(Texture& texture)
+{
+    if (texture.deleted_9c_ == 0) {
+        if (texture.next_00 != 0) {
+            texture.next_00->prev_04 = texture.prev_04;
+        }
+        if (texture.prev_04 != 0) {
+            texture.prev_04->next_00 = texture.next_00;
+        }
+        if (&texture == active_textures_202c_) {
+            active_textures_202c_ = texture.prev_04;
+        }
+        texture.next_00 = 0;
+        Texture* previous = deleted_textures_2028_;
+        texture.prev_04 = previous;
+        if (previous != 0) {
+            previous->next_00 = &texture;
+        }
+        deleted_textures_2028_ = &texture;
+        texture.deleted_9c_ = 1;
+    }
+}
+
+// FUNCTION: SURRENDER 0x10018390
+void srGERD::invalidateTextureByFrameHandle(unsigned long handle)
+{
+    srCriticalSection* section = state_section_18_;
+    section->getAccess();
+    if (handle != 0 && texture_hash_enabled_2044_) {
+        long index = texture_hash_heads_2004_[((handle >> 10 ^ handle) >> 10 ^ handle) &
+                                              (texture_hash_size_2010_ - 1)];
+        if (index != -1) {
+            TextureEntry* entries = texture_hash_entries_2008_;
+            while (entries[index].handle_04 != handle) {
+                index = entries[index].next_00;
+                if (index == -1) {
+                    section->releaseAccess();
+                    return;
+                }
+            }
+            Texture* texture = entries[index].texture_08;
+            if (texture != 0) {
+                invalidateTexture(*texture);
+            }
+        }
+    }
+    section->releaseAccess();
+}
+
+// FUNCTION: SURRENDER 0x10023550
+void srGERD::matrixMode(e_matrixMode mode)
+{
+    matrix_mode_1650_ = mode;
+}
+
+// FUNCTION: SURRENDER 0x100235B0
+void srGERD::pushMatrix()
+{
+    MatrixStack& stack = matrix_stacks_410_[matrix_mode_1650_];
+    if (stack.depth_800 < 0x20) {
+        stack.entries_00[stack.depth_800] = current_matrix_390_[matrix_mode_1650_];
+        stack.depth_800++;
+    }
+}
+
+// FUNCTION: SURRENDER 0x10023560
+void srGERD::popMatrix()
+{
+    MatrixStack& stack = matrix_stacks_410_[matrix_mode_1650_];
+    if (stack.depth_800 != 0) {
+        stack.depth_800--;
+        current_matrix_390_[matrix_mode_1650_] = stack.entries_00[stack.depth_800];
+    }
+    setMatrixDirty();
+}
+
+// FUNCTION: SURRENDER 0x100236D0
+void srGERD::setMatrixDirty()
+{
+    if (matrix_mode_1650_ == MATRIX_PROJECTION) {
+        dirty_24_ |= 0x10000;
+    }
+    dirty_24_ |= 1 << (matrix_mode_1650_ + 5);
+}
+
+// FUNCTION: SURRENDER 0x1001D2D0
+void srGERD::checkFrameStateChanges()
+{
+    if ((dirty_24_ & 0xf) != 0) {
+        applyFrameStateChanges();
+    }
+}
+
+// FUNCTION: SURRENDER 0x1001B450
+void srGERD::applyFrameStateChanges()
+{
+    srDD::Update update;
+    update.gamma_04 = gamma_1758_;
+    update.enabled_1c = static_cast<unsigned long>(static_cast<char>(enable_flags_20_.value) & 1);
+    update.swap_interval_14 = swap_interval_1764_;
+    update.antialias_18 = antialias_1768_;
+    update.flags_00 = 0;
+    update.value_10 = 1.0f;
+    if ((dirty_24_ & 8) != 0) {
+        update.flags_00 |= 8;
+    }
+    if ((dirty_24_ & 1) != 0) {
+        update.flags_00 |= 1;
+    }
+    if ((dirty_24_ & 2) != 0) {
+        update.flags_00 |= 4;
+    }
+    if ((dirty_24_ & 4) != 0) {
+        update.flags_00 |= 2;
+    }
+    getDD()->update(update);
+    dirty_24_ &= ~0xfUL;
+    statistics_1a78_.frame_state_count_48++;
+}
+
+// FUNCTION: SURRENDER 0x1001A790
+srGERD::e_error srGERD::beginFrame()
+{
+    if ((state_flags_28_ & 1) == 0) {
+        return static_cast<e_error>(9);
+    }
+    if (isWindowOpen() == 0) {
+        return static_cast<e_error>(4);
+    }
+    if (srWindow::isWindow(window_374_) == 0) {
+        return static_cast<e_error>(6);
+    }
+    if ((state_flags_28_ & 4) == 0) {
+        if ((enable_flags_20_.value & 0x10) != 0 && (state_flags_28_ & 8) == 0) {
+            flipFrame();
+        }
+        checkFrameStateChanges();
+        getDD()->beginFrame();
+        state_flags_28_ |= 4;
+        state_flags_28_ &= ~8UL;
+    }
+    return static_cast<e_error>(0);
+}
+
+// FUNCTION: SURRENDER 0x1001A810
+void srGERD::endFrame()
+{
+    if (isWindowOpen() == 0) {
+        setError(static_cast<e_error>(4));
+        return;
+    }
+    if ((state_flags_28_ & 4) != 0) {
+        flushRenderers();
+        getDD()->endFrame();
+        state_flags_28_ &= ~4UL;
+    }
 }
 
 // FUNCTION: SURRENDER 0x1001CD20

@@ -35,6 +35,7 @@ public:
        inlined into 0x0049C2C0 - reaches this one as srLight(0, 1), so both
        parameters carry those defaults here. */
     SR_DLL_IMPORT srLight(srNode* parent = 0, e_preset preset = PRESET_POSITIONAL_1);
+    SR_DLL_IMPORT srLight(const srLight& other);
     SR_DLL_IMPORT srLight& operator=(const srLight& other);
 
     /* Pushed as the literal at 0x00606E48 wherever the registry chain runs,
@@ -49,7 +50,9 @@ public:
 
 protected:
     /* Header-visible for the same reason srIlluminator's is: 0x0049C430
-       expands it rather than calling an import. */
+       expands it rather than calling an import. SR.DLL also emits the
+       out-of-line copy at 0x1004ED70. */
+    // FUNCTION: SURRENDER 0x1004ED70
     virtual ~srLight() override {}
 
 public:
@@ -81,7 +84,10 @@ public:
     float spot_exponent_1cc;                  /* 0x1cc */
     float intensity_1d0;                      /* 0x1d0 */
     float safe_range_1d4;                     /* 0x1d4 */
-    unsigned char unknown_1d8_[0x50];
+    unsigned char unknown_1d8_[0x44];
+    unsigned long value_21c_; /* 0x21c: zeroed at construction */
+    unsigned long value_220_; /* 0x220: zeroed at construction */
+    unsigned char unknown_224_[4];
 };
 #pragma pack(pop)
 
