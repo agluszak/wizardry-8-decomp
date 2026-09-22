@@ -14,6 +14,7 @@
 #include "wiz8/local_code/PC_Item.h"
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/engine_code/Environment.h"
+#include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/Quality.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/float_constants.h"
@@ -3037,7 +3038,7 @@ float W8Monster::GetDistanceToPlayer004C7CB0()
     float distance;
 
     GetCameraPosition(&player_position);
-    player_position.y -= g_startup_depth_603ac8;
+    player_position.y -= g_default_world_height_00603ac8;
     distance = (position - player_position).Length() - movement_0c0.alternate_radius_0b4 -
                g_startup_world_659c0c->movement_0c0.alternate_radius_0b4;
     if (distance < g_float_005ebb34) {
@@ -3053,7 +3054,7 @@ float W8Monster::GetPointDistanceToPlayer004C7D50(srVector3T<float> point)
     float distance;
 
     GetCameraPosition(&player_position);
-    player_position.y -= g_startup_depth_603ac8;
+    player_position.y -= g_default_world_height_00603ac8;
     distance = (point - player_position).Length() - movement_0c0.alternate_radius_0b4 -
                g_startup_world_659c0c->movement_0c0.alternate_radius_0b4;
     if (distance < g_float_005ebb34) {

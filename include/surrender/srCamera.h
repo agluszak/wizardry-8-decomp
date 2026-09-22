@@ -43,7 +43,18 @@ public:
     e_projectionResult project(srVector3T<float>& output, const srVector3T<double>& input);
     void setProjectionType(e_project projection);
     void normalizeViewPlane();
+#if defined(SURRENDER_BUILD)
     static const char* sGetClassName();
+#else
+    /* Header-visible like srFog's: the client getClassName/getClassNode
+       emissions (0x0042A020, 0x0042A030) read the consumer literal
+       s_srCamera_0060445c directly, and the consumer import table has no
+       entry. The provider still exports its own copy from camera.cpp. */
+    static const char* sGetClassName()
+    {
+        return "srCamera";
+    }
+#endif
     void setEnvironmentScale(float near_scale, float far_scale);
     void setFocalLength(double focal_length, double aspect_ratio);
     void setFOV(double field_of_view, double aspect_ratio);

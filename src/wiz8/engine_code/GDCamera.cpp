@@ -1,6 +1,7 @@
 #include "wiz8/engine_code/World.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/engine_code/GDCamera.h"
+#include "wiz8/engine_code/Levels.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/engine_code/quad.h"
@@ -70,8 +71,12 @@ extern const float g_camera_horizontal_margin_005ec574 = 0.5563237071037292f;
 extern const float g_camera_vertical_margin_005ec570 = 0.2168571501970291f;
 // GLOBAL: WIZ8 0x005ec3fc
 const float g_camera_half_pi_005ec3fc = 1.570796012878418f;
+/* Retail emits a dynamic initializer (0x00476120): the transition speed is
+   the half-period divided by the duration factor, so the plain constant
+   initializer would under-produce the .data bytes. */
 // GLOBAL: WIZ8 0x0065a0f4
-float g_camera_transition_speed_65a0f4;
+float g_camera_transition_speed_65a0f4 =
+    g_camera_half_period_005ec564 / g_camera_transition_duration_factor_005ec558;
 // GLOBAL: WIZ8 0x00609ea4
 float g_camera_max_yaw_velocity_609ea4 = 0.3490658700466156f;
 // GLOBAL: WIZ8 0x00603aac
@@ -169,7 +174,7 @@ GDCamera::GDCamera()
     m_target_angle_098 = 0.0f;
     m_target_pitch_09c = 0.0f;
     m_position_08c.SetZero();
-    m_position_08c.y = g_startup_depth_603ac8;
+    m_position_08c.y = g_default_world_height_00603ac8;
     m_transition_active = 0;
 
     pitch = 0.0f;
