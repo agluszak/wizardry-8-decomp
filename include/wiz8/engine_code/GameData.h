@@ -18,8 +18,8 @@ void ResetLevelMovement0041EEE0(float movement_limit, char reset, char fast_move
    establishes the flag word and optional vector; Camera.cpp establishes the
    two derived forward vectors and the scale used to produce the second.
    Retail allocates 0xf4 and its constructor builds a W8IntervalGate at +0xc4;
-   the record's destructor at 0x00421890 exists only to tear that member down
-   (it is the body previously read as a bare `add ecx,0xc4` adjustor). */
+   the record's destructor at 0x00421890 exists only to tear that member down.
+   The bare `add ecx,0xc4` body is member teardown, not an adjustor thunk. */
 struct W8LevelDataRecord {
     unsigned int flags; /* 0x00 */
     /* 0x04/0x08: prop ids filled by the motion collision path; ToggleBoundProps
@@ -307,8 +307,8 @@ extern W8LevelDataRecord* g_level_data_00652dac;
 extern unsigned int* g_level_flags_00652da8;
 /* Teardown flag tested and cleared by ReleaseLevelData0041A9E0. */
 extern unsigned char g_flag_00652dcc;
-/* Read by the level-data reset and written by the GameData constructor, which
-   now lives in GDFileIO.cpp. */
+/* Read by the level-data reset and written by the GameData constructor in
+   GDFileIO.cpp. */
 extern W8EnvironRecord* g_environ_00652DB4;
 
 #include "wiz8/engine_code/GDFileIO.h"
