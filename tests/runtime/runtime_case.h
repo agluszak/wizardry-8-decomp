@@ -163,6 +163,8 @@ private:
    below happens on the game thread; only OS input injection runs on the
    driver. */
 void SendScenarioKeyHeld(unsigned short key, unsigned char release);
+void SendScenarioKeyPress(unsigned short key, unsigned long flags);
+void SendScenarioMouseClick(int client_x, int client_y);
 int IsExtendedScenarioKey(unsigned short key);
 void ParkMouseOutsideActiveRegions();
 bool PointHitsEnabledRegion(int x, int y);

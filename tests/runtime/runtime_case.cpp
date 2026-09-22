@@ -176,6 +176,48 @@ int IsExtendedScenarioKey(unsigned short key)
     return 0;
 }
 
+/* A discrete key tap through the OS keyboard path: down+up in one SendInput
+   batch. `flags` carries caller extras like KEYEVENTF_EXTENDEDKEY for the
+   navigation cluster. */
+void SendScenarioKeyPress(unsigned short key, unsigned long flags)
+{
+    ParkMouseOutsideActiveRegions();
+    INPUT events[2];
+    memset(events, 0, sizeof(events));
+    events[0].type = INPUT_KEYBOARD;
+    events[0].ki.wVk = key;
+    events[0].ki.dwFlags = flags;
+    events[1] = events[0];
+    events[1].ki.dwFlags |= KEYEVENTF_KEYUP;
+    SetForegroundWindow(ghWindow);
+    if (SendInput(2, events, sizeof(INPUT)) != 2) {
+        fprintf(stderr,
+                "WIZ8_RUNTIME_FAILURE scenario=%s step=input reason=sendinput-failed error=%lu\n",
+                g_case_scenario, GetLastError());
+        fflush(stderr);
+    }
+}
+
+/* SGP's mouse hook consumes client coordinates, so the driver converts the
+   target point before handing the absolute move to SendInput. */
+void SendScenarioMouseClick(int client_x, int client_y)
+{
+    MoveScenarioMouse(client_x, client_y);
+    INPUT events[2];
+    memset(events, 0, sizeof(events));
+    events[0].type = INPUT_MOUSE;
+    events[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+    events[1].type = INPUT_MOUSE;
+    events[1].mi.dwFlags = MOUSEEVENTF_LEFTUP;
+    SetForegroundWindow(ghWindow);
+    if (SendInput(2, events, sizeof(INPUT)) != 2) {
+        fprintf(stderr,
+                "WIZ8_RUNTIME_FAILURE scenario=%s step=input reason=sendinput-failed error=%lu\n",
+                g_case_scenario, GetLastError());
+        fflush(stderr);
+    }
+}
+
 /* Held input uses the OS keyboard path, including SGP's hook, not driver-thread
    writes to gfKeyState or its event queue. The physical scan and extended bit
    distinguish dedicated arrows from the numeric keypad. */
