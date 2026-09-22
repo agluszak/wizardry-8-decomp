@@ -183,9 +183,9 @@ W8EmitterHost::W8EmitterHost(const W8EmitterHost& other) : W8AnimRep005ED050(oth
     lod_range_0a0 = other.lod_range_0a0;
     current_cycle = 0;
     current_subcycle = 0;
-    selection_value_0a6 = -1;
+    forced_subcycle_0a6 = -1;
     pending_cycle = -1;
-    value_0a8 = other.value_0a8;
+    animation_radius_0a8 = other.animation_radius_0a8;
 }
 
 // FUNCTION: WIZ8 0x004b5600
@@ -196,9 +196,9 @@ W8EmitterHost::W8EmitterHost()
     lod_range_0a0 = g_lod_range_default_0060e60c;
     current_cycle = 0;
     current_subcycle = 0;
-    selection_value_0a6 = -1;
+    forced_subcycle_0a6 = -1;
     pending_cycle = -1;
-    value_0a8 = 0;
+    animation_radius_0a8 = 0;
 }
 
 /* As above, 0x004B56F0 is the complete destructor and 0x004B5660 is its

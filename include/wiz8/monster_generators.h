@@ -13,9 +13,9 @@ struct W8EncounterTableRuntime {
     W8GrowableVector<unsigned char> challenge_level; /* 0x030: 1 through 50 */
     W8Vector<W8EncounterScriptName*> script_names;   /* 0x040 */
     char name[256];                                  /* 0x050 */
-    unsigned int unknown_150;                        /* 0x150 */
-    unsigned char version_two_flags;                 /* 0x154 */
-    unsigned char padding_155[3];                    /* 0x155 */
+    unsigned int category_150;       /* 0x150: encounter category; MIPE filters on it */
+    unsigned char version_two_flags; /* 0x154 */
+    unsigned char padding_155[3];    /* 0x155 */
 }; /* 0x158 */
 #pragma pack(pop)
 

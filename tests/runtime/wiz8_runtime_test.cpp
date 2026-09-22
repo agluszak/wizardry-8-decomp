@@ -1525,7 +1525,7 @@ struct GameplayReadyCheck {
     int pending;
     int keyboard_present;
     int level_block_present;
-    int flag_328;
+    int review_transition_done_328;
     int review_transition_active;
     int level_data_present;
     unsigned int flags;
@@ -1560,14 +1560,15 @@ static void CheckGameplayReadyOnGameThread(void* opaque)
        regions are disabled even though input is not blocked. */
     bool settled = g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
                    g_pending_screen_state.id == -1 && g_mgs_keyboard != 0 && g_level_block != 0 &&
-                   !g_level_block->flag_328 && !g_level_block->review_transition_active &&
-                   g_level_data_00652dac != 0 && !IsScreenInputBlocked() &&
-                   gXStatus.world_update_blocked == 0;
+                   !g_level_block->review_transition_done_328 &&
+                   !g_level_block->review_transition_active && g_level_data_00652dac != 0 &&
+                   !IsScreenInputBlocked() && gXStatus.world_update_blocked == 0;
     check->screen = g_current_screen_state.id;
     check->pending = g_pending_screen_state.id;
     check->keyboard_present = g_mgs_keyboard != 0;
     check->level_block_present = g_level_block != 0;
-    check->flag_328 = g_level_block != 0 ? g_level_block->flag_328 : -1;
+    check->review_transition_done_328 =
+        g_level_block != 0 ? g_level_block->review_transition_done_328 : -1;
     check->review_transition_active =
         g_level_block != 0 ? g_level_block->review_transition_active : -1;
     check->level_data_present = g_level_data_00652dac != 0;
@@ -1589,8 +1590,9 @@ static void CheckGameplayReadyOnGameThread(void* opaque)
     check->timer_paused = g_shared_timer_paused;
     check->timer_d1 = g_shared_timer_flag_d1;
     check->timer_d2 = g_shared_timer_flag_d2;
-    check->timer_scale =
-        g_game_time_accumulator_6598bc != 0 ? g_game_time_accumulator_6598bc->GetValue28() : -1.0f;
+    check->timer_scale = g_game_time_accumulator_6598bc != 0
+                             ? g_game_time_accumulator_6598bc->GetFrameDelta()
+                             : -1.0f;
     check->ground_latch = g_environ_ground_latch_00652db8;
     check->world_update_blocked = gXStatus.world_update_blocked;
     /* flag4 is the per-frame walkable-contact bit: ApplyEnvironContact sets
@@ -1683,10 +1685,11 @@ static DWORD PrepareMainGameFixture()
                 "timer_flags=%02x paused=%d d1=%d d2=%d scale=%.3f latch=%d "
                 "world_blocked=%u ready_calls=%u\n",
                 last.screen, last.pending, last.keyboard_present, last.level_block_present,
-                last.flag_328, last.review_transition_active, last.level_data_present, last.flags,
-                last.flag4_effective, last.blocked, last.camera_x, last.camera_y, last.camera_z,
-                last.timer_flags, last.timer_paused, last.timer_d1, last.timer_d2, last.timer_scale,
-                last.ground_latch, last.world_update_blocked, g_ready_check_calls);
+                last.review_transition_done_328, last.review_transition_active,
+                last.level_data_present, last.flags, last.flag4_effective, last.blocked,
+                last.camera_x, last.camera_y, last.camera_z, last.timer_flags, last.timer_paused,
+                last.timer_d1, last.timer_d2, last.timer_scale, last.ground_latch,
+                last.world_update_blocked, g_ready_check_calls);
         return FailScenario("main-game-fixture", "main-game-not-ready");
     }
     return 0;

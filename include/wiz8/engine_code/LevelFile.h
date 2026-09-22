@@ -393,38 +393,44 @@ struct W8LevelParticleRecord004BD0D0 {
     srVector3T<float> rotation_axis;    /* 0x050 */
     unsigned char positional_05c[0x0c]; /* 0x05c */
     unsigned int particle_count;        /* 0x068 */
-    float source_06c;                   /* 0x06c */
-    float source_070;                   /* 0x070 */
-    float source_074;                   /* 0x074 */
-    int has_acceleration;               /* 0x078 */
-    srVector3T<float> acceleration;     /* 0x07c */
-    int positional_088;                 /* 0x088 */
-    int bounds_mode;                    /* 0x08c */
-    srVector3T<float> bounds_origin;    /* 0x090 */
-    float bounds_radius;                /* 0x09c */
-    srVector3T<float> bounds_extent;    /* 0x0a0 */
-    unsigned int lifetime;              /* 0x0ac */
-    int velocity_mode;                  /* 0x0b0 */
-    unsigned int emission_interval;     /* 0x0b4 */
-    int positional_0b8;                 /* 0x0b8 */
-    int placement_mode;                 /* 0x0bc */
-    float placement_0c0;                /* 0x0c0 */
-    float placement_0c4;                /* 0x0c4 */
-    float placement_0c8;                /* 0x0c8 */
-    float particle_value;               /* 0x0cc */
-    int flutter_mode;                   /* 0x0d0 */
-    float flutter_value;                /* 0x0d4 */
-    float flutter_period;               /* 0x0d8 */
-    int direction_mode;                 /* 0x0dc */
-    float direction_0e0;                /* 0x0e0 */
-    float direction_0e4;                /* 0x0e4 */
-    int initially_active;               /* 0x0e8 */
-    W8MaterialRecord004B8A70 material;  /* 0x0ec */
-    short value_216;                    /* 0x216, version >= 2 */
-    int state_218;                      /* 0x218, version >= 3 */
-    unsigned char value_21c;            /* 0x21c, version >= 3 */
-    int start_frame_21d;                /* 0x21d, unaligned, version >= 4 */
-    int end_frame_221;                  /* 0x221, version >= 4 */
+    /* 0x06c-0x074: emission spread extents; x/y bound both minimum_1d0
+       and maximum_1dc symmetrically, z only the maximum. */
+    float spread_x_06c;
+    float spread_y_070;
+    float spread_z_074;
+    int has_acceleration;              /* 0x078 */
+    srVector3T<float> acceleration;    /* 0x07c */
+    int expiry_mode;                   /* 0x088: nonzero enables particle expiry */
+    int bounds_mode;                   /* 0x08c */
+    srVector3T<float> bounds_origin;   /* 0x090 */
+    float bounds_radius;               /* 0x09c */
+    srVector3T<float> bounds_extent;   /* 0x0a0 */
+    unsigned int lifetime;             /* 0x0ac */
+    int velocity_mode;                 /* 0x0b0 */
+    unsigned int emission_interval;    /* 0x0b4 */
+    int los_check;                     /* 0x0b8: nonzero enables the line-of-sight check */
+    int placement_mode;                /* 0x0bc */
+    float placement_0c0;               /* 0x0c0 */
+    float placement_0c4;               /* 0x0c4 */
+    float placement_0c8;               /* 0x0c8 */
+    float particle_size;               /* 0x0cc: billboard quad scale */
+    int flutter_mode;                  /* 0x0d0 */
+    float flutter_value;               /* 0x0d4 */
+    float flutter_period;              /* 0x0d8 */
+    int direction_mode;                /* 0x0dc */
+    float direction_0e0;               /* 0x0e0 */
+    float direction_0e4;               /* 0x0e4 */
+    int initially_active;              /* 0x0e8 */
+    W8MaterialRecord004B8A70 material; /* 0x0ec */
+    /* 0x216, version >= 2: copied to the particle's attachment_key_260 when
+       non-negative. */
+    short attachment_key_216;
+    /* 0x218, version >= 3: copied to the particle's emission_limit_184. */
+    int emission_limit_218;
+    /* 0x21c, version >= 3: copied to the particle's requires_positional_138. */
+    unsigned char requires_positional_21c;
+    int start_frame_21d; /* 0x21d, unaligned, version >= 4 */
+    int end_frame_221;   /* 0x221, version >= 4 */
 };
 
 struct W8LevelFileParticleSystem { /* 0x226 */
@@ -573,8 +579,8 @@ static_assert(sizeof(W8LevelFileParticleSystem) == 0x226,
               "W8LevelFileParticleSystem_must_be_0x226");
 static_assert(offsetof(W8LevelFileParticleSystem, particle_01.location) == 0x41,
               "W8LevelFileParticleSystem_position_41");
-static_assert(offsetof(W8LevelFileParticleSystem, particle_01.value_216) == 0x217,
-              "W8LevelFileParticleSystem_value_217");
+static_assert(offsetof(W8LevelFileParticleSystem, particle_01.attachment_key_216) == 0x217,
+              "W8LevelFileParticleSystem_attachment_key_217");
 static_assert(sizeof(W8LevelFileNamedPosition) == 0x9d, "W8LevelFileNamedPosition_must_be_0x9d");
 static_assert(offsetof(W8LevelFileNamedPosition, position_81) == 0x81,
               "W8LevelFileNamedPosition_position_81");

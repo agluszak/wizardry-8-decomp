@@ -148,7 +148,7 @@ unsigned int InitializeEncounterTables(void)
     for (index = 0; index < table_count; ++index) {
         unsigned char record_kind;
         char name[256];
-        unsigned int unknown_150;
+        unsigned int category_150;
         unsigned short version;
         unsigned char entry_count;
         unsigned short species[256];
@@ -158,7 +158,7 @@ unsigned int InitializeEncounterTables(void)
 
         FileRead(handle, &record_kind, 1, 0);
         FileRead(handle, name, sizeof(name), 0);
-        FileRead(handle, &unknown_150, 4, 0);
+        FileRead(handle, &category_150, 4, 0);
         FileRead(handle, &version, 2, 0);
         FileRead(handle, &entry_count, 1, 0);
         W8EncounterTableRuntime* table = new W8EncounterTableRuntime;
@@ -185,7 +185,7 @@ unsigned int InitializeEncounterTables(void)
             table->script_names.Add(script);
         }
         strcpy(table->name, name);
-        table->unknown_150 = unknown_150;
+        table->category_150 = category_150;
         g_encounter_tables.Add(table);
         if (version == 1) {
             table->version_two_flags = 0;

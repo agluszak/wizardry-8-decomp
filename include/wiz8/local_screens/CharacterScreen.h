@@ -114,9 +114,13 @@ class W8CharacterStatsRow005EF750;
    0x00 is the catalogue object id, 0x04/0x08 its two images, 0x0C the name
    message id and 0x0E the selectable flag. */
 struct W8CharacterStatsRecord {
-    unsigned int unknown_00;
-    int unknown_04;
-    int unknown_08;
+    /* 0x00: the video-object catalog id handed to DrawCatalogImage's
+       `object` argument. */
+    unsigned int object_00;
+    /* 0x04/0x08: catalog image ids drawn while the control is enabled and
+       disabled respectively. */
+    int image_enabled_04;
+    int image_disabled_08;
     unsigned short name_id_0c;
     unsigned char enabled_0e;
     unsigned char pad_0f;

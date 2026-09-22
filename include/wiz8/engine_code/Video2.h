@@ -116,7 +116,7 @@ class stModelInstance2D;
 template <class T> class srVector3T;
 template <class T> class srVector4T;
 srNode* MakePosterQuad00424BA0(srTextureIFace* texture, float width, float height,
-                               unsigned char positional_3);
+                               unsigned char additive);
 /* 0x00425190: build a 2D marker model instance over a texture. */
 stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width, double height,
                                            char keep_aspect, char a5);
@@ -228,7 +228,7 @@ extern srScene* g_scene_square_65965c;
 extern srColorSurface* g_primary_color_surface_659660;
 void DrawColorSurface00425590(srColorSurface* surface, int x, int y);
 srNode* VideoMakePoster(srColorSurfaceIFace* surface, float width, float height,
-                        unsigned char positional_3); /* 0x00424A90 */
+                        unsigned char additive); /* 0x00424A90 */
 extern srCamera* g_overlay_camera_659670;
 extern srCamera* g_square_camera_659674;
 extern bool g_texture_cache_enabled_65beaf;

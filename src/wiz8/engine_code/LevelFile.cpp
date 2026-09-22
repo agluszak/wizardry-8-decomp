@@ -2123,16 +2123,16 @@ bool ReadParticleSystemFile004D5240(int hFile, W8LevelFileParticleSystem* pSyste
 {
     unsigned char fSuccess = FileRead(hFile, pSystem, 0x217, 0) & 1;
     if (pSystem->version_00 < 2) {
-        pSystem->particle_01.value_216 = 0;
+        pSystem->particle_01.attachment_key_216 = 0;
     } else {
-        fSuccess &= FileRead(hFile, &pSystem->particle_01.value_216, 2, 0);
+        fSuccess &= FileRead(hFile, &pSystem->particle_01.attachment_key_216, 2, 0);
     }
     if (pSystem->version_00 < 3) {
-        pSystem->particle_01.state_218 = 0;
-        pSystem->particle_01.value_21c = 0;
+        pSystem->particle_01.emission_limit_218 = 0;
+        pSystem->particle_01.requires_positional_21c = 0;
     } else {
-        fSuccess &= FileRead(hFile, &pSystem->particle_01.state_218, 4, 0) &
-                    FileRead(hFile, &pSystem->particle_01.value_21c, 1, 0);
+        fSuccess &= FileRead(hFile, &pSystem->particle_01.emission_limit_218, 4, 0) &
+                    FileRead(hFile, &pSystem->particle_01.requires_positional_21c, 1, 0);
     }
     if (pSystem->version_00 < 4) {
         pSystem->particle_01.start_frame_21d = 0;
@@ -2158,11 +2158,11 @@ bool WriteParticleSystemFile004D5370(int hFile, W8LevelFileParticleSystem* pSyst
 {
     unsigned char fSuccess = FileWrite(hFile, pSystem, 0x217, 0) & 1;
     if (pSystem->version_00 > 1) {
-        fSuccess &= FileWrite(hFile, &pSystem->particle_01.value_216, 2, 0);
+        fSuccess &= FileWrite(hFile, &pSystem->particle_01.attachment_key_216, 2, 0);
     }
     if (pSystem->version_00 > 2) {
-        fSuccess &= FileWrite(hFile, &pSystem->particle_01.state_218, 4, 0) &
-                    FileWrite(hFile, &pSystem->particle_01.value_21c, 1, 0);
+        fSuccess &= FileWrite(hFile, &pSystem->particle_01.emission_limit_218, 4, 0) &
+                    FileWrite(hFile, &pSystem->particle_01.requires_positional_21c, 1, 0);
     }
     if (pSystem->version_00 > 3) {
         fSuccess &= FileWrite(hFile, &pSystem->particle_01.start_frame_21d, 4, 0) &

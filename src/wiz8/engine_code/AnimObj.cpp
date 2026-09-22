@@ -54,9 +54,9 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
     success = success && FileRead(handle, &animation->group_count, 1, 0);
     success = success && FileRead(handle, &animation->animation_playing_01, 1, 0);
     success = success && FileRead(handle, &animation->frame_method_02, 1, 0);
-    success = success && FileRead(handle, &animation->unknown_03, 1, 0);
+    success = success && FileRead(handle, &animation->behaviour_03, 1, 0);
     success = success && FileRead(handle, &animation->cycle, 1, 0);
-    success = success && FileRead(handle, &animation->flag_05, 1, 0);
+    success = success && FileRead(handle, &animation->path_lists_05, 1, 0);
 
     if (version < 3) {
         animation->playback_scale_08 = 15.0f;
@@ -74,11 +74,11 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
         success = success && FileRead(handle, &animation->end_frame_15, 1, 0);
     }
     if (version < 6) {
-        animation->flag_0c = 0;
-        animation->value_10 = 1.0f;
+        animation->random_play_0c = 0;
+        animation->play_chance_10 = 1.0f;
     } else {
-        success = success && FileRead(handle, &animation->flag_0c, 1, 0);
-        success = success && FileRead(handle, &animation->value_10, 4, 0);
+        success = success && FileRead(handle, &animation->random_play_0c, 1, 0);
+        success = success && FileRead(handle, &animation->play_chance_10, 4, 0);
     }
     success = success && FileRead(handle, discarded, sizeof(discarded), 0);
     if (!success) {
@@ -208,7 +208,7 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
         }
     }
 
-    if (animation->flag_05 == 0 && version > 8) {
+    if (animation->path_lists_05 == 0 && version > 8) {
         unsigned char has_path;
         FileRead(handle, &has_path, 1, 0);
         if (has_path != 0) {
@@ -221,7 +221,7 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
             path->animated_3a = 0;
             path->speed = animation->playback_scale_08;
             animation->path_24 = path;
-            animation->value_16 = static_cast<unsigned char>(path->nodes_0c->count);
+            animation->frame_count_16 = static_cast<unsigned char>(path->nodes_0c->count);
         }
     }
     if (version > 9) {
@@ -229,7 +229,7 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
         success = success && FileRead(handle, &ignored, 1, 0);
     }
 
-    if (animation->flag_05 == 0) {
+    if (animation->path_lists_05 == 0) {
         int mesh_index;
         for (mesh_index = 0; mesh_index < (signed char)animation->group_count; ++mesh_index) {
             W8AniMesh* mesh = CreateAniMesh004B57E0();
@@ -282,7 +282,7 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
                 path->discrete_mode_1c = 1;
                 path->animated_3a = 0;
                 path->speed = animation->playback_scale_08;
-                animation->value_16 = static_cast<unsigned char>(path->nodes_0c->count);
+                animation->frame_count_16 = static_cast<unsigned char>(path->nodes_0c->count);
             }
         }
     }
@@ -297,10 +297,10 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
         } else if (animation->entries_18[0] != 0) {
             animation->end_frame_15 =
                 static_cast<unsigned char>(AniMeshValue004B64F0(animation->entries_18[0]) - 1);
-        } else if (animation->flag_05 == 0) {
+        } else if (animation->path_lists_05 == 0) {
             animation->end_frame_15 = animation->start_frame_14;
         } else {
-            animation->end_frame_15 = animation->value_16 - 1;
+            animation->end_frame_15 = animation->frame_count_16 - 1;
         }
     }
     return success;
@@ -329,15 +329,15 @@ W8AnimObj* CloneAnimObj004A0320(const W8AnimObj* source)
     copy->group_count = source->group_count;
     copy->animation_playing_01 = source->animation_playing_01;
     copy->frame_method_02 = source->frame_method_02;
-    copy->unknown_03 = source->unknown_03;
+    copy->behaviour_03 = source->behaviour_03;
     copy->cycle = source->cycle;
-    copy->flag_05 = source->flag_05;
+    copy->path_lists_05 = source->path_lists_05;
     copy->playback_scale_08 = source->playback_scale_08;
-    copy->flag_0c = source->flag_0c;
-    copy->value_10 = source->value_10;
+    copy->random_play_0c = source->random_play_0c;
+    copy->play_chance_10 = source->play_chance_10;
     copy->start_frame_14 = source->start_frame_14;
     copy->end_frame_15 = source->end_frame_15;
-    copy->value_16 = source->value_16;
+    copy->frame_count_16 = source->frame_count_16;
     if (source->entries_18[0] != 0) {
         copy->entries_18[0] = CopyAniMesh004B58D0(source->entries_18[0]);
     }
@@ -371,10 +371,10 @@ W8AnimObj* CloneAnimObj004A0320(const W8AnimObj* source)
         if (source == 0) {
             srAssertFail("pao", ANIM_OBJ_CPP, 0x291, 0);
         }
-        if (source->flag_05 == 0) {
+        if (source->path_lists_05 == 0) {
             frames = AniMeshValue004B64F0(source->entries_18[2]);
         } else {
-            frames = source->value_16;
+            frames = source->frame_count_16;
         }
         if (frames != 0) {
             copy->pfKnownBBoxFrames = static_cast<unsigned char*>(malloc(frames));
@@ -427,11 +427,11 @@ unsigned char AnimObjGetBounds004A1710(W8AnimObj* animation, signed char list_in
         *maximum = animation->pvecBoundMax[frame & 0xff];
         return 1;
     }
-    if (animation->flag_05 == 0) {
+    if (animation->path_lists_05 == 0) {
         if (animation == 0) {
             srAssertFail("pao", ANIM_OBJ_CPP, 0x2bd, 0);
         }
-        if (animation->flag_05 == 0) {
+        if (animation->path_lists_05 == 0) {
             mesh = animation->entries_18[list_index];
         } else {
             mesh = (W8AniMesh*)PLGet(animation->meshes_28[list_index], frame & 0xff);
@@ -441,10 +441,10 @@ unsigned char AnimObjGetBounds004A1710(W8AnimObj* animation, signed char list_in
     if (animation == 0) {
         srAssertFail("pao", ANIM_OBJ_CPP, 0x291, 0);
     }
-    if (animation->flag_05 == 0) {
+    if (animation->path_lists_05 == 0) {
         frames = AniMeshValue004B64F0(animation->entries_18[list_index]);
     } else {
-        frames = animation->value_16;
+        frames = animation->frame_count_16;
     }
     if (animation->pfKnownBBoxFrames == 0) {
         animation->pfKnownBBoxFrames = static_cast<unsigned char*>(malloc(frames));
@@ -485,7 +485,7 @@ unsigned char AnimObjGetBounds004A1710(W8AnimObj* animation, signed char list_in
         if (animation == 0) {
             srAssertFail("pao", ANIM_OBJ_CPP, 0x26c, 0);
         }
-        if (animation->flag_05 == 1 && animation->meshes_28[list_index] != 0 &&
+        if (animation->path_lists_05 == 1 && animation->meshes_28[list_index] != 0 &&
             (mesh = (W8AniMesh*)PLGet(animation->meshes_28[list_index], (signed char)index)) != 0) {
             mesh->list_index_28 = list_index;
             instance = GetAniMeshFrame004B6550(mesh, 0);
@@ -495,7 +495,7 @@ unsigned char AnimObjGetBounds004A1710(W8AnimObj* animation, signed char list_in
         if (animation == 0) {
             srAssertFail("pao", ANIM_OBJ_CPP, 0x2d3, 0);
         }
-        if (animation->flag_05 != 0 &&
+        if (animation->path_lists_05 != 0 &&
             (path = (W8PathAI*)PLGet(animation->paths_34[list_index], (signed char)index)) != 0) {
             float saved = PathAIGetValue004A9E70(path);
 
@@ -682,10 +682,10 @@ unsigned int AnimObjValue004A15D0(W8AnimObj* animation, signed char index)
     if (animation == 0) {
         srAssertFail("pao", ANIM_OBJ_CPP, 0x291, 0);
     }
-    if (animation->flag_05 == 0) {
+    if (animation->path_lists_05 == 0) {
         return AniMeshValue004B64F0(animation->entries_18[index]);
     }
-    return animation->value_16;
+    return animation->frame_count_16;
 }
 
 // FUNCTION: WIZ8 0x004a1620
@@ -710,7 +710,7 @@ W8PathAI* AnimObjListEntry004A16C0(W8AnimObj* animation, signed char list_index,
     if (animation == 0) {
         srAssertFail("pao", ANIM_OBJ_CPP, 0x2d3, 0);
     }
-    if (animation->flag_05 == 0) {
+    if (animation->path_lists_05 == 0) {
         return 0;
     }
     return static_cast<W8PathAI*>(PLGet(animation->paths_34[list_index], entry_index));
@@ -722,7 +722,7 @@ unsigned char AnimationIsRunning(W8AnimObj* animation)
     if (animation == 0) {
         srAssertFail("pao", ANIM_OBJ_CPP, 0x3b1, 0);
     }
-    return animation->flag_05;
+    return animation->path_lists_05;
 }
 
 // FUNCTION: WIZ8 0x004a14d0
@@ -734,7 +734,7 @@ srModelInstance* AnimObjDispatch004A14D0(W8AnimObj* animation, signed char list_
     if (animation == 0) {
         srAssertFail("pao", ANIM_OBJ_CPP, 0x243, 0);
     }
-    if (animation->flag_05 == 0) {
+    if (animation->path_lists_05 == 0) {
         entry = animation->entries_18[list_index];
         if (entry != (W8AniMesh*)0xdddddddd && entry != 0) {
             entry->list_index_28 = list_index;
@@ -760,7 +760,7 @@ srModelInstance* AnimObjDispatchList004A1560(W8AnimObj* animation, signed char l
     if (animation == 0) {
         srAssertFail("pao", ANIM_OBJ_CPP, 0x26c, 0);
     }
-    if (animation->flag_05 == 1) {
+    if (animation->path_lists_05 == 1) {
         list = animation->meshes_28[list_index];
         if (list != 0) {
             entry = (W8AniMesh*)PLGet(list, entry_index);
@@ -780,7 +780,7 @@ W8AniMesh* AnimObjEntry004A1660(W8AnimObj* animation, signed char list_index,
     if (animation == 0) {
         srAssertFail("pao", ANIM_OBJ_CPP, 0x2bd, 0);
     }
-    if (animation->flag_05 == 0) {
+    if (animation->path_lists_05 == 0) {
         return animation->entries_18[list_index];
     }
     return static_cast<W8AniMesh*>(PLGet(animation->meshes_28[list_index], entry_index & 0xff));

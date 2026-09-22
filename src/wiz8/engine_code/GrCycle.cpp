@@ -79,9 +79,10 @@ W8GameTimer* g_shake_timer_0065be30;
    is seeded from the source's speed rather than its remaining time. */
 // FUNCTION: WIZ8 0x004ae000
 W8CameraShakeEffect::W8CameraShakeEffect(const W8CameraShakeEffect& other)
-    : flags_00(other.flags_00), intensity_04(other.intensity_04), value_08(other.value_08),
-      position_0c(other.position_0c), timer_18(other.timer_18.m_duration_seconds, 0),
-      cycle_3c(other.cycle_3c), frame_40(other.frame_40), subcycle_44(other.subcycle_44),
+    : flags_00(other.flags_00), intensity_04(other.intensity_04),
+      distance_cap_08(other.distance_cap_08), position_0c(other.position_0c),
+      timer_18(other.timer_18.m_duration_seconds, 0), cycle_3c(other.cycle_3c),
+      frame_40(other.frame_40), subcycle_44(other.subcycle_44),
       completion_callback_48(other.completion_callback_48)
 {
     flags_00 &= ~1u;
@@ -93,9 +94,9 @@ W8CameraShakeEffect::W8CameraShakeEffect(const W8CameraShakeEffect& other)
    own default put it rather than at the origin. */
 // FUNCTION: WIZ8 0x004aded0
 W8CameraShakeEffect::W8CameraShakeEffect(float duration, char preset, float intensity,
-                                         float value_08_, const srVector3T<float>* position)
-    : flags_00(0), intensity_04(intensity), value_08(value_08_), timer_18(duration, 0), cycle_3c(0),
-      frame_40(0), subcycle_44(0), completion_callback_48(0)
+                                         float distance_cap, const srVector3T<float>* position)
+    : flags_00(0), intensity_04(intensity), distance_cap_08(distance_cap), timer_18(duration, 0),
+      cycle_3c(0), frame_40(0), subcycle_44(0), completion_callback_48(0)
 {
     if (g_shake_effects_0065be2c == 0) {
         g_shake_effects_0065be2c = new W8GrowableVector<W8CameraShakeEffect*>(5);
@@ -115,11 +116,11 @@ W8CameraShakeEffect::W8CameraShakeEffect(float duration, char preset, float inte
    afterwards because it keeps its effect across frames and deletes it itself. */
 // FUNCTION: WIZ8 0x004ae080
 W8CameraShakeEffect* CreateCameraShakeEffect004AE080(float duration, char preset, float intensity,
-                                                     float value_08,
+                                                     float distance_cap,
                                                      const srVector3T<float>* position)
 {
     W8CameraShakeEffect* effect =
-        new W8CameraShakeEffect(duration, preset, intensity, value_08, position);
+        new W8CameraShakeEffect(duration, preset, intensity, distance_cap, position);
 
     effect->flags_00 |= 3;
     effect->timer_18.Restart();
@@ -240,10 +241,10 @@ unsigned char W8CameraShakeEffect::Evaluate004AE4E0(const srVector3T<float>* pos
         float dy = position_0c.y - position->y;
         float dz = position_0c.z - position->z;
         float distance = sqrtf(dx * dx + dy * dy + dz * dz);
-        if (value_08 < distance) {
+        if (distance_cap_08 < distance) {
             *out_amount = 0.0f;
         } else if ((flags_00 >> 3 & 1) != 0) {
-            float weight = distance / value_08 - g_float_005ebb38;
+            float weight = distance / distance_cap_08 - g_float_005ebb38;
             *out_amount = weight * weight;
         } else {
             *out_amount = 1.0f;
@@ -422,12 +423,12 @@ W8GrCycle::W8GrCycle()
     m_plsLights = 0;
     m_plsShakeEvents = 0;
     m_fDeleteLights = 0;
-    unknown_1b5 = 0;
+    last_subcycle_1b5 = 0;
     m_plsParticles = 0;
-    unknown_1bc = 0;
+    wrapped_1bc = 0;
     enabled_1bd = 1;
-    unknown_1be = 0;
-    unknown_1bf = 0;
+    mirror_x_1be = 0;
+    aim_set_1bf = 0;
     m_ground_shadow = 0;
     frame_fraction_1d4 = 0;
     scale_1cc = 1.0f;
@@ -451,12 +452,12 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other) : W8GrObject(other), W8Navigator(ot
     m_plsLights = 0;
     m_plsShakeEvents = 0;
     m_fDeleteLights = other.m_fDeleteLights;
-    unknown_1b5 = other.unknown_1b5;
+    last_subcycle_1b5 = other.last_subcycle_1b5;
     m_plsParticles = 0;
-    unknown_1bc = 0;
+    wrapped_1bc = 0;
     enabled_1bd = 1;
-    unknown_1be = other.unknown_1be;
-    unknown_1bf = 0;
+    mirror_x_1be = other.mirror_x_1be;
+    aim_set_1bf = 0;
     scale_1cc = other.scale_1cc;
     m_ground_shadow = 0;
     frame_fraction_1d4 = 0;
@@ -621,7 +622,7 @@ void W8GrCycle::TickAnimation(float scale)
                 srVector3T<float> position;
 
                 representation->timer_068 += (int)((float)frames * g_float_005ebc64 / rate);
-                unknown_1bc = 0;
+                wrapped_1bc = 0;
                 position = GetPosition();
                 do {
                     --frames;
@@ -648,7 +649,7 @@ void W8GrCycle::TickAnimation(float scale)
         if (m_plsLights != 0 && m_plsLights->GetCount() != 0) {
             UpdateLights004A7150();
         }
-        unknown_1b5 = representation->subcycle_064;
+        last_subcycle_1b5 = representation->subcycle_064;
     }
 }
 
@@ -743,7 +744,7 @@ void W8GrCycle::UpdateLights004A7150()
                 }
             }
         } else if (definition->type_04 == 2) {
-            if (representation->subcycle_064 == 0 || unknown_1bc != 0) {
+            if (representation->subcycle_064 == 0 || wrapped_1bc != 0) {
                 light->Reset0049D070();
             }
             light->SetDefinitionTime0049C940(representation->subcycle_064 + frame_fraction_1d4);
@@ -812,7 +813,7 @@ void W8GrCycle::AdvanceAnimationFrame(int, int)
             representation->frame_direction_06e = 3;
         } else if (representation->frame_method_06f == 1) {
             representation->subcycle_064 = representation->first_frame_094;
-            unknown_1bc = 1;
+            wrapped_1bc = 1;
         }
     } else if (representation->frame_direction_06e == 3) {
         frame = representation->subcycle_064;
@@ -1144,7 +1145,7 @@ void W8GrCycle::UpdateParticleAttachments004A7E50()
         anchor.SetFromDouble(&location);
         placed += anchor;
 
-        if (unknown_1bf != 0 && particle->direction_mode_1b8 == 3) {
+        if (aim_set_1bf != 0 && particle->direction_mode_1b8 == 3) {
             target.SetFromFloat(&placed);
             axis.SetFromFloat(&m_axis_1c0);
             particle->setRotation(axis, target, 0.0);
@@ -1288,7 +1289,7 @@ void W8GrCycle::SubmitTargetValue004A84A0()
 {
     W8EmitterHost* target = GetRepresentation();
 
-    GetAnimationRadius(&target->value_0a8);
+    GetAnimationRadius(&target->animation_radius_0a8);
 }
 
 /* The pointer at W8GrCycle +0x1b0 owns this specialization. No source or debug

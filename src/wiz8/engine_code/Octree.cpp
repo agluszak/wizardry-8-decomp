@@ -3158,8 +3158,8 @@ void W8Octree::BuildCellWalk(srVector3T<float> from, srVector3T<float> to, W8Oct
    GameData prop trace. The returned index lands in current_prop and, when
    non-negative, `to` is rewritten with the record's contact point. */
 // FUNCTION: WIZ8 0x00436510
-int W8Octree::TraceAgainstProps(const srVector3T<float>* from, srVector3T<float>* to, int value_3,
-                                int value_4)
+int W8Octree::TraceAgainstProps(const srVector3T<float>* from, srVector3T<float>* to, int skip_flag,
+                                int gate)
 {
     W8OctreeWalk walk;
     int cell[4];
@@ -3238,7 +3238,7 @@ int W8Octree::TraceAgainstProps(const srVector3T<float>* from, srVector3T<float>
         }
     }
     current_prop = g_octree_game_data_00652db0->TestPropSurfaces(m_gd_result_count_1b8, m_aulGDObjs,
-                                                                 &trace, value_3, value_4);
+                                                                 &trace, skip_flag, gate);
     if (current_prop < 0) {
         return 0;
     }
@@ -4997,7 +4997,7 @@ unsigned int W8Octree::AdvanceNavigator(W8NavigatorMovementState* movement, floa
     vecDir = movement->target_position_04c - movement->position_040;
     vecDir.y = 0.0f;
     distance = srVector2T<float>(vecDir.x, vecDir.z).Length();
-    step = g_game_time_accumulator_6598bc->GetValue28() * movement->movement_scale_060 *
+    step = g_game_time_accumulator_6598bc->GetFrameDelta() * movement->movement_scale_060 *
            g_rate_006068EC * g_world_scale_005ebc40;
     if (step >= distance) {
         step = distance;
@@ -5476,8 +5476,9 @@ unsigned int W8Octree::FindScatterPositions00437980(const srVector3T<float>* pos
 // FUNCTION: WIZ8 0x00437f30
 unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float yaw, float radius,
                                              unsigned int count, srVector3T<float>* positions,
-                                             char first_only, char flag_2, char flag_3, int mode,
-                                             char flag_4)
+                                             char first_only, char settle_any_height,
+                                             char avoid_triggers, int mode,
+                                             char require_waypoint_span)
 {
     unsigned int found = 0;
     int found_i = 9999;
@@ -5499,7 +5500,7 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
     float height = source->y - ground;
     if (static_cast<float>(g_double_005ebc30) <= fabsf(height) &&
         fabsf(height) <= static_cast<float>(g_double_005ec038) &&
-        (flag_2 != 0 || fabsf(height) <= static_cast<float>(g_double_005ec030))) {
+        (settle_any_height != 0 || fabsf(height) <= static_cast<float>(g_double_005ec030))) {
         source->y = ground;
     }
     unsigned int monsters = 0;
@@ -5566,7 +5567,7 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
                             height = candidate.y - ground;
                             if (static_cast<float>(g_double_005ebc30) <= fabsf(height) &&
                                 fabsf(height) <= static_cast<float>(g_double_005ec038) &&
-                                (flag_2 != 0 ||
+                                (settle_any_height != 0 ||
                                  fabsf(height) <= static_cast<float>(g_double_005ec030))) {
                                 candidate.y = ground;
                                 unsigned char clear;
@@ -5577,8 +5578,9 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
                                     clear = pathing_180->TestPathCellClearance00463040(
                                         &candidate, radius * g_float_005ebc7c, 0);
                                 }
-                                if (clear != 0 && (flag_3 == 0 || InsideDestinationTrigger00445940(
-                                                                      candidate.x, candidate.y,
+                                if (clear != 0 &&
+                                    (avoid_triggers == 0 ||
+                                     InsideDestinationTrigger00445940(candidate.x, candidate.y,
                                                                       candidate.z) == 0)) {
                                     if (first_only != 0) {
                                         srVector3T<float> camera =
@@ -5614,7 +5616,7 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
                                             } while (m < monsters);
                                         }
                                     }
-                                    if (flag_4 == 0 || pathing_180 == 0 ||
+                                    if (require_waypoint_span == 0 || pathing_180 == 0 ||
                                         pathing_180->TestWaypointSpan0045A1B0(&candidate, source, 0,
                                                                               0) != 0) {
                                         if (found == 0) {
@@ -5660,7 +5662,7 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
     if (candidates != 0) {
         delete candidates;
     }
-    if (flag_2 != 0 && 0 < static_cast<int>(found)) {
+    if (settle_any_height != 0 && 0 < static_cast<int>(found)) {
         srVector3T<float>* out = positions;
         unsigned int remaining = found;
         do {

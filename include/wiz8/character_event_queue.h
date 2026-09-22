@@ -34,21 +34,24 @@ extern unsigned char g_character_event_flags_mask_005ed8e4;
    method live with QueueCharacterEvent in Health Stamina Mana.cpp; the
    original type name is unknown. */
 struct W8CharacterEvent {
-    W8CharacterEvent(W8Character* character, unsigned int event_type, int value_0c,
+    W8CharacterEvent(W8Character* character, unsigned int event_type, int argument_0c,
                      unsigned int flags, int volume);
 
     /* 0x00: set before the sound is stopped on synchronous shutdown; the
        sound-end callback bails when it is set. */
-    unsigned char sound_end_handled;
-    unsigned char unknown_01[3];
+    bool sound_end_handled;
+    unsigned char padding_01[3];
     W8Character* character;
     unsigned int event_type;
-    int value_0c;
+    int argument_0c;
     unsigned int flags;
     /* 0x14: the 0-127 multiplier used for SOUNDPARMS::uiVolume. */
     int volume;
-    int value_18;
-    int value_1c;
+    /* 0x18/0x1c: thresholds sampled at queue time (hp_current or
+       highest_condition, by event type); the consumer fires once the live
+       value crosses them. */
+    int threshold_18;
+    int threshold_1c;
     /* 0x20: the original event type TryAdjustQueuedEvent stores before
        rewriting event_type to the shared follow-up id 10. */
     unsigned int original_event_type;

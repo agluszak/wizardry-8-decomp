@@ -944,10 +944,10 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
         }
     }
     for (unsigned int slot = 0; slot < 8; ++slot) {
-        unsigned int turns = character->enchantments[slot].value_08;
+        unsigned int turns = character->enchantments[slot].turns_08;
         if (turns != 0 && turns < W8_CONDITION_INDEFINITE) {
             if (turns > minutes) {
-                character->enchantments[slot].value_08 = turns - minutes;
+                character->enchantments[slot].turns_08 = turns - minutes;
             } else {
                 ClearCharacterEnchantmentSlot(party_slot, slot);
             }
@@ -1254,11 +1254,11 @@ after_early: {
         }
     }
     for (int enchant = 0; enchant < 8; ++enchant) {
-        float remaining = static_cast<float>(monster_info->enchantments[enchant].value_08);
+        float remaining = static_cast<float>(monster_info->enchantments[enchant].turns_08);
 
         if (remaining != 0.0f && static_cast<unsigned int>(remaining) < 9999) {
             if (minutes < static_cast<unsigned int>(remaining)) {
-                monster_info->enchantments[enchant].value_08 =
+                monster_info->enchantments[enchant].turns_08 =
                     static_cast<int>(remaining) - static_cast<int>(minutes);
             } else {
                 ClearMonsterEnchantmentSlot(monster_info->location_id, enchant);

@@ -26,9 +26,9 @@ W8GameTimeAccumulator0043A910::W8GameTimeAccumulator0043A910()
 {
     m_duration_seconds = g_rate_006068EC;
     m_scale_24 = 2.0f;
-    m_value_28 = 0;
+    m_frame_delta_28 = 0;
     m_elapsed_ticks_2c = 0;
-    m_value_30 = 0;
+    m_elapsed_30 = 0;
     m_duration_scale = 1.0f;
     m_duration = (int)(m_duration_seconds * 10000.0f);
     m_end = m_duration;
@@ -45,7 +45,7 @@ void W8GameTimeAccumulator0043A910::SetDurationScale(float scale)
     m_duration = (int)(scale * m_duration_seconds * 10000.0f);
     m_start = ReadClock();
     m_end = m_start + m_duration;
-    m_value_28 = 0.0f;
+    m_frame_delta_28 = 0.0f;
 }
 
 // FUNCTION: WIZ8 0x0043aa20
@@ -57,7 +57,7 @@ void W8GameTimeAccumulator0043A910::ResetDurationScale()
     m_duration = (int)(m_duration_seconds * 10000.0f);
     m_start = ReadClock();
     m_end = m_start + m_duration;
-    m_value_28 = 0.0f;
+    m_frame_delta_28 = 0.0f;
 }
 
 // FUNCTION: WIZ8 0x0043aad0
@@ -65,22 +65,24 @@ float W8GameTimeAccumulator0043A910::Update()
 {
     if ((m_flags & 8) != 0 || (g_shared_timer_paused != 0 && (m_flags & 1) == 0) ||
         g_shared_timer_flag_d1 != 0) {
-        m_value_28 = 0.0f;
+        m_frame_delta_28 = 0.0f;
     } else {
         int sample = ReadClock();
-        m_elapsed_ticks_2c = (unsigned int)(sample - m_start);
+        m_elapsed_ticks_2c = static_cast<unsigned int>(sample - m_start);
         m_start = sample;
-        m_value_28 = (float)m_elapsed_ticks_2c / (float)(unsigned int)m_duration;
-        if (m_value_28 > m_scale_24) {
-            m_value_28 = m_scale_24;
-            m_elapsed_ticks_2c = (unsigned int)((float)(unsigned int)m_duration * m_scale_24);
+        m_frame_delta_28 =
+            m_elapsed_ticks_2c / static_cast<float>(static_cast<unsigned int>(m_duration));
+        if (m_frame_delta_28 > m_scale_24) {
+            m_frame_delta_28 = m_scale_24;
+            m_elapsed_ticks_2c =
+                static_cast<unsigned int>(static_cast<unsigned int>(m_duration) * m_scale_24);
         }
-        m_value_30 += m_value_28;
+        m_elapsed_30 += m_frame_delta_28;
     }
     if (g_shared_timer_flag_d2 != 0 && (m_flags & 1) == 0) {
         return 0.0f;
     }
-    return m_value_28;
+    return m_frame_delta_28;
 }
 
 // FUNCTION: WIZ8 0x0043ac60

@@ -186,7 +186,7 @@ stParticle::stParticle(srNode* parent, unsigned int count)
     colors_16c = 0;
     texture_154 = 0;
     requires_positional_138 = 0;
-    particle_value_140 = 1.0;
+    particle_size_140 = 1.0;
 
     if (count == 0) {
         return;
@@ -315,7 +315,7 @@ stParticle::stParticle(const stParticle& other)
     colors_16c = 0;
     texture_154 = 0;
     requires_positional_138 = other.requires_positional_138;
-    particle_value_140 = other.particle_value_140;
+    particle_size_140 = other.particle_size_140;
     texture_frames_178 = 0;
     retained_14c = other.retained_14c;
     retained_14c->addReference();
@@ -820,7 +820,7 @@ void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
     for (unsigned int index = 0; index < 4; ++index) {
         srVector4T<float> transformed = view.Transform(corners[index]);
 
-        float scale = static_cast<float>(particle_value_140) * size_scale_278;
+        float scale = static_cast<float>(particle_size_140) * size_scale_278;
         offsets[index] =
             srVector3T<float>(transformed.x, transformed.y, transformed.z) * (double)scale;
     }

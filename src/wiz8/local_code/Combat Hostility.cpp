@@ -63,7 +63,7 @@ void RecountCombatMonsters(void)
         }
     }
     if (gXStatus.fCombatMode && gXStatus.hostile_monster_count != 0) {
-        g_combat_state->flag_a54 = 1;
+        g_combat_state->enemies_engaged_a54 = 1;
     }
     RequestRefreshPartyState();
 }
@@ -360,7 +360,7 @@ bool MonsterCanAimSpell005474B0(int spell_id)
 // FUNCTION: WIZ8 0x00547510
 bool CombatAllowsLiveGroups(void)
 {
-    return gXStatus.fCombatMode != 0 && g_combat_state->flag_a54 == 0 &&
+    return gXStatus.fCombatMode != 0 && g_combat_state->enemies_engaged_a54 == 0 &&
            g_combat_state->round_count_004 <= 1;
 }
 
@@ -387,7 +387,7 @@ void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, cha
         return;
     }
     W8MonsterInfo* leader = MonsterInfoFromID(0x21e, COMBAT_HOSTILITY_CPP, group->leader_id_9f, 1);
-    if (leader != 0 && leader->monster->copied_flag_332) {
+    if (leader != 0 && leader->monster->hostility_preserved_332) {
         return;
     }
     W8Disposition previous = group->ubDisposition;
@@ -449,7 +449,7 @@ void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, cha
 void SetMonsterHostility(W8MonsterInfo* monster, unsigned char hostility)
 {
     W8Disposition previous = monster->ubDisposition;
-    if (previous == hostility || monster->monster->copied_flag_332) {
+    if (previous == hostility || monster->monster->hostility_preserved_332) {
         return;
     }
     monster->ubDisposition = hostility;
@@ -672,7 +672,7 @@ int CharacterPrayAction00547FE0(int party_slot)
             for (index = 0; index < 8; ++index) {
                 W8Character* member = &g_status_685170.buffers.Char[index];
                 if (g_status_685170.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
-                    member->highest_condition < 0x12 && member->enchantments[2].value_00 == 0) {
+                    member->highest_condition < 0x12 && member->enchantments[2].power_00 == 0) {
                     ++in_range;
                     found = true;
                 }
@@ -682,7 +682,7 @@ int CharacterPrayAction00547FE0(int party_slot)
                 for (index = 0; index < 8; ++index) {
                     W8Character* member = &g_status_685170.buffers.Char[index];
                     if (g_status_685170.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
-                        member->highest_condition < 0x12 && member->enchantments[2].value_00 == 0 &&
+                        member->highest_condition < 0x12 && member->enchantments[2].power_00 == 0 &&
                         --pick == 0) {
                         AppendToLastTextLine(
                             FormatWideString(gppStringList[0x17a], member->name, -1), -1);

@@ -64,7 +64,7 @@ public:
     void IntegrateSteering004CB090(); /* 0x004CB090 */
     /* Advances movement_00->target_yaw toward movement_00->yaw by the shorter
        arc, accelerating or decelerating the angular velocity in
-       unknown_01c. */
+       movement_00->yaw_velocity_01c. */
     void UpdateYawSteering004CB520(float time_step, char use_turn_rate); /* 0x004CB520 */
     /* Predicts a collision with another navigator or the party inside the
        prediction window; returns nonzero when one is found ahead. */

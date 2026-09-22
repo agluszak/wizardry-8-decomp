@@ -1105,7 +1105,7 @@ portrait_fx:
         g_screen_state_00649f1c->scripted_dialogue == 0 &&
         g_screen_state_00649f1c->dialogue_panel_hidden == 0 &&
         g_screen_state_00649f1c->script_busy == 0 &&
-        g_screen_state_00649f1c->dialogue_hidden == 0 && gXStatus.flag_19b7 == 0) {
+        g_screen_state_00649f1c->dialogue_hidden == 0 && gXStatus.scripted_scene_19b7 == 0) {
         SetNpcDialoguePanelVisible(1);
     }
 }
@@ -1222,7 +1222,7 @@ void EnablePortraitAdvanceRegions0059BB70(void)
     int party_slot = 0;
     do {
         if (!IsCharacterReadyToAdvance(party_slot) ||
-            g_status_685170.buffers.XChar[party_slot].flag_103 == 0) {
+            g_status_685170.buffers.XChar[party_slot].portrait_advance_103 == 0) {
             DisableRegionInput(party_slot + 0x12);
         } else {
             EnableRegionInput(party_slot + 0x12);
@@ -1258,7 +1258,7 @@ void UpdatePortraitAdvanceButtons0059BC10(void)
     for (slot = 0, control = g_portrait_controls_0069b920;
          control < &g_portrait_controls_0069b920[8]; ++slot, ++control) {
         if (IsCharacterReadyToAdvance(slot) && gXStatus.fNpcDialogueMode == 0 &&
-            g_status_685170.buffers.XChar[slot].flag_103 != 0) {
+            g_status_685170.buffers.XChar[slot].portrait_advance_103 != 0) {
             if (!(*control)->m_active) {
                 (*control)->SetActive(true);
                 g_panel_69b940->Invalidate(0);

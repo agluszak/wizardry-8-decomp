@@ -168,11 +168,11 @@ int W8AssayDialog::CreateControls()
             return 7;
         }
         if (CreateTextBuffers() != 0) {
-            m_buttons[0]->SetVisible(gXStatus.flag_19b8 != 0);
-            SetProfessionIconsVisible(gXStatus.flag_19b8);
-            m_buttons[1]->SetVisible(gXStatus.flag_19b8 == 0);
-            SetRaceIconsVisible(gXStatus.flag_19b8 == 0);
-            if (gXStatus.flag_19b8 != 0) {
+            m_buttons[0]->SetVisible(gXStatus.assay_professions_tab_19b8 != 0);
+            SetProfessionIconsVisible(gXStatus.assay_professions_tab_19b8);
+            m_buttons[1]->SetVisible(gXStatus.assay_professions_tab_19b8 == 0);
+            SetRaceIconsVisible(gXStatus.assay_professions_tab_19b8 == 0);
+            if (gXStatus.assay_professions_tab_19b8 != 0) {
                 m_buttons[2]->SetPressed(true);
                 return 0;
             }
@@ -733,7 +733,7 @@ void W8AssayDialog::ShowPrimaryTab()
         m_buttons[3]->SetPressed(false);
         m_buttons[3]->m_dirty = 1;
     }
-    gXStatus.flag_19b8 = 1;
+    gXStatus.assay_professions_tab_19b8 = 1;
     m_buttons[0]->SetVisible(true);
     SetProfessionIconsVisible(1);
     m_buttons[1]->SetVisible(false);
@@ -754,7 +754,7 @@ void W8AssayDialog::ShowSecondaryTab()
         m_buttons[2]->SetPressed(false);
         m_buttons[2]->m_dirty = 1;
     }
-    gXStatus.flag_19b8 = 0;
+    gXStatus.assay_professions_tab_19b8 = 0;
     m_buttons[0]->SetVisible(false);
     SetProfessionIconsVisible(0);
     m_buttons[1]->SetVisible(true);

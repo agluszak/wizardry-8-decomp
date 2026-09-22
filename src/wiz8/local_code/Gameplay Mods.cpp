@@ -498,27 +498,27 @@ void ApplyEnchantmentModifiers(const W8Enchantment* enchantments, W8GameplayModi
 
     for (unsigned int index = 0; index < 8; ++index) {
         const W8Enchantment* slot = &enchantments[index];
-        if (slot->value_08 == 0) {
+        if (slot->turns_08 == 0) {
             continue;
         }
         switch (index) {
         case 5:
-            amount = static_cast<unsigned char>(slot->value_00 * 10);
+            amount = static_cast<unsigned char>(slot->power_00 * 10);
             AdjustByteByPercent(&amount, slot->percent_04);
             target->attribute_adjustments[5] += amount;
             break;
         case 6:
-            amount = static_cast<unsigned char>(slot->value_00 * 5);
+            amount = static_cast<unsigned char>(slot->power_00 * 5);
             AdjustByteByPercent(&amount, slot->percent_04);
             for (i = 0; i < 7; ++i) {
                 target->attribute_adjustments[i] += amount;
             }
             break;
         case 7:
-            amount = static_cast<unsigned char>(slot->value_00 << 3);
+            amount = static_cast<unsigned char>(slot->power_00 << 3);
             AdjustByteByPercent(&amount, slot->percent_04);
             target->damage_reduction_adjustment += amount;
-            amount = static_cast<unsigned char>(slot->value_00);
+            amount = static_cast<unsigned char>(slot->power_00);
             AdjustByteByPercent(&amount, slot->percent_04);
             target->armor_bonus_05 += amount;
             break;

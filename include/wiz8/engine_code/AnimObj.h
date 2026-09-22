@@ -23,18 +23,18 @@ struct W8AnimObj {
     unsigned char group_count;          /* 0x00: mesh/list group count, max 3 */
     unsigned char animation_playing_01; /* 0x01: copied onto monster/prop animation_playing_06d */
     unsigned char frame_method_02;      /* 0x02: copied onto frame_method_06f */
-    unsigned char unknown_03;           /* 0x03: copied onto animation_behaviour_070 */
+    unsigned char behaviour_03;         /* 0x03: copied onto animation_behaviour_070 */
     unsigned char cycle;                /* 0x04: default cycle/emitter index */
-    unsigned char flag_05;              /* 0x05: 0 = mesh entries, nonzero = path lists */
+    unsigned char path_lists_05;        /* 0x05: 0 = mesh entries, nonzero = path lists */
     unsigned char unknown_06[2];
-    float playback_scale_08; /* 0x08 */
-    unsigned char flag_0c;   /* 0x0c: copied onto prop random_play_0a5 */
+    float playback_scale_08;      /* 0x08 */
+    unsigned char random_play_0c; /* 0x0c: copied onto prop random_play_0a5 */
     unsigned char unknown_0d[3];
     /* Serialized as a float; 0x004A0320 copies its four-byte representation. */
-    float value_10; /* 0x10 */
+    float play_chance_10; /* 0x10: copied onto prop play_chance_0a8 */
     unsigned char start_frame_14;
     unsigned char end_frame_15;
-    unsigned char value_16; /* 0x16 */
+    unsigned char frame_count_16; /* 0x16: prop clamps frame_index_0a0 to it */
     unsigned char unknown_17;
     W8AniMesh* entries_18[3]; /* 0x18 */
     W8PathAI* path_24;        /* 0x24 */

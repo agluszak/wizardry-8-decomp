@@ -456,13 +456,13 @@ unsigned char W8PropRepresentation::SelectAnimationSlot(unsigned char tag)
             if (selected < 0) {
                 return 0;
             }
-            value_068 = first_frame_094;
-            value_069 = (unsigned char)selected;
+            frame_lo_068 = first_frame_094;
+            frame_hi_069 = static_cast<unsigned char>(selected);
             if (selected < static_cast<signed char>(first_frame_094)) {
-                value_068 = (unsigned char)selected;
-                value_069 = first_frame_094;
+                frame_lo_068 = static_cast<unsigned char>(selected);
+                frame_hi_069 = first_frame_094;
             }
-            if (value_069 <= first_frame_094) {
+            if (frame_hi_069 <= first_frame_094) {
                 frame_direction_06e = 3;
             } else {
                 frame_direction_06e = 1;
@@ -683,8 +683,8 @@ void W8Prop::UpdatePropAnimation0044C030()
         if (animation->path_24 != 0) {
             if ((flags_1c & 2) != 0) {
                 rep->frame_index_0a0 += frames;
-                if (rep->frame_index_0a0 >= animation->value_16) {
-                    rep->frame_index_0a0 = animation->value_16;
+                if (rep->frame_index_0a0 >= animation->frame_count_16) {
+                    rep->frame_index_0a0 = animation->frame_count_16;
                 }
             } else {
                 rep->frame_index_0a0 = rep->subcycle_064;
@@ -762,7 +762,7 @@ void W8Prop::AdvanceAnimationValue0044C310(int frames, char total)
                 if (trigger_18 != 0) {
                     trigger_18->RunLinkedTriggers00441590();
                 }
-                gXStatus.flag_a03 = 1;
+                gXStatus.sight_refresh_pending_a03 = 1;
             }
         } else if (rep->frame_direction_06e == 3) {
             if (static_cast<int>(frame) - frames > start) {
@@ -774,7 +774,7 @@ void W8Prop::AdvanceAnimationValue0044C310(int frames, char total)
                 if (trigger_18 != 0) {
                     trigger_18->RunLinkedTriggers00441590();
                 }
-                gXStatus.flag_a03 = 1;
+                gXStatus.sight_refresh_pending_a03 = 1;
             }
         }
     } else {
@@ -1531,9 +1531,9 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
         animation->group_count = 1;
         animation->animation_playing_01 = b0;
         animation->frame_method_02 = b1;
-        animation->unknown_03 = b2;
+        animation->behaviour_03 = b2;
         animation->cycle = 0;
-        animation->flag_05 = 0;
+        animation->path_lists_05 = 0;
         animation->playback_scale_08 = playback_scale;
         this->animation = animation;
     } else {
@@ -1616,10 +1616,10 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
         result = AnimObjReadFromFile004A05C0(info, animation, 1, 0, 1);
         this->animation = animation;
         if (AnimationIsRunning(animation) == 1) {
-            animation->value_16 = frame_count;
+            animation->frame_count_16 = frame_count;
         }
-        this->play_chance_0a8 = animation->value_10;
-        this->random_play_0a5 = animation->flag_0c != 0;
+        this->play_chance_0a8 = animation->play_chance_10;
+        this->random_play_0a5 = animation->random_play_0c != 0;
         list_count = AnimObjValue004A15D0(animation, 2);
         for (entry_index = 0; entry_index < list_count; ++entry_index) {
             srModelInstance* instance;
@@ -1666,7 +1666,7 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
     }
 
     this->active = 1;
-    this->animation_behaviour_070 = animation->unknown_03;
+    this->animation_behaviour_070 = animation->behaviour_03;
     this->frame_method_06f = animation->frame_method_02;
     this->animation_playing_06d = animation->animation_playing_01;
     this->frame_direction_06e = 1;
@@ -1678,7 +1678,7 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
             static_cast<unsigned char>(((this->frame_method_06f != 2) - 1U & 2) + 2);
     }
 
-    if (animation->flag_05 == 0) {
+    if (animation->path_lists_05 == 0) {
         W8AniMesh* mesh = AnimObjEntry004A1660(animation, 2, 0);
         unsigned char value_count = AniMeshValue004B64F0(mesh);
         stModelInstance* frame = GetAniMeshFrame004B6550(mesh, 0);

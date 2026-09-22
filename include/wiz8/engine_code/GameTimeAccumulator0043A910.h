@@ -11,23 +11,26 @@ public:
     void SetDurationScale(float scale);
     void ResetDurationScale();
     float Update();
-    float GetValue28() const
+    float GetFrameDelta() const
     {
-        return m_value_28;
+        return m_frame_delta_28;
     }
-    float GetValue30() const
+    float GetElapsed() const
     {
-        return m_value_30;
+        return m_elapsed_30;
     }
 
 private:
     float m_scale_24;
-    float m_value_28;
+    /* 0x28: elapsed ticks scaled into duration units, clamped to m_scale_24. */
+    float m_frame_delta_28;
     unsigned int m_elapsed_ticks_2c;
-    float m_value_30;
+    /* 0x30: running total of the scaled deltas. */
+    float m_elapsed_30;
 };
 
-static_assert(sizeof(W8GameTimeAccumulator0043A910) == 0x34, "W8GameTimeAccumulator0043A910_must_be_0x34");
+static_assert(sizeof(W8GameTimeAccumulator0043A910) == 0x34,
+              "W8GameTimeAccumulator0043A910_must_be_0x34");
 
 extern W8GameTimeAccumulator0043A910* g_game_time_accumulator_6598bc;
 

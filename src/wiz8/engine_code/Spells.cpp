@@ -527,7 +527,7 @@ unsigned char W8SpellEmitterHost::ReadCycleData004AB340(W8ReadLevelInfo* info,
     active = 1;
     frame_direction_06e = 1;
     timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
-    animation_behaviour_070 = animation->unknown_03;
+    animation_behaviour_070 = animation->behaviour_03;
     frame_method_06f = animation->frame_method_02;
     animation_playing_06d = animation->animation_playing_01;
     emitters[emitter] = animation;
@@ -1018,7 +1018,7 @@ placed:
         visual->host->billboard_378 = 1;
         visual->value_1f0 = value;
         visual->flags_1f4 = flags;
-        visual->location_id_1ec = monster->propagated_value_1e4;
+        visual->location_id_1ec = monster->location_id_1e4;
         monster->GetAnimationBounds(&minimum, &maximum);
         position = monster->GetPosition();
         position.y += (maximum.y - minimum.y) * g_float_005ebc7c;
@@ -1095,7 +1095,7 @@ placed:
             float height;
             float width;
 
-            visual->location_id_1ec = parent->propagated_value_1e4;
+            visual->location_id_1ec = parent->location_id_1e4;
             parent->GetAnimationBounds(&minimum, &maximum);
             height = maximum.y - minimum.y;
             width = maximum.x - minimum.x;

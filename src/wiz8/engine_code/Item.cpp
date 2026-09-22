@@ -148,7 +148,7 @@ void W8Item::SetLocation0049F720(const srVector3T<float>* location)
 // FUNCTION: WIZ8 0x004A0050
 bool W8Item::IsRadarBlipLit()
 {
-    return ClockIsTicking(value_01c) != 0;
+    return ClockIsTicking(countdown_01c) != 0;
 }
 
 // VTABLE: WIZ8 0x005ECD70 W8ItemRep
@@ -213,7 +213,7 @@ W8Item::W8Item()
     kind_004 = 2;
     m_pRep = new W8ItemRep;
     id_008 = IncrementValue60DFAC();
-    value_01c = SetCountdownClock(0);
+    countdown_01c = SetCountdownClock(0);
 }
 
 // FUNCTION: WIZ8 0x0049F4A0
@@ -450,7 +450,7 @@ float W8Item::DistanceToCamera(W8World* world)
 // FUNCTION: WIZ8 0x004A0030
 void W8Item::LightRadarBlip()
 {
-    value_01c = SetCountdownClock(10000);
+    countdown_01c = SetCountdownClock(10000);
 }
 
 /* Fire the item's trigger with no source and report its action state. States

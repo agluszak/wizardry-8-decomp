@@ -83,9 +83,9 @@ unsigned char AutomapScreenInitialize(void)
 }
 
 // GLOBAL: WIZ8 0x0068f104
-unsigned char g_flag_68f104;
+bool g_mipe_menu_active_68f104;
 // GLOBAL: WIZ8 0x0068f105
-unsigned char g_flag_68f105;
+bool g_mipe_active_68f105;
 
 /* Lifecycle record 8's own state, all of it released by the finalizer below and
    nothing here naming what any of it holds. The note list is created by this record's initializer at 0x0057E5D0. */
@@ -410,7 +410,7 @@ bool AutomapHasCellAt00581B30(const srVector3T<float>* position)
 // FUNCTION: WIZ8 0x0057E490
 unsigned char CanUseCurrentAutomapTool(void)
 {
-    if (g_flag_68f105 != 0) {
+    if (g_mipe_active_68f105 != 0) {
         switch (g_automap_tool) {
         case 6:
         case 7:
@@ -1221,9 +1221,9 @@ void SetAutomapToolCursor(int tool)
 // GLOBAL: WIZ8 0x0064b914
 float g_float_64b914 = 2000.0f;
 // GLOBAL: WIZ8 0x0068f2b0
-int g_value_68f2b0;
+int g_ui_mode_current_68f2b0;
 // GLOBAL: WIZ8 0x0068f2c4
-int g_value_68f2c4;
+int g_ui_mode_saved_68f2c4;
 
 // FUNCTION: WIZ8 0x00585300
 void SetFloat64B914(float value)
@@ -1240,13 +1240,13 @@ float GetFloat64B914(void)
 // FUNCTION: WIZ8 0x00587C10
 void SetValue68F2B0(int value)
 {
-    g_value_68f2b0 = value;
+    g_ui_mode_current_68f2b0 = value;
 }
 
 // FUNCTION: WIZ8 0x0058A870
 void SetValue68F2C4(int value)
 {
-    g_value_68f2c4 = value;
+    g_ui_mode_saved_68f2c4 = value;
 }
 /* Park the automap camera over the requested point with its xz clamped into
    the explored bounds, reselect the layer underneath and refresh the mesh. */
@@ -2161,7 +2161,7 @@ void RenderAutomapMarkers00582930(void)
             }
         }
         if (g_flag_0068f264 != 0 || detect_all != 0 ||
-            (monster->flag_217 == 0 && info->party_threat.sight_state_04 == W8_SIGHT_SEEN)) {
+            (monster->disabled_217 == 0 && info->party_threat.sight_state_04 == W8_SIGHT_SEEN)) {
             left = g_automap_position.x - g_automap_zoom * g_float_005ebc7c;
             top = g_automap_position.z - g_automap_zoom * g_float_005ebc7c;
             if (location.x < left || left + g_automap_zoom < location.x || location.z < top ||

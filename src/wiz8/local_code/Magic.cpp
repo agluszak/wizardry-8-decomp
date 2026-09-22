@@ -2283,7 +2283,7 @@ bool ValidateSpellTarget004FAC40(int party_slot, int spell_id, unsigned int powe
         valid = false;
     }
     if (!valid && (!gXStatus.fCombatMode || !MonsterCanAimSpell005474B0(spell_id) ||
-                   gXStatus.hostile_monster_count != 0 || !g_combat_state->flag_a54)) {
+                   gXStatus.hostile_monster_count != 0 || !g_combat_state->enemies_engaged_a54)) {
         QueueCharacterEvent(&g_status_685170.buffers.Char[party_slot],
                             g_character_event_kind_005ee65c, 0, g_effect_argument_005ed8c8,
                             g_effect_argument_005ed914);
@@ -2405,7 +2405,7 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
                 enchantments = monster_info->enchantments;
             }
             index = GetConditionDisplaySlot(spell_id);
-            share = enchantments[index].value_08 / static_cast<float>(duration);
+            share = enchantments[index].turns_08 / static_cast<float>(duration);
             goto LAB_004f9bc2;
         }
         goto LAB_004fa3f4;
@@ -2514,7 +2514,7 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
             row = g_status_685170.buffers.XChar;
             do {
                 if (row->fOccupied &&
-                    g_status_685170.buffers.Char[8 - index].enchantments[3].value_08 /
+                    g_status_685170.buffers.Char[8 - index].enchantments[3].turns_08 /
                             static_cast<float>(duration) <=
                         g_navigator_vertical_phase_step_005ebcc8) {
                     affected = true;
@@ -3444,13 +3444,13 @@ void RedirectBackfiredSpellTarget004FE740(W8TargetSource* source, W8CombatSlot* 
         if (TargetSourceIsCharacter(&source_copy, 0)) {
             target->iType = W8_TARGET_KIND_CHARACTER;
             target->iChar = source_copy.iChar;
-            source->unknown_1d = '\x01';
+            source->point_source_1d = '\x01';
             return;
         }
         if (TargetSourceIsMonster(&source_copy, 0)) {
             target->iType = W8_TARGET_KIND_MONSTER;
             target->iMonsterID = source_copy.iMonsterID;
-            source->unknown_1d = '\x01';
+            source->point_source_1d = '\x01';
             return;
         }
         break;
@@ -3478,11 +3478,11 @@ void RedirectBackfiredSpellTarget004FE740(W8TargetSource* source, W8CombatSlot* 
             target->iType = W8_TARGET_KIND_GROUP;
             monster_info = MonsterInfoFromID(0xc2a, MAGIC_CPP, source_copy.iMonsterID, '\x01');
             target->iGroupID = monster_info->monster_group_id;
-            source->unknown_1d = '\x01';
+            source->point_source_1d = '\x01';
             return;
         }
         srAssertFail("FALSE", MAGIC_CPP, 0xc2d, 0);
-        source->unknown_1d = '\x01';
+        source->point_source_1d = '\x01';
         return;
     case W8_TARGET_KIND_MONSTER:
         list_index = MonsterGetIndexByLocationID(0xc09, MAGIC_CPP, target_copy.iMonsterID, '\x01');
@@ -3491,13 +3491,13 @@ void RedirectBackfiredSpellTarget004FE740(W8TargetSource* source, W8CombatSlot* 
         if (TargetSourceIsCharacter(&source_copy, 0)) {
             target->iType = W8_TARGET_KIND_CHARACTER;
             target->iChar = source_copy.iChar;
-            source->unknown_1d = '\x01';
+            source->point_source_1d = '\x01';
             return;
         }
         if (TargetSourceIsMonster(&source_copy, 0)) {
             target->iType = W8_TARGET_KIND_MONSTER;
             target->iMonsterID = source_copy.iMonsterID;
-            source->unknown_1d = '\x01';
+            source->point_source_1d = '\x01';
             return;
         }
         break;
@@ -3511,25 +3511,25 @@ void RedirectBackfiredSpellTarget004FE740(W8TargetSource* source, W8CombatSlot* 
         if (source_copy.iType == W8_TARGET_SOURCE_CHARACTER) {
         LAB_004fe9ec:
             target->iType = W8_TARGET_KIND_PARTY;
-            source->unknown_1d = '\x01';
+            source->point_source_1d = '\x01';
             return;
         }
         if (source_copy.iType == W8_TARGET_SOURCE_MONSTER) {
             target->iType = W8_TARGET_KIND_GROUP;
             monster_info = MonsterInfoFromID(0xc40, MAGIC_CPP, source_copy.iMonsterID, '\x01');
             target->iGroupID = monster_info->monster_group_id;
-            source->unknown_1d = '\x01';
+            source->point_source_1d = '\x01';
             return;
         }
         srAssertFail("FALSE", MAGIC_CPP, 0xc43, 0);
-        source->unknown_1d = '\x01';
+        source->point_source_1d = '\x01';
         return;
     default:
         srAssertFail("FALSE", MAGIC_CPP, 0xc52, 0);
         return;
     }
     srAssertFail("FALSE", MAGIC_CPP, 0xc6b, 0);
-    source->unknown_1d = '\x01';
+    source->point_source_1d = '\x01';
 }
 
 /* Assert and route the source/target pair a cast is about to use. Target
@@ -3893,7 +3893,8 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
         eye = camera;
     } else if (TargetSourceIsMonster(source, 0)) {
         centre = monster->GetPosition();
-        if (source->unknown_1d == '\0' && spell_id != 0x77 && monster_info->has_spell_37c != '\0') {
+        if (source->point_source_1d == '\0' && spell_id != 0x77 &&
+            monster_info->has_spell_37c != '\0') {
             if (monster->GetSpellPosition004C78E0(&eye) != '\0') {
                 sight_flag = 3;
                 goto LAB_004fd26b;
@@ -4040,7 +4041,7 @@ LAB_004fd26b:
         CollectConeMonsterTargets00539CA0(source, &eye, heading, elevation, monster_markers,
                                           static_cast<unsigned char>(side), sight_flag);
         if (monster_markers->count == 0 &&
-            (g_combat_state == 0 || g_combat_state->flag_a54 == '\0') &&
+            (g_combat_state == 0 || g_combat_state->enemies_engaged_a54 == '\0') &&
             TargetSourceIsCharacter(source, 0) && static_cast<char>(side) == '\x01' &&
             !AnyMonsterEngaged()) {
             CollectConeMonsterTargets00539CA0(source, &eye, heading, elevation, monster_markers, 3,
@@ -4091,7 +4092,7 @@ LAB_004fd26b:
         CollectMonstersWithinRadius(&trace, &target_point, monster_markers, radius,
                                     static_cast<char>(side), static_cast<char>(highlighting));
         if (monster_markers->count == 0 &&
-            (g_combat_state == 0 || g_combat_state->flag_a54 == '\0') &&
+            (g_combat_state == 0 || g_combat_state->enemies_engaged_a54 == '\0') &&
             TargetSourceIsCharacter(source, 0) && static_cast<char>(side) == '\x01' &&
             !AnyMonsterEngaged()) {
             CollectMonstersWithinRadius(&trace, &target_point, monster_markers, radius, '\x03',
@@ -4131,7 +4132,7 @@ LAB_004fd26b:
         CollectMonstersWithinRadius(&centre, &eye, monster_markers, radius, static_cast<char>(side),
                                     static_cast<char>(highlighting));
         if (monster_markers->count == 0 &&
-            (g_combat_state == 0 || g_combat_state->flag_a54 == '\0') &&
+            (g_combat_state == 0 || g_combat_state->enemies_engaged_a54 == '\0') &&
             TargetSourceIsCharacter(source, 0) && static_cast<char>(side) == '\x01' &&
             !AnyMonsterEngaged()) {
             CollectMonstersWithinRadius(&centre, &eye, monster_markers, radius, '\x03',

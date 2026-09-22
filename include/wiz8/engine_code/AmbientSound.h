@@ -32,7 +32,7 @@ public:
     char* pacSoundName;              /* 0x000: assertion-backed at 0x47A790 */
     W8AmbientSoundConfig config_004; /* 0x004: wave filename; shared sounds match on it */
     unsigned char stopped;           /* 0x084: script-stopped via the ByName commands */
-    unsigned char unknown_085[3];
+    unsigned char padding_085[3];
     srVector3T<float> position;  /* 0x088: emitter world position */
     unsigned int volume_min;     /* 0x094 */
     unsigned int volume_max;     /* 0x098 */
@@ -45,12 +45,12 @@ public:
     float radius;                /* 0x0b4: audible range in world units */
     unsigned char in_range;      /* 0x0b8: listener currently inside radius/region */
     unsigned char looping;       /* 0x0b9: continuous loop vs random one-shot */
-    unsigned char unknown_0ba[2];
+    unsigned char padding_0ba[2];
     int sound_handle;      /* 0x0bc: live SGP voice id */
     int sample_handle;     /* 0x0c0: registered SGP random sample */
     unsigned char shared;  /* 0x0c4: shared 2D group sound; voices hand off by name */
     unsigned char bounded; /* 0x0c5: region test enabled (v2 trigger field) */
-    unsigned char unknown_0c6[2];
+    unsigned char padding_0c6[2];
     srVector3T<float> region_min;    /* 0x0c8 */
     srVector3T<float> region_max;    /* 0x0d4 */
     srVector3T<float> region_center; /* 0x0e0 */

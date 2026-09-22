@@ -22,12 +22,12 @@ int GetLevelCdNumber0042B720(int level);
 void UnloadSkyWorld(void);
 char GetLevelBand(int saved_level);
 
-extern unsigned char g_level_runtime_flag_0065ba70;
-extern unsigned char g_flag_00659756;
+extern bool g_camera_path_active_0065ba70;
+extern unsigned char g_level_status_loading_00659756;
 extern float g_default_world_height_00603ac8;
 extern float g_position_height_epsilon_005ebfdc;
 extern unsigned char g_environment_load_flag_00603ad0;
-extern unsigned char g_value_0068f0fd;
+extern unsigned char g_mipe_trigger_display_0068f0fd;
 
 unsigned char ReloadLevelPreservingCamera0042AF60(int level, int entrance);
 

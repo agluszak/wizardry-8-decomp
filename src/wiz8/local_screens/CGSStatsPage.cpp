@@ -182,8 +182,8 @@ void W8CharacterStatsValue005EF6B0::Redraw(int full_redraw)
     int left = m_pPanel->origin_x + m_left + 2;
     int top = m_pPanel->origin_y + m_top + 1;
     const W8CharacterStatsRecord* record = m_record_0b8;
-    unsigned int image = m_enabled ? record->unknown_04 : record->unknown_08;
-    DrawCatalogImage(-14, record->unknown_00, 0, image, left, top, 2, 0);
+    unsigned int image = m_enabled ? record->image_enabled_04 : record->image_disabled_08;
+    DrawCatalogImage(-14, record->object_00, 0, image, left, top, 2, 0);
 }
 
 /* Force the control enabled while the base handles the right-button release,
@@ -246,8 +246,8 @@ void W8CharacterStatsRecordControl005EF700::Redraw(int full_redraw)
     int left = m_pPanel->origin_x + m_left + 2;
     int top = m_pPanel->origin_y + m_text_offset_0c0 + m_top + 1;
     const W8CharacterStatsRecord* record = m_record_0b8;
-    unsigned int image = m_enabled ? record->unknown_04 : record->unknown_08;
-    DrawCatalogImage(-14, record->unknown_00, 0, image, left, top, 2, 0);
+    unsigned int image = m_enabled ? record->image_enabled_04 : record->image_disabled_08;
+    DrawCatalogImage(-14, record->object_00, 0, image, left, top, 2, 0);
 }
 
 // FUNCTION: WIZ8 0x005c9290

@@ -687,7 +687,7 @@ unsigned char ReadWorldCameras004BC850(W8ReadLevelInfo* pInfo, W8World* pWorld)
         success = success && LoadPathAI004A92A0(&entry->path, pInfo->hFile);
         PathAIEnableTimedMode004A9BA0(entry->path);
         PLAdoptAppend(pWorld->plsCameras, entry);
-        entry->path->value_10 = index;
+        entry->path->entry_index_10 = index;
         PathAISetScale004AA9C0(entry->path, scale);
     }
     return 1;
@@ -722,15 +722,15 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
             record.end_frame_221 = -1;
         } else if (version == 2) {
             FileRead(pInfo->hFile, &record, 0x218, 0);
-            record.state_218 = 0;
-            record.value_21c = 0;
+            record.emission_limit_218 = 0;
+            record.requires_positional_21c = 0;
             record.start_frame_21d = -1;
             record.end_frame_221 = -1;
         } else if (version == 1) {
             FileRead(pInfo->hFile, &record, 0x216, 0);
-            record.value_216 = -1;
-            record.state_218 = 0;
-            record.value_21c = 0;
+            record.attachment_key_216 = -1;
+            record.emission_limit_218 = 0;
+            record.requires_positional_21c = 0;
             record.start_frame_21d = -1;
             record.end_frame_221 = -1;
         } else {
@@ -776,10 +776,10 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
         if (record.initially_active == 0) {
             particle->SetActive(0);
         }
-        particle->particle_value_140 = record.particle_value;
-        particle->expiry_mode_1ac = record.positional_088 != 0;
+        particle->particle_size_140 = record.particle_size;
+        particle->expiry_mode_1ac = record.expiry_mode != 0;
         particle->lifetime_ms_1cc = record.lifetime;
-        particle->los_check_enabled_1b4 = record.positional_0b8 != 0;
+        particle->los_check_enabled_1b4 = record.los_check != 0;
         particle->emission_interval_1c8 =
             record.emission_interval < 2 ? 1 : record.emission_interval;
         particle->start_frame_264 = record.start_frame_21d;
@@ -796,12 +796,12 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
             particle->emission_mode_1b0 = 1;
         } else {
             particle->emission_mode_1b0 = 2;
-            particle->minimum_1d0.x = -record.source_06c * 250.0f;
-            particle->minimum_1d0.y = -record.source_070 * 250.0f;
+            particle->minimum_1d0.x = -record.spread_x_06c * 250.0f;
+            particle->minimum_1d0.y = -record.spread_y_070 * 250.0f;
             particle->minimum_1d0.z = 0.0f;
-            particle->maximum_1dc.x = record.source_06c * 250.0f;
-            particle->maximum_1dc.y = record.source_070 * 250.0f;
-            particle->maximum_1dc.z = record.source_074 * g_world_scale_005ebc40;
+            particle->maximum_1dc.x = record.spread_x_06c * 250.0f;
+            particle->maximum_1dc.y = record.spread_y_070 * 250.0f;
+            particle->maximum_1dc.z = record.spread_z_074 * g_world_scale_005ebc40;
         }
 
         if (record.direction_mode == 0) {
@@ -851,11 +851,11 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
             particle->flutter_amplitude_200 = record.flutter_value;
             particle->flutter_period_204 = static_cast<unsigned int>(record.flutter_period);
         }
-        if (record.value_216 >= 0) {
-            particle->attachment_key_260 = record.value_216;
+        if (record.attachment_key_216 >= 0) {
+            particle->attachment_key_260 = record.attachment_key_216;
         }
-        particle->requires_positional_138 = record.value_21c;
-        particle->emission_limit_184 = record.state_218;
+        particle->requires_positional_138 = record.requires_positional_21c;
+        particle->emission_limit_184 = record.emission_limit_218;
         particle->release_when_done_190 = false;
 
         LoadMaterial004B8A70(pInfo->bitmap_folder, &record.material, &material, &texture,

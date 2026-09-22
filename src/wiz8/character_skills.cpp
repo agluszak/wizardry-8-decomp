@@ -222,7 +222,7 @@ bool CharacterHasTrait00547940(const W8Character* character, int trait)
             }
         }
     }
-    if (trait == 0x1c && character->enchantments[1].value_08 != 0) {
+    if (trait == 0x1c && character->enchantments[1].turns_08 != 0) {
         return true;
     }
     return false;
@@ -468,8 +468,8 @@ void ResetCharacterAttributes005539E0(W8Character* character)
         UnequipUnusableItems(character);
     }
     for (index = 0; index < 0x29; ++index) {
-        int first = g_skill_attributes[index].unknown_04;
-        int second = g_skill_attributes[index].unknown_08;
+        int first = g_skill_attributes[index].attribute_1_04;
+        int second = g_skill_attributes[index].attribute_2_08;
         character->skills[index].base_level_0a =
             (character->attributes[first].value + character->attributes[second].value) >> 1;
     }
@@ -588,8 +588,8 @@ void ApplySkillChange(W8Character* character, int skill_id)
 void InitializeSkillBaseLevels00553C90(W8Character* character)
 {
     for (int index = 0; index < 0x29; ++index) {
-        int first = g_skill_attributes[index].unknown_04;
-        int second = g_skill_attributes[index].unknown_08;
+        int first = g_skill_attributes[index].attribute_1_04;
+        int second = g_skill_attributes[index].attribute_2_08;
         character->skills[index].base_level_0a =
             (character->attributes[first].value + character->attributes[second].value) >> 1;
     }
@@ -712,7 +712,8 @@ void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_poin
                 UnequipUnusableItems(character);
                 RecalculateCharacterDerivedStats(character);
                 slot = CharacterPointerToPartySlot(character);
-                if (gXStatus.fCombatMode == 0 && IsModalOpen() == 0 && gXStatus.flag_19b6 == 0 &&
+                if (gXStatus.fCombatMode == 0 && IsModalOpen() == 0 &&
+                    gXStatus.item_pick_pending_19b6 == 0 &&
                     g_current_screen_state.id == W8_SCREEN_MAIN_GAME && IsScreenIdle() != 0 &&
                     suppress_notification == 0) {
                     wchar_t* text = new wchar_t[0x200];

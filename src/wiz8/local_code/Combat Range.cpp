@@ -1080,7 +1080,7 @@ float CalcRangeDistance(int range_category, W8TargetSource* source)
 }
 
 /* Party-relative action range for the world cursor: same band steps as
-   CalcRangeDistance, then add the startup navigator's movement value_0b0. */
+   CalcRangeDistance, then add the startup navigator's movement collision_radius_0b0. */
 // FUNCTION: WIZ8 0x0051AB50
 float CalcRangeDistanceFromParty0051AB50(W8RangeCategory range_category)
 {

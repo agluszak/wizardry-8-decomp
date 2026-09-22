@@ -205,7 +205,7 @@ void HandleFactChange(int fact_id, unsigned char value)
                 ReleaseNpcScriptFile0055A0A0(npc->script_file);
                 ReloadNpcScriptResources(npc);
                 if (!npc->is_grouped) {
-                    SetFlag68C4F4();
+                    CancelNpcDialogue();
                     QueueNpcScriptLine(0, 0, 0, 0);
                     return;
                 }
@@ -964,7 +964,7 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
     if ((record->flags_0d0 & 1) != 0) {
         W8NpcState* npc = GetNpcStateByKind(record->npc_kind_0cd);
         if (npc != 0) {
-            npc->unknown_04 = 1;
+            npc->spawned_04 = 1;
             if (npc->name_style == 0x18) {
                 wchar_t display_value[16];
                 unsigned char fact_ok = EvaluateFact(0xc1);
@@ -989,7 +989,7 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
                                     g_fact_records[0xdb].symbolic_name, display_value);
                     }
                     if (fact_ok == 0) {
-                        npc->unknown_04 = 0;
+                        npc->spawned_04 = 0;
                     }
                 }
             }

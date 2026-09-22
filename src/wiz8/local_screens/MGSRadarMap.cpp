@@ -319,7 +319,7 @@ void UpdateRadarBlips(void)
     srVector3T<float> party;
     srVector3T<float> bounds_min;
     srVector3T<float> bounds_max;
-    unsigned char detect_all;
+    bool detect_all;
 
     for (int sector = 0; sector < 18; ++sector) {
         W8GrowableVector<stModelInstance2D*>* pool = &g_radar_icon_pools_0069bf68[sector];
@@ -378,13 +378,13 @@ void UpdateRadarBlips(void)
         W8Monster* monster = info->monster;
 
         if (monster != 0 && info->fActive != 0 && info->within_viewing_distance != 0 &&
-            (monster->flag_217 == 0 || detect_all != 0)) {
+            (monster->disabled_217 == 0 || detect_all != 0)) {
             unsigned char hostile = 0;
 
             if (gXStatus.fCombatMode != 0 && g_status_685170.selected_character != -1 &&
                 g_status_685170.buffers.XChar[g_status_685170.selected_character].fOccupied != 0 &&
                 ((unsigned char)(1 << g_status_685170.selected_character) &
-                 MonsterGetRuntimeFlag5BC(monster)) != 0) {
+                 MonsterGetHighlightMask(monster)) != 0) {
                 hostile = 1;
             }
             if (monster->IsRenderable004C7C00(1) == 0 && detect_all == 0) {

@@ -1959,20 +1959,20 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         if (range < W8_RANGE_LONG) {
             if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
                 W8Enchantment* enchantment = &target_info->enchantments[3];
-                if (enchantment->value_08 != 0) {
+                if (enchantment->turns_08 != 0) {
                     SetTargetSourceToMonster(target_info, &victim_source);
                     ApplyDiceDamageToMonster00553540(monster_info, &victim_source, enchantment);
-                    if (--enchantment->value_00 == 0) {
+                    if (--enchantment->power_00 == 0) {
                         ClearMonsterEnchantmentSlot(target_info->location_id, 3);
                     }
                 }
             } else {
                 W8Enchantment* enchantment =
                     &g_status_685170.buffers.Char[g_combat_state->TargetHit.iChar].enchantments[3];
-                if (enchantment->value_08 != 0) {
+                if (enchantment->turns_08 != 0) {
                     SetTargetSourceToCharacter(g_combat_state->TargetHit.iChar, &victim_source);
                     ApplyDiceDamageToMonster00553540(monster_info, &victim_source, enchantment);
-                    if (--enchantment->value_00 == 0) {
+                    if (--enchantment->power_00 == 0) {
                         ClearCharacterEnchantmentSlot(g_combat_state->TargetHit.iChar, 3);
                     }
                 }
@@ -3520,7 +3520,7 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
         monster = monster_info->monster;
         if (g_missile_table_65bde0[missile_type].spell_missile_154 == 0) {
             position_ok = monster->GetProjectilePosition004C77F0(&source_position);
-        } else if (source->unknown_1d == 0) {
+        } else if (source->point_source_1d == 0) {
             position_ok = monster->GetSpellPosition004C78E0(&source_position);
         } else {
             position_ok = missile_type;
@@ -3972,11 +3972,11 @@ char StartCharacterAttack(int party_slot, int attack_mode)
     }
     PostCharacterNotice(party_slot, g_combat_state->attack_message_6b8);
     ResetCombatSlot(&g_combat_state->TargetHit);
-    row->flag_a5 = 0;
+    row->attack_sound_played_a5 = 0;
     if (range >= W8_RANGE_LONG) {
         FireCharacterItemMissile00544B60(party_slot, character, row, range);
         MakePCAttackSound00549EF0(row, &character->Hand[hand], mode, 0, -1);
-        row->flag_a5 = 1;
+        row->attack_sound_played_a5 = 1;
     } else {
         event_ids[0] = g_value_0068c57c;
         event_ids[1] = g_special_event_0068c56c;
@@ -4050,9 +4050,9 @@ int ResolveCharacterAttack0053E250(int party_slot)
         return 3;
     } else {
         attack_mode = party_row->attack_mode[hand];
-        if (row->flag_a5 == 0) {
+        if (row->attack_sound_played_a5 == 0) {
             MakePCAttackSound00549EF0(row, &character->Hand[hand], attack_mode, 1, -1);
-            row->flag_a5 = 1;
+            row->attack_sound_played_a5 = 1;
             return 2;
         }
         target = party_row->target_out_of_combat;
@@ -4440,10 +4440,10 @@ int ResolveCharacterAttack0053E250(int party_slot)
             if (range < W8_RANGE_LONG) {
                 if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
                     W8Enchantment* enchantment = &monster_info->enchantments[3];
-                    if (enchantment->value_08 != 0) {
+                    if (enchantment->turns_08 != 0) {
                         SetTargetSourceToMonster(monster_info, &target_source);
                         ApplyDiceDamageToCharacter00553350(party_slot, &target_source, enchantment);
-                        if (--enchantment->value_00 == 0) {
+                        if (--enchantment->power_00 == 0) {
                             ClearMonsterEnchantmentSlot(monster_info->location_id, 3);
                         }
                     }
@@ -4451,10 +4451,10 @@ int ResolveCharacterAttack0053E250(int party_slot)
                     W8Enchantment* enchantment =
                         &g_status_685170.buffers.Char[g_combat_state->TargetHit.iChar]
                              .enchantments[3];
-                    if (enchantment->value_08 != 0) {
+                    if (enchantment->turns_08 != 0) {
                         SetTargetSourceToCharacter(g_combat_state->TargetHit.iChar, &target_source);
                         ApplyDiceDamageToCharacter00553350(party_slot, &target_source, enchantment);
-                        if (--enchantment->value_00 == 0) {
+                        if (--enchantment->power_00 == 0) {
                             ClearCharacterEnchantmentSlot(g_combat_state->TargetHit.iChar, 3);
                         }
                     }
@@ -4563,11 +4563,11 @@ int ResolveCharacterAttack0053E250(int party_slot)
                                     SpellTargetString(&source, &party_row->target_out_of_combat));
             }
             ResetCombatSlot(&g_combat_state->TargetHit);
-            row->flag_a5 = 0;
+            row->attack_sound_played_a5 = 0;
             if (range >= W8_RANGE_LONG) {
                 FireCharacterItemMissile00544B60(party_slot, character, row, range);
                 MakePCAttackSound00549EF0(row, &character->Hand[hand], attack_mode, 0, -1);
-                row->flag_a5 = 1;
+                row->attack_sound_played_a5 = 1;
             }
             return 2;
         }

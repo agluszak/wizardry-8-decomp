@@ -93,7 +93,7 @@ unsigned char AscensionPeakInit004DF870(void)
         if (GetLocationVarIDByName("AP_SpawnDaughter") == -1) {
             W8NpcState* npc = GetNpcStateByKind(0x31);
 
-            if (npc != 0 && npc->greeting_pending != 0 && npc->unknown_04 == 0 &&
+            if (npc != 0 && npc->greeting_pending != 0 && npc->spawned_04 == 0 &&
                 npc->unknown_2d == 0 && GetFact(0x15f) != 0) {
                 if (FindEntityByName("NP_Daughter", &position, 0, 0)) {
                     SpawnMonsters(0x18d, 1, &position, 0, 1, 0, 0);

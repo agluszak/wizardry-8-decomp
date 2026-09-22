@@ -436,7 +436,7 @@ char InflictConditionOnTarget(W8CombatSlot* target, int condition_id, int realm,
         result = 1;
         if (condition_id == 5) {
             if (target->iType == W8_TARGET_KIND_CHARACTER) {
-                absorbed = g_status_685170.buffers.Char[target->iChar].enchantments[5].value_08;
+                absorbed = g_status_685170.buffers.Char[target->iChar].enchantments[5].turns_08;
                 if (absorbed > 0) {
                     remaining = magnitude - absorbed;
                     TickCharacterEnchantmentSlot(target->iChar, 5, magnitude);
@@ -453,7 +453,7 @@ char InflictConditionOnTarget(W8CombatSlot* target, int condition_id, int realm,
                 }
             } else {
                 monster_info = MonsterInfoFromID(0xe76, MAGIC_EFFECTS_CPP, target->iMonsterID, 1);
-                absorbed = monster_info->enchantments[5].value_08;
+                absorbed = monster_info->enchantments[5].turns_08;
                 if (absorbed > 0) {
                     remaining = magnitude - absorbed;
                     TickMonsterEnchantmentSlot(target->iMonsterID, 5, magnitude);
@@ -857,7 +857,7 @@ bool IsScreenBusy(void)
     if (IsModalOpen()) {
         return true;
     }
-    if (gXStatus.flag_19b6 != 0) {
+    if (gXStatus.item_pick_pending_19b6 != 0) {
         return true;
     }
     if (g_current_screen_state.id != 7) {
@@ -1745,7 +1745,7 @@ char TryCureConditionOnTargets(W8SpellEffectEntry* effect, int condition, char f
                             g_status_685170.buffers.XChar[character_index].animation_0fa;
                         if (npc_index != -1 &&
                             (npc_state = GetNpcState(npc_index), npc_state != 0)) {
-                            npc_state->unknown_04 = 0;
+                            npc_state->spawned_04 = 0;
                         }
                     }
                     if (Random(100) < 0x32) {
@@ -1867,11 +1867,11 @@ void InflictConditionAttack0054D5C0(W8SpellEffectEntry* effect, int condition, i
         target.iType = W8_TARGET_KIND_CHARACTER;
         target.iChar = character_index;
         if (effect->kind == 0x1d &&
-            g_status_685170.buffers.Char[character_index].enchantments[5].value_08 != 0) {
+            g_status_685170.buffers.Char[character_index].enchantments[5].turns_08 != 0) {
             /* Retail subtracts the shield with signed JLE on the leftover. */
             remaining = static_cast<int>(duration) -
                         static_cast<int>(
-                            g_status_685170.buffers.Char[character_index].enchantments[5].value_08);
+                            g_status_685170.buffers.Char[character_index].enchantments[5].turns_08);
             TickCharacterEnchantmentSlot(character_index, 5, duration);
             if (remaining > 0 &&
                 ResolveAttackOnTarget00551BA0(&effect->Source, &target, condition,
@@ -1912,9 +1912,9 @@ void InflictConditionAttack0054D5C0(W8SpellEffectEntry* effect, int condition, i
         }
         target.iType = W8_TARGET_KIND_MONSTER;
         target.iMonsterID = monster_info->location_id;
-        if (effect->kind == 0x1d && monster_info->enchantments[5].value_08 != 0) {
+        if (effect->kind == 0x1d && monster_info->enchantments[5].turns_08 != 0) {
             remaining = static_cast<int>(duration) -
-                        static_cast<int>(monster_info->enchantments[5].value_08);
+                        static_cast<int>(monster_info->enchantments[5].turns_08);
             TickMonsterEnchantmentSlot(monster_info->location_id, 5, duration);
             if (remaining > 0 &&
                 ResolveAttackOnTarget00551BA0(&effect->Source, &target, condition,
@@ -3026,9 +3026,9 @@ void FinishSpellEffectTargets(W8SpellEffectEntry* effect)
         for (index = 0; index < effect->target_indices_0f0.GetCount(); ++index) {
             W8Character* member =
                 &g_status_685170.buffers.Char[*effect->target_indices_0f0.GetAt(index)];
-            if (member->highest_condition < 0x12 && member->enchantments[4].value_08 != 0 &&
-                best < member->enchantments[4].value_00) {
-                best = member->enchantments[4].value_00;
+            if (member->highest_condition < 0x12 && member->enchantments[4].turns_08 != 0 &&
+                best < member->enchantments[4].power_00) {
+                best = member->enchantments[4].power_00;
                 character = member;
             }
         }
@@ -3044,10 +3044,10 @@ void FinishSpellEffectTargets(W8SpellEffectEntry* effect)
             if (info == 0) {
                 srAssertFail("pMonsterInfo", MAGIC_EFFECTS_CPP, 700, 0);
             }
-            if (info->highest_condition < 0x12 && info->enchantments[4].value_08 != 0 &&
-                best < info->enchantments[4].value_00) {
+            if (info->highest_condition < 0x12 && info->enchantments[4].turns_08 != 0 &&
+                best < info->enchantments[4].power_00) {
                 character = 0;
-                best = info->enchantments[4].value_00;
+                best = info->enchantments[4].power_00;
                 monster_info = info;
             }
         }
@@ -3069,13 +3069,13 @@ void FinishSpellEffectTargets(W8SpellEffectEntry* effect)
             if (character == 0) {
                 if (monster_info != 0) {
                     PostMonsterNotice(monster_info, gppStringList[0x198]);
-                    if (--monster_info->enchantments[4].value_00 == 0) {
+                    if (--monster_info->enchantments[4].power_00 == 0) {
                         ClearMonsterEnchantmentSlot(monster_info->location_id, 4);
                     }
                 }
             } else {
                 PostCharacterNotice(CharacterPointerToPartySlot(character), gppStringList[0x198]);
-                if (--character->enchantments[4].value_00 == 0) {
+                if (--character->enchantments[4].power_00 == 0) {
                     ClearCharacterEnchantmentSlot(CharacterPointerToPartySlot(character), 4);
                 }
             }
@@ -3985,12 +3985,12 @@ void ApplyDiceDamageToCharacter00553350(int party_slot, W8TargetSource* source,
     W8Dice dice;
     unsigned int amount;
 
-    if (enchantment->value_00 == 0) {
+    if (enchantment->power_00 == 0) {
         return;
     }
     memset(static_cast<void*>(&result), 0, sizeof(result));
     dice = g_spell_records[0x1b].effect_dice;
-    dice.count = static_cast<unsigned char>(enchantment->value_00) * dice.count;
+    dice.count = static_cast<unsigned char>(enchantment->power_00) * dice.count;
     amount =
         ApplyCharacterDamageReduction(&g_status_685170.buffers.Char[party_slot], RollDice(&dice));
     if (amount > 0) {
@@ -4016,11 +4016,11 @@ void ApplyDiceDamageToMonster00553540(W8MonsterInfo* monster_info, W8TargetSourc
     int damage;
     unsigned int amount;
 
-    if (enchantment->value_00 == 0) {
+    if (enchantment->power_00 == 0) {
         return;
     }
     dice = g_spell_records[0x1b].effect_dice;
-    dice.count = static_cast<unsigned char>(enchantment->value_00) * dice.count;
+    dice.count = static_cast<unsigned char>(enchantment->power_00) * dice.count;
     damage = RollDice(&dice);
     record = GetMonsterDataForInfo(monster_info);
     amount = ApplyDamageReduction(monster_info, record, damage);

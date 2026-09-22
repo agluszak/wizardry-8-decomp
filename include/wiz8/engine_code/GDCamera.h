@@ -45,7 +45,10 @@ public:
     void GetForwardPoint(float distance, srVector3T<float>* output); /* 0x00478CE0 */
     void SetManualControlActive(unsigned char enabled);              /* 0x00478E00 */
 
-    unsigned long m_positional_000;     /* 0x000 */
+    /* 0x000: camera state bits: bit0 manual-input control latch, bit5
+       orientation-transition keep, bit6 level-movement audio, bit7
+       orientation snapped (renderer marked ready next update). */
+    unsigned long m_state_000;
     float m_yaw;                        /* 0x004 */
     float m_pitch;                      /* 0x008 */
     srMatrix3T<float> m_pitch_rotation; /* 0x00c */

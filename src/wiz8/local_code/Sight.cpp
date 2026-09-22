@@ -826,7 +826,7 @@ after_sight:
                             (SetFactionFlag(static_cast<char>(record->faction_id_25f), 1),
                              (record->flags_0d0 & 1) == 0)) {
                             unsigned int now = static_cast<unsigned int>(
-                                g_game_time_accumulator_6598bc->GetValue30());
+                                g_game_time_accumulator_6598bc->GetElapsed());
 
                             if ((((monster_info->party_threat.last_seen_clock_08 == 0) ||
                                   (0x78U < static_cast<unsigned int>(
@@ -861,7 +861,8 @@ after_sight:
 
                             if (npc == 0) {
                                 srAssertFail("pNPC != NULL", SIGHT_CPP, 0xe9, 0);
-                            } else if (npc->unknown_2d == 0 && npc->record->unknown_054 == 0 &&
+                            } else if (npc->unknown_2d == 0 &&
+                                       npc->record->monster_bound_054 == 0 &&
                                        ShowMonsterTargetMarker(monster_info) != 0) {
                                 srVector3T<float> delta;
                                 delta = own_position - g_startup_world_659c0c->GetPosition();
@@ -893,7 +894,7 @@ after_sight:
                     if (monster_info->party_threat.sight_state_04 != W8_SIGHT_SEEN &&
                         record->camouflage_248 != 0) {
                         unsigned int now =
-                            static_cast<unsigned int>(g_game_time_accumulator_6598bc->GetValue30());
+                            static_cast<unsigned int>(g_game_time_accumulator_6598bc->GetElapsed());
 
                         monster->BeginFadeIn004C4F80(5.0f);
                         if (gXStatus.fSurprisePossible == 0 &&
@@ -915,7 +916,7 @@ after_sight:
         if (monster_info->party_threat.sight_state_04 == W8_SIGHT_SEEN &&
             record->camouflage_248 != 0) {
             unsigned int now =
-                static_cast<unsigned int>(g_game_time_accumulator_6598bc->GetValue30());
+                static_cast<unsigned int>(g_game_time_accumulator_6598bc->GetElapsed());
 
             monster->BeginFadeOut004C5150(5.0f);
             if (gXStatus.fSurprisePossible == 0 && (g_sight_fade_out_tick_00689b74 == 0 ||

@@ -39,17 +39,19 @@ enum {
    and both clear a slot by zeroing all three dwords at once. */
 struct W8Enchantment {
     /* 0x00: the enchantment's power; 0x00523940 only overwrites a slot with a
-       higher (unsigned) power. */
-    unsigned int value_00;
+       higher (unsigned) power. Slot three also spends it as a charge count -
+       Combat Attack decrements it per hit and clears the slot at zero. */
+    unsigned int power_00;
     /* 0x04: a percentage; 0x00523940 stores it as a word and 0x004F0010 reads
        it back zero-extended. */
     unsigned short percent_04;
-    /* 0x06: a second word; 0x00523940 fills slot two's with a dice roll times
-       the power, then raises it by the same percentage. */
-    unsigned short value_06;
+    /* 0x06: the percent-scaled magnitude; 0x00523940 fills it with a dice
+       roll times the power, raised by percent_04, and the stamina path drains
+       it as the absorb pool. */
+    unsigned short magnitude_06;
     /* 0x08: turns left; the topmost-slot scans and 0x00524400 compare it
        unsigned, and the fatigue path consults it on slot five. */
-    unsigned int value_08;
+    unsigned int turns_08;
 }; /* 0x0c */
 
 /* The game's wide text format: fixed-size UINT16 arrays stored inline in
@@ -378,9 +380,13 @@ static_assert(sizeof(W8Character) == 0x1862, "W8Character_must_be_0x1862");
 
 struct W8SkillAttributes {
     int category;
-    int unknown_04;
-    int unknown_08;
-    int unknown_0c;
+    /* 0x04/0x08: the two governing attributes averaged into the skill's
+       base_level_0a. */
+    int attribute_1_04;
+    int attribute_2_08;
+    /* 0x0c: a third attribute listed in the stat-info dialog when it
+       differs from attribute_2_08. */
+    int attribute_3_0c;
 };
 
 #pragma pack(pop)

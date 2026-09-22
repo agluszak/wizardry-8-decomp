@@ -88,7 +88,8 @@ struct W8LevelRuntimeBlock {
     unsigned char action_panel_visible;
     bool formation_board_visible; /* 0x156: formation board shown */
     unsigned char radar_map_visible;
-    unsigned char unknown_158;
+    /* 0x158: portraits UI mode selected; picks the portrait-hover layout. */
+    unsigned char portrait_mode_158;
     unsigned char text_scroll_drag_idle; /* 0x159: cleared while thumb is dragged */
     unsigned char unknown_15a[2];
     /* 0x15c: the x origin the mode-6 hover panel anchors the slot's portrait
@@ -158,8 +159,10 @@ struct W8LevelRuntimeBlock {
     stModelInstance2D* highlight_graphic; /* 0x240 */
     unsigned int world_update_flags;      /* 0x244 */
     unsigned int world_render_flags;      /* 0x248 */
-    unsigned char unknown_24c;
-    unsigned char flag_24d;
+    /* 0x24c: mouselook debug overlay; draws the pending pitch/yaw readout. */
+    unsigned char mouselook_debug_24c;
+    /* 0x24d: video inspector overlay enabled when no modal mode owns input. */
+    bool inspector_enabled_24d;
     unsigned char unknown_24e[2];
     unsigned int character_update_timer; /* 0x250 */
     unsigned int world_update_timer;     /* 0x254 */
@@ -172,7 +175,9 @@ struct W8LevelRuntimeBlock {
     int selected_item;
     unsigned int countdown_26c; /* 0x26c */
     unsigned char flag_270;
-    unsigned char flag_271;
+    /* 0x271: text box visible; toggled by the keyboard shortcut and raised
+       by spell/item/dialogue screens that need it. */
+    bool text_box_visible_271;
     unsigned char flag_272;
     unsigned char unknown_273;
     unsigned int tick_274; /* 0x274 */
@@ -226,7 +231,9 @@ struct W8LevelRuntimeBlock {
     bool keyboard_menu_open;
     unsigned char unknown_315[3];
     int hover_combat_slot; /* 0x318 */
-    unsigned char flag_31c;
+    /* 0x31c: keyboard-menu cursor-left grace countdown armed; expires into
+       CloseKeyboardMenu. */
+    unsigned char cursor_grace_31c;
     unsigned char unknown_31d[3];
     unsigned int countdown_320; /* 0x320: portrait right-hold arm clock */
     /* 0x324: PortraitSelectRegionEvent right-button hold armed for camp. */
@@ -234,7 +241,8 @@ struct W8LevelRuntimeBlock {
     unsigned char formation_board_alternate; /* 0x325: highlighted board art while hovered */
     unsigned char radar_map_alternate;       /* 0x326: radar uses alternate frame art */
     bool review_transition_active;           /* 0x327: set while leaving into review */
-    unsigned char flag_328;
+    /* 0x328: the review-screen transition finished; gates its early-out. */
+    bool review_transition_done_328;
     unsigned char unknown_329[3];
     unsigned int countdown_32c;
 };

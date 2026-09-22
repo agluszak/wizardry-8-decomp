@@ -196,7 +196,7 @@ unsigned char OpenUseItemSelectView(int slot)
     RegionSetEnable(0x1a);
     SelectTextBox(2);
     ResetEditorStatusLine0058AA20(-1);
-    g_level_block->flag_271 = 0;
+    g_level_block->text_box_visible_271 = 0;
     CreateUseItemSelectControls0059C300();
     g_use_item_select_mode_0069b98c = -1;
     g_use_item_select_flags_0069b984 = 0;
@@ -238,7 +238,7 @@ void CloseUseItemSelectView(void)
         g_level_block->action_panel_visible = 0;
         SetTargetingMode(0);
         ResetEditorStatusLine0058AA20(-1);
-        g_level_block->flag_271 = 1;
+        g_level_block->text_box_visible_271 = 1;
         SelectTextBox(gXStatus.fCombatMode != 0);
         for (control = g_use_item_select_scroll_buttons;
              control < g_use_item_select_scroll_buttons + 3; control++) {

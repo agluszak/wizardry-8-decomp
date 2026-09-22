@@ -896,7 +896,7 @@ void UpdateWorldTriggers00443AE0(W8World* world)
                     dialog->m_user_data = trigger;
                     dialog->SetItemGroup(trigger->world_item_group_34c);
                     dialog->m_destroy_callback = OnItemDialogClosed004456C0;
-                    gXStatus.flag_19b6 = 0;
+                    gXStatus.item_pick_pending_19b6 = 0;
                     g_modal_owner_0068edd0 = dialog;
                 }
             }
@@ -3044,7 +3044,7 @@ void Trigger::Run(int source)
                     item = item->next;
                 }
                 if (contained_items > 1) {
-                    gXStatus.flag_19b6 = 1;
+                    gXStatus.item_pick_pending_19b6 = 1;
                 }
 
                 if (gold_358 != 0) {

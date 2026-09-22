@@ -56,18 +56,25 @@ struct W8PartySlotRow {
     /* 0x0f1: the slot's place in the marching order, the index of its entry
        in g_status_685170.party_order_slots. */
     int party_order_index;
-    unsigned char flag_0f5;
+    /* 0x0f5: a camp-screen item action is pending on the slot; blocks
+       weapon autoswap until resolved. */
+    bool item_action_pending_0f5;
     /* 0x0f6: distance-scaled fatigue accumulator; every 2500 units convert
        into real fatigue via FatigueCharacter. */
     float movement_fatigue;
     int animation_0fa;
     /* 0x0fe: cleared by the level-entry NPC-binding reset. */
-    unsigned char flag_fe;
+    /* 0xfe: an NPC is bound to this party slot; set when the binding
+       restores, cleared by the level-entry reset. Gates the RPC banter
+       event clock and the bonded-attribute penalty. */
+    unsigned char npc_bound_fe;
     unsigned int pending_event_type_ff; /* 0xff: last queued portrait event type */
     /* 0x103: portrait advance is only allowed while this is set. */
-    unsigned char flag_103;
+    unsigned char portrait_advance_103;
     unsigned char action_is_berserk;
-    unsigned char flag_105;
+    /* 0x105: a weapon-set swap is queued; the autoswap pass consumes it
+       through SwapWeaponSetSlots and clears it. */
+    bool weapon_swap_pending_105;
 };
 
 static_assert(sizeof(W8PartySlotRow) == 0x106, "W8PartySlotRow_must_be_0x106");
@@ -167,7 +174,7 @@ struct W8CombatCharacterRow {
     /* 0xa5: the attack's sound/roll state; set once MakePCAttackSound has
        played so a resumed swing does not replay it, cleared when the row's
        attack finishes. */
-    unsigned char flag_a5;
+    unsigned char attack_sound_played_a5;
     unsigned char cheat_death_used;
     /* 0xa7: SetCharacterCombatAction raises it when the slot's queued action
        changes while an action runs; committing the pending block clears it. */
@@ -269,16 +276,23 @@ struct W8CombatState {
        action. The executor refuses while its `finished` flag is clear and
        hands the previous one to the world updater through `auto_release`. */
     W8SpellVisual* breath_visual_a4c;
-    unsigned char flag_a50;
-    unsigned char flag_a51;
+    /* 0xa50: combat is in the equip/resolve phase the review screens key
+       their captions and item actions on. */
+    unsigned char equip_phase_a50;
+    /* 0xa51: how many party slots still have a pending equip action. */
+    unsigned char equip_pending_a51;
     /* 0xa52/0xa53: the side is surprised and cannot act this round - +0xa52
        gates the party slots and the neutral/friendly monsters, +0xa53 the
        hostile ones; the surprise roll at combat start sets them, mutual
        surprise cancels both, and the round-end pass clears them. */
     unsigned char party_surprised_a52;
     unsigned char monsters_surprised_a53;
-    unsigned char flag_a54;
-    unsigned char flag_a55;
+    /* 0xa54: hostile monsters are engaged in this combat; latched at start
+       from hostile_monster_count and re-raised by hostility events. */
+    unsigned char enemies_engaged_a54;
+    /* 0xa55: no aggressive action has resolved this round; the round-end
+       pass counts it toward unengaged_rounds_a56. */
+    unsigned char passive_round_a55;
     /* 0xa56: consecutive rounds that ended with an engaged flag still set but
        no monster group able to engage; the combat-over check reads it. */
     unsigned char unengaged_rounds_a56;
@@ -294,12 +308,12 @@ struct W8CombatState {
     /* 0xa60: the scheduler's pacing latch - set by the unrecovered combat
        code, it suppresses a second action delay for a monster's turn and
        caps the armed delay at 800 ms. */
-    unsigned char unknown_a60;
+    unsigned char pacing_latch_a60;
     /* 0xa61: remembered search-mode state; the combat teardown toggles search
        mode back on when it reads nonzero. */
-    unsigned char unknown_a61;
-    unsigned char flag_a62;    /* 0xa62: party combat-ready bit */
-    unsigned char unknown_a63; /* 0xa63: the allocation is 0xa64 bytes */
+    unsigned char search_mode_saved_a61;
+    bool combat_ready_a62;             /* 0xa62: party combat-ready bit */
+    unsigned char padding_a63;      /* 0xa63: the allocation is 0xa64 bytes */
 }; /* 0xa64 */
 
 static_assert(sizeof(W8CombatState) == 0xa64, "W8CombatState_must_be_0xa64");

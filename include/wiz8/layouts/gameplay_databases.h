@@ -284,13 +284,16 @@ struct W8NpcDatabaseRecord {
     /* 0x004: the wide source name the level-entry rebinding prefixes with an
        underscore to build the NPC's trigger name. */
     wchar_t source_name_004[0x28];
-    /* 0x054: when set, releasing the NPC binding marks it before handing the
-       owned item-list handle to the teardown. */
-    unsigned char unknown_054;
+    /* 0x054: monster-bound NPC: no standalone runtime node is created, its
+       state comes through the monster binding, and releasing the binding
+       marks it unavailable. */
+    unsigned char monster_bound_054;
     /* 0x055: gates the owned item-list teardown at 0x0055A5D0, which only
        releases the NPC's stock while this is set. */
     unsigned char flag_055;
-    unsigned char unknown_056;
+    /* 0x056: merchant: still opens dialogue when the disposition band is
+       hostile, and item drops go through the trade transcript layout. */
+    unsigned char merchant_056;
     /* 0x057: the NPC carries an RPC character and can join a monster group,
        which is what makes the group index on its runtime state meaningful. */
     unsigned char has_group;
@@ -344,9 +347,9 @@ struct W8NpcDatabaseRecord {
     /* 0x2d6: one accepted trade-item class per bit, used by 0x0055B290. */
     unsigned int trade_item_class_mask;
     unsigned char unknown_2da[0x10];
-    /* 0x2ea: the second half of the rebinding gate, tested together with the
-       record's 0x56 byte. */
-    unsigned char flag_2ea;
+    /* 0x2ea: voice-script NPC: picks the VOC_ script/sound prefix over NPC_
+       and gates the normal dialogue paths. */
+    unsigned char voice_script_2ea;
     /* 0x2eb: the purse the NPC carries; 0x004F8CB0 hands it to AddPartyGold
        when the NPC's monster dies. */
     int gold;

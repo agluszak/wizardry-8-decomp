@@ -197,7 +197,7 @@ bool CanSelectRcsPartySlot(int ui_slot)
         return false;
     }
     if (gXStatus.fCombatMode) {
-        if (!g_combat_state->flag_a50) {
+        if (!g_combat_state->equip_phase_a50) {
             return false;
         }
         if (g_status_685170.buffers.XChar[ui_slot].pending_action != 9) {
@@ -576,7 +576,7 @@ void UpdateRcsLevelUpPanel(void)
 {
     bool enabled = IsCharacterReadyToAdvance(giReviewCharSlot);
     if (!enabled || gXStatus.fCombatMode ||
-        (!g_status_685170.buffers.XChar[giReviewCharSlot].flag_105 &&
+        (!g_status_685170.buffers.XChar[giReviewCharSlot].weapon_swap_pending_105 &&
          g_status_685170.game_started) ||
         gXStatus.fCampMode) {
         if (g_level_up_button_0069c3c0->m_active) {
@@ -1330,7 +1330,7 @@ void RefreshCampItemActions005B5670(unsigned char invalidate)
                     continue;
                 }
                 if (gXStatus.fCombatMode == 0 ||
-                    (g_combat_state->flag_a50 != 0 &&
+                    (g_combat_state->equip_phase_a50 != 0 &&
                      g_status_685170.buffers.XChar[giReviewCharSlot].pending_action == 9)) {
                     control->SetEnabled(1);
                     continue;

@@ -102,11 +102,12 @@ unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char ar
         return 0;
     }
 
-    if (character->enchantments[2].value_08 != 0) {
-        absorbed = character->enchantments[2].value_06;
+    if (character->enchantments[2].turns_08 != 0) {
+        absorbed = character->enchantments[2].magnitude_06;
         if (amount <= absorbed) {
             PostCharacterNotice(party_slot, gppStringList[0x193 - (arg_3 != 0)], amount);
-            character->enchantments[2].value_06 = static_cast<unsigned short>(absorbed - amount);
+            character->enchantments[2].magnitude_06 =
+                static_cast<unsigned short>(absorbed - amount);
             if (result_stats != 0) {
                 ++result_stats->count;
             }
@@ -364,11 +365,12 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
     if (monster_info->hp_current == 0) {
         return 0;
     }
-    if (monster_info->enchantments[2].value_08 != 0) {
-        absorbed = monster_info->enchantments[2].value_06;
+    if (monster_info->enchantments[2].turns_08 != 0) {
+        absorbed = monster_info->enchantments[2].magnitude_06;
         if (amount <= absorbed) {
             PostMonsterNotice(monster_info, gppStringList[0x193 - (quiet != 0)], amount);
-            monster_info->enchantments[2].value_06 = static_cast<unsigned short>(absorbed - amount);
+            monster_info->enchantments[2].magnitude_06 =
+                static_cast<unsigned short>(absorbed - amount);
             if (result_stats != 0) {
                 ++result_stats->count;
             }
@@ -952,7 +954,7 @@ void FatigueCharacter(int party_slot, int amount, char scale_by_load,
         }
         load_percent = kLoadFatiguePercent[character->load_category];
         if (character->uiCondition[W8_CONDITION_LOAD_EASED] == 0) {
-            if (character->enchantments[5].value_08 != 0) {
+            if (character->enchantments[5].turns_08 != 0) {
                 load_percent += 0x19;
             }
         } else {
@@ -1149,7 +1151,7 @@ void CharacterDies(int party_slot)
     if (animation != -1) {
         W8NpcState* npc = GetNpcState(animation);
         if (npc != 0) {
-            npc->unknown_04 = 1;
+            npc->spawned_04 = 1;
         }
     }
 }

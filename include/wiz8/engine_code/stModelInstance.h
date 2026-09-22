@@ -117,7 +117,7 @@ public:
         render_state_164.right = 0;
         render_state_164.bottom = 0;
         render_state_164.display_state = 0;
-        render_state_164.state_0d = 0;
+        render_state_164.glow_enabled_0d = 0;
         vector_174 = 0;
         vector_178 = 0;
         m_pGlowMaterial = 0;

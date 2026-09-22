@@ -9,7 +9,7 @@ struct W8LevelFolderRecord {
     char location_code[4];
     signed char sky_index;
     signed char cd_number;
-    signed char unknown_6a;
+    signed char level_band_6a; /* 0x6a: returned by GetLevelBand */
 };
 
 struct W8LevelProgressRow {
