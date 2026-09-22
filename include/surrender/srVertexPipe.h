@@ -81,6 +81,9 @@ private:
     /* srMaterial::postProcess blends diffuse/specular/alpha through the batch
        scratch, setup stages and batch state; the SDK friended it. */
     friend class srMaterial;
+    /* srLight::process and srLight::isActive read the batch scratch, channel
+       masks and lazy-setup flags the same way; the SDK friended it too. */
+    friend class srLight;
     SR_DLL_IMPORT void finishDiffuseAlpha();
     SR_DLL_IMPORT void finishSpecularFog();
     SR_DLL_IMPORT void processVertexBuffer();

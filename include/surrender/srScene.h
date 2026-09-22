@@ -33,21 +33,35 @@ public:
     void getAmbientLight(srVector3T<float>& color) const;
     srVector3T<float> getAmbientLight() const;
     void getFogColor(srVector3T<float>& color) const;
+#if defined(SURRENDER_BUILD)
+    srVector3T<float> getFogColor() const;
+#else
+    /* Header-visible for consumer callers (Video2 reads it inline); the
+       provider emits its own copy from scene.cpp. */
     srVector3T<float> getFogColor() const
     {
         return fog_color_180;
     }
+#endif
     void getStatistics(Statistics& statistics);
     int isEnabled(e_enable option) const;
     void render(srGERD& renderer, class srCamera* camera);
     void resetStatistics();
+#if defined(SURRENDER_BUILD)
+    static const char* sGetClassName();
+#else
+    /* Header-visible like srLight's: the consumer registry emissions read
+       the literal directly. The provider still emits its own copy from
+       scene.cpp. */
     static const char* sGetClassName()
     {
         return "srScene";
     }
+#endif
     /* The overlay builders expand these component stores at every call site.
        They are the ordinary header-visible SurRender setters, not a Wizardry
        aggregate helper around the scene object. */
+    // FUNCTION: SURRENDER 0x10056CC0
     inline void setAmbientLight(float red, float green, float blue)
     {
         ambient_light_174.x = red;
@@ -55,6 +69,7 @@ public:
         ambient_light_174.z = blue;
     }
     void setAmbientLight(const srVector3T<float>& color);
+    // FUNCTION: SURRENDER 0x10056D10
     inline void setFogColor(float red, float green, float blue)
     {
         fog_color_180.x = red;

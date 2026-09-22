@@ -13,6 +13,7 @@ class srIlluminator : public srClassSupport<srIlluminator, srNode, false, 0x1200
                       public srVertexProcessor {
 public:
     SR_DLL_IMPORT srIlluminator(srNode* parent);
+    SR_DLL_IMPORT srIlluminator(const srIlluminator& other);
     SR_DLL_IMPORT srIlluminator& operator=(const srIlluminator& other);
     static SR_DLL_IMPORT const char* sGetClassName();
     virtual SR_DLL_IMPORT void traverse(TraverseInfo& info) override;
@@ -23,13 +24,12 @@ public:
     SR_DLL_IMPORT void setGroupMask(unsigned long mask);
 
 protected:
-    /* Empty and header-visible, not exported: stLight's destructor at
-       0x0049C430 expands this level and srLight's inline instead of calling
-       either, and reaches SR.DLL only for srNode::~srNode. The registry
-       teardown at this level belongs to the srClassSupport base, and the
-       vptr store this body would make is dead-stored away by the base's own
-       store that immediately follows. */
-    virtual ~srIlluminator() override {}
+    /* Empty authored body, but exported and emitted out-of-line in this TU:
+       stLight's destructor at 0x0049C430 expands this level and srLight's
+       inline instead of calling either, and reaches SR.DLL only for
+       srNode::~srNode. The registry teardown at this level belongs to the
+       srClassSupport base. */
+    virtual ~srIlluminator() override;
 
 public:
     unsigned long group_mask_13c;       /* 0x13c */

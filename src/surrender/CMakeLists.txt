@@ -57,6 +57,7 @@ set_source_files_properties(
     gerd_filters.cpp
     heap.cpp
     huffman.cpp
+    illuminator.cpp
     stream.cpp
     type_registry.cpp
     vector_processor.cpp
