@@ -135,6 +135,13 @@ srFileManager::Path* srFileManager::Path::getNext() const
     return next_04;
 }
 
+/* Retail emits a verbatim memberwise copy of all three fields including the
+   owning name_00 and the intrusive next_04/previous_08 links: the
+   compiler-generated operator= the dllexport class requires, not authored
+   value semantics. Assigning a linked Path aliases the source's name
+   (double-free on destruction) and splices unrelated list topology. No Path
+   copy ctor is emitted and srFileManager is absent from the Wiz8.exe sr.dll
+   import table, so the hazard is genuine but unreachable retail behavior. */
 // FUNCTION: SURRENDER 0x100163A0
 srFileManager::Path& srFileManager::Path::operator=(const Path& other)
 {
