@@ -76,7 +76,7 @@ W8OctBuildNode00446330::~W8OctBuildNode00446330()
         return;
     }
     for (int child = 0; child != 8; ++child) {
-        delete children_00[child];
+        delete static_cast<W8OctBuildNode00446330*>(slots_00[child]);
     }
 }
 
@@ -276,9 +276,10 @@ unsigned char W8OctBuildTree00446390::InsertSurfaceRecursive004469F0(W8OctSpatia
             deepest_link_list_b8 = node->leaf_kind_2a;
         }
 
-        W8OctBuildLink*& head = node->links_00[(short)mode];
+        const short slot = static_cast<short>(mode);
+        W8OctBuildLink* head = static_cast<W8OctBuildLink*>(node->slots_00[slot]);
         if (head == 0) {
-            head = link_lists_9c->GetNewLink(surface);
+            node->slots_00[slot] = link_lists_9c->GetNewLink(surface);
         } else {
             W8OctBuildLink* tail = head;
             while (tail->next_04 != 0) {
@@ -306,14 +307,15 @@ unsigned char W8OctBuildTree00446390::InsertSurfaceRecursive004469F0(W8OctSpatia
                     if (TestSpatialTriangle0046CE60(&child.minimum_0c, working->owned_98,
                                                     plane_point) != 0) {
                         W8OctBuildNode00446330* node = working->root_90;
-                        if (node->children_00[octant] == 0) {
+                        if (node->slots_00[octant] == 0) {
                             if (use_owned_nodes_b4 == 0) {
-                                node->children_00[octant] = new W8OctBuildNode00446330;
+                                node->slots_00[octant] = new W8OctBuildNode00446330;
                             } else {
-                                node->children_00[octant] = new W8CountedOctBuildNode004AF760;
+                                node->slots_00[octant] = new W8CountedOctBuildNode004AF760;
                             }
                         }
-                        child.root_90 = node->children_00[octant];
+                        child.root_90 =
+                            static_cast<W8OctBuildNode00446330*>(node->slots_00[octant]);
                         child.owned_98 = working->owned_98;
                         if (InsertSurfaceRecursive004469F0(&child, surface, plane_point, mode) !=
                             0) {
@@ -338,9 +340,9 @@ void W8OctBuildTree00446390::AppendLink00446D00(W8OctBuildNode00446330* node, vo
     if (deepest_link_list_b8 < node->leaf_kind_2a) {
         deepest_link_list_b8 = node->leaf_kind_2a;
     }
-    W8OctBuildLink* head = node->links_00[kind];
+    W8OctBuildLink* head = static_cast<W8OctBuildLink*>(node->slots_00[kind]);
     if (head == 0) {
-        node->links_00[kind] = link_lists_9c->GetNewLink(payload);
+        node->slots_00[kind] = link_lists_9c->GetNewLink(payload);
         return;
     }
     W8OctBuildLink* next;
@@ -445,14 +447,15 @@ int W8OctBuildTree00446390::CollectRecursive00446F20(W8OctSpatialState* state, c
                 int z_count = 2;
                 do {
                     W8OctBuildNode00446330* node = state->root_90;
-                    if (node->children_00[octant] != 0) {
+                    if (node->slots_00[octant] != 0) {
                         child.minimum_0c.x = x * child.extent_04 + state->minimum_0c.x;
                         child.maximum_18.x = child.minimum_0c.x + child.extent_04;
                         child.minimum_0c.y = y * child.extent_04 + state->minimum_0c.y;
                         child.maximum_18.y = child.minimum_0c.y + child.extent_04;
                         child.minimum_0c.z = z * child.extent_04 + state->minimum_0c.z;
                         child.maximum_18.z = child.minimum_0c.z + child.extent_04;
-                        child.root_90 = node->children_00[octant];
+                        child.root_90 =
+                            static_cast<W8OctBuildNode00446330*>(node->slots_00[octant]);
                         collected += CollectRecursive00446F20(&child, bounds, kind);
                     }
                     ++octant;
@@ -486,7 +489,7 @@ int W8OctBuildTree00446390::CollectLeaf00447110(W8OctBuildNode00446330* node, sh
 
     if (depth == spatial_00.depth_44) {
         if (kind == 9) {
-            link = node->links_00[3];
+            link = static_cast<W8OctBuildLink*>(node->slots_00[3]);
             while (link != 0) {
                 surface = static_cast<W8GDSurface*>(link->surface_00);
                 if ((surface->flags_00 & 0x2000) == 0) {
@@ -500,8 +503,9 @@ int W8OctBuildTree00446390::CollectLeaf00447110(W8OctBuildNode00446330* node, sh
                 link = link->next_04;
             }
             second = 0;
-            if (node->links_00[4] != 0) {
-                for (link = node->links_00[4]; link != 0; link = link->next_04) {
+            if (node->slots_00[4] != 0) {
+                for (link = static_cast<W8OctBuildLink*>(node->slots_00[4]); link != 0;
+                     link = link->next_04) {
                     surface = static_cast<W8GDSurface*>(link->surface_00);
                     index = 0;
                     scan = static_cast<W8GDSurface**>(g_oct_build_scratch_00659a48);
@@ -522,8 +526,9 @@ int W8OctBuildTree00446390::CollectLeaf00447110(W8OctBuildNode00446330* node, sh
             return collected + second;
         }
         if (kind == 10) {
-            if (node->links_00[7] != 0) {
-                for (link = node->links_00[7]; link != 0; link = link->next_04) {
+            if (node->slots_00[7] != 0) {
+                for (link = static_cast<W8OctBuildLink*>(node->slots_00[7]); link != 0;
+                     link = link->next_04) {
                     surface = static_cast<W8GDSurface*>(link->surface_00);
                     index = 0;
                     scan = static_cast<W8GDSurface**>(g_oct_build_scratch_00659a48);
@@ -542,15 +547,8 @@ int W8OctBuildTree00446390::CollectLeaf00447110(W8OctBuildNode00446330* node, sh
                 }
             }
             second = 0;
-            /* Retail's kind-10 path dereferences a link head at +0x2c, beyond
-               the eight-slot union member — in the proven 0x30-byte node that
-               is the provisional_region_2c/positional_2e ushort pair, which
-               OctBuildPreTree writes as the leaf's provisional region index
-               (node->provisional_region_2c = node->region_28; FinalizeRegionMapping
-               reads it back as a ushort). No producer appends at a kind above
-               4, so the read is of ushort region-index storage; retained as
-               the observed retail read of dead code. */
-            // reinterpret-ok: dead kind-10 path reads the proven ushort region-index pair at +0x2c as a link head
+            /* Retail reads the word at +0x2c as a link head on this path. */
+            // reinterpret-ok: retail reads the +0x2c word as a link head for kind 10
             for (link = *reinterpret_cast<W8OctBuildLink**>(&node->provisional_region_2c);
                  link != 0; link = link->next_04) {
                 if (CollectSurfacePredicate004474C0(static_cast<W8GDSurface*>(link->surface_00),
@@ -564,7 +562,8 @@ int W8OctBuildTree00446390::CollectLeaf00447110(W8OctBuildNode00446330* node, sh
             }
             return second + collected;
         }
-        for (link = node->links_00[kind]; link != 0; link = link->next_04) {
+        for (link = static_cast<W8OctBuildLink*>(node->slots_00[kind]); link != 0;
+             link = link->next_04) {
             if (CollectSurfacePredicate004474C0(static_cast<W8GDSurface*>(link->surface_00),
                                                 kind) != 0) {
                 static_cast<W8GDSurface**>(
@@ -577,8 +576,9 @@ int W8OctBuildTree00446390::CollectLeaf00447110(W8OctBuildNode00446330* node, sh
         return collected;
     }
     for (int child = 0; child != 8; ++child) {
-        if (node->children_00[child] != 0) {
-            collected += CollectLeaf00447110(node->children_00[child], depth + 1, kind);
+        if (node->slots_00[child] != 0) {
+            collected += CollectLeaf00447110(
+                static_cast<W8OctBuildNode00446330*>(node->slots_00[child]), depth + 1, kind);
         }
     }
     return collected;

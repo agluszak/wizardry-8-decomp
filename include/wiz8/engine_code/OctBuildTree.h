@@ -30,12 +30,10 @@ struct W8OctBuildNode00446330 {
     int CollectSurfaceArray004AF9B0(short mode);
     unsigned long ConvertToOctPreTree004AFA30(unsigned short depth, OctPreTree* tree);
 
-    union {
-        W8OctBuildNode00446330* children_00[8];
-        W8OctBuildLink* links_00[8];
-        void** surface_arrays_00[8]; /* elements follow the insert mode */
-        unsigned short* region_arrays_00[8];
-    };
+    /* Entries have different roles by slot and build phase: branches hold
+       child nodes, insert paths hold link heads, and leaf conversion retains
+       mode arrays in slots 2/3 plus the region array in slot 1. */
+    void* slots_00[8];
     unsigned long padding_20;
     unsigned long padding_24;
     unsigned short region_28;

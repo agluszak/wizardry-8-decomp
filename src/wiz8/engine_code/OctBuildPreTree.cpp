@@ -46,8 +46,8 @@ W8CountedOctBuildNode004AF760::W8CountedOctBuildNode004AF760()
 // FUNCTION: WIZ8 0x004af780
 W8CountedOctBuildNode004AF760::~W8CountedOctBuildNode004AF760()
 {
-    if (children_00[1] != 0) {
-        free(children_00[1]);
+    if (slots_00[1] != 0) {
+        free(slots_00[1]);
     }
     if (g_build_node_instances_65be60 != 0) {
         --g_build_node_instances_65be60;
@@ -62,7 +62,7 @@ unsigned char W8OctBuildNode00446330::RearrangeNodePolys004AF7B0(short current_d
 {
     if (current_depth == target_depth) {
         for (short mode = 2; mode < 4; ++mode) {
-            if (leaf_kind_2a != 0 && links_00[mode] != 0) {
+            if (leaf_kind_2a != 0 && slots_00[mode] != 0) {
                 g_poly_list_count_65be58 = 0;
                 CollectLinkedSurfaces004AF8F0(current_depth, target_depth, mode);
                 void** surfaces = static_cast<void**>(
@@ -77,13 +77,14 @@ unsigned char W8OctBuildNode00446330::RearrangeNodePolys004AF7B0(short current_d
                     surfaces[index] = g_poly_list_65be64[index];
                 }
                 surfaces[index] = 0;
-                surface_arrays_00[mode] = surfaces;
+                slots_00[mode] = surfaces;
             }
         }
     } else {
         for (int child = 0; child != 8; ++child) {
-            if (children_00[child] != 0) {
-                children_00[child]->RearrangeNodePolys004AF7B0(current_depth + 1, target_depth);
+            if (slots_00[child] != 0) {
+                static_cast<W8OctBuildNode00446330*>(slots_00[child])
+                    ->RearrangeNodePolys004AF7B0(current_depth + 1, target_depth);
             }
         }
     }
@@ -96,8 +97,8 @@ int W8OctBuildNode00446330::CollectLinkedSurfaces004AF8F0(short current_depth, s
 {
     int count = 0;
     if (current_depth == target_depth) {
-        if (1 < mode && mode < 4 && links_00[mode] != 0) {
-            W8OctBuildLink* link = links_00[mode];
+        if (1 < mode && mode < 4 && slots_00[mode] != 0) {
+            W8OctBuildLink* link = static_cast<W8OctBuildLink*>(slots_00[mode]);
             do {
                 g_poly_list_65be64[g_poly_list_count_65be58++] = link->surface_00;
                 if (10000 < g_poly_list_count_65be58) {
@@ -110,9 +111,9 @@ int W8OctBuildNode00446330::CollectLinkedSurfaces004AF8F0(short current_depth, s
         }
     } else {
         for (int child = 0; child != 8; ++child) {
-            if (children_00[child] != 0) {
-                count += children_00[child]->CollectLinkedSurfaces004AF8F0(current_depth + 1,
-                                                                           target_depth, mode);
+            if (slots_00[child] != 0) {
+                count += static_cast<W8OctBuildNode00446330*>(slots_00[child])
+                             ->CollectLinkedSurfaces004AF8F0(current_depth + 1, target_depth, mode);
             }
         }
     }
@@ -123,7 +124,7 @@ int W8OctBuildNode00446330::CollectLinkedSurfaces004AF8F0(short current_depth, s
 int W8OctBuildNode00446330::CollectSurfaceArray004AF9B0(short mode)
 {
     if (leaf_kind_2a != 0 && provisional_region_2c == 0) {
-        void** surfaces = surface_arrays_00[mode];
+        void** surfaces = static_cast<void**>(slots_00[mode]);
         if (surfaces != 0) {
             while (*surfaces != 0) {
                 g_poly_list_65be64[g_poly_list_count_65be58++] = *surfaces++;
@@ -132,8 +133,9 @@ int W8OctBuildNode00446330::CollectSurfaceArray004AF9B0(short mode)
         return g_poly_list_count_65be58;
     }
     for (int child = 0; child != 8; ++child) {
-        if (children_00[child] != 0) {
-            children_00[child]->CollectSurfaceArray004AF9B0(mode);
+        if (slots_00[child] != 0) {
+            static_cast<W8OctBuildNode00446330*>(slots_00[child])
+                ->CollectSurfaceArray004AF9B0(mode);
         }
     }
     return g_poly_list_count_65be58;
@@ -175,8 +177,8 @@ unsigned long W8OctBuildNode00446330::ConvertToOctPreTree004AFA30(unsigned short
                 tree->m_owned_0d0[tree->polygon_cursor_3a0++] =
                     static_cast<W8OctRegionPolygon*>(g_poly_list_65be64[surface])->ordinal_04;
             }
-            free(surface_arrays_00[2]);
-            surface_arrays_00[2] = 0;
+            free(slots_00[2]);
+            slots_00[2] = 0;
         }
 
         g_poly_list_count_65be58 = 0;
@@ -202,11 +204,11 @@ unsigned long W8OctBuildNode00446330::ConvertToOctPreTree004AFA30(unsigned short
                 tree->m_owned_12c[tree->m_gd_surface_stream_len_124++] =
                     static_cast<W8GDSurface*>(g_poly_list_65be64[surface])->index_04;
             }
-            free(surface_arrays_00[3]);
-            surface_arrays_00[3] = 0;
+            free(slots_00[3]);
+            slots_00[3] = 0;
         }
 
-        unsigned short* regions = region_arrays_00[1];
+        unsigned short* regions = static_cast<unsigned short*>(slots_00[1]);
         if (regions != 0 && *regions != 0) {
             tree->m_owned_0a0[node_index].region_offset_04 = tree->m_region_list_len_138;
             while (*regions != 0) {
@@ -214,18 +216,19 @@ unsigned long W8OctBuildNode00446330::ConvertToOctPreTree004AFA30(unsigned short
             }
             tree->m_owned_148[tree->m_region_list_len_138++] = 0;
         }
-        if (region_arrays_00[1] != 0) {
-            free(region_arrays_00[1]);
-            region_arrays_00[1] = 0;
+        if (slots_00[1] != 0) {
+            free(slots_00[1]);
+            slots_00[1] = 0;
         }
     } else {
         node_index = tree->m_branch_count_0b4++;
         for (unsigned long child = 0; child < 8; ++child) {
-            if (children_00[child] != 0) {
+            if (slots_00[child] != 0) {
                 tree->m_owned_09c[node_index].children_04[child] =
-                    children_00[child]->ConvertToOctPreTree004AFA30(depth + 1, tree);
-                delete static_cast<W8CountedOctBuildNode004AF760*>(children_00[child]);
-                children_00[child] = 0;
+                    static_cast<W8OctBuildNode00446330*>(slots_00[child])
+                        ->ConvertToOctPreTree004AFA30(depth + 1, tree);
+                delete static_cast<W8CountedOctBuildNode004AF760*>(slots_00[child]);
+                slots_00[child] = 0;
             }
         }
         tree->m_owned_09c[node_index].region_02 = region_28;
@@ -459,11 +462,12 @@ unsigned char OctBuildPreTree::InsertSurfaceRecursive004B03E0(W8OctSpatialState*
                         if (TestSpatialTriangle0046CE60(&child.minimum_0c, vertices,
                                                         &polygon->plane_08.normal) != 0) {
                             W8OctBuildNode00446330* parent = working->root_90;
-                            if (parent->children_00[octant] == 0) {
+                            if (parent->slots_00[octant] == 0) {
                                 ++level_counts_c4[working->depth_44];
-                                parent->children_00[octant] = new W8OctBuildNode00446330;
+                                parent->slots_00[octant] = new W8OctBuildNode00446330;
                             }
-                            child.root_90 = parent->children_00[octant];
+                            child.root_90 =
+                                static_cast<W8OctBuildNode00446330*>(parent->slots_00[octant]);
                             if (InsertSurfaceRecursive004B03E0(&child, polygon, mode) != 0) {
                                 inserted = 1;
                             }
@@ -554,7 +558,8 @@ unsigned char OctBuildPreTree::UpdateRegionMap004B07E0(const W8OctSpatialState* 
                     }
 
                     W8OctBuildNode00446330* parent = spatial->root_90;
-                    child.root_90 = parent->children_00[child_index];
+                    child.root_90 =
+                        static_cast<W8OctBuildNode00446330*>(parent->slots_00[child_index]);
                     if (intersects != 0 && child.root_90 != 0) {
                         W8OctBuildNode00446330* node = child.root_90;
                         unsigned short region = node->region_28;
@@ -707,7 +712,7 @@ void OctBuildPreTree::FindLeafRegions004B1090(W8OctBuildNode00446330* node,
     for (unsigned short region = 1; region < spatial_00.region_count_46; ++region) {
         if ((spatial_00.owned_5c[region].flags_00 & 4) == 0 &&
             BoundsInsideFrustum0046D920(&spatial_00.owned_5c[region], bounds) != 0) {
-            if (node->region_arrays_00[1] == 0) {
+            if (node->slots_00[1] == 0) {
                 unsigned short* list = static_cast<unsigned short*>(malloc(100));
                 if (list == 0) {
                     ReportBuildStatus00497690(7, "Could not allocate region list.\n");
@@ -716,9 +721,9 @@ void OctBuildPreTree::FindLeafRegions004B1090(W8OctBuildNode00446330* node,
                 for (int i = 0; i != 50; ++i) {
                     list[i] = 0;
                 }
-                node->region_arrays_00[1] = list;
+                node->slots_00[1] = list;
             }
-            unsigned short* list = node->region_arrays_00[1];
+            unsigned short* list = static_cast<unsigned short*>(node->slots_00[1]);
             unsigned short slot = 0;
             if (list[0] != 0) {
                 do {
@@ -941,13 +946,15 @@ void OctBuildPreTree::RemapNodeRegions004B16B0(W8OctBuildNode00446330* node, int
     if (static_cast<short>(depth) < 0x10) {
         if (static_cast<short>(depth) < spatial_00.depth_44) {
             for (int child_index = 0; child_index != 8; ++child_index) {
-                if (node->children_00[child_index] != 0) {
-                    RemapNodeRegions004B16B0(node->children_00[child_index], depth + 1);
+                if (node->slots_00[child_index] != 0) {
+                    RemapNodeRegions004B16B0(
+                        static_cast<W8OctBuildNode00446330*>(node->slots_00[child_index]),
+                        depth + 1);
                 }
             }
             return;
         }
-        unsigned short* list = node->region_arrays_00[1];
+        unsigned short* list = static_cast<unsigned short*>(node->slots_00[1]);
         if (list != 0) {
             int count = 0;
             int kept = 0;
@@ -1223,7 +1230,8 @@ void OctBuildPreTree::AssignInitialRegions004B1D90(const W8OctSpatialState* spat
         for (int y = 0; y != 2; ++y) {
             for (int z = 0; z != 2; ++z, ++child_index) {
                 W8OctBuildNode00446330* parent = spatial->root_90;
-                W8OctBuildNode00446330* node = parent->children_00[child_index];
+                W8OctBuildNode00446330* node =
+                    static_cast<W8OctBuildNode00446330*>(parent->slots_00[child_index]);
                 if (node != 0) {
                     child.minimum_0c.x = x * child.extent_04 + spatial->minimum_0c.x;
                     child.maximum_18.x = child.minimum_0c.x + child.extent_04;
@@ -1263,7 +1271,7 @@ W8OctBuildNode00446330* OctBuildPreTree::FindNode004B23F0(unsigned int path)
             if ((z & level) != 0) {
                 child += 1;
             }
-            node = node->children_00[child];
+            node = static_cast<W8OctBuildNode00446330*>(node->slots_00[child]);
         }
     }
     return node;
@@ -1485,7 +1493,8 @@ void OctBuildPreTree::AssignRegionFromSurfaces004B3050(const W8OctSpatialState* 
             for (int y = 0; y != 2; ++y) {
                 for (int z = 0; z != 2; ++z, ++child_index) {
                     W8OctBuildNode00446330* parent = spatial->root_90;
-                    W8OctBuildNode00446330* node = parent->children_00[child_index];
+                    W8OctBuildNode00446330* node =
+                        static_cast<W8OctBuildNode00446330*>(parent->slots_00[child_index]);
                     if (node != 0) {
                         child.minimum_0c.x = x * child.extent_04 + spatial->minimum_0c.x;
                         child.maximum_18.x = child.minimum_0c.x + child.extent_04;

@@ -683,11 +683,8 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
     }
 
     unsigned char first_pass = 1;
-    /* Retail never stores this local: its slot overlaps dead float locals, so
-       the FLAG_TERMINATE walk below ran on leftover stack data and effectively
-       never fired. Seed it deterministically instead of reproducing the
-       uninitialised read, which faults under this build's layout. */
-    srNode* child = 0;
+    /* Retail reaches the first FLAG_TERMINATE test before assigning child. */
+    srNode* child;
     while (model != 0) {
         model->SetAmbientColor00472990(ambient_color);
         model->getTriMesh(mesh);

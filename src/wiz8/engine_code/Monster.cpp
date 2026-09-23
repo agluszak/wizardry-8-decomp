@@ -4534,32 +4534,8 @@ void W8Monster::GetMappedPosition004C72A0(srVector3T<float>* position)
    reachable from a free declaration. The receiver is the monster's Navigator
    base at +0x18. */
 
-/* Copies a position into a local and hands the local on. The monster argument
-   is dead beyond its own null check - the callee never receives it - which is
-   the same shape the other guarded forwarders here take, except that what
-   survives the guard is the copy rather than the object.
-   The copy goes through the FPU one component at a time - `fld dword` then
-   `fstp dword` per component - rather than as the three integer moves VC6
-   emits for a plain three-float assignment, which is what this body still gets
-   and the whole of its remaining difference. That shape is the signature of
-   srVector3T<float>::Set expanded inline: its parameters are
-   doubles, so each float round-trips through the FPU instead of being copied
-   as bits. The image carries both an out-of-line COMDAT copy of that setter at
-   0x00421680 and this inlined expansion, which is the multiple-translation-unit
-   visibility the inlining policy asks for before a body moves into a header.
-
-   That was measured rather than argued. Defining the setter in srMath.h and
-   calling it here reproduces the copy exactly - the three fld/fstp pairs land
-   instruction for instruction, leaving only a register choice and one
-   scheduling swap - and takes this body from 0.375 to 0.8125. It also stops
-   VC6 emitting the out-of-line copy at all, because this is the only call site
-   in the tree and it inlines: 0x00421680 goes from exact to missing. The
-   inlining policy requires the bundle to improve without regressing an exact
-   boundary, so the trade is refused and the out-of-line definition stays.
-   Hand-spelling the conversion does not work either - `(float)(double)f` is
-   value-preserving, so VC6 folds it straight back to the integer copy.
-   Reproducing both emissions needs a second call site that does not inline,
-   which is not decidable from this one; the filed bead tracks it. */
+/* Copy the position under the monster guard before forwarding it to the LOD
+   selector. */
 // FUNCTION: WIZ8 0x004c5a40
 void MonsterForward4A7BE0(W8Monster* monster, const srVector3T<float>* position)
 {

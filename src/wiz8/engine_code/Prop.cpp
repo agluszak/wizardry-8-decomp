@@ -443,8 +443,8 @@ srModelInstance* W8PropRepresentation::ToggleAnimation(int argument)
 }
 
 /* Select the animation slot whose second byte carries the requested tag.
-   The slot's signed first byte is the new animation tag; the old and new
-   values are retained as an ordered range for the transition state. */
+   Retail stores the current subcycle and selected frame as the ordered
+   transition bounds. */
 // FUNCTION: WIZ8 0x0044ba50
 unsigned char W8PropRepresentation::SelectAnimationSlot(unsigned char tag)
 {
@@ -457,13 +457,13 @@ unsigned char W8PropRepresentation::SelectAnimationSlot(unsigned char tag)
             if (selected < 0) {
                 return 0;
             }
-            frame_lo_068 = first_frame_094;
-            frame_hi_069 = static_cast<unsigned char>(selected);
-            if (selected < static_cast<signed char>(first_frame_094)) {
-                frame_lo_068 = static_cast<unsigned char>(selected);
-                frame_hi_069 = first_frame_094;
+            first_frame_094 = subcycle_064;
+            last_frame_095 = static_cast<unsigned char>(selected);
+            if (static_cast<unsigned char>(selected) < subcycle_064) {
+                first_frame_094 = static_cast<unsigned char>(selected);
+                last_frame_095 = subcycle_064;
             }
-            if (frame_hi_069 <= first_frame_094) {
+            if (last_frame_095 <= subcycle_064) {
                 frame_direction_06e = 3;
             } else {
                 frame_direction_06e = 1;

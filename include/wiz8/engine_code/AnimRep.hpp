@@ -83,17 +83,8 @@ public:
     /* 0xffff means no queued subcycle; ApplyPendingCycle consumes and clears
        this only after the pending cycle is accepted. */
     unsigned short pending_subcycle_066;
-    /* 0x68: a millisecond timestamp while the animation runs;
-       SelectAnimationSlot reads its low two bytes as the transition's ordered
-       animation-value pair. */
-    union {
-        unsigned int timer_068;
-        struct {
-            unsigned char frame_lo_068;
-            unsigned char frame_hi_069;
-            unsigned char animation_padding_06a[2];
-        };
-    };
+    /* Millisecond timestamp while the animation runs. */
+    unsigned int timer_068;
     unsigned char active;
     unsigned char animation_playing_06d;
     /* Direction 1 advances and 3 reverses in GrCycle. Other direction codes
