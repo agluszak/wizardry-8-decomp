@@ -1117,6 +1117,10 @@ EXPORTS
     ?getProjectClipNearMatrix@srGERD@@QAEXAAV?$srMatrix4T@M@@@Z
     ?getScissor@srGERD@@QBEXAAK000@Z
     ?getViewPort@srGERD@@QBEXAAK000@Z
+    ?loadDevice@srGERD@@SAPAV1@AAVsrStringTable@@K@Z
+    ?loadDevice@srGERD@@SAPAV1@PBD0K@Z
+    ?loadDeviceWithFileName@srGERD@@SAPAV1@PBDK@Z
+    ?loadDevices@srGERD@@SAXPBD@Z
     ?loadIdentity@srGERD@@QAEXXZ
     ?loadMatrix@srGERD@@QAEXABV?$srMatrix3T@M@@@Z
     ?loadMatrix@srGERD@@QAEXABV?$srMatrix3T@N@@@Z
@@ -1156,6 +1160,8 @@ EXPORTS
     ?unlockRenderer@srGERD@@QAEXPAVRenderer@1@H@Z
     ?setClipState@srGERD@@QAEXV?$srFlags@W4e_clip@srRendererDefs@@@@@Z
     ?setDataPtr@srGERD@@AAEXW4e_vertexArray@srRendererDefs@@JW4e_type@3@KPBX@Z
+    ?setTextureDefaultCompression@srGERD@@QAEXW4e_compression@srTextureIFace@@@Z
+    ?setTextureDefaultCorrection@srGERD@@QAEXW4e_correction@srTextureIFace@@@Z
     ?setTextureDefaultMagFilter@srGERD@@QAEXW4e_filter@srTextureIFace@@@Z
     ?setTextureDefaultMinFilter@srGERD@@QAEXW4e_filter@srTextureIFace@@@Z
     ?setTextureDefaultMipmap@srGERD@@QAEXW4e_mipmap@srTextureIFace@@@Z
