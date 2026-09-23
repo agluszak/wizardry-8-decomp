@@ -44,7 +44,8 @@ jobs:
     outputs:
       public: ${{ steps.scope.outputs.public }}
       analysis: ${{ steps.scope.outputs.analysis }}
-      wiz8: ${{ steps.scope.outputs.wiz8 }}
+      wiz8_compare: ${{ steps.scope.outputs.wiz8_compare }}
+      wiz8_runtime: ${{ steps.scope.outputs.wiz8_runtime }}
       surrender: ${{ steps.scope.outputs.surrender }}
     steps:
       - name: Check out source
@@ -59,7 +60,7 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "$GITHUB_EVENT_NAME" == "schedule" || "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
-            printf '%s\n' public=true analysis=true wiz8=true surrender=true >> "$GITHUB_OUTPUT"
+            printf '%s\n' public=true analysis=true wiz8_compare=true wiz8_runtime=true surrender=true >> "$GITHUB_OUTPUT"
             exit 0
           fi
           if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
@@ -73,7 +74,7 @@ jobs:
             base="${{ github.event.before }}"
             head="$GITHUB_SHA"
           else
-            printf '%s\n' public=true analysis=true wiz8=true surrender=true >> "$GITHUB_OUTPUT"
+            printf '%s\n' public=true analysis=true wiz8_compare=true wiz8_runtime=true surrender=true >> "$GITHUB_OUTPUT"
             exit 0
           fi
           changed="$RUNNER_TEMP/changed-files.txt"
@@ -83,12 +84,13 @@ jobs:
           python3 .github/scripts/classify-ci-changes.py < "$changed" | tee -a "$GITHUB_OUTPUT"
 
   toolchain:
-    name: Prepare VC6 analysis image
+    name: Prepare VC6 images
     needs: scope
     if: >-
       needs.scope.outputs.public == 'true' ||
       needs.scope.outputs.analysis == 'true' ||
-      needs.scope.outputs.wiz8 == 'true' ||
+      needs.scope.outputs.wiz8_compare == 'true' ||
+      needs.scope.outputs.wiz8_runtime == 'true' ||
       needs.scope.outputs.surrender == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
@@ -97,39 +99,69 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Check VC6 image cache
-        id: vc6-cache
+
+      - name: Check VC6 analysis image cache
+        id: analysis-cache
         uses: actions/cache/restore@v4
         with:
-          path: ${{ runner.temp }}/wiz8-vc6-image
-          key: vc6-image-v1-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml', 'tools/wiz8decomp/ghidra/fid_seeds.py') }}
+          path: ${{ runner.temp }}/wiz8-vc6-analysis-image
+          key: vc6-analysis-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml', 'tools/wiz8decomp/ghidra/fid_seeds.py') }}
           lookup-only: true
+
+      - name: Check VC6 product image cache
+        id: product-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ runner.temp }}/wiz8-vc6-product-image
+          key: vc6-product-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml', 'tools/wiz8decomp/ghidra/fid_seeds.py') }}
+          lookup-only: true
+
       - name: Set up Python for VC6 cache miss
-        if: steps.vc6-cache.outputs.cache-hit != 'true'
+        if: steps.analysis-cache.outputs.cache-hit != 'true' || steps.product-cache.outputs.cache-hit != 'true'
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.13"
+
       - name: Set up uv for VC6 cache miss
-        if: steps.vc6-cache.outputs.cache-hit != 'true'
+        if: steps.analysis-cache.outputs.cache-hit != 'true' || steps.product-cache.outputs.cache-hit != 'true'
         uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
         with:
           version: "0.12.13"
           enable-cache: true
+
       - name: Install Python dependencies for VC6 cache miss
-        if: steps.vc6-cache.outputs.cache-hit != 'true'
+        if: steps.analysis-cache.outputs.cache-hit != 'true' || steps.product-cache.outputs.cache-hit != 'true'
         run: uv sync --frozen
-      - name: Build pinned VC6 analysis image
-        if: steps.vc6-cache.outputs.cache-hit != 'true'
+
+      - name: Build pinned VC6 images
+        if: steps.analysis-cache.outputs.cache-hit != 'true' || steps.product-cache.outputs.cache-hit != 'true'
+        run: uv run wiz8 toolchain build vc6-sp5
+
+      - name: Archive VC6 analysis image
+        if: steps.analysis-cache.outputs.cache-hit != 'true'
         run: |
-          uv run wiz8 toolchain build vc6-sp5
-          mkdir -p "$RUNNER_TEMP/wiz8-vc6-image"
-          docker save wizardry8-msvc600:sp5 | gzip -1 > "$RUNNER_TEMP/wiz8-vc6-image/vc6-sp5.tar.gz"
-      - name: Save VC6 image cache
-        if: steps.vc6-cache.outputs.cache-hit != 'true'
+          mkdir -p "$RUNNER_TEMP/wiz8-vc6-analysis-image"
+          docker save wizardry8-msvc600:sp5 | gzip -1 > "$RUNNER_TEMP/wiz8-vc6-analysis-image/vc6-analysis.tar.gz"
+
+      - name: Save VC6 analysis image cache
+        if: steps.analysis-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
-          path: ${{ runner.temp }}/wiz8-vc6-image
-          key: vc6-image-v1-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml', 'tools/wiz8decomp/ghidra/fid_seeds.py') }}
+          path: ${{ runner.temp }}/wiz8-vc6-analysis-image
+          key: vc6-analysis-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml', 'tools/wiz8decomp/ghidra/fid_seeds.py') }}
+
+      - name: Archive VC6 product image
+        if: steps.product-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$RUNNER_TEMP/wiz8-vc6-product-image"
+          docker save wizardry8-msvc600:sp5-product | gzip -1 > "$RUNNER_TEMP/wiz8-vc6-product-image/vc6-product.tar.gz"
+
+      - name: Save VC6 product image cache
+        if: steps.product-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ runner.temp }}/wiz8-vc6-product-image
+          key: vc6-product-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml', 'tools/wiz8decomp/ghidra/fid_seeds.py') }}
 
   repository:
     name: Repository checks
@@ -230,8 +262,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends llvm unzip
           command -v llvm-undname
-      - name: Load VC6 analysis image
-        uses: ./.github/actions/load-vc6-image
+      - name: Load VC6 product image
+        uses: ./.github/actions/load-vc6-product
       - name: Install pinned Ghidra
         run: |
           archive="$RUNNER_TEMP/$GHIDRA_ARCHIVE"
@@ -251,10 +283,10 @@ jobs:
         run: uv run pytest -q tests/ghidra
 
   wiz8:
-    name: WIZ8 comparison and runtime
+    name: WIZ8 comparison
     needs: [scope, toolchain]
     if: >-
-      needs.scope.outputs.wiz8 == 'true' &&
+      needs.scope.outputs.wiz8_compare == 'true' &&
       needs.toolchain.result == 'success' &&
       (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-24.04
@@ -275,40 +307,28 @@ jobs:
         with:
           version: "0.12.13"
           enable-cache: true
-      - name: Install WIZ8 runtime host tools
+      - name: Install WIZ8 comparison host tools
         run: |
           sudo dpkg --add-architecture i386
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            cabextract innoextract llvm p7zip-full unshield \
-            wine wine32:i386 wine64 xvfb zstd
+            innoextract llvm wine wine32:i386 wine64
           mkdir -p "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR"
           command -v llvm-undname
           command -v wine
-          command -v zstd
-      - name: Load VC6 analysis image
-        uses: ./.github/actions/load-vc6-image
-      - name: Restore compiler-backed analysis cache
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            build/clang
-            build/reccmp-source
-            build/source-index.json
-          key: analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
-          restore-keys: |
-            analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-
-      - name: Restore incremental WIZ8 product build
+      - name: Load VC6 product image
+        uses: ./.github/actions/load-vc6-product
+      - name: Restore incremental WIZ8 comparison build
         uses: actions/cache@v4
         with:
           path: build/decomp
-          key: product-wiz8-v1-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
+          key: product-wiz8-comparison-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
           restore-keys: |
-            product-wiz8-v1-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-
+            product-wiz8-comparison-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-
       - name: Install Python dependencies
         run: uv sync --frozen
-      - name: Prepare licensed WIZ8 inputs
-        uses: ./.github/actions/prepare-licensed-inputs
+      - name: Prepare minimal WIZ8 comparison inputs
+        uses: ./.github/actions/prepare-comparison-inputs
         with:
           inputs-token: ${{ secrets.WIZ8_INPUTS_TOKEN }}
           cache-key: ${{ secrets.WIZ8_CACHE_KEY }}
@@ -400,7 +420,7 @@ jobs:
     name: WIZ8 runtime tests
     needs: [scope, toolchain]
     if: >-
-      needs.scope.outputs.wiz8 == 'true' &&
+      needs.scope.outputs.wiz8_runtime == 'true' &&
       needs.toolchain.result == 'success' &&
       (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-24.04
@@ -424,12 +444,10 @@ jobs:
           sudo dpkg --add-architecture i386
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            cabextract innoextract llvm p7zip-full unshield \
-            wine wine32:i386 wine64 xvfb zstd
+            innoextract llvm wine wine32:i386 wine64 xvfb
           mkdir -p "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR"
           command -v llvm-undname
           command -v wine
-          command -v zstd
       - name: Load VC6 analysis image
         uses: ./.github/actions/load-vc6-image
       - name: Restore compiler-backed analysis cache
@@ -446,9 +464,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: build/decomp
-          key: product-wiz8-v1-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
+          key: product-wiz8-runtime-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
           restore-keys: |
-            product-wiz8-v1-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-
+            product-wiz8-runtime-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-
       - name: Install Python dependencies
         run: uv sync --frozen
       - name: Prepare licensed WIZ8 inputs
@@ -525,36 +543,24 @@ jobs:
           sudo dpkg --add-architecture i386
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            cabextract innoextract llvm p7zip-full unshield zstd \
-            wine wine32:i386 wine64
+            innoextract llvm wine wine32:i386 wine64
           mkdir -p "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR"
           command -v llvm-undname
           command -v wine
           command -v winepath
-          command -v zstd
-      - name: Load VC6 analysis image
-        uses: ./.github/actions/load-vc6-image
-      - name: Restore compiler-backed analysis cache
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            build/clang
-            build/reccmp-source
-            build/source-index.json
-          key: analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
-          restore-keys: |
-            analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-
+      - name: Load VC6 product image
+        uses: ./.github/actions/load-vc6-product
       - name: Restore incremental SURRENDER product build
         uses: actions/cache@v4
         with:
           path: build/decomp
-          key: product-surrender-v1-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
+          key: product-surrender-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
           restore-keys: |
-            product-surrender-v1-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-
+            product-surrender-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml') }}-
       - name: Install Python dependencies
         run: uv sync --frozen
-      - name: Prepare licensed SURRENDER inputs
-        uses: ./.github/actions/prepare-licensed-inputs
+      - name: Prepare minimal SURRENDER comparison inputs
+        uses: ./.github/actions/prepare-comparison-inputs
         with:
           inputs-token: ${{ secrets.WIZ8_INPUTS_TOKEN }}
           cache-key: ${{ secrets.WIZ8_CACHE_KEY }}
@@ -579,7 +585,7 @@ jobs:
 
   ci:
     name: Public checks, lints, and tests
-    needs: [scope, toolchain, repository, analysis, wiz8, surrender]
+    needs: [scope, toolchain, repository, analysis, wiz8, wiz8-runtime, surrender]
     if: always()
     runs-on: ubuntu-24.04
     steps:
@@ -590,10 +596,11 @@ jobs:
           REPOSITORY_RESULT: ${{ needs.repository.result }}
           ANALYSIS_RESULT: ${{ needs.analysis.result }}
           WIZ8_RESULT: ${{ needs.wiz8.result }}
+          WIZ8_RUNTIME_RESULT: ${{ needs['wiz8-runtime'].result }}
           SURRENDER_RESULT: ${{ needs.surrender.result }}
         run: |
           set -euo pipefail
-          for result in "$SCOPE_RESULT" "$TOOLCHAIN_RESULT" "$REPOSITORY_RESULT" "$ANALYSIS_RESULT" "$WIZ8_RESULT" "$SURRENDER_RESULT"; do
+          for result in "$SCOPE_RESULT" "$TOOLCHAIN_RESULT" "$REPOSITORY_RESULT" "$ANALYSIS_RESULT" "$WIZ8_RESULT" "$WIZ8_RUNTIME_RESULT" "$SURRENDER_RESULT"; do
             case "$result" in
               success|skipped) ;;
               *) echo "selected CI lane failed or was cancelled: $result" >&2; exit 1 ;;

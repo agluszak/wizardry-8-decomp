@@ -21,6 +21,7 @@ from .reccmp_data import write_wiz8_data_source
 from .subprocesses import resolve_executable, run
 
 VC6_IMAGE = "wizardry8-msvc600:sp5"
+VC6_PRODUCT_IMAGE = "wizardry8-msvc600:sp5-product"
 LINT_BUILD_DIR = "build/clang"
 DIAGNOSTICS_BUILD_DIR = "build/clang-diagnostics"
 TARGET_ALIASES = {
@@ -72,7 +73,7 @@ class ContainerBuild:
     def from_settings(cls, settings: Settings) -> ContainerBuild:
         sources = settings.work_dir / "fid" / "sources" / "unpacked"
         return cls(
-            image=VC6_IMAGE,
+            image=VC6_PRODUCT_IMAGE,
             mounts=(
                 Mount(settings.repo_dir, "/repo"),
                 Mount(sources / "ijg-jpeg-6" / "jpeg-6", "/jpeg"),
@@ -209,6 +210,137 @@ def prepare(settings: Settings) -> dict[str, Any]:
             "skipped": sum(row["status"] != "ready" for row in sources["sources"]),
         },
         "detect": "ok",
+    }
+
+
+def prepare_comparison(settings: Settings, target_ids: list[str]) -> dict[str, Any]:
+    """Prepare only the retail binaries and public sources needed for comparison.
+
+    Unlike :func:`prepare`, this path never materializes the full game variant.
+    It extracts the requested original binaries directly from the GOG installer,
+    verifies them against reccmp-project.yml, and keeps them under a small
+    comparison-only tree suitable for encrypted CI caching.
+    """
+
+    import shutil
+
+    from .extract.archives import extract_inno
+    from .ghidra.fid_seeds import fetch_seed_sources
+    from .inputs.scan import load_manifest
+    from .paths import build_directory_atomically, ensure_safe_generated_target, sha256_file
+    from .source_index import project_targets
+
+    started = time.perf_counter()
+    wanted = list(dict.fromkeys(target.upper() for target in target_ids))
+    if not wanted:
+        raise ValueError("prepare_comparison requires at least one target")
+
+    configured = project_targets(settings.repo_dir)
+    unknown = [target for target in wanted if target not in configured]
+    if unknown:
+        raise ValueError("unknown comparison target(s): " + ", ".join(unknown))
+
+    specs: dict[str, tuple[str, str]] = {}
+    for target in wanted:
+        target_config = configured[target]
+        filename = str(target_config["filename"])
+        expected_hash = str((target_config.get("hash") or {}).get("sha256") or "")
+        if len(expected_hash) != 64:
+            raise ValueError(f"{target} does not have a pinned SHA-256")
+        specs[target] = (filename, expected_hash)
+
+    destination = settings.work_dir / "comparison" / "gog-base"
+    ensure_safe_generated_target(destination, settings.work_dir)
+
+    def valid_existing() -> bool:
+        return all(
+            (destination / filename).is_file()
+            and sha256_file(destination / filename) == expected_hash
+            for filename, expected_hash in specs.values()
+        )
+
+    extraction = "cached"
+    extract_started = time.perf_counter()
+    if not valid_existing():
+        if destination.exists():
+            shutil.rmtree(destination)
+
+        manifest = load_manifest(settings)
+        matches = [item for item in manifest.files if item.configured_role == "gog-media"]
+        if len(matches) != 1:
+            raise RuntimeError(f"expected exactly one gog-media input, found {len(matches)}")
+        record = matches[0]
+        if record.installer_technology != "Inno Setup":
+            raise RuntimeError("comparison-only preparation requires the canonical Inno GOG installer")
+        source = settings.input_dir / record.relative_path
+        log = settings.build_dir / "logs" / "extract" / "comparison-originals.json"
+
+        def build(candidate: Path) -> None:
+            raw = candidate.parent / "inno"
+            extract_inno(
+                source,
+                raw,
+                log_path=log,
+                includes=tuple(filename for filename, _expected in specs.values()),
+            )
+            candidate.mkdir(parents=True)
+            for target, (filename, expected_hash) in specs.items():
+                candidates = [
+                    path
+                    for path in raw.rglob("*")
+                    if path.is_file() and path.name.casefold() == Path(filename).name.casefold()
+                ]
+                matching = [path for path in candidates if sha256_file(path) == expected_hash]
+                if len(matching) != 1:
+                    raise RuntimeError(
+                        f"filtered installer extraction did not produce exactly one reviewed "
+                        f"{target} binary ({filename}); matching={len(matching)} candidates={len(candidates)}"
+                    )
+                shutil.copy2(matching[0], candidate / filename)
+
+        build_directory_atomically(destination, settings.work_dir, build)
+        extraction = "filtered-installer"
+
+    extraction_ms = int((time.perf_counter() - extract_started) * 1000)
+
+    sources_started = time.perf_counter()
+    sources = fetch_seed_sources(settings)
+    sources_ms = int((time.perf_counter() - sources_started) * 1000)
+
+    if "WIZ8" in wanted:
+        write_wiz8_data_source(settings.repo_dir)
+
+    detect_started = time.perf_counter()
+    run(
+        [
+            "reccmp-project",
+            "detect",
+            "--search-path",
+            destination,
+            "--what",
+            "original",
+        ],
+        cwd=settings.repo_dir,
+        log_path=settings.build_dir / "logs" / "reccmp-detect-comparison.json",
+    )
+    detect_ms = int((time.perf_counter() - detect_started) * 1000)
+
+    return {
+        "status": "ok",
+        "mode": "comparison",
+        "targets": wanted,
+        "original_dir": str(destination),
+        "extraction": extraction,
+        "sources": {
+            "ready": sum(row["status"] == "ready" for row in sources["sources"]),
+            "skipped": sum(row["status"] != "ready" for row in sources["sources"]),
+        },
+        "timings_ms": {
+            "originals": extraction_ms,
+            "sources": sources_ms,
+            "detect": detect_ms,
+            "total": int((time.perf_counter() - started) * 1000),
+        },
     }
 
 
@@ -831,6 +963,8 @@ def check(repository: Path) -> dict[str, Any]:
 
     settings = load_settings()
     assert settings is not None
+    check_started = time.perf_counter()
+    timings_ms: dict[str, int] = {}
     cheap_commands = (
         ("format", ["ruff", "format", "--check", "."]),
         ("ruff", ["ruff", "check", "."]),
@@ -838,13 +972,17 @@ def check(repository: Path) -> dict[str, Any]:
     )
     gates: list[dict[str, str]] = []
     for name, command in cheap_commands:
+        started = time.perf_counter()
         log = Path("build/logs") / f"check-{name}.json"
         run(command, cwd=repository, log_path=repository / log)
+        timings_ms[name] = int((time.perf_counter() - started) * 1000)
         gates.append({"name": name, "status": "passed", "log": str(log)})
 
     # The repository suite and later comparisons read this projection; its
     # writer also validates synthetic markers and cross-TU declarations.
+    started = time.perf_counter()
     source_index = write_source_index(settings)
+    timings_ms["source-index"] = int((time.perf_counter() - started) * 1000)
     validators = (
         ("source-units", lambda: validate_source_units(repository)),
         ("header-architecture", lambda: validate_header_architecture(repository)),
@@ -861,19 +999,25 @@ def check(repository: Path) -> dict[str, Any]:
         ("structures", lambda: validate_structures(repository)),
     )
     for name, action in validators:
+        started = time.perf_counter()
         action()
+        timings_ms[name] = int((time.perf_counter() - started) * 1000)
         gates.append({"name": name, "status": "passed"})
 
     tests_log = Path("build/logs/check-tests.json")
+    started = time.perf_counter()
     run(
         ["pytest", "tests/unit", "tests/repository"],
         cwd=repository,
         log_path=repository / tests_log,
     )
+    timings_ms["tests"] = int((time.perf_counter() - started) * 1000)
     gates.append({"name": "tests", "status": "passed", "log": str(tests_log)})
+    timings_ms["total"] = int((time.perf_counter() - check_started) * 1000)
     return {
         "status": "passed",
         "source_index": source_index["path"],
         "source_index_cached": bool(source_index.get("cached")),
+        "timings_ms": timings_ms,
         "gates": gates,
     }

@@ -14,29 +14,52 @@ _DOC_FILES = {
     "LICENSE",
 }
 
-_SHARED_PREFIXES = (
+_ALL_HEAVY_PREFIXES = (
     ".github/actions/",
     ".github/scripts/",
     ".github/workflows/",
     "cmake/",
     "docker/msvc600/",
-    "tools/wiz8decomp/",
+    "tools/wiz8decomp/extract/",
+    "tools/wiz8decomp/inputs/",
 )
-_SHARED_FILES = {
+_ALL_HEAVY_FILES = {
     "CMakeLists.txt",
     "pyproject.toml",
-    "reccmp-project.yml",
     "uv.lock",
+    "config/static-libraries.yml",
+    "tools/wiz8decomp/build.py",
+    "tools/wiz8decomp/config.py",
+    "tools/wiz8decomp/paths.py",
+    "tools/wiz8decomp/subprocesses.py",
+    "tools/wiz8decomp/commands/core.py",
+    "tools/wiz8decomp/ghidra/fid_seeds.py",
 }
 
-_WIZ8_PREFIXES = (
+_WIZ8_SOURCE_PREFIXES = (
     "include/wiz8/",
     "src/wiz8/",
     "src/sgp/",
-    "tests/runtime/",
-    "tests/licensed/",
-    "evidence/reviewed/wiz8/",
 )
+_WIZ8_RUNTIME_PREFIXES = (
+    "config/runtime/",
+    "tests/runtime/",
+    "tools/wiz8decomp/debug/",
+)
+_WIZ8_RUNTIME_FILES = {
+    "tools/wiz8decomp/runtime.py",
+    "tools/wiz8decomp/runtime_stubs.py",
+}
+_WIZ8_COMPARISON_PREFIXES = (
+    "config/reccmp/",
+    "tests/licensed/",
+)
+_WIZ8_COMPARISON_FILES = {
+    "reccmp-project.yml",
+    "tools/wiz8decomp/comparison.py",
+    "tools/wiz8decomp/reccmp_data.py",
+    "tools/wiz8decomp/reports/status.py",
+}
 _SURRENDER_PREFIXES = (
     "src/surrender/",
     "evidence/reviewed/surrender/",
@@ -46,9 +69,14 @@ _ANALYSIS_PREFIXES = (
     "tests/recovery/",
     "tools/ghidra-scripts/",
     "tools/recovery-fixture/",
+    "tools/wiz8decomp/ghidra/",
     "evidence/seeds/",
     "evidence/snapshots/",
 )
+_SOURCE_INDEX_FILES = {
+    "tools/wiz8decomp/source_index.py",
+    "tools/wiz8decomp/clang_tidy_lines.py",
+}
 
 
 def _matches(path: str, prefixes: tuple[str, ...]) -> bool:
@@ -63,9 +91,11 @@ def classify(paths: Iterable[str]) -> dict[str, bool]:
             path = path[2:]
         if path:
             normalized.add(path)
+
     public = False
     analysis = False
-    wiz8 = False
+    wiz8_compare = False
+    wiz8_runtime = False
     surrender = False
 
     for path in normalized:
@@ -73,41 +103,53 @@ def classify(paths: Iterable[str]) -> dict[str, bool]:
         if not docs_only:
             public = True
 
-        shared = path in _SHARED_FILES or _matches(path, _SHARED_PREFIXES)
-        config_shared = path.startswith("config/") and not path.startswith("config/runtime/")
-        surrender_header = path.startswith("include/surrender/")
-
-        if shared or config_shared:
+        if path in _ALL_HEAVY_FILES or _matches(path, _ALL_HEAVY_PREFIXES):
             analysis = True
-            wiz8 = True
+            wiz8_compare = True
+            wiz8_runtime = True
             surrender = True
             continue
 
-        if surrender_header:
-            # Provider headers are also a compile-time dependency of Wiz8.
-            wiz8 = True
+        if path in _SOURCE_INDEX_FILES:
+            analysis = True
+            wiz8_runtime = True
+
+        if path.startswith("include/surrender/"):
+            # Provider headers are compile-time inputs to both the provider and Wiz8.
             surrender = True
+            wiz8_compare = True
+            wiz8_runtime = True
             continue
 
-        if (
-            path == "include/bink.h"
-            or path.startswith("config/runtime/")
-            or _matches(path, _WIZ8_PREFIXES)
-        ):
-            wiz8 = True
+        if _matches(path, _WIZ8_SOURCE_PREFIXES) or path == "include/bink.h":
+            wiz8_compare = True
+            wiz8_runtime = True
+
+        if path in _WIZ8_RUNTIME_FILES or _matches(path, _WIZ8_RUNTIME_PREFIXES):
+            wiz8_runtime = True
+
+        if path in _WIZ8_COMPARISON_FILES or _matches(path, _WIZ8_COMPARISON_PREFIXES):
+            wiz8_compare = True
+            if path == "reccmp-project.yml" or path == "tools/wiz8decomp/reports/status.py":
+                surrender = True
+
+        if path.startswith("evidence/reviewed/wiz8/"):
+            wiz8_compare = True
+            analysis = True
 
         if _matches(path, _SURRENDER_PREFIXES):
             surrender = True
+            if path.startswith("evidence/reviewed/"):
+                analysis = True
 
-        if _matches(path, _ANALYSIS_PREFIXES) or path.startswith(
-            ("evidence/reviewed/", "tools/ghidra/")
-        ):
+        if _matches(path, _ANALYSIS_PREFIXES):
             analysis = True
 
     return {
         "public": public,
         "analysis": analysis,
-        "wiz8": wiz8,
+        "wiz8_compare": wiz8_compare,
+        "wiz8_runtime": wiz8_runtime,
         "surrender": surrender,
     }
 
