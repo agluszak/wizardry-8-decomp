@@ -16,7 +16,7 @@ def _use(
 ) -> dict:
     return {
         "field_identity": identity,
-        "owner_identity": f"record:{owner}",
+        "owner_identity": f"c:@S@{owner}",
         "owner_status": "resolved",
         "owner": owner,
         "name": name,
@@ -40,6 +40,28 @@ def _use(
     }
 
 
+def _class(
+    name: str,
+    *,
+    target: str = "WIZ8",
+    size: int = 16,
+    alignment: int = 4,
+    bases: tuple[str, ...] = (),
+    base_offsets: tuple[dict, ...] = (),
+    layout_trusted: bool = True,
+) -> dict:
+    return {
+        "semantic_id": f"record:{name}",
+        "qualified_name": name,
+        "target": target,
+        "size": size,
+        "alignment": alignment,
+        "bases": list(bases),
+        "base_offsets": list(base_offsets),
+        "layout_trusted": layout_trusted,
+    }
+
+
 def test_same_bare_field_name_stays_separate_by_owner_and_target() -> None:
     index = {
         "member_uses": [
@@ -55,7 +77,12 @@ def test_same_bare_field_name_stays_separate_by_owner_and_target() -> None:
                 identity="record:srRenderer::field@include/surrender/renderer.h:12:0",
                 function="?Read@srRenderer@@QAEHXZ",
             ),
-        ]
+        ],
+        "classes": [
+            _class("W8First"),
+            _class("W8Second"),
+            _class("srRenderer", target="SURRENDER"),
+        ],
     }
 
     wiz8 = _field_observations(index, "WIZ8")
@@ -63,6 +90,10 @@ def test_same_bare_field_name_stays_separate_by_owner_and_target() -> None:
 
     assert len(wiz8) == 2
     assert {row["owner_identity"] for row in wiz8} == {
+        "c:@S@W8First",
+        "c:@S@W8Second",
+    }
+    assert {row["owner_semantic_id"] for row in wiz8} == {
         "record:W8First",
         "record:W8Second",
     }
@@ -161,7 +192,10 @@ def test_default_filter_selector_four_fits_the_fifth_source_map_entry() -> None:
 
     report = _field_flow_triage(
         Path("."),
-        {"member_uses": [use], "classes": []},
+        {
+            "member_uses": [use],
+            "classes": [_class("srGERD", target="SURRENDER", size=0x1F80)],
+        },
         "SURRENDER",
         [{"case": "S01", "flow": flow}],
         identities_by_address={0x10018650: (identity,)},
@@ -222,7 +256,10 @@ def test_selector_outside_source_extent_stays_a_contradiction() -> None:
 
     report = _field_flow_triage(
         Path("."),
-        {"member_uses": [use], "classes": []},
+        {
+            "member_uses": [use],
+            "classes": [_class("srGERD", target="SURRENDER", size=0x1F80)],
+        },
         "SURRENDER",
         [{"case": "S01", "flow": flow}],
         identities_by_address={0x10018650: (identity,)},
@@ -235,9 +272,14 @@ def test_selector_outside_source_extent_stays_a_contradiction() -> None:
     assert contradiction[0]["status"] == "contradiction"
 
 
-def test_stride_join_uses_source_parameter_and_compiler_fields_not_ghidra_type() -> None:
+def test_stride_join_uses_complete_class_size_not_only_observed_fields() -> None:
     uses = [
-        _use(owner="srVector3T<float>", identity=f"vector3:{name}", name=name)
+        _use(
+            owner="srVector3T<float>",
+            identity=f"vector3:{name}",
+            name=name,
+            function="render:poly_normals",
+        )
         for name in ("x", "y", "z")
     ]
     for use, offset in zip(uses, (0, 4, 8), strict=True):
@@ -271,7 +313,7 @@ def test_stride_join_uses_source_parameter_and_compiler_fields_not_ghidra_type()
                 "effective_address": {
                     "root": "00470380:poly_normals",
                     "constant": component,
-                    "terms": [{"stride": 12, "index": {"identity": ["register", str(index)]}}],
+                    "terms": [{"stride": 16, "index": {"identity": ["register", str(index)]}}],
                 },
             }
             for index, component in enumerate((0, 4, 8), 1)
@@ -281,20 +323,70 @@ def test_stride_join_uses_source_parameter_and_compiler_fields_not_ghidra_type()
 
     report = _field_flow_triage(
         Path("."),
-        {"member_uses": uses, "classes": []},
+        {
+            "member_uses": uses,
+            "classes": [_class("srVector3T<float>", size=16)],
+        },
         "WIZ8",
         [{"case": "S05", "flow": flow, "source_parameter_index": 2}],
         identities_by_address={0x470380: (identity,)},
     )
 
     stride = report["categories"]["actual_pointee_stride"][0]
-    assert stride["source_element_bytes_from_compiler_fields"] == 12
-    assert stride["retail_strides_bytes"] == [12]
+    assert stride["source_element_bytes"] == 16
+    assert {field["name"] for field in stride["observed_source_fields"]} == {"x", "y", "z"}
+    assert stride["retail_strides_bytes"] == [16]
     assert stride["status"] == "consistent"
     assert stride["ghidra_root_type"] == "srVector4T<float> *"
     assert report["categories"]["unresolved_owner_or_root"][0]["reason"].startswith(
         "the selected rooted flow is incomplete"
     )
+
+
+def test_stride_stays_visible_when_compiler_layout_is_untrusted() -> None:
+    use = _use(owner="W8Vector", identity="vector:x", name="x")
+    use.update(offset_bytes=0, extent_bytes=4, declared_type="float")
+    identity = SimpleNamespace(
+        qualified_name="ReadVector",
+        semantic_id=use["function_identity"],
+        owning_class=None,
+        parameter_types=("const W8Vector *",),
+        has_this=False,
+    )
+    flow = {
+        "entry": "00401000",
+        "root": {"identity": "vector-root", "role": "argument"},
+        "accesses": [
+            {
+                "kind": "load",
+                "site": "00401010",
+                "width": 4,
+                "effective_address": {
+                    "root": "vector-root",
+                    "constant": 0,
+                    "terms": [{"stride": 16}],
+                },
+            }
+        ],
+        "completeness": {"status": "complete", "stops": []},
+    }
+
+    report = _field_flow_triage(
+        Path("."),
+        {
+            "member_uses": [use],
+            "classes": [_class("W8Vector", layout_trusted=False)],
+        },
+        "WIZ8",
+        [{"case": "untrusted-layout", "flow": flow, "source_parameter_index": 0}],
+        identities_by_address={0x401000: (identity,)},
+    )
+
+    stride = report["categories"]["actual_pointee_stride"][0]
+    assert stride["source_element_bytes"] is None
+    assert stride["source_layout_trusted"] is False
+    assert stride["retail_strides_bytes"] == [16]
+    assert stride["status"] == "source_layout_unavailable"
 
 
 def test_crossing_and_byte_accesses_remain_candidates_and_receivers_stay_scoped() -> None:
@@ -330,7 +422,7 @@ def test_crossing_and_byte_accesses_remain_candidates_and_receivers_stay_scoped(
     }
     report = _field_flow_triage(
         Path("."),
-        {"member_uses": [first], "classes": []},
+        {"member_uses": [first], "classes": [_class("W8First")]},
         "WIZ8",
         [{"case": "receiver-one", "flow": flow}],
         identities_by_address={0x2000: (identity,)},
@@ -358,8 +450,8 @@ def test_typed_project_conversion_stays_local_and_cannot_resolve_through_a_wrapp
         {
             "member_uses": [use],
             "classes": [
-                {"target": "WIZ8", "qualified_name": "W8First"},
-                {"target": "WIZ8", "qualified_name": "W8Second"},
+                _class("W8First"),
+                _class("W8Second"),
             ],
         },
         "WIZ8",
@@ -391,8 +483,8 @@ def test_field_flow_categories_report_counts_when_examples_are_bounded() -> None
         {
             "member_uses": uses,
             "classes": [
-                {"target": "WIZ8", "qualified_name": "W8First"},
-                {"target": "WIZ8", "qualified_name": "W8Second"},
+                _class("W8First"),
+                _class("W8Second"),
             ],
         },
         "WIZ8",

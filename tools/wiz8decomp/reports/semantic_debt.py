@@ -78,6 +78,7 @@ def _source_shaping_directives(repository: Path, target: str) -> list[dict[str, 
     return rows
 
 
+
 def _comment_regions(lines: list[str]) -> list[tuple[int, int, str]]:
     """Return (start_line, end_line, text) for ``/* */`` blocks and ``//`` runs.
 
@@ -242,6 +243,13 @@ def semantic_name_opportunity_report(repository: Path) -> dict[str, Any]:
 
 def _field_observations(index: dict[str, Any], target: str) -> list[dict[str, Any]]:
     """Group compiler-collected member expressions by canonical field identity."""
+    class_ids = {
+        (str(record.get("target") or "").upper(), str(record.get("qualified_name") or "")): str(
+            record.get("semantic_id") or ""
+        )
+        for record in index.get("classes", [])
+        if record.get("semantic_id") and record.get("qualified_name")
+    }
     grouped: dict[tuple[str, str, str], dict[str, Any]] = {}
     for use in index["member_uses"]:
         if str(use.get("target") or "").upper() != target.upper():
@@ -257,6 +265,8 @@ def _field_observations(index: dict[str, Any], target: str) -> list[dict[str, An
             {
                 "target": target.upper(),
                 "owner_identity": owner_identity or None,
+                "owner_semantic_id": class_ids.get((target.upper(), str(use.get("owner") or "")))
+                or None,
                 "owner_status": str(
                     use.get("owner_status") or ("resolved" if owner_identity else "unknown")
                 ),
@@ -323,6 +333,45 @@ def _source_pointee(type_name: str) -> str | None:
     return match.group(1).strip() if match else None
 
 
+def _class_member_fields(
+    owner_class: dict[str, Any] | None,
+    classes_by_name: dict[str, dict[str, Any]],
+    field_groups: dict[str, list[dict[str, Any]]],
+) -> list[dict[str, Any]]:
+    """Return observed fields in a class, including trusted base-subobject offsets."""
+    if owner_class is None:
+        return []
+
+    fields: list[dict[str, Any]] = []
+
+    def visit(record: dict[str, Any], base_offset: int, path: frozenset[str]) -> None:
+        semantic_id = str(record.get("semantic_id") or "")
+        if not semantic_id or semantic_id in path:
+            return
+        for field in field_groups.get(semantic_id, []):
+            offset = field.get("offset_bytes")
+            adjusted = dict(field)
+            adjusted["offset_bytes"] = offset + base_offset if isinstance(offset, int) else None
+            fields.append(adjusted)
+
+        if record.get("layout_trusted") is not True:
+            return
+        offsets = {
+            str(base.get("name") or ""): base.get("offset")
+            for base in record.get("base_offsets", [])
+            if isinstance(base, dict)
+        }
+        for base_name in record.get("bases", []):
+            base_name = str(base_name)
+            offset = offsets.get(base_name)
+            base_record = classes_by_name.get(base_name)
+            if isinstance(offset, int) and base_record is not None:
+                visit(base_record, base_offset + offset, path | {semantic_id})
+
+    visit(owner_class, 0, frozenset())
+    return fields
+
+
 def _field_flow_triage(
     repository: Path,
     index: dict[str, Any],
@@ -336,18 +385,23 @@ def _field_flow_triage(
     fields = _field_observations(index, wanted)
     field_groups: dict[str, list[dict[str, Any]]] = {}
     for field in fields:
-        if field["owner_identity"]:
-            field_groups.setdefault(field["owner_identity"], []).append(field)
+        if field["owner_semantic_id"]:
+            field_groups.setdefault(field["owner_semantic_id"], []).append(field)
 
     identities = (
         identities_by_address
         if identities_by_address is not None
         else address_bound_identities(repository, wanted)
     )
-    class_names = {
-        str(record.get("qualified_name") or "")
+    classes_by_name = {
+        str(record.get("qualified_name") or ""): record
         for record in index.get("classes", [])
         if str(record.get("target") or "").upper() == wanted
+        and record.get("qualified_name")
+        and record.get("semantic_id")
+    }
+    class_ids_by_name = {
+        name: str(record["semantic_id"]) for name, record in classes_by_name.items()
     }
     report: dict[str, Any] = {
         "schema": "wiz8.semantic-debt-field-flow-v1",
@@ -388,8 +442,9 @@ def _field_flow_triage(
                 owner_name = _source_pointee(parameters[int(parameter_index)])
                 if owner_name:
                     witness_kind = "source declaration parameter"
-        owner_identity = f"record:{owner_name}" if owner_name else None
-        owner_fields = field_groups.get(owner_identity or "", [])
+        owner_semantic_id = class_ids_by_name.get(owner_name or "")
+        owner_class = classes_by_name.get(owner_name or "")
+        owner_fields = _class_member_fields(owner_class, classes_by_name, field_groups)
         root_identity = str(root.get("identity") or "")
         accesses = list(flow.get("accesses") or ())
         stops = list((flow.get("completeness") or {}).get("stops") or ())
@@ -402,7 +457,11 @@ def _field_flow_triage(
             "root": root,
             "source_identity": identity.qualified_name if identity is not None else None,
             "source_owner_witness": (
-                {"kind": witness_kind, "owner": owner_name, "owner_identity": owner_identity}
+                {
+                    "kind": witness_kind,
+                    "owner": owner_name,
+                    "owner_semantic_id": owner_semantic_id,
+                }
                 if owner_name
                 else None
             ),
@@ -410,14 +469,18 @@ def _field_flow_triage(
         }
         report["queries"].append(query)
 
-        if owner_identity is None or not root_identity:
+        if owner_semantic_id is None or not root_identity:
             report["categories"]["unresolved_owner_or_root"].append(
                 {
                     "case": query["case"],
                     "entry": entry_text,
                     "requested_root": root.get("requested"),
                     "source_identity_candidates": [item.qualified_name for item in candidates],
-                    "reason": "no unique source owner/pointer witness for this root",
+                    "reason": (
+                        "no compiler class record for the source owner"
+                        if owner_name and owner_semantic_id is None
+                        else "no unique source owner/pointer witness for this root"
+                    ),
                     "stops": stops,
                 }
             )
@@ -426,7 +489,7 @@ def _field_flow_triage(
                 {
                     "case": query["case"],
                     "entry": entry_text,
-                    "owner_identity": owner_identity,
+                    "owner_semantic_id": owner_semantic_id,
                     "reason": "the selected rooted flow is incomplete; positive rows remain scoped",
                     "stops": stops,
                 }
@@ -442,22 +505,22 @@ def _field_flow_triage(
                 continue
             direct_accesses.append((access, constant))
 
-        if identity is not None and owner_identity:
+        if identity is not None and owner_semantic_id:
             function_uses = [
                 use
                 for field in owner_fields
                 for use in field["uses"]
                 if use["function_identity"] == identity.semantic_id
             ]
-            field_by_identity = {
-                field["field_identity"]: field
-                for field in owner_fields
-                if any(use["function_identity"] == identity.semantic_id for use in field["uses"])
-            }
+            field_by_identity: dict[str, list[dict[str, Any]]] = {}
+            for field in owner_fields:
+                if any(use["function_identity"] == identity.semantic_id for use in field["uses"]):
+                    field_by_identity.setdefault(field["field_identity"], []).append(field)
             for use in function_uses:
-                field = field_by_identity.get(use["field_identity"])
-                if field is None or "array-index" not in use["operations"]:
+                matching_fields = field_by_identity.get(use["field_identity"], [])
+                if len(matching_fields) != 1 or "array-index" not in use["operations"]:
                     continue
+                field = matching_fields[0]
                 array_match = re.search(r"\[(\d+)\]$", field["declared_type"])
                 extent = field["extent_bytes"]
                 if not array_match or not isinstance(extent, int):
@@ -485,7 +548,7 @@ def _field_flow_triage(
                         continue
                     row = {
                         "case": query["case"],
-                        "owner_identity": owner_identity,
+                        "owner_semantic_id": owner_semantic_id,
                         "field_identity": field["field_identity"],
                         "field": field["name"],
                         "declared_type": field["declared_type"],
@@ -515,17 +578,19 @@ def _field_flow_triage(
                 if 0 <= int(parameter_index) < len(parameters)
                 else None
             )
-            pointee_fields = field_groups.get(f"record:{pointee}", []) if pointee else []
-            members = {
-                (
-                    field["name"],
-                    field["offset_bytes"],
-                    field["extent_bytes"],
-                )
+            pointee_class = classes_by_name.get(pointee or "")
+            pointee_semantic_id = class_ids_by_name.get(pointee or "")
+            pointee_fields = _class_member_fields(pointee_class, classes_by_name, field_groups)
+            observed_fields = {
+                (field["name"], field["offset_bytes"], field["extent_bytes"])
                 for field in pointee_fields
-                if isinstance(field["offset_bytes"], int) and isinstance(field["extent_bytes"], int)
+                if any(use["function_identity"] == identity.semantic_id for use in field["uses"])
             }
-            source_extent = max((offset + extent for _, offset, extent in members), default=None)
+            source_extent = None
+            if pointee_class is not None and pointee_class.get("layout_trusted") is True:
+                size = pointee_class.get("size")
+                if isinstance(size, int):
+                    source_extent = size
             stride_values: set[int] = set()
             for access in accesses:
                 effective_address = access.get("effective_address")
@@ -541,28 +606,48 @@ def _field_flow_triage(
                     if isinstance(term, dict) and isinstance(term.get("stride"), int):
                         stride_values.add(int(term["stride"]))
             strides = sorted(stride_values)
-            if source_extent is not None and strides:
+            if strides:
+                if source_extent is None:
+                    status = "source_layout_unavailable"
+                elif strides == [source_extent]:
+                    status = "consistent"
+                else:
+                    status = "stride_contradiction"
                 report["categories"]["actual_pointee_stride"].append(
                     {
                         "case": query["case"],
                         "source_identity": identity.qualified_name,
                         "source_parameter_type": parameters[int(parameter_index)],
                         "source_pointee": pointee,
-                        "source_element_bytes_from_compiler_fields": source_extent,
-                        "source_layout_fields": [
+                        "source_class_semantic_id": pointee_semantic_id,
+                        "source_element_bytes": source_extent,
+                        "source_layout_alignment_bytes": (
+                            pointee_class.get("alignment") if pointee_class is not None else None
+                        ),
+                        "source_layout_trusted": (
+                            pointee_class.get("layout_trusted")
+                            if pointee_class is not None
+                            else None
+                        ),
+                        "observed_source_fields": [
                             {"name": name, "offset_bytes": offset, "extent_bytes": extent}
-                            for name, offset, extent in sorted(members, key=lambda item: item[1])
+                            for name, offset, extent in sorted(
+                                observed_fields,
+                                key=lambda item: (
+                                    item[1] if isinstance(item[1], int) else -1,
+                                    item[0],
+                                    item[2] if isinstance(item[2], int) else -1,
+                                ),
+                            )
                         ],
                         "retail_strides_bytes": strides,
-                        "status": "consistent"
-                        if strides == [source_extent]
-                        else "stride_contradiction",
+                        "status": status,
                         "ghidra_root_type": root.get("type"),
                         "ghidra_type_origin": root.get("type_origin"),
                     }
                 )
 
-        if owner_identity:
+        if owner_semantic_id:
             for access, offset in direct_accesses:
                 width = access.get("width")
                 if not isinstance(width, int) or width <= 0:
@@ -584,7 +669,7 @@ def _field_flow_triage(
                     report["categories"]["byte_access_interpretation"].append(
                         {
                             "case": query["case"],
-                            "owner_identity": owner_identity,
+                            "owner_semantic_id": owner_semantic_id,
                             "field_identity": field["field_identity"],
                             "offset": f"0x{offset:x}",
                             "declared_type": field["declared_type"],
@@ -610,7 +695,7 @@ def _field_flow_triage(
                     report["categories"]["cross_member_boundary"].append(
                         {
                             "case": query["case"],
-                            "owner_identity": owner_identity,
+                            "owner_semantic_id": owner_semantic_id,
                             "field_identity": field["field_identity"],
                             "offset": f"0x{offset:x}",
                             "width": width,
@@ -628,10 +713,15 @@ def _field_flow_triage(
             for conversion in use["conversions"]:
                 source = _source_pointee(conversion.get("source_type", "")) or ""
                 destination = _source_pointee(conversion.get("destination_type", "")) or ""
-                if source in class_names and destination in class_names and source != destination:
+                if (
+                    source in classes_by_name
+                    and destination in classes_by_name
+                    and source != destination
+                ):
                     conversions.append(
                         {
                             "owner_identity": field["owner_identity"],
+                            "owner_semantic_id": field["owner_semantic_id"],
                             "field_identity": field["field_identity"],
                             "function_identity": use["function_identity"],
                             "source_type": conversion["source_type"],
@@ -653,6 +743,7 @@ def _field_flow_triage(
                 report["categories"]["bulk_copy_candidates"].append(
                     {
                         "owner_identity": field["owner_identity"],
+                        "owner_semantic_id": field["owner_semantic_id"],
                         "field_identity": field["field_identity"],
                         "function_identity": use["function_identity"],
                         "operations": copies,
