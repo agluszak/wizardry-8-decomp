@@ -3705,19 +3705,19 @@ void EndRenderProbe004289C0(void)
    provenance. They are instantiation output from the SurRender headers, not
    authored Video2 bodies. */
 // VTABLE: WIZ8 0x005EBE98
-// class srClassSupport<srMeshModel, class srMeshModel, 0, 8208>
+// class srClientSupport<srMeshModel,8208>
 
 // TEMPLATE: WIZ8 0x00429B30
-// srClassSupport<srMeshModel,srMeshModel,0,8208>::getClassID
+// srClientSupport<srMeshModel,8208>::getClassID
 
 // TEMPLATE: WIZ8 0x00429B40
-// srClassSupport<srMeshModel,srMeshModel,0,8208>::getClassName
+// srClientSupport<srMeshModel,8208>::getClassName
 
 // TEMPLATE: WIZ8 0x00429B50
-// srClassSupport<srMeshModel,srMeshModel,0,8208>::getClassNode
+// srClientSupport<srMeshModel,8208>::getClassNode
 
 // TEMPLATE: WIZ8 0x00429BC0
-// srClassSupport<srMeshModel,srMeshModel,0,8208>::clone
+// srClientSupport<srMeshModel,8208>::clone
 
 /* 0x00424A50 calls the imported ~srMeshModel: it is the local
    ??_GsrMeshModel thunk, not the support-class deleting destructor. */
@@ -3727,7 +3727,7 @@ void EndRenderProbe004289C0(void)
 /* CVDUMP includes the class tag on the repeated self-type argument in each
    vftable symbol below. These remain ordinary self-support instantiations. */
 // VTABLE: WIZ8 0x005EBEEC
-// class srClassSupport<srTextureMap, class srTextureMap, 0, 8465>
+// class srClientSupport<srTextureMap,8465>
 
 /* 0x00424B70 calls the imported ~srTextureMap: it is the local
    ??_GsrTextureMap thunk, not the support-class deleting destructor. */
@@ -3735,44 +3735,41 @@ void EndRenderProbe004289C0(void)
 // srTextureMap::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00429BE0
-// srClassSupport<srTextureMap,srTextureMap,0,8465>::getClassID
+// srClientSupport<srTextureMap,8465>::getClassID
 
 // TEMPLATE: WIZ8 0x00429BF0
-// srClassSupport<srTextureMap,srTextureMap,0,8465>::getClassName
+// srClientSupport<srTextureMap,8465>::getClassName
 
 // TEMPLATE: WIZ8 0x00429C00
-// srClassSupport<srTextureMap,srTextureMap,0,8465>::getClassNode
+// srClientSupport<srTextureMap,8465>::getClassNode
 
 // TEMPLATE: WIZ8 0x00429CA0
-// srClassSupport<srTextureMap,srTextureMap,0,8465>::clone
+// srClientSupport<srTextureMap,8465>::clone
 
 /* The constructor at 0x00429D70 registers class 8720 under the 8704 class
-   node owned by srMaterialIFace: the support parent is srMaterialIFace,
-   not srMaterial. A distinct srClassSupport<srMaterial,srMaterial,0,8720>
-   instantiation exists elsewhere (stGroundShadow.cpp emissions). */
+   node owned by srMaterialIFace through srMaterial::sGetClassNode: the
+   client layer is srClientSupport<srMaterial,8720>, whose canonical class
+   already chains that registration. */
 // VTABLE: WIZ8 0x005EBDE0
-// class srClassSupport<srMaterial, class srMaterialIFace, 0, 8720>
+// class srClientSupport<srMaterial,8720>
 
 // TEMPLATE: WIZ8 0x00429D70
-// srClassSupport<srMaterial,srMaterialIFace,0,8720>::srClassSupport
-
-// TEMPLATE: WIZ8 0x00429F00
-// srClassSupport<srMaterial,srMaterialIFace,0,8720>::~srClassSupport
+// srClientSupport<srMaterial,8720>::srClientSupport
 
 // SYNTHETIC: WIZ8 0x0042A230
-// srClassSupport<srMaterial,srMaterialIFace,0,8720>::`scalar deleting destructor'
+// srClientSupport<srMaterial,8720>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x00429CC0
-// srClassSupport<srMaterial,srMaterialIFace,0,8720>::getClassID
+// srClientSupport<srMaterial,8720>::getClassID
 
 // TEMPLATE: WIZ8 0x00429CD0
-// srClassSupport<srMaterial,srMaterialIFace,0,8720>::getClassName
+// srClientSupport<srMaterial,8720>::getClassName
 
 // TEMPLATE: WIZ8 0x00429CE0
-// srClassSupport<srMaterial,srMaterialIFace,0,8720>::getClassNode
+// srClientSupport<srMaterial,8720>::getClassNode
 
 // TEMPLATE: WIZ8 0x00429D50
-// srClassSupport<srMaterial,srMaterialIFace,0,8720>::clone
+// srClientSupport<srMaterial,8720>::clone
 
 /* 0x00423E50 calls the imported ~srMaterial: it is the local ??_GsrMaterial
    thunk, not the support-class deleting destructor. */
@@ -3794,19 +3791,19 @@ void EndRenderProbe004289C0(void)
 /* CVDUMP includes the class tag on the repeated self-type argument in the
    vftable symbol.  It is still the ordinary srCamera self-support template. */
 // VTABLE: WIZ8 0x005EBE14
-// class srClassSupport<srCamera, class srCamera, 0, 5120>
+// class srClientSupport<srCamera,5120>
 
 // TEMPLATE: WIZ8 0x0042A010
-// srClassSupport<srCamera,srCamera,0,5120>::getClassID
+// srClientSupport<srCamera,5120>::getClassID
 
 // TEMPLATE: WIZ8 0x0042A020
-// srClassSupport<srCamera,srCamera,0,5120>::getClassName
+// srClientSupport<srCamera,5120>::getClassName
 
 // TEMPLATE: WIZ8 0x0042A030
-// srClassSupport<srCamera,srCamera,0,5120>::getClassNode
+// srClientSupport<srCamera,5120>::getClassNode
 
 // TEMPLATE: WIZ8 0x0042A0A0
-// srClassSupport<srCamera,srCamera,0,5120>::clone
+// srClientSupport<srCamera,5120>::clone
 
 /* 0x00423E80 calls the imported ~srCamera: it is the local ??_GsrCamera
    thunk, not the support-class deleting destructor. */
@@ -3816,19 +3813,19 @@ void EndRenderProbe004289C0(void)
 /* CVDUMP includes the class tag on the repeated self-type argument in the
    vftable symbol.  It is still the ordinary srScene self-support template. */
 // VTABLE: WIZ8 0x005EBE48
-// class srClassSupport<srScene, class srScene, 0, 4112>
+// class srClientSupport<srScene,4112>
 
 // TEMPLATE: WIZ8 0x0042A0C0
-// srClassSupport<srScene,srScene,0,4112>::getClassID
+// srClientSupport<srScene,4112>::getClassID
 
 // TEMPLATE: WIZ8 0x0042A0D0
-// srClassSupport<srScene,srScene,0,4112>::getClassName
+// srClientSupport<srScene,4112>::getClassName
 
 // TEMPLATE: WIZ8 0x0042A0E0
-// srClassSupport<srScene,srScene,0,4112>::getClassNode
+// srClientSupport<srScene,4112>::getClassNode
 
 // TEMPLATE: WIZ8 0x0042A150
-// srClassSupport<srScene,srScene,0,4112>::clone
+// srClientSupport<srScene,4112>::clone
 
 /* 0x00423EB0 calls the imported ~srScene: it is the local ??_GsrScene
    thunk, not the support-class deleting destructor. */
@@ -3847,19 +3844,19 @@ void EndRenderProbe004289C0(void)
 // RenderFrame (tail-jump thunk)
 
 // VTABLE: WIZ8 0x005EBD10
-// class srClassSupport<srColorSurface, class srColorSurface, 0, 12560>
+// class srClientSupport<srColorSurface,12560>
 
 // TEMPLATE: WIZ8 0x00429A40
-// srClassSupport<srColorSurface,srColorSurface,0,12560>::getClassID
+// srClientSupport<srColorSurface,12560>::getClassID
 
 // TEMPLATE: WIZ8 0x00429A50
-// srClassSupport<srColorSurface,srColorSurface,0,12560>::getClassName
+// srClientSupport<srColorSurface,12560>::getClassName
 
 // TEMPLATE: WIZ8 0x00429A60
-// srClassSupport<srColorSurface,srColorSurface,0,12560>::getClassNode
+// srClientSupport<srColorSurface,12560>::getClassNode
 
 // TEMPLATE: WIZ8 0x00429AD0
-// srClassSupport<srColorSurface,srColorSurface,0,12560>::clone
+// srClientSupport<srColorSurface,12560>::clone
 
 /* 0x00423F00 calls the imported ~srColorSurface: it is the local
    ??_GsrColorSurface thunk, not the support-class deleting destructor. */

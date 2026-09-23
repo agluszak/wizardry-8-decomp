@@ -387,16 +387,16 @@ void UpdateWorld0044F4E0(W8World* world)
 }
 
 // VTABLE: WIZ8 0x005EC208
-// class srClassSupport<srNode, class srNode, 0, 4096>
+// class srClientSupport<srNode,4096>
 
 // TEMPLATE: WIZ8 0x004519D0
-// srClassSupport<srNode,srNode,0,4096>::getClassID
+// srClientSupport<srNode,4096>::getClassID
 
 // TEMPLATE: WIZ8 0x004519F0
-// srClassSupport<srNode,srNode,0,4096>::clone
+// srClientSupport<srNode,4096>::clone
 
 // SYNTHETIC: WIZ8 0x0044F3D0
-// srClassSupport<srNode,srNode,0,4096>::`scalar deleting destructor'
+// srClientSupport<srNode,4096>::`scalar deleting destructor'
 
 /* Detach the item meshes in every registered world before the renderer-side
    resource transition. */

@@ -13,7 +13,7 @@
 // from the canonical type below.
 
 // SYNTHETIC: SREXT_JPEGIMPORTER 0x100151D0
-// srClassSupport<srColorSurface,srColorSurface,0,12560>::`scalar deleting destructor'
+// srClientSupport<srColorSurface,12560>::`scalar deleting destructor'
 
 class srJPEGImporter :
     public srSurfaceIOManager::SurfaceImporter,

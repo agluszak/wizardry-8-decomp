@@ -750,12 +750,12 @@ unsigned char UnloadLevel(const char* save_directory)
 
     srRegistry* registry = srCore.getRegistry();
     srRegistry::ClassNode* node =
-        srClassSupport<srClipPlane, srClipPlane, false, 0x1500>::sGetClassNode();
+        srClientSupport<srClipPlane,0x1500>::sGetClassNode();
     srClass* clip_plane = static_cast<srClass*>(registry->find(node, 0, 0));
 
     while (clip_plane != 0) {
         srClass* next = static_cast<srClass*>(
-            registry->find(srClassSupport<srClipPlane, srClipPlane, false, 0x1500>::sGetClassNode(),
+            registry->find(srClientSupport<srClipPlane,0x1500>::sGetClassNode(),
                            0, clip_plane));
         clip_plane->release();
         clip_plane = next;

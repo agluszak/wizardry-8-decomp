@@ -1238,21 +1238,21 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
 }
 
 // VTABLE: WIZ8 0x005ED180
-// class srClassSupport<srClipPlane,srClipPlane,0,5376>
+// class srClientSupport<srClipPlane,5376>
 
 // TEMPLATE: WIZ8 0x004BDF00
-// srClassSupport<srClipPlane,srClipPlane,0,5376>::getClassID
+// srClientSupport<srClipPlane,5376>::getClassID
 
 // TEMPLATE: WIZ8 0x004BDF10
-// srClassSupport<srClipPlane,srClipPlane,0,5376>::getClassName
+// srClientSupport<srClipPlane,5376>::getClassName
 
 // TEMPLATE: WIZ8 0x004BDF20
-// srClassSupport<srClipPlane,srClipPlane,0,5376>::getClassNode
+// srClientSupport<srClipPlane,5376>::getClassNode
 
 // TEMPLATE: WIZ8 0x004BDF90
-// srClassSupport<srClipPlane,srClipPlane,0,5376>::clone
+// srClientSupport<srClipPlane,5376>::clone
 
 // SYNTHETIC: WIZ8 0x004BDFB0
-// srClassSupport<srClipPlane,srClipPlane,0,5376>::`scalar deleting destructor'
+// srClientSupport<srClipPlane,5376>::`scalar deleting destructor'
 
 #undef CHECK_PVL_OFFSET
