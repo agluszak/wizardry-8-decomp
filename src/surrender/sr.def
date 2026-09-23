@@ -29,6 +29,20 @@ EXPORTS
     ?testDirty@srMeshModel@@QBEHW4e_flags@1@@Z
     ??4srMeshModel@@QAEAAV0@ABV0@@Z
     ?reset@srMeshModel@@QAEXJJ@Z
+    ?transformClipPlane@srTriangleCuller@@SA?AV?$srVector4T@M@@ABV2@ABV?$srMatrix4T@M@@W4e_scaleType@3@@Z
+    ?setClipFlags@srTriangleCuller@@SAHPAKPAMPBV?$srVector3T@M@@ABV?$srVector4T@M@@KKH@Z
+    ?setClipFlagsObjectSpace@srTriangleCuller@@CAHPAKPBV?$srVector3T@M@@PBV?$srVector4T@M@@PBKKKAAK@Z
+    ??4srTriangleCuller@@QAEAAV0@ABV0@@Z
+    ?getClipMask@srTriangleCuller@@SAKABV?$srVector3T@M@@MPBV?$srVector4T@M@@KAAM@Z
+    ?collectNegative@srTriangleCuller@@CAKPAKPBMKK@Z
+    ?cullNoClip@srTriangleCuller@@CAKPAKPBV?$srVector4T@M@@ABV2@K@Z
+    ?cullNoClipAPT@srTriangleCuller@@CAKPAKPBKPBV?$srVector4T@M@@ABV2@K@Z
+    ?collectCF@srTriangleCuller@@CAKPAKPBKPBVsrVector3i@@K@Z
+    ?cullClip@srTriangleCuller@@CAKPAKPBKPBV?$srVector4T@M@@PBVsrVector3i@@ABV2@K@Z
+    ?clip@srTriangleCuller@@CAKPAKPBKPBVsrVector3i@@K@Z
+    ?setupLinearArray@srTriangleCuller@@SAXPAKK@Z
+    ?buildAVT@srTriangleCuller@@SAKPAK0PBKPBVsrVector3i@@KK@Z
+    ?cull@srTriangleCuller@@SAHAAUOutput@1@ABUInput@1@@Z
     ?setExclusionMask@srModelInstance@@QAEXK@Z
     ?addToTree@srRegistry@@AAEPAVClassNode@1@PAV21@PBDK@Z
     ?allocateID@srRegistry@@QAEKXZ
