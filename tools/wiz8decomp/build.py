@@ -270,9 +270,7 @@ def prepare_comparison(settings: Settings, target_ids: list[str]) -> dict[str, A
             shutil.rmtree(destination)
 
         manifest = load_manifest(settings)
-        matches = [
-            item for item in manifest.files if item.configured_role == "gog-media"
-        ]
+        matches = [item for item in manifest.files if item.configured_role == "gog-media"]
         if len(matches) != 1:
             raise RuntimeError(f"expected exactly one gog-media input, found {len(matches)}")
         record = matches[0]
