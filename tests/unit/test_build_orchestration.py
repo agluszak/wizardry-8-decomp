@@ -185,7 +185,6 @@ def test_product_inputs_names_stale_extraction_recipe(tmp_path: Path, monkeypatc
     assert "gog-media" in (result["detail"] or "")
 
 
-
 def test_product_build_uses_product_only_vc6_image(tmp_path: Path) -> None:
     product = build.ContainerBuild.from_settings(_settings(tmp_path))
     assert product.image == build.VC6_PRODUCT_IMAGE
@@ -218,7 +217,6 @@ def test_prepare_comparison_reuses_cached_original_without_installer(
         "wiz8decomp.ghidra.fid_seeds.fetch_seed_sources",
         lambda _settings: {"sources": []},
     )
-    monkeypatch.setattr(build, "write_wiz8_data_source", lambda _repo: events.append("data"))
     monkeypatch.setattr(
         build,
         "run",
@@ -229,5 +227,4 @@ def test_prepare_comparison_reuses_cached_original_without_installer(
 
     assert result["extraction"] == "cached"
     assert result["targets"] == ["WIZ8"]
-    assert events[0] == "data"
-    assert events[1][:3] == ["reccmp-project", "detect", "--search-path"]
+    assert events[0][:3] == ["reccmp-project", "detect", "--search-path"]
