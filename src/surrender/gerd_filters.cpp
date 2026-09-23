@@ -24,6 +24,33 @@ private:
 
 } // namespace
 
+// FUNCTION: SURRENDER 0x10018550
+void srGERD::setTextureDefaultCorrection(srTextureIFace::e_correction correction)
+{
+    GerdAccess access(state_section_18_);
+    if (correction == srTextureIFace::CORRECTION_DEFAULT) {
+        correction = srTextureIFace::CORRECTION_GOOD;
+    }
+    default_correction_1fb4_ = correction;
+    /* The wrap table's fourth entry doubles as the current correction
+       parameter, the same spare-slot trick mipmap_map_1f94_[3] uses. */
+    wrap_map_1f5c_[3] = wrap_map_1f5c_[correction];
+    resetTexture();
+}
+
+// FUNCTION: SURRENDER 0x100185D0
+void srGERD::setTextureDefaultCompression(srTextureIFace::e_compression compression)
+{
+    GerdAccess access(state_section_18_);
+    if (compression == srTextureIFace::COMPRESSION_DEFAULT) {
+        compression = static_cast<srTextureIFace::e_compression>(0);
+    }
+    default_compression_1fd8_ = compression;
+    /* The fifth entry doubles as the current texture parameter. */
+    default_texture_params_1fc4_[4] = default_texture_params_1fc4_[compression];
+    resetTexture();
+}
+
 // FUNCTION: SURRENDER 0x10018650
 void srGERD::setTextureDefaultMagFilter(srTextureIFace::e_filter filter)
 {
