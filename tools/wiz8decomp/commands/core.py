@@ -430,6 +430,7 @@ def register(app: typer.Typer) -> None:
     analyze_app.command("inventory")(inventory_command)
     analyze_app.command("trace")(trace_command)
     analyze_app.command("differential")(differential_command)
+    analyze_app.command("smoke")(smoke_command)
     analyze_app.command("source-layouts")(verify_source_layouts_command)
     analyze_app.command("source-index")(source_index_command)
     analyze_app.command("decompiler-quality")(decompiler_quality_command)
@@ -766,6 +767,7 @@ def differential_command(
         SCENARIO_TERMINAL,
         Event,
         Sandbox,
+        compare_states,
         compare_streams,
         run_trace,
         write_report,
@@ -843,6 +845,12 @@ def differential_command(
             streams["retail-a"][: bounds["retail-a"]],
             streams["recomp"][: bounds["recomp"]],
         )
+        # The checkpoint fingerprint runs through the same verdicts: the
+        # state the terminal event left behind must reproduce within retail
+        # before the cross-build comparison can claim equivalence.
+        states = {label: run.get("state", {}) for label, run in runs.items()}
+        state_repeatability = compare_states(states["retail-a"], states["retail-b"])
+        state_differential = compare_states(states["retail-a"], states["recomp"])
         # An affirmative verdict needs every precondition, not just equal
         # prefixes: each run must have started under the debugger and reached
         # the scenario's terminal event, retail must be repeatable against
@@ -858,12 +866,18 @@ def differential_command(
             "retail_repeatable": bounded_repeatability["agrees"],
             "no_unwatched_points": not any(unwatched.values()),
             "streams_agree": bounded_differential["agrees"],
+            "state_repeatable": state_repeatability["agrees"],
+            "state_agrees": state_differential["agrees"],
         }
         return {
             "scenario": scenario,
             "affirmative": all(requirements.values()),
             "requirements": requirements,
             "reached_terminal": reached_terminal,
+            "state": {
+                "retail_repeatability": state_repeatability,
+                "differential": state_differential,
+            },
             "bounded": {
                 "events": bounds,
                 "retail_repeatability": bounded_repeatability,
@@ -880,11 +894,54 @@ def differential_command(
                 label: {
                     "events": len(run["events"]),
                     "started": run["started"],
+                    "state": states[label],
                     "provenance": run["provenance"],
                 }
                 for label, run in runs.items()
             },
         }
+
+    cli.emit(action())
+
+
+def smoke_command(
+    seconds: Annotated[int, typer.Option(help="How long to let the run go.")] = 120,
+    executable: Annotated[
+        str, typer.Option(help="Sandboxed product image to exercise.")
+    ] = "Wiz8Runtime.exe",
+    link_map: Annotated[
+        Path | None,
+        typer.Option(
+            "--link-map",
+            exists=True,
+            dir_okay=False,
+            help="Rebuilt image's linker MAP for breakpoint rebasing.",
+        ),
+    ] = None,
+) -> None:
+    """The product's own entry/exit lifecycle: WinMain, menu, player quit,
+    process exit - the path the runtime-test executable's explicit SGPExit
+    plus TerminateProcess does not exercise."""
+    from .. import command_support as cli
+    from ..dynamic import Sandbox, run_smoke, write_report
+
+    def action():
+        settings = cli.settings()
+        sandbox = Sandbox.from_environment()
+        if link_map is None:
+            candidate = settings.product_build_dir / "Wiz8Runtime.map"
+            resolved_map = candidate if candidate.is_file() else None
+        else:
+            resolved_map = link_map
+        result = run_smoke(
+            settings.repo_dir,
+            sandbox,
+            seconds=seconds,
+            executable=executable,
+            link_map=resolved_map,
+        )
+        write_report({**result, "scenario": "smoke"}, settings.repo_dir / "build/reports/trace")
+        return result
 
     cli.emit(action())
 
