@@ -54,8 +54,27 @@ printing and put large disposable output under `build/`. Detailed operational re
 
 ## Source fidelity
 
-- Faithfulness is mandatory; exact byte identity is incremental. Recover plausible authored circa-2000
-  C++ and VC6 ABI, not compiler lowering. Never invent, omit, stub or approximate retail behavior.
+- **Reconstruct first; pursue exactness afterwards.** Recovery has two distinct phases. First recover
+  the most plausible authored circa-2000 C++ and VC6 ABI: behavior, types, ownership, object layout,
+  abstractions, source placement and header/TU visibility. During reconstruction, comparison is evidence
+  and validation, not an objective function. Prefer the better source model even when its score is worse.
+- Only after the affected source model is coherent may remaining differences be treated as an exactness/
+  code-generation problem. Investigate compiler/toolchain version differences, ABI, pragmas, declaration
+  order, TU/header visibility, inlining and other genuine source/compiler causes. Do not distort recovered
+  source merely to reproduce VC6 lowering.
+- An `exact` or `effective` result proves that the current source reproduces the relevant machine code;
+  it does not prove that the source spelling or abstraction is original. Conversely, a mismatch does not
+  justify a less plausible source form. Accepted source oracles and source-model evidence outrank
+  comparison score; matching may distinguish between independently plausible authored forms.
+- Never invent, omit, stub or approximate retail behavior. Never add dummy variables, artificial aliases,
+  overlapping locals, dead branches, redundant counters, fake wrappers, manual inlining, register-shaped
+  temporaries, volatile barriers, unions, casts or other constructs solely to manipulate register
+  allocation, stack layout, scheduling, CFG shape or comparison percentage. If faithful ordinary source
+  leaves a compiler-only mismatch, retain the faithful source and record the lowering gap.
+- When stronger evidence changes the reconstructed model, fix the model even if exactness temporarily
+  regresses, then investigate the new mismatch from that corrected baseline. A known-unfaithful construct
+  is matching debt, not precedent; prefer removing it and fixing the shared owner, ABI, toolchain model,
+  header/TU placement or tooling when the evidence supports that explanation.
 - Never promote compiler output into an authored source construct. A concrete template emission proves
   only that the primary template was instantiated for those arguments; it never proves an explicit
   specialization or explicit instantiation. Likewise an inlined copy does not prove manual inlining,
