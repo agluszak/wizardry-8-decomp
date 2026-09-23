@@ -2860,11 +2860,11 @@ LAB_004faa0f:
             g_spell_records[index].spell_point_cost <=
                 character->iSPLeft[g_spell_records[index].realm] &&
             SpellUsableNow(index, '\0')) {
-            ++g_status_685170.tail_3121.spell_usage.records[index].usable_cast_count;
+            ++g_status_685170.spell_usage_40ce[index - 1].usable_cast_count;
         }
         ++index;
     } while (index < 0x72);
-    ++g_status_685170.tail_3121.spell_usage.records[spell_id].cast_count;
+    ++g_status_685170.spell_usage_40ce[spell_id - 1].cast_count;
     affected = SpellAffectedTarget004F9AE0(character, spell_id, aim, power_level);
     if (continue_cast == '\0') {
         if (Random(2) != 0) {
@@ -4281,7 +4281,7 @@ void TrackItemSpellSource00501D20(W8Character* character, int spell_id)
        record index), so record 0 reads the always-zero leading byte and
        spell id s marks record s - the same record the cast_count access
        below increments. */
-    W8SpellUsageRecord* record = g_status_685170.item_spell_usage_24a0;
+    W8ItemSpellUsageRecord* record = g_status_685170.item_spell_usage_24a0;
     int index = 0;
     while (record < g_status_685170.item_spell_usage_24a0 + 150) {
         if (has_spell[index - 1] != '\0') {

@@ -316,11 +316,11 @@ unsigned char EvaluateFact(int fact_id)
             }
             return 0;
         case 0x88:
-            if (g_status_685170.tail_3121.facts.fact_88_latch_40c1 == 0) {
+            if (g_status_685170.fact_88_latch_40c1 == 0) {
                 if (CountItemOnParty(0x1c4, 0, 0, 2) < 5) {
                     return 0;
                 }
-                g_status_685170.tail_3121.facts.fact_88_latch_40c1 = 1;
+                g_status_685170.fact_88_latch_40c1 = 1;
                 return 1;
             }
             break;
@@ -404,8 +404,8 @@ unsigned char EvaluateFact(int fact_id)
                 unsigned int slot = 0;
                 do {
                     if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
-                        slot == static_cast<unsigned int>(
-                                    g_status_685170.tail_3121.facts.rpc_slot_423d)) {
+                        slot ==
+                            static_cast<unsigned int>(g_status_685170.sedexus_party_slot_247f)) {
                         return 1;
                     }
                     ++slot;

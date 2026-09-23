@@ -999,12 +999,12 @@ void ProcessNpcPendingEvents0050CA80(void)
                 char band = GetLevelBand(g_status_685170.current_level);
                 if (band != 9 && band != 0xa) {
                     W8Character* character =
-                        &g_status_685170.buffers.Char[g_status_685170.alternate_name_slot_247f];
+                        &g_status_685170.buffers.Char[g_status_685170.sedexus_party_slot_247f];
                     if (character->gender == W8_GENDER_MALE) {
                         QueueCharacterEvent(character, g_effect_005ee638, 0,
                                             g_effect_argument_005ed8c8, g_effect_argument_005ed914);
                     }
-                    SetCharacterCondition(g_status_685170.alternate_name_slot_247f,
+                    SetCharacterCondition(g_status_685170.sedexus_party_slot_247f,
                                           W8_CONDITION_INFATUATED, 9999, 0, 0, 1);
                     g_status_685170.infatuation_pending_2446 = 0;
                     SetFact(0x2a6, 1, 0);
