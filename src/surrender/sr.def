@@ -1385,3 +1385,44 @@ EXPORTS
     ?vInstance@srScene@@UAEPAVsrClass@@XZ
     ??4srThread@@QAEAAV0@ABV0@@Z
     ?yieldCount@srThread@@0JA DATA
+    ??0srFilter@@QAE@XZ
+    ??0srFilter@@QAE@ABV0@@Z
+    ??1srFilter@@UAE@XZ
+    ??4srFilter@@QAEAAV0@ABV0@@Z
+    ??_7srFilter@@6B@ DATA
+    ??0srBoxFilter@@QAE@XZ
+    ??0srBoxFilter@@QAE@ABV0@@Z
+    ??1srBoxFilter@@UAE@XZ
+    ??4srBoxFilter@@QAEAAV0@ABV0@@Z
+    ?getName@srBoxFilter@@UBEPBDXZ
+    ?getSupport@srBoxFilter@@UBENXZ
+    ?getWeight@srBoxFilter@@UBENN@Z
+    ??_7srBoxFilter@@6B@ DATA
+    ?srBoxFilter@@3V0@A DATA
+    ??0srBellFilter@@QAE@XZ
+    ??0srBellFilter@@QAE@ABV0@@Z
+    ??1srBellFilter@@UAE@XZ
+    ??4srBellFilter@@QAEAAV0@ABV0@@Z
+    ?getName@srBellFilter@@UBEPBDXZ
+    ?getSupport@srBellFilter@@UBENXZ
+    ?getWeight@srBellFilter@@UBENN@Z
+    ??_7srBellFilter@@6B@ DATA
+    ?srBellFilter@@3V0@A DATA
+    ??0srBSplineFilter@@QAE@XZ
+    ??0srBSplineFilter@@QAE@ABV0@@Z
+    ??1srBSplineFilter@@UAE@XZ
+    ??4srBSplineFilter@@QAEAAV0@ABV0@@Z
+    ?getName@srBSplineFilter@@UBEPBDXZ
+    ?getSupport@srBSplineFilter@@UBENXZ
+    ?getWeight@srBSplineFilter@@UBENN@Z
+    ??_7srBSplineFilter@@6B@ DATA
+    ?srBSplineFilter@@3V0@A DATA
+    ??0srTriangleFilter@@QAE@XZ
+    ??0srTriangleFilter@@QAE@ABV0@@Z
+    ??1srTriangleFilter@@UAE@XZ
+    ??4srTriangleFilter@@QAEAAV0@ABV0@@Z
+    ?getName@srTriangleFilter@@UBEPBDXZ
+    ?getSupport@srTriangleFilter@@UBENXZ
+    ?getWeight@srTriangleFilter@@UBENN@Z
+    ??_7srTriangleFilter@@6B@ DATA
+    ?srTriangleFilter@@3V0@A DATA

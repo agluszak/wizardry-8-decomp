@@ -716,10 +716,10 @@ void W8PartySelectionCharacterRow005EF364::Redraw(int full_redraw)
 
     left += 0x36;
     SetFont(g_font_683660);
-    mprintf(left, top + 4, const_cast<wchar_t*>(L"%s"), character->name);
-    mprintf(left, top + 0x0e, L"%s %d %s", gppStringList[0x1ae4 / 4], character->uiExpLevel,
+    gprintf(left, top + 4, const_cast<wchar_t*>(L"%s"), character->name);
+    gprintf(left, top + 0x0e, L"%s %d %s", gppStringList[0x1ae4 / 4], character->uiExpLevel,
             gppStringList[g_profession_name_message_ids_61e3f0[character->iProfession]]);
-    mprintf(left, top + 0x18, L"%s %s",
+    gprintf(left, top + 0x18, L"%s %s",
             gppStringList[g_gender_name_message_rows_61e430[character->gender][0]],
             gppStringList[g_race_name_message_ids_61e3d0[character->iRace]]);
     SetObjectShade(g_wiz_text_font_secondary_object_683680, 4);

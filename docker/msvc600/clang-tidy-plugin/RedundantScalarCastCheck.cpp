@@ -759,8 +759,8 @@ static RecordProvenance trace_record_provenance(const Expr* expression,
     return {project_record_expression(expression, sources), SourceLocation()};
 }
 
-static bool is_ordinary_base_upcast(const ProjectRecordType& source,
-                                    const ProjectRecordType& target)
+static bool is_ordinary_inheritance_cast(const ProjectRecordType& source,
+                                         const ProjectRecordType& target)
 {
     if (source.record == nullptr || target.record == nullptr ||
         source.pointer_depth != target.pointer_depth || source.reference != target.reference ||
@@ -770,7 +770,8 @@ static bool is_ordinary_base_upcast(const ProjectRecordType& source,
     const auto* source_record = dyn_cast<CXXRecordDecl>(source.record);
     const auto* target_record = dyn_cast<CXXRecordDecl>(target.record);
     return source_record != nullptr && target_record != nullptr &&
-           source_record->isDerivedFrom(target_record);
+           (source_record->isDerivedFrom(target_record) ||
+            target_record->isDerivedFrom(source_record));
 }
 
 static std::string record_name(const ProjectRecordType& type)
@@ -853,7 +854,7 @@ public:
             return;
         }
         if (provenance.erasure.isInvalid() && !isa<CXXReinterpretCastExpr>(cast) &&
-            is_ordinary_base_upcast(source, target)) {
+            is_ordinary_inheritance_cast(source, target)) {
             return;
         }
 

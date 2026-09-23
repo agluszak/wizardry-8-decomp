@@ -74,6 +74,8 @@ def _resolve_commit(repo_dir: Path, revision: str) -> str:
     """Resolve a Jujutsu revset or a Git revision to a commit id."""
 
     if (repo_dir / ".jj").is_dir():
+        if revision.startswith("origin/"):
+            revision = f"{revision.removeprefix('origin/')}@origin"
         return subprocess.run(
             ["jj", "log", "-r", revision, "--no-graph", "-T", "commit_id"],
             cwd=repo_dir,
