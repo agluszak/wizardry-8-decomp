@@ -43,9 +43,12 @@ unresolved externals of the caller's object. Do not chase a bare Wine backtrace 
 a build-generated `// STUB:` trap that prints
 `WIZ8_RUNTIME_STUB address=... symbol=... name=...` and breaks before touching the caller's stack.
 `uv run wiz8 build runtime`/`runtime-test` regenerate the stub set automatically; recovering a retail
-body removes its stub on the next build. If stubgen maps an unresolved spelling to an already recovered
-address, fix the declaration/linkage/signature; never add a handwritten fake body. Unchanged stub
-files and staged executables keep their bytes and timestamps; `staged.executable_written` says whether
+body removes its stub on the next build. Stub generation requires reviewed retail-address evidence:
+an addressless unresolved first-party callable is a build error, because an identity-free trap would
+hide an invented or stale declaration. If stubgen maps an unresolved spelling to an already recovered
+address, or reports no retail address evidence, fix the declaration/linkage/signature or attach the
+reviewed retail address; never add a handwritten fake body. Unchanged stub files and staged executables
+keep their bytes and timestamps; `staged.executable_written` says whether
 the stage actually republished the image. `build runtime-test` reports `phases_ms` for
 configure/regenerate/prereq compile/index/stubs/link.
 

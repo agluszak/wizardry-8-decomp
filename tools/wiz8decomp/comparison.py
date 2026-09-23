@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import logging
 import os
+import re
+from bisect import bisect_right
 from collections.abc import Iterable
 from dataclasses import asdict
 from pathlib import Path
@@ -87,6 +89,114 @@ def changed_source_files(repository: Path, since: str | None = None) -> list[Pat
         if path.suffix.lower() in {".c", ".cpp", ".cc", ".cxx", ".h", ".hpp", ".hxx"}
         and path.is_file()
     ]
+
+
+def _added_call_lines(repository: Path, since: str) -> dict[Path, set[int]]:
+    """Locate added source lines that can contain a call expression."""
+
+    if (repository / ".jj").is_dir() and resolve_executable("jj") is not None:
+        command = ["jj", "diff", "--git", "--from", since]
+    else:
+        baseline = f"origin/{since.removesuffix('@origin')}" if since.endswith("@origin") else since
+        command = ["git", "diff", "--no-ext-diff", "--no-renames", baseline, "HEAD"]
+    output = run(command, cwd=repository).stdout
+    added: dict[Path, set[int]] = {}
+    path: Path | None = None
+    line = 0
+    for row in output.splitlines():
+        if row.startswith("diff --git "):
+            match = re.match(r"diff --git a/(.*?) b/(.*)", row)
+            path = repository / match.group(2) if match else None
+        elif row.startswith("@@"):
+            match = re.search(r"\+(\d+)", row)
+            line = int(match.group(1)) if match else 0
+        elif row.startswith("+") and not row.startswith("+++"):
+            if (
+                path is not None
+                and path.suffix.lower() in {".cpp", ".cc", ".cxx", ".h", ".hpp"}
+                and "(" in row
+            ):
+                added.setdefault(path, set()).add(line)
+            line += 1
+        elif row.startswith(" "):
+            line += 1
+    return added
+
+
+def check_changed_call_targets(repository: Path, target: str, since: str) -> dict[str, Any]:
+    """Check direct calls emitted by changed source lines against retail callees."""
+
+    from capstone.x86 import X86_OP_IMM
+    from reccmp.types import ImageId
+
+    from .binary.code import disassembler
+
+    added = _added_call_lines(repository, since)
+    if not added:
+        return {"status": "passed", "checked": 0, "errors": []}
+    from .source_index import source_functions
+
+    model = source_functions(repository, target)
+    engine = Compare.from_target(comparison_target(repository, target))
+    decoder = disassembler()
+    errors: list[dict[str, Any]] = []
+    checked = 0
+    for address, marker in model.items():
+        source = repository / marker.source_file
+        lines = added.get(source)
+        declaration = marker.declaration
+        if not lines or declaration is None or not declaration.is_definition:
+            continue
+        if not any(declaration.line <= line <= declaration.end_line for line in lines):
+            continue
+        match = engine._db.get_one_match(address)
+        if match is None:
+            errors.append({"function": f"0x{address:08x}", "reason": "no linked retail pair"})
+            continue
+        original_size = match.size(ImageId.ORIG) or match.max_size(ImageId.ORIG)
+        recomp_size = match.size(ImageId.RECOMP) or match.max_size(ImageId.RECOMP)
+        if not original_size or not recomp_size:
+            errors.append({"function": f"0x{address:08x}", "reason": "function extent unknown"})
+            continue
+        original_calls: set[int] = set()
+        for instruction in decoder.disasm(engine.orig_bin.read(address, original_size), address):
+            if instruction.mnemonic == "call" and instruction.operands[0].type == X86_OP_IMM:
+                destination = instruction.operands[0].imm
+                canonical = engine._db.alias_canonical_orig(ImageId.ORIG, destination)
+                original_calls.add(canonical or destination)
+        recomp_address = match.recomp_addr
+        line_starts = sorted(
+            (position, location[1])
+            for position in range(recomp_address, recomp_address + recomp_size)
+            if (location := engine._lines_db.find_line_of_recomp_address(position))
+            and location[0] == source
+        )
+        positions = [position for position, _ in line_starts]
+        for instruction in decoder.disasm(
+            engine.recomp_bin.read(recomp_address, recomp_size), recomp_address
+        ):
+            if instruction.mnemonic != "call" or instruction.operands[0].type != X86_OP_IMM:
+                continue
+            index = bisect_right(positions, instruction.address) - 1
+            if index < 0 or line_starts[index][1] not in lines:
+                continue
+            checked += 1
+            destination = instruction.operands[0].imm
+            canonical = engine._db.alias_canonical_orig(ImageId.RECOMP, destination)
+            if canonical not in original_calls:
+                errors.append(
+                    {
+                        "function": f"0x{address:08x}",
+                        "source": f"{marker.source_file}:{line_starts[index][1]}",
+                        "call": f"0x{instruction.address:08x}",
+                        "recompiled_target": f"0x{destination:08x}",
+                        "retail_identity": f"0x{canonical:08x}" if canonical else None,
+                        "reason": "callee absent from retail function"
+                        if canonical
+                        else "callee identity unresolved",
+                    }
+                )
+    return {"status": "failed" if errors else "passed", "checked": checked, "errors": errors}
 
 
 def selected_addresses(

@@ -1140,7 +1140,7 @@ void ResetSpellCastingSelection005A0B90(void)
         ResetEditorStatusLine0058AA20(-1);
     }
     CloseSpellCastingView();
-    ClearTargetingMode(g_status_685170.selected_character);
+    ClearSlotTargeting0053B050(g_status_685170.selected_character);
 }
 
 /* Per-frame spell-casting pump: advances the selected realm's icon animation

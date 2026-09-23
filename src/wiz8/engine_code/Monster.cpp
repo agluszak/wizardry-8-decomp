@@ -4002,7 +4002,7 @@ void W8Monster::HandleAnimationThreshold004C75C0()
     W8MonsterRecord* record;
     W8TargetSource source;
     W8SpellEffectDefinition attack_block;
-    const W8MonsterAttack* attack;
+    W8MonsterAttack* attack;
     unsigned int attack_index;
     unsigned int range_category;
     int missile_type;
@@ -4065,8 +4065,7 @@ prepare_attack:
     attack_block.magnitude_base_1c = attack->missile_magnitude_1b;
 
     if (selected_attack != 0) {
-        accuracy =
-            CalculateMonsterMissileAccuracy(monster_info, attack, monster_info->action_detail, 0);
+        accuracy = GetMonsterAttackScore(monster_info, attack, monster_info->action_detail, 0);
         CombatLog("TO HIT: MISSILE ACCURACY = %d%%\n", accuracy);
     } else {
         accuracy = 50;

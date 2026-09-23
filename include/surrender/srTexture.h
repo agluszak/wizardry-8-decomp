@@ -8,7 +8,6 @@ public:
     static const char* sGetClassName();
     srTexture& operator=(const srTexture& other);
     virtual void dump(std::ostream& stream) override;
-    virtual srClass* vInstance() override;
     virtual unsigned long getTextureFrameHandle() override;
     virtual float getPriority() override;
     virtual void getDimensions(Dimensions& dimensions) override;

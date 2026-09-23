@@ -19,8 +19,9 @@ The generated C++ and manifest are disposable build artifacts. Only functions
 are aliased: anything that cannot be classified as a callable function fails
 with the exact symbol and requesting objects, and an unresolved spelling that
 resolves to an already recovered retail address fails as an identity bug
-rather than hiding behind a second body. Symbols with no retail-address
-evidence are still trapped, listed explicitly in the manifest as unmapped.
+rather than hiding behind a second body. Symbols with no retail-address evidence
+are rejected: a runnable image must not hide an invented or stale first-party
+declaration behind an identity-free trap.
 """
 
 from __future__ import annotations
@@ -51,7 +52,7 @@ GENERATED_ROOT = Path("generated/runtime-stubs")
 CRT_SUPPORT = {"__except_list", "__fltused"}
 
 ADDRESS_NAME = re.compile(r"^(?P<prefix>[^\s]+?)(?P<address>[0-9a-fA-F]{6,8})$")
-FUNCTION_SIGNATURE = re.compile(r"([~A-Za-z_][A-Za-z0-9_:<>~]*)\s*\((?P<parameters>[^()]*)\)")
+FUNCTION_SIGNATURE = re.compile(r"([~A-Za-z_][A-Za-z0-9_:<>~]*)\s*\(")
 
 
 class RuntimeStubError(RuntimeError):
@@ -157,12 +158,29 @@ def retail_text_range(repo_dir: Path) -> tuple[int, int]:
 def _function_identity(signature: str) -> tuple[str, str, int] | None:
     """Qualified name, unqualified name and parameter count of a function."""
 
-    match = FUNCTION_SIGNATURE.search(signature)
-    if match is None:
+    matches = list(FUNCTION_SIGNATURE.finditer(signature))
+    if not matches:
         return None
+    match = matches[0]
     qualified = match.group(1)
-    parameters = match.group("parameters").strip()
-    count = 0 if parameters in ("", "void") else parameters.count(",") + 1
+    depth = 1
+    count = 0
+    has_parameter = False
+    for char in signature[match.end() :]:
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+            if depth == 0:
+                break
+        elif depth == 1 and char == ",":
+            count += 1
+        elif depth == 1 and not char.isspace():
+            has_parameter = True
+    if depth != 0:
+        return None
+    if has_parameter and signature[match.end() :].split(")", 1)[0].strip() != "void":
+        count += 1
     return qualified, qualified.split("::")[-1], count
 
 
@@ -227,26 +245,29 @@ def resolve_stubs(
     except (DemanglerMissing, RuntimeError) as error:
         raise RuntimeStubError(str(error)) from error
 
+    errors: list[str] = []
     pending: dict[str, tuple[str, str, int, tuple[str, ...]]] = {}
     for symbol in decorated:
         if symbol in CRT_SUPPORT:
             continue
         requesters = tuple(sorted(by_symbol[symbol]))
         if not symbol.startswith("?"):
-            raise RuntimeStubError(
+            errors.append(
                 "unresolved symbol cannot be classified as a callable first-party "
                 f"function (data or unmapped C symbol): {symbol}\n"
                 f"requested by:\n  {', '.join(requesters)}"
             )
+            continue
         signature = demangled.get(symbol, "")
         parsed = _function_identity(signature)
         if parsed is None:
-            raise RuntimeStubError(
+            errors.append(
                 "unresolved symbol is not a function signature (data, RTTI or "
                 f"vtable storage): {symbol}\n"
                 f"demangled: {signature or '<none>'}\n"
                 f"requested by:\n  {', '.join(requesters)}"
             )
+            continue
         qualified, unqualified, count = parsed
         if _is_constructor_or_destructor(qualified):
             unqualified = qualified
@@ -257,13 +278,14 @@ def resolve_stubs(
         declared = _declared_callable(facts, qualified, unqualified, count)
         if declared is not None:
             if isinstance(declared, str):
-                raise RuntimeStubError(
+                errors.append(
                     "runtime unresolved symbol disagrees with the source declaration\n\n"
                     f"unresolved: {symbol}\n"
                     f"demangled:  {qualified}\n"
                     f"{declared}\n"
                     f"requested by:\n  {', '.join(requesters)}"
                 )
+                continue
             decisions[symbol] = (
                 declared.address,
                 "declaration",
@@ -277,19 +299,29 @@ def resolve_stubs(
         if candidate is not None and text_range[0] <= candidate < text_range[1]:
             decisions[symbol] = (candidate, "address-name", "", "")
             continue
-        decisions[symbol] = (None, "unmapped", "", "")
+        rendered_requesters = "\n  ".join(requesters)
+        errors.append(
+            "runtime unresolved first-party callable has no retail address evidence\n\n"
+            f"unresolved: {symbol}\n"
+            f"demangled:  {qualified}\n"
+            "fix: use the canonical recovered declaration or attach reviewed retail "
+            "address evidence\n"
+            f"requested by:\n  {rendered_requesters}"
+        )
+        continue
 
     stubs: list[ResolvedStub] = []
     for symbol in sorted(pending):
+        if symbol not in decisions:
+            continue
         qualified, unqualified, _count, requesters = pending[symbol]
         address, identity, source_file, _source = decisions[symbol]
         if address is not None:
             marker = facts.markers_by_address.get(address)
             if marker is not None:
                 kind, marker_source = marker
-                raise RuntimeStubError(
-                    _identity_error(address, symbol, kind, marker_source, requesters)
-                )
+                errors.append(_identity_error(address, symbol, kind, marker_source, requesters))
+                continue
         stubs.append(
             ResolvedStub(
                 symbol=symbol,
@@ -302,6 +334,8 @@ def resolve_stubs(
                 source_file=source_file,
             )
         )
+    if errors:
+        raise RuntimeStubError("\n\n".join(errors))
     return _dedupe_names(stubs)
 
 

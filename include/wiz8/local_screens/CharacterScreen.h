@@ -100,7 +100,7 @@ public:
     W8Character* m_character_060;
     W8CharacterCreationState* m_creation_state_064;
     int m_mode_068;
-    unsigned char m_prepared_06c;
+    bool m_prepared_06c;
     bool m_dirty_06d;
     unsigned char pad_06e[2];
 
@@ -259,7 +259,7 @@ public:
     }
     virtual ~W8CharacterPage005EF664() override;
     virtual void SetCharacter(W8Character*, W8CharacterCreationState*, int) override;
-    virtual void Redraw() override;
+    virtual void Redraw() override; /* 0x005C88C0 */
     virtual void Activate() override;
     virtual void Deactivate() override;
     virtual void Accept() override;

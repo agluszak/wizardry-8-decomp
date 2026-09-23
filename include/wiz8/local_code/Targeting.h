@@ -100,13 +100,11 @@ bool ShouldClearAimForAppliedTarget(W8TargetSource* source, W8CombatSlot* target
 bool IsTargetStillPresent(const W8CombatSlot* target);
 bool IsTargetSourceInRangeOfGroup(const W8TargetSource* source, W8MonsterGroup* group,
                                   W8TargetingContext context);
-void NoteTargetChosen(const W8TargetSource* source, const W8CombatSlot* target);
 
 bool CanTargetMonster(int party_slot, int location_id, int allow_single_target,
                       int reason);                                 /* 0x00536AD0 */
 bool CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group); /* 0x00536D60 */
-void ClearTargetingMode(int party_slot);
-void ClearSlotTargeting0053B050(int party_slot); /* 0x0053B050 */
+void ClearSlotTargeting0053B050(int party_slot);                   /* 0x0053B050 */
 /* 0x00537270: whether the slot's current target satisfies the spell's
    needed-target kind. */
 bool IsSpellTargetOfNeededKind(int party_slot, int spell_id);
