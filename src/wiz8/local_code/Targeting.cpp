@@ -1317,7 +1317,7 @@ char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight)
     }
 
     if (party_slot == BAD_INDEX ||
-        (IsSlotActionChosen(party_slot, W8_TARGETING_CONTEXT_CURRENT, 1, 0) &&
+        (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_CURRENT, 1, 0) &&
          CanTargetMonster(party_slot, location_id, 1, 0))) {
         valid = 1;
     }

@@ -110,8 +110,7 @@ void W8MaterialMapper00482010::process(srVertexPipe& pipe)
         return;
     }
     unsigned long count = pipe.getVertexCount();
-    srCore.getStatisticsManager()->statistics_00.texture_coordinate_operations_34 += count;
-    srVector2T<float>* coordinates = pipe.getST(0, 1);
+    srVector2T<float>* coordinates = pipe.getST(0, 0);
 
     offset_x = scroll_rate_u_04 * g_frame_elapsed_65a158 + offset_14;
     offset_14 = offset_x - static_cast<float>(floor(offset_x));

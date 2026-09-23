@@ -770,8 +770,8 @@ def runtime_test_environment(
             os.environ.get("WIZ8_WINE_PREFIX", settings.work_dir / "wine" / "wiz8-runtime")
         )
     prefix.mkdir(parents=True, exist_ok=True)
-    # The scenarios never assert audible output. Force the soundless-machine
-    # path so Wine's stub audio drivers cannot perturb semantic observations.
+    # Most scenarios use the soundless-machine path so Wine's stub audio
+    # drivers cannot perturb their semantic observations.
     overrides = (
         "winemenubuilder.exe=d;winealsa.drv=d;wineoss.drv=d;winepulse.drv=d;winemm.drv=d;"
         "mmdevapi=d;dsound=d"
@@ -1445,10 +1445,14 @@ def run_runtime_suite(
             job["stages"][scenario] = str(staged.root)
             run_started = time.monotonic()
             try:
+                scenario_environment = environment
+                if scenario == "voice-portrait-sync":
+                    scenario_environment = {**environment}
+                    scenario_environment.pop("WINEDLLOVERRIDES", None)
                 job["runs"][scenario] = _run_runtime_scenario(
                     staged.executable,
                     staged.root,
-                    environment,
+                    scenario_environment,
                     scenario,
                     registry[scenario].timeout_ms / 1000,
                     object_root,
