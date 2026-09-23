@@ -315,6 +315,22 @@ def test_base_ancestry_passes_when_base_is_ancestor(tmp_path: Path) -> None:
     assert report["behind"] == 0
 
 
+def test_jj_base_accepts_git_remote_branch_spelling(tmp_path: Path, monkeypatch) -> None:
+    from wiz8decomp.merge_preservation import _resolve_commit
+
+    (tmp_path / ".jj").mkdir()
+    calls = []
+
+    def fake_run(command, **kwargs):
+        calls.append(command)
+        return subprocess.CompletedProcess(command, 0, stdout="base-commit\n", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    assert _resolve_commit(tmp_path, "origin/main") == "base-commit"
+    assert calls == [["jj", "log", "-r", "main@origin", "--no-graph", "-T", "commit_id"]]
+
+
 def test_base_ancestry_fails_on_diverged_branch(tmp_path: Path) -> None:
     from wiz8decomp.merge_preservation import base_ancestry_report
 

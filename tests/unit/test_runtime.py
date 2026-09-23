@@ -40,6 +40,7 @@ def _isolate_runtime_environment(monkeypatch) -> None:
         "PROTONPATH",
     ):
         monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("WIZ8_RUNTIME_RUNNER", "wine")
 
 
 def _settings(tmp_path: Path) -> Settings:
@@ -50,7 +51,7 @@ def _settings(tmp_path: Path) -> Settings:
     (repo / "build" / "decomp").mkdir(parents=True)
     (repo / "build" / "decomp" / "Wiz8RuntimeTest.exe").write_bytes(b"semantic tests")
     (repo / "config" / "runtime").mkdir(parents=True)
-    (repo / "config" / "runtime" / "3DVideo.CFG").write_text("video")
+    (repo / "config" / "runtime" / "3DVideo.CFG").write_text("Software\n640\n480\n16\nAudio\n")
     (repo / "config" / "runtime" / "Wiz8.CFG.hex").write_text("00ff")
     return Settings.model_validate(
         {
@@ -79,6 +80,7 @@ def test_stage_game_uses_managed_links_and_materialized_cfg(tmp_path: Path) -> N
     assert (stage / "Saves" / "Characters").is_dir()
     assert result.executable_written is True
 
+    (stage / "3DVideo.CFG").write_text("stale")
     restaged = stage_game(
         settings,
         name="runtime-test",
@@ -86,6 +88,7 @@ def test_stage_game_uses_managed_links_and_materialized_cfg(tmp_path: Path) -> N
     )
     assert restaged.executable_written is False
     assert restaged.executable == result.executable
+    assert (stage / "3DVideo.CFG").read_text() == "Software\n640\n480\n16\nAudio\n"
     assert (stage / "Wiz8.CFG").read_bytes() == b"\x00\xff"
 
 
@@ -112,6 +115,19 @@ def test_selected_glide_config_reaches_runtime_test_stage_and_display(
     ]
 
 
+def test_default_runtime_uses_ge_proton_and_glide_geometry(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.delenv("WIZ8_RUNTIME_RUNNER")
+    settings = _settings(tmp_path)
+    (settings.repo_dir / "config/runtime/3DVideo.CFG").write_text("Glide2x\n800\n600\n16\nAudio\n")
+
+    _, environment = runtime_test_environment(settings)
+
+    assert environment["WIZ8_RUNTIME_RUNNER"] == "umu"
+    assert environment["PROTONPATH"].endswith("/GE-Proton11-7-x86_64")
+    assert environment["WIZ8_RUNTIME_SCREEN_GEOMETRY"] == "800x600x24"
+    assert _runtime_test_command(Path("game.exe"), environment) == ["umu-run", "game.exe"]
+
+
 def test_stage_game_refuses_an_unmanaged_asset_directory(tmp_path: Path) -> None:
     settings = _settings(tmp_path)
     unmanaged = settings.runtime_stage("runtime-test") / "Data"
@@ -126,7 +142,7 @@ def test_stage_game_refuses_an_unmanaged_asset_directory(tmp_path: Path) -> None
 
 
 def test_interactive_run_restores_managed_wine_window(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.delenv("WIZ8_RUNTIME_RUNNER", raising=False)
+    monkeypatch.setenv("WIZ8_RUNTIME_RUNNER", "wine")
     monkeypatch.delenv("WIZ8_RUNTIME_VIDEO_CONFIG", raising=False)
     monkeypatch.delenv("WIZ8_WINE_PREFIX", raising=False)
     settings = _settings(tmp_path)
@@ -837,7 +853,7 @@ def test_staging_without_map_never_reuses_a_previous_map(tmp_path: Path) -> None
 def test_interactive_crash_uses_staged_map_after_build_map_changes(
     tmp_path: Path, synthetic_pe: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.delenv("WIZ8_RUNTIME_RUNNER", raising=False)
+    monkeypatch.setenv("WIZ8_RUNTIME_RUNNER", "wine")
     monkeypatch.delenv("WIZ8_RUNTIME_VIDEO_CONFIG", raising=False)
     monkeypatch.delenv("WIZ8_WINE_PREFIX", raising=False)
     settings = _settings(tmp_path)

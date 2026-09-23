@@ -58,6 +58,10 @@ The runnable stage under `build/runtime/wiz8` is the working directory, so the g
 extracted retail `Data`, `Dll`, `Levels`, Miles, Bink, and SurRender files through managed links
 while every writable path stays under `build/`. The prepared `gog-base` variant is never modified.
 `run --original` stages the retail executable the same way under `build/runtime/original`.
+Interactive runs, debugging, and runtime scenarios default to GE-Proton 11-7 through `umu-run`,
+with the 800×600 Glide2x video config. `PROTONPATH` selects another GE-Proton installation;
+`WIZ8_RUNTIME_RUNNER=wine` and `WIZ8_RUNTIME_VIDEO_CONFIG=config/runtime/3DVideo.Software.CFG`
+select the system-Wine software-renderer setup used by CI.
 
 `uv run wiz8 runtime-test` uses the existing semantic-test image; pass `--build` to refresh it. It
 defaults to the private display and judges only `WIZ8_RUNTIME_TEST`; set

@@ -471,6 +471,8 @@ jobs:
         continue-on-error: true
         env:
           RUNTIME_RENDERER: ${{ inputs.renderer || 'default' }}
+          WIZ8_RUNTIME_RUNNER: wine
+          WIZ8_RUNTIME_VIDEO_CONFIG: config/runtime/3DVideo.Software.CFG
         shell: bash
         run: |
           set -uo pipefail
