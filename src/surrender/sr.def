@@ -677,6 +677,7 @@ EXPORTS
     ?collectSymbols@Compressor@srHuffman@@QAEXABVSampler@2@@Z
     ?compressSymbol@Compressor@srHuffman@@QAEXAAVBitOStream@2@K@Z
     ?convertPixelFormat@srGERD@@CAXAAUPixelFormat@srDD@@ABU2srPixelConvert@@@Z
+    ?convertPixelFormat@srGERD@@CAXAAUPixelFormat@srPixelConvert@@ABU2srDD@@@Z
     ?createContext@srDebugDD@@UAE?AW4e_error@srDD@@K@Z
     ?createNewTexture@srGERD@@AAEPAUTexture@1@PAVsrTextureIFace@@@Z
     ?decompressSymbol@Decompressor@srHuffman@@QAEKXZ
@@ -982,6 +983,7 @@ EXPORTS
     ?swapDiffuseAndSpecular@srVertexPipe@@QAEXXZ
     ?testEyeSpaceBounds@srVertexPipe@@QBEHABV?$srVector3T@M@@M@Z
     ?getAmbientLight@srGERD@@QAEXAAV?$srVector4T@M@@@Z
+    ?getBackBufferType@srGERD@@QBE?AW4e_backBuffer@1@XZ
     ?getCullMode@srGERD@@QBE?AW4e_cullMode@1@XZ
     ?getDD@srGERD@@ABEPAVsrDD@@XZ
     ?getDisplayMode@srGERD@@QBEJKKK@Z
@@ -989,6 +991,7 @@ EXPORTS
     ?getEnvironmentScaleFactor@srGERD@@QAEXAAM0@Z
     ?getExclusionMask@srGERD@@QBEKXZ
     ?getFirst@srGERD@@SAPAV1@XZ
+    ?getStatistics@srGERD@@QAEXAAUStatistics@1@@Z
     ?getFirstOpen@srGERD@@SAPAV1@XZ
     ?getHeight@srGERD@@QBEJXZ
     ?getNext@srGERD@@QBEPAV1@XZ
@@ -996,14 +999,51 @@ EXPORTS
     ?invalidateTexture@srGERD@@AAEXAAUTexture@1@@Z
     ?invalidateTexture@srGERD@@QAEXPAVsrTextureIFace@@@Z
     ?invalidateTextureByFrameHandle@srGERD@@QAEXK@Z
+    ?invalidateResidentTexture@srGERD@@AAEXAAUTexture@1@@Z
+    ?invalidateResidentTexture@srGERD@@QAEXPAVsrTextureIFace@@@Z
+    ?invalidateResidentTextures@srGERD@@QAEXXZ
+    ?invalidateTextureCache@srGERD@@QAEXXZ
+    ?getResidentTextureMemUsed@srGERD@@QBEKXZ
+    ?resetCurrentTexPointers@srGERD@@AAEXXZ
+    ?setTextureCacheSize@srGERD@@QAEXK@Z
     ?applyFrameStateChanges@srGERD@@AAEXXZ
     ?beginFrame@srGERD@@QAE?AW4e_error@1@XZ
+    ?createContext@srGERD@@QAE?AW4e_error@1@K@Z
+    ?deleteContext@srGERD@@QAEXXZ
+    ?closeWindow@srGERD@@QAEXW4e_closeHint@1@@Z
+    ?openWindow@srGERD@@QAE?AW4e_error@1@XZ
+    ?openWindow@srGERD@@QAE?AW4e_error@1@JJ@Z
+    ?openWindow@srGERD@@QAE?AW4e_error@1@J@Z
+    ?openWindowInternal@srGERD@@AAE?AW4e_error@1@ABUOpenInfo@1@@Z
+    ?lockBuffer@srGERD@@QAEPAVsrColorSurfaceIFace@@XZ
+    ?unlockBuffer@srGERD@@QAEXXZ
+    ?deleteRenderers@srGERD@@AAEXXZ
+    ?accumRelease@srGERD@@AAEXXZ
+    ?initTexCache@srGERD@@AAEXXZ
+    ?closeTexCache@srGERD@@AAEXXZ
+    ?initDDInfo@srGERD@@AAEXXZ
+    ?initDisplayModeList@srGERD@@AAEXXZ
+    ?initGlobalPalette@srGERD@@AAEXXZ
+    ?initTextureFormats@srGERD@@AAEXXZ
     ?checkFrameStateChanges@srGERD@@AAEXXZ
     ?endFrame@srGERD@@QAEXXZ
+    ?flush@srGERD@@QAEXXZ
+    ?flipFrame@srGERD@@QAEXXZ
+    ?flipFrame@srGERD@@QAEXPBURectangle@1@0K@Z
+    ?clear@srGERD@@QAEXABV?$srFlags@W4e_buffer@srGERD@@@@@Z
+    ?isFullScreen@srGERD@@QBEHXZ
+    ?getPixelFormat@srGERD@@ABEXAAUPixelFormat@srPixelConvert@@@Z
+    ?accumAlloc@srGERD@@AAEXXZ
+    ?accumClear@srGERD@@AAEXXZ
+    ?accumConvert@srGERD@@ABEFM@Z
+    ?_lockBuffer@srGERD@@AAE?AW4e_error@srDD@@XZ
+    ?_unlockBuffer@srGERD@@AAE?AW4e_error@srDD@@XZ
     ?matrixMode@srGERD@@QAEXW4e_matrixMode@1@@Z
     ?popMatrix@srGERD@@QAEXXZ
     ?pushMatrix@srGERD@@QAEXXZ
     ?setMatrixDirty@srGERD@@AAEXXZ
+    ?getHeight@srWindow@@SAJK@Z
+    ?getWidth@srWindow@@SAJK@Z
     ?isWindow@srWindow@@SAHK@Z
     ?getPolygonOffset@srGERD@@QBEJXZ
     ?getTexture@srCore@@QBEPAVsrTexture@@XZ
@@ -1030,6 +1070,7 @@ EXPORTS
     ?popPick@srGERD@@QAEXAAUPick@1@@Z
     ?pushEnable@srGERD@@QAEXXZ
     ?pushPick@srGERD@@QAEXABUPick@1@@Z
+    ?resetStatistics@srGERD@@QAEXXZ
     ?resetTexture@srGERD@@AAEXXZ
     ?setAmbientLight@srGERD@@QAEXABV?$srVector4T@M@@@Z
     ?setAmbientLight@srGERD@@QAEXMMMM@Z
@@ -1041,9 +1082,11 @@ EXPORTS
     ?setExclusionMask@srGERD@@QAEXK@Z
     ?setGamma@srGERD@@QAEXABV?$srVector3T@M@@@Z
     ?setPickKey@srGERD@@QAEXK@Z
+    ?setPolygonOffset@srGERD@@QAEXJ@Z
     ?setSwapInterval@srGERD@@QAEXK@Z
     ?setTexture@srGERD@@QAEXPAVsrTextureIFace@@K@Z
     ?setTextureReduction@srGERD@@QAEXJ@Z
+    ?setTextureSubImage@srGERD@@QAEXPAVsrTextureIFace@@JJJJJ@Z
     ?setViewPort@srGERD@@QAEXKKKK@Z
     ?setWinding@srGERD@@QAEXW4e_winding@1@@Z
     ?toggle@srGERD@@QAEXW4e_enable@1@@Z

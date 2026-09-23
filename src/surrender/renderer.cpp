@@ -131,6 +131,20 @@ static unsigned long firstMismatchSorted(const unsigned long* values, unsigned l
     return index;
 }
 
+// FUNCTION: SURRENDER 0x10024200
+void srGERD::Renderer::resetStatistics()
+{
+    memset(statistics_28_, 0, sizeof(statistics_28_));
+}
+
+// FUNCTION: SURRENDER 0x10024260
+void srGERD::Renderer::getStatistics(unsigned long* statistics)
+{
+    for (int i = 0; i < 7; i++) {
+        statistics[i] = statistics_28_[i];
+    }
+}
+
 // FUNCTION: SURRENDER 0x10024280
 unsigned long srGERD::Renderer::TextureSetCache::intern(const TextureSetKey& key)
 {
