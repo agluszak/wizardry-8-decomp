@@ -424,7 +424,11 @@ def test_prepare_comparison_targets_select_minimal_mode(monkeypatch) -> None:
     settings = object()
     events = []
     monkeypatch.setattr(command_support, "settings", lambda: settings)
-    monkeypatch.setattr(build, "prepare", lambda _settings: events.append(("full", None)) or {})
+    monkeypatch.setattr(
+        build,
+        "prepare",
+        lambda _settings: events.append(("full", None)) or {},
+    )
     monkeypatch.setattr(
         build,
         "prepare_comparison",
