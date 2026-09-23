@@ -262,8 +262,8 @@ public:
        flicker used while the gap track reports the mouth closed. */
     int mouth_frame_clock;
     int mouth_frame;
-    int talk_start_208;
-    int talk_duration_20c;
+    unsigned int talk_start_208;
+    unsigned int talk_duration_20c;
     int talk_state_210;
     /* 0x214: the current mouth state the dialogue update copies out of the
        active W8MouthGapTrack; forces mouth frame 0 while open. */

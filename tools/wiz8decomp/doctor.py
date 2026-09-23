@@ -137,7 +137,12 @@ def _product_inputs_check(settings: Settings) -> dict[str, Any]:
     elif stale_recipes:
         status = "stale-recipe"
         named = ", ".join(row["role"] for row in stale_recipes)
-        detail = f"extraction recipe identity differs for {named}; run `uv run wiz8 extract`"
+        roles = " ".join(row["role"] for row in stale_recipes)
+        detail = (
+            f"extraction recipe identity differs for {named}; run "
+            "`uv run wiz8 corpus clean --stage extractions`, then "
+            f"`uv run wiz8 corpus extract {roles}`"
+        )
     else:
         status = "ready"
         detail = None

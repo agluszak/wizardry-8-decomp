@@ -32,9 +32,7 @@ void srGERD::setTextureDefaultCorrection(srTextureIFace::e_correction correction
         correction = srTextureIFace::CORRECTION_GOOD;
     }
     default_correction_1fb4_ = correction;
-    /* The wrap table's fourth entry doubles as the current correction
-       parameter, the same spare-slot trick mipmap_map_1f94_[3] uses. */
-    wrap_map_1f5c_[3] = wrap_map_1f5c_[correction];
+    correction_map_1f5c_[srTextureIFace::CORRECTION_DEFAULT] = correction_map_1f5c_[correction];
     resetTexture();
 }
 
@@ -59,7 +57,7 @@ void srGERD::setTextureDefaultMagFilter(srTextureIFace::e_filter filter)
         filter = srTextureIFace::FILTER_GOOD;
     }
     default_mag_filter_1fb8_ = filter;
-    mag_filter_param_1f7c_ = mag_filter_map_1f6c_[filter];
+    mag_filter_map_1f6c_[srTextureIFace::FILTER_DEFAULT] = mag_filter_map_1f6c_[filter];
     resetTexture();
 }
 
@@ -71,7 +69,7 @@ void srGERD::setTextureDefaultMinFilter(srTextureIFace::e_filter filter)
         filter = srTextureIFace::FILTER_GOOD;
     }
     default_min_filter_1fbc_ = filter;
-    min_filter_param_1f90_ = min_filter_map_1f80_[filter];
+    min_filter_map_1f80_[srTextureIFace::FILTER_DEFAULT] = min_filter_map_1f80_[filter];
     resetTexture();
 }
 

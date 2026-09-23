@@ -3292,15 +3292,15 @@ void srGERD::setTextureParameters(unsigned long stage, const srTextureIFace::Par
 {
     unsigned long state = parameters.packed_state_00;
     float bias = parameters.mipmap_bias_04;
-    unsigned long packed = ((((correction_map_1fa4_[(state >> 0xc) & 1] & 0xfffffff3) |
-                              (detail_map_1fac_[(state >> 0xd) & 1] << 2))
+    unsigned long packed = ((((wrap_s_map_1fa4_[(state >> 0xc) & 1] & 0xfffffff3) |
+                              (wrap_t_map_1fac_[(state >> 0xd) & 1] << 2))
                                  << 2 |
                              (mipmap_map_1f94_[(state >> 10) & 3] & 0xffffffc3))
                                 << 2 |
                             (min_filter_map_1f80_[(state >> 7) & 7] & 0xffffff03))
                                << 2 |
                            (mag_filter_map_1f6c_[(state >> 4) & 7] & 0xfffffc0f);
-    packed = (packed << 4) | (wrap_map_1f5c_[state & 3] & 0xffffc00f);
+    packed = (packed << 4) | (correction_map_1f5c_[state & 3] & 0xffffc00f);
     srDD::TexParms* parms = &texture_parms_1f40_[stage];
     if (packed == parms->packed_00 && bias == parms->mipmap_bias_04) {
         return;
@@ -3638,16 +3638,16 @@ void srGERD::dump(std::ostream& stream, const srFlags<e_info>& info)
                        << statistics.sphere_tests_6c / statistics.elapsed_00 << std::endl;
                 stream << "Bounding sphere test passed     : "
                        << statistics.sphere_visible_70 / statistics.elapsed_00 << " ("
-                       << statistics.sphere_visible_70 * 100.0 / statistics.sphere_tests_6c
-                       << "%)" << std::endl;
+                       << statistics.sphere_visible_70 * 100.0 / statistics.sphere_tests_6c << "%)"
+                       << std::endl;
             }
             if (statistics.box_tests_74 != 0) {
                 stream << "Objects bounding box tested     : "
                        << statistics.box_tests_74 / statistics.elapsed_00 << std::endl;
                 stream << "Bounding box test passed        : "
                        << statistics.box_visible_78 / statistics.elapsed_00 << " ("
-                       << statistics.box_visible_78 * 100.0 / statistics.box_tests_74
-                       << "%)" << std::endl;
+                       << statistics.box_visible_78 * 100.0 / statistics.box_tests_74 << "%)"
+                       << std::endl;
             }
             stream << std::endl;
             stream << "Triangles sorted                : "

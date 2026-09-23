@@ -301,17 +301,6 @@ static_assert(offsetof(W8NavigatorMovementState, scale_0c4) == 0xc4,
 static_assert(offsetof(W8NavigatorMovementState, position_adjusted_0c8) == 0xc8,
               "W8NavigatorMovementState_position_adjusted_0c8");
 
-/* The wait state Monster.cpp's cycle 0x17 parks in a Navigator's
-   movement_target_018 while the monster idles between cycles: the tick the
-   wait began, its millisecond duration, and the arming cycle id. The
-   Navigator's vector view is the declared type; this is the named overlay
-   for the reinterpreted dwords. */
-struct W8MonsterCycleDelayState {
-    unsigned int started_at;
-    unsigned int duration;
-    unsigned int cycle;
-};
-
 /* Navigator.cpp owns the path, position, orientation, and scene-node state
    below. It is GrCycle's ordinary second base, not a representation object. */
 #pragma pack(push, 4)
@@ -445,21 +434,8 @@ public:
     int navigation_mode_008;
     unsigned int flags_00c;
     double collision_margin_010;
-    /* Used both as a movement target and, by Monster.cpp's cycle 0x17/0x18
-       wait states, as a W8MonsterCycleDelayState overlay. It was an anonymous
-       union until movement_0c0 gained a constructor, which VC6 will not
-       generate for a struct holding one. The float view is the declared one;
-       CycleDelay018() names the dword reinterpretation. */
+    /* Current 3D movement target. */
     srVector3T<float> movement_target_018;
-
-    /* The cycle-0x17 wait state view of movement_target_018: the tick the
-       wait began, its millisecond duration and the arming cycle id. */
-    W8MonsterCycleDelayState* CycleDelay018()
-    {
-        return reinterpret_cast<W8MonsterCycleDelayState*>( // reinterpret-ok: monster cycle
-            &movement_target_018);                          /* states reuse the 12 target
-            bytes as a timer record while no navigation target is live */
-    }
     /* Set when the navigator's movement has stopped - the constructors raise
        it, SetMovementStopped00453880 raises it when motion halts (levelling
        pitch unless the navigation mode banks), and a successful

@@ -13,7 +13,6 @@
 #include "surrender/srTypeRegistry.h"
 #include "surrender/srVectorProcessor.h"
 #include "wiz8/engine_code/Octree.h"
-#include "wiz8/layouts/encounter_tables.h"
 
 #include <math.h>
 #include <string.h>
@@ -453,8 +452,8 @@ void stMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
     RenderTriMeshWithEquations00470380(renderer, mesh, 0);
 }
 
-/* Wizardry-extended srMeshModel::renderTriMesh. Optional `poly_equations`
-   enables a software backface cull into g_software_cull_active_polygons and
+/* Wizardry-extended srMeshModel::renderTriMesh. Optional polygon normals enable
+   a software backface cull into g_software_cull_active_polygons and
    forces CULL_FRONT; a null table leaves hardware cull at CULL_NONE unless
    g_render_cull_front_0065a0ed already requested front culling. */
 // FUNCTION: WIZ8 0x00470380
@@ -756,8 +755,7 @@ void OffsetVertices00470040(srVector3T<float>* destination, const srVector3T<flo
 }
 
 // FUNCTION: WIZ8 0x00473fa0
-void stMeshModel::ApplyAutomapPolygonFilter(
-    const W8GrowableVector<W8EncounterScriptName*>* excluded_textures)
+void stMeshModel::ApplyAutomapPolygonFilter(const W8GrowableVector<char*>* excluded_textures)
 {
     if (automap_polygons) {
         delete[] automap_polygons;
@@ -775,7 +773,7 @@ void stMeshModel::ApplyAutomapPolygonFilter(
                 strcpy(name, (*texture)->getName());
                 bool include = true;
                 for (int index = 0; index < excluded_textures->count; ++index) {
-                    if (_stricmp(name, (*excluded_textures->GetAt(index))->value) == 0)
+                    if (_stricmp(name, *excluded_textures->GetAt(index)) == 0)
                         include = false;
                 }
                 if (include)

@@ -868,18 +868,16 @@ private:
     srDD::TexParms texture_parms_1f40_[2];
     /* Device palette record handed to bindPalette/deletePalette. */
     srDD::Palette palette_1f50_;
-    /* setTextureParameters packs the stage parameters through these filter
-       tables, indexed by bits of the texture's packed state. */
-    unsigned long wrap_map_1f5c_[4];
-    unsigned long mag_filter_map_1f6c_[4];
-    unsigned long mag_filter_param_1f7c_;
-    unsigned long min_filter_map_1f80_[4];
-    unsigned long min_filter_param_1f90_;
+    /* setTextureParameters indexes these maps from the packed texture state.
+       Filter selector 4 is a valid index in both filter maps. */
+    unsigned long correction_map_1f5c_[4];
+    unsigned long mag_filter_map_1f6c_[5];
+    unsigned long min_filter_map_1f80_[5];
     /* The fourth entry doubles as the current mipmap parameter written by
        setTextureDefaultMipmap. */
     unsigned long mipmap_map_1f94_[4];
-    unsigned long correction_map_1fa4_[2];
-    unsigned long detail_map_1fac_[2];
+    unsigned long wrap_s_map_1fa4_[2];
+    unsigned long wrap_t_map_1fac_[2];
     srTextureIFace::e_correction default_correction_1fb4_;
     srTextureIFace::e_filter default_mag_filter_1fb8_;
     srTextureIFace::e_filter default_min_filter_1fbc_;
