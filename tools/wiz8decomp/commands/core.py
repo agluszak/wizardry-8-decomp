@@ -560,6 +560,7 @@ def unresolved_report_command(
     link_map: Annotated[Path | None, typer.Option(help="Linker MAP.")] = None,
 ) -> None:
     from .. import command_support as cli
+    from ..runtime_stubs import linked_objects
     from ..unresolved import unresolved_report
 
     def action():
@@ -567,6 +568,7 @@ def unresolved_report_command(
         report = unresolved_report(
             objects or settings.recovered_objects_dir,
             link_map or settings.product_build_dir / "Wiz8.map",
+            objects=None if objects else linked_objects(settings),
         )
         return report
 

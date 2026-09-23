@@ -1,4 +1,7 @@
 #include "wiz8/engine_code/Camera.h"
+#ifdef WIZ8_RUNTIME_TESTS
+#include "runtime_instrumentation.h"
+#endif
 #include "wiz8/local_screens/Screens.h"
 #include "soundman.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
@@ -919,6 +922,10 @@ unsigned char W8CharacterEvent::PlayEventSound()
     SoundGetMilliSecondPosition(sound_handle, &total_ms, &current_ms);
     record->voice_time_remaining_ms = total_ms;
     LoadMouthGapTrack(sound_path, &record->mouth_gap);
+#ifdef WIZ8_RUNTIME_TESTS
+    RuntimeObserve(RUNTIME_VOICE_STARTED, party_slot, sound_handle, record->mouth_gap.range_count);
+    RuntimeObserve(RUNTIME_VOICE_TIMING, party_slot, total_ms, current_ms);
+#endif
     return 1;
 }
 
@@ -1974,6 +1981,9 @@ int UpdateCharacterEventState(void)
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         W8MonsterManagerEntry* record = &gXStatus.monster_manager_entries[party_slot];
         unsigned char sound_active = 0;
+#ifdef WIZ8_RUNTIME_TESTS
+        int previous_frame = record->portrait_frame;
+#endif
 
         if (g_status_685170.buffers.XChar[party_slot].fOccupied == 0) {
             continue;
@@ -1989,8 +1999,17 @@ int UpdateCharacterEventState(void)
                     }
                 }
             } else {
+#ifdef WIZ8_RUNTIME_TESTS
+                unsigned char previous_mouth = record->mouth_gap.mouth_open;
+#endif
                 UpdateMouthGapTrack(record->voice_sound_handle, &record->mouth_gap);
                 sound_active = record->mouth_gap.mouth_open;
+#ifdef WIZ8_RUNTIME_TESTS
+                if (sound_active != previous_mouth) {
+                    RuntimeObserve(RUNTIME_MOUTH_CHANGED, party_slot,
+                                   SoundGetPosition(record->voice_sound_handle), sound_active);
+                }
+#endif
             }
         }
 
@@ -2029,7 +2048,7 @@ int UpdateCharacterEventState(void)
                         if (record->voice_time_remaining_ms < 120) {
                             record->previous_portrait_frame = record->portrait_frame;
                             record->portrait_frame = 6;
-                            record->portrait_pose_dirty = 1;
+                            record->portrait_frame_dirty = 1;
                             record->voice_time_remaining_ms = 0;
                         } else {
                             int direction = ChooseDifferentMonsterDirection004C2E00(
@@ -2041,7 +2060,7 @@ int UpdateCharacterEventState(void)
                             }
                             record->previous_portrait_frame = record->portrait_frame;
                             record->portrait_frame = direction;
-                            record->portrait_pose_dirty = 1;
+                            record->portrait_frame_dirty = 1;
                             record->portrait_frame_clock = SetCountdownClock(120);
                             record->voice_time_remaining_ms -= 120;
                         }
@@ -2049,16 +2068,28 @@ int UpdateCharacterEventState(void)
                 } else {
                     record->previous_portrait_frame = record->portrait_frame;
                     record->portrait_frame = 6;
-                    record->portrait_pose_dirty = 1;
+                    record->portrait_frame_dirty = 1;
                 }
             }
         }
 
+#ifdef WIZ8_RUNTIME_TESTS
+        if (record->portrait_frame != previous_frame) {
+            RuntimeObserve(RUNTIME_PORTRAIT_FRAME_CHANGED, party_slot, record->portrait_frame,
+                           record->portrait_frame_dirty);
+            RuntimeObserve(RUNTIME_PORTRAIT_REFRESH_STATE, party_slot,
+                           (record->portrait_pose_dirty ? 1UL : 0UL) |
+                               (record->portrait_frame_dirty ? 2UL : 0UL) |
+                               (record->auto_portrait_refresh ? 4UL : 0UL) |
+                               (record->keyboard_menu_open ? 8UL : 0UL),
+                           g_current_screen_state.id);
+        }
+#endif
         if (gXStatus.fNpcDialogueMode != 0 && (party_slot & 1) != 0 &&
             IsPortraitObscuredByNpcDialogue(party_slot) != 0) {
             continue;
         }
-        if (record->portrait_frame_dirty == 0 && record->effect_icon_active == 0 &&
+        if (record->damage_splat_active == 0 && record->effect_icon_active == 0 &&
             (g_current_screen_state.id != W8_SCREEN_CHARACTER ||
              record->portrait_event_active != 0)) {
             if (record->portrait_pose_animation_active == 0) {
@@ -2090,8 +2121,12 @@ int UpdateCharacterEventState(void)
                     record->portrait_pose_animation_active = 0;
                 }
             }
-            if ((record->portrait_pose_animation_active != 0 || record->portrait_pose_dirty != 0) &&
-                record->auto_portrait_refresh == 0) {
+            if ((record->portrait_pose_dirty != 0 || record->portrait_frame_dirty != 0) &&
+                record->keyboard_menu_open == 0) {
+#ifdef WIZ8_RUNTIME_TESTS
+                RuntimeObserve(RUNTIME_PORTRAIT_REFRESH_REQUESTED, party_slot,
+                               record->portrait_frame, g_current_screen_state.id);
+#endif
                 RefreshPartySlotDisplay(party_slot);
             }
         }
@@ -2188,6 +2223,9 @@ char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
             RenderPartyPortrait0052EB00(portrait, left, top, flags, 0, party_slot);
         }
         DrawCatalogImage(-0xe, 0x12, portrait, state->portrait_frame, left, top, flags, 0);
+#ifdef WIZ8_RUNTIME_TESTS
+        RuntimeObserve(RUNTIME_PORTRAIT_BLIT, party_slot, state->portrait_frame, portrait);
+#endif
         rect.left = image_x + left;
         rect.top = image_y + top;
         rect.right = width + rect.left;
@@ -2204,7 +2242,7 @@ char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
             UnionScreenRects(&other, &rect, &rect);
         }
         InvalidateScreenRects(&rect, 1, 0);
-        state->previous_portrait_frame = state->previous_portrait_frame;
+        state->previous_portrait_frame = state->portrait_frame;
         state->portrait_frame_dirty = 0;
     }
     if (((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].dead_34 != 0) ||

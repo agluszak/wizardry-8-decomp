@@ -118,6 +118,18 @@ def _read_runtime_scenarios(
     return _parse_runtime_scenarios(result.stdout)
 
 
+def _runtime_test_command(executable: Path, environment: dict[str, str]) -> list[str]:
+    if environment.get("WIZ8_RUNTIME_RUNNER", "wine") == "umu":
+        return [environment.get("WIZ8_UMU_RUN", "umu-run"), str(executable)]
+    return ["wine", f"./{executable.name}"]
+
+
+def _runtime_test_wineserver(environment: dict[str, str]) -> str:
+    if environment.get("WIZ8_RUNTIME_RUNNER") == "umu":
+        return environment.get("WIZ8_UMU_WINESERVER", "wineserver")
+    return "wineserver"
+
+
 @dataclass(frozen=True)
 class _CrashCandidate:
     source: str
@@ -164,6 +176,7 @@ def _materialize_config(settings: Settings, stage: Path) -> None:
     video_cfg = stage / "3DVideo.CFG"
     if not video_cfg.exists():
         shutil.copy2(settings.repo_dir / "config" / "runtime" / "3DVideo.CFG", video_cfg)
+    apply_product_video_config(settings, stage)
     game_cfg = stage / "Wiz8.CFG"
     if not game_cfg.exists():
         encoded = (settings.repo_dir / "config" / "runtime" / "Wiz8.CFG.hex").read_text()
@@ -259,8 +272,14 @@ def run_product(
 ) -> dict[str, Any]:
     """Stage and launch one game process, symbolizing a crash when it happens."""
 
-    if shutil.which("wine") is None:
+    runner = os.environ.get("WIZ8_RUNTIME_RUNNER", "wine")
+    if runner not in {"wine", "umu"}:
+        raise ValueError("WIZ8_RUNTIME_RUNNER must be 'wine' or 'umu'")
+    if runner == "wine" and shutil.which("wine") is None:
         raise RuntimeError("wine is required to run the game")
+    umu_run = os.environ.get("WIZ8_UMU_RUN", "umu-run")
+    if runner == "umu" and shutil.which(umu_run) is None:
+        raise RuntimeError(f"UMU runner is not available: {umu_run}")
     if original:
         staged = stage_game(
             settings,
@@ -279,13 +298,20 @@ def run_product(
     prefix = Path(os.environ.get("WIZ8_WINE_PREFIX", settings.work_dir / "wine" / "wiz8-runtime"))
     prefix.mkdir(parents=True, exist_ok=True)
     environment = {**os.environ, "WINEPREFIX": str(prefix)}
+    environment.setdefault("WIZ8_RUNTIME_SCREEN_GEOMETRY", runtime_video_screen_geometry(settings))
     environment.setdefault("WINEDLLOVERRIDES", "winemenubuilder.exe=d")
     with runtime_display(
         environment, default="host", log_path=staged.root / "xvfb-run.log"
     ) as display:
-        configure_wine_window_management(environment, private_display=display is not None)
+        if runner == "wine":
+            configure_wine_window_management(environment, private_display=display is not None)
+        command = (
+            ["wine", f"./{staged.executable.name}"]
+            if runner == "wine"
+            else [umu_run, str(staged.executable)]
+        )
         completed = subprocess.run(
-            ["wine", f"./{staged.executable.name}", "/WINDOW", *(arguments or [])],
+            [*command, "/WINDOW", *(arguments or [])],
             cwd=staged.root,
             env=environment,
             check=False,
@@ -303,6 +329,36 @@ def run_product(
         log_path.write_text(output, encoding="utf-8", errors="replace")
         crash = analyze_runtime_crash(log_path, map_path, staged.objects)
     return {**staged.as_dict(), "status": completed.returncode, "crash": crash}
+
+
+def runtime_video_config_source(settings: Settings) -> Path:
+    source = Path(os.environ.get("WIZ8_RUNTIME_VIDEO_CONFIG", "config/runtime/3DVideo.CFG"))
+    if not source.is_absolute():
+        source = settings.repo_dir / source
+    if not source.is_file():
+        raise RuntimeError(f"runtime video configuration is missing: {source}")
+    return source
+
+
+def apply_product_video_config(settings: Settings, stage: Path) -> None:
+    if not os.environ.get("WIZ8_RUNTIME_VIDEO_CONFIG"):
+        return
+    source = runtime_video_config_source(settings)
+    shutil.copy2(source, stage / "3DVideo.CFG")
+
+
+def runtime_video_screen_geometry(settings: Settings) -> str:
+    if not os.environ.get("WIZ8_RUNTIME_VIDEO_CONFIG"):
+        return "640x480x16"
+    lines = runtime_video_config_source(settings).read_text(encoding="ascii").splitlines()
+    if len(lines) < 4:
+        raise RuntimeError("runtime video configuration is missing its width, height, or depth")
+    width, height, depth = (int(value) for value in lines[1:4])
+    # Glide selects its own 16-bit game mode inside Wine. Its X11 host window
+    # needs a 24-bit visual with GE-Proton; the CFG depth is the game depth.
+    if lines[0] == "Glide2x":
+        depth = 24
+    return f"{width}x{height}x{depth}"
 
 
 def _resolve_addresses(map_path: Path, addresses: list[int]) -> list[SymbolResolution | None]:
@@ -688,7 +744,11 @@ def _compare_repetitions(scenario: str, outcomes: list[dict[str, Any]]) -> list[
 
 
 def runtime_test_environment(
-    settings: Settings, *, prefix: Path | None = None, renderer: str | None = None
+    settings: Settings,
+    *,
+    prefix: Path | None = None,
+    renderer: str | None = None,
+    sound: bool = False,
 ) -> tuple[Path, dict[str, str]]:
     if prefix is None:
         prefix = Path(
@@ -701,11 +761,12 @@ def runtime_test_environment(
         "winemenubuilder.exe=d;winealsa.drv=d;wineoss.drv=d;winepulse.drv=d;winemm.drv=d;"
         "mmdevapi=d;dsound=d"
     )
-    environment = {
-        **os.environ,
-        "WINEPREFIX": str(prefix),
-        "WINEDLLOVERRIDES": overrides,
-    }
+    environment = {**os.environ, "WINEPREFIX": str(prefix)}
+    environment.setdefault("WIZ8_RUNTIME_SCREEN_GEOMETRY", runtime_video_screen_geometry(settings))
+    if sound:
+        environment.pop("WINEDLLOVERRIDES", None)
+    else:
+        environment["WINEDLLOVERRIDES"] = overrides
     if renderer is not None:
         environment["GALLIUM_DRIVER"] = renderer
     environment["WINEDEBUG"] = "-all"
@@ -884,13 +945,22 @@ def _drive_runtime_process(
     marker arms the early-exit grace."""
     started = time.monotonic()
     output: dict[str, bytearray] = {"stdout": bytearray(), "stderr": bytearray()}
+    environment = environment.copy()
+    proton_output = stage / "diagnostics" / "runtime-test.stdout"
+    proton_log = stage / "diagnostics" / "runtime-test.stderr"
+    if environment.get("WIZ8_RUNTIME_RUNNER") == "umu":
+        proton_output.parent.mkdir(parents=True, exist_ok=True)
+        proton_output.unlink(missing_ok=True)
+        proton_log.unlink(missing_ok=True)
+        environment["WIZ8_RUNTIME_TEST_OUTPUT"] = str(proton_output)
+        environment["WIZ8_RUNTIME_TEST_LOG"] = str(proton_log)
     timed_out = False
     failure_deadline: float | None = None
     pending_stderr = b""
     last_step = "process-start"
     last_step_scenario: str | None = None
     with subprocess.Popen(
-        ["wine", f"./{executable.name}", *argv_tail],
+        [*_runtime_test_command(executable, environment), *argv_tail],
         cwd=stage,
         env=environment,
         stdout=subprocess.PIPE,
@@ -954,7 +1024,7 @@ def _drive_runtime_process(
                     # replace the scenario's own crash/failure diagnostics.
                     try:
                         subprocess.run(
-                            ["wineserver", "-k"],
+                            [_runtime_test_wineserver(environment), "-k"],
                             env=environment,
                             check=False,
                             capture_output=True,
@@ -969,6 +1039,16 @@ def _drive_runtime_process(
                 process.wait()
     stdout = output["stdout"].decode(errors="replace")
     stderr = output["stderr"].decode(errors="replace")
+    if environment.get("WIZ8_RUNTIME_RUNNER") == "umu":
+        if proton_output.exists():
+            stdout = proton_output.read_text(encoding="utf-8", errors="replace")
+        if proton_log.exists():
+            stderr = proton_log.read_text(encoding="utf-8", errors="replace") + stderr
+        for line in stderr.splitlines():
+            if line.startswith("WIZ8_RUNTIME_STEP "):
+                fields = dict(item.split("=", 1) for item in line.split()[1:] if "=" in item)
+                last_step = fields.get("step", last_step)
+                last_step_scenario = fields.get("scenario")
     if timed_out:
         stderr += f"\nruntime-test deadline: last_step={last_step}\n"
     return _RuntimeProcessResult(
@@ -1185,6 +1265,11 @@ def run_runtime_suite(
 
     if shutil.which("wine") is None or shutil.which("wineserver") is None:
         raise RuntimeError("wine and wineserver are required to run WIZ8_RUNTIME_TEST")
+    if (
+        os.environ.get("WIZ8_RUNTIME_RUNNER") == "umu"
+        and shutil.which(os.environ.get("WIZ8_UMU_RUN", "umu-run")) is None
+    ):
+        raise RuntimeError("UMU runner is required when WIZ8_RUNTIME_RUNNER=umu")
     stage = settings.runtime_stage("runtime-test")
     stage.mkdir(parents=True, exist_ok=True)
     executable = settings.product_build_dir / "Wiz8RuntimeTest.exe"
@@ -1209,7 +1294,9 @@ def run_runtime_suite(
     # Read the scenario registry once on worker 0's prefix; the display context
     # is short-lived — each worker opens its own before running cases.
     with runtime_display(
-        environments[0], default="virtual", log_path=stage / "xvfb-registry.log"
+        environments[0],
+        default="host" if environments[0].get("WIZ8_RUNTIME_RUNNER") == "umu" else "virtual",
+        log_path=stage / "xvfb-registry.log",
     ) as display:
         configure_wine_window_management(environments[0], private_display=display is not None)
         registry_stage = stage_game(
@@ -1223,6 +1310,17 @@ def run_runtime_suite(
         registry = _read_runtime_scenarios(
             registry_stage.executable, registry_stage.root, environments[0]
         )
+        # Registry discovery uses system Wine. Retire its prefix services while
+        # their X connection is still live, before GE-Proton starts on another
+        # private display for the scenarios.
+        if environments[0].get("WIZ8_RUNTIME_RUNNER") == "umu":
+            subprocess.run(
+                ["wineserver", "-k"],
+                env=environments[0],
+                check=False,
+                capture_output=True,
+                timeout=5,
+            )
     if scenarios is None:
         scenarios = tuple(
             name for name, spec in registry.items() if tiers.index(spec.tier) <= tiers.index(tier)
@@ -1399,6 +1497,14 @@ def run_runtime_suite(
                 log_path=stage / f"xvfb-worker-{index}.log",
             ) as display:
                 configure_wine_window_management(environment, private_display=display is not None)
+                if environment.get("WIZ8_RUNTIME_RUNNER") == "umu":
+                    subprocess.run(
+                        [_runtime_test_wineserver(environment), "-k"],
+                        env=environment,
+                        check=False,
+                        capture_output=True,
+                        timeout=5,
+                    )
                 while True:
                     job_index = pending.get()
                     try:
@@ -1413,7 +1519,7 @@ def run_runtime_suite(
         finally:
             try:
                 subprocess.run(
-                    ["wineserver", "-k"],
+                    [_runtime_test_wineserver(environment), "-k"],
                     cwd=stage,
                     env=environment,
                     check=False,

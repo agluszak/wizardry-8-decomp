@@ -69,7 +69,7 @@ def runtime_display(
                     str(write_fd),
                     "-screen",
                     "0",
-                    _SCREEN_GEOMETRY,
+                    environment.get("WIZ8_RUNTIME_SCREEN_GEOMETRY", _SCREEN_GEOMETRY),
                     "-nolisten",
                     "tcp",
                 ],

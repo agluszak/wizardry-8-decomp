@@ -251,10 +251,14 @@ extern int g_paired_render_mode_6596f0;
 extern float g_surface_scale_659680;
 extern int g_surface_state_6595dc;
 extern int g_surface_state_654ad8;
-extern int g_viewport_left_6595e8;
-extern int g_viewport_top_6595ec;
-extern int g_viewport_right_6595f0;
-extern int g_viewport_bottom_6595f4;
+struct W8ViewportRect {
+    int left;
+    int top;
+    int right;
+    int bottom;
+};
+static_assert(sizeof(W8ViewportRect) == 16, "W8ViewportRect_size");
+extern W8ViewportRect g_viewport_6595e8;
 extern int g_dirty_tile_count_6596d8;
 extern int g_resident_texture_policy_659714;
 extern unsigned char g_world_render_enabled_65970d;

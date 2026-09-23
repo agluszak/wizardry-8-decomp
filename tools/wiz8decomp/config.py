@@ -53,8 +53,8 @@ class Settings(BaseModel):
 
     @property
     def recovered_objects_dir(self) -> Path:
-        """Objects the completed comparison link consumed, for stub derivation."""
-        return self.product_build_dir / "src/wiz8/CMakeFiles/wiz8_recovered_objects.dir"
+        """Parent of the shared and product-specific recovered object targets."""
+        return self.product_build_dir / "src/wiz8/CMakeFiles"
 
     def runtime_stage(self, name: str) -> Path:
         """Writable game tree under build/runtime; source variants stay immutable."""

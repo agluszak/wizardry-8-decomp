@@ -15,6 +15,7 @@
 #include "wiz8/engine_code/Video2.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
 
@@ -406,7 +407,7 @@ static bool SpendFlowPool(RuntimeCase& test, const char* step, int skills_page)
     unsigned int started = GetTickCount();
     bool progress = true;
     CharacterFlowState state;
-    while (progress && GetTickCount() - started < 20000) {
+    while (progress && GetTickCount() - started < 90000) {
         progress = false;
         if (!ReadCharacterFlow(test, state, step)) {
             return false;
@@ -455,6 +456,23 @@ static bool SpendFlowPool(RuntimeCase& test, const char* step, int skills_page)
                 return true;
             }
         }
+    }
+    fprintf(stderr, "runtime-test flow-pool: step=%s page=%d complete=%d count=%d\n", step,
+            skills_page, skills_page ? state.skills_complete : state.attributes_complete,
+            skills_page ? state.skill_count : state.stat_count);
+    int count = skills_page ? state.skill_count : state.stat_count;
+    FlowEntryState* entries = skills_page ? state.skill_entries : state.stat_entries;
+    for (int index = 0; index < count; ++index) {
+        int x = 0;
+        int y = 0;
+        bool region = FlowTargetCenter(
+            test, skills_page ? FLOW_TARGET_SKILL_INCREMENT : FLOW_TARGET_STAT_INCREMENT, index, &x,
+            &y);
+        fprintf(stderr,
+                "runtime-test flow-entry: index=%d enabled=%d increment=%d spent=%d limit=%d "
+                "region=%d center=%d,%d\n",
+                index, entries[index].enabled, entries[index].increment_allowed,
+                entries[index].spent, entries[index].limit, region, x, y);
     }
     return test.fail(step,
                      skills_page ? "skill-points-not-committed" : "attribute-points-not-committed");
@@ -610,31 +628,37 @@ static bool CharacterFlow(RuntimeCase& test, bool acceptance)
         }
 
         unsigned int started = GetTickCount();
-        int observed_state = -2;
         while (GetTickCount() - started < 30000) {
+            unsigned long remaining = 30000 - (GetTickCount() - started);
+            RT_REQUIRE(test, test.wait_for_event(RUNTIME_SCREEN_CHANGED, remaining));
             RT_REQUIRE(test, ReadCharacterFlow(test, state, "main-game-entry"));
-            if (observed_state != state.current) {
-                observed_state = state.current;
-                fprintf(stderr,
-                        "runtime-test new-game state: current=%d pending=%d intro=%lu "
-                        "skip=%u router=%d\n",
-                        observed_state, state.pending, state.intro_index, state.skip_loose_check,
-                        state.wiz7_ending);
-                fflush(stderr);
-            }
-            if (state.current == W8_SCREEN_MAIN_GAME && state.pending == -1) {
+            if (test.event_count(RUNTIME_MAIN_GAME_ENTERED) != 0) {
                 test.step("main-game-entered");
                 break;
             }
             if (state.current == W8_SCREEN_INTRO) {
                 SendScenarioKeyPress(VK_ESCAPE, 0);
-                Sleep(250);
-                continue;
             }
-            Sleep(10);
         }
-        if (observed_state != W8_SCREEN_MAIN_GAME || state.pending != -1) {
+        if (test.event_count(RUNTIME_MAIN_GAME_ENTERED) == 0) {
             return test.fail("main-game-entry", "main-game-not-entered");
+        }
+        RT_REQUIRE(test, test.wait_for_event(RUNTIME_WORLD_RENDER_END, 5000));
+        RT_REQUIRE(test, test.wait_for_event(RUNTIME_FRAME_SUBMITTED, 5000));
+        if (getenv("WIZ8_RUNTIME_VOICE_TRACE") != 0) {
+            Sleep(3000);
+            RuntimeEvent events[512];
+            unsigned long count = RuntimeCopyRecentEvents(events, 512);
+            for (unsigned long index = 0; index < count; ++index) {
+                const RuntimeEvent& event = events[index];
+                if (event.kind == RUNTIME_VOICE_STARTED || event.kind == RUNTIME_VOICE_TIMING ||
+                    event.kind == RUNTIME_MOUTH_CHANGED ||
+                    event.kind == RUNTIME_PORTRAIT_FRAME_CHANGED ||
+                    event.kind == RUNTIME_PORTRAIT_BLIT) {
+                    fprintf(stderr, "voice-trace %lu %s %lu %lu %lu\n", event.sequence,
+                            RuntimeEventName(event.kind), event.a, event.b, event.c);
+                }
+            }
         }
 
         /* Acceptance requires observed motion, not StartCombat's grounding

@@ -218,6 +218,21 @@ void SendScenarioMouseClick(int client_x, int client_y)
     }
 }
 
+void SendScenarioRightMouseButton(bool release)
+{
+    INPUT event;
+    memset(&event, 0, sizeof(event));
+    event.type = INPUT_MOUSE;
+    event.mi.dwFlags = release ? MOUSEEVENTF_RIGHTUP : MOUSEEVENTF_RIGHTDOWN;
+    SetForegroundWindow(ghWindow);
+    if (SendInput(1, &event, sizeof(INPUT)) != 1) {
+        fprintf(stderr,
+                "WIZ8_RUNTIME_FAILURE scenario=%s step=input reason=sendinput-failed error=%lu\n",
+                g_case_scenario, GetLastError());
+        fflush(stderr);
+    }
+}
+
 /* Held input uses the OS keyboard path, including SGP's hook, not driver-thread
    writes to gfKeyState or its event queue. The physical scan and extended bit
    distinguish dedicated arrows from the numeric keypad. */
@@ -457,6 +472,11 @@ RuntimeCase::RuntimeCase(const char* name, unsigned long budget_ms)
     expected_[0] = 0;
     memset(&last_snapshot_, 0, sizeof(last_snapshot_));
     memset(&last_ready_check_, 0, sizeof(last_ready_check_));
+    RuntimeInstrumentationInitialize();
+    for (int kind = 0; kind < RUNTIME_EVENT_KIND_COUNT; ++kind) {
+        event_baseline_[kind] = RuntimeEventCount(static_cast<RuntimeEventKind>(kind));
+        event_seen_[kind] = event_baseline_[kind];
+    }
     g_case_scenario = name;
 }
 
@@ -538,6 +558,7 @@ bool RuntimeCase::fail(const char* step, const char* reason)
     }
     fprintf(stderr, "runtime-case %s: reproduce uv run wiz8 runtime-test --scenario %s\n", name_,
             name_);
+    RuntimeWriteRecentEvents(stderr, name_);
     fflush(stderr);
     /* The runner owns the game lifecycle; a case failure only reports. */
     return false;
@@ -678,6 +699,26 @@ bool RuntimeCase::wait_until(const char* condition, unsigned long budget_ms, Run
     }
     fail(condition, reason);
     return false;
+}
+
+unsigned long RuntimeCase::event_count(RuntimeEventKind kind) const
+{
+    return RuntimeEventCount(kind) - event_baseline_[kind];
+}
+
+bool RuntimeCase::wait_for_event(RuntimeEventKind kind, unsigned long budget_ms)
+{
+    unsigned long started = GetTickCount();
+    while (GetTickCount() - started < budget_ms && remaining_ms() > 0 && gfProgramIsRunning) {
+        unsigned long count = RuntimeEventCount(kind);
+        if (count > event_seen_[kind]) {
+            event_seen_[kind] = count;
+            return true;
+        }
+        Sleep(10);
+    }
+    expected("event=%s", RuntimeEventName(kind));
+    return fail(RuntimeEventName(kind), "event-not-observed");
 }
 
 GameplayWait RuntimeCase::wait_gameplay_ready(unsigned long budget_ms, const char* step)

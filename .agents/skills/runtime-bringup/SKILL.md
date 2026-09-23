@@ -24,8 +24,8 @@ stop policy and symbolizes the captured frames. For visual harness debugging use
 `WIZ8_RUNTIME_DISPLAY=host uv run wiz8 runtime-test`.
 
 The native `--list-scenarios` registry owns each scenario's lifecycle, tier, semantic kind, deadline
-and validator. `main-game-start` is the UI acceptance spine: create, name, commit, start, and move.
-Focused gameplay integrations use a game-thread fixture and do not substitute for that acceptance.
+and validator. `new-game-ui` is the UI acceptance spine: create, name, commit, start, and move.
+`main-game-start` uses a game-thread-created single-character party for fast gameplay checks.
 Use `--tier main --check-order` to check order leakage and `--repeat 3 --scenario NAME` to probe
 intermittency in separate writable stages. Do not infer stability from one passing run. When scenario
 input depends on UI geometry, derive it from live regions/controls instead of hard-coded coordinates.
