@@ -1,24 +1,28 @@
-name: Load cached VC6 image
-description: Restore the pinned VC6 analysis image prepared by the toolchain CI job.
+name: Load cached VC6 analysis image
+description: Restore the full VC6 plus Clang/LLVM image prepared by the toolchain CI job.
 
 runs:
   using: composite
   steps:
-    - name: Restore VC6 image archive
+    - name: Restore VC6 analysis image archive
       id: vc6-cache
       uses: actions/cache/restore@v4
       with:
-        path: ${{ runner.temp }}/wiz8-vc6-image
-        key: vc6-image-v1-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml', 'tools/wiz8decomp/ghidra/fid_seeds.py') }}
+        path: ${{ runner.temp }}/wiz8-vc6-analysis-image
+        key: vc6-analysis-v2-${{ runner.os }}-${{ hashFiles('docker/msvc600/**', 'config/static-libraries.yml', 'tools/wiz8decomp/ghidra/fid_seeds.py') }}
 
-    - name: Load VC6 image
+    - name: Load VC6 analysis image
       shell: bash
       run: |
         set -euo pipefail
-        archive="$RUNNER_TEMP/wiz8-vc6-image/vc6-sp5.tar.gz"
+        archive="$RUNNER_TEMP/wiz8-vc6-analysis-image/vc6-analysis.tar.gz"
         if [[ "${{ steps.vc6-cache.outputs.cache-hit }}" != "true" || ! -s "$archive" ]]; then
-          echo "cached VC6 image is unavailable; the toolchain job should have populated it" >&2
+          echo "cached VC6 analysis image is unavailable; the toolchain job should have populated it" >&2
           exit 1
         fi
         gzip -dc "$archive" | docker load
         docker image inspect wizardry8-msvc600:sp5 >/dev/null
+        # Runtime builds need compiler-backed source indexing plus the product
+        # toolchain. The analysis image is a superset of the product stage, so
+        # alias it locally instead of downloading a second image archive.
+        docker tag wizardry8-msvc600:sp5 wizardry8-msvc600:sp5-product

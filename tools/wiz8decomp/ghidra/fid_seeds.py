@@ -471,6 +471,11 @@ def fetch_seed_sources(settings: Settings) -> dict[str, Any]:
     return result
 
 
+def product_image_name(image: str) -> str:
+    """Return the product-only sibling tag for one analysis image tag."""
+    return f"{image}-product"
+
+
 def build_toolchain_images(
     settings: Settings, toolchain_ids: list[str] | None = None
 ) -> dict[str, Any]:
@@ -481,31 +486,43 @@ def build_toolchain_images(
     records = []
     context = settings.repo_dir / "docker" / "msvc600"
     for toolchain in select_toolchains(config, toolchain_ids):
-        result = run(
-            [
-                docker["executable"],
-                "build",
-                "--pull",
-                "--network",
-                "host",
-                "--build-arg",
-                f"MSVC_REPOSITORY={toolchain.repository}",
-                "--build-arg",
-                f"MSVC_REF={toolchain.commit}",
-                "--tag",
-                toolchain.image,
-                ".",
-            ],
-            cwd=context,
-            log_path=settings.build_dir / "logs" / "fid" / f"docker-build-{toolchain.id}.json",
-        )
+        commands: dict[str, list[str]] = {}
+        for stage, image in (
+            ("product", product_image_name(toolchain.image)),
+            ("analysis", toolchain.image),
+        ):
+            result = run(
+                [
+                    docker["executable"],
+                    "build",
+                    "--pull",
+                    "--network",
+                    "host",
+                    "--build-arg",
+                    f"MSVC_REPOSITORY={toolchain.repository}",
+                    "--build-arg",
+                    f"MSVC_REF={toolchain.commit}",
+                    "--target",
+                    stage,
+                    "--tag",
+                    image,
+                    ".",
+                ],
+                cwd=context,
+                log_path=settings.build_dir
+                / "logs"
+                / "fid"
+                / f"docker-build-{toolchain.id}-{stage}.json",
+            )
+            commands[stage] = result.command
         records.append(
             {
                 "id": toolchain.id,
                 "image": toolchain.image,
+                "product_image": product_image_name(toolchain.image),
                 "repository": toolchain.repository,
                 "commit": toolchain.commit,
-                "command": result.command,
+                "commands": commands,
             }
         )
     summary = {
@@ -549,7 +566,7 @@ def _docker_cmake_build(
             "--network",
             "none",
             *volumes,
-            toolchain.image,
+            product_image_name(toolchain.image),
             r"C:\cmake\bin\cmake.exe",
             "-S",
             f"Z:/repo/{source_dir}",
@@ -571,7 +588,7 @@ def _docker_cmake_build(
             "--network",
             "none",
             *volumes,
-            toolchain.image,
+            product_image_name(toolchain.image),
             r"C:\cmake\bin\cmake.exe",
             "--build",
             "Z:/out",

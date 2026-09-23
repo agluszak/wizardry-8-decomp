@@ -18,12 +18,23 @@ def doctor_command() -> None:
     cli.emit(validate_environment(cli.settings()))
 
 
-def prepare_command() -> None:
-    """Idempotently prepare extracted variants and pinned source dependencies."""
+def prepare_command(
+    comparison_target: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--comparison-target",
+            help="Prepare only reviewed original binaries for this reccmp target; repeatable.",
+        ),
+    ] = None,
+) -> None:
+    """Prepare full runtime inputs or a minimal comparison-only corpus."""
     from .. import command_support as cli
-    from ..build import prepare
+    from ..build import prepare, prepare_comparison
 
-    cli.emit(prepare(cli.settings()))
+    settings = cli.settings()
+    cli.emit(
+        prepare_comparison(settings, comparison_target) if comparison_target else prepare(settings)
+    )
 
 
 def check_command() -> None:
