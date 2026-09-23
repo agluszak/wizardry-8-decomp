@@ -11,6 +11,7 @@
 #include "srTexture.h"
 #include "srTypeRegistry.h"
 
+// VTABLE: SURRENDER 0x10076D48 srMeshModel
 class SR_DLL_IMPORT srMeshModel : public srClassSupport<srMeshModel, srModel, 0, 0x2010> {
 public:
     enum e_side {};
@@ -65,13 +66,25 @@ public:
     srMeshModel(const srMeshModel& other);
     void reset(long polygons, long vertices);
     void scale(const srVector3T<float>& scale);
+    void applyMatrix(const srMatrix3T<float>& matrix);
     void relocateVertices(const srVector3T<float>& offset);
+    void centerVertices();
+    double getAverageRadius();
+    double getMaxRadius();
+    void scaleToAverageRadius(double radius);
+    void scaleToMaxRadius(double radius);
+    void flipFaces();
+    long findClosestVertex(const srVector3T<float>& point);
     srMeshModel& operator=(const srMeshModel& other);
 
+#if defined(SURRENDER_BUILD)
+    static const char* sGetClassName();
+#else
     static const char* sGetClassName()
     {
         return "srMeshModel";
     }
+#endif
 
     virtual void dump(std::ostream& stream) override;
     virtual void verify(srRuntimeClass::e_verify mode) override;
@@ -93,6 +106,8 @@ public:
     srVector3T<float>* getVertexNormal();
     srVector4T<float>* getPolyEq();
     srVector3T<float>* getVertexDIG(long vertex, int table);
+    srVector4T<float>* getVertexSCG(long vertex, int table);
+    srVector4T<float>* getVertexDCG(long vertex, int table);
     srMaterialIFace* getMaterial(long polygon, e_side side) const;
     srTextureIFace* getTexture(long polygon, long layer) const;
     void setMaterial(srMaterialIFace* material, long polygon, e_side side);
@@ -104,8 +119,21 @@ public:
     srShader getShader(long polygon) const;
     void setShader(srShader shader, long pass);
     void setUVCount(long count);
+    long getUVCount() const;
     void setActivePolygonCount(long count);
     long getActivePolygonCount();
+    long getPassCount() const;
+    long getPolygonCount() const;
+    long getVertexCount() const;
+    void setPassCount(long count);
+    void setSortBias(float bias);
+    float getSortBias() const;
+    void disable(e_control control);
+    void enable(e_control control);
+    int isEnabled(e_control control) const;
+    void setDirtyAll();
+    void setDirtyBounds();
+    void setDirtyNormals();
     unsigned long* getActivePolygonTable(int table);
     srVector3T<float>* getVertexLoc();
     void enableStartupControls()

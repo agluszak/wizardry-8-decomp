@@ -1,6 +1,61 @@
 #include "surrender/srMeshModel.h"
+
+#include "surrender/srCore.h"
+#include "surrender/srDebug.h"
+#include "surrender/srGERD.h"
+#include "surrender/srMaterial.h"
+#include "surrender/srTriMeshPipeline.h"
+#include "surrender/srVectorProcessor.h"
+#include "surrender/srVertexPipe.h"
+
+#include <float.h>
+#include <math.h>
+#include <ostream>
+#include <stdio.h>
 #include <string.h>
 #pragma intrinsic(memset)
+
+/* Retail's guarded dword fill — identical emission to renderer.cpp's
+   file-local fillConstant; the linker folds the two copies. */
+static void fillConstant(unsigned long* destination, unsigned long value, unsigned long count)
+{
+    if (count != 0) {
+        srVectorProcessor::copy(destination, value, count);
+    }
+}
+
+/* POD table permutation: scratch through srHeap, straight copy, then
+   reordered copy back. Retail emits one instantiation per element type. */
+template <class T> static void permuteTable(T* table, const unsigned long* indices, long count)
+{
+    T* scratch = srMeshModel::MeshTable<T>::Allocate(count);
+    if (count != 0) {
+        for (long index = 0; index < count; ++index) {
+            scratch[index] = table[index];
+        }
+        for (long index = 0; index < count; ++index) {
+            table[index] = scratch[indices[index]];
+        }
+    }
+    srHeap.free(scratch);
+}
+
+/* Object-table permutation: `new T[count]` scratch so each element's ctor and
+   copy-assign run (srPtr reference counts, srShader words). Retail emits one
+   instantiation per element type. */
+template <class T> static void permuteObjects(T* table, const unsigned long* indices, long count)
+{
+    T* scratch = new T[count];
+    if (count != 0) {
+        for (long index = 0; index < count; ++index) {
+            scratch[index] = table[index];
+        }
+        for (long index = 0; index < count; ++index) {
+            table[index] = scratch[indices[index]];
+        }
+    }
+    delete[] scratch;
+}
 
 /* Bounds-checked pass/side slots. Retail rejects out-of-range indices and
    leaves the slot untouched; setMaterial/setTexture keep the reference
