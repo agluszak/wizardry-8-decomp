@@ -56,6 +56,32 @@ WINE_STACK_LINE = re.compile(
     re.MULTILINE,
 )
 RUNTIME_FAILURE_GRACE_SECONDS = 2.0
+DEFAULT_GE_PROTON = Path.home() / ".local/share/Steam/compatibilitytools.d/GE-Proton11-7-x86_64"
+
+
+def runtime_runner() -> str:
+    runner = os.environ.get("WIZ8_RUNTIME_RUNNER", "umu")
+    if runner not in {"wine", "umu"}:
+        raise ValueError("WIZ8_RUNTIME_RUNNER must be 'wine' or 'umu'")
+    return runner
+
+
+def configure_runtime_runner(environment: dict[str, str], runner: str) -> None:
+    environment["WIZ8_RUNTIME_RUNNER"] = runner
+    if runner == "umu":
+        environment.setdefault("PROTONPATH", str(DEFAULT_GE_PROTON))
+
+
+def require_umu_runner(environment: dict[str, str]) -> str:
+    umu_run = environment.get("WIZ8_UMU_RUN", "umu-run")
+    if shutil.which(umu_run) is None:
+        raise RuntimeError(f"install umu-launcher to provide {umu_run} for GE-Proton")
+    if environment["PROTONPATH"] == str(DEFAULT_GE_PROTON) and not DEFAULT_GE_PROTON.is_dir():
+        raise RuntimeError(
+            f"GE-Proton is missing: {environment['PROTONPATH']}; "
+            "install GE-Proton11-7-x86_64 or set PROTONPATH"
+        )
+    return umu_run
 
 
 @dataclass(frozen=True)
@@ -174,9 +200,6 @@ class StagedGame:
 
 
 def _materialize_config(settings: Settings, stage: Path) -> None:
-    video_cfg = stage / "3DVideo.CFG"
-    if not video_cfg.exists():
-        shutil.copy2(settings.repo_dir / "config" / "runtime" / "3DVideo.CFG", video_cfg)
     apply_product_video_config(settings, stage)
     game_cfg = stage / "Wiz8.CFG"
     if not game_cfg.exists():
@@ -273,14 +296,12 @@ def run_product(
 ) -> dict[str, Any]:
     """Stage and launch one game process, symbolizing a crash when it happens."""
 
-    runner = os.environ.get("WIZ8_RUNTIME_RUNNER", "wine")
-    if runner not in {"wine", "umu"}:
-        raise ValueError("WIZ8_RUNTIME_RUNNER must be 'wine' or 'umu'")
+    runner = runtime_runner()
     if runner == "wine" and shutil.which("wine") is None:
         raise RuntimeError("wine is required to run the game")
-    umu_run = os.environ.get("WIZ8_UMU_RUN", "umu-run")
-    if runner == "umu" and shutil.which(umu_run) is None:
-        raise RuntimeError(f"UMU runner is not available: {umu_run}")
+    environment = dict(os.environ)
+    configure_runtime_runner(environment, runner)
+    umu_run = require_umu_runner(environment) if runner == "umu" else ""
     if original:
         staged = stage_game(
             settings,
@@ -296,9 +317,14 @@ def run_product(
             objects=settings.recovered_objects_dir,
         )
         map_path = staged.map
-    prefix = Path(os.environ.get("WIZ8_WINE_PREFIX", settings.work_dir / "wine" / "wiz8-runtime"))
+    prefix = Path(
+        os.environ.get(
+            "WIZ8_WINE_PREFIX",
+            settings.work_dir / "wine" / ("wiz8-ge-proton" if runner == "umu" else "wiz8-runtime"),
+        )
+    )
     prefix.mkdir(parents=True, exist_ok=True)
-    environment = {**os.environ, "WINEPREFIX": str(prefix)}
+    environment["WINEPREFIX"] = str(prefix)
     environment.setdefault("WIZ8_RUNTIME_SCREEN_GEOMETRY", runtime_video_screen_geometry(settings))
     environment.setdefault("WINEDLLOVERRIDES", "winemenubuilder.exe=d")
     with runtime_display(
@@ -342,15 +368,11 @@ def runtime_video_config_source(settings: Settings) -> Path:
 
 
 def apply_product_video_config(settings: Settings, stage: Path) -> None:
-    if not os.environ.get("WIZ8_RUNTIME_VIDEO_CONFIG"):
-        return
     source = runtime_video_config_source(settings)
     shutil.copy2(source, stage / "3DVideo.CFG")
 
 
 def runtime_video_screen_geometry(settings: Settings) -> str:
-    if not os.environ.get("WIZ8_RUNTIME_VIDEO_CONFIG"):
-        return "640x480x16"
     lines = runtime_video_config_source(settings).read_text(encoding="ascii").splitlines()
     if len(lines) < 4:
         raise RuntimeError("runtime video configuration is missing its width, height, or depth")
@@ -765,9 +787,15 @@ def runtime_test_environment(
     renderer: str | None = None,
     sound: bool = False,
 ) -> tuple[Path, dict[str, str]]:
+    runner = runtime_runner()
     if prefix is None:
         prefix = Path(
-            os.environ.get("WIZ8_WINE_PREFIX", settings.work_dir / "wine" / "wiz8-runtime")
+            os.environ.get(
+                "WIZ8_WINE_PREFIX",
+                settings.work_dir
+                / "wine"
+                / ("wiz8-ge-proton" if runner == "umu" else "wiz8-runtime"),
+            )
         )
     prefix.mkdir(parents=True, exist_ok=True)
     # Most scenarios use the soundless-machine path so Wine's stub audio
@@ -777,6 +805,7 @@ def runtime_test_environment(
         "mmdevapi=d;dsound=d"
     )
     environment = {**os.environ, "WINEPREFIX": str(prefix)}
+    configure_runtime_runner(environment, runner)
     environment.setdefault("WIZ8_RUNTIME_SCREEN_GEOMETRY", runtime_video_screen_geometry(settings))
     if sound:
         environment.pop("WINEDLLOVERRIDES", None)
@@ -1309,11 +1338,11 @@ def run_runtime_suite(
 
     if shutil.which("wine") is None or shutil.which("wineserver") is None:
         raise RuntimeError("wine and wineserver are required to run WIZ8_RUNTIME_TEST")
-    if (
-        os.environ.get("WIZ8_RUNTIME_RUNNER") == "umu"
-        and shutil.which(os.environ.get("WIZ8_UMU_RUN", "umu-run")) is None
-    ):
-        raise RuntimeError("UMU runner is required when WIZ8_RUNTIME_RUNNER=umu")
+    runner = runtime_runner()
+    if runner == "umu":
+        runner_environment = dict(os.environ)
+        configure_runtime_runner(runner_environment, runner)
+        require_umu_runner(runner_environment)
     stage = settings.runtime_stage("runtime-test")
     stage.mkdir(parents=True, exist_ok=True)
     executable = settings.product_build_dir / "Wiz8RuntimeTest.exe"
@@ -1321,7 +1350,8 @@ def run_runtime_suite(
     pinned_executable, input_digest = _pin_suite_executable(settings, executable, stage)
 
     base_prefix = os.environ.get(
-        "WIZ8_WINE_PREFIX", str(settings.work_dir / "wine" / "wiz8-runtime")
+        "WIZ8_WINE_PREFIX",
+        str(settings.work_dir / "wine" / ("wiz8-ge-proton" if runner == "umu" else "wiz8-runtime")),
     )
     # The registry read runs on the base prefix; once the job list is known,
     # the actual worker prefixes are allocated (the base prefix itself when

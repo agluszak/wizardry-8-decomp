@@ -492,7 +492,7 @@ def test_launcher_uses_one_proxy_path(
 ) -> None:
     from wiz8decomp.debug.debugger import run_debugger
 
-    monkeypatch.delenv("WIZ8_RUNTIME_RUNNER", raising=False)
+    monkeypatch.setenv("WIZ8_RUNTIME_RUNNER", "wine")
     monkeypatch.delenv("WIZ8_RUNTIME_VIDEO_CONFIG", raising=False)
 
     executable = tmp_path / product
@@ -503,6 +503,9 @@ def test_launcher_uses_one_proxy_path(
         product_build_dir=tmp_path,
         recovered_objects_dir=tmp_path,
     )
+    config = tmp_path / "config/runtime/3DVideo.CFG"
+    config.parent.mkdir(parents=True)
+    config.write_text("Software\n640\n480\n16\nAudio\n")
     monkeypatch.setattr(
         "wiz8decomp.debug.debugger.stage_game",
         lambda *a, **kw: SimpleNamespace(

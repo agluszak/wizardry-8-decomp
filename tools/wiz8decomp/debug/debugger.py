@@ -18,8 +18,11 @@ from ..display import runtime_display
 from ..paths import atomic_json, sha256_file
 from ..runtime import (
     apply_product_video_config,
+    configure_runtime_runner,
     configure_wine_window_management,
     format_crash_candidates,
+    require_umu_runner,
+    runtime_runner,
     runtime_test_environment,
     stage_game,
 )
@@ -251,6 +254,7 @@ def _debug_environment(
         return runtime_test_environment(settings, prefix=prefix, sound=runner == "umu")
     prefix.mkdir(parents=True, exist_ok=True)
     environment = {**os.environ, "WINEPREFIX": str(prefix)}
+    configure_runtime_runner(environment, runner)
     environment.setdefault("WINEDLLOVERRIDES", "winemenubuilder.exe=d")
     return prefix, environment
 
@@ -301,14 +305,12 @@ def _run_debugger_locked(
         objects=settings.recovered_objects_dir,
         reset_saves=scenario is not None,
     )
-    runner = os.environ.get("WIZ8_RUNTIME_RUNNER", "wine")
-    if runner not in {"wine", "umu"}:
-        raise ValueError("WIZ8_RUNTIME_RUNNER must be 'wine' or 'umu'")
+    runner = runtime_runner()
     if scenario is None or runner == "umu":
         apply_product_video_config(settings, staged.root)
-    umu_run = os.environ.get("WIZ8_UMU_RUN", "umu-run")
-    if runner == "umu" and shutil.which(umu_run) is None:
-        raise RuntimeError(f"UMU runner is not available: {umu_run}")
+    runner_environment = dict(os.environ)
+    configure_runtime_runner(runner_environment, runner)
+    umu_run = require_umu_runner(runner_environment) if runner == "umu" else ""
     executable = staged.executable
     map_path = staged.map
     artifact_dir = settings.repo_dir / "build/debug"
