@@ -54,12 +54,16 @@ public:
         srTextureIFace* texture_00;
         unsigned long pass_value_04;
         srShader flags_08;
+        /* Per-stage per-vertex texture tables; the mesh fills both slots of
+           the {0x0c,0x10} pair through (&texture_array_0c)[layer]. Writers
+           store srPtr<srTextureIFace> or stTextureAnim frame tables; the
+           renderer only copies each dword entry into the texture-set key. */
         void* texture_array_0c;
-        unsigned long value_10;
+        void* texture_array_10;
         const srShader* shader_14;
         srVector2T<float>* st_18;
-        /* The mesh's poly UV index table, stored through the ulong slot. */
-        unsigned long poly_uv_1c;
+        /* The mesh's per-triangle poly-UV corner source table. */
+        const srVector3i* poly_uv_1c;
     };
 
     static_assert(sizeof(Record) == 0x5c, "srTriMeshPipeline_Record_must_be_0x5c");

@@ -1033,7 +1033,7 @@ void stModelInstance::RenderShadow004811D0(srGERD& renderer, srMeshModel::TriMes
     pipeline->current_record_14->flags_00 = 0;
     pipeline->current_pass_18->shader_14 = 0;
     pipeline->current_pass_18->texture_array_0c = 0;
-    pipeline->current_pass_18->value_10 = 0;
+    pipeline->current_pass_18->texture_array_10 = 0;
     pipeline->material_80 = g_shadow_mesh_0065a14c->materials_70[0][0];
     pipeline->current_record_14->material_08 = pipeline->material_80;
     pipeline->SetFlags004752C0(g_shadow_mesh_0065a14c->shaders_b0[0]);
@@ -1046,7 +1046,7 @@ void stModelInstance::RenderShadow004811D0(srGERD& renderer, srMeshModel::TriMes
     pipeline->current_pass_18->pass_value_04 = pipeline->pass_value_7c;
     pipeline->current_pass_18->flags_08.value = pipeline->shader_74.value;
     pipeline->current_pass_18->texture_array_0c = 0;
-    pipeline->current_pass_18->value_10 = 0;
+    pipeline->current_pass_18->texture_array_10 = 0;
     pipeline->current_pass_18->shader_14 = 0;
     pipeline->current_pass_18->st_18 = 0;
     pipeline->current_pass_18->poly_uv_1c = 0;

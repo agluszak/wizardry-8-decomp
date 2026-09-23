@@ -1057,6 +1057,7 @@ EXPORTS
     ?lockRenderer@srGERD@@QAEPAVRenderer@1@XZ
     ?_lockRenderer@srGERD@@AAEPAVRenderer@1@PAURendererEntry@1@@Z
     ?flushNonBusyRenderers@srGERD@@AAEXXZ
+    ?render@Renderer@srGERD@@QAEXABUTriInput@12@@Z
     ?getVertexProcessorCount@srGERD@@QBEKXZ
     ?getVertexProcessors@srGERD@@QBEXPAPAVsrVertexProcessor@@@Z
     ?getWidth@srGERD@@QBEJXZ
@@ -1067,6 +1068,7 @@ EXPORTS
     ?isValid@PixelFormat@srPixelConvert@@QBEHXZ
     ?isWindowOpen@srGERD@@QBEHXZ
     ?popEnable@srGERD@@QAEXXZ
+    ?performPickTest@srGERD@@AAEXABUPickInput@1@@Z
     ?popPick@srGERD@@QAEXAAUPick@1@@Z
     ?pushEnable@srGERD@@QAEXXZ
     ?pushPick@srGERD@@QAEXABUPick@1@@Z

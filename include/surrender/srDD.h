@@ -87,11 +87,19 @@ public:
         unsigned long deleted_70;
         unsigned long resident_74;
     };
-    /* Two-dword buffer command handed to bufferOp: srGERD::_lockBuffer
-       sends {0,0} and _unlockBuffer sends {0,1}. */
+    /* Six-dword buffer command handed to bufferOp. The lock/unlock
+       commands write only the leading dwords and leave the rest
+       uninitialized; LockSurface's pixel transfers fill data_08/x_0c/
+       y_10/count_14. Opcode values seen in retail: 0 lock, 1 unlock,
+       2 read row, 3 write row, 4 horizontal fill, 6 read column,
+       7 write column. */
     struct BufferCommand {
-        unsigned long buffer_00;
-        unsigned long unlock_04;
+        unsigned long flags_00;
+        unsigned long opcode_04;
+        void* data_08;
+        long x_0c;
+        long y_10;
+        long count_14;
     };
     struct DriverInfo;
     /* getInfo output record, 0x27c bytes. srGERD embeds it verbatim at +0x50
