@@ -2104,7 +2104,7 @@ int UpdateCharacterEventState(void)
                     record->previous_portrait_pose = pose;
                     record->portrait_pose =
                         g_portrait_tables_0061cb3c
-                            .pose_transition[pose * 5 + record->target_portrait_pose];
+                            .pose_transition[(pose - 1) * 5 + (record->target_portrait_pose - 1)];
                     record->portrait_pose_animation_active = 1;
                     record->portrait_pose_clock = SetCountdownClock(Random(50) + 50);
                 }
@@ -2112,8 +2112,9 @@ int UpdateCharacterEventState(void)
                 int pose = record->portrait_pose;
                 if (pose != 2) {
                     record->previous_portrait_pose = pose;
+                    // Pose IDs are 1-based; the retail transition rows and columns are 0-based.
                     record->portrait_pose =
-                        g_portrait_tables_0061cb3c.pose_transition[pose * 5 + 2];
+                        g_portrait_tables_0061cb3c.pose_transition[(pose - 1) * 5 + (2 - 1)];
                     record->portrait_pose_animation_active = 1;
                     record->portrait_pose_clock = SetCountdownClock(Random(50) + 50);
                 }
