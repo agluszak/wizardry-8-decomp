@@ -227,7 +227,11 @@ def prepare_comparison(settings: Settings, target_ids: list[str]) -> dict[str, A
     from .extract.archives import extract_inno
     from .ghidra.fid_seeds import fetch_seed_sources
     from .inputs.scan import load_manifest
-    from .paths import build_directory_atomically, ensure_safe_generated_target, sha256_file
+    from .paths import (
+        build_directory_atomically,
+        ensure_safe_generated_target,
+        sha256_file,
+    )
     from .source_index import project_targets
 
     started = time.perf_counter()
@@ -266,7 +270,9 @@ def prepare_comparison(settings: Settings, target_ids: list[str]) -> dict[str, A
             shutil.rmtree(destination)
 
         manifest = load_manifest(settings)
-        matches = [item for item in manifest.files if item.configured_role == "gog-media"]
+        matches = [
+            item for item in manifest.files if item.configured_role == "gog-media"
+        ]
         if len(matches) != 1:
             raise RuntimeError(f"expected exactly one gog-media input, found {len(matches)}")
         record = matches[0]
@@ -290,9 +296,12 @@ def prepare_comparison(settings: Settings, target_ids: list[str]) -> dict[str, A
                 candidates = [
                     path
                     for path in raw.rglob("*")
-                    if path.is_file() and path.name.casefold() == Path(filename).name.casefold()
+                    if path.is_file()
+                    and path.name.casefold() == Path(filename).name.casefold()
                 ]
-                matching = [path for path in candidates if sha256_file(path) == expected_hash]
+                matching = [
+                    path for path in candidates if sha256_file(path) == expected_hash
+                ]
                 if len(matching) != 1:
                     raise RuntimeError(
                         f"filtered installer extraction did not produce exactly one reviewed "
