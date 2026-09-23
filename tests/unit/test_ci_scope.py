@@ -116,4 +116,4 @@ def test_aggregate_gate_requires_wiz8_runtime() -> None:
         "needs: [scope, toolchain, repository, analysis, wiz8, wiz8-runtime, surrender]"
         in aggregate
     )
-    assert "WIZ8_RUNTIME_RESULT: ${{ needs[\'wiz8-runtime\'].result }}" in aggregate
+    assert "WIZ8_RUNTIME_RESULT: ${{ needs['wiz8-runtime'].result }}" in aggregate
