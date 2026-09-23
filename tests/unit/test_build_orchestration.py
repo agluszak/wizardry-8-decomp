@@ -183,6 +183,8 @@ def test_product_inputs_names_stale_extraction_recipe(tmp_path: Path, monkeypatc
     assert result["ok"] is True
     assert result["status"] == "stale-recipe"
     assert "gog-media" in (result["detail"] or "")
+    assert "corpus clean --stage extractions" in (result["detail"] or "")
+    assert "corpus extract gog-media" in (result["detail"] or "")
 
 
 def test_product_build_uses_product_only_vc6_image(tmp_path: Path) -> None:

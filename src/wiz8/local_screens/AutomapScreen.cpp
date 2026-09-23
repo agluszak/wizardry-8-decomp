@@ -34,7 +34,6 @@
 #include "wiz8/cursor.h"
 #include "wiz8/engine_code/Quality.h"
 #include "wiz8/engine_code/Video2.h"
-#include "wiz8/layouts/encounter_tables.h"
 #include "wiz8/utility.h"
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/item_video_object_vector.h"
@@ -742,7 +741,7 @@ unsigned char AutomapScreenEnter(void)
     SetScaledViewport00425C90(12, 32, 467, 467);
     UpdateAutomapBounds00580380();
     if (script.Load004CF3B0("Data\\Automap\\MapFilters.txt")) {
-        W8Vector<W8EncounterScriptName*> excluded_textures(5);
+        W8Vector<char*> excluded_textures(5);
         int line = 0;
         int section = -1;
         while (section < g_status_685170.current_level && line < script.lines.count) {
@@ -756,10 +755,7 @@ unsigned char AutomapScreenEnter(void)
                 if (strchr(text, '['))
                     break;
                 if (!strstr(text, "LAYER_")) {
-                    // Elements are W8EncounterScriptName*; stored entries are borrowed
-                    // stScriptLine text pointers (value at +0).
-                    // reinterpret-ok: borrowed text pointer stored as the element type
-                    excluded_textures.Add(reinterpret_cast<W8EncounterScriptName*>(text));
+                    excluded_textures.Add(text);
                 } else {
                     float height = static_cast<float>(atof(text + 6));
                     srClipPlane::ClientType* clip = SR_NEW(srClipPlane)(static_cast<srNode*>(0));

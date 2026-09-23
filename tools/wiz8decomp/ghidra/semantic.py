@@ -21,16 +21,32 @@ read-only with respect to the reviewed project.
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 from typing import Any
 
 _TIMEOUT_SECONDS = 120
 # One trace step per varnode-op edge; a function that legitimately exceeds
 # this is beyond what one query should return anyway.
 _TRACE_LIMIT = 20000
+_AFFINE_TERM_LIMIT = 8
+_RANGE_GUARD_LIMIT = 16
+_INCOMPLETENESS_LIMIT = 256
+_PHI_INPUT_LIMIT = 8
 _STYLES = ("decompile", "normalize", "paramid")
 # Named option profiles for enrichment vs recovery export. ``program`` keeps
 # the program's saved decompiler options (historical default).
 _PROFILES = ("program", "analysis", "recovery")
+
+
+@dataclass
+class _AffineAddress:
+    """A root-relative address with SSA-identified affine index terms."""
+
+    constant: int = 0
+    terms: dict[tuple[Any, ...], tuple[int, Any]] = field(default_factory=dict)
+
+    def copy(self) -> _AffineAddress:
+        return _AffineAddress(self.constant, dict(self.terms))
 
 
 def _session(
@@ -155,6 +171,7 @@ def _varnode(node: Any) -> dict[str, Any] | None:
         data_type = high.getDataType()
         if data_type is not None:
             value["type"] = data_type.getDisplayName()
+            value["type_origin"] = "model-derived HighFunction type"
     return value
 
 
@@ -268,123 +285,544 @@ def _instances(symbol: Any) -> list[Any]:
     return list(high.getInstances())
 
 
+def _signed_integer(node: Any, pointer_bits: int) -> int:
+    """Interpret a P-code integer constant at its own width, then pointer width."""
+
+    width = max(1, int(node.getSize()) * 8)
+    raw = int(node.getOffset()) & ((1 << width) - 1)
+    if raw & (1 << (width - 1)):
+        raw -= 1 << width
+    return _normalize_integer(raw, pointer_bits)
+
+
+def _normalize_integer(value: int, pointer_bits: int) -> int:
+    mask = (1 << pointer_bits) - 1
+    normalized = int(value) & mask
+    if normalized & (1 << (pointer_bits - 1)):
+        normalized -= 1 << pointer_bits
+    return normalized
+
+
+def _merge_affine(left: _AffineAddress, right: _AffineAddress, *, sign: int, bits: int) -> None:
+    left.constant = _normalize_integer(left.constant + sign * right.constant, bits)
+    for identity, (coefficient, node) in right.terms.items():
+        previous = left.terms.get(identity)
+        updated = _normalize_integer(
+            (previous[0] if previous is not None else 0) + sign * coefficient,
+            bits,
+        )
+        if updated:
+            left.terms[identity] = (updated, node)
+        else:
+            left.terms.pop(identity, None)
+
+
+def _scale_affine(expression: _AffineAddress, scale: int, bits: int) -> _AffineAddress:
+    result = _AffineAddress(_normalize_integer(expression.constant * scale, bits))
+    for identity, (coefficient, node) in expression.terms.items():
+        updated = _normalize_integer(coefficient * scale, bits)
+        if updated:
+            result.terms[identity] = (updated, node)
+    return result
+
+
+def _integer_expression(
+    node: Any, pointer_bits: int, active: set[tuple[Any, ...]] | None = None
+) -> _AffineAddress | None:
+    """Describe linear integer P-code as a constant plus SSA-identity terms."""
+
+    if node is None:
+        return None
+    if node.isConstant():
+        return _AffineAddress(_signed_integer(node, pointer_bits))
+    marker = _node_key(node)
+    if marker is None:
+        return None
+    active = set() if active is None else active
+    if marker in active or len(active) >= 64:
+        return None
+    active.add(marker)
+    try:
+        definition = node.getDef()
+        if definition is None:
+            return _AffineAddress(terms={marker: (1, node)})
+        mnemonic = definition.getMnemonic()
+        count = definition.getNumInputs()
+        if mnemonic in {"COPY", "CAST", "INT_ZEXT", "INT_SEXT"} and count:
+            return _integer_expression(definition.getInput(0), pointer_bits, active)
+        if mnemonic in {"INT_ADD", "INT_SUB"} and count >= 2:
+            left = _integer_expression(definition.getInput(0), pointer_bits, active)
+            right = _integer_expression(definition.getInput(1), pointer_bits, active)
+            if left is None or right is None:
+                return None
+            _merge_affine(
+                left,
+                right,
+                sign=-1 if mnemonic == "INT_SUB" else 1,
+                bits=pointer_bits,
+            )
+            return left if len(left.terms) <= _AFFINE_TERM_LIMIT else None
+        if mnemonic == "INT_MULT" and count >= 2:
+            left_node, right_node = definition.getInput(0), definition.getInput(1)
+            if left_node.isConstant():
+                expression, scale_node = (
+                    _integer_expression(right_node, pointer_bits, active),
+                    left_node,
+                )
+            elif right_node.isConstant():
+                expression, scale_node = (
+                    _integer_expression(left_node, pointer_bits, active),
+                    right_node,
+                )
+            else:
+                return None
+            if expression is None:
+                return None
+            scaled = _scale_affine(
+                expression, _signed_integer(scale_node, pointer_bits), pointer_bits
+            )
+            return scaled if len(scaled.terms) <= _AFFINE_TERM_LIMIT else None
+        if mnemonic == "INT_LEFT" and count >= 2:
+            shift = definition.getInput(1)
+            if not shift.isConstant():
+                return None
+            count_bits = _signed_integer(shift, pointer_bits)
+            if count_bits < 0 or count_bits >= pointer_bits:
+                return None
+            expression = _integer_expression(definition.getInput(0), pointer_bits, active)
+            if expression is None:
+                return None
+            scaled = _scale_affine(expression, 1 << count_bits, pointer_bits)
+            return scaled if len(scaled.terms) <= _AFFINE_TERM_LIMIT else None
+        if mnemonic == "INT_2COMP" and count:
+            expression = _integer_expression(definition.getInput(0), pointer_bits, active)
+            if expression is None:
+                return None
+            scaled = _scale_affine(expression, -1, pointer_bits)
+            return scaled if len(scaled.terms) <= _AFFINE_TERM_LIMIT else None
+        # Any other scalar value is still a valid opaque SSA index. Its
+        # identity is kept instead of inventing a value or a source variable.
+        return _AffineAddress(terms={marker: (1, node)})
+    finally:
+        active.discard(marker)
+
+
+def _observed_range_guards(node: Any) -> tuple[list[dict[str, Any]], bool]:
+    """List direct constant comparisons of an index; do not infer CFG dominance."""
+
+    guards = []
+    comparisons = {
+        "INT_EQUAL",
+        "INT_NOTEQUAL",
+        "INT_LESS",
+        "INT_LESSEQUAL",
+        "INT_SLESS",
+        "INT_SLESSEQUAL",
+    }
+    descendants = node.getDescendants()
+    while descendants.hasNext():
+        op = descendants.next()
+        mnemonic = op.getMnemonic()
+        if mnemonic not in comparisons or op.getNumInputs() < 2:
+            continue
+        left, right = op.getInput(0), op.getInput(1)
+        if _same_varnode(node, left) and right is not None and right.isConstant():
+            side, bound = "left", right
+        elif _same_varnode(node, right) and left is not None and left.isConstant():
+            side, bound = "right", left
+        else:
+            continue
+        guards.append(
+            {
+                "site": str(op.getSeqnum().getTarget()),
+                "predicate": mnemonic,
+                "index_side": side,
+                "constant": _signed_integer(bound, max(8, int(node.getSize()) * 8)),
+                "control_relation": "comparison observed; branch dominance not established",
+            }
+        )
+        if len(guards) > _RANGE_GUARD_LIMIT:
+            guards.pop()
+            return guards, True
+    guards.sort(key=lambda item: (item["site"], item["predicate"]))
+    return guards, False
+
+
+def _same_varnode(left: Any, right: Any) -> bool:
+    return left is not None and right is not None and bool(left.equals(right))
+
+
+def _model_marks_pointer(node: Any) -> bool:
+    high = node.getHigh()
+    if high is None:
+        return False
+    data_type = high.getDataType()
+    if data_type is None:
+        return False
+    is_pointer = getattr(data_type, "isPointer", None)
+    if is_pointer is not None and bool(is_pointer()):
+        return True
+    display_name = data_type.getDisplayName()
+    return bool(display_name and display_name.rstrip().endswith("*"))
+
+
+def _used_as_address(node: Any) -> bool:
+    """Follow only address-producing copies/arithmetic to a real memory access."""
+
+    pending = [node]
+    visited: set[tuple[Any, ...]] = set()
+    while pending:
+        current = pending.pop()
+        marker = _node_key(current)
+        if marker is None or marker in visited:
+            continue
+        visited.add(marker)
+        descendants = current.getDescendants()
+        while descendants.hasNext():
+            op = descendants.next()
+            mnemonic = op.getMnemonic()
+            output = op.getOutput()
+            if mnemonic == "LOAD" and _same_varnode(current, op.getInput(1)):
+                return True
+            if mnemonic == "STORE" and _same_varnode(current, op.getInput(1)):
+                return True
+            if mnemonic in {"CALL", "CALLIND"} and any(
+                _same_varnode(current, op.getInput(index)) for index in range(1, op.getNumInputs())
+            ):
+                return True
+            if mnemonic == "CALLIND" and _same_varnode(current, op.getInput(0)):
+                return True
+            if output is None:
+                continue
+            if mnemonic in {"COPY", "CAST", "MULTIEQUAL"}:
+                if any(
+                    _same_varnode(current, op.getInput(index)) for index in range(op.getNumInputs())
+                ):
+                    pending.append(output)
+            elif (
+                mnemonic == "INT_ADD"
+                and any(
+                    _same_varnode(current, op.getInput(index)) for index in range(op.getNumInputs())
+                )
+            ) or (
+                mnemonic in {"INT_SUB", "PTRSUB", "PTRADD"}
+                and _same_varnode(current, op.getInput(0))
+            ):
+                pending.append(output)
+    return False
+
+
+def _affine_document(
+    expression: _AffineAddress, *, root_identity: str, pointer_bits: int
+) -> dict[str, Any]:
+    terms = []
+    for identity, (stride, node) in sorted(
+        expression.terms.items(), key=lambda item: repr(item[0])
+    ):
+        index_varnode = _varnode(node)
+        if index_varnode is not None and "type" in index_varnode:
+            index_varnode["type_origin"] = "model-derived HighFunction type"
+        guards, guards_truncated = _observed_range_guards(node)
+        terms.append(
+            {
+                "index": {
+                    "identity": [str(value) for value in identity],
+                    "varnode": index_varnode,
+                },
+                "stride": stride,
+                "range_guards": guards,
+                "range_guards_truncated": guards_truncated,
+                "range_guard_limit": _RANGE_GUARD_LIMIT,
+            }
+        )
+    constant = _normalize_integer(expression.constant, pointer_bits)
+    pieces = [root_identity]
+    if constant:
+        pieces.append(f"{constant:+#x}")
+    for term in terms:
+        stride = term["stride"]
+        sign = "+" if stride >= 0 else "-"
+        pieces.append(f"{sign}{abs(stride)}*ssa:{term['index']['identity']}")
+    return {
+        "root": root_identity,
+        "constant": constant,
+        "terms": terms,
+        "term_limit": _AFFINE_TERM_LIMIT,
+        "text": " ".join(pieces),
+        "width_bits": pointer_bits,
+        "interpretation": "effective-address constraint; not evidence of an authored array base",
+        "type_origin": "P-code-derived; index identities are SSA values",
+    }
+
+
 def _walk_value_flow(
     instances: list[Any],
     root: str,
     *,
     on_node: Any,
     on_operation: Any,
+    on_incomplete: Any | None = None,
     follow_loads: bool,
+    root_identity: str | None = None,
+    pointer_size: int | None = None,
 ) -> None:
     """One rooted SSA walker shared by fields, receivers and value paths."""
 
     steps = 0
+    limited = False
+    root_identity = root_identity or root
+    if pointer_size is None:
+        pointer_size = int(instances[0].getSize()) if instances else 4
+    pointer_bits = max(8, pointer_size * 8)
 
     def same(left: Any, right: Any) -> bool:
-        return right is not None and bool(left.equals(right))
+        return _same_varnode(left, right)
+
+    def stop(
+        kind: str,
+        op: Any | None,
+        node: Any | None,
+        path: str,
+        expression: _AffineAddress,
+        depth: int,
+        reason: str,
+        **details: Any,
+    ) -> None:
+        if on_incomplete is None:
+            return
+        on_incomplete(
+            {
+                "kind": kind,
+                "site": str(op.getSeqnum().getTarget()) if op is not None else None,
+                "path": path,
+                "depth": depth,
+                "reason": reason,
+                "expression": _affine_document(
+                    expression, root_identity=root_identity, pointer_bits=pointer_bits
+                ),
+                "node": _varnode(node),
+                **details,
+            }
+        )
 
     def trace(
         node: Any,
-        offset: int,
+        expression: _AffineAddress,
         path: str,
         depth: int,
         provenance: tuple[str, ...],
         visited: set[Any],
     ) -> None:
+        nonlocal limited
+        if limited:
+            return
         nonlocal steps
         marker = _node_key(node)
         if marker is None or marker in visited:
             return
         visited.add(marker)
-        on_node(node, marker, path, offset, depth, provenance)
+        on_node(node, marker, path, expression, depth, provenance)
         descendants = node.getDescendants()
         while descendants.hasNext():
             steps += 1
             if steps > _TRACE_LIMIT:
-                raise RuntimeError(f"value-flow trace exceeded {_TRACE_LIMIT} steps")
+                limited = True
+                stop(
+                    "step_limit",
+                    descendants.next(),
+                    node,
+                    path,
+                    expression,
+                    depth,
+                    f"value-flow trace exceeded {_TRACE_LIMIT} steps",
+                    limit=_TRACE_LIMIT,
+                )
+                return
             op = descendants.next()
             mnemonic = op.getMnemonic()
             output = op.getOutput()
             site = str(op.getSeqnum().getTarget())
-            next_provenance = (*provenance, f"{mnemonic}@{site}")
-            on_operation(node, op, path, offset, depth, provenance, same)
+            next_provenance = (*provenance, f"{mnemonic}@{site}#{op.getSeqnum().getTime()}")
+            on_operation(node, op, path, expression, depth, provenance, same)
             if mnemonic in {"COPY", "CAST"}:
                 if output is not None:
-                    trace(output, offset, path, depth, next_provenance, visited)
+                    trace(output, expression.copy(), path, depth, next_provenance, visited)
             elif mnemonic == "MULTIEQUAL":
                 # A phi is value-preserving only when every incoming value is
                 # the same SSA value. Distinct inputs require a join-aware
                 # proof; choosing whichever root path reaches the phi first
                 # turns control-flow ambiguity into a false field offset.
-                if output is not None and all(
-                    same(node, op.getInput(index)) for index in range(op.getNumInputs())
-                ):
-                    trace(output, offset, path, depth, next_provenance, visited)
-            elif mnemonic == "INT_ADD":
-                other = op.getInput(1) if same(node, op.getInput(0)) else op.getInput(0)
-                if other is not None and other.isConstant() and output is not None:
-                    trace(output, offset + other.getOffset(), path, depth, next_provenance, visited)
-            elif mnemonic in {"INT_SUB", "PTRSUB"}:
-                # Pointer subtraction is root-relative only for
-                # pointer-minus-constant. constant-minus-pointer is not an
-                # additive displacement and must remain unresolved.
-                other = op.getInput(1)
-                if (
-                    same(node, op.getInput(0))
-                    and other is not None
-                    and other.isConstant()
-                    and output is not None
-                ):
-                    delta = -other.getOffset() if mnemonic == "INT_SUB" else other.getOffset()
-                    trace(output, offset + delta, path, depth, next_provenance, visited)
-            elif mnemonic == "PTRADD":
-                index_node, scale = op.getInput(1), op.getInput(2)
-                if (
-                    same(node, op.getInput(0))
-                    and index_node is not None
-                    and index_node.isConstant()
-                    and scale is not None
-                    and scale.isConstant()
-                    and output is not None
-                ):
-                    trace(
-                        output,
-                        offset + index_node.getOffset() * scale.getOffset(),
+                inputs = [op.getInput(index) for index in range(op.getNumInputs())]
+                if output is not None and all(same(node, item) for item in inputs):
+                    trace(output, expression.copy(), path, depth, next_provenance, visited)
+                elif output is not None:
+                    stop(
+                        "ambiguous_join",
+                        op,
+                        node,
                         path,
+                        expression,
                         depth,
-                        next_provenance,
-                        visited,
+                        "MULTIEQUAL inputs are not all the same SSA value; no incoming address was selected",
+                        inputs=[_varnode(item) for item in inputs[:_PHI_INPUT_LIMIT]],
+                        input_count=len(inputs),
+                        inputs_truncated=len(inputs) > _PHI_INPUT_LIMIT,
                     )
+            elif mnemonic in {"INT_ADD", "INT_SUB", "PTRSUB", "PTRADD"}:
+                derived = _derive_pointer_expression(node, op, expression, pointer_bits, same)
+                if derived is not None and output is not None:
+                    trace(output, derived, path, depth, next_provenance, visited)
+                elif output is not None:
+                    if mnemonic == "PTRADD" and same(node, op.getInput(0)):
+                        index = op.getInput(1)
+                        scale = op.getInput(2)
+                        stop(
+                            "symbolic_index",
+                            op,
+                            node,
+                            path,
+                            expression,
+                            depth,
+                            "PTRADD index or stride is not expressible as a bounded constant-stride SSA affine term",
+                            index=_varnode(index),
+                            stride=_varnode(scale),
+                        )
+                    stop(
+                        "unsupported_arithmetic",
+                        op,
+                        node,
+                        path,
+                        expression,
+                        depth,
+                        f"{mnemonic} operands do not establish a supported root-relative affine address",
+                        operation=mnemonic,
+                        inputs=[_varnode(op.getInput(index)) for index in range(op.getNumInputs())],
+                    )
+            elif mnemonic in {"INT_MULT", "INT_LEFT", "INT_2COMP", "INT_AND", "INT_OR", "INT_XOR"}:
+                stop(
+                    "unsupported_arithmetic",
+                    op,
+                    node,
+                    path,
+                    expression,
+                    depth,
+                    f"{mnemonic} consumes a root-derived pointer value outside supported address forms",
+                    operation=mnemonic,
+                    inputs=[_varnode(op.getInput(index)) for index in range(op.getNumInputs())],
+                )
             elif (
                 follow_loads
                 and mnemonic == "LOAD"
                 and same(node, op.getInput(1))
                 and output is not None
-                and depth < 3
-                and output.getSize() == 4
             ):
-                trace(
-                    output,
-                    0,
-                    f"{path}[{offset:#x}]",
-                    depth + 1,
-                    next_provenance,
-                    visited,
-                )
+                pointer_typed = _model_marks_pointer(output)
+                address_used = _used_as_address(output)
+                if not pointer_typed and not address_used:
+                    continue
+                if output.getSize() != pointer_size:
+                    stop(
+                        "unsupported_loaded_pointer",
+                        op,
+                        node,
+                        path,
+                        expression,
+                        depth,
+                        "loaded value is used as an address but its width does not match the target pointer width",
+                        load_width=int(output.getSize()),
+                        pointer_width=pointer_size,
+                        type_origin=(
+                            "model-derived pointer type"
+                            if pointer_typed
+                            else "P-code address-use evidence"
+                        ),
+                    )
+                elif depth >= 3:
+                    stop(
+                        "depth_limit",
+                        op,
+                        node,
+                        path,
+                        expression,
+                        depth,
+                        "loaded-pointer traversal reached the configured depth limit",
+                        limit=3,
+                    )
+                else:
+                    address = _affine_document(
+                        expression, root_identity=root_identity, pointer_bits=pointer_bits
+                    )
+                    if expression.terms:
+                        child_path = f"{path}[{address['text']}]"
+                    else:
+                        child_path = f"{path}[{expression.constant:#x}]"
+                    trace(
+                        output,
+                        _AffineAddress(),
+                        child_path,
+                        depth + 1,
+                        next_provenance,
+                        visited,
+                    )
 
     for instance in instances:
-        trace(instance, 0, root, 0, (), set())
+        trace(instance, _AffineAddress(), root, 0, (), set())
 
 
-def trace_accesses(instances: list[Any], root: str) -> list[dict[str, Any]]:
+def _derive_pointer_expression(
+    node: Any,
+    op: Any,
+    expression: _AffineAddress,
+    pointer_bits: int,
+    same: Any,
+) -> _AffineAddress | None:
+    mnemonic = op.getMnemonic()
+    count = op.getNumInputs()
+    if mnemonic == "PTRADD":
+        if count < 3 or not same(node, op.getInput(0)):
+            return None
+        index = _integer_expression(op.getInput(1), pointer_bits)
+        scale_node = op.getInput(2)
+        if index is None or not scale_node.isConstant():
+            return None
+        scale = _signed_integer(scale_node, pointer_bits)
+        result = expression.copy()
+        _merge_affine(result, _scale_affine(index, scale, pointer_bits), sign=1, bits=pointer_bits)
+        return result if len(result.terms) <= _AFFINE_TERM_LIMIT else None
+
+    if count < 2:
+        return None
+    left, right = op.getInput(0), op.getInput(1)
+    if same(node, left):
+        other = _integer_expression(right, pointer_bits)
+        sign = -1 if mnemonic in {"INT_SUB", "PTRSUB"} else 1
+    elif mnemonic == "INT_ADD" and same(node, right):
+        other = _integer_expression(left, pointer_bits)
+        sign = 1
+    else:
+        return None
+    if other is None:
+        return None
+    result = expression.copy()
+    _merge_affine(result, other, sign=sign, bits=pointer_bits)
+    return result if len(result.terms) <= _AFFINE_TERM_LIMIT else None
+
+
+def trace_accesses(
+    instances: list[Any],
+    root: str,
+    *,
+    root_identity: str | None = None,
+    pointer_size: int | None = None,
+    incompleteness: list[dict[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
     """Every access reachable from the given root varnodes, with derived offsets.
 
-    The trace follows proven value-preserving copies and constant pointer
-    arithmetic, so each
-    reached varnode carries a byte offset from the root. Loads spawn further
-    levels: the loaded pointer becomes a sub-root whose own accesses describe
-    the *pointee* - which is what turns `delete this->member` sequences into
-    typed shape constraints instead of prose.
+    The trace follows copies and bounded affine pointer arithmetic. Each access
+    retains a normalized root-relative expression, width, and instruction site;
+    unresolved joins and unsupported operations are returned through
+    ``incompleteness``. Loads spawn further levels only when their result is
+    model-marked as a pointer or is structurally used as a memory address.
 
     Everything here is duck-typed against the varnode and P-code op surface, so
     the traversal is unit-testable with fakes; the JPype boundary is exactly
@@ -392,21 +830,91 @@ def trace_accesses(instances: list[Any], root: str) -> list[dict[str, Any]]:
     """
 
     accesses: list[dict[str, Any]] = []
+    stops = incompleteness if incompleteness is not None else []
+    if not instances:
+        stops.append(
+            {
+                "kind": "missing_root",
+                "site": None,
+                "reason": "selected parameter has no HighVariable SSA instances",
+            }
+        )
+        return accesses
+    active_root_identity = root_identity or root
+    active_pointer_size = pointer_size or int(instances[0].getSize())
+    pointer_bits = max(8, active_pointer_size * 8)
+    stop_index = {(stop.get("kind"), stop.get("site"), stop.get("path")): stop for stop in stops}
+
+    def record_stop(stop: dict[str, Any]) -> None:
+        key = (stop.get("kind"), stop.get("site"), stop.get("path"))
+        previous = stop_index.get(key)
+        if previous is None:
+            if len(stops) >= _INCOMPLETENESS_LIMIT - 1:
+                limit_record = next(
+                    (item for item in stops if item.get("kind") == "stop_record_limit"), None
+                )
+                if limit_record is None:
+                    stops.append(
+                        {
+                            "kind": "stop_record_limit",
+                            "site": None,
+                            "reason": "additional incompleteness records were omitted",
+                            "limit": _INCOMPLETENESS_LIMIT,
+                            "omitted": 1,
+                        }
+                    )
+                else:
+                    limit_record["omitted"] += 1
+                return
+            if stop.get("kind") == "ambiguous_join":
+                stop["expressions"] = [stop["expression"]]
+                stop["input_sets"] = [stop.get("inputs", [])]
+                stop["alternatives_truncated"] = False
+            stops.append(stop)
+            stop_index[key] = stop
+            return
+        if (
+            stop.get("kind") == "ambiguous_join"
+            and stop["expression"] not in previous["expressions"]
+        ):
+            if len(previous["expressions"]) < _PHI_INPUT_LIMIT:
+                previous["expressions"].append(stop["expression"])
+                previous["input_sets"].append(stop.get("inputs", []))
+            else:
+                previous["alternatives_truncated"] = True
 
     def record(
         kind: str,
         op: Any,
         path: str,
-        offset: int,
+        expression: _AffineAddress,
         provenance: tuple[str, ...],
         **extra: Any,
     ) -> None:
+        effective_address = _affine_document(
+            expression,
+            root_identity=active_root_identity,
+            pointer_bits=pointer_bits,
+        )
+        value = extra.get("value")
+        if value is not None and "type" in value:
+            value["type_origin"] = "model-derived HighFunction type"
         accesses.append(
             {
                 "kind": kind,
                 "site": str(op.getSeqnum().getTarget()),
                 "path": path,
-                "offset": f"0x{offset:x}",
+                "offset": (
+                    (
+                        f"-0x{-expression.constant:x}"
+                        if expression.constant < 0
+                        else f"0x{expression.constant:x}"
+                    )
+                    if not expression.terms
+                    else None
+                ),
+                "effective_address": effective_address,
+                "width": extra.pop("width", None),
                 "provenance": list(provenance),
                 **extra,
             }
@@ -416,7 +924,7 @@ def trace_accesses(instances: list[Any], root: str) -> list[dict[str, Any]]:
         node: Any,
         op: Any,
         path: str,
-        offset: int,
+        expression: _AffineAddress,
         _depth: int,
         provenance: tuple[str, ...],
         same: Any,
@@ -424,7 +932,7 @@ def trace_accesses(instances: list[Any], root: str) -> list[dict[str, Any]]:
         mnemonic = op.getMnemonic()
         output = op.getOutput()
         if mnemonic == "LOAD" and same(node, op.getInput(1)) and output is not None:
-            record("load", op, path, offset, provenance, width=output.getSize())
+            record("load", op, path, expression, provenance, width=output.getSize())
         elif mnemonic == "STORE":
             if same(node, op.getInput(1)):
                 value = op.getInput(2)
@@ -432,13 +940,13 @@ def trace_accesses(instances: list[Any], root: str) -> list[dict[str, Any]]:
                     "store",
                     op,
                     path,
-                    offset,
+                    expression,
                     provenance,
                     width=value.getSize() if value is not None else None,
                     value=_varnode(value),
                 )
             elif same(node, op.getInput(2)):
-                record("stored-elsewhere", op, path, offset, provenance)
+                record("stored-elsewhere", op, path, expression, provenance)
         elif mnemonic in {"CALL", "CALLIND"}:
             target = op.getInput(0)
             positions = [
@@ -449,7 +957,7 @@ def trace_accesses(instances: list[Any], root: str) -> list[dict[str, Any]]:
                     "indirect-call-target",
                     op,
                     path,
-                    offset,
+                    expression,
                     provenance,
                     arguments=[_varnode(op.getInput(i)) for i in range(1, op.getNumInputs())],
                 )
@@ -458,7 +966,7 @@ def trace_accesses(instances: list[Any], root: str) -> list[dict[str, Any]]:
                     "call-arg" if mnemonic == "CALL" else "indirect-call-arg",
                     op,
                     path,
-                    offset,
+                    expression,
                     provenance,
                     argument=position,
                     target=(
@@ -475,26 +983,38 @@ def trace_accesses(instances: list[Any], root: str) -> list[dict[str, Any]]:
                     "null-test",
                     op,
                     path,
-                    offset,
+                    expression,
                     provenance,
                     negated=mnemonic == "INT_NOTEQUAL",
                 )
         elif mnemonic == "RETURN":
-            record("returned", op, path, offset, provenance)
+            record("returned", op, path, expression, provenance)
 
     _walk_value_flow(
         instances,
         root,
         on_node=lambda *_args: None,
         on_operation=consume,
+        on_incomplete=record_stop,
         follow_loads=True,
+        root_identity=active_root_identity,
+        pointer_size=active_pointer_size,
     )
-    accesses.sort(key=lambda item: (item["path"], int(item["offset"], 16), item["site"]))
+    accesses.sort(
+        key=lambda item: (
+            item["path"],
+            item["effective_address"]["constant"],
+            repr(item["effective_address"]["terms"]),
+            item["site"],
+        )
+    )
     return accesses
 
 
-def trace_value_paths(instances: list[Any], root: str) -> dict[tuple[Any, ...], tuple[str, int]]:
-    """Map every root-derived varnode to its semantic path and byte offset.
+def trace_value_paths(
+    instances: list[Any], root: str
+) -> dict[tuple[Any, ...], tuple[str, int | None]]:
+    """Map every root-derived varnode to its semantic path and constant offset.
 
     This is the data-flow witness needed for implicit ``this`` calls.  VC6
     passes a receiver in ECX, but a High CALL with an unresolved prototype has
@@ -509,11 +1029,11 @@ def trace_value_paths(instances: list[Any], root: str) -> dict[tuple[Any, ...], 
         _node: Any,
         marker: tuple[Any, ...],
         path: str,
-        offset: int,
+        expression: _AffineAddress,
         _depth: int,
         _provenance: tuple[str, ...],
     ) -> None:
-        paths[marker] = (path, offset)
+        paths[marker] = (path, expression.constant if not expression.terms else None)
 
     _walk_value_flow(
         instances,
@@ -525,7 +1045,13 @@ def trace_value_paths(instances: list[Any], root: str) -> dict[tuple[Any, ...], 
     return paths
 
 
-def field_accesses(program: Any, argument: str, root: str) -> dict[str, Any]:
+def field_accesses(
+    program: Any,
+    argument: str,
+    root: str,
+    *,
+    profile: str = "analysis",
+) -> dict[str, Any]:
     """`trace_accesses` for one function parameter, plus the call table.
 
     The call table lists every CALL and CALLIND in flow order with block
@@ -537,10 +1063,88 @@ def field_accesses(program: Any, argument: str, root: str) -> dict[str, Any]:
     from .resolve import resolve_function
 
     function = resolve_function(program, argument)
-    high = _high_function(program, function)
-    symbol = _resolve_root(high, root)
+    high = _high_function(program, function, profile=profile)
+    entry = str(function.getEntryPoint())
+    stops: list[dict[str, Any]] = []
+    try:
+        symbol = _resolve_root(high, root)
+    except ValueError as error:
+        if root.startswith("global:"):
+            root_kind = "global"
+            reason = "global roots are not implemented by this parameter-rooted flow query"
+            stops.append(
+                {
+                    "kind": "unsupported_root_kind",
+                    "site": None,
+                    "reason": reason,
+                    "requested": root,
+                }
+            )
+        elif root.startswith("adjusted-receiver:"):
+            root_kind = "adjusted_receiver"
+            reason = (
+                "adjusted-receiver roots are not implemented by this parameter-rooted flow query"
+            )
+            stops.append(
+                {
+                    "kind": "unsupported_root_kind",
+                    "site": None,
+                    "reason": reason,
+                    "requested": root,
+                }
+            )
+        else:
+            root_kind = "parameter"
+            reason = str(error)
+        stops.append(
+            {
+                "kind": "missing_root",
+                "site": None,
+                "reason": reason,
+                "requested": root,
+            }
+        )
+        if root_kind == "parameter":
+            stops.append(
+                {
+                    "kind": "prototype_dependent_input_omission",
+                    "site": None,
+                    "reason": (
+                        "the selected HighFunction prototype does not expose this requested root; "
+                        "a machine input omitted from or mis-modeled by that prototype cannot be traced"
+                    ),
+                    "requested": root,
+                }
+            )
+        return {
+            "program": _flow_program_identity(program),
+            "entry": entry,
+            "function": {"entry": entry, "name": str(function.getName())},
+            "profile": _flow_profile_identity(profile),
+            "root": {
+                "requested": root,
+                "kind": root_kind,
+                "identity": f"{entry}:{root}",
+                "storage": None,
+                "type_origin": "model-derived HighFunction prototype",
+            },
+            "accesses": [],
+            "calls": [],
+            "completeness": _flow_completeness(stops, []),
+        }
     instances = _instances(symbol)
-    accesses = trace_accesses(instances, symbol.getName())
+    symbol_record = _symbol_entry(symbol)
+    root_name = symbol.getName()
+    root_kind = "parameter"
+    root_role = "receiver" if root == "this" or root_name == "this" else "argument"
+    root_identity = f"{entry}:{root_kind}:{root_name}:{symbol_record['storage']}"
+    accesses = trace_accesses(
+        instances,
+        root_name,
+        root_identity=root_identity,
+        pointer_size=int(program.getDefaultPointerSize()),
+        incompleteness=stops,
+    )
     calls = []
     receiver_by_site = _implicit_receiver_paths(program, function, accesses)
 
@@ -569,10 +1173,78 @@ def field_accesses(program: Any, argument: str, root: str) -> dict[str, Any]:
             call["receiver_source"] = receiver[2]
         calls.append(call)
     return {
-        "entry": str(function.getEntryPoint()),
-        "root": symbol.getName(),
+        "program": _flow_program_identity(program),
+        "entry": entry,
+        "function": {"entry": entry, "name": str(function.getName())},
+        "profile": _flow_profile_identity(profile),
+        "root": {
+            "requested": root,
+            "name": root_name,
+            "kind": root_kind,
+            "role": root_role,
+            "identity": root_identity,
+            "storage": symbol_record["storage"],
+            "parameter": bool(symbol_record["parameter"]),
+            "type": symbol_record["type"],
+            "type_origin": "model-derived HighFunction prototype",
+        },
         "accesses": accesses,
         "calls": calls,
+        "completeness": _flow_completeness(stops, accesses),
+    }
+
+
+def _flow_program_identity(program: Any) -> dict[str, Any]:
+    from .import_programs import HASH_OPTION
+
+    return {
+        "name": str(program.getName()),
+        "binary_sha256": program.getOptions("Program Information").getString(HASH_OPTION, None),
+        "language": str(program.getLanguageID()),
+        "compiler_spec": str(program.getCompilerSpec().getCompilerSpecID()),
+    }
+
+
+def _flow_profile_identity(profile: str) -> dict[str, Any]:
+    settings = {
+        "program": "saved ProgramDB DecompileOptions",
+        "analysis": {
+            "infer_constant_pointers": True,
+            "respect_read_only": True,
+            "analyze_for_loops": True,
+            "split_structures": True,
+            "split_arrays": True,
+            "split_pointers": True,
+            "eliminate_unreachable": True,
+        },
+        "recovery": {
+            "infer_constant_pointers": False,
+            "respect_read_only": False,
+            "analyze_for_loops": False,
+            "split_structures": False,
+            "split_arrays": False,
+            "split_pointers": False,
+            "eliminate_unreachable": False,
+        },
+    }
+    if profile not in settings:
+        raise ValueError(f"unknown decompiler profile: {profile}")
+    return {"name": profile, "style": "decompile", "settings": settings[profile]}
+
+
+def _flow_completeness(
+    stops: list[dict[str, Any]], accesses: list[dict[str, Any]]
+) -> dict[str, Any]:
+    return {
+        "status": "incomplete" if stops else "complete",
+        "observation": (
+            "accesses observed within the selected rooted function/profile"
+            if accesses
+            else "no accesses observed within the selected rooted function/profile"
+        ),
+        "scope": "one function, selected HighFunction root, and selected decompiler profile",
+        "whole_program_absence_claim": False,
+        "stops": stops,
     }
 
 
@@ -590,7 +1262,7 @@ def _implicit_receiver_paths(
 
     load_paths: dict[str, tuple[str, int, str]] = {}
     for access in accesses:
-        if access["kind"] != "load" or "[" in access["path"]:
+        if access["kind"] != "load" or "[" in access["path"] or access["offset"] is None:
             continue
         offset = int(access["offset"], 16)
         load_paths[access["site"]] = (

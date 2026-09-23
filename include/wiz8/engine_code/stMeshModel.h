@@ -5,8 +5,6 @@
 #include "wiz8/vector.h"
 #include "surrender/srTypeRegistry.h"
 
-struct W8EncounterScriptName;
-
 /* Engine Code\stMeshModel.cpp. Only fields reached by reviewed bodies are
    modeled. The two short-vector pairs are parallel key/value tables; their
    semantic domain is not established, so the names stay positional. */
@@ -34,8 +32,8 @@ public:
     virtual void renderTriMesh(class srGERD& renderer,
                                const TriMesh& mesh) override; /* 0x00470360 */
     /* Shared Wizardry-extended tri-mesh submit. `poly_equations` null skips
-       the software backface pass; non-null callers supply an external equation
-       table used to build the active-polygon scratch at 0x00659ce0. */
+       the software backface pass; non-null callers supply polygon normals used
+       to build the active-polygon scratch at 0x00659ce0. */
     void
     RenderTriMeshWithEquations00470380(class srGERD& renderer, const TriMesh& mesh,
                                        const srVector3T<float>* poly_equations); /* 0x00470380 */
@@ -74,8 +72,7 @@ public:
                                   srVector3T<float>* destination); /* 0x00471930 */
     void ComputeFrameNormals(int frame);                           /* 0x004729F0 */
     void ClearAutomapPolygonFilter();
-    void
-    ApplyAutomapPolygonFilter(const W8GrowableVector<W8EncounterScriptName*>* excluded_textures);
+    void ApplyAutomapPolygonFilter(const W8GrowableVector<char*>* excluded_textures);
 
     stMeshModel* next;     /* 0x398 */
     stMeshModel* previous; /* 0x39c */

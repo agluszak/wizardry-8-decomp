@@ -110,15 +110,17 @@ def test_source_index_configures_missing_or_stale_compile_database(
         declarations: tuple[()] = ()
         classes: tuple[()] = ()
         variables: tuple[()] = ()
+        member_uses: tuple[()] = ()
         conflicts: tuple[()] = ()
 
         def to_dict(self) -> dict:
             return {
-                "schema": "reccmp-source-index-v3",
+                "schema": "reccmp-source-index-v6",
                 "markers": [],
                 "declarations": [],
                 "classes": [],
                 "variables": [],
+                "member_uses": [],
                 "conflicts": [],
             }
 
@@ -164,7 +166,7 @@ def test_source_functions_keep_definition_as_owner_of_folded_alias(tmp_path: Pat
     build.mkdir()
     (build / "source-index.json").write_text(
         """{
-  "schema": "reccmp-source-index-v2",
+  "schema": "reccmp-source-index-v6",
   "markers": [
     {
       "address": 4878656,
@@ -201,7 +203,10 @@ def test_source_functions_keep_definition_as_owner_of_folded_alias(tmp_path: Pat
     }
   ],
   "declarations": [],
-  "classes": []
+  "classes": [],
+  "variables": [],
+  "member_uses": [],
+  "conflicts": []
 }\n""",
         encoding="utf-8",
     )
@@ -219,7 +224,7 @@ def test_source_functions_reject_two_non_folded_owners(tmp_path: Path) -> None:
     build.mkdir()
     (build / "source-index.json").write_text(
         """{
-  "schema": "reccmp-source-index-v2",
+  "schema": "reccmp-source-index-v6",
   "markers": [
     {
       "address": 1,
@@ -241,7 +246,10 @@ def test_source_functions_reject_two_non_folded_owners(tmp_path: Path) -> None:
     }
   ],
   "declarations": [],
-  "classes": []
+  "classes": [],
+  "variables": [],
+  "member_uses": [],
+  "conflicts": []
 }\n""",
         encoding="utf-8",
     )

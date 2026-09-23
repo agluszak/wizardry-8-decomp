@@ -38,6 +38,8 @@ struct W8MessageStorageRecord {
     /* 0x10: continuation link count of a wrapped entry; -1 when unlinked. */
     int link_10;
     int length_14; /* 0x14: wString length, -1 when unset */
+    /* 0x18: live list pointer; save preserves its 32-bit representation and
+       load discards the serialized word instead of reconstructing a pointer. */
     W8PList* entries_18;
     unsigned char unknown_1c[8];
 };

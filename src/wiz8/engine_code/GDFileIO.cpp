@@ -579,8 +579,7 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
 void W8GameData::AddLevelPlane004485F0(W8LevelFilePlane* plane)
 {
     int index;
-    // reinterpret-ok: the opaque 0x30 plane record is four serialized vertex triples.
-    const srVector3T<float>* vertices = reinterpret_cast<const srVector3T<float>*>(plane);
+    const srVector3T<float>* vertices = plane->vertices_00;
 
     if (m_pTrigSurfaces == 0) {
         m_pTrigSurfaces = static_cast<W8GDSurface*>(malloc(500 * sizeof(W8GDSurface)));
