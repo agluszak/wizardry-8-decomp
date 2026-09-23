@@ -5,6 +5,7 @@
 #include "srIOManager.h"
 #include "srOptionList.h"
 
+class srBinOStream;
 class srModel;
 
 class srSurfaceIOManager : public srIOManager {

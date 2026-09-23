@@ -41,6 +41,7 @@ add_library(wiz8_surrender_objects OBJECT
     texture.cpp
     texture_map.cpp
     scheduler.cpp
+    statistics.cpp
     thread.cpp
     timer.cpp
     variable_timer.cpp

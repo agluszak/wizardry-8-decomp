@@ -805,3 +805,8 @@ unsigned long srBinOFStream::tell()
 
 // FUNCTION: SURRENDER 0x100308C0
 srBinOFStream::~srBinOFStream() {}
+
+/* srFileManager's implicit deleting destructor is emitted in this unit with
+   the Path members. */
+// SYNTHETIC: SURRENDER 0x100163F0
+// srFileManager scalar deleting destructor

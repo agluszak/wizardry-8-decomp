@@ -62,6 +62,7 @@ private:
 // FUNCTION: SURRENDER 0x10017920
 srDD* srGERD::getDD() const
 {
+    statistics_1a78_.value_68++;
     return dd_40_;
 }
 
@@ -5160,7 +5161,7 @@ void srGERD::setDepthRange(double minimum, double maximum)
 }
 
 // FUNCTION: SURRENDER 0x1001BB00
-const srShader& srGERD::getShader() const
+srShader srGERD::getShader() const
 {
     return shader_1ff8_;
 }
