@@ -2,7 +2,15 @@
 
 #include "srHeap.h"
 
+#include <float.h>
 #include <math.h>
+
+/* srMeshModel::verify asserts srFinite(t.sortBias): scalar finite test over
+   the CRT predicate. */
+inline int srFinite(double value)
+{
+    return _finite(value);
+}
 
 /*
  * SurRender math types named by the original SR.DLL export table. The layouts
@@ -36,6 +44,13 @@ public:
     T Length() const
     {
         return (T)sqrt(x * x + y * y);
+    }
+
+    /* srMeshModel::verify asserts t.vUV[p][j][i].isValid(): every component
+       finite. */
+    int isValid() const
+    {
+        return _finite(static_cast<double>(x)) && _finite(static_cast<double>(y));
     }
 
     srVector2T<T>& operator*=(double scalar)
@@ -122,6 +137,14 @@ public:
     srVector3T<T>* SetLength(double length);
     srVector3T<T>* Unitize();
     srVector3T<T>& Transform(const srMatrix3T<T>& matrix);
+
+    /* srMeshModel::verify asserts t.vLoc[i].isValid()/t.DIG[p][i].isValid():
+       every component finite. */
+    int isValid() const
+    {
+        return _finite(static_cast<double>(x)) && _finite(static_cast<double>(y)) &&
+               _finite(static_cast<double>(z));
+    }
 
     T x;
     T y;
@@ -402,6 +425,15 @@ public:
 
     srVector4T<T>* Set(T source_0, T source_1, T source_2, T source_3);
     T Length() const;
+
+    /* srMeshModel::verify asserts t.pEq[i].isValid()/t.DCG[p][i].isValid()/
+       t.SCG[p][i].isValid(): every component finite. */
+    int isValid() const
+    {
+        return _finite(static_cast<double>(x)) && _finite(static_cast<double>(y)) &&
+               _finite(static_cast<double>(z)) && _finite(static_cast<double>(w));
+    }
+
     srVector4T<T>& operator*=(double scalar);
     srVector4T<T>& operator=(T value)
     {

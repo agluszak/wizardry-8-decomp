@@ -87,6 +87,25 @@ public:
     };
 
     unsigned long value;
+
+    /* srMeshModel::verify asserts t.shader[p].isValid()/
+       t.pShader[p][v].isValid(): every packed field must sit inside its enum
+       range. The asserts expand the bitfield checks inline. */
+    int isValid() const
+    {
+        return (value & PASS_MASK) <= PASS_ALWAYS && ((value >> 3) & 1) <= 1 &&
+               ((value >> 4) & 1) <= 1 &&
+               ((value >> DSTBLEND_SHIFT) & 7) <= DSTBLEND_ONE_MINUS_SRC_ALPHA &&
+               ((value >> FOG_SHIFT) & 3) <= FOG_WHITE && ((value >> 10) & 3) <= GRADIENT_ADD &&
+               ((value >> 12) & 1) <= 1 &&
+               ((value >> SRCBLEND_SHIFT) & 3) <= SRCBLEND_ONE_MINUS_SRC_ALPHA &&
+               ((value >> 15) & 1) <= 1 &&
+               ((value >> DETAILCOLOR0_SHIFT) & 0xf) <= DETAILCOLOR_DETAILBLEND &&
+               ((value >> DETAILALPHA0_SHIFT) & 7) <= DETAILALPHA_INVSCALE &&
+               ((value >> 23) & 1) <= 1 && ((value >> 24) & 1) <= 1 &&
+               ((value >> DETAILCOLOR1_SHIFT) & 0xf) <= DETAILCOLOR_DETAILBLEND &&
+               ((value >> DETAILALPHA1_SHIFT) & 7) <= DETAILALPHA_INVSCALE;
+    }
 };
 
 static_assert(sizeof(srShader) == 0x04, "srShader_must_be_0x04");
