@@ -52,7 +52,14 @@ recovered union.
 
 If a call only type-checks after reinterpret-casting one modeled W8/sr/st record pointer to another,
 reconcile the owning declaration or callee signature instead. Linker-folded sibling functions retain
-their source parameter types even when the linker gives their bodies one address.
+their source parameter types even when the linker gives their bodies one address. That shared retail
+address does not create a source alias: do not attach a `FOLDED` marker or change either prototype to
+make the linked comparison choose the retained body.
+
+A consumer/provider ABI can genuinely expose different declarations without implying two source
+identities—for example Wizardry's fixed-arity import spelling of a variadic SurRender export. Such a
+proven boundary may use `abi-prototype-ok: <reason>` next to the consumer declaration. This waiver is
+only for the cross-TU prototype-consistency check; never use it for ICF, overloads, or address aliases.
 
 ## Object and class boundaries
 

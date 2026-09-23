@@ -45,6 +45,19 @@ non-unique matches stay unknown. The same layout drives `wiz8 ghidra decompile`/
 `uv run wiz8 check` compares it against the current source-index placement and enforces every
 anchored function.
 
+## Linker folding is not source ownership
+
+Retail identical-code folding can retain one machine body for several independently authored
+functions. That is a property of the linked executable, not a source-level alias or ownership
+relationship. Recovered C++ therefore does not use reccmp `FOLDED` markers: the retained retail
+emission carries the address marker, while independently evidenced sibling source functions remain
+ordinary unmarked definitions with their own types and translation-unit placement.
+
+The comparison image deliberately links with `/OPT:NOICF`. A type-correct sibling can therefore
+compile to a separate body and leave an expected call-target or vtable-target mismatch against the
+single retail emission. Once independent evidence establishes the ICF relationship, keep that fact in
+reviewed evidence or comparison diagnostics rather than changing the source model to improve a score.
+
 ## Header architecture
 
 TU ranges place out-of-line functions. They do not by themselves prove original header

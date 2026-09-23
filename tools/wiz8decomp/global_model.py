@@ -28,7 +28,6 @@ _DECL = re.compile(
     r"^(?P<prefix>.*?)(?P<name>[A-Za-z_]\w*)\s*(?P<arrays>(?:\[[^\]]*\])*)\s*(?:=|;)"
 )
 _VTABLE_OR_FUNCTION = re.compile(r"^\s*//\s*(?:VTABLE|FUNCTION|TEMPLATE|SYNTHETIC|LIBRARY):")
-_IDENTITY_ALIAS = re.compile(r"identity-alias\s*:", re.IGNORECASE)
 _DOCUMENTED_ALIAS = re.compile(r"alias(?:es)?\s+(?:of|for)\b|no separate definition", re.IGNORECASE)
 # A file-scope variable definition whose name ends in a retail address. The
 # name must be preceded by type text so in-body assignments (`g_x_... = 1;`)
@@ -241,11 +240,7 @@ def parse_global_definitions(
                 comments, look, decl = scanned
                 window = " ".join(comments)
                 parsed = _DECL.match(decl)
-                if (
-                    _extern_declaration(decl, parsed)
-                    or _IDENTITY_ALIAS.search(window)
-                    or _DOCUMENTED_ALIAS.search(window)
-                ):
+                if _extern_declaration(decl, parsed) or _DOCUMENTED_ALIAS.search(window):
                     index = look + 1
                     continue
                 if depth > 0:

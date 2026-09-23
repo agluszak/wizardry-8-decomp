@@ -111,7 +111,6 @@ def test_resolve_stubs_binds_declaration_by_qualified_name(monkeypatch) -> None:
                     address=0x00547570,
                     source_file="src/wiz8/engine_code/Monster.cpp",
                     parameter_count=2,
-                    folded=False,
                     is_definition=False,
                     signature="void (int, int)",
                 ),
@@ -148,8 +147,8 @@ def test_declared_callable_does_not_bind_another_class_method() -> None:
         markers_by_address={},
         callables_by_name={
             "Accept": (
-                DeclaredCallable(0x005C6910, "first.cpp", 0, False, True, None),
-                DeclaredCallable(0x005C76C0, "second.cpp", 0, False, True, None),
+                DeclaredCallable(0x005C6910, "first.cpp", 0, True, None),
+                DeclaredCallable(0x005C76C0, "second.cpp", 0, True, None),
             )
         },
     )
@@ -161,8 +160,8 @@ def test_resolve_stubs_rejects_ambiguous_declaration(monkeypatch) -> None:
         markers_by_address={},
         callables_by_name={
             "SetMonsterGroupHostility": (
-                DeclaredCallable(0x00547570, "a.cpp", 2, False, False, None),
-                DeclaredCallable(0x005477D0, "b.cpp", 2, False, False, None),
+                DeclaredCallable(0x00547570, "a.cpp", 2, False, None),
+                DeclaredCallable(0x005477D0, "b.cpp", 2, False, None),
             )
         },
     )

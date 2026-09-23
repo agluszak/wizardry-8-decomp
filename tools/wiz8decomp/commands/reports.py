@@ -157,7 +157,10 @@ def retail_folded_command() -> None:
     cli.emit(
         {
             "informational": True,
-            "policy": "Retail call sites and bodies govern fidelity; folding does not imply a no-op.",
+            "policy": (
+                "Retail call sites and bodies govern fidelity; fold claims are evidence only, "
+                "do not imply a no-op, and do not create source aliases or FOLDED markers."
+            ),
             "functions": [
                 {
                     "address": f"0x{claim['entity_key']}",
@@ -271,7 +274,7 @@ def placement_outliers_command(
         help="Require this many FUNCTION markers in an original TU before scoring outliers.",
     ),
 ) -> None:
-    """Flag large address outliers in proved original TUs, with fold/emission notes."""
+    """Flag large address outliers in proved original TUs, with emission notes."""
 
     from .. import command_support as cli
     from ..reports.placement_outliers import placement_outlier_report

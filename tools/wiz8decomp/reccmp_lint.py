@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections import Counter
 from pathlib import Path
 from typing import Any
@@ -24,6 +25,52 @@ ALLOWED_ALERTS = frozenset(
         AlertCode.NOT_STRICT_FORMAT,
     }
 )
+
+_SOURCE_SUFFIXES = frozenset({".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx", ".inl"})
+_FOLDED_MARKER = re.compile(
+    r"^\s*//\s*(?:FUNCTION|TEMPLATE|SYNTHETIC|LIBRARY|VTABLE|GLOBAL|STUB):"
+    r"\s+\S+\s+0x[0-9a-f]+\s+FOLDED(?:\s|$)",
+    re.IGNORECASE,
+)
+_IDENTITY_ALIAS_ANNOTATION = re.compile(r"\bidentity-alias\s*:", re.IGNORECASE)
+
+
+def _folded_source_markers(repository: Path) -> list[str]:
+    """Return source locations that turn retail ICF into source identity."""
+
+    problems: list[str] = []
+    for root_name in ("src", "include"):
+        root = repository / root_name
+        if not root.is_dir():
+            continue
+        for path in sorted(root.rglob("*")):
+            if path.suffix.lower() not in _SOURCE_SUFFIXES:
+                continue
+            for line_number, line in enumerate(
+                path.read_text(encoding="utf-8", errors="replace").splitlines(), 1
+            ):
+                if _FOLDED_MARKER.match(line):
+                    problems.append(f"{path.relative_to(repository)}:{line_number}")
+    return problems
+
+
+def _identity_alias_annotations(repository: Path) -> list[str]:
+    """Reject the retired source-identity alias escape hatch."""
+
+    problems: list[str] = []
+    for root_name in ("src", "include"):
+        root = repository / root_name
+        if not root.is_dir():
+            continue
+        for path in sorted(root.rglob("*")):
+            if path.suffix.lower() not in _SOURCE_SUFFIXES:
+                continue
+            for line_number, line in enumerate(
+                path.read_text(encoding="utf-8", errors="replace").splitlines(), 1
+            ):
+                if _IDENTITY_ALIAS_ANNOTATION.search(line):
+                    problems.append(f"{path.relative_to(repository)}:{line_number}")
+    return problems
 
 
 class ReccmpLintError(RuntimeError):
@@ -49,6 +96,19 @@ def _configured_lint_targets(repository: Path) -> tuple[DecomplintTarget, ...]:
 
 
 def validate_reccmp_annotations(repository: Path) -> dict[str, Any]:
+    folded = _folded_source_markers(repository)
+    if folded:
+        raise ReccmpLintError(
+            "FOLDED source markers are forbidden: retail ICF is comparison evidence, "
+            "not source identity:\n  " + "\n  ".join(folded)
+        )
+    aliases = _identity_alias_annotations(repository)
+    if aliases:
+        raise ReccmpLintError(
+            "identity-alias source annotations are forbidden; use ordinary source identities "
+            "or a narrow ABI waiver:\n  " + "\n  ".join(aliases)
+        )
+
     lint_targets = _configured_lint_targets(repository)
     alerts = lint_all_targets(lint_targets)
     alerts.extend(check_aliases(lint_targets))

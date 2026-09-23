@@ -4683,7 +4683,8 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
     return result;
 }
 
-// FUNCTION: WIZ8 0x005b1740 FOLDED
+/* Retail ICF shares this constant-return callback with the retained body at
+   0x005b1740; this typed source callback has no separate address marker. */
 unsigned char AcceptNpcDialogueItem005B1740(W8NpcState*, W8ItemInstance*, int)
 {
     return 1;

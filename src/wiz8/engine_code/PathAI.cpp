@@ -15,13 +15,11 @@
 
 #define PATH_AI_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\PathAI.CPP"
 
-/* identity-alias: as in Bink.cpp, retail shares one no-op stub at 0x004023a0
-   across arities (PathAIApplyToRep004A91F0 calls it with two arguments), so
-   this overload only satisfies the local call and owns no separate address. */
+/* Retail shares one no-op stub at 0x004023a0 across arities;
+   PathAIApplyToRep004A91F0 calls this typed overload with two arguments. */
 void NoOp(W8AIRecord*, W8AnimRepBase005EC1D8*) {}
 
-/* identity-alias: retail folds this empty body with the SYNTHETIC at
-   0x004023a0 in vc6_runtime.cpp. */
+/* Retail shares this empty body with the stub at 0x004023a0. */
 
 void NoOp(void) {}
 

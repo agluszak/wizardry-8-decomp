@@ -64,7 +64,6 @@ class DeclaredCallable:
     address: int
     source_file: str
     parameter_count: int
-    folded: bool
     is_definition: bool
     signature: str | None = None
 
@@ -96,7 +95,6 @@ class SourceFacts:
                     address=address,
                     source_file=identity.source_file,
                     parameter_count=len(identity.parameter_types),
-                    folded=identity.folded,
                     is_definition=identity.is_definition,
                     signature=identity.source_signature,
                 )
@@ -358,7 +356,6 @@ def _declared_callable(
         return counted[0]
     details = "; ".join(
         f"{item.source_file} @ 0x{item.address:08x} params={item.parameter_count}"
-        + (" folded" if item.folded else "")
         for item in matches
     )
     return f"source declarations: {details}"

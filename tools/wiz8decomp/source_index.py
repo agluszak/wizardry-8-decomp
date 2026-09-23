@@ -196,8 +196,6 @@ class AddressBoundIdentity:
     owning_class: str | None
     source_signature: str | None
     is_definition: bool
-    folded: bool
-    identity_alias: bool
 
 
 def _declaration_is_variadic(entry: Mapping[str, Any], signature: str | None = None) -> bool:
@@ -266,9 +264,7 @@ def _identity_from_declaration(
     *,
     target: str,
     address: int,
-    identity_alias: bool,
     marker_kind: str | None = None,
-    folded: bool = False,
     kind: str | None = None,
 ) -> AddressBoundIdentity:
     qualified = str(entry.get("qualified_name") or "")
@@ -292,8 +288,6 @@ def _identity_from_declaration(
         owning_class=str(entry["owning_class"]) if entry.get("owning_class") else None,
         source_signature=str(entry["source_signature"]) if entry.get("source_signature") else None,
         is_definition=bool(entry.get("is_definition")),
-        folded=folded,
-        identity_alias=identity_alias,
     )
 
 
@@ -302,7 +296,7 @@ def address_bound_identities(
 ) -> dict[int, tuple[AddressBoundIdentity, ...]]:
     """Every explicit (target, address) source binding, including declaration-only."""
 
-    from .identity_lint import _IDENTITY_ALIAS, _declaration_address, _declaration_lines
+    from .identity_lint import _declaration_address, _declaration_lines
 
     document = load_source_index(repository)
     wanted = target.upper()
@@ -336,9 +330,7 @@ def address_bound_identities(
                     embedded,
                     target=marker_target,
                     address=address,
-                    identity_alias=bool(marker.get("folded")),
                     marker_kind=marker_kind,
-                    folded=bool(marker.get("folded")),
                     kind=kind,
                 )
             )
@@ -363,8 +355,6 @@ def address_bound_identities(
                 owning_class=None,
                 source_signature=None,
                 is_definition=marker_kind == "FUNCTION",
-                folded=bool(marker.get("folded")),
-                identity_alias=bool(marker.get("folded")),
             )
         )
 
@@ -383,16 +373,11 @@ def address_bound_identities(
         namespace = str(entry.get("target") or "") or _namespace_for_source(
             str(entry.get("source_file") or ""), targets
         )
-        alias = any(
-            _IDENTITY_ALIAS.search(line)
-            for line in lines[max(0, int(entry["line"]) - 6) : int(entry["end_line"])]
-        )
         add(
             _identity_from_declaration(
                 entry,
                 target=namespace.upper(),
                 address=int(address_text, 16),
-                identity_alias=alias,
             )
         )
 

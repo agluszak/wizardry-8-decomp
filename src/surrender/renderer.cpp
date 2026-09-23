@@ -18,7 +18,6 @@ static void markTransitions(unsigned long* output, const unsigned long* indices,
                             unsigned long initialized);
 static void fillConstant(unsigned long* destination, unsigned long value, unsigned long count);
 
-// FUNCTION: SURRENDER 0x100027F0 FOLDED
 static void sortPairs(SortPair* pairs, unsigned long count)
 {
     if (count <= 1) {
@@ -77,7 +76,6 @@ static void sortPairs(SortPair* pairs, unsigned long count)
     srHeap.free(dst);
 }
 
-// FUNCTION: SURRENDER 0x10002A90 FOLDED
 static void* copyMemory(void* destination, const void* source, long size)
 {
     if (size <= 0) {

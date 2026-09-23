@@ -5,13 +5,13 @@ VC6 COMDAT folding and compiler emissions legitimately break contiguity. A hard
 ``function must lie inside TU min/max`` gate is therefore wrong. This report
 flags large address outliers among FUNCTION markers owned by recovered
 original-TU sources and annotates whether each outlier address also carries
-FOLDED, TEMPLATE, or SYNTHETIC marker evidence so agents can review suspicious
+TEMPLATE or SYNTHETIC emission evidence so agents can review suspicious
 ownership manually.
 
 The report is informational only: presence in the listing is a review signal,
-not automatic proof a symbol is mis-owned. Regression coverage for
-folded/template/synthetic annotation lives in unit tests with synthetic
-markers, not a hard-coded production fixture address.
+not automatic proof a symbol is mis-owned. Regression coverage for emission
+annotation lives in unit tests with synthetic markers, not a hard-coded
+production fixture address.
 """
 
 from __future__ import annotations
@@ -35,11 +35,10 @@ def _is_header(path: str) -> bool:
 
 
 def _evidence_by_address(markers: list[dict[str, Any]]) -> dict[int, dict[str, Any]]:
-    """Collect FOLDED/TEMPLATE/SYNTHETIC claims keyed by retail address."""
+    """Collect TEMPLATE/SYNTHETIC emission claims keyed by retail address."""
 
     by_address: dict[int, dict[str, Any]] = defaultdict(
         lambda: {
-            "folded": False,
             "template": False,
             "synthetic": False,
             "marker_kinds": [],
@@ -51,8 +50,6 @@ def _evidence_by_address(markers: list[dict[str, Any]]) -> dict[int, dict[str, A
         entry = by_address[address]
         if kind and kind not in entry["marker_kinds"]:
             entry["marker_kinds"].append(kind)
-        if marker.get("folded"):
-            entry["folded"] = True
         if kind == "TEMPLATE":
             entry["template"] = True
         if kind == "SYNTHETIC":
@@ -97,13 +94,11 @@ def placement_outliers(
             claims = evidence.get(
                 address,
                 {
-                    "folded": bool(marker.get("folded")),
                     "template": False,
                     "synthetic": False,
                     "marker_kinds": ["FUNCTION"],
                 },
             )
-            folded = bool(marker.get("folded")) or bool(claims.get("folded"))
             outliers.append(
                 {
                     "address": f"0x{address:08x}",
@@ -115,12 +110,10 @@ def placement_outliers(
                     "cluster_lower": f"0x{lower:08x}",
                     "cluster_upper": f"0x{upper:08x}",
                     "gap_bytes": gap,
-                    "folded": folded,
                     "template": bool(claims.get("template")),
                     "synthetic": bool(claims.get("synthetic")),
                     "marker_kinds": list(claims.get("marker_kinds") or ["FUNCTION"]),
-                    "has_fold_or_emission_evidence": folded
-                    or bool(claims.get("template"))
+                    "has_emission_evidence": bool(claims.get("template"))
                     or bool(claims.get("synthetic")),
                 }
             )
@@ -154,8 +147,8 @@ def placement_outlier_report(
         "schema": "wiz8.placement-outliers-v1",
         "informational": True,
         "policy": (
-            "Large address gaps in an original TU are review signals. FOLDED, "
-            "TEMPLATE, and SYNTHETIC evidence often explain legitimate "
+            "Large address gaps in an original TU are review signals. TEMPLATE "
+            "and SYNTHETIC evidence often explain legitimate "
             "non-contiguity; absence of that evidence warrants manual ownership review."
         ),
         "min_gap_bytes": min_gap,

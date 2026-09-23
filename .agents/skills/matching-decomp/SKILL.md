@@ -53,6 +53,21 @@ source use [source oracles](references/source-oracles.md). Read only the referen
    correction remains, keep the faithful source and classify the residue as compiler lowering rather
    than encoding a matching workaround.
 
+## Exactness after reconstruction
+
+Exact matching is confirmation, not the source specification. First recover ordinary, well-typed,
+plausible authored C++ and establish its semantic/ABI contract. Then use comparison differences to look
+for missing source facts: types and promotions, parameter/reference contracts, inheritance, fields,
+helpers/operators, lifetime, TU ownership, header visibility, linkage, and only then evidenced compiler
+configuration. Do not reverse this order by sculpting C++ around register allocation, stack-slot reuse,
+ICF, tail calls, temporary placement or instruction scheduling.
+
+An improved score is never evidence for `__forceinline`, noinline attributes, optimizer pragmas,
+manual inlining, fake unions, aliased locals, redundant counters, casts between mismodeled records or
+other source-shaping devices. Use those constructs only when independent source/oracle evidence
+supports them. `uv run wiz8 report semantic-debt` lists current source-shaping compiler directives as
+investigation candidates so they can be audited rather than copied as precedent.
+
 For zero-edit regeneration, prefer the batch harness over manually retyping already recovered bodies:
 `uv run wiz8 recover sweep --program sr.dll --class CLASS` for SurRender, or the default WIZ8
 program for game code. `uv run wiz8 recover regress ADDRESS... --program sr.dll` does the same
@@ -178,6 +193,12 @@ owns no declaration/body. A template instantiation may not be relabeled `FUNCTIO
 destructors, vtordisp/adjustor thunks and compiler helpers stay `SYNTHETIC`. Compiler-emission TUs are
 provenance-only and contain no authored function/global definitions. Keep `GLOBAL` at the canonical
 definition.
+
+Do not use reccmp `FOLDED` markers in recovered source. ICF says that the retail linker retained one
+machine body for equivalent emissions; it does not make one authored function an alias or source owner
+of another. Keep independently evidenced sibling functions as ordinary C++ with no invented retail
+address marker. If `/OPT:NOICF` exposes a call-target difference, document the established linker
+fold and leave the type-correct source alone.
 
 Preserve TU ownership/order in the owning product inventory: `src/wiz8/sources.cmake` for WIZ8 and
 `src/surrender/CMakeLists.txt` for the SR provider. An independently emitted ordinary destructor uses

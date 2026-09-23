@@ -269,9 +269,8 @@ void W8CharacterStatsRecordControl005EF700::OnMouseLeave(int event)
     }
 }
 
-/* The record control's right-button release is the same folded body as the
-   value control's; /OPT:NOICF emits its own copy. */
-// FUNCTION: WIZ8 0x005c92f0 FOLDED
+/* Retail ICF shares this right-button release with the value control's
+   retained body at 0x005c92f0; this source override stays unmarked. */
 void W8CharacterStatsRecordControl005EF700::OnRightButtonUp(int event)
 {
     unsigned char enabled = m_enabled;
@@ -864,8 +863,9 @@ void W8CharacterPage005EF778::OnRowInfoRequested(W8CharacterStatsRow005EF750* ro
     }
 }
 
-/* The primary listener slot shares the page's empty HandleInput emission. */
-// FUNCTION: WIZ8 0x005B1BE0 FOLDED
+/* The primary listener slot shares the page's empty HandleInput emission.
+   The retail fold is linked-image evidence, so this authored method has no
+   separate FUNCTION address claim. */
 void W8CharacterPage005EF778::OnPrimary(W8TextControl*) {}
 
 /* The five coloured attribute-corner controls name the attribute whose info

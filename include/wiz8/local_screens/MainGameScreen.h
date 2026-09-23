@@ -283,9 +283,9 @@ public:
 // VTABLE: WIZ8 0x005eea60
 class W8LockTumbler : public W8Widget {
 public:
-    /* Retail ICF folds this onto W8NpcDialogueScrollWidget's deleting destructor. */
-    // SYNTHETIC: WIZ8 0x0055E5B0 FOLDED
-    // W8LockTumbler::`scalar deleting destructor'
+    /* Retail ICF folds this deleting destructor onto
+       W8NpcDialogueScrollWidget's retained body at 0x0055E5B0; there is no
+       distinct retail emission to mark. */
 
     /* Inlined into 0x005856E0: the W8Widget base call plus the field writes
        below; no standalone derived body exists. */

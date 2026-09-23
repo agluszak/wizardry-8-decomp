@@ -2063,6 +2063,6 @@ srTriMeshPipeline* srTriMeshPipeline::Get004750A0(srGERD* renderer)
     return pipe;
 }
 /* Retail ICF folds this empty thiscall onto W8OptionsGraphicsPanel::OnDragEnd
-   at 0x005AA400 (OptionsScreen.cpp). No separate FUNCTION claim: decomplint
-   rejects FOLDED-before-primary when engine_code sorts ahead of OptionsScreen. */
+   at 0x005AA400 (OptionsScreen.cpp). This source function has no separately
+   retained retail address, so it intentionally has no FUNCTION marker. */
 void stMeshModel::NotifyLinkedModel005AA400(stMeshModel*) {}

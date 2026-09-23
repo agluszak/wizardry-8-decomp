@@ -98,9 +98,8 @@ inline srInlineString::~srInlineString()
 /* Releases this object's contents and returns it to the empty state. The
    destructor and copy assignment share it. Retail keeps only the destructor
    emission above: operator='s expansion and the EH unwinders call the same
-   body, so whether retail spelled a separate release member is unprovable -
-   the claims treat the two identities as folded onto the one emission. */
-// FUNCTION: WIZ8 0x0047CDD0 FOLDED
+   body, so whether retail spelled a separate release member is unprovable.
+   There is no independently retained retail address for release(). */
 inline void srInlineString::release()
 {
     if (data_ != inline_) {
