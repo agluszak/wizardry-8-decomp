@@ -296,12 +296,9 @@ def prepare_comparison(settings: Settings, target_ids: list[str]) -> dict[str, A
                 candidates = [
                     path
                     for path in raw.rglob("*")
-                    if path.is_file()
-                    and path.name.casefold() == Path(filename).name.casefold()
+                    if path.is_file() and path.name.casefold() == Path(filename).name.casefold()
                 ]
-                matching = [
-                    path for path in candidates if sha256_file(path) == expected_hash
-                ]
+                matching = [path for path in candidates if sha256_file(path) == expected_hash]
                 if len(matching) != 1:
                     raise RuntimeError(
                         f"filtered installer extraction did not produce exactly one reviewed "
