@@ -418,7 +418,6 @@ def test_corpus_extract_all_uses_the_canonical_sequence(monkeypatch) -> None:
     assert json.loads(result.stdout) == {"all": True}
 
 
-
 def test_prepare_comparison_targets_select_minimal_mode(monkeypatch) -> None:
     from wiz8decomp import build
 
