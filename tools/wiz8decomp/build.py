@@ -271,7 +271,9 @@ def prepare_comparison(settings: Settings, target_ids: list[str]) -> dict[str, A
             raise RuntimeError(f"expected exactly one gog-media input, found {len(matches)}")
         record = matches[0]
         if record.installer_technology != "Inno Setup":
-            raise RuntimeError("comparison-only preparation requires the canonical Inno GOG installer")
+            raise RuntimeError(
+                "comparison-only preparation requires the canonical Inno GOG installer"
+            )
         source = settings.input_dir / record.relative_path
         log = settings.build_dir / "logs" / "extract" / "comparison-originals.json"
 
@@ -306,9 +308,6 @@ def prepare_comparison(settings: Settings, target_ids: list[str]) -> dict[str, A
     sources_started = time.perf_counter()
     sources = fetch_seed_sources(settings)
     sources_ms = int((time.perf_counter() - sources_started) * 1000)
-
-    if "WIZ8" in wanted:
-        write_wiz8_data_source(settings.repo_dir)
 
     detect_started = time.perf_counter()
     run(
