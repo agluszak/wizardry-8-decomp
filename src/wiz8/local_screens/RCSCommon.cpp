@@ -233,7 +233,7 @@ void DrawTallRcsText(const wchar_t* text, int left, int top, int width, unsigned
 }
 
 /* Draws text honoring the same layout mask pairs as the buffered variants
-   above, but through mprintf with the current font: the centered and right
+   above, through gprintfDirty with the current font: the centered and right
    masks shift the start by the measured string length and the baseline is
    centered on the caller-provided height. */
 // FUNCTION: WIZ8 0x005b6fd0
@@ -248,7 +248,7 @@ void DrawRcsTextJustified(const wchar_t* text, int left, int top, int width, int
     }
     top += (height - GetFontHeight(g_font_683660)) / 2;
     SetFont(g_font_683660);
-    mprintf(left, top, L"%s", text);
+    gprintfDirty(left, top, L"%s", text);
 }
 
 // FUNCTION: WIZ8 0x005b6630

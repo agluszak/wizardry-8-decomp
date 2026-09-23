@@ -1529,7 +1529,7 @@ void W8MainGameTextKeyHandler::Redraw(int full_redraw)
             colour = g_colour_68ee08;
         }
         SetFontObjectPalette16BPP(g_font_683660, colour);
-        mprintf(left, top, const_cast<wchar_t*>(g_format_s_006068e4),
+        gprintf(left, top, const_cast<wchar_t*>(g_format_s_006068e4),
                 gppStringList[m_field_0ac[line]]);
         top += 0xe;
     }
@@ -3757,7 +3757,8 @@ render_world:
                 unsigned char frame = monster->m_pRep->subcycle_064;
                 const char* cycle = g_cycle_names[monster->Query(6)].name;
                 unsigned char subcycles = static_cast<unsigned char>(monster->GetNumSubCycles());
-                mprintf(0x122, 0x159, (UINT16*)L"%2d/%2d %hs", frame, subcycles, cycle);
+                gprintfDirty(0x122, 0x159, const_cast<UINT16*>(L"%2d/%2d %hs"), frame, subcycles,
+                             cycle);
             }
         }
         if (!gXStatus.fCombatMode) {

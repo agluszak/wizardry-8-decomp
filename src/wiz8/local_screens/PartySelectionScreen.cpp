@@ -363,7 +363,7 @@ void W8PartySelectionListControl005EF464::Redraw(int full_redraw)
                 }
             }
             SetFontObjectPalette16BPP(g_font_683660, colour);
-            mprintf(left + 2, top, L"%S",
+            gprintf(left + 2, top, L"%S",
                     *g_party_selection_character_collection_69c4ec->names.GetAt(row));
             top += 0x0e;
         }
