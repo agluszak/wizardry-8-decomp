@@ -111,7 +111,9 @@ def test_comparison_tooling_change_is_comparison_only() -> None:
 
 def test_aggregate_gate_requires_wiz8_runtime() -> None:
     workflow = (_SCRIPT.parent.parent / "workflows/ci.yml").read_text(encoding="utf-8")
-    aggregate = workflow.split("\n  ci:\n", 1)[1].split("\n  comment-reccmp-status:\n", 1)[0]
+    aggregate = workflow.split("\n  ci:\n", 1)[1].split(
+        "\n  comment-reccmp-status:\n", 1
+    )[0]
     assert (
         "needs: [scope, toolchain, repository, analysis, wiz8, wiz8-runtime, surrender]"
         in aggregate
