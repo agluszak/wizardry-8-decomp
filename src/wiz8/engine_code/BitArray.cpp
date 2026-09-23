@@ -97,7 +97,7 @@ BitArray::~BitArray()
 // FUNCTION: WIZ8 0x0043ae80
 void BitArray::CopyFrom(BitArray& other)
 {
-    other.SetSize(other.bit_count);
+    SetSize(other.bit_count);
     memcpy(puiIndex, other.puiIndex, word_count * sizeof(unsigned int));
     set_count = other.set_count;
 }

@@ -1,4 +1,7 @@
 #include "wiz8/music_playlist.h"
+#ifdef WIZ8_RUNTIME_TESTS
+#include "runtime_instrumentation.h"
+#endif
 #include "wiz8/character_event_queue.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/layouts/screen_state.h"
@@ -143,6 +146,12 @@ void GameLoop(void)
     }
     state = g_current_screen_state.id;
     g_pending_screen_state.id = -1;
+#ifdef WIZ8_RUNTIME_TESTS
+    RuntimeObserve(RUNTIME_SCREEN_CHANGED, g_previous_screen_id, state, -1);
+    if (state == W8_SCREEN_MAIN_GAME) {
+        RuntimeObserve(RUNTIME_MAIN_GAME_ENTERED, state, 0, 0);
+    }
+#endif
 
 finish:
     if (state == -1) {
@@ -197,6 +206,12 @@ void GameloopExit(unsigned char release_screens)
                 g_current_screen_state.id = -1;
             } else {
                 g_pending_screen_state.id = -1;
+#ifdef WIZ8_RUNTIME_TESTS
+                RuntimeObserve(RUNTIME_SCREEN_CHANGED, g_previous_screen_id, state, -1);
+                if (state == W8_SCREEN_MAIN_GAME) {
+                    RuntimeObserve(RUNTIME_MAIN_GAME_ENTERED, state, 0, 0);
+                }
+#endif
             }
         }
     }

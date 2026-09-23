@@ -1210,6 +1210,14 @@ bool CombatAttackCase(RuntimeCase& test)
    spell on every living slot, drive rounds until a party cast executes and
    the aimed monster durably loses HP or dies - and report which product
    transition never arrived on failure. */
+static void EndSpellFixtureCombatOnGameThread(void*)
+{
+    if (g_combat_state != 0 && gXStatus.fCombatMode != 0) {
+        EndCombat004EA310(0);
+    }
+    gfProgramIsRunning = 0;
+}
+
 bool CombatSpellCase(RuntimeCase& test)
 {
     int location_id = EngageHostile(test);
@@ -1261,7 +1269,8 @@ bool CombatSpellCase(RuntimeCase& test)
             damaged = true;
             test.step("target-damaged");
         }
-        if (baseline_taken && state.engaged_hostiles == 0 && !state.combat_mode) {
+        if (baseline_taken && state.screen == W8_SCREEN_MAIN_GAME && state.pending == -1 &&
+            state.engaged_hostiles == 0 && !state.combat_mode) {
             /* A cast still queued when combat ends resolves through the
                out-of-combat spell UI, which runs its own modal loop and never
                reaches the quit flag. Dismiss it through the cancel binding. */
@@ -1311,6 +1320,14 @@ bool CombatSpellCase(RuntimeCase& test)
             round_requested = true;
         }
         if (cast_queued && cast_executed && damaged) {
+            /* The spell observation ends while monsters are still taking their
+               combat turn. Finish that fixture on the game thread before the
+               driver asks WinMain to quit; otherwise the next combat update
+               can keep WinMain inside GameLoop past the process deadline. */
+            if (!test.on_game_thread("combat-spell-cleanup", EndSpellFixtureCombatOnGameThread, 0,
+                                     10000)) {
+                return false;
+            }
             return true;
         }
     }

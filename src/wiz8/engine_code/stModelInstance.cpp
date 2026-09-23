@@ -695,14 +695,12 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
             RenderShadow004811D0(renderer, mesh);
         }
 
-        srVector4T<float>* poly_normals;
+        srVector3T<float>* poly_normals;
         if ((model->flags_3a0 >> 2) & 1) {
             mesh.positions_38 =
                 model->GetVertexLocations00471AD0(frame_index_180, 1, frame_interpolation_1ac);
             mesh.normals_3c = model->GetVertexNormals00471CA0(frame_index_180, 1);
-            // reinterpret-ok: the equation table aliases the polygon normals.
-            poly_normals = reinterpret_cast<srVector4T<float>*>(
-                model->GetPolygonNormals00471D00(frame_index_180, 1));
+            poly_normals = model->GetPolygonNormals00471D00(frame_index_180, 1);
         } else {
             poly_normals = 0;
         }
@@ -815,14 +813,12 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
                         }
                     }
 
-                    const srVector4T<float>* poly_normals = 0;
+                    const srVector3T<float>* poly_normals = 0;
                     if ((model->flags_3a0 >> 2) & 1) {
                         mesh.dig_40[0] = model->GetVertexLocations00471AD0(frame_index_180, 1,
                                                                            frame_interpolation_1ac);
                         mesh.dig_40[1] = model->GetVertexNormals00471CA0(frame_index_180, 1);
-                        // reinterpret-ok: the equation table aliases the polygon normals.
-                        poly_normals = reinterpret_cast<const srVector4T<float>*>(
-                            model->GetPolygonNormals00471D00(frame_index_180, 1));
+                        poly_normals = model->GetPolygonNormals00471D00(frame_index_180, 1);
                     }
                     srPtr<srTextureIFace>*(*poly_textures)[2] = mesh.poly_textures_e0;
                     if (poly_textures != 0 && mesh.active_polygons_14c == 0) {
@@ -1033,7 +1029,7 @@ void stModelInstance::RenderShadow004811D0(srGERD& renderer, srMeshModel::TriMes
     pipeline->current_record_14->flags_00 = 0;
     pipeline->current_pass_18->shader_14 = 0;
     pipeline->current_pass_18->texture_array_0c = 0;
-    pipeline->current_pass_18->value_10 = 0;
+    pipeline->current_pass_18->texture_array_10 = 0;
     pipeline->material_80 = g_shadow_mesh_0065a14c->materials_70[0][0];
     pipeline->current_record_14->material_08 = pipeline->material_80;
     pipeline->SetFlags004752C0(g_shadow_mesh_0065a14c->shaders_b0[0]);
@@ -1046,7 +1042,7 @@ void stModelInstance::RenderShadow004811D0(srGERD& renderer, srMeshModel::TriMes
     pipeline->current_pass_18->pass_value_04 = pipeline->pass_value_7c;
     pipeline->current_pass_18->flags_08.value = pipeline->shader_74.value;
     pipeline->current_pass_18->texture_array_0c = 0;
-    pipeline->current_pass_18->value_10 = 0;
+    pipeline->current_pass_18->texture_array_10 = 0;
     pipeline->current_pass_18->shader_14 = 0;
     pipeline->current_pass_18->st_18 = 0;
     pipeline->current_pass_18->poly_uv_1c = 0;

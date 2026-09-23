@@ -1,0 +1,86 @@
+name: Prepare comparison inputs
+description: Restore a tiny encrypted original-binary corpus or derive it from the canonical installer.
+
+inputs:
+  inputs-token:
+    description: Token with read access to the private CI input repository.
+    required: true
+  cache-key:
+    description: Symmetric key used only to decrypt/encrypt licensed cache payloads.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Restore public FID source cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.WIZ8_WORK_DIR }}/fid/sources
+        key: wiz8-fid-sources-v1-${{ hashFiles('config/static-libraries.yml', 'tools/wiz8decomp/ghidra/fid_seeds.py') }}
+
+    - name: Restore encrypted comparison corpus
+      id: comparison-cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ runner.temp }}/wiz8-comparison-cache
+        key: wiz8-comparison-v1-${{ env.GOG_INSTALLER_SHA256 }}-${{ hashFiles('reccmp-project.yml', 'tools/wiz8decomp/build.py', 'tools/wiz8decomp/extract/archives.py') }}
+
+    - name: Materialize cached comparison corpus
+      if: steps.comparison-cache.outputs.cache-hit == 'true'
+      shell: bash
+      env:
+        WIZ8_CACHE_KEY: ${{ inputs.cache-key }}
+      run: |
+        set -euo pipefail
+        encrypted="$RUNNER_TEMP/wiz8-comparison-cache/comparison.tar.gz.enc"
+        archive="$RUNNER_TEMP/wiz8-comparison.tar.gz"
+        test -s "$encrypted"
+        mkdir -p "$WIZ8_WORK_DIR/comparison"
+        openssl enc \
+          -d \
+          -aes-256-cbc \
+          -pbkdf2 \
+          -iter 200000 \
+          -in "$encrypted" \
+          -out "$archive" \
+          -pass env:WIZ8_CACHE_KEY
+        tar -C "$WIZ8_WORK_DIR/comparison" -xzf "$archive"
+        rm -f "$archive"
+
+    - name: Materialize installer on comparison-cache miss
+      if: steps.comparison-cache.outputs.cache-hit != 'true'
+      uses: ./.github/actions/materialize-gog-installer
+      with:
+        inputs-token: ${{ inputs.inputs-token }}
+        cache-key: ${{ inputs.cache-key }}
+
+    - name: Prepare minimal WIZ8 and SURRENDER originals
+      shell: bash
+      run: |
+        uv run wiz8 prepare \
+          --comparison-target WIZ8 \
+          --comparison-target SURRENDER
+
+    - name: Encrypt comparison corpus on cache miss
+      if: steps.comparison-cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        WIZ8_CACHE_KEY: ${{ inputs.cache-key }}
+      run: |
+        set -euo pipefail
+        cache_dir="$RUNNER_TEMP/wiz8-comparison-cache"
+        archive="$RUNNER_TEMP/wiz8-comparison.tar.gz"
+        encrypted="$cache_dir/comparison.tar.gz.enc"
+        rm -rf "$cache_dir"
+        mkdir -p "$cache_dir"
+        tar -C "$WIZ8_WORK_DIR/comparison" -czf "$archive" gog-base
+        openssl enc \
+          -aes-256-cbc \
+          -pbkdf2 \
+          -iter 200000 \
+          -salt \
+          -in "$archive" \
+          -out "$encrypted" \
+          -pass env:WIZ8_CACHE_KEY
+        rm -f "$archive"
+        test -s "$encrypted"

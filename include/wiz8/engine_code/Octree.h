@@ -535,7 +535,7 @@ public:
        (1 << leaf_level_52) - 1 and the packed-cell writers emit it as the top
        byte of each (mask<<24 | x<<16 | y<<8 | z) key. */
     unsigned long m_region_mask_140;
-    unsigned long m_padding_144;
+    unsigned long m_depth_mask_144;
     unsigned short* m_owned_148;
     unsigned char* m_pfRegsVisited;
     W8HashTable<unsigned int, unsigned short>* m_pRegionLinks_150;

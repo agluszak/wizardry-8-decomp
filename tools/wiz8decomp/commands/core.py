@@ -18,12 +18,23 @@ def doctor_command() -> None:
     cli.emit(validate_environment(cli.settings()))
 
 
-def prepare_command() -> None:
-    """Idempotently prepare extracted variants and pinned source dependencies."""
+def prepare_command(
+    comparison_target: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--comparison-target",
+            help="Prepare only reviewed original binaries for this reccmp target; repeatable.",
+        ),
+    ] = None,
+) -> None:
+    """Prepare full runtime inputs or a minimal comparison-only corpus."""
     from .. import command_support as cli
-    from ..build import prepare
+    from ..build import prepare, prepare_comparison
 
-    cli.emit(prepare(cli.settings()))
+    settings = cli.settings()
+    cli.emit(
+        prepare_comparison(settings, comparison_target) if comparison_target else prepare(settings)
+    )
 
 
 def check_command() -> None:
@@ -303,12 +314,12 @@ def runtime_test_command(
             "default keeps the caller's environment.",
         ),
     ] = None,
-    batch: Annotated[
+    isolate: Annotated[
         bool,
         typer.Option(
-            "--batch",
-            help="Run batch-eligible semantic cases grouped by fixture in one "
-            "process; crashed or poisoned batches re-run leftover cases fresh.",
+            "--isolate",
+            help="Give every case a fresh process instead of batching "
+            "batch-eligible cases that share a fixture.",
         ),
     ] = False,
     workers: Annotated[
@@ -319,7 +330,7 @@ def runtime_test_command(
             help="Run independent cases on this many isolated workers; each "
             "gets its own stage, Wine prefix, and virtual display.",
         ),
-    ] = 1,
+    ] = 2,
 ) -> None:
     """Run deterministic in-process semantic scenarios using the existing product."""
     from .. import command_support as cli
@@ -338,7 +349,7 @@ def runtime_test_command(
             repeat=repeat,
             check_order=check_order,
             renderer=renderer,
-            batch=batch,
+            batch=not isolate,
             workers=workers,
         )
     )
@@ -550,6 +561,7 @@ def unresolved_report_command(
     link_map: Annotated[Path | None, typer.Option(help="Linker MAP.")] = None,
 ) -> None:
     from .. import command_support as cli
+    from ..runtime_stubs import linked_objects
     from ..unresolved import unresolved_report
 
     def action():
@@ -557,6 +569,7 @@ def unresolved_report_command(
         report = unresolved_report(
             objects or settings.recovered_objects_dir,
             link_map or settings.product_build_dir / "Wiz8.map",
+            objects=None if objects else linked_objects(settings),
         )
         return report
 

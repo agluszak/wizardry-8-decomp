@@ -908,7 +908,8 @@ W8LockInteraction::W8LockInteraction(Trigger* trigger) : m_timer_80()
     } else if (m_tumbler_count_0c > 8) {
         m_tumbler_count_0c = 8;
     }
-    m_tumbler_panel_10 = new W8LockTumblerPanel(m_tumbler_count_0c, trigger->lock_state.device_state.pins);
+    m_tumbler_panel_10 =
+        new W8LockTumblerPanel(m_tumbler_count_0c, trigger->lock_state.device_state.pins);
     m_tumbler_panel_10->m_listener_e8 = this;
     m_info_panel_14 = new W8LockInfoPanel(m_tumbler_count_0c);
     m_action_panel_18 = new Controls(0x1e7, 0x166, 0, 0, 0x1af, 0, 2);
@@ -8039,8 +8040,8 @@ void ApplyPendingMouselook(void)
     float scale;
     float pitch_step;
     float yaw_step;
-    float yaw;
-    float pitch;
+    W8CameraAngleRecord yaw;
+    W8CameraAngleRecord pitch;
 
     if ((g_mouselook_tick_init_0068edb4 & 1) == 0) {
         g_mouselook_tick_init_0068edb4 =
@@ -8077,12 +8078,12 @@ void ApplyPendingMouselook(void)
             yaw_step = g_mouselook_pending_yaw_0068ede0 * scale;
         }
     }
-    GetCameraOrientation(&yaw, &pitch);
-    yaw += yaw_step;
-    pitch += pitch_step;
+    GetCameraOrientation(yaw, pitch);
+    yaw[0] += yaw_step;
+    pitch[0] += pitch_step;
     g_mouselook_pending_pitch_0068ede4 -= pitch_step;
     g_mouselook_pending_yaw_0068ede0 -= yaw_step;
-    SetCameraOrientation(&yaw, &pitch, 0);
+    SetCameraOrientation(yaw, pitch, 0);
 }
 
 /* After the tooltip delay elapses, clear any previous highlight slots (and

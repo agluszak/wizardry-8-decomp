@@ -29,7 +29,7 @@ public:
     virtual void getTriMesh(TriMesh& mesh) override;                 /* 0x004727e0 */
     /* Recomputes the union bounds over every model in the previous/next chain
        and pushes them to each member via srMeshModel::setBounds. */
-    virtual void calculateBounds() override;      /* 0x00471e10 */
+    void CalculateLinkedBounds00471E10();         /* 0x00471e10 */
     virtual const TriMesh& getTriMesh() override; /* 0x00472270 */
     virtual void renderTriMesh(class srGERD& renderer,
                                const TriMesh& mesh) override; /* 0x00470360 */
@@ -38,7 +38,7 @@ public:
        table used to build the active-polygon scratch at 0x00659ce0. */
     void
     RenderTriMeshWithEquations00470380(class srGERD& renderer, const TriMesh& mesh,
-                                       const srVector4T<float>* poly_equations); /* 0x00470380 */
+                                       const srVector3T<float>* poly_equations); /* 0x00470380 */
 
     int FindMappedIndex(short key); /* 0x004712D0 */
     void SetMappedVertex00471160(short vertex, short key);

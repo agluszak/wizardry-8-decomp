@@ -377,10 +377,8 @@ static unsigned char CheckLoadedSpatial(const OctPreTree* written, const W8Octre
            back->maximum_18.z == source->maximum_18.z &&
            back->clipped_minimum_24.y == source->clipped_minimum_24.y &&
            back->working_maximum_84.z == source->working_maximum_84.z &&
-           back->depth_44 == source->depth_44 &&
-           back->region_count_46 ==
-               static_cast<unsigned short>(written->m_leaf_grid_dim_z_0ac >> 16) &&
-           back->leaf_level_52 == source->depth_44 &&
+           back->depth_44 == source->depth_44 && back->region_count_46 == source->region_count_46 &&
+           back->leaf_level_52 == source->leaf_level_52 &&
            back->region_id_bound_58 == source->region_id_bound_58 &&
            loaded->m_leaf_grid_dim_x_0a4 == written->m_leaf_grid_dim_x_0a4 &&
            loaded->m_leaf_grid_dim_y_0a8 == written->m_leaf_grid_dim_y_0a8 &&

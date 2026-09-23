@@ -218,6 +218,21 @@ void SendScenarioMouseClick(int client_x, int client_y)
     }
 }
 
+void SendScenarioRightMouseButton(bool release)
+{
+    INPUT event;
+    memset(&event, 0, sizeof(event));
+    event.type = INPUT_MOUSE;
+    event.mi.dwFlags = release ? MOUSEEVENTF_RIGHTUP : MOUSEEVENTF_RIGHTDOWN;
+    SetForegroundWindow(ghWindow);
+    if (SendInput(1, &event, sizeof(INPUT)) != 1) {
+        fprintf(stderr,
+                "WIZ8_RUNTIME_FAILURE scenario=%s step=input reason=sendinput-failed error=%lu\n",
+                g_case_scenario, GetLastError());
+        fflush(stderr);
+    }
+}
+
 /* Held input uses the OS keyboard path, including SGP's hook, not driver-thread
    writes to gfKeyState or its event queue. The physical scan and extended bit
    distinguish dedicated arrows from the numeric keypad. */
@@ -457,6 +472,11 @@ RuntimeCase::RuntimeCase(const char* name, unsigned long budget_ms)
     expected_[0] = 0;
     memset(&last_snapshot_, 0, sizeof(last_snapshot_));
     memset(&last_ready_check_, 0, sizeof(last_ready_check_));
+    RuntimeInstrumentationInitialize();
+    for (int kind = 0; kind < RUNTIME_EVENT_KIND_COUNT; ++kind) {
+        event_baseline_[kind] = RuntimeEventCount(static_cast<RuntimeEventKind>(kind));
+        event_seen_[kind] = event_baseline_[kind];
+    }
     g_case_scenario = name;
 }
 
@@ -538,6 +558,7 @@ bool RuntimeCase::fail(const char* step, const char* reason)
     }
     fprintf(stderr, "runtime-case %s: reproduce uv run wiz8 runtime-test --scenario %s\n", name_,
             name_);
+    RuntimeWriteRecentEvents(stderr, name_);
     fflush(stderr);
     /* The runner owns the game lifecycle; a case failure only reports. */
     return false;
@@ -680,6 +701,26 @@ bool RuntimeCase::wait_until(const char* condition, unsigned long budget_ms, Run
     return false;
 }
 
+unsigned long RuntimeCase::event_count(RuntimeEventKind kind) const
+{
+    return RuntimeEventCount(kind) - event_baseline_[kind];
+}
+
+bool RuntimeCase::wait_for_event(RuntimeEventKind kind, unsigned long budget_ms)
+{
+    unsigned long started = GetTickCount();
+    while (GetTickCount() - started < budget_ms && remaining_ms() > 0 && gfProgramIsRunning) {
+        unsigned long count = RuntimeEventCount(kind);
+        if (count > event_seen_[kind]) {
+            event_seen_[kind] = count;
+            return true;
+        }
+        Sleep(10);
+    }
+    expected("event=%s", RuntimeEventName(kind));
+    return fail(RuntimeEventName(kind), "event-not-observed");
+}
+
 GameplayWait RuntimeCase::wait_gameplay_ready(unsigned long budget_ms, const char* step)
 {
     unsigned long started = GetTickCount();
@@ -729,6 +770,70 @@ GameplayWait RuntimeCase::wait_gameplay_ready(unsigned long budget_ms, const cha
 const GameplayReadyCheck& RuntimeCase::last_ready_check() const
 {
     return last_ready_check_;
+}
+
+void RuntimeCase::observe_long(const char* name, long value)
+{
+    printf("WIZ8_RUNTIME_OBSERVE scenario=%s name=%s value=%ld\n", name_, name, value);
+    fflush(stdout);
+}
+
+void RuntimeCase::observe_ulong(const char* name, unsigned long value)
+{
+    printf("WIZ8_RUNTIME_OBSERVE scenario=%s name=%s value=%lu\n", name_, name, value);
+    fflush(stdout);
+}
+
+void RuntimeCase::observe(const char* name, int value)
+{
+    observe_long(name, value);
+}
+
+void RuntimeCase::observe(const char* name, unsigned int value)
+{
+    observe_ulong(name, value);
+}
+
+void RuntimeCase::observe(const char* name, long value)
+{
+    observe_long(name, value);
+}
+
+void RuntimeCase::observe(const char* name, unsigned long value)
+{
+    observe_ulong(name, value);
+}
+
+void RuntimeCase::observe(const char* name, double value)
+{
+    printf("WIZ8_RUNTIME_OBSERVE scenario=%s name=%s value=%.6g\n", name_, name, value);
+    fflush(stdout);
+}
+
+void RuntimeCase::observe(const char* name, const char* value)
+{
+    printf("WIZ8_RUNTIME_OBSERVE scenario=%s name=%s value=%s\n", name_, name, value);
+    fflush(stdout);
+}
+
+bool RuntimeCase::expect_eq(const char* name, long expected_value, long actual_value)
+{
+    observe_long(name, actual_value);
+    if (expected_value == actual_value) {
+        return true;
+    }
+    expected("%s=%ld", name, expected_value);
+    return fail(name, "expectation-mismatch");
+}
+
+bool RuntimeCase::expect_eq(const char* name, const char* expected_value, const char* actual_value)
+{
+    observe(name, actual_value);
+    if (strcmp(expected_value, actual_value) == 0) {
+        return true;
+    }
+    expected("%s=%s", name, expected_value);
+    return fail(name, "expectation-mismatch");
 }
 
 void RuntimeCase::finish(bool passed)

@@ -995,7 +995,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     pipeline->current_record_14->flags_00 = 0;
     pipeline->current_pass_18->shader_14 = 0;
     pipeline->current_pass_18->texture_array_0c = 0;
-    pipeline->current_pass_18->value_10 = 0;
+    pipeline->current_pass_18->texture_array_10 = 0;
 
     if (colors_16c != 0) {
         pipeline->current_record_14->colors_0c = colors_16c;

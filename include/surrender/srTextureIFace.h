@@ -37,8 +37,12 @@ public:
         unsigned long last_level_04;
         srColorSurfaceIFace* destinations[1];
     };
+    /* srGERD::setTextureSubImage packs the level-0 dimensions and the target
+       mipmap level ahead of the clipped destination rect. */
     struct PartialRequest {
-        unsigned long unknown_00[3];
+        unsigned long width_00;
+        unsigned long height_04;
+        long mipmap_level_08;
         long destination_x;
         long destination_y;
         long source_right;

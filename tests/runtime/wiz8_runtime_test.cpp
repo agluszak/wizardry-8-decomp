@@ -9,7 +9,6 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/local_screens/CharacterScreen.h"
-#include "wiz8/local_screens/IntroScreen.h"
 #include "wiz8/local_screens/MainMenuScreen.h"
 #include "wiz8/local_screens/PartySelectionScreen.h"
 #include "wiz8/local_code/GameplayCode.h"
@@ -25,9 +24,12 @@
 #include "wiz8/video_object_catalog.h"
 #include "wiz8/wiz8_windows.h"
 #include "wiz8/xstatus.h"
+#include "wiz8/local_code/character_events.h"
+#include "wiz8/character_event_queue.h"
 #include "wiz8/local_code/Search.h"
 #include "wiz8/local_code/Strings.h"
 #include "wiz8/local_screens/MGSTextBox.h"
+#include "wiz8/local_screens/IntroScreen.h"
 #include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/local_screens/MGSKeyboard.h"
 #include "wiz8/local_screens/MainGameScreen.h"
@@ -188,6 +190,7 @@ static void WriteRuntimeTestContext(FILE* stream)
 {
     fprintf(stream, "runtime-test context: pending=%d current=%d\n", g_pending_screen_state.id,
             g_current_screen_state.id);
+    RuntimeWriteRecentEvents(stream, g_scenario);
 }
 
 static bool VerifyShadeTable(FLOAT coefficient)
@@ -611,12 +614,19 @@ static bool WaitForEngineReady(unsigned int timeout_ms)
     return false;
 }
 
+struct MainGameFixtureRequest {
+    int party_size;
+    const char* failure;
+};
+
 static void PrepareMainGameFixtureOnGameThread(void* opaque)
 {
-    const char** failure = static_cast<const char**>(opaque);
+    MainGameFixtureRequest* request = static_cast<MainGameFixtureRequest*>(opaque);
+    ReportStep("fixture-reset-begin");
     // Reproducible integration fixtures; acceptance keeps normal product randomness.
     srand(0x57495a38);
     ResetForNewGame();
+    ReportStep("fixture-reset-end");
     W8Character character;
     W8CharacterCreationState creation;
     InitializeCharacterCreation(&character, &creation);
@@ -634,38 +644,50 @@ static void PrepareMainGameFixtureOnGameThread(void* opaque)
         }
     }
     if (!creation.attributes_complete || !creation.skills_complete) {
-        *failure = "character-allocation-incomplete";
+        request->failure = "character-allocation-incomplete";
         return;
     }
     DeriveCharacterPersonality004EFA30(&character);
+    CalcCharacterTableValue(&character);
+    if (character.portrait_index < 0 || character.portrait_index >= 0x50) {
+        request->failure = "character-portrait-invalid";
+        return;
+    }
     wcscpy(character.name, L"Fixture");
     wcscpy(character.name_part_2, L"Runtime");
     FinalizeCreatedCharacter(&character, &creation, true);
     if (character.hp_current <= 0) {
-        *failure = "character-not-alive";
+        request->failure = "character-not-alive";
         return;
     }
-    for (int member = 0; member < 6; ++member) {
+    for (int member = 0; member < request->party_size; ++member) {
         character.name[0] = L'A' + member;
         if (AddCharacterToParty(&character, -1) < 0) {
-            *failure = "party-member-add-failed";
+            request->failure = "party-member-add-failed";
             return;
         }
     }
+    ReportStep("fixture-party-created");
     // Before the first screen enters there is no screen to leave. Once one
     // exists, use the same leave/replace route as the party-start control.
     RunNewGameOpeningSequence(g_current_screen_state.id != -1, 0);
+    // The new-game router normally queues character-specific opening videos.
+    // Gameplay fixtures retain its initialized state and use the normal level
+    // loader directly, without waiting for the cinematics.
+    g_pending_screen_state.mode = 0;
+    SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
+    ReportStep("fixture-opening-started");
 }
 
-static bool PrepareMainGameFixture(RuntimeCase& test)
+static bool PrepareMainGameFixture(RuntimeCase& test, int party_size)
 {
-    const char* failure = 0;
-    if (!test.on_game_thread("main-game-fixture", PrepareMainGameFixtureOnGameThread, &failure,
+    MainGameFixtureRequest request = {party_size, 0};
+    if (!test.on_game_thread("main-game-fixture", PrepareMainGameFixtureOnGameThread, &request,
                              60000)) {
         return false;
     }
-    if (failure != 0) {
-        FailScenario("main-game-fixture", failure);
+    if (request.failure != 0) {
+        FailScenario("main-game-fixture", request.failure);
         return false;
     }
     /* The load transition pumps few messages on a slow display, so polls are
@@ -761,7 +783,12 @@ static bool EnterMainMenuFixture(RuntimeCase& test)
 
 static bool EnterMonasteryPartyFixture(RuntimeCase& test)
 {
-    return PrepareMainGameFixture(test);
+    return PrepareMainGameFixture(test, 6);
+}
+
+static bool EnterMonasterySinglePartyFixture(RuntimeCase& test)
+{
+    return PrepareMainGameFixture(test, 1);
 }
 
 static const RuntimeFixtureSpec kFixtures[] = {
@@ -771,6 +798,8 @@ static const RuntimeFixtureSpec kFixtures[] = {
      LeaveFixture},
     {FIXTURE_MONASTERY_PARTY, "monastery-party", RUNTIME_MAIN_GAME, FIXTURE_PATH_SHORTCUT,
      EnterMonasteryPartyFixture, LeaveFixture},
+    {FIXTURE_MONASTERY_SINGLE_PARTY, "monastery-single-party", RUNTIME_MAIN_GAME,
+     FIXTURE_PATH_SHORTCUT, EnterMonasterySinglePartyFixture, LeaveFixture},
 };
 
 const RuntimeFixtureSpec* FindRuntimeFixture(RuntimeFixtureId id)
@@ -799,11 +828,108 @@ static bool ExplorationInputCase(RuntimeCase& test)
     return true;
 }
 
+static bool MouselookDragCase(RuntimeCase& test)
+{
+    GameplaySnapshot before;
+    RT_REQUIRE(test, test.snapshot(before, "right-drag-before"));
+    POINT point = {320, 240};
+    ClientToScreen(ghWindow, &point);
+    SetForegroundWindow(ghWindow);
+    SetCursorPos(point.x, point.y);
+    Sleep(50);
+    test.step("cursor-positioned");
+    SendScenarioRightMouseButton(false);
+    Sleep(50);
+    test.step("right-button-down");
+    for (int move = 0; move < 12; ++move) {
+        point.x = 340 + move;
+        point.y = 250;
+        ClientToScreen(ghWindow, &point);
+        SetCursorPos(point.x, point.y);
+        Sleep(40);
+        if (move == 0 || move == 5 || move == 11) {
+            test.step("right-drag-moving");
+        }
+    }
+    SendScenarioRightMouseButton(true);
+    test.step("right-drag-sent");
+    GameplaySnapshot after;
+    RT_REQUIRE(test, test.snapshot(after, "right-drag-after"));
+    float yaw_delta = after.yaw - before.yaw;
+    if (yaw_delta < 0.0f) {
+        yaw_delta = -yaw_delta;
+    }
+    test.expected("mouselook yaw change after right-drag");
+    return yaw_delta > 0.01f || test.fail("right-drag", "yaw-unchanged");
+}
+
+static void QueueVoiceEventOnGameThread(void* opaque)
+{
+    bool* queued = static_cast<bool*>(opaque);
+    W8Character* character = &g_status_685170.buffers.Char[2];
+    character->gender = W8_GENDER_FEMALE;
+    character->personality_0081 = 0;
+    character->voice_0085 = 0;
+    g_status_685170.greeting_pending_2497 = 0;
+    *queued = QueueCharacterEvent(character, 4, 0, W8_EVENT_BYPASS_CHECKS, 0x7f) != 0;
+}
+
+static bool VoicePortraitSyncCase(RuntimeCase& test)
+{
+    bool queued = false;
+    RT_REQUIRE(test, test.on_game_thread("voice-event-queue", QueueVoiceEventOnGameThread, &queued,
+                                         30000));
+    RT_REQUIRE(test, queued || test.fail("voice-event-queue", "event-not-queued"));
+    RT_REQUIRE(test, test.wait_for_event(RUNTIME_VOICE_STARTED, 5000));
+    RT_REQUIRE(test, test.wait_for_event(RUNTIME_MOUTH_CHANGED, 5000));
+    RT_REQUIRE(test, test.wait_for_event(RUNTIME_PORTRAIT_FRAME_CHANGED, 5000));
+    RT_REQUIRE(test, test.wait_for_event(RUNTIME_PORTRAIT_BLIT, 5000));
+    if (getenv("WIZ8_RUNTIME_VOICE_TRACE") != 0) {
+        Sleep(250);
+    }
+    RuntimeEvent events[512];
+    unsigned long count = RuntimeCopyRecentEvents(events, 512);
+    unsigned long voice_sequence = 0;
+    unsigned long mouth_sequence = 0;
+    bool frame_synced = false;
+    bool frame_drawn = false;
+    for (unsigned long index = 0; index < count; ++index) {
+        const RuntimeEvent& event = events[index];
+        if (getenv("WIZ8_RUNTIME_VOICE_TRACE") != 0 &&
+            (event.kind == RUNTIME_VOICE_STARTED || event.kind == RUNTIME_VOICE_TIMING ||
+             event.kind == RUNTIME_MOUTH_CHANGED || event.kind == RUNTIME_PORTRAIT_FRAME_CHANGED ||
+             event.kind == RUNTIME_PORTRAIT_BLIT || event.kind == RUNTIME_PORTRAIT_REFRESH_STATE ||
+             event.kind == RUNTIME_PORTRAIT_REFRESH_REQUESTED)) {
+            fprintf(stderr, "voice-trace %lu %s %lu %lu %lu\n", event.sequence,
+                    RuntimeEventName(event.kind), event.a, event.b, event.c);
+        }
+        if (event.a != 2) {
+            continue;
+        }
+        if (event.kind == RUNTIME_VOICE_STARTED && event.c > 0) {
+            voice_sequence = event.sequence;
+        } else if (event.kind == RUNTIME_MOUTH_CHANGED && event.c == 1 &&
+                   event.sequence > voice_sequence && voice_sequence != 0) {
+            mouth_sequence = event.sequence;
+        } else if (event.kind == RUNTIME_PORTRAIT_FRAME_CHANGED && event.b == 6 && event.c == 1 &&
+                   event.sequence > mouth_sequence && mouth_sequence != 0) {
+            frame_synced = true;
+        } else if (event.kind == RUNTIME_PORTRAIT_BLIT && event.b == 6 && frame_synced) {
+            frame_drawn = true;
+        }
+    }
+    test.expected("voice starts, GAP changes the frame, and the portrait blits it");
+    return frame_drawn || test.fail("voice-portrait-sync", "event-order-or-frame-not-drawn");
+}
+
 static bool SaveLoadMoveCase(RuntimeCase& test)
 {
     RT_REQUIRE(test, MoveUntilDisplaced(test, W8_MGS_COMMAND_MOVE_FORWARD, "moved-before-save"));
     RuntimeCheckpoint saved;
     RT_REQUIRE(test, QuickSave(test, saved));
+    test.observe("quick_slot", saved.quick_slot);
+    test.observe("saved_x", saved.anchor.position.x);
+    test.observe("saved_z", saved.anchor.position.z);
     RT_REQUIRE(test, MoveAwayFrom(test, W8_MGS_COMMAND_MOVE_BACKWARD, saved, "moved-after-save"));
     RT_REQUIRE(test, QuickLoad(test, saved));
     RT_REQUIRE(test, ExpectRestoredPosition(test, saved));
@@ -811,8 +937,79 @@ static bool SaveLoadMoveCase(RuntimeCase& test)
     return true;
 }
 
+static bool WaitWorldVisible(RuntimeCase& test)
+{
+    unsigned int visibility_started = GetTickCount();
+    bool world_visible = false;
+    while (GetTickCount() - visibility_started < 10000 && gfProgramIsRunning) {
+        RT_REQUIRE(test, test.wait_for_event(RUNTIME_WORLD_VIEWPORT_APPLIED, 5000));
+        RuntimeEvent events[512];
+        unsigned long count = RuntimeCopyRecentEvents(events, 512);
+        for (unsigned long index = 0; index < count; ++index) {
+            if (events[index].kind != RUNTIME_WORLD_VIEWPORT_APPLIED) {
+                continue;
+            }
+            const RuntimeWorldRenderData& world = events[index].world;
+            if (world.applied_viewport[0] == 0 || world.applied_viewport[1] == 0 ||
+                world.applied_viewport[2] >= world.renderer_size[0] ||
+                world.applied_viewport[3] >= world.renderer_size[1]) {
+                return test.fail("main-game-visible", "world-viewport-outside-screen");
+            }
+            if (world.visible_meshes > 0) {
+                world_visible = true;
+                break;
+            }
+        }
+        if (world_visible) {
+            break;
+        }
+    }
+    if (!world_visible) {
+        return test.fail("main-game-visible", "no-visible-world-meshes");
+    }
+    test.step("main-game-visible");
+    return true;
+}
+
+static bool MainGameShortcutCase(RuntimeCase& test)
+{
+    RT_REQUIRE(test, WaitWorldVisible(test));
+    if (getenv("WIZ8_RUNTIME_VOICE_TRACE") != 0) {
+        unsigned long last_sequence = 0;
+        fprintf(stderr, "voice-counts started=%lu timing=%lu mouth=%lu frame=%lu blit=%lu\n",
+                RuntimeEventCount(RUNTIME_VOICE_STARTED), RuntimeEventCount(RUNTIME_VOICE_TIMING),
+                RuntimeEventCount(RUNTIME_MOUTH_CHANGED),
+                RuntimeEventCount(RUNTIME_PORTRAIT_FRAME_CHANGED),
+                RuntimeEventCount(RUNTIME_PORTRAIT_BLIT));
+        for (int sample = 0; sample < 12; ++sample) {
+            RuntimeEvent events[512];
+            unsigned long count = RuntimeCopyRecentEvents(events, 512);
+            for (unsigned long index = 0; index < count; ++index) {
+                const RuntimeEvent& event = events[index];
+                if (event.sequence <= last_sequence) {
+                    continue;
+                }
+                if (event.kind == RUNTIME_VOICE_STARTED || event.kind == RUNTIME_VOICE_TIMING ||
+                    event.kind == RUNTIME_MOUTH_CHANGED ||
+                    event.kind == RUNTIME_PORTRAIT_FRAME_CHANGED ||
+                    event.kind == RUNTIME_PORTRAIT_BLIT) {
+                    fprintf(stderr, "voice-trace %lu %s %lu %lu %lu\n", event.sequence,
+                            RuntimeEventName(event.kind), event.a, event.b, event.c);
+                }
+            }
+            if (count != 0) {
+                last_sequence = events[count - 1].sequence;
+            }
+            Sleep(250);
+        }
+    }
+    RT_REQUIRE(test, MoveUntilDisplaced(test, W8_MGS_COMMAND_MOVE_FORWARD, "party-moved"));
+    return true;
+}
+
 static bool WorldSoakCase(RuntimeCase& test)
 {
+    RT_REQUIRE(test, WaitWorldVisible(test));
     /* A sustained-condition wait is the inverse of wait_until: every sample
        must keep the world on the main-game screen until the budget elapses. */
     unsigned int started = GetTickCount();
@@ -871,6 +1068,15 @@ static bool MenuStartupCase(RuntimeCase& test)
     memset(&checks, 0, sizeof(checks));
     RT_REQUIRE(test,
                test.on_game_thread("main-menu-checks", ReadMenuChecksOnGameThread, &checks, 5000));
+    test.observe("menu_state", checks.menu_state);
+    test.observe("region_set_enabled", checks.region_set_enabled);
+    test.observe("first_region", checks.first_region);
+    test.observe("last_region", checks.last_region);
+    test.observe("playlist_tracks", checks.playlist_tracks);
+    test.observe("patch_catalog_count", checks.patch_catalog_count);
+    test.observe("item_database_count", checks.item_database_count);
+    test.observe("monster_database_count", checks.monster_database_count);
+    test.observe("npc_database_count", checks.npc_database_count);
     if (checks.menu_state != W8_SCREEN_MAIN_MENU || checks.region_set_enabled == 0 ||
         checks.playlist_active == 0 || checks.playlist_tracks <= 0 ||
         checks.patch_precedence_ok == 0 || checks.physical_fallback_ok == 0 ||
@@ -1009,6 +1215,10 @@ static const RuntimeScenario kScenarios[] = {
      120000, WorldSoakCase, 0},
     {"exploration-input", RUNTIME_MAIN_GAME, FIXTURE_MONASTERY_PARTY, RUNTIME_PR,
      RUNTIME_INTEGRATION, 120000, ExplorationInputCase, 0},
+    {"mouselook-drag", RUNTIME_MAIN_GAME, FIXTURE_MONASTERY_PARTY, RUNTIME_NIGHTLY,
+     RUNTIME_INTEGRATION, 120000, MouselookDragCase, 0},
+    {"voice-portrait-sync", RUNTIME_MAIN_GAME, FIXTURE_MONASTERY_PARTY, RUNTIME_NIGHTLY,
+     RUNTIME_INTEGRATION, 120000, VoicePortraitSyncCase, 0},
     {"save-load-move", RUNTIME_MAIN_GAME, FIXTURE_MONASTERY_PARTY, RUNTIME_PR, RUNTIME_INTEGRATION,
      120000, SaveLoadMoveCase, 0},
     {"automap-roundtrip", RUNTIME_MAIN_GAME, FIXTURE_MONASTERY_PARTY, RUNTIME_PR,
@@ -1041,8 +1251,10 @@ static const RuntimeScenario kScenarios[] = {
      RUNTIME_ACCEPTANCE, 20000, MenuExitCase, 0},
     {"main-menu-new-game", RUNTIME_MAIN_MENU, FIXTURE_MAIN_MENU, RUNTIME_MAIN, RUNTIME_ACCEPTANCE,
      30000, CharacterReturnCase, 0},
-    {"main-game-start", RUNTIME_MAIN_MENU, FIXTURE_MAIN_MENU, RUNTIME_PR, RUNTIME_ACCEPTANCE, 30000,
-     MainGameStartCase, 0},
+    {"main-game-start", RUNTIME_MAIN_GAME, FIXTURE_MONASTERY_SINGLE_PARTY, RUNTIME_PR,
+     RUNTIME_INTEGRATION, 60000, MainGameShortcutCase, 0},
+    {"new-game-ui", RUNTIME_MAIN_MENU, FIXTURE_MAIN_MENU, RUNTIME_NIGHTLY, RUNTIME_ACCEPTANCE,
+     120000, MainGameStartCase, 0},
     {"npc-state-reset", RUNTIME_MAIN_GAME, FIXTURE_MONASTERY_PARTY, RUNTIME_PR, RUNTIME_INTEGRATION,
      120000, NpcResetCase, 0},
 };
@@ -1076,6 +1288,17 @@ static const RuntimeScenario* FindScenario(const char* name)
 
 int main(int argc, char** argv)
 {
+    /* GE-Proton does not forward this console application's stderr to umu-run. */
+    const char* log_path = getenv("WIZ8_RUNTIME_TEST_LOG");
+    if (log_path != 0 && log_path[0] != 0) {
+        freopen(log_path, "w", stderr);
+        setvbuf(stderr, 0, _IONBF, 0);
+    }
+    const char* output_path = getenv("WIZ8_RUNTIME_TEST_OUTPUT");
+    if (output_path != 0 && output_path[0] != 0) {
+        freopen(output_path, "w", stdout);
+        setvbuf(stdout, 0, _IONBF, 0);
+    }
     if (argc == 2 && strcmp(argv[1], "--list-scenarios") == 0) {
         ListScenarios();
         return 0;
@@ -1117,6 +1340,7 @@ int main(int argc, char** argv)
         }
     }
     g_scenario_spec = g_scenario_specs[0];
+    RuntimeInstrumentationInitialize();
     W8SetCrashContextWriter(WriteRuntimeTestContext);
     g_scenario = g_scenario_spec->name;
     g_scenario_started = GetTickCount();

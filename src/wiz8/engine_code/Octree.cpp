@@ -208,10 +208,10 @@ void W8Octree::UpdateCameraVisibility0042F7E0()
 
     srMatrix3T<float> rotation;
     world->camera->getRotation(rotation);
-    rotation_column_1d8.x = 1.0f + rotation.vectors[0].x;
+    rotation_column_1d8.x = rotation.vectors[0].x;
     rotation_column_1d8.y = rotation.vectors[1].x;
     rotation_column_1d8.z = rotation.vectors[2].x;
-    rotation_column_1e4.x = 1.0f + rotation.vectors[0].y;
+    rotation_column_1e4.x = rotation.vectors[0].y;
     rotation_column_1e4.y = rotation.vectors[1].y;
     rotation_column_1e4.z = rotation.vectors[2].y;
 
@@ -4229,12 +4229,12 @@ void W8Octree::Reset()
 }
 
 /* ReadOctFile calls this after Reset. The 0xf5-byte packed record has one
-   canonical source model shared with WriteOctFile. Two mismatched retail
-   reads are preserved below rather than normalized to the like-named fields. */
+   canonical source model shared with WriteOctFile. */
 // FUNCTION: WIZ8 0x0042d2a0
 void W8Octree::Initialize(const W8OctFileHeader* header)
 {
     unsigned int axis;
+    unsigned short level;
 
     if (header != 0) {
         spatial_000.extent_04 = header->extent_02;
@@ -4261,14 +4261,22 @@ void W8Octree::Initialize(const W8OctFileHeader* header)
         spatial_000.leaf_grid_stride_y_68 = m_leaf_grid_dim_z_0ac;
         spatial_000.depth_44 = header->depth_62;
         spatial_000.region_id_bound_58 = header->region_id_bound_64;
-        /* Retail reads the high word of grid dim z here, not region_count_96. */
-        spatial_000.region_count_46 = static_cast<unsigned short>(header->grid_dims_56[2] >> 16);
-        /* Retail likewise derives leaf_level_52 from depth_62, not leaf_level_98. */
-        spatial_000.leaf_level_52 = header->depth_62;
+        spatial_000.region_count_46 = header->region_count_96;
+        spatial_000.leaf_level_52 = header->leaf_level_98;
         spatial_000.submesh_count_74 = header->submesh_count_66;
         m_root_mesh_count_1a8 = header->root_mesh_count_9a;
         m_kind1_submesh_count_1ac = header->kind1_submesh_count_a2;
         m_meshCount_1b4 = header->mesh_total_9e;
+        m_region_mask_140 = 0;
+        spatial_000.region_cells_per_axis_50 = 1;
+        for (level = 0; level < spatial_000.leaf_level_52; ++level) {
+            m_region_mask_140 = m_region_mask_140 * 2 + 1;
+            spatial_000.region_cells_per_axis_50 <<= 1;
+        }
+        m_depth_mask_144 = 0;
+        for (level = 0; level < spatial_000.depth_44; ++level) {
+            m_depth_mask_144 = m_depth_mask_144 * 2 + 1;
+        }
         m_branch_count_0b4 = header->branch_count_6a;
         m_leaf_count_0b8 = header->leaf_count_6e;
         spatial_000.polygon_count_3c = header->polygon_count_72;

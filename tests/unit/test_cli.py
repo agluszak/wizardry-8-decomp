@@ -416,3 +416,30 @@ def test_corpus_extract_all_uses_the_canonical_sequence(monkeypatch) -> None:
 
     assert result.exit_code == 0
     assert json.loads(result.stdout) == {"all": True}
+
+
+def test_prepare_comparison_targets_select_minimal_mode(monkeypatch) -> None:
+    from wiz8decomp import build
+
+    settings = object()
+    events = []
+    monkeypatch.setattr(command_support, "settings", lambda: settings)
+    monkeypatch.setattr(build, "prepare", lambda _settings: events.append(("full", None)) or {})
+    monkeypatch.setattr(
+        build,
+        "prepare_comparison",
+        lambda _settings, targets: events.append(("comparison", targets)) or {},
+    )
+
+    default = CliRunner().invoke(app, ["prepare"])
+    comparison = CliRunner().invoke(
+        app,
+        ["prepare", "--comparison-target", "WIZ8", "--comparison-target", "SURRENDER"],
+    )
+
+    assert default.exit_code == 0, default.output
+    assert comparison.exit_code == 0, comparison.output
+    assert events == [
+        ("full", None),
+        ("comparison", ["WIZ8", "SURRENDER"]),
+    ]

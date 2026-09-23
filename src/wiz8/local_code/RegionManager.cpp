@@ -1,4 +1,9 @@
 #include "wiz8/regions.h"
+#ifdef WIZ8_RUNTIME_TESTS
+#include "runtime_instrumentation.h"
+#include "wiz8/local_code/Gameloop.h"
+#include <string.h>
+#endif
 #include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/local_screens/CreditsScreen.h"
 #include "wiz8/local_screens/MGSButtons.h"
@@ -695,6 +700,15 @@ unsigned char DispatchRegionInput(const InputAtom* event)
     unsigned short x = static_cast<unsigned short>(event->uiParam) + g_cursor_hotspot_x_6596bc;
     unsigned short y =
         static_cast<unsigned short>(event->uiParam >> 16) + g_cursor_hotspot_y_6596c0;
+#ifdef WIZ8_RUNTIME_TESTS
+    if (event->usEvent == MOUSE_POS || event->usEvent == LEFT_BUTTON_DOWN ||
+        event->usEvent == LEFT_BUTTON_UP || event->usEvent == RIGHT_BUTTON_DOWN ||
+        event->usEvent == RIGHT_BUTTON_UP) {
+        RuntimeObserve(RUNTIME_MOUSE_DISPATCH, event->usEvent,
+                       static_cast<unsigned long>(x) | (static_cast<unsigned long>(y) << 16),
+                       g_current_screen_state.id);
+    }
+#endif
 
     if (region_index != 0) {
         goto dispatch;
@@ -750,6 +764,11 @@ dispatch:
         break;
     }
 
+#ifdef WIZ8_RUNTIME_TESTS
+    unsigned long callback_address = 0;
+    memcpy(&callback_address, &region->callback, sizeof(callback_address));
+    RuntimeObserve(RUNTIME_REGION_ACTIVATED, region_index, callback_address, region->callback_id);
+#endif
     unsigned char handled = region->callback(event, region);
     if (sound_id != -1) {
         PlayButtonSound(sound_id);

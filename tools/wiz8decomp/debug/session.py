@@ -164,6 +164,7 @@ class WineGdbProxy:
         port: int | None = None,
         log_path: Path | None = None,
         arguments: tuple[str, ...] = (),
+        launch_command: tuple[str, ...] = ("winedbg",),
     ) -> None:
         self.executable = executable
         self.cwd = cwd
@@ -171,6 +172,7 @@ class WineGdbProxy:
         self.port = allocate_port() if port is None else port
         self.log_path = log_path
         self.arguments = arguments
+        self.launch_command = launch_command
         self.process: subprocess.Popen[bytes] | None = None
         self._log = None
 
@@ -183,7 +185,7 @@ class WineGdbProxy:
             output = self._log
         self.process = subprocess.Popen(
             [
-                "winedbg",
+                *self.launch_command,
                 "--gdb",
                 "--no-start",
                 "--port",
@@ -230,6 +232,7 @@ class GdbSession:
         environment: dict[str, str],
         artifact_dir: Path,
         arguments: tuple[str, ...] = (),
+        launch_command: tuple[str, ...] = ("winedbg",),
     ) -> None:
         self.executable = executable
         self.artifact_dir = artifact_dir
@@ -239,6 +242,7 @@ class GdbSession:
             environment,
             log_path=artifact_dir / "winedbg.log",
             arguments=arguments,
+            launch_command=launch_command,
         )
         self._mi: GdbMiProcess | None = None
 
@@ -287,8 +291,9 @@ class GdbSession:
         for heading, command in (
             ("stopped thread", "bt 16"),
             ("registers", "info registers"),
-            ("stack", "x/96wx $sp"),
+            ("stack", "x/192wx $sp"),
             ("near pc", "x/24i $pc-24"),
+            ("shared libraries", "info sharedlibrary"),
             ("all threads", "thread apply all bt 16"),
         ):
             try:
