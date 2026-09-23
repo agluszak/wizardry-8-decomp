@@ -23,6 +23,7 @@
 #include "wiz8/utility.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/layouts/combat_state.h"
+
 #include "wiz8/local_code/Combat.h"
 #include "wiz8/local_code/CombatAttack.h"
 #include "wiz8/local_code/CombatRange.h"
@@ -42,6 +43,9 @@
 #include "wiz8/3d_code/IList.h"
 #include "wiz8/3d_code/PList.h"
 #include "random.h"
+
+// GLOBAL: WIZ8 0x0068C518
+int g_special_event_0068c518 = g_first_remapped_event_005ee718 + 30;
 
 /*
  * Local Code\Combat Range.cpp.
@@ -348,7 +352,11 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
         }
     }
     if (monster_info->party_threat.los_flags_05[flag] == 0) {
-        goto cannot_aim;
+        if (notify_failure != 0) {
+            QueueCharacterEvent(&g_status_685170.buffers.Char[party_slot], g_special_event_0068c518,
+                                0, g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+        }
+        return 0;
     }
     if (CalcRangeDistance(static_cast<W8RangeCategory>(range)) <
         monster_info->p3D->GetDistanceToPlayer004C7CB0()) {
@@ -1404,8 +1412,7 @@ float MonsterChooseTarget(W8MonsterInfo* monster_info, W8CombatSlot* out, int ki
                 other->fInCombat != 0 && MonsterHostility00546F80(monster_info, other) == 1) {
                 W8VisibilityRecord* row = FindMonToMonVisibility(monster_info, other);
                 if (IsVisibleUnderConditions(monster_info, row, kind)) {
-                    float distance =
-                        monster_info->p3D->GetDistanceToMonster004C7DD0(other->p3D);
+                    float distance = monster_info->p3D->GetDistanceToMonster004C7DD0(other->p3D);
                     if (distance < best) {
                         out->iType = W8_TARGET_KIND_MONSTER;
                         out->iMonsterID = other->location_id;
@@ -1503,8 +1510,7 @@ unsigned char MonsterActionReachesTarget(W8MonsterInfo* monster_info, W8MonsterR
         if (range_category == W8_RANGE_NONE) {
             return 0;
         }
-        if (CalcRangeDistance(range_category) <
-            monster_info->p3D->GetDistanceToPlayer004C7CB0()) {
+        if (CalcRangeDistance(range_category) < monster_info->p3D->GetDistanceToPlayer004C7CB0()) {
             return 0;
         }
     } else if (target->iType == W8_TARGET_KIND_GROUP) {
@@ -1532,8 +1538,7 @@ int FindNearestVisibleGroupMonster(W8MonsterInfo* monster_info, int group_id, in
         if (target->fActive != 0 && target->hp_current != 0 && target->fInCombat != 0) {
             W8VisibilityRecord* row = FindMonToMonVisibility(monster_info, target);
             if (IsVisibleUnderConditions(monster_info, row, kind) != 0) {
-                float distance =
-                    monster_info->p3D->GetDistanceToMonster004C7DD0(target->p3D);
+                float distance = monster_info->p3D->GetDistanceToMonster004C7DD0(target->p3D);
                 if (distance < best) {
                     best_id = target->location_id;
                     best = distance;

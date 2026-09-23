@@ -92,10 +92,10 @@ W8GrowableVector<int> g_location_variable_values_00659990;
 unsigned char g_trigger_feedback_00606994 = 1;
 
 // GLOBAL: WIZ8 0x0068c520
-int g_container_event_alt_0068c520;
+int g_container_event_alt_0068c520 = g_first_remapped_event_005ee718 + 13;
 
 // GLOBAL: WIZ8 0x0068c548
-int g_container_event_0068c548;
+int g_container_event_0068c548 = g_first_remapped_event_005ee718 + 14;
 
 // GLOBAL: WIZ8 0x005ee59c
 int g_condition_reaction_005ee59c = 5;
