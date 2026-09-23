@@ -816,7 +816,7 @@ void RestoreTargetCursor59D930(W8DialogBase*)
 void CloseUseItemSelection0059D950(void)
 {
     CloseUseItemSelectView();
-    ClearTargetingMode(g_status_685170.selected_character);
+    ClearSlotTargeting0053B050(g_status_685170.selected_character);
 }
 
 /* Scroll up/down buttons for the use-item list (catalog callback_ids 0 and 1). */

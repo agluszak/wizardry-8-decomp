@@ -95,6 +95,5 @@ void OrientMonsterTowardTarget(W8MonsterInfo* monster_info, char alternate);
 void AimMonsterBreathAtTarget(W8MonsterInfo* monster_info);
 void SetSlotAction(int party_slot, int action_kind, int action_detail);
 bool CanCharReBreathe(int party_slot);
-unsigned char CharacterHasCondition(const W8Character* character, int condition);
 unsigned char TryPanicWoundedCharacter(const W8CombatSlot* target); /* 0x004ECE00 */
 short GetCombatActionProgress004EC610(int* out_total);              /* 0x004EC610 */

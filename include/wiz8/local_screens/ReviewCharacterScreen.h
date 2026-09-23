@@ -228,6 +228,7 @@ extern int g_effect_argument_005ed8cc;
    finishes; `fade_to_black` selects the alpha ramp. */
 void BeginScreenFade(int fade_to_black, int arg_2, int fade_code, void (*callback)(void), char flag,
                      char arg_6);
+extern const wchar_t g_format_s_0064dd28[];
 unsigned char UpdateScreenFade005A6790(void);
 void BeginPartyDeath005A68C0(void);
 void PumpReviewTransition005A6970(void);

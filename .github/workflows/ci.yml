@@ -317,9 +317,17 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             innoextract llvm wine wine32:i386 wine64
           mkdir -p "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR"
+          mkdir -p \
+            "$WIZ8_WORK_DIR/fid/sources/unpacked/zlib-1.0.4/zlib-1.0.4" \
+            "$WIZ8_WORK_DIR/fid/sources/unpacked/ijg-jpeg-6/jpeg-6" \
+            "$WIZ8_WORK_DIR/fid/sources/unpacked/infozip-unzip-5.4"
           command -v llvm-undname
           command -v wine
+      - name: Load VC6 analysis image
+        if: github.event_name == 'pull_request'
+        uses: ./.github/actions/load-vc6-image
       - name: Load VC6 product image
+        if: github.event_name != 'pull_request'
         uses: ./.github/actions/load-vc6-product
       - name: Restore incremental WIZ8 comparison build
         uses: actions/cache@v4
@@ -337,6 +345,14 @@ jobs:
           cache-key: ${{ secrets.WIZ8_CACHE_KEY }}
       - name: Build WIZ8 comparison products
         run: uv run wiz8 build match
+      - name: Index WIZ8 source for call verification
+        if: github.event_name == 'pull_request'
+        run: uv run wiz8 analyze source-index
+      - name: Verify changed WIZ8 call targets
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --no-tags --depth=1 origin "${{ github.event.pull_request.base.sha }}"
+          uv run wiz8 verify-call-targets --base "${{ github.event.pull_request.base.sha }}"
       - name: Run WIZ8 comparisons
         id: wiz8-checks
         continue-on-error: true

@@ -1,6 +1,7 @@
 #include "wiz8/local_code/Widget.h"
 #include "wiz8/local_code/RangeControl.h"
 #include "wiz8/local_screens/CharacterScreen.h"
+#include "wiz8/local_screens/ReviewCharacterScreen.h"
 
 #include "wiz8/cursor.h"
 #include "wiz8/local_code/ButtonSound.h"
@@ -255,6 +256,18 @@ void W8CharacterPage005EF664::SetCharacter(W8Character* character,
     }
 }
 
+// FUNCTION: WIZ8 0x005C8530
+void W8CharacterPage005EF664::Activate()
+{
+    EnableRegionSet(1);
+    UpdateSpellLists();
+    for (int realm = 0; realm < 6; ++realm) {
+        m_realms_074[realm]->m_range->EnableRegionSet(1);
+    }
+    m_dirty_06d = 1;
+    m_prepared_06c = 1;
+}
+
 // FUNCTION: WIZ8 0x005c8570
 void W8CharacterPage005EF664::Deactivate()
 {
@@ -281,6 +294,116 @@ void W8CharacterPage005EF664::Accept()
 /* Rebuilds each realm's list from the character's spell_learned states: pass
    one collects the known (-1) and pending (2) spells as selectable entries,
    pass two appends the learnable (1) spells greyed out. */
+/* Repaint the spell-point instructions and pool, the six realm headings and
+   values, then the animated realm icons and their range controls. */
+// FUNCTION: WIZ8 0x005C88C0
+void W8CharacterPage005EF664::Redraw()
+{
+    bool redraw = m_fEnabled && m_fDirty;
+    W8TextBuffer text;
+    W8ControlsRect bounds;
+
+    W8CharacterPage::Redraw();
+    text.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
+    if (m_prepared_06c) {
+        bounds.left = 4;
+        bounds.top = 0xec;
+        bounds.right = 0xc2;
+        bounds.bottom = 0x173;
+        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetText(gppStringList[m_creation_state_064->spell_points_total == 0 ? 0xeb : 0xea],
+                     g_font_683660);
+        text.RenderToTarget(0, 1, -14);
+
+        bounds.top = 0x173;
+        bounds.bottom = 0x18a;
+        bounds.right = 0x8f;
+        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetText(gppStringList[0xf4], g_font_683660);
+        text.RenderToTarget(0, 1, -14);
+        m_prepared_06c = 0;
+    }
+
+    if (m_dirty_06d) {
+        bounds.left = 0x8f;
+        bounds.top = 0x173;
+        bounds.right = 0xbf;
+        bounds.bottom = 0x18a;
+        DrawCatalogImage(-14, 0x107, 0, 5, 0x8f, 0x173, 2, 0);
+        text.SetLayoutBounds(&bounds, 1, 1);
+        text.SetText(FormatWideString(g_format_d_slash_d_00614b58,
+                                      m_creation_state_064->spell_points_remaining,
+                                      m_creation_state_064->spell_points_total),
+                     g_options_detail_font_683614);
+        text.RenderToTarget(0, 1, -14);
+        m_dirty_06d = 0;
+    }
+
+    if (redraw) {
+        for (int realm = 0; realm < 6; ++realm) {
+            if (m_realms_074[realm]->m_entry_count == 0) {
+                continue;
+            }
+            text.SetLayoutMode(g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED554);
+            bounds.left = origin_x + 0x29 + (realm % 2) * 0xd7;
+            bounds.top = origin_y + 0x0f + (realm / 2) * 0x82;
+            bounds.right = bounds.left + 0x3c;
+            bounds.bottom = bounds.top + 0x0e;
+            text.SetLayoutBounds(&bounds, 1, 1);
+            text.SetFontStateIndex(1);
+            text.SetText(FormatWideString(g_format_s_0064dd28, gppStringList[0xf2]), g_font_683660);
+            text.RenderToTarget(0, 0, -14);
+            text.SetFontStateIndex(-1);
+            text.SetLayoutMode(g_W8TextBufferLayoutMask005ED550 | g_W8TextBufferLayoutMask005ED554);
+            text.SetText(FormatWideString(g_format_d_0060aa20,
+                                          m_character_060->skills[0x1c + realm].points_02),
+                         g_font_683660);
+            text.RenderToTarget(0, 0, -14);
+
+            text.SetLayoutMode(g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED554);
+            bounds.left += 0x58;
+            bounds.right = bounds.left + 0x53;
+            text.SetLayoutBounds(&bounds, 1, 1);
+            text.SetFontStateIndex(1);
+            text.SetText(FormatWideString(g_format_s_0064dd28, gppStringList[0xf3]), g_font_683660);
+            text.RenderToTarget(0, 0, -14);
+            text.SetFontStateIndex(-1);
+            text.SetLayoutMode(g_W8TextBufferLayoutMask005ED550 | g_W8TextBufferLayoutMask005ED554);
+            text.SetText(FormatWideString(g_format_d_slash_d_00614b58,
+                                          GetCharacterRealmSpellPoints(m_character_060, realm),
+                                          m_character_060->sp_max[realm]),
+                         g_font_683660);
+            text.RenderToTarget(0, 0, -14);
+        }
+    }
+
+    int elapsed = static_cast<int>(m_animation_timer_5e4.GetProgress());
+    if (elapsed > 0 || redraw) {
+        for (int realm = 0; realm < 6; ++realm) {
+            const W8SpellRealmAnimation& animation = g_spell_realm_animations_00648c90[realm];
+            if (m_realms_074[realm]->m_entry_count != 0 && elapsed != 0) {
+                m_animation_frames_608[realm] =
+                    (m_animation_frames_608[realm] + elapsed) % animation.frame_count;
+            }
+            if (!m_screen_05c->HasDialog() || realm < 2) {
+                DrawCatalogImageAndInvalidate(-14, animation.image, 0,
+                                              m_animation_frames_608[realm],
+                                              origin_x + 0x0f + (realm % 2) * 0xd7,
+                                              origin_y + 0x0a + (realm / 2) * 0x82, 2, 0);
+            }
+        }
+    }
+    for (int realm = 0; realm < 6; ++realm) {
+        m_realms_074[realm]->m_range->Redraw();
+    }
+}
+
+// FUNCTION: WIZ8 0x005c87a0
+void W8CharacterPage005EF664::Refresh()
+{
+    UpdateSpellLists();
+}
+
 // FUNCTION: WIZ8 0x005c85a0
 void W8CharacterPage005EF664::UpdateSpellLists()
 {

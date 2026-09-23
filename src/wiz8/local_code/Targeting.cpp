@@ -2851,8 +2851,8 @@ void AimAtMonsterGroupMember(int party_slot, W8MonsterGroup* group)
             AimAtTarget(party_slot, &target, W8_TARGETING_CONTEXT_CURRENT);
             StartBreathCycle(party_slot, 0);
             SetTargetSourceToCharacter(party_slot, &source);
-            NoteTargetChosen(&source,
-                             GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT));
+            PointCameraAtCombatTarget(
+                &source, GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT));
             return;
         }
     }
@@ -2884,7 +2884,8 @@ void AimAtMonsterGroupMember(int party_slot, W8MonsterGroup* group)
 
     StartBreathCycle(party_slot, 0);
     SetTargetSourceToCharacter(party_slot, &source);
-    NoteTargetChosen(&source, GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT));
+    PointCameraAtCombatTarget(&source,
+                              GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT));
 }
 
 /* 0x006840B7: the group the party currently has picked out, by id, and -1 when

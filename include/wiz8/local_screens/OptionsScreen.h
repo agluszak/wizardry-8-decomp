@@ -469,7 +469,6 @@ extern wchar_t g_options_last_save_name_0069c1cc[64];
 void SetLastSaveName(const wchar_t* target);
 wchar_t* GetLastSaveName(void);
 
-void ShowModalMessage005A6620(int a, int b, int c, void (*callback)(void), int d, int e);
 unsigned char OptionsScreenInitialize(void);
 unsigned char OptionsScreenEnter(void);
 void OptionsScreenFrame(void);

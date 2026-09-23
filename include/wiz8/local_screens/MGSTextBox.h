@@ -77,13 +77,13 @@ void SelectTextSlot1E8(int line, int box); /* 0x0058F9B0 */
    flag_08 mark and raising flag_09; the first touches only selected (2)
    words, the second everything else. Nonzero redraw repaints the body
    through RedrawTextBoxBody(1). */
-void ClearNoticeWordSelection(int box, int redraw);
 void ClearNoticeWordHover(int box, unsigned char redraw);
+void ResetUsedNoticeWords(int text_box, unsigned char redraw); /* 0x00590150 */
 /* 0x00590250: refresh the hover mark on the notice word under (x, y). */
 void HighlightNoticeWordAt(int box, unsigned short x, unsigned short y);
 /* 0x00590410: the notice word under (x, y) in box, or 0; the word's line
    slot is written through line_out. */
-W8NoticeWord* FindNoticeWordAt(int box, int x, int y, int* line_out);
+W8NoticeWord* HitTestNoticeWord(int text_box, unsigned short x, unsigned short y, int* line_out);
 /* 0x00590560: copy a word's text span out of its source line. */
 void CopyNoticeWordText(const W8NoticeWord* word, wchar_t* out, unsigned int capacity, int box,
                         int start);

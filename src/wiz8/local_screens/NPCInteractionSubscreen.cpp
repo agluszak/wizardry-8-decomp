@@ -1693,12 +1693,12 @@ void NpcDialogueTextBoxLeftUp0056F530(int x, int y)
 
     switch (g_screen_state_00649f1c->dialogue_layout) {
     case W8_DIALOGUE_LAYOUT_TRANSCRIPT:
-        word = FindNoticeWordAt(3, x, y, &line);
+        word = HitTestNoticeWord(3, x, y, &line);
         if (word == 0 || word->keyword_08 != 1) {
             return;
         }
         if (g_shift_held_006f0530 == 0) {
-            ClearNoticeWordSelection(3, 1);
+            ResetUsedNoticeWords(3, 1);
             word_text[0] = 0;
             SetInputFieldStringWith16BitString(0, word_text);
         }
@@ -1757,7 +1757,7 @@ void NpcDialogueTextBoxRightUp0056F6B0(int x, int y)
         OpenModal(dialog);
         return;
     case W8_DIALOGUE_LAYOUT_TRANSCRIPT:
-        word = FindNoticeWordAt(3, x, y, &line);
+        word = HitTestNoticeWord(3, x, y, &line);
         if (word == 0) {
             return;
         }
@@ -1787,12 +1787,12 @@ void NpcDialogueTextBoxDoubleClick0056F840(int x, int y)
         if (g_screen_state_00649f1c->modal_dialog_open != 0) {
             return;
         }
-        word = FindNoticeWordAt(3, x, y, &line);
+        word = HitTestNoticeWord(3, x, y, &line);
         if (word == 0) {
             return;
         }
         if (g_shift_held_006f0530 == 0) {
-            ClearNoticeWordSelection(3, 1);
+            ResetUsedNoticeWords(3, 1);
             word_text[0] = 0;
             SetInputFieldStringWith16BitString(0, word_text);
         }

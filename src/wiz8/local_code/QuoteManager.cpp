@@ -760,14 +760,14 @@ void W8CharacterEvent::Complete()
     if (event_type == 23 || event_type == 24) {
         if ((flags & W8_EVENT_NPC_SCRIPT) == 0) {
             if (item.iItemNo == -1) {
-                PostCharacterMessage(party_slot, gppStringList[0x1dc4 / 4]);
+                PostCharacterNotice(party_slot, gppStringList[0x1dc4 / 4]);
             } else {
-                PostCharacterMessage(party_slot, gppStringList[0x1dc8 / 4],
-                                     GetItemDisplayName(&item));
+                PostCharacterNotice(party_slot, gppStringList[0x1dc8 / 4],
+                                    GetItemDisplayName(&item));
             }
         }
     } else if (event_type == 51) {
-        QueueGameplayEvent(30, party_slot);
+        QueueNpcMessageLine(W8_NPC_MSG_SET_CONDITION_13, party_slot);
     }
 }
 

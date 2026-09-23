@@ -462,9 +462,6 @@ void MonsterSetNavigatorObjectFlag38(W8Monster* monster, char value);           
 void MonsterForward4531A0(void);
 
 void SetMonsterHighlightColour(W8Monster* monster, float r, float g, float b, float a);
-void NotifyMonsterOfSound(W8Monster* monster, int arg_2);
-void NotifyMonsterIdle(W8Monster* monster, int arg_2);
-void NotifyMonsterFacing(W8Monster* monster, W8Monster* target, int arg_3);
 
 void SetMonsterPartySlotMarker004C4DE0(int party_slot, int location_id, char on);
 void MonsterForwardReferencePosition(W8Monster* monster, char alternate); /* 0x004C6240 */

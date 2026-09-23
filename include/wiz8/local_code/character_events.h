@@ -116,7 +116,6 @@ extern int g_effect_005ee654;
 
 void SetPartyPortraitEventState(unsigned int party_slot, unsigned char active,
                                 unsigned int event_type, const wchar_t* quote_text, int show_quote);
-void PostCharacterMessage(int party_slot, const wchar_t* format, ...);
 /* 0x00590A40: the notice the weapon-set swap paths post, between the two variadic
    formatters. Its middle argument is the context the notices are posted under -
    zero while the NPC dialogue owns the screens, -1 otherwise. */

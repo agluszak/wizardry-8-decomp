@@ -157,8 +157,9 @@ need no independent rediscovery. If no evidence-backed correction remains, retai
 report the unresolved mismatch/evidence gap rather than manufacturing certainty.
 
 Never add handwritten fake implementations to make a runnable product link. Unrecovered retail calls
-may use the build-generated runtime `STUB` traps; `FUNCTION` means a body was actually recovered. The
-runtime-bringup skill owns the detailed stub/debug workflow.
+may use the build-generated runtime `STUB` traps only when their retail address identity is established;
+an addressless unresolved first-party callable is a source-model error, not a runnable stub. `FUNCTION`
+means a body was actually recovered. The runtime-bringup skill owns the detailed stub/debug workflow.
 
 ## Verification
 

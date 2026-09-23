@@ -23,6 +23,7 @@
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_screens/OptionsScreen.h"
+#include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/layouts/game_status.h"
 
 // GLOBAL: WIZ8 0x0064d8ac
@@ -32,6 +33,12 @@ static const char g_intro_video_names[7][40] = {
     "Wizardry8.bik", "unaligned.bik", "Umpani.bik",  "T'Rang.bik",
     "virgin.bik",    "darkend.bik",   "sirtech.bik",
 };
+
+// FUNCTION: WIZ8 0x005AE770
+void ContinueAfterDarkEndingVideo005AE770(void)
+{
+    BeginEndgameSequence005A6580();
+}
 // GLOBAL: WIZ8 0x0069C258
 W8BinkVideo* gpVideo;
 
@@ -159,7 +166,7 @@ cleared:
         }
         break;
     case 5:
-        ShowModalMessage005A6620(0, 0, 1, ContinueAfterDarkEndingVideo005AE770, 1, 1);
+        BeginScreenFade(0, 0, 1, ContinueAfterDarkEndingVideo005AE770, 1, 1);
         break;
     }
     EnableCursorScene00428020();

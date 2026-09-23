@@ -776,7 +776,7 @@ bool CanCharReBreathe(int party_slot)
 {
     W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
-    if (!CharacterHasCondition(character, 0x1c)) {
+    if (!CharacterHasTrait00547940(character, 0x1c)) {
         return false;
     }
     return character->uiStaminaMax / 5 <= character->stamina;
@@ -816,7 +816,7 @@ void NotifyNearbyMonsters(int what)
             monster_info->ubDisposition == 1) {
             if (monster_info->p3D->GetDistanceToPlayer004C7CB0() <=
                 CalcRangeDistance(W8_RANGE_SHORT)) {
-                NotifyMonsterOfSound(monster_info->p3D, what);
+                MonsterForwardReferencePosition(monster_info->p3D, what);
             }
         }
     }
@@ -928,13 +928,14 @@ void EndMonsterTurn(W8MonsterInfo* monster_info)
         monster_info->uiCondition[12] == 0) {
         MonsterChooseTarget(monster_info, &chosen, 3);
         if (chosen.iType == 2) {
-             NotifyMonsterIdle(monster_info->p3D, 0);
+            MonsterForwardReferencePosition(monster_info->p3D, 0);
             monster_info->death_processed_253 = 0;
             return;
         }
         if (chosen.iType == 3) {
             target_location = chosen.iMonsterID;
-            NotifyMonsterFacing(monster_info->p3D, GetMonsterByLocationID(target_location), 0);
+            MonsterAimAtMonster004C62C0(monster_info->p3D, GetMonsterByLocationID(target_location),
+                                        0);
         }
     }
     monster_info->death_processed_253 = 0;
@@ -2499,15 +2500,15 @@ void ExecuteMonsterAction004EAE20(W8MonsterInfo* monster_info, W8MonsterRecord* 
                             monster_info->Target.iMonsterID, '\x01');
                         target_info = MonsterGetScriptPartByLocationIndex(index);
                         move_result = MonsterConfigureMovementToMonster004C60D0(
-                            monster_info->p3D, target_info->p3D, approach_distance,
-                            engage_distance, position, sight, &move_flag);
+                            monster_info->p3D, target_info->p3D, approach_distance, engage_distance,
+                            position, sight, &move_flag);
                     } else {
                         if (monster_info->ubDisposition != '\x01') {
                             break;
                         }
                         move_result = MonsterConfigureMovementToPlayer004C6070(
-                            monster_info->p3D, approach_distance, engage_distance, position,
-                            sight, &move_flag);
+                            monster_info->p3D, approach_distance, engage_distance, position, sight,
+                            &move_flag);
                     }
                     if (move_result == 1 || (move_result == 3 && move_flag != '\0')) {
                         if (monster_info->action_kind == 5) {
@@ -2663,7 +2664,7 @@ void AimMonsterBreathAtTarget(W8MonsterInfo* monster_info)
         target_monster = GetMonsterByLocationID(location_id);
         monster_info->p3D->m_axis_1c0.x = target_monster->movement_0c0.position_040.x;
         monster_info->p3D->m_axis_1c0.y = target_monster->movement_0c0.position_040.y +
-                                              target_monster->movement_0c0.height_offset_0b8;
+                                          target_monster->movement_0c0.height_offset_0b8;
         monster_info->p3D->m_axis_1c0.z = target_monster->movement_0c0.position_040.z;
         monster_info->p3D->aim_set_1bf = 1;
     }
