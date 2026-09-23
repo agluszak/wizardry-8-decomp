@@ -26,6 +26,57 @@ _ADDRESS_SUFFIXED_TOKEN = re.compile(r"\b[A-Za-z_][A-Za-z0-9_:<>]*[0-9A-Fa-f]{6,
 _TRAILING_HEX = re.compile(r"([0-9A-Fa-f]{6,8})$")
 _FIELD_FLOW_CATEGORY_LIMIT = 64
 
+_SOURCE_SHAPING_PATTERNS = (
+    ("forceinline", re.compile(r"\b__forceinline\b")),
+    ("noinline", re.compile(r"\b__declspec\s*\(\s*noinline\s*\)")),
+    (
+        "optimizer_pragma",
+        re.compile(
+            r"^\s*#\s*pragma\s+(?:optimize|inline_depth|inline_recursion|auto_inline)\b",
+            re.IGNORECASE,
+        ),
+    ),
+)
+_SOURCE_SHAPING_ROOTS = {
+    "WIZ8": ("src/wiz8", "include/wiz8"),
+    "SURRENDER": ("src/surrender", "include/surrender"),
+}
+
+
+def _source_shaping_directives(repository: Path, target: str) -> list[dict[str, Any]]:
+    """Return compiler controls that may encode codegen instead of authored design."""
+
+    rows: list[dict[str, Any]] = []
+    for root_name in _SOURCE_SHAPING_ROOTS.get(target.upper(), ()):
+        root = repository / root_name
+        if not root.is_dir():
+            continue
+        for path in sorted(root.rglob("*")):
+            if path.suffix.lower() not in _SOURCE_SUFFIXES:
+                continue
+            relative = str(path.relative_to(repository))
+            for line_number, line in enumerate(
+                path.read_text(encoding="utf-8", errors="replace").splitlines(), 1
+            ):
+                for kind, pattern in _SOURCE_SHAPING_PATTERNS:
+                    if not pattern.search(line):
+                        continue
+                    rows.append(
+                        {
+                            "source_file": relative,
+                            "line": line_number,
+                            "kind": kind,
+                            "spelling": line.strip(),
+                            "status": "investigation_candidate",
+                            "reason": (
+                                "compiler source-shaping must be justified by authored-source "
+                                "evidence, not comparison score"
+                            ),
+                        }
+                    )
+                    break
+    return rows
+
 
 def _comment_regions(lines: list[str]) -> list[tuple[int, int, str]]:
     """Return (start_line, end_line, text) for ``/* */`` blocks and ``//`` runs.
@@ -674,6 +725,7 @@ def semantic_debt_report(
     fields = _field_observations(index, target)
     high_reference_fields = [row for row in fields if row["references"] >= 3]
     unknown_owners = [row for row in fields if row["owner_status"] in {"unknown", "ambiguous"}]
+    source_shaping = _source_shaping_directives(repository, target)
     unresolved = _unresolved_declarations(index)
     stale = _stale_recovery_claims(repository, functions)
     return {
@@ -686,6 +738,7 @@ def semantic_debt_report(
             "high_reference_provisional_fields": len(high_reference_fields),
             "owner_qualified_field_observations": len(fields),
             "field_observations_without_owner": len(unknown_owners),
+            "source_shaping_directives": len(source_shaping),
             "provisional_tu_placements": len(provisional),
             "stale_recovery_claims": len(stale),
         },
@@ -695,6 +748,7 @@ def semantic_debt_report(
         "field_observations": fields,
         "field_observations_without_owner": unknown_owners,
         "high_reference_provisional_fields": high_reference_fields,
+        "source_shaping_directives": source_shaping,
         "field_flow_triage": (
             _field_flow_triage(repository, index, target, field_flows)
             if field_flows is not None

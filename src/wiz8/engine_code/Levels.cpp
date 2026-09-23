@@ -294,10 +294,8 @@ int GetLoadedLevelID(void)
 {
     return g_status_685170.current_level;
 }
-/* identity-alias: as in Bink.cpp and PathAI.cpp, retail shares the no-op stub
-   at 0x004023A0 across arities (this body passes the sky world and two zero
-   arguments), so this overload only satisfies the local call and owns no
-   separate address. */
+/* Retail shares the no-op stub at 0x004023A0 across arities; this typed
+   overload is called with the sky world and two zero arguments. */
 void NoOp(W8World* world, int first, int second)
 {
     (void)world;

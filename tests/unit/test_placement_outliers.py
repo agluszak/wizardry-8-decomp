@@ -11,14 +11,12 @@ def _marker(
     source: str,
     *,
     kind: str = "FUNCTION",
-    folded: bool = False,
     name: str = "",
 ) -> dict:
     return {
         "address": address,
         "marker_kind": kind,
         "source_file": source,
-        "folded": folded,
         "marker_name": name,
         "declaration_key": ["WIZ8", name] if name else None,
     }
@@ -39,27 +37,11 @@ def test_placement_outliers_flags_large_gap_without_assuming_misownership() -> N
     assert row["address"] == "0x005aa400"
     assert row["name"] == "FarEmpty"
     assert row["synthetic"] is True
-    assert row["folded"] is False
-    assert row["has_fold_or_emission_evidence"] is True
-
-
-def test_placement_outliers_annotates_folded_without_template() -> None:
-    source = "src/wiz8/local_screens/Example.cpp"
-    markers = [
-        _marker(0x005A0000, source, name="A"),
-        _marker(0x005A0100, source, name="B"),
-        _marker(0x005A0200, source, name="C"),
-        _marker(0x00400000, source, name="FoldedAlias", folded=True),
-    ]
-    rows = placement_outliers(markers, {source}, min_gap=0x100000, min_peers=3)
-    assert len(rows) == 1
-    assert rows[0]["folded"] is True
-    assert rows[0]["template"] is False
-    assert rows[0]["has_fold_or_emission_evidence"] is True
+    assert row["has_emission_evidence"] is True
 
 
 def test_placement_outliers_flags_megabyte_gap_without_emission_evidence() -> None:
-    """Synthetic regression: large gap with no FOLDED/TEMPLATE/SYNTHETIC peers."""
+    """Synthetic regression: large gap with no TEMPLATE/SYNTHETIC peers."""
 
     source = "src/wiz8/engine_code/SyntheticOutlier.cpp"
     markers = [
@@ -72,7 +54,7 @@ def test_placement_outliers_flags_megabyte_gap_without_emission_evidence() -> No
     assert len(rows) == 1
     assert rows[0]["address"] == "0x005aa400"
     assert rows[0]["source_file"] == source
-    assert rows[0]["has_fold_or_emission_evidence"] is False
+    assert rows[0]["has_emission_evidence"] is False
 
 
 def test_placement_outlier_report_writes_artifact(tmp_path: Path) -> None:

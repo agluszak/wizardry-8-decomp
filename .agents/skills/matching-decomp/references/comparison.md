@@ -33,7 +33,9 @@ selected-function evidence.
 
 Preserve `/OPT:NOREF` comparison and `/OPT:REF` runtime modes. The comparison link uses `/OPT:NOICF`
 and `/FIXED:NO` (base relocations retained); retail folding can therefore produce a `call_target`
-mismatch even for the type-correct source callee. Do not change these modes to hide a difference.
+mismatch even for the type-correct source callee. Do not change these modes to hide a difference, and
+do not add a `FOLDED` source marker to make the mismatch score exact. Retail ICF belongs to comparison
+evidence, not source identity.
 
 ## Stack layout diagnosis
 
@@ -96,8 +98,9 @@ unpaired evidence stays inconclusive; do not infer success from a percentage.
 For example, `PLLength` and `ILLength` can share an ICF-folded retail body. A caller's exact masked
 contribution establishes equality outside relocations; it does not alone prove that a differing call
 target is merely that fold. Reconcile the linked diff with relocation/reference/type evidence.
-Keep the callee appropriate to the canonical type; do not cast `W8PList*` to `W8IList*` just to force
-the retained address.
+Keep the callee appropriate to the canonical type; do not cast `W8PList*` to `W8IList*` or attach
+the retained address to `PLLength` just to force an exact linked comparison. If comparison-side
+equivalence metadata ever becomes necessary, keep it outside recovered C++ ownership.
 
 ## Specialized repository gates
 

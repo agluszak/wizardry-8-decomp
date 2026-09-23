@@ -21,12 +21,13 @@ the declarations carry it in the source index. Overloads of a method are exempt 
     declaration comparison because their qualified name does not include the parameter list; only free functions are compared by
 qualified name. Function-template primaries and specializations that share a free-function name
 with an address-owned ordinary overload are distinct overloads, not consumer redeclarations.
-A declaration explicitly marked ``identity-alias:`` is a
-documented fold onto another address and is exempt from that comparison.
+Linker ICF never creates a source alias: retail folding is a linked-image fact,
+not a source-identity fact. A genuinely different consumer ABI declaration may
+use the narrow ``abi-prototype-ok:`` waiver for the prototype-consistency
+check; that waiver does not create another address identity.
 
 The scan reads the source index for markers and declarations, then re-reads the
-files only to resolve the address comment adjacent to each declaration and to
-spot identity-alias markers.
+files only to resolve address comments and narrowly scoped ABI prototype waivers.
 """
 
 from __future__ import annotations
@@ -38,7 +39,7 @@ from pathlib import Path
 from typing import Any
 
 _ADDRESS = re.compile(r"/\*\s*(0x[0-9a-fA-F]{6,8})\b")
-_IDENTITY_ALIAS = re.compile(r"identity-alias\s*:")
+_ABI_PROTOTYPE_WAIVER = re.compile(r"abi-prototype-ok\s*:")
 _FUNCTION_MARKER = re.compile(r"^\s*//\s*FUNCTION\b", re.IGNORECASE)
 _UNNAMED_FUNCTION = re.compile(r"^Function[0-9a-f]{6,8}$", re.IGNORECASE)
 
@@ -236,7 +237,6 @@ def identity_violations(repo_dir: Path) -> list[dict[str, Any]]:
                 "semantic_id": declaration.get("semantic_id") or "",
                 "kind": "marker",
                 "source": marker["source_file"],
-                "alias": bool(marker.get("folded")),
             }
         )
 
@@ -256,19 +256,14 @@ def identity_violations(repo_dir: Path) -> list[dict[str, Any]]:
                 "semantic_id": entry.get("semantic_id") or "",
                 "kind": "declaration",
                 "source": entry["source_file"],
-                "alias": any(
-                    _IDENTITY_ALIAS.search(line)
-                    for line in lines[max(0, entry["line"] - 6) : entry["end_line"]]
-                ),
             }
         )
         address_declaration_keys.add((entry["source_file"], entry["line"], entry["end_line"]))
 
     violations = _unnamed_definition_violations(index)
     for (ns, address), entries in sorted(claims.items()):
-        owning_entries = [entry for entry in entries if not entry["alias"]]
-        names = {entry["name"] for entry in owning_entries}
-        prototypes = {entry["prototype"] for entry in owning_entries if entry["prototype"]}
+        names = {entry["name"] for entry in entries}
+        prototypes = {entry["prototype"] for entry in entries if entry["prototype"]}
         if len(names) == 1 and len(prototypes) <= 1:
             continue
         details = sorted(
@@ -346,7 +341,7 @@ def _consumer_violations(
         if lines is None:
             continue
         window = lines[max(0, entry["line"] - 6) : entry["end_line"]]
-        if any(_IDENTITY_ALIAS.search(line) for line in window):
+        if any(_ABI_PROTOTYPE_WAIVER.search(line) for line in window):
             continue
         violations.append(
             {

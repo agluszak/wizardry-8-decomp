@@ -158,64 +158,6 @@ def test_surrender_source_functions_use_their_own_marker_target() -> None:
     )
 
 
-def test_source_functions_keep_definition_as_owner_of_folded_alias(tmp_path: Path) -> None:
-    (tmp_path / "reccmp-project.yml").write_text(
-        "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
-    )
-    build = tmp_path / "build"
-    build.mkdir()
-    (build / "source-index.json").write_text(
-        """{
-  "schema": "reccmp-source-index-v6",
-  "markers": [
-    {
-      "address": 4878656,
-      "target": "WIZ8",
-      "marker_kind": "FUNCTION",
-      "source_file": "include/wiz8/engine_code/GrCycle.h",
-      "line": 149,
-      "declaration": {
-        "semantic_id": "?CanEnterCycle@W8GrCycle@@UAEEC@Z",
-        "qualified_name": "W8GrCycle::CanEnterCycle",
-        "semantic_kind": "instance_method",
-        "calling_convention": "__thiscall",
-        "return_type": "unsigned char",
-        "parameter_types": ["signed char"],
-        "owning_class": "W8GrCycle",
-        "has_this": true,
-        "source_file": "include/wiz8/engine_code/GrCycle.h",
-        "line": 149,
-        "end_line": 150,
-        "is_definition": true,
-        "is_virtual": true
-      },
-      "marker_name": null
-    },
-    {
-      "address": 4878656,
-      "marker_kind": "SYNTHETIC",
-      "target": "WIZ8",
-      "source_file": "include/wiz8/engine_code/GrCycle.h",
-      "line": 196,
-      "declaration": null,
-      "marker_name": "W8Navigator::secondary_vslot3",
-      "folded": true
-    }
-  ],
-  "declarations": [],
-  "classes": [],
-  "variables": [],
-  "member_uses": [],
-  "conflicts": []
-}\n""",
-        encoding="utf-8",
-    )
-
-    function = source_functions(tmp_path)[0x004A7140]
-    assert function.name == "W8GrCycle::CanEnterCycle"
-    assert function.marker_kind == "FUNCTION"
-
-
 def test_source_functions_reject_two_non_folded_owners(tmp_path: Path) -> None:
     (tmp_path / "reccmp-project.yml").write_text(
         "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
