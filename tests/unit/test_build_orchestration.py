@@ -205,11 +205,7 @@ def test_prepare_comparison_reuses_cached_original_without_installer(
     original.write_bytes(payload)
     digest = hashlib.sha256(payload).hexdigest()
     (settings.repo_dir / "reccmp-project.yml").write_text(
-        "targets:\n"
-        "  WIZ8:\n"
-        "    filename: Wiz8.exe\n"
-        "    hash:\n"
-        f"      sha256: {digest}\n"
+        f"targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: {digest}\n"
     )
 
     events = []
