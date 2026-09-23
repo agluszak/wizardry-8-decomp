@@ -117,3 +117,17 @@ def test_aggregate_gate_requires_wiz8_runtime() -> None:
         in aggregate
     )
     assert "WIZ8_RUNTIME_RESULT: ${{ needs['wiz8-runtime'].result }}" in aggregate
+
+
+def test_reccmp_comment_combines_per_target_lane_status() -> None:
+    workflow = (_SCRIPT.parent.parent / "workflows/ci.yml").read_text(encoding="utf-8")
+    wiz8 = workflow.split("\n  wiz8:\n", 1)[1].split("\n  wiz8-runtime:\n", 1)[0]
+    surrender = workflow.split("\n  surrender:\n", 1)[1].split("\n  ci:\n", 1)[0]
+    comment = workflow.split("\n  comment-reccmp-status:\n", 1)[1]
+
+    assert "reccmp-status: ${{ steps.wiz8-checks.outputs.status }}" in wiz8
+    assert "reccmp-status: ${{ steps.surrender-status.outputs.status }}" in surrender
+    assert "needs: [wiz8, surrender]" in comment
+    assert "WIZ8_STATUS: ${{ needs.wiz8.outputs.reccmp-status }}" in comment
+    assert "SURRENDER_STATUS: ${{ needs.surrender.outputs.reccmp-status }}" in comment
+    assert '"#### Per target"' in comment

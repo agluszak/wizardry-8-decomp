@@ -295,7 +295,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     outputs:
-      reccmp-comment: ${{ steps.wiz8-checks.outputs.comment }}
+      reccmp-status: ${{ steps.wiz8-checks.outputs.status }}
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -344,7 +344,6 @@ jobs:
         run: |
           set -uo pipefail
           status_json="$RUNNER_TEMP/reccmp-status.json"
-          comment="$RUNNER_TEMP/reccmp-status.md"
           comparison_status=0
 
           if uv run wiz8 report status > "$status_json"; then
@@ -354,38 +353,10 @@ jobs:
           fi
 
           if [[ -s "$status_json" ]]; then
-            jq -r '
-              def pct:
-                if . == null then "n/a"
-                else (((. * 10000 | round) / 100) | tostring) + "%"
-                end;
-              .targets.WIZ8 as $v |
-              .totals.known_original_scope as $k |
-              [
-                "<!-- wiz8-reccmp-status -->",
-                "### WIZ8 reccmp status",
-                "",
-                "| Metric | Value |",
-                "| --- | ---: |",
-                "| Source functions | \($v.source.functions // 0) |",
-                "| Source coverage | \($k.source_functions) / \($k.original_functions) (\($k.source_coverage | pct)) |",
-                "| Effective progress | \($k.progress | pct) |",
-                "| Paired source functions | \($v.comparison.paired) |",
-                "| Exact | \($v.comparison.exact) |",
-                "| Effective | \($v.comparison.effective) |",
-                "| Mismatch | \($v.comparison.mismatch) |",
-                "| Inconclusive | \($v.comparison.inconclusive) |",
-                "| Unpaired | \($v.comparison.unpaired) |",
-                "| Pair accuracy | \($v.comparison.accuracy | pct) |",
-                ""
-              ] | join("\n")
-            ' "$status_json" > "$comment"
-            printf '\n_Updated from CI merge result %s._\n' "${GITHUB_SHA:0:12}" >> "$comment"
-            {
-              echo 'comment<<__RECCMP_STATUS__'
-              cat "$comment"
-              echo '__RECCMP_STATUS__'
-            } >> "$GITHUB_OUTPUT"
+            status_row="$(
+              jq -c '.targets.WIZ8 | {state, source, comparison, original_functions, source_coverage, progress}' "$status_json"
+            )"
+            printf 'status=%s\n' "$status_row" >> "$GITHUB_OUTPUT"
           fi
 
           vtable_status=0
@@ -527,6 +498,8 @@ jobs:
       (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-24.04
     timeout-minutes: 90
+    outputs:
+      reccmp-status: ${{ steps.surrender-status.outputs.status }}
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -570,6 +543,7 @@ jobs:
       - name: Build SURRENDER comparison product
         run: uv run wiz8 build SURRENDER
       - name: Verify SURRENDER comparison surface
+        id: surrender-status
         run: |
           status_json="$RUNNER_TEMP/surrender-status.json"
           uv run wiz8 report status > "$status_json"
@@ -582,6 +556,10 @@ jobs:
             and .targets.SURRENDER.comparison.unpaired_line_refs == 0
           ' "$status_json" >/dev/null
           jq '.targets.SURRENDER' "$status_json"
+          status_row="$(
+            jq -c '.targets.SURRENDER | {state, source, comparison, original_functions, source_coverage, progress}' "$status_json"
+          )"
+          printf 'status=%s\n' "$status_row" >> "$GITHUB_OUTPUT"
       - name: Remove plaintext licensed SURRENDER inputs
         if: always()
         run: rm -rf "$WIZ8_INPUT_DIR" "$WIZ8_WORK_DIR" "$RUNNER_TEMP/wiz8-gog-download" config/local-inputs.yml
@@ -611,14 +589,16 @@ jobs:
           done
 
   comment-reccmp-status:
-    name: Comment WIZ8 reccmp status
-    needs: wiz8
+    name: Comment reccmp status
+    needs: [wiz8, surrender]
     if: >-
       always() &&
       github.event_name == 'pull_request' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
-      needs.wiz8.result == 'success' &&
-      needs.wiz8.outputs.reccmp-comment != ''
+      (
+        (needs.wiz8.result == 'success' && needs.wiz8.outputs.reccmp-status != '') ||
+        (needs.surrender.result == 'success' && needs.surrender.outputs.reccmp-status != '')
+      )
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -628,16 +608,96 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          COMMENT_BODY: ${{ needs.wiz8.outputs.reccmp-comment }}
+          WIZ8_STATUS: ${{ needs.wiz8.outputs.reccmp-status }}
+          SURRENDER_STATUS: ${{ needs.surrender.outputs.reccmp-status }}
+        shell: bash
         run: |
-          test -n "$COMMENT_BODY"
+          set -euo pipefail
+          rows="$(
+            jq -cn \
+              --arg wiz8 "$WIZ8_STATUS" \
+              --arg surrender "$SURRENDER_STATUS" '
+                [
+                  (if $wiz8 != "" then {key: "WIZ8", value: ($wiz8 | fromjson)} else empty end),
+                  (if $surrender != "" then {key: "SURRENDER", value: ($surrender | fromjson)} else empty end)
+                ]
+              '
+          )"
+          test "$(jq 'length' <<<"$rows")" -gt 0
+
+          comment="$RUNNER_TEMP/reccmp-status.md"
+          jq -nr --argjson rows "$rows" '
+            def pct:
+              if . == null then "n/a"
+              else (((. * 10000 | round) / 100) | tostring) + "%"
+              end;
+            ($rows | map(select(.value.state == "comparison"))) as $comparison |
+            ($comparison | map(select(.value.original_functions != null))) as $known |
+            ($comparison | map(.value.source.functions // 0) | add // 0) as $source |
+            ($comparison | map(.value.comparison.paired // 0) | add // 0) as $paired |
+            ($comparison | map(.value.comparison.exact // 0) | add // 0) as $exact |
+            ($comparison | map(.value.comparison.effective // 0) | add // 0) as $effective |
+            ($comparison | map(.value.comparison.mismatch // 0) | add // 0) as $mismatch |
+            ($comparison | map(.value.comparison.inconclusive // 0) | add // 0) as $inconclusive |
+            ($comparison | map(.value.comparison.unpaired // 0) | add // 0) as $unpaired |
+            ($comparison | map(.value.comparison.ignored // 0) | add // 0) as $ignored |
+            (
+              $comparison
+              | map((.value.comparison.accuracy // 0) * (.value.comparison.paired // 0))
+              | add // 0
+            ) as $score |
+            ($known | map(.value.original_functions) | add // 0) as $original |
+            ($known | map(.value.source.functions // 0) | add // 0) as $known_source |
+            (
+              $known
+              | map((.value.progress // 0) * .value.original_functions)
+              | add // 0
+            ) as $known_score |
+            (
+              [
+                "<!-- wiz8-reccmp-status -->",
+                "### reccmp status",
+                "",
+                "_Only comparison lanes selected and completed for this CI run are included._",
+                "",
+                "| Metric | Value |",
+                "| --- | ---: |",
+                "| Source functions | \($source) |",
+                "| Source coverage (known scope) | \($known_source) / \($original) (\((if $original > 0 then ($known_source / $original) else null end) | pct)) |",
+                "| Effective progress (known scope) | \((if $original > 0 then ($known_score / $original) else null end) | pct) |",
+                "| Paired source functions | \($paired) |",
+                "| Exact | \($exact) |",
+                "| Effective | \($effective) |",
+                "| Mismatch | \($mismatch) |",
+                "| Inconclusive | \($inconclusive) |",
+                "| Unpaired | \($unpaired) |",
+                "| Ignored | \($ignored) |",
+                "| Pair accuracy | \((if $paired > 0 then ($score / $paired) else 0 end) | pct) |",
+                "",
+                "#### Per target",
+                "",
+                "| Target | Source | Coverage | Progress | Exact | Effective | Mismatch | Inconclusive | Unpaired | Accuracy |",
+                "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"
+              ]
+              + (
+                  $comparison
+                  | map(
+                      .value as $v
+                      | "| `\(.key)` | \($v.source.functions // 0) | \($v.source_coverage | pct) | \($v.progress | pct) | \($v.comparison.exact) | \($v.comparison.effective) | \($v.comparison.mismatch) | \($v.comparison.inconclusive) | \($v.comparison.unpaired) | \($v.comparison.accuracy | pct) |"
+                    )
+                )
+              + [""]
+            ) | join("\n")
+          ' > "$comment"
+          printf '\n_Updated from CI merge result `%s`._\n' "${GITHUB_SHA:0:12}" >> "$comment"
+
           marker='<!-- wiz8-reccmp-status -->'
           payload="$RUNNER_TEMP/reccmp-status-comment.json"
           comment_id="$(
             gh api --paginate "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" \
               --jq ".[] | select(.body | contains(\"$marker\")) | .id" | head -n1
           )"
-          printf '%s' "$COMMENT_BODY" | jq -Rs '{body: .}' > "$payload"
+          jq -Rs '{body: .}' < "$comment" > "$payload"
           if [ -n "$comment_id" ]; then
             gh api --method PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$comment_id" --input "$payload" >/dev/null
           else
