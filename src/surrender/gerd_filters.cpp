@@ -40,13 +40,47 @@ void srGERD::setTextureDefaultCorrection(srTextureIFace::e_correction correction
 void srGERD::setTextureDefaultCompression(srTextureIFace::e_compression compression)
 {
     GerdAccess access(state_section_18_);
-    if (compression == srTextureIFace::COMPRESSION_DEFAULT) {
-        compression = static_cast<srTextureIFace::e_compression>(0);
-    }
+    /* COMPRESSION_DEFAULT (4) collapses to entry 0 through the mask. */
+    compression = static_cast<srTextureIFace::e_compression>(
+        compression & ((compression == srTextureIFace::COMPRESSION_DEFAULT) - 1));
     default_compression_1fd8_ = compression;
-    /* The fifth entry doubles as the current texture parameter. */
     default_texture_params_1fc4_[4] = default_texture_params_1fc4_[compression];
     resetTexture();
+}
+
+// FUNCTION: SURRENDER 0x100187D0
+srTextureIFace::e_compression srGERD::getTextureDefaultCompression() const
+{
+    GerdAccess access(state_section_18_);
+    return default_compression_1fd8_;
+}
+
+// FUNCTION: SURRENDER 0x100187F0
+srTextureIFace::e_correction srGERD::getTextureDefaultCorrection() const
+{
+    GerdAccess access(state_section_18_);
+    return default_correction_1fb4_;
+}
+
+// FUNCTION: SURRENDER 0x10018810
+srTextureIFace::e_filter srGERD::getTextureDefaultMagFilter() const
+{
+    GerdAccess access(state_section_18_);
+    return default_mag_filter_1fb8_;
+}
+
+// FUNCTION: SURRENDER 0x10018830
+srTextureIFace::e_filter srGERD::getTextureDefaultMinFilter() const
+{
+    GerdAccess access(state_section_18_);
+    return default_min_filter_1fbc_;
+}
+
+// FUNCTION: SURRENDER 0x10018850
+srTextureIFace::e_mipmap srGERD::getTextureDefaultMipmap() const
+{
+    GerdAccess access(state_section_18_);
+    return default_mipmap_1fc0_;
 }
 
 // FUNCTION: SURRENDER 0x10018650

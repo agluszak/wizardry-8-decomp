@@ -127,6 +127,11 @@ public:
     bool operator==(const srVector3T<T>& other) const;
     T Length() const;
     T LengthSquared() const;
+    /* verify()'s unit-normal assert spells this lowercase form. */
+    T length() const
+    {
+        return (T)sqrt(x * x + y * y + z * z);
+    }
     srVector3T<T>* SetFromDouble(const srVector3T<double>* source);
     srVector3T<T>* SetFromFloat(const srVector3T<float>* source);
     void SetSaturated(const srVector3T<T>& source);
@@ -425,7 +430,6 @@ public:
 
     srVector4T<T>* Set(T source_0, T source_1, T source_2, T source_3);
     T Length() const;
-
     /* srMeshModel::verify asserts t.pEq[i].isValid()/t.DCG[p][i].isValid()/
        t.SCG[p][i].isValid(): every component finite. */
     int isValid() const

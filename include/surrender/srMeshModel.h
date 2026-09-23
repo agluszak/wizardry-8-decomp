@@ -28,11 +28,15 @@ public:
         CONTROL_SKIP_AUTO_SPHERE = 5,
         CONTROL_STARTUP = 6
     };
+    /* The four per-pass table slots cap t.passes, as verify() asserts. */
+    enum { MAX_PASSES = 4 };
     /* Detached 0x154-byte value at srMeshModel+0x23c. updateTriMesh fills it
        from the live tables; getTriMesh copies or returns it; renderTriMesh
        feeds srTriMeshPipeline from these slots. */
     struct TriMesh {
-        TriMesh() : control_flags_0c(0) {}
+        /* verify()'s emission zeroes only poly_vertices_10 before the
+           getTriMesh fill. */
+        TriMesh() : poly_vertices_10(0) {}
 
         long vertex_count_00;
         long polygon_count_04;
@@ -59,7 +63,7 @@ public:
         float bounds_radius_144;
         float sort_bias_148;
         unsigned long* active_polygons_14c;
-        unsigned long active_polygon_count_150;
+        long active_polygon_count_150;
     };
 
     srMeshModel(long polygons, long vertices);
@@ -112,9 +116,33 @@ public:
     srTextureIFace* getTexture(long polygon, long layer) const;
     void setMaterial(srMaterialIFace* material, long polygon, e_side side);
     void setTexture(srTextureIFace* texture, long polygon, long layer);
-    void setDirty(e_flags flag);
-    void clearDirty(e_flags flag);
-    int testDirty(e_flags flag) const;
+    /* In-class inlines: srModeler::convert expands these bodies inside the
+       srModeler TU; dllexport still emits the standalone copies below. */
+    // FUNCTION: SURRENDER 0x10041710 SYMBOL
+    // ?setDirty@srMeshModel@@QAEXW4e_flags@1@@Z
+    void setDirty(e_flags flag)
+    {
+        unsigned long mask = 1 << (flag & 0x1f);
+        if ((control_state_390 & mask) == 0) {
+            control_state_390 |= mask;
+            control_state_390 |= 8;
+            if (flag == 0) {
+                updateAllClients(static_cast<Client::e_update>(0));
+            }
+        }
+    }
+    // FUNCTION: SURRENDER 0x10041750 SYMBOL
+    // ?clearDirty@srMeshModel@@QAEXW4e_flags@1@@Z
+    void clearDirty(e_flags flag)
+    {
+        control_state_390 &= ~(1 << (flag & 0x1f));
+    }
+    // FUNCTION: SURRENDER 0x10041770 SYMBOL
+    // ?testDirty@srMeshModel@@QBEHW4e_flags@1@@Z
+    int testDirty(e_flags flag) const
+    {
+        return (control_state_390 & (1 << (flag & 0x1f))) != 0;
+    }
     srShader* getPolyShader(long polygon, int layer);
     srShader getShader(long polygon) const;
     void setShader(srShader shader, long pass);

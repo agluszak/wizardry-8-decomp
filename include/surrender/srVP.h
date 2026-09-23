@@ -352,6 +352,9 @@ public:
     virtual void _srGetClipFlags(SRBYTE* destination, const srVector4* source, SRDWORD count);
 
 protected:
+    /* srVectorProcessor's facade dispatches protected slots for srGERD's
+       renderer the way retail does. */
+    friend class srVectorProcessor;
     /* FUNCTION 0x10064C40 is this member helper emitted out of line: it runs
        on the whole srVP object, fills the tables at +0x08/+0x248, and stores
        no vftable, so it is not a complete-object constructor. The external

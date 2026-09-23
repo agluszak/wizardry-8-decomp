@@ -1503,8 +1503,8 @@ srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, 
     model->setName("Video2DMakePolygonBrush");
 
     g_modeler_65963c->createGrid(1, 1);
-    mapping.unknown_00 = 0;
-    mapping.unknown_04 = 1;
+    mapping.axis_u_00 = srModeler::AXIS_X;
+    mapping.axis_v_04 = srModeler::AXIS_Y;
     mapping.u_scale_08 = float_bits(mapping_width);
     mapping.v_scale_0c = float_bits(mapping_height);
     mapping.u_offset_10 = float_bits(mapping_x);
@@ -1565,8 +1565,8 @@ stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width
 
     float step = g_surface_scale_659680 * (g_float_005ebb38 / w);
     g_modeler_65963c->createGrid(1, 1);
-    mapping.unknown_00 = 0;
-    mapping.unknown_04 = 1;
+    mapping.axis_u_00 = srModeler::AXIS_X;
+    mapping.axis_v_04 = srModeler::AXIS_Y;
     mapping.u_scale_08 = mapping.v_scale_0c = float_bits(g_float_005ebb38 - (step + step));
     mapping.u_offset_10 = mapping.v_offset_14 = float_bits(step);
     g_modeler_65963c->planarMap(0, 0, mapping);
@@ -3889,16 +3889,12 @@ srNode* MakePosterQuad00424BA0(srTextureIFace* texture, float width, float heigh
     texture->getDimensions(dimensions);
     g_modeler_65963c->createGrid(1, 1);
     srModeler::MappingInfo mapping;
-    mapping.unknown_00 = 0;
-    mapping.unknown_04 = 1;
-    // reinterpret-ok: the planarMap UV slots carry raw float bits
-    *reinterpret_cast<float*>(&mapping.u_scale_08) = g_float_005ebb38 - extent_w;
-    // reinterpret-ok: the planarMap UV slots carry raw float bits
-    *reinterpret_cast<float*>(&mapping.v_scale_0c) = g_float_005ebb38 - extent_h;
-    // reinterpret-ok: the planarMap UV slots carry raw float bits
-    mapping.u_offset_10 = *reinterpret_cast<unsigned long*>(&extent_w);
-    // reinterpret-ok: the planarMap UV slots carry raw float bits
-    mapping.v_offset_14 = *reinterpret_cast<unsigned long*>(&extent_h);
+    mapping.axis_u_00 = srModeler::AXIS_X;
+    mapping.axis_v_04 = srModeler::AXIS_Y;
+    mapping.u_scale_08 = g_float_005ebb38 - extent_w;
+    mapping.v_scale_0c = g_float_005ebb38 - extent_h;
+    mapping.u_offset_10 = extent_w;
+    mapping.v_offset_14 = extent_h;
     g_modeler_65963c->planarMap(0, 0, mapping);
     srVector3T<float> scale;
     scale.x = width;
