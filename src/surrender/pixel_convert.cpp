@@ -6,14 +6,6 @@
 #include "surrender/srCore.h"
 #include "surrender/srVariableTimer.h"
 
-struct srPixelConvert::ConversionInfo {
-    void* dest;
-    const void* source;
-    unsigned long count;
-    unsigned long unknown_0c;
-    const PixelFormat* format;
-};
-
 /* Conversion routines stored in the format table. The generic pair is
    selected by PixelFormat::conversion_class; the per-entry overrides cover
    formats whose converter does not fit a generic kernel. The MMX pair is

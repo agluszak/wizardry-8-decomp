@@ -313,6 +313,13 @@ public:
         vp->_swap(first, second, bytes);
     }
 
+    /* srColorSurfaceIFace::flipRectangle mirrors a converted ARGB row run
+       through the dword reverse slot (+0x3c). */
+    static inline void reverse(SRDWORD* destination, const SRDWORD* source, SRDWORD count)
+    {
+        vp->_reverse(destination, source, count);
+    }
+
     static inline void neg(float* destination, const float* source, SRDWORD count)
     {
         vp->_neg(destination, source, count);

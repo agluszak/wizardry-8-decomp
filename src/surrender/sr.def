@@ -1285,6 +1285,109 @@ EXPORTS
     ??0srColorSurface@@QAE@W4e_surfaceType@srPixelConvert@@PAXKKK@Z
     ??4srColorSurface@@QAEAAV0@ABV0@@Z
     ??4srColorSurfaceIFace@@QAEAAV0@ABV0@@Z
+    ??0srColorSurfaceIFace@@QAE@ABV0@@Z
+    ??0srColorSurfaceIFace@@QAE@XZ
+    ??1srColorSurface@@MAE@XZ
+    ??1srColorSurfaceIFace@@UAE@XZ
+    ?addNoise@srColorSurfaceIFace@@QAEXNH@Z
+    ?adjust@srColorSurfaceIFace@@UAEXABV?$srVector4T@M@@00@Z
+    ?adjustSaturation@srColorSurfaceIFace@@UAEXN@Z
+    ?allocData@srColorSurface@@AAEXXZ
+    ?blit@srColorSurface@@UAEXJJAAVsrColorSurfaceIFace@@JJJJ@Z
+    ?changePixelFormat@srColorSurface@@UAEHABUPixelFormat@srPixelConvert@@H@Z
+    ?changePixelFormat@srColorSurfaceIFace@@UAEHABUPixelFormat@srPixelConvert@@H@Z
+    ?clampCoordinates@srColorSurfaceIFace@@QAEXAAJ0@Z
+    ?convertFromARGB8888@srColorSurface@@AAEXPAXPBKK@Z
+    ?convertToARGB8888@srColorSurface@@AAEXPAKPBXK@Z
+    ?copy@srColorSurfaceIFace@@UAEXAAV1@@Z
+    ?copyColorChannel@srColorSurfaceIFace@@UAEXW4e_index@srARGB@@0@Z
+    ?copyNoScaling@srColorSurface@@EAEXAAVsrColorSurfaceIFace@@@Z
+    ?copySurfaceParameters@srColorSurfaceIFace@@IAEXABV1@@Z
+    ?dump@srColorSurface@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?dump@srColorSurfaceIFace@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?fill@srColorSurface@@UAEXK@Z
+    ?fill@srColorSurfaceIFace@@UAEXK@Z
+    ?flipColorChannels@srColorSurfaceIFace@@UAEXW4e_index@srARGB@@0@Z
+    ?flipHorizontal@srColorSurfaceIFace@@QAEXXZ
+    ?flipRectangle@srColorSurface@@UAEXABURectangle@srColorSurfaceIFace@@@Z
+    ?flipRectangle@srColorSurfaceIFace@@UAEXABURectangle@1@@Z
+    ?flipVertical@srColorSurfaceIFace@@QAEXXZ
+    ?freeData@srColorSurface@@AAEXXZ
+    ?getAddress@srColorSurface@@AAEPAEJJ@Z
+    ?getAlphaBits@srColorSurfaceIFace@@QBEKXZ
+    ?getAspectRatio@srColorSurfaceIFace@@QBENXZ
+    ?getBitsPerPixel@srColorSurfaceIFace@@QBEJXZ
+    ?getBlueBits@srColorSurfaceIFace@@QBEJXZ
+    ?getBytesPerPixel@srColorSurfaceIFace@@QBEJXZ
+    ?getChannelStatistics@srColorSurfaceIFace@@UAEXAAVsrStat@@W4e_index@srARGB@@@Z
+    ?getClampedX@srColorSurfaceIFace@@QBEJJ@Z
+    ?getClampedY@srColorSurfaceIFace@@QBEJJ@Z
+    ?getDataPtr@srColorSurface@@UAEPAXXZ
+    ?getDataPtr@srColorSurfaceIFace@@UAEPAXXZ
+    ?getDataSize@srColorSurface@@UAEJXZ
+    ?getDataSize@srColorSurfaceIFace@@UAEJXZ
+    ?getFilter@srColorSurfaceIFace@@QBEPAVsrFilter@@XZ
+    ?getGreenBits@srColorSurfaceIFace@@QBEJXZ
+    ?getHClampMode@srColorSurfaceIFace@@QBEHXZ
+    ?getPalette@srColorSurface@@UAEPAVsrPalette@@XZ
+    ?getPalette@srColorSurfaceIFace@@UAEPAVsrPalette@@XZ
+    ?getPixel@srColorSurfaceIFace@@UAEKJJ@Z
+    ?getPixelColumn@srColorSurface@@UAEXPAKJJJ@Z
+    ?getPixelColumn@srColorSurfaceIFace@@UAEXPAKJJJ@Z
+    ?getPixelFormat@srColorSurfaceIFace@@IBEPBUPixelFormat@srPixelConvert@@XZ
+    ?getPixelRaw@srColorSurface@@UAEKJJ@Z
+    ?getPixelRaw@srColorSurfaceIFace@@UAEKJJ@Z
+    ?getPixelReadFunc@srColorSurface@@QBEP6AXABUConversionInfo@srPixelConvert@@@ZXZ
+    ?getPixelRow@srColorSurface@@UAEXPAKJJJ@Z
+    ?getPixelRowRaw@srColorSurface@@UAEXPAXJJJ@Z
+    ?getPixelWriteFunc@srColorSurface@@QBEP6AXABUConversionInfo@srPixelConvert@@@ZXZ
+    ?getPixels@srColorSurface@@UAEXPAKPBVsrVector2i@@J@Z
+    ?getPixels@srColorSurfaceIFace@@UAEXPAKPBVsrVector2i@@J@Z
+    ?getPixelsRaw@srColorSurface@@UAEXPAXPBVsrVector2i@@J@Z
+    ?getPixelsRaw@srColorSurfaceIFace@@UAEXPAXPBVsrVector2i@@J@Z
+    ?getRedBits@srColorSurfaceIFace@@QBEJXZ
+    ?getSurfaceDesc@srColorSurfaceIFace@@QBEXAAUSurfaceDesc@1@@Z
+    ?getVClampMode@srColorSurfaceIFace@@QBEHXZ
+    ?init@srColorSurface@@AAEXABUPixelFormat@srPixelConvert@@KKK@Z
+    ?isAlpha@srColorSurfaceIFace@@QBEHXZ
+    ?isCompatible@srColorSurface@@AAEHAAVsrColorSurfaceIFace@@@Z
+    ?isPaletted@srColorSurfaceIFace@@QBEHXZ
+    ?isPixelFormatCompatible@srColorSurfaceIFace@@IBEHABV1@@Z
+    ?remapPixels@srColorSurfaceIFace@@UAEXABVsrARGB@@0@Z
+    ?rescale@srColorSurface@@UAEHJJ@Z
+    ?rescale@srColorSurfaceIFace@@UAEHJJ@Z
+    ?resize@srColorSurface@@UAEHJJ@Z
+    ?resize@srColorSurfaceIFace@@UAEHJJ@Z
+    ?reversePixels@srColorSurface@@AAEXPAXK@Z
+    ?rotate180@srColorSurfaceIFace@@QAEXXZ
+    ?sGetClassName@srColorSurface@@SAPBDXZ
+    ?sGetClassName@srColorSurfaceIFace@@SAPBDXZ
+    ?scaleFast@srColorSurface@@EAEXAAVsrColorSurfaceIFace@@@Z
+    ?setHClampMode@srColorSurfaceIFace@@QAEXH@Z
+    ?setHLine@srColorSurface@@UAEXJJJK@Z
+    ?setHLine@srColorSurfaceIFace@@UAEXJJJK@Z
+    ?setPalette@srColorSurface@@UAEXPAVsrPalette@@@Z
+    ?setPalette@srColorSurfaceIFace@@UAEXPAVsrPalette@@@Z
+    ?setPixel@srColorSurfaceIFace@@UAEXJJK@Z
+    ?setPixelColumn@srColorSurface@@UAEXPBKJJJ@Z
+    ?setPixelColumn@srColorSurfaceIFace@@UAEXPBKJJJ@Z
+    ?setPixelRaw@srColorSurface@@UAEXJJK@Z
+    ?setPixelRaw@srColorSurfaceIFace@@UAEXJJK@Z
+    ?setPixelReadFunc@srColorSurface@@QAEXP6AXABUConversionInfo@srPixelConvert@@@Z@Z
+    ?setPixelRow@srColorSurface@@UAEXPBKJJJ@Z
+    ?setPixelRowRaw@srColorSurface@@UAEXPBXJJJ@Z
+    ?setPixelWriteFunc@srColorSurface@@QAEXP6AXABUConversionInfo@srPixelConvert@@@Z@Z
+    ?setPixels@srColorSurface@@UAEXPBKPBVsrVector2i@@J@Z
+    ?setPixels@srColorSurfaceIFace@@UAEXPBKPBVsrVector2i@@J@Z
+    ?setPixelsRaw@srColorSurface@@UAEXPBXPBVsrVector2i@@J@Z
+    ?setPixelsRaw@srColorSurfaceIFace@@UAEXPBXPBVsrVector2i@@J@Z
+    ?setSurfaceDesc@srColorSurfaceIFace@@IAEXABUSurfaceDesc@1@@Z
+    ?setVClampMode@srColorSurfaceIFace@@QAEXH@Z
+    ?setVLine@srColorSurface@@UAEXJJJK@Z
+    ?setVLine@srColorSurfaceIFace@@UAEXJJJK@Z
+    ?swapPixelRows@srColorSurface@@UAEXJJJJJ@Z
+    ?swapPixelRows@srColorSurfaceIFace@@UAEXJJJJJ@Z
+    ?vInstance@srColorSurface@@UAEPAVsrClass@@XZ
     ??0srLight@@QAE@ABV0@@Z
     ??4srLight@@QAEAAV0@ABV0@@Z
     ??0srTextureMap@@QAE@PAVsrColorSurfaceIFace@@@Z
@@ -1385,3 +1488,44 @@ EXPORTS
     ?vInstance@srScene@@UAEPAVsrClass@@XZ
     ??4srThread@@QAEAAV0@ABV0@@Z
     ?yieldCount@srThread@@0JA DATA
+    ??0srFilter@@QAE@XZ
+    ??0srFilter@@QAE@ABV0@@Z
+    ??1srFilter@@UAE@XZ
+    ??4srFilter@@QAEAAV0@ABV0@@Z
+    ??_7srFilter@@6B@ DATA
+    ??0srBoxFilter@@QAE@XZ
+    ??0srBoxFilter@@QAE@ABV0@@Z
+    ??1srBoxFilter@@UAE@XZ
+    ??4srBoxFilter@@QAEAAV0@ABV0@@Z
+    ?getName@srBoxFilter@@UBEPBDXZ
+    ?getSupport@srBoxFilter@@UBENXZ
+    ?getWeight@srBoxFilter@@UBENN@Z
+    ??_7srBoxFilter@@6B@ DATA
+    ?srBoxFilter@@3V0@A DATA
+    ??0srBellFilter@@QAE@XZ
+    ??0srBellFilter@@QAE@ABV0@@Z
+    ??1srBellFilter@@UAE@XZ
+    ??4srBellFilter@@QAEAAV0@ABV0@@Z
+    ?getName@srBellFilter@@UBEPBDXZ
+    ?getSupport@srBellFilter@@UBENXZ
+    ?getWeight@srBellFilter@@UBENN@Z
+    ??_7srBellFilter@@6B@ DATA
+    ?srBellFilter@@3V0@A DATA
+    ??0srBSplineFilter@@QAE@XZ
+    ??0srBSplineFilter@@QAE@ABV0@@Z
+    ??1srBSplineFilter@@UAE@XZ
+    ??4srBSplineFilter@@QAEAAV0@ABV0@@Z
+    ?getName@srBSplineFilter@@UBEPBDXZ
+    ?getSupport@srBSplineFilter@@UBENXZ
+    ?getWeight@srBSplineFilter@@UBENN@Z
+    ??_7srBSplineFilter@@6B@ DATA
+    ?srBSplineFilter@@3V0@A DATA
+    ??0srTriangleFilter@@QAE@XZ
+    ??0srTriangleFilter@@QAE@ABV0@@Z
+    ??1srTriangleFilter@@UAE@XZ
+    ??4srTriangleFilter@@QAEAAV0@ABV0@@Z
+    ?getName@srTriangleFilter@@UBEPBDXZ
+    ?getSupport@srTriangleFilter@@UBENXZ
+    ?getWeight@srTriangleFilter@@UBENN@Z
+    ??_7srTriangleFilter@@6B@ DATA
+    ?srTriangleFilter@@3V0@A DATA
