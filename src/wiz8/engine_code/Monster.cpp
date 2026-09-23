@@ -969,13 +969,14 @@ void W8Monster::RandomizeAppearanceAndMotion004C1D20()
 int ParseMonsterCycleName004C2010(const char* name, signed char* subcycle)
 {
     int cycle;
+    int index;
 
     if (name == 0) {
         srAssertFail("pacName", MONSTER_CPP, 1937, 0);
     }
 
     cycle = -1;
-    for (int index = 0; index < W8_MONSTER_CYCLE_COUNT; ++index) {
+    for (index = 0; index < W8_MONSTER_CYCLE_COUNT; ++index) {
         if (strncmp(name, g_cycle_names[index].name, g_cycle_names[index].prefix_length) == 0) {
             cycle = index;
             break;
@@ -995,7 +996,8 @@ int ParseMonsterCycleName004C2010(const char* name, signed char* subcycle)
         *subcycle = 1;
         int suffix = g_cycle_names[cycle].prefix_length;
         if ((int)strlen(name) > suffix && name[suffix] >= '0' && name[suffix] <= '9') {
-            *subcycle = (signed char)atoi(name + suffix);
+            /* The retail atoi offset uses the search index even after a fallback. */
+            *subcycle = static_cast<signed char>(atoi(name + g_cycle_names[index].prefix_length));
         }
     }
     return cycle;

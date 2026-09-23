@@ -469,11 +469,11 @@ void NotifyMonsterHighlight(int party_slot, int location_id, int on);
 
 W8Item* CreateMonsterIconItem004C5500(W8World* world, const char* path, int flag);
 /* One eight-byte row per animation cycle at 0x0060EA08. The parser at
-   0x004C2010 compares exactly prefix_length characters and then uses the same
-   offset to read an optional numeric subcycle suffix. */
+   0x004C2010 reads prefix_length as a signed byte. Its optional atoi offset
+   comes from the search index, which can differ from the returned cycle. */
 struct W8CycleNameRow {
     const char* name;
-    int prefix_length;
+    signed char prefix_length;
 };
 extern W8CycleNameRow g_cycle_names[];
 extern unsigned char g_monster_shadow_updates_enabled_0065970c;

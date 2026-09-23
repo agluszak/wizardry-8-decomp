@@ -71,7 +71,7 @@ W8Quad* BuildWorldQuad004BE200(srModelInstance* instance, int, float minimum_x_0
                                float maximum_z_20, srScene*, int)
 {
     unsigned int row_count =
-        static_cast<unsigned int>((maximum_x_18 - minimum_y_10) / g_quad_cell_size_0060e5d0) + 1;
+        static_cast<unsigned int>((maximum_x_18 - minimum_x_0c) / g_quad_cell_size_0060e5d0) + 1;
     unsigned int column_count =
         static_cast<unsigned int>((maximum_z_20 - minimum_z_14) / g_quad_cell_size_0060e5d0) + 1;
     W8Quad* quad = static_cast<W8Quad*>(malloc(sizeof(W8Quad)));
