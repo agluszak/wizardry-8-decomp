@@ -17,6 +17,7 @@
 #include "surrender/srVectorProcessor.h"
 
 #include <ctype.h>
+#include <ostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1095,10 +1096,74 @@ void srGERD::getPixelFormat(srPixelConvert::PixelFormat& format) const
     }
 }
 
+// FUNCTION: SURRENDER 0x1001D100
+const char* srGERD::getDeviceName() const
+{
+    return info_50_.text_3c_[0];
+}
+
+// FUNCTION: SURRENDER 0x1001D110
+const char* srGERD::getDeviceVendor() const
+{
+    return info_50_.text_3c_[1];
+}
+
+// FUNCTION: SURRENDER 0x1001D120
+const char* srGERD::getDevicePlatform() const
+{
+    return info_50_.text_3c_[2];
+}
+
+// FUNCTION: SURRENDER 0x1001D130
+const char* srGERD::getDriverName() const
+{
+    const char* name = info_50_.text_3c_[3];
+    if (isContextCreated() == 0) {
+        name = driver_name_2e0_;
+    }
+    return name;
+}
+
+// FUNCTION: SURRENDER 0x1001D150
+const char* srGERD::getDriverVendor() const
+{
+    return info_50_.text_3c_[4];
+}
+
+// FUNCTION: SURRENDER 0x1001D160
+const char* srGERD::getDriverVersion() const
+{
+    return info_50_.text_3c_[5];
+}
+
+// FUNCTION: SURRENDER 0x1001D170
+const char* srGERD::getHardwareChipset() const
+{
+    return info_50_.text_3c_[6];
+}
+
+// FUNCTION: SURRENDER 0x1001D180
+const char* srGERD::getHardwareName() const
+{
+    return info_50_.text_3c_[7];
+}
+
+// FUNCTION: SURRENDER 0x1001D190
+const char* srGERD::getHardwareVendor() const
+{
+    return info_50_.text_3c_[8];
+}
+
 // FUNCTION: SURRENDER 0x1001D1A0
 srGERD* srGERD::getFirst()
 {
     return first;
+}
+
+// FUNCTION: SURRENDER 0x1001D1D0
+srDD::e_hardwareID srGERD::getHardwareID() const
+{
+    return static_cast<srDD::e_hardwareID>(info_50_.hardware_id_38_);
 }
 
 // FUNCTION: SURRENDER 0x1001D1F0
@@ -3437,13 +3502,13 @@ void srGERD::initDDInfo()
 {
     memset(&info_50_, 0, sizeof(info_50_));
     info_50_.flags_18_ = 0;
-    info_50_.unknown_38_ = 1;
+    info_50_.hardware_id_38_ = 1;
     info_50_.texture_min_dim_2c_ = 1;
     info_50_.texture_max_aspect_34_ = 1;
     info_50_.max_texture_stages_28_ = 1;
     info_50_.renderer_batch_limit_1c_ = 0x100;
     info_50_.unknown_20_ = 0x3b808081;
-    info_50_.unknown_24_ = 0x200000;
+    info_50_.texture_ram_24_ = 0x200000;
     info_50_.unknown_0c_ = 0x10;
     info_50_.unknown_08_ = 4;
     info_50_.texture_max_dim_30_ = 0x100;
@@ -3455,6 +3520,283 @@ void srGERD::initDDInfo()
     getDD()->getInfo(info_50_);
     if (info_50_.max_texture_stages_28_ > 2) {
         info_50_.max_texture_stages_28_ = 2;
+    }
+}
+
+// FUNCTION: SURRENDER 0x1001C3E0
+void srGERD::initLights()
+{
+    ambient_light_2048_.Set(0.2f, 0.2f, 0.2f, 1.0f);
+}
+
+// FUNCTION: SURRENDER 0x10021BE0
+void srGERD::initMatrices()
+{
+    matrix_mode_1650_ = MATRIX_MODELVIEW;
+    for (long i = 0; i < 2; i++) {
+        matrix_current_390_[i].vectors[0].Set(1.0f, 0.0f, 0.0f, 0.0f);
+        matrix_current_390_[i].vectors[1].Set(0.0f, 1.0f, 0.0f, 0.0f);
+        matrix_current_390_[i].vectors[2].Set(0.0f, 0.0f, 1.0f, 0.0f);
+        matrix_current_390_[i].vectors[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
+        matrix_class_174c_[i] = static_cast<srMatrix4T<float>::e_type>(4);
+        matrix_stacks_410_[i].depth_800 = 0;
+    }
+    normal_matrix_1704_.vectors[0].Set(1.0f, 0.0f, 0.0f, 0.0f);
+    normal_matrix_1704_.vectors[1].Set(0.0f, 1.0f, 0.0f, 0.0f);
+    normal_matrix_1704_.vectors[2].Set(0.0f, 0.0f, 1.0f, 0.0f);
+    normal_matrix_1704_.vectors[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
+    inverse_modelview_1684_.vectors[0].Set(1.0f, 0.0f, 0.0f, 0.0f);
+    inverse_modelview_1684_.vectors[1].Set(0.0f, 1.0f, 0.0f, 0.0f);
+    inverse_modelview_1684_.vectors[2].Set(0.0f, 0.0f, 1.0f, 0.0f);
+    inverse_modelview_1684_.vectors[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
+}
+
+// FUNCTION: SURRENDER 0x1001CD60
+void srGERD::dump(std::ostream& stream)
+{
+    srRuntimeClass::dump(stream);
+    dump(stream, srFlags<e_info>(INFO_ALL));
+}
+
+// FUNCTION: SURRENDER 0x1001DEB0
+void srGERD::dump(std::ostream& stream, const srFlags<e_info>& info)
+{
+    if (isContextCreated() == 0) {
+        stream << "No context created" << std::endl;
+        return;
+    }
+    if ((info.value & INFO_DEVICE) != 0) {
+        stream << std::endl;
+        stream << "GERD Driver/Device Information" << '\n';
+        stream << "Device Name        : " << getDeviceName() << '\n';
+        stream << "Device Vendor      : " << getDeviceVendor() << '\n';
+        stream << "Device Platform    : " << getDevicePlatform() << '\n';
+        stream << "Driver Name        : " << getDriverName() << '\n';
+        stream << "Driver Vendor      : " << getDriverVendor() << '\n';
+        stream << "Driver Version     : " << getDriverVersion() << '\n';
+        stream << "HW Chipset         : " << getHardwareChipset() << '\n';
+        stream << "HW Name            : " << getHardwareName() << '\n';
+        stream << "HW Vendor          : " << getHardwareVendor() << std::endl;
+    }
+    if (isWindowOpen() == 0) {
+        stream << "Window not open" << std::endl;
+        return;
+    }
+    if ((info.value & INFO_DEVICE) != 0) {
+        unsigned long renderers = 0;
+        for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
+            renderers++;
+        }
+        stream << "Renderers used     : " << renderers << std::endl;
+        /* reinterpret-ok: retail streams the HWND-valued handle through
+           operator<<(const void*). */
+        stream << "Window handle      : " << reinterpret_cast<const void*>(getWindowHandle())
+               << std::endl;
+        stream << "Width              : " << getWidth() << std::endl;
+        stream << "Height             : " << getHeight() << std::endl;
+        stream << "Fullscreen         : " << srBoolToString(isFullScreen()) << std::endl;
+        stream << "Back buffers       : ";
+        e_backBuffer back_buffer = getBackBufferType();
+        if (back_buffer == static_cast<e_backBuffer>(1)) {
+            stream << "none (blit)" << std::endl;
+        } else if (back_buffer == static_cast<e_backBuffer>(2)) {
+            stream << "one (double-buffered)" << std::endl;
+        } else if (back_buffer == static_cast<e_backBuffer>(3)) {
+            stream << "two (triple-buffered)" << std::endl;
+        }
+        stream << "Swap interval      : " << swap_interval_1764_ << std::endl;
+        stream << "Gamma              : {" << gamma_1758_.x << "," << gamma_1758_.y << ","
+               << gamma_1758_.z << "}" << std::endl;
+    }
+    if ((info.value & INFO_STATISTICS) != 0) {
+        Statistics statistics = statistics_19f8_;
+        if (statistics.elapsed_00 > 0.1) {
+            stream << std::endl;
+            stream << "Seconds since reset             : " << statistics.elapsed_00 << '\n';
+            stream << "Frames since reset              : " << statistics.frames_2c << '\n';
+            stream << "Statistics (average per second)" << '\n';
+            stream << "Frames                          : "
+                   << statistics.frames_2c / statistics.elapsed_00 << '\n';
+            stream << "Triangle chunks rendered        : "
+                   << statistics.value_30 / statistics.elapsed_00 << '\n';
+            stream << "Triangles in                    : "
+                   << statistics.value_34 / statistics.elapsed_00 << '\n';
+            stream << "Vertices in                     : "
+                   << statistics.value_3c / statistics.elapsed_00 << '\n';
+            if (statistics.value_34 != 0) {
+                stream << "Input vertex/triangle ratio     : "
+                       << statistics.value_3c / static_cast<float>(statistics.value_34) << '\n';
+            }
+            stream << "DD triangles received           : "
+                   << statistics.value_20 / statistics.elapsed_00 << '\n';
+            stream << "DD vertices transfered          : "
+                   << statistics.value_24 / statistics.elapsed_00 << '\n';
+            stream << "DD vertex indices specified     : "
+                   << statistics.value_28 / statistics.elapsed_00 << '\n';
+            if (statistics.sphere_tests_6c != 0) {
+                stream << "Objects bounding sphere tested  : "
+                       << statistics.sphere_tests_6c / statistics.elapsed_00 << std::endl;
+                stream << "Bounding sphere test passed     : "
+                       << statistics.sphere_visible_70 / statistics.elapsed_00 << " ("
+                       << statistics.sphere_visible_70 * 100.0 / statistics.sphere_tests_6c
+                       << "%)" << std::endl;
+            }
+            if (statistics.box_tests_74 != 0) {
+                stream << "Objects bounding box tested     : "
+                       << statistics.box_tests_74 / statistics.elapsed_00 << std::endl;
+                stream << "Bounding box test passed        : "
+                       << statistics.box_visible_78 / statistics.elapsed_00 << " ("
+                       << statistics.box_visible_78 * 100.0 / statistics.box_tests_74
+                       << "%)" << std::endl;
+            }
+            stream << std::endl;
+            stream << "Triangles sorted                : "
+                   << statistics.value_38 / statistics.elapsed_00 << '\n';
+            stream << "Triangles removed by clipping   : "
+                   << statistics.value_64 / statistics.elapsed_00 << '\n';
+            stream << "View state changes              : "
+                   << statistics.view_state_applies_40 / statistics.elapsed_00 << '\n';
+            stream << "Matrix changes/classifications  : "
+                   << statistics.matrix_classifications_7c / statistics.elapsed_00 << '\n';
+            stream << "Draw state changes              : "
+                   << statistics.draw_state_applies_44 / statistics.elapsed_00 << '\n';
+            stream << "Per-frame state changes         : "
+                   << statistics.frame_state_count_48 / statistics.elapsed_00 << '\n';
+            stream << "Texture changes                 : "
+                   << statistics.texture_binds_4c / statistics.elapsed_00 << '\n';
+            stream << "Palette changes                 : "
+                   << statistics.palette_binds_58 / statistics.elapsed_00 << '\n';
+            stream << "Texture parameter updates       : "
+                   << statistics.texture_parameter_sets_50 / statistics.elapsed_00 << '\n';
+            stream << "Shader changes                  : "
+                   << statistics.shader_sets_5c / statistics.elapsed_00 << '\n';
+            stream << std::endl;
+            stream << "DD draw commands                : "
+                   << statistics.draw_calls_60 / statistics.elapsed_00 << '\n';
+            if ((info_50_.flags_18_ & 0x10) != 0) {
+                stream << "DD pixels drawn          (M/s)  : "
+                       << statistics.value_10 * 1e-06 / statistics.elapsed_00 << '\n';
+                /* reinterpret-ok: the device stats mirror stores the
+                   transfer counter's double bits as a dword pair. */
+                stream << "DD Texture data transfer (Mb/s) : "
+                       << *reinterpret_cast<const double*>(&statistics.value_08) *
+                              9.5367431640625e-07 / statistics.elapsed_00
+                       << '\n';
+            } else {
+                stream << "DD doesn't support pixel/texture statistics" << std::endl;
+            }
+            stream << "Function calls to DD            : "
+                   << statistics.value_68 / statistics.elapsed_00 << std::endl;
+        }
+        if ((info.value & INFO_DEBUG_DD) != 0 && (enable_flags_20_.value & 0x20) != 0 &&
+            debug_dd_44_ != 0) {
+            double total = 0.0;
+            srStreamPrintf(stream, "\nFunction                        Calls/sec  Time used\n");
+            srStreamPrintf(stream,
+                           "---------------------------------------------------------------\n");
+            for (long i = 0; i < 0x2b; i++) {
+                unsigned long calls = debug_dd_44_->call_counts_170[i];
+                double used = debug_dd_44_->call_times_18[i] - calls * debug_dd_44_->time_scale_10;
+                if (used <= 0.0) {
+                    used = 0.0;
+                }
+                if (calls != 0) {
+                    char text[36];
+                    sprintf(text, "%.2f", calls / statistics.elapsed_00);
+                    double percent = used / statistics.elapsed_00 * 100.0;
+                    srStreamPrintf(stream, "%-32s%-10s %.3f%%\n", srDebugDD::funcName[i], text,
+                                   percent);
+                    total += percent;
+                }
+            }
+            srStreamPrintf(stream, "\nTotal:                                     %.2f%%\n\n",
+                           total);
+        }
+    }
+    if ((info.value & INFO_TEXTURE_CACHE) == 0) {
+        return;
+    }
+    stream << std::endl;
+    dumpTextureCache(stream);
+}
+
+// FUNCTION: SURRENDER 0x1001EB20
+void srGERD::dumpTextureCache(std::ostream& stream)
+{
+    SectionAccess access(state_section_18_);
+    if (!texture_hash_enabled_2044_) {
+        srStreamPrintf(stream, "Texture cache hibernating\n");
+        return;
+    }
+    unsigned long count = 0;
+    for (Texture* texture = texture_head_202c_; texture != 0; texture = texture->next_04) {
+        count++;
+    }
+    srStreamPrintf(stream, "GERD Texture cache:\n\n");
+    srStreamPrintf(stream, "Cached textures:          %d\n", count);
+    srStreamPrintf(stream, "Hash table size           %d\n", texture_lookup_2004_.bucket_count);
+    srStreamPrintf(stream, "GERD Cache memory used:   %d kB\n",
+                   (texture_cache_used_2034_ + 0x3ff) >> 10);
+    if (texture_cache_size_2038_ == 0) {
+        srStreamPrintf(stream, "Max cache size:           infinite\n");
+    } else {
+        srStreamPrintf(stream, "Max cache size:           %d kB\n",
+                       (texture_cache_size_2038_ + 0x3ff) >> 10);
+    }
+    srStreamPrintf(stream, "\n");
+    srStreamPrintf(stream, "Device TMUs:              %d\n", info_50_.max_texture_stages_28_);
+    if (info_50_.texture_ram_24_ == 0) {
+        srStreamPrintf(stream, "Device texture RAM:       infinite\n");
+    } else {
+        srStreamPrintf(stream, "Device texture RAM:       %d kB\n",
+                       (info_50_.texture_ram_24_ + 0x3ff) >> 10);
+    }
+    srStreamPrintf(stream, "Resident textures:        %d kB ",
+                   (getResidentTextureMemUsed() + 0x3ff) >> 10);
+    if (info_50_.texture_ram_24_ != 0) {
+        srStreamPrintf(stream, " (%.2f%%)",
+                       getResidentTextureMemUsed() * 100.0 / info_50_.texture_ram_24_);
+    }
+    srStreamPrintf(stream, "\n\n");
+    srStreamPrintf(stream,
+                   "#     Resolution  Format       KB    LODs  Priority   Timestamp  Resident  "
+                   "FHandle     Name\n");
+    srStreamPrintf(stream,
+                   "-----------------------------------------------------------------------------"
+                   "--------------\n");
+    long index = 0;
+    for (Texture* entry = texture_head_202c_; entry != 0; entry = entry->next_04) {
+        char format_name[64];
+        format_name[0] = '\0';
+        entry->pixel_format_0c.getName(format_name);
+        srStreamPrintf(stream, "%04d  %03dx%03d     %-11s  ", index, entry->device_2c.width_20,
+                       entry->device_2c.height_24, format_name);
+        index++;
+        float kb = (entry->device_2c.size_1c + 0x3ff) * 0.0009765625f;
+        if (kb >= 10.0f) {
+            srStreamPrintf(stream, "%-4d  ", static_cast<long>(kb));
+        } else {
+            srStreamPrintf(stream, "%.1f   ", kb);
+        }
+        int resident =
+            entry->device_2c.resident_data_68 != 0 && entry->device_2c.resident_size_6c != 0;
+        srStreamPrintf(stream, "%-2d    %.4f     %08x   %-5s     %08x   ",
+                       entry->device_2c.last_level_2c - entry->device_2c.first_level_28 + 1,
+                       entry->device_2c.priority_14, entry->device_2c.last_use_18,
+                       srBoolToString(resident), entry->id_08);
+        if (entry->name_28 == 0) {
+            srStreamPrintf(stream, "anon\n");
+        } else {
+            srStreamPrintf(stream, "%s\n", entry->name_28);
+        }
+    }
+}
+
+// FUNCTION: SURRENDER 0x1001EE20
+void srGERD::dumpDeviceList(std::ostream& stream)
+{
+    for (srGERD* gerd = first; gerd != 0; gerd = gerd->next_34_) {
+        srStreamPrintf(stream, "%s\n", gerd->getDeviceName());
     }
 }
 

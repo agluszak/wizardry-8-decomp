@@ -271,6 +271,7 @@ EXPORTS
     ??0srNode@@QAE@ABV0@@Z
     ?setParent@srNode@@QAEHPAV1@H@Z
     ?dump@srNode@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?dumpDeviceList@srGERD@@SAXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dumpHierarchy@srNode@@QBEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@J@Z
     ?cloneHierarchy@srNode@@QAEPAV1@PAV1@@Z
     ?cloneHierarchyInternal@srNode@@AAEPAV1@PAV1@@Z
@@ -696,6 +697,7 @@ EXPORTS
     ?dump@srVectorProcessor@@SAXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dumpAll@srExtension@@SAXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dumpNode@Compressor@srHuffman@@AAEXAAVBitOStream@2@PAUNode@12@@Z
+    ?dumpTextureCache@srGERD@@AAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?end@srThread@@SAXXZ
     ?endDebug@srVectorProcessor@@SAXXZ
     ?endFrame@srDebugDD@@UAEXXZ
@@ -733,8 +735,14 @@ EXPORTS
     ?getDescription@Error@srIOManager@@QAEPBDXZ
     ?getDescription@srExtension@@QAEPBDXZ
     ?getDescription@srFStreamOpener@@UBEPBDXZ
+    ?getDeviceName@srGERD@@QBEPBDXZ
+    ?getDevicePlatform@srGERD@@QBEPBDXZ
+    ?getDeviceVendor@srGERD@@QBEPBDXZ
     ?getDouble@srBinIStream@@QAENXZ
     ?getDriverInfo@srDebugDD@@UAEXAAUDriverInfo@srDD@@@Z
+    ?getDriverName@srGERD@@QBEPBDXZ
+    ?getDriverVendor@srGERD@@QBEPBDXZ
+    ?getDriverVersion@srGERD@@QBEPBDXZ
     ?getExtension@srIOManager@@QAEPBDPBD@Z
     ?getFileManager@srCore@@QBEPAVsrFileManager@@XZ
     ?getFirst@srExtension@@SAPAV1@XZ
@@ -743,6 +751,10 @@ EXPORTS
     ?getFunction@srDynamicLibrary@@SAPAXPAXPBD@Z
     ?getFunctionName@srDebugDD@@QBEPBDW4e_command@srDD@@@Z
     ?getHandle@srThread@@SAKXZ
+    ?getHardwareChipset@srGERD@@QBEPBDXZ
+    ?getHardwareID@srGERD@@QBE?AW4e_hardwareID@srDD@@XZ
+    ?getHardwareName@srGERD@@QBEPBDXZ
+    ?getHardwareVendor@srGERD@@QBEPBDXZ
     ?getInfo@srDebugDD@@UAEXAAUInfo@srDD@@@Z
     ?getIStreamOpener@srCore@@QBEPAVsrIStreamOpener@@XZ
     ?getMemoryAllocator@srCore@@QBEPAVsrMemoryAllocator@@XZ
@@ -908,6 +920,8 @@ EXPORTS
     ??_7srFog@@6B?$srClassSupport@VsrIlluminator@@VsrNode@@$0A@$0BCAA@@@@ DATA
     ??_7srFog@@6BsrVertexProcessor@@@ DATA
     ?dump@srFog@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?dump@srGERD@@QAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@ABV?$srFlags@W4e_info@srGERD@@@@@Z
+    ?dump@srGERD@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?getDensity@srFog@@QBEMXZ
     ?getRange@srFog@@QAEXAAN0@Z
     ?isActive@srFog@@UAEHAAVsrVertexPipe@@@Z
@@ -1024,6 +1038,8 @@ EXPORTS
     ?initDDInfo@srGERD@@AAEXXZ
     ?initDisplayModeList@srGERD@@AAEXXZ
     ?initGlobalPalette@srGERD@@AAEXXZ
+    ?initLights@srGERD@@AAEXXZ
+    ?initMatrices@srGERD@@AAEXXZ
     ?initTextureFormats@srGERD@@AAEXXZ
     ?checkFrameStateChanges@srGERD@@AAEXXZ
     ?endFrame@srGERD@@QAEXXZ

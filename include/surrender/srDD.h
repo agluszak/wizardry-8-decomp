@@ -123,7 +123,9 @@ public:
         unsigned long renderer_batch_limit_1c_;
         /* initDDInfo defaults: 0x3b808081 / 0x200000. */
         unsigned long unknown_20_;
-        unsigned long unknown_24_;
+        /* Device texture RAM in bytes; dumpTextureCache prints it in kB and
+           treats 0 as "infinite" (no residency percentage). */
+        unsigned long texture_ram_24_;
         /* initDDInfo defaults: 1, 1, 0x100, 1; texture-dimension clamps
            applied by evaluateTextureDimensions. initDDInfo clamps
            max_texture_stages to 2 after getInfo. */
@@ -131,8 +133,9 @@ public:
         unsigned long texture_min_dim_2c_;
         unsigned long texture_max_dim_30_;
         unsigned long texture_max_aspect_34_;
-        /* initDDInfo defaults: 1. */
-        unsigned long unknown_38_;
+        /* initDDInfo defaults: 1. getHardwareID result; e_hardwareID is an
+           empty enum and cannot be the field type. */
+        unsigned long hardware_id_38_;
         char text_3c_[9][0x40];
     };
     static_assert(sizeof(Info) == 0x27c, "srDD_Info_must_be_0x27c");

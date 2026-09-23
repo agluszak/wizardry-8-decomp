@@ -272,6 +272,16 @@ public:
     enum e_enable { ENABLE_POSITIONAL_0 = 0, ENABLE_POSITIONAL_1 = 1, ENABLE_POSITIONAL_4 = 4 };
     enum e_winding { WINDING_POSITIONAL_0 = 0, WINDING_POSITIONAL_1 = 1 };
     enum e_visibility { VISIBILITY_POSITIONAL_0 = 0 };
+    /* dump(stream, flags) section selectors: bit 0 driver/device info plus
+       the window block, bit 1 the texture cache, bit 3 the statistics
+       snapshot, bit 5 the srDebugDD call profile. dump(stream) passes 0x3f. */
+    enum e_info {
+        INFO_DEVICE = 0x1,
+        INFO_TEXTURE_CACHE = 0x2,
+        INFO_STATISTICS = 0x8,
+        INFO_DEBUG_DD = 0x20,
+        INFO_ALL = 0x3f
+    };
 
     /* Not in the consumer import table and no client emission exists in
        retail Wiz8 (no "srGERD" literal): the consumer never references it,
@@ -287,6 +297,8 @@ public:
     virtual unsigned long getClassID() const override;
     virtual srRegistry::ClassNode* getClassNode() const override;
     virtual void dump(std::ostream& stream) override;
+    void dump(std::ostream& stream, const srFlags<e_info>& info);
+    static void dumpDeviceList(std::ostream& stream);
 
     static srGERD* loadDevice(srStringTable& devices, unsigned long index);
     static srGERD* loadDevice(const char* name, const char* path, unsigned long device);
@@ -322,6 +334,18 @@ public:
     int isWindowOpen() const;
     int isFullScreen() const;
     unsigned long getWindowHandle() const;
+    /* info_50_.text_3c_[0..8] accessors: initDDInfo seeds the nine 0x40-byte
+       identity strings, getInfo's driver fills them. */
+    const char* getDeviceName() const;
+    const char* getDeviceVendor() const;
+    const char* getDevicePlatform() const;
+    const char* getDriverName() const;
+    const char* getDriverVendor() const;
+    const char* getDriverVersion() const;
+    const char* getHardwareChipset() const;
+    const char* getHardwareName() const;
+    const char* getHardwareVendor() const;
+    srDD::e_hardwareID getHardwareID() const;
     void setGamma(const srVector3T<float>& gamma);
     e_error beginFrame();
     void endFrame();
@@ -334,12 +358,15 @@ public:
     void resetStatistics();
     /* getStatistics buffer. The render probes return the double at +0x10
        through ftol; the 0x00427460 debug overlay prints the dword counters at
-       +0x08/+0x0c (the TT pair), +0x20 (PO), +0x24 (VO), +0x34 (PI),
+       +0x08/+0x0c (the TT pair halves), +0x20 (PO), +0x24 (VO), +0x34 (PI),
        +0x3c (VI), +0x4c (TC) and +0x68 (DD). */
     struct Statistics {
         /* Epoch written by resetStatistics; getStatistics returns the
            seconds elapsed since then. */
         double elapsed_00;
+        /* Device texture byte count mirrored from srDD::Statistics +0x00 as
+           two dwords; dump reinterprets the pair as a double for the
+           "DD Texture data transfer (Mb/s)" line. */
         unsigned long value_08;
         unsigned long value_0c;
         double value_10;
@@ -621,6 +648,9 @@ private:
        positions into pick_vertices_2230_ and run the edge-function
        triangle test against the pick ray. */
     void performPickTest(const PickInput& input);
+    void initLights();
+    void initMatrices();
+    void dumpTextureCache(std::ostream& stream);
 
     /* Header inline that also emits the standalone retail 0x1001BC30 copy;
        the batched renderer programs the six DD array slots through it. */
@@ -748,7 +778,12 @@ private:
     /* Device info record handed to srDD::getInfo by initDDInfo; GERD reads
        the staging/clamp fields out of it. */
     srDD::Info info_50_;
-    unsigned char unknown_2cc_[0x94];
+    unsigned char unknown_2cc_[0x14];
+    /* Driver name the ctor's DD info call (vtable +0x80 on the +0x2cc request
+       block) writes; also handed to srRuntimeClass::setName. getDriverName
+       returns it when no context exists yet. Buffer size is bounded by the
+       space remaining in the +0x2cc block. */
+    char driver_name_2e0_[0x80];
     srPixelConvert::PixelFormat* texture_formats_360_;
     long texture_format_count_364_;
     unsigned long* display_modes_368_;
