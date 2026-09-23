@@ -1,5 +1,5 @@
 schema: wiz8.ghidra
-required_version: 12.1.3
+required_version: 12.1.4
 required_release: PUBLIC
 required_pyghidra: 3.1.0
 project_name: wizardry8
