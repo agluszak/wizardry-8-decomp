@@ -1462,6 +1462,7 @@ EXPORTS
     ?setAntiAlias@srGERD@@QAEXW4e_antiAlias@1@@Z
     ?setAttenuation@srLight@@QAEXABV?$srVector3T@M@@@Z
     ?setAttenuationModel@srLight@@QAEXW4e_attenuationModel@1@@Z
+    ?setBounds@srMeshModel@@QAEXABV?$srVector3T@M@@00M@Z @1720
     ?setByteOrder@srBinStream@@QAEXW4e_byteOrder@1@@Z
     ?setClearAccum@srGERD@@QAEXABV?$srVector4T@M@@@Z
     ?setClearAccum@srGERD@@QAEXMMMM@Z
@@ -1583,6 +1584,7 @@ EXPORTS
     ?setTriangle@srModeler@@QAEXKABVTriangle@1@@Z @1892
     ?setTriangleCount@srModeler@@QAEXK@Z @1893
     ?setTriangleVertex@srModeler@@QAEXKKABVVertex@1@@Z @1894
+    ?setUVCount@srMeshModel@@QAEXJ@Z @1895
     ?setVClampMode@srColorSurfaceIFace@@QAEXH@Z @1899
     ?setVLine@srColorSurface@@UAEXJJJK@Z
     ?setVLine@srColorSurfaceIFace@@UAEXJJJK@Z
