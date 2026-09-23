@@ -78,7 +78,6 @@ def _source_shaping_directives(repository: Path, target: str) -> list[dict[str, 
     return rows
 
 
-
 def _comment_regions(lines: list[str]) -> list[tuple[int, int, str]]:
     """Return (start_line, end_line, text) for ``/* */`` blocks and ``//`` runs.
 
