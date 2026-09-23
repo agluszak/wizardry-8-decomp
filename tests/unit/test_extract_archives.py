@@ -3,9 +3,7 @@ from pathlib import Path
 from wiz8decomp.extract import archives
 
 
-def test_extract_inno_passes_repeated_include_filters(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_extract_inno_passes_repeated_include_filters(tmp_path: Path, monkeypatch) -> None:
     source = tmp_path / "setup.exe"
     source.write_bytes(b"installer")
     destination = tmp_path / "out"
