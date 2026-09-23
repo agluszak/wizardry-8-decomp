@@ -89,6 +89,27 @@ endif()
 include(sources.cmake)
 set(WIZ8_SOURCE_FILES ${WIZ8_SOURCE_UNITS})
 list(TRANSFORM WIZ8_SOURCE_FILES PREPEND "${PROJECT_SOURCE_DIR}/")
+
+if(WIZ8_LINT_COMPILE_ONLY)
+    # These files retain assembly-confirmed reads of uninitialized locals.
+    # Keep -Wsometimes-uninitialized visible, but do not make source indexing
+    # or lint fail solely on those recovered paths.
+    set_source_files_properties(
+        "dialog_code/PortraitQuote.cpp"
+        "dialog_code/stListBox.cpp"
+        engine_code/Video2.cpp
+        engine_code/OctBuildPreTree.cpp
+        engine_code/OctPath.cpp
+        engine_code/ReadLevel.cpp
+        engine_code/ReadMesh.cpp
+        engine_code/Trigger.cpp
+        "level_specific_code/Cosmic Circle.cpp"
+        "local_code/Combat Attack.cpp"
+        "local_code/PC Item.cpp"
+        local_screens/AutomapScreen.cpp
+        PROPERTIES COMPILE_OPTIONS "-Wno-error=sometimes-uninitialized")
+endif()
+
 set(WIZ8_INSTRUMENTABLE_SOURCE_FILES
     "${PROJECT_SOURCE_DIR}/src/wiz8/local_code/Gameloop.cpp"
     "${PROJECT_SOURCE_DIR}/src/wiz8/local_code/RegionManager.cpp"

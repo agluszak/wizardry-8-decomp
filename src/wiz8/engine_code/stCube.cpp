@@ -97,10 +97,6 @@ W8WorldCursorNode* CreateWorldCursorCube0048D080(void)
     stMeshModel* model = new stMeshModel(0, 0);
     stModelInstance* instance = new stModelInstance(0);
     W8WorldCursorNode* entry = new W8WorldCursorNode;
-    /* Polygon(4) already heap-allocates the modelled vertices; these four
-       stack Vertices are constructed and unused, matching retail. */
-    srModeler::Vertex unused[4];
-    (void)unused;
     srModeler::Vertex* vertices = polygon.vertices_30;
 
     vertices[0].uv_c0[0].x = 1.0f;
@@ -207,14 +203,10 @@ W8WorldCursorNode* CreateWorldCursorCube0048D080(void)
     model->setTexture(texture, 0, 0);
 
     if ((model->control_state_390 & 8) == 0) {
-        unsigned long state = model->control_state_390 | 8;
-        model->control_state_390 = state;
-        model->control_state_390 = state | 8;
+        model->control_state_390 |= 8;
     }
     if ((model->control_state_390 & 1) == 0) {
-        unsigned long state = model->control_state_390 | 1;
-        model->control_state_390 = state;
-        model->control_state_390 = state | 8;
+        model->control_state_390 |= 1;
         model->updateAllClients(static_cast<srModel::Client::e_update>(0));
     }
 

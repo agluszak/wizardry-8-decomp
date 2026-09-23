@@ -283,12 +283,12 @@ static unsigned char CheckFileLayout(const OctPreTree* tree, const W8OctPreTreeG
     if (LoadWord(bytes, 0x00) != 0x22 || LoadFloat(bytes, 0x02) != spatial->extent_04 ||
         LoadFloat(bytes, 0x06) != spatial->cell_size_08 ||
         LoadFloat(bytes, 0x0a) != spatial->node_extent_70 ||
-        LoadFloat(bytes, 0x0e) != spatial->minimum_0c.x ||
-        LoadFloat(bytes, 0x1a) != spatial->maximum_18.x ||
-        LoadFloat(bytes, 0x26) != spatial->clipped_minimum_24.x ||
-        LoadFloat(bytes, 0x32) != spatial->clipped_maximum_30.x ||
-        LoadFloat(bytes, 0x3e) != spatial->working_minimum_78.x ||
-        LoadFloat(bytes, 0x4a) != spatial->working_maximum_84.x ||
+        LoadFloat(bytes, 0x0e) != spatial->bounds_0c.minimum.x ||
+        LoadFloat(bytes, 0x1a) != spatial->bounds_0c.maximum.x ||
+        LoadFloat(bytes, 0x26) != spatial->clipped_bounds_24.minimum.x ||
+        LoadFloat(bytes, 0x32) != spatial->clipped_bounds_24.maximum.x ||
+        LoadFloat(bytes, 0x3e) != spatial->working_bounds_78.minimum.x ||
+        LoadFloat(bytes, 0x4a) != spatial->working_bounds_78.maximum.x ||
         LoadDword(bytes, 0x56) != tree->m_leaf_grid_dim_x_0a4 ||
         LoadDword(bytes, 0x5a) != tree->m_leaf_grid_dim_y_0a8 ||
         LoadDword(bytes, 0x5e) != tree->m_leaf_grid_dim_z_0ac ||
@@ -373,10 +373,10 @@ static unsigned char CheckLoadedSpatial(const OctPreTree* written, const W8Octre
     const W8OctSpatialState* back = &loaded->spatial_000;
     return back->extent_04 == source->extent_04 && back->cell_size_08 == source->cell_size_08 &&
            back->node_extent_70 == source->node_extent_70 &&
-           back->minimum_0c.x == source->minimum_0c.x &&
-           back->maximum_18.z == source->maximum_18.z &&
-           back->clipped_minimum_24.y == source->clipped_minimum_24.y &&
-           back->working_maximum_84.z == source->working_maximum_84.z &&
+           back->bounds_0c.minimum.x == source->bounds_0c.minimum.x &&
+           back->bounds_0c.maximum.z == source->bounds_0c.maximum.z &&
+           back->clipped_bounds_24.minimum.y == source->clipped_bounds_24.minimum.y &&
+           back->working_bounds_78.maximum.z == source->working_bounds_78.maximum.z &&
            back->depth_44 == source->depth_44 && back->region_count_46 == source->region_count_46 &&
            back->leaf_level_52 == source->leaf_level_52 &&
            back->region_id_bound_58 == source->region_id_bound_58 &&
@@ -553,12 +553,12 @@ static void RunOctFileRoundTrip(OctFileSemanticResult* result)
     tree->spatial_000.extent_04 = 64.0f;
     tree->spatial_000.cell_size_08 = 4.0f;
     tree->spatial_000.node_extent_70 = 128.0f;
-    tree->spatial_000.minimum_0c.Set(8.0f, 16.0f, 24.0f);
-    tree->spatial_000.maximum_18.Set(72.0f, 40.0f, 88.0f);
-    tree->spatial_000.clipped_minimum_24.Set(12.0f, 20.0f, 28.0f);
-    tree->spatial_000.clipped_maximum_30.Set(68.0f, 36.0f, 84.0f);
-    tree->spatial_000.working_minimum_78.Set(4.0f, 8.0f, 12.0f);
-    tree->spatial_000.working_maximum_84.Set(76.0f, 44.0f, 92.0f);
+    tree->spatial_000.bounds_0c.minimum.Set(8.0f, 16.0f, 24.0f);
+    tree->spatial_000.bounds_0c.maximum.Set(72.0f, 40.0f, 88.0f);
+    tree->spatial_000.clipped_bounds_24.minimum.Set(12.0f, 20.0f, 28.0f);
+    tree->spatial_000.clipped_bounds_24.maximum.Set(68.0f, 36.0f, 84.0f);
+    tree->spatial_000.working_bounds_78.minimum.Set(4.0f, 8.0f, 12.0f);
+    tree->spatial_000.working_bounds_78.maximum.Set(76.0f, 44.0f, 92.0f);
     tree->spatial_000.depth_44 = 3;
     tree->spatial_000.region_id_bound_58 = 7;
     tree->spatial_000.region_count_46 = 1;

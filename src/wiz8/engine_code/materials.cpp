@@ -567,24 +567,24 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                     g_oct_max_objects_0065bd10 = build_tree->deepest_link_list_b8;
                     ReportBuildStatus00497690(3, message);
                     sprintf(message, "World Minimum Corner: \t%f  \t%f  \t%f\n",
-                            build_tree->spatial_00.minimum_0c.x,
-                            build_tree->spatial_00.minimum_0c.y,
-                            build_tree->spatial_00.minimum_0c.z);
+                            build_tree->spatial_00.bounds_0c.minimum.x,
+                            build_tree->spatial_00.bounds_0c.minimum.y,
+                            build_tree->spatial_00.bounds_0c.minimum.z);
                     ReportBuildStatus00497690(6, message);
                     sprintf(message, "World Maximum Corner: \t%f  \t%f  \t%f\n",
-                            build_tree->spatial_00.maximum_18.x,
-                            build_tree->spatial_00.maximum_18.y,
-                            build_tree->spatial_00.maximum_18.z);
+                            build_tree->spatial_00.bounds_0c.maximum.x,
+                            build_tree->spatial_00.bounds_0c.maximum.y,
+                            build_tree->spatial_00.bounds_0c.maximum.z);
                     ReportBuildStatus00497690(6, message);
                     sprintf(message, "World Dimensions:\n\tX: %fm  \tY: %fm  \tZ: %fm\n",
-                            ((build_tree->spatial_00.clipped_maximum_30.x -
-                              build_tree->spatial_00.clipped_minimum_24.x) *
+                            ((build_tree->spatial_00.clipped_bounds_24.maximum.x -
+                              build_tree->spatial_00.clipped_bounds_24.minimum.x) *
                              g_float_005ebc60),
-                            ((build_tree->spatial_00.clipped_maximum_30.y -
-                              build_tree->spatial_00.clipped_minimum_24.y) *
+                            ((build_tree->spatial_00.clipped_bounds_24.maximum.y -
+                              build_tree->spatial_00.clipped_bounds_24.minimum.y) *
                              g_float_005ebc60),
-                            ((build_tree->spatial_00.clipped_maximum_30.z -
-                              build_tree->spatial_00.clipped_minimum_24.z) *
+                            ((build_tree->spatial_00.clipped_bounds_24.maximum.z -
+                              build_tree->spatial_00.clipped_bounds_24.minimum.z) *
                              g_float_005ebc60));
                     ReportBuildStatus00497690(6, message);
                     for (i = 0; i < level->num_switch_triggers_6c1; ++i) {
@@ -918,7 +918,7 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
 }
 
 // FUNCTION: WIZ8 0x00497690
-void ReportBuildStatus00497690(int channel, const char* message)
+void ReportBuildStatus00497690(short channel, const char* message)
 {
     char line[120];
 

@@ -532,9 +532,6 @@ void FreeStatusBuffers(W8StatusBuffers* status)
     }
 }
 
-/* Clears the settings block and writes its defaults. The constants 0, 1, 0x40
-   and 0xff are each used many times over, which is why VC6 holds them in
-   registers rather than spelling out immediates. */
 // FUNCTION: WIZ8 0x0054b560
 void ResetGameplaySettings(void)
 {

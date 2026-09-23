@@ -236,11 +236,7 @@ unsigned char GetLevelLocationCode(int level_id, char* location_code)
     return 1;
 }
 
-// The original's retained `level_id == -1` and `>= 57` tests are only explicable
-// as a separate lookup helper inlined into its one caller: after inlining, VC6
-// substitutes the body but does not propagate the returned value's range, so the
-// caller's guards survive even though the search can only yield 0..46.
-static __inline int LevelFindIDByLocationCode(const char* location_code)
+static int LevelFindIDByLocationCode(const char* location_code)
 {
     int level_id;
 
@@ -747,14 +743,12 @@ unsigned char UnloadLevel(const char* save_directory)
     ClearValue6834D4();
 
     srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node =
-        srClientSupport<srClipPlane,0x1500>::sGetClassNode();
+    srRegistry::ClassNode* node = srClientSupport<srClipPlane, 0x1500>::sGetClassNode();
     srClass* clip_plane = static_cast<srClass*>(registry->find(node, 0, 0));
 
     while (clip_plane != 0) {
         srClass* next = static_cast<srClass*>(
-            registry->find(srClientSupport<srClipPlane,0x1500>::sGetClassNode(),
-                           0, clip_plane));
+            registry->find(srClientSupport<srClipPlane, 0x1500>::sGetClassNode(), 0, clip_plane));
         clip_plane->release();
         clip_plane = next;
     }

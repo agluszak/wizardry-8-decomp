@@ -17,18 +17,16 @@
 // FUNCTION: WIZ8 0x005cce70
 void W8ListBoxDialog::TextAreaButtonCallback(GUI_BUTTON* button, INT32 reason)
 {
-    W8ListBoxDialog* dialog = GetButtonUserDataPointer<W8ListBoxDialog>(button);
     if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
+        W8ListBoxDialog* dialog = GetButtonUserDataPointer<W8ListBoxDialog>(button);
         if (dialog == 0) {
             srAssertFail("pDialog", "C:\\Projects\\Wizardry 8\\Dialog Code\\stListBox.cpp", 0x2f5,
                          0);
         }
         POINT cursor;
         SGPMouseGetPos(&cursor);
-        /* Retail read this top edge uninitialized when the area button is
-           absent (the leftover argument slot); deterministic zero models
-           that defect path. */
-        int top = 0;
+        // MATCH: retail reads this local uninitialized when the area button is absent.
+        int top;
         if (dialog->m_area_button_098 != -1) {
             SGPRect area;
             GetButtonArea(dialog->m_area_button_098, &area);
@@ -156,19 +154,17 @@ void W8ListBoxDialog::CancelButtonCallback(GUI_BUTTON* button, INT32 reason)
 // FUNCTION: WIZ8 0x005cd1e0
 void W8ListBoxDialog::SliderTrackButtonCallback(GUI_BUTTON* button, INT32 reason)
 {
-    W8ListBoxDialog* dialog = GetButtonUserDataPointer<W8ListBoxDialog>(button);
     if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
+        W8ListBoxDialog* dialog = GetButtonUserDataPointer<W8ListBoxDialog>(button);
         if (dialog == 0) {
             srAssertFail("pDialog", "C:\\Projects\\Wizardry 8\\Dialog Code\\stListBox.cpp", 0x398,
                          0);
         }
         POINT cursor;
         SGPMouseGetPos(&cursor);
-        /* Retail read both track edges uninitialized when the text-area
-           button is absent (the leftover argument slots); deterministic
-           zeroes model that defect path. */
-        int top = 0;
-        int bottom = 0;
+        // MATCH: retail reads these locals uninitialized when the text-area button is absent.
+        int top;
+        int bottom;
         if (dialog->m_third_text_button_0b8 != -1) {
             SGPRect area;
             GetButtonArea(dialog->m_third_text_button_0b8, &area);

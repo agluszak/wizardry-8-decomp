@@ -134,21 +134,11 @@ void DisableAllRenderOptions0047B5D0(void)
     } while (option < W8_RENDER_OPTION_COUNT);
 }
 
-/* The original carries a dead entry test: it compares the counter against the
-   bound before the first iteration and, when that fails, jumps to the increment
-   rather than past the loop. Starting at zero it can never fire, and VC6 folds
-   it away here whichever way the loop is written - for, while and do-while all
-   give the same 22 bytes. The five-byte difference is that fold, not a
-   difference in what the loop does. */
 // FUNCTION: WIZ8 0x0047b5f0
 void EnableAllRenderOptions(void)
 {
-    int option;
-
-    option = 0;
-    while (option < W8_RENDER_OPTION_COUNT) {
+    for (int option = 0; option < W8_RENDER_OPTION_COUNT; ++option) {
         SetRenderOption(option, 1);
-        option++;
     }
 }
 

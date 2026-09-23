@@ -27,10 +27,10 @@ W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8()
     local_location_010.SetZero();
     parent_location_01c.SetZero();
     rotation_028.SetIdentity();
-    render_state_04c.highlight_red = 0.0f;
-    render_state_04c.highlight_green = 0.0f;
-    render_state_04c.highlight_blue = 0.0f;
-    render_state_04c.highlight_alpha = 0.0f;
+    render_state_04c.highlight.x = 0.0f;
+    render_state_04c.highlight.y = 0.0f;
+    render_state_04c.highlight.z = 0.0f;
+    render_state_04c.highlight.w = 0.0f;
     instance_scale_05c = 1.0f;
     flag_060 = 0;
     apply_instance_scale_061 = 0;
@@ -165,9 +165,6 @@ W8AnimRep005ED050::W8AnimRep005ED050(const W8AnimRep005ED050& other) : W8AnimRep
     timer_068 = g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
 }
 
-/* The FUNCTION marker owns the complete destructor body.  The separate
-   SYNTHETIC marker records the deleting wrapper VC6 generates for vtable slot
-   zero. */
 // SYNTHETIC: WIZ8 0x004b5760
 // W8AnimRep005ED050::`scalar deleting destructor'
 // FUNCTION: WIZ8 0x0044ef20
@@ -201,8 +198,6 @@ W8EmitterHost::W8EmitterHost()
     animation_radius_0a8 = 0;
 }
 
-/* As above, 0x004B56F0 is the complete destructor and 0x004B5660 is its
-   compiler-generated scalar-deleting wrapper. */
 // SYNTHETIC: WIZ8 0x004b5660
 // W8EmitterHost::`scalar deleting destructor'
 // FUNCTION: WIZ8 0x004b56f0

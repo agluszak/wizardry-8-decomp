@@ -63,8 +63,7 @@ static const char ST_PARTICLE_CPP[] = "C:\\Projects\\Wizardry 8\\Engine Code\\st
 // SYNTHETIC: WIZ8 0x00498150
 // stParticle::`scalar deleting destructor'
 
-/* Return the renderer flags as a value. VC6 lowers the four-byte class return
-   through its hidden result pointer. */
+/* Return the renderer flags. */
 // FUNCTION: WIZ8 0x00498A10
 srShader stParticle::GetRenderFlags00498A10() const
 {
@@ -923,8 +922,6 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     if (bounds_mode_1a4 == 2) {
         srGERD::e_visibility visibility;
 
-        /* Bound once: the retail body keeps the extent address in a register
-           across the three comparisons and the three projections. */
         const srVector3T<float>& extent = bounds_origin_234;
 
         if (extent.x == g_float_005ebb34 && extent.y == g_float_005ebb34 &&

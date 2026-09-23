@@ -98,6 +98,7 @@ struct W8CombatSlot {
    power level and a spare word; an item use's holds the use kind and the item.
    It is the party slot row's own pair in both cases rather than a copy, which
    is why every reader takes a pointer to it. */
+// union-ok: action kinds 7 and 8 select the spell and item-use payloads respectively.
 union W8ActionDetailBlock {
     struct {
         int power_level;

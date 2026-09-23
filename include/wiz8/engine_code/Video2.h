@@ -64,16 +64,6 @@ void VideoGetClientRect(RECT* rect);
 void VideoToolTip(UINT16* text);
 extern INT32 g_help_box_width;
 extern INT32 g_help_box_height;
-/* DisplayFastHelp in mousesystem.c and the product region code both access
-   these fields inline; no separate getter bodies occur at those call sites. */
-static __inline INT32 VideoGetToolTipWidth(void)
-{
-    return g_help_box_width;
-}
-static __inline INT32 VideoGetToolTipHeight(void)
-{
-    return g_help_box_height;
-}
 void VideoPositionToolTip(INT32 x, INT32 y);
 void VideoRemoveToolTip(void);
 

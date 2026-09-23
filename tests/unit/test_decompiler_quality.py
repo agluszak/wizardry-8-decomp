@@ -273,3 +273,54 @@ def test_require_quality_measurement_requires_matching_fingerprint(tmp_path, mon
     )
     with pytest.raises(RuntimeError, match="current ProgramDB"):
         require_quality_measurement(settings, object(), "wiz8")
+
+
+def test_run_decompiler_quality_records_canonical_program_name(tmp_path, monkeypatch) -> None:
+    import json
+
+    import wiz8decomp.decompiler_quality as dq
+
+    canonical_name = "wiz8--gog-base--wiz8--18a74ff61c65"
+    settings = SimpleNamespace(repo_dir=tmp_path, build_dir=tmp_path / "build")
+    evaluated_programs = []
+    monkeypatch.setattr(
+        "wiz8decomp.ghidra.project.resolve_program_name",
+        lambda _settings, selector: canonical_name if selector == "wiz8" else selector,
+    )
+    monkeypatch.setattr(
+        dq,
+        "select_corpus",
+        lambda *_args, **_kwargs: {
+            "addresses": [0x401000],
+            "seed": 1,
+            "limit": 1,
+            "candidates": 1,
+            "match_filter": "exact|effective",
+            "corpus_kind": "oracle",
+            "corpus_source": "test",
+        },
+    )
+
+    def evaluate(_settings, _addresses, *, program_name, profile):
+        evaluated_programs.append(program_name)
+        return {
+            "program_state": {},
+            "functions": [],
+            "summary": {
+                "requested": 1,
+                "ok": 1,
+                "failures": 0,
+                "totals": {},
+                "mean_debt": 0.0,
+                "max_debt": 0,
+            },
+        }
+
+    monkeypatch.setattr(dq, "evaluate_corpus", evaluate)
+    report_dir = tmp_path / "decompiler-quality"
+
+    dq.run_decompiler_quality(settings, program_name="wiz8", out_dir=report_dir)
+
+    report = json.loads((report_dir / "report.json").read_text(encoding="utf-8"))
+    assert evaluated_programs == [canonical_name]
+    assert report["program"] == canonical_name

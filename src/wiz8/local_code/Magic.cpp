@@ -2777,23 +2777,25 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
         chance += record->spell_level * index;
     }
     if (gXStatus.fCombatMode != '\0') {
+        bool has_valid_difficulty = true;
+
         if (g_settings_6850c8.difficulty == 0) {
             morale = 0x50;
         } else if (g_settings_6850c8.difficulty == 1) {
             morale = 0x3c;
-        } else {
-            if (g_settings_6850c8.difficulty != 2) {
-                srAssertFail("FALSE", MAGIC_CPP, 0x14e8, 0);
-                goto LAB_004faa0f;
-            }
+        } else if (g_settings_6850c8.difficulty == 2) {
             morale = 0x28;
+        } else {
+            srAssertFail("FALSE", MAGIC_CPP, 0x14e8, 0);
+            has_valid_difficulty = false;
         }
-        threshold = g_combat_state->characters[slot].phase_clock_stamp;
-        if (morale <= threshold) {
-            chance = (((0x32 - morale) + threshold) * chance * 2) / 100;
+        if (has_valid_difficulty) {
+            threshold = g_combat_state->characters[slot].phase_clock_stamp;
+            if (morale <= threshold) {
+                chance = (((0x32 - morale) + threshold) * chance * 2) / 100;
+            }
         }
     }
-LAB_004faa0f:
     if (spell_id == 0x4a && aim->iType == W8_TARGET_KIND_CHARACTER && aim->iChar == party_slot) {
         chance += 0x32;
     }

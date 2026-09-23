@@ -59,24 +59,13 @@ struct W8OctreeTrace {
 };
 
 static_assert(sizeof(W8OctreeTrace) == 0x30, "W8OctreeTrace_must_be_0x30");
-/* Bulk vector-array writes and reads the .oct submesh serializers share. The
-   writers stage at most 0x100 records through a stack buffer per FileWrite.
-
-   Retail emits exactly one reader/writer pair per record width and every call
-   site lives in OctMeshModel::Read/Write. The width-12 entries serve both
-   srVector3T<float> arrays (vertex locations, normals, lights) and srVector3i
-   index triples (poly-vertex, poly-UV); this incremental-link build performs
-   no identical-function folding, so the shared entry is one source function,
-   not a folded overload pair or a per-type template instantiation. The
-   writer's elementwise staging copy proves the declared element was a
-   complete 12-byte record rather than raw storage, and the family is keyed
-   on the float vector width (srVector2/3/4 are the float typedefs), so the
-   float spelling is canonical and the integer triples are the reused case. */
+/* The width-12 .oct helpers copy three 32-bit components per record. Submesh
+   streams use them for both float vectors and integer index triples. */
 BOOLEAN WriteVector4Array004372E0(int file, const srVector4T<float>* values, int count);
-BOOLEAN WriteVector3Array00437390(int file, const srVector3T<float>* values, int count);
+BOOLEAN WriteVector3Array00437390(int file, const void* values, int count);
 BOOLEAN WriteVector2Array00437430(int file, const srVector2T<float>* values, int count);
 bool ReadVector4Array004374C0(int file, srVector4T<float>* values, int count);
-bool ReadVector3Array004374E0(int file, srVector3T<float>* values, int count);
+bool ReadVector3Array004374E0(int file, void* values, int count);
 bool ReadVector2Array00437510(int file, srVector2T<float>* values, int count);
 /* Distance from `point` to the `from`-`to` segment, shared by the trace
    resolver and the GameData surface walk. When `clamp_point` is set the
@@ -102,10 +91,7 @@ char SphereNearBounds(const srVector3T<float>* point, float radius,
    cast at the call-site boundary. */
 inline bool ReadVectorArray(int file, srVector3i* values, int count)
 {
-    return ReadVector3Array004374E0(
-        file, reinterpret_cast<srVector3T<float>*>(values), /* reinterpret-ok: the
-            float reader's raw 12-byte record is the index-triple record */
-        count);
+    return ReadVector3Array004374E0(file, values, count);
 }
 inline bool ReadVectorArray(int file, srVector3T<float>* values, int count)
 {
@@ -120,14 +106,9 @@ inline bool ReadVectorArray(int file, srVector2T<float>* values, int count)
     return ReadVector2Array00437510(file, values, count);
 }
 
-/* The polygon index triples serialize through the same canonical 12-byte
-   float-vector writer. */
 inline BOOLEAN WriteVectorArray(int file, const srVector3i* values, int count)
 {
-    return WriteVector3Array00437390(
-        file, reinterpret_cast<const srVector3T<float>*>(values), /* reinterpret-ok: the
-            float writer's raw 12-byte record is the index-triple record */
-        count);
+    return WriteVector3Array00437390(file, values, count);
 }
 inline BOOLEAN WriteVectorArray(int file, const srVector3T<float>* values, int count)
 {

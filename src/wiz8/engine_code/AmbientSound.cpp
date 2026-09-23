@@ -962,10 +962,7 @@ void SaveAmbientSoundList0047B140(HWFILE handle)
     }
 }
 
-/* The serialized per-record payload is just the 0x80-byte name and the stopped
-   byte; on load each name is matched against the live list and the matching
-   script commands are replayed — the helpers rescan the list themselves, and
-   VC6 inlines that rescan twice here. */
+/* Load each saved name and stopped flag, then replay matching script commands. */
 // FUNCTION: WIZ8 0x0047b270
 void LoadAmbientSoundList0047B270(HWFILE handle)
 {

@@ -920,17 +920,8 @@ static unsigned int FindDialogueTextLine(const W8DialogueTextState* input)
     return line;
 }
 
-/* Expands at call sites that retail inlines; 0x00590900 is the out-of-line
-   emission for the few retail CALL sites. */
 /* Retail returns 7 when the text box is in a multi-line mode (spell / item /
    camp / NPC dialogue with the transcript collapsed); otherwise 1. */
-#define W8_TEXT_BOX_VISIBLE_LINE_COUNT()                                                           \
-    (((gXStatus.fNpcDialogueMode == 0 || g_screen_state_00649f1c->text_box_collapsed == 0) &&      \
-      (gXStatus.fSpellCastMode != 0 || gXStatus.fNpcDialogueMode != 0 ||                           \
-       gXStatus.fItemSelectMode != 0 || gXStatus.fCampMode != 0))                                  \
-         ? 7                                                                                       \
-         : 1)
-
 // FUNCTION: WIZ8 0x00590900
 int GetTextBoxVisibleLineCount(void)
 {
@@ -1061,7 +1052,7 @@ void AdvanceNoticeLine(short text_box)
             }
         } else if (!IsNpcDialogueTextBoxActive577830()) {
             ScrollTextBoxTo(GetTextBoxLineCount(g_status_685170.text_line_cursor_1795) -
-                            W8_TEXT_BOX_VISIBLE_LINE_COUNT());
+                            GetTextBoxVisibleLineCount());
         }
     }
     RequestRedraw(W8_REDRAW_TEXT_BOX);
@@ -1079,7 +1070,7 @@ void ScrollTextBoxTo(int line)
         input_lines = g_level_block->dialogue_text_input->line_count;
     }
     unsigned int count = g_status_685170.text_box_lines_shown_49a7[text_box];
-    unsigned int visible = W8_TEXT_BOX_VISIBLE_LINE_COUNT();
+    unsigned int visible = GetTextBoxVisibleLineCount();
     if (input_lines + count <= visible) {
         return;
     }
@@ -1096,7 +1087,7 @@ void ScrollTextBoxTo(int line)
     if (g_level_block->text_lines[text_box] != previous) {
         g_level_block->text_content_region = (g_level_block->text_lines[text_box] != 0) + 0x56;
         g_level_block->dialogue_content_region =
-            (g_level_block->text_lines[text_box] + W8_TEXT_BOX_VISIBLE_LINE_COUNT() <
+            (g_level_block->text_lines[text_box] + GetTextBoxVisibleLineCount() <
              count + input_lines) +
             0x59;
         RequestRedraw(W8_REDRAW_TEXT_BOX);
@@ -1123,7 +1114,7 @@ void ScrollTextBoxUp(int lines)
     if (current == previous) {
         return;
     }
-    if (current + W8_TEXT_BOX_VISIBLE_LINE_COUNT() < GetTextBoxLineCount(text_box)) {
+    if (current + GetTextBoxVisibleLineCount() < GetTextBoxLineCount(text_box)) {
         g_level_block->dialogue_content_region = 0x5a;
     }
     if (current == 0) {
@@ -1137,7 +1128,7 @@ void ScrollTextBoxDown(int lines)
 {
     short text_box = g_status_685170.text_line_cursor_1795;
     unsigned int count = GetTextBoxLineCount(text_box);
-    unsigned int visible = W8_TEXT_BOX_VISIBLE_LINE_COUNT();
+    unsigned int visible = GetTextBoxVisibleLineCount();
     unsigned int previous = g_level_block->text_lines[text_box];
     if (previous + visible >= count) {
         return;
@@ -1435,7 +1426,7 @@ static void RewrapDialogueTextFromLine(unsigned int line)
                 g_level_block->dialogue_text_input->line_offsets[line] &&
             !IsNpcDialogueTextBoxActive577830()) {
             ScrollTextBoxTo(GetTextBoxLineCount(g_status_685170.text_line_cursor_1795) -
-                            W8_TEXT_BOX_VISIBLE_LINE_COUNT());
+                            GetTextBoxVisibleLineCount());
         }
         ++line;
     } while (true);
@@ -1576,7 +1567,7 @@ unsigned char TextBoxScrollThumbRegionEvent(const InputAtom* input_event, W8Regi
     }
 
     short text_box = g_status_685170.text_line_cursor_1795;
-    unsigned int visible_lines = W8_TEXT_BOX_VISIBLE_LINE_COUNT();
+    unsigned int visible_lines = GetTextBoxVisibleLineCount();
     unsigned int line_count = GetTextBoxLineCount(text_box);
     if (line_count <= visible_lines) {
         return 0;
@@ -1692,7 +1683,7 @@ unsigned char TextBoxScrollUpRegionEvent(const InputAtom* event, W8Region* regio
         if (current == previous) {
             return 1;
         }
-        if (current + W8_TEXT_BOX_VISIBLE_LINE_COUNT() < GetTextBoxLineCount(text_box)) {
+        if (current + GetTextBoxVisibleLineCount() < GetTextBoxLineCount(text_box)) {
             g_level_block->dialogue_content_region = 0x5a;
         }
         if (g_level_block->text_lines[text_box] == 0) {
@@ -1707,7 +1698,7 @@ unsigned char TextBoxScrollUpRegionEvent(const InputAtom* event, W8Region* regio
 unsigned char TextBoxScrollDownRegionEvent(const InputAtom* event, W8Region* region)
 {
     short text_box = g_status_685170.text_line_cursor_1795;
-    unsigned int visible = W8_TEXT_BOX_VISIBLE_LINE_COUNT();
+    unsigned int visible = GetTextBoxVisibleLineCount();
     unsigned int count = GetTextBoxLineCount(text_box);
     if (g_level_block->text_lines[text_box] + visible >= count) {
         PushButtonSoundScheme005587C0(0, 1);
@@ -1778,8 +1769,7 @@ unsigned char TextBoxBodyRegionEvent(const InputAtom* event, W8Region* region)
                 }
                 unsigned int current = g_level_block->text_lines[text_box];
                 if (current != previous) {
-                    if (current + W8_TEXT_BOX_VISIBLE_LINE_COUNT() <
-                        GetTextBoxLineCount(text_box)) {
+                    if (current + GetTextBoxVisibleLineCount() < GetTextBoxLineCount(text_box)) {
                         g_level_block->dialogue_content_region = 0x5a;
                     }
                     if (g_level_block->text_lines[text_box] == 0) {
@@ -2470,7 +2460,6 @@ void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
     if (line->entries_18 == 0) {
         return;
     }
-    // reinterpret-ok: retail counts the pointer-list through the IList API
     unsigned int count = PLLength(line->entries_18);
     for (int i = 0; i < static_cast<int>(count); ++i) {
         W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(line->entries_18, i));
@@ -2507,7 +2496,6 @@ void ResetUsedNoticeWords(int text_box, unsigned char redraw)
     for (int i = 0; i < 0x15e; ++i) {
         W8PList* list = g_message_storage_68f2d8[text_box][i].entries_18;
         if (list != 0) {
-            // reinterpret-ok: retail counts the pointer-list through the IList API
             unsigned int count = PLLength(list);
             for (int j = 0; j < static_cast<int>(count); ++j) {
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
@@ -2529,7 +2517,6 @@ void ClearNoticeWordHover(int text_box, unsigned char redraw)
     for (int i = 0; i < 0x15e; ++i) {
         W8PList* list = g_message_storage_68f2d8[text_box][i].entries_18;
         if (list != 0) {
-            // reinterpret-ok: retail counts the pointer-list through the IList API
             unsigned int count = PLLength(list);
             for (int j = 0; j < static_cast<int>(count); ++j) {
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
@@ -2557,7 +2544,6 @@ void HighlightNoticeWordAt(int text_box, unsigned short x, unsigned short y)
     for (int i = 0; i < 0x15e; ++i) {
         list = g_message_storage_68f2d8[text_box][i].entries_18;
         if (list != 0) {
-            // reinterpret-ok: retail counts the pointer-list through the IList API
             count = PLLength(list);
             for (int j = 0; j < static_cast<int>(count); ++j) {
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
@@ -2583,7 +2569,6 @@ void HighlightNoticeWordAt(int text_box, unsigned short x, unsigned short y)
                               2);
             }
             list = g_message_storage_68f2d8[text_box][line].entries_18;
-            // reinterpret-ok: retail counts the pointer-list through the IList API
             count = PLLength(list);
             offset = x - x_base;
             for (int i = 0; i < static_cast<int>(count); ++i) {
@@ -2661,14 +2646,12 @@ void PostMonsterNotice(W8MonsterInfo* monster_info, const wchar_t* format, ...)
 }
 
 /* Re-show the last wrapped entry of `mode`'s message run as a notice line;
-   0xffff derives the mode from the live dialogue/camp/combat state. Retail
-   only fills `merged` when the run index range is non-empty, so a failing
-   (but returning) srAssertFail left it uninitialized at ShowNoticeLine; the
-   deterministic empty string models that defect path. */
+   0xffff derives the mode from the live dialogue/camp/combat state. */
 // FUNCTION: WIZ8 0x00590BD0
 void RefreshTextBoxMode00590BD0(unsigned short mode)
 {
-    wchar_t merged[500] = {0};
+    // MATCH: retail leaves this local uninitialized until the line loop runs.
+    wchar_t merged[500];
     W8MessageStorageRecord* line;
     unsigned int last_line;
     unsigned int group_lines;

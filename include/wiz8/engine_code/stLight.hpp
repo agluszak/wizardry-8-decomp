@@ -214,9 +214,6 @@ public:
     }
 
 public:
-    /* One value, not three floats: 0x0049C690 copies it through the base-pointer
-       form VC6 emits for a class type's memberwise assignment, not through three
-       independent displacement loads. */
     srVector3T<float> m_position_228;    /* 0x228 */
     stLightDefinition* m_definition_234; /* 0x234: owned */
     unsigned char m_padding_238;         /* 0x238 */

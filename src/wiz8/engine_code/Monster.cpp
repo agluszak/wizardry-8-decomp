@@ -105,8 +105,7 @@ float g_light_scale_0060bfe0 = 1.0f;
 
 // GLOBAL: WIZ8 0x0065970C
 unsigned char g_monster_shadow_updates_enabled_0065970c;
-/* Layout-compatible with srVector3T<float> but POD so VC6 emits static .data
-   instead of a dynamic initializer into .bss. */
+/* Position offsets for attached items, indexed by layout and slot. */
 struct W8AttachmentOffset {
     float x;
     float y;
@@ -752,9 +751,9 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
     }
     if (representation->animations[1].GetCount() < 1) {
         ShutdownWithErrorBox(
-            reinterpret_cast<const char*>(String( // reinterpret-ok: String returns a logging buffer
-                "Monster %s: Missing CYCLE_%s, sub-cycle %d", representation->name_5c0, "IDLE",
-                0)));
+            reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
+                String("Monster %s: Missing CYCLE_%s, sub-cycle %d", representation->name_5c0,
+                       "IDLE", 0)));
     }
     W8AnimObj* idle = *representation->animations[1].GetAt(0);
     if (idle != 0) {
@@ -1218,9 +1217,6 @@ void W8MonsterRep::CopyCycle004BF0F0(signed char cycle, const W8MonsterRep* othe
     }
 }
 
-/* `new stLight` above is what forces this emission: VC6 inlines stLight's own
-   empty default constructor at the allocation site but leaves the registry
-   base's constructor out of line here. */
 // TEMPLATE: WIZ8 0x004CA8B0
 // srClassSupport<stLight,srLight,0,65542>::srClassSupport
 
@@ -1353,8 +1349,7 @@ W8Monster::~W8Monster()
     }
 }
 
-/* Navigator is W8Monster's second base at +0x18. VC6 places this override in
-   that secondary table and emits the adjusted entry form at 0x004CA840. */
+/* Navigator is W8Monster's second base at +0x18. */
 // FUNCTION: WIZ8 0x004ca840
 void W8Monster::SetPosition(const srVector3T<float>* position)
 {
@@ -3613,9 +3608,10 @@ void W8Monster::SetCycle(signed char cycle)
     }
 
     if (cycle == 0x15) {
-        W8ModelInstance3DRenderState empty = {0, 0, 0, 0};
+        W8ModelInstance3DRenderState empty;
         srModelInstance* instance;
 
+        empty.highlight = 0.0f;
         m_pRep->render_state_04c = empty;
         instance = SelectCycleFrameLod004A8360(m_pRep->current_cycle, 0, m_pRep->m_bLOD);
         if (instance != 0 && instance->model() != 0 &&
@@ -4527,32 +4523,8 @@ void W8Monster::GetMappedPosition004C72A0(srVector3T<float>* position)
    reachable from a free declaration. The receiver is the monster's Navigator
    base at +0x18. */
 
-/* Copies a position into a local and hands the local on. The monster argument
-   is dead beyond its own null check - the callee never receives it - which is
-   the same shape the other guarded forwarders here take, except that what
-   survives the guard is the copy rather than the object.
-   The copy goes through the FPU one component at a time - `fld dword` then
-   `fstp dword` per component - rather than as the three integer moves VC6
-   emits for a plain three-float assignment, which is what this body still gets
-   and the whole of its remaining difference. That shape is the signature of
-   srVector3T<float>::Set expanded inline: its parameters are
-   doubles, so each float round-trips through the FPU instead of being copied
-   as bits. The image carries both an out-of-line COMDAT copy of that setter at
-   0x00421680 and this inlined expansion, which is the multiple-translation-unit
-   visibility the inlining policy asks for before a body moves into a header.
-
-   That was measured rather than argued. Defining the setter in srMath.h and
-   calling it here reproduces the copy exactly - the three fld/fstp pairs land
-   instruction for instruction, leaving only a register choice and one
-   scheduling swap - and takes this body from 0.375 to 0.8125. It also stops
-   VC6 emitting the out-of-line copy at all, because this is the only call site
-   in the tree and it inlines: 0x00421680 goes from exact to missing. The
-   inlining policy requires the bundle to improve without regressing an exact
-   boundary, so the trade is refused and the out-of-line definition stays.
-   Hand-spelling the conversion does not work either - `(float)(double)f` is
-   value-preserving, so VC6 folds it straight back to the integer copy.
-   Reproducing both emissions needs a second call site that does not inline,
-   which is not decidable from this one; the filed bead tracks it. */
+/* Copy the position under the monster guard before forwarding it to the LOD
+   selector. */
 // FUNCTION: WIZ8 0x004c5a40
 void MonsterForward4A7BE0(W8Monster* monster, const srVector3T<float>* position)
 {
@@ -4596,10 +4568,10 @@ void MonsterSetRuntimeBlock4C(W8Monster* monster, W8MonsterRuntimeBlock4C block)
 void SetMonsterHighlightColour(W8Monster* monster, float red, float green, float blue, float alpha)
 {
     W8MonsterRuntimeBlock4C block;
-    block.highlight_red = red;
-    block.highlight_green = green;
-    block.highlight_blue = blue;
-    block.highlight_alpha = alpha;
+    block.highlight.x = red;
+    block.highlight.y = green;
+    block.highlight.z = blue;
+    block.highlight.w = alpha;
     MonsterSetRuntimeBlock4C(monster, block);
 }
 
@@ -4705,11 +4677,6 @@ unsigned char LoadMonsterCycle004C5910(const W8GrCycleLoadContext* context, cons
     return success;
 }
 
-/* Two whole-body tail calls. Neither wrapper takes an argument and neither
-   callee touches ECX - both read only the pair of globals at 0x00659B34 and
-   0x00659B3C - so the wrappers pass nothing on and VC6 lowers each to a bare
-   jump. That is the whole difference from the cdecl pass-throughs above: with
-   no stack arguments there is nothing left to clean up. */
 // FUNCTION: WIZ8 0x004c61e0
 void MonsterForward453160(void)
 {

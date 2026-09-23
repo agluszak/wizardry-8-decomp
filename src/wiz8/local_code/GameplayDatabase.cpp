@@ -177,16 +177,14 @@ unsigned char InitializeItemTables(void)
     return 1;
 }
 
-/* Seeks straight to one record rather than holding the file open, and strips the
-   four name fields afterwards. The failed seek leaves the handle open where
-   every other failure closes it, as elsewhere in this unit. The bytes-read
-   out-parameter is the index's own incoming slot, dead once it has been copied
-   into a register. */
+/* Read one record at its indexed file offset, then strip its four name fields.
+   A failed seek leaves the handle open. */
 // FUNCTION: WIZ8 0x0054a8a0
 unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRecord* record)
 {
     char path[60];
     unsigned int index = uiMonsterIndex;
+    unsigned int bytes_read;
     int handle;
 
     if (!(index < gXStatus.uiMonstersInDatabase)) {
@@ -201,7 +199,7 @@ unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRe
     if (!FileSeek(handle, index * 0x297 + 4, 1)) {
         return 0;
     }
-    if (!FileRead(handle, record, 0x297, &uiMonsterIndex)) {
+    if (!FileRead(handle, record, 0x297, &bytes_read)) {
         FileClose(handle);
         return 0;
     }
@@ -234,9 +232,7 @@ void FreeIfNotNull(void* block)
     }
 }
 
-/* The counterpart to InitializeItemTables: the category names first, then the
-   tables, each entry freed before its array. Both arrays are re-read after
-   every free because nothing tells VC6 that free leaves them alone. */
+/* Free the category names and each item table. */
 // FUNCTION: WIZ8 0x0054a6e0
 void DestroyItemTables(void)
 {
@@ -301,17 +297,15 @@ unsigned char LoadMonsterDatabase(W8MonsterRecord** records)
     return 1;
 }
 
-/* The range sibling of LoadMonsterDatabaseRecord, named by its own assertion at
-   GameplayDatabase.cpp line 378. It seeks to the first record and reads the
-   whole inclusive span in one call, computing the length as two separate record
-   offsets subtracted rather than from a record count. The bytes-read
-   out-parameter is uiEndIndex's own slot, dead once copied into a register, and
-   a failed seek leaves the handle open where every other failure closes it. */
+/* Read the inclusive record span in one call. Its length is the last record's
+   end offset minus the first record's offset. A failed seek leaves the handle
+   open. */
 // FUNCTION: WIZ8 0x0054a9a0
 unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int uiEndIndex,
                                        unsigned int unused, W8MonsterRecord* records)
 {
     char path[56];
+    unsigned int bytes_read;
     int handle;
 
     if (!(uiEndIndex < gXStatus.uiMonstersInDatabase)) {
@@ -325,7 +319,7 @@ unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int u
     if (!FileSeek(handle, uiStartIndex * 0x297 + 4, 1)) {
         return 0; /* retail: failed seek leaves the handle open */
     }
-    if (!FileRead(handle, records, (uiEndIndex + 1) * 0x297 - uiStartIndex * 0x297, &uiEndIndex)) {
+    if (!FileRead(handle, records, (uiEndIndex + 1) * 0x297 - uiStartIndex * 0x297, &bytes_read)) {
         FileClose(handle);
         return 0;
     }

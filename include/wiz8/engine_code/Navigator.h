@@ -132,11 +132,11 @@ struct W8NavigatorMovementState {
     unsigned short padding_006;
     int leadership_rank_008;
     int active_rank_00c;
-    /* -1 means no resolved target. Navigation and OctPath use this as the
-       location id of the tracked target; OctPath's single-candidate path
-       search aliases the slot itself as its one-element candidate array
-       (LEA [movement+0x10]) — see TargetLocationAsCandidate(). */
-    int target_location_id_010;
+    // union-ok: PlanMovement tests this signed target id, then uses the same word as its one-item unsigned candidate list when the id is positive.
+    union {
+        int target_location_id_010;
+        unsigned long target_location_candidate_010;
+    };
     float yaw;
     float target_yaw;
     /* UpdateYawSteering accelerates/decelerates this signed angular rate. */
@@ -192,14 +192,11 @@ struct W8NavigatorMovementState {
        named member rather than an assignment operator. */
     void CopySettingsFrom(const W8NavigatorMovementState& other);
 
-    /* OctPath's single-candidate path search points its unsigned-long
-       candidate array at this slot rather than allocating a one-element
-       list (PlanMovement00463460 emits LEA [movement+0x10]); this accessor
-       keeps the int/unsigned-long reinterpretation inside the type. */
+    /* Return the target slot as the path planner's one-element candidate
+       array. */
     unsigned long* TargetLocationAsCandidate()
     {
-        // reinterpret-ok: candidate array aliases the one target-location slot
-        return reinterpret_cast<unsigned long*>(&target_location_id_010);
+        return &target_location_candidate_010;
     }
 };
 
@@ -422,14 +419,6 @@ public:
     void SetTurnRate(float turn_rate);                /* 0x00453C90 */
 
 public:
-    /* Monster.cpp reaches this state as a secondary base through
-       `lea ecx,[monster+0x18]`. It used to be unioned with an unsigned int[98]
-       dword view, because the recovered constructor wrote it as a memset plus
-       indexed stores. The retail constructor contains no memset and constructs
-       movement_0c0 through its own constructor, so the dword view was modelling
-       a body that does not exist - and while it existed it made this a union
-       member, which C++98 forbids from having a constructor or destructor and
-       which therefore blocked both of the movement tail's special members. */
     unsigned char padding_004[4];
     int navigation_mode_008;
     unsigned int flags_00c;

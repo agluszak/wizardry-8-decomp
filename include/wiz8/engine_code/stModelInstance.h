@@ -48,8 +48,8 @@ public:
                                                     srTextureIFace* replacement);
     unsigned char displayState() const
     {
-        // reinterpret-ok: scene purge reads the low byte at +0x170; its relation to highlight alpha remains unresolved
-        return *reinterpret_cast<const unsigned char*>(&render_state_164.highlight_alpha);
+        // reinterpret-ok: scene purge consumes the low byte stored at +0x170.
+        return *reinterpret_cast<const unsigned char*>(&render_state_164.highlight.w);
     }
 
     virtual ~stModelInstance() override; /* 0x0047EF70 */

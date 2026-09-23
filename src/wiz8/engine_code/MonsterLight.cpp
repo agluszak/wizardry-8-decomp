@@ -93,8 +93,6 @@ MonsterLight::MonsterLight(const MonsterLight& other) : srLight(0)
     m_start_time_244 = g_game_time_accumulator_6598bc->GetElapsed();
 }
 
-/* The concrete class owns no allocation beyond its regular srLight base.
-   VC6 emits the registry teardown for the ordinary empty derived body. */
 // FUNCTION: WIZ8 0x0049E0D0
 MonsterLight::~MonsterLight() {}
 

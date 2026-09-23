@@ -51,11 +51,7 @@ static float normalized_colour(unsigned int component)
     return (float)component * (1.0f / 255.0f);
 }
 
-/* Builds the two 512-entry greyscale ramps consumed by the environment
-   renderer.  Each ramp rises from black through 127/255, then falls from
-   127/255 to zero. Retail builds one array at a time in four pointer-walk
-   loops and saturates every element through SaturateColor004299B0; this body
-   fills both arrays in two loops, so its shape is still an open mismatch. */
+/* Initialize the two greyscale ramps and reset the sky and environment state. */
 // FUNCTION: WIZ8 0x00482280
 unsigned char InitializeEnvironmentColours(void)
 {

@@ -1,21 +1,11 @@
 #ifndef WIZ8_FLOAT_CONSTANTS_H
 #define WIZ8_FLOAT_CONSTANTS_H
 
-/* Float globals the image keeps as addressable storage rather than as
-   immediate operands. A body that compares against one of these emits an FPU
-   compare against its address; writing the literal instead lets VC6 fold the
-   comparison into an integer test, which is how the difference shows up.
-
-   They live here because more than one translation unit reads them, and one
-   address must have one name: 0x005EBB38 had accumulated four - g_one,
-   g_float, g_light_scale_identity twice - across GDCamera, Monster, PathAI,
-   Navigator, Spells and the stLight unit. The names here are
-   address-qualified on purpose: the same slot is read as a scale by one body,
-   as a clamp bound by another and as a threshold by a third, so no role name
-   is true of it. */
+/* Address-qualified names preserve the shared identities of floating-point
+   globals read by several translation units under different roles. */
 
 extern const float g_float_005ebb38;
-extern const float g_float_005ebb34;
+extern float g_float_005ebb34;
 /* 0x005EBB30: 0.8, the radian bias subtracted from the near-camera scatter
    heading in PositionMonsterGroupNearCamera00511050. */
 extern const float g_float_005ebb30;

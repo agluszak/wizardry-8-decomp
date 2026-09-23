@@ -59,22 +59,15 @@ wchar_t* g_pending_main_menu_message;
 // GLOBAL: WIZ8 0x0069c4c0
 W8MessageDialogBase* g_main_menu_dialog;
 
-/* Draws one of the six menu items. The first switch turns the item index into
-   its sprite slot and its top and bottom rows; the second turns the requested
-   state into a sprite id. Item two is forced to state three whenever the flag
-   0x005BC810 stores from 0x00512FB0 is clear, which is the only item whose
-   state the screen overrides.
-
-   The sprite call is written in every case rather than assigning the id and
-   calling once: the original pushes each id as a literal and lets VC6 cross-jump
-   the four identical calls together. An unrecognised state draws no sprite but
-   still redraws the row. */
+/* Draw one menu item and invalidate its row. The third item uses its disabled
+   sprite state when no save games are present. */
 // FUNCTION: WIZ8 0x005bcab0
 unsigned char DrawMainMenuItem(short item, short state)
 {
     int slot;
     int top;
     int bottom;
+    int sprite;
 
     switch (item) {
     case 0:
@@ -114,19 +107,20 @@ unsigned char DrawMainMenuItem(short item, short state)
         return 0;
     }
 
-    switch (state) {
-    case 0:
-        DrawCatalogImage(-14, 0xea, 0, slot, 0x98, top, 2, 0);
-        break;
-    case 1:
-        DrawCatalogImage(-14, 0xec, 0, slot, 0x98, top, 2, 0);
-        break;
-    case 2:
-        DrawCatalogImage(-14, 0xeb, 0, slot, 0x98, top, 2, 0);
-        break;
-    case 3:
-        DrawCatalogImage(-14, 0xed, 0, slot, 0x98, top, 2, 0);
-        break;
+    if (state >= 0 && state <= 3) {
+        sprite = 0xea;
+        switch (state) {
+        case 1:
+            sprite = 0xec;
+            break;
+        case 2:
+            sprite = 0xeb;
+            break;
+        case 3:
+            sprite = 0xed;
+            break;
+        }
+        DrawCatalogImage(-14, sprite, 0, slot, 0x98, top, 2, 0);
     }
 
     InvalidateRegion(0x98, top, 0x1f2, bottom, 0);
@@ -165,8 +159,7 @@ unsigned char MainMenuScreenEnter(void)
     g_main_menu_selected_item = 0;
     DrawCatalogImage(-14, 0xe8, 0, 0, 0, 0, 2, 0);
 
-    /* Six items cleared then the selected one set, written out rather than
-       looped: the original repeats the call with a literal index each time. */
+    /* Clear the six rows, then draw the selected row. */
     DrawMainMenuItem(0, 0);
     DrawMainMenuItem(1, 0);
     DrawMainMenuItem(2, 0);

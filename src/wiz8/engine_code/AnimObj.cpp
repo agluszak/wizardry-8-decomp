@@ -36,8 +36,7 @@ W8AnimObj* CreateAnimObj004A01A0()
 unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* animation, int load_all,
                                           W8GrowableVector<stLight*>* light_list, int unused)
 {
-    /* Retail read `frames` uninitialised when its FileRead short-circuited;
-       a deterministic zero models that defect path. */
+    // MATCH: retail consumes this local after a failed read without initializing it.
     unsigned char version = 0;
     unsigned char success;
     unsigned char discarded[50];
@@ -89,7 +88,7 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
     }
 
     if (version > 6) {
-        unsigned char frames = 0;
+        unsigned char frames;
         FileRead(handle, &frames, 1, 0);
         if (animation->pfKnownBBoxFrames == 0 && frames != 0) {
             animation->pfKnownBBoxFrames = static_cast<unsigned char*>(malloc(frames));

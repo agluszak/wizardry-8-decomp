@@ -173,8 +173,6 @@ void UpdateWorldProps0044E010(W8World* world)
     }
 }
 
-/* VC6 emits the scalar-deleting wrapper from this ordinary virtual
-   destructor. */
 // SYNTHETIC: WIZ8 0x0044BEA0
 // W8Prop::`scalar deleting destructor'
 // FUNCTION: WIZ8 0x0044bec0

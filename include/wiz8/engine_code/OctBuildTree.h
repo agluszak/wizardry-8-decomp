@@ -30,18 +30,25 @@ struct W8OctBuildNode00446330 {
     int CollectSurfaceArray004AF9B0(short mode);
     unsigned long ConvertToOctPreTree004AFA30(unsigned short depth, OctPreTree* tree);
 
+    // union-ok: leaf_kind_2a selects child traversal or leaf links; 0x004AF7B0 replaces links with arrays during pre-tree conversion.
     union {
         W8OctBuildNode00446330* children_00[8];
         W8OctBuildLink* links_00[8];
-        void** surface_arrays_00[8]; /* elements follow the insert mode */
+        void** surface_arrays_00[8];
         unsigned short* region_arrays_00[8];
     };
     unsigned long padding_20;
     unsigned long padding_24;
     unsigned short region_28;
     unsigned short leaf_kind_2a;
-    unsigned short provisional_region_2c;
-    unsigned short positional_2e;
+    // union-ok: pre-tree leaves store provisional regions here; the separate kind-10 collector reads a link head here.
+    union {
+        struct {
+            unsigned short provisional_region;
+            unsigned char unknown_2e[2];
+        } region_state_2c;
+        W8OctBuildLink* kind_11_links_2c;
+    };
 };
 
 /* A zero-storage node variant with independently evidenced behavior: its
@@ -53,12 +60,6 @@ struct W8CountedOctBuildNode004AF760 : W8OctBuildNode00446330 {
     ~W8CountedOctBuildNode004AF760();
 };
 
-/* Original owner: Engine Code\OctBuildTree.cpp.  The source path proves the
-   build-tree unit, while the address suffix keeps the still-unrecovered class
-   spelling explicit.  Non-polymorphic like runtime W8Octree: neither the
-   constructor at 0x00446390 nor the destructor at 0x004466D0 stores a vptr;
-   the vtables emitted near this TU belong to vector/template material, not to
-   this type. */
 struct W8OctBuildTree00446390 {
     W8OctBuildTree00446390(float leaf_size, srVector3T<float>* minimum, srVector3T<float>* maximum,
                            unsigned short item_limit, short extent_mode);
@@ -68,7 +69,7 @@ struct W8OctBuildTree00446390 {
     unsigned char InsertSurfaceRecursive004469F0(W8OctSpatialState* working, W8GDSurface* surface,
                                                  srVector3T<float>* plane_point,
                                                  unsigned long mode);
-    int CollectObjectsAlongSegment00446D80(int** results, const srVector3T<float>* from,
+    int CollectObjectsAlongSegment00446D80(W8GDSurface*** results, const srVector3T<float>* from,
                                            const srVector3T<float>* to, float half_angle,
                                            float extent, unsigned short kind);
     /* Append `payload` to the node's `kind` link list, growing the tail and
@@ -108,6 +109,6 @@ static_assert(sizeof(W8CountedOctBuildNode004AF760) == 0x30,
 static_assert(sizeof(W8OctBuildTree00446390) == 0xbc, "W8OctBuildTree00446390_must_be_0xbc");
 
 extern float g_float_005ec188;
-extern void* g_oct_build_scratch_00659a48;
+extern W8GDSurface** g_oct_build_scratch_00659a48;
 
 #endif

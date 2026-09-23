@@ -138,6 +138,58 @@ struct W8DialogueTranscriptRecord {
 };
 static_assert(sizeof(W8DialogueTranscriptRecord) == 0xca, "W8DialogueTranscriptRecord_size");
 
+struct W8MainScreenWidgetFields {
+    W8TextControl* dialogue_text_10c; /* NPC-name caption */
+    W8TextControl* dialogue_text_110;
+    W8TextControl* dialogue_text_114;
+    W8TextControl* dialogue_text_118;
+    W8TextControl* dialogue_text_11c;
+    W8TextControl* dialogue_text_120;
+    W8TextControl* dialogue_text_124;
+    W8TextControl* dialogue_text_128;
+    W8Widget* dialogue_widget_12c;
+    W8NpcDialogueScrollWidget* dialogue_scroll_130;
+    /* Transcript scroll arrows, enabled while the text area is expanded. */
+    W8Widget* dialogue_scroll_up_button;
+    W8Widget* dialogue_scroll_down_button;
+    W8TextControl* dialogue_text_13c;
+    W8TextControl* dialogue_text_140;
+    unsigned char padding_144[4];
+    /* Sort toggle, then the five transcript category buttons. */
+    W8TextControl* dialogue_sort_button;
+    unsigned char unknown_14c[4];
+    W8TextControl* dialogue_people_button;
+    W8TextControl* dialogue_places_button;
+    W8TextControl* dialogue_items_button;
+    W8TextControl* dialogue_misc_button;
+    W8TextControl* dialogue_all_button;
+    W8TextControl* dialogue_text_164;
+    W8TextControl* dialogue_text_168;
+    W8TextControl* dialogue_text_16c;
+    /* The six option buttons hosted by panel_1a8. */
+    W8TextControl* option_buttons_170[6];
+    W8TextControl* dialogue_text_188;
+    unsigned char unknown_18c[4];
+    W8TextControl* dialogue_text_190;
+    W8TextControl* dialogue_text_194;
+    W8TextControl* dialogue_text_198;
+    W8TextControl* dialogue_text_19c;
+    W8TextControl* dialogue_text_1a0;
+    W8TextControl* dialogue_text_1a4;
+};
+static_assert(sizeof(W8MainScreenWidgetFields) == 0x9c, "W8MainScreenWidgetFields_size");
+
+struct W8MainScreenPanelFields {
+    W8MainGamePanel005EE9F0* panel_1a8;
+    Controls* panel_1ac;
+    W8NpcDialogueTextController* npc_dialogue_controller_1b0;
+    Controls* npc_dialogue_panel_1b4;
+    Controls* panel_1b8;
+    Controls* panel_1bc;
+    W8MainGamePanel005EE9E4* text_input_panel_1c0;
+};
+static_assert(sizeof(W8MainScreenPanelFields) == 0x1c, "W8MainScreenPanelFields_size");
+
 struct W8MainScreenState {
     /* 0x000: a word 0x0056CAD0 clears while the dialogue opens. */
     short value_000;
@@ -154,56 +206,16 @@ struct W8MainScreenState {
     int trade_mode;
     int previous_dialogue_layout;
     W8ItemInstance* trade_item;
-    W8TextControl* dialogue_text_10c; /* 0x10c: the NPC-name caption */
-    W8TextControl* dialogue_text_110;
-    W8TextControl* dialogue_text_114;
-    W8TextControl* dialogue_text_118;
-    W8TextControl* dialogue_text_11c;
-    W8TextControl* dialogue_text_120;
-    W8TextControl* dialogue_text_124;
-    W8TextControl* dialogue_text_128;
-    W8Widget* dialogue_widget_12c;
-    W8NpcDialogueScrollWidget* dialogue_scroll_130; /* 0x130 */
-    /* 0x134/0x138: the transcript scroll arrows, wired to
-       ScrollNpcDialogueUp/ScrollNpcDialogueDown and enabled only while the
-       text area is fully expanded. */
-    W8Widget* dialogue_scroll_up_button;   /* 0x134 */
-    W8Widget* dialogue_scroll_down_button; /* 0x138 */
-    W8TextControl* dialogue_text_13c;
-    W8TextControl* dialogue_text_140;
-    unsigned char padding_144[4];
-    /* 0x148: the "Sort Alphabetically" toggle. 0x150..0x160: the five
-       transcript category buttons in People/Places/Items/Misc/All label
-       order, each wired to its SelectNpcDialogueCategory* callback. */
-    W8TextControl* dialogue_sort_button;
-    unsigned char unknown_14c[4];
-    W8TextControl* dialogue_people_button;
-    W8TextControl* dialogue_places_button;
-    W8TextControl* dialogue_items_button;
-    W8TextControl* dialogue_misc_button;
-    W8TextControl* dialogue_all_button;
-    W8TextControl* dialogue_text_164;
-    W8TextControl* dialogue_text_168;
-    W8TextControl* dialogue_text_16c;
-    /* The six option buttons hosted by panel_1a8; they activate only while
-       dialogue_layout == W8_DIALOGUE_LAYOUT_MAIN_TEXT_BOX. Created as plain W8TextControls (regions 0x75..0x7a) by
-       0x0056D1D0. */
-    W8TextControl* option_buttons_170[6];
-    W8TextControl* dialogue_text_188;
-    unsigned char unknown_18c[4];
-    W8TextControl* dialogue_text_190;
-    W8TextControl* dialogue_text_194;
-    W8TextControl* dialogue_text_198;
-    W8TextControl* dialogue_text_19c;
-    W8TextControl* dialogue_text_1a0;
-    W8TextControl* dialogue_text_1a4;
-    W8MainGamePanel005EE9F0* panel_1a8;                       /* 0x1a8 */
-    Controls* panel_1ac;                                      /* 0x1ac */
-    W8NpcDialogueTextController* npc_dialogue_controller_1b0; /* 0x1b0 */
-    Controls* npc_dialogue_panel_1b4;                         /* 0x1b4 */
-    Controls* panel_1b8;                                      /* 0x1b8 */
-    Controls* panel_1bc;                                      /* 0x1bc */
-    W8MainGamePanel005EE9E4* text_input_panel_1c0;            /* 0x1c0 */
+    // union-ok: the region callback indexes these 39 pointer slots; dialogue code also uses typed fields.
+    union {
+        W8MainScreenWidgetFields widgets;
+        W8Widget* widget_slots[39];
+    };
+    // union-ok: panel redraw and teardown walk these seven consecutive Controls pointers.
+    union {
+        W8MainScreenPanelFields panels;
+        Controls* panel_slots[7];
+    };
     /* 0x1c4/0x1c8: the cursor position of the last mouse event the region
        handler acted on; repeat events at the same point are dropped. */
     int last_mouse_x;
@@ -334,13 +346,15 @@ struct W8MainScreenState {
     int last_notice_npc_kind; /* 0x264 */
 };
 static_assert(sizeof(W8MainScreenState) == 0x268, "W8MainScreenState_size");
-static_assert(offsetof(W8MainScreenState, dialogue_scroll_up_button) == 0x134,
+static_assert(offsetof(W8MainScreenState, widgets) == 0x10c, "W8MainScreenState_widgets");
+static_assert(offsetof(W8MainScreenState, panels) == 0x1a8, "W8MainScreenState_panels");
+static_assert(offsetof(W8MainScreenState, widgets.dialogue_scroll_up_button) == 0x134,
               "W8MainScreenState_dialogue_scroll_up_button");
-static_assert(offsetof(W8MainScreenState, dialogue_scroll_down_button) == 0x138,
+static_assert(offsetof(W8MainScreenState, widgets.dialogue_scroll_down_button) == 0x138,
               "W8MainScreenState_dialogue_scroll_down_button");
-static_assert(offsetof(W8MainScreenState, npc_dialogue_controller_1b0) == 0x1b0,
+static_assert(offsetof(W8MainScreenState, panels.npc_dialogue_controller_1b0) == 0x1b0,
               "W8MainScreenState_npc_dialogue_controller_1b0");
-static_assert(offsetof(W8MainScreenState, npc_dialogue_panel_1b4) == 0x1b4,
+static_assert(offsetof(W8MainScreenState, panels.npc_dialogue_panel_1b4) == 0x1b4,
               "W8MainScreenState_npc_dialogue_panel_1b4");
 static_assert(offsetof(W8MainScreenState, script_busy) == 0x1fa, "W8MainScreenState_script_busy");
 static_assert(offsetof(W8MainScreenState, dialogue_npc) == 0x1d4, "W8MainScreenState_dialogue_npc");
@@ -419,8 +433,8 @@ void ClearMainGameTargetState(void);
 /* 0x0068F0F9: a script notice is staged in g_pending_notice_68ee60 */
 extern unsigned char g_flag_68f0f9;
 void SyncNpcServiceButtons0056EE20(int party_slot); /* 0x0056EE20 */
-/* Forward mouse events to W8MainScreenState control slots indexed by
-   callback_id from dialogue_text_10c (ids 1..37, 39; id 0x27 is ignored). */
+/* Forward mouse events through the callback-indexed widget slots. Id 0x27
+   is ignored before lookup. */
 unsigned char MainScreenControlRegionEvent(const InputAtom* event,
                                            struct W8Region* region); /* 0x0056F020 */
 void SwitchNpcDialogueLayout(int interact_id);                       /* 0x00570120 */

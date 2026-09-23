@@ -59,8 +59,18 @@ unsigned int g_message_box_shade;
 bool g_message_box_accepted;
 // GLOBAL: WIZ8 0x0068BFD0
 char g_format_string_buffer[200];
+
+// union-ok: wide formatters and the narrow converter return alternate views of this shared scratch buffer.
+union W8StringConversionBuffer {
+    wchar_t wide[4096];
+    char narrow[4096 * sizeof(wchar_t)];
+};
+
+static_assert(sizeof(W8StringConversionBuffer) == 0x2000,
+              "W8StringConversionBuffer_size_must_match_retail");
+
 // GLOBAL: WIZ8 0x00689FD0
-wchar_t g_wide_string_buffer[4096];
+W8StringConversionBuffer g_wide_string_buffer;
 
 static __inline int UtilityIntegerPower(int base, unsigned int exponent)
 {
@@ -186,22 +196,22 @@ wchar_t* FormatWideString(const wchar_t* format, ...)
     va_list arguments;
 
     va_start(arguments, format);
-    vswprintf(g_wide_string_buffer, format, arguments);
-    return g_wide_string_buffer;
+    vswprintf(g_wide_string_buffer.wide, format, arguments);
+    return g_wide_string_buffer.wide;
 }
 
 // FUNCTION: WIZ8 0x00517ab0
 wchar_t* ConvertStringToWide(const char* string)
 {
-    swprintf(g_wide_string_buffer, L"%hs", string);
-    return g_wide_string_buffer;
+    swprintf(g_wide_string_buffer.wide, L"%hs", string);
+    return g_wide_string_buffer.wide;
 }
 
 // FUNCTION: WIZ8 0x00517ad0
 char* ConvertWideStringToString(const wchar_t* string)
 {
-    sprintf(reinterpret_cast<char*>(g_wide_string_buffer), "%ls", string);
-    return reinterpret_cast<char*>(g_wide_string_buffer);
+    sprintf(g_wide_string_buffer.narrow, "%ls", string);
+    return g_wide_string_buffer.narrow;
 }
 
 // FUNCTION: WIZ8 0x00517af0

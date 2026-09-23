@@ -492,10 +492,9 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
     unsigned int height;
     int width_px;
     int height_px;
-    /* Retail left these unset on the nonzero-background/no-palette path and
-       still consumed them; deterministic defaults model that defect path. */
-    unsigned char colour = 0;
-    unsigned char foreground = 0;
+    // MATCH: retail leaves these unset on the nonzero-background/no-palette path.
+    unsigned char colour;
+    unsigned char foreground;
     unsigned short count;
     unsigned short x;
     unsigned short y;

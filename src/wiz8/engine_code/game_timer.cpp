@@ -148,12 +148,7 @@ W8GameTimer::W8GameTimer()
 
         g_shared_timer = timer;
         g_shared_timer_base = timer;
-        /* The original stores through the new pointer without a null check,
-           and the null-returning operator new makes that reachable; the port
-           keeps the shape. VC6 has no unsigned __int64 to double conversion -
-           C2520 - which is why the original splits the frequency into halves
-           and rejoins them at 2^32; the ternary re-evaluates its else arm,
-           which is what emits the second __aullshr. */
+        /* Retail stores through the allocation without checking it for null. */
         timer->m_units_per_interval = 10000;
         {
             double frequency;

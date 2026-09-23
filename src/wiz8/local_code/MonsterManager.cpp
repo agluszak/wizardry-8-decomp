@@ -1319,11 +1319,7 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
     }
 }
 
-/* Combat entry for one monster entry: it stops and re-poses the live Monster,
-   allocates the 0x153-byte pCombat block the MonsterManager.cpp:672 assertion
-   names, and clears it as 0x54 dwords plus a trailing word and byte - the
-   inline `memset` shape VC6 emits for a zero-initialised structure of that
-   size, which is also what fixes the block's extent. */
+/* Enter combat for one monster, preparing its combat record and action state. */
 // FUNCTION: WIZ8 0x004e4390
 void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
 {
@@ -1393,11 +1389,6 @@ void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info)
         g_combat_state->eCombatActionStatus = 0;
         g_combat_state->pActionMonsterInfo = 0;
     }
-    /* The record cursor is spelled (base + offset) + constant, not
-       (base + constant) + offset: the first form leaves the block pointer as
-       the LEA's base register, which is the encoding the original uses, while
-       the second folds the constant into the displacement and promotes the
-       running offset to base instead. */
     for (index = 0; index < 9; ++index) {
         entry = &monster_info->pCombat->effect_slots_3e[index];
         if (entry->active != 0) {

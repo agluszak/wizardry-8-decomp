@@ -106,10 +106,6 @@
    image. Read as Windows attributes the tests say "is a directory" and "is not
    read-only", which is what a function that verifies save directories asks. */
 
-/* 0x004F8130, ItemManager.cpp line 998: asserts the item is non-null, then
-   reports whether the flag word at +0x29 has any of the caller's bits set. The
-   original spells the result through NEG/SBB/NEG, which is what VC6 emits for a
-   bool conversion, so the return type is bool rather than the mask. */
 /* 0x00659756: set to 1 by LoadLevel (0x0042A6F0) around its restore call at
    0x005135D0 and cleared immediately after, and read only from the save and
    load paths. It gates the bit-3 clear below. The meaning is not established
@@ -1388,13 +1384,8 @@ void ResetLiveSessionForLoad(void)
     ResetGameplayStatusBlock();
 }
 
-/* Makes sure the three save directories exist and are writable before anything
-   is written to them. The names are a table of fixed 60-byte slots terminated
-   by an empty one rather than a count, which is why the walk asks strlen and
-   not an index: the canonical steps a cursor by 0x3C and re-runs the inlined
-   strlen at the bottom of the loop.
-   The empty fourth slot is initialized from a string literal, not zeroed in
-   place, so it is spelled as one here. */
+/* Ensure the save directories exist and are writable. The fixed-width name
+   table ends with an empty fourth slot. */
 // FUNCTION: WIZ8 0x00512d00
 unsigned char VerifyDataSubdirs(void)
 {
@@ -1426,29 +1417,9 @@ unsigned char VerifyDataSubdirs(void)
     return 1;
 }
 
-/* Walks the item's sibling chain and writes each record whole. Two reads go
-   through the head of the chain instead of the item being written: the sector
-   value copied into the current record is read from pItemInfo->pOwner, and the
-   bit-3 clear lands on pItemInfo rather than pItem. The canonical holds the
-   head in EDI for the whole loop and never reloads it, so this is the original
-   source naming the parameter where it meant the cursor, not a scheduling
-   artifact, and it is reproduced literally.
-   As in SaveFactState, the bytes-written out-parameter is the address of the
-   function's own second parameter: the head is already live in a register, so
-   the incoming stack slot is dead and doubles as the scratch the callee
-   requires. That is why the head is copied into a local at all -- reading the
-   parameter directly costs a reload at every use, because taking its address
-   keeps VC6 from enregistering it.
-   The position is copied field by field rather than as a whole vector: a class
-   assignment makes VC6 inline the generated operator=, which materializes the
-   destination address into a register and costs two bytes the canonical does
-   not spend. Written out, VC6 issues the three loads ahead of the three stores,
-   which is the canonical encoding exactly.
-   What is left is the epic's recurring register-role swap, and only in the
-   entry pair: the canonical loads the head into EDI and copies EDI to ESI,
-   while VC6 here loads ESI and copies ESI to EDI. Size, instruction count and
-   every other encoding agree, and neither declaration order nor a guarded
-   do-while moves it. */
+/* Write every sibling. Retail uses the original head's representation flags
+   for each cursor record and passes the incoming item pointer slot to
+   FileWrite's byte-count output. */
 // FUNCTION: WIZ8 0x00514be0
 unsigned char SaveItemFile(int handle, W8WorldItem* item_info)
 {
@@ -1778,24 +1749,8 @@ void DeleteCurrentSaveFiles(void)
     FileDelete("Saves\\CurrentGame.SAV");
 }
 
-/* Two gates with no established meaning beyond their position in the chain, so
-   both keep positional names. Both are zero in the shipped image. */
-
-/* gXStatus.fCombatMode and gXStatus.fCampMode reach this unit through
-   xstatus.h. */
-/* Byte-sized, not int: the refusal below returns through `mov al,1` and the
-   save arm returns this result unchanged, so both share one byte register. */
-
-/* Autosave, if every gate allows it. Declining is reported as success, which is
-   why the whole chain is one condition with a single trailing `return 1` rather
-   than a run of early returns: the canonical has one epilogue for the refusal
-   and one for the save. The chain breaks around each call because a call cannot
-   be hoisted into a short-circuit, which is what the decompiler's nesting is.
-
-   g_status_685170.iron_man does double duty: it both admits a save that the
-   0x0068510d gate would otherwise refuse for a forced call, and selects the
-   name, so a save made under it overwrites the current slot instead of the
-   fixed AutoSave one. */
+/* Save when all gates allow it. Iron Man mode overrides the auto-save setting
+   and uses the last save name; a refused save reports success. */
 // FUNCTION: WIZ8 0x005159e0
 unsigned char AutoSaveIfAllowed(char forced)
 {
@@ -1807,11 +1762,6 @@ unsigned char AutoSaveIfAllowed(char forced)
         gXStatus.fCombatMode == 0 && IsSightRangeOverridden() == 0 &&
         IsLevelDataFlag4EffectivelySet() != 0 && gXStatus.fNpcDialogueMode == 0 &&
         gXStatus.fCampMode == 0) {
-        /* The copy is written out in both arms rather than selecting the source
-           into one call. VC6 tail-merges the two inlined copies but keeps each
-           arm's own destination `lea` and source load, which is the canonical
-           encoding; funnelling both arms through one pointer costs the extra
-           move that a selected argument needs. */
         if (g_status_685170.iron_man != 0) {
             strcpy(name, ConvertWideStringToString(GetLastSaveName()));
         } else {

@@ -1146,10 +1146,7 @@ int GetItemSpellPresentation(const W8ItemDatabaseRecord* record)
    the spell's presentation skill and the character's own level in it decide how
    hard the attempt is. `out_uses` receives the fatigue cost of the attempt, and
    stays -1 when nothing was attempted. */
-/* Several early exits (empty quantity-kind notices, blocked casting aid,
-   casting-aid power reduced to zero) never assign `used`; retail returned
-   whatever the VC6 stack slot held, so a deterministic zero models those
-   not-used paths. */
+// MATCH: retail reads this local on early paths that do not assign it.
 // FUNCTION: WIZ8 0x0051dde0
 unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_uses)
 {
@@ -1161,7 +1158,7 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
     int event_type;
     int fatigue_cost = -1;
     W8TargetSource target;
-    unsigned char used = 0;
+    unsigned char used;
 
     if (!CanCharacterUseItem(character, item->iItemNo)) {
         PostCharacterNotice(party_slot, gppStringList[0x590 / 4], GetItemDisplayName(item));

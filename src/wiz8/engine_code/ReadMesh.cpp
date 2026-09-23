@@ -926,9 +926,7 @@ unsigned char ReadSingleLevelMeshBody00485C10(W8ReadLevelInfo* info, srModelInst
                                               int positional_0, int positional_1, const char* name,
                                               unsigned char load_materials)
 {
-    /* Retail read mapping_count/value/key/compression_type uninitialised when
-       a FileRead short-circuited; deterministic zeroes model that defect
-       path. */
+    // MATCH: retail consumes these serialized locals after failed reads without initializing them.
     W8GrowableVector<short> mapped_values;
     W8GrowableVector<short> mapped_keys;
     int version = 0;
@@ -978,11 +976,11 @@ unsigned char ReadSingleLevelMeshBody00485C10(W8ReadLevelInfo* info, srModelInst
     }
 
     if (version > 3) {
-        signed char mapping_count = 0;
+        signed char mapping_count;
         success = FileRead(file, &mapping_count, sizeof(mapping_count), 0);
         for (short index = 0; index < mapping_count; ++index) {
-            short value = 0;
-            short key = 0;
+            short value;
+            short key;
             if (success == 0 || !FileRead(file, &value, sizeof(value), 0) ||
                 !FileRead(file, &key, sizeof(key), 0)) {
                 success = 0;
@@ -1012,7 +1010,7 @@ unsigned char ReadSingleLevelMeshBody00485C10(W8ReadLevelInfo* info, srModelInst
             vertices[index].z *= 500.0f;
         }
     } else {
-        unsigned char compression_type = 0;
+        unsigned char compression_type;
         FileRead(file, &compression_type, sizeof(compression_type), 0);
         FileRead(file, &frame_count, sizeof(frame_count), 0);
         if (compression_type == 2) {
@@ -1312,13 +1310,12 @@ void ReleaseReadMeshScratch004881D0()
 // FUNCTION: WIZ8 0x00487bd0
 unsigned char SkipSingleLevelMesh00487BD0(W8ReadLevelInfo* info)
 {
-    /* Retail read count/group_count uninitialised when a FileRead
-       short-circuited; deterministic zeroes model that defect path. */
+    // MATCH: retail consumes these serialized locals after failed reads without initializing them.
     int version;
     int vertex_count;
     int face_count;
     unsigned char flags = 0;
-    unsigned char count = 0;
+    unsigned char count;
     short item_count;
     short index;
     unsigned char success = 1;
@@ -1352,7 +1349,7 @@ unsigned char SkipSingleLevelMesh00487BD0(W8ReadLevelInfo* info)
         vertex_count *= 0xc;
     } else {
         unsigned char ignored;
-        short group_count = 0;
+        short group_count;
 
         FileRead(info->hFile, &ignored, 1, 0);
         FileRead(info->hFile, &group_count, 2, 0);

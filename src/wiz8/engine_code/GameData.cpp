@@ -881,7 +881,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion0041AB40()
     W8GDSurface* surface;
     W8GDSurface* collisions[101];
     unsigned long* octree_hits;
-    int* geometry_hits;
+    W8GDSurface** geometry_hits;
     int hit_count;
     int collision_count;
     int attempt;
@@ -1039,9 +1039,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion0041AB40()
                 probe_position = camera_position;
                 for (index = 0; index < hit_count; ++index) {
                     if (octree_04 == 0) {
-                        surface =
-                            reinterpret_cast< // reinterpret-ok: geometry collect stores surface*
-                                W8GDSurface*>(geometry_hits[index]);
+                        surface = geometry_hits[index];
                     } else {
                         surface = &m_pSurfaces[octree_hits[index]];
                     }
@@ -1547,7 +1545,6 @@ stModelInstance* W8GameData::CreateTraceModel0041C930()
     shader.CopyValue(&g_oct_mesh_default_shader_00652dc4->value);
     mesh->setShader(shader, 0);
     if ((mesh->control_state_390 & 8) == 0) {
-        mesh->control_state_390 |= 8;
         mesh->control_state_390 |= 8;
     }
     srVector3T<float>* normals = mesh->getVertexNormal();
@@ -2277,8 +2274,6 @@ unsigned char W8GDSurface::ApplyEnvironContact0041EA90(srVector3T<float>* direct
     return 0;
 }
 
-/* VC6 vector constructor iterator, emitted for an ordinary array construction.
-   This is compiler support, not an authored Wizardry callback wrapper. */
 // LIBRARY: WIZ8 0x0041e880
 // vector constructor iterator
 
@@ -2753,10 +2748,7 @@ unsigned char ProjectVectorOntoVector00421440(srVector3T<float>* vector,
     return 1;
 }
 
-/* Apply a saved yaw/pitch pair to the game camera for the world reload path.
-   Retail reads the world camera node's rotation into the local first, then
-   SetCameraOrientation (inlined) overwrites the same local with the updated
-   matrix; the local is dead after the call. */
+/* Apply a saved yaw/pitch pair to the world camera. */
 // FUNCTION: WIZ8 0x00421570
 void RestoreWorldCameraOrientation00421570(W8CameraAngleRecord angle, W8CameraAngleRecord pitch,
                                            W8World* world)

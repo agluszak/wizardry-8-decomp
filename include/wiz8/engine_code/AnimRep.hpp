@@ -5,12 +5,9 @@
 
 #include <stddef.h>
 
-/* AnimRep and the 3D mesh instance exchange four highlight coefficients. */
+/* AnimRep and the 3D mesh instance pass this highlight color to srMaterial. */
 struct W8ModelInstance3DRenderState {
-    float highlight_red;
-    float highlight_green;
-    float highlight_blue;
-    float highlight_alpha;
+    srVector4T<float> highlight;
 };
 
 /* The 2D instance has a different sixteen-byte block at the same class offset. */

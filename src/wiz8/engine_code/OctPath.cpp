@@ -1963,10 +1963,8 @@ void W8PathingService::AdjustFinalPathEndpoint00465D70(W8NavigatorMovementState*
         return;
     }
 
-    /* Retail read `target_radius` uninitialised when the target's monster
-       info or model was absent; deterministic zero models that defect
-       path. */
-    float target_radius = 0.0f;
+    // Retail leaves target_radius unset when the target info or model is absent.
+    float target_radius;
     srVector3T<float> target_position;
     if (target_location <= 0) {
         target_radius = g_startup_world_659c0c->movement_0c0.alternate_radius_0b4;

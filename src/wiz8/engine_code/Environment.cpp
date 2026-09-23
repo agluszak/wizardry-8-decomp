@@ -959,9 +959,8 @@ const double g_double_005ec988 = 2.3148148148148148e-08;
 // GLOBAL: WIZ8 0x005ec990
 const double g_double_005ec990 = 43200000.0;
 
-/* Scale one colour triple by a double factor and clamp every component to the
-   unit range in place. A product helper like SaturateColor004299B0: no matching
-   srVector3T method survives in the SurRender headers. */
+/* Scale one colour triple by a double factor and clamp each component to the
+   unit range in place. */
 // FUNCTION: WIZ8 0x00483d70
 srVector3T<float>* __fastcall ScaleColourAndSaturate00483D70(srVector3T<float>* colour,
                                                              double scale)
@@ -1021,8 +1020,7 @@ void ApplyEnvironmentColour00483BA0(W8World* world, float intensity,
 
         if (node == 0) {
             node = registry->registerClass(
-                "stMaterial", srClientSupport<srMaterial,8720>::sGetClassNode(),
-                0x10002, 0);
+                "stMaterial", srClientSupport<srMaterial, 8720>::sGetClassNode(), 0x10002, 0);
         }
         srMaterial* material = static_cast<srMaterial*>(
             registry->find(node, "AnimatedCloudMaterial", static_cast<const srRuntimeClass*>(0)));

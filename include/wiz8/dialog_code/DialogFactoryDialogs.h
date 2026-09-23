@@ -13,17 +13,10 @@ struct W8WorldItem;
 struct W8ItemInstance;
 class Trigger;
 
-/* The small numeric entry field embedded by the factory dialogs. Constructor
-   initialization at 0x005E1460 fills 0x30 bytes; its value, active flag and
-   backing button are what the owning dialog reads and writes. The other
-   dialogs in Dialog Code use the same field through 0x005DDA60 and 0x005DE120,
-   so this declaration is the shared owner until an original name is proven. */
+/* Numeric entry field embedded by the factory dialogs. */
 class W8DialogNumericInput {
 public:
-    /* 0x005E1460: the only call site (0x005DDA60) allocates 0x30 bytes, null
-       checks the result and merges the returned `this`, which is the ordinary
-       VC6 `new T(args)` shape rather than a separate initializer call. Retail
-       leaves m_active and padding_01e uninitialized. */
+    /* Retail leaves m_active and padding_01e uninitialized. */
     W8DialogNumericInput(int control_id, const W8ControlsRect* bounds, int value, int font,
                          W8DialogBase* dialog, W8DialogButton* button);
     void SetValue(int value);                                 /* 0x005E14C0 */

@@ -71,35 +71,38 @@ void RoundPhaseToStep(unsigned int* phase, unsigned int base)
 // FUNCTION: WIZ8 0x004f01d0
 void UpdateActivePartyMovement(void)
 {
+    bool update_movement;
     float real_elapsed;
     float frame_elapsed;
 
-    if (HandlePartyMovement(&real_elapsed, &frame_elapsed) != 0) {
+    update_movement = HandlePartyMovement(&real_elapsed, &frame_elapsed) != 0;
+    if (update_movement) {
         gXStatus.party_move_distance += real_elapsed + frame_elapsed;
     } else if (g_settings_6850c8.continuous_combat != 0 &&
                ClockIsTicking(g_combat_state->party_movement_clock) == 0) {
         unsigned int step_count = g_settings_6850c8.combat_delay_ms / 200 + 10;
         ClampUnsignedInteger(&step_count, 10, 60);
         gXStatus.party_move_distance += gXStatus.flPartyMoveDistLimit / step_count;
-    } else {
-        goto check_completion;
+        update_movement = true;
     }
 
-    if (gXStatus.flPartyMoveDistLimit <= g_float_005ebb34) {
-        srAssertFail("gXStatus.flPartyMoveDistLimit > 0.0f", COMBAT_MOVEMENT_CPP, 359, 0);
-    }
-    g_level_block->move_budget_2dc = static_cast<int>(
-        100.0f - gXStatus.party_move_distance * 100.0f / gXStatus.flPartyMoveDistLimit);
-    ClampInteger(&g_level_block->move_budget_2dc, 0, 100);
-    if (g_level_block->move_budget_2dc != g_level_block->move_budget_2e0) {
-        InvalidatePartyMovementPanel();
-        g_level_block->move_budget_2e0 = g_level_block->move_budget_2dc;
-    }
-    if (g_settings_6850c8.continuous_combat != 0) {
-        g_combat_state->party_movement_clock = SetCountdownClock(g_settings_6850c8.combat_delay_ms);
+    if (update_movement) {
+        if (gXStatus.flPartyMoveDistLimit <= g_float_005ebb34) {
+            srAssertFail("gXStatus.flPartyMoveDistLimit > 0.0f", COMBAT_MOVEMENT_CPP, 359, 0);
+        }
+        g_level_block->move_budget_2dc = static_cast<int>(
+            100.0f - gXStatus.party_move_distance * 100.0f / gXStatus.flPartyMoveDistLimit);
+        ClampInteger(&g_level_block->move_budget_2dc, 0, 100);
+        if (g_level_block->move_budget_2dc != g_level_block->move_budget_2e0) {
+            InvalidatePartyMovementPanel();
+            g_level_block->move_budget_2e0 = g_level_block->move_budget_2dc;
+        }
+        if (g_settings_6850c8.continuous_combat != 0) {
+            g_combat_state->party_movement_clock =
+                SetCountdownClock(g_settings_6850c8.combat_delay_ms);
+        }
     }
 
-check_completion:
     if (g_level_block->move_budget_2dc < 1) {
         BeginFreeTurnPhase();
     }

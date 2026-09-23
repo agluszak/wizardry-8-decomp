@@ -264,11 +264,8 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
     short light_count;
     int index;
     unsigned char success;
-    /* Canonical 0x004BBAD0 leaves this byte uninitialized: when no light loads
-       an AI path it returns the stack residue of the last setLocation double
-       push, which is nonzero in practice. Initialize it so the recompilation
-       is deterministic rather than depending on stack residue. */
-    unsigned char path_success = 1;
+    // MATCH: retail returns this local without assigning it when no path loads.
+    unsigned char path_success; // bool-byte-ok: retail returns this raw local byte.
 
     success = FileRead(hFile, &light_count, sizeof(light_count), 0);
     if (!success) {
@@ -383,21 +380,20 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
 // FUNCTION: WIZ8 0x004BC9D0
 unsigned char ReadWorldEnvironment004BC9D0(W8ReadLevelInfo* pInfo, W8World* pWorld)
 {
-    /* Retail read these uninitialised when a FileRead chain short-circuited;
-       deterministic zeroes model that defect path. */
+    // MATCH: retail uses these locals after short-circuited FileRead calls.
     EnvironmentColour environment_colour;
     EnvironmentColour white;
     srVector3T<float> position;
     srVector3T<float> axis;
     srMatrix3T<float> rotation;
-    float intensity = 0.0f;
-    float view_distance = 0.0f;
-    float angle = 0.0f;
-    float distance_scale = 0.0f;
-    unsigned char camera_mode = 0;
-    unsigned char has_light_colours = 0;
-    unsigned char has_environment_colours = 0;
-    unsigned char fog_enabled = 0;
+    float intensity;
+    float view_distance;
+    float angle;
+    float distance_scale;
+    unsigned char camera_mode;
+    unsigned char has_light_colours;
+    unsigned char has_environment_colours;
+    unsigned char fog_enabled;
     unsigned char success;
 
     success =

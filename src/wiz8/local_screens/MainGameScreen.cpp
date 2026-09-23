@@ -2866,7 +2866,7 @@ void __fastcall CollapseNpcDialogueTextArea(W8NpcDialogueTextController* control
                                         g_W8TextBufferLayoutMask005ED550);
     RegionSetDisable(3);
     DisableRegionInput(9);
-    g_screen_state_00649f1c->npc_dialogue_panel_1b4->SetEnabled(0);
+    g_screen_state_00649f1c->panels.npc_dialogue_panel_1b4->SetEnabled(0);
 }
 
 // FUNCTION: WIZ8 0x0055E1E0
@@ -2957,7 +2957,7 @@ void W8NpcDialogueScrollWidget::OnMouseEnter(int event)
 {
     W8NpcDialogueTextController* controller;
 
-    controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
+    controller = g_screen_state_00649f1c->panels.npc_dialogue_controller_1b0;
     if (controller->text_area.SelectEntry(controller->text_area.m_first_visible_entry)) {
         controller->InvalidateLayout();
     }
@@ -2968,7 +2968,7 @@ void W8NpcDialogueScrollWidget::OnMouseLeave(int event)
 {
     W8NpcDialogueTextController* controller;
 
-    controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
+    controller = g_screen_state_00649f1c->panels.npc_dialogue_controller_1b0;
     if (controller->text_area.ClearSelection()) {
         controller->InvalidateLayout();
     }
@@ -3002,12 +3002,12 @@ void W8NpcDialogueTextController::SetTranscriptCategoryFilter(signed char catego
     text_area.SetCategoryFilter(category);
     CollapseNpcDialogueTextArea(this);
     ExpandNpcDialogueTextArea(this);
-    if (g_screen_state_00649f1c->npc_dialogue_controller_1b0->scroll_height == 0xff) {
-        g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(1);
-        g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(1);
+    if (g_screen_state_00649f1c->panels.npc_dialogue_controller_1b0->scroll_height == 0xff) {
+        g_screen_state_00649f1c->widgets.dialogue_scroll_up_button->SetEnabled(1);
+        g_screen_state_00649f1c->widgets.dialogue_scroll_down_button->SetEnabled(1);
     } else {
-        g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(0);
-        g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(0);
+        g_screen_state_00649f1c->widgets.dialogue_scroll_up_button->SetEnabled(0);
+        g_screen_state_00649f1c->widgets.dialogue_scroll_down_button->SetEnabled(0);
     }
 }
 
@@ -3025,16 +3025,16 @@ void W8NpcDialogueTextController::RestoreTranscriptEntries()
     Invalidate(0);
     if (g_screen_state_00649f1c->dialogue_transcript.count == 0) {
         g_screen_state_00649f1c->dialogue_category_filter = W8_DIALOGUE_CATEGORY_ALL;
-        controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
+        controller = g_screen_state_00649f1c->panels.npc_dialogue_controller_1b0;
         controller->text_area.SetCategoryFilter(g_screen_state_00649f1c->dialogue_category_filter);
         CollapseNpcDialogueTextArea(controller);
         ExpandNpcDialogueTextArea(controller);
-        if (g_screen_state_00649f1c->npc_dialogue_controller_1b0->scroll_height == 0xff) {
-            g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(1);
-            g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(1);
+        if (g_screen_state_00649f1c->panels.npc_dialogue_controller_1b0->scroll_height == 0xff) {
+            g_screen_state_00649f1c->widgets.dialogue_scroll_up_button->SetEnabled(1);
+            g_screen_state_00649f1c->widgets.dialogue_scroll_down_button->SetEnabled(1);
         } else {
-            g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(0);
-            g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(0);
+            g_screen_state_00649f1c->widgets.dialogue_scroll_up_button->SetEnabled(0);
+            g_screen_state_00649f1c->widgets.dialogue_scroll_down_button->SetEnabled(0);
         }
         SyncDialogueCategoryButtons();
         AddTranscriptEntry(L" [No Keywords]", W8_DIALOGUE_CATEGORY_ALL, 0);
@@ -3323,7 +3323,7 @@ void OnEnterLevelDialogClosed(W8DialogBase* dialog)
         SetPendingScreenState(4);
         return;
     }
-    WorldSetCameraLocation(g_world, &g_trigger_camera_006599a0.x);
+    WorldSetCameraLocation(g_world, &g_trigger_camera_006599a0);
 }
 
 /* Stage the level block's pending transition into the screen state and leave
@@ -5710,7 +5710,7 @@ void RequestLevelTransition005615F0(int level, int entry, unsigned char flag)
                      normalized + 2);
         }
         if (QueueNpcDepartureEvents0050DEC0(normalized) != 0) {
-            WorldSetCameraLocation(g_world, &g_trigger_camera_006599a0.x);
+            WorldSetCameraLocation(g_world, &g_trigger_camera_006599a0);
             return;
         }
         switch (g_main_game_mode_0068eddc) {
@@ -5780,18 +5780,14 @@ void RequestLevelTransition005615F0(int level, int entry, unsigned char flag)
     SetPendingScreenState(4);
 }
 
-/* Active viewport rectangle plus the preceding retail dword at 0x00647f40
-   (-1). Bundling the non-zero sentinel forces VC6 to emit the block in
-   .data; separate `int x = 0` definitions land in .bss and fail datacmp. */
-struct W8ActiveViewport647F40 {
-    int sentinel_647f40;
-    W8ScreenRect viewport_647f44;
-};
-
-static_assert(sizeof(W8ActiveViewport647F40) == 0x14, "W8ActiveViewport647F40_size");
-
-// GLOBAL: WIZ8 0x00647f40
-W8ActiveViewport647F40 g_active_viewport_647f40 = {-1, {0, 0, 0, 0}};
+// GLOBAL: WIZ8 0x00647f44
+int g_viewport_left_647f44;
+// GLOBAL: WIZ8 0x00647f48
+int g_viewport_top_647f48;
+// GLOBAL: WIZ8 0x00647f4c
+int g_viewport_right_647f4c;
+// GLOBAL: WIZ8 0x00647f50
+int g_viewport_bottom_647f50;
 
 /* Switch the 3D view to another viewport mode: resize the view region to the
    inclusive rectangle and hand the renderer the exclusive one. */
@@ -5805,11 +5801,12 @@ void SetViewportMode(int mode)
     }
     rect = &g_viewport_modes_647d30[mode];
     SetRegionBounds(0xe6, rect->left, rect->top, rect->right - 1, rect->bottom - 1);
-    g_active_viewport_647f40.viewport_647f44 = *rect;
-    SetViewport(g_active_viewport_647f40.viewport_647f44.left,
-                g_active_viewport_647f40.viewport_647f44.top,
-                g_active_viewport_647f40.viewport_647f44.right,
-                g_active_viewport_647f40.viewport_647f44.bottom);
+    g_viewport_left_647f44 = rect->left;
+    g_viewport_top_647f48 = rect->top;
+    g_viewport_right_647f4c = rect->right;
+    g_viewport_bottom_647f50 = rect->bottom;
+    SetViewport(g_viewport_left_647f44, g_viewport_top_647f48, g_viewport_right_647f4c,
+                g_viewport_bottom_647f50);
     g_level_block->camera_mode_100 = mode;
 }
 
@@ -9396,8 +9393,8 @@ void ConfirmNpcTradeItem005AD290(void)
     }
     if ((g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_GIVE ||
          g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_SELL) &&
-        (g_screen_state_00649f1c->dialogue_text_120->m_stateFlags & g_W8TextControlMask005ED570) !=
-            0) {
+        (g_screen_state_00649f1c->widgets.dialogue_text_120->m_stateFlags &
+         g_W8TextControlMask005ED570) != 0) {
         selected = g_status_685170.selected_character;
         npc_kind = g_status_685170.buffers.XChar[selected].animation_0fa;
         if (npc_kind != -1) {
@@ -9423,7 +9420,7 @@ void ConfirmNpcTradeItem005AD290(void)
             break;
         }
         slot = GetTextSlot1E8(2);
-        if ((g_screen_state_00649f1c->dialogue_text_120->m_stateFlags &
+        if ((g_screen_state_00649f1c->widgets.dialogue_text_120->m_stateFlags &
              g_W8TextControlMask005ED570) != 0) {
             trading = &g_status_685170.buffers.Char[g_status_685170.selected_character];
             shown = 0;
@@ -9446,7 +9443,7 @@ void ConfirmNpcTradeItem005AD290(void)
                     EmptyBackpackSlot00521AC0(trading, index);
                 }
             }
-        } else if ((g_screen_state_00649f1c->dialogue_text_124->m_stateFlags &
+        } else if ((g_screen_state_00649f1c->widgets.dialogue_text_124->m_stateFlags &
                     g_W8TextControlMask005ED570) != 0) {
             shown = 0;
             target = slot;
@@ -9647,9 +9644,9 @@ void PopulateNpcTradeList005ADBE0(void)
                    false);
         AppendTextBoxLine0058B300(g_level_block->text_paint_scratch_000, 2);
     }
-    if ((g_screen_state_00649f1c->dialogue_text_120->m_stateFlags & g_W8TextControlMask005ED570) ==
-        0) {
-        if ((g_screen_state_00649f1c->dialogue_text_124->m_stateFlags &
+    if ((g_screen_state_00649f1c->widgets.dialogue_text_120->m_stateFlags &
+         g_W8TextControlMask005ED570) == 0) {
+        if ((g_screen_state_00649f1c->widgets.dialogue_text_124->m_stateFlags &
              g_W8TextControlMask005ED570) != 0) {
             for (unsigned int index = 0;
                  index < static_cast<unsigned int>(g_status_685170.party_item_count_1791);
@@ -9750,7 +9747,7 @@ void PopulateNpcTradeList005ADBE0(void)
             }
         }
     }
-    g_screen_state_00649f1c->panel_1ac->Invalidate(0);
+    g_screen_state_00649f1c->panels.panel_1ac->Invalidate(0);
 }
 
 // FUNCTION: WIZ8 0x005AE040
@@ -9963,9 +9960,9 @@ unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, W8Region* re
         }
         if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
             region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
-            g_screen_state_00649f1c->npc_dialogue_controller_1b0->SelectTranscriptKeywordAtPoint(
-                static_cast<unsigned short>(event->uiParam),
-                static_cast<unsigned short>(event->uiParam >> 16));
+            g_screen_state_00649f1c->panels.npc_dialogue_controller_1b0
+                ->SelectTranscriptKeywordAtPoint(static_cast<unsigned short>(event->uiParam),
+                                                 static_cast<unsigned short>(event->uiParam >> 16));
             return 1;
         }
     } else {
@@ -9975,7 +9972,7 @@ unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, W8Region* re
             }
             delta = GetMouseWheelDeltaValue(event->usParam);
             if (delta > 0) {
-                controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
+                controller = g_screen_state_00649f1c->panels.npc_dialogue_controller_1b0;
                 scrolled = controller->text_area.ScrollUp(0);
                 if (scrolled == 0) {
                     return 0;
@@ -9983,7 +9980,7 @@ unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, W8Region* re
                 controller->Invalidate(0);
                 return 0;
             }
-            controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
+            controller = g_screen_state_00649f1c->panels.npc_dialogue_controller_1b0;
             scrolled = controller->text_area.ScrollDown(0);
             if (scrolled == 0) {
                 return 0;
@@ -9993,7 +9990,7 @@ unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, W8Region* re
         }
         if ((region->flags & W8_REGION_MOUSE_LEAVE) == 0) {
             if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {
-                controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
+                controller = g_screen_state_00649f1c->panels.npc_dialogue_controller_1b0;
                 if (controller->text_area.UpdateSelectionFromPoint(
                         static_cast<unsigned short>(event->uiParam),
                         static_cast<unsigned short>(event->uiParam >> 16)) != 0) {
@@ -10001,7 +9998,7 @@ unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, W8Region* re
                 }
             }
         } else {
-            controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
+            controller = g_screen_state_00649f1c->panels.npc_dialogue_controller_1b0;
             if (controller->text_area.ClearPointSelection() != 0) {
                 controller->InvalidateLayout();
                 return 1;

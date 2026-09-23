@@ -1731,52 +1731,53 @@ void UpdateSubMenuAutoClose00598FA0(void)
     W8TextControl** row;
 
     left = gpSubMenuPanel->origin_x;
-    switch (g_submenu_entry_count_69b87e) {
-    case 0:
-    case 1:
-        goto check_clock;
-    case 2:
-        right = left + 0x2f;
-        break;
-    case 3:
-        right = left + 0x42;
-        break;
-    case 4:
-        right = left + 0x55;
-        break;
-    case 5:
-        right = left + 0x67;
-    }
-    if (IsCursorInRectangle(left, gpSubMenuPanel->origin_y, right,
-                            gpSubMenuPanel->origin_y + 0x1c) == 0) {
-    check_clock:
-        if (g_submenu_flag_69b8d4 == 0) {
-            g_submenu_clock_69b880 = SetCountdownClock(500);
-            g_submenu_flag_69b8d4 = 1;
+    if (g_submenu_entry_count_69b87e != 0 && g_submenu_entry_count_69b87e != 1) {
+        switch (g_submenu_entry_count_69b87e) {
+        case 2:
+            right = left + 0x2f;
+            break;
+        case 3:
+            right = left + 0x42;
+            break;
+        case 4:
+            right = left + 0x55;
+            break;
+        case 5:
+            right = left + 0x67;
+        }
+        if (IsCursorInRectangle(left, gpSubMenuPanel->origin_y, right,
+                                gpSubMenuPanel->origin_y + 0x1c) != 0) {
+            if (g_submenu_flag_69b8d4 != 0) {
+                g_submenu_clock_69b880 = SetCountdownClock(0);
+                g_submenu_flag_69b8d4 = 0;
+            }
             return;
         }
-        if (ClockIsTicking(g_submenu_clock_69b880) == 0) {
-            SetSubMenuButtonTooltips(1);
-            g_level_block->combat_end_notification = -1;
-            g_submenu_entry_count_69b87e = 0;
-            RegionSetDisable(0x27);
-            DisableRegionSetInput(0x27);
-            if (gpSubMenuPanel != 0) {
-                delete gpSubMenuPanel;
-                gpSubMenuPanel = 0;
-            }
-            row = g_submenu_rows_69b8ec;
-            do {
-                if (*row != 0) {
-                    delete *row;
-                    *row = 0;
-                }
-                ++row;
-            } while (row < &g_submenu_rows_69b8ec[5]);
-            RequestRedraw(0x200);
+    }
+
+    if (g_submenu_flag_69b8d4 == 0) {
+        g_submenu_clock_69b880 = SetCountdownClock(500);
+        g_submenu_flag_69b8d4 = 1;
+        return;
+    }
+    if (ClockIsTicking(g_submenu_clock_69b880) == 0) {
+        SetSubMenuButtonTooltips(1);
+        g_level_block->combat_end_notification = -1;
+        g_submenu_entry_count_69b87e = 0;
+        RegionSetDisable(0x27);
+        DisableRegionSetInput(0x27);
+        if (gpSubMenuPanel != 0) {
+            delete gpSubMenuPanel;
+            gpSubMenuPanel = 0;
         }
-    } else if (g_submenu_flag_69b8d4 != 0) {
-        g_submenu_clock_69b880 = SetCountdownClock(0);
-        g_submenu_flag_69b8d4 = 0;
+        row = g_submenu_rows_69b8ec;
+        do {
+            if (*row != 0) {
+                delete *row;
+                *row = 0;
+            }
+            ++row;
+        } while (row < &g_submenu_rows_69b8ec[5]);
+        RequestRedraw(0x200);
     }
 }

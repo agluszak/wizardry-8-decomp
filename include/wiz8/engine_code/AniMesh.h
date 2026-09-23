@@ -61,8 +61,6 @@ stModelInstance* GetAniMeshFrame004B6550(W8AniMesh* mesh, unsigned char frame);
 void DestroyAniMesh004B5880(W8AniMesh* mesh);
 unsigned char AniMeshValue004B64F0(W8AniMesh* mesh);
 unsigned char AniMeshRadius004B66E0(W8AniMesh* mesh, float* radius);
-/* Two parameters, not three: the retail body reads its flag from the second
-   stack slot, and GrCycle's 0x004A7470 pushes exactly the pair. */
 void AniMeshSetFlag10004B6860(W8AniMesh* mesh, signed char enabled);
 void EnforceAniMeshMemoryLimit004B6770(W8AniMesh* current);
 

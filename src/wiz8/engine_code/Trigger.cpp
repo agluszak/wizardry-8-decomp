@@ -716,10 +716,8 @@ bool LoadWorldTriggers0043C860(W8World* world, int hFile)
     bool finished = false;
 
     for (;;) {
-        /* Retail read `tag` (and the tag-5 name/id below) uninitialised when a
-           FileRead short-circuited; deterministic values model that defect
-           path. */
-        char tag = 0;
+        // MATCH: retail reads these locals after failed reads without initializing them.
+        char tag;
 
         if (finished || trigger_count <= index) {
             return header_ok;
@@ -741,8 +739,8 @@ bool LoadWorldTriggers0043C860(W8World* world, int hFile)
             }
             header_ok = true;
         } else {
-            int trigger_id = 0;
-            char name[0x80] = {0};
+            int trigger_id;
+            char name[0x80];
             Trigger* trigger;
 
             if (!header_ok || !FileRead(hFile, &trigger_id, sizeof(trigger_id), 0) ||
@@ -1496,11 +1494,10 @@ W8TriggerActionData* LoadTriggerActionData004417C0(int handle)
 // FUNCTION: WIZ8 0x00441a20
 Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
 {
-    /* Retail read these uninitialised when the FileRead chain short-circuited;
-       deterministic zeroes model that defect path. */
+    // MATCH: retail reads these record bytes after a failed read without initializing them.
     Trigger* trigger = 0;
-    unsigned char record_version = 0;
-    unsigned char record_type = 0;
+    unsigned char record_version;
+    unsigned char record_type;
     if (handle == 0) {
         srAssertFail("hFile", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0xca3, 0);
     }
@@ -2266,91 +2263,82 @@ void Trigger::FinishAction()
     flags_0a0 &= ~W8_TRIGGER_RUNNING;
 
     if (trigger_kind_018 == 1) {
-        if (action_230 != 0x39) {
-            goto reactivate_linked_triggers;
+        if (action_230 == 0x39) {
+            if (m_pEvent != 0) {
+                m_pEvent->completed_035 = 1;
+            }
+            g_trigger_action_active_006599c8 = 0;
+            action_completed = true;
         }
-        if (m_pEvent != 0) {
-            m_pEvent->completed_035 = 1;
+    } else if (trigger_kind_018 == 2) {
+        switch (action_230) {
+        case 0x0c:
+            if (m_pEvent != 0 && m_lData2 > 0) {
+                m_pEvent->completed_035 = 1;
+            }
+            action_completed = true;
+            break;
+
+        case 0x23: {
+            int index = g_timed_events_006599b8.IndexOf(m_pEvent);
+            if (index >= 0) {
+                g_timed_events_006599b8.RemoveAt(index);
+            }
+            action_completed = true;
+            break;
         }
-        g_trigger_action_active_006599c8 = 0;
-        goto finish_linked_triggers;
-    }
 
-    if (trigger_kind_018 != 2) {
-        goto reactivate_linked_triggers;
-    }
-
-    switch (action_230) {
-    case 0x0c:
-        if (m_pEvent != 0 && m_lData2 > 0) {
-            m_pEvent->completed_035 = 1;
+        case 0x39:
+            if (m_pEvent != 0) {
+                m_pEvent->completed_035 = 1;
+            }
+            g_trigger_action_active_006599c8 = 0;
+            action_completed = true;
+            break;
         }
-        action_completed = true;
-        break;
 
-    case 0x23: {
-        int index = g_timed_events_006599b8.IndexOf(m_pEvent);
-        if (index >= 0) {
-            g_timed_events_006599b8.RemoveAt(index);
-        }
-        action_completed = true;
-        break;
-    }
-
-    case 0x39:
-        if (m_pEvent != 0) {
-            m_pEvent->completed_035 = 1;
-        }
-        g_trigger_action_active_006599c8 = 0;
-        action_completed = true;
-        break;
-    }
-
-    if ((flags_0a0 & 0x8U) == 0 && action_230 != 0) {
-        if (action_230 == 4) {
-            recipient = m_pacRecipients;
-            action_completed = false;
-            while (recipient != 0) {
-                strcpy(g_trigger_parse_buffer_00659908, recipient);
-                char* comma = strchr(g_trigger_parse_buffer_00659908, ',');
-                if (comma == 0) {
-                    recipient = 0;
-                } else {
-                    recipient = strchr(recipient, ',') + 1;
-                    *comma = '\0';
-                }
-
-                stLight* light = FindLightByName00445A10(g_trigger_parse_buffer_00659908, 0);
-                if (light != 0) {
-                    light->m_save_marked_23a = 1;
-                    if (light->testFlag(srNode::FLAG_DISABLE) == 0) {
-                        light->setFlag(srNode::FLAG_DISABLE);
+        if ((flags_0a0 & 0x8U) == 0 && action_230 != 0) {
+            if (action_230 == 4) {
+                recipient = m_pacRecipients;
+                action_completed = false;
+                while (recipient != 0) {
+                    strcpy(g_trigger_parse_buffer_00659908, recipient);
+                    char* comma = strchr(g_trigger_parse_buffer_00659908, ',');
+                    if (comma == 0) {
+                        recipient = 0;
                     } else {
-                        light->clearFlag(srNode::FLAG_DISABLE);
+                        recipient = strchr(recipient, ',') + 1;
+                        *comma = '\0';
                     }
-                    action_completed = true;
-                }
-            }
-        } else if (action_230 == 0x22) {
-            if (m_pActionData == 0) {
-                srAssertFail("m_pActionData", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                             2822, "Trigger.cpp: Dark Area doesn't have action data");
-            }
-            SetWorldEnvironmentValue00483AE0(
-                g_world, static_cast<W8EnvironmentTriggerActionData*>(m_pActionData)
-                             ->previous_environment_008);
-            delete m_pActionData;
-            m_pActionData = 0;
-            goto finish_linked_triggers;
-        }
 
-        if (!action_completed) {
-            goto reactivate_linked_triggers;
+                    stLight* light = FindLightByName00445A10(g_trigger_parse_buffer_00659908, 0);
+                    if (light != 0) {
+                        light->m_save_marked_23a = 1;
+                        if (light->testFlag(srNode::FLAG_DISABLE) == 0) {
+                            light->setFlag(srNode::FLAG_DISABLE);
+                        } else {
+                            light->clearFlag(srNode::FLAG_DISABLE);
+                        }
+                        action_completed = true;
+                    }
+                }
+            } else if (action_230 == 0x22) {
+                if (m_pActionData == 0) {
+                    srAssertFail("m_pActionData",
+                                 "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 2822,
+                                 "Trigger.cpp: Dark Area doesn't have action data");
+                }
+                SetWorldEnvironmentValue00483AE0(
+                    g_world, static_cast<W8EnvironmentTriggerActionData*>(m_pActionData)
+                                 ->previous_environment_008);
+                delete m_pActionData;
+                m_pActionData = 0;
+                action_completed = true;
+            }
         }
     }
 
-finish_linked_triggers:
-    if ((flags_0a0 & W8_TRIGGER_FIRE_LINKED) != 0) {
+    if (action_completed && (flags_0a0 & W8_TRIGGER_FIRE_LINKED) != 0) {
         recipient = m_pacRecipients;
         while (recipient != 0) {
             strcpy(g_trigger_parse_buffer_00659908, recipient);
@@ -2369,7 +2357,6 @@ finish_linked_triggers:
         }
     }
 
-reactivate_linked_triggers:
     if (was_running != 0 && (flags_0a0 & W8_TRIGGER_ON) != 0 &&
         (flags_0a0 & W8_TRIGGER_REACTIVATE_LINKED) != 0) {
         recipient = m_pacRecipients;
@@ -4125,17 +4112,16 @@ void SaveLocationVariables004441E0(int handle)
 // FUNCTION: WIZ8 0x00444310
 bool LoadLocationVariables00444310(int handle)
 {
-    /* Retail read these uninitialised when a FileRead short-circuited;
-       deterministic zeroes model that defect path. */
-    int variable_count = 0;
+    // MATCH: retail consumes these locals after failed reads without initializing them.
+    int variable_count;
     int index;
     bool read_ok;
 
     read_ok = FileRead(handle, &variable_count, sizeof(variable_count), 0) != 0;
     for (index = 0; index < variable_count; ++index) {
-        int value = 0;
-        char name[0x80] = {0};
-        int level = 0;
+        int value;
+        char name[0x80];
+        int level;
         char* copy;
 
         if (!read_ok) {

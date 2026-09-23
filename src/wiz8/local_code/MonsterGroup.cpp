@@ -193,8 +193,7 @@ bool MonsterGroupAllMembersDying00511850(W8MonsterGroup* monster_group)
    a proximity threshold that still starts neutral - and the party's own faction
    is always friendly. Every other faction goes through the disposition table.
  
-   Each of the three multi-way tests is a switch rather than a comparison chain:
-   the original emits the dec/je ladder VC6 produces for small dense cases. */
+   Each of the three multi-way tests selects one of the disposition rules. */
 // FUNCTION: WIZ8 0x00511250
 unsigned char MonsterGroupCalcDefaultDisposition(W8MonsterGroup* monster_group)
 {
@@ -434,16 +433,12 @@ void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group)
     }
 }
 
-/* Destroys every member of a group, back to front so that the shrinking list
-   does not move an entry past the cursor. It stops at the first removal that
-   fails and reports that, which is why the loop is a do/while on the result
-   rather than a counted walk.
- 
-   The despawn below compiles this same walk five more times over, at the same
-   source line, so it is written once as an inline and called from both. */
-static __inline unsigned char RemoveAllGroupMembersInline(W8MonsterGroup* monster_group)
+/* Remove group members from the end until the list empties or a removal fails. */
+// FUNCTION: WIZ8 0x0050f5d0
+unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group)
 {
     unsigned int index;
+    unsigned int monster_list_index;
     unsigned char removed;
     int location_id;
 
@@ -453,21 +448,11 @@ static __inline unsigned char RemoveAllGroupMembersInline(W8MonsterGroup* monste
         if (static_cast<int>(index) < 0) {
             return 1;
         }
-        /* The list read lands in a local before either constant is pushed:
-           written as a nested call, VC6 pushes both `1`s ahead of it and eight
-           bytes come out in the wrong order at every site this inlines into. */
         location_id = IListGetAt(monster_group->monsters, index);
-        removed = 1;
-        removed = RemoveMonster(
-            MonsterGetIndexByLocationID(0x119, MONSTER_GROUP_CPP, location_id, 1), removed);
+        monster_list_index = MonsterGetIndexByLocationID(0x119, MONSTER_GROUP_CPP, location_id, 1);
+        removed = RemoveMonster(monster_list_index, 1);
     } while (removed != 0);
     return 0;
-}
-
-// FUNCTION: WIZ8 0x0050f5d0
-unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group)
-{
-    return RemoveAllGroupMembersInline(monster_group);
 }
 
 /* Brings every member of a group into the world. Front to back, and the list
@@ -619,10 +604,7 @@ unsigned char ApplyToMonsterGroupLeader(W8MonsterGroup* monster_group,
     return 1;
 }
 
-/* Re-applies every loaded group's formation onto its lead member's live
-   Monster. One typed assignment: the source is unaligned inside a packed
-   record, which is what makes VC6 emit it as twelve byte moves with every load
-   hoisted ahead of the stores. */
+/* Re-applies each loaded group's formation to its lead member's live Monster. */
 // FUNCTION: WIZ8 0x00510830
 void ReapplyMonsterGroupFormations(void)
 {
@@ -756,12 +738,12 @@ void DespawnMonsterGroup(W8MonsterGroup* monster_group)
 
     for (index = 0; index < W8_MONSTER_GROUP_ALLY_COUNT; ++index) {
         if (monster_group->allied_group_ids[index] != 0) {
-            RemoveAllGroupMembersInline(GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
+            RemoveAllGroupMembers(GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
                 0x536, MONSTER_GROUP_CPP, monster_group->allied_group_ids[index], 1)));
             monster_group->allied_group_ids[index] = 0;
         }
     }
-    RemoveAllGroupMembersInline(monster_group);
+    RemoveAllGroupMembers(monster_group);
 }
 
 /* Brings a freshly loaded group's members into the world and marks the group

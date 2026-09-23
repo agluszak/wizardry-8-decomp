@@ -34,12 +34,7 @@ extern const double g_monster_poster_max_distance_005ec3d8;
 extern int g_monster_cycle_registry_weight_0065ba4c;
 extern float g_light_scale_0060bfe0;
 
-/* Sixteen bytes the cycle runtime record carries at 0x04c, written as one block
-   by the setter at 0x004C5AD0. That setter takes the block by value and VC6
-   copies it with the interleaved two-register rotation it uses for a struct
-   assignment, rather than the sequential load/store pairs four separate scalar
-   parameters would emit - which is what makes this one object and not four.
-   GrCycle copies the same 0x10 bytes onto a model instance at +0x164. */
+/* RGBA highlight value passed by the cycle setter and copied to model instances. */
 typedef W8ModelInstance3DRenderState W8MonsterRuntimeBlock4C;
 
 /* One spell/condition icon attached to a monster: the icon id and the

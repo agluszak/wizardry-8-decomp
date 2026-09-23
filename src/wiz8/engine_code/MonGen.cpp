@@ -682,8 +682,6 @@ W8EncounterTableRuntime* GetEncounterTable(int index)
     return 0;
 }
 
-/* Appends through the world's ordinary growable vector. Add is header-visible,
-   so VC6 expands both it and Grow into this caller just as the image does. */
 // FUNCTION: WIZ8 0x0048be30
 void AddMonsterGenerator(MonGen* generator)
 {

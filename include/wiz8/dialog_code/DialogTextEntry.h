@@ -15,10 +15,6 @@ public:
                       unsigned char category, unsigned int layout_mode, unsigned char shorten);
     virtual ~W8DialogTextEntry() override;
     void Draw(unsigned char force);
-    /* Retail inlines this body at the 0x005D1E80/0x005D1ED0/0x005D20A0 call
-       sites inside W8DialogTextArea and keeps the out-of-line copy at
-       0x005D14B0; see the same unresolved VC6 inlining pattern documented in
-       PC_Item.h. */
     void SetSelected(unsigned char selected);
 
 private:

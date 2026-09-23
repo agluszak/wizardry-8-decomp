@@ -39,13 +39,9 @@ New unions in recovered Wizardry and SurRender headers require a nearby
 Two accesses with different types at one offset are a reason to audit the
 record or class boundary, not positive union evidence.
 
-Uninitialized-read suppressions (``-Wsometimes-uninitialized`` and the other
-``-W*uninitialized*`` diagnostics) are gated the same way. A retail read of an
-unwritten stack slot is an accident of VC6 frame layout, not source evidence:
-model the path deterministically. A new suppression needs a same-line
-``uninit-ok: <reason>`` comment stating why the read value itself is
-runtime-observable and semantically required; like format suppressions,
-moving one is deliberately re-reviewed.
+Suppressions for uninitialized-read diagnostics are prohibited in recovered
+source. When retail consumes an unwritten value, preserve that behavior in the
+recovered body; a compiler warning does not justify initializing or guarding it.
 
 New explicit member destructor calls (``member.~Type()``/``ptr->~Type()``) in
 recovered C++ require a ``member-dtor-ok: <reason>`` comment citing positive
@@ -74,7 +70,6 @@ C_STYLE_MARKER = "c-style-cast-ok"
 FORMAT_OFF_MARKER = "format-off-ok"
 RAW_OFFSET_MARKER = "raw-offset-ok"
 UNION_MARKER = "union-ok"
-UNINIT_MARKER = "uninit-ok"
 MEMBER_DTOR_MARKER = "member-dtor-ok"
 SCOPE_PREFIXES = ("src/wiz8/", "include/wiz8/", "include/surrender/")
 MEMBER_DTOR_PREFIXES = SCOPE_PREFIXES + ("src/surrender/",)
@@ -92,7 +87,6 @@ _RAW_OFFSET_MARKER = re.compile(r"raw-offset-ok:\s*\S", re.IGNORECASE)
 _UNION = re.compile(r"^\s*(?:typedef\s+)?union\b")
 _UNION_MARKER = re.compile(r"union-ok:\s*\S", re.IGNORECASE)
 _UNINIT_SUPPRESS = re.compile(r'"-W[a-z0-9_-]*uninitialized', re.IGNORECASE)
-_UNINIT_MARKER = re.compile(r"uninit-ok:\s*\S", re.IGNORECASE)
 _MEMBER_DTOR = re.compile(r"(?:\.|->)\s*~[A-Za-z_]")
 _MEMBER_DTOR_MARKER = re.compile(r"member-dtor-ok:\s*\S", re.IGNORECASE)
 _RAW_BYTE_OFFSET = re.compile(
@@ -123,6 +117,7 @@ _C_STYLE_CAST = re.compile(
     r"S32|U32|STR8?|STR16|(?:W8|sr|st)[A-Z][A-Za-z0-9_]*(?:::\w+)*)"
     r"\s*(?:\*+\s*)?(?:const\s*)?\)\s*(?=[A-Za-z_(&*+\-!~])"
 )
+_CPP_STRING_LITERAL = re.compile(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'')
 
 
 class CastGateError(RuntimeError):
@@ -189,9 +184,10 @@ def baseline_diff(repository: Path) -> tuple[str, str]:
 def added_lines_without_marker(
     diff: str,
     needle: re.Pattern[str],
-    marker: re.Pattern[str],
+    marker: re.Pattern[str] | None,
     *,
     ignore_moved: bool = True,
+    code_only: bool = False,
     prefixes: tuple[str, ...] = SCOPE_PREFIXES,
 ) -> list[dict[str, Any]]:
     """Added source lines matching ``needle`` that lack ``marker``.
@@ -213,18 +209,20 @@ def added_lines_without_marker(
             if raw.startswith("+"):
                 content = raw[1:]
                 stripped = content.strip()
+                scanned = _CPP_STRING_LITERAL.sub(lambda match: " " * len(match.group()), content)
                 if (
                     current
                     and current.startswith(prefixes)
-                    and needle.search(content)
-                    and not marker.search(content)
+                    and needle.search(scanned if code_only else content)
+                    and (marker is None or not marker.search(content))
                 ):
                     added.append({"file": current, "line": line_number, "text": stripped[:200]})
                 new_remaining -= 1
                 line_number += 1
             elif raw.startswith("-"):
                 content = raw[1:]
-                if needle.search(content):
+                scanned = _CPP_STRING_LITERAL.sub(lambda match: " " * len(match.group()), content)
+                if needle.search(scanned if code_only else content):
                     removed[content.strip()] += 1
                 old_remaining -= 1
             elif raw.startswith(" "):
@@ -273,7 +271,7 @@ def _changed_files(diff: str) -> set[str]:
 def _added_c_style_casts(diff: str) -> list[dict[str, Any]]:
     return [
         item
-        for item in added_lines_without_marker(diff, _C_STYLE_CAST, _C_STYLE_MARKER)
+        for item in added_lines_without_marker(diff, _C_STYLE_CAST, _C_STYLE_MARKER, code_only=True)
         if str(item["file"]).lower().endswith(_CPP_SUFFIXES)
     ]
 
@@ -285,9 +283,7 @@ def _added_format_off(diff: str) -> list[dict[str, Any]]:
 def _added_uninit_suppressions(diff: str) -> list[dict[str, Any]]:
     return [
         item
-        for item in added_lines_without_marker(
-            diff, _UNINIT_SUPPRESS, _UNINIT_MARKER, ignore_moved=False
-        )
+        for item in added_lines_without_marker(diff, _UNINIT_SUPPRESS, None, ignore_moved=False)
         if str(item["file"]).lower().endswith(_CPP_SUFFIXES)
     ]
 
@@ -510,9 +506,9 @@ def validate_cast_markers(repository: Path) -> dict[str, Any]:
         )
     if uninit_violations:
         errors.append(
-            "new uninitialized-read suppressions need an 'uninit-ok: reason' comment "
-            "stating the runtime-observable consequence; model VC6 stack-slot "
-            "accidents deterministically instead:\n  " + _render(uninit_violations)
+            "uninitialized-read diagnostic suppressions are prohibited in recovered source; "
+            "preserve evidence-backed retail behavior without a compiler pragma:\n  "
+            + _render(uninit_violations)
         )
     if sgp_violations:
         errors.append(
@@ -545,7 +541,6 @@ def validate_cast_markers(repository: Path) -> dict[str, Any]:
             FORMAT_OFF_MARKER,
             RAW_OFFSET_MARKER,
             UNION_MARKER,
-            UNINIT_MARKER,
             MEMBER_DTOR_MARKER,
         ],
         "scope": [*SCOPE_PREFIXES, "src/sgp/"],

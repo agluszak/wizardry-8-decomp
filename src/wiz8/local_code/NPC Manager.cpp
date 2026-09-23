@@ -370,20 +370,17 @@ char WillNpcTradeForItem(W8NpcState* npc, W8ItemInstance* item)
     return GetItemStackValue(item) >= W8_NPC_MINIMUM_TRADE_VALUE;
 }
 
-/* How many of the two leading party slots are occupied. Written as nested
-   tests rather than a count, which is why the first slot is read twice. */
+/* Return two when both leading party slots are occupied, one when either is,
+   and zero when neither is. */
 // FUNCTION: WIZ8 0x0050b9b0
 unsigned char CountLeadingPartySlots(void)
 {
-    if (g_status_685170.buffers.XChar[0].fOccupied != 0) {
-        if (g_status_685170.buffers.XChar[1].fOccupied != 0) {
-            return 2;
-        }
-        if (g_status_685170.buffers.XChar[0].fOccupied != 0) {
-            return 1;
-        }
+    if (g_status_685170.buffers.XChar[0].fOccupied != 0 &&
+        g_status_685170.buffers.XChar[1].fOccupied != 0) {
+        return 2;
     }
-    if (g_status_685170.buffers.XChar[1].fOccupied != 0) {
+    if (g_status_685170.buffers.XChar[0].fOccupied != 0 ||
+        g_status_685170.buffers.XChar[1].fOccupied != 0) {
         return 1;
     }
     return 0;
@@ -1890,13 +1887,9 @@ W8NpcState* GetNpcStateForMonsterInfo(W8MonsterInfo* monster_info, unsigned char
     return 0;
 }
 
-/* One dialogue interaction against an NPC. The action kind selects the path:
-   talking and the level-scaled charm shift disposition through the record's
-   signed scale bytes, paying gold and selling an item draw the record's trade
-   pool down by the party's Communication-adjusted price, and the scripted
-   kind adds its operand straight to disposition. Kinds 0 and 1 reuse an
-   argument's stack slot as the best-skill out-parameter; kind 2 and 3 fall
-   into the shared disposition refresh at the tail. */
+/* Apply one NPC dialogue interaction: talk and trade adjust disposition using
+   party skill, payments draw down the trade pool, and scripted interactions
+   add their operand directly to disposition. */
 // FUNCTION: WIZ8 0x0050A570
 void ApplyNpcInteraction0050A570(W8NpcState* npc, int kind, int value, W8ItemInstance* item,
                                  unsigned int gold)
@@ -1906,16 +1899,17 @@ void ApplyNpcInteraction0050A570(W8NpcState* npc, int kind, int value, W8ItemIns
         int scale = npc->record->talk_scale_5e;
         int quotient;
         int level;
+        int best_party_slot;
         int delta;
         int sum;
 
         npc->talk_cooldown_active = 1;
         npc->talk_cooldown_clock = g_status_685170.world_clock;
         if (scale < 1) {
-            level = static_cast<int>(GetBestPartySkillLevel(0x16, &kind));
+            level = static_cast<int>(GetBestPartySkillLevel(0x16, &best_party_slot));
             quotient = -scale / 5;
         } else {
-            level = static_cast<int>(GetBestPartySkillLevel(0x16, &kind));
+            level = static_cast<int>(GetBestPartySkillLevel(0x16, &best_party_slot));
             quotient = scale / 5;
         }
         delta = scale + level * quotient / 100;
@@ -1927,7 +1921,7 @@ void ApplyNpcInteraction0050A570(W8NpcState* npc, int kind, int value, W8ItemIns
         } else {
             npc->disposition += static_cast<char>(delta);
         }
-        PracticeCharacterSkill(&g_status_685170.buffers.Char[kind], 0x16, 8, 0);
+        PracticeCharacterSkill(&g_status_685170.buffers.Char[best_party_slot], 0x16, 8, 0);
         GetNpcDisposition(npc);
         return;
     }
@@ -1941,6 +1935,7 @@ void ApplyNpcInteraction0050A570(W8NpcState* npc, int kind, int value, W8ItemIns
         int scale;
         int quotient;
         int level;
+        int best_party_slot;
         int delta;
         int sum;
         int index;
@@ -1973,10 +1968,10 @@ void ApplyNpcInteraction0050A570(W8NpcState* npc, int kind, int value, W8ItemIns
         }
         scale = npc->record->charm_scale_5d;
         if (scale < 1) {
-            level = static_cast<int>(GetBestPartySkillLevel(0x16, &value));
+            level = static_cast<int>(GetBestPartySkillLevel(0x16, &best_party_slot));
             quotient = -scale / 5;
         } else {
-            level = static_cast<int>(GetBestPartySkillLevel(0x16, &value));
+            level = static_cast<int>(GetBestPartySkillLevel(0x16, &best_party_slot));
             quotient = scale / 5;
         }
         delta = scale + level * quotient / 100;

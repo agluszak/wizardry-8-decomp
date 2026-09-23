@@ -1462,16 +1462,8 @@ void CollectMonstersWithinRadius(const srVector3T<float>* centre, const srVector
     }
 }
 
-/* The two dialogue selections that have a targeting context of their own, and
-   they are the same two action kinds - casting and using an item. */
-
-/* Which targeting context is in force. A dialogue that is up and has settled on
-   casting or on using an item owns the choice; failing that, the active slot
-   with either overlay up gets the shared context, and otherwise it is simply
-   whether a fight is on.
-
-   Everything below carries this body inline rather than calling it, which is
-   why the same fifteen-odd instructions open three of them. */
+/* Return the settled dialogue choice, the selected slot's overlay context, or
+   the combat state, in that order. */
 // FUNCTION: WIZ8 0x0053bc10
 W8TargetingContext GetCurrentTargetingContext(int party_slot)
 {
@@ -1495,9 +1487,7 @@ W8TargetingContext GetCurrentTargetingContext(int party_slot)
                                      : W8_TARGETING_CONTEXT_OUT_OF_COMBAT;
 }
 
-/* Resolve "current" to a real context and check that what comes back is one.
-   The switch answers each context with itself, so it exists only to catch a
-   sixth value the caller invented rather than to map anything. */
+/* Resolve CURRENT and assert when a caller supplies an unsupported context. */
 // FUNCTION: WIZ8 0x0053b920
 W8TargetingContext ResolveTargetingContext(int party_slot, W8TargetingContext context)
 {
@@ -1525,10 +1515,8 @@ W8TargetingContext ResolveTargetingContext(int party_slot, W8TargetingContext co
     return W8_TARGETING_CONTEXT_IN_COMBAT;
 }
 
-/* The target block one context uses. Five of the six live on the slot's own
-   row and the sixth is shared by the party, which is what makes this the one
-   place that knows the row holds five blocks of the same shape rather than one
-   block and four runs of numbers. */
+/* Return the target storage selected by a targeting context. The shared
+   spell/item selection uses the party-level block in XStatus. */
 // FUNCTION: WIZ8 0x0053b7f0
 W8CombatSlot* GetTargetBlockForContext(int party_slot, W8TargetingContext context)
 {
@@ -1543,6 +1531,7 @@ W8CombatSlot* GetTargetBlockForContext(int party_slot, W8TargetingContext contex
     case W8_TARGETING_CONTEXT_IN_COMBAT:
         return &row->target_in_combat;
     case W8_TARGETING_CONTEXT_SHARED:
+        return &gXStatus.shared_target;
     case W8_TARGETING_CONTEXT_SPELL:
         return &row->spell_target;
     case W8_TARGETING_CONTEXT_ITEM:
@@ -1552,7 +1541,7 @@ W8CombatSlot* GetTargetBlockForContext(int party_slot, W8TargetingContext contex
     default:
         srAssertFail("FALSE", TARGETING_CPP, 0xc37, 0);
     }
-    return 0;
+    return &row->target_in_combat;
 }
 
 /* Replace a monster's current combat target with one monster id. The target
@@ -3216,10 +3205,10 @@ void UpdateTargetMarkerHighlight0053B1D0(void)
         monster = GetMonsterByLocationID(location_id);
         point = gXStatus.target_position;
         if (monster->HasLineOfSightFromPoint004C4C40(point) != 0) {
-            block.highlight_red = 0.0f;
-            block.highlight_green = 1.0f;
-            block.highlight_blue = 0.0f;
-            block.highlight_alpha = 1.0f;
+            block.highlight.x = 0.0f;
+            block.highlight.y = 1.0f;
+            block.highlight.z = 0.0f;
+            block.highlight.w = 1.0f;
             MonsterSetRuntimeBlock4C(monster, block);
             return;
         }
@@ -3240,20 +3229,20 @@ void HighlightPickedGroupMember00538510(int party_slot, W8MonsterGroup* group, i
     if (location_id != -1) {
         W8Monster* monster = GetMonsterByLocationID(location_id);
         if (color == 0) {
-            block.highlight_red = 0.0f;
-            block.highlight_green = 0.0f;
-            block.highlight_blue = 0.0f;
-            block.highlight_alpha = 0.0f;
+            block.highlight.x = 0.0f;
+            block.highlight.y = 0.0f;
+            block.highlight.z = 0.0f;
+            block.highlight.w = 0.0f;
         } else if (color == 1) {
-            block.highlight_red = 0.0f;
-            block.highlight_green = 1.0f;
-            block.highlight_blue = 0.0f;
-            block.highlight_alpha = 1.0f;
+            block.highlight.x = 0.0f;
+            block.highlight.y = 1.0f;
+            block.highlight.z = 0.0f;
+            block.highlight.w = 1.0f;
         } else if (color == 2) {
-            block.highlight_red = 1.0f;
-            block.highlight_green = 0.0f;
-            block.highlight_blue = 0.0f;
-            block.highlight_alpha = 1.0f;
+            block.highlight.x = 1.0f;
+            block.highlight.y = 0.0f;
+            block.highlight.z = 0.0f;
+            block.highlight.w = 1.0f;
         }
         MonsterSetRuntimeBlock4C(monster, block);
     }
@@ -3365,20 +3354,20 @@ void ModifyGroupColor(int group_id, int color)
     }
     W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
     if (color == 0) {
-        block.highlight_red = 0.0f;
-        block.highlight_green = 0.0f;
-        block.highlight_blue = 0.0f;
-        block.highlight_alpha = 0.0f;
+        block.highlight.x = 0.0f;
+        block.highlight.y = 0.0f;
+        block.highlight.z = 0.0f;
+        block.highlight.w = 0.0f;
     } else if (color == 1) {
-        block.highlight_red = 0.0f;
-        block.highlight_green = 1.0f;
-        block.highlight_blue = 0.0f;
-        block.highlight_alpha = 1.0f;
+        block.highlight.x = 0.0f;
+        block.highlight.y = 1.0f;
+        block.highlight.z = 0.0f;
+        block.highlight.w = 1.0f;
     } else if (color == 2) {
-        block.highlight_red = 1.0f;
-        block.highlight_green = 0.0f;
-        block.highlight_blue = 0.0f;
-        block.highlight_alpha = 1.0f;
+        block.highlight.x = 1.0f;
+        block.highlight.y = 0.0f;
+        block.highlight.z = 0.0f;
+        block.highlight.w = 1.0f;
     }
     for (unsigned int index = 0; index < ILLength(group->monsters); ++index) {
         W8Monster* monster = GetMonsterByLocationID(IListGetAt(group->monsters, index));
@@ -3657,15 +3646,15 @@ void UpdateSlotMonsterHighlights0053C130(int party_slot, char enable)
                 unsigned char flag = MonsterGetHighlightMask(monster);
                 W8ModelInstance3DRenderState block;
                 if (enable != 0 && (flag & (1 << (party_slot & 0x1f))) != 0) {
-                    block.highlight_red = 1.0f;
-                    block.highlight_green = 0.0f;
-                    block.highlight_blue = 0.0f;
-                    block.highlight_alpha = 1.0f;
+                    block.highlight.x = 1.0f;
+                    block.highlight.y = 0.0f;
+                    block.highlight.z = 0.0f;
+                    block.highlight.w = 1.0f;
                 } else {
-                    block.highlight_red = 0.0f;
-                    block.highlight_green = 0.0f;
-                    block.highlight_blue = 0.0f;
-                    block.highlight_alpha = 0.0f;
+                    block.highlight.x = 0.0f;
+                    block.highlight.y = 0.0f;
+                    block.highlight.z = 0.0f;
+                    block.highlight.w = 0.0f;
                 }
                 MonsterSetRuntimeBlock4C(monster, block);
             }

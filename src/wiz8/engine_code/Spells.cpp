@@ -1707,14 +1707,12 @@ bool CanSpellBackfire(int spell_id)
 // FUNCTION: WIZ8 0x004acc10
 unsigned char InitializeSpellDatabase(void)
 {
-    /* Retail read allocation_count/database_version uninitialised when the
-       header FileRead pair short-circuited; deterministic zeroes model that
-       defect path. */
+    // MATCH: retail uses both header locals after a failed read without initializing them.
     int handle;
     unsigned int index;
     unsigned char ok;
-    int allocation_count = 0;
-    unsigned int database_version = 0;
+    int allocation_count;
+    unsigned int database_version;
 
     if (g_spell_records != 0) {
         delete[] g_spell_records;

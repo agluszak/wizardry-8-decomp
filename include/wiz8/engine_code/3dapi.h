@@ -31,4 +31,4 @@ int ForwardSelectedPropIndex004503B0(W8World* world, int x, int y);
    selected prop trigger when one is latched. */
 unsigned char ForwardActivateSelectedProp00451150(W8World* world, int mode, int x, int y);
 void SetCameraSwayMode(srCamera* camera, int mode);
-void WorldSetCameraLocation(W8World* world, const float* location); /* 0x00450420 */
+void WorldSetCameraLocation(W8World* world, const srVector3T<float>* location); /* 0x00450420 */

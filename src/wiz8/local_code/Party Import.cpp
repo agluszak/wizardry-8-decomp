@@ -655,13 +655,12 @@ void ImportEquipment00559650(W8Character* character, const W8Wiz7Character* impo
     RebuildEquipmentAndDerivedStats(character);
 }
 
-/* Retail fell through the failed assert and read `imported->skills` by
-   whatever `mapped` held; a deterministic zero models that defect path. */
+// MATCH: retail uses this local after the invalid-skill assertion without assigning it.
 // FUNCTION: WIZ8 0x00559BC0
 unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
                           const W8Wiz7Character* imported)
 {
-    int mapped = 0;
+    int mapped;
     unsigned int unlocks;
     unsigned int roll;
     unsigned int base_value;

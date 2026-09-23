@@ -27,8 +27,6 @@
 // VTABLE: WIZ8 0x005ECD78 W8Item
 // class W8Item
 
-/* VC6 emits the scalar-deleting wrapper at 0x0049F420 from this ordinary
-   virtual destructor. */
 // SYNTHETIC: WIZ8 0x0049F420
 // W8Item::`scalar deleting destructor'
 
@@ -412,10 +410,10 @@ void W8Item::SetHighlight(bool enabled)
             alpha = 1.0f;
         }
     }
-    rep->render_state_04c.highlight_red = 0.0f;
-    rep->render_state_04c.highlight_green = green;
-    rep->render_state_04c.highlight_blue = blue;
-    rep->render_state_04c.highlight_alpha = alpha;
+    rep->render_state_04c.highlight.x = 0.0f;
+    rep->render_state_04c.highlight.y = green;
+    rep->render_state_04c.highlight.z = blue;
+    rep->render_state_04c.highlight.w = alpha;
 }
 
 // FUNCTION: WIZ8 0x0049FF40
@@ -423,8 +421,7 @@ bool W8Item::IsSelected()
 {
     srModelInstance* selected = GetPickedModelInstance00427810();
     srVector3T<float> location;
-    /* The selection-point helper is inlined here even though its result is
-       not used by the final mesh-identity test. */
+    /* Retail calls the selection-point helper; its returned location is unused. */
     GetSearchPosition(&location);
     return selected == static_cast<W8ItemRep*>(m_pRep)->m_psrMesh;
 }

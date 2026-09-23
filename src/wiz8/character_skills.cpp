@@ -408,39 +408,11 @@ bool IsCharacterSkillAvailable(W8Character* character, unsigned int skill_id,
         if (skill_id >= 0x22 && skill_id <= 0x28) {
             return character->attributes[skill_id - 0x22].value >= 100;
         }
-        /* The canonical emits a byte index table over 0x00..0x1b, placed after
-           the body, with three groups: default for 0x00..0x09 and 0x12, a
-           middle band of 0x0a..0x11 and 0x13..0x17, and the magic realms. Its
-           first and third groups resolve to the same address, so the middle
-           band is a real case group whose body merely returns 1 like the
-           default. Neither an empty break nor an explicit return 1 reproduces
-           the table: VC6 drops the empty group and range-tests the remainder,
-           and returning 1 merges the two bands into one range compare that
-           costs 41 bytes more. */
-        switch (skill_id) {
-        case 0x0a:
-        case 0x0b:
-        case 0x0c:
-        case 0x0d:
-        case 0x0e:
-        case 0x0f:
-        case 0x10:
-        case 0x11:
-        case 0x13:
-        case 0x14:
-        case 0x15:
-        case 0x16:
-        case 0x17:
-            break;
-        case 0x18:
-        case 0x19:
-        case 0x1a:
-        case 0x1b:
+        if (skill_id >= 0x18 && skill_id <= 0x1b) {
             magic_offset = g_profession_magic_level_offsets[profession];
             if (magic_offset < 0 && magic_offset > -0xff) {
                 return character->profession_levels[profession] + magic_offset > 0;
             }
-            break;
         }
     }
     return true;

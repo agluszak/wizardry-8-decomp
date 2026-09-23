@@ -51,20 +51,6 @@ bool ItemHasQuantityKindFour(int item_id);
 int GetPairedEquipSlot(int equip_slot);
 wchar_t* GetItemDisplayName(const W8ItemInstance* item);
 
-/* 0x0051B7B0 and 0x0051CCE0 are also expanded at their own call sites inside
-   this unit: retail inlines the display-name body seven times in UseItem,
-   three times in FormatItemDisplayName and twice in CastItemSpell0051EE70,
-   and the name-kind test once in EquipMatchingPartnerItem, while nine and
-   eight call sites in other units call the out-of-line copies. VC6 /O2
-   expands only inline-marked bodies, yet the retail copies sit inside the PC
-   Item unit's .text run in source order - ordinary emitted definitions, not
-   linker COMDATs. Measured: a unit-local inline, a header inline and a bare
-   inline declaration each drop the out-of-line emission entirely (all uses
-   expand, the symbol goes unresolved), and a header inline additionally
-   expands the body at the nine retail CALL sites. No single marking
-   reproduces the pattern, so these stay ordinary declarations and the
-   in-unit expansions remain an unresolved compiler-lowering difference
-   rather than a duplicated helper body. */
 bool ItemHasSingledOutGenericName(int item_id);
 
 /* PC Item.cpp GLOBAL at 0x0061E810: the per-item-class notice index. */

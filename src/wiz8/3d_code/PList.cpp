@@ -5,16 +5,10 @@
 
 #define PLIST_CPP "C:\\Projects\\Wizardry 8\\3D Code\\PList.cpp"
 
-/* 3D Code\PList.cpp. The parameter names ppl and pEntry come from the canonical
-   assertions at lines 540 and 541. This is a different container from
-   W8GrowableVector: the element array is at +0x00 and the iNumUsed at +0x08, with
-   no vptr, and the accessors are free functions rather than methods. */
-
 // FUNCTION: WIZ8 0x005e22c0
 W8PList* PLCreate(void)
 {
     W8PList* ppl;
-    void** data;
 
     ppl = (W8PList*)malloc(sizeof(W8PList));
     if (!ppl) {
@@ -23,21 +17,7 @@ W8PList* PLCreate(void)
     ppl->iNumUsed = 0;
     ppl->data = 0;
 
-    /* PListInit is inlined here. */
-    if (!ppl) {
-        srAssertFail("ppl", PLIST_CPP, 0x56, 0);
-    }
-    if (ppl->iNumUsed != 0) {
-        srAssertFail("ppl->iNumUsed==0", PLIST_CPP, 0x58, 0);
-    }
-    if (ppl->data) {
-        free(ppl->data);
-    }
-    data = (void**)malloc(10 * sizeof(void*));
-    ppl->data = data;
-    ppl->capacity = 10;
-    ppl->iNumUsed = 0;
-    if (!data) {
+    if (!PListInit(ppl)) {
         free(ppl);
         return 0;
     }
@@ -47,8 +27,6 @@ W8PList* PLCreate(void)
 // FUNCTION: WIZ8 0x005e2370
 unsigned char PListInit(W8PList* ppl)
 {
-    unsigned char created;
-
     if (!ppl) {
         srAssertFail("ppl", PLIST_CPP, 0x56, 0);
     }
@@ -59,24 +37,18 @@ unsigned char PListInit(W8PList* ppl)
         free(ppl->data);
     }
     ppl->data = (void**)malloc(10 * sizeof(void*));
-    created = ppl->data != 0;
     ppl->capacity = 10;
     ppl->iNumUsed = 0;
-    return created;
+    return ppl->data != 0;
 }
 
 // FUNCTION: WIZ8 0x005e23e0
 unsigned char PLDestroy(W8PList* ppl)
 {
-    /* The second assertion is PListFreeData's, retained after inlining. */
     if (!ppl) {
         srAssertFail("ppl", PLIST_CPP, 0x77, 0);
-        srAssertFail("ppl", PLIST_CPP, 0x8e, 0);
     }
-    if (ppl->data) {
-        free(ppl->data);
-        ppl->data = 0;
-    }
+    PListFreeData(ppl);
     free(ppl);
     return 1;
 }
@@ -269,10 +241,6 @@ done:
     return index;
 }
 
-/* Retail ICF folds this ordinary PList.cpp function with ILLength. The retained
-   retail body is the IList.cpp emission at 0x005e2c70. PLLength remains a
-   separate typed source function with no retail address marker; the /OPT:NOICF
-   comparison build may therefore report call-target differences. */
 unsigned int PLLength(W8PList* ppl)
 {
     if (!ppl) {

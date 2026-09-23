@@ -1904,10 +1904,8 @@ bool LoadAutomapNotes(int handle)
             for (unsigned int index = 0; index < count; ++index) {
                 srVector2T<float> position;
                 int layer = 0;
-                int length = 0;
-                /* Retail fed `length` to malloc even when the FileRead chain
-                   short-circuited before filling it; a deterministic zero
-                   models that defect path. */
+                // MATCH: retail passes this local to malloc after a failed read.
+                int length;
                 unsigned char ok = FileRead(handle, &position.x, 4, 0) != 0 &&
                                    FileRead(handle, &position.y, 4, 0) != 0 &&
                                    FileRead(handle, &layer, 4, 0) != 0 &&

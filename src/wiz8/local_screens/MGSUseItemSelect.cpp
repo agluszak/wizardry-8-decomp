@@ -393,13 +393,11 @@ void RedrawPanel69B998(void)
     g_use_item_select_panels_69b994[1]->Invalidate(0);
 }
 
-/* fItemSelectMode per-frame update: keep the scroll buttons synced, run the
-   dirty panels' redraw pass, then re-check the pending commit — the same
-   sequence CommitSelectedItemUse performs, inlined here by VC6. */
+/* fItemSelectMode per-frame update: keep the scroll buttons synced, redraw
+   dirty panels, then commit the pending item use. */
 // FUNCTION: WIZ8 0x0059CF50
 void UpdateUseItemSelect0059CF50(unsigned char active)
 {
-    W8Character* character;
     bool panel_dirty;
     int i;
 
@@ -421,22 +419,7 @@ void UpdateUseItemSelect0059CF50(unsigned char active)
             }
         }
     }
-    if (g_value_69b9a0 != 0 &&
-        CanUseItemForAction(g_status_685170.selected_character, g_value_69b9a0) &&
-        IsItemTargetOfNeededKind(g_status_685170.selected_character, g_value_69b9a0)) {
-        character = &g_status_685170.buffers.Char[g_status_685170.selected_character];
-        if (g_value_69b9a0 != 0) {
-            g_use_item_commit_active_0069bf38 = 1;
-            CommitSelectedSpellTarget();
-            g_use_item_commit_active_0069bf38 = 0;
-            AimItemUseAtCurrentTarget0051DB60(character, g_value_69b9a0);
-            if (g_value_69b9a0 != 0 && g_value_69b9a0->iItemNo != -1 &&
-                GetItemSpell(g_value_69b9a0) == 0x17) {
-                return;
-            }
-            CloseUseItemSelectView();
-        }
-    }
+    CommitSelectedItemUse();
 }
 
 /* Keep the scroll buttons' enabled and secondary states in step with the

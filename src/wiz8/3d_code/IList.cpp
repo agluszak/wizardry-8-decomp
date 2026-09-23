@@ -5,17 +5,10 @@
 
 #define ILIST_CPP "C:\\Projects\\Wizardry 8\\3D Code\\IList.cpp"
 
-/* 3D Code\IList.cpp, the integer sibling of 3D Code\PList.cpp. Same shape -
-   elements at +0x00, capacity at +0x04, iNumUsed at +0x08, and free functions -
-   but the elements are ints, which is why a failed lookup returns -1 where
-   PLGet returns null. Every assertion in the unit names the parameter
-   pls. */
-
 // FUNCTION: WIZ8 0x005e2900
 W8IList* ILCreate(void)
 {
     W8IList* pls;
-    int* data;
 
     pls = (W8IList*)malloc(sizeof(W8IList));
     if (!pls) {
@@ -24,19 +17,7 @@ W8IList* ILCreate(void)
     pls->iNumUsed = 0;
     pls->data = 0;
 
-    /* IListInit inlined; its own null assertion at line 100 survives as a
-       second test because the two stores above separate the two checks. */
-    if (!pls) {
-        srAssertFail("pls", ILIST_CPP, 0x64, 0);
-    }
-    if (pls->data) {
-        free(pls->data);
-    }
-    data = (int*)malloc(10 * sizeof(int));
-    pls->data = data;
-    pls->capacity = 10;
-    pls->iNumUsed = 0;
-    if (!data) {
+    if (!IListInit(pls)) {
         free(pls);
         return 0;
     }
@@ -46,37 +27,25 @@ W8IList* ILCreate(void)
 // FUNCTION: WIZ8 0x005e29a0
 unsigned char IListInit(W8IList* pls)
 {
-    unsigned char created;
-
     if (!pls) {
         srAssertFail("pls", ILIST_CPP, 0x64, 0);
     }
     if (pls->data) {
         free(pls->data);
     }
-    /* The original sets the flags immediately after the store and materialises
-       the result only at the return, as a bare `setne al` with no zero-extend.
-       Comparing in the return statement instead makes VC6 compute the value
-       early into CL and widen it; a byte local assigned here reproduces the
-       original's split between testing and materialising. */
     pls->data = (int*)malloc(10 * sizeof(int));
-    created = pls->data != 0;
     pls->capacity = 10;
     pls->iNumUsed = 0;
-    return created;
+    return pls->data != 0;
 }
 
 // FUNCTION: WIZ8 0x005e2a00
 unsigned char ILDestroy(W8IList* pls)
 {
-    /* The 0x9a assertion is IListFreeData's, inlined here; VC6 merges the two
-       null tests into one. */
     if (!pls) {
         srAssertFail("pls", ILIST_CPP, 0x83, 0);
-        srAssertFail("pls", ILIST_CPP, 0x9a, 0);
     }
-    free(pls->data);
-    pls->data = 0;
+    IListFreeData(pls);
     free(pls);
     return 1;
 }
@@ -92,7 +61,6 @@ unsigned char IListFreeData(W8IList* pls)
     return 1;
 }
 
-// Grows by five, and the growth assertion names its temporary pTemp.
 // FUNCTION: WIZ8 0x005e2aa0
 int IListAdd(W8IList* pls, int value)
 {
@@ -151,8 +119,7 @@ int IListRemove(W8IList* pls, int value)
                 pls->data[shift_index] = pls->data[shift_index + 1];
             }
             --pls->iNumUsed;
-            if (static_cast<double>(pls->iNumUsed) / pls->capacity < 0.25 &&
-                !pls) {
+            if (static_cast<double>(pls->iNumUsed) / pls->capacity < 0.25 && !pls) {
                 srAssertFail("pls", ILIST_CPP, 0x1fd, 0);
             }
             return removed;

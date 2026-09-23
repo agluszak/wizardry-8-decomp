@@ -69,9 +69,7 @@ struct W8MonsterGroup {
        unconditionally and skips the zero entries, so the array is fixed-size
        rather than terminated. */
     int allied_group_ids[4];
-    /* 0xb7: copied verbatim onto every member's live Monster when the formation
-       is re-applied. Unaligned inside this packed record, which is why the copy
-       comes out as twelve byte moves rather than three dword ones. */
+    /* 0xb7: copied onto every member's live Monster when formation is applied. */
     srVector3T<float> formation;
     /* 0xc3: set by MonGen when the group is spawned as an active encounter;
        cleared by UnregisterActiveEncounterGroup, which also raises

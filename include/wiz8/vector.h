@@ -3,13 +3,9 @@
 
 #include <new>
 
-/* One hand-rolled growable-array template. Each element type emits its own
-   constructor, destructor, vtable and element-width-specific methods. */
+/* A hand-rolled growable array used by the engine and UI. */
 template <class T> class W8GrowableVector {
 public:
-    /* Retail default construction goes through this one constructor with
-       five: every site emits PUSH 5 before the call, whether the compiler
-       calls the out-of-line emission or inlines the capacity constant. */
     explicit W8GrowableVector(int initial_capacity = 5)
     {
         if (initial_capacity < 1) {
@@ -24,8 +20,7 @@ public:
         }
     }
 
-    /* The copy is sized to the source's live count rather than its capacity.
-       The concrete int body at 0x004ED900 is an ordinary template emission. */
+    /* The copy's capacity is the source's live count. */
     W8GrowableVector(const W8GrowableVector& other)
     {
         data = new T[other.count];
@@ -113,8 +108,7 @@ public:
     {
         int index;
 
-        /* Retail insertion grows by five, unlike Add's minimum-sized growth
-           (005D21F0 pointer entries and 004C80E0 script-condition bytes). */
+        /* Insertion grows capacity by five entries. */
         if (count + 1 > capacity && !Grow(capacity + 5)) {
             return 0;
         }
@@ -130,19 +124,13 @@ public:
        value, while callers such as the dialog destructor delete it. */
     T RemoveAt(int position);
 
-    /* Removes the entry at position and deletes the object it pointed at.
-       The spell-effect list teardown is its only retail use: LoadGame calls
-       the out-of-line emission at 0x00516A00 while ResetLiveSessionForLoad
-       inlines the same sequence. */
+    /* Removes the entry at position and deletes the object it pointed at. */
     void RemoveAtAndDelete(int position);
 
-    /* Removes the first matching entry, if any, and reports whether one was
-       there. The startup entry queues reach it through QueueEntry. */
+    /* Removes the first matching entry and reports whether one was present. */
     unsigned char Remove(T entry);
 
-    /* The image walks the array from a pointer loaded once rather than
-       indexing through GetAt, which bounds-checks. Controls.cpp:2718 asserts on
-       the -1 this returns, so the not-found value is the source's own. */
+    /* Returns the first matching index, or -1 when the value is absent. */
     int IndexOf(T value)
     {
         T* scan = data;
@@ -229,15 +217,9 @@ template <class T> unsigned char W8GrowableVector<T>::Remove(T entry)
     return 0;
 }
 
-/* Thin derived collection: identical layout and inherited behavior, but the
-   retail image gives it its own vtable and deleting destructor (0x005EC018
-   over the base 0x005EC004 for the stModelInstance* instantiation, with the
-   base constructor emitted at 0x004390F0 and the derived deleting destructor
-   at 0x00438F70). The octree model-instance queries take the base pointer. */
+/* A distinct growable-vector subtype. */
 template <class T> class W8Vector : public W8GrowableVector<T> {
 public:
-    /* Retail emits only the capacity form (0x00445FF0 takes the count); the
-       default argument carries unadorned declarations. */
     explicit W8Vector(int initial_capacity = 5) : W8GrowableVector<T>(initial_capacity) {}
 };
 

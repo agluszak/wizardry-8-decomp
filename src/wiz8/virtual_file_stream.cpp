@@ -205,12 +205,6 @@ inline srInlineString::srInlineString()
     reset();
 }
 
-/* Retail has a callable emission here - deep expansion sites (insert's
-   destroyed temporaries, the operator+ copy-out) keep calls while shallow
-   sites expand the three stores. Our build inlines it at every site, so the
-   emission does not materialize; the divergence is VC6's per-site inline
-   budget, not the declaration. Address 0x0047D290 is the retail callable
-   form and is not claimed here. */
 inline void srInlineString::reset()
 {
     inline_[0] = '\0';
@@ -285,17 +279,13 @@ unsigned long W8VirtualFileBinIStream::tell()
     return FileGetPos(m_hFile);
 }
 
-// Note the original reuses the `size` parameter slot as the completed-count
-// out-parameter, and returns it branchlessly.
 // FUNCTION: WIZ8 0x0047d5c0
 unsigned long W8VirtualFileBinIStream::vread(void* buffer, unsigned long size)
 {
-    /* SurRender spells its 32-bit count unsigned long; SGP spells the same
-       ABI word UINT32 (unsigned int). The canonical body reuses this parameter
-       slot, so keep that ownership explicit at the header boundary.
-       reinterpret-ok: unsigned long and unsigned int are the same ABI word. */
-    if (FileRead(m_hFile, buffer, size, reinterpret_cast<unsigned int*>(&size))) {
-        return size;
+    unsigned int bytes_read;
+
+    if (FileRead(m_hFile, buffer, size, &bytes_read)) {
+        return bytes_read;
     }
     return 0;
 }

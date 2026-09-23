@@ -990,10 +990,7 @@ void GetCurrentVideoSettings(unsigned short* height, unsigned short* width, unsi
     *depth = 0x10;
 }
 
-/* Clears the primary surface. The dword count the original computes - the pitch
-   times fifteen, masked, shifted left three - is VC6's inline memset over
-   pitch times 480 bytes, which is why the byte-remainder loop that follows it
-   runs zero times: the length is always a multiple of four. */
+/* Clear the primary surface. */
 // FUNCTION: WIZ8 0x00421ff0
 unsigned char ClearPrimarySurface(void)
 {
@@ -1746,9 +1743,7 @@ void RefreshMouseCursorTexture(void)
     g_cursor_texture_659690->invalidate();
 }
 
-/* Whether the tracked cursor position lies inside the render viewport. The
-   two automap callers use it, but nothing names the viewport as automap-only
-   state; placed here with the neighbouring cursor bodies. */
+/* Clear the cursor scratch surface. */
 // FUNCTION: WIZ8 0x00427e70
 bool ClearMouseSurface(void)
 {
@@ -2099,10 +2094,6 @@ void InvalidateRegion(int left, int top, int right, int bottom, unsigned int fla
     cell_flags = 0;
     if (g_page_full_redraw_6596e8[g_active_page_6596e4] == 0) {
         clipped_right = 0x280;
-        /* The low clamp is a conditional expression because the original is
-           branchless there and branches on the high one, and it is written
-           <= 0 rather than < 1: the two are the same test and VC6 encodes them
-           differently, setle against setl. */
         clipped_left = left <= 0 ? 0 : left;
         if ((int)clipped_left > 0x27f) {
             clipped_left = 0x280;
@@ -2306,10 +2297,8 @@ void DrawVideoInspector00427460(int left, unsigned int top)
     unsigned int bottom;
     unsigned char* row;
     int rows;
-    /* Retail left the band height uninitialised for inspector modes outside
-       1..3 and read that storage into bottom; deterministic zero models
-       that defect path. */
-    int height = 0;
+    // Retail only assigns height for inspector modes 1 through 3.
+    int height;
 
     if (g_video_inspector_mode_6596d4 == 1) {
         height = 0xb;
@@ -2604,12 +2593,8 @@ unsigned char InitializeRendererSceneObjects(void)
     return 1;
 }
 
-/* Zero a rectangle of the primary surface, one row at a time. The span is
-   doubled because the surface holds sixteen-bit pixels, and the row clear is an
-   ordinary memset that VC6 expands into a dword run with a byte remainder.
-
-   Unlike the other lock site in this unit, the descriptor is not cleared before
-   locking. That is the original's own sequence, reproduced. */
+/* Zero a rectangle of the primary surface one row at a time. Retail passes the
+   lock descriptor without clearing it first. */
 // FUNCTION: WIZ8 0x004263f0
 void ClearSurfaceRect(int left, unsigned int top, int right, unsigned int bottom)
 {
@@ -2759,9 +2744,7 @@ void SetMouseCursorTexture(srTextureIFace* texture)
     }
     g_cursor_model_65968c->setTexture(texture, 0, 0);
     if ((g_cursor_model_65968c->control_state_390 & 8) == 0) {
-        unsigned long state = g_cursor_model_65968c->control_state_390;
-        g_cursor_model_65968c->control_state_390 = state | 8;
-        g_cursor_model_65968c->control_state_390 = state | 8;
+        g_cursor_model_65968c->control_state_390 |= 8;
     }
 }
 
@@ -2858,9 +2841,6 @@ int VideoDumpMemoryLeaks(void)
     return 0;
 }
 
-/* The retail linker folds this trivial TRUE stub with other returns; its
-   0x42B830 address sits past the proven Video2 hull, so its placement stays
-   provisional. */
 // FUNCTION: WIZ8 0x0042b830
 BOOLEAN CheckCdPresent(void)
 {

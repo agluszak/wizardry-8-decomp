@@ -94,8 +94,8 @@ OctPreTree::~OctPreTree()
 void W8OctSpatialState::SetWorkingBounds00467B70(const srVector3T<float>* minimum,
                                                  const srVector3T<float>* maximum)
 {
-    working_minimum_78 = *minimum;
-    working_maximum_84 = *maximum;
+    working_bounds_78.minimum = *minimum;
+    working_bounds_78.maximum = *maximum;
 }
 
 /* Resets the collected-id run and appends every not-yet-seen polygon id the
@@ -135,10 +135,12 @@ bool OctPreTree::SegmentClear00467BB0(const srVector3T<float>* from, const srVec
     m_gd_result_count_1b8 = 0;
     m_owned_190->ClearAll();
     for (int axis = 0; axis < 3; ++axis) {
-        cell[axis] = static_cast<int>(((&from->x)[axis] - (&spatial_000.minimum_0c.x)[axis]) /
-                                      spatial_000.node_extent_70);
-        end_cell[axis] = static_cast<int>(((&to->x)[axis] - (&spatial_000.minimum_0c.x)[axis]) /
-                                          spatial_000.node_extent_70);
+        cell[axis] =
+            static_cast<int>(((&from->x)[axis] - (&spatial_000.bounds_0c.minimum.x)[axis]) /
+                             spatial_000.node_extent_70);
+        end_cell[axis] =
+            static_cast<int>(((&to->x)[axis] - (&spatial_000.bounds_0c.minimum.x)[axis]) /
+                             spatial_000.node_extent_70);
         int difference = cell[axis] - end_cell[axis];
         if (difference < 0) {
             span -= difference;
@@ -287,12 +289,12 @@ unsigned char OctPreTree::WriteOctFile004683F0(W8OctPreTreeGeometry* geometry,
     header.node_extent_0a = spatial_000.node_extent_70;
     header.version_00 = 0x22;
     for (int axis = 0; axis < 3; ++axis) {
-        (&header.bounds_0e[0].x)[axis] = (&spatial_000.minimum_0c.x)[axis];
-        (&header.bounds_0e[1].x)[axis] = (&spatial_000.maximum_18.x)[axis];
-        (&header.bounds_0e[2].x)[axis] = (&spatial_000.clipped_minimum_24.x)[axis];
-        (&header.bounds_0e[3].x)[axis] = (&spatial_000.clipped_maximum_30.x)[axis];
-        (&header.bounds_0e[4].x)[axis] = (&spatial_000.working_minimum_78.x)[axis];
-        (&header.bounds_0e[5].x)[axis] = (&spatial_000.working_maximum_84.x)[axis];
+        (&header.bounds_0e[0].minimum.x)[axis] = (&spatial_000.bounds_0c.minimum.x)[axis];
+        (&header.bounds_0e[0].maximum.x)[axis] = (&spatial_000.bounds_0c.maximum.x)[axis];
+        (&header.bounds_0e[1].minimum.x)[axis] = (&spatial_000.clipped_bounds_24.minimum.x)[axis];
+        (&header.bounds_0e[1].maximum.x)[axis] = (&spatial_000.clipped_bounds_24.maximum.x)[axis];
+        (&header.bounds_0e[2].minimum.x)[axis] = (&spatial_000.working_bounds_78.minimum.x)[axis];
+        (&header.bounds_0e[2].maximum.x)[axis] = (&spatial_000.working_bounds_78.maximum.x)[axis];
         header.grid_dims_56[axis] = (&m_leaf_grid_dim_x_0a4)[axis];
     }
     header.depth_62 = spatial_000.depth_44;
@@ -459,8 +461,7 @@ unsigned char OctPreTree::WriteOctFile004683F0(W8OctPreTreeGeometry* geometry,
     return written;
 }
 
-/* Releases the two per-record id runs SplitMeshes allocates; retail inlines
-   this same loop at every CreateSubMeshes exit. */
+/* Releases the two id arrays attached to each split-mesh record. */
 static void FreeSubmeshBuildArrays(W8OctSubmeshBuild* records, unsigned long count)
 {
     for (unsigned int index = 0; index < count; ++index) {
@@ -703,9 +704,7 @@ unsigned long OctPreTree::SplitMeshes00469670(W8OctPreTreeGeometry* geometry,
     kind_counts[0] = count;
     kind_counts[1] = 0;
     kind_counts[2] = 0;
-    /* Verified retail behavior: kind_counts[3] is incremented (by
-       kind == 3 targets) but never initialised or read - the slot stays a
-       dead stack increment under MSVC6. Deliberately left uninitialised. */
+    /* Retail increments kind_counts[3] for kind-3 targets without initializing or reading it. */
 
     unsigned long next_free = count;
     for (unsigned long kind = 1; kind < 4; ++kind) {
@@ -1099,12 +1098,12 @@ unsigned long OctPreTree::AllocateSubMesh0046A790(W8OctSubmeshBuild* records)
                 unsigned long cell = cells->entries[slot].value;
                 float cell_x =
                     static_cast<float>((cell >> 0x10) & 0xff) * spatial_000.region_grid_cell_54 +
-                    spatial_000.minimum_0c.x;
+                    spatial_000.bounds_0c.minimum.x;
                 float cell_y =
                     static_cast<float>((cell >> 8) & 0xff) * spatial_000.region_grid_cell_54 +
-                    spatial_000.minimum_0c.y;
+                    spatial_000.bounds_0c.minimum.y;
                 float cell_z = static_cast<float>(cell & 0xff) * spatial_000.region_grid_cell_54 +
-                               spatial_000.minimum_0c.z;
+                               spatial_000.bounds_0c.minimum.z;
                 if (cell_x + spatial_000.region_grid_cell_54 < min_x || max_x < cell_x ||
                     cell_y + spatial_000.region_grid_cell_54 < min_y || max_y < cell_y ||
                     cell_z + spatial_000.region_grid_cell_54 < min_z || max_z < cell_z) {
@@ -1132,15 +1131,15 @@ void OctPreTree::VerifyPolygonRegions0046ABF0()
         if (polygon->region_32 >= spatial_000.region_count_46) {
             unsigned int cell[4];
             cell[0] = m_region_mask_140;
-            cell[1] =
-                static_cast<unsigned int>((polygon->position_18.x - spatial_000.minimum_0c.x) /
-                                          spatial_000.region_grid_cell_54);
-            cell[2] =
-                static_cast<unsigned int>((polygon->position_18.y - spatial_000.minimum_0c.y) /
-                                          spatial_000.region_grid_cell_54);
-            cell[3] =
-                static_cast<unsigned int>((polygon->position_18.z - spatial_000.minimum_0c.z) /
-                                          spatial_000.region_grid_cell_54);
+            cell[1] = static_cast<unsigned int>(
+                (polygon->position_18.x - spatial_000.bounds_0c.minimum.x) /
+                spatial_000.region_grid_cell_54);
+            cell[2] = static_cast<unsigned int>(
+                (polygon->position_18.y - spatial_000.bounds_0c.minimum.y) /
+                spatial_000.region_grid_cell_54);
+            cell[3] = static_cast<unsigned int>(
+                (polygon->position_18.z - spatial_000.bounds_0c.minimum.z) /
+                spatial_000.region_grid_cell_54);
             int node = DescendByMask(cell);
             if (m_owned_09c[node].region_02 != static_cast<short>(polygon->region_32)) {
                 char text[256];
@@ -1171,11 +1170,11 @@ void OctPreTree::VerifyAutoMeshes0046AD10(W8OctPreTreeGeometry* geometry,
                 cell[2] = packed >> 8 & 0xff;
                 cell[3] = packed & 0xff;
                 float cell_x = static_cast<float>(cell[1]) * spatial_000.region_grid_cell_54 +
-                               spatial_000.minimum_0c.x;
+                               spatial_000.bounds_0c.minimum.x;
                 float cell_y = static_cast<float>(cell[2]) * spatial_000.region_grid_cell_54 +
-                               spatial_000.minimum_0c.y;
+                               spatial_000.bounds_0c.minimum.y;
                 float cell_z = static_cast<float>(cell[3]) * spatial_000.region_grid_cell_54 +
-                               spatial_000.minimum_0c.z;
+                               spatial_000.bounds_0c.minimum.z;
                 int node = DescendByMask(cell);
                 if (node != 0) {
                     if (m_owned_09c[node].region_02 != static_cast<short>(mesh)) {
@@ -1248,14 +1247,16 @@ unsigned char OctPreTree::BuildPathLists0046B060(W8GameData* game_data, W8LevelF
                                                 min_component_percent, this);
     ReportBuildStatus00497690(6, "\nBuilding Path Lists:\n=======================\n");
     path_node_extent_3b4 = m_region_cell_178 + m_region_cell_178;
-    float level_height =
-        (spatial_000.maximum_18.y - spatial_000.minimum_0c.y) * g_path_span_scale_005ec344;
-    int x_cells = static_cast<int>((spatial_000.maximum_18.x - spatial_000.minimum_0c.x) /
-                                   m_region_cell_178) +
-                  1;
-    int z_cells = static_cast<int>((spatial_000.maximum_18.z - spatial_000.minimum_0c.z) /
-                                   m_region_cell_178) +
-                  1;
+    float level_height = (spatial_000.bounds_0c.maximum.y - spatial_000.bounds_0c.minimum.y) *
+                         g_path_span_scale_005ec344;
+    int x_cells =
+        static_cast<int>((spatial_000.bounds_0c.maximum.x - spatial_000.bounds_0c.minimum.x) /
+                         m_region_cell_178) +
+        1;
+    int z_cells =
+        static_cast<int>((spatial_000.bounds_0c.maximum.z - spatial_000.bounds_0c.minimum.z) /
+                         m_region_cell_178) +
+        1;
 
     int prop_count = CreatePathProps0046C0F0(level, &preprops);
     W8PrePathNode* record = pre_pathing_2a0->GetPathNode();
@@ -1274,11 +1275,11 @@ unsigned char OctPreTree::BuildPathLists0046B060(W8GameData* game_data, W8LevelF
             }
             unsigned int cell = static_cast<unsigned int>(x);
             node.x = (static_cast<float>(x) + g_float_005ebc7c) * m_region_cell_178 +
-                     spatial_000.minimum_0c.x;
+                     spatial_000.bounds_0c.minimum.x;
             for (int z = 0; z < z_cells; ++z) {
                 node.z = (static_cast<float>(z) + g_float_005ebc7c) * m_region_cell_178 +
-                         spatial_000.minimum_0c.z;
-                node.y = spatial_000.maximum_18.y;
+                         spatial_000.bounds_0c.minimum.z;
+                node.y = spatial_000.bounds_0c.maximum.y;
                 while (SnapToGround(&node, 1)) {
                     m_lNumBlocks_2ac = 0;
                     m_lNumSupports_2a8 = 0;
@@ -1298,7 +1299,7 @@ unsigned char OctPreTree::BuildPathLists0046B060(W8GameData* game_data, W8LevelF
                         record->y = node.y;
                         record->level_flags =
                             static_cast<unsigned int>(static_cast<int>(
-                                (node.y - spatial_000.minimum_0c.y) / level_height)) +
+                                (node.y - spatial_000.bounds_0c.minimum.y) / level_height)) +
                             1;
                         if (InsertConditionalNodes0046B9D0(&cond_map, cell, record->level_flags,
                                                            preprops, prop_count)) {
@@ -1324,11 +1325,9 @@ unsigned char OctPreTree::BuildPathLists0046B060(W8GameData* game_data, W8LevelF
         if (pre_pathing_2a0 == 0) {
             ReportBuildStatus00497690(7, "Could not create PrePathing object\n");
         }
-        pre_pathing_2a0->ConfigureForLevel(
-            path_node_count_2a4, m_region_cell_178, static_cast<int>(m_path_clearance_17c),
-            reinterpret_cast< // reinterpret-ok: minimum_0c/maximum_18 are the adjacent bounds pair
-                const W8BoundingBox*>(&spatial_000.minimum_0c),
-            m_owned_0c0);
+        pre_pathing_2a0->ConfigureForLevel(path_node_count_2a4, m_region_cell_178,
+                                           static_cast<int>(m_path_clearance_17c),
+                                           &spatial_000.bounds_0c, m_owned_0c0);
         /* Verified retail behavior: this early return runs only the two
            local hash-table destructors.  preprops (and its pStopMeshes
            arrays), object_registry and g_octree_game_data_00652db0 are all
@@ -1743,10 +1742,10 @@ W8OctSpatialState::W8OctSpatialState(const W8OctSpatialState* source)
     level_kind_6c = 1;
     if (source != 0) {
         for (int axis = 0; axis != 3; ++axis) {
-            (&minimum_0c.x)[axis] = (&source->minimum_0c.x)[axis];
-            (&maximum_18.x)[axis] = (&source->maximum_18.x)[axis];
-            (&clipped_minimum_24.x)[axis] = (&source->clipped_minimum_24.x)[axis];
-            (&clipped_maximum_30.x)[axis] = (&source->clipped_maximum_30.x)[axis];
+            (&bounds_0c.minimum.x)[axis] = (&source->bounds_0c.minimum.x)[axis];
+            (&bounds_0c.maximum.x)[axis] = (&source->bounds_0c.maximum.x)[axis];
+            (&clipped_bounds_24.minimum.x)[axis] = (&source->clipped_bounds_24.minimum.x)[axis];
+            (&clipped_bounds_24.maximum.x)[axis] = (&source->clipped_bounds_24.maximum.x)[axis];
         }
         if (source->level_kind_6c == 1) {
             extent_04 = source->extent_04 * g_float_005ebc7c;
@@ -1785,24 +1784,24 @@ void W8OctSpatialState::Reset0046CDC0()
 void W8OctSpatialState::GetWorkingBounds0046CDF0(srVector3T<float>* minimum,
                                                  srVector3T<float>* maximum)
 {
-    minimum->x = working_minimum_78.x;
-    minimum->y = working_minimum_78.y;
-    minimum->z = working_minimum_78.z;
-    maximum->x = working_maximum_84.x;
-    maximum->y = working_maximum_84.y;
-    maximum->z = working_maximum_84.z;
+    minimum->x = working_bounds_78.minimum.x;
+    minimum->y = working_bounds_78.minimum.y;
+    minimum->z = working_bounds_78.minimum.z;
+    maximum->x = working_bounds_78.maximum.x;
+    maximum->y = working_bounds_78.maximum.y;
+    maximum->z = working_bounds_78.maximum.z;
 }
 
 // FUNCTION: WIZ8 0x0046ce30
 void W8OctSpatialState::GetClippedBounds0046CE30(srVector3T<float>* minimum,
                                                  srVector3T<float>* maximum)
 {
-    minimum->x = clipped_minimum_24.x;
-    minimum->y = clipped_minimum_24.y;
-    minimum->z = clipped_minimum_24.z;
-    maximum->x = clipped_maximum_30.x;
-    maximum->y = clipped_maximum_30.y;
-    maximum->z = clipped_maximum_30.z;
+    minimum->x = clipped_bounds_24.minimum.x;
+    minimum->y = clipped_bounds_24.minimum.y;
+    minimum->z = clipped_bounds_24.minimum.z;
+    maximum->x = clipped_bounds_24.maximum.x;
+    maximum->y = clipped_bounds_24.maximum.y;
+    maximum->z = clipped_bounds_24.maximum.z;
 }
 
 // FUNCTION: WIZ8 0x0046cdd0
@@ -1823,11 +1822,10 @@ unsigned char BoundsOverlap0046D470(const srVector3T<float>* first, const srVect
 
 /* Inclusive point containment for an axis-aligned box. */
 // FUNCTION: WIZ8 0x0046d4d0
-unsigned char PointInsideBounds0046D4D0(const srVector3T<float>* bounds,
-                                        const srVector3T<float>* point)
+bool PointInsideBounds0046D4D0(const srVector3T<float>* bounds, const srVector3T<float>* point)
 {
-    return bounds[0].x <= point->x && point->x <= bounds[1].x && bounds[0].y <= point->y &&
-           point->y <= bounds[1].y && bounds[0].z <= point->z && point->z <= bounds[1].z;
+    return point->x >= bounds[0].x && point->x <= bounds[1].x && point->y >= bounds[0].y &&
+           point->y <= bounds[1].y && point->z >= bounds[0].z && point->z <= bounds[1].z;
 }
 
 /* Test a triangle against an axis-aligned box.  The inexpensive containment

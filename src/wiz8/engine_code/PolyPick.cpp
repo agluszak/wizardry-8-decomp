@@ -1,10 +1,3 @@
-/* Engine Code\PolyPick.cpp: the demo's __FILE__ path sits in .data between
-   "Engine Code\quad.cpp" and "Engine Code\Monster.cpp", matching this
-   translation unit's retail .text span between the proved quad.cpp hull
-   (upper 0x004BE420) and Monster.cpp's W8MonsterRep (lower 0x004BEA20).
-   The demo string cluster carries "ERROR: Suppressed bad float value in
-   ElevationToTargetCPP", naming the camera-relative elevation helper. */
-
 #include "wiz8/engine_code/PolyPick.h"
 
 #include "wiz8/engine_code/GameData.h"

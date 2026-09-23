@@ -363,28 +363,27 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
             if (mesh.materials_70[0][0] != 0) {
                 *m_pGlowMaterial = *mesh.materials_70[0][0];
             }
-            if (m_pGlowMaterial == 0) {
-                goto render_mesh;
-            }
         }
 
-        float glow_weight =
-            (float)fabs(sin(((double)(GetTickCount() % render_state_164.render_depth) /
-                             (double)(int)render_state_164.render_depth) *
-                            g_camera_angle_period_005ec014));
-        float base_weight = g_float_005ebb38 - glow_weight;
-        srVector4T<float> emissive;
-        emissive.x = vector_174->x * base_weight + vector_178->x * glow_weight;
-        emissive.y = vector_174->y * base_weight + vector_178->y * glow_weight;
-        emissive.z = vector_174->z * base_weight + vector_178->z * glow_weight;
-        emissive.w = g_float_005ebb38;
-        m_pGlowMaterial->setEmissive(emissive);
-        mesh.materials_70[0][0] = m_pGlowMaterial;
-        mesh.shaders_b0[0].value = (mesh.shaders_b0[0].value & ~srShader::MASK_GRADIENT_MODULATE) |
-                                   srShader::MASK_GRADIENT_ADD;
+        if (m_pGlowMaterial != 0) {
+            float glow_weight =
+                (float)fabs(sin(((double)(GetTickCount() % render_state_164.render_depth) /
+                                 (double)(int)render_state_164.render_depth) *
+                                g_camera_angle_period_005ec014));
+            float base_weight = g_float_005ebb38 - glow_weight;
+            srVector4T<float> emissive;
+            emissive.x = vector_174->x * base_weight + vector_178->x * glow_weight;
+            emissive.y = vector_174->y * base_weight + vector_178->y * glow_weight;
+            emissive.z = vector_174->z * base_weight + vector_178->z * glow_weight;
+            emissive.w = g_float_005ebb38;
+            m_pGlowMaterial->setEmissive(emissive);
+            mesh.materials_70[0][0] = m_pGlowMaterial;
+            mesh.shaders_b0[0].value =
+                (mesh.shaders_b0[0].value & ~srShader::MASK_GRADIENT_MODULATE) |
+                srShader::MASK_GRADIENT_ADD;
+        }
     }
 
-render_mesh:
     model->renderTriMesh(*renderer, mesh);
     renderer->popMatrix();
 }
@@ -473,10 +472,10 @@ srClass* stModelInstance::vInstance()
 stModelInstance::stModelInstance(srNode* parent)
     : srClassSupport<stModelInstance, srModelInstance, false, 0x10004>(static_cast<srNode*>(0))
 {
-    render_state_164.highlight_red = 0.0f;
-    render_state_164.highlight_green = 0.0f;
-    render_state_164.highlight_blue = 0.0f;
-    render_state_164.highlight_alpha = 0.0f;
+    render_state_164.highlight.x = 0.0f;
+    render_state_164.highlight.y = 0.0f;
+    render_state_164.highlight.z = 0.0f;
+    render_state_164.highlight.w = 0.0f;
     render_flags_178 = 0;
     mesh_index_17c = -1;
     frame_index_180 = 0;
@@ -498,10 +497,10 @@ stModelInstance::stModelInstance(srNode* parent)
 stModelInstance& stModelInstance::operator=(const stModelInstance& other)
 {
     srModelInstance::operator=(other);
-    render_state_164.highlight_red = 0.0f;
-    render_state_164.highlight_green = 0.0f;
-    render_state_164.highlight_blue = 0.0f;
-    render_state_164.highlight_alpha = 0.0f;
+    render_state_164.highlight.x = 0.0f;
+    render_state_164.highlight.y = 0.0f;
+    render_state_164.highlight.z = 0.0f;
+    render_state_164.highlight.w = 0.0f;
     render_flags_178 = other.render_flags_178;
     mesh_index_17c = other.mesh_index_17c;
     frame_index_180 = other.frame_index_180;
@@ -664,10 +663,10 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
     }
     renderer.setAmbientLight(light);
 
-    if (render_state_164.highlight_red != g_float_005ebb34 ||
-        render_state_164.highlight_green != g_float_005ebb34 ||
-        render_state_164.highlight_blue != g_float_005ebb34 ||
-        render_state_164.highlight_alpha != g_float_005ebb34) {
+    if (render_state_164.highlight.x != g_float_005ebb34 ||
+        render_state_164.highlight.y != g_float_005ebb34 ||
+        render_state_164.highlight.z != g_float_005ebb34 ||
+        render_state_164.highlight.w != g_float_005ebb34) {
         if (retained_174 == 0) {
             retained_174 = new srMaterial;
             srVector4T<float> zero;
@@ -677,17 +676,12 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
             retained_174->setSpecular(zero);
             retained_174->setOpacity(0.35);
         }
-        retained_174->setEmissive(
-            // reinterpret-ok: the render-state block carries the highlight RGBA verbatim.
-            *reinterpret_cast<const srVector4T<float>*>(&render_state_164));
+        retained_174->setEmissive(render_state_164.highlight);
     }
 
     unsigned char first_pass = 1;
-    /* Retail never stores this local: its slot overlaps dead float locals, so
-       the FLAG_TERMINATE walk below ran on leftover stack data and effectively
-       never fired. Seed it deterministically instead of reproducing the
-       uninitialised read, which faults under this build's layout. */
-    srNode* child = 0;
+    /* Retail reaches the first FLAG_TERMINATE test before assigning child. */
+    srNode* child;
     while (model != 0) {
         model->SetAmbientColor00472990(ambient_color);
         model->getTriMesh(mesh);
@@ -733,10 +727,10 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
             }
         }
 
-        if (((render_state_164.highlight_red == g_float_005ebb34) &&
-             (render_state_164.highlight_green == g_float_005ebb34) &&
-             (render_state_164.highlight_blue == g_float_005ebb34) &&
-             (render_state_164.highlight_alpha == g_float_005ebb34)) ||
+        if (((render_state_164.highlight.x == g_float_005ebb34) &&
+             (render_state_164.highlight.y == g_float_005ebb34) &&
+             (render_state_164.highlight.z == g_float_005ebb34) &&
+             (render_state_164.highlight.w == g_float_005ebb34)) ||
             (highlight_pass_mode_190 != 1)) {
             if (diffuse_scale_enabled_1a0 != 0) {
                 g_material_diffuse_scale_0065baa0 = diffuse_scale_1a4;
@@ -780,10 +774,10 @@ void stModelInstance::RenderMeshes0047F930(srGERD& renderer)
         }
     }
 
-    if (render_state_164.highlight_red != g_float_005ebb34 ||
-        render_state_164.highlight_green != g_float_005ebb34 ||
-        render_state_164.highlight_blue != g_float_005ebb34 ||
-        render_state_164.highlight_alpha != g_float_005ebb34) {
+    if (render_state_164.highlight.x != g_float_005ebb34 ||
+        render_state_164.highlight.y != g_float_005ebb34 ||
+        render_state_164.highlight.z != g_float_005ebb34 ||
+        render_state_164.highlight.w != g_float_005ebb34) {
         model = static_cast<stMeshModel*>(getModel());
         if (highlight_pass_mode_190 == 0) {
             renderer.setWinding(srGERD::WINDING_POSITIONAL_1);
