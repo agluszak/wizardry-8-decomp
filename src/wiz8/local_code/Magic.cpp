@@ -972,7 +972,7 @@ void StartCharacterItemUse(int party_slot)
     }
     ChooseAction(party_slot, 8, -1, &row->item_detail, 0, 1);
     AimAtTarget(party_slot, &saved_target, W8_TARGETING_CONTEXT_CURRENT);
-    RecordItemOrigin(party_slot, row->item_origin, row->item_slot);
+    FindCharacterItemAt(party_slot, row->item_origin, row->item_slot);
 
     if (IsSpellTargetStillValidIn(party_slot, GetItemSpell(row->item_detail.item_use.item),
                                   W8_TARGETING_CONTEXT_ITEM)) {

@@ -208,6 +208,22 @@ def compare_command(
     cli.emit(action())
 
 
+def verify_call_targets_command(
+    base: Annotated[
+        str, typer.Option("--base", help="Revision to compare changed calls against.")
+    ] = "main@origin",
+) -> None:
+    """Require changed WIZ8 direct calls to name retail's callees."""
+    from .. import command_support as cli
+    from ..comparison import check_changed_call_targets
+    from ..config import repository_root
+
+    result = check_changed_call_targets(repository_root(), "WIZ8", base)
+    cli.emit(result)
+    if result["status"] != "passed":
+        raise typer.Exit(code=1)
+
+
 def vtable_command(
     class_filter: Annotated[str | None, typer.Argument(help="Class-name substring.")] = None,
     program: Annotated[str, typer.Option("--program")] = "wiz8",
@@ -401,6 +417,7 @@ def register(app: typer.Typer) -> None:
     app.command("diagnostics")(diagnostics_command)
     app.command("build")(build_command)
     app.command("compare")(compare_command)
+    app.command("verify-call-targets")(verify_call_targets_command)
     app.command("vtable")(vtable_command)
     app.command("datacmp")(datacmp_command)
     app.command("addr")(address_command)

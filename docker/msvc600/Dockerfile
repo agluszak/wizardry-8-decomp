@@ -131,6 +131,41 @@ RUN cmake \
       > /tmp/wiz8-clang-tidy-plugin/test.log 2>&1 \
  && test "$(grep -c '\[wiz8-redundant-scalar-cast\]' \
       /tmp/wiz8-clang-tidy-plugin/test.log)" -eq 7 \
+ && WIZ8_REDUNDANT_CAST_LINES='/home/build/wizardry/include/wiz8/clang_tidy_record_fixture_types.h@1-200;/home/build/wizardry/include/wiz8/clang_tidy_record_fixture_macros.h@1-20;/home/build/wizardry/src/wiz8/clang_tidy_record_cast_fixture.cpp@1-500;/home/build/wizardry/src/wiz8/clang_tidy_record_cast_fixture_second.cpp@1-50' \
+      clang-tidy \
+      --checks=-*,wiz8-project-record-reinterpret-cast \
+      --header-filter=.* \
+      /tmp/wiz8-clang-tidy-plugin/record_cast_fixture.cpp \
+      /tmp/wiz8-clang-tidy-plugin/record_cast_fixture_second.cpp \
+      -- --target=i686-pc-windows-msvc -std=c++17 \
+      > /tmp/wiz8-clang-tidy-plugin/record_cast_fixture.log 2>&1 \
+ && record_cast_diagnostics="$(grep -c '\[wiz8-project-record-reinterpret-cast\]' \
+      /tmp/wiz8-clang-tidy-plugin/record_cast_fixture.log)" \
+ && if [ "$record_cast_diagnostics" -ne 18 ]; then \
+      echo "expected 18 project-record cast diagnostics, got $record_cast_diagnostics"; \
+      cat /tmp/wiz8-clang-tidy-plugin/record_cast_fixture.log; exit 1; \
+    fi \
+ && grep -q "repository record 'cast_fixture::A' to repository record 'cast_fixture::B'" \
+      /tmp/wiz8-clang-tidy-plugin/record_cast_fixture.log \
+ && grep -q "source record 'cast_fixture::A\*' is erased here" \
+      /tmp/wiz8-clang-tidy-plugin/record_cast_fixture.log \
+ && grep -q "repository record 'cast_fixture::Renderer::Pick'" \
+      /tmp/wiz8-clang-tidy-plugin/record_cast_fixture.log \
+ && grep -q 'source record provenance .* is unresolved' \
+      /tmp/wiz8-clang-tidy-plugin/record_cast_fixture.log \
+ && WIZ8_REDUNDANT_CAST_LINES='*' clang-tidy \
+      --checks=-*,wiz8-project-record-reinterpret-cast \
+      --header-filter=.* \
+      /tmp/wiz8-clang-tidy-plugin/record_cast_fixture.cpp \
+      /tmp/wiz8-clang-tidy-plugin/record_cast_fixture_second.cpp \
+      /tmp/wiz8-clang-tidy-plugin/record_cast_fixture_empty.cpp \
+      -- --target=i686-pc-windows-msvc -std=c++17 \
+      -I /tmp/wiz8-clang-tidy-plugin \
+      > /tmp/wiz8-clang-tidy-plugin/record_cast_audit.log 2>&1 \
+ && test "$(grep -c '\[wiz8-project-record-reinterpret-cast\]' \
+      /tmp/wiz8-clang-tidy-plugin/record_cast_audit.log)" -eq 18 \
+ && grep -q 'explicit full-tree audit mode selected' \
+      /tmp/wiz8-clang-tidy-plugin/record_cast_audit.log \
  && if WIZ8_REDUNDANT_CAST_LINES='/tmp/wiz8-clang-tidy-plugin/bool_test.cpp@1-240' clang-tidy \
       --checks=-*,wiz8-bool-like-byte \
       /tmp/wiz8-clang-tidy-plugin/bool_test.cpp \

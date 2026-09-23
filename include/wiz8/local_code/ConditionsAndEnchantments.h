@@ -80,7 +80,6 @@ void RemoveAllConditionsFromParty(void);
 void BindMonsterToCharacterDependence(unsigned int party_slot, unsigned int dependence_slot,
                                       int monster_id);
 
-void ApplyMonsterCondition(int location_id, int condition, int arg_3);
 /* 0x005237E0: rescan uiCondition from slot 0x13 downward and write the
    first live index into W8Character::highest_condition. */
 void RecomputeCharacterHighestCondition(int party_slot);

@@ -724,14 +724,26 @@ void DrainCharacterSpellPoints(int party_slot, unsigned int amount, char announc
    realm that is furthest from full. The realms are sorted by how far short
    they are, then handed a point each in turn; ties are given a point together
    so the deficits stay level. */
+struct W8SpellPointDeficit {
+    unsigned int realm;
+    unsigned int deficit;
+};
+
+// FUNCTION: WIZ8 0x0052B8E0
+int __cdecl CompareSpellPointDeficits0052B8E0(const void* first, const void* second)
+{
+    const W8SpellPointDeficit* a = static_cast<const W8SpellPointDeficit*>(first);
+    const W8SpellPointDeficit* b = static_cast<const W8SpellPointDeficit*>(second);
+    if (a->deficit < b->deficit)
+        return 1;
+    return (a->deficit == b->deficit) - 1;
+}
+
 // FUNCTION: WIZ8 0x0052b910
 void RestoreCharacterSpellPointsEvenly(int party_slot, int amount)
 {
     W8Character* character = &g_status_685170.buffers.Char[party_slot];
-    struct {
-        unsigned int realm;
-        unsigned int deficit;
-    } order[W8_SPELL_REALM_COUNT];
+    W8SpellPointDeficit order[W8_SPELL_REALM_COUNT];
     unsigned int index;
     int granted = 0;
     bool tied;
@@ -740,7 +752,7 @@ void RestoreCharacterSpellPointsEvenly(int party_slot, int amount)
         order[index].realm = index;
         order[index].deficit = character->sp_max[index] - character->iSPLeft[index];
     }
-    qsort(order, W8_SPELL_REALM_COUNT, sizeof(order[0]), CompareSpellPointDeficits);
+    qsort(order, W8_SPELL_REALM_COUNT, sizeof(order[0]), CompareSpellPointDeficits0052B8E0);
 
     for (;;) {
         if (amount == 0) {
@@ -911,12 +923,12 @@ void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* att
         quiet == 0 && monster_info->uiCondition[W8_CONDITION_HOSTILE] != 0) {
         if (TargetSourceIsCharacter(attacker, 0)) {
             if (MonsterVsCharDisposition(attacker->iChar, monster_info) == 2) {
-                ApplyMonsterCondition(monster_info->location_id, 0xd, 1);
+                TickMonsterCondition(monster_info->location_id, 0xd, 1);
             }
         } else if (MonsterHostility00546F80(
                        MonsterInfoFromID(1570, HEALTH_STAMINA_MANA_CPP, attacker->iMonsterID, 1),
                        monster_info) == 2) {
-            ApplyMonsterCondition(monster_info->location_id, 0xd, 1);
+            TickMonsterCondition(monster_info->location_id, 0xd, 1);
         }
     }
 }

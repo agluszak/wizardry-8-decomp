@@ -180,7 +180,6 @@ bool ItemHasHiddenProperties(int item_id);                /* 0x00520750 */
    unidentified database name kind. */
 char FindCharacterItemByDatabaseKind005213C0(W8Character* character, short item_kind,
                                              W8ItemInstance** out, int include_backpack);
-void MoveItem(W8ItemInstance* to, W8ItemInstance* from, int arg_3, int arg_4);
 
 /* 0x0051B910: per-item-class notice index into gppStringList used for the
    unidentified ("Uncursed item" style) display name. */
@@ -207,19 +206,15 @@ void BindCharacterItems(int party_slot, int arg_2); /* 0x0051D2C0 */
 bool IsItemBoundToWearer(const W8ItemInstance* item); /* 0x0051D180 */
 W8ItemInstance* FindCharacterItemAt(int party_slot, unsigned char origin,
                                     unsigned short slot); /* 0x00522180 */
-void RecordItemOrigin(int party_slot, unsigned char origin, unsigned short slot);
 void RemoveCharacterItem(W8Character* character, W8ItemInstance* item, char arg_3);
 unsigned char RemovePartyItemByID005215D0(int item_id, char remove_all);
 
 bool CanUseItemForAction(int party_slot, const W8ItemInstance* item);
 
-/* Unresolved gap callees, declared for the ReviewCharacterScreen.cpp camp item
-   handler. 0x0051E980 scans the merge-kind table for the related
-   unidentified-name kind of an item. 0x0051CDE0 reports whether the held item
-   may occupy an equipment slot given the item in its paired hand slot.
-   0x00521E20 shifts the party pool open and inserts the item at an index. */
+/* Camp item operations: paired hand compatibility, merge-kind lookup, and
+   insertion into the party's item pool. */
 char GetItemMergeKind0051E980(int item_id, short* related_kind);
-char HeldItemFitsPairedSlot0051CDE0(int party_slot, int equip_slot);
+char HeldItemFitsPairedSlot0051CDE0(int party_slot, unsigned int equip_slot);
 char InsertItemIntoPartyPool00521E20(W8ItemInstance* item, int index);
 int ChooseCharacterEquipSlot(W8Character* character, int item_id);
 
@@ -266,7 +261,6 @@ void UpgradeProfessionClassItem005218C0(W8Character* character);
 
 int __cdecl CompareItemsForPool(const void* first, const void* second);
 void UpdateGadgeteerOmnigun(W8Character* character);
-unsigned int SwapCharacterWeaponSets(int party_slot, char announce, int refresh);
 void BindEveryPartyItem(void); /* 0x0051D230 */
 /* 0x00522A00: whether the item's equip class is directly usable (0x17/0x19). */
 bool IsUsableItemClass00522A00(W8ItemInstance* item);

@@ -681,6 +681,21 @@ short g_compatible_partner_pairs_616e6c[6][2] = {
     {114, 113}, {110, 132}, {104, 132}, {144, 143}, {145, 146}, {0, 0},
 };
 
+// FUNCTION: WIZ8 0x0051E980
+char GetItemMergeKind0051E980(int item_id, short* related_kind)
+{
+    if (related_kind && item_id != -1) {
+        for (int index = 0; g_compatible_partner_pairs_616e6c[index][0] != 0; ++index) {
+            if (g_compatible_partner_pairs_616e6c[index][0] ==
+                g_item_records[item_id].unidentified_name_index) {
+                *related_kind = g_compatible_partner_pairs_616e6c[index][1];
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
 /* Whether an off-hand item may pair with a ranged item when the two are held
    together. A handful of name indices name one partner directly, the
    two-weapon name indices fall back to the pair table, and the specialised
@@ -816,6 +831,36 @@ bool CanHoldItemsTogether(int first_item_id, int second_item_id)
                g_item_records[second_item_id].wield_group;
     }
     return true;
+}
+
+// FUNCTION: WIZ8 0x0051CDE0
+char HeldItemFitsPairedSlot0051CDE0(int party_slot, unsigned int equip_slot)
+{
+    if (party_slot == -1)
+        srAssertFail("iChar != -1", PC_ITEM_CPP, 0x4e0, 0);
+    if (equip_slot >= 12)
+        srAssertFail("uiSlot < SLOT_COUNT", PC_ITEM_CPP, 0x4e1, 0);
+
+    int paired_slot;
+    switch (equip_slot) {
+    case 6:
+        paired_slot = 7;
+        break;
+    case 7:
+        paired_slot = 6;
+        break;
+    case 8:
+        paired_slot = 9;
+        break;
+    case 9:
+        paired_slot = 8;
+        break;
+    default:
+        return 1;
+    }
+    return CanHoldItemsTogether(
+        g_status_685170.item_in_hand_235b.iItemNo,
+        g_status_685170.buffers.Char[party_slot].EquippedItem[paired_slot].iItemNo);
 }
 
 /* Item categories the usability rules distinguish. Three is the spell source
@@ -1890,7 +1935,7 @@ void CreateItemIntoHandOrPool(int item_id, unsigned char quality)
         AddItemToParty(&created, 0, 0);
         return;
     }
-    MoveItem(&g_status_685170.item_in_hand_235b, &created, 0, 1);
+    CopyItemInstance(&g_status_685170.item_in_hand_235b, &created, 0, 1);
 }
 
 /* How many of a character's twenty item slots hold something they could use
@@ -3478,6 +3523,28 @@ bool CharacterHasServiceItem(W8Character* character)
 
 /* Insert one item into the packed party pool, first coalescing compatible
    stacks unless requested otherwise. */
+// FUNCTION: WIZ8 0x00521E20
+char InsertItemIntoPartyPool00521E20(W8ItemInstance* item, int index)
+{
+    W8ItemInstance shifted[500];
+    unsigned int count = g_status_685170.party_item_count_1791;
+    if (count >= 500)
+        return 0;
+
+    if (count != static_cast<unsigned int>(index)) {
+        unsigned int bytes = (count - index) * sizeof(W8ItemInstance);
+        memcpy(&shifted[index], &g_status_685170.party_item_pool_0021[index], bytes);
+        memcpy(&g_status_685170.party_item_pool_0021[index + 1], &shifted[index], bytes);
+    }
+    W8ItemInstance* destination = &g_status_685170.party_item_pool_0021[index];
+    memset(destination, 0, sizeof(*destination));
+    destination->iItemNo = -1;
+    CopyItemInstance(destination, item, 0, 1);
+    ++g_status_685170.party_item_count_1791;
+    RedistributePartyEncumbrance();
+    return 1;
+}
+
 // FUNCTION: WIZ8 0x00521ef0
 bool AddItemToParty(W8ItemInstance* item, unsigned char announce, unsigned char skip_stacking)
 {

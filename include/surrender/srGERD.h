@@ -272,6 +272,16 @@ public:
     enum e_enable { ENABLE_POSITIONAL_0 = 0, ENABLE_POSITIONAL_1 = 1, ENABLE_POSITIONAL_4 = 4 };
     enum e_winding { WINDING_POSITIONAL_0 = 0, WINDING_POSITIONAL_1 = 1 };
     enum e_visibility { VISIBILITY_POSITIONAL_0 = 0 };
+    /* dump(stream, flags) section selectors: bit 0 driver/device info plus
+       the window block, bit 1 the texture cache, bit 3 the statistics
+       snapshot, bit 5 the srDebugDD call profile. dump(stream) passes 0x3f. */
+    enum e_info {
+        INFO_DEVICE = 0x1,
+        INFO_TEXTURE_CACHE = 0x2,
+        INFO_STATISTICS = 0x8,
+        INFO_DEBUG_DD = 0x20,
+        INFO_ALL = 0x3f
+    };
 
     /* Not in the consumer import table and no client emission exists in
        retail Wiz8 (no "srGERD" literal): the consumer never references it,
@@ -287,8 +297,13 @@ public:
     virtual unsigned long getClassID() const override;
     virtual srRegistry::ClassNode* getClassNode() const override;
     virtual void dump(std::ostream& stream) override;
+    void dump(std::ostream& stream, const srFlags<e_info>& info);
+    static void dumpDeviceList(std::ostream& stream);
 
-    static srGERD* loadDevice(srStringTable& devices, unsigned long flags);
+    static srGERD* loadDevice(srStringTable& devices, unsigned long index);
+    static srGERD* loadDevice(const char* name, const char* path, unsigned long device);
+    static srGERD* loadDeviceWithFileName(const char* filename, unsigned long device);
+    static void loadDevices(const char* path);
     static srGERD* getFirst();
     srGERD* getNext() const;
     /* Open-device list used by srTexture::invalidateFrameHandle; the links
@@ -319,6 +334,18 @@ public:
     int isWindowOpen() const;
     int isFullScreen() const;
     unsigned long getWindowHandle() const;
+    /* info_50_.text_3c_[0..8] accessors: initDDInfo seeds the nine 0x40-byte
+       identity strings, getInfo's driver fills them. */
+    const char* getDeviceName() const;
+    const char* getDeviceVendor() const;
+    const char* getDevicePlatform() const;
+    const char* getDriverName() const;
+    const char* getDriverVendor() const;
+    const char* getDriverVersion() const;
+    const char* getHardwareChipset() const;
+    const char* getHardwareName() const;
+    const char* getHardwareVendor() const;
+    srDD::e_hardwareID getHardwareID() const;
     void setGamma(const srVector3T<float>& gamma);
     e_error beginFrame();
     void endFrame();
@@ -331,12 +358,15 @@ public:
     void resetStatistics();
     /* getStatistics buffer. The render probes return the double at +0x10
        through ftol; the 0x00427460 debug overlay prints the dword counters at
-       +0x08/+0x0c (the TT pair), +0x20 (PO), +0x24 (VO), +0x34 (PI),
+       +0x08/+0x0c (the TT pair halves), +0x20 (PO), +0x24 (VO), +0x34 (PI),
        +0x3c (VI), +0x4c (TC) and +0x68 (DD). */
     struct Statistics {
         /* Epoch written by resetStatistics; getStatistics returns the
            seconds elapsed since then. */
         double elapsed_00;
+        /* Device texture byte count mirrored from srDD::Statistics +0x00 as
+           two dwords; dump reinterprets the pair as a double for the
+           "DD Texture data transfer (Mb/s)" line. */
         unsigned long value_08;
         unsigned long value_0c;
         double value_10;
@@ -497,6 +527,8 @@ public:
     void setClipState(srFlags<srRendererDefs::e_clip> state);
     void setAntiAlias(e_antiAlias mode);
     void setTexture(srTextureIFace* texture, unsigned long layer);
+    void setTextureDefaultCorrection(srTextureIFace::e_correction correction);
+    void setTextureDefaultCompression(srTextureIFace::e_compression compression);
     void setTextureDefaultMagFilter(srTextureIFace::e_filter filter);
     void setTextureDefaultMinFilter(srTextureIFace::e_filter filter);
     void setTextureDefaultMipmap(srTextureIFace::e_mipmap mipmap);
@@ -616,6 +648,9 @@ private:
        positions into pick_vertices_2230_ and run the edge-function
        triangle test against the pick ray. */
     void performPickTest(const PickInput& input);
+    void initLights();
+    void initMatrices();
+    void dumpTextureCache(std::ostream& stream);
 
     /* Header inline that also emits the standalone retail 0x1001BC30 copy;
        the batched renderer programs the six DD array slots through it. */
@@ -743,7 +778,12 @@ private:
     /* Device info record handed to srDD::getInfo by initDDInfo; GERD reads
        the staging/clamp fields out of it. */
     srDD::Info info_50_;
-    unsigned char unknown_2cc_[0x94];
+    unsigned char unknown_2cc_[0x14];
+    /* Driver name the ctor's DD info call (vtable +0x80 on the +0x2cc request
+       block) writes; also handed to srRuntimeClass::setName. getDriverName
+       returns it when no context exists yet. Buffer size is bounded by the
+       space remaining in the +0x2cc block. */
+    char driver_name_2e0_[0x80];
     srPixelConvert::PixelFormat* texture_formats_360_;
     long texture_format_count_364_;
     unsigned long* display_modes_368_;
@@ -828,27 +868,27 @@ private:
     srDD::TexParms texture_parms_1f40_[2];
     /* Device palette record handed to bindPalette/deletePalette. */
     srDD::Palette palette_1f50_;
-    /* setTextureParameters packs the stage parameters through these filter
-       tables, indexed by bits of the texture's packed state. */
-    unsigned long wrap_map_1f5c_[4];
-    unsigned long mag_filter_map_1f6c_[4];
-    unsigned long mag_filter_param_1f7c_;
-    unsigned long min_filter_map_1f80_[4];
-    unsigned long min_filter_param_1f90_;
+    /* setTextureParameters indexes these maps from the packed texture state.
+       Filter selector 4 is a valid index in both filter maps. */
+    unsigned long correction_map_1f5c_[4];
+    unsigned long mag_filter_map_1f6c_[5];
+    unsigned long min_filter_map_1f80_[5];
     /* The fourth entry doubles as the current mipmap parameter written by
        setTextureDefaultMipmap. */
     unsigned long mipmap_map_1f94_[4];
-    unsigned long correction_map_1fa4_[2];
-    unsigned long detail_map_1fac_[2];
-    unsigned char unknown_1fb4_[4];
+    unsigned long wrap_s_map_1fa4_[2];
+    unsigned long wrap_t_map_1fac_[2];
+    srTextureIFace::e_correction default_correction_1fb4_;
     srTextureIFace::e_filter default_mag_filter_1fb8_;
     srTextureIFace::e_filter default_min_filter_1fbc_;
     srTextureIFace::e_mipmap default_mipmap_1fc0_;
     /* Per-type default device parameters; evaluateTexturePixelFormat copies
        entry [Dimensions::parameter_index] into srDD::Texture::parameter_34. */
     unsigned long default_texture_params_1fc4_[5];
-    /* Default Dimensions::parameter_index for newly created textures. */
-    unsigned long default_parameter_index_1fd8_;
+    /* Default Dimensions::compression for newly created textures;
+       setTextureDefaultCompression indexes default_texture_params_1fc4_
+       with it. */
+    srTextureIFace::e_compression default_compression_1fd8_;
     /* Palette currently bound to the device. */
     srPalette* palette_1fdc_;
     /* srDD::e_polygonMode value; the empty enum cannot be a field type. */

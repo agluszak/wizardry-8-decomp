@@ -425,4 +425,7 @@ private:
     /* srGERD::testBoundingBox dispatches the processor's bounding-box slot
        through vp (IAT 0x005eb7e8). */
     friend class srGERD;
+    /* srTriangleCuller dispatches _dot/_dotIndexed/_srCullNoClip and the
+       buildAVT scratch ops through vp from its own TU. */
+    friend class srTriangleCuller;
 };

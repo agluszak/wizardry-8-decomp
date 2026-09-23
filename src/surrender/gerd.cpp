@@ -1,9 +1,14 @@
 #include "surrender/srGERD.h"
 
 #include "surrender/srColorSurface.h"
+#include "surrender/srConfig.h"
 #include "surrender/srCore.h"
 #include "surrender/srCriticalSection.h"
+#include "surrender/srDebug.h"
 #include "surrender/srDebugDD.h"
+#include "surrender/srDynamicLibrary.h"
+#include "surrender/srStringTable.h"
+#include "surrender/srSystem.h"
 #include "surrender/srThread.h"
 #include "surrender/srWindow.h"
 #include "surrender/srHeap.h"
@@ -11,7 +16,10 @@
 #include "surrender/srThread.h"
 #include "surrender/srVectorProcessor.h"
 
+#include <ctype.h>
+#include <ostream>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 // GLOBAL: SURRENDER 0x100A4780
@@ -1088,10 +1096,74 @@ void srGERD::getPixelFormat(srPixelConvert::PixelFormat& format) const
     }
 }
 
+// FUNCTION: SURRENDER 0x1001D100
+const char* srGERD::getDeviceName() const
+{
+    return info_50_.text_3c_[0];
+}
+
+// FUNCTION: SURRENDER 0x1001D110
+const char* srGERD::getDeviceVendor() const
+{
+    return info_50_.text_3c_[1];
+}
+
+// FUNCTION: SURRENDER 0x1001D120
+const char* srGERD::getDevicePlatform() const
+{
+    return info_50_.text_3c_[2];
+}
+
+// FUNCTION: SURRENDER 0x1001D130
+const char* srGERD::getDriverName() const
+{
+    const char* name = info_50_.text_3c_[3];
+    if (isContextCreated() == 0) {
+        name = driver_name_2e0_;
+    }
+    return name;
+}
+
+// FUNCTION: SURRENDER 0x1001D150
+const char* srGERD::getDriverVendor() const
+{
+    return info_50_.text_3c_[4];
+}
+
+// FUNCTION: SURRENDER 0x1001D160
+const char* srGERD::getDriverVersion() const
+{
+    return info_50_.text_3c_[5];
+}
+
+// FUNCTION: SURRENDER 0x1001D170
+const char* srGERD::getHardwareChipset() const
+{
+    return info_50_.text_3c_[6];
+}
+
+// FUNCTION: SURRENDER 0x1001D180
+const char* srGERD::getHardwareName() const
+{
+    return info_50_.text_3c_[7];
+}
+
+// FUNCTION: SURRENDER 0x1001D190
+const char* srGERD::getHardwareVendor() const
+{
+    return info_50_.text_3c_[8];
+}
+
 // FUNCTION: SURRENDER 0x1001D1A0
 srGERD* srGERD::getFirst()
 {
     return first;
+}
+
+// FUNCTION: SURRENDER 0x1001D1D0
+srDD::e_hardwareID srGERD::getHardwareID() const
+{
+    return static_cast<srDD::e_hardwareID>(info_50_.hardware_id_38_);
 }
 
 // FUNCTION: SURRENDER 0x1001D1F0
@@ -3220,15 +3292,15 @@ void srGERD::setTextureParameters(unsigned long stage, const srTextureIFace::Par
 {
     unsigned long state = parameters.packed_state_00;
     float bias = parameters.mipmap_bias_04;
-    unsigned long packed = ((((correction_map_1fa4_[(state >> 0xc) & 1] & 0xfffffff3) |
-                              (detail_map_1fac_[(state >> 0xd) & 1] << 2))
+    unsigned long packed = ((((wrap_s_map_1fa4_[(state >> 0xc) & 1] & 0xfffffff3) |
+                              (wrap_t_map_1fac_[(state >> 0xd) & 1] << 2))
                                  << 2 |
                              (mipmap_map_1f94_[(state >> 10) & 3] & 0xffffffc3))
                                 << 2 |
                             (min_filter_map_1f80_[(state >> 7) & 7] & 0xffffff03))
                                << 2 |
                            (mag_filter_map_1f6c_[(state >> 4) & 7] & 0xfffffc0f);
-    packed = (packed << 4) | (wrap_map_1f5c_[state & 3] & 0xffffc00f);
+    packed = (packed << 4) | (correction_map_1f5c_[state & 3] & 0xffffc00f);
     srDD::TexParms* parms = &texture_parms_1f40_[stage];
     if (packed == parms->packed_00 && bias == parms->mipmap_bias_04) {
         return;
@@ -3430,13 +3502,13 @@ void srGERD::initDDInfo()
 {
     memset(&info_50_, 0, sizeof(info_50_));
     info_50_.flags_18_ = 0;
-    info_50_.unknown_38_ = 1;
+    info_50_.hardware_id_38_ = 1;
     info_50_.texture_min_dim_2c_ = 1;
     info_50_.texture_max_aspect_34_ = 1;
     info_50_.max_texture_stages_28_ = 1;
     info_50_.renderer_batch_limit_1c_ = 0x100;
     info_50_.unknown_20_ = 0x3b808081;
-    info_50_.unknown_24_ = 0x200000;
+    info_50_.texture_ram_24_ = 0x200000;
     info_50_.unknown_0c_ = 0x10;
     info_50_.unknown_08_ = 4;
     info_50_.texture_max_dim_30_ = 0x100;
@@ -3449,6 +3521,450 @@ void srGERD::initDDInfo()
     if (info_50_.max_texture_stages_28_ > 2) {
         info_50_.max_texture_stages_28_ = 2;
     }
+}
+
+// FUNCTION: SURRENDER 0x1001C3E0
+void srGERD::initLights()
+{
+    ambient_light_2048_.Set(0.2f, 0.2f, 0.2f, 1.0f);
+}
+
+// FUNCTION: SURRENDER 0x10021BE0
+void srGERD::initMatrices()
+{
+    matrix_mode_1650_ = MATRIX_MODELVIEW;
+    for (long i = 0; i < 2; i++) {
+        matrix_current_390_[i].vectors[0].Set(1.0f, 0.0f, 0.0f, 0.0f);
+        matrix_current_390_[i].vectors[1].Set(0.0f, 1.0f, 0.0f, 0.0f);
+        matrix_current_390_[i].vectors[2].Set(0.0f, 0.0f, 1.0f, 0.0f);
+        matrix_current_390_[i].vectors[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
+        matrix_class_174c_[i] = static_cast<srMatrix4T<float>::e_type>(4);
+        matrix_stacks_410_[i].depth_800 = 0;
+    }
+    normal_matrix_1704_.vectors[0].Set(1.0f, 0.0f, 0.0f, 0.0f);
+    normal_matrix_1704_.vectors[1].Set(0.0f, 1.0f, 0.0f, 0.0f);
+    normal_matrix_1704_.vectors[2].Set(0.0f, 0.0f, 1.0f, 0.0f);
+    normal_matrix_1704_.vectors[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
+    inverse_modelview_1684_.vectors[0].Set(1.0f, 0.0f, 0.0f, 0.0f);
+    inverse_modelview_1684_.vectors[1].Set(0.0f, 1.0f, 0.0f, 0.0f);
+    inverse_modelview_1684_.vectors[2].Set(0.0f, 0.0f, 1.0f, 0.0f);
+    inverse_modelview_1684_.vectors[3].Set(0.0f, 0.0f, 0.0f, 1.0f);
+}
+
+// FUNCTION: SURRENDER 0x1001CD60
+void srGERD::dump(std::ostream& stream)
+{
+    srRuntimeClass::dump(stream);
+    dump(stream, srFlags<e_info>(INFO_ALL));
+}
+
+// FUNCTION: SURRENDER 0x1001DEB0
+void srGERD::dump(std::ostream& stream, const srFlags<e_info>& info)
+{
+    if (isContextCreated() == 0) {
+        stream << "No context created" << std::endl;
+        return;
+    }
+    if ((info.value & INFO_DEVICE) != 0) {
+        stream << std::endl;
+        stream << "GERD Driver/Device Information" << '\n';
+        stream << "Device Name        : " << getDeviceName() << '\n';
+        stream << "Device Vendor      : " << getDeviceVendor() << '\n';
+        stream << "Device Platform    : " << getDevicePlatform() << '\n';
+        stream << "Driver Name        : " << getDriverName() << '\n';
+        stream << "Driver Vendor      : " << getDriverVendor() << '\n';
+        stream << "Driver Version     : " << getDriverVersion() << '\n';
+        stream << "HW Chipset         : " << getHardwareChipset() << '\n';
+        stream << "HW Name            : " << getHardwareName() << '\n';
+        stream << "HW Vendor          : " << getHardwareVendor() << std::endl;
+    }
+    if (isWindowOpen() == 0) {
+        stream << "Window not open" << std::endl;
+        return;
+    }
+    if ((info.value & INFO_DEVICE) != 0) {
+        unsigned long renderers = 0;
+        for (RendererEntry* entry = renderers_10_; entry != 0; entry = entry->next_04) {
+            renderers++;
+        }
+        stream << "Renderers used     : " << renderers << std::endl;
+        /* reinterpret-ok: retail streams the HWND-valued handle through
+           operator<<(const void*). */
+        stream << "Window handle      : " << reinterpret_cast<const void*>(getWindowHandle())
+               << std::endl;
+        stream << "Width              : " << getWidth() << std::endl;
+        stream << "Height             : " << getHeight() << std::endl;
+        stream << "Fullscreen         : " << srBoolToString(isFullScreen()) << std::endl;
+        stream << "Back buffers       : ";
+        e_backBuffer back_buffer = getBackBufferType();
+        if (back_buffer == static_cast<e_backBuffer>(1)) {
+            stream << "none (blit)" << std::endl;
+        } else if (back_buffer == static_cast<e_backBuffer>(2)) {
+            stream << "one (double-buffered)" << std::endl;
+        } else if (back_buffer == static_cast<e_backBuffer>(3)) {
+            stream << "two (triple-buffered)" << std::endl;
+        }
+        stream << "Swap interval      : " << swap_interval_1764_ << std::endl;
+        stream << "Gamma              : {" << gamma_1758_.x << "," << gamma_1758_.y << ","
+               << gamma_1758_.z << "}" << std::endl;
+    }
+    if ((info.value & INFO_STATISTICS) != 0) {
+        Statistics statistics = statistics_19f8_;
+        if (statistics.elapsed_00 > 0.1) {
+            stream << std::endl;
+            stream << "Seconds since reset             : " << statistics.elapsed_00 << '\n';
+            stream << "Frames since reset              : " << statistics.frames_2c << '\n';
+            stream << "Statistics (average per second)" << '\n';
+            stream << "Frames                          : "
+                   << statistics.frames_2c / statistics.elapsed_00 << '\n';
+            stream << "Triangle chunks rendered        : "
+                   << statistics.value_30 / statistics.elapsed_00 << '\n';
+            stream << "Triangles in                    : "
+                   << statistics.value_34 / statistics.elapsed_00 << '\n';
+            stream << "Vertices in                     : "
+                   << statistics.value_3c / statistics.elapsed_00 << '\n';
+            if (statistics.value_34 != 0) {
+                stream << "Input vertex/triangle ratio     : "
+                       << statistics.value_3c / static_cast<float>(statistics.value_34) << '\n';
+            }
+            stream << "DD triangles received           : "
+                   << statistics.value_20 / statistics.elapsed_00 << '\n';
+            stream << "DD vertices transfered          : "
+                   << statistics.value_24 / statistics.elapsed_00 << '\n';
+            stream << "DD vertex indices specified     : "
+                   << statistics.value_28 / statistics.elapsed_00 << '\n';
+            if (statistics.sphere_tests_6c != 0) {
+                stream << "Objects bounding sphere tested  : "
+                       << statistics.sphere_tests_6c / statistics.elapsed_00 << std::endl;
+                stream << "Bounding sphere test passed     : "
+                       << statistics.sphere_visible_70 / statistics.elapsed_00 << " ("
+                       << statistics.sphere_visible_70 * 100.0 / statistics.sphere_tests_6c << "%)"
+                       << std::endl;
+            }
+            if (statistics.box_tests_74 != 0) {
+                stream << "Objects bounding box tested     : "
+                       << statistics.box_tests_74 / statistics.elapsed_00 << std::endl;
+                stream << "Bounding box test passed        : "
+                       << statistics.box_visible_78 / statistics.elapsed_00 << " ("
+                       << statistics.box_visible_78 * 100.0 / statistics.box_tests_74 << "%)"
+                       << std::endl;
+            }
+            stream << std::endl;
+            stream << "Triangles sorted                : "
+                   << statistics.value_38 / statistics.elapsed_00 << '\n';
+            stream << "Triangles removed by clipping   : "
+                   << statistics.value_64 / statistics.elapsed_00 << '\n';
+            stream << "View state changes              : "
+                   << statistics.view_state_applies_40 / statistics.elapsed_00 << '\n';
+            stream << "Matrix changes/classifications  : "
+                   << statistics.matrix_classifications_7c / statistics.elapsed_00 << '\n';
+            stream << "Draw state changes              : "
+                   << statistics.draw_state_applies_44 / statistics.elapsed_00 << '\n';
+            stream << "Per-frame state changes         : "
+                   << statistics.frame_state_count_48 / statistics.elapsed_00 << '\n';
+            stream << "Texture changes                 : "
+                   << statistics.texture_binds_4c / statistics.elapsed_00 << '\n';
+            stream << "Palette changes                 : "
+                   << statistics.palette_binds_58 / statistics.elapsed_00 << '\n';
+            stream << "Texture parameter updates       : "
+                   << statistics.texture_parameter_sets_50 / statistics.elapsed_00 << '\n';
+            stream << "Shader changes                  : "
+                   << statistics.shader_sets_5c / statistics.elapsed_00 << '\n';
+            stream << std::endl;
+            stream << "DD draw commands                : "
+                   << statistics.draw_calls_60 / statistics.elapsed_00 << '\n';
+            if ((info_50_.flags_18_ & 0x10) != 0) {
+                stream << "DD pixels drawn          (M/s)  : "
+                       << statistics.value_10 * 1e-06 / statistics.elapsed_00 << '\n';
+                /* reinterpret-ok: the device stats mirror stores the
+                   transfer counter's double bits as a dword pair. */
+                stream << "DD Texture data transfer (Mb/s) : "
+                       << *reinterpret_cast<const double*>(&statistics.value_08) *
+                              9.5367431640625e-07 / statistics.elapsed_00
+                       << '\n';
+            } else {
+                stream << "DD doesn't support pixel/texture statistics" << std::endl;
+            }
+            stream << "Function calls to DD            : "
+                   << statistics.value_68 / statistics.elapsed_00 << std::endl;
+        }
+        if ((info.value & INFO_DEBUG_DD) != 0 && (enable_flags_20_.value & 0x20) != 0 &&
+            debug_dd_44_ != 0) {
+            double total = 0.0;
+            srStreamPrintf(stream, "\nFunction                        Calls/sec  Time used\n");
+            srStreamPrintf(stream,
+                           "---------------------------------------------------------------\n");
+            for (long i = 0; i < 0x2b; i++) {
+                unsigned long calls = debug_dd_44_->call_counts_170[i];
+                double used = debug_dd_44_->call_times_18[i] - calls * debug_dd_44_->time_scale_10;
+                if (used <= 0.0) {
+                    used = 0.0;
+                }
+                if (calls != 0) {
+                    char text[36];
+                    sprintf(text, "%.2f", calls / statistics.elapsed_00);
+                    double percent = used / statistics.elapsed_00 * 100.0;
+                    srStreamPrintf(stream, "%-32s%-10s %.3f%%\n", srDebugDD::funcName[i], text,
+                                   percent);
+                    total += percent;
+                }
+            }
+            srStreamPrintf(stream, "\nTotal:                                     %.2f%%\n\n",
+                           total);
+        }
+    }
+    if ((info.value & INFO_TEXTURE_CACHE) == 0) {
+        return;
+    }
+    stream << std::endl;
+    dumpTextureCache(stream);
+}
+
+// FUNCTION: SURRENDER 0x1001EB20
+void srGERD::dumpTextureCache(std::ostream& stream)
+{
+    SectionAccess access(state_section_18_);
+    if (!texture_hash_enabled_2044_) {
+        srStreamPrintf(stream, "Texture cache hibernating\n");
+        return;
+    }
+    unsigned long count = 0;
+    for (Texture* texture = texture_head_202c_; texture != 0; texture = texture->next_04) {
+        count++;
+    }
+    srStreamPrintf(stream, "GERD Texture cache:\n\n");
+    srStreamPrintf(stream, "Cached textures:          %d\n", count);
+    srStreamPrintf(stream, "Hash table size           %d\n", texture_lookup_2004_.bucket_count);
+    srStreamPrintf(stream, "GERD Cache memory used:   %d kB\n",
+                   (texture_cache_used_2034_ + 0x3ff) >> 10);
+    if (texture_cache_size_2038_ == 0) {
+        srStreamPrintf(stream, "Max cache size:           infinite\n");
+    } else {
+        srStreamPrintf(stream, "Max cache size:           %d kB\n",
+                       (texture_cache_size_2038_ + 0x3ff) >> 10);
+    }
+    srStreamPrintf(stream, "\n");
+    srStreamPrintf(stream, "Device TMUs:              %d\n", info_50_.max_texture_stages_28_);
+    if (info_50_.texture_ram_24_ == 0) {
+        srStreamPrintf(stream, "Device texture RAM:       infinite\n");
+    } else {
+        srStreamPrintf(stream, "Device texture RAM:       %d kB\n",
+                       (info_50_.texture_ram_24_ + 0x3ff) >> 10);
+    }
+    srStreamPrintf(stream, "Resident textures:        %d kB ",
+                   (getResidentTextureMemUsed() + 0x3ff) >> 10);
+    if (info_50_.texture_ram_24_ != 0) {
+        srStreamPrintf(stream, " (%.2f%%)",
+                       getResidentTextureMemUsed() * 100.0 / info_50_.texture_ram_24_);
+    }
+    srStreamPrintf(stream, "\n\n");
+    srStreamPrintf(stream,
+                   "#     Resolution  Format       KB    LODs  Priority   Timestamp  Resident  "
+                   "FHandle     Name\n");
+    srStreamPrintf(stream,
+                   "-----------------------------------------------------------------------------"
+                   "--------------\n");
+    long index = 0;
+    for (Texture* entry = texture_head_202c_; entry != 0; entry = entry->next_04) {
+        char format_name[64];
+        format_name[0] = '\0';
+        entry->pixel_format_0c.getName(format_name);
+        srStreamPrintf(stream, "%04d  %03dx%03d     %-11s  ", index, entry->device_2c.width_20,
+                       entry->device_2c.height_24, format_name);
+        index++;
+        float kb = (entry->device_2c.size_1c + 0x3ff) * 0.0009765625f;
+        if (kb >= 10.0f) {
+            srStreamPrintf(stream, "%-4d  ", static_cast<long>(kb));
+        } else {
+            srStreamPrintf(stream, "%.1f   ", kb);
+        }
+        int resident =
+            entry->device_2c.resident_data_68 != 0 && entry->device_2c.resident_size_6c != 0;
+        srStreamPrintf(stream, "%-2d    %.4f     %08x   %-5s     %08x   ",
+                       entry->device_2c.last_level_2c - entry->device_2c.first_level_28 + 1,
+                       entry->device_2c.priority_14, entry->device_2c.last_use_18,
+                       srBoolToString(resident), entry->id_08);
+        if (entry->name_28 == 0) {
+            srStreamPrintf(stream, "anon\n");
+        } else {
+            srStreamPrintf(stream, "%s\n", entry->name_28);
+        }
+    }
+}
+
+// FUNCTION: SURRENDER 0x1001EE20
+void srGERD::dumpDeviceList(std::ostream& stream)
+{
+    for (srGERD* gerd = first; gerd != 0; gerd = gerd->next_34_) {
+        srStreamPrintf(stream, "%s\n", gerd->getDeviceName());
+    }
+}
+
+// FUNCTION: SURRENDER 0x10018870
+srGERD* srGERD::loadDeviceWithFileName(const char* filename, unsigned long device)
+{
+    /* Entry-point name table indexed by the missing-function error print
+       below; retail stores the six strings contiguously at 0x100993CC. */
+    static const char* const entry_names[] = {"srDDGetDriverApiVersion", "srDDGetDriverName",
+                                              "srDDConfigureDriver",     "srDDGetDeviceCount",
+                                              "srDDGetDeviceName",       "srDDInitDevice"};
+    if (filename == 0) {
+        return 0;
+    }
+    void* library = srDynamicLibrary::load(filename);
+    if (library == 0) {
+        srDebugPrintf(0,
+                      "srGERD::loadDeviceWithFileName() -- "
+                      "srDynamicLibrary::load() failed for file '%s'\n",
+                      filename);
+        return 0;
+    }
+    srDDGetDriverApiVersionFn getDriverApiVersion = reinterpret_cast<srDDGetDriverApiVersionFn>(
+        srDynamicLibrary::getFunction(library, "srDDGetDriverApiVersion"));
+    srDDGetDriverNameFn getDriverName = reinterpret_cast<srDDGetDriverNameFn>(
+        srDynamicLibrary::getFunction(library, "srDDGetDriverName"));
+    srDDConfigureDriverFn configureDriver = reinterpret_cast<srDDConfigureDriverFn>(
+        srDynamicLibrary::getFunction(library, "srDDConfigureDriver"));
+    srDDGetDeviceCountFn getDeviceCount = reinterpret_cast<srDDGetDeviceCountFn>(
+        srDynamicLibrary::getFunction(library, "srDDGetDeviceCount"));
+    srDDGetDeviceNameFn getDeviceName = reinterpret_cast<srDDGetDeviceNameFn>(
+        srDynamicLibrary::getFunction(library, "srDDGetDeviceName"));
+    srDDInitDeviceFn initDevice = reinterpret_cast<srDDInitDeviceFn>(
+        srDynamicLibrary::getFunction(library, "srDDInitDevice"));
+    long missing = -1;
+    if (getDriverApiVersion == 0) {
+        missing = 0;
+    } else if (getDriverName == 0) {
+        missing = 1;
+    } else if (configureDriver != 0 && getDeviceCount != 0 && initDevice != 0 &&
+               getDeviceName != 0) {
+        if (getDriverApiVersion() < SR_DD_MIN_API_VERSION) {
+            srDebugPrintf(0,
+                          "srGERD::loadDeviceWithFileName() -- device driver '%s' "
+                          "uses old API (cannot connect)!!\n",
+                          filename);
+            srDynamicLibrary::free(library);
+            return 0;
+        }
+        const char* name = getDriverName();
+        if (name == 0) {
+            srDebugPrintf(0,
+                          "srGERD::loadDeviceWithFileName() -- device driver '%s' "
+                          "uses old API (doesn't support srDDGetdriverName)!!\n",
+                          filename);
+            srDynamicLibrary::free(library);
+            return 0;
+        }
+        char* key = new char[strlen(name) + 7];
+        sprintf(key, "DD_%s", name);
+        for (long index = 0; index < (long)strlen(key); index++) {
+            key[index] = static_cast<char>(toupper(key[index]));
+        }
+        if (srConfig.get(key) != 0) {
+            configureDriver(srConfig.get(key));
+        }
+        delete[] key;
+        unsigned long count = getDeviceCount();
+        if (device < count) {
+            srDD* dd = initDevice(device);
+            if (dd == 0) {
+                srDebugPrintf(0,
+                              "srGERD::loadDeviceWithFileName() - device "
+                              "initialization failed for file '%s' (devIndex = %d)=  "
+                              "-- no hardware found?\n",
+                              filename);
+                srDynamicLibrary::free(library);
+                return 0;
+            }
+            const char* device_name = getDeviceName(device);
+            srDebugPrintf(5,
+                          "srGERD::loadDeviceWithFileName() -- DD driver '%s' "
+                          "(device %s) loaded succesfully.\n",
+                          filename, device_name);
+            return new srGERD(dd, library, device_name);
+        }
+        if (count == 0) {
+            srDebugPrintf(0,
+                          "srGERD::loadDeviceWithFileName() -- no devices available "
+                          "for driver '%s'\n",
+                          filename);
+        }
+    } else {
+        if (configureDriver == 0) {
+            missing = 2;
+        } else if (getDeviceCount == 0) {
+            missing = 3;
+        } else if (getDeviceName == 0) {
+            missing = 4;
+        } else {
+            if (initDevice != 0) {
+                srDynamicLibrary::free(library);
+                return 0;
+            }
+            missing = 5;
+        }
+    }
+    if (missing >= 0) {
+        srDebugPrintf(0,
+                      "srGERD::loadDeviceWithFileName() -- "
+                      "srDynamicLibrary::getFunction('%s') failed for file '%s'  "
+                      "-- not a valid Device Driver!!\n",
+                      entry_names[missing], filename);
+    }
+    srDynamicLibrary::free(library);
+    return 0;
+}
+
+// FUNCTION: SURRENDER 0x10018B50
+srGERD* srGERD::loadDevice(const char* name, const char* path, unsigned long device)
+{
+    if (name == 0) {
+        return 0;
+    }
+    char filename[516];
+    if (path != 0) {
+        sprintf(filename, "%s\\srDD_%s", path, name);
+    } else {
+        sprintf(filename, "srDD_%s", name);
+    }
+    return loadDeviceWithFileName(filename, device);
+}
+
+// FUNCTION: SURRENDER 0x10018BC0
+void srGERD::loadDevices(const char* path)
+{
+    srStringTable libraries;
+    unsigned long count = srSystem::scanLibraries(libraries, path, "srDD*");
+    for (unsigned long index = 0; index < count; index++) {
+        unsigned long device = 0;
+        while (loadDeviceWithFileName(libraries.getString(index), device) != 0) {
+            device++;
+        }
+    }
+}
+
+// FUNCTION: SURRENDER 0x10018DA0
+srGERD* srGERD::loadDevice(srStringTable& devices, unsigned long index)
+{
+    const char* string = devices.getString(index);
+    if (string == 0) {
+        return 0;
+    }
+    char* filename = new char[strlen(string) + 1];
+    strcpy(filename, string);
+    unsigned long device = 0;
+    char* open = strchr(filename, '(');
+    if (open != 0) {
+        *open = '\0';
+        char* close = strchr(open + 1, ')');
+        if (close != 0) {
+            *close = '\0';
+        }
+        device = atoi(open + 1);
+    }
+    srGERD* result = loadDeviceWithFileName(filename, device);
+    delete[] filename;
+    return result;
 }
 
 // FUNCTION: SURRENDER 0x100191E0
@@ -3496,6 +4012,26 @@ void srGERD::deleteContext()
         state_flags_28_ &= ~1UL;
         window_374_ = 0;
     }
+}
+
+// FUNCTION: SURRENDER 0x10029600
+void srGERD::initGlobalPalette()
+{
+    /* BGRA grayscale ramp: each channel is scale*255 converted by FISTP in
+       round-to-nearest mode; +0.5 spells the same round for this ramp. */
+    float scale = 0.0f;
+    /* reinterpret-ok: retail walks the palette as bytes. */
+    unsigned char* entry = reinterpret_cast<unsigned char*>(global_palette_1b38_);
+    for (long index = 0x100; index != 0; index--) {
+        double gray = scale * 255.0;
+        entry[3] = 0xff;
+        entry[2] = static_cast<unsigned char>(gray + 0.5);
+        entry[1] = static_cast<unsigned char>(gray + 0.5);
+        entry[0] = static_cast<unsigned char>(gray + 0.5);
+        entry += 4;
+        scale += 0.003921569f;
+    }
+    getDD()->setGlobalPalette(global_palette_1b38_, 0x100);
 }
 
 // FUNCTION: SURRENDER 0x10019EB0
@@ -4087,8 +4623,7 @@ srGERD::Texture* srGERD::createNewTexture(srTextureIFace* texture)
         result->name_28 = copy;
         strcpy(copy, name);
     }
-    dimensions.compression =
-        static_cast<srTextureIFace::e_compression>(default_parameter_index_1fd8_);
+    dimensions.compression = default_compression_1fd8_;
     dimensions.width = 1;
     dimensions.height = 1;
     if (dimensions.palette != 0) {

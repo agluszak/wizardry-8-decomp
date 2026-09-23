@@ -16,5 +16,3 @@ unsigned char InitializeItemTables(void);
 void DestroyItemDatabase(void);
 void DestroyItemTables(void);
 void FreeIfNotNull(void* block);
-
-void QueueGameplayEvent(int event_type, int party_slot);

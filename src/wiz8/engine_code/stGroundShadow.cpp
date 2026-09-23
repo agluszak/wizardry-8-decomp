@@ -141,7 +141,9 @@ stGroundShadow::stGroundShadow(const stGroundShadow& other)
     width_140 = other.width_140;
 }
 
-/* Retail ICF folds this onto stSurface2D::traverse at 0x004D6540. */
+/* Retail ICF folds this onto stSurface2D::traverse at 0x004D6540. No separate
+   FUNCTION claim: decomplint rejects FOLDED-before-primary when engine_code
+   sorts ahead of surface2d.cpp. */
 void stGroundShadow::traverse(TraverseInfo& info)
 {
     if (nextSibling() != 0) {
@@ -214,9 +216,8 @@ void stGroundShadow::renderGroundShadow(srGERD* renderer)
         g_float_005ebc7c / depth_13c;
     cosine = cos(-angle_138);
     sine = sin(-angle_138);
-    // The matrix's two row vectors are set through the flat four-float view.
-    // reinterpret-ok: deliberate flat-view aliasing of the rotation matrix.
-    reinterpret_cast<srVector4T<float>*>(&rotation)->Set(cosine, -sine, sine, cosine);
+    rotation.vectors[0].Set(cosine, -sine);
+    rotation.vectors[1].Set(sine, cosine);
     g_ground_shadow_material_parameters_00683430.transform_04.MultiplyBy(rotation);
     g_ground_shadow_material_parameters_00683430.center_z_14 = position.z;
     g_ground_shadow_material_parameters_00683430.center_x_18 = position.x;

@@ -92,4 +92,4 @@ static_assert((sizeof(srColorSurface) == 0x5c), "srColorSurface_must_be_0x5c");
    retail image constructs this form (the compiled constructor calls the
    imported srColorSurface constructor and then installs table 0x005EBD10 over
    the class's own), and the template supplies the registry lifecycle. */
-typedef srClassSupport<srColorSurface, srColorSurface, false, 0x3110> W8ColorSurface;
+typedef srClientSupport<srColorSurface, 0x3110> W8ColorSurface;

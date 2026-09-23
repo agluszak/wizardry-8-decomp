@@ -1593,10 +1593,10 @@ void W8Monster::Update()
                 break;
             case 0x17:
                 if (Query(7) != 0) {
-                    if ((signed char)flags_00c != 0) {
-                        CycleDelay018()->cycle = 0x17;
-                        CycleDelay018()->started_at = GetTickCount();
-                        CycleDelay018()->duration = Random(2000) + 2000;
+                    if (talking != 0) {
+                        talk_state_210 = 0x17;
+                        talk_start_208 = GetTickCount();
+                        talk_duration_20c = Random(2000) + 2000;
                         m_pRep->pending_cycle = 0x18;
                         m_pRep->frame_direction_06e = 1;
                         m_pRep->pending_behaviour_071 = 1;
@@ -1610,7 +1610,7 @@ void W8Monster::Update()
                 break;
             case 0x18:
                 if (Query(7) != 0) {
-                    if (CycleDelay018()->duration < GetTickCount() - CycleDelay018()->started_at &&
+                    if (talk_duration_20c < GetTickCount() - talk_start_208 &&
                         IsCycleSupported(0x17) != 0) {
                         m_pRep->pending_cycle = 0x17;
                     } else {
@@ -4002,7 +4002,7 @@ void W8Monster::HandleAnimationThreshold004C75C0()
     W8MonsterRecord* record;
     W8TargetSource source;
     W8SpellEffectDefinition attack_block;
-    const W8MonsterAttack* attack;
+    W8MonsterAttack* attack;
     unsigned int attack_index;
     unsigned int range_category;
     int missile_type;
@@ -4065,8 +4065,7 @@ prepare_attack:
     attack_block.magnitude_base_1c = attack->missile_magnitude_1b;
 
     if (selected_attack != 0) {
-        accuracy =
-            CalculateMonsterMissileAccuracy(monster_info, attack, monster_info->action_detail, 0);
+        accuracy = GetMonsterAttackScore(monster_info, attack, monster_info->action_detail, 0);
         CombatLog("TO HIT: MISSILE ACCURACY = %d%%\n", accuracy);
     } else {
         accuracy = 50;

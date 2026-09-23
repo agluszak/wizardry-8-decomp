@@ -864,6 +864,10 @@ void W8CharacterPage005EF778::OnRowInfoRequested(W8CharacterStatsRow005EF750* ro
     }
 }
 
+/* The primary listener slot shares the page's empty HandleInput emission. */
+// FUNCTION: WIZ8 0x005B1BE0 FOLDED
+void W8CharacterPage005EF778::OnPrimary(W8TextControl*) {}
+
 /* The five coloured attribute-corner controls name the attribute whose info
    dialog to raise. */
 // FUNCTION: WIZ8 0x005caa50

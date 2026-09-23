@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stddef.h>
 #include <string.h>
 #include <wchar.h>
 // GLOBAL: WIZ8 0x0068f2d4
@@ -56,6 +57,47 @@ W8MainGameScreen* g_main_game_screen;
 
 /* The redraw the text box asks for whenever anything it shows changes. */
 enum { W8_REDRAW_TEXT_BOX = 0x800 };
+
+/* The TEXT chunk's 0x24-byte form is separate from the live message record:
+   its first word is a wide-character count, and its entries word preserves
+   the original 32-bit list-pointer bits. */
+struct W8MessageStorageDiskRecord {
+    unsigned long character_count_00;
+    unsigned char font_palette_04;
+    unsigned char highlight_color_05;
+    unsigned char highlight_start_06;
+    unsigned char highlight_stop_07;
+    int clock_08;
+    int clock_ticking_0c;
+    int link_10;
+    int length_14;
+    unsigned long serialized_entries_18_bits;
+    unsigned char trailing_bytes_1c[8];
+};
+
+static_assert(sizeof(W8MessageStorageDiskRecord) == 0x24,
+              "W8MessageStorageDiskRecord_must_be_0x24");
+static_assert(offsetof(W8MessageStorageDiskRecord, character_count_00) == 0x00,
+              "W8MessageStorageDiskRecord_count_offset");
+static_assert(offsetof(W8MessageStorageDiskRecord, font_palette_04) == 0x04,
+              "W8MessageStorageDiskRecord_byte_fields_offset");
+static_assert(offsetof(W8MessageStorageDiskRecord, highlight_stop_07) == 0x07,
+              "W8MessageStorageDiskRecord_last_byte_field_offset");
+static_assert(offsetof(W8MessageStorageDiskRecord, clock_08) == 0x08,
+              "W8MessageStorageDiskRecord_scalar_fields_offset");
+static_assert(offsetof(W8MessageStorageDiskRecord, clock_ticking_0c) == 0x0c,
+              "W8MessageStorageDiskRecord_clock_ticking_offset");
+static_assert(offsetof(W8MessageStorageDiskRecord, link_10) == 0x10,
+              "W8MessageStorageDiskRecord_link_offset");
+static_assert(offsetof(W8MessageStorageDiskRecord, length_14) == 0x14,
+              "W8MessageStorageDiskRecord_length_offset");
+static_assert(offsetof(W8MessageStorageDiskRecord, serialized_entries_18_bits) == 0x18,
+              "W8MessageStorageDiskRecord_entries_bits_offset");
+static_assert(offsetof(W8MessageStorageDiskRecord, trailing_bytes_1c) == 0x1c,
+              "W8MessageStorageDiskRecord_trailing_offset");
+static_assert(sizeof(unsigned long) == 4, "W8MessageStorageDiskRecord_requires_32_bit_words");
+static_assert(sizeof(W8PList*) == sizeof(unsigned long),
+              "W8MessageStorageDiskRecord_requires_32_bit_live_pointers");
 
 // GLOBAL: WIZ8 0x0069b7b8
 unsigned char g_text_box_mode_0069b7b8;
@@ -440,13 +482,13 @@ int GetTextBoxScrollRange(void)
 
 /* Write the four message runs into the open TEXT chunk: a format dword, then
    per region the used-line count followed by each 0x24-byte record and its
-   wide string. The saved record's wString carries the serialized character
-   count including the terminator, not the live pointer; the copy is patched
-   so the on-disk record stays self-contained. */
+   wide string. The record's first word is the string count including its
+   terminator; its +0x18 word retains the live list-pointer bits. */
 // FUNCTION: WIZ8 0x0058FB50
 unsigned char SaveMessageStorage0058FB50(int file)
 {
-    W8MessageStorageRecord record;
+    W8MessageStorageDiskRecord disk_record;
+    W8MessageStorageRecord* live_record;
     int format = 1;
     unsigned int region;
     unsigned int index;
@@ -455,18 +497,25 @@ unsigned char SaveMessageStorage0058FB50(int file)
     for (region = 0; region < 4; ++region) {
         FileWrite(file, &g_status_685170.text_box_lines_used_4997[region], 4, 0);
         for (index = 0; index < g_status_685170.text_box_lines_used_4997[region]; ++index) {
-            record = g_message_storage_68f2d8[region][index];
-            if (record.wString != 0) {
-                /* The serialized record stores the wide-char count where the
-                   live record keeps its string pointer. */
-                // c-style-cast-ok: patched pointer field carries a count
-                record.wString = (wchar_t*)(wcslen(record.wString) + 1);
-            }
-            FileWrite(file, &record, sizeof(record), 0);
-            FileWrite(file, g_message_storage_68f2d8[region][index].wString,
-                      (unsigned int)record.wString * 2, // c-style-cast-ok: reads
-                      // back the patched count for the string payload size
-                      0);
+            live_record = &g_message_storage_68f2d8[region][index];
+            disk_record.character_count_00 =
+                live_record->wString != 0
+                    ? static_cast<unsigned long>(wcslen(live_record->wString) + 1)
+                    : 0;
+            disk_record.font_palette_04 = live_record->font_palette;
+            disk_record.highlight_color_05 = live_record->highlight_color;
+            disk_record.highlight_start_06 = live_record->highlight_start;
+            disk_record.highlight_stop_07 = live_record->highlight_stop;
+            disk_record.clock_08 = live_record->clock_08;
+            disk_record.clock_ticking_0c = live_record->clock_ticking_0c;
+            disk_record.link_10 = live_record->link_10;
+            disk_record.length_14 = live_record->length_14;
+            memcpy(&disk_record.serialized_entries_18_bits, &live_record->entries_18,
+                   sizeof(disk_record.serialized_entries_18_bits));
+            memcpy(disk_record.trailing_bytes_1c, live_record->unknown_1c,
+                   sizeof(disk_record.trailing_bytes_1c));
+            FileWrite(file, &disk_record, sizeof(disk_record), 0);
+            FileWrite(file, live_record->wString, disk_record.character_count_00 * 2, 0);
         }
     }
     return 1;
@@ -474,15 +523,15 @@ unsigned char SaveMessageStorage0058FB50(int file)
 
 /* Read the four message runs back from the open TEXT chunk: a format dword,
    then per region the used-line count followed by each 0x24-byte record and
-   its wide string. The serialized record's wString field is the character
-   count from the save, not a pointer; each live record gets a fresh buffer
-   sized from it, and the stale entries_18 list pointer is dropped. Saves
-   older than the prepath link-height constant never wrote a fourth region, so
-   its count is forced to zero without consuming a count slot. */
+   its wide string. The first word sizes the new live string allocation; the
+   serialized +0x18 pointer bits are discarded. Saves older than the prepath
+   link-height constant never wrote a fourth region, so its count is forced to
+   zero without consuming a count slot. */
 // FUNCTION: WIZ8 0x0058FC30
 unsigned char LoadMessageStorage0058FC30(int file)
 {
-    W8MessageStorageRecord record;
+    W8MessageStorageDiskRecord disk_record;
+    W8MessageStorageRecord* live_record;
     int format;
     unsigned int region;
     unsigned int index;
@@ -498,15 +547,22 @@ unsigned char LoadMessageStorage0058FC30(int file)
             FileRead(file, &g_status_685170.text_box_lines_used_4997[region], 4, 0);
         }
         for (index = 0; index < g_status_685170.text_box_lines_used_4997[region]; ++index) {
-            FileRead(file, &record, sizeof(record), 0);
-            g_message_storage_68f2d8[region][index] = record;
-            g_message_storage_68f2d8[region][index].entries_18 = 0;
-            /* The serialized wString field is the wide-char count including
-               the terminator, patched over the live pointer on save. */
-            // c-style-cast-ok: reads back the patched count for the buffer size
-            size = (unsigned int)record.wString * 2;
+            FileRead(file, &disk_record, sizeof(disk_record), 0);
+            live_record = &g_message_storage_68f2d8[region][index];
+            live_record->font_palette = disk_record.font_palette_04;
+            live_record->highlight_color = disk_record.highlight_color_05;
+            live_record->highlight_start = disk_record.highlight_start_06;
+            live_record->highlight_stop = disk_record.highlight_stop_07;
+            live_record->clock_08 = disk_record.clock_08;
+            live_record->clock_ticking_0c = disk_record.clock_ticking_0c;
+            live_record->link_10 = disk_record.link_10;
+            live_record->length_14 = disk_record.length_14;
+            live_record->entries_18 = 0;
+            memcpy(live_record->unknown_1c, disk_record.trailing_bytes_1c,
+                   sizeof(live_record->unknown_1c));
+            size = disk_record.character_count_00 * 2;
             text = static_cast<wchar_t*>(malloc(size));
-            g_message_storage_68f2d8[region][index].wString = text;
+            live_record->wString = text;
             if (text != 0) {
                 FileRead(file, text, size, 0);
             }

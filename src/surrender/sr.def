@@ -29,6 +29,20 @@ EXPORTS
     ?testDirty@srMeshModel@@QBEHW4e_flags@1@@Z
     ??4srMeshModel@@QAEAAV0@ABV0@@Z
     ?reset@srMeshModel@@QAEXJJ@Z
+    ?transformClipPlane@srTriangleCuller@@SA?AV?$srVector4T@M@@ABV2@ABV?$srMatrix4T@M@@W4e_scaleType@3@@Z
+    ?setClipFlags@srTriangleCuller@@SAHPAKPAMPBV?$srVector3T@M@@ABV?$srVector4T@M@@KKH@Z
+    ?setClipFlagsObjectSpace@srTriangleCuller@@CAHPAKPBV?$srVector3T@M@@PBV?$srVector4T@M@@PBKKKAAK@Z
+    ??4srTriangleCuller@@QAEAAV0@ABV0@@Z
+    ?getClipMask@srTriangleCuller@@SAKABV?$srVector3T@M@@MPBV?$srVector4T@M@@KAAM@Z
+    ?collectNegative@srTriangleCuller@@CAKPAKPBMKK@Z
+    ?cullNoClip@srTriangleCuller@@CAKPAKPBV?$srVector4T@M@@ABV2@K@Z
+    ?cullNoClipAPT@srTriangleCuller@@CAKPAKPBKPBV?$srVector4T@M@@ABV2@K@Z
+    ?collectCF@srTriangleCuller@@CAKPAKPBKPBVsrVector3i@@K@Z
+    ?cullClip@srTriangleCuller@@CAKPAKPBKPBV?$srVector4T@M@@PBVsrVector3i@@ABV2@K@Z
+    ?clip@srTriangleCuller@@CAKPAKPBKPBVsrVector3i@@K@Z
+    ?setupLinearArray@srTriangleCuller@@SAXPAKK@Z
+    ?buildAVT@srTriangleCuller@@SAKPAK0PBKPBVsrVector3i@@KK@Z
+    ?cull@srTriangleCuller@@SAHAAUOutput@1@ABUInput@1@@Z
     ?setExclusionMask@srModelInstance@@QAEXK@Z
     ?addToTree@srRegistry@@AAEPAVClassNode@1@PAV21@PBDK@Z
     ?allocateID@srRegistry@@QAEKXZ
@@ -271,6 +285,7 @@ EXPORTS
     ??0srNode@@QAE@ABV0@@Z
     ?setParent@srNode@@QAEHPAV1@H@Z
     ?dump@srNode@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?dumpDeviceList@srGERD@@SAXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dumpHierarchy@srNode@@QBEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@J@Z
     ?cloneHierarchy@srNode@@QAEPAV1@PAV1@@Z
     ?cloneHierarchyInternal@srNode@@AAEPAV1@PAV1@@Z
@@ -696,6 +711,7 @@ EXPORTS
     ?dump@srVectorProcessor@@SAXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dumpAll@srExtension@@SAXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dumpNode@Compressor@srHuffman@@AAEXAAVBitOStream@2@PAUNode@12@@Z
+    ?dumpTextureCache@srGERD@@AAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?end@srThread@@SAXXZ
     ?endDebug@srVectorProcessor@@SAXXZ
     ?endFrame@srDebugDD@@UAEXXZ
@@ -733,8 +749,14 @@ EXPORTS
     ?getDescription@Error@srIOManager@@QAEPBDXZ
     ?getDescription@srExtension@@QAEPBDXZ
     ?getDescription@srFStreamOpener@@UBEPBDXZ
+    ?getDeviceName@srGERD@@QBEPBDXZ
+    ?getDevicePlatform@srGERD@@QBEPBDXZ
+    ?getDeviceVendor@srGERD@@QBEPBDXZ
     ?getDouble@srBinIStream@@QAENXZ
     ?getDriverInfo@srDebugDD@@UAEXAAUDriverInfo@srDD@@@Z
+    ?getDriverName@srGERD@@QBEPBDXZ
+    ?getDriverVendor@srGERD@@QBEPBDXZ
+    ?getDriverVersion@srGERD@@QBEPBDXZ
     ?getExtension@srIOManager@@QAEPBDPBD@Z
     ?getFileManager@srCore@@QBEPAVsrFileManager@@XZ
     ?getFirst@srExtension@@SAPAV1@XZ
@@ -743,6 +765,10 @@ EXPORTS
     ?getFunction@srDynamicLibrary@@SAPAXPAXPBD@Z
     ?getFunctionName@srDebugDD@@QBEPBDW4e_command@srDD@@@Z
     ?getHandle@srThread@@SAKXZ
+    ?getHardwareChipset@srGERD@@QBEPBDXZ
+    ?getHardwareID@srGERD@@QBE?AW4e_hardwareID@srDD@@XZ
+    ?getHardwareName@srGERD@@QBEPBDXZ
+    ?getHardwareVendor@srGERD@@QBEPBDXZ
     ?getInfo@srDebugDD@@UAEXAAUInfo@srDD@@@Z
     ?getIStreamOpener@srCore@@QBEPAVsrIStreamOpener@@XZ
     ?getMemoryAllocator@srCore@@QBEPAVsrMemoryAllocator@@XZ
@@ -908,6 +934,8 @@ EXPORTS
     ??_7srFog@@6B?$srClassSupport@VsrIlluminator@@VsrNode@@$0A@$0BCAA@@@@ DATA
     ??_7srFog@@6BsrVertexProcessor@@@ DATA
     ?dump@srFog@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
+    ?dump@srGERD@@QAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@ABV?$srFlags@W4e_info@srGERD@@@@@Z
+    ?dump@srGERD@@UAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?getDensity@srFog@@QBEMXZ
     ?getRange@srFog@@QAEXAAN0@Z
     ?isActive@srFog@@UAEHAAVsrVertexPipe@@@Z
@@ -1024,6 +1052,8 @@ EXPORTS
     ?initDDInfo@srGERD@@AAEXXZ
     ?initDisplayModeList@srGERD@@AAEXXZ
     ?initGlobalPalette@srGERD@@AAEXXZ
+    ?initLights@srGERD@@AAEXXZ
+    ?initMatrices@srGERD@@AAEXXZ
     ?initTextureFormats@srGERD@@AAEXXZ
     ?checkFrameStateChanges@srGERD@@AAEXXZ
     ?endFrame@srGERD@@QAEXXZ
@@ -1117,6 +1147,10 @@ EXPORTS
     ?getProjectClipNearMatrix@srGERD@@QAEXAAV?$srMatrix4T@M@@@Z
     ?getScissor@srGERD@@QBEXAAK000@Z
     ?getViewPort@srGERD@@QBEXAAK000@Z
+    ?loadDevice@srGERD@@SAPAV1@AAVsrStringTable@@K@Z
+    ?loadDevice@srGERD@@SAPAV1@PBD0K@Z
+    ?loadDeviceWithFileName@srGERD@@SAPAV1@PBDK@Z
+    ?loadDevices@srGERD@@SAXPBD@Z
     ?loadIdentity@srGERD@@QAEXXZ
     ?loadMatrix@srGERD@@QAEXABV?$srMatrix3T@M@@@Z
     ?loadMatrix@srGERD@@QAEXABV?$srMatrix3T@N@@@Z
@@ -1156,6 +1190,8 @@ EXPORTS
     ?unlockRenderer@srGERD@@QAEXPAVRenderer@1@H@Z
     ?setClipState@srGERD@@QAEXV?$srFlags@W4e_clip@srRendererDefs@@@@@Z
     ?setDataPtr@srGERD@@AAEXW4e_vertexArray@srRendererDefs@@JW4e_type@3@KPBX@Z
+    ?setTextureDefaultCompression@srGERD@@QAEXW4e_compression@srTextureIFace@@@Z
+    ?setTextureDefaultCorrection@srGERD@@QAEXW4e_correction@srTextureIFace@@@Z
     ?setTextureDefaultMagFilter@srGERD@@QAEXW4e_filter@srTextureIFace@@@Z
     ?setTextureDefaultMinFilter@srGERD@@QAEXW4e_filter@srTextureIFace@@@Z
     ?setTextureDefaultMipmap@srGERD@@QAEXW4e_mipmap@srTextureIFace@@@Z

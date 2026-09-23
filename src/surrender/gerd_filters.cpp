@@ -24,6 +24,31 @@ private:
 
 } // namespace
 
+// FUNCTION: SURRENDER 0x10018550
+void srGERD::setTextureDefaultCorrection(srTextureIFace::e_correction correction)
+{
+    GerdAccess access(state_section_18_);
+    if (correction == srTextureIFace::CORRECTION_DEFAULT) {
+        correction = srTextureIFace::CORRECTION_GOOD;
+    }
+    default_correction_1fb4_ = correction;
+    correction_map_1f5c_[srTextureIFace::CORRECTION_DEFAULT] = correction_map_1f5c_[correction];
+    resetTexture();
+}
+
+// FUNCTION: SURRENDER 0x100185D0
+void srGERD::setTextureDefaultCompression(srTextureIFace::e_compression compression)
+{
+    GerdAccess access(state_section_18_);
+    if (compression == srTextureIFace::COMPRESSION_DEFAULT) {
+        compression = static_cast<srTextureIFace::e_compression>(0);
+    }
+    default_compression_1fd8_ = compression;
+    /* The fifth entry doubles as the current texture parameter. */
+    default_texture_params_1fc4_[4] = default_texture_params_1fc4_[compression];
+    resetTexture();
+}
+
 // FUNCTION: SURRENDER 0x10018650
 void srGERD::setTextureDefaultMagFilter(srTextureIFace::e_filter filter)
 {
@@ -32,7 +57,7 @@ void srGERD::setTextureDefaultMagFilter(srTextureIFace::e_filter filter)
         filter = srTextureIFace::FILTER_GOOD;
     }
     default_mag_filter_1fb8_ = filter;
-    mag_filter_param_1f7c_ = mag_filter_map_1f6c_[filter];
+    mag_filter_map_1f6c_[srTextureIFace::FILTER_DEFAULT] = mag_filter_map_1f6c_[filter];
     resetTexture();
 }
 
@@ -44,7 +69,7 @@ void srGERD::setTextureDefaultMinFilter(srTextureIFace::e_filter filter)
         filter = srTextureIFace::FILTER_GOOD;
     }
     default_min_filter_1fbc_ = filter;
-    min_filter_param_1f90_ = min_filter_map_1f80_[filter];
+    min_filter_map_1f80_[srTextureIFace::FILTER_DEFAULT] = min_filter_map_1f80_[filter];
     resetTexture();
 }
 

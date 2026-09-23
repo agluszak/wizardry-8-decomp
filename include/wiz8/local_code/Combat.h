@@ -15,8 +15,7 @@ void SetCharacterCombatAction(int party_slot, int action_kind, int action_detail
 void EndCombat004EA310(int mode);                                           /* 0x004EA310 */
 void BeginCombatExecution004E8370(void);
 void AssignCombatPhases004E89D0(void);
-void UpdateCombat004E8EA0(void); /* 0x004E8EA0 */
-unsigned char IsSlotActionChosen(int party_slot, int context, int arg_3, int arg_4);
+void UpdateCombat004E8EA0(void);                    /* 0x004E8EA0 */
 void SwitchCharacterTo(int party_slot, int action); /* 0x004ED390 */
 void ApplyCombatEndEffects(void);                   /* 0x004EA1F0 */
 bool CombatHasContinuingEffects(void);              /* 0x004ED550 */
@@ -96,6 +95,5 @@ void OrientMonsterTowardTarget(W8MonsterInfo* monster_info, char alternate);
 void AimMonsterBreathAtTarget(W8MonsterInfo* monster_info);
 void SetSlotAction(int party_slot, int action_kind, int action_detail);
 bool CanCharReBreathe(int party_slot);
-unsigned char CharacterHasCondition(const W8Character* character, int condition);
 unsigned char TryPanicWoundedCharacter(const W8CombatSlot* target); /* 0x004ECE00 */
 short GetCombatActionProgress004EC610(int* out_total);              /* 0x004EC610 */

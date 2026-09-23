@@ -34,6 +34,7 @@
 #include "wiz8/virtual_file.h"
 #include "wiz8/float_constants.h"
 #include "surrender/srCamera.h"
+#include "surrender/srGERD.h"
 #include "surrender/srScene.h"
 #include "wiz8/engine_code/stMeshModel.h"
 #include "wiz8/engine_code/3dapi.h"
@@ -53,6 +54,126 @@ stLevel::stLevel(srNode* parent)
 
 // FUNCTION: WIZ8 0x004B9D10
 stLevel::~stLevel() {}
+
+// FUNCTION: WIZ8 0x004BA3D0
+srClass* stLevel::vInstance()
+{
+    return new stLevel(0);
+}
+
+// FUNCTION: WIZ8 0x004BA0E0
+void stLevel::traverse(TraverseInfo& info)
+{
+    if (testFlag(FLAG_DISABLE) == 0) {
+        TraverseInfo::Entry& entry = info.entries[info.entry_count];
+        entry.node = this;
+        entry.value = 0;
+        ++info.entry_count;
+    }
+    if (nextSibling() != 0) {
+        nextSibling()->traverse(info);
+    }
+}
+
+// FUNCTION: WIZ8 0x004B9DD0
+void stLevel::process(const ProcessInfo& info, e_processType)
+{
+    srGERD& renderer = *info.renderer;
+    applyWorldSpaceMatrix(renderer);
+
+    unsigned long old_exclusion_mask = 0;
+    if (m_active != 0) {
+        old_exclusion_mask = renderer.getExclusionMask();
+        renderer.setExclusionMask(m_active | old_exclusion_mask);
+    }
+
+    srVector4T<float> ambient;
+    renderer.getAmbientLight(ambient);
+    srVector3T<float> ambient_color(ambient.x, ambient.y, ambient.z);
+    m_positional_13c = 0;
+
+    for (srNode* child = firstChild(); child != 0; child = child->nextSibling()) {
+        stModelInstance* instance = static_cast<stModelInstance*>(child);
+        stMeshModel* model = static_cast<stMeshModel*>(instance->model());
+        if (instance->mesh_index_17c >= 0 && instance->testFlag(FLAG_DISABLE) != 0) {
+            continue;
+        }
+
+        if ((model->control_state_394 & 0x20) == 0) {
+            srVector3T<float> center;
+            float radius;
+            model->getBoundingSphere(center, radius);
+            if (renderer.testBoundingSphere(center, radius) == srGERD::VISIBILITY_POSITIONAL_0) {
+                continue;
+            }
+        }
+        if ((model->control_state_394 & 0x10) == 0 && model->vertex_location_count_22c >= 8) {
+            srVector3T<float> minimum;
+            srVector3T<float> maximum;
+            model->getBoundingBox(minimum, maximum);
+            if (renderer.testBoundingBox(minimum, maximum) == srGERD::VISIBILITY_POSITIONAL_0) {
+                continue;
+            }
+        }
+
+        srNode* linked_child = child;
+        while (model != 0) {
+            if (model->getActivePolygonTable(0) != 0) {
+                m_positional_13c += model->getActivePolygonCount();
+            } else {
+                m_positional_13c += model->polygon_count_230;
+            }
+
+            if (model->vertex_lighting_ready_3cd) {
+                srVector4T<float> dark;
+                dark.Set(0.0f, 0.0f, 0.0f, 0.0f);
+                renderer.setAmbientLight(dark);
+                model->SetAmbientColor00472990(ambient_color);
+            }
+
+            srMeshModel::TriMesh mesh;
+            model->getTriMesh(mesh);
+            if (g_render_untextured_0065a146 != 0) {
+                mesh.shaders_b0[0].value &= 0xffff7fff;
+                mesh.poly_shaders_100[0] = 0;
+            }
+            srPtr<srTextureIFace>*(*poly_textures)[2] = mesh.poly_textures_e0;
+            if (poly_textures != 0 && mesh.active_polygons_14c == 0) {
+                long active_count;
+                unsigned long* active = model->GetActivePolygons00473CD0(&active_count, -1, 0);
+                if (active != 0) {
+                    mesh.active_polygons_14c = active;
+                    mesh.active_polygon_count_150 = active_count;
+                }
+            }
+
+            if ((model->flags_3a0 & 1) != 0 && !renderer.isPickStackEmpty()) {
+                srGERD::Pick pick;
+                renderer.popPick(pick);
+                model->renderTriMesh(renderer, mesh);
+                renderer.pushPick(pick);
+            } else {
+                model->renderTriMesh(renderer, mesh);
+            }
+
+            if (model->vertex_lighting_ready_3cd) {
+                renderer.setAmbientLight(ambient);
+            }
+            if (linked_child != 0 && linked_child->testFlag(FLAG_TERMINATE) != 0) {
+                break;
+            }
+            model = model->next;
+            if (linked_child != 0) {
+                linked_child = linked_child->firstChild();
+            }
+        }
+    }
+
+    if (m_active != 0) {
+        renderer.setExclusionMask(old_exclusion_mask);
+    }
+    renderer.popMatrix();
+}
 
 // TEMPLATE: WIZ8 0x004BA1B0
 // srClassSupport<stLevel,srNode,0,65543>::getClassID
@@ -74,9 +195,6 @@ stLevel::~stLevel() {}
 
 // SYNTHETIC: WIZ8 0x004BA3A0
 // srClassSupport<stLevel,srNode,0,65543>::`scalar deleting destructor'
-
-// TEMPLATE: WIZ8 0x004BA3D0
-// srClassSupport<stLevel,srNode,0,65543>::vInstance
 
 namespace {
 
@@ -1120,21 +1238,21 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
 }
 
 // VTABLE: WIZ8 0x005ED180
-// class srClassSupport<srClipPlane,srClipPlane,0,5376>
+// class srClientSupport<srClipPlane,5376>
 
 // TEMPLATE: WIZ8 0x004BDF00
-// srClassSupport<srClipPlane,srClipPlane,0,5376>::getClassID
+// srClientSupport<srClipPlane,5376>::getClassID
 
 // TEMPLATE: WIZ8 0x004BDF10
-// srClassSupport<srClipPlane,srClipPlane,0,5376>::getClassName
+// srClientSupport<srClipPlane,5376>::getClassName
 
 // TEMPLATE: WIZ8 0x004BDF20
-// srClassSupport<srClipPlane,srClipPlane,0,5376>::getClassNode
+// srClientSupport<srClipPlane,5376>::getClassNode
 
 // TEMPLATE: WIZ8 0x004BDF90
-// srClassSupport<srClipPlane,srClipPlane,0,5376>::clone
+// srClientSupport<srClipPlane,5376>::clone
 
 // SYNTHETIC: WIZ8 0x004BDFB0
-// srClassSupport<srClipPlane,srClipPlane,0,5376>::`scalar deleting destructor'
+// srClientSupport<srClipPlane,5376>::`scalar deleting destructor'
 
 #undef CHECK_PVL_OFFSET

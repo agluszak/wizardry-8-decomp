@@ -280,21 +280,27 @@ void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, bool restoring
             FileWrite(handle, trigger->name_01c, 0x80, 0);
             FileWrite(handle, &version, sizeof(version), 0);
             if (restoring) {
-                FileWrite(handle, &trigger->lock_state.lock_type, sizeof(trigger->lock_state.lock_type), 0);
-                FileWrite(handle, &trigger->lock_state.difficulty, sizeof(trigger->lock_state.difficulty), 0);
+                FileWrite(handle, &trigger->lock_state.lock_type,
+                          sizeof(trigger->lock_state.lock_type), 0);
+                FileWrite(handle, &trigger->lock_state.difficulty,
+                          sizeof(trigger->lock_state.difficulty), 0);
                 FileWrite(handle, &trigger->lock_state.device_state.completed,
                           sizeof(trigger->lock_state.device_state.completed), 0);
-                FileWrite(handle, trigger->lock_state.device_state.pins, sizeof(trigger->lock_state.device_state.pins),
+                FileWrite(handle, trigger->lock_state.device_state.pins,
+                          sizeof(trigger->lock_state.device_state.pins), 0);
+                FileWrite(handle, &trigger->lock_state.device_id,
+                          sizeof(trigger->lock_state.device_id), 0);
+                FileWrite(handle, &trigger->lock_state.key_id, sizeof(trigger->lock_state.key_id),
                           0);
-                FileWrite(handle, &trigger->lock_state.device_id, sizeof(trigger->lock_state.device_id), 0);
-                FileWrite(handle, &trigger->lock_state.key_id, sizeof(trigger->lock_state.key_id), 0);
-                FileWrite(handle, &trigger->lock_state.lock_countdown, sizeof(trigger->lock_state.lock_countdown), 0);
+                FileWrite(handle, &trigger->lock_state.lock_countdown,
+                          sizeof(trigger->lock_state.lock_countdown), 0);
             } else {
                 FileWrite(handle, &trigger->lock_state.device_state.completed,
                           sizeof(trigger->lock_state.device_state.completed), 0);
-                FileWrite(handle, trigger->lock_state.device_state.pins, sizeof(trigger->lock_state.device_state.pins),
-                          0);
-                FileWrite(handle, &trigger->lock_state.lock_countdown, sizeof(trigger->lock_state.lock_countdown), 0);
+                FileWrite(handle, trigger->lock_state.device_state.pins,
+                          sizeof(trigger->lock_state.device_state.pins), 0);
+                FileWrite(handle, &trigger->lock_state.lock_countdown,
+                          sizeof(trigger->lock_state.lock_countdown), 0);
                 FileWrite(handle, &trigger->lock_state.last_interaction_clock,
                           sizeof(trigger->lock_state.last_interaction_clock), 0);
             }
@@ -335,23 +341,31 @@ bool LoadTriggerRuntimeStates0043CCF0(int handle)
                 FileRead(handle, &record_version, sizeof(record_version), 0);
                 FileRead(handle, &scratch->lock_state.device_state.completed,
                          sizeof(scratch->lock_state.device_state.completed), 0);
-                FileRead(handle, scratch->lock_state.device_state.pins, sizeof(scratch->lock_state.device_state.pins), 0);
-                FileRead(handle, &scratch->lock_state.lock_countdown, sizeof(scratch->lock_state.lock_countdown), 0);
+                FileRead(handle, scratch->lock_state.device_state.pins,
+                         sizeof(scratch->lock_state.device_state.pins), 0);
+                FileRead(handle, &scratch->lock_state.lock_countdown,
+                         sizeof(scratch->lock_state.lock_countdown), 0);
                 if (record_version > 1) {
                     FileRead(handle, &scratch->lock_state.last_interaction_clock,
                              sizeof(scratch->lock_state.last_interaction_clock), 0);
                 }
             } else {
                 FileRead(handle, &record_version, sizeof(record_version), 0);
-                FileRead(handle, &scratch->lock_state.lock_type, sizeof(scratch->lock_state.lock_type), 0);
-                FileRead(handle, &scratch->lock_state.difficulty, sizeof(scratch->lock_state.difficulty), 0);
+                FileRead(handle, &scratch->lock_state.lock_type,
+                         sizeof(scratch->lock_state.lock_type), 0);
+                FileRead(handle, &scratch->lock_state.difficulty,
+                         sizeof(scratch->lock_state.difficulty), 0);
                 FileRead(handle, &scratch->lock_state.device_state.completed,
                          sizeof(scratch->lock_state.device_state.completed), 0);
-                FileRead(handle, scratch->lock_state.device_state.pins, sizeof(scratch->lock_state.device_state.pins), 0);
-                FileRead(handle, &scratch->lock_state.device_id, sizeof(scratch->lock_state.device_id), 0);
-                FileRead(handle, &scratch->lock_state.key_id, sizeof(scratch->lock_state.key_id), 0);
+                FileRead(handle, scratch->lock_state.device_state.pins,
+                         sizeof(scratch->lock_state.device_state.pins), 0);
+                FileRead(handle, &scratch->lock_state.device_id,
+                         sizeof(scratch->lock_state.device_id), 0);
+                FileRead(handle, &scratch->lock_state.key_id, sizeof(scratch->lock_state.key_id),
+                         0);
                 if (record_version > 1) {
-                    FileRead(handle, &scratch->lock_state.lock_countdown, sizeof(scratch->lock_state.lock_countdown), 0);
+                    FileRead(handle, &scratch->lock_state.lock_countdown,
+                             sizeof(scratch->lock_state.lock_countdown), 0);
                 }
             }
             delete scratch;
@@ -363,23 +377,31 @@ bool LoadTriggerRuntimeStates0043CCF0(int handle)
                 FileRead(handle, &record_version, sizeof(record_version), 0);
                 FileRead(handle, &trigger->lock_state.device_state.completed,
                          sizeof(trigger->lock_state.device_state.completed), 0);
-                FileRead(handle, trigger->lock_state.device_state.pins, sizeof(trigger->lock_state.device_state.pins), 0);
-                FileRead(handle, &trigger->lock_state.lock_countdown, sizeof(trigger->lock_state.lock_countdown), 0);
+                FileRead(handle, trigger->lock_state.device_state.pins,
+                         sizeof(trigger->lock_state.device_state.pins), 0);
+                FileRead(handle, &trigger->lock_state.lock_countdown,
+                         sizeof(trigger->lock_state.lock_countdown), 0);
                 if (record_version > 1) {
                     FileRead(handle, &trigger->lock_state.last_interaction_clock,
                              sizeof(trigger->lock_state.last_interaction_clock), 0);
                 }
             } else {
                 FileRead(handle, &record_version, sizeof(record_version), 0);
-                FileRead(handle, &trigger->lock_state.lock_type, sizeof(trigger->lock_state.lock_type), 0);
-                FileRead(handle, &trigger->lock_state.difficulty, sizeof(trigger->lock_state.difficulty), 0);
+                FileRead(handle, &trigger->lock_state.lock_type,
+                         sizeof(trigger->lock_state.lock_type), 0);
+                FileRead(handle, &trigger->lock_state.difficulty,
+                         sizeof(trigger->lock_state.difficulty), 0);
                 FileRead(handle, &trigger->lock_state.device_state.completed,
                          sizeof(trigger->lock_state.device_state.completed), 0);
-                FileRead(handle, trigger->lock_state.device_state.pins, sizeof(trigger->lock_state.device_state.pins), 0);
-                FileRead(handle, &trigger->lock_state.device_id, sizeof(trigger->lock_state.device_id), 0);
-                FileRead(handle, &trigger->lock_state.key_id, sizeof(trigger->lock_state.key_id), 0);
+                FileRead(handle, trigger->lock_state.device_state.pins,
+                         sizeof(trigger->lock_state.device_state.pins), 0);
+                FileRead(handle, &trigger->lock_state.device_id,
+                         sizeof(trigger->lock_state.device_id), 0);
+                FileRead(handle, &trigger->lock_state.key_id, sizeof(trigger->lock_state.key_id),
+                         0);
                 if (record_version > 1) {
-                    FileRead(handle, &trigger->lock_state.lock_countdown, sizeof(trigger->lock_state.lock_countdown), 0);
+                    FileRead(handle, &trigger->lock_state.lock_countdown,
+                             sizeof(trigger->lock_state.lock_countdown), 0);
                 }
                 if (restoring != 0) {
                     if (trigger->lock_state.lock_type == 1) {
@@ -3059,7 +3081,7 @@ void Trigger::Run(int source)
                     }
                 } else if (item_count == 2 && g_status_685170.item_in_cursor == 0) {
                     item = world_item_group_34c->next;
-                    MoveItem(&g_status_685170.item_in_hand_235b, &item->item, 0, 1);
+                    CopyItemInstance(&g_status_685170.item_in_hand_235b, &item->item, 0, 1);
                     ItemInfoRemoveFromGroup(world_item_group_34c, item);
                     if (m_pProp->Rep()->subcycle_064 != 0) {
                         goto toggle_item_prop;
@@ -3148,9 +3170,9 @@ void Trigger::Run(int source)
         }
 
         group->members_active_28 = 1;
-         monster_info->p3D->m_pRep->animation_playing_06d = 1;
-         monster_info->p3D->m_pRep->animation_playing_06d = 1;
-         monster_info->p3D->m_pRep->timer_068 =
+        monster_info->p3D->m_pRep->animation_playing_06d = 1;
+        monster_info->p3D->m_pRep->animation_playing_06d = 1;
+        monster_info->p3D->m_pRep->timer_068 =
             g_shared_timer_base->getMsTime(srTimer::TIMER_READ_DEFAULT);
         monster_info->p3D->ResetRepresentation004A7420();
         monster_info->p3D->ResetPathAI();
@@ -3966,7 +3988,7 @@ stLight* FindLightByName00445A10(const char* name, const srRuntimeClass* relativ
 }
 
 // TEMPLATE: WIZ8 0x00445EF0
-// srClassSupport<srNode,srNode,0,4096>::getClassNode
+// srClientSupport<srNode,4096>::getClassNode
 
 // TEMPLATE: WIZ8 0x00445f30
 // srClassSupport<Trigger,srClass,1,65544>::getClassNode

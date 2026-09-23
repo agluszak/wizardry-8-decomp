@@ -234,22 +234,22 @@ srColorSurface* __stdcall LoadSurface0047C090(int handle, long* unused_out)
 /* The TGA loader instantiates srClassSupport for the imported srPalette
    (class id 0x2900); its registry and clone slots are emitted in this TU. */
 // VTABLE: WIZ8 0x005EC5D8
-// class srClassSupport<srPalette,srPalette,0,10496>
+// class srClientSupport<srPalette,10496>
 
 // TEMPLATE: WIZ8 0x0047D650
-// srClassSupport<srPalette,srPalette,0,10496>::getClassID
+// srClientSupport<srPalette,10496>::getClassID
 
 // TEMPLATE: WIZ8 0x0047D660
-// srClassSupport<srPalette,srPalette,0,10496>::getClassName
+// srClientSupport<srPalette,10496>::getClassName
 
 // TEMPLATE: WIZ8 0x0047D670
-// srClassSupport<srPalette,srPalette,0,10496>::getClassNode
+// srClientSupport<srPalette,10496>::getClassNode
 
 // TEMPLATE: WIZ8 0x0047D6B0
-// srClassSupport<srPalette,srPalette,0,10496>::clone
+// srClientSupport<srPalette,10496>::clone
 
 // SYNTHETIC: WIZ8 0x0047C5C0
-// srClassSupport<srPalette,srPalette,0,10496>::`scalar deleting destructor'
+// srClientSupport<srPalette,10496>::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x0047D6D0
 // srClassSupport<stTextureFile,srTexture,0,65537>::getClassID
