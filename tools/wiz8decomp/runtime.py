@@ -1273,21 +1273,24 @@ def run_runtime_suite(
     check_order: bool = False,
     repeat: int = 1,
     renderer: str | None = None,
-    batch: bool = False,
-    workers: int = 1,
+    batch: bool = True,
+    workers: int = 2,
 ) -> dict[str, Any]:
     """Run selected scenarios, optionally checking reverse-order determinism.
 
-    With batch=True, consecutive batch-eligible cases sharing a fixture run in
-    one game process. If a batch process dies mid-group, the unreported cases
+    With batch=True (the default), consecutive batch-eligible cases sharing a
+    fixture run in one game process; pass batch=False to isolate every case in
+    a fresh process. If a batch process dies mid-group, the unreported cases
     re-run in fresh processes so a poisoned session cannot mask or manufacture
     per-case failures.
 
-    With workers>1, independent jobs run on that many isolated workers: each
-    owns a writable stage per case, its own WINEPREFIX (wineserver -k is
-    prefix-scoped, so one worker's failure cannot kill another's server), and
-    its own virtual display (the game uses real OS input and window focus, so
-    sharing a display is unsafe). The suite executable and MAP are pinned once
+    With workers>1 (the default is 2), independent jobs run on that many
+    isolated workers: each owns a writable stage per case, its own WINEPREFIX
+    (wineserver -k is prefix-scoped, so one worker's failure cannot kill
+    another's server), and its own virtual display (the game uses real OS
+    input and window focus, so sharing a display is unsafe). Fewer workers
+    than requested spawn when fewer jobs exist, so a single-case run pays for
+    no second display or prefix. The suite executable and MAP are pinned once
     per invocation so a concurrent relink cannot mix binaries within a run."""
 
     suite_started = time.monotonic()
@@ -1320,26 +1323,24 @@ def run_runtime_suite(
     base_prefix = os.environ.get(
         "WIZ8_WINE_PREFIX", str(settings.work_dir / "wine" / "wiz8-runtime")
     )
-    prefixes: list[Path] = []
-    environments: list[dict[str, str]] = []
-    for index in range(workers):
-        prefix = Path(base_prefix if workers == 1 else f"{base_prefix}-w{index}")
-        prefixes.append(prefix)
-        environments.append(runtime_test_environment(settings, prefix=prefix, renderer=renderer)[1])
+    # The registry read runs on the base prefix; once the job list is known,
+    # the actual worker prefixes are allocated (the base prefix itself when
+    # only one worker is needed).
+    registry_environment = runtime_test_environment(
+        settings, prefix=Path(base_prefix), renderer=renderer
+    )[1]
 
     runs: dict[str, dict[str, dict[str, Any]]] = {}
     scenario_stages: dict[str, str] = {}
     failures: list[str] = []
     timings: dict[str, dict[str, dict[str, Any]]] = {}
 
-    # Read the scenario registry once on worker 0's prefix; the display context
-    # is short-lived — each worker opens its own before running cases.
     with runtime_display(
-        environments[0],
-        default="host" if environments[0].get("WIZ8_RUNTIME_RUNNER") == "umu" else "virtual",
+        registry_environment,
+        default="host" if registry_environment.get("WIZ8_RUNTIME_RUNNER") == "umu" else "virtual",
         log_path=stage / "xvfb-registry.log",
     ) as display:
-        configure_wine_window_management(environments[0], private_display=display is not None)
+        configure_wine_window_management(registry_environment, private_display=display is not None)
         registry_stage = stage_game(
             settings,
             name="runtime-test/registry",
@@ -1349,15 +1350,15 @@ def run_runtime_suite(
             input_pinned=True,
         )
         registry = _read_runtime_scenarios(
-            registry_stage.executable, registry_stage.root, environments[0]
+            registry_stage.executable, registry_stage.root, registry_environment
         )
         # Registry discovery uses system Wine. Retire its prefix services while
         # their X connection is still live, before GE-Proton starts on another
         # private display for the scenarios.
-        if environments[0].get("WIZ8_RUNTIME_RUNNER") == "umu":
+        if registry_environment.get("WIZ8_RUNTIME_RUNNER") == "umu":
             subprocess.run(
-                ["wineserver", "-k"],
-                env=environments[0],
+                [_runtime_test_wineserver(registry_environment), "-k"],
+                env=registry_environment,
                 check=False,
                 capture_output=True,
                 timeout=5,
@@ -1400,6 +1401,28 @@ def run_runtime_suite(
                 groups.append((name,))
         for group in groups:
             jobs.append((order_name, group))
+
+    # Spawn no more workers than jobs: a single-case run must not pay for a
+    # second private display and prefix it never uses.
+    active_workers = min(workers, len(jobs))
+    if active_workers == 1:
+        prefixes = [Path(base_prefix)]
+        environments = [registry_environment]
+    else:
+        prefixes = [Path(f"{base_prefix}-w{index}") for index in range(active_workers)]
+        environments = [
+            runtime_test_environment(settings, prefix=prefix, renderer=renderer)[1]
+            for prefix in prefixes
+        ]
+        # No worker owns the registry-read prefix; stop its wineserver so the
+        # private per-worker prefixes are the only live ones.
+        subprocess.run(
+            [_runtime_test_wineserver(registry_environment), "-k"],
+            cwd=stage,
+            env=registry_environment,
+            check=False,
+            capture_output=True,
+        )
 
     def run_group(
         order_name: str, group: tuple[str, ...], environment: dict[str, str]
@@ -1525,7 +1548,7 @@ def run_runtime_suite(
     pending: queue.Queue[int | None] = queue.Queue()
     for job_index in range(len(jobs)):
         pending.put(job_index)
-    for _ in range(workers):
+    for _ in range(active_workers):
         pending.put(None)
     results: list[dict[str, Any] | None] = [None] * len(jobs)
     worker_errors: list[tuple[int, BaseException]] = []
@@ -1573,7 +1596,7 @@ def run_runtime_suite(
                     flush=True,
                 )
 
-    if workers == 1:
+    if active_workers == 1:
         worker(0, environments[0])
     else:
         threads = [
@@ -1582,7 +1605,7 @@ def run_runtime_suite(
                 args=(index, environments[index]),
                 name=f"runtime-worker-{index}",
             )
-            for index in range(workers)
+            for index in range(active_workers)
         ]
         for thread in threads:
             thread.start()
@@ -1638,7 +1661,7 @@ def run_runtime_suite(
         f"RUNTIME_SUITE scenarios={sum(len(run) for run in runs.values())} "
         f"failures={len(failures)} elapsed_s={elapsed:.1f} "
         f"stage_s={staging_seconds:.1f} run_s={execution_seconds:.1f} "
-        f"workers={workers} "
+        f"workers={active_workers} "
         f"renderer={environments[0].get('GALLIUM_DRIVER', 'default')}",
         file=sys.stderr,
         flush=True,
@@ -1653,7 +1676,7 @@ def run_runtime_suite(
         "scenario_stages": scenario_stages,
         "wine_prefix": str(prefixes[0]),
         "wine_prefixes": [str(prefix) for prefix in prefixes],
-        "workers": workers,
+        "workers": active_workers,
         "runs": runs,
         "timings": {
             "staging_seconds": staging_seconds,

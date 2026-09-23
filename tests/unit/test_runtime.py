@@ -629,7 +629,7 @@ def test_runtime_suite_selection_and_server_lifetime(
 
     monkeypatch.setattr("wiz8decomp.runtime._run_runtime_scenario", run)
     result = run_runtime_suite(
-        settings, scenarios=scenarios, check_order=check_order, repeat=repeat
+        settings, scenarios=scenarios, check_order=check_order, repeat=repeat, workers=1
     )
     expected = (list(scenarios) + (list(reversed(scenarios)) if check_order else [])) * repeat
     assert [scenario for scenario, _ in visited] == expected
@@ -672,7 +672,7 @@ def test_runtime_suite_preserves_failures_and_continues(
     with pytest.raises(
         RuntimeError, match="forward/main-menu-startup: startup invariant failed"
     ) as error:
-        run_runtime_suite(settings, scenarios=scenarios, check_order=check_order)
+        run_runtime_suite(settings, scenarios=scenarios, check_order=check_order, workers=1)
     assert "depend on scenario order" not in str(error.value)
     assert visited == list(scenarios) + (list(reversed(scenarios)) if check_order else [])
 
@@ -702,6 +702,64 @@ def test_runtime_suite_workers_get_private_prefixes(tmp_path: Path, monkeypatch)
     assert result["workers"] == 2
     assert len(result["wine_prefixes"]) == 2
     assert result["input_digest"]
+
+
+def test_runtime_suite_workers_cap_at_the_job_count(tmp_path: Path, monkeypatch) -> None:
+    """A single-case run spawns one worker even when more were requested:
+    no idle second display or prefix."""
+    settings = _settings(tmp_path)
+    prefixes = []
+    monkeypatch.setattr("wiz8decomp.runtime.shutil.which", lambda name: f"/usr/bin/{name}")
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.runtime_display", lambda *args, **kwargs: nullcontext(None)
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.configure_wine_window_management", lambda *args, **kwargs: None
+    )
+    monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", lambda *args, **kwargs: None)
+    monkeypatch.setattr("wiz8decomp.runtime._read_runtime_scenarios", lambda *args: _registry())
+
+    def run(executable, stage, environment, scenario, timeout_seconds, object_root, map_path):
+        prefixes.append(environment["WINEPREFIX"])
+        return {"scenario": scenario, "teardown": 1}
+
+    monkeypatch.setattr("wiz8decomp.runtime._run_runtime_scenario", run)
+    result = run_runtime_suite(settings, scenarios=("split-stack",), workers=3)
+
+    assert result["workers"] == 1
+    assert len(result["wine_prefixes"]) == 1
+    assert len(set(prefixes)) == 1
+
+
+def test_runtime_suite_batches_same_fixture_cases_by_default(tmp_path: Path, monkeypatch) -> None:
+    """Batching is the default local path: consecutive batch=yes cases sharing
+    a fixture reach _run_runtime_batch as one group without a --batch flag."""
+    settings = _settings(tmp_path)
+    batches = []
+    monkeypatch.setattr("wiz8decomp.runtime.shutil.which", lambda name: f"/usr/bin/{name}")
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.runtime_display", lambda *args, **kwargs: nullcontext(None)
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.configure_wine_window_management", lambda *args, **kwargs: None
+    )
+    monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", lambda *args, **kwargs: None)
+    monkeypatch.setattr("wiz8decomp.runtime._read_runtime_scenarios", lambda *args: _registry())
+
+    def batch(executable, stage, environment, group, registry, object_root, map_path):
+        batches.append(group)
+        return ({name: {"scenario": name, "case_passed": 1} for name in group}, None)
+
+    monkeypatch.setattr("wiz8decomp.runtime._run_runtime_batch", batch)
+    monkeypatch.setattr(
+        "wiz8decomp.runtime._run_runtime_scenario",
+        lambda *args, **kwargs: pytest.fail("singleton path used for a batchable group"),
+    )
+
+    result = run_runtime_suite(settings, scenarios=("split-stack", "oct-file"), workers=1)
+
+    assert batches == [("split-stack", "oct-file")]
+    assert set(result["runs"]["forward"]) == {"split-stack", "oct-file"}
 
 
 def test_runtime_suite_workers_require_private_virtual_displays(
