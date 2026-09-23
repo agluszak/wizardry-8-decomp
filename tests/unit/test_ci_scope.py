@@ -118,6 +118,7 @@ def test_aggregate_gate_requires_wiz8_runtime() -> None:
     )
     assert "WIZ8_RUNTIME_RESULT: ${{ needs['wiz8-runtime'].result }}" in aggregate
 
+
 def test_reccmp_comment_combines_per_target_lane_status() -> None:
     workflow = (_SCRIPT.parent.parent / "workflows/ci.yml").read_text(encoding="utf-8")
     wiz8 = workflow.split("\n  wiz8:\n", 1)[1].split("\n  wiz8-runtime:\n", 1)[0]
