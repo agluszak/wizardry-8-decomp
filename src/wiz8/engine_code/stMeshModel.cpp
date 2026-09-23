@@ -607,7 +607,7 @@ void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const Tri
                     pipeline->current_record_14->flags_00 = 0;
                     pipeline->current_pass_18->shader_14 = 0;
                     pipeline->current_pass_18->texture_array_0c = 0;
-                    pipeline->current_pass_18->value_10 = 0;
+                    pipeline->current_pass_18->texture_array_10 = 0;
 
                     if (mesh.dig_40[pass] != 0) {
                         pipeline->current_record_14->colors_0c = mesh.dig_40[pass];
@@ -634,9 +634,7 @@ void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const Tri
                     }
 
                     if (mesh.poly_uv_110[pass] != 0) {
-                        pipeline->current_pass_18->poly_uv_1c =
-                            // reinterpret-ok: poly UV index table pointer bits in poly_uv_1c
-                            reinterpret_cast<unsigned long>(mesh.poly_uv_110[pass]);
+                        pipeline->current_pass_18->poly_uv_1c = mesh.poly_uv_110[pass];
                     }
 
                     if (mesh.poly_shaders_100[pass] == 0) {
@@ -1710,7 +1708,7 @@ void srTriMeshPipeline::PrepareSlot00475540()
     current_pass_18->pass_value_04 = pass_value_7c;
     current_pass_18->flags_08.value = shader_74.value;
     current_pass_18->texture_array_0c = 0;
-    current_pass_18->value_10 = 0;
+    current_pass_18->texture_array_10 = 0;
     current_pass_18->shader_14 = 0;
     current_pass_18->st_18 = 0;
     current_pass_18->poly_uv_1c = 0;
@@ -1760,7 +1758,7 @@ void srTriMeshPipeline::Reset004753F0(srGERD* renderer)
     current_pass_18->pass_value_04 = pass_value_7c;
     current_pass_18->flags_08.value = shader_74.value;
     current_pass_18->texture_array_0c = 0;
-    current_pass_18->value_10 = 0;
+    current_pass_18->texture_array_10 = 0;
     current_pass_18->shader_14 = 0;
     current_pass_18->st_18 = 0;
     current_pass_18->poly_uv_1c = 0;

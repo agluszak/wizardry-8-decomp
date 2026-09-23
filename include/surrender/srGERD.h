@@ -12,6 +12,7 @@
 
 #include "srRendererDefs.h"
 #include "srDD.h"
+#include "srTriMeshPipeline.h"
 class srCriticalSection;
 class srDebugDD;
 class srModelInstance;
@@ -181,8 +182,19 @@ public:
 
         Renderer(const Parameters& parameters);
         void allocVertexArray(srVertexArray& arrays, unsigned long count);
-        /* FUN_10025260: expands/dedups the input triangles into the vertex
-           batch. */
+        /* FUN_10024E30: intern the pass's {texture0,texture1,shader} key into
+           texture_set, folding per-vertex texture/shader table transitions
+           into the output ids. */
+        void assignTextureSets(unsigned long* texture_set, const unsigned long* indices,
+                               unsigned long count, const srTriMeshPipeline::Pass* pass);
+        /* FUN_10025260: expands/dedups the input triangles into the index and
+           vertex batches, per record. */
+        void expandTriangles(const TriInput& input, int sorted);
+        /* FUN_100259D0: transforms the reserved position range by the input's
+           matrix in 0x80-vertex chunks (choosing ortho/perspective/generic by
+           the matrix's zero pattern), derives per-vertex clip flags, and
+           replicates the chunk across the remaining records. */
+        void transformVertices(const TriInput& input, unsigned char* clip_flags);
         void render(const TriInput& input);
         /* FUN_10024db0: the accumulated batch count passed the limit. Only
            immediate (non-sorted) renderers report full. */
@@ -582,11 +594,28 @@ private:
     };
     static_assert(sizeof(Texture) == 0xa8, "srGERD_Texture_must_be_0xa8");
 
+    /* Renderer::render's pick path hands this batch view to
+       performPickTest: indices selects triangles out of the caller's
+       srVector3i stream, vertices remaps each corner to a position index,
+       positions is the renderer's vec4 stream base. */
+    struct PickInput {
+        const unsigned long* indices_00;
+        const srVector3i* triangles_04;
+        unsigned long triangle_count_08;
+        const unsigned long* vertices_0c;
+        const srVector4T<float>* positions_10;
+        unsigned long vertex_count_14;
+    };
+
     srGERD& operator=(const srGERD& other);
-    /* Renderer::submit reaches getDD; VC6 does not give nested classes
-       enclosing-member access. */
+    /* Renderer::submit and LockSurface's pixel transfers reach getDD; VC6
+       does not give nested classes enclosing-member access. */
     friend class Renderer;
     srDD* getDD() const;
+    /* Retail 0x1001D630: for each queued Pick, w-normalize the batch's
+       positions into pick_vertices_2230_ and run the edge-function
+       triangle test against the pick ray. */
+    void performPickTest(const PickInput& input);
 
     /* Header inline that also emits the standalone retail 0x1001BC30 copy;
        the batched renderer programs the six DD array slots through it. */
@@ -680,6 +709,9 @@ private:
         short channels_00[4];
     };
     class LockSurface;
+    /* LockSurface's pixel transfers reach the private getDD; VC6 does not
+       give nested classes enclosing-member access. */
+    friend class LockSurface;
 
     static srGERD* first;
     static srGERD* firstOpen;
@@ -718,15 +750,11 @@ private:
     long display_mode_count_36c_;
     unsigned char unknown_370_[4];
     unsigned long window_374_;
-    /* openWindowInternal copies the OpenInfo record verbatim: windowed dims,
-       backbuffer dims, then the display-mode index into fullscreen_388_. */
-    long window_width_378_;
-    long window_height_37c_;
-    long width_380_;
-    long height_384_;
-    /* Fullscreen device index; isFullScreen tests it against -1, and
-       openWindow leaves it -1 for the windowed path. */
-    long fullscreen_388_;
+    /* openWindowInternal memsets then struct-copies the OpenInfo record
+       verbatim: windowed dims, backbuffer dims, then the display-mode index.
+       isFullScreen tests display_mode_10 against -1, and openWindow leaves
+       it -1 for the windowed path. */
+    OpenInfo open_info_378_;
     /* e_backBuffer result of srDD::openWindow; getBackBufferType reads it. */
     unsigned long back_buffer_type_38c_;
     /* Per-mode current matrices at 0x390; pushMatrix indexes by mode. */
@@ -860,9 +888,9 @@ private:
     /* The vertex-stream state handed to srDD::setVertexArrayInfo by
        drawArrays/drawElements; setDataPtr and the pointer setters program it. */
     srRendererDefs::VertexArrayInfo vertex_arrays_21c4_;
-    /* srHeap-allocated block released by closeWindow. */
-    void* unknown_2230_;
-    unsigned long unknown_2234_;
+    /* performPickTest's w-normalized {x,y,z,sign(w)} scratch per vertex;
+       released by closeWindow. */
+    srHeapBuffer<srVector4T<float> > pick_vertices_2230_;
 };
 
 /* Retail 0x10027BF0: the three-word texture-set key hash; the interning

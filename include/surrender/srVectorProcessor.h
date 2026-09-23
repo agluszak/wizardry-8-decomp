@@ -167,6 +167,48 @@ public:
         vp->_transform(destination, vectors, matrix, count);
     }
 
+    /* srGERD::Renderer's batch ingress dispatches the projection matrix's
+       detected mode: the vec4 transform through +0x220, ortho through
+       +0x23c, perspective through +0x240, the clip-flag byte stream
+       through +0x298, and the gather+remap triangle copy through +0x25c. */
+    static inline void transform(srVector4* destination, const srVector4* vectors,
+                                 const srMatrix4& matrix, SRDWORD count)
+    {
+        vp->_transform(destination, vectors, matrix, count);
+    }
+
+    static inline void transformOrtho(srVector4* destination, const srVector4* vectors,
+                                      const srMatrix4& matrix, SRDWORD count)
+    {
+        vp->_transformOrtho(destination, vectors, matrix, count);
+    }
+
+    static inline void transformPerspective(srVector4* destination, const srVector4* vectors,
+                                            const srMatrix4& matrix, SRDWORD count)
+    {
+        vp->_transformPerspective(destination, vectors, matrix, count);
+    }
+
+    static inline void srGetClipFlags(SRBYTE* destination, const srVector4* source, SRDWORD count)
+    {
+        vp->_srGetClipFlags(destination, source, count);
+    }
+
+    static inline void srCopyIndexedRemap(srVector3i* destination, const srVector3i* source,
+                                          const SRDWORD* indices, const SRDWORD* remap,
+                                          SRDWORD count)
+    {
+        vp->_srCopyIndexedRemap(destination, source, indices, remap, count);
+    }
+
+    /* The vec2 indexed copy the dedup path uses for both texture-coordinate
+       streams. */
+    static inline void copyIndexed(srVector2* destination, const srVector2* source,
+                                   const SRDWORD* indices, SRDWORD count)
+    {
+        vp->_copyIndexed(destination, source, indices, count);
+    }
+
     /* destination[i] = |vectors[i]| for `count` vectors through vtable
        +0x210; the automap cell lighting uses it for per-vertex distances. */
     static inline void length(float* destination, const srVector3* vectors, SRDWORD count)

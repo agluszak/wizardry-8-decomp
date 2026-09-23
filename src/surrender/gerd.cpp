@@ -1050,13 +1050,13 @@ int srGERD::isContextCreated() const
 // FUNCTION: SURRENDER 0x1001D020
 long srGERD::getWidth() const
 {
-    return width_380_;
+    return open_info_378_.width_08;
 }
 
 // FUNCTION: SURRENDER 0x1001D0A0
 long srGERD::getHeight() const
 {
-    return height_384_;
+    return open_info_378_.height_0c;
 }
 
 // FUNCTION: SURRENDER 0x1001D0B0
@@ -1074,7 +1074,7 @@ int srGERD::isWindowOpen() const
 // FUNCTION: SURRENDER 0x1001D0E0
 int srGERD::isFullScreen() const
 {
-    return fullscreen_388_ >= 0;
+    return open_info_378_.display_mode_10 >= 0;
 }
 
 // FUNCTION: SURRENDER 0x1001D030
@@ -1131,6 +1131,88 @@ void srGERD::setViewPort(unsigned long x, unsigned long y, unsigned long width,
         view_bottom_1644_ = getHeight();
     }
     dirty_24_ |= 0x80;
+}
+
+// FUNCTION: SURRENDER 0x1001D630
+void srGERD::performPickTest(const PickInput& input)
+{
+    unsigned long depth = pick_depth_19ec_;
+    if (depth == 0) {
+        return;
+    }
+    srVector4T<float>* vertices = pick_vertices_2230_.ensure(input.vertex_count_14);
+    for (unsigned long index = 0; index < input.vertex_count_14; index++) {
+        float inv_w = 1.0f / input.positions_10[index].w;
+        vertices[index].w = inv_w < 0.0f ? -1.0f : 1.0f;
+        inv_w = fabs(inv_w);
+        vertices[index].x = input.positions_10[index].x * inv_w;
+        vertices[index].y = input.positions_10[index].y * inv_w;
+        vertices[index].z = input.positions_10[index].z * inv_w;
+    }
+    Pick* pick = pick_stack_176c_;
+    do {
+        float pick_x = pick->x_00;
+        float pick_y = pick->y_04;
+        for (unsigned long index = 0; index < input.triangle_count_08; index++) {
+            unsigned long triangle_index = input.indices_00[index];
+            const srVector3i& triangle = input.triangles_04[triangle_index];
+            const srVector4T<float>* corner0 = &vertices[input.vertices_0c[triangle.x]];
+            const srVector4T<float>* corner1 = &vertices[input.vertices_0c[triangle.y]];
+            const srVector4T<float>* corner2 = &vertices[input.vertices_0c[triangle.z]];
+            float v0x = corner0->x;
+            float v0y = corner0->y;
+            float v0z = corner0->z;
+            float v1x = corner1->x;
+            float v1y = corner1->y;
+            float v1z = corner1->z;
+            float v2x = corner2->x;
+            float v2y = corner2->y;
+            float v2z = corner2->z;
+            char winding = (v0y - pick_y) * (v0x - v1x) - (v0y - v1y) * (v0x - pick_x) > 0.0f;
+            if ((v1y - pick_y) * (v1x - v2x) - (v1x - pick_x) * (v1y - v2y) > 0.0f) {
+                winding++;
+            }
+            if (winding == 1) {
+                continue;
+            }
+            if ((v2y - pick_y) * (v2x - v0x) - (v2y - v0y) * (v2x - pick_x) > 0.0f) {
+                winding++;
+            }
+            if (winding != 0 && winding != 3) {
+                continue;
+            }
+            /* Positions were normalized by |1/w|; undo the mirror for
+               corners behind the eye before solving the plane. */
+            if (corner0->w == -1.0f) {
+                v0x = -v0x;
+                v0y = -v0y;
+                v0z = -v0z;
+            }
+            if (corner1->w == -1.0f) {
+                v1x = -v1x;
+                v1y = -v1y;
+                v1z = -v1z;
+            }
+            if (corner2->w == -1.0f) {
+                v2x = -v2x;
+                v2y = -v2y;
+                v2z = -v2z;
+            }
+            float a = (v1y - v0y) * (v2z - v0z) - (v1z - v0z) * (v2y - v0y);
+            float b = (v1z - v0z) * (v2x - v0x) - (v2z - v0z) * (v1x - v0x);
+            float c = (v2y - v0y) * (v1x - v0x) - (v1y - v0y) * (v2x - v0x);
+            float hit = -((a * pick_x + b * pick_y - (a * v0x + b * v0y + c * v0z)) / c);
+            if (hit >= -1.0f && hit < pick->z_08) {
+                pick->z_08 = hit;
+                /* reinterpret-ok: the public pick key arrives as ulong bits
+                   naming the selected model instance. */
+                pick->selected_model_0c = reinterpret_cast<srModelInstance*>(pick_key_19f0_);
+                pick->value_10 = triangle_index;
+            }
+        }
+        pick++;
+        depth--;
+    } while (depth != 0);
 }
 
 // FUNCTION: SURRENDER 0x1001DAA0
@@ -1506,32 +1588,42 @@ void srGERD::accumClear()
     }
 }
 
-/* Locked-buffer surface created by lockBuffer: a srColorSurfaceIFace-derived
-   class of 0x60 bytes (ctor 0x100205d0) that keeps its own scissor rect. */
-/* Retail ctor 0x100205D0: srColorSurfaceIFace base (0x44), GERD back-pointer,
-   zeroed scissor, a 1-pixel-high srColorSurface scratch buffer, byte flag.
-   The ~18 own virtual overrides behind vtable 0x100767F8 are unrecovered. */
-class srGERD::LockSurface : public srColorSurfaceIFace {
+/* Locked-buffer surface created by lockBuffer: a 0x60-byte surface class
+   (ctor 0x100205D0, registered as "srGERD::Surface" class 0x3111) that keeps
+   its own scissor rect and proxies pixel access through device bufferOp
+   commands, staging through a 1-pixel-high srColorSurface scratch buffer when
+   the locked format is not 32-bit ARGB. Retail vtable 0x100767F8. */
+class srGERD::LockSurface : public srClassSupport<LockSurface, srColorSurfaceIFace, false, 0x3111> {
 public:
-    /* Retail 0x100205D0; unrecovered body. */
+    // 0x100205D0
     LockSurface(srGERD* gerd, const srPixelConvert::PixelFormat& format);
-    /* Retail vtable 0x100767F8 override slots; bodies unrecovered. */
-    virtual unsigned long getPixel(long x, long y) override;             // 0x1001F730
-    virtual void setPixel(long x, long y, unsigned long pixel) override; // 0x1001F770
-    virtual void setPalette(srPalette* palette) override;                // 0x10020BB0
-    virtual void* getDataPtr() override;                                 // 0x10020AF0
-    virtual int rescale(long width, long height) override;               // 0x1001F750
-    virtual int changePixelFormat(const srPixelConvert::PixelFormat& format,
-                                  int preserve) override; // 0x1001F760
-    virtual void composite(long x, long y, srColorSurfaceIFace& source, long source_x,
-                           long source_y, long width, long height,
-                           double alpha) override; // 0x100207A0
-    /* Remaining interface obligations; bodies unrecovered. */
+    // 0x1001F610
+    virtual ~LockSurface() override;
+    // 0x1001F780
+    static const char* sGetClassName()
+    {
+        return "srGERD::Surface";
+    }
+    /* Retail 0x1001F770: vInstance cannot construct a LockSurface (the ctor
+       needs the owning GERD and pixel format) and returns null. */
     virtual srClass* vInstance() override;
-    virtual void getPixelRow(unsigned long* pixels, long x, long y, long count) override;
-    virtual void setPixelRow(const unsigned long* pixels, long x, long y, long count) override;
-    virtual void getPixelRowRaw(void* pixels, long x, long y, long count) override;
-    virtual void setPixelRowRaw(const void* pixels, long x, long y, long count) override;
+    /* Retail vtable 0x100767F8 override slots. */
+    virtual void getPixelColumn(unsigned long* pixels, long x, long y0,
+                                long y1) override; // 0x10020BB0
+    virtual void setPixelColumn(const unsigned long* pixels, long x, long y0,
+                                long y1) override; // 0x10020AF0
+    virtual void* getDataPtr() override;           // 0x1001F750
+    virtual long getDataSize() override;           // 0x1001F760
+    virtual void setHLine(long y, long x0, long x1, unsigned long pixel) override;
+    // 0x100207A0
+    virtual void getPixelRow(unsigned long* pixels, long y, long x0,
+                             long x1) override; // 0x10020990
+    virtual void setPixelRow(const unsigned long* pixels, long y, long x0,
+                             long x1) override; // 0x10020840
+    virtual void getPixelRowRaw(void* pixels, long y, long x0,
+                                long x1) override; // 0x10020A70
+    virtual void setPixelRowRaw(const void* pixels, long y, long x0,
+                                long x1) override; // 0x10020900
     void setScissor(unsigned long left, unsigned long top, unsigned long right,
                     unsigned long bottom);
 
@@ -1551,6 +1643,267 @@ private:
     unsigned char unknown_5d_[3];
 };
 
+// FUNCTION: SURRENDER 0x100205D0
+srGERD::LockSurface::LockSurface(srGERD* gerd, const srPixelConvert::PixelFormat& format)
+{
+    SurfaceDesc description;
+    memset(&description, 0, sizeof(description));
+    description.width = gerd->getWidth();
+    description.height = gerd->getHeight();
+    description.pitch = (format.bytes_per_pixel_minus_one + 1) * description.width;
+    description.pixel_format = format;
+    setSurfaceDesc(description);
+    gerd_44_ = gerd;
+    left_48_ = 0;
+    top_4c_ = 0;
+    right_50_ = 0;
+    bottom_54_ = 0;
+    /* One row tall and as wide as the longest scissor axis. */
+    unsigned long side =
+        (long)description.width < (long)description.height ? description.height : description.width;
+    scratch_58_ = new srColorSurface(format, side, 1);
+    argb32_5c_ = 0;
+}
+
+// FUNCTION: SURRENDER 0x1001F610
+srGERD::LockSurface::~LockSurface()
+{
+    scratch_58_->release();
+}
+
+// FUNCTION: SURRENDER 0x1001F770
+srClass* srGERD::LockSurface::vInstance()
+{
+    return 0;
+}
+
+// FUNCTION: SURRENDER 0x1001F750
+void* srGERD::LockSurface::getDataPtr()
+{
+    return 0;
+}
+
+// FUNCTION: SURRENDER 0x1001F760
+long srGERD::LockSurface::getDataSize()
+{
+    return 0;
+}
+
+// FUNCTION: SURRENDER 0x100207A0
+void srGERD::LockSurface::setHLine(long y, long x0, long x1, unsigned long pixel)
+{
+    if (y < (long)top_4c_ || y >= (long)bottom_54_) {
+        return;
+    }
+    if (x0 < (long)left_48_) {
+        x0 = left_48_;
+    }
+    if (x1 > (long)right_50_) {
+        x1 = right_50_;
+    }
+    if (x0 >= x1) {
+        return;
+    }
+    /* Convert the pixel through the scratch surface, then hand the device a
+       pointer to the converted value. */
+    scratch_58_->setPixel(0, 0, pixel);
+    unsigned long converted = scratch_58_->getPixelRaw(0, 0);
+    srDD::BufferCommand command;
+    command.flags_00 = 0;
+    command.opcode_04 = 4;
+    command.data_08 = &converted;
+    command.x_0c = x0;
+    command.y_10 = y;
+    command.count_14 = x1 - x0;
+    gerd_44_->getDD()->bufferOp(command);
+}
+
+// FUNCTION: SURRENDER 0x10020990
+void srGERD::LockSurface::getPixelRow(unsigned long* pixels, long y, long x0, long x1)
+{
+    if (y < (long)top_4c_ || y >= (long)bottom_54_) {
+        return;
+    }
+    if (x0 < (long)left_48_) {
+        pixels += left_48_ - x0;
+        x0 = left_48_;
+    }
+    if (x1 > (long)right_50_) {
+        x1 = right_50_;
+    }
+    if (x0 >= x1) {
+        return;
+    }
+    long count = x1 - x0;
+    srDD::BufferCommand command;
+    command.flags_00 = 0;
+    command.opcode_04 = 2;
+    command.x_0c = x0;
+    command.y_10 = y;
+    command.count_14 = count;
+    if (argb32_5c_ != 0) {
+        command.data_08 = pixels;
+        gerd_44_->getDD()->bufferOp(command);
+        return;
+    }
+    command.data_08 = scratch_58_->getDataPtr();
+    gerd_44_->getDD()->bufferOp(command);
+    scratch_58_->getPixelRow(pixels, 0, 0, count);
+}
+
+// FUNCTION: SURRENDER 0x10020840
+void srGERD::LockSurface::setPixelRow(const unsigned long* pixels, long y, long x0, long x1)
+{
+    if (y < (long)top_4c_ || y >= (long)bottom_54_) {
+        return;
+    }
+    if (x0 < (long)left_48_) {
+        pixels += left_48_ - x0;
+        x0 = left_48_;
+    }
+    if (x1 > (long)right_50_) {
+        x1 = right_50_;
+    }
+    if (x0 >= x1) {
+        return;
+    }
+    long count = x1 - x0;
+    srDD::BufferCommand command;
+    command.flags_00 = 0;
+    command.opcode_04 = 3;
+    command.x_0c = x0;
+    command.y_10 = y;
+    command.count_14 = count;
+    if (argb32_5c_ != 0) {
+        command.data_08 = (void*)pixels;
+        gerd_44_->getDD()->bufferOp(command);
+        return;
+    }
+    scratch_58_->setPixelRow(pixels, 0, 0, count);
+    command.data_08 = scratch_58_->getDataPtr();
+    gerd_44_->getDD()->bufferOp(command);
+}
+
+// FUNCTION: SURRENDER 0x10020A70
+void srGERD::LockSurface::getPixelRowRaw(void* pixels, long y, long x0, long x1)
+{
+    if (y < (long)top_4c_ || y >= (long)bottom_54_) {
+        return;
+    }
+    if (x0 < (long)left_48_) {
+        /* Retail advances the raw pointer by one byte per clipped pixel. */
+        pixels = (char*)pixels + (left_48_ - x0);
+        x0 = left_48_;
+    }
+    if (x1 > (long)right_50_) {
+        x1 = right_50_;
+    }
+    if (x0 >= x1) {
+        return;
+    }
+    srDD::BufferCommand command;
+    command.flags_00 = 0;
+    command.opcode_04 = 2;
+    command.data_08 = pixels;
+    command.x_0c = x0;
+    command.y_10 = y;
+    command.count_14 = x1 - x0;
+    gerd_44_->getDD()->bufferOp(command);
+}
+
+// FUNCTION: SURRENDER 0x10020900
+void srGERD::LockSurface::setPixelRowRaw(const void* pixels, long y, long x0, long x1)
+{
+    if (y < (long)top_4c_ || y >= (long)bottom_54_) {
+        return;
+    }
+    if (x0 < (long)left_48_) {
+        pixels =
+            (const char*)pixels + (pixel_format_30.bytes_per_pixel_minus_one + 1) * (left_48_ - x0);
+        x0 = left_48_;
+    }
+    if (x1 > (long)right_50_) {
+        x1 = right_50_;
+    }
+    if (x0 >= x1) {
+        return;
+    }
+    srDD::BufferCommand command;
+    command.flags_00 = 0;
+    command.opcode_04 = 3;
+    command.data_08 = (void*)pixels;
+    command.x_0c = x0;
+    command.y_10 = y;
+    command.count_14 = x1 - x0;
+    gerd_44_->getDD()->bufferOp(command);
+}
+
+// FUNCTION: SURRENDER 0x10020BB0
+void srGERD::LockSurface::getPixelColumn(unsigned long* pixels, long x, long y0, long y1)
+{
+    if (x < (long)left_48_ || x >= (long)right_50_) {
+        return;
+    }
+    if (y0 < (long)top_4c_) {
+        pixels += top_4c_ - y0;
+        y0 = top_4c_;
+    }
+    if (y1 >= (long)bottom_54_) {
+        y1 = bottom_54_;
+    }
+    if (y0 >= y1) {
+        return;
+    }
+    long count = y1 - y0;
+    srDD::BufferCommand command;
+    command.flags_00 = 0;
+    command.opcode_04 = 6;
+    command.x_0c = x;
+    command.y_10 = y0;
+    command.count_14 = count;
+    if (argb32_5c_ != 0) {
+        command.data_08 = pixels;
+        gerd_44_->getDD()->bufferOp(command);
+        return;
+    }
+    command.data_08 = scratch_58_->getDataPtr();
+    gerd_44_->getDD()->bufferOp(command);
+    scratch_58_->getPixelRow(pixels, 0, 0, count);
+}
+
+// FUNCTION: SURRENDER 0x10020AF0
+void srGERD::LockSurface::setPixelColumn(const unsigned long* pixels, long x, long y0, long y1)
+{
+    if (x < (long)left_48_ || x >= (long)right_50_) {
+        return;
+    }
+    if (y0 < (long)top_4c_) {
+        pixels += top_4c_ - y0;
+        y0 = top_4c_;
+    }
+    if (y1 >= (long)bottom_54_) {
+        y1 = bottom_54_;
+    }
+    if (y0 >= y1) {
+        return;
+    }
+    long count = y1 - y0;
+    srDD::BufferCommand command;
+    command.flags_00 = 0;
+    command.opcode_04 = 7;
+    command.x_0c = x;
+    command.y_10 = y0;
+    command.count_14 = count;
+    if (argb32_5c_ != 0) {
+        command.data_08 = (void*)pixels;
+        gerd_44_->getDD()->bufferOp(command);
+        return;
+    }
+    scratch_58_->setPixelRow(pixels, 0, 0, count);
+    command.data_08 = scratch_58_->getDataPtr();
+    gerd_44_->getDD()->bufferOp(command);
+}
+
 // FUNCTION: SURRENDER 0x10020780
 void srGERD::LockSurface::setScissor(unsigned long left, unsigned long top, unsigned long right,
                                      unsigned long bottom)
@@ -1568,8 +1921,8 @@ srDD::e_error srGERD::_lockBuffer()
         flushImmediateRenderers();
         getDD()->flushFrame();
         srDD::BufferCommand command;
-        command.buffer_00 = 0;
-        command.unlock_04 = 0;
+        command.flags_00 = 0;
+        command.opcode_04 = 0;
         srDD::e_error error = getDD()->bufferOp(command);
         if (error != 0) {
             return error;
@@ -1585,9 +1938,11 @@ srDD::e_error srGERD::_unlockBuffer()
     if (buffer_lock_count_1b04_ != 0) {
         buffer_lock_count_1b04_ -= 1;
         if (buffer_lock_count_1b04_ == 0) {
+            /* Retail's command.flags_00 ends up holding the decremented lock
+               count (the decrement temporary shares that slot). */
             srDD::BufferCommand command;
-            command.buffer_00 = 0;
-            command.unlock_04 = 1;
+            command.flags_00 = buffer_lock_count_1b04_;
+            command.opcode_04 = 1;
             return getDD()->bufferOp(command);
         }
     }
@@ -3220,7 +3575,7 @@ void srGERD::closeWindow(e_closeHint hint)
         getDD()->closeWindow();
         resetStatistics();
         accumRelease();
-        memset(&window_width_378_, 0, 0x14);
+        memset(&open_info_378_, 0, sizeof(open_info_378_));
         state_flags_28_ &= ~2UL;
         back_buffer_type_38c_ = 0;
         if (prev_open_38_ != 0) {
@@ -3244,11 +3599,7 @@ void srGERD::closeWindow(e_closeHint hint)
             texture_iface_1ffc_[1]->release();
             texture_iface_1ffc_[1] = 0;
         }
-        if (unknown_2230_ != 0) {
-            srHeap.free(unknown_2230_);
-        }
-        unknown_2230_ = 0;
-        unknown_2234_ = 0;
+        pick_vertices_2230_.release();
     }
 }
 
@@ -3312,105 +3663,102 @@ srGERD::e_error srGERD::openWindow(long mode)
 srGERD::e_error srGERD::openWindowInternal(const OpenInfo& info)
 {
     SectionAccess access(state_section_18_);
-    if ((unsigned long)info.window_width_00 < (unsigned long)info.width_08 ||
-        (unsigned long)info.window_height_04 < (unsigned long)info.height_0c) {
+    if ((unsigned long)info.width_08 > (unsigned long)info.window_width_00 ||
+        (unsigned long)info.height_0c > (unsigned long)info.window_height_04) {
         return static_cast<e_error>(2);
     }
     if ((state_flags_28_ & 1) == 0) {
         return static_cast<e_error>(9);
     }
     closeWindow(static_cast<e_closeHint>(1));
-    if (info.width_08 == 0 || info.height_0c == 0 || info.window_width_00 == 0 ||
-        info.window_height_04 == 0) {
-        return static_cast<e_error>(3);
-    }
-    if (srWindow::isWindow(window_374_) == 0) {
-        return static_cast<e_error>(6);
-    }
-    if (info.display_mode_10 < -1 || display_mode_count_36c_ <= info.display_mode_10 ||
-        info_50_.unknown_00_ < (unsigned long)info.width_08 ||
-        info_50_.unknown_04_ < (unsigned long)info.height_0c) {
-        return static_cast<e_error>(2);
-    }
-    memset(&window_width_378_, 0, 0x14);
-    srDD::OpenInfo dd_info;
-    dd_info.width = (unsigned long)info.width_08;
-    dd_info.height = (unsigned long)info.height_0c;
-    dd_info.display_mode = info.display_mode_10;
-    srDD::OpenResult result;
-    result.back_buffer_type = 0;
-    if (getDD()->openWindow(dd_info, result) != 0) {
-        return static_cast<e_error>(3);
-    }
-    window_width_378_ = info.window_width_00;
-    window_height_37c_ = info.window_height_04;
-    width_380_ = info.width_08;
-    height_384_ = info.height_0c;
-    fullscreen_388_ = info.display_mode_10;
-    if (result.back_buffer_type == 1) {
-        back_buffer_type_38c_ = 1;
-    } else if (result.back_buffer_type == 2) {
-        back_buffer_type_38c_ = 2;
-    } else if (result.back_buffer_type == 3) {
-        back_buffer_type_38c_ = 3;
-    }
-    prev_open_38_ = 0;
-    next_open_3c_ = firstOpen;
-    if (firstOpen != 0) {
-        firstOpen->prev_open_38_ = this;
-    }
-    unsigned long flags = state_flags_28_ & ~4UL;
-    firstOpen = this;
-    state_flags_28_ = flags | 0xa;
-    resetStatistics();
-    dirty_24_ = 0xffffffff;
-    initTexCache();
-    if (texture_iface_1ffc_[0] != 0) {
-        texture_iface_1ffc_[0]->release();
-        texture_iface_1ffc_[0] = 0;
-    }
-    if (texture_iface_1ffc_[1] != 0) {
-        texture_iface_1ffc_[1]->release();
-        texture_iface_1ffc_[1] = 0;
-    }
-    shader_1ff8_ = srShader();
-    if (info_50_.max_texture_stages_28_ != 0) {
-        unsigned long stage = 0;
-        do {
-            texture_parms_1f40_[stage].mipmap_bias_04 = 0.0f;
-            texture_parms_1f40_[stage].packed_00 = 0x1a1;
-            texture_parms_1f40_[stage].mipmap_bias_04 = -1234567.0f;
-            setTexture(0, stage);
-            stage++;
-        } while (stage < info_50_.max_texture_stages_28_);
-    }
-    invalidatePalette();
-    scissor_1628_.left = 0;
-    scissor_1628_.top = 0;
-    scissor_1628_.right = getWidth();
-    scissor_1628_.bottom = getHeight();
-    view_left_1638_ = 0;
-    view_top_163c_ = 0;
-    view_right_1640_ = getWidth();
-    view_bottom_1644_ = getHeight();
-    createRenderer(1);
-    if ((enable_flags_20_.value & 0x40) != 0) {
-        long count;
-        e_backBuffer back_buffer = getBackBufferType();
-        if (back_buffer == static_cast<e_backBuffer>(2)) {
-            count = 2;
-        } else if (back_buffer == static_cast<e_backBuffer>(3)) {
-            count = 3;
-        } else {
-            count = 1;
+    if (info.width_08 != 0 && info.height_0c != 0 && info.window_width_00 != 0 &&
+        info.window_height_04 != 0) {
+        if (srWindow::isWindow(window_374_) == 0) {
+            return static_cast<e_error>(6);
         }
-        for (; count != 0; count--) {
-            clear(srFlags<e_buffer>(0xfffffffb));
-            flipFrame();
+        if (info.display_mode_10 < -1 || display_mode_count_36c_ <= info.display_mode_10 ||
+            info_50_.unknown_00_ < (unsigned long)info.width_08 ||
+            info_50_.unknown_04_ < (unsigned long)info.height_0c) {
+            return static_cast<e_error>(2);
         }
-        flush();
+        memset(&open_info_378_, 0, sizeof(open_info_378_));
+        srDD::OpenInfo dd_info;
+        dd_info.width = (unsigned long)info.width_08;
+        dd_info.height = (unsigned long)info.height_0c;
+        dd_info.display_mode = info.display_mode_10;
+        srDD::OpenResult result;
+        result.back_buffer_type = 0;
+        if (getDD()->openWindow(dd_info, result) == 0) {
+            open_info_378_ = info;
+            if (result.back_buffer_type == 1) {
+                back_buffer_type_38c_ = 1;
+            } else if (result.back_buffer_type == 2) {
+                back_buffer_type_38c_ = 2;
+            } else if (result.back_buffer_type == 3) {
+                back_buffer_type_38c_ = 3;
+            }
+            prev_open_38_ = 0;
+            next_open_3c_ = firstOpen;
+            if (firstOpen != 0) {
+                firstOpen->prev_open_38_ = this;
+            }
+            unsigned long flags = state_flags_28_ & ~4UL;
+            firstOpen = this;
+            state_flags_28_ |= 2;
+            state_flags_28_ = flags | 2;
+            state_flags_28_ |= 8;
+            resetStatistics();
+            dirty_24_ = 0xffffffff;
+            initTexCache();
+            if (texture_iface_1ffc_[0] != 0) {
+                texture_iface_1ffc_[0]->release();
+                texture_iface_1ffc_[0] = 0;
+            }
+            if (texture_iface_1ffc_[1] != 0) {
+                texture_iface_1ffc_[1]->release();
+                texture_iface_1ffc_[1] = 0;
+            }
+            shader_1ff8_ = srShader();
+            if (info_50_.max_texture_stages_28_ != 0) {
+                unsigned long stage = 0;
+                do {
+                    texture_parms_1f40_[stage].mipmap_bias_04 = 0.0f;
+                    texture_parms_1f40_[stage].packed_00 = 0x1a1;
+                    texture_parms_1f40_[stage].mipmap_bias_04 = -1234567.0f;
+                    setTexture(0, stage);
+                    stage++;
+                } while (stage < info_50_.max_texture_stages_28_);
+            }
+            invalidatePalette();
+            scissor_1628_.left = 0;
+            scissor_1628_.top = 0;
+            scissor_1628_.right = getWidth();
+            scissor_1628_.bottom = getHeight();
+            view_left_1638_ = 0;
+            view_top_163c_ = 0;
+            view_right_1640_ = getWidth();
+            view_bottom_1644_ = getHeight();
+            createRenderer(1);
+            if ((enable_flags_20_.value & 0x40) != 0) {
+                long count;
+                e_backBuffer back_buffer = getBackBufferType();
+                if (back_buffer == static_cast<e_backBuffer>(2)) {
+                    count = 2;
+                } else if (back_buffer == static_cast<e_backBuffer>(3)) {
+                    count = 3;
+                } else {
+                    count = 1;
+                }
+                for (; count != 0; count--) {
+                    clear(srFlags<e_buffer>(0xfffffffb));
+                    flipFrame();
+                }
+                flush();
+            }
+            return static_cast<e_error>(0);
+        }
     }
-    return static_cast<e_error>(0);
+    return static_cast<e_error>(3);
 }
 
 // FUNCTION: SURRENDER 0x10028460
