@@ -4,10 +4,30 @@
 
 class SR_DLL_IMPORT srFilter {
 public:
-    srFilter();
-    srFilter(const srFilter& other);
-    virtual ~srFilter();
-    srFilter& operator=(const srFilter& other);
+    /* The trivial base members are defined inline. Retail emitted each as a
+       real export (sr.def, not dllexport) while still folding it into the
+       derived constructors/destructors, which is why those bodies are a single
+       vtable store with no base call. SR_DLL_IMPORT is empty for the provider
+       build, so nothing forces a standalone recomp emission; these stay inline
+       so the derived bodies keep retail's elided form. */
+    // FUNCTION: SURRENDER 0x10003300 SYMBOL
+    // ??0srFilter@@QAE@XZ
+    srFilter() {}
+
+    // FUNCTION: SURRENDER 0x10003310 SYMBOL
+    // ??0srFilter@@QAE@ABV0@@Z
+    srFilter(const srFilter& other) {}
+
+    // FUNCTION: SURRENDER 0x100032B0 SYMBOL
+    // ??1srFilter@@UAE@XZ
+    virtual ~srFilter() {}
+
+    // FUNCTION: SURRENDER 0x10003330 SYMBOL
+    // ??4srFilter@@QAEAAV0@ABV0@@Z
+    srFilter& operator=(const srFilter& other)
+    {
+        return *this;
+    }
 
     virtual const char* getName() const = 0;
     virtual double getWeight(double value) const = 0;
@@ -65,10 +85,8 @@ public:
 static_assert(sizeof(srFilter) == 0x04, "srFilter_must_be_0x04");
 static_assert(sizeof(srBoxFilter) == 0x04, "srBoxFilter_must_be_0x04");
 static_assert(sizeof(srBellFilter) == 0x04, "srBellFilter_must_be_0x04");
-static_assert(sizeof(srBSplineFilter) == 0x04,
-              "srBSplineFilter_must_be_0x04");
-static_assert(sizeof(srTriangleFilter) == 0x04,
-              "srTriangleFilter_must_be_0x04");
+static_assert(sizeof(srBSplineFilter) == 0x04, "srBSplineFilter_must_be_0x04");
+static_assert(sizeof(srTriangleFilter) == 0x04, "srTriangleFilter_must_be_0x04");
 
 extern SR_DLL_IMPORT class srBoxFilter srBoxFilter;
 extern SR_DLL_IMPORT class srBellFilter srBellFilter;

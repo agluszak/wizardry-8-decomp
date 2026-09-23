@@ -14,6 +14,7 @@ add_library(wiz8_surrender_objects OBJECT
     fog.cpp
     vertex_pipe.cpp
     file_stream.cpp
+    filter.cpp
     color_surface.cpp
     generic_vp.cpp
     gerd.cpp
