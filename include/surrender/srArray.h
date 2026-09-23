@@ -352,6 +352,10 @@ public:
         capacity = 0;
     }
 
+    // TEMPLATE: SURRENDER 0x100276C0
+    // srHeapBuffer<unsigned char>::allocate
+    // TEMPLATE: SURRENDER 0x100276E0
+    // srHeapBuffer<unsigned long>::allocate
     // TEMPLATE: SURRENDER 0x10027700
     // srHeapBuffer<srGERD::Renderer::TexCoordQ>::allocate
     static inline T* allocate(unsigned long count)

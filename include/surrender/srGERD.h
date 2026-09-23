@@ -288,7 +288,10 @@ public:
     virtual srRegistry::ClassNode* getClassNode() const override;
     virtual void dump(std::ostream& stream) override;
 
-    static srGERD* loadDevice(srStringTable& devices, unsigned long flags);
+    static srGERD* loadDevice(srStringTable& devices, unsigned long index);
+    static srGERD* loadDevice(const char* name, const char* path, unsigned long device);
+    static srGERD* loadDeviceWithFileName(const char* filename, unsigned long device);
+    static void loadDevices(const char* path);
     static srGERD* getFirst();
     srGERD* getNext() const;
     /* Open-device list used by srTexture::invalidateFrameHandle; the links
@@ -497,6 +500,8 @@ public:
     void setClipState(srFlags<srRendererDefs::e_clip> state);
     void setAntiAlias(e_antiAlias mode);
     void setTexture(srTextureIFace* texture, unsigned long layer);
+    void setTextureDefaultCorrection(srTextureIFace::e_correction correction);
+    void setTextureDefaultCompression(srTextureIFace::e_compression compression);
     void setTextureDefaultMagFilter(srTextureIFace::e_filter filter);
     void setTextureDefaultMinFilter(srTextureIFace::e_filter filter);
     void setTextureDefaultMipmap(srTextureIFace::e_mipmap mipmap);
@@ -840,15 +845,17 @@ private:
     unsigned long mipmap_map_1f94_[4];
     unsigned long correction_map_1fa4_[2];
     unsigned long detail_map_1fac_[2];
-    unsigned char unknown_1fb4_[4];
+    srTextureIFace::e_correction default_correction_1fb4_;
     srTextureIFace::e_filter default_mag_filter_1fb8_;
     srTextureIFace::e_filter default_min_filter_1fbc_;
     srTextureIFace::e_mipmap default_mipmap_1fc0_;
     /* Per-type default device parameters; evaluateTexturePixelFormat copies
        entry [Dimensions::parameter_index] into srDD::Texture::parameter_34. */
     unsigned long default_texture_params_1fc4_[5];
-    /* Default Dimensions::parameter_index for newly created textures. */
-    unsigned long default_parameter_index_1fd8_;
+    /* Default Dimensions::compression for newly created textures;
+       setTextureDefaultCompression indexes default_texture_params_1fc4_
+       with it. */
+    srTextureIFace::e_compression default_compression_1fd8_;
     /* Palette currently bound to the device. */
     srPalette* palette_1fdc_;
     /* srDD::e_polygonMode value; the empty enum cannot be a field type. */
