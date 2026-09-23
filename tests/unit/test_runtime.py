@@ -10,6 +10,7 @@ from wiz8decomp.display import runtime_display
 from wiz8decomp.runtime import (
     _compare_repetitions,
     _crash_detail,
+    _merge_case_observations,
     _parse_runtime_crash,
     _parse_runtime_observation,
     _parse_wine_dump,
@@ -257,6 +258,74 @@ def test_repetition_comparison_accepts_identical_runs() -> None:
         )
         == []
     )
+
+
+def test_case_observations_fold_into_the_record_by_scenario() -> None:
+    stdout = (
+        "WIZ8_RUNTIME_OBSERVE scenario=save-load-move name=quick_slot value=3\n"
+        "WIZ8_RUNTIME_OBSERVE scenario=save-load-move name=saved_x value=75871.5\n"
+        "WIZ8_RUNTIME_OBSERVE scenario=other-case name=quick_slot value=9\n"
+        "WIZ8_RUNTIME_TEST scenario=save-load-move case_passed=1\n"
+    )
+
+    observation: dict = {"scenario": "save-load-move", "case_passed": 1}
+    _merge_case_observations(observation, stdout, "save-load-move")
+
+    assert observation == {
+        "scenario": "save-load-move",
+        "case_passed": 1,
+        "obs.quick_slot": 3,
+        "obs.saved_x": 75871.5,
+    }
+
+
+def test_semantic_observation_compares_history_names_on_request() -> None:
+    observation = {
+        "scenario": "s",
+        "case_passed": 1,
+        "history": [
+            {"action": "loaded", "elapsed_ms": 9, "pos": [1, 2, 3]},
+            {"action": "hit", "elapsed_ms": 12},
+        ],
+    }
+
+    assert _semantic_observation(observation) == {"scenario": "s", "case_passed": 1}
+    assert _semantic_observation(observation, include_history=True) == {
+        "scenario": "s",
+        "case_passed": 1,
+        "history_actions": ["loaded", "hit"],
+    }
+
+
+def test_repetition_comparison_reports_diverging_histories() -> None:
+    first = {
+        "scenario": "s",
+        "case_passed": 1,
+        "history": [{"action": "loaded"}, {"action": "round-start"}, {"action": "hit"}],
+    }
+    repeated = {
+        "scenario": "s",
+        "case_passed": 1,
+        "history": [{"action": "loaded"}, {"action": "hit"}],
+    }
+
+    problems = _compare_repetitions("s", [first, repeated])
+
+    assert problems == [
+        (
+            "s: repetition 2 disagrees with the first run: history_actions: "
+            "['loaded', 'round-start', 'hit'] != ['loaded', 'hit']"
+        )
+    ]
+
+
+def test_repetition_comparison_reports_diverging_case_observations() -> None:
+    first = {"scenario": "s", "case_passed": 1, "obs.quick_slot": 3}
+    repeated = {"scenario": "s", "case_passed": 1, "obs.quick_slot": 4}
+
+    problems = _compare_repetitions("s", [first, repeated])
+
+    assert problems == ["s: repetition 2 disagrees with the first run: obs.quick_slot: 3 != 4"]
 
 
 def test_runtime_failure_reports_native_reason_instead_of_timeout(tmp_path: Path) -> None:

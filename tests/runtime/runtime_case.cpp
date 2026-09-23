@@ -772,6 +772,70 @@ const GameplayReadyCheck& RuntimeCase::last_ready_check() const
     return last_ready_check_;
 }
 
+void RuntimeCase::observe_long(const char* name, long value)
+{
+    printf("WIZ8_RUNTIME_OBSERVE scenario=%s name=%s value=%ld\n", name_, name, value);
+    fflush(stdout);
+}
+
+void RuntimeCase::observe_ulong(const char* name, unsigned long value)
+{
+    printf("WIZ8_RUNTIME_OBSERVE scenario=%s name=%s value=%lu\n", name_, name, value);
+    fflush(stdout);
+}
+
+void RuntimeCase::observe(const char* name, int value)
+{
+    observe_long(name, value);
+}
+
+void RuntimeCase::observe(const char* name, unsigned int value)
+{
+    observe_ulong(name, value);
+}
+
+void RuntimeCase::observe(const char* name, long value)
+{
+    observe_long(name, value);
+}
+
+void RuntimeCase::observe(const char* name, unsigned long value)
+{
+    observe_ulong(name, value);
+}
+
+void RuntimeCase::observe(const char* name, double value)
+{
+    printf("WIZ8_RUNTIME_OBSERVE scenario=%s name=%s value=%.6g\n", name_, name, value);
+    fflush(stdout);
+}
+
+void RuntimeCase::observe(const char* name, const char* value)
+{
+    printf("WIZ8_RUNTIME_OBSERVE scenario=%s name=%s value=%s\n", name_, name, value);
+    fflush(stdout);
+}
+
+bool RuntimeCase::expect_eq(const char* name, long expected_value, long actual_value)
+{
+    observe_long(name, actual_value);
+    if (expected_value == actual_value) {
+        return true;
+    }
+    expected("%s=%ld", name, expected_value);
+    return fail(name, "expectation-mismatch");
+}
+
+bool RuntimeCase::expect_eq(const char* name, const char* expected_value, const char* actual_value)
+{
+    observe(name, actual_value);
+    if (strcmp(expected_value, actual_value) == 0) {
+        return true;
+    }
+    expected("%s=%s", name, expected_value);
+    return fail(name, "expectation-mismatch");
+}
+
 void RuntimeCase::finish(bool passed)
 {
     if (finished_) {

@@ -513,6 +513,11 @@ static bool CharacterFlow(RuntimeCase& test, bool acceptance)
        race exist. */
     RT_REQUIRE(test,
                WaitCharacterFlow(test, "character-attributes", 3000, FlowStatEntriesEnabled, 0));
+    RT_REQUIRE(test, ReadCharacterFlow(test, state));
+    test.observe("stat_count", state.stat_count);
+    test.observe("profession_index", state.profession_index);
+    test.observe("race_index", state.race_index);
+    test.observe("gender_index", state.gender_index);
     RT_REQUIRE(test, SpendFlowPool(test, "character-attributes", 0));
 
     /* Hover the Next control long enough to raise its help box and move off
@@ -532,6 +537,7 @@ static bool CharacterFlow(RuntimeCase& test, bool acceptance)
     /* The skills page's first enabled row raises and clears its own help
        box through the row's help control. */
     RT_REQUIRE(test, ReadCharacterFlow(test, state));
+    test.observe("skill_count", state.skill_count);
     for (int help_index = 0; help_index < state.skill_count; ++help_index) {
         if (!state.skill_entries[help_index].enabled) {
             continue;
@@ -598,6 +604,8 @@ static bool CharacterFlow(RuntimeCase& test, bool acceptance)
         SendScenarioKeyPress(VK_RETURN, 0);
         RT_REQUIRE(test,
                    WaitCharacterFlow(test, "character-in-party", 5000, FlowCharacterInParty, 0));
+        RT_REQUIRE(test, ReadCharacterFlow(test, state));
+        test.observe("active_characters", state.active_characters);
 
         for (int click = 0; click < 4; ++click) {
             if (!ClickFlowTarget(test, FLOW_TARGET_START_PARTY)) {
