@@ -1091,43 +1091,43 @@ void W8PartySelectionCharacterSummaryPanel005EF4E0::Redraw()
     wchar_t* level_line =
         FormatWideString(L"%s %d %s", level_text, character->uiExpLevel, profession);
     int width = StringPixLength(level_line, g_font_683660);
-    mprintf((0xbf - width) / 2 + 0x78, 0xef, L"%s %d %s", level_text, character->uiExpLevel,
+    gprintf((0xbf - width) / 2 + 0x78, 0xef, L"%s %d %s", level_text, character->uiExpLevel,
             profession);
 
     const wchar_t* gender = gppStringList[g_gender_name_message_rows_61e430[character->gender][0]];
     const wchar_t* race = gppStringList[g_race_name_message_ids_61e3d0[character->iRace]];
     wchar_t* race_line = FormatWideString(L"%s %s", gender, race);
     width = StringPixLength(race_line, g_font_683660);
-    mprintf((0xbf - width) / 2 + 0x7f, 0xfd, L"%s %s", gender, race);
+    gprintf((0xbf - width) / 2 + 0x7f, 0xfd, L"%s %s", gender, race);
 
     const wchar_t* personality =
         gppStringList[g_personality_message_ids_61e674[character->personality_0081]];
     width = StringPixLength(const_cast<wchar_t*>(personality), g_font_683660);
-    mprintf((0xbf - width) / 2 + 0x82, 0x10b, const_cast<wchar_t*>(L"%s"), personality);
+    gprintf((0xbf - width) / 2 + 0x82, 0x10b, const_cast<wchar_t*>(L"%s"), personality);
 
-    mprintf(0x96, 0x127, gppStringList[0x1ae8 / 4]);
-    mprintf(0xbf, 0x127, L"%d", character->attributes[0].value);
-    mprintf(0x96, 0x135, gppStringList[0x1aec / 4]);
-    mprintf(0xbf, 0x135, L"%d", character->attributes[1].value);
-    mprintf(0x96, 0x143, gppStringList[0x1af0 / 4]);
-    mprintf(0xbf, 0x143, L"%d", character->attributes[2].value);
-    mprintf(0x96, 0x151, gppStringList[0x1af4 / 4]);
-    mprintf(0xbf, 0x151, L"%d", character->attributes[3].value);
-    mprintf(0x96, 0x15f, gppStringList[0x1af8 / 4]);
-    mprintf(0xbf, 0x15f, L"%d", character->attributes[4].value);
-    mprintf(0x96, 0x16d, gppStringList[0x1afc / 4]);
-    mprintf(0xbf, 0x16d, L"%d", character->attributes[5].value);
-    mprintf(0x96, 0x17b, gppStringList[0x1b00 / 4]);
-    mprintf(0xbf, 0x17b, L"%d", character->attributes[6].value);
+    gprintf(0x96, 0x127, gppStringList[0x1ae8 / 4]);
+    gprintf(0xbf, 0x127, L"%d", character->attributes[0].value);
+    gprintf(0x96, 0x135, gppStringList[0x1aec / 4]);
+    gprintf(0xbf, 0x135, L"%d", character->attributes[1].value);
+    gprintf(0x96, 0x143, gppStringList[0x1af0 / 4]);
+    gprintf(0xbf, 0x143, L"%d", character->attributes[2].value);
+    gprintf(0x96, 0x151, gppStringList[0x1af4 / 4]);
+    gprintf(0xbf, 0x151, L"%d", character->attributes[3].value);
+    gprintf(0x96, 0x15f, gppStringList[0x1af8 / 4]);
+    gprintf(0xbf, 0x15f, L"%d", character->attributes[4].value);
+    gprintf(0x96, 0x16d, gppStringList[0x1afc / 4]);
+    gprintf(0xbf, 0x16d, L"%d", character->attributes[5].value);
+    gprintf(0x96, 0x17b, gppStringList[0x1b00 / 4]);
+    gprintf(0xbf, 0x17b, L"%d", character->attributes[6].value);
 
-    mprintf(0xe3, 0x127, gppStringList[0x1b04 / 4]);
-    mprintf(0x115, 0x127, L"%d", character->uiHPMax);
-    mprintf(0xe3, 0x135, gppStringList[0x1b08 / 4]);
-    mprintf(0x115, 0x135, L"%d", SumCharacterSpellPoints(character));
-    mprintf(0xe3, 0x143, gppStringList[0x1b0c / 4]);
-    mprintf(0x115, 0x143, L"%d", character->uiStaminaMax);
-    mprintf(0xe3, 0x151, gppStringList[0x1b10 / 4]);
-    mprintf(0x115, 0x151, L"%d", character->carrying_capacity / 10);
+    gprintf(0xe3, 0x127, gppStringList[0x1b04 / 4]);
+    gprintf(0x115, 0x127, L"%d", character->uiHPMax);
+    gprintf(0xe3, 0x135, gppStringList[0x1b08 / 4]);
+    gprintf(0x115, 0x135, L"%d", SumCharacterSpellPoints(character));
+    gprintf(0xe3, 0x143, gppStringList[0x1b0c / 4]);
+    gprintf(0x115, 0x143, L"%d", character->uiStaminaMax);
+    gprintf(0xe3, 0x151, gppStringList[0x1b10 / 4]);
+    gprintf(0x115, 0x151, L"%d", character->carrying_capacity / 10);
 }
 
 // GLOBAL: WIZ8 0x0069C4FC
