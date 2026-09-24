@@ -8597,7 +8597,7 @@ void UpdateScreenOverlays(int frame)
    entry's submenu state. Command 0x10 re-checks the slot's queued action's
    own command. */
 // FUNCTION: WIZ8 0x0056af80
-unsigned char IsMGSActionKeyEnabled(short command)
+bool IsMGSActionKeyEnabled(short command)
 {
     short state;
 
@@ -8605,26 +8605,26 @@ unsigned char IsMGSActionKeyEnabled(short command)
     if (gXStatus.fNpcDialogueMode != 0) {
         if (command != W8_MGS_ACTION_JOURNAL || IsNpcDialogueCursorActive() != 0 ||
             CanOpenNpcDialogue() != 0) {
-            return 0;
+            return false;
         }
     }
     if (gXStatus.fLockInteractMode != 0 || gXStatus.fTrapInteractMode != 0 ||
         gXStatus.fReviewCharacterMode != 0) {
-        return 0;
+        return false;
     }
     if (gXStatus.fItemSelectMode != 0 && command != W8_MGS_ACTION_USE_ITEM_VIEW) {
-        return 0;
+        return false;
     }
     if (gXStatus.fSpellCastMode != 0 && command != W8_MGS_ACTION_SPELL_VIEW) {
-        return 0;
+        return false;
     }
     if (gXStatus.fSurprisePossible != 0 || gXStatus.fCampMode != 0) {
-        return 0;
+        return false;
     }
     if (gXStatus.fCombatMode == 0) {
         switch (command) {
         case W8_MGS_ACTION_JOURNAL:
-            return 1;
+            return true;
         case W8_MGS_ACTION_USE_ITEM_VIEW:
             state = GetSubMenuEntryState(W8_SUBMENU_ITEMS, 1, g_status_685170.selected_character);
             break;
@@ -8638,15 +8638,15 @@ unsigned char IsMGSActionKeyEnabled(short command)
             state = GetSubMenuEntryState(W8_SUBMENU_SPELLS, 1, g_status_685170.selected_character);
             break;
         default:
-            return 0;
+            return false;
         }
     } else {
         if (g_combat_state->round_active_001 == 0) {
-            return 0;
+            return false;
         }
         switch (command) {
         case W8_MGS_ACTION_JOURNAL:
-            return 0;
+            return false;
         case W8_MGS_ACTION_USE_ITEM_VIEW:
             state = GetSubMenuEntryState(W8_SUBMENU_ITEMS, 1, g_status_685170.selected_character);
             break;
@@ -8705,7 +8705,7 @@ unsigned char IsMGSActionKeyEnabled(short command)
             case W8_ACTION_EQUIP:
                 return IsMGSActionKeyEnabled(W8_MGS_ACTION_EQUIP);
             default:
-                return 0;
+                return false;
             }
         default:
             srAssertFail("FALSE", "C:\\Projects\\Wizardry 8\\Local Screens\\MainGameScreen.cpp",
@@ -8719,7 +8719,7 @@ unsigned char IsMGSActionKeyEnabled(short command)
                      "Error with handling main game action keyboard equivalent");
     }
     if (IsPartySlotEligible00524A10(g_status_685170.selected_character) == 0) {
-        return 0;
+        return false;
     }
     return state == 0 || state == 1;
 }
@@ -8839,7 +8839,7 @@ void RunMGSActionKey(short command)
 // FUNCTION: WIZ8 0x0056b4c0
 void TryMGSActionKey(int command)
 {
-    if (IsMGSActionKeyEnabled(command) != 0) {
+    if (IsMGSActionKeyEnabled(command)) {
         RunMGSActionKey(command);
     }
 }
