@@ -3862,6 +3862,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
     int slot;
     unsigned int index;
     bool marked;
+    unsigned char fVertextAvail;
 
     monster = 0;
     marked = false;
@@ -3875,12 +3876,13 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
     GetCameraPosition(&camera);
     if (TargetSourceIsMonster(source, 1)) {
         if (source->iMonsterID == -1) {
-            FormatDebugMessage(1,
-                               "Invalid Magic Source! Spell %d '%ls' Target(%d,%d,%d,%d) "
-                               "Source(%d,%d,%d)",
-                               spell_id, g_spell_records[spell_id].display_name, target->iType,
-                               target->iChar, target->iMonsterID, target->iGroupID, source->iType,
-                               source->iChar, -1);
+            FormatDebugMessage(
+                1,
+                "InvalidMagicSource: Spell %d(%ls), Target Type %d(char %d, monster ID %d, group "
+                "ID %d), Source Type %d(char %d,ID %d)",
+                spell_id, g_spell_records[spell_id].display_name, target->iType, target->iChar,
+                target->iMonsterID, target->iGroupID, source->iType, source->iChar,
+                source->iMonsterID);
             return;
         }
         monster_info = MonsterGetScriptPartByLocationIndex(
@@ -3893,22 +3895,25 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
         eye = camera;
     } else if (TargetSourceIsMonster(source, 0)) {
         centre = monster->GetPosition();
+        fVertextAvail = 0;
         if (source->point_source_1d == '\0' && spell_id != 0x77 &&
             monster_info->has_spell_37c != '\0') {
-            if (monster->GetSpellPosition004C78E0(&eye) != '\0') {
-                sight_flag = 3;
-                goto LAB_004fd26b;
+            fVertextAvail = monster->GetSpellPosition004C78E0(&eye);
+            if (fVertextAvail == 0) {
+                srAssertFail("fVertextAvail", MAGIC_CPP, 0x951, 0);
             }
-            srAssertFail("fVertextAvail", MAGIC_CPP, 0x951, 0);
         }
-        eye = monster->movement_0c0.position_040;
-        eye.y += monster->movement_0c0.height_offset_0b8;
-        sight_flag = 2;
+        if (fVertextAvail != 0) {
+            sight_flag = 3;
+        } else {
+            eye = monster->movement_0c0.position_040;
+            eye.y += monster->movement_0c0.height_offset_0b8;
+            sight_flag = 2;
+        }
     } else {
         eye = source->point;
         centre = source->point;
     }
-LAB_004fd26b:
     target_point = target->point;
     target_type = GetSpellTargetType(spell_id, '\0');
     switch (target_type) {
@@ -3916,27 +3921,34 @@ LAB_004fd26b:
     case 3:
         if (target->iType == W8_TARGET_KIND_CHARACTER) {
             party_markers->Add(target->iChar);
-            goto switchD_004fd2b7_default;
+        } else if (target->iType == W8_TARGET_KIND_MONSTER) {
+            monster_markers->Add(target->iMonsterID);
+        } else if (target_type == 3) {
+            FormatDebugMessage(1,
+                               "InvalidMagicTarget: Spell %d(%ls), Target Type %d(char %d, monster "
+                               "ID %d, group ID %d), Source Type %d(char %d,ID %d)",
+                               spell_id, g_spell_records[spell_id].display_name, target->iType,
+                               target->iChar, target->iMonsterID, target->iGroupID, source->iType,
+                               source->iChar, source->iMonsterID);
+            return;
         }
-        if (target->iType != W8_TARGET_KIND_MONSTER) {
-            if (target_type == 3) {
-                goto LAB_004fd3b6;
-            }
-            goto switchD_004fd2b7_default;
-        }
-        goto LAB_004fd396;
+        break;
     case 1:
         if (target->iType == W8_TARGET_KIND_CHARACTER ||
             target->iType == W8_TARGET_KIND_CHARACTER_INDIRECT) {
             party_markers->Add(target->iChar);
-            goto switchD_004fd2b7_default;
+        } else if (target->iType == W8_TARGET_KIND_MONSTER) {
+            monster_markers->Add(target->iMonsterID);
+        } else {
+            FormatDebugMessage(1,
+                               "InvalidMagicTarget: Spell %d(%ls), Target Type %d(char %d, monster "
+                               "ID %d, group ID %d), Source Type %d(char %d,ID %d)",
+                               spell_id, g_spell_records[spell_id].display_name, target->iType,
+                               target->iChar, target->iMonsterID, target->iGroupID, source->iType,
+                               source->iChar, source->iMonsterID);
+            return;
         }
-        if (target->iType != W8_TARGET_KIND_MONSTER) {
-            goto LAB_004fd3b6;
-        }
-    LAB_004fd396:
-        monster_markers->Add(target->iMonsterID);
-        goto switchD_004fd2b7_default;
+        break;
     case 2:
         radius = (g_spell_records[spell_id].radius_per_level_127 * power_level +
                   g_spell_records[spell_id].effect_radius) *
@@ -3957,7 +3969,13 @@ LAB_004fd26b:
                     marked = true;
                 }
             } else if (monster_info->ubDisposition != '\x01') {
-                goto LAB_004fdaf6;
+                FormatDebugMessage(1,
+                                   "InvalidMagicSource: Spell %d(%ls), Target Type %d(char %d, "
+                                   "monster ID %d, group ID %d), Source Type %d(char %d,ID %d)",
+                                   spell_id, g_spell_records[spell_id].display_name, target->iType,
+                                   target->iChar, target->iMonsterID, target->iGroupID,
+                                   source->iType, source->iChar, source->iMonsterID);
+                return;
             }
             side = monster_info->ubDisposition;
             radius += monster->radius_084;
@@ -3979,7 +3997,13 @@ LAB_004fd26b:
             group = GetMonsterGroupByListIndex(
                 GetMonsterGroupIndexByID(0x99f, MAGIC_CPP, target->iGroupID, '\x01'));
             if (group == 0) {
-                goto LAB_004fd3b6;
+                FormatDebugMessage(1,
+                                   "InvalidMagicTarget: Spell %d(%ls), Target Type %d(char %d, "
+                                   "monster ID %d, group ID %d), Source Type %d(char %d,ID %d)",
+                                   spell_id, g_spell_records[spell_id].display_name, target->iType,
+                                   target->iChar, target->iMonsterID, target->iGroupID,
+                                   source->iType, source->iChar, source->iMonsterID);
+                return;
             }
             index = 0;
             while (ILLength(group->monsters) != 0 && index < ILLength(group->monsters)) {
@@ -3990,12 +4014,18 @@ LAB_004fd26b:
                 }
                 ++index;
             }
-            goto switchD_004fd2b7_default;
+        } else if (target->iType == W8_TARGET_KIND_PARTY) {
+            marked = true;
+        } else {
+            FormatDebugMessage(1,
+                               "InvalidMagicTarget: Spell %d(%ls), Target Type %d(char %d, monster "
+                               "ID %d, group ID %d), Source Type %d(char %d,ID %d)",
+                               spell_id, g_spell_records[spell_id].display_name, target->iType,
+                               target->iChar, target->iMonsterID, target->iGroupID, source->iType,
+                               source->iChar, source->iMonsterID);
+            return;
         }
-        if (target->iType != W8_TARGET_KIND_PARTY) {
-            goto LAB_004fd3b6;
-        }
-        goto LAB_004fddcd;
+        break;
     case 5:
         heading = GetHeadingAngle(&eye, &target_point);
         elevation = GetElevationAngle(&eye, &target_point);
@@ -4003,39 +4033,42 @@ LAB_004fd26b:
             side = 1;
         } else if (TargetSourceIsMonster(source, 0)) {
             if (monster_info->ubDisposition == '\x02') {
-            LAB_004fd5d9:
                 side = 1;
-            } else {
-                if (monster_info->ubDisposition != '\x01') {
-                    goto LAB_004fdaf6;
-                }
+            } else if (monster_info->ubDisposition == '\x01') {
                 side = 2;
                 if (TargetInRangeAndArcs00539B70(&camera, g_startup_world_659c0c->radius_084, &eye,
                                                  monster->radius_084, heading, elevation) != 0 &&
                     monster_info->player_visibility.los_flags_05[sight_flag] != '\0') {
-                    goto LAB_004fd749;
+                    marked = true;
                 }
+            } else {
+                FormatDebugMessage(1,
+                                   "InvalidMagicSource: Spell %d(%ls), Target Type %d(char %d, "
+                                   "monster ID %d, group ID %d), Source Type %d(char %d,ID %d)",
+                                   spell_id, g_spell_records[spell_id].display_name, target->iType,
+                                   target->iChar, target->iMonsterID, target->iGroupID,
+                                   source->iType, source->iChar, source->iMonsterID);
+                return;
             }
         } else {
             side = 3;
             if (source->fBackfire != '\0' || source->fReflection != '\0') {
-                if (source->iChar == -1) {
-                    if (source->iMonsterID == -1) {
-                        goto LAB_004fd6e2;
-                    }
+                if (source->iChar != -1) {
+                    side = 2;
+                } else if (source->iMonsterID != -1) {
                     if (MonsterInfoFromID(0x9f3, MAGIC_CPP, source->iMonsterID, '\x01')
                             ->ubDisposition != '\x02') {
-                        goto LAB_004fd5d9;
+                        side = 1;
+                    } else {
+                        side = 2;
                     }
                 }
-                side = 2;
             }
         }
-    LAB_004fd6e2:
-        if (TargetInRangeAndArcs00539B70(&camera, g_startup_world_659c0c->radius_084, &eye, 0,
+        if (!marked &&
+            TargetInRangeAndArcs00539B70(&camera, g_startup_world_659c0c->radius_084, &eye, 0,
                                          heading, elevation) != 0 &&
             g_octree_6598a4->TraceLineOfSight(&eye, &camera, '\x01', -3, -3, '\x01', 0) == 0) {
-        LAB_004fd749:
             marked = true;
         }
         CollectConeMonsterTargets00539CA0(source, &eye, heading, elevation, monster_markers,
@@ -4056,28 +4089,20 @@ LAB_004fd26b:
                   g_spell_records[spell_id].effect_radius) *
                  g_world_scale_005ebc40;
         if (TargetSourceIsCharacter(source, 1)) {
-        LAB_004fda9d:
-            if (source->fBackfire != '\0' || source->fReflection != '\0') {
-            LAB_004fdaab:
-                side = 1;
-            } else {
-            LAB_004fdac7:
-                side = 2;
+            side = (source->fBackfire != '\0' || source->fReflection != '\0') ? 1 : 2;
+        } else if (TargetSourceIsMonster(source, 1)) {
+            if (monster_info->ubDisposition != '\x02' && monster_info->ubDisposition != '\x01') {
+                FormatDebugMessage(1,
+                                   "InvalidMagicSource: Spell %d(%ls), Target Type %d(char %d, "
+                                   "monster ID %d, group ID %d), Source Type %d(char %d,ID %d)",
+                                   spell_id, g_spell_records[spell_id].display_name, target->iType,
+                                   target->iChar, target->iMonsterID, target->iGroupID,
+                                   source->iType, source->iChar, source->iMonsterID);
+                return;
             }
+            side = (source->fBackfire != '\0' || source->fReflection != '\0') ? 1 : 2;
         } else {
-            if (!TargetSourceIsMonster(source, 1)) {
-                side = 3;
-            } else if (monster_info->ubDisposition == '\x02') {
-                goto LAB_004fda9d;
-            } else {
-                if (monster_info->ubDisposition != '\x01') {
-                    goto LAB_004fdaf6;
-                }
-                if (source->fBackfire == '\0' && source->fReflection == '\0') {
-                    goto LAB_004fdac7;
-                }
-                goto LAB_004fdaab;
-            }
+            side = 3;
         }
         if (side != 1) {
             distance = (trace.x - player_pos.x) * (trace.x - player_pos.x) +
@@ -4104,29 +4129,19 @@ LAB_004fd26b:
         radius = CalcRangeDistance(g_spell_records[spell_id].range_category, source);
         if (TargetSourceIsCharacter(source, 1) ||
             (TargetSourceIsMonster(source, 1) && monster_info->ubDisposition == '\x02')) {
-            if (source->fBackfire != '\0' || source->fReflection != '\0') {
-            LAB_004fdcc6:
-                side = 2;
-                goto LAB_004fdccb;
-            }
-            side = 1;
+            side = (source->fBackfire != '\0' || source->fReflection != '\0') ? 2 : 1;
+        } else if (TargetSourceIsMonster(source, 1)) {
+            side = (source->fBackfire != '\0' || source->fReflection != '\0') ? 1 : 2;
         } else {
-            if (TargetSourceIsMonster(source, 1)) {
-                if (source->fBackfire == '\0' && source->fReflection == '\0') {
-                    goto LAB_004fdcc6;
-                }
-                side = 1;
-            } else {
-                side = 3;
-            LAB_004fdccb:
-                distance = (centre.x - player_pos.x) * (centre.x - player_pos.x) +
-                           (centre.y - player_pos.y) * (centre.y - player_pos.y) +
-                           (centre.z - player_pos.z) * (centre.z - player_pos.z);
-                if (sqrtf(distance) <= radius &&
-                    g_octree_6598a4->TraceLineOfSight(&eye, &camera, '\x01', -3, -3, '\x01', 0) ==
-                        0) {
-                    marked = true;
-                }
+            side = 3;
+        }
+        if (side != 1) {
+            distance = (centre.x - player_pos.x) * (centre.x - player_pos.x) +
+                       (centre.y - player_pos.y) * (centre.y - player_pos.y) +
+                       (centre.z - player_pos.z) * (centre.z - player_pos.z);
+            if (sqrtf(distance) <= radius &&
+                g_octree_6598a4->TraceLineOfSight(&eye, &camera, '\x01', -3, -3, '\x01', 0) == 0) {
+                marked = true;
             }
         }
         CollectMonstersWithinRadius(&centre, &eye, monster_markers, radius, static_cast<char>(side),
@@ -4139,43 +4154,19 @@ LAB_004fd26b:
                                         static_cast<char>(highlighting));
         }
         break;
-    default:
-        goto switchD_004fd2b7_default;
     }
-    if (marked) {
-    LAB_004fddcd:
-        if (spell_id != 0x16 && spell_id != 0x4d) {
-            slot = 0;
-            do {
-                if (g_status_685170.buffers.XChar[slot].fOccupied != '\0' &&
-                    g_status_685170.buffers.Char[slot].hp_current != 0 &&
-                    g_status_685170.buffers.Char[slot].highest_condition < 0x12 &&
-                    (g_status_685170.buffers.Char[slot].uiCondition[0xd] == 0 ||
-                     !MonsterCanAimSpell005474B0(spell_id) || static_cast<char>(side) == '\x03')) {
-                    party_markers->Add(slot);
-                }
-                ++slot;
-            } while (slot < 8);
+    if (marked && spell_id != 0x16 && spell_id != 0x4d) {
+        for (slot = 0; slot < 8; ++slot) {
+            if (g_status_685170.buffers.XChar[slot].fOccupied != '\0' &&
+                g_status_685170.buffers.Char[slot].hp_current != 0 &&
+                g_status_685170.buffers.Char[slot].highest_condition < W8_CONDITION_DEAD &&
+                (g_status_685170.buffers.Char[slot].uiCondition[W8_CONDITION_HOSTILE] == 0 ||
+                 !MonsterCanAimSpell005474B0(spell_id) || static_cast<char>(side) == '\x03')) {
+                party_markers->Add(slot);
+            }
         }
     }
-switchD_004fd2b7_default:
     PruneSpellTargetMarkers00501B70(spell_id, monster_markers);
-    return;
-LAB_004fd3b6:
-    FormatDebugMessage(1,
-                       "Invalid Magic Target! Spell %d '%ls' Target(%d,%d,%d,%d) "
-                       "Source(%d,%d,%d)",
-                       spell_id, g_spell_records[spell_id].display_name, target->iType,
-                       target->iChar, target->iMonsterID, target->iGroupID, source->iType,
-                       source->iChar, source->iMonsterID);
-    return;
-LAB_004fdaf6:
-    FormatDebugMessage(1,
-                       "Invalid Magic Source! Spell %d '%ls' Target(%d,%d,%d,%d) "
-                       "Source(%d,%d,%d)",
-                       spell_id, g_spell_records[spell_id].display_name, target->iType,
-                       target->iChar, target->iMonsterID, target->iGroupID, source->iType,
-                       source->iChar, source->iMonsterID);
 }
 
 /* Drop every marker that no longer names a live, targetable monster. Spells
