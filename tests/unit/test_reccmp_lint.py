@@ -1,7 +1,33 @@
+import hashlib
+import json
 from pathlib import Path
 
 import pytest
+from reccmp.parser.reader import AnchorCandidate, MarkerAnchor, MarkerBlock, MarkerComment
+from reccmp.source import SourceIndex
 from wiz8decomp.reccmp_lint import ReccmpLintError, validate_reccmp_annotations
+
+
+def _write_index(repository: Path, *sources: tuple[str, str]) -> None:
+    """The index `wiz8 check` collects, for one marked function per file."""
+    blocks = [
+        MarkerBlock(
+            relative,
+            (MarkerComment(marker, 1, 1, 0),),
+            MarkerAnchor(2, 1, (AnchorCandidate("function", f"?{relative}", "f", True, 2, 2),)),
+        )
+        for relative, marker in sources
+    ]
+    SourceIndex(
+        declarations={},
+        classes={},
+        markers=(),
+        marker_blocks=blocks,
+        source_digests={
+            relative: hashlib.sha256((repository / relative).read_bytes()).hexdigest()
+            for relative, _ in sources
+        },
+    ).write(repository / "build" / "source-index.json")
 
 
 def test_decomplint_covers_every_configured_source_target(tmp_path: Path) -> None:
@@ -34,6 +60,11 @@ def test_decomplint_covers_every_configured_source_target(tmp_path: Path) -> Non
     (surrender / "core.cpp").write_text(
         "// FUNCTION: SURRENDER 0x10001000\nvoid RenderFunction() {}\n", encoding="utf-8"
     )
+    _write_index(
+        tmp_path,
+        ("src/wiz8/game.cpp", "// FUNCTION: WIZ8 0x00401000"),
+        ("src/surrender/core.cpp", "// FUNCTION: SURRENDER 0x10001000"),
+    )
 
     result = validate_reccmp_annotations(tmp_path)
 
@@ -62,3 +93,22 @@ def test_identity_alias_source_annotation_is_rejected(tmp_path: Path) -> None:
 
     with pytest.raises(ReccmpLintError, match="identity-alias source annotations are forbidden"):
         validate_reccmp_annotations(tmp_path)
+
+
+def test_a_target_this_configuration_does_not_compile_is_not_linted(tmp_path: Path) -> None:
+    """Without the IJG tree the JPEG importer is not configured: its markers
+    cannot come from the compiler, so decomplint skips the target and the
+    result names it instead of reporting every marker as not compiled."""
+    test_decomplint_covers_every_configured_source_target(tmp_path)
+    database = tmp_path / "build" / "clang" / "compile_commands.json"
+    database.parent.mkdir(parents=True)
+    source = tmp_path / "src/wiz8/game.cpp"
+    database.write_text(
+        json.dumps([{"directory": str(tmp_path), "file": str(source), "arguments": ["cl"]}]),
+        encoding="utf-8",
+    )
+
+    result = validate_reccmp_annotations(tmp_path)
+
+    assert result["targets"] == ["WIZ8"]
+    assert result["not_compiled_here"] == ["SURRENDER"]

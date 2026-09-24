@@ -36,7 +36,7 @@ def _simple_name(qualified: str) -> str:
 
 def _classes_by_name(index: SourceIndex) -> dict[str, Any]:
     by_name: dict[str, Any] = {}
-    for record in index.classes:
+    for record in index.classes.values():
         by_name[record.qualified_name] = record
         by_name.setdefault(_simple_name(record.qualified_name), record)
     return by_name

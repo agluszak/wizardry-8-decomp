@@ -324,8 +324,8 @@ jobs:
             "$WIZ8_WORK_DIR/fid/sources/unpacked/infozip-unzip-5.4"
           command -v llvm-undname
           command -v wine
+      # The analysis image indexes the source every comparison reads.
       - name: Load VC6 analysis image
-        if: github.event_name == 'pull_request'
         uses: ./.github/actions/load-vc6-image
       - name: Load VC6 product image
         if: github.event_name != 'pull_request'
@@ -346,8 +346,9 @@ jobs:
           cache-key: ${{ secrets.WIZ8_CACHE_KEY }}
       - name: Build WIZ8 comparison products
         run: uv run wiz8 build match
-      - name: Index WIZ8 source for call verification
-        if: github.event_name == 'pull_request'
+      # reccmp reads markers from the compiler-backed source index, so every
+      # comparison needs it (call verification below uses it too).
+      - name: Index source
         run: uv run wiz8 analyze source-index
       - name: Verify changed WIZ8 call targets
         if: github.event_name == 'pull_request'
@@ -565,6 +566,11 @@ jobs:
           cache-key: ${{ secrets.WIZ8_CACHE_KEY }}
       - name: Build SURRENDER comparison product
         run: uv run wiz8 build SURRENDER
+      - name: Load VC6 analysis image
+        uses: ./.github/actions/load-vc6-image
+      # reccmp reads markers from the compiler-backed source index.
+      - name: Index source
+        run: uv run wiz8 analyze source-index
       - name: Verify SURRENDER comparison surface
         id: surrender-status
         run: |

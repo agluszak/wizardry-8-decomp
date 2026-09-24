@@ -1,4 +1,7 @@
-"""Use reccmp's parser/linter with the repository's explicit-order policy."""
+"""Use reccmp's marker linter with the repository's explicit-order policy.
+
+decomplint reads the marker blocks the compiler-backed source index
+collected (build/source-index.json, refreshed by `wiz8 check`)."""
 
 from __future__ import annotations
 
@@ -78,20 +81,43 @@ class ReccmpLintError(RuntimeError):
 
 
 def _configured_lint_targets(repository: Path) -> tuple[DecomplintTarget, ...]:
-    """Translate every reccmp source target into decomplint's native scope."""
+    """Translate every reccmp source target the source index covers into
+    decomplint's native scope. Markers are read from the compiler, so a
+    target this configuration does not compile (the JPEG importer without the
+    IJG tree) cannot be linted here; `_unlinted_targets` names it."""
 
     project = RecCmpProject.from_directory(repository)
     project_file = project.project_config_path or repository / "reccmp-project.yml"
+    covered = _indexed_target_ids(repository)
     return tuple(
         DecomplintTarget(
             paths=tuple(source_code_search(target.source_paths)),
             module=target.target_id,
             encoding=target.encoding or "utf-8",
+            source_index=repository / "build" / "source-index.json",
             project_file_path=project_file,
             aliases=target.marker_aliases,
         )
         for target in project.targets.values()
-        if target.source_paths
+        if target.source_paths and target.target_id in covered
+    )
+
+
+def _indexed_target_ids(repository: Path) -> set[str]:
+    from .build import LINT_BUILD_DIR
+    from .source_index import indexed_targets
+
+    database = repository / LINT_BUILD_DIR / "compile_commands.json"
+    return set(indexed_targets(repository, database))
+
+
+def _unlinted_targets(repository: Path, linted: tuple[DecomplintTarget, ...]) -> list[str]:
+    project = RecCmpProject.from_directory(repository)
+    names = {target.module for target in linted}
+    return sorted(
+        target.target_id
+        for target in project.targets.values()
+        if target.source_paths and target.target_id not in names
     )
 
 
@@ -125,6 +151,7 @@ def validate_reccmp_annotations(repository: Path) -> dict[str, Any]:
         "ok": True,
         "engine": "reccmp-decomplint",
         "targets": [target.module for target in lint_targets],
+        "not_compiled_here": _unlinted_targets(repository, lint_targets),
         "alerts": dict(sorted(counts.items())),
         "waived": sorted(code.name.lower() for code in ALLOWED_ALERTS),
     }

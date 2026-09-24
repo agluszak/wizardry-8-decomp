@@ -12,7 +12,9 @@ function(reccmp_configure)
     # these paths with the config's own directory, so record each target's
     # actual output directory relative to the build root, with the file name
     # resolved by the generator.
-    set(content "project: '../..'\ntargets:\n")
+    # reccmp requires the compiler-backed marker/source index `wiz8 check`
+    # collects into build/source-index.json.
+    set(content "project: '../..'\nsource-index: '../source-index.json'\ntargets:\n")
     foreach(target IN LISTS targets)
         get_target_property(output_dir ${target} RUNTIME_OUTPUT_DIRECTORY)
         if(NOT output_dir)

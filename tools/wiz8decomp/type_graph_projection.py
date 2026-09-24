@@ -93,7 +93,7 @@ def plan_semantic_hash(plan: Mapping[str, Any]) -> str:
 
 def _asserted_size_classes(index: SourceIndex) -> dict[str, int]:
     sizes: dict[str, int] = {}
-    for record in index.classes:
+    for record in index.classes.values():
         if record.asserted_size:
             sizes[str(record.qualified_name)] = int(record.asserted_size)
     return sizes

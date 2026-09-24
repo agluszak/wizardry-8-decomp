@@ -9,14 +9,13 @@ from wiz8decomp.source_index import load_source_index
 
 
 @pytest.mark.integration
-def test_field_flow_joins_real_reccmp_v6_owner_usrs_and_class_layout() -> None:
+def test_field_flow_joins_real_reccmp_owner_usrs_and_class_layout() -> None:
     repository = Path(__file__).resolve().parents[2]
     index_path = repository / "build/source-index.json"
     if not index_path.is_file():
         pytest.skip("run `uv run wiz8 check` to generate the pinned reccmp source index")
 
     index = load_source_index(repository)
-    assert index["schema"] == "reccmp-source-index-v6"
 
     classes = {
         (str(record.get("target") or "").upper(), str(record.get("qualified_name") or "")): record
@@ -33,7 +32,7 @@ def test_field_flow_joins_real_reccmp_v6_owner_usrs_and_class_layout() -> None:
     target = str(actual_use["target"]).upper()
     owner_class = classes[(target, str(actual_use["owner"]))]
 
-    # reccmp v6 intentionally keeps the Clang USR and the stable source-model
+    # reccmp intentionally keeps the Clang USR and the stable source-model
     # record identity as two different namespaces.
     assert str(actual_use["owner_identity"]).startswith("c:")
     assert actual_use["owner_identity"] != owner_class["semantic_id"]
