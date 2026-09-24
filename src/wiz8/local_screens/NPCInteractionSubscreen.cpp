@@ -692,6 +692,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, unsign
     W8MonsterInfo* info;
     W8MonsterInfo* dialogue_info;
     unsigned char band;
+    unsigned char greet;
     wchar_t space[2];
     srVector3T<float> position;
 
@@ -747,6 +748,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, unsign
     EnableRegionInput(0x55);
     g_level_block->action_panel_visible = 1;
     gXStatus.fCampMode = 0;
+    greet = force == 0;
     if (item != 0) {
         state = g_screen_state_00649f1c;
         state->pending_item_1ed = *item;
@@ -757,7 +759,7 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, unsign
         if (npc->record->merchant_056 != 0) {
             if (HandleNpcDialogueItem(&state->pending_item_1ed) == 0) {
                 OpenNpcDialogueTranscriptLayout();
-                goto dispatch;
+                greet = 1;
             }
         } else if (HandleNpcDialogueItem(&state->pending_item_1ed) == 0) {
             switch (g_screen_state_00649f1c->dialogue_layout) {
@@ -791,31 +793,29 @@ unsigned char OpenNpcDialoguePanel(W8NpcState* npc, W8ItemInstance* item, unsign
             } else {
                 ShowNpcDialogueTopicMenu();
             }
-            goto dispatch;
+            greet = 1;
         }
     }
-    if (force != 0) {
-        goto tail;
-    }
-dispatch:
-    if (g_screen_state_00649f1c->dialogue_npc->record->merchant_056 != 0) {
-        QueueNpcScriptLine(0, 0, 0, 0);
-        OpenNpcDialogueTranscriptLayout();
-    } else {
-        band = GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc);
-        if (g_screen_state_00649f1c->dialogue_npc->name_style == W8_NPC_ZANT &&
-            GetFact(W8_FACT_TRANG_YOU_ARE_BUSTED) != 0 && GetFact(W8_FACT_ALIGNMENT_UMPANI) == 0) {
-            SetFact(W8_FACT_TRANG_YOU_ARE_BUSTED, 0, 0);
-        }
-        if (band == 0) {
-            HandleNpcDialogueDeparture(1);
+    if (greet != 0) {
+        if (g_screen_state_00649f1c->dialogue_npc->record->merchant_056 != 0) {
+            QueueNpcScriptLine(0, 0, 0, 0);
             OpenNpcDialogueTranscriptLayout();
-        } else if (band == 1) {
-            QueueNpcScriptLine(2, 0, 0, 0);
-            ShowNpcDialogueTopicMenu();
+        } else {
+            band = GetNpcDispositionBand(g_screen_state_00649f1c->dialogue_npc);
+            if (g_screen_state_00649f1c->dialogue_npc->name_style == W8_NPC_ZANT &&
+                GetFact(W8_FACT_TRANG_YOU_ARE_BUSTED) != 0 &&
+                GetFact(W8_FACT_ALIGNMENT_UMPANI) == 0) {
+                SetFact(W8_FACT_TRANG_YOU_ARE_BUSTED, 0, 0);
+            }
+            if (band == 0) {
+                HandleNpcDialogueDeparture(1);
+                OpenNpcDialogueTranscriptLayout();
+            } else if (band == 1) {
+                QueueNpcScriptLine(2, 0, 0, 0);
+                ShowNpcDialogueTopicMenu();
+            }
         }
     }
-tail:
     RequestRedraw(0x100);
     RequestRedraw(0x1000);
     if (g_mouselook_active_0068edd8 != 0) {
@@ -2624,35 +2624,47 @@ void AddNpcDialogueKeyword(wchar_t* text, signed char category, int play_chime)
         for (index = 0; index < gXStatus.uiItemsInDatabase; ++index) {
             if (CompareWideTextIgnoreAsciiCase00402920(text, g_item_records[index].display_name) ==
                 0) {
-                category = W8_DIALOGUE_CATEGORY_ITEMS;
-                goto classified;
+                break;
             }
         }
-        for (index = 0; index < gXStatus.uiNpcsInDatabase; ++index) {
-            if (CompareWideTextIgnoreAsciiCase00402920(text,
-                                                       g_npc_records[index].source_name_004) == 0) {
+        if (index < gXStatus.uiItemsInDatabase) {
+            category = W8_DIALOGUE_CATEGORY_ITEMS;
+        } else {
+            for (index = 0; index < gXStatus.uiNpcsInDatabase; ++index) {
+                if (CompareWideTextIgnoreAsciiCase00402920(
+                        text, g_npc_records[index].source_name_004) == 0) {
+                    break;
+                }
+            }
+            if (index < gXStatus.uiNpcsInDatabase) {
                 category = W8_DIALOGUE_CATEGORY_PEOPLE;
-                goto classified;
+            } else {
+                for (index = 0; g_dialogue_person_keywords[index][0] != 0; ++index) {
+                    if (CompareWideTextIgnoreAsciiCase00402920(
+                            text, g_dialogue_person_keywords[index]) == 0) {
+                        break;
+                    }
+                }
+                if (g_dialogue_person_keywords[index][0] != 0) {
+                    category = W8_DIALOGUE_CATEGORY_PEOPLE;
+                } else {
+                    for (index = 0;
+                         index < static_cast<unsigned int>(g_dialogue_place_keyword_count);
+                         ++index) {
+                        if (CompareWideTextIgnoreAsciiCase00402920(
+                                text, gppStringList[g_dialogue_place_keyword_ids[index]]) == 0) {
+                            break;
+                        }
+                    }
+                    if (index < static_cast<unsigned int>(g_dialogue_place_keyword_count)) {
+                        category = W8_DIALOGUE_CATEGORY_PLACES;
+                    } else {
+                        category = W8_DIALOGUE_CATEGORY_MISC;
+                    }
+                }
             }
         }
-        for (index = 0; g_dialogue_person_keywords[index][0] != 0; ++index) {
-            if (CompareWideTextIgnoreAsciiCase00402920(text, g_dialogue_person_keywords[index]) ==
-                0) {
-                category = W8_DIALOGUE_CATEGORY_PEOPLE;
-                goto classified;
-            }
-        }
-        for (index = 0; index < static_cast<unsigned int>(g_dialogue_place_keyword_count);
-             ++index) {
-            if (CompareWideTextIgnoreAsciiCase00402920(
-                    text, gppStringList[g_dialogue_place_keyword_ids[index]]) == 0) {
-                category = W8_DIALOGUE_CATEGORY_PLACES;
-                goto classified;
-            }
-        }
-        category = W8_DIALOGUE_CATEGORY_MISC;
     }
-classified:
     if (controller != 0) {
         if (controller->AddTranscriptEntry(text, category, play_chime) != 0) {
             if (g_screen_state_00649f1c->dialogue_category_filter != W8_DIALOGUE_CATEGORY_ALL &&
@@ -3301,9 +3313,7 @@ W8ItemInstance* ResolveNpcTradeRow005729C0(int index, char pick, char decrement,
                     ++g_screen_state_00649f1c->trade_quantity;
                     if (entry->item.stack_count < g_screen_state_00649f1c->trade_quantity) {
                         g_screen_state_00649f1c->trade_quantity = entry->item.stack_count;
-                        goto selected;
-                    }
-                    if (entry->item.stack_count != 0) {
+                    } else if (entry->item.stack_count != 0) {
                         g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.m_flag_4c = 1;
                         g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.m_geometryDirty =
                             1;
@@ -3319,9 +3329,7 @@ W8ItemInstance* ResolveNpcTradeRow005729C0(int index, char pick, char decrement,
                 --g_screen_state_00649f1c->trade_quantity;
                 if (g_screen_state_00649f1c->trade_quantity == 0) {
                     g_screen_state_00649f1c->trade_quantity = 1;
-                    goto selected;
-                }
-                if (entry->item.stack_count != 0) {
+                } else if (entry->item.stack_count != 0) {
                     g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.m_flag_4c = 1;
                     g_screen_state_00649f1c->dialogue_text_16c->m_textBuffer.m_geometryDirty = 1;
                     g_screen_state_00649f1c->dialogue_text_16c->Invalidate(0);
@@ -3335,7 +3343,6 @@ W8ItemInstance* ResolveNpcTradeRow005729C0(int index, char pick, char decrement,
             g_screen_state_00649f1c->trade_quantity = 1;
         }
     }
-selected:
     g_screen_state_00649f1c->selected_trade_row = i;
     if (pick != 0) {
         if (commit != 0) {
@@ -4631,19 +4638,20 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
                     return 1;
                 }
                 if ((g_item_records[item->iItemNo].flags_041 & 2) != 0) {
-                    goto unavailable;
+                    QueueNpcScriptLine(0x11, 0, 0, 0);
+                    return 1;
                 }
                 if (AcceptNpcDialogueItem005B1740(g_screen_state_00649f1c->dialogue_npc, item, 1) !=
                     0) {
                     QueueNpcScriptLine(0x10, 0, 0, 0);
-                    goto remove;
+                    RemoveNpcScriptItem(item, 0, -1);
+                    return result;
                 }
                 QueueNpcScriptLine(0x11, 0, 0, 0);
             } else {
                 QueueNpcScriptLine(fact_result, 0, 0, 0);
                 result = 0;
                 if (flag != 0) {
-                remove:
                     RemoveNpcScriptItem(item, 0, -1);
                     return result;
                 }
@@ -4676,7 +4684,6 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
             RemoveNpcScriptItem(item, 0, -1);
             return result;
         }
-    unavailable:
         QueueNpcScriptLine(0x11, 0, 0, 0);
         return 1;
     }
@@ -5246,14 +5253,14 @@ void OnNpcDialogClosed(W8DialogBase* dialog)
                 } else {
                     Get16BitStringFromField(0, field_text);
                     StripNpcKeywordPunctuation(entry_text);
-                    goto inject;
+                    static_cast<void>(wcslen(field_text));
+                    SetInputFieldStringWith16BitString(0, entry_text);
+                    HandleNpcDialogueInput();
                 }
-                goto done;
+                break;
             }
         }
-        goto done;
-    }
-    if (request->kind_00 == 0x12 || request->kind_00 == 0x1e) {
+    } else if (request->kind_00 == 0x12 || request->kind_00 == 0x1e) {
         if (npc_dialog->m_selected_option == 0) {
             wcscpy(entry_text, gppStringList[0x1f7c / 4]);
         } else {
@@ -5264,7 +5271,6 @@ void OnNpcDialogClosed(W8DialogBase* dialog)
         } else {
             Get16BitStringFromField(0, field_text);
             StripNpcKeywordPunctuation(entry_text);
-        inject:
             static_cast<void>(wcslen(field_text));
             SetInputFieldStringWith16BitString(0, entry_text);
             HandleNpcDialogueInput();
@@ -5280,7 +5286,6 @@ void OnNpcDialogClosed(W8DialogBase* dialog)
             HandleNpcDialogueInput();
         }
     }
-done:
     g_screen_state_00649f1c->script_busy = 0;
 }
 
