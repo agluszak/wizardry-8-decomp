@@ -691,7 +691,8 @@ void UpdateSpellEffects00500930(void)
                         MonsterGetScriptPartByLocationIndex(monster_list_index);
                     if (gXStatus.fCombatMode != 0 && g_combat_state->eCombatActionStatus != 0 &&
                         g_combat_state->pActionMonsterInfo != 0 &&
-                        *(int*)g_combat_state->pActionMonsterInfo == monster_info->location_id) {
+                        g_combat_state->pActionMonsterInfo->location_id ==
+                            monster_info->location_id) {
                         g_combat_state->eCombatActionStatus = 3;
                     }
                 }

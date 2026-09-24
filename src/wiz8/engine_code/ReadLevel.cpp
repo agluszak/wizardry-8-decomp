@@ -1023,7 +1023,7 @@ unsigned char ReadNamedPositions004BDC90(W8ReadLevelInfo* pInfo,
         FileRead(hFile, &pNamedPos->position.y, sizeof(pNamedPos->position.y), 0);
         FileRead(hFile, &pNamedPos->position.z, sizeof(pNamedPos->position.z), 0);
         pNamedPos->position *= 500.0;
-        FileRead(hFile, &pNamedPos->angle_bits_08c, sizeof(pNamedPos->angle_bits_08c), 0);
+        FileRead(hFile, &pNamedPos->angle, sizeof(pNamedPos->angle), 0);
         FileRead(hFile, &pNamedPos->direction_090.x, sizeof(pNamedPos->direction_090.x), 0);
         FileRead(hFile, &pNamedPos->direction_090.y, sizeof(pNamedPos->direction_090.y), 0);
         FileRead(hFile, &pNamedPos->direction_090.z, sizeof(pNamedPos->direction_090.z), 0);

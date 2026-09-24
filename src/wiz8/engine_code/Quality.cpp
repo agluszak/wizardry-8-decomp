@@ -72,7 +72,7 @@ void SetRenderOption(int option, int enabled)
                                                        : srTextureIFace::MIPMAP_NONE);
         break;
     case W8_RENDER_OPTION_DITHER:
-        if (((*((unsigned char*)g_gerd_659634 + 0x20) & 1) != 0) != (enabled != 0)) {
+        if ((g_gerd_659634->isEnabled(srGERD::ENABLE_POSITIONAL_0) != 0) != (enabled != 0)) {
             g_gerd_659634->toggle(srGERD::ENABLE_POSITIONAL_0);
         }
         break;
