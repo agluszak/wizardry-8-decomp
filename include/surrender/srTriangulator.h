@@ -6,34 +6,40 @@
    this class, so provider exports do not justify consumer dllimport codegen. */
 class srTriangulator {
 public:
+    /* Doubly-linked circular vertex list. The constructor allocates the node
+       array with a raw scalar operator new and links every node to its
+       neighbors; node[0]'s prev is the tail and the tail's next is node[0]. */
     class CircularList {
     public:
-        class ListNode {
+        class Node {
         public:
-            int vertex_00;
-            ListNode* next_04;
-            ListNode* prev_08;
+            long index_00;
+            Node* next_04;
+            Node* prev_08;
         };
 
+        static_assert(sizeof(Node) == 0xc, "CircularList_Node_must_be_0xc");
+
+        /* Value-type iterator; operator+ walks next_04 and operator- walks
+           prev_08 the requested number of links. */
         class ListIterator {
         public:
-            ListIterator operator+(int distance);
-            ListIterator operator-(int distance);
-            int& operator*()
-            {
-                return node_00->vertex_00;
-            }
+            ListIterator operator+(int distance) const;
+            ListIterator operator-(int distance) const;
 
-            ListNode* node_00;
+            Node* node_00;
         };
 
         CircularList(int count);
         ~CircularList();
-        void erase(ListIterator iterator);
+
+        void erase(ListIterator position);
 
         long count_00;
-        ListNode* nodes_04;
+        Node* nodes_04;
     };
+
+    static_assert(sizeof(CircularList) == 0x8, "CircularList_must_be_0x8");
 
     srTriangulator(srVector2T<float>* points, int count);
     ~srTriangulator();

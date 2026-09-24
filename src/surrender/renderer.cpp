@@ -383,6 +383,14 @@ int srGERD::Renderer::isBatchFull() const
     return 0;
 }
 
+// FUNCTION: SURRENDER 0x10024DE0
+void srGERD::Renderer::rewindVertexArray(unsigned long count)
+{
+    if (first_vertex_c0_ != -1) {
+        vertices_78_.count_40 -= count;
+    }
+}
+
 // FUNCTION: SURRENDER 0x10024E00
 void srGERD::Renderer::allocVertexArray(srVertexArray& arrays, unsigned long count)
 {

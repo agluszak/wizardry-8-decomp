@@ -4542,7 +4542,7 @@ void srGERD::releaseTextureMemory(long bytes)
 }
 
 // FUNCTION: SURRENDER 0x10028EB0
-unsigned long srGERD::getTextureBytesNeeded(const Texture& texture) const
+unsigned long srGERD::getTextureBytesNeeded(Texture& texture) const
 {
     unsigned long width = texture.device_2c.width_20;
     unsigned long height = texture.device_2c.height_24;
@@ -4715,7 +4715,7 @@ void srGERD::invalidateResidentPalette(srPalette* palette)
 }
 
 // FUNCTION: SURRENDER 0x10017D00
-int srGERD::isTextureCached(srTextureIFace* texture)
+int srGERD::isTextureCached(srTextureIFace* texture) const
 {
     SectionAccess access(state_section_18_);
     if (texture != 0) {
@@ -4740,7 +4740,7 @@ int srGERD::isTextureCached(srTextureIFace* texture)
 }
 
 // FUNCTION: SURRENDER 0x10017DD0
-int srGERD::isTextureResident(srTextureIFace* texture)
+int srGERD::isTextureResident(srTextureIFace* texture) const
 {
     SectionAccess access(state_section_18_);
     if (texture != 0 && isWindowOpen() != 0) {
@@ -5451,6 +5451,56 @@ void __cdecl srGERD::accumReturn_MMX(srARGB* pixels, const AccumPixel* accum, lo
         movd dword ptr [esi + ecx*4], mm0
         inc ecx
         js accumReturn_MMX_loop
+        emms
+    }
+}
+
+// FUNCTION: SURRENDER 0x1001FAF0
+void __cdecl srGERD::accumAdd_MMX(AccumPixel* accum, long value, long count)
+{
+    __asm {
+        mov edi, accum
+        mov ecx, count
+        movd mm6, value
+        punpcklwd mm6, mm6
+        punpckldq mm6, mm6
+        lea edi, [edi + ecx*8]
+        neg ecx
+    accumAdd_MMX_loop:
+        movq mm0, qword ptr [edi + ecx*8]
+        paddw mm0, mm6
+        movq qword ptr [edi + ecx*8], mm0
+        inc ecx
+        js accumAdd_MMX_loop
+        emms
+    }
+}
+
+// FUNCTION: SURRENDER 0x1001FB20
+void __cdecl srGERD::accumMult_MMX(AccumPixel* accum, long value, long count)
+{
+    __asm {
+        mov edi, accum
+        mov ecx, count
+        movd mm5, value
+        punpcklwd mm5, mm5
+        punpckhdq mm5, mm5
+        movd mm6, value
+        punpcklwd mm6, mm6
+        punpckldq mm6, mm6
+        psrlw mm6, 1
+        lea edi, [edi + ecx*8]
+        neg ecx
+    accumMult_MMX_loop:
+        movq mm0, qword ptr [edi + ecx*8]
+        movq mm1, mm0
+        pmullw mm0, mm5
+        pmulhw mm1, mm6
+        paddw mm1, mm1
+        paddw mm0, mm1
+        movq qword ptr [edi + ecx*8], mm0
+        inc ecx
+        js accumMult_MMX_loop
         emms
     }
 }
