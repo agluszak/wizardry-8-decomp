@@ -5760,3 +5760,6 @@ void srGERD::accumulate(e_accum operation, float scale)
         unlockBuffer();
     }
 }
+
+// TEMPLATE: SURRENDER 0x10023700
+// srVector3T<double>::Set

@@ -2386,3 +2386,45 @@ void srMeshModel::renderTriMesh(srGERD& renderer, const TriMesh& mesh)
         renderer.popEnable();
     }
 }
+
+// SYNTHETIC: SURRENDER 0x1003FFB0
+// srVector3i implicit copy-assignment emission
+
+// TEMPLATE: SURRENDER 0x10042A30
+// srClassSupport<srMeshModel, srModel, 0, 0x2010>::~srClassSupport
+
+// SYNTHETIC: SURRENDER 0x10043970
+// std::ios_base::Init global static-init block
+
+// LIBRARY: SURRENDER 0x10043980
+// std::ios_base::Init::Init
+
+// SYNTHETIC: SURRENDER 0x10043990
+// std::ios_base::Init global atexit registrar
+
+// LIBRARY: SURRENDER 0x100439A0
+// std::ios_base::Init::~Init
+
+// SYNTHETIC: SURRENDER 0x100439B0
+// std::_Winit global static-init block
+
+// LIBRARY: SURRENDER 0x100439C0
+// std::_Winit::_Winit
+
+// SYNTHETIC: SURRENDER 0x100439D0
+// std::_Winit global atexit registrar
+
+// LIBRARY: SURRENDER 0x100439E0
+// std::_Winit::~_Winit
+
+// SYNTHETIC: SURRENDER 0x100439F0
+// srClassSupport<srMeshModel, srModel, 0, 0x2010> scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0x10043A10
+// srPtr<srTextureIFace> element destructor emission
+
+// SYNTHETIC: SURRENDER 0x10043A40
+// srPtr<srMaterialIFace> element destructor emission
+
+// TEMPLATE: SURRENDER 0x10043A70
+// srClassSupport<srModel, srClass, true, 0x2000>::sGetClassNode

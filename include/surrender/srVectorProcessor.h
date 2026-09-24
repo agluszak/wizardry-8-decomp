@@ -83,6 +83,8 @@ public:
 
     /* srVertexPipe's record paths dispatch the vertex4 sources through the
        three-vector4 copyIndexed overloads at vtable +0x84/+0x88/+0x8c. */
+    // FUNCTION: SURRENDER 0x1005CC60 SYMBOL
+    // srVectorProcessor::copyIndexed(srVector4*, const srARGB*, const SRDWORD*, SRDWORD)
     static inline void copyIndexed(srVector4* destination, const srARGB* source,
                                    const SRDWORD* indices, SRDWORD count)
     {

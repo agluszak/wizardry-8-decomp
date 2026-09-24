@@ -109,12 +109,20 @@ public:
     // srArray<srGERD::Renderer::TextureSet>::setCapacity
     // TEMPLATE: SURRENDER 0x1003BCF0
     // srArray<srModeler::Triangle>::setCapacity
+    // TEMPLATE: SURRENDER 0x10044EE0
+    // srArray<srTriMeshPipeline::Record>::setCapacity
+    // TEMPLATE: SURRENDER 0x10044E60
+    // srArray<srVertexArray>::setCapacity
+    // TEMPLATE: SURRENDER 0x10045030
+    // srArray<srTriMeshPipeline::Pass>::setCapacity
     void setCapacity(unsigned long new_capacity);
 
     // TEMPLATE: SURRENDER 0x10026F50
     // srArray<float>::operator[]
     // TEMPLATE: SURRENDER 0x10027120
     // srArray<unsigned long>::operator[]
+    // TEMPLATE: SURRENDER 0x10044E30
+    // srArray<srTriMeshPipeline::Record>::operator[]
     inline T& operator[](unsigned long index)
     {
         if (index >= capacity) {

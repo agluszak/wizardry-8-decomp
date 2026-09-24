@@ -3208,3 +3208,6 @@ void srColorSurface::dump(std::ostream& stream)
     stream << '\n';
     stream.flags(static_cast<std::ios::fmtflags>(flags & 0x7fff));
 }
+
+// TEMPLATE: SURRENDER 0x1005E170
+// srClassSupport<srColorSurfaceIFace, srClass, true, 0x3100>::sGetClassNode

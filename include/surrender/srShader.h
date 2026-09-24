@@ -17,8 +17,11 @@ class srShader {
 public:
 #ifdef SURRENDER_BUILD
     /* Provider-inline: retail expands the default word inline inside
-       getShaderDisableMask; no provider out-of-line emission exists. Wiz8
-       emits its own out-of-line copy at 0x00424A40. */
+       getShaderDisableMask; the gerd.cpp unit also emits an out-of-line copy
+       that other provider units share. Wiz8 emits its own out-of-line copy
+       at 0x00424A40. */
+    // FUNCTION: SURRENDER 0x100199F0 SYMBOL
+    // ??0srShader@@QAE@XZ
     srShader() : value(0x0100241b) {}
 #else
     srShader();

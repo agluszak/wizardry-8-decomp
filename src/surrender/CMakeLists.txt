@@ -19,6 +19,7 @@ add_library(wiz8_surrender_objects OBJECT
     generic_vp.cpp
     gerd.cpp
     gerd_filters.cpp
+    global_recycler.cpp
     heap.cpp
     huffman.cpp
     illuminator.cpp
@@ -69,6 +70,7 @@ set_source_files_properties(
     file_stream.cpp
     gerd.cpp
     gerd_filters.cpp
+    global_recycler.cpp
     heap.cpp
     huffman.cpp
     illuminator.cpp

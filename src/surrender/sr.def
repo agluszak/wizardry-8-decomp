@@ -207,6 +207,9 @@ EXPORTS
     ?isActive@srEnvironmentMapper@@UAEHAAVsrVertexPipe@@@Z
     ?process@srEnvironmentMapper@@UAEXAAVsrVertexPipe@@@Z
     ?srEnvironmentMapper@@3V0@A DATA
+    ??0srTriangulator@@QAE@PAV?$srVector2T@M@@H@Z @160
+    ?next@srTriangulator@@QAE?AVsrVector3i@@XZ @1469
+    ?satisfyConstraints@srTriangulator@@AAEHVListIterator@CircularList@1@@Z @1664
     ?sameSide@srTriangulator@@AAEHABV?$srVector2T@M@@000@Z
     ?isInsideTriangle@srTriangulator@@AAEHABV?$srVector2T@M@@000@Z
     ??0srHierarchyIOManager@@QAE@XZ
@@ -233,6 +236,12 @@ EXPORTS
     ?setLong@srConfig@@QAEXPBDJ@Z
     ?srConfig@@3V0@A DATA
     ?srCore@@3V0@A DATA
+    ??0srGlobalRecycler@@QAE@XZ @105
+    ??1srGlobalRecycler@@QAE@XZ @215
+    ?allocate@srGlobalRecycler@@QAEPAXK@Z @567
+    ?free@srGlobalRecycler@@QAEXPAX@Z @838
+    ?releaseAllUnused@srGlobalRecycler@@QAEXXZ @1570
+    ?setLimit@srGlobalRecycler@@QAEXK@Z @1789
     ??0srHeap@@QAE@XZ
     ??1srHeap@@QAE@XZ
     ?allocate@srHeap@@QAEPAXK@Z
@@ -776,6 +785,7 @@ EXPORTS
     ??_FsrClipPlane@@QAEXXZ
     ??_FsrIlluminator@@QAEXXZ
     ??_FsrLight@@QAEXXZ
+    ??_FsrModelInstance@@QAEXXZ
     ??_FsrScene@@QAEXXZ
     ?_lockBuffer@srGERD@@AAE?AW4e_error@srDD@@XZ
     ?_lockRenderer@srGERD@@AAEPAVRenderer@1@PAURendererEntry@1@@Z
@@ -940,6 +950,7 @@ EXPORTS
     ?find@srExtension@@SAPAV1@PBD@Z
     ?findClosestVertex@srMeshModel@@QAEJABV?$srVector3T@M@@@Z @783
     ?findClosestVertex@srModeler@@QAEXABV?$srVector3T@M@@AAK1@Z @784
+    ?findExporter@srIOManager@@IAEPAVExporter@1@PBD@Z @788
     ?findImporter@srIOManager@@IAEPAVImporter@1@PBD@Z
     ?findLowestPriority@srGERD@@AAEPAUTexture@1@XZ
     ?findOpener@srIStreamOpener@@AAEPAVOpener@1@PBD@Z

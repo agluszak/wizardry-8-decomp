@@ -43,6 +43,31 @@ const char* srIOManager::Error::getDescription()
     return description_00;
 }
 
+// FUNCTION: SURRENDER 0x1002CB20
+srIOManager::Exporter* srIOManager::findExporter(const char* extension)
+{
+    if (extension == 0 || *extension == '\0') {
+        return 0;
+    }
+    char* upper = new char[strlen(extension) + 1];
+    strcpy(upper, extension);
+    for (unsigned long index = 0; index < strlen(extension); ++index) {
+        if (islower(upper[index]) != 0) {
+            upper[index] = (char)toupper(upper[index]);
+        }
+    }
+    Exporter* result = 0;
+    for (Registration* node = first_exporter_14; node != exporter_sentinel_18;
+         node = node->next_08) {
+        if (strcmp(node->extension_00, upper) == 0) {
+            result = node->exporter_04;
+            break;
+        }
+    }
+    delete[] upper;
+    return result;
+}
+
 // FUNCTION: SURRENDER 0x1002C890
 srIOManager::srIOManager()
 {
