@@ -736,13 +736,12 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
 
     {
         unsigned char in_range = monster_info->within_viewing_distance;
+        bool seen_by_party = false;
 
         monster_info->party_threat.party_detected_07 = 0;
         monster_info->party_threat.visible_to_player_25 = 0;
         monster_info->party_threat.use_bounds_24 = 0;
         if (in_range != 0) {
-            bool seen_by_party;
-
             if (monster_info->party_threat.sight_state_04 != W8_SIGHT_UNSEEN) {
                 use_bounds = 1;
             }
@@ -881,44 +880,45 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                     monster_info->party_threat.last_seen_clock_08 = g_status_685170.world_clock;
                     monster_info->party_threat.camera_position_0c = camera_position;
                     monster_info->party_threat.own_position_18 = own_position;
-                    goto final_sight_flags;
                 }
             }
-            (void)seen_by_party;
         }
-        if (monster_info->party_threat.sight_state_04 == W8_SIGHT_SEEN &&
-            record->camouflage_248 != 0) {
-            unsigned int now =
-                static_cast<unsigned int>(g_game_time_accumulator_6598bc->GetElapsed());
+        if (!seen_by_party) {
+            if (monster_info->party_threat.sight_state_04 == W8_SIGHT_SEEN &&
+                record->camouflage_248 != 0) {
+                unsigned int now =
+                    static_cast<unsigned int>(g_game_time_accumulator_6598bc->GetElapsed());
 
-            monster->BeginFadeOut004C5150(5.0f);
-            if (gXStatus.fSurprisePossible == 0 && (g_sight_fade_out_tick_00689b74 == 0 ||
-                                                    now - g_sight_fade_out_tick_00689b74 > 199)) {
-                g_sight_fade_out_tick_00689b74 = now;
-                ShowNotice(8, gppStringList[0x778 / 4], -1, -1, 0);
+                monster->BeginFadeOut004C5150(5.0f);
+                if (gXStatus.fSurprisePossible == 0 &&
+                    (g_sight_fade_out_tick_00689b74 == 0 ||
+                     now - g_sight_fade_out_tick_00689b74 > 199)) {
+                    g_sight_fade_out_tick_00689b74 = now;
+                    ShowNotice(8, gppStringList[0x778 / 4], -1, -1, 0);
+                }
             }
-        }
-        if (monster_info->party_threat.last_seen_clock_08 == 0) {
-            monster_info->party_threat.sight_state_04 = W8_SIGHT_UNSEEN;
-        } else {
-            monster_info->party_threat.sight_state_04 = static_cast<unsigned char>(
-                (0x78U < static_cast<unsigned int>(g_status_685170.world_clock -
-                                                   monster_info->party_threat.last_seen_clock_08))
-                    ? W8_SIGHT_UNSEEN
-                    : W8_SIGHT_RECENT);
-        }
-        if (record != 0 && (record->flags_0d0 & 1) != 0) {
-            W8NpcState* npc = GetNpcStateByKind(record->npc_kind_0cd);
+            if (monster_info->party_threat.last_seen_clock_08 == 0) {
+                monster_info->party_threat.sight_state_04 = W8_SIGHT_UNSEEN;
+            } else {
+                monster_info->party_threat.sight_state_04 = static_cast<unsigned char>(
+                    (0x78U <
+                     static_cast<unsigned int>(g_status_685170.world_clock -
+                                               monster_info->party_threat.last_seen_clock_08))
+                        ? W8_SIGHT_UNSEEN
+                        : W8_SIGHT_RECENT);
+            }
+            if (record != 0 && (record->flags_0d0 & 1) != 0) {
+                W8NpcState* npc = GetNpcStateByKind(record->npc_kind_0cd);
 
-            if (npc == 0) {
-                srAssertFail("pNPC != NULL", SIGHT_CPP, 0x15b, 0);
-            } else if (npc->marked_e9 != 0) {
-                HandleMarkedNpcEvent0050CF70(npc, 0);
+                if (npc == 0) {
+                    srAssertFail("pNPC != NULL", SIGHT_CPP, 0x15b, 0);
+                } else if (npc->marked_e9 != 0) {
+                    HandleMarkedNpcEvent0050CF70(npc, 0);
+                }
             }
         }
     }
 
-final_sight_flags:
     if (monster_info->party_threat.visible_to_player_25 == 0) {
         monster_info->party_threat.los_flags_05[0] = 0;
         monster_info->party_threat.los_flags_05[1] = 0;
