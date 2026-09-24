@@ -3254,12 +3254,9 @@ srModelInstance* W8MonsterRep::SetCycleFrameLod(signed char cycle, signed char f
 
 /* The selected subcycle's AniMesh for one animation cycle. */
 // FUNCTION: WIZ8 0x004bf920
-W8AniMesh* W8MonsterRep::GetEmitterAniMesh(char cycle)
+W8AniMesh* W8MonsterRep::GetEmitterAniMesh(signed char cycle)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wchar-subscripts"
     W8AnimObj* animation = *animations[cycle].GetAt(current_subcycle);
-#pragma clang diagnostic pop
 
     if (animation == 0) {
         return 0;
@@ -3430,12 +3427,9 @@ void W8Monster::SetShakeEventVisibility004BF9E0(signed char cycle)
    animation index.  The assertion's `pao` spelling establishes the pointee's
    AnimObj identity without supplying a name for this Monster method. */
 // FUNCTION: WIZ8 0x004bf970
-unsigned int W8MonsterRep::ApplyEmitterSetting(char cycle)
+unsigned int W8MonsterRep::ApplyEmitterSetting(signed char cycle)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wchar-subscripts"
     W8GrowableVector<W8AnimObj*>* selected_cycle = &animations[cycle];
-#pragma clang diagnostic pop
     W8AnimObj** animation_slot;
     W8AnimObj* animation;
 

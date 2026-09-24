@@ -821,14 +821,9 @@ srModelInstance* W8MissileRep::SetCycleFrameLod(signed char emitter, signed char
     return AnimObjDispatch004A14D0(emitters[emitter], lod, frame);
 }
 
-W8AniMesh* W8MissileRep::GetEmitterAniMesh(char emitter)
+W8AniMesh* W8MissileRep::GetEmitterAniMesh(signed char emitter)
 {
-    /* Emitter slots are a recovered char index into a two-entry table; the
-       virtual signature is ABI. */
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wchar-subscripts"
     W8AnimObj* target = emitters[emitter];
-#pragma clang diagnostic pop
 
     if (target == 0) {
         return 0;
@@ -838,12 +833,9 @@ W8AniMesh* W8MissileRep::GetEmitterAniMesh(char emitter)
 
 /* Apply the representation's current LOD to one required animation. */
 // FUNCTION: WIZ8 0x004A2710
-unsigned int W8MissileRep::ApplyEmitterSetting(char emitter)
+unsigned int W8MissileRep::ApplyEmitterSetting(signed char emitter)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wchar-subscripts"
     W8AnimObj* target = emitters[emitter];
-#pragma clang diagnostic pop
 
     if (target == 0) {
         srAssertFail("pao", MISSILE_CPP, 0x7e, 0);

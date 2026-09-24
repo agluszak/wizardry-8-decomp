@@ -243,13 +243,10 @@ extern const char g_faction_names[W8_FACTION_COUNT][0x1e] = {
 /* Look a faction up by name, case-insensitively. -1 for a name that is not one
    of the twenty-one. */
 // FUNCTION: WIZ8 0x005360b0
-char FindFactionByName(const char* name)
+signed char FindFactionByName(const char* name)
 {
-    char faction;
+    signed char faction;
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wchar-subscripts"
-    /* Faction ids are a recovered char, including the -1 miss sentinel. */
     for (faction = 0; faction < W8_FACTION_COUNT; ++faction) {
         if (_stricmp(g_faction_names[faction], name) == 0) {
             return faction;
@@ -260,24 +257,23 @@ char FindFactionByName(const char* name)
 
 /* One faction's runtime value. */
 // FUNCTION: WIZ8 0x005360f0
-int GetFactionValue(char faction)
+int GetFactionValue(signed char faction)
 {
     return g_factions[faction].band_changed_clock_06;
 }
 
 /* Raise or lower one faction's flag. */
 // FUNCTION: WIZ8 0x00536110
-void SetFactionFlag(char faction, unsigned char flag)
+void SetFactionFlag(signed char faction, unsigned char flag)
 {
     g_factions[faction].encountered_0a = flag;
 }
 
 // FUNCTION: WIZ8 0x00536130
-unsigned char GetFactionFlag(char faction)
+unsigned char GetFactionFlag(signed char faction)
 {
     return g_factions[faction].encountered_0a;
 }
-#pragma clang diagnostic pop
 
 /* Build an empty target block: everything zeroed, then the two ids set to
    BAD_INDEX. The kind is written twice, once by the clear and once on its

@@ -823,7 +823,7 @@ after_sight:
                 if (seen_by_party) {
                     if (GetViewDistance() == g_sight_default_005ec254) {
                         if (record == 0 ||
-                            (SetFactionFlag(static_cast<char>(record->faction_id_25f), 1),
+                            (SetFactionFlag(static_cast<signed char>(record->faction_id_25f), 1),
                              (record->flags_0d0 & 1) == 0)) {
                             unsigned int now = static_cast<unsigned int>(
                                 g_game_time_accumulator_6598bc->GetElapsed());
@@ -977,8 +977,8 @@ bool MonsterGroupCanSeeGroup(W8MonsterGroup* source, W8MonsterGroup* target)
         MonsterGetIndexByLocationID(0x47c, SIGHT_CPP, source->leader_id_9f, 1));
     target_info = MonsterGetScriptPartByLocationIndex(
         MonsterGetIndexByLocationID(0x47d, SIGHT_CPP, target->leader_id_9f, 1));
-     source_monster = source_info->p3D;
-     target_monster = target_info->p3D;
+    source_monster = source_info->p3D;
+    target_monster = target_info->p3D;
     if (target_info->fInCombat == 0) {
         distance = source_monster->GetDistanceToMonster004C7DD0(target_monster);
         world = GetWorld();

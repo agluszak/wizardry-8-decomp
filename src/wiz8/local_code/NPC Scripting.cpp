@@ -993,7 +993,7 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
     W8NpcQuoteEntry* entry;
     W8Monster* monster;
     W8NpcState* target;
-    char faction;
+    signed char faction;
     char response_count;
     int response;
     int entry_index;

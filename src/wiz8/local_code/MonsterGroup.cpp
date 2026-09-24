@@ -79,8 +79,8 @@ bool MoveMonsterGroupToPosition(W8MonsterGroup* group, const srVector3T<float>* 
     }
     W8MonsterInfo* leader = MonsterGetScriptPartByLocationIndex(
         MonsterGetIndexByLocationID(0x67c, MONSTER_GROUP_CPP, group->leader_id_9f, 1));
-     float radius = alternate_radius ? leader->p3D->movement_0c0.alternate_radius_0b4
-                                     : leader->p3D->radius_084;
+    float radius =
+        alternate_radius ? leader->p3D->movement_0c0.alternate_radius_0b4 : leader->p3D->radius_084;
     int location_ids[45];
     srVector3T<float> positions[45];
     unsigned int count = group->member_count;
@@ -137,10 +137,10 @@ bool MoveMonsterGroupToPosition(W8MonsterGroup* group, const srVector3T<float>* 
         int location_id = location_ids[index];
         W8MonsterInfo* member = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0x6d5, MONSTER_GROUP_CPP, location_id, 1));
-         member->p3D->SetAngles004538F0(yaw);
-         member->p3D->position_dirty_09c = 1;
+        member->p3D->SetAngles004538F0(yaw);
+        member->p3D->position_dirty_09c = 1;
         if (location_id == group->leader_id_9f) {
-             member->p3D->SetPositionInternal00453590(&target);
+            member->p3D->SetPositionInternal00453590(&target);
         } else {
             if (position_index < found - 1) {
                 ++position_index;
@@ -313,7 +313,8 @@ void RefreshMonsterGroupHostility005113A0(W8MonsterGroup* monster_group)
             return;
         }
         if (static_cast<unsigned int>(monster_group->hostility_set_at_cb) >=
-            static_cast<unsigned int>(GetFactionValue(static_cast<char>(record->faction_id_25f)))) {
+            static_cast<unsigned int>(
+                GetFactionValue(static_cast<signed char>(record->faction_id_25f)))) {
             return;
         }
     }
@@ -1579,8 +1580,8 @@ unsigned char PositionMonsterGroupNearCamera00511050(W8MonsterGroup* group, floa
                 0x727, MONSTER_GROUP_CPP, group->allied_group_ids[index], 1));
             member_info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x728, MONSTER_GROUP_CPP, ally->leader_id_9f, 1));
-             if (radius < member_info->p3D->radius_084) {
-                 radius = member_info->p3D->radius_084;
+            if (radius < member_info->p3D->radius_084) {
+                radius = member_info->p3D->radius_084;
             }
         }
     }
