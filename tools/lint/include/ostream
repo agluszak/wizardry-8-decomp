@@ -13,8 +13,12 @@ template <typename E> struct char_traits {};
    the complete template forms. */
 template <typename E, typename T> class basic_streambuf {
 public:
+    /* The deleting destructor slot is real in VC6: srWindowOut deletes its
+       buffer through this base. */
+    virtual ~basic_streambuf();
     virtual int overflow(int ch);
     virtual int underflow();
+    virtual int sync();
 };
 typedef basic_streambuf<char, char_traits<char> > streambuf;
 
@@ -29,6 +33,9 @@ public:
     fmtflags setf(fmtflags mask, fmtflags field);
     int width() const;
     int width(int value);
+    /* srWindowOut's destructor releases its window stream buffer through
+       rdbuf(). */
+    streambuf* rdbuf() const;
 };
 
 template <typename E, typename T> class basic_ostream : public ios {

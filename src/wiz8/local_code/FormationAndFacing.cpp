@@ -138,8 +138,9 @@ void ReconcilePartyFormation(W8PartyFormationState* edited, W8PartyFormationStat
             }
         } else {
             signed char new_rows[3] = {4, 2, 3};
+            bool placed = false;
 
-            for (index = 0; index < 3; ++index) {
+            for (index = 0; !placed && index < 3; ++index) {
                 signed char new_row = new_rows[index];
 
                 for (column = 0; column < 3; ++column) {
@@ -147,13 +148,15 @@ void ReconcilePartyFormation(W8PartyFormationState* edited, W8PartyFormationStat
                         SetFormationPosition(&working, slot, new_row, column, 0, 0, 1);
                         PostCharacterNotice(slot, gppStringList[0x928 / 4],
                                             &g_formation_row_names_00649e54[new_row][0]);
-                        goto next_slot;
+                        placed = true;
+                        break;
                     }
                 }
             }
-            srAssertFail("bQuadrantSlot != -1", FORMATION_CPP, 0xe1, 0);
+            if (!placed) {
+                srAssertFail("bQuadrantSlot != -1", FORMATION_CPP, 0xe1, 0);
+            }
         }
-    next_slot:;
     }
     for (row = 0; row < 5; ++row) {
         CompactFormationRow(&working, row);
@@ -465,6 +468,34 @@ wchar_t g_formation_row_names_00649e54[5][20] = {
     L"Front", L"Right", L"Rear", L"Left", L"Center",
 };
 
+/* Make room in `row` for one more character and return the column it should
+   take: an empty row, or one whose lead column is already open, seats it in
+   column 0; a lone leader moves over to column 1 and the newcomer takes column
+   2. A full row has no room (-1). Retail inlines this at every use (all five
+   copies assert with the same source lines) and keeps no out-of-line body. */
+static inline signed char MakeRoomInFormationRow(W8PartyFormationState* formation, int row)
+{
+    switch (formation->ubQuadrantOccupants[row]) {
+    case 0:
+        return 0;
+    case 1: {
+        signed char leader = formation->bOccupantChar[row][0];
+        if (leader == -1) {
+            srAssertFail("iChar != -1", FORMATION_CPP, 0x159, 0);
+        }
+        SetFormationPosition(formation, leader, row, 1, 0, 0, 1);
+        return 2;
+    }
+    case 2:
+        if (formation->bOccupantChar[row][0] != -1) {
+            srAssertFail("iChar == -1", FORMATION_CPP, 0x172, 0);
+        }
+        return 0;
+    default:
+        return -1;
+    }
+}
+
 /* Give one joining party slot its formation position: clear the position and
    walk the rows in the 0, 4, 2 order. An empty row takes the joiner in its
    first column; a row led by one character moves that leader to the second
@@ -480,25 +511,9 @@ void PlaceCharacterInFormation(W8PartyFormationState* formation, int slot)
     position->bQuadrantSlot = -1;
     for (unsigned int index = 0; index < 3; ++index) {
         unsigned char row = row_order[index];
-        signed char occupants = formation->ubQuadrantOccupants[row];
-        if (occupants == 0) {
-            SetFormationPosition(formation, slot, row, 0, 1, 1, 1);
-            return;
-        }
-        if (occupants == 1) {
-            signed char leader = formation->bOccupantChar[row][0];
-            if (leader == -1) {
-                srAssertFail("iChar != -1", FORMATION_CPP, 0x159, 0);
-            }
-            SetFormationPosition(formation, leader, row, 1, 0, 0, 1);
-            SetFormationPosition(formation, slot, row, 2, 1, 1, 1);
-            return;
-        }
-        if (occupants == 2) {
-            if (formation->bOccupantChar[row][0] != -1) {
-                srAssertFail("iChar == -1", FORMATION_CPP, 0x172, 0);
-            }
-            SetFormationPosition(formation, slot, row, 0, 1, 1, 1);
+        signed char seat = MakeRoomInFormationRow(formation, row);
+        if (seat != -1) {
+            SetFormationPosition(formation, slot, row, seat, 1, 1, 1);
             return;
         }
     }
@@ -644,65 +659,24 @@ void UpdateFormationSlotState(W8PartyFormationState* formation, int slot)
     }
     row = position->bOldQuadrant;
     if (row != -1) {
-        switch (formation->ubQuadrantOccupants[row]) {
-        case 0:
-            seat = 0;
-            goto seat_old;
-        case 1: {
-            signed char leader = formation->bOccupantChar[row][0];
-            if (leader == -1) {
-                srAssertFail("iChar != -1", FORMATION_CPP, 0x159, 0);
-            }
-            SetFormationPosition(formation, leader, row, 1, 0, 0, 1);
-            seat = 2;
-            goto seat_old;
-        }
-        case 2:
-            if (formation->bOccupantChar[row][0] != -1) {
-                srAssertFail("iChar == -1", FORMATION_CPP, 0x172, 0);
-            }
-            seat = 0;
-            goto seat_old;
-        default:
-            break;
+        seat = MakeRoomInFormationRow(formation, row);
+        if (seat != -1) {
+            SetFormationPosition(formation, slot, position->bOldQuadrant, seat,
+                                 formation == &g_status_685170.formation, 1, 1);
+            position->bOldQuadrant = -1;
+            return;
         }
     }
     position->bQuadrant = -1;
     position->bQuadrantSlot = -1;
     for (index = 0; index < 3; ++index) {
         row = row_order[index];
-        switch (formation->ubQuadrantOccupants[row]) {
-        case 0:
-            seat = 0;
-            goto seat_new;
-        case 1: {
-            signed char leader = formation->bOccupantChar[row][0];
-            if (leader == -1) {
-                srAssertFail("iChar != -1", FORMATION_CPP, 0x159, 0);
-            }
-            SetFormationPosition(formation, leader, row, 1, 0, 0, 1);
-            seat = 2;
-            goto seat_new;
-        }
-        case 2:
-            if (formation->bOccupantChar[row][0] != -1) {
-                srAssertFail("iChar == -1", FORMATION_CPP, 0x172, 0);
-            }
-            seat = 0;
-            goto seat_new;
-        default:
+        seat = MakeRoomInFormationRow(formation, row);
+        if (seat != -1) {
+            SetFormationPosition(formation, slot, row, seat, 1, 1, 1);
             break;
         }
     }
-    position->bOldQuadrant = -1;
-    return;
-seat_old:
-    SetFormationPosition(formation, slot, position->bOldQuadrant, seat,
-                         formation == &g_status_685170.formation, 1, 1);
-    position->bOldQuadrant = -1;
-    return;
-seat_new:
-    SetFormationPosition(formation, slot, row, seat, 1, 1, 1);
     position->bOldQuadrant = -1;
 }
 
@@ -714,31 +688,8 @@ seat_new:
 // FUNCTION: WIZ8 0x00555080
 void SeatFormationSlotInRow(W8PartyFormationState* formation, int slot, int row)
 {
-    signed char seat;
+    signed char seat = MakeRoomInFormationRow(formation, row);
 
-    switch (formation->ubQuadrantOccupants[row]) {
-    case 0:
-        seat = 0;
-        break;
-    case 1: {
-        signed char leader = formation->bOccupantChar[row][0];
-        if (leader == -1) {
-            srAssertFail("iChar != -1", FORMATION_CPP, 0x159, 0);
-        }
-        SetFormationPosition(formation, leader, row, 1, 0, 0, 1);
-        seat = 2;
-        break;
-    }
-    case 2:
-        if (formation->bOccupantChar[row][0] != -1) {
-            srAssertFail("iChar == -1", FORMATION_CPP, 0x172, 0);
-        }
-        seat = 0;
-        break;
-    default:
-        seat = -1;
-        break;
-    }
     if (seat != -1) {
         SetFormationPosition(formation, slot, row, seat, 0, 1, 1);
         return;
@@ -777,29 +728,7 @@ void SwapFormationSlots(W8PartyFormationState* formation, int slot_a, int slot_b
         int row = position_b->bOldQuadrant;
         signed char seat;
 
-        switch (formation->ubQuadrantOccupants[row]) {
-        case 0:
-            seat = 0;
-            break;
-        case 1: {
-            signed char leader = formation->bOccupantChar[row][0];
-            if (leader == -1) {
-                srAssertFail("iChar != -1", FORMATION_CPP, 0x159, 0);
-            }
-            SetFormationPosition(formation, leader, row, 1, 0, 0, 1);
-            seat = 2;
-            break;
-        }
-        case 2:
-            if (formation->bOccupantChar[row][0] != -1) {
-                srAssertFail("iChar == -1", FORMATION_CPP, 0x172, 0);
-            }
-            seat = 0;
-            break;
-        default:
-            seat = -1;
-            break;
-        }
+        seat = MakeRoomInFormationRow(formation, row);
         if (seat != -1) {
             SetFormationPosition(formation, slot_a, row, seat, 0, 1, 1);
             return;

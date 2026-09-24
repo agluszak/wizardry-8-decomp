@@ -5,8 +5,18 @@
 
 class SR_DLL_IMPORT srTextureMap : public srClassSupport<srTextureMap, srTexture, 0, 0x2111> {
 public:
-    srTextureMap(srColorSurfaceIFace* surface);
+    /* The default-constructor closure 0x100608C0 proves the surface argument
+       defaults to null for paren-less new expressions. */
+    srTextureMap(srColorSurfaceIFace* surface = 0);
+    /* Retail's copy constructor calls operator= and leaves memberwise
+       re-copies to the compiler's copy-ctor fixup emission. */
+    srTextureMap(const srTextureMap& other);
 
+    // FUNCTION: SURRENDER 0x10060770 SYMBOL
+    // ?sGetClassName@srTextureMap@@SAPBDXZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     static const char* sGetClassName()
     {
         return "srTextureMap";

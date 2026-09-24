@@ -19,7 +19,10 @@ public:
     SR_DLL_IMPORT void setAlignment(e_alignSize alignment);
 
 private:
-    struct Block {
+    /* Retail mangles the parameter as PAVBlock: the nested record was declared
+       class, not struct. */
+    class Block {
+    public:
         Block* next_00;
         Block* previous_04;
         void* raw_allocation_08;
@@ -31,6 +34,11 @@ private:
         unsigned long reserved_18[2];
     };
 
+    /* Retail exports the standalone copy; without provider dllexport the
+       compiler folds the single call site inside allocate and nothing emits. */
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     SR_DLL_IMPORT Block* align(void* allocation);
 
     Block* first_block_00;

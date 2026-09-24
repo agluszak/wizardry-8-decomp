@@ -342,7 +342,7 @@ int srPixelConvert::PixelFormat::isValid() const
 }
 
 // FUNCTION: SURRENDER 0x10007E90
-void srPixelConvert::PixelFormat::getName(char* name)
+void srPixelConvert::PixelFormat::getName(char* const name)
 {
     static const char channel_letters[] = "RGBAYUVAIXXAPXXA";
 

@@ -569,13 +569,9 @@ srMaterialIFace& srMaterialIFace::operator=(const srMaterialIFace& other)
     return *this;
 }
 
-/* Emitted inside this TU with the rest of srMaterialIFace's surface; both are
-   the implicit dllexport'd class emissions. */
-// SYNTHETIC: SURRENDER 0x10034BE0
-// srMaterialIFace::srMaterialIFace()
-
-// SYNTHETIC: SURRENDER 0x10034C70
-// srMaterialIFace::srMaterialIFace(const srMaterialIFace&)
+/* The srMaterialIFace constructors live in the class declaration; retail
+   emitted standalone copies in this TU at 0x10034BE0/0x10034C70 while folding
+   the same bodies into callers. */
 
 // FUNCTION: SURRENDER 0x10034DB0
 std::ostream& operator<<(std::ostream& stream, const srShader& shader)

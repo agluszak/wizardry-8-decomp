@@ -581,7 +581,7 @@ int CharacterPrayAction00547FE0(int party_slot)
     W8Character* character = &g_status_685170.buffers.Char[party_slot];
     W8GrowableVector<int> monster_targets;
     bool found = false;
-    bool stop = false;
+    bool prayed = false;
     int outcome;
     W8TargetSource source;
     W8CombatSlot target;
@@ -643,7 +643,7 @@ int CharacterPrayAction00547FE0(int party_slot)
     }
     power_level =
         static_cast<unsigned int>(character->profession_levels[character->iProfession]) / 3 + 2;
-    for (;;) {
+    while (!prayed) {
         --action;
         switch (action) {
         case 0:
@@ -654,7 +654,8 @@ int CharacterPrayAction00547FE0(int party_slot)
                 AppendToLastTextLine(gppStringList[0x177], -1);
                 AddPartyGold(100, 1);
             }
-            goto done;
+            prayed = true;
+            break;
         case 1:
             for (index = 0; index < 8; ++index) {
                 W8Character* member = &g_status_685170.buffers.Char[index];
@@ -662,7 +663,8 @@ int CharacterPrayAction00547FE0(int party_slot)
                     member->stamina < member->uiStaminaMax) {
                     AppendToLastTextLine(gppStringList[0x179], -1);
                     CastSpellFromSource(0x2c, &source, &target, 7, 0, 0, 1, &outcome, 0, 0, 0);
-                    goto done;
+                    prayed = true;
+                    break;
                 }
             }
             break;
@@ -693,7 +695,8 @@ int CharacterPrayAction00547FE0(int party_slot)
                         target.iChar = index;
                         CastSpellFromSource(0x15, &source, &target, power_level, 0, 0, 0, &outcome,
                                             0, 0, 0);
-                        goto done;
+                        prayed = true;
+                        break;
                     }
                 }
             }
@@ -720,14 +723,15 @@ int CharacterPrayAction00547FE0(int party_slot)
                         --pick == 0) {
                         AppendToLastTextLine(gppStringList[0x179], -1);
                         target.iType = W8_TARGET_KIND_CHARACTER;
-                        stop = power_level > 7;
-                        if (stop) {
+                        const bool capped = power_level > 7;
+                        if (capped) {
                             power_level = 7;
                         }
                         target.iChar = index;
-                        CastSpellFromSource(0x4a, &source, &target, power_level, 0, 0, stop,
+                        CastSpellFromSource(0x4a, &source, &target, power_level, 0, 0, capped,
                                             &outcome, 0, 0, 0);
-                        goto done;
+                        prayed = true;
+                        break;
                     }
                 }
             }
@@ -744,7 +748,8 @@ int CharacterPrayAction00547FE0(int party_slot)
                 AppendToLastTextLine(gppStringList[0x179], -1);
                 CastSpellFromSource(0x44, &source, &target, power_level, 0, 0, 1, &outcome, 0, 0,
                                     0);
-                goto done;
+                prayed = true;
+                break;
             }
             best = -1;
             for (index = 0; index < 8; ++index) {
@@ -763,7 +768,7 @@ int CharacterPrayAction00547FE0(int party_slot)
                 target.iChar = best;
                 AppendToLastTextLine(gppStringList[0x179], -1);
                 CastSpellFromSource(6, &source, &target, power_level, 0, 0, 0, &outcome, 0, 0, 0);
-                goto done;
+                prayed = true;
             }
             break;
         case 5:
@@ -778,7 +783,7 @@ int CharacterPrayAction00547FE0(int party_slot)
             if (!found) {
                 AppendToLastTextLine(gppStringList[0x17b], -1);
                 CastSpellFromSource(2, &source, &target, power_level, 0, 0, 0, &outcome, 0, 0, 0);
-                goto done;
+                prayed = true;
             }
             break;
         case 6: {
@@ -811,12 +816,12 @@ int CharacterPrayAction00547FE0(int party_slot)
                 }
                 CastSpellFromSource(0x19, &source, &target, power_level, 0, 0, 0, &outcome, 0, 0,
                                     &monster_targets);
-                goto done;
+                prayed = true;
             }
             break;
         }
         case 7:
-            stop = TurnUndead(party_slot, 0, 0) > 0;
+            prayed = TurnUndead(party_slot, 0, 0) > 0;
             break;
         case 8:
             AppendToLastTextLine(gppStringList[0x179], -1);
@@ -830,7 +835,8 @@ int CharacterPrayAction00547FE0(int party_slot)
                     }
                 }
             }
-            goto done;
+            prayed = true;
+            break;
         case 9:
             if (CombatHasCondition(0x3b) == 0 || CombatHasCondition(0x35) == 0) {
                 target.iType = W8_TARGET_KIND_PARTY;
@@ -840,7 +846,7 @@ int CharacterPrayAction00547FE0(int party_slot)
                                     0);
                 CastSpellFromSource(0x35, &source, &target, power_level, 0, 0, 0, &outcome, 0, 0,
                                     0);
-                goto done;
+                prayed = true;
             }
             break;
         case 10:
@@ -857,7 +863,7 @@ int CharacterPrayAction00547FE0(int party_slot)
                                     0);
                 CastSpellFromSource(0x1a, &source, &target, power_level, 0, 0, 0, &outcome, 0, 0,
                                     0);
-                goto done;
+                prayed = true;
             }
             break;
         case 0xb:
@@ -874,7 +880,8 @@ int CharacterPrayAction00547FE0(int party_slot)
                     target.iType = W8_TARGET_KIND_FIVE;
                     CastSpellFromSource(0x75, &source, &target, power_level, 0, 0, 0, &outcome, 0,
                                         0, 0);
-                    goto done;
+                    prayed = true;
+                    break;
                 }
             }
             break;
@@ -895,17 +902,15 @@ int CharacterPrayAction00547FE0(int party_slot)
                     }
                 }
             }
-            continue;
+            break;
         default:
             AppendToLastTextLine(gppStringList[0x176], -1);
-            goto done;
-        }
-        if (stop) {
-        done:
-            g_combat_state->characters[party_slot].pray_used = 1;
-            return cost;
+            prayed = true;
+            break;
         }
     }
+    g_combat_state->characters[party_slot].pray_used = 1;
+    return cost;
 }
 
 // FUNCTION: WIZ8 0x005478A0

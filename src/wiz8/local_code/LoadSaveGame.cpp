@@ -222,30 +222,28 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot, 
         loaded = LoadCharacterFromCurrentGame(path, character) != 0;
     } else {
         handle = FileOpen(path, 1, 0);
-        if (handle == 0) {
-            goto report;
-        }
-        memset(character, 0, sizeof(W8Character));
-        if (FileRead(handle, &size, 4, &transferred) &&
-            FileRead(handle, character, size, &transferred)) {
-            loaded = true;
-        }
-        FileClose(handle);
-        /* The same read-only repair VerifyDataSubdirs makes, for the one errno
-           that means exactly that. */
-        if (_access(path, 2) != 0 && errno == EACCES) {
-            _chmod(path, _S_IREAD | _S_IWRITE);
+        if (handle != 0) {
+            memset(character, 0, sizeof(W8Character));
+            if (FileRead(handle, &size, 4, &transferred) &&
+                FileRead(handle, character, size, &transferred)) {
+                loaded = true;
+            }
+            FileClose(handle);
+            /* The same read-only repair VerifyDataSubdirs makes, for the one errno
+               that means exactly that. */
+            if (_access(path, 2) != 0 && errno == EACCES) {
+                _chmod(path, _S_IREAD | _S_IWRITE);
+            }
         }
     }
     if (loaded) {
         return 1;
     }
-report:
     if (report_failure) {
         CreateMessageBox(FormatWideString(gppStringList[W8_NOTICE_CHARACTER_LOAD_FAILED], name),
                          g_small_font_683678, 1, 1, 0, 0);
     }
-    return loaded ? 1 : 0;
+    return 0;
 }
 
 // FUNCTION: WIZ8 0x00511df0
@@ -271,7 +269,7 @@ unsigned char EnumerateSaveSlots(W8GrowableVector<W8SaveSlot*>* slots)
     char path[260];
     W8GlobalStatus status;
 
-    sprintf(path, "%s\\*.%s", "Saves", "SAV");
+    sprintf(path, "%s\\*.%s", "Saves", g_save_extension);
     int first = slots->count;
     memset(&find_data, 0, sizeof(find_data));
     HANDLE search = FindFirstFileA(path, &find_data);
@@ -351,7 +349,7 @@ int GetSaveGameLevel(const char* slot_name)
     int count;
     int index;
 
-    sprintf(path, "%s\\%s.%s", "Saves", slot_name, "SAV");
+    sprintf(path, "%s\\%s.%s", "Saves", slot_name, g_save_extension);
     if (chunks.OpenRead(path)) {
         count = chunks.ChunkCount();
         for (index = 0; index < count; ++index) {
@@ -1498,21 +1496,15 @@ unsigned char SaveGameExists(void)
     char path[260];
     unsigned char found;
 
-    found = 1;
+    found = 0;
     memset(&find, 0, sizeof(find));
     sprintf(path, "%s\\*.%s", "Saves", g_save_extension);
     if (GetFileFirst(path, &find)) {
         sprintf(path, "%s\\%s", "Saves", find.zFileName);
-        if (strcmp(path, "Saves\\CurrentGame.SAV") != 0) {
-            goto done;
-        }
-        if (GetFileNext(&find)) {
-            goto done;
+        if (strcmp(path, "Saves\\CurrentGame.SAV") != 0 || GetFileNext(&find)) {
+            found = 1;
         }
     }
-    found = 0;
-
-done:
     GetFileClose(&find);
     return found;
 }
@@ -1557,25 +1549,26 @@ unsigned char SaveCharacter(W8Character* character, int slot, char report_failur
     if (g_status_685170.game_started == 0) {
         if (FileExists(path) && (FileGetAttributes(path) & FILE_IS_READONLY) != 0 &&
             FileClearAttributes(path) == 0) {
-            goto report;
-        }
-        handle = FileOpen(path, 0x22, 0);
-        if (handle == 0) {
-            goto report;
-        }
-        size = sizeof(W8Character);
-        if (FileWrite(handle, &size, 4, &transferred) == 0 ||
-            FileWrite(handle, character, sizeof(W8Character), &transferred) == 0) {
             saved = false;
+        } else {
+            handle = FileOpen(path, 0x22, 0);
+            if (handle == 0) {
+                saved = false;
+            } else {
+                size = sizeof(W8Character);
+                if (FileWrite(handle, &size, 4, &transferred) == 0 ||
+                    FileWrite(handle, character, sizeof(W8Character), &transferred) == 0) {
+                    saved = false;
+                }
+                FileClose(handle);
+            }
         }
-        FileClose(handle);
     } else {
         saved = SaveCharacterToCurrentGame(path, slot, character) != 0;
     }
     if (saved) {
         return 1;
     }
-report:
     if (report_failure) {
         CreateMessageBox(
             FormatWideString(gppStringList[W8_NOTICE_CHARACTER_SAVE_FAILED], character->name),
@@ -1913,30 +1906,29 @@ unsigned char SelectQuickSaveSlotForWrite(char* slot_name)
     SGP_FILETIME access_time;
     SGP_FILETIME write_time;
     SGP_FILETIME oldest_write_time;
-    int oldest_slot = 1;
+    int write_slot = 1;
     int slot;
     int handle;
 
     for (slot = 1; slot <= 3; ++slot) {
-        sprintf(slot_name, "%s\\%s %d.%s", "Saves", "Quick", slot, "SAV");
+        sprintf(slot_name, "%s\\%s %d.%s", "Saves", "Quick", slot, g_save_extension);
         handle = FileOpen(slot_name, 1, 0);
         if (!handle) {
-            goto format_slot;
+            write_slot = slot;
+            break;
         }
         GetFileManFileTime(handle, &creation_time, &access_time, &write_time);
         FileClose(handle);
         if (slot > 1) {
             if (CompareSGPFileTimes(&write_time, &oldest_write_time) < 0) {
                 oldest_write_time = write_time;
-                oldest_slot = slot;
+                write_slot = slot;
             }
         } else {
             oldest_write_time = write_time;
         }
     }
-    slot = oldest_slot;
-format_slot:
-    sprintf(slot_name, "%s %d", "Quick", slot);
+    sprintf(slot_name, "%s %d", "Quick", write_slot);
     return 1;
 }
 
@@ -1956,27 +1948,27 @@ unsigned char FindStartupQuickSave(char* slot_name)
     int handle;
 
     for (slot = 1; slot <= 3; ++slot) {
-        sprintf(slot_name, "%s\\%s %d.%s", "Saves", "Quick", slot, "SAV");
+        sprintf(slot_name, "%s\\%s %d.%s", "Saves", "Quick", slot, g_save_extension);
         handle = FileOpen(slot_name, 1, 0);
         if (handle) {
             GetFileManFileTime(handle, &creation_time, &access_time, &write_time);
             FileClose(handle);
             if (slot > 1) {
-                if (CompareSGPFileTimes(&write_time, &newest_write_time) <= 0) {
-                    continue;
+                if (CompareSGPFileTimes(&write_time, &newest_write_time) > 0) {
+                    newest_write_time = write_time;
+                    newest_slot = slot;
                 }
-                newest_write_time = write_time;
             } else {
                 newest_write_time = write_time;
+                newest_slot = slot;
             }
-            newest_slot = slot;
         }
     }
     if (newest_slot > 0) {
         sprintf(slot_name, "%s %d", "Quick", newest_slot);
         return 1;
     }
-    sprintf(path, "%s\\%s.%s", "Saves", "Quick", "SAV");
+    sprintf(path, "%s\\%s.%s", "Saves", "Quick", g_save_extension);
     if (FileExists(path)) {
         strcpy(slot_name, "Quick");
         return 1;

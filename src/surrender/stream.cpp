@@ -871,26 +871,10 @@ srIStreamOpener::Opener* srIStreamOpener::findOpener(const char* stream_type)
     return 0;
 }
 
-// FUNCTION: SURRENDER 0x10032680
-srIStreamOpener::Opener::Opener() {}
-
-// FUNCTION: SURRENDER 0x10032690
-srIStreamOpener::Opener::~Opener() {}
-
 // FUNCTION: SURRENDER 0x100326A0
 srIStreamOpener::Opener& srIStreamOpener::Opener::operator=(const Opener& other)
 {
     return *this;
-}
-
-// FUNCTION: SURRENDER 0x100326B0
-srIStreamOpener::srIStreamOpener()
-{
-    first_04 = new StreamType;
-    end_08 = first_04;
-    first_04->next_08 = 0;
-    first_04->previous_0c = 0;
-    count_00 = 0;
 }
 
 // FUNCTION: SURRENDER 0x100326E0
@@ -1033,9 +1017,8 @@ srInlineString& srInlineString::operator+=(const char* suffix)
     return *this;
 }
 
-// FUNCTION: SURRENDER 0x10032440
-srFStreamOpener::srFStreamOpener() {}
-
+/* The retail emission is a bare ret; ours still stores the vftable before
+   returning, the same destructor-vptr gap ~srBinIStream records. */
 // FUNCTION: SURRENDER 0x10016850
 srFStreamOpener::~srFStreamOpener() {}
 

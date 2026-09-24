@@ -116,3 +116,6 @@ srIlluminator::~srIlluminator()
 {
     srCore.getRegistry()->unregisterInstance(sGetClassNode(), this);
 }
+
+// SYNTHETIC: SURRENDER 0x1004CC20
+// srIlluminator default constructor closure

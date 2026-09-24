@@ -7,7 +7,14 @@
 #include "srShader.h"
 #include "srTextureIFace.h"
 
+/* Retail exports the private getUniqueVertexList/isClockwise members and the
+   implicit copy constructor/assignment, so the class is dllexport under
+   SURRENDER_BUILD; consumer TUs stay member-level imported. */
+#if defined(SURRENDER_BUILD)
+class __declspec(dllexport) srModeler {
+#else
 class SR_DLL_IMPORT srModeler {
+#endif
 public:
     /* Axis selector indexing the position components: getAxialBounds and the
        mapping functions read (&vertex.position_00.x)[axis], proving X=0,
@@ -20,8 +27,15 @@ public:
        planarMap and never this constructor, so the consumer TUs inlined the
        six-field store while the dllexport standalone emission stays at
        0x10037BD0. */
-    struct MappingInfo {
-        // FUNCTION: SURRENDER 0x10037BD0 SYMBOL
+    /* Retail exports the MappingInfo constructor, implicit assignment and the
+       default-constructor closure, so the declaration is dllexport under
+       SURRENDER_BUILD. */
+    struct
+#if defined(SURRENDER_BUILD)
+        __declspec(dllexport)
+#endif
+        MappingInfo {
+        // FUNCTION: SURRENDER 0x10037BD0
         // ??0MappingInfo@srModeler@@QAE@W4e_axis@1@0MMMM@Z
         MappingInfo(e_axis axis_u = AXIS_X, e_axis axis_v = AXIS_Y, float u_scale = 1.0f,
                     float v_scale = 1.0f, float u_offset = 0.0f, float v_offset = 0.0f)
@@ -42,14 +56,21 @@ public:
        the three per-pass attribute vectors convert() feeds into the mesh's
        DCG/DIG/SCG streams, the eight UV slots (pass*2 + layer), and the
        per-pass weights convert() writes as the DCG alpha. */
-    class Vertex {
+    /* Retail exports the full Vertex lifecycle sweep including the implicit
+       copy/assignment bodies, so the declaration is dllexport under
+       SURRENDER_BUILD. */
+    class
+#if defined(SURRENDER_BUILD)
+        __declspec(dllexport)
+#endif
+        Vertex {
     public:
         /* Retail inlines the reset() call into the modeler-TU
            new Vertex[]/vertices_30[3] array-construction loops
            (Polygon::Polygon 0x10038890, Triangle::Triangle 0x10038B50) while
            Wiz8.exe imports the standalone copy - so the body is an inline
            definition in modeler.cpp, not visible to consumers. */
-        // FUNCTION: SURRENDER 0x10037BC0 SYMBOL
+        // FUNCTION: SURRENDER 0x10037BC0
         // ??0Vertex@srModeler@@QAE@XZ
         Vertex();
         void reset();
@@ -70,7 +91,16 @@ public:
         float weights_100[4];
     };
 
-    class Triangle {
+    /* Retail exports the full Triangle lifecycle sweep including the implicit
+       copy/assignment bodies, so the declaration is dllexport under
+       SURRENDER_BUILD. The implicit copy constructor (0x10037C10) is a
+       trivial memberwise emission whose odr-use lives in still-unrecovered
+       modeler code; the .def entry preserves the export identity. */
+    class
+#if defined(SURRENDER_BUILD)
+        __declspec(dllexport)
+#endif
+        Triangle {
     public:
         Triangle();
         void reset();
@@ -83,7 +113,16 @@ public:
         unsigned long disabled_364;
     };
 
-    class Polygon {
+    /* Retail exports the full Polygon lifecycle sweep including the implicit
+       copy/assignment bodies, so the declaration is dllexport under
+       SURRENDER_BUILD. The implicit copy constructor (0x10037CF0) is a
+       trivial memberwise emission whose odr-use lives in still-unrecovered
+       modeler code; the .def entry preserves the export identity. */
+    class
+#if defined(SURRENDER_BUILD)
+        __declspec(dllexport)
+#endif
+        Polygon {
     public:
         Polygon(int vertices);
         ~Polygon();
@@ -103,6 +142,15 @@ public:
 
     srModeler();
     virtual ~srModeler();
+
+    /* Implicit copy constructor/assignment: emitted via the class-level
+       dllexport as memberwise copies (the srArray<Triangle> member owns the
+       triangle storage clone). */
+    // SYNTHETIC: SURRENDER 0x10037DE0
+    // ??0srModeler@@QAE@ABV0@@Z
+    // SYNTHETIC: SURRENDER 0x10037F90
+    // srModeler::operator=
+
     void discard();
 
     unsigned long getTriangleCount() const;

@@ -418,7 +418,7 @@ void W8OptionsSaveLoadPanel::OnDialogClosed(unsigned char reason, int value)
             return;
         case 3: {
             char path[260];
-            sprintf(path, "%s\\%S.%s", "Saves", m_previous_name, "SAV");
+            sprintf(path, "%s\\%S.%s", "Saves", m_previous_name, g_save_extension);
             if (DeleteFileA(path) == 0) {
                 g_options_screen_0069c254->ShowNotification(this, 0, 0x82e, 0);
                 return;
@@ -516,7 +516,7 @@ void W8OptionsSaveLoadPanel::DeleteSelectedSave()
     int selected_slot = m_current_04c * 5 + 1 + m_selection.m_selectedIndex;
     W8SaveSlot* slot = *g_options_screen_0069c254->m_save_slots.GetAt(selected_slot);
     char path[260];
-    sprintf(path, "%s\\%S.%s", "Saves", slot->name, "SAV");
+    sprintf(path, "%s\\%S.%s", "Saves", slot->name, g_save_extension);
     if (DeleteFileA(path) == 0) {
         g_options_screen_0069c254->ShowNotification(this, 0, 0x82f, 0);
         return;
@@ -579,7 +579,7 @@ void W8OptionsSaveLoadPanel::SaveSelectedSave()
     }
 
     char path[260];
-    sprintf(path, "%s\\%S.%s", "Saves", slot->name, "SAV");
+    sprintf(path, "%s\\%S.%s", "Saves", slot->name, g_save_extension);
     if (FileExists(path) != 0 && DeleteFileA(path) == 0) {
         g_options_screen_0069c254->ShowNotification(this, 0, 0x82e, 0);
         return;
