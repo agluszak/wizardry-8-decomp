@@ -648,7 +648,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
             if (monster_info->hp_current == 0 || monster_info->highest_condition > 0xe) {
                 visible_to_player = 0;
             } else {
-                float yaw = GetCameraYawRadians();
+                float yaw = monster->GetYaw();
                 unsigned int sight_override;
                 unsigned int minimum_level = 9999;
                 unsigned char fade_flag;
