@@ -4050,7 +4050,7 @@ int CastItemSpell0051EE70(W8Character* character, W8ItemInstance* item, unsigned
         int power_out = static_cast<int>(power);
         effect = CastSpellFromSource(
             spell_id, &target, &g_status_685170.buffers.XChar[party_slot].target_out_of_combat,
-            power, 0, static_cast<int>(difficulty), 0, &power_out, difficulty_kind, 0, 0);
+            power, 0, difficulty, 0, &power_out, difficulty_kind, 0, 0);
         power = static_cast<unsigned int>(power_out);
     }
 

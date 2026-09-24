@@ -1945,7 +1945,7 @@ void SaveMonsterControlSpellEffect00516580(W8Chunk* chunks)
     chunks->Write(&lure->Source, sizeof(lure->Source), 0);
     chunks->Write(&lure->target, sizeof(lure->target), 0);
     chunks->Write(&lure->OrigSource, sizeof(lure->OrigSource), 0);
-    chunks->Write(lure->unknown_03c, sizeof(lure->unknown_03c), 0);
+    chunks->Write(&lure->OrigTarget, sizeof(lure->OrigTarget), 0);
     chunks->Write(&lure->recast_120, 1, 0);
     chunks->Write(&lure->sustained_121, 1, 0);
     chunks->Write(&lure->missiles_pending_122, 1, 0);
@@ -2431,7 +2431,7 @@ void LoadMonsterControlSpellEffect00516310(W8Chunk* chunks)
     chunks->Read(&effect->Source, 0x34, 0);
     chunks->Read(&effect->target, 0x20, 0);
     chunks->Read(&effect->OrigSource, 0x34, 0);
-    chunks->Read(effect->unknown_03c, 0x20, 0);
+    chunks->Read(&effect->OrigTarget, 0x20, 0);
     chunks->Read(&effect->recast_120, 1, 0);
     chunks->Read(&effect->sustained_121, 1, 0);
     chunks->Read(&effect->missiles_pending_122, 1, 0);
