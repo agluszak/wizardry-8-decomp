@@ -3350,7 +3350,7 @@ srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch,
                                              mapping_x, mapping_y, overlay);
     if (node != 0) {
         stModelInstance2D* instance = static_cast<stModelInstance2D*>(node);
-        instance->overlay_scene_flag_160 = g_active_page_6596e4;
+        instance->render_state_164.display_state = static_cast<unsigned char>(g_active_page_6596e4);
         instance->render_state_164.left = (short)(rect[2] - rect[0]);
         instance->render_state_164.top = (short)(rect[3] - rect[1]);
         instance->render_state_164.right = (short)rect[0];
