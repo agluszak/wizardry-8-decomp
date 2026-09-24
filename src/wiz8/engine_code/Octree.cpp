@@ -1088,7 +1088,7 @@ bool W8Octree::LoadPointFiles(const char* level_name)
    first. The count precedes the records, and the result reports either
    write. */
 // FUNCTION: WIZ8 0x00432d60
-bool W8Octree::SavePoints00432D60(char* path)
+BOOLEAN W8Octree::SavePoints00432D60(char* path)
 {
     char name[256];
     unsigned char result = 0;
@@ -1649,7 +1649,7 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
    Each key's table values are appended in chain order; the count is written
    first, then the keys and their short values. */
 // FUNCTION: WIZ8 0x004331f0
-bool W8Octree::SaveRegionLinks004331F0(char* path)
+BOOLEAN W8Octree::SaveRegionLinks004331F0(char* path)
 {
     unsigned char result = 1;
     unsigned int* keys = 0;
@@ -5075,72 +5075,75 @@ void W8Octree::AdjustPortalDestination(srVector3T<float>* destination,
    FileWrite call. */
 
 // FUNCTION: WIZ8 0x004372E0
-bool WriteVector4Array004372E0(int file, const srVector4T<float>* values, int count)
+BOOLEAN WriteVector4Array004372E0(int file, const srVector4T<float>* values, int count)
 {
     srVector4T<float> staging[0x100];
     int written = 0;
+    int chunk_count;
     int index;
-    unsigned char success = 1;
+    BOOLEAN success = TRUE;
 
-    while (written < count && success != 0) {
-        int chunk_count = count - written;
+    while (success && written < count) {
+        chunk_count = count - written;
         if (chunk_count > 0x100) {
             chunk_count = 0x100;
         }
-        for (index = 0; index < chunk_count; ++index) {
-            staging[index] = values[written + index];
+        if (chunk_count != 0) {
+            for (index = 0; index < chunk_count; ++index) {
+                staging[index] = values[written + index];
+            }
+            written += chunk_count;
+            success &= FileWrite(file, staging, chunk_count * sizeof(staging[0]), 0);
         }
-        written += chunk_count;
-        success &= FileWrite(file, staging, chunk_count * sizeof(staging[0]), 0);
     }
     return success;
 }
 
 // FUNCTION: WIZ8 0x00437390
-bool WriteVector3Array00437390(int file, const srVector3T<float>* values, int count)
+BOOLEAN WriteVector3Array00437390(int file, const srVector3T<float>* values, int count)
 {
     srVector3T<float> staging[0x100];
     int written = 0;
+    int chunk_count;
     int index;
-    unsigned char success = 1;
+    BOOLEAN success = TRUE;
 
-    while (written < count) {
-        int chunk_count = count - written;
+    while (success && written < count) {
+        chunk_count = count - written;
         if (chunk_count > 0x100) {
             chunk_count = 0x100;
         }
-        for (index = 0; index < chunk_count; ++index) {
-            staging[index] = values[written + index];
-        }
-        written += chunk_count;
-        success &= FileWrite(file, staging, chunk_count * sizeof(staging[0]), 0);
-        if (success == 0) {
-            return 0;
+        if (chunk_count != 0) {
+            for (index = 0; index < chunk_count; ++index) {
+                staging[index] = values[written + index];
+            }
+            written += chunk_count;
+            success &= FileWrite(file, staging, chunk_count * sizeof(staging[0]), 0);
         }
     }
     return success;
 }
 
 // FUNCTION: WIZ8 0x00437430
-bool WriteVector2Array00437430(int file, const srVector2T<float>* values, int count)
+BOOLEAN WriteVector2Array00437430(int file, const srVector2T<float>* values, int count)
 {
     srVector2T<float> staging[0x100];
     int written = 0;
+    int chunk_count;
     int index;
-    unsigned char success = 1;
+    BOOLEAN success = TRUE;
 
-    while (written < count) {
-        int chunk_count = count - written;
+    while (success && written < count) {
+        chunk_count = count - written;
         if (chunk_count > 0x100) {
             chunk_count = 0x100;
         }
-        for (index = 0; index < chunk_count; ++index) {
-            staging[index] = values[written + index];
-        }
-        written += chunk_count;
-        success &= FileWrite(file, staging, chunk_count * sizeof(staging[0]), 0);
-        if (success == 0) {
-            return 0;
+        if (chunk_count != 0) {
+            for (index = 0; index < chunk_count; ++index) {
+                staging[index] = values[written + index];
+            }
+            written += chunk_count;
+            success &= FileWrite(file, staging, chunk_count * sizeof(staging[0]), 0);
         }
     }
     return success;
