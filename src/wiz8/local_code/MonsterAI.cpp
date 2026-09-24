@@ -408,12 +408,11 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, char engage)
         unsigned char mode;
 
         mode = monster_info->ai_mode_255 & 0xf;
-        if (mode != 6 && (monster_info->p3D->face_party_290 == 0 ||
-                          monster_info->pathing_cooldown_246 != 0 || mode != 0xa ||
-                          monster_info->player_visibility.line_of_sight_28 == 0 ||
-                          (monster_info->p3D->movement_0c0.position_040 -
-                           g_startup_world_659c0c->GetPosition())
-                                  .Length() >= g_float_005ec2f8)) {
+        if (mode != 6 &&
+            (monster_info->p3D->face_party_290 == 0 || monster_info->pathing_cooldown_246 != 0 ||
+             mode != 0xa || monster_info->player_visibility.line_of_sight_28 == 0 ||
+             (monster_info->p3D->movement_0c0.position_040 - g_startup_world_659c0c->GetPosition())
+                     .Length() >= g_float_005ec2f8)) {
             monster_info->ai_mode_255 &= 0x7f;
         }
         if (decision <= 2 || decision == 9) {
@@ -440,12 +439,12 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, char engage)
 char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
 {
     W8Monster* monster;
-    char changed;
+    bool changed;
     char mode;
 
     monster = monster_info->p3D;
     mode = 0;
-    changed = 0;
+    changed = false;
     if (monster->face_party_290 != 0 && monster_info->pathing_cooldown_246 == 0 &&
         monster_info->player_visibility.line_of_sight_28 != 0) {
         srVector3T<float> delta;
@@ -493,127 +492,122 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
         fabsf(monster->movement_0c0.target_yaw - monster->movement_0c0.yaw) >=
             g_camera_transition_epsilon_005ebc84) {
         mode = 8;
-        goto commit;
-    }
-    if (monster_info->heard_noise_radius_43 > 0 && monster->movement_stopped_024 != 0 &&
-        monster_info->ai_mode_255 == 4) {
-        srVector3T<float> delta;
+    } else {
+        if (monster_info->heard_noise_radius_43 > 0 && monster->movement_stopped_024 != 0 &&
+            monster_info->ai_mode_255 == 4) {
+            srVector3T<float> delta;
 
-        delta = monster_info->heard_noise_position_37 - monster->GetPosition();
-        if (delta.Length() < g_double_005ee768) {
-            monster_info->heard_noise_radius_43 = 0;
-        }
-    }
-    if (monster_info->heard_noise_radius_43 > 0) {
-        srVector3T<float> noise_position;
-        srVector3T<float> position;
-        float range;
-        int radius;
-        int hops;
-
-        if (monster->movement_stopped_024 == 0 && monster_info->ai_mode_255 == 4) {
-            mode = 4;
-            goto commit;
-        }
-        noise_position = monster_info->heard_noise_position_37;
-        radius = monster_info->heard_noise_radius_43 * 3 / 2;
-        if (radius >= g_int_00617ae8) {
-            radius = g_int_00617ae8;
-        }
-        range = (float)radius;
-        position = monster->GetPosition();
-        if (g_octree_6598a4->TestNoiseLineOfSight00434220(&position, &noise_position, &range,
-                                                          &hops) != 0 &&
-            NoiseHearingMargin004F0E50(monster_info->heard_noise_radius_43, static_cast<int>(range),
-                                       hops) > 0) {
-            mode = 4;
-            changed = 1;
-            goto commit;
-        }
-        mode = 8;
-        goto commit;
-    }
-    if (monster_info->look_timer_303 != 0) {
-        if (Random(0x14) == 0) {
-            double angle;
-
-            mode = 0xa;
-            angle = (double)(Random(0x168) << 1) * g_camera_pi_005ec2a0 * g_double_005ed7b0;
-            monster->move_direction_2bc.x = (float)(cos(angle) * g_double_005ec150);
-            monster->move_direction_2bc.y = 0.0f;
-            monster->move_direction_2bc.z = (float)(sin(angle) * g_double_005ec150);
-        } else {
-            mode = 0;
-        }
-        goto commit;
-    }
-    switch (monster->order_mode_28e) {
-    case 0: {
-        srVector3T<float> delta;
-        srVector3T<float> patrol;
-
-        monster->GetPatrolPoint004CA360(&patrol);
-        delta = patrol - monster->GetPosition();
-        if (delta.Length() < g_double_005ee768) {
-            mode = 0;
-        } else {
-            mode = 7;
-        }
-        goto commit;
-    }
-    case 1:
-        mode = 6;
-        if (monster->movement_stopped_024 == 0) {
-            goto commit;
-        }
-        goto set_changed;
-    case 2:
-    case 3: {
-        srVector3T<float> delta;
-        srVector3T<float> patrol;
-        int count;
-        int next;
-
-        mode = 7;
-        monster->GetPatrolPoint004CA360(&patrol);
-        delta = patrol - monster->GetPosition();
-        if (delta.Length() >= g_double_005ee768) {
-            goto commit;
-        }
-        count = monster->vector_29c.GetCount();
-        if (monster->order_mode_28e == 2) {
-            next = monster->patrol_index_2ac + 1;
-            if (next < count) {
-                monster->patrol_index_2ac = (signed char)next;
-            } else {
-                monster->patrol_index_2ac = 0;
+            delta = monster_info->heard_noise_position_37 - monster->GetPosition();
+            if (delta.Length() < g_double_005ee768) {
+                monster_info->heard_noise_radius_43 = 0;
             }
-        } else if (count < 2) {
-            monster->patrol_index_2ac = 0;
-        } else if ((monster_info->ai_mode_255 & 0xf) == 7) {
-            do {
-                next = (signed char)Random(count);
-            } while (next == monster->patrol_index_2ac);
-            monster->patrol_index_2ac = (signed char)next;
-        } else {
-            monster->patrol_index_2ac = (signed char)Random(count);
         }
-        goto set_changed;
+        if (monster_info->heard_noise_radius_43 > 0) {
+            if (monster->movement_stopped_024 == 0 && monster_info->ai_mode_255 == 4) {
+                mode = 4;
+            } else {
+                srVector3T<float> noise_position;
+                srVector3T<float> position;
+                float range;
+                int radius;
+                int hops;
+
+                noise_position = monster_info->heard_noise_position_37;
+                radius = monster_info->heard_noise_radius_43 * 3 / 2;
+                if (radius >= g_int_00617ae8) {
+                    radius = g_int_00617ae8;
+                }
+                range = (float)radius;
+                position = monster->GetPosition();
+                if (g_octree_6598a4->TestNoiseLineOfSight00434220(&position, &noise_position,
+                                                                  &range, &hops) != 0 &&
+                    NoiseHearingMargin004F0E50(monster_info->heard_noise_radius_43,
+                                               static_cast<int>(range), hops) > 0) {
+                    mode = 4;
+                    changed = true;
+                } else {
+                    mode = 8;
+                }
+            }
+        } else if (monster_info->look_timer_303 != 0) {
+            if (Random(0x14) == 0) {
+                double angle;
+
+                mode = 0xa;
+                angle = (double)(Random(0x168) << 1) * g_camera_pi_005ec2a0 * g_double_005ed7b0;
+                monster->move_direction_2bc.x = (float)(cos(angle) * g_double_005ec150);
+                monster->move_direction_2bc.y = 0.0f;
+                monster->move_direction_2bc.z = (float)(sin(angle) * g_double_005ec150);
+            } else {
+                mode = 0;
+            }
+        } else {
+            switch (monster->order_mode_28e) {
+            case 0: {
+                srVector3T<float> delta;
+                srVector3T<float> patrol;
+
+                monster->GetPatrolPoint004CA360(&patrol);
+                delta = patrol - monster->GetPosition();
+                if (delta.Length() < g_double_005ee768) {
+                    mode = 0;
+                } else {
+                    mode = 7;
+                }
+                break;
+            }
+            case 1:
+                mode = 6;
+                if (monster->movement_stopped_024 != 0) {
+                    changed = true;
+                }
+                break;
+            case 2:
+            case 3: {
+                srVector3T<float> delta;
+                srVector3T<float> patrol;
+                int count;
+                int next;
+
+                mode = 7;
+                monster->GetPatrolPoint004CA360(&patrol);
+                delta = patrol - monster->GetPosition();
+                if (delta.Length() >= g_double_005ee768) {
+                    break;
+                }
+                count = monster->vector_29c.GetCount();
+                if (monster->order_mode_28e == 2) {
+                    next = monster->patrol_index_2ac + 1;
+                    if (next < count) {
+                        monster->patrol_index_2ac = (signed char)next;
+                    } else {
+                        monster->patrol_index_2ac = 0;
+                    }
+                } else if (count < 2) {
+                    monster->patrol_index_2ac = 0;
+                } else if ((monster_info->ai_mode_255 & 0xf) == 7) {
+                    do {
+                        next = (signed char)Random(count);
+                    } while (next == monster->patrol_index_2ac);
+                    monster->patrol_index_2ac = (signed char)next;
+                } else {
+                    monster->patrol_index_2ac = (signed char)Random(count);
+                }
+                changed = true;
+                break;
+            }
+            case 4:
+                monster->move_direction_2bc.x = monster->direction_x_2b0;
+                monster->move_direction_2bc.y = monster->direction_y_2b4;
+                monster->move_direction_2bc.z = monster->direction_z_2b8;
+                mode = 0xa;
+                changed = true;
+                break;
+            }
+        }
     }
-    case 4:
-        monster->move_direction_2bc.x = monster->direction_x_2b0;
-        monster->move_direction_2bc.y = monster->direction_y_2b4;
-        monster->move_direction_2bc.z = monster->direction_z_2b8;
-        mode = 0xa;
-        goto set_changed;
-    default:
-        goto commit;
-    }
-set_changed:
-    changed = 1;
-commit:
     if (mode != static_cast<char>(monster_info->ai_mode_255)) {
-        changed = 1;
+        changed = true;
     }
     *decision = (unsigned char)mode;
     return changed;

@@ -2294,8 +2294,8 @@ void PartySelectionScreenFrame(void)
     RenderFrame();
 }
 
-/* Lifecycle record 2's frame close-out, and the only slot that record fills:
-   its other four are the shared do-nothing filler. Every path asks for a screen
+/* Lifecycle record 2's frame close-out. The record's other slots only report
+   success. Every path asks for a screen
    transition, records one of four codes and queues screen 0, so the record is a
    pure router - it selects which of the four the transition reports and then
    leaves. Nothing here names the four codes or the two globals that pick them.
@@ -2328,6 +2328,13 @@ void GameStartRouterFrame(void)
     }
     SetValue64D8AC(code);
     SetPendingScreenState(W8_SCREEN_INTRO);
+}
+
+/* Lifecycle record 2 has nothing to release. Retail's linker folded this body
+   into ScreenLifecycleSuccess, which compiles to the same bytes. */
+unsigned char GameStartRouterLeave(int leaving)
+{
+    return 1;
 }
 
 /* One byte per portrait; the retail table is one for every portrait. */

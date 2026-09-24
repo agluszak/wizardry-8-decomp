@@ -2078,9 +2078,6 @@ monsters_checked:
     ShowNotice(0xc, gppStringList[0x23f], -1, -1, 0);
 }
 
-/* `relationship` is only read on the interrupt-8/9 retarget paths that assign
-   it; the post-switch `if (interrupt == 8)/else if (interrupt == 9)` tails are
-   dead code the authored source carried and clang cannot prove unreachable. */
 /* Commit the slot's chosen combat action and run it. The in-combat action the
    chooser stored becomes the live pending action; a condition interrupt can
    cancel or redirect it first, then the action-kind switch executes it and
@@ -2155,26 +2152,28 @@ void ExecuteCharacterAction004EA5C0(int party_slot)
                 slot->pending_action = -1;
                 action = -1;
                 RemoveCharacterCondition(party_slot, 0xe, 1);
-                goto interrupt_done;
+                break;
             case 8:
                 g_combat_state->characters[party_slot].berserk_80 = 1;
                 relationship = 2;
-                goto ranged_retarget;
+                break;
             case 9:
                 relationship = 1;
-                goto melee_retarget;
+                break;
             }
-            if (interrupt == 8) {
-            ranged_retarget:
-                if (GetBestHandRangeCategory(character) < W8_RANGE_LONG) {
+            /* Berserk and confused characters turn on a reachable character:
+               berserk ones with their ranged attack when it reaches far enough. */
+            if (interrupt == 8 || interrupt == 9) {
+                int target;
+
+                if (interrupt == 8 && GetBestHandRangeCategory(character) < W8_RANGE_LONG) {
                     action = 1;
                     slot->pending_action = 1;
                 } else {
-                melee_retarget:
                     action = 0;
                     slot->pending_action = 0;
                 }
-                int target = PickReachableSlotByDisposition(party_slot, relationship);
+                target = PickReachableSlotByDisposition(party_slot, relationship);
                 if (target == -1) {
                     FormatDebugMessage(1, "ERROR: %ls is attacking friends with nobody in range",
                                        character->name);
@@ -2186,11 +2185,8 @@ void ExecuteCharacterAction004EA5C0(int party_slot)
                     }
                     AimAtCharacter(party_slot, target, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
                 }
-            } else if (interrupt == 9) {
-                goto melee_retarget;
             }
         }
-    interrupt_done:
         if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT, 0, 0) != 0) {
             FaceCharacterTowardCombatTarget(party_slot, &slot->target_out_of_combat);
         }
@@ -2204,7 +2200,8 @@ void ExecuteCharacterAction004EA5C0(int party_slot)
     }
     switch (action) {
     case -1:
-        goto action_failed;
+        result = 0;
+        break;
     case 0:
         result = StartCharacterAttack(party_slot, -1);
         break;
@@ -2215,25 +2212,30 @@ void ExecuteCharacterAction004EA5C0(int party_slot)
         result = CreateCharacterBreathEffect(party_slot);
         break;
     case 3:
-        if (gXStatus.hostile_monster_count != 0 &&
-            (TurnUndead(party_slot, &fatigue_cost, 1), fatigue_cost != -1)) {
-            goto action_done;
+        if (gXStatus.hostile_monster_count == 0) {
+            result = 0;
+        } else {
+            TurnUndead(party_slot, &fatigue_cost, 1);
+            if (fatigue_cost == -1) {
+                result = 0;
+            }
         }
-        goto action_failed;
+        break;
     case 4:
-        if (g_combat_state->characters[party_slot].defend_switched_a4 == '\0') {
-            goto action_done;
+        if (g_combat_state->characters[party_slot].defend_switched_a4 != '\0' &&
+            g_settings_6850c8.verbose_combat_messages != '\0') {
+            PostCharacterNotice(party_slot, gppStringList[0x234]);
         }
-        goto defend_notice;
+        break;
     case 5:
         result = CanCharacterAttackItsTarget(party_slot);
         break;
     case 6:
         fatigue_cost = CharacterPrayAction00547FE0(party_slot);
         if (fatigue_cost == 0) {
-            goto action_failed;
+            result = 0;
         }
-        goto action_done;
+        break;
     case 7: {
         unsigned int power = slot->pending_action_detail_015.spell.power_level;
         int step_cost;
@@ -2253,23 +2255,23 @@ void ExecuteCharacterAction004EA5C0(int party_slot)
     }
     case 8:
         if (UseItem(character, slot->pending_action_detail_015.item_use.item, &fatigue_cost) == 0) {
-            goto action_failed;
+            result = 0;
         }
-        goto action_done;
+        break;
     case 9:
-        goto action_done;
+        break;
     default:
         FormatDebugMessage(1, "ERROR: Char %d executed %ls as a character action for char %d",
                            party_slot, gppStringList[g_action_kind_message_ids_61e988[action]]);
-        goto action_done;
+        break;
     }
+    /* A failed action falls back to defending, unless a condition interrupted
+       it or the slot had already acted. */
     if (result == '\0') {
-    action_failed:
         action = -1;
         if (interrupt == -1 && saved_dead_34 == '\0') {
             action = 4;
             slot->pending_action = 4;
-        defend_notice:
             if (g_settings_6850c8.verbose_combat_messages != '\0') {
                 PostCharacterNotice(party_slot, gppStringList[0x234]);
             }
@@ -2277,7 +2279,6 @@ void ExecuteCharacterAction004EA5C0(int party_slot)
             slot->pending_action = -1;
         }
     }
-action_done:
     if (g_combat_state != NULL) {
         if (action != 4 && action != 5) {
             g_combat_state->passive_round_a55 = 0;
@@ -2442,20 +2443,22 @@ void ExecuteMonsterAction004EAE20(W8MonsterInfo* monster_info, W8MonsterRecord* 
             result = StartMonsterAttack0053FEA0(monster_info, record);
             break;
         case 1:
-            goto action_committed;
+            result = 1;
+            break;
         case 2: {
             int spell_id = monster_info->action_detail;
             unsigned int power = ChooseMonsterSpellPowerLevel(monster_info, record, spell_id);
             if (CanMonsterAimSpell(monster_info, spell_id) == 0 ||
                 MonsterOKToCastSpell(monster_info, spell_id, power) == 0) {
                 result = 0;
-                goto action_retry;
+                break;
             }
             monster_info->spell_power_level = power;
             OrientMonsterTowardTarget(monster_info, 0);
             monster_info->fSpellReleased = 0;
             StartMonsterCycle(monster_info, 0x19, 1);
-            goto action_committed;
+            result = 1;
+            break;
         }
         case 3:
             result = MonsterFleeAction(monster_info, record);
@@ -2526,7 +2529,8 @@ void ExecuteMonsterAction004EAE20(W8MonsterInfo* monster_info, W8MonsterRecord* 
                         } else {
                             PostMonsterNotice(monster_info, gppStringList[0x237]);
                         }
-                        goto action_committed;
+                        result = 1;
+                        break;
                     }
                     if (monster_info->pCombat->reconsider_action_152 != '\0') {
                         monster_info->pCombat->reconsider_action_152 = '\0';
@@ -2562,17 +2566,15 @@ void ExecuteMonsterAction004EAE20(W8MonsterInfo* monster_info, W8MonsterRecord* 
             break;
         }
         if (result != '\0') {
-        action_committed:
             if (monster_info->action_kind != 1 && monster_info->action_kind != 8) {
                 MonsterSetNavigatorFlag25(monster_info->p3D, '\0');
             }
-            goto action_done;
+            break;
         }
-    action_retry:
         if (interrupt != -1 || monster_info->pCombat->active != '\0' ||
             monster_info->action_kind == 9) {
             monster_info->action_kind = -1;
-            goto action_done;
+            break;
         }
         UpdateMonsterAI(monster_info);
         if (monster_info->action_kind == -1 || tried[monster_info->action_kind] != '\0') {
@@ -2580,19 +2582,18 @@ void ExecuteMonsterAction004EAE20(W8MonsterInfo* monster_info, W8MonsterRecord* 
         }
         if (monster_info->action_kind == 1) {
             ShowNoticef(9, gppStringList[0x23c], GetMonsterName(monster_info, NULL, '\0'));
-        action_done:
-            if (monster_info->action_kind != 1 && monster_info->action_kind != 8) {
-                g_combat_state->passive_round_a55 = 0;
-            }
-            if (IsMonsterActionUsable(monster_info) != '\0') {
-                monster_info->pCombat->settle_ticks_14c = 0;
-            }
-            monster_info->pCombat->active = '\x01';
-            RequestRedraw(0x100000);
-            g_combat_state->eCombatActionStatus = 2;
-            return;
+            break;
         }
     }
+    if (monster_info->action_kind != 1 && monster_info->action_kind != 8) {
+        g_combat_state->passive_round_a55 = 0;
+    }
+    if (IsMonsterActionUsable(monster_info) != '\0') {
+        monster_info->pCombat->settle_ticks_14c = 0;
+    }
+    monster_info->pCombat->active = '\x01';
+    RequestRedraw(0x100000);
+    g_combat_state->eCombatActionStatus = 2;
 }
 
 /* The monster flee action: check the monster can and will run, aim it, play

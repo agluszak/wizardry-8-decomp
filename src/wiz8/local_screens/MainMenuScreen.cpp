@@ -2,7 +2,6 @@
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/regions.h"
 #include "wiz8/local_screens/MainMenuScreen.h"
-#include "wiz8/local_screens/MGSSpellCasting.h"
 #include "wiz8/cursor.h"
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_code/Gameloop.h"
@@ -217,6 +216,14 @@ unsigned char MainMenuScreenEnter(void)
     return 1;
 }
 
+/* The main menu's developer-mode key hook. Retail never consumes the key: its
+   linker folded this body into IgnoreSpellCastingInput, which compiles to the
+   same bytes. */
+static bool HandleDeveloperModeKey(const InputAtom* input)
+{
+    return false;
+}
+
 /* The canonical state-1 frame services a modal dialog first.  Without one it
    dispatches queued region and keyboard input, including the direct New Game,
    Load, Options and exit shortcuts, then completes the shared 2D redraw and
@@ -252,7 +259,7 @@ void MainMenuScreenFrame()
         g_main_menu_hover_region = UpdateRegionMousePosition(point.x, point.y);
         while (DequeueEvent(&input) == 1) {
             if (!DispatchRegionInput(&input) && input.usEvent == KEY_DOWN) {
-                if (IgnoreSpellCastingInput(&input)) {
+                if (HandleDeveloperModeKey(&input)) {
                     if (g_dev_mode_689b32 != 0) {
                         SetFont(g_font_683660);
                         SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);

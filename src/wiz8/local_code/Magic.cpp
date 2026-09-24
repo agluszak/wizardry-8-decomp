@@ -60,7 +60,7 @@
 /* Local Code\Magic.cpp, named by the assertion this body embeds. */
 
 // FUNCTION: WIZ8 0x004ff3b0
-int GetProfessionCasterLevel(W8Character* character, int profession_id)
+int GetProfessionCasterLevel(const W8Character* character, int profession_id)
 {
     int magic_level_offset;
 
@@ -857,35 +857,36 @@ void FinishSpellEffect00500F70(W8SpellEffectEntry* effect)
 
 /* Scale a value by how far ahead of the difficulty's own pace one combatant
    is. Out of combat nothing is scaled; in combat a combatant slower than the
-   pace is left alone too. */
+   pace is left alone too, and so is every value under an unknown difficulty. */
 // FUNCTION: WIZ8 0x00501910
-unsigned int ScaleByCombatPace(int party_slot, unsigned int* value)
+void ScaleByCombatPace(int party_slot, unsigned int* value)
 {
     unsigned int pace;
     unsigned int phase_clock;
-    int scaled;
 
     if (gXStatus.fCombatMode == 0) {
-        return gXStatus.fCombatMode;
+        return;
     }
 
-    if (g_settings_6850c8.difficulty == W8_DIFFICULTY_NOVICE) {
+    switch (g_settings_6850c8.difficulty) {
+    case W8_DIFFICULTY_NOVICE:
         pace = 0x50;
-    } else if (g_settings_6850c8.difficulty == W8_DIFFICULTY_NORMAL) {
+        break;
+    case W8_DIFFICULTY_NORMAL:
         pace = 0x3c;
-    } else {
-        if (g_settings_6850c8.difficulty != W8_DIFFICULTY_EXPERT) {
-            srAssertFail("FALSE", MAGIC_CPP, 5352, 0);
-        }
+        break;
+    case W8_DIFFICULTY_EXPERT:
         pace = 0x28;
+        break;
+    default:
+        srAssertFail("FALSE", MAGIC_CPP, 5352, 0);
+        return;
     }
 
     phase_clock = g_combat_state->characters[party_slot].phase_clock_stamp;
     if (pace <= phase_clock) {
-        scaled = ((0x32 - pace) + phase_clock) * *value;
-        *value = scaled / 50;
+        *value = ((0x32 - pace) + phase_clock) * *value * 2 / 100;
     }
-    return phase_clock;
 }
 
 /* How likely a spell is to fail outright. The spell's own cost band picks a

@@ -322,16 +322,11 @@ void ClearHeldItemDisplay(void)
 // GLOBAL: WIZ8 0x00647ccc
 unsigned char g_table_647ccc[8] = {7, 4, 6, 2, 5, 8, 9, 3};
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wchar-subscripts"
-/* The recovered index is a char; the eight-entry table is the domain, and this
-   helper is not a virtual whose mangling we can widen. */
 // FUNCTION: WIZ8 0x0055F2B0
-unsigned char GetTable647CCCEntry(char index)
+unsigned char GetTable647CCCEntry(signed char index)
 {
     return g_table_647ccc[index];
 }
-#pragma clang diagnostic pop
 
 /* Point the mouse cursor at an item's video object, blitting it down as well.
    A negative held item id means the cursor keeps whatever it has. */

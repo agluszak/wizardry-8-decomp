@@ -289,7 +289,8 @@ void RefreshLevelUpReadyNotices(void)
                         text = static_cast<wchar_t*>(operator new(0x400));
                         text[0] = L' ';
                         text[1] = 0xb4;
-                        text[2] = GetTable647CCCEntry(static_cast<char>(row->party_order_index));
+                        text[2] =
+                            GetTable647CCCEntry(static_cast<signed char>(row->party_order_index));
                         text[3] = L' ';
                         swprintf(text + 4, g_format_s_006068e4, character->name);
                         length = wcslen(text);

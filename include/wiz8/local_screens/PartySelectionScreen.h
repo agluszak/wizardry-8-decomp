@@ -24,3 +24,5 @@ unsigned char PartySelectionScreenEnter(void);
 void PartySelectionScreenFrame(void);
 unsigned char PartySelectionScreenLeave(int leaving);
 void GameStartRouterFrame(void);
+// bool-byte-ok: W8ScreenStateHandlers leave slot
+unsigned char GameStartRouterLeave(int leaving);

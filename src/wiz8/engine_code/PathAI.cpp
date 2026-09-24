@@ -394,47 +394,29 @@ float PathAIGetValue004A9E70(W8PathAI* path)
 // FUNCTION: WIZ8 0x004a9e90
 unsigned char PathAINextPoint004A9E90(W8PathAI* path, srVector3T<float>* point)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
-    srVector3T<float>* source;
-
     if (path == 0 || path->nodes_0c == 0) {
         return 0;
     }
-    if (path->point_index >= path->nodes_0c->count) {
+    if (path->point_index >= static_cast<unsigned int>(path->nodes_0c->GetCount())) {
         if (path->looping == 0) {
             return 0;
         }
         path->point_index = 0;
     }
-    srVector3T<float>** slot = path->nodes_0c->data;
-    if (path->point_index < path->nodes_0c->count) {
-        slot += path->point_index;
-    }
-    source = *slot;
-    *point = *source;
+    *point = **path->nodes_0c->GetAt(path->point_index);
     ++path->point_index;
     return 1;
-#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x004a9ef0
 unsigned char PathAIIsComplete004A9EF0(W8PathAI* path)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
     if (path != 0 && path->nodes_0c != 0 &&
-        (path->point_index < path->nodes_0c->count || path->looping != 0)) {
+        (path->point_index < static_cast<unsigned int>(path->nodes_0c->GetCount()) ||
+         path->looping != 0)) {
         return 0;
     }
     return 1;
-#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x004a9f20

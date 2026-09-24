@@ -1743,244 +1743,241 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             ShowNotice(9, gppStringList[0x209], -1, -1, 0);
         }
         ResetCombatSlot(&g_combat_state->TargetHit);
-        goto swings;
-    }
-    if (deflected != 0) {
+    } else if (deflected != 0) {
         if (g_settings_6850c8.verbose_combat_messages == 0) {
             report->missed = 1;
         } else {
             ShowNotice(9, gppStringList[0x20a], -1, -1, 0);
         }
         ResetCombatSlot(&g_combat_state->TargetHit);
-        goto swings;
-    }
-    source.target_diverted =
-        memcmp(&g_combat_state->TargetHit, &monster_info->Target, sizeof(W8CombatSlot)) != 0;
-    if (IsTargetStillPresent(&g_combat_state->TargetHit) == 0) {
-    invalid_target:
-        FormatDebugMessage(g_dev_mode_689b32 == 0,
-                           "InvalidAttackTarget: Target Type %d(char %d,ID %d), Source Type "
-                           "%d(char %d,ID %d)",
-                           g_combat_state->TargetHit.iType, g_combat_state->TargetHit.iChar,
-                           g_combat_state->TargetHit.iMonsterID, source.iType, source.iChar,
-                           source.iMonsterID);
-        return 3;
-    }
-    if (verbose == 0 && source.target_diverted != 0) {
-        memset(static_cast<void*>(&local_report), 0, sizeof(local_report));
-        report = &local_report;
-    }
-    ResolveGuardianInterception00545E50(&source, &g_combat_state->TargetHit);
-    PointCameraAtCombatTarget(&source, &g_combat_state->TargetHit);
-    if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_CHARACTER) {
-        unsigned int total = 0;
-        unsigned int location_roll = Random(100);
-        for (hit_location = 0;; ++hit_location) {
-            if (hit_location >= W8_PC_HIT_LOCATIONS) {
-                if (monster_info == NULL) {
-                    FormatDebugMessage(1, "ERROR: gubLocalACPercent total only %d%%");
-                } else {
-                    FormatDebugMessage(
-                        0, "ERROR: DBS Attack Locations total only %d%% for monster %ls", total,
-                        GetMonsterName(monster_info, NULL, 0));
-                }
-                hit_location = 1;
-                break;
-            }
-            total += record->attack_body_part_chances_157[hit_location];
-            if (location_roll < total) {
-                break;
-            }
-        }
-        location_text = gppStringList[g_pc_hit_location_labels[hit_location][0]];
     } else {
-        if (g_combat_state->TargetHit.iType != W8_TARGET_KIND_MONSTER) {
+        source.target_diverted =
+            memcmp(&g_combat_state->TargetHit, &monster_info->Target, sizeof(W8CombatSlot)) != 0;
+        if (IsTargetStillPresent(&g_combat_state->TargetHit) == 0) {
             goto invalid_target;
         }
-        target_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-            0x868, COMBAT_ATTACK_CPP, g_combat_state->TargetHit.iMonsterID, 1));
-        target_record = GetMonsterDataForInfo(target_info);
-        unsigned int total = 0;
-        unsigned int location_roll = Random(100);
-        for (hit_location = 0;; ++hit_location) {
-            if (hit_location >= W8_MONSTER_HIT_LOCATIONS) {
-                FormatDebugMessage(0, "ERROR: DBS Hit Locations total only %d%% for monster %ls",
-                                   total, target_record->name_00);
-                hit_location = 3;
-                break;
-            }
-            total += target_record->hit_location_chances_15f[hit_location];
-            if (location_roll < total) {
-                break;
-            }
+        if (verbose == 0 && source.target_diverted != 0) {
+            memset(static_cast<void*>(&local_report), 0, sizeof(local_report));
+            report = &local_report;
         }
-        if (target_record->hit_location_chances_15f[hit_location] < 100) {
-            location_text =
-                gppStringList[g_monster_hit_location_labels[hit_location]
-                                                           [target_record->constitution_15e]];
+        ResolveGuardianInterception00545E50(&source, &g_combat_state->TargetHit);
+        PointCameraAtCombatTarget(&source, &g_combat_state->TargetHit);
+        if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_CHARACTER) {
+            unsigned int total = 0;
+            unsigned int location_roll = Random(100);
+            for (hit_location = 0;; ++hit_location) {
+                if (hit_location >= W8_PC_HIT_LOCATIONS) {
+                    if (monster_info == NULL) {
+                        FormatDebugMessage(1, "ERROR: gubLocalACPercent total only %d%%");
+                    } else {
+                        FormatDebugMessage(
+                            0, "ERROR: DBS Attack Locations total only %d%% for monster %ls", total,
+                            GetMonsterName(monster_info, NULL, 0));
+                    }
+                    hit_location = 1;
+                    break;
+                }
+                total += record->attack_body_part_chances_157[hit_location];
+                if (location_roll < total) {
+                    break;
+                }
+            }
+            location_text = gppStringList[g_pc_hit_location_labels[hit_location][0]];
         } else {
-            location_text = &g_wchar_00689b34;
-        }
-    }
-    wcscpy(location_name, location_text);
-    queued_fatigue = 1;
-    if (guaranteed_hit == 0 && to_hit < roll) {
-        if (BlockedForSpecialReason(attack->weapon_class_1c, &g_combat_state->TargetHit, roll,
-                                    to_hit, 9) == 0) {
-            if (verbose != 0) {
-                ShowNoticef(9, gppStringList[0x209]);
+            if (g_combat_state->TargetHit.iType != W8_TARGET_KIND_MONSTER) {
+                goto invalid_target;
             }
-            if (TryPanicWoundedCharacter(&g_combat_state->TargetHit) == 0 &&
-                g_combat_state->TargetHit.iType == W8_TARGET_KIND_CHARACTER && Random(100) < 0x32) {
-                event_ids[0] = g_special_event_0068c570;
-                event_ids[1] = g_special_event_0068c560;
-                event_ids[2] = g_special_event_0068c574;
-                QueueCharacterEvent(&g_status_685170.buffers.Char[g_combat_state->TargetHit.iChar],
-                                    event_ids[Random(3)], 0, g_effect_argument_005ed8c8,
-                                    g_effect_argument_005ed914);
+            target_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+                0x868, COMBAT_ATTACK_CPP, g_combat_state->TargetHit.iMonsterID, 1));
+            target_record = GetMonsterDataForInfo(target_info);
+            unsigned int total = 0;
+            unsigned int location_roll = Random(100);
+            for (hit_location = 0;; ++hit_location) {
+                if (hit_location >= W8_MONSTER_HIT_LOCATIONS) {
+                    FormatDebugMessage(0,
+                                       "ERROR: DBS Hit Locations total only %d%% for monster %ls",
+                                       total, target_record->name_00);
+                    hit_location = 3;
+                    break;
+                }
+                total += target_record->hit_location_chances_15f[hit_location];
+                if (location_roll < total) {
+                    break;
+                }
             }
-            if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER &&
-                static_cast<char>(target_info->p3D->IsFacingMonster004C4CA0(monster_info->p3D)) !=
-                    0 &&
-                target_info->fMotionless == 0) {
-                StartMonsterCycle(target_info, 0x13, 1);
-            }
-        }
-    } else {
-        if (g_settings_6850c8.verbose_combat_messages == 0) {
-            report->target = g_combat_state->TargetHit;
-        } else {
-            ShowNoticef(9, gppStringList[0x20c], location_name);
-        }
-        queued_fatigue = 2;
-        int penetration = (monster_info->modifiers_1db.attack_bonus_02 +
-                           monster_info->modifiers_1db.hit_bonus_01) *
-                              5 +
-                          attack->attack_score_04;
-        penetration += AttackModeMod(1, action_detail);
-        for (int i = 0; i < 0x12; ++i) {
-            if (attack->ubWeaponNameIndex == g_low_fatigue_attack_verbs_0061d284[i]) {
-                penetration -= FatigueArmorPenalty(monster_info->fatigue_band);
-                break;
-            }
-        }
-        penetration -=
-            TargetArmorClassAtLocation(&g_combat_state->TargetHit, action_detail, hit_location) * 5;
-        int target_sum;
-        if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
-            unsigned int target_index = MonsterGetIndexByLocationID(
-                0xf2b, COMBAT_ATTACK_CPP, g_combat_state->TargetHit.iMonsterID, 1);
-            W8MonsterInfo* target = MonsterGetScriptPartByLocationIndex(target_index);
-            target_sum = target->attributes[4] + target->attributes[3] + target->attributes[2] +
-                         target->attributes[1];
-        } else if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_CHARACTER) {
-            int target_char = g_combat_state->TargetHit.iChar;
-            target_sum =
-                g_status_685170.buffers.Char[target_char]
-                    .attributes[W8_ATTRIBUTE_SENSES]
-                    .effective +
-                g_status_685170.buffers.Char[target_char].attributes[W8_ATTRIBUTE_SPEED].effective +
-                g_status_685170.buffers.Char[target_char]
-                    .attributes[W8_ATTRIBUTE_DEXTERITY]
-                    .effective +
-                g_status_685170.buffers.Char[target_char]
-                    .attributes[W8_ATTRIBUTE_INTELLIGENCE]
-                    .effective;
-        } else {
-            FormatDebugMessage(1,
-                               "GetTargetAttackAttributes: Invalid Target Type %d(char %d, ID %d)",
-                               g_combat_state->TargetHit.iType, g_combat_state->TargetHit.iChar,
-                               g_combat_state->TargetHit.iMonsterID);
-            target_sum = 0;
-        }
-        penetration += (monster_info->attributes[4] + monster_info->attributes[3] +
-                        monster_info->attributes[2] + monster_info->attributes[1] - target_sum) /
-                       10;
-        ScaleValueForMonsterDifficulty(monster_info, &penetration);
-        CombatLog("TO PENETRATE: Chance %d, Rolled was %d", penetration, roll);
-        if (guaranteed_penetration == 0 && penetration < roll) {
-            message_id = 0x20f;
-            goto missed;
-        }
-        queued_fatigue = 3;
-        damage = ResolveMonsterAttackDamage(monster_info, attack, &dice_count);
-        if (damage == 0) {
-            message_id = 0x20e;
-        } else {
-            if (fumbled != 0) {
-                damage = CapAttackDamageByTargetHealth00545A00(damage);
-            } else if (dice_count > 1 && verbose != 0) {
-                ShowNoticef(9, gppStringList[0x20d], dice_count);
-            }
-            MakeMonsterHitSound0054A270(attack, &g_combat_state->TargetHit, hit_location, -1);
-            if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_CHARACTER) {
-                applied =
-                    ApplyDamageToCharacter(g_combat_state->TargetHit.iChar, damage, 0, verbose != 0,
-                                           verbose != 0, verbose != 0 ? NULL : report, 0);
+            if (target_record->hit_location_chances_15f[hit_location] < 100) {
+                location_text =
+                    gppStringList[g_monster_hit_location_labels[hit_location]
+                                                               [target_record->constitution_15e]];
             } else {
-                applied = ApplyDamageToMonster(target_info, damage, &source, 0, verbose != 0,
-                                               verbose != 0, verbose != 0 ? NULL : report, 0);
+                location_text = &g_wchar_00689b34;
             }
-            if (applied != 0) {
-                memset(&effect, 0, sizeof(effect));
-                memcpy(effect.condition_chances, attack->missile_values_05, 0x10);
-                effect.power_level =
-                    record->effective_level_24f +
-                    (record->effective_level_24f > 0xe ? 0xf : record->effective_level_24f);
-                effect.magnitude_base_1c = attack->missile_magnitude_1b;
-                ApplyEffectConditions(&source, &g_combat_state->TargetHit, &effect, verbose, 0,
-                                      report);
-                if (range < W8_RANGE_LONG &&
+        }
+        wcscpy(location_name, location_text);
+        queued_fatigue = 1;
+        if (guaranteed_hit == 0 && to_hit < roll) {
+            if (BlockedForSpecialReason(attack->weapon_class_1c, &g_combat_state->TargetHit, roll,
+                                        to_hit, 9) == 0) {
+                if (verbose != 0) {
+                    ShowNoticef(9, gppStringList[0x209]);
+                }
+                if (TryPanicWoundedCharacter(&g_combat_state->TargetHit) == 0 &&
                     g_combat_state->TargetHit.iType == W8_TARGET_KIND_CHARACTER &&
-                    hit_location == 1 &&
-                    g_status_685170.buffers.Char[g_combat_state->TargetHit.iChar]
-                            .EquippedItem[W8_EQUIP_SLOT_TORSO]
-                            .iItemNo == 500) {
-                    SetTargetSourceToCharacter(g_combat_state->TargetHit.iChar, &victim_source);
-                    ApplyDirectDamageToMonster00553770(monster_info, &victim_source, damage);
+                    Random(100) < 0x32) {
+                    event_ids[0] = g_special_event_0068c570;
+                    event_ids[1] = g_special_event_0068c560;
+                    event_ids[2] = g_special_event_0068c574;
+                    QueueCharacterEvent(
+                        &g_status_685170.buffers.Char[g_combat_state->TargetHit.iChar],
+                        event_ids[Random(3)], 0, g_effect_argument_005ed8c8,
+                        g_effect_argument_005ed914);
+                }
+                if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER &&
+                    static_cast<char>(
+                        target_info->p3D->IsFacingMonster004C4CA0(monster_info->p3D)) != 0 &&
+                    target_info->fMotionless == 0) {
+                    StartMonsterCycle(target_info, 0x13, 1);
                 }
             }
-        }
-        if (damage == 0) {
-            goto missed;
-        }
-        goto resolved;
-    missed:
-        MakeMonsterHitSound0054A270(attack, &g_combat_state->TargetHit, hit_location, 0x2a);
-        if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
-            MonsterReactsToBeingStruck(target_info, &source, 0);
-        }
-        if (verbose == 0) {
-            ++report->count;
         } else {
-            ShowNoticef(9, gppStringList[message_id]);
-        }
-    resolved:
-        if (range < W8_RANGE_LONG) {
+            if (g_settings_6850c8.verbose_combat_messages == 0) {
+                report->target = g_combat_state->TargetHit;
+            } else {
+                ShowNoticef(9, gppStringList[0x20c], location_name);
+            }
+            queued_fatigue = 2;
+            int penetration = (monster_info->modifiers_1db.attack_bonus_02 +
+                               monster_info->modifiers_1db.hit_bonus_01) *
+                                  5 +
+                              attack->attack_score_04;
+            penetration += AttackModeMod(1, action_detail);
+            for (int i = 0; i < 0x12; ++i) {
+                if (attack->ubWeaponNameIndex == g_low_fatigue_attack_verbs_0061d284[i]) {
+                    penetration -= FatigueArmorPenalty(monster_info->fatigue_band);
+                    break;
+                }
+            }
+            penetration -= TargetArmorClassAtLocation(&g_combat_state->TargetHit, action_detail,
+                                                      hit_location) *
+                           5;
+            int target_sum;
             if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
-                W8Enchantment* enchantment = &target_info->enchantments[3];
-                if (enchantment->turns_08 != 0) {
-                    SetTargetSourceToMonster(target_info, &victim_source);
-                    ApplyDiceDamageToMonster00553540(monster_info, &victim_source, enchantment);
-                    if (--enchantment->power_00 == 0) {
-                        ClearMonsterEnchantmentSlot(target_info->location_id, 3);
+                unsigned int target_index = MonsterGetIndexByLocationID(
+                    0xf2b, COMBAT_ATTACK_CPP, g_combat_state->TargetHit.iMonsterID, 1);
+                W8MonsterInfo* target = MonsterGetScriptPartByLocationIndex(target_index);
+                target_sum = target->attributes[4] + target->attributes[3] + target->attributes[2] +
+                             target->attributes[1];
+            } else if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_CHARACTER) {
+                int target_char = g_combat_state->TargetHit.iChar;
+                target_sum = g_status_685170.buffers.Char[target_char]
+                                 .attributes[W8_ATTRIBUTE_SENSES]
+                                 .effective +
+                             g_status_685170.buffers.Char[target_char]
+                                 .attributes[W8_ATTRIBUTE_SPEED]
+                                 .effective +
+                             g_status_685170.buffers.Char[target_char]
+                                 .attributes[W8_ATTRIBUTE_DEXTERITY]
+                                 .effective +
+                             g_status_685170.buffers.Char[target_char]
+                                 .attributes[W8_ATTRIBUTE_INTELLIGENCE]
+                                 .effective;
+            } else {
+                FormatDebugMessage(
+                    1, "GetTargetAttackAttributes: Invalid Target Type %d(char %d, ID %d)",
+                    g_combat_state->TargetHit.iType, g_combat_state->TargetHit.iChar,
+                    g_combat_state->TargetHit.iMonsterID);
+                target_sum = 0;
+            }
+            penetration +=
+                (monster_info->attributes[4] + monster_info->attributes[3] +
+                 monster_info->attributes[2] + monster_info->attributes[1] - target_sum) /
+                10;
+            ScaleValueForMonsterDifficulty(monster_info, &penetration);
+            CombatLog("TO PENETRATE: Chance %d, Rolled was %d", penetration, roll);
+            if (guaranteed_penetration == 0 && penetration < roll) {
+                message_id = 0x20f;
+            } else {
+                queued_fatigue = 3;
+                damage = ResolveMonsterAttackDamage(monster_info, attack, &dice_count);
+                if (damage == 0) {
+                    message_id = 0x20e;
+                } else {
+                    if (fumbled != 0) {
+                        damage = CapAttackDamageByTargetHealth00545A00(damage);
+                    } else if (dice_count > 1 && verbose != 0) {
+                        ShowNoticef(9, gppStringList[0x20d], dice_count);
+                    }
+                    MakeMonsterHitSound0054A270(attack, &g_combat_state->TargetHit, hit_location,
+                                                -1);
+                    if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_CHARACTER) {
+                        applied = ApplyDamageToCharacter(g_combat_state->TargetHit.iChar, damage, 0,
+                                                         verbose != 0, verbose != 0,
+                                                         verbose != 0 ? NULL : report, 0);
+                    } else {
+                        applied =
+                            ApplyDamageToMonster(target_info, damage, &source, 0, verbose != 0,
+                                                 verbose != 0, verbose != 0 ? NULL : report, 0);
+                    }
+                    if (applied != 0) {
+                        memset(&effect, 0, sizeof(effect));
+                        memcpy(effect.condition_chances, attack->missile_values_05, 0x10);
+                        effect.power_level =
+                            record->effective_level_24f +
+                            (record->effective_level_24f > 0xe ? 0xf : record->effective_level_24f);
+                        effect.magnitude_base_1c = attack->missile_magnitude_1b;
+                        ApplyEffectConditions(&source, &g_combat_state->TargetHit, &effect, verbose,
+                                              0, report);
+                        if (range < W8_RANGE_LONG &&
+                            g_combat_state->TargetHit.iType == W8_TARGET_KIND_CHARACTER &&
+                            hit_location == 1 &&
+                            g_status_685170.buffers.Char[g_combat_state->TargetHit.iChar]
+                                    .EquippedItem[W8_EQUIP_SLOT_TORSO]
+                                    .iItemNo == 500) {
+                            SetTargetSourceToCharacter(g_combat_state->TargetHit.iChar,
+                                                       &victim_source);
+                            ApplyDirectDamageToMonster00553770(monster_info, &victim_source,
+                                                               damage);
+                        }
                     }
                 }
-            } else {
-                W8Enchantment* enchantment =
-                    &g_status_685170.buffers.Char[g_combat_state->TargetHit.iChar].enchantments[3];
-                if (enchantment->turns_08 != 0) {
-                    SetTargetSourceToCharacter(g_combat_state->TargetHit.iChar, &victim_source);
-                    ApplyDiceDamageToMonster00553540(monster_info, &victim_source, enchantment);
-                    if (--enchantment->power_00 == 0) {
-                        ClearCharacterEnchantmentSlot(g_combat_state->TargetHit.iChar, 3);
+            }
+            if (damage == 0) {
+                MakeMonsterHitSound0054A270(attack, &g_combat_state->TargetHit, hit_location, 0x2a);
+                if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
+                    MonsterReactsToBeingStruck(target_info, &source, 0);
+                }
+                if (verbose == 0) {
+                    ++report->count;
+                } else {
+                    ShowNoticef(9, gppStringList[message_id]);
+                }
+            }
+            if (range < W8_RANGE_LONG) {
+                if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
+                    W8Enchantment* enchantment = &target_info->enchantments[3];
+                    if (enchantment->turns_08 != 0) {
+                        SetTargetSourceToMonster(target_info, &victim_source);
+                        ApplyDiceDamageToMonster00553540(monster_info, &victim_source, enchantment);
+                        if (--enchantment->power_00 == 0) {
+                            ClearMonsterEnchantmentSlot(target_info->location_id, 3);
+                        }
+                    }
+                } else {
+                    W8Enchantment* enchantment =
+                        &g_status_685170.buffers.Char[g_combat_state->TargetHit.iChar]
+                             .enchantments[3];
+                    if (enchantment->turns_08 != 0) {
+                        SetTargetSourceToCharacter(g_combat_state->TargetHit.iChar, &victim_source);
+                        ApplyDiceDamageToMonster00553540(monster_info, &victim_source, enchantment);
+                        if (--enchantment->power_00 == 0) {
+                            ClearCharacterEnchantmentSlot(g_combat_state->TargetHit.iChar, 3);
+                        }
                     }
                 }
             }
         }
+        ApplyQueuedFatigue(&g_combat_state->TargetHit, queued_fatigue, 1);
     }
-    ApplyQueuedFatigue(&g_combat_state->TargetHit, queued_fatigue, 1);
-swings:
     if (combat->uiSwingsRemaining == 0) {
         srAssertFail("pCmbt->uiSwingsRemaining > 0", COMBAT_ATTACK_CPP, 0x950, 0);
     }
@@ -2033,6 +2030,15 @@ swings:
             }
         }
     }
+    return 3;
+
+invalid_target:
+    FormatDebugMessage(g_dev_mode_689b32 == 0,
+                       "InvalidAttackTarget: Target Type %d(char %d,ID %d), Source Type "
+                       "%d(char %d,ID %d)",
+                       g_combat_state->TargetHit.iType, g_combat_state->TargetHit.iChar,
+                       g_combat_state->TargetHit.iMonsterID, source.iType, source.iChar,
+                       source.iMonsterID);
     return 3;
 }
 

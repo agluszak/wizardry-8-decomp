@@ -280,11 +280,6 @@ W8NpcState* GetNpcStateByKind(int kind)
 // FUNCTION: WIZ8 0x0050B8F0
 bool NpcLeadHasNameStyle(unsigned int kind)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
     if (g_status_685170.buffers.XChar[0].fOccupied != 0) {
         W8NpcState* npc = 0;
         if (g_npc_states != 0) {
@@ -320,7 +315,6 @@ bool NpcLeadHasNameStyle(unsigned int kind)
         }
     }
     return 0;
-#pragma clang diagnostic pop
 }
 
 /* The monster standing in the world for this NPC, if one is. */
@@ -802,8 +796,6 @@ bool CanNpcJoinParty(W8NpcState* npc)
     unsigned int total;
     unsigned int average;
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
     if (npc->record->has_group == 0) {
         return 0;
     }
@@ -812,7 +804,7 @@ bool CanNpcJoinParty(W8NpcState* npc)
     band = GetLevelBand(g_status_685170.current_level);
     row = 0;
     while (g_npc_services[row].service_id != 0xffffffff) {
-        if (g_npc_services[row].service_id == band) {
+        if (g_npc_services[row].service_id == static_cast<unsigned int>(band)) {
             if ((npc->record->service_flags & g_npc_services[row].bit) != 0) {
                 return 0;
             }
@@ -858,7 +850,6 @@ bool CanNpcJoinParty(W8NpcState* npc)
         }
     }
     return 1;
-#pragma clang diagnostic pop
 }
 
 /* Whether the NPC offers one service. The service id is looked up in a table
@@ -2310,8 +2301,8 @@ void UpdateNpcEvents0050D530(void)
     unsigned int index;
 
     if (g_status_685170.trang_check_pending_49bb != 0 &&
-        static_cast<unsigned int>(g_status_685170.world_clock - g_status_685170.trang_check_clock_49b7) >
-            0x2a30) {
+        static_cast<unsigned int>(g_status_685170.world_clock -
+                                  g_status_685170.trang_check_clock_49b7) > 0x2a30) {
         if (GetFact(W8_FACT_ALIGNMENT_UMPANI) != 0 && Random(100) < 6) {
             SetFact(W8_FACT_TRANG_YOU_ARE_BUSTED, 1, 0);
         }
@@ -2445,8 +2436,8 @@ void UpdateNpcEvents0050D530(void)
     }
 
     if (g_status_685170.fact_b8_pending_248a != 0 &&
-        static_cast<unsigned int>(g_status_685170.world_clock - g_status_685170.fact_b8_clock_2493) >
-            0x2a300) {
+        static_cast<unsigned int>(g_status_685170.world_clock -
+                                  g_status_685170.fact_b8_clock_2493) > 0x2a300) {
         g_status_685170.fact_b8_pending_248a = 0;
         SetFact(0xb8, 1, 0);
     }
@@ -2568,11 +2559,6 @@ void ClearPendingNpcLevelFlags0050C270(void)
 // FUNCTION: WIZ8 0x0050c2e0
 void ReleaseNpcMonsterBindings0050C2E0(void)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
     unsigned int count = g_npc_states->count;
     unsigned int npc_index = 0;
 
@@ -2622,15 +2608,11 @@ void ReleaseNpcMonsterBindings0050C2E0(void)
                     }
                 }
                 {
-                    unsigned int partner_index = companion->partner_index_2c;
+                    int partner_index = companion->partner_index_2c;
 
-                    if (partner_index != 0xffffffff && static_cast<int>(partner_index) <= count) {
-                        W8NpcState** target_slot = g_npc_states->data;
-
-                        if (static_cast<int>(partner_index) < count) {
-                            target_slot += partner_index;
-                        }
-                        W8NpcState* target = *target_slot;
+                    if (partner_index != -1 && partner_index >= 0 &&
+                        partner_index <= g_npc_states->GetCount()) {
+                        W8NpcState* target = *g_npc_states->GetAt(partner_index);
 
                         target->has_monster = 0;
                         ReleaseNpcScriptFile0055A0A0(target->script_file);
@@ -2645,7 +2627,6 @@ void ReleaseNpcMonsterBindings0050C2E0(void)
         count = g_npc_states->count;
         ++npc_index;
     } while (npc_index < count);
-#pragma clang diagnostic pop
 }
 
 /* Release the monster binding held under this NPC's naming style, now or when
@@ -2682,13 +2663,9 @@ void ReleaseNpcMonsterBinding0050C440(W8NpcState* npc, char level)
             }
             int partner_index = companion->partner_index_2c;
 
-            if (partner_index != -1 && partner_index >= 0 && partner_index <= g_npc_states->count) {
-                W8NpcState** target_slot = g_npc_states->data;
-
-                if (partner_index < g_npc_states->count) {
-                    target_slot += partner_index;
-                }
-                W8NpcState* target = *target_slot;
+            if (partner_index != -1 && partner_index >= 0 &&
+                partner_index <= g_npc_states->GetCount()) {
+                W8NpcState* target = *g_npc_states->GetAt(partner_index);
 
                 target->has_monster = 0;
                 ReleaseNpcScriptFile0055A0A0(target->script_file);
@@ -2933,11 +2910,6 @@ void HandleMarkedNpcEvent0050CF70(W8NpcState* npc, char mode)
 // FUNCTION: WIZ8 0x0050da00
 void ReleaseMarkedNpcBindings0050DA00(void)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
     unsigned int count = g_npc_states->count;
     unsigned int npc_index = 0;
 
@@ -2990,16 +2962,11 @@ void ReleaseMarkedNpcBindings0050DA00(void)
                         }
                     }
                     {
-                        unsigned int partner_index = companion->partner_index_2c;
+                        int partner_index = companion->partner_index_2c;
 
-                        if (partner_index != 0xffffffff &&
-                            static_cast<int>(partner_index) <= count) {
-                            W8NpcState** target_slot = g_npc_states->data;
-
-                            if (static_cast<int>(partner_index) < count) {
-                                target_slot += partner_index;
-                            }
-                            W8NpcState* target = *target_slot;
+                        if (partner_index != -1 && partner_index >= 0 &&
+                            partner_index <= g_npc_states->GetCount()) {
+                            W8NpcState* target = *g_npc_states->GetAt(partner_index);
 
                             target->has_monster = 0;
                             ReleaseNpcScriptFile0055A0A0(target->script_file);
@@ -3015,7 +2982,6 @@ void ReleaseMarkedNpcBindings0050DA00(void)
         count = g_npc_states->count;
         ++npc_index;
     } while (npc_index < count);
-#pragma clang diagnostic pop
 }
 
 /* The activation callback RebindNpcLevelTriggers0050AC60 installs on every NPC

@@ -993,7 +993,7 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
     W8NpcQuoteEntry* entry;
     W8Monster* monster;
     W8NpcState* target;
-    char faction;
+    signed char faction;
     char response_count;
     int response;
     int entry_index;
@@ -2355,40 +2355,21 @@ int FindNpcReplyQuote(wchar_t* text)
 
     quote_index = g_npc_scripting.staging_restore.current_quote_index;
     quote = g_npc_scripting.npc->script_file->quotes + quote_index;
-    index = 0;
-    if (quote->entry_count > 0) {
-        entry = quote->entries;
-        do {
-            if (entry->kind_00 == 5 || entry->kind_00 == 0x13) {
-                goto found;
-            }
-            ++index;
-            ++entry;
-        } while (index < quote->entry_count);
-    }
-
-fallback:
-    index = 0;
-    if (quote->entry_count <= 0) {
-        return -1;
-    }
-    entry = quote->entries;
-    while (entry->kind_00 != 6 || entry->operand_09 != 2) {
-        ++index;
-        ++entry;
-        if (index >= quote->entry_count) {
-            return -1;
+    for (index = 0; index < quote->entry_count; ++index) {
+        entry = &quote->entries[index];
+        if (entry->kind_00 == 5 || entry->kind_00 == 0x13) {
+            break;
         }
     }
-    goto done;
 
-found:
-    if (entry->sub_entry_count == 0) {
-        goto fallback;
-    }
-    for (sub = 0; sub < entry->sub_entry_count; ++sub) {
-        swprintf(sub_text, L"%S", entry->sub_entries[sub].text);
-        if (CompareWideTextIgnoreAsciiCase00402920(sub_text, text) == 0) {
+    if (index < quote->entry_count) {
+        for (sub = 0; sub < entry->sub_entry_count; ++sub) {
+            swprintf(sub_text, L"%S", entry->sub_entries[sub].text);
+            if (CompareWideTextIgnoreAsciiCase00402920(sub_text, text) != 0) {
+                continue;
+            }
+            /* The reply matched an option: a keyword answer, else the generic
+               answer. */
             for (index = 0; index < quote->entry_count; ++index) {
                 entry = &quote->entries[index];
                 if (entry->kind_00 == 6 && entry->operand_09 == 3 && entry->sub_entry_count != 0) {
@@ -2400,25 +2381,23 @@ found:
                     }
                 }
             }
-            index = 0;
-            if (quote->entry_count <= 0) {
-                return -1;
-            }
-            entry = quote->entries;
-            while (entry->kind_00 != 6 || entry->operand_09 != 1) {
-                ++index;
-                ++entry;
-                if (index >= quote->entry_count) {
-                    return -1;
+            for (index = 0; index < quote->entry_count; ++index) {
+                entry = &quote->entries[index];
+                if (entry->kind_00 == 6 && entry->operand_09 == 1) {
+                    return entry->operand_01;
                 }
             }
-            goto done;
+            return -1;
         }
     }
-    goto fallback;
 
-done:
-    return entry->operand_01;
+    for (index = 0; index < quote->entry_count; ++index) {
+        entry = &quote->entries[index];
+        if (entry->kind_00 == 6 && entry->operand_09 == 2) {
+            return entry->operand_01;
+        }
+    }
+    return -1;
 }
 
 // FUNCTION: WIZ8 0x005294c0
