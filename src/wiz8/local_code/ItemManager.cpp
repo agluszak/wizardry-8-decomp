@@ -197,8 +197,7 @@ int FindItemTableByName(const char* name)
 #pragma clang diagnostic pop
 }
 
-static __forceinline W8WorldItem* CreateTableItem(unsigned int item_id,
-                                                  const srVector3T<float>* position)
+static inline W8WorldItem* CreateTableItem(unsigned int item_id, const srVector3T<float>* position)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"

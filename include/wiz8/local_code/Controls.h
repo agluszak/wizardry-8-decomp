@@ -33,7 +33,7 @@ struct Controls {
     Controls();
     Controls(int left, int top, int right, int bottom, int render_target, int render_arg_1c,
              int render_arg_20);
-    __forceinline ~Controls();
+    ~Controls();
 
     virtual void SetEnabled(bool enable);
     virtual void Invalidate(const W8ControlsRect* rect);

@@ -106,7 +106,7 @@ Controls::Controls(int left, int top, int right_bound, int bottom_bound, int ren
 }
 
 // FUNCTION: WIZ8 0x004f2d30
-__forceinline Controls::~Controls() {}
+inline Controls::~Controls() {}
 
 /* 0x00562A50 takes the redraw-request mask the panel raises. */
 // GLOBAL: WIZ8 0x0060CC74
@@ -749,7 +749,7 @@ unsigned int W8TextBuffer::GetLineHeight()
 
 /* The text-control declaration is shared in Controls.h so every consumer sees
    the same 20-slot hierarchy and its embedded W8TextBuffer at +0x60. */
-__forceinline void W8TextControl::InvalidateCore(unsigned char immediate)
+inline void W8TextControl::InvalidateCore(unsigned char immediate)
 {
     if (m_pPanel != 0) {
         m_dirty = 1;
@@ -1435,7 +1435,7 @@ public:
     virtual void OnLeftButtonDown(int event) override;
     virtual void OnLeftButtonUp(int event) override;
     virtual void OnMouseMove(int event) override;
-    __forceinline void SetRangePosition(float position)
+    void SetRangePosition(float position)
     {
         m_position = position;
         if (m_position < m_minimumPosition) {
@@ -1478,10 +1478,10 @@ protected:
     void SynchronizeRangeValue();
 };
 
-__forceinline W8RangeButton::W8RangeButton(Controls* panel, unsigned int region, int left, int top,
-                                           int right, int bottom, int text_40, int text_44,
-                                           int text_48, int text_4c, int text_54, int text_50,
-                                           int text_58, short direction, W8RangeControl* range)
+inline W8RangeButton::W8RangeButton(Controls* panel, unsigned int region, int left, int top,
+                                    int right, int bottom, int text_40, int text_44, int text_48,
+                                    int text_4c, int text_54, int text_50, int text_58,
+                                    short direction, W8RangeControl* range)
     : W8TextControl(panel, region, left, top, right, bottom, text_40, text_44, text_48, text_4c,
                     text_54, text_50, text_58),
       m_direction(direction), m_range(range)
@@ -1597,7 +1597,7 @@ void W8RangeControl::SetRangeEnabled(bool enabled)
     m_thumb->SetEnabled(enabled);
 }
 
-__forceinline void W8VerticalRangeThumb::ClampPositionAndInvalidate()
+inline void W8VerticalRangeThumb::ClampPositionAndInvalidate()
 {
     if (m_position < m_minimumPosition) {
         m_position = m_minimumPosition;
@@ -1616,7 +1616,7 @@ __forceinline void W8VerticalRangeThumb::ClampPositionAndInvalidate()
     }
 }
 
-__forceinline void W8VerticalRangeThumb::SynchronizeRangeValue()
+inline void W8VerticalRangeThumb::SynchronizeRangeValue()
 {
     int value =
         (int)(m_range->m_thumb->m_position * (float)(m_range->m_maximum - m_range->m_minimum + 1)) +
@@ -1909,7 +1909,7 @@ void W8HelpTextControl::OnLeftButtonDoubleClick(int event)
    the movable thumb sprite and retains the remaining horizontal travel at
    +0x4c. The interaction methods independently prove that geometry: cursor X
    is converted through +0x4c into the normalized float range +0x60..+0x68. */
-__forceinline void W8HorizontalRangeThumb::InvalidateThumb()
+inline void W8HorizontalRangeThumb::InvalidateThumb()
 {
     if (m_pPanel != 0) {
         m_dirty = 1;
@@ -1919,7 +1919,7 @@ __forceinline void W8HorizontalRangeThumb::InvalidateThumb()
     }
 }
 
-__forceinline void W8HorizontalRangeThumb::ClampPositionAndInvalidate()
+inline void W8HorizontalRangeThumb::ClampPositionAndInvalidate()
 {
     if (m_position < m_minimumPosition) {
         m_position = m_minimumPosition;

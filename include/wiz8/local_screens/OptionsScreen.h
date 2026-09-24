@@ -45,7 +45,7 @@ public:
 // VTABLE: WIZ8 0x005eee2c
 class W8OptionsSaveRow : public W8TextControl {
 public:
-    __forceinline W8OptionsSaveRow(Controls* owner, int top, unsigned char save_mode);
+    W8OptionsSaveRow(Controls* owner, int top, unsigned char save_mode);
     virtual ~W8OptionsSaveRow() override;
     virtual void Redraw(int full_redraw) override;
     virtual void OnLeftButtonUp(int event) override;
@@ -255,8 +255,7 @@ public:
 // VTABLE: WIZ8 0x005eee80
 class W8OptionsButton : public W8TextControl {
 public:
-    __forceinline W8OptionsButton(Controls* owner, int left, int top, int right, int bottom,
-                                  const wchar_t* text);
+    W8OptionsButton(Controls* owner, int left, int top, int right, int bottom, const wchar_t* text);
     virtual ~W8OptionsButton() override;
     virtual void Redraw(int full_redraw) override;
     virtual void OnMouseEnter(int event) override;
@@ -266,8 +265,7 @@ public:
 // VTABLE: WIZ8 0x005eeed0
 class W8OptionsKeyButton : public W8OptionsButton {
 public:
-    __forceinline W8OptionsKeyButton(Controls* owner, int top, int primary_binding,
-                                     int secondary_binding);
+    W8OptionsKeyButton(Controls* owner, int top, int primary_binding, int secondary_binding);
     virtual ~W8OptionsKeyButton() override;
 
     void SetKey(unsigned short key);

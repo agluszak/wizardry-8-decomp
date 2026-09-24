@@ -721,7 +721,7 @@ void OpenKeyboardMenuForSlot(int slot)
 }
 
 // FUNCTION: WIZ8 0x00592E60
-__forceinline void CloseKeyboardMenu(void)
+inline void CloseKeyboardMenu(void)
 {
     int index;
 

@@ -1710,7 +1710,7 @@ unsigned int GetSpellFailureChanceForCast(W8Character* character, int spell_id,
    roll: base plus the dice at one each, and base plus the dice at their
    faces. The die count is multiplied by the power level first, in a byte, so a
    high power level on a many-dice spell wraps rather than growing. */
-static __forceinline int AverageEffectAtPower(W8Dice dice, unsigned int power_level)
+static inline int AverageEffectAtPower(W8Dice dice, unsigned int power_level)
 {
     unsigned char count = (unsigned char)(dice.count * (unsigned char)power_level);
 
