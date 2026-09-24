@@ -340,15 +340,21 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
         if (gXStatus.fCombatMode != 0 && range >= 0 && range < 2) {
             rows = CountRowsBetween(party_slot, monster_info);
             while (rows != 0) {
-                if (range == 0) {
-                    goto cannot_aim;
+                if (range == W8_RANGE_TOUCH) {
+                    range = W8_RANGE_NONE;
+                    break;
                 }
                 --range;
                 --rows;
             }
         }
         if (range == W8_RANGE_NONE) {
-            goto cannot_aim;
+            if (notify_failure != 0) {
+                QueueCharacterEvent(&g_status_685170.buffers.Char[party_slot],
+                                    g_special_event_0068c530, 0, g_effect_argument_005ed8c8,
+                                    g_effect_argument_005ed914);
+            }
+            return 0;
         }
     }
     if (monster_info->party_threat.los_flags_05[flag] == 0) {
@@ -360,15 +366,13 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
     }
     if (CalcRangeDistance(static_cast<W8RangeCategory>(range)) <
         monster_info->p3D->GetDistanceToPlayer004C7CB0()) {
-        goto cannot_aim;
+        if (notify_failure != 0) {
+            QueueCharacterEvent(&g_status_685170.buffers.Char[party_slot], g_special_event_0068c530,
+                                0, g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+        }
+        return 0;
     }
     return 1;
-cannot_aim:
-    if (notify_failure != 0) {
-        QueueCharacterEvent(&g_status_685170.buffers.Char[party_slot], g_special_event_0068c530, 0,
-                            g_effect_argument_005ed8c8, g_effect_argument_005ed914);
-    }
-    return 0;
 }
 
 /* The slot-vs-slot reach check the target-list builders share: the slot's
@@ -387,33 +391,33 @@ char CharacterActionReachesSlot(int party_slot, int hand, int target_slot, int c
     ChooseCombatAction(party_slot, context, &kind, &action, 0, &detail);
     int range;
     switch (kind) {
-    case 0:
-    case 1:
+    case W8_ACTION_ATTACK:
+    case W8_ACTION_BERSERK:
         range = GetCharAttackRange(character, hand);
         break;
-    case 2:
+    case W8_ACTION_BREATHE:
         return 1;
-    case 5:
-        goto screened;
-    case 7:
+    case W8_ACTION_PROTECT:
+        range = W8_RANGE_TOUCH;
+        break;
+    case W8_ACTION_CAST_SPELL:
         if (action == 0) {
             return 0;
         }
         range = g_spell_records[action].range_category;
         break;
-    case 8:
+    case W8_ACTION_USE_ITEM:
         range = GetItemSpellRange(detail->item_use.item);
         break;
     default:
         return 0;
     }
-    if (range == -1) {
+    if (range == W8_RANGE_NONE) {
         return 0;
     }
-    if (range != 0) {
+    if (range != W8_RANGE_TOUCH) {
         return 1;
     }
-screened:
     if (FrontRankScreens(party_slot, target_slot)) {
         return 0;
     }
@@ -644,7 +648,8 @@ unsigned char MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned i
             for (crossable = CountRowsBetween(party_slot, monster_info); crossable != 0;
                  --crossable) {
                 if (range == W8_RANGE_TOUCH) {
-                    goto next_party_slot;
+                    range = W8_RANGE_NONE;
+                    break;
                 }
                 range = static_cast<W8RangeCategory>(static_cast<int>(range) - 1);
             }
@@ -673,7 +678,6 @@ unsigned char MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned i
                 return 1;
             }
         }
-    next_party_slot:;
     }
 
     count = PLLength(gXStatus.plsMonsterList);
@@ -932,40 +936,24 @@ W8RangeCategory GetMonsterBestRangeCategory(W8MonsterInfo* monster_info,
         *out_sight = 0;
     }
 
-    if (skip_capability_checks == 0) {
-        if (record->prefer_ranged_actions_1b9 != 1) {
-            return best;
-        }
-        if (record->flee_chance_0e1 < 0x50) {
-            if (record->prefer_ranged_actions_1b9 != 1 || record->spell_chance_0e0 < 0x50) {
-                return best;
+    if (skip_capability_checks == 0 && record->prefer_ranged_actions_1b9 != 1) {
+        return best;
+    }
+    if (skip_capability_checks != 0 || record->flee_chance_0e1 >= 0x50) {
+        if (record->special_attack_kind_0e3 != 0 &&
+            g_special_attack_table[record->special_attack_kind_0e3][0] != 6 &&
+            (skip_capability_checks != 0 || CanMonsterFlee(monster_info, record, 1) != 0)) {
+            if (best < W8_RANGE_LONG) {
+                best = W8_RANGE_LONG;
+                *out_sight = W8_RANGE_LONG;
             }
-            goto consider_spells;
         }
     }
-
-    if (record->special_attack_kind_0e3 != 0 &&
-        g_special_attack_table[record->special_attack_kind_0e3][0] != 6) {
-        if (skip_capability_checks == 0 && CanMonsterFlee(monster_info, record, 1) == 0) {
-            if (record->prefer_ranged_actions_1b9 != 1 || record->spell_chance_0e0 < 0x50) {
-                return best;
-            }
-            goto consider_spells;
-        }
-        if (best < W8_RANGE_LONG) {
-            best = W8_RANGE_LONG;
-            *out_sight = W8_RANGE_LONG;
-        }
-    }
-
-    if (skip_capability_checks != 0) {
-        goto consider_spells;
-    }
-    if (record->prefer_ranged_actions_1b9 != 1 || record->spell_chance_0e0 < 0x50) {
+    if (skip_capability_checks == 0 &&
+        (record->prefer_ranged_actions_1b9 != 1 || record->spell_chance_0e0 < 0x50)) {
         return best;
     }
 
-consider_spells:
     for (spell = 0; spell < 10; ++spell) {
         unsigned int spell_id = record->spells_14d[spell];
 
@@ -1285,36 +1273,38 @@ int PickReachableSlotByDisposition(int party_slot, char relationship)
             if (!CanHandReachTarget(party_slot, hand)) {
                 continue;
             }
+            /* The body of CharacterActionReachesSlot(party_slot, hand, slot, 0), which
+               retail inlines here rather than calling. */
             if (static_cast<char>(party_slot) == slot) {
                 goto accept;
             }
             character = &g_status_685170.buffers.Char[party_slot];
             ChooseCombatAction(party_slot, 0, &kind, &action, 0, &detail);
             switch (kind) {
-            case 0:
-            case 1:
+            case W8_ACTION_ATTACK:
+            case W8_ACTION_BERSERK:
                 range = GetCharAttackRange(character, hand);
                 break;
-            case 2:
+            case W8_ACTION_BREATHE:
                 goto accept;
-            case 5:
+            case W8_ACTION_PROTECT:
                 goto screened;
-            case 7:
+            case W8_ACTION_CAST_SPELL:
                 if (action == 0) {
                     continue;
                 }
                 range = g_spell_records[action].range_category;
                 break;
-            case 8:
+            case W8_ACTION_USE_ITEM:
                 range = GetItemSpellRange(detail->item_use.item);
                 break;
             default:
                 continue;
             }
-            if (range == -1) {
+            if (range == W8_RANGE_NONE) {
                 continue;
             }
-            if (range == 0) {
+            if (range == W8_RANGE_TOUCH) {
             screened:
                 if (FrontRankScreens(party_slot, slot)) {
                     continue;

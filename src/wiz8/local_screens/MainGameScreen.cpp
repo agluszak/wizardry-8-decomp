@@ -6530,34 +6530,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
             if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
                 if (g_level_block->portrait_overlay_party_slot == static_cast<int>(slot)) {
                     g_level_block->portrait_overlay_party_slot = -1;
-                    if (g_level_block->highlight_graphic != 0) {
-                        ReleaseObject004257F0(g_level_block->highlight_graphic);
-                        g_level_block->highlight_graphic = 0;
-                    }
-                    if (g_main_game_mode_0068eddc == 6) {
-                        ClearSurfaceRect(
-                            g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
-                            g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
-                            g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
-                        InvalidateRegion(
-                            g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
-                            g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
-                            g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
-                        if (g_level_block->dialogue_y_224 <
-                                static_cast<unsigned int>(
-                                    g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
-                            g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-                            g_level_block != 0) {
-                            g_level_block->redraw_flags |= 0x100;
-                        }
-                        if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 >
-                                0x166 &&
-                            g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-                            g_level_block != 0) {
-                            g_level_block->redraw_flags |= 0x800;
-                        }
-                    }
-                    g_main_game_mode_0068eddc = 0;
+                    DismissHighlightOverlay();
                     if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
                         g_main_game_mode_0068eddc = 0;
                         return 1;
@@ -6655,37 +6628,9 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 } else {
                     g_pending_screen_state.parameter_2 = slot;
                     if (g_main_game_mode_0068eddc == 6) {
-                        if (g_level_block->highlight_graphic != 0) {
-                            ReleaseObject004257F0(g_level_block->highlight_graphic);
-                            g_level_block->highlight_graphic = 0;
-                            if (g_main_game_mode_0068eddc != 6) {
-                                goto open_camp_after_mode6;
-                            }
-                        }
-                        ClearSurfaceRect(
-                            g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
-                            g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
-                            g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
-                        InvalidateRegion(
-                            g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
-                            g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
-                            g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
-                        if (g_level_block->dialogue_y_224 <
-                                static_cast<unsigned int>(
-                                    g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
-                            g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-                            g_level_block != 0) {
-                            g_level_block->redraw_flags |= 0x100;
-                        }
-                        if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 >
-                                0x166 &&
-                            g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-                            g_level_block != 0) {
-                            g_level_block->redraw_flags |= 0x800;
-                        }
+                        DismissHighlightOverlay();
                     }
                 }
-            open_camp_after_mode6:
                 g_main_game_mode_0068eddc = 0;
                 SetPendingScreenState(W8_SCREEN_CAMP);
                 if (gXStatus.fLockInteractMode != 0) {
@@ -6802,34 +6747,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 }
                 if (g_level_block->portrait_overlay_party_slot == static_cast<int>(slot)) {
                     g_level_block->portrait_overlay_party_slot = -1;
-                    if (g_level_block->highlight_graphic != 0) {
-                        ReleaseObject004257F0(g_level_block->highlight_graphic);
-                        g_level_block->highlight_graphic = 0;
-                    }
-                    if (g_main_game_mode_0068eddc == 6) {
-                        ClearSurfaceRect(
-                            g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
-                            g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
-                            g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
-                        InvalidateRegion(
-                            g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
-                            g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
-                            g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
-                        if (g_level_block->dialogue_y_224 <
-                                static_cast<unsigned int>(
-                                    g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
-                            g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-                            g_level_block != 0) {
-                            g_level_block->redraw_flags |= 0x100;
-                        }
-                        if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 >
-                                0x166 &&
-                            g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-                            g_level_block != 0) {
-                            g_level_block->redraw_flags |= 0x800;
-                        }
-                    }
-                    g_main_game_mode_0068eddc = 0;
+                    DismissHighlightOverlay();
                     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
                         g_level_block->redraw_flags |= 0x8000;
                         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
@@ -6862,37 +6780,9 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                 } else {
                     g_pending_screen_state.parameter_2 = slot;
                     if (g_main_game_mode_0068eddc == 6) {
-                        if (g_level_block->highlight_graphic != 0) {
-                            ReleaseObject004257F0(g_level_block->highlight_graphic);
-                            g_level_block->highlight_graphic = 0;
-                            if (g_main_game_mode_0068eddc != 6) {
-                                goto open_camp_right_up;
-                            }
-                        }
-                        ClearSurfaceRect(
-                            g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
-                            g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
-                            g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
-                        InvalidateRegion(
-                            g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
-                            g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
-                            g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
-                        if (g_level_block->dialogue_y_224 <
-                                static_cast<unsigned int>(
-                                    g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
-                            g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-                            g_level_block != 0) {
-                            g_level_block->redraw_flags |= 0x100;
-                        }
-                        if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 >
-                                0x166 &&
-                            g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-                            g_level_block != 0) {
-                            g_level_block->redraw_flags |= 0x800;
-                        }
+                        DismissHighlightOverlay();
                     }
                 }
-            open_camp_right_up:
                 g_main_game_mode_0068eddc = 0;
                 SetPendingScreenState(W8_SCREEN_CAMP);
                 if (gXStatus.fLockInteractMode != 0) {

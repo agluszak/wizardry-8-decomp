@@ -1237,27 +1237,30 @@ void ApplyPartyCombatAction(int party_slot, int action, int detail, const W8Acti
     if (g_combat_state->combat_over_000 == 0 || g_combat_state->uiCurrentPartyActionStatus != 0) {
         SetPendingMoveKind(action);
     } else {
+        bool deferred = false;
+
         if (g_combat_state->uiCurrentPartyAction == 0) {
-            party_slot_index = 0;
-            do {
+            for (party_slot_index = 0; party_slot_index < 8; ++party_slot_index) {
                 character = &g_status_685170.buffers.Char[party_slot_index];
                 row = &g_combat_state->characters[party_slot_index];
                 if (g_status_685170.buffers.XChar[party_slot_index].fOccupied != 0 &&
                     character->hp_current != 0 && character->highest_condition < 0xf &&
                     row->dead_34 != 0) {
-                    SetPendingMoveKind(action);
-                    goto finish_move_ui;
+                    deferred = true;
+                    break;
                 }
-                ++party_slot_index;
-            } while (party_slot_index < 8);
+            }
         }
-        if (g_combat_state->eCombatActionStatus == 1 && g_combat_state->iActionChar != -1) {
-            g_combat_state->eCombatActionStatus = 0;
-            g_combat_state->iActionChar = -1;
+        if (deferred) {
+            SetPendingMoveKind(action);
+        } else {
+            if (g_combat_state->eCombatActionStatus == 1 && g_combat_state->iActionChar != -1) {
+                g_combat_state->eCombatActionStatus = 0;
+                g_combat_state->iActionChar = -1;
+            }
+            StartPartyMovementAction((action != W8_ACTION_WALK) + 1);
         }
-        StartPartyMovementAction((action != W8_ACTION_WALK) + 1);
     }
-finish_move_ui:
     if (gXStatus.fPartyMovementUi == 0) {
         CreatePartyMovementPanel();
         SetTargetingMode(0);
@@ -1831,18 +1834,20 @@ void AdvanceCombatRound004E9B20(void)
     if (g_combat_state->passive_round_a55 == 0) {
         g_combat_state->unengaged_rounds_a56 = 0;
     } else {
-        index = 0;
-        while (index < PLLength(gXStatus.plsMonsterGroupList)) {
+        bool engaged = false;
+
+        for (index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
             W8MonsterGroup* monster_group = GetMonsterGroupByListIndex(index);
             if (monster_group->members_active_28 != 0 && monster_group->fInCombat != 0 &&
                 MonsterGroupCanEngage(monster_group) != 0) {
-                goto groups_checked;
+                engaged = true;
+                break;
             }
-            ++index;
         }
-        g_combat_state->unengaged_rounds_a56 = g_combat_state->unengaged_rounds_a56 + 1;
+        if (!engaged) {
+            g_combat_state->unengaged_rounds_a56 = g_combat_state->unengaged_rounds_a56 + 1;
+        }
     }
-groups_checked:
     AdvanceEnvironmentTime00482A20(120000);
     if (g_camera_sway_active_652da4 != 0) {
         UpdateCampFatigue005044D0(10);
@@ -2003,6 +2008,7 @@ void RollCombatSurprise004ECF50(char arg_1)
 {
     bool search_surprise = false;
     bool level_surprise = false;
+    bool found;
     unsigned int index;
     W8MonsterInfo* monster_info;
 
@@ -2012,23 +2018,23 @@ void RollCombatSurprise004ECF50(char arg_1)
     }
     if (arg_1 == 0) {
         if (g_status_685170.party_modifiers_22e3.sight_override_4a == 0) {
-            index = 0;
-            while (index < PLLength(gXStatus.plsMonsterList)) {
+            /* The party is surprised unless a hostile monster in the fight
+               has seen it and PartyAvoidsSurprise returns 0. */
+            found = false;
+            for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
                 monster_info = MonsterGetScriptPartByLocationIndex(index);
                 if (monster_info->fActive != 0 && monster_info->fInCombat != 0 &&
                     monster_info->hp_current != 0 && monster_info->highest_condition < 0x10 &&
                     monster_info->ubDisposition == 1 &&
                     monster_info->party_threat.sight_state_04 == W8_SIGHT_SEEN) {
-                    if (PartyAvoidsSurprise() == 0) {
-                        goto party_surprise_done;
-                    }
+                    found = true;
                     break;
                 }
-                ++index;
             }
-            g_combat_state->party_surprised_a52 = 1;
+            if (!found || PartyAvoidsSurprise() != 0) {
+                g_combat_state->party_surprised_a52 = 1;
+            }
         }
-    party_surprise_done:
         if (g_combat_state->party_surprised_a52 == 0) {
             if (GetLevelDataFlag8() != 0) {
                 if (Random(100) < 0x14) {
@@ -2041,21 +2047,21 @@ void RollCombatSurprise004ECF50(char arg_1)
             }
         }
     }
-    index = 0;
-    while (index < PLLength(gXStatus.plsMonsterList)) {
+    /* The monsters are surprised when none of them can see the party. */
+    found = false;
+    for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fActive != 0 && monster_info->fInCombat != 0 &&
             monster_info->hp_current != 0 && monster_info->highest_condition < 0x10 &&
             monster_info->ubDisposition == 1 &&
             monster_info->player_visibility.sight_state_04 == W8_SIGHT_SEEN) {
-            goto monsters_checked;
+            found = true;
+            break;
         }
-        ++index;
     }
-    if (gXStatus.fSurprisePossible == 0) {
+    if (!found && gXStatus.fSurprisePossible == 0) {
         g_combat_state->monsters_surprised_a53 = 1;
     }
-monsters_checked:
     if (g_combat_state->party_surprised_a52 != 0 && g_combat_state->monsters_surprised_a53 != 0) {
         g_combat_state->party_surprised_a52 = 0;
         g_combat_state->monsters_surprised_a53 = 0;
