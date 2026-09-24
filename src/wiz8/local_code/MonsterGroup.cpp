@@ -1221,67 +1221,62 @@ W8MonsterGroup* FindFirstMonsterByID(int monster_id)
     for (index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
         group = GetMonsterGroupByListIndex(index);
         if (group->monster_id == monster_id) {
-            goto found;
+            return group;
         }
     }
     for (index = 0; index < PLLength(gXStatus.plsMonsterGroupEncounterList); ++index) {
-        group = (W8MonsterGroup*)PLGet(gXStatus.plsMonsterGroupEncounterList, index);
+        group = static_cast<W8MonsterGroup*>(PLGet(gXStatus.plsMonsterGroupEncounterList, index));
         if (group->monster_id == monster_id) {
-            goto found;
+            return group;
         }
     }
-    group = 0;
-
-found:
-    return group;
+    return 0;
 }
 
+/* Resume the search after previous: the rest of the group list, then the
+   encounter list. A previous that is the last group, or that only the encounter
+   list holds, skips straight to the encounter list. */
+/* Resume the search after previous: the rest of the group list, then the
+   encounter list. A previous that only the encounter list holds resumes that
+   list after it; retail jumps past the index reset into the second loop. */
 // FUNCTION: WIZ8 0x00510bf0
 W8MonsterGroup* FindNextExistingMonsterByID(int monster_id, W8MonsterGroup* previous)
 {
-    /* One variable carries both the PListIndexOf result and the loop index; the
-       original keeps them in the same register and steps it with a plain
-       increment rather than computing index = position + 1 separately. */
     int index = 0;
     W8MonsterGroup* group;
 
     if (previous != 0) {
         index = PListIndexOf(gXStatus.plsMonsterGroupList, previous);
-        if (index >= (int)PLLength(gXStatus.plsMonsterGroupList) - 1) {
-            goto reset_encounter;
+        if (index >= static_cast<int>(PLLength(gXStatus.plsMonsterGroupList)) - 1) {
+            goto search_encounters;
         }
         if (index == -1) {
             index = PListIndexOf(gXStatus.plsMonsterGroupEncounterList, previous);
             if (index == -1) {
-                group = 0;
-                goto done;
+                return 0;
             }
             ++index;
-            goto search_encounter;
+            goto resume_encounters;
         }
         ++index;
     }
-    for (; (unsigned int)index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
-        group = GetMonsterGroupByListIndex((unsigned int)index);
+    for (; static_cast<unsigned int>(index) < PLLength(gXStatus.plsMonsterGroupList); ++index) {
+        group = GetMonsterGroupByListIndex(index);
         if (group->monster_id == monster_id) {
-            goto done;
+            return group;
         }
     }
-
-reset_encounter:
+search_encounters:
     index = 0;
-
-search_encounter:
-    for (; (unsigned int)index < PLLength(gXStatus.plsMonsterGroupEncounterList); ++index) {
-        group = (W8MonsterGroup*)PLGet(gXStatus.plsMonsterGroupEncounterList, (unsigned int)index);
+resume_encounters:
+    for (; static_cast<unsigned int>(index) < PLLength(gXStatus.plsMonsterGroupEncounterList);
+         ++index) {
+        group = static_cast<W8MonsterGroup*>(PLGet(gXStatus.plsMonsterGroupEncounterList, index));
         if (group->monster_id == monster_id) {
-            goto done;
+            return group;
         }
     }
-    group = 0;
-
-done:
-    return group;
+    return 0;
 }
 
 /* Pick the group's new leader member: the live member carrying the highest
