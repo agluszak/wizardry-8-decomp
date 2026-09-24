@@ -2984,15 +2984,11 @@ void W8Monster::TrackSoundHandle004CA6E0(int handle)
     }
     values_338.Add(handle);
     count = values_338.GetCount();
-    index = 0;
-    if (count > 0) {
-        do {
-            if (SoundIsPlaying(*values_338.GetAt(index)) == 0) {
-                values_338.RemoveAt(index);
-                --count;
-            }
-            ++index;
-        } while (index < count);
+    for (index = 0; index < count; ++index) {
+        if (SoundIsPlaying(*values_338.GetAt(index)) == 0) {
+            values_338.RemoveAt(index);
+            --count;
+        }
     }
 }
 

@@ -681,22 +681,13 @@ void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const Tri
 }
 
 /* Copy `count` dwords with a plain pointer walk. Distinct from
-   CopyDwordBuffer00470180 (vp memcopy + self-copy guard). Retail lowers the
-   walk through a dest-relative displacement. */
+   CopyDwordBuffer00470180 (vp memcopy + self-copy guard). VC6 lowers the walk
+   through a dest-relative source displacement. */
 // FUNCTION: WIZ8 0x004747f0
 void CopyUlongBuffer004747f0(unsigned long* destination, const unsigned long* source, int count)
 {
-    if (count != 0) {
-        int displacement =
-            // reinterpret-ok: dword copy via dest-relative source displacement
-            reinterpret_cast<const char*>(source) - reinterpret_cast<const char*>(destination);
-        do {
-            // reinterpret-ok: dword copy via dest-relative source displacement
-            *destination = *reinterpret_cast<unsigned long*>(reinterpret_cast<char*>(destination) +
-                                                             displacement);
-            ++destination;
-            --count;
-        } while (count != 0);
+    while (count--) {
+        *destination++ = *source++;
     }
 }
 

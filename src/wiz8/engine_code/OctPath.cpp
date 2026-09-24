@@ -6534,15 +6534,11 @@ unsigned int W8PathingService::EditWaypointLinkFlags0045F530(const char* title, 
         strcat(lines[7], (current & 0x10000000) != 0 ? "Yes" : "No");
         ClearSurfaceRect(0x1e, 0x64, 0x262, 0xcc);
         for (line = 0; line < 9; ++line) {
-            length = 0;
-            if (lines[line][0] != '\0') {
-                do {
-                    if (0x50 <= length) {
-                        goto draw;
-                    }
-                    wide[line][length] = static_cast<short>(lines[line][length]);
-                    ++length;
-                } while (lines[line][length] != '\0');
+            for (length = 0; lines[line][length] != '\0'; ++length) {
+                if (0x50 <= length) {
+                    goto draw;
+                }
+                wide[line][length] = static_cast<short>(lines[line][length]);
             }
             while (length < 0x50) {
                 wide[line][length] = 0x20;

@@ -2310,8 +2310,8 @@ void UpdateNpcEvents0050D530(void)
     unsigned int index;
 
     if (g_status_685170.trang_check_pending_49bb != 0 &&
-        static_cast<unsigned int>(g_status_685170.world_clock - g_status_685170.trang_check_clock_49b7) >
-            0x2a30) {
+        static_cast<unsigned int>(g_status_685170.world_clock -
+                                  g_status_685170.trang_check_clock_49b7) > 0x2a30) {
         if (GetFact(W8_FACT_ALIGNMENT_UMPANI) != 0 && Random(100) < 6) {
             SetFact(W8_FACT_TRANG_YOU_ARE_BUSTED, 1, 0);
         }
@@ -2445,8 +2445,8 @@ void UpdateNpcEvents0050D530(void)
     }
 
     if (g_status_685170.fact_b8_pending_248a != 0 &&
-        static_cast<unsigned int>(g_status_685170.world_clock - g_status_685170.fact_b8_clock_2493) >
-            0x2a300) {
+        static_cast<unsigned int>(g_status_685170.world_clock -
+                                  g_status_685170.fact_b8_clock_2493) > 0x2a300) {
         g_status_685170.fact_b8_pending_248a = 0;
         SetFact(0xb8, 1, 0);
     }
@@ -3071,35 +3071,31 @@ void RebindNpcLevelTriggers0050AC60(void)
     }
 
     count = g_npc_states->count;
-    npc_index = 0;
-    if (count != 0) {
-        do {
-            W8NpcState** slot = g_npc_states->data;
-            char trigger_name[40];
+    for (npc_index = 0; npc_index < count; ++npc_index) {
+        W8NpcState** slot = g_npc_states->data;
+        char trigger_name[40];
 
-            if (npc_index < count) {
-                slot += npc_index;
+        if (npc_index < count) {
+            slot += npc_index;
+        }
+        W8NpcState* npc = *slot;
+
+        if (npc->record->merchant_056 != 0 || npc->record->voice_script_2ea != 0) {
+            sprintf(trigger_name, "_%S", npc->record->source_name_004);
+            Trigger* trigger = FindTriggerByName(trigger_name);
+
+            if (trigger != 0) {
+                trigger->activation_callback_360 = NotifyNpcTriggerActivation0050ABF0;
+                trigger->m_lData1 = static_cast<int>(npc_index);
+                npc->has_monster = 1;
+                npc->level_band =
+                    static_cast<unsigned char>(GetLevelBand(g_status_685170.current_level));
+                npc->bound_level = static_cast<unsigned char>(g_status_685170.current_level);
+                ReloadNpcScriptResources(npc);
+                npc->is_present = 0;
             }
-            W8NpcState* npc = *slot;
-
-            if (npc->record->merchant_056 != 0 || npc->record->voice_script_2ea != 0) {
-                sprintf(trigger_name, "_%S", npc->record->source_name_004);
-                Trigger* trigger = FindTriggerByName(trigger_name);
-
-                if (trigger != 0) {
-                    trigger->activation_callback_360 = NotifyNpcTriggerActivation0050ABF0;
-                    trigger->m_lData1 = static_cast<int>(npc_index);
-                    npc->has_monster = 1;
-                    npc->level_band =
-                        static_cast<unsigned char>(GetLevelBand(g_status_685170.current_level));
-                    npc->bound_level = static_cast<unsigned char>(g_status_685170.current_level);
-                    ReloadNpcScriptResources(npc);
-                    npc->is_present = 0;
-                }
-            }
-            count = g_npc_states->count;
-            ++npc_index;
-        } while (npc_index < count);
+        }
+        count = g_npc_states->count;
     }
 }
 

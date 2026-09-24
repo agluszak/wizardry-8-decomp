@@ -2041,15 +2041,11 @@ void OctBuildOptions00496CD0(char* stem)
             }
             ClearSurfaceRect(0, 0x183, 0x27f, 0x1df);
             for (line = 0; line < 7; ++line) {
-                length = 0;
-                if (lines[line][0] != '\0') {
-                    do {
-                        if (0x59 < length) {
-                            goto draw;
-                        }
-                        wide[line][length] = static_cast<short>(lines[line][length]);
-                        ++length;
-                    } while (lines[line][length] != '\0');
+                for (length = 0; lines[line][length] != '\0'; ++length) {
+                    if (0x59 < length) {
+                        goto draw;
+                    }
+                    wide[line][length] = static_cast<short>(lines[line][length]);
                 }
                 while (length < 0x5a) {
                     wide[line][length] = 0x20;
@@ -2178,15 +2174,11 @@ void OctBuildOptions00496CD0(char* stem)
 accepted:
     ClearSurfaceRect(0, 0x183, 0x27f, 0x1df);
     sprintf(lines[1], "OCTBUILD VERSION %d -- Preprocessing %s: ", 0x22, stem);
-    length = 0;
-    if (lines[1][0] != '\0') {
-        do {
-            if (0x59 < length) {
-                goto shown;
-            }
-            wide[1][length] = static_cast<short>(lines[1][length]);
-            ++length;
-        } while (lines[1][length] != '\0');
+    for (length = 0; lines[1][length] != '\0'; ++length) {
+        if (0x59 < length) {
+            goto shown;
+        }
+        wide[1][length] = static_cast<short>(lines[1][length]);
     }
     while (length < 0x5a) {
         wide[1][length] = 0x20;
