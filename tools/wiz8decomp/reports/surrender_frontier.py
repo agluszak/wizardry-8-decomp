@@ -274,11 +274,55 @@ def _declared_names(document: Any) -> dict[str, set[str]]:
     return names
 
 
+def _vtable_addresses(document: Any) -> set[int]:
+    """Retail addresses owned by provider ``VTABLE`` markers.
+
+    reccmp joins ``VTABLE`` markers onto the indexed class record rather than
+    the marker collection, so vftable imports never appear in
+    ``source_functions``; their ownership is the class entry's
+    ``vtable_address``/``base_vtables`` instead.
+    """
+
+    addresses: set[int] = set()
+    for entry in document.get("classes") or []:
+        if str(entry.get("target") or "").upper() != "SURRENDER":
+            continue
+        primary = entry.get("vtable_address")
+        if primary is not None:
+            addresses.add(int(primary))
+        for base in entry.get("base_vtables") or []:
+            address = base.get("address")
+            if address is not None:
+                addresses.add(int(address))
+    return addresses
+
+
+def _defined_globals(document: Any) -> set[str]:
+    """Decorated names of globals the provider defines.
+
+    ``GLOBAL`` markers join to the indexed variable definition rather than
+    the marker collection, so ``?name@@3...`` imports are owned by
+    ``variables`` entries whose ``definition_kind`` is ``definition``.
+    """
+
+    names: set[str] = set()
+    for entry in document.get("variables") or []:
+        if str(entry.get("target") or "").upper() != "SURRENDER":
+            continue
+        if str(entry.get("definition_kind") or "") != "definition":
+            continue
+        names.add(str(entry.get("semantic_id") or ""))
+    return names
+
+
 def _provider_status(
     address: int | None,
     markers: Any,
     declared: dict[str, set[str]],
     qualified_name: str | None,
+    decorated_name: str | None = None,
+    vtables: set[int] | None = None,
+    defined_globals: set[str] | None = None,
 ) -> str:
     if address is None:
         return "no-export"
@@ -290,6 +334,11 @@ def _provider_status(
         if kind in _EMISSION_KINDS:
             return "emission"
         return kind.lower()
+    if decorated_name and decorated_name.startswith("??_7"):
+        if vtables is not None and address in vtables:
+            return "vtable"
+    elif decorated_name and defined_globals is not None and decorated_name in defined_globals:
+        return "global"
     if qualified_name and qualified_name in declared:
         return "declared"
     return "unowned"
@@ -496,6 +545,8 @@ def surrender_frontier_report(
     document = load_source_index(repository)
     markers = source_functions(repository, "SURRENDER")
     declared = _declared_names(document)
+    vtables = _vtable_addresses(document)
+    defined_globals = _defined_globals(document)
 
     usage: list[tuple[list[dict[str, Any]], list[str], list[dict[str, Any]]]] = []
     with open_program(settings, "wiz8") as wiz8:
@@ -522,7 +573,13 @@ def surrender_frontier_report(
                 entry["address"] = f"0x{address:08x}"
                 entry["export_kind"] = export.get("kind")
                 entry["status"] = _provider_status(
-                    address, markers, declared, entry["qualified_name"]
+                    address,
+                    markers,
+                    declared,
+                    entry["qualified_name"],
+                    row["decorated_name"],
+                    vtables,
+                    defined_globals,
                 )
                 if entry["status"] == "declared":
                     targets = declared.get(entry["qualified_name"]) or set()
@@ -615,6 +672,8 @@ def surrender_frontier_report(
             "imports_with_wiz8_xrefs": len(p0),
             "provider_recovered": statuses.count("recovered"),
             "provider_emission": statuses.count("emission"),
+            "provider_global": statuses.count("global"),
+            "provider_vtable": statuses.count("vtable"),
             "provider_declared": statuses.count("declared"),
             "provider_unowned": statuses.count("unowned"),
             "provider_no_export": statuses.count("no-export"),
@@ -643,6 +702,8 @@ def surrender_frontier_report(
         "p3_no_real_xrefs": len(records) - len(p0_records),
         "p0_provider_recovered": p0_statuses.count("recovered"),
         "p0_provider_emission": p0_statuses.count("emission"),
+        "p0_provider_global": p0_statuses.count("global"),
+        "p0_provider_vtable": p0_statuses.count("vtable"),
         "p0_provider_declared": p0_statuses.count("declared"),
         "p0_provider_unowned": p0_statuses.count("unowned"),
         "p0_provider_no_export": p0_statuses.count("no-export"),
@@ -663,6 +724,8 @@ def surrender_frontier_report(
             if info["priority"] == "P0"
             and info["provider_recovered"] == 0
             and info["provider_emission"] == 0
+            and info["provider_global"] == 0
+            and info["provider_vtable"] == 0
         ),
         "p0_match": {
             status: sum(

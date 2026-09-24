@@ -322,6 +322,20 @@ public:
         vp->_reverse(destination, source, count);
     }
 
+    /* srPixelConvert's keyed 32-bit formats fold a constant into the pixel
+       run through the dword _and/_or slots (+0x44/+0x4c). */
+    static inline void bitwiseAnd(SRDWORD* destination, const SRDWORD* source,
+                                  SRDWORD constant, SRDWORD count)
+    {
+        vp->_and(destination, source, constant, count);
+    }
+
+    static inline void bitwiseOr(SRDWORD* destination, const SRDWORD* source,
+                                 SRDWORD constant, SRDWORD count)
+    {
+        vp->_or(destination, source, constant, count);
+    }
+
     static inline void neg(float* destination, const float* source, SRDWORD count)
     {
         vp->_neg(destination, source, count);

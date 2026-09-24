@@ -41,6 +41,9 @@ public:
 template <typename E, typename T> class basic_ostream : public ios {
 public:
     basic_ostream(basic_streambuf<E, T>* buffer);
+    /* The RichEdit stream-out callback writes the window text through the
+       VC6 unformatted-output member. */
+    basic_ostream& write(const E* data, long count);
     basic_ostream& operator<<(int value);
     basic_ostream& operator<<(long value);
     basic_ostream& operator<<(unsigned long value);
