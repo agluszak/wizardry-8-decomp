@@ -452,7 +452,7 @@ unsigned char W8PropRepresentation::SelectAnimationSlot(unsigned char tag)
 
     for (index = 0; index < slots.count; ++index) {
         if (slots.data[index]->tag == tag) {
-            signed char selected = static_cast<signed char>(slots.data[index]->frame);
+            signed char selected = slots.data[index]->frame;
 
             if (selected < 0) {
                 return 0;
@@ -481,39 +481,26 @@ unsigned char W8PropRepresentation::SelectAnimationSlot(unsigned char tag)
 // FUNCTION: WIZ8 0x0044bae0
 int W8PropRepresentation::FindCurrentAnimationSlot()
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
     int index;
 
     for (index = 0; index < slots.count; ++index) {
-        if (static_cast<int>(static_cast<char>(slots.data[index]->frame)) ==
-            static_cast<unsigned int>(first_frame_094)) {
+        if (slots.data[index]->frame == first_frame_094) {
             return index;
         }
     }
     return -1;
-#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x0044bb20
 unsigned char W8PropRepresentation::AdvanceAnimationSegment()
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
     int segment;
 
     if (slots.count < 3) {
         return 0;
     }
     for (segment = 0; segment < slots.count; ++segment) {
-        if (static_cast<int>(static_cast<char>(slots.data[segment]->frame)) ==
-            static_cast<unsigned int>(first_frame_094)) {
+        if (slots.data[segment]->frame == first_frame_094) {
             break;
         }
     }
@@ -534,7 +521,6 @@ unsigned char W8PropRepresentation::AdvanceAnimationSegment()
     animation_playing_06d = 1;
     subcycle_064 = first_frame_094;
     return (unsigned char)segment;
-#pragma clang diagnostic pop
 }
 
 /* The same toggle reached through the prop rather than through the member. */
@@ -1602,7 +1588,7 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
                 W8PropAnimationSegment* slot = new W8PropAnimationSegment;
 
                 FileRead(hFile, &frame_tmp, 2, 0);
-                slot->frame = static_cast<unsigned char>(frame_tmp);
+                slot->frame = static_cast<signed char>(frame_tmp);
                 FileRead(hFile, &tag_tmp, 2, 0);
                 slot->tag = static_cast<unsigned char>(tag_tmp);
                 if (frame_count <= frame_tmp) {
