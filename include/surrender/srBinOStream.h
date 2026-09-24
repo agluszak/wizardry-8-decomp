@@ -66,7 +66,11 @@ public:
     SR_DLL_IMPORT srBinOMStream();
     SR_DLL_IMPORT srBinOMStream(const srBinOMStream& stream);
     virtual SR_DLL_IMPORT ~srBinOMStream() override;
-    SR_DLL_IMPORT srBinOMStream& operator=(const srBinOMStream& stream);
+
+    /* Implicit assignment: retail emits it via the class-level dllexport as a
+       memberwise copy (the srArray assignment owns the buffer reallocation). */
+    // SYNTHETIC: SURRENDER 0x10031250
+    // srBinOMStream::operator=
 
     SR_DLL_IMPORT void* getPtr();
     virtual SR_DLL_IMPORT unsigned long getSize() override;

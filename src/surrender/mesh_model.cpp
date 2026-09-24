@@ -2517,3 +2517,6 @@ const char* srMeshModel::sGetClassName()
 
 // TEMPLATE: SURRENDER 0x10043A70
 // srClassSupport<srModel, srClass, true, 0x2000>::sGetClassNode
+
+// SYNTHETIC: SURRENDER 0x100425A0
+// srMeshModel default constructor closure

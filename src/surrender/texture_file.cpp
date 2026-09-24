@@ -202,3 +202,6 @@ void srTextureFile::dump(std::ostream& stream)
     stream << "  Cached: " << (surface_5c != 0 ? "yes\n" : "no\n");
     stream.flags(static_cast<std::ios::fmtflags>(flags & 0x7fff));
 }
+
+// SYNTHETIC: SURRENDER 0x10060090
+// srTextureFile default constructor closure

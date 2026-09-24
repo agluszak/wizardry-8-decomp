@@ -1015,3 +1015,6 @@ std::ostream& operator<<(std::ostream& stream, const srTimer& timer)
     stream.width(mode);
     return stream;
 }
+
+// SYNTHETIC: SURRENDER 0x100621D0
+// srTimer default constructor closure

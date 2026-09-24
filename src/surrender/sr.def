@@ -80,6 +80,7 @@ EXPORTS
     ?registerClass@srRegistry@@QAEPAVClassNode@1@PBDPAV21@KH@Z
     ?registerInstance@srRegistry@@QAEXPAVClassNode@1@PAVsrRuntimeClass@@@Z
     ?unregisterInstance@srRegistry@@QAEXPAVClassNode@1@PAVsrRuntimeClass@@@Z
+    ?dumpClassHierarchy@srRegistry@@QAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z
     ?dumpInstanceNames@srRegistry@@QAEXPAVClassNode@1@AAV?$basic_ostream@DU?$char_traits@D@std@@@std@@H@Z
     ?clone@srClass@@QAEPAV1@XZ
     ??0srCore@@QAE@XZ
@@ -336,6 +337,7 @@ EXPORTS
     ??_7srCamera@@6B@ DATA @405
     ??_7srColorSurface@@6B@ DATA @407
     ??_7srFileManager@@6B@ DATA @412
+    ??_7srGERD@@6B@ DATA @416
     ??_7srModeler@@6B@ DATA @429
     ??_7srTextureFile@@6B@ DATA @436
     ??0srDebugVP@@QAE@PAVsrVP@@@Z
@@ -445,6 +447,7 @@ EXPORTS
     ?srOut@@3VsrOStream_withassign@@A DATA
     ?addReference@srClass@@QBEXXZ
     ?autoRelease@srClass@@QAEXXZ
+    ?autoSmooth@srModeler@@QAEXNH@Z @586
     ?getID@srRuntimeClass@@QBEKXZ
     ?dumpNames@srRuntimeClass@@SAXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@H@Z
     ?getClassID@srRuntimeClass@@UBEKXZ
@@ -800,9 +803,11 @@ EXPORTS
     ??0MappingInfo@srModeler@@QAE@W4e_axis@1@0MMMM@Z @16
     ??0Opener@srIStreamOpener@@QAE@XZ
     ??0Path@srFileManager@@IAE@PBD@Z
+    ??0Polygon@srModeler@@QAE@ABV01@@Z @23
     ??0Polygon@srModeler@@QAE@H@Z @24
     ??0Sampler@srHuffman@@QAE@ABV01@@Z
     ??0Sampler@srHuffman@@QAE@XZ
+    ??0Triangle@srModeler@@QAE@ABV01@@Z @37
     ??0Triangle@srModeler@@QAE@XZ @38
     ??0Vertex@srModeler@@QAE@XZ @39
     ??0srBinFStream@@IAE@XZ
@@ -812,6 +817,7 @@ EXPORTS
     ??0srBinIFStream@@QAE@ABV0@@Z
     ??0srBinIFStream@@QAE@PBD@Z
     ??0srBinIFStream@@QAE@XZ
+    ??0srBinIMStream@@QAE@ABV0@@Z
     ??0srBinIMStream@@QAE@PBXK@Z
     ??0srBinIOFStream@@QAE@ABV0@@Z
     ??0srBinIOFStream@@QAE@PBD@Z
@@ -843,9 +849,12 @@ EXPORTS
     ??0srDummyStreamBuf@@QAE@XZ
     ??0srExtension@@QAE@PBD@Z
     ??0srFStreamOpener@@QAE@XZ
+    ??0srFileManager@@QAE@ABV0@@Z
     ??0srFileManager@@QAE@XZ
     ??0srFog@@QAE@ABV0@@Z
     ??0srFog@@QAE@PAVsrNode@@@Z
+    ??0srGERD@@QAE@ABV0@@Z @103
+    ??0srGERD@@QAE@PAVsrDD@@PAXPBD@Z @104
     ??0srIOManager@@IAE@XZ
     ??0srIStreamOpener@@QAE@XZ
     ??0srIlluminator@@QAE@ABV0@@Z
@@ -858,6 +867,7 @@ EXPORTS
     ??0srMaterialIFace@@QAE@XZ
     ??1srMaterialIFace@@UAE@XZ @223
     ??0srMemoryAllocator@@QAE@XZ
+    ??0srModeler@@QAE@ABV0@@Z @130
     ??0srModeler@@QAE@XZ @131
     ??0srScene@@QAE@ABV0@@Z
     ??0srScene@@QAE@PAVsrNode@@@Z
@@ -866,6 +876,8 @@ EXPORTS
     ??0srTexture@@IAE@XZ
     ??0srTextureMap@@QAE@PAVsrColorSurfaceIFace@@@Z
     ??0srVertexPipe@@QAE@XZ
+    ??0srWindowOut@@QAE@ABV0@@Z @165
+    ??0srWindowOut@@QAE@KPBDJK@Z @166
     ??1BitOStream@srHuffman@@QAE@XZ
     ??1Compressor@srHuffman@@QAE@XZ
     ??1Decompressor@srHuffman@@QAE@XZ
@@ -892,6 +904,7 @@ EXPORTS
     ??1srFStreamOpener@@UAE@XZ
     ??1srFileManager@@UAE@XZ
     ??1srFog@@UAE@XZ
+    ??1srGERD@@UAE@XZ @214
     ??1srHierarchyIOManager@@UAE@XZ
     ??1srIOManager@@MAE@XZ
     ??1srIStreamOpener@@QAE@XZ
@@ -906,6 +919,7 @@ EXPORTS
     ??1srTexture@@MAE@XZ
     ??1srTextureMap@@MAE@XZ
     ??1srVertexPipe@@QAE@XZ
+    ??1srWindowOut@@UAE@XZ @249
     ??4BitOStream@srHuffman@@AAEAAV01@ABV01@@Z
     ??4Compressor@srHuffman@@QAEAAV01@ABV01@@Z
     ??4Opener@srIStreamOpener@@QAEAAV01@ABV01@@Z
@@ -915,8 +929,10 @@ EXPORTS
     ??4srBinFStream@@QAEAAV0@ABV0@@Z
     ??4srBinIFStream@@QAEAAV0@ABV0@@Z
     ??4srBinIOFStream@@QAEAAV0@ABV0@@Z
+    ??4srBinIMStream@@QAEAAV0@ABV0@@Z
     ??4srBinIStream@@QAEAAV0@ABV0@@Z
     ??4srBinOFStream@@QAEAAV0@ABV0@@Z
+    ??4srBinOMStream@@QAEAAV0@ABV0@@Z
     ??4srBinOStream@@QAEAAV0@ABV0@@Z
     ??4srBinStream@@QAEAAV0@ABV0@@Z
     ??4srCamera@@QAEAAV0@ABV0@@Z
@@ -927,19 +943,24 @@ EXPORTS
     ??4srDynamicLibrary@@QAEAAV0@ABV0@@Z
     ??4srExtension@@QAEAAV0@ABV0@@Z
     ??4srFStreamOpener@@QAEAAV0@ABV0@@Z
+    ??4srFileManager@@QAEAAV0@ABV0@@Z
     ??4srFog@@QAEAAV0@ABV0@@Z
+    ??4srGERD@@AAEAAV0@ABV0@@Z @306
     ??4srIStreamOpener@@QAEAAV0@ABV0@@Z
     ??4srIlluminator@@QAEAAV0@ABV0@@Z
     ??4srLight@@QAEAAV0@ABV0@@Z
     ??4srMaterial@@QAEAAV0@ABV0@@Z
     ??4srMaterialIFace@@QAEAAV0@ABV0@@Z
     ??4srMemoryAllocator@@QAEAAV0@ABV0@@Z
+    ??4srModeler@@QAEAAV0@ABV0@@Z @320
     ??4srScene@@QAEAAV0@ABV0@@Z
     ??4srStringTable@@QAEAAV0@ABV0@@Z
     ??4srTexture@@QAEAAV0@ABV0@@Z
     ??4srTextureMap@@QAEAAV0@ABV0@@Z
     ??4srThread@@QAEAAV0@ABV0@@Z
     ??4srVertexPipe@@QAEAAV0@ABV0@@Z
+    ??4srWindow@@QAEAAV0@ABV0@@Z @341
+    ??4srWindowOut@@QAEAAV0@ABV0@@Z @342
     ??6@YAAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@AAV01@ABVsrShader@@@Z @369
     ??7srBinStream@@QBE_NXZ
     ??8Vertex@srModeler@@QBEHABV01@@Z @373
@@ -952,6 +973,8 @@ EXPORTS
     ??_7srLight@@6B?$srClassSupport@VsrIlluminator@@VsrNode@@$0A@$0BCAA@@@@ DATA
     ??_7srLight@@6BsrVertexProcessor@@@ DATA
     ??_7srScene@@6B@ DATA
+    ??_7srWindowOut@@6B@ DATA @441
+    ??_8srWindowOut@@7B@ DATA @456
     ??_DsrBinFStream@@QAEXXZ
     ??_DsrBinIAsyncStream@@QAEXXZ
     ??_DsrBinIFStream@@QAEXXZ
@@ -961,11 +984,23 @@ EXPORTS
     ??_DsrBinOFStream@@QAEXXZ
     ??_DsrBinOMStream@@QAEXXZ
     ??_DsrBinOStream@@QAEXXZ
-    ??_FsrClipPlane@@QAEXXZ
-    ??_FsrIlluminator@@QAEXXZ
-    ??_FsrLight@@QAEXXZ
-    ??_FsrModelInstance@@QAEXXZ
-    ??_FsrScene@@QAEXXZ
+    ??_DsrWindowOut@@QAEXXZ @483
+    ??_FSampler@srPalette@@QAEXXZ @485
+    ??_FsrBounder@@QAEXXZ @487
+    ??_FsrCamera@@QAEXXZ @489
+    ??_FsrClipPlane@@QAEXXZ @490
+    ??_FsrFog@@QAEXXZ @492
+    ??_FsrIlluminator@@QAEXXZ @493
+    ??_FsrLight@@QAEXXZ @494
+    ??_FsrMeshModel@@QAEXXZ @495
+    ??_FsrModelInstance@@QAEXXZ @496
+    ??_FsrNode@@QAEXXZ @497
+    ??_FsrPalette@@QAEXXZ @498
+    ??_FsrScene@@QAEXXZ @499
+    ??_FsrTextureFile@@QAEXXZ @500
+    ??_FsrTextureMap@@QAEXXZ @501
+    ??_FsrTimer@@QAEXXZ @502
+    ??_FsrVariableTimer@@QAEXXZ @503
     ?_lockBuffer@srGERD@@AAE?AW4e_error@srDD@@XZ
     ?_lockRenderer@srGERD@@AAEPAVRenderer@1@PAURendererEntry@1@@Z
     ?_unlockBuffer@srGERD@@AAE?AW4e_error@srDD@@XZ

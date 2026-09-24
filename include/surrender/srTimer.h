@@ -36,7 +36,7 @@ public:
         CPU_TYPE_RESERVED = 3
     };
 
-    srTimer(int argument_0, int argument_1, int argument_2);
+    srTimer(int argument_0 = 0, int argument_1 = 0, int argument_2 = 1);
     srTimer(const srTimer& other);
     srTimer& operator=(const srTimer& other);
 

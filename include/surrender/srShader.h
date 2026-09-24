@@ -15,17 +15,11 @@ SR_DLL_IMPORT std::ostream& operator<<(std::ostream& stream, const srShader& sha
    TEXTURING_DISABLE, DITHER_ENABLE. */
 class srShader {
 public:
-#ifdef SURRENDER_BUILD
-    /* Provider-inline: retail expands the default word inline inside
-       getShaderDisableMask; the gerd.cpp unit also emits an out-of-line copy
-       that other provider units share. Wiz8 emits its own out-of-line copy
-       at 0x00424A40. */
-    // FUNCTION: SURRENDER 0x100199F0 SYMBOL
-    // ??0srShader@@QAE@XZ
-    srShader() : value(0x0100241b) {}
-#else
+    /* Out-of-line in both images: the gerd.cpp unit emits the provider copy
+       (0x100199F0) that all other provider units call, and Video2.cpp emits
+       the consumer copy (0x00424A40); retail expands the default word inline
+       only inside getShaderDisableMask. */
     srShader();
-#endif
 
     /* Copy one packed shader word into value; sources are shader words and
        render-flag table entries alike. */

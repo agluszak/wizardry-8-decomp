@@ -106,6 +106,10 @@ public:
        device reports its DD API version, driver id, name and API version
        string back into the same record. */
     struct DriverInfo {
+        /* srGERD's constructor emits the single flags_04 zero-store as this
+           record's member init (0x2d0 inside the +0x2cc embedding). */
+        DriverInfo() : flags_04(0) {}
+
         unsigned long api_version_00;
         unsigned long flags_04;
         void (*debug_write_08)(const char* text);
@@ -120,6 +124,10 @@ public:
        to srDD::getInfo). The nine trailing 0x40-byte strings are the device
        identity fields initDDInfo fills with "Unknown". */
     struct Info {
+        /* srGERD's constructor emits the single flags_18_ zero-store as this
+           record's member init (0x68 inside the +0x50 embedding). */
+        Info() : flags_18_(0) {}
+
         /* openWindowInternal rejects back-buffer dimensions above these
            maximums. */
         unsigned long unknown_00_;
