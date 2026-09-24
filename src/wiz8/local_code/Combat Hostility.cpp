@@ -386,7 +386,8 @@ void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, cha
     if (MonsterGroupAllMembersDying00511850(group)) {
         return;
     }
-    W8MonsterInfo* leader = MonsterInfoFromID(0x21e, COMBAT_HOSTILITY_CPP, group->leader_id_9f, 1);
+    W8MonsterInfo* leader =
+        MonsterInfoFromID(0x21e, COMBAT_HOSTILITY_CPP, group->leader_location_id, 1);
     if (leader != 0 && leader->p3D->hostility_preserved_332) {
         return;
     }
@@ -395,14 +396,14 @@ void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, cha
         return;
     }
     group->ubDisposition = static_cast<unsigned char>(hostility);
-    group->forced_neutral_ca = 0;
+    group->forced_neutral = 0;
     if (MonsterGroupHasVisibleThreat(group)) {
         ShowNoticef(
             9, L"%s %s %s!", GetMonsterGroupName(group),
             gppStringList[0x1d7 + (group->member_count != 1)],
             gppStringList[g_group_hostility_notice_ids[static_cast<unsigned char>(hostility)]]);
     }
-    group->hostility_set_at_cb = g_status_685170.world_clock;
+    group->hostility_set_at = g_status_685170.world_clock;
     if (previous != 0) {
         SetTargetToGroup(group->group_id, W8_TARGETING_CONTEXT_IN_COMBAT);
     }
@@ -434,7 +435,7 @@ void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, cha
                 W8MonsterGroup* other = GetMonsterGroupByListIndex(index);
                 W8MonsterRecord* other_record = MonsterGroupGetRecord(other);
                 if (other != group &&
-                    ((other_record->flags_0d0 & 1) == 0 || !other->forced_neutral_ca) &&
+                    ((other_record->flags_0d0 & 1) == 0 || !other->forced_neutral) &&
                     record->faction_id_25f == other_record->faction_id_25f &&
                     MonsterGroupCanSeeGroup(other, group)) {
                     SetMonsterGroupHostility(other, group->ubDisposition, 0);
@@ -922,7 +923,7 @@ void AlertSameFactionGroups(W8MonsterGroup* monster_group)
             W8MonsterGroup* other = GetMonsterGroupByListIndex(index);
             W8MonsterRecord* other_record = MonsterGroupGetRecord(other);
             if (other != monster_group &&
-                ((other_record->flags_0d0 & 1) == 0 || other->forced_neutral_ca == 0) &&
+                ((other_record->flags_0d0 & 1) == 0 || other->forced_neutral == 0) &&
                 record->faction_id_25f == other_record->faction_id_25f &&
                 MonsterGroupCanSeeGroup(other, monster_group) != 0) {
                 SetMonsterGroupHostility(other, monster_group->ubDisposition, 0);

@@ -382,7 +382,7 @@ bool QueueNpcCombatScript(void)
         if (faction != 0 && faction != 1) {
             for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
                 W8MonsterGroup* group = GetMonsterGroupByListIndex(index);
-                if (group->members_active_28 && group->fInCombat &&
+                if (group->members_active && group->fInCombat &&
                     group->ubDisposition == DISP_HOSTILE &&
                     MonsterGroupGetRecord(group)->faction_id_25f == faction) {
                     hostile_group_present = true;
@@ -393,7 +393,7 @@ bool QueueNpcCombatScript(void)
         if (!hostile_group_present && npc->name_style == 0x38) {
             for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
                 W8MonsterGroup* group = GetMonsterGroupByListIndex(index);
-                if (group->members_active_28 && group->fInCombat &&
+                if (group->members_active && group->fInCombat &&
                     group->ubDisposition == DISP_HOSTILE &&
                     MonsterGroupGetRecord(group)->faction_id_25f == 4) {
                     hostile_group_present = true;
@@ -1838,7 +1838,7 @@ void AdvanceCombatRound004E9B20(void)
 
         for (index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
             W8MonsterGroup* monster_group = GetMonsterGroupByListIndex(index);
-            if (monster_group->members_active_28 != 0 && monster_group->fInCombat != 0 &&
+            if (monster_group->members_active != 0 && monster_group->fInCombat != 0 &&
                 MonsterGroupCanEngage(monster_group) != 0) {
                 engaged = true;
                 break;
@@ -3052,7 +3052,7 @@ void PointCameraAtCombatTarget(W8TargetSource* source, W8CombatSlot* target)
         }
         group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
             0x140d, "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", target->iGroupID, '\x01'));
-        location_id = group->leader_id_9f;
+        location_id = group->leader_location_id;
         caller_line = 0x140d;
     } else {
         if (target->iType != W8_TARGET_KIND_PLACE) {

@@ -3453,7 +3453,8 @@ void RedirectBackfiredSpellTarget004FE740(W8TargetSource* source, W8CombatSlot* 
     case W8_TARGET_KIND_GROUP:
         list_index = GetMonsterGroupIndexByID(0xc33, MAGIC_CPP, target_copy.iGroupID, '\x01');
         group = GetMonsterGroupByListIndex(list_index);
-        list_index = MonsterGetIndexByLocationID(0xc33, MAGIC_CPP, group->leader_id_9f, '\x01');
+        list_index =
+            MonsterGetIndexByLocationID(0xc33, MAGIC_CPP, group->leader_location_id, '\x01');
         monster_info = MonsterGetScriptPartByLocationIndex(list_index);
         SetTargetSourceToMonster(monster_info, source);
         ResetCombatSlot(target);

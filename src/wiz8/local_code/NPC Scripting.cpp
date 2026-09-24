@@ -1682,7 +1682,7 @@ void ProcessMessageBoxQueue(void)
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
                 0x916, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->leader_id_9f, 1);
+                group->leader_location_id, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->p3D->SetScript004C7F10("MoveSavant.msf", 1);
         }
@@ -1695,7 +1695,7 @@ void ProcessMessageBoxQueue(void)
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
                 0xb5e, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->leader_id_9f, 1);
+                group->leader_location_id, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->p3D->SetScript004C7F10("MoveBela.msf", 1);
         }
@@ -1712,7 +1712,7 @@ void ProcessMessageBoxQueue(void)
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
                 0xb1b, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->leader_id_9f, 1);
+                group->leader_location_id, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->p3D->SetScript004C7F10("MoveGolem.msf", 1);
         }
@@ -1753,7 +1753,7 @@ void ProcessMessageBoxQueue(void)
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
                 0xa3a, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->leader_id_9f, 1);
+                group->leader_location_id, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->p3D->SetCycleCallback004CA340(0x12, NpcScriptHenchmanArrives);
             StartMonsterCycle(monster_info, 0x12, 1);
@@ -1766,7 +1766,7 @@ void ProcessMessageBoxQueue(void)
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
                 0x968, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->leader_id_9f, 1);
+                group->leader_location_id, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             StartMonsterCycle(monster_info, 0x12, 1);
             monster_info->p3D->SetCycleCallback004CA340(0x12, NpcScriptHenchmanDeparted);
@@ -1868,7 +1868,7 @@ void ProcessMessageBoxQueue(void)
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
                 0x983, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->leader_id_9f, 1);
+                group->leader_location_id, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->p3D->BeginFadeOutAndRemove004C5040(0);
         }
@@ -1925,7 +1925,7 @@ void ProcessMessageBoxQueue(void)
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
                 0x78d, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->leader_id_9f, 1);
+                group->leader_location_id, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->p3D->SetScript004C7F10("MoveGari.msf", 1);
         }
@@ -1943,7 +1943,7 @@ void ProcessMessageBoxQueue(void)
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
                 0x7c1, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->leader_id_9f, 1);
+                group->leader_location_id, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->p3D->SetScript004C7F10("Milano.msf", 1);
         }
@@ -1995,7 +1995,7 @@ void ProcessMessageBoxQueue(void)
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
                 0x7a8, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->leader_id_9f, 1);
+                group->leader_location_id, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->p3D->SetScript004C7F10("MoveRubble.msf", 1);
         }
@@ -2077,7 +2077,7 @@ void ProcessMessageBoxQueue(void)
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
                 0xb2e, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->leader_id_9f, 1);
+                group->leader_location_id, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             StartMonsterCycle(monster_info, 0x19, 1);
             monster_info->p3D->SetCycleCallback004CA340(0x19, NpcScriptSavantHackDone);
@@ -2090,7 +2090,7 @@ void ProcessMessageBoxQueue(void)
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
                 0xa57, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->leader_id_9f, 1);
+                group->leader_location_id, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->p3D->SetScript004C7F10("belapath1.msf", 1);
         }
@@ -2171,7 +2171,7 @@ void ProcessMessageBoxQueue(void)
             (group = FindFirstMonsterByID(0x197)) != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
                 0xacf, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->leader_id_9f, 1);
+                group->leader_location_id, 1);
             monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->p3D->SetPosition(&position);
             MonsterForwardReferencePosition(monster_info->p3D, 0);
@@ -2213,7 +2213,7 @@ void ProcessMessageBoxQueue(void)
         if (group != 0) {
             unsigned int monster_index = MonsterGetIndexByLocationID(
                 0x9a0, "C:\\Projects\\Wizardry 8\\Local Code\\NPC Scripting.cpp",
-                group->leader_id_9f, 1);
+                group->leader_location_id, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_index);
             monster_info->p3D->BeginFadeOutAndRemove004C5040(0);
         }

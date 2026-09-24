@@ -416,13 +416,13 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
     }
 
     group = CreateGroup(species, count, &spawn_position, 0, 0, 1);
-    group->encounter_registered_c3 = 1;
+    group->encounter_registered = 1;
     SetMonsterGroupFormation(group, &spawn_position_0c);
-    if (group != 0 && group->encounter_registered_c3 != 0 && g_active_groups.IndexOf(group) == -1) {
+    if (group != 0 && group->encounter_registered != 0 && g_active_groups.IndexOf(group) == -1) {
         g_active_groups.Add(group);
     }
 
-    W8Monster* monster = GetMonsterByLocationID(group->leader_id_9f);
+    W8Monster* monster = GetMonsterByLocationID(group->leader_location_id);
     if (monster != 0) {
         monster->SetScript004C7F10(script != 0 && script[0] != '\0' ? script : "Default.MSF", 1);
     }
@@ -453,7 +453,7 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
         companion_count += companion_group_count;
         W8MonsterGroup* companion_group =
             CreateGroup(companion_species, companion_group_count, &spawn_position, 0, 0, 1);
-        companion_group->encounter_registered_c3 = 1;
+        companion_group->encounter_registered = 1;
         SetMonsterGroupFormation(companion_group, &spawn_position_0c);
         LinkMonsterGroupToLeader(group, companion_group);
     }
@@ -637,7 +637,7 @@ void CullExpiredEncounters(void)
 
         if (span < static_cast<float>(static_cast<unsigned int>(g_status_685170.world_clock -
                                                                 group->spawn_time))) {
-            W8Monster* monster = GetMonsterByLocationID(group->leader_id_9f);
+            W8Monster* monster = GetMonsterByLocationID(group->leader_location_id);
 
             position = monster->GetPosition();
             srVector3T<float> delta = position - party;
@@ -839,7 +839,7 @@ void RunMonsterGenerators(void)
 // FUNCTION: WIZ8 0x0048c670
 void UnregisterActiveEncounterGroup(W8MonsterGroup* group)
 {
-    if (group == 0 || group->encounter_registered_c3 == 0) {
+    if (group == 0 || group->encounter_registered == 0) {
         return;
     }
     unsigned char removed = g_active_groups.Remove(group);
@@ -860,7 +860,7 @@ void UnregisterActiveEncounterGroup(W8MonsterGroup* group)
 // FUNCTION: WIZ8 0x0048c750
 void RegisterActiveEncounterGroup(W8MonsterGroup* group)
 {
-    if (group == 0 || group->encounter_registered_c3 == 0 || g_active_groups.IndexOf(group) != -1) {
+    if (group == 0 || group->encounter_registered == 0 || g_active_groups.IndexOf(group) != -1) {
         return;
     }
     g_active_groups.Add(group);

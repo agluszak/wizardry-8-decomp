@@ -3168,7 +3168,7 @@ void Trigger::Run(int source)
             return;
         }
 
-        group->members_active_28 = 1;
+        group->members_active = 1;
         monster_info->p3D->m_pRep->animation_playing_06d = 1;
         monster_info->p3D->m_pRep->animation_playing_06d = 1;
         monster_info->p3D->m_pRep->timer_068 =
