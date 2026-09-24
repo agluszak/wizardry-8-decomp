@@ -5014,7 +5014,7 @@ void SetNpcQuoteBubbleVisible(bool visible, const wchar_t* text, W8NpcScriptQuot
 }
 
 // FUNCTION: WIZ8 0x00576650
-unsigned char NpcQuoteBubbleRegionEvent(const InputAtom* event)
+unsigned char NpcQuoteBubbleRegionEvent(const InputAtom* event, W8Region*)
 {
     if (event->usEvent != LEFT_BUTTON_DOWN) {
         return 0;

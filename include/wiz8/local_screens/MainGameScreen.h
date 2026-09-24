@@ -704,7 +704,7 @@ unsigned char MainGameScreenLeave(int leaving);
 void ShowMainGameNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int confirmation,
                             int cancel); /* 0x00569A50 */
 
-unsigned char CombatBarRegionEvent(const InputAtom* event);
+unsigned char CombatBarRegionEvent(const InputAtom* event, struct W8Region* region);
 unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, struct W8Region* region);
 void SetNpcDialogueSubMode4(void);
 void ConfirmNpcTradeItem005AD290(void);

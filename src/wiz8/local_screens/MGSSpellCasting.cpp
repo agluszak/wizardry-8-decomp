@@ -1327,7 +1327,7 @@ unsigned char SpellCastTextBoxRegionEvent(const InputAtom* event, W8Region* regi
 }
 
 // FUNCTION: WIZ8 0x005A1140
-unsigned char IgnoreSpellCastingInput(const InputAtom* input)
+unsigned char IgnoreSpellCastingInput(const InputAtom* event, W8Region*)
 {
     return 0;
 }

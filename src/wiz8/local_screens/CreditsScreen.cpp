@@ -214,7 +214,7 @@ void CreditsScreenFrame(void)
 
 /* Full-screen credits background: left-up or right-up leaves the screen. */
 // FUNCTION: WIZ8 0x005BC7A0
-unsigned char CreditsBackgroundRegionEvent(const InputAtom* event)
+unsigned char CreditsBackgroundRegionEvent(const InputAtom* event, W8Region*)
 {
     int us_event = event->usEvent;
     if (us_event != LEFT_BUTTON_UP && us_event != RIGHT_BUTTON_UP) {

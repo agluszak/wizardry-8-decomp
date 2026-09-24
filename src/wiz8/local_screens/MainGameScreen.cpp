@@ -10051,7 +10051,7 @@ unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, W8Region* re
 }
 
 // FUNCTION: WIZ8 0x005699D0
-unsigned char CombatBarRegionEvent(const InputAtom* event)
+unsigned char CombatBarRegionEvent(const InputAtom* event, W8Region*)
 {
     int us_event = event->usEvent;
 

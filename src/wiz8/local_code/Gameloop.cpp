@@ -61,13 +61,8 @@ W8ScreenStateHandlers g_screen_handlers[W8_SCREEN_COUNT] = {
      ScreenLifecycleSuccess},
     {MainMenuScreenInitialize, MainMenuScreenEnter, MainMenuScreenFrame, MainMenuScreenLeave,
      ScreenLifecycleSuccess},
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
-    /* Retail stores the zero-argument success sentinel in the int-taking
-       leave slot. Do not invent a thunk or change ScreenLifecycleSuccess. */
-    {ScreenLifecycleSuccess, ScreenLifecycleSuccess, GameStartRouterFrame,
-     (unsigned char (*)(int))ScreenLifecycleSuccess, ScreenLifecycleSuccess},
-#pragma clang diagnostic pop
+    {ScreenLifecycleSuccess, ScreenLifecycleSuccess, GameStartRouterFrame, GameStartRouterLeave,
+     ScreenLifecycleSuccess},
     {ScreenLifecycleSuccess, CharacterScreenEnter, CharacterScreenFrame, CharacterScreenLeave,
      ScreenLifecycleSuccess},
     {PleaseWaitScreenInitialize, PleaseWaitScreenEnter, PleaseWaitScreenFrame,

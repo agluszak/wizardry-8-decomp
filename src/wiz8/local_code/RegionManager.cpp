@@ -57,6 +57,15 @@ W8RegionSet g_region_sets[300] = {
     {0, 301, 301}, {0, 0, 0},     {0, 0, 0}};
 // GLOBAL: WIZ8 0x00617b1c
 unsigned int g_region_count = 313;
+/* The last catalog region reports every event as handled. Retail's linker
+   folded this body into ScreenLifecycleSuccess, which compiles to the same
+   bytes. */
+// bool-byte-ok: W8RegionCallback result
+static unsigned char ConsumeRegionInput(const InputAtom*, W8Region*)
+{
+    return 1;
+}
+
 // GLOBAL: WIZ8 0x00620048
 W8Region g_regions[1500] = {
 
@@ -70,14 +79,7 @@ W8Region g_regions[1500] = {
 
     {0x00000001, 279, 423, 364, 467, MainMenuExit, 0, 0, 0, -1, 0},
     {0x00000001, 286, 382, 351, 402, IntroScreenRegionEvent, 0, 0, 0, -1, 0},
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
-    // clang-format off  format-off-ok: keep ABI cast and ok-comment on one catalog initializer line
-    {0x00000001, 0, 0, 639, 479, reinterpret_cast<W8RegionCallback>(CreditsBackgroundRegionEvent),
-     /* reinterpret-ok: retail catalog stores InputAtom-only CreditsBackgroundRegionEvent */ 0, 0,
-     0, 0, 0},
-// clang-format on
-#pragma clang diagnostic pop
+    {0x00000001, 0, 0, 639, 479, CreditsBackgroundRegionEvent, 0, 0, 0, 0, 0},
 
     {0x00000001, 0, 0, 0, 0, DialogueTranscriptRegionEvent, 0, 0, 0, -1, 0},
     {0x00000001, 24, 68, 42, 85, PartyCombatActionRegionEvent, 0, 0, 0, -1, 0},
@@ -270,12 +272,7 @@ W8Region g_regions[1500] = {
     {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 7, 1, 0, 53, 0},
 
     {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 8, 1, 0, 54, 0},
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
-    // clang-format off
-    {0x00000001, 0, 0, 0, 0, reinterpret_cast<W8RegionCallback>(IgnoreSpellCastingInput), /* reinterpret-ok: retail region catalog stores IgnoreSpellCastingInput's InputAtom ABI */ 0, 1, 0, 55, 0},
-// clang-format on
-#pragma clang diagnostic pop
+    {0x00000001, 0, 0, 0, 0, IgnoreSpellCastingInput, 0, 1, 0, 55, 0},
     {0x00000001, 0, 0, 0, 0, SpellPowerPipRegionEvent, 10, 1, 0, 17, 0},
 
     {0x00000001, 0, 0, 0, 0, UseItemSelectScrollRegionEvent, 0, 1, 0, 96, 0},
@@ -483,20 +480,9 @@ W8Region g_regions[1500] = {
     {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 6, 0, 0, -1, 0},
 
     {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 7, 0, 0, -1, 0},
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
-    // clang-format off  format-off-ok: keep ABI cast and ok-comment on one catalog initializer line
-    {0x00000001, 0, 0, 0, 0, reinterpret_cast<W8RegionCallback>(NpcQuoteBubbleRegionEvent),
-     /* reinterpret-ok: retail catalog stores InputAtom-only NpcQuoteBubbleRegionEvent */ 0, 0, 0,
-     -1, 0},
-    {0x00000001, 0, 0, 0, 0, reinterpret_cast<W8RegionCallback>(CombatBarRegionEvent),
-     /* reinterpret-ok: retail catalog stores InputAtom-only CombatBarRegionEvent */ 0, 0, 0, -1,
-     0},
-    {0x00000001, 0, 0, 0, 0, reinterpret_cast<W8RegionCallback>(ScreenLifecycleSuccess),
-     /* reinterpret-ok: retail region catalog stores the zero-argument success sentinel */ 0, 0, 0,
-     -1, 0},
-// clang-format on
-#pragma clang diagnostic pop
+    {0x00000001, 0, 0, 0, 0, NpcQuoteBubbleRegionEvent, 0, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatBarRegionEvent, 0, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ConsumeRegionInput, 0, 0, 0, -1, 0},
 };
 // GLOBAL: WIZ8 0x00689B3C
 unsigned int g_current_region_index;

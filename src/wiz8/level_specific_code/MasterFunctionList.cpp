@@ -614,6 +614,19 @@ bool Trynnie2MeatBox004D9E60(Trigger* trigger);
 bool Trynnie2UrnTrigger004DA060(Trigger* trigger);
 bool Trynnie1FountRandomFX004DA740(Trigger* trigger);
 
+/* Activation callbacks that only let the trigger run or stop it. Retail's
+   linker folded them into ScreenLifecycleSuccess and IgnoreSpellCastingInput,
+   which compile to the same bytes. */
+static bool AllowTriggerActivation(Trigger* trigger)
+{
+    return true;
+}
+
+static bool BlockTriggerActivation(Trigger* trigger)
+{
+    return false;
+}
+
 /* Install the level's trigger callbacks and master-function helpers. */
 // FUNCTION: WIZ8 0x004D6C50
 void InitializeLevelMasterFunctions004D6C50(int level)
@@ -685,12 +698,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x8c,
                          "Missing trigger 'ULLspawn'! It's not in the LVL file!");
         }
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
-        /* Retail stores the zero-argument success sentinel as a Trigger
-           activation callback. Do not invent a thunk. */
-        pTrigger->activation_callback_360 = (Trigger::ActivationCallback)ScreenLifecycleSuccess;
-#pragma clang diagnostic pop
+        pTrigger->activation_callback_360 = AllowTriggerActivation;
         pTrigger = FindTriggerByName("Mookholo");
         if (pTrigger == 0) {
             srAssertFail("pTrigger", MASTER_FUNCTION_CPP, 0x90,
@@ -862,29 +870,15 @@ void InitializeLevelMasterFunctions004D6C50(int level)
         pTrigger->activation_callback_360 = MartensBluff1Teleporter004DF4A0;
         pTrigger = FindTriggerByName("MR110");
         if (pTrigger != 0) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
-            /* Retail stores IgnoreSpellCastingInput's InputAtom ABI in the Trigger
-               activation slot. Do not invent a thunk. */
-            pTrigger->activation_callback_360 =
-                (Trigger::ActivationCallback)IgnoreSpellCastingInput;
-#pragma clang diagnostic pop
+            pTrigger->activation_callback_360 = BlockTriggerActivation;
         }
         pTrigger = FindTriggerByName("MR111");
         if (pTrigger != 0) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
-            pTrigger->activation_callback_360 =
-                (Trigger::ActivationCallback)IgnoreSpellCastingInput;
-#pragma clang diagnostic pop
+            pTrigger->activation_callback_360 = BlockTriggerActivation;
         }
         pTrigger = FindTriggerByName("MR112");
         if (pTrigger != 0) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
-            pTrigger->activation_callback_360 =
-                (Trigger::ActivationCallback)IgnoreSpellCastingInput;
-#pragma clang diagnostic pop
+            pTrigger->activation_callback_360 = BlockTriggerActivation;
         }
         pTrigger = FindTriggerByName("F-Handlock");
         if (pTrigger == 0) {
