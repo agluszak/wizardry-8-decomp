@@ -2443,20 +2443,22 @@ void ExecuteMonsterAction004EAE20(W8MonsterInfo* monster_info, W8MonsterRecord* 
             result = StartMonsterAttack0053FEA0(monster_info, record);
             break;
         case 1:
-            goto action_committed;
+            result = 1;
+            break;
         case 2: {
             int spell_id = monster_info->action_detail;
             unsigned int power = ChooseMonsterSpellPowerLevel(monster_info, record, spell_id);
             if (CanMonsterAimSpell(monster_info, spell_id) == 0 ||
                 MonsterOKToCastSpell(monster_info, spell_id, power) == 0) {
                 result = 0;
-                goto action_retry;
+                break;
             }
             monster_info->spell_power_level = power;
             OrientMonsterTowardTarget(monster_info, 0);
             monster_info->fSpellReleased = 0;
             StartMonsterCycle(monster_info, 0x19, 1);
-            goto action_committed;
+            result = 1;
+            break;
         }
         case 3:
             result = MonsterFleeAction(monster_info, record);
@@ -2527,7 +2529,8 @@ void ExecuteMonsterAction004EAE20(W8MonsterInfo* monster_info, W8MonsterRecord* 
                         } else {
                             PostMonsterNotice(monster_info, gppStringList[0x237]);
                         }
-                        goto action_committed;
+                        result = 1;
+                        break;
                     }
                     if (monster_info->pCombat->reconsider_action_152 != '\0') {
                         monster_info->pCombat->reconsider_action_152 = '\0';
@@ -2563,17 +2566,15 @@ void ExecuteMonsterAction004EAE20(W8MonsterInfo* monster_info, W8MonsterRecord* 
             break;
         }
         if (result != '\0') {
-        action_committed:
             if (monster_info->action_kind != 1 && monster_info->action_kind != 8) {
                 MonsterSetNavigatorFlag25(monster_info->p3D, '\0');
             }
-            goto action_done;
+            break;
         }
-    action_retry:
         if (interrupt != -1 || monster_info->pCombat->active != '\0' ||
             monster_info->action_kind == 9) {
             monster_info->action_kind = -1;
-            goto action_done;
+            break;
         }
         UpdateMonsterAI(monster_info);
         if (monster_info->action_kind == -1 || tried[monster_info->action_kind] != '\0') {
@@ -2581,19 +2582,18 @@ void ExecuteMonsterAction004EAE20(W8MonsterInfo* monster_info, W8MonsterRecord* 
         }
         if (monster_info->action_kind == 1) {
             ShowNoticef(9, gppStringList[0x23c], GetMonsterName(monster_info, NULL, '\0'));
-        action_done:
-            if (monster_info->action_kind != 1 && monster_info->action_kind != 8) {
-                g_combat_state->passive_round_a55 = 0;
-            }
-            if (IsMonsterActionUsable(monster_info) != '\0') {
-                monster_info->pCombat->settle_ticks_14c = 0;
-            }
-            monster_info->pCombat->active = '\x01';
-            RequestRedraw(0x100000);
-            g_combat_state->eCombatActionStatus = 2;
-            return;
+            break;
         }
     }
+    if (monster_info->action_kind != 1 && monster_info->action_kind != 8) {
+        g_combat_state->passive_round_a55 = 0;
+    }
+    if (IsMonsterActionUsable(monster_info) != '\0') {
+        monster_info->pCombat->settle_ticks_14c = 0;
+    }
+    monster_info->pCombat->active = '\x01';
+    RequestRedraw(0x100000);
+    g_combat_state->eCombatActionStatus = 2;
 }
 
 /* The monster flee action: check the monster can and will run, aim it, play
