@@ -1170,7 +1170,8 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
     }
     if (!CanCharacterActivateItem(character, item)) {
         PostCharacterNotice(party_slot, gppStringList[0x594 / 4], GetItemDisplayName(item));
-        goto finish;
+        *out_uses = -1;
+        return 0;
     }
 
     if (record->quantity_kind == 2 && item->uses_or_charges == 0) {
@@ -1183,7 +1184,8 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
         if (record->equip_class == 0xd &&
             character->uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] != 0) {
             PostCharacterNotice(party_slot, gppStringList[0x598 / 4]);
-            goto finish;
+            *out_uses = -1;
+            return 0;
         }
 
         /* The one item that is not used on anybody: it hands the level's NPC
@@ -1241,7 +1243,8 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
             if (power == 0) {
                 PostCharacterNotice(party_slot, gppStringList[0x7cc / 4], GetItemDisplayName(item));
                 PracticeCharacterSkill(character, skill, 1, 0);
-                goto finish;
+                *out_uses = -1;
+                return 0;
             }
         }
 
@@ -1314,13 +1317,12 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
                 RemoveCharacterItem(character, item, 1);
             }
         }
-        goto finish;
+        *out_uses = fatigue_cost;
+        return used;
     }
 
     QueueCharacterEvent(&g_status_685170.buffers.Char[party_slot], event_type, 0,
                         g_effect_argument_005ed8cc, g_effect_argument_005ed914);
-
-finish:
     *out_uses = fatigue_cost;
     return used;
 }
@@ -3624,6 +3626,7 @@ void UnequipUnusableItems(W8Character* character)
         unsigned int party_slot = CharacterPointerToPartySlot(character);
         const W8ItemDatabaseRecord* record = &g_item_records[item->iItemNo];
         unsigned short message_id = 0;
+        bool unmet = false;
         W8ItemInstance destination;
         unsigned int index;
 
@@ -3633,32 +3636,35 @@ void UnequipUnusableItems(W8Character* character)
                         .effective < record->attribute_requirements[index].minimum) {
                 message_id = g_character_description_first_ids_61e3a4
                     [(signed char)record->attribute_requirements[index].stat_id];
-                goto announce_requirement;
+                unmet = true;
+                break;
             }
         }
-        for (index = 0; index < 2; ++index) {
+        for (index = 0; !unmet && index < 2; ++index) {
             if (record->skill_requirements[index].stat_id != W8_ITEM_REQUIREMENT_NONE &&
                 character->skills[(signed char)record->skill_requirements[index].stat_id].level <
                     record->skill_requirements[index].minimum) {
                 message_id =
                     g_character_skill_name_ids_61e454[(signed char)record->skill_requirements[index]
                                                           .stat_id];
-                goto announce_requirement;
+                unmet = true;
+                break;
             }
         }
-        PostCharacterNotice(party_slot, gppStringList[0x7c0 / 4],
-                            gppStringList[g_gender_name_message_rows_61e430[character->gender][2]],
-                            FormatItemDisplayName(item, 1), item, 1);
-        goto move_item;
+        if (unmet) {
+            PostCharacterNotice(
+                party_slot, gppStringList[0x7bc / 4],
+                gppStringList[g_gender_name_message_rows_61e430[character->gender][2]],
+                FormatItemDisplayName(item, 1),
+                gppStringList[g_gender_name_message_rows_61e430[character->gender][2]],
+                gppStringList[message_id]);
+        } else {
+            PostCharacterNotice(
+                party_slot, gppStringList[0x7c0 / 4],
+                gppStringList[g_gender_name_message_rows_61e430[character->gender][2]],
+                FormatItemDisplayName(item, 1), item, 1);
+        }
 
-    announce_requirement:
-        PostCharacterNotice(party_slot, gppStringList[0x7bc / 4],
-                            gppStringList[g_gender_name_message_rows_61e430[character->gender][2]],
-                            FormatItemDisplayName(item, 1),
-                            gppStringList[g_gender_name_message_rows_61e430[character->gender][2]],
-                            gppStringList[message_id]);
-
-    move_item:
         destination.iItemNo = -1;
         destination.stack_count = 0;
         destination.uses_or_charges = 0;
