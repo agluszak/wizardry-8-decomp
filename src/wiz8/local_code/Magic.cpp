@@ -4178,70 +4178,43 @@ LAB_004fdaf6:
                        source->iChar, source->iMonsterID);
 }
 
-/* Drop every marker that no longer names a live, targetable monster; a few
-   spell ids prune on extra monster-record rules. */
+/* Drop every marker that no longer names a live, targetable monster. Spells
+   0x16, 0x4d and 0x81 also drop markers whose monster kind they do not affect. */
 // FUNCTION: WIZ8 0x00501B70
 void PruneSpellTargetMarkers00501B70(int spell_id, W8GrowableVector<int>* monster_markers)
 {
     W8MonsterInfo* monster_info;
     W8MonsterRecord* record;
     int index;
-    int shift;
-    int location_id;
 
-    index = monster_markers->count;
-joined_r0x00501b7a:
-    --index;
-    if (index < 0) {
-        return;
-    }
-    if (index < monster_markers->count) {
-        location_id = monster_markers->data[index];
-    } else {
-        location_id = monster_markers->data[0];
-    }
-    monster_info = MonsterGetScriptPartByLocationIndex(
-        MonsterGetIndexByLocationID(0x1595, MAGIC_CPP, location_id, '\x01'));
-    record = GetMonsterDataForInfo(monster_info);
-    if (monster_info->fActive == '\0' || monster_info->hp_current == 0 ||
-        monster_info->uiCondition[0x12] != 0 || record->untargetable_24a != '\0') {
-        goto LAB_00501cc9;
-    }
-    if (spell_id == 0x16) {
-        if (record->kind_0cb == '\x14' || record->kind_0cb == '\x15') {
-            goto joined_r0x00501b7a;
+    for (index = monster_markers->count - 1; index >= 0; --index) {
+        monster_info = MonsterGetScriptPartByLocationIndex(
+            MonsterGetIndexByLocationID(0x1595, MAGIC_CPP, *monster_markers->GetAt(index), '\x01'));
+        record = GetMonsterDataForInfo(monster_info);
+        if (monster_info->fActive == '\0' || monster_info->hp_current == 0 ||
+            monster_info->uiCondition[W8_CONDITION_DEAD] > 0 || record->untargetable_24a != '\0') {
+            monster_markers->RemoveAt(index);
+            continue;
         }
-    } else if (spell_id == 0x4d) {
-        if (record->kind_0cb == '\x14' || record->kind_0cb == '\x15' ||
-            record->kind_0cb == '\x1c' || monster_info->summoned_2da != 0) {
-            goto joined_r0x00501b7a;
-        }
-    } else {
-        if (spell_id != 0x81 || record->kind_0cb == '\x14') {
-            goto joined_r0x00501b7a;
+        switch (spell_id) {
+        case 0x16:
+            if (record->kind_0cb != 0x14 && record->kind_0cb != 0x15) {
+                monster_markers->RemoveAt(index);
+            }
+            break;
+        case 0x4d:
+            if (record->kind_0cb != 0x14 && record->kind_0cb != 0x15 && record->kind_0cb != 0x1c &&
+                monster_info->summoned_2da == 0) {
+                monster_markers->RemoveAt(index);
+            }
+            break;
+        case 0x81:
+            if (record->kind_0cb != 0x14) {
+                monster_markers->RemoveAt(index);
+            }
+            break;
         }
     }
-    if (monster_markers->count <= index || index < 0) {
-        goto joined_r0x00501b7a;
-    }
-    shift = index;
-    while (shift < monster_markers->count - 1) {
-        monster_markers->data[shift] = monster_markers->data[shift + 1];
-        ++shift;
-    }
-    goto LAB_00501cee;
-LAB_00501cc9:
-    if (monster_markers->count <= index || index < 0) {
-        goto joined_r0x00501b7a;
-    }
-    shift = index;
-    while (shift < monster_markers->count - 1) {
-        monster_markers->data[shift] = monster_markers->data[shift + 1];
-        ++shift;
-    }
-LAB_00501cee:
-    --monster_markers->count;
-    goto joined_r0x00501b7a;
 }
 
 // FUNCTION: WIZ8 0x00501D20
