@@ -4935,26 +4935,24 @@ void W8PathingService::SnapPathHeight0045B5A0(srVector3T<float>* position)
     }
 }
 
-/* Derive the path surface normal from the retail three-point construction.
-
-   The middle point is height-snapped before receiving the same X offset as
-   the second sample. This unusual order is intentional: it is the exact
-   construction in the retail body, not a conventionalized terrain sampler. */
+/* Build the path surface normal from height-snapped samples at the current
+   point, one X cell over, and one Z cell over. The Z-edge crossed with the
+   X-edge gives the upward normal on flat ground, matching the retail order. */
 // FUNCTION: WIZ8 0x0045b730
 void W8PathingService::GetPathSurfaceNormal0045B730(const srVector3T<float>* position,
                                                     srVector3T<float>* normal)
 {
-    srVector3T<float> first = *position;
-    srVector3T<float> middle = *position;
-    srVector3T<float> second = *position;
+    srVector3T<float> origin = *position;
+    srVector3T<float> x_sample = *position;
+    srVector3T<float> z_sample = *position;
 
-    SnapPathHeight0045B5A0(&middle);
-    second.x += grid_scale_01c;
-    middle.x += grid_scale_01c;
-    SnapPathHeight0045B5A0(&second);
-    SnapPathHeight0045B5A0(&first);
+    SnapPathHeight0045B5A0(&origin);
+    x_sample.x += grid_scale_01c;
+    SnapPathHeight0045B5A0(&x_sample);
+    z_sample.z += grid_scale_01c;
+    SnapPathHeight0045B5A0(&z_sample);
 
-    *normal = CrossProduct(first - middle, second - middle);
+    *normal = CrossProduct(z_sample - origin, x_sample - origin);
     normal->Normalize();
 }
 

@@ -1221,7 +1221,7 @@ void LearnSpell(W8Character* character, int spell_id, char announce)
 }
 
 // GLOBAL: WIZ8 0x0068c510
-int g_learn_sound_0068c510;
+int g_learn_sound_0068c510 = g_first_remapped_event_005ee718 + 16;
 /* Learn the spell a scroll or book teaches, and consume it. The item has to
    carry a spell - the assertion names the field ubSpellNumber - and the
    character has to be able to take it on; failing that the item is left alone
