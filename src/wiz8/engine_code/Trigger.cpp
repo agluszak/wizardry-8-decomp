@@ -1525,13 +1525,13 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         unsigned char version;
         int byte_b3;
         int byte_b0;
-        float flag_0;
+        float animate_states;
         int range;
         int action;
         int value_ac;
-        int flag_1;
+        int animate_action;
         unsigned char packed_flags;
-        unsigned char flag_8;
+        unsigned char enabled;
         float minimum_range = 0.0f;
         int action_value = 0;
         char recipients[0x100];
@@ -1540,13 +1540,13 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         FileRead(handle, &version, 1, 0);
         FileRead(handle, &byte_b3, 4, 0);
         FileRead(handle, &byte_b0, 4, 0);
-        FileRead(handle, &flag_0, 4, 0);
+        FileRead(handle, &animate_states, 4, 0);
         FileRead(handle, &range, 4, 0);
         FileRead(handle, &action, 4, 0);
         FileRead(handle, &value_ac, 4, 0);
-        FileRead(handle, &flag_1, 4, 0);
+        FileRead(handle, &animate_action, 4, 0);
         FileRead(handle, &packed_flags, 1, 0);
-        FileRead(handle, &flag_8, 1, 0);
+        FileRead(handle, &enabled, 1, 0);
         FileRead(handle, trigger->name_01c, sizeof(trigger->name_01c), 0);
         FileRead(handle, recipients, sizeof(recipients), 0);
         FileRead(handle, sound, sizeof(sound), 0);
@@ -1593,15 +1593,15 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         trigger->cycle_bounce = byte_b3;
         trigger->action_value = action_value;
         trigger->initial_action_22a = action;
-        if (flag_0 != 0.0f)
+        if (animate_states != 0.0f)
             trigger->flags_0a0 |= W8_TRIGGER_ANIMATE_STATES;
         else
             trigger->flags_0a0 &= ~W8_TRIGGER_ANIMATE_STATES;
-        if (flag_1 != 0)
+        if (animate_action != 0)
             trigger->flags_0a0 |= W8_TRIGGER_ANIMATE_ACTION;
         else
             trigger->flags_0a0 &= ~W8_TRIGGER_ANIMATE_ACTION;
-        if (flag_8 != 0)
+        if (enabled != 0)
             trigger->flags_0a0 |= W8_TRIGGER_ENABLED;
         else
             trigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
@@ -1628,11 +1628,11 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         float z;
         int action;
         int value_c8;
-        unsigned char flag_7;
-        unsigned char flag_8;
+        unsigned char fire_linked;
+        unsigned char enabled;
         char recipients[0x100];
-        unsigned char packed_flag = 0;
-        unsigned char flag_3 = 0;
+        unsigned char plane = 0;
+        unsigned char keep_on_finish = 0;
         int value_ac = 0;
 
         FileRead(handle, &version, 1, 0);
@@ -1642,14 +1642,14 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         FileRead(handle, &z, 4, 0);
         FileRead(handle, &action, 4, 0);
         FileRead(handle, &value_c8, 4, 0);
-        FileRead(handle, &flag_7, 1, 0);
-        FileRead(handle, &flag_8, 1, 0);
+        FileRead(handle, &fire_linked, 1, 0);
+        FileRead(handle, &enabled, 1, 0);
         FileRead(handle, trigger->name_01c, sizeof(trigger->name_01c), 0);
         FileRead(handle, recipients, sizeof(recipients), 0);
         _strupr(trigger->name_01c);
         _strupr(recipients);
         if (version > 1) {
-            FileRead(handle, &packed_flag, 1, 0);
+            FileRead(handle, &plane, 1, 0);
             FileRead(handle, trigger->representation_vectors_0cc,
                      sizeof(trigger->representation_vectors_0cc), 0);
             for (int vector = 0; vector < 4; ++vector) {
@@ -1678,7 +1678,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             }
         }
         if (version > 3) {
-            FileRead(handle, &flag_3, 1, 0);
+            FileRead(handle, &keep_on_finish, 1, 0);
             FileRead(handle, &value_ac, 4, 0);
         }
         if (version > 4) {
@@ -1715,19 +1715,19 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         trigger->initial_action_22a = static_cast<unsigned short>(action);
         trigger->searchable = value_c8;
         trigger->flags_0a0 |= W8_TRIGGER_POSITIONED;
-        if (flag_7 != 0)
+        if (fire_linked != 0)
             trigger->flags_0a0 |= W8_TRIGGER_FIRE_LINKED;
         else
             trigger->flags_0a0 &= ~W8_TRIGGER_FIRE_LINKED;
-        if (flag_8 != 0)
+        if (enabled != 0)
             trigger->flags_0a0 |= W8_TRIGGER_ENABLED;
         else
             trigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
-        if (flag_3 != 0)
+        if (keep_on_finish != 0)
             trigger->flags_0a0 |= W8_TRIGGER_KEEP_ON_FINISH;
         else
             trigger->flags_0a0 &= ~W8_TRIGGER_KEEP_ON_FINISH;
-        if (packed_flag == 1)
+        if (plane == 1)
             trigger->flags_0a0 |= W8_TRIGGER_PLANE;
         trigger->m_pacRecipients = new char[strlen(recipients) + 1];
         strcpy(trigger->m_pacRecipients, recipients);
@@ -1820,21 +1820,21 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
     case 4: {
         unsigned char version;
         unsigned char packed_flags;
-        unsigned char flag_8;
-        unsigned char flag_7;
-        unsigned char flag_9;
-        unsigned char flag_3;
+        unsigned char enabled;
+        unsigned char fire_linked;
+        unsigned char link_on_deactivate;
+        unsigned char keep_on_finish;
         unsigned char flag_12;
-        unsigned char flag_15;
+        unsigned char alternate_toggles;
         int initial_action;
         int alternate_action;
         int fallback_action;
         char recipients[0x100];
         unsigned char searchable;
         char location_variable[0x100];
-        unsigned char flag_16;
+        unsigned char consume_item;
         int action_value;
-        unsigned char flag_1;
+        unsigned char animate_action;
         char sound[0x80];
         float representation_scale = 1.0f;
         unsigned char initial_location_value = 0;
@@ -1844,21 +1844,21 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         FileRead(handle, &version, 1, 0);
         FileRead(handle, trigger->name_01c, sizeof(trigger->name_01c), 0);
         FileRead(handle, &packed_flags, 1, 0);
-        FileRead(handle, &flag_8, 1, 0);
-        FileRead(handle, &flag_7, 1, 0);
-        FileRead(handle, &flag_9, 1, 0);
-        FileRead(handle, &flag_3, 1, 0);
+        FileRead(handle, &enabled, 1, 0);
+        FileRead(handle, &fire_linked, 1, 0);
+        FileRead(handle, &link_on_deactivate, 1, 0);
+        FileRead(handle, &keep_on_finish, 1, 0);
         FileRead(handle, &flag_12, 1, 0);
-        FileRead(handle, &flag_15, 1, 0);
+        FileRead(handle, &alternate_toggles, 1, 0);
         FileRead(handle, &initial_action, 4, 0);
         FileRead(handle, &alternate_action, 4, 0);
         FileRead(handle, &fallback_action, 4, 0);
         FileRead(handle, recipients, sizeof(recipients), 0);
         FileRead(handle, &searchable, 1, 0);
         FileRead(handle, location_variable, sizeof(location_variable), 0);
-        FileRead(handle, &flag_16, 1, 0);
+        FileRead(handle, &consume_item, 1, 0);
         FileRead(handle, &action_value, 4, 0);
-        FileRead(handle, &flag_1, 1, 0);
+        FileRead(handle, &animate_action, 1, 0);
         FileRead(handle, sound, sizeof(sound), 0);
         sprintf(trigger->action_data_128, "data\\sound\\%s", sound);
         _strupr(trigger->name_01c);
@@ -1907,19 +1907,19 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         trigger->initial_action_22a = static_cast<unsigned short>(initial_action);
         trigger->fallback_action_22e = static_cast<unsigned short>(fallback_action);
         trigger->searchable = searchable;
-        if (flag_8 != 0)
+        if (enabled != 0)
             trigger->flags_0a0 |= W8_TRIGGER_ENABLED;
         else
             trigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
-        if (flag_7 != 0)
+        if (fire_linked != 0)
             trigger->flags_0a0 |= W8_TRIGGER_FIRE_LINKED;
         else
             trigger->flags_0a0 &= ~W8_TRIGGER_FIRE_LINKED;
-        if (flag_9 != 0)
+        if (link_on_deactivate != 0)
             trigger->flags_0a0 |= W8_TRIGGER_LINK_ON_DEACTIVATE;
         else
             trigger->flags_0a0 &= ~W8_TRIGGER_LINK_ON_DEACTIVATE;
-        if (flag_3 != 0)
+        if (keep_on_finish != 0)
             trigger->flags_0a0 |= W8_TRIGGER_KEEP_ON_FINISH;
         else
             trigger->flags_0a0 &= ~W8_TRIGGER_KEEP_ON_FINISH;
@@ -1927,15 +1927,15 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             trigger->flags_0a0 |= 0x1000;
         else
             trigger->flags_0a0 &= ~0x1000U;
-        if (flag_16 != 0)
+        if (consume_item != 0)
             trigger->flags_0a0 |= W8_TRIGGER_CONSUME_ITEM;
         else
             trigger->flags_0a0 &= ~W8_TRIGGER_CONSUME_ITEM;
-        if (flag_1 != 0)
+        if (animate_action != 0)
             trigger->flags_0a0 |= W8_TRIGGER_ANIMATE_ACTION;
         else
             trigger->flags_0a0 &= ~W8_TRIGGER_ANIMATE_ACTION;
-        if (flag_15 != 0)
+        if (alternate_toggles != 0)
             trigger->flags_0a0 |= W8_TRIGGER_ALTERNATE_TOGGLES;
         else
             trigger->flags_0a0 &= ~W8_TRIGGER_ALTERNATE_TOGGLES;
@@ -1943,13 +1943,13 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             trigger->flags_0a0 |= W8_TRIGGER_HAS_ALTERNATE;
 
         unsigned char value_b0;
-        unsigned char flag_0;
+        unsigned char animate_states;
         unsigned char value_b3;
         char required_states[0x100];
         char state_to_modify[0x100];
         unsigned char value_b4;
         FileRead(handle, &value_b0, 1, 0);
-        FileRead(handle, &flag_0, 1, 0);
+        FileRead(handle, &animate_states, 1, 0);
         FileRead(handle, &value_b3, 1, 0);
         FileRead(handle, required_states, sizeof(required_states), 0);
         FileRead(handle, state_to_modify, sizeof(state_to_modify), 0);
@@ -1977,7 +1977,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         trigger->state_count = value_b0;
         trigger->cycle_bounce = value_b3;
         trigger->state_mod_mode = value_b4;
-        if (flag_0 != 0)
+        if (animate_states != 0)
             trigger->flags_0a0 |= W8_TRIGGER_ANIMATE_STATES;
         else
             trigger->flags_0a0 &= ~W8_TRIGGER_ANIMATE_STATES;
