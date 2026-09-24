@@ -2047,8 +2047,10 @@ void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, unsigned char maximu
     unsigned int index;
 
     if ((unsigned int)item_id >= gXStatus.uiItemsInDatabase) {
-        srAssertFail("uiItemNo < gXStatus.uiItemsInDatabase", PC_ITEM_CPP, 564,
-                     FormatString("InitNewItem: error, invalid item # %ld specified", item_id));
+        srAssertFail(
+            "uiItemNo < gXStatus.uiItemsInDatabase", PC_ITEM_CPP, 564,
+            reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
+                String("InitNewItem: error, invalid item # %ld specified", item_id)));
     }
 
     if (item == &g_status_685170.item_in_hand_235b) {
