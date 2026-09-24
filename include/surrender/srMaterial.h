@@ -13,6 +13,7 @@
 
    Two parameter types are simplified and neither moves a slot:
    getMaterialInfo really takes srVertexProcessor::MaterialInfo&. */
+// VTABLE: SURRENDER 0x10075538 srMaterial
 class SR_DLL_IMPORT srMaterial : public srClassSupport<srMaterial, srMaterialIFace, 0, 0x2210> {
 public:
     enum e_oper {};

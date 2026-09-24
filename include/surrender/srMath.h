@@ -167,6 +167,8 @@ template <class T> void srVector3T<T>::SetZero()
 
 // TEMPLATE: WIZ8 0x00421680
 // srVector3T<float>::Set
+// TEMPLATE: SURRENDER 0x10044DF0
+// srVector3T<float>::Set
 template <class T>
 srVector3T<T>* srVector3T<T>::Set(double source_0, double source_1, double source_2)
 {

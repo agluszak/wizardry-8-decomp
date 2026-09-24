@@ -1394,3 +1394,6 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
     }
     return palette;
 }
+
+// LIBRARY: SURRENDER 0x10004FA0
+// ??_L@YGXPAXIIP6EX0@Z@Z

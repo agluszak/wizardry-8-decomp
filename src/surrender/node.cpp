@@ -353,9 +353,10 @@ int srNode::isParentOf(const srNode& node) const
     return target->isChildOf(*this);
 }
 
-static std::ostream& dumpVector(std::ostream& stream, const srVector3T<double>& vector)
+// FUNCTION: SURRENDER 0x10055A00
+static std::ostream& operator<<(std::ostream& stream, const srVector3T<double>& vector)
 {
-    return stream << vector.x << ',' << vector.y << ',' << vector.z << '}';
+    return stream << '{' << vector.x << ',' << vector.y << ',' << vector.z << '}';
 }
 
 static void dumpFlags(std::ostream& stream, unsigned long flags, const char* names)
@@ -416,10 +417,8 @@ void srNode::dump(std::ostream& stream)
     stream.width(0x20);
     stream << "  Child count: " << getChildCount() << '\n';
     stream.width(0x20);
-    stream << "  Local matrix: " << '{';
-    dumpVector(stream, rotation.vectors[0]) << ',';
-    dumpVector(stream, rotation.vectors[1]) << ',';
-    dumpVector(stream, rotation.vectors[2]) << '}' << '\n';
+    stream << "  Local matrix: " << '{' << rotation.vectors[0] << ',' << rotation.vectors[1]
+           << ',' << rotation.vectors[2] << '}' << '\n';
     stream.width(0x20);
     srVector3T<double> location = getLocation();
     stream << "  Local translation: " << '{' << location.x << ',' << location.y << ',' << location.z
@@ -429,10 +428,8 @@ void srNode::dump(std::ostream& stream)
     stream << "  Local scale: " << '{' << scale.x << ',' << scale.y << ',' << scale.z << '}'
            << '\n';
     stream.width(0x20);
-    stream << "  WS matrix: " << '{' << '{' << ws_rotation.vectors[0].x << ','
-           << ws_rotation.vectors[0].y << ',' << ws_rotation.vectors[0].z << '}' << ',';
-    dumpVector(stream, ws_rotation.vectors[1]) << ',';
-    dumpVector(stream, ws_rotation.vectors[2]) << '}' << '\n';
+    stream << "  WS matrix: " << '{' << ws_rotation.vectors[0] << ',' << ws_rotation.vectors[1]
+           << ',' << ws_rotation.vectors[2] << '}' << '\n';
     stream.width(0x20);
     stream << "  WS location: " << '{' << ws_location.x << ',' << ws_location.y << ','
            << ws_location.z << '}' << '\n';
@@ -1528,3 +1525,72 @@ void srNode::rollAt(const srNode* target, double amount)
     rollAt(srVector3T<double>(rotation.vectors[0].x, rotation.vectors[1].x, rotation.vectors[2].x),
            amount);
 }
+
+// SYNTHETIC: SURRENDER 0x100502E0
+// srNode::sceneGraphCSect global constructor emission
+
+// SYNTHETIC: SURRENDER 0x100502F0
+// srNode::sceneGraphCSect global atexit registrar
+
+// TEMPLATE: SURRENDER 0x100553F0
+// srVector3T<double>::Set
+
+// TEMPLATE: SURRENDER 0x10055420
+// srVector3T<double>::operator-=
+
+// TEMPLATE: SURRENDER 0x10055450
+// srVector3T<double>::Length
+
+// TEMPLATE: SURRENDER 0x10055510
+// srClassSupport<srNode, srClass, true, 0x1000>::clone
+
+// TEMPLATE: SURRENDER 0x10055530
+// srClassSupport<srNode, srClass, true, 0x1000>::~srClassSupport
+
+// TEMPLATE: SURRENDER 0x100555C0
+// srMatrix3T<double>::TransformTransposed
+
+// LIBRARY: SURRENDER 0x10055640
+// std::ios_base::Init::Init
+
+// SYNTHETIC: SURRENDER 0x10055650
+// std::ios_base::Init global atexit registrar
+
+// LIBRARY: SURRENDER 0x10055680
+// std::_Winit::_Winit
+
+// SYNTHETIC: SURRENDER 0x10055690
+// std::_Winit global atexit registrar
+
+// SYNTHETIC: SURRENDER 0x100556B0
+// srClassSupport<srNode, srClass, true, 0x1000> scalar deleting destructor
+
+// TEMPLATE: SURRENDER 0x100556D0
+// srClassSupport<srNode, srClass, true, 0x1000>::sGetClassNode
+
+// TEMPLATE: SURRENDER 0x100557A0
+// srMatrix3T<double>::RotateAboutZ(double angle)
+
+// TEMPLATE: SURRENDER 0x10055930
+// srMatrix3T<double>::MultiplyBy
+
+// TEMPLATE: SURRENDER 0x10055C70
+// operator*(const srVector3T<double>&, double)
+
+// TEMPLATE: SURRENDER 0x10055CB0
+// DotProduct(const srVector3T<double>&, const srVector3T<double>&)
+
+// TEMPLATE: SURRENDER 0x10055CD0
+// srVector3T<double>::operator*=(double)
+
+// TEMPLATE: SURRENDER 0x10055D00
+// srMatrix3T<double>::SetRows
+
+// TEMPLATE: SURRENDER 0x10055D40
+// srMatrix3T<double>::RotateAroundAxis(double sine, double cosine, const srVector3T<double>&)
+
+// TEMPLATE: SURRENDER 0x10055F00
+// srMatrix3T<double>::RotateAboutX(double sine, double cosine)
+
+// TEMPLATE: SURRENDER 0x10056080
+// srMatrix3T<double>::RotateAboutY(double sine, double cosine)

@@ -388,3 +388,9 @@ const char* srTextureIFace::getTextureName()
 {
     return getName();
 }
+
+// TEMPLATE: SURRENDER 0x1005F470
+// srClassSupport<srTextureIFace, srClass, true, 0x2100>::sGetClassNode
+
+// TEMPLATE: SURRENDER 0x1005F4B0
+// srClassSupport<srTextureIFace, srClass, true, 0x2100>::srClassSupport

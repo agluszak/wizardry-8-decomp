@@ -8,7 +8,31 @@ class srTriangulator {
 public:
     class CircularList {
     public:
-        class ListIterator;
+        class ListNode {
+        public:
+            int vertex_00;
+            ListNode* next_04;
+            ListNode* prev_08;
+        };
+
+        class ListIterator {
+        public:
+            ListIterator operator+(int distance);
+            ListIterator operator-(int distance);
+            int& operator*()
+            {
+                return node_00->vertex_00;
+            }
+
+            ListNode* node_00;
+        };
+
+        CircularList(int count);
+        ~CircularList();
+        void erase(ListIterator iterator);
+
+        long count_00;
+        ListNode* nodes_04;
     };
 
     srTriangulator(srVector2T<float>* points, int count);
@@ -24,7 +48,9 @@ private:
                          const srVector2T<float>& b, const srVector2T<float>& c);
     int satisfyConstraints(CircularList::ListIterator iterator);
 
-    unsigned char unknown_00_[0x10];
+    CircularList::ListIterator current_00;
+    CircularList list_04;
+    srVector2T<float>* points_0c;
 };
 
 static_assert((sizeof(srTriangulator) == 0x10), "srTriangulator_must_be_0x10");

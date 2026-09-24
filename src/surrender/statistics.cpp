@@ -4,11 +4,8 @@
 #include "surrender/srCore.h"
 #include "surrender/srDebug.h"
 #include "surrender/srHeap.h"
+#include "surrender/srPixelConvert.h"
 #include "surrender/srTimer.h"
-
-/* Unrecovered color/lookup-table initializer in the pixel-conversion TU;
-   _srLibraryInit calls it across TUs after installing the assert handler. */
-void __cdecl Function10007850(void);
 
 // FUNCTION: SURRENDER 0x100148A0
 void srStatisticsManager::reset()
@@ -106,7 +103,7 @@ void srStatisticsManager::dump(std::ostream& stream, const Statistics& statistic
 void __cdecl _srLibraryInit(void)
 {
     srAssertSetFunc(srDefaultAssertFailFunc);
-    Function10007850();
+    initPixelTables();
 }
 
 // FUNCTION: SURRENDER 0x10015000

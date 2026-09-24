@@ -678,3 +678,12 @@ void srMemoryAllocator::free(void* allocation)
 
 // GLOBAL: SURRENDER 0x100A48D0
 class srHeap srHeap;
+
+// SYNTHETIC: SURRENDER 0x10035990
+// srHeap global static-init call
+
+// SYNTHETIC: SURRENDER 0x100359A0
+// srHeap global atexit registrar
+
+// SYNTHETIC: SURRENDER 0x100359B0
+// srHeap global atexit dtor thunk

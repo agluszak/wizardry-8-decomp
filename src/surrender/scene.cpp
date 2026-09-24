@@ -287,3 +287,6 @@ void srScene::setFogColor(const srVector3T<float>& color)
 {
     fog_color_180 = color;
 }
+
+// TEMPLATE: SURRENDER 0x100569A0
+// srArray<srNode::TraverseInfo::Entry>::srArray

@@ -50,10 +50,69 @@ struct FormatEntry {
     FormatEntry* next;
 };
 
+/* Lookup tables built by Function10007850(): n-bit channel expansion
+   (round(i * 255 / (2^n - 1))), 8-bit channel reduction, the ordered-dither
+   bias cube, the packed-chroma decode table and the fixed-point channel
+   weight ramps the conversion kernels read. */
+// GLOBAL: SURRENDER 0x100A1AB0
+unsigned char lutExpand1[1];
+// GLOBAL: SURRENDER 0x100A1AB4
+unsigned char lutExpand2[2];
+// GLOBAL: SURRENDER 0x100A1AB8
+unsigned char lutExpand4[4];
+// GLOBAL: SURRENDER 0x100A1ABC
+unsigned char lutExpand16[16];
+// GLOBAL: SURRENDER 0x100A1ACC
+unsigned char lutExpand32[32];
+// GLOBAL: SURRENDER 0x100A1AEC
+unsigned char lutExpand64[64];
+// GLOBAL: SURRENDER 0x100A1B2C
+unsigned char lutExpand8[8];
+// GLOBAL: SURRENDER 0x100A1B34
+unsigned char lutZero[256];
+// GLOBAL: SURRENDER 0x100A1C34
+unsigned char lutIdentity[256];
+// GLOBAL: SURRENDER 0x100A1D34
+unsigned char lutReduce128[256];
+// GLOBAL: SURRENDER 0x100A1E34
+unsigned char lutReduce64[256];
+// GLOBAL: SURRENDER 0x100A1F34
+unsigned char lutReduce32[256];
+// GLOBAL: SURRENDER 0x100A2034
+unsigned char lutReduce16[256];
+// GLOBAL: SURRENDER 0x100A2134
+unsigned char lutReduce8[256];
+// GLOBAL: SURRENDER 0x100A2234
+unsigned char lutReduce4[256];
+// GLOBAL: SURRENDER 0x100A2334
+unsigned char lutReduce2[256];
+
+// GLOBAL: SURRENDER 0x100A2438
 FormatEntry format_table[25];
+
+// GLOBAL: SURRENDER 0x100A277C
+unsigned char lutDecode[256][4];
+
+// GLOBAL: SURRENDER 0x100A2B7C
 FormatEntry* format_hash[32];
+
+// GLOBAL: SURRENDER 0x100A2BFC
+unsigned char lutExpand128[128];
+// GLOBAL: SURRENDER 0x100A2C7C
+long lutRamp18[256];
+// GLOBAL: SURRENDER 0x100A307C
+int lutDither[9][4][4][4];
+// GLOBAL: SURRENDER 0x100A397C
+long lutRamp54[256];
+// GLOBAL: SURRENDER 0x100A3DA4
+unsigned char lutGray[256][4];
+// GLOBAL: SURRENDER 0x100A41A4
+long lutRamp183[256];
+
+// GLOBAL: SURRENDER 0x100A45A4
 int formats_initialized;
 
+// FUNCTION: SURRENDER 0x100077A0
 void initFormat(unsigned long index, unsigned char red_bits, unsigned char red_shift,
                 unsigned char green_bits, unsigned char green_shift, unsigned char blue_bits,
                 unsigned char blue_shift, unsigned char alpha_bits, unsigned char alpha_shift,
@@ -76,6 +135,113 @@ void initFormat(unsigned long index, unsigned char red_bits, unsigned char red_s
     format_table[index].next = 0;
 }
 
+} // namespace
+
+/* Library-init table builder: channel expansion/reduction ramps, the
+   ordered-dither bias cube, fixed-point channel weights and the packed
+   decode/grayscale palettes. */
+// FUNCTION: SURRENDER 0x10007850
+void __cdecl initPixelTables(void)
+{
+    int i;
+    int ditherKernel[4][4][4] = {
+        {{0, 7, 2, 7}, {4, 5, 2, 5}, {6, 1, 7, 1}, {6, 3, 4, 3}},
+        {{0, 6, 3, 7}, {4, 6, 1, 5}, {5, 1, 7, 2}, {7, 3, 4, 2}},
+        {{3, 4, 3, 6}, {1, 7, 1, 6}, {5, 2, 5, 4}, {7, 2, 7, 0}},
+        {{6, 1, 5, 3}, {6, 2, 6, 1}, {2, 5, 2, 7}, {2, 5, 2, 3}},
+    };
+    for (int level = 0; level < 9; ++level) {
+        for (int a = 0; a < 4; ++a) {
+            for (int b = 0; b < 4; ++b) {
+                for (int c = 0; c < 4; ++c) {
+                    lutDither[level][a][b][c] =
+                        static_cast<long>((ditherKernel[a][b][c] - 3.5f) * (255.0f / 7.0f) /
+                                              (1 << level) +
+                                          0.5f);
+                }
+            }
+        }
+    }
+
+    lutExpand1[0] = 0xff;
+    for (i = 0; i < 2; ++i) {
+        lutExpand2[i] = static_cast<unsigned char>(i * 255.0f + 0.5f);
+    }
+    for (i = 0; i < 4; ++i) {
+        lutExpand4[i] = static_cast<unsigned char>(i * 255.0f * (1.0f / 3.0f) + 0.5f);
+    }
+    for (i = 0; i < 8; ++i) {
+        lutExpand8[i] = static_cast<unsigned char>(i * 255.0f * (1.0f / 7.0f) + 0.5f);
+    }
+    for (i = 0; i < 16; ++i) {
+        lutExpand16[i] = static_cast<unsigned char>(i * 255.0f * (1.0f / 15.0f) + 0.5f);
+    }
+    for (i = 0; i < 32; ++i) {
+        lutExpand32[i] = static_cast<unsigned char>(i * 255.0f * (1.0f / 31.0f) + 0.5f);
+    }
+    for (i = 0; i < 64; ++i) {
+        lutExpand64[i] = static_cast<unsigned char>(i * 255.0f * (1.0f / 63.0f) + 0.5f);
+    }
+    for (i = 0; i < 128; ++i) {
+        lutExpand128[i] = static_cast<unsigned char>(i * 255.0f * (1.0f / 127.0f) + 0.5f);
+    }
+
+    for (i = 0; i < 256; ++i) {
+        lutRamp54[i] = static_cast<long>(i * 54.4 + 0.5);
+        lutRamp183[i] = static_cast<long>(i * 183.1424 + 0.5);
+        lutRamp18[i] = static_cast<long>(i * 18.4576 + 0.5);
+        lutGray[i][0] = static_cast<unsigned char>(i);
+        lutGray[i][1] = static_cast<unsigned char>(i);
+        lutGray[i][2] = static_cast<unsigned char>(i);
+        lutGray[i][3] = 0;
+    }
+
+    memset(lutZero, 0, sizeof(lutZero));
+
+    for (i = 0; i < 256; ++i) {
+        lutIdentity[i] = static_cast<unsigned char>(i);
+        double value = i * (1.0 / 255.0);
+        lutReduce128[i] = static_cast<unsigned char>(value * 127.0 + 0.5);
+        lutReduce64[i] = static_cast<unsigned char>(value * 63.0 + 0.5);
+        lutReduce32[i] = static_cast<unsigned char>(value * 31.0 + 0.5);
+        lutReduce16[i] = static_cast<unsigned char>(value * 15.0 + 0.5);
+        lutReduce8[i] = static_cast<unsigned char>(value * 7.0 + 0.5);
+        lutReduce4[i] = static_cast<unsigned char>(value * 3.0 + 0.5);
+        lutReduce2[i] = static_cast<unsigned char>(value * 1.0 + 0.5);
+    }
+
+    for (i = 0; i < 256; ++i) {
+        int luma = lutExpand16[(i >> 4) & 0xf];
+        int chroma1 = lutExpand4[(i >> 2) & 3];
+        int chroma2 = lutExpand4[i & 3];
+        lutDecode[i][3] = 0xff;
+        int value = static_cast<int>(luma + chroma1 * 0.956f + chroma2 * 0.620f);
+        if (value < 0) {
+            value = 0;
+        } else if (value > 0xff) {
+            value = 0xff;
+        }
+        lutDecode[i][2] = static_cast<unsigned char>(value);
+        value = static_cast<int>(luma - chroma1 * 0.272f - chroma2 * 0.647f);
+        if (value < 0) {
+            value = 0;
+        } else if (value > 0xff) {
+            value = 0xff;
+        }
+        lutDecode[i][1] = static_cast<unsigned char>(value);
+        value = static_cast<int>(luma - chroma1 * 1.108f + chroma2 * 1.705f);
+        if (value < 0) {
+            value = 0;
+        } else if (value > 0xff) {
+            value = 0xff;
+        }
+        lutDecode[i][0] = static_cast<unsigned char>(value);
+    }
+}
+
+namespace {
+
+// FUNCTION: SURRENDER 0x100082C0
 void initFormats()
 {
     if (formats_initialized != 0) {
