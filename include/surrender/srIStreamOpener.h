@@ -21,7 +21,17 @@ public:
         Opener()
         {
         }
-        virtual SR_DLL_IMPORT ~Opener();
+        /* Trivial body inlines into ~srFStreamOpener, leaving that emission a
+           bare ret; the member dllexport still emits the exported standalone
+           copy. */
+        // FUNCTION: SURRENDER 0x10032690
+        // ??1Opener@srIStreamOpener@@UAE@XZ
+#if defined(SURRENDER_BUILD)
+        __declspec(dllexport)
+#endif
+        virtual ~Opener()
+        {
+        }
         SR_DLL_IMPORT Opener& operator=(const Opener& other);
 
         virtual srBinIStream* open(const char* path) = 0;
@@ -91,6 +101,7 @@ public:
     srFStreamOpener()
     {
     }
+    virtual ~srFStreamOpener() override;
     srFStreamOpener& operator=(const srFStreamOpener& other);
 
     virtual srBinIStream* open(const char* path) override;

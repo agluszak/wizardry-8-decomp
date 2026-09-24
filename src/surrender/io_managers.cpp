@@ -32,12 +32,6 @@ inline srInlineString& srInlineString::operator=(const srInlineString& source)
     return *this;
 }
 
-// FUNCTION: SURRENDER 0x1002CB00
-srIOManager::Error::Error(const char* description)
-{
-    description_00 = description;
-}
-
 // FUNCTION: SURRENDER 0x1002CB10
 const char* srIOManager::Error::getDescription()
 {

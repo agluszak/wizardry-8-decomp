@@ -52,6 +52,7 @@ add_library(wiz8_surrender_objects OBJECT
     triangulator.cpp
     type_registry.cpp
     vc6_runtime.cpp
+    video_manager.cpp
     window.cpp
     vector_processor.cpp
 )
@@ -91,6 +92,7 @@ set_source_files_properties(
     texture_map.cpp
     type_registry.cpp
     vector_processor.cpp
+    video_manager.cpp
     PROPERTIES COMPILE_OPTIONS "$<$<CXX_COMPILER_ID:MSVC>:/GX>")
 target_link_libraries(wiz8_surrender_objects PRIVATE wiz8_compile_settings)
 wiz8_lint_target(wiz8_surrender_objects)

@@ -86,7 +86,11 @@ class
 #endif
     srIOManager::Error {
 public:
-    SR_DLL_IMPORT Error(const char* description);
+    /* Retail exports the standalone copy while folding the single store into
+       every throw site. */
+    // FUNCTION: SURRENDER 0x1002CB00
+    // ??0Error@srIOManager@@QAE@PBD@Z
+    Error(const char* description) { description_00 = description; }
     SR_DLL_IMPORT const char* getDescription();
 
 private:

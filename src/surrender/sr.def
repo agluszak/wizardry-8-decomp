@@ -242,6 +242,7 @@ EXPORTS
     ??0ModelExporter@srModelIOManager@@QAE@XZ @18
     ??0ModelImporter@srModelIOManager@@QAE@ABV01@@Z @19
     ??0ModelImporter@srModelIOManager@@QAE@XZ @20
+    ??0Stream@srVideoManager@@IAE@PBD@Z @32
     ??0SurfaceExporter@srSurfaceIOManager@@QAE@ABV01@@Z @33
     ??0SurfaceExporter@srSurfaceIOManager@@QAE@XZ @34
     ??0SurfaceImporter@srSurfaceIOManager@@QAE@ABV01@@Z @35
@@ -322,6 +323,7 @@ EXPORTS
     ??_8srBinOMStream@@7B@ DATA @454
     ??_8srBinOStream@@7B@ DATA @455
     ??_FMappingInfo@srModeler@@QAEXXZ @484
+    ??_FStream@srVideoManager@@QAEXXZ @486
     ??_7srIOManager@@6B@ DATA @418
     ??_7srMaterial@@6B@ DATA @423
     ??_7srMeshModel@@6B@ DATA @424
@@ -1069,6 +1071,7 @@ EXPORTS
     ?createTorus@srModeler@@QAEXJJN@Z @667
     ?cylinderMap@srModeler@@QAEXJJABUMappingInfo@1@@Z @672
     ?debugWrite@srGERD@@CAXPBD@Z
+    ?decompress@VStream@srVideoManager@@QAEXAAVsrColorSurfaceIFace@@@Z @674
     ?decompressSymbol@Decompressor@srHuffman@@QAEKXZ
     ?deleteContext@srDebugDD@@UAEXXZ
     ?deleteContext@srGERD@@QAEXXZ
@@ -1500,6 +1503,7 @@ EXPORTS
     ?exportSurface@srSurfaceIOManager@@QAEXPBDAAVsrBinOStream@@AAVsrColorSurfaceIFace@@ABUExportInfo@1@@Z @758
     ?exportSurface@srSurfaceIOManager@@QAEXPBDAAVsrColorSurfaceIFace@@ABUExportInfo@1@@Z @759
     ?increaseCallTime@srDebugDD@@QAEXW4e_command@srDD@@N@Z
+    ?init@VStream@srVideoManager@@AAEXPAVStream@2@@Z @1350
     ?init@srColorSurface@@AAEXABUPixelFormat@srPixelConvert@@KKK@Z
     ?initBaseVP@srVectorProcessor@@SAXXZ
     ?initClearColors@srGERD@@AAEXXZ
@@ -1590,6 +1594,7 @@ EXPORTS
     ?open@srFStreamOpener@@UAEPAVsrBinIStream@@PBD@Z
     ?open@srIStreamOpener@@AAEPAVsrBinIStream@@PBD0@Z
     ?open@srIStreamOpener@@QAEPAVsrBinIStream@@PBD@Z
+    ?openVStream@srVideoManager@@QAEPAVVStream@1@PBD@Z @1482
     ?openWindow@srDebugDD@@UAE?AW4e_error@srDD@@ABUOpenInfo@3@AAUOpenResult@3@@Z
     ?openWindow@srGERD@@QAE?AW4e_error@1@J@Z
     ?openWindow@srGERD@@QAE?AW4e_error@1@JJ@Z
