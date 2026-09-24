@@ -920,7 +920,8 @@ void UpdateWorldTriggers00443AE0(W8World* world)
         }
         if (g_environment_load_flag_00603ad0 != 0 && trigger->trigger_kind_018 == 2 &&
             (trigger->flags_0a0 & W8_TRIGGER_ENABLED) != 0 &&
-            (trigger->flags_0a0 & W8_TRIGGER_POSITIONED) != 0 && (trigger->flags_0a0 & 0x4U) == 0) {
+            (trigger->flags_0a0 & W8_TRIGGER_POSITIONED) != 0 &&
+            (trigger->flags_0a0 & W8_TRIGGER_PLANE) == 0) {
             srVector3T<float> trigger_position(trigger->position_118.x, trigger->position_118.y,
                                                trigger->position_118.z);
             float distance = (trigger_position - camera).Length();
@@ -1593,13 +1594,13 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         trigger->action_value = action_value;
         trigger->initial_action_22a = action;
         if (flag_0 != 0.0f)
-            trigger->flags_0a0 |= 1;
+            trigger->flags_0a0 |= W8_TRIGGER_ANIMATE_STATES;
         else
-            trigger->flags_0a0 &= ~1U;
+            trigger->flags_0a0 &= ~W8_TRIGGER_ANIMATE_STATES;
         if (flag_1 != 0)
-            trigger->flags_0a0 |= 2;
+            trigger->flags_0a0 |= W8_TRIGGER_ANIMATE_ACTION;
         else
-            trigger->flags_0a0 &= ~2U;
+            trigger->flags_0a0 &= ~W8_TRIGGER_ANIMATE_ACTION;
         if (flag_8 != 0)
             trigger->flags_0a0 |= W8_TRIGGER_ENABLED;
         else
@@ -1723,14 +1724,14 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         else
             trigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
         if (flag_3 != 0)
-            trigger->flags_0a0 |= 8;
+            trigger->flags_0a0 |= W8_TRIGGER_KEEP_ON_FINISH;
         else
-            trigger->flags_0a0 &= ~8U;
+            trigger->flags_0a0 &= ~W8_TRIGGER_KEEP_ON_FINISH;
         if (packed_flag == 1)
-            trigger->flags_0a0 |= 4;
+            trigger->flags_0a0 |= W8_TRIGGER_PLANE;
         trigger->m_pacRecipients = new char[strlen(recipients) + 1];
         strcpy(trigger->m_pacRecipients, recipients);
-        if ((trigger->flags_0a0 & 4) != 0 && world->m_owned_04c != 0 &&
+        if ((trigger->flags_0a0 & W8_TRIGGER_PLANE) != 0 && world->m_owned_04c != 0 &&
             world->m_owned_04c->geometry_index_00 != 0) {
             world->m_owned_04c->AddTriggerPlane(trigger->representation_vectors_0cc, trigger);
         }
@@ -1884,7 +1885,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         if ((packed_flags & 2) != 0)
             trigger->flags_0a0 |= W8_TRIGGER_CAN_RUN_LINKED;
         if ((packed_flags & 4) != 0)
-            trigger->flags_0a0 |= 0x40000;
+            trigger->flags_0a0 |= W8_TRIGGER_ONCE;
         if ((packed_flags & 8) != 0)
             trigger->flags_0a0 |= W8_TRIGGER_EXCLUSIVE;
         if ((packed_flags & 0x10) != 0)
@@ -1919,27 +1920,27 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         else
             trigger->flags_0a0 &= ~W8_TRIGGER_LINK_ON_DEACTIVATE;
         if (flag_3 != 0)
-            trigger->flags_0a0 |= 8;
+            trigger->flags_0a0 |= W8_TRIGGER_KEEP_ON_FINISH;
         else
-            trigger->flags_0a0 &= ~8U;
+            trigger->flags_0a0 &= ~W8_TRIGGER_KEEP_ON_FINISH;
         if (flag_12 != 0)
             trigger->flags_0a0 |= 0x1000;
         else
             trigger->flags_0a0 &= ~0x1000U;
         if (flag_16 != 0)
-            trigger->flags_0a0 |= 0x10000;
+            trigger->flags_0a0 |= W8_TRIGGER_CONSUME_ITEM;
         else
-            trigger->flags_0a0 &= ~0x10000U;
+            trigger->flags_0a0 &= ~W8_TRIGGER_CONSUME_ITEM;
         if (flag_1 != 0)
-            trigger->flags_0a0 |= 2;
+            trigger->flags_0a0 |= W8_TRIGGER_ANIMATE_ACTION;
         else
-            trigger->flags_0a0 &= ~2U;
+            trigger->flags_0a0 &= ~W8_TRIGGER_ANIMATE_ACTION;
         if (flag_15 != 0)
-            trigger->flags_0a0 |= 0x8000;
+            trigger->flags_0a0 |= W8_TRIGGER_ALTERNATE_TOGGLES;
         else
-            trigger->flags_0a0 &= ~0x8000U;
+            trigger->flags_0a0 &= ~W8_TRIGGER_ALTERNATE_TOGGLES;
         if (trigger->alternate_action != 0)
-            trigger->flags_0a0 |= 0x2000;
+            trigger->flags_0a0 |= W8_TRIGGER_HAS_ALTERNATE;
 
         unsigned char value_b0;
         unsigned char flag_0;
@@ -1977,9 +1978,9 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
         trigger->cycle_bounce = value_b3;
         trigger->state_mod_mode = value_b4;
         if (flag_0 != 0)
-            trigger->flags_0a0 |= 1;
+            trigger->flags_0a0 |= W8_TRIGGER_ANIMATE_STATES;
         else
-            trigger->flags_0a0 &= ~1U;
+            trigger->flags_0a0 &= ~W8_TRIGGER_ANIMATE_STATES;
 
         if (trigger->m_pacStateToMod != 0 &&
             (initial_location_value == 0 || initial_location_value == 1)) {
@@ -2232,7 +2233,8 @@ void Trigger::UpdateActionAnimation()
 {
     char* action_data = action_data_128;
 
-    if ((flags_0a0 & 0x2U) == 0 && (flags_0a0 & W8_TRIGGER_ALTERNATE_ACTION) == 0) {
+    if ((flags_0a0 & W8_TRIGGER_ANIMATE_ACTION) == 0 &&
+        (flags_0a0 & W8_TRIGGER_ALTERNATE_ACTION) == 0) {
         return;
     }
     if ((flags_0a0 & W8_TRIGGER_ALTERNATE_ACTION) != 0) {
@@ -2306,7 +2308,7 @@ void Trigger::FinishAction()
         break;
     }
 
-    if ((flags_0a0 & 0x8U) == 0 && action_230 != 0) {
+    if ((flags_0a0 & W8_TRIGGER_KEEP_ON_FINISH) == 0 && action_230 != 0) {
         if (action_230 == 4) {
             recipient = m_pacRecipients;
             action_completed = false;
@@ -2498,7 +2500,7 @@ show_action_message:
     }
 
 action_complete:
-    flags_0a0 |= 0x80000U;
+    flags_0a0 |= W8_TRIGGER_FIRED;
 }
 
 /* Resolve an entity or a five-character level/entrance code, then either
@@ -2931,7 +2933,7 @@ void Trigger::Run(int source)
                 }
             }
 
-            if ((flags_0a0 & 0x1U) != 0) {
+            if ((flags_0a0 & W8_TRIGGER_ANIMATE_STATES) != 0) {
                 W8AnimObj* animation;
                 unsigned int count;
                 unsigned int index;
@@ -3752,7 +3754,7 @@ bool Trigger::SelectAction()
 
     if (((flags_0a0 & W8_TRIGGER_RUNNING) != 0 && action_230 != 0x39) ||
         (flags_0a0 & W8_TRIGGER_ON) == 0 ||
-        ((flags_0a0 & 0x40000U) != 0 && (flags_0a0 & 0x80000U) != 0)) {
+        ((flags_0a0 & W8_TRIGGER_ONCE) != 0 && (flags_0a0 & W8_TRIGGER_FIRED) != 0)) {
         action_state_232 = 1;
         return 0;
     }
@@ -3809,7 +3811,7 @@ bool Trigger::SelectAction()
     if (m_pActionData == 0 || m_pActionData->type_004 != 10) {
         if (required_item_id >= 0) {
             if (GetItemInHand() == required_item_id) {
-                if ((flags_0a0 & 0x10000U) != 0) {
+                if ((flags_0a0 & W8_TRIGGER_CONSUME_ITEM) != 0) {
                     RemovePartyItemByID005215D0(required_item_id, 0);
                     required_item_id = -1;
                 }
@@ -3895,17 +3897,17 @@ bool Trigger::SelectAction()
     }
 
     if (!fallback_selected) {
-        if ((flags_0a0 & 0x4000U) == 0) {
+        if ((flags_0a0 & W8_TRIGGER_USE_ALTERNATE) == 0) {
             action_230 = initial_action_22a;
             action_state_232 = 2;
-            if ((flags_0a0 & 0x2000U) != 0) {
-                flags_0a0 |= 0x4000U;
+            if ((flags_0a0 & W8_TRIGGER_HAS_ALTERNATE) != 0) {
+                flags_0a0 |= W8_TRIGGER_USE_ALTERNATE;
             }
         } else {
             action_230 = alternate_action;
             action_state_232 = 3;
-            if ((flags_0a0 & 0x8000U) != 0) {
-                flags_0a0 &= ~0x4000U;
+            if ((flags_0a0 & W8_TRIGGER_ALTERNATE_TOGGLES) != 0) {
+                flags_0a0 &= ~W8_TRIGGER_USE_ALTERNATE;
             }
         }
     } else if (action_230 == 0) {

@@ -403,7 +403,8 @@ char ResolvePickedProp(W8World* world)
             Trigger* trigger = prop->trigger_18;
             g_selected_prop_trigger_00659a60 = trigger;
             if (trigger != 0 && (trigger->flags_0a0 & W8_TRIGGER_ENABLED) != 0 &&
-                ((trigger->flags_0a0 & 0x40000) == 0 || (trigger->flags_0a0 & 0x80000) == 0) &&
+                ((trigger->flags_0a0 & W8_TRIGGER_ONCE) == 0 ||
+                 (trigger->flags_0a0 & W8_TRIGGER_FIRED) == 0) &&
                 (g_combat_inactive_006081e4 ||
                  (trigger->m_pActionData != 0 && trigger->m_pActionData->type_004 == 10 &&
                   (static_cast<W8DoorTriggerActionData*>(trigger->m_pActionData)->flags_008 & 1) ==
@@ -1388,7 +1389,8 @@ bool W8Prop::IsTriggerInView0044E3A0(srVector3T<float>* position)
     float distance;
 
     if (trigger != 0 && (trigger->flags_0a0 & W8_TRIGGER_ENABLED) != 0 &&
-        ((trigger->flags_0a0 & 0x40000) == 0 || (trigger->flags_0a0 & 0x80000) == 0)) {
+        ((trigger->flags_0a0 & W8_TRIGGER_ONCE) == 0 ||
+         (trigger->flags_0a0 & W8_TRIGGER_FIRED) == 0)) {
         AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->subcycle_064, &minimum, &maximum);
         center.Set((minimum.x + maximum.x) * g_double_005ebe80,
                    (minimum.y + maximum.y) * g_double_005ebe80,
