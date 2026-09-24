@@ -4140,116 +4140,14 @@ void ApplyMainGameRedrawFlags(void)
         if (gXStatus.world_update_blocked == 0) {
             if (gXStatus.fPartyMovementUi != 0) {
                 InvalidatePartyMovementPanel();
-                goto mark_modal_dirty;
             }
-        refresh_tracked_portrait_slot:
-            if (g_level_block->condition_orb_party_slot == -1) {
-                if (g_level_block->enchantment_orb_party_slot == -1) {
-                    if (g_level_block->portrait_overlay_party_slot == -1) {
-                        if (g_level_block->condition_highlight_party_slot != -1) {
-                            if (g_level_block->highlight_graphic != 0) {
-                                ReleaseObject004257F0(g_level_block->highlight_graphic);
-                                g_level_block->highlight_graphic = 0;
-                            }
-                            if (g_main_game_mode_0068eddc == 6) {
-                                ClearSurfaceRect(g_level_block->dialogue_x_220,
-                                                 g_level_block->dialogue_y_224,
-                                                 g_level_block->dialogue_x_220 +
-                                                     g_level_block->dialogue_width_238,
-                                                 g_level_block->dialogue_y_224 +
-                                                     g_level_block->dialogue_height_228);
-                                InvalidateRegion(g_level_block->dialogue_x_220,
-                                                 g_level_block->dialogue_y_224,
-                                                 g_level_block->dialogue_x_220 +
-                                                     g_level_block->dialogue_width_238,
-                                                 g_level_block->dialogue_y_224 +
-                                                     g_level_block->dialogue_height_228,
-                                                 0);
-                                if (g_level_block->dialogue_y_224 <
-                                        static_cast<unsigned int>(
-                                            g_viewport_modes_647d30[g_level_block->camera_mode_100]
-                                                .top) &&
-                                    g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-                                    g_level_block != 0) {
-                                    g_level_block->redraw_flags |= 0x100;
-                                }
-                                if (g_level_block->dialogue_y_224 +
-                                            g_level_block->dialogue_height_228 >
-                                        0x166 &&
-                                    g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-                                    g_level_block != 0) {
-                                    g_level_block->redraw_flags |= 0x800;
-                                }
-                            }
-                            g_main_game_mode_0068eddc = 0;
-                            DrawPortraitStatusOverlay(
-                                g_level_block->condition_highlight_party_slot);
-                        }
-                    } else {
-                        if (g_level_block->highlight_graphic != 0) {
-                            ReleaseObject004257F0(g_level_block->highlight_graphic);
-                            g_level_block->highlight_graphic = 0;
-                        }
-                        if (g_main_game_mode_0068eddc == 6) {
-                            ClearSurfaceRect(
-                                g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
-                                g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
-                                g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
-                            InvalidateRegion(
-                                g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
-                                g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
-                                g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228,
-                                0);
-                            if (g_level_block->dialogue_y_224 <
-                                    static_cast<unsigned int>(
-                                        g_viewport_modes_647d30[g_level_block->camera_mode_100]
-                                            .top) &&
-                                g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-                                g_level_block != 0) {
-                                g_level_block->redraw_flags |= 0x100;
-                            }
-                            if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 >
-                                    0x166 &&
-                                g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-                                g_level_block != 0) {
-                                g_level_block->redraw_flags |= 0x800;
-                            }
-                        }
-                        g_main_game_mode_0068eddc = 0;
-                        DrawPortraitVitalsOverlay(g_level_block->portrait_overlay_party_slot);
-                    }
-                } else {
-                    if (g_level_block->highlight_graphic != 0) {
-                        ReleaseObject004257F0(g_level_block->highlight_graphic);
-                        g_level_block->highlight_graphic = 0;
-                    }
-                    if (g_main_game_mode_0068eddc == 6) {
-                        ClearSurfaceRect(
-                            g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
-                            g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
-                            g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
-                        InvalidateRegion(
-                            g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
-                            g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
-                            g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
-                        if (g_level_block->dialogue_y_224 <
-                                static_cast<unsigned int>(
-                                    g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
-                            g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-                            g_level_block != 0) {
-                            g_level_block->redraw_flags |= 0x100;
-                        }
-                        if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 >
-                                0x166 &&
-                            g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-                            g_level_block != 0) {
-                            g_level_block->redraw_flags |= 0x800;
-                        }
-                    }
-                    g_main_game_mode_0068eddc = 0;
-                    DrawPortraitEnchantmentOverlay(g_level_block->enchantment_orb_party_slot);
-                }
-            } else {
+        } else {
+            DrawMainGamePrompt();
+        }
+        /* Only the first branch calls ClearHighlightOverlayRegion; retail repeats its
+           body inline in the other three. */
+        if (gXStatus.fPartyMovementUi == 0) {
+            if (g_level_block->condition_orb_party_slot != -1) {
                 if (g_level_block->highlight_graphic != 0) {
                     ReleaseObject004257F0(g_level_block->highlight_graphic);
                     g_level_block->highlight_graphic = 0;
@@ -4257,14 +4155,92 @@ void ApplyMainGameRedrawFlags(void)
                 ClearHighlightOverlayRegion();
                 g_main_game_mode_0068eddc = 0;
                 DrawPortraitConditionOverlay(g_level_block->condition_orb_party_slot);
-            }
-        } else {
-            DrawMainGamePrompt();
-            if (gXStatus.fPartyMovementUi == 0) {
-                goto refresh_tracked_portrait_slot;
+            } else if (g_level_block->enchantment_orb_party_slot != -1) {
+                if (g_level_block->highlight_graphic != 0) {
+                    ReleaseObject004257F0(g_level_block->highlight_graphic);
+                    g_level_block->highlight_graphic = 0;
+                }
+                if (g_main_game_mode_0068eddc == 6) {
+                    ClearSurfaceRect(
+                        g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                        g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                        g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
+                    InvalidateRegion(
+                        g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                        g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                        g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
+                    if (g_level_block->dialogue_y_224 <
+                            static_cast<unsigned int>(
+                                g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+                        g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                        g_level_block->redraw_flags |= 0x100;
+                    }
+                    if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 >
+                            0x166 &&
+                        g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                        g_level_block->redraw_flags |= 0x800;
+                    }
+                }
+                g_main_game_mode_0068eddc = 0;
+                DrawPortraitEnchantmentOverlay(g_level_block->enchantment_orb_party_slot);
+            } else if (g_level_block->portrait_overlay_party_slot != -1) {
+                if (g_level_block->highlight_graphic != 0) {
+                    ReleaseObject004257F0(g_level_block->highlight_graphic);
+                    g_level_block->highlight_graphic = 0;
+                }
+                if (g_main_game_mode_0068eddc == 6) {
+                    ClearSurfaceRect(
+                        g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                        g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                        g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
+                    InvalidateRegion(
+                        g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                        g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                        g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
+                    if (g_level_block->dialogue_y_224 <
+                            static_cast<unsigned int>(
+                                g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+                        g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                        g_level_block->redraw_flags |= 0x100;
+                    }
+                    if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 >
+                            0x166 &&
+                        g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                        g_level_block->redraw_flags |= 0x800;
+                    }
+                }
+                g_main_game_mode_0068eddc = 0;
+                DrawPortraitVitalsOverlay(g_level_block->portrait_overlay_party_slot);
+            } else if (g_level_block->condition_highlight_party_slot != -1) {
+                if (g_level_block->highlight_graphic != 0) {
+                    ReleaseObject004257F0(g_level_block->highlight_graphic);
+                    g_level_block->highlight_graphic = 0;
+                }
+                if (g_main_game_mode_0068eddc == 6) {
+                    ClearSurfaceRect(
+                        g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                        g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                        g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228);
+                    InvalidateRegion(
+                        g_level_block->dialogue_x_220, g_level_block->dialogue_y_224,
+                        g_level_block->dialogue_x_220 + g_level_block->dialogue_width_238,
+                        g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228, 0);
+                    if (g_level_block->dialogue_y_224 <
+                            static_cast<unsigned int>(
+                                g_viewport_modes_647d30[g_level_block->camera_mode_100].top) &&
+                        g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                        g_level_block->redraw_flags |= 0x100;
+                    }
+                    if (g_level_block->dialogue_y_224 + g_level_block->dialogue_height_228 >
+                            0x166 &&
+                        g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
+                        g_level_block->redraw_flags |= 0x800;
+                    }
+                }
+                g_main_game_mode_0068eddc = 0;
+                DrawPortraitStatusOverlay(g_level_block->condition_highlight_party_slot);
             }
         }
-    mark_modal_dirty:
         if (g_modal_owner_0068edd0 != 0) {
             g_modal_owner_0068edd0->m_dirty_flags |= 1;
         }
