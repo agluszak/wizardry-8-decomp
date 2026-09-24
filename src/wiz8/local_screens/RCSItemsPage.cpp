@@ -477,7 +477,50 @@ void SplitStackDialogResult005BAA80(W8DialogBase* dialog)
     if (count == 0) {
         return;
     }
-    if (g_status_685170.item_in_cursor == 0) {
+    if (g_status_685170.item_in_cursor != 0) {
+        if (count == g_split_item_source_0069c424->stack_count) {
+            return;
+        }
+        split = *g_split_item_source_0069c424;
+        split.stack_count = remaining;
+        /* The remainder goes back to the slot the held stack came from when that
+           slot can take it, otherwise anywhere on that character, then into the
+           party pool, and as a last resort stays in hand. */
+        destination = 0;
+        character = 0;
+        if (gXStatus.held_item_source != -1 &&
+            (gXStatus.held_item_origin == 0 || gXStatus.held_item_origin == 1)) {
+            character = g_status_685170.buffers.Char + gXStatus.held_item_source;
+            if (gXStatus.held_item_origin == 1) {
+                if (character->EquippedItem[static_cast<short>(gXStatus.held_item_slot)].iItemNo ==
+                        -1 &&
+                    CanEquipItemInSlot(character, g_status_685170.item_in_hand_235b.iItemNo,
+                                       static_cast<unsigned char>(gXStatus.held_item_slot),
+                                       0) != 0 &&
+                    CanCharacterUseItem(character, g_status_685170.item_in_hand_235b.iItemNo) !=
+                        0) {
+                    destination =
+                        character->EquippedItem + static_cast<short>(gXStatus.held_item_slot);
+                }
+            } else if (character->backpack[static_cast<short>(gXStatus.held_item_slot)].iItemNo ==
+                       -1) {
+                destination = character->backpack + static_cast<short>(gXStatus.held_item_slot);
+            }
+        }
+        if (destination == 0 &&
+            (character == 0 || AddItemToCharacter(character, &split, 0, 0, 0) == 0) &&
+            AddItemToParty(&split, 0, 0) == 0) {
+            ShowCampNoticeLine(gppStringList[0x2454 / 4], 0, 1, 0);
+            g_status_685170.item_in_hand_235b.stack_count = remaining;
+            if (ResolvePendingCampCharacter005A5F30(1) != 0 && DropItemInHand(0) != 0) {
+                SetCampItemActionMode005B59B0(0);
+            }
+            destination = &g_status_685170.item_in_hand_235b;
+        }
+        if (destination != 0) {
+            CopyItemInstance(destination, &split, 0, 1);
+        }
+    } else {
         if (count == g_split_item_source_0069c424->stack_count) {
             CopyItemInstance(&g_status_685170.item_in_hand_235b, g_split_item_source_0069c424,
                              g_review_character_0069c0f8, 1);
@@ -492,53 +535,7 @@ void SplitStackDialogResult005BAA80(W8DialogBase* dialog)
                                      &gXStatus.held_item_origin, &gXStatus.held_item_slot);
             carried = g_status_685170.item_in_hand_235b.stack_count;
         }
-    } else {
-        if (count == g_split_item_source_0069c424->stack_count) {
-            return;
-        }
-        split = *g_split_item_source_0069c424;
-        split.stack_count = remaining;
-        if (gXStatus.held_item_source == -1) {
-            goto add_to_pool;
-        }
-        character = g_status_685170.buffers.Char + gXStatus.held_item_source;
-        if (gXStatus.held_item_origin == 1) {
-            if (character->EquippedItem[static_cast<short>(gXStatus.held_item_slot)].iItemNo !=
-                    -1 ||
-                CanEquipItemInSlot(character, g_status_685170.item_in_hand_235b.iItemNo,
-                                   static_cast<unsigned char>(gXStatus.held_item_slot), 0) == 0 ||
-                CanCharacterUseItem(character, g_status_685170.item_in_hand_235b.iItemNo) == 0) {
-                goto add_to_character;
-            }
-            destination = character->EquippedItem + static_cast<short>(gXStatus.held_item_slot);
-        } else {
-            if (gXStatus.held_item_origin != 0) {
-                goto add_to_pool;
-            }
-            destination = character->backpack + static_cast<short>(gXStatus.held_item_slot);
-            if (character->backpack[static_cast<short>(gXStatus.held_item_slot)].iItemNo != -1) {
-                goto add_to_character;
-            }
-        }
-        goto store;
-    add_to_character:
-        if (AddItemToCharacter(character, &split, 0, 0, 0) != 0) {
-            goto applied;
-        }
-    add_to_pool:
-        if (AddItemToParty(&split, 0, 0) != 0) {
-            goto applied;
-        }
-        ShowCampNoticeLine(gppStringList[0x2454 / 4], 0, 1, 0);
-        g_status_685170.item_in_hand_235b.stack_count = remaining;
-        if (ResolvePendingCampCharacter005A5F30(1) != 0 && DropItemInHand(0) != 0) {
-            SetCampItemActionMode005B59B0(0);
-        }
-        destination = &g_status_685170.item_in_hand_235b;
-    store:
-        CopyItemInstance(destination, &split, 0, 1);
     }
-applied:
     g_status_685170.item_in_hand_235b.stack_count = carried;
     RebuildEquipmentAndDerivedStatsForSlot(giReviewCharSlot);
     RebuildCampItemList005A4A00();
