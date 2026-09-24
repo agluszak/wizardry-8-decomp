@@ -6,6 +6,7 @@
    writes it back out while releasing the allocations. All serialized records
    are packed(1); pointers inside the records are heap allocations. */
 
+#include "Types.h"
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/OctMeshModel.h"
 
@@ -161,11 +162,11 @@ struct W8LevelFileMonster {
     W8LevelFilePathNode* MonPath_22; /* num_mon_path_1e records */
 };
 
-struct W8LevelFileType1Record { /* 0x1c: door_kind_84f == 1 payload */
+struct W8LevelFileTriggerPosition { /* 0x1c: placement_kind_84f == 1 payload */
     unsigned char unknown_00[0x1c];
 };
 
-struct W8LevelFileRecord859 { /* 0x85: field_858 != 0 payload */
+struct W8LevelFileTriggerHotSpot { /* 0x85: has_hotspot_858 != 0 payload */
     unsigned char unknown_00[0x85];
 };
 
@@ -228,7 +229,7 @@ struct W8LevelFileLinkedRecord {
    (Trigger.cpp case 1) reads the same fields into a W8Trigger, which names
    the serialized semantics. */
 struct W8LevelFileSwitch { /* 0x271 */
-    unsigned char version_00;
+    char version_00;
     int cycle_bounce_01;           /* -> Trigger::cycle_bounce */
     int state_count_05;            /* -> Trigger::state_count */
     float flag_09;                 /* != 0 -> Trigger::flags_0a0 bit0 */
@@ -256,7 +257,7 @@ struct W8LevelFilePlane { /* 0x30 */
 /* The 0x241-byte type-2 (invisible) trigger record. The .pvl type-2 stream
    (Trigger.cpp case 2) reads the same fields into a W8Trigger. */
 struct W8LevelFileInvisible { /* 0x241 */
-    unsigned char version_00;
+    char version_00;
     float range_01;                /* -> range_maximum_0a8 (*500) */
     srVector3T<float> position_05; /* -> position_118 (*500) */
     int action_11;                 /* -> initial_action_22a */
@@ -288,7 +289,7 @@ struct W8LevelFileInvisible { /* 0x241 */
    stream (Trigger.cpp case 3) reads the same fields and hands them to
    AddAmbientSound0047A790. */
 struct W8LevelFileSound { /* 0x170 */
-    unsigned char version_00;
+    char version_00;
     int volume_min_01;
     int volume_max_05;
     int speed_min_09;
@@ -312,9 +313,9 @@ struct W8LevelFileSound { /* 0x170 */
 };
 
 struct W8LevelFileSuperTrigger { /* 0x867 */
-    unsigned char version_00;
+    char version_00;
     char name_01[0x80];
-    unsigned char flags_81; /* bit0 suppresses the door-kind half */
+    unsigned char flags_81; /* bit0 skips the placement and hotspot records */
     unsigned char active_82;
     unsigned char kind_83;
     unsigned char when_active_84;
@@ -351,13 +352,13 @@ struct W8LevelFileSuperTrigger { /* 0x867 */
     int wait_6c3;
     int field_6c7;
     char event_6cb[0x100];
-    int field_7cb;
-    char particle_system_7cf[0x80];     /* version_00 > 2 */
-    unsigned char door_kind_84f;        /* !(flags_81 & 1) */
-    W8LevelFileType1Record* pType1_850; /* door_kind_84f == 1 */
-    W8LevelFilePlane* pPlane_854;       /* door_kind_84f == 2: 0x30 record */
-    unsigned char field_858;            /* !(flags_81 & 1) */
-    W8LevelFileRecord859* pRecord_859;  /* field_858 != 0 */
+    float field_7cb;                           /* copied to the linked record's normal_scale_1b3 */
+    char particle_system_7cf[0x80];            /* version_00 > 2 */
+    unsigned char placement_kind_84f;          /* !(flags_81 & 1) */
+    W8LevelFileTriggerPosition* pPosition_850; /* placement_kind_84f == 1 */
+    W8LevelFilePlane* pPlane_854;              /* placement_kind_84f == 2 */
+    unsigned char has_hotspot_858;             /* !(flags_81 & 1) */
+    W8LevelFileTriggerHotSpot* pHotSpot_859;   /* has_hotspot_858 != 0 */
     unsigned char field_85d;
     W8LevelFileDoorRef door_85e;          /* field_85d != 0; kind 1 owns door */
     W8LevelFileLinkedRecord* pRecord_863; /* door_85e.kind_00 == 2 */
@@ -628,8 +629,9 @@ static_assert(sizeof(W8LevelFileItemRecord) == 0x44, "W8LevelFileItemRecord_must
 static_assert(sizeof(W8LevelFileClippingPlaneRecord) == 0x50,
               "W8LevelFileClippingPlaneRecord_must_be_0x50");
 static_assert(sizeof(W8LevelFileFramePosition) == 4, "W8LevelFileFramePosition_must_be_4");
-static_assert(sizeof(W8LevelFileType1Record) == 0x1c, "W8LevelFileType1Record_must_be_0x1c");
-static_assert(sizeof(W8LevelFileRecord859) == 0x85, "W8LevelFileRecord859_must_be_0x85");
+static_assert(sizeof(W8LevelFileTriggerPosition) == 0x1c,
+              "W8LevelFileTriggerPosition_must_be_0x1c");
+static_assert(sizeof(W8LevelFileTriggerHotSpot) == 0x85, "W8LevelFileTriggerHotSpot_must_be_0x85");
 static_assert(sizeof(W8LevelFileTrigger) == 6, "W8LevelFileTrigger_must_be_6");
 static_assert(sizeof(W8LevelFileFrame) == 0x63, "W8LevelFileFrame_must_be_0x63");
 static_assert(sizeof(W8LevelFileMorph) == 6, "W8LevelFileMorph_must_be_6");
@@ -670,28 +672,28 @@ static_assert(sizeof(W8LevelFile) == 0x279d, "W8LevelFile_must_be_0x279d");
 static_assert(offsetof(W8LevelFile, pClippingPlanes) == 0x691, "W8LevelFile_pClippingPlanes");
 
 W8LevelFile* ReadLevelFile004CFDC0(int hFile);
-bool WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel);
-bool ReadMeshFile004D1110(int hFile, W8LevelFileMesh* pMesh);
-bool WriteMeshFile004D1510(int hFile, W8LevelFileMesh* pMesh);
-bool ReadLightFile004D1820(int hFile, W8LevelFileLight* pLight);
-bool WriteLightFile004D1960(int hFile, W8LevelFileLight* pLight);
-bool ReadAnimLightFile004D1A90(int hFile, W8LevelFileAnimLight* pLight);
-bool WriteAnimLightFile004D1B50(int hFile, W8LevelFileAnimLight* pLight);
-bool ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger);
-bool WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger);
-bool ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger);
-bool WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger);
-bool ReadDoorTriggerFile004D3540(int hFile, W8LevelFileDoorRef* pDoor);
-bool WriteDoorTriggerFile004D3660(int hFile, W8LevelFileDoorRef* pDoor);
-bool ReadPathAIFile004D3770(int hFile, W8LevelFilePathAI* pPathAI);
-bool WritePathAIFile004D38E0(int hFile, W8LevelFilePathAI* pPathAI);
-bool ReadAnimObjFile004D3A10(int hFile, W8LevelFileAnimObj* pAnimObj, unsigned char fSuccess = 1);
-bool WriteAnimObjFile004D4480(int hFile, W8LevelFileAnimObj* pAnimObj);
+BOOLEAN WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel);
+BOOLEAN ReadMeshFile004D1110(int hFile, W8LevelFileMesh* pMesh);
+BOOLEAN WriteMeshFile004D1510(int hFile, W8LevelFileMesh* pMesh);
+BOOLEAN ReadLightFile004D1820(int hFile, W8LevelFileLight* pLight);
+BOOLEAN WriteLightFile004D1960(int hFile, W8LevelFileLight* pLight);
+BOOLEAN ReadAnimLightFile004D1A90(int hFile, W8LevelFileAnimLight* pLight);
+BOOLEAN WriteAnimLightFile004D1B50(int hFile, W8LevelFileAnimLight* pLight);
+BOOLEAN ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger);
+BOOLEAN WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger);
+BOOLEAN ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger);
+BOOLEAN WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger);
+BOOLEAN ReadDoorTriggerFile004D3540(int hFile, W8LevelFileDoorRef* pDoor);
+BOOLEAN WriteDoorTriggerFile004D3660(int hFile, W8LevelFileDoorRef* pDoor);
+BOOLEAN ReadPathAIFile004D3770(int hFile, W8LevelFilePathAI* pPathAI);
+BOOLEAN WritePathAIFile004D38E0(int hFile, W8LevelFilePathAI* pPathAI);
+BOOLEAN ReadAnimObjFile004D3A10(int hFile, W8LevelFileAnimObj* pAnimObj);
+BOOLEAN WriteAnimObjFile004D4480(int hFile, W8LevelFileAnimObj* pAnimObj);
 W8LevelFileProp* ReadPropsFile004D4CB0(int hFile, int count);
-bool WritePropsFile004D4FC0(int hFile, int count, W8LevelFileProp* pProps);
-bool ReadParticleSystemFile004D5240(int hFile, W8LevelFileParticleSystem* pSystem);
-bool WriteParticleSystemFile004D5370(int hFile, W8LevelFileParticleSystem* pSystem);
-bool ReadLevelFileBlock004D5430(int hFile, W8LevelFileBlock* pBlock);
-bool WriteLevelFileBlock004D5580(int hFile, W8LevelFileBlock* pBlock);
+BOOLEAN WritePropsFile004D4FC0(int hFile, int count, W8LevelFileProp* pProps);
+BOOLEAN ReadParticleSystemFile004D5240(int hFile, W8LevelFileParticleSystem* pSystem);
+BOOLEAN WriteParticleSystemFile004D5370(int hFile, W8LevelFileParticleSystem* pSystem);
+BOOLEAN ReadLevelFileBlock004D5430(int hFile, W8LevelFileBlock* pBlock);
+BOOLEAN WriteLevelFileBlock004D5580(int hFile, W8LevelFileBlock* pBlock);
 
 #endif
