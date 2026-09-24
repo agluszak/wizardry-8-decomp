@@ -3,43 +3,88 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "surrender/srARGB.h"
 #include "surrender/srCore.h"
+#include "surrender/srPalette.h"
 #include "surrender/srVariableTimer.h"
+#include "surrender/srVectorProcessor.h"
 
 /* Conversion routines stored in the format table. The generic pair is
    selected by PixelFormat::conversion_class; the per-entry overrides cover
    formats whose converter does not fit a generic kernel. The MMX pair is
-   installed by initFormats() when the CPU reports the feature bit. Their
-   bodies are still unrecovered, so they stay link-unresolved like the other
-   first-party gaps. */
-void __cdecl Function1000A3B0(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function1000A4D0(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function100088D0(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function10008F70(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function10009DB0(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function1000A0D0(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function10009890(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function10009B00(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function1000ACD0(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function1000AE80(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function1000A9B0(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function1000A9E0(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function1000A950(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function1000A980(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function1000AA10(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function1000AB70(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function1000A8C0(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function1000A900(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function1000B570(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function1000B250(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function1000B6A0(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function1000B440(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function1000B8A0(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function1000B330(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function1000B7C0(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function1000B150(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function1000B9D0(const srPixelConvert::ConversionInfo& info);
-void __cdecl Function1000B050(const srPixelConvert::ConversionInfo& info);
+   installed by initFormats() when the CPU reports the feature bit. The YUV,
+   indexed and MMX bodies are still unrecovered, so they stay
+   link-unresolved like the other first-party gaps. */
+void __cdecl writeRGB(const srPixelConvert::ConversionInfo& info);
+void __cdecl readRGB(const srPixelConvert::ConversionInfo& info);
+void __cdecl writeYUV(const srPixelConvert::ConversionInfo& info);
+void __cdecl readYUV(const srPixelConvert::ConversionInfo& info);
+void __cdecl writeIntensity(const srPixelConvert::ConversionInfo& info);
+void __cdecl readIntensity(const srPixelConvert::ConversionInfo& info);
+void __cdecl writeIndexed(const srPixelConvert::ConversionInfo& info);
+void __cdecl readIndexed(const srPixelConvert::ConversionInfo& info);
+void __cdecl writeRGB555(const srPixelConvert::ConversionInfo& info);
+void __cdecl readRGB555(const srPixelConvert::ConversionInfo& info);
+void __cdecl writeBGRX(const srPixelConvert::ConversionInfo& info);
+void __cdecl readBGRX(const srPixelConvert::ConversionInfo& info);
+void __cdecl writeRGB332(const srPixelConvert::ConversionInfo& info);
+void __cdecl readRGB332(const srPixelConvert::ConversionInfo& info);
+void __cdecl writeABGR(const srPixelConvert::ConversionInfo& info);
+void __cdecl readABGR(const srPixelConvert::ConversionInfo& info);
+void __cdecl writeRGB24(const srPixelConvert::ConversionInfo& info);
+void __cdecl readRGB24(const srPixelConvert::ConversionInfo& info);
+void __cdecl writeL8MMX(const srPixelConvert::ConversionInfo& info);
+void __cdecl readL8MMX(const srPixelConvert::ConversionInfo& info);
+void __cdecl writeRGB565MMX(const srPixelConvert::ConversionInfo& info);
+void __cdecl readRGB565MMX(const srPixelConvert::ConversionInfo& info);
+void __cdecl writeARGB1555MMX(const srPixelConvert::ConversionInfo& info);
+void __cdecl readARGB1555MMX(const srPixelConvert::ConversionInfo& info);
+void __cdecl writeARGB4444MMX(const srPixelConvert::ConversionInfo& info);
+void __cdecl readARGB4444MMX(const srPixelConvert::ConversionInfo& info);
+void __cdecl writeARGB32MMX(const srPixelConvert::ConversionInfo& info);
+void __cdecl readARGB32MMX(const srPixelConvert::ConversionInfo& info);
+
+/* Shared conversion kernels the generic dispatchers route through, by
+   destination/source byte width: pack writes BGRA source pixels through
+   the reduction tables, unpack expands packed source records through the
+   expansion tables, packIntensity routes the luma ramps plus optional
+   alpha. */
+static void packIntensity16(unsigned short* dest, const srARGB* source,
+                            const unsigned char* alpha_lut,
+                            const unsigned char* intensity_lut,
+                            unsigned char alpha_shift, unsigned char intensity_shift,
+                            unsigned long count, int has_alpha);
+static void packIntensity24(unsigned char* dest, const srARGB* source,
+                            const unsigned char* alpha_lut,
+                            const unsigned char* intensity_lut,
+                            unsigned char alpha_shift, unsigned char intensity_shift,
+                            unsigned long count, int has_alpha);
+static void packIntensity32(unsigned long* dest, const srARGB* source,
+                            const unsigned char* alpha_lut,
+                            const unsigned char* intensity_lut,
+                            unsigned char alpha_shift, unsigned char intensity_shift,
+                            unsigned long count, int has_alpha);
+static void pack8(unsigned char* dest, const srARGB* source,
+                  const unsigned char* const* luts, const unsigned char* shifts,
+                  unsigned long count, int has_alpha);
+static void pack16(unsigned short* dest, const srARGB* source,
+                   const unsigned char* const* luts, const unsigned char* shifts,
+                   unsigned long count, int has_alpha);
+static void pack24(unsigned char* dest, const srARGB* source,
+                   const unsigned char* const* luts, const unsigned char* shifts,
+                   unsigned long count, int has_alpha);
+static void pack32(unsigned long* dest, const srARGB* source,
+                   const unsigned char* const* luts, const unsigned char* shifts,
+                   unsigned long count, int has_alpha);
+static void unpack16(unsigned long* dest, const unsigned short* source,
+                     const unsigned char* const* luts, const unsigned char* shifts,
+                     const unsigned long* masks, unsigned long count);
+static void unpack24(unsigned long* dest, const unsigned char* source,
+                     const unsigned char* const* luts, const unsigned char* shifts,
+                     const unsigned long* masks, unsigned long count);
+static void unpack32(unsigned long* dest, const unsigned long* source,
+                     const unsigned char* const* luts, const unsigned char* shifts,
+                     const unsigned long* masks, unsigned long count);
 
 namespace {
 
@@ -111,6 +156,21 @@ long lutRamp183[256];
 
 // GLOBAL: SURRENDER 0x100A45A4
 int formats_initialized;
+
+/* Channel lookup-table selectors indexed by channel bit count: the write
+   dispatchers reduce each 8-bit source channel, the read dispatchers
+   expand each packed channel back to 8 bits. Bit count 8 selects the
+   identity table. */
+// GLOBAL: SURRENDER 0x1009832C
+const unsigned char* const channel_expand[] = {
+    lutExpand1, lutExpand2, lutExpand4,  lutExpand8,  lutExpand16,
+    lutExpand32, lutExpand64, lutExpand128, lutIdentity,
+};
+// GLOBAL: SURRENDER 0x10098350
+const unsigned char* const channel_reduce[] = {
+    lutZero,   lutReduce2,  lutReduce4,  lutReduce8,  lutReduce16,
+    lutReduce32, lutReduce64, lutReduce128, lutIdentity,
+};
 
 // FUNCTION: SURRENDER 0x100077A0
 void initFormat(unsigned long index, unsigned char red_bits, unsigned char red_shift,
@@ -275,43 +335,43 @@ void initFormats()
     for (FormatEntry* entry = format_table; entry < format_table + 25; entry++) {
         switch (entry->format.conversion_class) {
         case 0:
-            entry->write = Function1000A3B0;
-            entry->read = Function1000A4D0;
+            entry->write = writeRGB;
+            entry->read = readRGB;
             break;
         case 1:
-            entry->write = Function100088D0;
-            entry->read = Function10008F70;
+            entry->write = writeYUV;
+            entry->read = readYUV;
             break;
         case 2:
-            entry->write = Function10009DB0;
-            entry->read = Function1000A0D0;
+            entry->write = writeIntensity;
+            entry->read = readIntensity;
             break;
         case 3:
-            entry->write = Function10009890;
-            entry->read = Function10009B00;
+            entry->write = writeIndexed;
+            entry->read = readIndexed;
         }
     }
-    format_table[8].write = Function1000ACD0;
-    format_table[8].read = Function1000AE80;
-    format_table[0xd].write = Function1000A9B0;
-    format_table[0xd].read = Function1000A9E0;
-    format_table[0x11].write = Function1000A950;
-    format_table[0x11].read = Function1000A980;
-    format_table[0x17].write = Function1000AA10;
-    format_table[0x17].read = Function1000AB70;
-    format_table[0x18].write = Function1000A8C0;
-    format_table[0x18].read = Function1000A900;
+    format_table[8].write = writeRGB555;
+    format_table[8].read = readRGB555;
+    format_table[0xd].write = writeBGRX;
+    format_table[0xd].read = readBGRX;
+    format_table[0x11].write = writeRGB332;
+    format_table[0x11].read = readRGB332;
+    format_table[0x17].write = writeABGR;
+    format_table[0x17].read = readABGR;
+    format_table[0x18].write = writeRGB24;
+    format_table[0x18].read = readRGB24;
     if ((srCore.getTimer()->m_cpu_features & 0x800000) != 0) {
-        format_table[2].write = Function1000B570;
-        format_table[2].read = Function1000B250;
-        format_table[7].write = Function1000B6A0;
-        format_table[7].read = Function1000B440;
-        format_table[9].write = Function1000B8A0;
-        format_table[9].read = Function1000B330;
-        format_table[0xb].write = Function1000B7C0;
-        format_table[0xb].read = Function1000B150;
-        format_table[0xe].write = Function1000B9D0;
-        format_table[0xe].read = Function1000B050;
+        format_table[2].write = writeL8MMX;
+        format_table[2].read = readL8MMX;
+        format_table[7].write = writeRGB565MMX;
+        format_table[7].read = readRGB565MMX;
+        format_table[9].write = writeARGB1555MMX;
+        format_table[9].read = readARGB1555MMX;
+        format_table[0xb].write = writeARGB4444MMX;
+        format_table[0xb].read = readARGB4444MMX;
+        format_table[0xe].write = writeARGB32MMX;
+        format_table[0xe].read = readARGB32MMX;
     }
     memset(format_hash, 0, sizeof(format_hash));
     for (FormatEntry* hashed = format_table; hashed < format_table + 25; hashed++) {
@@ -528,19 +588,1128 @@ void srPixelConvert::selectFuncs(const PixelFormat& format, ConversionFunc& writ
     }
     switch (format.conversion_class) {
     case 0:
-        write = Function1000A3B0;
-        read = Function1000A4D0;
+        write = writeRGB;
+        read = readRGB;
         return;
     case 1:
-        write = Function100088D0;
-        read = Function10008F70;
+        write = writeYUV;
+        read = readYUV;
         return;
     case 2:
-        write = Function10009DB0;
-        read = Function1000A0D0;
+        write = writeIntensity;
+        read = readIntensity;
         return;
     case 3:
-        write = Function10009890;
-        read = Function10009B00;
+        write = writeIndexed;
+        read = readIndexed;
+    }
+}
+
+/* PXXA (palette index + optional alpha) write dispatcher: every case
+   quantizes the source color through the surface palette, shifts the index
+   into the red channel position and overlays the reduced alpha. */
+// FUNCTION: SURRENDER 0x10009890
+void __cdecl writeIndexed(const srPixelConvert::ConversionInfo& info)
+{
+    const srPixelConvert::PixelFormat* format = info.format;
+    const unsigned char* alpha_lut = channel_reduce[format->alpha_bits];
+    unsigned char alpha_shift = format->alpha_shift;
+    unsigned char index_shift = format->red_shift;
+    const unsigned long* source = static_cast<const unsigned long*>(info.source);
+    unsigned long count = info.count;
+    switch (format->bytes_per_pixel_minus_one) {
+    case 0: {
+        unsigned char* dest = static_cast<unsigned char*>(info.dest);
+        for (unsigned long i = 0; i < count; i++) {
+            unsigned long color = source[i] & 0xffffff;
+            /* reinterpret-ok: quantize reads the packed BGR bytes of the
+               color; the palette index function ignores alpha. */
+            unsigned char index =
+                info.palette->quantize(*reinterpret_cast<const srARGB*>(&color));
+            dest[i] = static_cast<unsigned char>(
+                index << index_shift |
+                alpha_lut[source[i] >> 24] << alpha_shift);
+        }
+        return;
+    }
+    case 1: {
+        unsigned short* dest = static_cast<unsigned short*>(info.dest);
+        for (unsigned long i = 0; i < count; i++) {
+            unsigned long color = source[i] & 0xffffff;
+            /* reinterpret-ok: quantize reads the packed BGR bytes of the
+               color; the palette index function ignores alpha. */
+            unsigned char index =
+                info.palette->quantize(*reinterpret_cast<const srARGB*>(&color));
+            dest[i] = static_cast<unsigned short>(
+                index << index_shift |
+                alpha_lut[source[i] >> 24] << alpha_shift);
+        }
+        return;
+    }
+    case 2: {
+        unsigned char* dest = static_cast<unsigned char*>(info.dest);
+        for (unsigned long i = 0; i < count; i++) {
+            unsigned long color = source[i];
+            /* reinterpret-ok: quantize reads the packed BGR bytes of the
+               color; the palette index function ignores alpha. */
+            unsigned char index =
+                info.palette->quantize(*reinterpret_cast<const srARGB*>(&color));
+            unsigned long pixel = index << index_shift |
+                                  alpha_lut[source[i] >> 24] << alpha_shift;
+            dest[0] = static_cast<unsigned char>(pixel);
+            dest[1] = static_cast<unsigned char>(pixel >> 8);
+            dest[2] = static_cast<unsigned char>(pixel >> 16);
+            dest += 3;
+        }
+        return;
+    }
+    case 3: {
+        unsigned long* dest = static_cast<unsigned long*>(info.dest);
+        for (unsigned long i = 0; i < count; i++) {
+            unsigned long color = source[i];
+            /* reinterpret-ok: quantize reads the packed BGR bytes of the
+               color; the palette index function ignores alpha. */
+            unsigned char index =
+                info.palette->quantize(*reinterpret_cast<const srARGB*>(&color));
+            dest[i] = index << index_shift |
+                      alpha_lut[source[i] >> 24] << alpha_shift;
+        }
+    }
+    }
+}
+
+/* PXXA read dispatcher: the packed index selects a palette entry whose
+   packed BGR is kept, then the expanded alpha is overlaid in the top byte. */
+// FUNCTION: SURRENDER 0x10009B00
+void __cdecl readIndexed(const srPixelConvert::ConversionInfo& info)
+{
+    const srPixelConvert::PixelFormat* format = info.format;
+    unsigned char index_shift = format->red_shift;
+    unsigned long index_mask = (1ul << format->red_bits) - 1;
+    unsigned long alpha_mask = (1ul << format->alpha_bits) - 1;
+    unsigned char alpha_shift = format->alpha_shift;
+    const unsigned char* alpha_lut = channel_expand[format->alpha_bits];
+    /* reinterpret-ok: palette entries are packed srARGB dwords; only the low
+       24 color bits carry over, the alpha byte comes from the packed pixel. */
+    const unsigned long* palette = reinterpret_cast<const unsigned long*>(
+        info.palette->getPaletteDataPtr());
+    unsigned long* dest = static_cast<unsigned long*>(info.dest);
+    unsigned long count = info.count;
+    switch (format->bytes_per_pixel_minus_one) {
+    case 0: {
+        const unsigned char* source = static_cast<const unsigned char*>(info.source);
+        for (unsigned long i = 0; i < count; i++) {
+            unsigned long pixel = source[i];
+            dest[i] = (palette[(pixel >> index_shift) & index_mask] & 0xffffff) |
+                      static_cast<unsigned long>(
+                          alpha_lut[(pixel >> alpha_shift) & alpha_mask])
+                          << 24;
+        }
+        return;
+    }
+    case 1: {
+        const unsigned short* source = static_cast<const unsigned short*>(info.source);
+        for (unsigned long i = 0; i < count; i++) {
+            unsigned long pixel = source[i];
+            dest[i] = (palette[(pixel >> index_shift) & index_mask] & 0xffffff) |
+                      static_cast<unsigned long>(
+                          alpha_lut[(pixel >> alpha_shift) & alpha_mask])
+                          << 24;
+        }
+        return;
+    }
+    case 2: {
+        const unsigned char* source = static_cast<const unsigned char*>(info.source);
+        for (unsigned long i = 0; i < count; i++) {
+            unsigned long pixel = source[0] | source[1] << 8 | source[2] << 16;
+            dest[i] = (palette[(pixel >> index_shift) & index_mask] & 0xffffff) |
+                      static_cast<unsigned long>(
+                          alpha_lut[(pixel >> alpha_shift) & alpha_mask])
+                          << 24;
+            source += 3;
+        }
+        return;
+    }
+    case 3: {
+        const unsigned long* source = static_cast<const unsigned long*>(info.source);
+        for (unsigned long i = 0; i < count; i++) {
+            unsigned long pixel = source[i];
+            dest[i] = (palette[(pixel >> index_shift) & index_mask] & 0xffffff) |
+                      static_cast<unsigned long>(
+                          alpha_lut[(pixel >> alpha_shift) & alpha_mask])
+                          << 24;
+        }
+    }
+    }
+}
+
+/* IXXA (intensity + optional alpha) write dispatcher: 8-bit destinations
+   compute the luma index inline, wider destinations go through the shared
+   intensity kernels. */
+// FUNCTION: SURRENDER 0x10009DB0
+void __cdecl writeIntensity(const srPixelConvert::ConversionInfo& info)
+{
+    const srPixelConvert::PixelFormat* format = info.format;
+    const unsigned char* intensity_lut = channel_reduce[format->red_bits];
+    const unsigned char* alpha_lut = channel_reduce[format->alpha_bits];
+    int has_alpha = format->alpha_bits != 0;
+    const srARGB* source = static_cast<const srARGB*>(info.source);
+    unsigned long count = info.count;
+    switch (format->bytes_per_pixel_minus_one) {
+    case 0: {
+        unsigned char* dest = static_cast<unsigned char*>(info.dest);
+        unsigned long i = 0;
+        if (has_alpha != 0) {
+            for (; i + 2 <= count; i += 2) {
+                unsigned long luma = (lutRamp54[source[i].red] +
+                                      lutRamp183[source[i].green] +
+                                      lutRamp18[source[i].blue]) >> 8;
+                dest[i] = intensity_lut[luma] << format->red_shift |
+                          alpha_lut[source[i].alpha] << format->alpha_shift;
+                luma = (lutRamp54[source[i + 1].red] +
+                        lutRamp183[source[i + 1].green] +
+                        lutRamp18[source[i + 1].blue]) >> 8;
+                dest[i + 1] = intensity_lut[luma] << format->red_shift |
+                              alpha_lut[source[i + 1].alpha] << format->alpha_shift;
+            }
+            for (; i < count; i++) {
+                unsigned long luma = (lutRamp54[source[i].red] +
+                                      lutRamp183[source[i].green] +
+                                      lutRamp18[source[i].blue]) >> 8;
+                dest[i] = intensity_lut[luma] << format->red_shift |
+                          alpha_lut[source[i].alpha] << format->alpha_shift;
+            }
+        } else {
+            for (; i + 2 <= count; i += 2) {
+                unsigned long luma = (lutRamp54[source[i].red] +
+                                      lutRamp183[source[i].green] +
+                                      lutRamp18[source[i].blue]) >> 8;
+                dest[i] = intensity_lut[luma] << format->red_shift;
+                luma = (lutRamp54[source[i + 1].red] +
+                        lutRamp183[source[i + 1].green] +
+                        lutRamp18[source[i + 1].blue]) >> 8;
+                dest[i + 1] = intensity_lut[luma] << format->red_shift;
+            }
+            for (; i < count; i++) {
+                unsigned long luma = (lutRamp54[source[i].red] +
+                                      lutRamp183[source[i].green] +
+                                      lutRamp18[source[i].blue]) >> 8;
+                dest[i] = intensity_lut[luma] << format->red_shift;
+            }
+        }
+        return;
+    }
+    case 1:
+        packIntensity16(static_cast<unsigned short*>(info.dest), source, alpha_lut,
+                        intensity_lut, format->alpha_shift, format->red_shift, count,
+                        has_alpha);
+        return;
+    case 2:
+        packIntensity24(static_cast<unsigned char*>(info.dest), source, alpha_lut,
+                        intensity_lut, format->alpha_shift, format->red_shift, count,
+                        has_alpha);
+        return;
+    case 3:
+        packIntensity32(static_cast<unsigned long*>(info.dest), source, alpha_lut,
+                        intensity_lut, format->alpha_shift, format->red_shift, count,
+                        has_alpha);
+    }
+}
+
+/* IXXA read dispatcher: every source width expands inline through the
+   intensity and alpha luts, producing grayscale pixels via lutGray with
+   the alpha channel overlaid in the top byte. */
+// FUNCTION: SURRENDER 0x1000A0D0
+void __cdecl readIntensity(const srPixelConvert::ConversionInfo& info)
+{
+    const srPixelConvert::PixelFormat* format = info.format;
+    unsigned long intensity_mask = (1ul << format->red_bits) - 1;
+    unsigned long alpha_mask = (1ul << format->alpha_bits) - 1;
+    const unsigned char* intensity_lut = channel_expand[format->red_bits];
+    const unsigned char* alpha_lut = channel_expand[format->alpha_bits];
+    unsigned long* dest = static_cast<unsigned long*>(info.dest);
+    unsigned long count = info.count;
+    switch (format->bytes_per_pixel_minus_one) {
+    case 0: {
+        const unsigned char* source = static_cast<const unsigned char*>(info.source);
+        for (unsigned long i = 0; i < count; i++) {
+            unsigned long pixel = source[i];
+            const unsigned char* gray =
+                lutGray[intensity_lut[(pixel >> format->red_shift) & intensity_mask]];
+            /* reinterpret-ok: the gray table entry is a packed BGRA pixel read
+               as a dword so the expanded alpha can be ORed into byte 3. */
+            dest[i] = *reinterpret_cast<const unsigned long*>(gray) |
+                      static_cast<unsigned long>(
+                          alpha_lut[(pixel >> format->alpha_shift) & alpha_mask])
+                          << 24;
+        }
+        return;
+    }
+    case 1: {
+        const unsigned short* source = static_cast<const unsigned short*>(info.source);
+        for (unsigned long i = 0; i < count; i++) {
+            unsigned long pixel = source[i];
+            const unsigned char* gray =
+                lutGray[intensity_lut[(pixel >> format->red_shift) & intensity_mask]];
+            /* reinterpret-ok: the gray table entry is a packed BGRA pixel read
+               as a dword so the expanded alpha can be ORed into byte 3. */
+            dest[i] = *reinterpret_cast<const unsigned long*>(gray) |
+                      static_cast<unsigned long>(
+                          alpha_lut[(pixel >> format->alpha_shift) & alpha_mask])
+                          << 24;
+        }
+        return;
+    }
+    case 2: {
+        const unsigned char* source = static_cast<const unsigned char*>(info.source);
+        for (unsigned long i = 0; i < count; i++) {
+            /* reinterpret-ok: 24-bit source records load their high two bytes as
+               a word plus the low byte separately. */
+            unsigned long pixel =
+                *reinterpret_cast<const unsigned short*>(source + 1) * 0x100 + source[0];
+            const unsigned char* gray =
+                lutGray[intensity_lut[(pixel >> format->red_shift) & intensity_mask]];
+            /* reinterpret-ok: the gray table entry is a packed BGRA pixel read
+               as a dword so the expanded alpha can be ORed into byte 3. */
+            dest[i] = *reinterpret_cast<const unsigned long*>(gray) |
+                      static_cast<unsigned long>(
+                          alpha_lut[(pixel >> format->alpha_shift) & alpha_mask])
+                          << 24;
+            source += 3;
+        }
+        return;
+    }
+    case 3: {
+        const unsigned long* source = static_cast<const unsigned long*>(info.source);
+        for (unsigned long i = 0; i < count; i++) {
+            unsigned long pixel = source[i];
+            const unsigned char* gray =
+                lutGray[intensity_lut[(pixel >> format->red_shift) & intensity_mask]];
+            /* reinterpret-ok: the gray table entry is a packed BGRA pixel read
+               as a dword so the expanded alpha can be ORed into byte 3. */
+            dest[i] = *reinterpret_cast<const unsigned long*>(gray) |
+                      static_cast<unsigned long>(
+                          alpha_lut[(pixel >> format->alpha_shift) & alpha_mask])
+                          << 24;
+        }
+    }
+    }
+}
+
+// FUNCTION: SURRENDER 0x1000A3B0
+void __cdecl writeRGB(const srPixelConvert::ConversionInfo& info)
+{
+    const srPixelConvert::PixelFormat* format = info.format;
+    const unsigned char* luts[4];
+    unsigned char shifts[4];
+    luts[0] = channel_reduce[format->red_bits];
+    luts[1] = channel_reduce[format->green_bits];
+    luts[2] = channel_reduce[format->blue_bits];
+    luts[3] = channel_reduce[format->alpha_bits];
+    shifts[0] = format->red_shift;
+    shifts[1] = format->green_shift;
+    shifts[2] = format->blue_shift;
+    shifts[3] = format->alpha_shift;
+    int has_alpha = format->alpha_bits != 0;
+    const srARGB* source = static_cast<const srARGB*>(info.source);
+    switch (format->bytes_per_pixel_minus_one) {
+    case 0:
+        pack8(static_cast<unsigned char*>(info.dest), source, luts, shifts,
+              info.count, has_alpha);
+        return;
+    case 1:
+        pack16(static_cast<unsigned short*>(info.dest), source, luts, shifts,
+               info.count, has_alpha);
+        return;
+    case 2:
+        pack24(static_cast<unsigned char*>(info.dest), source, luts, shifts,
+               info.count, has_alpha);
+        return;
+    case 3:
+        pack32(static_cast<unsigned long*>(info.dest), source, luts, shifts,
+               info.count, has_alpha);
+    }
+}
+
+// FUNCTION: SURRENDER 0x1000A4D0
+void __cdecl readRGB(const srPixelConvert::ConversionInfo& info)
+{
+    const srPixelConvert::PixelFormat* format = info.format;
+    unsigned long masks[4];
+    unsigned char shifts[4];
+    const unsigned char* luts[4];
+    masks[0] = (1ul << format->red_bits) - 1;
+    masks[1] = (1ul << format->green_bits) - 1;
+    masks[2] = (1ul << format->blue_bits) - 1;
+    masks[3] = (1ul << format->alpha_bits) - 1;
+    shifts[0] = format->red_shift;
+    shifts[1] = format->green_shift;
+    shifts[2] = format->blue_shift;
+    shifts[3] = format->alpha_shift;
+    luts[0] = channel_expand[format->red_bits];
+    luts[1] = channel_expand[format->green_bits];
+    luts[2] = channel_expand[format->blue_bits];
+    luts[3] = channel_expand[format->alpha_bits];
+    unsigned long* dest = static_cast<unsigned long*>(info.dest);
+    switch (format->bytes_per_pixel_minus_one) {
+    case 0: {
+        const unsigned char* source = static_cast<const unsigned char*>(info.source);
+        unsigned long i = 0;
+        for (; i + 4 <= info.count; i += 4) {
+            unsigned long pixel = source[i];
+            dest[i] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
+                      luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
+                      luts[2][(pixel >> shifts[2]) & masks[2]] |
+                      luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
+            pixel = source[i + 1];
+            dest[i + 1] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
+                          luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
+                          luts[2][(pixel >> shifts[2]) & masks[2]] |
+                          luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
+            pixel = source[i + 2];
+            dest[i + 2] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
+                          luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
+                          luts[2][(pixel >> shifts[2]) & masks[2]] |
+                          luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
+            pixel = source[i + 3];
+            dest[i + 3] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
+                          luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
+                          luts[2][(pixel >> shifts[2]) & masks[2]] |
+                          luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
+        }
+        for (; i < info.count; i++) {
+            unsigned long pixel = source[i];
+            dest[i] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
+                      luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
+                      luts[2][(pixel >> shifts[2]) & masks[2]] |
+                      luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
+        }
+        return;
+    }
+    case 1:
+        unpack16(dest, static_cast<const unsigned short*>(info.source), luts, shifts,
+                 masks, info.count);
+        return;
+    case 2:
+        unpack24(dest, static_cast<const unsigned char*>(info.source), luts, shifts,
+                 masks, info.count);
+        return;
+    case 3:
+        unpack32(dest, static_cast<const unsigned long*>(info.source), luts, shifts,
+                 masks, info.count);
+    }
+}
+
+/* Per-format overrides installed by initFormats() for formats whose
+   converter does not fit the generic kernels: the 8-bit indexed pair
+   delegates to the vector processor copy, the 32-bit color-keyed formats
+   mask through _and/_or, and the packed formats run dedicated loops. */
+// FUNCTION: SURRENDER 0x1000A8C0
+void __cdecl writeRGB24(const srPixelConvert::ConversionInfo& info)
+{
+    unsigned char* dest = static_cast<unsigned char*>(info.dest);
+    const unsigned long* source = static_cast<const unsigned long*>(info.source);
+    for (unsigned long i = info.count; i > 0; i--) {
+        unsigned long pixel = *source++;
+        dest[0] = static_cast<unsigned char>(pixel >> 16);
+        dest[1] = static_cast<unsigned char>(pixel >> 8);
+        dest[2] = static_cast<unsigned char>(pixel);
+        dest += 3;
+    }
+}
+
+// FUNCTION: SURRENDER 0x1000A900
+void __cdecl readRGB24(const srPixelConvert::ConversionInfo& info)
+{
+    unsigned long* dest = static_cast<unsigned long*>(info.dest);
+    const unsigned char* source = static_cast<const unsigned char*>(info.source);
+    for (unsigned long i = info.count; i > 0; i--) {
+        unsigned long pixel = source[0] | 0xffffff00;
+        pixel = pixel << 8 | source[1];
+        pixel = pixel << 8 | source[2];
+        *dest++ = pixel;
+        source += 3;
+    }
+}
+
+// FUNCTION: SURRENDER 0x1000A950
+void __cdecl writeRGB332(const srPixelConvert::ConversionInfo& info)
+{
+    if (info.count != 0 && info.dest != info.source) {
+        srVectorProcessor::memcopy(info.dest, info.source, info.count * 4);
+    }
+}
+
+// FUNCTION: SURRENDER 0x1000A980
+void __cdecl readRGB332(const srPixelConvert::ConversionInfo& info)
+{
+    if (info.count != 0 && info.dest != info.source) {
+        srVectorProcessor::memcopy(info.dest, info.source, info.count * 4);
+    }
+}
+
+// FUNCTION: SURRENDER 0x1000A9B0
+void __cdecl writeBGRX(const srPixelConvert::ConversionInfo& info)
+{
+    srVectorProcessor::bitwiseAnd(static_cast<SRDWORD*>(info.dest),
+                                  static_cast<const SRDWORD*>(info.source), 0xffffff,
+                                  info.count);
+}
+
+// FUNCTION: SURRENDER 0x1000A9E0
+void __cdecl readBGRX(const srPixelConvert::ConversionInfo& info)
+{
+    srVectorProcessor::bitwiseOr(static_cast<SRDWORD*>(info.dest),
+                                 static_cast<const SRDWORD*>(info.source), 0xff000000,
+                                 info.count);
+}
+
+/* format_table[0x17] write/read: rotate each BGRA pixel one byte lane so
+   red leads the record on write and BGRA is restored on read. */
+// FUNCTION: SURRENDER 0x1000AA10
+void __cdecl writeABGR(const srPixelConvert::ConversionInfo& info)
+{
+    unsigned long* dest = static_cast<unsigned long*>(info.dest);
+    const unsigned long* source = static_cast<const unsigned long*>(info.source);
+    unsigned long i = 0;
+    for (; i + 8 <= info.count; i += 8) {
+        dest[i] = source[i] << 8 | source[i] >> 24;
+        dest[i + 1] = source[i + 1] << 8 | source[i + 1] >> 24;
+        dest[i + 2] = source[i + 2] << 8 | source[i + 2] >> 24;
+        dest[i + 3] = source[i + 3] << 8 | source[i + 3] >> 24;
+        dest[i + 4] = source[i + 4] << 8 | source[i + 4] >> 24;
+        dest[i + 5] = source[i + 5] << 8 | source[i + 5] >> 24;
+        dest[i + 6] = source[i + 6] << 8 | source[i + 6] >> 24;
+        dest[i + 7] = source[i + 7] << 8 | source[i + 7] >> 24;
+    }
+    for (; i < info.count; i++) {
+        dest[i] = source[i] << 8 | source[i] >> 24;
+    }
+}
+
+// FUNCTION: SURRENDER 0x1000AB70
+void __cdecl readABGR(const srPixelConvert::ConversionInfo& info)
+{
+    unsigned long* dest = static_cast<unsigned long*>(info.dest);
+    const unsigned long* source = static_cast<const unsigned long*>(info.source);
+    unsigned long i = 0;
+    for (; i + 8 <= info.count; i += 8) {
+        dest[i] = source[i] << 24 | source[i] >> 8;
+        dest[i + 1] = source[i + 1] << 24 | source[i + 1] >> 8;
+        dest[i + 2] = source[i + 2] << 24 | source[i + 2] >> 8;
+        dest[i + 3] = source[i + 3] << 24 | source[i + 3] >> 8;
+        dest[i + 4] = source[i + 4] << 24 | source[i + 4] >> 8;
+        dest[i + 5] = source[i + 5] << 24 | source[i + 5] >> 8;
+        dest[i + 6] = source[i + 6] << 24 | source[i + 6] >> 8;
+        dest[i + 7] = source[i + 7] << 24 | source[i + 7] >> 8;
+    }
+    for (; i < info.count; i++) {
+        dest[i] = source[i] << 24 | source[i] >> 8;
+    }
+}
+
+/* format_table[8] write/read: 32-bit BGRA packed to RGB555 through the
+   5-bit reduction table, and expanded back with alpha forced opaque. */
+// FUNCTION: SURRENDER 0x1000ACD0
+void __cdecl writeRGB555(const srPixelConvert::ConversionInfo& info)
+{
+    unsigned short* dest = static_cast<unsigned short*>(info.dest);
+    const srARGB* source = static_cast<const srARGB*>(info.source);
+    unsigned long i = 0;
+    for (; i + 4 <= info.count; i += 4) {
+        dest[i] = lutReduce32[source[i].red] << 10 | lutReduce32[source[i].green] << 5 |
+                  lutReduce32[source[i].blue];
+        dest[i + 1] = lutReduce32[source[i + 1].red] << 10 |
+                      lutReduce32[source[i + 1].green] << 5 |
+                      lutReduce32[source[i + 1].blue];
+        dest[i + 2] = lutReduce32[source[i + 2].red] << 10 |
+                      lutReduce32[source[i + 2].green] << 5 |
+                      lutReduce32[source[i + 2].blue];
+        dest[i + 3] = lutReduce32[source[i + 3].red] << 10 |
+                      lutReduce32[source[i + 3].green] << 5 |
+                      lutReduce32[source[i + 3].blue];
+    }
+    for (; i < info.count; i++) {
+        dest[i] = lutReduce32[source[i].red] << 10 | lutReduce32[source[i].green] << 5 |
+                  lutReduce32[source[i].blue];
+    }
+}
+
+// FUNCTION: SURRENDER 0x1000AE80
+void __cdecl readRGB555(const srPixelConvert::ConversionInfo& info)
+{
+    unsigned long* dest = static_cast<unsigned long*>(info.dest);
+    const unsigned short* source = static_cast<const unsigned short*>(info.source);
+    unsigned long i = 0;
+    for (; i + 4 <= info.count; i += 4) {
+        unsigned long pixel = source[i];
+        dest[i] = 0xff000000 | lutExpand32[pixel >> 10] << 16 |
+                  lutExpand32[pixel >> 5 & 0x1f] << 8 | lutExpand32[pixel & 0x1f];
+        pixel = source[i + 1];
+        dest[i + 1] = 0xff000000 | lutExpand32[pixel >> 10] << 16 |
+                      lutExpand32[pixel >> 5 & 0x1f] << 8 | lutExpand32[pixel & 0x1f];
+        pixel = source[i + 2];
+        dest[i + 2] = 0xff000000 | lutExpand32[pixel >> 10] << 16 |
+                      lutExpand32[pixel >> 5 & 0x1f] << 8 | lutExpand32[pixel & 0x1f];
+        pixel = source[i + 3];
+        dest[i + 3] = 0xff000000 | lutExpand32[pixel >> 10] << 16 |
+                      lutExpand32[pixel >> 5 & 0x1f] << 8 | lutExpand32[pixel & 0x1f];
+    }
+    for (; i < info.count; i++) {
+        unsigned long pixel = source[i];
+        dest[i] = 0xff000000 | lutExpand32[pixel >> 10] << 16 |
+                  lutExpand32[pixel >> 5 & 0x1f] << 8 | lutExpand32[pixel & 0x1f];
+    }
+}
+
+/* Intensity write kernels: 32-bit BGRA source to 16/24/32-bit IXXA
+   records. The luma index sums the fixed-point channel weight ramps. */
+// FUNCTION: SURRENDER 0x1000BAD0
+static void packIntensity16(unsigned short* dest, const srARGB* source,
+                            const unsigned char* alpha_lut,
+                            const unsigned char* intensity_lut,
+                            unsigned char alpha_shift, unsigned char intensity_shift,
+                            unsigned long count, int has_alpha)
+{
+    unsigned long i = 0;
+    if (has_alpha == 0) {
+        for (; i + 2 <= count; i += 2) {
+            dest[i] = intensity_lut[(lutRamp54[source[i].red] +
+                                     lutRamp183[source[i].green] +
+                                     lutRamp18[source[i].blue]) >> 8]
+                      << intensity_shift;
+            dest[i + 1] = intensity_lut[(lutRamp54[source[i + 1].red] +
+                                         lutRamp183[source[i + 1].green] +
+                                         lutRamp18[source[i + 1].blue]) >> 8]
+                          << intensity_shift;
+        }
+        for (; i < count; i++) {
+            dest[i] = intensity_lut[(lutRamp54[source[i].red] +
+                                     lutRamp183[source[i].green] +
+                                     lutRamp18[source[i].blue]) >> 8]
+                      << intensity_shift;
+        }
+    } else {
+        for (; i + 2 <= count; i += 2) {
+            dest[i] = intensity_lut[(lutRamp54[source[i].red] +
+                                     lutRamp183[source[i].green] +
+                                     lutRamp18[source[i].blue]) >> 8]
+                          << intensity_shift |
+                      alpha_lut[source[i].alpha] << alpha_shift;
+            dest[i + 1] = intensity_lut[(lutRamp54[source[i + 1].red] +
+                                         lutRamp183[source[i + 1].green] +
+                                         lutRamp18[source[i + 1].blue]) >> 8]
+                              << intensity_shift |
+                          alpha_lut[source[i + 1].alpha] << alpha_shift;
+        }
+        for (; i < count; i++) {
+            dest[i] = intensity_lut[(lutRamp54[source[i].red] +
+                                     lutRamp183[source[i].green] +
+                                     lutRamp18[source[i].blue]) >> 8]
+                          << intensity_shift |
+                      alpha_lut[source[i].alpha] << alpha_shift;
+        }
+    }
+}
+
+// FUNCTION: SURRENDER 0x1000BD60
+static void packIntensity24(unsigned char* dest, const srARGB* source,
+                            const unsigned char* alpha_lut,
+                            const unsigned char* intensity_lut,
+                            unsigned char alpha_shift, unsigned char intensity_shift,
+                            unsigned long count, int has_alpha)
+{
+    unsigned long i = 0;
+    if (has_alpha == 0) {
+        for (; i + 2 <= count; i += 2) {
+            unsigned long value = intensity_lut[(lutRamp54[source[i].red] +
+                                                 lutRamp183[source[i].green] +
+                                                 lutRamp18[source[i].blue]) >> 8]
+                                  << intensity_shift;
+            /* reinterpret-ok: the 24-bit pixel record stores its low word plus
+               high byte separately. */
+            *reinterpret_cast<unsigned short*>(dest) =
+                static_cast<unsigned short>(value);
+            dest[2] = static_cast<unsigned char>(value >> 16);
+            value = intensity_lut[(lutRamp54[source[i + 1].red] +
+                                   lutRamp183[source[i + 1].green] +
+                                   lutRamp18[source[i + 1].blue]) >> 8]
+                    << intensity_shift;
+            *reinterpret_cast<unsigned short*>(dest + 3) =
+                static_cast<unsigned short>(value);
+            dest[5] = static_cast<unsigned char>(value >> 16);
+            dest += 6;
+        }
+        for (; i < count; i++) {
+            unsigned long value = intensity_lut[(lutRamp54[source[i].red] +
+                                                 lutRamp183[source[i].green] +
+                                                 lutRamp18[source[i].blue]) >> 8]
+                                  << intensity_shift;
+            *reinterpret_cast<unsigned short*>(dest) =
+                static_cast<unsigned short>(value);
+            dest[2] = static_cast<unsigned char>(value >> 16);
+            dest += 3;
+        }
+    } else {
+        for (; i + 2 <= count; i += 2) {
+            unsigned long value =
+                intensity_lut[(lutRamp54[source[i].red] +
+                               lutRamp183[source[i].green] +
+                               lutRamp18[source[i].blue]) >> 8]
+                    << intensity_shift |
+                alpha_lut[source[i].alpha] << alpha_shift;
+            /* reinterpret-ok: the 24-bit pixel record stores its low word plus
+               high byte separately. */
+            *reinterpret_cast<unsigned short*>(dest) =
+                static_cast<unsigned short>(value);
+            dest[2] = static_cast<unsigned char>(value >> 16);
+            value = intensity_lut[(lutRamp54[source[i + 1].red] +
+                                   lutRamp183[source[i + 1].green] +
+                                   lutRamp18[source[i + 1].blue]) >> 8]
+                        << intensity_shift |
+                    alpha_lut[source[i + 1].alpha] << alpha_shift;
+            *reinterpret_cast<unsigned short*>(dest + 3) =
+                static_cast<unsigned short>(value);
+            dest[5] = static_cast<unsigned char>(value >> 16);
+            dest += 6;
+        }
+        for (; i < count; i++) {
+            unsigned long value =
+                intensity_lut[(lutRamp54[source[i].red] +
+                               lutRamp183[source[i].green] +
+                               lutRamp18[source[i].blue]) >> 8]
+                    << intensity_shift |
+                alpha_lut[source[i].alpha] << alpha_shift;
+            *reinterpret_cast<unsigned short*>(dest) =
+                static_cast<unsigned short>(value);
+            dest[2] = static_cast<unsigned char>(value >> 16);
+            dest += 3;
+        }
+    }
+}
+
+// FUNCTION: SURRENDER 0x1000C0A0
+static void packIntensity32(unsigned long* dest, const srARGB* source,
+                            const unsigned char* alpha_lut,
+                            const unsigned char* intensity_lut,
+                            unsigned char alpha_shift, unsigned char intensity_shift,
+                            unsigned long count, int has_alpha)
+{
+    unsigned long i = 0;
+    if (has_alpha == 0) {
+        for (; i + 2 <= count; i += 2) {
+            dest[i] = intensity_lut[(lutRamp54[source[i].red] +
+                                     lutRamp183[source[i].green] +
+                                     lutRamp18[source[i].blue]) >> 8]
+                      << intensity_shift;
+            dest[i + 1] = intensity_lut[(lutRamp54[source[i + 1].red] +
+                                         lutRamp183[source[i + 1].green] +
+                                         lutRamp18[source[i + 1].blue]) >> 8]
+                          << intensity_shift;
+        }
+        for (; i < count; i++) {
+            dest[i] = intensity_lut[(lutRamp54[source[i].red] +
+                                     lutRamp183[source[i].green] +
+                                     lutRamp18[source[i].blue]) >> 8]
+                      << intensity_shift;
+        }
+    } else {
+        for (; i + 2 <= count; i += 2) {
+            dest[i] = intensity_lut[(lutRamp54[source[i].red] +
+                                     lutRamp183[source[i].green] +
+                                     lutRamp18[source[i].blue]) >> 8]
+                          << intensity_shift |
+                      alpha_lut[source[i].alpha] << alpha_shift;
+            dest[i + 1] = intensity_lut[(lutRamp54[source[i + 1].red] +
+                                         lutRamp183[source[i + 1].green] +
+                                         lutRamp18[source[i + 1].blue]) >> 8]
+                              << intensity_shift |
+                          alpha_lut[source[i + 1].alpha] << alpha_shift;
+        }
+        for (; i < count; i++) {
+            dest[i] = intensity_lut[(lutRamp54[source[i].red] +
+                                     lutRamp183[source[i].green] +
+                                     lutRamp18[source[i].blue]) >> 8]
+                          << intensity_shift |
+                      alpha_lut[source[i].alpha] << alpha_shift;
+        }
+    }
+}
+
+/* Generic write kernels: 32-bit BGRA source packed through the channel
+   reduction luts into 8/16/24/32-bit records. */
+// FUNCTION: SURRENDER 0x1000C350
+static void pack8(unsigned char* dest, const srARGB* source,
+                  const unsigned char* const* luts, const unsigned char* shifts,
+                  unsigned long count, int has_alpha)
+{
+    unsigned long i = 0;
+    if (has_alpha == 0) {
+        for (; i + 4 <= count; i += 4) {
+            dest[i] = luts[0][source[i].red] << shifts[0] |
+                      luts[1][source[i].green] << shifts[1] |
+                      luts[2][source[i].blue] << shifts[2];
+            dest[i + 1] = luts[0][source[i + 1].red] << shifts[0] |
+                          luts[1][source[i + 1].green] << shifts[1] |
+                          luts[2][source[i + 1].blue] << shifts[2];
+            dest[i + 2] = luts[0][source[i + 2].red] << shifts[0] |
+                          luts[1][source[i + 2].green] << shifts[1] |
+                          luts[2][source[i + 2].blue] << shifts[2];
+            dest[i + 3] = luts[0][source[i + 3].red] << shifts[0] |
+                          luts[1][source[i + 3].green] << shifts[1] |
+                          luts[2][source[i + 3].blue] << shifts[2];
+        }
+        for (; i < count; i++) {
+            dest[i] = luts[0][source[i].red] << shifts[0] |
+                      luts[1][source[i].green] << shifts[1] |
+                      luts[2][source[i].blue] << shifts[2];
+        }
+    } else {
+        for (; i + 4 <= count; i += 4) {
+            dest[i] = luts[0][source[i].red] << shifts[0] |
+                      luts[1][source[i].green] << shifts[1] |
+                      luts[3][source[i].alpha] << shifts[3] |
+                      luts[2][source[i].blue] << shifts[2];
+            dest[i + 1] = luts[0][source[i + 1].red] << shifts[0] |
+                          luts[1][source[i + 1].green] << shifts[1] |
+                          luts[3][source[i + 1].alpha] << shifts[3] |
+                          luts[2][source[i + 1].blue] << shifts[2];
+            dest[i + 2] = luts[0][source[i + 2].red] << shifts[0] |
+                          luts[1][source[i + 2].green] << shifts[1] |
+                          luts[3][source[i + 2].alpha] << shifts[3] |
+                          luts[2][source[i + 2].blue] << shifts[2];
+            dest[i + 3] = luts[0][source[i + 3].red] << shifts[0] |
+                          luts[1][source[i + 3].green] << shifts[1] |
+                          luts[3][source[i + 3].alpha] << shifts[3] |
+                          luts[2][source[i + 3].blue] << shifts[2];
+        }
+        for (; i < count; i++) {
+            dest[i] = luts[0][source[i].red] << shifts[0] |
+                      luts[1][source[i].green] << shifts[1] |
+                      luts[3][source[i].alpha] << shifts[3] |
+                      luts[2][source[i].blue] << shifts[2];
+        }
+    }
+}
+
+// FUNCTION: SURRENDER 0x1000C800
+static void pack16(unsigned short* dest, const srARGB* source,
+                   const unsigned char* const* luts, const unsigned char* shifts,
+                   unsigned long count, int has_alpha)
+{
+    unsigned long i = 0;
+    if (has_alpha == 0) {
+        for (; i + 4 <= count; i += 4) {
+            dest[i] = luts[0][source[i].red] << shifts[0] |
+                      luts[1][source[i].green] << shifts[1] |
+                      luts[2][source[i].blue] << shifts[2];
+            dest[i + 1] = luts[0][source[i + 1].red] << shifts[0] |
+                          luts[1][source[i + 1].green] << shifts[1] |
+                          luts[2][source[i + 1].blue] << shifts[2];
+            dest[i + 2] = luts[0][source[i + 2].red] << shifts[0] |
+                          luts[1][source[i + 2].green] << shifts[1] |
+                          luts[2][source[i + 2].blue] << shifts[2];
+            dest[i + 3] = luts[0][source[i + 3].red] << shifts[0] |
+                          luts[1][source[i + 3].green] << shifts[1] |
+                          luts[2][source[i + 3].blue] << shifts[2];
+        }
+        for (; i < count; i++) {
+            dest[i] = luts[0][source[i].red] << shifts[0] |
+                      luts[1][source[i].green] << shifts[1] |
+                      luts[2][source[i].blue] << shifts[2];
+        }
+    } else {
+        for (; i + 4 <= count; i += 4) {
+            dest[i] = luts[0][source[i].red] << shifts[0] |
+                      luts[1][source[i].green] << shifts[1] |
+                      luts[3][source[i].alpha] << shifts[3] |
+                      luts[2][source[i].blue] << shifts[2];
+            dest[i + 1] = luts[0][source[i + 1].red] << shifts[0] |
+                          luts[1][source[i + 1].green] << shifts[1] |
+                          luts[3][source[i + 1].alpha] << shifts[3] |
+                          luts[2][source[i + 1].blue] << shifts[2];
+            dest[i + 2] = luts[0][source[i + 2].red] << shifts[0] |
+                          luts[1][source[i + 2].green] << shifts[1] |
+                          luts[3][source[i + 2].alpha] << shifts[3] |
+                          luts[2][source[i + 2].blue] << shifts[2];
+            dest[i + 3] = luts[0][source[i + 3].red] << shifts[0] |
+                          luts[1][source[i + 3].green] << shifts[1] |
+                          luts[3][source[i + 3].alpha] << shifts[3] |
+                          luts[2][source[i + 3].blue] << shifts[2];
+        }
+        for (; i < count; i++) {
+            dest[i] = luts[0][source[i].red] << shifts[0] |
+                      luts[1][source[i].green] << shifts[1] |
+                      luts[3][source[i].alpha] << shifts[3] |
+                      luts[2][source[i].blue] << shifts[2];
+        }
+    }
+}
+
+// FUNCTION: SURRENDER 0x1000CC90
+static void pack24(unsigned char* dest, const srARGB* source,
+                   const unsigned char* const* luts, const unsigned char* shifts,
+                   unsigned long count, int has_alpha)
+{
+    unsigned long i = 0;
+    if (has_alpha == 0) {
+        for (; i + 4 <= count; i += 4) {
+            unsigned long value = luts[0][source[i].red] << shifts[0] |
+                                  luts[1][source[i].green] << shifts[1] |
+                                  luts[2][source[i].blue] << shifts[2];
+            /* reinterpret-ok: the 24-bit pixel record stores its low word plus
+               high byte separately. */
+            *reinterpret_cast<unsigned short*>(dest) =
+                static_cast<unsigned short>(value);
+            dest[2] = static_cast<unsigned char>(value >> 16);
+            value = luts[0][source[i + 1].red] << shifts[0] |
+                    luts[1][source[i + 1].green] << shifts[1] |
+                    luts[2][source[i + 1].blue] << shifts[2];
+            *reinterpret_cast<unsigned short*>(dest + 3) =
+                static_cast<unsigned short>(value);
+            dest[5] = static_cast<unsigned char>(value >> 16);
+            value = luts[0][source[i + 2].red] << shifts[0] |
+                    luts[1][source[i + 2].green] << shifts[1] |
+                    luts[2][source[i + 2].blue] << shifts[2];
+            *reinterpret_cast<unsigned short*>(dest + 6) =
+                static_cast<unsigned short>(value);
+            dest[8] = static_cast<unsigned char>(value >> 16);
+            value = luts[0][source[i + 3].red] << shifts[0] |
+                    luts[1][source[i + 3].green] << shifts[1] |
+                    luts[2][source[i + 3].blue] << shifts[2];
+            *reinterpret_cast<unsigned short*>(dest + 9) =
+                static_cast<unsigned short>(value);
+            dest[11] = static_cast<unsigned char>(value >> 16);
+            dest += 12;
+        }
+        for (; i < count; i++) {
+            unsigned long value = luts[0][source[i].red] << shifts[0] |
+                                  luts[1][source[i].green] << shifts[1] |
+                                  luts[2][source[i].blue] << shifts[2];
+            *reinterpret_cast<unsigned short*>(dest) =
+                static_cast<unsigned short>(value);
+            dest[2] = static_cast<unsigned char>(value >> 16);
+            dest += 3;
+        }
+    } else {
+        for (; i + 4 <= count; i += 4) {
+            unsigned long value = luts[0][source[i].red] << shifts[0] |
+                                  luts[1][source[i].green] << shifts[1] |
+                                  luts[3][source[i].alpha] << shifts[3] |
+                                  luts[2][source[i].blue] << shifts[2];
+            /* reinterpret-ok: the 24-bit pixel record stores its low word plus
+               high byte separately. */
+            *reinterpret_cast<unsigned short*>(dest) =
+                static_cast<unsigned short>(value);
+            dest[2] = static_cast<unsigned char>(value >> 16);
+            value = luts[0][source[i + 1].red] << shifts[0] |
+                    luts[1][source[i + 1].green] << shifts[1] |
+                    luts[3][source[i + 1].alpha] << shifts[3] |
+                    luts[2][source[i + 1].blue] << shifts[2];
+            *reinterpret_cast<unsigned short*>(dest + 3) =
+                static_cast<unsigned short>(value);
+            dest[5] = static_cast<unsigned char>(value >> 16);
+            value = luts[0][source[i + 2].red] << shifts[0] |
+                    luts[1][source[i + 2].green] << shifts[1] |
+                    luts[3][source[i + 2].alpha] << shifts[3] |
+                    luts[2][source[i + 2].blue] << shifts[2];
+            *reinterpret_cast<unsigned short*>(dest + 6) =
+                static_cast<unsigned short>(value);
+            dest[8] = static_cast<unsigned char>(value >> 16);
+            value = luts[0][source[i + 3].red] << shifts[0] |
+                    luts[1][source[i + 3].green] << shifts[1] |
+                    luts[3][source[i + 3].alpha] << shifts[3] |
+                    luts[2][source[i + 3].blue] << shifts[2];
+            *reinterpret_cast<unsigned short*>(dest + 9) =
+                static_cast<unsigned short>(value);
+            dest[11] = static_cast<unsigned char>(value >> 16);
+            dest += 12;
+        }
+        for (; i < count; i++) {
+            unsigned long value = luts[0][source[i].red] << shifts[0] |
+                                  luts[1][source[i].green] << shifts[1] |
+                                  luts[3][source[i].alpha] << shifts[3] |
+                                  luts[2][source[i].blue] << shifts[2];
+            *reinterpret_cast<unsigned short*>(dest) =
+                static_cast<unsigned short>(value);
+            dest[2] = static_cast<unsigned char>(value >> 16);
+            dest += 3;
+        }
+    }
+}
+
+// FUNCTION: SURRENDER 0x1000D280
+static void pack32(unsigned long* dest, const srARGB* source,
+                   const unsigned char* const* luts, const unsigned char* shifts,
+                   unsigned long count, int has_alpha)
+{
+    unsigned long i = 0;
+    if (has_alpha == 0) {
+        for (; i + 4 <= count; i += 4) {
+            dest[i] = luts[0][source[i].red] << shifts[0] |
+                      luts[1][source[i].green] << shifts[1] |
+                      luts[2][source[i].blue] << shifts[2];
+            dest[i + 1] = luts[0][source[i + 1].red] << shifts[0] |
+                          luts[1][source[i + 1].green] << shifts[1] |
+                          luts[2][source[i + 1].blue] << shifts[2];
+            dest[i + 2] = luts[0][source[i + 2].red] << shifts[0] |
+                          luts[1][source[i + 2].green] << shifts[1] |
+                          luts[2][source[i + 2].blue] << shifts[2];
+            dest[i + 3] = luts[0][source[i + 3].red] << shifts[0] |
+                          luts[1][source[i + 3].green] << shifts[1] |
+                          luts[2][source[i + 3].blue] << shifts[2];
+        }
+        for (; i < count; i++) {
+            dest[i] = luts[0][source[i].red] << shifts[0] |
+                      luts[1][source[i].green] << shifts[1] |
+                      luts[2][source[i].blue] << shifts[2];
+        }
+    } else {
+        for (; i + 4 <= count; i += 4) {
+            dest[i] = luts[0][source[i].red] << shifts[0] |
+                      luts[1][source[i].green] << shifts[1] |
+                      luts[3][source[i].alpha] << shifts[3] |
+                      luts[2][source[i].blue] << shifts[2];
+            dest[i + 1] = luts[0][source[i + 1].red] << shifts[0] |
+                          luts[1][source[i + 1].green] << shifts[1] |
+                          luts[3][source[i + 1].alpha] << shifts[3] |
+                          luts[2][source[i + 1].blue] << shifts[2];
+            dest[i + 2] = luts[0][source[i + 2].red] << shifts[0] |
+                          luts[1][source[i + 2].green] << shifts[1] |
+                          luts[3][source[i + 2].alpha] << shifts[3] |
+                          luts[2][source[i + 2].blue] << shifts[2];
+            dest[i + 3] = luts[0][source[i + 3].red] << shifts[0] |
+                          luts[1][source[i + 3].green] << shifts[1] |
+                          luts[3][source[i + 3].alpha] << shifts[3] |
+                          luts[2][source[i + 3].blue] << shifts[2];
+        }
+        for (; i < count; i++) {
+            dest[i] = luts[0][source[i].red] << shifts[0] |
+                      luts[1][source[i].green] << shifts[1] |
+                      luts[3][source[i].alpha] << shifts[3] |
+                      luts[2][source[i].blue] << shifts[2];
+        }
+    }
+}
+
+/* Generic read kernels: packed 16/24/32-bit source records expanded to
+   32-bit BGRA through the channel expansion luts, shifts and masks. */
+// FUNCTION: SURRENDER 0x1000D740
+static void unpack16(unsigned long* dest, const unsigned short* source,
+                     const unsigned char* const* luts, const unsigned char* shifts,
+                     const unsigned long* masks, unsigned long count)
+{
+    unsigned long i = 0;
+    for (; i + 4 <= count; i += 4) {
+        unsigned long pixel = source[i];
+        dest[i] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
+                  luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
+                  luts[2][(pixel >> shifts[2]) & masks[2]] |
+                  luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
+        pixel = source[i + 1];
+        dest[i + 1] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
+                      luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
+                      luts[2][(pixel >> shifts[2]) & masks[2]] |
+                      luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
+        pixel = source[i + 2];
+        dest[i + 2] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
+                      luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
+                      luts[2][(pixel >> shifts[2]) & masks[2]] |
+                      luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
+        pixel = source[i + 3];
+        dest[i + 3] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
+                      luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
+                      luts[2][(pixel >> shifts[2]) & masks[2]] |
+                      luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
+    }
+    for (; i < count; i++) {
+        unsigned long pixel = source[i];
+        dest[i] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
+                  luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
+                  luts[2][(pixel >> shifts[2]) & masks[2]] |
+                  luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
+    }
+}
+
+// FUNCTION: SURRENDER 0x1000DA20
+static void unpack24(unsigned long* dest, const unsigned char* source,
+                     const unsigned char* const* luts, const unsigned char* shifts,
+                     const unsigned long* masks, unsigned long count)
+{
+    unsigned long i = 0;
+    for (; i + 4 <= count; i += 4) {
+        /* reinterpret-ok: 24-bit source records load their high two bytes as a
+           word plus the low byte separately. */
+        unsigned long pixel =
+            *reinterpret_cast<const unsigned short*>(source + 1) * 0x100 + source[0];
+        dest[i] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
+                  luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
+                  luts[2][(pixel >> shifts[2]) & masks[2]] |
+                  luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
+        pixel = *reinterpret_cast<const unsigned short*>(source + 4) * 0x100 +
+                source[3];
+        dest[i + 1] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
+                      luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
+                      luts[2][(pixel >> shifts[2]) & masks[2]] |
+                      luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
+        pixel = *reinterpret_cast<const unsigned short*>(source + 7) * 0x100 +
+                source[6];
+        dest[i + 2] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
+                      luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
+                      luts[2][(pixel >> shifts[2]) & masks[2]] |
+                      luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
+        pixel = *reinterpret_cast<const unsigned short*>(source + 10) * 0x100 +
+                source[9];
+        dest[i + 3] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
+                      luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
+                      luts[2][(pixel >> shifts[2]) & masks[2]] |
+                      luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
+        source += 12;
+    }
+    for (; i < count; i++) {
+        unsigned long pixel =
+            *reinterpret_cast<const unsigned short*>(source + 1) * 0x100 + source[0];
+        dest[i] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
+                  luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
+                  luts[2][(pixel >> shifts[2]) & masks[2]] |
+                  luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
+        source += 3;
+    }
+}
+
+// FUNCTION: SURRENDER 0x1000DD60
+static void unpack32(unsigned long* dest, const unsigned long* source,
+                     const unsigned char* const* luts, const unsigned char* shifts,
+                     const unsigned long* masks, unsigned long count)
+{
+    unsigned long i = 0;
+    for (; i + 4 <= count; i += 4) {
+        unsigned long pixel = source[i];
+        dest[i] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
+                  luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
+                  luts[2][(pixel >> shifts[2]) & masks[2]] |
+                  luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
+        pixel = source[i + 1];
+        dest[i + 1] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
+                      luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
+                      luts[2][(pixel >> shifts[2]) & masks[2]] |
+                      luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
+        pixel = source[i + 2];
+        dest[i + 2] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
+                      luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
+                      luts[2][(pixel >> shifts[2]) & masks[2]] |
+                      luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
+        pixel = source[i + 3];
+        dest[i + 3] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
+                      luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
+                      luts[2][(pixel >> shifts[2]) & masks[2]] |
+                      luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
+    }
+    for (; i < count; i++) {
+        unsigned long pixel = source[i];
+        dest[i] = luts[0][(pixel >> shifts[0]) & masks[0]] << 16 |
+                  luts[1][(pixel >> shifts[1]) & masks[1]] << 8 |
+                  luts[2][(pixel >> shifts[2]) & masks[2]] |
+                  luts[3][(pixel >> shifts[3]) & masks[3]] << 24;
     }
 }
