@@ -750,11 +750,6 @@ next_race:
 // FUNCTION: WIZ8 0x005ca730
 void W8CharacterPage005EF778::AdjustEntry(W8CharacterPageEntry* entry, int delta)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
     entry->MarkDirty();
     m_dirty_06d = 1;
     AdjustAllocatedAttribute(m_character_060, m_creation_state_064, entry->m_id_02c, delta);
@@ -762,13 +757,12 @@ void W8CharacterPage005EF778::AdjustEntry(W8CharacterPageEntry* entry, int delta
     m_screen_05c->UpdateNavigation(this);
     if (m_character_060->attributes[entry->m_id_02c].value >= 100) {
         for (int skill = 0x22; skill < 0x29; ++skill) {
-            if (g_skill_attributes[skill].category == entry->m_id_02c &&
+            if (g_skill_attributes[skill].category == static_cast<int>(entry->m_id_02c) &&
                 m_character_060->skills[skill].active_00 != 0) {
                 m_screen_05c->ShowDescription(entry->m_id_02c, skill);
             }
         }
     }
-#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x005ca7e0

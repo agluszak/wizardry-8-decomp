@@ -3516,11 +3516,6 @@ unsigned char ProcessMainGameInput(void)
 // FUNCTION: WIZ8 0x0055fb30
 void MainGameScreenFrame(void)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
     if (g_dev_mode_689b32) {
         RequestExitScreen();
     }
@@ -3742,7 +3737,7 @@ render_world:
             !g_mouselook_active_0068edd8) {
             ++gXStatus.current_cursor_frame;
             if (gXStatus.current_cursor_frame ==
-                g_main_game_resource_slots[gXStatus.iCurrentCursor].frame_count) {
+                static_cast<int>(g_main_game_resource_slots[gXStatus.iCurrentCursor].frame_count)) {
                 gXStatus.current_cursor_frame = 0;
             }
             ApplyCurrentCursor();
@@ -3849,7 +3844,6 @@ render_world:
         }
     }
     DrawMainGameScreen();
-#pragma clang diagnostic pop
 }
 
 /* Suspension retains the allocation and resource strip. A full leave also
