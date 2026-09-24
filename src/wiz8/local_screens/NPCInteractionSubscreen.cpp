@@ -3905,6 +3905,33 @@ void HandleNpcDialogueReply(wchar_t* text, char echo)
     }
 }
 
+/* Copy the next space-separated word of `text` into `word`. Returns the text
+   after the word, or 0 when no word is left. Retail expands this inline at all
+   five uses in HandleNpcDialogueInput and keeps no out-of-line copy. */
+static inline wchar_t* ReadNextWord(wchar_t* text, wchar_t* word)
+{
+    wchar_t* out;
+    int length = 0;
+
+    word[0] = 0;
+    while (*text == L' ' && *text != 0) {
+        ++text;
+    }
+    if (*text == L' ') {
+        return 0;
+    }
+    out = word;
+    while (*text != L' ' && *text != 0) {
+        *out++ = *text++;
+        ++length;
+    }
+    if (length == 0) {
+        return 0;
+    }
+    word[length] = 0;
+    return text;
+}
+
 /* The NPC dialogue's typed-input processor. Strips punctuation, tokenizes into
    words, and resolves the text to one or two quote ids: the "join"-style
    keywords go straight to RequestNpcJoinParty, name/place prefixes are stripped
@@ -3921,14 +3948,12 @@ void HandleNpcDialogueInput(void)
     wchar_t word2[200];
     wchar_t notice[200];
     wchar_t* cursor;
-    wchar_t* out;
-    wchar_t ch;
     int quote_id = -1;
     int second_quote_id = -1;
     bool show_fallback = true;
     bool plain_text = true;
+    bool echo = false;
     int quote;
-    int len;
     int word_count;
     int matches;
 
@@ -3944,34 +3969,9 @@ void HandleNpcDialogueInput(void)
     }
     word_count = 0;
     cursor = field_text;
-    if (cursor != 0) {
-        for (;;) {
-            len = 0;
-            word[0] = 0;
-            if (*cursor == L' ') {
-                ch = L' ';
-                do {
-                    if (ch == 0)
-                        break;
-                    ch = *++cursor;
-                } while (ch == L' ');
-            }
-            ch = *cursor;
-            if (ch == L' ')
-                break;
-            out = word;
-            do {
-                if (ch == 0)
-                    break;
-                *out++ = ch;
-                ch = *++cursor;
-                ++len;
-            } while (ch != L' ');
-            if (len == 0)
-                break;
-            word[len] = 0;
-            if (cursor == 0)
-                break;
+    while (cursor != 0) {
+        cursor = ReadNextWord(cursor, word);
+        if (cursor != 0) {
             ++word_count;
         }
     }
@@ -3997,197 +3997,110 @@ void HandleNpcDialogueInput(void)
         if (quote != -1) {
             plain_text = false;
             quote_id = quote;
-            goto found;
         }
     } else {
         swprintf(buf, g_format_s_006068e4, field_text);
         quote = FindNpcScriptQuoteByKeyword(buf, 0, 0);
         if (quote != -1) {
             quote_id = quote;
-            goto found;
         }
     }
-    wcscpy(buf, field_text);
-    if (_wcsnicmp(buf, gppStringList[0x1dc0 / 4], 0xb) != 0) {
-        if (_wcsnicmp(buf, gppStringList[0x1db4 / 4], 9) == 0 ||
-            _wcsnicmp(buf, gppStringList[0x1db8 / 4], 0xa) == 0 ||
-            _wcsnicmp(buf, gppStringList[0x1dbc / 4], 8) == 0) {
+
+    if (quote_id == -1) {
+        wcscpy(buf, field_text);
+        if (_wcsnicmp(buf, gppStringList[0x1dc0 / 4], 0xb) == 0) {
+            wcscpy(field_text, buf + 0xb);
+            show_fallback = false;
+        } else if (_wcsnicmp(buf, gppStringList[0x1db4 / 4], 9) == 0 ||
+                   _wcsnicmp(buf, gppStringList[0x1db8 / 4], 0xa) == 0 ||
+                   _wcsnicmp(buf, gppStringList[0x1dbc / 4], 8) == 0) {
             wcscpy(field_text, buf + 9);
             plain_text = false;
             show_fallback = false;
-        } else if (g_screen_state_00649f1c->where_is_query == 0) {
-            plain_text = true;
-            goto pair_scan;
-        } else {
+            quote_id = FindNpcNameOrPlaceQuote(g_screen_state_00649f1c->dialogue_npc, field_text);
+            if (quote_id == -1) {
+                quote_id = 0x76;
+            }
+        } else if (g_screen_state_00649f1c->where_is_query != 0) {
             plain_text = false;
+            quote_id = FindNpcNameOrPlaceQuote(g_screen_state_00649f1c->dialogue_npc, field_text);
+            if (quote_id == -1) {
+                quote_id = 0x76;
+            }
+        } else {
+            plain_text = true;
         }
-        quote_id = FindNpcNameOrPlaceQuote(g_screen_state_00649f1c->dialogue_npc, field_text);
-        if (quote_id == -1) {
-            quote_id = 0x76;
-            goto fallback;
-        }
-        goto found;
     }
-    wcscpy(field_text, buf + 0xb);
-    show_fallback = false;
-pair_scan:
-    cursor = field_text;
-    word[0] = 0;
-    if (cursor != 0) {
-        do {
+
+    /* Try each adjacent word pair. */
+    if (quote_id == -1) {
+        cursor = field_text;
+        word[0] = 0;
+        while (cursor != 0) {
             if (wcslen(word) == 0) {
-                len = 0;
-                word[0] = 0;
-                if (*cursor == L' ') {
-                    ch = L' ';
-                    do {
-                        if (ch == 0)
-                            break;
-                        ch = *++cursor;
-                    } while (ch == L' ');
-                }
-                ch = *cursor;
-                if (ch == L' ')
-                    goto multi_scan;
-                out = word;
-                do {
-                    if (ch == 0)
-                        break;
-                    *out++ = ch;
-                    ch = *++cursor;
-                    ++len;
-                } while (ch != L' ');
-                if (len == 0)
-                    goto multi_scan;
-                word[len] = 0;
+                cursor = ReadNextWord(cursor, word);
             } else {
                 wcscpy(word, word2);
             }
-            if (cursor == 0)
-                goto multi_scan;
-            len = 0;
-            word2[0] = 0;
-            if (*cursor == L' ') {
-                ch = L' ';
-                do {
-                    if (ch == 0)
-                        break;
-                    ch = *++cursor;
-                } while (ch == L' ');
+            if (cursor == 0) {
+                break;
             }
-            ch = *cursor;
-            if (ch == L' ')
-                goto multi_scan;
-            out = word2;
-            do {
-                if (ch == 0)
-                    break;
-                *out++ = ch;
-                ch = *++cursor;
-                ++len;
-            } while (ch != L' ');
-            if (len == 0)
-                goto multi_scan;
-            word2[len] = 0;
-            if (cursor == 0)
-                goto multi_scan;
+            cursor = ReadNextWord(cursor, word2);
+            if (cursor == 0) {
+                break;
+            }
             swprintf(buf, g_format_s_space_s_00617584, word, word2);
             quote = FindNpcScriptQuoteByKeyword(buf, 0, 0);
-        } while (quote == -1);
-        quote_id = quote;
-        goto found;
-    }
-multi_scan:
-    matches = 0;
-    cursor = field_text;
-    if (cursor == 0)
-        goto fallback;
-    for (;;) {
-        len = 0;
-        word[0] = 0;
-        if (*cursor == L' ') {
-            ch = L' ';
-            do {
-                if (ch == 0)
-                    break;
-                ch = *++cursor;
-            } while (ch == L' ');
-        }
-        ch = *cursor;
-        if (ch == L' ')
-            break;
-        out = word;
-        do {
-            if (ch == 0)
-                break;
-            *out++ = ch;
-            ch = *++cursor;
-            ++len;
-        } while (ch != L' ');
-        if (len == 0)
-            break;
-        word[len] = 0;
-        if (cursor == 0)
-            break;
-        quote = FindNpcScriptQuoteByKeyword(word, 0, 0);
-        if (quote != -1) {
-            ++matches;
-        }
-    }
-    if (matches > 2) {
-        quote_id = 0x20;
-        goto echo;
-    }
-    if (matches <= 0) {
-        goto fallback;
-    }
-    {
-        int found_count = 0;
-        cursor = field_text;
-        do {
-            do {
-                len = 0;
-                word[0] = 0;
-                if (*cursor == L' ') {
-                    ch = L' ';
-                    do {
-                        if (ch == 0)
-                            break;
-                        ch = *++cursor;
-                    } while (ch == L' ');
-                }
-                ch = *cursor;
-                if (ch == L' ')
-                    goto found;
-                out = word;
-                do {
-                    if (ch == 0)
-                        break;
-                    *out++ = ch;
-                    ch = *++cursor;
-                    ++len;
-                } while (ch != L' ');
-                if (len == 0)
-                    goto found;
-                word[len] = 0;
-                if (cursor == 0)
-                    goto found;
-                quote = FindNpcScriptQuoteByKeyword(word, 0, 0);
-            } while (quote == -1);
-            ++found_count;
-            if (found_count == 1) {
+            if (quote != -1) {
                 quote_id = quote;
-            } else if (found_count == 2 && quote != quote_id) {
-                second_quote_id = quote;
+                break;
             }
-        } while (matches != 1);
+        }
     }
-found:
+
+    /* Then each single word: more than two hits echoes the text, otherwise the
+       first hit (and a different second one) answer. */
+    if (quote_id == -1) {
+        matches = 0;
+        cursor = field_text;
+        while (cursor != 0) {
+            cursor = ReadNextWord(cursor, word);
+            if (cursor != 0 && FindNpcScriptQuoteByKeyword(word, 0, 0) != -1) {
+                ++matches;
+            }
+        }
+        if (matches > 2) {
+            quote_id = 0x20;
+            echo = true;
+        } else if (matches > 0) {
+            int found_count = 0;
+            cursor = field_text;
+            for (;;) {
+                cursor = ReadNextWord(cursor, word);
+                if (cursor == 0) {
+                    break;
+                }
+                quote = FindNpcScriptQuoteByKeyword(word, 0, 0);
+                if (quote == -1) {
+                    continue;
+                }
+                ++found_count;
+                if (found_count == 1) {
+                    quote_id = quote;
+                } else if (found_count == 2 && quote != quote_id) {
+                    second_quote_id = quote;
+                }
+                if (matches == 1) {
+                    break;
+                }
+            }
+        }
+    }
+
     if (quote_id >= 0x59 && quote_id < 0x69 && second_quote_id == -1) {
-        goto echo;
+        echo = true;
     }
-fallback:
-    if (show_fallback) {
+    if (!echo && show_fallback) {
         unsigned int roll;
         const wchar_t* fmt;
         const wchar_t* text;
@@ -4210,11 +4123,9 @@ fallback:
         }
         swprintf(notice, fmt, text, field_text);
         ShowNotice(0xa, notice, 3, GetTextBoxScrollRange(), 0);
-        goto dispatch;
+    } else {
+        ShowNotice(0xa, field_text, 3, GetTextBoxScrollRange(), 0);
     }
-echo:
-    ShowNotice(0xa, field_text, 3, GetTextBoxScrollRange(), 0);
-dispatch:
     if (quote_id == -1) {
         QueueNpcScriptLine(Random(2) + 0x23, 0, 0, 0);
         return;
