@@ -4382,11 +4382,6 @@ unsigned char W8PathingService::TestWaypointSpan0045A1B0(const srVector3T<float>
                                                          unsigned char adjust_destination,
                                                          unsigned char diagonal_steps)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
     unsigned char blocked = 0;
 
     if (adjust_destination == 0 &&
@@ -4545,27 +4540,27 @@ unsigned char W8PathingService::TestWaypointSpan0045A1B0(const srVector3T<float>
                 --iteration;
                 error += walk.cell_size_30;
             }
-        } else {
-            if (error < 0 && blocked == 0) {
-                cell[walk.minor_axis_1c] += walk.step_0c[walk.minor_axis_1c];
-                error += walk.cell_size_30;
-                if (cell[1] * 0x10000 + cell[0] == destination_key) {
-                    --iteration;
-                    direction = directions[1];
-                    goto stepped;
-                }
+        } else if (error < 0 && blocked == 0) {
+            cell[walk.minor_axis_1c] += walk.step_0c[walk.minor_axis_1c];
+            error += walk.cell_size_30;
+            if (static_cast<unsigned int>(cell[1] * 0x10000 + cell[0]) == destination_key) {
+                --iteration;
+                direction = directions[1];
+            } else {
                 if ((directions[0] == 0 && directions[1] == 6) ||
                     (directions[0] == 6 && directions[1] == 0)) {
                     direction = 7;
                 } else {
                     direction = (directions[0] + directions[1]) / 2;
                 }
+                cell[walk.major_axis_18] += walk.step_0c[walk.major_axis_18];
+                error -= walk.error_28;
             }
+        } else {
             cell[walk.major_axis_18] += walk.step_0c[walk.major_axis_18];
             error -= walk.error_28;
         }
 
-    stepped:
         if (cell_key == destination_key) {
             iteration = walk.count_24;
         } else if (direction_mask != 0 && (direction_mask & 1 << (direction & 0x1f)) == 0) {
@@ -4611,7 +4606,6 @@ unsigned char W8PathingService::TestWaypointSpan0045A1B0(const srVector3T<float>
     }
 
     return blocked == 0;
-#pragma clang diagnostic pop
 }
 
 /* Compare clearance along the two compass rays bracketing a horizontal

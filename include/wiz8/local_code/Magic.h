@@ -92,7 +92,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
 /* 0x00501B70: drop every marker that no longer names a live, targetable
    monster; a few spell ids prune on extra monster-record rules. */
 void PruneSpellTargetMarkers00501B70(int spell_id, W8GrowableVector<int>* monster_markers);
-int GetProfessionCasterLevel(W8Character* character, int profession_id);
+int GetProfessionCasterLevel(const W8Character* character, int profession_id);
 /* 0x00501D60: the highest power level this slot can afford to cast the spell
    at for its current target; zero when none is castable. */
 unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int identify_context);
@@ -137,7 +137,7 @@ unsigned int GetSpellFailureChance(unsigned int skill, int spell_id, int factor)
 /* 0x004FF790: how hard this caster figure finds one spell at a power level, and
    0x00501910: the combat-pace scale an item-use attempt applies to its own
    difficulty. Both are defined in this unit. */
-unsigned int ScaleByCombatPace(int party_slot, unsigned int* value);
+void ScaleByCombatPace(int party_slot, unsigned int* value);
 
 /* Validate the available target set and cursor state for a spell or item cast. */
 bool ValidateSpellTarget004FAC40(int party_slot, int spell_id, unsigned int power, bool item_cast,

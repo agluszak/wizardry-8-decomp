@@ -114,7 +114,7 @@ unsigned char IsReadMeshMaterial00489AC0(const srClass* material)
     return 0;
 }
 // GLOBAL: WIZ8 0x0065B9E4
-static int g_read_mesh_index_65b9e4;
+static unsigned int g_read_mesh_index_65b9e4;
 // GLOBAL: WIZ8 0x0065BA00
 static srMaterialIFace** g_multi_mesh_materials_65ba00;
 // GLOBAL: WIZ8 0x0065B9FC
@@ -1172,11 +1172,6 @@ unsigned char ReadSingleLevelMeshBody00485C10(W8ReadLevelInfo* info, srModelInst
 unsigned char ReadMultipleLevelMeshes00488240(W8ReadLevelInfo* info, srModelInstance** instances,
                                               unsigned long count, const char* name)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
     OctMeshModel reader;
     unsigned int mesh_count;
     unsigned int root_count;
@@ -1268,7 +1263,6 @@ unsigned char ReadMultipleLevelMeshes00488240(W8ReadLevelInfo* info, srModelInst
 
     free(meshes);
     return 1;
-#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x00489920

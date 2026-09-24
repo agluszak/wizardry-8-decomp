@@ -645,7 +645,7 @@ enum W8MGSAction {
 void TryMGSActionKey(int command); /* 0x0056B4C0 */
 /* The action-key command gate and executor the dispatcher's 0x131..0x141
    cases and TryMGSActionKey share. */
-unsigned char IsMGSActionKeyEnabled(short command);                      /* 0x0056AF80 */
+bool IsMGSActionKeyEnabled(short command);                               /* 0x0056AF80 */
 void RunMGSActionKey(short command);                                     /* 0x0056B270 */
 void LoadMainGameCursorResources(void);                                  /* 0x00568E10 */
 short GetMainGameViewportMode(void);                                     /* 0x005698C0 */
@@ -704,7 +704,7 @@ unsigned char MainGameScreenLeave(int leaving);
 void ShowMainGameNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int confirmation,
                             int cancel); /* 0x00569A50 */
 
-unsigned char CombatBarRegionEvent(const InputAtom* event);
+unsigned char CombatBarRegionEvent(const InputAtom* event, struct W8Region* region);
 unsigned char DialogueTranscriptRegionEvent(const InputAtom* event, struct W8Region* region);
 void SetNpcDialogueSubMode4(void);
 void ConfirmNpcTradeItem005AD290(void);

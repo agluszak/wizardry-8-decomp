@@ -26,11 +26,11 @@ public:
        0x004A8360 and 0x004A7470 push the containing dword unextended. */
     virtual srModelInstance* SetCycleFrameLod(signed char cycle, signed char frame,
                                               signed char lod) = 0;
-    virtual unsigned int ApplyEmitterSetting(char emitter) = 0;
+    virtual unsigned int ApplyEmitterSetting(signed char emitter) = 0;
     /* Not a stop: both overrides tail-return AnimObjEntry004A1660's result,
        and GrCycle's 0x004A7470 hands that result straight to
        AniMeshSetFlag10004B6860, which types it. */
-    virtual W8AniMesh* GetEmitterAniMesh(char emitter) = 0;
+    virtual W8AniMesh* GetEmitterAniMesh(signed char emitter) = 0;
 
     /* 0x6c: the host is live; the spell side checks it before starting. */
     /* 0x98: the level of detail, named by GrCycle.cpp's own

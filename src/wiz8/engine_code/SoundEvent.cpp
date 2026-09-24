@@ -83,13 +83,8 @@ static int g_previous_footstep_variant_00683420;
 // FUNCTION: WIZ8 0x004d5890
 unsigned char UpdateSoundEvents(W8GrowableVector<W8SoundEvent*>* events,
                                 const srVector3T<float>* position, unsigned int event_mask,
-                                int cycle, unsigned int frame, int subcycle)
+                                int cycle, int frame, int subcycle)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
     unsigned int bit = 1;
 
     if (events == 0) {
@@ -145,7 +140,6 @@ unsigned char UpdateSoundEvents(W8GrowableVector<W8SoundEvent*>* events,
         bit <<= 1;
     } while (bit != 0);
     return 1;
-#pragma clang diagnostic pop
 }
 
 /* Resolve one event into a positional 3D play: decide the base volume from

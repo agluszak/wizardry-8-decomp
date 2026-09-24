@@ -79,8 +79,8 @@ bool MoveMonsterGroupToPosition(W8MonsterGroup* group, const srVector3T<float>* 
     }
     W8MonsterInfo* leader = MonsterGetScriptPartByLocationIndex(
         MonsterGetIndexByLocationID(0x67c, MONSTER_GROUP_CPP, group->leader_id_9f, 1));
-     float radius = alternate_radius ? leader->p3D->movement_0c0.alternate_radius_0b4
-                                     : leader->p3D->radius_084;
+    float radius =
+        alternate_radius ? leader->p3D->movement_0c0.alternate_radius_0b4 : leader->p3D->radius_084;
     int location_ids[45];
     srVector3T<float> positions[45];
     unsigned int count = group->member_count;
@@ -137,10 +137,10 @@ bool MoveMonsterGroupToPosition(W8MonsterGroup* group, const srVector3T<float>* 
         int location_id = location_ids[index];
         W8MonsterInfo* member = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0x6d5, MONSTER_GROUP_CPP, location_id, 1));
-         member->p3D->SetAngles004538F0(yaw);
-         member->p3D->position_dirty_09c = 1;
+        member->p3D->SetAngles004538F0(yaw);
+        member->p3D->position_dirty_09c = 1;
         if (location_id == group->leader_id_9f) {
-             member->p3D->SetPositionInternal00453590(&target);
+            member->p3D->SetPositionInternal00453590(&target);
         } else {
             if (position_index < found - 1) {
                 ++position_index;
@@ -313,7 +313,8 @@ void RefreshMonsterGroupHostility005113A0(W8MonsterGroup* monster_group)
             return;
         }
         if (static_cast<unsigned int>(monster_group->hostility_set_at_cb) >=
-            static_cast<unsigned int>(GetFactionValue(static_cast<char>(record->faction_id_25f)))) {
+            static_cast<unsigned int>(
+                GetFactionValue(static_cast<signed char>(record->faction_id_25f)))) {
             return;
         }
     }
@@ -1220,67 +1221,62 @@ W8MonsterGroup* FindFirstMonsterByID(int monster_id)
     for (index = 0; index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
         group = GetMonsterGroupByListIndex(index);
         if (group->monster_id == monster_id) {
-            goto found;
+            return group;
         }
     }
     for (index = 0; index < PLLength(gXStatus.plsMonsterGroupEncounterList); ++index) {
-        group = (W8MonsterGroup*)PLGet(gXStatus.plsMonsterGroupEncounterList, index);
+        group = static_cast<W8MonsterGroup*>(PLGet(gXStatus.plsMonsterGroupEncounterList, index));
         if (group->monster_id == monster_id) {
-            goto found;
+            return group;
         }
     }
-    group = 0;
-
-found:
-    return group;
+    return 0;
 }
 
+/* Resume the search after previous: the rest of the group list, then the
+   encounter list. A previous that is the last group, or that only the encounter
+   list holds, skips straight to the encounter list. */
+/* Resume the search after previous: the rest of the group list, then the
+   encounter list. A previous that only the encounter list holds resumes that
+   list after it; retail jumps past the index reset into the second loop. */
 // FUNCTION: WIZ8 0x00510bf0
 W8MonsterGroup* FindNextExistingMonsterByID(int monster_id, W8MonsterGroup* previous)
 {
-    /* One variable carries both the PListIndexOf result and the loop index; the
-       original keeps them in the same register and steps it with a plain
-       increment rather than computing index = position + 1 separately. */
     int index = 0;
     W8MonsterGroup* group;
 
     if (previous != 0) {
         index = PListIndexOf(gXStatus.plsMonsterGroupList, previous);
-        if (index >= (int)PLLength(gXStatus.plsMonsterGroupList) - 1) {
-            goto reset_encounter;
+        if (index >= static_cast<int>(PLLength(gXStatus.plsMonsterGroupList)) - 1) {
+            goto search_encounters;
         }
         if (index == -1) {
             index = PListIndexOf(gXStatus.plsMonsterGroupEncounterList, previous);
             if (index == -1) {
-                group = 0;
-                goto done;
+                return 0;
             }
             ++index;
-            goto search_encounter;
+            goto resume_encounters;
         }
         ++index;
     }
-    for (; (unsigned int)index < PLLength(gXStatus.plsMonsterGroupList); ++index) {
-        group = GetMonsterGroupByListIndex((unsigned int)index);
+    for (; static_cast<unsigned int>(index) < PLLength(gXStatus.plsMonsterGroupList); ++index) {
+        group = GetMonsterGroupByListIndex(index);
         if (group->monster_id == monster_id) {
-            goto done;
+            return group;
         }
     }
-
-reset_encounter:
+search_encounters:
     index = 0;
-
-search_encounter:
-    for (; (unsigned int)index < PLLength(gXStatus.plsMonsterGroupEncounterList); ++index) {
-        group = (W8MonsterGroup*)PLGet(gXStatus.plsMonsterGroupEncounterList, (unsigned int)index);
+resume_encounters:
+    for (; static_cast<unsigned int>(index) < PLLength(gXStatus.plsMonsterGroupEncounterList);
+         ++index) {
+        group = static_cast<W8MonsterGroup*>(PLGet(gXStatus.plsMonsterGroupEncounterList, index));
         if (group->monster_id == monster_id) {
-            goto done;
+            return group;
         }
     }
-    group = 0;
-
-done:
-    return group;
+    return 0;
 }
 
 /* Pick the group's new leader member: the live member carrying the highest
@@ -1579,8 +1575,8 @@ unsigned char PositionMonsterGroupNearCamera00511050(W8MonsterGroup* group, floa
                 0x727, MONSTER_GROUP_CPP, group->allied_group_ids[index], 1));
             member_info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x728, MONSTER_GROUP_CPP, ally->leader_id_9f, 1));
-             if (radius < member_info->p3D->radius_084) {
-                 radius = member_info->p3D->radius_084;
+            if (radius < member_info->p3D->radius_084) {
+                radius = member_info->p3D->radius_084;
             }
         }
     }

@@ -1213,12 +1213,9 @@ srModelInstance* W8SpellEmitterHost::SetCycleFrameLod(signed char emitter, signe
 /* Apply the host setting to one required emitter.  The source assertion names
    that local pointer `pao`; assertions do not replace the following call. */
 // FUNCTION: WIZ8 0x004ab2c0
-unsigned int W8SpellEmitterHost::ApplyEmitterSetting(char emitter)
+unsigned int W8SpellEmitterHost::ApplyEmitterSetting(signed char emitter)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wchar-subscripts"
     W8AnimObj* target = this->emitters[emitter];
-#pragma clang diagnostic pop
 
     if (target == 0) {
         srAssertFail("pao", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x200, 0);
@@ -1229,12 +1226,9 @@ unsigned int W8SpellEmitterHost::ApplyEmitterSetting(char emitter)
 /* One named emitter's AniMesh, looked up with the host's own setting; an
    empty slot yields none. */
 // FUNCTION: WIZ8 0x004ab310
-W8AniMesh* W8SpellEmitterHost::GetEmitterAniMesh(char emitter)
+W8AniMesh* W8SpellEmitterHost::GetEmitterAniMesh(signed char emitter)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wchar-subscripts"
     W8AnimObj* target = this->emitters[emitter];
-#pragma clang diagnostic pop
 
     if (target == 0) {
         return 0;

@@ -1288,11 +1288,6 @@ void RecalculateRealmSpellPoints(W8Character* character)
 // FUNCTION: WIZ8 0x0052a540
 int RebuildRealmSpellPointCeilings0052A540(W8Character* character)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
     int max_spell_levels[6];
     int realm_skills[4];
     int index;
@@ -1323,7 +1318,7 @@ int RebuildRealmSpellPointCeilings0052A540(W8Character* character)
     }
 
     for (index = 0; index < 6; ++index) {
-        unsigned int old = character->sp_max[index];
+        int old = character->sp_max[index];
         unsigned int learned = character->skill_unlocks[0x1c + index];
         int computed = (int)(((weighted + character->skills[0x1c + index].level * 3 +
                                character->attributes[2].effective) *
@@ -1345,7 +1340,6 @@ int RebuildRealmSpellPointCeilings0052A540(W8Character* character)
         }
     }
     return best;
-#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x0052a760

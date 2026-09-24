@@ -477,7 +477,50 @@ void SplitStackDialogResult005BAA80(W8DialogBase* dialog)
     if (count == 0) {
         return;
     }
-    if (g_status_685170.item_in_cursor == 0) {
+    if (g_status_685170.item_in_cursor != 0) {
+        if (count == g_split_item_source_0069c424->stack_count) {
+            return;
+        }
+        split = *g_split_item_source_0069c424;
+        split.stack_count = remaining;
+        /* The remainder goes back to the slot the held stack came from when that
+           slot can take it, otherwise anywhere on that character, then into the
+           party pool, and as a last resort stays in hand. */
+        destination = 0;
+        character = 0;
+        if (gXStatus.held_item_source != -1 &&
+            (gXStatus.held_item_origin == 0 || gXStatus.held_item_origin == 1)) {
+            character = g_status_685170.buffers.Char + gXStatus.held_item_source;
+            if (gXStatus.held_item_origin == 1) {
+                if (character->EquippedItem[static_cast<short>(gXStatus.held_item_slot)].iItemNo ==
+                        -1 &&
+                    CanEquipItemInSlot(character, g_status_685170.item_in_hand_235b.iItemNo,
+                                       static_cast<unsigned char>(gXStatus.held_item_slot),
+                                       0) != 0 &&
+                    CanCharacterUseItem(character, g_status_685170.item_in_hand_235b.iItemNo) !=
+                        0) {
+                    destination =
+                        character->EquippedItem + static_cast<short>(gXStatus.held_item_slot);
+                }
+            } else if (character->backpack[static_cast<short>(gXStatus.held_item_slot)].iItemNo ==
+                       -1) {
+                destination = character->backpack + static_cast<short>(gXStatus.held_item_slot);
+            }
+        }
+        if (destination == 0 &&
+            (character == 0 || AddItemToCharacter(character, &split, 0, 0, 0) == 0) &&
+            AddItemToParty(&split, 0, 0) == 0) {
+            ShowCampNoticeLine(gppStringList[0x2454 / 4], 0, 1, 0);
+            g_status_685170.item_in_hand_235b.stack_count = remaining;
+            if (ResolvePendingCampCharacter005A5F30(1) != 0 && DropItemInHand(0) != 0) {
+                SetCampItemActionMode005B59B0(0);
+            }
+            destination = &g_status_685170.item_in_hand_235b;
+        }
+        if (destination != 0) {
+            CopyItemInstance(destination, &split, 0, 1);
+        }
+    } else {
         if (count == g_split_item_source_0069c424->stack_count) {
             CopyItemInstance(&g_status_685170.item_in_hand_235b, g_split_item_source_0069c424,
                              g_review_character_0069c0f8, 1);
@@ -492,53 +535,7 @@ void SplitStackDialogResult005BAA80(W8DialogBase* dialog)
                                      &gXStatus.held_item_origin, &gXStatus.held_item_slot);
             carried = g_status_685170.item_in_hand_235b.stack_count;
         }
-    } else {
-        if (count == g_split_item_source_0069c424->stack_count) {
-            return;
-        }
-        split = *g_split_item_source_0069c424;
-        split.stack_count = remaining;
-        if (gXStatus.held_item_source == -1) {
-            goto add_to_pool;
-        }
-        character = g_status_685170.buffers.Char + gXStatus.held_item_source;
-        if (gXStatus.held_item_origin == 1) {
-            if (character->EquippedItem[static_cast<short>(gXStatus.held_item_slot)].iItemNo !=
-                    -1 ||
-                CanEquipItemInSlot(character, g_status_685170.item_in_hand_235b.iItemNo,
-                                   static_cast<unsigned char>(gXStatus.held_item_slot), 0) == 0 ||
-                CanCharacterUseItem(character, g_status_685170.item_in_hand_235b.iItemNo) == 0) {
-                goto add_to_character;
-            }
-            destination = character->EquippedItem + static_cast<short>(gXStatus.held_item_slot);
-        } else {
-            if (gXStatus.held_item_origin != 0) {
-                goto add_to_pool;
-            }
-            destination = character->backpack + static_cast<short>(gXStatus.held_item_slot);
-            if (character->backpack[static_cast<short>(gXStatus.held_item_slot)].iItemNo != -1) {
-                goto add_to_character;
-            }
-        }
-        goto store;
-    add_to_character:
-        if (AddItemToCharacter(character, &split, 0, 0, 0) != 0) {
-            goto applied;
-        }
-    add_to_pool:
-        if (AddItemToParty(&split, 0, 0) != 0) {
-            goto applied;
-        }
-        ShowCampNoticeLine(gppStringList[0x2454 / 4], 0, 1, 0);
-        g_status_685170.item_in_hand_235b.stack_count = remaining;
-        if (ResolvePendingCampCharacter005A5F30(1) != 0 && DropItemInHand(0) != 0) {
-            SetCampItemActionMode005B59B0(0);
-        }
-        destination = &g_status_685170.item_in_hand_235b;
-    store:
-        CopyItemInstance(destination, &split, 0, 1);
     }
-applied:
     g_status_685170.item_in_hand_235b.stack_count = carried;
     RebuildEquipmentAndDerivedStatsForSlot(giReviewCharSlot);
     RebuildCampItemList005A4A00();
@@ -555,32 +552,22 @@ applied:
 // FUNCTION: WIZ8 0x005BAD20
 void UpdateItemCursorForState005BAD20(int flag, W8ItemInstance* item, int slot)
 {
-    int cursor;
-    unsigned char allowed;
-
     if (g_camp_screen_0069c0f4->entry_mode == 0) {
         return;
     }
-    if (gXStatus.iTargetingMode == 1) {
+    switch (gXStatus.iTargetingMode) {
+    case 1:
         if ((g_camp_screen_0069c0f4->entry_mode == 7 || g_camp_screen_0069c0f4->entry_mode == 9) &&
             g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
             g_status_685170.buffers.Char[slot].uiCondition[0x13] == 0) {
-        set_cursor:
-            cursor = GetTargetingCursorForState(flag);
-            SetTargetCursor(cursor);
+            SetTargetCursor(GetTargetingCursorForState(flag));
             return;
         }
-        allowed = CanPartySlotParticipate(slot);
-    } else {
-        if (gXStatus.iTargetingMode != 6) {
-            if (gXStatus.iTargetingMode != 7) {
-                return;
-            }
-            if (IsDeadCharacterTargetable(slot) == 0) {
-                return;
-            }
-            goto set_cursor;
+        if (CanPartySlotParticipate(slot) != 0) {
+            SetTargetCursor(GetTargetingCursorForState(flag));
         }
+        return;
+    case 6:
         if (item == 0) {
             srAssertFail("pItem", "C:\\Projects\\Wizardry 8\\Local Screens\\RCSItemsPage.cpp",
                          0x763, 0);
@@ -590,72 +577,61 @@ void UpdateItemCursorForState005BAD20(int flag, W8ItemInstance* item, int slot)
         }
         if ((g_camp_screen_0069c0f4->entry_mode == 2 || g_camp_screen_0069c0f4->entry_mode == 8) &&
             CanItemLeaveItsSlot(item) != 0) {
-            goto set_cursor_item;
+            SetTargetCursor(GetTargetingCursorForState(flag));
+            return;
         }
-        if (g_camp_screen_0069c0f4->entry_mode == 3) {
-            goto set_cursor;
-        }
-        if (g_camp_screen_0069c0f4->entry_mode == 6) {
-            goto set_cursor_item;
+        if (g_camp_screen_0069c0f4->entry_mode == 3 || g_camp_screen_0069c0f4->entry_mode == 6) {
+            SetTargetCursor(GetTargetingCursorForState(flag));
+            return;
         }
         if (g_camp_screen_0069c0f4->entry_mode == 4) {
             const W8ItemDatabaseRecord* record = g_item_records + item->iItemNo;
-            if ((record->flags_041 & 2) != 0) {
+            if ((record->flags_041 & 2) != 0 || record->quantity_kind != 1) {
                 return;
             }
-            if (record->quantity_kind != 1) {
+            if (gXStatus.fCombatMode != 0 && IsEquippableItemClass005A6310(item) == 0 &&
+                (g_combat_state->equip_phase_a50 == 0 ||
+                 g_status_685170.buffers.XChar[giReviewCharSlot].pending_action != 9)) {
                 return;
             }
-            if (gXStatus.fCombatMode != 0) {
-                if (IsEquippableItemClass005A6310(item) == 0) {
-                    if (g_combat_state->equip_phase_a50 == 0) {
-                        return;
-                    }
-                    if (g_status_685170.buffers.XChar[giReviewCharSlot].pending_action != 9) {
-                        return;
-                    }
-                }
-                goto set_cursor;
-            }
-            goto set_cursor;
-        }
-        if (g_camp_screen_0069c0f4->entry_mode != 5) {
-            if (g_camp_screen_0069c0f4->entry_mode != 1) {
-                return;
-            }
-            if (item->iItemNo == -1) {
-                return;
-            }
-            if ((char)flag == 0) {
-                if (g_status_685170.item_in_cursor == 0) {
-                    SetTargetCursor(3);
-                    return;
-                }
-                SetTargetCursor(0xf);
-                SetItemCursor(0xe);
-                return;
-            }
-            if (g_status_685170.item_in_cursor == 0) {
-                SetTargetCursor(4);
-                return;
-            }
-            SetTargetCursor(0xe);
-            SetItemCursor(0xf);
+            SetTargetCursor(GetTargetingCursorForState(flag));
             return;
         }
-        if (CanCharacterActivateItem(g_review_character_0069c0f8, item) == 0 &&
-            CanCastFromItem(g_review_character_0069c0f8, item) == 0) {
-            allowed = IsUsableItemClass00522A00(item);
-        } else {
-            goto set_cursor_item;
+        if (g_camp_screen_0069c0f4->entry_mode == 5) {
+            if (CanCharacterActivateItem(g_review_character_0069c0f8, item) != 0 ||
+                CanCastFromItem(g_review_character_0069c0f8, item) != 0 ||
+                IsUsableItemClass00522A00(item) != 0) {
+                SetTargetCursor(GetTargetingCursorForState(flag));
+            }
+            return;
         }
-    }
-    if (allowed == 0) {
+        if (g_camp_screen_0069c0f4->entry_mode != 1 || item->iItemNo == -1) {
+            return;
+        }
+        if (static_cast<char>(flag) == 0) {
+            if (g_status_685170.item_in_cursor == 0) {
+                SetTargetCursor(3);
+                return;
+            }
+            SetTargetCursor(0xf);
+            SetItemCursor(0xe);
+            return;
+        }
+        if (g_status_685170.item_in_cursor == 0) {
+            SetTargetCursor(4);
+            return;
+        }
+        SetTargetCursor(0xe);
+        SetItemCursor(0xf);
+        return;
+    case 7:
+        if (IsDeadCharacterTargetable(slot) != 0) {
+            SetTargetCursor(GetTargetingCursorForState(flag));
+        }
+        return;
+    default:
         return;
     }
-set_cursor_item:
-    cursor = GetTargetingCursorForState(flag);
-    SetTargetCursor(cursor);
 }
 
 // FUNCTION: WIZ8 0x005BAFC0

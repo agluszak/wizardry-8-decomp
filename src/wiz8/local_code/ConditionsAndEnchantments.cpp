@@ -555,8 +555,7 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
         ShowNoticef(9, L"%s %s!", name,
                     gppStringList[g_condition_notices_0061E570[condition * 4 + 1]]);
     }
-    if (monster_info->p3D->IsCycleInterruptable(monster_info->p3D->m_pRep->pending_cycle) !=
-        0) {
+    if (monster_info->p3D->IsCycleInterruptable(monster_info->p3D->m_pRep->pending_cycle) != 0) {
         StartMonsterCycle(monster_info, 0x14, 1);
     }
 }
@@ -670,14 +669,9 @@ void TickMonsterCondition(int location_id, int condition, unsigned int minutes)
 unsigned char SetCharacterCondition(int party_slot, int condition, int duration, int argument,
                                     char value_5, char value_6)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
     W8Character* character = &g_status_685170.buffers.Char[party_slot];
     W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
-    int old_highest;
+    unsigned int old_highest;
     unsigned int old_duration;
     unsigned char handled;
 
@@ -770,7 +764,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
     }
     if (condition == 0x12) {
         CharacterDies(party_slot);
-    } else if (!(condition < 0x12)) {
+    } else if (condition > 0x12) {
         SetTargetToCharacter(party_slot, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
     }
     if (old_highest != character->highest_condition) {
@@ -790,7 +784,6 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
         ClearPartySlotMonsterHighlights(party_slot);
     }
     return 1;
-#pragma clang diagnostic pop
 }
 
 /* Copy every condition a character is under onto something else in the world.

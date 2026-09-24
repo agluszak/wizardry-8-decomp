@@ -892,14 +892,9 @@ unsigned short ChooseDifferentMonsterDirection004C2E00(unsigned short previous_d
 // FUNCTION: WIZ8 0x004c1d20
 void W8Monster::RandomizeAppearanceAndMotion004C1D20()
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
     unsigned int random_value;
 
-    mirror_x_1be = Random(100) < m_pRep->left_handed_610;
+    mirror_x_1be = Random(100) < static_cast<UINT32>(m_pRep->left_handed_610);
 
     if (m_pRep->minimum_scale_5f4 != g_float_005ebb34 &&
         m_pRep->maximum_scale_5f8 != g_float_005ebb34) {
@@ -967,7 +962,6 @@ void W8Monster::RandomizeAppearanceAndMotion004C1D20()
         m_pRep->instance_scale_05c = scale_1cc;
         m_pRep->apply_instance_scale_061 = 1;
     }
-#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x004C2010
@@ -3254,12 +3248,9 @@ srModelInstance* W8MonsterRep::SetCycleFrameLod(signed char cycle, signed char f
 
 /* The selected subcycle's AniMesh for one animation cycle. */
 // FUNCTION: WIZ8 0x004bf920
-W8AniMesh* W8MonsterRep::GetEmitterAniMesh(char cycle)
+W8AniMesh* W8MonsterRep::GetEmitterAniMesh(signed char cycle)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wchar-subscripts"
     W8AnimObj* animation = *animations[cycle].GetAt(current_subcycle);
-#pragma clang diagnostic pop
 
     if (animation == 0) {
         return 0;
@@ -3430,12 +3421,9 @@ void W8Monster::SetShakeEventVisibility004BF9E0(signed char cycle)
    animation index.  The assertion's `pao` spelling establishes the pointee's
    AnimObj identity without supplying a name for this Monster method. */
 // FUNCTION: WIZ8 0x004bf970
-unsigned int W8MonsterRep::ApplyEmitterSetting(char cycle)
+unsigned int W8MonsterRep::ApplyEmitterSetting(signed char cycle)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wchar-subscripts"
     W8GrowableVector<W8AnimObj*>* selected_cycle = &animations[cycle];
-#pragma clang diagnostic pop
     W8AnimObj** animation_slot;
     W8AnimObj* animation;
 

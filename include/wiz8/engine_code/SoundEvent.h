@@ -82,7 +82,7 @@ W8SoundEvent* CreateSoundEvent(int kind, int cycle, int frame, int subcycle, con
 
 unsigned char UpdateSoundEvents(W8GrowableVector<W8SoundEvent*>* events,
                                 const srVector3T<float>* position, unsigned int event_mask,
-                                int cycle, unsigned int frame, int subcycle); /* 0x004D5890 */
+                                int cycle, int frame, int subcycle); /* 0x004D5890 */
 
 /* Reports the ground height, surface and material at one position through the
    level's game data: settles a probe with SettleToGround and reads the hit
