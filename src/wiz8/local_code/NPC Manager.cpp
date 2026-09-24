@@ -137,7 +137,7 @@ char GetNpcDisposition(W8NpcState* npc)
         for (slot = 0; slot < 2; ++slot) {
             if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
                 g_status_685170.buffers.Char[slot].hp_current > 0) {
-                bound_index = g_status_685170.buffers.XChar[slot].animation_0fa;
+                bound_index = g_status_685170.buffers.XChar[slot].npc_index;
                 if (g_npc_states != 0) {
                     bound = *g_npc_states->GetAt(bound_index);
                     if (bound != 0 && bound->binding_unavailable == 0 &&
@@ -283,7 +283,7 @@ bool NpcLeadHasNameStyle(unsigned int kind)
     if (g_status_685170.buffers.XChar[0].fOccupied != 0) {
         W8NpcState* npc = 0;
         if (g_npc_states != 0) {
-            int index = g_status_685170.buffers.XChar[0].animation_0fa;
+            int index = g_status_685170.buffers.XChar[0].npc_index;
             W8NpcState** slot = g_npc_states->data;
             if (index < g_npc_states->count) {
                 slot += index;
@@ -300,7 +300,7 @@ bool NpcLeadHasNameStyle(unsigned int kind)
     if (g_status_685170.buffers.XChar[1].fOccupied != 0) {
         W8NpcState* npc = 0;
         if (g_npc_states != 0) {
-            int index = g_status_685170.buffers.XChar[1].animation_0fa;
+            int index = g_status_685170.buffers.XChar[1].npc_index;
             W8NpcState** slot = g_npc_states->data;
             if (index < g_npc_states->count) {
                 slot += index;
@@ -493,7 +493,7 @@ void ReturnDismissedNpcItems(W8NpcState* npc, W8Character* character)
 int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool neutral)
 {
     W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
-    if (row->animation_0fa == -1) {
+    if (row->npc_index == -1) {
         return 0;
     }
     srVector3T<float> position;
@@ -502,7 +502,7 @@ int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool ne
         ProbeNpcPlacementNearParty(party_slot, 1, &placement);
         position = placement;
     }
-    W8NpcState* npc = GetNpcState(row->animation_0fa);
+    W8NpcState* npc = GetNpcState(row->npc_index);
     if (npc == 0 || npc->binding_unavailable) {
         return 0;
     }
@@ -517,7 +517,7 @@ int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool ne
     /* Retail clears all 0x118 bytes, including the embedded vector's vfptr. */
     memset(static_cast<void*>(&gXStatus.monster_manager_entries[party_slot]), 0,
            sizeof(W8MonsterManagerEntry));
-    row->animation_0fa = -1;
+    row->npc_index = -1;
     if (npc->character->highest_condition != 18 && !skip_spawn) {
         W8MonsterRecord* records;
         LoadMonsterDatabase(&records);
@@ -566,7 +566,7 @@ int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool ne
 // FUNCTION: WIZ8 0x0050B3B0
 void UpdateNpcPartyMember0050B3B0(int party_slot)
 {
-    W8NpcState* npc = GetNpcState(g_status_685170.buffers.XChar[party_slot].animation_0fa);
+    W8NpcState* npc = GetNpcState(g_status_685170.buffers.XChar[party_slot].npc_index);
     W8Character* character = &g_status_685170.buffers.Char[party_slot];
     srVector3T<float> position;
 
@@ -1020,17 +1020,17 @@ void ProcessNpcPendingEvents0050CA80(void)
                     if (row->fOccupied == 0 || character->hp_current == 0) {
                         continue;
                     }
-                    W8NpcState* npc = GetNpcState(row->animation_0fa);
+                    W8NpcState* npc = GetNpcState(row->npc_index);
                     if (character->highest_condition < 0xf) {
                         int event = 0;
                         if (GetLevelBand(g_status_685170.current_level) != 0xd) {
                             if (npc->name_style == 0x11 &&
                                 (g_status_685170.buffers.XChar[0].fOccupied == 0 ||
-                                 GetNpcState(g_status_685170.buffers.XChar[0].animation_0fa)
+                                 GetNpcState(g_status_685170.buffers.XChar[0].npc_index)
                                          ->name_style != 0x10 ||
                                  g_status_685170.buffers.Char[0].highest_condition >= 0xf) &&
                                 (g_status_685170.buffers.XChar[1].fOccupied == 0 ||
-                                 GetNpcState(g_status_685170.buffers.XChar[1].animation_0fa)
+                                 GetNpcState(g_status_685170.buffers.XChar[1].npc_index)
                                          ->name_style != 0x10 ||
                                  g_status_685170.buffers.Char[1].highest_condition >= 0xf)) {
                                 event = 0x6c;
@@ -1045,7 +1045,7 @@ void ProcessNpcPendingEvents0050CA80(void)
                             QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
                             continue;
                         }
-                        W8NpcState* bound = GetNpcState(row->animation_0fa);
+                        W8NpcState* bound = GetNpcState(row->npc_index);
                         if (bound != 0 && bound->service_flags[service] == 0) {
                             bound->service_flags[service] = 1;
                             if (NpcOffersService(
@@ -1057,7 +1057,7 @@ void ProcessNpcPendingEvents0050CA80(void)
                                     g_effect_argument_005ed8c8, g_effect_argument_005ed914);
                             }
                         }
-                        bound = GetNpcState(row->animation_0fa);
+                        bound = GetNpcState(row->npc_index);
                         if (bound != 0) {
                             char band = GetLevelBand(g_status_685170.current_level);
                             for (int index = 0; g_npc_services[index].service_id != 0xffffffff;
@@ -2415,7 +2415,7 @@ void UpdateNpcEvents0050D530(void)
             if (row->fOccupied != 0 && character->hp_current != 0) {
                 W8NpcState* npc_state = 0;
                 if (g_npc_states != 0) {
-                    npc_state = *g_npc_states->GetAt(row->animation_0fa);
+                    npc_state = *g_npc_states->GetAt(row->npc_index);
                     if (npc_state != 0 && npc_state->binding_unavailable != 0) {
                         npc_state = 0;
                     }
@@ -2464,7 +2464,7 @@ void ResetNpcBindingsForParty0050DB50(void)
         W8Character* character = &g_status_685170.buffers.Char[party_slot];
 
         if (row->fOccupied != 0 && character->hp_current != 0) {
-            GetNpcState(row->animation_0fa)->incapacitated_e8 = 0;
+            GetNpcState(row->npc_index)->incapacitated_e8 = 0;
             row->npc_bound_fe = 0;
             RebuildConditionsAndDerivedStats(party_slot);
         }
@@ -3107,7 +3107,7 @@ char QueueNpcDepartureEvents0050DEC0(int destination_level)
         if (row->fOccupied == 0 || character->hp_current == 0) {
             continue;
         }
-        W8NpcState* npc = GetNpcState(row->animation_0fa);
+        W8NpcState* npc = GetNpcState(row->npc_index);
         if (character->highest_condition >= 0xf) {
             continue;
         }
@@ -3161,14 +3161,14 @@ char QueueNpcDepartureEvents0050DEC0(int destination_level)
             if (npc->name_style == W8_NPC_RODAN) {
                 bool paired = false;
                 if (g_status_685170.buffers.XChar[0].fOccupied != 0) {
-                    W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[0].animation_0fa);
+                    W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[0].npc_index);
                     if (lead->name_style == W8_NPC_DRAZIC &&
                         g_status_685170.buffers.Char[0].highest_condition < 0xf) {
                         paired = true;
                     }
                 }
                 if (!paired && g_status_685170.buffers.XChar[1].fOccupied != 0) {
-                    W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[1].animation_0fa);
+                    W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[1].npc_index);
                     if (lead->name_style == W8_NPC_DRAZIC &&
                         g_status_685170.buffers.Char[1].highest_condition < 0xf) {
                         paired = true;
@@ -3180,14 +3180,14 @@ char QueueNpcDepartureEvents0050DEC0(int destination_level)
             } else if (npc->name_style == W8_NPC_DRAZIC) {
                 bool paired = false;
                 if (g_status_685170.buffers.XChar[0].fOccupied != 0) {
-                    W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[0].animation_0fa);
+                    W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[0].npc_index);
                     if (lead->name_style == W8_NPC_RODAN &&
                         g_status_685170.buffers.Char[0].highest_condition < 0xf) {
                         paired = true;
                     }
                 }
                 if (!paired && g_status_685170.buffers.XChar[1].fOccupied != 0) {
-                    W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[1].animation_0fa);
+                    W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[1].npc_index);
                     if (lead->name_style == W8_NPC_RODAN &&
                         g_status_685170.buffers.Char[1].highest_condition < 0xf) {
                         paired = true;
@@ -3225,7 +3225,7 @@ void QueueNpcTravelRefusals(int destination_level)
         if (row->fOccupied == 0 || character->hp_current == 0) {
             continue;
         }
-        W8NpcState* npc = GetNpcState(row->animation_0fa);
+        W8NpcState* npc = GetNpcState(row->npc_index);
         if (character->highest_condition >= 0xf) {
             continue;
         }
@@ -3246,7 +3246,7 @@ void QueueNpcTravelRefusals(int destination_level)
         if (npc->name_style == W8_NPC_RODAN) {
             bool paired = false;
             if (g_status_685170.buffers.XChar[0].fOccupied != 0) {
-                W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[0].animation_0fa);
+                W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[0].npc_index);
                 if (lead->name_style == W8_NPC_DRAZIC &&
                     g_status_685170.buffers.Char[0].highest_condition < 0xf) {
                     paired = true;
@@ -3258,7 +3258,7 @@ void QueueNpcTravelRefusals(int destination_level)
                     QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
                     return;
                 }
-                W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[1].animation_0fa);
+                W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[1].npc_index);
                 if (lead->name_style != W8_NPC_DRAZIC ||
                     g_status_685170.buffers.Char[1].highest_condition >= 0xf) {
                     BeginScriptedWorldAction();
@@ -3270,7 +3270,7 @@ void QueueNpcTravelRefusals(int destination_level)
         if (npc->name_style == W8_NPC_DRAZIC) {
             bool paired = false;
             if (g_status_685170.buffers.XChar[0].fOccupied != 0) {
-                W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[0].animation_0fa);
+                W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[0].npc_index);
                 if (lead->name_style == W8_NPC_RODAN &&
                     g_status_685170.buffers.Char[0].highest_condition < 0xf) {
                     paired = true;
@@ -3282,7 +3282,7 @@ void QueueNpcTravelRefusals(int destination_level)
                     QueueNpcMessageLine(W8_NPC_MSG_GROUP_ACTION, slot);
                     return;
                 }
-                W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[1].animation_0fa);
+                W8NpcState* lead = GetNpcState(g_status_685170.buffers.XChar[1].npc_index);
                 if (lead->name_style != W8_NPC_RODAN ||
                     g_status_685170.buffers.Char[1].highest_condition >= 0xf) {
                     BeginScriptedWorldAction();

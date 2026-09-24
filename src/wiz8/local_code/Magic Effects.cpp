@@ -1742,7 +1742,7 @@ char TryCureConditionOnTargets(W8SpellEffectEntry* effect, int condition, char f
                         }
                         character->stamina = turns;
                         int npc_index =
-                            g_status_685170.buffers.XChar[character_index].animation_0fa;
+                            g_status_685170.buffers.XChar[character_index].npc_index;
                         if (npc_index != -1 &&
                             (npc_state = GetNpcState(npc_index), npc_state != 0)) {
                             npc_state->spawned_04 = 0;

@@ -580,7 +580,7 @@ void BeginNpcDialogueInternal(W8NpcState* npc, W8ItemInstance* item, int quote, 
         characters = g_status_685170.buffers.Char;
         for (slot = 0; slot < 2; ++slot) {
             if (g_status_685170.buffers.XChar[slot].fOccupied != 0) {
-                bound = GetNpcState(g_status_685170.buffers.XChar[slot].animation_0fa);
+                bound = GetNpcState(g_status_685170.buffers.XChar[slot].npc_index);
                 if ((bound->name_style == 0x11 || bound->name_style == 0x10) &&
                     characters[slot].highest_condition >= 0xf) {
                     for (condition = 0; condition <= 0x12; ++condition) {

@@ -2700,7 +2700,7 @@ void EndScriptedPortraitPick00529C40(int party_slot)
                             g_effect_argument_005ed8c8, g_effect_argument_005ed914);
         return;
     }
-    if (g_status_685170.buffers.XChar[party_slot].animation_0fa == -1 &&
+    if (g_status_685170.buffers.XChar[party_slot].npc_index == -1 &&
         character->highest_condition < 0xf) {
         if (FindItemOnCharacter(character, 0x1fd, &found, 0, 0) != 0 &&
             FindItemOnCharacter(character, 0x1fe, &found, 0, 0) != 0 &&

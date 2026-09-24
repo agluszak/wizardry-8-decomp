@@ -373,7 +373,7 @@ bool QueueNpcCombatScript(void)
             g_combat_state->npc_combat_script_pending[slot]) {
             continue;
         }
-        W8NpcState* npc = GetNpcState(row->animation_0fa);
+        W8NpcState* npc = GetNpcState(row->npc_index);
         if (npc == 0) {
             continue;
         }
@@ -476,7 +476,7 @@ void ApplyCombatEndEffects(void)
     for (slot = 0; slot < 2; ++slot) {
         W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
         if (row->fOccupied) {
-            W8NpcState* npc = GetNpcState(row->animation_0fa);
+            W8NpcState* npc = GetNpcState(row->npc_index);
             if (npc != 0) {
                 W8Character* character = &g_status_685170.buffers.Char[slot];
                 if (character->highest_condition == 0x12) {

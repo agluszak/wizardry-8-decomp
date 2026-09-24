@@ -1947,7 +1947,7 @@ void EvaluateCombatDifficulty004E6CE0(void)
         }
         bool count_character = true;
         if (slot < 2) {
-            W8NpcState* npc = GetNpcState(row->animation_0fa);
+            W8NpcState* npc = GetNpcState(row->npc_index);
             if (npc != 0) {
                 int faction = npc->record->faction_5f;
                 if (faction != 0 && faction != 1) {
@@ -2021,7 +2021,7 @@ void EvaluateCombatDifficulty004E6CE0(void)
     for (slot = 0; slot < 2; ++slot) {
         W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
         if (row->fOccupied) {
-            W8NpcState* npc = GetNpcState(row->animation_0fa);
+            W8NpcState* npc = GetNpcState(row->npc_index);
             if (npc != 0) {
                 W8Character* character = &g_status_685170.buffers.Char[slot];
                 if (character->highest_condition == 0x12) {

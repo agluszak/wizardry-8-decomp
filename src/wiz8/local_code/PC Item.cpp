@@ -1193,7 +1193,7 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
         if (item->iItemNo == 0x29f) {
             W8NpcState* npc =
                 GetNpcState(g_status_685170.buffers.XChar[CharacterPointerToPartySlot(character)]
-                                .animation_0fa);
+                                .npc_index);
             if (npc == 0) {
                 srAssertFail("pNPC", PC_ITEM_CPP, 0x89d, 0);
             }
