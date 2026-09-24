@@ -1479,19 +1479,16 @@ void StartMonsterAttackCycle0053FFE0(W8MonsterInfo* monster_info, int action_det
         }
     }
     if (cycle == 0x11 || cycle == 0xd || cycle == 7) {
-        if (record->attacks[attack].range_category > W8_RANGE_SHORT) {
-            goto attack_ready;
+        if (record->attacks[attack].range_category <= W8_RANGE_SHORT) {
+            record->attacks[attack].range_category = W8_RANGE_EXTREME;
+            FormatDebugMessage(0, "DATA ERROR: %ls has mismatched range/attack modes for attack %d",
+                               record->name_00, attack);
         }
-        record->attacks[attack].range_category = W8_RANGE_EXTREME;
-    } else {
-        if (record->attacks[attack].range_category < W8_RANGE_LONG) {
-            goto attack_ready;
-        }
+    } else if (record->attacks[attack].range_category >= W8_RANGE_LONG) {
         record->attacks[attack].range_category = W8_RANGE_TOUCH;
+        FormatDebugMessage(0, "DATA ERROR: %ls has mismatched range/attack modes for attack %d",
+                           record->name_00, attack);
     }
-    FormatDebugMessage(0, "DATA ERROR: %ls has mismatched range/attack modes for attack %d",
-                       record->name_00, attack);
-attack_ready:
     range = GetMonsterActionRangeCategory(monster_info, record, attack);
     if (range >= W8_RANGE_LONG) {
         monster_info->fMissileReleased = 0;
@@ -2305,20 +2302,16 @@ void AnnounceMonsterAttack00541630(W8MonsterInfo* monster_info, W8MonsterRecord*
             case 0:
             case 1:
             case 4:
-                text = gppStringList[0x217];
+                wcscat(g_combat_state->attack_message_6b8, gppStringList[0x217]);
                 break;
             case 3:
-                text = gppStringList[0x218];
+                wcscat(g_combat_state->attack_message_6b8, gppStringList[0x218]);
                 break;
-            default:
-                goto target_name;
             }
         } else {
-            text = gppStringList[0x216];
+            wcscat(g_combat_state->attack_message_6b8, gppStringList[0x216]);
         }
-        wcscat(g_combat_state->attack_message_6b8, text);
     }
-target_name:
     highlight_start = wcslen(g_combat_state->attack_message_6b8);
     if (monster_info->Target.iType == W8_TARGET_KIND_CHARACTER) {
         int party_slot = monster_info->Target.iChar;
@@ -2345,6 +2338,7 @@ target_name:
         palette = 9;
         if (range <= W8_RANGE_SHORT && IsMonsterFacingMonster(second, monster_info) == 0) {
             second_combat = second->pCombat;
+            notices = false;
             if (second->hp_current != 0 && second->stamina != 0 &&
                 second->highest_condition < 0xe && second->uiCondition[0xc] == 0 &&
                 second->action_kind == 1) {
@@ -2358,13 +2352,13 @@ target_name:
                 second_combat->spot_attempts_13d = second_combat->spot_attempts_13d + 1;
                 if (notices) {
                     MonsterAimAtMonster004C62C0(second->p3D, monster_info->p3D, 0);
-                    goto message_tail;
                 }
             }
-            g_combat_state->unaware_9a4 = IsMonsterLookingAwayFrom(monster_info, second);
+            if (!notices) {
+                g_combat_state->unaware_9a4 = IsMonsterLookingAwayFrom(monster_info, second);
+            }
         }
     }
-message_tail:
     highlight_end = wcslen(g_combat_state->attack_message_6b8);
     if (g_combat_state->natural_attack_9a5 == 0) {
         if (g_combat_state->unaware_9a4 != 0) {
@@ -3713,21 +3707,17 @@ void ScatterMissileAimPoint005454C0(const srVector3T<float>* from, srVector3T<fl
     if (cap >= 0x60) {
         cap = 0x5f;
     }
-    if (cap < roll) {
+    if (cap >= roll) {
+        magnitude = (roll / static_cast<double>(effective)) * raw_radius;
+    } else if (effective >= 1 || roll + effective >= 1) {
         double weight;
         if (effective < 1) {
-            if (roll + effective < 1) {
-                goto apply;
-            }
             weight = (100 - (roll + effective)) * 0.01;
         } else {
             weight = (roll - effective) / static_cast<double>(roll);
         }
         magnitude = (magnitude - raw_radius) * weight + raw_radius;
-    } else {
-        magnitude = (roll / static_cast<double>(effective)) * raw_radius;
     }
-apply:
     mag = sx * sx + sz * sz + sy * sy;
     if (mag != 0.0f) {
         magnitude = magnitude / sqrt(mag);
@@ -4287,163 +4277,173 @@ int ResolveCharacterAttack0053E250(int party_slot)
                 CombatLog("TO PENETRATE: Chance %d, Rolled %d", penetrate, roll);
                 if (guaranteed_penetration == 0 && penetrate < roll) {
                     message_id = 0x20f;
-                    goto missed;
-                }
-                outcome = 3;
-                queued_fatigue = 3;
-                unsigned int dice_count = 0;
-                unsigned char hit_flag = 0;
-                damage = ResolveCharacterAttackDamage(party_slot, hand, attack_mode, &dice_count,
-                                                      &hit_flag);
-                if (damage == 0) {
-                    message_id = 0x20e;
-                    goto missed;
-                }
-                outcome = 4;
-                if (fumbled != 0) {
-                    damage = CapAttackDamageByTargetHealth00545A00(damage);
-                } else if (dice_count > 1) {
-                    if (verbose != 0) {
-                        ShowNoticef(8, gppStringList[0x20d], dice_count);
-                    }
-                    outcome = 5;
-                }
-                W8HandAttack* hand_attack = &character->Hand[hand];
-                MakePCMeleeHitSound00549F50(party_slot, hand_attack, &g_combat_state->TargetHit,
-                                            hit_location, -1);
-                IsTargetStillPresent(&g_combat_state->TargetHit);
-                if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
-                    applied = ApplyDamageToMonster(monster_info, damage, &source, 0, verbose != 0,
-                                                   verbose != 0, verbose != 0 ? NULL : report, 0);
-                    if (monster_info->hp_current == 0 && hit_flag != 0 && Random(2) == 0 &&
-                        gXStatus.hostile_monster_count > 1) {
-                        W8CharacterEvent* event = QueueCharacterEvent(
-                            character, g_item_message_005ee668, 0, g_effect_argument_005ed8c8,
-                            g_effect_argument_005ed914);
-                        if (event != NULL) {
-                            event->dispatch_delay_ms = 800;
-                            event->dispatch_delay_start = GetTickCount();
-                        }
-                    }
                 } else {
-                    applied = ApplyDamageToCharacter(g_combat_state->TargetHit.iChar, damage, 0,
-                                                     verbose != 0, verbose != 0,
-                                                     verbose != 0 ? NULL : report, 0);
-                }
-                if (fumbled != 0) {
-                    QueueFumbleReaction00544530(party_slot);
-                }
-                memset(&effect, 0, sizeof(effect));
-                effect.power_level = character->uiExpLevel +
-                                     (character->uiExpLevel > 0xe ? 0xf : character->uiExpLevel);
-                if (applied != 0) {
-                    if (hand_attack->uiHolds == HOLDS_NOTHING) {
-                        memcpy(effect.condition_chances, &hand_attack->condition_chance_33, 0x10);
-                        effect.magnitude_base_1c = 0;
+                    outcome = 3;
+                    queued_fatigue = 3;
+                    unsigned int dice_count = 0;
+                    unsigned char hit_flag = 0;
+                    damage = ResolveCharacterAttackDamage(party_slot, hand, attack_mode,
+                                                          &dice_count, &hit_flag);
+                    if (damage == 0) {
+                        message_id = 0x20e;
                     } else {
-                        memcpy(
-                            effect.condition_chances,
-                            g_item_records[character->EquippedItem[row->current_equip_slot].iItemNo]
-                                .missile_values_050,
-                            0x10);
-                        effect.magnitude_base_1c =
-                            g_item_records[character->EquippedItem[row->current_equip_slot].iItemNo]
-                                .missile_magnitude_060;
-                        if (row->paired_equip_slot != -1) {
-                            const unsigned char* paired_values =
-                                g_item_records[character->EquippedItem[row->paired_equip_slot]
-                                                   .iItemNo]
-                                    .missile_values_050;
-                            for (int i = 0; i < 0x10; ++i) {
-                                effect.condition_chances[i] += paired_values[i];
+                        outcome = 4;
+                        if (fumbled != 0) {
+                            damage = CapAttackDamageByTargetHealth00545A00(damage);
+                        } else if (dice_count > 1) {
+                            if (verbose != 0) {
+                                ShowNoticef(8, gppStringList[0x20d], dice_count);
                             }
-                            effect.magnitude_base_1c +=
-                                g_item_records[character->EquippedItem[row->paired_equip_slot]
-                                                   .iItemNo]
-                                    .missile_magnitude_060;
+                            outcome = 5;
                         }
-                    }
-                    if (fumbled == 0) {
-                        unsigned int skill_level = 0;
-                        if (hand_attack->combat_skill == W8_SKILL_CLOSE_COMBAT) {
-                            skill_level = character->skills[W8_SKILL_CRITICAL_STRIKE].level;
-                        } else if (hand_attack->combat_skill == W8_SKILL_RANGED_COMBAT &&
-                                   hand_attack->weapon_skill > W8_SKILL_SHIELD) {
-                            if (hand_attack->weapon_skill <= W8_SKILL_BOW) {
-                                if (CharacterHasTrait00547940(character,
-                                                              W8_TRAIT_RANGED_CRITICALS) != 0) {
-                                    skill_level = character->skills[W8_SKILL_RANGED_COMBAT].level;
+                        W8HandAttack* hand_attack = &character->Hand[hand];
+                        MakePCMeleeHitSound00549F50(party_slot, hand_attack,
+                                                    &g_combat_state->TargetHit, hit_location, -1);
+                        IsTargetStillPresent(&g_combat_state->TargetHit);
+                        if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
+                            applied =
+                                ApplyDamageToMonster(monster_info, damage, &source, 0, verbose != 0,
+                                                     verbose != 0, verbose != 0 ? NULL : report, 0);
+                            if (monster_info->hp_current == 0 && hit_flag != 0 && Random(2) == 0 &&
+                                gXStatus.hostile_monster_count > 1) {
+                                W8CharacterEvent* event = QueueCharacterEvent(
+                                    character, g_item_message_005ee668, 0,
+                                    g_effect_argument_005ed8c8, g_effect_argument_005ed914);
+                                if (event != NULL) {
+                                    event->dispatch_delay_ms = 800;
+                                    event->dispatch_delay_start = GetTickCount();
                                 }
-                            } else if (hand_attack->weapon_skill == W8_SKILL_THROWING_SLING) {
-                                if (g_item_records[character->EquippedItem[row->current_equip_slot]
+                            }
+                        } else {
+                            applied = ApplyDamageToCharacter(g_combat_state->TargetHit.iChar,
+                                                             damage, 0, verbose != 0, verbose != 0,
+                                                             verbose != 0 ? NULL : report, 0);
+                        }
+                        if (fumbled != 0) {
+                            QueueFumbleReaction00544530(party_slot);
+                        }
+                        memset(&effect, 0, sizeof(effect));
+                        effect.power_level =
+                            character->uiExpLevel +
+                            (character->uiExpLevel > 0xe ? 0xf : character->uiExpLevel);
+                        if (applied != 0) {
+                            if (hand_attack->uiHolds == HOLDS_NOTHING) {
+                                memcpy(effect.condition_chances, &hand_attack->condition_chance_33,
+                                       0x10);
+                                effect.magnitude_base_1c = 0;
+                            } else {
+                                memcpy(
+                                    effect.condition_chances,
+                                    g_item_records[character->EquippedItem[row->current_equip_slot]
                                                        .iItemNo]
-                                        .unidentified_name_index == 0xd) {
-                                    if (CharacterHasTrait00547940(character,
-                                                                  W8_TRAIT_RANGED_CRITICALS) != 0) {
-                                        skill_level =
-                                            character->skills[W8_SKILL_RANGED_COMBAT].level;
+                                        .missile_values_050,
+                                    0x10);
+                                effect.magnitude_base_1c =
+                                    g_item_records[character->EquippedItem[row->current_equip_slot]
+                                                       .iItemNo]
+                                        .missile_magnitude_060;
+                                if (row->paired_equip_slot != -1) {
+                                    const unsigned char* paired_values =
+                                        g_item_records[character
+                                                           ->EquippedItem[row->paired_equip_slot]
+                                                           .iItemNo]
+                                            .missile_values_050;
+                                    for (int i = 0; i < 0x10; ++i) {
+                                        effect.condition_chances[i] += paired_values[i];
                                     }
-                                } else if (CharacterHasTrait00547940(
-                                               character, W8_TRAIT_THROWN_CRITICALS) != 0) {
-                                    skill_level = character->skills[W8_SKILL_CRITICAL_STRIKE].level;
+                                    effect.magnitude_base_1c +=
+                                        g_item_records[character
+                                                           ->EquippedItem[row->paired_equip_slot]
+                                                           .iItemNo]
+                                            .missile_magnitude_060;
                                 }
                             }
-                        }
-                        if (skill_level != 0) {
-                            char bonus = static_cast<char>(skill_level / 0x19);
-                            if (skill_level % 0x19 != 0 && Random(0x19) < skill_level % 0x19) {
-                                ++bonus;
+                            if (fumbled == 0) {
+                                unsigned int skill_level = 0;
+                                if (hand_attack->combat_skill == W8_SKILL_CLOSE_COMBAT) {
+                                    skill_level = character->skills[W8_SKILL_CRITICAL_STRIKE].level;
+                                } else if (hand_attack->combat_skill == W8_SKILL_RANGED_COMBAT &&
+                                           hand_attack->weapon_skill > W8_SKILL_SHIELD) {
+                                    if (hand_attack->weapon_skill <= W8_SKILL_BOW) {
+                                        if (CharacterHasTrait00547940(
+                                                character, W8_TRAIT_RANGED_CRITICALS) != 0) {
+                                            skill_level =
+                                                character->skills[W8_SKILL_RANGED_COMBAT].level;
+                                        }
+                                    } else if (hand_attack->weapon_skill ==
+                                               W8_SKILL_THROWING_SLING) {
+                                        if (g_item_records
+                                                [character->EquippedItem[row->current_equip_slot]
+                                                     .iItemNo]
+                                                    .unidentified_name_index == 0xd) {
+                                            if (CharacterHasTrait00547940(
+                                                    character, W8_TRAIT_RANGED_CRITICALS) != 0) {
+                                                skill_level =
+                                                    character->skills[W8_SKILL_RANGED_COMBAT].level;
+                                            }
+                                        } else if (CharacterHasTrait00547940(
+                                                       character, W8_TRAIT_THROWN_CRITICALS) != 0) {
+                                            skill_level =
+                                                character->skills[W8_SKILL_CRITICAL_STRIKE].level;
+                                        }
+                                    }
+                                }
+                                if (skill_level != 0) {
+                                    char bonus = static_cast<char>(skill_level / 0x19);
+                                    if (skill_level % 0x19 != 0 &&
+                                        Random(0x19) < skill_level % 0x19) {
+                                        ++bonus;
+                                    }
+                                    effect.condition_chances[5] += bonus;
+                                }
+                                if (CharacterHasTrait00547940(character, W8_TRAIT_KNOCKOUT) != 0) {
+                                    effect.condition_chances[6] +=
+                                        static_cast<char>(ScaleValueByProfessionLevel005479B0(
+                                            character, W8_TRAIT_KNOCKOUT, 5.0));
+                                }
                             }
-                            effect.condition_chances[5] += bonus;
-                        }
-                        if (CharacterHasTrait00547940(character, W8_TRAIT_KNOCKOUT) != 0) {
-                            effect.condition_chances[6] +=
-                                static_cast<char>(ScaleValueByProfessionLevel005479B0(
-                                    character, W8_TRAIT_KNOCKOUT, 5.0));
-                        }
-                    }
-                    ApplyEffectConditions(&source, &g_combat_state->TargetHit, &effect, verbose, 0,
-                                          report);
-                    if (character->EquippedItem[row->current_equip_slot].iItemNo == 0x1f8) {
-                        unsigned int heal = damage / 3;
-                        unsigned int missing = character->uiHPMax - character->hp_current;
-                        if (missing < heal) {
-                            heal = missing;
-                        }
-                        if (heal != 0) {
-                            HealCharacter(party_slot, heal, verbose);
-                            if (verbose == 0) {
-                                report->notice_values[5] += heal;
+                            ApplyEffectConditions(&source, &g_combat_state->TargetHit, &effect,
+                                                  verbose, 0, report);
+                            if (character->EquippedItem[row->current_equip_slot].iItemNo == 0x1f8) {
+                                unsigned int heal = damage / 3;
+                                unsigned int missing = character->uiHPMax - character->hp_current;
+                                if (missing < heal) {
+                                    heal = missing;
+                                }
+                                if (heal != 0) {
+                                    HealCharacter(party_slot, heal, verbose);
+                                    if (verbose == 0) {
+                                        report->notice_values[5] += heal;
+                                    }
+                                }
+                            }
+                            if (range < W8_RANGE_LONG &&
+                                g_combat_state->TargetHit.iType == W8_TARGET_KIND_CHARACTER &&
+                                hit_location == 1 &&
+                                g_status_685170.buffers.Char[g_combat_state->TargetHit.iChar]
+                                        .EquippedItem[W8_EQUIP_SLOT_TORSO]
+                                        .iItemNo == 500) {
+                                SetTargetSourceToCharacter(g_combat_state->TargetHit.iChar,
+                                                           &target_source);
+                                ApplyDirectDamageToCharacter005535D0(party_slot, &target_source,
+                                                                     damage);
                             }
                         }
-                    }
-                    if (range < W8_RANGE_LONG &&
-                        g_combat_state->TargetHit.iType == W8_TARGET_KIND_CHARACTER &&
-                        hit_location == 1 &&
-                        g_status_685170.buffers.Char[g_combat_state->TargetHit.iChar]
-                                .EquippedItem[W8_EQUIP_SLOT_TORSO]
-                                .iItemNo == 500) {
-                        SetTargetSourceToCharacter(g_combat_state->TargetHit.iChar, &target_source);
-                        ApplyDirectDamageToCharacter005535D0(party_slot, &target_source, damage);
                     }
                 }
             }
             if (damage == 0) {
-                goto missed;
+                MakePCMeleeHitSound00549F50(party_slot, &character->Hand[hand],
+                                            &g_combat_state->TargetHit, hit_location, 0x2a);
+                if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
+                    MonsterReactsToBeingStruck(monster_info, &source, 0);
+                }
+                if (verbose == 0) {
+                    ++report->count;
+                } else {
+                    ShowNoticef(8, gppStringList[message_id]);
+                }
             }
-            goto resolved;
-        missed:
-            MakePCMeleeHitSound00549F50(party_slot, &character->Hand[hand],
-                                        &g_combat_state->TargetHit, hit_location, 0x2a);
-            if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
-                MonsterReactsToBeingStruck(monster_info, &source, 0);
-            }
-            if (verbose == 0) {
-                ++report->count;
-            } else {
-                ShowNoticef(8, gppStringList[message_id]);
-            }
-        resolved:
             if (range < W8_RANGE_LONG) {
                 if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER) {
                     W8Enchantment* enchantment = &monster_info->enchantments[3];
