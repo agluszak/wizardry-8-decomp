@@ -21,8 +21,8 @@ extern unsigned char g_byte_00659a64;
 
 /* One two-byte animation-slot record: the frame the segment selects and the
    tag that names it.  LoadProp0044AEE0 reads each as a serialized short and
-   narrows to a byte; SelectAnimationSlot and the segment walkers sign-extend
-   the frame, and a negative frame marks a slot with no animation. */
+   narrows to a byte; the segment walkers sign-extend the frame, and
+   SelectAnimationSlot treats a negative frame as a slot with no animation. */
 struct W8PropAnimationSegment {
     signed char frame;
     unsigned char tag;

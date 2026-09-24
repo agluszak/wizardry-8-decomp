@@ -133,7 +133,7 @@ W8PropRepresentation::~W8PropRepresentation()
     int index;
 
     for (index = 0; index < slots.count; ++index) {
-        delete slots.data[index];
+        delete *slots.GetAt(index);
     }
     slots.count = 0;
     if (animation != 0) {
@@ -443,30 +443,32 @@ srModelInstance* W8PropRepresentation::ToggleAnimation(int argument)
 }
 
 /* Select the animation slot whose second byte carries the requested tag.
-   The slot's signed first byte is the new animation tag; the old and new
-   values are retained as an ordered range for the transition state. */
+   The slot's first byte is the target frame; the current subcycle and that
+   frame become the ordered range the animation plays through. */
 // FUNCTION: WIZ8 0x0044ba50
 unsigned char W8PropRepresentation::SelectAnimationSlot(unsigned char tag)
 {
     int index;
 
     for (index = 0; index < slots.count; ++index) {
-        if (slots.data[index]->tag == tag) {
-            signed char selected = slots.data[index]->frame;
+        W8PropAnimationSegment* slot = *slots.GetAt(index);
+
+        if (slot->tag == tag) {
+            signed char selected = slot->frame;
 
             if (selected < 0) {
                 return 0;
             }
-            frame_lo_068 = first_frame_094;
-            frame_hi_069 = static_cast<unsigned char>(selected);
-            if (selected < static_cast<signed char>(first_frame_094)) {
-                frame_lo_068 = static_cast<unsigned char>(selected);
-                frame_hi_069 = first_frame_094;
+            first_frame_094 = subcycle_064;
+            last_frame_095 = static_cast<unsigned char>(selected);
+            if (static_cast<unsigned char>(selected) < subcycle_064) {
+                last_frame_095 = subcycle_064;
+                first_frame_094 = static_cast<unsigned char>(selected);
             }
-            if (frame_hi_069 <= first_frame_094) {
-                frame_direction_06e = 3;
-            } else {
+            if (last_frame_095 > subcycle_064) {
                 frame_direction_06e = 1;
+            } else {
+                frame_direction_06e = 3;
             }
             animation_playing_06d = 1;
             return 1;
@@ -484,7 +486,7 @@ int W8PropRepresentation::FindCurrentAnimationSlot()
     int index;
 
     for (index = 0; index < slots.count; ++index) {
-        if (slots.data[index]->frame == first_frame_094) {
+        if ((*slots.GetAt(index))->frame == first_frame_094) {
             return index;
         }
     }
@@ -494,29 +496,31 @@ int W8PropRepresentation::FindCurrentAnimationSlot()
 // FUNCTION: WIZ8 0x0044bb20
 unsigned char W8PropRepresentation::AdvanceAnimationSegment()
 {
+    int count;
+    int index;
     int segment;
 
-    if (slots.count < 3) {
+    count = slots.count;
+    if (count < 3) {
         return 0;
     }
-    for (segment = 0; segment < slots.count; ++segment) {
-        if (slots.data[segment]->frame == first_frame_094) {
+    segment = -1;
+    for (index = 0; index < count; ++index) {
+        if ((*slots.GetAt(index))->frame == first_frame_094) {
+            segment = index;
             break;
         }
-    }
-    if (segment == slots.count) {
-        segment = -1;
     }
     if (segment == -1) {
         srAssertFail("lSegment!=(-1)", "C:\\Projects\\Wizardry 8\\Engine Code\\Prop.cpp", 0x2c3, 0);
     }
-    if (segment == slots.count - 2) {
+    if (segment == count - 2) {
         segment = 0;
     } else {
         ++segment;
     }
-    first_frame_094 = slots.data[segment]->frame;
-    last_frame_095 = slots.data[segment + 1]->frame;
+    first_frame_094 = (*slots.GetAt(segment))->frame;
+    last_frame_095 = (*slots.GetAt(segment + 1))->frame;
     frame_direction_06e = 1;
     animation_playing_06d = 1;
     subcycle_064 = first_frame_094;
