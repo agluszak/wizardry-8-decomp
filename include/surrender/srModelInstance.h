@@ -8,7 +8,7 @@
 class SR_DLL_IMPORT srModelInstance : public srClassSupport<srModelInstance, srNode, 0, 0x1100>,
                                       public srModel::Client {
 public:
-    srModelInstance(srNode* parent);
+    srModelInstance(srNode* parent = 0);
     srModelInstance(const srModelInstance& other);
     srModelInstance& operator=(const srModelInstance& other);
 

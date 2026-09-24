@@ -219,3 +219,6 @@ srFog::~srFog()
 {
     srCore.getRegistry()->unregisterInstance(ClientType::sGetClassNode(), this);
 }
+
+// SYNTHETIC: SURRENDER 0x1004C4D0
+// srFog default constructor closure
