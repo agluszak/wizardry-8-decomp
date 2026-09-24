@@ -506,18 +506,12 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
     own_position.y += monster->movement_0c0.height_offset_0b8;
 
     if (direction == 0) {
-        unsigned int count;
         unsigned int index;
 
         if (gXStatus.fCombatMode == 0) {
             return;
         }
-        index = 0;
-        count = PLLength(gXStatus.plsMonsterList);
-        if (count == 0) {
-            return;
-        }
-        do {
+        for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
             W8MonsterInfo* other = MonsterGetScriptPartByLocationIndex(index);
 
             if (other != monster_info && other->fInCombat != 0 && other->fActive != 0 &&
@@ -557,6 +551,8 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                     other_position.y += other_monster->movement_0c0.height_offset_0b8;
                     entry->can_see_0b = 0;
                     entry->line_of_sight_28 = 0;
+                    bool can_see = false;
+
                     distance = monster->GetDistanceToMonster004C7DD0(other->p3D);
                     if (viewing_distance >= distance) {
                         unsigned char line_of_sight =
@@ -564,19 +560,16 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
 
                         entry->line_of_sight_28 = line_of_sight;
                         if (line_of_sight != 0) {
-                            bool can_see = CanMonsterSeeMonster(monster_info, other, entry);
-
+                            can_see = CanMonsterSeeMonster(monster_info, other, entry);
                             entry->can_see_0b = can_see;
-                            if (can_see != 0) {
-                                entry->sight_state_04 = W8_SIGHT_SEEN;
-                                entry->last_seen_clock_0c = g_status_685170.world_clock;
-                                entry->subject_position_10 = own_position;
-                                entry->target_position_1c = other_position;
-                                goto sight_flags;
-                            }
                         }
                     }
-                    if (entry->last_seen_clock_0c == 0) {
+                    if (can_see) {
+                        entry->sight_state_04 = W8_SIGHT_SEEN;
+                        entry->last_seen_clock_0c = g_status_685170.world_clock;
+                        entry->subject_position_10 = own_position;
+                        entry->target_position_1c = other_position;
+                    } else if (entry->last_seen_clock_0c == 0) {
                         entry->sight_state_04 = W8_SIGHT_UNSEEN;
                     } else {
                         entry->sight_state_04 = static_cast<unsigned char>(
@@ -585,7 +578,6 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                                 ? W8_SIGHT_UNSEEN
                                 : W8_SIGHT_RECENT);
                     }
-                sight_flags:
                     if (entry->line_of_sight_28 == 0) {
                         memset(entry->los_flags_05, 0, 4);
                     } else {
@@ -625,12 +617,8 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                     }
                 }
             }
-            ++index;
-            count = PLLength(gXStatus.plsMonsterList);
-            if (count <= index) {
-                return;
-            }
-        } while (true);
+        }
+        return;
     }
 
     GetCameraPosition(&camera_position);
@@ -652,77 +640,62 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                         ? W8_SIGHT_UNSEEN
                         : W8_SIGHT_RECENT);
             }
-            goto after_sight;
-        }
-        monster_info->player_visibility.line_of_sight_28 =
-            monster->CheckLineOfSightToPlayer004C4810();
-        if (monster_info->player_visibility.line_of_sight_28 == 0) {
-            goto after_sight;
-        }
-        if (monster_info->hp_current == 0 || monster_info->highest_condition > 0xe) {
-            visible_to_player = 0;
         } else {
-            float yaw = GetCameraYawRadians();
-            unsigned int sight_override;
-            unsigned int minimum_level = 9999;
-            unsigned char fade_flag;
-            float player_distance;
-
-            if (gXStatus.fCombatMode == 0) {
-                sight_override = g_status_685170.party_modifiers_22e3.sight_override_4a;
+            monster_info->player_visibility.line_of_sight_28 =
+                monster->CheckLineOfSightToPlayer004C4810();
+        }
+        if (monster_info->player_visibility.line_of_sight_28 != 0) {
+            if (monster_info->hp_current == 0 || monster_info->highest_condition > 0xe) {
+                visible_to_player = 0;
             } else {
-                sight_override = 0;
-            }
-            for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
-                W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
-                W8Character* character = &g_status_685170.buffers.Char[slot];
+                float yaw = GetCameraYawRadians();
+                unsigned int sight_override;
+                unsigned int minimum_level = 9999;
+                unsigned char fade_flag;
+                float player_distance;
 
-                if (row->fOccupied != 0 && character->hp_current != 0 &&
-                    character->highest_condition < 0xf && character->uiExpLevel < minimum_level) {
-                    minimum_level = character->uiExpLevel;
+                if (gXStatus.fCombatMode == 0) {
+                    sight_override = g_status_685170.party_modifiers_22e3.sight_override_4a;
+                } else {
+                    sight_override = 0;
                 }
-            }
+                for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
+                    W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
+                    W8Character* character = &g_status_685170.buffers.Char[slot];
 
-            player_distance = monster->GetDistanceToPlayer004C7CB0();
-            if (record->kind_0cb == 4) {
-                int bonus = record->effective_level_24f * 5;
-
-                fade_flag = static_cast<unsigned char>(bonus > 0x7d ? 0x7d : bonus);
-            } else {
-                fade_flag = 0;
-            }
-            {
-                srVector3T<float> observer_position;
-                srVector3T<float> target_position;
-
-                observer_position = own_position;
-                target_position = camera_position;
-                {
-                    float threshold = ComputeSightThreshold(
-                        observer_position, target_position, yaw, monster_info->attributes[4],
-                        fade_flag, monster_info->uiCondition[0xc] != 0, record->kind_0cb == 0xc,
-                        static_cast<int>(minimum_level), static_cast<int>(sight_override),
-                        monster_info->player_visibility.sight_state_04, 0, player_distance);
-
-                    if (threshold < player_distance) {
-                        visible_to_player = 0;
-                    } else {
-                        visible_to_player = 1;
+                    if (row->fOccupied != 0 && character->hp_current != 0 &&
+                        character->highest_condition < 0xf &&
+                        character->uiExpLevel < minimum_level) {
+                        minimum_level = character->uiExpLevel;
                     }
                 }
+
+                player_distance = monster->GetDistanceToPlayer004C7CB0();
+                if (record->kind_0cb == 4) {
+                    int bonus = record->effective_level_24f * 5;
+
+                    fade_flag = static_cast<unsigned char>(bonus > 0x7d ? 0x7d : bonus);
+                } else {
+                    fade_flag = 0;
+                }
+                float threshold = ComputeSightThreshold(
+                    own_position, camera_position, yaw, monster_info->attributes[4], fade_flag,
+                    monster_info->uiCondition[0xc] != 0, record->kind_0cb == 0xc,
+                    static_cast<int>(minimum_level), static_cast<int>(sight_override),
+                    monster_info->player_visibility.sight_state_04, 0, player_distance);
+
+                visible_to_player = threshold >= player_distance;
+            }
+            monster_info->player_visibility.can_see_0b = visible_to_player;
+            if (visible_to_player != 0) {
+                monster_info->player_visibility.sight_state_04 = W8_SIGHT_SEEN;
+                monster_info->player_visibility.last_seen_clock_0c = g_status_685170.world_clock;
+                monster_info->player_visibility.target_position_1c = own_position;
+                monster_info->player_visibility.subject_position_10 = camera_position;
             }
         }
-        monster_info->player_visibility.can_see_0b = visible_to_player;
-        if (visible_to_player == 0) {
-            goto after_sight;
-        }
-        monster_info->player_visibility.sight_state_04 = W8_SIGHT_SEEN;
-        monster_info->player_visibility.last_seen_clock_0c = g_status_685170.world_clock;
-        monster_info->player_visibility.target_position_1c = own_position;
-        monster_info->player_visibility.subject_position_10 = camera_position;
     }
 
-after_sight:
     if (monster_info->player_visibility.line_of_sight_28 == 0) {
         monster_info->player_visibility.los_flags_05[0] = 0;
         monster_info->player_visibility.los_flags_05[1] = 0;
