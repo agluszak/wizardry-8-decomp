@@ -8626,7 +8626,6 @@ unsigned char IsMGSActionKeyEnabled(short command)
     short state;
 
     state = -1;
-recheck:
     if (gXStatus.fNpcDialogueMode != 0) {
         if (command != W8_MGS_ACTION_JOURNAL || IsNpcDialogueCursorActive() != 0 ||
             CanOpenNpcDialogue() != 0) {
@@ -8716,26 +8715,19 @@ recheck:
             return AnyCharacterEngaged();
         case W8_MGS_ACTION_REPEAT:
             switch (
-                g_status_685170.buffers.XChar[g_status_685170.selected_character].queued_action -
-                2) {
-            case W8_MGS_ACTION_JOURNAL:
-                command = W8_MGS_ACTION_BREATH_ATTACK;
-                goto recheck;
-            case W8_MGS_ACTION_USE_ITEM_VIEW:
-                command = W8_MGS_ACTION_TURN_UNDEAD;
-                goto recheck;
-            case W8_MGS_ACTION_CAST_RECORDED_SPELL:
-                command = W8_MGS_ACTION_PRAY;
-                goto recheck;
-            case W8_MGS_ACTION_BREATHE:
-                command = W8_MGS_ACTION_CAST_RECORDED_SPELL;
-                goto recheck;
-            case W8_MGS_ACTION_BREATH_ATTACK:
-                command = W8_MGS_ACTION_USE_RECORDED_ITEM;
-                goto recheck;
-            case W8_MGS_ACTION_ATTACK:
-                command = W8_MGS_ACTION_EQUIP;
-                goto recheck;
+                g_status_685170.buffers.XChar[g_status_685170.selected_character].queued_action) {
+            case W8_ACTION_BREATHE:
+                return IsMGSActionKeyEnabled(W8_MGS_ACTION_BREATH_ATTACK);
+            case W8_ACTION_TURN_UNDEAD:
+                return IsMGSActionKeyEnabled(W8_MGS_ACTION_TURN_UNDEAD);
+            case W8_ACTION_PRAY:
+                return IsMGSActionKeyEnabled(W8_MGS_ACTION_PRAY);
+            case W8_ACTION_CAST_SPELL:
+                return IsMGSActionKeyEnabled(W8_MGS_ACTION_CAST_RECORDED_SPELL);
+            case W8_ACTION_USE_ITEM:
+                return IsMGSActionKeyEnabled(W8_MGS_ACTION_USE_RECORDED_ITEM);
+            case W8_ACTION_EQUIP:
+                return IsMGSActionKeyEnabled(W8_MGS_ACTION_EQUIP);
             default:
                 return 0;
             }
@@ -8839,24 +8831,23 @@ void RunMGSActionKey(short command)
         DrawSubMenuCharacterAction();
         break;
     case W8_MGS_ACTION_REPEAT:
-        switch (g_status_685170.buffers.XChar[g_status_685170.selected_character].queued_action -
-                2) {
-        case W8_MGS_ACTION_JOURNAL:
+        switch (g_status_685170.buffers.XChar[g_status_685170.selected_character].queued_action) {
+        case W8_ACTION_BREATHE:
             RunMGSActionKey(W8_MGS_ACTION_BREATH_ATTACK);
             break;
-        case W8_MGS_ACTION_USE_ITEM_VIEW:
+        case W8_ACTION_TURN_UNDEAD:
             RunMGSActionKey(W8_MGS_ACTION_TURN_UNDEAD);
             break;
-        case W8_MGS_ACTION_CAST_RECORDED_SPELL:
+        case W8_ACTION_PRAY:
             RunMGSActionKey(W8_MGS_ACTION_PRAY);
             break;
-        case W8_MGS_ACTION_BREATHE:
+        case W8_ACTION_CAST_SPELL:
             RunMGSActionKey(W8_MGS_ACTION_CAST_RECORDED_SPELL);
             break;
-        case W8_MGS_ACTION_BREATH_ATTACK:
+        case W8_ACTION_USE_ITEM:
             RunMGSActionKey(W8_MGS_ACTION_USE_RECORDED_ITEM);
             break;
-        case W8_MGS_ACTION_ATTACK:
+        case W8_ACTION_EQUIP:
             RunMGSActionKey(W8_MGS_ACTION_EQUIP);
             break;
         }
