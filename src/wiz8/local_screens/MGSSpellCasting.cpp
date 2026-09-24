@@ -483,7 +483,7 @@ static void UpdateSpellRealmPointDisplays(void)
 static void UpdateSpellPowerPips(void)
 {
     unsigned int pip;
-    unsigned int failure;
+    unsigned int rating;
 
     if (gpSCSV->uiPowerLevels == 0 || gpSCSV->iSpellPowerClass == 3) {
         for (pip = 0; pip < 9; ++pip) {
@@ -529,9 +529,8 @@ static void UpdateSpellPowerPips(void)
                     srAssertFail("gpSCSV->uiSpellToCast != SPELL_NONE", SPELLCASTING_CPP, 0x338, 0);
                 }
                 gpSCSV->power_pips[pip]->SetEnabled(0);
-                failure =
-                    GetSpellFailureChanceForCast(gpSCSV->caster, gpSCSV->uiSpellToCast, pip + 1);
-                gpSCSV->power_pips[pip]->m_disabledSprite = (pip + failure * 9) * 6;
+                rating = GetSpellCastRating(gpSCSV->caster, gpSCSV->uiSpellToCast, pip + 1);
+                gpSCSV->power_pips[pip]->m_disabledSprite = (pip + rating * 9) * 6;
             }
         }
         if (gpSCSV->uiPowerLevels < 7) {
@@ -547,12 +546,12 @@ static void UpdateSpellPowerPips(void)
     }
 }
 
-/* Recomputes one pip's four sprite frames from the spell's failure chance at
+/* Recomputes one pip's four sprite frames from the spell's safety rating at
    the level the pip stands for; pips seven and eight price the max cast. */
 // FUNCTION: WIZ8 0x0059F9D0
 static void RefreshSpellPowerPip(int pip)
 {
-    unsigned int failure;
+    unsigned int rating;
     int level;
     int frame;
     W8TextControl* control;
@@ -566,8 +565,8 @@ static void RefreshSpellPowerPip(int pip)
         level = pip + 1;
     }
     gpSCSV->power_pips[pip]->SetEnabled(1);
-    failure = GetSpellFailureChanceForCast(gpSCSV->caster, gpSCSV->uiSpellToCast, level);
-    frame = (pip + failure * 9) * 6;
+    rating = GetSpellCastRating(gpSCSV->caster, gpSCSV->uiSpellToCast, level);
+    frame = (pip + rating * 9) * 6;
     control = gpSCSV->power_pips[pip];
     control->m_normalSprite = frame;
     if (pip == 8) {
