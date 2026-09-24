@@ -1,7 +1,9 @@
 #include <ctype.h>
 #include <string.h>
 
+#include "surrender/srBinFStream.h"
 #include "surrender/srCore.h"
+#include "surrender/srExporter.h"
 #include "surrender/srHeap.h"
 #include "surrender/srIStreamOpener.h"
 #include "surrender/srImporter.h"
@@ -154,6 +156,26 @@ srColorSurfaceIFace* srSurfaceIOManager::importSurface(const char* path, const I
     throw Error("srSurfaceIOManager::importSurface: Given filename is NULL or empty");
 }
 
+// FUNCTION: SURRENDER 0x1002DBC0
+void srSurfaceIOManager::exportSurface(const char* path, srColorSurfaceIFace& surface,
+                                       const ExportInfo& options)
+{
+    if (path != 0 && *path != '\0') {
+        const char* extension = getExtension(path);
+        Exporter* exporter = findExporter(extension);
+        if (exporter == 0) {
+            throw Error("srSurfaceIOManager::exportSurface() - Exporter not found");
+        }
+        srBinOFStream stream(path);
+        if (stream.good()) {
+            static_cast<SurfaceExporter*>(exporter)->exportSurface(stream, surface, options);
+            return;
+        }
+        throw Error("srSurfaceIOManager::exportSurface() - File could not be opened");
+    }
+    throw Error("srSurfaceIOManager::exportSurface() - Given filename is NULL or empty");
+}
+
 // FUNCTION: SURRENDER 0x10016470
 srHierarchyIOManager::srHierarchyIOManager() {}
 
@@ -165,3 +187,26 @@ srModelIOManager::srModelIOManager() {}
 
 // FUNCTION: SURRENDER 0x10016AC0
 srModelIOManager::~srModelIOManager() {}
+
+/* The IO-manager units emit the deleting-destructor wrappers and the
+   material class-support registrations they reference. */
+// SYNTHETIC: SURRENDER 0x100165C0
+// srHierarchyIOManager scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0x10016640
+// srHierarchyIOManager::HierarchyImporter scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0x100166C0
+// srHierarchyIOManager::HierarchyExporter scalar deleting destructor
+
+// TEMPLATE: SURRENDER 0x10016740
+// srClassSupport<srMaterialIFace, srClass, true, 0x2200>::srClassSupport
+
+// TEMPLATE: SURRENDER 0x100167D0
+// srClassSupport<srMaterial, srMaterialIFace, false, 0x2210>::sGetClassNode
+
+// SYNTHETIC: SURRENDER 0x10016830
+// srFStreamOpener scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0x10016860
+// srMaterial scalar deleting destructor

@@ -94,6 +94,31 @@ EXPORTS
     ?getVideoManager@srCore@@QBEPAVsrVideoManager@@XZ
     ?getModelIOManager@srCore@@QBEPAVsrModelIOManager@@XZ
     ?getHierarchyIOManager@srCore@@QBEPAVsrHierarchyIOManager@@XZ
+    ??4srCore@@QAEAAV0@ABV0@@Z @295
+    ?dump@srCore@@QAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z @708
+    ?getBuildTime@srCore@@QBEPBDXZ @904
+    ?getDebugLevel@srCore@@QBEEXZ @963
+    ?getFilter@srCore@@QBEPAVsrFilter@@XZ @1018
+    ?getGlobalRecycler@srCore@@QBEPAVsrGlobalRecycler@@XZ @1044
+    ?getMaterial@srCore@@QBEPAVsrMaterial@@XZ @1082
+    ?getPalette@srCore@@QBEPAVsrPalette@@XZ @1144
+    ?getRegistry@srCore@@QBEPAVsrRegistry@@XZ @1196
+    ?getScheduler@srCore@@QBEPAVsrScheduler@@XZ @1209
+    ?getStatisticsManager@srCore@@QBEPAVsrStatisticsManager@@XZ @1235
+    ?getSurface@srCore@@QBEPAVsrColorSurfaceIFace@@XZ @1242
+    ?getTimer@srCore@@QBEPAVsrVariableTimer@@XZ @1274
+    ?getUniqueID@srCore@@QAEKXZ @1287
+    ?isInitialized@srCore@@QBEHXZ @1404
+    ?reset@srCore@@AAEXXZ @1597
+    ?setDebugLevel@srCore@@QAEXE@Z @1743
+    ?setFileManager@srCore@@QAEXPAVsrFileManager@@@Z @1766
+    ?setFilter@srCore@@QAEXPAVsrFilter@@@Z @1769
+    ?supportMultiThread@srCore@@QAEHXZ @1969
+    ?supportMultiThread@srCore@@QAEXH@Z @1970
+    ?initialized@srCore@@0HA DATA @1366
+    ?srLogo@@3QBEB DATA @1957
+    ?srInit@@YAHXZ @1955
+    ?srExit@@YAHXZ @1953
     ?getName@srVectorProcessor@@SAPBDXZ
     ?load@srVectorProcessor@@SAHPBD@Z
     ?getID@srVectorProcessor@@SAJPBD@Z
@@ -161,6 +186,20 @@ EXPORTS
     ?getExponent@srExponentTable@@QBEMXZ
     ?getValue@srExponentTable@@QBEMM@Z
     ?setExponent@srExponentTable@@IAEXM@Z
+    ??4srExponentTable@@QAEAAV0@ABV0@@Z @300
+    ??_FsrExponentTable@@QAEXXZ @491
+    ??0srCachedExponentTable@@IAE@M@Z @71
+    ??1srCachedExponentTable@@IAE@XZ @199
+    ??4srCachedExponentTable@@QAEAAV0@ABV0@@Z @289
+    ??_FsrCachedExponentTable@@QAEXXZ @488
+    ?freeAll@srCachedExponentTable@@SAXXZ @843
+    ?freeUnused@srCachedExponentTable@@SAXXZ @848
+    ?get@srCachedExponentTable@@SAPAV1@M@Z @854
+    ?release@srCachedExponentTable@@QAEXXZ @1564
+    ?first@srCachedExponentTable@@1PAV1@A DATA @808
+    ?lastResult@srCachedExponentTable@@1PAV1@A DATA @1422
+    ?count@srCachedExponentTable@@1JA DATA @654
+    ?lastQuery@srCachedExponentTable@@1MA DATA @1421
     ??0srEnvironmentMapper@@QAE@XZ
     ??0srEnvironmentMapper@@QAE@ABV0@@Z
     ??1srEnvironmentMapper@@UAE@XZ
@@ -174,6 +213,9 @@ EXPORTS
     ??0srModelIOManager@@QAE@XZ
     ??0srDebugVP@@QAE@PAVsrVP@@@Z
     ?resetInternalStatistics@srDebugVP@@AAEXXZ
+    ?reset@srStatisticsManager@@QAEXXZ @1600
+    ?getStatistics@srStatisticsManager@@QBEXAAUStatistics@1@@Z @1234
+    ?dump@srStatisticsManager@@QAEXAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@ABUStatistics@1@@Z @726
     ??0srConfig@@QAE@XZ
     ??1srConfig@@QAE@XZ
     ?append@srConfig@@QAEXPBD0@Z
@@ -201,6 +243,8 @@ EXPORTS
     ?msize@srHeap@@QAEKPAX@Z
     ?srHeap@@3V0@A DATA
     ?srDebugPrintf@@YAJKPBDZZ
+    ?_srLibraryInit@@YAXXZ @522
+    ?_srLibraryExit@@YAXXZ @521
     ?srPrintf@@YAJPBDZZ
     ?srStreamPrintf@@YAJAAV?$basic_ostream@DU?$char_traits@D@std@@@std@@PBDZZ
     ?srAssertFail@@YAXPBD0J0ZZ
@@ -624,6 +668,7 @@ EXPORTS
     ??0srMaterial@@QAE@XZ
     ??0srMaterialIFace@@QAE@ABV0@@Z
     ??0srMaterialIFace@@QAE@XZ
+    ??1srMaterialIFace@@UAE@XZ @223
     ??0srMemoryAllocator@@QAE@XZ
     ??0srModeler@@QAE@XZ @131
     ??0srScene@@QAE@ABV0@@Z
@@ -1185,6 +1230,7 @@ EXPORTS
     ?getTextureFormatCount@srGERD@@QBEKXZ
     ?getTextureFormats@srDebugDD@@UAEXAAUPixelFormatList@srDD@@@Z
     ?getTextureFrameHandle@srTexture@@UAEKXZ
+    ?getTextureName@srTextureIFace@@UAEPBDXZ @1268
     ?getTextureFrameHandle@srTextureMap@@UAEKXZ
     ?getTextureInfo@srGERD@@QAEHPAVsrTextureIFace@@AAUTextureInfo@1@@Z
     ?getTextureParms@srTexture@@UAEXAAUParameters@srTextureIFace@@@Z
@@ -1221,6 +1267,7 @@ EXPORTS
     ?getYieldCount@srThread@@SAJXZ
     ?good@srBinStream@@QBE_NXZ
     ?importSurface@srSurfaceIOManager@@QAEPAVsrColorSurfaceIFace@@PBDABUImportInfo@1@@Z
+    ?exportSurface@srSurfaceIOManager@@QAEXPBDAAVsrColorSurfaceIFace@@ABUExportInfo@1@@Z @759
     ?increaseCallTime@srDebugDD@@QAEXW4e_command@srDD@@N@Z
     ?init@srColorSurface@@AAEXABUPixelFormat@srPixelConvert@@KKK@Z
     ?initBaseVP@srVectorProcessor@@SAXXZ

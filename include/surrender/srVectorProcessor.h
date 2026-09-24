@@ -407,8 +407,10 @@ public:
     }
 
 private:
-    /* srMaterial::postProcess dispatches the per-vertex blend through vp. */
+    /* srMaterial::postProcess dispatches the per-vertex blend through vp;
+       srCore::dump reads it directly for the Vector Processor report line. */
     friend class srMaterial;
+    friend class srCore;
     static void install(srVP* processor);
     // GLOBAL: SURRENDER 0x100A923C
     static SR_DLL_IMPORT srVP* vp;

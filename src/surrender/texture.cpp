@@ -382,3 +382,9 @@ void srTexture::getTextureParms(Parameters& parameters)
     parameters.packed_state_00 = packed_state_18;
     parameters.mipmap_bias_04 = mipmap_bias_1c;
 }
+
+// FUNCTION: SURRENDER 0x1005F140
+const char* srTextureIFace::getTextureName()
+{
+    return getName();
+}

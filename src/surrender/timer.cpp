@@ -717,15 +717,6 @@ char* srTimer::getStorage(char* buffer, unsigned long size)
     return buffer;
 }
 
-// FUNCTION: SURRENDER 0x10062750
-int srTimer::fastThreads()
-{
-    if (osThreadState == -1) {
-        getOsIdent();
-    }
-    return osThreadState == 1;
-}
-
 // FUNCTION: SURRENDER 0x10062770
 int srTimer::isPaused() const
 {

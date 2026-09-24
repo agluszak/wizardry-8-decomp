@@ -137,6 +137,9 @@ public:
     srArray<srVertexArray> vertex_arrays_a4;
 
 protected:
+    /* srExit releases the singleton through this protected static. */
+    friend SR_DLL_IMPORT int __cdecl srExit(void);
+
     static SR_DLL_IMPORT srTriMeshPipeline* pipe;
 
 private:

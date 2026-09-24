@@ -74,7 +74,19 @@ public:
     unsigned long getUnits() const;
     void setUnits(unsigned long units);
     int isPaused() const;
-    int fastThreads();
+    /* Header-visible like srCore::getRegistry: srInit expands the
+       osThreadState/getOsIdent sequence inline rather than calling the
+       out-of-line emission, so the original header carried this body. The
+       provider's standalone export still binds the retail emission. */
+    // FUNCTION: SURRENDER 0x10062750 SYMBOL
+    // ?fastThreads@srTimer@@QAEHXZ
+    int fastThreads()
+    {
+        if (osThreadState == -1) {
+            getOsIdent();
+        }
+        return osThreadState == 1;
+    }
     const char* getCPUTypeIdString(e_cpuTypeId type) const;
     /* "<hive>:<path>" names the registry location store()/retrieve() use; a
        null storage selects default_storage. */

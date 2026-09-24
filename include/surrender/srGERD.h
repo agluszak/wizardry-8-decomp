@@ -640,7 +640,7 @@ public:
     void extCommand(unsigned long command, void* data, unsigned long size);
     void disable(e_enable option);
     void enable(e_enable option);
-    const srShader& getShader() const;
+    srShader getShader() const;
     void fenceVertexArrays();
     /* Retail 0x1001BBB0: submits one triangle through drawElements. */
     void drawTriangle(const srVector3i& triangle);
@@ -1011,7 +1011,9 @@ private:
     unsigned char unknown_19f4_[4];
     /* Snapshot getStatistics refreshes on every flipFrame; dump prints it. */
     Statistics statistics_19f8_;
-    Statistics statistics_1a78_;
+    /* getDD counts each device access at value_68 (the overlay's "DD" row),
+       so the live counters are writable from const. */
+    mutable Statistics statistics_1a78_;
     /* accumAlloc sizes this width*height*8 accumulation pixel buffer plus a
        width*4 scratch block; accumClear fills it from clear_values_1b08_'s
        accum color over the current scissor. */
