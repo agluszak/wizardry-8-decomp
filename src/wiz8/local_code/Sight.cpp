@@ -678,8 +678,13 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                 } else {
                     fade_flag = 0;
                 }
+                srVector3T<float> observer_position;
+                srVector3T<float> target_position;
+
+                observer_position = own_position;
+                target_position = camera_position;
                 float threshold = ComputeSightThreshold(
-                    own_position, camera_position, yaw, monster_info->attributes[4], fade_flag,
+                    observer_position, target_position, yaw, monster_info->attributes[4], fade_flag,
                     monster_info->uiCondition[0xc] != 0, record->kind_0cb == 0xc,
                     static_cast<int>(minimum_level), static_cast<int>(sight_override),
                     monster_info->player_visibility.sight_state_04, 0, player_distance);

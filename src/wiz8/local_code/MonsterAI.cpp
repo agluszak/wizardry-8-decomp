@@ -439,12 +439,12 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, char engage)
 char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
 {
     W8Monster* monster;
-    char changed;
+    bool changed;
     char mode;
 
     monster = monster_info->p3D;
     mode = 0;
-    changed = 0;
+    changed = false;
     if (monster->face_party_290 != 0 && monster_info->pathing_cooldown_246 == 0 &&
         monster_info->player_visibility.line_of_sight_28 != 0) {
         srVector3T<float> delta;
@@ -524,7 +524,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
                     NoiseHearingMargin004F0E50(monster_info->heard_noise_radius_43,
                                                static_cast<int>(range), hops) > 0) {
                     mode = 4;
-                    changed = 1;
+                    changed = true;
                 } else {
                     mode = 8;
                 }
@@ -559,7 +559,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
             case 1:
                 mode = 6;
                 if (monster->movement_stopped_024 != 0) {
-                    changed = 1;
+                    changed = true;
                 }
                 break;
             case 2:
@@ -593,7 +593,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
                 } else {
                     monster->patrol_index_2ac = (signed char)Random(count);
                 }
-                changed = 1;
+                changed = true;
                 break;
             }
             case 4:
@@ -601,13 +601,13 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
                 monster->move_direction_2bc.y = monster->direction_y_2b4;
                 monster->move_direction_2bc.z = monster->direction_z_2b8;
                 mode = 0xa;
-                changed = 1;
+                changed = true;
                 break;
             }
         }
     }
     if (mode != static_cast<char>(monster_info->ai_mode_255)) {
-        changed = 1;
+        changed = true;
     }
     *decision = (unsigned char)mode;
     return changed;
