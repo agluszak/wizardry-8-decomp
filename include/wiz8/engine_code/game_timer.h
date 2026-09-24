@@ -19,7 +19,7 @@ public:
     W8GameTimer();
     W8GameTimer(float duration, unsigned char raw_time);
     virtual ~W8GameTimer();
-    __forceinline int ReadClock() const
+    int ReadClock() const
     {
         switch (m_clock_mode) {
         case 1:

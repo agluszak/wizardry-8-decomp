@@ -1720,8 +1720,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             srAssertFail("pMonsterInfo->fMissileReleased", COMBAT_ATTACK_CPP, 0x80b,
                          FormatString("ContinueMonsterAttack: ERROR - Missile not released, ID %d, "
                                       "cycle %d, pending %d",
-                                      monster_info->location_id,
-                                      MonsterQuery(monster_info->p3D, 6),
+                                      monster_info->location_id, MonsterQuery(monster_info->p3D, 6),
                                       monster_info->p3D->m_pRep->pending_cycle));
         }
         if (g_combat_state->missile_hit_result == 1) {
@@ -1841,8 +1840,8 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                                     g_effect_argument_005ed914);
             }
             if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER &&
-                static_cast<char>(
-                    target_info->p3D->IsFacingMonster004C4CA0(monster_info->p3D)) != 0 &&
+                static_cast<char>(target_info->p3D->IsFacingMonster004C4CA0(monster_info->p3D)) !=
+                    0 &&
                 target_info->fMotionless == 0) {
                 StartMonsterCycle(target_info, 0x13, 1);
             }
@@ -3632,7 +3631,7 @@ void FireCharacterItemMissile00544B60(int party_slot, W8Character* pc, W8CombatC
     accuracy = GetTargetAttackAttributes(
         party_slot, row->current_hand,
         g_status_685170.buffers.XChar[party_slot].attack_mode[row->current_hand], 0);
-    CombatLog("TO HIT (MISSILE_ACCURACY): Chance %d", accuracy);
+    CombatLog("TO HIT (MISSILE ACCURACY): Chance %d", accuracy);
     FireMissileSourceToTarget(missile_type, &source,
                               &g_status_685170.buffers.XChar[party_slot].target_out_of_combat,
                               &attack_block, 0, range_category, accuracy);
@@ -3780,9 +3779,9 @@ char StartCharacterAttack(int party_slot, int attack_mode)
     }
     party_row->attack_mode[hand] = mode;
     if (row->hand_attack_values_40[hand] == 0) {
-        FormatDebugMessage(1,
-                           "ERROR: %ls is starting attack with 0 of %d attacks remaining (hand %d)",
-                           character->name, row->saved_attack_value[hand], hand);
+        FormatDebugMessage(
+            1, "ERROR: %ls is starting attack with 0 of %d attacks remaining (hand %d)!",
+            character->name, row->saved_attack_value[hand], hand);
         return 0;
     }
     row->hand_attack_values_40[hand]--;

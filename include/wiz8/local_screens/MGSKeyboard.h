@@ -159,10 +159,10 @@ void ResetMGSKeyboardBindings();
 void DrainInputEventQueue(void); /* 0x0055D3C0 */
 /* Reset the slot's combat selection and tear down the menu panel and rows.
    Retail inlines the whole body at all twelve MGSKeyboard.cpp call sites but
-   emits real calls from MainGameScreen.cpp: the authored definition was a
-   force-inlined function visible only in its own TU, kept addressable for the
+   emits real calls from MainGameScreen.cpp: the authored definition was an
+   inline function visible only in its own TU, kept addressable for the
    row-callback tables. */
-__forceinline void CloseKeyboardMenu(void); /* 0x00592E60 */
+inline void CloseKeyboardMenu(void); /* 0x00592E60 */
 /* Open the keyboard-action menu for one party slot. */
 void OpenKeyboardMenuForSlot(int slot); /* 0x00592C70 */
 /* Build the panel and one row per selectable menu entry. */

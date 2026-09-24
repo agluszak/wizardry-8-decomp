@@ -625,7 +625,7 @@ unsigned short OctBuildPreTree::LoadRegionFile004B0C90(const char* stem, srVecto
         ReportBuildStatus00497690(6, "WARNING: Could not find and\\or open region file.\n\n");
         return 0;
     }
-    ReportBuildStatus00497690(6, "Reading Region File...\n");
+    ReportBuildStatus00497690(6, "\nReading Region File...\n");
     DWORD read;
     int count;
     unsigned char ok = ReadFile(file, &count, 4, &read, 0) & 1;
@@ -710,7 +710,8 @@ void OctBuildPreTree::FindLeafRegions004B1090(W8OctBuildNode00446330* node,
             if (node->region_arrays_00[1] == 0) {
                 unsigned short* list = static_cast<unsigned short*>(malloc(100));
                 if (list == 0) {
-                    ReportBuildStatus00497690(7, "Could not allocate region list.\n");
+                    ReportBuildStatus00497690(
+                        7, "Could not allocate region list in FindLeafRegions.\n");
                     return;
                 }
                 for (int i = 0; i != 50; ++i) {
@@ -911,8 +912,7 @@ unsigned char OctBuildPreTree::AssignPolygonRegions004B1280(W8OctPreTreeGeometry
         do {
             if (geometry->polygons_0c[polygon].region_32 == 0) {
                 char message[256];
-                sprintf(message, "Poly %d not found in correct region.\n",
-                        static_cast<int>(polygon));
+                sprintf(message, "Poly %d not found in ANY region.\n", static_cast<int>(polygon));
                 ReportBuildStatus00497690(6, message);
             }
             count = spatial_00.polygon_count_3c;
@@ -2006,7 +2006,7 @@ OctPreTree* OctBuildPreTree::BuildOctPreTree004B4640()
                                                  ? spatial_00.max_region_radius_60
                                                  : g_float_005ed038;
     while (selected_depth_c0 < tree->spatial_000.depth_44) {
-        ReportBuildStatus00497690(6, "Collapsing tree by one level.");
+        ReportBuildStatus00497690(6, "Collapsing tree by one level.\n");
         --tree->spatial_000.depth_44;
         tree->spatial_000.node_extent_70 += tree->spatial_000.node_extent_70;
     }

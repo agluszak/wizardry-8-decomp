@@ -197,8 +197,7 @@ int FindItemTableByName(const char* name)
 #pragma clang diagnostic pop
 }
 
-static __forceinline W8WorldItem* CreateTableItem(unsigned int item_id,
-                                                  const srVector3T<float>* position)
+static inline W8WorldItem* CreateTableItem(unsigned int item_id, const srVector3T<float>* position)
 {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wsign-compare"
@@ -861,7 +860,7 @@ void UpdateNearbyWorldItems(void)
             if (DistanceBetweenPoints004BE6D0(&item->position, &camera) < g_float_005ed7b8) {
                 if (g_byte_0064a1cd != 0) {
                     if (item == 0) {
-                        srAssertFail("pItemInfo", ITEM_MANAGER_CPP, 0x3e6, 0);
+                        srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 0x3e6, 0);
                     }
                     if (ItemHasFlags(item, 1)) {
                         goto next_item;

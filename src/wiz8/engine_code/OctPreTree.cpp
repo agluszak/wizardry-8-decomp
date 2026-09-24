@@ -101,7 +101,7 @@ void W8OctSpatialState::SetWorkingBounds00467B70(const srVector3T<float>* minimu
 /* Resets the collected-id run and appends every not-yet-seen polygon id the
    leaf under `cell` lists.  The trace walk inlines this sequence at each of
    the six cells it probes. */
-__forceinline void OctPreTree::CollectLeafPolygons(const int* cell)
+inline void OctPreTree::CollectLeafPolygons(const int* cell)
 {
     m_gd_result_count_1b8 = 0;
     unsigned int leaf_index = LeafIndexForCell(cell);
@@ -1179,7 +1179,7 @@ void OctPreTree::VerifyAutoMeshes0046AD10(W8OctPreTreeGeometry* geometry,
                 int node = DescendByMask(cell);
                 if (node != 0) {
                     if (m_owned_09c[node].region_02 != static_cast<short>(mesh)) {
-                        ReportBuildStatus00497690(7, "Region has wrong automesh.\n");
+                        ReportBuildStatus00497690(7, "Region has wrong automesh.");
                     }
                     float min_x = g_float_005ec3c0;
                     float min_y = 1e+06f;

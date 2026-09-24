@@ -2047,8 +2047,10 @@ void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, unsigned char maximu
     unsigned int index;
 
     if ((unsigned int)item_id >= gXStatus.uiItemsInDatabase) {
-        srAssertFail("uiItemNo < gXStatus.uiItemsInDatabase", PC_ITEM_CPP, 564,
-                     FormatString("InitNewItem: error: invalid item %d", item_id));
+        srAssertFail(
+            "uiItemNo < gXStatus.uiItemsInDatabase", PC_ITEM_CPP, 564,
+            reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
+                String("InitNewItem: error, invalid item # %ld specified", item_id)));
     }
 
     if (item == &g_status_685170.item_in_hand_235b) {
@@ -2851,10 +2853,9 @@ unsigned char MergeItemStacks(W8ItemInstance* destination, W8ItemInstance* sourc
     if (destination->stack_count > record->maximum_quantity) {
         srAssertFail(
             "FALSE", PC_ITEM_CPP, 3371,
-            FormatString(
-                "StackItemsIfPossible: ERROR - slot quantity %d exceeds maximum %d for item %d %S",
-                destination->stack_count, record->maximum_quantity, destination->iItemNo,
-                FormatItemDisplayName(destination, 1)));
+            FormatString("StackItemsIfPossible: ERROR - slot holds %d when max is %d, item %d(%ls)",
+                         destination->stack_count, record->maximum_quantity, destination->iItemNo,
+                         FormatItemDisplayName(destination, 1)));
         destination->stack_count = record->maximum_quantity;
     }
     if (destination->iItemNo != source->iItemNo || destination->identified != source->identified) {
@@ -4049,7 +4050,7 @@ int CastItemSpell0051EE70(W8Character* character, W8ItemInstance* item, unsigned
         int power_out = static_cast<int>(power);
         effect = CastSpellFromSource(
             spell_id, &target, &g_status_685170.buffers.XChar[party_slot].target_out_of_combat,
-            power, 0, static_cast<int>(difficulty), 0, &power_out, difficulty_kind, 0, 0);
+            power, 0, difficulty, 0, &power_out, difficulty_kind, 0, 0);
         power = static_cast<unsigned int>(power_out);
     }
 

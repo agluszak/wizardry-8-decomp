@@ -88,7 +88,7 @@ public:
     Listener* m_listener; /* 0xb4 */
 
 protected:
-    __forceinline void InvalidateCore(unsigned char immediate);
+    void InvalidateCore(unsigned char immediate);
 };
 static_assert(sizeof(W8TextControl) == 0xb8, "W8TextControl_size");
 

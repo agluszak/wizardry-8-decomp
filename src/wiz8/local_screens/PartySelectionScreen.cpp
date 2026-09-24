@@ -70,9 +70,7 @@ void MSYS_SGP_Mouse_Handler_Hook(unsigned short event, unsigned short x, unsigne
    bytes allocated at party-selection entry. The second vector supplies the names this
    control renders; the first owns the corresponding party records. */
 struct W8PartySelectionCharacterCollection {
-    __forceinline W8PartySelectionCharacterCollection() : characters(5), names(), first_visible(0)
-    {
-    }
+    W8PartySelectionCharacterCollection() : characters(5), names(), first_visible(0) {}
     ~W8PartySelectionCharacterCollection();
     W8Character* GetCharacter(int index);
     int FindPartySlot(int index);
@@ -304,8 +302,8 @@ public:
 // VTABLE: WIZ8 0x005ef464
 class W8PartySelectionListControl005EF464 : public W8Widget, public W8RangeListener {
 public:
-    __forceinline W8PartySelectionListControl005EF464(Controls* panel, unsigned int region,
-                                                      int left, int top, int right, int bottom)
+    W8PartySelectionListControl005EF464(Controls* panel, unsigned int region, int left, int top,
+                                        int right, int bottom)
         : W8Widget(panel, region, left, top, right, bottom), m_visible_rows(0x11), m_selection(0),
           m_hovered(-1), m_first_visible(0), m_listener(0)
     {
@@ -453,7 +451,7 @@ static_assert(sizeof(W8PartySelectionCharacterRow005EF364) == 0xc4,
 // class W8PartySelectionInputHandler005C0E50
 class W8PartySelectionInputHandler005C0E50 {
 public:
-    __forceinline W8PartySelectionInputHandler005C0E50() {}
+    W8PartySelectionInputHandler005C0E50() {}
     virtual ~W8PartySelectionInputHandler005C0E50()
     {
         RemoveTextInputField(0);
@@ -546,7 +544,7 @@ W8_ASSERT_BASE_END(W8PartySelectionPartySlotPanel005EF438, W8ControlSelectionLis
 
 class W8PartySelectionCharacterSummaryPanel005EF4E0 : public Controls {
 public:
-    __forceinline W8PartySelectionCharacterSummaryPanel005EF4E0() : Controls(), m_character_4c(0) {}
+    W8PartySelectionCharacterSummaryPanel005EF4E0() : Controls(), m_character_4c(0) {}
     virtual ~W8PartySelectionCharacterSummaryPanel005EF4E0();
     virtual void Redraw() override;
 
@@ -588,10 +586,7 @@ class W8PartySelectionController : public W8TextControl::Listener,
                                    public W8PartySelectionListSelectionListener005EF4C8,
                                    public W8PartySelectionDecisionListener005EF4C0 {
 public:
-    __forceinline W8PartySelectionController()
-        : m_character_18(0), m_input_handler_64(0), m_dialog_68(0)
-    {
-    }
+    W8PartySelectionController() : m_character_18(0), m_input_handler_64(0), m_dialog_68(0) {}
     ~W8PartySelectionController();
 
     virtual void OnPrimary(W8TextControl* control) override;

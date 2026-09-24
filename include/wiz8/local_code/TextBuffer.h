@@ -42,7 +42,7 @@ public:
     void SetLayoutBounds(const W8ControlsRect* bounds, unsigned char copy_pending,
                          unsigned char update_layout);
 
-    __forceinline void SetLayoutBounds(int left, int top, int right, int bottom)
+    void SetLayoutBounds(int left, int top, int right, int bottom)
     {
         m_layoutBounds.left = left;
         m_layoutBounds.top = top;
@@ -51,23 +51,23 @@ public:
         m_pendingBounds = m_layoutBounds;
     }
 
-    __forceinline int HasBuffer() const
+    int HasBuffer() const
     {
         return m_buffer != 0;
     }
-    __forceinline void SetGeometryDirty()
+    void SetGeometryDirty()
     {
         m_geometryDirty = 1;
     }
-    __forceinline void SetRenderMode(int mode)
+    void SetRenderMode(int mode)
     {
         m_renderMode = mode;
     }
-    __forceinline void SetFontStateIndex(int index)
+    void SetFontStateIndex(int index)
     {
         m_fontStateIndex = index;
     }
-    __forceinline void MarkGeometryDirty(int mode)
+    void MarkGeometryDirty(int mode)
     {
         m_geometryDirty = 1;
         m_layoutMode = mode;

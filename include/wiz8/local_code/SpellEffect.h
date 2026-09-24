@@ -95,7 +95,7 @@ struct W8SpellEffectEntry {
     /* Every construction site inlines this sequence: the member vectors are
        built first, then the working source, the target slot, the carried
        effect definition, the state flags and the whole result block are
-       cleared; OrigSource and unknown_03c are left for the caller to fill. */
+       cleared; OrigSource and OrigTarget are left for the caller to fill. */
     W8SpellEffectEntry()
     {
         kind = 0;
@@ -119,7 +119,9 @@ struct W8SpellEffectEntry {
     int turns_remaining; /* 0x004 */
     /* Magic.cpp asserts this as pOrigSource: the cast's original source. */
     W8TargetSource OrigSource; /* 0x008 */
-    unsigned char unknown_03c[0x20];
+    /* The cast's original target slot, copied beside OrigSource before any
+       backfire retargeting; the save chunk stores it after OrigSource. */
+    W8CombatSlot OrigTarget; /* 0x03c */
     /* Magic Effects.cpp asserts this as pQueue->Source: the working source the
        hostility walk and effect bodies hand to CollectHostileMonsters / damage. */
     W8TargetSource Source; /* 0x05c */

@@ -72,9 +72,9 @@ static_assert(sizeof(W8OctreeTrace) == 0x30, "W8OctreeTrace_must_be_0x30");
    complete 12-byte record rather than raw storage, and the family is keyed
    on the float vector width (srVector2/3/4 are the float typedefs), so the
    float spelling is canonical and the integer triples are the reused case. */
-bool WriteVector4Array004372E0(int file, const srVector4T<float>* values, int count);
-bool WriteVector3Array00437390(int file, const srVector3T<float>* values, int count);
-bool WriteVector2Array00437430(int file, const srVector2T<float>* values, int count);
+BOOLEAN WriteVector4Array004372E0(int file, const srVector4T<float>* values, int count);
+BOOLEAN WriteVector3Array00437390(int file, const srVector3T<float>* values, int count);
+BOOLEAN WriteVector2Array00437430(int file, const srVector2T<float>* values, int count);
 bool ReadVector4Array004374C0(int file, srVector4T<float>* values, int count);
 bool ReadVector3Array004374E0(int file, srVector3T<float>* values, int count);
 bool ReadVector2Array00437510(int file, srVector2T<float>* values, int count);
@@ -122,22 +122,22 @@ inline bool ReadVectorArray(int file, srVector2T<float>* values, int count)
 
 /* The polygon index triples serialize through the same canonical 12-byte
    float-vector writer. */
-inline bool WriteVectorArray(int file, const srVector3i* values, int count)
+inline BOOLEAN WriteVectorArray(int file, const srVector3i* values, int count)
 {
     return WriteVector3Array00437390(
         file, reinterpret_cast<const srVector3T<float>*>(values), /* reinterpret-ok: the
             float writer's raw 12-byte record is the index-triple record */
         count);
 }
-inline bool WriteVectorArray(int file, const srVector3T<float>* values, int count)
+inline BOOLEAN WriteVectorArray(int file, const srVector3T<float>* values, int count)
 {
     return WriteVector3Array00437390(file, values, count);
 }
-inline bool WriteVectorArray(int file, const srVector4T<float>* values, int count)
+inline BOOLEAN WriteVectorArray(int file, const srVector4T<float>* values, int count)
 {
     return WriteVector4Array004372E0(file, values, count);
 }
-inline bool WriteVectorArray(int file, const srVector2T<float>* values, int count)
+inline BOOLEAN WriteVectorArray(int file, const srVector2T<float>* values, int count)
 {
     return WriteVector2Array00437430(file, values, count);
 }
@@ -417,7 +417,7 @@ public:
     /* Store `path` with its extension stripped into m_owned_0c0; the sibling
        data files are then derived from the stem. */
     bool SetPathStem(const char* path); /* 0x0042CF90 */
-    bool SavePoints00432D60(char* path);
+    BOOLEAN SavePoints00432D60(char* path);
     bool LoadPointFiles(const char* level_name);
     bool ReadRegionLinkFile(const char* level_name);
     /* Region containing `point` (1-based index into the volume array), else
@@ -435,7 +435,7 @@ public:
        `rebuild_all` sweeps every cell and discards the saved point list, a
        zero value samples a sparse checkerboard plus the stored points. */
     void BuildRegionLinks(char rebuild_all); /* 0x004314C0 */
-    bool SaveRegionLinks004331F0(char* path);
+    BOOLEAN SaveRegionLinks004331F0(char* path);
     unsigned char ValidateRegionMeshLinks00433AB0();
     /* Collect the live (mesh<<16)|polygon keys whose triangles overlap the
        (x±radius, y-height..y, z±radius) box, sorted and zero-terminated in

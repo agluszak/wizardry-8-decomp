@@ -273,7 +273,7 @@ char* TitleCaseString(char* string)
     return string;
 }
 
-static __forceinline float NormalizeAngleInline(float angle)
+static inline float NormalizeAngleInline(float angle)
 {
     if (!_finite(angle)) {
         srAssertFail("_finite(flAngle)",

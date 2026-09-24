@@ -264,7 +264,7 @@ unsigned char W8PathingService::SaveWaypointSnapshot00459400(unsigned char force
     if (waypoints_dirty_1cc == 0 && force == 0) {
         return 0;
     }
-    if (FileExists("cd-rom") != 0) {
+    if (FileExists("cd.rom") != 0) {
         return 0;
     }
 
@@ -487,9 +487,15 @@ void W8PathingService::BuildWaypointFileData0045E440()
                     }
                 }
                 if (g_dev_mode_689b32 != 0) {
-                    const char* message = removed == 0 ? "Deleting Isolated WayPt at:  %1f, %1f"
-                                                       : "Deleting Dead End WayPt at:  %1f, %1f";
-                    FormatDebugMessage(0, message, surface->position_04.x, surface->position_04.y);
+                    if (removed == 0) {
+                        FormatDebugMessage(0, "Deleting Isolated WayPt at (%.1f, %.1f, %.1f)",
+                                           surface->position_04.x, surface->position_04.y,
+                                           surface->position_04.z);
+                    } else {
+                        FormatDebugMessage(0, "Deleting Dead End WayPt at (%.1f, %.1f, %.1f)",
+                                           surface->position_04.x, surface->position_04.y,
+                                           surface->position_04.z);
+                    }
                 }
             }
         } else {
@@ -2464,7 +2470,7 @@ unsigned short W8PathingService::PlanMovement00463460(W8NavigatorMovementState* 
         best_node = path_heap_06c->root_node_04;
         if (best_node > search_node_count_0cc) {
             char message[80];
-            sprintf(message, "A:  Invalid node index %d from Queue.", best_node);
+            sprintf(message, "A*, Invalid node index %d from Queue", best_node);
             srAssertFail("(ulBestNode <= m_ulSearchNodesUsed)", OCTPATH_CPP, 0x22ad, message);
         }
     }
@@ -4804,7 +4810,7 @@ unsigned short W8PathingService::FindWaypoint0045B120(const srVector3T<float>* p
         return result;
     }
     if (static_cast<unsigned int>(count) >= 200) {
-        srAssertFail("s_ulCount<200", OCTPATH_CPP, 0xe0c, "Too many nodes in list");
+        srAssertFail("ulCount<200", OCTPATH_CPP, 0xe0c, "Too many nodes in list");
     }
 
     unsigned int distances[199];
@@ -5520,7 +5526,7 @@ void W8PathingService::DrawPathPosition0045C9A0(srVector3T<float> position, unsi
         best_node = path_heap_06c->root_node_04;
         if (best_node > search_node_count_0cc) {
             char message[80];
-            sprintf(message, "A:  Invalid node index %d from Queue.", best_node);
+            sprintf(message, "A*, Invalid node index %d from Queue", best_node);
             srAssertFail("(ulBestNode <= m_ulSearchNodesUsed)", OCTPATH_CPP, 0x1110, message);
         }
     }
@@ -5668,7 +5674,7 @@ stModelInstance* W8PathingService::EnsurePathVisualization0045D530()
 
     if (model == 0) {
         srAssertFail("pstMeshModel", OCTPATH_CPP, 0x11e9,
-                     "CreateWayPointMesh::Read -- Could not create pstMeshModel.");
+                     "CreateWayPointMesh::Read -- Could not create pstMeshModel.\n");
     }
     model->autoRelease();
     model->flags_3a0 &= ~1U;
@@ -5756,7 +5762,7 @@ stModelInstance* W8PathingService::EnsurePathVisualization0045D530()
     m_pPathModelInstance = CreateModelInstance0046F5C0(model);
     if (m_pPathModelInstance == 0) {
         srAssertFail("m_pPathModelInstance", OCTPATH_CPP, 0x1226,
-                     "CreateWayPointMesh -- Could not create pstModelInstance.");
+                     "CreateWayPointMesh -- Could not create pstModelInstance.\n");
     }
     m_pPathModelInstance->setName("WayPoint Mesh");
     m_pPathModelInstance->setExclusionMask(3);
@@ -6463,7 +6469,7 @@ unsigned int W8PathingService::EditWaypointLinkFlags0045F530(const char* title, 
     } else {
         sprintf(lines[0], "EDIT NEW WAYPOINT LINK FLAGS:");
     }
-    sprintf(lines[8], " ESC to Cancel, ENTER to Accept");
+    sprintf(lines[8], "ESC to Cancel, ENTER to Accept");
     for (;;) {
         current = ((direction & 1) != 0) ? flags[0] : flags[1];
         sprintf(lines[2], " (D)irections: ");

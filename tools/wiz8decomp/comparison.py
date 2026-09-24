@@ -123,6 +123,40 @@ def _added_call_lines(repository: Path, since: str) -> dict[Path, set[int]]:
     return added
 
 
+def _folded_callee_identity(engine: Compare, destination: int, callees: set[int]) -> int | None:
+    """Retail callee an unpaired recompiled function would have been folded into.
+
+    The comparison build links with /OPT:NOICF, so a source function that retail
+    ICF folded into another keeps its own unpaired body. It is that callee when
+    its code is byte-identical to the recompiled body of one retail callee and
+    contains no relative branch leaving the body, whose bytes would name a
+    different target at a different address.
+    """
+    from capstone.x86 import X86_OP_IMM
+    from reccmp.types import ImageId
+
+    from .binary.code import disassembler
+
+    entity = engine._db.get(ImageId.RECOMP, destination)
+    size = entity.size(ImageId.RECOMP) if entity is not None else None
+    if not size:
+        return None
+    body = bytes(engine.recomp_bin.read(destination, size))
+    for instruction in disassembler().disasm(body, destination):
+        if instruction.mnemonic in ("call", "jmp") or instruction.mnemonic.startswith("j"):
+            operand = instruction.operands[0]
+            if operand.type == X86_OP_IMM and not destination <= operand.imm < destination + size:
+                return None
+    identities = set()
+    for callee in callees:
+        match = engine._db.get_one_match(callee)
+        if match is None or match.size(ImageId.RECOMP) != size:
+            continue
+        if bytes(engine.recomp_bin.read(match.recomp_addr, size)) == body:
+            identities.add(callee)
+    return identities.pop() if len(identities) == 1 else None
+
+
 def check_changed_call_targets(repository: Path, target: str, since: str) -> dict[str, Any]:
     """Check direct calls emitted by changed source lines against retail callees."""
 
@@ -183,6 +217,8 @@ def check_changed_call_targets(repository: Path, target: str, since: str) -> dic
             checked += 1
             destination = instruction.operands[0].imm
             canonical = engine._db.alias_canonical_orig(ImageId.RECOMP, destination)
+            if canonical is None:
+                canonical = _folded_callee_identity(engine, destination, original_calls)
             if canonical not in original_calls:
                 errors.append(
                     {
