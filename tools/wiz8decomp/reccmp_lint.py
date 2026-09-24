@@ -1,4 +1,7 @@
-"""Use reccmp's parser/linter with the repository's explicit-order policy."""
+"""Use reccmp's marker linter with the repository's explicit-order policy.
+
+decomplint reads the marker blocks the compiler-backed source index
+collected (build/source-index.json, refreshed by `wiz8 check`)."""
 
 from __future__ import annotations
 
@@ -87,6 +90,7 @@ def _configured_lint_targets(repository: Path) -> tuple[DecomplintTarget, ...]:
             paths=tuple(source_code_search(target.source_paths)),
             module=target.target_id,
             encoding=target.encoding or "utf-8",
+            source_index=repository / "build" / "source-index.json",
             project_file_path=project_file,
             aliases=target.marker_aliases,
         )

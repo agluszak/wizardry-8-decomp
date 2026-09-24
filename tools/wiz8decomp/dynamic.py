@@ -361,9 +361,9 @@ def _global_semantic_ids(repo: Path, names: set[str]) -> dict[str, str]:
     index = SourceIndex.from_dict(load_source_index(repo))
     return {
         variable.qualified_name: variable.semantic_id
-        for variable in index.variables
+        for key, variable in index.variables.items()
         if variable.qualified_name in names
-        and variable.target == "WIZ8"
+        and key.target == "WIZ8"
         and variable.definition_kind == "definition"
     }
 

@@ -267,7 +267,7 @@ def _declared_names(document: Any) -> dict[str, set[str]]:
     """
 
     names: dict[str, set[str]] = {}
-    for (entry_target, _key), entry in declarations_by_semantic_key(document).items():
+    for (entry_target, _key, _unit), entry in declarations_by_semantic_key(document).items():
         qualified = str(entry.get("qualified_name") or "")
         if qualified:
             names.setdefault(qualified, set()).add(str(entry_target))

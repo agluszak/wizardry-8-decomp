@@ -59,6 +59,7 @@ def _definition(
 ) -> dict:
     return {
         "target": "WIZ8",
+        "unit_id": None,
         "semantic_id": semantic_id,
         "qualified_name": name,
         "semantic_kind": "instance_method" if owning_class else "free_function",
@@ -79,7 +80,7 @@ def _marker(
     *,
     name: str | None = None,
     source_file: str = "src/wiz8/example.cpp",
-    declaration_key: list[str] | None = None,
+    declaration_key: list[str | None] | None = None,
 ) -> dict:
     return {
         "address": 0x00401000,
@@ -101,7 +102,7 @@ def test_function_marker_cannot_claim_class_template_emission(tmp_path: Path) ->
     )
     marker = _marker(
         "FUNCTION",
-        declaration_key=["WIZ8", declaration["semantic_id"]],
+        declaration_key=["WIZ8", declaration["semantic_id"], None],
     )
     repository = _index(tmp_path, markers=[marker], declarations=[declaration])
 
@@ -132,7 +133,7 @@ def test_marker_only_emissions_cannot_bind_authored_declarations(tmp_path: Path,
     marker = _marker(
         kind,
         name="W8Thing::Body",
-        declaration_key=["WIZ8", declaration["semantic_id"]],
+        declaration_key=["WIZ8", declaration["semantic_id"], None],
     )
     repository = _index(tmp_path, markers=[marker], declarations=[declaration])
 

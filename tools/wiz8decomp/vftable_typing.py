@@ -827,9 +827,9 @@ def collect_vftable_typing_plan(
 
     classes = [
         record
-        for record in index.classes
+        for key, record in index.classes.items()
         if (record.vtable_address is not None or record.base_vtables)
-        and (record.target is None or record.target.upper() == target.upper())
+        and (key.target is None or key.target.upper() == target.upper())
     ]
     if wanted is not None:
         classes = [
