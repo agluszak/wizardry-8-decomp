@@ -7,7 +7,14 @@
 #include "srShader.h"
 #include "srTextureIFace.h"
 
+/* Retail exports the private getUniqueVertexList/isClockwise members and the
+   implicit copy constructor/assignment, so the class is dllexport under
+   SURRENDER_BUILD; consumer TUs stay member-level imported. */
+#if defined(SURRENDER_BUILD)
+class __declspec(dllexport) srModeler {
+#else
 class SR_DLL_IMPORT srModeler {
+#endif
 public:
     /* Axis selector indexing the position components: getAxialBounds and the
        mapping functions read (&vertex.position_00.x)[axis], proving X=0,
@@ -86,7 +93,9 @@ public:
 
     /* Retail exports the full Triangle lifecycle sweep including the implicit
        copy/assignment bodies, so the declaration is dllexport under
-       SURRENDER_BUILD. */
+       SURRENDER_BUILD. The implicit copy constructor (0x10037C10) is a
+       trivial memberwise emission whose odr-use lives in still-unrecovered
+       modeler code; the .def entry preserves the export identity. */
     class
 #if defined(SURRENDER_BUILD)
         __declspec(dllexport)
@@ -106,7 +115,9 @@ public:
 
     /* Retail exports the full Polygon lifecycle sweep including the implicit
        copy/assignment bodies, so the declaration is dllexport under
-       SURRENDER_BUILD. */
+       SURRENDER_BUILD. The implicit copy constructor (0x10037CF0) is a
+       trivial memberwise emission whose odr-use lives in still-unrecovered
+       modeler code; the .def entry preserves the export identity. */
     class
 #if defined(SURRENDER_BUILD)
         __declspec(dllexport)
@@ -131,6 +142,15 @@ public:
 
     srModeler();
     virtual ~srModeler();
+
+    /* Implicit copy constructor/assignment: emitted via the class-level
+       dllexport as memberwise copies (the srArray<Triangle> member owns the
+       triangle storage clone). */
+    // SYNTHETIC: SURRENDER 0x10037DE0
+    // ??0srModeler@@QAE@ABV0@@Z
+    // SYNTHETIC: SURRENDER 0x10037F90
+    // srModeler::operator=
+
     void discard();
 
     unsigned long getTriangleCount() const;

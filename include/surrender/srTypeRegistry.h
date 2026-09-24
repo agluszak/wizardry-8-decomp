@@ -47,6 +47,7 @@ public:
         srRuntimeClass* findRelative(ClassNode* requested_class, int exact,
                                      const srRuntimeClass* relative_to);
         srRuntimeClass* findByID(ClassNode* requested_class, unsigned long id, int exact);
+        void dump(std::ostream& stream, int indent);
 
         ClassNode(ClassNode* parent, const char* class_name, unsigned long class_id);
         ~ClassNode();

@@ -1063,7 +1063,7 @@ void srGERD::Renderer::render(const TriInput& input)
             return;
         }
     }
-    if (gerd_d4_->pick_depth_19ec_ != 0) {
+    if (gerd_d4_->pick_176c_.pick_depth_280_ != 0) {
         PickInput pick;
         pick.indices_00 = batch->indices_0c;
         pick.triangles_04 = batch->triangles_10;

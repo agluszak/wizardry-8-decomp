@@ -54,6 +54,7 @@ add_library(wiz8_surrender_objects OBJECT
     vc6_runtime.cpp
     video_manager.cpp
     window.cpp
+    window_out.cpp
     vector_processor.cpp
 )
 target_compile_definitions(wiz8_surrender_objects PRIVATE SURRENDER_BUILD)
@@ -93,6 +94,7 @@ set_source_files_properties(
     type_registry.cpp
     vector_processor.cpp
     video_manager.cpp
+    window_out.cpp
     PROPERTIES COMPILE_OPTIONS "$<$<CXX_COMPILER_ID:MSVC>:/GX>")
 target_link_libraries(wiz8_surrender_objects PRIVATE wiz8_compile_settings)
 wiz8_lint_target(wiz8_surrender_objects)

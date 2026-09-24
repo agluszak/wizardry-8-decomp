@@ -1218,13 +1218,13 @@ void RenderFrame(void)
             int half_width = (g_viewport_6595e8.right - g_viewport_6595e8.left) / 2;
             int half_height = (g_viewport_6595e8.bottom - g_viewport_6595e8.top) / 2;
             srGERD::Pick pick;
-            pick.x_00 = (g_cursor_hotspot_x_6596bc - half_width - g_viewport_6595e8.left +
+            pick.position_00.x = (g_cursor_hotspot_x_6596bc - half_width - g_viewport_6595e8.left +
                          g_cursor_width_654ad0) /
                         static_cast<float>(half_width);
-            pick.y_04 = -static_cast<float>(g_cursor_hotspot_y_6596c0 - half_height -
+            pick.position_00.y = -static_cast<float>(g_cursor_hotspot_y_6596c0 - half_height -
                                             g_viewport_6595e8.top + g_cursor_height_654ad4) /
                         static_cast<float>(half_height);
-            pick.z_08 = 1.0f;
+            pick.position_00.z = 1.0f;
             pick.selected_model_0c = 0;
             pick.value_10 = 0;
             g_gerd_659634->setPickKey(0);
