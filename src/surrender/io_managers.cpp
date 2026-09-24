@@ -88,6 +88,20 @@ srIOManager::~srIOManager()
     delete importers_04_.first_04;
 }
 
+// FUNCTION: SURRENDER 0x1002CD90
+srIOManager::srIOManager(const srIOManager& manager)
+    : importers_04_(manager.importers_04_), exporters_10_(manager.exporters_10_)
+{
+}
+
+// FUNCTION: SURRENDER 0x1002CDD0
+srIOManager& srIOManager::operator=(const srIOManager& manager)
+{
+    importers_04_ = manager.importers_04_;
+    exporters_10_ = manager.exporters_10_;
+    return *this;
+}
+
 // FUNCTION: SURRENDER 0x1002D1C0
 const char* srIOManager::getExtension(const char* path)
 {
