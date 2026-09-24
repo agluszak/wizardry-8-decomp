@@ -603,7 +603,7 @@ stModelInstance* CreateModelInstance0046F5C0(stMeshModel* model)
     if (instance == 0) {
         srAssertFail("pstHeadInstance", THREE_D_CPP, 0x5c2, 0);
     }
-    instance->setName("ST CreateInstance");
+    instance->setName("ST_CreateInstance");
     instance->assignModel(model);
     return instance;
 }
@@ -621,7 +621,7 @@ stModelInstance* DuplicateModelInstance0046F680(stModelInstance* instance)
         srAssertFail("pstHeadInstance", THREE_D_CPP, 0x5d1, 0);
     }
     *copy = *instance;
-    copy->setName("ST CreateInstance");
+    copy->setName("ST_CreateInstance");
     copy->assignModel(instance->model());
     return copy;
 }

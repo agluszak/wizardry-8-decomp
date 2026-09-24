@@ -640,11 +640,11 @@ unsigned int LoadWorldCursorNodes0048E7B0(int handle)
         int component;
 
         if (version < 2) {
-            sprintf(cube->name_24, "Cube_%d", index);
+            sprintf(cube->name_24, "Cube%d", index);
         } else {
             FileRead(handle, cube->name_24, 0x20, 0);
             if (cube->name_24[0] == 0) {
-                sprintf(cube->name_24, "Cube_3_%d", gXStatus.mipe_cube_serial++);
+                sprintf(cube->name_24, "Cube%3.3d", gXStatus.mipe_cube_serial++);
             }
         }
         for (component = 0; component < 3; ++component) {

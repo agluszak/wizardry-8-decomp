@@ -470,7 +470,7 @@ stModelInstance* GetAniMeshFrame004B6550(W8AniMesh* mesh, unsigned char frame)
     char message[0x80];
 
     if (mesh == 0 || frame >= mesh->frame_count_01) {
-        sprintf(message, "AniMeshGetMeshForFrame error: frame %d, num frames %d", frame,
+        sprintf(message, "AniMeshGetMeshForFrame error, frame %d, num %d", frame,
                 mesh->frame_count_01);
         srAssertFail("0", ANI_MESH_CPP, 0x2e6, message);
         return 0;

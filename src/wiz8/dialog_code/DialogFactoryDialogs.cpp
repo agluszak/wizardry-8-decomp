@@ -1184,7 +1184,7 @@ W8TriggerItemPickerDialog::W8TriggerItemPickerDialog()
     }
     SetExtent(200, 100);
     SetOrigin(0x84, 0x50);
-    SetBackground("Data\\Dialogs\\DialogBackground.sti", 0);
+    SetBackground("Data\\Dialogs\\DialogBackground.STI", 0);
     m_dirty_flags |= 1;
     m_first_item_0a8 = 0;
 }

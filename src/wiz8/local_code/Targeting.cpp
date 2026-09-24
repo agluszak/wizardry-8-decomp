@@ -3421,7 +3421,7 @@ static unsigned char SourceCanSeeMonster00539A30(const W8TargetSource* source,
         return 0;
     }
     if (source->iType != W8_TARGET_SOURCE_INDIRECT) {
-        srAssertFail("pSource->iType != SOURCE_TYPE_3D", TARGETING_CPP, 0x854, 0);
+        srAssertFail("pSource->iType == SOURCE_TYPE_3D_POINT", TARGETING_CPP, 0x854, 0);
     }
     return monster_info->p3D->HasLineOfSightFromPoint004C4C40(source->point);
 }

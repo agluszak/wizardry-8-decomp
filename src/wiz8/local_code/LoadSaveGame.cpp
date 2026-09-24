@@ -1529,9 +1529,9 @@ unsigned char SaveGameExists(void)
 
     found = 1;
     memset(&find, 0, sizeof(find));
-    sprintf(path, "%s\\%s", "Saves", "*.*");
+    sprintf(path, "%s\\*.%s", "Saves", g_save_extension);
     if (GetFileFirst(path, &find)) {
-        sprintf(path, "%s%s", "Saves", find.zFileName);
+        sprintf(path, "%s\\%s", "Saves", find.zFileName);
         if (strcmp(path, "Saves\\CurrentGame.SAV") != 0) {
             goto done;
         }
@@ -1840,7 +1840,7 @@ unsigned char SaveSlotFileExists(const char* slot_name)
 {
     char path[260];
 
-    sprintf(path, "%s%s%s", "Saves", slot_name, ".SAV");
+    sprintf(path, "%s\\%s.%s", "Saves", slot_name, g_save_extension);
     return FileExists(path);
 }
 

@@ -1013,7 +1013,7 @@ bool CreateTriggerShakeEvent00444F70(int intensity, float duration, float countd
 
     if (pEvent == 0) {
         srAssertFail("pEvent", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x1372,
-                     "Out of memory creating shake camera event");
+                     "Out of memory creating shake camera event.");
     }
     pEvent->repeat_034 = 1;
     pEvent->intensity_03c = intensity;
@@ -3437,8 +3437,8 @@ void Trigger::Run(int source)
             if (trigger_kind_018 == 2) {
                 flags_0a0 |= W8_TRIGGER_RUNNING;
             } else if (m_lData3 == -1) {
-                srAssertFail("m_lData3 != -1", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                             0x7e4, "Non invisible triggers with shake must have a duration.");
+                srAssertFail("m_lData3!=-1", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                             0x7e4, "Non-invisible triggers with shake camera must be timed");
             }
         }
         break;

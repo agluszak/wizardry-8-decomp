@@ -2075,7 +2075,7 @@ void OctBuildOptions00496CD0(char* stem)
                 continue;
             }
             if (atom.usParam == 0x1b) {
-                ShutdownWithErrorBox("Cancelled!  Program exiting...");
+                ShutdownWithErrorBox("Cancelled--Program exiting.\n");
                 goto accepted;
             }
             if (atom.usParam == 0x0d) {
@@ -2389,7 +2389,7 @@ unsigned char CreateDefaultMaterial(srMaterialIFace** material, srTextureIFace**
     concrete = new stMaterial;
     *material = concrete;
     if (concrete == 0) {
-        srAssertFail("ppstMaterial", MATERIALS_CPP, 0x130, 0);
+        srAssertFail("*ppstMaterial", MATERIALS_CPP, 0x130, 0);
     }
     concrete->setName(name);
     concrete->autoRelease();

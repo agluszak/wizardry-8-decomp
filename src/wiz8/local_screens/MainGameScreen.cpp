@@ -4831,7 +4831,7 @@ void SelectPartyCharacter(int party_slot)
     int previous;
 
     if (g_status_685170.buffers.XChar[party_slot].fOccupied == 0) {
-        ReportAssertion("gStatus->XChar[uiChar].fOccupied",
+        ReportAssertion("gStatus.XChar[uiChar].fOccupied",
                         "C:\\Projects\\Wizardry 8\\Local Screens\\MainGameScreen.cpp", 0x1053);
     }
     character = &g_status_685170.buffers.Char[party_slot];

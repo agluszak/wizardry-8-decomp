@@ -482,6 +482,6 @@ void RemoveAletheides(void)
 // FUNCTION: WIZ8 0x004E04F0
 bool AscensionShaker004E04F0(Trigger* pTrigger)
 {
-    SoundPlay("Data\\Sound\\Ambients\\Rumble_01.wav", 0);
+    SoundPlay("Data\\Sound\\Ambients\\Rumble 01.wav", 0);
     return true;
 }

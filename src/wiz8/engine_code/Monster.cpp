@@ -526,14 +526,14 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
                 int pitch;
                 if (last_sound == 0) {
                     srAssertFail("pSndEvent", MONSTER_CPP, 0x58e,
-                                 "mls pitch: Must specify a sound before pitch");
+                                 "mls pitch: Must specify a sound before specifying parameters");
                 }
                 sscanf(line, "%s %d", command, &pitch);
                 last_sound->pitch = pitch;
             } else if (_stricmp(command, "volume") == 0) {
                 if (last_sound == 0) {
                     srAssertFail("pSndEvent", MONSTER_CPP, 0x595,
-                                 "mls volume: Must specify a sound before volume");
+                                 "mls volume: Must specify a sound before specifying parameters");
                 }
                 sscanf(line, "%s %d %d", command, &last_sound->volume_min, &last_sound->volume_max);
             } else if (_stricmp(command, "sound_falloff") == 0) {
@@ -543,8 +543,9 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
             } else if (_stricmp(command, "probability") == 0) {
                 int probability;
                 if (last_sound == 0) {
-                    srAssertFail("pSndEvent", MONSTER_CPP, 0x5a5,
-                                 "mls frequency: Must specify a sound before frequency");
+                    srAssertFail(
+                        "pSndEvent", MONSTER_CPP, 0x5a5,
+                        "mls frequency: Must specify a sound before specifying parameters");
                 }
                 sscanf(line, "%s %d", command, &probability);
                 last_sound->probability = static_cast<unsigned char>(probability);
@@ -592,7 +593,9 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
                 if (damage_stage != -1 &&
                     (*monster)->ReplaceSkinTexture004C6700(damage_stage, old_name, new_name) == 0) {
                     ShutdownWithErrorBox(reinterpret_cast<const char*>(
-                        String("The skin texture %s not found in %s", old_name, monster_name)));
+                        String( // reinterpret-ok: String returns a logging buffer
+                            "The skin texture %s not found in monster %s!", old_name,
+                            monster_name)));
                 }
             } else {
                 if (strlen(argument) <= 2) {
@@ -695,10 +698,10 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
                             (*monster)->AddShakeEffect004A8530(effect);
                         }
                     } else {
-                        srAssertFail(
-                            "FALSE", MONSTER_CPP, 0x636,
-                            FormatString("Monster::ReadAllCycles: ERROR - Unknown command %s in %s",
-                                         command, path));
+                        srAssertFail("FALSE", MONSTER_CPP, 0x636,
+                                     FormatString("Monster::ReadAllCycles: ERROR - Unrecognized "
+                                                  "MLS string \"%s\" in %s",
+                                                  command, path));
                     }
                 }
             }
@@ -748,8 +751,10 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
         idle_fps_end = 3.0f;
     }
     if (representation->animations[1].GetCount() < 1) {
-        ShutdownWithErrorBox(reinterpret_cast<const char*>(
-            String("Monster %s: Missing CYCLE %s sub %d", representation->name_5c0, "IDLE", 0)));
+        ShutdownWithErrorBox(
+            reinterpret_cast<const char*>(String( // reinterpret-ok: String returns a logging buffer
+                "Monster %s: Missing CYCLE_%s, sub-cycle %d", representation->name_5c0, "IDLE",
+                0)));
     }
     W8AnimObj* idle = *representation->animations[1].GetAt(0);
     if (idle != 0) {
@@ -923,7 +928,7 @@ void W8Monster::RandomizeAppearanceAndMotion004C1D20()
                 animation_index = m_pRep->current_subcycle;
             }
             if (animation_index >= m_pRep->animations[1].GetCount()) {
-                ShutdownWithErrorBox(FormatString("Monster %s: Missing CYCLE %s subcycle %d",
+                ShutdownWithErrorBox(FormatString("Monster %s: Missing CYCLE_%s, sub-cycle %d",
                                                   m_pRep->name_5c0, g_cycle_names[1].name,
                                                   animation_index));
             }
@@ -1705,7 +1710,7 @@ unsigned char W8Monster::EvaluateScriptCondition004C9DC0(const char* expression)
         GetCameraPosition(&party_position);
         if (parameters.GetCount() == 0) {
             srAssertFail("lsParmList.Length()", MONSTER_CPP, 7526,
-                         FormatString("Monscr %s line %d: PARTYNEAR expects a parameter",
+                         FormatString("Monscr %s line %d: PARTYNEAR expects 1 parameter",
                                       script_238->getName(), script_line_23c));
         }
 
@@ -1721,7 +1726,7 @@ unsigned char W8Monster::EvaluateScriptCondition004C9DC0(const char* expression)
     } else if (_strnicmp(buffer, "RANDOM", 6) == 0) {
         if (parameters.GetCount() == 0) {
             srAssertFail("lsParmList.Length()", MONSTER_CPP, 7542,
-                         FormatString("Monscr %s line %d: RANDOM expects a parameter",
+                         FormatString("Monscr %s line %d: RANDOM expects 1 parameter",
                                       script_238->getName(), script_line_23c));
         }
         if (Chance((unsigned int)*parameters.GetAt(0)) != 0) {
@@ -1807,7 +1812,7 @@ unsigned char W8Monster::GetProjectilePosition004C77F0(srVector3T<float>* positi
         if (g_dev_mode_689b32 != 0) {
             W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x18c3, MONSTER_CPP, location_id_1e4, 1));
-            FormatDebugMessage(0, "WARNING: %ls does not have a MISSILE_START_POINT defined",
+            FormatDebugMessage(0, "WARNING: %ls does not have a MISSILE vertex marked --> Lee!",
                                GetMonsterDataForInfo(info));
         }
         missile_point_warned_22d = 1;
@@ -1856,7 +1861,7 @@ unsigned char W8Monster::GetCycleMappedPosition004C7960(signed char cycle, int m
     }
     animations = &m_pRep->animations[cycle];
     if (animations->GetCount() <= subcycle) {
-        ShutdownWithErrorBox(FormatString("Monster %s: Missing CYCLE %s subcycle %d",
+        ShutdownWithErrorBox(FormatString("Monster %s: Missing CYCLE_%s, sub-cycle %d",
                                           m_pRep->name_5c0, g_cycle_names[cycle].name, subcycle));
     }
     animation = *animations->GetAt(subcycle);
@@ -4068,7 +4073,7 @@ prepare_attack:
 
     if (selected_attack != 0) {
         accuracy = GetMonsterAttackScore(monster_info, attack, monster_info->action_detail, 0);
-        CombatLog("TO HIT: MISSILE ACCURACY = %d%%\n", accuracy);
+        CombatLog("TO HIT (MISSILE ACCURACY): Chance %d", accuracy);
     } else {
         accuracy = 50;
     }
@@ -4933,7 +4938,7 @@ void W8Monster::CollectModelInstances004C6350(W8GrowableVector<stModelInstance*>
             W8AnimObj* animation;
 
             if (subcycle >= cycle_animations->GetCount()) {
-                ShutdownWithErrorBox(FormatString("Monster %s: Missing CYCLE %s subcycle %d",
+                ShutdownWithErrorBox(FormatString("Monster %s: Missing CYCLE_%s, sub-cycle %d",
                                                   m_pRep->name_5c0, g_cycle_names[cycle].name,
                                                   subcycle));
             }

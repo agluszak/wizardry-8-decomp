@@ -834,7 +834,7 @@ void HandleFactChange(int fact_id, unsigned char value)
     case 0x235:
         memset(&sound, -1, sizeof(sound));
         sound.EOSCallback = ClearPotionExplosionSoundFlag;
-        if (SoundPlay("Data\\Sound\\misc\\potion exploding.wav", &sound) != 0xffffffff) {
+        if (SoundPlay("Data\\Sound\\misc\\potion_exploding.wav", &sound) != 0xffffffff) {
             SetScriptedSceneActive();
         }
         particle = FindParticleByName(g_world, "FuzzBlast");
@@ -853,8 +853,8 @@ void HandleFactChange(int fact_id, unsigned char value)
         if (monster_info == 0) {
             return;
         }
-        if (monster_info->p3D->IsCycleInterruptable(
-                monster_info->p3D->m_pRep->pending_cycle) == 0) {
+        if (monster_info->p3D->IsCycleInterruptable(monster_info->p3D->m_pRep->pending_cycle) ==
+            0) {
             return;
         }
         StartMonsterCycle(monster_info, 0x14, 1);
@@ -943,7 +943,7 @@ void HandleFactChange(int fact_id, unsigned char value)
                 0x4b4, NPC_SCRIPTING_FACTS_CPP, group->leader_id_9f, 1));
             monster_info->p3D->SetScript004C7F10("MoveSavantBoffo.msf", 1);
         }
-        SoundPlayStreamedFile("Data\\Sound\\Misc\\Earthquake_End.wav", 0);
+        SoundPlayStreamedFile("Data\\Sound\\Misc\\Earthquake End.wav", 0);
         shake = CreateCameraShakeEffect004AE080(6.0f, 0, 1.0f, 0, 0);
         shake->flags_00 |= 0x20;
         shake->completion_callback_48 = ReplayEarthquakeShake;
@@ -1051,8 +1051,7 @@ void HandleScriptedNpcDeath(unsigned int monster_list_index)
     for (unsigned int entry_index = 0; entry_index < PLLength(gXStatus.plsMonsterList);
          ++entry_index) {
         W8MonsterInfo* entry = MonsterGetScriptPartByLocationIndex(entry_index);
-        if (entry->fActive && entry->ubDisposition == DISP_HOSTILE &&
-            entry->p3D->IsDying() == 0) {
+        if (entry->fActive && entry->ubDisposition == DISP_HOSTILE && entry->p3D->IsDying() == 0) {
             TintHighlightedMonster(entry->p3D, 0);
             MonsterStartsDying(entry, 1);
         }
