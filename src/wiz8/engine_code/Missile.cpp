@@ -650,9 +650,8 @@ unsigned char LoadMissileCycle004A3550(W8GrCycleLoadContext* context, const char
                                         break;
                                     }
                                 }
-                                effect =
-                                    new W8CameraShakeEffect(duration, '\x01', intensity,
-                                                            seconds * g_world_scale_005ebc40, 0);
+                                effect = new W8CameraShakeEffect(
+                                    duration, 1, intensity, seconds * g_world_scale_005ebc40, 0);
                                 if (effect != 0) {
                                     effect->cycle_3c = cycle;
                                     effect->frame_40 = frame;
@@ -773,7 +772,7 @@ W8Missile* CreateMissile004A28D0(unsigned int missile_table_index, srVector3T<fl
         if (octree != 0) {
             end.Set(direction.x * duration, direction.y * duration, direction.z * duration);
             end = end + *source;
-            if (octree->TraceLineOfSight(source, &end, '\0', -3, -3, '\x01', 0) != 0) {
+            if (octree->TraceLineOfSight(source, &end, 0, -3, -3, 1, 0) != 0) {
                 end -= *source;
                 limit = static_cast<float>(sqrt(end.x * end.x + end.y * end.y + end.z * end.z));
                 if (limit < g_float_005ebb38) {

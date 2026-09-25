@@ -1787,8 +1787,8 @@ unsigned char W8Monster::GetProjectilePosition004C77F0(srVector3T<float>* positi
         return 0;
     }
     if (IsCycleSupported(0x11) != 0 && IsCycleSupported(0x0d) != 0) {
-        srAssertFail("!(IsCycleSupported(CYCLE_ATTACK_1) && "
-                     "IsCycleSupported(CYCLE_ATTACK_2))",
+        srAssertFail("!(IsCycleSupported(CYCLE_ATTACK_SHOOT) && "
+                     "IsCycleSupported(CYCLE_ATTACK_THROW))",
                      MONSTER_CPP, 0x18b1, 0);
     }
     if (IsCycleSupported(0x0d) != 0) {
@@ -2783,7 +2783,7 @@ void SetMonsterPartySlotMarker004C4DE0(int party_slot, int location_id, char on)
             PListRemove(g_world->plsItems, item);
             delete item;
             rep->objects_5c8[party_slot] = 0;
-            rep->icon_count_5c4 = rep->icon_count_5c4 - 1;
+            --rep->icon_count_5c4;
         }
     } else {
         if (rep->objects_5c8[party_slot] == 0) {
@@ -2791,7 +2791,7 @@ void SetMonsterPartySlotMarker004C4DE0(int party_slot, int location_id, char on)
                     g_party_target_marker_bitmaps_0060e938[g_status_685170.buffers.XChar[party_slot]
                                                                .party_order_index]);
             rep->objects_5c8[party_slot] = CreateMonsterIconItem004C5500(g_world, path, 1);
-            rep->icon_count_5c4 = rep->icon_count_5c4 + 1;
+            ++rep->icon_count_5c4;
         }
     }
     info->p3D->UpdateAttachedObjects004C3F70();
@@ -2983,15 +2983,11 @@ void W8Monster::TrackSoundHandle004CA6E0(int handle)
     }
     values_338.Add(handle);
     count = values_338.GetCount();
-    index = 0;
-    if (count > 0) {
-        do {
-            if (SoundIsPlaying(*values_338.GetAt(index)) == 0) {
-                values_338.RemoveAt(index);
-                --count;
-            }
-            ++index;
-        } while (index < count);
+    for (index = 0; index < count; ++index) {
+        if (SoundIsPlaying(*values_338.GetAt(index)) == 0) {
+            values_338.RemoveAt(index);
+            --count;
+        }
     }
 }
 

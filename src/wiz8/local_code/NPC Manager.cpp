@@ -2242,7 +2242,7 @@ bool ProbeNpcPlacementNearParty(int /*party_slot*/, int /*mode*/, srVector3T<flo
     float yaw;
 
     GetCameraPosition(&party_position);
-    party_position.y = party_position.y - g_default_world_height_00603ac8;
+    party_position.y -= g_default_world_height_00603ac8;
     yaw = GetCameraYawRadians() + g_float_005ec29c;
     if (g_octree_6598a4->FindNavigatorPosition(&party_position, yaw, 1000.0f, 1, position_out, 1, 0,
                                                1, 10, 0) > 0) {
@@ -3039,35 +3039,31 @@ void RebindNpcLevelTriggers0050AC60(void)
     }
 
     count = g_npc_states->count;
-    npc_index = 0;
-    if (count != 0) {
-        do {
-            W8NpcState** slot = g_npc_states->data;
-            char trigger_name[40];
+    for (npc_index = 0; npc_index < count; ++npc_index) {
+        W8NpcState** slot = g_npc_states->data;
+        char trigger_name[40];
 
-            if (npc_index < count) {
-                slot += npc_index;
+        if (npc_index < count) {
+            slot += npc_index;
+        }
+        W8NpcState* npc = *slot;
+
+        if (npc->record->merchant_056 != 0 || npc->record->voice_script_2ea != 0) {
+            sprintf(trigger_name, "_%S", npc->record->source_name_004);
+            Trigger* trigger = FindTriggerByName(trigger_name);
+
+            if (trigger != 0) {
+                trigger->activation_callback_360 = NotifyNpcTriggerActivation0050ABF0;
+                trigger->m_lData1 = static_cast<int>(npc_index);
+                npc->has_monster = 1;
+                npc->level_band =
+                    static_cast<unsigned char>(GetLevelBand(g_status_685170.current_level));
+                npc->bound_level = static_cast<unsigned char>(g_status_685170.current_level);
+                ReloadNpcScriptResources(npc);
+                npc->is_present = 0;
             }
-            W8NpcState* npc = *slot;
-
-            if (npc->record->merchant_056 != 0 || npc->record->voice_script_2ea != 0) {
-                sprintf(trigger_name, "_%S", npc->record->source_name_004);
-                Trigger* trigger = FindTriggerByName(trigger_name);
-
-                if (trigger != 0) {
-                    trigger->activation_callback_360 = NotifyNpcTriggerActivation0050ABF0;
-                    trigger->m_lData1 = static_cast<int>(npc_index);
-                    npc->has_monster = 1;
-                    npc->level_band =
-                        static_cast<unsigned char>(GetLevelBand(g_status_685170.current_level));
-                    npc->bound_level = static_cast<unsigned char>(g_status_685170.current_level);
-                    ReloadNpcScriptResources(npc);
-                    npc->is_present = 0;
-                }
-            }
-            count = g_npc_states->count;
-            ++npc_index;
-        } while (npc_index < count);
+        }
+        count = g_npc_states->count;
     }
 }
 

@@ -1362,7 +1362,8 @@ void W8TriggerItemPickerDialog::TransferSelectedItems(int destination)
         }
     }
     if (failed != 0) {
-        SoundPlay("Data\\Sound\\Misc\\beep2.wav", 0);
+        /* "\\b" in the original literal: retail stores a backspace, not a separator. */
+        SoundPlay("Data\\Sound\\Misc\beep2.wav", 0);
     }
     RefreshScrollButtons();
     if (items_54.GetCount() == 0) {

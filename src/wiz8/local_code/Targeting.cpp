@@ -328,7 +328,7 @@ bool IsSpellTargetOfNeededKind(int party_slot, int spell_id)
     W8CombatSlot* target = GetTargetBlockForContext(party_slot, W8_TARGETING_CONTEXT_CURRENT);
     int needed = GetTargetNeededForSpellFriendly(spell_id, 0, W8_TARGETING_CONTEXT_CURRENT);
 
-    if (needed == 2 && g_settings_6850c8.autoscroll_combat_messages != 0) {
+    if (needed == 2 && g_settings_6850c8.autotarget_spells != 0) {
         return 1;
     }
     return TargetMatchesNeeded(target, (char)needed);

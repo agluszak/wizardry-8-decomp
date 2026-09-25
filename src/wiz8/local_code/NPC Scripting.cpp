@@ -728,7 +728,7 @@ void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_index,
             }
             swprintf(plain_text, gppStringList[s_empty_quote_text_ids[g_empty_quote_text_index]],
                      g_npc_scripting.npc->record->source_name_004);
-            g_empty_quote_text_index = g_empty_quote_text_index + 1;
+            ++g_empty_quote_text_index;
             if (g_empty_quote_text_index == 2) {
                 g_empty_quote_text_index = 0;
             }
@@ -2498,14 +2498,10 @@ void RunNpcQuoteDeclineActions(int quote_index)
     int index;
 
     quote = g_npc_scripting.npc->script_file->quotes + quote_index;
-    index = 0;
-    if (quote->entry_count != 0) {
-        do {
-            if (quote->entries[index].kind_00 == 0x17) {
-                RunNpcScriptLine(quote->entries[index].operand_01, 0);
-            }
-            ++index;
-        } while (index < quote->entry_count);
+    for (index = 0; index < quote->entry_count; ++index) {
+        if (quote->entries[index].kind_00 == 0x17) {
+            RunNpcScriptLine(quote->entries[index].operand_01, 0);
+        }
     }
 }
 /* QA audit over every `Data\NPC Scripts\*.nsf`: load each script file, print

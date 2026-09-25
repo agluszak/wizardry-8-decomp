@@ -321,7 +321,7 @@ void RecomputeCharacterHighestCondition(int party_slot)
         }
     }
     UpdateFormationSlotState(&g_status_685170.formation, party_slot);
-    if (gXStatus.fCombatMode != '\0') {
+    if (gXStatus.fCombatMode != 0) {
         UpdateFormationSlotState(&gXStatus.edited_formation, party_slot);
         UpdateFormationSlotState(&g_combat_state->saved_formation, party_slot);
     }
@@ -927,7 +927,7 @@ void ApplyMonsterCondition005242B0(int location_id, int condition, int argument,
                 static_cast<short>(roll * argument);
         }
         if (previous == 0) {
-            SetMonsterSpellIcon(monster_info->p3D, condition + 0x10, '\x01');
+            SetMonsterSpellIcon(monster_info->p3D, condition + 0x10, 1);
         }
         RebuildMonsterDerivedStats(location_id);
         if (condition == W8_ENCHANTMENT_SLOT_SPECIAL) {

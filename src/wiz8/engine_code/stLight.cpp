@@ -265,8 +265,8 @@ void stLight::Update0049C960()
         if (g_float_005ebb34 < step) {
             float level = m_level_240;
             step = (g_float_005ebb38 / definition->period_30) * step;
-            if (m_direction_239 == '\0') {
-                level = level - step;
+            if (m_direction_239 == 0) {
+                level -= step;
                 if (level < g_float_005ebb34) {
                     m_direction_239 = 1;
                     level = step + step + level;
@@ -275,7 +275,7 @@ void stLight::Update0049C960()
                 level = step + level;
                 if (g_float_005ebb38 < level) {
                     m_direction_239 = 0;
-                    level = level - (step + step);
+                    level -= step + step;
                 }
             }
             float blend = g_float_005ebb34;

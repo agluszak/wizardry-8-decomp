@@ -2164,7 +2164,7 @@ char StartMonsterAttack0053FEA0(W8MonsterInfo* monster_info, W8MonsterRecord* re
         return 0;
     }
     attack = combat->attack_index_11;
-    combat->attacks_per_round = combat->attacks_per_round - 1;
+    --combat->attacks_per_round;
     int action_detail = monster_info->action_detail;
     if (RateMonsterAttack(monster_info, record, attack, 0, 0) != 0) {
         return 0;
@@ -2231,7 +2231,7 @@ char CharacterNoticesAttacker(int party_slot)
         g_status_685170.buffers.Char[party_slot].attributes[W8_ATTRIBUTE_SENSES].effective -
         row->spot_attempts_90 * 0x19;
     noticed = Random(100) < static_cast<unsigned int>(senses);
-    row->spot_attempts_90 = row->spot_attempts_90 + 1;
+    ++row->spot_attempts_90;
     return noticed;
 }
 
@@ -2349,7 +2349,7 @@ void AnnounceMonsterAttack00541630(W8MonsterInfo* monster_info, W8MonsterRecord*
                     notices = Random(100) <
                               static_cast<unsigned int>(second->attributes[4] + attempts * -0x19);
                 }
-                second_combat->spot_attempts_13d = second_combat->spot_attempts_13d + 1;
+                ++second_combat->spot_attempts_13d;
                 if (notices) {
                     MonsterAimAtMonster004C62C0(second->p3D, monster_info->p3D, 0);
                 }
@@ -2698,7 +2698,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
 
     int damage =
         (pPC->bonus_1770.damage_percent_03 + 100 + pPC->Hand[hand].damage_percent_29) * rolled + 50;
-    damage = damage / 100;
+    damage /= 100;
     if (damage < 1) {
         damage = 1;
     }
@@ -2752,7 +2752,7 @@ int GetMonsterAttackScore(W8MonsterInfo* monster_info, W8MonsterAttack* attack, 
     int penalty = FatigueArmorPenalty(monster_info->fatigue_band);
     for (unsigned int i = 0; i < 0x12; i = i + 1) {
         if (attack->ubWeaponNameIndex == g_low_fatigue_attack_verbs_0061d284[i]) {
-            penalty = penalty >> 1;
+            penalty >>= 1;
             break;
         }
     }
@@ -2828,7 +2828,7 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
 
     if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_CHARACTER) {
         if (g_combat_state->TargetHit.iChar == -1) {
-            srAssertFail("gpCombat->TargetHit.iChar != BAD_INDEX", COMBAT_ATTACK_CPP, 0xd44, 0);
+            srAssertFail("gpCombat->TargetHit.iChar != BAD_INDEX", COMBAT_ATTACK_CPP, 0xd3b, 0);
         }
         target = &g_status_685170.buffers.Char[g_combat_state->TargetHit.iChar];
         target_info = NULL;
@@ -3297,7 +3297,7 @@ void BuildCharacterTargetList00543DC0(int party_slot, int action, W8PList* out_l
             AppendCombatTargetEntry(out_list, W8_TARGET_KIND_MONSTER, -1,
                                     monster_info->location_id);
         }
-        monster_list_index = monster_list_index + 1;
+        ++monster_list_index;
     }
 }
 
@@ -3329,14 +3329,14 @@ void BuildMonsterTargetList00544010(W8MonsterInfo* monster_info, W8MonsterRecord
                 if ((monster_info->Target.iType == W8_TARGET_KIND_MONSTER &&
                      monster_info->Target.iMonsterID == candidate->location_id) ||
                     MonsterAttackReachesMonster(monster_info, record, attack, candidate) == 0) {
-                    monster_list_index = monster_list_index + 1;
+                    ++monster_list_index;
                     continue;
                 }
                 AppendCombatTargetEntry(out_list, W8_TARGET_KIND_MONSTER, -1,
                                         candidate->location_id);
             }
         }
-        monster_list_index = monster_list_index + 1;
+        ++monster_list_index;
     }
 }
 
@@ -3624,7 +3624,7 @@ void FireCharacterItemMissile00544B60(int party_slot, W8Character* pc, W8CombatC
                 weapon->missile_values_050[0x10 - i] + paired->missile_values_050[0x10 - i];
         }
         modifiers = item_modifiers;
-        missile_value = missile_value + paired->missile_magnitude_060;
+        missile_value += paired->missile_magnitude_060;
     }
     memcpy(attack_block.condition_chances, modifiers, 0x10);
     attack_block.magnitude_base_1c = missile_value;
@@ -3659,17 +3659,17 @@ void ScatterMissileAimPoint005454C0(const srVector3T<float>* from, srVector3T<fl
     if (mag != 0.0f) {
         float scale = static_cast<float>(sin(radians));
         scale = scale / static_cast<float>(sqrt(mag));
-        sx = sx * scale;
-        sy = sy * scale;
-        sz = sz * scale;
+        sx *= scale;
+        sy *= scale;
+        sz *= scale;
     }
     mag = px * px + py * py + pz * pz;
     if (mag != 0.0f) {
         float scale = static_cast<float>(cos(radians));
         scale = scale / static_cast<float>(sqrt(mag));
-        px = px * scale;
-        py = py * scale;
-        pz = pz * scale;
+        px *= scale;
+        py *= scale;
+        pz *= scale;
     }
     sx = px + sx;
     sy = py + sy;
@@ -3898,7 +3898,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
                 }
                 monster_info->pCombat->spot_attempts_13d++;
                 if (noticed != 0) {
-                    MonsterForwardReferencePosition(monster_info->p3D, '\0');
+                    MonsterForwardReferencePosition(monster_info->p3D, 0);
                 } else {
                     g_combat_state->unaware_9a4 = IsPartyLookingAwayFrom(party_slot, monster_info);
                 }

@@ -149,8 +149,9 @@ void DrawPartyMovementPanel(void)
     if ((g_combat_state->uiCurrentPartyAction == 0 ||
          g_combat_state->uiCurrentPartyActionStatus == W8_ACTION_STATUS_FINISHED) &&
         g_combat_state->uiNextPartyAction == 0) {
-        srAssertFail("!(gpCombat->uiCurrentPartyAction==0 || "
-                     "gpCombat->uiCurrentPartyActionStatus==3) && gpCombat->uiNextPartyAction!=0",
+        srAssertFail("((gpCombat->uiCurrentPartyAction != PARTY_ACTION_NONE) && "
+                     "(gpCombat->uiCurrentPartyActionStatus != ACTION_STATUS_FINISHED)) || "
+                     "(gpCombat->uiNextPartyAction != PARTY_ACTION_NONE)",
                      PARTY_MOVEMENT_CPP, 0xfb, 0);
     }
     panel_live =
@@ -234,7 +235,7 @@ static void DrawPartyMovementGauge(short right, short image, char panel_live, in
         frame = 0xc;
     } else {
         if (ClockIsTicking(g_party_movement_animation_clock) == 0) {
-            g_party_movement_animation_frame = g_party_movement_animation_frame + 1;
+            ++g_party_movement_animation_frame;
             if (g_party_movement_animation_frame > 0xb) {
                 g_party_movement_animation_frame = 0;
             }
@@ -382,10 +383,10 @@ unsigned char HandlePartyMovement(float* real_elapsed, float* frame_elapsed)
                          "HandlePartyMovement: ERROR - Invalid load category");
         }
         if (gXStatus.fCombatMode != 0) {
-            multiplier = multiplier + multiplier;
+            multiplier += multiplier;
         }
         if (character->uiCondition[2] != 0) {
-            multiplier = multiplier * g_float_005ec3b8;
+            multiplier *= g_float_005ec3b8;
         }
         row->movement_fatigue = multiplier * amount + row->movement_fatigue;
         if (row->movement_fatigue > g_position_height_epsilon_005ebfdc) {

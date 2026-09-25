@@ -669,9 +669,9 @@ void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags)
             g_startup_world_659c0c->SetPitch(pitch);
             if (world->m_owned_04c->ApplyCameraMotion0041F5F0(flags, &camera_position, &delta,
                                                               &motion_saved) != 0) {
-                camera_position.x = camera_position.x + delta.x;
-                camera_position.y = camera_position.y + delta.y;
-                camera_position.z = camera_position.z + delta.z;
+                camera_position.x += delta.x;
+                camera_position.y += delta.y;
+                camera_position.z += delta.z;
                 navigator_position.x = camera_position.x;
                 navigator_position.y = camera_position.y - g_default_world_height_00603ac8;
                 navigator_position.z = camera_position.z;
@@ -691,7 +691,7 @@ void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags)
                 dz = camera_position.z - s_last_automap_refresh_position.z;
                 if (dx * dx + dy * dy + dz * dz > g_double_005ec240) {
                     s_last_automap_refresh_position = camera_position;
-                    camera_position.y = camera_position.y - g_default_world_height_00603ac8;
+                    camera_position.y -= g_default_world_height_00603ac8;
                     if (AutomapHasCellAt00581B30(&camera_position) != 0) {
                         SetWorldMeshVertexLightTable0046F760(g_world, 1);
                         UpdateAutomapBounds00580380();
@@ -963,7 +963,7 @@ void RestoreWorldCameraState(W8World* world, W8World* source_world, W8WorldCamer
     navigator_position.z = (float)camera_location.z;
     g_startup_world_659c0c->SetAngles004538F0(GetCameraYawInDegrees());
     g_startup_world_659c0c->SetPitch(GetCameraPitchInDegrees());
-    navigator_position.y = navigator_position.y - g_default_world_height_00603ac8;
+    navigator_position.y -= g_default_world_height_00603ac8;
     g_startup_world_659c0c->SetPositionInternal00453590(&navigator_position);
 }
 

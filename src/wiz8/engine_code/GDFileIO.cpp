@@ -338,7 +338,7 @@ unsigned char W8GameData::ReadWGDList00447660(HANDLE file, int poly_type)
                 ReadFile(file, &bounds[2], 4, &bytes_read, 0);
                 for (index = 0; index < 3; ++index) {
                     bounds[index + 3] = bounds[index + 3] * g_world_scale_005ebc40;
-                    bounds[index] = bounds[index] * g_world_scale_005ebc40;
+                    bounds[index] *= g_world_scale_005ebc40;
                 }
                 if (bounds[3] < minimum_08.x) {
                     minimum_08.x = bounds[3];
@@ -362,8 +362,8 @@ unsigned char W8GameData::ReadWGDList00447660(HANDLE file, int poly_type)
                     CompileGDInterfaces00447FB0(cond_faces, record_count);
                     free(cond_faces);
                 }
-                m_iNumVertices = m_iNumVertices + vertex_count;
-                m_iNumSurfaces = m_iNumSurfaces + face_count;
+                m_iNumVertices += vertex_count;
+                m_iNumSurfaces += face_count;
                 return 1;
             }
             sprintf(message, "Too many GameData vertices: %d!\n", vertex_count);
@@ -712,7 +712,7 @@ void W8GameData::IntegrateTriggerGeometry00448A60()
         memcpy(new_vertices, m_pVertices, m_iNumVertices * sizeof(srVector3T<float>));
         memcpy(new_vertices + m_iNumVertices, m_pTrigVertices,
                m_iNumTrigVertices * sizeof(srVector3T<float>));
-        m_iNumVertices = m_iNumVertices + m_iNumTrigVertices;
+        m_iNumVertices += m_iNumTrigVertices;
         srHeap.free(m_pVertices);
         srHeap.free(m_pTrigVertices);
         m_pTrigVertices = 0;
@@ -730,7 +730,7 @@ void W8GameData::IntegrateTriggerGeometry00448A60()
                m_iNumTrigSurfaces * sizeof(W8GDSurface));
         free(m_pTrigSurfaces);
         free(m_pSurfaces);
-        m_iNumSurfaces = m_iNumSurfaces + m_iNumTrigSurfaces;
+        m_iNumSurfaces += m_iNumTrigSurfaces;
         m_pSurfaces = new_surfaces;
         m_pTrigSurfaces = 0;
         m_iNumTrigSurfaces = 0;
@@ -812,7 +812,7 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* vertices, float value,
         if (index == *face) {
             CreateGDEnviron00448E60(surface, value);
             W8EnvironRecord* environ_record = m_ppEnvirons[m_iNumEnvirons];
-            environ_record->forward_scale_34 = environ_record->forward_scale_34 * scalar;
+            environ_record->forward_scale_34 *= scalar;
             environ_record->motion_limit_38 =
                 environ_record->forward_scale_34 * environ_record->momentum_scale_3c * 2.0f;
         }
@@ -925,9 +925,9 @@ unsigned char W8EnvironRecord::RescaleToReference(const W8EnvironRecord* referen
     gravity_x_10 *= scale;
     gravity_y_14 *= scale;
     gravity_z_18 *= scale;
-    forward_scale_34 *= (g_camera_level_forward_scale_603aac / reference->forward_scale_34);
-    motion_limit_38 *= (g_default_motion_limit_603abc / reference->motion_limit_38);
-    momentum_scale_3c *= (g_default_momentum_scale_603ab8 / reference->momentum_scale_3c);
+    forward_scale_34 *= g_camera_level_forward_scale_603aac / reference->forward_scale_34;
+    motion_limit_38 *= g_default_motion_limit_603abc / reference->motion_limit_38;
+    momentum_scale_3c *= g_default_momentum_scale_603ab8 / reference->momentum_scale_3c;
     return 0;
 }
 
@@ -1020,7 +1020,7 @@ void W8GameData::ReadProcessedGameData(int handle)
         m_piCondPolys = static_cast<int*>(malloc(m_iNumCondPolys * sizeof(unsigned int) + 4));
         if (m_piCondPolys == 0) {
             srAssertFail("m_piCondPolys", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
-                         0x4ad, "ReadProcessedGameData: Couldn't allocate conditional poly list.");
+                         0x4ad, "ReadProcessedGameData: Couldn't allocate switch state info.");
         }
         if (FileRead(handle, m_piCondPolys, m_iNumCondPolys * sizeof(unsigned int), &bytes_read) ==
             0) {

@@ -366,7 +366,7 @@ struct W8LevelFileSuperTrigger { /* 0x867 */
 
 struct W8LevelFileTrigger {
     unsigned char version_00;
-    unsigned char type_01; /* 1 switch, 2 invisible, 3 sound, 4 super */
+    char type_01; /* 1 switch, 2 invisible, 3 sound, 4 super */
     void* pData_02;        /* type_01 selects the pointed-to record */
 };
 

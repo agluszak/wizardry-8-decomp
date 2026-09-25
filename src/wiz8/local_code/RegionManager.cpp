@@ -1237,8 +1237,8 @@ void ResetRegions(void)
         remaining = g_region_set_count;
         do {
             set->enabled = 0;
-            set = set + 1;
-            remaining = remaining - 1;
+            ++set;
+            --remaining;
         } while (remaining != 0);
     }
     if (g_region_count != 0) {
@@ -1246,8 +1246,8 @@ void ResetRegions(void)
         remaining = g_region_count;
         do {
             region->flags &= 3;
-            region = region + 1;
-            remaining = remaining - 1;
+            ++region;
+            --remaining;
         } while (remaining != 0);
     }
     g_current_region_index = 0;

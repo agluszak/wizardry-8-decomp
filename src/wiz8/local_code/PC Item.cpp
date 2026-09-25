@@ -455,7 +455,7 @@ int W8ItemVideoObjectCache::GetOrCreateVideoObject(int item_id)
     if (name[0] == '\0') {
         name = g_item_video_object_fallback_names[record->unidentified_name_index];
     }
-    sprintf(g_video_frames_62c430[object].path, "Data\\Items\\%s", name);
+    sprintf(g_video_frames_62c430[object].path, "%s\\%s", "Data\\Items", name);
     if (strstr(g_video_frames_62c430[object].path, ".sti") == 0) {
         strcat(g_video_frames_62c430[object].path, ".sti");
     }
@@ -1191,9 +1191,8 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
         /* The one item that is not used on anybody: it hands the level's NPC
            over to the fact that says the party has met them. */
         if (item->iItemNo == 0x29f) {
-            W8NpcState* npc =
-                GetNpcState(g_status_685170.buffers.XChar[CharacterPointerToPartySlot(character)]
-                                .npc_index);
+            W8NpcState* npc = GetNpcState(
+                g_status_685170.buffers.XChar[CharacterPointerToPartySlot(character)].npc_index);
             if (npc == 0) {
                 srAssertFail("pNPC", PC_ITEM_CPP, 0x89d, 0);
             }
@@ -4117,7 +4116,7 @@ void SplitThrowableStackBetweenHands0051ED30(W8Character* character, int equip_s
             SwapItemInstances(&character->EquippedItem[equip_slot], source, character, 1);
             return;
         }
-        moved = moved - (moved >> 1);
+        moved -= (moved >> 1);
     } else {
         if (moved == 1) {
             return;
