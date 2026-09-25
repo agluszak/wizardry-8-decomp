@@ -93,12 +93,37 @@ def changed_source_files(repository: Path, since: str | None = None) -> list[Pat
 
 _CALLED_NAME = re.compile(r"\b([A-Za-z_]\w*)\s*\(")
 _ADDRESS_SUFFIX = re.compile(r"(?<=[A-Za-z_])[0-9A-F]{8}$")
+_CLASS_HEAD = re.compile(r"^\s*(?:class|struct)\s+([A-Za-z_]\w*)")
+_SOURCE_SUFFIXES = {".cpp", ".cc", ".cxx", ".h", ".hpp"}
 
 
-def _called_names(text: str) -> set[str]:
-    """Called names with a trailing retail-address disambiguator dropped."""
+def _called_names(text: str, renamed: dict[str, str]) -> set[str]:
+    """Called names, spelled as the baseline spelled them."""
 
-    return {_ADDRESS_SUFFIX.sub("", name) for name in _CALLED_NAME.findall(text)}
+    names = set()
+    for name in _CALLED_NAME.findall(text):
+        name = renamed.get(name, name)
+        names.add(_ADDRESS_SUFFIX.sub("", name))
+    return names
+
+
+def _renamed_classes(hunks: list[list[tuple[str, str]]]) -> dict[str, str]:
+    """Map classes the change renamed to their baseline spelling.
+
+    A hunk that removes the head of `class Old` and adds `class New` in the same
+    position renames the class, so constructor and destructor definitions
+    spelled with the new name add no call.
+    """
+
+    renamed: dict[str, str] = {}
+    for rows in hunks:
+        removed = [
+            m.group(1) for sign, text in rows if sign == "-" if (m := _CLASS_HEAD.match(text))
+        ]
+        added = [m.group(1) for sign, text in rows if sign == "+" if (m := _CLASS_HEAD.match(text))]
+        if len(removed) == len(added):
+            renamed.update((new, old) for old, new in zip(removed, added) if old != new)
+    return renamed
 
 
 def _added_call_lines(repository: Path, since: str) -> dict[Path, set[int]]:
@@ -106,7 +131,8 @@ def _added_call_lines(repository: Path, since: str) -> dict[Path, set[int]]:
 
     A line whose called names all appear on the lines its hunk removes (a
     renamed argument, a reflowed expression, a callee losing its address
-    suffix) adds no call, so it is skipped.
+    suffix, a renamed class's constructor or destructor) adds no call, so it
+    is skipped.
     """
 
     if (repository / ".jj").is_dir() and resolve_executable("jj") is not None:
@@ -115,30 +141,41 @@ def _added_call_lines(repository: Path, since: str) -> dict[Path, set[int]]:
         baseline = f"origin/{since.removesuffix('@origin')}" if since.endswith("@origin") else since
         command = ["git", "diff", "--no-ext-diff", "--no-renames", baseline, "HEAD"]
     output = run(command, cwd=repository).stdout
-    added: dict[Path, set[int]] = {}
+
+    # hunk = (source path, first added line, [(sign, text)])
+    hunks: list[tuple[Path | None, int, list[tuple[str, str]]]] = []
     path: Path | None = None
-    line = 0
-    removed_names: set[str] = set()
     for row in output.splitlines():
         if row.startswith("diff --git "):
             match = re.match(r"diff --git a/(.*?) b/(.*)", row)
             path = repository / match.group(2) if match else None
         elif row.startswith("@@"):
             match = re.search(r"\+(\d+)", row)
-            line = int(match.group(1)) if match else 0
-            removed_names = set()
-        elif row.startswith("-") and not row.startswith("---"):
-            removed_names.update(_called_names(row[1:]))
-        elif row.startswith("+") and not row.startswith("+++"):
-            if (
-                path is not None
-                and path.suffix.lower() in {".cpp", ".cc", ".cxx", ".h", ".hpp"}
-                and "(" in row
-                and not _called_names(row[1:]) <= removed_names
-            ):
-                added.setdefault(path, set()).add(line)
-            line += 1
-        elif row.startswith(" "):
+            hunks.append((path, int(match.group(1)) if match else 0, []))
+        elif hunks and row[:1] in {"-", "+", " "} and not row.startswith(("---", "+++")):
+            hunks[-1][2].append((row[0], row[1:]))
+
+    renamed = _renamed_classes(
+        [
+            rows
+            for source, _, rows in hunks
+            if source is not None and source.suffix.lower() in _SOURCE_SUFFIXES
+        ]
+    )
+
+    added: dict[Path, set[int]] = {}
+    for source, line, rows in hunks:
+        if source is None or source.suffix.lower() not in _SOURCE_SUFFIXES:
+            continue
+        removed_names: set[str] = set()
+        for sign, text in rows:
+            if sign == "-":
+                removed_names |= _called_names(text, {})
+        for sign, text in rows:
+            if sign == "-":
+                continue
+            if sign == "+" and "(" in text and not _called_names(text, renamed) <= removed_names:
+                added.setdefault(source, set()).add(line)
             line += 1
     return added
 
