@@ -992,35 +992,23 @@ void StartCharacterItemUse(int party_slot)
    of nothing at all short-circuits unless the caller asks for the sum
    anyway. */
 // FUNCTION: WIZ8 0x004ffbd0
-int GetTotalCasterLevel(const W8Character* character, int unused, int spellbook, char include_all)
+int GetTotalCasterLevel(const W8Character* character, unsigned char spellbook, char include_all)
 {
-    int profession = character->iProfession;
     int total;
-    int other;
+    int profession;
     int level;
 
-    if (profession == -1) {
-        srAssertFail("iProfession != -1", MAGIC_CPP, 3603, 0);
-    }
-    if (g_profession_magic_level_offsets[profession] == -255) {
-        total = -1;
-    } else {
-        total =
-            character->profession_levels[profession] + g_profession_magic_level_offsets[profession];
-    }
+    total = GetProfessionCasterLevel(character, -1);
     if (total < 1 && include_all == 0) {
         return total;
     }
 
-    for (other = 0; other < 15; ++other) {
-        if (character->profession_levels[other] != 0 && other != character->iProfession &&
-            (g_profession_spellbooks[other] & spellbook) != 0) {
-            if (g_profession_magic_level_offsets[other] != -255) {
-                level =
-                    character->profession_levels[other] + g_profession_magic_level_offsets[other];
-                if (level > 0) {
-                    total += level;
-                }
+    for (profession = 0; profession < W8_PROFESSION_COUNT; ++profession) {
+        if (character->profession_levels[profession] != 0 && profession != character->iProfession &&
+            (g_profession_spellbooks[profession] & spellbook) != 0) {
+            level = GetProfessionCasterLevel(character, profession);
+            if (level > 0) {
+                total += level;
             }
         }
     }
@@ -1054,6 +1042,36 @@ static unsigned char SpellbookMaskForSpell(int spell_id)
                                                                           : W8_SPELLBOOK_NONE) |
                            (g_spell_records[spell_id].alchemy_spell != 0 ? W8_SPELLBOOK_ALCHEMY
                                                                          : W8_SPELLBOOK_NONE));
+}
+
+/* The chance, as a percentage, that one cast of the spell at this power level
+   fails when it goes through the given spellbook skill: the skill's shortfall
+   against the spell's cost band, plus the spell's level for every caster level
+   short of what the spell asks for, scaled by the caster's combat pace. The
+   skill figure weights the realm skill four to one against the spellbook
+   skill. Retail carries this sequence inline in all five callers. */
+static unsigned int GetCastFailureChance(W8Character* character, unsigned int skill, int spell_id,
+                                         unsigned int power_level)
+{
+    int party_slot;
+    unsigned int skill_figure;
+    unsigned int chance;
+    int shortfall;
+
+    party_slot = CharacterPointerToPartySlot(character);
+    skill_figure =
+        (character->skills[skill].level +
+         character->skills[W8_SKILL_FIRST_REALM + g_spell_records[spell_id].realm].level * 4) /
+        5;
+    chance = GetSpellFailureChance(skill_figure, spell_id, power_level);
+    shortfall = GetMinimumCasterLevelForSpell(spell_id) -
+                GetTotalCasterLevel(character, SpellbookMaskForSpell(spell_id), 1) - 1 +
+                power_level;
+    if (shortfall > 0) {
+        chance += g_spell_records[spell_id].spell_level * shortfall;
+    }
+    ScaleByCombatPace(party_slot, &chance);
+    return chance;
 }
 
 /* Recount the learned spells into the six per-realm slots (0x1c..0x21 of
@@ -1115,8 +1133,6 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
 {
     unsigned char book = SpellbookMaskForSpell(spell_id);
     int caster_level;
-    int other;
-    int other_level;
     unsigned int level_ceiling = 0;
     unsigned int skill_ceiling;
     unsigned int ceiling;
@@ -1130,18 +1146,7 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
         return 0;
     }
 
-    caster_level = GetProfessionCasterLevel(character, -1);
-    if (caster_level > 0) {
-        for (other = 0; other < 15; ++other) {
-            if (character->profession_levels[other] != 0 && other != character->iProfession &&
-                (g_profession_spellbooks[other] & book) != W8_SPELLBOOK_NONE) {
-                other_level = GetProfessionCasterLevel(character, other);
-                if (other_level > 0) {
-                    caster_level += other_level;
-                }
-            }
-        }
-    }
+    caster_level = GetTotalCasterLevel(character, book, 0);
 
     /* The highest spell level that caster level reaches, searched down from
        the top rather than up, so a caster who reaches nothing keeps zero. */
@@ -1581,12 +1586,10 @@ unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id,
     unsigned char probe;
     unsigned int skill_id;
     unsigned int best_skill = 0xffffffff;
-    unsigned int best_level = 0xffffffff;
+    int best_level = -1;
     unsigned int unlocked_skill = 0xffffffff;
-    unsigned int unlocked_level = 0xffffffff;
-    unsigned int chosen;
-    unsigned int level;
-    int party_slot = book;
+    int unlocked_level = -1;
+    int level;
 
     if (pricing != 0 && character->uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] != 0 &&
         g_spell_records[spell_id].alchemy_spell != 0) {
@@ -1597,118 +1600,63 @@ unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id,
     for (skill_id = W8_SKILL_FIRST_SPELLBOOK; skill_id < W8_SKILL_AFTER_SPELLBOOK; ++skill_id) {
         if ((probe & book) != 0) {
             level = character->skills[skill_id].level;
-            if ((int)best_level < (int)level) {
+            if (best_level < level) {
                 best_skill = skill_id;
                 best_level = level;
             }
             if (prefer_unlocked != 0 && character->skills[skill_id].active_00 != 0 &&
-                (int)unlocked_level < (int)level) {
+                unlocked_level < level) {
                 unlocked_skill = skill_id;
                 unlocked_level = level;
             }
         }
-        probe = (unsigned char)(probe << 1);
+        probe <<= 1;
     }
 
-    chosen = unlocked_skill;
     if (prefer_unlocked != 0 && unlocked_skill != 0xffffffff && best_skill != unlocked_skill) {
-        if (pricing != 0) {
-            unsigned int failure;
-            int shortfall;
-            int band;
-            unsigned int skill_figure;
-            unsigned int needed;
-
-            party_slot = CharacterPointerToPartySlot(character);
-            band = g_spell_records[spell_id].spell_point_cost / 2 +
-                   g_spell_records[spell_id].spell_level;
-            skill_figure =
-                (character->skills[unlocked_skill].level +
-                 character->skills[W8_SKILL_FIRST_REALM + g_spell_records[spell_id].realm].level *
-                     4) /
-                5;
-            if (band > 16) {
-                band = 16;
-            }
-            needed = (g_combat_effect_slot_spells_and_cast_success[6 + band] * power_level) / 7;
-            if (skill_figure < needed) {
-                failure = (needed * 70 - skill_figure * 70) / needed;
-                if ((int)failure < 0) {
-                    failure = 0;
-                } else if ((int)failure > 100) {
-                    failure = 100;
-                }
-            } else {
-                failure = 0;
-            }
-
-            best_level = failure;
-            chosen = GetMinimumCasterLevelForSpell(spell_id);
-            shortfall = static_cast<int>(chosen) - GetTotalCasterLevel(character, 0, book, 1) - 1 +
-                        power_level;
-            if (shortfall > 0) {
-                unlocked_skill = g_spell_records[spell_id].spell_level * shortfall + power_level;
-            }
-            ScaleByCombatPace(party_slot, &unlocked_skill);
-            if (unlocked_skill != 0) {
-                goto done;
-            }
+        if (pricing == 0 ||
+            GetCastFailureChance(character, unlocked_skill, spell_id, power_level) == 0) {
+            best_skill = unlocked_skill;
         }
-        best_level = chosen;
     }
 
-done:
-    if (best_level == 0xffffffff) {
+    if (best_skill == 0xffffffff) {
         srAssertFail("(iHighestSkill != SKILL_NONE)", MAGIC_CPP, 0xf29,
-                     FormatString("Failed on spell %ld, usability being %d", spell_id, party_slot));
+                     FormatString("Failed on spell %ld, usability byte %ld", spell_id, book));
     }
-    return best_level;
+    return best_skill;
 }
 
-/* How likely one whole cast is to come apart, as a percentage. Two things
-   spoil it, and this is where the two meet: a spellbook skill short of what
-   the spell's cost band asks for at that power level, which the plain
-   failure-chance body above answers, and a caster level short of what the
-   spell asks for, charged flat at the spell's own level per level missing. The
-   sum is then scaled by how far ahead of the combat pace the caster is.
-
-   The skill this is measured against is the spell's own best spellbook skill
-   weighted four to one against the realm skill, which is what makes the realm
-   the larger part of it.
-
-   Power level eight is the request to cast as high as affordable rather than a
-   level, so it has no failure chance of its own. The power-level choosers
-   carry this whole body inline rather than calling it. */
+/* How safe one cast of the spell at this power level is, as the spell screen's
+   five-step rating: five for no chance of failure, then four up to five
+   percent, three up to fifteen, two up to forty and one past that. Power level
+   eight is the request to cast as high as affordable rather than a level, so
+   it has no rating of its own. */
 // FUNCTION: WIZ8 0x004ff4b0
-unsigned int GetSpellFailureChanceForCast(W8Character* character, int spell_id,
-                                          unsigned int power_level)
+unsigned int GetSpellCastRating(W8Character* character, int spell_id, unsigned int power_level)
 {
-    int skill;
-    int party_slot;
-    unsigned int skill_figure;
     unsigned int chance;
-    int shortfall;
 
     if (power_level == W8_SPELL_POWER_AS_AFFORDABLE) {
         return 0;
     }
 
-    skill = GetBestSpellbookSkillForSpell(character, spell_id, 1, 1, power_level);
-    party_slot = CharacterPointerToPartySlot(character);
-    skill_figure =
-        (character->skills[skill].level +
-         character->skills[W8_SKILL_FIRST_REALM + g_spell_records[spell_id].realm].level * 4) /
-        5;
-    chance = GetSpellFailureChance(skill_figure, spell_id, (int)power_level);
-
-    shortfall = GetMinimumCasterLevelForSpell(spell_id) -
-                GetTotalCasterLevel(character, 0, SpellbookMaskForSpell(spell_id), 1) - 1 +
-                power_level;
-    if (shortfall > 0) {
-        chance = g_spell_records[spell_id].spell_level * shortfall + power_level;
+    chance = GetCastFailureChance(
+        character, GetBestSpellbookSkillForSpell(character, spell_id, 1, 1, power_level), spell_id,
+        power_level);
+    if (chance == 0) {
+        return 5;
     }
-    ScaleByCombatPace(party_slot, &chance);
-    return chance;
+    if (chance <= 5) {
+        return 4;
+    }
+    if (chance <= 15) {
+        return 3;
+    }
+    if (chance <= 40) {
+        return 2;
+    }
+    return 1;
 }
 
 /* The average of one dice expression, taken as the midpoint of what it can
@@ -1767,7 +1715,9 @@ unsigned int ChoosePowerLevelForDuration(W8Character* character, int spell_id,
             return best_power;
         }
 
-        failure = GetSpellFailureChanceForCast(character, spell_id, power_level);
+        failure = GetCastFailureChance(
+            character, GetBestSpellbookSkillForSpell(character, spell_id, 1, 1, power_level),
+            spell_id, power_level);
 
         /* What one cast at this level really delivers: the square of the power
            level, less the share of it the failure chance takes away. */
@@ -1824,7 +1774,9 @@ unsigned int ChoosePowerLevelToRestore(W8Character* character, int spell_id,
     }
 
     for (power_level = 1; power_level < 8; ++power_level) {
-        failure = GetSpellFailureChanceForCast(character, spell_id, power_level);
+        failure = GetCastFailureChance(
+            character, GetBestSpellbookSkillForSpell(character, spell_id, 1, 1, power_level),
+            spell_id, power_level);
         if (failure > W8_SPELL_FAILURE_ACCEPTABLE) {
             if (power_level > 1) {
                 --power_level;
@@ -2632,24 +2584,14 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     int sp_needed;
     unsigned int chance;
     unsigned int best_skill;
-    unsigned int skill_score;
     int realm_skill;
-    int slot;
     int realm;
-    int level_index;
-    int caster_level;
-    int minimum_level;
     int power_cast_bonus;
-    int spellbook;
-    int profession;
     int index;
-    unsigned int threshold;
-    unsigned int morale;
     unsigned char affected;
     int result;
     int cast_result;
     bool recast;
-    const int* profession_level;
     char clamp_power;
 
     character = &g_status.buffers.Char[party_slot];
@@ -2734,61 +2676,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     }
     best_skill = GetBestSpellbookSkillForSpell(character, spell_id, 1, 1, power_level);
     realm_skill = realm + 0x1c;
-    slot = CharacterPointerToPartySlot(character);
-    level_index = record->spell_point_cost / 2 + record->spell_level;
-    skill_score =
-        (character->skills[best_skill].level + character->skills[realm + 0x1c].level * 4) / 5;
-    if (0x10 < level_index) {
-        level_index = 0x10;
-    }
-    threshold = (g_combat_effect_slot_spells_and_cast_success[level_index + 6] * power_level) / 7;
-    if (skill_score < threshold) {
-        chance = ((threshold - skill_score) * 70) / threshold;
-        if (static_cast<int>(chance) < 0) {
-            chance = 0;
-        } else if (100 < static_cast<int>(chance)) {
-            chance = 100;
-        }
-    } else {
-        chance = 0;
-    }
-    minimum_level = GetMinimumCasterLevelForSpell(spell_id);
-    caster_level = GetProfessionCasterLevel(character, -1);
-    spellbook = (-(record->psionics_spell != 0) & 8U) | (-(record->divinity_spell != 0) & 2U) |
-                (record->wizardry_spell != 0) | (-(record->alchemy_spell != 0) & 4U);
-    profession_level = character->profession_levels;
-    profession = W8_PROFESSION_FIGHTER;
-    do {
-        if (*profession_level != 0 && profession != character->iProfession &&
-            (g_profession_spellbooks[profession] & spellbook) != 0 &&
-            (index = GetProfessionCasterLevel(character, profession), 0 < index)) {
-            caster_level += index;
-        }
-        ++profession;
-        ++profession_level;
-    } while (profession < W8_PROFESSION_COUNT);
-    index = (minimum_level - caster_level) - 1 + power_level;
-    if (0 < index) {
-        chance += record->spell_level * index;
-    }
-    if (gXStatus.fCombatMode != 0) {
-        if (g_settings.difficulty == 0) {
-            morale = 0x50;
-        } else if (g_settings.difficulty == 1) {
-            morale = 0x3c;
-        } else {
-            if (g_settings.difficulty != 2) {
-                srAssertFail("FALSE", MAGIC_CPP, 0x14e8, 0);
-                goto LAB_004faa0f;
-            }
-            morale = 0x28;
-        }
-        threshold = g_combat_state->characters[slot].phase_clock_stamp;
-        if (morale <= threshold) {
-            chance = (((0x32 - morale) + threshold) * chance * 2) / 100;
-        }
-    }
-LAB_004faa0f:
+    chance = GetCastFailureChance(character, best_skill, spell_id, power_level);
     if (spell_id == 0x4a && aim->iType == W8_TARGET_KIND_CHARACTER && aim->iChar == party_slot) {
         chance += 0x32;
     }
@@ -2988,13 +2876,8 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         ClearAttackBlock(&block);
         if (TargetSourceIsCharacter(source, 1)) {
             if (source->name_known_19 == 0) {
-                caster_figure = GetTotalCasterLevel(
-                    &g_status.buffers.Char[source->iChar], 0,
-                    (g_spell_records[spell_id].psionics_spell != 0 ? 8 : 0) |
-                        (g_spell_records[spell_id].divinity_spell != 0 ? 2 : 0) |
-                        (g_spell_records[spell_id].wizardry_spell != 0 ? 1 : 0) |
-                        (g_spell_records[spell_id].alchemy_spell != 0 ? 4 : 0),
-                    1);
+                caster_figure = GetTotalCasterLevel(&g_status.buffers.Char[source->iChar],
+                                                    SpellbookMaskForSpell(spell_id), 1);
                 caster_figure = GetSpellDifficulty(caster_figure, spell_id, power_level);
             } else {
                 caster_figure = source->spell_difficulty_1f;

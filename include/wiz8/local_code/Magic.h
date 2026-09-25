@@ -126,10 +126,9 @@ void StartCharacterItemUse(int party_slot); /* 0x00501790 */
 bool CanPartySlotReBreathe(int party_slot);
 /* 0x00501880: start one character's breath attack. */
 void StartCharacterBreathAttack(int party_slot);
-/* 0x004FF4B0: the failure chance for one cast at a power level. Retail call
-   sites push three arguments. */
-unsigned int GetSpellFailureChanceForCast(W8Character* character, int spell_id,
-                                          unsigned int power_level);
+/* 0x004FF4B0: the spell screen's one-to-five safety rating for one cast at a
+   power level; zero for the as-affordable request. */
+unsigned int GetSpellCastRating(W8Character* character, int spell_id, unsigned int power_level);
 /* 0x004FF410: the same chance for a bare skill figure rather than a caster,
    which is what an item-use attempt has. */
 unsigned int GetSpellFailureChance(unsigned int skill, int spell_id, int factor);
