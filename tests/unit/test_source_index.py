@@ -20,6 +20,29 @@ def _settings(tmp_path: Path) -> Settings:
     )
 
 
+def test_load_source_index_rejects_unknown_schema(tmp_path: Path) -> None:
+    build = tmp_path / "build"
+    build.mkdir()
+    (build / "source-index.json").write_text(
+        json.dumps({"schema": "reccmp-source-index-v999"}),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(SourceIndexError, match="unsupported source-index schema"):
+        source_index.load_source_index(tmp_path)
+    assert source_index.try_load_source_index(tmp_path) is None
+
+
+def test_try_load_source_index_returns_none_for_malformed_json(tmp_path: Path) -> None:
+    build = tmp_path / "build"
+    build.mkdir()
+    (build / "source-index.json").write_text("{not-json", encoding="utf-8")
+
+    assert source_index.try_load_source_index(tmp_path) is None
+    with pytest.raises(SourceIndexError, match="could not be read"):
+        source_index.load_source_index(tmp_path)
+
+
 def test_compile_db_files_include_local_checkout_paths(tmp_path: Path) -> None:
     repository = tmp_path / "checkout"
     local = repository / "src/wiz8/Combat.cpp"

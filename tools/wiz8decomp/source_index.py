@@ -24,6 +24,9 @@ from .paths import compile_database_relative
 _SOURCE_SUFFIXES = frozenset({".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx"})
 _SYNTHETIC_MARKER = re.compile(r"^\s*//\s*SYNTHETIC:\s+")
 _SOURCE_MARKER = re.compile(r"^\s*//\s*(?:FUNCTION|TEMPLATE|SYNTHETIC|LIBRARY|VTABLE|GLOBAL):\s+")
+_SOURCE_INDEX_SCHEMAS = frozenset(
+    {"reccmp-source-index-v2", "reccmp-source-index-v3", "reccmp-source-index-v6"}
+)
 LINT_ONLY_SOURCE_ROOTS = ("tests/runtime",)
 _ATTACHED_INCLUDE_FLAGS = (
     "-isystem",
@@ -97,9 +100,15 @@ def load_source_index(repository: Path) -> dict[str, Any]:
 
 
 def _read_source_index_document(path: Path) -> dict[str, Any]:
-    document = json.loads(path.read_text(encoding="utf-8"))
+    try:
+        document = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as error:
+        raise SourceIndexError(f"{path} could not be read: {error}") from error
     if not isinstance(document, Mapping):
         raise SourceIndexError(f"{path} must contain a JSON object")
+    schema = document.get("schema")
+    if schema not in _SOURCE_INDEX_SCHEMAS:
+        raise SourceIndexError(f"{path} has an unsupported source-index schema: {schema!r}")
     return dict(document)
 
 
@@ -112,7 +121,10 @@ def try_load_source_index(repository: Path) -> dict[str, Any] | None:
     path = repository / "build/source-index.json"
     if not path.is_file():
         return None
-    return _read_source_index_document(path)
+    try:
+        return _read_source_index_document(path)
+    except (OSError, ValueError):
+        return None
 
 
 def source_index_freshness(repository: Path, target: str = "WIZ8") -> dict[str, Any]:
