@@ -138,7 +138,7 @@ enum W8TriggerFlag {
 
 /* Persisted lock/trap device state: `completed` latches once the pick/disarm
    interaction finishes; `pins` holds the eight tumbler bytes of a pickable
-   lock, re-rolled by UpdateTriggerLock00445730. */
+   lock, re-rolled by W8LockState::Reset. */
 struct W8TriggerDeviceState {
     unsigned char completed;
     unsigned char pins[8];
@@ -146,15 +146,20 @@ struct W8TriggerDeviceState {
 
 static_assert(sizeof(W8TriggerDeviceState) == 9, "W8TriggerDeviceState_must_be_9");
 
-/* The locks & traps device record embedded at the tail of Trigger. This is
-   the block `UpdateTriggerLock00445730`/`ConsumeLockQuality004457A0` take by
-   pointer (`&trigger->lock_state`). `lock_type` is the editor "Type" (0 none,
+/* The locks & traps device record embedded at the tail of Trigger. `lock_type` is the editor "Type" (0 none,
    1 pickable lock, 2 trap, 3 key lock); `difficulty` is the editor "Difficulty"
    grade — it doubles as the pickable lock's pin budget; `device_id` indexes
    the tumbler/trap tables (-1 = roll on first use); `lock_countdown` ticks the
    pick interaction (pins remaining, difficulty * 3); `last_interaction_clock`
    is the world clock of the last attempt (-1 = never). */
 struct W8LockState {
+    /* Re-rolls the eight pin bytes of a pickable lock (lock_type == 1) and
+       resets its difficulty-derived countdown and interaction state. */
+    void Reset(); /* 0x00445730 */
+    /* Spends one point of the lock countdown and reports whether one
+       remained to spend. */
+    bool ConsumeCountdown(); /* 0x004457A0 */
+
     int lock_type;
     int difficulty;
     W8TriggerDeviceState device_state;
@@ -273,18 +278,10 @@ public:
     ActivationCallback activation_callback_360;
     bool running;
     unsigned char unknown_365[3];
-    /* Locks & traps device block — the record UpdateTriggerLock00445730/
-       ConsumeLockQuality004457A0 take by pointer. */
     W8LockState lock_state;
 };
 
 void InitializeStateDrivenPropVariables(Trigger* trigger);
-/* Re-rolls the eight pin bytes of a pickable lock (lock_type == 1) and
-   resets its difficulty-derived seed/state fields. */
-void __fastcall UpdateTriggerLock00445730(W8LockState* lock_state); /* 0x00445730 */
-/* Spends one point of the lock's quality budget (lock_countdown) and reports
-   whether one remained to spend. */
-unsigned char __fastcall ConsumeLockQuality004457A0(W8LockState* lock_state); /* 0x004457A0 */
 
 static_assert(sizeof(Trigger) == 0x38c, "Trigger_must_be_0x38c");
 

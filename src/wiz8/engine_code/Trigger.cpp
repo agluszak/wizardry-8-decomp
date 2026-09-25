@@ -187,23 +187,21 @@ Trigger* FindTriggerForProp(W8World* world, W8Prop* prop)
     return 0;
 }
 
-/* Re-rolls the eight pin bytes of a pickable lock (lock_type == 1) and
-   resets its difficulty-derived seed/state fields. */
 // FUNCTION: WIZ8 0x00445730
-void __fastcall UpdateTriggerLock00445730(W8LockState* lock_state)
+void W8LockState::Reset()
 {
     int pins;
 
-    if (lock_state->lock_type == 1) {
+    if (lock_type == 1) {
         for (int pin = 0; pin < 8; ++pin) {
-            lock_state->device_state.pins[pin] = static_cast<char>(Random(4));
+            device_state.pins[pin] = static_cast<char>(Random(4));
         }
-        pins = lock_state->difficulty;
+        pins = difficulty;
         if (pins < 8) {
             if (pins < 2) {
-                lock_state->lock_countdown = 6;
-                lock_state->last_interaction_clock = -1;
-                lock_state->device_state.completed = 0;
+                lock_countdown = 6;
+                last_interaction_clock = -1;
+                device_state.completed = 0;
                 return;
             }
             if (pins > 7) {
@@ -212,21 +210,20 @@ void __fastcall UpdateTriggerLock00445730(W8LockState* lock_state)
         } else {
             pins = 8;
         }
-        lock_state->lock_countdown = pins * 3;
+        lock_countdown = pins * 3;
     }
-    lock_state->last_interaction_clock = -1;
-    lock_state->device_state.completed = 0;
+    last_interaction_clock = -1;
+    device_state.completed = 0;
 }
 
-/* Ticks the lock countdown; returns 1 while a tick remained. */
 // FUNCTION: WIZ8 0x004457A0
-unsigned char __fastcall ConsumeLockQuality004457A0(W8LockState* lock_state)
+bool W8LockState::ConsumeCountdown()
 {
-    if (lock_state->lock_countdown > 0) {
-        --lock_state->lock_countdown;
-        return 1;
+    if (lock_countdown > 0) {
+        --lock_countdown;
+        return true;
     }
-    return 0;
+    return false;
 }
 
 /* True while a type-0x34 destination trigger holds (x, y, z) inside its

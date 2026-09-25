@@ -2365,7 +2365,7 @@ static void HandleMipeLockTrapKey(unsigned short key)
         if (3 < lock_state->lock_type) {
             lock_state->lock_type = 0;
         }
-        UpdateTriggerLock00445730(lock_state);
+        lock_state->Reset();
         if (action == 0) {
             if (lock_state->lock_type == 3) {
                 key_id = trigger->lock_state.key_id;

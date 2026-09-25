@@ -1213,7 +1213,7 @@ void W8LockInteraction::ResolvePick()
     }
     m_slot_attempts_60[m_selected_slot_2c]++;
     m_tumbler_owner_38[m_picked_tumbler_30] = m_selected_slot_2c;
-    if (Random(5) == 0 && ConsumeLockQuality004457A0(&m_trigger_08->lock_state) != 0) {
+    if (Random(5) == 0 && m_trigger_08->lock_state.ConsumeCountdown()) {
         character = &g_status_685170.buffers.Char[m_selected_slot_2c];
         level = character->skills[10].level;
         PracticeCharacterSkill(character, 10, 1, 0);
@@ -2828,18 +2828,16 @@ unsigned char W8NpcDialogueTextController::IsSlotPortraitTranscriptCovered(unsig
 }
 
 // FUNCTION: WIZ8 0x0055E2C0
-void __fastcall CollapseNpcDialogueTextArea(W8NpcDialogueTextController* controller)
+void W8NpcDialogueTextController::Collapse()
 {
     W8ControlsRect bounds;
     int top;
 
-    controller->visible = 0;
-    top = (controller->origin_y -
-           (controller->scroll_height / controller->line_height) * controller->line_height) -
-          controller->margin;
-    ClearSurfaceRect(controller->origin_x, top, controller->right, controller->bottom);
-    controller->Invalidate(0);
-    InvalidateRegion(controller->origin_x, top, controller->right, controller->bottom, 0);
+    visible = 0;
+    top = (origin_y - (scroll_height / line_height) * line_height) - margin;
+    ClearSurfaceRect(origin_x, top, right, bottom);
+    Invalidate(0);
+    InvalidateRegion(origin_x, top, right, bottom, 0);
     if (top < 0x67) {
         RequestRedraw(2);
         RequestRedraw(8);
@@ -2855,63 +2853,59 @@ void __fastcall CollapseNpcDialogueTextArea(W8NpcDialogueTextController* control
     } else {
         RequestRedraw(0x80);
     }
-    controller->scroll_height = controller->line_height;
-    bounds.left = controller->origin_x + 6;
-    bounds.right = controller->origin_x + 0x7c;
-    bounds.bottom = controller->origin_y + 0x12;
-    bounds.top = bounds.bottom - controller->line_height;
-    controller->text_area.Configure(&bounds, g_font_683660,
-                                    g_W8TextBufferLayoutMask005ED548 |
-                                        g_W8TextBufferLayoutMask005ED54C |
-                                        g_W8TextBufferLayoutMask005ED550);
+    scroll_height = line_height;
+    bounds.left = origin_x + 6;
+    bounds.right = origin_x + 0x7c;
+    bounds.bottom = origin_y + 0x12;
+    bounds.top = bounds.bottom - line_height;
+    text_area.Configure(&bounds, g_font_683660,
+                        g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED54C |
+                            g_W8TextBufferLayoutMask005ED550);
     RegionSetDisable(3);
     DisableRegionInput(9);
     g_screen_state_00649f1c->npc_dialogue_panel_1b4->SetEnabled(0);
 }
 
 // FUNCTION: WIZ8 0x0055E1E0
-void __fastcall ExpandNpcDialogueTextArea(W8NpcDialogueTextController* controller)
+void W8NpcDialogueTextController::Expand()
 {
     W8ControlsRect bounds;
     int line_height;
     int text_height;
 
-    controller->visible = 1;
-    line_height = controller->text_area.GetLineHeight();
-    text_height = line_height * controller->text_area.GetTotalLineCount();
+    visible = 1;
+    line_height = text_area.GetLineHeight();
+    text_height = line_height * text_area.GetTotalLineCount();
     if (text_height >= 0xff) {
         text_height = 0xff;
     }
-    bounds.left = controller->origin_x + 6;
-    bounds.right = controller->origin_x + 0x7c;
-    bounds.bottom = controller->origin_y + 0x12;
+    bounds.left = origin_x + 6;
+    bounds.right = origin_x + 0x7c;
+    bounds.bottom = origin_y + 0x12;
     bounds.top = bounds.bottom - text_height;
-    controller->scroll_height = text_height;
-    controller->text_area.Configure(&bounds, g_font_683660,
-                                    g_W8TextBufferLayoutMask005ED548 |
-                                        g_W8TextBufferLayoutMask005ED54C |
-                                        g_W8TextBufferLayoutMask005ED550);
-    if (controller->scroll_height != 0xff) {
-        controller->text_area.SetFirstVisibleEntry(0);
+    scroll_height = text_height;
+    text_area.Configure(&bounds, g_font_683660,
+                        g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED54C |
+                            g_W8TextBufferLayoutMask005ED550);
+    if (scroll_height != 0xff) {
+        text_area.SetFirstVisibleEntry(0);
     }
     SetRegionBounds(
         9, static_cast<unsigned short>(bounds.left), static_cast<unsigned short>(bounds.top),
         static_cast<unsigned short>(bounds.right), static_cast<unsigned short>(bounds.bottom));
     RegionSetEnable(3);
     EnableRegionInput(9);
-    controller->Invalidate(0);
+    Invalidate(0);
 }
 
 // FUNCTION: WIZ8 0x0055EAE0
-void __fastcall ClearNpcDialogueTextBackground(W8NpcDialogueTextController* controller)
+void W8NpcDialogueTextController::ClearBackground()
 {
     int top;
 
-    top = ((1 - controller->scroll_height / controller->line_height) * controller->line_height -
-           controller->margin) +
-          controller->origin_y;
-    ClearSurfaceRect(controller->origin_x, top, controller->right, controller->bottom);
-    InvalidateRegion(controller->origin_x, top, controller->right, controller->bottom, 0);
+    top = ((1 - scroll_height / line_height) * line_height - margin) + origin_y;
+    ClearSurfaceRect(origin_x, top, right, bottom);
+    InvalidateRegion(origin_x, top, right, bottom, 0);
     if (top < 0x67) {
         RequestRedraw(2);
         RequestRedraw(8);
@@ -2934,9 +2928,9 @@ void __fastcall ClearNpcDialogueTextBackground(W8NpcDialogueTextController* cont
 }
 
 // FUNCTION: WIZ8 0x0055E2B0
-bool __fastcall IsNpcDialogueTextExpanded(W8NpcDialogueTextController* controller)
+bool W8NpcDialogueTextController::IsExpanded()
 {
-    return controller->scroll_height == 0xff;
+    return scroll_height == 0xff;
 }
 
 /* Standalone JMP thunk onto W8Widget::~W8Widget; the vtable slot of
@@ -3000,8 +2994,8 @@ void W8NpcDialogueScrollWidget::OnLeftButtonUp(int event)
 void W8NpcDialogueTextController::SetTranscriptCategoryFilter(signed char category)
 {
     text_area.SetCategoryFilter(category);
-    CollapseNpcDialogueTextArea(this);
-    ExpandNpcDialogueTextArea(this);
+    Collapse();
+    Expand();
     if (g_screen_state_00649f1c->npc_dialogue_controller_1b0->scroll_height == 0xff) {
         g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(1);
         g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(1);
@@ -3027,8 +3021,8 @@ void W8NpcDialogueTextController::RestoreTranscriptEntries()
         g_screen_state_00649f1c->dialogue_category_filter = W8_DIALOGUE_CATEGORY_ALL;
         controller = g_screen_state_00649f1c->npc_dialogue_controller_1b0;
         controller->text_area.SetCategoryFilter(g_screen_state_00649f1c->dialogue_category_filter);
-        CollapseNpcDialogueTextArea(controller);
-        ExpandNpcDialogueTextArea(controller);
+        controller->Collapse();
+        controller->Expand();
         if (g_screen_state_00649f1c->npc_dialogue_controller_1b0->scroll_height == 0xff) {
             g_screen_state_00649f1c->dialogue_scroll_up_button->SetEnabled(1);
             g_screen_state_00649f1c->dialogue_scroll_down_button->SetEnabled(1);

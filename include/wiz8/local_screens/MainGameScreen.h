@@ -213,6 +213,15 @@ public:
     int GetSelectedTranscriptEntryIndex();          /* 0x0055EAB0 */
     void SetTranscriptSorted(unsigned char sorted); /* 0x0055EAC0 */
     void RemoveSelectedTranscriptEntry();           /* 0x0055EA70 */
+    /* Open the transcript upward to fit its lines (capped at 0xff pixels)
+       and enable its scroll region. */
+    void Expand(); /* 0x0055E1E0 */
+    /* Shrink the transcript back to one line, clearing and redrawing the
+       area it covered. */
+    void Collapse(); /* 0x0055E2C0 */
+    /* Clear and redraw the backdrop the transcript covers. */
+    void ClearBackground(); /* 0x0055EAE0 */
+    bool IsExpanded();      /* 0x0055E2B0 */
 
     /* 0x4c/0x50: catalog image ids whose measured heights seed margin and
        line_height/scroll_height in the constructor; never read again. */
@@ -515,12 +524,6 @@ struct W8NpcScriptQuote;
 struct W8NpcQuoteEntry;
 
 void RefreshTrackedPortraitOverlay(void); /* 0x00563890 */
-void __fastcall
-CollapseNpcDialogueTextArea(W8NpcDialogueTextController* controller);               /* 0x0055E2C0 */
-void __fastcall ExpandNpcDialogueTextArea(W8NpcDialogueTextController* controller); /* 0x0055E1E0 */
-void __fastcall
-ClearNpcDialogueTextBackground(W8NpcDialogueTextController* controller);            /* 0x0055EAE0 */
-bool __fastcall IsNpcDialogueTextExpanded(W8NpcDialogueTextController* controller); /* 0x0055E2B0 */
 /* Which party portrait the pointer is over, if any. */
 unsigned char HitTestPartyPortrait(const InputAtom* event);
 void ClearCombatSelection(void);                                       /* 0x0056A5A0 */
