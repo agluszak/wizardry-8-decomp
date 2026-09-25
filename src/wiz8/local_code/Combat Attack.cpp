@@ -2828,7 +2828,7 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
 
     if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_CHARACTER) {
         if (g_combat_state->TargetHit.iChar == -1) {
-            srAssertFail("gpCombat->TargetHit.iChar != BAD_INDEX", COMBAT_ATTACK_CPP, 0xd44, 0);
+            srAssertFail("gpCombat->TargetHit.iChar != BAD_INDEX", COMBAT_ATTACK_CPP, 0xd3b, 0);
         }
         target = &g_status_685170.buffers.Char[g_combat_state->TargetHit.iChar];
         target_info = NULL;

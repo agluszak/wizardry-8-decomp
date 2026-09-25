@@ -868,7 +868,7 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
         location.SetFromFloat(&record.location);
         location *= g_world_scale_005ebc40;
         particle->setLocation(location);
-        particle->rotateX(1.5707963267948966);
+        particle->rotateX(1.5707963);
 
         if (record.bounds_origin.x != 0.0f) {
             particle->replace_when_full_191 = 1;
