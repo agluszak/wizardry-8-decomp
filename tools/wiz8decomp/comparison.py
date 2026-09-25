@@ -100,11 +100,8 @@ _SOURCE_SUFFIXES = {".cpp", ".cc", ".cxx", ".h", ".hpp"}
 def _called_names(text: str, renamed: dict[str, str]) -> set[str]:
     """Called names, spelled as the baseline spelled them."""
 
-    names = set()
-    for name in _CALLED_NAME.findall(text):
-        name = renamed.get(name, name)
-        names.add(_ADDRESS_SUFFIX.sub("", name))
-    return names
+    names: list[str] = _CALLED_NAME.findall(text)
+    return {_ADDRESS_SUFFIX.sub("", renamed.get(name, name)) for name in names}
 
 
 def _renamed_classes(hunks: list[list[tuple[str, str]]]) -> dict[str, str]:
