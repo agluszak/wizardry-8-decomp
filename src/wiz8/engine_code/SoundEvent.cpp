@@ -184,7 +184,7 @@ unsigned char W8SoundEvent::Play(unsigned int mask, const srVector3T<float>* pos
         srMatrix3T<float> rotation;
 
         rotation.SetIdentity();
-        if ((double)angle != g_zero_005ebb40) {
+        if (angle != g_zero_005ebb40) {
             rotation.RotateAboutY(sin(angle), cos(angle));
         }
 

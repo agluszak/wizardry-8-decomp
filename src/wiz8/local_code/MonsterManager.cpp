@@ -1781,10 +1781,9 @@ void FormatMonsterHealth(W8MonsterInfo* monster_info, wchar_t* health_text)
         monster_level = record->display_level_251;
         health_knowledge = GetBestPartySkillLevel(0x15, &best_party_slot);
         if (static_cast<int>(average_party_level) < monster_level) {
-            float adjusted_knowledge =
-                static_cast<float>(health_knowledge) -
-                (static_cast<float>(monster_level) - average_party_level) * g_float_005ec52c +
-                g_float_005ebc7c;
+            float adjusted_knowledge = health_knowledge -
+                                       (monster_level - average_party_level) * g_float_005ec52c +
+                                       g_float_005ebc7c;
             if (adjusted_knowledge < g_float_005ebb34) {
                 adjusted_knowledge = g_float_005ebb34;
             }

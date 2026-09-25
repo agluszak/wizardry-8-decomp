@@ -108,7 +108,7 @@ bool LoadPathAI004A92A0(W8PathAI** output, int handle)
             FileRead(handle, &axis.y, 4, 0);
             FileRead(handle, &axis.z, 4, 0);
             rotation.SetIdentity();
-            if ((double)angle != g_zero_005ebb40) {
+            if (angle != g_zero_005ebb40) {
                 rotation.RotateAroundAxis(sin(angle), cos(angle), axis);
             }
             path->rotations_14[index] = rotation;
@@ -583,7 +583,7 @@ int PathAITick004AA1F0(W8PathAI* path, signed char direction)
             }
         } else if (path->looping != 0) {
             path->last_update_tick = now;
-            path->position = static_cast<float>(path->nodes_0c->count) - g_float_005ebb38;
+            path->position = path->nodes_0c->count - g_float_005ebb38;
             return 1;
         }
         path->position = g_float_005ebb34;

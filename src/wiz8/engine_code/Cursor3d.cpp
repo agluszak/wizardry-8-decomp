@@ -773,7 +773,7 @@ void UpdateWorldCursorPlacement00491EC0(void)
     float sine;
 
     rotation.SetIdentity();
-    if (static_cast<double>(g_gd_camera_65a0f8->m_yaw) != g_zero_005ebb40) {
+    if (g_gd_camera_65a0f8->m_yaw != g_zero_005ebb40) {
         cosine = static_cast<float>(cos(g_gd_camera_65a0f8->m_yaw));
         sine = static_cast<float>(sin(g_gd_camera_65a0f8->m_yaw));
         first.Set(cosine, 0.0, sine);

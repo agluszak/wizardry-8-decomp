@@ -129,10 +129,9 @@ void MonsterLight::Update0049D990(const srVector3T<float>* position)
         intensity_1d0 = g_float_005ebb38 - fade;
     } else if (m_cycle_color_248 != 0) {
         float cycle = elapsed * g_monster_light_cycle_rate_005ecd4c;
-        double whole = floor((double)cycle);
+        double whole = floor(cycle);
         float first_weight =
-            (float)(sin(((double)cycle - whole) * g_double_005ec318) + g_float_005ebb38) *
-            g_float_005ebc7c;
+            (float)(sin((cycle - whole) * g_double_005ec318) + g_float_005ebb38) * g_float_005ebc7c;
         float second_weight = g_float_005ebb38 - first_weight;
 
         diffuse_1a4.x = m_color_first_22c.x * first_weight + m_color_second_238.x * second_weight;

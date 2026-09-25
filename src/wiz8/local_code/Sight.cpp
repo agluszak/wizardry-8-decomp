@@ -257,7 +257,7 @@ float ComputeSightThreshold(srVector3T<float> observer_position, srVector3T<floa
         sight_percent = (static_cast<int>(ranged_bonus) + 100) * sight_percent / 100;
     }
     ClampInteger(&sight_percent, 2, 100);
-    return static_cast<float>(sight_percent) * viewing_distance * g_movement_speed_step_005ed490;
+    return sight_percent * viewing_distance * g_movement_speed_step_005ed490;
 }
 
 /* Drop every visibility record anyone held about one departing monster. */

@@ -159,10 +159,10 @@ unsigned char UpdateMissileAI004A4CF0(W8AIMissile* record)
         pitch = ElevationToTargetCPP(&out);
         yaw = HeadingToTargetCPP(&out);
         rotation.SetIdentity();
-        if ((double)yaw != 0.0) {
+        if (yaw != 0.0) {
             rotation.RotateAboutY(sin(yaw), cos(yaw));
         }
-        if ((double)pitch != 0.0) {
+        if (pitch != 0.0) {
             rotation.RotateAboutX(sin(pitch), cos(pitch));
         }
         missile->m_pRep->SetRotation004B88D0(&rotation);
@@ -245,10 +245,10 @@ float AdvanceMissileAI004A50A0(W8AIMissile* record, srVector3T<float>* out, unsi
                 rotation.vectors[1] = basis;
                 basis.Set(0.0, 0.0, 1.0);
                 rotation.vectors[2] = basis;
-                if ((double)yaw != 0.0) {
+                if (yaw != 0.0) {
                     rotation.RotateAboutY(sin(yaw), cos(yaw));
                 }
-                if ((double)pitch != 0.0) {
+                if (pitch != 0.0) {
                     rotation.RotateAboutX(sin(pitch), cos(pitch));
                 }
                 missile->m_pRep->SetRotation004B88D0(&rotation);

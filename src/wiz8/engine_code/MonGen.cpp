@@ -262,8 +262,7 @@ int MonGen::SelectEncounterCandidates(W8EncounterTableRuntime* table,
         float difference = static_cast<float>(fabs(1.0f - challenge / party_level));
 
         if (difference < 0.5f) {
-            float adjusted =
-                static_cast<float>(*table->rarity_class.GetAt(index)) * (1.0f - difference * 1.8f);
+            float adjusted = (*table->rarity_class.GetAt(index)) * (1.0f - difference * 1.8f);
             int adjusted_class;
 
             if (adjusted <= 3.0f) {
@@ -320,7 +319,7 @@ int MonGen::RollEncounterGroupSize(W8MonsterRecord* record)
         if (g_settings_6850c8.difficulty == 2) {
             return rolled;
         }
-        while (static_cast<float>(rolled) > midpoint) {
+        while (rolled > midpoint) {
             rolled = RollDice(dice);
         }
         return rolled;
@@ -336,7 +335,7 @@ int MonGen::RollEncounterGroupSize(W8MonsterRecord* record)
     if (g_settings_6850c8.difficulty == 0) {
         return rolled;
     }
-    while (static_cast<float>(rolled) < midpoint) {
+    while (rolled < midpoint) {
         rolled = RollDice(dice);
     }
     return rolled;
@@ -635,8 +634,7 @@ void CullExpiredEncounters(void)
     for (index = 0; index < g_active_groups.count; ++index) {
         W8MonsterGroup* group = *g_active_groups.GetAt(index);
 
-        if (span < static_cast<float>(static_cast<unsigned int>(g_status_685170.world_clock -
-                                                                group->spawn_time))) {
+        if (span < (static_cast<unsigned int>(g_status_685170.world_clock - group->spawn_time))) {
             W8Monster* monster = GetMonsterByLocationID(group->leader_location_id);
 
             position = monster->GetPosition();

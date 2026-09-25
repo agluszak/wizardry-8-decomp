@@ -497,7 +497,7 @@ void RebuildCharacterRegenRates00502B50(W8Character* character)
             character->spell_regen_rates_0b79[realm * 2] = 0.0f;
             continue;
         }
-        rate = ((float)character->sp_max[realm] * 0.65f + 20.0f) * 0.0041666669f;
+        rate = (character->sp_max[realm] * 0.65f + 20.0f) * 0.0041666669f;
         character->spell_regen_rates_0b79[realm * 2] = rate;
         if (character->bonus_1770.boost_spell_regen != 0) {
             character->spell_regen_rates_0b79[realm * 2] = rate * 1.5f;
@@ -522,8 +522,7 @@ void RebuildMonsterRegenRates00502C50(W8MonsterInfo* monster_info)
         monster_info->hp_regen_rate_47 = rate * g_float_005ec3b8;
     }
 
-    rate = (static_cast<float>(static_cast<unsigned int>(monster_info->stamina_max)) *
-                g_float_005ec390 +
+    rate = ((static_cast<unsigned int>(monster_info->stamina_max)) * g_float_005ec390 +
             g_monster_record_float_scale) *
                0.0041666669f +
            monster_info->modifiers_1db.stamina_regen_adjustment;

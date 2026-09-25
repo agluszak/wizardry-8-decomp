@@ -70,7 +70,7 @@ stMeshModel::stMeshModel(long polygons, long vertices)
 
     if (!s_compressed_normal_table_ready) {
         for (int value = -128; value < 128; ++value) {
-            float component = (float)value * (1.0f / 127.0f);
+            float component = value * (1.0f / 127.0f);
             if (component < -1.0f) {
                 component = -1.0f;
             } else if (component > 1.0f) {
@@ -1279,9 +1279,9 @@ unsigned char stMeshModel::DecompressFrame(int frame, unsigned char flags,
     if (flags & 1) {
         for (int index = 0; index < vertex_location_count_22c; ++index) {
             const short* source = &compressed_vertex_locations[frame][index * 3];
-            destination[index].x = (float)source[0] * vertex_compression_scale_444;
-            destination[index].y = (float)source[1] * vertex_compression_scale_444;
-            destination[index].z = (float)source[2] * vertex_compression_scale_444;
+            destination[index].x = source[0] * vertex_compression_scale_444;
+            destination[index].y = source[1] * vertex_compression_scale_444;
+            destination[index].z = source[2] * vertex_compression_scale_444;
         }
         return 1;
     }

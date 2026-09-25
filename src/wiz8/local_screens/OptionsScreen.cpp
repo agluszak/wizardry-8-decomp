@@ -1614,7 +1614,7 @@ void W8OptionsValues::TransferSettings()
     TransferByte(&smooth_monster_animations, &g_settings_6850c8.smooth_monster_animations);
     TransferByte(&smooth_world_animations, &g_settings_6850c8.smooth_world_animations);
     if (applying == 0) {
-        combat_speed = static_cast<float>(g_settings_6850c8.combat_delay_ms - 5000) * -0.0002f;
+        combat_speed = (g_settings_6850c8.combat_delay_ms - 5000) * -0.0002f;
         camera_auto_rotation = g_settings_6850c8.camera_rotation_mode == 2
                                    ? 2
                                    : g_settings_6850c8.camera_rotation_style;

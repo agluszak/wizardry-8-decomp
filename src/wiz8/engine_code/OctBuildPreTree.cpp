@@ -1626,12 +1626,11 @@ void OctBuildPreTree::ValidateRegionBounds004B35B0(const W8BoundingBox* region_b
         while ((entry = region_path_map_124->FindNextEntry(&region, entry)) != -1) {
             unsigned long path = region_path_map_124->entries[entry].value;
             srVector3T<float> minimum;
-            minimum.x = static_cast<float>((path >> 16) & 0xff) * spatial_00.region_grid_cell_54 +
-                        spatial_00.minimum_0c.x;
-            minimum.y = static_cast<float>((path >> 8) & 0xff) * spatial_00.region_grid_cell_54 +
-                        spatial_00.minimum_0c.y;
-            minimum.z = static_cast<float>(path & 0xff) * spatial_00.region_grid_cell_54 +
-                        spatial_00.minimum_0c.z;
+            minimum.x =
+                ((path >> 16) & 0xff) * spatial_00.region_grid_cell_54 + spatial_00.minimum_0c.x;
+            minimum.y =
+                ((path >> 8) & 0xff) * spatial_00.region_grid_cell_54 + spatial_00.minimum_0c.y;
+            minimum.z = (path & 0xff) * spatial_00.region_grid_cell_54 + spatial_00.minimum_0c.z;
             srVector3T<float> maximum;
             maximum.x = minimum.x + spatial_00.region_grid_cell_54;
             maximum.y = minimum.y + spatial_00.region_grid_cell_54;

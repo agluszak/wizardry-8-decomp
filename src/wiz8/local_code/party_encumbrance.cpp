@@ -184,7 +184,7 @@ void RedistributePartyEncumbrance(void)
         if (active[slot].fOccupied != 0 && character->highest_condition < W8_CONDITION_DEAD) {
             capacity[slot] = character->carrying_capacity;
             unassigned[slot] = capacity[slot] - character->inventory_weight;
-            load_ratio[slot] = (float)unassigned[slot] * 100.0f / (float)capacity[slot];
+            load_ratio[slot] = unassigned[slot] * 100.0f / capacity[slot];
         }
     }
 
@@ -210,7 +210,7 @@ void RedistributePartyEncumbrance(void)
         W8Character* character = &characters[best_slot];
         ++character->party_weight_share;
         --unassigned[best_slot];
-        load_ratio[best_slot] = (float)unassigned[best_slot] * 100.0f / (float)capacity[best_slot];
+        load_ratio[best_slot] = unassigned[best_slot] * 100.0f / capacity[best_slot];
     }
 
     for (slot = 0; slot < 8; ++slot) {

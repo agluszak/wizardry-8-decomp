@@ -173,12 +173,10 @@ void ControlLiftGate(int command)
                 g_lift_gate_6834fc = new W8IntervalGate(3.0f, 0, 1);
             }
             if (value > 0) {
-                g_lift_gate_6834fc->SetProgress(static_cast<float>(value) *
-                                                g_movement_speed_step_005ed490);
+                g_lift_gate_6834fc->SetProgress(value * g_movement_speed_step_005ed490);
             }
             position.y = (LIFT_TOP_Y - LIFT_BOTTOM_Y) *
-                             (g_float_005ebb38 -
-                              static_cast<float>(value) * g_movement_speed_step_005ed490) +
+                             (g_float_005ebb38 - value * g_movement_speed_step_005ed490) +
                          LIFT_BOTTOM_Y;
         } else {
             if (value == 100) {

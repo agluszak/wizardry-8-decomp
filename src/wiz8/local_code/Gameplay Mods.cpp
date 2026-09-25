@@ -100,7 +100,7 @@ void RebuildPartyEffectBlock0050E700(void)
         return;
     }
     SetSkyNodeVisible(1);
-    SetCameraLightIntensity00483E30((float)g_status_685170.party_modifiers_22e3.light_47 +
+    SetCameraLightIntensity00483E30(g_status_685170.party_modifiers_22e3.light_47 +
                                     g_environment_near_scale_005ec0b0);
 }
 

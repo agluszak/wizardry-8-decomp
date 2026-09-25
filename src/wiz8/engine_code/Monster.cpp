@@ -721,8 +721,8 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
     if (scale_range_start != -1.0f && scale_range_end != -1.0f) {
         representation->minimum_scale_5f4 = scale_range_start;
         representation->maximum_scale_5f8 = scale_range_end;
-        scale_factor = (scale_range_end - scale_range_start) * ((float)Random(1000) * 0.001f) +
-                       scale_range_start;
+        scale_factor =
+            (scale_range_end - scale_range_start) * (Random(1000) * 0.001f) + scale_range_start;
     }
     representation->scale_5f0 = scale_factor;
     representation->death_scale_5fc = death_scale;
@@ -905,13 +905,13 @@ void W8Monster::RandomizeAppearanceAndMotion004C1D20()
             srAssertFail("flStart <= flEnd", MONSTER_CPP, 0x2f5, 0);
         }
         random_value = Random(1000);
-        m_pRep->scale_5f0 = (maximum - minimum) * (float)random_value * g_float_005ec128 + minimum;
+        m_pRep->scale_5f0 = (maximum - minimum) * random_value * g_float_005ec128 + minimum;
     }
 
     if (m_pRep->random_idle_600 != 0) {
         int subcycle;
         float playback_scale = (m_pRep->random_idle_fps_max - m_pRep->random_idle_fps_min) *
-                                   static_cast<float>(Random(1000)) * g_float_005ec128 +
+                                   Random(1000) * g_float_005ec128 +
                                m_pRep->random_idle_fps_min;
 
         for (subcycle = 0; subcycle < (signed char)m_pRep->animations[1].GetCount(); ++subcycle) {
@@ -950,9 +950,9 @@ void W8Monster::RandomizeAppearanceAndMotion004C1D20()
                                                static_cast<float>(Random(1000)) * g_float_005ec128 +
                                            bob_amplitude_min_224) *
                                           g_world_scale_005ebc40;
-    movement_0c0.vertical_phase_084 = (float)Random(1000) * g_float_005ec128;
+    movement_0c0.vertical_phase_084 = Random(1000) * g_float_005ec128;
     movement_0c0.vertical_offset_0c0 =
-        (float)sin((double)movement_0c0.vertical_phase_084 * g_double_005ec318) *
+        (float)sin(movement_0c0.vertical_phase_084 * g_double_005ec318) *
             movement_0c0.vertical_amplitude_080 +
         movement_0c0.vertical_base_07c;
     movement_0c0.height_offset_0b8 += movement_0c0.vertical_base_07c;

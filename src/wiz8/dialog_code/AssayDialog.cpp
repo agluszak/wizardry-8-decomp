@@ -979,12 +979,11 @@ unsigned char W8AssayDialog::CreateTextBuffers()
     if (g_item_records[item->iItemNo].quantity_kind == 1 && item->stack_count > 1) {
         unsigned int unit_weight = GetItemUnitWeight(item);
         text = FormatWideString(g_assay_format_1f_1f_s_0064fbc0,
-                                (double)((float)GetItemStackWeight(m_item) * g_float_005ed8b8),
-                                (double)((float)unit_weight * g_float_005ed8b8),
-                                gppStringList[0x45c / 4]);
+                                GetItemStackWeight(m_item) * g_float_005ed8b8,
+                                unit_weight * g_float_005ed8b8, gppStringList[0x45c / 4]);
     } else {
         text = FormatWideString(g_assay_format_1f_0064fbb4,
-                                (double)((float)GetItemUnitWeight(item) * g_float_005ed8b8));
+                                GetItemUnitWeight(item) * g_float_005ed8b8);
     }
     m_text_buffers[4]->SetText(text, g_font_683660);
     return 1;

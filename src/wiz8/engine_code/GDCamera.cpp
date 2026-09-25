@@ -136,7 +136,7 @@ void OffsetPositionByYawPitch00421170(float distance, srVector3T<float>* positio
     forward.x = 0.0f;
     forward.y = 0.0f;
     rotation.SetIdentity();
-    if (static_cast<double>(yaw) != g_zero_005ebb40) {
+    if (yaw != g_zero_005ebb40) {
         cosine = static_cast<float>(cos(yaw));
         sine = static_cast<float>(sin(yaw));
         first.Set(cosine, 0.0, sine);
@@ -145,7 +145,7 @@ void OffsetPositionByYawPitch00421170(float distance, srVector3T<float>* positio
         axis.SetRows(first, second, third);
         rotation.MultiplyBy(axis);
     }
-    if (static_cast<double>(pitch) != g_zero_005ebb40) {
+    if (pitch != g_zero_005ebb40) {
         cosine = static_cast<float>(cos(pitch));
         sine = static_cast<float>(sin(pitch));
         first.Set(1.0, 0.0, 0.0);
@@ -190,8 +190,8 @@ GDCamera::GDCamera()
     first_matrix->vectors[0] = temporary;
     first_matrix->vectors[1] = *temporary.Set(0.0, 1.0, 0.0);
     first_matrix->vectors[2] = *temporary.Set(0.0, 0.0, 1.0);
-    if ((double)pitch != g_zero_005ebb40) {
-        first_matrix->RotateAboutX(sin((double)pitch), cos((double)pitch));
+    if (pitch != g_zero_005ebb40) {
+        first_matrix->RotateAboutX(sin(pitch), cos(pitch));
     }
     MarkRendererReady();
 
@@ -207,8 +207,8 @@ GDCamera::GDCamera()
     second_matrix->vectors[0] = *temporary.Set(1.0, 0.0, 0.0);
     second_matrix->vectors[1] = *temporary.Set(0.0, 1.0, 0.0);
     second_matrix->vectors[2] = *final_temporary.Set(0.0, 0.0, 1.0);
-    if ((double)angle != g_zero_005ebb40) {
-        second_matrix->RotateAboutY(sin((double)angle), cos((double)angle));
+    if (angle != g_zero_005ebb40) {
+        second_matrix->RotateAboutY(sin(angle), cos(angle));
     }
     MarkRendererReady();
 
@@ -298,7 +298,7 @@ void GDCamera::ApplyRotationMatrix(srMatrix3T<float>* rotation, W8LevelDataRecor
         } else if (forward_y < g_negative_one_005ebc38) {
             forward_y = g_negative_one_005ebc38;
         }
-        pitch = (float)acos((double)forward_y) - g_camera_half_pi_005ec3fc;
+        pitch = (float)acos(forward_y) - g_camera_half_pi_005ec3fc;
 
         srVector2T<float> horizontal(forward_x, forward_z);
         horizontal *= g_float_005ebb38 / horizontal.Length();
@@ -309,13 +309,13 @@ void GDCamera::ApplyRotationMatrix(srMatrix3T<float>* rotation, W8LevelDataRecor
         } else if (forward_z < g_negative_one_005ebc38) {
             forward_z = g_negative_one_005ebc38;
         }
-        angle = (float)acos((double)forward_z);
+        angle = (float)acos(forward_z);
         if (forward_x < g_float_005ebb34) {
             angle = g_camera_angle_period_005ec54c - angle;
         }
     }
 
-    if (_finite((double)angle) != 0 && _finite((double)pitch) != 0) {
+    if (_finite(angle) != 0 && _finite(pitch) != 0) {
         SetOrientation(angle, pitch);
         *rotation = m_rotation;
     }
@@ -354,13 +354,13 @@ void GDCamera::SnapToTarget(const srVector3T<float>* target)
     } else if (y < g_negative_one_005ebc38) {
         y = g_negative_one_005ebc38;
     }
-    float pitch = (float)-asin((double)y);
+    float pitch = (float)-asin(y);
     if (z >= g_float_005ebb38) {
         z = g_float_005ebb38;
     } else if (z < g_negative_one_005ebc38) {
         z = g_negative_one_005ebc38;
     }
-    float angle = (float)acos((double)z);
+    float angle = (float)acos(z);
     if (x < g_float_005ebb34) {
         angle = g_camera_angle_period_005ec014 - angle;
     }
@@ -453,14 +453,14 @@ unsigned char GDCamera::LookAt(const srVector3T<float>* target, unsigned char pr
         } else if (y < g_negative_one_005ebc38) {
             y = g_negative_one_005ebc38;
         }
-        pitch = (float)-asin((double)y);
+        pitch = (float)-asin(y);
     }
     if (z >= g_float_005ebb38) {
         z = g_float_005ebb38;
     } else if (z < g_negative_one_005ebc38) {
         z = g_negative_one_005ebc38;
     }
-    float angle = (float)acos((double)z);
+    float angle = (float)acos(z);
     if (x < g_float_005ebb34) {
         angle = g_camera_angle_period_005ec014 - angle;
     }
@@ -482,14 +482,14 @@ unsigned char GDCamera::ComputeTrackingOrientation(const srVector3T<float>* targ
     float pitch_delta =
         (GetElevationAngle(&m_position_08c, target) + g_camera_angle_period_005ec014) -
         (m_pitch + g_camera_angle_period_005ec014);
-    if (fabs((double)angle_delta) > g_camera_pi_005ec2a0) {
+    if (fabs(angle_delta) > g_camera_pi_005ec2a0) {
         if (angle_delta >= 0.0f) {
             angle_delta -= g_camera_angle_period_005ec014;
         } else {
             angle_delta += g_camera_angle_period_005ec014;
         }
     }
-    if (fabs((double)pitch_delta) > g_camera_pi_005ec2a0) {
+    if (fabs(pitch_delta) > g_camera_pi_005ec2a0) {
         if (pitch_delta >= 0.0f) {
             pitch_delta -= g_camera_angle_period_005ec014;
         } else {
@@ -498,9 +498,9 @@ unsigned char GDCamera::ComputeTrackingOrientation(const srVector3T<float>* targ
     }
 
     if ((target->x != m_position_08c.x || target->z != m_position_08c.z) &&
-        ((float)fabs((double)angle_delta) > g_camera_horizontal_margin_005ec574 ||
+        ((float)fabs(angle_delta) > g_camera_horizontal_margin_005ec574 ||
          pitch_delta >= g_camera_vertical_margin_005ec570 || pitch_delta <= lower_margin)) {
-        if ((float)fabs((double)angle_delta) > g_camera_horizontal_margin_005ec574) {
+        if ((float)fabs(angle_delta) > g_camera_horizontal_margin_005ec574) {
             float correction = g_camera_horizontal_margin_005ec574 * g_float_005ebc7c;
             angle_delta += angle_delta >= 0.0f ? -correction : correction;
         }
@@ -553,7 +553,7 @@ unsigned char GDCamera::BeginOrientationTransition(float target_pitch, float tar
         speed = g_camera_forced_speed_005ec560;
     }
 
-    float raw_angle_distance = (float)fabs((double)(target_angle - m_yaw));
+    float raw_angle_distance = (float)fabs(target_angle - m_yaw);
     m_angle_distance_0b0 = raw_angle_distance;
     if (target_pitch != g_float_005ebb34 || raw_angle_distance >= g_camera_snap_epsilon_005ebc2c) {
         m_state_000 = 0;
@@ -568,7 +568,7 @@ unsigned char GDCamera::BeginOrientationTransition(float target_pitch, float tar
         m_angle_distance_0b0 = g_camera_angle_period_005ec014 - m_angle_distance_0b0;
     }
 
-    m_pitch_distance_0b4 = (float)fabs((double)(target_pitch - m_pitch));
+    m_pitch_distance_0b4 = (float)fabs(target_pitch - m_pitch);
     if (m_angle_distance_0b0 + m_pitch_distance_0b4 > g_camera_transition_epsilon_005ebc84) {
         m_start_pitch_0a4 = m_pitch;
         m_transition_active = 1;
@@ -614,11 +614,11 @@ void GDCamera::Update(float elapsed)
         return;
     }
 
-    float angle_traveled = (float)fabs((double)(m_start_angle_0a0 - m_yaw));
+    float angle_traveled = (float)fabs(m_start_angle_0a0 - m_yaw);
     if (angle_traveled > g_camera_half_period_005ec564) {
         angle_traveled = g_camera_angle_period_005ec014 - angle_traveled;
     }
-    float pitch_traveled = (float)fabs((double)(m_start_pitch_0a4 - m_pitch));
+    float pitch_traveled = (float)fabs(m_start_pitch_0a4 - m_pitch);
     if (angle_traveled > m_angle_distance_0b0) {
         angle_traveled = m_angle_distance_0b0;
     }
@@ -640,7 +640,7 @@ void GDCamera::Update(float elapsed)
         } else if (eased_input < g_negative_one_005ebc38) {
             eased_input = g_negative_one_005ebc38;
         }
-        phase = (float)(acos((double)eased_input) * g_camera_smoothing_scale_005ec580);
+        phase = (float)(acos(eased_input) * g_camera_smoothing_scale_005ec580);
     } else if (m_angle_distance_0b0 <= m_pitch_distance_0b4) {
         phase = g_float_005ebb38 - pitch_traveled / m_pitch_distance_0b4;
     } else {
@@ -651,12 +651,10 @@ void GDCamera::Update(float elapsed)
     if (next_time <= m_transition_duration_0b8) {
         float step;
         if (m_forced_transition == 0) {
-            float next_weight = (float)sin((double)(next_time / m_transition_duration_0b8) *
+            float next_weight = (float)sin((next_time / m_transition_duration_0b8) *
                                            (double)g_camera_half_period_005ec564);
-            float current_weight =
-                (float)sin((double)phase * (double)g_camera_half_period_005ec564);
-            step =
-                (float)fabs((double)((next_weight + current_weight) * elapsed) * g_double_005ebe80);
+            float current_weight = (float)sin(phase * (double)g_camera_half_period_005ec564);
+            step = (float)fabs(((next_weight + current_weight) * elapsed) * g_double_005ebe80);
         } else {
             step = elapsed;
         }
@@ -861,8 +859,8 @@ void GDCamera::SetPitch(float pitch)
     m_pitch = pitch;
 
     m_pitch_rotation.SetIdentity();
-    if ((double)pitch != g_zero_005ebb40) {
-        m_pitch_rotation.RotateAboutX(sin((double)pitch), cos((double)pitch));
+    if (pitch != g_zero_005ebb40) {
+        m_pitch_rotation.RotateAboutX(sin(pitch), cos(pitch));
     }
     MarkRendererReady();
 }
@@ -879,8 +877,8 @@ void GDCamera::SetYaw(float angle)
     m_yaw = angle;
 
     m_yaw_rotation.SetIdentity();
-    if ((double)angle != g_zero_005ebb40) {
-        m_yaw_rotation.RotateAboutY(sin((double)angle), cos((double)angle));
+    if (angle != g_zero_005ebb40) {
+        m_yaw_rotation.RotateAboutY(sin(angle), cos(angle));
     }
     MarkRendererReady();
 }
@@ -896,8 +894,8 @@ void GDCamera::SetOrientation(float angle, float pitch)
     }
     m_yaw = angle;
     m_yaw_rotation.SetIdentity();
-    if ((double)angle != g_zero_005ebb40) {
-        m_yaw_rotation.RotateAboutY(sin((double)angle), cos((double)angle));
+    if (angle != g_zero_005ebb40) {
+        m_yaw_rotation.RotateAboutY(sin(angle), cos(angle));
     }
 
     if (pitch > g_camera_pitch_upper_005ec550) {
@@ -908,8 +906,8 @@ void GDCamera::SetOrientation(float angle, float pitch)
     }
     m_pitch = pitch;
     m_pitch_rotation.SetIdentity();
-    if ((double)pitch != g_zero_005ebb40) {
-        m_pitch_rotation.RotateAboutX(sin((double)pitch), cos((double)pitch));
+    if (pitch != g_zero_005ebb40) {
+        m_pitch_rotation.RotateAboutX(sin(pitch), cos(pitch));
     }
 
     m_rotation = m_yaw_rotation;

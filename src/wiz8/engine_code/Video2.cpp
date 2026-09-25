@@ -1224,7 +1224,7 @@ void RenderFrame(void)
             pick.position_00.y =
                 -static_cast<float>(g_cursor_hotspot_y_6596c0 - half_height -
                                     g_viewport_6595e8.top + g_cursor_height_654ad4) /
-                static_cast<float>(half_height);
+                half_height;
             pick.position_00.z = 1.0f;
             pick.selected_model_0c = 0;
             pick.value_10 = 0;
@@ -1667,9 +1667,9 @@ BOOLEAN ResizeMouseCursorSurface(int width, int height)
         g_cursor_texture_659690->release();
     }
     mapping_scale = g_surface_scale_659680 / extent;
-    g_cursor_node_659694 = MakePolygonBrush(
-        g_cursor_scene_659684, g_mouse_surface_659688, static_cast<double>(extent) / 640.0,
-        static_cast<double>(extent) / 480.0, mapping_scale, mapping_scale, 1.0f, 1.0f, 1);
+    g_cursor_node_659694 =
+        MakePolygonBrush(g_cursor_scene_659684, g_mouse_surface_659688, extent / 640.0,
+                         extent / 480.0, mapping_scale, mapping_scale, 1.0f, 1.0f, 1);
     g_cursor_node_659694->setName("MouseResize");
     PositionMouseCursor(g_cursor_width_654ad0, g_cursor_height_654ad4, 0);
     g_cursor_model_65968c = static_cast<srMeshModel*>(g_cursor_node_659694->model());
@@ -1805,10 +1805,10 @@ void PositionMouseCursor(int width, int height, unsigned char reset_tick)
         g_cursor_width_654ad0 = width < 641 ? width : 640;
         g_cursor_height_654ad4 = height < 481 ? height : 480;
         if (g_cursor_node_659694) {
-            location.x = static_cast<double>(g_cursor_width_654ad0) / 640.0 +
-                         static_cast<double>(g_mouse_surface_659688->getWidth()) / 1280.0;
-            location.y = 1.0 - static_cast<double>(g_cursor_height_654ad4) / 480.0 -
-                         static_cast<double>(g_mouse_surface_659688->getHeight()) / 960.0;
+            location.x =
+                g_cursor_width_654ad0 / 640.0 + g_mouse_surface_659688->getWidth() / 1280.0;
+            location.y =
+                1.0 - g_cursor_height_654ad4 / 480.0 - g_mouse_surface_659688->getHeight() / 960.0;
             location.z = 0.0;
             g_cursor_node_659694->setLocation(location);
             if (reset_tick) {
@@ -2252,11 +2252,11 @@ void SetViewport(int left, int top, int right, int bottom)
     if (g_gerd_659634 != 0 && g_flush_pending_603c3a) {
         g_gerd_659634->flush();
     }
-    fractional_left = (float)left * g_scale_x_5ebb1c;
+    fractional_left = left * g_scale_x_5ebb1c;
     g_viewport_6595e8.right = right + 1;
     g_viewport_6595e8.left = left;
     g_viewport_6595e8.bottom = bottom + 1;
-    fractional_top = (float)top * g_scale_y_5ebb20;
+    fractional_top = top * g_scale_y_5ebb20;
     g_viewport_6595e8.top = top;
     fractional_right = g_viewport_6595e8.right * g_scale_x_5ebb1c;
     fractional_bottom = g_viewport_6595e8.bottom * g_scale_y_5ebb20;
@@ -2266,8 +2266,8 @@ void SetViewport(int left, int top, int right, int bottom)
                                       3.14159265358979323846 * g_float_005ebcf8 * 71.0f);
         g_world->camera->getViewPlane(view, depth);
 
-        plane.left = (double)fractional_left * (view.right - view.left) + view.left;
-        plane.right = (double)fractional_right * (view.right - view.left) + view.left;
+        plane.left = fractional_left * (view.right - view.left) + view.left;
+        plane.right = fractional_right * (view.right - view.left) + view.left;
         plane.bottom =
             (double)((g_double_005ebc30 - fractional_bottom) * (float)(view.top - view.bottom) +
                      (float)view.bottom);
@@ -2983,23 +2983,23 @@ void __fastcall PackColour00429700(unsigned char* colour, double red, double gre
 void PositionToolTipNode(srNode* node, int x, int y, char positional)
 {
     stModelInstance2D* instance = static_cast<stModelInstance2D*>(node);
-    double position_x = (double)x * g_double_005ebe90;
-    double position_y = (double)y * g_double_005ebe88;
+    double position_x = x * g_double_005ebe90;
+    double position_y = y * g_double_005ebe88;
 
     if (positional != 0 && g_gerd_659634 != 0) {
         double whole;
         long width = g_gerd_659634->getWidth();
-        double fraction = modf((double)width * position_x, &whole);
-        position_x -= fraction / (double)width;
+        double fraction = modf(width * position_x, &whole);
+        position_x -= fraction / width;
         long height = g_gerd_659634->getHeight();
-        fraction = modf((double)height * position_y, &whole);
-        position_y -= fraction / (double)height;
+        fraction = modf(height * position_y, &whole);
+        position_y -= fraction / height;
     }
 
     int width = instance->GetWidth00480EF0() & 0xffff;
-    double half_width = (double)width * g_double_005ebe90 * g_double_005ebe80;
+    double half_width = width * g_double_005ebe90 * g_double_005ebe80;
     int height = instance->GetHeight00480F70() & 0xffff;
-    double half_height = (double)height * g_double_005ebe88 * g_double_005ebe80;
+    double half_height = height * g_double_005ebe88 * g_double_005ebe80;
 
     srVector3T<double> location;
     location.x = half_width + position_x;
@@ -3280,14 +3280,14 @@ unsigned char CopySurfaceWithBorder(srColorSurface* surface, int* rect, void* so
     Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, right, bottom, rect[0] - 1 + width,
                     rect[1] - 1 + height, 1, 1);
 
-    float scale = 1.0f / (float)surface->getWidth();
+    float scale = 1.0f / surface->getWidth();
     *scale_x = scale;
     *scale_x = scale * g_surface_scale_659680 + scale;
-    scale = 1.0f / (float)surface->getHeight();
+    scale = 1.0f / surface->getHeight();
     *scale_y = scale;
     *scale_y = scale * g_surface_scale_659680 + scale;
-    *mapping_x = (float)(rect[2] - rect[0]) / (float)surface->getWidth();
-    *mapping_y = (float)(rect[3] - rect[1]) / (float)surface->getHeight();
+    *mapping_x = (rect[2] - rect[0]) / (float)surface->getWidth();
+    *mapping_y = (rect[3] - rect[1]) / (float)surface->getHeight();
     return 1;
 }
 
@@ -3298,12 +3298,12 @@ unsigned char CopySurfaceWithBorder(srColorSurface* surface, int* rect, void* so
 srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch, srNode* parent,
                                       unsigned char overlay)
 {
-    double left = (double)rect[0] * g_double_005ebe90;
+    double left = rect[0] * g_double_005ebe90;
     int extent = rect[2] - rect[0];
-    double top = (double)rect[1] * g_double_005ebe88;
+    double top = rect[1] * g_double_005ebe88;
     int rect_height = rect[3] - rect[1];
-    double width = (double)rect[2] * g_double_005ebe90 - left;
-    double height = (double)rect[3] * g_double_005ebe88 - top;
+    double width = rect[2] * g_double_005ebe90 - left;
+    double height = rect[3] * g_double_005ebe88 - top;
 
     if (extent <= rect_height) {
         extent = rect_height;

@@ -283,12 +283,12 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
         SetPosition004A6DF0(&position);
         rotation.SetIdentity();
         angle = GetCameraYawRadians() - g_monster_rotation_offset_005ec04c;
-        if ((double)angle != g_zero_005ebb40) {
-            rotation.RotateAboutY(sin((double)angle), cos((double)angle));
+        if (angle != g_zero_005ebb40) {
+            rotation.RotateAboutY(sin(angle), cos(angle));
         }
         pitch = -GetCameraPitchRadians();
-        if ((double)pitch != g_zero_005ebb40) {
-            rotation.RotateAboutX(sin((double)pitch), cos((double)pitch));
+        if (pitch != g_zero_005ebb40) {
+            rotation.RotateAboutX(sin(pitch), cos(pitch));
         }
         apply_rotation = true;
     } else if (mode_1d8 == W8_SPELL_VISUAL_TARGET) {
@@ -332,12 +332,12 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
 
                     rotation.SetIdentity();
                     float angle = monster->GetYaw();
-                    if ((double)angle != g_zero_005ebb40) {
-                        rotation.RotateAboutY(sin((double)angle), cos((double)angle));
+                    if (angle != g_zero_005ebb40) {
+                        rotation.RotateAboutY(sin(angle), cos(angle));
                     }
                     float pitch = GetElevationAngle(&position, &camera_position);
-                    if ((double)pitch != g_zero_005ebb40) {
-                        rotation.RotateAboutX(sin((double)pitch), cos((double)pitch));
+                    if (pitch != g_zero_005ebb40) {
+                        rotation.RotateAboutX(sin(pitch), cos(pitch));
                     }
                     apply_rotation = true;
                 }
@@ -357,8 +357,8 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
         billboard.SetIdentity();
         camera_position = g_gd_camera_65a0f8->m_position_08c;
         angle = GetHeadingAngle(&visual_position, &camera_position) + (float)g_camera_pi_005ec2a0;
-        if ((double)angle != g_zero_005ebb40) {
-            billboard.RotateAboutY(sin((double)angle), cos((double)angle));
+        if (angle != g_zero_005ebb40) {
+            billboard.RotateAboutY(sin(angle), cos(angle));
         }
         host->SetRotation004B88D0(&billboard);
     }
@@ -942,12 +942,12 @@ placed:
         visual->SetPosition004A6DF0(&position);
         rotation.SetIdentity();
         angle = GetCameraYawRadians() - g_monster_rotation_offset_005ec04c;
-        if ((double)angle != g_zero_005ebb40) {
-            rotation.RotateAboutY(sin((double)angle), cos((double)angle));
+        if (angle != g_zero_005ebb40) {
+            rotation.RotateAboutY(sin(angle), cos(angle));
         }
         pitch = -GetCameraPitchRadians();
-        if ((double)pitch != g_zero_005ebb40) {
-            rotation.RotateAboutX(sin((double)pitch), cos((double)pitch));
+        if (pitch != g_zero_005ebb40) {
+            rotation.RotateAboutX(sin(pitch), cos(pitch));
         }
         visual->host->SetRotation004B88D0(&rotation);
     }
@@ -1500,7 +1500,7 @@ void stSound3D::BuildSoundOptions(const srVector3T<float>* listener, SOUND3DPARM
     srVector3T<float> offset;
 
     rotation.SetIdentity();
-    if ((double)angle != g_zero_005ebb40) {
+    if (angle != g_zero_005ebb40) {
         rotation.RotateAboutY(sin(angle), cos(angle));
     }
 
@@ -1595,8 +1595,8 @@ void Update3DSounds()
                     } else {
                         angle = -GetCameraYawRadians();
                         rotation.SetIdentity();
-                        if ((double)angle != g_zero_005ebb40) {
-                            rotation.RotateAboutY(sin((double)angle), cos((double)angle));
+                        if (angle != g_zero_005ebb40) {
+                            rotation.RotateAboutY(sin(angle), cos(angle));
                         }
                         offset.x = (float)world.x - listener.x;
                         offset.y = (float)world.y - listener.y;

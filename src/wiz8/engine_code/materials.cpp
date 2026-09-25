@@ -455,9 +455,8 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
             if (1 < mesh->num_vertices_04) {
                 i = 1;
                 do {
-                    percent =
-                        static_cast<unsigned int>((i * g_octree_cell_scale_005ebcd0 /
-                                                   static_cast<float>(mesh->num_vertices_04)));
+                    percent = static_cast<unsigned int>(
+                        (i * g_octree_cell_scale_005ebcd0 / mesh->num_vertices_04));
                     if (mark + 10 < percent) {
                         report = 1;
                         mark = mark + 10;
@@ -668,8 +667,7 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                         lit_vertices = 0;
                         for (i = 1; i < static_cast<int>(geometry.vertex_count_00); ++i) {
                             percent = static_cast<unsigned int>(
-                                (i * g_octree_cell_scale_005ebcd0 /
-                                 static_cast<float>(geometry.vertex_count_00)));
+                                (i * g_octree_cell_scale_005ebcd0 / geometry.vertex_count_00));
                             if (mark + 10 < percent) {
                                 mark = mark + 10;
                                 sprintf(message, "  %d%% Complete:  %d Vertices Lit \r", mark, i);
@@ -1250,8 +1248,7 @@ int BuildRegionPolygons00494B90(W8LevelFile* level, W8OctPreTreeGeometry* geomet
         polygon = polygons + 1;
         face = mesh->pstFaces;
         do {
-            if (last_percent < static_cast<int>((static_cast<float>(ordinal) * 100.0f /
-                                                 static_cast<float>(poly_total)))) {
+            if (last_percent < static_cast<int>((ordinal * 100.0f / poly_total))) {
                 ++last_percent;
                 sprintf(message, "  %d%% Complete:  %d Polygons processed \r", last_percent,
                         ordinal);
@@ -1556,7 +1553,7 @@ int SplitVerticesByMaterial00495860(W8OctPreTreeGeometry* geometry)
     memcpy(vertices, split, slot * 0x20);
     sprintf(message, "Split %d vertices into %d new vertices--ratio is 1 to %.1f.\n\n",
             static_cast<int>(geometry->vertex_count_00), next,
-            static_cast<double>(next) / static_cast<double>(geometry->vertex_count_00));
+            next / static_cast<double>(geometry->vertex_count_00));
     ReportBuildStatus00497690(6, message);
     geometry->vertex_count_00 = next;
     if (1 < geometry->polygon_count_08) {

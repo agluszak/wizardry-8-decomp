@@ -216,8 +216,7 @@ unsigned char PrePathing::LinkPathNodes004CD390()
     unsigned int i;
 
     for (i = 1; i < static_cast<unsigned int>(size_004); ++i) {
-        int percent =
-            static_cast<int>(static_cast<float>(i) * 100.0f / static_cast<float>(size_004));
+        int percent = static_cast<int>(i * 100.0f / size_004);
         if (last_percent + 5 < percent) {
             last_percent += 5;
             sprintf(message, "Linking:  %d%% Complete:  %d Links Found  \r", last_percent,
@@ -264,8 +263,7 @@ unsigned char PrePathing::LinkPathNodes004CD390()
     }
     last_percent = 1;
     for (i = 1; i < static_cast<unsigned int>(size_004); ++i) {
-        int percent =
-            static_cast<int>(static_cast<float>(i) * 100.0f / static_cast<float>(size_004));
+        int percent = static_cast<int>(i * 100.0f / size_004);
         if (last_percent + 1 < percent) {
             ++last_percent;
             sprintf(message, "Computing Pathnode Clearance:  %d%% Complete  \r", last_percent);
@@ -347,8 +345,7 @@ unsigned int PrePathing::DeleteUnreachableAreas004CD7C0()
     ReportBuildStatus00497690(6, "Deleting Unreacheable Areas.\n");
     ReportBuildStatus00497690(6, "Deleting Nodes: \t");
     for (unsigned int i = 1; i < static_cast<unsigned int>(size_004); ++i) {
-        int percent =
-            static_cast<int>(static_cast<float>(i) * 100.0f / static_cast<float>(size_004));
+        int percent = static_cast<int>(i * 100.0f / size_004);
         if (last_percent < percent) {
             last_percent = percent;
             sprintf(message, "Deleting:  %d%% Complete:  %d Pathnodes Deleted  \r", percent,
@@ -538,8 +535,7 @@ unsigned char PrePathing::CreateAutomapNodes004CE070(W8LevelFile* level)
     unsigned int i = 1;
     if (1 < static_cast<unsigned int>(size_004)) {
         do {
-            int percent =
-                static_cast<int>(static_cast<float>(i) * 100.0f / static_cast<float>(size_004));
+            int percent = static_cast<int>(i * 100.0f / size_004);
             if (last_percent < percent) {
                 sprintf(message, "Creating Automap Nodes:  %d%% Complete:  %d Nodes created  \r",
                         percent, created);
@@ -548,9 +544,9 @@ unsigned char PrePathing::CreateAutomapNodes004CE070(W8LevelFile* level)
             }
             W8PrePathNode* node = path_node_list_240[i];
             srVector3T<float> position;
-            position.y = static_cast<float>(node->level_flags & 0xffff) * span_020;
-            position.x = static_cast<float>(node->cell & 0xffff) * grid_scale_01c;
-            position.z = static_cast<float>(node->cell >> 0x10) * grid_scale_01c;
+            position.y = (node->level_flags & 0xffff) * span_020;
+            position.x = (node->cell & 0xffff) * grid_scale_01c;
+            position.z = (node->cell >> 0x10) * grid_scale_01c;
             unsigned int key = AutomapNodeKey(&position);
             if (used_keys.FindNextEntry(&key, -1) == -1) {
                 node_keys.Add(key);

@@ -534,7 +534,7 @@ char ChooseMonsterRTAIMode(W8MonsterInfo* monster_info, unsigned char* decision)
                 double angle;
 
                 mode = 0xa;
-                angle = (double)(Random(0x168) << 1) * g_camera_pi_005ec2a0 * g_double_005ed7b0;
+                angle = (Random(0x168) << 1) * g_camera_pi_005ec2a0 * g_double_005ed7b0;
                 monster->move_direction_2bc.x = (float)(cos(angle) * g_double_005ec150);
                 monster->move_direction_2bc.y = 0.0f;
                 monster->move_direction_2bc.z = (float)(sin(angle) * g_double_005ec150);
@@ -929,8 +929,7 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
                     monster_info->action_kind = 6;
                 } else {
                     record = GetMonsterDataForInfo(monster_info);
-                    hp_ratio = static_cast<float>(monster_info->hp_current) /
-                               static_cast<float>(monster_info->uiHPMax);
+                    hp_ratio = monster_info->hp_current / static_cast<float>(monster_info->uiHPMax);
                     backs_off = hp_ratio <= 0.95f && record->prefer_ranged_actions_1b9 == 0;
                     monster_info->action_kind = backs_off ? 7 : 5;
                 }

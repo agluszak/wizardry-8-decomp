@@ -82,8 +82,7 @@ BOOLEAN W8IntervalGate::Save(int handle)
     float elapsed;
     if ((m_flags & 2) == 0) {
         int sample = ReadClock();
-        float progress =
-            (float)(unsigned int)(sample - m_start) / (float)(unsigned int)(m_end - m_start);
+        float progress = (unsigned int)(sample - m_start) / (float)(unsigned int)(m_end - m_start);
         // The on-disk pair and its OR-combined result mirror W8GameTimer::Load.
         BOOLEAN saved = FileWrite(handle, &progress, sizeof(progress), 0);
         saved |= FileWrite(handle, &m_duration_scale, sizeof(m_duration_scale), 0);

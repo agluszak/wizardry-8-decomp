@@ -2087,7 +2087,7 @@ void W8MainGameScreen::SelectTextEntry(int index)
 
     m_selected_character_01c = slot;
     skill = GetPartySlotSkill10Level(slot);
-    hold = g_navigator_linked_radius_scale_005ebc98 - (float)skill * g_float_005ec258;
+    hold = g_navigator_linked_radius_scale_005ebc98 - skill * g_float_005ec258;
     chance = m_difficulty_038;
     if (chance < 0) {
         chance = 0;
@@ -2105,7 +2105,7 @@ void W8MainGameScreen::SelectTextEntry(int index)
     }
     if (GetTable650434Entry(m_device_id_034, index) == 0) {
         m_disarm_state_018 = 4;
-        duration = (float)(Random(0x18) + 0x32) * g_movement_speed_step_005ed490;
+        duration = (Random(0x18) + 0x32) * g_movement_speed_step_005ed490;
     } else {
         roll = (int)Random(0x64);
         if (roll < (chance * chance) / 100) {
@@ -2114,7 +2114,7 @@ void W8MainGameScreen::SelectTextEntry(int index)
             duration = 1.0f;
         } else {
             m_disarm_state_018 = 4;
-            duration = (float)(Random(0x31) + 0x32) * g_movement_speed_step_005ed490;
+            duration = (Random(0x31) + 0x32) * g_movement_speed_step_005ed490;
         }
     }
     m_action_controls_020[1]->SetEnabled(0);
@@ -2171,7 +2171,7 @@ void W8MainGameScreen::OnPrimary(W8TextControl* control)
     slot = g_status_685170.selected_character;
     m_selected_character_01c = slot;
     skill = GetPartySlotSkill10Level(slot);
-    hold = g_float_005ebca0 - (float)skill * g_camera_snap_epsilon_005ebc2c;
+    hold = g_float_005ebca0 - skill * g_camera_snap_epsilon_005ebc2c;
     chance = m_difficulty_038;
     if (chance < 0) {
         chance = 0;
@@ -2193,7 +2193,7 @@ void W8MainGameScreen::OnPrimary(W8TextControl* control)
         duration = 1.0f;
     } else {
         m_disarm_state_018 = 4;
-        duration = (float)(Random(0x18) + 0x4b) * g_movement_speed_step_005ed490;
+        duration = (Random(0x18) + 0x4b) * g_movement_speed_step_005ed490;
     }
     m_action_controls_020[1]->SetEnabled(0);
     m_action_controls_020[2]->SetEnabled(0);

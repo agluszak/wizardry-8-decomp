@@ -22,7 +22,7 @@ void UpdateRenderElapsedTime00482140(void)
     unsigned int now = GetTickCount();
     unsigned int elapsed = now - g_frame_tick_65a154;
     g_frame_tick_65a154 = now;
-    g_frame_elapsed_65a158 = static_cast<float>(elapsed) * 0.001f;
+    g_frame_elapsed_65a158 = elapsed * 0.001f;
 }
 
 // GLOBAL: WIZ8 0x0065A178
@@ -48,7 +48,7 @@ EnvironmentColour g_light_direction_0065ad78;
 
 static float normalized_colour(unsigned int component)
 {
-    return (float)component * (1.0f / 255.0f);
+    return component * (1.0f / 255.0f);
 }
 
 /* Builds the two 512-entry greyscale ramps consumed by the environment

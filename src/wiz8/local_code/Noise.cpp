@@ -52,8 +52,7 @@ void AlertMonsterGroupsToNoise004F0E80(const srVector3T<float>* position, int ra
         if (remaining <= 0) {
             continue;
         }
-        if ((float)Random(100) >=
-            (float)remaining * g_float_005ec128 + (float)record->attribute_values_d1[4]) {
+        if (Random(100) >= remaining * g_float_005ec128 + record->attribute_values_d1[4]) {
             continue;
         }
         if (group->leader_group_id != 0) {

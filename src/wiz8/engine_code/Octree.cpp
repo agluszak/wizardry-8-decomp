@@ -752,11 +752,10 @@ unsigned char W8Octree::CollectVisibleRegions00430D50(srVector3T<float>* locatio
             inside = 0;
         }
         if (depth != 0) {
-            depth[axis] =
-                ((&location->x)[axis] -
-                 (static_cast<float>(cells[axis]) * spatial_000.node_extent_70 + box_min[axis])) /
-                    spatial_000.node_extent_70 -
-                g_float_005ebc7c;
+            depth[axis] = ((&location->x)[axis] -
+                           (cells[axis] * spatial_000.node_extent_70 + box_min[axis])) /
+                              spatial_000.node_extent_70 -
+                          g_float_005ebc7c;
         }
     }
     if (!inside) {
@@ -956,12 +955,12 @@ void W8Octree::CollectVisibleCells0042FE90()
                 } else {
                     float offset = spatial_000.region_grid_cell_54 * g_float_005ebc7c;
                     srVector3T<float> point;
-                    point.x = static_cast<float>(cell_x) * spatial_000.region_grid_cell_54 +
-                              offset + spatial_000.minimum_0c.x;
-                    point.y = static_cast<float>(cell_y) * spatial_000.region_grid_cell_54 +
-                              spatial_000.minimum_0c.y + offset;
-                    point.z = static_cast<float>(cell_z) * spatial_000.region_grid_cell_54 +
-                              spatial_000.minimum_0c.z + offset;
+                    point.x = cell_x * spatial_000.region_grid_cell_54 + offset +
+                              spatial_000.minimum_0c.x;
+                    point.y = cell_y * spatial_000.region_grid_cell_54 + spatial_000.minimum_0c.y +
+                              offset;
+                    point.z = cell_z * spatial_000.region_grid_cell_54 + spatial_000.minimum_0c.z +
+                              offset;
                     if (PointInsideFrustum0046D880(&point, m_frustum_planes_21c) == 0) {
                         continue;
                     }
@@ -1269,8 +1268,7 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char de
     camera_location_1c0 = *point;
     far_clip_200 = spatial_000.extent_04;
     char text[104];
-    sprintf(text, "Sample point: %f, %f, %f, Links Found: ", static_cast<double>(point->x),
-            static_cast<double>(point->y), static_cast<double>(point->z));
+    sprintf(text, "Sample point: %f, %f, %f, Links Found: ", point->x, point->y, point->z);
     NoOp();
     srVector3T<double> location;
     location.SetFromFloat(point);
@@ -1288,14 +1286,14 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char de
     m_projected_regions_valid_16a = false;
     short samples = static_cast<short>(static_cast<int>(
         g_camera_angle_period_005ec014 / horizontal_fov_1f0 + g_camera_snap_epsilon_005ebc2c));
-    if (static_cast<float>(samples) * horizontal_fov_1f0 < g_float_005ec010) {
+    if (samples * horizontal_fov_1f0 < g_float_005ec010) {
         ++samples;
     }
     if (samples > 0) {
         double cos_tilt = cos(g_double_005ec008);
         double sin_tilt = sin(g_double_005ec008);
         for (int direction = 0; direction < samples; ++direction) {
-            float angle = static_cast<float>(direction) * horizontal_fov_1f0;
+            float angle = direction * horizontal_fov_1f0;
             srMatrix3T<float> frame;
             frame.vectors[0].x = 1.0f;
             frame.vectors[0].y = 0.0f;
@@ -1303,8 +1301,7 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char de
             frame.vectors[1].Set(0.0, 1.0, 0.0);
             frame.vectors[2].Set(0.0, 0.0, 1.0);
             if (angle != g_zero_005ebb40) {
-                frame.RotateAboutY(sin(static_cast<double>(angle)),
-                                   cos(static_cast<double>(angle)));
+                frame.RotateAboutY(sin(angle), cos(angle));
             }
             srVector3T<float> tilt_first;
             srVector3T<float> tilt_second;
@@ -1463,7 +1460,7 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
     W8HashTable<unsigned int, unsigned short>* links =
         new W8HashTable<unsigned int, unsigned short>;
     unsigned short z_step = rebuild_all != 0 ? 1 : 3;
-    float stride = static_cast<float>(z_step) * m_region_cell_178;
+    float stride = z_step * m_region_cell_178;
     short rows = static_cast<short>(static_cast<int>(spatial_000.extent_04 / stride));
     for (unsigned int prop = 0; prop < m_usNumPropsLoaded; ++prop) {
         m_papProps[prop]->SetSetting6C(0);
@@ -1502,8 +1499,8 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
                 break;
             }
             srVector3T<float> point;
-            point.x = m_region_cell_178 * g_float_005ebc7c + static_cast<float>(x_index) * stride +
-                      spatial_000.minimum_0c.x;
+            point.x =
+                m_region_cell_178 * g_float_005ebc7c + x_index * stride + spatial_000.minimum_0c.x;
             unsigned short z_index = rebuild_all == 0 && (x_index & 1) != 0 ? z_step : 0;
             if (!(spatial_000.working_minimum_78.x < point.x &&
                   point.x < spatial_000.working_maximum_84.x)) {
@@ -1513,8 +1510,8 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
                 if (aborted) {
                     break;
                 }
-                point.z = m_region_cell_178 * g_float_005ebc7c +
-                          static_cast<float>(z_index) * stride + spatial_000.minimum_0c.z;
+                point.z = m_region_cell_178 * g_float_005ebc7c + z_index * stride +
+                          spatial_000.minimum_0c.z;
                 if (!(spatial_000.working_minimum_78.z < point.z &&
                       point.z < spatial_000.working_maximum_84.z)) {
                     continue;
@@ -1747,9 +1744,9 @@ unsigned char W8Octree::UpdateWorldTrace00433EB0()
         cell[axis] = static_cast<int>(
             (((&camera.x)[axis] - (&spatial_000.minimum_0c.x)[axis]) / spatial_000.node_extent_70));
     }
-    minimum.x = static_cast<float>(cell[0]) * spatial_000.node_extent_70 + spatial_000.minimum_0c.x;
-    minimum.y = static_cast<float>(cell[1]) * spatial_000.node_extent_70 + spatial_000.minimum_0c.y;
-    minimum.z = static_cast<float>(cell[2]) * spatial_000.node_extent_70 + spatial_000.minimum_0c.z;
+    minimum.x = cell[0] * spatial_000.node_extent_70 + spatial_000.minimum_0c.x;
+    minimum.y = cell[1] * spatial_000.node_extent_70 + spatial_000.minimum_0c.y;
+    minimum.z = cell[2] * spatial_000.node_extent_70 + spatial_000.minimum_0c.z;
     maximum.x = minimum.x + spatial_000.node_extent_70;
     maximum.y = minimum.y + spatial_000.node_extent_70;
     maximum.z = minimum.z + spatial_000.node_extent_70;
@@ -1855,14 +1852,11 @@ int W8Octree::CountBadRegionMeshLinks00433B90(W8OctSpatialState* spatial)
                 for (int y = 0; y < 2; ++y) {
                     for (int z = 0; z < 2; ++z) {
                         if (m_owned_09c[spatial->node_index_94].children_04[child] != 0) {
-                            local.minimum_0c.x =
-                                static_cast<float>(x) * local.extent_04 + spatial->minimum_0c.x;
+                            local.minimum_0c.x = x * local.extent_04 + spatial->minimum_0c.x;
                             local.maximum_18.x = local.minimum_0c.x + local.extent_04;
-                            local.minimum_0c.y =
-                                static_cast<float>(y) * local.extent_04 + spatial->minimum_0c.y;
+                            local.minimum_0c.y = y * local.extent_04 + spatial->minimum_0c.y;
                             local.maximum_18.y = local.minimum_0c.y + local.extent_04;
-                            local.minimum_0c.z =
-                                static_cast<float>(z) * local.extent_04 + spatial->minimum_0c.z;
+                            local.minimum_0c.z = z * local.extent_04 + spatial->minimum_0c.z;
                             local.maximum_18.z = local.minimum_0c.z + local.extent_04;
                             bad_links += CountBadRegionMeshLinks00433B90(&local);
                         }
@@ -2228,8 +2222,7 @@ float W8Octree::SettleToGround(srVector3T<float>* position, unsigned char* out_h
         static_cast<int>(((position->y - spatial_000.minimum_0c.y) / spatial_000.node_extent_70));
     cell[2] =
         static_cast<int>(((position->z - spatial_000.minimum_0c.z) / spatial_000.node_extent_70));
-    end.y =
-        static_cast<float>((cell[1] - 1)) * spatial_000.node_extent_70 + spatial_000.minimum_0c.y;
+    end.y = ((cell[1] - 1)) * spatial_000.node_extent_70 + spatial_000.minimum_0c.y;
     trace.Reseed(&start, &end);
     if (-1 < cell[1]) {
         do {
@@ -2691,18 +2684,15 @@ no_probes:;
                             direction.x = to->x - from->x;
                             direction.y = to->y - from->y;
                             direction.z = to->z - from->z;
-                            double length2 = static_cast<double>(
-                                (static_cast<float>(direction.x) * direction.x +
-                                 static_cast<float>(direction.y) * direction.y +
-                                 static_cast<float>(direction.z) * direction.z));
+                            double length2 = static_cast<double>((direction.x * direction.x +
+                                                                  direction.y * direction.y +
+                                                                  direction.z * direction.z));
                             offset = direction;
-                            if (length2 !=
-                                static_cast<double>(static_cast<float>(g_zero_005ebb40))) {
+                            if (length2 != (static_cast<float>(g_zero_005ebb40))) {
                                 float fraction =
                                     (static_cast<float>(sqrt(length2)) -
-                                     static_cast<float>(
-                                         sqrt(static_cast<double>((monster_radius * monster_radius -
-                                                                   distance * distance))))) /
+                                     static_cast<float>(sqrt(((monster_radius * monster_radius -
+                                                               distance * distance))))) /
                                     static_cast<float>(sqrt(length2));
                                 offset.x = direction.x * fraction;
                                 offset.y = direction.y * fraction;
@@ -2710,18 +2700,17 @@ no_probes:;
                             }
                             if (0.0 <= best) {
                                 float span = offset.x * offset.x;
-                                if (static_cast<float>(sqrt(static_cast<double>(
-                                        (offset.z * offset.z + offset.y * offset.y + span)))) <
+                                if (static_cast<float>(sqrt(
+                                        ((offset.z * offset.z + offset.y * offset.y + span)))) <
                                     static_cast<float>(best)) {
-                                    best = static_cast<double>(
-                                        static_cast<float>(sqrt(static_cast<double>(
-                                            (offset.y * offset.y + offset.z * offset.z + span)))));
+                                    best = static_cast<double>(static_cast<float>(sqrt(
+                                        ((offset.y * offset.y + offset.z * offset.z + span)))));
                                     best_index = index;
                                 }
                             } else {
-                                best = static_cast<double>(static_cast<float>(sqrt(
-                                    static_cast<double>((offset.x * offset.x + offset.y * offset.y +
-                                                         offset.z * offset.z)))));
+                                best = static_cast<double>(static_cast<float>(
+                                    sqrt(((offset.x * offset.x + offset.y * offset.y +
+                                           offset.z * offset.z)))));
                                 best_index = index;
                             }
                         }
@@ -2765,16 +2754,15 @@ no_probes:;
             offset.x = to->x - from->x;
             offset.y = to->y - from->y;
             offset.z = to->z - from->z;
-            double length2 = static_cast<double>((static_cast<float>(offset.y) * offset.y +
-                                                  static_cast<float>(offset.z) * offset.z +
-                                                  static_cast<float>(offset.x) * offset.x));
+            double length2 = static_cast<double>(
+                (offset.y * offset.y + offset.z * offset.z + offset.x * offset.x));
             float z_scale;
-            if (length2 == static_cast<double>(static_cast<float>(g_zero_005ebb40))) {
+            if (length2 == (static_cast<float>(g_zero_005ebb40))) {
                 z_scale = offset.z;
             } else {
                 float fraction = (static_cast<float>(sqrt(length2)) -
-                                  static_cast<float>(sqrt(static_cast<double>(
-                                      (camera_radius * camera_radius - distance * distance))))) /
+                                  static_cast<float>(sqrt(
+                                      ((camera_radius * camera_radius - distance * distance))))) /
                                  static_cast<float>(sqrt(length2));
                 offset.x = offset.x * fraction;
                 offset.y = offset.y * fraction;
@@ -3105,7 +3093,7 @@ void W8Octree::BuildCellWalk(const srVector3T<float>* from, const srVector3T<flo
 
     for (axis = 0; axis < 3; ++axis) {
         span = to_cell[axis] - from_cell[axis];
-        fraction[axis] = static_cast<float>((from_cell[axis] % cell)) / cell_size;
+        fraction[axis] = ((from_cell[axis] % cell)) / cell_size;
         delta[axis] = static_cast<float>(span);
         if (span < 0) {
             step[axis] = -1;
@@ -3125,12 +3113,12 @@ void W8Octree::BuildCellWalk(const srVector3T<float>* from, const srVector3T<flo
     minor_1 = (major + 2) % 3;
     walk->error_delta_28 =
         static_cast<int>((static_cast<float>(fabs(delta[minor_0] / delta[major])) * cell_size));
-    walk->error_2c = static_cast<int>((cell_size * fraction[minor_0] -
-                                       static_cast<float>(walk->error_delta_28) * fraction[major]));
+    walk->error_2c =
+        static_cast<int>((cell_size * fraction[minor_0] - walk->error_delta_28 * fraction[major]));
     walk->error_delta_34 =
         static_cast<int>((static_cast<float>(fabs(delta[minor_1] / delta[major])) * cell_size));
-    walk->error_38 = static_cast<int>((cell_size * fraction[minor_1] -
-                                       static_cast<float>(walk->error_delta_34) * fraction[major]));
+    walk->error_38 =
+        static_cast<int>((cell_size * fraction[minor_1] - walk->error_delta_34 * fraction[major]));
     walk->count_24 = longest % cell == 0 ? longest / cell + 1 : longest / cell + 2;
 
     walk->minor_axis_1c = minor_0;
@@ -5011,7 +4999,7 @@ unsigned int W8Octree::AdvanceNavigator(W8NavigatorMovementState* movement, floa
     } else {
         reached = 0;
     }
-    if (static_cast<double>((vecDir.x * vecDir.x + vecDir.z * vecDir.z)) != g_zero_005ebb40) {
+    if (((vecDir.x * vecDir.x + vecDir.z * vecDir.z)) != g_zero_005ebb40) {
         vecDir.SetLength(step);
     }
     vecPos = vecDir + movement->position_040;
@@ -5362,10 +5350,10 @@ unsigned int W8Octree::FindScatterPositions00437980(const srVector3T<float>* pos
         columns = 5;
     }
     float angle = NormalizeAngle(yaw + g_monster_rotation_offset_005ec04c);
-    float cos_angle = static_cast<float>(cos(static_cast<double>(angle)));
+    float cos_angle = static_cast<float>(cos(angle));
     srVector3T<float> source;
     source = *position;
-    float sin_angle = static_cast<float>(sin(static_cast<double>(angle)));
+    float sin_angle = static_cast<float>(sin(angle));
     float cos_step = spacing * cos_angle;
     float sin_step = spacing * sin_angle;
     float neg_cos_step = -cos_step;
@@ -5403,16 +5391,14 @@ unsigned int W8Octree::FindScatterPositions00437980(const srVector3T<float>* pos
                     jitter_ring = 0.0f;
                     jitter_column = g_float_005ebb34;
                 } else {
-                    jitter_ring = static_cast<float>(Random(1000)) * g_float_005ec044 -
-                                  g_generator_jitter_fraction;
-                    jitter_column = static_cast<float>(Random(1000)) * g_float_005ec044 -
-                                    g_generator_jitter_fraction;
+                    jitter_ring = Random(1000) * g_float_005ec044 - g_generator_jitter_fraction;
+                    jitter_column = Random(1000) * g_float_005ec044 - g_generator_jitter_fraction;
                 }
                 srVector3T<float> candidate;
-                candidate.x = sin_step * (static_cast<float>(ring) + jitter_ring) + source.x +
+                candidate.x = sin_step * (ring + jitter_ring) + source.x +
                               neg_cos_step * (jitter_column + *column_offset);
                 candidate.y = source.y + g_world_scale_005ebc40;
-                candidate.z = (static_cast<float>(ring) + jitter_ring) * cos_step + source.z +
+                candidate.z = (ring + jitter_ring) * cos_step + source.z +
                               (jitter_column + *column_offset) * sin_step;
                 float ground = SettlePositionToGround00420BD0(&candidate, 0);
                 float height = candidate.y - ground;
@@ -5500,8 +5486,8 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
     float separation =
         (CalcRangeDistance(W8_RANGE_TOUCH) + radius) * g_float_005ebc7c + camera_radius;
     float angle = NormalizeAngle(yaw + g_monster_rotation_offset_005ec04c);
-    float cos_angle = static_cast<float>(cos(static_cast<double>(angle)));
-    float sin_angle = static_cast<float>(sin(static_cast<double>(angle)));
+    float cos_angle = static_cast<float>(cos(angle));
+    float sin_angle = static_cast<float>(sin(angle));
     float cos_radius = radius * cos_angle;
     float sin_radius = radius * sin_angle;
     float neg_cos_radius = -cos_radius;
@@ -5560,19 +5546,15 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
                                 jitter_i = 0.0f;
                                 jitter_j = g_float_005ebb34;
                             } else {
-                                jitter_i = static_cast<float>(Random(1000)) * g_float_005ec050 -
-                                           g_float_005ebc3c;
-                                jitter_j = static_cast<float>(Random(1000)) * g_float_005ec050 -
-                                           g_float_005ebc3c;
+                                jitter_i = Random(1000) * g_float_005ec050 - g_float_005ebc3c;
+                                jitter_j = Random(1000) * g_float_005ec050 - g_float_005ebc3c;
                             }
                             srVector3T<float> candidate;
-                            candidate.x = sin_radius * (static_cast<float>(i) + jitter_i) +
-                                          source->x +
-                                          neg_cos_radius * (jitter_j + static_cast<float>(j));
+                            candidate.x = sin_radius * (i + jitter_i) + source->x +
+                                          neg_cos_radius * (jitter_j + j);
                             candidate.y = source->y + g_world_scale_005ebc40;
-                            candidate.z = (static_cast<float>(i) + jitter_i) * cos_radius +
-                                          source->z +
-                                          (jitter_j + static_cast<float>(j)) * sin_radius;
+                            candidate.z = (i + jitter_i) * cos_radius + source->z +
+                                          (jitter_j + j) * sin_radius;
                             ground = SettlePositionToGround00420BD0(&candidate, 0);
                             height = candidate.y - ground;
                             if (static_cast<float>(g_double_005ebc30) <= fabsf(height) &&

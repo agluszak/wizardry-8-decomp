@@ -1097,14 +1097,12 @@ unsigned long OctPreTree::AllocateSubMesh0046A790(W8OctSubmeshBuild* records)
         while (slot != -1) {
             if (cells->entries[slot].key == static_cast<short>(index)) {
                 unsigned long cell = cells->entries[slot].value;
-                float cell_x =
-                    static_cast<float>((cell >> 0x10) & 0xff) * spatial_000.region_grid_cell_54 +
-                    spatial_000.minimum_0c.x;
-                float cell_y =
-                    static_cast<float>((cell >> 8) & 0xff) * spatial_000.region_grid_cell_54 +
-                    spatial_000.minimum_0c.y;
-                float cell_z = static_cast<float>(cell & 0xff) * spatial_000.region_grid_cell_54 +
-                               spatial_000.minimum_0c.z;
+                float cell_x = ((cell >> 0x10) & 0xff) * spatial_000.region_grid_cell_54 +
+                               spatial_000.minimum_0c.x;
+                float cell_y = ((cell >> 8) & 0xff) * spatial_000.region_grid_cell_54 +
+                               spatial_000.minimum_0c.y;
+                float cell_z =
+                    (cell & 0xff) * spatial_000.region_grid_cell_54 + spatial_000.minimum_0c.z;
                 if (cell_x + spatial_000.region_grid_cell_54 < min_x || max_x < cell_x ||
                     cell_y + spatial_000.region_grid_cell_54 < min_y || max_y < cell_y ||
                     cell_z + spatial_000.region_grid_cell_54 < min_z || max_z < cell_z) {
@@ -1170,12 +1168,9 @@ void OctPreTree::VerifyAutoMeshes0046AD10(W8OctPreTreeGeometry* geometry,
                 cell[1] = packed >> 0x10 & 0xff;
                 cell[2] = packed >> 8 & 0xff;
                 cell[3] = packed & 0xff;
-                float cell_x = static_cast<float>(cell[1]) * spatial_000.region_grid_cell_54 +
-                               spatial_000.minimum_0c.x;
-                float cell_y = static_cast<float>(cell[2]) * spatial_000.region_grid_cell_54 +
-                               spatial_000.minimum_0c.y;
-                float cell_z = static_cast<float>(cell[3]) * spatial_000.region_grid_cell_54 +
-                               spatial_000.minimum_0c.z;
+                float cell_x = cell[1] * spatial_000.region_grid_cell_54 + spatial_000.minimum_0c.x;
+                float cell_y = cell[2] * spatial_000.region_grid_cell_54 + spatial_000.minimum_0c.y;
+                float cell_z = cell[3] * spatial_000.region_grid_cell_54 + spatial_000.minimum_0c.z;
                 int node = DescendByMask(cell);
                 if (node != 0) {
                     if (m_owned_09c[node].region_02 != static_cast<short>(mesh)) {
@@ -1265,7 +1260,7 @@ unsigned char OctPreTree::BuildPathLists0046B060(W8GameData* game_data, W8LevelF
     if (x_cells > 0) {
         float x_cells_f = static_cast<float>(x_cells);
         for (int x = 0; x < x_cells; ++x) {
-            int percent = static_cast<int>(static_cast<float>(x) * 100.0f / x_cells_f);
+            int percent = static_cast<int>(x * 100.0f / x_cells_f);
             if (last_percent < percent) {
                 ++last_percent;
                 sprintf(message, "  %d%% Complete:  %d Path Nodes Created \r", last_percent,
@@ -1273,11 +1268,9 @@ unsigned char OctPreTree::BuildPathLists0046B060(W8GameData* game_data, W8LevelF
                 ReportStartupMessage004969D0(message);
             }
             unsigned int cell = static_cast<unsigned int>(x);
-            node.x = (static_cast<float>(x) + g_float_005ebc7c) * m_region_cell_178 +
-                     spatial_000.minimum_0c.x;
+            node.x = (x + g_float_005ebc7c) * m_region_cell_178 + spatial_000.minimum_0c.x;
             for (int z = 0; z < z_cells; ++z) {
-                node.z = (static_cast<float>(z) + g_float_005ebc7c) * m_region_cell_178 +
-                         spatial_000.minimum_0c.z;
+                node.z = (z + g_float_005ebc7c) * m_region_cell_178 + spatial_000.minimum_0c.z;
                 node.y = spatial_000.maximum_18.y;
                 while (SnapToGround(&node, 1)) {
                     m_lNumBlocks_2ac = 0;

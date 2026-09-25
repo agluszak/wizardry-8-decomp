@@ -673,8 +673,7 @@ bool Trigger::Load0043C1B0(int hFile, char version)
                         m_pEvent->timer_008.Restart();
                         m_pEvent->repeat_034 = 1;
                     }
-                    m_pEvent->timer_008.SetProgress(static_cast<float>(progress_delay) *
-                                                    g_float_005ec128);
+                    m_pEvent->timer_008.SetProgress(progress_delay * g_float_005ec128);
                     if (g_timed_events_006599b8.IndexOf(m_pEvent) == -1) {
                         g_timed_events_006599b8.Add(m_pEvent);
                     }
@@ -978,7 +977,7 @@ void UpdateTimedTriggerEvents00443D30(void)
 void W8TriggerShakeEvent::Update()
 {
     if (effect_038 == 0) {
-        float intensity = (float)intensity_03c / 1000.0f;
+        float intensity = intensity_03c / 1000.0f;
 
         if (intensity > 1.0f) {
             intensity = 1.0f;
@@ -2119,8 +2118,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
                                  "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0xf1e, 0);
                 }
                 trigger->m_pEvent->action_004 = static_cast<short>(trigger->initial_action_22a);
-                trigger->m_pEvent->timer_008.SetDuration(
-                    static_cast<float>(abs(trigger->m_lData2)) * 0.001f);
+                trigger->m_pEvent->timer_008.SetDuration(abs(trigger->m_lData2) * 0.001f);
                 trigger->m_pEvent->timer_008.Restart();
                 trigger->m_pEvent->trigger_030 = trigger;
                 trigger->flags_0a0 |= W8_TRIGGER_RUNNING;
@@ -3227,7 +3225,7 @@ void Trigger::Run(int source)
             FireMissile004A2D30((unsigned int)m_lData1, &source_position, &transformed, 0, 1, 1,
                                 50000.0f);
         } else if (m_pEvent == 0) {
-            float duration = (float)abs(m_lData2) * 0.001f;
+            float duration = abs(m_lData2) * 0.001f;
 
             if (m_lData2 > 0 && trigger_kind_018 != 2) {
                 srAssertFail("m_lData2 < 0 || m_iType == TRIGGER_INVISIBLE",
@@ -3420,7 +3418,7 @@ void Trigger::Run(int source)
                     srAssertFail("m_pCountdown",
                                  "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x12de, 0);
                 }
-                event->m_pCountdown->SetDuration((float)abs(m_lData3) * 0.001f);
+                event->m_pCountdown->SetDuration(abs(m_lData3) * 0.001f);
                 event->m_pCountdown->Restart();
                 if (m_lData3 < 0) {
                     event->reverse_040 = 1;

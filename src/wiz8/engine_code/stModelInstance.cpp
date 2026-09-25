@@ -368,10 +368,9 @@ void stModelInstance2D::process(const ProcessInfo& info, e_processType)
             }
         }
 
-        float glow_weight =
-            (float)fabs(sin(((double)(GetTickCount() % render_state_164.render_depth) /
-                             (double)(int)render_state_164.render_depth) *
-                            g_camera_angle_period_005ec014));
+        float glow_weight = (float)fabs(sin(((GetTickCount() % render_state_164.render_depth) /
+                                             (double)(int)render_state_164.render_depth) *
+                                            g_camera_angle_period_005ec014));
         float base_weight = g_float_005ebb38 - glow_weight;
         srVector4T<float> emissive;
         emissive.x = vector_174->x * base_weight + vector_178->x * glow_weight;

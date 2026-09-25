@@ -122,8 +122,8 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                                     (match->volume_max * g_settings_6850c8.sound_effects_volume) /
                                     0x7f;
                                 match->current_volume = SoundGetVolume(sound_handle);
-                                match->fade_timer.SetDuration(
-                                    g_float_005ec3b8 / static_cast<float>(match->target_volume));
+                                match->fade_timer.SetDuration(g_float_005ec3b8 /
+                                                              match->target_volume);
                                 match->fade_timer.Restart();
                                 match->fade_timer.m_flags &= ~8;
                                 match->fade_timer.m_start =
@@ -142,7 +142,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                     {
                         unsigned int full_volume =
                             (volume_max * g_settings_6850c8.sound_effects_volume) / 0x7f;
-                        fade_timer.SetDuration(g_float_005ec3b8 / static_cast<float>(full_volume));
+                        fade_timer.SetDuration(g_float_005ec3b8 / full_volume);
                         fade_timer.Restart();
                         fade_timer.m_flags &= ~8;
                         fade_timer.m_start = fade_timer.GetTime00439A60() - fade_timer.m_start;
@@ -169,9 +169,8 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
                 unsigned int volume;
 
                 rotation.SetIdentity();
-                if (static_cast<double>(angle) != g_zero_005ebb40) {
-                    rotation.RotateAboutY(sin(static_cast<double>(angle)),
-                                          cos(static_cast<double>(angle)));
+                if (angle != g_zero_005ebb40) {
+                    rotation.RotateAboutY(sin(angle), cos(angle));
                 }
                 srVector3T<float> offset = position - *listener;
                 transformed = rotation.Transform(offset);
@@ -194,7 +193,7 @@ void W8AmbientSound::UpdatePosition(const srVector3T<float>* listener)
             unsigned int full_volume = (volume_max * g_settings_6850c8.sound_effects_volume) / 0x7f;
             if (target_volume != full_volume) {
                 target_volume = full_volume;
-                fade_timer.SetDuration(g_float_005ec3b8 / static_cast<float>(full_volume));
+                fade_timer.SetDuration(g_float_005ec3b8 / full_volume);
                 fade_timer.Restart();
                 fade_timer.m_flags &= ~8;
                 fade_timer.m_start = fade_timer.GetTime00439A60() - fade_timer.m_start;
@@ -257,9 +256,8 @@ void W8AmbientSound::Service(unsigned char entered)
 
                 GetCameraPosition(&camera);
                 rotation.SetIdentity();
-                if (static_cast<double>(angle) != g_zero_005ebb40) {
-                    rotation.RotateAboutY(sin(static_cast<double>(angle)),
-                                          cos(static_cast<double>(angle)));
+                if (angle != g_zero_005ebb40) {
+                    rotation.RotateAboutY(sin(angle), cos(angle));
                 }
                 offset = position - camera;
                 transformed = rotation.Transform(offset);
@@ -311,8 +309,8 @@ void W8AmbientSound::Service(unsigned char entered)
         GetCameraPosition(&camera);
         current_volume = (volume_max * g_settings_6850c8.sound_effects_volume) / 0x7f;
         rotation.SetIdentity();
-        if (static_cast<double>(angle) != g_zero_005ebb40) {
-            rotation.RotateAboutY(sin(static_cast<double>(angle)), cos(static_cast<double>(angle)));
+        if (angle != g_zero_005ebb40) {
+            rotation.RotateAboutY(sin(angle), cos(angle));
         }
         offset = position - camera;
         transformed = rotation.Transform(offset);
@@ -352,7 +350,7 @@ void W8AmbientSound::Service(unsigned char entered)
         current_volume = 0;
         target_volume = (volume_max * g_settings_6850c8.sound_effects_volume) / 0x7f;
         sound_handle = SoundPlay(config_004.wave_name, &parms);
-        fade_timer.SetDuration(g_float_005ec3b8 / static_cast<float>(target_volume));
+        fade_timer.SetDuration(g_float_005ec3b8 / target_volume);
         fade_timer.Restart();
         fade_timer.m_flags &= ~8;
         fade_timer.m_start = fade_timer.GetTime00439A60() - fade_timer.m_start;

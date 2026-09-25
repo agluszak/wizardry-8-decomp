@@ -166,18 +166,18 @@ void AdvanceEnvironmentTime00482A20(int elapsed)
     }
     g_tick_65b9a8 = GetTickCount();
 
-    const double arc = 3.141592653589793 * (double)(1.0f / 180.0f) * 80.0;
+    const double arc = 3.141592653589793 * (1.0f / 180.0f) * 80.0;
     bool day;
     double angle;
     if ((unsigned int)g_status_685170.game_time_ms < 18000001U) {
         day = false;
-        angle = (double)(g_status_685170.game_time_ms + 7200000) * arc * 3.9682539682539686e-08;
+        angle = (g_status_685170.game_time_ms + 7200000) * arc * 3.9682539682539686e-08;
     } else if ((unsigned int)g_status_685170.game_time_ms < 79200001U) {
         day = true;
-        angle = (double)(g_status_685170.game_time_ms - 18000000) * arc * 1.633986928104575e-08;
+        angle = (g_status_685170.game_time_ms - 18000000) * arc * 1.633986928104575e-08;
     } else {
         day = false;
-        angle = (double)(g_status_685170.game_time_ms - 79200000) * arc * 3.9682539682539686e-08;
+        angle = (g_status_685170.game_time_ms - 79200000) * arc * 3.9682539682539686e-08;
     }
 
     srVector3T<float> direction;
@@ -186,7 +186,7 @@ void AdvanceEnvironmentTime00482A20(int elapsed)
     srMatrix3T<float> rotation;
     rotation.SetIdentity();
 
-    angle -= 3.141592653589793 * (double)(1.0f / 180.0f) * 40.0;
+    angle -= 3.141592653589793 * (1.0f / 180.0f) * 40.0;
     if (angle != 0.0) {
         rotation.RotateAboutY(sin(angle), cos(angle));
     }
@@ -1002,7 +1002,7 @@ void ApplyEnvironmentColour00483BA0(W8World* world, float intensity,
     if (world->static_scene != 0) {
         srVector3T<float> ambient(colour->red, colour->green, colour->blue);
 
-        ScaleColourAndSaturate00483D70(&ambient, (double)intensity);
+        ScaleColourAndSaturate00483D70(&ambient, intensity);
         world->static_scene->setAmbientLight(ambient.x, ambient.y, ambient.z);
         world->environment_colour_02c = *colour;
         world->environment_intensity_024 = intensity;
@@ -1021,8 +1021,7 @@ void ApplyEnvironmentColour00483BA0(W8World* world, float intensity,
 
         if (node == 0) {
             node = registry->registerClass(
-                "stMaterial", srClientSupport<srMaterial,8720>::sGetClassNode(),
-                0x10002, 0);
+                "stMaterial", srClientSupport<srMaterial, 8720>::sGetClassNode(), 0x10002, 0);
         }
         srMaterial* material = static_cast<srMaterial*>(
             registry->find(node, "AnimatedCloudMaterial", static_cast<const srRuntimeClass*>(0)));

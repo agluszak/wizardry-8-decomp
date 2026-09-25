@@ -216,9 +216,9 @@ void UpdateShakeEffects004AE310()
             float amplitude = intensity < g_float_005ebb38 ? intensity : g_float_005ebb38;
             amplitude *= g_float_005ecf9c;
             int span = static_cast<int>(amplitude) << 1;
-            g_trigger_action_scene_offset_006599ac.x = static_cast<float>(Random(span)) - amplitude;
-            g_trigger_action_scene_offset_006599ac.y = static_cast<float>(Random(span)) - amplitude;
-            g_trigger_action_scene_offset_006599ac.z = static_cast<float>(Random(span)) - amplitude;
+            g_trigger_action_scene_offset_006599ac.x = Random(span) - amplitude;
+            g_trigger_action_scene_offset_006599ac.y = Random(span) - amplitude;
+            g_trigger_action_scene_offset_006599ac.z = Random(span) - amplitude;
             g_trigger_action_active_006599c8 = true;
             return;
         }
@@ -620,7 +620,7 @@ void W8GrCycle::TickAnimation(float scale)
             if (frames != 0) {
                 srVector3T<float> position;
 
-                representation->timer_068 += (int)((float)frames * g_float_005ebc64 / rate);
+                representation->timer_068 += (int)(frames * g_float_005ebc64 / rate);
                 wrapped_1bc = 0;
                 position = GetPosition();
                 do {

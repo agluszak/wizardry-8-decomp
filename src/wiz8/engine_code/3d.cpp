@@ -953,8 +953,8 @@ void WorldSetFarClip(W8World* world, float distance)
     if (!world) {
         srAssertFail("pWorld", THREE_D_CPP, 0x29e, 0);
     }
-    if ((double)distance > 5.9604644775390625e-008) {
-        world->camera->setClipRange(62.5, (double)distance);
+    if (distance > 5.9604644775390625e-008) {
+        world->camera->setClipRange(62.5, distance);
         RefreshFogRanges004836A0();
         MarkRendererReady();
     }

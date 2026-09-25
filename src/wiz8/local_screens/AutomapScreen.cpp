@@ -1540,9 +1540,9 @@ void UpdateAutomapBounds00580380(void)
                     if (g_block_68f280 != 0 || bit < (unsigned int)g_automap_cell_count_0068f27c) {
                         unsigned int key = static_cast<unsigned int*>(g_block_68f280)[bit];
                         float half = g_float_64b914 * g_float_005ebc7c;
-                        cell.x = (float)(key >> 0x15) * g_float_64b914 + half;
-                        cell.y = (float)(key & 0x3ff) * g_float_64b914 + half;
-                        cell.z = (float)((key >> 10) & 0x7ff) * g_float_64b914 + half;
+                        cell.x = (key >> 0x15) * g_float_64b914 + half;
+                        cell.y = (key & 0x3ff) * g_float_64b914 + half;
+                        cell.z = ((key >> 10) & 0x7ff) * g_float_64b914 + half;
                     }
                     srVector3T<float> position;
                     position.x = cell.x + g_automap_grid_origin_0068f240.x;
@@ -1697,7 +1697,7 @@ void RenderAutomapFrame00581030(void)
                 view.right = (double)half;
                 view.top = (double)half;
                 g_world->camera->setViewPlane(view, (double)g_float_0064b920);
-                g_world->camera->setClipRange((double)g_float_0064b920, 1500000.0);
+                g_world->camera->setClipRange(g_float_0064b920, 1500000.0);
                 RenderWorldToSurface00426F80(g_automap_surface, &g_automap_viewport, 0);
                 g_automap_overlay_redraw = false;
                 SetResidentTexturePolicy(0);
@@ -1795,9 +1795,9 @@ unsigned char ShowAutomapNoteTooltip00581460(W8AutomapNote* note)
             int screen_y = (int)((1.0f - (note->position.y - bottom) / g_automap_zoom) * -435.0f);
             int marker_width;
             if (note == g_automap_editing_note) {
-                marker_width = (int)((double)(unsigned short)
-                                         g_automap_text_marker_0068f2ac->GetWidth00480EF0() *
-                                     0.22);
+                marker_width =
+                    (int)((unsigned short)g_automap_text_marker_0068f2ac->GetWidth00480EF0() *
+                          0.22);
             } else {
                 marker_width = (int)((1.0f / (g_automap_zoom * 0.00004f)) *
                                      (double)(unsigned short)
@@ -2007,9 +2007,9 @@ void CreateAutomapMarkerSprites005822C0(void)
         texture->loadSurface();
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
-            g_class_68f29c = CreateSpriteFromTexture(
-                texture, (double)((float)(int)surface->getWidth() * g_scale_x_5ebb1c),
-                (double)((float)(int)surface->getHeight() * g_scale_x_5ebb1c), 1, 1);
+            g_class_68f29c =
+                CreateSpriteFromTexture(texture, surface->getWidth() * g_scale_x_5ebb1c,
+                                        surface->getHeight() * g_scale_x_5ebb1c, 1, 1);
             g_class_68f29c->setParent(g_scene_square_65965c, 1);
             static_cast<srMeshModel*>(g_class_68f29c->model())->setControlMask(0x40);
             surface->setFilter(&srBSplineFilter);
@@ -2034,9 +2034,9 @@ void CreateAutomapMarkerSprites005822C0(void)
         texture->loadSurface();
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
-            g_class_68f2a0 = CreateSpriteFromTexture(
-                texture, (double)((float)(int)surface->getWidth() * g_scale_x_5ebb1c),
-                (double)((float)(int)surface->getHeight() * g_scale_y_5ebb20), 1, 0);
+            g_class_68f2a0 =
+                CreateSpriteFromTexture(texture, surface->getWidth() * g_scale_x_5ebb1c,
+                                        surface->getHeight() * g_scale_y_5ebb20, 1, 0);
             static_cast<srMeshModel*>(g_class_68f2a0->model())->setControlMask(0x40);
             surface->setFilter(&srBSplineFilter);
         }
@@ -2053,9 +2053,9 @@ void CreateAutomapMarkerSprites005822C0(void)
         texture->loadSurface();
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
-            g_class_68f2a4 = CreateSpriteFromTexture(
-                texture, (double)((float)(int)surface->getWidth() * g_scale_x_5ebb1c),
-                (double)((float)(int)surface->getHeight() * g_scale_y_5ebb20), 1, 0);
+            g_class_68f2a4 =
+                CreateSpriteFromTexture(texture, surface->getWidth() * g_scale_x_5ebb1c,
+                                        surface->getHeight() * g_scale_y_5ebb20, 1, 0);
             static_cast<srMeshModel*>(g_class_68f2a4->model())->setControlMask(0x40);
             surface->setFilter(&srBSplineFilter);
         }
@@ -2072,9 +2072,9 @@ void CreateAutomapMarkerSprites005822C0(void)
         texture->loadSurface();
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
-            g_class_68f2a8 = CreateSpriteFromTexture(
-                texture, (double)((float)(int)surface->getWidth() * g_scale_x_5ebb1c),
-                (double)((float)(int)surface->getHeight() * g_scale_y_5ebb20), 1, 0);
+            g_class_68f2a8 =
+                CreateSpriteFromTexture(texture, surface->getWidth() * g_scale_x_5ebb1c,
+                                        surface->getHeight() * g_scale_y_5ebb20, 1, 0);
             static_cast<srMeshModel*>(g_class_68f2a8->model())->setControlMask(0x40);
             surface->setFilter(&srBSplineFilter);
         }
@@ -2091,9 +2091,9 @@ void CreateAutomapMarkerSprites005822C0(void)
         texture->loadSurface();
         srColorSurface* surface = texture->getSurface();
         if (surface != 0) {
-            g_automap_text_marker_0068f2ac = CreateSpriteFromTexture(
-                texture, (double)((float)(int)surface->getWidth() * g_scale_x_5ebb1c),
-                (double)((float)(int)surface->getHeight() * g_scale_y_5ebb20), 1, 0);
+            g_automap_text_marker_0068f2ac =
+                CreateSpriteFromTexture(texture, surface->getWidth() * g_scale_x_5ebb1c,
+                                        surface->getHeight() * g_scale_y_5ebb20, 1, 0);
             static_cast<srMeshModel*>(g_automap_text_marker_0068f2ac->model())
                 ->setControlMask(0x40);
             surface->setFilter(&srBSplineFilter);

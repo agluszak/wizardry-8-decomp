@@ -3723,12 +3723,10 @@ unsigned int W8PathingService::FindPathCell00459D60(srVector3T<float>* position,
 
                 if ((value & 0x10000000) == 0 && -cell_count_024 < difference &&
                     difference < cell_count_024) {
-                    float x =
-                        (static_cast<float>(candidate_x) + g_float_005ebc7c) * grid_scale_01c -
-                        (position->x - level_bounds[0]);
-                    float z =
-                        (static_cast<float>(candidate_z) + g_float_005ebc7c) * grid_scale_01c -
-                        (position->z - level_bounds[2]);
+                    float x = (candidate_x + g_float_005ebc7c) * grid_scale_01c -
+                              (position->x - level_bounds[0]);
+                    float z = (candidate_z + g_float_005ebc7c) * grid_scale_01c -
+                              (position->z - level_bounds[2]);
                     float distance = x * x + z * z;
 
                     if (distance < closest_distance) {
@@ -3746,11 +3744,9 @@ unsigned int W8PathingService::FindPathCell00459D60(srVector3T<float>* position,
     }
 
     if (adjust != 0 && selected_key != 0) {
-        position->y = static_cast<float>(selected_height - 1) * span_020 + level_bounds[1];
-        position->x =
-            (static_cast<float>(selected_x) + g_float_005ebc7c) * grid_scale_01c + level_bounds[0];
-        position->z =
-            (static_cast<float>(selected_z) + g_float_005ebc7c) * grid_scale_01c + level_bounds[2];
+        position->y = (selected_height - 1) * span_020 + level_bounds[1];
+        position->x = (selected_x + g_float_005ebc7c) * grid_scale_01c + level_bounds[0];
+        position->z = (selected_z + g_float_005ebc7c) * grid_scale_01c + level_bounds[2];
     }
     if (cell != 0) {
         cell[0] = selected_x;
