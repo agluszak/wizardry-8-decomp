@@ -620,7 +620,7 @@ void W8GrCycle::TickAnimation(float scale)
             if (frames != 0) {
                 srVector3T<float> position;
 
-                representation->timer_068 += (int)(frames * g_float_005ebc64 / rate);
+                representation->timer_068 += static_cast<int>(frames * g_float_005ebc64 / rate);
                 wrapped_1bc = 0;
                 position = GetPosition();
                 do {

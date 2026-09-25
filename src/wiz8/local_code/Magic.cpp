@@ -1716,7 +1716,8 @@ static inline int AverageEffectAtPower(W8Dice dice, unsigned int power_level)
 {
     unsigned char count = (unsigned char)(dice.count * (unsigned char)power_level);
 
-    return (int)(((dice.base + count * dice.sides) + (float)(dice.base + count)) * 0.5f);
+    return static_cast<int>(
+        ((dice.base + count * dice.sides) + static_cast<float>(dice.base + count)) * 0.5f);
 }
 
 /* The failure chance past which casting harder is not worth it. */

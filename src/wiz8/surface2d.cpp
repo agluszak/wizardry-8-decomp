@@ -87,8 +87,9 @@ stSurface2D::stSurface2D(srColorSurfaceIFace* source, int source_width, int sour
       columns((source_width + tile_extent - 1) / tile_extent),
       rows((source_height + tile_extent - 1) / tile_extent), tile_count(columns * rows),
       width(source_width), height(source_height), tiles(new stTexture2D*[tile_count]),
-      tile_u(tile_extent / (float)source_width), tile_v(tile_extent / (float)source_height),
-      field_168(0), field_16c(1.0f), scale(0.0f), texture_update_flags(0)
+      tile_u(tile_extent / static_cast<float>(source_width)),
+      tile_v(tile_extent / static_cast<float>(source_height)), field_168(0), field_16c(1.0f),
+      scale(0.0f), texture_update_flags(0)
 {
     int row;
     int column;

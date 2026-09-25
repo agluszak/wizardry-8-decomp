@@ -1617,9 +1617,9 @@ inline void W8VerticalRangeThumb::ClampPositionAndInvalidate()
 
 inline void W8VerticalRangeThumb::SynchronizeRangeValue()
 {
-    int value =
-        (int)(m_range->m_thumb->m_position * (m_range->m_maximum - m_range->m_minimum + 1)) +
-        m_range->m_minimum;
+    int value = static_cast<int>(m_range->m_thumb->m_position *
+                                 (m_range->m_maximum - m_range->m_minimum + 1)) +
+                m_range->m_minimum;
     if (m_range->m_maximum < value) {
         value = m_range->m_maximum;
     }
@@ -1675,7 +1675,7 @@ void W8VerticalRangeThumb::OnLeftButtonDown(int event)
         int y = cursor.y - m_pPanel->origin_y - m_top;
         if (!m_hovered) {
             m_hovered = true;
-            m_position = ((y - m_thumbHeight / 2) / (float)m_trackLength) *
+            m_position = ((y - m_thumbHeight / 2) / static_cast<float>(m_trackLength)) *
                              (m_maximumPosition - m_minimumPosition) +
                          m_minimumPosition;
             ClampPositionAndInvalidate();
@@ -1716,7 +1716,8 @@ void W8VerticalRangeThumb::OnMouseMove(int event)
         } else {
             int delta = y - m_dragCoordinate;
             m_dragCoordinate = y;
-            m_position += (delta / (float)m_trackLength) * (m_maximumPosition - m_minimumPosition);
+            m_position += (delta / static_cast<float>(m_trackLength)) *
+                          (m_maximumPosition - m_minimumPosition);
         }
         ClampPositionAndInvalidate();
         SynchronizeRangeValue();
@@ -1979,7 +1980,7 @@ void W8HorizontalRangeThumb::OnLeftButtonDown(int event)
         int x = cursor.x - m_pPanel->origin_x - m_left;
         if (!m_hovered) {
             m_hovered = true;
-            m_position = ((x - m_thumbWidth / 2) / (float)m_trackLength) *
+            m_position = ((x - m_thumbWidth / 2) / static_cast<float>(m_trackLength)) *
                              (m_maximumPosition - m_minimumPosition) +
                          m_minimumPosition;
             ClampPositionAndInvalidate();
@@ -2074,7 +2075,8 @@ void W8HorizontalRangeThumb::OnMouseMove(int event)
         }
         int delta = x - m_dragCoordinate;
         m_dragCoordinate = x;
-        m_position += (delta / (float)m_trackLength) * (m_maximumPosition - m_minimumPosition);
+        m_position +=
+            (delta / static_cast<float>(m_trackLength)) * (m_maximumPosition - m_minimumPosition);
         ClampPositionAndInvalidate();
         if (m_listener != 0) {
             m_listener->OnDrag(this);

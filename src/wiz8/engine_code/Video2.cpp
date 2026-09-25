@@ -3286,8 +3286,8 @@ unsigned char CopySurfaceWithBorder(srColorSurface* surface, int* rect, void* so
     scale = 1.0f / surface->getHeight();
     *scale_y = scale;
     *scale_y = scale * g_surface_scale_659680 + scale;
-    *mapping_x = (rect[2] - rect[0]) / (float)surface->getWidth();
-    *mapping_y = (rect[3] - rect[1]) / (float)surface->getHeight();
+    *mapping_x = (rect[2] - rect[0]) / static_cast<float>(surface->getWidth());
+    *mapping_y = (rect[3] - rect[1]) / static_cast<float>(surface->getHeight());
     return 1;
 }
 

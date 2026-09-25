@@ -74,7 +74,7 @@ public:
         length_squared = align_axis_14c.z * align_axis_14c.z + align_axis_14c.y * align_axis_14c.y +
                          align_axis_14c.x * align_axis_14c.x;
         if (length_squared != 0.0) {
-            scale = (float)(1.0 / sqrt(length_squared));
+            scale = static_cast<float>(1.0 / sqrt(length_squared));
             align_axis_14c *= scale;
         }
         alignment_flags_148.value |= 1;

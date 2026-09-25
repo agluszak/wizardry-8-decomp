@@ -1796,8 +1796,9 @@ unsigned char ShowAutomapNoteTooltip00581460(W8AutomapNote* note)
             int marker_width;
             if (note == g_automap_editing_note) {
                 marker_width =
-                    (int)((unsigned short)g_automap_text_marker_0068f2ac->GetWidth00480EF0() *
-                          0.22);
+                    static_cast<int>(static_cast<unsigned short>(
+                                         g_automap_text_marker_0068f2ac->GetWidth00480EF0()) *
+                                     0.22);
             } else {
                 marker_width = (int)((1.0f / (g_automap_zoom * 0.00004f)) *
                                      (double)(unsigned short)

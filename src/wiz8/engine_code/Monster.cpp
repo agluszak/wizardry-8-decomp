@@ -952,7 +952,7 @@ void W8Monster::RandomizeAppearanceAndMotion004C1D20()
                                           g_world_scale_005ebc40;
     movement_0c0.vertical_phase_084 = Random(1000) * g_float_005ec128;
     movement_0c0.vertical_offset_0c0 =
-        (float)sin(movement_0c0.vertical_phase_084 * g_double_005ec318) *
+        static_cast<float>(sin(movement_0c0.vertical_phase_084 * g_double_005ec318)) *
             movement_0c0.vertical_amplitude_080 +
         movement_0c0.vertical_base_07c;
     movement_0c0.height_offset_0b8 += movement_0c0.vertical_base_07c;

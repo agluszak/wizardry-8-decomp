@@ -131,7 +131,8 @@ void MonsterLight::Update0049D990(const srVector3T<float>* position)
         float cycle = elapsed * g_monster_light_cycle_rate_005ecd4c;
         double whole = floor(cycle);
         float first_weight =
-            (float)(sin((cycle - whole) * g_double_005ec318) + g_float_005ebb38) * g_float_005ebc7c;
+            static_cast<float>(sin((cycle - whole) * g_double_005ec318) + g_float_005ebb38) *
+            g_float_005ebc7c;
         float second_weight = g_float_005ebb38 - first_weight;
 
         diffuse_1a4.x = m_color_first_22c.x * first_weight + m_color_second_238.x * second_weight;
