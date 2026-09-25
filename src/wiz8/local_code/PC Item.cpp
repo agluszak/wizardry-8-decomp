@@ -3162,30 +3162,29 @@ void EmptyItemRecord(W8ItemInstance* item, W8Character* character, unsigned char
         RefreshAfterItemRecordChange(item, character, refresh);
     }
 
-    W8ItemInstance* pool = g_status.party_item_pool_0021;
-    if (item < pool || item > &pool[499]) {
-        return;
+    if (item >= g_status.party_item_pool_0021 && item <= &g_status.party_item_pool_0021[499]) {
+        for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
+            if (item == &g_status.party_item_pool_0021[index]) {
+                /* RemovePartyPoolEntry(index), expanded in place. */
+                if (g_status.party_item_pool_0021[index].iItemNo == -1 &&
+                    index < g_status.party_item_count_1791) {
+                    memcpy(&shifted[index], &g_status.party_item_pool_0021[index + 1],
+                           (g_status.party_item_count_1791 - index - 1) *
+                               sizeof(W8ItemInstance));
+                    memcpy(&g_status.party_item_pool_0021[index], &shifted[index],
+                           (g_status.party_item_count_1791 - index - 1) *
+                               sizeof(W8ItemInstance));
+                    memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1], 0,
+                           sizeof(W8ItemInstance));
+                    g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo =
+                        -1;
+                    --g_status.party_item_count_1791;
+                    RedistributePartyEncumbrance();
+                }
+                break;
+            }
+        }
     }
-
-    unsigned int count = g_status.party_item_count_1791;
-    unsigned int index = 0;
-    while (index < count && item != &pool[index]) {
-        ++index;
-    }
-    if (index == count) {
-        return;
-    }
-    if (pool[index].iItemNo != -1 || index >= count) {
-        return;
-    }
-
-    unsigned int bytes = (count - index - 1) * sizeof(W8ItemInstance);
-    memcpy(&shifted[index], &pool[index + 1], bytes);
-    memcpy(&pool[index], &shifted[index], bytes);
-    memset(&pool[count - 1], 0, sizeof(W8ItemInstance));
-    pool[count - 1].iItemNo = -1;
-    --g_status.party_item_count_1791;
-    RedistributePartyEncumbrance();
 }
 
 /* Empty every item record a character carries. The per-record helper
