@@ -20,7 +20,7 @@ float srExponentTable::getExponent() const
 float srExponentTable::getValue(float x) const
 {
     x *= 1023.0f;
-    return values_[(int)x];
+    return values_[srFloatToInt(x)];
 }
 
 // FUNCTION: SURRENDER 0x10002e60
