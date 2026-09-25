@@ -97,10 +97,11 @@ def test_declaration_only_address_binding(tmp_path: Path) -> None:
     (build / "source-index.json").write_text(
         __import__("json").dumps(
             {
-                "schema": "reccmp-source-index-v3",
                 "markers": [],
                 "declarations": [
                     {
+                        "target": "WIZ8",
+                        "unit_id": None,
                         "qualified_name": "EquipMatchingPartnerItem",
                         "semantic_id": "?EquipMatchingPartnerItem@@YAXPAVW8Character@@PAUW8ItemInstance@@HH@Z",
                         "source_signature": (
@@ -150,7 +151,6 @@ def test_v3_declaration_key_joins_marker_to_clang_declaration(tmp_path: Path) ->
     )
     semantic = "?Draw@@YAXXZ"
     document = {
-        "schema": "reccmp-source-index-v3",
         "markers": [
             {
                 "marker_kind": "FUNCTION",
@@ -158,12 +158,13 @@ def test_v3_declaration_key_joins_marker_to_clang_declaration(tmp_path: Path) ->
                 "address": 0x401000,
                 "source_file": "src/wiz8/draw.cpp",
                 "line": 10,
-                "declaration_key": ["WIZ8", semantic],
+                "declaration_key": ["WIZ8", semantic, None],
             }
         ],
         "declarations": [
             {
                 "target": "WIZ8",
+                "unit_id": None,
                 "qualified_name": "Draw",
                 "semantic_id": semantic,
                 "source_signature": "void Draw(void)",
@@ -189,7 +190,7 @@ def test_v3_declaration_key_joins_marker_to_clang_declaration(tmp_path: Path) ->
     assert markers[0]["declaration"]["end_line"] == 20
     assert (
         declaration_for_marker(
-            document["markers"][0], {("WIZ8", semantic): document["declarations"][0]}
+            document["markers"][0], {("WIZ8", semantic, ""): document["declarations"][0]}
         )["source_signature"]
         == "void Draw(void)"
     )

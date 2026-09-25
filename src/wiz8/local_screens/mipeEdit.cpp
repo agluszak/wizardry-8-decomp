@@ -129,18 +129,6 @@ void HandleMipeEditPropKey(unsigned short key)
         return;
     }
     switch (key) {
-    case 0xd:
-        trigger = state->prop->GetValue18();
-        if (trigger != 0) {
-            CommitMipeEditFields(trigger->m_pActionData, 0);
-        }
-        state->edit_selection = -1;
-        MIPE_REDRAW_EDIT_FIELDS();
-        break;
-    case 0x1b:
-        state->edit_selection = -1;
-        MIPE_REDRAW_EDIT_FIELDS();
-        break;
     case 0x26:
         if (state->edit_selection == -1) {
             if (g_mipe_table_base != 0) {
@@ -174,12 +162,6 @@ void HandleMipeEditPropKey(unsigned short key)
             }
         }
         MIPE_REDRAW_EDIT_FIELDS();
-        break;
-    case 0x2e:
-        if (g_mipe_edit_decimal == -1) {
-            g_mipe_edit_decimal = 0;
-            MIPE_REDRAW_EDIT_FIELDS();
-        }
         break;
     case 0x30:
     case 0x31:
@@ -215,6 +197,24 @@ void HandleMipeEditPropKey(unsigned short key)
                 }
             }
         }
+        MIPE_REDRAW_EDIT_FIELDS();
+        break;
+    case 0x2e:
+        if (g_mipe_edit_decimal == -1) {
+            g_mipe_edit_decimal = 0;
+            MIPE_REDRAW_EDIT_FIELDS();
+        }
+        break;
+    case 0xd:
+        trigger = state->prop->GetValue18();
+        if (trigger != 0) {
+            CommitMipeEditFields(trigger->m_pActionData, 0);
+        }
+        state->edit_selection = -1;
+        MIPE_REDRAW_EDIT_FIELDS();
+        break;
+    case 0x1b:
+        state->edit_selection = -1;
         MIPE_REDRAW_EDIT_FIELDS();
         break;
     }

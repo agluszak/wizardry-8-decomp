@@ -20,7 +20,6 @@ def _write_index(repo: Path, markers: list[dict], declarations: list[dict] | Non
     (build / "source-index.json").write_text(
         json.dumps(
             {
-                "schema": "reccmp-source-index-v2",
                 "markers": markers,
                 "declarations": declarations or [],
                 "classes": [],

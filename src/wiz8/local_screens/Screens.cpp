@@ -354,10 +354,13 @@ void SetItemCursor(int item_id)
 // FUNCTION: WIZ8 0x0055F260
 void ShowNoticeLine(wchar_t* text, W8DialogDestroyCallback callback, int confirmation, int cancel)
 {
-    if (g_current_screen_state.id == W8_SCREEN_CAMP) {
+    switch (g_current_screen_state.id) {
+    case W8_SCREEN_CAMP:
         ShowCampNoticeLine(text, callback, confirmation, cancel);
-    } else if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
+        break;
+    case W8_SCREEN_MAIN_GAME:
         ShowMainGameNoticeLine(text, callback, confirmation, cancel);
+        break;
     }
 }
 

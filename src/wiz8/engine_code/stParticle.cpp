@@ -479,15 +479,15 @@ unsigned char stParticle::ActivateParticle(unsigned int* out_index, unsigned cha
 
     srVector3T<float>& velocity = velocities_198[index];
     switch (direction_mode_1b8) {
-    case 1:
-        velocity = direction_1e8 * magnitude;
-        break;
-
     case 2: {
         srVector3T<double> direction = getWorldSpaceDOF();
         velocity = direction * magnitude;
         break;
     }
+
+    case 1:
+        velocity = direction_1e8 * magnitude;
+        break;
 
     case 3: {
         srVector3T<float> direction;

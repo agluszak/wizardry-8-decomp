@@ -71,6 +71,27 @@ def test_changed_call_target_uses_retail_identity(tmp_path, monkeypatch, callee,
         assert result["errors"][0]["retail_identity"] == "0x00401200"
 
 
+def test_added_call_lines_skip_lines_moved_elsewhere_in_the_diff(tmp_path, monkeypatch):
+    diff = (
+        "diff --git a/old.cpp b/old.cpp\n"
+        "--- a/old.cpp\n"
+        "+++ b/old.cpp\n"
+        "@@ -10,2 +10,0 @@\n"
+        "-    MovedCall(value);\n"
+        "-    return;\n"
+        "diff --git a/new.cpp b/new.cpp\n"
+        "--- a/new.cpp\n"
+        "+++ b/new.cpp\n"
+        "@@ -3,0 +4,2 @@\n"
+        "+    MovedCall(value);\n"
+        "+    FreshCall(value);\n"
+    )
+    monkeypatch.setattr(comparison, "resolve_executable", lambda _name: None)
+    monkeypatch.setattr(comparison, "run", lambda *_args, **_kwargs: SimpleNamespace(stdout=diff))
+
+    assert comparison._added_call_lines(tmp_path, "base") == {tmp_path / "new.cpp": {5}}
+
+
 @pytest.mark.parametrize("accuracy", [1.0, 0.0])
 def test_vtable_comparison_keeps_native_slot_diff(tmp_path, monkeypatch, accuracy):
     from reccmp.compare import Compare
@@ -128,7 +149,6 @@ def test_source_selection_deduplicates_function_markers(tmp_path: Path) -> None:
     (tmp_path / "build/source-index.json").write_text(
         json.dumps(
             {
-                "schema": "reccmp-source-index-v2",
                 "classes": [],
                 "declarations": [],
                 "markers": [

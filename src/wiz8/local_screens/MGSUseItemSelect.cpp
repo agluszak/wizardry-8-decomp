@@ -600,7 +600,7 @@ void RebuildUseItemSelectList(int mode, W8ItemInstance* select)
     pass = 0;
     if (mode != 0) {
         do {
-            for (i = 0; i < static_cast<unsigned int>(g_status.party_item_count_1791); i++) {
+            for (i = 0; i < g_status.party_item_count_1791; i++) {
                 if (!AppendUseItemListEntry(&g_status.party_item_pool_0021[i], select, pass)) {
                     return;
                 }
@@ -1105,7 +1105,7 @@ void SelectCurrentUseItemLine(void)
 void TakeUseItemIntoHand(void)
 {
     unsigned int i;
-    int old_count;
+    unsigned int old_count;
 
     if (g_status.item_in_cursor == 0) {
         CopyItemInstance(&g_status.item_in_hand_235b, g_value_69b9a0, 0, 1);
@@ -1118,7 +1118,7 @@ void TakeUseItemIntoHand(void)
     GiveItemToCharacterOrParty(g_use_item_owner_index, &g_status.item_in_hand_235b, 1);
     if (g_use_item_select_mode == 1 && old_count != g_status.party_item_count_1791 &&
         g_status.party_item_count_1791 != 0) {
-        for (i = 0; i < static_cast<unsigned int>(g_status.party_item_count_1791); i++) {
+        for (i = 0; i < g_status.party_item_count_1791; i++) {
             if (g_value_69b9a0 == &g_status.party_item_pool_0021[i]) {
                 g_value_69b9a0 = &g_status.party_item_pool_0021[i + 1];
                 CopyItemInstance(&g_status.item_in_hand_235b, g_value_69b9a0, 0, 1);

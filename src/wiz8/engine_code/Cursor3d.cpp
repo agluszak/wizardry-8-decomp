@@ -635,10 +635,10 @@ void UpdateWorldCursor(void)
                 if (gp3DCursor->footprint_mode_c0 == 0 ||
                     g_octree->TestBoxOccupied(&box_min, &box_max) == 0) {
                     AimAtPlace(g_status.selected_character);
-                    if (gp3DCursor == 0) {
-                        InitializeWorldCursor();
-                    } else {
+                    if (gp3DCursor != 0) {
                         ReleaseWorldCursor();
+                    } else {
+                        InitializeWorldCursor();
                     }
                     return;
                 }

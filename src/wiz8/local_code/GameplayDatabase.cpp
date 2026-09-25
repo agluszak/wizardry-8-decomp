@@ -179,17 +179,15 @@ unsigned char InitializeItemTables(void)
 
 /* Seeks straight to one record rather than holding the file open, and strips the
    four name fields afterwards. The failed seek leaves the handle open where
-   every other failure closes it, as elsewhere in this unit. The bytes-read
-   out-parameter is the index's own incoming slot, dead once it has been copied
-   into a register. */
+   every other failure closes it, as elsewhere in this unit. */
 // FUNCTION: WIZ8 0x0054a8a0
 unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRecord* record)
 {
     char path[60];
-    unsigned int index = uiMonsterIndex;
+    unsigned int bytes_read;
     int handle;
 
-    if (!(index < gXStatus.uiMonstersInDatabase)) {
+    if (!(uiMonsterIndex < gXStatus.uiMonstersInDatabase)) {
         srAssertFail("uiMonsterIndex < gXStatus.uiMonstersInDatabase", GAMEPLAY_DATABASE_CPP, 0x140,
                      0);
     }
@@ -198,10 +196,10 @@ unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRe
     if (!handle) {
         return 0;
     }
-    if (!FileSeek(handle, index * 0x297 + 4, 1)) {
+    if (!FileSeek(handle, uiMonsterIndex * 0x297 + 4, 1)) {
         return 0;
     }
-    if (!FileRead(handle, record, 0x297, &uiMonsterIndex)) {
+    if (!FileRead(handle, record, 0x297, &bytes_read)) {
         FileClose(handle);
         return 0;
     }
@@ -303,14 +301,14 @@ unsigned char LoadMonsterDatabase(W8MonsterRecord** records)
 /* The range sibling of LoadMonsterDatabaseRecord, named by its own assertion at
    GameplayDatabase.cpp line 378. It seeks to the first record and reads the
    whole inclusive span in one call, computing the length as two separate record
-   offsets subtracted rather than from a record count. The bytes-read
-   out-parameter is uiEndIndex's own slot, dead once copied into a register, and
-   a failed seek leaves the handle open where every other failure closes it. */
+   offsets subtracted rather than from a record count. A failed seek leaves the
+   handle open where every other failure closes it. */
 // FUNCTION: WIZ8 0x0054a9a0
 unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int uiEndIndex,
                                        unsigned int unused, W8MonsterRecord* records)
 {
     char path[56];
+    unsigned int bytes_read;
     int handle;
 
     if (!(uiEndIndex < gXStatus.uiMonstersInDatabase)) {
@@ -324,10 +322,39 @@ unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int u
     if (!FileSeek(handle, uiStartIndex * 0x297 + 4, 1)) {
         return 0; /* retail: failed seek leaves the handle open */
     }
-    if (!FileRead(handle, records, (uiEndIndex + 1) * 0x297 - uiStartIndex * 0x297, &uiEndIndex)) {
+    if (!FileRead(handle, records, (uiEndIndex + 1) * 0x297 - uiStartIndex * 0x297, &bytes_read)) {
         FileClose(handle);
         return 0;
     }
     FileClose(handle);
     return 1;
+}
+
+/* Retail emits this owning-list teardown out of line here and expands the same
+   operation at the NPC-item sites.  The exact source boundary remains
+   unresolved; it is neither an authored specialization nor a W8PList member
+   destructor under the VC6 ABI. */
+// TEMPLATE: WIZ8 0x0055ADA0
+// unresolved owning PL teardown emission
+
+// FUNCTION: WIZ8 0x0054ac90
+void DestroyNpcDatabase(void)
+{
+    unsigned int index;
+
+    if (g_npc_records) {
+        for (index = 0; index < gXStatus.uiNpcsInDatabase; ++index) {
+            if (g_npc_records[index].item_stock_rules) {
+                W8PList* rules = g_npc_records[index].item_stock_rules;
+                while (PLLength(rules) != 0) {
+                    delete static_cast<W8NpcItemStockRule*>(PLRemoveAt(rules, 0));
+                }
+                PListFreeData(rules);
+                PLDestroy(rules);
+                g_npc_records[index].item_stock_rules = 0;
+            }
+        }
+        free(g_npc_records);
+        g_npc_records = 0;
+    }
 }

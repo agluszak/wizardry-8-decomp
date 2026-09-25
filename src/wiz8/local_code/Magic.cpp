@@ -296,14 +296,10 @@ int GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize,
 {
     if (spell_id != 0) {
         switch (GetSpellTargetType(spell_id, normalize)) {
-        case W8_TARGET_TYPE_CASTER:
-            return 8;
         case W8_TARGET_TYPE_ALLY:
             return spell_id != 0x58 ? 1 : 7;
-        case W8_TARGET_TYPE_PARTY:
-        case W8_TARGET_TYPE_ALL_ENEMIES:
-        case W8_TARGET_TYPE_LOCK_OR_TRAP:
-            break;
+        case W8_TARGET_TYPE_CASTER:
+            return 8;
         case W8_TARGET_TYPE_ENEMY:
             return 2;
         case W8_TARGET_TYPE_ENEMY_GROUP:
@@ -319,11 +315,16 @@ int GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize,
                 return 6;
             }
             break;
+        case W8_TARGET_TYPE_PARTY:
+        case W8_TARGET_TYPE_ALL_ENEMIES:
+        case W8_TARGET_TYPE_LOCK_OR_TRAP:
+            break;
         default:
             srAssertFail(
                 "FALSE", MAGIC_CPP, 4851,
                 FormatString("GetTargetNeededForSpellFriendly: ERROR - Invalid spell target for %d",
                              spell_id));
+            break;
         }
     }
     return 0;
@@ -335,25 +336,26 @@ int GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize,
 int GetTargetNeededForSpellHostile(int spell_id)
 {
     switch (GetSpellTargetType(spell_id, 0)) {
-    case W8_TARGET_TYPE_CASTER:
-        return 8;
     case W8_TARGET_TYPE_ALLY:
         return spell_id != 0x58 ? 1 : 7;
+    case W8_TARGET_TYPE_ENEMY:
+        return 2;
+    case W8_TARGET_TYPE_CASTER:
+        return 8;
+    case W8_TARGET_TYPE_ENEMY_GROUP:
+        return 5;
     case W8_TARGET_TYPE_PARTY:
     case W8_TARGET_TYPE_CONE:
     case W8_TARGET_TYPE_RADIUS:
     case W8_TARGET_TYPE_ALL_ENEMIES:
     case W8_TARGET_TYPE_POINT:
         break;
-    case W8_TARGET_TYPE_ENEMY:
-        return 2;
-    case W8_TARGET_TYPE_ENEMY_GROUP:
-        return 5;
     default:
         srAssertFail(
             "FALSE", MAGIC_CPP, 4889,
             FormatString("GetTargetNeededForSpellHostile: ERROR - Invalid spell target for %d",
                          spell_id));
+        break;
     }
     return 0;
 }
@@ -990,7 +992,7 @@ void StartCharacterItemUse(int party_slot)
    of nothing at all short-circuits unless the caller asks for the sum
    anyway. */
 // FUNCTION: WIZ8 0x004ffbd0
-int GetTotalCasterLevel(const W8Character* character, int unused, int spellbook, char include_all)
+int GetTotalCasterLevel(const W8Character* character, int spellbook, char include_all)
 {
     int profession = character->iProfession;
     int total;
@@ -1436,7 +1438,6 @@ unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, W8Monster
     unsigned int budget;
     unsigned int cost;
     int band;
-    int roll;
 
     if (spell_id == W8_MONSTER_SPELL_NONE) {
         return 0;
@@ -1477,13 +1478,17 @@ unsigned int ChooseMonsterSpellPowerLevel(W8MonsterInfo* monster_info, W8Monster
         --power_level;
     }
 
-    roll = Random(4);
-    if (roll == 0) {
+    switch (Random(4)) {
+    case 0:
         if (power_level > 2) {
             --power_level;
         }
-    } else if (roll == 1 && power_level < W8_SPELL_POWER_MAX) {
-        ++power_level;
+        break;
+    case 1:
+        if (power_level < W8_SPELL_POWER_MAX) {
+            ++power_level;
+        }
+        break;
     }
 
     if (power_level == 0 || power_level > W8_SPELL_POWER_MAX) {
@@ -1529,16 +1534,6 @@ int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_
         target.iType = W8_TARGET_KIND_CHARACTER;
         target.iChar = GetRandomCharacter(0, 1, -1, -1);
         break;
-    case W8_TARGET_TYPE_PARTY:
-    case W8_TARGET_TYPE_ENEMY_GROUP:
-        target.iType = W8_TARGET_KIND_PARTY;
-        break;
-    case W8_TARGET_TYPE_CONE:
-        sight_probe = 0;
-        target.iType = W8_TARGET_KIND_PARTY;
-        ResolveTargetPoint(&target, sight_probe);
-        target.iType = W8_TARGET_KIND_PLACE;
-        break;
     case W8_TARGET_TYPE_RADIUS:
     case W8_TARGET_TYPE_POINT:
         sight_probe = 1;
@@ -1546,9 +1541,20 @@ int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_
         ResolveTargetPoint(&target, sight_probe);
         target.iType = W8_TARGET_KIND_PLACE;
         break;
+    case W8_TARGET_TYPE_CONE:
+        sight_probe = 0;
+        target.iType = W8_TARGET_KIND_PARTY;
+        ResolveTargetPoint(&target, sight_probe);
+        target.iType = W8_TARGET_KIND_PLACE;
+        break;
+    case W8_TARGET_TYPE_PARTY:
+    case W8_TARGET_TYPE_ENEMY_GROUP:
+        target.iType = W8_TARGET_KIND_PARTY;
+        break;
     default:
         srAssertFail("FALSE", MAGIC_CPP, 0x56d,
                      FormatString("PointCastSpell: ERROR - Invalid spell target for %d", spell_id));
+        break;
     }
 
     CastSpellFromSource(spell_id, &source, &target, power_level, 0, 0, 0, 0, 0, 0, 0);
@@ -1578,9 +1584,8 @@ unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id,
     unsigned int best_level = 0xffffffff;
     unsigned int unlocked_skill = 0xffffffff;
     unsigned int unlocked_level = 0xffffffff;
-    unsigned int chosen;
     unsigned int level;
-    int party_slot = book;
+    int party_slot;
 
     if (pricing != 0 && character->uiCondition[W8_CONDITION_SPELLCASTING_BLOCKED] != 0 &&
         g_spell_records[spell_id].alchemy_spell != 0) {
@@ -1604,7 +1609,6 @@ unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id,
         probe = (unsigned char)(probe << 1);
     }
 
-    chosen = unlocked_skill;
     if (prefer_unlocked != 0 && unlocked_skill != 0xffffffff && best_skill != unlocked_skill) {
         if (pricing != 0) {
             unsigned int failure;
@@ -1636,46 +1640,44 @@ unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id,
                 failure = 0;
             }
 
-            best_level = failure;
-            chosen = GetMinimumCasterLevelForSpell(spell_id);
-            shortfall = static_cast<int>(chosen) - GetTotalCasterLevel(character, 0, book, 1) - 1 +
-                        power_level;
+            shortfall = GetMinimumCasterLevelForSpell(spell_id) -
+                        GetTotalCasterLevel(character, book, 1) - 1 + power_level;
             if (shortfall > 0) {
-                unlocked_skill = g_spell_records[spell_id].spell_level * shortfall + power_level;
+                failure += g_spell_records[spell_id].spell_level * shortfall;
             }
-            ScaleByCombatPace(party_slot, &unlocked_skill);
-            if (unlocked_skill != 0) {
-                goto done;
+            ScaleByCombatPace(party_slot, &failure);
+            if (failure == 0) {
+                best_skill = unlocked_skill;
             }
+        } else {
+            best_skill = unlocked_skill;
         }
-        best_level = chosen;
     }
 
-done:
-    if (best_level == 0xffffffff) {
+    if (best_skill == 0xffffffff) {
         srAssertFail("(iHighestSkill != SKILL_NONE)", MAGIC_CPP, 0xf29,
-                     FormatString("Failed on spell %ld, usability being %d", spell_id, party_slot));
+                     FormatString("Failed on spell %ld, usability byte %ld", spell_id, book));
     }
-    return best_level;
+    return best_skill;
 }
 
-/* How likely one whole cast is to come apart, as a percentage. Two things
-   spoil it, and this is where the two meet: a spellbook skill short of what
-   the spell's cost band asks for at that power level, which the plain
+/* How safe one whole cast is, as the spell screen's one-to-five rating (five
+   for a sure cast). Two things spoil it: a spellbook skill short of what the
+   spell's cost band asks for at that power level, which the plain
    failure-chance body above answers, and a caster level short of what the
    spell asks for, charged flat at the spell's own level per level missing. The
-   sum is then scaled by how far ahead of the combat pace the caster is.
+   sum is scaled by how far ahead of the combat pace the caster is and banded
+   at 0, 5, 15 and 40 percent.
 
    The skill this is measured against is the spell's own best spellbook skill
    weighted four to one against the realm skill, which is what makes the realm
    the larger part of it.
 
    Power level eight is the request to cast as high as affordable rather than a
-   level, so it has no failure chance of its own. The power-level choosers
-   carry this whole body inline rather than calling it. */
+   level, so it has no rating of its own. The power-level choosers carry the
+   unbanded percentage inline (GetCastFailureChance) rather than calling this. */
 // FUNCTION: WIZ8 0x004ff4b0
-unsigned int GetSpellFailureChanceForCast(W8Character* character, int spell_id,
-                                          unsigned int power_level)
+unsigned int GetSpellCastRating(W8Character* character, int spell_id, unsigned int power_level)
 {
     int skill;
     int party_slot;
@@ -1696,13 +1698,25 @@ unsigned int GetSpellFailureChanceForCast(W8Character* character, int spell_id,
     chance = GetSpellFailureChance(skill_figure, spell_id, (int)power_level);
 
     shortfall = GetMinimumCasterLevelForSpell(spell_id) -
-                GetTotalCasterLevel(character, 0, SpellbookMaskForSpell(spell_id), 1) - 1 +
+                GetTotalCasterLevel(character, SpellbookMaskForSpell(spell_id), 1) - 1 +
                 power_level;
     if (shortfall > 0) {
-        chance = g_spell_records[spell_id].spell_level * shortfall + power_level;
+        chance += g_spell_records[spell_id].spell_level * shortfall;
     }
     ScaleByCombatPace(party_slot, &chance);
-    return chance;
+    if (chance == 0) {
+        return 5;
+    }
+    if (chance <= 5) {
+        return 4;
+    }
+    if (chance <= 15) {
+        return 3;
+    }
+    if (chance <= 40) {
+        return 2;
+    }
+    return 1;
 }
 
 /* The average of one dice expression, taken as the midpoint of what it can
@@ -1729,6 +1743,65 @@ enum {
     W8_SPELL_RESTORE_STAMINA = 0xd,
     W8_SPELL_RESTORE_HP_THEN_STAMINA = 100
 };
+
+/* One cast's failure chance as the power-level choosers work it out: the
+   chosen spellbook skill weighted four to one against the realm skill, priced
+   against the spell's cost band, plus the spell's level for every caster level
+   short of what it asks for, scaled by the caster's combat pace. Retail
+   carries this sequence in both choosers and has no out-of-line copy. */
+static inline unsigned int GetCastFailureChance(W8Character* character, int spell_id,
+                                                unsigned int power_level)
+{
+    const W8SpellRuntimeRecord* record = &g_spell_records[spell_id];
+    unsigned int skill = GetBestSpellbookSkillForSpell(character, spell_id, 1, 1, power_level);
+    int party_slot = CharacterPointerToPartySlot(character);
+    unsigned int skill_figure =
+        (character->skills[skill].level +
+         character->skills[W8_SKILL_FIRST_REALM + record->realm].level * 4) /
+        5;
+    int band = record->spell_point_cost / 2 + record->spell_level;
+    unsigned int needed;
+    unsigned int chance;
+    unsigned char book;
+    int caster_level;
+    int profession;
+    int level;
+    int shortfall;
+
+    if (band > 16) {
+        band = 16;
+    }
+    needed = (g_combat_effect_slot_spells_and_cast_success[6 + band] * power_level) / 7;
+    if (skill_figure < needed) {
+        chance = (needed * 70 - skill_figure * 70) / needed;
+        if (static_cast<int>(chance) < 0) {
+            chance = 0;
+        } else if (static_cast<int>(chance) > 100) {
+            chance = 100;
+        }
+    } else {
+        chance = 0;
+    }
+
+    book = (record->psionics_spell != 0 ? 8 : 0) | (record->divinity_spell != 0 ? 2 : 0) |
+           (record->wizardry_spell != 0 ? 1 : 0) | (record->alchemy_spell != 0 ? 4 : 0);
+    caster_level = GetProfessionCasterLevel(character, -1);
+    for (profession = 0; profession < W8_PROFESSION_COUNT; ++profession) {
+        if (character->profession_levels[profession] != 0 && profession != character->iProfession &&
+            (g_profession_spellbooks[profession] & book) != 0) {
+            level = GetProfessionCasterLevel(character, profession);
+            if (level > 0) {
+                caster_level += level;
+            }
+        }
+    }
+    shortfall = GetMinimumCasterLevelForSpell(spell_id) - caster_level - 1 + power_level;
+    if (shortfall > 0) {
+        chance += record->spell_level * shortfall;
+    }
+    ScaleByCombatPace(party_slot, &chance);
+    return chance;
+}
 
 /* How hard to cast a spell that has to last a given number of turns. Each
    power level is priced at what it would really cost - the spell points for
@@ -1761,7 +1834,7 @@ unsigned int ChoosePowerLevelForDuration(W8Character* character, int spell_id,
             return best_power;
         }
 
-        failure = GetSpellFailureChanceForCast(character, spell_id, power_level);
+        failure = GetCastFailureChance(character, spell_id, power_level);
 
         /* What one cast at this level really delivers: the square of the power
            level, less the share of it the failure chance takes away. */
@@ -1818,7 +1891,7 @@ unsigned int ChoosePowerLevelToRestore(W8Character* character, int spell_id,
     }
 
     for (power_level = 1; power_level < 8; ++power_level) {
-        failure = GetSpellFailureChanceForCast(character, spell_id, power_level);
+        failure = GetCastFailureChance(character, spell_id, power_level);
         if (failure > W8_SPELL_FAILURE_ACCEPTABLE) {
             if (power_level > 1) {
                 --power_level;
@@ -1901,16 +1974,6 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
         case W8_SPELL_CURE_2:
             power_level = ChoosePowerLevelForDuration(caster, spell_id, conditions[2]);
             break;
-        case W8_SPELL_CURE_9:
-            power_level = ChoosePowerLevelForDuration(caster, spell_id, conditions[9]);
-            /* The one case where the target being a character says something
-               the condition does not: the item they are carrying asks for more
-               than the condition does. */
-            if (row->spell_target.iType == W8_TARGET_KIND_CHARACTER &&
-                power_level <= GetEquipmentBindingDifficulty(row->spell_target.iChar)) {
-                power_level = GetEquipmentBindingDifficulty(row->spell_target.iChar);
-            }
-            break;
         case W8_SPELL_CURE_GROUP_B:
             worst = conditions[11];
             if (worst <= (unsigned int)conditions[13]) {
@@ -1920,6 +1983,16 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
                 worst = conditions[15];
             }
             power_level = ChoosePowerLevelForDuration(caster, spell_id, worst);
+            break;
+        case W8_SPELL_CURE_9:
+            power_level = ChoosePowerLevelForDuration(caster, spell_id, conditions[9]);
+            /* The one case where the target being a character says something
+               the condition does not: the item they are carrying asks for more
+               than the condition does. */
+            if (row->spell_target.iType == W8_TARGET_KIND_CHARACTER &&
+                power_level <= GetEquipmentBindingDifficulty(row->spell_target.iChar)) {
+                power_level = GetEquipmentBindingDifficulty(row->spell_target.iChar);
+            }
             break;
         default:
             return 1;
@@ -2983,7 +3056,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         if (TargetSourceIsCharacter(source, 1)) {
             if (source->name_known_19 == 0) {
                 caster_figure = GetTotalCasterLevel(
-                    &g_status.buffers.Char[source->iChar], 0,
+                    &g_status.buffers.Char[source->iChar],
                     (g_spell_records[spell_id].psionics_spell != 0 ? 8 : 0) |
                         (g_spell_records[spell_id].divinity_spell != 0 ? 2 : 0) |
                         (g_spell_records[spell_id].wizardry_spell != 0 ? 1 : 0) |

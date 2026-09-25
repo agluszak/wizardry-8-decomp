@@ -1038,6 +1038,17 @@ void W8LockInteraction::Process()
         }
         m_tumbler_panel_10->Invalidate(0);
         goto lock_release_done;
+    case 4:
+        m_state_34 = 0;
+        slot = g_status.selected_character;
+        if (GetKnockKnockSpellPower(g_status.selected_character) > -1 &&
+            CanCharacterCastSpell(&g_status.buffers.Char[slot], 0x27)) {
+            m_spell_button_20->SetAlternateTextEnabled(0);
+            EndLockInteractMode(1);
+            BeginSpellCast(0x27, -1, -1);
+            return;
+        }
+        break;
     case 5:
         dropped = 0;
         m_state_34 = 6;
@@ -1057,17 +1068,6 @@ void W8LockInteraction::Process()
     lock_release_done:
         if (dropped) {
             SoundPlay(s_lock_pin_falling_64bae8, 0);
-            return;
-        }
-        break;
-    case 4:
-        m_state_34 = 0;
-        slot = g_status.selected_character;
-        if (GetKnockKnockSpellPower(g_status.selected_character) > -1 &&
-            CanCharacterCastSpell(&g_status.buffers.Char[slot], 0x27)) {
-            m_spell_button_20->SetAlternateTextEnabled(0);
-            EndLockInteractMode(1);
-            BeginSpellCast(0x27, -1, -1);
             return;
         }
         break;
@@ -1601,6 +1601,16 @@ char W8MainGameTextKeyHandler::HandleKey(unsigned short key)
     int line;
 
     switch (key) {
+    case 0x26:
+        SetSelectedLine(m_field_0b0 - 1 < 0 ? 0 : m_field_0b0 - 1);
+        return 1;
+    case 0x28:
+        line = m_field_0b0 + 1;
+        if (m_line_count_0a4 - 1 < line) {
+            line = m_line_count_0a4 - 1;
+        }
+        SetSelectedLine(line);
+        return 1;
     case 0x21:
         line = m_field_0b0 - 5;
         if (line < 0) {
@@ -1615,21 +1625,11 @@ char W8MainGameTextKeyHandler::HandleKey(unsigned short key)
         }
         SetSelectedLine(line);
         return 1;
-    case 0x23:
-        SetSelectedLine(m_line_count_0a4 - 1);
-        return 1;
     case 0x24:
         SetSelectedLine(0);
         return 1;
-    case 0x26:
-        SetSelectedLine(m_field_0b0 - 1 < 0 ? 0 : m_field_0b0 - 1);
-        return 1;
-    case 0x28:
-        line = m_field_0b0 + 1;
-        if (m_line_count_0a4 - 1 < line) {
-            line = m_line_count_0a4 - 1;
-        }
-        SetSelectedLine(line);
+    case 0x23:
+        SetSelectedLine(m_line_count_0a4 - 1);
         return 1;
     default:
         return 0;
@@ -3022,60 +3022,6 @@ void W8NpcDialogueTextController::RestoreTranscriptEntries()
     }
 }
 
-// FUNCTION: WIZ8 0x005929d0
-void HandleManualCameraHotkeys(void)
-{
-    if (g_modal_owner == 0 && gXStatus.fNpcDialogueMode == 0) {
-        if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_CAMERA_LOCK)) {
-            BeginManualCameraControl();
-        }
-        ApplyWorldRenderHotkeys();
-    }
-}
-
-// FUNCTION: WIZ8 0x00592a10
-void ApplyWorldRenderHotkeys(void)
-{
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_TURN_LEFT) ||
-        g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_TURN_LEFT_ALT)) {
-        g_level_block->world_render_flags |= 0x100;
-    }
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_TURN_RIGHT) ||
-        g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_TURN_RIGHT_ALT)) {
-        g_level_block->world_render_flags |= 0x200;
-    }
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_FORWARD)) {
-        g_level_block->world_render_flags |= 4;
-    }
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_FORWARD_RUN)) {
-        g_level_block->world_render_flags |= 0x84;
-    }
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_BACKWARD)) {
-        g_level_block->world_render_flags |= 8;
-    }
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_BACKWARD_RUN)) {
-        g_level_block->world_render_flags |= 0x88;
-    }
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_LOOK_UP)) {
-        g_level_block->world_render_flags |= 0x400;
-    }
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_LOOK_DOWN)) {
-        g_level_block->world_render_flags |= 0x800;
-    }
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_STRAFE_LEFT)) {
-        g_level_block->world_render_flags |= 1;
-    }
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_STRAFE_RIGHT)) {
-        g_level_block->world_render_flags |= 2;
-    }
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_STRAFE_LEFT_RUN)) {
-        g_level_block->world_render_flags |= 0x81;
-    }
-    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_STRAFE_RIGHT_RUN)) {
-        g_level_block->world_render_flags |= 0x82;
-    }
-}
-
 // FUNCTION: WIZ8 0x00593330
 void RefreshFlaggedMainGameState(void)
 {
@@ -3304,7 +3250,7 @@ void OnEnterLevelDialogClosed(W8DialogBase* dialog)
         SetPendingScreenState(4);
         return;
     }
-    WorldSetCameraLocation(g_world, &g_trigger_camera.x);
+    WorldSetCameraLocation(g_world, &g_trigger_camera);
 }
 
 /* Stage the level block's pending transition into the screen state and leave
@@ -5120,8 +5066,8 @@ void DrawHighlightOverlay(unsigned int party_slot, int row_count, unsigned int m
         }
     }
     if (g_level_block->highlight_graphic == 0) {
-        srAssertFail("gpMGSV->pHighlightGraphic",
-                     "C:\\Projects\\Wizardry 8\\Local Screens\\MainGameScreen.cpp", 0xd84, 0);
+        ReportAssertion("gpMGSV->pHighlightGraphic",
+                        "C:\\Projects\\Wizardry 8\\Local Screens\\MainGameScreen.cpp", 0xd84);
     }
     SetModelInstance2DDisplayState(g_level_block->highlight_graphic, 4);
     Position2DNodeUnsnapped(g_level_block->highlight_graphic, g_level_block->dialogue_x_220 + 7,
@@ -5669,7 +5615,7 @@ void RequestLevelTransition(int level, int entry, unsigned char flag)
                      normalized + 2);
         }
         if (QueueNpcDepartureEvents(normalized) != 0) {
-            WorldSetCameraLocation(g_world, &g_trigger_camera.x);
+            WorldSetCameraLocation(g_world, &g_trigger_camera);
             return;
         }
         switch (g_main_game_mode) {
@@ -5808,20 +5754,17 @@ short GetCombatPortraitImage(int action, int detail, char status, short slot)
     switch (action) {
     case W8_ACTION_ATTACK:
         switch (g_status.buffers.Char[slot].Hand[0].weapon_skill) {
+        case W8_SKILL_MACE_FLAIL:
+            image = 0x2a;
+            break;
         case W8_SKILL_AXE:
             image = 0x38;
             break;
         case W8_SKILL_POLEARM:
             image = 0x62;
             break;
-        case W8_SKILL_MACE_FLAIL:
-            image = 0x2a;
-            break;
         case W8_SKILL_STAFF_WAND:
             image = 0x54;
-            break;
-        case W8_SKILL_MODERN_WEAPONS:
-            image = 0x70;
             break;
         case W8_SKILL_BOW:
             image = 0xe;
@@ -5829,11 +5772,15 @@ short GetCombatPortraitImage(int action, int detail, char status, short slot)
         case W8_SKILL_THROWING_SLING:
             image = 0x1c;
             break;
+        case W8_SKILL_MODERN_WEAPONS:
+            image = 0x70;
+            break;
         case W8_SKILL_PICKPOCKET:
             image = 0x46;
             break;
         default:
             image = 0;
+            break;
         }
         break;
     case W8_ACTION_BERSERK:
@@ -5845,14 +5792,20 @@ short GetCombatPortraitImage(int action, int detail, char status, short slot)
     case W8_ACTION_TURN_UNDEAD:
         image = 0x9a;
         break;
+    case W8_ACTION_PRAY:
+        image = 0xa8;
+        break;
     case W8_ACTION_DEFEND:
         image = 0xb6;
         break;
     case W8_ACTION_PROTECT:
         image = 0xc4;
         break;
-    case W8_ACTION_PRAY:
-        image = 0xa8;
+    case W8_ACTION_USE_ITEM:
+        image = 0x142;
+        break;
+    case W8_ACTION_EQUIP:
+        image = 0x134;
         break;
     case W8_ACTION_CAST_SPELL:
         switch (g_spell_records[detail].realm) {
@@ -5878,12 +5831,6 @@ short GetCombatPortraitImage(int action, int detail, char status, short slot)
             image = 0xd2;
         }
         break;
-    case W8_ACTION_USE_ITEM:
-        image = 0x142;
-        break;
-    case W8_ACTION_EQUIP:
-        image = 0x134;
-        break;
     case W8_ACTION_WALK:
         image = 0x15e;
         break;
@@ -5907,6 +5854,7 @@ short GetCombatPortraitImage(int action, int detail, char status, short slot)
         return image + 4;
     default:
         image = 0x17a;
+        break;
     }
     return image;
 }
@@ -8244,17 +8192,20 @@ void SetRadarMapVisible(unsigned char visible)
                 return;
             }
         }
-        if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_FORMATION) {
-            SetViewportMode(1);
-            g_radar_panel_shown = visible;
-            return;
-        }
-        if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
+        switch (g_settings.main_ui_mode) {
+        case W8_MAIN_UI_MODE_RADAR:
             SetViewportMode(0);
             g_radar_panel_shown = visible;
             return;
+        case W8_MAIN_UI_MODE_FORMATION:
+            SetViewportMode(1);
+            g_radar_panel_shown = visible;
+            return;
+        case W8_MAIN_UI_MODE_PORTRAITS:
+        default:
+            SetViewportMode(2);
+            break;
         }
-        SetViewportMode(2);
     }
     g_radar_panel_shown = visible;
 }
@@ -8321,17 +8272,20 @@ void SetActionPanelVisible(unsigned char visible)
                 return;
             }
         }
-        if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_FORMATION) {
-            SetViewportMode(1);
-            g_action_panel_shown = visible;
-            return;
-        }
-        if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
+        switch (g_settings.main_ui_mode) {
+        case W8_MAIN_UI_MODE_RADAR:
             SetViewportMode(0);
             g_action_panel_shown = visible;
             return;
+        case W8_MAIN_UI_MODE_FORMATION:
+            SetViewportMode(1);
+            g_action_panel_shown = visible;
+            return;
+        case W8_MAIN_UI_MODE_PORTRAITS:
+        default:
+            SetViewportMode(2);
+            break;
         }
-        SetViewportMode(2);
     }
     g_action_panel_shown = visible;
 }
@@ -8378,17 +8332,20 @@ void SetFormationBoardVisible(unsigned char visible)
                 return;
             }
         }
-        if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_FORMATION) {
-            SetViewportMode(1);
-            g_formation_panel_shown = visible;
-            return;
-        }
-        if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
+        switch (g_settings.main_ui_mode) {
+        case W8_MAIN_UI_MODE_RADAR:
             SetViewportMode(0);
             g_formation_panel_shown = visible;
             return;
+        case W8_MAIN_UI_MODE_FORMATION:
+            SetViewportMode(1);
+            g_formation_panel_shown = visible;
+            return;
+        case W8_MAIN_UI_MODE_PORTRAITS:
+        default:
+            SetViewportMode(2);
+            break;
         }
-        SetViewportMode(2);
     }
     g_formation_panel_shown = visible;
 }
@@ -8973,7 +8930,11 @@ done:
 /* The viewport mode the screen falls back to after a raised overlay drops:
    full-3d while every overlay flag is clear and no main-game mode override is
    set, the plain mode when any of the board, radar or combat latches is still
-   down, and otherwise the override field's own mapping. */
+   down, and otherwise the override field's own mapping.
+   Retail expands this body (sign-extending the short result) in the
+   radar/action-panel/formation-board setters and in SyncMainGameModeRegions
+   but calls it everywhere else in this unit. What made those sites inline is
+   not established; the setters spell the expansion out. */
 // FUNCTION: WIZ8 0x005698C0
 short GetMainGameViewportMode(void)
 {
@@ -8993,13 +8954,15 @@ short GetMainGameViewportMode(void)
          g_level_block->action_panel_visible == 0)) {
         return 0;
     }
-    if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_FORMATION) {
-        return 1;
-    }
-    if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_RADAR) {
+    switch (g_settings.main_ui_mode) {
+    case W8_MAIN_UI_MODE_RADAR:
         return 0;
+    case W8_MAIN_UI_MODE_FORMATION:
+        return 1;
+    case W8_MAIN_UI_MODE_PORTRAITS:
+    default:
+        return 2;
     }
-    return 2;
 }
 
 /* Drop whichever of the formation board, the radar map and the combat bar is
@@ -9274,7 +9237,8 @@ void ConfirmNpcTradeItem(void)
                 if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_GIVE) {
                     --target;
                 }
-                for (index = 0; index < g_status.party_item_count_1791; ++index) {
+                for (index = 0; static_cast<unsigned int>(index) < g_status.party_item_count_1791;
+                     ++index) {
                     item = &g_status.party_item_pool_0021[index];
                     if (item->iItemNo == -1 || NpcTradeItemAllowed(item)) {
                         continue;
@@ -9468,8 +9432,7 @@ void PopulateNpcTradeList(void)
         0) {
         if ((g_screen_state_00649f1c->dialogue_text_124->m_stateFlags &
              g_W8TextControlMask005ED570) != 0) {
-            for (unsigned int index = 0;
-                 index < static_cast<unsigned int>(g_status.party_item_count_1791); ++index) {
+            for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
                 W8ItemInstance* item = &g_status.party_item_pool_0021[index];
                 bool acceptable = true;
                 unsigned int font_palette;

@@ -1193,7 +1193,7 @@ void MonGen::SetEncounterTable(int index)
     encounter_table_index = index;
     if (index < g_encounter_tables.GetCount()) {
         W8EncounterTableRuntime* table = *g_encounter_tables.GetAt(index);
-        if (table != 0 && strncmp(table->name, "HARASSMENT", 10) == 0) {
+        if (table != 0 && _strnicmp(table->name, "HARASSMENT", 10) == 0) {
             flags |= W8_MONGEN_STORY_GATED;
         }
     }

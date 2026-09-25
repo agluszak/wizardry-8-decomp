@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 
 import pytest
+from reccmp.source import SourceIndex, SourceMarker
 from wiz8decomp.comparison import header_dependent_files, selected_addresses
 from wiz8decomp.config import Settings
 from wiz8decomp.source_index import warn_if_source_index_may_be_stale
@@ -15,31 +16,22 @@ def _index(repository: Path, names: list[tuple[int, str]]) -> None:
         "targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: abc\n"
     )
     (repository / "build").mkdir()
-    (repository / "build/source-index.json").write_text(
-        json.dumps(
-            {
-                "schema": "reccmp-source-index-v6",
-                "classes": [],
-                "declarations": [],
-                "variables": [],
-                "member_uses": [],
-                "conflicts": [],
-                "markers": [
-                    {
-                        "marker_kind": "FUNCTION",
-                        "address": address,
-                        "source_file": "src/wiz8/unit.cpp",
-                        "line": index + 1,
-                        "declaration": None,
-                        "marker_name": name,
-                        "target": "WIZ8",
-                    }
-                    for index, (address, name) in enumerate(names)
-                ],
-            }
-        ),
-        encoding="utf-8",
-    )
+    SourceIndex(
+        declarations={},
+        classes={},
+        markers=[
+            SourceMarker(
+                address=address,
+                marker_kind="FUNCTION",
+                source_file="src/wiz8/unit.cpp",
+                line=index + 1,
+                declaration=None,
+                marker_name=name,
+                target="WIZ8",
+            )
+            for index, (address, name) in enumerate(names)
+        ],
+    ).write(repository / "build/source-index.json")
 
 
 def test_name_and_range_selectors_resolve_without_source_search(tmp_path: Path) -> None:

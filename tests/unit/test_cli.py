@@ -101,7 +101,7 @@ def test_compare_changed_uses_existing_index_without_building(tmp_path, monkeypa
     source.write_text("// FUNCTION: WIZ8 0x00401000\nvoid added() {}\n")
     (tmp_path / "build").mkdir()
     index = tmp_path / "build/source-index.json"
-    stale = {"schema": "reccmp-source-index-v2", "markers": []}
+    stale = {"markers": []}
     index.write_text(json.dumps(stale))
     events = []
 

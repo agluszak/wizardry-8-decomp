@@ -5018,7 +5018,7 @@ void W8PathingService::ActivateMovementTrigger(W8NavigatorMovementState* movemen
             if (prop->GetSetting6C() != 0 && trigger != 0 &&
                 (trigger->flags_0a0 & W8_TRIGGER_ENABLED) != 0) {
                 srVector3T<float> center;
-                prop->GetCenterPosition(&center);
+                prop->GetPosition0044E2C0(&center);
                 srVector3T<float> difference = center - midpoint;
                 double distance = difference.LengthSquared();
                 if (distance < nearest_distance) {
@@ -6535,11 +6535,6 @@ unsigned int W8PathingService::EditWaypointLinkFlags(const char* title, unsigned
         if (pending != 0) {
             key = toupper(atom.usParam);
             switch (pending) {
-            case 'C':
-                if (key != 'Y') {
-                    pending = 0;
-                }
-                break;
             case 'D':
                 if (key == 'B') {
                     direction |= 3;
@@ -6547,12 +6542,6 @@ unsigned int W8PathingService::EditWaypointLinkFlags(const char* title, unsigned
                     direction = direction & ~2;
                 } else if (key == 'I') {
                     direction = direction & ~1;
-                }
-                break;
-            case 'G':
-                if ('A' <= key && key <= 'P') {
-                    /* Retail computes 1 << (pending - 'A') here and drops the
-                       result; nothing consumes it. */
                 }
                 break;
             case 'M':
@@ -6585,12 +6574,20 @@ unsigned int W8PathingService::EditWaypointLinkFlags(const char* title, unsigned
                     }
                 }
                 break;
+            case 'G':
+                if ('A' <= key && key <= 'P') {
+                    /* Retail computes 1 << (pending - 'A') here and drops the
+                       result; nothing consumes it. */
+                }
+                break;
+            case 'C':
+                if (key != 'Y') {
+                    pending = 0;
+                }
+                break;
             }
         } else {
             switch (toupper(atom.usParam)) {
-            case 'C':
-                link_flags ^= 0x2000000;
-                break;
             case 'D':
                 if ((path_flags_1ce & 2) != 0) {
                     sprintf(lines[1], " Can only set flags in both directions in this link mode");
@@ -6599,10 +6596,6 @@ unsigned int W8PathingService::EditWaypointLinkFlags(const char* title, unsigned
                     pending = 'D';
                 }
                 break;
-            case 'G':
-                sprintf(lines[1], " Key Toggle: Cap is On, Lowercase is Off");
-                pending = 'G';
-                break;
             case 'M':
                 sprintf(lines[1], " Toggle (W)alking, (F)lying, or (S)wimming");
                 pending = 'M';
@@ -6610,6 +6603,13 @@ unsigned int W8PathingService::EditWaypointLinkFlags(const char* title, unsigned
             case 'S':
                 sprintf(lines[1], " (A)ll (T)iny (S)mall (M)edium (L)arge (H)uge");
                 pending = 'S';
+                break;
+            case 'G':
+                sprintf(lines[1], " Key Toggle: Cap is On, Lowercase is Off");
+                pending = 'G';
+                break;
+            case 'C':
+                link_flags ^= 0x2000000;
                 break;
             case 'T':
                 link_flags ^= 0x10000000;

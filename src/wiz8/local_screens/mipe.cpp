@@ -774,41 +774,28 @@ static void HandleMipeItemCategoryKey(unsigned short key)
         ShowMipeItemStatus();
         g_mipe_mode = 2;
         return;
-    default:
-        return;
-    case 0x20:
-        break;
-    case 0x21:
-        if (g_mipe_table_base == 0) {
-            return;
-        }
-        g_mipe_table_base -= 6;
-        if (g_mipe_table_base < 0) {
-            g_mipe_table_base = 0;
-        }
-        break;
-    case 0x22:
-        if (static_cast<int>(PLLength(g_mipe_category_list) - 6) <=
-            g_mipe_table_base + g_mipe_table_row) {
-            if (static_cast<int>(PLLength(g_mipe_category_list)) <=
-                g_mipe_table_base + g_mipe_table_row) {
-                return;
-            }
-            g_mipe_table_base += 6;
-            g_mipe_table_row = 0;
-            if (static_cast<int>(PLLength(g_mipe_category_list)) <= g_mipe_table_base) {
-                g_mipe_table_base = static_cast<int>(PLLength(g_mipe_category_list));
-                --g_mipe_table_base;
-            }
-        } else {
-            g_mipe_table_base += 6;
-        }
-        break;
     case 0x25:
         if (g_mipe_category == 0) {
             return;
         }
         --g_mipe_category;
+        g_mipe_table_row = 0;
+        g_mipe_table_base = 0;
+        if (g_mipe_category_list != 0) {
+            PListClear(g_mipe_category_list);
+            for (found = 0; found < static_cast<int>(gXStatus.uiItemsInDatabase); ++found) {
+                entry = &g_item_records[found];
+                if (entry->equip_class == g_mipe_category && entry->editor_excluded_0cb == 0) {
+                    PLAdoptAppend(list, entry);
+                }
+            }
+        }
+        break;
+    case 0x27:
+        if (0x18 < g_mipe_category) {
+            return;
+        }
+        ++g_mipe_category;
         g_mipe_table_row = 0;
         g_mipe_table_base = 0;
         if (g_mipe_category_list != 0) {
@@ -830,21 +817,13 @@ static void HandleMipeItemCategoryKey(unsigned short key)
             --g_mipe_table_row;
         }
         break;
-    case 0x27:
-        if (0x18 < g_mipe_category) {
+    case 0x21:
+        if (g_mipe_table_base == 0) {
             return;
         }
-        ++g_mipe_category;
-        g_mipe_table_row = 0;
-        g_mipe_table_base = 0;
-        if (g_mipe_category_list != 0) {
-            PListClear(g_mipe_category_list);
-            for (found = 0; found < static_cast<int>(gXStatus.uiItemsInDatabase); ++found) {
-                entry = &g_item_records[found];
-                if (entry->equip_class == g_mipe_category && entry->editor_excluded_0cb == 0) {
-                    PLAdoptAppend(list, entry);
-                }
-            }
+        g_mipe_table_base -= 6;
+        if (g_mipe_table_base < 0) {
+            g_mipe_table_base = 0;
         }
         break;
     case 0x28:
@@ -858,6 +837,28 @@ static void HandleMipeItemCategoryKey(unsigned short key)
             return;
         }
         ++g_mipe_table_base;
+        break;
+    case 0x20:
+        break;
+    case 0x22:
+        if (static_cast<int>(PLLength(g_mipe_category_list) - 6) <=
+            g_mipe_table_base + g_mipe_table_row) {
+            if (static_cast<int>(PLLength(g_mipe_category_list)) <=
+                g_mipe_table_base + g_mipe_table_row) {
+                return;
+            }
+            g_mipe_table_base += 6;
+            g_mipe_table_row = 0;
+            if (static_cast<int>(PLLength(g_mipe_category_list)) <= g_mipe_table_base) {
+                g_mipe_table_base = static_cast<int>(PLLength(g_mipe_category_list));
+                --g_mipe_table_base;
+            }
+        } else {
+            g_mipe_table_base += 6;
+        }
+        break;
+    default:
+        return;
     }
     list = g_mipe_category_list;
     ResetEditorStatusLine(-1);
@@ -897,12 +898,56 @@ static unsigned char HandleMipeItemCreateKey(unsigned short key)
     }
     list = g_mipe_category_list;
     switch (key) {
+    case 0x20:
+        ShowMipeItemStatus();
+        break;
+    case 0x43:
+        g_mipe_count = 0;
+        g_mipe_mode = 7;
+        ResetEditorStatusLine(-1);
+        ShowNoticef(6, L"Category: %s",
+                    gppStringList[g_equip_class_name_ids[g_mipe_category & 0xff]]);
+        ShowMipeTableRows(list);
+        return 1;
     case 8:
         g_mipe_count /= 10;
         ShowMipeItemStatus();
         break;
-    default:
-        return 0;
+    case 0x30:
+    case 0x31:
+    case 0x32:
+    case 0x33:
+    case 0x34:
+    case 0x35:
+    case 0x36:
+    case 0x37:
+    case 0x38:
+    case 0x39:
+        g_mipe_count =
+            static_cast<int>(static_cast<char>(static_cast<char>(key) - 0x30)) + g_mipe_count * 10;
+        ShowMipeItemStatus();
+        break;
+    case 0x48:
+        g_mipe_item_hidden = g_mipe_item_hidden == 0;
+        ShowMipeItemStatus();
+        break;
+    case 0x41:
+        show_invisible = g_byte_0064a1cd == 0;
+        g_byte_0064a1cd = show_invisible;
+        for (item_index = 0; item_index < PLLength(gXStatus.plsItemList); ++item_index) {
+            world_item = ItemInfo(item_index);
+            if (ItemHasFlags(world_item, 1) != 0) {
+                if (show_invisible) {
+                    if (world_item->fActive) {
+                        DeactivateWorldItem(world_item);
+                    }
+                } else if (!world_item->fActive) {
+                    ActivateItem(world_item);
+                }
+            }
+        }
+        ShowMipeItemStatus();
+        return 1;
     case 0xd:
         found = 0;
         for (item_index = 0;
@@ -936,52 +981,8 @@ static unsigned char HandleMipeItemCreateKey(unsigned short key)
             } while (spawned_index < static_cast<unsigned int>(g_mipe_count));
         }
         return 1;
-    case 0x20:
-        ShowMipeItemStatus();
-        break;
-    case 0x30:
-    case 0x31:
-    case 0x32:
-    case 0x33:
-    case 0x34:
-    case 0x35:
-    case 0x36:
-    case 0x37:
-    case 0x38:
-    case 0x39:
-        g_mipe_count =
-            static_cast<int>(static_cast<char>(static_cast<char>(key) - 0x30)) + g_mipe_count * 10;
-        ShowMipeItemStatus();
-        break;
-    case 0x41:
-        show_invisible = g_byte_0064a1cd == 0;
-        g_byte_0064a1cd = show_invisible;
-        for (item_index = 0; item_index < PLLength(gXStatus.plsItemList); ++item_index) {
-            world_item = ItemInfo(item_index);
-            if (ItemHasFlags(world_item, 1) != 0) {
-                if (show_invisible) {
-                    if (world_item->fActive) {
-                        DeactivateWorldItem(world_item);
-                    }
-                } else if (!world_item->fActive) {
-                    ActivateItem(world_item);
-                }
-            }
-        }
-        ShowMipeItemStatus();
-        return 1;
-    case 0x43:
-        g_mipe_count = 0;
-        g_mipe_mode = 7;
-        ResetEditorStatusLine(-1);
-        ShowNoticef(6, L"Category: %s",
-                    gppStringList[g_equip_class_name_ids[g_mipe_category & 0xff]]);
-        ShowMipeTableRows(list);
-        return 1;
-    case 0x48:
-        g_mipe_item_hidden = g_mipe_item_hidden == 0;
-        ShowMipeItemStatus();
-        break;
+    default:
+        return 0;
     }
     return 1;
 }
@@ -1044,44 +1045,6 @@ static void HandleMipeMonsterCategoryKey(unsigned short key)
         ShowMipeMonsterStatus();
         g_mipe_mode = 1;
         return;
-    default:
-        return;
-    case 0x20:
-        break;
-    case 0x21:
-        if (g_mipe_table_base == 0) {
-            return;
-        }
-        g_mipe_table_base -= 6;
-        if (g_mipe_table_base < 0) {
-            g_mipe_table_base = 0;
-        }
-        ResetEditorStatusLine(-1);
-        ShowNoticef(6, L"Category: %s",
-                    gppStringList[g_special_category_name_ids[g_mipe_category & 0xff]]);
-        ShowMipeTableRows(list);
-        return;
-    case 0x22:
-        if (g_mipe_table_base + g_mipe_table_row <
-            static_cast<int>(PLLength(g_mipe_category_list) - 6)) {
-            g_mipe_table_base += 6;
-            ResetEditorStatusLine(-1);
-            ShowNoticef(6, L"Category: %s",
-                        gppStringList[g_special_category_name_ids[g_mipe_category & 0xff]]);
-            ShowMipeTableRows(list);
-            return;
-        }
-        if (static_cast<int>(PLLength(g_mipe_category_list)) <=
-            g_mipe_table_base + g_mipe_table_row) {
-            return;
-        }
-        g_mipe_table_base += 6;
-        g_mipe_table_row = 0;
-        if (static_cast<int>(PLLength(g_mipe_category_list)) <= g_mipe_table_base) {
-            g_mipe_table_base = static_cast<int>(PLLength(g_mipe_category_list));
-            --g_mipe_table_base;
-        }
-        break;
     case 0x25:
         wraps = 0;
         g_mipe_table_row = 0;
@@ -1104,15 +1067,6 @@ static void HandleMipeMonsterCategoryKey(unsigned short key)
                 }
             }
         } while (PLLength(g_mipe_category_list) == 0 && wraps < 2);
-        break;
-    case 0x26:
-        if (g_mipe_table_row == 0) {
-            if (g_mipe_table_base != 0) {
-                --g_mipe_table_base;
-            }
-        } else {
-            --g_mipe_table_row;
-        }
         break;
     case 0x27:
         wraps = 0;
@@ -1137,6 +1091,28 @@ static void HandleMipeMonsterCategoryKey(unsigned short key)
             }
         } while (PLLength(g_mipe_category_list) == 0 && wraps < 2);
         break;
+    case 0x26:
+        if (g_mipe_table_row == 0) {
+            if (g_mipe_table_base != 0) {
+                --g_mipe_table_base;
+            }
+        } else {
+            --g_mipe_table_row;
+        }
+        break;
+    case 0x21:
+        if (g_mipe_table_base == 0) {
+            return;
+        }
+        g_mipe_table_base -= 6;
+        if (g_mipe_table_base < 0) {
+            g_mipe_table_base = 0;
+        }
+        ResetEditorStatusLine(-1);
+        ShowNoticef(6, L"Category: %s",
+                    gppStringList[g_special_category_name_ids[g_mipe_category & 0xff]]);
+        ShowMipeTableRows(list);
+        return;
     case 0x28:
         if (g_mipe_table_row < 5 && g_mipe_table_base + g_mipe_table_row <
                                         static_cast<int>(PLLength(g_mipe_category_list) - 1)) {
@@ -1152,6 +1128,32 @@ static void HandleMipeMonsterCategoryKey(unsigned short key)
             return;
         }
         ++g_mipe_table_base;
+        break;
+    case 0x22:
+        if (g_mipe_table_base + g_mipe_table_row <
+            static_cast<int>(PLLength(g_mipe_category_list) - 6)) {
+            g_mipe_table_base += 6;
+            ResetEditorStatusLine(-1);
+            ShowNoticef(6, L"Category: %s",
+                        gppStringList[g_special_category_name_ids[g_mipe_category & 0xff]]);
+            ShowMipeTableRows(list);
+            return;
+        }
+        if (static_cast<int>(PLLength(g_mipe_category_list)) <=
+            g_mipe_table_base + g_mipe_table_row) {
+            return;
+        }
+        g_mipe_table_base += 6;
+        g_mipe_table_row = 0;
+        if (static_cast<int>(PLLength(g_mipe_category_list)) <= g_mipe_table_base) {
+            g_mipe_table_base = static_cast<int>(PLLength(g_mipe_category_list));
+            --g_mipe_table_base;
+        }
+        break;
+    case 0x20:
+        break;
+    default:
+        return;
     }
     list = g_mipe_category_list;
     ResetEditorStatusLine(-1);
@@ -1284,17 +1286,6 @@ void AdjustMonsterSpeed(unsigned short key)
         speed += speed;
     }
     switch (key) {
-    case 0x4b:
-        g_mipe_state->speed_step = g_mipe_state->speed_step - g_camera_transition_epsilon;
-        if (g_mipe_state->speed_step < static_cast<float>(g_double_005ec8d0)) {
-            g_mipe_state->speed_step = 0.001f;
-        }
-        break;
-    case 0x4c:
-        g_mipe_state->speed_step = g_mipe_state->speed_step + g_camera_transition_epsilon;
-        break;
-    default:
-        goto speed_done;
     case 0xbc:
         speed = speed - factor * g_mipe_state->speed_step;
         if (path != 0) {
@@ -1309,6 +1300,17 @@ void AdjustMonsterSpeed(unsigned short key)
         }
         MonsterSetNavigatorValue120(g_mipe_state->monster, speed);
         break;
+    case 0x4c:
+        g_mipe_state->speed_step = g_mipe_state->speed_step + g_camera_transition_epsilon;
+        break;
+    case 0x4b:
+        g_mipe_state->speed_step = g_mipe_state->speed_step - g_camera_transition_epsilon;
+        if (g_mipe_state->speed_step < static_cast<float>(g_double_005ec8d0)) {
+            g_mipe_state->speed_step = 0.001f;
+        }
+        break;
+    default:
+        goto speed_done;
     }
     ShowMonsterSpeedStatus();
 speed_done:
@@ -1614,17 +1616,6 @@ int HandleCubeParameterKey(unsigned int key)
     int value;
 
     switch (key & 0xffff) {
-    case 8:
-        if (g_mipe_cube != 0) {
-            value = GetWorldCursorNodeParameter(g_mipe_cube, g_mipe_cube_param);
-            SetWorldCursorNodeParameter(g_mipe_cube, g_mipe_cube_param, value / 10);
-            DrawWorldCursorNodeLabel(g_mipe_cube);
-            ShowCubeParameters();
-            return 1;
-        }
-        break;
-    default:
-        return 0;
     case 0x20:
         ResetEditorStatusLine(-1);
         ShowNoticef(6, L"Choose an action:");
@@ -1649,6 +1640,15 @@ int HandleCubeParameterKey(unsigned int key)
             return 1;
         }
         break;
+    case 8:
+        if (g_mipe_cube != 0) {
+            value = GetWorldCursorNodeParameter(g_mipe_cube, g_mipe_cube_param);
+            SetWorldCursorNodeParameter(g_mipe_cube, g_mipe_cube_param, value / 10);
+            DrawWorldCursorNodeLabel(g_mipe_cube);
+            ShowCubeParameters();
+            return 1;
+        }
+        break;
     case 0x30:
     case 0x31:
     case 0x32:
@@ -1668,6 +1668,8 @@ int HandleCubeParameterKey(unsigned int key)
             ShowCubeParameters();
         }
         break;
+    default:
+        return 0;
     }
     return 1;
 }
@@ -2963,10 +2965,6 @@ unsigned char HandleMipeKey(const InputAtom* event)
             ShowMipeEditMenu();
             g_mipe_mode = 5;
             return handled;
-        case 0x34:
-            ShowMonsterGeneratorStatus();
-            g_mipe_mode = 0x15;
-            return handled;
         case 0x35:
             ShowMipeChooseMenu();
             HideWorldCursor();
@@ -2976,6 +2974,10 @@ unsigned char HandleMipeKey(const InputAtom* event)
         case 0x36:
             ShowMipeTriggerMenu();
             g_mipe_mode = 0xc;
+            return handled;
+        case 0x34:
+            ShowMonsterGeneratorStatus();
+            g_mipe_mode = 0x15;
             return handled;
         default:
             break;
@@ -2997,23 +2999,6 @@ unsigned char HandleMipeKey(const InputAtom* event)
             ShowNoticef(0xf, &g_wchar_00689b34);
             ShowNoticef(0xf, &g_wchar_00689b34);
             ShowNoticef(0xf, L"Type X to delete last waypoint.");
-            return handled;
-        }
-        break;
-    case 4:
-        if (key == 0x43) {
-            g_mipe_choose_group = g_mipe_choose_group == 0;
-            if (g_mipe_state != 0) {
-                IListClear(&g_mipe_state->monster_ids);
-            }
-            ResetEditorStatusLine(-1);
-            ShowNoticef(6, L"MOVE IT!!");
-            ShowNoticef(0xf, L"Type C to change how to choose.");
-            ShowNoticef(0xf, &g_wchar_00689b34);
-            ShowNoticef(0xf, &g_wchar_00689b34);
-            ShowNoticef(0xf, &g_wchar_00689b34);
-            ShowNoticef(0xf, &g_wchar_00689b34);
-            ShowNoticef(0xf, g_mipe_choose_group == 0 ? L"Choosing: One" : L"Choosing: Group");
             return handled;
         }
         break;
@@ -3054,6 +3039,23 @@ unsigned char HandleMipeKey(const InputAtom* event)
             return handled;
         }
         break;
+    case 4:
+        if (key == 0x43) {
+            g_mipe_choose_group = g_mipe_choose_group == 0;
+            if (g_mipe_state != 0) {
+                IListClear(&g_mipe_state->monster_ids);
+            }
+            ResetEditorStatusLine(-1);
+            ShowNoticef(6, L"MOVE IT!!");
+            ShowNoticef(0xf, L"Type C to change how to choose.");
+            ShowNoticef(0xf, &g_wchar_00689b34);
+            ShowNoticef(0xf, &g_wchar_00689b34);
+            ShowNoticef(0xf, &g_wchar_00689b34);
+            ShowNoticef(0xf, &g_wchar_00689b34);
+            ShowNoticef(0xf, g_mipe_choose_group == 0 ? L"Choosing: One" : L"Choosing: Group");
+            return handled;
+        }
+        break;
     case 6:
         HandleMipeMonsterCategoryKey(key);
         return handled;
@@ -3062,6 +3064,12 @@ unsigned char HandleMipeKey(const InputAtom* event)
         return handled;
     case 8:
         HandleMonsterDebugKey(key);
+        return handled;
+    case 0xd:
+        HandleMipePropEditKey(key);
+        return handled;
+    case 0xe:
+        HandleMipeEditPropKey(key);
         return handled;
     case 9:
         if (key == 0x43) {
@@ -3112,12 +3120,6 @@ unsigned char HandleMipeKey(const InputAtom* event)
             return handled;
         }
         break;
-    case 0xd:
-        HandleMipePropEditKey(key);
-        return handled;
-    case 0xe:
-        HandleMipeEditPropKey(key);
-        return handled;
     case 0xf:
         HandleCubeMenuKey(key);
         return handled;
@@ -3145,16 +3147,14 @@ unsigned char HandleMipeKey(const InputAtom* event)
         return handled;
     case 0x18:
         switch (key) {
-        case 8:
-            g_random_encounter_limit /= 10;
-            break;
-        default:
-            return handled;
         case 0x20:
             ResetEditorStatusLine(-1);
             ShowNoticef(6, L"Enter the limit for random encounters:");
             ShowNoticef(0xf, g_format_d_0060aa20, g_random_encounter_limit);
             return handled;
+        case 8:
+            g_random_encounter_limit /= 10;
+            break;
         case 0x30:
         case 0x31:
         case 0x32:
@@ -3166,6 +3166,9 @@ unsigned char HandleMipeKey(const InputAtom* event)
         case 0x38:
         case 0x39:
             g_random_encounter_limit = (key - 0x30) + g_random_encounter_limit * 10;
+            break;
+        default:
+            return handled;
         }
         ResetEditorStatusLine(-1);
         ShowNoticef(6, L"Enter the limit for random encounters:");
@@ -3176,15 +3179,13 @@ unsigned char HandleMipeKey(const InputAtom* event)
         return handled;
     case 0x1a:
         switch (key) {
-        case 8:
-            g_encounter_culling_time_seconds /= 10;
+        case 0x20:
             ResetEditorStatusLine(-1);
             ShowNoticef(6, L"Enter the encounter culling time (sec):");
             shown = g_encounter_culling_time_seconds;
             break;
-        default:
-            return handled;
-        case 0x20:
+        case 8:
+            g_encounter_culling_time_seconds /= 10;
             ResetEditorStatusLine(-1);
             ShowNoticef(6, L"Enter the encounter culling time (sec):");
             shown = g_encounter_culling_time_seconds;
@@ -3203,6 +3204,8 @@ unsigned char HandleMipeKey(const InputAtom* event)
             ResetEditorStatusLine(-1);
             ShowNoticef(6, L"Enter the encounter culling time (sec):");
             ShowNoticef(0xf, g_format_d_0060aa20, g_encounter_culling_time_seconds);
+            return handled;
+        default:
             return handled;
         }
         ShowNoticef(0xf, g_format_d_0060aa20, shown);

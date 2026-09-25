@@ -770,3 +770,16 @@ void SelectFormationSlotCell(int party_slot)
         }
     }
 }
+
+// FUNCTION: WIZ8 0x005B2200
+void CloseFormationPanel(void)
+{
+    DestroyFormationPanel();
+    gXStatus.fReviewCharacterMode = false;
+    UpdateHeldItemCursor();
+    RegionSetDisable(0x1b);
+    RequestRedraw(0x200);
+    ClearSurfaceRect(0xd6, 0x3c, 0x1ab, 0x12f);
+    InvalidateRegion(0xd6, 0x3c, 0x1ab, 0x12f, 0);
+    ResumeMainGameWorld();
+}

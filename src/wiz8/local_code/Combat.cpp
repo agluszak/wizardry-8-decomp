@@ -1500,15 +1500,6 @@ bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, int arg_3,
             }
         }
         break;
-    case W8_ACTION_BREATHE:
-        if (CharacterHasTrait(character, W8_TRAIT_BREATHE) == 0 ||
-            character->stamina <
-                static_cast<int>(static_cast<unsigned int>(character->uiStaminaMax) / 5)) {
-            return 0;
-        }
-        break;
-    case W8_ACTION_DEFEND:
-        return 1;
     case W8_ACTION_PROTECT:
         if (CanCharacterAttack(party_slot) == 0) {
             return 0;
@@ -1536,6 +1527,15 @@ bool CharacterCanSwitchTo(int party_slot, W8TargetingContext context, int arg_3,
             return 0;
         }
         break;
+    case W8_ACTION_BREATHE:
+        if (CharacterHasTrait(character, W8_TRAIT_BREATHE) == 0 ||
+            character->stamina <
+                static_cast<int>(static_cast<unsigned int>(character->uiStaminaMax) / 5)) {
+            return 0;
+        }
+        break;
+    case W8_ACTION_DEFEND:
+        return 1;
     }
     if (arg_3 == 0) {
         W8TargetingContext validated = GetValidatedTargetingContext(party_slot, context);
@@ -2197,43 +2197,6 @@ void ExecuteCharacterAction(int party_slot)
         MakeTargetGroupHostile(&enemy_source, &slot->target_out_of_combat);
     }
     switch (action) {
-    case -1:
-        result = 0;
-        break;
-    case 0:
-        result = StartCharacterAttack(party_slot, -1);
-        break;
-    case 1:
-        result = StartCharacterAttack(party_slot, 3);
-        break;
-    case 2:
-        result = CreateCharacterBreathEffect(party_slot);
-        break;
-    case 3:
-        if (gXStatus.hostile_monster_count == 0) {
-            result = 0;
-        } else {
-            TurnUndead(party_slot, &fatigue_cost, 1);
-            if (fatigue_cost == -1) {
-                result = 0;
-            }
-        }
-        break;
-    case 4:
-        if (g_combat_state->characters[party_slot].defend_switched_a4 != 0 &&
-            g_settings.verbose_combat_messages != 0) {
-            PostCharacterNotice(party_slot, gppStringList[0x234]);
-        }
-        break;
-    case 5:
-        result = CanCharacterAttackItsTarget(party_slot);
-        break;
-    case 6:
-        fatigue_cost = CharacterPrayAction(party_slot);
-        if (fatigue_cost == 0) {
-            result = 0;
-        }
-        break;
     case 7: {
         unsigned int power = slot->pending_action_detail_015.spell.power_level;
         int step_cost;
@@ -2251,6 +2214,43 @@ void ExecuteCharacterAction(int party_slot)
                      character->iSPLeft[g_spell_records[detail].realm]);
         break;
     }
+    case 2:
+        result = CreateCharacterBreathEffect(party_slot);
+        break;
+    case 6:
+        fatigue_cost = CharacterPrayAction(party_slot);
+        if (fatigue_cost == 0) {
+            result = 0;
+        }
+        break;
+    case 3:
+        if (gXStatus.hostile_monster_count == 0) {
+            result = 0;
+        } else {
+            TurnUndead(party_slot, &fatigue_cost, 1);
+            if (fatigue_cost == -1) {
+                result = 0;
+            }
+        }
+        break;
+    case 0:
+        result = StartCharacterAttack(party_slot, -1);
+        break;
+    case -1:
+        result = 0;
+        break;
+    case 1:
+        result = StartCharacterAttack(party_slot, 3);
+        break;
+    case 4:
+        if (g_combat_state->characters[party_slot].defend_switched_a4 != 0 &&
+            g_settings.verbose_combat_messages != 0) {
+            PostCharacterNotice(party_slot, gppStringList[0x234]);
+        }
+        break;
+    case 5:
+        result = CanCharacterAttackItsTarget(party_slot);
+        break;
     case 8:
         if (UseItem(character, slot->pending_action_detail_015.item_use.item, &fatigue_cost) == 0) {
             result = 0;
@@ -2437,42 +2437,6 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             MakeTargetGroupHostile(&monster_source, &monster_info->Target);
         }
         switch (monster_info->action_kind) {
-        case 0:
-            result = StartMonsterAttack0053FEA0(monster_info, record);
-            break;
-        case 1:
-            result = 1;
-            break;
-        case 2: {
-            int spell_id = monster_info->action_detail;
-            unsigned int power = ChooseMonsterSpellPowerLevel(monster_info, record, spell_id);
-            if (CanMonsterAimSpell(monster_info, spell_id) == 0 ||
-                MonsterOKToCastSpell(monster_info, spell_id, power) == 0) {
-                result = 0;
-                break;
-            }
-            monster_info->spell_power_level = power;
-            OrientMonsterTowardTarget(monster_info, 0);
-            monster_info->fSpellReleased = false;
-            StartMonsterCycle(monster_info, 0x19, 1);
-            result = 1;
-            break;
-        }
-        case 3:
-            result = MonsterFleeAction(monster_info, record);
-            break;
-        case 4:
-            SetUpMonsterTurn(monster_info);
-            result = MonsterLinkToStartupNavigator(monster_info->p3D) != 0;
-            if (result != 0) {
-                monster_info->pCombat->advancing_14b = 1;
-                if (interrupt != 0xc) {
-                    ShowNoticef(
-                        9, gppStringList[0x23b], GetMonsterName(monster_info, NULL, 0),
-                        gppStringList[g_gender_name_message_rows[record->name_group_0cc][2]]);
-                }
-            }
-            break;
         case 5:
         case 7:
             if (monster_info->uiCondition[0xc] == 0 || record->kind_0cb == '\f') {
@@ -2554,12 +2518,48 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                 ShowNoticef(9, gppStringList[0x23a], GetMonsterName(monster_info, NULL, 0));
             }
             break;
-        case 8:
-            result = CanMonsterAttackItsTarget(monster_info);
+        case 4:
+            SetUpMonsterTurn(monster_info);
+            result = MonsterLinkToStartupNavigator(monster_info->p3D) != 0;
+            if (result != 0) {
+                monster_info->pCombat->advancing_14b = 1;
+                if (interrupt != 0xc) {
+                    ShowNoticef(
+                        9, gppStringList[0x23b], GetMonsterName(monster_info, NULL, 0),
+                        gppStringList[g_gender_name_message_rows[record->name_group_0cc][2]]);
+                }
+            }
             break;
         case 9:
             SetUpMonsterTurn(monster_info);
             result = IsMonsterControlPointInRange(monster_info) != 0;
+            break;
+        case 0:
+            result = StartMonsterAttack0053FEA0(monster_info, record);
+            break;
+        case 2: {
+            int spell_id = monster_info->action_detail;
+            unsigned int power = ChooseMonsterSpellPowerLevel(monster_info, record, spell_id);
+            if (CanMonsterAimSpell(monster_info, spell_id) == 0 ||
+                MonsterOKToCastSpell(monster_info, spell_id, power) == 0) {
+                result = 0;
+                break;
+            }
+            monster_info->spell_power_level = power;
+            OrientMonsterTowardTarget(monster_info, 0);
+            monster_info->fSpellReleased = false;
+            StartMonsterCycle(monster_info, 0x19, 1);
+            result = 1;
+            break;
+        }
+        case 3:
+            result = MonsterFleeAction(monster_info, record);
+            break;
+        case 8:
+            result = CanMonsterAttackItsTarget(monster_info);
+            break;
+        case 1:
+            result = 1;
             break;
         }
         if (result != 0) {
@@ -2634,21 +2634,21 @@ void AimMonsterBreathAtTarget(W8MonsterInfo* monster_info)
     bool no_target;
 
     switch (monster_info->Target.iType) {
-    case W8_TARGET_KIND_NONE:
-    case W8_TARGET_KIND_FIVE:
-        return;
     case W8_TARGET_KIND_MONSTER:
         location_id = monster_info->Target.iMonsterID;
         no_target = monster_info->location_id == location_id;
         break;
+    case W8_TARGET_KIND_PLACE:
+        monster_info->p3D->m_axis_1c0 = monster_info->Target.point;
+        monster_info->p3D->aim_set_1bf = 1;
+        return;
     case W8_TARGET_KIND_GROUP:
         location_id =
             FindNearestVisibleGroupMonster(monster_info, monster_info->Target.iGroupID, 3);
         no_target = location_id == -1;
         break;
-    case W8_TARGET_KIND_PLACE:
-        monster_info->p3D->m_axis_1c0 = monster_info->Target.point;
-        monster_info->p3D->aim_set_1bf = 1;
+    case W8_TARGET_KIND_NONE:
+    case W8_TARGET_KIND_FIVE:
         return;
     default:
         GetCameraPosition(&position);
@@ -2800,21 +2800,6 @@ void StepMonsterCombatAction(W8MonsterInfo* monster_info)
     W8Monster* monster;
 
     switch (monster_info->action_kind) {
-    case 0:
-        record = GetMonsterDataForInfo(monster_info);
-        outcome = ContinueMonsterAttack(monster_info, record);
-        break;
-    case 3:
-        record = GetMonsterDataForInfo(monster_info);
-        outcome = ExecuteMonsterSpecialAttack(monster_info, record);
-        break;
-    case 2:
-        if (monster_info->fSpellReleased == 0) {
-            srAssertFail("pMonsterInfo->fSpellReleased",
-                         "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0xff2, 0);
-        }
-        outcome = 2;
-        break;
     case 4:
     case 5:
     case 6:
@@ -2868,6 +2853,21 @@ void StepMonsterCombatAction(W8MonsterInfo* monster_info)
             }
         }
         outcome = 3;
+        break;
+    case 0:
+        record = GetMonsterDataForInfo(monster_info);
+        outcome = ContinueMonsterAttack(monster_info, record);
+        break;
+    case 2:
+        if (monster_info->fSpellReleased == 0) {
+            srAssertFail("pMonsterInfo->fSpellReleased",
+                         "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0xff2, 0);
+        }
+        outcome = 2;
+        break;
+    case 3:
+        record = GetMonsterDataForInfo(monster_info);
+        outcome = ExecuteMonsterSpecialAttack(monster_info, record);
         break;
     default:
         outcome = 3;

@@ -167,16 +167,16 @@ void RemoveCharacterCondition(int party_slot, int condition, int announce)
         character->uiCondition[condition] = 0;
         RecomputeCharacterHighestCondition(party_slot);
         switch (condition) {
-        case 1:
-            character->hp_adjustment = 0;
-            character->fatigue_penalty_0b21 = 0;
+        case 9:
+        case 0xC:
+            gXStatus.sight_refresh_pending_a03 = 1;
             break;
         case 7:
             character->condition_argument = 0;
             break;
-        case 9:
-        case 0xC:
-            gXStatus.sight_refresh_pending_a03 = 1;
+        case 1:
+            character->hp_adjustment = 0;
+            character->fatigue_penalty_0b21 = 0;
             break;
         case 0xb:
             if (gXStatus.fCombatMode != 0 &&
@@ -282,7 +282,7 @@ void SanitizeLoadedItems(void)
             }
         }
     }
-    for (index = 0; index < static_cast<unsigned int>(g_status.party_item_count_1791); ++index) {
+    for (index = 0; index < g_status.party_item_count_1791; ++index) {
         if (g_status.party_item_pool_0021[index].iItemNo != -1) {
             NormalizeItemQuantityKind(&g_status.party_item_pool_0021[index]);
         }
@@ -607,20 +607,20 @@ void ClearMonsterCondition(int location_id, int condition)
             SetMonsterSpellIcon(monster_info->p3D, condition - 1, 0);
         }
         switch (condition) {
-        case 6:
-            if (monster_info->fInCombat != 0) {
-                monster_info->pCombat->advancing_14b = 0;
-            }
-            break;
-        case 7:
-            monster_info->condition_argument = 0;
-            RebuildMonsterDerivedStats(location_id);
-            return;
         case 9:
         case 0xC:
             RefreshMonsterSight(monster_info);
             RebuildMonsterDerivedStats(location_id);
             return;
+        case 7:
+            monster_info->condition_argument = 0;
+            RebuildMonsterDerivedStats(location_id);
+            return;
+        case 6:
+            if (monster_info->fInCombat != 0) {
+                monster_info->pCombat->advancing_14b = 0;
+            }
+            break;
         }
         RebuildMonsterDerivedStats(location_id);
     }

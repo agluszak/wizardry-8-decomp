@@ -1366,6 +1366,17 @@ void DrawSubMenuCharacterAction(void)
     } else {
         action = row->action_03d;
         switch (action) {
+        case 7:
+            swprintf(text, L"%s - %s (%d)", gppStringList[g_action_kind_message_ids_61e988[7]],
+                     g_spell_records[row->action_detail_041].display_name,
+                     row->action_detail_045.spell.power_level);
+            break;
+        case 8:
+            swprintf(text, L"%s - %s", gppStringList[g_action_kind_message_ids_61e988[8]],
+                     g_spell_records[g_item_records[row->action_detail_045.item_use.item->iItemNo]
+                                         .spell_id]
+                         .display_name);
+            break;
         case 0:
             swprintf(text, L"%s - ", gppStringList[g_action_kind_message_ids_61e988[0]]);
             if (character->Hand[0].in_play != 0) {
@@ -1416,17 +1427,6 @@ void DrawSubMenuCharacterAction(void)
             } else {
                 swprintf(text, L"%s ", gppStringList[g_action_kind_message_ids_61e988[5]]);
             }
-            break;
-        case 7:
-            swprintf(text, L"%s - %s (%d)", gppStringList[g_action_kind_message_ids_61e988[7]],
-                     g_spell_records[row->action_detail_041].display_name,
-                     row->action_detail_045.spell.power_level);
-            break;
-        case 8:
-            swprintf(text, L"%s - %s", gppStringList[g_action_kind_message_ids_61e988[8]],
-                     g_spell_records[g_item_records[row->action_detail_045.item_use.item->iItemNo]
-                                         .spell_id]
-                         .display_name);
             break;
         case -1:
             wcscpy(text, gppStringList[0x1f84 / 4]);
@@ -1774,4 +1774,444 @@ void UpdateSubMenuAutoClose(void)
         g_submenu_clock_69b880 = SetCountdownClock(0);
         g_submenu_flag_69b8d4 = false;
     }
+}
+
+// FUNCTION: WIZ8 0x005957E0
+void EnableSubMenuRegions(void)
+{
+    int index;
+
+    RegionSetEnable(0x27);
+    EnableRegionInput(0xc7);
+    for (index = 0; index < g_submenu_entry_count_69b87e; ++index) {
+        EnableRegionInput(index + 0xc2);
+    }
+    for (index = g_submenu_entry_count_69b87e; index < 5; ++index) {
+        DisableRegionInput(index + 0xc2);
+    }
+}
+
+// FUNCTION: WIZ8 0x00595850
+unsigned char BuildSubMenuPanel(short notification)
+{
+    short index;
+    int left;
+    int menu;
+    short count = 0;
+    int built = 0;
+    int entry;
+    short message;
+    int icon_delta;
+    short state;
+    int base;
+    W8TextControl* row;
+    int i;
+
+    if (gpSubMenuPanel != 0) {
+        gpSubMenuPanel = 0;
+    }
+    for (index = 0; index < 5; ++index) {
+        if (g_submenu_rows_69b8ec[index] != 0) {
+            g_submenu_rows_69b8ec[index] = 0;
+        }
+    }
+    switch (notification) {
+    case 6:
+        menu = W8_SUBMENU_ATTACK;
+        count = 5;
+        left = g_submenu_button_positions[notification][0] - 1;
+        break;
+    case 5:
+        menu = W8_SUBMENU_DEFEND;
+        count = 2;
+        left = g_submenu_button_positions[notification][0] - 1;
+        break;
+    case 3:
+        menu = W8_SUBMENU_ITEMS;
+        count = 3;
+        left = g_submenu_button_positions[notification][0] - 1;
+        break;
+    case 4:
+        menu = W8_SUBMENU_SPELLS;
+        count = 2;
+        left = g_submenu_button_positions[notification][0] - 1;
+        break;
+    case 9:
+        menu = W8_SUBMENU_MOVE;
+        count = 2;
+        left = g_submenu_panel_button_positions[0][0] - 1;
+        break;
+    default:
+        left = notification;
+        break;
+    }
+    for (index = 0; index < count; ++index) {
+        state = GetSubMenuEntryState(menu, index, g_status.selected_character);
+        g_submenu_entry_states_69b874[index] = state;
+        if (state != W8_SUBMENU_ENTRY_UNAVAILABLE) {
+            g_submenu_entries_69b868[built] = index;
+            ++built;
+        }
+    }
+    ++built;
+    switch (built) {
+    case 2:
+        base = 0;
+        icon_delta = 0x2f;
+        break;
+    case 3:
+        base = 1;
+        icon_delta = 0x42;
+        break;
+    case 4:
+        base = 2;
+        icon_delta = 0x55;
+        break;
+    case 5:
+        base = 3;
+        icon_delta = 0x67;
+        break;
+    case 0:
+    case 1:
+        return 0;
+    default:
+        base = notification;
+        icon_delta = notification;
+        break;
+    }
+    gpSubMenuPanel = new Controls(left, 0x1c3, icon_delta + left, 0x1df, 0x7f, 0, base);
+    SetRegionBounds(0xc7, left, 0x1c3, icon_delta + left, 0x1df);
+    for (index = 0; index < built - 1; ++index) {
+        entry = g_submenu_entries_69b868[index];
+        state = g_submenu_entry_states_69b874[entry];
+        message = g_submenu_entry_message_ids[menu * 5 + entry];
+        icon_delta = 0;
+        if (menu == W8_SUBMENU_SPELLS && entry == 1) {
+            message += g_spell_records[g_status.buffers.XChar[g_status.selected_character].spell_id]
+                           .realm *
+                       7;
+        } else if (menu == W8_SUBMENU_ATTACK && entry == 0) {
+            switch (g_status.buffers.Char[g_status.selected_character].Hand[0].weapon_skill) {
+            case 3:
+                base = 3;
+                break;
+            case 1:
+                base = 4;
+                break;
+            case 2:
+                base = 7;
+                break;
+            case 5:
+                base = 6;
+                break;
+            case 8:
+                base = 1;
+                break;
+            case 9:
+                base = 2;
+                break;
+            case 7:
+                base = 8;
+                break;
+            case 14:
+                base = 5;
+                break;
+            default:
+                base = 0;
+                break;
+            }
+            message += base * 7;
+        }
+        switch (state) {
+        case W8_SUBMENU_ENTRY_UNUSABLE:
+            message += 3;
+            icon_delta = 2;
+            break;
+        case W8_SUBMENU_ENTRY_UNUSABLE_SELECTED:
+            message += 4;
+            icon_delta = 1;
+            break;
+        case W8_SUBMENU_ENTRY_USABLE_SELECTED:
+            message += 1;
+            icon_delta = 1;
+            break;
+        case W8_SUBMENU_ENTRY_USABLE:
+            icon_delta = 2;
+            break;
+        }
+        g_submenu_rows_69b8ec[index] = new W8TextControl(
+            gpSubMenuPanel, index + 0xc2, index * 19 + 5, 5, index * 19 + 0x17, 0x17, 0x89, 0,
+            message, message, message + icon_delta, message + icon_delta, -1);
+        if (g_submenu_rows_69b8ec[index] == 0) {
+            if (gpSubMenuPanel != 0) {
+                delete gpSubMenuPanel;
+                gpSubMenuPanel = 0;
+            }
+            for (i = 0; i < 5; ++i) {
+                if (g_submenu_rows_69b8ec[i] != 0) {
+                    delete g_submenu_rows_69b8ec[i];
+                    g_submenu_rows_69b8ec[i] = 0;
+                }
+            }
+            return 0;
+        }
+        AssignSubMenuCallback(g_submenu_rows_69b8ec[index], menu, entry);
+        g_submenu_rows_69b8ec[index]->m_secondaryActivationCallback = DestroySubMenuControls;
+        SetRegionHelp(index + 0xc2, 1, g_submenu_entry_help_ids[menu * 5 + entry]);
+    }
+    g_submenu_rows_69b8ec[built - 1] =
+        new W8TextControl(gpSubMenuPanel, built + 0xc1, built * 19 - 14, 5, built * 19 - 2, 0x17,
+                          0x89, 0, 0xbd, 0xbd, 0xbf, 0xbf, -1);
+    if (g_submenu_rows_69b8ec[built - 1] == 0) {
+        if (gpSubMenuPanel != 0) {
+            delete gpSubMenuPanel;
+            gpSubMenuPanel = 0;
+        }
+        for (i = 0; i < 5; ++i) {
+            if (g_submenu_rows_69b8ec[i] != 0) {
+                delete g_submenu_rows_69b8ec[i];
+                g_submenu_rows_69b8ec[i] = 0;
+            }
+        }
+        return 0;
+    }
+    g_submenu_rows_69b8ec[built - 1]->m_primaryActivationCallback = DestroySubMenuControls;
+    g_submenu_rows_69b8ec[built - 1]->m_secondaryActivationCallback = DestroySubMenuControls;
+    SetRegionHelp(built + 0xc1, 1, 0x11);
+    RegionSetEnable(0x27);
+    gpSubMenuPanel->SetEnabled(1);
+    g_level_block->combat_end_notification = notification;
+    g_submenu_menu_69b854 = menu;
+    g_submenu_entry_count_69b87e = built;
+    RegionSetEnable(0x27);
+    EnableRegionInput(0xc7);
+    for (index = 0; index < g_submenu_entry_count_69b87e; ++index) {
+        EnableRegionInput(index + 0xc2);
+    }
+    for (index = g_submenu_entry_count_69b87e; index < 5; ++index) {
+        DisableRegionInput(index + 0xc2);
+    }
+    return 1;
+}
+
+// FUNCTION: WIZ8 0x00595EA0
+void AssignSubMenuCallback(W8TextControl* row, short menu, short item)
+{
+    switch (menu) {
+    case W8_SUBMENU_ATTACK:
+        switch (item) {
+        case 0:
+            row->m_primaryActivationCallback = SubMenuSelectAttack;
+            break;
+        case 1:
+            row->m_primaryActivationCallback = SubMenuSelectBerserk;
+            break;
+        case 2:
+            row->m_primaryActivationCallback = SubMenuSelectBreathe;
+            break;
+        case 3:
+            row->m_primaryActivationCallback = SubMenuSelectTurnUndead;
+            break;
+        case 4:
+            row->m_primaryActivationCallback = SubMenuSelectPray;
+            break;
+        }
+        break;
+    case W8_SUBMENU_DEFEND:
+        if (item == 0) {
+            row->m_primaryActivationCallback = SubMenuSelectDefend;
+        } else if (item == 1) {
+            row->m_primaryActivationCallback = SubMenuSelectProtect;
+        }
+        break;
+    case W8_SUBMENU_ITEMS:
+        if (item == 0) {
+            row->m_primaryActivationCallback = SubMenuSelectEquip;
+        } else if (item == 1) {
+            row->m_primaryActivationCallback = SubMenuOpenUseItemView;
+        } else if (item == 2) {
+            row->m_primaryActivationCallback = SubMenuUseRecordedItem;
+        }
+        break;
+    case W8_SUBMENU_SPELLS:
+        if (item == 0) {
+            row->m_primaryActivationCallback = SubMenuOpenSpellView;
+        } else if (item == 1) {
+            row->m_primaryActivationCallback = SubMenuCastRecordedSpell;
+        }
+        break;
+    case W8_SUBMENU_MOVE:
+        if (item == 0) {
+            row->m_primaryActivationCallback = SubMenuSelectWalk;
+        } else if (item == 1) {
+            row->m_primaryActivationCallback = SubMenuSelectRun;
+        }
+        break;
+    }
+}
+
+// FUNCTION: WIZ8 0x00596360
+W8SubMenuEntryState CheckSubMenuActionUsable(int party_slot)
+{
+    unsigned char matches;
+
+    matches = 0;
+    if (g_level_block->selection_kind == g_status.buffers.XChar[party_slot].action_03d &&
+        g_level_block->selection_settled == 0) {
+        matches = 1;
+    }
+    if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_CURRENT, 1, 0) != 0 &&
+        SlotHasAnyValidTarget(party_slot) != 0) {
+        return static_cast<W8SubMenuEntryState>(matches);
+    }
+    return static_cast<W8SubMenuEntryState>(matches + W8_SUBMENU_ENTRY_UNUSABLE);
+}
+
+// FUNCTION: WIZ8 0x00595FE0
+W8SubMenuEntryState GetSubMenuEntryState(short menu, short item, int party_slot)
+{
+    W8SubMenuEntryState state;
+    W8Character* character;
+
+    character = &g_status.buffers.Char[party_slot];
+    state = W8_SUBMENU_ENTRY_UNAVAILABLE;
+    MapSubMenuSelection(menu, item);
+    switch (menu) {
+    case W8_SUBMENU_ATTACK:
+        switch (item) {
+        case 1:
+            if (CharacterHasTrait(character, W8_TRAIT_BERSERK) != 0) {
+                state = CheckSubMenuActionUsable(party_slot);
+            }
+            break;
+        case 2:
+            if (CharacterHasTrait(character, W8_TRAIT_BREATHE) != 0) {
+                state = CheckSubMenuActionUsable(party_slot);
+            }
+            break;
+        case 4:
+            if (CanPartySlotPray(party_slot) != 0) {
+                state = CheckSubMenuActionUsable(party_slot);
+            }
+            break;
+        case 3:
+            if (CanPartySlotTurnUndead(party_slot) != 0) {
+                state = CheckSubMenuActionUsable(party_slot);
+            }
+            break;
+        case 0:
+            state = CheckSubMenuActionUsable(party_slot);
+            break;
+        }
+        break;
+    case W8_SUBMENU_DEFEND:
+        if (item >= 0 && item <= 1) {
+            state = CheckSubMenuActionUsable(party_slot);
+        }
+        break;
+    case W8_SUBMENU_ITEMS:
+        if (item == 0) {
+            if (gXStatus.fCombatMode != 0) {
+                state = CheckSubMenuActionUsable(party_slot);
+            }
+        } else if (item == 1) {
+            if (CountUsableCharacterItems(character) != 0) {
+                state = CheckSubMenuActionUsable(party_slot);
+            }
+        } else if (item == 2) {
+            state = CanPartySlotUseRecordedItem(party_slot) ? W8_SUBMENU_ENTRY_USABLE
+                                                            : W8_SUBMENU_ENTRY_UNAVAILABLE;
+        }
+        break;
+    case W8_SUBMENU_SPELLS:
+        if (item == 0) {
+            if (CharacterHasCastableSpell(character) != 0) {
+                state = CheckSubMenuActionUsable(party_slot);
+            }
+        } else if (item == 1) {
+            if (CanPartySlotCastRecordedSpell(party_slot)) {
+                state = W8_SUBMENU_ENTRY_USABLE;
+            } else {
+                state = GetAffordableSpellPowerLevel(party_slot) != 0
+                            ? W8_SUBMENU_ENTRY_USABLE
+                            : W8_SUBMENU_ENTRY_UNAVAILABLE;
+            }
+        }
+        break;
+    case W8_SUBMENU_MOVE:
+        if (item >= 0 && item <= 1) {
+            state = W8_SUBMENU_ENTRY_USABLE;
+        }
+        break;
+    }
+    g_level_block->selection_kind = -1;
+    g_level_block->value_2f4 = -1;
+    g_level_block->selection_settled = 0;
+    return state;
+}
+
+// FUNCTION: WIZ8 0x00596240
+void MapSubMenuSelection(short menu, short item)
+{
+    int action;
+    bool settled;
+
+    action = -1;
+    settled = false;
+    switch (menu) {
+    case W8_SUBMENU_ATTACK:
+        switch (item) {
+        case 0:
+            action = W8_ACTION_ATTACK;
+            break;
+        case 1:
+            action = W8_ACTION_BERSERK;
+            break;
+        case 2:
+            action = W8_ACTION_BREATHE;
+            break;
+        case 3:
+            action = W8_ACTION_TURN_UNDEAD;
+            break;
+        case 4:
+            action = W8_ACTION_PRAY;
+            break;
+        }
+        break;
+    case W8_SUBMENU_DEFEND:
+        if (item == 0) {
+            action = W8_ACTION_DEFEND;
+        } else if (item == 1) {
+            action = W8_ACTION_PROTECT;
+        }
+        break;
+    case W8_SUBMENU_ITEMS:
+        if (item == 0) {
+            action = W8_ACTION_EQUIP;
+        } else if (item == 1) {
+            action = W8_ACTION_USE_ITEM;
+        } else if (item == 2) {
+            action = W8_ACTION_USE_ITEM;
+            settled = true;
+        }
+        break;
+    case W8_SUBMENU_SPELLS:
+        if (item == 0) {
+            action = W8_ACTION_CAST_SPELL;
+        } else if (item == 1) {
+            action = W8_ACTION_CAST_SPELL;
+            settled = true;
+        }
+        break;
+    case W8_SUBMENU_MOVE:
+        if (item == 0) {
+            action = W8_ACTION_WALK;
+        } else if (item == 1) {
+            action = W8_ACTION_RUN;
+        }
+        break;
+    }
+    g_level_block->selection_kind = action;
+    g_level_block->value_2f4 = -1;
+    g_level_block->selection_settled = settled;
 }

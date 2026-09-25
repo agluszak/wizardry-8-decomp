@@ -1699,13 +1699,12 @@ bool CanSpellBackfire(int spell_id)
 unsigned char InitializeSpellDatabase(void)
 {
     /* Retail read allocation_count/database_version uninitialised when the
-       header FileRead pair short-circuited; deterministic zeroes model that
-       defect path. */
+       header FileRead pair short-circuited; the recovery keeps that read. */
     int handle;
     unsigned int index;
     unsigned char ok;
-    int allocation_count = 0;
-    unsigned int database_version = 0;
+    int allocation_count;
+    unsigned int database_version;
 
     if (g_spell_records != 0) {
         delete[] g_spell_records;

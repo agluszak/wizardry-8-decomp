@@ -242,12 +242,16 @@ void PointCameraAtTarget(srVector3T<float>* position, unsigned char force, unsig
     if (g_settings.camera_rotation_mode != 1) {
         return;
     }
-    if (g_settings.camera_rotation_style == 1) {
+    switch (g_settings.camera_rotation_style) {
+    case 1:
         if (g_gd_camera->ComputeTrackingOrientation(position, &angle, &pitch) == 0) {
             g_gd_camera->BeginOrientationTransition(pitch, angle, 0);
         }
-    } else if (g_settings.camera_rotation_style == 0 &&
-               g_gd_camera->ComputeTrackingOrientation(position, &pitch, &angle) == 0) {
-        CameraSnapToTarget(position);
+        break;
+    case 0:
+        if (g_gd_camera->ComputeTrackingOrientation(position, &pitch, &angle) == 0) {
+            CameraSnapToTarget(position);
+        }
+        break;
     }
 }

@@ -133,13 +133,6 @@ char CanPartySlotAttackAnyTarget(int party_slot, int category, int flag, char ha
                     case W8_ACTION_BERSERK:
                         range = GetCharAttackRange(character, reach_hand);
                         break;
-                    case W8_ACTION_BREATHE:
-                        return 1;
-                    case W8_ACTION_PROTECT:
-                        if (FrontRankScreens(first, slot) == 0) {
-                            return 1;
-                        }
-                        continue;
                     case W8_ACTION_CAST_SPELL:
                         if (action == 0) {
                             continue;
@@ -149,6 +142,13 @@ char CanPartySlotAttackAnyTarget(int party_slot, int category, int flag, char ha
                     case W8_ACTION_USE_ITEM:
                         range = GetItemSpellRange(detail->item_use.item);
                         break;
+                    case W8_ACTION_PROTECT:
+                        if (FrontRankScreens(first, slot) == 0) {
+                            return 1;
+                        }
+                        continue;
+                    case W8_ACTION_BREATHE:
+                        return 1;
                     default:
                         continue;
                     }

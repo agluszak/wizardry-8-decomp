@@ -1406,10 +1406,6 @@ void SetCampItemActionMode(char mode)
     }
     g_camp_screen->entry_mode = mode;
     switch (mode) {
-    case 1:
-        targeting = 6;
-        selected = 1;
-        break;
     case 2:
     case 8:
         targeting = 6;
@@ -1418,6 +1414,10 @@ void SetCampItemActionMode(char mode)
     case 3:
         targeting = 6;
         selected = 0;
+        break;
+    case 1:
+        targeting = 6;
+        selected = 1;
         break;
     case 4:
         targeting = 6;
@@ -1668,19 +1668,6 @@ static void CampItemAction005B5E60(void)
         return;
     }
     SetCampItemActionMode(0);
-}
-
-// FUNCTION: WIZ8 0x005B2200
-void CloseFormationPanel(void)
-{
-    DestroyFormationPanel();
-    gXStatus.fReviewCharacterMode = false;
-    UpdateHeldItemCursor();
-    RegionSetDisable(0x1b);
-    RequestRedraw(0x200);
-    ClearSurfaceRect(0xd6, 0x3c, 0x1ab, 0x12f);
-    InvalidateRegion(0xd6, 0x3c, 0x1ab, 0x12f, 0);
-    ResumeMainGameWorld();
 }
 
 // SYNTHETIC: WIZ8 0x005b1b90

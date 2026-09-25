@@ -127,16 +127,16 @@ struct W8ItemDatabaseRecord {
     signed char modifier_0b3_index;
     signed char modifier_0b3_value;
     unsigned char unknown_0b5[4]; /* 0x0b5 .. 0x0b8 */
-    int merge_kind_0b9;           /* first database kind accepted by MergeItems */
-    int merge_kind_0bd;           /* second database kind accepted by MergeItems */
+    int merge_component_a;        /* 0x0b9: first item kind MergeItems combines into this one */
+    int merge_component_b;        /* 0x0bd: the other kind; either order is accepted */
     /* 0x0c1: the item's material index; combat sound reads it on the struck
        item to pick the impact table's material column (0..11). */
     int material_0c1;
     /* 0x0c5: the weapon's attack sound class; combat sound bounds it against
        the 38-entry swing table and the 28 impact rows. */
     int weapon_sound_class_0c5;
-    signed char merge_skill_0c9; /* skill required to create this item */
-    unsigned char merge_skill_level_0ca;
+    signed char merge_skill;           /* 0x0c9: skill required to create this item, -1 for none */
+    unsigned char merge_skill_level;   /* 0x0ca: level of merge_skill required */
     unsigned char editor_excluded_0cb; /* hidden from the MIPE item list */
     /* 0x0cc: the missile table entry the item fires; the missile resolver
        bounds it against g_missile_table_count. */

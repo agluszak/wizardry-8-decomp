@@ -750,8 +750,8 @@ unsigned char MonsterReadAllCycles004C0300(const W8GrCycleLoadContext* context,
     if (representation->animations[1].GetCount() < 1) {
         ShutdownWithErrorBox(
             reinterpret_cast<const char*>(String( // reinterpret-ok: String returns a logging buffer
-                "Monster %s: Missing CYCLE_%s, sub-cycle %d", representation->name_5c0, "IDLE",
-                0)));
+                "Monster %s: Missing CYCLE_%s, sub-cycle %d", representation->name_5c0,
+                g_cycle_names[1].name, 0)));
     }
     W8AnimObj* idle = *representation->animations[1].GetAt(0);
     if (idle != 0) {
@@ -1519,41 +1519,42 @@ void W8Monster::Update()
 
         if ((flags_1dc & W8_MONSTER_SCRIPT_WAIT) == 0 && m_pRep->pending_cycle == -1) {
             switch (cycle) {
-            case 0:
+            case 0x18:
                 if (Query(7) != 0) {
-                    m_pRep->pending_cycle = 1;
+                    if (talk_duration_20c < GetTickCount() - talk_start_208 &&
+                        IsCycleSupported(0x17) != 0) {
+                        m_pRep->pending_cycle = 0x17;
+                    } else {
+                        m_pRep->pending_cycle = 0x18;
+                    }
+                    m_pRep->frame_direction_06e = 1;
+                    m_pRep->pending_behaviour_071 = 1;
                     m_pRep->active = 1;
                     m_pRep->timer_068 = g_shared_timer_base->getUTime(srTimer::TIMER_READ_DEFAULT);
-                    m_pRep->pending_behaviour_071 = 3;
                     m_pRep->pending_subcycle_066 = 0;
                 }
                 break;
-            case 1:
-            case 2:
-                if (movement_stopped_024 == 0 && halted_025 == 0 &&
-                    (Query(2) != 0 || wrapped_1bc != 0)) {
-                    flags_00c &= ~0x100000;
-                    if (IsCycleSupported(3) == 0) {
-                        m_pRep->pending_behaviour_071 = 3;
-                        m_pRep->pending_cycle = 4;
-                    } else {
-                        m_pRep->pending_cycle = 3;
+            case 0x17:
+                if (Query(7) != 0) {
+                    if (talking != 0) {
+                        talk_state_210 = 0x17;
+                        talk_start_208 = GetTickCount();
+                        talk_duration_20c = Random(2000) + 2000;
+                        m_pRep->pending_cycle = 0x18;
                         m_pRep->frame_direction_06e = 1;
                         m_pRep->pending_behaviour_071 = 1;
-                        m_pRep->pending_subcycle_066 = 0;
+                    } else {
+                        m_pRep->pending_cycle = 1;
                     }
                     m_pRep->active = 1;
                     m_pRep->timer_068 = g_shared_timer_base->getUTime(srTimer::TIMER_READ_DEFAULT);
+                    m_pRep->pending_subcycle_066 = 0;
                 }
                 break;
-            case 3:
+            case 0x19:
                 if (Query(7) != 0) {
-                    if (m_pRep->frame_direction_06e == 3) {
-                        m_pRep->frame_direction_06e = 1;
-                        m_pRep->pending_cycle = 1;
-                    } else {
-                        m_pRep->pending_cycle = 4;
-                    }
+                    m_pRep->pending_cycle = 1;
+                    m_pRep->frame_direction_06e = 1;
                     m_pRep->active = 1;
                     m_pRep->timer_068 = g_shared_timer_base->getUTime(srTimer::TIMER_READ_DEFAULT);
                     m_pRep->pending_behaviour_071 = 3;
@@ -1588,42 +1589,41 @@ void W8Monster::Update()
                     }
                 }
                 break;
-            case 0x17:
-                if (Query(7) != 0) {
-                    if (talking != 0) {
-                        talk_state_210 = 0x17;
-                        talk_start_208 = GetTickCount();
-                        talk_duration_20c = Random(2000) + 2000;
-                        m_pRep->pending_cycle = 0x18;
+            case 1:
+            case 2:
+                if (movement_stopped_024 == 0 && halted_025 == 0 &&
+                    (Query(2) != 0 || wrapped_1bc != 0)) {
+                    flags_00c &= ~0x100000;
+                    if (IsCycleSupported(3) == 0) {
+                        m_pRep->pending_behaviour_071 = 3;
+                        m_pRep->pending_cycle = 4;
+                    } else {
+                        m_pRep->pending_cycle = 3;
                         m_pRep->frame_direction_06e = 1;
                         m_pRep->pending_behaviour_071 = 1;
-                    } else {
-                        m_pRep->pending_cycle = 1;
+                        m_pRep->pending_subcycle_066 = 0;
                     }
                     m_pRep->active = 1;
                     m_pRep->timer_068 = g_shared_timer_base->getUTime(srTimer::TIMER_READ_DEFAULT);
-                    m_pRep->pending_subcycle_066 = 0;
                 }
                 break;
-            case 0x18:
+            case 3:
                 if (Query(7) != 0) {
-                    if (talk_duration_20c < GetTickCount() - talk_start_208 &&
-                        IsCycleSupported(0x17) != 0) {
-                        m_pRep->pending_cycle = 0x17;
+                    if (m_pRep->frame_direction_06e == 3) {
+                        m_pRep->frame_direction_06e = 1;
+                        m_pRep->pending_cycle = 1;
                     } else {
-                        m_pRep->pending_cycle = 0x18;
+                        m_pRep->pending_cycle = 4;
                     }
-                    m_pRep->frame_direction_06e = 1;
-                    m_pRep->pending_behaviour_071 = 1;
                     m_pRep->active = 1;
                     m_pRep->timer_068 = g_shared_timer_base->getUTime(srTimer::TIMER_READ_DEFAULT);
+                    m_pRep->pending_behaviour_071 = 3;
                     m_pRep->pending_subcycle_066 = 0;
                 }
                 break;
-            case 0x19:
+            case 0:
                 if (Query(7) != 0) {
                     m_pRep->pending_cycle = 1;
-                    m_pRep->frame_direction_06e = 1;
                     m_pRep->active = 1;
                     m_pRep->timer_068 = g_shared_timer_base->getUTime(srTimer::TIMER_READ_DEFAULT);
                     m_pRep->pending_behaviour_071 = 3;
@@ -1850,8 +1850,10 @@ unsigned char W8Monster::GetCycleMappedPosition(signed char cycle, int mapped_in
     }
     animations = &m_pRep->animations[cycle];
     if (animations->GetCount() <= subcycle) {
-        ShutdownWithErrorBox(FormatString("Monster %s: Missing CYCLE_%s, sub-cycle %d",
-                                          m_pRep->name_5c0, g_cycle_names[cycle].name, subcycle));
+        ShutdownWithErrorBox(
+            reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
+                String("Monster %s: Missing CYCLE_%s, sub-cycle %d", m_pRep->name_5c0,
+                       g_cycle_names[cycle].name, subcycle)));
     }
     animation = *animations->GetAt(subcycle);
 
@@ -3876,6 +3878,9 @@ int W8Monster::Query(int query)
     case 6:
         result = m_pRep->current_cycle;
         break;
+    case 9:
+        result = m_pRep->current_subcycle;
+        break;
     case 7:
         if (m_pRep->animation_behaviour_070 == 3) {
             if (m_pRep->animation_playing_06d == 0) {
@@ -3890,9 +3895,6 @@ int W8Monster::Query(int query)
             m_pRep->frame_direction_06e == 4 || m_pRep->frame_direction_06e == 2) {
             result = 1;
         }
-        break;
-    case 9:
-        result = m_pRep->current_subcycle;
         break;
     }
     return result;
@@ -4908,9 +4910,11 @@ void W8Monster::CollectModelInstances004C6350(W8GrowableVector<stModelInstance*>
             W8AnimObj* animation;
 
             if (subcycle >= cycle_animations->GetCount()) {
-                ShutdownWithErrorBox(FormatString("Monster %s: Missing CYCLE_%s, sub-cycle %d",
-                                                  m_pRep->name_5c0, g_cycle_names[cycle].name,
-                                                  subcycle));
+                ShutdownWithErrorBox(
+                    reinterpret_cast<
+                        const char*>( // reinterpret-ok: String returns a logging buffer
+                        String("Monster %s: Missing CYCLE_%s, sub-cycle %d", m_pRep->name_5c0,
+                               g_cycle_names[cycle].name, subcycle)));
             }
             animation = *cycle_animations->GetAt(subcycle);
             if (animation == 0) {

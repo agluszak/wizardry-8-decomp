@@ -1993,6 +1993,18 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         GetNpcDisposition(npc);
         return;
     }
+    case 4: {
+        int sum = npc->disposition + static_cast<char>(gold);
+        if (sum > 99) {
+            npc->disposition = 99;
+        } else if (sum < 0) {
+            npc->disposition = 0;
+        } else {
+            npc->disposition += static_cast<char>(gold);
+        }
+        GetNpcDisposition(npc);
+        return;
+    }
     case 2: {
         int level;
         unsigned int adjusted;
@@ -2048,18 +2060,6 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         }
         npc->trade_pool_ca = g_npc_records[npc->name_style].trade_pool_002;
         break;
-    }
-    case 4: {
-        int sum = npc->disposition + static_cast<char>(gold);
-        if (sum > 99) {
-            npc->disposition = 99;
-        } else if (sum < 0) {
-            npc->disposition = 0;
-        } else {
-            npc->disposition += static_cast<char>(gold);
-        }
-        GetNpcDisposition(npc);
-        return;
     }
     default:
         break;

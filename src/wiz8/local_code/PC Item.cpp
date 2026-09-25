@@ -1049,6 +1049,11 @@ bool AreAllHandSlotsEmpty(const W8Character* character)
 int GetItemEquipSlotGroup(int item_id)
 {
     switch (GetItemDefaultEquipSlot(item_id)) {
+    case W8_EQUIP_SLOT_PRIMARY_RIGHT:
+    case W8_EQUIP_SLOT_PRIMARY_LEFT:
+    case W8_EQUIP_SLOT_ALTERNATE_RIGHT:
+    case W8_EQUIP_SLOT_ALTERNATE_LEFT:
+        return 2;
     case 0:
     case 4:
     case 5:
@@ -1059,11 +1064,6 @@ int GetItemEquipSlotGroup(int item_id)
     case 2:
     case 3:
         return 4;
-    case W8_EQUIP_SLOT_PRIMARY_RIGHT:
-    case W8_EQUIP_SLOT_PRIMARY_LEFT:
-    case W8_EQUIP_SLOT_ALTERNATE_RIGHT:
-    case W8_EQUIP_SLOT_ALTERNATE_LEFT:
-        return 2;
     default:
         return 5;
     }
@@ -1355,12 +1355,26 @@ bool CanItemLeaveItsSlot(const W8ItemInstance* item)
     return false;
 }
 
+/* Combine the held item with another one. Two identified items that some
+   database entry names as its components (in either order) are consumed and
+   that entry is created in their place, provided the character has the skill
+   it asks for; stacks give up as many units as the smaller one holds. Failing
+   that, two items of one kind are stacked together. Returns whether a recipe
+   merge (or, for stacking, a merge of any units) happened. */
 // FUNCTION: WIZ8 0x0051F2F0
 char MergeItems(W8Character* character, W8ItemInstance* destination)
 {
     W8ItemInstance* held = &g_status.item_in_hand_235b;
-    const W8ItemDatabaseRecord* recipe = 0;
-    unsigned int result_item_id = 0;
+    W8ItemInstance shifted[500];
+    W8ItemInstance created;
+    const W8ItemDatabaseRecord* recipe;
+    W8ItemInstance* result_destination;
+    unsigned int result_item_id;
+    unsigned int index;
+    unsigned char quantity;
+    bool found = false;
+    bool merged = false;
+    unsigned char partially_merged = 0;
 
     if (held->iItemNo == -1) {
         srAssertFail("pMergePCItem->iItemNo != -1", PC_ITEM_CPP, 2922, 0);
@@ -1368,92 +1382,153 @@ char MergeItems(W8Character* character, W8ItemInstance* destination)
     if (destination->iItemNo == -1) {
         srAssertFail("pIntoPCItem->iItemNo != -1", PC_ITEM_CPP, 2923, 0);
     }
-    if (held->identified == 0 || destination->identified == 0) {
+    if (destination->identified == 0 || held->identified == 0) {
         ShowCampNoticeLine(gppStringList[0x58c / 4], 0, 1, 0);
         return 0;
     }
 
-    for (unsigned int item_id = 0; item_id < gXStatus.uiItemsInDatabase; ++item_id) {
-        const W8ItemDatabaseRecord* candidate = &g_item_records[item_id];
-        if ((candidate->merge_kind_0b9 == held->iItemNo &&
-             candidate->merge_kind_0bd == destination->iItemNo) ||
-            (candidate->merge_kind_0bd == held->iItemNo &&
-             candidate->merge_kind_0b9 == destination->iItemNo)) {
-            recipe = candidate;
-            result_item_id = item_id;
+    for (result_item_id = 0; result_item_id < gXStatus.uiItemsInDatabase; ++result_item_id) {
+        recipe = &g_item_records[result_item_id];
+        if ((recipe->merge_component_a == held->iItemNo &&
+             recipe->merge_component_b == destination->iItemNo) ||
+            (recipe->merge_component_b == held->iItemNo &&
+             recipe->merge_component_a == destination->iItemNo)) {
+            found = true;
+            if (recipe->merge_skill == -1) {
+                merged = true;
+            } else {
+                merged = character->skills[recipe->merge_skill].level >= recipe->merge_skill_level;
+                if (merged) {
+                    QueueCharacterEvent(character, g_learn_sound, 0, g_effect_argument_005ed8c8,
+                                        g_effect_argument_005ed914);
+                    PracticeCharacterSkill(character, recipe->merge_skill,
+                                           recipe->merge_skill_level / 10, 0);
+                }
+            }
+            if (merged) {
+                if (g_item_records[held->iItemNo].quantity_kind == 1 &&
+                    g_item_records[destination->iItemNo].quantity_kind == 1) {
+                    quantity = held->stack_count < destination->stack_count
+                                   ? held->stack_count
+                                   : destination->stack_count;
+                    result_destination =
+                        destination->stack_count > held->stack_count ? held : destination;
+                } else {
+                    quantity = 1;
+                    result_destination =
+                        g_item_records[held->iItemNo].quantity_kind == 1 ? destination : held;
+                }
+
+                if (g_item_records[held->iItemNo].quantity_kind == 1) {
+                    for (index = 0; index < quantity; ++index) {
+                        RemoveCharacterItem(character, held, 1);
+                    }
+                } else {
+                    /* EmptyItemRecord(held, character, 1), expanded in place. */
+                    gXStatus.held_item_source = -1;
+                    gXStatus.held_item_origin = 0xff;
+                    gXStatus.held_item_slot = 0xffff;
+                    ClearHeldItemDisplay();
+                }
+
+                if (g_item_records[destination->iItemNo].quantity_kind == 1) {
+                    for (index = 0; index < quantity; ++index) {
+                        RemoveCharacterItem(character, destination, 1);
+                    }
+                } else {
+                    /* EmptyItemRecord(destination, character, 1), expanded in place. */
+                    if (destination == held) {
+                        gXStatus.held_item_source = -1;
+                        gXStatus.held_item_origin = 0xff;
+                        gXStatus.held_item_slot = 0xffff;
+                        ClearHeldItemDisplay();
+                    } else {
+                        memset(destination, 0, sizeof(*destination));
+                        destination->iItemNo = -1;
+                        RefreshAfterItemRecordChange(destination, character, 1);
+                    }
+                    if (destination >= g_status.party_item_pool_0021 &&
+                        destination <= &g_status.party_item_pool_0021[499]) {
+                        for (index = 0; index < g_status.party_item_count_1791; ++index) {
+                            if (destination == &g_status.party_item_pool_0021[index]) {
+                                /* RemovePartyPoolEntry(index), expanded in place. */
+                                if (g_status.party_item_pool_0021[index].iItemNo == -1 &&
+                                    index < g_status.party_item_count_1791) {
+                                    memcpy(&shifted[index],
+                                           &g_status.party_item_pool_0021[index + 1],
+                                           (g_status.party_item_count_1791 - index - 1) *
+                                               sizeof(W8ItemInstance));
+                                    memcpy(&g_status.party_item_pool_0021[index], &shifted[index],
+                                           (g_status.party_item_count_1791 - index - 1) *
+                                               sizeof(W8ItemInstance));
+                                    memset(
+                                        &g_status
+                                             .party_item_pool_0021[g_status.party_item_count_1791 -
+                                                                   1],
+                                        0, sizeof(W8ItemInstance));
+                                    g_status
+                                        .party_item_pool_0021[g_status.party_item_count_1791 - 1]
+                                        .iItemNo = -1;
+                                    --g_status.party_item_count_1791;
+                                    RedistributePartyEncumbrance();
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                ReplaceOrCreateItem(&created, result_item_id, 0, 0, 0);
+                if (recipe->quantity_kind == 1) {
+                    created.stack_count = quantity;
+                }
+
+                if (result_destination >= g_status.party_item_pool_0021 &&
+                    result_destination <= &g_status.party_item_pool_0021[499]) {
+                    for (index = 0; index < g_status.party_item_count_1791; ++index) {
+                        if (result_destination == &g_status.party_item_pool_0021[index] &&
+                            g_status.party_item_count_1791 < 500) {
+                            /* InsertItemIntoPartyPool(&created, index), expanded in place. */
+                            if (g_status.party_item_count_1791 != index) {
+                                memcpy(&shifted[index], &g_status.party_item_pool_0021[index],
+                                       (g_status.party_item_count_1791 - index) *
+                                           sizeof(W8ItemInstance));
+                                memcpy(&g_status.party_item_pool_0021[index + 1], &shifted[index],
+                                       (g_status.party_item_count_1791 - index) *
+                                           sizeof(W8ItemInstance));
+                            }
+                            memset(&g_status.party_item_pool_0021[index], 0,
+                                   sizeof(W8ItemInstance));
+                            g_status.party_item_pool_0021[index].iItemNo = -1;
+                            CopyItemInstance(&g_status.party_item_pool_0021[index], &created, 0, 1);
+                            ++g_status.party_item_count_1791;
+                            RedistributePartyEncumbrance();
+                        }
+                    }
+                } else {
+                    CopyItemInstance(result_destination, &created, character, 1);
+                }
+            }
             break;
         }
     }
 
-    if (recipe != 0) {
-        if (recipe->merge_skill_0c9 != -1) {
-            const W8CharacterSkill& skill = character->skills[recipe->merge_skill_0c9];
-            if (skill.level < recipe->merge_skill_level_0ca) {
-                wchar_t* message =
-                    FormatWideString(gppStringList[0x588 / 4], character->name, 0, 1, 0);
-                ShowCampNoticeLine(message, 0, 0, 0);
-                return 0;
+    if (!merged) {
+        if (held->iItemNo == destination->iItemNo) {
+            bool stacked = MergeItemStacks(destination, held, &partially_merged);
+            if (partially_merged) {
+                return 1;
             }
-            QueueCharacterEvent(character, g_learn_sound, 0, g_effect_argument_005ed8c8,
-                                g_effect_argument_005ed914);
-            PracticeCharacterSkill(character, recipe->merge_skill_0c9,
-                                   recipe->merge_skill_level_0ca / 10, 0);
+            return stacked;
         }
-
-        const bool held_is_stack = g_item_records[held->iItemNo].quantity_kind == 1;
-        const bool destination_is_stack = g_item_records[destination->iItemNo].quantity_kind == 1;
-        const unsigned char quantity =
-            held_is_stack && destination_is_stack
-                ? (held->stack_count < destination->stack_count ? held->stack_count
-                                                                : destination->stack_count)
-                : 1;
-        W8ItemInstance* result_destination =
-            held_is_stack && destination_is_stack && held->stack_count <= destination->stack_count
-                ? held
-                : destination;
-
-        if (held_is_stack) {
-            held->stack_count -= quantity;
-            if (held->stack_count == 0) {
-                gXStatus.held_item_source = -1;
-                gXStatus.held_item_origin = 0xff;
-                gXStatus.held_item_slot = 0xffff;
-                ClearHeldItemDisplay();
-            }
+        if (!found) {
+            ShowCampNoticeLine(gppStringList[0x584 / 4], 0, 1, 0);
         } else {
-            gXStatus.held_item_source = -1;
-            gXStatus.held_item_origin = 0xff;
-            gXStatus.held_item_slot = 0xffff;
-            ClearHeldItemDisplay();
+            ShowCampNoticeLine(FormatWideString(gppStringList[0x588 / 4], character->name), 0, 1,
+                               0);
         }
-
-        if (destination_is_stack) {
-            destination->stack_count -= quantity;
-            if (destination->stack_count == 0) {
-                EmptyItemRecord(destination, character, 1);
-            }
-        } else {
-            EmptyItemRecord(destination, character, 1);
-        }
-
-        W8ItemInstance created;
-        ReplaceOrCreateItem(&created, result_item_id, 0, 0, 0);
-        if (recipe->quantity_kind == 1) {
-            created.stack_count = quantity;
-        }
-        CopyItemInstance(result_destination, &created, character, 1);
-        RedistributePartyEncumbrance();
-        return 1;
     }
-
-    if (held->iItemNo == destination->iItemNo) {
-        unsigned char partially_merged = 0;
-        bool merged = MergeItemStacks(destination, held, &partially_merged);
-        return partially_merged != 0 ? 1 : merged;
-    }
-
-    ShowCampNoticeLine(gppStringList[0x584 / 4], 0, 0, 0);
-    return 0;
+    return merged;
 }
 
 /* Put an item somewhere it will fit. The flag decides which of the character
@@ -1640,8 +1715,7 @@ void GetOriginOfCharacterItem(int character_index, W8ItemInstance* item, unsigne
         }
     }
 
-    for (pool_index = 0; pool_index < static_cast<unsigned int>(g_status.party_item_count_1791);
-         ++pool_index) {
+    for (pool_index = 0; pool_index < g_status.party_item_count_1791; ++pool_index) {
         if (item == &g_status.party_item_pool_0021[pool_index]) {
             *origin = 2;
             *slot = (unsigned short)pool_index;
@@ -1878,27 +1952,26 @@ unsigned char GiveItemToCharacterOrParty(int uiChar, W8ItemInstance* item,
         RefreshAfterItemRecordChange(item, 0, 1);
     }
 
-    W8ItemInstance* pool = g_status.party_item_pool_0021;
-    if (item < pool || item > &pool[499]) {
-        return stored;
+    if (item >= g_status.party_item_pool_0021 && item <= &g_status.party_item_pool_0021[499]) {
+        for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
+            if (item == &g_status.party_item_pool_0021[index]) {
+                /* RemovePartyPoolEntry(index), expanded in place. */
+                if (g_status.party_item_pool_0021[index].iItemNo == -1 &&
+                    index < g_status.party_item_count_1791) {
+                    memcpy(&shifted[index], &g_status.party_item_pool_0021[index + 1],
+                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
+                    memcpy(&g_status.party_item_pool_0021[index], &shifted[index],
+                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
+                    memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1], 0,
+                           sizeof(W8ItemInstance));
+                    g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo = -1;
+                    --g_status.party_item_count_1791;
+                    RedistributePartyEncumbrance();
+                }
+                break;
+            }
+        }
     }
-
-    unsigned int count = g_status.party_item_count_1791;
-    unsigned int index = 0;
-    while (index < count && item != &pool[index]) {
-        ++index;
-    }
-    if (index == count || pool[index].iItemNo != -1) {
-        return stored;
-    }
-
-    unsigned int bytes = (count - index - 1) * sizeof(W8ItemInstance);
-    memcpy(&shifted[index], &pool[index + 1], bytes);
-    memcpy(&pool[index], &shifted[index], bytes);
-    memset(&pool[count - 1], 0, sizeof(W8ItemInstance));
-    pool[count - 1].iItemNo = -1;
-    --g_status.party_item_count_1791;
-    RedistributePartyEncumbrance();
     return stored;
 }
 
@@ -2062,22 +2135,23 @@ void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, unsigned char maximu
     }
 
     if (item >= g_status.party_item_pool_0021 && item <= &g_status.party_item_pool_0021[499]) {
-        index = 0;
-        while (index < static_cast<unsigned int>(g_status.party_item_count_1791) &&
-               item != &g_status.party_item_pool_0021[index]) {
-            ++index;
-        }
-        if (index < static_cast<unsigned int>(g_status.party_item_count_1791) &&
-            g_status.party_item_pool_0021[index].iItemNo == -1) {
-            unsigned int bytes =
-                (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance);
-            memcpy(&shifted[index], &g_status.party_item_pool_0021[index + 1], bytes);
-            memcpy(&g_status.party_item_pool_0021[index], &shifted[index], bytes);
-            memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1], 0,
-                   sizeof(W8ItemInstance));
-            g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo = -1;
-            --g_status.party_item_count_1791;
-            RedistributePartyEncumbrance();
+        for (index = 0; index < g_status.party_item_count_1791; ++index) {
+            if (item == &g_status.party_item_pool_0021[index]) {
+                /* RemovePartyPoolEntry(index), expanded in place. */
+                if (g_status.party_item_pool_0021[index].iItemNo == -1 &&
+                    index < g_status.party_item_count_1791) {
+                    memcpy(&shifted[index], &g_status.party_item_pool_0021[index + 1],
+                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
+                    memcpy(&g_status.party_item_pool_0021[index], &shifted[index],
+                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
+                    memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1], 0,
+                           sizeof(W8ItemInstance));
+                    g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo = -1;
+                    --g_status.party_item_count_1791;
+                    RedistributePartyEncumbrance();
+                }
+                break;
+            }
         }
     }
 
@@ -2460,13 +2534,13 @@ bool FindItemOnParty(int item_id, W8ItemInstance** found, W8Character** found_ch
     if (include_backpack == 2) {
         unsigned int index = 0;
         if (resume_after != 0) {
-            while (index < static_cast<unsigned int>(g_status.party_item_count_1791) &&
+            while (index < g_status.party_item_count_1791 &&
                    &g_status.party_item_pool_0021[index] != resume_after) {
                 ++index;
             }
             ++index;
         }
-        for (; index < static_cast<unsigned int>(g_status.party_item_count_1791); ++index) {
+        for (; index < g_status.party_item_count_1791; ++index) {
             W8ItemInstance* item = &g_status.party_item_pool_0021[index];
             if (item->iItemNo == item_id) {
                 if (found != 0) {
@@ -2552,8 +2626,7 @@ unsigned int CountItemOnParty(int item_id, W8ItemInstance** found, W8Character**
     }
 
     if (include_backpack == 2) {
-        for (unsigned int index = 0;
-             index < static_cast<unsigned int>(g_status.party_item_count_1791); ++index) {
+        for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
             W8ItemInstance* item = &g_status.party_item_pool_0021[index];
             if (item->iItemNo == item_id) {
                 total += item->stack_count == 0 ? 1 : item->stack_count;
@@ -2915,19 +2988,23 @@ void CopyItemInstance(W8ItemInstance* destination, W8ItemInstance* source, W8Cha
     }
 
     if (source >= g_status.party_item_pool_0021 && source <= &g_status.party_item_pool_0021[499]) {
-        unsigned int index = 0;
-        unsigned int count = g_status.party_item_count_1791;
-        while (index < count && source != &g_status.party_item_pool_0021[index]) {
-            ++index;
-        }
-        if (index < count && g_status.party_item_pool_0021[index].iItemNo == -1) {
-            unsigned int bytes = (count - index - 1) * sizeof(W8ItemInstance);
-            memcpy(&shifted[index], &g_status.party_item_pool_0021[index + 1], bytes);
-            memcpy(&g_status.party_item_pool_0021[index], &shifted[index], bytes);
-            memset(&g_status.party_item_pool_0021[count - 1], 0, sizeof(W8ItemInstance));
-            g_status.party_item_pool_0021[count - 1].iItemNo = -1;
-            --g_status.party_item_count_1791;
-            RedistributePartyEncumbrance();
+        for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
+            if (source == &g_status.party_item_pool_0021[index]) {
+                /* RemovePartyPoolEntry(index), expanded in place. */
+                if (g_status.party_item_pool_0021[index].iItemNo == -1 &&
+                    index < g_status.party_item_count_1791) {
+                    memcpy(&shifted[index], &g_status.party_item_pool_0021[index + 1],
+                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
+                    memcpy(&g_status.party_item_pool_0021[index], &shifted[index],
+                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
+                    memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1], 0,
+                           sizeof(W8ItemInstance));
+                    g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo = -1;
+                    --g_status.party_item_count_1791;
+                    RedistributePartyEncumbrance();
+                }
+                break;
+            }
         }
     }
 
@@ -3162,30 +3239,26 @@ void EmptyItemRecord(W8ItemInstance* item, W8Character* character, unsigned char
         RefreshAfterItemRecordChange(item, character, refresh);
     }
 
-    W8ItemInstance* pool = g_status.party_item_pool_0021;
-    if (item < pool || item > &pool[499]) {
-        return;
+    if (item >= g_status.party_item_pool_0021 && item <= &g_status.party_item_pool_0021[499]) {
+        for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
+            if (item == &g_status.party_item_pool_0021[index]) {
+                /* RemovePartyPoolEntry(index), expanded in place. */
+                if (g_status.party_item_pool_0021[index].iItemNo == -1 &&
+                    index < g_status.party_item_count_1791) {
+                    memcpy(&shifted[index], &g_status.party_item_pool_0021[index + 1],
+                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
+                    memcpy(&g_status.party_item_pool_0021[index], &shifted[index],
+                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
+                    memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1], 0,
+                           sizeof(W8ItemInstance));
+                    g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo = -1;
+                    --g_status.party_item_count_1791;
+                    RedistributePartyEncumbrance();
+                }
+                break;
+            }
+        }
     }
-
-    unsigned int count = g_status.party_item_count_1791;
-    unsigned int index = 0;
-    while (index < count && item != &pool[index]) {
-        ++index;
-    }
-    if (index == count) {
-        return;
-    }
-    if (pool[index].iItemNo != -1 || index >= count) {
-        return;
-    }
-
-    unsigned int bytes = (count - index - 1) * sizeof(W8ItemInstance);
-    memcpy(&shifted[index], &pool[index + 1], bytes);
-    memcpy(&pool[index], &shifted[index], bytes);
-    memset(&pool[count - 1], 0, sizeof(W8ItemInstance));
-    pool[count - 1].iItemNo = -1;
-    --g_status.party_item_count_1791;
-    RedistributePartyEncumbrance();
 }
 
 /* Empty every item record a character carries. The per-record helper
@@ -3210,21 +3283,27 @@ void EmptyAllCarriedItems(W8Character* character)
             RefreshAfterItemRecordChange(item, character, 1);
         }
 
-        W8ItemInstance* pool = g_status.party_item_pool_0021;
-        if (item >= pool && item <= &pool[499]) {
-            unsigned int count = g_status.party_item_count_1791;
-            unsigned int position = 0;
-            while (position < count && item != &pool[position]) {
-                ++position;
-            }
-            if (position < count && pool[position].iItemNo == -1) {
-                unsigned int bytes = (count - position - 1) * sizeof(W8ItemInstance);
-                memcpy(&shifted[position], &pool[position + 1], bytes);
-                memcpy(&pool[position], &shifted[position], bytes);
-                memset(&pool[count - 1], 0, sizeof(W8ItemInstance));
-                pool[count - 1].iItemNo = -1;
-                --g_status.party_item_count_1791;
-                RedistributePartyEncumbrance();
+        if (item >= g_status.party_item_pool_0021 && item <= &g_status.party_item_pool_0021[499]) {
+            for (unsigned int position = 0; position < g_status.party_item_count_1791; ++position) {
+                if (item == &g_status.party_item_pool_0021[position]) {
+                    /* RemovePartyPoolEntry(position), expanded in place. */
+                    if (g_status.party_item_pool_0021[position].iItemNo == -1 &&
+                        position < g_status.party_item_count_1791) {
+                        memcpy(&shifted[position], &g_status.party_item_pool_0021[position + 1],
+                               (g_status.party_item_count_1791 - position - 1) *
+                                   sizeof(W8ItemInstance));
+                        memcpy(&g_status.party_item_pool_0021[position], &shifted[position],
+                               (g_status.party_item_count_1791 - position - 1) *
+                                   sizeof(W8ItemInstance));
+                        memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1],
+                               0, sizeof(W8ItemInstance));
+                        g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo =
+                            -1;
+                        --g_status.party_item_count_1791;
+                        RedistributePartyEncumbrance();
+                    }
+                    break;
+                }
             }
         }
     }
@@ -3242,21 +3321,27 @@ void EmptyAllCarriedItems(W8Character* character)
             RefreshAfterItemRecordChange(item, character, 1);
         }
 
-        W8ItemInstance* pool = g_status.party_item_pool_0021;
-        if (item >= pool && item <= &pool[499]) {
-            unsigned int count = g_status.party_item_count_1791;
-            unsigned int position = 0;
-            while (position < count && item != &pool[position]) {
-                ++position;
-            }
-            if (position < count && pool[position].iItemNo == -1) {
-                unsigned int bytes = (count - position - 1) * sizeof(W8ItemInstance);
-                memcpy(&shifted[position], &pool[position + 1], bytes);
-                memcpy(&pool[position], &shifted[position], bytes);
-                memset(&pool[count - 1], 0, sizeof(W8ItemInstance));
-                pool[count - 1].iItemNo = -1;
-                --g_status.party_item_count_1791;
-                RedistributePartyEncumbrance();
+        if (item >= g_status.party_item_pool_0021 && item <= &g_status.party_item_pool_0021[499]) {
+            for (unsigned int position = 0; position < g_status.party_item_count_1791; ++position) {
+                if (item == &g_status.party_item_pool_0021[position]) {
+                    /* RemovePartyPoolEntry(position), expanded in place. */
+                    if (g_status.party_item_pool_0021[position].iItemNo == -1 &&
+                        position < g_status.party_item_count_1791) {
+                        memcpy(&shifted[position], &g_status.party_item_pool_0021[position + 1],
+                               (g_status.party_item_count_1791 - position - 1) *
+                                   sizeof(W8ItemInstance));
+                        memcpy(&g_status.party_item_pool_0021[position], &shifted[position],
+                               (g_status.party_item_count_1791 - position - 1) *
+                                   sizeof(W8ItemInstance));
+                        memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1],
+                               0, sizeof(W8ItemInstance));
+                        g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo =
+                            -1;
+                        --g_status.party_item_count_1791;
+                        RedistributePartyEncumbrance();
+                    }
+                    break;
+                }
             }
         }
     }
@@ -3499,8 +3584,7 @@ bool CharacterHasServiceItem(W8Character* character)
     }
     if (g_status.party_item_count_1791 != 0) {
         item = g_status.party_item_pool_0021;
-        for (index = 0; index < static_cast<unsigned int>(g_status.party_item_count_1791);
-             ++index, ++item) {
+        for (index = 0; index < g_status.party_item_count_1791; ++index, ++item) {
             if (item->iItemNo != -1 && CanCharacterActivateItem(character, item) != 0) {
                 record = &g_item_records[item->iItemNo];
                 if (record->equip_class != 0x17 && record->equip_class != 0x19 &&
@@ -3520,19 +3604,19 @@ bool CharacterHasServiceItem(W8Character* character)
 char InsertItemIntoPartyPool(W8ItemInstance* item, int index)
 {
     W8ItemInstance shifted[500];
-    unsigned int count = g_status.party_item_count_1791;
-    if (count >= 500)
-        return 0;
 
-    if (count != static_cast<unsigned int>(index)) {
-        unsigned int bytes = (count - index) * sizeof(W8ItemInstance);
-        memcpy(&shifted[index], &g_status.party_item_pool_0021[index], bytes);
-        memcpy(&g_status.party_item_pool_0021[index + 1], &shifted[index], bytes);
+    if (g_status.party_item_count_1791 >= 500) {
+        return 0;
     }
-    W8ItemInstance* destination = &g_status.party_item_pool_0021[index];
-    memset(destination, 0, sizeof(*destination));
-    destination->iItemNo = -1;
-    CopyItemInstance(destination, item, 0, 1);
+    if (g_status.party_item_count_1791 != static_cast<unsigned int>(index)) {
+        memcpy(&shifted[index], &g_status.party_item_pool_0021[index],
+               (g_status.party_item_count_1791 - index) * sizeof(W8ItemInstance));
+        memcpy(&g_status.party_item_pool_0021[index + 1], &shifted[index],
+               (g_status.party_item_count_1791 - index) * sizeof(W8ItemInstance));
+    }
+    memset(&g_status.party_item_pool_0021[index], 0, sizeof(W8ItemInstance));
+    g_status.party_item_pool_0021[index].iItemNo = -1;
+    CopyItemInstance(&g_status.party_item_pool_0021[index], item, 0, 1);
     ++g_status.party_item_count_1791;
     RedistributePartyEncumbrance();
     return 1;
@@ -3548,7 +3632,7 @@ bool AddItemToParty(W8ItemInstance* item, unsigned char announce, unsigned char 
     bool stored = false;
 
     if (g_item_records[item->iItemNo].quantity_kind == 1 && !skip_stacking) {
-        while (index < static_cast<unsigned int>(g_status.party_item_count_1791)) {
+        while (index < g_status.party_item_count_1791) {
             if (MergeItemStacks(&g_status.party_item_pool_0021[index], item, &partially_merged)) {
                 stored = true;
                 break;
@@ -3865,27 +3949,26 @@ void RemoveCharacterItem(W8Character* character, W8ItemInstance* item, char arg_
         RefreshAfterItemRecordChange(item, character, 1);
     }
 
-    W8ItemInstance* pool = g_status.party_item_pool_0021;
-    if (item < pool || item > &pool[499]) {
-        return;
+    if (item >= g_status.party_item_pool_0021 && item <= &g_status.party_item_pool_0021[499]) {
+        for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
+            if (item == &g_status.party_item_pool_0021[index]) {
+                /* RemovePartyPoolEntry(index), expanded in place. */
+                if (g_status.party_item_pool_0021[index].iItemNo == -1 &&
+                    index < g_status.party_item_count_1791) {
+                    memcpy(&shifted[index], &g_status.party_item_pool_0021[index + 1],
+                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
+                    memcpy(&g_status.party_item_pool_0021[index], &shifted[index],
+                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
+                    memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1], 0,
+                           sizeof(W8ItemInstance));
+                    g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo = -1;
+                    --g_status.party_item_count_1791;
+                    RedistributePartyEncumbrance();
+                }
+                break;
+            }
+        }
     }
-
-    unsigned int count = g_status.party_item_count_1791;
-    unsigned int index = 0;
-    while (index < count && item != &pool[index]) {
-        ++index;
-    }
-    if (index == count || pool[index].iItemNo != -1) {
-        return;
-    }
-
-    unsigned int bytes = (count - index - 1) * sizeof(W8ItemInstance);
-    memcpy(&shifted[index], &pool[index + 1], bytes);
-    memcpy(&pool[index], &shifted[index], bytes);
-    memset(&pool[count - 1], 0, sizeof(W8ItemInstance));
-    pool[count - 1].iItemNo = -1;
-    --g_status.party_item_count_1791;
-    RedistributePartyEncumbrance();
 }
 
 /* The same pairing as EquipMatchingPartnerItem, but for the items that carry a
@@ -4123,21 +4206,19 @@ void SplitThrowableStackBetweenHands(W8Character* character, int equip_slot)
 void RemovePartyPoolEntry(unsigned int index)
 {
     W8ItemInstance shifted[500];
-    W8ItemInstance* pool = g_status.party_item_pool_0021;
 
-    if (pool[index].iItemNo != -1 ||
-        index >= static_cast<unsigned int>(g_status.party_item_count_1791)) {
-        return;
+    if (g_status.party_item_pool_0021[index].iItemNo == -1 &&
+        index < g_status.party_item_count_1791) {
+        memcpy(&shifted[index], &g_status.party_item_pool_0021[index + 1],
+               (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
+        memcpy(&g_status.party_item_pool_0021[index], &shifted[index],
+               (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
+        memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1], 0,
+               sizeof(W8ItemInstance));
+        g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo = -1;
+        --g_status.party_item_count_1791;
+        RedistributePartyEncumbrance();
     }
-
-    unsigned int count = g_status.party_item_count_1791;
-    unsigned int bytes = (count - index - 1) * sizeof(W8ItemInstance);
-    memcpy(&shifted[index], &pool[index + 1], bytes);
-    memcpy(&pool[index], &shifted[index], bytes);
-    memset(&pool[count - 1], 0, sizeof(W8ItemInstance));
-    pool[count - 1].iItemNo = -1;
-    --g_status.party_item_count_1791;
-    RedistributePartyEncumbrance();
 }
 
 /* Empty one of a character's eight carried slots. Retail compares the
@@ -4181,7 +4262,7 @@ void EmptyBackpackSlot(W8Character* character, int slot)
 // FUNCTION: WIZ8 0x00521cd0
 void EmptyPartyPoolEntry(int index)
 {
-    if (index < 0 || index >= g_status.party_item_count_1791) {
+    if (index < 0 || static_cast<unsigned int>(index) >= g_status.party_item_count_1791) {
         return;
     }
 
@@ -4234,8 +4315,7 @@ unsigned char FindItemByDatabaseKindOnParty(unsigned short item_kind, W8ItemInst
     }
 
     if (include_backpack == 2) {
-        for (unsigned int index = 0;
-             index < static_cast<unsigned int>(g_status.party_item_count_1791); ++index) {
+        for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
             W8ItemInstance* entry = &g_status.party_item_pool_0021[index];
             if (entry->iItemNo != -1 &&
                 g_item_records[entry->iItemNo].unidentified_name_index == item_kind) {
@@ -4412,7 +4492,7 @@ unsigned char RemovePartyItemByID(int item_id, char remove_all)
         removed = 1;
     }
 
-    for (int index = 0; index < g_status.party_item_count_1791; ++index) {
+    for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
         if (pool[index].iItemNo != item_id) {
             continue;
         }

@@ -24,9 +24,7 @@ from .paths import compile_database_relative
 _SOURCE_SUFFIXES = frozenset({".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx"})
 _SYNTHETIC_MARKER = re.compile(r"^\s*//\s*SYNTHETIC:\s+")
 _SOURCE_MARKER = re.compile(r"^\s*//\s*(?:FUNCTION|TEMPLATE|SYNTHETIC|LIBRARY|VTABLE|GLOBAL):\s+")
-_SOURCE_INDEX_SCHEMAS = frozenset(
-    {"reccmp-source-index-v2", "reccmp-source-index-v3", "reccmp-source-index-v6"}
-)
+
 LINT_ONLY_SOURCE_ROOTS = ("tests/runtime",)
 _ATTACHED_INCLUDE_FLAGS = (
     "-isystem",
@@ -106,8 +104,11 @@ def _read_source_index_document(path: Path) -> dict[str, Any]:
         raise SourceIndexError(f"{path} could not be read: {error}") from error
     if not isinstance(document, Mapping):
         raise SourceIndexError(f"{path} must contain a JSON object")
+    # The pinned reccmp projects its index without a schema field; every
+    # document that carries one was collected by an older reccmp (2-part
+    # declaration keys) and must be collected again.
     schema = document.get("schema")
-    if schema not in _SOURCE_INDEX_SCHEMAS:
+    if schema is not None:
         raise SourceIndexError(f"{path} has an unsupported source-index schema: {schema!r}")
     return dict(document)
 
@@ -229,32 +230,34 @@ def _namespace_for_source(source_file: str, targets: dict[str, dict[str, Any]]) 
     return ""
 
 
+DeclarationKey = tuple[str, str, str]
+
+
 def declarations_by_semantic_key(
     document: Mapping[str, Any],
-) -> dict[tuple[str, str], dict[str, Any]]:
-    """Map ``(target, semantic_id)`` to a Clang declaration record."""
+) -> dict[DeclarationKey, dict[str, Any]]:
+    """Map a declaration key ``(target, semantic_id, unit_id)`` to its Clang
+    record. ``unit_id`` is empty for external declarations; TU-local ones of
+    different units may share a mangled name."""
 
     return {
-        (str(entry.get("target") or ""), str(entry.get("semantic_id") or "")): entry
-        for entry in document.get("declarations") or []
-        if entry.get("semantic_id")
+        (str(entry["target"] or ""), str(entry["semantic_id"]), str(entry["unit_id"] or "")): entry
+        for entry in document["declarations"]
     }
 
 
 def declaration_for_marker(
     marker: Mapping[str, Any],
-    declarations_by_key: Mapping[tuple[str, str], Mapping[str, Any]],
+    declarations_by_key: Mapping[DeclarationKey, Mapping[str, Any]],
 ) -> dict[str, Any]:
-    """Resolve a v3 ``declaration_key`` or a legacy embedded declaration."""
+    """The declaration a marker's ``declaration_key`` names, or ``{}``."""
 
-    embedded = marker.get("declaration")
-    if isinstance(embedded, dict) and embedded:
-        return dict(embedded)
-    key = marker.get("declaration_key")
-    if isinstance(key, (list, tuple)) and len(key) >= 2:
-        found = declarations_by_key.get((str(key[0]), str(key[1])))
-        return dict(found) if found else {}
-    return {}
+    key = marker["declaration_key"]
+    if not key:
+        return {}
+    target, semantic_id, unit_id = key
+    found = declarations_by_key.get((target or "", semantic_id, unit_id or ""))
+    return dict(found) if found else {}
 
 
 def bind_marker_declarations(document: Mapping[str, Any]) -> list[dict[str, Any]]:
@@ -505,9 +508,22 @@ def _source_index_input_digest(repository: Path, database: Path) -> str:
         digest.update(identity.encode() + b"\0" + path.read_bytes() + b"\0")
     if database.is_file():
         digest.update(b"compile_commands.json\0" + database.read_bytes() + b"\0")
-    indexer_source = _analysis_indexer_binary()
-    digest.update(b"reccmp-indexer\0" + indexer_source.read_bytes())
+    # reccmp's collector and the Python deriving the index from its output.
+    for path in _reccmp_index_producers():
+        digest.update(path.name.encode() + b"\0" + path.read_bytes() + b"\0")
     return digest.hexdigest()
+
+
+def _reccmp_index_producers() -> list[Path]:
+    import reccmp.call_facts
+    import reccmp.parser
+    import reccmp.source
+
+    files = [Path(reccmp.call_facts.__file__)]
+    for package in (reccmp.source, reccmp.parser):
+        root = Path(next(iter(package.__path__)))
+        files.extend(sorted(root.glob("*.py")) + sorted(root.glob("*.cpp")))
+    return files
 
 
 def validate_source_index(repository: Path) -> dict[str, int]:
@@ -518,15 +534,12 @@ def validate_source_index(repository: Path) -> dict[str, int]:
         target: len(index.functions_by_address(target=target))
         for target in project_targets(repository)
     }
-    class_keys = {(item.target, item.semantic_id) for item in index.classes}
-    if len(class_keys) != len(index.classes):
-        raise SourceIndexError("compiler-backed source index contains duplicate class definitions")
     result: dict[str, int] = {
         "functions": sum(counts.values()),
         "wiz8_functions": counts.get("WIZ8", 0),
         "surrender_functions": counts.get("SURRENDER", 0),
         "classes": len(index.classes),
-        "vtable_classes": sum(item.vtable_address is not None for item in index.classes),
+        "vtable_classes": sum(item.vtable_address is not None for item in index.classes.values()),
         "variables": len(index.variables),
         "conflicts": len(index.conflicts),
     }
@@ -908,7 +921,8 @@ def _prepare_analysis_indexer(settings: Settings, cache: Path) -> None:
         Mount(jpeg, str(jpeg.resolve())),
         Mount(infozip, str(infozip.resolve())),
     )
-    command = [docker, "run", "--rm", "--network", "none", *_ANALYSIS_LINUX_TEMP]
+    # -i: reccmp feeds each persistent collector its jobs over stdin.
+    command = [docker, "run", "--rm", "-i", "--network", "none", *_ANALYSIS_LINUX_TEMP]
     for mount in mounts:
         command.extend(("--volume", mount.docker_argument()))
     command.extend(("-e", f"RECCMP_SOURCE_ROOT={repository}"))
@@ -929,107 +943,58 @@ def _collect_source_index(
     settings: Settings,
     *,
     force: bool = False,
-) -> tuple[SourceIndex, Path]:
+) -> SourceIndex:
     """Project adapter: host-path compile DB, then one reccmp collection."""
     cache = repository / "build" / "reccmp-source"
     host_database = host_compile_database(
         repository, database, settings, indexed_targets(repository, database)
     )
     _prepare_analysis_indexer(settings, cache)
-    return (
-        SourceIndex.from_compile_database(
-            repository,
-            host_database,
-            targets,
-            clang="/usr/bin/clang-cl",
-            # The configured indexer may itself be a Docker wrapper. reccmp's
-            # native batch mode still amortizes LLVM startup with one worker;
-            # more workers would mean one concurrent container per worker.
-            jobs=1,
-            cache_dir=cache,
-            force=force,
-        ),
+    return SourceIndex.from_compile_database(
+        repository,
         host_database,
+        targets,
+        clang="/usr/bin/clang-cl",
+        # Each worker is one persistent collector (with the Docker wrapper,
+        # one container) that takes jobs until none remain.
+        jobs=min(8, os.cpu_count() or 1),
+        cache_dir=cache,
+        force=force,
     )
 
 
-def _source_artifact_projections(
-    repository: Path,
-    host_database: Path,
-    targets: dict[str, tuple[Path, ...]],
-    cache: Path,
+def _source_index_projections(
+    index: SourceIndex,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    """Project header declarations and TU dependencies from native artifacts."""
-    import subprocess
-
-    from reccmp.source.batch import resolve_indexer
-    from reccmp.source.index import record_command, relative_unit_id
-
-    indexer = resolve_indexer(cache)
-    compiler_identity = subprocess.run(
-        ["clang++", "--version"], capture_output=True, text=True, check=False
-    ).stdout
-    indexer_digest = hashlib.sha256(indexer.read_bytes() + compiler_identity.encode()).hexdigest()
-    owned = {relative_unit_id(repository, path) for paths in targets.values() for path in paths}
+    """Header declarations and per-unit repository dependencies, from the index."""
     seen: dict[tuple[str, str], dict[str, Any]] = {}
-    dependencies: dict[str, set[str]] = {}
-    for entry in json.loads(host_database.read_text(encoding="utf-8")):
-        source = relative_unit_id(repository, entry["file"])
-        if source not in owned:
+    records: list[tuple[str, Any, bool]] = [
+        ("function", declaration, declaration.is_definition)
+        for declaration in index.declarations.values()
+    ]
+    records.extend(
+        ("global", variable, variable.definition_kind != "declaration")
+        for variable in index.variables.values()
+    )
+    for kind, record, defined in records:
+        if not record.source_file.startswith("include/wiz8/"):
             continue
-        identity = hashlib.sha256()
-        identity.update(indexer_digest.encode() + b"\0")
-        identity.update(
-            shlex.join(record_command(entry, str(indexer), "/usr/bin/clang-cl")).encode() + b"\0"
-        )
-        identity.update(Path(entry["file"]).read_bytes())
-        artifact = cache / "tu" / f"{identity.hexdigest()}.ndjson"
-        if not artifact.is_file():
-            continue
-        file_dependencies = dependencies.setdefault(source, set())
-        with artifact.open(encoding="utf-8") as stream:
-            for line in stream:
-                if not line.strip():
-                    continue
-                record = json.loads(line)
-                kind = record.get("record")
-                if kind == "dependency":
-                    file_dependencies.update(
-                        relative
-                        for path in record.get("files") or ()
-                        if (relative := compile_database_relative(str(path), repository))
-                        is not None
-                    )
-                    continue
-                if kind not in ("declaration", "variable"):
-                    continue
-                source_file = str(record.get("source_file") or "")
-                if not source_file.startswith("include/wiz8/"):
-                    continue
-                semantic_id = str(record.get("semantic_id") or "")
-                if not semantic_id:
-                    continue
-                if kind == "variable":
-                    defined = record.get("definition_kind") != "declaration"
-                else:
-                    defined = bool(record.get("is_definition"))
-                key = (source_file, semantic_id)
-                projected = {
-                    "source_file": source_file,
-                    "semantic_id": semantic_id,
-                    "qualified_name": str(record.get("qualified_name") or ""),
-                    "kind": "global" if kind == "variable" else "function",
-                    "member": bool(record.get("owning_class")),
-                    "defined": defined,
-                    "line": int(record.get("line") or 0),
-                }
-                previous = seen.get(key)
-                if previous is None or (defined and not previous["defined"]):
-                    seen[key] = projected
+        key = (record.source_file, record.semantic_id)
+        previous = seen.get(key)
+        if previous is None or (defined and not previous["defined"]):
+            seen[key] = {
+                "source_file": record.source_file,
+                "semantic_id": record.semantic_id,
+                "qualified_name": record.qualified_name,
+                "kind": kind,
+                "member": bool(getattr(record, "owning_class", None)),
+                "defined": defined,
+                "line": record.line,
+            }
     header_declarations = [seen[key] for key in sorted(seen)]
     translation_unit_dependencies = [
-        {"source_file": source, "file_dependencies": sorted(paths)}
-        for source, paths in sorted(dependencies.items())
+        {"source_file": unit, "file_dependencies": list(paths)}
+        for unit, paths in sorted(index.unit_dependencies.items())
     ]
     return header_declarations, translation_unit_dependencies
 
@@ -1075,16 +1040,9 @@ def write_source_index(settings: Settings, *, force: bool = False) -> dict[str, 
         )
         for target, source_roots in roots.items()
     }
-    index, host_database = _collect_source_index(
-        repository, database, targets, settings, force=force
-    )
+    index = _collect_source_index(repository, database, targets, settings, force=force)
     document = index.to_dict()
-    header_declarations, dependencies = _source_artifact_projections(
-        repository,
-        host_database,
-        targets,
-        repository / "build" / "reccmp-source",
-    )
+    header_declarations, dependencies = _source_index_projections(index)
     document["header_declarations"] = header_declarations
     document["translation_unit_dependencies"] = dependencies
     content = json.dumps(document, separators=(",", ":")) + "\n"

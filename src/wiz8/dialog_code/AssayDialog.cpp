@@ -896,17 +896,13 @@ unsigned char W8AssayDialog::PopulateRequirements()
             break;
         }
         switch (g_status.rpc_races_243a[us_index]) {
-        case 0xb:
-            frame = 0x1e;
-            tooltip_index = 0x28f;
+        case 0xd:
+            frame = 0x16;
+            tooltip_index = 0x291;
             break;
         case 0xc:
             frame = 0x18;
             tooltip_index = 0x290;
-            break;
-        case 0xd:
-            frame = 0x16;
-            tooltip_index = 0x291;
             break;
         case 0xe:
             frame = 0x1a;
@@ -915,6 +911,10 @@ unsigned char W8AssayDialog::PopulateRequirements()
         case 0xf:
             frame = 0x1c;
             tooltip_index = 0x293;
+            break;
+        case 0xb:
+            frame = 0x1e;
+            tooltip_index = 0x28f;
             break;
         default:
             frame = 8;

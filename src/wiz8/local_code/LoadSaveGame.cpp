@@ -1422,33 +1422,16 @@ unsigned char VerifyDataSubdirs(void)
 }
 
 /* Walks the item's sibling chain and writes each record whole. Two reads go
-   through the head of the chain instead of the item being written: the sector
-   value copied into the current record is read from pItemInfo->pOwner, and the
-   bit-3 clear lands on pItemInfo rather than pItem. The canonical holds the
-   head in EDI for the whole loop and never reloads it, so this is the original
-   source naming the parameter where it meant the cursor, not a scheduling
-   artifact, and it is reproduced literally.
-   As in SaveFactState, the bytes-written out-parameter is the address of the
-   function's own second parameter: the head is already live in a register, so
-   the incoming stack slot is dead and doubles as the scratch the callee
-   requires. That is why the head is copied into a local at all -- reading the
-   parameter directly costs a reload at every use, because taking its address
-   keeps VC6 from enregistering it.
-   The position is copied field by field rather than as a whole vector: a class
-   assignment makes VC6 inline the generated operator=, which materializes the
-   destination address into a register and costs two bytes the canonical does
-   not spend. Written out, VC6 issues the three loads ahead of the three stores,
-   which is the canonical encoding exactly.
-   What is left is the epic's recurring register-role swap, and only in the
-   entry pair: the canonical loads the head into EDI and copies EDI to ESI,
-   while VC6 here loads ESI and copies ESI to EDI. Size, instruction count and
-   every other encoding agree, and neither declaration order nor a guarded
-   do-while moves it. */
+   through the head of the chain instead of the item being written: the
+   representation flags copied into the current record are read from the head's
+   rep, and the bit-3 clear lands on the head rather than the cursor. Retail
+   holds the head in a register for the whole loop and never reloads it, so this
+   is the original source naming the parameter where it meant the cursor. */
 // FUNCTION: WIZ8 0x00514be0
 unsigned char SaveItemFile(int handle, W8WorldItem* item_info)
 {
-    W8WorldItem* first = item_info;
-    W8WorldItem* item = first;
+    W8WorldItem* item = item_info;
+    unsigned int bytes_written;
 
     while (item != 0) {
         item->saved_marker = 1;
@@ -1456,12 +1439,12 @@ unsigned char SaveItemFile(int handle, W8WorldItem* item_info)
             srVector3T<float> position;
             item->p3D->m_pRep->GetLocation004B8890(&position);
             item->position = position;
-            item->entity_flags = static_cast<W8ItemRep*>(first->p3D->m_pRep)->flags;
+            item->entity_flags = static_cast<W8ItemRep*>(item_info->p3D->m_pRep)->flags;
         }
         if (g_level_status_loading != 0) {
-            first->entity_flags &= ~8;
+            item_info->entity_flags &= ~8;
         }
-        if (!FileWrite(handle, item, sizeof(W8WorldItem), (unsigned int*)&item_info)) {
+        if (!FileWrite(handle, item, sizeof(W8WorldItem), &bytes_written)) {
             return 0;
         }
         item = item->next;

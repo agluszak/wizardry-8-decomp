@@ -221,36 +221,36 @@ void ApplyPartyEffectSlots(const W8EffectSlot* source, W8GameplayModifierBlock* 
             unsigned char adjusted = amount;
 
             switch (slot->effect_id) {
-            case 8:
-                AdjustByteByPercent(&adjusted, percent);
-                target->light_47 = adjusted << 1;
-                break;
-            case 0x11:
-                target->out_of_formation = 1;
-                break;
             case 0x14:
                 adjusted = static_cast<unsigned char>((slot->amount + 1) / 2);
                 AdjustByteByPercent(&adjusted, percent);
                 target->hit_bonus_01 += adjusted;
-                break;
-            case 0x1a:
-                adjusted = static_cast<unsigned char>((slot->amount + 5) * 5);
-                AdjustByteByPercent(&adjusted, percent);
-                target->missile_deflect_chance_49 = adjusted;
                 break;
             case 0x20:
                 adjusted = static_cast<unsigned char>((slot->amount + 1) / 2);
                 AdjustByteByPercent(&adjusted, percent);
                 target->armor_bonus_05 += adjusted;
                 break;
-            case 0x21:
-                AdjustByteByPercent(&adjusted, percent);
-                target->value_48 = adjusted;
-                break;
             case 0x28:
                 adjusted = static_cast<unsigned char>(slot->amount * 4 + 7);
                 AdjustByteByPercent(&adjusted, percent);
                 target->damage_reduction_adjustment += adjusted;
+                break;
+            case 0x11:
+                target->out_of_formation = 1;
+                break;
+            case 8:
+                AdjustByteByPercent(&adjusted, percent);
+                target->light_47 = adjusted << 1;
+                break;
+            case 0x21:
+                AdjustByteByPercent(&adjusted, percent);
+                target->value_48 = adjusted;
+                break;
+            case 0x1a:
+                adjusted = static_cast<unsigned char>((slot->amount + 5) * 5);
+                AdjustByteByPercent(&adjusted, percent);
+                target->missile_deflect_chance_49 = adjusted;
                 break;
             case 0x2d:
                 target->sight_override_4a = 1;

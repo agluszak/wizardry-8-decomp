@@ -27,6 +27,11 @@
 #include "surrender/srTypeRegistry.h"
 
 #include <string.h>
+#include "wiz8/local_code/CombatSound.h"
+#include "wiz8/local_code/Configuration.h"
+#include "wiz8/engine_code/Missile.h"
+#include "LibraryDataBase.h"
+#include <stdlib.h>
 
 /*
  * Local Code\Gameloop.cpp. GameloopExit at 0x004E34B0 asserts this unit
@@ -87,6 +92,28 @@ W8ScreenStateHandlers g_screen_handlers[W8_SCREEN_COUNT] = {
 int g_previous_screen_id = -1;
 // GLOBAL: WIZ8 0x00647bc4
 int g_suspended_screen_id = -1;
+
+// FUNCTION: WIZ8 0x004e3290
+void ShutdownGame(void)
+{
+    int index;
+
+    ReleaseHitSoundDatabase();
+    ReleaseMissileDatabase();
+    for (index = 0; index < 15; ++index) {
+        free(g_font_state_palettes[index]);
+        g_font_state_palettes[index] = 0;
+    }
+    for (index = 0; index < W8_SCREEN_COUNT; ++index) {
+        g_screen_handlers[index].finalize();
+    }
+    if (g_screen_return_stack) {
+        DeleteStack(g_screen_return_stack);
+        g_screen_return_stack = 0;
+    }
+    SaveGameConfiguration();
+    ShutDownFileDatabase();
+}
 
 // FUNCTION: WIZ8 0x004e3340
 void GameLoop(void)

@@ -117,7 +117,7 @@ void UpdateGameClock(int elapsed)
             }
         }
         for (unsigned int index = 0;
-             index < static_cast<unsigned int>(g_status.party_item_count_1791); ++index) {
+             index < g_status.party_item_count_1791; ++index) {
             W8ItemInstance* item = &g_status.party_item_pool_0021[index];
             if (item->iItemNo == 0x266) {
                 AddItemUses(item, static_cast<char>(hours));

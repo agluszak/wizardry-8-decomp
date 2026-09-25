@@ -410,14 +410,16 @@ bool ArnikaExitButton(Trigger* pTrigger)
                      0x3ed, 0);
     }
     g_exit_door_prop = pTrigger->m_pProp;
-    if (GetLocationVarIDByName("Teleporting") == -1) {
+    if (GetLocationVarIDByName("Teleporting") != -1) {
+        if (GetLocationVarValueByName("Teleporting") == 0) {
+            SetTriggerVariableByName("Teleporting", 1);
+            g_master_functions->Add(ArnikaTeleportWatch);
+        } else {
+            SetTriggerVariableByName("Teleporting", 0);
+        }
+    } else {
         CreateLocationVar("Teleporting", 1);
         g_master_functions->Add(ArnikaTeleportWatch);
-    } else if (GetLocationVarValueByName("Teleporting") == 0) {
-        SetTriggerVariableByName("Teleporting", 1);
-        g_master_functions->Add(ArnikaTeleportWatch);
-    } else {
-        SetTriggerVariableByName("Teleporting", 0);
     }
     g_trigger_feedback = 1;
     SetFact(0xcd, 1, 0);

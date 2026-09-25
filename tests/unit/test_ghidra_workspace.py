@@ -204,7 +204,7 @@ def test_source_projection_freshness_stale_after_index_change(tmp_path: Path) ->
     build.mkdir()
     index = build / "source-index.json"
     index.write_text(
-        '{"schema": "reccmp-source-index-v2", "markers": []}',
+        '{"markers": []}',
         encoding="utf-8",
     )
     workspace._write_project_owner(settings)
@@ -238,7 +238,7 @@ def test_compiler_projection_stale_when_pdb_hash_changes(tmp_path: Path) -> None
     pdb.write_bytes(b"new")
     index = settings.repo_dir / "build" / "source-index.json"
     index.write_text(
-        '{"schema": "reccmp-source-index-v2", "markers": []}',
+        '{"markers": []}',
         encoding="utf-8",
     )
     from wiz8decomp.paths import sha256_file

@@ -353,8 +353,7 @@ unsigned int CharacterPointerToPartySlot(const W8Character* character)
     }
 
     srAssertFail("FALSE", "C:\\Projects\\Wizardry 8\\Local Code\\UtilityFunctions.cpp", 0x1d1,
-                 reinterpret_cast<const char*>(
-                     String("PCPtrToPCSlot: ERROR - no match on ptr %d", character)));
+                 FormatString("PCPtrToPCSlot: ERROR - no match on ptr %d", character));
     return 0;
 }
 
@@ -567,9 +566,8 @@ int RPCPtrToPCSlot(const W8MonsterManagerEntry* rpc)
         }
         ++slot;
     }
-    UINT8* message = String("RPCPtrToPCSlot: ERROR - no match on ptr %d", rpc);
     srAssertFail("FALSE", "C:\\Projects\\Wizardry 8\\Local Code\\UtilityFunctions.cpp", 0x385,
-                 reinterpret_cast<const char*>(message));
+                 FormatString("RPCPtrToPCSlot: ERROR - no match on ptr %d", rpc));
     return 0;
 }
 

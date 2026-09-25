@@ -251,14 +251,6 @@ unsigned char DispatchWorldCursorNodeCommand(W8MonsterInfo* info, int command, .
             }
             g_active_cursor_node = node;
             break;
-        case 3:
-            if (node != 0) {
-                int type = GetWorldCursorNodeParameter(node, 2);
-                if (type == 3) {
-                    result = g_world_cursor_node_handlers[3](type, node, context);
-                }
-            }
-            break;
         case 4:
             if (node != 0 && GetWorldCursorNodeParameter(node, 2) == 2) {
                 result = g_world_cursor_node_handlers[2](4, node, context);
@@ -267,6 +259,14 @@ unsigned char DispatchWorldCursorNodeCommand(W8MonsterInfo* info, int command, .
         case 8:
             if (node != 0 && GetWorldCursorNodeParameter(node, 2) == 7) {
                 result = g_world_cursor_node_handlers[7](8, node, context);
+            }
+            break;
+        case 3:
+            if (node != 0) {
+                int type = GetWorldCursorNodeParameter(node, 2);
+                if (type == 3) {
+                    result = g_world_cursor_node_handlers[3](type, node, context);
+                }
             }
             break;
         default:

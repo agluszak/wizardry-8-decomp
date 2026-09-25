@@ -38,6 +38,19 @@ def test_unmarked_added_cast_is_reported() -> None:
     ]
 
 
+def test_c_style_cast_gate_ignores_cast_spelling_inside_string_literals() -> None:
+    diff = _diff(
+        "src/wiz8/example.cpp",
+        "@@ -0,0 +1,2 @@",
+        '+    srAssertFail("(usTemp < (UINT16)ubNumFrames)", source, line, message);',
+        "+    return (int)value;",
+    )
+
+    assert _added_c_style_casts(diff) == [
+        {"file": "src/wiz8/example.cpp", "line": 2, "text": "return (int)value;"}
+    ]
+
+
 def test_marker_with_reason_passes() -> None:
     diff = _diff(
         "include/wiz8/example.h",

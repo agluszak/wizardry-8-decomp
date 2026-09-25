@@ -1,7 +1,32 @@
+import hashlib
 from pathlib import Path
 
 import pytest
+from reccmp.parser.reader import AnchorCandidate, MarkerAnchor, MarkerBlock, MarkerComment
+from reccmp.source import SourceIndex
 from wiz8decomp.reccmp_lint import ReccmpLintError, validate_reccmp_annotations
+
+
+def _write_index(repository: Path, *sources: tuple[str, str]) -> None:
+    """The index `wiz8 check` collects, for one marked function per file."""
+    blocks = [
+        MarkerBlock(
+            relative,
+            (MarkerComment(marker, 1, 1, 0),),
+            MarkerAnchor(2, 1, (AnchorCandidate("function", f"?{relative}", "f", True, 2, 2),)),
+        )
+        for relative, marker in sources
+    ]
+    SourceIndex(
+        declarations={},
+        classes={},
+        markers=(),
+        marker_blocks=blocks,
+        source_digests={
+            relative: hashlib.sha256((repository / relative).read_bytes()).hexdigest()
+            for relative, _ in sources
+        },
+    ).write(repository / "build" / "source-index.json")
 
 
 def test_decomplint_covers_every_configured_source_target(tmp_path: Path) -> None:
@@ -33,6 +58,11 @@ def test_decomplint_covers_every_configured_source_target(tmp_path: Path) -> Non
     )
     (surrender / "core.cpp").write_text(
         "// FUNCTION: SURRENDER 0x10001000\nvoid RenderFunction() {}\n", encoding="utf-8"
+    )
+    _write_index(
+        tmp_path,
+        ("src/wiz8/game.cpp", "// FUNCTION: WIZ8 0x00401000"),
+        ("src/surrender/core.cpp", "// FUNCTION: SURRENDER 0x10001000"),
     )
 
     result = validate_reccmp_annotations(tmp_path)

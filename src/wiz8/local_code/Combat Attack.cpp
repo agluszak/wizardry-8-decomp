@@ -1241,10 +1241,10 @@ wchar_t* SpellTargetString(W8TargetSource* source, W8CombatSlot* target)
         return FormatWideString(GetMonsterGroupName(monster_group));
     case W8_TARGET_KIND_FIVE:
         return gppStringList[0x1e4];
-    case W8_TARGET_KIND_ITEM:
-        return FormatWideString(gppStringList[0x1e6], FormatItemDisplayName(target->pPCItem, 0));
     case W8_TARGET_KIND_EIGHT:
         return gppStringList[0x1e5];
+    case W8_TARGET_KIND_ITEM:
+        return FormatWideString(gppStringList[0x1e6], FormatItemDisplayName(target->pPCItem, 0));
     default:
         srAssertFail(
             "FALSE", COMBAT_ATTACK_CPP, 0x1a2b,
@@ -1272,9 +1272,9 @@ int GetTargetArmorClass(W8CombatSlot* target, int attack_mode)
     W8MonsterInfo* monster_info;
     W8MonsterRecord* record;
     unsigned int monster_list_index;
-    /* Retail continued with an uninitialized base after the assertion; a
-       deterministic zero models that defect path. */
-    int base = 0;
+    /* Retail continued with an uninitialized base after the assertion; the recovery keeps that
+       read. */
+    int base;
 
     if (target->iType == W8_TARGET_KIND_MONSTER) {
         monster_list_index =
@@ -1424,32 +1424,32 @@ void StartMonsterAttackCycle(W8MonsterInfo* monster_info, int action_detail)
     signed char cycle;
 
     switch (action_detail) {
-    case 0:
-        cycle = 9;
-        break;
     case 1:
         cycle = 10;
         break;
-    case 2:
-        cycle = 11;
-        break;
-    case 3:
-        cycle = 12;
+    case 8:
+        cycle = 17;
         break;
     case 4:
         cycle = 13;
         break;
-    case 5:
-        cycle = 14;
+    case 0:
+        cycle = 9;
         break;
     case 6:
         cycle = 15;
         break;
+    case 2:
+        cycle = 11;
+        break;
+    case 5:
+        cycle = 14;
+        break;
     case 7:
         cycle = 16;
         break;
-    case 8:
-        cycle = 17;
+    case 3:
+        cycle = 12;
         break;
     default:
         srAssertFail(
@@ -3387,8 +3387,7 @@ void QueueFumbleReaction(int party_slot)
 }
 
 /* When GetMonsterByLocationID returns NULL the sight-flag call is skipped and
-   retail read `secondary` uninitialized; deterministic zero flags model that
-   defect path. */
+   retail read `secondary` uninitialized; the recovery keeps that read. */
 /* The missile dispatcher shared by the character and monster attack paths:
    resolves both endpoints' world positions, defers the target when a combat-
    ending missile is already engaged, folds the range category's base speed
@@ -3401,8 +3400,8 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
 {
     unsigned int target_flag;
     unsigned char blind = 0;
-    unsigned char primary = 0;
-    unsigned char secondary = 0;
+    unsigned char primary;
+    unsigned char secondary;
     unsigned char position_ok;
     srVector3T<float> source_position;
     srVector3T<float> target_position;

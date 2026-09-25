@@ -123,6 +123,7 @@ _C_STYLE_CAST = re.compile(
     r"S32|U32|STR8?|STR16|(?:W8|sr|st)[A-Z][A-Za-z0-9_]*(?:::\w+)*)"
     r"\s*(?:\*+\s*)?(?:const\s*)?\)\s*(?=[A-Za-z_(&*+\-!~])"
 )
+_CPP_STRING_LITERAL = re.compile(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'')
 
 
 class CastGateError(RuntimeError):
@@ -192,6 +193,7 @@ def added_lines_without_marker(
     marker: re.Pattern[str],
     *,
     ignore_moved: bool = True,
+    code_only: bool = False,
     prefixes: tuple[str, ...] = SCOPE_PREFIXES,
 ) -> list[dict[str, Any]]:
     """Added source lines matching ``needle`` that lack ``marker``.
@@ -213,10 +215,11 @@ def added_lines_without_marker(
             if raw.startswith("+"):
                 content = raw[1:]
                 stripped = content.strip()
+                scanned = _CPP_STRING_LITERAL.sub(lambda match: " " * len(match.group()), content)
                 if (
                     current
                     and current.startswith(prefixes)
-                    and needle.search(content)
+                    and needle.search(scanned if code_only else content)
                     and not marker.search(content)
                 ):
                     added.append({"file": current, "line": line_number, "text": stripped[:200]})
@@ -224,7 +227,8 @@ def added_lines_without_marker(
                 line_number += 1
             elif raw.startswith("-"):
                 content = raw[1:]
-                if needle.search(content):
+                scanned = _CPP_STRING_LITERAL.sub(lambda match: " " * len(match.group()), content)
+                if needle.search(scanned if code_only else content):
                     removed[content.strip()] += 1
                 old_remaining -= 1
             elif raw.startswith(" "):
@@ -273,7 +277,7 @@ def _changed_files(diff: str) -> set[str]:
 def _added_c_style_casts(diff: str) -> list[dict[str, Any]]:
     return [
         item
-        for item in added_lines_without_marker(diff, _C_STYLE_CAST, _C_STYLE_MARKER)
+        for item in added_lines_without_marker(diff, _C_STYLE_CAST, _C_STYLE_MARKER, code_only=True)
         if str(item["file"]).lower().endswith(_CPP_SUFFIXES)
     ]
 

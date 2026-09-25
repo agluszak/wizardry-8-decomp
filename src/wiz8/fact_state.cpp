@@ -29,128 +29,6 @@
 #include "wiz8/local_screens/PartySelectionScreen.h"
 #include "wiz8/local_code/PartyImport.h"
 
-/* Unresolved fragment: five of the six functions lie in the anchored gap
-   between Sight.cpp (ends 0x00505F30) and NPC Scripting Facts.cpp
-   (0x00506670); 0x005080F0 sits past that hull in the gap before
-   NPC Manager.cpp (0x00509CD0). Two clusters, no proven ownership. */
-
-// GLOBAL: WIZ8 0x00689b78
-unsigned char g_fact_values[1000];
-
-// FUNCTION: WIZ8 0x00506280
-unsigned char GetFact(int fact_id)
-{
-    unsigned char value;
-    wchar_t display_value[10];
-
-    if (fact_id > 1000) {
-        return 0;
-    }
-
-    value = EvaluateFact(fact_id);
-    if (g_status.log_fact_checks_3120) {
-        if (value) {
-            wcscpy(display_value, L"TRUE");
-        } else {
-            wcscpy(display_value, L"FALSE");
-        }
-        ShowNoticef(5, L"Checking fact %S which is %s", g_fact_records[fact_id].symbolic_name,
-                    display_value);
-    }
-    return value;
-}
-
-// FUNCTION: WIZ8 0x005061a0
-void SetFact(int fact_id, unsigned char value, unsigned char suppress_side_effects)
-{
-    unsigned char previous_value;
-    wchar_t display_value[10];
-
-    if (fact_id > 1000) {
-        return;
-    }
-
-    previous_value = g_fact_values[fact_id];
-    g_fact_values[fact_id] = value;
-
-    if (fact_id < (int)gXStatus.uiFactsInDatabase) {
-        if (value) {
-            sprintf((char*)display_value, "TRUE");
-        } else {
-            sprintf((char*)display_value, "FALSE");
-        }
-    }
-
-    if (!suppress_side_effects) {
-        if (g_fact_values[fact_id] != previous_value) {
-            RecordFactChangeForJournal(fact_id);
-        }
-        HandleFactChange(fact_id, value);
-
-        if (g_status.log_fact_checks_3120) {
-            if (value) {
-                wcscpy(display_value, L"TRUE");
-            } else {
-                wcscpy(display_value, L"FALSE");
-            }
-            ShowNoticef(5, L"%S set to %s", g_fact_records[fact_id].symbolic_name, display_value);
-        }
-    }
-}
-
-/* The whole 1001-byte fact array minus its last entry goes to the save file in
-   one write. The original passes the address of its own parameter as the
-   bytes-written out-parameter: the handle has already been copied into a
-   register, so the incoming slot is dead and doubles as the scratch the callee
-   requires. Reproduced literally, because a separate local would cost a stack
-   frame the canonical body does not have. */
-// FUNCTION: WIZ8 0x00506480
-void SaveFactState(int save_handle)
-{
-    FileWrite(save_handle, g_fact_values, 1000, (unsigned int*)&save_handle);
-}
-
-/* Clears every fact, then seeds the ones a fresh party starts with. A party
-   imported from Wizardry 7 is the skip-loose-character-check path: ending
-   choice 1/2/other maps to facts 0x4c/0x4b/0x4d, then two independent import
-   bytes can set 0x199 and 0x7b. The 0x7b path unsuppresses and returns; the
-   other imported path and the new-game path unsuppress at the shared exit. */
-// FUNCTION: WIZ8 0x00506310
-void InitializeFactState(void)
-{
-    /* Retail memsets 1000 of the 1001 bytes - index 1000 stays BSS-zeroed. */
-    memset(g_fact_values, 0, 1000);
-    SetFactNotificationsSuppressed(1);
-    if (g_status.skip_loose_character_check_2444) {
-        SetFact(0x75, 1, 0);
-        switch (g_wiz7_ending) {
-        case 1:
-            SetFact(0x4c, 1, 0);
-            break;
-        case 2:
-            SetFact(0x4b, 1, 0);
-            break;
-        default:
-            SetFact(0x4d, 1, 0);
-            break;
-        }
-        if (g_import_flags[0xb]) {
-            SetFact(0x199, 1, 0);
-        }
-        if (g_import_flags[5]) {
-            SetFact(0x7b, 1, 0);
-            SetFactNotificationsSuppressed(0);
-            return;
-        }
-    } else {
-        SetFact(0x4e, 1, 0);
-        SetFact(0x279, 1, 0);
-        SetFact(0x27a, 1, 0);
-        SetFact(0x27b, 1, 0);
-    }
-    SetFactNotificationsSuppressed(0);
-}
-
 /* Runs once the new-game level has finished loading: records the two starting
    transcript keywords from string-table entries 0x7e7/0x7e8 and
    seeds the starting fact set, all with notifications suppressed. */
@@ -194,14 +72,14 @@ static __inline unsigned char CheckFactLogged(int fact_id)
 }
 
 /* Reads the fact array back, then re-applies the consequences that do not
-   survive a save. As in SaveFactState the handle's own incoming slot doubles as
-   the bytes-read scratch. */
+   survive a save. */
 // FUNCTION: WIZ8 0x005064a0
 void LoadFactState(int save_handle)
 {
     W8NpcState* npc;
+    unsigned int bytes_read;
 
-    FileRead(save_handle, g_fact_values, 1000, (unsigned int*)&save_handle);
+    FileRead(save_handle, g_fact_values, 1000, &bytes_read);
     if (CheckFactLogged(0x44)) {
         npc = GetNpcStateByKind(0x20);
         if (npc && npc->has_monster) {
@@ -235,26 +113,10 @@ unsigned char EvaluateFact(int fact_id)
             return GetFactionDisposition(W8_FACTION_HIGARDI_BANK) == W8_FACTION_FRIENDLY;
         }
         switch (fact_id) {
-        case 0x2c:
-        case 0x2e:
-        triple:
-            count = FindItemOnParty(0x243, 0, 0, 2, 0) != 0;
-            if (FindItemOnParty(0x242, 0, 0, 2, 0) != 0) {
-                ++count;
-            }
-            if (FindItemOnParty(0x244, 0, 0, 2, 0) != 0) {
-                ++count;
-            }
-            if (fact_id == 0x103) {
-                return count == 1;
-            }
-            if (fact_id == 0x2e) {
-                return count == 2;
-            }
-            if (fact_id == 0x2c) {
-                return count == 3;
-            }
-            return 0;
+        case 0xab:
+            return FindItemOnParty(0x27b, 0, 0, 2, 0);
+        case 0xca:
+            return GetFactionDisposition(W8_FACTION_HIGARDI_COMMON) == W8_FACTION_FRIENDLY;
         case 0x3d:
             value = EvaluateFact(0x3a);
             if (g_status.log_fact_checks_3120) {
@@ -274,20 +136,33 @@ unsigned char EvaluateFact(int fact_id)
                 }
             }
             return 0;
+        case 0xc9:
+            return GetFactionDisposition(W8_FACTION_HIGARDI_HLL) == W8_FACTION_FRIENDLY;
+        case 0x93:
+            return CountLeadingPartySlots() == 2;
+        case 0xb5: {
+            unsigned int slot = 0;
+            while (g_status.buffers.XChar[slot].fOccupied == 0 ||
+                   g_status.buffers.Char[slot].iRace != 10 ||
+                   g_status.buffers.Char[slot].highest_condition > 0xe) {
+                if (slot >= 7) {
+                    return 0;
+                }
+                ++slot;
+            }
+            break;
+        }
+        case 0xbd:
+            return NpcLeadHasNameStyle(0x10) != 0;
+        case 0xbe:
+            return NpcLeadHasNameStyle(0x11) != 0;
         case 0x4f:
             if (NpcLeadHasNameStyle(0x11) == 0 || NpcLeadHasNameStyle(0x10) == 0) {
                 return 0;
             }
             break;
-        case 0x5b:
-            count = FindItemOnParty(0x242, 0, 0, 2, 0) != 0;
-            if (FindItemOnParty(0x243, 0, 0, 2, 0) != 0) {
-                ++count;
-            }
-            if (FindItemOnParty(0x244, 0, 0, 2, 0) != 0) {
-                ++count;
-            }
-            return count >= 2;
+        case 0xc3:
+            return NpcLeadHasNameStyle(0x18) != 0;
         case 0x69: {
             W8NpcState* npc = GetNpcStateByKind(0x2b);
             if (npc == 0) {
@@ -326,48 +201,67 @@ unsigned char EvaluateFact(int fact_id)
             break;
         case 0x8f:
             return EveryCharacterHasItem(0x1e5, 0);
-        case 0x93:
-            return CountLeadingPartySlots() == 2;
         case 0xa0:
             return FindItemOnParty(0x268, 0, 0, 2, 0);
-        case 0xab:
-            return FindItemOnParty(0x27b, 0, 0, 2, 0);
-        case 0xb5: {
-            unsigned int slot = 0;
-            while (g_status.buffers.XChar[slot].fOccupied == 0 ||
-                   g_status.buffers.Char[slot].iRace != 10 ||
-                   g_status.buffers.Char[slot].highest_condition > 0xe) {
-                if (slot >= 7) {
-                    return 0;
-                }
-                ++slot;
+        case 0x5b:
+            count = FindItemOnParty(0x242, 0, 0, 2, 0) != 0;
+            if (FindItemOnParty(0x243, 0, 0, 2, 0) != 0) {
+                ++count;
             }
-            break;
-        }
-        case 0xbd:
-            return NpcLeadHasNameStyle(0x10) != 0;
-        case 0xbe:
-            return NpcLeadHasNameStyle(0x11) != 0;
-        case 0xc3:
-            return NpcLeadHasNameStyle(0x18) != 0;
-        case 0xc9:
-            return GetFactionDisposition(W8_FACTION_HIGARDI_HLL) == W8_FACTION_FRIENDLY;
-        case 0xca:
-            return GetFactionDisposition(W8_FACTION_HIGARDI_COMMON) == W8_FACTION_FRIENDLY;
+            if (FindItemOnParty(0x244, 0, 0, 2, 0) != 0) {
+                ++count;
+            }
+            return count >= 2;
+        case 0x2c:
+        case 0x2e:
+        triple:
+            count = FindItemOnParty(0x243, 0, 0, 2, 0) != 0;
+            if (FindItemOnParty(0x242, 0, 0, 2, 0) != 0) {
+                ++count;
+            }
+            if (FindItemOnParty(0x244, 0, 0, 2, 0) != 0) {
+                ++count;
+            }
+            if (fact_id == 0x103) {
+                return count == 1;
+            }
+            if (fact_id == 0x2e) {
+                return count == 2;
+            }
+            if (fact_id == 0x2c) {
+                return count == 3;
+            }
+            return 0;
         }
     } else if (fact_id < 0x195) {
         if (fact_id == 0x194) {
             return GetFactionDisposition(W8_FACTION_TRYNNIE) == W8_FACTION_FRIENDLY;
         }
         switch (fact_id) {
+        case 0x172:
+            return FindItemOnParty(0x239, 0, 0, 2, 0);
+        case 0x183:
+            return GetFactionDisposition(W8_FACTION_UMPANI) == W8_FACTION_FRIENDLY;
+        case 0x11e:
+            return GetFactionDisposition(W8_FACTION_TRANG) == W8_FACTION_FRIENDLY;
         case 0xcc:
             return GetFactionDisposition(W8_FACTION_BROTHERHOOD) == W8_FACTION_FRIENDLY;
-        case 0xce:
-            return FindItemOnParty(0x294, 0, 0, 2, 0);
         case 0xd1:
             return NpcLeadHasNameStyle(7) != 0;
-        case 0x103:
-            goto triple;
+        case 0x14c:
+            if (g_status.rpc_active_2489 != 0) {
+                unsigned int slot = 0;
+                do {
+                    if (g_status.buffers.XChar[slot].fOccupied != 0 &&
+                        slot == static_cast<unsigned int>(g_status.sedexus_party_slot_247f)) {
+                        return 1;
+                    }
+                    ++slot;
+                } while (slot < 8);
+            }
+            return 0;
+        case 0xce:
+            return FindItemOnParty(0x294, 0, 0, 2, 0);
         case 0x10c:
             value = EvaluateFact(0x22);
             if (g_status.log_fact_checks_3120) {
@@ -397,34 +291,18 @@ unsigned char EvaluateFact(int fact_id)
                 return 1;
             }
             return 0;
-        case 0x11e:
-            return GetFactionDisposition(W8_FACTION_TRANG) == W8_FACTION_FRIENDLY;
-        case 0x14c:
-            if (g_status.rpc_active_2489 != 0) {
-                unsigned int slot = 0;
-                do {
-                    if (g_status.buffers.XChar[slot].fOccupied != 0 &&
-                        slot == static_cast<unsigned int>(g_status.sedexus_party_slot_247f)) {
-                        return 1;
-                    }
-                    ++slot;
-                } while (slot < 8);
-            }
-            return 0;
-        case 0x172:
-            return FindItemOnParty(0x239, 0, 0, 2, 0);
-        case 0x183:
-            return GetFactionDisposition(W8_FACTION_UMPANI) == W8_FACTION_FRIENDLY;
+        case 0x103:
+            goto triple;
         }
     } else if (fact_id < 0x26a) {
         if (fact_id == 0x269) {
             return FindItemOnParty(0x239, 0, 0, 2, 0) == 0;
         }
         switch (fact_id) {
-        case 0x19a:
-            return NpcLeadHasNameStyle(0x38) != 0;
         case 0x1a8:
             return GetFactionDisposition(W8_FACTION_RAPAX_COMMON) == W8_FACTION_FRIENDLY;
+        case 0x19a:
+            return NpcLeadHasNameStyle(0x38) != 0;
         case 0x216: {
             if (NpcLeadHasNameStyle(0x18) == 0) {
                 return g_fact_values[fact_id];

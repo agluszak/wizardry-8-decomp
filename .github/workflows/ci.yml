@@ -324,12 +324,20 @@ jobs:
             "$WIZ8_WORK_DIR/fid/sources/unpacked/infozip-unzip-5.4"
           command -v llvm-undname
           command -v wine
+      # reccmp comparison consumes the compiler-backed source index, which
+      # needs the analysis image's Clang/LLVM tooling.
       - name: Load VC6 analysis image
-        if: github.event_name == 'pull_request'
         uses: ./.github/actions/load-vc6-image
-      - name: Load VC6 product image
-        if: github.event_name != 'pull_request'
-        uses: ./.github/actions/load-vc6-product
+      - name: Restore compiler-backed analysis cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            build/clang
+            build/reccmp-source
+            build/source-index.json
+          key: analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
+          restore-keys: |
+            analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-
       - name: Restore incremental WIZ8 comparison build
         uses: actions/cache@v4
         with:
@@ -346,8 +354,7 @@ jobs:
           cache-key: ${{ secrets.WIZ8_CACHE_KEY }}
       - name: Build WIZ8 comparison products
         run: uv run wiz8 build match
-      - name: Index WIZ8 source for call verification
-        if: github.event_name == 'pull_request'
+      - name: Index WIZ8 source
         run: uv run wiz8 analyze source-index
       - name: Verify changed WIZ8 call targets
         if: github.event_name == 'pull_request'
@@ -547,8 +554,18 @@ jobs:
           command -v llvm-undname
           command -v wine
           command -v winepath
-      - name: Load VC6 product image
-        uses: ./.github/actions/load-vc6-product
+      - name: Load VC6 analysis image
+        uses: ./.github/actions/load-vc6-image
+      - name: Restore compiler-backed analysis cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            build/clang
+            build/reccmp-source
+            build/source-index.json
+          key: analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-${{ github.sha }}
+          restore-keys: |
+            analysis-state-v1-${{ runner.os }}-${{ hashFiles('uv.lock', 'docker/msvc600/**', 'config/static-libraries.yml') }}-
       - name: Restore incremental SURRENDER product build
         uses: actions/cache@v4
         with:
@@ -565,6 +582,8 @@ jobs:
           cache-key: ${{ secrets.WIZ8_CACHE_KEY }}
       - name: Build SURRENDER comparison product
         run: uv run wiz8 build SURRENDER
+      - name: Index SURRENDER source
+        run: uv run wiz8 analyze source-index
       - name: Verify SURRENDER comparison surface
         id: surrender-status
         run: |

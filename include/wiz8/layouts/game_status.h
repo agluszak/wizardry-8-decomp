@@ -53,7 +53,7 @@ struct W8GlobalStatus {
     unsigned int party_gold;
     int selected_character;
     W8ItemInstance party_item_pool_0021[500];
-    int party_item_count_1791;
+    unsigned int party_item_count_1791;
     /* 0x1795: signed 16-bit text-box line cursor. Every retail access is a
        word load/store or MOVSX; a 32-bit type would overlap the legacy save
        fields at +0x1797. */

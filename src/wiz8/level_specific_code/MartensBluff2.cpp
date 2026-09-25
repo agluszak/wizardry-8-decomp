@@ -786,11 +786,11 @@ void MartensBluff2IdolGasVictim(void)
             case W8_PROFESSION_ROGUE:
                 severities[slot] = 3;
                 break;
-            case W8_PROFESSION_PRIEST:
-                severities[slot] = 5;
-                break;
             case W8_PROFESSION_MAGE:
                 severities[slot] = 4;
+                break;
+            case W8_PROFESSION_PRIEST:
+                severities[slot] = 5;
                 break;
             default:
                 severities[slot] = 1;

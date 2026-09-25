@@ -25,7 +25,6 @@ def _repository(
     (build / "source-index.json").write_text(
         json.dumps(
             {
-                "schema": "reccmp-source-index-v2",
                 "markers": markers,
                 "declarations": declarations or [],
                 "classes": [],
@@ -44,7 +43,7 @@ def _marker(target: str, source: str, address: int, name: str) -> dict:
         "marker_kind": "FUNCTION",
         "source_file": source,
         "line": 1,
-        "declaration": None,
+        "declaration_key": None,
         "marker_name": name,
         "folded": False,
         "target": target,
@@ -53,6 +52,8 @@ def _marker(target: str, source: str, address: int, name: str) -> dict:
 
 def _declaration(name: str, *, is_definition: bool) -> dict:
     return {
+        "target": None,
+        "unit_id": None,
         "qualified_name": name,
         "semantic_id": "",
         "semantic_kind": "free_function",
@@ -173,7 +174,7 @@ def test_named_recovered_body_is_allowed(tmp_path: Path) -> None:
 
 
 def test_v3_declaration_key_binds_marker_to_definition(tmp_path: Path) -> None:
-    """reccmp-source-index-v3 stores declaration_key, not an embedded declaration."""
+    """The source index stores declaration_key, not an embedded declaration."""
 
     definition = {
         **_declaration("FindNpcScriptQuoteByKeyword", is_definition=True),
@@ -199,7 +200,7 @@ def test_v3_declaration_key_binds_marker_to_definition(tmp_path: Path) -> None:
         "marker_name": None,
         "folded": False,
         "target": "SREXT_UNZIP",
-        "declaration_key": ["SREXT_UNZIP", "?FindNpcScriptQuoteByKeyword@@YAHPAGPAF1@Z"],
+        "declaration_key": ["SREXT_UNZIP", "?FindNpcScriptQuoteByKeyword@@YAHPAGPAF1@Z", None],
     }
     repository = _repository(tmp_path, [marker], [definition, stale])
     (tmp_path / "src/srext_unzip").mkdir(parents=True)
@@ -244,7 +245,6 @@ def test_preceding_block_comment_address_binds_header_declaration(tmp_path: Path
     (repository / "build/source-index.json").write_text(
         json.dumps(
             {
-                "schema": "reccmp-source-index-v3",
                 "markers": [],
                 "declarations": [first, second],
                 "classes": [],
@@ -317,7 +317,7 @@ def test_templated_operator_overload_is_not_a_consumer_redeclaration(tmp_path: P
         "marker_name": None,
         "folded": False,
         "target": "SREXT_UNZIP",
-        "declaration_key": ["SREXT_UNZIP", "??H@YA?AUsrInlineString@@ABU0@0@Z"],
+        "declaration_key": ["SREXT_UNZIP", "??H@YA?AUsrInlineString@@ABU0@0@Z", None],
     }
     repository = _repository(tmp_path, [marker], [owned, template_primary, template_specialization])
     (tmp_path / "src/srext_unzip").mkdir(parents=True)
@@ -375,7 +375,11 @@ def test_inline_overload_definition_is_not_a_consumer_redeclaration(tmp_path: Pa
         "marker_name": None,
         "folded": False,
         "target": "SURRENDER",
-        "declaration_key": ["SURRENDER", "?srHashValue@@YAIABUTextureSetKey@Renderer@srGERD@@@Z"],
+        "declaration_key": [
+            "SURRENDER",
+            "?srHashValue@@YAIABUTextureSetKey@Renderer@srGERD@@@Z",
+            None,
+        ],
     }
     repository = _repository(tmp_path, [marker], [owned, sibling])
     (tmp_path / "include/surrender").mkdir(parents=True)
@@ -423,7 +427,7 @@ def test_inconsistent_ordinary_consumer_prototype_is_still_reported(tmp_path: Pa
         "marker_name": None,
         "folded": False,
         "target": "SREXT_UNZIP",
-        "declaration_key": ["SREXT_UNZIP", "?TryFinishNpcVoicePlayback@@YAXE@Z"],
+        "declaration_key": ["SREXT_UNZIP", "?TryFinishNpcVoicePlayback@@YAXE@Z", None],
     }
     repository = _repository(tmp_path, [marker], [owned, consumer])
     (tmp_path / "src/srext_unzip").mkdir(parents=True)
@@ -471,7 +475,7 @@ def test_abi_prototype_waiver_allows_proven_consumer_spelling(tmp_path: Path) ->
         "marker_name": None,
         "folded": False,
         "target": "SREXT_UNZIP",
-        "declaration_key": ["SREXT_UNZIP", "?TryFinishNpcVoicePlayback@@YAXE@Z"],
+        "declaration_key": ["SREXT_UNZIP", "?TryFinishNpcVoicePlayback@@YAXE@Z", None],
     }
     repository = _repository(tmp_path, [marker], [owned, consumer])
     (tmp_path / "src/srext_unzip").mkdir(parents=True)

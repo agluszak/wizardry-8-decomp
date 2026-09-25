@@ -565,76 +565,6 @@ unsigned int HandleTextInput(const InputAtom* input)
 
     unsigned char selection_end = gubEndHilite;
     switch (input->usParam) {
-    case 8:
-        if (gfHiliteMode == 0) {
-            if (gubCursorPos != 0) {
-                --gubCursorPos;
-                gubParkingPos = CalculateCursorPos(
-                    gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
-                    gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
-                memmove(gpActive->szString + gubCursorPos, gpActive->szString + gubCursorPos + 1,
-                        (gpActive->ubStrLen - gubCursorPos) * sizeof(wchar_t));
-                --gpActive->ubStrLen;
-                return 1;
-            }
-        } else {
-            gfHiliteMode = false;
-            if (gubStartHilite != selection_end) {
-                unsigned char first = gubStartHilite;
-                unsigned char last = selection_end;
-                if (last < first) {
-                    unsigned char swap = first;
-                    first = last;
-                    last = swap;
-                }
-                memmove(gpActive->szString + first, gpActive->szString + last,
-                        (gpActive->ubStrLen - last + 1) * sizeof(wchar_t));
-                gpActive->ubStrLen -= last - first;
-                gubStartHilite = 0;
-                gubEndHilite = 0;
-                gubCursorPos = first;
-                gubParkingPos = CalculateCursorPos(
-                    gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
-                    first, gpActive->szString, &gsCursorX, &guiVisibleCount);
-                return 1;
-            }
-        }
-        break;
-
-    case 0x23: /* End */
-        if ((input->usKeyState & SHIFT_DOWN) != 0) {
-            if (gfHiliteMode == 0) {
-                gfHiliteMode = true;
-                gubStartHilite = gubCursorPos;
-            }
-            gubCursorPos = gpActive->ubStrLen;
-            gubEndHilite = gubCursorPos;
-        } else {
-            gfHiliteMode = false;
-            gubCursorPos = gpActive->ubStrLen;
-        }
-        gubParkingPos = CalculateCursorPos(
-            gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
-            gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
-        return 1;
-
-    case 0x24: /* Home */
-        if ((input->usKeyState & SHIFT_DOWN) != 0) {
-            if (gfHiliteMode == 0) {
-                gfHiliteMode = true;
-                gubStartHilite = gubCursorPos;
-            }
-            gubCursorPos = 0;
-            gubEndHilite = 0;
-        } else {
-            gubCursorPos = 0;
-            gfHiliteMode = false;
-        }
-        gubParkingPos = CalculateCursorPos(gpActive->region.RegionBottomRightX -
-                                               gpActive->region.RegionTopLeftX - 10,
-                                           0, gpActive->szString, &gsCursorX, &guiVisibleCount);
-        return 1;
-
     case 0x25: /* Left */
         gfHorizontalKey = true;
         if ((input->usKeyState & SHIFT_DOWN) != 0) {
@@ -699,6 +629,40 @@ unsigned int HandleTextInput(const InputAtom* input)
         }
         return 1;
 
+    case 0x23: /* End */
+        if ((input->usKeyState & SHIFT_DOWN) != 0) {
+            if (gfHiliteMode == 0) {
+                gfHiliteMode = true;
+                gubStartHilite = gubCursorPos;
+            }
+            gubCursorPos = gpActive->ubStrLen;
+            gubEndHilite = gubCursorPos;
+        } else {
+            gfHiliteMode = false;
+            gubCursorPos = gpActive->ubStrLen;
+        }
+        gubParkingPos = CalculateCursorPos(
+            gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
+            gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
+        return 1;
+
+    case 0x24: /* Home */
+        if ((input->usKeyState & SHIFT_DOWN) != 0) {
+            if (gfHiliteMode == 0) {
+                gfHiliteMode = true;
+                gubStartHilite = gubCursorPos;
+            }
+            gubCursorPos = 0;
+            gubEndHilite = 0;
+        } else {
+            gubCursorPos = 0;
+            gfHiliteMode = false;
+        }
+        gubParkingPos = CalculateCursorPos(gpActive->region.RegionBottomRightX -
+                                               gpActive->region.RegionTopLeftX - 10,
+                                           0, gpActive->szString, &gsCursorX, &guiVisibleCount);
+        return 1;
+
     case 0x2e: /* Delete */
         if ((input->usKeyState & CTRL_DOWN) != 0) {
             gpActive->szString[0] = L'\0';
@@ -736,6 +700,42 @@ unsigned int HandleTextInput(const InputAtom* input)
             SetTextInputCursor(first);
         }
         return 1;
+
+    case 8:
+        if (gfHiliteMode == 0) {
+            if (gubCursorPos != 0) {
+                --gubCursorPos;
+                gubParkingPos = CalculateCursorPos(
+                    gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
+                    gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
+                memmove(gpActive->szString + gubCursorPos, gpActive->szString + gubCursorPos + 1,
+                        (gpActive->ubStrLen - gubCursorPos) * sizeof(wchar_t));
+                --gpActive->ubStrLen;
+                return 1;
+            }
+        } else {
+            gfHiliteMode = false;
+            if (gubStartHilite != selection_end) {
+                unsigned char first = gubStartHilite;
+                unsigned char last = selection_end;
+                if (last < first) {
+                    unsigned char swap = first;
+                    first = last;
+                    last = swap;
+                }
+                memmove(gpActive->szString + first, gpActive->szString + last,
+                        (gpActive->ubStrLen - last + 1) * sizeof(wchar_t));
+                gpActive->ubStrLen -= last - first;
+                gubStartHilite = 0;
+                gubEndHilite = 0;
+                gubCursorPos = first;
+                gubParkingPos = CalculateCursorPos(
+                    gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
+                    first, gpActive->szString, &gsCursorX, &guiVisibleCount);
+                return 1;
+            }
+        }
+        break;
 
     default: {
         unsigned int character =

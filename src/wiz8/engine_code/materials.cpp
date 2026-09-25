@@ -914,6 +914,24 @@ void ReportBuildStatus(int channel, const char* message)
             }
         }
         break;
+    case 6:
+        ReportStartupMessage(message);
+        if (g_log_file != 0) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-security"
+            fprintf(g_log_file, message);
+#pragma clang diagnostic pop
+            return;
+        }
+        break;
+    case 7:
+        if (g_log_file != 0) {
+            sprintf(line, "ERROR: %s", message);
+            fprintf(g_log_file, "\n\n%s", message);
+            fclose(g_log_file);
+        }
+        ShutdownWithErrorBox(message);
+        return;
     case 1:
         ++g_progress_done;
         if (g_progress_mark + 10 <
@@ -948,29 +966,12 @@ void ReportBuildStatus(int channel, const char* message)
             return;
         }
         break;
-    case 6:
-        ReportStartupMessage(message);
-        if (g_log_file != 0) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wformat-security"
-            fprintf(g_log_file, message);
-#pragma clang diagnostic pop
-            return;
-        }
-        break;
-    case 7:
-        if (g_log_file != 0) {
-            sprintf(line, "ERROR: %s", message);
-            fprintf(g_log_file, "\n\n%s", message);
-            fclose(g_log_file);
-        }
-        ShutdownWithErrorBox(message);
-        return;
     case 8:
         if (g_log_file != 0) {
             fclose(g_log_file);
             g_log_file = 0;
         }
+        break;
     }
 }
 

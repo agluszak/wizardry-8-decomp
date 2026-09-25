@@ -6,6 +6,7 @@ import logging
 import os
 import re
 from bisect import bisect_right
+from collections import Counter
 from collections.abc import Iterable
 from dataclasses import asdict
 from pathlib import Path
@@ -129,7 +130,9 @@ def _added_call_lines(repository: Path, since: str) -> dict[Path, set[int]]:
     A line whose called names all appear on the lines its hunk removes (a
     renamed argument, a reflowed expression, a callee losing its address
     suffix, a renamed class's constructor or destructor) adds no call, so it
-    is skipped.
+    is skipped. So is a line removed verbatim elsewhere in the diff: moving a
+    body to another unit, or reordering switch cases, relocates its calls
+    without adding one.
     """
 
     if (repository / ".jj").is_dir() and resolve_executable("jj") is not None:
@@ -160,6 +163,14 @@ def _added_call_lines(repository: Path, since: str) -> dict[Path, set[int]]:
         ]
     )
 
+    moved: Counter[str] = Counter(
+        text.strip()
+        for source, _, rows in hunks
+        if source is not None and source.suffix.lower() in _SOURCE_SUFFIXES
+        for sign, text in rows
+        if sign == "-" and text.strip()
+    )
+
     added: dict[Path, set[int]] = {}
     for source, line, rows in hunks:
         if source is None or source.suffix.lower() not in _SOURCE_SUFFIXES:
@@ -171,7 +182,9 @@ def _added_call_lines(repository: Path, since: str) -> dict[Path, set[int]]:
         for sign, text in rows:
             if sign == "-":
                 continue
-            if sign == "+" and "(" in text and not _called_names(text, renamed) <= removed_names:
+            if sign == "+" and moved[text.strip()] > 0:
+                moved[text.strip()] -= 1
+            elif sign == "+" and "(" in text and not _called_names(text, renamed) <= removed_names:
                 added.setdefault(source, set()).add(line)
             line += 1
     return added

@@ -901,26 +901,26 @@ void RefreshKeyboardMenuRows(void)
                 icon += adjust;
             } else if (menu == W8_SUBMENU_ATTACK && item == 0) {
                 switch (g_status.buffers.Char[g_selected_party_slot].Hand[0].weapon_skill) {
+                case 3:
+                    adjust = 3;
+                    break;
                 case 1:
                     adjust = 4;
                     break;
                 case 2:
                     adjust = 7;
                     break;
-                case 3:
-                    adjust = 3;
-                    break;
                 case 5:
                     adjust = 6;
-                    break;
-                case 7:
-                    adjust = 8;
                     break;
                 case 8:
                     adjust = 1;
                     break;
                 case 9:
                     adjust = 2;
+                    break;
+                case 7:
+                    adjust = 8;
                     break;
                 case 14:
                     adjust = 5;
@@ -961,11 +961,11 @@ void AssignKeyboardMenuCallback(short menu, short item, W8TextControl* row)
         case 2:
             row->m_primaryActivationCallback = KeyboardMenuSelectBreathe;
             break;
-        case 3:
-            row->m_primaryActivationCallback = KeyboardMenuSelectTurnUndead;
-            break;
         case 4:
             row->m_primaryActivationCallback = KeyboardMenuSelectPray;
+            break;
+        case 3:
+            row->m_primaryActivationCallback = KeyboardMenuSelectTurnUndead;
             break;
         }
         break;
@@ -1208,4 +1208,58 @@ unsigned char KeyboardMenuBackgroundRegionEvent(const InputAtom* event, W8Region
     }
     CloseKeyboardMenu();
     return 1;
+}
+
+// FUNCTION: WIZ8 0x005929d0
+void HandleManualCameraHotkeys(void)
+{
+    if (g_modal_owner == 0 && gXStatus.fNpcDialogueMode == 0) {
+        if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_CAMERA_LOCK)) {
+            BeginManualCameraControl();
+        }
+        ApplyWorldRenderHotkeys();
+    }
+}
+
+// FUNCTION: WIZ8 0x00592a10
+void ApplyWorldRenderHotkeys(void)
+{
+    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_TURN_LEFT) ||
+        g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_TURN_LEFT_ALT)) {
+        g_level_block->world_render_flags |= 0x100;
+    }
+    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_TURN_RIGHT) ||
+        g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_TURN_RIGHT_ALT)) {
+        g_level_block->world_render_flags |= 0x200;
+    }
+    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_FORWARD)) {
+        g_level_block->world_render_flags |= 4;
+    }
+    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_FORWARD_RUN)) {
+        g_level_block->world_render_flags |= 0x84;
+    }
+    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_BACKWARD)) {
+        g_level_block->world_render_flags |= 8;
+    }
+    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_MOVE_BACKWARD_RUN)) {
+        g_level_block->world_render_flags |= 0x88;
+    }
+    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_LOOK_UP)) {
+        g_level_block->world_render_flags |= 0x400;
+    }
+    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_LOOK_DOWN)) {
+        g_level_block->world_render_flags |= 0x800;
+    }
+    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_STRAFE_LEFT)) {
+        g_level_block->world_render_flags |= 1;
+    }
+    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_STRAFE_RIGHT)) {
+        g_level_block->world_render_flags |= 2;
+    }
+    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_STRAFE_LEFT_RUN)) {
+        g_level_block->world_render_flags |= 0x81;
+    }
+    if (g_mgs_keyboard->IsCommandPressed(W8_MGS_COMMAND_STRAFE_RIGHT_RUN)) {
+        g_level_block->world_render_flags |= 0x82;
+    }
 }
