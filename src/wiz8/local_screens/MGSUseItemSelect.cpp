@@ -1105,7 +1105,7 @@ void SelectCurrentUseItemLine(void)
 void TakeUseItemIntoHand(void)
 {
     unsigned int i;
-    int old_count;
+    unsigned int old_count;
 
     if (g_status.item_in_cursor == 0) {
         CopyItemInstance(&g_status.item_in_hand_235b, g_value_69b9a0, 0, 1);

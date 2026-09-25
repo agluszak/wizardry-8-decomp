@@ -9183,7 +9183,8 @@ void ConfirmNpcTradeItem(void)
                 if (g_screen_state_00649f1c->trade_mode == W8_NPC_TRADE_GIVE) {
                     --target;
                 }
-                for (index = 0; index < g_status.party_item_count_1791; ++index) {
+                for (index = 0; static_cast<unsigned int>(index) < g_status.party_item_count_1791;
+                     ++index) {
                     item = &g_status.party_item_pool_0021[index];
                     if (item->iItemNo == -1 || NpcTradeItemAllowed(item)) {
                         continue;

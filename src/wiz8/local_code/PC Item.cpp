@@ -4262,7 +4262,7 @@ void EmptyBackpackSlot(W8Character* character, int slot)
 // FUNCTION: WIZ8 0x00521cd0
 void EmptyPartyPoolEntry(int index)
 {
-    if (index < 0 || index >= g_status.party_item_count_1791) {
+    if (index < 0 || static_cast<unsigned int>(index) >= g_status.party_item_count_1791) {
         return;
     }
 
@@ -4492,7 +4492,7 @@ unsigned char RemovePartyItemByID(int item_id, char remove_all)
         removed = 1;
     }
 
-    for (int index = 0; index < g_status.party_item_count_1791; ++index) {
+    for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
         if (pool[index].iItemNo != item_id) {
             continue;
         }

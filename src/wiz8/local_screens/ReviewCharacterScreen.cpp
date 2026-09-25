@@ -2289,8 +2289,7 @@ void RebuildCampItemList(void)
         }
     }
     pool = g_status.party_item_pool_0021;
-    for (index = 0; index < g_status.party_item_count_1791;
-         ++index, ++pool) {
+    for (index = 0; index < g_status.party_item_count_1791; ++index, ++pool) {
         if (pool->iItemNo != -1 &&
             (g_camp_screen->realm_flags[0] == 0 ||
              CanCharacterUseItem(g_review_character, pool->iItemNo) != 0) &&
@@ -2363,7 +2362,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
     unsigned char same_kind = 0;
     unsigned char choose_character;
     unsigned int index;
-    int old_pool_count;
+    unsigned int old_pool_count;
     int result;
     int party_slot;
     int paired_slot;
@@ -2628,8 +2627,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                 merge_tried = 1;
             }
             if (merged == 0 && origin == 2) {
-                for (index = 0; index < g_status.party_item_count_1791;
-                     ++index) {
+                for (index = 0; index < g_status.party_item_count_1791; ++index) {
                     if (MergeItemStacks(&g_status.party_item_pool_0021[index],
                                         &g_status.item_in_hand_235b, &partially_merged) != 0) {
                         merged = 1;

@@ -2646,7 +2646,8 @@ void DestroyMissilesOnTargets(W8SpellEffectEntry* effect)
         }
     }
     if (effect->target_indices_0f0.GetCount() > 0) {
-        for (index = 0; index < g_status.party_item_count_1791; ++index) {
+        for (index = 0; static_cast<unsigned int>(index) < g_status.party_item_count_1791;
+             ++index) {
             item = &g_status.party_item_pool_0021[index];
             if (item->iItemNo != -1 && (g_item_records[item->iItemNo].equip_class == 0x10 ||
                                         (g_item_records[item->iItemNo].equip_class > 0x12 &&
