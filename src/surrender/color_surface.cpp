@@ -60,15 +60,6 @@ srColorSurfaceIFace::srColorSurfaceIFace()
     srZeroMemory(&width_1c, 0x28);
 }
 
-// FUNCTION: SURRENDER 0x1005A120
-srColorSurfaceIFace::srColorSurfaceIFace(const srColorSurfaceIFace& other)
-{
-    /* Retail assigns, then re-copies the trailing field block verbatim. */
-    *this = other;
-    unknown_18_[1] = other.unknown_18_[1];
-    memcpy(&width_1c, &other.width_1c, 0x28);
-}
-
 // FUNCTION: SURRENDER 0x1005B280
 const char* srColorSurfaceIFace::sGetClassName()
 {
@@ -1154,20 +1145,6 @@ srColorSurface::srColorSurface(srPixelConvert::e_surfaceType type, void* data, u
     srPixelConvert::selectFuncs(format, pixel_write_44, pixel_read_48);
 }
 
-// FUNCTION: SURRENDER 0x1005DE30
-srColorSurface::srColorSurface(const srColorSurface& other)
-{
-    /* Retail assigns, then re-copies the function pointers, palette and the
-       surface_flags/data_size/data tail verbatim. */
-    *this = other;
-    pixel_write_44 = other.pixel_write_44;
-    pixel_read_48 = other.pixel_read_48;
-    palette_4c = other.palette_4c;
-    surface_flags_50 = other.surface_flags_50;
-    data_size_54 = other.data_size_54;
-    data_58 = other.data_58;
-}
-
 // FUNCTION: SURRENDER 0x1005D520
 srColorSurface& srColorSurface::operator=(const srColorSurface& other)
 {
@@ -1762,21 +1739,43 @@ void srColorSurface::setPixelsRaw(const void* pixels, const srVector2i* position
     }
 }
 
+static inline void swapPixelTriplet(unsigned char* lo, unsigned char* hi)
+{
+    /* reinterpret-ok: raw 24-bit pixel storage; retail swaps a word plus a
+       trailing byte per pixel. */
+    unsigned short w = *reinterpret_cast<unsigned short*>(lo);
+    unsigned char b = lo[2];
+    *reinterpret_cast<unsigned short*>(lo) = *reinterpret_cast<unsigned short*>(hi);
+    lo[2] = hi[2];
+    *reinterpret_cast<unsigned short*>(hi) = w;
+    hi[2] = b;
+}
+
 // FUNCTION: SURRENDER 0x1005E230
 static void reversePixelTriplets(unsigned char* pixels, unsigned long count)
 {
-    unsigned char* lo = pixels;
-    unsigned char* hi = pixels + (count - 1) * 3;
-    for (unsigned long i = count >> 1; i != 0; --i, lo += 3, hi -= 3) {
-        unsigned char t0 = lo[0];
-        unsigned char t1 = lo[1];
-        unsigned char t2 = lo[2];
-        lo[0] = hi[0];
-        lo[1] = hi[1];
-        lo[2] = hi[2];
-        hi[0] = t0;
-        hi[1] = t1;
-        hi[2] = t2;
+    unsigned long pairs = count >> 1;
+    unsigned long done = 0;
+    if (pairs >= 4) {
+        unsigned long blocks = pairs >> 2;
+        unsigned char* lo = pixels;
+        unsigned char* hi = pixels + (count - 1) * 3;
+        do {
+            swapPixelTriplet(lo, hi);
+            swapPixelTriplet(lo + 3, hi - 3);
+            swapPixelTriplet(lo + 6, hi - 6);
+            swapPixelTriplet(lo + 9, hi - 9);
+            lo += 12;
+            hi -= 12;
+            done += 4;
+        } while (--blocks != 0);
+    }
+    if (done < pairs) {
+        unsigned char* lo = pixels + done * 3;
+        unsigned char* hi = pixels + (count - done - 1) * 3;
+        for (unsigned long i = pairs - done; i != 0; --i, lo += 3, hi -= 3) {
+            swapPixelTriplet(lo, hi);
+        }
     }
 }
 

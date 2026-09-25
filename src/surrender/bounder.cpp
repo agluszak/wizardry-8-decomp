@@ -113,16 +113,6 @@ void srBounder::forceUpdateBounds()
     bound_mode_138_ = mode;
 }
 
-// FUNCTION: SURRENDER 0x1004B1E0
-srBounder::srBounder(const srBounder& other)
-    : srClassSupport<srBounder, srNode, false, 0x1600>(static_cast<srNode*>(0))
-{
-    *this = other;
-    bound_mode_138_ = other.bound_mode_138_;
-    bounds_13c_ = other.bounds_13c_;
-    inverse_world_168_ = other.inverse_world_168_;
-}
-
 // FUNCTION: SURRENDER 0x1004A690
 srBounder& srBounder::operator=(const srBounder& other)
 {

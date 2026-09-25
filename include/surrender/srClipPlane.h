@@ -25,7 +25,13 @@ public:
     enum e_clip { CLIP_POSITIONAL_0 = 0 };
 
     srClipPlane(srNode* parent = 0);
-    srClipPlane(const srClipPlane& other);
+
+    /* The copy constructor is implicit: retail inlines the srClassSupport
+       base copy (srNode default construction, registerInstance,
+       srClipPlane::operator=) then memberwise copy-initialization. */
+    // SYNTHETIC: SURRENDER 0x1004A1C0
+    // srClipPlane::srClipPlane
+
     srClipPlane& operator=(const srClipPlane& other);
 
 #if defined(SURRENDER_BUILD)

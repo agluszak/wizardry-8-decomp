@@ -16,7 +16,13 @@ public:
                                  unsigned long width, unsigned long height, unsigned long pitch);
     SR_DLL_IMPORT srColorSurface(srPixelConvert::e_surfaceType type, void* data,
                                  unsigned long width, unsigned long height, unsigned long pitch);
-    SR_DLL_IMPORT srColorSurface(const srColorSurface& other);
+    /* The copy constructor is implicit: retail's base copy runs
+       srColorSurface::operator= through the srClassSupport copy constructor,
+       then memberwise copy-initialization copies palette_4c with
+       srPtr<srPalette> addref-only copy semantics. */
+    // SYNTHETIC: SURRENDER 0x1005DE30
+    // srColorSurface::srColorSurface
+
     SR_DLL_IMPORT srColorSurface& operator=(const srColorSurface& other);
 
     static SR_DLL_IMPORT const char* sGetClassName();

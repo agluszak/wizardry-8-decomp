@@ -93,19 +93,6 @@ srModel::srModel()
     first_client_18 = 0;
 }
 
-// FUNCTION: SURRENDER 0x1003C7B0
-srModel::srModel(const srModel& other)
-{
-    srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node = registry->getClassNode(0x2000);
-    if (node == 0) {
-        node = registry->registerClass(sGetClassName(), srClass::sGetClassNode(), 0x2000, 1);
-    }
-    registry->registerInstance(node, this);
-    *this = other;
-    first_client_18 = other.first_client_18;
-}
-
 // FUNCTION: SURRENDER 0x1003C500
 srModel& srModel::operator=(const srModel& other)
 {

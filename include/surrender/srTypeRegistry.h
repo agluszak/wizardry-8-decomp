@@ -443,6 +443,19 @@ public:
     }
 
 public:
+    /* The registry classes' copy constructors are implicit: their base
+       copy-initialization lands here, where retail default-constructs Base,
+       registers the fresh instance and delegates the whole-object copy to
+       Derived::operator= — the clone() down-cast — before the caller's
+       memberwise copy-initialization fills the members. The assignment runs
+       on members that are not yet initialized; retail ships that shape. */
+    srClassSupport(const srClassSupport& other) : Base()
+    {
+        srCore.getRegistry()->registerInstance(sGetClassNode(), this);
+        *static_cast<Derived*>(this) = *static_cast<const Derived*>(&other);
+    }
+
+public:
     /* Scene-graph instantiations forward the canonical node parent to their
        Base constructor. The previous Base* parameter was a guessed shape and
        cannot express the client-side srClientSupport<srFog> construction that

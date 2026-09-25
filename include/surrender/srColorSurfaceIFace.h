@@ -36,7 +36,14 @@ public:
     };
 
     SR_DLL_IMPORT srColorSurfaceIFace();
-    SR_DLL_IMPORT srColorSurfaceIFace(const srColorSurfaceIFace& other);
+
+    /* The copy constructor is implicit: retail inlines the srClassSupport
+       base copy (srClass default construction, registerInstance,
+       srColorSurfaceIFace::operator=) then memberwise copy-initialization of
+       the trailing field block. */
+    // SYNTHETIC: SURRENDER 0x1005A120
+    // srColorSurfaceIFace::srColorSurfaceIFace
+
     SR_DLL_IMPORT srColorSurfaceIFace& operator=(const srColorSurfaceIFace& other);
 
     static SR_DLL_IMPORT const char* sGetClassName();

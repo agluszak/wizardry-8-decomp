@@ -322,14 +322,7 @@ namespace {
    Retail emits the whole family file-local at 0x1002EBD0-0x1002ED70. */
 class ReadJob : public srScheduler::Job {
 public:
-    ReadJob(srBinIStream* stream, void* buffer, unsigned long size)
-    {
-        stream_04 = stream;
-        buffer_08 = buffer;
-        size_0c = size;
-        critical_section_14 = new srCriticalSection;
-        status_10 = 0;
-    }
+    ReadJob(srBinIStream* stream, void* buffer, unsigned long size);
 
     // FUNCTION: SURRENDER 0x1002EC70
     virtual ~ReadJob() override
@@ -372,6 +365,16 @@ private:
     unsigned long status_10;
     srCriticalSection* critical_section_14;
 };
+
+// FUNCTION: SURRENDER 0x1002EBD0
+ReadJob::ReadJob(srBinIStream* stream, void* buffer, unsigned long size)
+{
+    stream_04 = stream;
+    buffer_08 = buffer;
+    size_0c = size;
+    critical_section_14 = new srCriticalSection;
+    status_10 = 0;
+}
 
 // FUNCTION: SURRENDER 0x1002ECB0
 unsigned long ReadJob::getStatus()

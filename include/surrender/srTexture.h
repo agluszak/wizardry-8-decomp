@@ -6,9 +6,14 @@
 class SR_DLL_IMPORT srTexture : public srClassSupport<srTexture, srTextureIFace, false, 0x2110> {
 public:
     static const char* sGetClassName();
-    /* Retail's copy constructor calls operator= and leaves memberwise
-       re-copies to the compiler's copy-ctor fixup emission. */
-    srTexture(const srTexture& other);
+
+    /* The copy constructor is implicit: retail's base copy runs
+       srTexture::operator= through the srClassSupport copy constructor, then
+       memberwise copy-initialization copies texture_dimensions_ with
+       srPtr<srPalette> addref-only copy semantics. */
+    // SYNTHETIC: SURRENDER 0x1005F150
+    // srTexture::srTexture
+
     srTexture& operator=(const srTexture& other);
     virtual void dump(std::ostream& stream) override;
     virtual unsigned long getTextureFrameHandle() override;

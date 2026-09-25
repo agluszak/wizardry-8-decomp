@@ -12,7 +12,14 @@ class SR_DLL_IMPORT srModelInstance : public srClassSupport<srModelInstance, srN
                                       public srModel::Client {
 public:
     srModelInstance(srNode* parent = 0);
-    srModelInstance(const srModelInstance& other);
+    /* The copy constructor is implicit: retail inlines the srClassSupport
+       base copy (srNode default construction, registerInstance,
+       srModelInstance::operator=), then memberwise copy-initializes the
+       srModel::Client subobject (srPtr<srModel> addref-only) and the POD
+       tail. */
+    // SYNTHETIC: SURRENDER 0x10050010
+    // srModelInstance::srModelInstance
+
     srModelInstance& operator=(const srModelInstance& other);
 
 #if defined(SURRENDER_BUILD)

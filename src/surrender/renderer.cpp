@@ -119,17 +119,42 @@ static void offsetIndices(unsigned long* destination, const unsigned long* sourc
 static void gatherTriangles(srVector3i* destination, const srVector3i* source,
                             const unsigned long* order, long vertex_base, unsigned long count)
 {
+    unsigned long index = 0;
     if (vertex_base == 0) {
-        for (unsigned long index = 0; index < count; index++) {
+        for (; index < (count & ~3UL); index += 4) {
+            destination[index] = source[order[index]];
+            destination[index + 1] = source[order[index + 1]];
+            destination[index + 2] = source[order[index + 2]];
+            destination[index + 3] = source[order[index + 3]];
+        }
+        for (; index < count; ++index) {
             destination[index] = source[order[index]];
         }
-    } else {
-        for (unsigned long index = 0; index < count; index++) {
-            const srVector3i& triangle = source[order[index]];
-            destination[index].x = triangle.x + vertex_base;
-            destination[index].y = triangle.y + vertex_base;
-            destination[index].z = triangle.z + vertex_base;
-        }
+        return;
+    }
+    for (; index < (count & ~3UL); index += 4) {
+        const srVector3i& triangle0 = source[order[index]];
+        destination[index].x = triangle0.x + vertex_base;
+        destination[index].y = triangle0.y + vertex_base;
+        destination[index].z = triangle0.z + vertex_base;
+        const srVector3i& triangle1 = source[order[index + 1]];
+        destination[index + 1].x = triangle1.x + vertex_base;
+        destination[index + 1].y = triangle1.y + vertex_base;
+        destination[index + 1].z = triangle1.z + vertex_base;
+        const srVector3i& triangle2 = source[order[index + 2]];
+        destination[index + 2].x = triangle2.x + vertex_base;
+        destination[index + 2].y = triangle2.y + vertex_base;
+        destination[index + 2].z = triangle2.z + vertex_base;
+        const srVector3i& triangle3 = source[order[index + 3]];
+        destination[index + 3].x = triangle3.x + vertex_base;
+        destination[index + 3].y = triangle3.y + vertex_base;
+        destination[index + 3].z = triangle3.z + vertex_base;
+    }
+    for (; index < count; ++index) {
+        const srVector3i& triangle = source[order[index]];
+        destination[index].x = triangle.x + vertex_base;
+        destination[index].y = triangle.y + vertex_base;
+        destination[index].z = triangle.z + vertex_base;
     }
 }
 

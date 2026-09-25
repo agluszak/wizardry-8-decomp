@@ -472,23 +472,6 @@ srNode* srNode::getPrev() const
     return previous_sibling_;
 }
 
-// FUNCTION: SURRENDER 0x10051AA0
-srNode::srNode(const srNode& other)
-{
-    *this = other;
-    rotation_18 = other.rotation_18;
-    location_60 = other.location_60;
-    scale_78 = other.scale_78;
-    world_transform_90 = other.world_transform_90;
-    world_transform_f0 = other.world_transform_f0;
-    notifications_120 = other.notifications_120;
-    flags_124 = other.flags_124;
-    next_sibling_ = other.next_sibling_;
-    previous_sibling_ = other.previous_sibling_;
-    parent_ = other.parent_;
-    first_child_ = other.first_child_;
-}
-
 // FUNCTION: SURRENDER 0x10051A60
 void srNode::setScale(double scale)
 {
@@ -830,15 +813,18 @@ void srNode::getWorldSpaceRotation(srMatrix3T<double>& rotation) const
     rotation.vectors[2].Set(world_transform_90.rows[2].x, world_transform_90.rows[2].y,
                             world_transform_90.rows[2].z);
     srVector3T<double> scale = getWorldSpaceScale();
-    rotation.vectors[0].x /= scale.x;
-    rotation.vectors[1].x /= scale.x;
-    rotation.vectors[2].x /= scale.x;
-    rotation.vectors[0].y /= scale.y;
-    rotation.vectors[1].y /= scale.y;
-    rotation.vectors[2].y /= scale.y;
-    rotation.vectors[0].z /= scale.z;
-    rotation.vectors[1].z /= scale.z;
-    rotation.vectors[2].z /= scale.z;
+    double inverse_x = 1.0 / scale.x;
+    double inverse_y = 1.0 / scale.y;
+    double inverse_z = 1.0 / scale.z;
+    rotation.vectors[0].x *= inverse_x;
+    rotation.vectors[0].y *= inverse_y;
+    rotation.vectors[0].z *= inverse_z;
+    rotation.vectors[1].x *= inverse_x;
+    rotation.vectors[1].y *= inverse_y;
+    rotation.vectors[1].z *= inverse_z;
+    rotation.vectors[2].x *= inverse_x;
+    rotation.vectors[2].y *= inverse_y;
+    rotation.vectors[2].z *= inverse_z;
 }
 
 // FUNCTION: SURRENDER 0x10055110

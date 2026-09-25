@@ -30,18 +30,6 @@ srModelInstance::srModelInstance(srNode* parent)
     }
 }
 
-// FUNCTION: SURRENDER 0x10050010
-srModelInstance::srModelInstance(const srModelInstance& other)
-    : srClassSupport<srModelInstance, srNode, 0, 0x1100>(static_cast<srNode*>(0)),
-      srModel::Client(other)
-{
-    *this = other;
-    alignment_flags_148 = other.alignment_flags_148;
-    align_axis_14c = other.align_axis_14c;
-    align_angle_158 = other.align_angle_158;
-    exclusion_mask_15c = other.exclusion_mask_15c;
-}
-
 // FUNCTION: SURRENDER 0x1004F890
 srModelInstance& srModelInstance::operator=(const srModelInstance& other)
 {

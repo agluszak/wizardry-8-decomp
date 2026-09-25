@@ -12,7 +12,13 @@ public:
     srTextureMap(srColorSurfaceIFace* surface = 0);
     /* Retail's copy constructor calls operator= and leaves memberwise
        re-copies to the compiler's copy-ctor fixup emission. */
-    srTextureMap(const srTextureMap& other);
+    /* The copy constructor is implicit: retail inlines the srClassSupport
+       base copy (srTexture default construction, registerInstance,
+       srTextureMap::operator=) then memberwise copy-initialization copies
+       surface_54_ with srPtr addref-only copy semantics. */
+    // SYNTHETIC: SURRENDER 0x100607E0
+    // srTextureMap::srTextureMap
+
 
     // FUNCTION: SURRENDER 0x10060770 SYMBOL
     // ?sGetClassName@srTextureMap@@SAPBDXZ

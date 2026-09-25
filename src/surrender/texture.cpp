@@ -57,20 +57,6 @@ const char* srTexture::sGetClassName()
     return "srTexture";
 }
 
-/* Retail delegates to operator= then overwrites the fresh members with a
-   memberwise copy of the source — srTextureIFace::Dimensions copies its
-   srPtr<srPalette> with copy-constructor semantics (addref, no release). */
-// FUNCTION: SURRENDER 0x1005F150
-srTexture::srTexture(const srTexture& other)
-{
-    *this = other;
-    packed_state_18 = other.packed_state_18;
-    mipmap_bias_1c = other.mipmap_bias_1c;
-    texture_dimensions_ = other.texture_dimensions_;
-    texture_priority_4c = other.texture_priority_4c;
-    texture_flags_ = other.texture_flags_;
-}
-
 // FUNCTION: SURRENDER 0x1005E440
 srTexture::srTexture()
 {
@@ -461,14 +447,6 @@ const char* srTextureIFace::getTextureName()
 
 // FUNCTION: SURRENDER 0x1005F5E0
 srTextureIFace::srTextureIFace() {}
-
-// FUNCTION: SURRENDER 0x1005F660
-srTextureIFace::srTextureIFace(const srTextureIFace& other)
-{
-    if (this != &other) {
-        srClass::operator=(other);
-    }
-}
 
 // FUNCTION: SURRENDER 0x1005F5C0
 srTextureIFace& srTextureIFace::operator=(const srTextureIFace& other)

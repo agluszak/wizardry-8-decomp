@@ -20,7 +20,13 @@ public:
     };
 
     srCamera(srNode* parent = 0);
-    srCamera(const srCamera& other);
+
+    /* The copy constructor is implicit: retail inlines the srClassSupport
+       base copy (srNode default construction, registerInstance,
+       srCamera::operator=) then memberwise copy-initialization. */
+    // SYNTHETIC: SURRENDER 0x10048090
+    // srCamera::srCamera
+
     srCamera& operator=(const srCamera& other);
 
     virtual void dump(std::ostream& stream) override;

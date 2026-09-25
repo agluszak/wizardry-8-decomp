@@ -69,7 +69,16 @@ public:
     /* The default-constructor closure 0x100425A0 proves both arguments
        default to zero for paren-less new expressions. */
     srMeshModel(long polygons = 0, long vertices = 0);
-    srMeshModel(const srMeshModel& other);
+
+    /* The copy constructor is implicit: retail inlines the srClassSupport
+       base copy (srModel default construction, registerInstance,
+       srMeshModel::operator=) and runs memberwise copy-initialization of
+       every member — srPtr addref-only copies, each MeshTable's {0,0} +
+       operator= copy construction, scalars verbatim — carrying per-member
+       unwind states before the final vtable store. */
+    // SYNTHETIC: SURRENDER 0x10041BF0
+    // srMeshModel::srMeshModel
+
     void reset(long polygons, long vertices);
     void scale(const srVector3T<float>& scale);
     void applyMatrix(const srMatrix3T<float>& matrix);

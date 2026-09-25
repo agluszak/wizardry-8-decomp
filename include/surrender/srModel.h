@@ -34,7 +34,14 @@ public:
     };
 
     srModel();
-    srModel(const srModel& other);
+
+    /* The copy constructor is implicit: retail inlines the srClassSupport
+       base copy (srClass default construction, registerInstance,
+       srModel::operator=) then memberwise copy-initializes
+       first_client_18 before the final vtable store. */
+    // SYNTHETIC: SURRENDER 0x1003C7B0
+    // srModel::srModel
+
     srModel& operator=(const srModel& other);
     friend class Client;
 

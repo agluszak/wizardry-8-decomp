@@ -326,36 +326,6 @@ srPalette::Quantizer::Quantizer()
 // FUNCTION: SURRENDER 0x10004B80
 srPalette::Quantizer::~Quantizer() {}
 
-// FUNCTION: SURRENDER 0x10004D00
-srPalette::Quantizer::Quantizer(const Quantizer& other)
-{
-    long index;
-    for (index = 0; index < 0x10000; ++index) {
-        lut_rg[index] = other.lut_rg[index];
-    }
-    for (index = 0; index < 0x10000; ++index) {
-        lut_rgb[index] = other.lut_rgb[index];
-    }
-    for (index = 0; index < 0x100; ++index) {
-        palette[index] = other.palette[index];
-    }
-    for (index = 0; index < 0x100; ++index) {
-        duplicate[index] = other.duplicate[index];
-    }
-    color_count = other.color_count;
-    red_bits = other.red_bits;
-    green_bits = other.green_bits;
-    blue_bits = other.blue_bits;
-    for (index = 0; index < 0x100; ++index) {
-        entries[index] = other.entries[index];
-    }
-    entry_count = other.entry_count;
-    lut_row = other.lut_row;
-    for (index = 0; index < 0x100; ++index) {
-        rg_dist[index] = other.rg_dist[index];
-    }
-}
-
 // FUNCTION: SURRENDER 0x10004DD0
 srPalette::Quantizer& srPalette::Quantizer::operator=(const Quantizer& other)
 {
@@ -631,20 +601,6 @@ const char* srPalette::sGetClassName()
 srClass* srPalette::vInstance()
 {
     return new srPalette(0, 1);
-}
-
-/* The copy constructor registers through the base like retail, delegates the
-   field copy to operator=, then retail overwrites the freshly allocated
-   members with the source's pointers — sharing the source's color table and
-   quantizer and leaking the copies operator= just made. */
-// FUNCTION: SURRENDER 0x10004EE0
-srPalette::srPalette(const srPalette& other) : srClassSupport<srPalette, srClass, 1, 0x2900>()
-{
-    *this = other;
-    flags_18 = other.flags_18;
-    colors_1c = other.colors_1c;
-    color_count_20 = other.color_count_20;
-    quantizer_24 = other.quantizer_24;
 }
 
 /* Sampler field offsets and behavior are fixed by the retail constructor

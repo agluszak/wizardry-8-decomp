@@ -113,24 +113,6 @@ srClass* srCamera::vInstance()
     return 0;
 }
 
-/* The retail copy constructor re-copies every member after running the
-   assignment operator. */
-// FUNCTION: SURRENDER 0x10048090
-srCamera::srCamera(const srCamera& other)
-    : srClassSupport<srCamera, srNode, 0, 0x1400>(static_cast<srNode*>(0))
-{
-    *this = other;
-    flags_138.value = other.flags_138.value;
-    view_plane_140 = other.view_plane_140;
-    view_plane_distance_160 = other.view_plane_distance_160;
-    near_clip_168 = other.near_clip_168;
-    far_clip_170 = other.far_clip_170;
-    environment_near_178 = other.environment_near_178;
-    environment_far_17c = other.environment_far_17c;
-    environment_near_scale_180 = other.environment_near_scale_180;
-    environment_far_scale_184 = other.environment_far_scale_184;
-}
-
 // FUNCTION: SURRENDER 0x100481F0
 srCamera::~srCamera() {}
 

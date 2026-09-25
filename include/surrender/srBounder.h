@@ -11,7 +11,12 @@ public:
     enum e_boundMode { BOUND_MODE_POSITIONAL_0 = 0 };
 
     srBounder(srNode* parent = 0);
-    srBounder(const srBounder& other);
+    /* The copy constructor is implicit: retail inlines the srClassSupport
+       base copy (srNode default construction, registerInstance,
+       srBounder::operator=) then memberwise copy-initialization. */
+    // SYNTHETIC: SURRENDER 0x1004B1E0
+    // srBounder::srBounder
+
     srBounder& operator=(const srBounder& other);
 
     static const char* sGetClassName();

@@ -649,12 +649,6 @@ srMeshModel::srMeshModel(long polygons, long vertices)
     }
 }
 
-// FUNCTION: SURRENDER 0x10041BF0
-srMeshModel::srMeshModel(const srMeshModel& other)
-{
-    *this = other;
-}
-
 // FUNCTION: SURRENDER 0x1003D2C0
 void srMeshModel::reset(long polygons, long vertices)
 {

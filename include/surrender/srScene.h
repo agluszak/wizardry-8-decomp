@@ -21,7 +21,12 @@ public:
     };
 
     srScene(srNode* parent = 0);
-    srScene(const srScene& other);
+    /* The copy constructor is implicit: retail inlines the srClassSupport
+       base copy (srNode default construction, registerInstance,
+       srScene::operator=) then memberwise copy-initialization. */
+    // SYNTHETIC: SURRENDER 0x10056D60
+    // srScene::srScene
+
     srScene& operator=(const srScene& other);
 
     virtual void dump(std::ostream& stream) override;

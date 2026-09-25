@@ -24,17 +24,17 @@ public:
     // FUNCTION: SURRENDER 0x10034BE0 SYMBOL
     // ??0srMaterialIFace@@QAE@XZ
     __declspec(dllexport) srMaterialIFace() {}
-    /* The copy constructor runs the default base construction plus
-       registration, not a base copy. */
-    // FUNCTION: SURRENDER 0x10034C70 SYMBOL
-    // ??0srMaterialIFace@@QAE@ABV0@@Z
-    __declspec(dllexport) srMaterialIFace(const srMaterialIFace&) {}
+    /* The copy constructor is implicit: retail inlines the srClassSupport
+       base copy (srClass default construction, registerInstance,
+       srMaterialIFace::operator=); there are no members to copy. */
+    // SYNTHETIC: SURRENDER 0x10034C70
+    // srMaterialIFace::srMaterialIFace
+
     // FUNCTION: SURRENDER 0x10016310 SYMBOL
     // ??1srMaterialIFace@@UAE@XZ
     __declspec(dllexport) virtual ~srMaterialIFace() {}
 #else
     srMaterialIFace();
-    srMaterialIFace(const srMaterialIFace& other);
     virtual ~srMaterialIFace();
 #endif
     /* Retail exports the out-of-line assignment (srMaterial.cpp TU); it only

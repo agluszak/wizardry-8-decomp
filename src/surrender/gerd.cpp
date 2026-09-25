@@ -1860,11 +1860,7 @@ public:
     LockSurface(srGERD* gerd, const srPixelConvert::PixelFormat& format);
     // 0x1001F610
     virtual ~LockSurface() override;
-    // 0x1001F780
-    static const char* sGetClassName()
-    {
-        return "srGERD::Surface";
-    }
+    static const char* sGetClassName();
     /* Retail 0x1001F770: vInstance cannot construct a LockSurface (the ctor
        needs the owning GERD and pixel format) and returns null. */
     virtual srClass* vInstance() override;
@@ -1930,6 +1926,12 @@ srGERD::LockSurface::LockSurface(srGERD* gerd, const srPixelConvert::PixelFormat
 srGERD::LockSurface::~LockSurface()
 {
     scratch_58_->release();
+}
+
+// FUNCTION: SURRENDER 0x1001F780
+const char* srGERD::LockSurface::sGetClassName()
+{
+    return "srGERD::Surface";
 }
 
 // FUNCTION: SURRENDER 0x1001F770

@@ -33,7 +33,13 @@ public:
     {
         reset();
     }
-    srMaterial(const srMaterial& other);
+    /* The copy constructor is implicit: retail inlines the srClassSupport
+       base copy (srMaterialIFace default construction, the 0x2200-layer and
+       0x2210-layer registrations, srMaterial::operator=) then memberwise
+       copy-initialization. */
+    // SYNTHETIC: SURRENDER 0x100344B0
+    // srMaterial::srMaterial
+
     static const char* sGetClassName();
 
     virtual void dump(std::ostream& stream) override;

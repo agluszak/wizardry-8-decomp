@@ -22,7 +22,13 @@ public:
         Quantizer();
         Quantizer(srARGB* colors, long color_count, unsigned char* duplicates,
                   unsigned char red_bits, unsigned char green_bits, unsigned char blue_bits);
-        Quantizer(const Quantizer& other);
+
+        /* The copy constructor is implicit: retail emits straight memberwise
+           copies (rep-movsd over the lookup arrays, scalar stores for the
+           rest) and never calls the authored byte-wise operator=. */
+        // SYNTHETIC: SURRENDER 0x10004D00
+        // Quantizer::Quantizer
+
         ~Quantizer();
         Quantizer& operator=(const Quantizer& other);
 
@@ -182,7 +188,15 @@ public:
                                                         long color_count);
 
     SR_DLL_IMPORT srPalette(srARGB* colors = 0, long color_count = 1);
-    SR_DLL_IMPORT srPalette(const srPalette& other);
+    /* The copy constructor is implicit: retail inlines the srClassSupport
+       base copy (srClass default construction, registerInstance,
+       srPalette::operator= — which allocates fresh member arrays) then
+       memberwise copy-initialization overwrites them with the source's
+       pointers, sharing the source's color table and quantizer and leaking
+       the allocations operator= just made. */
+    // SYNTHETIC: SURRENDER 0x10004EE0
+    // srPalette::srPalette
+
     SR_DLL_IMPORT srPalette& operator=(const srPalette& other);
 
     virtual SR_DLL_IMPORT void dump(std::ostream& stream) override;

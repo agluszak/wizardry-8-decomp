@@ -19,7 +19,13 @@ public:
     /* The default-constructor closure 0x10060090 proves both arguments
        default to zero for paren-less new expressions. */
     srTextureFile(const char* file_name = 0, int cached = 0);
-    srTextureFile(const srTextureFile& other);
+    /* The copy constructor is implicit: retail inlines the srClassSupport
+       base copy (srTexture default construction, registerInstance,
+       srTextureFile::operator=) then memberwise copy-initialization —
+       file_name_58 is shared, not re-duplicated. */
+    // SYNTHETIC: SURRENDER 0x1005FF80
+    // srTextureFile::srTextureFile
+
     srTextureFile& operator=(const srTextureFile& other);
 
     static const char* sGetClassName();

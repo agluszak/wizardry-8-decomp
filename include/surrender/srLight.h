@@ -39,7 +39,12 @@ public:
        inlined into 0x0049C2C0 - reaches this one as srLight(0, 1), so both
        parameters carry those defaults here. */
     SR_DLL_IMPORT srLight(srNode* parent = 0, e_preset preset = PRESET_POSITIONAL_1);
-    SR_DLL_IMPORT srLight(const srLight& other);
+    /* The copy constructor is implicit: retail inlines the srClassSupport
+       base copy (srIlluminator default construction, registerInstance,
+       srLight::operator=) then memberwise copy-initialization. */
+    // SYNTHETIC: SURRENDER 0x1004EAB0
+    // srLight::srLight
+
     SR_DLL_IMPORT srLight& operator=(const srLight& other);
 
     /* Pushed as the literal at 0x00606E48 wherever the registry chain runs,

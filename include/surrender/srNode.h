@@ -67,7 +67,12 @@ public:
     enum e_notify { NOTIFY_POSITIONAL_0 = 0 };
 
     SR_DLL_IMPORT srNode(srNode* parent = 0);
-    SR_DLL_IMPORT srNode(const srNode& other);
+    /* The copy constructor is implicit: retail inlines the srClassSupport
+       base copy (srClass default construction, registerInstance,
+       srNode::operator=) then memberwise copy-initialization. */
+    // SYNTHETIC: SURRENDER 0x10051AA0
+    // srNode::srNode
+
     SR_DLL_IMPORT srNode& operator=(const srNode& other);
 
     static SR_DLL_IMPORT const char* sGetClassName();

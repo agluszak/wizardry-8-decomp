@@ -406,17 +406,6 @@ srClass* srMaterial::vInstance()
     return new srMaterial;
 }
 
-// FUNCTION: SURRENDER 0x100344B0
-srMaterial::srMaterial(const srMaterial& other)
-{
-    srCore.getRegistry()->registerInstance(sGetClassNode(), this);
-    *this = other;
-    parms = other.parms;
-    operations_6c.value = other.operations_6c.value;
-    mapper_70 = other.mapper_70;
-    dirty_74 = other.dirty_74;
-}
-
 // FUNCTION: SURRENDER 0x10034640
 srVector4T<float> srMaterial::getAmbient() const
 {

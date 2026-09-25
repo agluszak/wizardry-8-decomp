@@ -103,7 +103,12 @@ public:
        the assignment guard, and the destructor unregisters through the
        support base. */
     srTextureIFace();
-    srTextureIFace(const srTextureIFace& other);
+    /* The copy constructor is implicit: retail inlines the srClassSupport
+       base copy (srClass default construction, registerInstance, the
+       srTextureIFace::operator= inline) — there are no members to copy. */
+    // SYNTHETIC: SURRENDER 0x1005F660
+    // srTextureIFace::srTextureIFace
+
     srTextureIFace& operator=(const srTextureIFace& other);
     virtual ~srTextureIFace() override;
 
