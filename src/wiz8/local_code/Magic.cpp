@@ -859,33 +859,32 @@ void FinishSpellEffect00500F70(W8SpellEffectEntry* effect)
    is. Out of combat nothing is scaled; in combat a combatant slower than the
    pace is left alone too. */
 // FUNCTION: WIZ8 0x00501910
-unsigned int ScaleByCombatPace(int party_slot, unsigned int* value)
+void ScaleByCombatPace(int party_slot, unsigned int* value)
 {
     unsigned int pace;
     unsigned int phase_clock;
-    int scaled;
 
     if (gXStatus.fCombatMode == 0) {
-        return gXStatus.fCombatMode;
+        return;
     }
-
-    if (g_settings_6850c8.difficulty == W8_DIFFICULTY_NOVICE) {
-        pace = 0x50;
-    } else if (g_settings_6850c8.difficulty == W8_DIFFICULTY_NORMAL) {
-        pace = 0x3c;
-    } else {
-        if (g_settings_6850c8.difficulty != W8_DIFFICULTY_EXPERT) {
-            srAssertFail("FALSE", MAGIC_CPP, 5352, 0);
-        }
-        pace = 0x28;
+    switch (g_settings_6850c8.difficulty) {
+    case W8_DIFFICULTY_NOVICE:
+        pace = 80;
+        break;
+    case W8_DIFFICULTY_NORMAL:
+        pace = 60;
+        break;
+    case W8_DIFFICULTY_EXPERT:
+        pace = 40;
+        break;
+    default:
+        srAssertFail("FALSE", MAGIC_CPP, 5352, 0);
+        return;
     }
-
     phase_clock = g_combat_state->characters[party_slot].phase_clock_stamp;
-    if (pace <= phase_clock) {
-        scaled = ((0x32 - pace) + phase_clock) * *value;
-        *value = scaled / 50;
+    if (phase_clock >= pace) {
+        *value = *value * (100 + (phase_clock - pace) * 2) / 100;
     }
-    return phase_clock;
 }
 
 /* How likely a spell is to fail outright. The spell's own cost band picks a
@@ -2709,48 +2708,51 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
     int cast_result;
     unsigned int quiet;
     const int* profession_level;
-    char flag_byte;
+    unsigned char clamp_power;
 
     character = &g_status_685170.buffers.Char[party_slot];
     record = &g_spell_records[spell_id];
     realm = record->realm;
     sp_left = record->spell_point_cost;
     *out_points = 0;
-    flag_byte = continue_cast;
     switch (record->field_12b) {
+    case 0:
+        quiet = 0;
+        clamp_power = 1;
+        break;
     case 1:
         if (gXStatus.fCombatMode == 0 && power_level == 8) {
             quiet = 1;
-            goto LAB_004fa575;
-        }
-    case 0:
-        quiet = 0;
-    LAB_004fa5d7:
-        threshold = character->iSPLeft[realm];
-        if (sp_left * power_level - threshold != 0 &&
-            static_cast<int>(threshold) <= static_cast<int>(sp_left * power_level)) {
-            power_level = threshold / sp_left;
+            clamp_power = 0;
+        } else {
+            quiet = 0;
+            clamp_power = 1;
         }
         break;
     case 2:
         quiet = 0;
-        flag_byte = power_level != 8;
-    default:
-        if (flag_byte != 0) {
-            goto LAB_004fa5d7;
-        }
-    LAB_004fa575:
-        if (character->iSPLeft[realm] < static_cast<int>(sp_left)) {
-            goto LAB_004fa58d;
-        }
+        clamp_power = power_level != 8;
         break;
     case 3:
         power_level = 1;
         quiet = 0;
-        goto LAB_004fa575;
+        clamp_power = 0;
+        break;
+    default:
+        /* retail leaves quiet unset for the remaining kinds */
+        clamp_power = continue_cast;
+        break;
+    }
+    if (clamp_power != 0) {
+        threshold = character->iSPLeft[realm];
+        if (static_cast<int>(sp_left * power_level) > static_cast<int>(threshold)) {
+            power_level = threshold / sp_left;
+        }
+    } else if (character->iSPLeft[realm] < static_cast<int>(sp_left)) {
+        PostCharacterNotice(party_slot, gppStringList[0x18a], record->display_name);
+        return 0;
     }
     if (power_level == 0) {
-    LAB_004fa58d:
         PostCharacterNotice(party_slot, gppStringList[0x18a], record->display_name);
         return 0;
     }
@@ -2773,8 +2775,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
             return 0;
         }
         threshold = character->iSPLeft[realm];
-        if (sp_left * power_level - threshold != 0 &&
-            static_cast<int>(threshold) <= static_cast<int>(sp_left * power_level)) {
+        if (static_cast<int>(sp_left * power_level) > static_cast<int>(threshold)) {
             power_level = threshold / sp_left;
         }
     }
@@ -2840,7 +2841,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
         } else {
             if (g_settings_6850c8.difficulty != 2) {
                 srAssertFail("FALSE", MAGIC_CPP, 0x14e8, 0);
-                goto LAB_004faa0f;
+                goto pace_scaled;
             }
             morale = 0x28;
         }
@@ -2849,7 +2850,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
             chance = (((0x32 - morale) + threshold) * chance * 2) / 100;
         }
     }
-LAB_004faa0f:
+pace_scaled:
     if (spell_id == 0x4a && aim->iType == W8_TARGET_KIND_CHARACTER && aim->iChar == party_slot) {
         chance += 0x32;
     }

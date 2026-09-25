@@ -136,7 +136,7 @@ unsigned int GetSpellFailureChance(unsigned int skill, int spell_id, int factor)
 /* 0x004FF790: how hard this caster figure finds one spell at a power level, and
    0x00501910: the combat-pace scale an item-use attempt applies to its own
    difficulty. Both are defined in this unit. */
-unsigned int ScaleByCombatPace(int party_slot, unsigned int* value);
+void ScaleByCombatPace(int party_slot, unsigned int* value);
 
 /* Validate the available target set and cursor state for a spell or item cast. */
 bool ValidateSpellTarget004FAC40(int party_slot, int spell_id, unsigned int power, bool item_cast,
