@@ -47,27 +47,27 @@ static_assert(sizeof(W8Wiz7Character) == 0x248, "W8Wiz7Character_must_be_0x248")
 
 /* Local Code\Party Import.cpp: the Wizardry 7 character-import conversions. */
 void ConvertAttribute(W8Character* character, const W8Wiz7Character* imported); /* 0x005592D0 */
-void GrantStartingSpells005595D0(W8Character* character, const W8Wiz7Character* imported);
-void ImportEquipment00559650(W8Character* character, const W8Wiz7Character* imported);
+void GrantStartingSpells(W8Character* character, const W8Wiz7Character* imported);
+void ImportEquipment(W8Character* character, const W8Wiz7Character* imported);
 unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
                           const W8Wiz7Character* imported); /* 0x00559BC0 */
-void ImportWizardry7Character005590B0(W8Character* character, W8Wiz7Character* imported);
+void ImportWizardry7Character(W8Character* character, W8Wiz7Character* imported);
 
 /* 0x00558D00: parse the Wizardry 7 save into the import globals - character
    count, records, ending/difficulty selectors and the 96 flag bits. */
-unsigned char LoadWizardry7ImportFile00558D00(char* path);
+unsigned char LoadWizardry7ImportFile(char* path);
 /* 0x00558C40: load the file, reset the run, seed 2500 gold and convert every
    imported record into a regular party member. 0 ok, 1 load/pool failure,
    2 when the ending selector carries the value three. */
-unsigned char ImportWizardry7Party00558C40(char* path);
+unsigned char ImportWizardry7Party(char* path);
 
-extern int g_import_character_count_0068de48;         /* 0x0068DE48 */
-extern unsigned char g_import_ending_record_0068de4c; /* 0x0068DE4C */
-extern int g_wiz7_ending_68de50;                      /* 0x0068DE50: ending selector */
-extern int g_import_difficulty_0068de54;              /* 0x0068DE54 */
+extern int g_import_character_count;         /* 0x0068DE48 */
+extern unsigned char g_import_ending_record; /* 0x0068DE4C */
+extern int g_wiz7_ending;                    /* 0x0068DE50: ending selector */
+extern int g_import_difficulty;              /* 0x0068DE54 */
 /* 0x0068DE58: the 96 file flags; index 5 doubles as the unsuppress byte and
    index 0xb as the loaded marker the fact seeder reads. */
-extern unsigned char g_import_flags_0068de58[0x60];
-extern W8Wiz7Character g_imported_characters_0068deb8[6]; /* 0x0068DEB8 */
+extern unsigned char g_import_flags[0x60];
+extern W8Wiz7Character g_imported_characters[6]; /* 0x0068DEB8 */
 
 #endif

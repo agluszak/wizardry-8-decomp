@@ -24,14 +24,14 @@
 /* Level Specific Code\MtGigasOuter.cpp (level 0x0e).
 
    Attribution evidence: 0x004DC080 is this TU's hard lower bound and
-   InitializeLevelMasterFunctions004D6C50 runs 0x004DBE70 under case 0x0e,
+   InitializeLevelMasterFunctions runs 0x004DBE70 under case 0x0e,
    alongside the _VOC_EWAXXLIFT1 trigger wiring. The assert file string at
    0x00613640 names this TU for 0x004DBEC0 and 0x004DC080. */
 
 // GLOBAL: WIZ8 0x006834fc
-W8IntervalGate* g_lift_gate_6834fc;
+W8IntervalGate* g_lift_gate;
 // GLOBAL: WIZ8 0x00683500
-W8Prop* g_lift_prop_683500;
+W8Prop* g_lift_prop;
 // GLOBAL: WIZ8 0x00683504
 stSound3D* g_alarm_sound_683504;
 // GLOBAL: WIZ8 0x00683508
@@ -50,7 +50,7 @@ const float LIFT_PARKED_Y = -5000.0f;
    gate; values at or above 1000 stop there. Otherwise the "flag" trigger
    runs. */
 // FUNCTION: WIZ8 0x004DBE70
-void ProcessFlagPosition004DBE70(void)
+void ProcessFlagPosition(void)
 {
     if (GetLocationVarIDByName("FlagPosition") != -1) {
         int value = GetLocationVarValueByName("FlagPosition");
@@ -77,14 +77,14 @@ bool OnCrankTriggerActivated(Trigger* trigger)
     W8Prop* prop;
     int value;
 
-    if (g_status_685170.item_in_cursor != 0) {
+    if (g_status.item_in_cursor != 0) {
         return false;
     }
     if (GetLocationVarIDByName("FlagPosition") == -1) {
         CreateLocationVar("FlagPosition", 0);
         npc = GetNpcStateByKind(0x2a);
         QueueNpcScriptNotice(npc, 0, 0x90, 1, 0);
-        g_trigger_feedback_00606994 = 1;
+        g_trigger_feedback = 1;
         return false;
     }
     value = GetLocationVarValueByName("FlagPosition");
@@ -109,8 +109,8 @@ bool OnCrankTriggerActivated(Trigger* trigger)
         prop->GetPosition0044E2C0(&position);
         position.y = LIFT_PARKED_Y;
         prop->SetPosition0044E310(&position);
-        SetTriggerVariableByName00444030("FlagPosition", 1000);
-        ReplaceOrCreateItem(&g_status_685170.item_in_hand_235b, 0x290, 0, 0, 0);
+        SetTriggerVariableByName("FlagPosition", 1000);
+        ReplaceOrCreateItem(&g_status.item_in_hand_235b, 0x290, 0, 0, 0);
         SetItemCursor(0);
         npc = GetNpcStateByKind(0x2a);
         QueueNpcScriptNotice(npc, 0, 0x18, 1, 0);
@@ -137,17 +137,17 @@ void ControlLiftGate(int command)
     float progress;
     int value;
 
-    g_flag_006834dc = 0;
+    g_flag_006834dc = false;
     if (command != 0) {
         value = 0;
         if (command == -1) {
-            if (g_lift_gate_6834fc != 0) {
-                value = static_cast<int>(g_lift_gate_6834fc->GetProgress() * 100.0f);
+            if (g_lift_gate != 0) {
+                value = static_cast<int>(g_lift_gate->GetProgress() * 100.0f);
             }
             if (GetLocationVarIDByName("FlagPosition") == -1) {
                 CreateLocationVar("FlagPosition", value);
             } else {
-                SetTriggerVariableByName00444030("FlagPosition", value);
+                SetTriggerVariableByName("FlagPosition", value);
             }
             return;
         }
@@ -163,23 +163,21 @@ void ControlLiftGate(int command)
             srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
                          0x3ed, 0);
         }
-        g_lift_prop_683500 = pFlagTrigger->m_pProp;
-        g_lift_prop_683500->GetPosition0044E2C0(&position);
+        g_lift_prop = pFlagTrigger->m_pProp;
+        g_lift_prop->GetPosition0044E2C0(&position);
         if (value < 100) {
-            g_master_functions_006834d8->Add(ControlLiftGate);
-            if (g_lift_gate_6834fc != 0) {
-                g_lift_gate_6834fc->Arm();
+            g_master_functions->Add(ControlLiftGate);
+            if (g_lift_gate != 0) {
+                g_lift_gate->Arm();
             } else {
-                g_lift_gate_6834fc = new W8IntervalGate(3.0f, 0, 1);
+                g_lift_gate = new W8IntervalGate(3.0f, 0, 1);
             }
             if (value > 0) {
-                g_lift_gate_6834fc->SetProgress(static_cast<float>(value) *
-                                                g_movement_speed_step_005ed490);
+                g_lift_gate->SetProgress(value * g_movement_speed_step);
             }
-            position.y = (LIFT_TOP_Y - LIFT_BOTTOM_Y) *
-                             (g_float_005ebb38 -
-                              static_cast<float>(value) * g_movement_speed_step_005ed490) +
-                         LIFT_BOTTOM_Y;
+            position.y =
+                (LIFT_TOP_Y - LIFT_BOTTOM_Y) * (g_float_005ebb38 - value * g_movement_speed_step) +
+                LIFT_BOTTOM_Y;
         } else {
             if (value == 100) {
                 position.y = LIFT_BOTTOM_Y;
@@ -187,25 +185,25 @@ void ControlLiftGate(int command)
                 position.y = LIFT_PARKED_Y;
             }
         }
-        g_lift_prop_683500->SetPosition0044E310(&position);
+        g_lift_prop->SetPosition0044E310(&position);
         return;
     }
-    if (g_lift_gate_6834fc != 0) {
-        if (!g_lift_gate_6834fc->IsFinished()) {
-            g_lift_gate_6834fc->PollElapsedIntervals();
+    if (g_lift_gate != 0) {
+        if (!g_lift_gate->IsFinished()) {
+            g_lift_gate->PollElapsedIntervals();
         }
-        if (!g_lift_gate_6834fc->IsFinished()) {
-            progress = g_lift_gate_6834fc->GetProgress();
+        if (!g_lift_gate->IsFinished()) {
+            progress = g_lift_gate->GetProgress();
         } else {
             progress = 1.0f;
-            SetTriggerVariableByName00444030("FlagPosition", 100);
-            g_flag_006834dc = 1;
+            SetTriggerVariableByName("FlagPosition", 100);
+            g_flag_006834dc = true;
         }
-        g_lift_prop_683500->GetPosition0044E2C0(&position);
+        g_lift_prop->GetPosition0044E2C0(&position);
         position.y = (g_float_005ebb38 - progress) * (LIFT_TOP_Y - LIFT_BOTTOM_Y) + LIFT_BOTTOM_Y;
-        g_lift_prop_683500->SetPosition0044E310(&position);
+        g_lift_prop->SetPosition0044E310(&position);
     } else {
-        g_flag_006834dc = 1;
+        g_flag_006834dc = true;
     }
 }
 
@@ -215,7 +213,7 @@ void ControlLiftGate(int command)
 // FUNCTION: WIZ8 0x004DC390
 bool OnSecurityButtonActivated(Trigger* trigger)
 {
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     if (GetLocationVarIDByName("UmpaniCampAlarm") != -1) {
         return false;
     }
@@ -234,16 +232,16 @@ void ControlCampAlarm(int command)
 {
     srVector3T<float> position;
 
-    g_flag_006834dc = 0;
+    g_flag_006834dc = false;
     if (command != 0) {
         if (GetLocationVarIDByName("UmpaniCampAlarm") == -1) {
             CreateLocationVar("UmpaniCampAlarm", 0x1e);
         }
         if (command == -1) {
             if (g_alarm_gate_683508 == 0) {
-                SetTriggerVariableByName00444030("UmpaniCampAlarm", 0);
+                SetTriggerVariableByName("UmpaniCampAlarm", 0);
             } else {
-                SetTriggerVariableByName00444030(
+                SetTriggerVariableByName(
                     "UmpaniCampAlarm", static_cast<int>(g_alarm_gate_683508->GetElapsedSeconds()));
             }
             return;
@@ -265,7 +263,7 @@ void ControlCampAlarm(int command)
         g_alarm_gate_683508 =
             new W8IntervalGate(static_cast<float>(static_cast<unsigned int>(command)), 0, 1);
         if (g_alarm_gate_683508 != 0) {
-            g_master_functions_006834d8->Add(ControlCampAlarm);
+            g_master_functions->Add(ControlCampAlarm);
         }
     }
     if (!g_alarm_gate_683508->IsFinished()) {
@@ -274,7 +272,7 @@ void ControlCampAlarm(int command)
     if (!g_alarm_gate_683508->IsFinished()) {
         return;
     }
-    g_flag_006834dc = 1;
+    g_flag_006834dc = true;
     if (g_alarm_sound_683504 != 0) {
         g_alarm_sound_683504->release();
         g_alarm_sound_683504 = 0;
@@ -283,7 +281,7 @@ void ControlCampAlarm(int command)
         delete g_alarm_gate_683508;
     }
     g_alarm_gate_683508 = 0;
-    SetTriggerVariableByName00444030("UmpaniCampAlarm", 0);
+    SetTriggerVariableByName("UmpaniCampAlarm", 0);
 }
 
 /* Activation callback on VOC_EWAXXSENTRYtrig: hands the sentry NPC (kind
@@ -294,11 +292,11 @@ bool OnSentryTriggerActivated(Trigger* trigger)
     W8NpcState* npc = GetNpcStateByKind(0x59);
     W8ItemInstance* item = 0;
 
-    if (g_status_685170.item_in_cursor != 0) {
-        item = &g_status_685170.item_in_hand_235b;
+    if (g_status.item_in_cursor != 0) {
+        item = &g_status.item_in_hand_235b;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     return true;
 }
 
@@ -307,7 +305,7 @@ bool OnSentryTriggerActivated(Trigger* trigger)
 // FUNCTION: WIZ8 0x004DC640
 bool OnEwaxxDoor03Activated(Trigger* trigger)
 {
-    if (g_status_685170.item_in_cursor != 0) {
+    if (g_status.item_in_cursor != 0) {
         int item_id = GetItemInHand();
         if (item_id >= 0x268 && item_id <= 0x26e) {
             return true;

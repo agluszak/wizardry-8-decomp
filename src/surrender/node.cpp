@@ -1594,3 +1594,6 @@ void srNode::rollAt(const srNode* target, double amount)
 
 // TEMPLATE: SURRENDER 0x10056080
 // srMatrix3T<double>::RotateAboutY(double sine, double cosine)
+
+// SYNTHETIC: SURRENDER 0x10051BC0
+// srNode default constructor closure

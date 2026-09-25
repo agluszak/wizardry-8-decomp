@@ -78,7 +78,7 @@ enum {
 const unsigned char gubLocalACPercent[5] = {15, 40, 30, 10, 5};
 
 // GLOBAL: WIZ8 0x00616604
-const int g_character_table_00616604[480] = {
+const int g_character_table[480] = {
     3,  1,  0,  0,  3,  56, 4,  2,  1,  2,  5,  4,  24, 4,  5,  13, 12, 0,  12, 13, 56, 13, 12, 12,
     12, 14, 14, 14, 14, 14, 19, 19, 0,  19, 19, 56, 20, 20, 20, 20, 18, 18, 18, 18, 18, 24, 24, 0,
     24, 24, 56, 24, 24, 25, 25, 25, 25, 25, 25, 25, 28, 28, 0,  28, 28, 56, 28, 28, 29, 29, 29, 29,
@@ -131,9 +131,9 @@ int CountActiveCharacters(void)
     int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0 &&
-            g_status_685170.buffers.Char[party_slot].hp_current != 0 &&
-            g_status_685170.buffers.Char[party_slot].highest_condition < 0x12) {
+        if (g_status.buffers.XChar[party_slot].fOccupied != 0 &&
+            g_status.buffers.Char[party_slot].hp_current != 0 &&
+            g_status.buffers.Char[party_slot].highest_condition < 0x12) {
             ++count;
         }
     }
@@ -148,9 +148,9 @@ bool AnyCharacterActive(void)
     int party_slot;
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0 &&
-            g_status_685170.buffers.Char[party_slot].hp_current != 0 &&
-            g_status_685170.buffers.Char[party_slot].highest_condition < 0x12) {
+        if (g_status.buffers.XChar[party_slot].fOccupied != 0 &&
+            g_status.buffers.Char[party_slot].hp_current != 0 &&
+            g_status.buffers.Char[party_slot].highest_condition < 0x12) {
             ++count;
         }
     }
@@ -168,7 +168,7 @@ void AdvanceCharacterToLevel(W8Character* character, unsigned int level)
     CalcXPGoal(character);
 
     while (character->uiExpLevel < level) {
-        character->uiExpLevel = character->uiExpLevel + 1;
+        ++character->uiExpLevel;
         character->experience_previous_goal = character->experience_goal;
         CalcXPGoal(character);
     }
@@ -248,16 +248,15 @@ void RefreshLevelUpReadyNotices(void)
 {
     int party_slot;
 
-    if (g_status_685170.greeting_pending_2497 != 0 ||
-        GetLevelBand(g_status_685170.current_level) == 0xe) {
+    if (g_status.greeting_pending_2497 != 0 || GetLevelBand(g_status.current_level) == 0xe) {
         return;
     }
 
     gXStatus.level_up_notice_027 = 0;
     for (party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
+        W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
         bool* ready_flag = &gXStatus.monster_manager_entries[party_slot].level_up_ready;
-        W8Character* character = &g_status_685170.buffers.Char[party_slot];
+        W8Character* character = &g_status.buffers.Char[party_slot];
 
         if (row->fOccupied == 0) {
             if (character->hp_current != 0) {
@@ -312,7 +311,7 @@ void RefreshLevelUpReadyNotices(void)
         }
 
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-            EnablePortraitAdvanceRegions0059BB70();
+            EnablePortraitAdvanceRegions();
         }
     }
 }
@@ -322,9 +321,9 @@ void RefreshLevelUpReadyNotices(void)
 // FUNCTION: WIZ8 0x004ef3c0
 bool IsCharacterReadyToAdvance(int party_slot)
 {
-    const W8Character* character = &g_status_685170.buffers.Char[party_slot];
+    const W8Character* character = &g_status.buffers.Char[party_slot];
 
-    if (g_status_685170.buffers.XChar[party_slot].fOccupied == 0) {
+    if (g_status.buffers.XChar[party_slot].fOccupied == 0) {
         return false;
     }
     if (character->hp_current == 0) {
@@ -343,7 +342,7 @@ unsigned int FindFreePartySlot(unsigned int first, unsigned int last)
     unsigned int slot;
 
     for (slot = first; slot < last; ++slot) {
-        if (g_status_685170.buffers.XChar[slot].fOccupied == 0) {
+        if (g_status.buffers.XChar[slot].fOccupied == 0) {
             return slot;
         }
     }
@@ -390,29 +389,28 @@ void CalcCharacterTableValue(W8Character* character)
         srAssertFail("pPC->iRace < PC_RACE_COUNT", GAMEPLAY_CODE_CPP, 2359, 0);
     }
     character->portrait_index =
-        g_character_table_00616604[(character->gender * 0x10 + character->iRace) *
-                                       W8_PROFESSION_COUNT +
-                                   character->iProfession];
+        g_character_table[(character->gender * 0x10 + character->iRace) * W8_PROFESSION_COUNT +
+                          character->iProfession];
 }
 
 // GLOBAL: WIZ8 0x00617894
-char s_fall_impact_wav_00617894[] = "Data\\Sound\\Misc\\Fall Impact.wav";
+char s_fall_impact_wav[] = "Data\\Sound\\Misc\\Fall Impact.wav";
 
 /* Level-motion override landing: the accumulated fall magnitude becomes
    pow(8.0, fall + 0.7) six-sided dice of damage against the whole party,
    with a notice and the fall-impact sound. */
 // FUNCTION: WIZ8 0x004EF9A0
-void HandleLevelOverride004EF9A0(float fall)
+void HandleLevelOverride(float fall)
 {
     unsigned int count = static_cast<unsigned int>(pow(8.0, fall + 0.7));
     if (count > 0) {
         SOUNDPARMS sound_parms;
         memset(&sound_parms, 0xff, sizeof(sound_parms));
-        sound_parms.uiVolume = g_settings_6850c8.sound_effects_volume;
+        sound_parms.uiVolume = g_settings.sound_effects_volume;
         ShowNotice(8, gppStringList[0x252]);
-        SoundPlay(s_fall_impact_wav_00617894, &sound_parms);
+        SoundPlay(s_fall_impact_wav, &sound_parms);
         W8Dice dice;
-        SetDice(&dice, static_cast<unsigned char>(count), '\x06', 0);
+        SetDice(&dice, static_cast<unsigned char>(count), 6, 0);
         ApplyRolledHealthChangeToParty(&dice, 0, 1);
     }
 }
@@ -649,7 +647,7 @@ void CalcAttacks(W8Character* character)
                                60;
         if (character->fInParty && character->iRace == 15) {
             unsigned int party_slot = CharacterPointerToPartySlot(character);
-            W8NpcState* npc = GetNpcState(g_status_685170.buffers.XChar[party_slot].animation_0fa);
+            W8NpcState* npc = GetNpcState(g_status.buffers.XChar[party_slot].npc_index);
             if (npc != 0 && npc->name_style == W8_NPC_RFS81_A &&
                 !GetFact(W8_FACT_RFS81_HAS_BEEN_FIXED)) {
                 attack->attack_score /= 2;
@@ -818,7 +816,7 @@ void CalcArmorClasses(W8Character* character)
     }
 
     if (character->highest_condition <= 0x11) {
-        if (CharacterHasTrait00547940(character, 0x16)) {
+        if (CharacterHasTrait(character, 0x16)) {
             character->armor_class_components[0] += 2;
         }
         unsigned int speed = character->attributes[5].effective;
@@ -900,7 +898,7 @@ void CalcArmorClasses(W8Character* character)
    two dwords per row. It ends exactly where the sex/race/profession table
    at 0x00616604 begins. */
 // GLOBAL: WIZ8 0x006164F4
-const int g_character_value_table_006164f4[34][2] = {
+const int g_character_value_table[34][2] = {
     {0, 2}, {0, 1}, {6, 1}, {0, 1}, {0, 1}, {2, 2}, {0, 1}, {8, 1}, {7, 2}, {7, 2}, {7, 2}, {7, 2},
     {7, 2}, {7, 2}, {4, 1}, {4, 1}, {1, 1}, {5, 2}, {7, 1}, {6, 2}, {6, 2}, {6, 1}, {3, 2}, {3, 2},
     {5, 1}, {1, 1}, {1, 2}, {5, 2}, {1, 1}, {1, 2}, {2, 1}, {2, 1}, {2, 2}, {2, 2}};
@@ -908,7 +906,7 @@ const int g_character_value_table_006164f4[34][2] = {
 /* Derive the character's personality and voice from sex and profession.
    Unaligned characters pick a class through the race shortcut first. */
 // FUNCTION: WIZ8 0x004EFA30
-void DeriveCharacterPersonality004EFA30(W8Character* character)
+void DeriveCharacterPersonality(W8Character* character)
 {
     int gender = character->gender;
     int value = character->iProfession;
@@ -930,8 +928,8 @@ void DeriveCharacterPersonality004EFA30(W8Character* character)
         }
     }
     index = gender + value * 2;
-    flag = g_character_value_table_006164f4[index][1];
-    character->personality_0081 = g_character_value_table_006164f4[index][0];
+    flag = g_character_value_table[index][1];
+    character->personality_0081 = g_character_value_table[index][0];
     if (flag == 1) {
         character->voice_0085 = 0;
     } else {
@@ -944,7 +942,7 @@ void DeriveCharacterPersonality004EFA30(W8Character* character)
    same gender/personality/voice triple. The first clash only flips the voice;
    further clashes re-roll both personality and voice. */
 // FUNCTION: WIZ8 0x004EFAD0
-void EnsureUniquePartyVoice004EFAD0(W8Character* character)
+void EnsureUniquePartyVoice(W8Character* character)
 {
     W8Character* other;
     unsigned int slot;
@@ -952,7 +950,7 @@ void EnsureUniquePartyVoice004EFAD0(W8Character* character)
 
     for (;;) {
         slot = 0;
-        other = g_status_685170.buffers.Char;
+        other = g_status.buffers.Char;
         for (;;) {
             if (other->fInParty != 0 && other != character && other->gender == character->gender &&
                 other->personality_0081 == character->personality_0081 &&
@@ -984,8 +982,8 @@ unsigned int GetAveragePartyLevel(void)
     int slot;
 
     for (slot = 0; slot < 8; ++slot) {
-        if (g_status_685170.buffers.XChar[slot].fOccupied != 0) {
-            total_level += g_status_685170.buffers.Char[slot].uiExpLevel;
+        if (g_status.buffers.XChar[slot].fOccupied != 0) {
+            total_level += g_status.buffers.Char[slot].uiExpLevel;
             ++occupied_slots;
         }
     }
@@ -1003,7 +1001,7 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
 
     if (slot_kind == -1) {
         slot = 2;
-        while (g_status_685170.buffers.XChar[slot].fOccupied != 0) {
+        while (g_status.buffers.XChar[slot].fOccupied != 0) {
             ++slot;
             if (slot > 7) {
                 return -1;
@@ -1011,7 +1009,7 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
         }
     } else {
         slot = 0;
-        while (g_status_685170.buffers.XChar[slot].fOccupied != 0) {
+        while (g_status.buffers.XChar[slot].fOccupied != 0) {
             ++slot;
             if (slot > 1) {
                 return -1;
@@ -1022,33 +1020,33 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
         return -1;
     }
 
-    W8Character* destination = &g_status_685170.buffers.Char[slot];
+    W8Character* destination = &g_status.buffers.Char[slot];
     memcpy(destination, character, sizeof(W8Character));
-    destination->fInParty = 1;
+    destination->fInParty = true;
     ResetPartySlotRow(slot);
     ResetGameplaySlot(slot);
 
-    W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
-    row->animation_0fa = slot_kind;
+    W8PartySlotRow* row = &g_status.buffers.XChar[slot];
+    row->npc_index = slot_kind;
     for (unsigned int index = 0; index < 8; ++index) {
-        if (g_status_685170.party_order_slots[index] == (unsigned int)-1) {
-            g_status_685170.party_order_slots[index] = slot;
+        if (g_status.party_order_slots[index] == static_cast<unsigned int>(-1)) {
+            g_status.party_order_slots[index] = slot;
             row->party_order_index = index;
             break;
         }
     }
-    PlaceCharacterInFormation(&g_status_685170.formation, slot);
-    g_status_685170.formation.positions[slot].bOldQuadrant = 0xff;
+    PlaceCharacterInFormation(&g_status.formation, slot);
+    g_status.formation.positions[slot].bOldQuadrant = 0xff;
 
-    if (g_status_685170.game_started != 0) {
+    if (g_status.game_started != 0) {
         gXStatus.edited_formation.positions[slot].bOldQuadrant = 0xff;
         PostCharacterNotice(slot, gppStringList[0x940 / 4]);
     }
-    ++g_status_685170.total_member_count;
+    ++g_status.total_member_count;
     if (slot_kind == -1) {
-        ++g_status_685170.regular_member_count;
+        ++g_status.regular_member_count;
     } else {
-        ++g_status_685170.auxiliary_member_count;
+        ++g_status.auxiliary_member_count;
     }
 
     RebuildCharacterModifierBlock(destination);
@@ -1066,48 +1064,46 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
 // FUNCTION: WIZ8 0x004EF610
 unsigned char RemoveCharacterFromParty(int party_slot, char save_character_data)
 {
-    W8Character* character = &g_status_685170.buffers.Char[party_slot];
+    W8Character* character = &g_status.buffers.Char[party_slot];
 
-    if (save_character_data != 0 && g_status_685170.buffers.XChar[party_slot].animation_0fa == -1) {
+    if (save_character_data != 0 && g_status.buffers.XChar[party_slot].npc_index == -1) {
         srAssertFail("!fSaveCharData || fCHAR_NPC(uiSlot)", GAMEPLAY_CODE_CPP, 0x895, 0);
     }
     gXStatus.character_event_queue->RemoveCharacterEvents(character);
-    character->fInParty = 0;
+    character->fInParty = false;
     if (save_character_data != 0) {
         RebuildCharacterModifierBlock(character);
         RecalculateCharacterDerivedStats(character);
-        if (SaveCharacter(character, g_status_685170.buffers.XChar[party_slot].animation_0fa, 1,
-                          0) == 0) {
-            character->fInParty = 1;
+        if (SaveCharacter(character, g_status.buffers.XChar[party_slot].npc_index, 1, 0) == 0) {
+            character->fInParty = true;
             RebuildCharacterModifierBlock(character);
             RecalculateCharacterDerivedStats(character);
             return 0;
         }
     }
-    g_status_685170.buffers.XChar[party_slot].fOccupied = 0;
+    g_status.buffers.XChar[party_slot].fOccupied = 0;
     character->highest_condition = 0;
     character->enchantment_top = 0;
-    SetFormationPosition(&g_status_685170.formation, party_slot, -1, -1, 0, 1, 1);
+    SetFormationPosition(&g_status.formation, party_slot, -1, -1, 0, 1, 1);
     if (gXStatus.fCombatMode != 0) {
         SetFormationPosition(&gXStatus.edited_formation, party_slot, -1, -1, 0, 1, 1);
         SetFormationPosition(&g_combat_state->saved_formation, party_slot, -1, -1, 0, 1, 1);
     }
-    if (g_status_685170.game_started != 0) {
+    if (g_status.game_started != 0) {
         PostCharacterNotice(party_slot, gppStringList[0x251]);
     }
-    g_status_685170.party_order_slots[g_status_685170.buffers.XChar[party_slot].party_order_index] =
-        -1;
-    --g_status_685170.total_member_count;
-    if (g_status_685170.buffers.XChar[party_slot].animation_0fa == -1) {
-        --g_status_685170.regular_member_count;
+    g_status.party_order_slots[g_status.buffers.XChar[party_slot].party_order_index] = -1;
+    --g_status.total_member_count;
+    if (g_status.buffers.XChar[party_slot].npc_index == -1) {
+        --g_status.regular_member_count;
     } else {
-        --g_status_685170.auxiliary_member_count;
+        --g_status.auxiliary_member_count;
     }
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
         RefreshPartySlotRegions();
     }
-    if (g_status_685170.selected_character == party_slot) {
-        g_status_685170.selected_character = GetNextCharacter(1, 1, -1);
+    if (g_status.selected_character == party_slot) {
+        g_status.selected_character = GetNextCharacter(1, 1, -1);
     }
     return 1;
 }
@@ -1118,8 +1114,8 @@ unsigned char RemoveCharacterFromParty(int party_slot, char save_character_data)
    as a regular member. When the caller pays for it, the starting equipment is
    bought out of the party gold the way a new recruit would bring it. */
 // FUNCTION: WIZ8 0x004ef7e0
-unsigned char RecruitCharacterIntoParty004EF7E0(W8Character* character, W8Character* record,
-                                                char buy_equipment)
+unsigned char RecruitCharacterIntoParty(W8Character* character, W8Character* record,
+                                        char buy_equipment)
 {
     unsigned int slot = CharacterPointerToPartySlot(character);
     int index;
@@ -1137,29 +1133,29 @@ unsigned char RecruitCharacterIntoParty004EF7E0(W8Character* character, W8Charac
     }
     RemoveCharacterFromParty(slot, 0);
     memcpy(character, record, sizeof(W8Character));
-    character->fInParty = 1;
+    character->fInParty = true;
     ResetPartySlotRow(slot);
     ResetGameplaySlot(slot);
-    g_status_685170.buffers.XChar[slot].animation_0fa = -1;
+    g_status.buffers.XChar[slot].npc_index = -1;
     for (order_index = 0; order_index < 8; ++order_index) {
-        if (g_status_685170.party_order_slots[order_index] == static_cast<unsigned int>(-1)) {
-            g_status_685170.party_order_slots[order_index] = slot;
-            g_status_685170.buffers.XChar[slot].party_order_index = order_index;
+        if (g_status.party_order_slots[order_index] == static_cast<unsigned int>(-1)) {
+            g_status.party_order_slots[order_index] = slot;
+            g_status.buffers.XChar[slot].party_order_index = order_index;
             break;
         }
     }
-    PlaceCharacterInFormation(&g_status_685170.formation, slot);
-    g_status_685170.formation.positions[slot].bOldQuadrant = 0xff;
-    ++g_status_685170.total_member_count;
-    ++g_status_685170.regular_member_count;
+    PlaceCharacterInFormation(&g_status.formation, slot);
+    g_status.formation.positions[slot].bOldQuadrant = 0xff;
+    ++g_status.total_member_count;
+    ++g_status.regular_member_count;
     RebuildCharacterModifierBlock(character);
     RecalculateCharacterDerivedStats(character);
     if (buy_equipment != 0) {
         unsigned int cost = ComputeStartingEquipmentCost(character);
-        if (g_status_685170.party_gold < cost) {
+        if (g_status.party_gold < cost) {
             srAssertFail("uiValue <= gStatus.uiPartyGold", GAMEPLAY_CODE_CPP, 0x922, 0);
         }
-        g_status_685170.party_gold -= cost;
+        g_status.party_gold -= cost;
         AddCharacterStartingEquipment(character);
     }
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
@@ -1169,11 +1165,11 @@ unsigned char RecruitCharacterIntoParty004EF7E0(W8Character* character, W8Charac
 }
 
 // FUNCTION: WIZ8 0x004EEF10
-void AwardPartyExperience004EEF10(int amount, int alternate_message)
+void AwardPartyExperience(int amount, int alternate_message)
 {
     for (int slot = 0; slot < 8; ++slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
-        W8Character* character = &g_status_685170.buffers.Char[slot];
+        W8PartySlotRow* row = &g_status.buffers.XChar[slot];
+        W8Character* character = &g_status.buffers.Char[slot];
         if (row->fOccupied && character->hp_current > 0 && character->highest_condition < 0x12 &&
             amount != 0) {
             unsigned int total = character->experience + static_cast<unsigned int>(amount);
@@ -1182,9 +1178,9 @@ void AwardPartyExperience004EEF10(int amount, int alternate_message)
             } else {
                 character->experience = static_cast<unsigned int>(-1);
             }
-            if (g_status_685170.current_level < W8_LEVEL_COUNT) {
+            if (g_status.current_level < W8_LEVEL_COUNT) {
                 unsigned int& gained =
-                    g_status_685170.level_progress[g_status_685170.current_level].experience_gained;
+                    g_status.level_progress[g_status.current_level].experience_gained;
                 total = gained + static_cast<unsigned int>(amount);
                 if (total > gained) {
                     gained = total;

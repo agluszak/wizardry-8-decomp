@@ -75,23 +75,21 @@ static_assert(sizeof(W8CameraShakeEffect) == 0x4c, "W8CameraShakeEffect_must_be_
 
 /* The live list every active effect is on, and the timer the first effect
    creates alongside it. Both are built lazily by the constructor. */
-extern W8GrowableVector<W8CameraShakeEffect*>* g_shake_effects_0065be2c;
-extern W8GameTimer* g_shake_timer_0065be30;
+extern W8GrowableVector<W8CameraShakeEffect*>* g_shake_effects;
+extern W8GameTimer* g_shake_timer;
 
-W8CameraShakeEffect* CreateCameraShakeEffect004AE080(float duration, char preset, float intensity,
-                                                     float distance_cap,
-                                                     const srVector3T<float>* position);
+W8CameraShakeEffect* CreateCameraShakeEffect(float duration, char preset, float intensity,
+                                             float distance_cap, const srVector3T<float>* position);
 /* Fire every effect in one cycle's vector whose key matches, moving it onto the
    live list and restarting its timer. */
-void TriggerShakeEffects004AE170(W8GrowableVector<W8CameraShakeEffect*>* effects, int cycle,
-                                 unsigned int frame, int subcycle,
-                                 const srVector3T<float>* position);
+void TriggerShakeEffects(W8GrowableVector<W8CameraShakeEffect*>* effects, int cycle,
+                         unsigned int frame, int subcycle, const srVector3T<float>* position);
 /* Take every active effect in one cycle's vector back off the live list, and
    release the ones that list owned. */
-void StopShakeEffects004AE270(W8GrowableVector<W8CameraShakeEffect*>* effects);
+void StopShakeEffects(W8GrowableVector<W8CameraShakeEffect*>* effects);
 /* The per-frame shake update: retire finished live effects and turn the
    accumulated intensity into Trigger's action camera offset. */
-void UpdateShakeEffects004AE310();
+void UpdateShakeEffects();
 
 /* 0x004A5F20 allocates 0x3c for each of these and copies them field by field:
    a leading dword, the byte after it, an owned stParticle rebuilt through
@@ -135,8 +133,8 @@ public:
     virtual W8EmitterHost* GetRepresentation() = 0;
     void SetPosition004A6DF0(srVector3T<float>* position);
     /* Registry-wide lookups answered from this cycle's identity. */
-    const char* GetRegisteredName004A8650() const;     /* 0x004A8650 */
-    bool IsSoleRegisteredCycleForName004A8700() const; /* 0x004A8700 */
+    const char* GetRegisteredName() const;     /* 0x004A8650 */
+    bool IsSoleRegisteredCycleForName() const; /* 0x004A8700 */
     virtual unsigned char GetAnimationBounds(srVector3T<float>* minimum,
                                              srVector3T<float>* maximum);
     virtual unsigned char GetAnimationRadius(float* radius);
@@ -148,27 +146,26 @@ public:
     void SetSubCycle(unsigned char subcycle);
     void SetBehaviour(signed char bBehaviour);
     void SetLights(W8GrowableVector<stLight*>* lights);
-    void AddShakeEffect004A8530(W8CameraShakeEffect* effect);
+    void AddShakeEffect(W8CameraShakeEffect* effect);
     void CreateGroundShadow(float width, float depth);
     void SetGroundShadowVisible(char visible);
-    void ResetRepresentation004A7420();
-    void DetachRepresentation004A7A70(W8World* world);
+    void ResetRepresentation();
+    void DetachRepresentation(W8World* world);
     /* Runs at the end of every representation update; its own body is the
        shake/particle event walk. */
-    void UpdateParticleAttachments004A7E50();
-    void SelectLOD004A7BE0(const srVector3T<float>* position); /* 0x004A7BE0 */
-    void UpdateLights004A7150();
-    srModelInstance* SelectCycleFrameLod004A8360(signed char cycle, signed char frame,
-                                                 signed char lod);
-    srModelInstance* GetCurrentModelInstance004A8250();
-    unsigned char ReplacePath004A8400(W8PathAI* path);
-    void SubmitTargetValue004A84A0();
+    void UpdateParticleAttachments();
+    void SelectLOD(const srVector3T<float>* position); /* 0x004A7BE0 */
+    void UpdateLights();
+    srModelInstance* SelectCycleFrameLod(signed char cycle, signed char frame, signed char lod);
+    srModelInstance* GetCurrentModelInstance();
+    unsigned char ReplacePath(W8PathAI* path);
+    void SubmitTargetValue();
 
 public:
     srModelInstance* current_model_instance_1a8;
     W8GrowableVector<stLight*>* m_plsLights;                  /* 0x1ac */
     W8GrowableVector<W8CameraShakeEffect*>* m_plsShakeEvents; /* 0x1b0 */
-    unsigned char m_fDeleteLights;                            /* 0x1b4: named by GrCycle.cpp:1656 */
+    bool m_fDeleteLights;                                     /* 0x1b4: named by GrCycle.cpp:1656 */
     /* 0x1b5: the subcycle the last update pass left on the representation. */
     unsigned char last_subcycle_1b5;
     unsigned char padding_1b6[2];
@@ -176,7 +173,7 @@ public:
     /* 0x1bc: set when the frame walk wrapped to first_frame; suppresses the
        per-subcycle light reset. */
     unsigned char wrapped_1bc;
-    unsigned char enabled_1bd;
+    bool enabled_1bd;
     /* 0x1be: mirror the model on X (the left-handed strike pick). */
     unsigned char mirror_x_1be;
     /* 0x1bf: m_axis_1c0 holds an aim point; mode-3 particles orient along it. */
@@ -201,10 +198,9 @@ extern float g_float_005ec128;
 W8GrCycle* FindFirstGrCycleByName(const char* name);
 unsigned char UnregisterGrCycle(W8GrCycle* cycle);
 void RegisterGrCycle(const char* name, W8GrCycle* cycle);
-unsigned char LoadGrCycle004A67E0(const W8GrCycleLoadContext* context, const char* mon_name,
-                                  W8GrCycle** cycle, int cycle_index, int value,
-                                  const char* directory, unsigned char object_type,
-                                  const char* bitmap_directory = 0);
-unsigned char ReadGrCycleData004A6970(W8ReadLevelInfo* info, W8GrCycle** cycle, int cycle_index,
-                                      int value, unsigned char object_type);
+bool LoadGrCycle(const W8GrCycleLoadContext* context, const char* mon_name, W8GrCycle** cycle,
+                 int cycle_index, int value, const char* directory, unsigned char object_type,
+                 const char* bitmap_directory = 0);
+unsigned char ReadGrCycleData(W8ReadLevelInfo* info, W8GrCycle** cycle, int cycle_index, int value,
+                              unsigned char object_type);
 int FindMappedIndexInMeshChain(stMeshModel** mesh, int key); /* 0x004A8D10 */

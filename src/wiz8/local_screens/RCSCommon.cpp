@@ -62,40 +62,40 @@
  */
 
 // GLOBAL: WIZ8 0x0069c3c4
-Controls* g_level_up_panel_0069c3c4;
+Controls* g_level_up_panel;
 // GLOBAL: WIZ8 0x0069c3c8
-Controls* g_dismiss_panel_0069c3c8;
+Controls* g_dismiss_panel;
 
 /* The eight item-page action buttons, indexed by the mode SetCampItemActionMode
    arms: one control per actionable entry-mode, cleared before each reselection. */
 // GLOBAL: WIZ8 0x0069c3cc
-W8TextControl* g_item_action_controls_69c3cc[8];
+W8TextControl* g_item_action_controls[8];
 /* Five page buttons (help 2364-2368) packed immediately before the dismiss
-   button; CreateCampButtonPanel005B4EB0 allocates them on the shared bottom Controls panel. */
+   button; CreateCampButtonPanel allocates them on the shared bottom Controls panel. */
 // GLOBAL: WIZ8 0x0069c3ec
-W8TextControl* g_camp_page_buttons_0069c3ec[5];
+W8TextControl* g_camp_page_buttons[5];
 // GLOBAL: WIZ8 0x0069c3c0
-W8TextControl* g_level_up_button_0069c3c0;
+W8TextControl* g_level_up_button;
 // GLOBAL: WIZ8 0x0069c400
-W8TextControl* g_dismiss_button_0069c400;
+W8TextControl* g_dismiss_button;
 
-/* The shared bottom panel CreateCampButtonPanel005B4EB0 parents the five page
+/* The shared bottom panel CreateCampButtonPanel parents the five page
    buttons and the eight item-action controls to. */
 // GLOBAL: WIZ8 0x0069c404
-Controls* g_item_actions_panel_0069c404;
+Controls* g_item_actions_panel;
 
 /* 0x0064DAD0: the level-line format the header draws - name, level and the
    profession's level-band title. */
 // GLOBAL: WIZ8 0x0064DAD0
-const wchar_t g_format_s_d_paren_s_0064dad0[] = L"%s %d (%s)";
+const wchar_t g_format_s_d_paren_s[] = L"%s %d (%s)";
 
-/* The page and item-action button callbacks CreateCampButtonPanel005B4EB0
+/* The page and item-action button callbacks CreateCampButtonPanel
    wires into m_primaryActivationCallback. */
 static void CampPageAction005B5AE0(void);
 static void CampPageAction005B5B30(void);
 static void CampPageAction005B5B80(void);
 static void CampPageAction005B5BD0(void);
-static void CampPageDismissAction005B5C20(void);
+static void CampPageDismissAction(void);
 static void CampItemAction005B5C30(void);
 static void CampItemAction005B5C80(void);
 static void CampItemAction005B5CD0(void);
@@ -111,49 +111,48 @@ void OnDismissCharacterDialogClosed(W8DialogBase* dialog);
 /* Swap the reviewed party member: rebuild the item list or learned-spell
    scratch for the new character and repaint whichever page is showing. */
 // FUNCTION: WIZ8 0x005B6B30
-void SelectCampCharacter005B6B30(int slot)
+void SelectCampCharacter(int slot)
 {
     giReviewCharSlot = slot;
-    g_review_character_0069c0f8 = &g_status_685170.buffers.Char[slot];
-    SyncReviewCharInputRegion005A4570();
-    switch (g_camp_screen_0069c0f4->page) {
+    g_review_character = &g_status.buffers.Char[slot];
+    SyncReviewCharInputRegion();
+    switch (g_camp_screen->page) {
     case 0:
-        EnableCampActionButtons005B9270();
-        if (g_camp_screen_0069c0f4->realm_flags[0] != 0) {
-            g_camp_screen_0069c0f4->item_scroll = 0;
-            RebuildCampItemList005A4A00();
+        EnableCampActionButtons();
+        if (g_camp_screen->realm_flags[0] != 0) {
+            g_camp_screen->item_scroll = 0;
+            RebuildCampItemList();
         }
-        if (g_camp_screen_0069c0f4->entry_mode != 3 && g_camp_screen_0069c0f4->entry_mode != 2 &&
-            g_camp_screen_0069c0f4->entry_mode != 8) {
-            SetCampItemActionMode005B59B0(0);
+        if (g_camp_screen->entry_mode != 3 && g_camp_screen->entry_mode != 2 &&
+            g_camp_screen->entry_mode != 8) {
+            SetCampItemActionMode(0);
         }
         break;
     case 1:
-        g_camp_screen_0069c0f4->effect_selection = 0;
-        RebuildCampEffectList005C4EE0();
-        g_camp_screen_0069c0f4->character_info->Invalidate(0);
+        g_camp_screen->effect_selection = 0;
+        RebuildCampEffectList();
+        g_camp_screen->character_info->Invalidate(0);
         break;
     case 3:
-        BuildLearnedSpellState004F9600(&g_camp_screen_0069c0f4->learned_spells,
-                                       g_review_character_0069c0f8);
-        RefreshCampSpellRanges005B7290();
+        BuildLearnedSpellState(&g_camp_screen->learned_spells, g_review_character);
+        RefreshCampSpellRanges();
         break;
     }
-    g_camp_screen_0069c0f4->redraw_flags |= 0xfffffff;
+    g_camp_screen->redraw_flags |= 0xfffffff;
 }
 
 /* Give the held item to a camp portrait on right-click: refuse dead/insane/
    stoned with a notice, check eligibility and combat action allowance, then
    AddItemToCharacter. */
 // FUNCTION: WIZ8 0x005B6C10
-void TryGiveHeldItemToCampPortrait005B6C10(int slot)
+void TryGiveHeldItemToCampPortrait(int slot)
 {
     W8Character* character;
 
-    if (!g_status_685170.buffers.XChar[slot].fOccupied) {
+    if (!g_status.buffers.XChar[slot].fOccupied) {
         return;
     }
-    character = &g_status_685170.buffers.Char[slot];
+    character = &g_status.buffers.Char[slot];
     if (character->uiCondition[19] != 0) {
         ShowCampNoticeLine(gppStringList[0x241c / 4], 0, 1, 0);
         return;
@@ -166,25 +165,25 @@ void TryGiveHeldItemToCampPortrait005B6C10(int slot)
         ShowCampNoticeLine(gppStringList[0x2424 / 4], 0, 1, 0);
         return;
     }
-    if (!IsPartySlotEligible00524A10(slot)) {
+    if (!IsPartySlotEligible(slot)) {
         ShowCampNoticeLine(gppStringList[0x2404 / 4], 0, 1, 0);
         return;
     }
-    if (IsCampActionAllowed005A6090(slot) == 0) {
+    if (IsCampActionAllowed(slot) == 0) {
         return;
     }
-    AddItemToCharacter(character, &g_status_685170.item_in_hand_235b, 0, 0, 0);
+    AddItemToCharacter(character, &g_status.item_in_hand_235b, 0, 0, 0);
 }
 
 // FUNCTION: WIZ8 0x005b6d20
 bool CanSelectRcsPartySlot(int ui_slot)
 {
-    if (!g_status_685170.buffers.XChar[ui_slot].fOccupied) {
+    if (!g_status.buffers.XChar[ui_slot].fOccupied) {
         srAssertFail("gStatus.XChar[uiSlot].fOccupied",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp", 0x9ac, 0);
     }
 
-    W8Character* character = &g_status_685170.buffers.Char[ui_slot];
+    W8Character* character = &g_status.buffers.Char[ui_slot];
     if (character->uiCondition[19] != 0) {
         return false;
     }
@@ -201,7 +200,7 @@ bool CanSelectRcsPartySlot(int ui_slot)
         if (!g_combat_state->equip_phase_a50) {
             return false;
         }
-        if (g_status_685170.buffers.XChar[ui_slot].pending_action != 9) {
+        if (g_status.buffers.XChar[ui_slot].pending_action != 9) {
             return false;
         }
     }
@@ -220,7 +219,7 @@ void DrawRcsText(const wchar_t* text, int left, int top, int width, unsigned int
 void DrawRcsBoldText(const wchar_t* text, int left, int top, int width, unsigned int layout_mode)
 {
     W8ControlsRect bounds = {left, top, left + width, top + 12};
-    W8TextBuffer buffer(&bounds, text, g_wiz_text_bold_font_683664, layout_mode, 4);
+    W8TextBuffer buffer(&bounds, text, g_wiz_text_bold_font, layout_mode, 4);
     buffer.RenderToTarget(0, 0, -14);
 }
 
@@ -254,13 +253,13 @@ void DrawRcsTextJustified(const wchar_t* text, int left, int top, int width, int
 // FUNCTION: WIZ8 0x005b6630
 void OpenLevelUpCharacterScreen(void)
 {
-    if (!g_status_685170.buffers.XChar[giReviewCharSlot].fOccupied) {
+    if (!g_status.buffers.XChar[giReviewCharSlot].fOccupied) {
         srAssertFail("fCHAR_OCCUPIED(giReviewCharSlot)",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp", 0x888, 0);
     }
     g_current_screen_state.parameter_2 = giReviewCharSlot;
-    g_current_screen_state.parameter_3 = g_review_character_0069c0f8;
-    g_pending_screen_state.parameter_3 = &g_status_685170.buffers.Char[giReviewCharSlot];
+    g_current_screen_state.parameter_3 = g_review_character;
+    g_pending_screen_state.parameter_3 = &g_status.buffers.Char[giReviewCharSlot];
     g_pending_screen_state.mode = 2;
     SetPendingScreenState(W8_SCREEN_CHARACTER);
 }
@@ -284,11 +283,11 @@ unsigned char CampDismissPortraitRegionEvent(const InputAtom* event, W8Region* r
             if ((region->flags & W8_REGION_MOUSE_ENTER) == 0) {
                 return 0;
             }
-            g_camp_screen_0069c0f4->portrait_hovered_d40[0] = 1;
+            g_camp_screen->portrait_hovered_d40[0] = 1;
         } else {
-            g_camp_screen_0069c0f4->portrait_hovered_d40[0] = 0;
+            g_camp_screen->portrait_hovered_d40[0] = 0;
         }
-        g_camp_screen_0069c0f4->redraw_flags |= 0x100;
+        g_camp_screen->redraw_flags |= 0x100;
         return 0;
     }
     if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
@@ -319,13 +318,12 @@ unsigned char CampPortraitSlotRegionEvent(const InputAtom* event, W8Region* regi
             return 0;
         }
         if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0 &&
-            g_status_685170.buffers.XChar[target_slot].fOccupied != 0) {
+            g_status.buffers.XChar[target_slot].fOccupied != 0) {
             if (gXStatus.iTargetingMode == 1) {
-                if (g_camp_screen_0069c0f4->page != 0 ||
-                    (g_camp_screen_0069c0f4->entry_mode != 7 &&
-                     g_camp_screen_0069c0f4->entry_mode != 9)) {
+                if (g_camp_screen->page != 0 ||
+                    (g_camp_screen->entry_mode != 7 && g_camp_screen->entry_mode != 9)) {
                     if (!CanPartySlotParticipate(static_cast<int>(target_slot))) {
-                        QueueCharacterEvent(&g_status_685170.buffers.Char[giReviewCharSlot],
+                        QueueCharacterEvent(&g_status.buffers.Char[giReviewCharSlot],
                                             g_character_event_kind_005ee65c, 0,
                                             g_effect_argument_005ed8c8, g_effect_argument_005ed914);
                         return 1;
@@ -335,18 +333,18 @@ unsigned char CampPortraitSlotRegionEvent(const InputAtom* event, W8Region* regi
                     StartBreathCycle(giReviewCharSlot, 0);
                     return 1;
                 }
-                if (g_status_685170.buffers.Char[target_slot].uiCondition[19] == 0) {
-                    if (g_camp_screen_0069c0f4->entry_mode != 7) {
-                        TargetCharacterWithHeldItem005BA8E0(target_slot);
+                if (g_status.buffers.Char[target_slot].uiCondition[19] == 0) {
+                    if (g_camp_screen->entry_mode != 7) {
+                        TargetCharacterWithHeldItem(target_slot);
                         return 1;
                     }
-                    ReportCastResult005BA620(static_cast<int>(target_slot));
+                    ReportCastResult(static_cast<int>(target_slot));
                     return 1;
                 }
             } else {
                 if (gXStatus.iTargetingMode == 7) {
                     if (IsDeadCharacterTargetable(static_cast<int>(target_slot)) == 0) {
-                        QueueCharacterEvent(&g_status_685170.buffers.Char[giReviewCharSlot],
+                        QueueCharacterEvent(&g_status.buffers.Char[giReviewCharSlot],
                                             g_character_event_kind_005ee65c, 0,
                                             g_effect_argument_005ed8c8, g_effect_argument_005ed914);
                         return 1;
@@ -357,7 +355,7 @@ unsigned char CampPortraitSlotRegionEvent(const InputAtom* event, W8Region* regi
                     return 1;
                 }
                 if (giReviewCharSlot != static_cast<int>(target_slot)) {
-                    SelectCampCharacter005B6B30(static_cast<int>(target_slot));
+                    SelectCampCharacter(static_cast<int>(target_slot));
                     return 1;
                 }
             }
@@ -368,22 +366,20 @@ unsigned char CampPortraitSlotRegionEvent(const InputAtom* event, W8Region* regi
                 return 0;
             }
             if ((region->flags & W8_REGION_MOUSE_TRANSITION_MASK) != 0) {
-                g_camp_screen_0069c0f4->redraw_flags |= 1u << (region->callback_id & 0x1f);
-                if ((g_camp_screen_0069c0f4->entry_mode == 7 ||
-                     g_camp_screen_0069c0f4->entry_mode == 9) &&
-                    g_status_685170.buffers.Char[target_slot].uiCondition[19] == 0) {
+                g_camp_screen->redraw_flags |= 1u << (region->callback_id & 0x1f);
+                if ((g_camp_screen->entry_mode == 7 || g_camp_screen->entry_mode == 9) &&
+                    g_status.buffers.Char[target_slot].uiCondition[19] == 0) {
                     if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-                        UpdateItemCursorForState005BAD20(1, 0, static_cast<int>(target_slot));
+                        UpdateItemCursorForState(1, 0, static_cast<int>(target_slot));
                         return 0;
                     }
-                    UpdateItemCursorForState005BAD20(0, 0, static_cast<int>(target_slot));
+                    UpdateItemCursorForState(0, 0, static_cast<int>(target_slot));
                 }
             }
             return 0;
         }
-        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 &&
-            g_status_685170.item_in_cursor != 0) {
-            TryGiveHeldItemToCampPortrait005B6C10(static_cast<int>(target_slot));
+        if ((region->flags & W8_REGION_RIGHT_BUTTON_HELD) != 0 && g_status.item_in_cursor != 0) {
+            TryGiveHeldItemToCampPortrait(static_cast<int>(target_slot));
         }
     }
     return 1;
@@ -404,15 +400,15 @@ unsigned char CampOpenCharacterScreenRegionEvent(const InputAtom* event, W8Regio
                 return 0;
             }
             if ((region->flags & W8_REGION_MOUSE_TRANSITION_MASK) != 0) {
-                g_camp_screen_0069c0f4->redraw_flags |= 0x200;
+                g_camp_screen->redraw_flags |= 0x200;
             }
             return 0;
         }
         if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
-            g_current_screen_state.parameter_3 = g_review_character_0069c0f8;
+            g_current_screen_state.parameter_3 = g_review_character;
             g_current_screen_state.parameter_2 = giReviewCharSlot;
             g_pending_screen_state.mode = 1;
-            g_pending_screen_state.parameter_3 = g_review_character_0069c0f8;
+            g_pending_screen_state.parameter_3 = g_review_character;
             SetPendingScreenState(W8_SCREEN_CHARACTER);
             return 1;
         }
@@ -429,13 +425,13 @@ unsigned char CampNameEditRegionEvent(const InputAtom* event, W8Region* region)
 
     if (us_event == LEFT_BUTTON_DOWN) {
         region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-        SetCampInputMode005A4BC0(1);
-        ActivateDialogRegion(g_camp_screen_0069c0f4->hover_region);
+        SetCampInputMode(1);
+        ActivateDialogRegion(g_camp_screen->hover_region);
     } else {
         if (us_event != LEFT_BUTTON_UP) {
             if (us_event == MOUSE_POS) {
                 if ((region->flags & W8_REGION_MOUSE_TRANSITION_MASK) != 0) {
-                    g_camp_screen_0069c0f4->redraw_flags |= 0x200;
+                    g_camp_screen->redraw_flags |= 0x200;
                 }
                 return 0;
             }
@@ -444,14 +440,14 @@ unsigned char CampNameEditRegionEvent(const InputAtom* event, W8Region* region)
         if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) == 0) {
             return 1;
         }
-        SetCampInputMode005A4BC0(0);
-        ClearActiveRegionIfMatches(g_camp_screen_0069c0f4->hover_region);
+        SetCampInputMode(0);
+        ClearActiveRegionIfMatches(g_camp_screen->hover_region);
     }
-    g_camp_screen_0069c0f4->redraw_flags |= 0x7ff;
+    g_camp_screen->redraw_flags |= 0x7ff;
     return 1;
 }
 
-/* Shared handler for the five bottom page buttons in g_camp_page_buttons_0069c3ec. */
+/* Shared handler for the five bottom page buttons in g_camp_page_buttons. */
 // FUNCTION: WIZ8 0x005B62C0
 unsigned char CampPageButtonRegionEvent(const InputAtom* event, W8Region* region)
 {
@@ -460,12 +456,12 @@ unsigned char CampPageButtonRegionEvent(const InputAtom* event, W8Region* region
 
     if (us_event <= LEFT_BUTTON_REPEAT) {
         if (us_event == LEFT_BUTTON_REPEAT || us_event == LEFT_BUTTON_DOWN) {
-            g_camp_page_buttons_0069c3ec[callback_id]->OnLeftButtonDown(0);
+            g_camp_page_buttons[callback_id]->OnLeftButtonDown(0);
             region->flags |= W8_REGION_LEFT_BUTTON_HELD;
             return 1;
         }
         if (us_event == LEFT_BUTTON_UP) {
-            g_camp_page_buttons_0069c3ec[callback_id]->OnLeftButtonUp(0);
+            g_camp_page_buttons[callback_id]->OnLeftButtonUp(0);
             if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
                 region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
             }
@@ -473,11 +469,11 @@ unsigned char CampPageButtonRegionEvent(const InputAtom* event, W8Region* region
         }
     } else if (us_event == MOUSE_POS) {
         if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-            g_camp_page_buttons_0069c3ec[callback_id]->OnMouseLeave(0);
+            g_camp_page_buttons[callback_id]->OnMouseLeave(0);
             return 1;
         }
         if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-            g_camp_page_buttons_0069c3ec[callback_id]->OnMouseEnter(0);
+            g_camp_page_buttons[callback_id]->OnMouseEnter(0);
             return 1;
         }
     }
@@ -493,12 +489,12 @@ unsigned char CampItemActionRegionEvent(const InputAtom* event, W8Region* region
 
     if (us_event <= LEFT_BUTTON_REPEAT) {
         if (us_event == LEFT_BUTTON_REPEAT || us_event == LEFT_BUTTON_DOWN) {
-            g_item_action_controls_69c3cc[callback_id]->OnLeftButtonDown(0);
+            g_item_action_controls[callback_id]->OnLeftButtonDown(0);
             region->flags |= W8_REGION_LEFT_BUTTON_HELD;
             return 1;
         }
         if (us_event == LEFT_BUTTON_UP) {
-            g_item_action_controls_69c3cc[callback_id]->OnLeftButtonUp(0);
+            g_item_action_controls[callback_id]->OnLeftButtonUp(0);
             if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
                 region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
             }
@@ -506,11 +502,11 @@ unsigned char CampItemActionRegionEvent(const InputAtom* event, W8Region* region
         }
     } else if (us_event == MOUSE_POS) {
         if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-            g_item_action_controls_69c3cc[callback_id]->OnMouseLeave(0);
+            g_item_action_controls[callback_id]->OnMouseLeave(0);
             return 1;
         }
         if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-            g_item_action_controls_69c3cc[callback_id]->OnMouseEnter(0);
+            g_item_action_controls[callback_id]->OnMouseEnter(0);
             return 1;
         }
     }
@@ -520,24 +516,24 @@ unsigned char CampItemActionRegionEvent(const InputAtom* event, W8Region* region
 // FUNCTION: WIZ8 0x005b6400
 void CreateRcsLevelUpPanel(void)
 {
-    g_level_up_panel_0069c3c4 = 0;
-    g_level_up_button_0069c3c0 = 0;
+    g_level_up_panel = 0;
+    g_level_up_button = 0;
 
-    g_level_up_panel_0069c3c4 = new Controls(0xe9, 0x3f, 0xfb, 0x51, -1, 0, -1);
-    if (g_level_up_panel_0069c3c4 == 0) {
+    g_level_up_panel = new Controls(0xe9, 0x3f, 0xfb, 0x51, -1, 0, -1);
+    if (g_level_up_panel == 0) {
         srAssertFail("gpLevelUpPanel", "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp",
                      0x84e, 0);
     }
 
-    g_level_up_button_0069c3c0 = new W8TextControl(g_level_up_panel_0069c3c4, 0xe7, 0, 0, 0x12,
-                                                   0x12, 0xa7, 0, 0, 2, 1, 4, 3);
-    if (g_level_up_button_0069c3c0 == 0) {
+    g_level_up_button =
+        new W8TextControl(g_level_up_panel, 0xe7, 0, 0, 0x12, 0x12, 0xa7, 0, 0, 2, 1, 4, 3);
+    if (g_level_up_button == 0) {
         srAssertFail("gpLevelUpButton", "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp",
                      0x852, 0);
     }
-    g_level_up_button_0069c3c0->m_primaryActivationCallback = OpenLevelUpCharacterScreen;
-    g_level_up_panel_0069c3c4->SetEnabled(1);
-    g_level_up_button_0069c3c0->SetActive(0);
+    g_level_up_button->m_primaryActivationCallback = OpenLevelUpCharacterScreen;
+    g_level_up_panel->SetEnabled(1);
+    g_level_up_button->SetActive(0);
 }
 /* Ask the first panel to redraw all of itself. A null rectangle is how
    Controls::Invalidate spells "the whole area", so these are not a separate
@@ -546,29 +542,29 @@ void CreateRcsLevelUpPanel(void)
 // FUNCTION: WIZ8 0x005b6590
 void RedrawRcsLevelUpPanel(void)
 {
-    g_level_up_panel_0069c3c4->Invalidate(0);
+    g_level_up_panel->Invalidate(0);
 }
 
 /* Redraw the second. */
 // FUNCTION: WIZ8 0x005b68d0
 void RedrawRcsDismissPanel(void)
 {
-    g_dismiss_panel_0069c3c8->Invalidate(0);
+    g_dismiss_panel->Invalidate(0);
 }
 
 /* Tear the first panel down, then destroy its separate widget. */
 // FUNCTION: WIZ8 0x005b6540
 void DestroyRcsLevelUpPanel(void)
 {
-    Controls* panel = g_level_up_panel_0069c3c4;
+    Controls* panel = g_level_up_panel;
 
     if (panel != 0) {
         delete panel;
-        g_level_up_panel_0069c3c4 = 0;
+        g_level_up_panel = 0;
     }
-    if (g_level_up_button_0069c3c0 != 0) {
-        delete g_level_up_button_0069c3c0;
-        g_level_up_button_0069c3c0 = 0;
+    if (g_level_up_button != 0) {
+        delete g_level_up_button;
+        g_level_up_button = 0;
     }
 }
 
@@ -577,17 +573,17 @@ void UpdateRcsLevelUpPanel(void)
 {
     bool enabled = IsCharacterReadyToAdvance(giReviewCharSlot);
     if (!enabled || gXStatus.fCombatMode ||
-        (!g_status_685170.buffers.XChar[giReviewCharSlot].weapon_swap_pending_105 &&
-         g_status_685170.game_started) ||
+        (!g_status.buffers.XChar[giReviewCharSlot].weapon_swap_pending_105 &&
+         g_status.game_started) ||
         gXStatus.fCampMode) {
-        if (g_level_up_button_0069c3c0->m_active) {
-            g_level_up_button_0069c3c0->SetActive(0);
+        if (g_level_up_button->m_active) {
+            g_level_up_button->SetActive(0);
         }
-    } else if (!g_level_up_button_0069c3c0->m_active) {
-        g_level_up_button_0069c3c0->SetActive(1);
-        g_level_up_panel_0069c3c4->Invalidate(0);
+    } else if (!g_level_up_button->m_active) {
+        g_level_up_button->SetActive(1);
+        g_level_up_panel->Invalidate(0);
     }
-    g_level_up_panel_0069c3c4->Redraw();
+    g_level_up_panel->Redraw();
 }
 
 /* Single level-up button (help 1984). Assembly writes region flags through the
@@ -598,22 +594,22 @@ unsigned char CampLevelUpButtonRegionEvent(const InputAtom* event, W8Region* reg
     switch (event->usEvent) {
     case LEFT_BUTTON_DOWN:
     case LEFT_BUTTON_REPEAT:
-        g_level_up_button_0069c3c0->OnLeftButtonDown(0);
+        g_level_up_button->OnLeftButtonDown(0);
         region->flags |= W8_REGION_LEFT_BUTTON_HELD;
         return 1;
     case LEFT_BUTTON_UP:
-        g_level_up_button_0069c3c0->OnLeftButtonUp(0);
+        g_level_up_button->OnLeftButtonUp(0);
         if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
             region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
         }
         return 1;
     case MOUSE_POS:
         if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-            g_level_up_button_0069c3c0->OnMouseLeave(0);
+            g_level_up_button->OnMouseLeave(0);
             return 1;
         }
         if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-            g_level_up_button_0069c3c0->OnMouseEnter(0);
+            g_level_up_button->OnMouseEnter(0);
             return 1;
         }
         break;
@@ -624,30 +620,30 @@ unsigned char CampLevelUpButtonRegionEvent(const InputAtom* event, W8Region* reg
 // FUNCTION: WIZ8 0x005b6740
 void CreateRcsDismissPanel(void)
 {
-    g_dismiss_panel_0069c3c8 = 0;
-    g_dismiss_button_0069c400 = 0;
+    g_dismiss_panel = 0;
+    g_dismiss_button = 0;
 
-    g_dismiss_panel_0069c3c8 = new Controls(0xa7, 0x41, 0xbe, 0x51, -1, 0, -1);
-    if (g_dismiss_panel_0069c3c8 == 0) {
+    g_dismiss_panel = new Controls(0xa7, 0x41, 0xbe, 0x51, -1, 0, -1);
+    if (g_dismiss_panel == 0) {
         srAssertFail("gpDismissPanel", "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp",
                      0x8cf, 0);
     }
 
-    g_dismiss_button_0069c400 = new W8TextControl(g_dismiss_panel_0069c3c8, 0xe8, 0, 0, 0x17, 0x10,
-                                                  0x113, 0, 0, 2, 1, 2, 3);
-    if (g_dismiss_button_0069c400 == 0) {
+    g_dismiss_button =
+        new W8TextControl(g_dismiss_panel, 0xe8, 0, 0, 0x17, 0x10, 0x113, 0, 0, 2, 1, 2, 3);
+    if (g_dismiss_button == 0) {
         srAssertFail("gpDismissButton", "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp",
                      0x8d3, 0);
     }
-    g_dismiss_button_0069c400->m_primaryActivationCallback = ShowDismissCharacterDialog;
-    g_dismiss_panel_0069c3c8->SetEnabled(1);
-    g_dismiss_button_0069c400->SetActive(0);
+    g_dismiss_button->m_primaryActivationCallback = ShowDismissCharacterDialog;
+    g_dismiss_panel->SetEnabled(1);
+    g_dismiss_button->SetActive(0);
 }
 
 // FUNCTION: WIZ8 0x005b6950
 void ShowDismissCharacterDialog(void)
 {
-    if (!g_status_685170.buffers.XChar[giReviewCharSlot].fOccupied) {
+    if (!g_status.buffers.XChar[giReviewCharSlot].fOccupied) {
         srAssertFail("fCHAR_OCCUPIED(giReviewCharSlot)",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp", 0x90a, 0);
     }
@@ -655,7 +651,7 @@ void ShowDismissCharacterDialog(void)
     W8MessageDialogBase* dialog = static_cast<W8MessageDialogBase*>(CreateDialogByKind(1));
     dialog->SetClientExtent(0xfa, 200);
 
-    W8Character* character = &g_status_685170.buffers.Char[giReviewCharSlot];
+    W8Character* character = &g_status.buffers.Char[giReviewCharSlot];
     const wchar_t* format;
     if (character->uiCondition[19] == 0) {
         if (character->uiCondition[W8_CONDITION_DEAD] == 0) {
@@ -674,8 +670,7 @@ void ShowDismissCharacterDialog(void)
 // FUNCTION: WIZ8 0x005b6a60
 void OnDismissCharacterDialogClosed(W8DialogBase* base)
 {
-    if (GetDialogResult(base) &&
-        g_status_685170.buffers.XChar[giReviewCharSlot].animation_0fa != -1) {
+    if (GetDialogResult(base) && g_status.buffers.XChar[giReviewCharSlot].npc_index != -1) {
         gXStatus.review_character_slot = static_cast<unsigned short>(giReviewCharSlot);
         DismissSelectedPartyCharacter();
     }
@@ -689,22 +684,22 @@ unsigned char CampDismissButtonRegionEvent(const InputAtom* event, W8Region* reg
     switch (event->usEvent) {
     case LEFT_BUTTON_DOWN:
     case LEFT_BUTTON_REPEAT:
-        g_dismiss_button_0069c400->OnLeftButtonDown(0);
+        g_dismiss_button->OnLeftButtonDown(0);
         region->flags |= W8_REGION_LEFT_BUTTON_HELD;
         return 1;
     case LEFT_BUTTON_UP:
-        g_dismiss_button_0069c400->OnLeftButtonUp(0);
+        g_dismiss_button->OnLeftButtonUp(0);
         if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
             region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
         }
         return 1;
     case MOUSE_POS:
         if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-            g_dismiss_button_0069c400->OnMouseLeave(0);
+            g_dismiss_button->OnMouseLeave(0);
             return 1;
         }
         if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-            g_dismiss_button_0069c400->OnMouseEnter(0);
+            g_dismiss_button->OnMouseEnter(0);
             return 1;
         }
         break;
@@ -716,15 +711,15 @@ unsigned char CampDismissButtonRegionEvent(const InputAtom* event, W8Region* reg
 // FUNCTION: WIZ8 0x005b6880
 void DestroyRcsDismissPanel(void)
 {
-    Controls* panel = g_dismiss_panel_0069c3c8;
+    Controls* panel = g_dismiss_panel;
 
     if (panel != 0) {
         delete panel;
-        g_dismiss_panel_0069c3c8 = 0;
+        g_dismiss_panel = 0;
     }
-    if (g_dismiss_button_0069c400 != 0) {
-        delete g_dismiss_button_0069c400;
-        g_dismiss_button_0069c400 = 0;
+    if (g_dismiss_button != 0) {
+        delete g_dismiss_button;
+        g_dismiss_button = 0;
     }
 }
 
@@ -736,14 +731,14 @@ void UpdateRcsDismissPanel(void)
 {
     if ((giReviewCharSlot == 0 || giReviewCharSlot == 1) && gXStatus.fCombatMode == 0 &&
         gXStatus.fCampMode == 0) {
-        if (!g_dismiss_button_0069c400->m_active) {
-            g_dismiss_button_0069c400->SetActive(1);
-            g_dismiss_panel_0069c3c8->Invalidate(0);
+        if (!g_dismiss_button->m_active) {
+            g_dismiss_button->SetActive(1);
+            g_dismiss_panel->Invalidate(0);
         }
-    } else if (g_dismiss_button_0069c400->m_active) {
-        g_dismiss_button_0069c400->SetActive(0);
+    } else if (g_dismiss_button->m_active) {
+        g_dismiss_button->SetActive(0);
     }
-    g_dismiss_panel_0069c3c8->Redraw();
+    g_dismiss_panel->Redraw();
 }
 
 /* Formation storage. Physical retail TU attribution remains unresolved;
@@ -763,15 +758,15 @@ W8TextControl* g_formation_action_buttons[3];
 void ReleaseFormationBoard(void)
 {
     if (g_level_block->formation_board_sprite != 0) {
-        ReleaseObject004257F0(g_level_block->formation_board_sprite);
+        ReleaseObject(g_level_block->formation_board_sprite);
         g_level_block->formation_board_sprite = 0;
     }
     if (g_level_block->formation_compass_sprite != 0) {
-        ReleaseObject004257F0(g_level_block->formation_compass_sprite);
+        ReleaseObject(g_level_block->formation_compass_sprite);
         g_level_block->formation_compass_sprite = 0;
     }
     if (g_level_block->formation_overlay_sprite != 0) {
-        ReleaseObject004257F0(g_level_block->formation_overlay_sprite);
+        ReleaseObject(g_level_block->formation_overlay_sprite);
         g_level_block->formation_overlay_sprite = 0;
     }
 }
@@ -809,10 +804,10 @@ void DestroyFormationPanel(void)
    otherwise it repaints the portrait and vitals, the name/gender/profession
    caption, and the eight-slot party strip. */
 // FUNCTION: WIZ8 0x005b4000
-void DrawCampHeader005B4000(void)
+void DrawCampHeader(void)
 {
-    W8CampScreenState0069C0F4* state = g_camp_screen_0069c0f4;
-    W8Character* character = g_review_character_0069c0f8;
+    W8CampScreenState* state = g_camp_screen;
+    W8Character* character = g_review_character;
     unsigned int row;
     unsigned int slot;
     int profession;
@@ -846,8 +841,8 @@ void DrawCampHeader005B4000(void)
                     }
                     y = (row & 7) * 0xe + 0x24;
                     DrawRcsText(
-                        gppStringList[g_profession_name_message_ids_61e3f0[profession]], name_x, y,
-                        0x68, g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED554);
+                        gppStringList[g_profession_name_message_ids[profession]], name_x, y, 0x68,
+                        g_W8TextBufferLayoutMask005ED548 | g_W8TextBufferLayoutMask005ED554);
                     swprintf(state->caption, g_format_d_0060aa20,
                              character->profession_levels[profession]);
                     DrawRcsText(state->caption, level_x, y, 0x20,
@@ -867,19 +862,18 @@ void DrawCampHeader005B4000(void)
     }
     if ((state->redraw_flags & 0x100) != 0) {
         if (character->hp_current == 0) {
-            DrawCatalogImage(-14, g_dead_portrait_catalog_ids_6488d0[character->iRace][1], 0, 0,
-                             0xa4, 0xc, 2, 0);
+            DrawCatalogImage(-14, g_dead_portrait_catalog_ids[character->iRace][1], 0, 0, 0xa4, 0xc,
+                             2, 0);
         } else {
-            RenderPartyPortrait0052EB00(character->portrait_index, 0xa4, 0xc, 2, 1,
-                                        giReviewCharSlot);
+            RenderPartyPortrait(character->portrait_index, 0xa4, 0xc, 2, 1, giReviewCharSlot);
         }
         DrawCatalogImage(-14, 0x10f, 0, 9, 0xa4, 0xc, 2, 0);
         if (state->portrait_hovered_d40[0] != 0) {
             DrawCatalogImage(-14, 0x116, 0, 0, 0xa4, 0xc, 2, 0);
         }
         if (gXStatus.fCombatMode == 0) {
-            g_level_up_panel_0069c3c4->Invalidate(0);
-            g_dismiss_panel_0069c3c8->Invalidate(0);
+            g_level_up_panel->Invalidate(0);
+            g_dismiss_panel->Invalidate(0);
         }
         if (character->highest_condition == 0) {
             DrawCatalogImage(-14, 0x2f, 0, 0, 0xa5, 0xe, 2, 0);
@@ -894,42 +888,39 @@ void DrawCampHeader005B4000(void)
             DrawCatalogImage(-14, 0x61, 0, 0, 0xed, 0xd, 2, 0);
         }
         InvalidateRegion(0xa4, 0xc, 0xfe, 0x54, 1);
-        DrawCampVitals005B4790();
-        DrawCampHands005B4BD0();
+        DrawCampVitals();
+        DrawCampHands();
     }
     if ((state->redraw_flags & 0x200) != 0) {
-        SetFont(g_wiz_text_bold_font_683664);
-        SetObjectShade(g_wiz_text_bold_font_object_68365c, 4);
+        SetFont(g_wiz_text_bold_font);
+        SetObjectShade(g_wiz_text_bold_font_object, 4);
         if (state->hover_region == 0xf2) {
-            SetFontObjectPalette16BPP(g_wiz_text_bold_font_683664, g_font_state_palettes_68ee1c[1]);
+            SetFontObjectPalette16BPP(g_wiz_text_bold_font, g_font_state_palettes[1]);
         }
         wcscpy(state->caption, character->name);
-        gprintfDirty((0xba - StringPixLength(state->caption, g_wiz_text_bold_font_683664)) / 2 +
-                         0x74,
+        gprintfDirty((0xba - StringPixLength(state->caption, g_wiz_text_bold_font)) / 2 + 0x74,
                      0x60, const_cast<UINT16*>(g_format_s_006068e4), state->caption);
-        SetFontObjectPalette16BPP(g_wiz_text_bold_font_683664, g_font_palette_wiz_text_bold_68ee0c);
+        SetFontObjectPalette16BPP(g_wiz_text_bold_font, g_font_palette_wiz_text_bold);
         SetFont(g_font_683660);
-        SetObjectShade(g_wiz_text_font_secondary_object_683680, 4);
-        wcscpy(state->caption,
-               gppStringList[g_gender_name_message_rows_61e430[character->gender][0]]);
+        SetObjectShade(g_wiz_text_font_secondary_object, 4);
+        wcscpy(state->caption, gppStringList[g_gender_name_message_rows[character->gender][0]]);
         wcscat(state->caption, L" ");
-        wcscat(state->caption, gppStringList[g_race_name_message_ids_61e3d0[character->iRace]]);
+        wcscat(state->caption, gppStringList[g_race_name_message_ids[character->iRace]]);
         gprintfDirty((0xba - StringPixLength(state->caption, g_font_683660)) / 2 + 0x74, 0x6f,
                      const_cast<UINT16*>(g_format_s_006068e4), state->caption);
         if (state->hover_region == 0xf3) {
-            SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes_68ee1c[1]);
+            SetFontObjectPalette16BPP(g_font_683660, g_font_state_palettes[1]);
         }
         wcscpy(state->caption,
-               gppStringList[g_profession_name_message_ids_61e3f0[character->iProfession]]);
+               gppStringList[g_profession_name_message_ids[character->iProfession]]);
         gprintfDirty((0xba - StringPixLength(state->caption, g_font_683660)) / 2 + 0x74, 0x7c,
                      const_cast<UINT16*>(g_format_s_006068e4), state->caption);
         SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
         SetFont(g_font_683660);
-        SetObjectShade(g_wiz_text_font_secondary_object_683680, 4);
-        swprintf(state->caption, g_format_s_d_paren_s_0064dad0, gppStringList[0x91a],
-                 character->uiExpLevel,
-                 gppStringList[g_profession_level_name_message_ids_61e688[character->iProfession]
-                                                                         [character->level_band]]);
+        SetObjectShade(g_wiz_text_font_secondary_object, 4);
+        swprintf(state->caption, g_format_s_d_paren_s, gppStringList[0x91a], character->uiExpLevel,
+                 gppStringList[g_profession_level_name_message_ids[character->iProfession]
+                                                                  [character->level_band]]);
         gprintfDirty((0xba - StringPixLength(state->caption, g_font_683660)) / 2 + 0x74, 0x89,
                      const_cast<UINT16*>(g_format_s_006068e4), state->caption);
     }
@@ -939,12 +930,12 @@ void DrawCampHeader005B4000(void)
             band_x = (slot & 1) * 0x30;
             left = band_x + 6;
             top = band_y + 5;
-            if (giReviewCharSlot == -1 || g_status_685170.buffers.XChar[slot].fOccupied == 0) {
+            if (giReviewCharSlot == -1 || g_status.buffers.XChar[slot].fOccupied == 0) {
                 DrawCatalogImage(-14, 0x10f, 0, slot + 1, band_x + 5, band_y + 4, 2, 0);
             } else {
-                W8Character* member = &g_status_685170.buffers.Char[slot];
+                W8Character* member = &g_status.buffers.Char[slot];
                 if (member->hp_current == 0) {
-                    image = g_dead_portrait_catalog_ids_6488d0[member->iRace][0];
+                    image = g_dead_portrait_catalog_ids[member->iRace][0];
                     sub_image = 0;
                 } else {
                     sub_image = member->portrait_index;
@@ -970,7 +961,7 @@ void DrawCampHeader005B4000(void)
    the shaded depletion on each, the current-profession label and, under the
    numeric-hit-points option, the raw hit-point value. */
 // FUNCTION: WIZ8 0x005b4790
-void DrawCampVitals005B4790(void)
+void DrawCampVitals(void)
 {
     int image;
     int numeric;
@@ -991,16 +982,16 @@ void DrawCampVitals005B4790(void)
     W8TextBuffer* text;
     wchar_t* formatted;
 
-    if (g_settings_6850c8.numeric_hit_points == 0) {
+    if (g_settings.numeric_hit_points == 0) {
         image = 1;
     } else {
         image = 3;
     }
     DrawCatalogImage(-14, 0x80, 0, image, 0x10c, 0xb, 2, 0);
-    if (g_review_character_0069c0f8->hp_current == 0) {
+    if (g_review_character->hp_current == 0) {
         return;
     }
-    if (g_settings_6850c8.numeric_hit_points == 0) {
+    if (g_settings.numeric_hit_points == 0) {
         frame_column = 0x17;
         numeric = 0;
         hp_row = 6;
@@ -1019,45 +1010,44 @@ void DrawCampVitals005B4790(void)
         stamina_frame = 0x53;
         spell_frame = 0x54;
     }
-    if (g_review_character_0069c0f8->uiHPMax == 0) {
+    if (g_review_character->uiHPMax == 0) {
         srAssertFail("gpReviewPC->uiHPMax",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp", 0x373, 0);
     }
-    hp_fill = g_review_character_0069c0f8->hp_current * 0x2d / g_review_character_0069c0f8->uiHPMax;
-    if (g_review_character_0069c0f8->uiStaminaMax == 0) {
+    hp_fill = g_review_character->hp_current * 0x2d / g_review_character->uiHPMax;
+    if (g_review_character->uiStaminaMax == 0) {
         srAssertFail("gpReviewPC->uiStaminaMax",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\RCSCommon.cpp", 0x377, 0);
     }
-    stamina_fill =
-        (g_review_character_0069c0f8->stamina < 0 ? 0 : g_review_character_0069c0f8->stamina) *
-        0x2d / g_review_character_0069c0f8->uiStaminaMax;
-    if (SumCharacterSpellPoints(g_review_character_0069c0f8) == 0) {
+    stamina_fill = (g_review_character->stamina < 0 ? 0 : g_review_character->stamina) * 0x2d /
+                   g_review_character->uiStaminaMax;
+    if (SumCharacterSpellPoints(g_review_character) == 0) {
         spell_fill = 0;
     } else {
-        spell_left = SumCharacterSpellPointsLeft(g_review_character_0069c0f8);
+        spell_left = SumCharacterSpellPointsLeft(g_review_character);
         if (spell_left < 0) {
             spell_left = 0;
         } else {
-            spell_left = SumCharacterSpellPointsLeft(g_review_character_0069c0f8);
+            spell_left = SumCharacterSpellPointsLeft(g_review_character);
         }
-        spell_fill = spell_left * 0x2d / SumCharacterSpellPoints(g_review_character_0069c0f8);
+        spell_fill = spell_left * 0x2d / SumCharacterSpellPoints(g_review_character);
     }
     bar_top = frame_column + 0xb;
     DrawCatalogImage(-14, hp_frame, 0, 0, hp_row + 0x10c, bar_top, 2, 0);
     gap = 0x2d - hp_fill;
     if (gap != 0) {
-        ShadeStatusBarGap0059A110(gap, hp_row + 0x10c, frame_column - numeric + 0xb);
+        ShadeStatusBarGap(gap, hp_row + 0x10c, frame_column - numeric + 0xb);
     }
     DrawCatalogImage(-14, stamina_frame, 0, 0, stamina_row + 0x10c, bar_top, 2, 0);
     gap = 0x2d - stamina_fill;
     if (gap != 0) {
-        ShadeStatusBarGap0059A110(gap, stamina_row + 0x10c, frame_column - numeric + 0xb);
+        ShadeStatusBarGap(gap, stamina_row + 0x10c, frame_column - numeric + 0xb);
     }
-    if (SumCharacterSpellPoints(g_review_character_0069c0f8) != 0) {
+    if (SumCharacterSpellPoints(g_review_character) != 0) {
         DrawCatalogImage(-14, spell_frame, 0, 0, spell_column + 0x10c, bar_top, 2, 0);
         gap = 0x2d - spell_fill;
         if (gap != 0) {
-            ShadeStatusBarGap0059A110(gap, spell_column + 0x10c, frame_column - numeric + 0xb);
+            ShadeStatusBarGap(gap, spell_column + 0x10c, frame_column - numeric + 0xb);
         }
     }
     bounds.left = 0x10e;
@@ -1066,25 +1056,24 @@ void DrawCampVitals005B4790(void)
     bounds.bottom = 0x17;
     text = new W8TextBuffer(
         &bounds, 0, g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C, 0, 4);
-    if (g_status_685170.game_started == 0) {
+    if (g_status.game_started == 0) {
         text->m_fontStateIndex = 8;
     } else {
-        text->m_fontStateIndex = g_status_685170.buffers.XChar[giReviewCharSlot].party_order_index;
+        text->m_fontStateIndex = g_status.buffers.XChar[giReviewCharSlot].party_order_index;
     }
     text->SetText(
-        gppStringList
-            [g_profession_name_message_ids_61e3f0[g_review_character_0069c0f8->iProfession + 0x10]],
-        g_smfnt_font_683694);
+        gppStringList[g_profession_name_message_ids[g_review_character->iProfession + 0x10]],
+        g_smfnt_font);
     text->RenderToTarget(0, 0, -14);
-    if (g_settings_6850c8.numeric_hit_points != 0) {
+    if (g_settings.numeric_hit_points != 0) {
         bounds.left = 0x10e;
         bounds.right = 0x120;
         bounds.top = 0x49;
         bounds.bottom = 0x51;
         text->SetLayoutBounds(&bounds, 1, 0);
         text->m_fontStateIndex = -1;
-        formatted = FormatWideString(g_format_d_0060aa20, g_review_character_0069c0f8->hp_current);
-        text->SetText(formatted, g_smfnt_font_683694);
+        formatted = FormatWideString(g_format_d_0060aa20, g_review_character->hp_current);
+        text->SetText(formatted, g_smfnt_font);
         text->RenderToTarget(0, 0, -14);
     }
     InvalidateRegion(0x10c, bar_top, 0x124, frame_column + 0x38, 0);
@@ -1096,7 +1085,7 @@ void DrawCampVitals005B4790(void)
    armor-class line under the left hand in the load-category palette. The
    off-hand is skipped while a two-handed item fills the primary slot. */
 // FUNCTION: WIZ8 0x005b4bd0
-void DrawCampHands005B4BD0(void)
+void DrawCampHands(void)
 {
     bool two_handed;
     unsigned char count;
@@ -1105,7 +1094,7 @@ void DrawCampHands005B4BD0(void)
     wchar_t text[4];
     unsigned short* palette;
 
-    item_id = g_review_character_0069c0f8->EquippedItem[6].iItemNo;
+    item_id = g_review_character->EquippedItem[6].iItemNo;
     if (item_id == -1 || (g_item_records[item_id].flags_041 & 4) == 0) {
         two_handed = false;
         hand_image = 0;
@@ -1114,158 +1103,138 @@ void DrawCampHands005B4BD0(void)
         hand_image = 2;
     }
     DrawCatalogImage(-14, 0x80, 0, hand_image, 0x81, 0xb, 2, 0);
-    item_id = g_review_character_0069c0f8->EquippedItem[6].iItemNo;
+    item_id = g_review_character->EquippedItem[6].iItemNo;
     if (item_id == -1) {
-        DrawCatalogImage(-14,
-                         g_empty_hand_catalog_ids_649dd4[g_review_character_0069c0f8->iRace * 2], 0,
-                         0, 0x85, 0x22, 2, 0);
+        DrawCatalogImage(-14, g_empty_hand_catalog_ids[g_review_character->iRace * 2], 0, 0, 0x85,
+                         0x22, 2, 0);
     } else {
-        DrawCatalogImage(-14, g_item_video_objects_68ec68.GetOrCreateVideoObject(item_id), 0, 2,
-                         0x84, 0x22, 2, 0);
-        count = g_review_character_0069c0f8->EquippedItem[6].stack_count;
+        DrawCatalogImage(-14, g_item_video_objects.GetOrCreateVideoObject(item_id), 0, 2, 0x84,
+                         0x22, 2, 0);
+        count = g_review_character->EquippedItem[6].stack_count;
         if (count != 0) {
             swprintf(text, g_format_d_0060aa20, count);
-            SetFont(g_smfnt_font_683694);
-            SetFontObjectPalette16BPP(g_smfnt_font_683694, g_font_palette_smfnt_68ee10);
-            gprintf(0x89 - (StringPixLength(text, g_smfnt_font_683694) + 1) / 2, 0x31,
+            SetFont(g_smfnt_font);
+            SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
+            gprintf(0x89 - (StringPixLength(text, g_smfnt_font) + 1) / 2, 0x31,
                     const_cast<UINT16*>(g_format_s_006068e4), text);
         }
     }
     if (!two_handed) {
-        item_id = g_review_character_0069c0f8->EquippedItem[7].iItemNo;
+        item_id = g_review_character->EquippedItem[7].iItemNo;
         if (item_id == -1) {
-            DrawCatalogImage(
-                -14, g_empty_hand_catalog_ids_649dd4[g_review_character_0069c0f8->iRace * 2 + 1], 0,
-                0, 0x85, 0x3a, 2, 0);
+            DrawCatalogImage(-14, g_empty_hand_catalog_ids[g_review_character->iRace * 2 + 1], 0, 0,
+                             0x85, 0x3a, 2, 0);
         } else {
-            DrawCatalogImage(-14, g_item_video_objects_68ec68.GetOrCreateVideoObject(item_id), 0, 2,
-                             0x84, 0x3a, 2, 0);
-            count = g_review_character_0069c0f8->EquippedItem[7].stack_count;
+            DrawCatalogImage(-14, g_item_video_objects.GetOrCreateVideoObject(item_id), 0, 2, 0x84,
+                             0x3a, 2, 0);
+            count = g_review_character->EquippedItem[7].stack_count;
             if (count != 0) {
                 swprintf(text, g_format_d_0060aa20, count);
-                SetFont(g_smfnt_font_683694);
-                SetFontObjectPalette16BPP(g_smfnt_font_683694, g_font_palette_smfnt_68ee10);
-                gprintf(0x8c - (StringPixLength(text, g_smfnt_font_683694) + 1) / 2, 0x49,
+                SetFont(g_smfnt_font);
+                SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
+                gprintf(0x8c - (StringPixLength(text, g_smfnt_font) + 1) / 2, 0x49,
                         const_cast<UINT16*>(g_format_s_006068e4), text);
             }
         }
     }
-    SetFont(g_smfnt_font_683694);
-    swprintf(text, g_format_d_0060aa20, g_review_character_0069c0f8->armor_class_average);
-    palette = g_font_palette_smfnt_68ee10;
-    if (g_review_character_0069c0f8->load_category != 0) {
-        palette = g_font_state_palettes_68ee1c
-            [g_load_category_palettes_648c48[g_review_character_0069c0f8->load_category]];
+    SetFont(g_smfnt_font);
+    swprintf(text, g_format_d_0060aa20, g_review_character->armor_class_average);
+    palette = g_font_palette_smfnt;
+    if (g_review_character->load_category != 0) {
+        palette =
+            g_font_state_palettes[g_load_category_palettes[g_review_character->load_category]];
     }
-    SetFontObjectPalette16BPP(g_smfnt_font_683694, palette);
-    gprintf((0xd - StringPixLength(text, g_smfnt_font_683694)) / 2 + 0x84, 0xe,
+    SetFontObjectPalette16BPP(g_smfnt_font, palette);
+    gprintf((0xd - StringPixLength(text, g_smfnt_font)) / 2 + 0x84, 0xe,
             const_cast<UINT16*>(g_format_s_006068e4), text);
     InvalidateRegion(0x81, 0xb, 0x95, 0x53, 0);
 }
 
 /* The shared bottom panel the five page buttons and the eight item-action
    controls live on; it is created with the camp screen and torn down by
-   DestroyCampButtonPanel005B55F0. Returns 0 when any allocation fails. */
+   DestroyCampButtonPanel. Returns 0 when any allocation fails. */
 // FUNCTION: WIZ8 0x005b4eb0
-int CreateCampButtonPanel005B4EB0(void)
+int CreateCampButtonPanel(void)
 {
     int index;
 
-    g_item_actions_panel_0069c404 = 0;
+    g_item_actions_panel = 0;
     for (index = 0; index < 5; ++index) {
-        if (g_camp_page_buttons_0069c3ec[index] != 0) {
-            g_camp_page_buttons_0069c3ec[index] = 0;
+        if (g_camp_page_buttons[index] != 0) {
+            g_camp_page_buttons[index] = 0;
         }
     }
     for (index = 0; index < 8; ++index) {
-        if (g_item_action_controls_69c3cc[index] != 0) {
-            g_item_action_controls_69c3cc[index] = 0;
+        if (g_item_action_controls[index] != 0) {
+            g_item_action_controls[index] = 0;
         }
     }
     RegionSetEnable(0x2d);
     RegionSetEnable(0x2e);
-    g_item_actions_panel_0069c404 = new Controls(0, 0x1c2, 0x280, 0x1e0, 0x110, 0, 0);
-    if (g_item_actions_panel_0069c404 != 0) {
-        g_camp_page_buttons_0069c3ec[0] = new W8TextControl(
-            g_item_actions_panel_0069c404, 0x11f, 0x1a4, 0, 0x1d0, 0x1e, 0x111, 0, 0, 4, 1, 2, 3);
-        g_camp_page_buttons_0069c3ec[1] =
-            new W8TextControl(g_item_actions_panel_0069c404, 0x120, 0x1d0, 0, 0x1fc, 0x1e, 0x111, 0,
-                              10, 0xe, 0xb, 0xc, 0xd);
-        g_camp_page_buttons_0069c3ec[2] =
-            new W8TextControl(g_item_actions_panel_0069c404, 0x121, 0x1fc, 0, 0x228, 0x1e, 0x111, 0,
-                              0xf, 0x13, 0x10, 0x11, 0x12);
-        g_camp_page_buttons_0069c3ec[3] = new W8TextControl(
-            g_item_actions_panel_0069c404, 0x122, 0x228, 0, 0x254, 0x1e, 0x111, 0, 5, 9, 6, 7, 8);
-        g_camp_page_buttons_0069c3ec[4] =
-            new W8TextControl(g_item_actions_panel_0069c404, 0x123, 0x254, 0, 0x280, 0x1e, 0x106, 0,
-                              0x10, -1, 0x11, 0x12, 0x13);
+    g_item_actions_panel = new Controls(0, 0x1c2, 0x280, 0x1e0, 0x110, 0, 0);
+    if (g_item_actions_panel != 0) {
+        g_camp_page_buttons[0] = new W8TextControl(g_item_actions_panel, 0x11f, 0x1a4, 0, 0x1d0,
+                                                   0x1e, 0x111, 0, 0, 4, 1, 2, 3);
+        g_camp_page_buttons[1] = new W8TextControl(g_item_actions_panel, 0x120, 0x1d0, 0, 0x1fc,
+                                                   0x1e, 0x111, 0, 10, 0xe, 0xb, 0xc, 0xd);
+        g_camp_page_buttons[2] = new W8TextControl(g_item_actions_panel, 0x121, 0x1fc, 0, 0x228,
+                                                   0x1e, 0x111, 0, 0xf, 0x13, 0x10, 0x11, 0x12);
+        g_camp_page_buttons[3] = new W8TextControl(g_item_actions_panel, 0x122, 0x228, 0, 0x254,
+                                                   0x1e, 0x111, 0, 5, 9, 6, 7, 8);
+        g_camp_page_buttons[4] = new W8TextControl(g_item_actions_panel, 0x123, 0x254, 0, 0x280,
+                                                   0x1e, 0x106, 0, 0x10, -1, 0x11, 0x12, 0x13);
         for (index = 0; index < 5; ++index) {
-            if (g_camp_page_buttons_0069c3ec[index] == 0) {
+            if (g_camp_page_buttons[index] == 0) {
                 return 0;
             }
         }
-        g_camp_page_buttons_0069c3ec[0]->AddLayoutFlags(g_W8TextControlMask005ED578);
-        g_camp_page_buttons_0069c3ec[1]->AddLayoutFlags(g_W8TextControlMask005ED578);
-        g_camp_page_buttons_0069c3ec[2]->AddLayoutFlags(g_W8TextControlMask005ED578);
-        g_camp_page_buttons_0069c3ec[3]->AddLayoutFlags(g_W8TextControlMask005ED578);
-        g_camp_page_buttons_0069c3ec[0]->m_primaryActivationCallback = CampPageAction005B5AE0;
-        g_camp_page_buttons_0069c3ec[1]->m_primaryActivationCallback = CampPageAction005B5B30;
-        g_camp_page_buttons_0069c3ec[2]->m_primaryActivationCallback = CampPageAction005B5B80;
-        g_camp_page_buttons_0069c3ec[3]->m_primaryActivationCallback = CampPageAction005B5BD0;
-        g_camp_page_buttons_0069c3ec[4]->m_primaryActivationCallback =
-            CampPageDismissAction005B5C20;
-        g_item_action_controls_69c3cc[0] = new W8TextControl(
-            g_item_actions_panel_0069c404, 0x124, 0, 0, 0x2c, 0x1e, 0x112, 0, 0, 2, 1, 4, 3);
-        g_item_action_controls_69c3cc[1] =
-            new W8TextControl(g_item_actions_panel_0069c404, 0x125, 0x2c, 0, 0x58, 0x1e, 0x112, 0,
-                              10, 0xc, 0xb, 0xe, 0xd);
-        g_item_action_controls_69c3cc[2] = new W8TextControl(
-            g_item_actions_panel_0069c404, 0x126, 0x58, 0, 0x84, 0x1e, 0x112, 0, 5, 7, 6, 9, 8);
-        g_item_action_controls_69c3cc[3] =
-            new W8TextControl(g_item_actions_panel_0069c404, 0x127, 0x84, 0, 0xb0, 0x1e, 0x112, 0,
-                              0xf, 0x11, 0x10, 0x13, 0x12);
-        g_item_action_controls_69c3cc[4] =
-            new W8TextControl(g_item_actions_panel_0069c404, 0x128, 0xb0, 0, 0xdc, 0x1e, 0x112, 0,
-                              0x14, 0x16, 0x15, 0x18, 0x17);
-        g_item_action_controls_69c3cc[5] =
-            new W8TextControl(g_item_actions_panel_0069c404, 0x129, 0x134, 0, 0x160, 0x1e, 0x112, 0,
-                              0x19, 0x1b, 0x1a, 0x1d, 0x1c);
-        g_item_action_controls_69c3cc[6] =
-            new W8TextControl(g_item_actions_panel_0069c404, 0x12a, 0xdc, 0, 0x108, 0x1e, 0x112, 0,
-                              0x1e, 0x20, 0x1f, 0x22, 0x21);
-        g_item_action_controls_69c3cc[7] =
-            new W8TextControl(g_item_actions_panel_0069c404, 0x12b, 0x108, 0, 0x134, 0x1e, 0x112, 0,
-                              0x23, 0x25, 0x24, 0x27, 0x26);
+        g_camp_page_buttons[0]->AddLayoutFlags(g_W8TextControlMask005ED578);
+        g_camp_page_buttons[1]->AddLayoutFlags(g_W8TextControlMask005ED578);
+        g_camp_page_buttons[2]->AddLayoutFlags(g_W8TextControlMask005ED578);
+        g_camp_page_buttons[3]->AddLayoutFlags(g_W8TextControlMask005ED578);
+        g_camp_page_buttons[0]->m_primaryActivationCallback = CampPageAction005B5AE0;
+        g_camp_page_buttons[1]->m_primaryActivationCallback = CampPageAction005B5B30;
+        g_camp_page_buttons[2]->m_primaryActivationCallback = CampPageAction005B5B80;
+        g_camp_page_buttons[3]->m_primaryActivationCallback = CampPageAction005B5BD0;
+        g_camp_page_buttons[4]->m_primaryActivationCallback = CampPageDismissAction;
+        g_item_action_controls[0] = new W8TextControl(g_item_actions_panel, 0x124, 0, 0, 0x2c, 0x1e,
+                                                      0x112, 0, 0, 2, 1, 4, 3);
+        g_item_action_controls[1] = new W8TextControl(g_item_actions_panel, 0x125, 0x2c, 0, 0x58,
+                                                      0x1e, 0x112, 0, 10, 0xc, 0xb, 0xe, 0xd);
+        g_item_action_controls[2] = new W8TextControl(g_item_actions_panel, 0x126, 0x58, 0, 0x84,
+                                                      0x1e, 0x112, 0, 5, 7, 6, 9, 8);
+        g_item_action_controls[3] = new W8TextControl(g_item_actions_panel, 0x127, 0x84, 0, 0xb0,
+                                                      0x1e, 0x112, 0, 0xf, 0x11, 0x10, 0x13, 0x12);
+        g_item_action_controls[4] = new W8TextControl(g_item_actions_panel, 0x128, 0xb0, 0, 0xdc,
+                                                      0x1e, 0x112, 0, 0x14, 0x16, 0x15, 0x18, 0x17);
+        g_item_action_controls[5] = new W8TextControl(g_item_actions_panel, 0x129, 0x134, 0, 0x160,
+                                                      0x1e, 0x112, 0, 0x19, 0x1b, 0x1a, 0x1d, 0x1c);
+        g_item_action_controls[6] = new W8TextControl(g_item_actions_panel, 0x12a, 0xdc, 0, 0x108,
+                                                      0x1e, 0x112, 0, 0x1e, 0x20, 0x1f, 0x22, 0x21);
+        g_item_action_controls[7] = new W8TextControl(g_item_actions_panel, 0x12b, 0x108, 0, 0x134,
+                                                      0x1e, 0x112, 0, 0x23, 0x25, 0x24, 0x27, 0x26);
         index = 0;
-        while (g_item_action_controls_69c3cc[index] != 0) {
+        while (g_item_action_controls[index] != 0) {
             ++index;
             if (index > 7) {
-                g_item_action_controls_69c3cc[0]->AddLayoutFlags(g_W8TextControlMask005ED578);
-                g_item_action_controls_69c3cc[1]->AddLayoutFlags(g_W8TextControlMask005ED578);
-                g_item_action_controls_69c3cc[2]->AddLayoutFlags(g_W8TextControlMask005ED578);
-                g_item_action_controls_69c3cc[3]->AddLayoutFlags(g_W8TextControlMask005ED578);
-                g_item_action_controls_69c3cc[4]->AddLayoutFlags(g_W8TextControlMask005ED578);
-                g_item_action_controls_69c3cc[5]->AddLayoutFlags(g_W8TextControlMask005ED578);
-                g_item_action_controls_69c3cc[6]->AddLayoutFlags(g_W8TextControlMask005ED578);
-                g_item_action_controls_69c3cc[7]->AddLayoutFlags(g_W8TextControlMask005ED578);
-                g_item_action_controls_69c3cc[0]->m_primaryActivationCallback =
-                    CampItemAction005B5C30;
-                g_item_action_controls_69c3cc[1]->m_primaryActivationCallback =
-                    CampItemAction005B5C80;
-                g_item_action_controls_69c3cc[2]->m_primaryActivationCallback =
-                    CampItemAction005B5CD0;
-                g_item_action_controls_69c3cc[3]->m_primaryActivationCallback =
-                    CampItemAction005B5D10;
-                g_item_action_controls_69c3cc[4]->m_primaryActivationCallback =
-                    CampItemAction005B5D50;
-                g_item_action_controls_69c3cc[5]->m_primaryActivationCallback =
-                    CampItemAction005B5D90;
-                g_item_action_controls_69c3cc[6]->m_primaryActivationCallback =
-                    CampItemAction005B5DF0;
-                g_item_action_controls_69c3cc[7]->m_primaryActivationCallback =
-                    CampItemAction005B5E60;
-                g_item_actions_panel_0069c404->SetEnabled(1);
-                g_camp_page_buttons_0069c3ec[0]->EnableSecondaryState(0);
+                g_item_action_controls[0]->AddLayoutFlags(g_W8TextControlMask005ED578);
+                g_item_action_controls[1]->AddLayoutFlags(g_W8TextControlMask005ED578);
+                g_item_action_controls[2]->AddLayoutFlags(g_W8TextControlMask005ED578);
+                g_item_action_controls[3]->AddLayoutFlags(g_W8TextControlMask005ED578);
+                g_item_action_controls[4]->AddLayoutFlags(g_W8TextControlMask005ED578);
+                g_item_action_controls[5]->AddLayoutFlags(g_W8TextControlMask005ED578);
+                g_item_action_controls[6]->AddLayoutFlags(g_W8TextControlMask005ED578);
+                g_item_action_controls[7]->AddLayoutFlags(g_W8TextControlMask005ED578);
+                g_item_action_controls[0]->m_primaryActivationCallback = CampItemAction005B5C30;
+                g_item_action_controls[1]->m_primaryActivationCallback = CampItemAction005B5C80;
+                g_item_action_controls[2]->m_primaryActivationCallback = CampItemAction005B5CD0;
+                g_item_action_controls[3]->m_primaryActivationCallback = CampItemAction005B5D10;
+                g_item_action_controls[4]->m_primaryActivationCallback = CampItemAction005B5D50;
+                g_item_action_controls[5]->m_primaryActivationCallback = CampItemAction005B5D90;
+                g_item_action_controls[6]->m_primaryActivationCallback = CampItemAction005B5DF0;
+                g_item_action_controls[7]->m_primaryActivationCallback = CampItemAction005B5E60;
+                g_item_actions_panel->SetEnabled(1);
+                g_camp_page_buttons[0]->EnableSecondaryState(0);
                 return 1;
             }
         }
@@ -1276,26 +1245,26 @@ int CreateCampButtonPanel005B4EB0(void)
 /* Tear down the shared button panel: delete the Controls parent and each page
    and item-action control, then disable both region sets. */
 // FUNCTION: WIZ8 0x005b55f0
-void DestroyCampButtonPanel005B55F0(void)
+void DestroyCampButtonPanel(void)
 {
     Controls* panel;
     int index;
 
-    panel = g_item_actions_panel_0069c404;
+    panel = g_item_actions_panel;
     if (panel != 0) {
         delete panel;
-        g_item_actions_panel_0069c404 = 0;
+        g_item_actions_panel = 0;
     }
     for (index = 0; index < 5; ++index) {
-        if (g_camp_page_buttons_0069c3ec[index] != 0) {
-            delete g_camp_page_buttons_0069c3ec[index];
-            g_camp_page_buttons_0069c3ec[index] = 0;
+        if (g_camp_page_buttons[index] != 0) {
+            delete g_camp_page_buttons[index];
+            g_camp_page_buttons[index] = 0;
         }
     }
     for (index = 0; index < 8; ++index) {
-        if (g_item_action_controls_69c3cc[index] != 0) {
-            delete g_item_action_controls_69c3cc[index];
-            g_item_action_controls_69c3cc[index] = 0;
+        if (g_item_action_controls[index] != 0) {
+            delete g_item_action_controls[index];
+            g_item_action_controls[index] = 0;
         }
     }
     RegionSetDisable(0x2e);
@@ -1308,39 +1277,39 @@ void DestroyCampButtonPanel005B55F0(void)
    eligibility and the relevant item/spell tests. When invalidate is set the
    whole panel is additionally marked dirty before it is redrawn. */
 // FUNCTION: WIZ8 0x005b5670
-void RefreshCampItemActions005B5670(unsigned char invalidate)
+void RefreshCampItemActions(unsigned char invalidate)
 {
     int index;
     W8SpellRuntimeRecord* spell;
-    W8ItemInstance* held = &g_status_685170.item_in_hand_235b;
+    W8ItemInstance* held = &g_status.item_in_hand_235b;
 
     for (index = 0; index < 8; ++index) {
-        W8TextControl* control = g_item_action_controls_69c3cc[index];
-        if (g_camp_screen_0069c0f4->page == 0 && g_status_685170.game_started != 0) {
+        W8TextControl* control = g_item_action_controls[index];
+        if (g_camp_screen->page == 0 && g_status.game_started != 0) {
             switch (index) {
             case 0:
-                control->SetEnabled(IsPartySlotEligible00524A10(giReviewCharSlot) != 0);
+                control->SetEnabled(IsPartySlotEligible(giReviewCharSlot) != 0);
                 continue;
             case 1:
                 control->SetEnabled(gXStatus.fCombatMode == 0 &&
-                                    IsPartySlotEligible00524A10(giReviewCharSlot) != 0);
+                                    IsPartySlotEligible(giReviewCharSlot) != 0);
                 continue;
             case 2:
-                if (g_status_685170.item_in_cursor == 0) {
+                if (g_status.item_in_cursor == 0) {
                     control->SetEnabled(1);
                     continue;
                 }
-                if (CanSplitItemStack005BAA50(held) == 0) {
+                if (CanSplitItemStack(held) == 0) {
                     control->SetEnabled(0);
                     continue;
                 }
                 if (gXStatus.fCombatMode == 0 ||
                     (g_combat_state->equip_phase_a50 != 0 &&
-                     g_status_685170.buffers.XChar[giReviewCharSlot].pending_action == 9)) {
+                     g_status.buffers.XChar[giReviewCharSlot].pending_action == 9)) {
                     control->SetEnabled(1);
                     continue;
                 }
-                if (IsEquippableItemClass005A6310(held) != 0 &&
+                if (IsEquippableItemClass(held) != 0 &&
                     gXStatus.held_item_source == giReviewCharSlot) {
                     control->SetEnabled(1);
                     continue;
@@ -1351,7 +1320,7 @@ void RefreshCampItemActions005B5670(unsigned char invalidate)
                     control->SetEnabled(0);
                     continue;
                 }
-                if (IsPartySlotEligible00524A10(giReviewCharSlot) == 0) {
+                if (IsPartySlotEligible(giReviewCharSlot) == 0) {
                     control->SetEnabled(0);
                     continue;
                 }
@@ -1360,52 +1329,48 @@ void RefreshCampItemActions005B5670(unsigned char invalidate)
                     control->SetEnabled(0);
                     continue;
                 }
-                if (g_status_685170.item_in_cursor == 0) {
+                if (g_status.item_in_cursor == 0) {
                     control->SetEnabled(1);
                     continue;
                 }
-                control->SetEnabled(
-                    CanCharacterUseItemEntry005BAA10(g_review_character_0069c0f8, held) != 0);
+                control->SetEnabled(CanCharacterUseItemEntry(g_review_character, held) != 0);
                 continue;
             case 4:
                 control->SetEnabled(1);
                 continue;
             case 5:
-                control->SetEnabled(IsPartySlotEligible00524A10(giReviewCharSlot) != 0 &&
-                                    CharacterHasTrait00547940(g_review_character_0069c0f8, 0xd) !=
-                                        0);
+                control->SetEnabled(IsPartySlotEligible(giReviewCharSlot) != 0 &&
+                                    CharacterHasTrait(g_review_character, 0xd) != 0);
                 continue;
             case 6:
-                if (g_review_character_0069c0f8->spell_learned[0x17] != 1) {
+                if (g_review_character->spell_learned[0x17] != 1) {
                     break;
                 }
-                if (IsPartySlotEligible00524A10(giReviewCharSlot) == 0 ||
-                    gXStatus.fCombatMode != 0) {
+                if (IsPartySlotEligible(giReviewCharSlot) == 0 || gXStatus.fCombatMode != 0) {
                     break;
                 }
                 spell = &g_spell_records[0x17];
-                if (spell->spell_point_cost > g_review_character_0069c0f8->iSPLeft[spell->realm]) {
+                if (spell->spell_point_cost > g_review_character->iSPLeft[spell->realm]) {
                     break;
                 }
                 if (SpellUsableNow(0x17, 0) == 0) {
                     break;
                 }
-                if (g_status_685170.item_in_cursor == 0) {
+                if (g_status.item_in_cursor == 0) {
                     control->SetEnabled(1);
                     continue;
                 }
                 control->SetEnabled(CanItemLeaveItsSlot(held) != 0);
                 continue;
             case 7:
-                if (g_review_character_0069c0f8->spell_learned[0x3a] != 1) {
+                if (g_review_character->spell_learned[0x3a] != 1) {
                     break;
                 }
-                if (IsPartySlotEligible00524A10(giReviewCharSlot) == 0 ||
-                    gXStatus.fCombatMode != 0) {
+                if (IsPartySlotEligible(giReviewCharSlot) == 0 || gXStatus.fCombatMode != 0) {
                     break;
                 }
                 spell = &g_spell_records[0x3a];
-                if (spell->spell_point_cost > g_review_character_0069c0f8->iSPLeft[spell->realm]) {
+                if (spell->spell_point_cost > g_review_character->iSPLeft[spell->realm]) {
                     break;
                 }
                 control->SetEnabled(SpellUsableNow(0x3a, 0) != 0);
@@ -1417,29 +1382,29 @@ void RefreshCampItemActions005B5670(unsigned char invalidate)
         }
     }
     if (invalidate != 0) {
-        g_item_actions_panel_0069c404->Invalidate(0);
+        g_item_actions_panel->Invalidate(0);
     }
-    g_item_actions_panel_0069c404->Redraw();
+    g_item_actions_panel->Redraw();
 }
 
 /* Switch the items-page action mode: every action button's secondary state is
    cleared, the mode maps onto the targeting mode and the button it highlights,
    and mode zero also drops a held item cursor back into the pool. */
 // FUNCTION: WIZ8 0x005b59b0
-void SetCampItemActionMode005B59B0(char mode)
+void SetCampItemActionMode(char mode)
 {
     int index;
     short selected = -1;
     int targeting;
     W8TextControl** control;
 
-    for (control = g_item_action_controls_69c3cc, index = 8; index != 0; ++control, --index) {
+    for (control = g_item_action_controls, index = 8; index != 0; ++control, --index) {
         if (static_cast<unsigned char>((*control)->m_stateFlags & g_W8TextControlMask005ED570) !=
             0) {
             (*control)->DisableSecondaryState(0);
         }
     }
-    g_camp_screen_0069c0f4->entry_mode = mode;
+    g_camp_screen->entry_mode = mode;
     switch (mode) {
     case 1:
         targeting = 6;
@@ -1479,15 +1444,15 @@ void SetCampItemActionMode005B59B0(char mode)
         break;
     }
     SetTargetingMode(targeting);
-    if (mode == 0 && g_status_685170.item_in_cursor != 0) {
+    if (mode == 0 && g_status.item_in_cursor != 0) {
         SetItemCursor(0);
     }
     if (selected != -1 &&
-        static_cast<unsigned char>(g_item_action_controls_69c3cc[selected]->m_stateFlags &
+        static_cast<unsigned char>(g_item_action_controls[selected]->m_stateFlags &
                                    g_W8TextControlMask005ED570) == 0) {
-        g_item_action_controls_69c3cc[selected]->EnableSecondaryState(0);
+        g_item_action_controls[selected]->EnableSecondaryState(0);
     }
-    g_camp_screen_0069c0f4->redraw_flags |= 0x1000;
+    g_camp_screen->redraw_flags |= 0x1000;
 }
 
 /* The five page-button callbacks share one shape: while this button's
@@ -1498,17 +1463,17 @@ static void CampPageAction005B5AE0(void)
 {
     int index;
 
-    if (static_cast<unsigned char>(g_camp_page_buttons_0069c3ec[0]->m_stateFlags &
+    if (static_cast<unsigned char>(g_camp_page_buttons[0]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
         for (index = 0; index < 5; ++index) {
-            if (static_cast<unsigned char>(g_camp_page_buttons_0069c3ec[index]->m_stateFlags &
+            if (static_cast<unsigned char>(g_camp_page_buttons[index]->m_stateFlags &
                                            g_W8TextControlMask005ED570) != 0) {
-                g_camp_page_buttons_0069c3ec[index]->DisableSecondaryState(0);
+                g_camp_page_buttons[index]->DisableSecondaryState(0);
             }
         }
-        SwitchCampPage005A4540(0);
+        SwitchCampPage(0);
     }
-    g_camp_page_buttons_0069c3ec[0]->EnableSecondaryState(0);
+    g_camp_page_buttons[0]->EnableSecondaryState(0);
 }
 
 // FUNCTION: WIZ8 0x005b5b30
@@ -1516,17 +1481,17 @@ static void CampPageAction005B5B30(void)
 {
     int index;
 
-    if (static_cast<unsigned char>(g_camp_page_buttons_0069c3ec[1]->m_stateFlags &
+    if (static_cast<unsigned char>(g_camp_page_buttons[1]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
         for (index = 0; index < 5; ++index) {
-            if (static_cast<unsigned char>(g_camp_page_buttons_0069c3ec[index]->m_stateFlags &
+            if (static_cast<unsigned char>(g_camp_page_buttons[index]->m_stateFlags &
                                            g_W8TextControlMask005ED570) != 0) {
-                g_camp_page_buttons_0069c3ec[index]->DisableSecondaryState(0);
+                g_camp_page_buttons[index]->DisableSecondaryState(0);
             }
         }
-        SwitchCampPage005A4540(3);
+        SwitchCampPage(3);
     }
-    g_camp_page_buttons_0069c3ec[1]->EnableSecondaryState(0);
+    g_camp_page_buttons[1]->EnableSecondaryState(0);
 }
 
 // FUNCTION: WIZ8 0x005b5b80
@@ -1534,17 +1499,17 @@ static void CampPageAction005B5B80(void)
 {
     int index;
 
-    if (static_cast<unsigned char>(g_camp_page_buttons_0069c3ec[2]->m_stateFlags &
+    if (static_cast<unsigned char>(g_camp_page_buttons[2]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
         for (index = 0; index < 5; ++index) {
-            if (static_cast<unsigned char>(g_camp_page_buttons_0069c3ec[index]->m_stateFlags &
+            if (static_cast<unsigned char>(g_camp_page_buttons[index]->m_stateFlags &
                                            g_W8TextControlMask005ED570) != 0) {
-                g_camp_page_buttons_0069c3ec[index]->DisableSecondaryState(0);
+                g_camp_page_buttons[index]->DisableSecondaryState(0);
             }
         }
-        SwitchCampPage005A4540(2);
+        SwitchCampPage(2);
     }
-    g_camp_page_buttons_0069c3ec[2]->EnableSecondaryState(0);
+    g_camp_page_buttons[2]->EnableSecondaryState(0);
 }
 
 // FUNCTION: WIZ8 0x005b5bd0
@@ -1552,21 +1517,21 @@ static void CampPageAction005B5BD0(void)
 {
     int index;
 
-    if (static_cast<unsigned char>(g_camp_page_buttons_0069c3ec[3]->m_stateFlags &
+    if (static_cast<unsigned char>(g_camp_page_buttons[3]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
         for (index = 0; index < 5; ++index) {
-            if (static_cast<unsigned char>(g_camp_page_buttons_0069c3ec[index]->m_stateFlags &
+            if (static_cast<unsigned char>(g_camp_page_buttons[index]->m_stateFlags &
                                            g_W8TextControlMask005ED570) != 0) {
-                g_camp_page_buttons_0069c3ec[index]->DisableSecondaryState(0);
+                g_camp_page_buttons[index]->DisableSecondaryState(0);
             }
         }
-        SwitchCampPage005A4540(1);
+        SwitchCampPage(1);
     }
-    g_camp_page_buttons_0069c3ec[3]->EnableSecondaryState(0);
+    g_camp_page_buttons[3]->EnableSecondaryState(0);
 }
 
 // FUNCTION: WIZ8 0x005b5c20
-static void CampPageDismissAction005B5C20(void)
+static void CampPageDismissAction(void)
 {
     DismissSelectedPartyCharacter();
 }
@@ -1577,79 +1542,79 @@ static void CampPageDismissAction005B5C20(void)
 // FUNCTION: WIZ8 0x005b5c30
 static void CampItemAction005B5C30(void)
 {
-    if (static_cast<unsigned char>(g_item_action_controls_69c3cc[0]->m_stateFlags &
+    if (static_cast<unsigned char>(g_item_action_controls[0]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
-        g_camp_entry_parameter_0069c0fc = g_review_character_0069c0f8;
-        if (g_status_685170.item_in_cursor != 0) {
-            IdentifyAndOpenItemInfo005BA370(&g_status_685170.item_in_hand_235b);
+        g_camp_entry_parameter = g_review_character;
+        if (g_status.item_in_cursor != 0) {
+            IdentifyAndOpenItemInfo(&g_status.item_in_hand_235b);
             return;
         }
-        SetCampItemActionMode005B59B0(3);
+        SetCampItemActionMode(3);
         return;
     }
-    SetCampItemActionMode005B59B0(0);
+    SetCampItemActionMode(0);
 }
 
 // FUNCTION: WIZ8 0x005b5c80
 static void CampItemAction005B5C80(void)
 {
-    if (static_cast<unsigned char>(g_item_action_controls_69c3cc[1]->m_stateFlags &
+    if (static_cast<unsigned char>(g_item_action_controls[1]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
-        SetCampItemActionMode005B59B0(1);
-        if (g_status_685170.item_in_cursor != 0) {
-            SetHandCursors005BAFC0(0);
-            g_camp_screen_0069c0f4->item_redraw_flags |= 0x3ffe00;
+        SetCampItemActionMode(1);
+        if (g_status.item_in_cursor != 0) {
+            SetHandCursors(0);
+            g_camp_screen->item_redraw_flags |= 0x3ffe00;
         }
         return;
     }
-    SetCampItemActionMode005B59B0(0);
+    SetCampItemActionMode(0);
 }
 
 // FUNCTION: WIZ8 0x005b5cd0
 static void CampItemAction005B5CD0(void)
 {
-    if (static_cast<unsigned char>(g_item_action_controls_69c3cc[2]->m_stateFlags &
+    if (static_cast<unsigned char>(g_item_action_controls[2]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
-        if (g_status_685170.item_in_cursor != 0) {
-            OpenSplitStackDialog005BA400(&g_status_685170.item_in_hand_235b);
+        if (g_status.item_in_cursor != 0) {
+            OpenSplitStackDialog(&g_status.item_in_hand_235b);
             return;
         }
-        SetCampItemActionMode005B59B0(4);
+        SetCampItemActionMode(4);
         return;
     }
-    SetCampItemActionMode005B59B0(0);
+    SetCampItemActionMode(0);
 }
 
 // FUNCTION: WIZ8 0x005b5d10
 static void CampItemAction005B5D10(void)
 {
-    if (static_cast<unsigned char>(g_item_action_controls_69c3cc[3]->m_stateFlags &
+    if (static_cast<unsigned char>(g_item_action_controls[3]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
-        if (g_status_685170.item_in_cursor != 0) {
-            UseItem005BA4F0(&g_status_685170.item_in_hand_235b);
+        if (g_status.item_in_cursor != 0) {
+            UseItem005BA4F0(&g_status.item_in_hand_235b);
             return;
         }
-        SetCampItemActionMode005B59B0(5);
+        SetCampItemActionMode(5);
         return;
     }
-    SetCampItemActionMode005B59B0(0);
+    SetCampItemActionMode(0);
 }
 
 // FUNCTION: WIZ8 0x005b5d50
 static void CampItemAction005B5D50(void)
 {
-    if (static_cast<unsigned char>(g_item_action_controls_69c3cc[4]->m_stateFlags &
+    if (static_cast<unsigned char>(g_item_action_controls[4]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
-        if (g_status_685170.item_in_cursor != 0) {
-            if (ResolvePendingCampCharacter005A5F30(1) != 0) {
+        if (g_status.item_in_cursor != 0) {
+            if (ResolvePendingCampCharacter(1) != 0) {
                 DropHeldItem005BA3D0();
             }
             return;
         }
-        SetCampItemActionMode005B59B0(6);
+        SetCampItemActionMode(6);
         return;
     }
-    SetCampItemActionMode005B59B0(0);
+    SetCampItemActionMode(0);
 }
 
 // FUNCTION: WIZ8 0x005b5d90
@@ -1658,58 +1623,58 @@ static void CampItemAction005B5D90(void)
     unsigned char eligible;
     unsigned char active;
 
-    eligible = IsCampActionAllowed005A6090(giReviewCharSlot);
-    active = static_cast<unsigned char>(g_item_action_controls_69c3cc[5]->m_stateFlags &
+    eligible = IsCampActionAllowed(giReviewCharSlot);
+    active = static_cast<unsigned char>(g_item_action_controls[5]->m_stateFlags &
                                         g_W8TextControlMask005ED570);
     if (eligible == 0) {
         if (active != 0) {
-            g_item_action_controls_69c3cc[5]->DisableSecondaryState(0);
-            g_item_action_controls_69c3cc[5]->Invalidate(0);
+            g_item_action_controls[5]->DisableSecondaryState(0);
+            g_item_action_controls[5]->Invalidate(0);
         }
         return;
     }
     if (active != 0) {
-        SetCampItemActionMode005B59B0(7);
+        SetCampItemActionMode(7);
         return;
     }
-    SetCampItemActionMode005B59B0(0);
+    SetCampItemActionMode(0);
 }
 
 // FUNCTION: WIZ8 0x005b5df0
 static void CampItemAction005B5DF0(void)
 {
-    if (static_cast<unsigned char>(g_item_action_controls_69c3cc[6]->m_stateFlags &
+    if (static_cast<unsigned char>(g_item_action_controls[6]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
         giCasterCharSlot = giReviewCharSlot;
-        if (g_status_685170.item_in_cursor != 0) {
-            UseHeldItemOnItem005BA740(&g_status_685170.item_in_hand_235b);
-            g_item_action_controls_69c3cc[6]->DisableSecondaryState(0);
-            g_item_action_controls_69c3cc[6]->Invalidate(0);
+        if (g_status.item_in_cursor != 0) {
+            UseHeldItemOnItem(&g_status.item_in_hand_235b);
+            g_item_action_controls[6]->DisableSecondaryState(0);
+            g_item_action_controls[6]->Invalidate(0);
             return;
         }
-        SetCampItemActionMode005B59B0(8);
+        SetCampItemActionMode(8);
         return;
     }
-    SetCampItemActionMode005B59B0(0);
+    SetCampItemActionMode(0);
 }
 
 // FUNCTION: WIZ8 0x005b5e60
 static void CampItemAction005B5E60(void)
 {
-    if (static_cast<unsigned char>(g_item_action_controls_69c3cc[7]->m_stateFlags &
+    if (static_cast<unsigned char>(g_item_action_controls[7]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
         giCasterCharSlot = giReviewCharSlot;
-        SetCampItemActionMode005B59B0(9);
+        SetCampItemActionMode(9);
         return;
     }
-    SetCampItemActionMode005B59B0(0);
+    SetCampItemActionMode(0);
 }
 
 // FUNCTION: WIZ8 0x005B2200
 void CloseFormationPanel(void)
 {
     DestroyFormationPanel();
-    gXStatus.fReviewCharacterMode = 0;
+    gXStatus.fReviewCharacterMode = false;
     UpdateHeldItemCursor();
     RegionSetDisable(0x1b);
     RequestRedraw(0x200);

@@ -46,6 +46,6 @@ static_assert(sizeof(OctMeshModel) == 0x48, "OctMeshModel_size_must_be_0x48");
 
 /* The first Read call snapshots material/texture/render-flag zero as the
    shared default rendering state for the path and trace meshes. */
-extern stMaterial* g_oct_mesh_default_material_00652dbc;
-extern srTextureIFace* g_oct_mesh_default_texture_00652dc0;
-extern srShader* g_oct_mesh_default_shader_00652dc4;
+extern stMaterial* g_oct_mesh_default_material;
+extern srTextureIFace* g_oct_mesh_default_texture;
+extern srShader* g_oct_mesh_default_shader;

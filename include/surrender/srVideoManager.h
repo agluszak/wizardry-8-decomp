@@ -67,7 +67,7 @@ public:
                                 long frame) = 0;
 
     protected:
-        Stream(const char* path);
+        Stream(const char* path = 0);
 
         long loaded_04;
         long parameter_08;

@@ -40,22 +40,22 @@ struct W8XStatus {
     unsigned int uiNpcsInDatabase;                    /* 0x8d0 */
     unsigned int uiFactsInDatabase;                   /* 0x8d4 */
     unsigned int uiLevelsInDatabase;                  /* 0x8d8 */
-    unsigned char fCombatMode;                        /* 0x8dc: 0x00683F94 */
-    unsigned char fSpellCastMode;                     /* 0x8dd: 0x00683F95 */
-    unsigned char fItemSelectMode;                    /* 0x8de: 0x00683F96 */
-    unsigned char fNpcDialogueMode;                   /* 0x8df: 0x00683F97 */
-    unsigned char fLockInteractMode;                  /* 0x8e0: 0x00683F98 */
-    unsigned char fTrapInteractMode;                  /* 0x8e1: 0x00683F99 */
-    unsigned char fReviewCharacterMode;               /* 0x8e2: 0x00683F9A */
-    unsigned char fCampMode;                          /* 0x8e3: 0x00683F9B */
-    unsigned char fLockInteract;                      /* 0x8e4: lock session; admits lock spells */
-    unsigned char fTrapInteract;                      /* 0x8e5: trap session; admits trap spells */
+    bool fCombatMode;                                 /* 0x8dc: 0x00683F94 */
+    bool fSpellCastMode;                              /* 0x8dd: 0x00683F95 */
+    bool fItemSelectMode;                             /* 0x8de: 0x00683F96 */
+    bool fNpcDialogueMode;                            /* 0x8df: 0x00683F97 */
+    bool fLockInteractMode;                           /* 0x8e0: 0x00683F98 */
+    bool fTrapInteractMode;                           /* 0x8e1: 0x00683F99 */
+    bool fReviewCharacterMode;                        /* 0x8e2: 0x00683F9A */
+    bool fCampMode;                                   /* 0x8e3: 0x00683F9B */
+    bool fLockInteract;                               /* 0x8e4: lock session; admits lock spells */
+    bool fTrapInteract;                               /* 0x8e5: trap session; admits trap spells */
     /* 0x026: dialogue NPC state needs re-syncing once the frame settles. */
     bool dialogue_sync_pending_026;
     /* 0x027: re-check level-up notices when the UI is idle again. */
     unsigned char level_up_notice_027;
-    unsigned char fEncumbranceDirty; /* 0x8e8: pending party-weight recalc */
-    int active_monster_count;        /* 0x8e9 */
+    bool fEncumbranceDirty;   /* 0x8e8: pending party-weight recalc */
+    int active_monster_count; /* 0x8e9 */
     /* 0x8ed: active in-combat monsters with DISP_HOSTILE, recomputed by
        RecountCombatMonsters; nonzero starts combat and blocks ending it.
        Retail compares it unsigned (JA/JBE/SETA), never signed. */
@@ -67,7 +67,7 @@ struct W8XStatus {
     W8PList* plsUnbornMonsterList;         /* 0x901 */
     W8PList* plsMonsterGroupEncounterList; /* 0x905 */
     unsigned char unknown_049[4];
-    unsigned char fSurprisePossible; /* 0x90d: 0x00683FC5 */
+    bool fSurprisePossible; /* 0x90d: 0x00683FC5 */
     /* 0x90e: set when surprise starts with no character engaged; phase 1 waits
        only while this is clear. */
     unsigned char surprise_unengaged;
@@ -75,9 +75,9 @@ struct W8XStatus {
     unsigned int surprise_deadline_turns;
     /* 0x913: 0 = fade in, 1 = hold, 2 = fade out / resolve. */
     unsigned short surprise_phase;
-    unsigned char fPartyMovementUi;   /* 0x915: 0x00683FCD; region set 0x1c / panels */
-    unsigned char fPartyMovementMode; /* 0x916: 0x00683FCE */
-    float flPartyMoveDistLimit;       /* 0x917 */
+    bool fPartyMovementUi;      /* 0x915: 0x00683FCD; region set 0x1c / panels */
+    bool fPartyMovementMode;    /* 0x916: 0x00683FCE */
+    float flPartyMoveDistLimit; /* 0x917 */
     /* 0x91b: accumulated party movement distance; the combat movement update
        converts it into the remaining percentage displayed by the panel. */
     float party_move_distance;
@@ -101,17 +101,17 @@ struct W8XStatus {
     /* 0xa03: one-shot latch set when the combat/party panels refresh; the next
        UpdateMonsterSight pass consumes and clears it. */
     bool sight_refresh_pending_a03;
-    unsigned char world_update_blocked; /* 0xa04: 0x006840BC */
+    bool world_update_blocked; /* 0xa04: 0x006840BC */
     /* 0xa05: user-pause latch set by ToggleMainGamePause alongside
        PauseMainGameWorld; cleared by the resume paths. */
-    unsigned char world_paused_a05;
+    bool world_paused_a05;
     unsigned short review_character_slot;        /* 0xa06: 0x006840BE */
     int held_item_source;                        /* 0xa08: 0x006840C0 */
     unsigned char held_item_origin;              /* 0xa0c: 0x006840C4 */
     unsigned short held_item_slot;               /* 0xa0d: 0x006840C5 */
     W8MonsterRecord* monster_record_cache[1000]; /* 0xa0f: 0x006840C7 */
     W8GameTimer* gameplay_timer;                 /* 0x19af: 0x00685067 */
-    unsigned char save_notice_shown;             /* 0x19b3: 0x0068506B */
+    bool save_notice_shown;                      /* 0x19b3: 0x0068506B */
     bool npc_combat_notice_pending;              /* 0x19b4: 0x0068506C */
     unsigned char deferred_skill_notices;        /* 0x19b5: 0x0068506D */
     /* 0x19b6: a container offered more than one item, so the item-choice
@@ -130,7 +130,7 @@ struct W8XStatus {
     unsigned int spell_cooldown_clocks[14]; /* 0x19c0: 0x00685078 */
     unsigned int combat_countdown;          /* 0x19f8: 0x006850B0 */
     unsigned char combat_difficulty;        /* 0x19fc: 0x006850B4 */
-    unsigned char party_moving;             /* 0x19fd: 0x006850B5 */
+    bool party_moving;                      /* 0x19fd: 0x006850B5 */
     int saved_encounter_budget;             /* 0x19fe: 0x006850B6 */
     int mipe_cube_serial;                   /* 0x1a02: 0x006850BA */
     int hostile_group_count;                /* 0x1a06: 0x006850BE */

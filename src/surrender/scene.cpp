@@ -290,3 +290,6 @@ void srScene::setFogColor(const srVector3T<float>& color)
 
 // TEMPLATE: SURRENDER 0x100569A0
 // srArray<srNode::TraverseInfo::Entry>::srArray
+
+// SYNTHETIC: SURRENDER 0x10057080
+// srScene default constructor closure

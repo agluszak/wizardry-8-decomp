@@ -47,7 +47,7 @@ W8PList* PLCreate(void)
 // FUNCTION: WIZ8 0x005e2370
 unsigned char PListInit(W8PList* ppl)
 {
-    unsigned char created;
+    bool created;
 
     if (!ppl) {
         srAssertFail("ppl", PLIST_CPP, 0x56, 0);

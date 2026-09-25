@@ -31,14 +31,13 @@ W8SpellVisual* CreateAttachedSpellEffect(const char* mls_name, int power_level, 
 W8SpellVisual* CreateAimedSpellEffect(const char* mls_name, int power_level,
                                       srVector3T<float>* position, srMatrix3T<float>* rotation,
                                       int value, int flags); /* 0x004ADB20 */
-void SetTargetConeEnabled004ADD30(char enabled);
+void SetTargetConeEnabled(char enabled);
 W8SpellVisual* SpawnCameraSpellEffect(const char* name, int power_level, int value,
                                       int flags); /* 0x004AD080 */
 /* Load one named visual from the spell bitmap directory; the out pointer is
    set only on success. */
-unsigned char LoadSpellVisualResource004AB580(const W8GrCycleLoadContext* context, const char* name,
-                                              W8SpellVisualMode group, W8SpellVisual** visual,
-                                              int unused);
+bool LoadSpellVisualResource(const W8GrCycleLoadContext* context, const char* name,
+                             W8SpellVisualMode group, W8SpellVisual** visual, int unused);
 /* Create one spell visual from the spell's own record resource. Engine
    Code\Spells.cpp's factory, whose result the queued effect owns. */
 W8SpellVisual* SpawnSpellEffect(const srVector3T<float>* position, const char* resource_name,
@@ -53,4 +52,4 @@ int GetMinimumCasterLevelForSpell(int spell_id);
 bool CanSpellBackfire(int spell_id);
 void ClearMonsterSpellIcons(W8Monster* monster);                  /* 0x004ACF90 */
 void SetMonsterSpellIcon(W8Monster* monster, int icon, char add); /* 0x004ACD80 */
-void UpdateWorldSpellVisuals004AAB80(W8World* world);
+void UpdateWorldSpellVisuals(W8World* world);

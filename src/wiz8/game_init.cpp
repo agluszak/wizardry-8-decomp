@@ -85,12 +85,12 @@ unsigned char InitializeGame(void)
     }
     InitButtonSystem();
     InitializeRegionHelpState();
-    if (g_settings_6850c8.tooltips_enabled) {
+    if (g_settings.tooltips_enabled) {
         EnableMouseFastHelp();
     } else {
         DisableMouseFastHelp();
     }
-    SetFastHelpDelay((unsigned short)g_settings_6850c8.tooltip_delay_ms);
+    SetFastHelpDelay(static_cast<unsigned short>(g_settings.tooltip_delay_ms));
     ResetGameStatus(0);
     InitializeGameplayRuntimeObjects();
     UpdateHeldItemCursor();
@@ -118,7 +118,7 @@ unsigned char InitializeGame(void)
     InitializeItemVideoObjects();
     ConfigureSoundCache();
     SetPendingScreenState(W8_SCREEN_INTRO);
-    g_status_685170.current_level = -1;
+    g_status.current_level = -1;
     if (gfLoadAtStartup && FindStartupQuickSave(g_pending_screen_state.name)) {
         g_pending_screen_state.mode = 1;
         g_pending_screen_state.parameter = GetSaveGameLevel(g_pending_screen_state.name);
@@ -134,12 +134,12 @@ unsigned char InitializeGame(void)
     if (!LoadHitSoundDatabase()) {
         ShutdownWithErrorBox("Could not load hit sound database!");
     }
-    memset(g_message_storage_68f2d8, 0, sizeof(g_message_storage_68f2d8));
+    memset(g_message_storage, 0, sizeof(g_message_storage));
     if (!InitializeMusicPlaylist()) {
         return 0;
     }
     ok = (unsigned char)(0x4000000 < GetTotalPhysicalMemory());
-    g_texture_cache_enabled_65beaf = ok;
+    g_texture_cache_enabled = ok;
     return 1;
 }
 
@@ -151,8 +151,8 @@ void ShutdownGame(void)
     ReleaseHitSoundDatabase();
     ReleaseMissileDatabase();
     for (index = 0; index < 15; ++index) {
-        free(g_font_state_palettes_68ee1c[index]);
-        g_font_state_palettes_68ee1c[index] = 0;
+        free(g_font_state_palettes[index]);
+        g_font_state_palettes[index] = 0;
     }
     for (index = 0; index < W8_SCREEN_COUNT; ++index) {
         g_screen_handlers[index].finalize();

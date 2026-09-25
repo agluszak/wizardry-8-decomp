@@ -1943,7 +1943,7 @@ void srTriMeshPipeline::Flush00475510()
 {
     flushing_8c = 1;
     if (slot_count_84 > 0) {
-        FlushSlots00475600();
+        FlushSlots();
     }
     flushing_8c = 0;
 }
@@ -1970,7 +1970,7 @@ void srTriMeshPipeline::PrepareSlot00475540()
 }
 
 // FUNCTION: SURRENDER 0x100443A0
-void srTriMeshPipeline::FlushSlots00475600()
+void srTriMeshPipeline::FlushSlots()
 {
     if (triangle_count_1c == 0 || (active_triangles_2c != 0 && active_triangle_count_24 == 0)) {
         return;
@@ -2517,3 +2517,6 @@ const char* srMeshModel::sGetClassName()
 
 // TEMPLATE: SURRENDER 0x10043A70
 // srClassSupport<srModel, srClass, true, 0x2000>::sGetClassNode
+
+// SYNTHETIC: SURRENDER 0x100425A0
+// srMeshModel default constructor closure

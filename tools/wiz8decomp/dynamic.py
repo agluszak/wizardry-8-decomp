@@ -94,11 +94,11 @@ _STATE_PROBES: dict[str, tuple[tuple[str, str, int, bool], ...]] = {
         ("screen.parameter_2", "g_current_screen_state", 0x0C, False),
         ("pending.id", "g_pending_screen_state", 0x00, False),
         ("pending.mode", "g_pending_screen_state", 0x04, False),
-        ("camera.yaw", "g_gd_camera_65a0f8", 0x04, True),
-        ("camera.pitch", "g_gd_camera_65a0f8", 0x08, True),
-        ("camera.x", "g_gd_camera_65a0f8", 0x8C, True),
-        ("camera.y", "g_gd_camera_65a0f8", 0x90, True),
-        ("camera.z", "g_gd_camera_65a0f8", 0x94, True),
+        ("camera.yaw", "g_gd_camera", 0x04, True),
+        ("camera.pitch", "g_gd_camera", 0x08, True),
+        ("camera.x", "g_gd_camera", 0x8C, True),
+        ("camera.y", "g_gd_camera", 0x90, True),
+        ("camera.z", "g_gd_camera", 0x94, True),
     ),
 }
 

@@ -3,7 +3,7 @@
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"
 
-extern unsigned int g_dialog_text_layout_mask_69c5d0;
+extern unsigned int g_dialog_text_layout_mask;
 
 /* Recovered role name. Constructor 0x005D1050 and the allocation in
    0x005D16C0 establish a 0x50-byte text-buffer base plus 0x14 bytes. */

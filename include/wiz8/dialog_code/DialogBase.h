@@ -62,10 +62,10 @@ protected:
     int m_width;  /* 0x30 */
     int m_height; /* 0x34 */
     unsigned char unknown_038[8];
-    unsigned char m_initialized; /* 0x40 */
+    bool m_initialized; /* 0x40 */
 public:
     /* Cleared to close the dialog; ProcessInput keeps running while set. */
-    unsigned char m_keep_open; /* 0x41 */
+    bool m_keep_open; /* 0x41 */
 public:
     /* The trigger update installs its callback with a plain store, so this
        slot is public rather than reachable only through the setter. */

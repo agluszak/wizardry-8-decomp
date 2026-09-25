@@ -16,7 +16,7 @@
    Trynnie2.cpp and Trynnie1.cpp intervals (0x004DA3C0..0x004DA5D0); its
    string block (NP_Al-Sedexus, LezboDemonAppeared, RAM03/07/11 and the cursed
    item entities at 0x0061315c..0x006131b4) is emitted between the same TUs'
-   literals. The level-0x12 block in InitializeLevelMasterFunctions004D6C50
+   literals. The level-0x12 block in InitializeLevelMasterFunctions
    registers AltarBox and platformtrigger/01/02. The original file name is
    not anchored by an assertion path string. */
 
@@ -24,19 +24,19 @@
    LezboDemonAppeared, spawns Al-Sedexus (0x124) at NP_Al-Sedexus and arms the
    trigger's follow-up action 0x1fc. */
 // FUNCTION: WIZ8 0x004DA3C0
-bool RapaxMainFloorAltarBox004DA3C0(Trigger* pTrigger)
+bool RapaxMainFloorAltarBox(Trigger* pTrigger)
 {
     srVector3T<float> position;
     int var_id;
 
-    if (g_status_685170.rpc_active_2489 == 0) {
+    if (g_status.rpc_active_2489 == 0) {
         var_id = GetLocationVarIDByName("LezboDemonAppeared");
         if (var_id != -1) {
             var_id = GetLocationVarValueByName("LezboDemonAppeared");
             if (var_id == 1) {
                 return true;
             }
-            SetTriggerVariableByName00444030("LezboDemonAppeared", 1);
+            SetTriggerVariableByName("LezboDemonAppeared", 1);
         } else {
             CreateLocationVar("LezboDemonAppeared", 1);
         }
@@ -51,7 +51,7 @@ bool RapaxMainFloorAltarBox004DA3C0(Trigger* pTrigger)
 /* "platformtrigger": drop the three cursed Rapax items (0x1fd robe, 0x1fe
    helm, 0x1ff dagger) at their NP_C* entities and enable RAM03. */
 // FUNCTION: WIZ8 0x004DA460
-bool RapaxMainFloorPlatform004DA460(Trigger* pTrigger)
+bool RapaxMainFloorPlatform(Trigger* pTrigger)
 {
     srVector3T<float> entity_position;
     srVector3T<float> position;
@@ -88,7 +88,7 @@ bool RapaxMainFloorPlatform004DA460(Trigger* pTrigger)
 
 /* "platformtrigger01": disable RAM03 and enable RAM07. */
 // FUNCTION: WIZ8 0x004DA590
-bool RapaxMainFloorPlatform01004DA590(Trigger* pTrigger)
+bool RapaxMainFloorPlatform01(Trigger* pTrigger)
 {
     Trigger* ram_trigger;
 
@@ -105,7 +105,7 @@ bool RapaxMainFloorPlatform01004DA590(Trigger* pTrigger)
 
 /* "platformtrigger02": disable RAM07 and enable RAM11. */
 // FUNCTION: WIZ8 0x004DA5D0
-bool RapaxMainFloorPlatform02004DA5D0(Trigger* pTrigger)
+bool RapaxMainFloorPlatform02(Trigger* pTrigger)
 {
     Trigger* ram_trigger;
 

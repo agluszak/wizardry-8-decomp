@@ -260,7 +260,7 @@ def test_the_load_checkpoint_resolves_its_probes_from_reviewed_globals() -> None
     assert {"screen.id", "pending.id", "camera.x"} <= set(names)
     # The camera placement is reached through the global's pointer, not at a
     # fixed address: its object is lazily allocated, so the base is indirect.
-    assert {probe.global_name for probe in probes if probe.indirect} == {"g_gd_camera_65a0f8"}
+    assert {probe.global_name for probe in probes if probe.indirect} == {"g_gd_camera"}
 
 
 def test_rebase_probes_translate_bases_through_the_builds_map() -> None:
@@ -272,7 +272,7 @@ def test_rebase_probes_translate_bases_through_the_builds_map() -> None:
                 segment=3,
                 offset=0x92048,
                 address=0x685048,
-                decorated_name="?g_gd_camera_65a0f8@@3PAVGDCamera@@A",
+                decorated_name="?g_gd_camera@@3PAVGDCamera@@A",
                 object_name="GDCamera.cpp.obj",
                 is_function=False,
             )
@@ -296,7 +296,7 @@ def test_rebase_probes_reports_a_global_the_image_lacks() -> None:
     rebased, dropped = rebase_probes(REPOSITORY, [camera], link_map)
 
     assert rebased == []
-    assert dropped == ["g_gd_camera_65a0f8"]
+    assert dropped == ["g_gd_camera"]
 
 
 def test_an_action_runs_once_at_its_breakpoint() -> None:
@@ -329,7 +329,7 @@ def test_the_fingerprint_reads_through_a_null_checked_pointer() -> None:
     lines = _state_lines(
         [
             StateProbe("screen.id", "g_current_screen_state", "0068ec78", 0x00, False),
-            StateProbe("camera.x", "g_gd_camera_65a0f8", "0065a0f8", 0x8C, True),
+            StateProbe("camera.x", "g_gd_camera", "0065a0f8", 0x8C, True),
         ]
     )
 

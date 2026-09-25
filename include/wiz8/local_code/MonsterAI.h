@@ -51,8 +51,8 @@ unsigned char SpellAreaHitsNeutralMonster(W8MonsterInfo* monster_info, int spell
                                           W8CombatSlot* combat_slot); /* 0x005330E0 */
 /* Whether the spell's markers catch at least one party member when cast at
    `slot`. */
-unsigned char MonsterSpellHasPartyTarget(W8MonsterInfo* monster_info, int spell_id,
-                                         W8CombatSlot* slot); /* 0x005353E0 */
+bool MonsterSpellHasPartyTarget(W8MonsterInfo* monster_info, int spell_id,
+                                W8CombatSlot* slot); /* 0x005353E0 */
 /* Whether any live member of the group has a visible target; the arguments
    forward to MonsterHasVisibleTarget. */
 bool MonsterGroupHasVisibleTarget(W8MonsterGroup* monster_group, int party_only, int hostility,
@@ -96,8 +96,7 @@ int ChooseMonsterSpell(W8MonsterInfo* monster_info, W8MonsterRecord* record); /*
 /* Whether the monster sees no living enemy: a set threat flag answers at
    once, a hostile party member in play counts, and `party_only` zero also
    scans the monsters it is hostile to that it can see. */
-unsigned char MonsterHasNoVisibleEnemy(W8MonsterInfo* monster_info,
-                                       int party_only); /* 0x00534690 */
+bool MonsterHasNoVisibleEnemy(W8MonsterInfo* monster_info, int party_only); /* 0x00534690 */
 /* Fill `targets` with the combat slots `spell_id` may be cast at by this
    monster; the monster's action fields carry the spell while the probe runs
    and are restored after. */
@@ -105,12 +104,11 @@ void CollectMonsterSpellTargets(W8MonsterInfo* monster_info, int spell_id,
                                 W8GrowableVector<W8CombatSlot>* targets); /* 0x00533320 */
 /* Whether at least half of the group's live in-combat members the caster is
    hostile to accept the spell. */
-unsigned char MonsterGroupHalfSpellTargetsValid(W8MonsterInfo* monster_info, int spell_id,
-                                                W8MonsterGroup* target_group); /* 0x00534DD0 */
+bool MonsterGroupHalfSpellTargetsValid(W8MonsterInfo* monster_info, int spell_id,
+                                       W8MonsterGroup* target_group); /* 0x00534DD0 */
 /* Whether at least half of the party members the caster is hostile to accept
    the spell. */
-unsigned char PartyHalfSpellTargetsValid(W8MonsterInfo* monster_info,
-                                         int spell_id); /* 0x00534EF0 */
+bool PartyHalfSpellTargetsValid(W8MonsterInfo* monster_info, int spell_id); /* 0x00534EF0 */
 /* Whether a live hostile monster already fighting stands nearer to one of the
    group's members than to the party - reinforcement keeps the group in or
    brings it into combat. */

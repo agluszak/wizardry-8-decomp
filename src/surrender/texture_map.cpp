@@ -103,3 +103,6 @@ srClass* srTextureMap::vInstance()
 {
     return new srTextureMap(0);
 }
+
+// SYNTHETIC: SURRENDER 0x100608C0
+// srTextureMap default constructor closure

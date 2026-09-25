@@ -17,8 +17,8 @@ void RoundPhaseToStep(unsigned int* phase, unsigned int base);
 int GetPhaseStep(void);            /* 0x004F0500 */
 float GetPartyMovementSpeed(void); /* 0x004EFFA0 */
 void StartPartyMovementAction004EFC00(void);
-void FinishPartyMovementAction004EFDA0(void);
-char PartyMovementReachedPhaseLimit004F00C0(void);
+void FinishPartyMovementAction(void);
+char PartyMovementReachedPhaseLimit(void);
 /* 0x004EFE70: Combat.cpp calls it when a party movement action is pending
    while phases are assigned, so it is not file-local. */
 void InitializePartyMovementPhase(void);

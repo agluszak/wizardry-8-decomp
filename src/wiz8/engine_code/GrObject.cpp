@@ -31,7 +31,7 @@ W8GrObject::W8GrObject(const W8GrObject& other)
     kind_004 = other.kind_004;
     id_008 = other.id_008;
     if (other.m_pAI != 0) {
-        m_pAI = CloneAIRecord004A91C0(other.m_pAI);
+        m_pAI = CloneAIRecord(other.m_pAI);
     } else {
         m_pAI = 0;
     }
@@ -86,7 +86,7 @@ W8GrObject::~W8GrObject()
    canonical assertion in this translation unit; the element class is
    Engine Code\SoundEvent.cpp's W8SoundEvent. 0x005ED098 is this
    specialization's construction-phase table (Ghidra names it
-   W8SoundEventVector005ED094), written while the base subobject's
+   W8SoundEventVector), written while the base subobject's
    destructor still owns teardown. */
 
 // VTABLE: WIZ8 0x005ed094
@@ -132,7 +132,7 @@ int g_value_60dfac = 1;
 // FUNCTION: WIZ8 0x004B6D10
 int IncrementValue60DFAC(void)
 {
-    g_value_60dfac = g_value_60dfac + 1;
+    ++g_value_60dfac;
     return g_value_60dfac;
 }
 

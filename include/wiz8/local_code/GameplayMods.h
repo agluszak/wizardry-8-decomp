@@ -7,7 +7,7 @@
 struct W8Character;
 struct W8Enchantment;
 
-void RebuildPartyEffectBlock0050E700(void);
+void RebuildPartyEffectBlock(void);
 
 /* 0x0050E540: fold the character's equipment, condition and party modifier
    blocks into the derived bonus block and then recompute the derived stats. */

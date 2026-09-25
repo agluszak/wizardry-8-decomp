@@ -78,7 +78,7 @@ struct W8World {
     W8Octree* octree;
     stLight* camera_light;
     unsigned char m_padding_058[0x11];
-    unsigned char m_loaded;
+    bool m_loaded;
     unsigned char m_padding_06a[2];
     W8Quad* m_owned_06c;
     srModelInstance* update_mesh_source;

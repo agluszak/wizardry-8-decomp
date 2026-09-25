@@ -30,7 +30,7 @@ static_assert(offsetof(W8MainGameResourceSlot, frame_count) == 0x08,
 static_assert(offsetof(W8MainGameResourceSlot, size_x) == 0x0c, "W8MainGameResourceSlot_size_x");
 
 /* Main-game chrome mode ApplyMainGameModeFlag writes into both the level block
-   and g_settings_6850c8. NONE is settings-only: Screens parks it at -1 while
+   and g_settings. NONE is settings-only: Screens parks it at -1 while
    ApplyMainGameModeFlag re-raises panels during main-game enter. */
 enum W8MainUiMode {
     W8_MAIN_UI_MODE_NONE = -1,
@@ -135,7 +135,7 @@ struct W8LevelRuntimeBlock {
     int condition_orb_party_slot;
     int enchantment_orb_party_slot;
     int condition_highlight_party_slot; /* 0x20c: -1 while untracked */
-    unsigned char flag_210;             /* 0x210 */
+    bool flag_210;                      /* 0x210 */
     unsigned char padding_211[3];
     unsigned int clock_214;           /* 0x214 */
     unsigned char portrait_flash_218; /* 0x218: 500ms highlight pulse on clock_214 */
@@ -154,7 +154,7 @@ struct W8LevelRuntimeBlock {
     /* The dialogue highlight sprite. DrawHighlightOverlay lazily creates it
        from catalog object 0x72 through CreateSpriteFromSurface - the retail
        assertion spells it gpMGSV->pHighlightGraphic - and it is released
-       through ReleaseObject004257F0 whenever mode 6 ends or the tracked party
+       through ReleaseObject whenever mode 6 ends or the tracked party
        slots change. */
     stModelInstance2D* highlight_graphic; /* 0x240 */
     unsigned int world_update_flags;      /* 0x244 */
@@ -174,7 +174,7 @@ struct W8LevelRuntimeBlock {
     int highlighted_item;
     int selected_item;
     unsigned int countdown_26c; /* 0x26c */
-    unsigned char flag_270;
+    bool flag_270;
     /* 0x271: text box visible; toggled by the keyboard shortcut and raised
        by spell/item/dialogue screens that need it. */
     bool text_box_visible_271;
@@ -194,7 +194,7 @@ struct W8LevelRuntimeBlock {
        sprites - the board art with slot markers baked in, the rotating compass
        needle tracking party_facing against party_heading, and a lazily
        created overlay.  All are produced by CreateSpriteFromSurface in MGSFormation.cpp
-       and released through ReleaseObject004257F0. */
+       and released through ReleaseObject. */
     stModelInstance2D* formation_board_sprite;
     stModelInstance2D* formation_compass_sprite;
     stModelInstance2D* formation_overlay_sprite;
@@ -222,7 +222,7 @@ struct W8LevelRuntimeBlock {
     bool selection_settled;
     unsigned char padding_2f9[3];
     unsigned int tooltip_since;
-    unsigned char tooltip_pending;
+    bool tooltip_pending;
     unsigned char padding_301[3];
     int tooltip_subject;
     int tooltip_kind;
@@ -239,7 +239,7 @@ struct W8LevelRuntimeBlock {
     unsigned char padding_31d[3];
     unsigned int countdown_320; /* 0x320: portrait right-hold arm clock */
     /* 0x324: PortraitSelectRegionEvent right-button hold armed for camp. */
-    unsigned char portrait_right_hold_armed;
+    bool portrait_right_hold_armed;
     unsigned char formation_board_alternate; /* 0x325: highlighted board art while hovered */
     unsigned char radar_map_alternate;       /* 0x326: radar uses alternate frame art */
     bool review_transition_active;           /* 0x327: set while leaving into review */

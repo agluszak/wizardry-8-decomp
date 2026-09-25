@@ -70,7 +70,7 @@ set(WIZ8_SOURCE_UNITS
     src/wiz8/dialog_code/StatInfoDialogs.cpp
     src/wiz8/dialog_code/CharacterSummaryDialog.cpp
     src/wiz8/dialog_code/ProfRaceInfoDialog.cpp
-    src/wiz8/engine_code/GameTimeAccumulator0043A910.cpp
+    src/wiz8/engine_code/GameTimeAccumulator.cpp
     src/wiz8/engine_code/IntervalGate.cpp
     src/wiz8/engine_code/BitArray.cpp
     src/wiz8/engine_code/GameData.cpp

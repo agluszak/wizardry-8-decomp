@@ -44,7 +44,7 @@ def test_inner_member_collision(tmp_path: Path) -> None:
     _write(
         tmp_path,
         "src/wiz8/status.cpp",
-        "// GLOBAL: WIZ8 0x00685170\nW8GlobalStatus g_status_685170;\n",
+        "// GLOBAL: WIZ8 0x00685170\nW8GlobalStatus g_status;\n",
     )
     _write(
         tmp_path,
@@ -54,7 +54,7 @@ def test_inner_member_collision(tmp_path: Path) -> None:
 
     violations = overlapping_globals(parse_global_definitions(tmp_path))
     assert any(
-        item["detail"] == "g_shared_item_pool_count @ 0x686901 overlaps g_status_685170 + 0x1791."
+        item["detail"] == "g_shared_item_pool_count @ 0x686901 overlaps g_status + 0x1791."
         for item in violations
     )
 
@@ -81,17 +81,17 @@ def test_legitimate_extern_is_not_an_overlap(tmp_path: Path) -> None:
         "include/wiz8/status.h",
         "struct W8GlobalStatus { unsigned char bytes[4]; };\n"
         'static_assert(sizeof(W8GlobalStatus) == 4, "size");\n'
-        "extern W8GlobalStatus g_status_685170;\n",
+        "extern W8GlobalStatus g_status;\n",
     )
     _write(
         tmp_path,
         "src/wiz8/status.cpp",
-        "// GLOBAL: WIZ8 0x00685170\nW8GlobalStatus g_status_685170;\n",
+        "// GLOBAL: WIZ8 0x00685170\nW8GlobalStatus g_status;\n",
     )
     _write(
         tmp_path,
         "include/wiz8/items.h",
-        "// GLOBAL: WIZ8 0x00685170\nextern int g_status_685170;\n",
+        "// GLOBAL: WIZ8 0x00685170\nextern int g_status;\n",
     )
 
     assert overlapping_globals(parse_global_definitions(tmp_path)) == []

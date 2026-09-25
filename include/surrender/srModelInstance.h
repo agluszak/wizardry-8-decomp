@@ -8,7 +8,7 @@
 class SR_DLL_IMPORT srModelInstance : public srClassSupport<srModelInstance, srNode, 0, 0x1100>,
                                       public srModel::Client {
 public:
-    srModelInstance(srNode* parent);
+    srModelInstance(srNode* parent = 0);
     srModelInstance(const srModelInstance& other);
     srModelInstance& operator=(const srModelInstance& other);
 
@@ -73,8 +73,8 @@ public:
         align_axis_14c = axis;
         length_squared = align_axis_14c.z * align_axis_14c.z + align_axis_14c.y * align_axis_14c.y +
                          align_axis_14c.x * align_axis_14c.x;
-        if ((double)length_squared != 0.0) {
-            scale = (float)(1.0 / sqrt((double)length_squared));
+        if (length_squared != 0.0) {
+            scale = static_cast<float>(1.0 / sqrt(length_squared));
             align_axis_14c *= scale;
         }
         alignment_flags_148.value |= 1;

@@ -10,7 +10,7 @@ class srFog : public srIlluminator {
 public:
     typedef srClientSupport<srFog, 0x1210> ClientType;
 
-    SR_DLL_IMPORT srFog(srNode* parent);
+    SR_DLL_IMPORT srFog(srNode* parent = 0);
     SR_DLL_IMPORT srFog(const srFog& other);
     SR_DLL_IMPORT srFog& operator=(const srFog& other);
 #if defined(SURRENDER_BUILD)

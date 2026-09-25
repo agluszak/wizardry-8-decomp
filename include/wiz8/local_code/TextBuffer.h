@@ -18,7 +18,7 @@ extern const unsigned int g_W8TextBufferLayoutMask005ED560;
 extern const unsigned int g_W8TextBufferLayoutMask005EF888;
 extern const unsigned int g_W8TextBufferLayoutMask005EF88C;
 extern const unsigned int g_W8TextBufferLayoutMask005EF890;
-extern const wchar_t g_W8LineBreakCharacters00617C90[];
+extern const wchar_t g_W8LineBreakCharacters[];
 
 // VTABLE: WIZ8 0x005ed5b8
 class W8TextBuffer {
@@ -97,5 +97,5 @@ public:
     unsigned char pad_42[2];
     int m_renderMode;     /* 0x44: 4 initially */
     int m_fontStateIndex; /* 0x48: -1 skips the state-table override */
-    unsigned char m_flag_4c;
+    bool m_flag_4c;
 };

@@ -42,7 +42,7 @@ struct W8NpcScriptingState {
     unsigned char quote_active; // bool-byte-ok: staged-byte copy stays unnormalized
     /* 0x71: the quote's voice sound actually started; gates SoundStop and the
        mouth-gap cleanup in FinishNpcVoicePlayback. */
-    unsigned char voice_playing;
+    bool voice_playing;
     unsigned char unknown_72[6];
     W8NpcScriptFile* script_file;
     W8NpcState* npc;
@@ -55,9 +55,9 @@ struct W8NpcScriptingState {
     unsigned int last_tick;
     /* 0xc4: latched by CancelNpcDialogue; the response loop checks it at
        entries_done and abandons the pending response. */
-    unsigned char dialogue_cancelled_c4;
+    bool dialogue_cancelled_c4;
     unsigned char restore_staged_session;
-    unsigned char portrait_message_active;
+    bool portrait_message_active;
     bool scripted_scene_active;
     bool sedexus_release_pending;
     bool sedexus_capture_pending;
@@ -111,9 +111,9 @@ static_assert(offsetof(W8NpcScriptingState, stopping_voice_playback) == 0xcb,
 static_assert(sizeof(W8NpcScriptingState) == 0xcc, "W8NpcScriptingState_size");
 
 extern W8NpcScriptingState g_npc_scripting;
-extern unsigned char g_message_queue_idle_68c501; /* 0x0068C501 */
+extern unsigned char g_message_queue_idle; /* 0x0068C501 */
 /* 0x0068506F: scripted portrait-pick / cutscene gate PortraitSelectRegionEvent
-   and EndScriptedPortraitPick00529C40 clear. */
+   and EndScriptedPortraitPick clear. */
 
 void TryFinishNpcVoicePlayback(unsigned char force); /* 0x00525D90 */
 int FindNpcScriptQuoteByKeyword(wchar_t* keyword, short* entry_index,
@@ -141,7 +141,7 @@ void OnNpcTravelConfirmationClosed(W8DialogBase* dialog);      /* 0x0052A1B0 */
 void UpdateNpcDialogueVoiceAndCursor(void);                    /* 0x00524DA0 */
 void ProcessNpcScriptingFrame(void);                           /* 0x00524EB0 */
 void SetNpcScriptEventActive(unsigned char value);             /* 0x0052A1A0 */
-unsigned char IsSedexusCaptureActive(void);                    /* 0x0052A070 */
+bool IsSedexusCaptureActive(void);                             /* 0x0052A070 */
 void QueueNpcMessageLine(W8NpcMessageKind kind, int argument); /* 0x005289B0 */
 /* 0x00528D50: resolves NPC-name, named-person, and region keywords to a quote
    id; returns -1 when nothing matches. */
@@ -155,19 +155,19 @@ void BeginNpcScriptedScene(void);                        /* 0x00529BE0 */
 void SetScriptedSceneActive(void);                       /* 0x00529BC0 */
 void ClearScriptedSceneActive(void);                     /* 0x00529BD0 */
 /* 0x00529C40: end a scripted portrait pick against the chosen party slot. */
-void EndScriptedPortraitPick00529C40(int party_slot);
+void EndScriptedPortraitPick(int party_slot);
 void BeginSedexusCapture(void); /* 0x00529EF0 */
 /* ApplyAttributeChange / ApplySkillChange: character_skills.h (0x00553AD0 / 0x00553C10) */
 /* in GameData.h: CameraLookAt (0x00420F90) */
-/* in ReviewCharacterScreen.h: BeginEndgameSequence005A6580 (0x005A6580) */
+/* in ReviewCharacterScreen.h: BeginEndgameSequence (0x005A6580) */
 void CancelNpcDialogue(void); /* 0x00529560 */
 /* 0x00529570: show the NPC quote bubble for the formatted line; a nonzero
    second argument also plays the startup jingle. */
-void DisplayNpcQuote00529570(const wchar_t* text, char play_sound);
+void DisplayNpcQuote(const wchar_t* text, char play_sound);
 /* 0x00576DA0: advance the dialogue NPC's refusal state - each stage queues a
    different quote until the third, which stays queued. */
-void QueueDialogueNpcRefusal00576DA0(void);
-void AuditNpcScriptQuotes00529660(void);
+void QueueDialogueNpcRefusal(void);
+void AuditNpcScriptQuotes(void);
 /* 0x00524CA0: the NPC-side rebinding pass; reloads the NPC's .nsf script
    file and rebuilds its runtime bindings. */
 void ReloadNpcScriptResources(W8NpcState* npc);
