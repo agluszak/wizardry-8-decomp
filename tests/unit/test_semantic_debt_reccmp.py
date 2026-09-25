@@ -16,7 +16,7 @@ def test_field_flow_joins_real_reccmp_v6_owner_usrs_and_class_layout() -> None:
         pytest.skip("run `uv run wiz8 check` to generate the pinned reccmp source index")
 
     index = load_source_index(repository)
-    assert index["schema"] == "reccmp-source-index-v6"
+    assert "schema" not in index
 
     classes = {
         (str(record.get("target") or "").upper(), str(record.get("qualified_name") or "")): record

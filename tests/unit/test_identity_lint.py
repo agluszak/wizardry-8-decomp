@@ -25,7 +25,6 @@ def _repository(
     (build / "source-index.json").write_text(
         json.dumps(
             {
-                "schema": "reccmp-source-index-v2",
                 "markers": markers,
                 "declarations": declarations or [],
                 "classes": [],
@@ -175,7 +174,7 @@ def test_named_recovered_body_is_allowed(tmp_path: Path) -> None:
 
 
 def test_v3_declaration_key_binds_marker_to_definition(tmp_path: Path) -> None:
-    """reccmp-source-index-v3 stores declaration_key, not an embedded declaration."""
+    """The source index stores declaration_key, not an embedded declaration."""
 
     definition = {
         **_declaration("FindNpcScriptQuoteByKeyword", is_definition=True),
@@ -246,7 +245,6 @@ def test_preceding_block_comment_address_binds_header_declaration(tmp_path: Path
     (repository / "build/source-index.json").write_text(
         json.dumps(
             {
-                "schema": "reccmp-source-index-v3",
                 "markers": [],
                 "declarations": [first, second],
                 "classes": [],

@@ -138,7 +138,6 @@ def test_source_index_configures_missing_or_stale_compile_database(
 
         def to_dict(self) -> dict:
             return {
-                "schema": "reccmp-source-index-v6",
                 "markers": [],
                 "declarations": [],
                 "classes": [],
@@ -221,7 +220,6 @@ def _cross_tu_index(
     (build / "source-index.json").write_text(
         json.dumps(
             {
-                "schema": "reccmp-source-index-v2",
                 "markers": [],
                 "declarations": declarations,
                 "classes": [],

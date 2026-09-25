@@ -24,9 +24,7 @@ from .paths import compile_database_relative
 _SOURCE_SUFFIXES = frozenset({".c", ".cc", ".cpp", ".cxx", ".h", ".hpp", ".hxx"})
 _SYNTHETIC_MARKER = re.compile(r"^\s*//\s*SYNTHETIC:\s+")
 _SOURCE_MARKER = re.compile(r"^\s*//\s*(?:FUNCTION|TEMPLATE|SYNTHETIC|LIBRARY|VTABLE|GLOBAL):\s+")
-_SOURCE_INDEX_SCHEMAS = frozenset(
-    {"reccmp-source-index-v2", "reccmp-source-index-v3", "reccmp-source-index-v6"}
-)
+
 LINT_ONLY_SOURCE_ROOTS = ("tests/runtime",)
 _ATTACHED_INCLUDE_FLAGS = (
     "-isystem",
@@ -106,8 +104,11 @@ def _read_source_index_document(path: Path) -> dict[str, Any]:
         raise SourceIndexError(f"{path} could not be read: {error}") from error
     if not isinstance(document, Mapping):
         raise SourceIndexError(f"{path} must contain a JSON object")
+    # The pinned reccmp projects its index without a schema field; every
+    # document that carries one was collected by an older reccmp (2-part
+    # declaration keys) and must be collected again.
     schema = document.get("schema")
-    if schema not in _SOURCE_INDEX_SCHEMAS:
+    if schema is not None:
         raise SourceIndexError(f"{path} has an unsupported source-index schema: {schema!r}")
     return dict(document)
 

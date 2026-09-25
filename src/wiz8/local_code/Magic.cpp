@@ -1640,7 +1640,7 @@ unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id,
                 failure = 0;
             }
 
-            shortfall = static_cast<int>(GetMinimumCasterLevelForSpell(spell_id)) -
+            shortfall = GetMinimumCasterLevelForSpell(spell_id) -
                         GetTotalCasterLevel(character, book, 1) - 1 + power_level;
             if (shortfall > 0) {
                 failure += g_spell_records[spell_id].spell_level * shortfall;

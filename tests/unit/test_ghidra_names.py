@@ -97,7 +97,6 @@ def test_declaration_only_address_binding(tmp_path: Path) -> None:
     (build / "source-index.json").write_text(
         __import__("json").dumps(
             {
-                "schema": "reccmp-source-index-v3",
                 "markers": [],
                 "declarations": [
                     {
@@ -152,7 +151,6 @@ def test_v3_declaration_key_joins_marker_to_clang_declaration(tmp_path: Path) ->
     )
     semantic = "?Draw@@YAXXZ"
     document = {
-        "schema": "reccmp-source-index-v3",
         "markers": [
             {
                 "marker_kind": "FUNCTION",

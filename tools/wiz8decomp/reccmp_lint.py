@@ -15,6 +15,8 @@ from reccmp.parser.error import AlertCode
 from reccmp.project.detect import RecCmpProject
 from reccmp.tools.decomplint import DecomplintTarget, check_aliases, lint_all_targets
 
+from .source_index import try_load_source_index
+
 # Many recovered translation units preserve reviewed source/link ordering that is
 # not monotonically increasing by address. reccmp's generic order advice cannot
 # be applied without changing emitted-code evidence. Marker names and line/name
@@ -85,6 +87,10 @@ def _configured_lint_targets(repository: Path) -> tuple[DecomplintTarget, ...]:
 
     project = RecCmpProject.from_directory(repository)
     project_file = project.project_config_path or repository / "reccmp-project.yml"
+    # Targets built from pinned vendor sources (srEXT JPEG/Unzip) are only
+    # configured, and therefore only indexed, when those sources are mounted.
+    index = try_load_source_index(repository) or {}
+    indexed = {str(marker.get("target") or "").upper() for marker in index.get("markers", ())}
     return tuple(
         DecomplintTarget(
             paths=tuple(source_code_search(target.source_paths)),
@@ -95,7 +101,7 @@ def _configured_lint_targets(repository: Path) -> tuple[DecomplintTarget, ...]:
             aliases=target.marker_aliases,
         )
         for target in project.targets.values()
-        if target.source_paths
+        if target.source_paths and (not indexed or target.target_id.upper() in indexed)
     )
 
 

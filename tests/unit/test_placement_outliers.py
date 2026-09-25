@@ -77,7 +77,6 @@ def test_placement_outlier_report_writes_artifact(tmp_path: Path) -> None:
         tmp_path / "src/wiz8/sources.cmake",
     )
     index = {
-        "schema": "reccmp-source-index-v3",
         "markers": [
             _marker(0x00470040, tu_source, name="NearLow"),
             _marker(0x00473260, tu_source, name="NearMid"),

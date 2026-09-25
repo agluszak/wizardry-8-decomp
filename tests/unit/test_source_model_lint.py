@@ -24,7 +24,6 @@ def _index(
     (build / "source-index.json").write_text(
         json.dumps(
             {
-                "schema": "reccmp-source-index-v3",
                 "markers": markers or [],
                 "declarations": declarations or [],
                 "classes": [],
