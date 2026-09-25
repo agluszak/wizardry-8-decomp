@@ -384,6 +384,10 @@ jobs:
             echo "::warning::specialized WIZ8 comparison debt: vtable=$vtable_status datacmp=$datacmp_status"
           fi
 
+          # Declared equivalence groups are trusted by reccmp; re-prove them
+          # against the original image so a stale row cannot mask a regression.
+          uv run wiz8 equivalence || comparison_status=1
+
           if [[ "$GITHUB_EVENT_NAME" != "pull_request" && "$GITHUB_REF" == "refs/heads/main" ]]; then
             uv run pytest -q tests/licensed || comparison_status=1
           fi
