@@ -7534,7 +7534,7 @@ unsigned char WorldViewRegionEvent(const InputAtom* event, W8Region* region)
         return 1;
     }
     region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
-    if (FinishNpcVoiceIfSessionActive() != 0) {
+    if (FinishNpcVoiceIfSessionActive()) {
         return 1;
     }
     if (gXStatus.iTargetingMode == 3 || (needed == 3 && (event->usKeyState & CTRL_DOWN) != 0)) {
@@ -9314,7 +9314,7 @@ void ConfirmNpcTradeItem(void)
             shown = 0;
             for (index = 0; index < 8; ++index) {
                 item = &trading->backpack[index];
-                if (item->iItemNo == -1 || NpcTradeItemAllowed(item) != 0) {
+                if (item->iItemNo == -1 || NpcTradeItemAllowed(item)) {
                     continue;
                 }
                 if (shown == slot) {
@@ -9341,7 +9341,7 @@ void ConfirmNpcTradeItem(void)
                 }
                 for (index = 0; index < g_status_685170.party_item_count_1791; ++index) {
                     item = &g_status_685170.party_item_pool_0021[index];
-                    if (item->iItemNo == -1 || NpcTradeItemAllowed(item) != 0) {
+                    if (item->iItemNo == -1 || NpcTradeItemAllowed(item)) {
                         continue;
                     }
                     if (shown == target) {
@@ -9376,7 +9376,7 @@ void ConfirmNpcTradeItem(void)
         index = -1;
         for (i = 0; i < count; ++i) {
             entry = GetNpcItemAt(g_screen_state_00649f1c->dialogue_npc, i);
-            if (entry != 0 && NpcTradeItemAllowed(&entry->item) == 0 && entry->available_at == 0) {
+            if (entry != 0 && !NpcTradeItemAllowed(&entry->item) && entry->available_at == 0) {
                 if (shown == slot) {
                     index = i;
                     break;
@@ -9402,7 +9402,7 @@ void ConfirmNpcTradeItem(void)
         index = -1;
         for (i = 0; i < count; ++i) {
             entry = GetNpcItemAt(g_screen_state_00649f1c->dialogue_npc, i);
-            if (entry != 0 && NpcTradeItemAllowed(&entry->item) == 0 && entry->available_at == 0) {
+            if (entry != 0 && !NpcTradeItemAllowed(&entry->item) && entry->available_at == 0) {
                 if (shown == slot) {
                     index = i;
                     break;
@@ -9470,7 +9470,7 @@ int ResolveNpcTradeStockIndex(int index)
 
     for (unsigned int i = 0; i < count; ++i) {
         W8NpcItemEntry* entry = GetNpcItemAt(g_screen_state_00649f1c->dialogue_npc, i);
-        if (entry != 0 && NpcTradeItemAllowed(&entry->item) == 0 && entry->available_at == 0) {
+        if (entry != 0 && !NpcTradeItemAllowed(&entry->item) && entry->available_at == 0) {
             if (visible == index) {
                 return i;
             }
@@ -9499,7 +9499,7 @@ void RebuildNpcTradeItemList(bool scroll_to_top)
             if (shown > 0x15e) {
                 break;
             }
-            if (NpcTradeItemAllowed(&entry->item) == 0 && entry->available_at == 0) {
+            if (!NpcTradeItemAllowed(&entry->item) && entry->available_at == 0) {
                 ShowNpcTradeItemNotice(&entry->item);
             }
         }
@@ -9549,7 +9549,7 @@ void PopulateNpcTradeList(void)
                 } else {
                     font_palette = 0xf;
                 }
-                if (NpcTradeItemAllowed(item) != 0) {
+                if (NpcTradeItemAllowed(item)) {
                     continue;
                 }
                 ++shown;
@@ -9595,7 +9595,7 @@ void PopulateNpcTradeList(void)
             if (shown > 0x15e) {
                 break;
             }
-            if (NpcTradeItemAllowed(item) != 0) {
+            if (NpcTradeItemAllowed(item)) {
                 continue;
             }
             if (NpcAcceptsTradeItem(g_screen_state_00649f1c->dialogue_npc, item) == 0 &&
@@ -9755,7 +9755,7 @@ bool AttemptNpcItemTrade(W8ItemInstance* item, unsigned char quantity, int index
             if (shown > 0x15e) {
                 return true;
             }
-            if (NpcTradeItemAllowed(&entry->item) == 0 && entry->available_at == 0) {
+            if (!NpcTradeItemAllowed(&entry->item) && entry->available_at == 0) {
                 ShowNpcTradeItemNotice(&entry->item);
             }
         }

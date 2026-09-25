@@ -488,7 +488,7 @@ unsigned char NpcDialogueTextBoxRegionEvent(const InputAtom* event,
 void NpcDialogueTextBoxWheelAt(short x, unsigned short y, char flag); /* 0x0056F490 */
 /* True when an NPC quote/portrait session is active: finish voice playback and
    report that the click was consumed. */
-unsigned char FinishNpcVoiceIfSessionActive(void); /* 0x00577A20 */
+bool FinishNpcVoiceIfSessionActive(void); /* 0x00577A20 */
 void ToggleNpcTradeFilter00573660(void);
 void ToggleNpcTradeFilter00573730(void);
 void ToggleNpcTradeFilter00573800(void);
@@ -540,7 +540,7 @@ void NpcDialogueTextBoxDoubleClick(int x, int y); /* 0x0056F840 */
 /* W8SplitAmountDialog destroy callback installed by OpenNpcTradeSplitDialog00572780. */
 void OnNpcTradeSplitDialogDestroy(W8DialogBase* dialog);         /* 0x00572870 */
 W8ItemInstance* ResolveNpcTradeRow(int index, char, char, char); /* 0x005729C0 */
-unsigned char NpcTradeItemAllowed(W8ItemInstance* item);         /* 0x00573190 */
+bool NpcTradeItemAllowed(W8ItemInstance* item);                  /* 0x00573190 */
 void EnableNpcTradeFilterButtons(void);                          /* 0x00573630 */
 W8ItemInstance* GetNpcTradeSlotItem(int index);                  /* 0x00573F80 */
 void HandleNpcDialogueKeyEvent(const InputAtom* event);          /* 0x00574BB0 */

@@ -3159,7 +3159,7 @@ W8ItemInstance* ResolveNpcTradeRow(int index, char pick, char decrement, char co
                 i = 0;
                 do {
                     if (g_status_685170.party_item_pool_0021[i].iItemNo != -1 &&
-                        NpcTradeItemAllowed(&g_status_685170.party_item_pool_0021[i]) == 0) {
+                        !NpcTradeItemAllowed(&g_status_685170.party_item_pool_0021[i])) {
                         if (index == hit) {
                             if (pick == 0) {
                                 return &g_status_685170.party_item_pool_0021[i];
@@ -3231,7 +3231,7 @@ W8ItemInstance* ResolveNpcTradeRow(int index, char pick, char decrement, char co
             i = 0;
             do {
                 if (character->backpack[i].iItemNo != -1 &&
-                    NpcTradeItemAllowed(&character->backpack[i]) == 0) {
+                    !NpcTradeItemAllowed(&character->backpack[i])) {
                     if (index == hit) {
                         if (pick == 0) {
                             return &character->backpack[i];
@@ -3366,51 +3366,51 @@ W8ItemInstance* ResolveNpcTradeRow(int index, char pick, char decrement, char co
    0x290 until fact 0x3c, the trade_filter low bits gate character/party
    usability, and bits 0x3c select the accepted equipment slot group. */
 // FUNCTION: WIZ8 0x00573190
-unsigned char NpcTradeItemAllowed(W8ItemInstance* item)
+bool NpcTradeItemAllowed(W8ItemInstance* item)
 {
     int group;
 
     if (g_screen_state_00649f1c->dialogue_npc->name_style == ',' && GetFact(0x3c) == 0 &&
         item->iItemNo != 0x290) {
-        return 1;
+        return true;
     }
     if (g_screen_state_00649f1c->trade_filter == 0) {
-        return 0;
+        return false;
     }
     if (item->iItemNo != -1) {
         if ((g_screen_state_00649f1c->trade_filter & 1) == 0) {
             if ((g_screen_state_00649f1c->trade_filter & 0x40) != 0 &&
                 AnyPartyMemberCanUseItem(item->iItemNo) != 0) {
-                return 1;
+                return true;
             }
         } else {
             if (CanCharacterUseItem(
                     &g_status_685170.buffers.Char[g_status_685170.selected_character],
                     item->iItemNo) == 0) {
-                return 1;
+                return true;
             }
         }
         if ((g_screen_state_00649f1c->trade_filter & 0x3c) == 0) {
-            return 0;
+            return false;
         }
         group = GetItemEquipSlotGroup(item->iItemNo);
         if (group == 2) {
             if ((g_screen_state_00649f1c->trade_filter & 4) != 0) {
-                return 0;
+                return false;
             }
         } else if (group == 3) {
             if ((g_screen_state_00649f1c->trade_filter & 8) != 0) {
-                return 0;
+                return false;
             }
         } else if (group == 4) {
             if ((g_screen_state_00649f1c->trade_filter & 0x10) != 0) {
-                return 0;
+                return false;
             }
         } else if ((g_screen_state_00649f1c->trade_filter & 0x20) != 0) {
-            return 0;
+            return false;
         }
     }
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x005732A0
@@ -5518,13 +5518,13 @@ unsigned char SetNpcDialoguePanelVisible(int value)
     return 0;
 }
 // FUNCTION: WIZ8 0x00577A20
-unsigned char FinishNpcVoiceIfSessionActive(void)
+bool FinishNpcVoiceIfSessionActive(void)
 {
     if (!IsNpcScriptSessionActive()) {
-        return 0;
+        return false;
     }
     TryFinishNpcVoicePlayback(0);
-    return 1;
+    return true;
 }
 
 // FUNCTION: WIZ8 0x00577A40
