@@ -994,21 +994,33 @@ void StartCharacterItemUse(int party_slot)
 // FUNCTION: WIZ8 0x004ffbd0
 int GetTotalCasterLevel(const W8Character* character, unsigned char spellbook, char include_all)
 {
+    int profession = character->iProfession;
     int total;
-    int profession;
+    int other;
     int level;
 
-    total = GetProfessionCasterLevel(character, -1);
+    if (profession == -1) {
+        srAssertFail("iProfession != -1", MAGIC_CPP, 3603, 0);
+    }
+    if (g_profession_magic_level_offsets[profession] == -255) {
+        total = -1;
+    } else {
+        total =
+            character->profession_levels[profession] + g_profession_magic_level_offsets[profession];
+    }
     if (total < 1 && include_all == 0) {
         return total;
     }
 
-    for (profession = 0; profession < W8_PROFESSION_COUNT; ++profession) {
-        if (character->profession_levels[profession] != 0 && profession != character->iProfession &&
-            (g_profession_spellbooks[profession] & spellbook) != 0) {
-            level = GetProfessionCasterLevel(character, profession);
-            if (level > 0) {
-                total += level;
+    for (other = 0; other < 15; ++other) {
+        if (character->profession_levels[other] != 0 && other != character->iProfession &&
+            (g_profession_spellbooks[other] & spellbook) != 0) {
+            if (g_profession_magic_level_offsets[other] != -255) {
+                level =
+                    character->profession_levels[other] + g_profession_magic_level_offsets[other];
+                if (level > 0) {
+                    total += level;
+                }
             }
         }
     }
@@ -1050,8 +1062,8 @@ static unsigned char SpellbookMaskForSpell(int spell_id)
    short of what the spell asks for, scaled by the caster's combat pace. The
    skill figure weights the realm skill four to one against the spellbook
    skill. Retail carries this sequence inline in all five callers. */
-static unsigned int GetCastFailureChance(W8Character* character, unsigned int skill, int spell_id,
-                                         unsigned int power_level)
+static inline unsigned int GetCastFailureChance(W8Character* character, unsigned int skill,
+                                                int spell_id, unsigned int power_level)
 {
     int party_slot;
     unsigned int skill_figure;
@@ -1133,6 +1145,8 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
 {
     unsigned char book = SpellbookMaskForSpell(spell_id);
     int caster_level;
+    int other;
+    int other_level;
     unsigned int level_ceiling = 0;
     unsigned int skill_ceiling;
     unsigned int ceiling;
@@ -1146,7 +1160,18 @@ char CanCharacterLearnSpell(W8Character* character, int spell_id)
         return 0;
     }
 
-    caster_level = GetTotalCasterLevel(character, book, 0);
+    caster_level = GetProfessionCasterLevel(character, -1);
+    if (caster_level > 0) {
+        for (other = 0; other < 15; ++other) {
+            if (character->profession_levels[other] != 0 && other != character->iProfession &&
+                (g_profession_spellbooks[other] & book) != W8_SPELLBOOK_NONE) {
+                other_level = GetProfessionCasterLevel(character, other);
+                if (other_level > 0) {
+                    caster_level += other_level;
+                }
+            }
+        }
+    }
 
     /* The highest spell level that caster level reaches, searched down from
        the top rather than up, so a caster who reaches nothing keeps zero. */
