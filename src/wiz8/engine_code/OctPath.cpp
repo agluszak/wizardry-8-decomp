@@ -5020,7 +5020,7 @@ void W8PathingService::ActivateMovementTrigger(W8NavigatorMovementState* movemen
             if (prop->GetSetting6C() != 0 && trigger != 0 &&
                 (trigger->flags_0a0 & W8_TRIGGER_ENABLED) != 0) {
                 srVector3T<float> center;
-                prop->GetCenterPosition(&center);
+                prop->GetPosition0044E2C0(&center);
                 srVector3T<float> difference = center - midpoint;
                 double distance = difference.LengthSquared();
                 if (distance < nearest_distance) {
