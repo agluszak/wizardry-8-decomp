@@ -2518,50 +2518,14 @@ unsigned char HandleAutomapKey(const InputAtom* input)
     }
     int tool;
     switch (input->usParam) {
-    case 8:
-        g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
-        {
-            srVector3T<float> position = (g_automap_bounds_max + g_automap_bounds_min) / 2.0;
-            position.y = g_automap_top_y;
-            SetAutomapCameraPoint(&position);
+    case 0x70:
+        if (g_dev_mode != 0) {
+            g_automap_saved_camera.position = g_automap_position;
+            ResetCurrentEnvironment();
+            ResetCurrentEnvironment();
+            goto exit_screen;
         }
-        SetAutomapToolCursor(g_automap_tool);
-        SetAutomapButtonMode(0);
-        return 1;
-    case 0xd: {
-        srVector3T<float> center;
-        center.x = 0.5f;
-        center.y = 0.5f;
-        center.z = 0.0f;
-        ZoomAutomapIn(&center);
-        return 1;
-    }
-    case 0x20:
-        g_automap_page = (g_automap_page + 1) % 3;
-        g_automap_buttons[5]->SetVisible(g_automap_page == 0);
-        g_automap_buttons[6]->SetVisible(g_automap_page == 1);
-        g_automap_buttons[7]->SetVisible(g_automap_page == 2);
-        g_automap_buttons[g_automap_page + 5]->m_dirty = true;
-        g_automap_buttons[g_automap_page + 5]->Draw();
-        g_automap_redraw = true;
-        return 1;
-    case 0x23:
-        g_automap_position.x = g_automap_saved_camera.position.x;
-        g_automap_position.z = g_automap_saved_camera.position.z;
-        SetAutomapCameraPoint(&g_automap_position);
         break;
-    case 0x24: {
-        srVector3T<float> center;
-        center.Set(g_automap_bounds_min.x + g_automap_bounds_max.x,
-                   g_automap_bounds_max.y + g_automap_bounds_min.y,
-                   g_automap_bounds_min.z + g_automap_bounds_max.z);
-        srVector3T<float> position = center / 2.0;
-        position.y = g_automap_top_y;
-        SetAutomapCameraPoint(&position);
-        SetAutomapToolCursor(g_automap_tool);
-        SetAutomapButtonMode(0);
-        return 1;
-    }
     case 0x2d:
         if (g_automap_tool == 2) {
             return 1;
@@ -2583,12 +2547,30 @@ unsigned char HandleAutomapKey(const InputAtom* input)
         gXStatus.iCurrentCursor = 7;
         RefreshMouseCursorTexture();
         return 1;
-    case 0x31:
-    case 0x32:
-    case 0x33:
-    case 0x34:
-        SetAutomapLayer(input->usParam - 0x31);
+    case 0x79:
+        if (g_dev_mode != 0) {
+            g_flag_0068f264 = g_flag_0068f264 == 0;
+            g_automap_redraw = true;
+            g_automap_overlay_redraw = true;
+        }
         return 1;
+    case 0x24: {
+        srVector3T<float> center;
+        center.Set(g_automap_bounds_min.x + g_automap_bounds_max.x,
+                   g_automap_bounds_max.y + g_automap_bounds_min.y,
+                   g_automap_bounds_min.z + g_automap_bounds_max.z);
+        srVector3T<float> position = center / 2.0;
+        position.y = g_automap_top_y;
+        SetAutomapCameraPoint(&position);
+        SetAutomapToolCursor(g_automap_tool);
+        SetAutomapButtonMode(0);
+        return 1;
+    }
+    case 0x23:
+        g_automap_position.x = g_automap_saved_camera.position.x;
+        g_automap_position.z = g_automap_saved_camera.position.z;
+        SetAutomapCameraPoint(&g_automap_position);
+        break;
     case 0x41:
         if (g_dev_mode != 0) {
             g_automap_saved_camera.position = g_automap_position;
@@ -2621,20 +2603,38 @@ unsigned char HandleAutomapKey(const InputAtom* input)
             g_automap_state->blink_enabled = false;
         }
         return 1;
-    case 0x70:
-        if (g_dev_mode != 0) {
-            g_automap_saved_camera.position = g_automap_position;
-            ResetCurrentEnvironment();
-            ResetCurrentEnvironment();
-            goto exit_screen;
+    case 0x31:
+    case 0x32:
+    case 0x33:
+    case 0x34:
+        SetAutomapLayer(input->usParam - 0x31);
+        return 1;
+    case 0xd: {
+        srVector3T<float> center;
+        center.x = 0.5f;
+        center.y = 0.5f;
+        center.z = 0.0f;
+        ZoomAutomapIn(&center);
+        return 1;
+    }
+    case 8:
+        g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
+        {
+            srVector3T<float> position = (g_automap_bounds_max + g_automap_bounds_min) / 2.0;
+            position.y = g_automap_top_y;
+            SetAutomapCameraPoint(&position);
         }
-        break;
-    case 0x79:
-        if (g_dev_mode != 0) {
-            g_flag_0068f264 = g_flag_0068f264 == 0;
-            g_automap_redraw = true;
-            g_automap_overlay_redraw = true;
-        }
+        SetAutomapToolCursor(g_automap_tool);
+        SetAutomapButtonMode(0);
+        return 1;
+    case 0x20:
+        g_automap_page = (g_automap_page + 1) % 3;
+        g_automap_buttons[5]->SetVisible(g_automap_page == 0);
+        g_automap_buttons[6]->SetVisible(g_automap_page == 1);
+        g_automap_buttons[7]->SetVisible(g_automap_page == 2);
+        g_automap_buttons[g_automap_page + 5]->m_dirty = true;
+        g_automap_buttons[g_automap_page + 5]->Draw();
+        g_automap_redraw = true;
         return 1;
     default:
         break;

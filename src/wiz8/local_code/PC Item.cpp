@@ -1049,6 +1049,11 @@ bool AreAllHandSlotsEmpty(const W8Character* character)
 int GetItemEquipSlotGroup(int item_id)
 {
     switch (GetItemDefaultEquipSlot(item_id)) {
+    case W8_EQUIP_SLOT_PRIMARY_RIGHT:
+    case W8_EQUIP_SLOT_PRIMARY_LEFT:
+    case W8_EQUIP_SLOT_ALTERNATE_RIGHT:
+    case W8_EQUIP_SLOT_ALTERNATE_LEFT:
+        return 2;
     case 0:
     case 4:
     case 5:
@@ -1059,11 +1064,6 @@ int GetItemEquipSlotGroup(int item_id)
     case 2:
     case 3:
         return 4;
-    case W8_EQUIP_SLOT_PRIMARY_RIGHT:
-    case W8_EQUIP_SLOT_PRIMARY_LEFT:
-    case W8_EQUIP_SLOT_ALTERNATE_RIGHT:
-    case W8_EQUIP_SLOT_ALTERNATE_LEFT:
-        return 2;
     default:
         return 5;
     }

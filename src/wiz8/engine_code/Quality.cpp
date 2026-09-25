@@ -59,23 +59,6 @@ void EnableRenderOption(int option)
 void SetRenderOption(int option, int enabled)
 {
     switch (option) {
-    case 2:
-        g_gerd->setTextureDefaultMagFilter(enabled ? srTextureIFace::FILTER_BEST
-                                                   : srTextureIFace::FILTER_NONE);
-        break;
-    case 3:
-        g_gerd->setTextureDefaultMinFilter(enabled ? srTextureIFace::FILTER_BEST
-                                                   : srTextureIFace::FILTER_NONE);
-        break;
-    case W8_RENDER_OPTION_MIP_MAPPING:
-        g_gerd->setTextureDefaultMipmap(enabled ? srTextureIFace::MIPMAP_BEST
-                                                : srTextureIFace::MIPMAP_NONE);
-        break;
-    case W8_RENDER_OPTION_DITHER:
-        if ((g_gerd->isEnabled(srGERD::ENABLE_POSITIONAL_0) != 0) != (enabled != 0)) {
-            g_gerd->toggle(srGERD::ENABLE_POSITIONAL_0);
-        }
-        break;
     case 6:
         g_render_brightness = enabled ? 1.0f : 0.8f;
         break;
@@ -93,6 +76,23 @@ void SetRenderOption(int option, int enabled)
         break;
     case W8_RENDER_OPTION_MISSILE_LIGHTS:
         g_render_flag_60a20c = enabled != 0;
+        break;
+    case W8_RENDER_OPTION_DITHER:
+        if ((g_gerd->isEnabled(srGERD::ENABLE_POSITIONAL_0) != 0) != (enabled != 0)) {
+            g_gerd->toggle(srGERD::ENABLE_POSITIONAL_0);
+        }
+        break;
+    case 2:
+        g_gerd->setTextureDefaultMagFilter(enabled ? srTextureIFace::FILTER_BEST
+                                                   : srTextureIFace::FILTER_NONE);
+        break;
+    case 3:
+        g_gerd->setTextureDefaultMinFilter(enabled ? srTextureIFace::FILTER_BEST
+                                                   : srTextureIFace::FILTER_NONE);
+        break;
+    case W8_RENDER_OPTION_MIP_MAPPING:
+        g_gerd->setTextureDefaultMipmap(enabled ? srTextureIFace::MIPMAP_BEST
+                                                : srTextureIFace::MIPMAP_NONE);
         break;
     case W8_RENDER_OPTION_MESH_SKY:
         g_render_flag_603c6c = enabled != 0;

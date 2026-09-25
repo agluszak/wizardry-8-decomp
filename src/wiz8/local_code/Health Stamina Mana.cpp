@@ -476,17 +476,6 @@ int MonsterActionFatigueCost(const W8MonsterInfo* monster_info)
     int cost = 0;
 
     switch (monster_info->action_kind) {
-    case 0:
-        if (monster_info->action_detail == 3) {
-            cost = Random(8) + 5;
-        } else {
-            cost = Random(3) + 2;
-        }
-        break;
-    case 1:
-    case 9:
-        cost = Random(2) + 1;
-        break;
     case 4:
     case 7:
         cost = Random(5) + 5;
@@ -494,6 +483,17 @@ int MonsterActionFatigueCost(const W8MonsterInfo* monster_info)
     case 5:
     case 6:
         cost = Random(3) + 3;
+        break;
+    case 1:
+    case 9:
+        cost = Random(2) + 1;
+        break;
+    case 0:
+        if (monster_info->action_detail == 3) {
+            cost = Random(8) + 5;
+        } else {
+            cost = Random(3) + 2;
+        }
         break;
     case -1:
     case 2:
@@ -504,6 +504,7 @@ int MonsterActionFatigueCost(const W8MonsterInfo* monster_info)
         srAssertFail("FALSE", HEALTH_STAMINA_MANA_CPP, 1774,
                      FormatString("MonsterActionFatigueCost: ERROR - Invalid action %d",
                                   monster_info->action_kind));
+        break;
     }
 
     if (monster_info->uiCondition[W8_CONDITION_FATIGUE_DOUBLED] == 0) {

@@ -1179,12 +1179,23 @@ void W8TriggerEvent::Update()
     }
 
     switch (action_004) {
-    case 2:
-        if (trigger_030->m_pActionData != 0 && trigger_030->m_pActionData->type_004 == 10 &&
-            (static_cast<W8DoorTriggerActionData*>(trigger_030->m_pActionData)->flags_008 & 1) !=
-                0) {
-            trigger_030->Run(-1);
-        }
+    case 0x23: {
+        W8Dice dice;
+        SetDice(&dice, 1, 6, 2);
+        ApplyRolledHealthChangeToParty(&dice, 0, 0);
+        trigger_030->UpdateActionAnimation();
+        break;
+    }
+
+    case 0x25:
+    case 0x26:
+    case 0x27:
+    case 0x28:
+    case 0x29:
+    case 0x2a:
+    case 0x2b:
+        trigger_030->uses_remaining = trigger_030->m_lData1;
+        completed_035 = true;
         break;
 
     case 0x0c: {
@@ -1221,25 +1232,6 @@ void W8TriggerEvent::Update()
         break;
     }
 
-    case 0x23: {
-        W8Dice dice;
-        SetDice(&dice, 1, 6, 2);
-        ApplyRolledHealthChangeToParty(&dice, 0, 0);
-        trigger_030->UpdateActionAnimation();
-        break;
-    }
-
-    case 0x25:
-    case 0x26:
-    case 0x27:
-    case 0x28:
-    case 0x29:
-    case 0x2a:
-    case 0x2b:
-        trigger_030->uses_remaining = trigger_030->m_lData1;
-        completed_035 = true;
-        break;
-
     case 0x3f: {
         Trigger* target = FindTriggerByName(trigger_030->m_pacRecipients);
         if (target != 0) {
@@ -1269,6 +1261,14 @@ void W8TriggerEvent::Update()
         }
         break;
     }
+
+    case 2:
+        if (trigger_030->m_pActionData != 0 && trigger_030->m_pActionData->type_004 == 10 &&
+            (static_cast<W8DoorTriggerActionData*>(trigger_030->m_pActionData)->flags_008 & 1) !=
+                0) {
+            trigger_030->Run(-1);
+        }
+        break;
 
     default:
         break;
@@ -2904,6 +2904,40 @@ void Trigger::Run(int source)
             goto commit_action;
         }
 
+        case 0x2c: {
+            W8DoorTriggerActionData* action_data = 0;
+            bool was_active;
+
+            if (m_pActionData != 0 && m_pActionData->type_004 == 10) {
+                action_data = static_cast<W8DoorTriggerActionData*>(m_pActionData);
+            }
+            if (action_data != 0 && (action_data->flags_008 & 4) != 0 &&
+                action_data->item_00a != -1) {
+                if (FindItemOnParty(action_data->item_00a, 0, 0, 2, 0) == 0) {
+                    return;
+                }
+                action_data->flags_008 &= ~4;
+            }
+            if (m_bRepType != 2 || m_pProp == 0) {
+                break;
+            }
+            was_active = m_pProp->Rep()->animation_playing_06d;
+            m_pProp->SetRepresentationActive(!was_active, 1);
+            state_index = state_index == 0;
+            if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
+                m_pWorld->m_owned_04c->SetInterfaceState(surface_id, state_index);
+            }
+            if (!was_active) {
+                flags_0a0 |= W8_TRIGGER_RUNNING;
+            } else {
+                flags_0a0 &= ~W8_TRIGGER_RUNNING;
+            }
+            if (action_data != 0) {
+                action_data->flags_008 = (action_data->flags_008 & ~1) | (state_index & 1);
+            }
+            goto commit_action;
+        }
+
         case 8: {
             signed char previous = static_cast<signed char>(state_index);
 
@@ -2949,40 +2983,6 @@ void Trigger::Run(int source)
             goto commit_action;
         }
 
-        case 0x2c: {
-            W8DoorTriggerActionData* action_data = 0;
-            bool was_active;
-
-            if (m_pActionData != 0 && m_pActionData->type_004 == 10) {
-                action_data = static_cast<W8DoorTriggerActionData*>(m_pActionData);
-            }
-            if (action_data != 0 && (action_data->flags_008 & 4) != 0 &&
-                action_data->item_00a != -1) {
-                if (FindItemOnParty(action_data->item_00a, 0, 0, 2, 0) == 0) {
-                    return;
-                }
-                action_data->flags_008 &= ~4;
-            }
-            if (m_bRepType != 2 || m_pProp == 0) {
-                break;
-            }
-            was_active = m_pProp->Rep()->animation_playing_06d;
-            m_pProp->SetRepresentationActive(!was_active, 1);
-            state_index = state_index == 0;
-            if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
-                m_pWorld->m_owned_04c->SetInterfaceState(surface_id, state_index);
-            }
-            if (!was_active) {
-                flags_0a0 |= W8_TRIGGER_RUNNING;
-            } else {
-                flags_0a0 &= ~W8_TRIGGER_RUNNING;
-            }
-            if (action_data != 0) {
-                action_data->flags_008 = (action_data->flags_008 & ~1) | (state_index & 1);
-            }
-            goto commit_action;
-        }
-
         case 0x37: {
             int tag = source == -1 ? m_lData1 : source;
 
@@ -3001,9 +3001,70 @@ void Trigger::Run(int source)
     }
 
     switch (action_230) {
+    case 4:
+    case 0x30:
+    case 0x31: {
+        char* recipient = m_pacRecipients;
+
+        while (recipient != 0) {
+            stLight* light = FindLightByName(NextTriggerRecipient(&recipient), 0);
+            if (light != 0) {
+                light->m_save_marked_23a = 1;
+                if (action_230 == 4) {
+                    if (light->testFlag(srNode::FLAG_DISABLE) == 0) {
+                        light->setFlag(srNode::FLAG_DISABLE);
+                    } else {
+                        light->clearFlag(srNode::FLAG_DISABLE);
+                    }
+                } else if (action_230 == 0x30) {
+                    if (light->testFlag(srNode::FLAG_DISABLE) != 0) {
+                        light->clearFlag(srNode::FLAG_DISABLE);
+                    }
+                } else if (light->testFlag(srNode::FLAG_DISABLE) == 0) {
+                    light->setFlag(srNode::FLAG_DISABLE);
+                }
+                action_succeeded = true;
+            }
+        }
+        if (trigger_kind_018 == 2) {
+            flags_0a0 |= W8_TRIGGER_RUNNING;
+        }
+        if (!action_succeeded) {
+            return;
+        }
+        break;
+    }
+
     case 0:
     case 0x38:
         break;
+
+    case 0x2d:
+    case 0x2e:
+    case 0x2f: {
+        char* recipient = m_pacRecipients;
+
+        if (recipient == 0) {
+            return;
+        }
+        while (recipient != 0) {
+            Trigger* target = FindTriggerByName(NextTriggerRecipient(&recipient));
+            if (target != 0) {
+                if (action_230 == 0x2d) {
+                    target->flags_0a0 |= W8_TRIGGER_ON;
+                } else if (action_230 == 0x2e) {
+                    target->flags_0a0 &= ~W8_TRIGGER_ON;
+                } else {
+                    target->flags_0a0 ^= W8_TRIGGER_ON;
+                }
+                action_succeeded = true;
+            }
+        }
+        if (!action_succeeded) {
+            return;
+        }
+        break;
+    }
 
     case 3: {
         bool was_active;
@@ -3101,36 +3162,79 @@ void Trigger::Run(int source)
         break;
     }
 
-    case 4:
-    case 0x30:
-    case 0x31: {
+    case 0x32:
+    case 0x33:
+        if (m_bRepType != 2 || m_pProp == 0) {
+            return;
+        }
+        if ((action_230 == 0x32 && m_pProp->Rep()->animation_playing_06d != 0) ||
+            (action_230 == 0x33 && m_pProp->Rep()->animation_playing_06d == 0)) {
+            return;
+        }
+        m_pProp->SetRepresentationActive(action_230 == 0x32, 1);
+        state_index = state_index == 0;
+        if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
+            m_pWorld->m_owned_04c->SetInterfaceState(surface_id, state_index);
+        }
+        if (action_230 == 0x32) {
+            flags_0a0 |= W8_TRIGGER_RUNNING;
+        } else {
+            flags_0a0 &= ~W8_TRIGGER_RUNNING;
+        }
+        break;
+
+    case 0x0f: {
         char* recipient = m_pacRecipients;
 
+        if (recipient == 0) {
+            return;
+        }
         while (recipient != 0) {
-            stLight* light = FindLightByName(NextTriggerRecipient(&recipient), 0);
-            if (light != 0) {
-                light->m_save_marked_23a = 1;
-                if (action_230 == 4) {
-                    if (light->testFlag(srNode::FLAG_DISABLE) == 0) {
-                        light->setFlag(srNode::FLAG_DISABLE);
-                    } else {
-                        light->clearFlag(srNode::FLAG_DISABLE);
-                    }
-                } else if (action_230 == 0x30) {
-                    if (light->testFlag(srNode::FLAG_DISABLE) != 0) {
-                        light->clearFlag(srNode::FLAG_DISABLE);
-                    }
-                } else if (light->testFlag(srNode::FLAG_DISABLE) == 0) {
-                    light->setFlag(srNode::FLAG_DISABLE);
-                }
+            Trigger* target = FindTriggerByName(NextTriggerRecipient(&recipient));
+            if (target != 0) {
+                bool was_running = ((flags_0a0 & W8_TRIGGER_RUNNING) != 0);
+                flags_0a0 |= W8_TRIGGER_RUNNING;
+                target->Run(m_lData1);
+                flags_0a0 =
+                    (flags_0a0 & ~W8_TRIGGER_RUNNING) | (was_running != 0 ? W8_TRIGGER_RUNNING : 0);
                 action_succeeded = true;
             }
         }
-        if (trigger_kind_018 == 2) {
-            flags_0a0 |= W8_TRIGGER_RUNNING;
-        }
         if (!action_succeeded) {
             return;
+        }
+        break;
+    }
+
+    case 0x10:
+        SetCameraSwayMode(m_pWorld->camera, source > 0 ? 1 : -1);
+        return;
+
+    case 0x36:
+        if (action_state_232 == 4 && action_data_mode_228 == 2) {
+            PlayActionSound(alternate_action_data_1a8, 0);
+        } else {
+            PlayActionSound(action_data_128, 0);
+        }
+        return;
+
+    case 0x24: {
+        W8Dice dice;
+
+        if (m_lData1 < 0) {
+            m_lData1 = 1;
+        }
+        if (m_lData2 < 0) {
+            m_lData2 = 6;
+        }
+        if (m_lData3 < 0) {
+            m_lData3 = 2;
+        }
+        SetDice(&dice, static_cast<unsigned char>(m_lData1), static_cast<unsigned char>(m_lData2),
+                static_cast<short>(m_lData3));
+        ApplyRolledHealthChangeToParty(&dice, 0, 1);
+        if (trigger_kind_018 == 2) {
+            flags_0a0 |= W8_TRIGGER_RUNNING;
         }
         break;
     }
@@ -3170,219 +3274,6 @@ void Trigger::Run(int source)
         monster_info->p3D->reactivated_09d = 1;
         return;
     }
-
-    case 0x0f: {
-        char* recipient = m_pacRecipients;
-
-        if (recipient == 0) {
-            return;
-        }
-        while (recipient != 0) {
-            Trigger* target = FindTriggerByName(NextTriggerRecipient(&recipient));
-            if (target != 0) {
-                bool was_running = ((flags_0a0 & W8_TRIGGER_RUNNING) != 0);
-                flags_0a0 |= W8_TRIGGER_RUNNING;
-                target->Run(m_lData1);
-                flags_0a0 =
-                    (flags_0a0 & ~W8_TRIGGER_RUNNING) | (was_running != 0 ? W8_TRIGGER_RUNNING : 0);
-                action_succeeded = true;
-            }
-        }
-        if (!action_succeeded) {
-            return;
-        }
-        break;
-    }
-
-    case 0x0c:
-        if (m_lData1 < 0) {
-            return;
-        }
-        if (m_lData2 == 0) {
-            srVector3T<float> source_position;
-            srVector3T<float> target_position;
-            srVector3T<float> transformed;
-            srVector3T<float> axis;
-            srMatrix3T<float> rotation;
-
-            source_position.Set(position_118.x, position_118.y, position_118.z);
-            target_position = source_position;
-            target_position.z += 100.0f;
-            rotation.SetIdentity();
-            axis = rotation.vectors[2];
-            if (angle_0fc != 0.0f) {
-                rotation.RotateAroundAxis(sin(angle_0fc), cos(angle_0fc), axis);
-            }
-            transformed = rotation.Transform(target_position);
-            FireMissile(static_cast<unsigned int>(m_lData1), &source_position, &transformed, 0, 1,
-                        1, 50000.0f);
-        } else if (m_pEvent == 0) {
-            float duration = abs(m_lData2) * 0.001f;
-
-            if (m_lData2 > 0 && trigger_kind_018 != 2) {
-                srAssertFail("0", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x87f,
-                             "Continous firing missile must be invisible trigger.");
-            }
-            m_pEvent = new W8TriggerEvent;
-            if (m_pEvent == 0) {
-                srAssertFail("m_pEvent", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                             0x883, 0);
-            }
-            m_pEvent->action_004 = (short)action_230;
-            m_pEvent->timer_008.SetDuration(duration);
-            m_pEvent->timer_008.Restart();
-            m_pEvent->trigger_030 = this;
-            flags_0a0 |= W8_TRIGGER_RUNNING;
-            g_timed_events.Add(m_pEvent);
-        }
-        break;
-
-    case 0x10:
-        SetCameraSwayMode(m_pWorld->camera, source > 0 ? 1 : -1);
-        return;
-
-    case 0x24: {
-        W8Dice dice;
-
-        if (m_lData1 < 0) {
-            m_lData1 = 1;
-        }
-        if (m_lData2 < 0) {
-            m_lData2 = 6;
-        }
-        if (m_lData3 < 0) {
-            m_lData3 = 2;
-        }
-        SetDice(&dice, static_cast<unsigned char>(m_lData1), static_cast<unsigned char>(m_lData2),
-                static_cast<short>(m_lData3));
-        ApplyRolledHealthChangeToParty(&dice, 0, 1);
-        if (trigger_kind_018 == 2) {
-            flags_0a0 |= W8_TRIGGER_RUNNING;
-        }
-        break;
-    }
-
-    case 0x25:
-    case 0x26:
-    case 0x27:
-    case 0x28:
-    case 0x29:
-    case 0x2a:
-    case 0x2b: {
-        if (uses_remaining != 0 || m_lData1 == -1) {
-            if (action_230 == 0x25) {
-                RestorePartyStaminaByDice(0, 0, (short)m_lData3);
-                PlayActionSound("Data\\Sound\\misc\\fountain_magic.wav", 0);
-            } else if (action_230 == 0x26) {
-                HealPartyByDice(0, 0, (short)m_lData3);
-                PlayActionSound("Data\\Sound\\misc\\fountain_magic.wav", 0);
-            } else if (action_230 == 0x27) {
-                RestorePartySpellPoints(m_lData3);
-                ShowString(gppStringList[0x1c88 / 4]);
-                PlayActionSound("Data\\Sound\\misc\\fountain_magic.wav", 0);
-            } else {
-                int spell_id;
-                srVector3T<double> position = g_world->camera->getLocation();
-
-                if (action_230 == 0x28) {
-                    spell_id = 0x44;
-                } else if (action_230 == 0x29) {
-                    spell_id = 0x45;
-                } else if (action_230 == 0x2a) {
-                    spell_id = 0x0c;
-                } else {
-                    spell_id = 0x2a;
-                }
-                PointCastSpell(
-                    srVector3T<float>((float)position.x, (float)position.y, (float)position.z),
-                    spell_id, (unsigned int)m_lData3);
-                if (action_230 == 0x2b) {
-                    RemoveAllConditionsFromParty();
-                }
-            }
-        }
-
-        if (uses_remaining == 0) {
-            if (m_lData1 != -1) {
-                return;
-            }
-        } else {
-            --uses_remaining;
-            if (m_lData2 > 0 && m_pEvent == 0) {
-                m_pEvent = new W8TriggerEvent;
-                if (m_pEvent == 0) {
-                    srAssertFail("m_pEvent", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
-                                 0x84c, 0);
-                }
-                m_pEvent->action_004 = (short)action_230;
-                m_pEvent->timer_008.SetDuration(m_lData2 * 720.0f);
-                m_pEvent->timer_008.Restart();
-                m_pEvent->trigger_030 = this;
-                m_pEvent->timer_008.SetMode(1);
-                g_timed_events.Add(m_pEvent);
-            }
-        }
-        if (trigger_kind_018 == 2) {
-            flags_0a0 |= W8_TRIGGER_RUNNING;
-        }
-        break;
-    }
-
-    case 0x2d:
-    case 0x2e:
-    case 0x2f: {
-        char* recipient = m_pacRecipients;
-
-        if (recipient == 0) {
-            return;
-        }
-        while (recipient != 0) {
-            Trigger* target = FindTriggerByName(NextTriggerRecipient(&recipient));
-            if (target != 0) {
-                if (action_230 == 0x2d) {
-                    target->flags_0a0 |= W8_TRIGGER_ON;
-                } else if (action_230 == 0x2e) {
-                    target->flags_0a0 &= ~W8_TRIGGER_ON;
-                } else {
-                    target->flags_0a0 ^= W8_TRIGGER_ON;
-                }
-                action_succeeded = true;
-            }
-        }
-        if (!action_succeeded) {
-            return;
-        }
-        break;
-    }
-
-    case 0x32:
-    case 0x33:
-        if (m_bRepType != 2 || m_pProp == 0) {
-            return;
-        }
-        if ((action_230 == 0x32 && m_pProp->Rep()->animation_playing_06d != 0) ||
-            (action_230 == 0x33 && m_pProp->Rep()->animation_playing_06d == 0)) {
-            return;
-        }
-        m_pProp->SetRepresentationActive(action_230 == 0x32, 1);
-        state_index = state_index == 0;
-        if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
-            m_pWorld->m_owned_04c->SetInterfaceState(surface_id, state_index);
-        }
-        if (action_230 == 0x32) {
-            flags_0a0 |= W8_TRIGGER_RUNNING;
-        } else {
-            flags_0a0 &= ~W8_TRIGGER_RUNNING;
-        }
-        break;
-
-    case 0x36:
-        if (action_state_232 == 4 && action_data_mode_228 == 2) {
-            PlayActionSound(alternate_action_data_1a8, 0);
-        } else {
-            PlayActionSound(action_data_128, 0);
-        }
-        return;
 
     case 0x39: {
         srVector3T<float> party_position;
@@ -3461,6 +3352,115 @@ void Trigger::Run(int source)
         state_index = state_index == 0;
         if (m_pWorld != 0 && m_pWorld->m_owned_04c != 0 && surface_id >= 0) {
             m_pWorld->m_owned_04c->SetInterfaceState(surface_id, state_index);
+        }
+        break;
+
+    case 0x25:
+    case 0x26:
+    case 0x27:
+    case 0x28:
+    case 0x29:
+    case 0x2a:
+    case 0x2b: {
+        if (uses_remaining != 0 || m_lData1 == -1) {
+            if (action_230 == 0x25) {
+                RestorePartyStaminaByDice(0, 0, (short)m_lData3);
+                PlayActionSound("Data\\Sound\\misc\\fountain_magic.wav", 0);
+            } else if (action_230 == 0x26) {
+                HealPartyByDice(0, 0, (short)m_lData3);
+                PlayActionSound("Data\\Sound\\misc\\fountain_magic.wav", 0);
+            } else if (action_230 == 0x27) {
+                RestorePartySpellPoints(m_lData3);
+                ShowString(gppStringList[0x1c88 / 4]);
+                PlayActionSound("Data\\Sound\\misc\\fountain_magic.wav", 0);
+            } else {
+                int spell_id;
+                srVector3T<double> position = g_world->camera->getLocation();
+
+                if (action_230 == 0x28) {
+                    spell_id = 0x44;
+                } else if (action_230 == 0x29) {
+                    spell_id = 0x45;
+                } else if (action_230 == 0x2a) {
+                    spell_id = 0x0c;
+                } else {
+                    spell_id = 0x2a;
+                }
+                PointCastSpell(
+                    srVector3T<float>((float)position.x, (float)position.y, (float)position.z),
+                    spell_id, (unsigned int)m_lData3);
+                if (action_230 == 0x2b) {
+                    RemoveAllConditionsFromParty();
+                }
+            }
+        }
+
+        if (uses_remaining == 0) {
+            if (m_lData1 != -1) {
+                return;
+            }
+        } else {
+            --uses_remaining;
+            if (m_lData2 > 0 && m_pEvent == 0) {
+                m_pEvent = new W8TriggerEvent;
+                if (m_pEvent == 0) {
+                    srAssertFail("m_pEvent", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                                 0x84c, 0);
+                }
+                m_pEvent->action_004 = (short)action_230;
+                m_pEvent->timer_008.SetDuration(m_lData2 * 720.0f);
+                m_pEvent->timer_008.Restart();
+                m_pEvent->trigger_030 = this;
+                m_pEvent->timer_008.SetMode(1);
+                g_timed_events.Add(m_pEvent);
+            }
+        }
+        if (trigger_kind_018 == 2) {
+            flags_0a0 |= W8_TRIGGER_RUNNING;
+        }
+        break;
+    }
+
+    case 0x0c:
+        if (m_lData1 < 0) {
+            return;
+        }
+        if (m_lData2 == 0) {
+            srVector3T<float> source_position;
+            srVector3T<float> target_position;
+            srVector3T<float> transformed;
+            srVector3T<float> axis;
+            srMatrix3T<float> rotation;
+
+            source_position.Set(position_118.x, position_118.y, position_118.z);
+            target_position = source_position;
+            target_position.z += 100.0f;
+            rotation.SetIdentity();
+            axis = rotation.vectors[2];
+            if (angle_0fc != 0.0f) {
+                rotation.RotateAroundAxis(sin(angle_0fc), cos(angle_0fc), axis);
+            }
+            transformed = rotation.Transform(target_position);
+            FireMissile(static_cast<unsigned int>(m_lData1), &source_position, &transformed, 0, 1,
+                        1, 50000.0f);
+        } else if (m_pEvent == 0) {
+            float duration = abs(m_lData2) * 0.001f;
+
+            if (m_lData2 > 0 && trigger_kind_018 != 2) {
+                srAssertFail("0", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x87f,
+                             "Continous firing missile must be invisible trigger.");
+            }
+            m_pEvent = new W8TriggerEvent;
+            if (m_pEvent == 0) {
+                srAssertFail("m_pEvent", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp",
+                             0x883, 0);
+            }
+            m_pEvent->action_004 = (short)action_230;
+            m_pEvent->timer_008.SetDuration(duration);
+            m_pEvent->timer_008.Restart();
+            m_pEvent->trigger_030 = this;
+            flags_0a0 |= W8_TRIGGER_RUNNING;
+            g_timed_events.Add(m_pEvent);
         }
         break;
 

@@ -658,8 +658,8 @@ unsigned char PreprocessLevel(int handle, char* stem)
                                 sprintf(message, "  %d%% Complete:  %d Vertices Lit \r", mark, i);
                                 ReportStartupMessage(message);
                             }
-                            if (AccumulateVertexLight(tree, vertices + i, light_total,
-                                                              lights, sun_map) != 0) {
+                            if (AccumulateVertexLight(tree, vertices + i, light_total, lights,
+                                                      sun_map) != 0) {
                                 ++lit_vertices;
                             }
                         }
@@ -914,6 +914,24 @@ void ReportBuildStatus(int channel, const char* message)
             }
         }
         break;
+    case 6:
+        ReportStartupMessage(message);
+        if (g_log_file != 0) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-security"
+            fprintf(g_log_file, message);
+#pragma clang diagnostic pop
+            return;
+        }
+        break;
+    case 7:
+        if (g_log_file != 0) {
+            sprintf(line, "ERROR: %s", message);
+            fprintf(g_log_file, "\n\n%s", message);
+            fclose(g_log_file);
+        }
+        ShutdownWithErrorBox(message);
+        return;
     case 1:
         ++g_progress_done;
         if (g_progress_mark + 10 <
@@ -948,29 +966,12 @@ void ReportBuildStatus(int channel, const char* message)
             return;
         }
         break;
-    case 6:
-        ReportStartupMessage(message);
-        if (g_log_file != 0) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wformat-security"
-            fprintf(g_log_file, message);
-#pragma clang diagnostic pop
-            return;
-        }
-        break;
-    case 7:
-        if (g_log_file != 0) {
-            sprintf(line, "ERROR: %s", message);
-            fprintf(g_log_file, "\n\n%s", message);
-            fclose(g_log_file);
-        }
-        ShutdownWithErrorBox(message);
-        return;
     case 8:
         if (g_log_file != 0) {
             fclose(g_log_file);
             g_log_file = 0;
         }
+        break;
     }
 }
 
@@ -1576,8 +1577,7 @@ int AccumulateVertexLight(OctPreTree* tree, W8OctPreTreeVertex* vertex, short li
                 if (g_float_005ebb34 < dot) {
                     ++g_lights_facing;
                     if (g_option_shadow_test != 0) {
-                        if (!tree->SegmentClear(&light->position_08,
-                                                        &vertex->position_0c)) {
+                        if (!tree->SegmentClear(&light->position_08, &vertex->position_0c)) {
                             goto next_light;
                         }
                     }
@@ -1980,8 +1980,7 @@ void OctBuildOptions(char* stem)
             sprintf(lines[4],
                     "Min. Leaf (S)ize %5.2fm    Max. Leaf (C)ount %d    (A)uto Region"
                     " Size %5.2fm     ",
-                    (g_option_min_leaf_size * g_float_005ebc60),
-                    g_option_max_leaf_count,
+                    (g_option_min_leaf_size * g_float_005ebc60), g_option_max_leaf_count,
                     (g_option_auto_region_size * g_float_005ebc60));
             sprintf(lines[5], "Hit ENTER to accept,  ESC to cancel and exit");
             if (edit_mode == 0) {

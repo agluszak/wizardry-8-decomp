@@ -1993,6 +1993,18 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         GetNpcDisposition(npc);
         return;
     }
+    case 4: {
+        int sum = npc->disposition + static_cast<char>(gold);
+        if (sum > 99) {
+            npc->disposition = 99;
+        } else if (sum < 0) {
+            npc->disposition = 0;
+        } else {
+            npc->disposition += static_cast<char>(gold);
+        }
+        GetNpcDisposition(npc);
+        return;
+    }
     case 2: {
         int level;
         unsigned int adjusted;
@@ -2048,18 +2060,6 @@ void ApplyNpcInteraction(W8NpcState* npc, int kind, int value, W8ItemInstance* i
         }
         npc->trade_pool_ca = g_npc_records[npc->name_style].trade_pool_002;
         break;
-    }
-    case 4: {
-        int sum = npc->disposition + static_cast<char>(gold);
-        if (sum > 99) {
-            npc->disposition = 99;
-        } else if (sum < 0) {
-            npc->disposition = 0;
-        } else {
-            npc->disposition += static_cast<char>(gold);
-        }
-        GetNpcDisposition(npc);
-        return;
     }
     default:
         break;
@@ -3052,8 +3052,7 @@ void RebindNpcLevelTriggers(void)
                 trigger->activation_callback_360 = NotifyNpcTriggerActivation;
                 trigger->m_lData1 = static_cast<int>(npc_index);
                 npc->has_monster = 1;
-                npc->level_band =
-                    static_cast<unsigned char>(GetLevelBand(g_status.current_level));
+                npc->level_band = static_cast<unsigned char>(GetLevelBand(g_status.current_level));
                 npc->bound_level = static_cast<unsigned char>(g_status.current_level);
                 ReloadNpcScriptResources(npc);
                 npc->is_present = 0;

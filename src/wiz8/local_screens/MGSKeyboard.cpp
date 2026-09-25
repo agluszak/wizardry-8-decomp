@@ -901,26 +901,26 @@ void RefreshKeyboardMenuRows(void)
                 icon += adjust;
             } else if (menu == W8_SUBMENU_ATTACK && item == 0) {
                 switch (g_status.buffers.Char[g_selected_party_slot].Hand[0].weapon_skill) {
+                case 3:
+                    adjust = 3;
+                    break;
                 case 1:
                     adjust = 4;
                     break;
                 case 2:
                     adjust = 7;
                     break;
-                case 3:
-                    adjust = 3;
-                    break;
                 case 5:
                     adjust = 6;
-                    break;
-                case 7:
-                    adjust = 8;
                     break;
                 case 8:
                     adjust = 1;
                     break;
                 case 9:
                     adjust = 2;
+                    break;
+                case 7:
+                    adjust = 8;
                     break;
                 case 14:
                     adjust = 5;
@@ -961,11 +961,11 @@ void AssignKeyboardMenuCallback(short menu, short item, W8TextControl* row)
         case 2:
             row->m_primaryActivationCallback = KeyboardMenuSelectBreathe;
             break;
-        case 3:
-            row->m_primaryActivationCallback = KeyboardMenuSelectTurnUndead;
-            break;
         case 4:
             row->m_primaryActivationCallback = KeyboardMenuSelectPray;
+            break;
+        case 3:
+            row->m_primaryActivationCallback = KeyboardMenuSelectTurnUndead;
             break;
         }
         break;

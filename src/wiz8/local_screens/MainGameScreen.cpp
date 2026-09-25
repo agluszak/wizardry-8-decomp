@@ -1038,6 +1038,17 @@ void W8LockInteraction::Process()
         }
         m_tumbler_panel_10->Invalidate(0);
         goto lock_release_done;
+    case 4:
+        m_state_34 = 0;
+        slot = g_status.selected_character;
+        if (GetKnockKnockSpellPower(g_status.selected_character) > -1 &&
+            CanCharacterCastSpell(&g_status.buffers.Char[slot], 0x27)) {
+            m_spell_button_20->SetAlternateTextEnabled(0);
+            EndLockInteractMode(1);
+            BeginSpellCast(0x27, -1, -1);
+            return;
+        }
+        break;
     case 5:
         dropped = 0;
         m_state_34 = 6;
@@ -1057,17 +1068,6 @@ void W8LockInteraction::Process()
     lock_release_done:
         if (dropped) {
             SoundPlay(s_lock_pin_falling_64bae8, 0);
-            return;
-        }
-        break;
-    case 4:
-        m_state_34 = 0;
-        slot = g_status.selected_character;
-        if (GetKnockKnockSpellPower(g_status.selected_character) > -1 &&
-            CanCharacterCastSpell(&g_status.buffers.Char[slot], 0x27)) {
-            m_spell_button_20->SetAlternateTextEnabled(0);
-            EndLockInteractMode(1);
-            BeginSpellCast(0x27, -1, -1);
             return;
         }
         break;
@@ -1601,6 +1601,16 @@ char W8MainGameTextKeyHandler::HandleKey(unsigned short key)
     int line;
 
     switch (key) {
+    case 0x26:
+        SetSelectedLine(m_field_0b0 - 1 < 0 ? 0 : m_field_0b0 - 1);
+        return 1;
+    case 0x28:
+        line = m_field_0b0 + 1;
+        if (m_line_count_0a4 - 1 < line) {
+            line = m_line_count_0a4 - 1;
+        }
+        SetSelectedLine(line);
+        return 1;
     case 0x21:
         line = m_field_0b0 - 5;
         if (line < 0) {
@@ -1615,21 +1625,11 @@ char W8MainGameTextKeyHandler::HandleKey(unsigned short key)
         }
         SetSelectedLine(line);
         return 1;
-    case 0x23:
-        SetSelectedLine(m_line_count_0a4 - 1);
-        return 1;
     case 0x24:
         SetSelectedLine(0);
         return 1;
-    case 0x26:
-        SetSelectedLine(m_field_0b0 - 1 < 0 ? 0 : m_field_0b0 - 1);
-        return 1;
-    case 0x28:
-        line = m_field_0b0 + 1;
-        if (m_line_count_0a4 - 1 < line) {
-            line = m_line_count_0a4 - 1;
-        }
-        SetSelectedLine(line);
+    case 0x23:
+        SetSelectedLine(m_line_count_0a4 - 1);
         return 1;
     default:
         return 0;
@@ -5808,20 +5808,17 @@ short GetCombatPortraitImage(int action, int detail, char status, short slot)
     switch (action) {
     case W8_ACTION_ATTACK:
         switch (g_status.buffers.Char[slot].Hand[0].weapon_skill) {
+        case W8_SKILL_MACE_FLAIL:
+            image = 0x2a;
+            break;
         case W8_SKILL_AXE:
             image = 0x38;
             break;
         case W8_SKILL_POLEARM:
             image = 0x62;
             break;
-        case W8_SKILL_MACE_FLAIL:
-            image = 0x2a;
-            break;
         case W8_SKILL_STAFF_WAND:
             image = 0x54;
-            break;
-        case W8_SKILL_MODERN_WEAPONS:
-            image = 0x70;
             break;
         case W8_SKILL_BOW:
             image = 0xe;
@@ -5829,11 +5826,15 @@ short GetCombatPortraitImage(int action, int detail, char status, short slot)
         case W8_SKILL_THROWING_SLING:
             image = 0x1c;
             break;
+        case W8_SKILL_MODERN_WEAPONS:
+            image = 0x70;
+            break;
         case W8_SKILL_PICKPOCKET:
             image = 0x46;
             break;
         default:
             image = 0;
+            break;
         }
         break;
     case W8_ACTION_BERSERK:
@@ -5845,14 +5846,20 @@ short GetCombatPortraitImage(int action, int detail, char status, short slot)
     case W8_ACTION_TURN_UNDEAD:
         image = 0x9a;
         break;
+    case W8_ACTION_PRAY:
+        image = 0xa8;
+        break;
     case W8_ACTION_DEFEND:
         image = 0xb6;
         break;
     case W8_ACTION_PROTECT:
         image = 0xc4;
         break;
-    case W8_ACTION_PRAY:
-        image = 0xa8;
+    case W8_ACTION_USE_ITEM:
+        image = 0x142;
+        break;
+    case W8_ACTION_EQUIP:
+        image = 0x134;
         break;
     case W8_ACTION_CAST_SPELL:
         switch (g_spell_records[detail].realm) {
@@ -5878,12 +5885,6 @@ short GetCombatPortraitImage(int action, int detail, char status, short slot)
             image = 0xd2;
         }
         break;
-    case W8_ACTION_USE_ITEM:
-        image = 0x142;
-        break;
-    case W8_ACTION_EQUIP:
-        image = 0x134;
-        break;
     case W8_ACTION_WALK:
         image = 0x15e;
         break;
@@ -5907,6 +5908,7 @@ short GetCombatPortraitImage(int action, int detail, char status, short slot)
         return image + 4;
     default:
         image = 0x17a;
+        break;
     }
     return image;
 }
@@ -9468,8 +9470,7 @@ void PopulateNpcTradeList(void)
         0) {
         if ((g_screen_state_00649f1c->dialogue_text_124->m_stateFlags &
              g_W8TextControlMask005ED570) != 0) {
-            for (unsigned int index = 0;
-                 index < g_status.party_item_count_1791; ++index) {
+            for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
                 W8ItemInstance* item = &g_status.party_item_pool_0021[index];
                 bool acceptable = true;
                 unsigned int font_palette;

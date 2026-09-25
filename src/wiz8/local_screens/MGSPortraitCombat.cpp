@@ -573,6 +573,16 @@ unsigned char BuildSubMenuPanel(short notification)
         }
     }
     switch (notification) {
+    case 6:
+        menu = W8_SUBMENU_ATTACK;
+        count = 5;
+        left = g_submenu_button_positions[notification][0] - 1;
+        break;
+    case 5:
+        menu = W8_SUBMENU_DEFEND;
+        count = 2;
+        left = g_submenu_button_positions[notification][0] - 1;
+        break;
     case 3:
         menu = W8_SUBMENU_ITEMS;
         count = 3;
@@ -581,16 +591,6 @@ unsigned char BuildSubMenuPanel(short notification)
     case 4:
         menu = W8_SUBMENU_SPELLS;
         count = 2;
-        left = g_submenu_button_positions[notification][0] - 1;
-        break;
-    case 5:
-        menu = W8_SUBMENU_DEFEND;
-        count = 2;
-        left = g_submenu_button_positions[notification][0] - 1;
-        break;
-    case 6:
-        menu = W8_SUBMENU_ATTACK;
-        count = 5;
         left = g_submenu_button_positions[notification][0] - 1;
         break;
     case 9:
@@ -612,9 +612,6 @@ unsigned char BuildSubMenuPanel(short notification)
     }
     ++built;
     switch (built) {
-    case 0:
-    case 1:
-        return 0;
     case 2:
         base = 0;
         icon_delta = 0x2f;
@@ -631,6 +628,9 @@ unsigned char BuildSubMenuPanel(short notification)
         base = 3;
         icon_delta = 0x67;
         break;
+    case 0:
+    case 1:
+        return 0;
     default:
         base = notification;
         icon_delta = notification;
@@ -649,26 +649,26 @@ unsigned char BuildSubMenuPanel(short notification)
                        7;
         } else if (menu == W8_SUBMENU_ATTACK && entry == 0) {
             switch (g_status.buffers.Char[g_status.selected_character].Hand[0].weapon_skill) {
+            case 3:
+                base = 3;
+                break;
             case 1:
                 base = 4;
                 break;
             case 2:
                 base = 7;
                 break;
-            case 3:
-                base = 3;
-                break;
             case 5:
                 base = 6;
-                break;
-            case 7:
-                base = 8;
                 break;
             case 8:
                 base = 1;
                 break;
             case 9:
                 base = 2;
+                break;
+            case 7:
+                base = 8;
                 break;
             case 14:
                 base = 5;
@@ -680,13 +680,6 @@ unsigned char BuildSubMenuPanel(short notification)
             message += base * 7;
         }
         switch (state) {
-        case W8_SUBMENU_ENTRY_USABLE:
-            icon_delta = 2;
-            break;
-        case W8_SUBMENU_ENTRY_USABLE_SELECTED:
-            message += 1;
-            icon_delta = 1;
-            break;
         case W8_SUBMENU_ENTRY_UNUSABLE:
             message += 3;
             icon_delta = 2;
@@ -694,6 +687,13 @@ unsigned char BuildSubMenuPanel(short notification)
         case W8_SUBMENU_ENTRY_UNUSABLE_SELECTED:
             message += 4;
             icon_delta = 1;
+            break;
+        case W8_SUBMENU_ENTRY_USABLE_SELECTED:
+            message += 1;
+            icon_delta = 1;
+            break;
+        case W8_SUBMENU_ENTRY_USABLE:
+            icon_delta = 2;
             break;
         }
         g_submenu_rows_69b8ec[index] = new W8TextControl(
@@ -836,9 +836,6 @@ W8SubMenuEntryState GetSubMenuEntryState(short menu, short item, int party_slot)
     switch (menu) {
     case W8_SUBMENU_ATTACK:
         switch (item) {
-        case 0:
-            state = CheckSubMenuActionUsable(party_slot);
-            break;
         case 1:
             if (CharacterHasTrait(character, W8_TRAIT_BERSERK) != 0) {
                 state = CheckSubMenuActionUsable(party_slot);
@@ -849,15 +846,18 @@ W8SubMenuEntryState GetSubMenuEntryState(short menu, short item, int party_slot)
                 state = CheckSubMenuActionUsable(party_slot);
             }
             break;
+        case 4:
+            if (CanPartySlotPray(party_slot) != 0) {
+                state = CheckSubMenuActionUsable(party_slot);
+            }
+            break;
         case 3:
             if (CanPartySlotTurnUndead(party_slot) != 0) {
                 state = CheckSubMenuActionUsable(party_slot);
             }
             break;
-        case 4:
-            if (CanPartySlotPray(party_slot) != 0) {
-                state = CheckSubMenuActionUsable(party_slot);
-            }
+        case 0:
+            state = CheckSubMenuActionUsable(party_slot);
             break;
         }
         break;

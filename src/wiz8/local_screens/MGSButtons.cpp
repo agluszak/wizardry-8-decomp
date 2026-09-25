@@ -1366,6 +1366,17 @@ void DrawSubMenuCharacterAction(void)
     } else {
         action = row->action_03d;
         switch (action) {
+        case 7:
+            swprintf(text, L"%s - %s (%d)", gppStringList[g_action_kind_message_ids_61e988[7]],
+                     g_spell_records[row->action_detail_041].display_name,
+                     row->action_detail_045.spell.power_level);
+            break;
+        case 8:
+            swprintf(text, L"%s - %s", gppStringList[g_action_kind_message_ids_61e988[8]],
+                     g_spell_records[g_item_records[row->action_detail_045.item_use.item->iItemNo]
+                                         .spell_id]
+                         .display_name);
+            break;
         case 0:
             swprintf(text, L"%s - ", gppStringList[g_action_kind_message_ids_61e988[0]]);
             if (character->Hand[0].in_play != 0) {
@@ -1416,17 +1427,6 @@ void DrawSubMenuCharacterAction(void)
             } else {
                 swprintf(text, L"%s ", gppStringList[g_action_kind_message_ids_61e988[5]]);
             }
-            break;
-        case 7:
-            swprintf(text, L"%s - %s (%d)", gppStringList[g_action_kind_message_ids_61e988[7]],
-                     g_spell_records[row->action_detail_041].display_name,
-                     row->action_detail_045.spell.power_level);
-            break;
-        case 8:
-            swprintf(text, L"%s - %s", gppStringList[g_action_kind_message_ids_61e988[8]],
-                     g_spell_records[g_item_records[row->action_detail_045.item_use.item->iItemNo]
-                                         .spell_id]
-                         .display_name);
             break;
         case -1:
             wcscpy(text, gppStringList[0x1f84 / 4]);

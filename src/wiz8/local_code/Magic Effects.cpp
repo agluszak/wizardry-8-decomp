@@ -533,12 +533,12 @@ int GetConditionDisplaySlot(int condition)
         return 3;
     case 0x36:
         return 4;
-    case 0x38:
-        return 5;
     case 0x3d:
         return 6;
     case 0x41:
         return 7;
+    case 0x38:
+        return 5;
     default:
         srAssertFail("FALSE", MAGIC_EFFECTS_CPP, 3339, 0);
         return 0;
@@ -721,56 +721,6 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
         ClearAttackBlock(&attack_block);
         attack_block.duration_scale = effect->definition.duration_scale;
         switch (tier) {
-        case 0:
-        case 1:
-            spell_id = tier == 1 ? 0x3d : 0x38;
-            attack_block.duration_base = g_spell_records[spell_id].duration_per_level_04d;
-            attack_block.duration_per_power = g_spell_records[spell_id].duration_044;
-            duration = attack_block.duration_per_power * attack_block.duration_scale +
-                       attack_block.duration_base;
-            if (duration != 9999) {
-                ++duration;
-                {
-                    unsigned int roll = Random(4);
-                    if (roll == 0) {
-                        if (1 < duration) {
-                            ++duration;
-                        }
-                    } else if (roll == 1 && duration < 3) {
-                        ++duration;
-                    }
-                }
-                AdjustIntegerByPercent(&duration, attack_block.percent);
-            }
-            switch (spell_id) {
-            case 0x13:
-                slot = 1;
-                break;
-            case 0x15:
-                slot = 2;
-                break;
-            case 0x1b:
-                slot = 3;
-                break;
-            case 0x36:
-                slot = 4;
-                break;
-            case 0x38:
-                slot = 5;
-                break;
-            case 0x3d:
-                slot = 6;
-                break;
-            case 0x41:
-                slot = 7;
-                break;
-            default:
-                srAssertFail("FALSE", MAGIC_EFFECTS_CPP, 0xd0b, 0);
-                slot = 0;
-            }
-            ApplyMonsterCondition(summon->location_id, slot, attack_block.duration_scale, duration,
-                                  0);
-            break;
         case 2:
         case 3:
             spell_id = tier == 2 ? 0x1a : 0x20;
@@ -806,6 +756,57 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
                     break;
                 }
             }
+            break;
+        case 0:
+        case 1:
+            spell_id = tier == 1 ? 0x3d : 0x38;
+            attack_block.duration_base = g_spell_records[spell_id].duration_per_level_04d;
+            attack_block.duration_per_power = g_spell_records[spell_id].duration_044;
+            duration = attack_block.duration_per_power * attack_block.duration_scale +
+                       attack_block.duration_base;
+            if (duration != 9999) {
+                ++duration;
+                {
+                    unsigned int roll = Random(4);
+                    if (roll == 0) {
+                        if (1 < duration) {
+                            ++duration;
+                        }
+                    } else if (roll == 1 && duration < 3) {
+                        ++duration;
+                    }
+                }
+                AdjustIntegerByPercent(&duration, attack_block.percent);
+            }
+            switch (spell_id) {
+            case 0x13:
+                slot = 1;
+                break;
+            case 0x15:
+                slot = 2;
+                break;
+            case 0x1b:
+                slot = 3;
+                break;
+            case 0x36:
+                slot = 4;
+                break;
+            case 0x3d:
+                slot = 6;
+                break;
+            case 0x41:
+                slot = 7;
+                break;
+            case 0x38:
+                slot = 5;
+                break;
+            default:
+                srAssertFail("FALSE", MAGIC_EFFECTS_CPP, 0xd0b, 0);
+                slot = 0;
+                break;
+            }
+            ApplyMonsterCondition(summon->location_id, slot, attack_block.duration_scale, duration,
+                                  0);
             break;
         }
     }
@@ -3784,9 +3785,9 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
     case 0x5f:
         point = effect->Source.point;
         level = effect->definition.duration_scale;
-        shake = CreateCameraShakeEffect(
-            level * g_navigator_vertical_phase_step + g_float_005ebc7c, 1,
-            level * g_navigator_snap_angle + g_float_005ee838, 50000.0f, &point);
+        shake = CreateCameraShakeEffect(level * g_navigator_vertical_phase_step + g_float_005ebc7c,
+                                        1, level * g_navigator_snap_angle + g_float_005ee838,
+                                        50000.0f, &point);
         shake->flags_00 &= 0xffffffe7;
         sound_name = g_spell_records[spell_id].sound_name;
         if (sound_name[0] != 0) {

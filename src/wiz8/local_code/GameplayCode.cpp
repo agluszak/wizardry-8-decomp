@@ -201,6 +201,12 @@ void CalcXPGoal(W8Character* character)
     case 9:
         weight = 1000;
         break;
+    case 10:
+    case 0xb:
+    case 0xd:
+    case 0xe:
+        weight = 0x4b0;
+        break;
     case 1:
     case 2:
     case 3:
@@ -211,12 +217,6 @@ void CalcXPGoal(W8Character* character)
     case 5:
     case 0xc:
         weight = 0x640;
-        break;
-    case 10:
-    case 0xb:
-    case 0xd:
-    case 0xe:
-        weight = 0x4b0;
         break;
     default:
         srAssertFail("FALSE", GAMEPLAY_CODE_CPP, 0x74c, "CalcXPGoal: ERROR - Invalid profession");

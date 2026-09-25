@@ -1406,10 +1406,6 @@ void SetCampItemActionMode(char mode)
     }
     g_camp_screen->entry_mode = mode;
     switch (mode) {
-    case 1:
-        targeting = 6;
-        selected = 1;
-        break;
     case 2:
     case 8:
         targeting = 6;
@@ -1418,6 +1414,10 @@ void SetCampItemActionMode(char mode)
     case 3:
         targeting = 6;
         selected = 0;
+        break;
+    case 1:
+        targeting = 6;
+        selected = 1;
         break;
     case 4:
         targeting = 6;

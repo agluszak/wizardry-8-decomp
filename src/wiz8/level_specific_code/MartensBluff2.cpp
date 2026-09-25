@@ -282,8 +282,7 @@ void MartensBluff2Spikeball(int command)
     g_flag_006834dc = 0;
     if (g_spikeball_count < 0x10) {
         if (g_spikeball_count == 0 || g_spikeball_gate->IsFinished() ||
-            (g_spikeball_gate->PollElapsedIntervals(),
-             g_spikeball_gate->IsFinished())) {
+            (g_spikeball_gate->PollElapsedIntervals(), g_spikeball_gate->IsFinished())) {
             g_spikeball_gate->Arm();
             ++g_spikeball_count;
             ClearAttackBlock(&effect);
@@ -787,11 +786,11 @@ void MartensBluff2IdolGasVictim(void)
             case W8_PROFESSION_ROGUE:
                 severities[slot] = 3;
                 break;
-            case W8_PROFESSION_PRIEST:
-                severities[slot] = 5;
-                break;
             case W8_PROFESSION_MAGE:
                 severities[slot] = 4;
+                break;
+            case W8_PROFESSION_PRIEST:
+                severities[slot] = 5;
                 break;
             default:
                 severities[slot] = 1;

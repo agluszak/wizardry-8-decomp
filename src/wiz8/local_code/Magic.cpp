@@ -296,14 +296,10 @@ int GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize,
 {
     if (spell_id != 0) {
         switch (GetSpellTargetType(spell_id, normalize)) {
-        case W8_TARGET_TYPE_CASTER:
-            return 8;
         case W8_TARGET_TYPE_ALLY:
             return spell_id != 0x58 ? 1 : 7;
-        case W8_TARGET_TYPE_PARTY:
-        case W8_TARGET_TYPE_ALL_ENEMIES:
-        case W8_TARGET_TYPE_LOCK_OR_TRAP:
-            break;
+        case W8_TARGET_TYPE_CASTER:
+            return 8;
         case W8_TARGET_TYPE_ENEMY:
             return 2;
         case W8_TARGET_TYPE_ENEMY_GROUP:
@@ -319,11 +315,16 @@ int GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize,
                 return 6;
             }
             break;
+        case W8_TARGET_TYPE_PARTY:
+        case W8_TARGET_TYPE_ALL_ENEMIES:
+        case W8_TARGET_TYPE_LOCK_OR_TRAP:
+            break;
         default:
             srAssertFail(
                 "FALSE", MAGIC_CPP, 4851,
                 FormatString("GetTargetNeededForSpellFriendly: ERROR - Invalid spell target for %d",
                              spell_id));
+            break;
         }
     }
     return 0;
@@ -335,25 +336,26 @@ int GetTargetNeededForSpellFriendly(int spell_id, unsigned char normalize,
 int GetTargetNeededForSpellHostile(int spell_id)
 {
     switch (GetSpellTargetType(spell_id, 0)) {
-    case W8_TARGET_TYPE_CASTER:
-        return 8;
     case W8_TARGET_TYPE_ALLY:
         return spell_id != 0x58 ? 1 : 7;
+    case W8_TARGET_TYPE_ENEMY:
+        return 2;
+    case W8_TARGET_TYPE_CASTER:
+        return 8;
+    case W8_TARGET_TYPE_ENEMY_GROUP:
+        return 5;
     case W8_TARGET_TYPE_PARTY:
     case W8_TARGET_TYPE_CONE:
     case W8_TARGET_TYPE_RADIUS:
     case W8_TARGET_TYPE_ALL_ENEMIES:
     case W8_TARGET_TYPE_POINT:
         break;
-    case W8_TARGET_TYPE_ENEMY:
-        return 2;
-    case W8_TARGET_TYPE_ENEMY_GROUP:
-        return 5;
     default:
         srAssertFail(
             "FALSE", MAGIC_CPP, 4889,
             FormatString("GetTargetNeededForSpellHostile: ERROR - Invalid spell target for %d",
                          spell_id));
+        break;
     }
     return 0;
 }
@@ -1529,16 +1531,6 @@ int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_
         target.iType = W8_TARGET_KIND_CHARACTER;
         target.iChar = GetRandomCharacter(0, 1, -1, -1);
         break;
-    case W8_TARGET_TYPE_PARTY:
-    case W8_TARGET_TYPE_ENEMY_GROUP:
-        target.iType = W8_TARGET_KIND_PARTY;
-        break;
-    case W8_TARGET_TYPE_CONE:
-        sight_probe = 0;
-        target.iType = W8_TARGET_KIND_PARTY;
-        ResolveTargetPoint(&target, sight_probe);
-        target.iType = W8_TARGET_KIND_PLACE;
-        break;
     case W8_TARGET_TYPE_RADIUS:
     case W8_TARGET_TYPE_POINT:
         sight_probe = 1;
@@ -1546,9 +1538,20 @@ int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_
         ResolveTargetPoint(&target, sight_probe);
         target.iType = W8_TARGET_KIND_PLACE;
         break;
+    case W8_TARGET_TYPE_CONE:
+        sight_probe = 0;
+        target.iType = W8_TARGET_KIND_PARTY;
+        ResolveTargetPoint(&target, sight_probe);
+        target.iType = W8_TARGET_KIND_PLACE;
+        break;
+    case W8_TARGET_TYPE_PARTY:
+    case W8_TARGET_TYPE_ENEMY_GROUP:
+        target.iType = W8_TARGET_KIND_PARTY;
+        break;
     default:
         srAssertFail("FALSE", MAGIC_CPP, 0x56d,
                      FormatString("PointCastSpell: ERROR - Invalid spell target for %d", spell_id));
+        break;
     }
 
     CastSpellFromSource(spell_id, &source, &target, power_level, 0, 0, 0, 0, 0, 0, 0);
@@ -1901,16 +1904,6 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
         case W8_SPELL_CURE_2:
             power_level = ChoosePowerLevelForDuration(caster, spell_id, conditions[2]);
             break;
-        case W8_SPELL_CURE_9:
-            power_level = ChoosePowerLevelForDuration(caster, spell_id, conditions[9]);
-            /* The one case where the target being a character says something
-               the condition does not: the item they are carrying asks for more
-               than the condition does. */
-            if (row->spell_target.iType == W8_TARGET_KIND_CHARACTER &&
-                power_level <= GetEquipmentBindingDifficulty(row->spell_target.iChar)) {
-                power_level = GetEquipmentBindingDifficulty(row->spell_target.iChar);
-            }
-            break;
         case W8_SPELL_CURE_GROUP_B:
             worst = conditions[11];
             if (worst <= (unsigned int)conditions[13]) {
@@ -1920,6 +1913,16 @@ unsigned int ChooseSpellPowerLevelForTarget(int party_slot, int spell_id, int id
                 worst = conditions[15];
             }
             power_level = ChoosePowerLevelForDuration(caster, spell_id, worst);
+            break;
+        case W8_SPELL_CURE_9:
+            power_level = ChoosePowerLevelForDuration(caster, spell_id, conditions[9]);
+            /* The one case where the target being a character says something
+               the condition does not: the item they are carrying asks for more
+               than the condition does. */
+            if (row->spell_target.iType == W8_TARGET_KIND_CHARACTER &&
+                power_level <= GetEquipmentBindingDifficulty(row->spell_target.iChar)) {
+                power_level = GetEquipmentBindingDifficulty(row->spell_target.iChar);
+            }
             break;
         default:
             return 1;
@@ -3995,8 +3998,8 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
             }
         }
         if (!marked &&
-            TargetInRangeAndArcs(&camera, g_startup_world->radius_084, &eye, 0,
-                                         heading, elevation) != 0 &&
+            TargetInRangeAndArcs(&camera, g_startup_world->radius_084, &eye, 0, heading,
+                                 elevation) != 0 &&
             g_octree->TraceLineOfSight(&eye, &camera, 1, -3, -3, 1, 0) == 0) {
             marked = true;
         }

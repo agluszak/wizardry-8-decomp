@@ -215,48 +215,6 @@ unsigned char W8DialogNumericInput::HandleInput(const InputAtom* input)
         return 0;
     }
     switch (input->usParam) {
-    case 8:
-        if (m_active != 0 && m_caret != -1) {
-            Backspace();
-            return 1;
-        }
-        break;
-    case 0x1b:
-        m_active = 0;
-        m_caret = -1;
-        m_dialog->m_field_4c = 0;
-        m_dirty = true;
-        m_button->m_dirty = true;
-        break;
-    case 0x25:
-        if (m_active != 0 && m_caret != -1) {
-            swprintf(g_numeric_input_text, g_format_d_0060aa20, m_value);
-            size_t length = wcslen(g_numeric_input_text);
-            unsigned int next = m_caret + 1;
-            if (next <= length) {
-                length = next;
-            }
-            m_caret = length;
-            m_dirty = true;
-            m_button->m_dirty = true;
-            return 1;
-        }
-        break;
-    case 0x27:
-        if (m_active != 0 && m_caret != -1) {
-            int next = m_caret - 1;
-            m_dirty = true;
-            m_caret = next & ((next < 0) - 1);
-            m_button->m_dirty = true;
-            return 1;
-        }
-        break;
-    case 0x2e:
-        if (m_active != 0 && m_caret != -1) {
-            DeleteForward();
-            return 1;
-        }
-        break;
     case 0x30:
     case 0x31:
     case 0x32:
@@ -286,6 +244,48 @@ unsigned char W8DialogNumericInput::HandleInput(const InputAtom* input)
             TypeDigit(static_cast<wchar_t>(input->usParam - 0x30));
             return 1;
         }
+        break;
+    case 0x2e:
+        if (m_active != 0 && m_caret != -1) {
+            DeleteForward();
+            return 1;
+        }
+        break;
+    case 8:
+        if (m_active != 0 && m_caret != -1) {
+            Backspace();
+            return 1;
+        }
+        break;
+    case 0x27:
+        if (m_active != 0 && m_caret != -1) {
+            int next = m_caret - 1;
+            m_dirty = true;
+            m_caret = next & ((next < 0) - 1);
+            m_button->m_dirty = true;
+            return 1;
+        }
+        break;
+    case 0x25:
+        if (m_active != 0 && m_caret != -1) {
+            swprintf(g_numeric_input_text, g_format_d_0060aa20, m_value);
+            size_t length = wcslen(g_numeric_input_text);
+            unsigned int next = m_caret + 1;
+            if (next <= length) {
+                length = next;
+            }
+            m_caret = length;
+            m_dirty = true;
+            m_button->m_dirty = true;
+            return 1;
+        }
+        break;
+    case 0x1b:
+        m_active = 0;
+        m_caret = -1;
+        m_dialog->m_field_4c = 0;
+        m_dirty = true;
+        m_button->m_dirty = true;
         break;
     default:
         return 0;

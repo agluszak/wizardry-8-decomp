@@ -1241,10 +1241,10 @@ wchar_t* SpellTargetString(W8TargetSource* source, W8CombatSlot* target)
         return FormatWideString(GetMonsterGroupName(monster_group));
     case W8_TARGET_KIND_FIVE:
         return gppStringList[0x1e4];
-    case W8_TARGET_KIND_ITEM:
-        return FormatWideString(gppStringList[0x1e6], FormatItemDisplayName(target->pPCItem, 0));
     case W8_TARGET_KIND_EIGHT:
         return gppStringList[0x1e5];
+    case W8_TARGET_KIND_ITEM:
+        return FormatWideString(gppStringList[0x1e6], FormatItemDisplayName(target->pPCItem, 0));
     default:
         srAssertFail(
             "FALSE", COMBAT_ATTACK_CPP, 0x1a2b,
@@ -1424,32 +1424,32 @@ void StartMonsterAttackCycle(W8MonsterInfo* monster_info, int action_detail)
     signed char cycle;
 
     switch (action_detail) {
-    case 0:
-        cycle = 9;
-        break;
     case 1:
         cycle = 10;
         break;
-    case 2:
-        cycle = 11;
-        break;
-    case 3:
-        cycle = 12;
+    case 8:
+        cycle = 17;
         break;
     case 4:
         cycle = 13;
         break;
-    case 5:
-        cycle = 14;
+    case 0:
+        cycle = 9;
         break;
     case 6:
         cycle = 15;
         break;
+    case 2:
+        cycle = 11;
+        break;
+    case 5:
+        cycle = 14;
+        break;
     case 7:
         cycle = 16;
         break;
-    case 8:
-        cycle = 17;
+    case 3:
+        cycle = 12;
         break;
     default:
         srAssertFail(

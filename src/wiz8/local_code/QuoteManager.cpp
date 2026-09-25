@@ -1896,6 +1896,15 @@ void QueueConditionClearedReaction(W8Character* character, int condition)
         return;
     }
     switch (condition) {
+    case 0x12:
+        QueueCharacterEvent(character, g_effect_005ee5b8, 0, g_effect_argument_005ed8cc,
+                            g_effect_argument_005ed914);
+        return;
+    case 10:
+    case 0x13:
+        QueueCharacterEvent(character, g_effect_005ee5b4, 0, g_effect_argument_005ed8cc,
+                            g_effect_argument_005ed914);
+        return;
     case 2:
     case 3:
     case 4:
@@ -1917,15 +1926,6 @@ void QueueConditionClearedReaction(W8Character* character, int condition)
         QueueCharacterEvent(character, g_effect_005ee6d8, 0, g_effect_argument_005ed8cc,
                             g_effect_argument_005ed914);
         break;
-    case 10:
-    case 0x13:
-        QueueCharacterEvent(character, g_effect_005ee5b4, 0, g_effect_argument_005ed8cc,
-                            g_effect_argument_005ed914);
-        return;
-    case 0x12:
-        QueueCharacterEvent(character, g_effect_005ee5b8, 0, g_effect_argument_005ed8cc,
-                            g_effect_argument_005ed914);
-        return;
     }
 }
 

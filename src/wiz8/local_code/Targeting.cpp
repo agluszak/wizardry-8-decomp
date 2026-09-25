@@ -696,12 +696,12 @@ int GetTargetNeededForAction(int action, int spell_id, const W8ActionDetailBlock
     case 0:
     case 1:
         return 2;
+    case 7:
+        return GetTargetNeededForSpellFriendly(spell_id, 0, W8_TARGETING_CONTEXT_CURRENT);
     case 2:
         return 4;
     case 5:
         return 1;
-    case 7:
-        return GetTargetNeededForSpellFriendly(spell_id, 0, W8_TARGETING_CONTEXT_CURRENT);
     case 8:
         if (detail_block->item_use.item != 0 && detail_block->item_use.item->iItemNo != -1) {
             record = &g_item_records[detail_block->item_use.item->iItemNo];
@@ -750,8 +750,6 @@ int GetTargetNeededForCurrentAction(int party_slot)
         context = GetCurrentTargetingContext(party_slot);
     }
     switch (context) {
-    case W8_TARGETING_CONTEXT_OUT_OF_COMBAT:
-        return 0;
     case W8_TARGETING_CONTEXT_IN_COMBAT:
     case W8_TARGETING_CONTEXT_SHARED:
     case W8_TARGETING_CONTEXT_SPELL:
@@ -759,8 +757,11 @@ int GetTargetNeededForCurrentAction(int party_slot)
     case W8_TARGETING_CONTEXT_FIVE:
     case W8_TARGETING_CONTEXT_DIALOGUE:
         break;
+    case W8_TARGETING_CONTEXT_OUT_OF_COMBAT:
+        return 0;
     default:
         srAssertFail("FALSE", TARGETING_CPP, 0xc5b, 0);
+        break;
     }
     ChooseCombatAction(party_slot, W8_TARGETING_CONTEXT_CURRENT, &action, &detail, 0,
                        &detail_block);
@@ -768,12 +769,12 @@ int GetTargetNeededForCurrentAction(int party_slot)
     case 0:
     case 1:
         return 2;
+    case 7:
+        return GetTargetNeededForSpellFriendly(detail, 0, W8_TARGETING_CONTEXT_CURRENT);
     case 2:
         return 4;
     case 5:
         return 1;
-    case 7:
-        return GetTargetNeededForSpellFriendly(detail, 0, W8_TARGETING_CONTEXT_CURRENT);
     case 8:
         if (detail_block->item_use.item != 0 && detail_block->item_use.item->iItemNo != -1) {
             record = &g_item_records[detail_block->item_use.item->iItemNo];
@@ -1592,12 +1593,12 @@ int GetTargetingCursorForState(int alternate)
         return (alternate != 0) + 3;
     case 2:
         return alternate != 0;
+    case 5:
+        return 11 - (alternate != 0);
     case 3:
         return 2;
     case 4:
         return 12;
-    case 5:
-        return 11 - (alternate != 0);
     default:
         return W8_CURSOR_NONE;
     }
@@ -1608,16 +1609,16 @@ int GetTargetingCursorForState(int alternate)
 bool ActionNeedsExplicitTarget(int party_slot)
 {
     switch (GetSpellTargetType(g_status.buffers.XChar[party_slot].spell_id, 0)) {
-    case W8_TARGET_TYPE_CASTER:
-    case W8_TARGET_TYPE_PARTY:
-    case W8_TARGET_TYPE_ALL_ENEMIES:
-    case W8_TARGET_TYPE_LOCK_OR_TRAP:
-        return false;
     case W8_TARGET_TYPE_ENEMY:
         if (gXStatus.fCampMode != 0) {
             return false;
         }
         return g_settings.autoscroll_combat_messages == 0;
+    case W8_TARGET_TYPE_CASTER:
+    case W8_TARGET_TYPE_PARTY:
+    case W8_TARGET_TYPE_ALL_ENEMIES:
+    case W8_TARGET_TYPE_LOCK_OR_TRAP:
+        return false;
     default:
         return true;
     }
@@ -2590,6 +2591,24 @@ bool SlotHasAnyValidTarget(int party_slot)
         }
         return 0;
 
+    case 7:
+        if (g_level_block->selection_settled != 0) {
+            return SpellHasAnyValidTarget(party_slot, detail, 0);
+        }
+        break;
+
+    case 8:
+        if (g_level_block->selection_settled != 0) {
+            const W8ItemInstance* item = detail_block->item_use.item;
+
+            if (item == 0) {
+                return 0;
+            }
+            return SpellHasAnyValidTarget(
+                party_slot, g_item_records[item->iItemNo].spell_id,
+                ItemClassNormalizesTarget(&g_item_records[item->iItemNo]));
+        }
+        break;
     case 5:
         for (other_slot = 0; other_slot < 8; ++other_slot) {
             if (other_slot == (unsigned int)party_slot) {
@@ -2615,25 +2634,6 @@ bool SlotHasAnyValidTarget(int party_slot)
             }
         }
         return 0;
-
-    case 7:
-        if (g_level_block->selection_settled != 0) {
-            return SpellHasAnyValidTarget(party_slot, detail, 0);
-        }
-        break;
-
-    case 8:
-        if (g_level_block->selection_settled != 0) {
-            const W8ItemInstance* item = detail_block->item_use.item;
-
-            if (item == 0) {
-                return 0;
-            }
-            return SpellHasAnyValidTarget(
-                party_slot, g_item_records[item->iItemNo].spell_id,
-                ItemClassNormalizesTarget(&g_item_records[item->iItemNo]));
-        }
-        break;
     }
     return 1;
 }
@@ -3567,16 +3567,16 @@ bool ItemUseNeedsTarget(int party_slot)
     W8ItemInstance* item = FindCharacterItemAt(party_slot, row->item_origin, row->item_slot);
     unsigned char normalize = ItemClassNormalizesTarget(&g_item_records[item->iItemNo]);
     switch (GetSpellTargetType(GetItemSpell(item), normalize)) {
-    case 0:
-    case 2:
-    case 7:
-    case 10:
-        return false;
     case 3:
         if (gXStatus.fCampMode != 0) {
             return false;
         }
         return g_settings.autotarget_spells == 0;
+    case 0:
+    case 2:
+    case 7:
+    case 10:
+        return false;
     default:
         return true;
     }
