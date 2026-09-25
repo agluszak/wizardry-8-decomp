@@ -215,7 +215,7 @@ def identity_violations(repo_dir: Path) -> list[dict[str, Any]]:
         return ""
 
     def marker_declaration(marker: dict[str, Any]) -> dict[str, Any]:
-        """Resolve a v3 ``declaration_key`` or a legacy embedded declaration."""
+        """The declaration the marker's ``declaration_key`` names."""
 
         return declaration_for_marker(marker, declarations_by_key)
 

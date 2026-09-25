@@ -99,10 +99,8 @@ public class Wiz8Recover extends GhidraScript {
 						continue;
 					}
 					String semanticId = declaration.get("semantic_id").getAsString();
-					String declarationTarget = declaration.has("target")
-						&& !declaration.get("target").isJsonNull()
-						? declaration.get("target").getAsString() : "";
-					declarationsByKey.putIfAbsent(declarationTarget + "\0" + semanticId, declaration);
+					declarationsByKey.put(declarationKey(declaration.get("target"), semanticId,
+						declaration.get("unit_id")), declaration);
 					String sourceFile = declaration.get("source_file").getAsString();
 					if (!belongsToTarget(sourceFile, target)) continue;
 					SourceKind sourceKind = sourceKind("UNKNOWN", declaration);
@@ -175,18 +173,20 @@ public class Wiz8Recover extends GhidraScript {
 			references.toArray(String[]::new), sourceFile);
 	}
 
+	// (target, semantic id, unit id): TU-local declarations of different units
+	// can share a mangled name; external ones have no unit id.
+	private static String declarationKey(JsonElement target, String semanticId, JsonElement unit) {
+		String targetText = target == null || target.isJsonNull() ? "" : target.getAsString();
+		String unitText = unit == null || unit.isJsonNull() ? "" : unit.getAsString();
+		return targetText + "\0" + semanticId + "\0" + unitText;
+	}
+
 	private static JsonObject resolvedDeclaration(JsonObject marker,
 			Map<String, JsonObject> declarationsByKey) {
-		if (marker != null && marker.has("declaration") && !marker.get("declaration").isJsonNull()) {
-			return marker.getAsJsonObject("declaration");
-		}
-		if (marker == null || !marker.has("declaration_key")
-			|| !marker.get("declaration_key").isJsonArray()) {
-			return null;
-		}
+		if (marker == null || !marker.get("declaration_key").isJsonArray()) return null;
 		JsonArray key = marker.getAsJsonArray("declaration_key");
-		if (key.size() < 2) return null;
-		return declarationsByKey.get(key.get(0).getAsString() + "\0" + key.get(1).getAsString());
+		return declarationsByKey.get(
+			declarationKey(key.get(0), key.get(1).getAsString(), key.get(2)));
 	}
 
 	private static SourceKind sourceKind(String markerKind, JsonObject declaration) {

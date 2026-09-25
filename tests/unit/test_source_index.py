@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 import pytest
-from reccmp.source import SourceIndexError
+from reccmp.source import SourceIndex, SourceIndexError, SourceMarker
 from wiz8decomp import source_index
 from wiz8decomp.config import Settings
 from wiz8decomp.source_index import source_functions, target_for_program
@@ -151,15 +151,13 @@ def test_source_index_configures_missing_or_stale_compile_database(
 
     collected: list[dict] = []
 
-    def collect(*_args, **_kwargs) -> tuple[FakeIndex, Path]:
+    def collect(*_args, **_kwargs) -> FakeIndex:
         collected.append({"force": _kwargs.get("force", False)})
-        return FakeIndex(), Path("host-compile-database.json")
+        return FakeIndex()
 
     monkeypatch.setattr(build_module, "configure_clang", configure)
     monkeypatch.setattr(source_index, "_collect_source_index", collect)
-    monkeypatch.setattr(
-        source_index, "_source_artifact_projections", lambda *args, **kwargs: ([], [])
-    )
+    monkeypatch.setattr(source_index, "_source_index_projections", lambda *args, **kwargs: ([], []))
 
     source_index.write_source_index(settings)
 
@@ -187,37 +185,22 @@ def test_source_functions_reject_two_non_folded_owners(tmp_path: Path) -> None:
     )
     build = tmp_path / "build"
     build.mkdir()
-    (build / "source-index.json").write_text(
-        """{
-  "schema": "reccmp-source-index-v6",
-  "markers": [
-    {
-      "address": 1,
-      "target": "WIZ8",
-      "marker_kind": "SYNTHETIC",
-      "source_file": "src/wiz8/a.cpp",
-      "line": 1,
-      "declaration": null,
-      "marker_name": "First"
-    },
-    {
-      "address": 1,
-      "marker_kind": "SYNTHETIC",
-      "source_file": "src/wiz8/b.cpp",
-      "line": 1,
-      "declaration": null,
-      "marker_name": "Second"
-      ,"target": "WIZ8"
-    }
-  ],
-  "declarations": [],
-  "classes": [],
-  "variables": [],
-  "member_uses": [],
-  "conflicts": []
-}\n""",
-        encoding="utf-8",
-    )
+    SourceIndex(
+        declarations={},
+        classes={},
+        markers=[
+            SourceMarker(
+                address=1,
+                marker_kind="SYNTHETIC",
+                source_file=f"src/wiz8/{name.lower()}.cpp",
+                line=1,
+                declaration=None,
+                marker_name=name,
+                target="WIZ8",
+            )
+            for name in ("First", "Second")
+        ],
+    ).write(build / "source-index.json")
 
     with pytest.raises(SourceIndexError, match="more than one source owner"):
         source_functions(tmp_path)
