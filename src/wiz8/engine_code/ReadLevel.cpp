@@ -1159,7 +1159,7 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
     UpdateWorldProps0044E010(world);
     FileRead(info.hFile, &camera_mode, sizeof(camera_mode), 0);
     SetCameraSwayMode(world->camera, camera_mode == 0 ? -1 : 1);
-    if (world->octree == 0 && world != g_world) {
+    if (world->octree == 0 && world != g_world_659ab8) {
         FinalizeWorldScenes0046F410(world->static_scene, world->dynamic_scene);
     }
 

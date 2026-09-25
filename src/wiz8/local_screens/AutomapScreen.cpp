@@ -4,6 +4,7 @@
 #include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_screens/Screens.h"
+#include "wiz8/local_screens/mipe.h"
 #include "wiz8/vector.h"
 #include "surrender/srTypeRegistry.h"
 #include "surrender/srClipPlane.h"
@@ -410,7 +411,7 @@ bool AutomapHasCellAt00581B30(const srVector3T<float>* position)
 unsigned char CanUseCurrentAutomapTool(void)
 {
     if (g_mipe_active_68f105 != 0) {
-        switch (g_automap_tool) {
+        switch (g_mipe_mode_0068f108) {
         case 6:
         case 7:
         case 15:
