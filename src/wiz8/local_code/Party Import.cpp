@@ -495,7 +495,7 @@ void GrantStartingSpells005595D0(W8Character* character, const W8Wiz7Character*)
     do {
         LearnSpell(character, g_profession_starting_spells_62a5f8[character->iProfession][i], 0);
         --count;
-        if (count == '\0') {
+        if (count == 0) {
             break;
         }
         ++i;
@@ -557,7 +557,7 @@ void ImportEquipment00559650(W8Character* character, const W8Wiz7Character* impo
                         }
                     }
                     ReplaceOrCreateItem(&item, item_index, 1, 1, 1);
-                    if (g_item_records[item_index].binds_on_equip == '\0') {
+                    if (g_item_records[item_index].binds_on_equip == 0) {
                         StoreItemWithCharacterOrParty(character, &item, 0, 0,
                                                       (unsigned int)(slot == 0));
                     } else {
@@ -597,7 +597,7 @@ void ImportEquipment00559650(W8Character* character, const W8Wiz7Character* impo
             if (best_index != -1) {
                 item_index = FindItemByLegacyNumber(candidates[slot][best_index].item_number);
                 ReplaceOrCreateItem(&item, item_index, 1, 1, 1);
-                if (g_item_records[item_index].binds_on_equip == '\0') {
+                if (g_item_records[item_index].binds_on_equip == 0) {
                     StoreItemWithCharacterOrParty(character, &item, 0, 0, 1);
                 } else {
                     AddItemToCharacter(character, &item, 0, 0, 0);
@@ -830,8 +830,8 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
                 base_value = 0;
                 break;
             }
-            if (imported->profession_239 == '\x05' || imported->profession_239 == '\r' ||
-                imported->profession_239 == '\x04') {
+            if (imported->profession_239 == 5 || imported->profession_239 == '\r' ||
+                imported->profession_239 == 4) {
                 base_value = imported->skills[0x1d];
             } else {
                 base_value = imported->skills[0xe];

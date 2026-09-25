@@ -1360,7 +1360,7 @@ void W8LockInteraction::ApplyKnockKnock005871A0(int level, int /*flag*/, char ba
         if (Random(1000) < chance) {
             pin = order[i];
             panel = m_tumbler_panel_10;
-            if (backfire == '\0') {
+            if (backfire == 0) {
                 if (m_tumbler_owner_38[pin] == -1) {
                     tumbler = panel->m_tumblers_54[pin];
                     tumbler->m_hovered_38 = 0;
@@ -1386,7 +1386,7 @@ void W8LockInteraction::ApplyKnockKnock005871A0(int level, int /*flag*/, char ba
         }
     }
     if (rolled) {
-        if (backfire == '\0') {
+        if (backfire == 0) {
             SoundPlay(s_lock_pin_rising_64bb10, 0);
         } else {
             SoundPlay(s_lock_pin_falling_64bae8, 0);
@@ -1453,11 +1453,11 @@ void W8LockInteraction::BeginUnlock()
 // FUNCTION: WIZ8 0x00587C80
 void CastSpellAtLockInteraction00587C80(unsigned int level, int flag, int backfire)
 {
-    if (gXStatus.fTrapInteractMode != '\0') {
+    if (gXStatus.fTrapInteractMode != 0) {
         AttemptTrapDisarm0058A930(level, flag, backfire);
         return;
     }
-    if (gXStatus.fLockInteractMode == '\0') {
+    if (gXStatus.fLockInteractMode == 0) {
         ShowNotice(0xc, gppStringList[0x1ebc / 4], -1, -1, 0);
         return;
     }

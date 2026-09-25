@@ -1266,7 +1266,7 @@ int PickReachableSlotByDisposition(int party_slot, char relationship)
     W8ActionDetailBlock* detail;
     int range;
     for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {
-        if (slot == party_slot || g_status_685170.buffers.XChar[slot].fOccupied == '\0' ||
+        if (slot == party_slot || g_status_685170.buffers.XChar[slot].fOccupied == 0 ||
             g_status_685170.buffers.Char[slot].hp_current == 0 ||
             g_status_685170.buffers.Char[slot].highest_condition >= 0x12 ||
             CharacterVsCharacterDisposition(party_slot, slot) != relationship) {

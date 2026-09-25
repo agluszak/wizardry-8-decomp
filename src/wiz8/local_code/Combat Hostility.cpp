@@ -204,7 +204,7 @@ void ProvokeListedMonsterGroups(W8TargetSource* source, W8GrowableVector<int>* m
 void MakeTargetGroupHostile(W8TargetSource* source, W8CombatSlot* target)
 {
     char hostility = GetOppositeDisposition(source);
-    if (hostility == '\0' || !IsTargetStillPresent(target)) {
+    if (hostility == 0 || !IsTargetStillPresent(target)) {
         return;
     }
     int group_id;
@@ -252,7 +252,7 @@ void MakeTargetGroupHostile(W8TargetSource* source, W8CombatSlot* target)
             GetMonsterGroupIndexByID(0x167, COMBAT_HOSTILITY_CPP, group_id, 1);
         group = GetMonsterGroupByListIndex(group_list_index);
         SetMonsterGroupHostility(group, hostility, 1);
-        if (group->fInCombat == '\0') {
+        if (group->fInCombat == 0) {
             MonsterGroupEnterCombat(group);
         }
     }

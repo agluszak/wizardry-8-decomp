@@ -321,7 +321,7 @@ void RecomputeCharacterHighestCondition(int party_slot)
         }
     }
     UpdateFormationSlotState(&g_status_685170.formation, party_slot);
-    if (gXStatus.fCombatMode != '\0') {
+    if (gXStatus.fCombatMode != 0) {
         UpdateFormationSlotState(&gXStatus.edited_formation, party_slot);
         UpdateFormationSlotState(&g_combat_state->saved_formation, party_slot);
     }

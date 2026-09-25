@@ -265,7 +265,7 @@ void stLight::Update0049C960()
         if (g_float_005ebb34 < step) {
             float level = m_level_240;
             step = (g_float_005ebb38 / definition->period_30) * step;
-            if (m_direction_239 == '\0') {
+            if (m_direction_239 == 0) {
                 level -= step;
                 if (level < g_float_005ebb34) {
                     m_direction_239 = 1;
