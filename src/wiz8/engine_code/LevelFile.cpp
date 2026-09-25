@@ -1314,7 +1314,9 @@ unsigned char WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrig
 {
     W8LevelFileSuperTrigger* pSuper = static_cast<W8LevelFileSuperTrigger*>(pTrigger->pData_02);
     if (pSuper == 0) {
-        srAssertFail("pData", LEVELFILE_CPP, 0x59b, 0);
+        ReportBuildStatus00497690(7,
+                                  "WriteSuperTrigger: Couldn't create SuperTrigger structure.\n");
+        return 0;
     }
     unsigned char fSuccess = FileWrite(hFile, &pSuper->version_00, 1, 0);
     fSuccess &= FileWrite(hFile, pSuper->name_01, 0x80, 0);
@@ -1335,10 +1337,10 @@ unsigned char WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrig
     fSuccess &= FileWrite(hFile, &pSuper->price_296, 4, 0);
     fSuccess &= FileWrite(hFile, &pSuper->door_kind_29a, 1, 0);
     fSuccess &= FileWrite(hFile, pSuper->animation_29b, 0x80, 0);
-    if ((fSuccess & 1) == 0) {
+    if (fSuccess == 0) {
         return 0;
     }
-    if (pSuper->version_00 > 1) {
+    if (pSuper->version_00 >= 2) {
         fSuccess &= FileWrite(hFile, pSuper->size_49b, 0xc, 0);
         fSuccess &= FileWrite(hFile, &pSuper->direction_4a7, 4, 0);
         fSuccess &= FileWrite(hFile, &pSuper->wait_4ab, 1, 0);
@@ -1346,57 +1348,73 @@ unsigned char WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrig
         fSuccess &= FileWrite(hFile, &pSuper->wait_4ad, 1, 0);
         fSuccess &= FileWrite(hFile, &pSuper->loop_4ae, 1, 0);
         fSuccess &= FileWrite(hFile, &pSuper->speed_4af, 0x10, 0);
-        fSuccess &= FileWrite(hFile, &pSuper->ignore_4bf, 1, 0);
-        fSuccess &= FileWrite(hFile, &pSuper->group_4c0, 1, 0);
-        fSuccess &= FileWrite(hFile, &pSuper->set_group_4c1, 1, 0);
-        fSuccess &= FileWrite(hFile, pSuper->groups_4c2, 0x100, 0);
-        fSuccess &= FileWrite(hFile, pSuper->objects_5c2, 0x100, 0);
-        fSuccess &= FileWrite(hFile, &pSuper->close_door_6c2, 1, 0);
-        fSuccess &= FileWrite(hFile, &pSuper->wait_6c3, 4, 0);
-        fSuccess &= FileWrite(hFile, &pSuper->field_6c7, 4, 0);
-        fSuccess &= FileWrite(hFile, pSuper->event_6cb, 0x100, 0);
-        fSuccess &= FileWrite(hFile, &pSuper->field_7cb, 4, 0);
-    }
-    if (pSuper->version_00 > 2) {
-        fSuccess &= FileWrite(hFile, pSuper->particle_system_7cf, 0x80, 0);
-    }
-    if ((pSuper->flags_81 & 1) != 0) {
-        fSuccess &= 1;
-        free(pSuper);
-        pTrigger->pData_02 = 0;
-        return fSuccess;
-    }
-    fSuccess = FileWrite(hFile, &pSuper->door_kind_84f, 1, 0);
-    if (pSuper->door_kind_84f == 1) {
-        fSuccess &= FileWrite(hFile, pSuper->pType1_850, sizeof(W8LevelFileType1Record), 0);
-        free(pSuper->pType1_850);
-    } else if (pSuper->door_kind_84f == 2) {
-        fSuccess &= FileWrite(hFile, pSuper->pPlane_854, 0x30, 0);
-        free(pSuper->pPlane_854);
-    }
-    if ((fSuccess & 1) == 0) {
-        return 0;
-    }
-    fSuccess &= FileWrite(hFile, &pSuper->field_858, 1, 0);
-    if (pSuper->field_858 != 0) {
-        fSuccess &= FileWrite(hFile, pSuper->pRecord_859, sizeof(W8LevelFileRecord859), 0);
-        free(pSuper->pRecord_859);
         if (fSuccess == 0) {
             return 0;
         }
     }
-    fSuccess &= FileWrite(hFile, &pSuper->field_85d, 1, 0);
-    if ((fSuccess & 1) == 0) {
+    fSuccess &= FileWrite(hFile, &pSuper->ignore_4bf, 1, 0);
+    fSuccess &= FileWrite(hFile, &pSuper->group_4c0, 1, 0);
+    fSuccess &= FileWrite(hFile, &pSuper->set_group_4c1, 1, 0);
+    fSuccess &= FileWrite(hFile, pSuper->groups_4c2, 0x100, 0);
+    fSuccess &= FileWrite(hFile, pSuper->objects_5c2, 0x100, 0);
+    fSuccess &= FileWrite(hFile, &pSuper->close_door_6c2, 1, 0);
+    if (fSuccess == 0) {
         return 0;
     }
+    fSuccess &= FileWrite(hFile, &pSuper->wait_6c3, 4, 0);
+    fSuccess &= FileWrite(hFile, &pSuper->field_6c7, 4, 0);
+    fSuccess &= FileWrite(hFile, pSuper->event_6cb, 0x100, 0);
+    fSuccess &= FileWrite(hFile, &pSuper->field_7cb, 4, 0);
+    if (fSuccess == 0) {
+        return 0;
+    }
+    if (pSuper->version_00 >= 3) {
+        fSuccess &= FileWrite(hFile, pSuper->particle_system_7cf, 0x80, 0);
+    }
+    if ((pSuper->flags_81 & 1) == 0) {
+        fSuccess &= FileWrite(hFile, &pSuper->door_kind_84f, 1, 0);
+        if (pSuper->door_kind_84f == 1) {
+            if (pSuper->pType1_850 == 0) {
+                ReportBuildStatus00497690(7, "WriteSuperTrigger: No Trigger Position structure.\n");
+                return 0;
+            }
+            fSuccess &= FileWrite(hFile, pSuper->pType1_850, sizeof(W8LevelFileType1Record), 0);
+            free(pSuper->pType1_850);
+        } else if (pSuper->door_kind_84f == 2) {
+            if (pSuper->pPlane_854 == 0) {
+                ReportBuildStatus00497690(7, "WriteSuperTrigger: No FileTriggerPlane structure.\n");
+                return 0;
+            }
+            fSuccess &= FileWrite(hFile, pSuper->pPlane_854, 0x30, 0);
+            free(pSuper->pPlane_854);
+        }
+        if (fSuccess == 0) {
+            return 0;
+        }
+        fSuccess &= FileWrite(hFile, &pSuper->field_858, 1, 0);
+        if (pSuper->field_858 != 0) {
+            if (pSuper->pRecord_859 == 0) {
+                ReportBuildStatus00497690(7, "WriteSuperTrigger: No Trigger HotSpot structure.\n");
+                return 0;
+            }
+            fSuccess &= FileWrite(hFile, pSuper->pRecord_859, sizeof(W8LevelFileRecord859), 0);
+            free(pSuper->pRecord_859);
+        }
+    }
+    if (fSuccess == 0) {
+        return 0;
+    }
+    fSuccess &= FileWrite(hFile, &pSuper->field_85d, 1, 0);
     if (pSuper->field_85d != 0) {
         fSuccess &= FileWrite(hFile, &pSuper->door_85e.kind_00, 1, 0);
         if (pSuper->door_85e.kind_00 == 1) {
-            fSuccess &= WriteDoorTriggerFile004D3660(hFile, &pSuper->door_85e);
+            fSuccess = WriteDoorTriggerFile004D3660(hFile, &pSuper->door_85e);
         } else if (pSuper->door_85e.kind_00 == 2) {
             W8LevelFileLinkedRecord* pRecord = pSuper->pRecord_863;
-            unsigned char ok = 0;
-            if (pRecord != 0) {
+            unsigned char ok;
+            if (pRecord == 0) {
+                ok = 0;
+            } else {
                 ok = FileWrite(hFile, &pRecord->kind_00, 1, 0);
                 ok &= FileWrite(hFile, pRecord->vertices_01, 0x1b0, 0);
                 ok &= FileWrite(hFile, &pRecord->linked_face_1b1, 2, 0);
@@ -1406,7 +1424,6 @@ unsigned char WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrig
         }
     }
     free(pSuper);
-    pTrigger->pData_02 = 0;
     return fSuccess;
 }
 
