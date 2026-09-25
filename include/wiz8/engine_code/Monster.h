@@ -28,6 +28,36 @@ struct W8MonsterRep;
 
 enum { W8_MONSTER_CYCLE_COUNT = 27 };
 
+/* W8Monster::flags_1dc bits, named from their recovered readers and writers:
+   - KEEP_FRAME_DIRECTION: the next SetCycle keeps the queued frame direction
+     (a reversed cycle) instead of resetting it to forward.
+   - TEXTURE_CHECKED / ANIMATED_TEXTURE: the cached result of probing the
+     current cycle's model for an animated texture; SetCycle drops the cache.
+   - SCALING_Y: UpdateRepresentation applies and decays scale_y_1ec.
+   - KEEP_SUBCYCLE: the next SetCycle keeps the current subcycle rather than
+     picking a random one; a script CYCLE command sets it.
+   - SCRIPT_WAIT: a blocking script CYCLE is playing; pending-cycle requests
+     and the manager's AI pass leave the monster alone until it ends.
+   - PARKED: the monster was moved out of the scene (script DISAPPEAR, a
+     henchman leaving); the manager's AI pass skips it.
+   - REMOVE_AFTER_FADE: the manager removes the monster once its fade ends.
+   - REMOVE_NOW: the manager removes the monster on its next frame; group
+     leader election skips it.
+   - FADED_OUT: a fade-out finished; the shadow, attachments and damage
+     numbers stay hidden until the next fade-in. */
+enum W8MonsterFlag {
+    W8_MONSTER_KEEP_FRAME_DIRECTION = 0x1,
+    W8_MONSTER_TEXTURE_CHECKED = 0x2,
+    W8_MONSTER_ANIMATED_TEXTURE = 0x4,
+    W8_MONSTER_SCALING_Y = 0x8,
+    W8_MONSTER_KEEP_SUBCYCLE = 0x10,
+    W8_MONSTER_SCRIPT_WAIT = 0x20,
+    W8_MONSTER_PARKED = 0x40,
+    W8_MONSTER_REMOVE_AFTER_FADE = 0x100,
+    W8_MONSTER_REMOVE_NOW = 0x200,
+    W8_MONSTER_FADED_OUT = 0x400,
+};
+
 extern const float g_monster_rotation_offset_005ec04c;
 extern const double g_monster_facing_tolerance_005ec2b0;
 extern const double g_monster_poster_max_distance_005ec3d8;
@@ -244,7 +274,7 @@ public:
     /* 0x1e8/0x1f0: the X/Z siblings of scale_y_1ec; mirror_x_1be flips the
        X term for left-handed strikes. */
     float scale_x_1e8;
-    /* Y-axis squash scale applied while flags_1dc bit 8 is set (decayed per
+    /* Y-axis scale applied while W8_MONSTER_SCALING_Y is set (decayed per
        frame by g_float_005ebc3c). */
     float scale_y_1ec;
     float scale_z_1f0;
@@ -435,8 +465,8 @@ void MonsterSetHighlightMask(W8Monster* monster, unsigned char flag);
 void MonsterSetRuntimeBlock4C(W8Monster* monster, W8MonsterRuntimeBlock4C block);
 unsigned char MonsterSetAnimating(W8Monster* monster, unsigned char animating);
 unsigned char MonsterIsAnimating(W8Monster* monster);
-bool MonsterHasPendingCycle(W8Monster* monster);          /* 0x004C5710 */
-unsigned char MonsterHasCycle19Flag3(W8Monster* monster); /* 0x004C5EE0 */
+bool MonsterHasPendingCycle(W8Monster* monster);     /* 0x004C5710 */
+unsigned char MonsterIsScalingY(W8Monster* monster); /* 0x004C5EE0 */
 void MonsterSetPendingCycle(W8Monster* monster, int cycle);
 int MonsterQuery(W8Monster* monster, int query);
 void MonsterForward4537E0(W8Monster* monster);

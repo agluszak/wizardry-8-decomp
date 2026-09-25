@@ -1625,7 +1625,7 @@ bool AnyCombatMonsterBusy004E8C30(void)
             return true;
         }
         if (monster_info->fInCombat != 0) {
-            if (MonsterHasPendingCycle(monster) != 0 || MonsterHasCycle19Flag3(monster) != 0) {
+            if (MonsterHasPendingCycle(monster) != 0 || MonsterIsScalingY(monster) != 0) {
                 return true;
             }
             if (MonsterIsAnimating(monster) != 0 && attack_mode != 1 && attack_mode != 2 &&

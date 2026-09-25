@@ -2265,7 +2265,7 @@ void TriggerBelaVoice0050D480(W8Monster* monster)
 {
     srVector3T<float> position;
 
-    monster->flags_1dc |= 0x40;
+    monster->flags_1dc |= W8_MONSTER_PARKED;
     position.SetZero();
     monster->SetPosition(&position);
 

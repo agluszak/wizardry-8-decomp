@@ -1293,7 +1293,7 @@ void HandleMonsterDebugKey00579900(unsigned short key)
                         if (monster->m_pRep->GetNumSubsPerCycle(cycle) != 0) {
                             monster->SetCycle(cycle);
                             monster->SetForcedSubcycleA6(0);
-                            monster->flags_1dc = monster->flags_1dc | 0x10;
+                            monster->flags_1dc = monster->flags_1dc | W8_MONSTER_KEEP_SUBCYCLE;
                             goto cycle_done;
                         }
                     scan_wrap:
