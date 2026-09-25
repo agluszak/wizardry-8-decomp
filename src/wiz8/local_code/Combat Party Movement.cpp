@@ -43,7 +43,7 @@ enum { W8_ACTION_STATUS_FINISHED = 3 };
 // FUNCTION: WIZ8 0x004efbe0
 void BeginPartyMovement(void)
 {
-    gXStatus.party_moving = 1;
+    gXStatus.party_moving = true;
     MoveTimer(1);
 }
 
@@ -71,38 +71,35 @@ void RoundPhaseToStep(unsigned int* phase, unsigned int base)
 // FUNCTION: WIZ8 0x004f01d0
 void UpdateActivePartyMovement(void)
 {
-    bool update_movement;
     float real_elapsed;
     float frame_elapsed;
 
-    update_movement = HandlePartyMovement(&real_elapsed, &frame_elapsed) != 0;
-    if (update_movement) {
+    if (HandlePartyMovement(&real_elapsed, &frame_elapsed) != 0) {
         gXStatus.party_move_distance += real_elapsed + frame_elapsed;
-    } else if (g_settings_6850c8.continuous_combat != 0 &&
+    } else if (g_settings.continuous_combat != 0 &&
                ClockIsTicking(g_combat_state->party_movement_clock) == 0) {
-        unsigned int step_count = g_settings_6850c8.combat_delay_ms / 200 + 10;
+        unsigned int step_count = g_settings.combat_delay_ms / 200 + 10;
         ClampUnsignedInteger(&step_count, 10, 60);
         gXStatus.party_move_distance += gXStatus.flPartyMoveDistLimit / step_count;
-        update_movement = true;
+    } else {
+        goto check_completion;
     }
 
-    if (update_movement) {
-        if (gXStatus.flPartyMoveDistLimit <= g_float_005ebb34) {
-            srAssertFail("gXStatus.flPartyMoveDistLimit > 0.0f", COMBAT_MOVEMENT_CPP, 359, 0);
-        }
-        g_level_block->move_budget_2dc = static_cast<int>(
-            100.0f - gXStatus.party_move_distance * 100.0f / gXStatus.flPartyMoveDistLimit);
-        ClampInteger(&g_level_block->move_budget_2dc, 0, 100);
-        if (g_level_block->move_budget_2dc != g_level_block->move_budget_2e0) {
-            InvalidatePartyMovementPanel();
-            g_level_block->move_budget_2e0 = g_level_block->move_budget_2dc;
-        }
-        if (g_settings_6850c8.continuous_combat != 0) {
-            g_combat_state->party_movement_clock =
-                SetCountdownClock(g_settings_6850c8.combat_delay_ms);
-        }
+    if (gXStatus.flPartyMoveDistLimit <= g_float_005ebb34) {
+        srAssertFail("gXStatus.flPartyMoveDistLimit > 0.0f", COMBAT_MOVEMENT_CPP, 359, 0);
+    }
+    g_level_block->move_budget_2dc = static_cast<int>(
+        100.0f - gXStatus.party_move_distance * 100.0f / gXStatus.flPartyMoveDistLimit);
+    ClampInteger(&g_level_block->move_budget_2dc, 0, 100);
+    if (g_level_block->move_budget_2dc != g_level_block->move_budget_2e0) {
+        InvalidatePartyMovementPanel();
+        g_level_block->move_budget_2e0 = g_level_block->move_budget_2dc;
+    }
+    if (g_settings.continuous_combat != 0) {
+        g_combat_state->party_movement_clock = SetCountdownClock(g_settings.combat_delay_ms);
     }
 
+check_completion:
     if (g_level_block->move_budget_2dc < 1) {
         BeginFreeTurnPhase();
     }
@@ -140,8 +137,8 @@ void ClearPendingPartyMovement(int excluded_party_slot)
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
         if (party_slot != excluded_party_slot &&
             CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_IN_COMBAT, 0, 0) != 0) {
-            RefreshCombatTargetHighlights(
-                party_slot, &g_status_685170.buffers.XChar[party_slot].target_in_combat);
+            RefreshCombatTargetHighlights(party_slot,
+                                          &g_status.buffers.XChar[party_slot].target_in_combat);
         }
     }
     UpdatePartyMovementControl();
@@ -203,10 +200,10 @@ unsigned char GetPartyHasteSteps(unsigned int* out_steps)
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         W8Character* character;
 
-        if (g_status_685170.buffers.XChar[party_slot].fOccupied == 0) {
+        if (g_status.buffers.XChar[party_slot].fOccupied == 0) {
             continue;
         }
-        character = &g_status_685170.buffers.Char[party_slot];
+        character = &g_status.buffers.Char[party_slot];
         if (character->uiCondition[19] != 0) {
             continue;
         }
@@ -236,7 +233,7 @@ float GetPartyMovementSpeed(void)
         speed = 1.5f;
     }
     if (GetPartyHasteSteps(&steps)) {
-        return (steps * g_movement_speed_step_005ed490 + speed) * g_float_005ec0a8;
+        return (steps * g_movement_speed_step + speed) * g_float_005ec0a8;
     }
     return speed * g_float_005ec0a8;
 }
@@ -261,8 +258,8 @@ void CompletePartyMovementTurns(void)
     remaining = remaining < 100 ? 100 - remaining : 0;
 
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
-        W8PartySlotRow* party_row = &g_status_685170.buffers.XChar[party_slot];
-        W8Character* character = &g_status_685170.buffers.Char[party_slot];
+        W8PartySlotRow* party_row = &g_status.buffers.XChar[party_slot];
+        W8Character* character = &g_status.buffers.Char[party_slot];
         if (party_row->fOccupied == 0 || character->hp_current == 0 ||
             character->highest_condition >= 0xf) {
             continue;
@@ -288,8 +285,8 @@ void InitializePartyMovementPhase(void)
     int minimum_initiative = 90;
 
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
-        W8Character* character = &g_status_685170.buffers.Char[party_slot];
+        W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
+        W8Character* character = &g_status.buffers.Char[party_slot];
         if (row->fOccupied != 0 && character->hp_current != 0) {
             int initiative = character->initiative + Random(4);
             if (initiative < minimum_initiative) {
@@ -349,7 +346,7 @@ void StartPartyMovementAction(int move_kind)
     g_combat_state->uiCurrentPartyAction = move_kind;
     g_combat_state->uiCurrentPartyActionStatus = 0;
     gXStatus.flPartyMoveDistLimit = GetPartyMovementSpeed();
-    ResetLevelMovement0041EEE0(gXStatus.flPartyMoveDistLimit, 0, move_kind == 2);
+    ResetLevelMovement(gXStatus.flPartyMoveDistLimit, 0, move_kind == 2);
     InitializePartyMovementPhase();
     g_combat_state->uiPartyActionPhase += g_combat_state->round_counter;
     if (g_combat_state->uiPartyActionPhase > W8_PHASES_PER_ROUND) {
@@ -373,7 +370,7 @@ void EndPartyMovementPhase(void)
     if (!GetLevelDataFlag6()) {
         ShowNotice(8, gppStringList[0x870 / 4], -1, -1, 0);
     }
-    ResetLevelDataVectors0041F0D0();
+    ResetLevelDataVectors();
     DisableFreeTurnButton();
     InvalidatePartyMovementPanel();
     RefreshOutwardSightForAllMonsters();
@@ -385,9 +382,9 @@ void EndPartyMovementPhase(void)
 // FUNCTION: WIZ8 0x004f0630
 void BeginFreeTurnPhase(void)
 {
-    ResetLevelDataVectors0041F0D0();
+    ResetLevelDataVectors();
     g_combat_state->uiCurrentPartyActionStatus = W8_ACTION_STATUS_FINISHED;
-    gXStatus.fPartyMovementMode = 0;
+    gXStatus.fPartyMovementMode = false;
     CheckMonsterGroupsEnterCombat();
     CompletePartyMovementTurns();
     NotifyNearbyMonsters(0);
@@ -429,8 +426,8 @@ void CancelPartyMovement(void)
     g_combat_state->uiNextPartyAction = 0;
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
         if (CharacterCanSwitchTo(party_slot, W8_TARGETING_CONTEXT_CURRENT, 1, 0) != 0) {
-            RefreshCombatTargetHighlights(
-                party_slot, &g_status_685170.buffers.XChar[party_slot].target_in_combat);
+            RefreshCombatTargetHighlights(party_slot,
+                                          &g_status.buffers.XChar[party_slot].target_in_combat);
         }
     }
     UpdatePartyMovementControl();
@@ -447,7 +444,7 @@ void InterruptActivePartyMovement(void)
     }
     g_combat_state->uiCurrentPartyAction = 0;
     for (int party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
-        W8PartySlotRow* party_row = &g_status_685170.buffers.XChar[party_slot];
+        W8PartySlotRow* party_row = &g_status.buffers.XChar[party_slot];
         if (party_row->fOccupied == 0) {
             continue;
         }
@@ -467,7 +464,7 @@ void InterruptActivePartyMovement(void)
 }
 
 // FUNCTION: WIZ8 0x004efda0
-void FinishPartyMovementAction004EFDA0(void)
+void FinishPartyMovementAction(void)
 {
     if (g_combat_state->uiCurrentPartyAction != 1 && g_combat_state->uiCurrentPartyAction != 2) {
         g_combat_state->uiCurrentPartyActionStatus = 1;
@@ -483,10 +480,10 @@ void FinishPartyMovementAction004EFDA0(void)
     }
     EnableFreeTurnButton();
     InvalidatePartyMovementPanel();
-    if (g_settings_6850c8.continuous_combat != 0) {
+    if (g_settings.continuous_combat != 0) {
         g_combat_state->party_movement_clock = SetCountdownClock(1000);
     }
-    TurnPartyTo(g_status_685170.party_heading);
+    TurnPartyTo(g_status.party_heading);
     g_combat_state->uiCurrentPartyActionStatus = 1;
 }
 
@@ -494,7 +491,7 @@ void FinishPartyMovementAction004EFDA0(void)
 void StartPartyMovementAction004EFC00(void)
 {
     if (g_combat_state->uiCurrentPartyAction == 1 || g_combat_state->uiCurrentPartyAction == 2) {
-        gXStatus.fPartyMovementMode = 1;
+        gXStatus.fPartyMovementMode = true;
         ShowNotice(8, gppStringList[0x21b], -1, -1, 0);
         gXStatus.party_move_distance = 0.0f;
     }
@@ -509,17 +506,17 @@ void StartPartyMovementAction004EFC00(void)
         }
         EnableFreeTurnButton();
         InvalidatePartyMovementPanel();
-        if (g_settings_6850c8.continuous_combat != 0) {
+        if (g_settings.continuous_combat != 0) {
             g_combat_state->party_movement_clock = SetCountdownClock(1000);
         }
-        TurnPartyTo(g_status_685170.party_heading);
+        TurnPartyTo(g_status.party_heading);
     }
     g_combat_state->uiCurrentPartyActionStatus = 1;
     g_combat_state->passive_round_a55 = 0;
 }
 
 // FUNCTION: WIZ8 0x004f00c0
-char PartyMovementReachedPhaseLimit004F00C0(void)
+char PartyMovementReachedPhaseLimit(void)
 {
     if (g_combat_state->uiCurrentPartyActionStatus != 1) {
         srAssertFail("gpCombat->uiCurrentPartyActionStatus == ACTION_STATUS_IN_PROGRESS",

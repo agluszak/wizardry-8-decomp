@@ -30,16 +30,16 @@ void InitializeRenderQuality(void)
 }
 
 // GLOBAL: WIZ8 0x0060A210
-float g_render_brightness_60a210 = 1.0f;
+float g_render_brightness = 1.0f;
 // GLOBAL: WIZ8 0x0060E610
-float g_render_fog_distance_60e610 = 0.5f;
+float g_render_fog_distance = 0.5f;
 // GLOBAL: WIZ8 0x0060A20C
-unsigned char g_render_flag_60a20c = 1;
+bool g_render_flag_60a20c = true;
 // GLOBAL: WIZ8 0x00603C6C
-unsigned char g_render_flag_603c6c = 1;
+bool g_render_flag_603c6c = true;
 
 // FUNCTION: WIZ8 0x0047b570
-void DestroyRenderQuality0047B570(void)
+void DestroyRenderQuality(void)
 {
     if (g_render_options_65a118 != 0) {
         free(g_render_options_65a118);
@@ -60,36 +60,36 @@ void SetRenderOption(int option, int enabled)
 {
     switch (option) {
     case 2:
-        g_gerd_659634->setTextureDefaultMagFilter(enabled ? srTextureIFace::FILTER_BEST
-                                                          : srTextureIFace::FILTER_NONE);
+        g_gerd->setTextureDefaultMagFilter(enabled ? srTextureIFace::FILTER_BEST
+                                                   : srTextureIFace::FILTER_NONE);
         break;
     case 3:
-        g_gerd_659634->setTextureDefaultMinFilter(enabled ? srTextureIFace::FILTER_BEST
-                                                          : srTextureIFace::FILTER_NONE);
+        g_gerd->setTextureDefaultMinFilter(enabled ? srTextureIFace::FILTER_BEST
+                                                   : srTextureIFace::FILTER_NONE);
         break;
     case W8_RENDER_OPTION_MIP_MAPPING:
-        g_gerd_659634->setTextureDefaultMipmap(enabled ? srTextureIFace::MIPMAP_BEST
-                                                       : srTextureIFace::MIPMAP_NONE);
+        g_gerd->setTextureDefaultMipmap(enabled ? srTextureIFace::MIPMAP_BEST
+                                                : srTextureIFace::MIPMAP_NONE);
         break;
     case W8_RENDER_OPTION_DITHER:
-        if (((*((unsigned char*)g_gerd_659634 + 0x20) & 1) != 0) != (enabled != 0)) {
-            g_gerd_659634->toggle(srGERD::ENABLE_POSITIONAL_0);
+        if ((g_gerd->isEnabled(srGERD::ENABLE_POSITIONAL_0) != 0) != (enabled != 0)) {
+            g_gerd->toggle(srGERD::ENABLE_POSITIONAL_0);
         }
         break;
     case 6:
-        g_render_brightness_60a210 = enabled ? 1.0f : 0.8f;
+        g_render_brightness = enabled ? 1.0f : 0.8f;
         break;
     case 7:
-        if (!enabled && g_render_fog_distance_60e610 < 0.7f)
-            g_render_fog_distance_60e610 = 0.7f;
-        if (enabled && g_render_fog_distance_60e610 > 0.3f)
-            g_render_fog_distance_60e610 = 0.3f;
+        if (!enabled && g_render_fog_distance < 0.7f)
+            g_render_fog_distance = 0.7f;
+        if (enabled && g_render_fog_distance > 0.3f)
+            g_render_fog_distance = 0.3f;
         break;
     case 8:
-        if (!enabled && g_render_fog_distance_60e610 < 0.9f)
-            g_render_fog_distance_60e610 = 0.9f;
-        if (enabled && g_render_fog_distance_60e610 > 0.1f)
-            g_render_fog_distance_60e610 = 0.1f;
+        if (!enabled && g_render_fog_distance < 0.9f)
+            g_render_fog_distance = 0.9f;
+        if (enabled && g_render_fog_distance > 0.1f)
+            g_render_fog_distance = 0.1f;
         break;
     case W8_RENDER_OPTION_MISSILE_LIGHTS:
         g_render_flag_60a20c = enabled != 0;
@@ -101,13 +101,13 @@ void SetRenderOption(int option, int enabled)
         SetResidentTexturePolicy(enabled ? 0 : 1);
         break;
     case W8_RENDER_OPTION_HIGH_TEXTURE_CACHE:
-        SetTextureCacheSize00426740(enabled ? 0x2000000 : 0x1000000);
+        SetTextureCacheSize(enabled ? 0x2000000 : 0x1000000);
         break;
     case W8_RENDER_OPTION_VIDEO_SYNC:
-        SetSwapInterval00426710(enabled != 0);
+        SetSwapInterval(enabled != 0);
         break;
     case W8_RENDER_OPTION_CORRECT_BLURRED_TEXT:
-        SetSurfaceScale004297E0(enabled ? 0.5f : 0.0f);
+        SetSurfaceScale(enabled ? 0.5f : 0.0f);
         break;
     }
     if (option < W8_RENDER_OPTION_COUNT) {
@@ -124,7 +124,7 @@ void DisableRenderOption(int option)
 }
 
 // FUNCTION: WIZ8 0x0047b5d0
-void DisableAllRenderOptions0047B5D0(void)
+void DisableAllRenderOptions(void)
 {
     int option = 0;
 
@@ -134,6 +134,12 @@ void DisableAllRenderOptions0047B5D0(void)
     } while (option < W8_RENDER_OPTION_COUNT);
 }
 
+/* The original carries a dead entry test: it compares the counter against the
+   bound before the first iteration and, when that fails, jumps to the increment
+   rather than past the loop. Starting at zero it can never fire, and VC6 folds
+   it away here whichever way the loop is written - for, while and do-while all
+   give the same 22 bytes. The five-byte difference is that fold, not a
+   difference in what the loop does. */
 // FUNCTION: WIZ8 0x0047b5f0
 void EnableAllRenderOptions(void)
 {
@@ -153,7 +159,7 @@ unsigned char GetRenderOptionState(int option)
 }
 
 // FUNCTION: WIZ8 0x0047b890
-unsigned char LoadRenderOptions0047B890(int handle)
+unsigned char LoadRenderOptions(int handle)
 {
     int version;
     unsigned int transferred;
@@ -175,7 +181,7 @@ unsigned char LoadRenderOptions0047B890(int handle)
 }
 
 // FUNCTION: WIZ8 0x0047b920
-bool SaveRenderOptions0047B920(int handle)
+bool SaveRenderOptions(int handle)
 {
     unsigned int transferred;
     int version = 1;

@@ -57,7 +57,7 @@
 /* 0x0054B300 resets one of eight slots. */
 /* The gStatus object owned by GameplayDatabase.cpp. */
 // GLOBAL: WIZ8 0x00685170
-W8GlobalStatus g_status_685170;
+W8GlobalStatus g_status;
 /* Packed gXStatus named by the database and manager assertions. Record
    arrays remain separate roots at their own addresses. */
 // GLOBAL: WIZ8 0x006836B8
@@ -177,17 +177,17 @@ unsigned char InitializeItemTables(void)
     return 1;
 }
 
-/* Read one record at its indexed file offset, then strip its four name fields.
-   A failed seek leaves the handle open. */
+/* Seeks straight to one record rather than holding the file open, and strips the
+   four name fields afterwards. The failed seek leaves the handle open where
+   every other failure closes it, as elsewhere in this unit. */
 // FUNCTION: WIZ8 0x0054a8a0
 unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRecord* record)
 {
     char path[60];
-    unsigned int index = uiMonsterIndex;
     unsigned int bytes_read;
     int handle;
 
-    if (!(index < gXStatus.uiMonstersInDatabase)) {
+    if (!(uiMonsterIndex < gXStatus.uiMonstersInDatabase)) {
         srAssertFail("uiMonsterIndex < gXStatus.uiMonstersInDatabase", GAMEPLAY_DATABASE_CPP, 0x140,
                      0);
     }
@@ -196,7 +196,7 @@ unsigned char LoadMonsterDatabaseRecord(unsigned int uiMonsterIndex, W8MonsterRe
     if (!handle) {
         return 0;
     }
-    if (!FileSeek(handle, index * 0x297 + 4, 1)) {
+    if (!FileSeek(handle, uiMonsterIndex * 0x297 + 4, 1)) {
         return 0;
     }
     if (!FileRead(handle, record, 0x297, &bytes_read)) {
@@ -232,7 +232,9 @@ void FreeIfNotNull(void* block)
     }
 }
 
-/* Free the category names and each item table. */
+/* The counterpart to InitializeItemTables: the category names first, then the
+   tables, each entry freed before its array. Both arrays are re-read after
+   every free because nothing tells VC6 that free leaves them alone. */
 // FUNCTION: WIZ8 0x0054a6e0
 void DestroyItemTables(void)
 {
@@ -297,9 +299,11 @@ unsigned char LoadMonsterDatabase(W8MonsterRecord** records)
     return 1;
 }
 
-/* Read the inclusive record span in one call. Its length is the last record's
-   end offset minus the first record's offset. A failed seek leaves the handle
-   open. */
+/* The range sibling of LoadMonsterDatabaseRecord, named by its own assertion at
+   GameplayDatabase.cpp line 378. It seeks to the first record and reads the
+   whole inclusive span in one call, computing the length as two separate record
+   offsets subtracted rather than from a record count. A failed seek leaves the
+   handle open where every other failure closes it. */
 // FUNCTION: WIZ8 0x0054a9a0
 unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int uiEndIndex,
                                        unsigned int unused, W8MonsterRecord* records)

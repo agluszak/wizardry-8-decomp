@@ -20,13 +20,13 @@
 
    Attribution evidence: 0x004D9AD0 and 0x004D9B40 carry this file's path in
    their assertion calls. The level-4 block in
-   InitializeLevelMasterFunctions004D6C50 registers CC_TRIGGERPLANE1HEDRA and
+   InitializeLevelMasterFunctions registers CC_TRIGGERPLANE1HEDRA and
    calls the setup. The leading always-false callback is installed on Arnika's
    "ARN11" trigger; it sits at the head of this unit between
    MasterFunctionList.cpp's template emissions and the CC callback. */
 
 // FUNCTION: WIZ8 0x004D9AC0
-bool CosmicCircleReturnFalse004D9AC0(Trigger* pTrigger)
+bool CosmicCircleReturnFalse(Trigger* pTrigger)
 {
     return false;
 }
@@ -34,12 +34,12 @@ bool CosmicCircleReturnFalse004D9AC0(Trigger* pTrigger)
 /* "CC_TRIGGERPLANE1HEDRA": stepping onto the arena trigger plane ends any
    running combat, posts the savant's script notice and starts CameraPath1. */
 // FUNCTION: WIZ8 0x004D9AD0
-bool CosmicCircleTriggerPlane1Hedra004D9AD0(Trigger* pTrigger)
+bool CosmicCircleTriggerPlane1Hedra(Trigger* pTrigger)
 {
     W8NpcState* pNPC;
 
     if (gXStatus.fCombatMode != 0) {
-        EndCombat004EA310(1);
+        EndCombat(1);
     }
     BeginScriptedWorldAction();
     pNPC = GetNpcStateByKind(0x85);
@@ -56,11 +56,13 @@ bool CosmicCircleTriggerPlane1Hedra004D9AD0(Trigger* pTrigger)
    positions, Bela and Phoonzang as hostile adds, the two principals aimed at
    each other's start points and the remaining trigger planes switched off. */
 // FUNCTION: WIZ8 0x004D9B40
-void CosmicCircleSetup004D9B40(void)
+void CosmicCircleSetup(void)
 {
-    // MATCH: retail consumes these pointers when their lookups fail.
-    W8MonsterInfo* pMonsterInfoDs;
-    W8MonsterInfo* pMonsterInfoAltheides;
+    /* Retail dereferenced both monster infos unconditionally, leaving the
+       pointer uninitialised on a missing named entity or failed id; null
+       models that defect path deterministically. */
+    W8MonsterInfo* pMonsterInfoDs = 0;
+    W8MonsterInfo* pMonsterInfoAltheides = 0;
     srVector3T<float> positionAltheides;
     srVector3T<float> positionDs;
     srVector3T<float> positionBela;
@@ -70,7 +72,7 @@ void CosmicCircleSetup004D9B40(void)
     int uiMonsterID;
     unsigned int index;
 
-    if (g_status_685170.world_suspended_2390 == 0 && g_status_685170.cc_arena_spawned_4972 == 0) {
+    if (g_status.world_suspended_2390 == 0 && g_status.cc_arena_spawned_4972 == 0) {
         if (FindEntityByName("NP_ALTHEIDESARENA", &positionAltheides, 0, 0)) {
             group = SpawnMonsters(0x1b3, 1, &positionAltheides, 0, 1, 0, 0);
             uiMonsterID = IListGetAt(group->monsters, 0);
@@ -99,7 +101,7 @@ void CosmicCircleSetup004D9B40(void)
         if (FindEntityByName("NP_PHOONZANG1", &positionPhoonzang, 0, 0)) {
             SpawnMonsters(0x197, 1, &positionPhoonzang, 2, 1, 0, 0);
         }
-        g_status_685170.cc_arena_spawned_4972 = 1;
+        g_status.cc_arena_spawned_4972 = true;
         pMonsterInfoDs->p3D->AimAtPosition(&positionAltheides);
         pMonsterInfoAltheides->p3D->AimAtPosition(&positionDs);
         pTrigger = FindTriggerByName("CC_TRIGGERPLANE2");

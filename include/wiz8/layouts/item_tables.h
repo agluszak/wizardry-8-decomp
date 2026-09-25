@@ -37,7 +37,7 @@ struct W8ItemRequirement {
    locations.
 
    That slot-mask coverage does not bound the database field. The Assay display
-   table g_equip_class_name_ids_61e7dc has 32 entries, and recovered Assay /
+   table g_equip_class_name_ids has 32 entries, and recovered Assay /
    item paths also use higher values (including 0x0d, 0x0e, 0x11, 0x12, and
    0x13). Keep equip_class a byte: this enum names the proven subset and is not
    a completeness claim. */
@@ -139,7 +139,7 @@ struct W8ItemDatabaseRecord {
     unsigned char merge_skill_level_0ca;
     unsigned char editor_excluded_0cb; /* hidden from the MIPE item list */
     /* 0x0cc: the missile table entry the item fires; the missile resolver
-       bounds it against g_missile_table_count_65bddc. */
+       bounds it against g_missile_table_count. */
     signed char missile_type;
     /* GetOrCreateVideoObject treats this fixed buffer as the item image name. */
     char video_object_name[0x40]; /* 0x0cd */

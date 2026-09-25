@@ -40,7 +40,7 @@ struct W8AnimObj {
     W8PathAI* path_24;        /* 0x24 */
     /* Six lists in two groups of three, not nine. The first group's entries are
        meshes, released the same way; the second group's are paths, released
-       through DestroyPathAI004A9810. */
+       through DestroyPathAI. */
     W8PList* meshes_28[3]; /* 0x28 */
     W8PList* paths_34[3];  /* 0x34 */
     /* Named by 0x004A1710's own assertion,
@@ -55,27 +55,23 @@ struct W8AnimObj {
 
 static_assert(sizeof(W8AnimObj) == 0x4c, "W8AnimObj_size_must_be_0x4c");
 
-W8AnimObj* CreateAnimObj004A01A0();
-void DestroyAnimObj004A01E0(W8AnimObj* animation);
-W8AnimObj* CloneAnimObj004A0320(const W8AnimObj* source);
-void TransformBounds004A1DF0(const srMatrix3T<float>* rotation,
-                             const srVector3T<float>* translation, const srVector3T<float>* scale,
-                             srVector3T<float>* minimum, srVector3T<float>* maximum);
-unsigned int AnimObjValue004A15D0(W8AnimObj* animation, signed char index);
-unsigned int AnimObjListCount004A1620(W8AnimObj* animation, signed char index);
-W8PathAI* AnimObjListEntry004A16C0(W8AnimObj* animation, signed char list_index,
-                                   signed char entry_index);
+W8AnimObj* CreateAnimObj();
+void DestroyAnimObj(W8AnimObj* animation);
+W8AnimObj* CloneAnimObj(const W8AnimObj* source);
+void TransformBounds(const srMatrix3T<float>* rotation, const srVector3T<float>* translation,
+                     const srVector3T<float>* scale, srVector3T<float>* minimum,
+                     srVector3T<float>* maximum);
+unsigned int AnimObjValue(W8AnimObj* animation, signed char index);
+unsigned int AnimObjListCount(W8AnimObj* animation, signed char index);
+W8PathAI* AnimObjListEntry(W8AnimObj* animation, signed char list_index, signed char entry_index);
 unsigned char AnimationIsRunning(W8AnimObj* animation);
 unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* animation, int load_all,
                                           W8GrowableVector<stLight*>* light_list, int unused);
-srModelInstance* AnimObjDispatch004A14D0(W8AnimObj* animation, signed char list_index,
-                                         unsigned char value);
-srModelInstance* AnimObjDispatchList004A1560(W8AnimObj* animation, signed char list_index,
-                                             signed char entry_index);
-W8AniMesh* AnimObjEntry004A1660(W8AnimObj* animation, signed char list_index,
-                                unsigned int entry_index);
-unsigned char AnimObjGetBounds004A1710(W8AnimObj* animation, signed char list_index,
-                                       unsigned int frame, srVector3T<float>* minimum,
-                                       srVector3T<float>* maximum);
+srModelInstance* AnimObjDispatch(W8AnimObj* animation, signed char list_index, unsigned char value);
+srModelInstance* AnimObjDispatchList(W8AnimObj* animation, signed char list_index,
+                                     signed char entry_index);
+W8AniMesh* AnimObjEntry(W8AnimObj* animation, signed char list_index, unsigned int entry_index);
+unsigned char AnimObjGetBounds(W8AnimObj* animation, signed char list_index, unsigned int frame,
+                               srVector3T<float>* minimum, srVector3T<float>* maximum);
 
 #endif

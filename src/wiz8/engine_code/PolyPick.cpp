@@ -1,3 +1,10 @@
+/* Engine Code\PolyPick.cpp: the demo's __FILE__ path sits in .data between
+   "Engine Code\quad.cpp" and "Engine Code\Monster.cpp", matching this
+   translation unit's retail .text span between the proved quad.cpp hull
+   (upper 0x004BE420) and Monster.cpp's W8MonsterRep (lower 0x004BEA20).
+   The demo string cluster carries "ERROR: Suppressed bad float value in
+   ElevationToTargetCPP", naming the camera-relative elevation helper. */
+
 #include "wiz8/engine_code/PolyPick.h"
 
 #include "wiz8/engine_code/GameData.h"
@@ -26,7 +33,7 @@ float GetHeadingAngle(const srVector3T<float>* source, const srVector3T<float>* 
 
     if (z == g_float_005ebb34) {
         if (x > g_float_005ebb34) {
-            return g_camera_half_pi_005ec3fc;
+            return g_camera_half_pi;
         }
         return g_float_005ed1e8;
     }
@@ -81,7 +88,7 @@ float ElevationToTargetCPP(const srVector3T<float>* target)
 }
 
 // FUNCTION: WIZ8 0x004BE5C0
-float GetCameraFacingYaw004BE5C0(const srVector3T<float>* position)
+float GetCameraFacingYaw(const srVector3T<float>* position)
 {
     float position_x = position->x;
     float position_z = position->z;
@@ -90,7 +97,7 @@ float GetCameraFacingYaw004BE5C0(const srVector3T<float>* position)
     GetCameraPosition(&camera_position);
     if (camera_position.z - position_z == g_float_005ebb34) {
         if (g_float_005ebb34 < camera_position.x - position_x) {
-            return g_camera_half_pi_005ec3fc;
+            return g_camera_half_pi;
         }
         return g_float_005ed1e8;
     }
@@ -116,7 +123,7 @@ float HeadingToTargetCPP(const srVector3T<float>* target)
 
     if (z == g_float_005ebb34) {
         if (x > g_float_005ebb34) {
-            return g_camera_half_pi_005ec3fc;
+            return g_camera_half_pi;
         }
         return g_float_005ed1e8;
     }
@@ -132,7 +139,7 @@ float HeadingToTargetCPP(const srVector3T<float>* target)
 /* Euclidean distance between two world-space points. The retail callers at
    0x004F7577 and 0x004F759D are both in the ItemManager.cpp interval. */
 // FUNCTION: WIZ8 0x004BE6D0
-float DistanceBetweenPoints004BE6D0(const srVector3T<float>* first, const srVector3T<float>* second)
+float DistanceBetweenPoints(const srVector3T<float>* first, const srVector3T<float>* second)
 {
     srVector3T<float> delta = *first - *second;
     return delta.Length();
@@ -142,7 +149,7 @@ float DistanceBetweenPoints004BE6D0(const srVector3T<float>* first, const srVect
    offset and the monster's GrCycle-tail rep for the centre. Used by the
    monster-list scans in Targeting.cpp. */
 // FUNCTION: WIZ8 0x004BE710
-float MonsterDistanceToCamera004BE710(W8World* world, W8Monster* monster)
+float MonsterDistanceToCamera(W8World* world, W8Monster* monster)
 {
     srVector3T<float> minimum;
     srVector3T<float> maximum;
@@ -161,7 +168,7 @@ float MonsterDistanceToCamera004BE710(W8World* world, W8Monster* monster)
    Z-offset centre, taking the item pointer explicitly for the item-list
    scans in ItemManager.cpp. */
 // FUNCTION: WIZ8 0x004BE7C0
-float ItemDistanceToCamera004BE7C0(W8World* world, W8Item* item)
+float ItemDistanceToCamera(W8World* world, W8Item* item)
 {
     srVector3T<float> lower;
     srVector3T<float> upper;
@@ -177,9 +184,8 @@ float ItemDistanceToCamera004BE7C0(W8World* world, W8Item* item)
 }
 
 // FUNCTION: WIZ8 0x004BE870
-unsigned char PointInsideBounds004BE870(const srVector3T<float>* point,
-                                        const srVector3T<float>* minimum,
-                                        const srVector3T<float>* maximum)
+bool PointInsideBounds004BE870(const srVector3T<float>* point, const srVector3T<float>* minimum,
+                               const srVector3T<float>* maximum)
 {
     if (point->x >= minimum->x && point->x <= maximum->x && point->y >= minimum->y &&
         point->y <= maximum->y && point->z >= minimum->z && point->z <= maximum->z) {
@@ -206,7 +212,7 @@ unsigned char BoundsOverlap004BE8D0(const srVector3T<float>* first_minimum,
 /* Project one world point through the active world's camera and report
    whether it stays in front of it. */
 // FUNCTION: WIZ8 0x004BE940
-unsigned char ProjectPointThroughCamera004BE940(const srVector3T<float>* position)
+unsigned char ProjectPointThroughCamera(const srVector3T<float>* position)
 {
     srVector3T<float> projected;
     srVector3T<double> input((double)position->x, (double)position->y, (double)position->z);

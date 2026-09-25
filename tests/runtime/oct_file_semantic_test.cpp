@@ -283,12 +283,12 @@ static unsigned char CheckFileLayout(const OctPreTree* tree, const W8OctPreTreeG
     if (LoadWord(bytes, 0x00) != 0x22 || LoadFloat(bytes, 0x02) != spatial->extent_04 ||
         LoadFloat(bytes, 0x06) != spatial->cell_size_08 ||
         LoadFloat(bytes, 0x0a) != spatial->node_extent_70 ||
-        LoadFloat(bytes, 0x0e) != spatial->bounds_0c.minimum.x ||
-        LoadFloat(bytes, 0x1a) != spatial->bounds_0c.maximum.x ||
-        LoadFloat(bytes, 0x26) != spatial->clipped_bounds_24.minimum.x ||
-        LoadFloat(bytes, 0x32) != spatial->clipped_bounds_24.maximum.x ||
-        LoadFloat(bytes, 0x3e) != spatial->working_bounds_78.minimum.x ||
-        LoadFloat(bytes, 0x4a) != spatial->working_bounds_78.maximum.x ||
+        LoadFloat(bytes, 0x0e) != spatial->minimum_0c.x ||
+        LoadFloat(bytes, 0x1a) != spatial->maximum_18.x ||
+        LoadFloat(bytes, 0x26) != spatial->clipped_minimum_24.x ||
+        LoadFloat(bytes, 0x32) != spatial->clipped_maximum_30.x ||
+        LoadFloat(bytes, 0x3e) != spatial->working_minimum_78.x ||
+        LoadFloat(bytes, 0x4a) != spatial->working_maximum_84.x ||
         LoadDword(bytes, 0x56) != tree->m_leaf_grid_dim_x_0a4 ||
         LoadDword(bytes, 0x5a) != tree->m_leaf_grid_dim_y_0a8 ||
         LoadDword(bytes, 0x5e) != tree->m_leaf_grid_dim_z_0ac ||
@@ -373,10 +373,10 @@ static unsigned char CheckLoadedSpatial(const OctPreTree* written, const W8Octre
     const W8OctSpatialState* back = &loaded->spatial_000;
     return back->extent_04 == source->extent_04 && back->cell_size_08 == source->cell_size_08 &&
            back->node_extent_70 == source->node_extent_70 &&
-           back->bounds_0c.minimum.x == source->bounds_0c.minimum.x &&
-           back->bounds_0c.maximum.z == source->bounds_0c.maximum.z &&
-           back->clipped_bounds_24.minimum.y == source->clipped_bounds_24.minimum.y &&
-           back->working_bounds_78.maximum.z == source->working_bounds_78.maximum.z &&
+           back->minimum_0c.x == source->minimum_0c.x &&
+           back->maximum_18.z == source->maximum_18.z &&
+           back->clipped_minimum_24.y == source->clipped_minimum_24.y &&
+           back->working_maximum_84.z == source->working_maximum_84.z &&
            back->depth_44 == source->depth_44 && back->region_count_46 == source->region_count_46 &&
            back->leaf_level_52 == source->leaf_level_52 &&
            back->region_id_bound_58 == source->region_id_bound_58 &&
@@ -494,8 +494,8 @@ static unsigned char CheckPathNodeChunking()
     }
     W8PrePathNode* first = prepath->GetPathNode();
     W8PrePathNode* second = prepath->GetPathNode();
-    /* Deliberately leaked: ~W8PathingService frees g_path_scratch_00659c64 and
-       clears g_pathing_00659c60 - globals this object does not own. */
+    /* Deliberately leaked: ~W8PathingService frees g_path_scratch and
+       clears g_pathing - globals this object does not own. */
     return first == prepath->node_chunks_258[0] && second == first + 1 && first->level_flags == 0 &&
            first->cell == 0 && prepath->chunk_index_11f8 == 0 &&
            prepath->chunk_node_count_11fc == 2;
@@ -529,10 +529,10 @@ static unsigned char CheckPathNodeYBits()
 
 static void RunOctFileRoundTrip(OctFileSemanticResult* result)
 {
-    OctPreTree* saved_pre_tree = g_oct_pre_tree_659c74;
-    W8Octree* saved_octree = g_octree_6598a4;
-    W8GameData* saved_game_data = g_octree_game_data_00652db0;
-    W8EnvironRecord* saved_environ = g_environ_00652DB4;
+    OctPreTree* saved_pre_tree = g_oct_pre_tree;
+    W8Octree* saved_octree = g_octree;
+    W8GameData* saved_game_data = g_octree_game_data;
+    W8EnvironRecord* saved_environ = g_environ;
     W8OctPreTreeGeometry geometry;
     W8GameData* loaded_data = 0;
     W8Octree* loaded;
@@ -553,12 +553,12 @@ static void RunOctFileRoundTrip(OctFileSemanticResult* result)
     tree->spatial_000.extent_04 = 64.0f;
     tree->spatial_000.cell_size_08 = 4.0f;
     tree->spatial_000.node_extent_70 = 128.0f;
-    tree->spatial_000.bounds_0c.minimum.Set(8.0f, 16.0f, 24.0f);
-    tree->spatial_000.bounds_0c.maximum.Set(72.0f, 40.0f, 88.0f);
-    tree->spatial_000.clipped_bounds_24.minimum.Set(12.0f, 20.0f, 28.0f);
-    tree->spatial_000.clipped_bounds_24.maximum.Set(68.0f, 36.0f, 84.0f);
-    tree->spatial_000.working_bounds_78.minimum.Set(4.0f, 8.0f, 12.0f);
-    tree->spatial_000.working_bounds_78.maximum.Set(76.0f, 44.0f, 92.0f);
+    tree->spatial_000.minimum_0c.Set(8.0f, 16.0f, 24.0f);
+    tree->spatial_000.maximum_18.Set(72.0f, 40.0f, 88.0f);
+    tree->spatial_000.clipped_minimum_24.Set(12.0f, 20.0f, 28.0f);
+    tree->spatial_000.clipped_maximum_30.Set(68.0f, 36.0f, 84.0f);
+    tree->spatial_000.working_minimum_78.Set(4.0f, 8.0f, 12.0f);
+    tree->spatial_000.working_maximum_84.Set(76.0f, 44.0f, 92.0f);
     tree->spatial_000.depth_44 = 3;
     tree->spatial_000.region_id_bound_58 = 7;
     tree->spatial_000.region_count_46 = 1;
@@ -621,7 +621,7 @@ static void RunOctFileRoundTrip(OctFileSemanticResult* result)
     result->file_size_matches = result->header_fields_ok;
 
     loaded = new W8Octree("NewLevel.oct", &loaded_data);
-    result->load_ok = loaded != 0 && loaded_data != 0 && g_octree_6598a4 == loaded &&
+    result->load_ok = loaded != 0 && loaded_data != 0 && g_octree == loaded &&
                       (loaded->spatial_000.flags_00 & 0x80000000) == 0;
     if (result->load_ok != 0) {
         result->spatial_roundtrip = CheckLoadedSpatial(tree, loaded);
@@ -642,12 +642,12 @@ restore:
     /* Everything allocated above is deliberately left for process teardown:
        ~W8GameData and parts of ~W8Octree route through unrecovered stubs in
        this image. The reader's W8GameData ctor deleted the writer-side
-       object's environ record through g_environ_00652DB4 and republished the
+       object's environ record through g_environ and republished the
        globals, so all four are restored here. */
-    g_oct_pre_tree_659c74 = saved_pre_tree;
-    g_octree_6598a4 = saved_octree;
-    g_octree_game_data_00652db0 = saved_game_data;
-    g_environ_00652DB4 = saved_environ;
+    g_oct_pre_tree = saved_pre_tree;
+    g_octree = saved_octree;
+    g_octree_game_data = saved_game_data;
+    g_environ = saved_environ;
 }
 
 bool RunOctFileSemanticTests(OctFileSemanticResult* result)
@@ -666,10 +666,10 @@ bool RunOctFileSemanticTests(OctFileSemanticResult* result)
     result->path_node_chunk_ok = CheckPathNodeChunking();
     result->y_bits_ok = CheckPathNodeYBits();
 
-    /* The W8GameData constructor deletes g_environ_00652DB4 and
-       g_level_data_00652dac when they are set, so the scenario requires a
+    /* The W8GameData constructor deletes g_environ and
+       g_level_data when they are set, so the scenario requires a
        state where no level is loaded - which the main menu provides. */
-    if (g_octree_disabled_6598a8 == 0 && g_level_data_00652dac == 0 && g_environ_00652DB4 == 0) {
+    if (g_octree_disabled == 0 && g_level_data == 0 && g_environ == 0) {
         result->octree_io_enabled = 1;
         RunOctFileRoundTrip(result);
     }

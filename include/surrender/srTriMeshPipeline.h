@@ -86,14 +86,14 @@ public:
         if (this == current) {
             current->flushing_8c = 1;
             if (current->slot_count_84 > 0) {
-                current->FlushSlots00475600();
+                current->FlushSlots();
             }
             current->flushing_8c = 0;
         }
     }
 
     /* Slot 0 of vtable 0x005ec520. */
-    virtual void FlushSlots00475600();
+    virtual void FlushSlots();
     /* Slot 1 / complete destructor at 0x004752F0. */
     virtual ~srTriMeshPipeline();
 
@@ -111,7 +111,7 @@ public:
     const srVector4T<float>* projected_vertices_30;
     const srVector3i* triangles_34;
     /* stParticle stores allocation_160 (vec3*) here; Reset/Get null it.
-       FlushSlots00475600 then CALLINDs vp+0x18c (_minMax vec4) with this
+       FlushSlots then CALLINDs vp+0x18c (_minMax vec4) with this
        pointer and the packed vec3 min/max at +0x44/+0x50. Stores and the
        xyz-only center math keep these as vec3; the vec4 slot is recorded,
        not a reason to widen the fields. */

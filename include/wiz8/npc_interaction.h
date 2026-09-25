@@ -11,7 +11,7 @@ bool ShouldDeferCharacterEventForNpcScript(unsigned char require_group_entry);
    output. */
 unsigned char GetNpcQuoteText(W8NpcState* npc, int type, wchar_t* output);
 
-bool IsPartySlotEligible00524A10(int slot);
+bool IsPartySlotEligible(int slot);
 void ClearNpcMessageQueue(void); /* 0x00524C50 */
 
 void FormatNpcVoiceSoundPath(W8NpcState* npc, char* output);

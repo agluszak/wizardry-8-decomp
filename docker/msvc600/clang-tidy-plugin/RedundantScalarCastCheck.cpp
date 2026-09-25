@@ -8,6 +8,7 @@
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "clang/Basic/DiagnosticIDs.h"
+#include "clang/Lex/Lexer.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
@@ -292,6 +293,49 @@ static std::string repository_relative_path(const SourceManager& sources, Source
     return normalized_repository_path(sources.getFilename(location));
 }
 
+// Removing a C-style cast leaves its operand in place: the operand of `(T)e` is
+// already a cast-expression, so it parses identically without the prefix. A
+// static_cast keeps its parentheses unless the operand is a primary expression.
+static std::vector<FixItHint> removal_fix(const ExplicitCastExpr* cast, const SourceManager& sources,
+                                          const LangOptions& language, bool whole_argument = false)
+{
+    std::vector<FixItHint> hints;
+    const Expr* operand = cast->getSubExprAsWritten();
+    if (operand == nullptr || cast->getBeginLoc().isMacroID() || operand->getBeginLoc().isMacroID() ||
+        cast->getEndLoc().isMacroID()) {
+        return hints;
+    }
+    if (isa<CStyleCastExpr>(cast)) {
+        // A whole call argument needs no grouping parentheses once the cast is gone.
+        if (const auto* group = dyn_cast<ParenExpr>(operand); group != nullptr && whole_argument &&
+                                                             !group->getRParen().isMacroID()) {
+            hints.push_back(FixItHint::CreateRemoval(CharSourceRange::getCharRange(
+                cast->getBeginLoc(), group->getSubExpr()->getBeginLoc())));
+            hints.push_back(FixItHint::CreateRemoval(
+                CharSourceRange::getTokenRange(group->getRParen(), group->getRParen())));
+            return hints;
+        }
+        hints.push_back(FixItHint::CreateRemoval(
+            CharSourceRange::getCharRange(cast->getBeginLoc(), operand->getBeginLoc())));
+        return hints;
+    }
+    if (isa<CXXStaticCastExpr>(cast)) {
+        const Expr* bare = operand->IgnoreParens();
+        const bool primary = isa<DeclRefExpr>(bare) || isa<MemberExpr>(bare) || isa<CallExpr>(bare) ||
+                             isa<ArraySubscriptExpr>(bare) || isa<IntegerLiteral>(bare) ||
+                             isa<FloatingLiteral>(bare);
+        const CharSourceRange text = CharSourceRange::getTokenRange(operand->getSourceRange());
+        std::string spelling = Lexer::getSourceText(text, sources, language).str();
+        if (spelling.empty()) {
+            return hints;
+        }
+        hints.push_back(FixItHint::CreateReplacement(
+            CharSourceRange::getTokenRange(cast->getSourceRange()),
+            primary ? spelling : "(" + spelling + ")"));
+    }
+    return hints;
+}
+
 class RedundantScalarCastCheck final : public ClangTidyCheck {
 public:
     RedundantScalarCastCheck(llvm::StringRef name, ClangTidyContext* context)
@@ -352,7 +396,8 @@ public:
                     diag(cast->getBeginLoc(),
                          "intermediate cast from %0 to %1 is redundant; both types have the same "
                          "signedness and width before the enclosing conversion")
-                        << source << target;
+                        << source << target
+                        << removal_fix(cast, sources, context.getLangOpts());
                     return;
                 }
             }
@@ -378,7 +423,8 @@ public:
                     diag(cast->getBeginLoc(),
                          "explicit cast from %0 to %1 is redundant; the surrounding floating-point "
                          "operation already performs this conversion")
-                        << source << target;
+                        << source << target
+                        << removal_fix(cast, sources, context.getLangOpts());
                     return;
                 }
             }
@@ -404,14 +450,15 @@ public:
                 diag(cast->getBeginLoc(), "explicit cast from %0 to %1 is redundant; this "
                                           "non-overloaded parameter already "
                                           "performs the value-preserving conversion")
-                    << source << target;
+                    << source << target << removal_fix(cast, sources, context.getLangOpts(), true);
                 return;
             }
             if (function->isVariadic() && floating_rank(source) == 1 &&
                 floating_rank(target) == 2) {
                 diag(cast->getBeginLoc(),
                      "explicit cast from float to double is redundant; variadic argument promotion "
-                     "already performs this conversion");
+                     "already performs this conversion")
+                    << removal_fix(cast, sources, context.getLangOpts(), true);
                 return;
             }
         }

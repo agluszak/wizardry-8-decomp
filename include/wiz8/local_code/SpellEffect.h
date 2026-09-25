@@ -82,7 +82,7 @@ struct W8SpellEffectResult {
     bool deferred_80;
     /* 0x81: raised when the swing missed entirely, which is what lets the
        notice pass distinguish "missed" from "no effect". */
-    unsigned char missed;
+    bool missed;
     /* 0x82: the target the attack actually struck - the accidental-fire path
        replaces it with the rerolled victim. */
     W8CombatSlot target;
@@ -107,8 +107,8 @@ struct W8SpellEffectEntry {
         sustained_121 = 0;
         missiles_pending_122 = 0;
         targets_resolved_123 = 0;
-        reported_124 = 0;
-        applied_125 = 0;
+        reported_124 = false;
+        applied_125 = false;
         /* The retail rep-stosd zeroes the whole result block, including the
            reports vector's freshly assigned vftable at 0x17e. */
         memset(static_cast<void*>(&result_126), 0, sizeof(result_126));
@@ -154,10 +154,10 @@ struct W8SpellEffectEntry {
        skips re-resolution and gates the post-resolution bookkeeping. */
     bool targets_resolved_123;
     /* 0x124: set once this effect's result has been reported. */
-    unsigned char reported_124;
+    bool reported_124;
     /* 0x125: set by a handler that actually landed its effect; the result
        report picks its message from this flag. */
-    unsigned char applied_125;
+    bool applied_125;
     W8SpellEffectResult result_126; /* 0x126 */
 };
 
@@ -181,11 +181,11 @@ extern W8GrowableVector<W8SpellEffectEntry*> g_spell_effects;
 W8SpellEffectEntry* FindMonsterControlSpellEffect(void);
 void AddSpellEffect(W8SpellEffectEntry* effect); /* 0x005008A0 */
 /* Advance every queued spell effect one frame. */
-void UpdateSpellEffects00500930(void);
+void UpdateSpellEffects(void);
 /* Fold one missile's accumulated damage and reports into the queued effect
    that owns it. */
-void AbsorbMissileDamage00500460(W8Missile* missile);
-void ReportSpellResult005005C0(W8SpellEffectEntry* effect);
+void AbsorbMissileDamage(W8Missile* missile);
+void ReportSpellResult(W8SpellEffectEntry* effect);
 void SpawnLureEffects(W8SpellEffectEntry* owner, int argument, const W8CombatSlot* target);
 
 #endif

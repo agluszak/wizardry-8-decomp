@@ -46,7 +46,7 @@ struct W8ScreenStateRuntime {
     void* parameter_3; /* 0x10: destination screen interprets by id and mode */
     /* 0x14: identifying PC for camp entry (gpIdentifyingPC); null when
        camp opens without an identify/use-item handoff. Not the entry mode —
-       that lives on W8CampScreenState0069C0F4::entry_mode. */
+       that lives on W8CampScreenState::entry_mode. */
     struct W8Character* parameter_4;
     char name[0x80]; /* 0x18 */
 };

@@ -57,22 +57,22 @@ int AddCharacterToParty(W8Character* character, int slot);
    persists it back to its NPC record first. */
 unsigned char RemoveCharacterFromParty(int party_slot, char save_character_data);
 
-void AwardPartyExperience004EEF10(int value, int mode); /* 0x004EEF10 */
+void AwardPartyExperience(int value, int mode); /* 0x004EEF10 */
 bool IsCharacterReadyToAdvance(int party_slot);
 void CalcXPGoal(W8Character* character);
-void DeriveCharacterPersonality004EFA30(W8Character* character);
+void DeriveCharacterPersonality(W8Character* character);
 /* Rerolls personality_0081/voice_0085 until no party member shares the
    character's gender/personality/voice pick. */
-void EnsureUniquePartyVoice004EFAD0(W8Character* character); /* 0x004EFAD0 */
+void EnsureUniquePartyVoice(W8Character* character); /* 0x004EFAD0 */
 /* 0x00587C80: knock-knock style spell committed against the active lock or
    trap interaction; with no interaction open it just prints the refusal
    notice. The lock-interaction owner lives past MainGameScreen.h, which this
    task does not expand. */
-void CastSpellAtLockInteraction00587C80(unsigned int level, int flag, int backfire);
+void CastSpellAtLockInteraction(unsigned int level, int flag, int backfire);
 unsigned int GetAveragePartyLevel(void); /* 0x004EF420 */
-unsigned char RecruitCharacterIntoParty004EF7E0(W8Character* character, W8Character* record,
-                                                char buy_equipment);
+unsigned char RecruitCharacterIntoParty(W8Character* character, W8Character* record,
+                                        char buy_equipment);
 bool AnyMonsterEngaged(void); /* 0x004EEE20 */
 /* 0x004EF9A0: on a level-motion override, roll `pow(8.0, fall + 0.7)` d6 of
    fall damage against the party with a notice and the fall-impact sound. */
-void HandleLevelOverride004EF9A0(float fall);
+void HandleLevelOverride(float fall);

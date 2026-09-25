@@ -40,6 +40,6 @@ public:
     const char* getDescription() const override;
 };
 
-extern W8VirtualFileStreamOpener g_virtual_file_stream_opener_65a124;
+extern W8VirtualFileStreamOpener g_virtual_file_stream_opener;
 
 void InitializeVirtualFileImageImporters(void);

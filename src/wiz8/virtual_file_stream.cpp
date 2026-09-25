@@ -205,6 +205,12 @@ inline srInlineString::srInlineString()
     reset();
 }
 
+/* Retail has a callable emission here - deep expansion sites (insert's
+   destroyed temporaries, the operator+ copy-out) keep calls while shallow
+   sites expand the three stores. Our build inlines it at every site, so the
+   emission does not materialize; the divergence is VC6's per-site inline
+   budget, not the declaration. Address 0x0047D290 is the retail callable
+   form and is not claimed here. */
 inline void srInlineString::reset()
 {
     inline_[0] = '\0';
@@ -216,7 +222,7 @@ inline void srInlineString::reset()
 srInlineString operator+(const srInlineString& left, const srInlineString& right)
 {
     srInlineString result(left);
-    if (right.data() == 0 || *right.data() == '\0') {
+    if (right.data() == 0 || *right.data() == 0) {
         return result;
     }
 
@@ -291,7 +297,7 @@ unsigned long W8VirtualFileBinIStream::vread(void* buffer, unsigned long size)
 }
 
 /* The global opener's implicit default constructor, emitted for
-   g_virtual_file_stream_opener_65a124; it only installs the vtable. */
+   g_virtual_file_stream_opener; it only installs the vtable. */
 // SYNTHETIC: WIZ8 0x0047CB20
 // W8VirtualFileStreamOpener::W8VirtualFileStreamOpener
 
@@ -308,7 +314,7 @@ const char* W8VirtualFileStreamOpener::getDescription() const
 }
 
 // GLOBAL: WIZ8 0x0065A124
-W8VirtualFileStreamOpener g_virtual_file_stream_opener_65a124;
+W8VirtualFileStreamOpener g_virtual_file_stream_opener;
 
 // SYNTHETIC: WIZ8 0x0047CBB0
 // W8VirtualFileStreamOpener::`scalar deleting destructor'
@@ -337,6 +343,6 @@ void InitializeVirtualFileImageImporters(void)
 {
     srExtension::load("JPEGImporter", NULL);
     srExtension::load("TargaImporter", NULL);
-    srCore.getIStreamOpener()->addStreamType(&g_virtual_file_stream_opener_65a124, "jpg");
-    srCore.getIStreamOpener()->addStreamType(&g_virtual_file_stream_opener_65a124, "tga");
+    srCore.getIStreamOpener()->addStreamType(&g_virtual_file_stream_opener, "jpg");
+    srCore.getIStreamOpener()->addStreamType(&g_virtual_file_stream_opener, "tga");
 }

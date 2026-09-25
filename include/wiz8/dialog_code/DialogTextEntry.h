@@ -3,7 +3,7 @@
 #include "wiz8/local_code/ControlsRect.h"
 #include "wiz8/local_code/TextBuffer.h"
 
-extern unsigned int g_dialog_text_layout_mask_69c5d0;
+extern unsigned int g_dialog_text_layout_mask;
 
 /* Recovered role name. Constructor 0x005D1050 and the allocation in
    0x005D16C0 establish a 0x50-byte text-buffer base plus 0x14 bytes. */
@@ -15,6 +15,10 @@ public:
                       unsigned char category, unsigned int layout_mode, unsigned char shorten);
     virtual ~W8DialogTextEntry() override;
     void Draw(unsigned char force);
+    /* Retail inlines this body at the 0x005D1E80/0x005D1ED0/0x005D20A0 call
+       sites inside W8DialogTextArea and keeps the out-of-line copy at
+       0x005D14B0; see the same unresolved VC6 inlining pattern documented in
+       PC_Item.h. */
     void SetSelected(unsigned char selected);
 
 private:

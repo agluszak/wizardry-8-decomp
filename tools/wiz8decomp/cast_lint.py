@@ -39,9 +39,13 @@ New unions in recovered Wizardry and SurRender headers require a nearby
 Two accesses with different types at one offset are a reason to audit the
 record or class boundary, not positive union evidence.
 
-Suppressions for uninitialized-read diagnostics are prohibited in recovered
-source. When retail consumes an unwritten value, preserve that behavior in the
-recovered body; a compiler warning does not justify initializing or guarding it.
+Uninitialized-read suppressions (``-Wsometimes-uninitialized`` and the other
+``-W*uninitialized*`` diagnostics) are gated the same way. A retail read of an
+unwritten stack slot is an accident of VC6 frame layout, not source evidence:
+model the path deterministically. A new suppression needs a same-line
+``uninit-ok: <reason>`` comment stating why the read value itself is
+runtime-observable and semantically required; like format suppressions,
+moving one is deliberately re-reviewed.
 
 New explicit member destructor calls (``member.~Type()``/``ptr->~Type()``) in
 recovered C++ require a ``member-dtor-ok: <reason>`` comment citing positive
@@ -70,6 +74,7 @@ C_STYLE_MARKER = "c-style-cast-ok"
 FORMAT_OFF_MARKER = "format-off-ok"
 RAW_OFFSET_MARKER = "raw-offset-ok"
 UNION_MARKER = "union-ok"
+UNINIT_MARKER = "uninit-ok"
 MEMBER_DTOR_MARKER = "member-dtor-ok"
 SCOPE_PREFIXES = ("src/wiz8/", "include/wiz8/", "include/surrender/")
 MEMBER_DTOR_PREFIXES = SCOPE_PREFIXES + ("src/surrender/",)
@@ -87,6 +92,7 @@ _RAW_OFFSET_MARKER = re.compile(r"raw-offset-ok:\s*\S", re.IGNORECASE)
 _UNION = re.compile(r"^\s*(?:typedef\s+)?union\b")
 _UNION_MARKER = re.compile(r"union-ok:\s*\S", re.IGNORECASE)
 _UNINIT_SUPPRESS = re.compile(r'"-W[a-z0-9_-]*uninitialized', re.IGNORECASE)
+_UNINIT_MARKER = re.compile(r"uninit-ok:\s*\S", re.IGNORECASE)
 _MEMBER_DTOR = re.compile(r"(?:\.|->)\s*~[A-Za-z_]")
 _MEMBER_DTOR_MARKER = re.compile(r"member-dtor-ok:\s*\S", re.IGNORECASE)
 _RAW_BYTE_OFFSET = re.compile(
@@ -184,7 +190,7 @@ def baseline_diff(repository: Path) -> tuple[str, str]:
 def added_lines_without_marker(
     diff: str,
     needle: re.Pattern[str],
-    marker: re.Pattern[str] | None,
+    marker: re.Pattern[str],
     *,
     ignore_moved: bool = True,
     code_only: bool = False,
@@ -214,7 +220,7 @@ def added_lines_without_marker(
                     current
                     and current.startswith(prefixes)
                     and needle.search(scanned if code_only else content)
-                    and (marker is None or not marker.search(content))
+                    and not marker.search(content)
                 ):
                     added.append({"file": current, "line": line_number, "text": stripped[:200]})
                 new_remaining -= 1
@@ -283,7 +289,9 @@ def _added_format_off(diff: str) -> list[dict[str, Any]]:
 def _added_uninit_suppressions(diff: str) -> list[dict[str, Any]]:
     return [
         item
-        for item in added_lines_without_marker(diff, _UNINIT_SUPPRESS, None, ignore_moved=False)
+        for item in added_lines_without_marker(
+            diff, _UNINIT_SUPPRESS, _UNINIT_MARKER, ignore_moved=False
+        )
         if str(item["file"]).lower().endswith(_CPP_SUFFIXES)
     ]
 
@@ -418,11 +426,13 @@ def _unmarked_statements(
             )
         lines = sources[filename]
         index = item["line"] - 1
-        if (
-            index > 0
-            and lines[index - 1].lstrip().startswith("//")
-            and marker.search(lines[index - 1])
-        ):
+        # A marker may open a multi-line `//` comment directly above the cast.
+        above = index - 1
+        while above >= 0 and lines[above].lstrip().startswith("//"):
+            if marker.search(lines[above]):
+                break
+            above -= 1
+        if above >= 0 and lines[above].lstrip().startswith("//"):
             continue
         statement = "".join(lines[index:])
         # Skip any function/block opener before the cast on its first line.
@@ -506,9 +516,9 @@ def validate_cast_markers(repository: Path) -> dict[str, Any]:
         )
     if uninit_violations:
         errors.append(
-            "uninitialized-read diagnostic suppressions are prohibited in recovered source; "
-            "preserve evidence-backed retail behavior without a compiler pragma:\n  "
-            + _render(uninit_violations)
+            "new uninitialized-read suppressions need an 'uninit-ok: reason' comment "
+            "stating the runtime-observable consequence; model VC6 stack-slot "
+            "accidents deterministically instead:\n  " + _render(uninit_violations)
         )
     if sgp_violations:
         errors.append(
@@ -541,6 +551,7 @@ def validate_cast_markers(repository: Path) -> dict[str, Any]:
             FORMAT_OFF_MARKER,
             RAW_OFFSET_MARKER,
             UNION_MARKER,
+            UNINIT_MARKER,
             MEMBER_DTOR_MARKER,
         ],
         "scope": [*SCOPE_PREFIXES, "src/sgp/"],

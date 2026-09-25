@@ -11,7 +11,7 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/game_timer.h"
-#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator.h"
 #include "wiz8/layouts/main_game_screen.h"
 #include "wiz8/local_code/Gameloop.h"
 #include "wiz8/local_screens/MainGameScreen.h"
@@ -275,7 +275,7 @@ void CheckGameplayReadyOnGameThread(void* opaque)
     bool settled = g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
                    g_pending_screen_state.id == -1 && g_mgs_keyboard != 0 && g_level_block != 0 &&
                    !g_level_block->review_transition_done_328 &&
-                   !g_level_block->review_transition_active && g_level_data_00652dac != 0 &&
+                   !g_level_block->review_transition_active && g_level_data != 0 &&
                    !IsScreenInputBlocked() && gXStatus.world_update_blocked == 0;
     check->screen = g_current_screen_state.id;
     check->pending = g_pending_screen_state.id;
@@ -285,29 +285,27 @@ void CheckGameplayReadyOnGameThread(void* opaque)
         g_level_block != 0 ? g_level_block->review_transition_done_328 : -1;
     check->review_transition_active =
         g_level_block != 0 ? g_level_block->review_transition_active : -1;
-    check->level_data_present = g_level_data_00652dac != 0;
+    check->level_data_present = g_level_data != 0;
     check->blocked = IsScreenInputBlocked();
-    check->flags = g_level_data_00652dac != 0 ? g_level_data_00652dac->flags : 0;
+    check->flags = g_level_data != 0 ? g_level_data->flags : 0;
     check->flag4_effective = IsLevelDataFlag4EffectivelySet();
     /* GetCameraPosition dereferences the camera record unconditionally; it
        does not exist until the world does. */
     srVector3T<float> camera;
     camera.Set(0, 0, 0);
-    if (g_gd_camera_65a0f8 != 0) {
+    if (g_gd_camera != 0) {
         GetCameraPosition(&camera);
     }
     check->camera_x = camera.x;
     check->camera_y = camera.y;
     check->camera_z = camera.z;
-    check->timer_flags =
-        g_game_time_accumulator_6598bc != 0 ? g_game_time_accumulator_6598bc->m_flags : 0;
+    check->timer_flags = g_game_time_accumulator != 0 ? g_game_time_accumulator->m_flags : 0;
     check->timer_paused = g_shared_timer_paused;
     check->timer_d1 = g_shared_timer_flag_d1;
     check->timer_d2 = g_shared_timer_flag_d2;
-    check->timer_scale = g_game_time_accumulator_6598bc != 0
-                             ? g_game_time_accumulator_6598bc->GetFrameDelta()
-                             : -1.0f;
-    check->ground_latch = g_environ_ground_latch_00652db8;
+    check->timer_scale =
+        g_game_time_accumulator != 0 ? g_game_time_accumulator->GetFrameDelta() : -1.0f;
+    check->ground_latch = g_environ_ground_latch;
     check->world_update_blocked = gXStatus.world_update_blocked;
     /* flag4 is the per-frame walkable-contact bit: ApplyEnvironContact sets
        it while the party capsule touches ground and ApplyCameraMotion clears
@@ -330,12 +328,12 @@ void ReadGameplaySnapshotOnGameThread(void* opaque)
     W8CameraAngleRecord yaw, pitch;
     s->position.Set(0, 0, 0);
     s->yaw = s->input_motion = s->world_motion = 0;
-    if (g_level_data_00652dac != 0) {
+    if (g_level_data != 0) {
         GetCameraPosition(&s->position);
         GetCameraOrientation(yaw, pitch);
         s->yaw = yaw[0];
-        s->input_motion = g_level_data_00652dac->vector_40.Length();
-        s->world_motion = g_level_data_00652dac->vector_a0.Length();
+        s->input_motion = g_level_data->vector_40.Length();
+        s->world_motion = g_level_data->vector_a0.Length();
     }
     s->screen = g_current_screen_state.id;
     s->pending = g_pending_screen_state.id;
@@ -348,7 +346,7 @@ void ReadGameplaySnapshotOnGameThread(void* opaque)
     s->action_monster = g_combat_state != 0 && g_combat_state->pActionMonsterInfo != 0
                             ? g_combat_state->pActionMonsterInfo->location_id
                             : -1;
-    s->modal_owner_present = g_modal_owner_0068edd0 != 0;
+    s->modal_owner_present = g_modal_owner != 0;
     s->world_update_blocked = gXStatus.world_update_blocked;
     s->world_render_flags = g_level_block != 0 ? g_level_block->world_render_flags : 0;
     s->held_key = request->held_key;

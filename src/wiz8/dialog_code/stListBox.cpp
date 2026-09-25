@@ -17,16 +17,18 @@
 // FUNCTION: WIZ8 0x005cce70
 void W8ListBoxDialog::TextAreaButtonCallback(GUI_BUTTON* button, INT32 reason)
 {
+    W8ListBoxDialog* dialog = GetButtonUserDataPointer<W8ListBoxDialog>(button);
     if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
-        W8ListBoxDialog* dialog = GetButtonUserDataPointer<W8ListBoxDialog>(button);
         if (dialog == 0) {
             srAssertFail("pDialog", "C:\\Projects\\Wizardry 8\\Dialog Code\\stListBox.cpp", 0x2f5,
                          0);
         }
         POINT cursor;
         SGPMouseGetPos(&cursor);
-        // MATCH: retail reads this local uninitialized when the area button is absent.
-        int top;
+        /* Retail read this top edge uninitialized when the area button is
+           absent (the leftover argument slot); deterministic zero models
+           that defect path. */
+        int top = 0;
         if (dialog->m_area_button_098 != -1) {
             SGPRect area;
             GetButtonArea(dialog->m_area_button_098, &area);
@@ -35,7 +37,7 @@ void W8ListBoxDialog::TextAreaButtonCallback(GUI_BUTTON* button, INT32 reason)
         int line = (cursor.y - top) / (int)(unsigned int)GetFontHeight(g_dialog_font_64fde8) +
                    dialog->m_first_visible_line_0f0;
         if (line == dialog->m_selected_line_0f4) {
-            dialog->m_keep_open = 0;
+            dialog->m_keep_open = false;
             return;
         }
         dialog->SetCurrentLine(line);
@@ -110,7 +112,7 @@ void W8ListBoxDialog::OkButtonCallback(GUI_BUTTON* button, INT32 reason)
         }
     } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
         if (button->uiFlags & BUTTON_CLICKED_ON) {
-            dialog->m_keep_open = 0;
+            dialog->m_keep_open = false;
             button->uiFlags &= ~BUTTON_CLICKED_ON;
             dialog->m_dirty_flags |= 1;
         }
@@ -137,7 +139,7 @@ void W8ListBoxDialog::CancelButtonCallback(GUI_BUTTON* button, INT32 reason)
         }
     } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
         if (button->uiFlags & BUTTON_CLICKED_ON) {
-            dialog->m_keep_open = 0;
+            dialog->m_keep_open = false;
             dialog->SetCurrentLine(-1);
             button->uiFlags &= ~BUTTON_CLICKED_ON;
             dialog->m_dirty_flags |= 1;
@@ -154,17 +156,19 @@ void W8ListBoxDialog::CancelButtonCallback(GUI_BUTTON* button, INT32 reason)
 // FUNCTION: WIZ8 0x005cd1e0
 void W8ListBoxDialog::SliderTrackButtonCallback(GUI_BUTTON* button, INT32 reason)
 {
+    W8ListBoxDialog* dialog = GetButtonUserDataPointer<W8ListBoxDialog>(button);
     if (reason & MSYS_CALLBACK_REASON_LBUTTON_DWN) {
-        W8ListBoxDialog* dialog = GetButtonUserDataPointer<W8ListBoxDialog>(button);
         if (dialog == 0) {
             srAssertFail("pDialog", "C:\\Projects\\Wizardry 8\\Dialog Code\\stListBox.cpp", 0x398,
                          0);
         }
         POINT cursor;
         SGPMouseGetPos(&cursor);
-        // MATCH: retail reads these locals uninitialized when the text-area button is absent.
-        int top;
-        int bottom;
+        /* Retail read both track edges uninitialized when the text-area
+           button is absent (the leftover argument slots); deterministic
+           zeroes model that defect path. */
+        int top = 0;
+        int bottom = 0;
         if (dialog->m_third_text_button_0b8 != -1) {
             SGPRect area;
             GetButtonArea(dialog->m_third_text_button_0b8, &area);

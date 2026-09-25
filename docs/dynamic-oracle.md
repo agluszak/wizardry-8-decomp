@@ -125,7 +125,7 @@ Event streams say the same code ran; they do not say the world looks the same. E
 also declare a set of *state probes* - scalar words read through reviewed `// GLOBAL:` objects - and
 the breakpoint at the terminal event prints them once as `STATE` lines. `load` fingerprints the
 screen state (current and pending `W8ScreenStateRuntime` words) and the camera placement
-(yaw/pitch/position) through `g_gd_camera_65a0f8`, read through a null check so an unset object
+(yaw/pitch/position) through `g_gd_camera`, read through a null check so an unset object
 reports `missing` rather than faulting the inferior.
 
 Two rules keep the fingerprint meaningful. It compares state, never addresses: pointer-bearing

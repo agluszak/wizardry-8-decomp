@@ -55,10 +55,10 @@ public:
     virtual void StartIfHostActive(); /* 0x004ABDC0 */
     /* Search backward from a subcycle for the first cycle this visual
        supports; returns -1 when none does. */
-    virtual int FindSupportedCycle004AC530(signed char group, signed char subcycle);
+    virtual int FindSupportedCycle(signed char group, signed char subcycle);
     /* Kind-indexed query over the emitter host's current state; only ever
        called with kind 7 by StartIfHostActive. */
-    int QueryHostStateByKind004AC8F0(int kind);
+    int QueryHostStateByKind(int kind);
 
     /* Selects the update mode and the cycle group the resource loader
        matches shared visuals by. */
@@ -69,7 +69,7 @@ public:
        the owning effect releases it; the world updater deletes a finished
        visual as soon as auto_release also permits it. */
     bool finished; /* 0x1e4 */
-    unsigned char flag_1e5;
+    bool flag_1e5;
     /* Held at 0 while a spell effect owns the visual; the releasing pass in
        Local Code\Magic.cpp sets it back to 1, which lets
        UpdateWorldSpellVisuals delete a finished visual. */
@@ -91,7 +91,7 @@ inline W8SpellVisual::W8SpellVisual(const W8SpellVisual& other) : W8GrCycle(othe
 {
     mode_1d8 = other.mode_1d8;
     finished = 0;
-    flag_1e5 = 0;
+    flag_1e5 = false;
     auto_release = other.auto_release;
     fixed_transform = other.fixed_transform;
     scale_1e8 = other.scale_1e8;

@@ -8,7 +8,7 @@
 class W8Prop;
 class Trigger;
 struct W8PathAI;
-extern unsigned int g_light_update_flags_0060bfdc;
+extern unsigned int g_light_update_flags;
 
 class stLightDefinition {
 public:
@@ -21,14 +21,16 @@ public:
 
 static_assert(sizeof(stLightDefinition) == 0x8, "stLightDefinition_size_must_be_0x8");
 
+/* Type 1: a light animated from parameters (flicker chance, colour and
+   intensity ranges, period and rate) over a subcycle window. */
 // VTABLE: WIZ8 0x005ecdbc
-class stLightDefinition005ECDBC : public stLightDefinition {
+class stParametricLightDefinition : public stLightDefinition {
 public:
-    stLightDefinition005ECDBC()
+    stParametricLightDefinition()
     {
         type_04 = 1;
     }
-    stLightDefinition005ECDBC(const stLightDefinition005ECDBC& other)
+    stParametricLightDefinition(const stParametricLightDefinition& other)
     {
         type_04 = 1;
         flags_08 = other.flags_08;
@@ -49,7 +51,7 @@ public:
     // FUNCTION: WIZ8 0x004A2140
     virtual stLightDefinition* Clone() const override
     {
-        return new stLightDefinition005ECDBC(*this);
+        return new stParametricLightDefinition(*this);
     }
 
     // FUNCTION: WIZ8 0x004A21E0
@@ -82,41 +84,42 @@ public:
     int subcycle_max_40;
 };
 
-static_assert(sizeof(stLightDefinition005ECDBC) == 0x44,
-              "stLightDefinition005ECDBC_size_must_be_0x44");
-static_assert(offsetof(stLightDefinition005ECDBC, flags_08) == 0x08,
-              "stLightDefinition005ECDBC_flags_08");
-static_assert(offsetof(stLightDefinition005ECDBC, flicker_chance_0c) == 0x0c,
-              "stLightDefinition005ECDBC_flicker_chance_0c");
-static_assert(offsetof(stLightDefinition005ECDBC, color_10) == 0x10,
-              "stLightDefinition005ECDBC_color_10");
-static_assert(offsetof(stLightDefinition005ECDBC, color_to_1c) == 0x1c,
-              "stLightDefinition005ECDBC_color_to_1c");
-static_assert(offsetof(stLightDefinition005ECDBC, intensity_28) == 0x28,
-              "stLightDefinition005ECDBC_intensity_28");
-static_assert(offsetof(stLightDefinition005ECDBC, intensity_to_2c) == 0x2c,
-              "stLightDefinition005ECDBC_intensity_to_2c");
-static_assert(offsetof(stLightDefinition005ECDBC, period_30) == 0x30,
-              "stLightDefinition005ECDBC_period_30");
-static_assert(offsetof(stLightDefinition005ECDBC, rate_34) == 0x34,
-              "stLightDefinition005ECDBC_rate_34");
-static_assert(offsetof(stLightDefinition005ECDBC, path_speed_38) == 0x38,
-              "stLightDefinition005ECDBC_path_speed_38");
-static_assert(offsetof(stLightDefinition005ECDBC, subcycle_min_3c) == 0x3c,
-              "stLightDefinition005ECDBC_subcycle_min_3c");
-static_assert(offsetof(stLightDefinition005ECDBC, subcycle_max_40) == 0x40,
-              "stLightDefinition005ECDBC_subcycle_max_40");
+static_assert(sizeof(stParametricLightDefinition) == 0x44,
+              "stParametricLightDefinition_size_must_be_0x44");
+static_assert(offsetof(stParametricLightDefinition, flags_08) == 0x08,
+              "stParametricLightDefinition_flags_08");
+static_assert(offsetof(stParametricLightDefinition, flicker_chance_0c) == 0x0c,
+              "stParametricLightDefinition_flicker_chance_0c");
+static_assert(offsetof(stParametricLightDefinition, color_10) == 0x10,
+              "stParametricLightDefinition_color_10");
+static_assert(offsetof(stParametricLightDefinition, color_to_1c) == 0x1c,
+              "stParametricLightDefinition_color_to_1c");
+static_assert(offsetof(stParametricLightDefinition, intensity_28) == 0x28,
+              "stParametricLightDefinition_intensity_28");
+static_assert(offsetof(stParametricLightDefinition, intensity_to_2c) == 0x2c,
+              "stParametricLightDefinition_intensity_to_2c");
+static_assert(offsetof(stParametricLightDefinition, period_30) == 0x30,
+              "stParametricLightDefinition_period_30");
+static_assert(offsetof(stParametricLightDefinition, rate_34) == 0x34,
+              "stParametricLightDefinition_rate_34");
+static_assert(offsetof(stParametricLightDefinition, path_speed_38) == 0x38,
+              "stParametricLightDefinition_path_speed_38");
+static_assert(offsetof(stParametricLightDefinition, subcycle_min_3c) == 0x3c,
+              "stParametricLightDefinition_subcycle_min_3c");
+static_assert(offsetof(stParametricLightDefinition, subcycle_max_40) == 0x40,
+              "stParametricLightDefinition_subcycle_max_40");
 
+/* Type 2: a light driven by keyframe tables stepped by keyframe_index_48. */
 // VTABLE: WIZ8 0x005ecda0
-class stLightDefinition005ECDA0 : public stLightDefinition {
+class stKeyframedLightDefinition : public stLightDefinition {
 public:
-    stLightDefinition005ECDA0()
+    stKeyframedLightDefinition()
         : values_08(5), values_18(5), values_28(5), values_38(5), keyframe_index_48(0),
           time_4c(0.0f)
     {
         type_04 = 2;
     }
-    virtual ~stLightDefinition005ECDA0() override;
+    virtual ~stKeyframedLightDefinition() override;
     virtual stLightDefinition* Clone() const override;
     virtual bool IsEnabledForSubcycle(unsigned char subcycle) override;
 
@@ -130,24 +133,24 @@ public:
     float end_frame_54;
 };
 
-static_assert(sizeof(stLightDefinition005ECDA0) == 0x58,
-              "stLightDefinition005ECDA0_size_must_be_0x58");
-static_assert(offsetof(stLightDefinition005ECDA0, values_08) == 0x08,
-              "stLightDefinition005ECDA0_values_08");
-static_assert(offsetof(stLightDefinition005ECDA0, values_18) == 0x18,
-              "stLightDefinition005ECDA0_values_18");
-static_assert(offsetof(stLightDefinition005ECDA0, values_28) == 0x28,
-              "stLightDefinition005ECDA0_values_28");
-static_assert(offsetof(stLightDefinition005ECDA0, values_38) == 0x38,
-              "stLightDefinition005ECDA0_values_38");
-static_assert(offsetof(stLightDefinition005ECDA0, keyframe_index_48) == 0x48,
-              "stLightDefinition005ECDA0_keyframe_index_48");
-static_assert(offsetof(stLightDefinition005ECDA0, time_4c) == 0x4c,
-              "stLightDefinition005ECDA0_time_4c");
-static_assert(offsetof(stLightDefinition005ECDA0, start_frame_50) == 0x50,
-              "stLightDefinition005ECDA0_start_frame_50");
-static_assert(offsetof(stLightDefinition005ECDA0, end_frame_54) == 0x54,
-              "stLightDefinition005ECDA0_end_frame_54");
+static_assert(sizeof(stKeyframedLightDefinition) == 0x58,
+              "stKeyframedLightDefinition_size_must_be_0x58");
+static_assert(offsetof(stKeyframedLightDefinition, values_08) == 0x08,
+              "stKeyframedLightDefinition_values_08");
+static_assert(offsetof(stKeyframedLightDefinition, values_18) == 0x18,
+              "stKeyframedLightDefinition_values_18");
+static_assert(offsetof(stKeyframedLightDefinition, values_28) == 0x28,
+              "stKeyframedLightDefinition_values_28");
+static_assert(offsetof(stKeyframedLightDefinition, values_38) == 0x38,
+              "stKeyframedLightDefinition_values_38");
+static_assert(offsetof(stKeyframedLightDefinition, keyframe_index_48) == 0x48,
+              "stKeyframedLightDefinition_keyframe_index_48");
+static_assert(offsetof(stKeyframedLightDefinition, time_4c) == 0x4c,
+              "stKeyframedLightDefinition_time_4c");
+static_assert(offsetof(stKeyframedLightDefinition, start_frame_50) == 0x50,
+              "stKeyframedLightDefinition_start_frame_50");
+static_assert(offsetof(stKeyframedLightDefinition, end_frame_54) == 0x54,
+              "stKeyframedLightDefinition_end_frame_54");
 
 /*
  * stLight owns the 0x10006 registry identity, so the class that supplies it -
@@ -187,7 +190,7 @@ public:
     virtual void process(const srNode::ProcessInfo& info,
                          srNode::e_processType type) override; /* 0x0049C8D0 */
     void Reset0049D070();                                      /* 0x0049D070 */
-    void SetDefinitionTime0049C940(float time);                /* 0x0049C940 */
+    void SetDefinitionTime(float time);                        /* 0x0049C940 */
     void Update0049C960();                                     /* 0x0049C960 */
 
     float positionalX() const
@@ -214,6 +217,9 @@ public:
     }
 
 public:
+    /* One value, not three floats: 0x0049C690 copies it through the base-pointer
+       form VC6 emits for a class type's memberwise assignment, not through three
+       independent displacement loads. */
     srVector3T<float> m_position_228;    /* 0x228 */
     stLightDefinition* m_definition_234; /* 0x234: owned */
     unsigned char m_padding_238;         /* 0x238 */
@@ -239,5 +245,5 @@ public:
 
 static_assert(sizeof(stLight) == 0x258, "stLight_must_be_0x258");
 
-void SaveLightStates0049D120(int handle);
-void LoadLightStates0049D390(int handle);
+void SaveLightStates(int handle);
+void LoadLightStates(int handle);

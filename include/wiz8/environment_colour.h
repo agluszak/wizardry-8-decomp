@@ -1,6 +1,8 @@
 #pragma once
 
-/* RGB triple stored by the world environment. */
+/* The RGB triple the world environment carries. Its two out-of-line methods
+   are recovered in AutomapScreen.cpp (0x005806B0, 0x00580940); the default
+   constructor and assignment operator are header-emitted. */
 struct EnvironmentColour {
     EnvironmentColour() {}
     EnvironmentColour(double red_value, double green_value, double blue_value);

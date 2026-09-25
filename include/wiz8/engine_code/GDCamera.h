@@ -13,7 +13,7 @@ static_assert(sizeof(srMatrix3T<float>) == 0x24, "srMatrix3T_float_must_be_0x24"
 /* Reconstructed owner with unproven TU identity. The cluster 0x476140-
    0x478EB0 sits in the gap between stMeshModel.cpp and AmbientSound.cpp and
    is NOT Engine Code\Camera.cpp - that TU's only anchor is
-   UpdateCameraPathState0048F2F0 at 0x0048F2F0. GameData.cpp's original
+   UpdateCameraPathState at 0x0048F2F0. GameData.cpp's original
    `gpGDCamera` assertion identifies the owner allocated at 0x0065A0F8; its
    constructor allocation proves the complete 0xC0-byte extent. Positional
    members remain named by offset until consumers establish their original
@@ -72,27 +72,26 @@ public:
     W8IntervalGate* m_manual_input_timer; /* 0x0bc */
 };
 
-extern GDCamera* g_gd_camera_65a0f8;
-extern srCamera* g_game_camera_65a0fc;
+extern GDCamera* g_gd_camera;
+extern srCamera* g_game_camera;
 
 void GetCameraForwardPoint00421100(float distance, srVector3T<float>* output);
 void GetCameraForwardPoint00421150(float distance, srVector3T<float>* output);
 /* 0x00421170: accumulate `distance` along +Z, rotated by yaw and pitch, into
    `position`. */
-void OffsetPositionByYawPitch00421170(float distance, srVector3T<float>* position, float yaw,
-                                      float pitch);
+void OffsetPositionByYawPitch(float distance, srVector3T<float>* position, float yaw, float pitch);
 /* Elevation/heading of the direction from `position` to the camera, in
    radians; the homing missile tick faces its representation with them. */
 /* ElevationToTargetCPP and HeadingToTargetCPP are declared in
    wiz8/engine_code/PolyPick.h. */
-extern float g_camera_level_forward_scale_603aac;
-extern float g_camera_max_yaw_velocity_609ea4;
-extern const float g_negative_one_005ebc38;
-extern const double g_camera_pi_005ec2a0;
-extern const float g_camera_transition_epsilon_005ebc84;
-extern float g_camera_default_forward_scale_603ab0;
-extern float g_camera_forward_scale_603ab4;
+extern float g_camera_level_forward_scale;
+extern float g_camera_max_yaw_velocity;
+extern const float g_negative_one;
+extern const double g_camera_pi;
+extern const float g_camera_transition_epsilon;
+extern float g_camera_default_forward_scale;
+extern float g_camera_forward_scale;
 
 static_assert(sizeof(GDCamera) == 0xc0, "GDCamera_must_be_0xc0");
 
-bool IsCameraTransitionActive00420E10(void);
+bool IsCameraTransitionActive(void);

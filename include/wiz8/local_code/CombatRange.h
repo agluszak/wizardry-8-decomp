@@ -13,7 +13,7 @@ class W8Monster;
 
 /* Local Code\Combat Range.cpp: the party's own world position and the trace
    wrapper that decides whether a line of sight counts as unobstructed. */
-unsigned char TraceModeRejectsNoHit0051B3F0(int mode);
+unsigned char TraceModeRejectsNoHit(int mode);
 
 /* How many formation rows between `party_slot` and the monster block a short
    reach: zero when they share a row, otherwise occupants ahead of the monster
@@ -74,7 +74,7 @@ W8RangeCategory GetBestMonsterAttackRange(const W8MonsterRecord* record, char cl
 float CalcRangeDistance(W8RangeCategory range_category);
 /* Same band steps as CalcRangeDistance, then add the party navigator's
    movement collision_radius_0b0 (camera/party radius offset used by the world cursor). */
-float CalcRangeDistanceFromParty0051AB50(W8RangeCategory range_category);
+float CalcRangeDistanceFromParty(W8RangeCategory range_category);
 /* 0x0051A730: the range category one monster action works at. */
 W8RangeCategory GetMonsterActionRangeCategory(const W8MonsterInfo* monster_info,
                                               const W8MonsterRecord* record, unsigned int attack);

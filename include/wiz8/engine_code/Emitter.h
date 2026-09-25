@@ -17,7 +17,7 @@ class srModelInstance;
 
 /* The 0x005ED058 table adds three pure emitter operations to the two-slot
    AnimRep hierarchy.  Concrete missile and spell hosts supply those slots. */
-class W8EmitterHost : public W8AnimRep005ED050 {
+class W8EmitterHost : public W8AnimRep {
 public:
     W8EmitterHost();
     W8EmitterHost(const W8EmitterHost& other);
@@ -27,9 +27,9 @@ public:
     virtual srModelInstance* SetCycleFrameLod(signed char cycle, signed char frame,
                                               signed char lod) = 0;
     virtual unsigned int ApplyEmitterSetting(signed char emitter) = 0;
-    /* Not a stop: both overrides tail-return AnimObjEntry004A1660's result,
+    /* Not a stop: both overrides tail-return AnimObjEntry's result,
        and GrCycle's 0x004A7470 hands that result straight to
-       AniMeshSetFlag10004B6860, which types it. */
+       AniMeshSetFlag10, which types it. */
     virtual W8AniMesh* GetEmitterAniMesh(signed char emitter) = 0;
 
     /* 0x6c: the host is live; the spell side checks it before starting. */

@@ -26,21 +26,21 @@ static void ReadCharacterFlowOnGameThread(void* opaque)
     memset(state, 0, sizeof(*state));
     state->current = g_current_screen_state.id;
     state->pending = g_pending_screen_state.id;
-    state->party_selection_set = (int)g_party_selection_character_region_set_69c4f0;
+    state->party_selection_set = (int)g_party_selection_character_region_set;
     state->party_selection_ready = state->current == W8_SCREEN_PARTY_SELECTION &&
                                    state->pending == -1 && state->party_selection_set != 0 &&
                                    state->party_selection_set < (int)g_region_set_count &&
                                    g_region_sets[state->party_selection_set].enabled != 0;
-    state->left_action_set = (int)g_party_selection_left_action_region_set_69c504;
-    state->bottom_action_set = (int)g_party_selection_bottom_action_region_set_69c508;
+    state->left_action_set = (int)g_party_selection_left_action_region_set;
+    state->bottom_action_set = (int)g_party_selection_bottom_action_region_set;
     state->transition_objects = HasScreenTransitionObjects() ? 1 : 0;
     state->active_characters = CountActiveCharacters();
     state->captured_region = g_captured_region_index;
     state->intro_index = g_intro_video_index;
-    state->skip_loose_check = g_status_685170.skip_loose_character_check_2444;
-    state->wiz7_ending = g_wiz7_ending_68de50;
+    state->skip_loose_check = g_status.skip_loose_character_check_2444;
+    state->wiz7_ending = g_wiz7_ending;
 
-    W8CharacterScreen* screen = g_character_screen_0069c2e8;
+    W8CharacterScreen* screen = g_character_screen;
     state->character_screen_present = screen != 0;
     if (screen == 0) {
         return;
@@ -49,9 +49,9 @@ static void ReadCharacterFlowOnGameThread(void* opaque)
     for (int page = 0; page < 4; ++page) {
         state->page_present[page] = screen->m_pages_1b0c[page] != 0;
     }
-    state->stats_set_enabled = g_character_stats_region_set_0069c550 != 0 &&
-                               g_character_stats_region_set_0069c550 < g_region_set_count &&
-                               g_region_sets[g_character_stats_region_set_0069c550].enabled != 0;
+    state->stats_set_enabled = g_character_stats_region_set != 0 &&
+                               g_character_stats_region_set < g_region_set_count &&
+                               g_region_sets[g_character_stats_region_set].enabled != 0;
     state->dialog_present = screen->m_dialog_1b1c != 0;
     memcpy(state->name, screen->m_character_018.name, sizeof(state->name));
     memcpy(state->name_part_2, screen->m_character_018.name_part_2, sizeof(state->name_part_2));
@@ -60,8 +60,7 @@ static void ReadCharacterFlowOnGameThread(void* opaque)
     state->attributes_complete = creation->attributes_complete ? 1 : 0;
     state->skills_complete = creation->skills_complete ? 1 : 0;
 
-    W8CharacterPage005EF778* stats_page =
-        static_cast<W8CharacterPage005EF778*>(screen->m_pages_1b0c[0]);
+    W8CharacterStatsPage* stats_page = static_cast<W8CharacterStatsPage*>(screen->m_pages_1b0c[0]);
     if (state->page_present[0] && stats_page != 0) {
         state->profession_index = stats_page->m_profession_row_07c != 0
                                       ? stats_page->m_profession_row_07c->m_index_004
@@ -88,8 +87,8 @@ static void ReadCharacterFlowOnGameThread(void* opaque)
         state->stat_entries_enabled = state->stat_count > 0 && state->stat_entries[0].enabled;
     }
 
-    W8CharacterPage005EF5C8* skills_page =
-        static_cast<W8CharacterPage005EF5C8*>(screen->m_pages_1b0c[2]);
+    W8CharacterSkillsPage* skills_page =
+        static_cast<W8CharacterSkillsPage*>(screen->m_pages_1b0c[2]);
     if (state->page_present[2] && skills_page != 0) {
         state->skill_count = skills_page->m_entries_04c.count;
         if (state->skill_count > 16) {
@@ -108,8 +107,8 @@ static void ReadCharacterFlowOnGameThread(void* opaque)
         }
     }
 
-    W8CharacterPage005EF57C* final_page =
-        static_cast<W8CharacterPage005EF57C*>(screen->m_pages_1b0c[3]);
+    W8CharacterPersonalityPage* final_page =
+        static_cast<W8CharacterPersonalityPage*>(screen->m_pages_1b0c[3]);
     if (state->page_present[3] && final_page != 0) {
         state->final_prepared = final_page->m_prepared_06c != 0;
     }
@@ -119,7 +118,7 @@ static void ReadCharacterFlowOnGameThread(void* opaque)
    region is not currently registered. */
 static int FlowRegionForTarget(int target, int index)
 {
-    W8CharacterScreen* screen = g_character_screen_0069c2e8;
+    W8CharacterScreen* screen = g_character_screen;
     W8TextControl* control = 0;
     unsigned int region_set = 0;
     int help_text_id = 0;
@@ -131,7 +130,7 @@ static int FlowRegionForTarget(int target, int index)
         /* New Game is the second live menu region. */
         return (int)g_region_sets[1].first_region + 1;
     case FLOW_TARGET_CREATE_CHARACTER:
-        region_set = g_party_selection_left_action_region_set_69c504;
+        region_set = g_party_selection_left_action_region_set;
         if (region_set == 0 || region_set >= g_region_set_count) {
             return -1;
         }
@@ -153,8 +152,8 @@ static int FlowRegionForTarget(int target, int index)
     }
     if (target == FLOW_TARGET_PROFESSION_NEXT || target == FLOW_TARGET_RACE_NEXT ||
         target == FLOW_TARGET_GENDER_NEXT || target == FLOW_TARGET_STAT_INCREMENT) {
-        W8CharacterPage005EF778* stats_page =
-            static_cast<W8CharacterPage005EF778*>(screen->m_pages_1b0c[0]);
+        W8CharacterStatsPage* stats_page =
+            static_cast<W8CharacterStatsPage*>(screen->m_pages_1b0c[0]);
         if (stats_page == 0) {
             return -1;
         }
@@ -176,8 +175,8 @@ static int FlowRegionForTarget(int target, int index)
         return control != 0 ? control->m_region : -1;
     }
     if (target == FLOW_TARGET_SKILL_INCREMENT || target == FLOW_TARGET_SKILL_HELP) {
-        W8CharacterPage005EF5C8* skills_page =
-            static_cast<W8CharacterPage005EF5C8*>(screen->m_pages_1b0c[2]);
+        W8CharacterSkillsPage* skills_page =
+            static_cast<W8CharacterSkillsPage*>(screen->m_pages_1b0c[2]);
         if (skills_page == 0 || index < 0 || index >= skills_page->m_entries_04c.count ||
             skills_page->m_entries_04c.data[index] == 0) {
             return -1;
@@ -192,10 +191,10 @@ static int FlowRegionForTarget(int target, int index)
         return control != 0 ? control->m_region : -1;
     }
     if (target == FLOW_TARGET_VOICE_SAMPLE) {
-        region_set = g_character_page4_region_set_0069c52c;
+        region_set = g_character_page4_region_set;
         help_text_id = 0xf5;
     } else if (target == FLOW_TARGET_START_PARTY) {
-        region_set = g_party_selection_bottom_action_region_set_69c508;
+        region_set = g_party_selection_bottom_action_region_set;
         help_text_id = 0x6cb;
     } else {
         return -1;

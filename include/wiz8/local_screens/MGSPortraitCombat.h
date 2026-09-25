@@ -32,27 +32,27 @@ enum W8SubMenuEntryState {
 
 /* Owned globals: the icon paths, button positions and (menu, item)-keyed
    entry message/help tables emitted by this translation unit. */
-extern const char g_submenu_icons_path_64c238[];
-extern const char g_submenu_combat_icons_path_64c260[];
-extern const char g_options_disk_path_64c388[];
-extern const char g_attack_confirm_path_64c3b8[];
-extern const char g_combat_stop_path_64c3e0[];
-extern const char g_cont_start_path_64c404[];
-extern const char g_cont_toggle_path_64c428[];
-extern const char g_cont_pending_path_64c44c[];
-extern const char g_roof_buttons_path_64c4a0[];
-extern const char g_layout_arrows_path_64c4e8[];
-extern const int g_submenu_button_positions_64c290[9][2];
-extern const int g_scroll_button_positions_64c330[2][2];
-extern const int g_submenu_panel_button_positions_64c378[2][2];
-extern const int g_options_disk_position_64c3b0[2];
-extern const int g_combat_stance_positions_64c478[5][2];
-extern const int g_roof_button_positions_64c4d0[3][2];
-extern const int g_layout_arrow_positions_64c518[6][2];
+extern const char g_submenu_icons_path[];
+extern const char g_submenu_combat_icons_path[];
+extern const char g_options_disk_path[];
+extern const char g_attack_confirm_path[];
+extern const char g_combat_stop_path[];
+extern const char g_cont_start_path[];
+extern const char g_cont_toggle_path[];
+extern const char g_cont_pending_path[];
+extern const char g_roof_buttons_path[];
+extern const char g_layout_arrows_path[];
+extern const int g_submenu_button_positions[9][2];
+extern const int g_scroll_button_positions[2][2];
+extern const int g_submenu_panel_button_positions[2][2];
+extern const int g_options_disk_position[2];
+extern const int g_combat_stance_positions[5][2];
+extern const int g_roof_button_positions[3][2];
+extern const int g_layout_arrow_positions[6][2];
 /* The (menu, item) keyed entry message/help indexes both menus build rows
    from; the keyboard menu shares them. */
-extern const short g_submenu_entry_message_ids_64c548[25];
-extern const int g_submenu_entry_help_ids_64c57c[25];
+extern const short g_submenu_entry_message_ids[25];
+extern const int g_submenu_entry_help_ids[25];
 
 /* Create the nine-button bank and keep its state flag clear. */
 unsigned char CreateSubMenuButtons(void); /* 0x00594AF0 */

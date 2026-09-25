@@ -25,7 +25,7 @@
 
 /* Level Specific Code\MtGigas2.cpp (level 0x0d).
 
-   Attribution evidence: InitializeLevelMasterFunctions004D6C50 runs
+   Attribution evidence: InitializeLevelMasterFunctions runs
    0x004DB200 and registers 0x004DB380-0x004DBA90 under case 0x0d, and the
    range sits between the Trynnie1 TU and the MtGigasOuter TU which starts
    at 0x004DBE70. The UmpaniAlarm master at 0x004DB860 is the same shape as
@@ -36,15 +36,15 @@ stSound3D* g_alarm_sound_6834e8;
 // GLOBAL: WIZ8 0x006834ec
 W8IntervalGate* g_alarm_gate_6834ec;
 
-static void MtGigas2WireShock004DB530(void);
-void MtGigas2UmpaniAlarm004DB860(int command);
+static void MtGigas2WireShock(void);
+void MtGigas2UmpaniAlarm(int command);
 
 /* Level-load restore. Recreates the wire-panel location variable (armed but
    untouched reads back -1), re-runs the three wire triggers when the panel
    was already solved, restarts a saved UmpaniAlarm countdown, and moves the
    Sergeant Rubble NPC to his covert when the rubble teleport was pending. */
 // FUNCTION: WIZ8 0x004DB200
-void MtGigas2Setup004DB200(void)
+void MtGigas2Setup(void)
 {
     Trigger* pTrigger;
 
@@ -69,7 +69,7 @@ void MtGigas2Setup004DB200(void)
     if (GetLocationVarIDByName("UmpaniAlarm") != -1) {
         int alarm = GetLocationVarValueByName("UmpaniAlarm");
         if (alarm != 0) {
-            MtGigas2UmpaniAlarm004DB860(alarm);
+            MtGigas2UmpaniAlarm(alarm);
         }
     }
     if (GetFact(0x89) == 0 && GetLocationVarIDByName("CODESgtRubbleTeleport") != -1 &&
@@ -78,7 +78,7 @@ void MtGigas2Setup004DB200(void)
         W8MonsterInfo* info;
         srVector3T<float> position;
 
-        SetTriggerVariableByName00444030("CODESgtRubbleTeleport", 1);
+        SetTriggerVariableByName("CODESgtRubbleTeleport", 1);
         pTrigger = FindTriggerByName("door08");
         if (pTrigger != 0) {
             pTrigger->Run(-1);
@@ -98,7 +98,7 @@ void MtGigas2Setup004DB200(void)
    with the held item, and accepts the 0x269/0x26c wire items to arm the
    panel (value 0) when it was still untouched (-1). */
 // FUNCTION: WIZ8 0x004DB380
-bool MtGigas2Train004DB380(Trigger* pTrigger)
+bool MtGigas2Train(Trigger* pTrigger)
 {
     W8NpcState* npc;
     W8ItemInstance* item;
@@ -111,12 +111,12 @@ bool MtGigas2Train004DB380(Trigger* pTrigger)
     npc = GetNpcStateByKind(0x5b);
     item = 0;
     item_id = 0;
-    if (g_status_685170.item_in_cursor != 0) {
-        item = &g_status_685170.item_in_hand_235b;
+    if (g_status.item_in_cursor != 0) {
+        item = &g_status.item_in_hand_235b;
         item_id = GetItemInHand();
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     value = GetLocationVarValueByName("WirePanel");
     if (value == 3) {
         return false;
@@ -124,7 +124,7 @@ bool MtGigas2Train004DB380(Trigger* pTrigger)
     if (item_id == 0x269 || item_id == 0x26c) {
         SoundPlay("Data\\Sound\\Ambients\\Electricity 01.wav", 0);
         if (value == -1) {
-            SetTriggerVariableByName00444030("WirePanel", 0);
+            SetTriggerVariableByName("WirePanel", 0);
             return true;
         }
     }
@@ -134,44 +134,44 @@ bool MtGigas2Train004DB380(Trigger* pTrigger)
 /* Activation callback on redwire: the first wire moves the panel from 0 to
    1; any other order shocks the party. */
 // FUNCTION: WIZ8 0x004DB420
-bool MtGigas2RedWire004DB420(Trigger* pTrigger)
+bool MtGigas2RedWire(Trigger* pTrigger)
 {
     int value = GetLocationVarValueByName("WirePanel");
 
     if (value == 3) {
         return true;
     }
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     if (value != 0) {
-        MtGigas2WireShock004DB530();
+        MtGigas2WireShock();
         return false;
     }
-    SetTriggerVariableByName00444030("WirePanel", 1);
+    SetTriggerVariableByName("WirePanel", 1);
     return true;
 }
 
 /* Activation callback on bluewire: valid only as the second wire (1 -> 2). */
 // FUNCTION: WIZ8 0x004DB460
-bool MtGigas2BlueWire004DB460(Trigger* pTrigger)
+bool MtGigas2BlueWire(Trigger* pTrigger)
 {
     int value = GetLocationVarValueByName("WirePanel");
 
     if (value == 3) {
         return true;
     }
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     if (value != 1) {
-        MtGigas2WireShock004DB530();
+        MtGigas2WireShock();
         return false;
     }
-    SetTriggerVariableByName00444030("WirePanel", 2);
+    SetTriggerVariableByName("WirePanel", 2);
     return true;
 }
 
 /* Activation callback on yellowwire: valid only as the last wire (2 -> 3);
    on success it latches fact 0xa7 and re-arms all three wire triggers. */
 // FUNCTION: WIZ8 0x004DB4A0
-bool MtGigas2YellowWire004DB4A0(Trigger* pTrigger)
+bool MtGigas2YellowWire(Trigger* pTrigger)
 {
     int value = GetLocationVarValueByName("WirePanel");
     Trigger* wire;
@@ -179,13 +179,13 @@ bool MtGigas2YellowWire004DB4A0(Trigger* pTrigger)
     if (value == 3) {
         return true;
     }
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     if (value != 2) {
-        MtGigas2WireShock004DB530();
+        MtGigas2WireShock();
         return false;
     }
     SetFact(0xa7, 1, 0);
-    SetTriggerVariableByName00444030("WirePanel", 3);
+    SetTriggerVariableByName("WirePanel", 3);
     pTrigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
     wire = FindTriggerByName("redwire");
     if (wire != 0) {
@@ -202,13 +202,13 @@ bool MtGigas2YellowWire004DB4A0(Trigger* pTrigger)
    rolls 2d4+1 electric damage into the party with the spark sound. The third
    wire prop is looked up under the misspelled name "yellowire". */
 // FUNCTION: WIZ8 0x004DB530
-static void MtGigas2WireShock004DB530(void)
+static void MtGigas2WireShock(void)
 {
     Trigger* pTrigger;
     W8Prop* prop;
     W8Dice dice;
 
-    SetTriggerVariableByName00444030("WirePanel", 0);
+    SetTriggerVariableByName("WirePanel", 0);
     prop = 0;
     pTrigger = FindTriggerByName("redwire");
     if (pTrigger != 0) {
@@ -251,7 +251,7 @@ static void MtGigas2WireShock004DB530(void)
 /* Activation callback on _VOC_EWAXXLIFT3: queues the lift NPC notice with
    the held item, if any. */
 // FUNCTION: WIZ8 0x004DB650
-bool MtGigas2Lift3004DB650(Trigger* pTrigger)
+bool MtGigas2Lift3(Trigger* pTrigger)
 {
     if (gXStatus.fNpcDialogueMode != 0) {
         return false;
@@ -259,18 +259,18 @@ bool MtGigas2Lift3004DB650(Trigger* pTrigger)
     W8NpcState* npc = GetNpcStateByKind(0x5c);
     W8ItemInstance* item = 0;
 
-    if (g_status_685170.item_in_cursor != 0) {
-        item = &g_status_685170.item_in_hand_235b;
+    if (g_status.item_in_cursor != 0) {
+        item = &g_status.item_in_hand_235b;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     return false;
 }
 
 /* Activation callback on _VOC_EWAXXTOPDOOR1: queues the top-door NPC notice
    with the held item, if any. */
 // FUNCTION: WIZ8 0x004DB690
-bool MtGigas2TopDoor1004DB690(Trigger* pTrigger)
+bool MtGigas2TopDoor1(Trigger* pTrigger)
 {
     if (gXStatus.fNpcDialogueMode != 0) {
         return false;
@@ -278,11 +278,11 @@ bool MtGigas2TopDoor1004DB690(Trigger* pTrigger)
     W8NpcState* npc = GetNpcStateByKind(0x5f);
     W8ItemInstance* item = 0;
 
-    if (g_status_685170.item_in_cursor != 0) {
-        item = &g_status_685170.item_in_hand_235b;
+    if (g_status.item_in_cursor != 0) {
+        item = &g_status.item_in_hand_235b;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     return false;
 }
 
@@ -290,7 +290,7 @@ bool MtGigas2TopDoor1004DB690(Trigger* pTrigger)
    set, runs Door19 and clears the bit; otherwise queues the officer NPC
    notice with the held item. */
 // FUNCTION: WIZ8 0x004DB6D0
-bool MtGigas2Officer1004DB6D0(Trigger* pTrigger)
+bool MtGigas2Officer1(Trigger* pTrigger)
 {
     int doors;
     W8NpcState* npc;
@@ -307,16 +307,16 @@ bool MtGigas2Officer1004DB6D0(Trigger* pTrigger)
         Trigger* door = FindTriggerByName("Door19");
         door->Run(-1);
         doors--;
-        SetTriggerVariableByName00444030("ObstacleDoors", doors);
+        SetTriggerVariableByName("ObstacleDoors", doors);
         return false;
     }
     npc = GetNpcStateByKind(0x7c);
     item = 0;
-    if (g_status_685170.item_in_cursor != 0) {
-        item = &g_status_685170.item_in_hand_235b;
+    if (g_status.item_in_cursor != 0) {
+        item = &g_status.item_in_hand_235b;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     return false;
 }
 
@@ -324,7 +324,7 @@ bool MtGigas2Officer1004DB6D0(Trigger* pTrigger)
    set, runs Door18 and clears the bit; otherwise queues the officer NPC
    notice with the held item. */
 // FUNCTION: WIZ8 0x004DB770
-bool MtGigas2Officer2004DB770(Trigger* pTrigger)
+bool MtGigas2Officer2(Trigger* pTrigger)
 {
     int doors;
     W8NpcState* npc;
@@ -341,16 +341,16 @@ bool MtGigas2Officer2004DB770(Trigger* pTrigger)
         Trigger* door = FindTriggerByName("Door18");
         door->Run(-1);
         doors -= 2;
-        SetTriggerVariableByName00444030("ObstacleDoors", doors);
+        SetTriggerVariableByName("ObstacleDoors", doors);
         return false;
     }
     npc = GetNpcStateByKind(0x7d);
     item = 0;
-    if (g_status_685170.item_in_cursor != 0) {
-        item = &g_status_685170.item_in_hand_235b;
+    if (g_status.item_in_cursor != 0) {
+        item = &g_status.item_in_hand_235b;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     return false;
 }
 
@@ -358,9 +358,9 @@ bool MtGigas2Officer2004DB770(Trigger* pTrigger)
    0xa5 and the UmpaniAlarm variable both unset) turns the Umpani faction
    hostile and starts the intruder alarm. */
 // FUNCTION: WIZ8 0x004DB810
-bool MtGigas2LaserAlarm004DB810(Trigger* pTrigger)
+bool MtGigas2LaserAlarm(Trigger* pTrigger)
 {
-    g_trigger_feedback_00606994 = 1;
+    g_trigger_feedback = 1;
     if (GetFact(0xa5) != 0) {
         return false;
     }
@@ -368,7 +368,7 @@ bool MtGigas2LaserAlarm004DB810(Trigger* pTrigger)
         return false;
     }
     SetFactionDispositionBand(4, 0);
-    MtGigas2UmpaniAlarm004DB860(0xEFFFFFFF);
+    MtGigas2UmpaniAlarm(0xEFFFFFFF);
     return true;
 }
 
@@ -379,17 +379,17 @@ bool MtGigas2LaserAlarm004DB810(Trigger* pTrigger)
    seconds). Unlike ControlCampAlarm the gate and sound are only created when
    both are absent, and finishing stops the sound but keeps its node. */
 // FUNCTION: WIZ8 0x004DB860
-void MtGigas2UmpaniAlarm004DB860(int command)
+void MtGigas2UmpaniAlarm(int command)
 {
     srVector3T<float> position;
 
-    g_flag_006834dc = 0;
+    g_flag_006834dc = false;
     if (command != 0) {
         if (GetLocationVarIDByName("UmpaniAlarm") == -1) {
             CreateLocationVar("UmpaniAlarm", 0x1e);
         }
         if (command == -1) {
-            SetTriggerVariableByName00444030(
+            SetTriggerVariableByName(
                 "UmpaniAlarm", g_alarm_gate_6834ec != 0
                                    ? static_cast<int>(g_alarm_gate_6834ec->GetElapsedSeconds())
                                    : 0);
@@ -408,7 +408,7 @@ void MtGigas2UmpaniAlarm004DB860(int command)
             CreateAndPlaySoundNode("Data\\Sound\\VOCs\\VOC_HLLIntruder\\VOC_HLLIntruder_003.wav",
                                    position, 1.0f, 75.0f, 1);
         if (g_alarm_sound_6834e8 != 0 && g_alarm_gate_6834ec != 0) {
-            g_master_functions_006834d8->Add(MtGigas2UmpaniAlarm004DB860);
+            g_master_functions->Add(MtGigas2UmpaniAlarm);
         }
     }
     if (!g_alarm_gate_6834ec->IsFinished()) {
@@ -417,18 +417,18 @@ void MtGigas2UmpaniAlarm004DB860(int command)
             return;
         }
     }
-    g_flag_006834dc = 1;
+    g_flag_006834dc = true;
     g_alarm_sound_6834e8->Stop();
     if (g_alarm_gate_6834ec != 0) {
         delete g_alarm_gate_6834ec;
     }
     g_alarm_gate_6834ec = 0;
-    SetTriggerVariableByName00444030("UmpaniAlarm", 0);
+    SetTriggerVariableByName("UmpaniAlarm", 0);
 }
 
 /* Activation callback on wiringMalfunction: plays the short spark sound. */
 // FUNCTION: WIZ8 0x004DBA70
-bool MtGigas2WiringMalfunction004DBA70(Trigger* pTrigger)
+bool MtGigas2WiringMalfunction(Trigger* pTrigger)
 {
     SoundPlay("Data\\Sound\\Ambients\\Electricity 04.wav", 0);
     return true;
@@ -436,7 +436,7 @@ bool MtGigas2WiringMalfunction004DBA70(Trigger* pTrigger)
 
 /* Activation callback on accessHatch: plays the falling-statue sound. */
 // FUNCTION: WIZ8 0x004DBA90
-bool MtGigas2AccessHatch004DBA90(Trigger* pTrigger)
+bool MtGigas2AccessHatch(Trigger* pTrigger)
 {
     SoundPlay("Data\\Sound\\Ambients\\Sign Falling Statue.wav", 0);
     return true;

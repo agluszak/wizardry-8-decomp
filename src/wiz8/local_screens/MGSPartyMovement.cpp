@@ -83,7 +83,7 @@ unsigned char CreatePartyMovementPanel(void)
         RegionSetEnable(0x1c);
         g_party_movement_panel->SetEnabled(1);
         g_party_movement_buttons[0]->SetActive(0);
-        gXStatus.fPartyMovementUi = 1;
+        gXStatus.fPartyMovementUi = true;
         g_level_block->move_budget_2dc = 100;
         g_level_block->move_budget_2e0 = 100;
         g_party_movement_panel->Invalidate(0);
@@ -117,7 +117,7 @@ void ReleasePartyMovement(void)
         delete g_party_movement_caption;
         g_party_movement_caption = 0;
     }
-    gXStatus.fPartyMovementUi = 0;
+    gXStatus.fPartyMovementUi = false;
 }
 
 // FUNCTION: WIZ8 0x005A1950
@@ -149,8 +149,9 @@ void DrawPartyMovementPanel(void)
     if ((g_combat_state->uiCurrentPartyAction == 0 ||
          g_combat_state->uiCurrentPartyActionStatus == W8_ACTION_STATUS_FINISHED) &&
         g_combat_state->uiNextPartyAction == 0) {
-        srAssertFail("!(gpCombat->uiCurrentPartyAction==0 || "
-                     "gpCombat->uiCurrentPartyActionStatus==3) && gpCombat->uiNextPartyAction!=0",
+        srAssertFail("((gpCombat->uiCurrentPartyAction != PARTY_ACTION_NONE) && "
+                     "(gpCombat->uiCurrentPartyActionStatus != ACTION_STATUS_FINISHED)) || "
+                     "(gpCombat->uiNextPartyAction != PARTY_ACTION_NONE)",
                      PARTY_MOVEMENT_CPP, 0xfb, 0);
     }
     panel_live =
@@ -234,7 +235,7 @@ static void DrawPartyMovementGauge(short right, short image, char panel_live, in
         frame = 0xc;
     } else {
         if (ClockIsTicking(g_party_movement_animation_clock) == 0) {
-            g_party_movement_animation_frame = g_party_movement_animation_frame + 1;
+            ++g_party_movement_animation_frame;
             if (g_party_movement_animation_frame > 0xb) {
                 g_party_movement_animation_frame = 0;
             }
@@ -348,17 +349,17 @@ unsigned char HandlePartyMovement(float* real_elapsed, float* frame_elapsed)
     float multiplier;
     unsigned int ticks;
 
-    if (ConsumeLevelElapsedTime0041F170(real_elapsed, frame_elapsed) == 0) {
+    if (ConsumeLevelElapsedTime(real_elapsed, frame_elapsed) == 0) {
         return 0;
     }
     for (party_slot = 0; party_slot < W8_PARTY_SLOT_COUNT; ++party_slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
-        W8Character* character = &g_status_685170.buffers.Char[party_slot];
+        W8PartySlotRow* row = &g_status.buffers.XChar[party_slot];
+        W8Character* character = &g_status.buffers.Char[party_slot];
         if (row->fOccupied == 0 || character->stamina <= 0 || character->highest_condition >= 0xf) {
             continue;
         }
         amount = *frame_elapsed;
-        if (g_status_685170.search_mode != 0 || gXStatus.fCombatMode != 0) {
+        if (g_status.search_mode != 0 || gXStatus.fCombatMode != 0) {
             amount = *real_elapsed * g_float_005ebc7c + amount;
         }
         switch (character->load_category) {
@@ -382,16 +383,16 @@ unsigned char HandlePartyMovement(float* real_elapsed, float* frame_elapsed)
                          "HandlePartyMovement: ERROR - Invalid load category");
         }
         if (gXStatus.fCombatMode != 0) {
-            multiplier = multiplier + multiplier;
+            multiplier += multiplier;
         }
         if (character->uiCondition[2] != 0) {
-            multiplier = multiplier * g_float_005ec3b8;
+            multiplier *= g_float_005ec3b8;
         }
         row->movement_fatigue = multiplier * amount + row->movement_fatigue;
-        if (row->movement_fatigue > g_position_height_epsilon_005ebfdc) {
+        if (row->movement_fatigue > g_position_height_epsilon) {
             ticks = static_cast<unsigned int>(row->movement_fatigue * g_float_005eecd0);
             FatigueCharacter(party_slot, ticks, 0, 0);
-            row->movement_fatigue = row->movement_fatigue - static_cast<float>(ticks * 0x9c4);
+            row->movement_fatigue = row->movement_fatigue - (ticks * 0x9c4);
         }
     }
     return 1;

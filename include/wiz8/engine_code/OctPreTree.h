@@ -6,7 +6,7 @@
 
 #include <stddef.h>
 
-struct W8OctBuildNode00446330;
+struct W8OctBuildNode;
 
 /* One 0xe8-byte region volume from the spatial state's region array. The
    region id at +4 is consumed by the particle-region builder, and the six
@@ -42,16 +42,17 @@ struct W8OctSpatialState {
     ~W8OctSpatialState();
 
     void Reset0046CDC0();
-    void GetClippedBounds0046CE30(srVector3T<float>* minimum, srVector3T<float>* maximum);
-    void GetWorkingBounds0046CDF0(srVector3T<float>* minimum, srVector3T<float>* maximum);
-    void SetWorkingBounds00467B70(const srVector3T<float>* minimum,
-                                  const srVector3T<float>* maximum);
+    void GetClippedBounds(srVector3T<float>* minimum, srVector3T<float>* maximum);
+    void GetWorkingBounds(srVector3T<float>* minimum, srVector3T<float>* maximum);
+    void SetWorkingBounds(const srVector3T<float>* minimum, const srVector3T<float>* maximum);
 
     unsigned long flags_00;
     float extent_04;
     float cell_size_08;
-    W8BoundingBox bounds_0c;
-    W8BoundingBox clipped_bounds_24;
+    srVector3T<float> minimum_0c;
+    srVector3T<float> maximum_18;
+    srVector3T<float> clipped_minimum_24;
+    srVector3T<float> clipped_maximum_30;
     /* Mode-2 insertions increment this once per region polygon; the build
        conversion copies it to the pre-tree and sizes m_owned_190 from it. */
     unsigned long polygon_count_3c;
@@ -86,19 +87,20 @@ struct W8OctSpatialState {
     /* Emitted submesh record bound: the build packs kind-0 then kind-1
        records beneath it. */
     unsigned long submesh_count_74;
-    W8BoundingBox working_bounds_78;
-    /* The build octree root: W8OctBuildNode00446330 or the counted subclass
+    srVector3T<float> working_minimum_78;
+    srVector3T<float> working_maximum_84;
+    /* The build octree root: W8OctBuildNode or the counted subclass
        when the owning build tree counts surfaces per node. */
-    W8OctBuildNode00446330* root_90;
+    W8OctBuildNode* root_90;
     unsigned long node_index_94;
     /* The working triangle's three vertices, borrowed from the inserter's
        stack for the recursion's bounds tests. */
     const srVector3T<float>* owned_98;
 };
 
-unsigned char TestSpatialTriangle0046CE60(const srVector3T<float>* bounds,
-                                          const srVector3T<float>* vertices,
-                                          const srVector3T<float>* plane_normal);
+unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
+                                  const srVector3T<float>* vertices,
+                                  const srVector3T<float>* plane_normal);
 unsigned char BoundsOverlap0046D470(const srVector3T<float>* first,
                                     const srVector3T<float>* second);
 bool PointInsideBounds0046D4D0(const srVector3T<float>* bounds, const srVector3T<float>* point);
@@ -212,7 +214,7 @@ struct W8OctFileHeader {
     float extent_02;
     float cell_size_06;
     float node_extent_0a;
-    W8BoundingBox bounds_0e[3];
+    srVector3T<float> bounds_0e[6];
     /* The uiLeaf grid dimensions: three integer cell counts serialized in the
        vector slot. */
     unsigned long grid_dims_56[3];

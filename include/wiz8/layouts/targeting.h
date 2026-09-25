@@ -20,7 +20,8 @@ enum W8TargetSourceKind {
     W8_TARGET_SOURCE_NONE = 0,
     W8_TARGET_SOURCE_CHARACTER = 1,
     W8_TARGET_SOURCE_MONSTER = 2,
-    W8_TARGET_SOURCE_INDIRECT = 3
+    W8_TARGET_SOURCE_INDIRECT = 3,
+    W8_TARGET_SOURCE_COUNT = 4 /* SOURCE_TYPE_COUNT in PrepareSpellTarget's assert */
 };
 
 struct W8TargetSource {
@@ -39,9 +40,9 @@ struct W8TargetSource {
     unsigned char name_known_19;
     /* 0x1a: the cast's aim was already resolved; MonsterCanAimSpell retargeting
        is skipped. */
-    unsigned char aim_resolved_1a;
-    unsigned char fReflection; /* 0x1b */
-    unsigned char fBackfire;   /* 0x1c */
+    bool aim_resolved_1a;
+    bool fReflection; /* 0x1b */
+    bool fBackfire;   /* 0x1c */
     /* 0x1d: the cast's source was resolved to a point, not a creature;
        missile/spell paths then skip the monster's spell vertex. */
     unsigned char point_source_1d;
@@ -73,7 +74,8 @@ enum W8TargetKind {
     W8_TARGET_KIND_PLACE = 6,
     W8_TARGET_KIND_ITEM = 7,
     W8_TARGET_KIND_EIGHT = 8,
-    W8_TARGET_KIND_CHARACTER_INDIRECT = 9
+    W8_TARGET_KIND_CHARACTER_INDIRECT = 9,
+    W8_TARGET_KIND_COUNT = 10 /* TARGET_TYPE_COUNT in PrepareSpellTarget's assert */
 };
 
 /* The shorter form a combatant carries inline, with one more field reset to
@@ -98,7 +100,6 @@ struct W8CombatSlot {
    power level and a spare word; an item use's holds the use kind and the item.
    It is the party slot row's own pair in both cases rather than a copy, which
    is why every reader takes a pointer to it. */
-// union-ok: action kinds 7 and 8 select the spell and item-use payloads respectively.
 union W8ActionDetailBlock {
     struct {
         int power_level;

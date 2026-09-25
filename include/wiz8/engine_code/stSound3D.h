@@ -9,7 +9,7 @@
 #include <string.h>
 
 class stSound3D;
-extern W8GrowableVector<stSound3D*> g_sound3d_instances_65be40;
+extern W8GrowableVector<stSound3D*> g_sound3d_instances;
 
 /* General positional-audio node, recovered in src/wiz8/engine_code/Spells.cpp.
    That placement is provisional: the original-TU evidence has a gap over its
@@ -64,7 +64,7 @@ public:
         falloff = other.falloff;
         volume = other.volume;
         auto_release = other.auto_release;
-        g_sound3d_instances_65be40.Add(this);
+        g_sound3d_instances.Add(this);
         return *this;
     }
 };

@@ -86,7 +86,7 @@ unsigned char CopySurfaceWithBorder(srColorSurface* surface, int* rect, void* so
                                     int source_pitch, float* scale_x, float* scale_y,
                                     float* mapping_x, float* mapping_y);
 void SaveJpegScreenshot(void);
-void FlushDirtyTiles00425B40(void);
+void FlushDirtyTiles(void);
 
 /*
  * The renderer window and extension loading gate InitializeStandardGamingPlatform calls after the
@@ -99,110 +99,110 @@ void FlushDirtyTiles00425B40(void);
 HWND ghWindow;
 
 // GLOBAL: WIZ8 0x603c38
-unsigned char g_world_pick_enabled_603c38 = 1;
+unsigned char g_world_pick_enabled = 1;
 // GLOBAL: WIZ8 0x603c4c
-unsigned char g_fullscreen_scene_last_603c4c = 1;
+unsigned char g_fullscreen_scene_last = 1;
 // GLOBAL: WIZ8 0x603c60
-bool g_cursor_scene_enabled_603c60 = true;
+bool g_cursor_scene_enabled = true;
 // GLOBAL: WIZ8 0x603c6d
-bool g_overlay_scenes_enabled_603c6d = true;
+bool g_overlay_scenes_enabled = true;
 // GLOBAL: WIZ8 0x603c68
-int g_frame_reset_interval_603c68 = 50;
+int g_frame_reset_interval = 50;
 // GLOBAL: WIZ8 0x603c39
-unsigned char g_fullscreen_603c39 = 1;
+unsigned char g_fullscreen = 1;
 // GLOBAL: WIZ8 0x603c3a
-bool g_flush_pending_603c3a = true;
+bool g_flush_pending = true;
 // GLOBAL: WIZ8 0x603c3c
-int g_screen_width_603c3c = 640;
+int g_screen_width = 640;
 // GLOBAL: WIZ8 0x603c40
-int g_screen_height_603c40 = 480;
+int g_screen_height = 480;
 // GLOBAL: WIZ8 0x603c44
-int g_screen_depth_603c44 = 16;
+int g_screen_depth = 16;
 // GLOBAL: WIZ8 0x603c48
-int g_pixel_format_603c48 = 9;
+int g_pixel_format = 9;
 // GLOBAL: WIZ8 0x603d74
-int g_renderer_mode_603d74 = 1;
+int g_renderer_mode = 1;
 // GLOBAL: WIZ8 0x65962c
-srModelInstance* g_current_model_instance_65962c;
+srModelInstance* g_current_model_instance;
 // GLOBAL: WIZ8 0x6596fc
-int g_fps_frame_count_6596fc;
+int g_fps_frame_count;
 // GLOBAL: WIZ8 0x659700
-unsigned int g_fps_window_tick_659700;
+unsigned int g_fps_window_tick;
 /* Per-page counters reset as each overlay page is retired; retail stores
-   through g_active_page_6596e4 as an index, so this is one two-entry array. */
+   through g_active_page as an index, so this is one two-entry array. */
 // GLOBAL: WIZ8 0x6596dc
-int g_overlay_page_counters_6596dc[2];
+int g_overlay_page_counters[2];
 // GLOBAL: WIZ8 0x6596e8
-unsigned char g_page_full_redraw_6596e8[2];
+unsigned char g_page_full_redraw[2];
 // GLOBAL: WIZ8 0x654ac4
 HINSTANCE g_instance_654ac4;
 // GLOBAL: WIZ8 0x659620
-unsigned short g_show_command_659620;
+unsigned short g_show_command;
 // GLOBAL: WIZ8 0x6595f8
-WNDPROC g_window_proc_6595f8;
+WNDPROC g_window_proc;
 // GLOBAL: WIZ8 0x659710
-bool g_video_active_659710;
+bool g_video_active;
 // GLOBAL: WIZ8 0x65970e
-unsigned char g_world_blacked_out_65970e;
+unsigned char g_world_blacked_out;
 // GLOBAL: WIZ8 0x659711
-bool g_screenshot_pending_659711;
+bool g_screenshot_pending;
 // GLOBAL: WIZ8 0x65970f
-bool g_video_inspector_enabled_65970f;
+bool g_video_inspector_enabled;
 // GLOBAL: WIZ8 0x00659634
-srGERD* g_gerd_659634;
+srGERD* g_gerd;
 // GLOBAL: WIZ8 0x65971c
-srGERD* g_secondary_gerd_65971c;
+srGERD* g_secondary_gerd;
 // GLOBAL: WIZ8 0x65969c
-LPDIRECTDRAW g_direct_draw_65969c;
+LPDIRECTDRAW g_direct_draw;
 // GLOBAL: WIZ8 0x6596a0
-LPDIRECTDRAW2 g_direct_draw2_6596a0;
+LPDIRECTDRAW2 g_direct_draw2;
 // GLOBAL: WIZ8 0x6596a4
-LPDIRECTDRAWSURFACE g_primary_surface1_6596a4;
+LPDIRECTDRAWSURFACE g_primary_surface1;
 // GLOBAL: WIZ8 0x6596a8
-LPDIRECTDRAWSURFACE2 g_primary_surface_6596a8;
+LPDIRECTDRAWSURFACE2 g_primary_surface;
 // GLOBAL: WIZ8 0x6596ac
-LPDIRECTDRAWSURFACE g_video_primary_surface1_6596ac;
+LPDIRECTDRAWSURFACE g_video_primary_surface1;
 // GLOBAL: WIZ8 0x6596b0
-LPDIRECTDRAWSURFACE2 g_video_primary_surface2_6596b0;
+LPDIRECTDRAWSURFACE2 g_video_primary_surface2;
 // GLOBAL: WIZ8 0x659610
-RECT g_window_rect_659610;
+RECT g_window_rect;
 
 // GLOBAL: WIZ8 0x600088
-unsigned int g_color_key_600088 = 0x3def;
+unsigned int g_color_key = 0x3def;
 // GLOBAL: WIZ8 0x65963c
 srModeler* g_modeler_65963c;
 // GLOBAL: WIZ8 0x659640
-srScene* g_scene_user_659640;
+srScene* g_scene_user;
 // GLOBAL: WIZ8 0x659644
-srScene* g_scene_fullscreen_659644;
+srScene* g_scene_fullscreen;
 // GLOBAL: WIZ8 0x659648
-srScene* g_scene_permanent_659648;
+srScene* g_scene_permanent;
 // GLOBAL: WIZ8 0x65964c
-srScene* g_scene_prerender0_65964c;
+srScene* g_scene_prerender0;
 // GLOBAL: WIZ8 0x659650
-srScene* g_scene_prerender1_659650;
+srScene* g_scene_prerender1;
 // GLOBAL: WIZ8 0x659654
-srScene* g_scene_overlay0_659654;
+srScene* g_scene_overlay0;
 // GLOBAL: WIZ8 0x659658
-srScene* g_scene_overlay1_659658;
+srScene* g_scene_overlay1;
 // GLOBAL: WIZ8 0x65965c
-srScene* g_scene_square_65965c;
+srScene* g_scene_square;
 // GLOBAL: WIZ8 0x659660
-srColorSurface* g_primary_color_surface_659660;
+srColorSurface* g_primary_color_surface;
 // GLOBAL: WIZ8 0x659664
-class stSurface2D* g_surface_node_659664;
+class stSurface2D* g_surface_node;
 // GLOBAL: WIZ8 0x659680
-float g_surface_scale_659680;
+float g_surface_scale;
 // GLOBAL: WIZ8 0x659670
-srCamera* g_overlay_camera_659670;
+srCamera* g_overlay_camera;
 // GLOBAL: WIZ8 0x659674
-srCamera* g_square_camera_659674;
+srCamera* g_square_camera;
 // GLOBAL: WIZ8 0x659688
-srColorSurface* g_mouse_surface_659688;
+srColorSurface* g_mouse_surface;
 // GLOBAL: WIZ8 0x65967c
-srMaterial* g_blit_material_65967c;
+srMaterial* g_blit_material;
 // GLOBAL: WIZ8 0x654adc
-srNode* g_surface_nodes_654adc[0x12c0];
+srNode* g_surface_nodes[0x12c0];
 // GLOBAL: WIZ8 0x6595dc
 int g_surface_state_6595dc;
 // GLOBAL: WIZ8 0x654ad8
@@ -214,26 +214,26 @@ W8World* g_world;
 // GLOBAL: WIZ8 0x00659AB8
 W8World* g_world_659ab8;
 // GLOBAL: WIZ8 0x652da4
-bool g_camera_sway_active_652da4;
+bool g_camera_sway_active;
 // GLOBAL: WIZ8 0x5ebb1c
 extern const float g_scale_x_5ebb1c = 1.0f / 640.0f;
 // GLOBAL: WIZ8 0x5ebb20
 extern const float g_scale_y_5ebb20 = 1.0f / 480.0f;
 
 // GLOBAL: WIZ8 0x652ddc
-unsigned char g_tile_dirty_flags_652ddc[0x12c0];
+unsigned char g_tile_dirty_flags[0x12c0];
 // GLOBAL: WIZ8 0x006596e4
-unsigned int g_active_page_6596e4;
+unsigned int g_active_page;
 // GLOBAL: WIZ8 0x006596d4
-int g_video_inspector_mode_6596d4;
+int g_video_inspector_mode;
 // GLOBAL: WIZ8 0x6596d8
-int g_dirty_tile_count_6596d8;
+int g_dirty_tile_count;
 // GLOBAL: WIZ8 0x006596ec
-int g_overlay_render_mode_6596ec;
+int g_overlay_render_mode;
 // GLOBAL: WIZ8 0x006596f0
-int g_paired_render_mode_6596f0;
+int g_paired_render_mode;
 // GLOBAL: WIZ8 0x659668
-const int* g_overlay_viewport_659668;
+const int* g_overlay_viewport;
 // GLOBAL: WIZ8 0x65966c
 srClass* g_render_object_65966c;
 // GLOBAL: WIZ8 0x659678
@@ -241,39 +241,39 @@ srClass* g_render_object_659678;
 // GLOBAL: WIZ8 0x659720
 HWND g_window_659720;
 // GLOBAL: WIZ8 0x65409c
-unsigned int g_last_capture_tick_65409c;
+unsigned int g_last_capture_tick;
 // GLOBAL: WIZ8 0x659704
-float g_frames_per_second_659704;
+float g_frames_per_second;
 // GLOBAL: WIZ8 0x659708
-float g_seconds_per_frame_659708;
+float g_seconds_per_frame;
 
 // GLOBAL: WIZ8 0x65a118
 unsigned char* g_render_options_65a118;
 
 // GLOBAL: WIZ8 0x659684
-srScene* g_cursor_scene_659684;
+srScene* g_cursor_scene;
 // GLOBAL: WIZ8 0x65968c
-srMeshModel* g_cursor_model_65968c;
+srMeshModel* g_cursor_model;
 // GLOBAL: WIZ8 0x659690
-srTexture* g_cursor_texture_659690;
+srTexture* g_cursor_texture;
 // GLOBAL: WIZ8 0x659694
 srModelInstance* g_cursor_node_659694;
 // GLOBAL: WIZ8 0x659698
-unsigned int g_cursor_move_tick_659698;
+unsigned int g_cursor_move_tick;
 // GLOBAL: WIZ8 0x654ad0
-int g_cursor_width_654ad0;
+int g_cursor_width;
 // GLOBAL: WIZ8 0x654ad4
-int g_cursor_height_654ad4;
+int g_cursor_height;
 // GLOBAL: WIZ8 0x6596b4
-int g_cursor_image_width_6596b4;
+int g_cursor_image_width;
 // GLOBAL: WIZ8 0x6596b8
-int g_cursor_image_height_6596b8;
+int g_cursor_image_height;
 // GLOBAL: WIZ8 0x6596bc
-int g_cursor_hotspot_x_6596bc;
+int g_cursor_hotspot_x;
 // GLOBAL: WIZ8 0x6596c0
-int g_cursor_hotspot_y_6596c0;
+int g_cursor_hotspot_y;
 // GLOBAL: WIZ8 0x6596c4
-unsigned char g_system_cursor_visible_6596c4;
+bool g_system_cursor_visible;
 
 // FUNCTION: WIZ8 0x00428ab0
 void AssertFailureHandler(const char* expression, const char* file, long line, const char* message)
@@ -302,7 +302,7 @@ PTR LockPrimarySurface(UINT32* pitch)
 {
     DDSURFACEDESC description;
 
-    DDLockSurface(g_primary_surface_6596a8, NULL, &description, 0, NULL);
+    DDLockSurface(g_primary_surface, NULL, &description, 0, NULL);
     *pitch = description.lPitch;
     return description.lpSurface;
 }
@@ -312,26 +312,26 @@ PTR LockPrimarySurface(UINT32* pitch)
    bring-up; keeping the reset here avoids reproducing SurRender's node ABI at
    the menu call site. */
 // FUNCTION: WIZ8 0x00422b10
-void ResetVideoFrameState00422B10(void)
+void ResetVideoFrameState(void)
 {
     DDSURFACEDESC description;
     unsigned int active;
 
     memset(&description, 0, sizeof(description));
     description.dwSize = sizeof(description);
-    DDLockSurface(g_primary_surface_6596a8, NULL, &description, 0, NULL);
+    DDLockSurface(g_primary_surface, NULL, &description, 0, NULL);
     memset(description.lpSurface, 0, description.lPitch * 480);
-    DDUnlockSurface(g_primary_surface_6596a8, NULL);
-    memset(g_tile_dirty_flags_652ddc, 0, sizeof(g_tile_dirty_flags_652ddc));
-    memset(g_surface_nodes_654adc, 0, sizeof(g_surface_nodes_654adc));
-    active = g_active_page_6596e4;
-    g_page_full_redraw_6596e8[active ^ 1] = 0;
-    g_page_full_redraw_6596e8[active] = 0;
-    g_dirty_tile_count_6596d8 = 0;
-    PurgeInactiveSceneInstances(g_scene_prerender0_65964c);
-    PurgeInactiveSceneInstances(g_scene_overlay0_659654);
-    PurgeInactiveSceneInstances(g_scene_prerender1_659650);
-    PurgeInactiveSceneInstances(g_scene_overlay1_659658);
+    DDUnlockSurface(g_primary_surface, NULL);
+    memset(g_tile_dirty_flags, 0, sizeof(g_tile_dirty_flags));
+    memset(g_surface_nodes, 0, sizeof(g_surface_nodes));
+    active = g_active_page;
+    g_page_full_redraw[active ^ 1] = 0;
+    g_page_full_redraw[active] = 0;
+    g_dirty_tile_count = 0;
+    PurgeInactiveSceneInstances(g_scene_prerender0);
+    PurgeInactiveSceneInstances(g_scene_overlay0);
+    PurgeInactiveSceneInstances(g_scene_prerender1);
+    PurgeInactiveSceneInstances(g_scene_overlay1);
     InvalidateRegion(0, 0, 640, 480, 0);
 }
 
@@ -349,17 +349,17 @@ unsigned char InitializeVideoManager(HINSTANCE instance, unsigned short show_com
     memset(&status, 0, sizeof(status));
     status.dwLength = sizeof(status);
     GlobalMemoryStatus(&status);
-    g_world_pick_enabled_603c38 = 1;
-    g_current_model_instance_65962c = 0;
-    g_fps_frame_count_6596fc = 0;
-    g_fps_window_tick_659700 = GetTickCount();
-    g_overlay_page_counters_6596dc[0] = 0;
-    g_overlay_page_counters_6596dc[1] = 0;
-    g_page_full_redraw_6596e8[0] = 0;
-    g_page_full_redraw_6596e8[1] = 0;
+    g_world_pick_enabled = 1;
+    g_current_model_instance = 0;
+    g_fps_frame_count = 0;
+    g_fps_window_tick = GetTickCount();
+    g_overlay_page_counters[0] = 0;
+    g_overlay_page_counters[1] = 0;
+    g_page_full_redraw[0] = 0;
+    g_page_full_redraw[1] = 0;
     g_instance_654ac4 = instance;
-    g_show_command_659620 = show_command;
-    g_window_proc_6595f8 = (WNDPROC)window_proc;
+    g_show_command = show_command;
+    g_window_proc = (WNDPROC)window_proc;
     Initialize16BitPixelFormatMasks();
     if (!CreateWizardryWindow()) {
         return 0;
@@ -371,42 +371,42 @@ unsigned char InitializeVideoManager(HINSTANCE instance, unsigned short show_com
         return 0;
     }
     InitializeRendererSceneObjects();
-    if (!g_video_active_659710) {
+    if (!g_video_active) {
         if (gXStatus.world_update_blocked) {
             ResumeMainGameWorld();
         }
-        if (ghWindow && g_gerd_659634) {
-            g_video_active_659710 = 1;
+        if (ghWindow && g_gerd) {
+            g_video_active = 1;
             ShowWindow(ghWindow, 9);
-            if (g_gerd_659634->isWindowOpen() == 0) {
+            if (g_gerd->isWindowOpen() == 0) {
                 if (!OpenRendererWindow()) {
                     goto done;
                 }
             }
             OpenIcon(ghWindow);
             SetFocus(ghWindow);
-            memset(g_tile_dirty_flags_652ddc, 0, sizeof(g_tile_dirty_flags_652ddc));
-            active = g_active_page_6596e4;
-            g_page_full_redraw_6596e8[g_active_page_6596e4 ^ 1] = 0;
-            g_dirty_tile_count_6596d8 = 0;
-            g_page_full_redraw_6596e8[active] = 0;
-            PurgeInactiveSceneInstances(g_scene_prerender0_65964c);
-            PurgeInactiveSceneInstances(g_scene_overlay0_659654);
-            PurgeInactiveSceneInstances(g_scene_prerender1_659650);
-            PurgeInactiveSceneInstances(g_scene_overlay1_659658);
+            memset(g_tile_dirty_flags, 0, sizeof(g_tile_dirty_flags));
+            active = g_active_page;
+            g_page_full_redraw[g_active_page ^ 1] = 0;
+            g_dirty_tile_count = 0;
+            g_page_full_redraw[active] = 0;
+            PurgeInactiveSceneInstances(g_scene_prerender0);
+            PurgeInactiveSceneInstances(g_scene_overlay0);
+            PurgeInactiveSceneInstances(g_scene_prerender1);
+            PurgeInactiveSceneInstances(g_scene_overlay1);
             InvalidateRegion(0, 0, 0x280, 0x1e0, 0);
-            g_paired_render_mode_6596f0 = 2;
-            g_overlay_render_mode_6596ec = 2;
+            g_paired_render_mode = 2;
+            g_overlay_render_mode = 2;
         }
     }
 done:
     SetViewport(0, 0, 0x280, 0x1e0);
-    if (g_video_inspector_enabled_65970f) {
+    if (g_video_inspector_enabled) {
         _chdir("DLL");
         srExtension::load("INSPECTOR", 0);
         _chdir(".");
     }
-    if (!InitializeStartupNavigation0044F060()) {
+    if (!InitializeStartupNavigation()) {
         return 0;
     }
     EnableAllRenderOptions();
@@ -421,36 +421,36 @@ void ShutdownVideoManager(void)
         g_cursor_node_659694 = 0;
     }
     FreeMouseCursor();
-    ShutdownVideoScenes00423F30();
-    ShutdownStartupNavigation0044F190();
-    if (g_video_active_659710) {
+    ShutdownVideoScenes();
+    ShutdownStartupNavigation();
+    if (g_video_active) {
         PauseMainGameWorld();
-        g_video_active_659710 = 0;
-        if (g_gerd_659634) {
-            g_flush_pending_603c3a = false;
-            g_gerd_659634->closeWindow(static_cast<srGERD::e_closeHint>(0));
+        g_video_active = 0;
+        if (g_gerd) {
+            g_flush_pending = false;
+            g_gerd->closeWindow(static_cast<srGERD::e_closeHint>(0));
         }
-        if (!g_fullscreen_603c39) {
-            GetWindowRect(ghWindow, &g_window_rect_659610);
+        if (!g_fullscreen) {
+            GetWindowRect(ghWindow, &g_window_rect);
         }
         ShowWindow(ghWindow, SW_MINIMIZE);
         FreeMouseCursor();
     }
-    if (g_primary_surface1_6596a4) {
-        g_primary_surface1_6596a4->Release();
-        g_primary_surface1_6596a4 = 0;
+    if (g_primary_surface1) {
+        g_primary_surface1->Release();
+        g_primary_surface1 = 0;
     }
-    if (g_primary_surface_6596a8) {
-        g_primary_surface_6596a8->Release();
-        g_primary_surface_6596a8 = 0;
+    if (g_primary_surface) {
+        g_primary_surface->Release();
+        g_primary_surface = 0;
     }
-    if (g_direct_draw_65969c) {
-        g_direct_draw_65969c->Release();
-        g_direct_draw_65969c = 0;
+    if (g_direct_draw) {
+        g_direct_draw->Release();
+        g_direct_draw = 0;
     }
-    if (g_direct_draw2_6596a0) {
-        g_direct_draw2_6596a0->Release();
-        g_direct_draw2_6596a0 = 0;
+    if (g_direct_draw2) {
+        g_direct_draw2->Release();
+        g_direct_draw2 = 0;
     }
     if (ghWindow) {
         CloseWindow(ghWindow);
@@ -460,16 +460,16 @@ void ShutdownVideoManager(void)
         CloseWindow(g_window_659720);
         g_window_659720 = 0;
     }
-    if (g_gerd_659634) {
-        g_flush_pending_603c3a = false;
-        g_gerd_659634->closeWindow(static_cast<srGERD::e_closeHint>(0));
-        g_gerd_659634->deleteContext();
-        g_gerd_659634 = 0;
+    if (g_gerd) {
+        g_flush_pending = false;
+        g_gerd->closeWindow(static_cast<srGERD::e_closeHint>(0));
+        g_gerd->deleteContext();
+        g_gerd = 0;
     }
-    if (g_secondary_gerd_65971c) {
-        g_secondary_gerd_65971c->closeWindow(static_cast<srGERD::e_closeHint>(0));
-        g_secondary_gerd_65971c->deleteContext();
-        g_secondary_gerd_65971c = 0;
+    if (g_secondary_gerd) {
+        g_secondary_gerd->closeWindow(static_cast<srGERD::e_closeHint>(0));
+        g_secondary_gerd->deleteContext();
+        g_secondary_gerd = 0;
     }
     srConfig.removeAll();
     srExit();
@@ -479,43 +479,43 @@ void ShutdownVideoManager(void)
    startup sequence; runs from ShutdownVideoManager before the DirectDraw
    teardown. */
 // FUNCTION: WIZ8 0x00423f30
-void ShutdownVideoScenes00423F30(void)
+void ShutdownVideoScenes(void)
 {
     if (g_modeler_65963c) {
         delete g_modeler_65963c;
         g_modeler_65963c = 0;
     }
-    if (g_scene_permanent_659648) {
-        g_scene_permanent_659648->release();
-        g_scene_permanent_659648 = 0;
+    if (g_scene_permanent) {
+        g_scene_permanent->release();
+        g_scene_permanent = 0;
     }
-    if (g_scene_user_659640) {
-        g_scene_user_659640->release();
-        g_scene_user_659640 = 0;
+    if (g_scene_user) {
+        g_scene_user->release();
+        g_scene_user = 0;
     }
-    if (g_scene_fullscreen_659644) {
-        g_scene_fullscreen_659644->release();
-        g_scene_fullscreen_659644 = 0;
+    if (g_scene_fullscreen) {
+        g_scene_fullscreen->release();
+        g_scene_fullscreen = 0;
     }
-    if (g_scene_overlay0_659654) {
-        g_scene_overlay0_659654->release();
-        g_scene_overlay0_659654 = 0;
+    if (g_scene_overlay0) {
+        g_scene_overlay0->release();
+        g_scene_overlay0 = 0;
     }
-    if (g_scene_overlay1_659658) {
-        g_scene_overlay1_659658->release();
-        g_scene_overlay1_659658 = 0;
+    if (g_scene_overlay1) {
+        g_scene_overlay1->release();
+        g_scene_overlay1 = 0;
     }
-    if (g_scene_square_65965c) {
-        g_scene_square_65965c->release();
-        g_scene_square_65965c = 0;
+    if (g_scene_square) {
+        g_scene_square->release();
+        g_scene_square = 0;
     }
-    if (g_scene_prerender0_65964c) {
-        g_scene_prerender0_65964c->release();
-        g_scene_prerender0_65964c = 0;
+    if (g_scene_prerender0) {
+        g_scene_prerender0->release();
+        g_scene_prerender0 = 0;
     }
-    if (g_scene_prerender1_659650) {
-        g_scene_prerender1_659650->release();
-        g_scene_prerender1_659650 = 0;
+    if (g_scene_prerender1) {
+        g_scene_prerender1->release();
+        g_scene_prerender1 = 0;
     }
     if (g_render_object_65966c) {
         g_render_object_65966c->release();
@@ -525,17 +525,17 @@ void ShutdownVideoScenes00423F30(void)
         g_render_object_659678->release();
         g_render_object_659678 = 0;
     }
-    if (g_blit_material_65967c) {
-        g_blit_material_65967c->release();
-        g_blit_material_65967c = 0;
+    if (g_blit_material) {
+        g_blit_material->release();
+        g_blit_material = 0;
     }
-    if (g_mouse_surface_659688) {
-        g_mouse_surface_659688->release();
-        g_mouse_surface_659688 = 0;
+    if (g_mouse_surface) {
+        g_mouse_surface->release();
+        g_mouse_surface = 0;
     }
-    if (g_primary_color_surface_659660) {
-        g_primary_color_surface_659660->release();
-        g_primary_color_surface_659660 = 0;
+    if (g_primary_color_surface) {
+        g_primary_color_surface->release();
+        g_primary_color_surface = 0;
     }
 }
 
@@ -547,21 +547,21 @@ void Initialize16BitPixelFormatMasks(void)
 {
     unsigned short bit;
 
-    if (g_pixel_format_603c48 == 7) {
+    if (g_pixel_format == 7) {
         gusAlphaMask = 0;
         gusRedMask = 0xf800;
         gusGreenMask = 0x07e0;
-        g_color_key_600088 = 0x7bef;
-    } else if (g_pixel_format_603c48 == 8) {
+        g_color_key = 0x7bef;
+    } else if (g_pixel_format == 8) {
         gusAlphaMask = 0;
         gusRedMask = 0x7c00;
         gusGreenMask = 0x03e0;
-        g_color_key_600088 = 0x3def;
-    } else if (g_pixel_format_603c48 == 9) {
+        g_color_key = 0x3def;
+    } else if (g_pixel_format == 9) {
         gusAlphaMask = 0x8000;
         gusRedMask = 0x7c00;
         gusGreenMask = 0x03e0;
-        g_color_key_600088 = 0x3def;
+        g_color_key = 0x3def;
     } else {
         return;
     }
@@ -594,7 +594,7 @@ unsigned char CreateWizardryWindow(void)
 
     memset(&window_class, 0, sizeof(window_class));
     window_class.style = CS_VREDRAW | CS_HREDRAW | CS_NOCLOSE | CS_DBLCLKS;
-    window_class.lpfnWndProc = g_window_proc_6595f8;
+    window_class.lpfnWndProc = g_window_proc;
     window_class.hInstance = g_instance_654ac4;
     window_class.hIcon = LoadIconA(g_instance_654ac4, MAKEINTRESOURCEA(106));
     window_class.hCursor = LoadCursorA(NULL, IDC_ARROW);
@@ -606,31 +606,30 @@ unsigned char CreateWizardryWindow(void)
     if (extent > 640) {
         extent = 640;
     }
-    g_window_rect_659610.left = GetSystemMetrics(SM_CXSCREEN) / 2 - extent / 2;
+    g_window_rect.left = GetSystemMetrics(SM_CXSCREEN) / 2 - extent / 2;
     extent = GetSystemMetrics(SM_CXSCREEN);
     if (extent > 640) {
         extent = 640;
     }
-    g_window_rect_659610.top = GetSystemMetrics(SM_CXSCREEN) / 2 - extent / 2;
+    g_window_rect.top = GetSystemMetrics(SM_CXSCREEN) / 2 - extent / 2;
     extent = GetSystemMetrics(SM_CXSCREEN);
     if (extent > 640) {
         extent = 640;
     }
-    g_window_rect_659610.right = g_window_rect_659610.left + extent;
+    g_window_rect.right = g_window_rect.left + extent;
     extent = GetSystemMetrics(SM_CYSCREEN);
     if (extent > 480) {
         extent = 480;
     }
-    g_window_rect_659610.bottom = g_window_rect_659610.top + extent;
+    g_window_rect.bottom = g_window_rect.top + extent;
 
-    if (!g_fullscreen_603c39) {
+    if (!g_fullscreen) {
         style = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-        AdjustWindowRect(&g_window_rect_659610, style, FALSE);
-        ghWindow = CreateWindowExA(0, "Wizardry 8", "Wizardry 8", style, g_window_rect_659610.left,
-                                   g_window_rect_659610.top,
-                                   g_window_rect_659610.right - g_window_rect_659610.left,
-                                   g_window_rect_659610.bottom - g_window_rect_659610.top, NULL,
-                                   NULL, g_instance_654ac4, NULL);
+        AdjustWindowRect(&g_window_rect, style, FALSE);
+        ghWindow = CreateWindowExA(0, "Wizardry 8", "Wizardry 8", style, g_window_rect.left,
+                                   g_window_rect.top, g_window_rect.right - g_window_rect.left,
+                                   g_window_rect.bottom - g_window_rect.top, NULL, NULL,
+                                   g_instance_654ac4, NULL);
     } else {
         style = WS_POPUP | WS_VISIBLE;
         ghWindow = CreateWindowExA(0, "Wizardry 8", "Wizardry 8", style, 0, 0,
@@ -653,15 +652,18 @@ unsigned char InitializePrimaryDirectDrawSurface(void)
     DDSURFACEDESC description;
     HRESULT result;
 
-    result = DirectDrawCreate(NULL, &g_direct_draw_65969c, NULL);
+    result = DirectDrawCreate(NULL, &g_direct_draw, NULL);
     if (FAILED(result)) {
         return 0;
     }
-    result = g_direct_draw_65969c->QueryInterface(IID_IDirectDraw2, (void**)&g_direct_draw2_6596a0);
+    result = g_direct_draw->QueryInterface(
+        IID_IDirectDraw2,
+        // reinterpret-ok: COM QueryInterface returns the interface through void**
+        reinterpret_cast<void**>(&g_direct_draw2));
     if (FAILED(result)) {
         return 0;
     }
-    result = g_direct_draw2_6596a0->SetCooperativeLevel(NULL, DDSCL_NORMAL);
+    result = g_direct_draw2->SetCooperativeLevel(NULL, DDSCL_NORMAL);
     if (FAILED(result)) {
         return 0;
     }
@@ -679,19 +681,21 @@ unsigned char InitializePrimaryDirectDrawSurface(void)
     description.ddpfPixelFormat.dwGBitMask = gusGreenMask;
     description.ddpfPixelFormat.dwBBitMask = gusBlueMask;
 
-    result = g_direct_draw2_6596a0->CreateSurface(&description, &g_primary_surface1_6596a4, NULL);
+    result = g_direct_draw2->CreateSurface(&description, &g_primary_surface1, NULL);
     if (FAILED(result)) {
         return 0;
     }
-    result = g_primary_surface1_6596a4->QueryInterface(IID_IDirectDrawSurface2,
-                                                       (void**)&g_primary_surface_6596a8);
+    result = g_primary_surface1->QueryInterface(
+        IID_IDirectDrawSurface2,
+        // reinterpret-ok: COM QueryInterface returns the interface through void**
+        reinterpret_cast<void**>(&g_primary_surface));
     if (FAILED(result)) {
         return 0;
     }
 
-    DDLockSurface(g_primary_surface_6596a8, NULL, &description, 0, NULL);
+    DDLockSurface(g_primary_surface, NULL, &description, 0, NULL);
     memset(description.lpSurface, 0, description.lPitch * 480);
-    DDUnlockSurface(g_primary_surface_6596a8, NULL);
+    DDUnlockSurface(g_primary_surface, NULL);
     return 1;
 }
 
@@ -710,7 +714,7 @@ unsigned char InitializeVideoDevice(void)
     char* newline;
     srStringTable devices;
 
-    if (g_gerd_659634) {
+    if (g_gerd) {
         return 1;
     }
 
@@ -722,13 +726,13 @@ unsigned char InitializeVideoDevice(void)
             *newline = '\0';
         }
         if (fgets(line, sizeof(line), config)) {
-            g_screen_width_603c3c = atoi(line);
+            g_screen_width = atoi(line);
         }
         if (fgets(line, sizeof(line), config)) {
-            g_screen_height_603c40 = atoi(line);
+            g_screen_height = atoi(line);
         }
         if (fgets(line, sizeof(line), config)) {
-            g_screen_depth_603c44 = atoi(line);
+            g_screen_depth = atoi(line);
         }
         fgets(sound_provider, sizeof(sound_provider), config);
         newline = strpbrk(sound_provider, "\r\n");
@@ -746,14 +750,15 @@ unsigned char InitializeVideoDevice(void)
                                 "DisableDetachedSecondaryDevices=1 DisableNonDisplayDevices=1");
     sprintf(driver_name, "srDD_%s", device);
     devices.addString(driver_name);
-    g_gerd_659634 = srGERD::loadDevice(devices, 0);
+    g_gerd = srGERD::loadDevice(devices, 0);
     _chdir("..");
-    if (!g_gerd_659634) {
+    if (!g_gerd) {
         ShutdownWithErrorBox("Video device cannot be started. Please re-run 3DSetup.");
         return 0;
     }
 
-    g_gerd_659634->createContext((unsigned long)ghWindow);
+    // reinterpret-ok: SurRender takes the window handle as an integer
+    g_gerd->createContext(reinterpret_cast<unsigned long>(ghWindow));
     OpenRendererWindow();
     srAssertSetFunc(AssertFailureHandler);
     if (_strnicmp(sound_provider, "none", 4) != 0) {
@@ -772,31 +777,30 @@ unsigned char OpenRendererWindow(void)
     long mode;
 
     SetLastError(0);
-    if (!g_fullscreen_603c39) {
+    if (!g_fullscreen) {
         SetWindowLongA(ghWindow, GWL_STYLE,
                        WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
-        SetWindowPos(ghWindow, NULL, g_window_rect_659610.left, g_window_rect_659610.top,
-                     g_window_rect_659610.right - g_window_rect_659610.left,
-                     g_window_rect_659610.bottom - g_window_rect_659610.top, 0);
-        error = g_gerd_659634->openWindow();
+        SetWindowPos(ghWindow, NULL, g_window_rect.left, g_window_rect.top,
+                     g_window_rect.right - g_window_rect.left,
+                     g_window_rect.bottom - g_window_rect.top, 0);
+        error = g_gerd->openWindow();
     } else {
         SetWindowLongA(ghWindow, GWL_STYLE, WS_POPUP | WS_VISIBLE);
         SetWindowPos(ghWindow, NULL, 0, 0, GetSystemMetrics(SM_CXSCREEN),
                      GetSystemMetrics(SM_CYSCREEN), 0);
-        mode = g_gerd_659634->getDisplayMode(g_screen_width_603c3c, g_screen_height_603c40,
-                                             g_screen_depth_603c44);
+        mode = g_gerd->getDisplayMode(g_screen_width, g_screen_height, g_screen_depth);
         if (mode == -1) {
             ShutdownWithErrorBox("Video device does not support video resolution.");
             return 0;
         }
         SetEnvironmentVariableA("FX_GLIDE_NO_SPLASH", "1");
-        error = g_gerd_659634->openWindow(mode);
+        error = g_gerd->openWindow(mode);
     }
     if (error != 0) {
         ShutdownWithErrorBox("Could not open video output device.");
         return 0;
     }
-    g_flush_pending_603c3a = true;
+    g_flush_pending = true;
     return 1;
 }
 
@@ -805,17 +809,17 @@ IDirectDrawSurface2* BeginVideoPresentation(void)
 {
     DDSURFACEDESC description;
 
-    if (g_gerd_659634 != 0) {
-        g_flush_pending_603c3a = false;
-        g_gerd_659634->closeWindow((srGERD::e_closeHint)1);
-        g_gerd_659634->deleteContext();
+    if (g_gerd != 0) {
+        g_flush_pending = false;
+        g_gerd->closeWindow((srGERD::e_closeHint)1);
+        g_gerd->deleteContext();
     }
-    if (g_direct_draw2_6596a0->SetCooperativeLevel(ghWindow, DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN) !=
+    if (g_direct_draw2->SetCooperativeLevel(ghWindow, DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN) !=
         DD_OK) {
         NoOp();
         return 0;
     }
-    if (g_direct_draw2_6596a0->SetDisplayMode(640, 480, 16, 0, 0) != DD_OK) {
+    if (g_direct_draw2->SetDisplayMode(640, 480, 16, 0, 0) != DD_OK) {
         NoOp();
         return 0;
     }
@@ -823,32 +827,34 @@ IDirectDrawSurface2* BeginVideoPresentation(void)
     description.dwSize = sizeof(description);
     description.dwFlags = DDSD_CAPS;
     description.ddsCaps.dwCaps = DDSCAPS_PRIMARYSURFACE;
-    if (g_direct_draw2_6596a0->CreateSurface(&description, &g_video_primary_surface1_6596ac, 0) !=
-        DD_OK) {
+    if (g_direct_draw2->CreateSurface(&description, &g_video_primary_surface1, 0) != DD_OK) {
         NoOp();
         return 0;
     }
-    if (g_video_primary_surface1_6596ac->QueryInterface(
-            IID_IDirectDrawSurface2, (void**)&g_video_primary_surface2_6596b0) != DD_OK) {
+    if (g_video_primary_surface1->QueryInterface(
+            IID_IDirectDrawSurface2,
+            // reinterpret-ok: COM QueryInterface returns the interface through void**
+            reinterpret_cast<void**>(&g_video_primary_surface2)) != DD_OK) {
         NoOp();
         return 0;
     }
-    return g_video_primary_surface2_6596b0;
+    return g_video_primary_surface2;
 }
 
 // FUNCTION: WIZ8 0x004234A0
 unsigned char FinishVideoPresentation(void)
 {
-    if (g_video_primary_surface1_6596ac != 0) {
-        g_video_primary_surface1_6596ac->Release();
-        g_video_primary_surface1_6596ac = 0;
+    if (g_video_primary_surface1 != 0) {
+        g_video_primary_surface1->Release();
+        g_video_primary_surface1 = 0;
     }
-    if (g_video_primary_surface2_6596b0 != 0) {
-        g_video_primary_surface2_6596b0->Release();
-        g_video_primary_surface2_6596b0 = 0;
+    if (g_video_primary_surface2 != 0) {
+        g_video_primary_surface2->Release();
+        g_video_primary_surface2 = 0;
     }
-    g_direct_draw2_6596a0->SetCooperativeLevel(ghWindow, DDSCL_NORMAL);
-    g_gerd_659634->createContext((unsigned long)ghWindow);
+    g_direct_draw2->SetCooperativeLevel(ghWindow, DDSCL_NORMAL);
+    // reinterpret-ok: SurRender takes the window handle as an integer
+    g_gerd->createContext(reinterpret_cast<unsigned long>(ghWindow));
     return OpenRendererWindow();
 }
 
@@ -858,28 +864,28 @@ unsigned char FinishVideoPresentation(void)
 // FUNCTION: WIZ8 0x00422550
 unsigned char VideoResizeWindow(void)
 {
-    if (g_fullscreen_603c39 || !ghWindow || !g_gerd_659634 || !g_flush_pending_603c3a) {
+    if (g_fullscreen || !ghWindow || !g_gerd || !g_flush_pending) {
         return 0;
     }
-    g_flush_pending_603c3a = false;
-    g_gerd_659634->closeWindow(static_cast<srGERD::e_closeHint>(1));
-    if (g_gerd_659634->openWindow() == static_cast<srGERD::e_error>(3)) {
+    g_flush_pending = false;
+    g_gerd->closeWindow(static_cast<srGERD::e_closeHint>(1));
+    if (g_gerd->openWindow() == static_cast<srGERD::e_error>(3)) {
         return 0;
     }
-    g_paired_render_mode_6596f0 = 2;
-    g_overlay_render_mode_6596ec = 2;
+    g_paired_render_mode = 2;
+    g_overlay_render_mode = 2;
     ResetTransientRenderScenes();
-    g_flush_pending_603c3a = true;
+    g_flush_pending = true;
     return 1;
 }
 
 // FUNCTION: WIZ8 0x00422970
 void VideoFullScreen(unsigned char enabled)
 {
-    g_fullscreen_603c39 = enabled;
-    if (ghWindow && g_gerd_659634 && g_flush_pending_603c3a) {
-        g_flush_pending_603c3a = false;
-        g_gerd_659634->closeWindow(static_cast<srGERD::e_closeHint>(1));
+    g_fullscreen = enabled;
+    if (ghWindow && g_gerd && g_flush_pending) {
+        g_flush_pending = false;
+        g_gerd->closeWindow(static_cast<srGERD::e_closeHint>(1));
         OpenRendererWindow();
     }
 }
@@ -887,53 +893,53 @@ void VideoFullScreen(unsigned char enabled)
 // FUNCTION: WIZ8 0x00422f10
 void ResetTransientRenderScenes(void)
 {
-    memset(g_tile_dirty_flags_652ddc, 0, sizeof(g_tile_dirty_flags_652ddc));
-    unsigned int active = g_active_page_6596e4;
-    g_page_full_redraw_6596e8[active ^ 1] = 0;
-    g_page_full_redraw_6596e8[active] = 0;
-    g_dirty_tile_count_6596d8 = 0;
-    PurgeInactiveSceneInstances(g_scene_prerender0_65964c);
-    PurgeInactiveSceneInstances(g_scene_overlay0_659654);
-    PurgeInactiveSceneInstances(g_scene_prerender1_659650);
-    PurgeInactiveSceneInstances(g_scene_overlay1_659658);
+    memset(g_tile_dirty_flags, 0, sizeof(g_tile_dirty_flags));
+    unsigned int active = g_active_page;
+    g_page_full_redraw[active ^ 1] = 0;
+    g_page_full_redraw[active] = 0;
+    g_dirty_tile_count = 0;
+    PurgeInactiveSceneInstances(g_scene_prerender0);
+    PurgeInactiveSceneInstances(g_scene_overlay0);
+    PurgeInactiveSceneInstances(g_scene_prerender1);
+    PurgeInactiveSceneInstances(g_scene_overlay1);
     InvalidateRegion(0, 0, 640, 480, 0);
 }
 
 /* Same dirty-block / transient-scene reset as ResetTransientRenderScenes, but
    the full-screen invalidate uses flag 1 (the all-bits redraw path). */
 // FUNCTION: WIZ8 0x00423150
-void ClearVideoDirtyBlocks00423150(void)
+void ClearVideoDirtyBlocks(void)
 {
-    memset(g_tile_dirty_flags_652ddc, 0, sizeof(g_tile_dirty_flags_652ddc));
-    unsigned int active = g_active_page_6596e4;
-    g_page_full_redraw_6596e8[active ^ 1] = 0;
-    g_page_full_redraw_6596e8[active] = 0;
-    g_dirty_tile_count_6596d8 = 0;
-    PurgeInactiveSceneInstances(g_scene_prerender0_65964c);
-    PurgeInactiveSceneInstances(g_scene_overlay0_659654);
-    PurgeInactiveSceneInstances(g_scene_prerender1_659650);
-    PurgeInactiveSceneInstances(g_scene_overlay1_659658);
+    memset(g_tile_dirty_flags, 0, sizeof(g_tile_dirty_flags));
+    unsigned int active = g_active_page;
+    g_page_full_redraw[active ^ 1] = 0;
+    g_page_full_redraw[active] = 0;
+    g_dirty_tile_count = 0;
+    PurgeInactiveSceneInstances(g_scene_prerender0);
+    PurgeInactiveSceneInstances(g_scene_overlay0);
+    PurgeInactiveSceneInstances(g_scene_prerender1);
+    PurgeInactiveSceneInstances(g_scene_overlay1);
     InvalidateRegion(0, 0, 640, 480, 1);
 }
 
 // FUNCTION: WIZ8 0x004277e0
 unsigned char VideoInspectorIsEnabled(void)
 {
-    return g_video_inspector_enabled_65970f;
+    return g_video_inspector_enabled;
 }
 
 // FUNCTION: WIZ8 0x00422050
 void SuspendVideoManager(void)
 {
-    if (g_video_active_659710) {
+    if (g_video_active) {
         PauseMainGameWorld();
-        g_video_active_659710 = 0;
-        if (g_gerd_659634) {
-            g_flush_pending_603c3a = false;
-            g_gerd_659634->closeWindow((srGERD::e_closeHint)0);
+        g_video_active = 0;
+        if (g_gerd) {
+            g_flush_pending = false;
+            g_gerd->closeWindow((srGERD::e_closeHint)0);
         }
-        if (!g_fullscreen_603c39) {
-            GetWindowRect(ghWindow, &g_window_rect_659610);
+        if (!g_fullscreen) {
+            GetWindowRect(ghWindow, &g_window_rect);
         }
         ShowWindow(ghWindow, SW_MINIMIZE);
         FreeMouseCursor();
@@ -943,29 +949,29 @@ void SuspendVideoManager(void)
 // FUNCTION: WIZ8 0x004220b0
 unsigned char RestoreVideoManager(void)
 {
-    if (g_video_active_659710) {
+    if (g_video_active) {
         return 1;
     }
     if (gXStatus.world_update_blocked) {
         ResumeMainGameWorld();
     }
-    if (ghWindow && g_gerd_659634) {
-        g_video_active_659710 = 1;
+    if (ghWindow && g_gerd) {
+        g_video_active = 1;
         ShowWindow(ghWindow, SW_RESTORE);
-        if (g_gerd_659634->isWindowOpen() != 0 || OpenRendererWindow()) {
+        if (g_gerd->isWindowOpen() != 0 || OpenRendererWindow()) {
             OpenIcon(ghWindow);
             SetFocus(ghWindow);
-            memset(g_tile_dirty_flags_652ddc, 0, sizeof(g_tile_dirty_flags_652ddc));
-            g_dirty_tile_count_6596d8 = 0;
-            g_page_full_redraw_6596e8[g_active_page_6596e4 ^ 1] = 0;
-            g_page_full_redraw_6596e8[g_active_page_6596e4] = 0;
-            PurgeInactiveSceneInstances(g_scene_prerender0_65964c);
-            PurgeInactiveSceneInstances(g_scene_overlay0_659654);
-            PurgeInactiveSceneInstances(g_scene_prerender1_659650);
-            PurgeInactiveSceneInstances(g_scene_overlay1_659658);
+            memset(g_tile_dirty_flags, 0, sizeof(g_tile_dirty_flags));
+            g_dirty_tile_count = 0;
+            g_page_full_redraw[g_active_page ^ 1] = 0;
+            g_page_full_redraw[g_active_page] = 0;
+            PurgeInactiveSceneInstances(g_scene_prerender0);
+            PurgeInactiveSceneInstances(g_scene_overlay0);
+            PurgeInactiveSceneInstances(g_scene_prerender1);
+            PurgeInactiveSceneInstances(g_scene_overlay1);
             InvalidateRegion(0, 0, 0x280, 0x1e0, 0);
-            g_paired_render_mode_6596f0 = 2;
-            g_overlay_render_mode_6596ec = 2;
+            g_paired_render_mode = 2;
+            g_overlay_render_mode = 2;
         }
     }
     return 0;
@@ -977,7 +983,7 @@ unsigned char RestoreVideoManager(void)
 // FUNCTION: WIZ8 0x00421fb0
 void UnlockPrimarySurface(void)
 {
-    DDUnlockSurface(g_primary_surface_6596a8, NULL);
+    DDUnlockSurface(g_primary_surface, NULL);
 }
 
 /* The mode the engine falls back to: 640x480 at 16bpp, reported height first.
@@ -990,19 +996,22 @@ void GetCurrentVideoSettings(unsigned short* height, unsigned short* width, unsi
     *depth = 0x10;
 }
 
-/* Clear the primary surface. */
+/* Clears the primary surface. The dword count the original computes - the pitch
+   times fifteen, masked, shifted left three - is VC6's inline memset over
+   pitch times 480 bytes, which is why the byte-remainder loop that follows it
+   runs zero times: the length is always a multiple of four. */
 // FUNCTION: WIZ8 0x00421ff0
 unsigned char ClearPrimarySurface(void)
 {
     DDSURFACEDESC description;
 
-    DDLockSurface(g_primary_surface_6596a8, NULL, &description, 0, NULL);
+    DDLockSurface(g_primary_surface, NULL, &description, 0, NULL);
     memset(description.lpSurface, 0, description.lPitch * 480);
-    DDUnlockSurface(g_primary_surface_6596a8, NULL);
+    DDUnlockSurface(g_primary_surface, NULL);
     return 1;
 }
 
-void UpdateRenderElapsedTime00482140(void);
+void UpdateRenderElapsedTime(void);
 
 /* Saturate the three components of a renderer colour in place and return it.
    The reviewed body performs these three scalar saturations in order. */
@@ -1034,8 +1043,8 @@ static RuntimeWorldRenderData ObserveWorldRenderState();
 // FUNCTION: WIZ8 0x00427850
 void RenderScene(srScene* scene, srCamera* camera, const int* viewport, char preserve_fog)
 {
-    unsigned long width = g_gerd_659634->getWidth();
-    unsigned long height = g_gerd_659634->getHeight();
+    unsigned long width = g_gerd->getWidth();
+    unsigned long height = g_gerd->getHeight();
 
     if (scene == 0 || scene->getChildCount() == 0) {
         return;
@@ -1045,8 +1054,8 @@ void RenderScene(srScene* scene, srCamera* camera, const int* viewport, char pre
         unsigned long top = viewport[1] * height / 480;
         unsigned long viewport_width = (viewport[2] - viewport[0]) * width / 640;
         unsigned long viewport_height = (viewport[3] - viewport[1]) * height / 480;
-        g_gerd_659634->setViewPort(left, top, viewport_width, viewport_height);
-        g_gerd_659634->setScissor(left, top, viewport_width, viewport_height);
+        g_gerd->setViewPort(left, top, viewport_width, viewport_height);
+        g_gerd->setScissor(left, top, viewport_width, viewport_height);
 #ifdef WIZ8_RUNTIME_TESTS
         if (g_world != 0 && scene == g_world->static_scene) {
             RuntimeWorldRenderData data = ObserveWorldRenderState();
@@ -1068,11 +1077,11 @@ void RenderScene(srScene* scene, srCamera* camera, const int* viewport, char pre
         }
         scene->setFogColor(fog);
     }
-    scene->render(*g_gerd_659634, camera);
-    g_gerd_659634->flushRenderers();
+    scene->render(*g_gerd, camera);
+    g_gerd->flushRenderers();
     if (viewport != 0) {
-        g_gerd_659634->setViewPort(0, 0, width, height);
-        g_gerd_659634->setScissor(0, 0, width, height);
+        g_gerd->setViewPort(0, 0, width, height);
+        g_gerd->setScissor(0, 0, width, height);
     }
 }
 
@@ -1081,11 +1090,10 @@ static RuntimeWorldRenderData ObserveWorldRenderState()
 {
     RuntimeWorldRenderData data;
     memset(&data, 0, sizeof(data));
-    data.level = g_status_685170.current_level;
-    data.flags = (g_world_render_enabled_65970d ? 1UL : 0UL) |
-                 (g_world_blacked_out_65970e ? 2UL : 0UL) | (g_video_active_659710 ? 4UL : 0UL) |
-                 (g_monster_shadow_updates_enabled_0065970c ? 8UL : 0UL) |
-                 (g_render_flag_603c6c ? 16UL : 0UL) | (g_world_pick_enabled_603c38 ? 32UL : 0UL);
+    data.level = g_status.current_level;
+    data.flags = (g_world_render_enabled ? 1UL : 0UL) | (g_world_blacked_out ? 2UL : 0UL) |
+                 (g_video_active ? 4UL : 0UL) | (g_monster_shadow_updates_enabled ? 8UL : 0UL) |
+                 (g_render_flag_603c6c ? 16UL : 0UL) | (g_world_pick_enabled ? 32UL : 0UL);
     data.scene_children = g_world->static_scene->getChildCount();
     if (g_world->octree != 0 && g_world->psrMeshes != 0) {
         for (unsigned long index = 0; index < g_world->octree->m_meshCount_1b4; ++index) {
@@ -1099,8 +1107,8 @@ static RuntimeWorldRenderData ObserveWorldRenderState()
     data.viewport[1] = g_viewport_6595e8.top;
     data.viewport[2] = g_viewport_6595e8.right;
     data.viewport[3] = g_viewport_6595e8.bottom;
-    data.renderer_size[0] = g_gerd_659634->getWidth();
-    data.renderer_size[1] = g_gerd_659634->getHeight();
+    data.renderer_size[0] = g_gerd->getWidth();
+    data.renderer_size[1] = g_gerd->getHeight();
     srVector3T<float> camera;
     GetCameraPosition(&camera);
     data.camera[0] = camera.x;
@@ -1130,19 +1138,16 @@ void RenderFrame(void)
 
     clear_color.SetZero();
     SaturateColor004299B0(&clear_color);
-    if (!g_video_active_659710) {
+    if (!g_video_active) {
         return;
     }
 
-    if (g_trigger_action_active_006599c8 && GetWorld() != 0) {
+    if (g_trigger_action_active && GetWorld() != 0) {
         GetCameraPosition(&saved_world_position);
-        shifted_world_position.x =
-            saved_world_position.x + g_trigger_action_scene_offset_006599ac.x;
-        shifted_world_position.y =
-            saved_world_position.y + g_trigger_action_scene_offset_006599ac.y;
-        shifted_world_position.z =
-            saved_world_position.z + g_trigger_action_scene_offset_006599ac.z;
-        SetWorldScenePosition004511D0(GetWorld(), &shifted_world_position);
+        shifted_world_position.x = saved_world_position.x + g_trigger_action_scene_offset.x;
+        shifted_world_position.y = saved_world_position.y + g_trigger_action_scene_offset.y;
+        shifted_world_position.z = saved_world_position.z + g_trigger_action_scene_offset.z;
+        SetWorldScenePosition(GetWorld(), &shifted_world_position);
     }
     if (g_world != 0) {
         if (!IsSkyEnabled()) {
@@ -1156,79 +1161,78 @@ void RenderFrame(void)
         }
     }
 
-    g_gerd_659634->setClearColor(clear_color.x, clear_color.y, clear_color.z, 1.0f);
+    g_gerd->setClearColor(clear_color.x, clear_color.y, clear_color.z, 1.0f);
     SyncSystemCursor();
     RenderFastHelp();
     UpdateRegionHelp();
-    FlushDirtyTiles00425B40();
-    if (g_gerd_659634 != 0) {
-        g_gerd_659634->resetStatistics();
+    FlushDirtyTiles();
+    if (g_gerd != 0) {
+        g_gerd->resetStatistics();
     }
     srCore.getStatisticsManager()->reset();
-    g_gerd_659634->beginFrame();
+    g_gerd->beginFrame();
 #ifdef WIZ8_RUNTIME_TESTS
-    RuntimeObserve(RUNTIME_FRAME_BEGIN, g_fps_frame_count_6596fc, g_current_screen_state.id,
-                   g_video_active_659710);
+    RuntimeObserve(RUNTIME_FRAME_BEGIN, g_fps_frame_count, g_current_screen_state.id,
+                   g_video_active);
 #endif
-    UpdateRenderElapsedTime00482140();
+    UpdateRenderElapsedTime();
 
-    if (!g_monster_shadow_updates_enabled_0065970c) {
-        if (g_world_blacked_out_65970e) {
+    if (!g_monster_shadow_updates_enabled) {
+        if (g_world_blacked_out) {
             goto clear_viewport;
         }
-    } else if (g_world_blacked_out_65970e || !g_render_flag_603c6c || g_world_659ab8 == 0) {
+    } else if (g_world_blacked_out || !g_render_flag_603c6c || g_world_659ab8 == 0) {
     clear_viewport: {
-        unsigned long height = g_gerd_659634->getHeight();
-        unsigned long width = g_gerd_659634->getWidth();
-        g_gerd_659634->setScissor(
-            g_viewport_6595e8.left * width / 640, g_viewport_6595e8.top * height / 480,
-            (g_viewport_6595e8.right - g_viewport_6595e8.left) * width / 640,
-            (g_viewport_6595e8.bottom - g_viewport_6595e8.top) * height / 480);
-        g_gerd_659634->clear(srFlags<srGERD::e_buffer>(3));
-        g_gerd_659634->setScissor(0, 0, width, height);
+        unsigned long height = g_gerd->getHeight();
+        unsigned long width = g_gerd->getWidth();
+        g_gerd->setScissor(g_viewport_6595e8.left * width / 640,
+                           g_viewport_6595e8.top * height / 480,
+                           (g_viewport_6595e8.right - g_viewport_6595e8.left) * width / 640,
+                           (g_viewport_6595e8.bottom - g_viewport_6595e8.top) * height / 480);
+        g_gerd->clear(srFlags<srGERD::e_buffer>(3));
+        g_gerd->setScissor(0, 0, width, height);
     }
     }
 
-    first_page = g_active_page_6596e4 ? g_scene_prerender0_65964c : g_scene_prerender1_659650;
-    second_page = g_active_page_6596e4 ? g_scene_prerender1_659650 : g_scene_prerender0_65964c;
-    RenderScene(first_page, g_overlay_camera_659670, 0, 0);
-    RenderScene(second_page, g_overlay_camera_659670, 0, 0);
-    g_gerd_659634->setTextureReduction(g_resident_texture_policy_659714);
+    first_page = g_active_page ? g_scene_prerender0 : g_scene_prerender1;
+    second_page = g_active_page ? g_scene_prerender1 : g_scene_prerender0;
+    RenderScene(first_page, g_overlay_camera, 0, 0);
+    RenderScene(second_page, g_overlay_camera, 0, 0);
+    g_gerd->setTextureReduction(g_resident_texture_policy);
 
-    if (g_render_flag_603c6c && g_world_659ab8 != 0 && g_monster_shadow_updates_enabled_0065970c) {
+    if (g_render_flag_603c6c && g_world_659ab8 != 0 && g_monster_shadow_updates_enabled) {
         RenderScene(g_world_659ab8->static_scene, g_world_659ab8->camera, &g_viewport_6595e8.left,
                     0);
     }
-    if (g_world != 0 && g_world_render_enabled_65970d) {
+    if (g_world != 0 && g_world_render_enabled) {
 #ifdef WIZ8_RUNTIME_TESTS
         RuntimeWorldRenderData world_observation = ObserveWorldRenderState();
         RuntimeObserveWorld(RUNTIME_WORLD_RENDER_BEGIN, world_observation);
 #endif
-        g_gerd_659634->setTextureReduction(g_resident_texture_policy_659714);
-        if (!g_world_pick_enabled_603c38 ||
-            g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0 < g_viewport_6595e8.left ||
-            g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4 < g_viewport_6595e8.top ||
-            g_viewport_6595e8.right < g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0 ||
-            g_viewport_6595e8.bottom < g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4) {
+        g_gerd->setTextureReduction(g_resident_texture_policy);
+        if (!g_world_pick_enabled || g_cursor_hotspot_x + g_cursor_width < g_viewport_6595e8.left ||
+            g_cursor_hotspot_y + g_cursor_height < g_viewport_6595e8.top ||
+            g_viewport_6595e8.right < g_cursor_hotspot_x + g_cursor_width ||
+            g_viewport_6595e8.bottom < g_cursor_hotspot_y + g_cursor_height) {
             RenderScene(g_world->static_scene, g_world->camera, &g_viewport_6595e8.left, 1);
         } else {
             int half_width = (g_viewport_6595e8.right - g_viewport_6595e8.left) / 2;
             int half_height = (g_viewport_6595e8.bottom - g_viewport_6595e8.top) / 2;
             srGERD::Pick pick;
-            pick.position_00.x = (g_cursor_hotspot_x_6596bc - half_width - g_viewport_6595e8.left +
-                         g_cursor_width_654ad0) /
-                        static_cast<float>(half_width);
-            pick.position_00.y = -static_cast<float>(g_cursor_hotspot_y_6596c0 - half_height -
-                                            g_viewport_6595e8.top + g_cursor_height_654ad4) /
-                        static_cast<float>(half_height);
+            pick.position_00.x =
+                (g_cursor_hotspot_x - half_width - g_viewport_6595e8.left + g_cursor_width) /
+                static_cast<float>(half_width);
+            pick.position_00.y = -static_cast<float>(g_cursor_hotspot_y - half_height -
+                                                     g_viewport_6595e8.top + g_cursor_height) /
+                                 half_height;
             pick.position_00.z = 1.0f;
             pick.selected_model_0c = 0;
             pick.value_10 = 0;
-            g_gerd_659634->setPickKey(0);
-            g_gerd_659634->pushPick(pick);
+            g_gerd->setPickKey(0);
+            g_gerd->pushPick(pick);
             RenderScene(g_world->static_scene, g_world->camera, &g_viewport_6595e8.left, 1);
-            g_gerd_659634->popPick(pick);
-            g_current_model_instance_65962c = pick.selected_model_0c;
+            g_gerd->popPick(pick);
+            g_current_model_instance = pick.selected_model_0c;
             ResolvePickedProp(g_world);
         }
 #ifdef WIZ8_RUNTIME_TESTS
@@ -1236,67 +1240,64 @@ void RenderFrame(void)
 #endif
     }
 
-    g_gerd_659634->setTextureReduction(0);
+    g_gerd->setTextureReduction(0);
 #ifdef WIZ8_RUNTIME_TESTS
     if (getenv("WIZ8_RUNTIME_HIDE_OVERLAY") == 0)
 #endif
-        if (g_overlay_scenes_enabled_603c6d) {
-            const int* overlay_viewport = g_overlay_viewport_659668;
-            if (!g_fullscreen_scene_last_603c4c) {
-                RenderScene(g_scene_fullscreen_659644, g_overlay_camera_659670, overlay_viewport,
-                            0);
+        if (g_overlay_scenes_enabled) {
+            const int* overlay_viewport = g_overlay_viewport;
+            if (!g_fullscreen_scene_last) {
+                RenderScene(g_scene_fullscreen, g_overlay_camera, overlay_viewport, 0);
             }
-            RenderScene(g_scene_overlay0_659654, g_overlay_camera_659670, 0, 0);
-            RenderScene(g_scene_user_659640, g_overlay_camera_659670, 0, 0);
-            RenderScene(g_scene_square_65965c, g_square_camera_659674, overlay_viewport, 0);
-            if (g_fullscreen_scene_last_603c4c) {
-                RenderScene(g_scene_fullscreen_659644, g_overlay_camera_659670, overlay_viewport,
-                            0);
+            RenderScene(g_scene_overlay0, g_overlay_camera, 0, 0);
+            RenderScene(g_scene_user, g_overlay_camera, 0, 0);
+            RenderScene(g_scene_square, g_square_camera, overlay_viewport, 0);
+            if (g_fullscreen_scene_last) {
+                RenderScene(g_scene_fullscreen, g_overlay_camera, overlay_viewport, 0);
             }
-            if (g_cursor_scene_enabled_603c60) {
-                RenderScene(g_cursor_scene_659684, g_overlay_camera_659670, 0, 0);
+            if (g_cursor_scene_enabled) {
+                RenderScene(g_cursor_scene, g_overlay_camera, 0, 0);
             }
         }
-    g_gerd_659634->endFrame();
+    g_gerd->endFrame();
 #ifdef WIZ8_RUNTIME_TESTS
-    RuntimeObserve(RUNTIME_FRAME_SUBMITTED, g_fps_frame_count_6596fc, g_current_screen_state.id, 0);
+    RuntimeObserve(RUNTIME_FRAME_SUBMITTED, g_fps_frame_count, g_current_screen_state.id, 0);
 #endif
 
-    if (g_screenshot_pending_659711) {
+    if (g_screenshot_pending) {
         SaveJpegScreenshot();
-        g_screenshot_pending_659711 = 0;
+        g_screenshot_pending = 0;
     }
-    if (g_auto_capture_6596f4) {
+    if (g_auto_capture) {
         now = GetTickCount();
-        if (now < g_last_capture_tick_65409c ||
-            g_last_capture_tick_65409c + g_frame_reset_interval_603c68 < now) {
-            g_screenshot_pending_659711 = 1;
-            g_last_capture_tick_65409c = now;
+        if (now < g_last_capture_tick || g_last_capture_tick + g_frame_reset_interval < now) {
+            g_screenshot_pending = 1;
+            g_last_capture_tick = now;
         }
     }
 
-    next_page = g_active_page_6596e4 ^ 1;
-    g_active_page_6596e4 = next_page;
-    g_overlay_page_counters_6596dc[next_page] = 0;
-    g_page_full_redraw_6596e8[next_page] = 0;
-    ++g_fps_frame_count_6596fc;
-    retire_prerender = next_page ? g_scene_prerender1_659650 : g_scene_prerender0_65964c;
-    retire_overlay = next_page ? g_scene_overlay1_659658 : g_scene_overlay0_659654;
+    next_page = g_active_page ^ 1;
+    g_active_page = next_page;
+    g_overlay_page_counters[next_page] = 0;
+    g_page_full_redraw[next_page] = 0;
+    ++g_fps_frame_count;
+    retire_prerender = next_page ? g_scene_prerender1 : g_scene_prerender0;
+    retire_overlay = next_page ? g_scene_overlay1 : g_scene_overlay0;
     PurgeInactiveSceneInstances(retire_prerender);
     PurgeInactiveSceneInstances(retire_overlay);
 
     now = GetTickCount();
-    elapsed = static_cast<float>(now - g_fps_window_tick_659700);
-    frames_per_second = g_fps_frame_count_6596fc / elapsed * 1000.0f;
-    if (g_fps_frame_count_6596fc > 50) {
-        g_fps_window_tick_659700 = GetTickCount();
-        g_fps_frame_count_6596fc = 0;
+    elapsed = static_cast<float>(now - g_fps_window_tick);
+    frames_per_second = g_fps_frame_count / elapsed * 1000.0f;
+    if (g_fps_frame_count > 50) {
+        g_fps_window_tick = GetTickCount();
+        g_fps_frame_count = 0;
     }
-    g_seconds_per_frame_659708 = 1.0f / frames_per_second;
-    g_frames_per_second_659704 = frames_per_second;
+    g_seconds_per_frame = 1.0f / frames_per_second;
+    g_frames_per_second = frames_per_second;
 
-    if (g_trigger_action_active_006599c8 && GetWorld() != 0) {
-        SetWorldScenePosition004511D0(GetWorld(), &saved_world_position);
+    if (g_trigger_action_active && GetWorld() != 0) {
+        SetWorldScenePosition(GetWorld(), &saved_world_position);
     }
 }
 
@@ -1306,19 +1307,19 @@ void RenderFrame(void)
    otherwise the stored game viewport globals apply. SaveGame uses it for the
    SHOT screenshot; the automap uses it for its backdrop. */
 // FUNCTION: WIZ8 0x00426f80
-unsigned char RenderWorldToSurface00426F80(srColorSurface* target, W8ScreenRect* rect,
-                                           char render_secondary)
+unsigned char RenderWorldToSurface(srColorSurface* target, W8ScreenRect* rect,
+                                   char render_secondary)
 {
-    srGERD* gerd = g_secondary_gerd_65971c;
+    srGERD* gerd = g_secondary_gerd;
     EnvironmentColour clear_color;
     clear_color.red = 1.0f;
     clear_color.green = 1.0f;
     clear_color.blue = 1.0f;
     if (gerd == 0) {
-        gerd = g_gerd_659634;
+        gerd = g_gerd;
     }
     gerd->beginFrame();
-    gerd->setTextureReduction(g_resident_texture_policy_659714);
+    gerd->setTextureReduction(g_resident_texture_policy);
     gerd->setScissor(0, 0, gerd->getWidth(), gerd->getHeight());
     if (rect != 0) {
         gerd->setViewPort(rect->left * gerd->getWidth() / 640, rect->top * gerd->getHeight() / 480,
@@ -1337,7 +1338,7 @@ unsigned char RenderWorldToSurface00426F80(srColorSurface* target, W8ScreenRect*
         GetWorldLightValue(g_world, &clear_color);
     }
     gerd->setClearColor(clear_color.red, clear_color.green, clear_color.blue, 1.0f);
-    if (g_inverted_depth_render_0065a0ee != 0) {
+    if (g_inverted_depth_render != 0) {
         gerd->setClearDepth(0.0);
     }
     gerd->clear(srFlags<srGERD::e_buffer>(3));
@@ -1346,7 +1347,7 @@ unsigned char RenderWorldToSurface00426F80(srColorSurface* target, W8ScreenRect*
     }
     g_world->static_scene->render(*gerd, g_world->camera);
     gerd->endFrame();
-    if (g_inverted_depth_render_0065a0ee != 0) {
+    if (g_inverted_depth_render != 0) {
         gerd->setClearDepth(1.0);
     }
     gerd->flushRenderers();
@@ -1367,8 +1368,8 @@ unsigned char RenderWorldToSurface00426F80(srColorSurface* target, W8ScreenRect*
 // FUNCTION: WIZ8 0x00427440
 void InvalidateRendererTextureCache(void)
 {
-    if (g_gerd_659634 != 0) {
-        g_gerd_659634->invalidateTextureCache();
+    if (g_gerd != 0) {
+        g_gerd->invalidateTextureCache();
     }
 }
 
@@ -1380,9 +1381,9 @@ void PublishLightDirection(const EnvironmentColour* direction)
 {
     const srVector3T<float>* color = reinterpret_cast<const srVector3T<float>*>(
         direction); // reinterpret-ok: the renderer consumes the light triple as a fog vector
-    if (g_gerd_659634 != 0) {
-        g_gerd_659634->flush();
-        g_gerd_659634->setFogColor(*color);
+    if (g_gerd != 0) {
+        g_gerd->flush();
+        g_gerd->setFogColor(*color);
     }
     if (g_world != 0) {
         g_world->static_scene->setFogColor(*color);
@@ -1395,10 +1396,10 @@ void PublishLightDirection(const EnvironmentColour* direction)
 // FUNCTION: WIZ8 0x00427230
 void SetRendererOption4Enabled(char enabled)
 {
-    if (g_gerd_659634 != 0) {
-        if ((!enabled && g_gerd_659634->isEnabled(srGERD::ENABLE_POSITIONAL_4)) ||
-            (enabled && !g_gerd_659634->isEnabled(srGERD::ENABLE_POSITIONAL_4))) {
-            g_gerd_659634->toggle(srGERD::ENABLE_POSITIONAL_4);
+    if (g_gerd != 0) {
+        if ((!enabled && g_gerd->isEnabled(srGERD::ENABLE_POSITIONAL_4)) ||
+            (enabled && !g_gerd->isEnabled(srGERD::ENABLE_POSITIONAL_4))) {
+            g_gerd->toggle(srGERD::ENABLE_POSITIONAL_4);
         }
     }
 }
@@ -1406,7 +1407,7 @@ void SetRendererOption4Enabled(char enabled)
 /* The static scene's fog colour clamped into 0..1 for the caller; an empty
    world reports black. */
 // FUNCTION: WIZ8 0x00427290
-void GetWorldColour00427290(EnvironmentColour* colour)
+void GetWorldColour(EnvironmentColour* colour)
 {
     if (g_world != 0) {
         const srVector3T<float> fog = g_world->static_scene->getFogColor();
@@ -1446,11 +1447,11 @@ int GetUsedPageFileBytes(void)
 }
 
 // FUNCTION: WIZ8 0x00427260
-unsigned char RendererBufferIsLockable(void)
+bool RendererBufferIsLockable(void)
 {
-    srColorSurfaceIFace* surface = g_gerd_659634->lockBuffer();
+    srColorSurfaceIFace* surface = g_gerd->lockBuffer();
     if (surface != 0) {
-        g_gerd_659634->unlockBuffer();
+        g_gerd->unlockBuffer();
         return 1;
     }
     return 0;
@@ -1459,9 +1460,9 @@ unsigned char RendererBufferIsLockable(void)
 // FUNCTION: WIZ8 0x00427830
 void SetWorldModelPickingEnabled(char enabled)
 {
-    g_world_pick_enabled_603c38 = enabled;
+    g_world_pick_enabled = enabled;
     if (enabled == 0) {
-        g_current_model_instance_65962c = 0;
+        g_current_model_instance = 0;
     }
 }
 
@@ -1510,7 +1511,7 @@ srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, 
         texture->setMipmap(srTextureIFace::MIPMAP_NONE);
         texture->setWrapS(srTextureIFace::WRAP_CLAMP);
         texture->setWrapT(srTextureIFace::WRAP_CLAMP);
-        model->setMaterial(g_blit_material_65967c, 0, static_cast<srMeshModel::e_side>(0));
+        model->setMaterial(g_blit_material, 0, static_cast<srMeshModel::e_side>(0));
         model->setTexture(texture, 0, 0);
         texture->enableHint(overlay ? srTextureIFace::HINT_POSITIONAL_2
                                     : srTextureIFace::HINT_POSITIONAL_1);
@@ -1520,7 +1521,7 @@ srModelInstance* MakePolygonBrush(srNode* parent, srColorSurfaceIFace* surface, 
 
     instance = new stModelInstance2D(parent);
     instance->setName("Video2DMakePolygonBrush");
-    instance->SetModel0047F3A0(model);
+    instance->SetModel(model);
     instance->configure2D(static_cast<short>(width * 640.0), static_cast<short>(height * 480.0));
     return instance;
 }
@@ -1541,7 +1542,7 @@ stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width
     model->autoRelease();
     model->setName("Video2DMakePolygonBrush");
 
-    float step = g_surface_scale_659680 * (g_float_005ebb38 / w);
+    float step = g_surface_scale * (g_float_005ebb38 / w);
     g_modeler_65963c->createGrid(1, 1);
     srModeler::MappingInfo mapping(srModeler::AXIS_X, srModeler::AXIS_Y,
                                    g_float_005ebb38 - (step + step),
@@ -1558,7 +1559,7 @@ stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width
     if (!texture) {
         shader.value &= ~srShader::MASK_TEXTURING;
     } else {
-        model->setMaterial(g_blit_material_65967c, 0, static_cast<srMeshModel::e_side>(0));
+        model->setMaterial(g_blit_material, 0, static_cast<srMeshModel::e_side>(0));
         model->setTexture(texture, 0, 0);
     }
     model->setShader(shader, 0);
@@ -1568,7 +1569,7 @@ stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width
         instance->render_state_164.left = static_cast<short>(w);
         instance->render_state_164.top = static_cast<short>(h);
         instance->setName("Video2DMakePolygonBrush");
-        instance->SetModel0047F3A0(model);
+        instance->SetModel(model);
         if (a5) {
             instance->overlay_scene_flag_160 |= 1;
         }
@@ -1617,7 +1618,7 @@ static void MoveSystemCursor(int x, int y)
     POINT top_left;
     POINT bottom_right;
 
-    if (!g_fullscreen_603c39) {
+    if (!g_fullscreen) {
         GetClientRect(ghWindow, &client);
         top_left.x = client.left;
         top_left.y = client.top;
@@ -1637,7 +1638,7 @@ BOOLEAN ResizeMouseCursorSurface(int width, int height)
     int extent;
     float mapping_scale;
 
-    if (g_cursor_image_width_6596b4 == width && g_cursor_image_height_6596b8 == height) {
+    if (g_cursor_image_width == width && g_cursor_image_height == height) {
         return TRUE;
     }
     extent = width > height ? width : height;
@@ -1653,30 +1654,30 @@ BOOLEAN ResizeMouseCursorSurface(int width, int height)
         extent = 256;
     else
         extent = -1;
-    if (!g_mouse_surface_659688->resize(extent, extent)) {
+    if (!g_mouse_surface->resize(extent, extent)) {
         return FALSE;
     }
     if (g_cursor_node_659694) {
         g_cursor_node_659694->release();
     }
-    if (g_cursor_texture_659690) {
-        g_cursor_texture_659690->release();
+    if (g_cursor_texture) {
+        g_cursor_texture->release();
     }
-    mapping_scale = g_surface_scale_659680 / extent;
-    g_cursor_node_659694 = MakePolygonBrush(
-        g_cursor_scene_659684, g_mouse_surface_659688, static_cast<double>(extent) / 640.0,
-        static_cast<double>(extent) / 480.0, mapping_scale, mapping_scale, 1.0f, 1.0f, 1);
+    mapping_scale = g_surface_scale / extent;
+    g_cursor_node_659694 =
+        MakePolygonBrush(g_cursor_scene, g_mouse_surface, extent / 640.0, extent / 480.0,
+                         mapping_scale, mapping_scale, 1.0f, 1.0f, 1);
     g_cursor_node_659694->setName("MouseResize");
-    PositionMouseCursor(g_cursor_width_654ad0, g_cursor_height_654ad4, 0);
-    g_cursor_model_65968c = static_cast<srMeshModel*>(g_cursor_node_659694->model());
-    g_cursor_model_65968c->enableStartupControls();
+    PositionMouseCursor(g_cursor_width, g_cursor_height, 0);
+    g_cursor_model = static_cast<srMeshModel*>(g_cursor_node_659694->model());
+    g_cursor_model->enableStartupControls();
     static_cast<stModelInstance2D*>(g_cursor_node_659694)->setRenderDepth(0xc7c35000);
-    g_cursor_model_65968c->enableStartupControls();
-    g_cursor_model_65968c->setName("Mouse Cursor Mesh");
-    g_cursor_texture_659690 = static_cast<srTexture*>(g_cursor_model_65968c->getTexture(0, 0));
-    g_cursor_texture_659690->setWrapS(srTextureIFace::WRAP_CLAMP);
-    g_cursor_texture_659690->setWrapT(srTextureIFace::WRAP_CLAMP);
-    g_cursor_texture_659690->addReference();
+    g_cursor_model->enableStartupControls();
+    g_cursor_model->setName("Mouse Cursor Mesh");
+    g_cursor_texture = static_cast<srTexture*>(g_cursor_model->getTexture(0, 0));
+    g_cursor_texture->setWrapS(srTextureIFace::WRAP_CLAMP);
+    g_cursor_texture->setWrapT(srTextureIFace::WRAP_CLAMP);
+    g_cursor_texture->addReference();
     return TRUE;
 }
 
@@ -1689,13 +1690,13 @@ void SetMouseCursorHotspot(short hotspot_x, short hotspot_y)
     int x;
     int y;
 
-    if (g_cursor_hotspot_x_6596bc != hotspot_x || g_cursor_hotspot_y_6596c0 != hotspot_y) {
-        x = g_cursor_width_654ad0 - hotspot_x + g_cursor_hotspot_x_6596bc;
-        y = g_cursor_height_654ad4 - hotspot_y + g_cursor_hotspot_y_6596c0;
+    if (g_cursor_hotspot_x != hotspot_x || g_cursor_hotspot_y != hotspot_y) {
+        x = g_cursor_width - hotspot_x + g_cursor_hotspot_x;
+        y = g_cursor_height - hotspot_y + g_cursor_hotspot_y;
         MoveSystemCursor(x, y);
         SyncSystemCursor();
-        g_cursor_hotspot_x_6596bc = hotspot_x;
-        g_cursor_hotspot_y_6596c0 = hotspot_y;
+        g_cursor_hotspot_x = hotspot_x;
+        g_cursor_hotspot_y = hotspot_y;
     }
 }
 
@@ -1716,38 +1717,40 @@ BOOLEAN SetMouseCursorFromVideoObject(UINT32 video_object, UINT16 region, INT16 
     if (!ResizeMouseCursorSurface(properties.usWidth + 1, properties.usHeight + 1)) {
         return FALSE;
     }
-    if (g_cursor_hotspot_x_6596bc != offset_x || g_cursor_hotspot_y_6596c0 != offset_y) {
-        x = g_cursor_width_654ad0 - offset_x + g_cursor_hotspot_x_6596bc;
-        y = g_cursor_height_654ad4 - offset_y + g_cursor_hotspot_y_6596c0;
+    if (g_cursor_hotspot_x != offset_x || g_cursor_hotspot_y != offset_y) {
+        x = g_cursor_width - offset_x + g_cursor_hotspot_x;
+        y = g_cursor_height - offset_y + g_cursor_hotspot_y;
         MoveSystemCursor(x, y);
         PositionMouseCursor(x, y, 1);
-        g_cursor_hotspot_x_6596bc = offset_x;
-        g_cursor_hotspot_y_6596c0 = offset_y;
+        g_cursor_hotspot_x = offset_x;
+        g_cursor_hotspot_y = offset_y;
     }
-    g_cursor_image_width_6596b4 = properties.usWidth;
-    g_cursor_image_height_6596b8 = properties.usHeight;
-    g_mouse_surface_659688->fill(0);
-    return BlitVideoObjectToColorSurface(video_object, region, g_mouse_surface_659688, 0, 0);
+    g_cursor_image_width = properties.usWidth;
+    g_cursor_image_height = properties.usHeight;
+    g_mouse_surface->fill(0);
+    return BlitVideoObjectToColorSurface(video_object, region, g_mouse_surface, 0, 0);
 }
 
 // FUNCTION: WIZ8 0x00427fc0
 void BlitToMouseCursor(UINT32 video_object, UINT16 region, UINT16 x, UINT16 y)
 {
-    BlitVideoObjectToColorSurface(video_object, region, g_mouse_surface_659688, x, y);
+    BlitVideoObjectToColorSurface(video_object, region, g_mouse_surface, x, y);
 }
 
 // FUNCTION: WIZ8 0x00427ff0
 void RefreshMouseCursorTexture(void)
 {
-    g_mouse_surface_659688->touch();
-    g_cursor_texture_659690->invalidate();
+    g_mouse_surface->touch();
+    g_cursor_texture->invalidate();
 }
 
-/* Clear the cursor scratch surface. */
+/* Whether the tracked cursor position lies inside the render viewport. The
+   two automap callers use it, but nothing names the viewport as automap-only
+   state; placed here with the neighbouring cursor bodies. */
 // FUNCTION: WIZ8 0x00427e70
 bool ClearMouseSurface(void)
 {
-    g_mouse_surface_659688->fill(0);
+    g_mouse_surface->fill(0);
     return true;
 }
 
@@ -1756,10 +1759,9 @@ bool ClearMouseSurface(void)
 // FUNCTION: WIZ8 0x00428030
 bool IsCursorImageInsideViewport(void)
 {
-    if (g_cursor_width_654ad0 >= g_viewport_6595e8.left &&
-        g_cursor_height_654ad4 >= g_viewport_6595e8.top &&
-        g_cursor_width_654ad0 + g_cursor_image_width_6596b4 <= g_viewport_6595e8.right &&
-        g_cursor_height_654ad4 + g_cursor_image_height_6596b8 <= g_viewport_6595e8.bottom) {
+    if (g_cursor_width >= g_viewport_6595e8.left && g_cursor_height >= g_viewport_6595e8.top &&
+        g_cursor_width + g_cursor_image_width <= g_viewport_6595e8.right &&
+        g_cursor_height + g_cursor_image_height <= g_viewport_6595e8.bottom) {
         return true;
     }
     return false;
@@ -1768,8 +1770,8 @@ bool IsCursorImageInsideViewport(void)
 // FUNCTION: WIZ8 0x00428070
 bool IsCursorInsideViewport(void)
 {
-    int x = g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0;
-    int y = g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4;
+    int x = g_cursor_hotspot_x + g_cursor_width;
+    int y = g_cursor_hotspot_y + g_cursor_height;
     return x >= g_viewport_6595e8.left && y >= g_viewport_6595e8.top &&
            x <= g_viewport_6595e8.right && y <= g_viewport_6595e8.bottom;
 }
@@ -1777,7 +1779,7 @@ bool IsCursorInsideViewport(void)
 // FUNCTION: WIZ8 0x004280c0
 void WarpSystemCursor(int x, int y)
 {
-    if (g_fullscreen_603c39) {
+    if (g_fullscreen) {
         SetCursorPos(x, y);
         return;
     }
@@ -1795,18 +1797,16 @@ void PositionMouseCursor(int width, int height, unsigned char reset_tick)
 {
     srVector3T<double> location;
 
-    if (g_mouse_surface_659688) {
-        g_cursor_width_654ad0 = width < 641 ? width : 640;
-        g_cursor_height_654ad4 = height < 481 ? height : 480;
+    if (g_mouse_surface) {
+        g_cursor_width = width < 641 ? width : 640;
+        g_cursor_height = height < 481 ? height : 480;
         if (g_cursor_node_659694) {
-            location.x = static_cast<double>(g_cursor_width_654ad0) / 640.0 +
-                         static_cast<double>(g_mouse_surface_659688->getWidth()) / 1280.0;
-            location.y = 1.0 - static_cast<double>(g_cursor_height_654ad4) / 480.0 -
-                         static_cast<double>(g_mouse_surface_659688->getHeight()) / 960.0;
+            location.x = g_cursor_width / 640.0 + g_mouse_surface->getWidth() / 1280.0;
+            location.y = 1.0 - g_cursor_height / 480.0 - g_mouse_surface->getHeight() / 960.0;
             location.z = 0.0;
             g_cursor_node_659694->setLocation(location);
             if (reset_tick) {
-                g_cursor_move_tick_659698 = GetTickCount();
+                g_cursor_move_tick = GetTickCount();
             }
         }
     }
@@ -1817,7 +1817,7 @@ void PositionMouseCursor(int width, int height, unsigned char reset_tick)
 // FUNCTION: WIZ8 0x00428220
 unsigned int GetMillisecondsSinceCursorMove(void)
 {
-    return GetTickCount() - g_cursor_move_tick_659698;
+    return GetTickCount() - g_cursor_move_tick;
 }
 
 /* The tracked cursor as viewport-relative 0..1 coordinates, or zero when it
@@ -1825,8 +1825,8 @@ unsigned int GetMillisecondsSinceCursorMove(void)
 // FUNCTION: WIZ8 0x00428230
 unsigned char GetCursorPositionInViewport(srVector3T<float>* position)
 {
-    int x = g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0;
-    int y = g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4;
+    int x = g_cursor_hotspot_x + g_cursor_width;
+    int y = g_cursor_hotspot_y + g_cursor_height;
     if (x >= g_viewport_6595e8.left && y >= g_viewport_6595e8.top && x <= g_viewport_6595e8.right &&
         y <= g_viewport_6595e8.bottom) {
         position->x = (x - g_viewport_6595e8.left) /
@@ -1842,11 +1842,11 @@ unsigned char GetCursorPositionInViewport(srVector3T<float>* position)
 /* The tracked cursor tip (hotspot + size) in pixel-scale units. DropHeldItem
    turns it into the toss direction. */
 // FUNCTION: WIZ8 0x004282F0
-void GetCursorScaledPosition004282F0(srVector3T<float>* position)
+void GetCursorScaledPosition(srVector3T<float>* position)
 {
-    position->x = (g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0) * g_scale_x_5ebb1c;
+    position->x = (g_cursor_hotspot_x + g_cursor_width) * g_scale_x_5ebb1c;
     position->z = 0.0f;
-    position->y = (g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4) * g_scale_y_5ebb20;
+    position->y = (g_cursor_hotspot_y + g_cursor_height) * g_scale_y_5ebb20;
 }
 
 /* Keep the rendered cursor synchronized with the OS cursor. In windowed mode
@@ -1861,7 +1861,7 @@ void SyncSystemCursor(void)
     POINT bottom_right;
 
     GetCursorPos(&cursor);
-    if (!g_fullscreen_603c39) {
+    if (!g_fullscreen) {
         GetClientRect(ghWindow, &client);
         top_left.x = client.left;
         top_left.y = client.top;
@@ -1871,19 +1871,19 @@ void SyncSystemCursor(void)
         ClientToScreen(ghWindow, &bottom_right);
         if (cursor.x < top_left.x || cursor.x >= bottom_right.x || cursor.y < top_left.y ||
             cursor.y >= bottom_right.y) {
-            if (g_system_cursor_visible_6596c4 != 1) {
-                g_system_cursor_visible_6596c4 = 1;
+            if (g_system_cursor_visible != 1) {
+                g_system_cursor_visible = true;
                 ShowCursor(TRUE);
             }
             return;
         }
         cursor.x -= top_left.x;
         cursor.y -= top_left.y;
-        if (cursor.x != g_cursor_width_654ad0 || cursor.y != g_cursor_height_654ad4) {
+        if (cursor.x != g_cursor_width || cursor.y != g_cursor_height) {
             PositionMouseCursor(cursor.x, cursor.y, 1);
         }
-        if (g_system_cursor_visible_6596c4 != 0) {
-            g_system_cursor_visible_6596c4 = 0;
+        if (g_system_cursor_visible != 0) {
+            g_system_cursor_visible = false;
             ShowCursor(FALSE);
         }
         return;
@@ -1897,9 +1897,9 @@ void SyncSystemCursor(void)
         cursor.y = 0;
     else if (cursor.y >= 480)
         cursor.y = 480;
-    if (cursor.x != g_cursor_width_654ad0 || cursor.y != g_cursor_height_654ad4) {
+    if (cursor.x != g_cursor_width || cursor.y != g_cursor_height) {
         PositionMouseCursor(cursor.x, cursor.y, 1);
-        if (!g_fullscreen_603c39) {
+        if (!g_fullscreen) {
             GetClientRect(ghWindow, &client);
             top_left.x = client.left;
             top_left.y = client.top;
@@ -1922,8 +1922,8 @@ void SGPMouseGetPos(POINT* point)
 {
     if (point != 0) {
         SyncSystemCursor();
-        point->x = g_cursor_hotspot_x_6596bc + g_cursor_width_654ad0;
-        point->y = g_cursor_hotspot_y_6596c0 + g_cursor_height_654ad4;
+        point->x = g_cursor_hotspot_x + g_cursor_width;
+        point->y = g_cursor_hotspot_y + g_cursor_height;
     }
 }
 
@@ -1939,15 +1939,15 @@ bool IsCursorInRectangle(int left, int top, int right, int bottom)
 /* The atom's packed mouse position plus the cursor hotspot, split into the
    screen-space x and y region input works in. */
 // FUNCTION: WIZ8 0x00428580
-int GetAtomCursorX00428580(const InputAtom* atom)
+int GetAtomCursorX(const InputAtom* atom)
 {
-    return static_cast<unsigned short>(atom->uiParam) + g_cursor_hotspot_x_6596bc;
+    return static_cast<unsigned short>(atom->uiParam) + g_cursor_hotspot_x;
 }
 
 // FUNCTION: WIZ8 0x004285a0
-int GetAtomCursorY004285A0(const InputAtom* atom)
+int GetAtomCursorY(const InputAtom* atom)
 {
-    return static_cast<int>(atom->uiParam >> 16) + g_cursor_hotspot_y_6596c0;
+    return static_cast<int>(atom->uiParam >> 16) + g_cursor_hotspot_y;
 }
 
 /* Creates the shipped 128x128 mouse polygon inside its dedicated scene. */
@@ -1957,27 +1957,27 @@ unsigned char InitializeMouseCursorScene(void)
     srScene* cursor_scene = SR_NEW(srScene)(static_cast<srNode*>(0));
     cursor_scene->setAmbientLight(0.0f, 0.0f, 0.0f);
     cursor_scene->setFogColor(0.0f, 0.0f, 0.0f);
-    g_cursor_scene_659684 = cursor_scene;
-    g_cursor_scene_659684->setName("Mouse Cursor Scene");
-    if (!g_mouse_surface_659688) {
+    g_cursor_scene = cursor_scene;
+    g_cursor_scene->setName("Mouse Cursor Scene");
+    if (!g_mouse_surface) {
         return 0;
     }
-    g_mouse_surface_659688->fill(0);
-    if (g_cursor_texture_659690) {
-        g_cursor_texture_659690->release();
+    g_mouse_surface->fill(0);
+    if (g_cursor_texture) {
+        g_cursor_texture->release();
     }
-    g_cursor_node_659694 = MakePolygonBrush(g_cursor_scene_659684, g_mouse_surface_659688, 0.2,
-                                            0.26666666666666666, g_surface_scale_659680 / 128.0f,
-                                            g_surface_scale_659680 / 128.0f, 1.0f, 1.0f, 1);
+    g_cursor_node_659694 =
+        MakePolygonBrush(g_cursor_scene, g_mouse_surface, 0.2, 0.26666666666666666,
+                         g_surface_scale / 128.0f, g_surface_scale / 128.0f, 1.0f, 1.0f, 1);
     if (g_cursor_node_659694) {
         g_cursor_node_659694->setName("MouseInit");
-        g_cursor_model_65968c = static_cast<srMeshModel*>(g_cursor_node_659694->model());
-        g_cursor_model_65968c->enableStartupControls();
+        g_cursor_model = static_cast<srMeshModel*>(g_cursor_node_659694->model());
+        g_cursor_model->enableStartupControls();
         static_cast<stModelInstance2D*>(g_cursor_node_659694)->setRenderDepth(0xc7c35000);
-        g_cursor_texture_659690 = static_cast<srTexture*>(g_cursor_model_65968c->getTexture(0, 0));
-        g_cursor_texture_659690->setWrapS(srTextureIFace::WRAP_CLAMP);
-        g_cursor_texture_659690->setWrapT(srTextureIFace::WRAP_CLAMP);
-        g_cursor_texture_659690->addReference();
+        g_cursor_texture = static_cast<srTexture*>(g_cursor_model->getTexture(0, 0));
+        g_cursor_texture->setWrapS(srTextureIFace::WRAP_CLAMP);
+        g_cursor_texture->setWrapT(srTextureIFace::WRAP_CLAMP);
+        g_cursor_texture->addReference();
         PositionMouseCursor(640, 480, 1);
     }
     return 1;
@@ -1989,17 +1989,17 @@ unsigned char InitializeMouseCursorScene(void)
  *
  * The screen is tracked as an 80x60 grid of eight-pixel cells - 0x50 cells per
  * row, which is 640/8 - and this walks the cells a rectangle covers, handing
- * each to InvalidateDirtyTile004259B0. A page already marked whole is skipped outright, and a
+ * each to InvalidateDirtyTile. A page already marked whole is skipped outright, and a
  * rectangle that turns out to cover the whole 640x480 marks it whole.
  *
- * InvalidateDirtyTile004259B0 performs the per-cell write; the flag bits the caller passes
+ * InvalidateDirtyTile performs the per-cell write; the flag bits the caller passes
  * are only known by which bits they set.
  */
 
 // GLOBAL: WIZ8 0x65970d
-unsigned char g_world_render_enabled_65970d;
+unsigned char g_world_render_enabled;
 // GLOBAL: WIZ8 0x6596ea
-bool g_viewport_tiles_dirty_6596ea;
+bool g_viewport_tiles_dirty;
 /* The initial full-screen invalidation runs before any 2D node occupies the
    tile table. A cell occupied by a 2D instance releases that instance and
    recursively invalidates the cells its extent covers; the flags the caller
@@ -2007,17 +2007,16 @@ bool g_viewport_tiles_dirty_6596ea;
 /* Retire a 2D node: clear every tile-table slot that references it, invalidate
    the texture its model still exposes, and release the node itself. */
 // FUNCTION: WIZ8 0x00425950
-void ReleaseSurfaceNode00425950(srNode* node)
+void ReleaseSurfaceNode(srNode* node)
 {
     if (node == 0) {
         return;
     }
     int index = 0;
-    for (srNode** slot = g_surface_nodes_654adc; slot < g_surface_nodes_654adc + 0x12c0;
-         ++slot, ++index) {
+    for (srNode** slot = g_surface_nodes; slot < g_surface_nodes + 0x12c0; ++slot, ++index) {
         if (*slot == node) {
             *slot = 0;
-            g_tile_dirty_flags_652ddc[index] = 0;
+            g_tile_dirty_flags[index] = 0;
         }
     }
     srMeshModel* model = static_cast<srMeshModel*>(static_cast<stModelInstance2D*>(node)->model());
@@ -2031,9 +2030,9 @@ void ReleaseSurfaceNode00425950(srNode* node)
 }
 
 // FUNCTION: WIZ8 0x004259b0
-static void InvalidateDirtyTile004259B0(int cell, unsigned int flags)
+static void InvalidateDirtyTile(int cell, unsigned int flags)
 {
-    stModelInstance2D* node = static_cast<stModelInstance2D*>(g_surface_nodes_654adc[cell]);
+    stModelInstance2D* node = static_cast<stModelInstance2D*>(g_surface_nodes[cell]);
 
     if (node != 0) {
         short position_x = node->render_state_164.right;
@@ -2042,9 +2041,9 @@ static void InvalidateDirtyTile004259B0(int cell, unsigned int flags)
         int rows = node->GetHeight00480F70() >> 3;
 
         for (int index = 0; index != 0x12c0; ++index) {
-            if (g_surface_nodes_654adc[index] == node) {
-                g_surface_nodes_654adc[index] = 0;
-                g_tile_dirty_flags_652ddc[index] = 0;
+            if (g_surface_nodes[index] == node) {
+                g_surface_nodes[index] = 0;
+                g_tile_dirty_flags[index] = 0;
             }
         }
         srMeshModel* model = static_cast<srMeshModel*>(node->model());
@@ -2059,27 +2058,26 @@ static void InvalidateDirtyTile004259B0(int cell, unsigned int flags)
         for (int row = rows; row != 0; --row) {
             int row_cell = start;
             for (int column = columns; column != 0; --column) {
-                InvalidateDirtyTile004259B0(row_cell, 0);
+                InvalidateDirtyTile(row_cell, 0);
                 ++row_cell;
             }
             start += 0x50;
         }
     }
-    unsigned char state =
-        g_tile_dirty_flags_652ddc[cell] | static_cast<unsigned char>(flags) | 0x40;
-    g_tile_dirty_flags_652ddc[cell] = state;
-    ++g_dirty_tile_count_6596d8;
+    unsigned char state = g_tile_dirty_flags[cell] | static_cast<unsigned char>(flags) | 0x40;
+    g_tile_dirty_flags[cell] = state;
+    ++g_dirty_tile_count;
     int bottom = (cell / 0x50) * 8 + 8;
     int top = (cell / 0x50) * 8;
     int right = (cell % 0x50) * 8 + 8;
     int left = (cell % 0x50) * 8;
-    if (g_world_render_enabled_65970d &&
+    if (g_world_render_enabled &&
         ((g_viewport_6595e8.left <= left && left <= g_viewport_6595e8.right) ||
          (g_viewport_6595e8.left <= right && right <= g_viewport_6595e8.right)) &&
         ((g_viewport_6595e8.top <= top && top <= g_viewport_6595e8.bottom) ||
          (g_viewport_6595e8.top <= bottom && bottom <= g_viewport_6595e8.bottom))) {
-        g_tile_dirty_flags_652ddc[cell] = state | 3;
-        g_viewport_tiles_dirty_6596ea = 1;
+        g_tile_dirty_flags[cell] = state | 3;
+        g_viewport_tiles_dirty = 1;
     }
 }
 
@@ -2092,8 +2090,12 @@ void InvalidateRegion(int left, int top, int right, int bottom, unsigned int fla
     unsigned int x;
 
     cell_flags = 0;
-    if (g_page_full_redraw_6596e8[g_active_page_6596e4] == 0) {
+    if (g_page_full_redraw[g_active_page] == 0) {
         clipped_right = 0x280;
+        /* The low clamp is a conditional expression because the original is
+           branchless there and branches on the high one, and it is written
+           <= 0 rather than < 1: the two are the same test and VC6 encodes them
+           differently, setle against setl. */
         clipped_left = left <= 0 ? 0 : left;
         if ((int)clipped_left > 0x27f) {
             clipped_left = 0x280;
@@ -2116,20 +2118,20 @@ void InvalidateRegion(int left, int top, int right, int bottom, unsigned int fla
         }
         if ((int)(clipped_right - clipped_left) > 0 && bottom - top > 0) {
             if (clipped_right - clipped_left == 0x280 && bottom - top == 0x1e0) {
-                g_page_full_redraw_6596e8[g_active_page_6596e4] = 1;
+                g_page_full_redraw[g_active_page] = 1;
             }
             if (flags & 4) {
                 cell_flags = 0x80;
             }
             if (flags & 1) {
-                cell_flags = cell_flags | 2;
+                cell_flags |= 2;
             }
             for (; top < bottom; top = top + 8) {
                 if ((int)clipped_left < (int)clipped_right) {
                     x = clipped_left;
                     do {
-                        InvalidateDirtyTile004259B0((int)x / 8 + (top / 8) * 0x50, cell_flags);
-                        x = x + 8;
+                        InvalidateDirtyTile(static_cast<int>(x) / 8 + (top / 8) * 0x50, cell_flags);
+                        x += 8;
                     } while ((int)x < (int)clipped_right);
                 }
             }
@@ -2144,7 +2146,7 @@ void InvalidateScreenRects(W8ScreenRect* rects, unsigned int count, int flags)
     unsigned int index;
 
     for (index = 0; index < count; ++index) {
-        if (g_page_full_redraw_6596e8[g_active_page_6596e4] != 0) {
+        if (g_page_full_redraw[g_active_page] != 0) {
             return;
         }
         InvalidateRegion(rects[index].left, rects[index].top, rects[index].right,
@@ -2156,46 +2158,45 @@ void InvalidateScreenRects(W8ScreenRect* rects, unsigned int count, int flags)
    software surface locked for the complete batch and clears only the uploaded
    bit, preserving the lower per-cell state for the page lifecycle. */
 // FUNCTION: WIZ8 0x00425b40
-void FlushDirtyTiles00425B40(void)
+void FlushDirtyTiles(void)
 {
     DDSURFACEDESC description;
 
-    if (g_dirty_tile_count_6596d8 == 0) {
+    if (g_dirty_tile_count == 0) {
         return;
     }
-    DDLockSurface(g_primary_surface_6596a8, 0, &description, 0, 0);
+    DDLockSurface(g_primary_surface, 0, &description, 0, 0);
     for (int row = 0; row != 60; ++row) {
         int column = 0;
         while (column < 80) {
             int cell = row * 80 + column;
-            if ((g_tile_dirty_flags_652ddc[cell] & 0x40) == 0) {
+            if ((g_tile_dirty_flags[cell] & 0x40) == 0) {
                 ++column;
                 continue;
             }
 
             int width = 0;
-            while (column + width < 80 && (g_tile_dirty_flags_652ddc[cell + width] & 0x40) != 0) {
+            while (column + width < 80 && (g_tile_dirty_flags[cell + width] & 0x40) != 0) {
                 ++width;
             }
             int height = 0;
-            while (row + height < 60 &&
-                   (g_tile_dirty_flags_652ddc[cell + height * 80] & 0x40) != 0) {
+            while (row + height < 60 && (g_tile_dirty_flags[cell + height * 80] & 0x40) != 0) {
                 ++height;
             }
 
-            g_surface_node_659664->updateRectangle(g_gerd_659634, description.lpSurface,
-                                                   description.lPitch, column * 8, row * 8,
-                                                   (column + width) * 8, (row + height) * 8);
+            g_surface_node->updateRectangle(g_gerd, description.lpSurface, description.lPitch,
+                                            column * 8, row * 8, (column + width) * 8,
+                                            (row + height) * 8);
             for (int y = 0; y != height; ++y) {
                 for (int x = 0; x != width; ++x) {
-                    g_tile_dirty_flags_652ddc[cell + y * 80 + x] &= 0x3f;
+                    g_tile_dirty_flags[cell + y * 80 + x] &= 0x3f;
                 }
             }
             column += width;
         }
     }
-    DDUnlockSurface(g_primary_surface_6596a8, 0);
-    g_dirty_tile_count_6596d8 = 0;
+    DDUnlockSurface(g_primary_surface, 0);
+    g_dirty_tile_count = 0;
 }
 
 /* Viewport. */
@@ -2208,10 +2209,9 @@ void SetScaledViewport00425C90(int left, int top, int right, int bottom)
         right == g_viewport_6595e8.right && bottom == g_viewport_6595e8.bottom) {
         return;
     }
-    g_gerd_659634->setViewPort(g_gerd_659634->getWidth() * left / 640,
-                               g_gerd_659634->getHeight() * top / 480,
-                               g_gerd_659634->getWidth() * (right - left) / 640,
-                               g_gerd_659634->getHeight() * (bottom - top) / 480);
+    g_gerd->setViewPort(g_gerd->getWidth() * left / 640, g_gerd->getHeight() * top / 480,
+                        g_gerd->getWidth() * (right - left) / 640,
+                        g_gerd->getHeight() * (bottom - top) / 480);
     g_viewport_6595e8.left = left;
     g_viewport_6595e8.top = top;
     g_viewport_6595e8.right = right;
@@ -2239,14 +2239,14 @@ void SetViewport(int left, int top, int right, int bottom)
     srCamera::Rect plane;
     double depth;
 
-    if (g_gerd_659634 != 0 && g_flush_pending_603c3a) {
-        g_gerd_659634->flush();
+    if (g_gerd != 0 && g_flush_pending) {
+        g_gerd->flush();
     }
-    fractional_left = (float)left * g_scale_x_5ebb1c;
+    fractional_left = left * g_scale_x_5ebb1c;
     g_viewport_6595e8.right = right + 1;
     g_viewport_6595e8.left = left;
     g_viewport_6595e8.bottom = bottom + 1;
-    fractional_top = (float)top * g_scale_y_5ebb20;
+    fractional_top = top * g_scale_y_5ebb20;
     g_viewport_6595e8.top = top;
     fractional_right = g_viewport_6595e8.right * g_scale_x_5ebb1c;
     fractional_bottom = g_viewport_6595e8.bottom * g_scale_y_5ebb20;
@@ -2256,8 +2256,8 @@ void SetViewport(int left, int top, int right, int bottom)
                                       3.14159265358979323846 * g_float_005ebcf8 * 71.0f);
         g_world->camera->getViewPlane(view, depth);
 
-        plane.left = (double)fractional_left * (view.right - view.left) + view.left;
-        plane.right = (double)fractional_right * (view.right - view.left) + view.left;
+        plane.left = fractional_left * (view.right - view.left) + view.left;
+        plane.right = fractional_right * (view.right - view.left) + view.left;
         plane.bottom =
             (double)((g_double_005ebc30 - fractional_bottom) * (float)(view.top - view.bottom) +
                      (float)view.bottom);
@@ -2269,7 +2269,7 @@ void SetViewport(int left, int top, int right, int bottom)
         if (g_world_659ab8 != 0) {
             g_world_659ab8->camera->setViewPlane(plane, 1.0);
         }
-        if (g_camera_sway_active_652da4) {
+        if (g_camera_sway_active) {
             SetCameraSwayMode(g_world->camera, 1);
         }
     }
@@ -2281,14 +2281,14 @@ char g_video_config_file[260] = "3DVideo.CFG";
 // FUNCTION: WIZ8 0x004229d0
 void PrintScreen(void)
 {
-    g_screenshot_pending_659711 = 1;
+    g_screenshot_pending = 1;
 }
 
 /* The debug stats readout drawn over the primary surface: a black band plus
    the frame-rate line always, the object/poly/vertex counters, texture and
    pagefile memory in mode 2, or the scaled camera position in mode 3. */
 // FUNCTION: WIZ8 0x00427460
-void DrawVideoInspector00427460(int left, unsigned int top)
+void DrawVideoInspector(int left, unsigned int top)
 {
     DDSURFACEDESC description;
     srGERD::Statistics statistics;
@@ -2297,18 +2297,20 @@ void DrawVideoInspector00427460(int left, unsigned int top)
     unsigned int bottom;
     unsigned char* row;
     int rows;
-    // Retail only assigns height for inspector modes 1 through 3.
-    int height;
+    /* Retail left the band height uninitialised for inspector modes outside
+       1..3 and read that storage into bottom; deterministic zero models
+       that defect path. */
+    int height = 0;
 
-    if (g_video_inspector_mode_6596d4 == 1) {
+    if (g_video_inspector_mode == 1) {
         height = 0xb;
-    } else if (g_video_inspector_mode_6596d4 == 2) {
+    } else if (g_video_inspector_mode == 2) {
         height = 0x9a;
-    } else if (g_video_inspector_mode_6596d4 == 3) {
+    } else if (g_video_inspector_mode == 3) {
         height = 0x2c;
     }
     bottom = top + height;
-    DDLockSurface(g_primary_surface_6596a8, NULL, &description, 0, NULL);
+    DDLockSurface(g_primary_surface, NULL, &description, 0, NULL);
     if (description.lpSurface != 0) {
         if (top < bottom) {
             row = static_cast<unsigned char*>(description.lpSurface) + description.lPitch * top +
@@ -2318,15 +2320,15 @@ void DrawVideoInspector00427460(int left, unsigned int top)
                 row += description.lPitch;
             }
         }
-        DDUnlockSurface(g_primary_surface_6596a8, NULL);
+        DDUnlockSurface(g_primary_surface, NULL);
     }
     InvalidateRegion(left, top, left + 0x113, bottom, 0);
-    if (g_gerd_659634 != 0) {
-        g_gerd_659634->getStatistics(statistics);
-        SetFont(g_smfnt_font_683694);
-        SetFontObjectPalette16BPP(g_smfnt_font_683694, g_font_state_palettes_68ee1c[5]);
-        gprintfDirty(left, top, L"FR: %4.1f", g_frames_per_second_659704);
-        if (g_video_inspector_mode_6596d4 == 2) {
+    if (g_gerd != 0) {
+        g_gerd->getStatistics(statistics);
+        SetFont(g_smfnt_font);
+        SetFontObjectPalette16BPP(g_smfnt_font, g_font_state_palettes[5]);
+        gprintfDirty(left, top, L"FR: %4.1f", g_frames_per_second);
+        if (g_video_inspector_mode == 2) {
             gprintfDirty(left, top + 0xa, L"OC: %d", g_world->level->m_positional_13c);
             gprintfDirty(left, top + 0x14, L"PI: %d", statistics.value_34);
             gprintfDirty(left, top + 0x1e, L"PO: %d", statistics.value_20);
@@ -2335,10 +2337,9 @@ void DrawVideoInspector00427460(int left, unsigned int top)
             gprintfDirty(left, top + 0x3c, L"DD: %d", statistics.value_68);
             gprintfDirty(left, top + 0x46, L"TC: %d", statistics.texture_binds_4c);
             gprintfDirty(left, top + 0x50, L"TT: %d", statistics.value_08, statistics.value_0c);
-            gprintfDirty(left, top + 0x5a, L"RM: %dK",
-                         g_gerd_659634->getResidentTextureMemUsed() >> 10);
-            gprintfDirty(left, top + 0x64, L"TM: %dK", g_gerd_659634->getTextureCacheUsed());
-            gprintfDirty(left, top + 0x6e, L"DR: %3d", GetCameraYawAndRotation00420F40(0));
+            gprintfDirty(left, top + 0x5a, L"RM: %dK", g_gerd->getResidentTextureMemUsed() >> 10);
+            gprintfDirty(left, top + 0x64, L"TM: %dK", g_gerd->getTextureCacheUsed());
+            gprintfDirty(left, top + 0x6e, L"DR: %3d", GetCameraYawAndRotation(0));
             memset(&memory_status, 0, sizeof(memory_status));
             memory_status.dwLength = sizeof(memory_status);
             GlobalMemoryStatus(&memory_status);
@@ -2348,14 +2349,14 @@ void DrawVideoInspector00427460(int left, unsigned int top)
                          static_cast<unsigned int>(g_decompressed_mesh_bytes) >> 10);
             return;
         }
-        if (g_video_inspector_mode_6596d4 == 3) {
+        if (g_video_inspector_mode == 3) {
             float scaled;
 
             GetCameraPosition(&position);
             if (gfKeyState[0x70] != 0) {
-                position.x = position.x * g_world_cursor_scale_005ebf50;
-                scaled = position.y * g_world_cursor_scale_005ebf50;
-                position.y = position.z * g_world_cursor_scale_005ebf50;
+                position.x *= g_world_cursor_scale;
+                scaled = position.y * g_world_cursor_scale;
+                position.y = position.z * g_world_cursor_scale;
                 position.z = scaled;
             }
             gprintfDirty(left, top + 0xa, L" X: %.2f", position.x);
@@ -2368,7 +2369,7 @@ void DrawVideoInspector00427460(int left, unsigned int top)
 // FUNCTION: WIZ8 0x004277d0
 void VideoInspectorEnable(void)
 {
-    g_video_inspector_enabled_65970f = 1;
+    g_video_inspector_enabled = 1;
 }
 
 // GLOBAL: WIZ8 0x006548a0
@@ -2377,9 +2378,9 @@ INT32 g_help_box_width;
 INT32 g_help_box_height;
 
 // GLOBAL: WIZ8 0x00654aac
-int g_screen_transition_object_count_654aac;
+int g_screen_transition_object_count;
 // GLOBAL: WIZ8 0x00654ab4
-srClass** g_screen_transition_objects_654ab4;
+srClass** g_screen_transition_objects;
 
 // FUNCTION: WIZ8 0x00429770
 void VideoRemoveToolTip(void)
@@ -2387,14 +2388,13 @@ void VideoRemoveToolTip(void)
     int index;
     srClass* object;
 
-    while (g_screen_transition_object_count_654aac != 0) {
-        object = g_screen_transition_objects_654ab4[0];
-        if (g_screen_transition_object_count_654aac > 0) {
-            for (index = 0; index < g_screen_transition_object_count_654aac - 1; ++index) {
-                g_screen_transition_objects_654ab4[index] =
-                    g_screen_transition_objects_654ab4[index + 1];
+    while (g_screen_transition_object_count != 0) {
+        object = g_screen_transition_objects[0];
+        if (g_screen_transition_object_count > 0) {
+            for (index = 0; index < g_screen_transition_object_count - 1; ++index) {
+                g_screen_transition_objects[index] = g_screen_transition_objects[index + 1];
             }
-            --g_screen_transition_object_count_654aac;
+            --g_screen_transition_object_count;
         }
         object->release();
     }
@@ -2424,26 +2424,26 @@ srNode* VideoMakePoster(srColorSurfaceIFace* surface, float width, float height,
         hint = srTextureIFace::HINT_POSITIONAL_2;
     }
     texture->enableHint(hint);
-    return MakePosterQuad00424BA0(texture, width, height, additive);
+    return MakePosterQuad(texture, width, height, additive);
 }
 
 void PresentMenuOverlayFrame(void)
 {
     srNode::ProcessInfo process;
 
-    FlushDirtyTiles00425B40();
-    g_gerd_659634->beginFrame();
-    process.renderer = g_gerd_659634;
-    g_surface_node_659664->process(process, (srNode::e_processType)0);
-    g_gerd_659634->flushRenderers();
-    g_gerd_659634->endFrame();
+    FlushDirtyTiles();
+    g_gerd->beginFrame();
+    process.renderer = g_gerd;
+    g_surface_node->process(process, (srNode::e_processType)0);
+    g_gerd->flushRenderers();
+    g_gerd->endFrame();
 }
 
 // FUNCTION: WIZ8 0x00425570
 void SetPrimarySurfaceTextureHint2Enabled(unsigned char enabled)
 {
-    if (g_surface_node_659664) {
-        g_surface_node_659664->setTextureHint2Enabled(enabled);
+    if (g_surface_node) {
+        g_surface_node->setTextureHint2Enabled(enabled);
     }
 }
 
@@ -2452,23 +2452,23 @@ unsigned char InitializeMouseSurface(void)
 {
     srPixelConvert::e_surfaceType type;
 
-    if (g_pixel_format_603c48 == 7) {
+    if (g_pixel_format == 7) {
         type = srPixelConvert::SURFACE_RGB565;
-    } else if (g_pixel_format_603c48 == 8) {
+    } else if (g_pixel_format == 8) {
         type = srPixelConvert::SURFACE_RGB555;
-    } else if (g_pixel_format_603c48 == 9) {
+    } else if (g_pixel_format == 9) {
         type = srPixelConvert::SURFACE_ARGB1555;
     } else {
         return 0;
     }
 
-    g_mouse_surface_659688 = SR_NEW(W8ColorSurface)(type, 128UL, 128UL);
-    if (!g_mouse_surface_659688) {
+    g_mouse_surface = SR_NEW(W8ColorSurface)(type, 128UL, 128UL);
+    if (!g_mouse_surface) {
         srAssertFail("psrMouseSurface", "C:\\Projects\\Wizardry 8\\Engine Code\\Video2.cpp", 0x635,
                      0);
     }
-    g_mouse_surface_659688->setFilter(&srBoxFilter);
-    g_mouse_surface_659688->fill(0);
+    g_mouse_surface->setFilter(&srBoxFilter);
+    g_mouse_surface->fill(0);
     return 1;
 }
 
@@ -2483,72 +2483,72 @@ unsigned char InitializeRendererSceneObjects(void)
 
     InitializeMouseSurface();
     g_modeler_65963c = new srModeler;
-    g_scene_permanent_659648 = SR_NEW(srScene)(static_cast<srNode*>(0));
-    g_scene_permanent_659648->setName("2D Permanent Overlay Scene");
-    g_scene_permanent_659648->setAmbientLight(0.0f, 0.0f, 0.0f);
-    g_scene_permanent_659648->setFogColor(0.0f, 0.0f, 0.0f);
+    g_scene_permanent = SR_NEW(srScene)(static_cast<srNode*>(0));
+    g_scene_permanent->setName("2D Permanent Overlay Scene");
+    g_scene_permanent->setAmbientLight(0.0f, 0.0f, 0.0f);
+    g_scene_permanent->setFogColor(0.0f, 0.0f, 0.0f);
 
-    g_scene_user_659640 = SR_NEW(srScene)(static_cast<srNode*>(0));
-    g_scene_user_659640->setName("2D User Overlay Scene");
-    g_scene_user_659640->setAmbientLight(0.0f, 0.0f, 0.0f);
-    g_scene_user_659640->setFogColor(0.0f, 0.0f, 0.0f);
+    g_scene_user = SR_NEW(srScene)(static_cast<srNode*>(0));
+    g_scene_user->setName("2D User Overlay Scene");
+    g_scene_user->setAmbientLight(0.0f, 0.0f, 0.0f);
+    g_scene_user->setFogColor(0.0f, 0.0f, 0.0f);
 
-    g_scene_fullscreen_659644 = SR_NEW(srScene)(static_cast<srNode*>(0));
-    g_scene_fullscreen_659644->setName("Full Screen Overlay Scene");
-    g_scene_fullscreen_659644->setAmbientLight(0.0f, 0.0f, 0.0f);
-    g_scene_fullscreen_659644->setFogColor(0.0f, 0.0f, 0.0f);
+    g_scene_fullscreen = SR_NEW(srScene)(static_cast<srNode*>(0));
+    g_scene_fullscreen->setName("Full Screen Overlay Scene");
+    g_scene_fullscreen->setAmbientLight(0.0f, 0.0f, 0.0f);
+    g_scene_fullscreen->setFogColor(0.0f, 0.0f, 0.0f);
 
-    g_scene_overlay0_659654 = SR_NEW(srScene)(static_cast<srNode*>(0));
-    g_scene_overlay0_659654->setName("2D Overlay Scene (0)");
-    g_scene_overlay0_659654->setAmbientLight(0.0f, 0.0f, 0.0f);
-    g_scene_overlay0_659654->setFogColor(0.0f, 0.0f, 0.0f);
+    g_scene_overlay0 = SR_NEW(srScene)(static_cast<srNode*>(0));
+    g_scene_overlay0->setName("2D Overlay Scene (0)");
+    g_scene_overlay0->setAmbientLight(0.0f, 0.0f, 0.0f);
+    g_scene_overlay0->setFogColor(0.0f, 0.0f, 0.0f);
 
-    g_scene_overlay1_659658 = SR_NEW(srScene)(static_cast<srNode*>(0));
-    g_scene_overlay1_659658->setName("2D Overlay Scene (1)");
-    g_scene_overlay1_659658->setAmbientLight(0.0f, 0.0f, 0.0f);
-    g_scene_overlay1_659658->setFogColor(0.0f, 0.0f, 0.0f);
+    g_scene_overlay1 = SR_NEW(srScene)(static_cast<srNode*>(0));
+    g_scene_overlay1->setName("2D Overlay Scene (1)");
+    g_scene_overlay1->setAmbientLight(0.0f, 0.0f, 0.0f);
+    g_scene_overlay1->setFogColor(0.0f, 0.0f, 0.0f);
 
-    g_scene_square_65965c = SR_NEW(srScene)(static_cast<srNode*>(0));
-    g_scene_square_65965c->setName("2D Square Overlay Scene");
-    g_scene_square_65965c->setAmbientLight(0.0f, 0.0f, 0.0f);
-    g_scene_square_65965c->setFogColor(0.0f, 0.0f, 0.0f);
+    g_scene_square = SR_NEW(srScene)(static_cast<srNode*>(0));
+    g_scene_square->setName("2D Square Overlay Scene");
+    g_scene_square->setAmbientLight(0.0f, 0.0f, 0.0f);
+    g_scene_square->setFogColor(0.0f, 0.0f, 0.0f);
 
-    g_scene_prerender0_65964c = SR_NEW(srScene)(static_cast<srNode*>(0));
-    g_scene_prerender0_65964c->setName("2D Pre-render Overlay Scene (0)");
-    g_scene_prerender0_65964c->setAmbientLight(0.0f, 0.0f, 0.0f);
-    g_scene_prerender0_65964c->setFogColor(0.0f, 0.0f, 0.0f);
+    g_scene_prerender0 = SR_NEW(srScene)(static_cast<srNode*>(0));
+    g_scene_prerender0->setName("2D Pre-render Overlay Scene (0)");
+    g_scene_prerender0->setAmbientLight(0.0f, 0.0f, 0.0f);
+    g_scene_prerender0->setFogColor(0.0f, 0.0f, 0.0f);
 
-    g_scene_prerender1_659650 = SR_NEW(srScene)(static_cast<srNode*>(0));
-    g_scene_prerender1_659650->setName("2D Pre-render Overlay Scene (1)");
-    g_scene_prerender1_659650->setAmbientLight(0.0f, 0.0f, 0.0f);
-    g_scene_prerender1_659650->setFogColor(0.0f, 0.0f, 0.0f);
+    g_scene_prerender1 = SR_NEW(srScene)(static_cast<srNode*>(0));
+    g_scene_prerender1->setName("2D Pre-render Overlay Scene (1)");
+    g_scene_prerender1->setAmbientLight(0.0f, 0.0f, 0.0f);
+    g_scene_prerender1->setFogColor(0.0f, 0.0f, 0.0f);
 
-    g_overlay_camera_659670 = SR_NEW(srCamera)(static_cast<srNode*>(0));
-    g_overlay_camera_659670->setName("2D Overlay Camera");
-    g_overlay_camera_659670->setClipRange(0.01, 2.0);
-    g_overlay_camera_659670->setLocation(0.0, 0.0, -1.0);
-    g_overlay_camera_659670->setRotation(0.0, 0.0, 0.0);
+    g_overlay_camera = SR_NEW(srCamera)(static_cast<srNode*>(0));
+    g_overlay_camera->setName("2D Overlay Camera");
+    g_overlay_camera->setClipRange(0.01, 2.0);
+    g_overlay_camera->setLocation(0.0, 0.0, -1.0);
+    g_overlay_camera->setRotation(0.0, 0.0, 0.0);
     view.left = 0.0;
     view.bottom = 0.0;
     view.right = 1.0;
     view.top = 1.0;
-    g_overlay_camera_659670->setViewPlane(view, 1.0);
-    g_overlay_camera_659670->setEnvironmentRange(0.0f, 0.0f);
+    g_overlay_camera->setViewPlane(view, 1.0);
+    g_overlay_camera->setEnvironmentRange(0.0f, 0.0f);
 
-    g_square_camera_659674 = SR_NEW(srCamera)(g_scene_square_65965c);
-    g_square_camera_659674->setName("2D Square Overlay Camera");
-    g_square_camera_659674->setClipRange(0.01, 2.0);
-    g_square_camera_659674->setLocation(0.0, 0.0, -1.0);
-    g_square_camera_659674->setRotation(0.0, 0.0, 0.0);
+    g_square_camera = SR_NEW(srCamera)(g_scene_square);
+    g_square_camera->setName("2D Square Overlay Camera");
+    g_square_camera->setClipRange(0.01, 2.0);
+    g_square_camera->setLocation(0.0, 0.0, -1.0);
+    g_square_camera->setRotation(0.0, 0.0, 0.0);
     view.left = 0.0;
     view.bottom = 0.0;
     view.right = 1.0;
     view.top = 0.75;
-    g_square_camera_659674->setViewPlane(view, 1.0);
-    g_square_camera_659674->setEnvironmentRange(0.0f, 0.0f);
+    g_square_camera->setViewPlane(view, 1.0);
+    g_square_camera->setEnvironmentRange(0.0f, 0.0f);
 
     material = SR_NEW(srMaterial);
-    g_blit_material_65967c = material;
+    g_blit_material = material;
     material->setName("Blit Rect Material");
     material_value = 1.0f;
     material->setEmissive(material_value);
@@ -2557,44 +2557,47 @@ unsigned char InitializeRendererSceneObjects(void)
     material->setSpecular(material_value);
     material->setOpacity(1.0);
 
-    memset(g_surface_nodes_654adc, 0, sizeof(g_surface_nodes_654adc));
-    memset(g_tile_dirty_flags_652ddc, 0, sizeof(g_tile_dirty_flags_652ddc));
+    memset(g_surface_nodes, 0, sizeof(g_surface_nodes));
+    memset(g_tile_dirty_flags, 0, sizeof(g_tile_dirty_flags));
     g_viewport_6595e8.left = 0;
     g_viewport_6595e8.top = 0;
     g_viewport_6595e8.right = 0;
     g_surface_state_6595dc = 0x100a017;
     g_surface_state_654ad8 = 0x100c0b7;
-    g_dirty_tile_count_6596d8 = 0;
+    g_dirty_tile_count = 0;
     g_viewport_6595e8.bottom = 0;
 
     memset(&surface_description, 0, sizeof(surface_description));
     surface_description.dwSize = sizeof(surface_description);
-    DDLockSurface(g_primary_surface_6596a8, 0, &surface_description, 0, 0);
-    DDUnlockSurface(g_primary_surface_6596a8, 0);
-    g_primary_color_surface_659660 = SR_NEW(W8ColorSurface)(
+    DDLockSurface(g_primary_surface, 0, &surface_description, 0, 0);
+    DDUnlockSurface(g_primary_surface, 0);
+    g_primary_color_surface = SR_NEW(W8ColorSurface)(
         srPixelConvert::SURFACE_ARGB1555, surface_description.lpSurface, 640UL, 480UL,
         static_cast<unsigned long>(surface_description.lPitch));
-    if (!g_primary_color_surface_659660)
+    if (!g_primary_color_surface)
         return 0;
 
-    g_surface_node_659664 =
-        new stSurface2D(g_primary_color_surface_659660, 640, 480, g_scene_overlay0_659654, 128);
-    if (!g_surface_node_659664)
+    g_surface_node = new stSurface2D(g_primary_color_surface, 640, 480, g_scene_overlay0, 128);
+    if (!g_surface_node)
         return 0;
 
-    strncpy(renderer_name, g_gerd_659634->getName(), 127);
+    strncpy(renderer_name, g_gerd->getName(), 127);
     renderer_name[127] = 0;
     _strupr(renderer_name);
     if (strstr(renderer_name, "GLIDE")) {
-        g_surface_node_659664->enableRendererFlag(1);
+        g_surface_node->enableRendererFlag(1);
     }
-    g_renderer_mode_603d74 = strstr(renderer_name, "DIRECT3D") || strstr(renderer_name, "GLIDE") ||
-                             strstr(renderer_name, "SOFTWARE2");
+    g_renderer_mode = strstr(renderer_name, "DIRECT3D") || strstr(renderer_name, "GLIDE") ||
+                      strstr(renderer_name, "SOFTWARE2");
     return 1;
 }
 
-/* Zero a rectangle of the primary surface one row at a time. Retail passes the
-   lock descriptor without clearing it first. */
+/* Zero a rectangle of the primary surface, one row at a time. The span is
+   doubled because the surface holds sixteen-bit pixels, and the row clear is an
+   ordinary memset that VC6 expands into a dword run with a byte remainder.
+
+   Unlike the other lock site in this unit, the descriptor is not cleared before
+   locking. That is the original's own sequence, reproduced. */
 // FUNCTION: WIZ8 0x004263f0
 void ClearSurfaceRect(int left, unsigned int top, int right, unsigned int bottom)
 {
@@ -2602,7 +2605,7 @@ void ClearSurfaceRect(int left, unsigned int top, int right, unsigned int bottom
     unsigned char* row;
     int rows;
 
-    DDLockSurface(g_primary_surface_6596a8, 0, &surface_description, 0, 0);
+    DDLockSurface(g_primary_surface, 0, &surface_description, 0, 0);
     if (surface_description.lpSurface != 0) {
         if (top < bottom) {
             row = static_cast<unsigned char*>(surface_description.lpSurface) + left * 2 +
@@ -2610,11 +2613,11 @@ void ClearSurfaceRect(int left, unsigned int top, int right, unsigned int bottom
             rows = bottom - top;
             do {
                 memset(row, 0, (right - left) * 2);
-                row = row + surface_description.lPitch;
+                row += surface_description.lPitch;
                 --rows;
             } while (rows != 0);
         }
-        DDUnlockSurface(g_primary_surface_6596a8, 0);
+        DDUnlockSurface(g_primary_surface, 0);
     }
 }
 
@@ -2639,9 +2642,9 @@ void PurgeInactiveSceneInstances(srScene* scene)
         if ((class_id == 0x10004 || class_id == 0x10005) && display_state != 3) {
             int index;
             for (index = 0; index != 0x12c0; ++index) {
-                if (g_surface_nodes_654adc[index] == node) {
-                    g_surface_nodes_654adc[index] = 0;
-                    g_tile_dirty_flags_652ddc[index] = 0;
+                if (g_surface_nodes[index] == node) {
+                    g_surface_nodes[index] = 0;
+                    g_tile_dirty_flags[index] = 0;
                 }
             }
             if (instance->model()) {
@@ -2667,28 +2670,28 @@ void ClearNodeFlag(srNode* node)
 }
 
 // FUNCTION: WIZ8 0x00427810
-srModelInstance* GetPickedModelInstance00427810(void)
+srModelInstance* GetPickedModelInstance(void)
 {
-    return g_current_model_instance_65962c;
+    return g_current_model_instance;
 }
 
 // FUNCTION: WIZ8 0x00427820
-void SetPickedModelInstance00427820(srModelInstance* value)
+void SetPickedModelInstance(srModelInstance* value)
 {
-    g_current_model_instance_65962c = value;
+    g_current_model_instance = value;
 }
 
 // FUNCTION: WIZ8 0x00428010
-unsigned char DisableCursorScene00428010(void)
+unsigned char DisableCursorScene(void)
 {
-    g_cursor_scene_enabled_603c60 = 0;
+    g_cursor_scene_enabled = 0;
     return 1;
 }
 
 // FUNCTION: WIZ8 0x00428020
-unsigned char EnableCursorScene00428020(void)
+unsigned char EnableCursorScene(void)
 {
-    g_cursor_scene_enabled_603c60 = 1;
+    g_cursor_scene_enabled = 1;
     return 1;
 }
 
@@ -2696,13 +2699,13 @@ unsigned char EnableCursorScene00428020(void)
    mode when overlay_scene_flag_160 bit 0 says otherwise. Recovered callers pass
    stModelInstance2D sprites (highlight / formation board). */
 // FUNCTION: WIZ8 0x004257F0
-void ReleaseObject004257F0(srClass* object)
+void ReleaseObject(srClass* object)
 {
     if ((static_cast<stModelInstance2D*>(object)->overlay_scene_flag_160 & 1) != 0) {
-        g_overlay_render_mode_6596ec = 2;
+        g_overlay_render_mode = 2;
     } else {
-        g_paired_render_mode_6596f0 = 2;
-        g_overlay_render_mode_6596ec = 2;
+        g_paired_render_mode = 2;
+        g_overlay_render_mode = 2;
     }
     object->release();
 }
@@ -2710,28 +2713,28 @@ void ReleaseObject004257F0(srClass* object)
 /* Rotate a 2D sprite node by `degrees` about z and dirty the renderer mode
    word its overlay_scene_flag_160 bit 0 selects. */
 // FUNCTION: WIZ8 0x00425840
-void RotateNodeInDegrees00425840(srNode* node, int degrees)
+void RotateNodeInDegrees(srNode* node, int degrees)
 {
     node->setRotation(0.0, 0.0, 3.141592653589793 * g_float_005ebcf8 * degrees);
     if ((static_cast<stModelInstance2D*>(node)->overlay_scene_flag_160 & 1) != 0) {
-        g_overlay_render_mode_6596ec = 2;
+        g_overlay_render_mode = 2;
     } else {
-        g_paired_render_mode_6596f0 = 2;
-        g_overlay_render_mode_6596ec = 2;
+        g_paired_render_mode = 2;
+        g_overlay_render_mode = 2;
     }
 }
 
 // FUNCTION: WIZ8 0x00428A90
-void SetOverlayRenderMode00428A90(void)
+void SetOverlayRenderMode(void)
 {
-    g_overlay_render_mode_6596ec = 2;
+    g_overlay_render_mode = 2;
 }
 
 // FUNCTION: WIZ8 0x00428AA0
 void SetRendererModePair(void)
 {
-    g_paired_render_mode_6596f0 = 2;
-    g_overlay_render_mode_6596ec = 2;
+    g_paired_render_mode = 2;
+    g_overlay_render_mode = 2;
 }
 
 /* Install a texture (often an stTextureAnim) on the mouse-cursor mesh. A null
@@ -2740,47 +2743,49 @@ void SetRendererModePair(void)
 void SetMouseCursorTexture(srTextureIFace* texture)
 {
     if (texture == 0) {
-        texture = g_cursor_texture_659690;
+        texture = g_cursor_texture;
     }
-    g_cursor_model_65968c->setTexture(texture, 0, 0);
-    if ((g_cursor_model_65968c->control_state_390 & 8) == 0) {
-        g_cursor_model_65968c->control_state_390 |= 8;
+    g_cursor_model->setTexture(texture, 0, 0);
+    if ((g_cursor_model->control_state_390 & 8) == 0) {
+        unsigned long state = g_cursor_model->control_state_390;
+        g_cursor_model->control_state_390 = state | 8;
+        g_cursor_model->control_state_390 = state | 8;
     }
 }
 
 // FUNCTION: WIZ8 0x004291C0
 unsigned char GetRendererModeByte(void)
 {
-    return (unsigned char)g_renderer_mode_603d74;
+    return static_cast<unsigned char>(g_renderer_mode);
 }
 
 // FUNCTION: WIZ8 0x00429200
-void SetOverlayViewport00429200(const int* value)
+void SetOverlayViewport(const int* value)
 {
-    g_overlay_viewport_659668 = value;
+    g_overlay_viewport = value;
 }
 
 // FUNCTION: WIZ8 0x004297D0
 bool HasScreenTransitionObjects(void)
 {
-    return g_screen_transition_object_count_654aac != 0;
+    return g_screen_transition_object_count != 0;
 }
 
 // FUNCTION: WIZ8 0x004297e0
-void SetSurfaceScale004297E0(float scale)
+void SetSurfaceScale(float scale)
 {
-    g_surface_node_659664->setScale(scale);
-    g_surface_scale_659680 = scale;
+    g_surface_node->setScale(scale);
+    g_surface_scale = scale;
 }
 
 // FUNCTION: WIZ8 0x004298E0
-void SetFullscreenSceneLast004298E0(unsigned char value)
+void SetFullscreenSceneLast(unsigned char value)
 {
-    g_fullscreen_scene_last_603c4c = value;
+    g_fullscreen_scene_last = value;
 }
 
 // FUNCTION: WIZ8 0x004298F0
-unsigned char HasEnoughFreeDiskSpace(void)
+bool HasEnoughFreeDiskSpace(void)
 {
     FARPROC extended;
     LARGE_INTEGER available;
@@ -2791,7 +2796,7 @@ unsigned char HasEnoughFreeDiskSpace(void)
     DWORD free_clusters;
     DWORD total_clusters;
     unsigned int megabytes;
-    unsigned char enough;
+    bool enough;
 
     extended = GetProcAddress(GetModuleHandleA("kernel32.dll"), "GetDiskFreeSpaceExA");
     if (extended != NULL) {
@@ -2810,7 +2815,7 @@ unsigned char HasEnoughFreeDiskSpace(void)
 }
 
 // FUNCTION: WIZ8 0x00429AF0
-void __fastcall ReleaseOwnedClass00429AF0(srClass** owner)
+void __fastcall ReleaseOwnedClass(srClass** owner)
 {
     if (*owner) {
         (*owner)->release();
@@ -2832,7 +2837,7 @@ char* VideoGetConfigFile(void)
 // FUNCTION: WIZ8 0x004229b0
 unsigned char VideoIsFullScreen(void)
 {
-    return g_fullscreen_603c39;
+    return g_fullscreen;
 }
 
 // FUNCTION: WIZ8 0x00428b80
@@ -2841,6 +2846,9 @@ int VideoDumpMemoryLeaks(void)
     return 0;
 }
 
+/* The retail linker folds this trivial TRUE stub with other returns; its
+   0x42B830 address sits past the proven Video2 hull, so its placement stays
+   provisional. */
 // FUNCTION: WIZ8 0x0042b830
 BOOLEAN CheckCdPresent(void)
 {
@@ -2858,7 +2866,7 @@ void VideoGetClientRect(RECT* rect)
 // FUNCTION: WIZ8 0x00421f20
 IDirectDrawSurface2* GetFrameBufferObject(void)
 {
-    return g_primary_surface_6596a8;
+    return g_primary_surface;
 }
 
 // FUNCTION: WIZ8 0x00421f40
@@ -2874,8 +2882,8 @@ unsigned char GetPrimaryRGBDistributionMasks(unsigned int* red, unsigned int* gr
 // FUNCTION: WIZ8 0x00421fd0
 void* LockMouseBuffer(unsigned int* pitch)
 {
-    *pitch = g_mouse_surface_659688->getPitch();
-    return g_mouse_surface_659688->getDataPtr();
+    *pitch = g_mouse_surface->getPitch();
+    return g_mouse_surface->getDataPtr();
 }
 
 /* The retail linker folds this empty body with other empty C functions. */
@@ -2887,15 +2895,15 @@ void VideoCaptureToggle(void) {}
 // FUNCTION: WIZ8 0x00421f30
 IDirectDraw2* GetDirectDraw2Object(void)
 {
-    return g_direct_draw2_6596a0;
+    return g_direct_draw2;
 }
 
 // GLOBAL: WIZ8 0x006596f4
-unsigned char g_auto_capture_6596f4;
+unsigned char g_auto_capture;
 // GLOBAL: WIZ8 0x00659724
-int g_screenshot_index_659724;
+int g_screenshot_index;
 // GLOBAL: WIZ8 0x00659728
-int g_screenshot_page_659728;
+int g_screenshot_page;
 
 // FUNCTION: WIZ8 0x004229e0
 void SaveJpegScreenshot(void)
@@ -2903,8 +2911,8 @@ void SaveJpegScreenshot(void)
     srSurfaceIOManager* surface_io_manager = srCore.getSurfaceIOManager();
     srExtension::load("JPEGImporter", 0);
 
-    srColorSurfaceIFace* surface = g_gerd_659634->lockBuffer();
-    int screenshot_index = g_screenshot_index_659724;
+    srColorSurfaceIFace* surface = g_gerd->lockBuffer();
+    int screenshot_index = g_screenshot_index;
     if (surface != 0) {
         char filename[32];
         srSurfaceIOManager::ExportInfo options;
@@ -2912,29 +2920,29 @@ void SaveJpegScreenshot(void)
         options.unknown_04 = 1;
         options.option_string = 0;
 
-        ++g_screenshot_index_659724;
+        ++g_screenshot_index;
         sprintf(filename, "Wiz8%5.5d.JPG", screenshot_index);
-        if (g_auto_capture_6596f4 == 0) {
+        if (g_auto_capture == 0) {
             surface_io_manager->exportSurface(filename, *surface, options);
         } else {
             options.option_string = "QUALITY=0.35";
-            PauseSharedGameTimers00439BC0();
+            PauseSharedGameTimers();
             surface_io_manager->exportSurface(filename, *surface, options);
-            ResumeSharedGameTimers00439CA0();
+            ResumeSharedGameTimers();
         }
-        g_gerd_659634->unlockBuffer();
+        g_gerd->unlockBuffer();
     }
-    g_screenshot_page_659728 = (g_screenshot_page_659728 - 1) & 1;
+    g_screenshot_page = (g_screenshot_page - 1) & 1;
 }
 
 /* Tooltip placement state. The left/top pair records the last position the
    tooltip builder used; the scale participates in the texture mapping. */
 // GLOBAL: WIZ8 0x00654ab8
-int g_help_box_x_654ab8;
+int g_help_box_x;
 // GLOBAL: WIZ8 0x00654abc
-int g_help_box_y_654abc;
+int g_help_box_y;
 // GLOBAL: WIZ8 0x00654ab0
-int g_screen_transition_object_capacity_654ab0;
+int g_screen_transition_object_capacity;
 
 // GLOBAL: WIZ8 0x005ebe88
 double g_double_005ebe88 = 0.0020833333333333333;
@@ -2962,35 +2970,35 @@ void __fastcall PackColour00429700(unsigned char* colour, double red, double gre
 void PositionToolTipNode(srNode* node, int x, int y, char positional)
 {
     stModelInstance2D* instance = static_cast<stModelInstance2D*>(node);
-    double position_x = (double)x * g_double_005ebe90;
-    double position_y = (double)y * g_double_005ebe88;
+    double position_x = x * g_double_005ebe90;
+    double position_y = y * g_double_005ebe88;
 
-    if (positional != 0 && g_gerd_659634 != 0) {
+    if (positional != 0 && g_gerd != 0) {
         double whole;
-        long width = g_gerd_659634->getWidth();
-        double fraction = modf((double)width * position_x, &whole);
-        position_x -= fraction / (double)width;
-        long height = g_gerd_659634->getHeight();
-        fraction = modf((double)height * position_y, &whole);
-        position_y -= fraction / (double)height;
+        long width = g_gerd->getWidth();
+        double fraction = modf(width * position_x, &whole);
+        position_x -= fraction / width;
+        long height = g_gerd->getHeight();
+        fraction = modf(height * position_y, &whole);
+        position_y -= fraction / height;
     }
 
     int width = instance->GetWidth00480EF0() & 0xffff;
-    double half_width = (double)width * g_double_005ebe90 * g_double_005ebe80;
+    double half_width = width * g_double_005ebe90 * g_double_005ebe80;
     int height = instance->GetHeight00480F70() & 0xffff;
-    double half_height = (double)height * g_double_005ebe88 * g_double_005ebe80;
+    double half_height = height * g_double_005ebe88 * g_double_005ebe80;
 
     srVector3T<double> location;
     location.x = half_width + position_x;
     location.z = -0.0001;
     if ((instance->overlay_scene_flag_160 & 1U) == 0) {
         location.y = g_double_005ebc30 - (half_height + position_y);
-        g_paired_render_mode_6596f0 = 2;
+        g_paired_render_mode = 2;
     } else {
         location.y = g_double_005ebf40 - (half_height + position_y) * g_double_005ebf40;
     }
     node->setLocation(location);
-    g_overlay_render_mode_6596ec = 2;
+    g_overlay_render_mode = 2;
     instance->render_state_164.right = (short)x;
     instance->render_state_164.bottom = (short)y;
 }
@@ -3037,8 +3045,7 @@ srModelInstance* Video2DRectToSquarePolygon(int* rect, void* source, int source_
                                                      scale_y, mapping_x, mapping_y, overlay);
             node->setName("Video2DRectToSquarePolygon");
             stModelInstance2D* instance = static_cast<stModelInstance2D*>(node);
-            instance->render_state_164.display_state =
-                static_cast<unsigned char>(g_active_page_6596e4);
+            instance->render_state_164.display_state = static_cast<unsigned char>(g_active_page);
             instance->overlay_scene_flag_160 |= 1;
             instance->render_state_164.left = static_cast<short>(size);
             instance->render_state_164.top = static_cast<short>(size);
@@ -3102,13 +3109,12 @@ stModelInstance2D* CreateSpriteFromVideoSurface(int target, const W8ControlsRect
     }
     if (mode != 0) {
         node = Video2DRectToSquarePolygon(source_rect, pixels, static_cast<int>(pitch),
-                                          g_scene_square_65965c, a5);
+                                          g_scene_square, a5);
     } else {
-        node = Video2DRectToPolygon(source_rect, pixels, static_cast<int>(pitch),
-                                    g_scene_user_659640, a5);
-        g_paired_render_mode_6596f0 = 2;
+        node = Video2DRectToPolygon(source_rect, pixels, static_cast<int>(pitch), g_scene_user, a5);
+        g_paired_render_mode = 2;
     }
-    g_overlay_render_mode_6596ec = 2;
+    g_overlay_render_mode = 2;
     UnLockVideoSurface(static_cast<UINT32>(target));
     instance = static_cast<stModelInstance2D*>(node);
     if (instance != 0) {
@@ -3166,9 +3172,9 @@ stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVec
     material->dirty_74 = 1;
     model->setMaterial(material, 0, static_cast<srMeshModel::e_side>(0));
 
-    stModelInstance2D* instance = new stModelInstance2D(g_scene_user_659640);
+    stModelInstance2D* instance = new stModelInstance2D(g_scene_user);
     instance->setName("Video2DPolyColored");
-    instance->SetModel0047F3A0(model);
+    instance->SetModel(model);
     instance->setRotation(0.0, 0.0, 0.0);
 
     srShader shader;
@@ -3179,7 +3185,7 @@ stModelInstance2D* CreateColoredPolygonSprite(int width, int height, const srVec
     instance->render_state_164.top = static_cast<short>(height);
     instance->render_state_164.display_state = 3;
     if (a4 != 0) {
-        instance->setParent(g_scene_fullscreen_659644, 1);
+        instance->setParent(g_scene_fullscreen, 1);
     }
     return instance;
 }
@@ -3192,13 +3198,13 @@ stModelInstance2D* CreateSpriteFromSurface(unsigned int image, const W8ControlsR
 }
 
 // FUNCTION: WIZ8 0x004257D0
-void Position2DNodeUnsnapped004257D0(srNode* node, int x, int y)
+void Position2DNodeUnsnapped(srNode* node, int x, int y)
 {
     PositionToolTipNode(node, x, y, 0);
 }
 
 // FUNCTION: WIZ8 0x004264F0
-void SetModelInstance2DDisplayState004264F0(stModelInstance2D* object, unsigned char state)
+void SetModelInstance2DDisplayState(stModelInstance2D* object, unsigned char state)
 {
     object->render_state_164.display_state = state;
 }
@@ -3209,19 +3215,19 @@ void SetModelInstance2DDisplayState004264F0(stModelInstance2D* object, unsigned 
 // FUNCTION: WIZ8 0x00429210
 void VideoPositionToolTip(INT32 x, INT32 y)
 {
-    if (g_screen_transition_object_count_654aac > 0) {
+    if (g_screen_transition_object_count > 0) {
         INT32 offset = x;
-        for (int index = 0; index < g_screen_transition_object_count_654aac; ++index) {
-            srNode* node = static_cast<srNode*>(g_screen_transition_objects_654ab4[index]);
+        for (int index = 0; index < g_screen_transition_object_count; ++index) {
+            srNode* node = static_cast<srNode*>(g_screen_transition_objects[index]);
             PositionToolTipNode(node, offset, y, 1);
             offset += static_cast<stModelInstance2D*>(node)->GetWidth00480EF0() & 0xffff;
         }
-        g_help_box_y_654abc = y;
-        g_help_box_x_654ab8 = x;
+        g_help_box_y = y;
+        g_help_box_x = x;
         return;
     }
-    g_help_box_x_654ab8 = x;
-    g_help_box_y_654abc = y;
+    g_help_box_x = x;
+    g_help_box_y = y;
 }
 
 /* Copies the tooltip source rectangle into a size-rounded 16-bit surface,
@@ -3259,14 +3265,14 @@ unsigned char CopySurfaceWithBorder(srColorSurface* surface, int* rect, void* so
     Blt16BPPTo16BPP(dest, dest_pitch, src, src_pitch, right, bottom, rect[0] - 1 + width,
                     rect[1] - 1 + height, 1, 1);
 
-    float scale = 1.0f / (float)surface->getWidth();
+    float scale = 1.0f / surface->getWidth();
     *scale_x = scale;
-    *scale_x = scale * g_surface_scale_659680 + scale;
-    scale = 1.0f / (float)surface->getHeight();
+    *scale_x = scale * g_surface_scale + scale;
+    scale = 1.0f / surface->getHeight();
     *scale_y = scale;
-    *scale_y = scale * g_surface_scale_659680 + scale;
-    *mapping_x = (float)(rect[2] - rect[0]) / (float)surface->getWidth();
-    *mapping_y = (float)(rect[3] - rect[1]) / (float)surface->getHeight();
+    *scale_y = scale * g_surface_scale + scale;
+    *mapping_x = (rect[2] - rect[0]) / static_cast<float>(surface->getWidth());
+    *mapping_y = (rect[3] - rect[1]) / static_cast<float>(surface->getHeight());
     return 1;
 }
 
@@ -3277,12 +3283,12 @@ unsigned char CopySurfaceWithBorder(srColorSurface* surface, int* rect, void* so
 srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch, srNode* parent,
                                       unsigned char overlay)
 {
-    double left = (double)rect[0] * g_double_005ebe90;
+    double left = rect[0] * g_double_005ebe90;
     int extent = rect[2] - rect[0];
-    double top = (double)rect[1] * g_double_005ebe88;
+    double top = rect[1] * g_double_005ebe88;
     int rect_height = rect[3] - rect[1];
-    double width = (double)rect[2] * g_double_005ebe90 - left;
-    double height = (double)rect[3] * g_double_005ebe88 - top;
+    double width = rect[2] * g_double_005ebe90 - left;
+    double height = rect[3] * g_double_005ebe88 - top;
 
     if (extent <= rect_height) {
         extent = rect_height;
@@ -3330,7 +3336,7 @@ srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch,
                                              mapping_x, mapping_y, overlay);
     if (node != 0) {
         stModelInstance2D* instance = static_cast<stModelInstance2D*>(node);
-        instance->render_state_164.display_state = static_cast<unsigned char>(g_active_page_6596e4);
+        instance->render_state_164.display_state = static_cast<unsigned char>(g_active_page);
         instance->render_state_164.left = (short)(rect[2] - rect[0]);
         instance->render_state_164.top = (short)(rect[3] - rect[1]);
         instance->render_state_164.right = (short)rect[0];
@@ -3352,7 +3358,7 @@ srModelInstance* Video2DRectToPolygon(int* rect, void* source, int source_pitch,
 // FUNCTION: WIZ8 0x00429290
 void VideoToolTip(UINT16* text)
 {
-    if (g_screen_transition_object_count_654aac != 0) {
+    if (g_screen_transition_object_count != 0) {
         return;
     }
     srColorSurface* surface =
@@ -3366,13 +3372,13 @@ void VideoToolTip(UINT16* text)
     bounds.right = 0xfa;
     bounds.bottom = 0xfa;
     W8TextBuffer* buffer =
-        new W8TextBuffer(&bounds, text, g_font10arial_683668,
+        new W8TextBuffer(&bounds, text, g_font10arial,
                          g_W8TextBufferLayoutMask005ED558 | g_W8TextBufferLayoutMask005ED548, 4);
     if (buffer == 0) {
         return;
     }
     g_help_box_width = (int)buffer->m_maxLineWidth + 4;
-    g_help_box_height = GetFontHeight(g_font10arial_683668) * buffer->m_lineCount + 2;
+    g_help_box_height = GetFontHeight(g_font10arial) * buffer->m_lineCount + 2;
     surface->fill(0);
     void* data = surface->getDataPtr();
     unsigned char colour[4];
@@ -3393,39 +3399,39 @@ void VideoToolTip(UINT16* text)
     rect[2] = 0xfe;
     rect[3] = 0xfe;
     srModelInstance* node =
-        Video2DRectToPolygon(rect, data, (int)surface->getPitch(), g_cursor_scene_659684, 1);
+        Video2DRectToPolygon(rect, data, static_cast<int>(surface->getPitch()), g_cursor_scene, 1);
     if (node != 0) {
-        int count = g_screen_transition_object_count_654aac;
+        int count = g_screen_transition_object_count;
         bool append = true;
-        if (g_screen_transition_object_capacity_654ab0 < count + 1) {
+        if (g_screen_transition_object_capacity < count + 1) {
             srClass** objects = new srClass*[count + 1];
             if (objects == 0) {
                 append = false;
             } else {
                 for (int index = 0; index < count; ++index) {
-                    objects[index] = g_screen_transition_objects_654ab4[index];
+                    objects[index] = g_screen_transition_objects[index];
                 }
-                delete[] g_screen_transition_objects_654ab4;
-                g_screen_transition_objects_654ab4 = objects;
-                g_screen_transition_object_capacity_654ab0 = count + 1;
+                delete[] g_screen_transition_objects;
+                g_screen_transition_objects = objects;
+                g_screen_transition_object_capacity = count + 1;
             }
         }
         if (append) {
-            g_screen_transition_objects_654ab4[count] = static_cast<srClass*>(node);
-            g_screen_transition_object_count_654aac = count + 1;
+            g_screen_transition_objects[count] = static_cast<srClass*>(node);
+            g_screen_transition_object_count = count + 1;
         }
     }
 
-    int position_y = g_cursor_height_654ad4 - g_help_box_height;
-    int position_x = g_cursor_width_654ad0;
+    int position_y = g_cursor_height - g_help_box_height;
+    int position_x = g_cursor_width;
     int offset = position_x;
-    for (int index = 0; index < g_screen_transition_object_count_654aac; ++index) {
-        srNode* object = static_cast<srNode*>(g_screen_transition_objects_654ab4[index]);
+    for (int index = 0; index < g_screen_transition_object_count; ++index) {
+        srNode* object = static_cast<srNode*>(g_screen_transition_objects[index]);
         PositionToolTipNode(object, offset, position_y, 1);
         offset += static_cast<stModelInstance2D*>(object)->GetWidth00480EF0() & 0xffff;
     }
-    g_help_box_x_654ab8 = position_x;
-    g_help_box_y_654abc = position_y;
+    g_help_box_x = position_x;
+    g_help_box_y = position_y;
     surface->release();
     delete buffer;
 }
@@ -3433,35 +3439,35 @@ void VideoToolTip(UINT16* text)
 /* Renderer configuration helpers reached from the video device, not the
    persisted configuration block. */
 // GLOBAL: WIZ8 0x659714
-int g_resident_texture_policy_659714;
+int g_resident_texture_policy;
 
 // FUNCTION: WIZ8 0x004266e0
 void SetResidentTexturePolicy(int policy)
 {
-    if (policy != g_resident_texture_policy_659714) {
-        g_gerd_659634->invalidateResidentTextures();
-        g_gerd_659634->invalidateTextureCache();
-        g_resident_texture_policy_659714 = policy;
+    if (policy != g_resident_texture_policy) {
+        g_gerd->invalidateResidentTextures();
+        g_gerd->invalidateTextureCache();
+        g_resident_texture_policy = policy;
     }
 }
 
 // GLOBAL: WIZ8 0x659718
-unsigned char g_swap_interval_enabled_659718;
+unsigned char g_swap_interval_enabled;
 
 // FUNCTION: WIZ8 0x00426710
-void SetSwapInterval00426710(unsigned char enabled)
+void SetSwapInterval(unsigned char enabled)
 {
-    g_swap_interval_enabled_659718 = enabled;
-    g_gerd_659634->setSwapInterval(enabled ? 1 : 0);
+    g_swap_interval_enabled = enabled;
+    g_gerd->setSwapInterval(enabled ? 1 : 0);
 }
 
 // FUNCTION: WIZ8 0x00426740
-void SetTextureCacheSize00426740(unsigned long bytes)
+void SetTextureCacheSize(unsigned long bytes)
 {
-    if (bytes > 0x7fffff && bytes != g_gerd_659634->getTextureCacheSize()) {
-        g_gerd_659634->invalidateResidentTextures();
-        g_gerd_659634->invalidateTextureCache();
-        g_gerd_659634->setTextureCacheSize(bytes);
+    if (bytes > 0x7fffff && bytes != g_gerd->getTextureCacheSize()) {
+        g_gerd->invalidateResidentTextures();
+        g_gerd->invalidateTextureCache();
+        g_gerd->setTextureCacheSize(bytes);
     }
 }
 
@@ -3547,7 +3553,7 @@ stTextureAnim* VideoVObjectToTextureAnim(HVOBJECT object, unsigned short start_f
                 texture->setMipmap(srTextureIFace::MIPMAP_NONE);
                 texture->enableHint(use_argb1555 ? srTextureIFace::HINT_POSITIONAL_2
                                                  : srTextureIFace::HINT_POSITIONAL_1);
-                animation->AddTexture00485420(texture);
+                animation->AddTexture(texture);
             }
         }
         ++frame;
@@ -3559,10 +3565,10 @@ stTextureAnim* VideoVObjectToTextureAnim(HVOBJECT object, unsigned short start_f
 int GetRendererFamily(void)
 {
     char name[128];
-    if (!g_gerd_659634) {
+    if (!g_gerd) {
         return -1;
     }
-    strncpy(name, g_gerd_659634->getName(), sizeof(name) - 1);
+    strncpy(name, g_gerd->getName(), sizeof(name) - 1);
     name[sizeof(name) - 1] = '\0';
     _strupr(name);
     if (strstr(name, "OPENGL"))
@@ -3579,7 +3585,7 @@ void SetDisplayGamma(float value)
 {
     srVector3T<float> gamma;
     gamma = value;
-    g_gerd_659634->setGamma(gamma);
+    g_gerd->setGamma(gamma);
 }
 
 /* The option-4-suppressed variant of the render probe: with the positional
@@ -3591,23 +3597,23 @@ unsigned int MeasureNodeRender00428830(srNode* node)
     srGERD::Statistics statistics;
     srNode::ProcessInfo process;
 
-    if (g_gerd_659634 != 0 && g_gerd_659634->isEnabled(srGERD::ENABLE_POSITIONAL_4)) {
-        g_gerd_659634->toggle(srGERD::ENABLE_POSITIONAL_4);
+    if (g_gerd != 0 && g_gerd->isEnabled(srGERD::ENABLE_POSITIONAL_4)) {
+        g_gerd->toggle(srGERD::ENABLE_POSITIONAL_4);
     }
-    g_gerd_659634->flushRenderers();
-    g_gerd_659634->resetStatistics();
-    g_gerd_659634->beginFrame();
+    g_gerd->flushRenderers();
+    g_gerd->resetStatistics();
+    g_gerd->beginFrame();
     srNode::lockSceneGraph();
-    process.renderer = g_gerd_659634;
+    process.renderer = g_gerd;
     g_world->dynamic_scene->process(process, static_cast<srNode::e_processType>(1));
     node->process(process, static_cast<srNode::e_processType>(0));
     g_world->dynamic_scene->process(process, static_cast<srNode::e_processType>(2));
     srNode::unlockSceneGraph();
-    g_gerd_659634->endFrame();
-    g_gerd_659634->flushRenderers();
-    g_gerd_659634->getStatistics(statistics);
-    if (g_gerd_659634 != 0 && !g_gerd_659634->isEnabled(srGERD::ENABLE_POSITIONAL_4)) {
-        g_gerd_659634->toggle(srGERD::ENABLE_POSITIONAL_4);
+    g_gerd->endFrame();
+    g_gerd->flushRenderers();
+    g_gerd->getStatistics(statistics);
+    if (g_gerd != 0 && !g_gerd->isEnabled(srGERD::ENABLE_POSITIONAL_4)) {
+        g_gerd->toggle(srGERD::ENABLE_POSITIONAL_4);
     }
     return static_cast<unsigned int>(statistics.value_10);
 }
@@ -3615,17 +3621,17 @@ unsigned int MeasureNodeRender00428830(srNode* node)
 /* Open the render-probe pass: force renderer option 4 off, reset the frame
    to a solid blue clear and prime the scissor before the measured draw. */
 // FUNCTION: WIZ8 0x00428910
-void BeginRenderProbe00428910(void)
+void BeginRenderProbe(void)
 {
-    if (g_gerd_659634->isEnabled(srGERD::ENABLE_POSITIONAL_4)) {
-        g_gerd_659634->toggle(srGERD::ENABLE_POSITIONAL_4);
+    if (g_gerd->isEnabled(srGERD::ENABLE_POSITIONAL_4)) {
+        g_gerd->toggle(srGERD::ENABLE_POSITIONAL_4);
     }
-    g_gerd_659634->setClearColor(0.0f, 0.0f, 1.0f, 1.0f);
-    g_gerd_659634->setAmbientLight(1.0f, 1.0f, 1.0f, 1.0f);
-    g_gerd_659634->beginFrame();
-    g_gerd_659634->setScissor(0, 0, g_gerd_659634->getWidth(), g_gerd_659634->getHeight());
-    g_gerd_659634->clear(srFlags<srGERD::e_buffer>(3));
-    g_gerd_659634->endFrame();
+    g_gerd->setClearColor(0.0f, 0.0f, 1.0f, 1.0f);
+    g_gerd->setAmbientLight(1.0f, 1.0f, 1.0f, 1.0f);
+    g_gerd->beginFrame();
+    g_gerd->setScissor(0, 0, g_gerd->getWidth(), g_gerd->getHeight());
+    g_gerd->clear(srFlags<srGERD::e_buffer>(3));
+    g_gerd->endFrame();
 }
 
 /* Draw the node between the dynamic scene's bracketing passes and return the
@@ -3636,29 +3642,29 @@ unsigned int MeasureNodeRender004289E0(srNode* node)
     srGERD::Statistics statistics;
     srNode::ProcessInfo process;
 
-    g_gerd_659634->flushRenderers();
-    g_gerd_659634->resetStatistics();
-    g_gerd_659634->beginFrame();
+    g_gerd->flushRenderers();
+    g_gerd->resetStatistics();
+    g_gerd->beginFrame();
     srNode::lockSceneGraph();
-    process.renderer = g_gerd_659634;
+    process.renderer = g_gerd;
     g_world->dynamic_scene->process(process, static_cast<srNode::e_processType>(1));
     node->process(process, static_cast<srNode::e_processType>(0));
     g_world->dynamic_scene->process(process, static_cast<srNode::e_processType>(2));
     srNode::unlockSceneGraph();
-    g_gerd_659634->endFrame();
-    g_gerd_659634->flushRenderers();
-    g_gerd_659634->getStatistics(statistics);
+    g_gerd->endFrame();
+    g_gerd->flushRenderers();
+    g_gerd->getStatistics(statistics);
     return static_cast<unsigned int>(statistics.value_10);
 }
 
 /* Close the render-probe pass: restore renderer option 4 and present. */
 // FUNCTION: WIZ8 0x004289c0
-void EndRenderProbe004289C0(void)
+void EndRenderProbe(void)
 {
-    if (!g_gerd_659634->isEnabled(srGERD::ENABLE_POSITIONAL_4)) {
-        g_gerd_659634->toggle(srGERD::ENABLE_POSITIONAL_4);
+    if (!g_gerd->isEnabled(srGERD::ENABLE_POSITIONAL_4)) {
+        g_gerd->toggle(srGERD::ENABLE_POSITIONAL_4);
     }
-    g_gerd_659634->flipFrame();
+    g_gerd->flipFrame();
 }
 
 /* Compiler-generated vtable and template emissions, grouped here as emission
@@ -3824,8 +3830,7 @@ void EndRenderProbe004289C0(void)
 // srColorSurface::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x00424BA0
-srNode* MakePosterQuad00424BA0(srTextureIFace* texture, float width, float height,
-                               unsigned char additive)
+srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, unsigned char additive)
 {
     srShader shader;
     srPtr<srPalette> palette;
@@ -3842,8 +3847,8 @@ srNode* MakePosterQuad00424BA0(srTextureIFace* texture, float width, float heigh
     if (model == 0) {
         return 0;
     }
-    float extent_w = g_float_005ebb38 / dimensions.width * g_surface_scale_659680;
-    float extent_h = g_float_005ebb38 / dimensions.height * g_surface_scale_659680;
+    float extent_w = g_float_005ebb38 / dimensions.width * g_surface_scale;
+    float extent_h = g_float_005ebb38 / dimensions.height * g_surface_scale;
     model->autoRelease();
     model->setName("VideoMakePoster");
     texture->getDimensions(dimensions);
@@ -3865,7 +3870,7 @@ srNode* MakePosterQuad00424BA0(srTextureIFace* texture, float width, float heigh
         shader.value = 0x100c0b3;
         model->setControlMask(0x40);
     }
-    model->setMaterial(g_blit_material_65967c, 0, static_cast<srMeshModel::e_side>(0));
+    model->setMaterial(g_blit_material, 0, static_cast<srMeshModel::e_side>(0));
     model->setTexture(texture, 0, 0);
     srShader shader_copy;
     shader_copy.CopyValue(&shader.value);
@@ -3889,7 +3894,7 @@ struct Video2PosterQuadInfo {
 };
 
 // FUNCTION: WIZ8 0x00424EA0
-void __fastcall ReleaseOwnedMember00424EA0(Video2PosterQuadInfo* object)
+void __fastcall ReleaseOwnedMember(Video2PosterQuadInfo* object)
 {
     if (object->pointer_08 != 0) {
         object->pointer_08->release();
@@ -3897,10 +3902,9 @@ void __fastcall ReleaseOwnedMember00424EA0(Video2PosterQuadInfo* object)
 }
 
 // FUNCTION: WIZ8 0x00425590
-void DrawColorSurface00425590(srColorSurface* surface, int x, int y)
+void DrawColorSurface(srColorSurface* surface, int x, int y)
 {
-    g_primary_color_surface_659660->blit(x, y, *surface, 0, 0, surface->getWidth(),
-                                         surface->getHeight());
+    g_primary_color_surface->blit(x, y, *surface, 0, 0, surface->getWidth(), surface->getHeight());
 }
 
 // FUNCTION: WIZ8 0x00425DA0
@@ -3916,10 +3920,9 @@ void SetScaledViewport00425DA0(int left, int top, int right, int bottom)
             goto store;
         }
     }
-    g_gerd_659634->setViewPort(g_gerd_659634->getWidth() * left / 640,
-                               g_gerd_659634->getHeight() * top / 480,
-                               g_gerd_659634->getWidth() * (right - left) / 640,
-                               g_gerd_659634->getHeight() * (bottom - top) / 480);
+    g_gerd->setViewPort(g_gerd->getWidth() * left / 640, g_gerd->getHeight() * top / 480,
+                        g_gerd->getWidth() * (right - left) / 640,
+                        g_gerd->getHeight() * (bottom - top) / 480);
 store:
     g_viewport_6595e8.left = left;
     g_viewport_6595e8.top = top;
@@ -3928,19 +3931,19 @@ store:
 }
 
 // FUNCTION: WIZ8 0x00426490
-void DrawBufferLine00426490(long x0, long y0, long x1, long y1, unsigned long* pixel)
+void DrawBufferLine(long x0, long y0, long x1, long y1, unsigned long* pixel)
 {
     if (x0 != 0 && y0 != 0 && x1 != 0 && y1 != 0) {
-        srColorSurfaceIFace* surface = g_gerd_659634->lockBuffer();
+        srColorSurfaceIFace* surface = g_gerd->lockBuffer();
         if (surface != 0) {
             surface->setLine(x0, y0, x1, y1, *pixel);
-            g_gerd_659634->unlockBuffer();
+            g_gerd->unlockBuffer();
         }
     }
 }
 
 // FUNCTION: WIZ8 0x004273F0
-void GetScaledViewportBounds004273F0(float* left_top, float* right_bottom)
+void GetScaledViewportBounds(float* left_top, float* right_bottom)
 {
     left_top[0] = g_viewport_6595e8.left * g_scale_x_5ebb1c;
     left_top[1] = g_viewport_6595e8.top * g_scale_y_5ebb20;
@@ -3949,10 +3952,10 @@ void GetScaledViewportBounds004273F0(float* left_top, float* right_bottom)
 }
 
 // FUNCTION: WIZ8 0x004277F0
-void SetPickKey004277F0(void* key)
+void SetPickKey(void* key)
 {
-    if (g_gerd_659634) {
-        g_gerd_659634->setPickKey(
+    if (g_gerd) {
+        g_gerd->setPickKey(
             reinterpret_cast<unsigned long>(key)); // reinterpret-ok: opaque pick token
     }
 }

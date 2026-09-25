@@ -5,9 +5,12 @@
 
 #include <stddef.h>
 
-/* AnimRep and the 3D mesh instance pass this highlight color to srMaterial. */
+/* AnimRep and the 3D mesh instance exchange four highlight coefficients. */
 struct W8ModelInstance3DRenderState {
-    srVector4T<float> highlight;
+    float highlight_red;
+    float highlight_green;
+    float highlight_blue;
+    float highlight_alpha;
 };
 
 /* The 2D instance has a different sixteen-byte block at the same class offset. */
@@ -32,18 +35,18 @@ struct W8ModelInstance2DRenderState {
    is stored separately at +0x28. Copy/clone preserve the transforms and
    render block but reset the transient scale and two flags. Its original
    name is not available. */
-class W8AnimRepBase005EC1D8 {
+class W8AnimRepBase {
 public:
-    W8AnimRepBase005EC1D8();
-    W8AnimRepBase005EC1D8(const W8AnimRepBase005EC1D8& other);
-    virtual ~W8AnimRepBase005EC1D8() {}
-    virtual W8AnimRepBase005EC1D8* Clone();
+    W8AnimRepBase();
+    W8AnimRepBase(const W8AnimRepBase& other);
+    virtual ~W8AnimRepBase() {}
+    virtual W8AnimRepBase* Clone();
 
     void SetLocation004B8850(const srVector3T<float>* location);
     void GetLocation004B8890(srVector3T<float>* location) const;
-    void GetLocalLocation004B88B0(srVector3T<float>* location) const;
+    void GetLocalLocation(srVector3T<float>* location) const;
     void SetRotation004B88D0(const srMatrix3T<float>* rotation);
-    void GetRotation004B88F0(srMatrix3T<float>* rotation);
+    void GetRotation(srMatrix3T<float>* rotation);
 
 public:
     srVector3T<float> location_004;
@@ -55,7 +58,7 @@ public:
        only when +0x61 enables that path. A value of one clears the instance
        scale flag instead of storing a redundant scale. */
     float instance_scale_05c;
-    unsigned char flag_060;
+    bool flag_060;
     unsigned char apply_instance_scale_061;
     unsigned char padding_062[2];
 };
@@ -65,12 +68,12 @@ public:
    then restarts its timer from the shared clock; the base copy resets its
    transient fields. The address suffix preserves the unresolved original
    class name. */
-class W8AnimRep005ED050 : public W8AnimRepBase005EC1D8 {
+class W8AnimRep : public W8AnimRepBase {
 public:
-    W8AnimRep005ED050();
-    W8AnimRep005ED050(const W8AnimRep005ED050& other);
-    virtual ~W8AnimRep005ED050() override;
-    void SetFrameMethod004B55C0(signed char method);
+    W8AnimRep();
+    W8AnimRep(const W8AnimRep& other);
+    virtual ~W8AnimRep() override;
+    void SetFrameMethod(signed char method);
 
 public:
     /* Current frame/subcycle. GrCycle advances it and all derived renderers
@@ -112,10 +115,10 @@ static_assert(sizeof(W8ModelInstance3DRenderState) == 0x10,
               "W8ModelInstance3DRenderState_size_must_be_0x10");
 static_assert(sizeof(W8ModelInstance2DRenderState) == 0x10,
               "W8ModelInstance2DRenderState_size_must_be_0x10");
-static_assert(offsetof(W8AnimRepBase005EC1D8, render_state_04c) == 0x4c,
+static_assert(offsetof(W8AnimRepBase, render_state_04c) == 0x4c,
               "W8AnimRepBase_render_state_offset");
-static_assert(sizeof(W8AnimRepBase005EC1D8) == 0x64, "W8AnimRepBase005EC1D8_size_must_be_0x64");
-static_assert(sizeof(W8AnimRep005ED050) == 0x98, "W8AnimRep005ED050_size_must_be_0x98");
+static_assert(sizeof(W8AnimRepBase) == 0x64, "W8AnimRepBase_size_must_be_0x64");
+static_assert(sizeof(W8AnimRep) == 0x98, "W8AnimRep_size_must_be_0x98");
 
 extern float g_lod_range_default_0060e608;
 extern float g_lod_range_default_0060e60c;

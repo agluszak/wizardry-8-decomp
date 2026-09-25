@@ -36,20 +36,20 @@ public:
     /* Mesh-chain submit reached from process(): frustum culling, ambient and
        highlight state, the linked stMeshModel list, then the optional
        highlight shell pass with reversed winding. */
-    void RenderMeshes0047F930(srGERD& renderer);
+    void RenderMeshes(srGERD& renderer);
     /* Shadow-volume extrusion helper for the first mesh in the chain. */
-    void RenderShadow004811D0(srGERD& renderer, srMeshModel::TriMesh& mesh);
+    void RenderShadow(srGERD& renderer, srMeshModel::TriMesh& mesh);
 
-    stTextureAnim* FindMouthTexture00481080(); /* 0x00481080 */
+    stTextureAnim* FindMouthTexture(); /* 0x00481080 */
     int AddDamageStage00480560(const char* name);
-    int AddExistingDamageStage00480670(const char* name);
-    int FindDamageStage00480790(const char* name);
-    unsigned char ReplaceDamageStageTexture004807B0(int stage, const char* old_name,
-                                                    srTextureIFace* replacement);
+    int AddExistingDamageStage(const char* name);
+    int FindDamageStage(const char* name);
+    unsigned char ReplaceDamageStageTexture(int stage, const char* old_name,
+                                            srTextureIFace* replacement);
     unsigned char displayState() const
     {
-        // reinterpret-ok: scene purge consumes the low byte stored at +0x170.
-        return *reinterpret_cast<const unsigned char*>(&render_state_164.highlight.w);
+        // reinterpret-ok: scene purge reads the low byte at +0x170; its relation to highlight alpha remains unresolved
+        return *reinterpret_cast<const unsigned char*>(&render_state_164.highlight_alpha);
     }
 
     virtual ~stModelInstance() override; /* 0x0047EF70 */
@@ -57,7 +57,7 @@ public:
 public:
     unsigned long overlay_scene_flag_160;
     W8ModelInstance3DRenderState render_state_164;
-    /* Lazily built highlight material; RenderMeshes0047F930 fills it from the
+    /* Lazily built highlight material; RenderMeshes fills it from the
        render-state RGBA and installs it as the pass material. */
     srMaterial* retained_174;
     unsigned long render_flags_178;
@@ -95,14 +95,14 @@ public:
     explicit stModelInstance2D(srNode* parent); /* 0x0047F0F0 */
 
     stModelInstance2D& operator=(const stModelInstance2D& other); /* 0x0047F290 */
-    void SetModel0047F3A0(srModel* model);                        /* 0x0047F3A0 */
+    void SetModel(srModel* model);                                /* 0x0047F3A0 */
 
     srClass* vInstance() override;                                      /* 0x00481E30 */
     void process(const ProcessInfo& info, e_processType type) override; /* 0x00480920 */
     int GetWidth00480EF0();                                             /* 0x00480EF0 */
     int GetHeight00480F70();                                            /* 0x00480F70 */
-    void SetGlowEnabled00480EB0(unsigned char enable);                  /* 0x00480EB0 */
-    void SetGlowColors00480FF0(srVector4T<float>* first, srVector4T<float>* second);
+    void SetGlowEnabled(unsigned char enable);                          /* 0x00480EB0 */
+    void SetGlowColors(srVector4T<float>* first, srVector4T<float>* second);
 
     unsigned char displayState() const
     {

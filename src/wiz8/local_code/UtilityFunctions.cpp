@@ -59,18 +59,8 @@ unsigned int g_message_box_shade;
 bool g_message_box_accepted;
 // GLOBAL: WIZ8 0x0068BFD0
 char g_format_string_buffer[200];
-
-// union-ok: wide formatters and the narrow converter return alternate views of this shared scratch buffer.
-union W8StringConversionBuffer {
-    wchar_t wide[4096];
-    char narrow[4096 * sizeof(wchar_t)];
-};
-
-static_assert(sizeof(W8StringConversionBuffer) == 0x2000,
-              "W8StringConversionBuffer_size_must_match_retail");
-
 // GLOBAL: WIZ8 0x00689FD0
-W8StringConversionBuffer g_wide_string_buffer;
+wchar_t g_wide_string_buffer[4096];
 
 static __inline int UtilityIntegerPower(int base, unsigned int exponent)
 {
@@ -196,22 +186,22 @@ wchar_t* FormatWideString(const wchar_t* format, ...)
     va_list arguments;
 
     va_start(arguments, format);
-    vswprintf(g_wide_string_buffer.wide, format, arguments);
-    return g_wide_string_buffer.wide;
+    vswprintf(g_wide_string_buffer, format, arguments);
+    return g_wide_string_buffer;
 }
 
 // FUNCTION: WIZ8 0x00517ab0
 wchar_t* ConvertStringToWide(const char* string)
 {
-    swprintf(g_wide_string_buffer.wide, L"%hs", string);
-    return g_wide_string_buffer.wide;
+    swprintf(g_wide_string_buffer, L"%hs", string);
+    return g_wide_string_buffer;
 }
 
 // FUNCTION: WIZ8 0x00517ad0
 char* ConvertWideStringToString(const wchar_t* string)
 {
-    sprintf(g_wide_string_buffer.narrow, "%ls", string);
-    return g_wide_string_buffer.narrow;
+    sprintf(reinterpret_cast<char*>(g_wide_string_buffer), "%ls", string);
+    return reinterpret_cast<char*>(g_wide_string_buffer);
 }
 
 // FUNCTION: WIZ8 0x00517af0
@@ -355,7 +345,7 @@ unsigned int CharacterPointerToPartySlot(const W8Character* character)
                      0x1c8, "PCPtrToPCSlot: ERROR - called for non-party character");
     }
 
-    party_character = g_status_685170.buffers.Char;
+    party_character = g_status.buffers.Char;
     for (slot = 0; slot < 8; ++slot, ++party_character) {
         if (character == party_character) {
             return slot;
@@ -371,7 +361,7 @@ unsigned int CharacterPointerToPartySlot(const W8Character* character)
 // FUNCTION: WIZ8 0x00517f30
 bool IsPartyCharacterPointer(const W8Character* character)
 {
-    W8Character* party_character = g_status_685170.buffers.Char;
+    W8Character* party_character = g_status.buffers.Char;
     unsigned int slot;
 
     for (slot = 0; slot < 8; ++slot, ++party_character) {
@@ -414,8 +404,8 @@ unsigned int GetRandomPartySlots(int require_primary, int require_secondary,
     if (count != 0) {
         for (relaxed = 0; relaxed == 0;) {
             for (slot = skip_first_two != 0 ? 2u : 0u; slot < 8; ++slot) {
-                W8Character* character = &g_status_685170.buffers.Char[slot];
-                if (g_status_685170.buffers.XChar[slot].fOccupied != 0 && slot != excluded_slot &&
+                W8Character* character = &g_status.buffers.Char[slot];
+                if (g_status.buffers.XChar[slot].fOccupied != 0 && slot != excluded_slot &&
                     claimed[slot] == 0 && (character->hp_current != 0 || require_primary == 2) &&
                     (character->highest_condition < 0x12 || require_secondary == 2)) {
                     eligible[found] = slot;
@@ -465,7 +455,7 @@ int GetRandomCharacter(int require_primary, int require_secondary, int excluded_
     int skip;
     unsigned int slot;
     unsigned int scanned;
-    unsigned char matched;
+    bool matched;
     W8Character* character;
 
 retry:
@@ -473,15 +463,15 @@ retry:
     scanned = 0;
     slot = 0;
     do {
-        matched = 0;
-        if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
+        matched = false;
+        if (g_status.buffers.XChar[slot].fOccupied != 0 &&
             static_cast<int>(slot) != excluded_slot) {
-            character = &g_status_685170.buffers.Char[slot];
+            character = &g_status.buffers.Char[slot];
             if ((character->hp_current > 0 && character->highest_condition < 0x12) ||
                 require_primary == 2) {
                 if (excluded_gender == -1 || excluded_gender != character->gender) {
                     if (character->highest_condition < 0xf || require_secondary == 2) {
-                        matched = 1;
+                        matched = true;
                         if (skip == 0) {
                             return slot;
                         }
@@ -516,8 +506,8 @@ retry:
 int GetNextCharacter(int require_primary, int require_secondary, int previous_slot)
 {
     int start_slot = (previous_slot + 1) % 8;
-    W8Character* characters = g_status_685170.buffers.Char;
-    W8PartySlotRow* rows = g_status_685170.buffers.XChar;
+    W8Character* characters = g_status.buffers.Char;
+    W8PartySlotRow* rows = g_status.buffers.XChar;
     int slot;
     unsigned int scanned;
 
@@ -617,7 +607,7 @@ bool CreateMessageBox(wchar_t* text, int font, unsigned int shade, bool has_acce
     if (has_accept || has_cancel) {
         height = 0x6c;
     }
-    unsigned short width = StringPixLength((unsigned short*)text, font) + 10;
+    unsigned short width = StringPixLength(text, font) + 10;
     if (width > 0x258) {
         width = 0x258;
     } else if (width < 0x64) {
@@ -636,9 +626,8 @@ bool CreateMessageBox(wchar_t* text, int font, unsigned int shade, bool has_acce
         0, 0, 0);
     int yloc = (0x1e0 - height) / 2;
     g_message_box_background_button = CreateTextButton(
-        reinterpret_cast<unsigned short*>(text), // reinterpret-ok: SGP text API takes UINT16*
-        (unsigned short)font, 0xff, 0, g_message_box_background_image, (0x280 - width) / 2, yloc,
-        width, height, 4, 0x7d, 0, MessageBoxAcceptClickCallback);
+        text, static_cast<unsigned short>(font), 0xff, 0, g_message_box_background_image,
+        (0x280 - width) / 2, yloc, width, height, 4, 0x7d, 0, MessageBoxAcceptClickCallback);
     if (g_message_box_background_button < 0) {
         return false;
     }
@@ -805,16 +794,16 @@ void RenderMessageBox(void)
         g_message_box_state = 3;
     } else if (g_message_box_state == 2) {
         HVOBJECT font;
-        if (g_message_box_font == g_large_font_683674) {
-            font = g_large_font_object_683618;
-        } else if (g_message_box_font == g_small_font_683678) {
-            font = g_small_font_object_683620;
-        } else if (g_message_box_font == g_small_font_secondary_68366c) {
-            font = g_small_font_secondary_object_683638;
-        } else if (g_message_box_font == g_wiz_text_font_683640) {
-            font = g_wiz_text_font_object_683604;
+        if (g_message_box_font == g_large_font) {
+            font = g_large_font_object;
+        } else if (g_message_box_font == g_small_font) {
+            font = g_small_font_object;
+        } else if (g_message_box_font == g_small_font_secondary) {
+            font = g_small_font_secondary_object;
+        } else if (g_message_box_font == g_wiz_text_font) {
+            font = g_wiz_text_font_object;
         } else {
-            font = g_wiz_text_font_secondary_object_683680;
+            font = g_wiz_text_font_secondary_object;
         }
         SetObjectShade(font, g_message_box_shade);
         MarkButtonsDirty();

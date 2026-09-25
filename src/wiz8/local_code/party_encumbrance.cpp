@@ -53,21 +53,21 @@ void RecalculateCharacterDerivedStats(W8Character* character)
         }
     }
 
-    ResetCharacterAttributes005539E0(character);
-    ResetCharacterSkills00553A60(character);
+    ResetCharacterAttributes(character);
+    ResetCharacterSkills(character);
     RecalculateCharacterHitPoints(character);
     RecalculateCharacterStamina(character);
     RecalculateRealmSpellPoints(character);
     CalcArmorClasses(character);
-    RebuildCharacterRegenRates00502B50(character);
+    RebuildCharacterRegenRates(character);
 
     character->damage_reduction = 0;
-    if (CharacterHasTrait00547940(character, W8_TRAIT_DWARF_DAMAGE_RESISTANCE)) {
+    if (CharacterHasTrait(character, W8_TRAIT_DWARF_DAMAGE_RESISTANCE)) {
         character->damage_reduction += character->attributes[W8_ATTRIBUTE_VITALITY].effective / 10;
     }
-    if (CharacterHasTrait00547940(character, W8_TRAIT_MONK_DAMAGE_RESISTANCE)) {
+    if (CharacterHasTrait(character, W8_TRAIT_MONK_DAMAGE_RESISTANCE)) {
         character->damage_reduction += static_cast<int>(
-            ScaleValueByProfessionLevel005479B0(character, W8_TRAIT_MONK_DAMAGE_RESISTANCE, 30.0f));
+            ScaleValueByProfessionLevel(character, W8_TRAIT_MONK_DAMAGE_RESISTANCE, 15.0f));
     }
     if (character->skills[W8_SKILL_IRON_SKIN].active_00 != 0) {
         character->damage_reduction += (character->skills[W8_SKILL_IRON_SKIN].level >> 2) + 5;
@@ -79,13 +79,13 @@ void RecalculateCharacterDerivedStats(W8Character* character)
                character->attributes[W8_ATTRIBUTE_STRENGTH].effective * 2;
     unsigned int previous_capacity = character->carrying_capacity;
     unsigned int capacity = base * 0xc;
-    if (CharacterHasTrait00547940(character, W8_TRAIT_FAERIE_REDUCED_CARRY_CAPACITY)) {
+    if (CharacterHasTrait(character, W8_TRAIT_FAERIE_REDUCED_CARRY_CAPACITY)) {
         capacity = capacity * 2 / 3;
     }
     bool changed = previous_capacity != capacity;
     character->carrying_capacity = capacity;
     bool recalculated = RecalculateCarriedWeight(character);
-    if (g_status_685170.game_started == 0) {
+    if (g_status.game_started == 0) {
         character->party_weight_share = 0;
     } else if (changed || recalculated) {
         RedistributePartyEncumbrance();
@@ -118,13 +118,13 @@ void RecalculateCharacterDerivedStats(W8Character* character)
    are the third and first effective values, the same pair the stamina
    recomputation reads. */
 // FUNCTION: WIZ8 0x004edc10
-bool RecalculateCarryingCapacity004EDC10(W8Character* character)
+bool RecalculateCarryingCapacity(W8Character* character)
 {
     unsigned int previous = character->carrying_capacity;
     int base = character->attributes[W8_ATTRIBUTE_VITALITY].effective +
                character->attributes[W8_ATTRIBUTE_STRENGTH].effective * 2;
     unsigned int capacity = base * 0xc;
-    if (CharacterHasTrait00547940(character, W8_TRAIT_FAERIE_REDUCED_CARRY_CAPACITY)) {
+    if (CharacterHasTrait(character, W8_TRAIT_FAERIE_REDUCED_CARRY_CAPACITY)) {
         capacity = (unsigned int)(base * 0x18) / 3;
     }
     character->carrying_capacity = capacity;
@@ -166,10 +166,10 @@ void RedistributePartyEncumbrance(void)
     int capacity[8];
     int unassigned[8];
     float load_ratio[8];
-    W8Character* characters = g_status_685170.buffers.Char;
-    W8PartySlotRow* active = g_status_685170.buffers.XChar;
+    W8Character* characters = g_status.buffers.Char;
+    W8PartySlotRow* active = g_status.buffers.XChar;
 
-    if (!g_status_685170.game_started) {
+    if (!g_status.game_started) {
         return;
     }
     if (gXStatus.fCombatMode) {
@@ -184,13 +184,13 @@ void RedistributePartyEncumbrance(void)
         if (active[slot].fOccupied != 0 && character->highest_condition < W8_CONDITION_DEAD) {
             capacity[slot] = character->carrying_capacity;
             unassigned[slot] = capacity[slot] - character->inventory_weight;
-            load_ratio[slot] = (float)unassigned[slot] * 100.0f / (float)capacity[slot];
+            load_ratio[slot] = unassigned[slot] * 100.0f / capacity[slot];
         }
     }
 
     unsigned int party_weight = 0;
-    for (slot = 0; slot < (unsigned int)g_status_685170.party_item_count_1791; ++slot) {
-        party_weight += GetItemStackWeight(&g_status_685170.party_item_pool_0021[slot]);
+    for (slot = 0; slot < static_cast<unsigned int>(g_status.party_item_count_1791); ++slot) {
+        party_weight += GetItemStackWeight(&g_status.party_item_pool_0021[slot]);
     }
 
     for (party_weight >>= 1; party_weight != 0; --party_weight) {
@@ -210,7 +210,7 @@ void RedistributePartyEncumbrance(void)
         W8Character* character = &characters[best_slot];
         ++character->party_weight_share;
         --unassigned[best_slot];
-        load_ratio[best_slot] = (float)unassigned[best_slot] * 100.0f / (float)capacity[best_slot];
+        load_ratio[best_slot] = unassigned[best_slot] * 100.0f / capacity[best_slot];
     }
 
     for (slot = 0; slot < 8; ++slot) {
@@ -245,8 +245,8 @@ void RedistributePartyEncumbrance(void)
             gXStatus.fEncumbranceDirty = false;
             return;
         }
-    } else if (g_current_screen_state.id == W8_SCREEN_CAMP && g_camp_screen_0069c0f4 != 0) {
-        g_camp_screen_0069c0f4->redraw_flags |= 0x2100;
+    } else if (g_current_screen_state.id == W8_SCREEN_CAMP && g_camp_screen != 0) {
+        g_camp_screen->redraw_flags |= 0x2100;
     }
     gXStatus.fEncumbranceDirty = false;
 }

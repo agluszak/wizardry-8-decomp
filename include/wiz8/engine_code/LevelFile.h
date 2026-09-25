@@ -79,7 +79,7 @@ struct W8LevelFileMesh {
     float lod_scale_58;                      /* flags_0c & 1 && lod_mode_40 > 1 */
 };
 
-/* The 0x3c-byte serialized block covering stLightDefinition005ECDBC fields
+/* The 0x3c-byte serialized block covering stParametricLightDefinition fields
    flags_08 through subcycle_max_40: the runtime object's first 8 bytes
    (vtable/type) are not serialized. flags_00 bit 0x10 marks the light as
    owning a path-AI block. Serialized under a light's flags_04 bit1, and
@@ -99,7 +99,7 @@ struct W8LevelFileLightExtra { /* 0x3c */
 };
 
 /* Serialized world-item record: the .pvl item section
-   (ReadWorldItems004BC380) stores the same fields plus an optional inline
+   (ReadWorldItems) stores the same fields plus an optional inline
    trigger behind has_trigger_30, which the .lvl keeps in its own table. */
 struct W8LevelFileItemRecord {     /* 0x44 */
     char item_name_00[0x14];       /* item script name */
@@ -171,7 +171,7 @@ struct W8LevelFileTriggerHotSpot { /* 0x85: has_hotspot_858 != 0 payload */
 };
 
 /* Serialized camera waypoint: the .pvl camera section
-   (ReadWorldCameras004BC850) reads the same head before its PathAI; the
+   (ReadWorldCameras) reads the same head before its PathAI; the
    leading ints and the 0x14-byte span feed W8WorldCameraEntry's positional
    fields and stay unresolved there too. */
 struct W8LevelFileCamera {
@@ -287,7 +287,7 @@ struct W8LevelFileInvisible { /* 0x241 */
 
 /* The 0x170-byte type-3 (ambient sound) trigger record. The .pvl type-3
    stream (Trigger.cpp case 3) reads the same fields and hands them to
-   AddAmbientSound0047A790. */
+   AddAmbientSound. */
 struct W8LevelFileSound { /* 0x170 */
     char version_00;
     int volume_min_01;
@@ -366,7 +366,7 @@ struct W8LevelFileSuperTrigger { /* 0x867 */
 
 struct W8LevelFileTrigger {
     unsigned char version_00;
-    unsigned char type_01; /* 1 switch, 2 invisible, 3 sound, 4 super */
+    char type_01; /* 1 switch, 2 invisible, 3 sound, 4 super */
     void* pData_02;        /* type_01 selects the pointed-to record */
 };
 
@@ -376,7 +376,7 @@ struct W8LevelFileFrame {
     unsigned char flags_00;
     W8LevelFileMesh mesh_01; /* 0x5c */
     short num_textures_5d;
-    W8MaterialRecord004B8A70* pTextures_5f; /* num_textures_5d * 0x12a */
+    W8MaterialRecord* pTextures_5f; /* num_textures_5d * 0x12a */
 };
 
 struct W8LevelFileLODMesh {
@@ -460,7 +460,7 @@ struct W8LevelFileProp { /* 0xbf */
    embedded behind the version byte. Its 0x225-byte extent and every named
    offset come directly from the version-sized reads and subsequent uses in
    0x004BD0D0. */
-struct W8LevelParticleRecord004BD0D0 {
+struct W8LevelParticleRecord {
     char name[64];                      /* 0x000 */
     srVector3T<float> location;         /* 0x040 */
     float rotation_angle;               /* 0x04c */
@@ -472,30 +472,30 @@ struct W8LevelParticleRecord004BD0D0 {
     float spread_x_06c;
     float spread_y_070;
     float spread_z_074;
-    int has_acceleration;              /* 0x078 */
-    srVector3T<float> acceleration;    /* 0x07c */
-    int expiry_mode;                   /* 0x088: nonzero enables particle expiry */
-    int bounds_mode;                   /* 0x08c */
-    srVector3T<float> bounds_origin;   /* 0x090 */
-    float bounds_radius;               /* 0x09c */
-    srVector3T<float> bounds_extent;   /* 0x0a0 */
-    unsigned int lifetime;             /* 0x0ac */
-    int velocity_mode;                 /* 0x0b0 */
-    unsigned int emission_interval;    /* 0x0b4 */
-    int los_check;                     /* 0x0b8: nonzero enables the line-of-sight check */
-    int placement_mode;                /* 0x0bc */
-    float placement_0c0;               /* 0x0c0 */
-    float placement_0c4;               /* 0x0c4 */
-    float placement_0c8;               /* 0x0c8 */
-    float particle_size;               /* 0x0cc: billboard quad scale */
-    int flutter_mode;                  /* 0x0d0 */
-    float flutter_value;               /* 0x0d4 */
-    float flutter_period;              /* 0x0d8 */
-    int direction_mode;                /* 0x0dc */
-    float direction_0e0;               /* 0x0e0 */
-    float direction_0e4;               /* 0x0e4 */
-    int initially_active;              /* 0x0e8 */
-    W8MaterialRecord004B8A70 material; /* 0x0ec */
+    int has_acceleration;            /* 0x078 */
+    srVector3T<float> acceleration;  /* 0x07c */
+    int expiry_mode;                 /* 0x088: nonzero enables particle expiry */
+    int bounds_mode;                 /* 0x08c */
+    srVector3T<float> bounds_origin; /* 0x090 */
+    float bounds_radius;             /* 0x09c */
+    srVector3T<float> bounds_extent; /* 0x0a0 */
+    unsigned int lifetime;           /* 0x0ac */
+    int velocity_mode;               /* 0x0b0 */
+    unsigned int emission_interval;  /* 0x0b4 */
+    int los_check;                   /* 0x0b8: nonzero enables the line-of-sight check */
+    int placement_mode;              /* 0x0bc */
+    float placement_0c0;             /* 0x0c0 */
+    float placement_0c4;             /* 0x0c4 */
+    float placement_0c8;             /* 0x0c8 */
+    float particle_size;             /* 0x0cc: billboard quad scale */
+    int flutter_mode;                /* 0x0d0 */
+    float flutter_value;             /* 0x0d4 */
+    float flutter_period;            /* 0x0d8 */
+    int direction_mode;              /* 0x0dc */
+    float direction_0e0;             /* 0x0e0 */
+    float direction_0e4;             /* 0x0e4 */
+    int initially_active;            /* 0x0e8 */
+    W8MaterialRecord material;       /* 0x0ec */
     /* 0x216, version >= 2: copied to the particle's attachment_key_260 when
        non-negative. */
     short attachment_key_216;
@@ -509,7 +509,7 @@ struct W8LevelParticleRecord004BD0D0 {
 
 struct W8LevelFileParticleSystem { /* 0x226 */
     char version_00;
-    W8LevelParticleRecord004BD0D0 particle_01;
+    W8LevelParticleRecord particle_01;
 };
 
 /* Serialized form of W8NamedPosition: one version byte precedes the runtime
@@ -526,7 +526,7 @@ struct W8LevelFileNamedPosition { /* 0x9d */
 
 /* The serialized environment block gated by has_block_48, between the
    camera table and the trigger table. The .pvl environment section
-   (ReadWorldEnvironment004BC9D0) serializes the same fields: fog gate,
+   (ReadWorldEnvironment) serializes the same fields: fog gate,
    environment colour/intensity/view distance, camera mode plus optional
    position/angle/axis, and the two 0x300-byte 256-entry RGB colour ramps
    consumed by ReadLightColourTable/ReadEnvironmentColourTable. */
@@ -557,7 +557,7 @@ struct W8LevelFile {
     W8LevelFileMesh* pMeshes;                        /* 0x08: one 0x5c record */
     OctMeshModel* pModels_0c;                        /* 0x0c: written/freed, elements 0x48 */
     short nTextures;                                 /* 0x10 */
-    W8MaterialRecord004B8A70* pTextures;             /* 0x12: nTextures * 0x12a */
+    W8MaterialRecord* pTextures;                     /* 0x12: nTextures * 0x12a */
     short nLights;                                   /* 0x16 */
     W8LevelFileLight* pLights;                       /* 0x18: nLights * 0x44 */
     int nMonsters;                                   /* 0x1c */
@@ -656,8 +656,7 @@ static_assert(offsetof(W8LevelFileProp, footstep_surface_bd) == 0xbd,
               "W8LevelFileProp_footstep_surface_bd");
 static_assert(offsetof(W8LevelFileProp, footstep_material_be) == 0xbe,
               "W8LevelFileProp_footstep_material_be");
-static_assert(sizeof(W8LevelParticleRecord004BD0D0) == 0x225,
-              "W8LevelParticleRecord004BD0D0_must_be_0x225");
+static_assert(sizeof(W8LevelParticleRecord) == 0x225, "W8LevelParticleRecord_must_be_0x225");
 static_assert(sizeof(W8LevelFileParticleSystem) == 0x226,
               "W8LevelFileParticleSystem_must_be_0x226");
 static_assert(offsetof(W8LevelFileParticleSystem, particle_01.location) == 0x41,
@@ -671,29 +670,29 @@ static_assert(sizeof(W8LevelFileBlock) == 0x634, "W8LevelFileBlock_must_be_0x634
 static_assert(sizeof(W8LevelFile) == 0x279d, "W8LevelFile_must_be_0x279d");
 static_assert(offsetof(W8LevelFile, pClippingPlanes) == 0x691, "W8LevelFile_pClippingPlanes");
 
-W8LevelFile* ReadLevelFile004CFDC0(int hFile);
-BOOLEAN WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel);
-BOOLEAN ReadMeshFile004D1110(int hFile, W8LevelFileMesh* pMesh);
-BOOLEAN WriteMeshFile004D1510(int hFile, W8LevelFileMesh* pMesh);
-BOOLEAN ReadLightFile004D1820(int hFile, W8LevelFileLight* pLight);
-BOOLEAN WriteLightFile004D1960(int hFile, W8LevelFileLight* pLight);
-BOOLEAN ReadAnimLightFile004D1A90(int hFile, W8LevelFileAnimLight* pLight);
-BOOLEAN WriteAnimLightFile004D1B50(int hFile, W8LevelFileAnimLight* pLight);
-BOOLEAN ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger);
-BOOLEAN WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger);
-BOOLEAN ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger);
-BOOLEAN WriteSuperTriggerFile004D3000(int hFile, W8LevelFileTrigger* pTrigger);
-BOOLEAN ReadDoorTriggerFile004D3540(int hFile, W8LevelFileDoorRef* pDoor);
-BOOLEAN WriteDoorTriggerFile004D3660(int hFile, W8LevelFileDoorRef* pDoor);
-BOOLEAN ReadPathAIFile004D3770(int hFile, W8LevelFilePathAI* pPathAI);
-BOOLEAN WritePathAIFile004D38E0(int hFile, W8LevelFilePathAI* pPathAI);
-BOOLEAN ReadAnimObjFile004D3A10(int hFile, W8LevelFileAnimObj* pAnimObj);
-BOOLEAN WriteAnimObjFile004D4480(int hFile, W8LevelFileAnimObj* pAnimObj);
-W8LevelFileProp* ReadPropsFile004D4CB0(int hFile, int count);
-BOOLEAN WritePropsFile004D4FC0(int hFile, int count, W8LevelFileProp* pProps);
-BOOLEAN ReadParticleSystemFile004D5240(int hFile, W8LevelFileParticleSystem* pSystem);
-BOOLEAN WriteParticleSystemFile004D5370(int hFile, W8LevelFileParticleSystem* pSystem);
-BOOLEAN ReadLevelFileBlock004D5430(int hFile, W8LevelFileBlock* pBlock);
-BOOLEAN WriteLevelFileBlock004D5580(int hFile, W8LevelFileBlock* pBlock);
+W8LevelFile* ReadLevelFile(int hFile);
+BOOLEAN WriteLevelFile(int hFile, int hFileIn, W8LevelFile* pLevel);
+BOOLEAN ReadMeshFile(int hFile, W8LevelFileMesh* pMesh);
+BOOLEAN WriteMeshFile(int hFile, W8LevelFileMesh* pMesh);
+BOOLEAN ReadLightFile(int hFile, W8LevelFileLight* pLight);
+BOOLEAN WriteLightFile(int hFile, W8LevelFileLight* pLight);
+BOOLEAN ReadAnimLightFile(int hFile, W8LevelFileAnimLight* pLight);
+BOOLEAN WriteAnimLightFile(int hFile, W8LevelFileAnimLight* pLight);
+BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger);
+BOOLEAN WriteTriggerFile(int hFile, W8LevelFileTrigger* pTrigger);
+BOOLEAN ReadSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger);
+BOOLEAN WriteSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger);
+BOOLEAN ReadDoorTriggerFile(int hFile, W8LevelFileDoorRef* pDoor);
+BOOLEAN WriteDoorTriggerFile(int hFile, W8LevelFileDoorRef* pDoor);
+BOOLEAN ReadPathAIFile(int hFile, W8LevelFilePathAI* pPathAI);
+BOOLEAN WritePathAIFile(int hFile, W8LevelFilePathAI* pPathAI);
+BOOLEAN ReadAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj);
+BOOLEAN WriteAnimObjFile(int hFile, W8LevelFileAnimObj* pAnimObj);
+W8LevelFileProp* ReadPropsFile(int hFile, int count);
+BOOLEAN WritePropsFile(int hFile, int count, W8LevelFileProp* pProps);
+BOOLEAN ReadParticleSystemFile(int hFile, W8LevelFileParticleSystem* pSystem);
+BOOLEAN WriteParticleSystemFile(int hFile, W8LevelFileParticleSystem* pSystem);
+BOOLEAN ReadLevelFileBlock(int hFile, W8LevelFileBlock* pBlock);
+BOOLEAN WriteLevelFileBlock(int hFile, W8LevelFileBlock* pBlock);
 
 #endif

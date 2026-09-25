@@ -16,7 +16,7 @@
    - DISPATCH_PENDING_NOTICE hands the staged record to
      BeginNpcDialogueInternal, which clears g_flag_68f0f9, opens dialogue mode
      and appends the notice's quote line;
-   - an emptied queue flips g_message_queue_idle_68c501 back on.
+   - an emptied queue flips g_message_queue_idle back on.
 
    The fake NPC's voice_script_2ea also keeps BeginNpcDialogueInternal on the quote
    branch, and fCampMode/fCombatMode keep the speaker pick and world pause
@@ -106,11 +106,11 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
 
     saved_script_npc = g_npc_scripting.npc;
     saved_screen = g_screen_state_00649f1c;
-    saved_notice = g_pending_notice_68ee60;
+    saved_notice = g_pending_notice;
     saved_flag_68f0f9 = g_flag_68f0f9;
     saved_flag_6109f0 = g_flag_6109f0;
     saved_flag_006840bc = gXStatus.world_update_blocked;
-    saved_queue_idle = g_message_queue_idle_68c501;
+    saved_queue_idle = g_message_queue_idle;
     saved_camp_mode = gXStatus.fCampMode;
     saved_combat_mode = gXStatus.fCombatMode;
     saved_dialogue_mode = gXStatus.fNpcDialogueMode;
@@ -126,15 +126,15 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     gXStatus.fPartyMovementUi = 0;
     g_flag_6109f0 = 0;
     g_flag_68f0f9 = 1;
-    g_message_queue_idle_68c501 = 1;
+    g_message_queue_idle = 1;
 
-    g_pending_notice_68ee60.npc = fake_npc;
-    g_pending_notice_68ee60.item.iItemNo = -1;
-    g_pending_notice_68ee60.line = NOTICE_QUOTE;
-    g_pending_notice_68ee60.flag = 0;
-    g_pending_notice_68ee60.force = 0;
-    g_pending_notice_68ee60.unused_16[0] = 0;
-    g_pending_notice_68ee60.unused_16[1] = 0;
+    g_pending_notice.npc = fake_npc;
+    g_pending_notice.item.iItemNo = -1;
+    g_pending_notice.line = NOTICE_QUOTE;
+    g_pending_notice.flag = 0;
+    g_pending_notice.force = 0;
+    g_pending_notice.unused_16[0] = 0;
+    g_pending_notice.unused_16[1] = 0;
 
     result->state_ready = 1;
 
@@ -173,7 +173,7 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
     ProcessMessageBoxQueue(); /* the notice's requeued quote */
     ProcessMessageBoxQueue(); /* empties the queue and restores the idle flag */
     result->queue_drained =
-        g_npc_scripting.message_lines.GetCount() == 0 && g_message_queue_idle_68c501 != 0;
+        g_npc_scripting.message_lines.GetCount() == 0 && g_message_queue_idle != 0;
 
     /* SetNpcDialogueLayoutMode: with the dialogue cursor down, a zero value
        retires the current layout into previous_dialogue_layout and parks dialogue_layout on NONE,
@@ -197,11 +197,11 @@ bool RunNpcDialogueSemanticTest(NpcDialogueSemanticResult* result)
 
     g_npc_scripting.npc = saved_script_npc;
     g_screen_state_00649f1c = saved_screen;
-    g_pending_notice_68ee60 = saved_notice;
+    g_pending_notice = saved_notice;
     g_flag_68f0f9 = saved_flag_68f0f9;
     g_flag_6109f0 = saved_flag_6109f0;
     gXStatus.world_update_blocked = saved_flag_006840bc;
-    g_message_queue_idle_68c501 = saved_queue_idle;
+    g_message_queue_idle = saved_queue_idle;
     gXStatus.fCampMode = saved_camp_mode;
     gXStatus.fCombatMode = saved_combat_mode;
     gXStatus.fNpcDialogueMode = saved_dialogue_mode;

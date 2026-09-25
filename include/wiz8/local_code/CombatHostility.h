@@ -10,16 +10,16 @@ template <class T> class W8GrowableVector;
 
 /* Local Code\Combat Hostility.cpp: whether two monsters count as hostile to
    each other, and whether a spell can be aimed by monster AI. */
-char MonsterHostility00546F80(W8MonsterInfo* first, W8MonsterInfo* second);
+char MonsterHostility(W8MonsterInfo* first, W8MonsterInfo* second);
 /* 0x00547310: whether a party action aims at enemies (melee kinds, or a spell /
    item-spell whose target type is an enemy band). */
 unsigned char CharacterActionTargetsEnemies(W8Character* character, int action_kind,
                                             int action_detail, W8ActionDetailBlock* detail);
 /* 0x00547440: the monster-side counterpart; action kinds 0 and 3 always count,
-   kind 2 defers to MonsterCanAimSpell005474B0. */
+   kind 2 defers to MonsterCanAimSpell. */
 unsigned char MonsterActionTargetsEnemies(int action_kind, int action_detail,
                                           unsigned int* spell_power_level);
-bool MonsterCanAimSpell005474B0(int spell_id);
+bool MonsterCanAimSpell(int spell_id);
 bool CombatAllowsLiveGroups(void);
 void SetMonsterHostility(W8MonsterInfo* monster, unsigned char hostility); /* 0x005477D0 */
 void RecountCombatMonsters(void);                                          /* 0x00546E70 */
@@ -51,8 +51,8 @@ void SetMonsterGroupHostilityByID(int group_id, unsigned int hostility, char rec
 int TurnUndead(int party_slot, int* out_cost, char check);
 /* 0x00547FE0: the fatigue the slot's pending turn-undead costs, zero when it
    cannot be carried out. */
-int CharacterPrayAction00547FE0(int party_slot);
+int CharacterPrayAction(int party_slot);
 
 /* 0x0061EC14: gppStringList indices naming each monster special-attack kind,
    indexed by W8MonsterRecord::special_attack_kind_0e3; slot zero is unused. */
-extern const int g_monster_special_attack_name_ids_61ec14[12];
+extern const int g_monster_special_attack_name_ids[12];
