@@ -2338,9 +2338,9 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
             }
             share =
                 g_combat_state->effect_slots_85a[index].duration_0d / static_cast<float>(duration);
-            goto LAB_004f9bc2;
+            return share <= g_navigator_vertical_phase_step_005ebcc8;
         }
-        goto LAB_004fa3f4;
+        return false;
     case 0x6:
         if (aim->iType == W8_TARGET_KIND_CHARACTER) {
             if (g_status_685170.buffers.Char[aim->iChar].hp_current ==
@@ -2361,7 +2361,7 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
     case 0x40:
     case 0x49:
     case 0x4b:
-        goto switchD_004f9b2d_caseD_8;
+        goto check_cooldown;
     case 0xd:
         if (gXStatus.fCombatMode != 0) {
             if (aim->iType != W8_TARGET_KIND_CHARACTER) {
@@ -2377,7 +2377,7 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
             }
             return false;
         }
-        goto LAB_004fa3f4;
+        return false;
     case 0x10:
         if (aim->iType == W8_TARGET_KIND_CHARACTER) {
             conditions = g_status_685170.buffers.Char[aim->iChar].uiCondition;
@@ -2405,9 +2405,9 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
             }
             index = GetConditionDisplaySlot(spell_id);
             share = enchantments[index].turns_08 / static_cast<float>(duration);
-            goto LAB_004f9bc2;
+            return share <= g_navigator_vertical_phase_step_005ebcc8;
         }
-        goto LAB_004fa3f4;
+        return false;
     case 0x14:
     case 0x1a:
     case 0x20:
@@ -2424,7 +2424,7 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
             }
             share =
                 g_status_685170.effect_slots_17af[index].duration_0d / static_cast<float>(duration);
-            goto LAB_004f9bc2;
+            return share <= g_navigator_vertical_phase_step_005ebcc8;
         }
         affected = true;
         index = 0;
@@ -2436,11 +2436,11 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
                 return true;
             }
         }
-        // reinterpret-ok: one dword clock slot inside the status block
-        if (ClockIsTicking(gXStatus.spell_cooldown_clocks[index]) == 0) {
-            goto LAB_004fa307;
+        if (ClockIsTicking(gXStatus.spell_cooldown_clocks[index]) != 0) {
+            affected = false;
         }
-        goto LAB_004fa305;
+        gXStatus.spell_cooldown_clocks[index] = SetCountdownClock(180000);
+        return affected;
     case 0x17:
         if (aim->pPCItem->identified != 0) {
             return false;
@@ -2451,7 +2451,7 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
         if (g_combat_state != 0 && gXStatus.hostile_monster_count != 0) {
             return true;
         }
-        goto switchD_004f9b2d_caseD_8;
+        goto check_cooldown;
     case 0x22:
         if (aim->iType == W8_TARGET_KIND_CHARACTER) {
             conditions = g_status_685170.buffers.Char[aim->iChar].uiCondition;
@@ -2523,7 +2523,7 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
             } while (index != 0);
             return affected;
         }
-        goto LAB_004fa3f4;
+        return false;
     case 0x3a:
         if (gXStatus.fCombatMode == 0) {
             affected = true;
@@ -2531,7 +2531,6 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
             table = g_cooldown_gated_spells_00616e34;
             do {
                 if (*table == spell_id) {
-                    // reinterpret-ok: one dword clock slot inside the status block
                     affected = ClockIsTicking(gXStatus.spell_cooldown_clocks[index]) == 0;
                     gXStatus.spell_cooldown_clocks[index] = SetCountdownClock(180000);
                     break;
@@ -2556,7 +2555,7 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
             GetEquipmentBindingDifficulty(aim->iChar) != 0) {
             return affected;
         }
-        goto LAB_004fa3f4;
+        return false;
     case 0x44:
         index = 0;
         while (g_status_685170.buffers.XChar[index].fOccupied == 0 ||
@@ -2645,16 +2644,12 @@ unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, 
         if (conditions[1] == 0) {
             return false;
         }
-    LAB_004fa3f4:
+        /* retail answers false here as well */
         affected = false;
     }
     return affected;
-LAB_004f9bc2:
-    if (share <= g_navigator_vertical_phase_step_005ebcc8) {
-        return true;
-    }
-    return false;
-switchD_004f9b2d_caseD_8:
+
+check_cooldown:
     affected = true;
     index = 0;
     table = g_cooldown_gated_spells_00616e34;
@@ -2665,12 +2660,9 @@ switchD_004f9b2d_caseD_8:
             return true;
         }
     }
-    // reinterpret-ok: one dword clock slot inside the status block
     if (ClockIsTicking(gXStatus.spell_cooldown_clocks[index]) != 0) {
-    LAB_004fa305:
         affected = false;
     }
-LAB_004fa307:
     gXStatus.spell_cooldown_clocks[index] = SetCountdownClock(180000);
     return affected;
 }
