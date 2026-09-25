@@ -1157,11 +1157,12 @@ BOOLEAN WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
 // FUNCTION: WIZ8 0x004D2A30
 BOOLEAN ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
 {
-    W8LevelFileSuperTrigger* pSuper = static_cast<W8LevelFileSuperTrigger*>(malloc(0x867));
+    W8LevelFileSuperTrigger* pSuper =
+        static_cast<W8LevelFileSuperTrigger*>(malloc(sizeof(W8LevelFileSuperTrigger)));
     if (pSuper == 0) {
         ReportBuildStatus00497690(7,
                                   "ReadSuperTrigger: Could not allocate SuperTrigger strucutre.\n");
-        return 0;
+        return FALSE;
     }
     unsigned char fSuccess = FileRead(hFile, &pSuper->version_00, 1, 0);
     fSuccess &= FileRead(hFile, pSuper->name_01, 0x80, 0);
@@ -1182,8 +1183,8 @@ BOOLEAN ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
     fSuccess &= FileRead(hFile, &pSuper->price_296, 4, 0);
     fSuccess &= FileRead(hFile, &pSuper->door_kind_29a, 1, 0);
     fSuccess &= FileRead(hFile, pSuper->animation_29b, 0x80, 0);
-    if (fSuccess == 0) {
-        return 0;
+    if (!fSuccess) {
+        return FALSE;
     }
     ReportBuildStatus00497690(
         5,
@@ -1197,8 +1198,8 @@ BOOLEAN ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
         fSuccess &= FileRead(hFile, &pSuper->wait_4ad, 1, 0);
         fSuccess &= FileRead(hFile, &pSuper->loop_4ae, 1, 0);
         fSuccess &= FileRead(hFile, &pSuper->speed_4af, 0x10, 0);
-        if (fSuccess == 0) {
-            return 0;
+        if (!fSuccess) {
+            return FALSE;
         }
     }
     fSuccess &= FileRead(hFile, &pSuper->ignore_4bf, 1, 0);
@@ -1207,15 +1208,15 @@ BOOLEAN ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
     fSuccess &= FileRead(hFile, pSuper->groups_4c2, 0x100, 0);
     fSuccess &= FileRead(hFile, pSuper->objects_5c2, 0x100, 0);
     fSuccess &= FileRead(hFile, &pSuper->close_door_6c2, 1, 0);
-    if (fSuccess == 0) {
-        return 0;
+    if (!fSuccess) {
+        return FALSE;
     }
     fSuccess &= FileRead(hFile, &pSuper->wait_6c3, 4, 0);
     fSuccess &= FileRead(hFile, &pSuper->field_6c7, 4, 0);
     fSuccess &= FileRead(hFile, pSuper->event_6cb, 0x100, 0);
     fSuccess &= FileRead(hFile, &pSuper->field_7cb, 4, 0);
-    if (fSuccess == 0) {
-        return 0;
+    if (!fSuccess) {
+        return FALSE;
     }
     if (pSuper->version_00 >= 3) {
         fSuccess &= FileRead(hFile, pSuper->particle_system_7cf, 0x80, 0);
@@ -1228,25 +1229,25 @@ BOOLEAN ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
             if (pSuper->pPosition_850 == 0) {
                 ReportBuildStatus00497690(
                     7, "ReadSuperTrigger: Could not allocate Trigger Position structure.\n");
-                return 0;
+                return FALSE;
             }
             fSuccess &=
                 FileRead(hFile, pSuper->pPosition_850, sizeof(W8LevelFileTriggerPosition), 0);
         } else if (pSuper->placement_kind_84f == 2) {
-            pSuper->pPlane_854 = static_cast<W8LevelFilePlane*>(malloc(0x30));
+            pSuper->pPlane_854 = static_cast<W8LevelFilePlane*>(malloc(sizeof(W8LevelFilePlane)));
             if (pSuper->pPlane_854 == 0) {
                 ReportBuildStatus00497690(
                     7, "ReadSuperTrigger: Could not allocate Trigger Plane structure.\n");
-                return 0;
+                return FALSE;
             }
-            fSuccess &= FileRead(hFile, pSuper->pPlane_854, 0x30, 0);
+            fSuccess &= FileRead(hFile, pSuper->pPlane_854, sizeof(W8LevelFilePlane), 0);
             g_level_file_6833fc
                 ->invisible_planes_1669[g_level_file_6833fc->num_invisible_planes_1665] =
                 pSuper->pPlane_854;
             ++g_level_file_6833fc->num_invisible_planes_1665;
         }
-        if (fSuccess == 0) {
-            return 0;
+        if (!fSuccess) {
+            return FALSE;
         }
         fSuccess &= FileRead(hFile, &pSuper->has_hotspot_858, 1, 0);
         if (pSuper->has_hotspot_858 != 0) {
@@ -1255,13 +1256,13 @@ BOOLEAN ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
             if (pSuper->pHotSpot_859 == 0) {
                 ReportBuildStatus00497690(
                     7, "ReadSuperTrigger: Could not allocate Trigger HotSpot structure.\n");
-                return 0;
+                return FALSE;
             }
             fSuccess &= FileRead(hFile, pSuper->pHotSpot_859, sizeof(W8LevelFileTriggerHotSpot), 0);
         }
     }
-    if (fSuccess == 0) {
-        return 0;
+    if (!fSuccess) {
+        return FALSE;
     }
     fSuccess &= FileRead(hFile, &pSuper->field_85d, 1, 0);
     if (pSuper->field_85d != 0) {
@@ -1270,10 +1271,8 @@ BOOLEAN ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
             fSuccess = ReadDoorTriggerFile004D3540(hFile, &pSuper->door_85e);
         } else if (pSuper->door_85e.kind_00 == 2) {
             W8LevelFileLinkedRecord* pRecord = static_cast<W8LevelFileLinkedRecord*>(malloc(0x1bb));
-            unsigned char ok;
-            if (pRecord == 0) {
-                ok = 0;
-            } else {
+            unsigned char ok = 0;
+            if (pRecord != 0) {
                 ok = FileRead(hFile, &pRecord->kind_00, 1, 0);
                 ok &= FileRead(hFile, pRecord->vertices_01, 0x1b0, 0);
                 ok &= FileRead(hFile, &pRecord->linked_face_1b1, 2, 0);
@@ -1283,8 +1282,7 @@ BOOLEAN ReadSuperTriggerFile004D2A30(int hFile, W8LevelFileTrigger* pTrigger)
                 pSuper->pRecord_863 = pRecord;
             }
             fSuccess &= ok;
-            /* Retail writes through pRecord_863 even when the allocation
-               failed and left it unset. */
+            /* Retail stores through pRecord_863 even when the allocation failed. */
             pSuper->pRecord_863->normal_scale_1b3 = pSuper->field_7cb;
             pSuper->pRecord_863->forward_scale_1b7 = pSuper->direction_4a7;
         }
