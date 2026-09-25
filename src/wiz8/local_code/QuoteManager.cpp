@@ -2051,9 +2051,9 @@ int UpdateCharacterEventState(void)
                             record->portrait_frame_dirty = 1;
                             record->voice_time_remaining_ms = 0;
                         } else {
-                            int direction =
-                                ChooseDifferentMonsterDirection((short)record->portrait_frame - 6) +
-                                6;
+                            int direction = ChooseDifferentMonsterDirection(
+                                                static_cast<short>(record->portrait_frame) - 6) +
+                                            6;
                             if (g_event_range_min_0068c57c <= record->pending_event_type_114 &&
                                 record->pending_event_type_114 <= g_event_range_max_0068c554) {
                                 direction = 8;

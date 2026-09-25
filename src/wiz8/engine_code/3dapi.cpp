@@ -538,9 +538,10 @@ void DestroyWorldCollections(W8World* world)
     StopAllAmbientSounds();
     if (world->plsAmbientSounds != 0) {
         while (PLLength(world->plsAmbientSounds) != 0) {
-            void* ambient_sound = PLGet(world->plsAmbientSounds, 0);
+            W8AmbientSound* ambient_sound =
+                static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, 0));
             PLRemoveAt(world->plsAmbientSounds, 0);
-            DestroyAmbientSound((W8AmbientSound*)ambient_sound);
+            DestroyAmbientSound(ambient_sound);
         }
         PLDestroy(world->plsAmbientSounds);
         world->plsAmbientSounds = 0;

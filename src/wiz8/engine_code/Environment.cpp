@@ -229,7 +229,8 @@ void SetEnvironmentTimeEnabled(bool enabled)
         unsigned long now = GetTickCount();
         unsigned long elapsed = now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
         if (elapsed != 0) {
-            AdvanceEnvironmentTime((int)((double)elapsed * g_view_distance_0060a390));
+            AdvanceEnvironmentTime(
+                static_cast<int>(static_cast<double>(elapsed) * g_view_distance_0060a390));
         }
     }
 }
@@ -256,7 +257,8 @@ void UpdateEnvironment(void)
             unsigned long elapsed =
                 now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
             if (elapsed != 0) {
-                AdvanceEnvironmentTime((int)((double)elapsed * g_view_distance_0060a390));
+                AdvanceEnvironmentTime(
+                    static_cast<int>(static_cast<double>(elapsed) * g_view_distance_0060a390));
             }
             unsigned int phase =
                 (((unsigned int)g_status_685170.game_time_ms / 1000U) << 8) / 86400U;
@@ -272,7 +274,8 @@ void UpdateEnvironment(void)
                 unsigned long elapsed =
                     now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
                 if (elapsed != 0) {
-                    AdvanceEnvironmentTime((int)((double)elapsed * g_view_distance_0060a390));
+                    AdvanceEnvironmentTime(
+                        static_cast<int>(static_cast<double>(elapsed) * g_view_distance_0060a390));
                 }
             }
             unsigned int phase =
@@ -293,7 +296,8 @@ void UpdateEnvironment(void)
         unsigned long now = GetTickCount();
         unsigned long elapsed = now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
         if (elapsed != 0) {
-            AdvanceEnvironmentTime((int)((double)elapsed * g_view_distance_0060a390));
+            AdvanceEnvironmentTime(
+                static_cast<int>(static_cast<double>(elapsed) * g_view_distance_0060a390));
         }
     }
 }
@@ -547,7 +551,8 @@ void EnableSky(void)
         unsigned long now = GetTickCount();
         unsigned long elapsed = now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
         if (elapsed != 0) {
-            AdvanceEnvironmentTime((int)((double)elapsed * g_view_distance_0060a390));
+            AdvanceEnvironmentTime(
+                static_cast<int>(static_cast<double>(elapsed) * g_view_distance_0060a390));
         }
     }
     unsigned int phase = (((unsigned int)g_status_685170.game_time_ms / 1000U) << 8) / 86400U;
@@ -570,7 +575,8 @@ void RefreshEnvironment(void)
         unsigned long now = GetTickCount();
         unsigned long elapsed = now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
         if (elapsed != 0) {
-            AdvanceEnvironmentTime((int)((double)elapsed * g_view_distance_0060a390));
+            AdvanceEnvironmentTime(
+                static_cast<int>(static_cast<double>(elapsed) * g_view_distance_0060a390));
         }
     }
     unsigned int phase = (((unsigned int)g_status_685170.game_time_ms / 1000U) << 8) / 86400U;
@@ -647,7 +653,7 @@ void BeginWorldLightingFade(float duration)
             colour.green = 0.0f;
             colour.blue = 0.0f;
             // reinterpret-ok: EnvironmentColour RGB is the same three floats as srVector3T<float>
-            SaturateColor(reinterpret_cast<srVector3T<float>*>(&colour));
+            SaturateColor004299B0(reinterpret_cast<srVector3T<float>*>(&colour));
             ApplyEnvironmentColour00483BA0(world, intensity, &colour);
         } else {
             ApplyEnvironmentColour00483BA0(world, intensity, &world->environment_colour_02c);
@@ -668,7 +674,7 @@ void BeginWorldLightingFade(float duration)
                 colour.green = 0.0f;
                 colour.blue = 0.0f;
                 // reinterpret-ok: EnvironmentColour RGB is the same three floats as srVector3T<float>
-                SaturateColor(reinterpret_cast<srVector3T<float>*>(&colour));
+                SaturateColor004299B0(reinterpret_cast<srVector3T<float>*>(&colour));
                 ApplyEnvironmentColour00483BA0(world, intensity, &colour);
             } else {
                 ApplyEnvironmentColour00483BA0(world, intensity, &world->environment_colour_02c);
@@ -752,7 +758,7 @@ void UpdateEnvironmentLighting(void)
         colour.green = 0.0f;
         colour.blue = 0.0f;
         // reinterpret-ok: EnvironmentColour RGB is the same three floats as srVector3T<float>
-        SaturateColor(reinterpret_cast<srVector3T<float>*>(&colour));
+        SaturateColor004299B0(reinterpret_cast<srVector3T<float>*>(&colour));
         ApplyEnvironmentColour00483BA0(world, intensity, &colour);
     } else {
         ApplyEnvironmentColour00483BA0(world, intensity, &world->environment_colour_02c);
@@ -773,7 +779,7 @@ void UpdateEnvironmentLighting(void)
             colour.green = 0.0f;
             colour.blue = 0.0f;
             // reinterpret-ok: EnvironmentColour RGB is the same three floats as srVector3T<float>
-            SaturateColor(reinterpret_cast<srVector3T<float>*>(&colour));
+            SaturateColor004299B0(reinterpret_cast<srVector3T<float>*>(&colour));
             ApplyEnvironmentColour00483BA0(world, secondary, &colour);
         } else {
             ApplyEnvironmentColour00483BA0(world, secondary, &world->environment_colour_02c);
@@ -959,7 +965,7 @@ const double g_double_005ec988 = 2.3148148148148148e-08;
 const double g_double_005ec990 = 43200000.0;
 
 /* Scale one colour triple by a double factor and clamp every component to the
-   unit range in place. A product helper like SaturateColor: no matching
+   unit range in place. A product helper like SaturateColor004299B0: no matching
    srVector3T method survives in the SurRender headers. */
 // FUNCTION: WIZ8 0x00483d70
 srVector3T<float>* __fastcall ScaleColourAndSaturate(srVector3T<float>* colour, double scale)
@@ -1010,7 +1016,7 @@ void ApplyEnvironmentColour00483BA0(W8World* world, float intensity,
         srVector3T<float> scaled(colour->red, colour->green, colour->blue);
 
         scaled *= (double)intensity;
-        SaturateColor(&scaled);
+        SaturateColor004299B0(&scaled);
         light->ambient_198 = scaled;
     }
     {

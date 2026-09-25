@@ -361,7 +361,7 @@ unsigned char ReadGrCycleData(W8ReadLevelInfo* info, W8GrCycle** cycle, int cycl
     if (has_path != 0 &&
         // reinterpret-ok: retail passes the tagged GrObject AI slot at +0x0c directly;
         // this loader writes a W8PathAI pointer or null into that slot
-        LoadPathAI(reinterpret_cast<W8PathAI**>(&(*cycle)->m_pAI), info->hFile) == 0) {
+        LoadPathAI004A92A0(reinterpret_cast<W8PathAI**>(&(*cycle)->m_pAI), info->hFile) == 0) {
         srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x1e6, 0);
     }
 
@@ -829,8 +829,8 @@ void W8GrCycle::AdvanceAnimationFrame(int, int)
         unsigned int index;
 
         for (index = 0; index < count; ++index) {
-            W8PathAI* path =
-                AnimObjListEntry(animation, representation->m_bLOD, (signed char)index);
+            W8PathAI* path = AnimObjListEntry(animation, representation->m_bLOD,
+                                              static_cast<signed char>(index));
             if (path != 0) {
                 PathAISetValue(path, static_cast<float>(representation->subcycle_064));
             }
@@ -881,11 +881,11 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
     }
     animation = GetCurrentAnimation();
     if (AnimationIsRunning(animation) == 1) {
-        int count = (int)AnimObjListCount(animation, pRep->m_bLOD);
+        int count = static_cast<int>(AnimObjListCount(animation, pRep->m_bLOD));
 
         for (index = 0; index < count; ++index) {
-            stModelInstance* psrMesh =
-                (stModelInstance*)AnimObjDispatchList(animation, pRep->m_bLOD, (signed char)index);
+            stModelInstance* psrMesh = static_cast<stModelInstance*>(
+                AnimObjDispatchList(animation, pRep->m_bLOD, static_cast<signed char>(index)));
             W8PathAI* path;
             srMatrix3T<float> current;
 
@@ -904,7 +904,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             }
             psrMesh->clearFlag(srNode::FLAG_DISABLE);
             psrMesh->setParent(pWorld->dynamic_scene, 0);
-            path = AnimObjListEntry(animation, pRep->m_bLOD, (signed char)index);
+            path = AnimObjListEntry(animation, pRep->m_bLOD, static_cast<signed char>(index));
             if (path != 0) {
                 PathAIApply004AA520(path, psrMesh);
             }
@@ -919,8 +919,8 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             current_model_instance_1a8 = psrMesh;
         }
     } else {
-        stModelInstance* psrMesh = (stModelInstance*)SelectCycleFrameLod(
-            pRep->current_cycle, pRep->subcycle_064, pRep->m_bLOD);
+        stModelInstance* psrMesh = static_cast<stModelInstance*>(
+            SelectCycleFrameLod(pRep->current_cycle, pRep->subcycle_064, pRep->m_bLOD));
         srNode* child;
 
         if (psrMesh == 0) {
@@ -996,7 +996,7 @@ void W8GrCycle::DetachRepresentation(W8World* world)
     W8AnimObj* animation = GetCurrentAnimation();
 
     if (AnimationIsRunning(animation) == 1) {
-        int count = (int)AnimObjListCount(animation, representation->m_bLOD);
+        int count = static_cast<int>(AnimObjListCount(animation, representation->m_bLOD));
         for (int index = 0; index < count; ++index) {
             srModelInstance* mesh = AnimObjDispatchList(animation, representation->m_bLOD,
                                                         static_cast<signed char>(index));

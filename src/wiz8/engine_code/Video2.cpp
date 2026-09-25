@@ -1010,7 +1010,7 @@ void UpdateRenderElapsedTime(void);
 /* Saturate the three components of a renderer colour in place and return it.
    The reviewed body performs these three scalar saturations in order. */
 // FUNCTION: WIZ8 0x004299b0
-srVector3T<float>* __fastcall SaturateColor(srVector3T<float>* color)
+srVector3T<float>* __fastcall SaturateColor004299B0(srVector3T<float>* color)
 {
     if (color->x <= 0.0f)
         color->x = 0.0f;
@@ -1067,7 +1067,7 @@ void RenderScene(srScene* scene, srCamera* camera, const int* viewport, char pre
             fog.SetZero();
         } else {
             g_world->static_scene->getFogColor(fog);
-            SaturateColor(&fog);
+            SaturateColor004299B0(&fog);
         }
         scene->setFogColor(fog);
     }
@@ -1132,7 +1132,7 @@ void RenderFrame(void)
     srScene* retire_overlay;
 
     clear_color.SetZero();
-    SaturateColor(&clear_color);
+    SaturateColor004299B0(&clear_color);
     if (!g_video_active_659710) {
         return;
     }
@@ -2138,7 +2138,7 @@ void InvalidateRegion(int left, int top, int right, int bottom, unsigned int fla
                 if ((int)clipped_left < (int)clipped_right) {
                     x = clipped_left;
                     do {
-                        InvalidateDirtyTile((int)x / 8 + (top / 8) * 0x50, cell_flags);
+                        InvalidateDirtyTile(static_cast<int>(x) / 8 + (top / 8) * 0x50, cell_flags);
                         x = x + 8;
                     } while ((int)x < (int)clipped_right);
                 }

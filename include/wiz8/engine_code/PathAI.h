@@ -81,7 +81,7 @@ void PathAIPosition(W8PathAI* path, srVector3T<float>* value);
 void PathAISetLooping(W8PathAI* path, unsigned char value);
 void PathAISetScale(W8PathAI* path, float value);
 void PathAISetDiscreteMode(W8PathAI* path, unsigned char value);
-bool LoadPathAI(W8PathAI** path, int handle);
+bool LoadPathAI004A92A0(W8PathAI** path, int handle);
 unsigned char PathAIAddPoint(W8PathAI* path, const srVector3T<float>* point);
 
 /* Build a zeroed 0x40-byte path and its position-pointer vector. Every caller

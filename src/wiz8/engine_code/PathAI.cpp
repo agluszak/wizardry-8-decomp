@@ -42,7 +42,7 @@ unsigned char PathAIUpdate(W8AIRecord* record, signed char direction)
 }
 
 // FUNCTION: WIZ8 0x004a92a0
-bool LoadPathAI(W8PathAI** output, int handle)
+bool LoadPathAI004A92A0(W8PathAI** output, int handle)
 {
     unsigned char version;
     unsigned char success;

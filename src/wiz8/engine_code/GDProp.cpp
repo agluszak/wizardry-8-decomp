@@ -208,7 +208,8 @@ void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigne
                 pathing->SetConditionalPathFrame(m_path_handle_04, -1);
             }
         } else {
-            pathing->SetConditionalPathFrame(m_path_handle_04, (short)m_prop_number_02);
+            pathing->SetConditionalPathFrame(m_path_handle_04,
+                                             static_cast<short>(m_prop_number_02));
             if (m_waypoint_count_0a != 0) {
                 pathing->CheckConditionalWayPtStatus004601B0(m_waypoint_count_0a, m_waypoints_10);
             }

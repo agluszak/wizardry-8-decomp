@@ -76,7 +76,7 @@ BOOLEAN WriteVector4Array(int file, const srVector4T<float>* values, int count);
 BOOLEAN WriteVector3Array(int file, const srVector3T<float>* values, int count);
 BOOLEAN WriteVector2Array(int file, const srVector2T<float>* values, int count);
 bool ReadVector4Array(int file, srVector4T<float>* values, int count);
-bool ReadVector3Array(int file, srVector3T<float>* values, int count);
+bool ReadVector3Array004374E0(int file, srVector3T<float>* values, int count);
 bool ReadVector2Array(int file, srVector2T<float>* values, int count);
 /* Distance from `point` to the `from`-`to` segment, shared by the trace
    resolver and the GameData surface walk. When `clamp_point` is set the
@@ -102,14 +102,14 @@ char SphereNearBounds(const srVector3T<float>* point, float radius,
    cast at the call-site boundary. */
 inline bool ReadVectorArray(int file, srVector3i* values, int count)
 {
-    return ReadVector3Array(file,
-                            reinterpret_cast<srVector3T<float>*>(values), /* reinterpret-ok: the
+    return ReadVector3Array004374E0(
+        file, reinterpret_cast<srVector3T<float>*>(values), /* reinterpret-ok: the
             float reader's raw 12-byte record is the index-triple record */
-                            count);
+        count);
 }
 inline bool ReadVectorArray(int file, srVector3T<float>* values, int count)
 {
-    return ReadVector3Array(file, values, count);
+    return ReadVector3Array004374E0(file, values, count);
 }
 inline bool ReadVectorArray(int file, srVector4T<float>* values, int count)
 {

@@ -308,7 +308,7 @@ unsigned char ReadWorldLights(W8World* world, int hFile)
                 FileRead(hFile, &definition->subcycle_max_40, 4, 0);
 
                 if ((definition->flags_08 & 0x10) != 0) {
-                    path_success = LoadPathAI(&path, hFile);
+                    path_success = LoadPathAI004A92A0(&path, hFile);
                     if (!path_success) {
                         srAssertFail("fSuccess", READ_LEVEL_CPP, 532, 0);
                     }
@@ -730,7 +730,7 @@ unsigned char ReadMonsterPaths(W8ReadLevelInfo* pInfo, W8World* pWorld)
         }
         monster->SelectLOD(&camera_position);
 
-        if (LoadPathAI(&path, pInfo->hFile)) {
+        if (LoadPathAI004A92A0(&path, pInfo->hFile)) {
             monster->SetPathAI(path);
         }
         /* The image also leaves the option-controlled path calls outside the
@@ -802,7 +802,7 @@ unsigned char ReadWorldCameras(W8ReadLevelInfo* pInfo, W8World* pWorld)
         }
 
         entry->path = 0;
-        success = success && LoadPathAI(&entry->path, pInfo->hFile);
+        success = success && LoadPathAI004A92A0(&entry->path, pInfo->hFile);
         PathAIEnableTimedMode(entry->path);
         PLAdoptAppend(pWorld->plsCameras, entry);
         entry->path->entry_index_10 = index;

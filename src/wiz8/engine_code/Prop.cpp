@@ -1617,7 +1617,8 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
             char* named;
 
             if (AnimationIsRunning(this->animation) == 0) {
-                instance = AnimObjDispatch(this->animation, 2, (unsigned char)entry_index);
+                instance =
+                    AnimObjDispatch(this->animation, 2, static_cast<unsigned char>(entry_index));
             } else {
                 instance = AnimObjDispatchList(this->animation, 2, 0);
             }
@@ -1646,7 +1647,7 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
         }
         list_count = AnimObjListCount(animation, 2);
         for (entry_index = 0; entry_index < list_count; ++entry_index) {
-            W8PathAI* path = AnimObjListEntry(animation, 2, (signed char)entry_index);
+            W8PathAI* path = AnimObjListEntry(animation, 2, static_cast<signed char>(entry_index));
             if (path != 0) {
                 PathAISetLooping(path, 1);
                 PathAISetDiscreteMode(path, 1);
@@ -1754,7 +1755,8 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
                 if (AnimationIsRunning(this->animation) == 1) {
                     path_count = AnimObjListCount(this->animation, 2);
                     for (path_i = 0; path_i < path_count; ++path_i) {
-                        W8PathAI* path = AnimObjListEntry(this->animation, 2, (signed char)path_i);
+                        W8PathAI* path =
+                            AnimObjListEntry(this->animation, 2, static_cast<signed char>(path_i));
                         path->step_by_node_39 = 1;
                     }
                 }
@@ -1816,7 +1818,7 @@ int W8Prop::GetAnimationState0044EBE0() const
 {
     W8AnimObj* animation = Rep()->animation;
     if (animation != 0) {
-        return (int)AnimObjValue(animation, 2);
+        return static_cast<int>(AnimObjValue(animation, 2));
     }
     return -1;
 }

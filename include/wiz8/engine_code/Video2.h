@@ -294,7 +294,7 @@ IDirectDrawSurface2* BeginVideoPresentation(void);
 unsigned char FinishVideoPresentation(void);
 void PublishLightDirection(const EnvironmentColour* direction);
 void GetWorldColour(EnvironmentColour* colour); /* 0x00427290 */
-srVector3T<float>* __fastcall SaturateColor(srVector3T<float>* color);
+srVector3T<float>* __fastcall SaturateColor004299B0(srVector3T<float>* color);
 void ReleaseObject(srClass* object);
 void Initialize16BitPixelFormatMasks(void);
 unsigned char CreateWizardryWindow(void);

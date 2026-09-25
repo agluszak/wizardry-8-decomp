@@ -5135,7 +5135,7 @@ bool ReadVector4Array(int file, srVector4T<float>* values, int count)
 }
 
 // FUNCTION: WIZ8 0x004374E0
-bool ReadVector3Array(int file, srVector3T<float>* values, int count)
+bool ReadVector3Array004374E0(int file, srVector3T<float>* values, int count)
 {
     return FileRead(file, values, count * sizeof(srVector3T<float>), 0) & 1;
 }

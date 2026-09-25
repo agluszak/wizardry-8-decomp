@@ -3450,7 +3450,7 @@ signed char W8Monster::GetNumSubCycles()
         slot += subcycle;
     }
 
-    return (signed char)AnimObjValue(*slot, representation->m_bLOD);
+    return static_cast<signed char>(AnimObjValue(*slot, representation->m_bLOD));
 }
 
 /* W8Monster stores its animation object immediately after the shared
