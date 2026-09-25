@@ -1355,12 +1355,26 @@ bool CanItemLeaveItsSlot(const W8ItemInstance* item)
     return false;
 }
 
+/* Combine the held item with another one. Two identified items that some
+   database entry names as its components (in either order) are consumed and
+   that entry is created in their place, provided the character has the skill
+   it asks for; stacks give up as many units as the smaller one holds. Failing
+   that, two items of one kind are stacked together. Returns whether a recipe
+   merge (or, for stacking, a merge of any units) happened. */
 // FUNCTION: WIZ8 0x0051F2F0
 char MergeItems(W8Character* character, W8ItemInstance* destination)
 {
     W8ItemInstance* held = &g_status.item_in_hand_235b;
-    const W8ItemDatabaseRecord* recipe = 0;
-    unsigned int result_item_id = 0;
+    W8ItemInstance shifted[500];
+    W8ItemInstance created;
+    const W8ItemDatabaseRecord* recipe;
+    W8ItemInstance* result_destination;
+    unsigned int result_item_id;
+    unsigned int index;
+    unsigned char quantity;
+    char found = 0;
+    char merged = 0;
+    unsigned char partially_merged = 0;
 
     if (held->iItemNo == -1) {
         srAssertFail("pMergePCItem->iItemNo != -1", PC_ITEM_CPP, 2922, 0);
@@ -1368,92 +1382,153 @@ char MergeItems(W8Character* character, W8ItemInstance* destination)
     if (destination->iItemNo == -1) {
         srAssertFail("pIntoPCItem->iItemNo != -1", PC_ITEM_CPP, 2923, 0);
     }
-    if (held->identified == 0 || destination->identified == 0) {
+    if (destination->identified == 0 || held->identified == 0) {
         ShowCampNoticeLine(gppStringList[0x58c / 4], 0, 1, 0);
         return 0;
     }
 
-    for (unsigned int item_id = 0; item_id < gXStatus.uiItemsInDatabase; ++item_id) {
-        const W8ItemDatabaseRecord* candidate = &g_item_records[item_id];
-        if ((candidate->merge_kind_0b9 == held->iItemNo &&
-             candidate->merge_kind_0bd == destination->iItemNo) ||
-            (candidate->merge_kind_0bd == held->iItemNo &&
-             candidate->merge_kind_0b9 == destination->iItemNo)) {
-            recipe = candidate;
-            result_item_id = item_id;
+    for (result_item_id = 0; result_item_id < gXStatus.uiItemsInDatabase; ++result_item_id) {
+        recipe = &g_item_records[result_item_id];
+        if ((recipe->merge_component_a == held->iItemNo &&
+             recipe->merge_component_b == destination->iItemNo) ||
+            (recipe->merge_component_b == held->iItemNo &&
+             recipe->merge_component_a == destination->iItemNo)) {
+            found = 1;
+            if (recipe->merge_skill == -1) {
+                merged = 1;
+            } else {
+                merged = character->skills[recipe->merge_skill].level >= recipe->merge_skill_level;
+                if (merged) {
+                    QueueCharacterEvent(character, g_learn_sound, 0, g_effect_argument_005ed8c8,
+                                        g_effect_argument_005ed914);
+                    PracticeCharacterSkill(character, recipe->merge_skill,
+                                           recipe->merge_skill_level / 10, 0);
+                }
+            }
+            if (merged) {
+                if (g_item_records[held->iItemNo].quantity_kind == 1 &&
+                    g_item_records[destination->iItemNo].quantity_kind == 1) {
+                    quantity = held->stack_count < destination->stack_count
+                                   ? held->stack_count
+                                   : destination->stack_count;
+                    result_destination =
+                        destination->stack_count > held->stack_count ? held : destination;
+                } else {
+                    quantity = 1;
+                    result_destination =
+                        g_item_records[held->iItemNo].quantity_kind == 1 ? destination : held;
+                }
+
+                if (g_item_records[held->iItemNo].quantity_kind == 1) {
+                    for (index = 0; index < quantity; ++index) {
+                        RemoveCharacterItem(character, held, 1);
+                    }
+                } else {
+                    /* EmptyItemRecord(held, character, 1), expanded in place. */
+                    gXStatus.held_item_source = -1;
+                    gXStatus.held_item_origin = 0xff;
+                    gXStatus.held_item_slot = 0xffff;
+                    ClearHeldItemDisplay();
+                }
+
+                if (g_item_records[destination->iItemNo].quantity_kind == 1) {
+                    for (index = 0; index < quantity; ++index) {
+                        RemoveCharacterItem(character, destination, 1);
+                    }
+                } else {
+                    /* EmptyItemRecord(destination, character, 1), expanded in place. */
+                    if (destination == held) {
+                        gXStatus.held_item_source = -1;
+                        gXStatus.held_item_origin = 0xff;
+                        gXStatus.held_item_slot = 0xffff;
+                        ClearHeldItemDisplay();
+                    } else {
+                        memset(destination, 0, sizeof(*destination));
+                        destination->iItemNo = -1;
+                        RefreshAfterItemRecordChange(destination, character, 1);
+                    }
+                    if (destination >= g_status.party_item_pool_0021 &&
+                        destination <= &g_status.party_item_pool_0021[499]) {
+                        for (index = 0; index < g_status.party_item_count_1791; ++index) {
+                            if (destination == &g_status.party_item_pool_0021[index]) {
+                                /* RemovePartyPoolEntry(index), expanded in place. */
+                                if (g_status.party_item_pool_0021[index].iItemNo == -1 &&
+                                    index < g_status.party_item_count_1791) {
+                                    memcpy(&shifted[index],
+                                           &g_status.party_item_pool_0021[index + 1],
+                                           (g_status.party_item_count_1791 - index - 1) *
+                                               sizeof(W8ItemInstance));
+                                    memcpy(&g_status.party_item_pool_0021[index], &shifted[index],
+                                           (g_status.party_item_count_1791 - index - 1) *
+                                               sizeof(W8ItemInstance));
+                                    memset(
+                                        &g_status
+                                             .party_item_pool_0021[g_status.party_item_count_1791 -
+                                                                   1],
+                                        0, sizeof(W8ItemInstance));
+                                    g_status
+                                        .party_item_pool_0021[g_status.party_item_count_1791 - 1]
+                                        .iItemNo = -1;
+                                    --g_status.party_item_count_1791;
+                                    RedistributePartyEncumbrance();
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                ReplaceOrCreateItem(&created, result_item_id, 0, 0, 0);
+                if (recipe->quantity_kind == 1) {
+                    created.stack_count = quantity;
+                }
+
+                if (result_destination >= g_status.party_item_pool_0021 &&
+                    result_destination <= &g_status.party_item_pool_0021[499]) {
+                    for (index = 0; index < g_status.party_item_count_1791; ++index) {
+                        if (result_destination == &g_status.party_item_pool_0021[index] &&
+                            g_status.party_item_count_1791 < 500) {
+                            /* InsertItemIntoPartyPool(&created, index), expanded in place. */
+                            if (g_status.party_item_count_1791 != index) {
+                                memcpy(&shifted[index], &g_status.party_item_pool_0021[index],
+                                       (g_status.party_item_count_1791 - index) *
+                                           sizeof(W8ItemInstance));
+                                memcpy(&g_status.party_item_pool_0021[index + 1], &shifted[index],
+                                       (g_status.party_item_count_1791 - index) *
+                                           sizeof(W8ItemInstance));
+                            }
+                            memset(&g_status.party_item_pool_0021[index], 0,
+                                   sizeof(W8ItemInstance));
+                            g_status.party_item_pool_0021[index].iItemNo = -1;
+                            CopyItemInstance(&g_status.party_item_pool_0021[index], &created, 0, 1);
+                            ++g_status.party_item_count_1791;
+                            RedistributePartyEncumbrance();
+                        }
+                    }
+                } else {
+                    CopyItemInstance(result_destination, &created, character, 1);
+                }
+            }
             break;
         }
     }
 
-    if (recipe != 0) {
-        if (recipe->merge_skill_0c9 != -1) {
-            const W8CharacterSkill& skill = character->skills[recipe->merge_skill_0c9];
-            if (skill.level < recipe->merge_skill_level_0ca) {
-                wchar_t* message =
-                    FormatWideString(gppStringList[0x588 / 4], character->name, 0, 1, 0);
-                ShowCampNoticeLine(message, 0, 0, 0);
-                return 0;
+    if (!merged) {
+        if (held->iItemNo == destination->iItemNo) {
+            bool stacked = MergeItemStacks(destination, held, &partially_merged);
+            if (partially_merged) {
+                return 1;
             }
-            QueueCharacterEvent(character, g_learn_sound, 0, g_effect_argument_005ed8c8,
-                                g_effect_argument_005ed914);
-            PracticeCharacterSkill(character, recipe->merge_skill_0c9,
-                                   recipe->merge_skill_level_0ca / 10, 0);
+            return stacked;
         }
-
-        const bool held_is_stack = g_item_records[held->iItemNo].quantity_kind == 1;
-        const bool destination_is_stack = g_item_records[destination->iItemNo].quantity_kind == 1;
-        const unsigned char quantity =
-            held_is_stack && destination_is_stack
-                ? (held->stack_count < destination->stack_count ? held->stack_count
-                                                                : destination->stack_count)
-                : 1;
-        W8ItemInstance* result_destination =
-            held_is_stack && destination_is_stack && held->stack_count <= destination->stack_count
-                ? held
-                : destination;
-
-        if (held_is_stack) {
-            held->stack_count -= quantity;
-            if (held->stack_count == 0) {
-                gXStatus.held_item_source = -1;
-                gXStatus.held_item_origin = 0xff;
-                gXStatus.held_item_slot = 0xffff;
-                ClearHeldItemDisplay();
-            }
+        if (!found) {
+            ShowCampNoticeLine(gppStringList[0x584 / 4], 0, 1, 0);
         } else {
-            gXStatus.held_item_source = -1;
-            gXStatus.held_item_origin = 0xff;
-            gXStatus.held_item_slot = 0xffff;
-            ClearHeldItemDisplay();
+            ShowCampNoticeLine(FormatWideString(gppStringList[0x588 / 4], character->name), 0, 1,
+                               0);
         }
-
-        if (destination_is_stack) {
-            destination->stack_count -= quantity;
-            if (destination->stack_count == 0) {
-                EmptyItemRecord(destination, character, 1);
-            }
-        } else {
-            EmptyItemRecord(destination, character, 1);
-        }
-
-        W8ItemInstance created;
-        ReplaceOrCreateItem(&created, result_item_id, 0, 0, 0);
-        if (recipe->quantity_kind == 1) {
-            created.stack_count = quantity;
-        }
-        CopyItemInstance(result_destination, &created, character, 1);
-        RedistributePartyEncumbrance();
-        return 1;
     }
-
-    if (held->iItemNo == destination->iItemNo) {
-        unsigned char partially_merged = 0;
-        bool merged = MergeItemStacks(destination, held, &partially_merged);
-        return partially_merged != 0 ? 1 : merged;
-    }
-
-    ShowCampNoticeLine(gppStringList[0x584 / 4], 0, 0, 0);
-    return 0;
+    return merged;
 }
 
 /* Put an item somewhere it will fit. The flag decides which of the character
@@ -3529,19 +3604,19 @@ bool CharacterHasServiceItem(W8Character* character)
 char InsertItemIntoPartyPool(W8ItemInstance* item, int index)
 {
     W8ItemInstance shifted[500];
-    unsigned int count = g_status.party_item_count_1791;
-    if (count >= 500)
-        return 0;
 
-    if (count != static_cast<unsigned int>(index)) {
-        unsigned int bytes = (count - index) * sizeof(W8ItemInstance);
-        memcpy(&shifted[index], &g_status.party_item_pool_0021[index], bytes);
-        memcpy(&g_status.party_item_pool_0021[index + 1], &shifted[index], bytes);
+    if (g_status.party_item_count_1791 >= 500) {
+        return 0;
     }
-    W8ItemInstance* destination = &g_status.party_item_pool_0021[index];
-    memset(destination, 0, sizeof(*destination));
-    destination->iItemNo = -1;
-    CopyItemInstance(destination, item, 0, 1);
+    if (g_status.party_item_count_1791 != static_cast<unsigned int>(index)) {
+        memcpy(&shifted[index], &g_status.party_item_pool_0021[index],
+               (g_status.party_item_count_1791 - index) * sizeof(W8ItemInstance));
+        memcpy(&g_status.party_item_pool_0021[index + 1], &shifted[index],
+               (g_status.party_item_count_1791 - index) * sizeof(W8ItemInstance));
+    }
+    memset(&g_status.party_item_pool_0021[index], 0, sizeof(W8ItemInstance));
+    g_status.party_item_pool_0021[index].iItemNo = -1;
+    CopyItemInstance(&g_status.party_item_pool_0021[index], item, 0, 1);
     ++g_status.party_item_count_1791;
     RedistributePartyEncumbrance();
     return 1;
