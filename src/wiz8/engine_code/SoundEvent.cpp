@@ -60,7 +60,7 @@ W8SoundEvent* CreateSoundEvent(int kind, int cycle, int frame, int subcycle, con
    every mask bit, so it is cleared before each scan instead of reallocated;
    the static initializer constructs it with capacity five. */
 // GLOBAL: WIZ8 0x00683408
-W8GrowableVector<W8SoundEvent*> g_sound_event_candidates_00683408(5);
+W8GrowableVector<W8SoundEvent*> g_sound_event_candidates(5);
 
 /* The static initializer above emits this specialization's capacity ctor.
    0x005ED098 is its construction-phase table; the final table and both
@@ -69,13 +69,13 @@ W8GrowableVector<W8SoundEvent*> g_sound_event_candidates_00683408(5);
 // W8GrowableVector<W8SoundEvent*>::W8GrowableVector
 
 // GLOBAL: WIZ8 0x00683418
-int g_selected_sound_event_00683418;
+int g_selected_sound_event;
 
 // GLOBAL: WIZ8 0x0061095c
-int g_last_sound_event_0061095c = 0x1869f;
+int g_last_sound_event = 0x1869f;
 
 // GLOBAL: WIZ8 0x00683420
-static int g_previous_footstep_variant_00683420;
+static int g_previous_footstep_variant;
 
 /* For every bit of the caller's mask, append the events of that kind whose
    own classification matches, then play one of them at random without
@@ -99,7 +99,7 @@ unsigned char UpdateSoundEvents(W8GrowableVector<W8SoundEvent*>* events,
             int candidate_count = 0;
             int index;
 
-            g_sound_event_candidates_00683408.Clear();
+            g_sound_event_candidates.Clear();
             for (index = 0; index < count; ++index) {
                 W8SoundEvent* event = *events->GetAt(index);
                 unsigned int kind = event->kind;
@@ -117,23 +117,22 @@ unsigned char UpdateSoundEvents(W8GrowableVector<W8SoundEvent*>* events,
                         continue;
                     }
                 }
-                g_sound_event_candidates_00683408.Add(event);
-                candidate_count = g_sound_event_candidates_00683408.GetCount();
+                g_sound_event_candidates.Add(event);
+                candidate_count = g_sound_event_candidates.GetCount();
             }
             if (candidate_count != 0) {
                 W8SoundEvent* selected;
 
                 do {
-                    g_selected_sound_event_00683418 = (int)Random(candidate_count);
-                    if (g_sound_event_candidates_00683408.GetCount() < 2) {
+                    g_selected_sound_event = static_cast<int>(Random(candidate_count));
+                    if (g_sound_event_candidates.GetCount() < 2) {
                         break;
                     }
-                    candidate_count = g_sound_event_candidates_00683408.GetCount();
-                } while (g_selected_sound_event_00683418 == g_last_sound_event_0061095c);
-                selected =
-                    *g_sound_event_candidates_00683408.GetAt(g_selected_sound_event_00683418);
+                    candidate_count = g_sound_event_candidates.GetCount();
+                } while (g_selected_sound_event == g_last_sound_event);
+                selected = *g_sound_event_candidates.GetAt(g_selected_sound_event);
                 if (selected->Play(event_mask, position, cycle, frame, subcycle)) {
-                    g_last_sound_event_0061095c = g_selected_sound_event_00683418;
+                    g_last_sound_event = g_selected_sound_event;
                 }
             }
         }
@@ -184,7 +183,7 @@ unsigned char W8SoundEvent::Play(unsigned int mask, const srVector3T<float>* pos
         srMatrix3T<float> rotation;
 
         rotation.SetIdentity();
-        if ((double)angle != g_zero_005ebb40) {
+        if (angle != g_zero_005ebb40) {
             rotation.RotateAboutY(sin(angle), cos(angle));
         }
 
@@ -227,11 +226,11 @@ unsigned char W8SoundEvent::Play(unsigned int mask, const srVector3T<float>* pos
                 do {
                     variant = (int)Random(4) + 1;
                     ++attempts;
-                    if (variant != g_previous_footstep_variant_00683420) {
+                    if (variant != g_previous_footstep_variant) {
                         break;
                     }
                 } while (attempts < 100);
-                g_previous_footstep_variant_00683420 = variant;
+                g_previous_footstep_variant = variant;
 
                 char path[260];
                 char surface;
@@ -239,8 +238,8 @@ unsigned char W8SoundEvent::Play(unsigned int mask, const srVector3T<float>* pos
                 GetGroundSurfaceInfo(position, &surface, &material);
                 /* Retail hardcodes the surface to OutdoorsFlat here: the query
                    result that matters for the path is the material. */
-                BuildFootstepPath0047A540(path, W8_FOOTSTEP_SURFACE_OUTDOORS_FLAT, material,
-                                          W8_FOOTSTEP_KIND_STEP, variant);
+                BuildFootstepPath(path, W8_FOOTSTEP_SURFACE_OUTDOORS_FLAT, material,
+                                  W8_FOOTSTEP_KIND_STEP, variant);
                 delete[] m_pacWaveName;
                 m_pacWaveName = new char[strlen(path) + 1];
                 strcpy(m_pacWaveName, path);
@@ -257,7 +256,7 @@ unsigned char W8SoundEvent::Play(unsigned int mask, const srVector3T<float>* pos
                 return 0;
             }
             if (track_sound && monster != 0) {
-                monster->TrackSoundHandle004CA6E0(sound_handle);
+                monster->TrackSoundHandle(sound_handle);
             }
         }
     }

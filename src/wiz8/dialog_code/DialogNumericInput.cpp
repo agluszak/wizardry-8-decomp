@@ -30,7 +30,7 @@ W8DialogNumericInput::W8DialogNumericInput(int control_id, const W8ControlsRect*
     m_maximum = -1;
     m_control_id = control_id;
     m_button = button;
-    m_dirty = 0;
+    m_dirty = false;
     m_bounds = *bounds;
 }
 
@@ -38,7 +38,7 @@ W8DialogNumericInput::W8DialogNumericInput(int control_id, const W8ControlsRect*
 void W8DialogNumericInput::SetValue(int value)
 {
     m_value = value;
-    m_dirty = 1;
+    m_dirty = true;
 }
 
 // FUNCTION: WIZ8 0x005e14d0
@@ -48,8 +48,8 @@ void W8DialogNumericInput::SetActive(unsigned char active)
     if (active == 0) {
         m_caret = -1;
         m_dialog->m_field_4c = 0;
-        m_dirty = 1;
-        m_button->m_dirty = 1;
+        m_dirty = true;
+        m_button->m_dirty = true;
     }
 }
 
@@ -60,8 +60,8 @@ void W8DialogNumericInput::SetActive(unsigned char active, const POINT* point)
     if (active == 0) {
         m_caret = -1;
         m_dialog->m_field_4c = 0;
-        m_dirty = 1;
-        m_button->m_dirty = 1;
+        m_dirty = true;
+        m_button->m_dirty = true;
         return;
     }
     swprintf(g_numeric_input_text, g_format_d_0060aa20, m_value);
@@ -79,8 +79,8 @@ void W8DialogNumericInput::SetActive(unsigned char active, const POINT* point)
     if (m_caret == -1) {
         m_caret = length;
     }
-    m_dirty = 1;
-    m_button->m_dirty = 1;
+    m_dirty = true;
+    m_button->m_dirty = true;
 }
 
 // FUNCTION: WIZ8 0x005e15c0
@@ -121,7 +121,7 @@ void W8DialogNumericInput::Draw(unsigned char force)
         UnlockPrimarySurface();
     }
     SetFontDestBuffer(-14, 0, 0, 640, 480, 0);
-    m_dirty = 0;
+    m_dirty = false;
 }
 
 // FUNCTION: WIZ8 0x005e17a0
@@ -136,8 +136,8 @@ void W8DialogNumericInput::TypeDigit(wchar_t digit)
             swscanf(g_numeric_input_text, g_format_d_0060aa20, &value);
             if (value <= m_maximum) {
                 m_value = value;
-                m_dirty = 1;
-                m_button->m_dirty = 1;
+                m_dirty = true;
+                m_button->m_dirty = true;
                 m_dialog->OnNumericInputChanged(m_control_id);
                 --m_caret;
                 if (m_caret < 0) {
@@ -170,8 +170,8 @@ void W8DialogNumericInput::DeleteForward()
         } else {
             swscanf(g_numeric_input_text, g_format_d_0060aa20, &m_value);
         }
-        m_dirty = 1;
-        m_button->m_dirty = 1;
+        m_dirty = true;
+        m_button->m_dirty = true;
         m_dialog->OnNumericInputChanged(m_control_id);
     }
 }
@@ -201,8 +201,8 @@ void W8DialogNumericInput::Backspace()
             } else {
                 swscanf(g_numeric_input_text, g_format_d_0060aa20, &m_value);
             }
-            m_dirty = 1;
-            m_button->m_dirty = 1;
+            m_dirty = true;
+            m_button->m_dirty = true;
             m_dialog->OnNumericInputChanged(m_control_id);
         }
     }
@@ -225,8 +225,8 @@ unsigned char W8DialogNumericInput::HandleInput(const InputAtom* input)
         m_active = 0;
         m_caret = -1;
         m_dialog->m_field_4c = 0;
-        m_dirty = 1;
-        m_button->m_dirty = 1;
+        m_dirty = true;
+        m_button->m_dirty = true;
         break;
     case 0x25:
         if (m_active != 0 && m_caret != -1) {
@@ -237,17 +237,17 @@ unsigned char W8DialogNumericInput::HandleInput(const InputAtom* input)
                 length = next;
             }
             m_caret = length;
-            m_dirty = 1;
-            m_button->m_dirty = 1;
+            m_dirty = true;
+            m_button->m_dirty = true;
             return 1;
         }
         break;
     case 0x27:
         if (m_active != 0 && m_caret != -1) {
             int next = m_caret - 1;
-            m_dirty = 1;
+            m_dirty = true;
             m_caret = next & ((next < 0) - 1);
-            m_button->m_dirty = 1;
+            m_button->m_dirty = true;
             return 1;
         }
         break;

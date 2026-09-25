@@ -16,7 +16,7 @@ class W8Missile;
 
 void TickSpellEffects(void); /* 0x00500E90 */
 
-extern int g_learn_sound_0068c510;
+extern int g_learn_sound;
 
 /* 0x005001E0: whether the spell may be cast in the current situation. Every
    retail caller pushes only these two arguments. */
@@ -44,16 +44,16 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
                               int* out_points, char continue_cast);
 /* 0x004FE740: a backfiring spell swaps roles - the intended target becomes
    the source and the original source the target. */
-void RedirectBackfiredSpellTarget004FE740(W8TargetSource* source, W8CombatSlot* target);
+void RedirectBackfiredSpellTarget(W8TargetSource* source, W8CombatSlot* target);
 /* 0x004FEDC0: pick one random in-combat participant other than the source
    and write it as the backfired spell's new target. */
-int PickBackfireTarget004FEDC0(int spell_id, W8TargetSource* source, W8CombatSlot* target);
+int PickBackfireTarget(int spell_id, W8TargetSource* source, W8CombatSlot* target);
 /* 0x004FEF90: scatter a backfired point target to a random reachable spot
    inside the spell's range around its source. */
-void ScatterSpellPointTarget004FEF90(int spell_id, W8TargetSource* source, W8CombatSlot* target);
+void ScatterSpellPointTarget(int spell_id, W8TargetSource* source, W8CombatSlot* target);
 /* 0x004FF220: the once-per-cast backfire roll for single-target spells -
    condition 0x0c gates it, a trait save can avoid it. */
-void CheckSpellBackfire004FF220(int spell_id, W8TargetSource* source, W8CombatSlot* target);
+void CheckSpellBackfire(int spell_id, W8TargetSource* source, W8CombatSlot* target);
 void SetPartySlotSpell(int party_slot, int spell_id, int power_level, const W8CombatSlot* target);
 int PointCastSpell(srVector3T<float> position, int spell_id, unsigned int power_level);
 
@@ -68,7 +68,7 @@ void LearnSpellFromItem(W8Character* character, W8ItemInstance* item);
 
 /* Zeroes the six per-realm learned-spell counters and recounts them from the
    spell_learned array. */
-void RecountLearnedSpellsByRealm004F96A0(W8Character* character);
+void RecountLearnedSpellsByRealm(W8Character* character);
 bool CanCharacterCastSpell(W8Character* character, int spell_id);
 unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, char pricing,
                                            char prefer_unlocked, unsigned int power_level);
@@ -80,7 +80,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                         W8GrowableVector<int>* monster_targets); /* 0x004FB4C0 */
 /* 0x004FEA50: assert and route the source/target pair a cast is about to
    use; some target kinds have their own placement pass. */
-void PrepareSpellTarget004FEA50(int spell_id, W8TargetSource* source, W8CombatSlot* target);
+void PrepareSpellTarget(int spell_id, W8TargetSource* source, W8CombatSlot* target);
 /* Resolve valid spell targets for one cast and append location ids to the
    caller's vectors. The party and monster vectors are separate outputs; the
    final flag enables radius highlighting rather than plain line-of-sight
@@ -91,7 +91,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
                                 int highlighting); /* 0x004FD030 */
 /* 0x00501B70: drop every marker that no longer names a live, targetable
    monster; a few spell ids prune on extra monster-record rules. */
-void PruneSpellTargetMarkers00501B70(int spell_id, W8GrowableVector<int>* monster_markers);
+void PruneSpellTargetMarkers(int spell_id, W8GrowableVector<int>* monster_markers);
 int GetProfessionCasterLevel(const W8Character* character, int profession_id);
 /* 0x00501D60: the highest power level this slot can afford to cast the spell
    at for its current target; zero when none is castable. */
@@ -139,15 +139,15 @@ unsigned int GetSpellFailureChance(unsigned int skill, int spell_id, int factor)
 void ScaleByCombatPace(int party_slot, unsigned int* value);
 
 /* Validate the available target set and cursor state for a spell or item cast. */
-bool ValidateSpellTarget004FAC40(int party_slot, int spell_id, unsigned int power, bool item_cast,
-                                 bool skip_world_cursor);
-unsigned char SpellAffectedTarget004F9AE0(W8Character* character, int spell_id, W8CombatSlot* aim,
-                                          unsigned int power);
-void TrackItemSpellSource00501D20(W8Character* character, int spell_id);
-bool IsTeleportCastMissingAnchor00501D00(W8Character* character, int spell_id); /* 0x00501D00 */
+bool ValidateSpellTarget(int party_slot, int spell_id, unsigned int power, bool item_cast,
+                         bool skip_world_cursor);
+unsigned char SpellAffectedTarget(W8Character* character, int spell_id, W8CombatSlot* aim,
+                                  unsigned int power);
+void TrackItemSpellSource(W8Character* character, int spell_id);
+bool IsTeleportCastMissingAnchor(W8Character* character, int spell_id); /* 0x00501D00 */
 extern const unsigned short g_realm_message_offsets[W8_SPELL_REALM_COUNT];
 
-void DetachMissileReferences005019A0(W8Missile* missile);
+void DetachMissileReferences(W8Missile* missile);
 /* Whether every queued effect still has time left on it. */
 bool AllSpellEffectsStillRunning(void); /* 0x00500E50 */
 

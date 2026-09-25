@@ -14,7 +14,7 @@ class Trigger;
 
 /* Engine Code\Item.cpp. The assertion expressions establish the original
    m_pRep and m_psrMesh names; the bodies establish their offsets. */
-struct W8ItemRep : public W8AnimRepBase005EC1D8 {
+struct W8ItemRep : public W8AnimRepBase {
     W8ItemRep();
     virtual ~W8ItemRep() override;
 
@@ -40,10 +40,10 @@ struct W8Item : public W8GrObject {
     /* 0x1c: countdown clock; IsTicking reports whether it is running. */
     int countdown_01c;
 
-    void DetachMesh0049FA30(W8World* world);
-    void ApplyRepTransform0049FAA0();
-    void AttachMesh0049F900(W8World* world);
-    void UpdateAnimation0049F730();
+    void DetachMesh(W8World* world);
+    void ApplyRepTransform();
+    void AttachMesh(W8World* world);
+    void UpdateAnimation();
     void SetLocation0049F720(const srVector3T<float>* location);
     srNode* GetMesh();
     /* Model-local cached bounds. GetItemWorldBounds translates them by the
@@ -76,7 +76,7 @@ static_assert(offsetof(W8Item, countdown_01c) == 0x1c, "W8Item_countdown_01c_off
 
 bool ReadItemFromFile(W8ReadLevelInfo* info, W8Item** item, bool anonymous_mesh);
 /* Run the item's trigger, if any, and report its action state. */
-unsigned char RunItemTrigger004A0070(W8Item* item); /* 0x004A0070 */
+unsigned char RunItemTrigger(W8Item* item); /* 0x004A0070 */
 bool GetItemWorldBounds(W8Item* item, srVector3T<float>* lower, srVector3T<float>* upper);
 
 bool LoadItemFromFile(const W8ReadLevelInfo* context, const char* name, W8Item** item,

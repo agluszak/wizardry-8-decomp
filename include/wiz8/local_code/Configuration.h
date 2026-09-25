@@ -26,7 +26,7 @@ struct W8GameSettings {
     W8MainUiMode main_ui_mode;
     unsigned char continuous_combat;
     unsigned char auto_advance_character;
-    unsigned char tooltips_enabled;
+    bool tooltips_enabled;
     int difficulty;
     unsigned int text_display_delay_ms;
     int combat_delay_ms;
@@ -57,7 +57,7 @@ struct W8GameSettings {
     unsigned char mouselook_smoothing;
     unsigned char verbose_combat_messages;
     unsigned char auto_save;
-    unsigned char intro_seen;
+    bool intro_seen;
     unsigned char field_047;
     unsigned char monster_shadows;           /* 0x48: options string 0x818 */
     unsigned char smooth_monster_animations; /* 0x49: options string 0x819 */
@@ -74,4 +74,4 @@ struct W8GameSettings {
 
 static_assert(sizeof(W8GameSettings) == 0xa4, "W8GameSettings_must_be_0xa4");
 
-extern W8GameSettings g_settings_6850c8;
+extern W8GameSettings g_settings;

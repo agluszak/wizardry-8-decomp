@@ -65,7 +65,7 @@ public:
        dump prints numeric bit indices. Wizardry does not call setNotify. */
     enum e_notify { NOTIFY_POSITIONAL_0 = 0 };
 
-    SR_DLL_IMPORT srNode(srNode* parent);
+    SR_DLL_IMPORT srNode(srNode* parent = 0);
     SR_DLL_IMPORT srNode(const srNode& other);
     SR_DLL_IMPORT srNode& operator=(const srNode& other);
 

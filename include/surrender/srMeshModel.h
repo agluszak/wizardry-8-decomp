@@ -66,7 +66,9 @@ public:
         long active_polygon_count_150;
     };
 
-    srMeshModel(long polygons, long vertices);
+    /* The default-constructor closure 0x100425A0 proves both arguments
+       default to zero for paren-less new expressions. */
+    srMeshModel(long polygons = 0, long vertices = 0);
     srMeshModel(const srMeshModel& other);
     void reset(long polygons, long vertices);
     void scale(const srVector3T<float>& scale);
@@ -117,12 +119,18 @@ public:
     void setMaterial(srMaterialIFace* material, long polygon, e_side side);
     void setTexture(srTextureIFace* texture, long polygon, long layer);
     /* In-class inlines: srModeler::convert expands these bodies inside the
-       srModeler TU; dllexport still emits the standalone copies below. */
+       srModeler TU. Member-level dllexport still emits the standalone copies
+       below; class-level dllexport cannot be used because srMeshModel's
+       srClassSupport template base eagerly instantiates forwarding
+       constructors its bases do not provide. */
     // FUNCTION: SURRENDER 0x10041710 SYMBOL
     // ?setDirty@srMeshModel@@QAEXW4e_flags@1@@Z
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     void setDirty(e_flags flag)
     {
-        unsigned long mask = 1 << (flag & 0x1f);
+        unsigned long mask = 1 << flag;
         if ((control_state_390 & mask) == 0) {
             control_state_390 |= mask;
             control_state_390 |= 8;
@@ -133,15 +141,21 @@ public:
     }
     // FUNCTION: SURRENDER 0x10041750 SYMBOL
     // ?clearDirty@srMeshModel@@QAEXW4e_flags@1@@Z
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     void clearDirty(e_flags flag)
     {
-        control_state_390 &= ~(1 << (flag & 0x1f));
+        control_state_390 &= ~(1 << flag);
     }
     // FUNCTION: SURRENDER 0x10041770 SYMBOL
     // ?testDirty@srMeshModel@@QBEHW4e_flags@1@@Z
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     int testDirty(e_flags flag) const
     {
-        return (control_state_390 & (1 << (flag & 0x1f))) != 0;
+        return (control_state_390 & (1 << flag)) != 0;
     }
     srShader* getPolyShader(long polygon, int layer);
     srShader getShader(long polygon) const;
@@ -212,20 +226,49 @@ public:
         {
             *this = other;
         }
+        /* The member-array destructor emissions: the srPtr copies run the
+           per-element release loop while the POD copies fold to a bare
+           free + zero. */
+        // TEMPLATE: SURRENDER 0x10042B10
+        // srMeshModel::MeshTable<srPtr<srTextureIFace> >::~MeshTable
+        // TEMPLATE: SURRENDER 0x10042D00
+        // srMeshModel::MeshTable<srShader>::~MeshTable
+        // TEMPLATE: SURRENDER 0x10042DF0
+        // srMeshModel::MeshTable<srPtr<srMaterialIFace> >::~MeshTable
+        // TEMPLATE: SURRENDER 0x10042FE0
+        // srMeshModel::MeshTable<srVector3i>::~MeshTable
+        // TEMPLATE: SURRENDER 0x100431E0
+        // srMeshModel::MeshTable<srVector4T<float> >::~MeshTable
+        // TEMPLATE: SURRENDER 0x100433F0
+        // srMeshModel::MeshTable<srVector2T<float> >::~MeshTable
+        // TEMPLATE: SURRENDER 0x100435B0
+        // srMeshModel::MeshTable<srVector3T<float> >::~MeshTable
+        // TEMPLATE: SURRENDER 0x100437B0
+        // srMeshModel::MeshTable<unsigned long>::~MeshTable
         ~MeshTable()
         {
             Release();
         }
+        /* Release, then the preserving resize and the element copy:
+           srMeshModel::operator= inlines this member as the three separate
+           calls while the standalone emissions inline the member bodies. */
+        // TEMPLATE: SURRENDER 0x10043010
+        // srMeshModel::MeshTable<srVector3i>::operator=
+        // TEMPLATE: SURRENDER 0x10043210
+        // srMeshModel::MeshTable<srVector4T<float> >::operator=
+        // TEMPLATE: SURRENDER 0x10043420
+        // srMeshModel::MeshTable<srVector2T<float> >::operator=
+        // TEMPLATE: SURRENDER 0x100435E0
+        // srMeshModel::MeshTable<srVector3T<float> >::operator=
+        // TEMPLATE: SURRENDER 0x100437E0
+        // srMeshModel::MeshTable<unsigned long>::operator=
         MeshTable& operator=(const MeshTable& other)
         {
             if (this != &other) {
                 Release();
                 if (other.count != 0) {
-                    data = Allocate(other.count);
-                    count = other.count;
-                    for (long index = 0; index < count; ++index) {
-                        data[index] = other.data[index];
-                    }
+                    Resize(other.count, 1);
+                    Copy(data, other.data, count);
                 }
             }
             return *this;
@@ -235,6 +278,12 @@ public:
            thiscall on the table (the member never reads it): the srPtr/srShader
            copies default-construct every element while the POD copies allocate
            only, exactly as VC6 lowers an array new through srHeap. */
+        // TEMPLATE: SURRENDER 0x10043B10
+        // srMeshModel::MeshTable<srPtr<srTextureIFace> >::Allocate
+        // TEMPLATE: SURRENDER 0x10043B80
+        // srMeshModel::MeshTable<srShader>::Allocate
+        // TEMPLATE: SURRENDER 0x10043C20
+        // srMeshModel::MeshTable<srPtr<srMaterialIFace> >::Allocate
         // TEMPLATE: SURRENDER 0x10043CA0
         // srMeshModel::MeshTable<srVector3i>::Allocate
         // TEMPLATE: SURRENDER 0x10043D00
@@ -256,10 +305,13 @@ public:
 
         /* Release each element, free the allocation, and zero the pair; the
            srPtr copies emit per-element releases while POD copies fold to a
-           bare free. Retail also emits standalone destructor copies for the
-           unwind funclets; those fold to this same leaf shape. */
+           bare free. */
+        // TEMPLATE: SURRENDER 0x10042B70
+        // srMeshModel::MeshTable<srPtr<srTextureIFace> >::Release
         // TEMPLATE: SURRENDER 0x10042D30
         // srMeshModel::MeshTable<srShader>::Release
+        // TEMPLATE: SURRENDER 0x10042E50
+        // srMeshModel::MeshTable<srPtr<srMaterialIFace> >::Release
         // TEMPLATE: SURRENDER 0x10043100
         // srMeshModel::MeshTable<srVector3i>::Release
         // TEMPLATE: SURRENDER 0x10043300
@@ -280,6 +332,69 @@ public:
             }
             data = 0;
             count = 0;
+        }
+
+        /* The preserving resize every accessor's grow path reaches: fresh
+           Allocate() storage, a min(old,new) prefix copy only when
+           `preserve` is set, the old table's full Release(), then the pair
+           retargets. operator= and the copy-ctor pass preserve=1 on an
+           empty table where the prefix copy is dead. */
+        // TEMPLATE: SURRENDER 0x10042BD0
+        // srMeshModel::MeshTable<srPtr<srTextureIFace> >::Resize
+        // TEMPLATE: SURRENDER 0x10042D60
+        // srMeshModel::MeshTable<srShader>::Resize
+        // TEMPLATE: SURRENDER 0x10042EB0
+        // srMeshModel::MeshTable<srPtr<srMaterialIFace> >::Resize
+        // TEMPLATE: SURRENDER 0x10043130
+        // srMeshModel::MeshTable<srVector3i>::Resize
+        // TEMPLATE: SURRENDER 0x10043330
+        // srMeshModel::MeshTable<srVector4T<float> >::Resize
+        // TEMPLATE: SURRENDER 0x10043510
+        // srMeshModel::MeshTable<srVector2T<float> >::Resize
+        // TEMPLATE: SURRENDER 0x10043700
+        // srMeshModel::MeshTable<srVector3T<float> >::Resize
+        // TEMPLATE: SURRENDER 0x100438D0
+        // srMeshModel::MeshTable<unsigned long>::Resize
+        void Resize(long elements, int preserve)
+        {
+            if (count != elements) {
+                T* replacement = 0;
+                if (elements != 0) {
+                    replacement = Allocate(elements);
+                    if (data != 0 && count != 0 && preserve != 0) {
+                        Copy(replacement, data, elements < count ? elements : count);
+                    }
+                }
+                Release();
+                data = replacement;
+                count = elements;
+            }
+        }
+
+        /* The elementwise copy operator= and Resize share; the srPtr
+           instantiations run the addref/release handoff through each
+           element's own assignment. */
+        // TEMPLATE: SURRENDER 0x10043AB0
+        // srMeshModel::MeshTable<srPtr<srTextureIFace> >::Copy
+        // TEMPLATE: SURRENDER 0x10043B50
+        // srMeshModel::MeshTable<srShader>::Copy
+        // TEMPLATE: SURRENDER 0x10043BC0
+        // srMeshModel::MeshTable<srPtr<srMaterialIFace> >::Copy
+        // TEMPLATE: SURRENDER 0x10043C60
+        // srMeshModel::MeshTable<srVector3i>::Copy
+        // TEMPLATE: SURRENDER 0x10043CC0
+        // srMeshModel::MeshTable<srVector4T<float> >::Copy
+        // TEMPLATE: SURRENDER 0x10043D20
+        // srMeshModel::MeshTable<srVector2T<float> >::Copy
+        // TEMPLATE: SURRENDER 0x10043D70
+        // srMeshModel::MeshTable<srVector3T<float> >::Copy
+        // TEMPLATE: SURRENDER 0x10043DD0
+        // srMeshModel::MeshTable<unsigned long>::Copy
+        static void Copy(T* destination, const T* source, long count)
+        {
+            for (long index = 0; index < count; ++index) {
+                destination[index] = source[index];
+            }
         }
 
         T* data;

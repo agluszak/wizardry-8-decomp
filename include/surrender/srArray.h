@@ -77,18 +77,14 @@ public:
         capacity = 0;
     }
 
-    /* Deep copy proved by srHuffman::Sampler's exported copy operations:
-       self-check, release the old storage, allocate the source capacity, copy
-       that many elements. */
+    /* Deep copy proved by srHuffman::Sampler's exported copy operations and
+       srModeler's implicit assignment (0x10037F90): self-check, reserve the
+       source capacity (release + exact-size allocate), copy that many
+       elements. */
     inline srArray& operator=(const srArray& other)
     {
         if (this != &other) {
-            unsigned long new_capacity = other.capacity;
-            release();
-            if (new_capacity > 0) {
-                capacity = new_capacity;
-                data = new T[new_capacity];
-            }
+            reserve(other.capacity);
             for (unsigned long index = 0; index < other.capacity; ++index) {
                 data[index] = other.data[index];
             }
@@ -109,12 +105,20 @@ public:
     // srArray<srGERD::Renderer::TextureSet>::setCapacity
     // TEMPLATE: SURRENDER 0x1003BCF0
     // srArray<srModeler::Triangle>::setCapacity
+    // TEMPLATE: SURRENDER 0x10044EE0
+    // srArray<srTriMeshPipeline::Record>::setCapacity
+    // TEMPLATE: SURRENDER 0x10044E60
+    // srArray<srVertexArray>::setCapacity
+    // TEMPLATE: SURRENDER 0x10045030
+    // srArray<srTriMeshPipeline::Pass>::setCapacity
     void setCapacity(unsigned long new_capacity);
 
     // TEMPLATE: SURRENDER 0x10026F50
     // srArray<float>::operator[]
     // TEMPLATE: SURRENDER 0x10027120
     // srArray<unsigned long>::operator[]
+    // TEMPLATE: SURRENDER 0x10044E30
+    // srArray<srTriMeshPipeline::Record>::operator[]
     inline T& operator[](unsigned long index)
     {
         if (index >= capacity) {
@@ -135,7 +139,7 @@ public:
 template <class T> void srArray<T>::reserve(unsigned long count)
 {
     release();
-    if (count != 0) {
+    if (count > 0) {
         capacity = count;
         data = new T[count];
     }
@@ -199,7 +203,7 @@ public:
     inline void reserve(unsigned long count)
     {
         release();
-        if (count != 0) {
+        if (count > 0) {
             capacity = count;
             data = allocate(count);
         }

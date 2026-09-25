@@ -5,7 +5,7 @@
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/LevelFile.h"
 #include "wiz8/engine_code/stHash.hpp"
-#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator.h"
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/Trigger.hpp"
@@ -52,15 +52,15 @@ const float g_float_005ec1b4 = 900000.0f;
 char g_string_005ff56c[] = "\n";
 
 // GLOBAL: WIZ8 0x00659a58
-int g_integrated_trigger_count_00659a58;
+int g_integrated_trigger_count;
 
 // GLOBAL: WIZ8 0x00603ab8
-float g_default_momentum_scale_603ab8 = 0.30000001192092896f;
+float g_default_momentum_scale = 0.30000001192092896f;
 // GLOBAL: WIZ8 0x00603abc
-float g_default_motion_limit_603abc = 112.5f;
+float g_default_motion_limit = 112.5f;
 
 // GLOBAL: WIZ8 0x005ec1a4
-float g_path_endpoint_scale_005ec1a4 = 0.9900000095367432f;
+float g_path_endpoint_scale = 0.9900000095367432f;
 
 /* Opens a game-data file, builds its record, and pulls the polygon and
    vertex banks through the record reader. */
@@ -82,7 +82,7 @@ W8GameData* ReadGameData00447570(const char* path, bool secondary)
     got_polygons = game_data->ReadWGDList00447660(file, 0);
     got_vertices = game_data->ReadWGDList00447660(file, 1);
     if (got_vertices == 0 && got_polygons == 0) {
-        ReportBuildStatus00497690(7, "ReadGameData: No polygons or vertices in GameData!\n");
+        ReportBuildStatus(7, "ReadGameData: No polygons or vertices in GameData!\n");
     }
     CloseHandle(file);
     return game_data;
@@ -141,7 +141,7 @@ unsigned char W8GameData::ReadWGDList00447660(HANDLE file, int poly_type)
 
     record_count = 0;
     if (poly_type < 0 || 2 < poly_type) {
-        ReportBuildStatus00497690(7, "ReadWGDList: Invalid poly type.\n");
+        ReportBuildStatus(7, "ReadWGDList: Invalid poly type.\n");
     }
     success = ReadFile(file, &vertex_count, 4, &bytes_read, 0) & 1 &
               ReadFile(file, &face_count, 4, &bytes_read, 0);
@@ -210,9 +210,9 @@ unsigned char W8GameData::ReadWGDList00447660(HANDLE file, int poly_type)
                                      "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x120,
                                      "Error reading vertex from WGD file.");
                     }
-                    m_pVertices[index].x = vertex.x * g_world_scale_005ebc40;
-                    m_pVertices[index].y = vertex.y * g_world_scale_005ebc40;
-                    m_pVertices[index].z = vertex.z * g_world_scale_005ebc40;
+                    m_pVertices[index].x = vertex.x * g_world_scale;
+                    m_pVertices[index].y = vertex.y * g_world_scale;
+                    m_pVertices[index].z = vertex.z * g_world_scale;
                     if (index == m_iNumVertices) {
                         minimum_08.x = vertex.x;
                         maximum_14.x = vertex.x;
@@ -297,7 +297,7 @@ unsigned char W8GameData::ReadWGDList00447660(HANDLE file, int poly_type)
                     surface->edge_link_0c[1] = -1;
                     surface->edge_link_0c[0] = -1;
                     surface->hit_plane_38 = 0;
-                    ClassifySurfacePlane004498C0(m_pVertices, surface);
+                    ClassifySurfacePlane(m_pVertices, surface);
                     if (poly_type != 0) {
                         record[1] = index;
                         record[0] = 0;
@@ -337,8 +337,8 @@ unsigned char W8GameData::ReadWGDList00447660(HANDLE file, int poly_type)
                 ReadFile(file, &bounds[1], 4, &bytes_read, 0);
                 ReadFile(file, &bounds[2], 4, &bytes_read, 0);
                 for (index = 0; index < 3; ++index) {
-                    bounds[index + 3] = bounds[index + 3] * g_world_scale_005ebc40;
-                    bounds[index] = bounds[index] * g_world_scale_005ebc40;
+                    bounds[index + 3] = bounds[index + 3] * g_world_scale;
+                    bounds[index] *= g_world_scale;
                 }
                 if (bounds[3] < minimum_08.x) {
                     minimum_08.x = bounds[3];
@@ -362,15 +362,15 @@ unsigned char W8GameData::ReadWGDList00447660(HANDLE file, int poly_type)
                     CompileGDInterfaces00447FB0(cond_faces, record_count);
                     free(cond_faces);
                 }
-                m_iNumVertices = m_iNumVertices + vertex_count;
-                m_iNumSurfaces = m_iNumSurfaces + face_count;
+                m_iNumVertices += vertex_count;
+                m_iNumSurfaces += face_count;
                 return 1;
             }
             sprintf(message, "Too many GameData vertices: %d!\n", vertex_count);
         } else {
             sprintf(message, "Too many GameData polygons: %d!\n", face_count);
         }
-        ReportBuildStatus00497690(7, message);
+        ReportBuildStatus(7, message);
     }
     return 0;
 }
@@ -460,7 +460,7 @@ void W8GameData::CompileGDInterfaces00447FB0(const int* records, int count)
 /* Answers the 1-based ordinal of the name-table entry matching `name`,
    else -1. ReadWGDList keeps the same search inline instead of calling this. */
 // FUNCTION: WIZ8 0x004482A0
-int W8GameData::FindPointerByName004482A0(const char* name)
+int W8GameData::FindPointerByName(const char* name)
 {
     if (m_ppNames != 0) {
         int index = 0;
@@ -481,19 +481,19 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
     int index;
     if (octree_04 != 0) {
         if (m_ppTriggers == 0) {
-            g_integrated_trigger_count_00659a58 = 0;
+            g_integrated_trigger_count = 0;
             m_ppTriggers = static_cast<Trigger**>(malloc(m_iNumTriggers * sizeof(Trigger*) + 4));
             if (m_ppTriggers == 0) {
                 srAssertFail("m_ppTriggers", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
                              0x256, "AddTriggerPlane: Couldn't allocate trigger array.");
             }
         }
-        if (g_integrated_trigger_count_00659a58 >= m_iNumTriggers) {
+        if (g_integrated_trigger_count >= m_iNumTriggers) {
             srAssertFail("(iTriggerCount < m_iNumTriggers)",
                          "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x259,
                          "AddTriggerPlane: Too many triggers for trigger array.");
         }
-        m_ppTriggers[g_integrated_trigger_count_00659a58++] = trigger;
+        m_ppTriggers[g_integrated_trigger_count++] = trigger;
         return;
     }
 
@@ -544,7 +544,7 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
     surface->vertex_indices_18[0] = m_iNumTrigVertices - 4;
     surface->vertex_indices_18[1] = m_iNumTrigVertices - 3;
     surface->vertex_indices_18[2] = m_iNumTrigVertices - 2;
-    ClassifySurfacePlane004498C0(m_pTrigVertices, surface);
+    ClassifySurfacePlane(m_pTrigVertices, surface);
     for (index = 0; index < 3; ++index) {
         surface->vertex_indices_18[index] += m_iNumVertices;
     }
@@ -562,7 +562,7 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
     surface->vertex_indices_18[0] = m_iNumTrigVertices - 2;
     surface->vertex_indices_18[1] = m_iNumTrigVertices - 1;
     surface->vertex_indices_18[2] = m_iNumTrigVertices - 4;
-    ClassifySurfacePlane004498C0(m_pTrigVertices, surface);
+    ClassifySurfacePlane(m_pTrigVertices, surface);
     for (index = 0; index < 3; ++index) {
         surface->vertex_indices_18[index] += m_iNumVertices;
     }
@@ -576,7 +576,7 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
 /* Registers a level-file plane's two triangles (vertices 0,1,2 and 2,3,0) as
    a trigger-surface pair under the auto-numbered trigger index. */
 // FUNCTION: WIZ8 0x004485F0
-void W8GameData::AddLevelPlane004485F0(W8LevelFilePlane* plane)
+void W8GameData::AddLevelPlane(W8LevelFilePlane* plane)
 {
     int index;
     const srVector3T<float>* vertices = plane->vertices_00;
@@ -607,9 +607,9 @@ void W8GameData::AddLevelPlane004485F0(W8LevelFilePlane* plane)
                      "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x2cc, 0);
     }
     for (index = 0; index < 4; ++index) {
-        m_pTrigVertices[m_iNumTrigVertices].x = vertices[index].x * g_world_scale_005ebc40;
-        m_pTrigVertices[m_iNumTrigVertices].y = vertices[index].y * g_world_scale_005ebc40;
-        m_pTrigVertices[m_iNumTrigVertices].z = vertices[index].z * g_world_scale_005ebc40;
+        m_pTrigVertices[m_iNumTrigVertices].x = vertices[index].x * g_world_scale;
+        m_pTrigVertices[m_iNumTrigVertices].y = vertices[index].y * g_world_scale;
+        m_pTrigVertices[m_iNumTrigVertices].z = vertices[index].z * g_world_scale;
         ++m_iNumTrigVertices;
     }
 
@@ -621,7 +621,7 @@ void W8GameData::AddLevelPlane004485F0(W8LevelFilePlane* plane)
     surface->vertex_indices_18[0] = m_iNumTrigVertices - 4;
     surface->vertex_indices_18[1] = m_iNumTrigVertices - 3;
     surface->vertex_indices_18[2] = m_iNumTrigVertices - 2;
-    ClassifySurfacePlane004498C0(m_pTrigVertices, surface);
+    ClassifySurfacePlane(m_pTrigVertices, surface);
     for (index = 0; index < 3; ++index) {
         surface->vertex_indices_18[index] += m_iNumVertices;
     }
@@ -639,7 +639,7 @@ void W8GameData::AddLevelPlane004485F0(W8LevelFilePlane* plane)
     surface->vertex_indices_18[0] = m_iNumTrigVertices - 2;
     surface->vertex_indices_18[1] = m_iNumTrigVertices - 1;
     surface->vertex_indices_18[2] = m_iNumTrigVertices - 4;
-    ClassifySurfacePlane004498C0(m_pTrigVertices, surface);
+    ClassifySurfacePlane(m_pTrigVertices, surface);
     for (index = 0; index < 3; ++index) {
         surface->vertex_indices_18[index] += m_iNumVertices;
     }
@@ -700,7 +700,7 @@ void W8GameData::IntegrateTriggers()
    trigger banks into the main vertex and surface arrays without rebuilding
    the spatial index. */
 // FUNCTION: WIZ8 0x00448A60
-void W8GameData::IntegrateTriggerGeometry00448A60()
+void W8GameData::IntegrateTriggerGeometry()
 {
     if (m_iNumTrigVertices != 0) {
         srVector3T<float>* new_vertices = static_cast<srVector3T<float>*>(
@@ -712,7 +712,7 @@ void W8GameData::IntegrateTriggerGeometry00448A60()
         memcpy(new_vertices, m_pVertices, m_iNumVertices * sizeof(srVector3T<float>));
         memcpy(new_vertices + m_iNumVertices, m_pTrigVertices,
                m_iNumTrigVertices * sizeof(srVector3T<float>));
-        m_iNumVertices = m_iNumVertices + m_iNumTrigVertices;
+        m_iNumVertices += m_iNumTrigVertices;
         srHeap.free(m_pVertices);
         srHeap.free(m_pTrigVertices);
         m_pTrigVertices = 0;
@@ -730,7 +730,7 @@ void W8GameData::IntegrateTriggerGeometry00448A60()
                m_iNumTrigSurfaces * sizeof(W8GDSurface));
         free(m_pTrigSurfaces);
         free(m_pSurfaces);
-        m_iNumSurfaces = m_iNumSurfaces + m_iNumTrigSurfaces;
+        m_iNumSurfaces += m_iNumTrigSurfaces;
         m_pSurfaces = new_surfaces;
         m_pTrigSurfaces = 0;
         m_iNumTrigSurfaces = 0;
@@ -740,8 +740,8 @@ void W8GameData::IntegrateTriggerGeometry00448A60()
 /* Copies the linked record's 36 serialized vertices into a scratch block and
    registers them as twelve trigger surfaces, then releases the copy. */
 // FUNCTION: WIZ8 0x00448BF0
-void W8GameData::AddLinkedRecord00448BF0(const srVector3T<float>* vertices, float value,
-                                         float scalar, const signed char* face)
+void W8GameData::AddLinkedRecord(const srVector3T<float>* vertices, float value, float scalar,
+                                 const signed char* face)
 {
     srVector3T<float>* copy =
         static_cast<srVector3T<float>*>(srHeap.allocate(36 * sizeof(srVector3T<float>)));
@@ -808,11 +808,11 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* vertices, float value,
         surface->vertex_indices_18[2] = vertex_base + 2;
         surface->contact_margin_40 = 0.0f;
         vertex_base += 3;
-        ClassifySurfacePlane004498C0(m_pTrigVertices, surface);
+        ClassifySurfacePlane(m_pTrigVertices, surface);
         if (index == *face) {
             CreateGDEnviron00448E60(surface, value);
             W8EnvironRecord* environ_record = m_ppEnvirons[m_iNumEnvirons];
-            environ_record->forward_scale_34 = environ_record->forward_scale_34 * scalar;
+            environ_record->forward_scale_34 *= scalar;
             environ_record->motion_limit_38 =
                 environ_record->forward_scale_34 * environ_record->momentum_scale_3c * 2.0f;
         }
@@ -848,34 +848,34 @@ void W8GameData::CreateGDEnviron00448E60(const W8GDSurface* surface, float scale
     if (environ_record == 0) {
         environ_record = 0;
     } else {
-        environ_record->ground_latch_04 = 0;
+        environ_record->ground_latch_04 = false;
         environ_record->value_00 = 0;
         environ_record->value_08 = 0;
         environ_record->gravity_x_10 = 0;
-        environ_record->gravity_y_14 = -g_navigator_gravity_00603acc;
+        environ_record->gravity_y_14 = -g_navigator_gravity;
         environ_record->gravity_z_18 = 0;
         environ_record->motion_factor_20 = 1.0f;
         environ_record->vector_24.x = 0.0f;
         environ_record->vector_24.y = 0.0f;
         environ_record->vector_24.z = 0.0f;
         environ_record->motion_step_1c = 0.05f;
-        environ_record->world_height_30 = g_default_world_height_00603ac8;
+        environ_record->world_height_30 = g_default_world_height;
         environ_record->forward_scale_34 =
-            g_camera_level_forward_scale_603aac * g_navigator_linked_radius_scale_005ebc98;
+            g_camera_level_forward_scale * g_navigator_linked_radius_scale;
         environ_record->value_40 = 1.0f;
-        environ_record->momentum_scale_3c = g_default_momentum_scale_603ab8;
-        environ_record->motion_limit_38 = g_default_motion_limit_603abc;
+        environ_record->momentum_scale_3c = g_default_momentum_scale;
+        environ_record->motion_limit_38 = g_default_motion_limit;
     }
     m_ppEnvirons[m_iNumEnvirons] = environ_record;
     if (m_ppEnvirons[m_iNumEnvirons] == 0) {
-        ReportBuildStatus00497690(7, "CreateGDEnviron: Could not allocate GD_Environ.");
+        ReportBuildStatus(7, "CreateGDEnviron: Could not allocate GD_Environ.");
     }
     m_ppEnvirons[m_iNumEnvirons]->gravity_x_10 =
-        g_navigator_gravity_00603acc * surface->plane_24.normal.x * scale;
+        g_navigator_gravity * surface->plane_24.normal.x * scale;
     m_ppEnvirons[m_iNumEnvirons]->gravity_y_14 =
-        (scale * surface->plane_24.normal.y - g_float_005ebb38) * g_navigator_gravity_00603acc;
+        (scale * surface->plane_24.normal.y - g_float_005ebb38) * g_navigator_gravity;
     m_ppEnvirons[m_iNumEnvirons]->gravity_z_18 =
-        g_navigator_gravity_00603acc * surface->plane_24.normal.z * scale;
+        g_navigator_gravity * surface->plane_24.normal.z * scale;
 }
 
 struct W8ProcessedGameDataHeader {
@@ -901,33 +901,32 @@ static_assert(sizeof(W8ProcessedGameDataHeader) == 0x68, "W8ProcessedGameDataHea
 unsigned char W8EnvironRecord::RescaleToReference(const W8EnvironRecord* reference)
 {
     if (reference == 0) {
-        float difference = static_cast<float>(fabs(g_navigator_gravity_00603acc + vector_24.y));
-        if (g_navigator_gravity_00603acc * g_camera_snap_epsilon_005ebc2c < difference) {
+        float difference = static_cast<float>(fabs(g_navigator_gravity + vector_24.y));
+        if (g_navigator_gravity * g_camera_snap_epsilon < difference) {
             return 1;
         }
-        difference =
-            static_cast<float>(fabs(forward_scale_34 - g_camera_level_forward_scale_603aac));
-        if (g_camera_level_forward_scale_603aac * g_camera_snap_epsilon_005ebc2c < difference) {
+        difference = static_cast<float>(fabs(forward_scale_34 - g_camera_level_forward_scale));
+        if (g_camera_level_forward_scale * g_camera_snap_epsilon < difference) {
             return 1;
         }
-        difference = static_cast<float>(fabs(motion_limit_38 - g_default_motion_limit_603abc));
-        if (g_default_motion_limit_603abc * g_camera_snap_epsilon_005ebc2c < difference) {
+        difference = static_cast<float>(fabs(motion_limit_38 - g_default_motion_limit));
+        if (g_default_motion_limit * g_camera_snap_epsilon < difference) {
             return 1;
         }
-        difference = static_cast<float>(fabs(momentum_scale_3c - g_default_momentum_scale_603ab8));
-        if (g_default_momentum_scale_603ab8 * g_camera_snap_epsilon_005ebc2c < difference) {
+        difference = static_cast<float>(fabs(momentum_scale_3c - g_default_momentum_scale));
+        if (g_default_momentum_scale * g_camera_snap_epsilon < difference) {
             return 1;
         }
         return 0;
     }
 
-    float scale = g_navigator_gravity_00603acc / -reference->gravity_y_14;
+    float scale = g_navigator_gravity / -reference->gravity_y_14;
     gravity_x_10 *= scale;
     gravity_y_14 *= scale;
     gravity_z_18 *= scale;
-    forward_scale_34 *= (g_camera_level_forward_scale_603aac / reference->forward_scale_34);
-    motion_limit_38 *= (g_default_motion_limit_603abc / reference->motion_limit_38);
-    momentum_scale_3c *= (g_default_momentum_scale_603ab8 / reference->momentum_scale_3c);
+    forward_scale_34 *= g_camera_level_forward_scale / reference->forward_scale_34;
+    motion_limit_38 *= g_default_motion_limit / reference->motion_limit_38;
+    momentum_scale_3c *= g_default_momentum_scale / reference->momentum_scale_3c;
     return 0;
 }
 
@@ -1020,7 +1019,7 @@ void W8GameData::ReadProcessedGameData(int handle)
         m_piCondPolys = static_cast<int*>(malloc(m_iNumCondPolys * sizeof(unsigned int) + 4));
         if (m_piCondPolys == 0) {
             srAssertFail("m_piCondPolys", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
-                         0x4ad, "ReadProcessedGameData: Couldn't allocate conditional poly list.");
+                         0x4ad, "ReadProcessedGameData: Couldn't allocate switch state info.");
         }
         if (FileRead(handle, m_piCondPolys, m_iNumCondPolys * sizeof(unsigned int), &bytes_read) ==
             0) {
@@ -1044,21 +1043,21 @@ void W8GameData::ReadProcessedGameData(int handle)
                              "ReadProcessedGameData: Couldn't allocate environment.");
             }
             environ_record->value_00 = 0;
-            environ_record->ground_latch_04 = 0;
+            environ_record->ground_latch_04 = false;
             environ_record->value_08 = 0;
             environ_record->gravity_x_10 = 0;
-            environ_record->gravity_y_14 = -g_navigator_gravity_00603acc;
+            environ_record->gravity_y_14 = -g_navigator_gravity;
             environ_record->gravity_z_18 = 0;
             environ_record->motion_step_1c = 0.05f;
             environ_record->motion_factor_20 = 1.0f;
             environ_record->vector_24.x = 0.0f;
             environ_record->vector_24.y = 0.0f;
             environ_record->vector_24.z = 0.0f;
-            environ_record->world_height_30 = g_default_world_height_00603ac8;
+            environ_record->world_height_30 = g_default_world_height;
             environ_record->forward_scale_34 =
-                g_camera_level_forward_scale_603aac * g_navigator_linked_radius_scale_005ebc98;
-            environ_record->motion_limit_38 = g_default_momentum_scale_603ab8;
-            environ_record->momentum_scale_3c = g_default_motion_limit_603abc;
+                g_camera_level_forward_scale * g_navigator_linked_radius_scale;
+            environ_record->motion_limit_38 = g_default_momentum_scale;
+            environ_record->momentum_scale_3c = g_default_motion_limit;
             environ_record->value_40 = 1.0f;
             m_ppEnvirons[index] = environ_record;
             if (FileRead(handle, environ_record, 0x44, &bytes_read) == 0) {
@@ -1120,15 +1119,15 @@ W8GameData::W8GameData(int handle, bool secondary)
     maximum_14 = -1.0e8f;
     if (!secondary) {
         MoveTimer(4);
-        if (g_game_time_accumulator_6598bc == 0) {
-            g_game_time_accumulator_6598bc = new W8GameTimeAccumulator0043A910();
+        if (g_game_time_accumulator == 0) {
+            g_game_time_accumulator = new W8GameTimeAccumulator();
         }
     }
     if (handle != 0) {
         ReadProcessedGameData(handle);
     }
-    if (g_environ_00652DB4 != 0) {
-        delete g_environ_00652DB4;
+    if (g_environ != 0) {
+        delete g_environ;
     }
     if (m_iNumEnvirons == 0) {
         m_iNumEnvirons = 1;
@@ -1145,39 +1144,39 @@ W8GameData::W8GameData(int handle, bool secondary)
             environ_record = 0;
         } else {
             environ_record->value_00 = 0;
-            environ_record->ground_latch_04 = 0;
+            environ_record->ground_latch_04 = false;
             environ_record->value_08 = 0;
             environ_record->gravity_x_10 = 0;
-            environ_record->gravity_y_14 = -g_navigator_gravity_00603acc;
+            environ_record->gravity_y_14 = -g_navigator_gravity;
             environ_record->gravity_z_18 = 0;
             environ_record->motion_step_1c = 0.05f;
             environ_record->motion_factor_20 = 1.0f;
             environ_record->vector_24.x = 0.0f;
             environ_record->vector_24.y = 0.0f;
             environ_record->vector_24.z = 0.0f;
-            environ_record->world_height_30 = g_default_world_height_00603ac8;
+            environ_record->world_height_30 = g_default_world_height;
             environ_record->forward_scale_34 =
-                g_camera_level_forward_scale_603aac * g_navigator_linked_radius_scale_005ebc98;
-            environ_record->motion_limit_38 = g_default_momentum_scale_603ab8;
-            environ_record->momentum_scale_3c = g_default_motion_limit_603abc;
+                g_camera_level_forward_scale * g_navigator_linked_radius_scale;
+            environ_record->motion_limit_38 = g_default_momentum_scale;
+            environ_record->momentum_scale_3c = g_default_motion_limit;
             environ_record->value_40 = 1.0f;
         }
         m_ppEnvirons[0] = environ_record;
     }
-    W8LevelDataRecord* old_level = g_level_data_00652dac;
-    g_environ_00652DB4 = m_ppEnvirons[0];
+    W8LevelDataRecord* old_level = g_level_data;
+    g_environ = m_ppEnvirons[0];
     if (old_level != 0) {
         delete old_level;
-        g_level_data_00652dac = 0;
+        g_level_data = 0;
     }
-    g_octree_game_data_00652db0 = this;
+    g_octree_game_data = this;
 }
 
 /* Build the processed level's spatial index once and publish every surface
    from its primary 0x4c-byte bank.  The constructor expands only local bounds,
    leaving the serialized GameData limits unchanged. */
 // FUNCTION: WIZ8 0x004497c0
-unsigned char InitializeGameData004497C0(W8GameData* game_data)
+unsigned char InitializeGameData(W8GameData* game_data)
 {
     if (game_data == 0) {
         return 0;
@@ -1186,8 +1185,7 @@ unsigned char InitializeGameData004497C0(W8GameData* game_data)
     srVector3T<float> minimum = game_data->minimum_08;
     srVector3T<float> maximum = game_data->maximum_14;
     if (game_data->geometry_index_00 == 0) {
-        game_data->geometry_index_00 =
-            new W8OctBuildTree00446390(2000.0f, &minimum, &maximum, 0x40, 0);
+        game_data->geometry_index_00 = new W8OctBuildTree(2000.0f, &minimum, &maximum, 0x40, 0);
     }
 
     for (int index = 0; index < game_data->m_iNumSurfaces; ++index) {
@@ -1203,11 +1201,11 @@ unsigned char InitializeGameData004497C0(W8GameData* game_data)
    carried by the level-geometry record. Bit 0x80 requests dominant-axis
    selection; bit 4 is the walkable slope classification. */
 // FUNCTION: WIZ8 0x004498c0
-void ClassifySurfacePlane004498C0(const srVector3T<float>* vertices, W8GDSurface* surface)
+void ClassifySurfacePlane(const srVector3T<float>* vertices, W8GDSurface* surface)
 {
-    BuildTrianglePlane00449A40(&surface->plane_24, &vertices[surface->vertex_indices_18[0]],
-                               &vertices[surface->vertex_indices_18[1]],
-                               &vertices[surface->vertex_indices_18[2]]);
+    BuildTrianglePlane(&surface->plane_24, &vertices[surface->vertex_indices_18[0]],
+                       &vertices[surface->vertex_indices_18[1]],
+                       &vertices[surface->vertex_indices_18[2]]);
 
     unsigned int flags = surface->flags_00;
     if ((flags & 0x80) != 0) {
@@ -1239,13 +1237,12 @@ void ClassifySurfacePlane004498C0(const srVector3T<float>* vertices, W8GDSurface
             surface->slope_48 = g_float_005ebb34;
         }
     } else if (surface->contact_margin_40 < g_float_005ec028 &&
-               g_path_endpoint_scale_005ec1a4 < surface->contact_margin_40 &&
-               (surface->flags_00 & 4) != 0) {
+               g_path_endpoint_scale < surface->contact_margin_40 && (surface->flags_00 & 4) != 0) {
         surface->contact_margin_40 = 0.1f;
     }
 
     flags = surface->flags_00;
-    surface->contact_margin_40 *= g_world_scale_005ebc40;
+    surface->contact_margin_40 *= g_world_scale;
     if ((flags & 4) == 0) {
         surface->slope_48 = g_float_005ebb34;
     } else if (surface->slope_48 < g_float_005ebc58 && (flags & 0x20) == 0) {
@@ -1260,8 +1257,8 @@ void ClassifySurfacePlane004498C0(const srVector3T<float>* vertices, W8GDSurface
 /* Header-visible SetPlaneFromThreePoints. This TU unrolls the three-point
    copy; 0x0046D660 lowers the same assignments as a component countdown. */
 // FUNCTION: WIZ8 0x00449a40
-void BuildTrianglePlane00449A40(W8Plane* plane, const srVector3T<float>* first,
-                                const srVector3T<float>* second, const srVector3T<float>* third)
+void BuildTrianglePlane(W8Plane* plane, const srVector3T<float>* first,
+                        const srVector3T<float>* second, const srVector3T<float>* third)
 {
     SetPlaneFromThreePoints(plane, first, second, third);
 }
@@ -1273,7 +1270,7 @@ W8GameData::~W8GameData()
 {
     int index;
 
-    ReleaseLevelData0041A9E0();
+    ReleaseLevelData();
     if (geometry_index_00 != 0) {
         delete geometry_index_00;
     }
@@ -1336,14 +1333,13 @@ W8GameData::~W8GameData()
         free(m_ppEnvirons);
         m_ppEnvirons = 0;
     }
-    g_octree_game_data_00652db0 = 0;
+    g_octree_game_data = 0;
 }
 
-static char ShareSurfaceEdge0044A970(W8GDSurface* first, W8GDSurface* second,
-                                     srVector3T<float>* vertices);
-static void LinkSurfaceEdge0044A7D0(int polygon, int edge, W8HashTable<unsigned int, int>* table,
-                                    W8GDSurface* surfaces, unsigned int multiplier,
-                                    srVector3T<float>* vertices);
+static char ShareSurfaceEdge(W8GDSurface* first, W8GDSurface* second, srVector3T<float>* vertices);
+static void LinkSurfaceEdge(int polygon, int edge, W8HashTable<unsigned int, int>* table,
+                            W8GDSurface* surfaces, unsigned int multiplier,
+                            srVector3T<float>* vertices);
 
 /* Welds duplicate vertices through a spatial hash, repacks the surface array
    collision-flag faces first, fills the shared build vertex/polygon arrays
@@ -1362,9 +1358,9 @@ void W8GameData::CompileGameData00449D10()
     bool announce = false;
     bool found;
 
-    ReportStartupMessage004969D0(g_string_005ff56c);
-    ReportStartupMessage004969D0("Processing GameData geometry...\n");
-    IntegrateTriggerGeometry00448A60();
+    ReportStartupMessage(g_string_005ff56c);
+    ReportStartupMessage("Processing GameData geometry...\n");
+    IntegrateTriggerGeometry();
     if (m_iNumVertices == 0 || m_iNumSurfaces == 0) {
         return;
     }
@@ -1372,45 +1368,44 @@ void W8GameData::CompileGameData00449D10()
     W8OctPreTreeVertex* weld_records =
         static_cast<W8OctPreTreeVertex*>(malloc(m_iNumVertices * sizeof(W8OctPreTreeVertex)));
     if (weld_records == 0) {
-        ReportBuildStatus00497690(
+        ReportBuildStatus(
             7, reinterpret_cast<const char*>( // reinterpret-ok: String returns UINT8*
                    String("CompileGameData: Couldn't allocate %d OctVerts (%dK).\n", m_iNumVertices,
                           m_iNumVertices * sizeof(W8OctPreTreeVertex) / 1024)));
     }
     memset(weld_records, 0, m_iNumVertices * sizeof(W8OctPreTreeVertex));
-    g_gd_vertices_0065bd34 =
+    g_gd_vertices =
         static_cast<W8OctPreTreeVertex*>(malloc(m_iNumVertices * sizeof(W8OctPreTreeVertex)));
-    if (g_gd_vertices_0065bd34 == 0) {
-        ReportBuildStatus00497690(
+    if (g_gd_vertices == 0) {
+        ReportBuildStatus(
             7, reinterpret_cast<const char*>( // reinterpret-ok: String returns UINT8*
                    String("CompileGameData: Couldn't allocate %d NewGDVerts (%dK)\n",
                           m_iNumVertices, m_iNumVertices * sizeof(W8OctPreTreeVertex) / 1024)));
     }
-    memset(g_gd_vertices_0065bd34, 0, m_iNumVertices * sizeof(W8OctPreTreeVertex));
+    memset(g_gd_vertices, 0, m_iNumVertices * sizeof(W8OctPreTreeVertex));
     int* cond_polys = 0;
     if (m_iNumCondPolys != 0) {
         cond_polys = static_cast<int*>(malloc(m_iNumCondPolys * sizeof(int)));
         if (cond_polys == 0) {
-            ReportBuildStatus00497690(7,
-                                      "CompileGameData: Couldn't allocate piNewCondPolys array.");
+            ReportBuildStatus(7, "CompileGameData: Couldn't allocate piNewCondPolys array.");
         }
         memset(cond_polys, 0, m_iNumCondPolys * sizeof(int));
     }
     srVector3T<float>* new_vertices = static_cast<srVector3T<float>*>(
         srHeap.allocate(m_iNumVertices * sizeof(srVector3T<float>)));
     if (new_vertices == 0) {
-        ReportBuildStatus00497690(7, "CompileGameData: Couldn't allocate New vertex list.");
+        ReportBuildStatus(7, "CompileGameData: Couldn't allocate New vertex list.");
     }
 
     if (m_pVertices != 0 && 0 < m_iNumVertices) {
         W8OctPreTreeVertex* vertex = weld_records;
         const srVector3T<float>* source = m_pVertices;
         srVector3T<float>* new_vertex = new_vertices;
-        W8OctPreTreeVertex* gd_vertex = g_gd_vertices_0065bd34;
+        W8OctPreTreeVertex* gd_vertex = g_gd_vertices;
         for (i = 0; i < m_iNumVertices; ++i) {
             vertex->position_0c = *source;
             unsigned int percent =
-                static_cast<unsigned int>(i * g_octree_cell_scale_005ebcd0 / m_iNumVertices);
+                static_cast<unsigned int>(i * g_octree_cell_scale / m_iNumVertices);
             if (progress + 10 < percent) {
                 announce = true;
                 progress += 10;
@@ -1449,11 +1444,11 @@ void W8GameData::CompileGameData00449D10()
                     int candidate_index = linked - 1;
                     W8OctPreTreeVertex* candidate = weld_records + candidate_index;
                     if (fabs(vertex->position_0c.x - candidate->position_0c.x) >=
-                            g_camera_snap_epsilon_005ebc2c ||
+                            g_camera_snap_epsilon ||
                         fabs(vertex->position_0c.y - candidate->position_0c.y) >=
-                            g_camera_snap_epsilon_005ebc2c ||
+                            g_camera_snap_epsilon ||
                         fabs(vertex->position_0c.z - candidate->position_0c.z) >=
-                            g_camera_snap_epsilon_005ebc2c) {
+                            g_camera_snap_epsilon) {
                         last = candidate_index;
                         linked = candidate->kind_20;
                     } else {
@@ -1478,7 +1473,7 @@ void W8GameData::CompileGameData00449D10()
             if (announce) {
                 sprintf(message, "  %d%% Complete:  %d Redundant Vertices  \r", progress,
                         redundant);
-                ReportStartupMessage004969D0(message);
+                ReportStartupMessage(message);
             }
             vertex->visited_0a = 0;
             ++vertex;
@@ -1498,16 +1493,16 @@ void W8GameData::CompileGameData00449D10()
     unsigned int multiplier =
         weld_count < 0xffff ? 0xffff : 0xffffffffu / static_cast<unsigned int>(weld_count);
 
-    g_gd_polygons_0065bd38 =
+    g_gd_polygons =
         static_cast<W8OctRegionPolygon*>(malloc(m_iNumSurfaces * sizeof(W8OctRegionPolygon)));
-    if (g_gd_polygons_0065bd38 == 0) {
-        ReportBuildStatus00497690(7, "CompileGameData: Couldn't allocate gpGDPolys.");
+    if (g_gd_polygons == 0) {
+        ReportBuildStatus(7, "CompileGameData: Couldn't allocate gpGDPolys.");
     }
-    memset(g_gd_polygons_0065bd38, 0, m_iNumSurfaces * sizeof(W8OctRegionPolygon));
+    memset(g_gd_polygons, 0, m_iNumSurfaces * sizeof(W8OctRegionPolygon));
     W8GDSurface* new_surfaces =
         static_cast<W8GDSurface*>(malloc(m_iNumSurfaces * sizeof(W8GDSurface)));
     if (new_surfaces == 0) {
-        ReportBuildStatus00497690(7, "CompileGameData: Couldn't allocate GameSurfaces.");
+        ReportBuildStatus(7, "CompileGameData: Couldn't allocate GameSurfaces.");
     }
     memset(new_surfaces, 0, m_iNumSurfaces * sizeof(W8GDSurface));
 
@@ -1527,17 +1522,17 @@ void W8GameData::CompileGameData00449D10()
             compiled->edge_link_0c[1] = -1;
             compiled->edge_link_0c[0] = -1;
             compiled->hit_plane_38 = 0;
-            W8OctRegionPolygon* polygon = g_gd_polygons_0065bd38 + polygon_count;
+            W8OctRegionPolygon* polygon = g_gd_polygons + polygon_count;
             polygon->ordinal_04 = polygon_count;
             polygon->plane_08 = compiled->plane_24;
             polygon->degenerate_30 = 0;
-            polygon->visited_31 = 0;
-            polygon->vertices_34[0] = g_gd_vertices_0065bd34 + compiled->vertex_indices_18[0];
-            polygon->vertices_34[1] = g_gd_vertices_0065bd34 + compiled->vertex_indices_18[1];
-            polygon->vertices_34[2] = g_gd_vertices_0065bd34 + compiled->vertex_indices_18[2];
+            polygon->visited_31 = false;
+            polygon->vertices_34[0] = g_gd_vertices + compiled->vertex_indices_18[0];
+            polygon->vertices_34[1] = g_gd_vertices + compiled->vertex_indices_18[1];
+            polygon->vertices_34[2] = g_gd_vertices + compiled->vertex_indices_18[2];
             for (j = 0; j < 3; ++j) {
-                LinkSurfaceEdge0044A7D0(polygon_count, j, &edge_table, new_surfaces, multiplier,
-                                        new_vertices);
+                LinkSurfaceEdge(polygon_count, j, &edge_table, new_surfaces, multiplier,
+                                new_vertices);
             }
             for (j = 0; j < m_iNumCondPolys; ++j) {
                 if (m_piCondPolys[j] == old_index) {
@@ -1563,17 +1558,17 @@ void W8GameData::CompileGameData00449D10()
             compiled->edge_link_0c[1] = -1;
             compiled->edge_link_0c[0] = -1;
             compiled->hit_plane_38 = 0;
-            W8OctRegionPolygon* polygon = g_gd_polygons_0065bd38 + polygon_count;
+            W8OctRegionPolygon* polygon = g_gd_polygons + polygon_count;
             polygon->ordinal_04 = polygon_count;
             polygon->plane_08 = compiled->plane_24;
             polygon->degenerate_30 = 0;
-            polygon->visited_31 = 0;
-            polygon->vertices_34[0] = g_gd_vertices_0065bd34 + compiled->vertex_indices_18[0];
-            polygon->vertices_34[1] = g_gd_vertices_0065bd34 + compiled->vertex_indices_18[1];
-            polygon->vertices_34[2] = g_gd_vertices_0065bd34 + compiled->vertex_indices_18[2];
+            polygon->visited_31 = false;
+            polygon->vertices_34[0] = g_gd_vertices + compiled->vertex_indices_18[0];
+            polygon->vertices_34[1] = g_gd_vertices + compiled->vertex_indices_18[1];
+            polygon->vertices_34[2] = g_gd_vertices + compiled->vertex_indices_18[2];
             for (j = 0; j < 3; ++j) {
-                LinkSurfaceEdge0044A7D0(polygon_count, j, &edge_table, new_surfaces, multiplier,
-                                        new_vertices);
+                LinkSurfaceEdge(polygon_count, j, &edge_table, new_surfaces, multiplier,
+                                new_vertices);
             }
             for (j = 0; j < m_iNumCondPolys; ++j) {
                 if (m_piCondPolys[j] == old_index) {
@@ -1596,14 +1591,13 @@ void W8GameData::CompileGameData00449D10()
     m_pVertices = new_vertices;
     m_pSurfaces = new_surfaces;
     sprintf(message, "GameData:  %d Polygons,  \t%d Vertices.\n\n", polygon_count, weld_count);
-    ReportBuildStatus00497690(6, message);
+    ReportBuildStatus(6, message);
 }
 
 /* Tests two polygons for a shared vertex pair; when they share an edge the
    matching corner slot on each surface is linked to the other's index_04. */
 // FUNCTION: WIZ8 0x0044A970
-static char ShareSurfaceEdge0044A970(W8GDSurface* first, W8GDSurface* second,
-                                     srVector3T<float>* vertices)
+static char ShareSurfaceEdge(W8GDSurface* first, W8GDSurface* second, srVector3T<float>* vertices)
 {
     int first_slot = -1;
     int second_slot = -1;
@@ -1644,11 +1638,11 @@ static char ShareSurfaceEdge0044A970(W8GDSurface* first, W8GDSurface* second,
 
 /* Registers one triangle edge in the edge hash under its undirected vertex
    pair key; when an earlier polygon carries the same key the pair is handed
-   to ShareSurfaceEdge0044A970 to link. */
+   to ShareSurfaceEdge to link. */
 // FUNCTION: WIZ8 0x0044A7D0
-static void LinkSurfaceEdge0044A7D0(int polygon, int edge, W8HashTable<unsigned int, int>* table,
-                                    W8GDSurface* surfaces, unsigned int multiplier,
-                                    srVector3T<float>* vertices)
+static void LinkSurfaceEdge(int polygon, int edge, W8HashTable<unsigned int, int>* table,
+                            W8GDSurface* surfaces, unsigned int multiplier,
+                            srVector3T<float>* vertices)
 {
     W8GDSurface* surface = surfaces + polygon;
     int next = (edge + 1) % 3;
@@ -1672,7 +1666,7 @@ static void LinkSurfaceEdge0044A7D0(int polygon, int edge, W8HashTable<unsigned 
                         if (linked) {
                             return;
                         }
-                        if (ShareSurfaceEdge0044A970(surfaces + index, surface, vertices) != 0) {
+                        if (ShareSurfaceEdge(surfaces + index, surface, vertices) != 0) {
                             linked = true;
                         } else {
                             index = table->FindNextEntry(&key, index);
@@ -1721,37 +1715,37 @@ unsigned char W8GameData::WriteGameData0044AA40(int handle)
     memset(header.padding_44, 0, sizeof(header.padding_44));
 
     if (handle == 0) {
-        ReportBuildStatus00497690(7, "WriteGameData: File not open.\n");
+        ReportBuildStatus(7, "WriteGameData: File not open.\n");
         return 0;
     }
     if (FileWrite(handle, &header, 0x68, 0) == 0) {
-        ReportBuildStatus00497690(7, "WriteGameData: Couldn't write GameData info.\n");
+        ReportBuildStatus(7, "WriteGameData: Couldn't write GameData info.\n");
         return 0;
     }
     if (FileWrite(handle, m_pVertices, m_iNumVertices * 0xc, 0) == 0) {
-        ReportBuildStatus00497690(7, "WriteGameData: Couldn't write vertex info.\n");
+        ReportBuildStatus(7, "WriteGameData: Couldn't write vertex info.\n");
         return 0;
     }
     if (FileWrite(handle, m_pSurfaces, m_iNumSurfaces * 0x4c, 0) == 0) {
-        ReportBuildStatus00497690(7, "WriteGameData: Couldn't write Surface info.\n");
+        ReportBuildStatus(7, "WriteGameData: Couldn't write Surface info.\n");
         return 0;
     }
     if (m_iNumInterfaces != 0 && FileWrite(handle, m_pInterfaces, m_iNumInterfaces * 0xc, 0) == 0) {
-        ReportBuildStatus00497690(7, "WriteGameData: Couldn't write switch interface info.\n");
+        ReportBuildStatus(7, "WriteGameData: Couldn't write switch interface info.\n");
         return 0;
     }
     if (m_iNumStates != 0 && FileWrite(handle, m_pStates, m_iNumStates * 0xc, 0) == 0) {
-        ReportBuildStatus00497690(7, "WriteGameData: Couldn't write switch state info.\n");
+        ReportBuildStatus(7, "WriteGameData: Couldn't write switch state info.\n");
         return 0;
     }
     if (m_iNumCondPolys != 0 && FileWrite(handle, m_piCondPolys, m_iNumCondPolys * 4, 0) == 0) {
-        ReportBuildStatus00497690(7, "WriteGameData: Couldn't write conditional poly list.\n");
+        ReportBuildStatus(7, "WriteGameData: Couldn't write conditional poly list.\n");
         return 0;
     }
     if (m_iNumEnvirons != 0) {
         for (index = 0; index < m_iNumEnvirons; ++index) {
             if (FileWrite(handle, m_ppEnvirons[index], 0x44, 0) == 0) {
-                ReportBuildStatus00497690(7, "WriteGameData: Couldn't write GD_Environ.\n");
+                ReportBuildStatus(7, "WriteGameData: Couldn't write GD_Environ.\n");
                 return 0;
             }
         }

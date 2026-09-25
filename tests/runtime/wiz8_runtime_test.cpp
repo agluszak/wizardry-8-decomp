@@ -53,7 +53,7 @@
 #include "wiz8/local_code/Traps.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/game_timer.h"
-#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_screens/mipe.h"
 #include "wiz8/layouts/main_game_screen.h"
@@ -94,7 +94,7 @@ extern InputAtom gEventQueue[256];
 }
 
 struct W8LevelLoadDescriptor;
-extern W8LevelLoadDescriptor* g_load_descriptor_69b7c8;
+extern W8LevelLoadDescriptor* g_load_descriptor;
 
 static RuntimeObservation g_observation;
 static const char* g_scenario;
@@ -113,44 +113,43 @@ static bool RunSearchModeSemanticTest(void)
     level.text_box_right = 30000;
     W8LevelRuntimeBlock* saved_level = g_level_block;
     int saved_screen = g_current_screen_state.id;
-    unsigned char saved_search = g_status_685170.search_mode;
+    unsigned char saved_search = g_status.search_mode;
     unsigned char saved_combat = gXStatus.fCombatMode;
     unsigned char saved_camp = gXStatus.fCampMode;
     unsigned char saved_dialogue = gXStatus.fNpcDialogueMode;
-    unsigned int saved_clock = g_search_pulse_clock_00689fcc;
+    unsigned int saved_clock = g_search_pulse_clock;
     unsigned int used[4];
-    memcpy(used, g_status_685170.text_box_lines_used_4997, sizeof(used));
+    memcpy(used, g_status.text_box_lines_used_4997, sizeof(used));
     g_level_block = &level;
     /* The loading screen accepts notices without advancing the live game UI. */
     g_current_screen_state.id = W8_SCREEN_PLEASE_WAIT;
     gXStatus.fCombatMode = 0;
     gXStatus.fCampMode = 0;
     gXStatus.fNpcDialogueMode = 0;
-    g_status_685170.search_mode = 0;
-    g_search_pulse_clock_00689fcc = 0;
+    g_status.search_mode = 0;
+    g_search_pulse_clock = 0;
     ToggleSearchMode();
-    bool on = g_status_685170.search_mode != 0 && g_search_pulse_clock_00689fcc != 0 &&
-              g_status_685170.text_box_lines_used_4997[0] == used[0] + 1 &&
-              wcscmp(g_message_storage_68f2d8[0][used[0]].wString,
-                     gppStringList[W8_NOTICE_SEARCH_MODE_ON]) == 0;
+    bool on =
+        g_status.search_mode != 0 && g_search_pulse_clock != 0 &&
+        g_status.text_box_lines_used_4997[0] == used[0] + 1 &&
+        wcscmp(g_message_storage[0][used[0]].wString, gppStringList[W8_NOTICE_SEARCH_MODE_ON]) == 0;
     ToggleSearchMode();
-    bool off = g_status_685170.search_mode == 0 &&
-               g_status_685170.text_box_lines_used_4997[0] == used[0] + 2 &&
-               wcscmp(g_message_storage_68f2d8[0][used[0] + 1].wString,
+    bool off = g_status.search_mode == 0 && g_status.text_box_lines_used_4997[0] == used[0] + 2 &&
+               wcscmp(g_message_storage[0][used[0] + 1].wString,
                       gppStringList[W8_NOTICE_SEARCH_MODE_OFF]) == 0;
     gXStatus.fCombatMode = 1;
-    unsigned int clock = g_search_pulse_clock_00689fcc;
+    unsigned int clock = g_search_pulse_clock;
     ToggleSearchMode();
     int combat_box = GetFlag68F105() ? 0 : 1;
     unsigned int combat_index = used[combat_box] + (combat_box == 0 ? 2 : 0);
-    bool blocked = g_status_685170.search_mode == 0 && g_search_pulse_clock_00689fcc == clock &&
-                   g_status_685170.text_box_lines_used_4997[combat_box] == combat_index + 1 &&
-                   wcscmp(g_message_storage_68f2d8[combat_box][combat_index].wString,
+    bool blocked = g_status.search_mode == 0 && g_search_pulse_clock == clock &&
+                   g_status.text_box_lines_used_4997[combat_box] == combat_index + 1 &&
+                   wcscmp(g_message_storage[combat_box][combat_index].wString,
                           gppStringList[W8_NOTICE_SEARCH_BLOCKED_COMBAT]) == 0;
     for (int box = 0; box < 4; ++box) {
-        for (unsigned int index = used[box]; index < g_status_685170.text_box_lines_used_4997[box];
+        for (unsigned int index = used[box]; index < g_status.text_box_lines_used_4997[box];
              ++index) {
-            W8MessageStorageRecord* record = &g_message_storage_68f2d8[box][index];
+            W8MessageStorageRecord* record = &g_message_storage[box][index];
             free(record->wString);
             if (record->entries_18) {
                 for (unsigned int entry = 0; entry < PLLength(record->entries_18); ++entry) {
@@ -162,14 +161,14 @@ static bool RunSearchModeSemanticTest(void)
             memset(record, 0, sizeof(*record));
         }
     }
-    memcpy(g_status_685170.text_box_lines_used_4997, used, sizeof(used));
+    memcpy(g_status.text_box_lines_used_4997, used, sizeof(used));
     g_level_block = saved_level;
     g_current_screen_state.id = saved_screen;
-    g_status_685170.search_mode = saved_search;
+    g_status.search_mode = saved_search;
     gXStatus.fCombatMode = saved_combat;
     gXStatus.fCampMode = saved_camp;
     gXStatus.fNpcDialogueMode = saved_dialogue;
-    g_search_pulse_clock_00689fcc = saved_clock;
+    g_search_pulse_clock = saved_clock;
     fprintf(stderr, "WIZ8_SEARCH_MODE on=%u off=%u combat_blocked=%u\n", on, off, blocked);
     return on && off && blocked;
 }
@@ -292,7 +291,7 @@ static void CheckMainMenuOnGameThread(void* opaque)
     check->region_enabled = g_region_sets[1].enabled;
     check->first_region = g_region_sets[1].first_region;
     check->last_region = g_region_sets[1].last_region;
-    check->playlist_active = g_music_playlist_active_65ba7e;
+    check->playlist_active = g_music_playlist_active;
     check->game_initialized = gfGameInitialized;
     check->app_active = gfApplicationActive;
     check->intro_screen = g_current_screen_state.id == W8_SCREEN_INTRO;
@@ -401,9 +400,9 @@ static void ReadMenuChecksOnGameThread(void* opaque)
     checks->region_set_enabled = g_region_sets[1].enabled;
     checks->first_region = g_region_sets[1].first_region;
     checks->last_region = g_region_sets[1].last_region;
-    checks->playlist_active = g_music_playlist_active_65ba7e;
-    checks->playlist_tracks = g_music_playlist_track_count_65ba84;
-    checks->playlist_weight = g_music_playlist_weight_total_65ba80;
+    checks->playlist_active = g_music_playlist_active;
+    checks->playlist_tracks = g_music_playlist_track_count;
+    checks->playlist_weight = g_music_playlist_weight_total;
     checks->playlist_pause_min = g_music_state_60aae8;
     checks->playlist_pause_max = g_music_state_60aaec;
     checks->playlist_pause_chance = g_music_state_60aaf0;
@@ -647,7 +646,7 @@ static void PrepareMainGameFixtureOnGameThread(void* opaque)
         request->failure = "character-allocation-incomplete";
         return;
     }
-    DeriveCharacterPersonality004EFA30(&character);
+    DeriveCharacterPersonality(&character);
     CalcCharacterTableValue(&character);
     if (character.portrait_index < 0 || character.portrait_index >= 0x50) {
         request->failure = "character-portrait-invalid";
@@ -866,11 +865,11 @@ static bool MouselookDragCase(RuntimeCase& test)
 static void QueueVoiceEventOnGameThread(void* opaque)
 {
     bool* queued = static_cast<bool*>(opaque);
-    W8Character* character = &g_status_685170.buffers.Char[2];
+    W8Character* character = &g_status.buffers.Char[2];
     character->gender = W8_GENDER_FEMALE;
     character->personality_0081 = 0;
     character->voice_0085 = 0;
-    g_status_685170.greeting_pending_2497 = 0;
+    g_status.greeting_pending_2497 = 0;
     *queued = QueueCharacterEvent(character, 4, 0, W8_EVENT_BYPASS_CHECKS, 0x7f) != 0;
 }
 

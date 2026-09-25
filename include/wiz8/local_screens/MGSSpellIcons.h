@@ -6,14 +6,14 @@ struct Controls;
 struct W8Region;
 
 /* Parent strip for the top-row spell icons (0x19d,0)-(0x280,0x12). */
-extern Controls* g_spell_icon_strip_69c2b0;
+extern Controls* g_spell_icon_strip;
 /* Combat-effect HUD panels flanking the center strip. */
-extern Controls* g_combat_effect_left_panel_69c2bc;
-extern Controls* g_combat_effect_right_panel_69c2b8;
+extern Controls* g_combat_effect_left_panel;
+extern Controls* g_combat_effect_right_panel;
 /* Live icon counts for the three panels above. */
-extern unsigned int g_spell_icon_count_69c25c;
-extern unsigned int g_combat_effect_left_count_69c2b4;
-extern unsigned int g_combat_effect_right_count_69c2ac;
+extern unsigned int g_spell_icon_count;
+extern unsigned int g_combat_effect_left_count;
+extern unsigned int g_combat_effect_right_count;
 
 /* Allocate the three HUD Controls panels MainGameScreenEnter needs before the
    spell/effect icon rows are filled in. */

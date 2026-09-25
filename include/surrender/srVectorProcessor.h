@@ -14,12 +14,12 @@ class srDebugVP;
    Extra inlines below are the srVP slots Wiz8 actually reaches through the
    imported vp global (IAT 0x005eb7e8): load vp, then CALL [vtable+offset].
    Confirmed Wiz8 loaders include FUN_0046e8a0, FUN_00470040,
-   CopyDwordBuffer00470180,
+   CopyDwordBuffer,
    FUN_00471ad0, FUN_00472270, FUN_004729f0, FUN_00473190, FUN_00474700,
-   FUN_00474730, FlushSlots00475600, FUN_0047f930, FUN_00486970,
-   PrepareGeometry004B6F30, GDProp::Initialize, FUN_00580270 and FUN_005809f0.
+   FUN_00474730, FlushSlots, FUN_0047f930, FUN_00486970,
+   PrepareGeometry, GDProp::Initialize, FUN_00580270 and FUN_005809f0.
    Offsets +0x210/+0x218/+0x224 are the srVector3 `_length`, `_normalize`
-   and `_transform` slots. FillDwordBuffer00474700 / AddFloatBuffer00474730 call the dword
+   and `_transform` slots. FillDwordBuffer00474700 / AddFloatBuffer call the dword
    `_copy` and float `_add` overloads; both compare exact against retail
    CALLIND +0x38 / +0xd8. */
 class srVectorProcessor {
@@ -83,6 +83,8 @@ public:
 
     /* srVertexPipe's record paths dispatch the vertex4 sources through the
        three-vector4 copyIndexed overloads at vtable +0x84/+0x88/+0x8c. */
+    // FUNCTION: SURRENDER 0x1005CC60 SYMBOL
+    // srVectorProcessor::copyIndexed(srVector4*, const srARGB*, const SRDWORD*, SRDWORD)
     static inline void copyIndexed(srVector4* destination, const srARGB* source,
                                    const SRDWORD* indices, SRDWORD count)
     {
@@ -318,6 +320,20 @@ public:
     static inline void reverse(SRDWORD* destination, const SRDWORD* source, SRDWORD count)
     {
         vp->_reverse(destination, source, count);
+    }
+
+    /* srPixelConvert's keyed 32-bit formats fold a constant into the pixel
+       run through the dword _and/_or slots (+0x44/+0x4c). */
+    static inline void bitwiseAnd(SRDWORD* destination, const SRDWORD* source, SRDWORD constant,
+                                  SRDWORD count)
+    {
+        vp->_and(destination, source, constant, count);
+    }
+
+    static inline void bitwiseOr(SRDWORD* destination, const SRDWORD* source, SRDWORD constant,
+                                 SRDWORD count)
+    {
+        vp->_or(destination, source, constant, count);
     }
 
     static inline void neg(float* destination, const float* source, SRDWORD count)

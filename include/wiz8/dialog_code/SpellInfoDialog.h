@@ -35,13 +35,13 @@ private:
 static_assert(sizeof(W8SpellInfoDialog) == 0x16c, "W8SpellInfoDialog_size");
 
 /* 0x0060D4E0: the "(on ...)" parenthetical per spell target type. */
-extern const wchar_t* g_spell_target_parentheticals_60d4e0[11];
+extern const wchar_t* g_spell_target_parentheticals[11];
 
 /* 0x00619794: the ", " separator join lists of notices are built with. */
-extern const wchar_t g_comma_space_00619794[];
+extern const wchar_t g_comma_space[];
 
 /* 0x0061A128: the "%d %s" count-and-name notice format. */
-extern const wchar_t g_format_d_s_0061a128[];
+extern const wchar_t g_format_d_s[];
 
 /* 0x0061E9A0: gppStringList indices naming each W8RangeCategory band. */
-extern const unsigned short g_spell_range_name_ids_61e9a0[4];
+extern const unsigned short g_spell_range_name_ids[4];

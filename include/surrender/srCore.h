@@ -41,9 +41,13 @@ public:
     SR_DLL_IMPORT srGlobalRecycler* getGlobalRecycler() const;
     SR_DLL_IMPORT srHierarchyIOManager* getHierarchyIOManager() const;
     /* Inline like getRegistry: pipeline reset/get paths load material as a
-       direct [srCore + 0x170] read rather than an import thunk. */
-    // FUNCTION: SURRENDER 0x10015730 SYMBOL
+       direct [srCore + 0x170] read rather than an import thunk. The member
+       dllexport still emits the exported standalone copy. */
+    // FUNCTION: SURRENDER 0x10015730
     // ?getMaterial@srCore@@QBEPAVsrMaterial@@XZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     srMaterial* getMaterial() const
     {
         return material_170;
@@ -54,17 +58,25 @@ public:
     SR_DLL_IMPORT srNode* getRootNode() const;
     /* Header-visible like getRegistry: the srBinIAsyncStream constructor
        queues its job through a direct [srCore + 0x00] read rather than an
-       out-of-line accessor call. */
-    // FUNCTION: SURRENDER 0x100156A0 SYMBOL
+       out-of-line accessor call. The member dllexport still emits the
+       exported standalone copy. */
+    // FUNCTION: SURRENDER 0x100156A0
     // ?getScheduler@srCore@@QBEPAVsrScheduler@@XZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     srScheduler* getScheduler() const
     {
         return scheduler_00;
     }
     /* Header-visible in the triangle pipeline: its statistics updates load
-       the manager directly from srCore +0x28. */
-    // FUNCTION: SURRENDER 0x100156B0 SYMBOL
+       the manager directly from srCore +0x28. The member dllexport still
+       emits the exported standalone copy. */
+    // FUNCTION: SURRENDER 0x100156B0
     // ?getStatisticsManager@srCore@@QBEPAVsrStatisticsManager@@XZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     srStatisticsManager* getStatisticsManager() const
     {
         return statistics_manager_28;
@@ -72,9 +84,13 @@ public:
     SR_DLL_IMPORT srColorSurfaceIFace* getSurface() const;
     SR_DLL_IMPORT srTexture* getTexture() const;
     /* Header-visible like getRegistry/getMaterial: timer users in both Wiz8
-       and recovered SR code read the pointer directly from srCore +0x08. */
-    // FUNCTION: SURRENDER 0x100156C0 SYMBOL
+       and recovered SR code read the pointer directly from srCore +0x08. The
+       member dllexport still emits the exported standalone copy. */
+    // FUNCTION: SURRENDER 0x100156C0
     // ?getTimer@srCore@@QBEPAVsrVariableTimer@@XZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     srVariableTimer* getTimer() const
     {
         return timer_08;
@@ -93,9 +109,12 @@ public:
        field read rather than calling an import thunk, so the original header
        carried this body even though SR.DLL also exports an out-of-line copy.
        Declaring it SR_DLL_IMPORT instead costs every getClassNode body its
-       exact match. */
-    // FUNCTION: SURRENDER 0x10015760 SYMBOL
+       exact match. The member dllexport emits the exported standalone copy. */
+    // FUNCTION: SURRENDER 0x10015760
     // ?getRegistry@srCore@@QBEPAVsrRegistry@@XZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     srRegistry* getRegistry() const
     {
         return registry_;

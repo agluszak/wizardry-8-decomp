@@ -54,7 +54,7 @@ struct W8PartySlotRow {
     unsigned char queued_action;
     W8CombatSlot target_context_5;
     /* 0x0f1: the slot's place in the marching order, the index of its entry
-       in g_status_685170.party_order_slots. */
+       in g_status.party_order_slots. */
     int party_order_index;
     /* 0x0f5: a camp-screen item action is pending on the slot; blocks
        weapon autoswap until resolved. */
@@ -62,16 +62,18 @@ struct W8PartySlotRow {
     /* 0x0f6: distance-scaled fatigue accumulator; every 2500 units convert
        into real fatigue via FatigueCharacter. */
     float movement_fatigue;
-    int animation_0fa;
+    /* 0x0fa: for a recruited NPC's slot, the index of its W8NpcState in
+       g_npc_states (GetNpcState); -1 for a created character. */
+    int npc_index;
     /* 0x0fe: cleared by the level-entry NPC-binding reset. */
     /* 0xfe: an NPC is bound to this party slot; set when the binding
        restores, cleared by the level-entry reset. Gates the RPC banter
        event clock and the bonded-attribute penalty. */
-    unsigned char npc_bound_fe;
+    bool npc_bound_fe;
     unsigned int pending_event_type_ff; /* 0xff: last queued portrait event type */
     /* 0x103: portrait advance is only allowed while this is set. */
     unsigned char portrait_advance_103;
-    unsigned char action_is_berserk;
+    bool action_is_berserk;
     /* 0x105: a weapon-set swap is queued; the autoswap pass consumes it
        through SwapWeaponSetSlots and clears it. */
     bool weapon_swap_pending_105;
@@ -159,8 +161,8 @@ struct W8CombatCharacterRow {
     unsigned int pending_action_repick_count;
     /* 0x98/0x99: per-slot once-per-combat action-use flags read by
        CanPartySlotPray and CanPartySlotTurnUndead. */
-    unsigned char pray_used;
-    unsigned char turn_undead_used;
+    bool pray_used;
+    bool turn_undead_used;
     unsigned char padding_9a[2];
     /* 0x9c: the combat clock value when CatchUpCombatActor last advanced this
        row's phase (its inlined copies stamp g_combat_state->round_counter
@@ -176,8 +178,8 @@ struct W8CombatCharacterRow {
     /* 0xa5: the attack's sound/roll state; set once MakePCAttackSound has
        played so a resumed swing does not replay it, cleared when the row's
        attack finishes. */
-    unsigned char attack_sound_played_a5;
-    unsigned char cheat_death_used;
+    bool attack_sound_played_a5;
+    bool cheat_death_used;
     /* 0xa7: SetCharacterCombatAction raises it when the slot's queued action
        changes while an action runs; committing the pending block clears it. */
     bool action_changed_a7;
@@ -287,11 +289,11 @@ struct W8CombatState {
        gates the party slots and the neutral/friendly monsters, +0xa53 the
        hostile ones; the surprise roll at combat start sets them, mutual
        surprise cancels both, and the round-end pass clears them. */
-    unsigned char party_surprised_a52;
-    unsigned char monsters_surprised_a53;
+    bool party_surprised_a52;
+    bool monsters_surprised_a53;
     /* 0xa54: hostile monsters are engaged in this combat; latched at start
        from hostile_monster_count and re-raised by hostility events. */
-    unsigned char enemies_engaged_a54;
+    bool enemies_engaged_a54;
     /* 0xa55: no aggressive action has resolved this round; the round-end
        pass counts it toward unengaged_rounds_a56. */
     unsigned char passive_round_a55;
@@ -308,9 +310,9 @@ struct W8CombatState {
        third before it touches group states. */
     unsigned int combat_update_count;
     /* 0xa60: the scheduler's pacing latch - armed by
-       BeginCombatExecution004E8370, it suppresses a second action delay for
+       BeginCombatExecution, it suppresses a second action delay for
        a monster's turn and caps the armed delay at 800 ms. */
-    unsigned char pacing_latch_a60;
+    bool pacing_latch_a60;
     /* 0xa61: remembered search-mode state; the combat teardown toggles search
        mode back on when it reads nonzero. */
     unsigned char search_mode_saved_a61;

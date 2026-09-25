@@ -57,6 +57,20 @@ const char* srTexture::sGetClassName()
     return "srTexture";
 }
 
+/* Retail delegates to operator= then overwrites the fresh members with a
+   memberwise copy of the source — srTextureIFace::Dimensions copies its
+   srPtr<srPalette> with copy-constructor semantics (addref, no release). */
+// FUNCTION: SURRENDER 0x1005F150
+srTexture::srTexture(const srTexture& other)
+{
+    *this = other;
+    packed_state_18 = other.packed_state_18;
+    mipmap_bias_1c = other.mipmap_bias_1c;
+    texture_dimensions_ = other.texture_dimensions_;
+    texture_priority_4c = other.texture_priority_4c;
+    texture_flags_ = other.texture_flags_;
+}
+
 // FUNCTION: SURRENDER 0x1005E440
 srTexture::srTexture()
 {
@@ -265,6 +279,36 @@ float srTexture::getPriority()
     return texture_priority_4c;
 }
 
+// FUNCTION: SURRENDER 0x1005EAC0
+void srTexture::setPriority(float priority)
+{
+    if (priority <= 0.0f) {
+        texture_priority_4c = 0.0f;
+    } else if (priority >= 1.0f) {
+        texture_priority_4c = 1.0f;
+    } else {
+        texture_priority_4c = priority;
+    }
+}
+
+// FUNCTION: SURRENDER 0x1005EB10
+float srTexture::getMipmapBias() const
+{
+    return mipmap_bias_1c;
+}
+
+// FUNCTION: SURRENDER 0x1005EB30
+void srTexture::setFilter(srFilter* filter)
+{
+    texture_dimensions_.filter = filter;
+}
+
+// FUNCTION: SURRENDER 0x1005EBD0
+void srTexture::setDimensionsDirty()
+{
+    texture_flags_ |= 1 << FLAG_DIRTY_DEFAULTS;
+}
+
 // FUNCTION: SURRENDER 0x1005EB40
 void srTexture::setMipmapBias(float bias)
 {
@@ -355,6 +399,32 @@ void srTexture::disableHint(e_hint hint)
     texture_dimensions_.hints &= ~(1 << hint);
 }
 
+// FUNCTION: SURRENDER 0x1005EDC0
+int srTexture::isHintEnabled(e_hint hint) const
+{
+    return (texture_dimensions_.hints & (1 << hint)) != 0;
+}
+
+// FUNCTION: SURRENDER 0x1005EED0
+srTextureIFace::e_compression srTexture::getCompression() const
+{
+    return texture_dimensions_.compression;
+}
+
+// FUNCTION: SURRENDER 0x1005EEE0
+void srTexture::setCompression(e_compression compression)
+{
+    texture_dimensions_.compression = compression;
+}
+
+// FUNCTION: SURRENDER 0x1005EF00
+unsigned long srTexture::getNewFrameHandles(unsigned long count)
+{
+    unsigned long first = _frameHandle + 1;
+    _frameHandle = _frameHandle + count;
+    return first;
+}
+
 // FUNCTION: SURRENDER 0x1005EDF0
 unsigned long srTexture::getTextureFrameHandle()
 {
@@ -388,3 +458,32 @@ const char* srTextureIFace::getTextureName()
 {
     return getName();
 }
+
+// FUNCTION: SURRENDER 0x1005F5E0
+srTextureIFace::srTextureIFace() {}
+
+// FUNCTION: SURRENDER 0x1005F660
+srTextureIFace::srTextureIFace(const srTextureIFace& other)
+{
+    if (this != &other) {
+        srClass::operator=(other);
+    }
+}
+
+// FUNCTION: SURRENDER 0x1005F5C0
+srTextureIFace& srTextureIFace::operator=(const srTextureIFace& other)
+{
+    if (this != &other) {
+        srClass::operator=(other);
+    }
+    return *this;
+}
+
+// FUNCTION: SURRENDER 0x1005F3E0
+srTextureIFace::~srTextureIFace() {}
+
+// TEMPLATE: SURRENDER 0x1005F470
+// srClassSupport<srTextureIFace, srClass, true, 0x2100>::sGetClassNode
+
+// TEMPLATE: SURRENDER 0x1005F4B0
+// srClassSupport<srTextureIFace, srClass, true, 0x2100>::srClassSupport

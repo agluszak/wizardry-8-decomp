@@ -49,7 +49,7 @@ static_assert((sizeof(stMaterial) == 0x7C), "stMaterial_must_be_0x7c");
 /* Engine Code\materials.cpp consumes this serialized material record from
    level particles and animated-texture descriptors. The four 40-byte texture
    names and the unaligned tail fields are fixed by 0x004B8A70/0x004B98F0. */
-struct W8MaterialRecord004B8A70 {
+struct W8MaterialRecord {
     unsigned char version_00;             /* 0x000 */
     unsigned char texture_name_001[0x28]; /* 0x001 */
     char texture_names_029[4][0x28];      /* 0x029 */
@@ -70,42 +70,39 @@ struct W8MaterialRecord004B8A70 {
 
 #pragma pack(pop)
 
-static_assert(sizeof(W8MaterialRecord004B8A70) == 0x12a,
-              "W8MaterialRecord004B8A70_size_must_be_0x12a");
+static_assert(sizeof(W8MaterialRecord) == 0x12a, "W8MaterialRecord_size_must_be_0x12a");
 
 /* Per-draw material override switches consumed by stMaterial::getMaterialInfo;
    stModelInstance's mesh submit arms them around each chained model. */
-extern bool g_material_diffuse_scale_enabled_0065ba9e;
-extern float g_material_diffuse_scale_0065baa0;
-extern bool g_material_emissive_override_enabled_0065baa4;
-extern float g_material_emissive_override_0065baa8;
+extern bool g_material_diffuse_scale_enabled;
+extern float g_material_diffuse_scale;
+extern bool g_material_emissive_override_enabled;
+extern float g_material_emissive_override;
 
-unsigned char LoadMaterial004B8A70(const char* bitmap_folder,
-                                   const W8MaterialRecord004B8A70* source,
-                                   srMaterialIFace** material, srTextureIFace** texture,
-                                   unsigned long* render_flags, int positional_unused);
+unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* source,
+                           srMaterialIFace** material, srTextureIFace** texture,
+                           unsigned long* render_flags, int positional_unused);
 srTexture* LoadTexture004B95D0(const char* folder, const char* name, unsigned char required);
-stTextureAnim* LoadAnimatedTexture004B98F0(const char* folder, const char* name,
-                                           const W8MaterialRecord004B8A70* source,
-                                           unsigned char required);
-bool MeshHasAnimatedTexture004B9AA0(srMeshModel* model);
-void SetModelAnimatedTextureFrame004B9B00(srModelInstance* instance, int frame);
-stTextureAnim* GetModelAnimatedTexture004B9B50(srModelInstance* instance);
+stTextureAnim* LoadAnimatedTexture(const char* folder, const char* name,
+                                   const W8MaterialRecord* source, unsigned char required);
+bool MeshHasAnimatedTexture(srMeshModel* model);
+void SetModelAnimatedTextureFrame(srModelInstance* instance, int frame);
+stTextureAnim* GetModelAnimatedTexture(srModelInstance* instance);
 
 unsigned char CreateDefaultMaterial(srMaterialIFace** material, srTextureIFace** texture,
                                     unsigned long* render_flags);
-srTextureIFace* LoadTexture004B9460(const char* path, const W8MaterialRecord004B8A70* source,
+srTextureIFace* LoadTexture004B9460(const char* path, const W8MaterialRecord* source,
                                     unsigned char required);
 
 struct W8OctPreTreeVertex;
 struct W8OctRegionPolygon;
 
-extern W8OctPreTreeVertex* g_gd_vertices_0065bd34;
-extern W8OctRegionPolygon* g_gd_polygons_0065bd38;
+extern W8OctPreTreeVertex* g_gd_vertices;
+extern W8OctRegionPolygon* g_gd_polygons;
 
-char BuildPreprocessedFiles00492E60(const char* level_path);
-void ReportBuildStatus00497690(int channel, const char* message);
-void ReportStartupMessage004969D0(const char* message);
+char BuildPreprocessedFiles(const char* level_path);
+void ReportBuildStatus(int channel, const char* message);
+void ReportStartupMessage(const char* message);
 char* TrimAndLowercaseString(char* text);
 struct W8OctPreTreeVertex;
 struct W8OctRegionPolygon;

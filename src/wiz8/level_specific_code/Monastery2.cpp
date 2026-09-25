@@ -21,7 +21,7 @@
 #define MONASTERY2_CPP "C:\\Projects\\Wizardry 8\\Level Specific Code\\Monastery2.cpp"
 
 // FUNCTION: WIZ8 0x004dc7a0
-bool Monastery2BellButton004DC7A0(Trigger* pTrigger)
+bool Monastery2BellButton(Trigger* pTrigger)
 {
     W8Prop* prop;
     Trigger* pPropTrigger;
@@ -54,7 +54,7 @@ bool Monastery2BellButton004DC7A0(Trigger* pTrigger)
 }
 
 // FUNCTION: WIZ8 0x004dc880
-bool Monastery2MicroDoor2004DC880(Trigger* pTrigger)
+bool Monastery2MicroDoor2(Trigger* pTrigger)
 {
     srVector3T<float> position;
     W8WorldItem* item;

@@ -44,7 +44,7 @@ void DrawPortraitEffectIcon(unsigned int party_slot); /* 0x0059B0F0 */
 /* 0x006488D0: dead-character portrait catalog ids, two per race - the small
    party-strip image at [race][0] and the large header portrait at [race][1]. */
 // GLOBAL: WIZ8 0x006488D0
-int g_dead_portrait_catalog_ids_6488d0[16][2] = {
+int g_dead_portrait_catalog_ids[16][2] = {
     {20, 31}, {20, 31}, {20, 31}, {20, 31}, {20, 31}, {20, 31}, {23, 34}, {21, 32},
     {22, 33}, {25, 36}, {24, 35}, {27, 38}, {26, 37}, {28, 39}, {29, 40}, {30, 41},
 };
@@ -53,7 +53,7 @@ int g_dead_portrait_catalog_ids_6488d0[16][2] = {
    stores the right-hand id at +0 and the left-hand id at +4 (retail also reaches
    the left id through 0x00649DD8). */
 // GLOBAL: WIZ8 0x00649DD4
-int g_empty_hand_catalog_ids_649dd4[32] = {
+int g_empty_hand_catalog_ids[32] = {
     103, 102, 103, 102, 103, 102, 103, 102, 103, 102, 105, 104, 109, 108, 109, 108,
     107, 106, 107, 106, 107, 106, 107, 106, 109, 108, 103, 102, 109, 108, 111, 110,
 };
@@ -66,15 +66,15 @@ char s_spell_sound_format_0061aa9c[] = "Data\\Spells\\Sounds\\%s.wav";
 char s_general_magic_sound_0064c664[] = "Data\\Spells\\Sounds\\GeneralMagic.wav";
 
 // GLOBAL: WIZ8 0x0069B920
-W8TextControl* g_portrait_controls_0069b920[8]; /* gpLevelButtons[uiSlot] */
+W8TextControl* g_portrait_controls[8]; /* gpLevelButtons[uiSlot] */
 
 // The condition-buttons panel and its eight buttons, created together by
 // CreateConditionButtons. The asserts there name them gpConditionButtonsPanel
 // and gpConditionButtons[uiSlot].
 // GLOBAL: WIZ8 0x0069B900
-W8ConditionButton* g_condition_buttons_0069b900[8];
+W8ConditionButton* g_condition_buttons[8];
 // GLOBAL: WIZ8 0x0069B944
-Controls* g_condition_buttons_panel_0069b944;
+Controls* g_condition_buttons_panel;
 /* Party slot the level-up portrait button opens; -1 while idle. */
 // GLOBAL: WIZ8 0x0069B948
 int giLevelUpChar;
@@ -95,11 +95,11 @@ void SyncPartyPortraitVitalsBars(void)
         unsigned int spell_bar = 0;
         W8Character* character;
 
-        if (g_status_685170.buffers.XChar[slot].fOccupied == 0) {
+        if (g_status.buffers.XChar[slot].fOccupied == 0) {
             continue;
         }
 
-        character = &g_status_685170.buffers.Char[slot];
+        character = &g_status.buffers.Char[slot];
         if (character->hp_current == 0) {
             hp_bar = 0;
             stamina_bar = 0;
@@ -140,7 +140,7 @@ void SyncPartyPortraitVitalsBars(void)
             if (hp_bar != static_cast<unsigned int>(entry->cached_hp_bar) ||
                 stamina_bar != static_cast<unsigned int>(entry->cached_stamina_bar) ||
                 spell_bar != static_cast<unsigned int>(entry->cached_spell_bar) ||
-                (g_settings_6850c8.numeric_hit_points != 0 &&
+                (g_settings.numeric_hit_points != 0 &&
                  static_cast<int>(character->hp_current) != entry->cached_hp)) {
                 entry->portrait_stats_dirty = 1;
                 RequestRedraw(0x80000000);
@@ -176,7 +176,7 @@ void RecordCharacterDamage(int party_slot, unsigned int amount)
         } else {
             entry->damage_splat_catalog = 0x91;
         }
-        if (g_status_685170.buffers.Char[party_slot].hp_current == 0) {
+        if (g_status.buffers.Char[party_slot].hp_current == 0) {
             entry->damage_splat_death_variant = 1;
             entry->damage_splat_end_frame = 0x1e;
         } else {
@@ -185,7 +185,7 @@ void RecordCharacterDamage(int party_slot, unsigned int amount)
         }
         entry->damage_splat_frame = 0;
         splat_started = true;
-        if (g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
+        if (g_settings.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
             g_level_block->portrait_refresh_pending[party_slot] == 0) {
             RefreshSelectedPartyPortrait(party_slot);
             entry->auto_portrait_refresh = 1;
@@ -194,7 +194,7 @@ void RecordCharacterDamage(int party_slot, unsigned int amount)
     } else {
         entry->damage_splat_amount += amount;
         entry->damage_splat_frame = 0;
-        if (g_status_685170.buffers.Char[party_slot].hp_current == 0 &&
+        if (g_status.buffers.Char[party_slot].hp_current == 0 &&
             entry->damage_splat_death_variant == 0) {
             entry->damage_splat_death_variant = 1;
             entry->damage_splat_end_frame = 0x1e;
@@ -249,7 +249,7 @@ void DrawDamageSplatOverlay(unsigned int party_slot)
             bounds.bottom = top + 0x4c;
             W8TextBuffer splat_text(&bounds, 0, 0, 0, 4);
             splat_text.SetText(FormatWideString(g_format_d_0060aa20, entry->damage_splat_amount),
-                               g_wiz_text_bold_font_683664);
+                               g_wiz_text_bold_font);
             splat_text.RenderToTarget(0, 0, -0xe);
         }
         if (gXStatus.fCombatMode != 0) {
@@ -281,7 +281,7 @@ void DrawPortraitEffectIcon(unsigned int party_slot)
         case 3:
             top = 0x111;
         }
-        if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS ||
+        if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS ||
             g_level_block->portrait_refresh_pending[party_slot] != 0) {
             DrawCatalogImageAndInvalidate(
                 -0xe, gXStatus.monster_manager_entries[party_slot].effect_icon_catalog, 0, image,
@@ -299,17 +299,17 @@ void TickPartyPortraitFx(void)
 
     for (slot = 0; slot < 8; ++slot) {
         W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[slot];
-        unsigned char clock_expired;
-        bool dirty = 0;
+        bool clock_expired;
+        bool dirty = false;
 
-        if (g_status_685170.buffers.XChar[slot].fOccupied == 0) {
+        if (g_status.buffers.XChar[slot].fOccupied == 0) {
             continue;
         }
 
         clock_expired = ClockIsTicking(entry->portrait_fx_clock) == 0;
         if (entry->damage_splat_active != 0) {
             if (clock_expired != 0) {
-                entry->damage_splat_frame = entry->damage_splat_frame + 1;
+                ++entry->damage_splat_frame;
                 dirty = 1;
             }
             if (entry->damage_splat_frame == entry->damage_splat_end_frame) {
@@ -322,7 +322,7 @@ void TickPartyPortraitFx(void)
         }
         if (entry->effect_icon_active != 0) {
             if (clock_expired != 0) {
-                entry->effect_icon_frame = entry->effect_icon_frame + 1;
+                ++entry->effect_icon_frame;
                 dirty = 1;
             }
             if (entry->effect_icon_frame == entry->effect_icon_end_frame) {
@@ -349,7 +349,7 @@ void ResetPartyPortraitFx(void)
     for (slot = 0; slot < 8; ++slot) {
         W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[slot];
 
-        if (g_status_685170.buffers.XChar[slot].fOccupied == 0) {
+        if (g_status.buffers.XChar[slot].fOccupied == 0) {
             continue;
         }
         entry->effect_icon_active = 0;
@@ -369,7 +369,7 @@ void ResetPartyPortraitFx(void)
    badge or the party-member target marker. The slot currently acting is drawn
    by the action panel instead. */
 // FUNCTION: WIZ8 0x0059B720
-void RedrawCombatPortraits0059B720(void)
+void RedrawCombatPortraits(void)
 {
     int portrait_x;
     int badge_x;
@@ -378,8 +378,8 @@ void RedrawCombatPortraits0059B720(void)
     int slot;
 
     for (slot = 0; slot < 8; ++slot) {
-        W8PartySlotRow* party_row = &g_status_685170.buffers.XChar[slot];
-        W8Character* character = &g_status_685170.buffers.Char[slot];
+        W8PartySlotRow* party_row = &g_status.buffers.XChar[slot];
+        W8Character* character = &g_status.buffers.Char[slot];
         W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[slot];
         W8CombatCharacterRow* combat_row = &g_combat_state->characters[slot];
 
@@ -397,7 +397,7 @@ void RedrawCombatPortraits0059B720(void)
             badge_x = 0x25b;
         }
         row_y = (slot >> 1) * 0x55;
-        if (g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
+        if (g_settings.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
             g_level_block->portrait_refresh_pending[slot] == 0) {
             ClearSurfaceRect(portrait_x, row_y + 0x37, portrait_x + 0x14, row_y + 0x58);
             InvalidateRegion(portrait_x, row_y + 0x37, portrait_x + 0x14, row_y + 0x58, 0);
@@ -414,7 +414,7 @@ void RedrawCombatPortraits0059B720(void)
         } else if (party_row->target_in_combat.iType == W8_TARGET_KIND_CHARACTER) {
             DrawCatalogImageAndInvalidate(
                 -0xe, 0x8c, 0,
-                g_status_685170.buffers.XChar[party_row->target_in_combat.iChar].party_order_index,
+                g_status.buffers.XChar[party_row->target_in_combat.iChar].party_order_index,
                 badge_x, row_y + 0x38, 2, 0);
         }
         entry->combat_portrait_dirty = 0;
@@ -426,7 +426,7 @@ void RedrawCombatPortraits0059B720(void)
 // FUNCTION: WIZ8 0x0059AA30
 void ToggleNumericHitPoints(void)
 {
-    g_settings_6850c8.numeric_hit_points = g_settings_6850c8.numeric_hit_points == 0;
+    g_settings.numeric_hit_points = g_settings.numeric_hit_points == 0;
     for (unsigned int slot = 0; slot < 8; slot++) {
         RequestRedraw(1u << slot);
     }
@@ -508,8 +508,8 @@ void GetPartySlotMenuAnchor(int party_slot, int* menu_x, int* menu_y, int* band_
     default:
         break;
     }
-    if (adjust != 0 && g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
-        static_cast<unsigned int>(g_settings_6850c8.main_ui_mode) <=
+    if (adjust != 0 && g_settings.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
+        static_cast<unsigned int>(g_settings.main_ui_mode) <=
             static_cast<unsigned int>(W8_MAIN_UI_MODE_RADAR)) {
         if ((party_slot & 1) == 0) {
             *menu_x -= 0x69;
@@ -533,7 +533,7 @@ void GetPartySlotMenuAnchor(int party_slot, int* menu_x, int* menu_y, int* band_
 void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
 {
     W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[party_slot];
-    W8Character* character = &g_status_685170.buffers.Char[party_slot];
+    W8Character* character = &g_status.buffers.Char[party_slot];
     int menu_x;
     int menu_y;
     int band_menu_edge;
@@ -554,7 +554,7 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
     if (character->hp_current != 0) {
         GetPartySlotMenuAnchor(party_slot, &menu_x, &menu_y, &band_menu_edge, &band_portrait_edge,
                                &grid_row, &column_x, slot_enabled);
-        if (g_settings_6850c8.numeric_hit_points != 0) {
+        if (g_settings.numeric_hit_points != 0) {
             bar_y = 0x11;
             hp_bar_x = 3;
             stamina_bar_x = 9;
@@ -571,7 +571,7 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
             stamina_catalog = 0x50;
             spell_catalog = 0x51;
         }
-        numeric_hp_mode = g_settings_6850c8.numeric_hit_points != 0;
+        numeric_hp_mode = g_settings.numeric_hit_points != 0;
 
         DrawCatalogImage(-14, hp_catalog, 0, 0, band_portrait_edge + hp_bar_x, bar_y + menu_y, 2,
                          0);
@@ -588,8 +588,8 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
                     fill_color = Get16BPPColor(0x10101);
                     do {
                         LineDraw(1, draw_x, draw_y, draw_x, end_y, fill_color, screen);
-                        draw_x = draw_x + 1;
-                        line_count = line_count - 1;
+                        ++draw_x;
+                        --line_count;
                     } while (line_count != 0);
                 }
                 UnlockPrimarySurface();
@@ -611,8 +611,8 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
                     fill_color = Get16BPPColor(0x10101);
                     do {
                         LineDraw(1, draw_x, draw_y, draw_x, end_y, fill_color, screen);
-                        draw_x = draw_x + 1;
-                        line_count = line_count - 1;
+                        ++draw_x;
+                        --line_count;
                     } while (line_count != 0);
                 }
                 UnlockPrimarySurface();
@@ -635,8 +635,8 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
                         fill_color = Get16BPPColor(0x10101);
                         do {
                             LineDraw(1, draw_x, draw_y, draw_x, end_y, fill_color, screen);
-                            draw_x = draw_x + 1;
-                            line_count = line_count - 1;
+                            ++draw_x;
+                            --line_count;
                         } while (line_count != 0);
                     }
                     UnlockPrimarySurface();
@@ -646,7 +646,7 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
 
         InvalidateRegion(band_portrait_edge, bar_y + menu_y, band_portrait_edge + 0x18,
                          bar_y + menu_y + 0x2d, 0);
-        if (g_settings_6850c8.numeric_hit_points != 0) {
+        if (g_settings.numeric_hit_points != 0) {
             W8TextBuffer text;
             W8ControlsRect bounds;
 
@@ -656,9 +656,9 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
             bounds.bottom = menu_y + 0x46;
             text.SetLayoutMode(g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED54C);
             text.SetLayoutBounds(&bounds, 1, 1);
-            SetFontObjectPalette16BPP(g_smfnt_font_683694, g_font_palette_smfnt_68ee10);
+            SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
             text.SetText(FormatWideString(g_format_d_0060aa20, character->hp_current),
-                         g_smfnt_font_683694);
+                         g_smfnt_font);
             InvalidateRegion(bounds.left, bounds.top + 1, bounds.right, bounds.bottom, 0);
             ColorFillVideoSurfaceArea(-14, bounds.left, bounds.top + 1, bounds.right, bounds.bottom,
                                       0x8000);
@@ -670,7 +670,7 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
 }
 
 // FUNCTION: WIZ8 0x0059AF40
-void StageMonsterCastIcon0059AF40(unsigned int party_slot, int realm, char alternate, int spell_id)
+void StageMonsterCastIcon(unsigned int party_slot, int realm, char alternate, int spell_id)
 {
     if (g_current_screen_state.id != W8_SCREEN_MAIN_GAME) {
         return;
@@ -708,7 +708,7 @@ void StageMonsterCastIcon0059AF40(unsigned int party_slot, int realm, char alter
             ? FormatString(s_spell_sound_format_0061aa9c, g_spell_records[spell_id].sound_name)
             : s_general_magic_sound_0064c664;
     SoundPlay(sound, 0);
-    if (g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
+    if (g_settings.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
         g_level_block->portrait_refresh_pending[party_slot] == 0) {
         RefreshSelectedPartyPortrait(party_slot);
         entry->auto_portrait_refresh = 1;
@@ -725,26 +725,23 @@ void StageMonsterCastIcon0059AF40(unsigned int party_slot, int realm, char alter
 }
 
 // FUNCTION: WIZ8 0x005993A0
-unsigned char PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int left,
-                                          unsigned int top)
+bool PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int left, unsigned int top)
 {
     if (gXStatus.fNpcDialogueMode != 0 && (party_slot & 1) != 0 &&
         IsPortraitObscuredByNpcDialogue(party_slot) != 0) {
         return 0;
     }
     if ((g_level_block == 0 ||
-         (g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_FORMATION &&
-          g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_RADAR) ||
+         (g_settings.main_ui_mode != W8_MAIN_UI_MODE_FORMATION &&
+          g_settings.main_ui_mode != W8_MAIN_UI_MODE_RADAR) ||
          g_level_block->portrait_refresh_pending[party_slot] != 0) &&
-        g_status_685170.buffers.XChar[party_slot].fOccupied != 0) {
-        W8Character* character = &g_status_685170.buffers.Char[party_slot];
+        g_status.buffers.XChar[party_slot].fOccupied != 0) {
+        W8Character* character = &g_status.buffers.Char[party_slot];
         if (character->hp_current != 0) {
             int portrait = character->portrait_index;
             int flags = 2;
-            if ((g_portrait_descriptors_6483d0[portrait].render_mode == 1 &&
-                 (party_slot & 1) == 0) ||
-                (g_portrait_descriptors_6483d0[portrait].render_mode == 2 &&
-                 (party_slot & 1) != 0)) {
+            if ((g_portrait_descriptors[portrait].render_mode == 1 && (party_slot & 1) == 0) ||
+                (g_portrait_descriptors[portrait].render_mode == 2 && (party_slot & 1) != 0)) {
                 flags = 0x1002;
             }
             if (BlitPartyPortraitAnimation(portrait, left, top, flags, party_slot, 0) != 0 &&
@@ -795,8 +792,8 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
     GetPartySlotMenuAnchor(party_slot, &menu_x, &menu_y, &band_menu_edge, &band_portrait_edge,
                            &grid_row, &column_x, slot_enabled);
 
-    party_row = &g_status_685170.buffers.XChar[party_slot];
-    character = &g_status_685170.buffers.Char[party_slot];
+    party_row = &g_status.buffers.XChar[party_slot];
+    character = &g_status.buffers.Char[party_slot];
     entry = &gXStatus.monster_manager_entries[party_slot];
 
     if (party_row->fOccupied == 0) {
@@ -810,20 +807,20 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
             DrawCatalogImage(-14, portrait_catalog, 0, 0, menu_x + 0x14, menu_y, portrait_flags, 0);
         } else if (character->hp_current == 0 &&
                    (entry->damage_splat_death_variant == 0 || entry->dead_portrait_revealed != 0)) {
-            portrait_catalog = g_dead_portrait_catalog_ids_6488d0[character->iRace][1];
+            portrait_catalog = g_dead_portrait_catalog_ids[character->iRace][1];
             portrait_flags = (party_slot & 1) == 0 ? 2 : 0x1002;
             DrawCatalogImage(-14, portrait_catalog, 0, 0, menu_x + 0x14, menu_y, portrait_flags, 0);
         } else {
             portrait_catalog = character->portrait_index;
             portrait_flags = 2;
-            if ((g_portrait_descriptors_6483d0[portrait_catalog].render_mode == 1 &&
+            if ((g_portrait_descriptors[portrait_catalog].render_mode == 1 &&
                  (party_slot & 1) == 0) ||
-                (g_portrait_descriptors_6483d0[portrait_catalog].render_mode == 2 &&
+                (g_portrait_descriptors[portrait_catalog].render_mode == 2 &&
                  (party_slot & 1) != 0)) {
                 portrait_flags = 0x1002;
             }
-            RenderPartyPortrait0052EB00(portrait_catalog, menu_x + 0x14, menu_y, portrait_flags, 1,
-                                        party_slot);
+            RenderPartyPortrait(portrait_catalog, menu_x + 0x14, menu_y, portrait_flags, 1,
+                                party_slot);
         }
         DrawCatalogImage(-14, 0x82, 0, static_cast<short>(grid_row), column_x, menu_y, 2, 0);
     }
@@ -832,7 +829,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
 
     if (party_row->fOccupied != 0) {
         if (overlay_ready != 0) {
-            if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS ||
+            if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS ||
                 g_level_block->portrait_refresh_pending[party_slot] != 0) {
                 main_hand_item_id = character->EquippedItem[6].iItemNo;
                 if (main_hand_item_id == -1 ||
@@ -847,18 +844,18 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
                                  menu_y, 2, 0);
 
                 if (main_hand_item_id == -1) {
-                    DrawCatalogImage(-14, g_empty_hand_catalog_ids_649dd4[character->iRace * 2], 0,
-                                     0, band_menu_edge + 4, menu_y + 0x17, 2, 0);
+                    DrawCatalogImage(-14, g_empty_hand_catalog_ids[character->iRace * 2], 0, 0,
+                                     band_menu_edge + 4, menu_y + 0x17, 2, 0);
                 } else {
-                    DrawCatalogImage(
-                        -14, g_item_video_objects_68ec68.GetOrCreateVideoObject(main_hand_item_id),
-                        0, 2, band_menu_edge + 3, menu_y + 0x17, 2, 0);
+                    DrawCatalogImage(-14,
+                                     g_item_video_objects.GetOrCreateVideoObject(main_hand_item_id),
+                                     0, 2, band_menu_edge + 3, menu_y + 0x17, 2, 0);
                     if (character->EquippedItem[6].stack_count != 0) {
                         swprintf(text, g_format_d_0060aa20,
                                  static_cast<int>(character->EquippedItem[6].stack_count));
-                        SetFont(g_smfnt_font_683694);
-                        SetFontObjectPalette16BPP(g_smfnt_font_683694, g_font_palette_smfnt_68ee10);
-                        text_width = StringPixLength(text, g_smfnt_font_683694);
+                        SetFont(g_smfnt_font);
+                        SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
+                        text_width = StringPixLength(text, g_smfnt_font);
                         gprintf((band_menu_edge - (text_width + 1) / 2) + 8, menu_y + 0x26,
                                 const_cast<UINT16*>(g_format_s_006068e4), text);
                     }
@@ -867,21 +864,18 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
                 if (show_off_hand_row == 0) {
                     off_hand_item_id = character->EquippedItem[7].iItemNo;
                     if (off_hand_item_id == -1) {
-                        DrawCatalogImage(-14,
-                                         g_empty_hand_catalog_ids_649dd4[character->iRace * 2 + 1],
-                                         0, 0, band_menu_edge + 4, menu_y + 0x2f, 2, 0);
+                        DrawCatalogImage(-14, g_empty_hand_catalog_ids[character->iRace * 2 + 1], 0,
+                                         0, band_menu_edge + 4, menu_y + 0x2f, 2, 0);
                     } else {
                         DrawCatalogImage(
-                            -14,
-                            g_item_video_objects_68ec68.GetOrCreateVideoObject(off_hand_item_id), 0,
+                            -14, g_item_video_objects.GetOrCreateVideoObject(off_hand_item_id), 0,
                             2, band_menu_edge + 3, menu_y + 0x2f, 2, 0);
                         if (character->EquippedItem[7].stack_count != 0) {
                             swprintf(text, g_format_d_0060aa20,
                                      static_cast<int>(character->EquippedItem[7].stack_count));
-                            SetFont(g_smfnt_font_683694);
-                            SetFontObjectPalette16BPP(g_smfnt_font_683694,
-                                                      g_font_palette_smfnt_68ee10);
-                            text_width = StringPixLength(text, g_smfnt_font_683694);
+                            SetFont(g_smfnt_font);
+                            SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
+                            text_width = StringPixLength(text, g_smfnt_font);
                             gprintf((band_menu_edge - (text_width + 1) / 2) + 0xb, menu_y + 0x3e,
                                     const_cast<UINT16*>(g_format_s_006068e4), text);
                         }
@@ -889,37 +883,34 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
                 }
             }
 
-            hp_bar_frame = g_settings_6850c8.numeric_hit_points == 0 ? 1 : 3;
+            hp_bar_frame = g_settings.numeric_hit_points == 0 ? 1 : 3;
             DrawCatalogImage(-14, 0x80, 0, static_cast<short>(hp_bar_frame), band_portrait_edge,
                              menu_y, 2, 0);
             RedrawPartyPortraitBars(party_slot, slot_enabled);
 
-            SetFont(g_smfnt_font_683694);
-            if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS ||
+            SetFont(g_smfnt_font);
+            if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS ||
                 g_level_block->portrait_refresh_pending[party_slot] != 0) {
                 swprintf(text, g_format_d_0060aa20, character->armor_class_average);
                 if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-                    unsigned short* palette = g_font_palette_smfnt_68ee10;
+                    unsigned short* palette = g_font_palette_smfnt;
                     if (character->load_category != 0) {
-                        palette = g_font_state_palettes_68ee1c
-                            [g_load_category_palettes_648c48[character->load_category]];
+                        palette = g_font_state_palettes
+                            [g_load_category_palettes[character->load_category]];
                     }
-                    SetFontObjectPalette16BPP(g_smfnt_font_683694, palette);
+                    SetFontObjectPalette16BPP(g_smfnt_font, palette);
                 }
-                text_width = StringPixLength(text, g_smfnt_font_683694);
+                text_width = StringPixLength(text, g_smfnt_font);
                 gprintf((0xd - text_width) / 2 + 3 + band_menu_edge, menu_y + 3,
                         const_cast<UINT16*>(g_format_s_006068e4), text);
             }
 
-            wcscpy(
-                text,
-                gppStringList[g_profession_name_message_ids_61e3f0[character->iProfession + 16]]);
+            wcscpy(text, gppStringList[g_profession_name_message_ids[character->iProfession + 16]]);
             if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-                SetFontObjectPalette16BPP(
-                    g_smfnt_font_683694,
-                    g_font_state_palettes_68ee1c[party_row->party_order_index]);
+                SetFontObjectPalette16BPP(g_smfnt_font,
+                                          g_font_state_palettes[party_row->party_order_index]);
             }
-            text_width = StringPixLength(text, g_smfnt_font_683694);
+            text_width = StringPixLength(text, g_smfnt_font);
             gprintf((0x12 - text_width) / 2 + 2 + band_portrait_edge, menu_y + 3,
                     const_cast<UINT16*>(g_format_s_006068e4), text);
 
@@ -931,21 +922,21 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
                  g_level_block->party_slots_170[2] != static_cast<int>(party_slot))) {
                 text_shade = 4;
             }
-            SetObjectShade(g_wiz_text_font_secondary_object_683680, text_shade);
+            SetObjectShade(g_wiz_text_font_secondary_object, text_shade);
             text_width = StringPixLength(character->name, g_font_683660);
             gprintf((0x54 - text_width) / 2 + 0x15 + menu_x, menu_y + 0x49,
                     const_cast<UINT16*>(g_format_s_006068e4), character->name);
-            SetObjectShade(g_wiz_text_font_secondary_object_683680, 4);
+            SetObjectShade(g_wiz_text_font_secondary_object, 4);
 
             if (gXStatus.fCombatMode != 0) {
                 entry->combat_portrait_dirty = 1;
             }
-            g_condition_buttons_0069b900[party_slot]->Invalidate(0);
+            g_condition_buttons[party_slot]->Invalidate(0);
         }
 
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
-            (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_FORMATION ||
-             g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_RADAR) &&
+            (g_settings.main_ui_mode == W8_MAIN_UI_MODE_FORMATION ||
+             g_settings.main_ui_mode == W8_MAIN_UI_MODE_RADAR) &&
             g_level_block->portrait_refresh_pending[party_slot] == 0) {
             int highlight_x;
             int highlight_y;
@@ -953,7 +944,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
 
             if (highlighted == 0 || gfLeftButtonState != 0 ||
                 g_level_block->portrait_flash_218 != 0) {
-                if (g_status_685170.selected_character != static_cast<int>(party_slot)) {
+                if (g_status.selected_character != static_cast<int>(party_slot)) {
                     goto draw_condition_icons;
                 }
                 highlight_x = band_portrait_edge + 1;
@@ -975,7 +966,7 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
                 (gfLeftButtonState != 0 && gXStatus.fReviewCharacterMode == 0) ||
                 (g_current_screen_state.id == W8_SCREEN_MAIN_GAME &&
                  g_level_block->portrait_flash_218 != 0)) {
-                if (g_status_685170.selected_character != static_cast<int>(party_slot)) {
+                if (g_status.selected_character != static_cast<int>(party_slot)) {
                     goto draw_condition_icons;
                 }
                 highlight_x = menu_x + 0x17;
@@ -1025,12 +1016,12 @@ draw_condition_icons:
         }
 
         if (g_level_block->party_slots_170[2] == static_cast<int>(party_slot) &&
-            (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS ||
+            (g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS ||
              g_level_block->portrait_refresh_pending[party_slot] != 0)) {
             DrawCatalogImage(-14, 0x62, 0, 0, menu_x + 0x13, menu_y + 0x48, 2, 0);
         }
 
-        if ((g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS ||
+        if ((g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS ||
              g_level_block->portrait_refresh_pending[party_slot] != 0) &&
             g_level_block->party_slots_170[5] == static_cast<int>(party_slot)) {
             int assay_y;
@@ -1065,7 +1056,7 @@ portrait_fx:
         int hp_overlay_x;
         int hp_overlay_catalog;
 
-        if (g_settings_6850c8.numeric_hit_points == 0) {
+        if (g_settings.numeric_hit_points == 0) {
             hp_overlay_y = menu_y + 0x15;
             hp_overlay_x = band_portrait_edge + 3;
             hp_overlay_catalog = 100;
@@ -1078,7 +1069,7 @@ portrait_fx:
     }
 
     if (gXStatus.fCombatMode == 0 && party_slot < 8 && party_row->fOccupied != 0) {
-        g_portrait_controls_0069b920[party_slot]->Invalidate(0);
+        g_portrait_controls[party_slot]->Invalidate(0);
     }
 
     if (g_level_block->portrait_overlay_party_slot == static_cast<int>(party_slot)) {
@@ -1094,7 +1085,7 @@ portrait_fx:
         DrawPortraitStatusOverlay(g_level_block->condition_highlight_party_slot);
     }
 
-    if (g_settings_6850c8.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
+    if (g_settings.main_ui_mode != W8_MAIN_UI_MODE_PORTRAITS &&
         g_level_block->portrait_refresh_pending[party_slot] != 0 &&
         (g_level_block->condition_highlight_party_slot != -1 ||
          g_level_block->portrait_overlay_party_slot != -1)) {
@@ -1112,10 +1103,10 @@ portrait_fx:
 }
 
 // FUNCTION: WIZ8 0x0059A110
-void ShadeStatusBarGap0059A110(int length, int left, int top)
+void ShadeStatusBarGap(int length, int left, int top)
 {
     if (length != 0) {
-        int rows = (g_settings_6850c8.numeric_hit_points != 0 ? 2 : 0) + 3;
+        int rows = (g_settings.numeric_hit_points != 0 ? 2 : 0) + 3;
         unsigned int pitch;
         char* screen = static_cast<char*>(LockPrimarySurface(&pitch));
         while (rows != 0) {
@@ -1132,61 +1123,61 @@ void ShadeStatusBarGap0059A110(int length, int left, int top)
 void ReleasePortraitControls(void)
 {
     RegionSetDisable(5);
-    W8TextControl** control = g_portrait_controls_0069b920;
+    W8TextControl** control = g_portrait_controls;
     do {
         (*control)->SetActive(0);
         ++control;
-    } while (control < g_portrait_controls_0069b920 + 8);
+    } while (control < g_portrait_controls + 8);
     Controls* panel = g_panel_69b940;
     if (panel != 0) {
         delete panel;
         g_panel_69b940 = 0;
     }
-    control = g_portrait_controls_0069b920;
+    control = g_portrait_controls;
     do {
         if (*control != 0) {
             delete *control;
             *control = 0;
         }
         ++control;
-    } while (control < g_portrait_controls_0069b920 + 8);
+    } while (control < g_portrait_controls + 8);
 }
 
 // FUNCTION: WIZ8 0x0059BF70
 void ReleaseConditionButtons(void)
 {
-    Controls* panel = g_condition_buttons_panel_0069b944;
+    Controls* panel = g_condition_buttons_panel;
     if (panel != 0) {
         delete panel;
-        g_condition_buttons_panel_0069b944 = 0;
+        g_condition_buttons_panel = 0;
     }
-    W8ConditionButton** control = g_condition_buttons_0069b900;
+    W8ConditionButton** control = g_condition_buttons;
     do {
         if (*control != 0) {
             delete *control;
             *control = 0;
         }
         ++control;
-    } while (control < g_condition_buttons_0069b900 + 8);
+    } while (control < g_condition_buttons + 8);
 }
 
 // FUNCTION: WIZ8 0x0059BB40
-void DisablePortraitControls0059BB40(void)
+void DisablePortraitControls(void)
 {
     RegionSetDisable(5);
-    W8TextControl** control = g_portrait_controls_0069b920;
+    W8TextControl** control = g_portrait_controls;
     do {
         (*control)->SetActive(0);
         ++control;
-    } while (control < g_portrait_controls_0069b920 + 8);
+    } while (control < g_portrait_controls + 8);
 }
 
 /* Hide the condition-button region set and clear any open condition highlight. */
 // FUNCTION: WIZ8 0x0059C030
-void DisableConditionButtons0059C030(void)
+void DisableConditionButtons(void)
 {
     RegionSetDisable(6);
-    g_condition_buttons_panel_0069b944->SetEnabled(false);
+    g_condition_buttons_panel->SetEnabled(false);
     if (g_level_block->condition_highlight_party_slot != -1) {
         g_level_block->condition_highlight_party_slot = -1;
         DismissHighlightOverlay();
@@ -1197,33 +1188,33 @@ void DisableConditionButtons0059C030(void)
 
 /* Show the condition-button region set for a non-normal layout. */
 // FUNCTION: WIZ8 0x0059BFC0
-void EnableConditionButtons0059BFC0(void)
+void EnableConditionButtons(void)
 {
     W8ConditionButton** control;
 
-    if (g_settings_6850c8.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
+    if (g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
         srAssertFail("gConfig.uiCurrentLayout != LAYOUT_NORMAL",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\MGSPortraits.cpp", 0xa0c, 0);
     }
     RegionSetEnable(6);
-    g_condition_buttons_panel_0069b944->SetEnabled(true);
-    control = g_condition_buttons_0069b900;
+    g_condition_buttons_panel->SetEnabled(true);
+    control = g_condition_buttons;
     do {
         (*control)->SetEnabled(true);
         ++control;
-    } while (control < g_condition_buttons_0069b900 + 8);
-    g_condition_buttons_panel_0069b944->Invalidate(0);
+    } while (control < g_condition_buttons + 8);
+    g_condition_buttons_panel->Invalidate(0);
 }
 
 // FUNCTION: WIZ8 0x0059BB70
-void EnablePortraitAdvanceRegions0059BB70(void)
+void EnablePortraitAdvanceRegions(void)
 {
     RegionSetEnable(5);
     unsigned int state_offset = 0;
     int party_slot = 0;
     do {
         if (!IsCharacterReadyToAdvance(party_slot) ||
-            g_status_685170.buffers.XChar[party_slot].portrait_advance_103 == 0) {
+            g_status.buffers.XChar[party_slot].portrait_advance_103 == 0) {
             DisableRegionInput(party_slot + 0x12);
         } else {
             EnableRegionInput(party_slot + 0x12);
@@ -1234,10 +1225,10 @@ void EnablePortraitAdvanceRegions0059BB70(void)
 }
 
 // FUNCTION: WIZ8 0x0059BBD0
-void InvalidatePortraitControl0059BBD0(unsigned int party_slot)
+void InvalidatePortraitControl(unsigned int party_slot)
 {
-    if (party_slot < 8 && g_status_685170.buffers.XChar[party_slot].fOccupied) {
-        g_portrait_controls_0069b920[party_slot]->Invalidate(0);
+    if (party_slot < 8 && g_status.buffers.XChar[party_slot].fOccupied) {
+        g_portrait_controls[party_slot]->Invalidate(0);
     }
 }
 
@@ -1251,15 +1242,15 @@ void RedrawPanel69B940(void)
    may advance, no NPC dialogue is up and the slot row still allows it;
    activating one invalidates the panel, and the panel redraws afterward. */
 // FUNCTION: WIZ8 0x0059BC10
-void UpdatePortraitAdvanceButtons0059BC10(void)
+void UpdatePortraitAdvanceButtons(void)
 {
     int slot;
     W8TextControl** control;
 
-    for (slot = 0, control = g_portrait_controls_0069b920;
-         control < &g_portrait_controls_0069b920[8]; ++slot, ++control) {
+    for (slot = 0, control = g_portrait_controls; control < &g_portrait_controls[8];
+         ++slot, ++control) {
         if (IsCharacterReadyToAdvance(slot) && gXStatus.fNpcDialogueMode == 0 &&
-            g_status_685170.buffers.XChar[slot].portrait_advance_103 != 0) {
+            g_status.buffers.XChar[slot].portrait_advance_103 != 0) {
             if (!(*control)->m_active) {
                 (*control)->SetActive(true);
                 g_panel_69b940->Invalidate(0);
@@ -1280,11 +1271,11 @@ void OnLevelButtonActivate(void)
     if (slot == -1 || slot >= 8) {
         return;
     }
-    if (g_status_685170.buffers.XChar[slot].fOccupied == 0) {
+    if (g_status.buffers.XChar[slot].fOccupied == 0) {
         srAssertFail("fCHAR_OCCUPIED(giLevelUpChar)",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\MGSPortraits.cpp", 0x988, 0);
     }
-    g_pending_screen_state.parameter_3 = &g_status_685170.buffers.Char[slot];
+    g_pending_screen_state.parameter_3 = &g_status.buffers.Char[slot];
     g_pending_screen_state.mode = 2;
     SetPendingScreenState(W8_SCREEN_CHARACTER);
 }
@@ -1302,7 +1293,7 @@ void CreateLevelButtons(void)
     W8TextControl** control;
 
     g_panel_69b940 = 0;
-    control = g_portrait_controls_0069b920;
+    control = g_portrait_controls;
     for (count = 8; count != 0; --count) {
         *control = 0;
         ++control;
@@ -1315,7 +1306,7 @@ void CreateLevelButtons(void)
     }
 
     uiSlot = 0;
-    control = g_portrait_controls_0069b920;
+    control = g_portrait_controls;
     do {
         column_x = (uiSlot & 1) != 0 ? 0x23b : 0;
         row_y = (uiSlot >> 1) * 0x55;
@@ -1330,15 +1321,15 @@ void CreateLevelButtons(void)
         }
         ++control;
         ++uiSlot;
-    } while (control < g_portrait_controls_0069b920 + 8);
+    } while (control < g_portrait_controls + 8);
 
     giLevelUpChar = -1;
     g_panel_69b940->SetEnabled(true);
-    control = g_portrait_controls_0069b920;
+    control = g_portrait_controls;
     do {
         (*control)->SetActive(false);
         ++control;
-    } while (control < g_portrait_controls_0069b920 + 8);
+    } while (control < g_portrait_controls + 8);
 }
 
 // SYNTHETIC: WIZ8 0x005991A0
@@ -1422,26 +1413,26 @@ void CreateConditionButtons(void)
     int count;
     W8ConditionButton** control;
 
-    g_condition_buttons_panel_0069b944 = 0;
-    control = g_condition_buttons_0069b900;
+    g_condition_buttons_panel = 0;
+    control = g_condition_buttons;
     for (count = 8; count != 0; --count) {
         *control = 0;
         ++control;
     }
 
-    g_condition_buttons_panel_0069b944 = new Controls(0, 0, 0x280, 0x1e0, -1, 0, -1);
-    if (g_condition_buttons_panel_0069b944 == 0) {
+    g_condition_buttons_panel = new Controls(0, 0, 0x280, 0x1e0, -1, 0, -1);
+    if (g_condition_buttons_panel == 0) {
         srAssertFail("gpConditionButtonsPanel",
                      "C:\\Projects\\Wizardry 8\\Local Screens\\MGSPortraits.cpp", 0x9db, 0);
     }
 
     uiSlot = 0;
-    control = g_condition_buttons_0069b900;
+    control = g_condition_buttons;
     do {
         column_x = (uiSlot & 1) != 0 ? 0x23f : 0;
         row_y = (uiSlot >> 1) * 0x55;
         W8ConditionButton* button = new W8ConditionButton(
-            g_condition_buttons_panel_0069b944, uiSlot + 0x1a, column_x + 0x17, row_y + 0x13,
+            g_condition_buttons_panel, uiSlot + 0x1a, column_x + 0x17, row_y + 0x13,
             column_x + 0x2a, row_y + 0x26, 0xa8, 0, 0, 0, 1, 1, -1, uiSlot);
         *control = button;
         if (button == 0) {
@@ -1450,10 +1441,10 @@ void CreateConditionButtons(void)
         }
         ++control;
         ++uiSlot;
-    } while (control < g_condition_buttons_0069b900 + 8);
+    } while (control < g_condition_buttons + 8);
 
     RegionSetDisable(6);
-    g_condition_buttons_panel_0069b944->SetEnabled(false);
+    g_condition_buttons_panel->SetEnabled(false);
     if (g_level_block->condition_highlight_party_slot != -1) {
         g_level_block->condition_highlight_party_slot = -1;
         DismissHighlightOverlay();
@@ -1467,7 +1458,7 @@ void CreateConditionButtons(void)
 // FUNCTION: WIZ8 0x0059BD20
 unsigned char PortraitControlRegionEvent(const InputAtom* event, W8Region* region)
 {
-    W8TextControl* control = g_portrait_controls_0069b920[region->callback_id];
+    W8TextControl* control = g_portrait_controls[region->callback_id];
     if (control == 0) {
         return 0;
     }
@@ -1503,20 +1494,20 @@ unsigned char PortraitControlRegionEvent(const InputAtom* event, W8Region* regio
    otherwise the icon tracks the slot's highest condition or top enchantment
    and the button stays live, then the panel redraws. */
 // FUNCTION: WIZ8 0x0059C080
-void UpdateConditionButtons0059C080(void)
+void UpdateConditionButtons(void)
 {
     int image;
     int slot;
 
     for (slot = 0; slot < 8; ++slot) {
-        W8ConditionButton* button = g_condition_buttons_0069b900[slot];
+        W8ConditionButton* button = g_condition_buttons[slot];
         W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[slot];
         image = 0;
-        if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
+        if (g_status.buffers.XChar[slot].fOccupied != 0 &&
             g_level_block->portrait_refresh_pending[slot] == 0 && entry->keyboard_menu_open == 0) {
-            image = g_status_685170.buffers.Char[slot].highest_condition;
+            image = g_status.buffers.Char[slot].highest_condition;
             if (image == 0) {
-                image = g_status_685170.buffers.Char[slot].enchantment_top;
+                image = g_status.buffers.Char[slot].enchantment_top;
                 if (image != 0) {
                     if (button->m_image_object_bc != image) {
                         button->m_image_object_bc = image;
@@ -1544,11 +1535,10 @@ void UpdateConditionButtons0059C080(void)
                 button->Invalidate(0);
                 if (g_level_block->portrait_refresh_pending[slot] == 0 &&
                     entry->keyboard_menu_open == 0) {
-                    ClearSurfaceRect(button->m_left + g_condition_buttons_panel_0069b944->origin_x,
-                                     button->m_top + g_condition_buttons_panel_0069b944->origin_y,
-                                     button->m_right + g_condition_buttons_panel_0069b944->origin_x,
-                                     button->m_bottom +
-                                         g_condition_buttons_panel_0069b944->origin_y);
+                    ClearSurfaceRect(button->m_left + g_condition_buttons_panel->origin_x,
+                                     button->m_top + g_condition_buttons_panel->origin_y,
+                                     button->m_right + g_condition_buttons_panel->origin_x,
+                                     button->m_bottom + g_condition_buttons_panel->origin_y);
                 }
                 if (g_level_block->condition_highlight_party_slot == slot) {
                     g_level_block->condition_highlight_party_slot = -1;
@@ -1562,7 +1552,7 @@ void UpdateConditionButtons0059C080(void)
             button->Invalidate(0);
         }
     }
-    g_condition_buttons_panel_0069b944->Redraw();
+    g_condition_buttons_panel->Redraw();
 }
 
 /* Forward left-button and hover events to the condition button for the
@@ -1573,23 +1563,23 @@ unsigned char ConditionButtonRegionEvent(const InputAtom* event, W8Region* regio
     unsigned short us_event = event->usEvent;
     unsigned short slot = region->callback_id;
     if (us_event == LEFT_BUTTON_DOWN) {
-        g_condition_buttons_0069b900[slot]->OnLeftButtonDown(0);
+        g_condition_buttons[slot]->OnLeftButtonDown(0);
         region->flags |= W8_REGION_LEFT_BUTTON_HELD;
     } else {
         if (us_event != LEFT_BUTTON_UP) {
             if (us_event == MOUSE_POS) {
                 if ((region->flags & W8_REGION_MOUSE_LEAVE) != 0) {
-                    g_condition_buttons_0069b900[slot]->OnMouseLeave(0);
+                    g_condition_buttons[slot]->OnMouseLeave(0);
                     return 1;
                 }
                 if ((region->flags & W8_REGION_MOUSE_ENTER) != 0) {
-                    g_condition_buttons_0069b900[slot]->OnMouseEnter(0);
+                    g_condition_buttons[slot]->OnMouseEnter(0);
                     return 1;
                 }
             }
             return 0;
         }
-        g_condition_buttons_0069b900[slot]->OnLeftButtonUp(0);
+        g_condition_buttons[slot]->OnLeftButtonUp(0);
         if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
             region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
             return 1;

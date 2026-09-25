@@ -5,7 +5,7 @@
 
 #include "wiz8/vector.h"
 
-class W8AnimRepBase005EC1D8;
+class W8AnimRepBase;
 
 /* The sound events GrObject.cpp calls `pse`/`m_plsSoundEvents`. The class
    itself belongs to Engine Code\SoundEvent.cpp, which owns its whole
@@ -36,7 +36,7 @@ public:
     /* +0x14 remains deliberately uninitialized and unowned by this base.
        Prop and Item construct and destroy their own representation here; both
        concrete payloads derive from this polymorphic animation root. */
-    W8AnimRepBase005EC1D8* m_pRep; /* 0x14 */
+    W8AnimRepBase* m_pRep; /* 0x14 */
 }; /* 0x18 */
 
 /* The shared object-id counter both lifecycle callers advance. */

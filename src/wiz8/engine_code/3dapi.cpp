@@ -73,10 +73,10 @@
 #define THREE_D_API_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\3dapi.cpp"
 
 // GLOBAL: WIZ8 0x00607d7c
-unsigned char g_renderer_ready_00607d7c = 1;
+bool g_renderer_ready = true;
 
 // GLOBAL: WIZ8 0x00607d80
-int g_game_data_runtime_pending_00607d80 = 1;
+int g_game_data_runtime_pending = 1;
 
 // GLOBAL: WIZ8 0x005ec240
 const double g_double_005ec240 = 250000.0;
@@ -84,28 +84,28 @@ const double g_double_005ec240 = 250000.0;
 class W8AmbientSound;
 
 // GLOBAL: WIZ8 0x00659757
-unsigned char g_world_cleanup_flag_00659757;
+bool g_world_cleanup_flag;
 // GLOBAL: WIZ8 0x00659a80
-W8GrowableVector<W8World*> g_worlds_00659a80;
+W8GrowableVector<W8World*> g_worlds;
 
 // GLOBAL: WIZ8 0x006081f8
-unsigned char g_navigator_vertical_enabled_006081f8 = 1;
+bool g_navigator_vertical_enabled = true;
 
 // GLOBAL: WIZ8 0x00607d7d
-unsigned char g_world_mesh_update_enabled_00607d7d = 1;
+bool g_world_mesh_update_enabled = true;
 
 // GLOBAL: WIZ8 0x00609c88
 float g_float_00609c88 = 60.0f;
 
 // GLOBAL: WIZ8 0x00609c8c
-unsigned char g_flag_00609c8c = 1;
+bool g_flag_00609c8c = true;
 
 // GLOBAL: WIZ8 0x006f0530
-unsigned char g_shift_held_006f0530;
+bool g_shift_held;
 // GLOBAL: WIZ8 0x006f0531
-bool g_monster_combat_timer_enabled_006f0531;
+bool g_monster_combat_timer_enabled;
 // GLOBAL: WIZ8 0x006f0534
-unsigned char g_modifier_held_006f0534;
+bool g_modifier_held;
 
 // FUNCTION: WIZ8 0x00450B10
 void ConstructWorldCollections(W8World* world)
@@ -205,14 +205,14 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
     sprintf(material_path, "%s\\%s.mat", level_folder, level_file_name);
     sprintf(material_folder, "%s", asset_folder);
 
-    g_worlds_00659a80.Add(world);
+    g_worlds.Add(world);
 
-    world->m_loaded = 1;
+    world->m_loaded = true;
     PListInit(&world->m_list_09c);
     PListInit(&world->m_lights_0a8);
     world->m_owned_04c = 0;
 
-    if (CheckLevelAssetSet0042CCC0(oct_path) >= 0) {
+    if (CheckLevelAssetSet(oct_path) >= 0) {
         world->octree = new W8Octree(oct_path, &world->m_owned_04c);
         if (world->octree != 0 && world->octree->HasLoadError()) {
             delete world->octree;
@@ -224,7 +224,7 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
 
     if (game_data_path[0] != '\0' && world->m_owned_04c == 0) {
         world->m_owned_04c = ReadGameData00447570(game_data_path, false);
-        if (world->m_owned_04c != 0 && InitializeGameData004497C0(world->m_owned_04c) == 0) {
+        if (world->m_owned_04c != 0 && InitializeGameData(world->m_owned_04c) == 0) {
             return 0;
         }
     }
@@ -237,7 +237,7 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
     world->camera_light->specular_1b0.SetZero();
     world->camera_light->intensity_1d0 = 1.0f;
     world->camera_light->setGroupMask(2);
-    ConfigureWorldLight0046E300(world->camera_light, 4000.0f);
+    ConfigureWorldLight(world->camera_light, 4000.0f);
 
     if (world->octree == 0 || world->octree->GetMeshCount() == 0) {
         world->psrMeshes = 0;
@@ -274,10 +274,10 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
 
     world->m_padding_0d4[0] = 0;
     if (world->octree != 0) {
-        UpdateWorldOctree004BAF50(world);
+        UpdateWorldOctree(world);
     } else if (world->m_owned_06c != 0) {
         world->m_owned_06c->dirty = 1;
-        UpdateWorldMeshFromQuads004BAD40(world);
+        UpdateWorldMeshFromQuads(world);
     }
     return 1;
 }
@@ -324,57 +324,57 @@ W8World* CreateWorld()
 }
 
 // FUNCTION: WIZ8 0x0044F400
-void UpdateWorlds0044F400(void)
+void UpdateWorlds(void)
 {
-    g_navigator_vertical_enabled_006081f8 =
+    g_navigator_vertical_enabled =
         !(gfKeyState[0x11] != 0 && g_combat_state != 0 &&
           (g_combat_state->round_active_001 != 0 || gXStatus.fPartyMovementMode != 0));
 
     {
-        int count = g_worlds_00659a80.GetCount();
+        int count = g_worlds.GetCount();
         for (int index = 0; index < count; ++index) {
-            UpdateWorld0044F4E0(*g_worlds_00659a80.GetAt(index));
+            UpdateWorld(*g_worlds.GetAt(index));
         }
     }
 
-    if (g_renderer_ready_00607d7c != 0 && g_world_mesh_update_enabled_00607d7d != 0) {
+    if (g_renderer_ready != 0 && g_world_mesh_update_enabled != 0) {
         if (g_world->octree != 0) {
-            UpdateWorldOctree004BAF50(g_world);
+            UpdateWorldOctree(g_world);
         } else if (g_world->m_owned_06c != 0) {
             ++g_world->m_owned_06c->dirty;
-            UpdateWorldMeshFromQuads004BAD40(g_world);
+            UpdateWorldMeshFromQuads(g_world);
         }
-        RepositionAmbientSounds0047A600(g_world);
+        RepositionAmbientSounds(g_world);
         RequestRefreshPartyState();
-        g_renderer_ready_00607d7c = 0;
+        g_renderer_ready = false;
     }
 
-    UpdateTimedTriggerEvents00443D30();
-    UpdateShakeEffects004AE310();
-    UpdateEnvironment482770();
-    UpdateNpcEvents0050D530();
+    UpdateTimedTriggerEvents();
+    UpdateShakeEffects();
+    UpdateEnvironment();
+    UpdateNpcEvents();
 }
 
 // FUNCTION: WIZ8 0x0044F4E0
-void UpdateWorld0044F4E0(W8World* world)
+void UpdateWorld(W8World* world)
 {
     if (world == 0) {
         srAssertFail("pWorld", THREE_D_API_CPP, 0x106, 0);
-        CreateTriggerShakeEvent00444F70(0x6a4, 70.0f, 5000.0f, 1);
+        CreateTriggerShakeEvent(0x6a4, 70.0f, 5000.0f, 1);
     }
 
     if (world != g_world_659ab8) {
-        UpdateWorldMonsters0046DD70(world);
-        UpdateWorldMissiles004A27C0(world);
-        UpdateWorldSpellVisuals004AAB80(world);
-        UpdateAmbientSounds0047A3E0(world);
+        UpdateWorldMonsters(world);
+        UpdateWorldMissiles(world);
+        UpdateWorldSpellVisuals(world);
+        UpdateAmbientSounds(world);
         WorldUpdateLights(world);
         RunMonsterGenerators();
-        UpdateWorldTriggers00443AE0(world);
+        UpdateWorldTriggers(world);
         if (world->octree != 0) {
-            RunMasterFunctions004D8E40();
+            RunMasterFunctions();
         }
-        UpdateSpellEffects00500930();
+        UpdateSpellEffects();
     }
 
     W8PList* nodes = &world->m_list_09c;
@@ -403,10 +403,10 @@ void UpdateWorld0044F4E0(W8World* world)
 // FUNCTION: WIZ8 0x0044f5b0
 void DetachAllWorldItems(void)
 {
-    int count = g_worlds_00659a80.GetCount();
+    int count = g_worlds.GetCount();
 
     for (int index = 0; index < count; ++index) {
-        DetachWorldItemMeshes0046DE40(*g_worlds_00659a80.GetAt(index));
+        DetachWorldItemMeshes(*g_worlds.GetAt(index));
     }
 }
 
@@ -415,13 +415,13 @@ const double g_double_005ec1f8 = 3.141592653589793;
 // GLOBAL: WIZ8 0x005ebce8
 const double g_double_005ebce8 = 180.0;
 // GLOBAL: WIZ8 0x00607d84
-float g_camera_base_horizontal_fov_607d84 = 85.0f;
+float g_camera_base_horizontal_fov = 85.0f;
 // GLOBAL: WIZ8 0x00607d88
-float g_camera_base_vertical_fov_607d88 = 71.0f;
+float g_camera_base_vertical_fov = 71.0f;
 // GLOBAL: WIZ8 0x00659abc
-float g_camera_sway_horizontal_phase_659abc;
+float g_camera_sway_horizontal_phase;
 // GLOBAL: WIZ8 0x00659ac0
-float g_camera_sway_vertical_phase_659ac0;
+float g_camera_sway_vertical_phase;
 
 /* Drives the swaying camera view. A positive mode captures the camera's
    field of view in degrees and enters the mode, a negative mode restores the
@@ -435,43 +435,42 @@ void SetCameraSwayMode(srCamera* camera, int mode)
 
     if (mode != 0) {
         if (mode > 0) {
-            g_camera_base_horizontal_fov_607d84 =
+            g_camera_base_horizontal_fov =
                 (float)(camera->getHorizontalFOV() * (g_double_005ebce8 / g_double_005ec1f8));
-            g_camera_base_vertical_fov_607d88 =
+            g_camera_base_vertical_fov =
                 (float)(camera->getVerticalFOV() * (g_double_005ebce8 / g_double_005ec1f8));
-            if (!g_camera_sway_active_652da4) {
-                g_camera_sway_horizontal_phase_659abc = 0.0f;
-                g_camera_sway_vertical_phase_659ac0 = 0.0f;
-                BeginCameraSway0041A960();
+            if (!g_camera_sway_active) {
+                g_camera_sway_horizontal_phase = 0.0f;
+                g_camera_sway_vertical_phase = 0.0f;
+                BeginCameraSway();
             }
         } else {
             double radians = g_double_005ec1f8 * g_float_005ebcf8;
-            camera->setViewPlane(radians * g_camera_base_horizontal_fov_607d84,
-                                 radians * g_camera_base_vertical_fov_607d88);
-            EndCameraSway0041A9A0();
+            camera->setViewPlane(radians * g_camera_base_horizontal_fov,
+                                 radians * g_camera_base_vertical_fov);
+            EndCameraSway();
             return;
         }
     }
-    if (!g_camera_sway_active_652da4) {
+    if (!g_camera_sway_active) {
         return;
     }
 
-    g_camera_sway_horizontal_phase_659abc += elapsed * 12.0f;
-    g_camera_sway_vertical_phase_659ac0 += elapsed * 11.0f;
-    if (g_camera_sway_horizontal_phase_659abc > 360.0f) {
-        g_camera_sway_horizontal_phase_659abc -= 360.0f;
+    g_camera_sway_horizontal_phase += elapsed * 12.0f;
+    g_camera_sway_vertical_phase += elapsed * 11.0f;
+    if (g_camera_sway_horizontal_phase > 360.0f) {
+        g_camera_sway_horizontal_phase -= 360.0f;
     }
-    if (g_camera_sway_vertical_phase_659ac0 > 360.0f) {
-        g_camera_sway_vertical_phase_659ac0 -= 360.0f;
+    if (g_camera_sway_vertical_phase > 360.0f) {
+        g_camera_sway_vertical_phase -= 360.0f;
     }
 
     double radians = g_double_005ec1f8 * g_float_005ebcf8;
-    camera->setViewPlane((sin(radians * g_camera_sway_horizontal_phase_659abc) * 0.75 +
-                          g_camera_base_horizontal_fov_607d84) *
-                             radians,
-                         (sin(radians * g_camera_sway_vertical_phase_659ac0) * 0.63 +
-                          g_camera_base_vertical_fov_607d88) *
-                             radians);
+    camera->setViewPlane(
+        (sin(radians * g_camera_sway_horizontal_phase) * 0.75 + g_camera_base_horizontal_fov) *
+            radians,
+        (sin(radians * g_camera_sway_vertical_phase) * 0.63 + g_camera_base_vertical_fov) *
+            radians);
 }
 
 // FUNCTION: WIZ8 0x004507A0
@@ -490,7 +489,7 @@ void DestroyWorldCollections(W8World* world)
         PLDestroy(world->plsMonsters);
         world->plsMonsters = 0;
     }
-    if (g_world_cleanup_flag_00659757 != 0)
+    if (g_world_cleanup_flag != 0)
         RenderFrame();
     if (world->plsItems != 0) {
         while (PLLength(world->plsItems) != 0) {
@@ -501,7 +500,7 @@ void DestroyWorldCollections(W8World* world)
         PLDestroy(world->plsItems);
         world->plsItems = 0;
     }
-    if (g_world_cleanup_flag_00659757 != 0)
+    if (g_world_cleanup_flag != 0)
         RenderFrame();
     if (world->plsProps != 0) {
         while (PLLength(world->plsProps) != 0) {
@@ -512,7 +511,7 @@ void DestroyWorldCollections(W8World* world)
         PLDestroy(world->plsProps);
         world->plsProps = 0;
     }
-    if (g_world_cleanup_flag_00659757 != 0)
+    if (g_world_cleanup_flag != 0)
         RenderFrame();
 
     DestroyAllWorldTriggers(world);
@@ -520,7 +519,7 @@ void DestroyWorldCollections(W8World* world)
         delete world->triggers;
         world->triggers = 0;
     }
-    if (g_world_cleanup_flag_00659757 != 0)
+    if (g_world_cleanup_flag != 0)
         RenderFrame();
 
     if (world->plsCameras != 0) {
@@ -528,7 +527,7 @@ void DestroyWorldCollections(W8World* world)
             W8WorldCameraEntry* entry =
                 static_cast<W8WorldCameraEntry*>(PLGet(world->plsCameras, 0));
             PLRemoveAt(world->plsCameras, 0);
-            DestroyPathAI004A9810(entry->path);
+            DestroyPathAI(entry->path);
             free(entry);
         }
         PLDestroy(world->plsCameras);
@@ -538,9 +537,10 @@ void DestroyWorldCollections(W8World* world)
     StopAllAmbientSounds();
     if (world->plsAmbientSounds != 0) {
         while (PLLength(world->plsAmbientSounds) != 0) {
-            void* ambient_sound = PLGet(world->plsAmbientSounds, 0);
+            W8AmbientSound* ambient_sound =
+                static_cast<W8AmbientSound*>(PLGet(world->plsAmbientSounds, 0));
             PLRemoveAt(world->plsAmbientSounds, 0);
-            DestroyAmbientSound0047A700((W8AmbientSound*)ambient_sound);
+            DestroyAmbientSound(ambient_sound);
         }
         PLDestroy(world->plsAmbientSounds);
         world->plsAmbientSounds = 0;
@@ -561,7 +561,7 @@ void DestroyWorldCollections(W8World* world)
 
     DestroyAllMissiles(world);
     DestroyAllSpellVisuals(world);
-    DestroyWorldLights0046E4A0(world);
+    DestroyWorldLights(world);
     PListFreeData(&world->m_lights_0a8);
     PListFreeData(&world->m_list_09c);
 
@@ -598,20 +598,20 @@ void DestroyWorld(W8World* world)
         world->octree = 0;
     }
     if (world->m_owned_06c != 0) {
-        DestroyWorldQuad004BE0A0(world->m_owned_06c);
+        DestroyWorldQuad(world->m_owned_06c);
         world->m_owned_06c = 0;
     }
-    if (g_world_cleanup_flag_00659757 != 0)
+    if (g_world_cleanup_flag != 0)
         RenderFrame();
     DestroyWorldCollections(world);
-    if (g_world_cleanup_flag_00659757 != 0)
+    if (g_world_cleanup_flag != 0)
         RenderFrame();
     if (IsWorldCursorVisible() != 0)
-        HideWorldCursor00490B90();
+        HideWorldCursor();
 
-    index = g_worlds_00659a80.IndexOf(world);
+    index = g_worlds.IndexOf(world);
     if (index >= 0) {
-        g_worlds_00659a80.RemoveAt(index);
+        g_worlds.RemoveAt(index);
     }
     if (world->static_scene != 0) {
         world->static_scene->release();
@@ -625,7 +625,7 @@ void DestroyWorld(W8World* world)
    skipped there. Function-local statics keep the last refresh position and the
    last applied rotation; their atexit thunks are at 0x00450070 / 0x00450060. */
 // FUNCTION: WIZ8 0x0044FC20
-void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags)
+void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
 {
     static srVector3T<float> s_last_automap_refresh_position;
     static srMatrix3T<float> s_saved_camera_rotation;
@@ -648,32 +648,32 @@ void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags)
     float dy;
     float dz;
 
-    RefreshDirtyAutomap00580760();
+    RefreshDirtyAutomap();
     GetCameraPosition(&camera_position);
-    if (g_game_data_runtime_pending_00607d80 != 0 && world->m_owned_04c != 0) {
-        UpdateGameDataRuntime0041F260();
-        g_game_data_runtime_pending_00607d80 = 0;
+    if (g_game_data_runtime_pending != 0 && world->m_owned_04c != 0) {
+        UpdateGameDataRuntime();
+        g_game_data_runtime_pending = 0;
     }
     if (world->m_owned_04c != 0) {
-        if (g_level_flags_00652da8 != 0) {
-            *g_level_flags_00652da8 &= ~0x200u;
+        if (g_level_flags != 0) {
+            *g_level_flags &= ~0x200u;
         }
         if (world->m_owned_04c != 0 && (flags & 0x40) == 0) {
             world->camera->getRotation(rotation);
-            world->m_owned_04c->ApplyCameraMotionFlags0041F330(flags, &rotation, &motion_saved);
+            world->m_owned_04c->ApplyCameraMotionFlags(flags, &rotation, &motion_saved);
             world->camera->setRotation(rotation);
             s_saved_camera_rotation = rotation;
             yaw = GetCameraYawInDegrees();
             pitch = GetCameraPitchInDegrees();
-            g_startup_world_659c0c->SetAngles004538F0(yaw);
-            g_startup_world_659c0c->SetPitch(pitch);
-            if (world->m_owned_04c->ApplyCameraMotion0041F5F0(flags, &camera_position, &delta,
+            g_startup_world->SetAngles(yaw);
+            g_startup_world->SetPitch(pitch);
+            if (world->m_owned_04c->ApplyCameraMotion(flags, &camera_position, &delta,
                                                               &motion_saved) != 0) {
-                camera_position.x = camera_position.x + delta.x;
-                camera_position.y = camera_position.y + delta.y;
-                camera_position.z = camera_position.z + delta.z;
+                camera_position.x += delta.x;
+                camera_position.y += delta.y;
+                camera_position.z += delta.z;
                 navigator_position.x = camera_position.x;
-                navigator_position.y = camera_position.y - g_default_world_height_00603ac8;
+                navigator_position.y = camera_position.y - g_default_world_height;
                 navigator_position.z = camera_position.z;
                 if (world->camera_light != 0) {
                     render_position.x = camera_position.x;
@@ -685,21 +685,21 @@ void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags)
                 render_position.y = camera_position.y;
                 render_position.z = camera_position.z;
                 static_cast<srNode*>(world->camera)->setLocation(render_position);
-                g_startup_world_659c0c->SetPositionInternal00453590(&navigator_position);
+                g_startup_world->SetPositionInternal(&navigator_position);
                 dx = camera_position.x - s_last_automap_refresh_position.x;
                 dy = camera_position.y - s_last_automap_refresh_position.y;
                 dz = camera_position.z - s_last_automap_refresh_position.z;
                 if (dx * dx + dy * dy + dz * dz > g_double_005ec240) {
                     s_last_automap_refresh_position = camera_position;
-                    camera_position.y = camera_position.y - g_default_world_height_00603ac8;
-                    if (AutomapHasCellAt00581B30(&camera_position) != 0) {
-                        SetWorldMeshVertexLightTable0046F760(g_world, 1);
-                        UpdateAutomapBounds00580380();
-                        SetWorldMeshVertexLightTable0046F760(g_world, 0);
+                    camera_position.y -= g_default_world_height;
+                    if (AutomapHasCellAt(&camera_position) != 0) {
+                        SetWorldMeshVertexLightTable(g_world, 1);
+                        UpdateAutomapBounds();
+                        SetWorldMeshVertexLightTable(g_world, 0);
                     }
                 }
-                DispatchWorldCursorNodeCommand004D9080(0, 0, 0);
-                GetLevelSoundEnvironment0041FCE0(&sound_environment, &sound_environment_secondary);
+                DispatchWorldCursorNodeCommand(0, 0, 0);
+                GetLevelSoundEnvironment(&sound_environment, &sound_environment_secondary);
                 if (sound_environment >= 0) {
                     Sound3DSetEnvironment(sound_environment);
                 }
@@ -717,8 +717,8 @@ void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags)
             camera_path = static_cast<W8CameraPath*>(PLGet(world->plsCameras, index));
             if (camera_path != 0 && camera_path->active_14 != 0) {
                 path = camera_path->path_18;
-                PathAITick004AA1F0(path, 1);
-                PathAIApply004AA520(path, world->camera);
+                PathAITick(path, 1);
+                PathAIApply(path, world->camera);
                 {
                     srVector3T<double> location = world->camera->getLocation();
                     srVector3T<float> party_point;
@@ -734,10 +734,10 @@ void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags)
                 ApplyCameraRotation(&path_rotation);
                 if (path->discrete_mode_1c != 0) {
                     if (path->position >= path->nodes_0c->GetCount() - g_float_005ebb38) {
-                        UpdateCameraPathState0048F2F0(world, camera_path, 0);
+                        UpdateCameraPathState(world, camera_path, 0);
                     }
                 } else if (path->position >= g_double_005ebc30) {
-                    UpdateCameraPathState0048F2F0(world, camera_path, 0);
+                    UpdateCameraPathState(world, camera_path, 0);
                 }
             }
         }
@@ -753,7 +753,7 @@ void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags)
 // FUNCTION: WIZ8 0x00451010
 void MarkRendererReady(void)
 {
-    g_renderer_ready_00607d7c = 1;
+    g_renderer_ready = true;
 }
 
 /* Resolve a particle by its runtime name from the current world's particle
@@ -804,7 +804,7 @@ void WorldGetCameraLocation00451160(W8World* world, srVector3T<float>* location)
    follows the camera, while only the camera move publishes the new game-space
    position. */
 // FUNCTION: WIZ8 0x004511D0
-void SetWorldScenePosition004511D0(W8World* world, const srVector3T<float>* location)
+void SetWorldScenePosition(W8World* world, const srVector3T<float>* location)
 {
     srVector3T<float> position;
     srVector3T<double> render_position;
@@ -828,18 +828,18 @@ void SetWorldScenePosition004511D0(W8World* world, const srVector3T<float>* loca
 }
 
 // FUNCTION: WIZ8 0x00451020
-void UpdateWorldMeshAfterLoad00451020(void)
+void UpdateWorldMeshAfterLoad(void)
 {
-    if (g_renderer_ready_00607d7c != 0 && g_world_mesh_update_enabled_00607d7d != 0) {
+    if (g_renderer_ready != 0 && g_world_mesh_update_enabled != 0) {
         if (g_world->octree != 0) {
-            UpdateWorldOctree004BAF50(g_world);
+            UpdateWorldOctree(g_world);
         } else if (g_world->m_owned_06c != 0) {
             ++g_world->m_owned_06c->dirty;
-            UpdateWorldMeshFromQuads004BAD40(g_world);
+            UpdateWorldMeshFromQuads(g_world);
         }
-        RepositionAmbientSounds0047A600(g_world);
+        RepositionAmbientSounds(g_world);
         RequestRefreshPartyState();
-        g_renderer_ready_00607d7c = 0;
+        g_renderer_ready = false;
     }
 }
 
@@ -961,10 +961,10 @@ void RestoreWorldCameraState(W8World* world, W8World* source_world, W8WorldCamer
     navigator_position.x = (float)camera_location.x;
     navigator_position.y = (float)camera_location.y;
     navigator_position.z = (float)camera_location.z;
-    g_startup_world_659c0c->SetAngles004538F0(GetCameraYawInDegrees());
-    g_startup_world_659c0c->SetPitch(GetCameraPitchInDegrees());
-    navigator_position.y = navigator_position.y - g_default_world_height_00603ac8;
-    g_startup_world_659c0c->SetPositionInternal00453590(&navigator_position);
+    g_startup_world->SetAngles(GetCameraYawInDegrees());
+    g_startup_world->SetPitch(GetCameraPitchInDegrees());
+    navigator_position.y -= g_default_world_height;
+    g_startup_world->SetPositionInternal(&navigator_position);
 }
 
 /* Snapshot the world's camera location and the live yaw/pitch into a CamPos
@@ -1017,8 +1017,8 @@ void ApplyWorldUpdateFlags(W8World* world, unsigned int flags)
         srAssertFail("pWorld", THREE_D_API_CPP, 0x321, 0);
     }
     if ((flags & 1) != 0) {
-        WorldSetFarClip(world, static_cast<float>(WorldGetFarClip(world)) +
-                                   g_position_height_epsilon_005ebfdc);
+        WorldSetFarClip(world,
+                        static_cast<float>(WorldGetFarClip(world)) + g_position_height_epsilon);
         scale = 2.0f;
         if (WorldGetFarClip(world) >= 50000.0f) {
             scale = 1.5f;
@@ -1026,8 +1026,8 @@ void ApplyWorldUpdateFlags(W8World* world, unsigned int flags)
         WorldSetRenderRange(world, static_cast<float>(WorldGetFarClip(world)) * scale);
     }
     if ((flags & 2) != 0) {
-        WorldSetFarClip(world, static_cast<float>(WorldGetFarClip(world)) -
-                                   g_position_height_epsilon_005ebfdc);
+        WorldSetFarClip(world,
+                        static_cast<float>(WorldGetFarClip(world)) - g_position_height_epsilon);
         scale = 2.0f;
         if (WorldGetFarClip(world) >= 50000.0f) {
             scale = 1.5f;
@@ -1041,40 +1041,38 @@ void ApplyWorldUpdateFlags(W8World* world, unsigned int flags)
         g_float_00609c88 -= g_float_005ebc88;
     }
     if ((flags & 0x10) != 0) {
-        g_flag_00609c8c = 1;
+        g_flag_00609c8c = true;
     }
     if ((flags & 0x40) != 0) {
         world->m_loaded = world->m_loaded == 0;
     }
     if ((flags & 0x100) != 0) {
-        SetWorldEnvironmentValue00483AE0(g_world, GetWorldValue24(g_world) + 0.02f);
+        SetWorldEnvironmentValue(g_world, GetWorldValue24(g_world) + 0.02f);
     }
     if ((flags & 0x200) != 0) {
-        SetWorldEnvironmentValue00483AE0(g_world, GetWorldValue24(g_world) - 0.02f);
+        SetWorldEnvironmentValue(g_world, GetWorldValue24(g_world) - 0.02f);
     }
 }
 
 // FUNCTION: WIZ8 0x004503B0
-int ForwardSelectedPropIndex004503B0(W8World*, int, int)
+int ForwardSelectedPropIndex(W8World*, int, int)
 {
-    return GetSelectedPropIndex0044DA60();
+    return GetSelectedPropIndex();
 }
 
 // FUNCTION: WIZ8 0x00451150
-unsigned char ForwardActivateSelectedProp00451150(W8World*, int, int, int)
+bool ForwardActivateSelectedProp(W8World*, int, int, int)
 {
-    return ActivateSelectedProp0044DA20();
+    return ActivateSelectedProp();
 }
 
 // FUNCTION: WIZ8 0x00451100
-W8World* ForwardCreateWorld00451100(void)
+W8World* ForwardCreateWorld(void)
 {
     return CreateWorld();
 }
 
-/* Resolve the PARTY alias or a named position stored with the current world.
-   The third out-param is float* at every call site (World.h); retail still
-   stores named-position angle_bits_08c as int bits into that slot. */
+/* Resolve the PARTY alias or a named position stored with the current world. */
 // FUNCTION: WIZ8 0x004512C0
 bool FindEntityByName(const char* name, srVector3T<float>* position, float* angle,
                       srVector3T<float>* direction)
@@ -1093,8 +1091,7 @@ bool FindEntityByName(const char* name, srVector3T<float>* position, float* angl
         if (_stricmp(name, entry->name) == 0) {
             *position = entry->position;
             if (angle != 0) {
-                // c-style-cast-ok: angle_bits_08c is int storage written through float* out-param
-                *(int*)angle = entry->angle_bits_08c;
+                *angle = entry->angle;
             }
             if (direction != 0) {
                 direction->x = entry->direction_090.x;
@@ -1110,11 +1107,10 @@ bool FindEntityByName(const char* name, srVector3T<float>* position, float* angl
 /* Push a candidate position clear of static geometry, then reject it when it
    overlaps another world item or monster. */
 // FUNCTION: WIZ8 0x00451390
-unsigned char AdjustWorldCollisionPosition00451390(float radius, srVector3T<float>* position,
-                                                   unsigned char check_items,
-                                                   unsigned char check_monsters)
+unsigned char AdjustWorldCollisionPosition(float radius, srVector3T<float>* position,
+                                           unsigned char check_items, unsigned char check_monsters)
 {
-    float threshold = radius * g_path_endpoint_scale_005ec1a4;
+    float threshold = radius * g_path_endpoint_scale;
     float angle = 0.0f;
 
     do {
@@ -1122,13 +1118,13 @@ unsigned char AdjustWorldCollisionPosition00451390(float radius, srVector3T<floa
         first.RotateAboutY(sin(angle), cos(angle));
         first += *position;
 
-        double opposite_angle = angle + g_camera_pi_005ec2a0;
+        double opposite_angle = angle + g_camera_pi;
         srVector3T<float> second(0.0f, 0.0f, radius);
         second.RotateAboutY(sin(opposite_angle), cos(opposite_angle));
         second += *position;
 
-        g_octree_6598a4->TraceLineOfSight(position, &first, 1, -3, -3, 1, 0);
-        g_octree_6598a4->TraceLineOfSight(position, &second, 1, -3, -3, 1, 0);
+        g_octree->TraceLineOfSight(position, &first, 1, -3, -3, 1, 0);
+        g_octree->TraceLineOfSight(position, &second, 1, -3, -3, 1, 0);
 
         first -= *position;
         second -= *position;
@@ -1144,7 +1140,7 @@ unsigned char AdjustWorldCollisionPosition00451390(float radius, srVector3T<floa
             *position -= second;
         }
         angle += 0.7853981256484985f;
-    } while (angle < g_camera_pi_005ec2a0);
+    } while (angle < g_camera_pi);
 
     if (check_items != 0) {
         W8WorldItem* item = GetNextWorldItem(1);
@@ -1189,12 +1185,11 @@ unsigned char AdjustWorldCollisionPosition00451390(float radius, srVector3T<floa
 /* Try the requested point first, then the two retail half-turn probe points
    around it; only an unobstructed probe is handed to the overlap resolver. */
 // FUNCTION: WIZ8 0x00451800
-unsigned char FindNearbyFreePosition00451800(float radius, srVector3T<float>* position,
-                                             unsigned char check_items,
-                                             unsigned char check_monsters)
+unsigned char FindNearbyFreePosition(float radius, srVector3T<float>* position,
+                                     unsigned char check_items, unsigned char check_monsters)
 {
     srVector3T<float> candidate = *position;
-    if (AdjustWorldCollisionPosition00451390(radius, &candidate, check_items, check_monsters)) {
+    if (AdjustWorldCollisionPosition(radius, &candidate, check_items, check_monsters)) {
         *position = candidate;
         return 1;
     }
@@ -1207,13 +1202,13 @@ unsigned char FindNearbyFreePosition00451800(float radius, srVector3T<float>* po
         candidate.z = diameter * cos(angle) + position->z;
         srVector3T<float> unblocked = candidate;
 
-        g_octree_6598a4->TraceLineOfSight(position, &candidate, 1, -3, -3, 1, 0);
+        g_octree->TraceLineOfSight(position, &candidate, 1, -3, -3, 1, 0);
         if (candidate == unblocked &&
-            AdjustWorldCollisionPosition00451390(radius, &candidate, check_items, check_monsters)) {
+            AdjustWorldCollisionPosition(radius, &candidate, check_items, check_monsters)) {
             *position = candidate;
             return 1;
         }
         angle += g_float_005ec2a8;
-    } while (angle < g_camera_pi_005ec2a0);
+    } while (angle < g_camera_pi);
     return 0;
 }

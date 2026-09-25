@@ -1346,3 +1346,6 @@ void srModeler::convert(srMeshModel& model, int preserve)
     model.setDirty(static_cast<srMeshModel::e_flags>(3));
     delete hash;
 }
+
+// SYNTHETIC: SURRENDER 0x10037DC0
+// srModeler::MappingInfo default constructor closure

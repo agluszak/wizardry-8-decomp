@@ -1085,6 +1085,16 @@ srRegistry::ClassNode* srRegistry::registerClass(const char* class_name, ClassNo
     return node;
 }
 
+// FUNCTION: SURRENDER 0x1000ED40
+void srRegistry::dumpClassHierarchy(std::ostream& stream)
+{
+    RegistryAccess access(critical_section_0c);
+    for (ClassNode::ChildLink* link = root_00->first_child_04; link != root_00->child_end_08;
+         link = link->next_04) {
+        link->node_00->dump(stream, 0);
+    }
+}
+
 // FUNCTION: SURRENDER 0x1000EDB0
 srRegistry::ClassNode* srRegistry::addToTree(ClassNode* parent, const char* class_name,
                                              unsigned long class_id)
@@ -1319,6 +1329,37 @@ void srRegistry::ClassNode::enableInstanceLookup()
     }
     if (instances_by_id_20 == 0) {
         instances_by_id_20 = new IDIndex;
+    }
+}
+
+// FUNCTION: SURRENDER 0x1000FEE0
+void srRegistry::ClassNode::dump(std::ostream& stream, int indent)
+{
+    int i;
+    for (i = indent; i != 0; i--) {
+        stream << ' ';
+    }
+    stream << "Class name: " << class_name_14 << '\n';
+    for (i = indent; i != 0; i--) {
+        stream << ' ';
+    }
+    /* reinterpret-ok: retail prints the numeric class id through
+       operator<<(const void*). */
+    stream << "Class Id: " << reinterpret_cast<const void*>(class_id_10) << '\n';
+    for (i = indent; i != 0; i--) {
+        stream << ' ';
+    }
+    stream << "Num children: " << child_count_00 << '\n';
+    for (i = indent; i != 0; i--) {
+        stream << ' ';
+    }
+    stream << "Hash: " << named_instances_18 << '\n';
+    for (i = indent; i != 0; i--) {
+        stream << ' ';
+    }
+    stream << "Nearest parent hash: " << inherited_named_instances_1c << '\n';
+    for (ChildLink* link = first_child_04; link != child_end_08; link = link->next_04) {
+        link->node_00->dump(stream, indent + 2);
     }
 }
 

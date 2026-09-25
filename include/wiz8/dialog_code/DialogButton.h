@@ -81,8 +81,8 @@ public:
     unsigned char m_right_toggles;
     bool m_dirty; /* 0x38: set by owning screens before Draw */
 private:
-    unsigned char silent_039;       /* suppresses all button sounds */
-    unsigned char hover_silent_03a; /* suppresses hover/exit sounds only */
+    bool silent_039;       /* suppresses all button sounds */
+    bool hover_silent_03a; /* suppresses hover/exit sounds only */
 
 public:
     /* 0x3b: raised on spinner-style buttons (the split dialog's arrows); the
@@ -91,7 +91,7 @@ public:
     unsigned char m_fires_on_press;
 
 private:
-    unsigned char press_armed_03c; /* clicked-on and fires_on_press: release completes */
+    bool press_armed_03c; /* clicked-on and fires_on_press: release completes */
     unsigned char unknown_03d[3];
 
 public:

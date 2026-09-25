@@ -38,7 +38,7 @@ W8NpcScriptingState g_npc_scripting;
 /* Report whether a party slot can be picked: in range, occupied, still on its
    feet, and not Turncoat or a more severe condition. */
 // FUNCTION: WIZ8 0x00524a10
-bool IsPartySlotEligible00524A10(int slot)
+bool IsPartySlotEligible(int slot)
 {
     W8Character* character;
     bool eligible;
@@ -49,10 +49,10 @@ bool IsPartySlotEligible00524A10(int slot)
     if (slot >= 8) {
         return 0;
     }
-    if (g_status_685170.buffers.XChar[slot].fOccupied == 0) {
+    if (g_status.buffers.XChar[slot].fOccupied == 0) {
         return 0;
     }
-    character = &g_status_685170.buffers.Char[slot];
+    character = &g_status.buffers.Char[slot];
     if (character->hp_current == 0) {
         return 0;
     }

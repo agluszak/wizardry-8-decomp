@@ -1,8 +1,8 @@
 #pragma once
 
-extern float g_path_endpoint_scale_005ec1a4;
+extern float g_path_endpoint_scale;
 
 struct W8GameData;
 
 W8GameData* ReadGameData00447570(const char* path, bool secondary); /* 0x00447570 */
-unsigned char InitializeGameData004497C0(W8GameData* game_data);
+unsigned char InitializeGameData(W8GameData* game_data);

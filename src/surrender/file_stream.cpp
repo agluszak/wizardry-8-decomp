@@ -297,10 +297,22 @@ srFileManager::srFileManager()
     first_path_04 = 0;
 }
 
+// FUNCTION: SURRENDER 0x100163C0
+srFileManager::srFileManager(const srFileManager& other) : first_path_04(other.first_path_04)
+{
+}
+
 // FUNCTION: SURRENDER 0x1002E750
 srFileManager::~srFileManager()
 {
     setPath(0);
+}
+
+// FUNCTION: SURRENDER 0x100163E0
+srFileManager& srFileManager::operator=(const srFileManager& other)
+{
+    first_path_04 = other.first_path_04;
+    return *this;
 }
 
 namespace {

@@ -6,6 +6,9 @@
 class SR_DLL_IMPORT srTexture : public srClassSupport<srTexture, srTextureIFace, false, 0x2110> {
 public:
     static const char* sGetClassName();
+    /* Retail's copy constructor calls operator= and leaves memberwise
+       re-copies to the compiler's copy-ctor fixup emission. */
+    srTexture(const srTexture& other);
     srTexture& operator=(const srTexture& other);
     virtual void dump(std::ostream& stream) override;
     virtual unsigned long getTextureFrameHandle() override;
@@ -16,10 +19,17 @@ public:
     virtual void getMipmapLevelPartial(PartialRequest& request) override;
     virtual void getTextureParms(Parameters& parameters) override;
     srFilter* getFilter() const;
+    void setFilter(srFilter* filter);
     void setMipmap(e_mipmap mipmap);
     void setMipmapBias(float bias);
+    float getMipmapBias() const;
+    void setPriority(float priority);
+    void setDimensionsDirty();
+    e_compression getCompression() const;
+    void setCompression(e_compression compression);
     void enableHint(e_hint hint);
     void disableHint(e_hint hint);
+    int isHintEnabled(e_hint hint) const;
     void setCorrection(e_correction correction);
     void setMagFilter(e_filter filter);
     void setMinFilter(e_filter filter);
@@ -43,6 +53,8 @@ protected:
     srTexture();
     virtual ~srTexture() override;
     static unsigned long getNewFrameHandle();
+    /* Allocates count consecutive frame handles and returns the first. */
+    static unsigned long getNewFrameHandles(unsigned long count);
     /* Monotonic frame-handle counter at 0x100A4A1C; getNewFrameHandle
        increments then returns it. */
     static unsigned long _frameHandle;

@@ -38,12 +38,12 @@ struct W8NavigatorMovementState;
 
 /* Retail allocates this 0x58-byte object, calls its sole observed constructor,
    and later releases it with delete. Its constructor's entire effect is
-   LoadPathParameters004CCCB0 - reading Data\Monsters\pathparms.txt into the
+   LoadPathParameters - reading Data\Monsters\pathparms.txt into the
    path-tuning globals - so the class is the path-parameter owner. The object
    doubles as the per-step steering context StepAlongPath hands to the
-   0x004CAE50-0x004CCB60 method cluster: InitializeSteeringContext004CAE50
+   0x004CAE50-0x004CCB60 method cluster: InitializeSteeringContext
    seeds it from the movement state each step, the steering helpers accumulate
-   into force_38, and IntegrateSteering004CB090 applies the result. */
+   into force_38, and IntegrateSteering applies the result. */
 class W8PathParameters {
 public:
     W8PathParameters(); /* 0x004CAE40 */
@@ -52,51 +52,50 @@ public:
        speed limit (the linked navigator's movement scale when linked), the
        normalized velocity or a yaw-derived default direction, the right-hand
        perpendicular, and cleared force/query state. */
-    void InitializeSteeringContext004CAE50(W8NavigatorMovementState* movement); /* 0x004CAE50 */
+    void InitializeSteeringContext(W8NavigatorMovementState* movement); /* 0x004CAE50 */
     /* Lazily fills nearby_locations_50/nearby_count_4c with the location ids
        inside a radius-scaled box around the movement position; the cached
        result is returned on repeat calls. */
-    unsigned char QueryNearbyNavigators004CAFC0(); /* 0x004CAFC0 */
+    unsigned char QueryNearbyNavigators(); /* 0x004CAFC0 */
     /* Applies force_38 for one time step: clamps it to acceleration_0c,
        integrates velocity toward speed_limit_08, resolves the heading, snaps
        the new position against the path mesh and falls back to sliding or
        stopping when the snap fails. */
-    void IntegrateSteering004CB090(); /* 0x004CB090 */
+    void IntegrateSteering(); /* 0x004CB090 */
     /* Advances movement_00->target_yaw toward movement_00->yaw by the shorter
        arc, accelerating or decelerating the angular velocity in
        movement_00->yaw_velocity_01c. */
-    void UpdateYawSteering004CB520(float time_step, char use_turn_rate); /* 0x004CB520 */
+    void UpdateYawSteering(float time_step, char use_turn_rate); /* 0x004CB520 */
     /* Predicts a collision with another navigator or the party inside the
        prediction window; returns nonzero when one is found ahead. */
-    unsigned char PredictNavigatorCollision004CB620(); /* 0x004CB620 */
+    unsigned char PredictNavigatorCollision(); /* 0x004CB620 */
     /* Steers around geometry: brakes and deflects force_38 perpendicular to a
        clipped span, pushes toward the next waypoint when it falls behind the
        heading, or uses directional clearance for oversized radii. */
-    unsigned char HandleObstacleAhead004CBB70(); /* 0x004CBB70 */
+    unsigned char HandleObstacleAhead(); /* 0x004CBB70 */
     /* Adds the seek force toward target_14 scaled by
-       g_path_acceleration_factor_0060f9e8 into force_38, clamped to
+       g_path_acceleration_factor into force_38, clamped to
        acceleration_0c; with a stopped movement it instead pushes along the
        2-D target direction and zeroes speed_limit_08. */
-    void AccumulateSeekForce004CC1A0(); /* 0x004CC1A0 */
+    void AccumulateSeekForce(); /* 0x004CC1A0 */
     /* Scales speed_limit_08 down by target distance through the approach
        profile, then accumulates the seek force. */
-    void SeekWithApproachSpeed004CC420(); /* 0x004CC420 */
+    void SeekWithApproachSpeed(); /* 0x004CC420 */
     /* Adds a repulsion force from every linked navigator inside the combined
        radius into force_38. */
-    void AccumulateGroupRepulsion004CC4C0(); /* 0x004CC4C0 */
+    void AccumulateGroupRepulsion(); /* 0x004CC4C0 */
     /* Steers around the linked leader: lateral pass targets, following
        distance, or a blocked-path fallback that reseeds target_14. */
-    unsigned char SteerAroundLeader004CC680(char allow_path_fallback); /* 0x004CC680 */
+    unsigned char SteerAroundLeader(char allow_path_fallback); /* 0x004CC680 */
     /* The full per-step driver for a navigator at the start of its route:
        obstacle, collision, leader and waypoint steering, group repulsion,
        then integration. */
-    void SteerFromPathStart004CCAD0(W8NavigatorMovementState* movement,
-                                    char alternate); /* 0x004CCAD0 */
+    void SteerFromPathStart(W8NavigatorMovementState* movement, char alternate); /* 0x004CCAD0 */
     /* The mid-route driver: additionally predicts the hop height along the
        path and advances the target past waypoints the step covers, returning
        the advance result. */
-    unsigned char SteerAlongPath004CCB60(W8NavigatorMovementState* movement,
-                                         char alternate); /* 0x004CCB60 */
+    unsigned char SteerAlongPath(W8NavigatorMovementState* movement,
+                                 char alternate); /* 0x004CCB60 */
 
 private:
     W8NavigatorMovementState* movement_00;
@@ -110,7 +109,7 @@ private:
     srVector3T<float> force_38;
     float radius_44;
     unsigned char nearby_queried_48;
-    unsigned char blocked_49;
+    bool blocked_49;
     unsigned char padding_4a[2];
     unsigned int nearby_count_4c;
     unsigned long* nearby_locations_50;
@@ -264,7 +263,7 @@ struct W8PathHeapHandle {
     W8PathHeap* heap_00;
     unsigned int root_node_04;
 
-    void DeleteRoot004577F0(W8PathSearchNode* node);
+    void DeleteRoot(W8PathSearchNode* node);
 };
 
 static_assert(sizeof(W8PathHeapEntry) == 8, "W8PathHeapEntry_must_be_8");
@@ -287,155 +286,139 @@ public:
     /* The two operations W8Octree::AdvanceNavigator delegates to: it loads
        the service into ecx before either call, so both are its methods and
        not the free functions they were declared as. */
-    unsigned int StepAlongPath004669B0(W8NavigatorMovementState* movement, float radius,
-                                       float separation);
-    unsigned int StepMonsterAlongPath00467150(W8NavigatorMovementState* movement, float radius,
-                                              float separation);
-    void LinkSurfaces00460020(GDProp* prop); /* 0x00460020 */
-    void LinkEdges004600B0(GDProp* prop);    /* 0x004600B0 */
+    unsigned int StepAlongPath(W8NavigatorMovementState* movement, float radius, float separation);
+    unsigned int StepMonsterAlongPath(W8NavigatorMovementState* movement, float radius,
+                                      float separation);
+    void LinkSurfaces(GDProp* prop); /* 0x00460020 */
+    void LinkEdges(GDProp* prop);    /* 0x004600B0 */
     void CheckConditionalWayPtStatus004601B0(unsigned short count, unsigned short* waypoints);
     void CheckConditionalLinkStatus00460250(unsigned short count, unsigned short* edges);
-    void SetConditionalPathFrame00457EA0(unsigned int path_handle, short frame);
-    unsigned int FindConditionalPathValue00458970(unsigned int key, unsigned int value);
+    void SetConditionalPathFrame(unsigned int path_handle, short frame);
+    unsigned int FindConditionalPathValue(unsigned int key, unsigned int value);
     void
     LinkCollideableProps(int lNumProps, W8PreProp* pPreProps,
                          W8HashTable<unsigned int, CondPathNode*>* pCondValues); /* 0x004CE510 */
-    unsigned char HandlePathEdgeTransition00460350(W8NavigatorMovementState* movement);
-    void ReduceWaypointCosts00462220(unsigned int waypoint, float amount);
-    unsigned char AdvanceAttachmentWaypoint00462DE0(const srVector3T<float>* source,
-                                                    struct W8NavigatorAttachment* attachment);
-    unsigned char MatchesPathProbe00465970(unsigned int tag, const float* radius,
-                                           const srVector3T<float>* position);
-    unsigned short AllocateSearchNode00465A00();
-    unsigned char CanReachSearchNode00465AF0(const srVector3T<float>* position,
-                                             unsigned short target_node, float clearance);
-    void AdjustFinalPathEndpoint00465D70(W8NavigatorMovementState* movement, float radius,
-                                         float separation);
-    void UpdateConditionalPathFlags00465FB0(unsigned int path_handle, unsigned short frame,
-                                            unsigned int flags);
-    int ProcessSearchNodeProps004663D0(unsigned int node_index, unsigned char first_only);
-    unsigned int CollectPathProbes004656A0(W8NavigatorMovementState* movement, float radius);
-    unsigned short PlanMovement00463460(W8NavigatorMovementState* movement, float radius,
-                                        float separation);
-    unsigned short PlanMovementToPosition00464AB0(W8NavigatorMovementState* movement,
-                                                  const srVector3T<float>* target, float radius,
-                                                  float separation);
-    float UpdateSearchNodeScore00464FF0(unsigned int node, const srVector3T<float>* position,
-                                        float minimum, float maximum);
-    unsigned short ResolveSearchNodeCollisions00465130(W8NavigatorMovementState* movement,
-                                                       unsigned int node, float radius,
-                                                       float separation);
-    unsigned char TestSearchPositionVisibility00464CC0(const srVector3T<float>* position,
-                                                       W8NavigatorMovementState* movement);
-    unsigned short ConfigureMovementSearch00464B00(W8NavigatorMovementState* movement,
-                                                   int target_location, float radius,
-                                                   float separation, float maximum_distance,
-                                                   srVector3T<float> trace_offset, int trace_mode,
-                                                   float target_height_offset, float target_yaw,
-                                                   unsigned char* probe_result);
-    unsigned char ResolvePathCell004648D0(unsigned int key, unsigned char allow_dynamic,
-                                          unsigned int* height, float* direction, float* vertical,
-                                          unsigned char* dynamic);
-    unsigned short FindWaypoint0045B120(const srVector3T<float>* position,
-                                        unsigned char exhaustive);
-    void SnapPathHeight0045B5A0(srVector3T<float>* position);
+    unsigned char HandlePathEdgeTransition(W8NavigatorMovementState* movement);
+    void ReduceWaypointCosts(unsigned int waypoint, float amount);
+    unsigned char AdvanceAttachmentWaypoint(const srVector3T<float>* source,
+                                            struct W8NavigatorAttachment* attachment);
+    unsigned char MatchesPathProbe(unsigned int tag, const float* radius,
+                                   const srVector3T<float>* position);
+    unsigned short AllocateSearchNode();
+    unsigned char CanReachSearchNode(const srVector3T<float>* position, unsigned short target_node,
+                                     float clearance);
+    void AdjustFinalPathEndpoint(W8NavigatorMovementState* movement, float radius,
+                                 float separation);
+    void UpdateConditionalPathFlags(unsigned int path_handle, unsigned short frame,
+                                    unsigned int flags);
+    int ProcessSearchNodeProps(unsigned int node_index, unsigned char first_only);
+    unsigned int CollectPathProbes(W8NavigatorMovementState* movement, float radius);
+    unsigned short PlanMovement(W8NavigatorMovementState* movement, float radius, float separation);
+    unsigned short PlanMovementToPosition(W8NavigatorMovementState* movement,
+                                          const srVector3T<float>* target, float radius,
+                                          float separation);
+    float UpdateSearchNodeScore(unsigned int node, const srVector3T<float>* position, float minimum,
+                                float maximum);
+    unsigned short ResolveSearchNodeCollisions(W8NavigatorMovementState* movement,
+                                               unsigned int node, float radius, float separation);
+    unsigned char TestSearchPositionVisibility(const srVector3T<float>* position,
+                                               W8NavigatorMovementState* movement);
+    unsigned short ConfigureMovementSearch(W8NavigatorMovementState* movement, int target_location,
+                                           float radius, float separation, float maximum_distance,
+                                           srVector3T<float> trace_offset, int trace_mode,
+                                           float target_height_offset, float target_yaw,
+                                           unsigned char* probe_result);
+    unsigned char ResolvePathCell(unsigned int key, unsigned char allow_dynamic,
+                                  unsigned int* height, float* direction, float* vertical,
+                                  unsigned char* dynamic);
+    unsigned short FindWaypoint(const srVector3T<float>* position, unsigned char exhaustive);
+    void SnapPathHeight(srVector3T<float>* position);
     void GetPathSurfaceNormal0045B730(const srVector3T<float>* position, srVector3T<float>* normal);
-    void ActivateMovementTrigger0045B880(W8NavigatorMovementState* movement,
-                                         unsigned char use_path_edge);
+    void ActivateMovementTrigger(W8NavigatorMovementState* movement, unsigned char use_path_edge);
     void UpdatePathVisualization0045BC40(const srVector3T<float>* source,
                                          const srVector3T<float>* destination);
-    void DrawPathPosition0045C9A0(srVector3T<float> position, unsigned char mode);
-    void BuildSearchVisualization0045CFD0();
-    stModelInstance* BuildPathVisualization0045BE30();
-    stModelInstance* EnsurePathVisualization0045D530();
-    void GetWaypointVisualizationColor0045D490(unsigned short waypoint, srVector3T<float>* color);
-    short CollectPathVisualization0045D880(const srVector3T<float>* position);
-    unsigned char PreparePathVisualization0045E840(const srVector3T<float>* source,
-                                                   const srVector3T<float>* direction);
-    void AddWaypoint0045DDB0(const srVector3T<float>* position);
-    unsigned int ClassifyWaypoint00459C00(const srVector3T<float>* position);
-    unsigned char SnapWaypointPosition00462E60(srVector3T<float>* position,
-                                               unsigned char snap_to_cell);
-    unsigned char TestPathCellClearance00463040(srVector3T<float>* position, float clearance,
-                                                unsigned char snap_to_cell);
-    unsigned char SnapToLowerPathCell00463290(srVector3T<float>* position,
-                                              unsigned char allow_directional);
-    unsigned char ProbeAttachmentPath00462360(W8NavigatorAttachment* attachment);
-    unsigned int FindPathCell00459D60(srVector3T<float>* position, unsigned int* cell,
-                                      unsigned char adjust);
-    unsigned char BuildAttachmentPath00460950(W8NavigatorAttachment* attachment,
-                                              unsigned int flags);
-    unsigned char PrepareLinkedNavigator00466FB0(W8NavigatorMovementState* movement);
-    unsigned char LinkAttachmentTarget004612A0(W8NavigatorAttachment* attachment,
-                                               unsigned int flags, const srVector3T<float>* target,
-                                               float separation);
-    unsigned char BuildPatrolPath00461960(W8NavigatorAttachment* attachment, unsigned int flags,
-                                          const srVector3T<float>* target, float minimum,
-                                          const srVector3T<float>* velocity, float maximum);
-    void ProbeWaypointArc00462570(const srVector3T<float>* from, const srVector3T<float>* to);
-    void GetPathGridStepDirections0045AEE0(const W8PathGridWalk* walk, int* directions);
-    void BuildPathGridWalk0045AF60(const srVector2T<float>* from, const srVector2T<float>* to,
-                                   const srVector2T<float>* origin, W8PathGridWalk* walk);
-    unsigned char ProbeWaypointSegment00462750(const srVector3T<float>* from,
-                                               const srVector3T<float>* to);
-    unsigned int ComputeWaypointNeighborMask004667A0(const int* cell, unsigned int path_value);
+    void DrawPathPosition(srVector3T<float> position, unsigned char mode);
+    void BuildSearchVisualization();
+    stModelInstance* BuildPathVisualization();
+    stModelInstance* EnsurePathVisualization();
+    void GetWaypointVisualizationColor(unsigned short waypoint, srVector3T<float>* color);
+    short CollectPathVisualization(const srVector3T<float>* position);
+    unsigned char PreparePathVisualization(const srVector3T<float>* source,
+                                           const srVector3T<float>* direction);
+    void AddWaypoint(const srVector3T<float>* position);
+    unsigned int ClassifyWaypoint(const srVector3T<float>* position);
+    unsigned char SnapWaypointPosition(srVector3T<float>* position, unsigned char snap_to_cell);
+    unsigned char TestPathCellClearance(srVector3T<float>* position, float clearance,
+                                        unsigned char snap_to_cell);
+    unsigned char SnapToLowerPathCell(srVector3T<float>* position, unsigned char allow_directional);
+    unsigned char ProbeAttachmentPath(W8NavigatorAttachment* attachment);
+    unsigned int FindPathCell(srVector3T<float>* position, unsigned int* cell,
+                              unsigned char adjust);
+    unsigned char BuildAttachmentPath(W8NavigatorAttachment* attachment, unsigned int flags);
+    unsigned char PrepareLinkedNavigator(W8NavigatorMovementState* movement);
+    unsigned char LinkAttachmentTarget(W8NavigatorAttachment* attachment, unsigned int flags,
+                                       const srVector3T<float>* target, float separation);
+    unsigned char BuildPatrolPath(W8NavigatorAttachment* attachment, unsigned int flags,
+                                  const srVector3T<float>* target, float minimum,
+                                  const srVector3T<float>* velocity, float maximum);
+    void ProbeWaypointArc(const srVector3T<float>* from, const srVector3T<float>* to);
+    void GetPathGridStepDirections(const W8PathGridWalk* walk, int* directions);
+    void BuildPathGridWalk(const srVector2T<float>* from, const srVector2T<float>* to,
+                           const srVector2T<float>* origin, W8PathGridWalk* walk);
+    unsigned char ProbeWaypointSegment(const srVector3T<float>* from, const srVector3T<float>* to);
+    unsigned int ComputeWaypointNeighborMask(const int* cell, unsigned int path_value);
     /* Sums the blocked-direction unit vectors among the directions `delta`
        points toward and normalizes the result into `direction`; zero when
        `mask` is fully open or nothing wanted is blocked. */
-    unsigned char ComputeFreeDirection004664F0(unsigned int mask, const srVector3T<float>* delta,
-                                               srVector3T<float>* direction);
+    unsigned char ComputeFreeDirection(unsigned int mask, const srVector3T<float>* delta,
+                                       srVector3T<float>* direction);
     /* Resolves the path cell under `position`, reads its neighbor mask and
        computes the free-direction vector away from `delta`; zero when the
        heading has no free neighbor. */
-    unsigned char GetNeighborSlideDirection00466600(const srVector3T<float>* position,
-                                                    const srVector3T<float>* delta,
-                                                    srVector3T<float>* direction);
+    unsigned char GetNeighborSlideDirection(const srVector3T<float>* position,
+                                            const srVector3T<float>* delta,
+                                            srVector3T<float>* direction);
     /* The same free-direction query against the stored waypoint neighbor mask
        rather than a live cell lookup. */
-    unsigned char GetObstacleDirection00466990(const srVector3T<float>* delta,
-                                               srVector3T<float>* direction);
+    unsigned char GetObstacleDirection(const srVector3T<float>* delta,
+                                       srVector3T<float>* direction);
     /* A* from the attachment's start to its destination over the surface
        graph; returns the destination surface index, zero when unreachable. */
-    unsigned int FindPath00460B80(W8NavigatorAttachment* attachment, unsigned int flags);
+    unsigned int FindPath(W8NavigatorAttachment* attachment, unsigned int flags);
     /* Depth-first patrol search from `waypoint`: accumulates per-link path
        costs against the randomized patrol_distance target, tracking the
        argmin-key fallback nodes, and returns the reached endpoint or zero.
        Retail names it in the "Too many links" assert. */
     /* Depth-first link search from `waypoint` toward the target stored in
-       patrol_start_1ec by LinkAttachmentTarget004612A0: collects admissible
+       patrol_start_1ec by LinkAttachmentTarget: collects admissible
        edge destinations (filtered like FindPath), prices each by accumulated
        link cost plus distance-to-target, sorts by that key, then returns the
        first candidate beyond patrol_distance_1e8 or the first nonzero
        recursive result. probe_cell_key_078 tracks the farthest candidate. */
-    unsigned short RecurseTargetLinks004615D0(unsigned short waypoint); /* 0x004615D0 */
+    unsigned short RecurseTargetLinks(unsigned short waypoint); /* 0x004615D0 */
     unsigned short RecursePatrolLinks00461D10(unsigned short waypoint);
-    float MeasureDirectionalPath0045AC70(const int* cell, int direction, unsigned int height,
-                                         float distance);
-    float CompareDirectionalClearance0045AAC0(const srVector3T<float>* position,
-                                              const srVector3T<float>* direction, float distance);
-    void SetWaypointLinkFlags0045E030(unsigned short waypoint, unsigned int direction);
-    void RemoveWaypointLink0045E360(unsigned short edge);
-    void AddWaypointLink0045EC30(unsigned short source, unsigned short destination,
-                                 unsigned int flags);
-    unsigned char UpdateWaypointLink0045F200(unsigned short source, unsigned short destination,
-                                             unsigned int flags);
-    unsigned char HasDirectionalWaypointLink0045EF90(unsigned short source,
-                                                     unsigned short destination);
-    unsigned char TestWaypointSpan0045A1B0(const srVector3T<float>* source,
-                                           srVector3T<float>* destination,
-                                           unsigned char adjust_destination,
-                                           unsigned char diagonal_steps);
+    float MeasureDirectionalPath(const int* cell, int direction, unsigned int height,
+                                 float distance);
+    float CompareDirectionalClearance(const srVector3T<float>* position,
+                                      const srVector3T<float>* direction, float distance);
+    void SetWaypointLinkFlags(unsigned short waypoint, unsigned int direction);
+    void RemoveWaypointLink(unsigned short edge);
+    void AddWaypointLink(unsigned short source, unsigned short destination, unsigned int flags);
+    unsigned char UpdateWaypointLink(unsigned short source, unsigned short destination,
+                                     unsigned int flags);
+    unsigned char HasDirectionalWaypointLink(unsigned short source, unsigned short destination);
+    unsigned char TestWaypointSpan(const srVector3T<float>* source, srVector3T<float>* destination,
+                                   unsigned char adjust_destination, unsigned char diagonal_steps);
     /* `range` carries the walk budget in and the path cost back out; `hops`
        returns the reached-waypoint count. */
-    unsigned char MeasureAttachmentPath004604B0(const srVector3T<float>* from,
-                                                srVector3T<float>* to, float* range,
-                                                int* hops); /* 0x004604B0 */
+    unsigned char MeasureAttachmentPath(const srVector3T<float>* from, srVector3T<float>* to,
+                                        float* range, int* hops); /* 0x004604B0 */
     /* Whether the hop at the attachment's current index crosses a disabled
        conditional edge whose segment box holds a door prop - and that prop's
        door-trigger action data is a type-10 record with flag bit0 clear. */
-    unsigned char TestAttachmentHopDoor00460680(W8NavigatorAttachment* attachment); /* 0x00460680 */
-    unsigned int EditWaypointLinkFlags0045F530(const char* title, unsigned int* flags,
-                                               unsigned int direction);
+    unsigned char TestAttachmentHopDoor(W8NavigatorAttachment* attachment); /* 0x00460680 */
+    unsigned int EditWaypointLinkFlags(const char* title, unsigned int* flags,
+                                       unsigned int direction);
     void EditTeleportalLink(const srVector3T<float>* destination,
                             const srVector3T<float>* source); /* 0x0045F2D0 */
     /* Takes the size, two loose values, the bounds block out of the octree
@@ -444,10 +427,10 @@ public:
                            const W8BoundingBox* bounds, const char* name); /* 0x00458A50 */
     unsigned char Load00458CE0(int handle);                                /* 0x00458CE0 */
     unsigned char WritePathNodes00458AD0(unsigned int handle);
-    unsigned char SaveWaypointSnapshot00459400(unsigned char force);
+    unsigned char SaveWaypointSnapshot(unsigned char force);
     unsigned char WriteWaypointFile00459540();
     unsigned char ReadWaypointFile00459650();
-    void BuildWaypointFileData0045E440();
+    void BuildWaypointFileData();
     /* Owning destructor: releases owned tables and bit sets. Single caller
        destroys the service at octree teardown. */
     ~W8PathingService(); /* 0x00457B10 */
@@ -524,9 +507,9 @@ public:
     unsigned int search_node_capacity_0d0;
     unsigned int path_probe_count_0d4;
     W8PathProbeVolume path_probes_0d8[10];
-    unsigned char waypoint_editing_1c8; /* 0x1c8 */
-    unsigned char flag_1c9;
-    unsigned char flag_1ca;
+    bool waypoint_editing_1c8; /* 0x1c8 */
+    bool flag_1c9;
+    bool flag_1ca;
     bool search_visualization_1cb;
     bool waypoints_dirty_1cc;
     unsigned char m_padding_1cd;
@@ -604,17 +587,17 @@ public:
 
     /* Copies each named position (scaled to world units) into +0x250 and
        snaps it to the ground through `octree`. */
-    int SnapNamedPositions004CD130(W8LevelFileNamedPosition* positions, int count,
-                                   unsigned int min_component_percent, OctPreTree* octree);
+    int SnapNamedPositions(W8LevelFileNamedPosition* positions, int count,
+                           unsigned int min_component_percent, OctPreTree* octree);
     /* Hands out the next 0x10-byte path-node record, allocating a new
        0x3e80-byte chunk (1000 records) when the current one fills. */
     W8PrePathNode* GetPathNode();
     unsigned char BuildPathList(W8PrePathNode* nodes, W8HashTable<unsigned int, int>* cell_map);
-    unsigned char LinkPathNodes004CD390();
-    void PropagatePathNodeClearance004CD650(W8PrePathNode* node, unsigned int depth);
-    unsigned int DeleteUnreachableAreas004CD7C0();
+    unsigned char LinkPathNodes();
+    void PropagatePathNodeClearance(W8PrePathNode* node, unsigned int depth);
+    unsigned int DeleteUnreachableAreas();
     int CreatePathNodeArray();
-    unsigned char CreateAutomapNodes004CE070(W8LevelFile* level);
+    unsigned char CreateAutomapNodes(W8LevelFile* level);
 
     W8PrePathNode** path_node_list_240; /* size_004 entries */
     OctPrePathLog* path_log_244;
@@ -643,14 +626,14 @@ static_assert(offsetof(PrePathing, min_component_percent_1200) == 0x1200,
 
 /* Move an integer path cell one compass step; directions outside the
    eight-value range wrap once. */
-void __stdcall StepPathCell004622D0(int* x, int* z, int direction);
+void __stdcall StepPathCell(int* x, int* z, int direction);
 
-extern W8PathingService* g_pathing_00659c60;
-extern unsigned short g_path_reserve_0060827a;
-extern float g_path_span_scale_005ec344;
+extern W8PathingService* g_pathing;
+extern unsigned short g_path_reserve;
+extern float g_path_span_scale;
 extern double g_double_005ec3b0;
-/* The -1.0 no-route sentinel MeasurePathDistance00453300 returns. */
+/* The -1.0 no-route sentinel MeasurePathDistance returns. */
 extern const double g_double_005ec2e8;
 /* 0x005ED300: OctPrePath.cpp's vertical-link slack; retail Combat.cpp reads
    it directly when sizing a monster's move. */
-extern float g_prepath_link_height_5ed300;
+extern float g_prepath_link_height;

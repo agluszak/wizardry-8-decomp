@@ -40,7 +40,7 @@ struct W8FactionRuntimeRecord {
        increments it (cap 0xfa) and reads it for the penalty tiers. */
     int offense_count_01;
     unsigned char unknown_05;
-    /* 0x06: g_status_685170.world_clock at the last band change. */
+    /* 0x06: g_status.world_clock at the last band change. */
     int band_changed_clock_06;
     /* 0x0a: raised by the sight pass the first time the party sees one of
        this faction's monsters; the journal lists encountered factions. */
@@ -87,6 +87,6 @@ void RecordFactionOffense(signed char faction, unsigned int victim_location_inde
    when the band moved, and post the worsened/improved notice. */
 void AdjustFactionDisposition(signed char faction, char delta);
 /* 0x00536030/0x00536070: FATA section save and load. */
-void SaveFactionState00536030(int file);
-void LoadFactionState00536070(int file);
+void SaveFactionState(int file);
+void LoadFactionState(int file);
 #endif

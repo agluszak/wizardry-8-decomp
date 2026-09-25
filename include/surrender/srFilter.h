@@ -5,25 +5,42 @@
 class SR_DLL_IMPORT srFilter {
 public:
     /* The trivial base members are defined inline. Retail emitted each as a
-       real export (sr.def, not dllexport) while still folding it into the
-       derived constructors/destructors, which is why those bodies are a single
-       vtable store with no base call. SR_DLL_IMPORT is empty for the provider
-       build, so nothing forces a standalone recomp emission; these stay inline
-       so the derived bodies keep retail's elided form. */
-    // FUNCTION: SURRENDER 0x10003300 SYMBOL
+       real export while still folding it into the derived constructors/
+       destructors, which is why those bodies are a single vtable store with
+       no base call. The member dllexport marks keep the header bodies for
+       that folding while still emitting the exported standalone copies. */
+    // FUNCTION: SURRENDER 0x10003300
     // ??0srFilter@@QAE@XZ
-    srFilter() {}
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    srFilter()
+    {
+    }
 
-    // FUNCTION: SURRENDER 0x10003310 SYMBOL
+    // FUNCTION: SURRENDER 0x10003310
     // ??0srFilter@@QAE@ABV0@@Z
-    srFilter(const srFilter& other) {}
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    srFilter(const srFilter& other)
+    {
+    }
 
-    // FUNCTION: SURRENDER 0x100032B0 SYMBOL
+    // FUNCTION: SURRENDER 0x100032B0
     // ??1srFilter@@UAE@XZ
-    virtual ~srFilter() {}
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    virtual ~srFilter()
+    {
+    }
 
-    // FUNCTION: SURRENDER 0x10003330 SYMBOL
+    // FUNCTION: SURRENDER 0x10003330
     // ??4srFilter@@QAEAAV0@ABV0@@Z
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     srFilter& operator=(const srFilter& other)
     {
         return *this;

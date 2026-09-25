@@ -66,8 +66,7 @@ int __cdecl srInit()
             srDebugPrintf(0, "srInit() -- no Vector Processor DLLs found (using base VP)\n");
         }
         srCore.memory_allocator_20 = new srMemoryAllocator;
-        srCore.file_manager_24 = new srFileManager;
-        srCore.default_file_manager_30 = srCore.file_manager_24;
+        srCore.file_manager_24 = srCore.default_file_manager_30 = new srFileManager;
         srCore.statistics_manager_28 = new srStatisticsManager;
         srCore.statistics_manager_28->reset();
         srCore.setFilter(0);
@@ -699,6 +698,3 @@ const unsigned char srLogo[0x1000] = {
 
 // SYNTHETIC: SURRENDER 0x100162F0
 // srMaterial scalar deleting destructor
-
-// SYNTHETIC: SURRENDER 0x10016310
-// srMaterialIFace::~srMaterialIFace

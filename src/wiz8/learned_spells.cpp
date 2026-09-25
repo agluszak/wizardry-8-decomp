@@ -9,7 +9,7 @@
    at 0x004F97A0. Keeping this separate avoids inventing a TU name; merging into
    Magic.cpp would be organizational only and would not prove ownership. */
 // FUNCTION: WIZ8 0x004F9600
-void BuildLearnedSpellState004F9600(W8LearnedSpellState* scratch, W8Character* character)
+void BuildLearnedSpellState(W8LearnedSpellState* scratch, W8Character* character)
 {
     int spell_id;
     int realm;

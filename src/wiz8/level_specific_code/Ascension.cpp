@@ -28,7 +28,7 @@
    Attribution evidence: 0x004DF870, 0x004DFBC0 and 0x004E0430 cite this file's
    path string in their MonsterGetIndexByLocationID assertions (lines 0x17f,
    0x2cd, 0x2da, 0x2e7). 0x004DF810, 0x004DFB40, 0x004DFB80 and 0x004E0510 are
-   bounded to this TU, and InitializeLevelMasterFunctions004D6C50 registers the
+   bounded to this TU, and InitializeLevelMasterFunctions registers the
    0x004DFE60-0x004E04F0 callbacks plus the 0x004DF870 init call under case 1,
    the Ascension Peak level. 0x004E0560 and 0x004E05A0 are registered under
    case 0x24, the Footsteps level, which is part of the Ascension Peak block. */
@@ -36,13 +36,13 @@
 #define ASCENSION_CPP "C:\\Projects\\Wizardry 8\\Level Specific Code\\Ascension.cpp"
 
 // GLOBAL: WIZ8 0x0068356C
-W8IntervalGate* g_avalanche_gate_68356c;
+W8IntervalGate* g_avalanche_gate;
 
 /* Count how many of the three Ascension Peak relic items (0x242, 0x243,
    0x244) are on the party; the world-cursor "seen bodies" handler requires
    all three. */
 // FUNCTION: WIZ8 0x004DF810
-int CountAscensionPeakItems004DF810(void)
+int CountAscensionPeakItems(void)
 {
     int count = 0;
 
@@ -62,22 +62,22 @@ int CountAscensionPeakItems004DF810(void)
    count selects the staged encounters. Two or more relics run the avalanche
    sequence and the Rapax ambush once; all three additionally spawn the Savants
    and fire the "Bodies" trigger once. */
-/* Standalone JMP thunk onto AscensionPeakInit004DF870. */
+/* Standalone JMP thunk onto AscensionPeakInit. */
 // SYNTHETIC: WIZ8 0x004DF800
-// AscensionPeakInit004DF870 thunk -> AscensionPeakInit004DF870
+// AscensionPeakInit thunk -> AscensionPeakInit
 
 // FUNCTION: WIZ8 0x004DF870
-unsigned char AscensionPeakInit004DF870(void)
+unsigned char AscensionPeakInit(void)
 {
     srVector3T<float> position;
-    int count = CountAscensionPeakItems004DF810();
+    int count = CountAscensionPeakItems();
 
     if (count > 1) {
         if (GetLocationVarIDByName("AP_AtLeast2of3Items") == -1) {
             W8MonsterGroup* group = 0;
             W8MonsterInfo* info;
 
-            AscensionAvalanche004DFBC0(1);
+            AscensionAvalanche(1);
             if (FindEntityByName("NP_Rapax01", &position, 0, 0)) {
                 group = SpawnMonsters(0xb1, 6, &position, 1, 1, 0, 0);
             }
@@ -85,9 +85,9 @@ unsigned char AscensionPeakInit004DF870(void)
                 SpawnMonsters(0xf, 4, &position, 1, 1, 0, 0);
             }
             info = MonsterGetScriptPartByLocationIndex(
-                MonsterGetIndexByLocationID(0x17f, ASCENSION_CPP, group->leader_id_9f, 1));
-            info->p3D->SetScript004C7F10("proximitylandslide.msf", 1);
-            SpawnAscensionAmbush004DFEA0();
+                MonsterGetIndexByLocationID(0x17f, ASCENSION_CPP, group->leader_location_id, 1));
+            info->p3D->SetScript("proximitylandslide.msf", 1);
+            SpawnAscensionAmbush();
             CreateLocationVar("AP_AtLeast2of3Items", 1);
         }
         if (GetLocationVarIDByName("AP_SpawnDaughter") == -1) {
@@ -124,7 +124,7 @@ unsigned char AscensionPeakInit004DF870(void)
 /* Spawn the Alfie "chaos" monster (0xae) at the NP_AlfieChaos entity once the
    party carries the Astral Dominae (0x244). */
 // FUNCTION: WIZ8 0x004DFAE0
-unsigned char SpawnAlfieChaos004DFAE0(int unused)
+unsigned char SpawnAlfieChaos(int unused)
 {
     srVector3T<float> position;
 
@@ -140,7 +140,7 @@ unsigned char SpawnAlfieChaos004DFAE0(int unused)
 /* Spawn the Alfie "life" monster (0xaf) at the NP_AlfieLife entity when it is
    present in the level. */
 // FUNCTION: WIZ8 0x004DFB40
-unsigned char SpawnAlfieLife004DFB40(int unused)
+unsigned char SpawnAlfieLife(int unused)
 {
     srVector3T<float> position;
 
@@ -153,7 +153,7 @@ unsigned char SpawnAlfieLife004DFB40(int unused)
 /* Spawn the Alfie "know" monster (0xb0) at the NP_AlfieKnow entity when it is
    present in the level. */
 // FUNCTION: WIZ8 0x004DFB80
-unsigned char SpawnAlfieKnow004DFB80(int unused)
+unsigned char SpawnAlfieKnow(int unused)
 {
     srVector3T<float> position;
 
@@ -167,7 +167,7 @@ unsigned char SpawnAlfieKnow004DFB80(int unused)
    proximity facts by measuring the camera against the ASC40 and ASC30
    positions, then arm the periodic land-shaker master. */
 // FUNCTION: WIZ8 0x004DFBC0
-void AscensionAvalanche004DFBC0(unsigned char command)
+void AscensionAvalanche(unsigned char command)
 {
     Trigger* avalanche = FindTriggerByName("Avalanche");
 
@@ -190,7 +190,7 @@ void AscensionAvalanche004DFBC0(unsigned char command)
                 SetFact(0x15e, 1, 0);
             }
         }
-        g_master_functions_006834d8->Add(AscensionLandShaker004DFD70);
+        g_master_functions->Add(AscensionLandShaker);
     }
 }
 
@@ -198,37 +198,37 @@ void AscensionAvalanche004DFBC0(unsigned char command)
    lazily created one-second gate runs the LandShaker trigger once it elapses;
    -1 returns early without touching the scripted-sequence flag. */
 // FUNCTION: WIZ8 0x004DFD70
-void AscensionLandShaker004DFD70(int command)
+void AscensionLandShaker(int command)
 {
     Trigger* shaker;
 
     if (command == -1) {
         return;
     }
-    g_flag_006834dc = 0;
-    if (g_avalanche_gate_68356c == 0) {
-        g_avalanche_gate_68356c = new W8IntervalGate(1.0f, 0, 1);
+    g_flag_006834dc = false;
+    if (g_avalanche_gate == 0) {
+        g_avalanche_gate = new W8IntervalGate(1.0f, 0, 1);
         return;
     }
-    if (g_avalanche_gate_68356c->IsFinished() == 0) {
-        g_avalanche_gate_68356c->PollElapsedIntervals();
-        if (g_avalanche_gate_68356c->IsFinished() == 0) {
+    if (g_avalanche_gate->IsFinished() == 0) {
+        g_avalanche_gate->PollElapsedIntervals();
+        if (g_avalanche_gate->IsFinished() == 0) {
             return;
         }
     }
-    delete g_avalanche_gate_68356c;
-    g_avalanche_gate_68356c = 0;
+    delete g_avalanche_gate;
+    g_avalanche_gate = 0;
     shaker = FindTriggerByName("LandShaker");
     if (shaker != 0) {
         shaker->Run(-1);
     }
-    g_flag_006834dc = 1;
+    g_flag_006834dc = true;
 }
 
 /* The RampUp activation callback: spawn the daughter monster (0x18d) at the
    NP_DarkSavant entity. */
 // FUNCTION: WIZ8 0x004DFE60
-bool AscensionRampUp004DFE60(Trigger* pTrigger)
+bool AscensionRampUp(Trigger* pTrigger)
 {
     srVector3T<float> position;
 
@@ -241,7 +241,7 @@ bool AscensionRampUp004DFE60(Trigger* pTrigger)
 /* Spawn the Rapax ambush and the prince once two relics are brought to the
    peak. */
 // FUNCTION: WIZ8 0x004DFEA0
-unsigned char SpawnAscensionAmbush004DFEA0(void)
+unsigned char SpawnAscensionAmbush(void)
 {
     srVector3T<float> position;
 
@@ -264,7 +264,7 @@ unsigned char SpawnAscensionAmbush004DFEA0(void)
    AlethidiesChaosActive is set dismiss the bound Aletheides monster and clear
    the variable. */
 // FUNCTION: WIZ8 0x004DFF90
-bool AscensionChaosBTrigger004DFF90(Trigger* pTrigger)
+bool AscensionChaosBTrigger(Trigger* pTrigger)
 {
     Trigger* chaos_a = FindTriggerByName("ChaosATrigger");
 
@@ -274,7 +274,7 @@ bool AscensionChaosBTrigger004DFF90(Trigger* pTrigger)
     if (GetLocationVarIDByName("AlethidiesChaosActive") != -1 &&
         GetLocationVarValueByName("AlethidiesChaosActive") != 0) {
         RemoveAletheides();
-        SetTriggerVariableByName00444030("AlethidiesChaosActive", 0);
+        SetTriggerVariableByName("AlethidiesChaosActive", 0);
     }
     return true;
 }
@@ -284,7 +284,7 @@ bool AscensionChaosBTrigger004DFF90(Trigger* pTrigger)
    the Astral Dominae (0x244) gets the relic exchange and the chaos Alfie
    spawn. */
 // FUNCTION: WIZ8 0x004DFFF0
-bool AscensionChaosATrigger004DFFF0(Trigger* pTrigger)
+bool AscensionChaosATrigger(Trigger* pTrigger)
 {
     if (GetLocationVarIDByName("AlethidiesChaosActive") == -1) {
         CreateLocationVar("AlethidiesChaosActive", 0);
@@ -297,7 +297,7 @@ bool AscensionChaosATrigger004DFFF0(Trigger* pTrigger)
     if (FindItemOnParty(0x244, 0, 0, 2, 0) == 0) {
         QueueNpcMessageLine(W8_NPC_MSG_PORTRAIT_STRING, 0x71f);
     } else {
-        SetTriggerVariableByName00444030("AlethidiesChaosActive", 1);
+        SetTriggerVariableByName("AlethidiesChaosActive", 1);
         QueueNpcMessageLine(W8_NPC_MSG_PORTRAIT_STRING, 0x720);
         QueueNpcMessageLine(W8_NPC_MSG_CALL_4DFAE0, 0);
     }
@@ -310,7 +310,7 @@ bool AscensionChaosATrigger004DFFF0(Trigger* pTrigger)
    AlethidiesLifeActive is set dismiss the bound Aletheides monster and clear
    the variable. */
 // FUNCTION: WIZ8 0x004E00B0
-bool AscensionLifeBTrigger004E00B0(Trigger* pTrigger)
+bool AscensionLifeBTrigger(Trigger* pTrigger)
 {
     Trigger* life_a = FindTriggerByName("LifeATrigger");
 
@@ -320,7 +320,7 @@ bool AscensionLifeBTrigger004E00B0(Trigger* pTrigger)
     if (GetLocationVarIDByName("AlethidiesLifeActive") != -1 &&
         GetLocationVarValueByName("AlethidiesLifeActive") != 0) {
         RemoveAletheides();
-        SetTriggerVariableByName00444030("AlethidiesLifeActive", 0);
+        SetTriggerVariableByName("AlethidiesLifeActive", 0);
     }
     return true;
 }
@@ -329,7 +329,7 @@ bool AscensionLifeBTrigger004E00B0(Trigger* pTrigger)
    trigger is inert. Otherwise Aletheides answers, and the party carrying the
    relic (0x242) gets the relic exchange and the life Alfie spawn. */
 // FUNCTION: WIZ8 0x004E0110
-bool AscensionLifeATrigger004E0110(Trigger* pTrigger)
+bool AscensionLifeATrigger(Trigger* pTrigger)
 {
     if (GetLocationVarIDByName("AlethidiesLifeActive") == -1) {
         CreateLocationVar("AlethidiesLifeActive", 0);
@@ -342,7 +342,7 @@ bool AscensionLifeATrigger004E0110(Trigger* pTrigger)
     if (FindItemOnParty(0x242, 0, 0, 2, 0) == 0) {
         QueueNpcMessageLine(W8_NPC_MSG_PORTRAIT_STRING, 0x71f);
     } else {
-        SetTriggerVariableByName00444030("AlethidiesLifeActive", 1);
+        SetTriggerVariableByName("AlethidiesLifeActive", 1);
         QueueNpcMessageLine(W8_NPC_MSG_PORTRAIT_STRING, 0x720);
         QueueNpcMessageLine(W8_NPC_MSG_CALL_4DFB40, 0);
     }
@@ -355,7 +355,7 @@ bool AscensionLifeATrigger004E0110(Trigger* pTrigger)
    AlethidiesKnowActive is set dismiss the bound Aletheides monster and clear
    the variable. */
 // FUNCTION: WIZ8 0x004E01D0
-bool AscensionKnowBTrigger004E01D0(Trigger* pTrigger)
+bool AscensionKnowBTrigger(Trigger* pTrigger)
 {
     Trigger* know_a = FindTriggerByName("KnowATrigger");
 
@@ -365,7 +365,7 @@ bool AscensionKnowBTrigger004E01D0(Trigger* pTrigger)
     if (GetLocationVarIDByName("AlethidiesKnowActive") != -1 &&
         GetLocationVarValueByName("AlethidiesKnowActive") != 0) {
         RemoveAletheides();
-        SetTriggerVariableByName00444030("AlethidiesKnowActive", 0);
+        SetTriggerVariableByName("AlethidiesKnowActive", 0);
     }
     return true;
 }
@@ -374,7 +374,7 @@ bool AscensionKnowBTrigger004E01D0(Trigger* pTrigger)
    trigger is inert. Otherwise Aletheides answers, and the party carrying the
    relic (0x243) gets the relic exchange and the know Alfie spawn. */
 // FUNCTION: WIZ8 0x004E0230
-bool AscensionKnowATrigger004E0230(Trigger* pTrigger)
+bool AscensionKnowATrigger(Trigger* pTrigger)
 {
     if (GetLocationVarIDByName("AlethidiesKnowActive") == -1) {
         CreateLocationVar("AlethidiesKnowActive", 0);
@@ -387,7 +387,7 @@ bool AscensionKnowATrigger004E0230(Trigger* pTrigger)
     if (FindItemOnParty(0x243, 0, 0, 2, 0) == 0) {
         QueueNpcMessageLine(W8_NPC_MSG_PORTRAIT_STRING, 0x71f);
     } else {
-        SetTriggerVariableByName00444030("AlethidiesKnowActive", 1);
+        SetTriggerVariableByName("AlethidiesKnowActive", 1);
         QueueNpcMessageLine(W8_NPC_MSG_PORTRAIT_STRING, 0x720);
         QueueNpcMessageLine(W8_NPC_MSG_CALL_4DFB80, 0);
     }
@@ -399,7 +399,7 @@ bool AscensionKnowATrigger004E0230(Trigger* pTrigger)
 /* The second RampUp activation callback: spawn the Dark Savant (0xc2) and
    Bela (0x18c) and latch AP_DSSpawned so Path1Camera knows they arrived. */
 // FUNCTION: WIZ8 0x004E02F0
-bool AscensionDarkSavantSpawn004E02F0(Trigger* pTrigger)
+bool AscensionDarkSavantSpawn(Trigger* pTrigger)
 {
     srVector3T<float> position;
 
@@ -419,7 +419,7 @@ bool AscensionDarkSavantSpawn004E02F0(Trigger* pTrigger)
    every live hostile monster, end combat and hand control to the scripted
    world action. */
 // FUNCTION: WIZ8 0x004E0390
-bool AscensionPath1Camera004E0390(Trigger* pTrigger)
+bool AscensionPath1Camera(Trigger* pTrigger)
 {
     unsigned int index;
 
@@ -436,7 +436,7 @@ bool AscensionPath1Camera004E0390(Trigger* pTrigger)
         }
     }
     if (gXStatus.fCombatMode != 0) {
-        EndCombat004EA310(1);
+        EndCombat(1);
     }
     BeginScriptedWorldAction();
     pTrigger->flags_0a0 &= ~W8_TRIGGER_ON;
@@ -480,7 +480,7 @@ void RemoveAletheides(void)
 
 /* The Shaker activation callback: play the avalanche rumble. */
 // FUNCTION: WIZ8 0x004E04F0
-bool AscensionShaker004E04F0(Trigger* pTrigger)
+bool AscensionShaker(Trigger* pTrigger)
 {
     SoundPlay("Data\\Sound\\Ambients\\Rumble 01.wav", 0);
     return true;

@@ -42,18 +42,18 @@ struct W8SearchableView {
 
 static_assert(sizeof(W8SearchableView) == 0x14, "W8SearchableView_must_be_0x14");
 
-extern W8GrowableVector<W8Searchable*> g_searchables_00689fa8;
-extern W8SearchableView g_search_view_00689fb8;
+extern W8GrowableVector<W8Searchable*> g_searchables;
+extern W8SearchableView g_search_view;
 /* 500ms pulse clock arming the search-mode sweep. */
-extern unsigned int g_search_pulse_clock_00689fcc;
+extern unsigned int g_search_pulse_clock;
 
-void RegisterSearchableWorldItem00516E20(W8WorldItem* item);
-void RegisterSearchableTrigger00516F00(Trigger* trigger);
-void UnregisterSearchableTrigger00516FE0(Trigger* trigger);
+void RegisterSearchableWorldItem(W8WorldItem* item);
+void RegisterSearchableTrigger(Trigger* trigger);
+void UnregisterSearchableTrigger(Trigger* trigger);
 /* 0x00516BA0: refill the view with the in-range, in-view searchables and
    return it, or null when none qualify. */
 W8SearchableView* CollectSearchablesInView(void);
-void ClearSearchables005171B0();
+void ClearSearchables();
 /* 0x005171C0: the 500ms sweep that picks searchers, queues their events and
    reveals what they found. */
 void RunSearchPulse(void);
