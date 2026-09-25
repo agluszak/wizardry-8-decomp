@@ -1803,6 +1803,34 @@ void QueueConditionChangeReaction(W8Character* character)
         return;
     }
     switch (character->highest_condition) {
+    case 0x12:
+        gXStatus.character_event_queue->RemoveCharacterEvents(character);
+        events[0] = g_special_event_0068c538;
+        events[1] = g_special_event_0068c540;
+        events[2] = g_special_event_0068c564;
+        QueueCharacterEvent(character, events[Random(3)], g_effect_argument_005ed8d4,
+                            g_effect_argument_005ed8cc, g_effect_argument_005ed914);
+        return;
+    case 0x11:
+        events[0] = g_special_event_0068c538;
+        events[1] = g_special_event_0068c540;
+        events[2] = g_special_event_0068c564;
+        QueueCharacterEvent(character, events[Random(3)], 0, g_effect_argument_005ed8c8,
+                            g_effect_argument_005ed914);
+        return;
+    case 5:
+        QueueCharacterEvent(character, g_special_event_0068c558, 0, g_effect_argument_005ed8cc,
+                            g_effect_argument_005ed914);
+        return;
+    case 8:
+        QueueCharacterEvent(character, g_special_event_0068c508, 0, g_effect_argument_005ed8cc,
+                            g_effect_argument_005ed914);
+        return;
+    case 3:
+    case 4:
+        QueueCharacterEvent(character, g_special_event_0068c52c, 0, g_effect_argument_005ed8cc,
+                            g_effect_argument_005ed914);
+        return;
     case 2:
     case 7:
     case 9:
@@ -1814,27 +1842,6 @@ void QueueConditionChangeReaction(W8Character* character)
         QueueCharacterEvent(character, reaction, 0, g_effect_argument_005ed8cc,
                             g_effect_argument_005ed914);
         return;
-    case 3:
-    case 4:
-        QueueCharacterEvent(character, g_special_event_0068c52c, 0, g_effect_argument_005ed8cc,
-                            g_effect_argument_005ed914);
-        return;
-    case 5:
-        QueueCharacterEvent(character, g_special_event_0068c558, 0, g_effect_argument_005ed8cc,
-                            g_effect_argument_005ed914);
-        return;
-    case 6:
-        QueueCharacterEvent(character, g_special_event_0068c514, 0, g_effect_argument_005ed8cc,
-                            g_effect_argument_005ed914);
-        return;
-    case 8:
-        QueueCharacterEvent(character, g_special_event_0068c508, 0, g_effect_argument_005ed8cc,
-                            g_effect_argument_005ed914);
-        return;
-    case 0xb:
-        QueueCharacterEvent(character, g_special_event_0068c578, 0, g_effect_argument_005ed8cc,
-                            g_effect_argument_005ed914);
-        break;
     case 0xc:
         QueueCharacterEvent(character, g_effect_005ee5a4, 0, g_effect_argument_005ed8cc,
                             g_effect_argument_005ed914);
@@ -1843,21 +1850,6 @@ void QueueConditionChangeReaction(W8Character* character)
     case 0x10:
         QueueCharacterEvent(character, g_effect_005ee5ac, 0, g_effect_argument_005ed8cc,
                             g_effect_argument_005ed914);
-        return;
-    case 0x11:
-        events[0] = g_special_event_0068c538;
-        events[1] = g_special_event_0068c540;
-        events[2] = g_special_event_0068c564;
-        QueueCharacterEvent(character, events[Random(3)], 0, g_effect_argument_005ed8c8,
-                            g_effect_argument_005ed914);
-        return;
-    case 0x12:
-        gXStatus.character_event_queue->RemoveCharacterEvents(character);
-        events[0] = g_special_event_0068c538;
-        events[1] = g_special_event_0068c540;
-        events[2] = g_special_event_0068c564;
-        QueueCharacterEvent(character, events[Random(3)], g_effect_argument_005ed8d4,
-                            g_effect_argument_005ed8cc, g_effect_argument_005ed914);
         return;
     case 0x13:
         excluded_slot = CharacterPointerToPartySlot(character);
@@ -1878,6 +1870,14 @@ void QueueConditionChangeReaction(W8Character* character)
                                 g_effect_argument_005ed8cc, g_effect_argument_005ed914);
             return;
         }
+        break;
+    case 6:
+        QueueCharacterEvent(character, g_special_event_0068c514, 0, g_effect_argument_005ed8cc,
+                            g_effect_argument_005ed914);
+        return;
+    case 0xb:
+        QueueCharacterEvent(character, g_special_event_0068c578, 0, g_effect_argument_005ed8cc,
+                            g_effect_argument_005ed914);
         break;
     }
 }
