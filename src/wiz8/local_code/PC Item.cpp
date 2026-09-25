@@ -1640,8 +1640,7 @@ void GetOriginOfCharacterItem(int character_index, W8ItemInstance* item, unsigne
         }
     }
 
-    for (pool_index = 0; pool_index < g_status.party_item_count_1791;
-         ++pool_index) {
+    for (pool_index = 0; pool_index < g_status.party_item_count_1791; ++pool_index) {
         if (item == &g_status.party_item_pool_0021[pool_index]) {
             *origin = 2;
             *slot = (unsigned short)pool_index;
@@ -1878,27 +1877,26 @@ unsigned char GiveItemToCharacterOrParty(int uiChar, W8ItemInstance* item,
         RefreshAfterItemRecordChange(item, 0, 1);
     }
 
-    W8ItemInstance* pool = g_status.party_item_pool_0021;
-    if (item < pool || item > &pool[499]) {
-        return stored;
+    if (item >= g_status.party_item_pool_0021 && item <= &g_status.party_item_pool_0021[499]) {
+        for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
+            if (item == &g_status.party_item_pool_0021[index]) {
+                /* RemovePartyPoolEntry(index), expanded in place. */
+                if (g_status.party_item_pool_0021[index].iItemNo == -1 &&
+                    index < g_status.party_item_count_1791) {
+                    memcpy(&shifted[index], &g_status.party_item_pool_0021[index + 1],
+                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
+                    memcpy(&g_status.party_item_pool_0021[index], &shifted[index],
+                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
+                    memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1], 0,
+                           sizeof(W8ItemInstance));
+                    g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo = -1;
+                    --g_status.party_item_count_1791;
+                    RedistributePartyEncumbrance();
+                }
+                break;
+            }
+        }
     }
-
-    unsigned int count = g_status.party_item_count_1791;
-    unsigned int index = 0;
-    while (index < count && item != &pool[index]) {
-        ++index;
-    }
-    if (index == count || pool[index].iItemNo != -1) {
-        return stored;
-    }
-
-    unsigned int bytes = (count - index - 1) * sizeof(W8ItemInstance);
-    memcpy(&shifted[index], &pool[index + 1], bytes);
-    memcpy(&pool[index], &shifted[index], bytes);
-    memset(&pool[count - 1], 0, sizeof(W8ItemInstance));
-    pool[count - 1].iItemNo = -1;
-    --g_status.party_item_count_1791;
-    RedistributePartyEncumbrance();
     return stored;
 }
 
@@ -2062,22 +2060,23 @@ void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, unsigned char maximu
     }
 
     if (item >= g_status.party_item_pool_0021 && item <= &g_status.party_item_pool_0021[499]) {
-        index = 0;
-        while (index < g_status.party_item_count_1791 &&
-               item != &g_status.party_item_pool_0021[index]) {
-            ++index;
-        }
-        if (index < g_status.party_item_count_1791 &&
-            g_status.party_item_pool_0021[index].iItemNo == -1) {
-            unsigned int bytes =
-                (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance);
-            memcpy(&shifted[index], &g_status.party_item_pool_0021[index + 1], bytes);
-            memcpy(&g_status.party_item_pool_0021[index], &shifted[index], bytes);
-            memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1], 0,
-                   sizeof(W8ItemInstance));
-            g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo = -1;
-            --g_status.party_item_count_1791;
-            RedistributePartyEncumbrance();
+        for (index = 0; index < g_status.party_item_count_1791; ++index) {
+            if (item == &g_status.party_item_pool_0021[index]) {
+                /* RemovePartyPoolEntry(index), expanded in place. */
+                if (g_status.party_item_pool_0021[index].iItemNo == -1 &&
+                    index < g_status.party_item_count_1791) {
+                    memcpy(&shifted[index], &g_status.party_item_pool_0021[index + 1],
+                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
+                    memcpy(&g_status.party_item_pool_0021[index], &shifted[index],
+                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
+                    memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1], 0,
+                           sizeof(W8ItemInstance));
+                    g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo = -1;
+                    --g_status.party_item_count_1791;
+                    RedistributePartyEncumbrance();
+                }
+                break;
+            }
         }
     }
 
@@ -2552,8 +2551,7 @@ unsigned int CountItemOnParty(int item_id, W8ItemInstance** found, W8Character**
     }
 
     if (include_backpack == 2) {
-        for (unsigned int index = 0;
-             index < g_status.party_item_count_1791; ++index) {
+        for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
             W8ItemInstance* item = &g_status.party_item_pool_0021[index];
             if (item->iItemNo == item_id) {
                 total += item->stack_count == 0 ? 1 : item->stack_count;
@@ -2915,19 +2913,23 @@ void CopyItemInstance(W8ItemInstance* destination, W8ItemInstance* source, W8Cha
     }
 
     if (source >= g_status.party_item_pool_0021 && source <= &g_status.party_item_pool_0021[499]) {
-        unsigned int index = 0;
-        unsigned int count = g_status.party_item_count_1791;
-        while (index < count && source != &g_status.party_item_pool_0021[index]) {
-            ++index;
-        }
-        if (index < count && g_status.party_item_pool_0021[index].iItemNo == -1) {
-            unsigned int bytes = (count - index - 1) * sizeof(W8ItemInstance);
-            memcpy(&shifted[index], &g_status.party_item_pool_0021[index + 1], bytes);
-            memcpy(&g_status.party_item_pool_0021[index], &shifted[index], bytes);
-            memset(&g_status.party_item_pool_0021[count - 1], 0, sizeof(W8ItemInstance));
-            g_status.party_item_pool_0021[count - 1].iItemNo = -1;
-            --g_status.party_item_count_1791;
-            RedistributePartyEncumbrance();
+        for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
+            if (source == &g_status.party_item_pool_0021[index]) {
+                /* RemovePartyPoolEntry(index), expanded in place. */
+                if (g_status.party_item_pool_0021[index].iItemNo == -1 &&
+                    index < g_status.party_item_count_1791) {
+                    memcpy(&shifted[index], &g_status.party_item_pool_0021[index + 1],
+                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
+                    memcpy(&g_status.party_item_pool_0021[index], &shifted[index],
+                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
+                    memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1], 0,
+                           sizeof(W8ItemInstance));
+                    g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo = -1;
+                    --g_status.party_item_count_1791;
+                    RedistributePartyEncumbrance();
+                }
+                break;
+            }
         }
     }
 
@@ -3169,15 +3171,12 @@ void EmptyItemRecord(W8ItemInstance* item, W8Character* character, unsigned char
                 if (g_status.party_item_pool_0021[index].iItemNo == -1 &&
                     index < g_status.party_item_count_1791) {
                     memcpy(&shifted[index], &g_status.party_item_pool_0021[index + 1],
-                           (g_status.party_item_count_1791 - index - 1) *
-                               sizeof(W8ItemInstance));
+                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
                     memcpy(&g_status.party_item_pool_0021[index], &shifted[index],
-                           (g_status.party_item_count_1791 - index - 1) *
-                               sizeof(W8ItemInstance));
+                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
                     memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1], 0,
                            sizeof(W8ItemInstance));
-                    g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo =
-                        -1;
+                    g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo = -1;
                     --g_status.party_item_count_1791;
                     RedistributePartyEncumbrance();
                 }
@@ -3209,21 +3208,27 @@ void EmptyAllCarriedItems(W8Character* character)
             RefreshAfterItemRecordChange(item, character, 1);
         }
 
-        W8ItemInstance* pool = g_status.party_item_pool_0021;
-        if (item >= pool && item <= &pool[499]) {
-            unsigned int count = g_status.party_item_count_1791;
-            unsigned int position = 0;
-            while (position < count && item != &pool[position]) {
-                ++position;
-            }
-            if (position < count && pool[position].iItemNo == -1) {
-                unsigned int bytes = (count - position - 1) * sizeof(W8ItemInstance);
-                memcpy(&shifted[position], &pool[position + 1], bytes);
-                memcpy(&pool[position], &shifted[position], bytes);
-                memset(&pool[count - 1], 0, sizeof(W8ItemInstance));
-                pool[count - 1].iItemNo = -1;
-                --g_status.party_item_count_1791;
-                RedistributePartyEncumbrance();
+        if (item >= g_status.party_item_pool_0021 && item <= &g_status.party_item_pool_0021[499]) {
+            for (unsigned int position = 0; position < g_status.party_item_count_1791; ++position) {
+                if (item == &g_status.party_item_pool_0021[position]) {
+                    /* RemovePartyPoolEntry(position), expanded in place. */
+                    if (g_status.party_item_pool_0021[position].iItemNo == -1 &&
+                        position < g_status.party_item_count_1791) {
+                        memcpy(&shifted[position], &g_status.party_item_pool_0021[position + 1],
+                               (g_status.party_item_count_1791 - position - 1) *
+                                   sizeof(W8ItemInstance));
+                        memcpy(&g_status.party_item_pool_0021[position], &shifted[position],
+                               (g_status.party_item_count_1791 - position - 1) *
+                                   sizeof(W8ItemInstance));
+                        memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1],
+                               0, sizeof(W8ItemInstance));
+                        g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo =
+                            -1;
+                        --g_status.party_item_count_1791;
+                        RedistributePartyEncumbrance();
+                    }
+                    break;
+                }
             }
         }
     }
@@ -3241,21 +3246,27 @@ void EmptyAllCarriedItems(W8Character* character)
             RefreshAfterItemRecordChange(item, character, 1);
         }
 
-        W8ItemInstance* pool = g_status.party_item_pool_0021;
-        if (item >= pool && item <= &pool[499]) {
-            unsigned int count = g_status.party_item_count_1791;
-            unsigned int position = 0;
-            while (position < count && item != &pool[position]) {
-                ++position;
-            }
-            if (position < count && pool[position].iItemNo == -1) {
-                unsigned int bytes = (count - position - 1) * sizeof(W8ItemInstance);
-                memcpy(&shifted[position], &pool[position + 1], bytes);
-                memcpy(&pool[position], &shifted[position], bytes);
-                memset(&pool[count - 1], 0, sizeof(W8ItemInstance));
-                pool[count - 1].iItemNo = -1;
-                --g_status.party_item_count_1791;
-                RedistributePartyEncumbrance();
+        if (item >= g_status.party_item_pool_0021 && item <= &g_status.party_item_pool_0021[499]) {
+            for (unsigned int position = 0; position < g_status.party_item_count_1791; ++position) {
+                if (item == &g_status.party_item_pool_0021[position]) {
+                    /* RemovePartyPoolEntry(position), expanded in place. */
+                    if (g_status.party_item_pool_0021[position].iItemNo == -1 &&
+                        position < g_status.party_item_count_1791) {
+                        memcpy(&shifted[position], &g_status.party_item_pool_0021[position + 1],
+                               (g_status.party_item_count_1791 - position - 1) *
+                                   sizeof(W8ItemInstance));
+                        memcpy(&g_status.party_item_pool_0021[position], &shifted[position],
+                               (g_status.party_item_count_1791 - position - 1) *
+                                   sizeof(W8ItemInstance));
+                        memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1],
+                               0, sizeof(W8ItemInstance));
+                        g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo =
+                            -1;
+                        --g_status.party_item_count_1791;
+                        RedistributePartyEncumbrance();
+                    }
+                    break;
+                }
             }
         }
     }
@@ -3498,8 +3509,7 @@ bool CharacterHasServiceItem(W8Character* character)
     }
     if (g_status.party_item_count_1791 != 0) {
         item = g_status.party_item_pool_0021;
-        for (index = 0; index < g_status.party_item_count_1791;
-             ++index, ++item) {
+        for (index = 0; index < g_status.party_item_count_1791; ++index, ++item) {
             if (item->iItemNo != -1 && CanCharacterActivateItem(character, item) != 0) {
                 record = &g_item_records[item->iItemNo];
                 if (record->equip_class != 0x17 && record->equip_class != 0x19 &&
@@ -3864,27 +3874,26 @@ void RemoveCharacterItem(W8Character* character, W8ItemInstance* item, char arg_
         RefreshAfterItemRecordChange(item, character, 1);
     }
 
-    W8ItemInstance* pool = g_status.party_item_pool_0021;
-    if (item < pool || item > &pool[499]) {
-        return;
+    if (item >= g_status.party_item_pool_0021 && item <= &g_status.party_item_pool_0021[499]) {
+        for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
+            if (item == &g_status.party_item_pool_0021[index]) {
+                /* RemovePartyPoolEntry(index), expanded in place. */
+                if (g_status.party_item_pool_0021[index].iItemNo == -1 &&
+                    index < g_status.party_item_count_1791) {
+                    memcpy(&shifted[index], &g_status.party_item_pool_0021[index + 1],
+                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
+                    memcpy(&g_status.party_item_pool_0021[index], &shifted[index],
+                           (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
+                    memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1], 0,
+                           sizeof(W8ItemInstance));
+                    g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo = -1;
+                    --g_status.party_item_count_1791;
+                    RedistributePartyEncumbrance();
+                }
+                break;
+            }
+        }
     }
-
-    unsigned int count = g_status.party_item_count_1791;
-    unsigned int index = 0;
-    while (index < count && item != &pool[index]) {
-        ++index;
-    }
-    if (index == count || pool[index].iItemNo != -1) {
-        return;
-    }
-
-    unsigned int bytes = (count - index - 1) * sizeof(W8ItemInstance);
-    memcpy(&shifted[index], &pool[index + 1], bytes);
-    memcpy(&pool[index], &shifted[index], bytes);
-    memset(&pool[count - 1], 0, sizeof(W8ItemInstance));
-    pool[count - 1].iItemNo = -1;
-    --g_status.party_item_count_1791;
-    RedistributePartyEncumbrance();
 }
 
 /* The same pairing as EquipMatchingPartnerItem, but for the items that carry a
@@ -4122,21 +4131,19 @@ void SplitThrowableStackBetweenHands(W8Character* character, int equip_slot)
 void RemovePartyPoolEntry(unsigned int index)
 {
     W8ItemInstance shifted[500];
-    W8ItemInstance* pool = g_status.party_item_pool_0021;
 
-    if (pool[index].iItemNo != -1 ||
-        index >= g_status.party_item_count_1791) {
-        return;
+    if (g_status.party_item_pool_0021[index].iItemNo == -1 &&
+        index < g_status.party_item_count_1791) {
+        memcpy(&shifted[index], &g_status.party_item_pool_0021[index + 1],
+               (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
+        memcpy(&g_status.party_item_pool_0021[index], &shifted[index],
+               (g_status.party_item_count_1791 - index - 1) * sizeof(W8ItemInstance));
+        memset(&g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1], 0,
+               sizeof(W8ItemInstance));
+        g_status.party_item_pool_0021[g_status.party_item_count_1791 - 1].iItemNo = -1;
+        --g_status.party_item_count_1791;
+        RedistributePartyEncumbrance();
     }
-
-    unsigned int count = g_status.party_item_count_1791;
-    unsigned int bytes = (count - index - 1) * sizeof(W8ItemInstance);
-    memcpy(&shifted[index], &pool[index + 1], bytes);
-    memcpy(&pool[index], &shifted[index], bytes);
-    memset(&pool[count - 1], 0, sizeof(W8ItemInstance));
-    pool[count - 1].iItemNo = -1;
-    --g_status.party_item_count_1791;
-    RedistributePartyEncumbrance();
 }
 
 /* Empty one of a character's eight carried slots. Retail compares the
@@ -4233,8 +4240,7 @@ unsigned char FindItemByDatabaseKindOnParty(unsigned short item_kind, W8ItemInst
     }
 
     if (include_backpack == 2) {
-        for (unsigned int index = 0;
-             index < g_status.party_item_count_1791; ++index) {
+        for (unsigned int index = 0; index < g_status.party_item_count_1791; ++index) {
             W8ItemInstance* entry = &g_status.party_item_pool_0021[index];
             if (entry->iItemNo != -1 &&
                 g_item_records[entry->iItemNo].unidentified_name_index == item_kind) {
