@@ -2782,7 +2782,7 @@ void SetMonsterPartySlotMarker(int party_slot, int location_id, char on)
         if (rep->objects_5c8[party_slot] == 0) {
             sprintf(path, g_monster_bitmap_path_format,
                     g_party_target_marker_bitmaps[g_status.buffers.XChar[party_slot]
-                                                               .party_order_index]);
+                                                      .party_order_index]);
             rep->objects_5c8[party_slot] = CreateMonsterIconItem(g_world, path, 1);
             ++rep->icon_count_5c4;
         }

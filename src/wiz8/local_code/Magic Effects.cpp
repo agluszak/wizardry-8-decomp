@@ -3784,9 +3784,9 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
     case 0x5f:
         point = effect->Source.point;
         level = effect->definition.duration_scale;
-        shake = CreateCameraShakeEffect(
-            level * g_navigator_vertical_phase_step + g_float_005ebc7c, 1,
-            level * g_navigator_snap_angle + g_float_005ee838, 50000.0f, &point);
+        shake = CreateCameraShakeEffect(level * g_navigator_vertical_phase_step + g_float_005ebc7c,
+                                        1, level * g_navigator_snap_angle + g_float_005ee838,
+                                        50000.0f, &point);
         shake->flags_00 &= 0xffffffe7;
         sound_name = g_spell_records[spell_id].sound_name;
         if (sound_name[0] != 0) {

@@ -1328,8 +1328,8 @@ unsigned char W8PathingService::BuildAttachmentPath(W8NavigatorAttachment* attac
             if (((attachment->path_cursor_04 < attachment->path_position_index_08) ||
                  ((attachment->flags_00 & 0x80000) != 0)) &&
                 (TestWaypointSpan(attachment->position_4c +
-                                              (attachment->path_position_index_08 - 2),
-                                          destination, 0, 0) != 0)) {
+                                      (attachment->path_position_index_08 - 2),
+                                  destination, 0, 0) != 0)) {
                 --attachment->path_position_index_08;
                 slot = attachment->position_4c + attachment->path_position_index_08;
                 slot->x = destination->x;
@@ -3290,8 +3290,7 @@ transitioned: {
             m_pSurfaces_048[attachment->path_values_50[attachment->path_cursor_04]].visit_stamp_14 =
                 static_cast<unsigned int>(distance);
             ++attachment->path_cursor_04;
-            g_octree->UpdateMonsterLocation(movement->location_id_004,
-                                                   &movement->position_040);
+            g_octree->UpdateMonsterLocation(movement->location_id_004, &movement->position_040);
             return arrived;
         }
         W8NavigatorAttachment* linked_attachment = linked_attachment_218;
@@ -3352,8 +3351,7 @@ unsigned char W8PathingService::PrepareLinkedNavigator(W8NavigatorMovementState*
             ++index;
         } while (index < linked_attachment->path_position_index_08);
     }
-    attachment->InitializeSegment(&movement->position_040,
-                                          &linked_attachment->position_4c[index]);
+    attachment->InitializeSegment(&movement->position_040, &linked_attachment->position_4c[index]);
     unsigned char built = BuildAttachmentPath(attachment, movement->flags_000);
     if (built != 0) {
         ++index;
@@ -5942,8 +5940,8 @@ void W8PathingService::SetWaypointLinkFlags(unsigned short waypoint, unsigned in
                         dy = candidate->position_04.y - surface->position_04.y;
                         dz = candidate->position_04.z - surface->position_04.z;
                         distance = sqrt(dx * dx + dy * dy + dz * dz);
-                        if (TestWaypointSpan(&surface->position_04, &candidate->position_04,
-                                                     0, 0) != 0) {
+                        if (TestWaypointSpan(&surface->position_04, &candidate->position_04, 0,
+                                             0) != 0) {
                             distances[index] = static_cast<unsigned long>(distance);
                         } else {
                             distances[index] = 0xffffffff;
@@ -6394,8 +6392,8 @@ unsigned int W8PathingService::EditWaypointLinkFlags(const char* title, unsigned
     char pending = 0;
     short length;
 
-    memset(&colour_saved, 0, sizeof(colour_saved));
-    memset(&colour_backup, 0, sizeof(colour_backup));
+    colour_saved.SetZero();
+    colour_backup.SetZero();
     GetWorldColour(&colour_backup);
     PublishLightDirection(&colour_saved);
     SetFont(g_smfnt_font);
@@ -6848,8 +6846,8 @@ void W8PathParameters::IntegrateSteering()
         snapped = g_octree->pathing_180->SnapWaypointPosition(&position, 0);
         if (snapped == 0) {
             delta = position - movement_00->position_040;
-            direction = g_octree->pathing_180->GetNeighborSlideDirection(
-                &movement_00->position_040, &delta, &slide);
+            direction = g_octree->pathing_180->GetNeighborSlideDirection(&movement_00->position_040,
+                                                                         &delta, &slide);
             if (direction == 0) {
                 blocked_49 = 1;
             } else {
@@ -7027,8 +7025,8 @@ unsigned char W8PathParameters::HandleObstacleAhead()
     float scale;
 
     if (velocity_length_10 == g_float_005ebb34) {
-        if (g_octree->pathing_180->GetNeighborSlideDirection(
-                &movement_00->position_040, &direction_20, &escape) != 0) {
+        if (g_octree->pathing_180->GetNeighborSlideDirection(&movement_00->position_040,
+                                                             &direction_20, &escape) != 0) {
             movement_00->attachment_0ac->GetNextPosition(&waypoint);
             waypoint -= movement_00->position_040;
             waypoint.y = 0.0f;
@@ -7049,8 +7047,8 @@ unsigned char W8PathParameters::HandleObstacleAhead()
     } else {
         reach = g_path_prediction_time * velocity_length_10 + radius_44;
         ahead = movement_00->position_040 + direction_20 * reach;
-        if (g_octree->pathing_180->TestWaypointSpan(&movement_00->position_040,
-                                                                   &ahead, 1, 1) == 0) {
+        if (g_octree->pathing_180->TestWaypointSpan(&movement_00->position_040, &ahead, 1, 1) ==
+            0) {
             ahead -= movement_00->position_040;
             distance = ahead.Length();
             if (distance <= reach) {
@@ -7062,8 +7060,7 @@ unsigned char W8PathParameters::HandleObstacleAhead()
                     steer = (g_float_005ebb38 - distance / reach) * acceleration_0c;
                     brake = g_path_obstacle_braking_factor * steer;
                     steer = g_path_obstacle_steering_factor * steer;
-                    if (g_octree->pathing_180->GetObstacleDirection(&direction_20,
-                                                                                   &escape) != 0) {
+                    if (g_octree->pathing_180->GetObstacleDirection(&direction_20, &escape) != 0) {
                         side = DotProduct(escape, perpendicular_2c);
                         if (g_double_005ed2e0 <= fabs(side)) {
                             if (side < g_float_005ebb34) {

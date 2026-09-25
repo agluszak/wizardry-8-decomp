@@ -3995,8 +3995,8 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
             }
         }
         if (!marked &&
-            TargetInRangeAndArcs(&camera, g_startup_world->radius_084, &eye, 0,
-                                         heading, elevation) != 0 &&
+            TargetInRangeAndArcs(&camera, g_startup_world->radius_084, &eye, 0, heading,
+                                 elevation) != 0 &&
             g_octree->TraceLineOfSight(&eye, &camera, 1, -3, -3, 1, 0) == 0) {
             marked = true;
         }

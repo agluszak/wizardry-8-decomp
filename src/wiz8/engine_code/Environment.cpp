@@ -327,12 +327,12 @@ BOOLEAN ReadLightColourTable(int hFile)
     }
 
     for (index = 0; index < 256; ++index) {
-        g_environment_colours_65ad98[index].red = components[index * 3] * (1.0f / 255.0f);
-        g_environment_colours_65ad98[index].green = components[index * 3 + 1] * (1.0f / 255.0f);
-        g_environment_colours_65ad98[index].blue = components[index * 3 + 2] * (1.0f / 255.0f);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].red);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].green);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].blue);
+        g_environment_colours_65ad98[index].x = components[index * 3] * (1.0f / 255.0f);
+        g_environment_colours_65ad98[index].y = components[index * 3 + 1] * (1.0f / 255.0f);
+        g_environment_colours_65ad98[index].z = components[index * 3 + 2] * (1.0f / 255.0f);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].x);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].y);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].z);
     }
     return 1;
 }
@@ -349,12 +349,12 @@ BOOLEAN ReadEnvironmentColourTable(int hFile)
     }
 
     for (index = 0; index < 256; ++index) {
-        g_environment_colours_65a178[index].red = components[index * 3] * (1.0f / 255.0f);
-        g_environment_colours_65a178[index].green = components[index * 3 + 1] * (1.0f / 255.0f);
-        g_environment_colours_65a178[index].blue = components[index * 3 + 2] * (1.0f / 255.0f);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].red);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].green);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].blue);
+        g_environment_colours_65a178[index].x = components[index * 3] * (1.0f / 255.0f);
+        g_environment_colours_65a178[index].y = components[index * 3 + 1] * (1.0f / 255.0f);
+        g_environment_colours_65a178[index].z = components[index * 3 + 2] * (1.0f / 255.0f);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].x);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].y);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].z);
     }
     return 1;
 }
@@ -368,16 +368,16 @@ void BuildEnvironmentColourRamp(void)
     for (index = 0; index < 128; ++index) {
         value = index * (1.0f / 255.0f);
         g_environment_colours_65a178[index] = value;
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].red);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].green);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].blue);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].x);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].y);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].z);
     }
     for (; index < 256; ++index) {
         value = (255 - index) * (1.0f / 255.0f);
         g_environment_colours_65a178[index] = value;
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].red);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].green);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].blue);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].x);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].y);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65a178[index].z);
     }
 }
 
@@ -389,21 +389,21 @@ void BuildLightColourRamp(void)
 
     for (index = 0; index < 128; ++index) {
         value = index * (1.0f / 255.0f);
-        g_environment_colours_65ad98[index].red = value;
-        g_environment_colours_65ad98[index].green = value;
-        g_environment_colours_65ad98[index].blue = value;
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].red);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].green);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].blue);
+        g_environment_colours_65ad98[index].x = value;
+        g_environment_colours_65ad98[index].y = value;
+        g_environment_colours_65ad98[index].z = value;
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].x);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].y);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].z);
     }
     for (; index < 256; ++index) {
         value = (255 - index) * (1.0f / 255.0f);
-        g_environment_colours_65ad98[index].red = value;
-        g_environment_colours_65ad98[index].green = value;
-        g_environment_colours_65ad98[index].blue = value;
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].red);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].green);
-        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].blue);
+        g_environment_colours_65ad98[index].x = value;
+        g_environment_colours_65ad98[index].y = value;
+        g_environment_colours_65ad98[index].z = value;
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].x);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].y);
+        CLAMP_ENVIRONMENT_COMPONENT(g_environment_colours_65ad98[index].z);
     }
 }
 
@@ -647,11 +647,10 @@ void BeginWorldLightingFade(float duration)
             intensity = static_cast<float>(g_zero_005ebb40);
         }
         if (world->static_scene == 0) {
-            colour.red = 0.0f;
-            colour.green = 0.0f;
-            colour.blue = 0.0f;
-            // reinterpret-ok: EnvironmentColour RGB is the same three floats as srVector3T<float>
-            SaturateColor004299B0(reinterpret_cast<srVector3T<float>*>(&colour));
+            colour.x = 0.0f;
+            colour.y = 0.0f;
+            colour.z = 0.0f;
+            SaturateColor004299B0(&colour);
             ApplyEnvironmentColour(world, intensity, &colour);
         } else {
             ApplyEnvironmentColour(world, intensity, &world->environment_colour_02c);
@@ -668,11 +667,10 @@ void BeginWorldLightingFade(float duration)
                 intensity = static_cast<float>(g_zero_005ebb40);
             }
             if (world->static_scene == 0) {
-                colour.red = 0.0f;
-                colour.green = 0.0f;
-                colour.blue = 0.0f;
-                // reinterpret-ok: EnvironmentColour RGB is the same three floats as srVector3T<float>
-                SaturateColor004299B0(reinterpret_cast<srVector3T<float>*>(&colour));
+                colour.x = 0.0f;
+                colour.y = 0.0f;
+                colour.z = 0.0f;
+                SaturateColor004299B0(&colour);
                 ApplyEnvironmentColour(world, intensity, &colour);
             } else {
                 ApplyEnvironmentColour(world, intensity, &world->environment_colour_02c);
@@ -680,20 +678,20 @@ void BeginWorldLightingFade(float duration)
         }
 
         direction = g_light_direction;
-        if (direction.red <= g_float_005ebb34) {
-            direction.red = 0.0f;
-        } else if (direction.red >= g_float_005ebb38) {
-            direction.red = 1.0f;
+        if (direction.x <= g_float_005ebb34) {
+            direction.x = 0.0f;
+        } else if (direction.x >= g_float_005ebb38) {
+            direction.x = 1.0f;
         }
-        if (direction.green <= g_float_005ebb34) {
-            direction.green = 0.0f;
-        } else if (direction.green >= g_float_005ebb38) {
-            direction.green = 1.0f;
+        if (direction.y <= g_float_005ebb34) {
+            direction.y = 0.0f;
+        } else if (direction.y >= g_float_005ebb38) {
+            direction.y = 1.0f;
         }
-        if (direction.blue <= g_float_005ebb34) {
-            direction.blue = 0.0f;
-        } else if (direction.blue >= g_float_005ebb38) {
-            direction.blue = 1.0f;
+        if (direction.z <= g_float_005ebb34) {
+            direction.z = 0.0f;
+        } else if (direction.z >= g_float_005ebb38) {
+            direction.z = 1.0f;
         }
         PublishLightDirection(&direction);
         return;
@@ -752,11 +750,10 @@ void UpdateEnvironmentLighting(void)
         intensity = static_cast<float>(g_zero_005ebb40);
     }
     if (world->static_scene == 0) {
-        colour.red = 0.0f;
-        colour.green = 0.0f;
-        colour.blue = 0.0f;
-        // reinterpret-ok: EnvironmentColour RGB is the same three floats as srVector3T<float>
-        SaturateColor004299B0(reinterpret_cast<srVector3T<float>*>(&colour));
+        colour.x = 0.0f;
+        colour.y = 0.0f;
+        colour.z = 0.0f;
+        SaturateColor004299B0(&colour);
         ApplyEnvironmentColour(world, intensity, &colour);
     } else {
         ApplyEnvironmentColour(world, intensity, &world->environment_colour_02c);
@@ -773,34 +770,33 @@ void UpdateEnvironmentLighting(void)
             secondary = static_cast<float>(g_zero_005ebb40);
         }
         if (world->static_scene == 0) {
-            colour.red = 0.0f;
-            colour.green = 0.0f;
-            colour.blue = 0.0f;
-            // reinterpret-ok: EnvironmentColour RGB is the same three floats as srVector3T<float>
-            SaturateColor004299B0(reinterpret_cast<srVector3T<float>*>(&colour));
+            colour.x = 0.0f;
+            colour.y = 0.0f;
+            colour.z = 0.0f;
+            SaturateColor004299B0(&colour);
             ApplyEnvironmentColour(world, secondary, &colour);
         } else {
             ApplyEnvironmentColour(world, secondary, &world->environment_colour_02c);
         }
     }
 
-    direction.red = g_light_direction.red * scale;
-    direction.green = g_light_direction.green * scale;
-    direction.blue = g_light_direction.blue * scale;
-    if (direction.red <= g_float_005ebb34) {
-        direction.red = 0.0f;
-    } else if (direction.red >= g_float_005ebb38) {
-        direction.red = 1.0f;
+    direction.x = g_light_direction.x * scale;
+    direction.y = g_light_direction.y * scale;
+    direction.z = g_light_direction.z * scale;
+    if (direction.x <= g_float_005ebb34) {
+        direction.x = 0.0f;
+    } else if (direction.x >= g_float_005ebb38) {
+        direction.x = 1.0f;
     }
-    if (direction.green <= g_float_005ebb34) {
-        direction.green = 0.0f;
-    } else if (direction.green >= g_float_005ebb38) {
-        direction.green = 1.0f;
+    if (direction.y <= g_float_005ebb34) {
+        direction.y = 0.0f;
+    } else if (direction.y >= g_float_005ebb38) {
+        direction.y = 1.0f;
     }
-    if (direction.blue <= g_float_005ebb34) {
-        direction.blue = 0.0f;
-    } else if (direction.blue >= g_float_005ebb38) {
-        direction.blue = 1.0f;
+    if (direction.z <= g_float_005ebb34) {
+        direction.z = 0.0f;
+    } else if (direction.z >= g_float_005ebb38) {
+        direction.z = 1.0f;
     }
     PublishLightDirection(&direction);
 
@@ -1001,7 +997,7 @@ void ApplyEnvironmentColour(W8World* world, float intensity, const EnvironmentCo
         srAssertFail("pWorld", ENVIRONMENT_CPP, 0x2b0, 0);
     }
     if (world->static_scene != 0) {
-        srVector3T<float> ambient(colour->red, colour->green, colour->blue);
+        srVector3T<float> ambient(colour->x, colour->y, colour->z);
 
         ScaleColourAndSaturate(&ambient, intensity);
         world->static_scene->setAmbientLight(ambient.x, ambient.y, ambient.z);
@@ -1010,7 +1006,7 @@ void ApplyEnvironmentColour(W8World* world, float intensity, const EnvironmentCo
     }
     for (int index = 0; index < g_environment_lights.count; ++index) {
         stLight* light = *g_environment_lights.GetAt(index);
-        srVector3T<float> scaled(colour->red, colour->green, colour->blue);
+        srVector3T<float> scaled(colour->x, colour->y, colour->z);
 
         scaled *= (double)intensity;
         SaturateColor004299B0(&scaled);

@@ -382,7 +382,7 @@ unsigned char ReadWorldEnvironment(W8ReadLevelInfo* pInfo, W8World* pWorld)
 {
     /* Retail read these uninitialised when a FileRead chain short-circuited;
        deterministic zeroes model that defect path. */
-    EnvironmentColour environment_colour;
+    srVector3T<float> environment_range;
     EnvironmentColour white;
     srVector3T<float> position;
     srVector3T<float> axis;
@@ -397,14 +397,13 @@ unsigned char ReadWorldEnvironment(W8ReadLevelInfo* pInfo, W8World* pWorld)
     unsigned char fog_enabled = 0;
     bool success;
 
-    success =
-        FileRead(pInfo->hFile, &fog_enabled, sizeof(fog_enabled), 0) &&
-        FileRead(pInfo->hFile, &environment_colour.red, sizeof(environment_colour.red), 0) &&
-        FileRead(pInfo->hFile, &environment_colour.green, sizeof(environment_colour.green), 0) &&
-        FileRead(pInfo->hFile, &environment_colour.blue, sizeof(environment_colour.blue), 0) &&
-        FileRead(pInfo->hFile, &intensity, sizeof(intensity), 0) &&
-        FileRead(pInfo->hFile, &view_distance, sizeof(view_distance), 0) &&
-        FileRead(pInfo->hFile, &camera_mode, sizeof(camera_mode), 0);
+    success = FileRead(pInfo->hFile, &fog_enabled, sizeof(fog_enabled), 0) &&
+              FileRead(pInfo->hFile, &environment_range.x, sizeof(environment_range.x), 0) &&
+              FileRead(pInfo->hFile, &environment_range.y, sizeof(environment_range.y), 0) &&
+              FileRead(pInfo->hFile, &environment_range.z, sizeof(environment_range.z), 0) &&
+              FileRead(pInfo->hFile, &intensity, sizeof(intensity), 0) &&
+              FileRead(pInfo->hFile, &view_distance, sizeof(view_distance), 0) &&
+              FileRead(pInfo->hFile, &camera_mode, sizeof(camera_mode), 0);
 
     if (camera_mode == 1) {
         success = success && FileRead(pInfo->hFile, &position, sizeof(position), 0);
@@ -443,17 +442,14 @@ unsigned char ReadWorldEnvironment(W8ReadLevelInfo* pInfo, W8World* pWorld)
 
     g_environment_offset.SetZero();
     pWorld->view_distance_020 = view_distance * g_world_scale;
-    white.red = 1.0f;
-    white.green = 1.0f;
-    white.blue = 1.0f;
     ApplyEnvironmentColour(pWorld, intensity, &white);
     WorldSetFarClip(pWorld, pWorld->view_distance_020);
     distance_scale =
         view_distance < g_octree_cell_scale ? g_environment_near_scale : g_float_005ec3b8;
     WorldSetRenderRange(pWorld, distance_scale * pWorld->view_distance_020);
-    pWorld->environment_range_start_014 = environment_colour.red;
-    pWorld->environment_range_end_018 = environment_colour.green;
-    pWorld->environment_range_blue_01c = environment_colour.blue;
+    pWorld->environment_range_start_014 = environment_range.x;
+    pWorld->environment_range_end_018 = environment_range.y;
+    pWorld->environment_range_blue_01c = environment_range.z;
 
     if (fog_enabled == 0) {
         SetFogEnabled(0);
