@@ -1123,11 +1123,11 @@ void ApplyRandomAfflictionToTarget(W8SpellEffectEntry* effect)
         return;
     }
     if (roll < 0x5a) {
-        InflictConditionAttack(effect, 9, 100, 0);
+        InflictConditionAttack(effect, 0xf, 100, 0);
         return;
     }
     if (roll < 0x5f) {
-        InflictConditionAttack(effect, 0xf, 100, 0);
+        InflictConditionAttack(effect, 9, 100, 0);
         return;
     }
     ApplyConditionToTargets(effect, 6);
