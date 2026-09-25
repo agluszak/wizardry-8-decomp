@@ -2041,17 +2041,13 @@ void OctBuildOptions00496CD0(char* stem)
             }
             ClearSurfaceRect(0, 0x183, 0x27f, 0x1df);
             for (line = 0; line < 7; ++line) {
-                for (length = 0; lines[line][length] != '\0'; ++length) {
-                    if (0x59 < length) {
-                        goto draw;
-                    }
+                for (length = 0; lines[line][length] != '\0' && length < 0x5a; ++length) {
                     wide[line][length] = static_cast<short>(lines[line][length]);
                 }
                 while (length < 0x5a) {
                     wide[line][length] = 0x20;
                     ++length;
                 }
-            draw:
                 wide[line][length] = 0;
                 gprintfDirty(1, 0x184 + line * 0xd, const_cast<UINT16*>(g_format_s_006068e4),
                              wide[line]);
@@ -2174,17 +2170,13 @@ void OctBuildOptions00496CD0(char* stem)
 accepted:
     ClearSurfaceRect(0, 0x183, 0x27f, 0x1df);
     sprintf(lines[1], "OCTBUILD VERSION %d -- Preprocessing %s: ", 0x22, stem);
-    for (length = 0; lines[1][length] != '\0'; ++length) {
-        if (0x59 < length) {
-            goto shown;
-        }
+    for (length = 0; lines[1][length] != '\0' && length < 0x5a; ++length) {
         wide[1][length] = static_cast<short>(lines[1][length]);
     }
     while (length < 0x5a) {
         wide[1][length] = 0x20;
         ++length;
     }
-shown:
     wide[1][length] = 0;
     gprintfDirty(1, 0x184, const_cast<UINT16*>(g_format_s_006068e4), wide[1]);
     InvalidateRegion(0, 0x183, 0x27f, 0x1df, 4);

@@ -489,7 +489,7 @@ void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const Tri
                             copy_count = needed;
                         }
                         CopyUlongBuffer004747f0(replacement, g_software_cull_active_polygons.data,
-                                                static_cast<int>(copy_count));
+                                                copy_count);
                     }
                     g_software_cull_active_polygons.release();
                     g_software_cull_active_polygons.data = replacement;
@@ -681,13 +681,16 @@ void stMeshModel::RenderTriMeshWithEquations00470380(srGERD& renderer, const Tri
 }
 
 /* Copy `count` dwords with a plain pointer walk. Distinct from
-   CopyDwordBuffer00470180 (vp memcopy + self-copy guard). VC6 lowers the walk
-   through a dest-relative source displacement. */
+   CopyDwordBuffer00470180 (vp memcopy + self-copy guard). Retail tests the
+   count before the loop's own guard. */
 // FUNCTION: WIZ8 0x004747f0
-void CopyUlongBuffer004747f0(unsigned long* destination, const unsigned long* source, int count)
+void CopyUlongBuffer004747f0(unsigned long* destination, const unsigned long* source,
+                             unsigned long count)
 {
-    while (count--) {
-        *destination++ = *source++;
+    if (count != 0) {
+        for (unsigned long index = 0; index < count; ++index) {
+            destination[index] = source[index];
+        }
     }
 }
 
