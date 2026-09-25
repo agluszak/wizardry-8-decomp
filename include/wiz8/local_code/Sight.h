@@ -13,7 +13,7 @@ void ResetSight(void);
 void RefreshOutwardSightForAllMonsters(void);
 void RefreshInwardSightForAllMonsters(void);
 void RefreshMonsterSight(W8MonsterInfo* monster_info);
-void ResetAndRefreshAllSight005060C0(void);
+void ResetAndRefreshAllSight(void);
 unsigned int AgeAllMonsterSight(void);
 void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_bounds);
 
@@ -39,7 +39,7 @@ bool IsSightRangeOverridden(void);
 bool GetSightCondition37A(const W8MonsterInfo* monster);
 char GetSightCondition37CIndex(const W8MonsterInfo* monster); /* 0x00505E80 */
 
-extern float g_sight_default_005ec254;
+extern float g_sight_default;
 
 bool IsVisibleUnderConditions(const W8MonsterInfo* monster, const W8VisibilityRecord* row,
                               int kind); /* 0x00505DD0 */

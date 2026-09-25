@@ -49,7 +49,7 @@ void W8DialogScrollBar::DestroyControls()
         m_track_image = -1;
     }
     m_on_scroll = 0;
-    m_initialized = 0;
+    m_initialized = false;
 }
 
 // FUNCTION: WIZ8 0x005e0ca0
@@ -92,9 +92,9 @@ unsigned char W8DialogScrollBar::CreateControls(const Resources* resources)
         SetButtonUserDataPointer(m_thumb_button, this);
         SetButtonUserDataPointer(m_track_button, this);
         m_on_scroll = resources->on_scroll;
-        m_initialized = 1;
-        m_visible = 0;
-        m_dirty = 1;
+        m_initialized = true;
+        m_visible = false;
+        m_dirty = true;
         return 1;
     }
     DestroyControls();
@@ -134,8 +134,8 @@ void W8DialogScrollBar::SetLayout(int x, int y, int entry_count, int first_visib
             }
             HideButton(m_thumb_button);
         }
-        m_visible = 1;
-        m_dirty = 1;
+        m_visible = true;
+        m_dirty = true;
     }
 }
 
@@ -153,7 +153,7 @@ void W8DialogScrollBar::UpdateThumb()
         }
         SetButtonPosition(m_thumb_button, static_cast<short>(x),
                           static_cast<short>(m_track_bounds[1] + offset));
-        m_dirty = 1;
+        m_dirty = true;
     }
 }
 
@@ -168,7 +168,7 @@ void W8DialogScrollBar::Draw(unsigned char force)
         InvalidateRegion(GetButtonX(m_track_button), GetButtonY(m_track_button),
                          GetButtonX(m_track_button) + GetButtonWidth(m_track_button),
                          GetButtonY(m_track_button) + GetButtonHeight(m_track_button), 0);
-        m_dirty = 0;
+        m_dirty = false;
     }
 }
 
@@ -229,19 +229,19 @@ void W8DialogScrollBar::UpButtonCallback(GUI_BUTTON* button, INT32 reason)
             bar->ScrollUp();
             if (!(button->uiFlags & BUTTON_CLICKED_ON)) {
                 button->uiFlags |= BUTTON_CLICKED_ON;
-                bar->m_dirty = 1;
+                bar->m_dirty = true;
             }
         } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
             if (button->uiFlags & BUTTON_CLICKED_ON) {
                 button->uiFlags &= ~BUTTON_CLICKED_ON;
-                bar->m_dirty = 1;
+                bar->m_dirty = true;
             }
         } else if (reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) {
             button->Area.uiFlags |= MSYS_MOUSE_IN_AREA;
-            bar->m_dirty = 1;
+            bar->m_dirty = true;
         } else if (reason & MSYS_CALLBACK_REASON_LOST_MOUSE) {
             button->Area.uiFlags &= ~MSYS_MOUSE_IN_AREA;
-            bar->m_dirty = 1;
+            bar->m_dirty = true;
         }
     }
 }
@@ -255,19 +255,19 @@ void W8DialogScrollBar::DownButtonCallback(GUI_BUTTON* button, INT32 reason)
             bar->ScrollDown();
             if (!(button->uiFlags & BUTTON_CLICKED_ON)) {
                 button->uiFlags |= BUTTON_CLICKED_ON;
-                bar->m_dirty = 1;
+                bar->m_dirty = true;
             }
         } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
             if (button->uiFlags & BUTTON_CLICKED_ON) {
                 button->uiFlags &= ~BUTTON_CLICKED_ON;
-                bar->m_dirty = 1;
+                bar->m_dirty = true;
             }
         } else if (reason & MSYS_CALLBACK_REASON_GAIN_MOUSE) {
             button->Area.uiFlags |= MSYS_MOUSE_IN_AREA;
-            bar->m_dirty = 1;
+            bar->m_dirty = true;
         } else if (reason & MSYS_CALLBACK_REASON_LOST_MOUSE) {
             button->Area.uiFlags &= ~MSYS_MOUSE_IN_AREA;
-            bar->m_dirty = 1;
+            bar->m_dirty = true;
         }
     }
 }
@@ -284,14 +284,14 @@ void W8DialogScrollBar::TrackButtonCallback(GUI_BUTTON* button, INT32 reason)
 // FUNCTION: WIZ8 0x005e0c40
 W8DialogScrollBar::W8DialogScrollBar()
 {
-    m_initialized = 0;
-    m_visible = 0;
+    m_initialized = false;
+    m_visible = false;
     m_owner = 0;
     m_entry_count = 1;
     m_first_visible_entry = 0;
     m_entry_height = -1;
     m_view_height = -1;
-    m_dirty = 0;
+    m_dirty = false;
     m_track_bounds[0] = 0;
     m_track_bounds[1] = 0;
     m_track_bounds[2] = 0;

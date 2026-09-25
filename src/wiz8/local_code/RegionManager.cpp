@@ -57,6 +57,15 @@ W8RegionSet g_region_sets[300] = {
     {0, 301, 301}, {0, 0, 0},     {0, 0, 0}};
 // GLOBAL: WIZ8 0x00617b1c
 unsigned int g_region_count = 313;
+/* The last catalog region reports every event as handled. Retail's linker
+   folded this body into ScreenLifecycleSuccess, which compiles to the same
+   bytes. */
+// bool-byte-ok: W8RegionCallback result
+static unsigned char ConsumeRegionInput(const InputAtom*, W8Region*)
+{
+    return 1;
+}
+
 // GLOBAL: WIZ8 0x00620048
 W8Region g_regions[1500] = {
 
@@ -70,14 +79,7 @@ W8Region g_regions[1500] = {
 
     {0x00000001, 279, 423, 364, 467, MainMenuExit, 0, 0, 0, -1, 0},
     {0x00000001, 286, 382, 351, 402, IntroScreenRegionEvent, 0, 0, 0, -1, 0},
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
-    // clang-format off  format-off-ok: keep ABI cast and ok-comment on one catalog initializer line
-    {0x00000001, 0, 0, 639, 479, reinterpret_cast<W8RegionCallback>(CreditsBackgroundRegionEvent),
-     /* reinterpret-ok: retail catalog stores InputAtom-only CreditsBackgroundRegionEvent */ 0, 0,
-     0, 0, 0},
-// clang-format on
-#pragma clang diagnostic pop
+    {0x00000001, 0, 0, 639, 479, CreditsBackgroundRegionEvent, 0, 0, 0, 0, 0},
 
     {0x00000001, 0, 0, 0, 0, DialogueTranscriptRegionEvent, 0, 0, 0, -1, 0},
     {0x00000001, 24, 68, 42, 85, PartyCombatActionRegionEvent, 0, 0, 0, -1, 0},
@@ -270,12 +272,7 @@ W8Region g_regions[1500] = {
     {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 7, 1, 0, 53, 0},
 
     {0x00000002, 0, 0, 0, 0, SpellPowerPipRegionEvent, 8, 1, 0, 54, 0},
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
-    // clang-format off
-    {0x00000001, 0, 0, 0, 0, reinterpret_cast<W8RegionCallback>(IgnoreSpellCastingInput), /* reinterpret-ok: retail region catalog stores IgnoreSpellCastingInput's InputAtom ABI */ 0, 1, 0, 55, 0},
-// clang-format on
-#pragma clang diagnostic pop
+    {0x00000001, 0, 0, 0, 0, IgnoreSpellCastingInput, 0, 1, 0, 55, 0},
     {0x00000001, 0, 0, 0, 0, SpellPowerPipRegionEvent, 10, 1, 0, 17, 0},
 
     {0x00000001, 0, 0, 0, 0, UseItemSelectScrollRegionEvent, 0, 1, 0, 96, 0},
@@ -395,63 +392,63 @@ W8Region g_regions[1500] = {
     {0x00000001, 106, 96, 302, 109, CampOpenCharacterScreenRegionEvent, 0, 1, 0, 2362, 0},
 
     {0x00000001, 106, 124, 302, 133, CampNameEditRegionEvent, 0, 1, 0, 2363, 0},
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 0, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 1, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 0, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 1, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 2, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 3, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 4, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 2, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 3, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 4, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 5, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 6, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler005BB350, 7, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 5, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 6, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, BackpackRegionHandler, 7, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 0, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 1, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 2, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 0, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 1, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 2, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 3, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 4, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 5, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 3, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 4, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 5, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 6, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 7, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 8, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 6, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 7, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 8, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 9, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 10, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler005BB560, 11, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 9, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 10, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, EquipSlotRegionHandler, 11, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 0, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 1, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 2, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 0, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 1, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 2, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 3, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 4, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 5, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 3, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 4, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 5, 1, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 6, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler005BB900, 7, 1, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler005BBBB0, 0, 1, 0, 2378, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 6, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ItemPoolRegionHandler, 7, 1, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 0, 1, 0, 2378, 0},
 
-    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler005BBBB0, 1, 1, 0, 2379, 0},
-    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler005BBBB0, 2, 1, 0, 2380, 0},
-    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler005BBBB0, 3, 1, 0, 2381, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 1, 1, 0, 2379, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 2, 1, 0, 2380, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 3, 1, 0, 2381, 0},
 
-    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler005BBBB0, 4, 1, 0, 2382, 0},
-    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler005BBBB0, 5, 1, 0, 2383, 0},
-    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler005BBBB0, 6, 1, 0, 2384, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 4, 1, 0, 2382, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 5, 1, 0, 2383, 0},
+    {0x00000001, 0, 0, 0, 0, RealmTabRegionHandler, 6, 1, 0, 2384, 0},
 
-    {0x00000001, 0, 0, 0, 0, PanelTabRegionHandler005BBC70, 0, 1, 0, 2385, 0},
-    {0x00000001, 0, 0, 0, 0, PanelTabRegionHandler005BBC70, 1, 1, 0, 2386, 0},
-    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 0, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, PanelTabRegionHandler, 0, 1, 0, 2385, 0},
+    {0x00000001, 0, 0, 0, 0, PanelTabRegionHandler, 1, 1, 0, 2386, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 0, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 1, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 2, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 3, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 1, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 2, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 3, 0, 0, -1, 0},
 
-    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 4, 0, 0, -1, 0},
-    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler005B79F0, 5, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 4, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, SpellListRegionHandler, 5, 0, 0, -1, 0},
     {0x00000001, 0, 0, 0, 0, CampPageButtonRegionEvent, 0, 1, 0, 2364, 0},
 
     {0x00000001, 0, 0, 0, 0, CampPageButtonRegionEvent, 1, 1, 0, 2367, 0},
@@ -483,20 +480,9 @@ W8Region g_regions[1500] = {
     {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 6, 0, 0, -1, 0},
 
     {0x00000001, 0, 0, 0, 0, PartyPortraitEventRegionEvent, 7, 0, 0, -1, 0},
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
-    // clang-format off  format-off-ok: keep ABI cast and ok-comment on one catalog initializer line
-    {0x00000001, 0, 0, 0, 0, reinterpret_cast<W8RegionCallback>(NpcQuoteBubbleRegionEvent),
-     /* reinterpret-ok: retail catalog stores InputAtom-only NpcQuoteBubbleRegionEvent */ 0, 0, 0,
-     -1, 0},
-    {0x00000001, 0, 0, 0, 0, reinterpret_cast<W8RegionCallback>(CombatBarRegionEvent),
-     /* reinterpret-ok: retail catalog stores InputAtom-only CombatBarRegionEvent */ 0, 0, 0, -1,
-     0},
-    {0x00000001, 0, 0, 0, 0, reinterpret_cast<W8RegionCallback>(ScreenLifecycleSuccess),
-     /* reinterpret-ok: retail region catalog stores the zero-argument success sentinel */ 0, 0, 0,
-     -1, 0},
-// clang-format on
-#pragma clang diagnostic pop
+    {0x00000001, 0, 0, 0, 0, NpcQuoteBubbleRegionEvent, 0, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, CombatBarRegionEvent, 0, 0, 0, -1, 0},
+    {0x00000001, 0, 0, 0, 0, ConsumeRegionInput, 0, 0, 0, -1, 0},
 };
 // GLOBAL: WIZ8 0x00689B3C
 unsigned int g_current_region_index;
@@ -510,31 +496,31 @@ unsigned int g_hover_region_index;
 unsigned char g_region_help_force_enabled;
 
 // GLOBAL: WIZ8 0x00689B32
-unsigned char g_dev_mode_689b32;
+unsigned char g_dev_mode;
 
 // FUNCTION: WIZ8 0x004f27a0
 void SetRegionHelpDelay(int delay_ms)
 {
     if (delay_ms == 0) {
-        delay_ms = g_settings_6850c8.tooltip_delay_ms;
+        delay_ms = g_settings.tooltip_delay_ms;
     }
     g_region_help_delay = delay_ms;
 }
 
 // FUNCTION: WIZ8 0x004F27C0
-void SetRegionHelpForceEnabled004F27C0(unsigned char enabled)
+void SetRegionHelpForceEnabled(unsigned char enabled)
 {
     g_region_help_force_enabled = enabled;
 }
 
 // FUNCTION: WIZ8 0x004F27D0
-void EnableRegionHelpFlag004F27D0(W8Region* region)
+void EnableRegionHelpFlag(W8Region* region)
 {
     region->help_enabled = 1;
 }
 
 // FUNCTION: WIZ8 0x004F27E0
-void DisableRegionHelpFlag004F27E0(W8Region* region)
+void DisableRegionHelpFlag(W8Region* region)
 {
     region->help_enabled = 0;
 }
@@ -593,7 +579,7 @@ unsigned int UpdateRegionMousePosition(int x, int y)
                     previous->flags &= ~W8_REGION_HELP_SHOWN;
                 }
                 PlayButtonSound(1);
-                g_region_help_delay = (unsigned short)g_settings_6850c8.tooltip_delay_ms;
+                g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
                 previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
                 g_region_help_force_enabled = 0;
             }
@@ -604,7 +590,7 @@ unsigned int UpdateRegionMousePosition(int x, int y)
             region->callback(&event, region);
             if (g_current_region_index != previous_index) {
                 if (region->help_enabled != 0 &&
-                    (g_settings_6850c8.tooltips_enabled != 0 || g_region_help_force_enabled != 0)) {
+                    (g_settings.tooltips_enabled != 0 || g_region_help_force_enabled != 0)) {
                     g_region_help_clock = SetCountdownClock(g_region_help_delay);
                 }
                 PlayButtonSound(0);
@@ -626,7 +612,7 @@ unsigned int UpdateRegionMousePosition(int x, int y)
             previous->flags &= ~W8_REGION_HELP_SHOWN;
         }
         PlayButtonSound(1);
-        g_region_help_delay = (unsigned short)g_settings_6850c8.tooltip_delay_ms;
+        g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
         g_region_help_force_enabled = 0;
         previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
     }
@@ -670,7 +656,7 @@ unsigned int FindRegionAtPoint(unsigned short x, unsigned short y)
                     VideoRemoveToolTip();
                     previous->flags &= ~W8_REGION_HELP_SHOWN;
                 }
-                g_region_help_delay = (unsigned short)g_settings_6850c8.tooltip_delay_ms;
+                g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
                 previous->flags &= ~W8_REGION_MOUSE_STATE_MASK;
                 g_region_help_force_enabled = 0;
                 g_hover_region_index = 0;
@@ -697,9 +683,8 @@ unsigned char DispatchRegionInput(const InputAtom* event)
     unsigned int region_index = g_captured_region_index;
     unsigned int set_index;
     int sound_id = -1;
-    unsigned short x = static_cast<unsigned short>(event->uiParam) + g_cursor_hotspot_x_6596bc;
-    unsigned short y =
-        static_cast<unsigned short>(event->uiParam >> 16) + g_cursor_hotspot_y_6596c0;
+    unsigned short x = static_cast<unsigned short>(event->uiParam) + g_cursor_hotspot_x;
+    unsigned short y = static_cast<unsigned short>(event->uiParam >> 16) + g_cursor_hotspot_y;
 #ifdef WIZ8_RUNTIME_TESTS
     if (event->usEvent == MOUSE_POS || event->usEvent == LEFT_BUTTON_DOWN ||
         event->usEvent == LEFT_BUTTON_UP || event->usEvent == RIGHT_BUTTON_DOWN ||
@@ -735,14 +720,14 @@ unsigned char DispatchRegionInput(const InputAtom* event)
 dispatch:
     W8Region* region = &g_regions[region_index];
     if (region->help_enabled != 0 &&
-        (g_settings_6850c8.tooltips_enabled != 0 || g_region_help_force_enabled != 0) &&
+        (g_settings.tooltips_enabled != 0 || g_region_help_force_enabled != 0) &&
         event->usEvent != MOUSE_POS) {
         if ((region->flags & W8_REGION_HELP_SHOWN) != 0) {
             VideoRemoveToolTip();
             region->flags &= ~W8_REGION_HELP_SHOWN;
         }
         if (region->help_enabled != 0 &&
-            (g_settings_6850c8.tooltips_enabled != 0 || g_region_help_force_enabled != 0)) {
+            (g_settings.tooltips_enabled != 0 || g_region_help_force_enabled != 0)) {
             g_region_help_clock = SetCountdownClock(g_region_help_delay);
         }
     }
@@ -790,7 +775,7 @@ void ShowRegionHelp(unsigned int region_index)
     int width;
     int height;
 
-    if (g_settings_6850c8.tooltips_enabled == 0 && g_region_help_force_enabled == 0) {
+    if (g_settings.tooltips_enabled == 0 && g_region_help_force_enabled == 0) {
         return;
     }
     region = &g_regions[region_index];
@@ -862,7 +847,7 @@ void ActivateDialogRegion(unsigned int region_index)
             VideoRemoveToolTip();
             g_regions[previous_index].flags &= ~W8_REGION_HELP_SHOWN;
         }
-        g_region_help_delay = (unsigned short)g_settings_6850c8.tooltip_delay_ms;
+        g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
         g_regions[g_hover_region_index].flags &= ~W8_REGION_MOUSE_STATE_MASK;
         g_region_help_force_enabled = 0;
         g_hover_region_index = 0;
@@ -1041,12 +1026,12 @@ void UpdateRegionHelp(void)
 {
     if (g_captured_region_index == 0) {
         if (g_current_region_index != 0 && g_regions[g_current_region_index].help_enabled != 0 &&
-            (g_settings_6850c8.tooltips_enabled != 0 || g_region_help_force_enabled != 0) &&
+            (g_settings.tooltips_enabled != 0 || g_region_help_force_enabled != 0) &&
             ClockIsTicking(g_region_help_clock) == 0) {
             ShowRegionHelp(g_current_region_index);
         }
     } else if (g_regions[g_captured_region_index].help_enabled != 0 &&
-               (g_settings_6850c8.tooltips_enabled != 0 || g_region_help_force_enabled != 0) &&
+               (g_settings.tooltips_enabled != 0 || g_region_help_force_enabled != 0) &&
                ClockIsTicking(g_region_help_clock) == 0) {
         ShowRegionHelp(g_captured_region_index);
     }
@@ -1076,7 +1061,7 @@ void ResetRegionHelp(unsigned char delayed)
     if (delayed == 0) {
         ShowRegionHelp(g_current_region_index);
     } else if (g_regions[g_current_region_index].help_enabled != 0 &&
-               (g_settings_6850c8.tooltips_enabled != 0 || g_region_help_force_enabled != 0)) {
+               (g_settings.tooltips_enabled != 0 || g_region_help_force_enabled != 0)) {
         g_region_help_clock = SetCountdownClock(g_region_help_delay);
     }
 }
@@ -1164,7 +1149,7 @@ void SetRegionHelp(unsigned int region_index, unsigned char enabled, int help_te
 /* Send the current hot region a mouse-leave transition at the live cursor
    position, then relinquish its help and hover state. */
 // FUNCTION: WIZ8 0x004f2a80
-void ClearHotRegion004F2A80(void)
+void ClearHotRegion(void)
 {
     POINT mouse;
     InputAtom event;
@@ -1187,7 +1172,7 @@ void ClearHotRegion004F2A80(void)
                 VideoRemoveToolTip();
                 g_regions[region_index].flags &= ~W8_REGION_HELP_SHOWN;
             }
-            g_region_help_delay = (unsigned short)g_settings_6850c8.tooltip_delay_ms;
+            g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
             g_region_help_force_enabled = 0;
             g_regions[g_current_region_index].flags &= ~W8_REGION_MOUSE_STATE_MASK;
             g_current_region_index = 0;
@@ -1251,8 +1236,8 @@ void ResetRegions(void)
         remaining = g_region_set_count;
         do {
             set->enabled = 0;
-            set = set + 1;
-            remaining = remaining - 1;
+            ++set;
+            --remaining;
         } while (remaining != 0);
     }
     if (g_region_count != 0) {
@@ -1260,13 +1245,13 @@ void ResetRegions(void)
         remaining = g_region_count;
         do {
             region->flags &= 3;
-            region = region + 1;
-            remaining = remaining - 1;
+            ++region;
+            --remaining;
         } while (remaining != 0);
     }
     g_current_region_index = 0;
     g_hover_region_index = 0;
     g_captured_region_index = 0;
     g_region_help_force_enabled = 0;
-    g_region_help_delay = (unsigned short)g_settings_6850c8.tooltip_delay_ms;
+    g_region_help_delay = static_cast<unsigned short>(g_settings.tooltip_delay_ms);
 }

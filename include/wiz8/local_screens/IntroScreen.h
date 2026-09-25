@@ -6,7 +6,7 @@ class W8BinkVideo;
 struct W8Region;
 extern W8BinkVideo* gpVideo;
 
-void ContinueAfterDarkEndingVideo005AE770(void);
+void ContinueAfterDarkEndingVideo(void);
 unsigned char IntroScreenEnter(void);
 void IntroScreenFrame(void);
 unsigned char IntroScreenLeave(int leaving);

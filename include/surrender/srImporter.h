@@ -1,13 +1,24 @@
 #pragma once
 
 #include "srBinIStream.h"
+#include "srBinOStream.h"
 #include "srColorSurface.h"
 #include "srIOManager.h"
 #include "srOptionList.h"
 
+class srBinOStream;
 class srModel;
 
-class srSurfaceIOManager : public srIOManager {
+/* The provider exports the full member surface including the implicit
+   lifecycle sweep (ctor, copy ctor, assignment, destructor) and the vftable, so
+   the declaration is dllexport under SURRENDER_BUILD. */
+// FUNCTION: SURRENDER 0x100050F0 SYNTHETIC
+// ??0srSurfaceIOManager@@QAE@XZ
+class
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    srSurfaceIOManager : public srIOManager {
 public:
     struct ImportInfo {
         unsigned long unknown_00;
@@ -24,17 +35,36 @@ public:
     class SurfaceImporter;
     class SurfaceExporter;
 
+    /* Provider-side entry (0x1002DCD0); no consumer import evidence, so it
+       stays unannotated. */
+    void exportSurface(const char* path, srBinOStream& stream, srColorSurfaceIFace& surface,
+                       const ExportInfo& options);
     SR_DLL_IMPORT void exportSurface(const char* path, srColorSurfaceIFace& surface,
                                      const ExportInfo& options);
-    /* Provider-side import entry (0x1002DA00); no consumer import evidence,
-       so it stays unannotated. */
+    /* Provider-side import entries (0x1002DB20/0x1002DA00); no consumer import
+       evidence, so they stay unannotated. */
+    srColorSurfaceIFace* importSurface(const char* path, srBinIStream& stream,
+                                       const ImportInfo& options);
     srColorSurfaceIFace* importSurface(const char* path, const ImportInfo& options);
+    /* Provider-side entries (0x1002D890/0x1002D8C0/0x1002D8F0); no consumer
+       import evidence, so they stay unannotated. */
+    SurfaceImporter* getImporter(const char* path);
+    SurfaceExporter* getExporter(const char* path);
+    void getSurfaceDesc(srColorSurfaceIFace::SurfaceDesc& description, const char* path,
+                        const ImportInfo& options);
 };
 
 static_assert((sizeof(srSurfaceIOManager::ImportInfo) == 0x0c), "srSurfaceImportInfo_must_be_0x0c");
 static_assert((sizeof(srSurfaceIOManager::ExportInfo) == 0x0c), "srSurfaceExportInfo_must_be_0x0c");
 
-class __declspec(novtable) srSurfaceIOManager::SurfaceImporter : public srIOManager::Importer {
+/* Retail exports the full implicit lifecycle sweep for the importer/exporter
+   classes, so they are dllexport under SURRENDER_BUILD; consumers keep the
+   novtable-only surface. */
+class
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    __declspec(novtable) srSurfaceIOManager::SurfaceImporter : public srIOManager::Importer {
 public:
     virtual int getSurfaceDesc(srColorSurfaceIFace::SurfaceDesc& description, srBinIStream& stream,
                                const srSurfaceIOManager::ImportInfo& options);
@@ -42,14 +72,30 @@ public:
                                                const srSurfaceIOManager::ImportInfo& options) = 0;
 };
 
+/* The provider exports the full member surface including the implicit
+   lifecycle sweep (ctor, copy ctor, assignment, destructor) and the vftable, so
+   the declaration is dllexport under SURRENDER_BUILD. */
 // VTABLE: SURRENDER 0x10075530 srHierarchyIOManager
-class srHierarchyIOManager : public srIOManager {
+class
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    srHierarchyIOManager : public srIOManager {
 public:
-    class ImportInfo {
+    /* The provider exports the implicit Info assignments (0x10016490/0x100164A0). */
+    class
+#if defined(SURRENDER_BUILD)
+        __declspec(dllexport)
+#endif
+        ImportInfo {
     public:
         unsigned char unknown_00;
     };
-    class ExportInfo {
+    class
+#if defined(SURRENDER_BUILD)
+        __declspec(dllexport)
+#endif
+        ExportInfo {
     public:
         unsigned char unknown_00;
     };
@@ -72,19 +118,42 @@ static_assert((sizeof(srHierarchyIOManager::ImportInfo) == 0x01),
 static_assert((sizeof(srHierarchyIOManager::ExportInfo) == 0x01),
               "srHierarchyExportInfo_must_be_0x01");
 
-class __declspec(novtable) srHierarchyIOManager::HierarchyImporter : public srIOManager::Importer {
+class
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    __declspec(novtable) srHierarchyIOManager::HierarchyImporter : public srIOManager::Importer {
 public:
     HierarchyImporter() {}
+
+    /* importHierarchy's call site dispatches through vtable slot 2. */
+    virtual void importHierarchy(srBinIStream& stream, const ImportInfo& options) = 0;
 };
 
+/* The provider exports the full member surface including the implicit
+   lifecycle sweep (ctor, copy ctor, assignment, destructor) and the vftable, so
+   the declaration is dllexport under SURRENDER_BUILD. */
 // VTABLE: SURRENDER 0x10075534 srModelIOManager
-class srModelIOManager : public srIOManager {
+class
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    srModelIOManager : public srIOManager {
 public:
-    class ImportInfo {
+    /* The provider exports the implicit Info assignments (0x100169A0/0x100169B0). */
+    class
+#if defined(SURRENDER_BUILD)
+        __declspec(dllexport)
+#endif
+        ImportInfo {
     public:
         unsigned char unknown_00;
     };
-    class ExportInfo {
+    class
+#if defined(SURRENDER_BUILD)
+        __declspec(dllexport)
+#endif
+        ExportInfo {
     public:
         unsigned char unknown_00;
     };
@@ -105,7 +174,14 @@ static_assert((sizeof(srModelIOManager) == 0x1c), "srModelIOManager_must_be_0x1c
 static_assert((sizeof(srModelIOManager::ImportInfo) == 0x01), "srModelImportInfo_must_be_0x01");
 static_assert((sizeof(srModelIOManager::ExportInfo) == 0x01), "srModelExportInfo_must_be_0x01");
 
-class __declspec(novtable) srModelIOManager::ModelImporter : public srIOManager::Importer {
+class
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    __declspec(novtable) srModelIOManager::ModelImporter : public srIOManager::Importer {
 public:
     ModelImporter() {}
+
+    /* importModel's call site dispatches through vtable slot 2. */
+    virtual srModel* importModel(srBinIStream& stream, const ImportInfo& options) = 0;
 };

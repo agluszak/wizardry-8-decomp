@@ -26,7 +26,7 @@
 
    Attribution evidence: 0x004D9E60 passes this file's path string to
    MonsterGetIndexByLocationID. The level-0x1a block in
-   InitializeLevelMasterFunctions004D6C50 registers the surrounding cluster
+   InitializeLevelMasterFunctions registers the surrounding cluster
    (GoodaVine_A/B, Give_Zulu, Meat_Maker, Meat_Box, URN_Trigger_01-04) and runs
    the Trynnie2Killed location-variable sync. */
 
@@ -36,11 +36,11 @@
    Trynnie2Killed location variable the first time this level sees it, so the
    world-side check has a stable flag to read. */
 // FUNCTION: WIZ8 0x004D9D30
-void EnsureTrynnie2KilledVar004D9D30(void)
+void EnsureTrynnie2KilledVar(void)
 {
     if (GetFact(0x229) == 1) {
         if (GetLocationVarIDByName("Trynnie2Killed") == -1) {
-            KillTrynnieGroups004DA850();
+            KillTrynnieGroups();
             CreateLocationVar("Trynnie2Killed", 1);
         }
     }
@@ -49,12 +49,12 @@ void EnsureTrynnie2KilledVar004D9D30(void)
 /* "GoodaVine_A": place the vine item on the cursor, refusing while the cursor
    already holds an item. */
 // FUNCTION: WIZ8 0x004D9D70
-bool Trynnie2GoodaVineA004D9D70(Trigger* pTrigger)
+bool Trynnie2GoodaVineA(Trigger* pTrigger)
 {
-    if (g_status_685170.item_in_cursor != 0) {
+    if (g_status.item_in_cursor != 0) {
         return 0;
     }
-    ReplaceOrCreateItem(&g_status_685170.item_in_hand_235b, 0x16d, 1, 1, 0);
+    ReplaceOrCreateItem(&g_status.item_in_hand_235b, 0x16d, 1, 1, 0);
     SetItemCursor(0);
     return 1;
 }
@@ -62,12 +62,12 @@ bool Trynnie2GoodaVineA004D9D70(Trigger* pTrigger)
 /* "GoodaVine_B": place the second vine item on the cursor, refusing while the
    cursor already holds an item. */
 // FUNCTION: WIZ8 0x004D9DA0
-bool Trynnie2GoodaVineB004D9DA0(Trigger* pTrigger)
+bool Trynnie2GoodaVineB(Trigger* pTrigger)
 {
-    if (g_status_685170.item_in_cursor != 0) {
+    if (g_status.item_in_cursor != 0) {
         return 0;
     }
-    ReplaceOrCreateItem(&g_status_685170.item_in_hand_235b, 0x16e, 1, 1, 0);
+    ReplaceOrCreateItem(&g_status.item_in_hand_235b, 0x16e, 1, 1, 0);
     SetItemCursor(0);
     return 1;
 }
@@ -75,19 +75,19 @@ bool Trynnie2GoodaVineB004D9DA0(Trigger* pTrigger)
 /* "Give_Zulu": place item 0x1b3 on the cursor, refusing while the cursor
    already holds an item. */
 // FUNCTION: WIZ8 0x004D9DD0
-bool Trynnie2GiveZulu004D9DD0(Trigger* pTrigger)
+bool Trynnie2GiveZulu(Trigger* pTrigger)
 {
-    if (g_status_685170.item_in_cursor != 0) {
+    if (g_status.item_in_cursor != 0) {
         return 0;
     }
-    ReplaceOrCreateItem(&g_status_685170.item_in_hand_235b, 0x1b3, 1, 1, 0);
+    ReplaceOrCreateItem(&g_status.item_in_hand_235b, 0x1b3, 1, 1, 0);
     SetItemCursor(0);
     return 1;
 }
 
 /* "Meat_Maker": spawn the meat item at the Meat_Position entity. */
 // FUNCTION: WIZ8 0x004D9E00
-bool Trynnie2MeatMaker004D9E00(Trigger* pTrigger)
+bool Trynnie2MeatMaker(Trigger* pTrigger)
 {
     srVector3T<float> entity_position;
     srVector3T<float> position;
@@ -107,7 +107,7 @@ bool Trynnie2MeatMaker004D9E00(Trigger* pTrigger)
    drugged meat starts MoveHogarDrugged.msf and pays the 500-point reward
    once. */
 // FUNCTION: WIZ8 0x004D9E60
-bool Trynnie2MeatBox004D9E60(Trigger* pTrigger)
+bool Trynnie2MeatBox(Trigger* pTrigger)
 {
     W8MonsterGroup* group;
     W8MonsterInfo* info;
@@ -115,7 +115,7 @@ bool Trynnie2MeatBox004D9E60(Trigger* pTrigger)
     int item_id;
 
     group = FindFirstMonsterByID(0x1d4);
-    if (group == 0 || g_status_685170.item_in_cursor == 0) {
+    if (group == 0 || g_status.item_in_cursor == 0) {
         ShowNotice(0xf, gppStringList[0x2590 / 4]);
         return 1;
     }
@@ -124,17 +124,17 @@ bool Trynnie2MeatBox004D9E60(Trigger* pTrigger)
         ShowNotice(0xf, gppStringList[0x2590 / 4]);
         return 1;
     }
-    index = MonsterGetIndexByLocationID(0x68, TRYNNIE2_CPP, group->leader_id_9f, 1);
+    index = MonsterGetIndexByLocationID(0x68, TRYNNIE2_CPP, group->leader_location_id, 1);
     info = MonsterGetScriptPartByLocationIndex(index);
     if (info->highest_condition >= 0xf) {
         return 1;
     }
     if (item_id == 0x1b4) {
-        info->p3D->SetScript004C7F10("MoveHogar.msf", 1);
+        info->p3D->SetScript("MoveHogar.msf", 1);
     } else {
-        info->p3D->SetScript004C7F10("MoveHogarDrugged.msf", 1);
+        info->p3D->SetScript("MoveHogarDrugged.msf", 1);
         if (GetLocationVarIDByName("HogarDruggedGivenExp") == -1) {
-            AwardPartyExperience004EEF10(500, 0);
+            AwardPartyExperience(500, 0);
             CreateLocationVar("HogarDruggedGivenExp", 1);
         }
     }
@@ -152,7 +152,7 @@ bool Trynnie2MeatBox004D9E60(Trigger* pTrigger)
    arguments; arg is never dereferenced for command 8, so the callee reads an
    uninitialized stack slot there. */
 // FUNCTION: WIZ8 0x004D9F60
-bool Trynnie2UseItem004D9F60(W8ItemInstance* item)
+bool Trynnie2UseItem(W8ItemInstance* item)
 {
     srVector3T<float> position;
     W8ItemInstance destination;
@@ -160,7 +160,7 @@ bool Trynnie2UseItem004D9F60(W8ItemInstance* item)
     if (item->iItemNo != 0x1b3 && item->iItemNo != 0x1c3) {
         return 0;
     }
-    if (DispatchWorldCursorNodeCommand004D9080(0, 8, 0) == 0) {
+    if (DispatchWorldCursorNodeCommand(0, 8, 0) == 0) {
         ShowString(gppStringList[0x2598 / 4]);
         return 1;
     }
@@ -169,8 +169,8 @@ bool Trynnie2UseItem004D9F60(W8ItemInstance* item)
     } else {
         ShowString(gppStringList[0x259c / 4]);
     }
-    if (g_status_685170.use_item_latch_2445 == 0) {
-        g_status_685170.use_item_latch_2445 = 1;
+    if (g_status.use_item_latch_2445 == 0) {
+        g_status.use_item_latch_2445 = true;
     } else {
         ShowString(gppStringList[0x25a4 / 4]);
         if (FindEntityByName("NP_MysticalShaman", &position, 0, 0) != 0) {
@@ -186,7 +186,7 @@ bool Trynnie2UseItem004D9F60(W8ItemInstance* item)
    the pagoda generator is shut down; either way a level message reports the
    outcome. */
 // FUNCTION: WIZ8 0x004DA060
-bool Trynnie2UrnTrigger004DA060(Trigger* pTrigger)
+bool Trynnie2UrnTrigger(Trigger* pTrigger)
 {
     MonGen* generator;
     unsigned int count;
@@ -209,9 +209,9 @@ bool Trynnie2UrnTrigger004DA060(Trigger* pTrigger)
         if (generator != 0) {
             generator->generation_enabled = 0;
         }
-        ShowLevelMessage004D9960(0x14);
+        ShowLevelMessage(0x14);
         return 1;
     }
-    ShowLevelMessage004D9960(0x13);
+    ShowLevelMessage(0x13);
     return 1;
 }

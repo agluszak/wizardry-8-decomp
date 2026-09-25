@@ -91,8 +91,46 @@ def changed_source_files(repository: Path, since: str | None = None) -> list[Pat
     ]
 
 
+_CALLED_NAME = re.compile(r"\b([A-Za-z_]\w*)\s*\(")
+_ADDRESS_SUFFIX = re.compile(r"(?<=[A-Za-z_])[0-9A-F]{8}$")
+_CLASS_HEAD = re.compile(r"^\s*(?:class|struct)\s+([A-Za-z_]\w*)")
+_SOURCE_SUFFIXES = {".cpp", ".cc", ".cxx", ".h", ".hpp"}
+
+
+def _called_names(text: str, renamed: dict[str, str]) -> set[str]:
+    """Called names, spelled as the baseline spelled them."""
+
+    names: list[str] = _CALLED_NAME.findall(text)
+    return {_ADDRESS_SUFFIX.sub("", renamed.get(name, name)) for name in names}
+
+
+def _renamed_classes(hunks: list[list[tuple[str, str]]]) -> dict[str, str]:
+    """Map classes the change renamed to their baseline spelling.
+
+    A hunk that removes the head of `class Old` and adds `class New` in the same
+    position renames the class, so constructor and destructor definitions
+    spelled with the new name add no call.
+    """
+
+    renamed: dict[str, str] = {}
+    for rows in hunks:
+        removed = [
+            m.group(1) for sign, text in rows if sign == "-" if (m := _CLASS_HEAD.match(text))
+        ]
+        added = [m.group(1) for sign, text in rows if sign == "+" if (m := _CLASS_HEAD.match(text))]
+        if len(removed) == len(added):
+            renamed.update((new, old) for old, new in zip(removed, added) if old != new)
+    return renamed
+
+
 def _added_call_lines(repository: Path, since: str) -> dict[Path, set[int]]:
-    """Locate added source lines that can contain a call expression."""
+    """Locate added source lines that can contain a new call expression.
+
+    A line whose called names all appear on the lines its hunk removes (a
+    renamed argument, a reflowed expression, a callee losing its address
+    suffix, a renamed class's constructor or destructor) adds no call, so it
+    is skipped.
+    """
 
     if (repository / ".jj").is_dir() and resolve_executable("jj") is not None:
         command = ["jj", "diff", "--git", "--from", since]
@@ -100,27 +138,77 @@ def _added_call_lines(repository: Path, since: str) -> dict[Path, set[int]]:
         baseline = f"origin/{since.removesuffix('@origin')}" if since.endswith("@origin") else since
         command = ["git", "diff", "--no-ext-diff", "--no-renames", baseline, "HEAD"]
     output = run(command, cwd=repository).stdout
-    added: dict[Path, set[int]] = {}
+
+    # hunk = (source path, first added line, [(sign, text)])
+    hunks: list[tuple[Path | None, int, list[tuple[str, str]]]] = []
     path: Path | None = None
-    line = 0
     for row in output.splitlines():
         if row.startswith("diff --git "):
             match = re.match(r"diff --git a/(.*?) b/(.*)", row)
             path = repository / match.group(2) if match else None
         elif row.startswith("@@"):
             match = re.search(r"\+(\d+)", row)
-            line = int(match.group(1)) if match else 0
-        elif row.startswith("+") and not row.startswith("+++"):
-            if (
-                path is not None
-                and path.suffix.lower() in {".cpp", ".cc", ".cxx", ".h", ".hpp"}
-                and "(" in row
-            ):
-                added.setdefault(path, set()).add(line)
-            line += 1
-        elif row.startswith(" "):
+            hunks.append((path, int(match.group(1)) if match else 0, []))
+        elif hunks and row[:1] in {"-", "+", " "} and not row.startswith(("---", "+++")):
+            hunks[-1][2].append((row[0], row[1:]))
+
+    renamed = _renamed_classes(
+        [
+            rows
+            for source, _, rows in hunks
+            if source is not None and source.suffix.lower() in _SOURCE_SUFFIXES
+        ]
+    )
+
+    added: dict[Path, set[int]] = {}
+    for source, line, rows in hunks:
+        if source is None or source.suffix.lower() not in _SOURCE_SUFFIXES:
+            continue
+        removed_names: set[str] = set()
+        for sign, text in rows:
+            if sign == "-":
+                removed_names |= _called_names(text, {})
+        for sign, text in rows:
+            if sign == "-":
+                continue
+            if sign == "+" and "(" in text and not _called_names(text, renamed) <= removed_names:
+                added.setdefault(source, set()).add(line)
             line += 1
     return added
+
+
+def _folded_callee_identity(engine: Compare, destination: int, callees: set[int]) -> int | None:
+    """Retail callee an unpaired recompiled function would have been folded into.
+
+    The comparison build links with /OPT:NOICF, so a source function that retail
+    ICF folded into another keeps its own unpaired body. It is that callee when
+    its code is byte-identical to the recompiled body of one retail callee and
+    contains no relative branch leaving the body, whose bytes would name a
+    different target at a different address.
+    """
+    from capstone.x86 import X86_OP_IMM
+    from reccmp.types import ImageId
+
+    from .binary.code import disassembler
+
+    entity = engine._db.get(ImageId.RECOMP, destination)
+    size = entity.size(ImageId.RECOMP) if entity is not None else None
+    if not size:
+        return None
+    body = bytes(engine.recomp_bin.read(destination, size))
+    for instruction in disassembler().disasm(body, destination):
+        if instruction.mnemonic in ("call", "jmp") or instruction.mnemonic.startswith("j"):
+            operand = instruction.operands[0]
+            if operand.type == X86_OP_IMM and not destination <= operand.imm < destination + size:
+                return None
+    identities = set()
+    for callee in callees:
+        match = engine._db.get_one_match(callee)
+        if match is None or match.size(ImageId.RECOMP) != size:
+            continue
+        if bytes(engine.recomp_bin.read(match.recomp_addr, size)) == body:
+            identities.add(callee)
+    return identities.pop() if len(identities) == 1 else None
 
 
 def check_changed_call_targets(repository: Path, target: str, since: str) -> dict[str, Any]:
@@ -183,6 +271,8 @@ def check_changed_call_targets(repository: Path, target: str, since: str) -> dic
             checked += 1
             destination = instruction.operands[0].imm
             canonical = engine._db.alias_canonical_orig(ImageId.RECOMP, destination)
+            if canonical is None:
+                canonical = _folded_callee_identity(engine, destination, original_calls)
             if canonical not in original_calls:
                 errors.append(
                     {

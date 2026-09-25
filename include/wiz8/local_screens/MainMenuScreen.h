@@ -5,10 +5,10 @@
 class W8MessageDialogBase;
 
 extern unsigned short g_main_menu_selected_item;
-extern unsigned char g_main_menu_has_save_games;
-extern unsigned char g_main_menu_redraw;
-extern unsigned char g_main_menu_warning_shown;
-extern unsigned char g_main_menu_overlay_enabled;
+extern bool g_main_menu_has_save_games;
+extern bool g_main_menu_redraw;
+extern bool g_main_menu_warning_shown;
+extern bool g_main_menu_overlay_enabled;
 extern unsigned int g_main_menu_overlay_surface;
 extern unsigned int g_main_menu_hover_region;
 extern W8MessageDialogBase* g_main_menu_dialog;

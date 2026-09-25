@@ -6,10 +6,22 @@
 template <class T> class srPtr {
 public:
     srPtr() : pointer_(0) {}
-    srPtr(const srPtr& other) : pointer_(0)
+    /* Retail's copy path addrefs the source pointer then stores it — no
+       release path exists on a fresh object (srGERD's implicit copy
+       constructor at 0x1001B020 inlines exactly that sequence). */
+    srPtr(const srPtr& other) : pointer_(other.pointer_)
     {
-        *this = other.pointer_;
+        if (pointer_ != 0) {
+            pointer_->addReference();
+        }
     }
+    /* The scalar-array element-dtor emissions: mesh_model's materials_1c
+       array uses the srPtr<srMaterialIFace> copy at 0x10042B00 while
+       textures_3c's deduplicates to the earlier emission at 0x1001EE90. */
+    // TEMPLATE: SURRENDER 0x10042B00
+    // srPtr<srMaterialIFace>::~srPtr
+    // TEMPLATE: SURRENDER 0x1001EE90
+    // srPtr<srTextureIFace>::~srPtr
     ~srPtr()
     {
         if (pointer_ != 0) {

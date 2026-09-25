@@ -32,11 +32,11 @@
    a reconstructed owner in GDCamera.cpp. */
 
 // GLOBAL: WIZ8 0x0060AA64
-int g_saved_environment_flag_60aa64 = 1;
+int g_saved_environment_flag = 1;
 
 /* Find the named camera path in the world's list and toggle it. Retail
    callers push the flag as a plain int and the body forwards it raw to
-   UpdateCameraPathState0048F2F0. */
+   UpdateCameraPathState. */
 // FUNCTION: WIZ8 0x0048F280
 void UpdateCameraPathStateByName(W8World* world, const char* name, int active)
 {
@@ -50,7 +50,7 @@ void UpdateCameraPathStateByName(W8World* world, const char* name, int active)
         for (int index = 0; index < static_cast<int>(count); ++index) {
             W8CameraPath* path = static_cast<W8CameraPath*>(PLGet(world->plsCameras, index));
             if (_stricmp(path->name_00, name) == 0) {
-                UpdateCameraPathState0048F2F0(world, path, active);
+                UpdateCameraPathState(world, path, active);
                 return;
             }
         }
@@ -58,7 +58,7 @@ void UpdateCameraPathStateByName(W8World* world, const char* name, int active)
 }
 
 // FUNCTION: WIZ8 0x0048F2F0
-void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, int active)
+void UpdateCameraPathState(W8World* world, W8CameraPath* path, int active)
 {
     W8NpcState* npc;
     W8MonsterGroup* group;
@@ -71,19 +71,19 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, int activ
     float pitch;
 
     if (path->active_14 == 0 && active != 0) {
-        g_camera_path_active_0065ba70 = 1;
+        g_camera_path_active = 1;
         path->active_14 = 1;
-        PathAISetValue004A9F60(path->path_18, 0.0f);
+        PathAISetValue(path->path_18, 0.0f);
         path->path_18->last_update_tick = GetTickCount();
         path->path_18->distance_travelled = 0.0f;
         path->path_18->upright_3b = 1;
-        g_saved_environment_flag_60aa64 = SetEnvironmentLoadFlag(0);
+        g_saved_environment_flag = SetEnvironmentLoadFlag(0);
         return;
     }
     if (path->active_14 == 0 || active != 0) {
         return;
     }
-    g_camera_path_active_0065ba70 = 0;
+    g_camera_path_active = 0;
     rotation.SetIdentity();
     target.x = 0.0f;
     target.y = 0.0f;
@@ -91,8 +91,8 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, int activ
     world->camera->getRotation(rotation);
     ApplyCameraRotation(&rotation);
     path->active_14 = 0;
-    SetEnvironmentLoadFlag(g_saved_environment_flag_60aa64);
-    if (g_status_685170.current_level == 1) {
+    SetEnvironmentLoadFlag(g_saved_environment_flag);
+    if (g_status.current_level == 1) {
         if (_stricmp(path->name_00, "Camera01") == 0) {
             QueueNpcMessageLine(W8_NPC_MSG_PORTRAIT_STRING, 0x721);
             QueueNpcMessageLine(W8_NPC_MSG_PATH2_TRIGGER, 0);
@@ -107,22 +107,21 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, int activ
             group = FindFirstMonsterByID(0x18c);
             if (group != 0) {
                 index = MonsterGetIndexByLocationID(
-                    0x100, "C:\\Projects\\Wizardry 8\\Engine Code\\Camera.cpp", group->leader_id_9f,
-                    1);
+                    0x100, "C:\\Projects\\Wizardry 8\\Engine Code\\Camera.cpp",
+                    group->leader_location_id, 1);
                 monster_info = MonsterGetScriptPartByLocationIndex(index);
                 PointCameraAtMonster(monster_info, 1, 1);
                 position = monster_info->p3D->GetPosition();
                 target = position;
-                if (g_settings_6850c8.camera_rotation_mode == 1) {
-                    if (g_settings_6850c8.camera_rotation_style == 0) {
-                        if (g_gd_camera_65a0f8->ComputeTrackingOrientation(&target, &angle,
-                                                                           &pitch) == 0) {
+                if (g_settings.camera_rotation_mode == 1) {
+                    if (g_settings.camera_rotation_style == 0) {
+                        if (g_gd_camera->ComputeTrackingOrientation(&target, &angle, &pitch) == 0) {
                             CameraSnapToTarget(&target);
                         }
-                    } else if (g_settings_6850c8.camera_rotation_style == 1 &&
-                               g_gd_camera_65a0f8->ComputeTrackingOrientation(&target, &angle,
-                                                                              &pitch) == 0) {
-                        g_gd_camera_65a0f8->BeginOrientationTransition(pitch, angle, 0);
+                    } else if (g_settings.camera_rotation_style == 1 &&
+                               g_gd_camera->ComputeTrackingOrientation(&target, &angle, &pitch) ==
+                                   0) {
+                        g_gd_camera->BeginOrientationTransition(pitch, angle, 0);
                     }
                 }
                 MonsterForwardReferencePosition(monster_info->p3D, 0);
@@ -134,20 +133,20 @@ void UpdateCameraPathState0048F2F0(W8World* world, W8CameraPath* path, int activ
         }
         return;
     }
-    if (g_status_685170.current_level == 4 && _stricmp(path->name_00, "CameraPath2") != 0) {
+    if (g_status.current_level == 4 && _stricmp(path->name_00, "CameraPath2") != 0) {
         if (_stricmp(path->name_00, "CameraPath3") == 0) {
             ClearMainGameTargetState();
             group = FindFirstMonsterByID(0x1b4);
             if (group != 0) {
                 index = MonsterGetIndexByLocationID(
-                    0xd0, "C:\\Projects\\Wizardry 8\\Engine Code\\Camera.cpp", group->leader_id_9f,
-                    1);
+                    0xd0, "C:\\Projects\\Wizardry 8\\Engine Code\\Camera.cpp",
+                    group->leader_location_id, 1);
                 monster_info = MonsterGetScriptPartByLocationIndex(index);
                 MonsterForwardReferencePosition(monster_info->p3D, 0);
                 return;
             }
         } else if (_stricmp(path->name_00, "CameraPath4") == 0) {
-            ResetLevelDataVectors0041F0D0();
+            ResetLevelDataVectors();
             return;
         }
     }
@@ -173,24 +172,24 @@ void PointCameraAtMonster(W8MonsterInfo* monster_info, unsigned char force, unsi
     W8Monster* monster;
     unsigned char track;
 
-    if (g_settings_6850c8.camera_rotation_mode == 0 &&
+    if (g_settings.camera_rotation_mode == 0 &&
         monster_info->Target.iType == W8_TARGET_KIND_CHARACTER &&
-        monster_info->Target.iChar == g_status_685170.selected_character) {
+        monster_info->Target.iChar == g_status.selected_character) {
         track = 1;
     } else {
         track = force;
-        if (track == 0 && g_settings_6850c8.camera_rotation_mode != 1) {
+        if (track == 0 && g_settings.camera_rotation_mode != 1) {
             return;
         }
     }
     monster = monster_info->p3D;
-    if (monster->IsRenderable004C7C00(1) == 0) {
+    if (monster->IsRenderable(1) == 0) {
         return;
     }
     if (monster->movement_0c0.height_offset_0b8 -
                 monster->movement_0c0.secondary_height_offset_0bc <
             g_float_005ebc64 ||
-        monster->GetDistanceToPlayer004C7CB0() > g_float_005ebcdc) {
+        monster->GetDistanceToPlayer() > g_float_005ebcdc) {
         position = monster->movement_0c0.position_040;
         position.y += monster->movement_0c0.secondary_height_offset_0bc;
     } else {
@@ -202,20 +201,20 @@ void PointCameraAtMonster(W8MonsterInfo* monster_info, unsigned char force, unsi
             CameraSnapToTarget(&position);
             return;
         }
-        if (g_gd_camera_65a0f8->ComputeTrackingOrientation(&position, &angle, &pitch) == 0) {
-            g_gd_camera_65a0f8->BeginOrientationTransition(pitch, angle, 0);
+        if (g_gd_camera->ComputeTrackingOrientation(&position, &angle, &pitch) == 0) {
+            g_gd_camera->BeginOrientationTransition(pitch, angle, 0);
         }
         return;
     }
-    if (g_settings_6850c8.camera_rotation_mode != 1) {
+    if (g_settings.camera_rotation_mode != 1) {
         return;
     }
-    if (g_settings_6850c8.camera_rotation_style == 1) {
-        if (g_gd_camera_65a0f8->ComputeTrackingOrientation(&position, &angle, &pitch) == 0) {
-            g_gd_camera_65a0f8->BeginOrientationTransition(pitch, angle, 0);
+    if (g_settings.camera_rotation_style == 1) {
+        if (g_gd_camera->ComputeTrackingOrientation(&position, &angle, &pitch) == 0) {
+            g_gd_camera->BeginOrientationTransition(pitch, angle, 0);
         }
-    } else if (g_settings_6850c8.camera_rotation_style == 0 &&
-               g_gd_camera_65a0f8->ComputeTrackingOrientation(&position, &pitch, &angle) == 0) {
+    } else if (g_settings.camera_rotation_style == 0 &&
+               g_gd_camera->ComputeTrackingOrientation(&position, &pitch, &angle) == 0) {
         CameraSnapToTarget(&position);
     }
 }
@@ -235,20 +234,20 @@ void PointCameraAtTarget(srVector3T<float>* position, unsigned char force, unsig
             CameraSnapToTarget(position);
             return;
         }
-        if (g_gd_camera_65a0f8->ComputeTrackingOrientation(position, &angle, &pitch) == 0) {
-            g_gd_camera_65a0f8->BeginOrientationTransition(pitch, angle, 0);
+        if (g_gd_camera->ComputeTrackingOrientation(position, &angle, &pitch) == 0) {
+            g_gd_camera->BeginOrientationTransition(pitch, angle, 0);
         }
         return;
     }
-    if (g_settings_6850c8.camera_rotation_mode != 1) {
+    if (g_settings.camera_rotation_mode != 1) {
         return;
     }
-    if (g_settings_6850c8.camera_rotation_style == 1) {
-        if (g_gd_camera_65a0f8->ComputeTrackingOrientation(position, &angle, &pitch) == 0) {
-            g_gd_camera_65a0f8->BeginOrientationTransition(pitch, angle, 0);
+    if (g_settings.camera_rotation_style == 1) {
+        if (g_gd_camera->ComputeTrackingOrientation(position, &angle, &pitch) == 0) {
+            g_gd_camera->BeginOrientationTransition(pitch, angle, 0);
         }
-    } else if (g_settings_6850c8.camera_rotation_style == 0 &&
-               g_gd_camera_65a0f8->ComputeTrackingOrientation(position, &pitch, &angle) == 0) {
+    } else if (g_settings.camera_rotation_style == 0 &&
+               g_gd_camera->ComputeTrackingOrientation(position, &pitch, &angle) == 0) {
         CameraSnapToTarget(position);
     }
 }

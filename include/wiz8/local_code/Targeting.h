@@ -31,9 +31,9 @@ char GetTargetNoticeColor(const W8TargetSource* source,
    eight bytes fit exactly before gXStatus.picked_monster. Context 2 hands out
    both addresses and stores the selected use-item value in the block. */
 
-unsigned char GetFactionFlag(char faction);
+unsigned char GetFactionFlag(signed char faction);
 /* One faction's last band-change world-clock stamp. */
-int GetFactionValue(char faction); /* 0x005360f0 */
+int GetFactionValue(signed char faction); /* 0x005360f0 */
 void AimByKind(int actor, W8TargetKind kind, W8TargetingContext context);
 void SetMonsterCombatTarget(W8MonsterInfo* monster_info, int location_id);
 bool MonsterTargetMatchesSpell(W8MonsterInfo* monster_info, int spell_id);
@@ -46,18 +46,18 @@ void AimAtTarget(int actor, W8CombatSlot* target, W8TargetingContext context);  
 void AimAtCharacter(int actor, int character_slot, W8TargetingContext context); /* 0x00538670 */
 void AimAtCharacterIndirect(int actor, int character_slot,
                             W8TargetingContext context); /* 0x005386C0 */
-void AimAtMonsterLocation00537950(int party_slot, int location_id,
-                                  int allow_single_target); /* 0x00537950 */
-void AimAtPlace(int actor);                                 /* 0x00538710 */
-void AimAtGroundTarget00538770(int party_slot);             /* 0x00538770 */
+void AimAtMonsterLocation(int party_slot, int location_id,
+                          int allow_single_target); /* 0x00537950 */
+void AimAtPlace(int actor);                         /* 0x00538710 */
+void AimAtGroundTarget(int party_slot);             /* 0x00538770 */
 /* 0x0053C130: raise or clear per-monster highlight bits for a party slot. */
-void UpdateSlotMonsterHighlights0053C130(int party_slot, char enable);
+void UpdateSlotMonsterHighlights(int party_slot, char enable);
 void RefreshCombatTargetHighlights(int party_slot, W8CombatSlot* target);
 void HighlightSpellTargetsAtCachedPosition(void);
 /* Pick an attack fallback, allowing the character's alternate weapon set when
    the ordinary group selection has no usable monster. */
-int ChooseFallbackMonsterTarget0053C990(int party_slot, int group_id, W8TargetingContext context);
-void SetFactionFlag(char faction, unsigned char flag);
+int ChooseFallbackMonsterTarget(int party_slot, int group_id, W8TargetingContext context);
+void SetFactionFlag(signed char faction, unsigned char flag);
 bool ShowMonsterTargetMarker(W8MonsterInfo* monster_info);
 bool IsSpellTargetStillValidIn(int party_slot, int spell_id, W8TargetingContext context);
 void ClearTargetHighlights(int party_slot, const W8CombatSlot* target);
@@ -68,7 +68,7 @@ void SetTargetingMode(int state);
 void SetMonsterHighlight(int party_slot, int location_id, char on);
 void SetGroupHighlight(int party_slot, int group_id, char on);
 /* Location id of the nearest hovered live monster, or -1. */
-int PickNearestMonsterUnderCursor005396D0(int cursor_x, int cursor_y); /* 0x005396D0 */
+int PickNearestMonsterUnderCursor(int cursor_x, int cursor_y); /* 0x005396D0 */
 char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight);
 void UpdateAllMonsterHighlights(int party_slot, int location_id);
 /* Cursor-table index for SetTargetCursor, including slots 10..12. Not a
@@ -104,7 +104,7 @@ bool IsTargetSourceInRangeOfGroup(const W8TargetSource* source, W8MonsterGroup* 
 bool CanTargetMonster(int party_slot, int location_id, int allow_single_target,
                       int reason);                                 /* 0x00536AD0 */
 bool CanTargetMonsterGroup(int party_slot, W8MonsterGroup* group); /* 0x00536D60 */
-void ClearSlotTargeting0053B050(int party_slot);                   /* 0x0053B050 */
+void ClearSlotTargeting(int party_slot);                           /* 0x0053B050 */
 /* 0x00537270: whether the slot's current target satisfies the spell's
    needed-target kind. */
 bool IsSpellTargetOfNeededKind(int party_slot, int spell_id);
@@ -117,9 +117,9 @@ void SelectSpellCastingPartySlot(int party_slot);
 void ConfigureSpellTargetFilter(int target_type, unsigned int needed_kind);
 /* 0x0053A830: commit the chosen spell target. */
 void CommitSelectedSpellTarget(void);
-void RefreshMonsterTargetCounts005398D0(void);
-bool AnyMonsterVisible0053A1D0(void);
-void UpdateTargetMarkerHighlight0053B1D0(void);
+void RefreshMonsterTargetCounts(void);
+bool AnyMonsterVisible(void);
+void UpdateTargetMarkerHighlight(void);
 /* 0x00539E70: fill `found` with the location ids of monsters within `radius`
    of `centre` that are visible from `eye` (unless highlighting is on, which
    takes them without the sight check and tints instead). */
@@ -130,32 +130,32 @@ void CollectMonstersWithinRadius(const srVector3T<float>* centre, const srVector
 class W8Monster;
 /* 0x0053A060: whether `monster` is within `max_distance` of the player and
    still projects on screen. `position` is unused by retail. */
-bool IsMonsterVisibleWithinDistance0053A060(W8Monster* monster, const srVector3T<float>* position,
-                                            float max_distance);
+bool IsMonsterVisibleWithinDistance(W8Monster* monster, const srVector3T<float>* position,
+                                    float max_distance);
 /* 0x00538510: pick the next targetable member of `group` and paint it with the
    `color` highlight (0 clears, 1 green, 2 red). */
-void HighlightPickedGroupMember00538510(int party_slot, W8MonsterGroup* group, int color);
+void HighlightPickedGroupMember(int party_slot, W8MonsterGroup* group, int color);
 /* 0x005392E0: apply a highlight tint (0 clears, 1 green, 2 red) to every member
    of the group - the debug message names it ModifyGroupColor. */
 void ModifyGroupColor(int group_id, int color);
 /* 0x00539B70: whether `target` lies within the combined radii of `eye` and
    `bonus`, inside the heading and elevation arcs. */
-bool TargetInRangeAndArcs00539B70(const srVector3T<float>* target, float bonus,
-                                  const srVector3T<float>* eye, float eye_radius, float heading,
-                                  float elevation);
+bool TargetInRangeAndArcs(const srVector3T<float>* target, float bonus,
+                          const srVector3T<float>* eye, float eye_radius, float heading,
+                          float elevation);
 /* 0x00539CA0: append the location ids of live targetable monsters inside the
    aim cone to `found`, filtered by disposition (3 admits all); returns how many
    were added. */
-int CollectConeMonsterTargets00539CA0(const W8TargetSource* source, const srVector3T<float>* eye,
-                                      float heading, float elevation, W8GrowableVector<int>* found,
-                                      unsigned char disposition, int sight_flag);
+int CollectConeMonsterTargets(const W8TargetSource* source, const srVector3T<float>* eye,
+                              float heading, float elevation, W8GrowableVector<int>* found,
+                              unsigned char disposition, int sight_flag);
 /* 0x0053A770: whether the pending item use needs a target picked. */
-bool ItemUseNeedsTarget0053A770(int party_slot);
+bool ItemUseNeedsTarget(int party_slot);
 void RefreshSpellTargetHighlightsAtRange(void);
 void PopulateTargetMarkerForCurrentAction(const srVector3T<float>* position,
                                           W8GrowableVector<int>* marker_vector, int enabled);
-W8TargetingContext GetCombatActionContext0053BC90(int party_slot); /* 0x0053BC90 */
-void ReconcilePartyEquipmentAfterCombat0053CD60(void);             /* 0x0053CD60 */
+W8TargetingContext GetCombatActionContext(int party_slot); /* 0x0053BC90 */
+void ReconcilePartyEquipmentAfterCombat(void);             /* 0x0053CD60 */
 bool TargetIsInPlay(
     int party_slot, int hand,
     W8TargetingContext context = W8_TARGETING_CONTEXT_OUT_OF_COMBAT); /* 0x00536F60 */
@@ -192,5 +192,5 @@ int PickNextTargetableMonster(int party_slot);
 bool IsDeadCharacterTargetable(int party_slot);
 
 /* 0x005360B0: the faction table index for a name, -1 when none matches. */
-char FindFactionByName(const char* name);
-void RepickInvalidCombatTargets00536400(void);
+signed char FindFactionByName(const char* name);
+void RepickInvalidCombatTargets(void);

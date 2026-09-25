@@ -37,7 +37,7 @@ void W8ListBoxDialog::TextAreaButtonCallback(GUI_BUTTON* button, INT32 reason)
         int line = (cursor.y - top) / (int)(unsigned int)GetFontHeight(g_dialog_font_64fde8) +
                    dialog->m_first_visible_line_0f0;
         if (line == dialog->m_selected_line_0f4) {
-            dialog->m_keep_open = 0;
+            dialog->m_keep_open = false;
             return;
         }
         dialog->SetCurrentLine(line);
@@ -112,7 +112,7 @@ void W8ListBoxDialog::OkButtonCallback(GUI_BUTTON* button, INT32 reason)
         }
     } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
         if (button->uiFlags & BUTTON_CLICKED_ON) {
-            dialog->m_keep_open = 0;
+            dialog->m_keep_open = false;
             button->uiFlags &= ~BUTTON_CLICKED_ON;
             dialog->m_dirty_flags |= 1;
         }
@@ -139,7 +139,7 @@ void W8ListBoxDialog::CancelButtonCallback(GUI_BUTTON* button, INT32 reason)
         }
     } else if (reason & MSYS_CALLBACK_REASON_LBUTTON_UP) {
         if (button->uiFlags & BUTTON_CLICKED_ON) {
-            dialog->m_keep_open = 0;
+            dialog->m_keep_open = false;
             dialog->SetCurrentLine(-1);
             button->uiFlags &= ~BUTTON_CLICKED_ON;
             dialog->m_dirty_flags |= 1;

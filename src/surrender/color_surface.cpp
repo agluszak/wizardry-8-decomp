@@ -225,17 +225,6 @@ long srColorSurfaceIFace::getRedBits() const
     return pixel_format_30.red_bits;
 }
 
-// FUNCTION: SURRENDER 0x10059A10
-void srColorSurfaceIFace::getSurfaceDesc(SurfaceDesc& description) const
-{
-    description.width = width_1c;
-    description.height = height_20;
-    description.pitch = pitch_24;
-    description.clamp_modes = clamp_modes_28;
-    description.filter = filter_2c;
-    description.pixel_format = pixel_format_30;
-}
-
 // FUNCTION: SURRENDER 0x10059A50
 int srColorSurfaceIFace::getVClampMode() const
 {
@@ -3208,3 +3197,6 @@ void srColorSurface::dump(std::ostream& stream)
     stream << '\n';
     stream.flags(static_cast<std::ios::fmtflags>(flags & 0x7fff));
 }
+
+// TEMPLATE: SURRENDER 0x1005E170
+// srClassSupport<srColorSurfaceIFace, srClass, true, 0x3100>::sGetClassNode

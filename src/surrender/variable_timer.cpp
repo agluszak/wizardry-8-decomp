@@ -406,3 +406,6 @@ std::ostream& operator<<(std::ostream& stream, const srVariableTimer& timer)
     stream.width(mode);
     return stream;
 }
+
+// SYNTHETIC: SURRENDER 0x10063F50
+// srVariableTimer default constructor closure

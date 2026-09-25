@@ -115,14 +115,14 @@ W8Prop::W8Prop()
    with the source capacity.  Clone's vtable slot allocates 0xc4 and lands here. */
 // FUNCTION: WIZ8 0x0044ad10
 W8PropRepresentation::W8PropRepresentation(const W8PropRepresentation& other)
-    : W8AnimRep005ED050(other), animation_speed(other.animation_speed),
+    : W8AnimRep(other), animation_speed(other.animation_speed),
       frame_index_0a0(other.frame_index_0a0), animation_running_0a4(other.animation_running_0a4),
       random_play_0a5(other.random_play_0a5), play_chance_0a8(other.play_chance_0a8),
       saved_subcycle_0ac(other.saved_subcycle_0ac), frame_steps_0ad(other.frame_steps_0ad),
       slots(5), footstep_surface_0c0(other.footstep_surface_0c0),
       footstep_material_0c1(other.footstep_material_0c1)
 {
-    animation = CloneAnimObj004A0320(other.animation);
+    animation = CloneAnimObj(other.animation);
 }
 
 // SYNTHETIC: WIZ8 0x0044acf0
@@ -133,17 +133,17 @@ W8PropRepresentation::~W8PropRepresentation()
     int index;
 
     for (index = 0; index < slots.count; ++index) {
-        delete slots.data[index];
+        delete *slots.GetAt(index);
     }
     slots.count = 0;
     if (animation != 0) {
-        DestroyAnimObj004A01E0(animation);
+        DestroyAnimObj(animation);
         animation = 0;
     }
 }
 
 // FUNCTION: WIZ8 0x0044ef80
-W8AnimRepBase005EC1D8* W8PropRepresentation::Clone()
+W8AnimRepBase* W8PropRepresentation::Clone()
 {
     return new W8PropRepresentation(*this);
 }
@@ -151,7 +151,7 @@ W8AnimRepBase005EC1D8* W8PropRepresentation::Clone()
 /* Visit every prop attached to the world and activate those whose companion
    object can be resolved and whose owned GDProp exists. */
 // FUNCTION: WIZ8 0x0044e010
-void UpdateWorldProps0044E010(W8World* world)
+void UpdateWorldProps(W8World* world)
 {
     unsigned int count;
     int index;
@@ -165,8 +165,7 @@ void UpdateWorldProps0044E010(W8World* world)
         W8Prop* prop = static_cast<W8Prop*>(PLGet(world->plsProps, index));
         Trigger* trigger;
 
-        if (prop != 0 && (trigger = FindTriggerForProp00443830(world, prop)) != 0 &&
-            prop->m_gd_prop != 0) {
+        if (prop != 0 && (trigger = FindTriggerForProp(world, prop)) != 0 && prop->m_gd_prop != 0) {
             prop->flags_1c |= 0x80;
             prop->m_gd_prop->BindTrigger(trigger);
         }
@@ -294,21 +293,21 @@ void W8Prop::GetCenterPosition(srVector3T<float>* position)
     srVector3T<float> first;
     srVector3T<float> second;
 
-    AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->subcycle_064, &first, &second);
+    AnimObjGetBounds(Rep()->animation, 2, Rep()->subcycle_064, &first, &second);
     *position = (first + second) * 0.5;
 }
 
 // GLOBAL: WIZ8 0x00659A60
-Trigger* g_selected_prop_trigger_00659a60;
+Trigger* g_selected_prop_trigger;
 // GLOBAL: WIZ8 0x00607B98
-int g_selected_prop_index_00607b98 = -1;
+int g_selected_prop_index = -1;
 
 /* Whether the renderer's currently selected model instance is one of the
    instances this prop's animation dispatches.  With a running animation every
    list entry is checked; otherwise the single dispatched instance for the
    current frame is compared directly. */
 // FUNCTION: WIZ8 0x0044d680
-bool W8Prop::IsPickedProp0044D680(W8World* world)
+bool W8Prop::IsPickedProp(W8World* world)
 {
     srModelInstance* instance;
     unsigned char frame;
@@ -319,11 +318,10 @@ bool W8Prop::IsPickedProp0044D680(W8World* world)
         return false;
     }
     if (AnimationIsRunning(Rep()->animation) == 1) {
-        count = AnimObjListCount004A1620(Rep()->animation, 2);
+        count = AnimObjListCount(Rep()->animation, 2);
         for (index = 0; index < static_cast<int>(count); ++index) {
-            instance =
-                AnimObjDispatchList004A1560(Rep()->animation, 2, static_cast<signed char>(index));
-            if (GetPickedModelInstance00427810() == instance) {
+            instance = AnimObjDispatchList(Rep()->animation, 2, static_cast<signed char>(index));
+            if (GetPickedModelInstance() == instance) {
                 return true;
             }
         }
@@ -331,11 +329,11 @@ bool W8Prop::IsPickedProp0044D680(W8World* world)
     }
     frame = Rep()->subcycle_064;
     if (AnimationIsRunning(Rep()->animation) == 0) {
-        instance = AnimObjDispatch004A14D0(Rep()->animation, 2, frame);
+        instance = AnimObjDispatch(Rep()->animation, 2, frame);
     } else {
-        instance = AnimObjDispatchList004A1560(Rep()->animation, 2, 0);
+        instance = AnimObjDispatchList(Rep()->animation, 2, 0);
     }
-    return GetPickedModelInstance00427810() == instance;
+    return GetPickedModelInstance() == instance;
 }
 
 /* Resolve the renderer's picked model instance back to the prop and trigger
@@ -349,11 +347,11 @@ char ResolvePickedProp(W8World* world)
     srVector3T<float> camera_position;
     unsigned int prop_count;
     int prop_index;
-    char valid;
+    bool valid;
 
-    g_selected_prop_trigger_00659a60 = 0;
-    g_selected_prop_index_00607b98 = -1;
-    selected = GetPickedModelInstance00427810();
+    g_selected_prop_trigger = 0;
+    g_selected_prop_index = -1;
+    selected = GetPickedModelInstance();
     if (selected == 0) {
         return 0;
     }
@@ -370,7 +368,7 @@ char ResolvePickedProp(W8World* world)
         if (!valid) {
             return 0;
         }
-        if (g_selected_prop_trigger_00659a60 != 0) {
+        if (g_selected_prop_trigger != 0) {
             return valid;
         }
         prop = static_cast<W8Prop*>(PLGet(world->plsProps, prop_index));
@@ -381,11 +379,11 @@ char ResolvePickedProp(W8World* world)
 
         instance = 0;
         if (AnimationIsRunning(representation->animation) == 1) {
-            int count = static_cast<int>(AnimObjListCount004A1620(representation->animation, 2));
+            int count = static_cast<int>(AnimObjListCount(representation->animation, 2));
             for (instance_index = 0; instance_index < count; ++instance_index) {
-                instance = AnimObjDispatchList004A1560(representation->animation, 2,
-                                                       static_cast<signed char>(instance_index));
-                if (GetPickedModelInstance00427810() == instance) {
+                instance = AnimObjDispatchList(representation->animation, 2,
+                                               static_cast<signed char>(instance_index));
+                if (GetPickedModelInstance() == instance) {
                     break;
                 }
             }
@@ -394,17 +392,18 @@ char ResolvePickedProp(W8World* world)
             }
         } else {
             instance = representation->ToggleAnimation(representation->subcycle_064);
-            if (GetPickedModelInstance00427810() != instance) {
+            if (GetPickedModelInstance() != instance) {
                 continue;
             }
         }
 
         {
             Trigger* trigger = prop->trigger_18;
-            g_selected_prop_trigger_00659a60 = trigger;
+            g_selected_prop_trigger = trigger;
             if (trigger != 0 && (trigger->flags_0a0 & W8_TRIGGER_ENABLED) != 0 &&
-                ((trigger->flags_0a0 & 0x40000) == 0 || (trigger->flags_0a0 & 0x80000) == 0) &&
-                (g_combat_inactive_006081e4 ||
+                ((trigger->flags_0a0 & W8_TRIGGER_ONCE) == 0 ||
+                 (trigger->flags_0a0 & W8_TRIGGER_FIRED) == 0) &&
+                (g_combat_inactive ||
                  (trigger->m_pActionData != 0 && trigger->m_pActionData->type_004 == 10 &&
                   (static_cast<W8DoorTriggerActionData*>(trigger->m_pActionData)->flags_008 & 1) ==
                       0)) &&
@@ -413,20 +412,20 @@ char ResolvePickedProp(W8World* world)
                 srVector3T<float> maximum;
                 float distance;
 
-                AnimObjGetBounds004A1710(representation->animation, 2, representation->subcycle_064,
-                                         &minimum, &maximum);
+                AnimObjGetBounds(representation->animation, 2, representation->subcycle_064,
+                                 &minimum, &maximum);
                 distance = ((minimum + maximum) * 0.5 - camera_position).Length();
                 if (trigger->range_minimum_0a4 <= distance) {
-                    g_selected_prop_index_00607b98 = prop_index;
+                    g_selected_prop_index = prop_index;
                     if (distance <= trigger->range_maximum_0a8) {
                         continue;
                     }
                 }
             }
             valid = 0;
-            SetPickedModelInstance00427820(0);
-            g_selected_prop_trigger_00659a60 = 0;
-            g_selected_prop_index_00607b98 = -1;
+            SetPickedModelInstance(0);
+            g_selected_prop_trigger = 0;
+            g_selected_prop_index = -1;
         }
     }
     return valid;
@@ -437,36 +436,38 @@ char ResolvePickedProp(W8World* world)
 srModelInstance* W8PropRepresentation::ToggleAnimation(int argument)
 {
     if (AnimationIsRunning(animation) == 0) {
-        return AnimObjDispatch004A14D0(animation, 2, argument);
+        return AnimObjDispatch(animation, 2, argument);
     }
-    return AnimObjDispatchList004A1560(animation, 2, 0);
+    return AnimObjDispatchList(animation, 2, 0);
 }
 
 /* Select the animation slot whose second byte carries the requested tag.
-   The slot's signed first byte is the new animation tag; the old and new
-   values are retained as an ordered range for the transition state. */
+   The slot's first byte is the target frame; the current subcycle and that
+   frame become the ordered range the animation plays through. */
 // FUNCTION: WIZ8 0x0044ba50
 unsigned char W8PropRepresentation::SelectAnimationSlot(unsigned char tag)
 {
     int index;
 
     for (index = 0; index < slots.count; ++index) {
-        if (slots.data[index]->tag == tag) {
-            signed char selected = static_cast<signed char>(slots.data[index]->frame);
+        W8PropAnimationSegment* slot = *slots.GetAt(index);
+
+        if (slot->tag == tag) {
+            signed char selected = slot->frame;
 
             if (selected < 0) {
                 return 0;
             }
-            frame_lo_068 = first_frame_094;
-            frame_hi_069 = static_cast<unsigned char>(selected);
-            if (selected < static_cast<signed char>(first_frame_094)) {
-                frame_lo_068 = static_cast<unsigned char>(selected);
-                frame_hi_069 = first_frame_094;
+            first_frame_094 = subcycle_064;
+            last_frame_095 = static_cast<unsigned char>(selected);
+            if (static_cast<unsigned char>(selected) < subcycle_064) {
+                last_frame_095 = subcycle_064;
+                first_frame_094 = static_cast<unsigned char>(selected);
             }
-            if (frame_hi_069 <= first_frame_094) {
-                frame_direction_06e = 3;
-            } else {
+            if (last_frame_095 > subcycle_064) {
                 frame_direction_06e = 1;
+            } else {
+                frame_direction_06e = 3;
             }
             animation_playing_06d = 1;
             return 1;
@@ -481,60 +482,48 @@ unsigned char W8PropRepresentation::SelectAnimationSlot(unsigned char tag)
 // FUNCTION: WIZ8 0x0044bae0
 int W8PropRepresentation::FindCurrentAnimationSlot()
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
     int index;
 
     for (index = 0; index < slots.count; ++index) {
-        if (static_cast<int>(static_cast<char>(slots.data[index]->frame)) ==
-            static_cast<unsigned int>(first_frame_094)) {
+        if ((*slots.GetAt(index))->frame == first_frame_094) {
             return index;
         }
     }
     return -1;
-#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x0044bb20
 unsigned char W8PropRepresentation::AdvanceAnimationSegment()
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
+    int count;
+    int index;
     int segment;
 
-    if (slots.count < 3) {
+    count = slots.count;
+    if (count < 3) {
         return 0;
     }
-    for (segment = 0; segment < slots.count; ++segment) {
-        if (static_cast<int>(static_cast<char>(slots.data[segment]->frame)) ==
-            static_cast<unsigned int>(first_frame_094)) {
+    segment = -1;
+    for (index = 0; index < count; ++index) {
+        if ((*slots.GetAt(index))->frame == first_frame_094) {
+            segment = index;
             break;
         }
-    }
-    if (segment == slots.count) {
-        segment = -1;
     }
     if (segment == -1) {
         srAssertFail("lSegment!=(-1)", "C:\\Projects\\Wizardry 8\\Engine Code\\Prop.cpp", 0x2c3, 0);
     }
-    if (segment == slots.count - 2) {
+    if (segment == count - 2) {
         segment = 0;
     } else {
         ++segment;
     }
-    first_frame_094 = slots.data[segment]->frame;
-    last_frame_095 = slots.data[segment + 1]->frame;
+    first_frame_094 = (*slots.GetAt(segment))->frame;
+    last_frame_095 = (*slots.GetAt(segment + 1))->frame;
     frame_direction_06e = 1;
     animation_playing_06d = 1;
     subcycle_064 = first_frame_094;
     return (unsigned char)segment;
-#pragma clang diagnostic pop
 }
 
 /* The same toggle reached through the prop rather than through the member. */
@@ -544,9 +533,9 @@ srModelInstance* W8Prop::ToggleRepAnimation(int argument)
     W8PropRepresentation* rep = Rep();
 
     if (!AnimationIsRunning(rep->animation)) {
-        return AnimObjDispatch004A14D0(rep->animation, 2, argument);
+        return AnimObjDispatch(rep->animation, 2, argument);
     }
-    return AnimObjDispatchList004A1560(rep->animation, 2, 0);
+    return AnimObjDispatchList(rep->animation, 2, 0);
 }
 
 /* And again with the member's own stored argument instead of a caller's -
@@ -558,16 +547,16 @@ srModelInstance* W8Prop::ToggleRepAnimationDefault()
     unsigned char argument = rep->subcycle_064;
 
     if (!AnimationIsRunning(rep->animation)) {
-        return AnimObjDispatch004A14D0(rep->animation, 2, argument);
+        return AnimObjDispatch(rep->animation, 2, argument);
     }
-    return AnimObjDispatchList004A1560(rep->animation, 2, 0);
+    return AnimObjDispatchList(rep->animation, 2, 0);
 }
 
 /* Resolve the bounds of the prop's current animation frame. */
 // FUNCTION: WIZ8 0x0044d5c0
 unsigned char W8Prop::PlayRepAnimation(srVector3T<float>* minimum, srVector3T<float>* maximum)
 {
-    AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->subcycle_064, minimum, maximum);
+    AnimObjGetBounds(Rep()->animation, 2, Rep()->subcycle_064, minimum, maximum);
     return 1;
 }
 
@@ -623,12 +612,12 @@ void W8Prop::SetRepresentationActive(unsigned char active, unsigned char update_
 
 /* Per-frame prop animation service called from WorldUpdateProps.  While the
    rep is animating it converts the game timer's progress into whole elapsed
-   frames and drives AdvanceAnimationValue0044C310; a finished run leaves the
+   frames and drives AdvanceAnimationValue; a finished run leaves the
    0x20 pathing-dirty bit set for the next call to rebuild.  A pending
    pending_subcycle_066 frame is latched into subcycle_064 first, and an idle prop with the
    random flag may start a fresh run on its own. */
 // FUNCTION: WIZ8 0x0044c030
-void W8Prop::UpdatePropAnimation0044C030()
+void W8Prop::UpdatePropAnimation()
 {
     W8PropRepresentation* rep = Rep();
     unsigned int total;
@@ -639,7 +628,7 @@ void W8Prop::UpdatePropAnimation0044C030()
         (flags_1c & 0x20) == 0) {
         return;
     }
-    total = AnimObjValue004A15D0(rep->animation, 2);
+    total = AnimObjValue(rep->animation, 2);
     anim_frame_fraction_024 = 0.0f;
     if (rep->pending_subcycle_066 != 0xffff) {
         if (static_cast<short>(rep->pending_subcycle_066) < static_cast<int>(total)) {
@@ -666,7 +655,7 @@ void W8Prop::UpdatePropAnimation0044C030()
         if ((flags_1c & 0x20) == 0) {
             return;
         }
-        ApplyAnimationPaths0044C200(GetWorld());
+        ApplyAnimationPaths(GetWorld());
         BuildOrRefreshPathingRepresentation();
         flags_1c &= ~0x20;
         return;
@@ -679,7 +668,7 @@ void W8Prop::UpdatePropAnimation0044C030()
     if (frames != 0) {
         W8AnimObj* animation;
 
-        AdvanceAnimationValue0044C310(frames, static_cast<char>(total));
+        AdvanceAnimationValue(frames, static_cast<char>(total));
         animation = Rep()->animation;
         if (animation->path_24 != 0) {
             if ((flags_1c & 2) != 0) {
@@ -690,7 +679,7 @@ void W8Prop::UpdatePropAnimation0044C030()
             } else {
                 rep->frame_index_0a0 = rep->subcycle_064;
             }
-            PathAISetValue004A9F60(animation->path_24, static_cast<float>(rep->frame_index_0a0));
+            PathAISetValue(animation->path_24, static_cast<float>(rep->frame_index_0a0));
         }
     }
     if (rep->animation_playing_06d == 0) {
@@ -702,7 +691,7 @@ void W8Prop::UpdatePropAnimation0044C030()
    position snapshots: the previous current becomes the old position and the
    path's location becomes the new current. */
 // FUNCTION: WIZ8 0x0044c200
-void W8Prop::ApplyAnimationPaths0044C200(W8World* world)
+void W8Prop::ApplyAnimationPaths(W8World* world)
 {
     unsigned int count;
     int index;
@@ -711,20 +700,20 @@ void W8Prop::ApplyAnimationPaths0044C200(W8World* world)
         srAssertFail("pWorld", PROP_CPP, 0x3db, 0);
     }
     if (AnimationIsRunning(Rep()->animation) == 1) {
-        count = AnimObjListCount004A1620(Rep()->animation, 2);
+        count = AnimObjListCount(Rep()->animation, 2);
         for (index = 0; index < static_cast<int>(count); ++index) {
             stModelInstance* mesh = static_cast<stModelInstance*>(
-                AnimObjDispatchList004A1560(Rep()->animation, 2, static_cast<signed char>(index)));
+                AnimObjDispatchList(Rep()->animation, 2, static_cast<signed char>(index)));
             W8PathAI* path;
 
             if (mesh == 0) {
                 srAssertFail("psrMesh", PROP_CPP, 0x3ea, 0);
             }
-            path = AnimObjListEntry004A16C0(Rep()->animation, 2, static_cast<signed char>(index));
+            path = AnimObjListEntry(Rep()->animation, 2, static_cast<signed char>(index));
             if (path != 0) {
                 srVector3T<float> location;
 
-                PathAIApply004AA520(path, mesh);
+                PathAIApply(path, mesh);
                 static_cast<srNode*>(mesh)->getLocation(location);
                 position_03c = position_02c;
                 position_02c = location;
@@ -740,7 +729,7 @@ void W8Prop::ApplyAnimationPaths0044C200(W8World* world)
    step larger than the counter range folds through whole trips.  The new
    value is clamped and pushed to every bound path. */
 // FUNCTION: WIZ8 0x0044c310
-void W8Prop::AdvanceAnimationValue0044C310(int frames, char total)
+void W8Prop::AdvanceAnimationValue(int frames, char total)
 {
     W8PropRepresentation* rep = Rep();
     unsigned int frame = rep->subcycle_064;
@@ -761,7 +750,7 @@ void W8Prop::AdvanceAnimationValue0044C310(int frames, char total)
                 rep->animation_playing_06d = 0;
                 rep->frame_direction_06e = 2;
                 if (trigger_18 != 0) {
-                    trigger_18->RunLinkedTriggers00441590();
+                    trigger_18->RunLinkedTriggers();
                 }
                 gXStatus.sight_refresh_pending_a03 = 1;
             }
@@ -773,7 +762,7 @@ void W8Prop::AdvanceAnimationValue0044C310(int frames, char total)
                 rep->animation_playing_06d = 0;
                 rep->frame_direction_06e = 4;
                 if (trigger_18 != 0) {
-                    trigger_18->RunLinkedTriggers00441590();
+                    trigger_18->RunLinkedTriggers();
                 }
                 gXStatus.sight_refresh_pending_a03 = 1;
             }
@@ -851,25 +840,24 @@ void W8Prop::AdvanceAnimationValue0044C310(int frames, char total)
         rep->subcycle_064 = rep->last_frame_095;
     }
     if (AnimationIsRunning(rep->animation) == 1) {
-        count = AnimObjListCount004A1620(rep->animation, 2);
+        count = AnimObjListCount(rep->animation, 2);
         for (index = 0; index < static_cast<int>(count); ++index) {
-            W8PathAI* path =
-                AnimObjListEntry004A16C0(rep->animation, 2, static_cast<signed char>(index));
+            W8PathAI* path = AnimObjListEntry(rep->animation, 2, static_cast<signed char>(index));
 
             if (path != 0) {
-                PathAISetValue004A9F60(path, static_cast<float>(rep->subcycle_064));
+                PathAISetValue(path, static_cast<float>(rep->subcycle_064));
             }
         }
     }
 }
 
 /* The animation value one step ahead, exactly as
-   AdvanceAnimationValue0044C310 would compute a single step: transitive kinds
+   AdvanceAnimationValue would compute a single step: transitive kinds
    clamp at the ends, looping kinds wrap to the opposite end, and behaviour
    two steps back instead.  Retail returns the literal one rather than
    first_frame_094 + 1 when a bouncing run sits at the start. */
 // FUNCTION: WIZ8 0x0044c600
-char W8Prop::NextAnimationValue0044C600()
+char W8Prop::NextAnimationValue()
 {
     W8PropRepresentation* rep = Rep();
     char direction = rep->frame_direction_06e;
@@ -910,9 +898,9 @@ char W8Prop::NextAnimationValue0044C600()
    elapsed frame count; otherwise `out` is zeroed.  `point` is accepted but
    never read. */
 // FUNCTION: WIZ8 0x0044e130
-char W8Prop::GetDelta0044E130(srVector3T<float>* out, const srVector3T<float>* point)
+char W8Prop::GetDelta(srVector3T<float>* out, const srVector3T<float>* point)
 {
-    unsigned char next = static_cast<unsigned char>(NextAnimationValue0044C600());
+    unsigned char next = static_cast<unsigned char>(NextAnimationValue());
 
     if (abs(next - Rep()->subcycle_064) == 1) {
         *out = position_02c - position_03c;
@@ -947,8 +935,8 @@ bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, char notify)
         (action != 0 && (static_cast<W8DoorTriggerActionData*>(action)->flags_008 & 5) != 0)) {
         return false;
     }
-    if (!m_gd_prop->ContainsPathCoordinate004B75F0(static_cast<unsigned short>(arg_2),
-                                                   static_cast<unsigned short>(arg_3))) {
+    if (!m_gd_prop->ContainsPathCoordinate(static_cast<unsigned short>(arg_2),
+                                           static_cast<unsigned short>(arg_3))) {
         return false;
     }
     if (notify) {
@@ -961,7 +949,7 @@ bool W8Prop::CanBeUsedFrom(int arg_2, int arg_3, char notify)
    path and, when the animation is already running, snapshot the live
    position into the prop. */
 // FUNCTION: WIZ8 0x0044c670
-void W8Prop::ApplyAnimationFrame0044C670()
+void W8Prop::ApplyAnimationFrame()
 {
     unsigned int count;
     int index;
@@ -973,40 +961,39 @@ void W8Prop::ApplyAnimationFrame0044C670()
         W8PathAI* path;
 
         if (AnimationIsRunning(rep->animation) == 0) {
-            mesh = AnimObjDispatch004A14D0(rep->animation, 2, frame);
+            mesh = AnimObjDispatch(rep->animation, 2, frame);
         } else {
-            mesh = AnimObjDispatchList004A1560(rep->animation, 2, 0);
+            mesh = AnimObjDispatchList(rep->animation, 2, 0);
         }
         if (mesh == 0) {
             srAssertFail("psrMesh", PROP_CPP, 0x581, 0);
         }
         path = static_cast<W8PropRepresentation*>(m_pRep)->animation->path_24;
         if (path != 0) {
-            PathAISetValue004A9F60(
+            PathAISetValue(
                 path, static_cast<float>(static_cast<W8PropRepresentation*>(m_pRep)->subcycle_064));
-            PathAIApply004AA520(static_cast<W8PropRepresentation*>(m_pRep)->animation->path_24,
-                                mesh);
+            PathAIApply(static_cast<W8PropRepresentation*>(m_pRep)->animation->path_24, mesh);
         }
         return;
     }
 
-    count = AnimObjListCount004A1620(static_cast<W8PropRepresentation*>(m_pRep)->animation, 2);
+    count = AnimObjListCount(static_cast<W8PropRepresentation*>(m_pRep)->animation, 2);
     for (index = 0; index < (int)count; ++index) {
-        srModelInstance* mesh = AnimObjDispatchList004A1560(
+        srModelInstance* mesh = AnimObjDispatchList(
             static_cast<W8PropRepresentation*>(m_pRep)->animation, 2, (signed char)index);
         W8PathAI* path;
 
         if (mesh == 0) {
             srAssertFail("psrMesh", PROP_CPP, 0x56f, 0);
         }
-        path = AnimObjListEntry004A16C0(static_cast<W8PropRepresentation*>(m_pRep)->animation, 2,
-                                        (signed char)index);
+        path = AnimObjListEntry(static_cast<W8PropRepresentation*>(m_pRep)->animation, 2,
+                                (signed char)index);
         if (path != 0) {
             srVector3T<float> location;
 
-            PathAISetValue004A9F60(
+            PathAISetValue(
                 path, static_cast<float>(static_cast<W8PropRepresentation*>(m_pRep)->subcycle_064));
-            PathAIApply004AA520(path, mesh);
+            PathAIApply(path, mesh);
             static_cast<srNode*>(mesh)->getLocation(location);
             position_02c = location;
             position_03c = location;
@@ -1019,12 +1006,12 @@ void W8Prop::ApplyAnimationFrame0044C670()
 /* Per-frame prop update: while the animation is running this binds every
    dispatched instance to the world's dynamic scene, interpolates between the
    current and next keyframe records (position lerp, quaternion slerp for
-   rotations - the same algorithm as PathAIApply004AA520), pushes the transform
+   rotations - the same algorithm as PathAIApply), pushes the transform
    onto the instance or its child chain, and rolls the position snapshots
    forward. A stopped animation binds the single current instance and applies
    either the rep's path or its stored transform. */
 // FUNCTION: WIZ8 0x0044c830
-void W8Prop::AttachAnimationInstances0044C830(W8World* world)
+void W8Prop::AttachAnimationInstances(W8World* world)
 {
     int index;
     int count;
@@ -1058,17 +1045,17 @@ void W8Prop::AttachAnimationInstances0044C830(W8World* world)
     if (AnimationIsRunning(Rep()->animation) == 1) {
         has_scales = false;
         zero.SetZero();
-        count = static_cast<int>(AnimObjListCount004A1620(Rep()->animation, 2));
+        count = static_cast<int>(AnimObjListCount(Rep()->animation, 2));
         for (index = 0; index < count; ++index) {
             instance = static_cast<stModelInstance*>(
-                AnimObjDispatchList004A1560(Rep()->animation, 2, static_cast<signed char>(index)));
+                AnimObjDispatchList(Rep()->animation, 2, static_cast<signed char>(index)));
             if (instance == 0) {
                 srAssertFail("psrMesh", PROP_CPP, 0x5b4, 0);
             }
             instance->clearFlag(srNode::FLAG_DISABLE);
             instance->setParent(world->dynamic_scene, 1);
             instance->light_scale_194 = zero;
-            if (g_settings_6850c8.smooth_world_animations != 0) {
+            if (g_settings.smooth_world_animations != 0) {
                 instance->frame_interpolation_1ac = anim_frame_fraction_024;
             } else {
                 instance->frame_interpolation_1ac = 0.0f;
@@ -1077,11 +1064,11 @@ void W8Prop::AttachAnimationInstances0044C830(W8World* world)
             if (mesh != 0 && (mesh->flags_3a0 & 1) != 0 && trigger_18 == 0) {
                 instance->render_flags_178 |= 0x10;
             }
-            path = AnimObjListEntry004A16C0(Rep()->animation, 2, static_cast<signed char>(index));
+            path = AnimObjListEntry(Rep()->animation, 2, static_cast<signed char>(index));
             if (path == 0) {
                 continue;
             }
-            next_frame = static_cast<unsigned char>(NextAnimationValue0044C600());
+            next_frame = static_cast<unsigned char>(NextAnimationValue());
             if (next_frame > Rep()->last_frame_095) {
                 anim_frame_fraction_024 = 0.0f;
             }
@@ -1135,7 +1122,7 @@ void W8Prop::AttachAnimationInstances0044C830(W8World* world)
         instance->clearFlag(srNode::FLAG_DISABLE);
         instance->setParent(world->dynamic_scene, 1);
         instance->light_scale_194.SetZero();
-        if (g_settings_6850c8.smooth_world_animations != 0) {
+        if (g_settings.smooth_world_animations != 0) {
             instance->frame_interpolation_1ac = anim_frame_fraction_024;
         } else {
             instance->frame_interpolation_1ac = 0.0f;
@@ -1145,10 +1132,10 @@ void W8Prop::AttachAnimationInstances0044C830(W8World* world)
             instance->render_flags_178 |= 0x10;
         }
         if (Rep()->animation->path_24 != 0) {
-            PathAIApply004AA520(Rep()->animation->path_24, instance);
+            PathAIApply(Rep()->animation->path_24, instance);
         } else {
             Rep()->GetLocation004B8890(&rep_position);
-            Rep()->GetRotation004B88F0(&rep_rotation);
+            Rep()->GetRotation(&rep_rotation);
             node = instance->firstChild();
             if (node == 0) {
                 location.SetFromFloat(&rep_position);
@@ -1163,20 +1150,20 @@ void W8Prop::AttachAnimationInstances0044C830(W8World* world)
                 } while (node != 0);
             }
         }
-        BakeInstanceVertexLightingIfNeeded0046F4A0(instance, world->dynamic_scene);
+        BakeInstanceVertexLightingIfNeeded(instance, world->dynamic_scene);
     }
     if (m_gd_prop == 0) {
         BuildOrRefreshPathingRepresentation();
     }
 }
 
-/* The detach counterpart to AttachAnimationInstances0044C830: the current frame is stashed in
+/* The detach counterpart to AttachAnimationInstances: the current frame is stashed in
    saved_subcycle_0ac, then every dispatched instance is flagged disabled and detached
    from the scene.  While the animation runs the whole list is walked;
    otherwise only the snapshot frame's instance (or the first dispatch-list
    entry when a run is in progress) is pulled. */
 // FUNCTION: WIZ8 0x0044d360
-void W8Prop::DetachAnimationInstances0044D360(W8World* world)
+void W8Prop::DetachAnimationInstances(W8World* world)
 {
     stModelInstance* instance;
     unsigned int count;
@@ -1187,10 +1174,10 @@ void W8Prop::DetachAnimationInstances0044D360(W8World* world)
     }
     Rep()->saved_subcycle_0ac = Rep()->subcycle_064;
     if (AnimationIsRunning(Rep()->animation) == 1) {
-        count = AnimObjListCount004A1620(Rep()->animation, 2);
+        count = AnimObjListCount(Rep()->animation, 2);
         for (index = 0; index < static_cast<int>(count); ++index) {
             instance = static_cast<stModelInstance*>(
-                AnimObjDispatchList004A1560(Rep()->animation, 2, static_cast<signed char>(index)));
+                AnimObjDispatchList(Rep()->animation, 2, static_cast<signed char>(index)));
             if (instance == 0) {
                 srAssertFail("psrMesh", PROP_CPP, 0x678, 0);
             }
@@ -1201,11 +1188,9 @@ void W8Prop::DetachAnimationInstances0044D360(W8World* world)
         unsigned char frame = Rep()->subcycle_064;
 
         if (AnimationIsRunning(Rep()->animation) == 0) {
-            instance =
-                static_cast<stModelInstance*>(AnimObjDispatch004A14D0(Rep()->animation, 2, frame));
+            instance = static_cast<stModelInstance*>(AnimObjDispatch(Rep()->animation, 2, frame));
         } else {
-            instance =
-                static_cast<stModelInstance*>(AnimObjDispatchList004A1560(Rep()->animation, 2, 0));
+            instance = static_cast<stModelInstance*>(AnimObjDispatchList(Rep()->animation, 2, 0));
         }
         if (instance == 0) {
             srAssertFail("psrMesh", PROP_CPP, 0x686, 0);
@@ -1218,11 +1203,11 @@ void W8Prop::DetachAnimationInstances0044D360(W8World* world)
 /* Restore the rep's persisted animation state: frame, the two counters, the
    direction flags and one byte the format no longer uses.  Each saved index
    is clamped to the loaded animation's frame count, path values are re-synced
-   while a running animation is active, and ApplyAnimationFrame0044C670 reapplies the state.
+   while a running animation is active, and ApplyAnimationFrame reapplies the state.
    The read chain's success is reported even though the restore runs either
    way. */
 // FUNCTION: WIZ8 0x0044dbd0
-bool W8Prop::LoadAnimationState0044DBD0(int hFile)
+bool W8Prop::LoadAnimationState(int hFile)
 {
     unsigned char unused;
     unsigned int count;
@@ -1238,7 +1223,7 @@ bool W8Prop::LoadAnimationState0044DBD0(int hFile)
               FileRead(hFile, &Rep()->animation_playing_06d, 1, 0) != 0 &&
               FileRead(hFile, &unused, 1, 0) != 0;
     if (Rep()->animation != 0) {
-        total = static_cast<int>(AnimObjValue004A15D0(Rep()->animation, 2));
+        total = static_cast<int>(AnimObjValue(Rep()->animation, 2));
         if (Rep()->last_frame_095 >= total) {
             Rep()->last_frame_095 = static_cast<unsigned char>(total - 1);
         }
@@ -1249,16 +1234,15 @@ bool W8Prop::LoadAnimationState0044DBD0(int hFile)
             Rep()->subcycle_064 = static_cast<unsigned char>(total - 1);
         }
         if (AnimationIsRunning(Rep()->animation) == 1) {
-            count = AnimObjListCount004A1620(Rep()->animation, 2);
+            count = AnimObjListCount(Rep()->animation, 2);
             for (index = 0; index < static_cast<int>(count); ++index) {
-                path =
-                    AnimObjListEntry004A16C0(Rep()->animation, 2, static_cast<signed char>(index));
+                path = AnimObjListEntry(Rep()->animation, 2, static_cast<signed char>(index));
                 if (path != 0) {
-                    PathAISetValue004A9F60(path, static_cast<float>(Rep()->subcycle_064));
+                    PathAISetValue(path, static_cast<float>(Rep()->subcycle_064));
                 }
             }
         }
-        ApplyAnimationFrame0044C670();
+        ApplyAnimationFrame();
     }
     return success;
 }
@@ -1267,7 +1251,7 @@ bool W8Prop::LoadAnimationState0044DBD0(int hFile)
    The rep's current frame is saved, the bounds for frame zero seed the merge,
    and each remaining frame expands the result before the frame is restored. */
 // FUNCTION: WIZ8 0x0044dd60
-void W8Prop::GetBounds0044DD60(srVector3T<float>* minimum, srVector3T<float>* maximum)
+void W8Prop::GetBounds(srVector3T<float>* minimum, srVector3T<float>* maximum)
 {
     srVector3T<float> local_minimum;
     srVector3T<float> local_maximum;
@@ -1275,14 +1259,13 @@ void W8Prop::GetBounds0044DD60(srVector3T<float>* minimum, srVector3T<float>* ma
     int frame;
     int total;
 
-    total = static_cast<int>(AnimObjValue004A15D0(Rep()->animation, 2));
+    total = static_cast<int>(AnimObjValue(Rep()->animation, 2));
     saved_frame = Rep()->subcycle_064;
     Rep()->subcycle_064 = 0;
-    AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->subcycle_064, minimum, maximum);
+    AnimObjGetBounds(Rep()->animation, 2, Rep()->subcycle_064, minimum, maximum);
     for (frame = 1; frame < total; ++frame) {
         Rep()->subcycle_064 = static_cast<unsigned char>(frame);
-        AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->subcycle_064, &local_minimum,
-                                 &local_maximum);
+        AnimObjGetBounds(Rep()->animation, 2, Rep()->subcycle_064, &local_minimum, &local_maximum);
         if (local_minimum.x < minimum->x) {
             minimum->x = local_minimum.x;
         }
@@ -1317,12 +1300,12 @@ int W8Prop::BuildOrRefreshPathingRepresentation()
         return 0;
     }
     if (AnimationIsRunning(Rep()->animation) != 1) {
-        ShutdownWithErrorBox("Collidable props can be of Transitive animation type only.");
+        ShutdownWithErrorBox("Collidable props can be of Transform type only.");
     }
-    if (AnimObjListCount004A1620(Rep()->animation, 2) != 1) {
-        ShutdownWithErrorBox("Collideable props should have a single mesh.");
+    if (AnimObjListCount(Rep()->animation, 2) != 1) {
+        ShutdownWithErrorBox("Collideable props should have a single LOD.");
     }
-    instance = AnimObjDispatchList004A1560(Rep()->animation, 2, 0);
+    instance = AnimObjDispatchList(Rep()->animation, 2, 0);
     if (instance == 0) {
         srAssertFail("pstInstance", PROP_CPP, 0x939, 0);
     }
@@ -1349,7 +1332,7 @@ int W8Prop::BuildOrRefreshPathingRepresentation()
    animation actions (0x3a..0x3c) accept the missile's table index as their
    source; every other trigger setup is ignored. */
 // FUNCTION: WIZ8 0x0044e230
-void W8Prop::RunMissileTrigger0044E230(W8AIMissile* record)
+void W8Prop::RunMissileTrigger(W8AIMissile* record)
 {
     if (record != 0 && record->missile_0c != 0 && trigger_18 != 0 &&
         (trigger_18->initial_action_22a == 0x3a || trigger_18->initial_action_22a == 0x3b ||
@@ -1372,15 +1355,15 @@ void W8Prop::SetPosition0044E310(srVector3T<float>* position)
 }
 
 // FUNCTION: WIZ8 0x0044e360
-bool W8Prop::TriggerHasActionMessage0044E360()
+bool W8Prop::TriggerHasActionMessage()
 {
-    return trigger_18 != 0 && trigger_18->HasActionMessage00441780() != 0;
+    return trigger_18 != 0 && trigger_18->HasActionMessage() != 0;
 }
 
 // FUNCTION: WIZ8 0x0044e380
-bool W8Prop::TriggerRequiresItem0044E380()
+bool W8Prop::TriggerRequiresItem()
 {
-    return trigger_18 != 0 && trigger_18->RequiresItem00441790() != 0;
+    return trigger_18 != 0 && trigger_18->RequiresItem() != 0;
 }
 
 /* Whether a prop with a selectable trigger is visible from `position`: the
@@ -1388,7 +1371,7 @@ bool W8Prop::TriggerRequiresItem0044E380()
    frame's bounds and the centre, minimum or maximum has to project
    on-screen through the active world's camera. */
 // FUNCTION: WIZ8 0x0044e3a0
-bool W8Prop::IsTriggerInView0044E3A0(srVector3T<float>* position)
+bool W8Prop::IsTriggerInView(srVector3T<float>* position)
 {
     Trigger* trigger = trigger_18;
     srVector3T<float> minimum;
@@ -1398,8 +1381,9 @@ bool W8Prop::IsTriggerInView0044E3A0(srVector3T<float>* position)
     float distance;
 
     if (trigger != 0 && (trigger->flags_0a0 & W8_TRIGGER_ENABLED) != 0 &&
-        ((trigger->flags_0a0 & 0x40000) == 0 || (trigger->flags_0a0 & 0x80000) == 0)) {
-        AnimObjGetBounds004A1710(Rep()->animation, 2, Rep()->subcycle_064, &minimum, &maximum);
+        ((trigger->flags_0a0 & W8_TRIGGER_ONCE) == 0 ||
+         (trigger->flags_0a0 & W8_TRIGGER_FIRED) == 0)) {
+        AnimObjGetBounds(Rep()->animation, 2, Rep()->subcycle_064, &minimum, &maximum);
         center.Set((minimum.x + maximum.x) * g_double_005ebe80,
                    (minimum.y + maximum.y) * g_double_005ebe80,
                    (minimum.z + maximum.z) * g_double_005ebe80);
@@ -1441,7 +1425,7 @@ bool W8Prop::IsTriggerInView0044E3A0(srVector3T<float>* position)
 }
 
 // FUNCTION: WIZ8 0x0044bf50
-bool CreateAndLoadProp0044BF50(W8ReadLevelInfo* info, W8Prop** prop_out)
+bool CreateAndLoadProp(W8ReadLevelInfo* info, W8Prop** prop_out)
 {
     W8Prop* prop;
     bool success;
@@ -1453,12 +1437,12 @@ bool CreateAndLoadProp0044BF50(W8ReadLevelInfo* info, W8Prop** prop_out)
     if (prop == 0) {
         srAssertFail("pProp", PROP_CPP, 0x348, 0);
     }
-    success = static_cast<W8PropRepresentation*>(prop->m_pRep)->LoadProp0044AEE0(info, prop);
+    success = static_cast<W8PropRepresentation*>(prop->m_pRep)->LoadProp(info, prop);
     if (success) {
         *prop_out = prop;
         prop->m_pTimer->SetDuration(
             g_float_005ebb38 / static_cast<W8PropRepresentation*>(prop->m_pRep)->animation_speed);
-        prop->ApplyAnimationFrame0044C670();
+        prop->ApplyAnimationFrame();
     }
     return success;
 }
@@ -1467,7 +1451,7 @@ bool CreateAndLoadProp0044BF50(W8ReadLevelInfo* info, W8Prop** prop_out)
    prop->m_pRep into ECX before the two stack arguments, so this is a
    PropRep method: LoadProp(pInfo, pProp). */
 // FUNCTION: WIZ8 0x0044aee0
-bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
+bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
 {
     int hFile;
     bool success;
@@ -1518,17 +1502,17 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
             }
         }
         info->mesh_filename = 0;
-        mesh = CreateAniMesh004B57E0();
+        mesh = CreateAniMesh();
         if (mesh == 0) {
             srAssertFail("pAniMesh", PROP_CPP, 0xd5, 0);
         }
-        result = LoadAniMeshFromInfo004B5B30(info, mesh, 1);
+        result = LoadAniMeshFromInfo(info, mesh, 1);
         if (!result) {
             fail_line = 0xd8;
             result = false;
             goto fail_with_result;
         }
-        animation = CreateAnimObj004A01A0();
+        animation = CreateAnimObj();
         animation->entries_18[2] = mesh;
         animation->group_count = 1;
         animation->animation_playing_01 = b0;
@@ -1602,19 +1586,22 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
                 W8PropAnimationSegment* slot = new W8PropAnimationSegment;
 
                 FileRead(hFile, &frame_tmp, 2, 0);
-                slot->frame = static_cast<unsigned char>(frame_tmp);
+                slot->frame = static_cast<signed char>(frame_tmp);
                 FileRead(hFile, &tag_tmp, 2, 0);
                 slot->tag = static_cast<unsigned char>(tag_tmp);
                 if (frame_count <= frame_tmp) {
-                    srAssertFail("(usTemp < (UINT16)ubNumFrames)", PROP_CPP, 0x11f,
-                                 reinterpret_cast<const char*>(
-                                     String("%s Prop Error Segment %d frame n", prop->m_name,
-                                            (unsigned int)tag_tmp, (unsigned int)frame_tmp)));
+                    srAssertFail(
+                        "(usTemp < (UINT16)ubNumFrames)", /* c-style-cast-ok: verbatim assert text */
+                        PROP_CPP, 0x11f,
+                        reinterpret_cast<const char*>(
+                            String("%s Prop Error:Segment %d frame number is out of range (%d)",
+                                   prop->m_name, static_cast<unsigned int>(tag_tmp),
+                                   static_cast<unsigned int>(frame_tmp))));
                 }
                 this->slots.Add(slot);
             }
         }
-        animation = CreateAnimObj004A01A0();
+        animation = CreateAnimObj();
         result = AnimObjReadFromFile004A05C0(info, animation, 1, 0, 1);
         this->animation = animation;
         if (AnimationIsRunning(animation) == 1) {
@@ -1622,16 +1609,17 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
         }
         this->play_chance_0a8 = animation->play_chance_10;
         this->random_play_0a5 = animation->random_play_0c != 0;
-        list_count = AnimObjValue004A15D0(animation, 2);
+        list_count = AnimObjValue(animation, 2);
         for (entry_index = 0; entry_index < list_count; ++entry_index) {
             srModelInstance* instance;
             stMeshModel* mesh_model;
             char* named;
 
             if (AnimationIsRunning(this->animation) == 0) {
-                instance = AnimObjDispatch004A14D0(this->animation, 2, (unsigned char)entry_index);
+                instance =
+                    AnimObjDispatch(this->animation, 2, static_cast<unsigned char>(entry_index));
             } else {
-                instance = AnimObjDispatchList004A1560(this->animation, 2, 0);
+                instance = AnimObjDispatchList(this->animation, 2, 0);
             }
             named = reinterpret_cast<char*>(String("Prop: %s", prop->m_name));
             instance->setName(named);
@@ -1656,13 +1644,13 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
                 }
             }
         }
-        list_count = AnimObjListCount004A1620(animation, 2);
+        list_count = AnimObjListCount(animation, 2);
         for (entry_index = 0; entry_index < list_count; ++entry_index) {
-            W8PathAI* path = AnimObjListEntry004A16C0(animation, 2, (signed char)entry_index);
+            W8PathAI* path = AnimObjListEntry(animation, 2, static_cast<signed char>(entry_index));
             if (path != 0) {
-                PathAISetLooping004AA9D0(path, 1);
-                PathAISetDiscreteMode004AAA10(path, 1);
-                PathAISetScale004AA9C0(path, animation->playback_scale_08);
+                PathAISetLooping(path, 1);
+                PathAISetDiscreteMode(path, 1);
+                PathAISetScale(path, animation->playback_scale_08);
             }
         }
     }
@@ -1681,9 +1669,9 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
     }
 
     if (animation->path_lists_05 == 0) {
-        W8AniMesh* mesh = AnimObjEntry004A1660(animation, 2, 0);
-        unsigned char value_count = AniMeshValue004B64F0(mesh);
-        stModelInstance* frame = GetAniMeshFrame004B6550(mesh, 0);
+        W8AniMesh* mesh = AnimObjEntry(animation, 2, 0);
+        unsigned char value_count = AniMeshValue(mesh);
+        stModelInstance* frame = GetAniMeshFrame(mesh, 0);
         srVector3T<float> minimum;
         srVector3T<float> maximum;
         unsigned int frame_i;
@@ -1697,7 +1685,7 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
             srVector3T<float> frame_min;
             srVector3T<float> frame_max;
 
-            frame = GetAniMeshFrame004B6550(mesh, frame_i);
+            frame = GetAniMeshFrame(mesh, frame_i);
             if (frame == 0) {
                 srAssertFail("psrMesh", PROP_CPP, 0x192, 0);
             }
@@ -1756,7 +1744,7 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
             trigger->m_bRepType = 2;
             trigger->m_pProp = prop;
             if (trigger->initial_action_22a == 0x40) {
-                InitializeStateDrivenPropVariables00445200(trigger);
+                InitializeStateDrivenPropVariables(trigger);
             }
             if (trigger->trigger_kind_018 == 1 && trigger->initial_action_22a == 8) {
                 unsigned int path_count;
@@ -1764,10 +1752,10 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
 
                 this->animation_running_0a4 = 1;
                 if (AnimationIsRunning(this->animation) == 1) {
-                    path_count = AnimObjListCount004A1620(this->animation, 2);
+                    path_count = AnimObjListCount(this->animation, 2);
                     for (path_i = 0; path_i < path_count; ++path_i) {
                         W8PathAI* path =
-                            AnimObjListEntry004A16C0(this->animation, 2, (signed char)path_i);
+                            AnimObjListEntry(this->animation, 2, static_cast<signed char>(path_i));
                         path->step_by_node_39 = 1;
                     }
                 }
@@ -1808,7 +1796,7 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
     this->first_frame_094 = 0;
     this->subcycle_064 = 0;
     {
-        unsigned int frames = AnimObjValue004A15D0(animation, 2);
+        unsigned int frames = AnimObjValue(animation, 2);
         this->last_frame_095 = static_cast<unsigned char>(frames) - 1;
     }
     return result;
@@ -1829,7 +1817,7 @@ int W8Prop::GetAnimationState0044EBE0() const
 {
     W8AnimObj* animation = Rep()->animation;
     if (animation != 0) {
-        return (int)AnimObjValue004A15D0(animation, 2);
+        return static_cast<int>(AnimObjValue(animation, 2));
     }
     return -1;
 }
@@ -1850,12 +1838,12 @@ void W8Prop::CollectModelInstances(W8GrowableVector<stModelInstance*>* instances
             if (mesh == 0) {
                 continue;
             }
-            int frame_count = AniMeshValue004B64F0(mesh);
+            int frame_count = AniMeshValue(mesh);
             if (mesh->flags_00 & W8_ANI_MESH_SINGLE_INSTANCE) {
-                instances->Add(GetAniMeshFrame004B6550(mesh, 0));
+                instances->Add(GetAniMeshFrame(mesh, 0));
             } else {
                 for (int frame = 0; frame < frame_count; ++frame) {
-                    instances->Add(GetAniMeshFrame004B6550(mesh, frame));
+                    instances->Add(GetAniMeshFrame(mesh, frame));
                 }
             }
         }
@@ -1871,9 +1859,9 @@ void W8Prop::CollectModelInstances(W8GrowableVector<stModelInstance*>* instances
                 if (mesh == 0) {
                     continue;
                 }
-                int frame_count = AniMeshValue004B64F0(mesh);
+                int frame_count = AniMeshValue(mesh);
                 for (int frame = 0; frame < frame_count; ++frame) {
-                    instances->Add(GetAniMeshFrame004B6550(mesh, frame));
+                    instances->Add(GetAniMeshFrame(mesh, frame));
                 }
             }
         }
@@ -1882,11 +1870,11 @@ void W8Prop::CollectModelInstances(W8GrowableVector<stModelInstance*>* instances
 
 /* APST chunk writer: a 0xDEADD00D signature, the format version and the prop
    count, then one record per prop - a fixed 64-byte name plus the six rep
-   bytes that LoadAnimationState0044DBD0 reads back (frame, counters, direction
+   bytes that LoadAnimationState reads back (frame, counters, direction
    flags and the active byte). The per-prop byte writes only run while the
    previous writes succeed. */
 // FUNCTION: WIZ8 0x0044e830
-void SaveWorldProps0044E830(W8World* world, int handle)
+void SaveWorldProps(W8World* world, int handle)
 {
     int index;
     int count;
@@ -1920,7 +1908,7 @@ void SaveWorldProps0044E830(W8World* world, int handle)
    Records whose prop cannot be found are consumed by a scratch prop so the
    stream stays aligned. */
 // FUNCTION: WIZ8 0x0044e9a0
-void LoadWorldProps0044E9A0(W8World* world, int handle)
+void LoadWorldProps(W8World* world, int handle)
 {
     int index;
     int count;
@@ -1947,10 +1935,10 @@ void LoadWorldProps0044E9A0(W8World* world, int handle)
                 }
             }
             if (prop != 0) {
-                prop->LoadAnimationState0044DBD0(handle);
+                prop->LoadAnimationState(handle);
             } else {
                 prop = new W8Prop();
-                prop->LoadAnimationState0044DBD0(handle);
+                prop->LoadAnimationState(handle);
                 delete prop;
             }
         }
@@ -1961,10 +1949,10 @@ void LoadWorldProps0044E9A0(W8World* world, int handle)
             FileRead(handle, name, 0x40, 0);
             prop = FindPropByName(g_world, name);
             if (prop != 0) {
-                prop->LoadAnimationState0044DBD0(handle);
+                prop->LoadAnimationState(handle);
             } else {
                 prop = new W8Prop();
-                prop->LoadAnimationState0044DBD0(handle);
+                prop->LoadAnimationState(handle);
                 delete prop;
             }
         }
@@ -1974,28 +1962,28 @@ void LoadWorldProps0044E9A0(W8World* world, int handle)
 /* The renderer owns the selected model instance. Without one, retail also
    resets the cached prop index to -1 before returning it. */
 // FUNCTION: WIZ8 0x0044DA60
-int GetSelectedPropIndex0044DA60(void)
+int GetSelectedPropIndex(void)
 {
-    if (GetPickedModelInstance00427810() == 0) {
-        return g_selected_prop_index_00607b98 = -1;
+    if (GetPickedModelInstance() == 0) {
+        return g_selected_prop_index = -1;
     }
-    return g_selected_prop_index_00607b98;
+    return g_selected_prop_index;
 }
 
 /* When the renderer still holds a pick and ResolvePickedProp latched a
    trigger, run that trigger and post the nothing-happened / special-item
    notice. Clearing the pick also clears the latch. */
 // FUNCTION: WIZ8 0x0044DA20
-unsigned char ActivateSelectedProp0044DA20(void)
+bool ActivateSelectedProp(void)
 {
-    if (GetPickedModelInstance00427810() == 0) {
-        g_selected_prop_trigger_00659a60 = 0;
+    if (GetPickedModelInstance() == 0) {
+        g_selected_prop_trigger = 0;
         return 0;
     }
-    if (g_selected_prop_trigger_00659a60 != 0) {
-        g_trigger_feedback_00606994 = 0;
-        g_selected_prop_trigger_00659a60->Run(-1);
-        g_selected_prop_trigger_00659a60->PrintNothingHappenedOrSpecialItemRequired004456E0();
+    if (g_selected_prop_trigger != 0) {
+        g_trigger_feedback = 0;
+        g_selected_prop_trigger->Run(-1);
+        g_selected_prop_trigger->PrintNothingHappenedOrSpecialItemRequired();
         return 1;
     }
     return 0;

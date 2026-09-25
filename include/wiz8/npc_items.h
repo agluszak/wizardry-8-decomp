@@ -16,7 +16,7 @@ void ClearNpcItems(W8NpcState* npc);
 void SortNpcItems(W8NpcState* npc);
 unsigned char PopulateNpcStock(W8NpcState* npc);
 unsigned char MaintainNpcStock(W8NpcState* npc, char force);
-void MatureNpcDelayedItems0055BB10(W8NpcState* npc);
+void MatureNpcDelayedItems(W8NpcState* npc);
 void RestockNpcInventory(W8NpcState* npc); /* 0x0055BCC0 */
 W8NpcItemEntry* GetNpcItemAt(W8NpcState* npc, int index);
 unsigned int GetNpcItemCount(W8NpcState* npc);
@@ -27,11 +27,11 @@ int CalculateNpcTradeStackPrice(W8NpcState* npc, int item_id, int mode, unsigned
 unsigned char ConsumeNpcItemQuantity(W8NpcState* npc, int index, unsigned char quantity);
 /* 0x0055B730: move a sold/given party item into NPC stock, paying party gold
    unless suppressed (the item being a dialogue topic the NPC wants). */
-unsigned char SellItemToNpc0055B730(W8NpcState* npc, W8ItemInstance* item, unsigned char quantity,
-                                    char suppress_payment);
+unsigned char SellItemToNpc(W8NpcState* npc, W8ItemInstance* item, unsigned char quantity,
+                            char suppress_payment);
 /* 0x0055B7E0: the stock mutation a completed trade applies for one slot. */
 void DecayNpcInventory(W8NpcState* npc);
-bool CompleteNpcItemPurchase0055B7E0(W8NpcState* npc, int index, unsigned char quantity,
-                                     char no_payment, int* remaining_out);
+bool CompleteNpcItemPurchase(W8NpcState* npc, int index, unsigned char quantity, char no_payment,
+                             int* remaining_out);
 
 #endif

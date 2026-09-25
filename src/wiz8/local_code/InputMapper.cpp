@@ -49,7 +49,7 @@ unsigned char MGSKeyboard::LoadDefaults(const char* path)
     wchar_t line[200];
     unsigned char more;
     while (!FileCheckEndOfFile(handle)) {
-        if (!ReadWideTextLine004CEED0(handle, line, 200, &more) || line[0] == L'*') {
+        if (!ReadWideTextLine(handle, line, 200, &more) || line[0] == L'*') {
             continue;
         }
 

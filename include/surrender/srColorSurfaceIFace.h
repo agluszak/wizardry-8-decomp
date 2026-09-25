@@ -106,21 +106,54 @@ public:
     SR_DLL_IMPORT srFilter* getFilter() const;
     SR_DLL_IMPORT long getGreenBits() const;
     SR_DLL_IMPORT int getHClampMode() const;
+// FUNCTION: SURRENDER 0x100598F0 SYMBOL
+// ?getHeight@srColorSurfaceIFace@@QBEJXZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     long getHeight() const
     {
         return height_20;
     }
+// FUNCTION: SURRENDER 0x100599E0 SYMBOL
+// ?getPitch@srColorSurfaceIFace@@QBEJXZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     long getPitch() const
     {
         return pitch_24;
     }
+// FUNCTION: SURRENDER 0x100599F0 SYMBOL
+// ?getPixelFormat@srColorSurfaceIFace@@QBEXAAUPixelFormat@srPixelConvert@@@Z
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     void getPixelFormat(srPixelConvert::PixelFormat& format) const
     {
         format = pixel_format_30;
     }
     SR_DLL_IMPORT long getRedBits() const;
-    SR_DLL_IMPORT void getSurfaceDesc(SurfaceDesc& description) const;
+// FUNCTION: SURRENDER 0x10059A10 SYMBOL
+// ?getSurfaceDesc@srColorSurfaceIFace@@QBEXAAUSurfaceDesc@1@@Z
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    void getSurfaceDesc(SurfaceDesc& description) const
+    {
+        description.width = width_1c;
+        description.height = height_20;
+        description.pitch = pitch_24;
+        description.clamp_modes = clamp_modes_28;
+        description.filter = filter_2c;
+        description.pixel_format = pixel_format_30;
+    }
     SR_DLL_IMPORT int getVClampMode() const;
+// FUNCTION: SURRENDER 0x10059A60 SYMBOL
+// ?getWidth@srColorSurfaceIFace@@QBEJXZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     long getWidth() const
     {
         return width_1c;
@@ -128,6 +161,11 @@ public:
     SR_DLL_IMPORT int isAlpha() const;
     SR_DLL_IMPORT int isPaletted() const;
     SR_DLL_IMPORT void rotate180();
+// FUNCTION: SURRENDER 0x10059A90 SYMBOL
+// ?setFilter@srColorSurfaceIFace@@QAEXPAVsrFilter@@@Z
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     void setFilter(srFilter* filter)
     {
         filter_2c = filter;

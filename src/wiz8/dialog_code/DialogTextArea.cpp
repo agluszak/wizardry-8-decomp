@@ -42,7 +42,7 @@ void W8DialogTextArea::SetFirstVisibleEntry(unsigned int index)
         m_first_visible_entry = index;
         m_first_visible_line = 0;
         m_relayout_needed = 1;
-        m_dirty = 1;
+        m_dirty = true;
     }
 }
 
@@ -50,7 +50,7 @@ void W8DialogTextArea::SetFirstVisibleEntry(unsigned int index)
 void W8DialogTextArea::Configure(const W8ControlsRect* bounds, int font, unsigned int flags)
 {
     m_bounds = *bounds;
-    m_layout_initialized = 1;
+    m_layout_initialized = true;
     m_relayout_needed = 1;
     m_behavior_flags = flags;
     m_font = font;
@@ -82,7 +82,7 @@ void W8DialogTextArea::Draw(unsigned char force)
             (*m_visible_lines_02c.GetAt(index))->Draw(force || m_dirty);
         }
         m_relayout_needed = 0;
-        m_dirty = 0;
+        m_dirty = false;
         selection_dirty_03e = 0;
     }
 }
@@ -90,11 +90,6 @@ void W8DialogTextArea::Draw(unsigned char force)
 // FUNCTION: WIZ8 0x005d1a30
 void W8DialogTextArea::SetFirstVisibleLine(int requested_line)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
     int position = 0;
     unsigned int font_height = GetFontHeight(m_font);
     for (unsigned int index = 0; index < static_cast<unsigned int>(m_visible_lines_02c.count);
@@ -104,17 +99,17 @@ void W8DialogTextArea::SetFirstVisibleLine(int requested_line)
                         static_cast<unsigned int>(m_entry_spacing) / font_height;
              ++line, ++position) {
             if (position == requested_line) {
-                if (m_first_visible_entry == index && m_first_visible_line == line)
+                if (static_cast<unsigned int>(m_first_visible_entry) == index &&
+                    static_cast<unsigned int>(m_first_visible_line) == line)
                     return;
                 m_first_visible_entry = index;
                 m_first_visible_line = line;
                 m_relayout_needed = 1;
-                m_dirty = 1;
+                m_dirty = true;
                 return;
             }
         }
     }
-#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x005d1cb0
@@ -330,7 +325,7 @@ int W8DialogTextArea::AddEntry(const wchar_t* prefix, const wchar_t* text,
         entry = new W8DialogTextEntry(
             prefix, text, prefix_palette, text_palette, &m_bounds, m_font, category,
             g_W8TextBufferLayoutMask005ED554 | g_W8TextBufferLayoutMask005ED548 |
-                g_dialog_text_layout_mask_69c5d0,
+                g_dialog_text_layout_mask,
             m_behavior_flags & 4);
     } else {
         entry = new W8DialogTextEntry(
@@ -362,7 +357,7 @@ void W8DialogTextArea::RemoveEntry(unsigned int index)
             SetFirstVisibleEntry(m_all_lines_01c.count - 1);
         }
         m_relayout_needed = 1;
-        m_dirty = 1;
+        m_dirty = true;
         RebuildVisibleEntries();
     }
 }
@@ -454,7 +449,7 @@ unsigned char W8DialogTextArea::ScrollDown(unsigned char check_only)
                     }
                 }
                 if (!check_only) {
-                    m_dirty = 1;
+                    m_dirty = true;
                     m_relayout_needed = 1;
                 }
                 return 1;
@@ -481,7 +476,7 @@ unsigned char W8DialogTextArea::ScrollUp(unsigned char check_only)
                 m_first_visible_line = text->m_lineCount - 1 + spacing;
             }
         }
-        m_dirty = 1;
+        m_dirty = true;
         m_relayout_needed = 1;
     }
     return 1;
@@ -500,8 +495,8 @@ W8DialogTextArea::W8DialogTextArea()
     m_first_visible_entry = 0;
     m_first_visible_line = 0;
     m_font = 0;
-    m_layout_initialized = 0;
-    m_dirty = 0;
+    m_layout_initialized = false;
+    m_dirty = false;
     selection_dirty_03e = 0;
     m_entry_spacing = 0;
     m_behavior_flags = 0;

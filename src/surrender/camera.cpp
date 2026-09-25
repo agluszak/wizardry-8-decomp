@@ -544,3 +544,6 @@ int srCamera::unproject(srVector3T<float>& output, const srVector3T<double>& inp
 
 // TEMPLATE: SURRENDER 0x10049780
 // srMatrix4T<double>::AdjugateFrom
+
+// SYNTHETIC: SURRENDER 0x100482B0
+// srCamera default constructor closure

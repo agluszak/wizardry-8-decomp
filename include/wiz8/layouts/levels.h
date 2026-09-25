@@ -13,7 +13,7 @@ struct W8LevelFolderRecord {
 };
 
 struct W8LevelProgressRow {
-    unsigned char visited;
+    bool visited;
     /* 0x01: incremented by the combat teardown for each finished fight while
        characters are still active. */
     unsigned short combat_end_count_01;

@@ -17,7 +17,7 @@ public:
         double top;
     };
 
-    srCamera(srNode* parent);
+    srCamera(srNode* parent = 0);
     srCamera(const srCamera& other);
     srCamera& operator=(const srCamera& other);
 

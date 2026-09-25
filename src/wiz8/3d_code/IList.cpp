@@ -46,7 +46,7 @@ W8IList* ILCreate(void)
 // FUNCTION: WIZ8 0x005e29a0
 unsigned char IListInit(W8IList* pls)
 {
-    unsigned char created;
+    bool created;
 
     if (!pls) {
         srAssertFail("pls", ILIST_CPP, 0x64, 0);
@@ -151,8 +151,7 @@ int IListRemove(W8IList* pls, int value)
                 pls->data[shift_index] = pls->data[shift_index + 1];
             }
             --pls->iNumUsed;
-            if (static_cast<double>(pls->iNumUsed) / pls->capacity < 0.25 &&
-                !pls) {
+            if (static_cast<double>(pls->iNumUsed) / pls->capacity < 0.25 && !pls) {
                 srAssertFail("pls", ILIST_CPP, 0x1fd, 0);
             }
             return removed;

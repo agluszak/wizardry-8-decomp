@@ -12,7 +12,7 @@
    `more`.  The terminator is not retained and CRLF is normalised by removing
    the CR after the loop. */
 // FUNCTION: WIZ8 0x004CEE40
-unsigned char ReadTextLine004CEE40(int handle, char* destination, int capacity, unsigned char* more)
+unsigned char ReadTextLine(int handle, char* destination, int capacity, unsigned char* more)
 {
     unsigned char result;
     unsigned int transferred;
@@ -137,7 +137,7 @@ unsigned char stScript::Load004CF3B0(const char* path)
             FileClose(handle);
             return 1;
         }
-        while (ReadTextLine004CEE40(handle, buffer, sizeof(buffer), &more) == 0) {
+        while (ReadTextLine(handle, buffer, sizeof(buffer), &more) == 0) {
             if (more == 0) {
                 FileClose(handle);
                 return 1;
@@ -202,7 +202,7 @@ unsigned char stScript::Load004CF3B0(const char* path)
    the script line to resume at. A null query or a miss has the source's -1
    sentinel. */
 // FUNCTION: WIZ8 0x004CF730
-int stScript::FindLabelLine004CF730(const char* label) const
+int stScript::FindLabelLine(const char* label) const
 {
     int index;
 
@@ -220,7 +220,7 @@ int stScript::FindLabelLine004CF730(const char* label) const
 /* Diagnostics report the original file line carried by each parsed script
    line. Invalid or empty entries use the same -1 sentinel as label lookup. */
 // FUNCTION: WIZ8 0x004CF790
-int stScript::GetSourceLine004CF790(int line) const
+int stScript::GetSourceLine(int line) const
 {
     int count;
     stScriptLine** entry_pointer;

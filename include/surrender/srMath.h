@@ -90,7 +90,11 @@ public:
 
 template <class T> class srVector3T {
 public:
-    srVector3T<T>() {}
+    /* Defined out of line so member arrays construct through
+       __ehvector_ctor with the emitted stub body as the element callback
+       (retail 0x1003BC90 over 0xc-byte elements); scalar construction
+       inlines the empty body away. */
+    srVector3T<T>();
     srVector3T<T>(T source_0, T source_1, T source_2) : x(source_0), y(source_1), z(source_2) {}
 
     void* operator new[](unsigned int size)
@@ -156,6 +160,8 @@ public:
     T z;
 };
 
+template <class T> srVector3T<T>::srVector3T() {}
+
 // TEMPLATE: WIZ8 0x00421670
 // srVector3T<float>::SetZero
 template <class T> void srVector3T<T>::SetZero()
@@ -166,6 +172,8 @@ template <class T> void srVector3T<T>::SetZero()
 }
 
 // TEMPLATE: WIZ8 0x00421680
+// srVector3T<float>::Set
+// TEMPLATE: SURRENDER 0x10044DF0
 // srVector3T<float>::Set
 template <class T>
 srVector3T<T>* srVector3T<T>::Set(double source_0, double source_1, double source_2)
@@ -426,7 +434,10 @@ template <class T> srVector3T<T> operator/(const srVector3T<T>& vector, double s
 
 template <class T> class srVector4T {
 public:
-    srVector4T<T>() {}
+    /* Defined out of line so member arrays construct through
+       __ehvector_ctor with the emitted body as the element callback;
+       scalar construction inlines the empty body away. */
+    srVector4T<T>();
 
     srVector4T<T>* Set(T source_0, T source_1, T source_2, T source_3);
     T Length() const;
@@ -453,6 +464,8 @@ public:
     T z;
     T w;
 };
+
+template <class T> srVector4T<T>::srVector4T() {}
 
 // TEMPLATE: WIZ8 0x004D6B30
 // srVector4T<float>::Set
@@ -1144,7 +1157,7 @@ float Det3(float param_1, float param_2, float param_3, float param_4, float par
    getWorldSpaceMatrix memcpy's the 12-float / 12-double cache; pushMultMatrix
    expands the affine multiply itself. The only float member emissions in
    Wiz8.exe are the translation/scale writes inside GDProp's
-   TransformMeshGeometry004B7E50. */
+   TransformMeshGeometry. */
 template <class T> class srMatrix4x3T {
 public:
     /* sr.dll emits out-of-line copies at 0x10055710 for double and 0x10055770
@@ -1217,7 +1230,7 @@ template <class T> srMatrix4x3T<T>* srMatrix4x3T<T>::Scale(const srVector3T<T>& 
 }
 
 /* Affine point transform: dest.i = row_i.xyz·point + row_i.w. The only Wiz8
-   emission is inlined inside GDProp::TransformMeshGeometry004B7E50. */
+   emission is inlined inside GDProp::TransformMeshGeometry. */
 template <class T> srVector3T<T> srMatrix4x3T<T>::TransformPoint(const srVector3T<T>& point) const
 {
     srVector3T<T> result;

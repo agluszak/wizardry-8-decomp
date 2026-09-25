@@ -24,7 +24,7 @@ extern W8DialogButton* g_roof_buttons_69b8d8[3];
 extern W8DialogButton* g_options_disk_button_69b8e4;
 extern short g_submenu_entry_count_69b87e;
 extern unsigned int g_submenu_clock_69b880;
-extern unsigned char g_submenu_flag_69b8d4;
+extern bool g_submenu_flag_69b8d4;
 /* Exactly five: the next known global begins at 0x0069B900. The cancel row
    lands at [built-1] where built is the available-entry count plus one, so
    the array is only safe because W8_SUBMENU_ATTACK's Berserk (fighter trait
@@ -60,7 +60,7 @@ unsigned char CreateRoofButtons(void); /* 0x00597EE0 */
 void RedrawRoofButtons(void); /* 0x00598060 */
 /* Sync roof-button visibility/enabled/pressed state and Draw each button. */
 void UpdateRoofButtons(void); /* 0x005980B0 */
-/* Press the roof button that matches g_settings_6850c8.main_ui_mode. */
+/* Press the roof button that matches g_settings.main_ui_mode. */
 void SyncRoofButtonPressedState(void); /* 0x00598150 */
 /* Draw layout-arrow chrome and sync the six raise/lower arrows against the
    live action-panel / formation-board / radar-map visibility flags. */
@@ -88,10 +88,10 @@ void RedrawCombatStanceButtons(void); /* 0x00597D30 */
 void UpdateCombatStanceButtons(void); /* 0x00597D70 */
 /* Per-frame button refresh from DrawMainGameScreen: bank buttons, scroll
    arrows, panel/options/stance/roof buttons and the layout-arrow pair. */
-void UpdateMainGameButtons005989B0(void); /* 0x005989B0 */
+void UpdateMainGameButtons(void); /* 0x005989B0 */
 /* While the combat-end submenu is up and the cursor has left its row band,
    run a 500 ms countdown, then tear the panel and rows down. */
-void UpdateSubMenuAutoClose00598FA0(void); /* 0x00598FA0 */
+void UpdateSubMenuAutoClose(void); /* 0x00598FA0 */
 
 /* The scroll-arrow callbacks are one-argument thunks over the shared handler:
    up steps toward lower slots, down toward higher, both wrapping and skipping
@@ -124,8 +124,8 @@ void SetSubMenuButtonTooltips(int enabled); /* 0x005990F0 */
 /* Region callback for the sub-menu background: right-up tears the panel down. */
 /* 0x00598C10 / 0x00598C70: enable/disable the scroll, roof and layout button
    banks around the surprise/camp sequence. */
-void EnableMenuButtonBanks00598C10(void);
-void DisableMenuButtonBanks00598C70(void);
+void EnableMenuButtonBanks(void);
+void DisableMenuButtonBanks(void);
 unsigned char SubMenuBackgroundRegionEvent(const InputAtom* event,
                                            W8Region* region); /* 0x00598CD0 */
 /* Region callback the five sub-menu rows share. */

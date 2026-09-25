@@ -17,7 +17,7 @@
 
    Attribution evidence: 0x004DAFD0 passes this file's path string to
    MonsterGetIndexByLocationID. The level-0x15 block in
-   InitializeLevelMasterFunctions004D6C50 registers the surrounding cluster
+   InitializeLevelMasterFunctions registers the surrounding cluster
    (Fireantspawn, Sexspawn, Hotstuff, Gate, AshLock, TimeDorado). */
 
 /* "Sexspawn": on the first activation after fact 0x15f, mark the
@@ -26,7 +26,7 @@
    in the level. Returns false unless the swap runs, so the trigger stays
    armed until it does. */
 // FUNCTION: WIZ8 0x004DAFD0
-bool Rift1Sexspawn004DAFD0(Trigger* pTrigger)
+bool Rift1Sexspawn(Trigger* pTrigger)
 {
     srVector3T<float> position;
     W8MonsterInfo* monster_info;
@@ -53,7 +53,7 @@ bool Rift1Sexspawn004DAFD0(Trigger* pTrigger)
    entity, give it the MoveLavalord movement script and begin the scripted
    world action. */
 // FUNCTION: WIZ8 0x004DB090
-bool Rift1Hotstuff004DB090(Trigger* pTrigger)
+bool Rift1Hotstuff(Trigger* pTrigger)
 {
     srVector3T<float> position;
     W8MonsterGroup* group;
@@ -64,7 +64,7 @@ bool Rift1Hotstuff004DB090(Trigger* pTrigger)
             group = SpawnMonsters(0x175, 1, &position, 0, 1, 0, 0);
             if (group != 0) {
                 monster = GetMonsterByLocationID(IListGetAt(group->monsters, 0));
-                if (monster != 0 && monster->SetScript004C7F10("MoveLavalord.MSF", 1) != 0) {
+                if (monster != 0 && monster->SetScript("MoveLavalord.MSF", 1) != 0) {
                     BeginScriptedWorldAction();
                 }
             }
@@ -76,7 +76,7 @@ bool Rift1Hotstuff004DB090(Trigger* pTrigger)
 /* "Fireantspawn": spawn a hostile group of six fire ants (0x12b) at the
    Fireantspawn entity. */
 // FUNCTION: WIZ8 0x004DB120
-bool Rift1Fireantspawn004DB120(Trigger* pTrigger)
+bool Rift1Fireantspawn(Trigger* pTrigger)
 {
     srVector3T<float> position;
 
@@ -88,7 +88,7 @@ bool Rift1Fireantspawn004DB120(Trigger* pTrigger)
 
 /* "Gate": raise fact 0x1c4. */
 // FUNCTION: WIZ8 0x004DB160
-bool Rift1Gate004DB160(Trigger* pTrigger)
+bool Rift1Gate(Trigger* pTrigger)
 {
     SetFact(0x1c4, 1, 0);
     return true;
@@ -96,7 +96,7 @@ bool Rift1Gate004DB160(Trigger* pTrigger)
 
 /* "AshLock": spawn one hostile monster 0x222 at the NP_Hotstuff3 entity. */
 // FUNCTION: WIZ8 0x004DB180
-bool Rift1AshLock004DB180(Trigger* pTrigger)
+bool Rift1AshLock(Trigger* pTrigger)
 {
     srVector3T<float> position;
 
@@ -109,7 +109,7 @@ bool Rift1AshLock004DB180(Trigger* pTrigger)
 /* "TimeDorado": give every existing monster group of species 0xfc a fresh
    member. */
 // FUNCTION: WIZ8 0x004DB1C0
-bool Rift1TimeDorado004DB1C0(Trigger* pTrigger)
+bool Rift1TimeDorado(Trigger* pTrigger)
 {
     W8MonsterGroup* previous;
 

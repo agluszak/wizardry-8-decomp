@@ -8,7 +8,7 @@
 /* Test the polygon's representative point against six frustum planes; inside
    means every plane distance is non-negative. */
 // FUNCTION: WIZ8 0x004cfae0
-unsigned char W8OctRegionPolygon::InsideFrustumPlanes004CFAE0(const W8Plane* planes) const
+unsigned char W8OctRegionPolygon::InsideFrustumPlanes(const W8Plane* planes) const
 {
     for (short plane = 0; plane < 6; ++plane) {
         float distance = planes[plane].normal.x * position_18.x +
@@ -52,7 +52,7 @@ int CheckArrayLength004CFB70(int** run, unsigned short count, unsigned short cap
             *run = grown;
             return 1;
         }
-        ReportBuildStatus00497690(7, "CheckArrayLength: Could not allocate new array.\n");
+        ReportBuildStatus(7, "CheckArrayLength: Could not allocate new array.\n");
     }
     return 0;
 }

@@ -16,7 +16,7 @@ extern float g_facing_tolerance_005ebcf4;
 
 signed char DecideFacingForPosition(int position, int arg_2); /* 0x00555E70 */
 
-void RebuildPartyStatus00555FA0(W8PartyFormationState* status);
+void RebuildPartyStatus(W8PartyFormationState* status);
 
 /* 0x005557E0: turn the position's formation facing toward the second position
    the way DecideFacingForPosition resolved it. */

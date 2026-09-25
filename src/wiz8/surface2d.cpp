@@ -87,9 +87,9 @@ stSurface2D::stSurface2D(srColorSurfaceIFace* source, int source_width, int sour
       columns((source_width + tile_extent - 1) / tile_extent),
       rows((source_height + tile_extent - 1) / tile_extent), tile_count(columns * rows),
       width(source_width), height(source_height), tiles(new stTexture2D*[tile_count]),
-      tile_u((float)tile_extent / (float)source_width),
-      tile_v((float)tile_extent / (float)source_height), field_168(0), field_16c(1.0f), scale(0.0f),
-      texture_update_flags(0)
+      tile_u(tile_extent / static_cast<float>(source_width)),
+      tile_v(tile_extent / static_cast<float>(source_height)), field_168(0), field_16c(1.0f),
+      scale(0.0f), texture_update_flags(0)
 {
     int row;
     int column;
@@ -167,13 +167,13 @@ void stSurface2D::traverse(TraverseInfo& info)
 // FUNCTION: WIZ8 0x0047E0F0
 void stSurface2D::process(const ProcessInfo& info, e_processType)
 {
-    DrawTiles0047E100(info.renderer);
+    DrawTiles(info.renderer);
 }
 
 /* The tile render pass, entered from process(): ortho projection, vertex
    array state, then one triangle strip per tile in row-major order. */
 // FUNCTION: WIZ8 0x0047E100
-void stSurface2D::DrawTiles0047E100(srGERD* renderer)
+void stSurface2D::DrawTiles(srGERD* renderer)
 {
     srVector3T<float> location;
     int row;
@@ -197,10 +197,10 @@ void stSurface2D::DrawTiles0047E100(srGERD* renderer)
     for (row = 0; row != rows; ++row) {
         for (column = 0; column != columns; ++column) {
             float vertices[12];
-            float left = (float)column * tile_u;
-            float top = (float)row * tile_v;
-            float right = (float)(column + 1) * tile_u;
-            float bottom = (float)(row + 1) * tile_v;
+            float left = column * tile_u;
+            float top = row * tile_v;
+            float right = (column + 1) * tile_u;
+            float bottom = (row + 1) * tile_v;
 
             vertices[0] = left;
             vertices[1] = top;

@@ -146,12 +146,12 @@ class W8TextControl;
    selection the availability refresh drives. */
 /* Each keyboard-menu row's (W8SubMenuPage, entry) selection; retail storage is
    word-sized, so the enum values ride in shorts. */
-extern short g_keyboard_menu_items_69b7ec[12];
-extern Controls* g_keyboard_menu_panel_69b804;
-extern short g_keyboard_menu_pages_69b808[12];
-extern W8TextControl* g_keyboard_menu_rows_69b820[13];
+extern short g_keyboard_menu_items[12];
+extern Controls* g_keyboard_menu_panel;
+extern short g_keyboard_menu_pages[12];
+extern W8TextControl* g_keyboard_menu_rows[13];
 /* The (x, y) of the twelve menu rows and the trailing close row. */
-extern const int g_keyboard_row_positions_64c1cc[13][2];
+extern const int g_keyboard_row_positions[13][2];
 
 void ResetMGSKeyboardBindings();
 
@@ -159,10 +159,10 @@ void ResetMGSKeyboardBindings();
 void DrainInputEventQueue(void); /* 0x0055D3C0 */
 /* Reset the slot's combat selection and tear down the menu panel and rows.
    Retail inlines the whole body at all twelve MGSKeyboard.cpp call sites but
-   emits real calls from MainGameScreen.cpp: the authored definition was a
-   force-inlined function visible only in its own TU, kept addressable for the
+   emits real calls from MainGameScreen.cpp: the authored definition was an
+   inline function visible only in its own TU, kept addressable for the
    row-callback tables. */
-__forceinline void CloseKeyboardMenu(void); /* 0x00592E60 */
+inline void CloseKeyboardMenu(void); /* 0x00592E60 */
 /* Open the keyboard-action menu for one party slot. */
 void OpenKeyboardMenuForSlot(int slot); /* 0x00592C70 */
 /* Build the panel and one row per selectable menu entry. */
