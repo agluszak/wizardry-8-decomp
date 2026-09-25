@@ -731,15 +731,17 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
                                attack_block.duration_base;
                     if (duration != 9999) {
                         ++duration;
-                        {
-                            unsigned int roll = Random(4);
-                            if (roll == 0) {
-                                if (1 < duration) {
-                                    ++duration;
-                                }
-                            } else if (roll == 1 && duration < 3) {
+                        switch (Random(4)) {
+                        case 0:
+                            if (duration > 1) {
                                 ++duration;
                             }
+                            break;
+                        case 1:
+                            if (duration < 3) {
+                                ++duration;
+                            }
+                            break;
                         }
                         AdjustIntegerByPercent(&duration, attack_block.percent);
                     }
@@ -765,15 +767,17 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
                        attack_block.duration_base;
             if (duration != 9999) {
                 ++duration;
-                {
-                    unsigned int roll = Random(4);
-                    if (roll == 0) {
-                        if (1 < duration) {
-                            ++duration;
-                        }
-                    } else if (roll == 1 && duration < 3) {
+                switch (Random(4)) {
+                case 0:
+                    if (duration > 1) {
                         ++duration;
                     }
+                    break;
+                case 1:
+                    if (duration < 3) {
+                        ++duration;
+                    }
+                    break;
                 }
                 AdjustIntegerByPercent(&duration, attack_block.percent);
             }
@@ -1098,15 +1102,18 @@ void ApplyRandomAfflictionToTarget(W8SpellEffectEntry* effect)
     duration = effect->definition.duration_per_power * effect->definition.duration_scale +
                effect->definition.duration_base;
     if (duration != 9999) {
-        unsigned int jitter;
         ++duration;
-        jitter = Random(4);
-        if (jitter == 0) {
+        switch (Random(4)) {
+        case 0:
             if (duration > 1) {
                 ++duration;
             }
-        } else if (jitter == 1 && duration < 3) {
-            ++duration;
+            break;
+        case 1:
+            if (duration < 3) {
+                ++duration;
+            }
+            break;
         }
         AdjustIntegerByPercent(&duration, effect->definition.percent);
     }
@@ -2102,15 +2109,18 @@ void ApplyCombatEffectSlot(W8SpellEffectEntry* effect)
     duration = effect->definition.duration_per_power * effect->definition.duration_scale +
                effect->definition.duration_base;
     if (duration != 9999) {
-        unsigned int roll;
         ++duration;
-        roll = Random(4);
-        if (roll == 0) {
+        switch (Random(4)) {
+        case 0:
             if (duration > 1) {
                 ++duration;
             }
-        } else if (roll == 1 && duration < 3) {
-            ++duration;
+            break;
+        case 1:
+            if (duration < 3) {
+                ++duration;
+            }
+            break;
         }
         AdjustIntegerByPercent(&duration, effect->definition.percent);
     }
@@ -2203,15 +2213,18 @@ void ApplyDefenseEffectSlot(W8SpellEffectEntry* effect)
     duration = effect->definition.duration_per_power * effect->definition.duration_scale +
                effect->definition.duration_base;
     if (duration != 9999) {
-        unsigned int roll;
         ++duration;
-        roll = Random(4);
-        if (roll == 0) {
+        switch (Random(4)) {
+        case 0:
             if (duration > 1) {
                 ++duration;
             }
-        } else if (roll == 1 && duration < 3) {
-            ++duration;
+            break;
+        case 1:
+            if (duration < 3) {
+                ++duration;
+            }
+            break;
         }
         AdjustIntegerByPercent(&duration, effect->definition.percent);
     }
@@ -2290,15 +2303,18 @@ void ResolveAfflictionAgainstTargets(W8SpellEffectEntry* effect)
             effect->definition.duration_per_power * effect->definition.duration_scale +
             effect->definition.duration_base;
         if (duration != 9999) {
-            unsigned int jitter;
             ++duration;
-            jitter = Random(4);
-            if (jitter == 0) {
+            switch (Random(4)) {
+            case 0:
                 if (duration > 1) {
                     ++duration;
                 }
-            } else if (jitter == 1 && duration < 3) {
-                ++duration;
+                break;
+            case 1:
+                if (duration < 3) {
+                    ++duration;
+                }
+                break;
             }
             AdjustIntegerByPercent(&duration, effect->definition.percent);
         }
@@ -2358,15 +2374,18 @@ void ResolveAfflictionAgainstTargets(W8SpellEffectEntry* effect)
             effect->definition.duration_per_power * effect->definition.duration_scale +
             effect->definition.duration_base;
         if (duration != 9999) {
-            unsigned int jitter;
             ++duration;
-            jitter = Random(4);
-            if (jitter == 0) {
+            switch (Random(4)) {
+            case 0:
                 if (duration > 1) {
                     ++duration;
                 }
-            } else if (jitter == 1 && duration < 3) {
-                ++duration;
+                break;
+            case 1:
+                if (duration < 3) {
+                    ++duration;
+                }
+                break;
             }
             AdjustIntegerByPercent(&duration, effect->definition.percent);
         }
@@ -2919,15 +2938,18 @@ void ReduceCombatEffectDurations(W8SpellEffectEntry* effect)
     }
     duration = effect->definition.duration_scale;
     if (duration != 9999) {
-        unsigned int roll;
         ++duration;
-        roll = Random(4);
-        if (roll == 0) {
+        switch (Random(4)) {
+        case 0:
             if (duration > 1) {
                 ++duration;
             }
-        } else if (roll == 1 && duration < 3) {
-            ++duration;
+            break;
+        case 1:
+            if (duration < 3) {
+                ++duration;
+            }
+            break;
         }
         AdjustIntegerByPercent(&duration, effect->definition.percent);
     }
@@ -3292,15 +3314,17 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
                             duration = duration_scale * power + duration_base;
                             if (duration != 9999) {
                                 ++duration;
-                                {
-                                    unsigned int roll = Random(4);
-                                    if (roll == 0) {
-                                        if (1 < duration) {
-                                            ++duration;
-                                        }
-                                    } else if (roll == 1 && duration < 3) {
+                                switch (Random(4)) {
+                                case 0:
+                                    if (duration > 1) {
                                         ++duration;
                                     }
+                                    break;
+                                case 1:
+                                    if (duration < 3) {
+                                        ++duration;
+                                    }
+                                    break;
                                 }
                                 AdjustIntegerByPercent(&duration, percent);
                             }
@@ -3378,15 +3402,17 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
                     duration = duration_scale * power + duration_base;
                     if (duration != 9999) {
                         ++duration;
-                        {
-                            unsigned int roll = Random(4);
-                            if (roll == 0) {
-                                if (1 < duration) {
-                                    ++duration;
-                                }
-                            } else if (roll == 1 && duration < 3) {
+                        switch (Random(4)) {
+                        case 0:
+                            if (duration > 1) {
                                 ++duration;
                             }
+                            break;
+                        case 1:
+                            if (duration < 3) {
+                                ++duration;
+                            }
+                            break;
                         }
                         AdjustIntegerByPercent(&duration, percent);
                     }
