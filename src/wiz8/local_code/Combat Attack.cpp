@@ -1374,7 +1374,7 @@ unsigned char BlockedForSpecialReason(int weapon_class, W8CombatSlot* target, in
     if (g_settings.verbose_combat_messages != 0) {
         ShowNoticef(palette, gppStringList[0x213]);
     }
-    PlayCombatSound005499D0(GetMaterialImpactSound(weapon_class, material), 1, 1, -1);
+    PlayCombatSound(GetMaterialImpactSound(weapon_class, material), 1, 1, -1);
     return 1;
 }
 
@@ -3457,8 +3457,7 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
         } else if (target->iType == W8_TARGET_KIND_MONSTER) {
             monster = GetMonsterByLocationID(target->iMonsterID);
             if (monster != NULL) {
-                monster->GetPlayerToMonsterSightFlags004C4A20(&primary, &secondary,
-                                                              &source_position);
+                monster->GetPlayerToMonsterSightFlags(&primary, &secondary, &source_position);
             }
             if (secondary == 0 ||
                 (g_missile_table[missile_type].spell_missile_154 == 0 && primary == 0)) {
@@ -3931,7 +3930,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
     row->attack_sound_played_a5 = false;
     if (range >= W8_RANGE_LONG) {
         FireCharacterItemMissile(party_slot, character, row, range);
-        MakePCAttackSound00549EF0(row, &character->Hand[hand], mode, 0, -1);
+        MakePCAttackSound(row, &character->Hand[hand], mode, 0, -1);
         row->attack_sound_played_a5 = true;
     } else {
         event_ids[0] = g_event_range_min;
@@ -3949,7 +3948,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
    the struck target's retaliation enchantment, consumes the thrown item or
    charge, and answers whether the attack continues. */
 // FUNCTION: WIZ8 0x0053e250
-int ResolveCharacterAttack0053E250(int party_slot)
+int ResolveCharacterAttack(int party_slot)
 {
     W8SpellEffectResult* report = &g_combat_state->attack_report;
     W8SpellEffectResult local_report;
@@ -4007,7 +4006,7 @@ int ResolveCharacterAttack0053E250(int party_slot)
     } else {
         attack_mode = party_row->attack_mode[hand];
         if (row->attack_sound_played_a5 == 0) {
-            MakePCAttackSound00549EF0(row, &character->Hand[hand], attack_mode, 1, -1);
+            MakePCAttackSound(row, &character->Hand[hand], attack_mode, 1, -1);
             row->attack_sound_played_a5 = true;
             return 2;
         }
@@ -4527,7 +4526,7 @@ int ResolveCharacterAttack0053E250(int party_slot)
             row->attack_sound_played_a5 = false;
             if (range >= W8_RANGE_LONG) {
                 FireCharacterItemMissile(party_slot, character, row, range);
-                MakePCAttackSound00549EF0(row, &character->Hand[hand], attack_mode, 0, -1);
+                MakePCAttackSound(row, &character->Hand[hand], attack_mode, 0, -1);
                 row->attack_sound_played_a5 = true;
             }
             return 2;

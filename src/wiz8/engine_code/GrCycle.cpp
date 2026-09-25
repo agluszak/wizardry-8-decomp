@@ -369,7 +369,7 @@ unsigned char ReadGrCycleData(W8ReadLevelInfo* info, W8GrCycle** cycle, int cycl
     if (has_particles != 0) {
         W8GrowableVector<stParticle*> particles;
 
-        success = ReadWorldParticles004BD0D0(info, g_world->dynamic_scene, &particles);
+        success = ReadWorldParticles(info, g_world->dynamic_scene, &particles);
         if (particles.GetCount() != 0) {
             int index;
 
@@ -906,7 +906,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             psrMesh->setParent(pWorld->dynamic_scene, 0);
             path = AnimObjListEntry(animation, pRep->m_bLOD, static_cast<signed char>(index));
             if (path != 0) {
-                PathAIApply004AA520(path, psrMesh);
+                PathAIApply(path, psrMesh);
             }
             vecPos = movement_0c0.position_040;
             location.SetFromFloat(&vecPos);
@@ -1125,7 +1125,7 @@ void W8GrCycle::UpdateParticleAttachments()
             if ((pMeshModel->flags_3a0 >> 2 & 1) == 0) {
                 locations = pMeshModel->getVertexLoc();
             } else {
-                locations = pMeshModel->GetVertexLocations00471AD0(pRep->subcycle_064, 1, 0);
+                locations = pMeshModel->GetVertexLocations(pRep->subcycle_064, 1, 0);
             }
             if (vertex >= pMeshModel->vertex_location_count_22c) {
                 vertex = 0;

@@ -1,5 +1,5 @@
 #include "wiz8/engine_code/game_timer.h"
-#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/virtual_file.h"
 #include "wiz8/layouts/game_status.h"
@@ -316,7 +316,7 @@ float W8GameTimer::GetElapsedSeconds()
            m_duration_seconds;
 }
 
-W8GameTimer* CreateGameTimer005EC0A4(float duration, unsigned char raw_time)
+W8GameTimer* CreateGameTimer(float duration, unsigned char raw_time)
 {
     return new W8GameTimer(duration, raw_time);
 }

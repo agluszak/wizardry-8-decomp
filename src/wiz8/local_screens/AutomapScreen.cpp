@@ -142,7 +142,7 @@ void AutomapPanSouthButton(void);
 void AutomapPanWestButton(void);
 void AutomapPanEastButton(void);
 void AutomapExitButton(void);
-void ResetAutomapZoom0057FE40(void);
+void ResetAutomapZoom(void);
 
 /* String-table tooltip indexes for the sixteen automap chrome buttons. */
 // GLOBAL: WIZ8 0x0064b7a4
@@ -151,7 +151,7 @@ const int g_automap_button_tooltips[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
    already-recovered bodies at the retail callback addresses. */
 // GLOBAL: WIZ8 0x0064b7e4
 void (*const g_automap_button_callbacks[16])(void) = {
-    AutomapZoomInButton,         AutomapZoomOutButton,         ResetAutomapZoom0057FE40,
+    AutomapZoomInButton,         AutomapZoomOutButton,         ResetAutomapZoom,
     AutomapSelectNoteToolButton, AutomapSelectEraseToolButton, AutomapCyclePageButton,
     AutomapCyclePageButton,      AutomapCyclePageButton,       AutomapLayerDownButton,
     AutomapLayerUpButton,        AutomapPanNorthButton,        AutomapPanSouthButton,
@@ -306,7 +306,7 @@ unsigned char AutomapBackgroundRegionEvent(const InputAtom* event, W8Region* reg
    camera's own cell in the visited bitmap, retrying one cell higher when the
    packed cell misses the record table. */
 // FUNCTION: WIZ8 0x005817d0
-void ResetAutomapView005817D0(void)
+void ResetAutomapView(void)
 {
     if (g_automap_state == 0) {
         g_automap_state = (W8AutomapState*)malloc(sizeof(W8AutomapState));
@@ -700,7 +700,7 @@ unsigned char AutomapScreenEnter(void)
     g_automap_cursor_inside = IsCursorInsideViewport();
     g_automap_tool = 0;
     SetAutomapToolCursor(0);
-    CreateAutomapMarkerSprites005822C0();
+    CreateAutomapMarkerSprites();
     CreateAutomapButtons();
     g_class_68f29c->setParent(0, 1);
     g_automap_surface_mode = RendererBufferIsLockable();
@@ -733,7 +733,7 @@ unsigned char AutomapScreenEnter(void)
     RenderFrame();
     EnableCursorScene();
     SetScaledViewport00425C90(12, 32, 467, 467);
-    UpdateAutomapBounds00580380();
+    UpdateAutomapBounds();
     if (script.Load004CF3B0("Data\\Automap\\MapFilters.txt")) {
         W8Vector<char*> excluded_textures(5);
         int line = 0;
@@ -976,7 +976,7 @@ void AutomapScreenFrame(void)
                             SetAutomapCameraPoint(&g_automap_position);
                             SetAutomapToolCursor(g_automap_tool);
                         } else {
-                            ResetAutomapZoom0057FE40();
+                            ResetAutomapZoom();
                         }
                     }
                 }
@@ -990,7 +990,7 @@ void AutomapScreenFrame(void)
             if (previous != g_automap_hovered_note) {
                 if (previous)
                     ShowAutomapNoteTooltip(previous);
-                RenderAutomapMarkers00582930();
+                RenderAutomapMarkers();
             }
             srVector3T<float> point;
             if (GetAutomapPositionUnderCursor(&point)) {
@@ -1297,7 +1297,7 @@ void SetAutomapLayer(int layer)
 /* Reset the zoom to the full explored span, recenter over the bounds and
    restore the neutral button mode and cursor. */
 // FUNCTION: WIZ8 0x0057FE40
-void ResetAutomapZoom0057FE40(void)
+void ResetAutomapZoom(void)
 {
     g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
     srVector3T<float> position;
@@ -1500,7 +1500,7 @@ void RefreshDirtyAutomap(void)
 /* Recompute the explored-bounds box from the visited-cell bitmap: mark new
    cells for the node builder and grow the box to cover each visited cell. */
 // FUNCTION: WIZ8 0x00580380
-void UpdateAutomapBounds00580380(void)
+void UpdateAutomapBounds(void)
 {
     W8GrowableVector<stModelInstance*> models(5);
     PartyHasCondition(0x40);
@@ -1679,7 +1679,7 @@ void RenderAutomapFrame(void)
 {
     if (g_automap_redraw != 0) {
         if (g_automap_surface_mode == 0) {
-            RenderAutomapMarkers00582930();
+            RenderAutomapMarkers();
         } else {
             if (g_automap_overlay_redraw != 0) {
                 SetResidentTexturePolicy(3);
@@ -1691,7 +1691,7 @@ void RenderAutomapFrame(void)
                 view.top = (double)half;
                 g_world->camera->setViewPlane(view, (double)g_float_0064b920);
                 g_world->camera->setClipRange(g_float_0064b920, 1500000.0);
-                RenderWorldToSurface00426F80(g_automap_surface, &g_automap_viewport, 0);
+                RenderWorldToSurface(g_automap_surface, &g_automap_viewport, 0);
                 g_automap_overlay_redraw = false;
                 SetResidentTexturePolicy(0);
             }
@@ -1703,7 +1703,7 @@ void RenderAutomapFrame(void)
             surface->blit(0xc, 0x20, *g_automap_surface, 0xc, 0x20, 0x1d3, 0x1d3);
             surface->release();
             UnlockPrimarySurface();
-            RenderAutomapMarkers00582930();
+            RenderAutomapMarkers();
             InvalidateRegion(0xc, 0x20, 0x1d3, 0x1d3, 0);
             SetRendererOption4Enabled(0);
             RenderFrame();
@@ -1981,7 +1981,7 @@ W8AutomapNote* FindAutomapNoteUnderCursor(void)
 /* Load the automap marker textures and build the party, monster and text
    marker sprites over them. */
 // FUNCTION: WIZ8 0x005822C0
-void CreateAutomapMarkerSprites005822C0(void)
+void CreateAutomapMarkerSprites(void)
 {
     if (g_releasable_68f1f4 == 0) {
         g_releasable_68f1f4 = new W8GrowableVector<srClass*>(5);
@@ -2094,7 +2094,7 @@ void CreateAutomapMarkerSprites005822C0(void)
 /* Redraw the transient party, monster, item and note markers over the automap
    surface. */
 // FUNCTION: WIZ8 0x00582930
-void RenderAutomapMarkers00582930(void)
+void RenderAutomapMarkers(void)
 {
     bool detect_all = PartyHasCondition(0x40);
     while (g_releasable_68f1f4->GetCount()) {
@@ -2488,7 +2488,7 @@ unsigned char HandleAutomapNoteInput(const InputAtom* input)
         }
     }
     if (g_automap_editing_note != 0) {
-        RenderAutomapMarkers00582930();
+        RenderAutomapMarkers();
         return 1;
     }
     if (g_automap_tool != 0) {

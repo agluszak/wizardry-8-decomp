@@ -121,7 +121,7 @@ inline void OctPreTree::CollectLeafPolygons(const int* cell)
    whether the segment is unobstructed; the light-visibility callers
    accumulate its result. */
 // FUNCTION: WIZ8 0x00467bb0
-bool OctPreTree::SegmentClear00467BB0(const srVector3T<float>* from, const srVector3T<float>* to)
+bool OctPreTree::SegmentClear(const srVector3T<float>* from, const srVector3T<float>* to)
 {
     W8OctreeTrace trace;
     W8OctreeWalk walk;
@@ -486,7 +486,7 @@ OctMeshModel* OctPreTree::CreateSubMeshes00468C30(W8OctPreTreeGeometry* geometry
         return 0;
     }
     m_vertex_count_0c8 = geometry->vertex_count_00;
-    VerifyPolygonRegions0046ABF0();
+    VerifyPolygonRegions();
     /* 0x9c = three 0x34-byte build records per original unit.  SplitMeshes
        appends at most one record per source on each of its three kind
        passes while an emptied source keeps its slot, so the true slot
@@ -496,7 +496,7 @@ OctMeshModel* OctPreTree::CreateSubMeshes00468C30(W8OctPreTreeGeometry* geometry
         ReportBuildStatus(7, "\nCreateSubMeshes: Could not allocate submeshes.\n");
     } else {
         memset(records, 0, (spatial_000.submesh_count_74 + 1) * 0x9c);
-        AllocateSubMesh0046A790(records);
+        AllocateSubMesh(records);
         SplitMeshes00469670(geometry, records);
         m_aulPolyLookup = static_cast<unsigned long*>(malloc(geometry->polygon_count_08 * 4 + 4));
         if (m_aulPolyLookup == 0) {
@@ -1006,7 +1006,7 @@ unsigned long OctPreTree::SplitUVMaps0046A4B0(W8OctSubmeshBuild* record,
    overlaps those bounds.  The cell hash walk uses the table's single-fold
    hash on purpose - the same folding the builder inserted with. */
 // FUNCTION: WIZ8 0x0046a790
-unsigned long OctPreTree::AllocateSubMesh0046A790(W8OctSubmeshBuild* records)
+unsigned long OctPreTree::AllocateSubMesh(W8OctSubmeshBuild* records)
 {
     if (spatial_000.polygon_count_3c > 1) {
         for (unsigned long poly = 1; poly < spatial_000.polygon_count_3c; ++poly) {
@@ -1109,7 +1109,7 @@ unsigned long OctPreTree::AllocateSubMesh0046A790(W8OctSubmeshBuild* records)
    auto-region (region_32 >= region_count) descends to its position's leaf and
    reports when the leaf's region differs from the polygon's. */
 // FUNCTION: WIZ8 0x0046abf0
-void OctPreTree::VerifyPolygonRegions0046ABF0()
+void OctPreTree::VerifyPolygonRegions()
 {
     m_region_mask_140 = 0;
     for (unsigned long level = spatial_000.leaf_level_52; level != 0; --level) {
@@ -1214,8 +1214,8 @@ void OctPreTree::VerifyAutoMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBu
    keys each (z<<16 | x) cell so one pass emits at most one node per cell
    unless a duplicate key arrives with an empty value. */
 // FUNCTION: WIZ8 0x0046b060
-unsigned char OctPreTree::BuildPathLists0046B060(W8GameData* game_data, W8LevelFile* level,
-                                                 unsigned int min_component_percent)
+unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* level,
+                                         unsigned int min_component_percent)
 {
     W8HashTable<unsigned int, int> node_map;
     W8HashTable<unsigned int, CondPathNode*> cond_map;
@@ -1318,7 +1318,7 @@ unsigned char OctPreTree::BuildPathLists0046B060(W8GameData* game_data, W8LevelF
             return 0;
         }
         pre_pathing_2a0->LinkCollideableProps(prop_count, preprops, &cond_map);
-        pre_pathing_2a0->CreateAutomapNodes004CE070(level);
+        pre_pathing_2a0->CreateAutomapNodes(level);
     }
     for (int i = 0; i < prop_count; ++i) {
         /* Verified retail oddity: the binary tests pStopMeshes twice around
@@ -1359,7 +1359,7 @@ char OctPreTree::PathNodeObstructed0046B700(const srVector3T<float>* node)
     bounds_min.z = node->z - half;
     bounds_max.z = bounds_min.z + half + half;
 
-    result = TestPathPropBounds0046BEC0(&bounds_min, &bounds_max);
+    result = TestPathPropBounds(&bounds_min, &bounds_max);
     if (result != 1) {
         for (int i = 0; i < 4; ++i) {
             char out = 1;
@@ -1508,8 +1508,8 @@ OctPreTree::InsertConditionalNodes0046B9D0(W8HashTable<unsigned int, CondPathNod
 }
 
 // FUNCTION: WIZ8 0x0046bec0
-char OctPreTree::TestPathPropBounds0046BEC0(const srVector3T<float>* minimum,
-                                            const srVector3T<float>* maximum)
+char OctPreTree::TestPathPropBounds(const srVector3T<float>* minimum,
+                                    const srVector3T<float>* maximum)
 {
     unsigned long* ids = 0;
     srVector3T<float> bounds[2];

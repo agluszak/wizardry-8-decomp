@@ -388,7 +388,7 @@ unsigned char LoadKeywordFile(const char* path,
 /* 0x0056BE40: copy the next '/'-terminated field out of a keyword line into
    the caller's buffer and return the cursor past it, or null at the end. */
 wchar_t* ParseKeywordToken(wchar_t* line, wchar_t* field);
-void SyncDialogueNpcState00577260(void);
+void SyncDialogueNpcState(void);
 /* Store a transcript keyword, inferring its category when category is -1. */
 void AddDialogueTranscriptKeyword(const wchar_t* name, signed char category);
 bool IsDialoguePlaceKeyword(const wchar_t* name);
@@ -439,8 +439,8 @@ void CloseNpcDialogueMode5Layout(void);                             /* 0x0057357
 void ShowNpcDialogueTopicMenu(void);                                /* 0x00570760 */
 void HandleNpcDialogueDeparture(int value);                         /* 0x00577290 */
 unsigned char HandleNpcDialogueItem(W8ItemInstance* item);          /* 0x00575810 */
-unsigned char AcceptNpcDialogueItem005B1740(W8NpcState* npc, W8ItemInstance* item,
-                                            int mode); /* folded at 0x005B1740 */
+unsigned char AcceptNpcDialogueItem(W8NpcState* npc, W8ItemInstance* item,
+                                    int mode); /* folded at 0x005B1740 */
 void TranslateDialogueKeyword(const wchar_t* source, wchar_t* destination); /* 0x0056C440 */
 void ResetNpcDialogueItemEditor(void);                                      /* 0x0056FED0 */
 void SetNpcDialogueHidden(char value);                                      /* 0x00576850 */

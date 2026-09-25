@@ -135,7 +135,7 @@ void RegisterSearchableWorldItem(W8WorldItem* item)
 }
 
 // FUNCTION: WIZ8 0x00516f00
-void RegisterSearchableTrigger00516F00(Trigger* trigger)
+void RegisterSearchableTrigger(Trigger* trigger)
 {
     W8Searchable* searchable = new W8Searchable;
     if (searchable == 0) {
@@ -213,7 +213,7 @@ void RunSearchPulse(void)
 {
     if (ClockIsTicking(g_search_pulse_clock) == 0) {
         g_search_pulse_clock = SetCountdownClock(500);
-        if (GetEnvironmentFlag0060A394() != 0 && gXStatus.world_update_blocked == 0 &&
+        if (GetEnvironmentFlag() != 0 && gXStatus.world_update_blocked == 0 &&
             gXStatus.fSurprisePossible == 0 && gXStatus.fLockInteractMode == 0 &&
             gXStatus.fLockInteract == 0 && gXStatus.fTrapInteractMode == 0 &&
             gXStatus.fTrapInteract == 0) {

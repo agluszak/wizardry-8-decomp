@@ -48,7 +48,7 @@ extern W8SearchableView g_search_view;
 extern unsigned int g_search_pulse_clock;
 
 void RegisterSearchableWorldItem(W8WorldItem* item);
-void RegisterSearchableTrigger00516F00(Trigger* trigger);
+void RegisterSearchableTrigger(Trigger* trigger);
 void UnregisterSearchableTrigger(Trigger* trigger);
 /* 0x00516BA0: refill the view with the in-range, in-view searchables and
    return it, or null when none qualify. */

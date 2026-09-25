@@ -212,7 +212,7 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
     PListInit(&world->m_lights_0a8);
     world->m_owned_04c = 0;
 
-    if (CheckLevelAssetSet0042CCC0(oct_path) >= 0) {
+    if (CheckLevelAssetSet(oct_path) >= 0) {
         world->octree = new W8Octree(oct_path, &world->m_owned_04c);
         if (world->octree != 0 && world->octree->HasLoadError()) {
             delete world->octree;
@@ -352,7 +352,7 @@ void UpdateWorlds(void)
     UpdateTimedTriggerEvents();
     UpdateShakeEffects();
     UpdateEnvironment();
-    UpdateNpcEvents0050D530();
+    UpdateNpcEvents();
 }
 
 // FUNCTION: WIZ8 0x0044F4E0
@@ -366,7 +366,7 @@ void UpdateWorld(W8World* world)
     if (world != g_world_659ab8) {
         UpdateWorldMonsters(world);
         UpdateWorldMissiles(world);
-        UpdateWorldSpellVisuals004AAB80(world);
+        UpdateWorldSpellVisuals(world);
         UpdateAmbientSounds(world);
         WorldUpdateLights(world);
         RunMonsterGenerators();
@@ -625,7 +625,7 @@ void DestroyWorld(W8World* world)
    skipped there. Function-local statics keep the last refresh position and the
    last applied rotation; their atexit thunks are at 0x00450070 / 0x00450060. */
 // FUNCTION: WIZ8 0x0044FC20
-void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags)
+void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
 {
     static srVector3T<float> s_last_automap_refresh_position;
     static srMatrix3T<float> s_saved_camera_rotation;
@@ -667,8 +667,8 @@ void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags)
             pitch = GetCameraPitchInDegrees();
             g_startup_world->SetAngles(yaw);
             g_startup_world->SetPitch(pitch);
-            if (world->m_owned_04c->ApplyCameraMotion0041F5F0(flags, &camera_position, &delta,
-                                                              &motion_saved) != 0) {
+            if (world->m_owned_04c->ApplyCameraMotion(flags, &camera_position, &delta,
+                                                      &motion_saved) != 0) {
                 camera_position.x = camera_position.x + delta.x;
                 camera_position.y = camera_position.y + delta.y;
                 camera_position.z = camera_position.z + delta.z;
@@ -694,11 +694,11 @@ void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags)
                     camera_position.y = camera_position.y - g_default_world_height;
                     if (AutomapHasCellAt(&camera_position) != 0) {
                         SetWorldMeshVertexLightTable(g_world, 1);
-                        UpdateAutomapBounds00580380();
+                        UpdateAutomapBounds();
                         SetWorldMeshVertexLightTable(g_world, 0);
                     }
                 }
-                DispatchWorldCursorNodeCommand004D9080(0, 0, 0);
+                DispatchWorldCursorNodeCommand(0, 0, 0);
                 GetLevelSoundEnvironment(&sound_environment, &sound_environment_secondary);
                 if (sound_environment >= 0) {
                     Sound3DSetEnvironment(sound_environment);
@@ -718,7 +718,7 @@ void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags)
             if (camera_path != 0 && camera_path->active_14 != 0) {
                 path = camera_path->path_18;
                 PathAITick(path, 1);
-                PathAIApply004AA520(path, world->camera);
+                PathAIApply(path, world->camera);
                 {
                     srVector3T<double> location = world->camera->getLocation();
                     srVector3T<float> party_point;

@@ -79,9 +79,9 @@ extern float g_material_diffuse_scale;
 extern bool g_material_emissive_override_enabled;
 extern float g_material_emissive_override;
 
-unsigned char LoadMaterial004B8A70(const char* bitmap_folder, const W8MaterialRecord* source,
-                                   srMaterialIFace** material, srTextureIFace** texture,
-                                   unsigned long* render_flags, int positional_unused);
+unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* source,
+                           srMaterialIFace** material, srTextureIFace** texture,
+                           unsigned long* render_flags, int positional_unused);
 srTexture* LoadTexture004B95D0(const char* folder, const char* name, unsigned char required);
 stTextureAnim* LoadAnimatedTexture(const char* folder, const char* name,
                                    const W8MaterialRecord* source, unsigned char required);

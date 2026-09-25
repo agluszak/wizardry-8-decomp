@@ -3008,7 +3008,7 @@ void FinishSpellEffectTargets(W8SpellEffectEntry* effect)
     character = 0;
     monster_info = 0;
     best = 0;
-    if (MonsterCanAimSpell005474B0(effect->kind) != 0 && effect->Source.aim_resolved_1a == 0 &&
+    if (MonsterCanAimSpell(effect->kind) != 0 && effect->Source.aim_resolved_1a == 0 &&
         effect->Source.fBackfire == 0 && effect->Source.fReflection == 0) {
         for (index = 0; index < effect->target_indices_0f0.GetCount(); ++index) {
             W8Character* member = &g_status.buffers.Char[*effect->target_indices_0f0.GetAt(index)];

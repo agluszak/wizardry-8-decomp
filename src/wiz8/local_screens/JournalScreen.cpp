@@ -472,7 +472,7 @@ unsigned char JournalScreenLeave(int)
     delete g_journal_entries;
     g_journal_entries = 0;
     if (gXStatus.fCampMode) {
-        SyncDialogueNpcState00577260();
+        SyncDialogueNpcState();
     }
     return 1;
 }

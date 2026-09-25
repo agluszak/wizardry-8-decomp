@@ -1266,7 +1266,7 @@ void W8CharacterEventQueue::RestartFollowUpClock(W8CharacterEvent* entry)
 // FUNCTION: WIZ8 0x0052E1C0
 void W8CharacterEventQueue::ProcessFollowUpEvents()
 {
-    if (GetFlag68F105() != 0 || GetEnvironmentFlag0060A394() == 0) {
+    if (GetFlag68F105() != 0 || GetEnvironmentFlag() == 0) {
         return;
     }
     if ((follow_up_flags & 1) == 0) {
@@ -2132,8 +2132,7 @@ int UpdateCharacterEventState(void)
    for the animated form the frame blitter runs first, and the death,
    in-combat or exhausted state adds the darkened overlay. */
 // FUNCTION: WIZ8 0x0052eb00
-void RenderPartyPortrait0052EB00(int portrait, int left, int top, int flags, int value,
-                                 int party_slot)
+void RenderPartyPortrait(int portrait, int left, int top, int flags, int value, int party_slot)
 {
     DrawCatalogImage(-0xe, 0x12, portrait, 0, left, top, flags | 0x200, 0);
     if (party_slot == -1) {
@@ -2182,7 +2181,7 @@ bool BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
         if (animate == 0 &&
             ((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].dead_34 != 0) ||
              gXStatus.fSurprisePossible != 0)) {
-            RenderPartyPortrait0052EB00(portrait, left, top, flags, 0, party_slot);
+            RenderPartyPortrait(portrait, left, top, flags, 0, party_slot);
         }
         if (g_status.buffers.Char[party_slot].hp_current == 0) {
             return 1;
@@ -2214,7 +2213,7 @@ bool BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
         GetCatalogImagePosition(0x12, portrait, state->portrait_frame, &image_x, &image_y);
         if (animate == 0 && drawn == 0 && gXStatus.fCombatMode != 0 &&
             g_combat_state->characters[party_slot].dead_34 != 0) {
-            RenderPartyPortrait0052EB00(portrait, left, top, flags, 0, party_slot);
+            RenderPartyPortrait(portrait, left, top, flags, 0, party_slot);
         }
         DrawCatalogImage(-0xe, 0x12, portrait, state->portrait_frame, left, top, flags, 0);
 #ifdef WIZ8_RUNTIME_TESTS

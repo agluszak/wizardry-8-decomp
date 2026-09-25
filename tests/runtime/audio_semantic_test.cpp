@@ -76,12 +76,12 @@ static unsigned char CheckFootstepPaths()
     int saved_variant = g_previous_footstep_variant_65a10c;
     SetRenderOption(15, 1);
     g_previous_footstep_variant_65a10c = 0;
-    PlayFootstep0047A440(W8_FOOTSTEP_SURFACE_MEDIUM_ROOM, W8_FOOTSTEP_MATERIAL_CLIMB_LADDER,
-                         W8_FOOTSTEP_KIND_STEP);
+    PlayFootstep(W8_FOOTSTEP_SURFACE_MEDIUM_ROOM, W8_FOOTSTEP_MATERIAL_CLIMB_LADDER,
+                 W8_FOOTSTEP_KIND_STEP);
     int bypass = g_previous_footstep_variant_65a10c == 0;
     g_previous_footstep_variant_65a10c = 0;
-    PlayFootstep0047A440(W8_FOOTSTEP_SURFACE_MEDIUM_ROOM, W8_FOOTSTEP_MATERIAL_STONE,
-                         W8_FOOTSTEP_KIND_STEP);
+    PlayFootstep(W8_FOOTSTEP_SURFACE_MEDIUM_ROOM, W8_FOOTSTEP_MATERIAL_STONE,
+                 W8_FOOTSTEP_KIND_STEP);
     int variant =
         g_previous_footstep_variant_65a10c >= 1 && g_previous_footstep_variant_65a10c <= 4;
     g_previous_footstep_variant_65a10c = saved_variant;

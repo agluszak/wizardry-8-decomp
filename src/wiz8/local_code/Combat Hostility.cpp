@@ -341,7 +341,7 @@ unsigned char MonsterActionTargetsEnemies(int action_kind, int action_detail,
 /* Whether a spell id can be aimed by monster AI: inside the spell table, not
    one of the two self-only kinds, and carrying a middle target type. */
 // FUNCTION: WIZ8 0x005474B0
-bool MonsterCanAimSpell005474B0(int spell_id)
+bool MonsterCanAimSpell(int spell_id)
 {
     if (spell_id > 0x95) {
         srAssertFail("iType < SPELL_COUNT",
@@ -792,8 +792,7 @@ int CharacterPrayAction(int party_slot)
             for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
                 W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
                 if (monster->fActive && monster->fInCombat && monster->ubDisposition == 1 &&
-                    monster->hp_current != 0 &&
-                    monster->p3D->GetDistanceToPlayer004C7CB0() <= range) {
+                    monster->hp_current != 0 && monster->p3D->GetDistanceToPlayer() <= range) {
                     ++in_range;
                 }
             }
@@ -802,8 +801,8 @@ int CharacterPrayAction(int party_slot)
                 for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
                     W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
                     if (monster->fActive && monster->fInCombat && monster->ubDisposition == 1 &&
-                        monster->hp_current != 0 &&
-                        monster->p3D->GetDistanceToPlayer004C7CB0() <= range && --pick == 0) {
+                        monster->hp_current != 0 && monster->p3D->GetDistanceToPlayer() <= range &&
+                        --pick == 0) {
                         AppendToLastTextLine(gppStringList[0x179], -1);
                         target.iType = W8_TARGET_KIND_MONSTER;
                         target.iMonsterID = monster->location_id;
@@ -891,8 +890,7 @@ int CharacterPrayAction(int party_slot)
                 for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
                     W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
                     if (monster->fActive && monster->fInCombat && monster->ubDisposition == 1 &&
-                        monster->hp_current != 0 &&
-                        monster->p3D->GetDistanceToPlayer004C7CB0() <= range) {
+                        monster->hp_current != 0 && monster->p3D->GetDistanceToPlayer() <= range) {
                         AppendToLastTextLine(gppStringList[0x179], -1);
                         ResetCombatSlot(&target);
                         CastSpellFromSource(0x60, &source, &target, power_level, 0, 0, 0, &outcome,

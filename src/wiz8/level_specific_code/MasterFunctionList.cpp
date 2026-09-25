@@ -201,7 +201,7 @@ static W8WorldCursorNodeHandler const g_world_cursor_node_handlers[10] = {
    themselves to nodes of type 3, 2 and 7 respectively. Answers whether any
    handler reported the command handled. */
 // FUNCTION: WIZ8 0x004D9080
-unsigned char DispatchWorldCursorNodeCommand004D9080(W8MonsterInfo* info, int command, ...)
+unsigned char DispatchWorldCursorNodeCommand(W8MonsterInfo* info, int command, ...)
 {
     srVector3T<float> position;
     W8WorldCursorNode* node;
@@ -527,7 +527,7 @@ void LoadAwayCampChest(void)
     if (pContainer == 0) {
         srAssertFail("pContainer", MASTER_FUNCTION_CPP, 0x5a8, 0);
     }
-    LoadSavedLevelItems00516070(0x26, &items);
+    LoadSavedLevelItems(0x26, &items);
     for (index = 0; index < items.GetCount(); ++index) {
         W8WorldItem* item = *items.GetAt(index);
 

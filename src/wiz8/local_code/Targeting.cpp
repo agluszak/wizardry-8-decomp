@@ -1149,7 +1149,7 @@ int ChooseMonsterTarget(int party_slot, int group_id, W8TargetingContext context
 
         /* The first range band whose reach covers where the monster is. */
         for (band = 0; band < 4; ++band) {
-            if (monster_info->p3D->GetDistanceToPlayer004C7CB0() <=
+            if (monster_info->p3D->GetDistanceToPlayer() <=
                 CalcRangeDistance(static_cast<W8RangeCategory>(band))) {
                 next->range_band = band;
                 break;
@@ -1161,7 +1161,7 @@ int ChooseMonsterTarget(int party_slot, int group_id, W8TargetingContext context
         }
         next->hp_current = monster_info->hp_current;
         next->same_group = (unsigned char)(monster_info->monster_group_id == group_id);
-        next->distance = monster_info->p3D->GetDistanceToPlayer004C7CB0();
+        next->distance = monster_info->p3D->GetDistanceToPlayer();
 
         ++found;
         ++next;
@@ -1801,7 +1801,7 @@ bool IsTargetSourceInRangeOfGroup(const W8TargetSource* source, W8MonsterGroup* 
             if (source->iChar == BAD_INDEX) {
                 srAssertFail("pSource->iChar != BAD_INDEX", TARGETING_CPP, 0xce3, 0);
             }
-            distance = member->GetDistanceToPlayer004C7CB0();
+            distance = member->GetDistanceToPlayer();
         } else if (source->iType == W8_TARGET_SOURCE_MONSTER) {
             if (source->iMonsterID == BAD_INDEX) {
                 srAssertFail("pSource->iMonsterID != BAD_INDEX", TARGETING_CPP, 0xcf8, 0);
@@ -3119,7 +3119,7 @@ bool IsMonsterVisibleWithinDistance(W8Monster* monster, const srVector3T<float>*
     srVector3T<float> center;
     srVector3T<float> projected;
 
-    if (monster->GetDistanceToPlayer004C7CB0() < max_distance) {
+    if (monster->GetDistanceToPlayer() < max_distance) {
         monster->GetAnimationBounds(&minimum, &maximum);
         center = monster->movement_0c0.position_040;
         center.y += monster->movement_0c0.height_offset_0b8;
@@ -3677,10 +3677,10 @@ int ChooseFallbackMonsterTarget(int party_slot, int group_id, W8TargetingContext
          g_combat_state->characters[party_slot].phase == 0) &&
         !IsItemBoundToWearer(&character->EquippedItem[8]) &&
         !IsItemBoundToWearer(&character->EquippedItem[9]) &&
-        SwapWeaponSetSlots0051D3B0(party_slot, 0, 0) == 1) {
+        SwapWeaponSetSlots(party_slot, 0, 0) == 1) {
         result = ChooseMonsterTarget(party_slot, group_id, context);
         if (result == -1) {
-            if (SwapWeaponSetSlots0051D3B0(party_slot, 0, 0) != 0) {
+            if (SwapWeaponSetSlots(party_slot, 0, 0) != 0) {
                 return -1;
             }
             PostCharacterNotice(party_slot, gppStringList[0x26c]);
@@ -3720,7 +3720,7 @@ void ReconcilePartyEquipmentAfterCombat(void)
             (character->hp_current != 0 || character->highest_condition < 0xd) &&
             row->weapon_swap_pending_105 != 0 && g_settings.autoswap_weapons != 0 &&
             row->item_action_pending_0f5 == 0) {
-            SwapWeaponSetSlots0051D3B0(party_slot, 0, 1);
+            SwapWeaponSetSlots(party_slot, 0, 1);
             row->weapon_swap_pending_105 = 0;
         }
     }

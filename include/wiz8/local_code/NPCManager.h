@@ -70,7 +70,7 @@ W8Character* GetNpcGroupCharacter(W8NpcState* npc);                     /* 0x005
 
 /* The NPC-side global frame operation: timed world events and the per-frame
    NPC state passes. */
-void UpdateNpcEvents0050D530(void);
+void UpdateNpcEvents(void);
 void AdvanceNpcTimers(unsigned int elapsed);
 void ProcessNpcPendingEvents(void);
 

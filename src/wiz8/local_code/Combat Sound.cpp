@@ -33,8 +33,7 @@ char* g_material_impact_sounds[28][12];
    level; zero and below play at the default.  With the flag set the handle is
    registered on the combat state so the service can poll SoundIsPlaying. */
 // FUNCTION: WIZ8 0x005499D0
-void PlayCombatSound005499D0(char* sound_name, unsigned int variant_count, bool store_handle,
-                             int volume)
+void PlayCombatSound(char* sound_name, unsigned int variant_count, bool store_handle, int volume)
 {
     SOUNDPARMS parms;
     char zSoundFileName[0x60];
@@ -220,14 +219,14 @@ static inline void PlayMaterialImpactSound(int weapon_class, int target_material
     char* sound;
 
     if (weapon_class < 0 || weapon_class >= 28 || target_material < 0 || target_material >= 12) {
-        PlayCombatSound005499D0(const_cast<char*>("HIT"), 1, 1, volume);
+        PlayCombatSound(const_cast<char*>("HIT"), 1, 1, volume);
         return;
     }
     sound = g_material_impact_sounds[weapon_class][target_material];
     if (sound) {
-        PlayCombatSound005499D0(sound, 1, 1, volume);
+        PlayCombatSound(sound, 1, 1, volume);
     } else {
-        PlayCombatSound005499D0(g_material_impact_sounds[0][target_material], 1, 1, volume);
+        PlayCombatSound(g_material_impact_sounds[0][target_material], 1, 1, volume);
     }
 }
 
@@ -261,8 +260,8 @@ static inline int PCItemInACSlot(const W8Character* character, int hit_location)
 }
 
 // FUNCTION: WIZ8 0x00549EF0
-void MakePCAttackSound00549EF0(W8CombatCharacterRow* row, const W8HandAttack* hand_attack,
-                               int arg_3, bool store_handle, int volume)
+void MakePCAttackSound(W8CombatCharacterRow* row, const W8HandAttack* hand_attack, int arg_3,
+                       bool store_handle, int volume)
 {
     int weapon_class;
 
@@ -274,7 +273,7 @@ void MakePCAttackSound00549EF0(W8CombatCharacterRow* row, const W8HandAttack* ha
             return;
         }
     }
-    PlayCombatSound005499D0(g_weapon_attack_sounds[weapon_class], 1, store_handle, volume);
+    PlayCombatSound(g_weapon_attack_sounds[weapon_class], 1, store_handle, volume);
 }
 
 // FUNCTION: WIZ8 0x00549F50
@@ -300,7 +299,7 @@ void MakePCMeleeHitSound(int iChar, const W8HandAttack* hand_attack, W8CombatSlo
     } else {
         srAssertFail("FALSE", COMBAT_SOUND_CPP, 415, "MakePCHitSound : Unknown target type");
     }
-    PlayCombatSound005499D0(LookupMaterialImpactSound(weapon_class, target_material), 1, 1, volume);
+    PlayCombatSound(LookupMaterialImpactSound(weapon_class, target_material), 1, 1, volume);
 }
 
 // FUNCTION: WIZ8 0x0054A0E0

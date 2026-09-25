@@ -65,7 +65,7 @@ public:
     /* Advances movement_00->target_yaw toward movement_00->yaw by the shorter
        arc, accelerating or decelerating the angular velocity in
        movement_00->yaw_velocity_01c. */
-    void UpdateYawSteering004CB520(float time_step, char use_turn_rate); /* 0x004CB520 */
+    void UpdateYawSteering(float time_step, char use_turn_rate); /* 0x004CB520 */
     /* Predicts a collision with another navigator or the party inside the
        prediction window; returns nonzero when one is found ahead. */
     unsigned char PredictNavigatorCollision(); /* 0x004CB620 */
@@ -286,8 +286,7 @@ public:
     /* The two operations W8Octree::AdvanceNavigator delegates to: it loads
        the service into ecx before either call, so both are its methods and
        not the free functions they were declared as. */
-    unsigned int StepAlongPath004669B0(W8NavigatorMovementState* movement, float radius,
-                                       float separation);
+    unsigned int StepAlongPath(W8NavigatorMovementState* movement, float radius, float separation);
     unsigned int StepMonsterAlongPath(W8NavigatorMovementState* movement, float radius,
                                       float separation);
     void LinkSurfaces(GDProp* prop); /* 0x00460020 */
@@ -332,8 +331,7 @@ public:
     unsigned char ResolvePathCell(unsigned int key, unsigned char allow_dynamic,
                                   unsigned int* height, float* direction, float* vertical,
                                   unsigned char* dynamic);
-    unsigned short FindWaypoint0045B120(const srVector3T<float>* position,
-                                        unsigned char exhaustive);
+    unsigned short FindWaypoint(const srVector3T<float>* position, unsigned char exhaustive);
     void SnapPathHeight(srVector3T<float>* position);
     void GetPathSurfaceNormal0045B730(const srVector3T<float>* position, srVector3T<float>* normal);
     void ActivateMovementTrigger(W8NavigatorMovementState* movement, unsigned char use_path_edge);
@@ -349,8 +347,7 @@ public:
                                            const srVector3T<float>* direction);
     void AddWaypoint(const srVector3T<float>* position);
     unsigned int ClassifyWaypoint(const srVector3T<float>* position);
-    unsigned char SnapWaypointPosition00462E60(srVector3T<float>* position,
-                                               unsigned char snap_to_cell);
+    unsigned char SnapWaypointPosition(srVector3T<float>* position, unsigned char snap_to_cell);
     unsigned char TestPathCellClearance(srVector3T<float>* position, float clearance,
                                         unsigned char snap_to_cell);
     unsigned char SnapToLowerPathCell(srVector3T<float>* position, unsigned char allow_directional);
@@ -361,9 +358,9 @@ public:
     unsigned char PrepareLinkedNavigator(W8NavigatorMovementState* movement);
     unsigned char LinkAttachmentTarget(W8NavigatorAttachment* attachment, unsigned int flags,
                                        const srVector3T<float>* target, float separation);
-    unsigned char BuildPatrolPath00461960(W8NavigatorAttachment* attachment, unsigned int flags,
-                                          const srVector3T<float>* target, float minimum,
-                                          const srVector3T<float>* velocity, float maximum);
+    unsigned char BuildPatrolPath(W8NavigatorAttachment* attachment, unsigned int flags,
+                                  const srVector3T<float>* target, float minimum,
+                                  const srVector3T<float>* velocity, float maximum);
     void ProbeWaypointArc(const srVector3T<float>* from, const srVector3T<float>* to);
     void GetPathGridStepDirections(const W8PathGridWalk* walk, int* directions);
     void BuildPathGridWalk(const srVector2T<float>* from, const srVector2T<float>* to,
@@ -387,7 +384,7 @@ public:
                                        srVector3T<float>* direction);
     /* A* from the attachment's start to its destination over the surface
        graph; returns the destination surface index, zero when unreachable. */
-    unsigned int FindPath00460B80(W8NavigatorAttachment* attachment, unsigned int flags);
+    unsigned int FindPath(W8NavigatorAttachment* attachment, unsigned int flags);
     /* Depth-first patrol search from `waypoint`: accumulates per-link path
        costs against the randomized patrol_distance target, tracking the
        argmin-key fallback nodes, and returns the reached endpoint or zero.
@@ -596,11 +593,11 @@ public:
        0x3e80-byte chunk (1000 records) when the current one fills. */
     W8PrePathNode* GetPathNode();
     unsigned char BuildPathList(W8PrePathNode* nodes, W8HashTable<unsigned int, int>* cell_map);
-    unsigned char LinkPathNodes004CD390();
+    unsigned char LinkPathNodes();
     void PropagatePathNodeClearance(W8PrePathNode* node, unsigned int depth);
     unsigned int DeleteUnreachableAreas();
     int CreatePathNodeArray();
-    unsigned char CreateAutomapNodes004CE070(W8LevelFile* level);
+    unsigned char CreateAutomapNodes(W8LevelFile* level);
 
     W8PrePathNode** path_node_list_240; /* size_004 entries */
     OctPrePathLog* path_log_244;

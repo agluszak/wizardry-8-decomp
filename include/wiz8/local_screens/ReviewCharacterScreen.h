@@ -229,7 +229,7 @@ void BeginScreenFade(int fade_to_black, int arg_2, int fade_code, void (*callbac
 extern const wchar_t g_format_s_0064dd28[];
 unsigned char UpdateScreenFade(void);
 void BeginPartyDeath(void);
-void PumpReviewTransition005A6970(void);
+void PumpReviewTransition(void);
 void DrawPartyDeathScreen(void);
 void EndReviewTransition(void);
 /* Ending sequence picker run when that fade completes. */

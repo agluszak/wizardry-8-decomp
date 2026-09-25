@@ -67,7 +67,7 @@ void FreeAniMeshCache(void)
 }
 
 // FUNCTION: WIZ8 0x004b57e0
-W8AniMesh* CreateAniMesh004B57E0()
+W8AniMesh* CreateAniMesh()
 {
     W8AniMesh* mesh = static_cast<W8AniMesh*>(malloc(sizeof(W8AniMesh)));
 
@@ -339,7 +339,7 @@ unsigned char LoadAniMesh(int file, W8AniMesh* mesh, unsigned char load_all)
     if ((mesh->flags_00 & W8_ANI_MESH_KEEP_LOADED) != 0) {
         PLAdoptAppend(&g_animesh_cache_list, mesh);
     }
-    EnforceAniMeshMemoryLimit004B6770(mesh);
+    EnforceAniMeshMemoryLimit(mesh);
     return 1;
 }
 
@@ -539,7 +539,7 @@ void AniMeshSetFlag10(W8AniMesh* mesh, signed char enabled)
 }
 
 // FUNCTION: WIZ8 0x004b6770
-void EnforceAniMeshMemoryLimit004B6770(W8AniMesh* current)
+void EnforceAniMeshMemoryLimit(W8AniMesh* current)
 {
     while (g_animesh_cache_bytes > g_animesh_cache_limit && PLLength(&g_animesh_cache_list) != 0) {
         W8AniMesh* oldest = 0;

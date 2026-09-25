@@ -179,7 +179,7 @@ char StartCharacterAttack(int party_slot, int attack_mode); /* 0x0053D870 */
    interception, picks the hit location, rolls penetration, applies damage
    and enchantments, consumes the item, and answers whether the attack
    continues. */
-int ResolveCharacterAttack0053E250(int party_slot);
+int ResolveCharacterAttack(int party_slot);
 /* 0x00544530: a fumbled swing queues its reaction event - half the time the
    attacker himself, otherwise the fumbled victim or a random party member
    answers. */

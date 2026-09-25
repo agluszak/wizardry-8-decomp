@@ -544,13 +544,13 @@ void OptimizeMeshOrder(srMeshModel* model, unsigned long flags)
 }
 
 // FUNCTION: WIZ8 0x00488650
-stMeshModel* BuildSingleLevelMesh00488650(int face_count, W8ReadMeshFace* faces, int vertex_count,
-                                          int material_count, srMaterialIFace** materials,
-                                          srTextureIFace** textures, unsigned long* render_flags,
-                                          unsigned int* mesh_count, int*** vertex_maps,
-                                          unsigned int* vertex_map_count,
-                                          W8GrowableVector<short>* mapped_values,
-                                          W8GrowableVector<short>* mapped_keys)
+stMeshModel* BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count,
+                                  int material_count, srMaterialIFace** materials,
+                                  srTextureIFace** textures, unsigned long* render_flags,
+                                  unsigned int* mesh_count, int*** vertex_maps,
+                                  unsigned int* vertex_map_count,
+                                  W8GrowableVector<short>* mapped_values,
+                                  W8GrowableVector<short>* mapped_keys)
 {
     W8GrowableVector<unsigned long> polygon_types;
     W8OctreeIndex vertex_indices[8];
@@ -796,7 +796,7 @@ stMeshModel* BuildSingleLevelMesh00488650(int face_count, W8ReadMeshFace* faces,
         }
         if (previous_model != 0) {
             previous_model->LinkTo(model);
-            model->NotifyLinkedModel005AA400(previous_model);
+            model->NotifyLinkedModel(previous_model);
         }
         previous_model = model;
         if (first_model == 0) {
@@ -885,8 +885,8 @@ int ReadMeshMaterials(W8ReadLevelInfo* info, srMaterialIFace*** materials,
         if (index == 0) {
             CreateDefaultMaterial(*materials + index, *textures + index, *render_flags + index);
         } else {
-            LoadMaterial004B8A70(info->bitmap_folder, records + index, *materials + index,
-                                 *textures + index, *render_flags + index, load_materials);
+            LoadMaterial(info->bitmap_folder, records + index, *materials + index,
+                         *textures + index, *render_flags + index, load_materials);
         }
     }
     return count;
@@ -1088,9 +1088,9 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
         srAssertFail("uiMatCount", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x16c, 0);
     }
 
-    first_model = BuildSingleLevelMesh00488650(
-        face_count, faces, vertex_count, material_count, materials, textures, render_flags,
-        &mesh_count, &vertex_maps, &vertex_map_count, &mapped_values, &mapped_keys);
+    first_model = BuildSingleLevelMesh(face_count, faces, vertex_count, material_count, materials,
+                                       textures, render_flags, &mesh_count, &vertex_maps,
+                                       &vertex_map_count, &mapped_values, &mapped_keys);
     if (first_model != 0) {
         first_model->autoRelease();
         first_model->setName(name);

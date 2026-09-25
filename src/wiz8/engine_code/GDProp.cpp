@@ -162,10 +162,9 @@ void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigne
 
         for (int surface_index = 0; surface_index < surface_total; ++surface_index) {
             W8GDSurface* surface = &m_pGDSurfaces[surface_index];
-            BuildTrianglePlane00449A40(&surface->plane_24,
-                                       &m_pVertices[surface->vertex_indices_18[0]],
-                                       &m_pVertices[surface->vertex_indices_18[1]],
-                                       &m_pVertices[surface->vertex_indices_18[2]]);
+            BuildTrianglePlane(&surface->plane_24, &m_pVertices[surface->vertex_indices_18[0]],
+                               &m_pVertices[surface->vertex_indices_18[1]],
+                               &m_pVertices[surface->vertex_indices_18[2]]);
 
             int dominant_axis;
             float largest = 0.0f;
@@ -648,9 +647,9 @@ void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8Leve
 
     for (int index = surface_base; index < m_surface_count_14; ++index) {
         W8GDSurface* surface = &m_pGDSurfaces[index];
-        BuildTrianglePlane00449A40(&surface->plane_24, &m_pVertices[surface->vertex_indices_18[0]],
-                                   &m_pVertices[surface->vertex_indices_18[1]],
-                                   &m_pVertices[surface->vertex_indices_18[2]]);
+        BuildTrianglePlane(&surface->plane_24, &m_pVertices[surface->vertex_indices_18[0]],
+                           &m_pVertices[surface->vertex_indices_18[1]],
+                           &m_pVertices[surface->vertex_indices_18[2]]);
 
         int dominant_axis;
         float largest = g_float_005ebb34;

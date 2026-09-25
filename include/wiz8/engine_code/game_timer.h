@@ -54,6 +54,6 @@ public:
     float m_duration_scale;   /* 0x20 */
 };
 
-W8GameTimer* CreateGameTimer005EC0A4(float duration, unsigned char raw_time);
+W8GameTimer* CreateGameTimer(float duration, unsigned char raw_time);
 
 static_assert(sizeof(W8GameTimer) == 0x24, "W8GameTimer_must_be_0x24");

@@ -346,7 +346,7 @@ void StartPartyMovementAction(int move_kind)
     g_combat_state->uiCurrentPartyAction = move_kind;
     g_combat_state->uiCurrentPartyActionStatus = 0;
     gXStatus.flPartyMoveDistLimit = GetPartyMovementSpeed();
-    ResetLevelMovement0041EEE0(gXStatus.flPartyMoveDistLimit, 0, move_kind == 2);
+    ResetLevelMovement(gXStatus.flPartyMoveDistLimit, 0, move_kind == 2);
     InitializePartyMovementPhase();
     g_combat_state->uiPartyActionPhase += g_combat_state->round_counter;
     if (g_combat_state->uiPartyActionPhase > W8_PHASES_PER_ROUND) {

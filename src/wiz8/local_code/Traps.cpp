@@ -43,7 +43,7 @@ int g_value_69da68;
 int g_record_mode_length;
 
 // GLOBAL: WIZ8 0x00650384
-char s_record_mode_prompt_00650384[] = "Type in your text, then ENTER or ESC.";
+char s_record_mode_prompt[] = "Type in your text, then ENTER or ESC.";
 // GLOBAL: WIZ8 0x006503ac
 char s_record_mode_default_location_006503ac[] = "tst";
 // GLOBAL: WIZ8 0x006503b0
@@ -57,10 +57,10 @@ char s_exiting_record_mode_006503e0[] = "Exiting record mode.";
 // GLOBAL: WIZ8 0x006503f8
 char s_error_deleting_log_file_006503f8[] = "Error deleting log file.";
 // GLOBAL: WIZ8 0x00650414
-char s_log_file_deleted_00650414[] = "Log file deleted.";
+char s_log_file_deleted[] = "Log file deleted.";
 // GLOBAL: WIZ8 0x00650428
-char s_delete_log_00650428[] = "DELETE LOG";
-/* 0x006504E8: per-device spell/notice table; TriggerTrapDevice005E3AB0 reads
+char s_delete_log[] = "DELETE LOG";
+/* 0x006504E8: per-device spell/notice table; TriggerTrapDevice reads
    the effect spell id at index device + 0xb. */
 // GLOBAL: WIZ8 0x006504E8
 int g_table_6504e8[] = {10,  25, 35, 40, 50, 60, 70, 80,  90,  100, 110, 121, 122,
@@ -123,7 +123,7 @@ void ApplyRecordModeLine(void)
 {
     char message[1024];
 
-    if (_stricmp(g_record_mode_line, s_delete_log_00650428) != 0) {
+    if (_stricmp(g_record_mode_line, s_delete_log) != 0) {
         WriteRecordModeEntry();
         return;
     }
@@ -132,7 +132,7 @@ void ApplyRecordModeLine(void)
         strcpy(message, s_error_deleting_log_file_006503f8);
     } else {
         ResetEditorStatusLine(-1);
-        strcpy(message, s_log_file_deleted_00650414);
+        strcpy(message, s_log_file_deleted);
     }
     ShowNoticef(6, ConvertStringToWide(message));
     g_record_mode_line[g_record_mode_length] = 0;
@@ -150,7 +150,7 @@ void PromptRecordModeEntry(void)
     char message[96];
 
     ResetEditorStatusLine(-1);
-    strcpy(message, s_record_mode_prompt_00650384);
+    strcpy(message, s_record_mode_prompt);
     ShowNoticef(6, ConvertStringToWide(message));
 }
 

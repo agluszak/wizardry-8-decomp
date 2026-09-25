@@ -77,7 +77,7 @@ unsigned char AscensionPeakInit(void)
             W8MonsterGroup* group = 0;
             W8MonsterInfo* info;
 
-            AscensionAvalanche004DFBC0(1);
+            AscensionAvalanche(1);
             if (FindEntityByName("NP_Rapax01", &position, 0, 0)) {
                 group = SpawnMonsters(0xb1, 6, &position, 1, 1, 0, 0);
             }
@@ -167,7 +167,7 @@ unsigned char SpawnAlfieKnow(int unused)
    proximity facts by measuring the camera against the ASC40 and ASC30
    positions, then arm the periodic land-shaker master. */
 // FUNCTION: WIZ8 0x004DFBC0
-void AscensionAvalanche004DFBC0(unsigned char command)
+void AscensionAvalanche(unsigned char command)
 {
     Trigger* avalanche = FindTriggerByName("Avalanche");
 

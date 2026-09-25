@@ -1900,7 +1900,7 @@ void CampScreenFrame(void)
                         }
                     }
                 } else {
-                    SetCampItemActionMode005B59B0(0);
+                    SetCampItemActionMode(0);
                 }
             } else if (input.usParam == 'P') {
                 if (g_status.game_started) {
@@ -2132,7 +2132,7 @@ void ActivateCampPage(void)
 
     RegionSetEnable(0x29);
     if (state->page != 0) {
-        SetCampItemActionMode005B59B0(0);
+        SetCampItemActionMode(0);
     }
     if (giReviewCharSlot == -1) {
         for (index = 0; index < 8; ++index) {
@@ -2531,7 +2531,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
                                     g_effect_argument_005ed914);
             }
         }
-        SetCampItemActionMode005B59B0(0);
+        SetCampItemActionMode(0);
         return;
     }
     if (g_camp_screen->entry_mode == 8) {
@@ -2555,7 +2555,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
     } else if (g_camp_screen->entry_mode == 1) {
         if (g_status.item_in_cursor != 0) {
             if (item->iItemNo == -1) {
-                SetCampItemActionMode005B59B0(0);
+                SetCampItemActionMode(0);
                 return;
             }
             if (g_camp_character_pending != 0) {
@@ -2578,7 +2578,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
             return;
         }
         if (item->iItemNo == -1) {
-            SetCampItemActionMode005B59B0(0);
+            SetCampItemActionMode(0);
             return;
         }
     }
@@ -2605,7 +2605,7 @@ void HandleCampItemClick(W8ItemInstance* item, unsigned int slot_index, unsigned
 
     if (same_kind != 0) {
         MergeItemUses(&g_status.buffers.Char[giReviewCharSlot], item, &g_status.item_in_hand_235b);
-        SetCampItemActionMode005B59B0(0);
+        SetCampItemActionMode(0);
         changed = 1;
         if (origin == 1) {
             RebuildEquipmentAndDerivedStatsForSlot(giReviewCharSlot);
@@ -3237,7 +3237,7 @@ void BeginPartyDeath(void)
    message line; a dirty level reloads; any queued key-down or button-up
    schedules the closing fade back through EndReviewTransition. */
 // FUNCTION: WIZ8 0x005A6970
-void PumpReviewTransition005A6970(void)
+void PumpReviewTransition(void)
 {
     InputAtom input;
     char name[260];

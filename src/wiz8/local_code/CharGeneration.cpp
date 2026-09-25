@@ -1082,7 +1082,7 @@ void ApplyRaceProfessionTables(W8Character* character, W8CharacterCreationState*
             }
             RefreshCharacterSkillAvailability(character);
             FinalizeSpellPointPool(character, creation_state);
-            RecountLearnedSpellsByRealm004F96A0(character);
+            RecountLearnedSpellsByRealm(character);
             CountRemainingSpellPoints(character, creation_state);
             RefreshCharacterSkillAvailability(character);
             RecomputeSkillLimits(character, creation_state);

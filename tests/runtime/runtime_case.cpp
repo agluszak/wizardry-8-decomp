@@ -11,7 +11,7 @@
 #include "wiz8/engine_code/GameData.h"
 #include "wiz8/engine_code/GDCamera.h"
 #include "wiz8/engine_code/game_timer.h"
-#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator.h"
 #include "wiz8/layouts/main_game_screen.h"
 #include "wiz8/local_code/Gameloop.h"
 #include "wiz8/local_screens/MainGameScreen.h"

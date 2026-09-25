@@ -913,7 +913,7 @@ void W8PartySelectionPartySlotRow::Redraw(int full_redraw)
             (g_portrait_descriptors[portrait].render_mode == 2 && (m_row & 1))) {
             flags = 0x1002;
         }
-        RenderPartyPortrait0052EB00(portrait, left, top, flags, 1, m_row + 2);
+        RenderPartyPortrait(portrait, left, top, flags, 1, m_row + 2);
     }
     m_textBuffer.SetText(character ? character->name : 0, g_font_683660);
     DrawCatalogImageAndInvalidate(-14, 0x100, 0, 0, left - 0x0d, top - 0x0b, 2, 0);

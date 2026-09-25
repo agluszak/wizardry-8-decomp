@@ -550,7 +550,7 @@ extern bool g_node_cull_pending;
 extern int g_main_game_mode;
 extern int g_selected_party_slot;
 int GetValue64C1C8(void); /* 0x00593320 */
-void RequestLevelTransition005615F0(int level, int entry, unsigned char flag);
+void RequestLevelTransition(int level, int entry, unsigned char flag);
 extern bool g_build_level_links;
 extern int g_next_link_level;
 extern bool g_navigator_position_changed;

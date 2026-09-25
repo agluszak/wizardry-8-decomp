@@ -1550,8 +1550,8 @@ const float g_float_005ebb30 = 0.8f;
    centred just off the camera's back, widened to the largest allied member
    radius. `yaw` is read by the prototype but the body never uses it. */
 // FUNCTION: WIZ8 0x00511050
-bool PositionMonsterGroupNearCamera00511050(W8MonsterGroup* group, float distance, float yaw,
-                                            unsigned char flag)
+bool PositionMonsterGroupNearCamera(W8MonsterGroup* group, float distance, float yaw,
+                                    unsigned char flag)
 {
     srVector3T<float> camera;
     srVector3T<float> target;

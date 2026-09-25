@@ -1368,7 +1368,7 @@ void HandleWaypointKey(unsigned short key)
         GetWorldCursorPosition(&position);
         monster->SetPosition004A6DF0(&position);
         world = GetWorld();
-        AddMonsterToWorld0046E580(world, monster);
+        AddMonsterToWorld(world, monster);
         world = GetWorld();
         UpdateCycleRepresentation(monster, world);
         g_mipe_state->waypoint_count = g_mipe_state->waypoint_count + 1;

@@ -198,7 +198,7 @@ public:
     void Activate00444750();
     bool Save0043BE60(int hFile);
     bool Load0043C1B0(int hFile, char version);
-    void RunLinkedTriggers00441590();
+    void RunLinkedTriggers();
     void SetPosition004416F0(srVector3T<float>* position);
     void FinishAction();
     void GetPosition(srVector3T<float>* position) const;
@@ -215,7 +215,7 @@ public:
     /* After a selected-prop Run: while g_trigger_feedback is clear, post either
        the special-item notice (required_item_id != -1) or the nothing-happened notice. */
     void PrintNothingHappenedOrSpecialItemRequired(); /* 0x004456E0 */
-    void RunDestination00440DD0(const char* destination);
+    void RunDestination(const char* destination);
     void Run(int source);
 
     int trigger_kind_018;

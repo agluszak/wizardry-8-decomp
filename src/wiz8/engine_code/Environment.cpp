@@ -286,8 +286,7 @@ void UpdateEnvironment(void)
                     srAssertFail("pWorld", ENVIRONMENT_CPP, 634, 0);
                     srAssertFail("pWorld", ENVIRONMENT_CPP, 648, 0);
                 }
-                ApplyEnvironmentColour00483BA0(g_world, g_world->environment_intensity_024,
-                                               &colour);
+                ApplyEnvironmentColour(g_world, g_world->environment_intensity_024, &colour);
                 g_last_environment_colour_phase = static_cast<int>(phase);
                 return;
             }
@@ -317,7 +316,7 @@ void UpdateEnvironment(void)
     } while (0)
 
 // FUNCTION: WIZ8 0x00482F90
-BOOLEAN ReadLightColourTable00482F90(int hFile)
+BOOLEAN ReadLightColourTable(int hFile)
 {
     unsigned char components[256 * 3];
     int index;
@@ -339,7 +338,7 @@ BOOLEAN ReadLightColourTable00482F90(int hFile)
 }
 
 // FUNCTION: WIZ8 0x004830D0
-BOOLEAN ReadEnvironmentColourTable004830D0(int hFile)
+BOOLEAN ReadEnvironmentColourTable(int hFile)
 {
     unsigned char components[256 * 3];
     int index;
@@ -513,13 +512,13 @@ float GetViewDistance(void)
 }
 
 // FUNCTION: WIZ8 0x00482a10
-unsigned char GetEnvironmentFlag0060A394(void)
+unsigned char GetEnvironmentFlag(void)
 {
     return g_environment_time_enabled;
 }
 
 // FUNCTION: WIZ8 0x004842f0
-int GetEnvironmentValue0060A3A8(void)
+int GetEnvironmentValue(void)
 {
     return g_environment_lighting_mode;
 }
@@ -585,7 +584,7 @@ void RefreshEnvironment(void)
             srAssertFail("pWorld", ENVIRONMENT_CPP, 634, 0);
             srAssertFail("pWorld", ENVIRONMENT_CPP, 648, 0);
         }
-        ApplyEnvironmentColour00483BA0(g_world, g_world->environment_intensity_024, &colour);
+        ApplyEnvironmentColour(g_world, g_world->environment_intensity_024, &colour);
         g_last_environment_colour_phase = static_cast<int>(phase);
     }
 }
@@ -609,10 +608,10 @@ void SetWorldEnvironmentValue(W8World* world, float value)
     }
     if (world->static_scene == 0) {
         colour = 0.0;
-        ApplyEnvironmentColour00483BA0(world, value, &colour);
+        ApplyEnvironmentColour(world, value, &colour);
         return;
     }
-    ApplyEnvironmentColour00483BA0(world, value, &world->environment_colour_02c);
+    ApplyEnvironmentColour(world, value, &world->environment_colour_02c);
 }
 
 /* Arm or complete a lighting fade. A zero duration snaps back to day/night
@@ -653,9 +652,9 @@ void BeginWorldLightingFade(float duration)
             colour.blue = 0.0f;
             // reinterpret-ok: EnvironmentColour RGB is the same three floats as srVector3T<float>
             SaturateColor004299B0(reinterpret_cast<srVector3T<float>*>(&colour));
-            ApplyEnvironmentColour00483BA0(world, intensity, &colour);
+            ApplyEnvironmentColour(world, intensity, &colour);
         } else {
-            ApplyEnvironmentColour00483BA0(world, intensity, &world->environment_colour_02c);
+            ApplyEnvironmentColour(world, intensity, &world->environment_colour_02c);
         }
 
         world = g_world_659ab8;
@@ -674,9 +673,9 @@ void BeginWorldLightingFade(float duration)
                 colour.blue = 0.0f;
                 // reinterpret-ok: EnvironmentColour RGB is the same three floats as srVector3T<float>
                 SaturateColor004299B0(reinterpret_cast<srVector3T<float>*>(&colour));
-                ApplyEnvironmentColour00483BA0(world, intensity, &colour);
+                ApplyEnvironmentColour(world, intensity, &colour);
             } else {
-                ApplyEnvironmentColour00483BA0(world, intensity, &world->environment_colour_02c);
+                ApplyEnvironmentColour(world, intensity, &world->environment_colour_02c);
             }
         }
 
@@ -758,9 +757,9 @@ void UpdateEnvironmentLighting(void)
         colour.blue = 0.0f;
         // reinterpret-ok: EnvironmentColour RGB is the same three floats as srVector3T<float>
         SaturateColor004299B0(reinterpret_cast<srVector3T<float>*>(&colour));
-        ApplyEnvironmentColour00483BA0(world, intensity, &colour);
+        ApplyEnvironmentColour(world, intensity, &colour);
     } else {
-        ApplyEnvironmentColour00483BA0(world, intensity, &world->environment_colour_02c);
+        ApplyEnvironmentColour(world, intensity, &world->environment_colour_02c);
     }
 
     world = g_world_659ab8;
@@ -779,9 +778,9 @@ void UpdateEnvironmentLighting(void)
             colour.blue = 0.0f;
             // reinterpret-ok: EnvironmentColour RGB is the same three floats as srVector3T<float>
             SaturateColor004299B0(reinterpret_cast<srVector3T<float>*>(&colour));
-            ApplyEnvironmentColour00483BA0(world, secondary, &colour);
+            ApplyEnvironmentColour(world, secondary, &colour);
         } else {
-            ApplyEnvironmentColour00483BA0(world, secondary, &world->environment_colour_02c);
+            ApplyEnvironmentColour(world, secondary, &world->environment_colour_02c);
         }
     }
 
@@ -953,7 +952,7 @@ void SetWorldEnvironmentColour(W8World* world, EnvironmentColour colour)
         srAssertFail("pWorld", ENVIRONMENT_CPP, 634, 0);
         srAssertFail("pWorld", ENVIRONMENT_CPP, 648, 0);
     }
-    ApplyEnvironmentColour00483BA0(world, world->environment_intensity_024, &colour);
+    ApplyEnvironmentColour(world, world->environment_intensity_024, &colour);
 }
 
 // GLOBAL: WIZ8 0x005ec980
@@ -996,8 +995,7 @@ srVector3T<float>* __fastcall ScaleColourAndSaturate(srVector3T<float>* colour, 
 /* Push one day-phase colour and intensity into the world's static scene, every
    registered environment light, and the animated cloud material. */
 // FUNCTION: WIZ8 0x00483ba0
-void ApplyEnvironmentColour00483BA0(W8World* world, float intensity,
-                                    const EnvironmentColour* colour)
+void ApplyEnvironmentColour(W8World* world, float intensity, const EnvironmentColour* colour)
 {
     if (world == 0) {
         srAssertFail("pWorld", ENVIRONMENT_CPP, 0x2b0, 0);
@@ -1139,7 +1137,7 @@ const char* g_sky_gradient_names[3] = {"SkyGrad0000.ifl", "Skytop0000.ifl", "Hor
    the three sky gradient textures, advance the day clock and publish the current
    day phase's colour and light direction. */
 // FUNCTION: WIZ8 0x00482410
-void InitializeLevelEnvironment00482410(void)
+void InitializeLevelEnvironment(void)
 {
     if (g_world_659ab8 != 0) {
         g_sun_prop = FindPropByName(g_world_659ab8, "Sun");
@@ -1201,7 +1199,7 @@ void InitializeLevelEnvironment00482410(void)
             srAssertFail("pWorld", ENVIRONMENT_CPP, 0x27a, 0);
             srAssertFail("pWorld", ENVIRONMENT_CPP, 0x288, 0);
         }
-        ApplyEnvironmentColour00483BA0(g_world, g_world->environment_intensity_024, &colour);
+        ApplyEnvironmentColour(g_world, g_world->environment_intensity_024, &colour);
         {
             g_light_direction = g_environment_colours_65ad98[phase];
             PublishLightDirection(&g_environment_colours_65ad98[phase]);

@@ -123,7 +123,7 @@ void __stdcall LoadSurfacePixels0047BC80(int handle, srColorSurface* surface,
 }
 
 // FUNCTION: WIZ8 0x0047C090
-srColorSurface* __stdcall LoadSurface0047C090(int handle, long* unused_out)
+srColorSurface* __stdcall LoadSurface(int handle, long* unused_out)
 {
     W8TgaHeader header;
     unsigned short width;
@@ -398,7 +398,7 @@ void stTextureFile::loadSurface()
     surface_5c = 0;
     int handle = FileOpen(file_name_58, 0x41, 0);
     if (handle != 0) {
-        surface_5c = LoadSurface0047C090(handle, &unused_04);
+        surface_5c = LoadSurface(handle, &unused_04);
         FileClose(handle);
     }
 

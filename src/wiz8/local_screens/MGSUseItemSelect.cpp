@@ -274,7 +274,7 @@ void CloseUseItemSelectView(void)
             return;
         }
         if (gXStatus.fCampMode != 0 && g_pending_screen_state.id != 6) {
-            SyncDialogueNpcState00577260();
+            SyncDialogueNpcState();
         }
     }
 }

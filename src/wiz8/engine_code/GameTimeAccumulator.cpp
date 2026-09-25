@@ -1,4 +1,4 @@
-#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator.h"
 
 /* A W8GameTimer specialization constructed at 0x0043A910 over the base built
    by 0x00439550: it scales real elapsed time into accumulated game time.
@@ -10,7 +10,7 @@
    and four constants. */
 
 // GLOBAL: WIZ8 0x006068EC
-float g_rate_006068EC = 0.1f;
+float g_rate = 0.1f;
 
 // GLOBAL: WIZ8 0x006598bc
 W8GameTimeAccumulator* g_game_time_accumulator;
@@ -24,7 +24,7 @@ W8GameTimeAccumulator* g_game_time_accumulator;
 // FUNCTION: WIZ8 0x0043a910
 W8GameTimeAccumulator::W8GameTimeAccumulator()
 {
-    m_duration_seconds = g_rate_006068EC;
+    m_duration_seconds = g_rate;
     m_scale_24 = 2.0f;
     m_frame_delta_28 = 0;
     m_elapsed_ticks_2c = 0;

@@ -394,7 +394,7 @@ void CalcCharacterTableValue(W8Character* character)
 }
 
 // GLOBAL: WIZ8 0x00617894
-char s_fall_impact_wav_00617894[] = "Data\\Sound\\Misc\\Fall Impact.wav";
+char s_fall_impact_wav[] = "Data\\Sound\\Misc\\Fall Impact.wav";
 
 /* Level-motion override landing: the accumulated fall magnitude becomes
    pow(8.0, fall + 0.7) six-sided dice of damage against the whole party,
@@ -408,7 +408,7 @@ void HandleLevelOverride(float fall)
         memset(&sound_parms, 0xff, sizeof(sound_parms));
         sound_parms.uiVolume = g_settings.sound_effects_volume;
         ShowNotice(8, gppStringList[0x252]);
-        SoundPlay(s_fall_impact_wav_00617894, &sound_parms);
+        SoundPlay(s_fall_impact_wav, &sound_parms);
         W8Dice dice;
         SetDice(&dice, static_cast<unsigned char>(count), '\x06', 0);
         ApplyRolledHealthChangeToParty(&dice, 0, 1);

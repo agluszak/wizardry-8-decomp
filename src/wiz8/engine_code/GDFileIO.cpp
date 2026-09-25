@@ -5,7 +5,7 @@
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/LevelFile.h"
 #include "wiz8/engine_code/stHash.hpp"
-#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator.h"
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/Trigger.hpp"
@@ -1126,8 +1126,8 @@ W8GameData::W8GameData(int handle, bool secondary)
     if (handle != 0) {
         ReadProcessedGameData(handle);
     }
-    if (g_environ_00652DB4 != 0) {
-        delete g_environ_00652DB4;
+    if (g_environ != 0) {
+        delete g_environ;
     }
     if (m_iNumEnvirons == 0) {
         m_iNumEnvirons = 1;
@@ -1164,7 +1164,7 @@ W8GameData::W8GameData(int handle, bool secondary)
         m_ppEnvirons[0] = environ_record;
     }
     W8LevelDataRecord* old_level = g_level_data;
-    g_environ_00652DB4 = m_ppEnvirons[0];
+    g_environ = m_ppEnvirons[0];
     if (old_level != 0) {
         delete old_level;
         g_level_data = 0;
@@ -1203,9 +1203,9 @@ unsigned char InitializeGameData(W8GameData* game_data)
 // FUNCTION: WIZ8 0x004498c0
 void ClassifySurfacePlane(const srVector3T<float>* vertices, W8GDSurface* surface)
 {
-    BuildTrianglePlane00449A40(&surface->plane_24, &vertices[surface->vertex_indices_18[0]],
-                               &vertices[surface->vertex_indices_18[1]],
-                               &vertices[surface->vertex_indices_18[2]]);
+    BuildTrianglePlane(&surface->plane_24, &vertices[surface->vertex_indices_18[0]],
+                       &vertices[surface->vertex_indices_18[1]],
+                       &vertices[surface->vertex_indices_18[2]]);
 
     unsigned int flags = surface->flags_00;
     if ((flags & 0x80) != 0) {
@@ -1257,8 +1257,8 @@ void ClassifySurfacePlane(const srVector3T<float>* vertices, W8GDSurface* surfac
 /* Header-visible SetPlaneFromThreePoints. This TU unrolls the three-point
    copy; 0x0046D660 lowers the same assignments as a component countdown. */
 // FUNCTION: WIZ8 0x00449a40
-void BuildTrianglePlane00449A40(W8Plane* plane, const srVector3T<float>* first,
-                                const srVector3T<float>* second, const srVector3T<float>* third)
+void BuildTrianglePlane(W8Plane* plane, const srVector3T<float>* first,
+                        const srVector3T<float>* second, const srVector3T<float>* third)
 {
     SetPlaneFromThreePoints(plane, first, second, third);
 }

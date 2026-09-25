@@ -197,7 +197,7 @@ unsigned char PrePathing::BuildPathList(W8PrePathNode* nodes,
         path_node_list_240[i] = nodes;
         nodes = nodes->next;
     }
-    if (LinkPathNodes004CD390() == 0) {
+    if (LinkPathNodes() == 0) {
         return 0;
     }
     CreatePathNodeArray();
@@ -205,7 +205,7 @@ unsigned char PrePathing::BuildPathList(W8PrePathNode* nodes,
 }
 
 // FUNCTION: WIZ8 0x004CD390
-unsigned char PrePathing::LinkPathNodes004CD390()
+unsigned char PrePathing::LinkPathNodes()
 {
     float link_height = grid_scale_01c * g_prepath_link_height;
     int links_found = 0;
@@ -518,7 +518,7 @@ int PrePathing::CreatePathNodeArray()
 }
 
 // FUNCTION: WIZ8 0x004CE070
-unsigned char PrePathing::CreateAutomapNodes004CE070(W8LevelFile* level)
+unsigned char PrePathing::CreateAutomapNodes(W8LevelFile* level)
 {
     int last_percent = 0;
     W8GrowableVector<int> node_keys;

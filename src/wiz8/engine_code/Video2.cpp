@@ -1307,8 +1307,8 @@ void RenderFrame(void)
    otherwise the stored game viewport globals apply. SaveGame uses it for the
    SHOT screenshot; the automap uses it for its backdrop. */
 // FUNCTION: WIZ8 0x00426f80
-unsigned char RenderWorldToSurface00426F80(srColorSurface* target, W8ScreenRect* rect,
-                                           char render_secondary)
+unsigned char RenderWorldToSurface(srColorSurface* target, W8ScreenRect* rect,
+                                   char render_secondary)
 {
     srGERD* gerd = g_secondary_gerd;
     EnvironmentColour clear_color;
@@ -2424,7 +2424,7 @@ srNode* VideoMakePoster(srColorSurfaceIFace* surface, float width, float height,
         hint = srTextureIFace::HINT_POSITIONAL_2;
     }
     texture->enableHint(hint);
-    return MakePosterQuad00424BA0(texture, width, height, additive);
+    return MakePosterQuad(texture, width, height, additive);
 }
 
 void PresentMenuOverlayFrame(void)
@@ -3830,8 +3830,7 @@ void EndRenderProbe(void)
 // srColorSurface::`scalar deleting destructor'
 
 // FUNCTION: WIZ8 0x00424BA0
-srNode* MakePosterQuad00424BA0(srTextureIFace* texture, float width, float height,
-                               unsigned char additive)
+srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, unsigned char additive)
 {
     srShader shader;
     srPtr<srPalette> palette;

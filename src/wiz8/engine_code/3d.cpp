@@ -136,8 +136,7 @@ void FinalizeStaticScene(srScene* scene)
    light. "Sun"-prefixed lights bake into the sunlight array instead and are
    skipped here. `walk_chain` limits the light walk to the first sibling. */
 // FUNCTION: WIZ8 0x0046E8A0
-unsigned char BakeInstanceVertexLighting0046E8A0(stModelInstance* instance, srNode* lights,
-                                                 char walk_chain)
+unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* lights, char walk_chain)
 {
     srVector3T<float>* directions = 0;
     unsigned char locations_allocated = 0;
@@ -169,7 +168,7 @@ unsigned char BakeInstanceVertexLighting0046E8A0(stModelInstance* instance, srNo
         srVector3T<float>* vertices;
         srVector3T<float>* normals;
         if ((mesh->flags_3a0 & 4) != 0) {
-            vertices = mesh->GetVertexLocations00471AD0(0, 1, 0.0f);
+            vertices = mesh->GetVertexLocations(0, 1, 0.0f);
             normals = mesh->GetVertexNormals(0, 1);
         } else {
             vertices = mesh->getVertexLoc();
@@ -369,7 +368,7 @@ unsigned char FinalizeWorldScenes(srNode* node, srNode* dynamic_scene)
                      chain = static_cast<srModelInstance*>(chain->firstChild())) {
                     chain->setExclusionMask(1);
                 }
-                BakeInstanceVertexLighting0046E8A0(instance, lights, 1);
+                BakeInstanceVertexLighting(instance, lights, 1);
             }
         }
     }
@@ -389,7 +388,7 @@ unsigned char BakeInstanceVertexLightingIfNeeded(stModelInstance* instance, srNo
              chain = static_cast<srModelInstance*>(chain->firstChild())) {
             chain->setExclusionMask(1);
         }
-        BakeInstanceVertexLighting0046E8A0(instance, lights, 1);
+        BakeInstanceVertexLighting(instance, lights, 1);
     }
     return 1;
 }
@@ -772,7 +771,7 @@ void WorldUpdateLights(W8World* world)
    item list. Each wrapper still takes the caller's W8World* even though the
    body uses g_world. */
 // FUNCTION: WIZ8 0x0046e580
-void AddMonsterToWorld0046E580(W8World* unused, W8Monster* monster)
+void AddMonsterToWorld(W8World* unused, W8Monster* monster)
 {
     PLAdoptAppend(g_world->plsMonsters, monster);
 }
@@ -1003,7 +1002,7 @@ void __stdcall SetOctreeGameData(W8GameData* value)
 /* Test one point against all six frustum planes: outside if any signed
    distance is negative. */
 // FUNCTION: WIZ8 0x0046d880
-bool PointInsideFrustum0046D880(const srVector3T<float>* point, const W8Plane* planes)
+bool PointInsideFrustum(const srVector3T<float>* point, const W8Plane* planes)
 {
     for (int index = 0; index < 6; ++index) {
         float distance = SignedPlaneDistance(planes[index], *point);
@@ -1018,8 +1017,8 @@ bool PointInsideFrustum0046D880(const srVector3T<float>* point, const W8Plane* p
 /* Header-visible SetPlaneFromThreePoints. This TU lowers the three-point
    copy as a component countdown; 0x00449A40 unrolls the same assignments. */
 // FUNCTION: WIZ8 0x0046d660
-void BuildPlaneFromPoints0046D660(W8Plane* plane, const srVector3T<float>* first,
-                                  const srVector3T<float>* second, const srVector3T<float>* third)
+void BuildPlaneFromPoints(W8Plane* plane, const srVector3T<float>* first,
+                          const srVector3T<float>* second, const srVector3T<float>* third)
 {
     SetPlaneFromThreePoints(plane, first, second, third);
 }
@@ -1056,19 +1055,19 @@ bool PointInsideTriangle(const srVector3T<float>* vertices, short axis,
 // FUNCTION: WIZ8 0x0046d7e0
 void BuildFrustumPlanes0046D7E0(const srVector3T<float>* points, W8Plane* planes)
 {
-    BuildPlaneFromPoints0046D660(&planes[0], &points[1], &points[5], &points[4]);
-    BuildPlaneFromPoints0046D660(&planes[1], &points[6], &points[7], &points[3]);
-    BuildPlaneFromPoints0046D660(&planes[2], &points[0], &points[2], &points[3]);
-    BuildPlaneFromPoints0046D660(&planes[3], &points[4], &points[5], &points[7]);
-    BuildPlaneFromPoints0046D660(&planes[4], &points[4], &points[6], &points[2]);
-    BuildPlaneFromPoints0046D660(&planes[5], &points[1], &points[3], &points[7]);
+    BuildPlaneFromPoints(&planes[0], &points[1], &points[5], &points[4]);
+    BuildPlaneFromPoints(&planes[1], &points[6], &points[7], &points[3]);
+    BuildPlaneFromPoints(&planes[2], &points[0], &points[2], &points[3]);
+    BuildPlaneFromPoints(&planes[3], &points[4], &points[5], &points[7]);
+    BuildPlaneFromPoints(&planes[4], &points[4], &points[6], &points[2]);
+    BuildPlaneFromPoints(&planes[5], &points[1], &points[3], &points[7]);
 }
 
 /* Sort `points` in place into the canonical corner order: an index array is
    insertion-sorted by y, then each four-entry run is re-sorted by z and each
    two-entry run by x, and the points are permuted through a temporary copy. */
 // FUNCTION: WIZ8 0x0046da20
-void SortFrustumCorners0046DA20(srVector3T<float>* points)
+void SortFrustumCorners(srVector3T<float>* points)
 {
     short order[8];
     srVector3T<float> sorted[8];

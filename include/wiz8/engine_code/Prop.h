@@ -20,7 +20,7 @@ struct W8AIMissile;
 extern unsigned char g_byte_00659a64;
 
 /* One two-byte animation-slot record: the frame the segment selects and the
-   tag that names it.  LoadProp0044AEE0 reads each as a serialized short and
+   tag that names it.  LoadProp reads each as a serialized short and
    narrows to a byte; the segment walkers sign-extend the frame, and
    SelectAnimationSlot treats a negative frame as a slot with no animation. */
 struct W8PropAnimationSegment {
@@ -50,7 +50,7 @@ public:
     int FindCurrentAnimationSlot(); /* 0x0044BAE0 */
     unsigned char AdvanceAnimationSegment();
     /* CreateAndLoadProp loads m_pRep into ECX, then passes (pInfo, pProp). */
-    bool LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop); /* 0x0044AEE0 */
+    bool LoadProp(W8ReadLevelInfo* info, W8Prop* prop); /* 0x0044AEE0 */
 
     W8AnimObj* animation;  /* 0x98 */
     float animation_speed; /* 0x9c */
@@ -168,7 +168,7 @@ public:
 static_assert(sizeof(W8Prop) == 0x90, "W8Prop_must_be_0x90");
 
 W8Prop* FindPropByName(W8World* world, const char* name);
-bool CreateAndLoadProp0044BF50(W8ReadLevelInfo* info, W8Prop** prop);
+bool CreateAndLoadProp(W8ReadLevelInfo* info, W8Prop** prop);
 
 char ResolvePickedProp(W8World* world);
 int GetSelectedPropIndex(void);

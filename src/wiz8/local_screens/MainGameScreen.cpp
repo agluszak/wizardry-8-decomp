@@ -3515,7 +3515,7 @@ void MainGameScreenFrame(void)
             if (LevelBuildInfoByID(g_next_link_level, &info)) {
                 if (g_next_link_level < W8_LEVEL_COUNT) {
                     int level = g_next_link_level++;
-                    RequestLevelTransition005615F0(level, -1, 0);
+                    RequestLevelTransition(level, -1, 0);
                     goto update_screen;
                 }
                 break;
@@ -3539,7 +3539,7 @@ update_screen:
     }
     if (!g_level_block->review_transition_done_328) {
         if (g_level_block->review_transition_active) {
-            PumpReviewTransition005A6970();
+            PumpReviewTransition();
             return;
         }
     } else if (UpdateScreenFade()) {
@@ -3696,10 +3696,9 @@ update_screen:
 render_world:
     if (!IsScreenTransitionPending()) {
         if (CanUseCurrentAutomapTool()) {
-            UpdateWorldCameraAndPaths0044FC20(g_world, g_level_block->world_render_flags);
+            UpdateWorldCameraAndPaths(g_world, g_level_block->world_render_flags);
             if (g_world_659ab8 && !g_camera_path_active) {
-                UpdateWorldCameraAndPaths0044FC20(g_world_659ab8,
-                                                  g_level_block->world_render_flags | 0x40);
+                UpdateWorldCameraAndPaths(g_world_659ab8, g_level_block->world_render_flags | 0x40);
             }
         }
         ApplyWorldUpdateFlags(g_world, g_level_block->world_update_flags);
@@ -5647,7 +5646,7 @@ void ApplySavedRedrawInvalidates(void)
    until OnEnterLevelDialogClosed runs. With it clear the transition is staged
    straight into the pending screen state and modes 3/5/6 are torn down. */
 // FUNCTION: WIZ8 0x005615F0
-void RequestLevelTransition005615F0(int level, int entry, unsigned char flag)
+void RequestLevelTransition(int level, int entry, unsigned char flag)
 {
     unsigned int normalized = NormalizeMasterFunctionValue(level);
 
@@ -6514,7 +6513,7 @@ unsigned char PortraitSelectRegionEvent(const InputAtom* event, W8Region* region
                                     StartBreathCycle(g_status.selected_character, 0);
                                 }
                             } else {
-                                EndScriptedPortraitPick00529C40(slot);
+                                EndScriptedPortraitPick(slot);
                             }
                         } else {
                             QueueCharacterEvent(&g_status.buffers.Char[g_status.selected_character],

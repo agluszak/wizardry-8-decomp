@@ -187,7 +187,7 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
     if (monster_info->p3D == 0 || monster_info->p3D->IsPendingFinalize() != 0) {
         registry_before = GetUsedPageFileBytes();
         ActivateMonster(monster_info, 0);
-        MonsterSetLocationId004C5870(monster_info->p3D, monster_info->location_id);
+        MonsterSetLocationId(monster_info->p3D, monster_info->location_id);
         MonsterSetAdjustedPosition(monster_info->p3D, &monster_info->position_17);
 
         if (PListIndexOf(gXStatus.plsUnbornMonsterList, monster_info) != -1) {
@@ -216,13 +216,13 @@ void ActivateMonsterInWorld(W8MonsterInfo* monster_info)
             MonsterSetAnimating(monster_info->p3D, monster_info->fMotionless == 0);
         }
 
-        AddMonsterToWorld0046E580(GetWorld(), monster_info->p3D);
+        AddMonsterToWorld(GetWorld(), monster_info->p3D);
         MonsterSetFacing(monster_info->p3D, monster_info->derived_23);
         RebuildMonsterDerivedStats(monster_info->location_id);
         monster_info->p3D->movement_0c0.leadership_rank_008 =
             static_cast<unsigned int>(record->effective_level_24f) * 0x10000U +
             monster_info->location_id;
-        MonsterSetLocationId004C5870(monster_info->p3D, monster_info->location_id);
+        MonsterSetLocationId(monster_info->p3D, monster_info->location_id);
         monster_info->p3D->pending_finalize_216 = 0;
 
         registry_after = GetUsedPageFileBytes();
@@ -1491,7 +1491,7 @@ void ToggleCombatMode(void)
     for (missile = NextMissile(1); missile != 0; missile = NextMissile(0)) {
         if ((missile == g_combat_state->engaged_missile ||
              g_missile_table[missile->missile_table_index_1d8].spell_missile_154 != 0) &&
-            missile->BlocksEndingCombat004A5790() != 0) {
+            missile->BlocksEndingCombat() != 0) {
             ShowNotice(0xc, gppStringList[W8_NOTICE_COMBAT_CANNOT_END_ENGAGED], -1, -1, 0);
             return;
         }

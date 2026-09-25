@@ -27,7 +27,7 @@
 #define REGSET_NULL 0
 
 // GLOBAL: WIZ8 0x00617C90
-extern const wchar_t g_W8LineBreakCharacters00617C90[] = L"\n";
+extern const wchar_t g_W8LineBreakCharacters[] = L"\n";
 
 // GLOBAL: WIZ8 0x005ED548
 extern const unsigned int g_W8TextBufferLayoutMask005ED548 = 0x01;
@@ -110,9 +110,9 @@ inline Controls::~Controls() {}
 
 /* 0x00562A50 takes the redraw-request mask the panel raises. */
 // GLOBAL: WIZ8 0x0060CC74
-const wchar_t g_W8TextSeparator0060CC74[] = L" ";
+const wchar_t g_W8TextSeparator[] = L" ";
 // GLOBAL: WIZ8 0x00617C88
-const wchar_t g_W8TextBreakCharacters00617C88[] = L" ";
+const wchar_t g_W8TextBreakCharacters[] = L" ";
 
 // GLOBAL: WIZ8 0x005ebb38
 const float g_float_005ebb38 = 1.0f;
@@ -491,13 +491,12 @@ void W8TextBuffer::UpdateLayout()
     wchar_t* line = m_buffer;
     unsigned int accumulated_width = 0;
     wchar_t* previous_break = 0;
-    short separator_width =
-        StringPixLength(const_cast<wchar_t*>(g_W8TextSeparator0060CC74), m_font);
+    short separator_width = StringPixLength(const_cast<wchar_t*>(g_W8TextSeparator), m_font);
 
     m_lineCount = 1;
     if ((m_layoutMode & 0x40) == 0) {
         m_maxLineWidth = 0;
-        size_t span = wcscspn(line, g_W8TextBreakCharacters00617C88);
+        size_t span = wcscspn(line, g_W8TextBreakCharacters);
         wchar_t* break_at = line + span;
         while (*break_at != L'\0') {
             *break_at = L'\0';
@@ -519,7 +518,7 @@ void W8TextBuffer::UpdateLayout()
             }
             line += span + 1;
             *break_at = L' ';
-            span = wcscspn(line, g_W8TextBreakCharacters00617C88);
+            span = wcscspn(line, g_W8TextBreakCharacters);
             break_at = line + span;
         }
         short final_width = StringPixLength(line, m_font);
@@ -639,7 +638,7 @@ void W8TextBuffer::RenderText(unsigned char* buffer, unsigned int pitch, int x_o
                       m_pendingBounds.right, m_pendingBounds.bottom, FontDestWrap);
 
     int y = GetVerticalPosition();
-    size_t span = wcscspn(line, g_W8LineBreakCharacters00617C90);
+    size_t span = wcscspn(line, g_W8LineBreakCharacters);
     while (line[span] != L'\0') {
         line[span] = L'\0';
         int x = GetHorizontalPosition(StringPixLength(line, m_font));
@@ -654,7 +653,7 @@ void W8TextBuffer::RenderText(unsigned char* buffer, unsigned int pitch, int x_o
             goto done;
         }
         line += span + 1;
-        span = wcscspn(line, g_W8LineBreakCharacters00617C90);
+        span = wcscspn(line, g_W8LineBreakCharacters);
     }
 
     {
@@ -700,7 +699,7 @@ void W8TextBuffer::RenderToTarget(int offset, unsigned char force, int target)
     }
 
     int y = GetVerticalPosition();
-    size_t span = wcscspn(line, g_W8LineBreakCharacters00617C90);
+    size_t span = wcscspn(line, g_W8LineBreakCharacters);
     while (line[span] != L'\0') {
         line[span] = L'\0';
         int x = GetHorizontalPosition(StringPixLength(line, m_font));
@@ -711,7 +710,7 @@ void W8TextBuffer::RenderToTarget(int offset, unsigned char force, int target)
             goto done;
         }
         line += span + 1;
-        span = wcscspn(line, g_W8LineBreakCharacters00617C90);
+        span = wcscspn(line, g_W8LineBreakCharacters);
     }
 
     {

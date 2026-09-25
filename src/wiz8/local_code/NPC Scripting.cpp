@@ -488,8 +488,8 @@ void ProcessNpcScriptingFrame(void)
 
     if ((g_npc_scripting.sedexus_capture_pending != 0 ||
          g_npc_scripting.sedexus_release_pending != 0) &&
-        ((environment = GetEnvironmentValue0060A3A8(), environment == 0) ||
-         (environment = GetEnvironmentValue0060A3A8(), environment == 2))) {
+        ((environment = GetEnvironmentValue(), environment == 0) ||
+         (environment = GetEnvironmentValue(), environment == 2))) {
         g_npc_scripting.scripted_scene_active = 0;
         if (g_npc_scripting.sedexus_release_pending == 0) {
             memset(&local_sound_parms, 0xff, sizeof(SOUNDPARMS));
@@ -782,7 +782,7 @@ void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_index,
         g_npc_scripting.voice_handle = SoundPlay(voice_path, &voice_parms);
         monster = GetNpcMonster(g_npc_scripting.npc);
         if (monster != 0) {
-            monster->StartTalking004C73F0(1);
+            monster->StartTalking(1);
         }
         g_npc_scripting.last_tick = GetTickCount();
         if (g_npc_scripting.voice_handle == -1) {
@@ -850,7 +850,7 @@ void FinishNpcVoicePlayback(unsigned char resume_script)
         }
         W8Monster* monster = GetNpcMonster(g_npc_scripting.npc);
         if (monster != 0) {
-            monster->StopTalking004C7470();
+            monster->StopTalking();
         }
         W8MonsterManagerEntry* entry = GetNpcGroupEntry(g_npc_scripting.npc);
         if (entry != 0) {
@@ -2654,7 +2654,7 @@ void BeginNpcScriptedScene(void)
    and fills the alternate-name display), and anything else falls back to
    facts 0x1c1 or 0x227. The party-member region sets reopen on the way out. */
 // FUNCTION: WIZ8 0x00529C40
-void EndScriptedPortraitPick00529C40(int party_slot)
+void EndScriptedPortraitPick(int party_slot)
 {
     W8ItemInstance* found;
     W8Character* character;

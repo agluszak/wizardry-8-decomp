@@ -38,7 +38,7 @@
 #include "wiz8/level_specific_code/MasterFunctionList.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/engine_code/GameData.h"
-#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator.h"
 #include "wiz8/engine_code/Video2.h"
 #include "wiz8/layouts/game_status.h"
 #include "wiz8/layouts/gameplay_databases.h"
@@ -195,7 +195,7 @@ void UpdateGameClock(int elapsed)
     }
     if (gXStatus.surprise_unengaged != 0 && AnyCharacterEngaged() && gXStatus.surprise_phase == 1) {
         SetViewDistance(12.0f);
-        SetNavigatorLinkMode00452F50(0);
+        SetNavigatorLinkMode(0);
         g_game_time_accumulator->ResetDurationScale();
         ResetMonsterGeneratorTimers();
         ReverseSurpriseFade();
@@ -219,7 +219,7 @@ void RequestCamp(void)
         return;
     }
     if (HasLevelDataVector() == 0 && static_cast<char>(GetLevelDataFlag4()) != 0) {
-        if (DispatchWorldCursorNodeCommand004D9080(0, 3) != 0) {
+        if (DispatchWorldCursorNodeCommand(0, 3) != 0) {
             return;
         }
         if (static_cast<char>(IsScreenIdle()) == 0) {
@@ -297,7 +297,7 @@ void UpdateSurpriseMode(void)
             gXStatus.surprise_deadline_turns = g_status.world_clock + 0x7080;
             DestroyUngroupedMonsters();
             SetViewDistance(2880.0f);
-            SetNavigatorLinkMode00452F50(1);
+            SetNavigatorLinkMode(1);
             level_scale = g_level_records[g_status.current_level].gameplay_time_scale_054;
             scale = g_float_005ebb38 / level_scale;
             g_game_time_accumulator->SetDurationScale(scale);
@@ -309,7 +309,7 @@ void UpdateSurpriseMode(void)
         if (gXStatus.surprise_unengaged == 0 &&
             static_cast<unsigned int>(g_status.world_clock) >= gXStatus.surprise_deadline_turns) {
             SetViewDistance(12.0f);
-            SetNavigatorLinkMode00452F50(0);
+            SetNavigatorLinkMode(0);
             g_game_time_accumulator->ResetDurationScale();
             ResetMonsterGeneratorTimers();
             UpdateEnvironmentLight();
@@ -345,7 +345,7 @@ void AcknowledgeSurprise(void)
     }
     if (gXStatus.surprise_phase == 1) {
         SetViewDistance(12.0f);
-        SetNavigatorLinkMode00452F50(0);
+        SetNavigatorLinkMode(0);
         g_game_time_accumulator->ResetDurationScale();
         ResetMonsterGeneratorTimers();
         ReverseSurpriseFade();
@@ -363,7 +363,7 @@ void ResolveSurpriseHold(void)
 {
     if (gXStatus.surprise_phase == 1) {
         SetViewDistance(12.0f);
-        SetNavigatorLinkMode00452F50(0);
+        SetNavigatorLinkMode(0);
         g_game_time_accumulator->ResetDurationScale();
         ResetMonsterGeneratorTimers();
         ReverseSurpriseFade();
@@ -422,7 +422,7 @@ void RestoreSurpriseView(void)
     gXStatus.fSurprisePossible = false;
     gXStatus.surprise_unengaged = 0;
     SetViewDistance(12.0f);
-    SetNavigatorLinkMode00452F50(0);
+    SetNavigatorLinkMode(0);
     g_game_time_accumulator->ResetDurationScale();
     ResetMonsterGeneratorTimers();
     DestroySurpriseFade();
@@ -1052,7 +1052,7 @@ void AgeMonsterSight(W8MonsterInfo* monster_info, unsigned int minutes, int arg_
                 if (delta.Length() < 500.0f) {
                     srVector3T<float> navigator_position = monster->GetPosition();
 
-                    if (g_pathing->SnapWaypointPosition00462E60(&navigator_position, 0) == 0 &&
+                    if (g_pathing->SnapWaypointPosition(&navigator_position, 0) == 0 &&
                         monster_info->party_threat.visible_to_player_25 == 0) {
                         srVector3T<float> next_position;
 

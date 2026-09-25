@@ -4,8 +4,8 @@
    runs, 1 while a lighting transition is in progress, 0 once a transition has
    faded the world out. The only retail caller is in NPC Scripting, so the
    accessor keeps its address name until that owner can be renamed with it. */
-int GetEnvironmentValue0060A3A8(void);
-unsigned char GetEnvironmentFlag0060A394(void); /* 0x00482A10 */
+int GetEnvironmentValue(void);
+unsigned char GetEnvironmentFlag(void); /* 0x00482A10 */
 
 #include "Types.h"
 #include "surrender/srVertexProcessor.h"
@@ -49,8 +49,8 @@ extern EnvironmentColour g_environment_colours_65ad98[256];
 class stLight;
 void AddEnvironmentLight(stLight* light);
 
-BOOLEAN ReadLightColourTable00482F90(int hFile);
-BOOLEAN ReadEnvironmentColourTable004830D0(int hFile);
+BOOLEAN ReadLightColourTable(int hFile);
+BOOLEAN ReadEnvironmentColourTable(int hFile);
 void BuildEnvironmentColourRamp(void);
 void BuildLightColourRamp(void);
 void UpdateEnvironmentLight(void);
@@ -71,14 +71,13 @@ void SetLightDirection(const EnvironmentColour* direction);
 void GetLightDirection(EnvironmentColour* direction);
 extern bool g_sky_enabled;
 void ResetEnvironment(void);
-void InitializeLevelEnvironment00482410(void);
+void InitializeLevelEnvironment(void);
 /* Drop the sky gradients and celestial props, release both environment
    objects and empty the registered-light list; called by world teardown. */
 void ClearEnvironmentObjects(void);
 /* Apply one day-phase colour and intensity to the world, its environment
    lights, and the animated cloud material. */
-void ApplyEnvironmentColour00483BA0(W8World* world, float intensity,
-                                    const EnvironmentColour* colour);
+void ApplyEnvironmentColour(W8World* world, float intensity, const EnvironmentColour* colour);
 void ReleaseEnvironmentObjects(void);
 
 /* Turn the environment clock on or off; enabling resets its tick baseline. */

@@ -72,21 +72,21 @@ struct OctBuildPreTree : W8OctBuildTree {
     OctBuildPreTree(float leaf_size, srVector3T<float>* minimum, srVector3T<float>* maximum,
                     unsigned short item_limit, unsigned long path_capacity, short extent_mode);
     OctPreTree* BuildOctPreTree();
-    unsigned short BuildRegions004B19F0();
+    unsigned short BuildRegions();
     unsigned char BuildParticleRegions(const W8LevelFileParticleSystem* particles,
                                        int particle_count);
     unsigned char BuildGeometryRegions(const W8LevelFileProp* records, int record_count,
                                        int base_index, unsigned char finalize);
 
     void AssignInitialRegions(const W8OctSpatialState* spatial);
-    unsigned char UpdateRegionForGeometry004B06E0(const srVector3T<float>* geometry, short value,
-                                                  short mode);
+    unsigned char UpdateRegionForGeometry(const srVector3T<float>* geometry, short value,
+                                          short mode);
     unsigned char UpdateRegionMap(const W8OctSpatialState* spatial,
                                   const srVector3T<float>* geometry, short value, short mode);
     W8OctBuildNode* FindNode(unsigned int path);
     unsigned char MergeAdjacentRegion(W8OctBuildNode* node, unsigned int path);
     unsigned char MergeRegion(W8OctBuildNode* node, const int* cell);
-    void FinalizeRegionMapping004B2A20();
+    void FinalizeRegionMapping();
     void AssignRegionFromSurfaces(const W8OctSpatialState* spatial);
     void ValidatePolygonRegions();
     void ValidateRegionBounds(const W8BoundingBox* region_bounds);
@@ -105,10 +105,10 @@ struct OctBuildPreTree : W8OctBuildTree {
     void FindLeafRegions004B1090(W8OctBuildNode* node, const W8BoundingBox* bounds);
     /* Loads the .rlk region file beside the level and folds its bounds into
        the build. */
-    unsigned short LoadRegionFile004B0C90(const char* stem, srVector3T<float>* minimum,
-                                          srVector3T<float>* maximum);
+    unsigned short LoadRegionFile(const char* stem, srVector3T<float>* minimum,
+                                  srVector3T<float>* maximum);
     /* Walks the node tree remapping leaf region ids through region_remap_100. */
-    void RemapNodeRegions004B16B0(W8OctBuildNode* node, int depth);
+    void RemapNodeRegions(W8OctBuildNode* node, int depth);
     /* Assigns a polygon's region_32 from the region volume containing its
        representative point, falling back to the corner vertices' regions;
        marks multi-region polygons with flags bit2 and counts the assignment

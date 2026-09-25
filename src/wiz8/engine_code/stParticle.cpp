@@ -800,7 +800,7 @@ void stParticle::process(const ProcessInfo& info, e_processType)
 /* Build the four camera-facing offsets once per call, then expand every
    particle center into a quad. */
 // FUNCTION: WIZ8 0x00498DD0
-void stParticle::PrepareRenderer00498DD0(srMatrix4T<float>& view)
+void stParticle::PrepareRenderer(srMatrix4T<float>& view)
 {
     static srVector3T<float> corners[4] = {
         srVector3T<float>(-0.5f, 0.5f, 0.0f), srVector3T<float>(0.5f, 0.5f, 0.0f),
@@ -969,7 +969,7 @@ void stParticle::SubmitToRenderer(srGERD* renderer)
     srMatrix4T<float> view;
     renderer->getMatrix(srGERD::MATRIX_MODELVIEW, view);
     view.Invert();
-    PrepareRenderer00498DD0(view);
+    PrepareRenderer(view);
 
     if (requires_positional_138 != 0 && !renderer->isEnabled(srGERD::ENABLE_POSITIONAL_1)) {
         renderer->toggle(srGERD::ENABLE_POSITIONAL_1);

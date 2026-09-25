@@ -377,7 +377,7 @@ void W8SpellVisual::UpdateRepresentation(W8World* world)
    unlinked from the world collection, hands its lights back through the
    world light boundary, and deletes itself. */
 // FUNCTION: WIZ8 0x004aab80
-void UpdateWorldSpellVisuals004AAB80(W8World* world)
+void UpdateWorldSpellVisuals(W8World* world)
 {
     if (world == 0) {
         srAssertFail("pWorld", "C:\\Projects\\Wizardry 8\\Engine Code\\Spells.cpp", 0x130, 0);
@@ -441,7 +441,7 @@ W8SpellEmitterHost::W8SpellEmitterHost(const W8SpellEmitterHost& other)
             emitters[emitter] = 0;
             emitter_values[emitter] = 15.0f;
         } else {
-            emitters[emitter] = CloneAnimObj004A0320(other.emitters[emitter]);
+            emitters[emitter] = CloneAnimObj(other.emitters[emitter]);
             emitter_values[emitter] = other.emitter_values[emitter];
         }
     }

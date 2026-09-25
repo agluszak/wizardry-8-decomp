@@ -37,7 +37,7 @@ W8AnimRepBase::W8AnimRepBase()
 }
 
 // FUNCTION: WIZ8 0x004b55c0
-void W8AnimRep::SetFrameMethod004B55C0(signed char method)
+void W8AnimRep::SetFrameMethod(signed char method)
 {
     if (method < 1 || method > 4) {
         srAssertFail("bFrameMethod >= DIR_FIRST && bFrameMethod <= DIR_LAST",

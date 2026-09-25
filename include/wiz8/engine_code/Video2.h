@@ -115,15 +115,14 @@ class srTextureIFace;
 class stModelInstance2D;
 template <class T> class srVector3T;
 template <class T> class srVector4T;
-srNode* MakePosterQuad00424BA0(srTextureIFace* texture, float width, float height,
-                               unsigned char additive);
+srNode* MakePosterQuad(srTextureIFace* texture, float width, float height, unsigned char additive);
 /* 0x00425190: build a 2D marker model instance over a texture. */
 stModelInstance2D* CreateSpriteFromTexture(srTextureIFace* texture, double width, double height,
                                            char keep_aspect, char a5);
 /* 0x00426F80: render the world into a caller-owned color surface through a
    scissored viewport, then blit the locked frame buffer onto the target. */
-unsigned char RenderWorldToSurface00426F80(srColorSurface* target, W8ScreenRect* rect,
-                                           char render_secondary);
+unsigned char RenderWorldToSurface(srColorSurface* target, W8ScreenRect* rect,
+                                   char render_secondary);
 void SetPickKey(void* key);
 
 struct W8ControlsRect;

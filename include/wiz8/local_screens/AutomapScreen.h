@@ -35,7 +35,7 @@ void RestoreAutomapCameraPosition(void);
 bool CanUseCurrentAutomapTool(void);
 
 /* 0x00580380: recompute the automap's visible world bounds from lit cells. */
-void UpdateAutomapBounds00580380(void);
+void UpdateAutomapBounds(void);
 /* 0x00580760: when the automap dirty flag is set, light a batch of pending
    visited cells through the table-1 vertex lights, then clear the flag once
    the batch finds nothing left. */
@@ -44,14 +44,14 @@ void RefreshDirtyAutomap(void);
    return 1 only when that mark was newly set (retry one cell higher on miss). */
 bool AutomapHasCellAt(const srVector3T<float>* position);
 
-void ResetAutomapView005817D0(void);
+void ResetAutomapView(void);
 bool SaveAutomapNotes(int handle); /* 0x00581CE0 */
 bool LoadAutomapNotes(int handle); /* 0x00581E60 */
 unsigned char GetAutomapPositionUnderCursor(srVector3T<float>* position);
 void SetAutomapToolCursor(int tool);
 W8AutomapNote* FindAutomapNoteUnderCursor(void);
-void CreateAutomapMarkerSprites005822C0(void);
-void RenderAutomapMarkers00582930(void);
+void CreateAutomapMarkerSprites(void);
+void RenderAutomapMarkers(void);
 void CreateAutomapButtons(void);
 
 unsigned char ReadAutomapNodes(int hFile);

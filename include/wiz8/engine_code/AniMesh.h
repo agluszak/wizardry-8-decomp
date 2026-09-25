@@ -48,7 +48,7 @@ extern W8PList g_animesh_cache_list;
 
 void InitializeAniMeshCache(int primary_limit, int secondary_limit);
 void FreeAniMeshCache(void);
-W8AniMesh* CreateAniMesh004B57E0();
+W8AniMesh* CreateAniMesh();
 W8AniMesh* CopyAniMesh(const W8AniMesh* other);
 float GetAniMeshFrameRadius(W8AniMesh* mesh, unsigned char frame);
 unsigned char GetAniMeshBounds(W8AniMesh* mesh, srVector3T<float>* minimum,
@@ -63,6 +63,6 @@ unsigned char AniMeshRadius(W8AniMesh* mesh, float* radius);
 /* Two parameters, not three: the retail body reads its flag from the second
    stack slot, and GrCycle's 0x004A7470 pushes exactly the pair. */
 void AniMeshSetFlag10(W8AniMesh* mesh, signed char enabled);
-void EnforceAniMeshMemoryLimit004B6770(W8AniMesh* current);
+void EnforceAniMeshMemoryLimit(W8AniMesh* current);
 
 #endif

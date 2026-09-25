@@ -4537,8 +4537,7 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
                     QueueNpcScriptLine(0x11, 0, 0, 0);
                     return 1;
                 }
-                if (AcceptNpcDialogueItem005B1740(g_screen_state_00649f1c->dialogue_npc, item, 1) !=
-                    0) {
+                if (AcceptNpcDialogueItem(g_screen_state_00649f1c->dialogue_npc, item, 1) != 0) {
                     QueueNpcScriptLine(0x10, 0, 0, 0);
                     RemoveNpcScriptItem(item, 0, -1);
                     return result;
@@ -4588,7 +4587,7 @@ unsigned char HandleNpcDialogueItem(W8ItemInstance* item)
 
 /* Retail ICF shares this constant-return callback with the retained body at
    0x005b1740; this typed source callback has no separate address marker. */
-unsigned char AcceptNpcDialogueItem005B1740(W8NpcState*, W8ItemInstance*, int)
+unsigned char AcceptNpcDialogueItem(W8NpcState*, W8ItemInstance*, int)
 {
     return 1;
 }
@@ -5259,7 +5258,7 @@ void SyncDialogueNpcStateAndMarkPending(void)
 }
 
 // FUNCTION: WIZ8 0x00577260
-void SyncDialogueNpcState00577260(void)
+void SyncDialogueNpcState(void)
 {
     BeginNpcDialogueInternal(g_screen_state_00649f1c->dialogue_npc, 0, -1, 0, 1);
     g_screen_state_00649f1c->pending_layout = g_screen_state_00649f1c->previous_dialogue_layout;

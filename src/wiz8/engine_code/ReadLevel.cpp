@@ -428,7 +428,7 @@ unsigned char ReadWorldEnvironment(W8ReadLevelInfo* pInfo, W8World* pWorld)
 
     success = success && FileRead(pInfo->hFile, &has_light_colours, sizeof(has_light_colours), 0);
     if (has_light_colours != 0) {
-        ReadLightColourTable00482F90(pInfo->hFile);
+        ReadLightColourTable(pInfo->hFile);
     } else {
         BuildLightColourRamp();
     }
@@ -436,7 +436,7 @@ unsigned char ReadWorldEnvironment(W8ReadLevelInfo* pInfo, W8World* pWorld)
     success = success &&
               FileRead(pInfo->hFile, &has_environment_colours, sizeof(has_environment_colours), 0);
     if (has_environment_colours != 0) {
-        ReadEnvironmentColourTable004830D0(pInfo->hFile);
+        ReadEnvironmentColourTable(pInfo->hFile);
     } else {
         BuildEnvironmentColourRamp();
     }
@@ -446,7 +446,7 @@ unsigned char ReadWorldEnvironment(W8ReadLevelInfo* pInfo, W8World* pWorld)
     white.red = 1.0f;
     white.green = 1.0f;
     white.blue = 1.0f;
-    ApplyEnvironmentColour00483BA0(pWorld, intensity, &white);
+    ApplyEnvironmentColour(pWorld, intensity, &white);
     WorldSetFarClip(pWorld, pWorld->view_distance_020);
     distance_scale =
         view_distance < g_octree_cell_scale ? g_environment_near_scale : g_float_005ec3b8;
@@ -465,7 +465,7 @@ unsigned char ReadWorldEnvironment(W8ReadLevelInfo* pInfo, W8World* pWorld)
 }
 
 // FUNCTION: WIZ8 0x004BCE20
-unsigned char ReadWorldClipPlanes004BCE20(W8ReadLevelInfo* pInfo, W8World* pWorld)
+unsigned char ReadWorldClipPlanes(W8ReadLevelInfo* pInfo, W8World* pWorld)
 {
     W8GrowableVector<srClipPlane*> clip_planes(5);
     srVector4T<float> plane;
@@ -523,8 +523,8 @@ unsigned char ReadWorldClipPlanes004BCE20(W8ReadLevelInfo* pInfo, W8World* pWorl
 }
 
 // FUNCTION: WIZ8 0x004BC5E0
-unsigned char ReadWorldProps004BC5E0(W8ReadLevelInfo* pInfo, W8World* pWorld,
-                                     unsigned char mark_model_instances)
+unsigned char ReadWorldProps(W8ReadLevelInfo* pInfo, W8World* pWorld,
+                             unsigned char mark_model_instances)
 {
     /* CollectModelInstances appends. The canonical body deliberately keeps
        this one vector across the complete prop loop. */
@@ -551,7 +551,7 @@ unsigned char ReadWorldProps004BC5E0(W8ReadLevelInfo* pInfo, W8World* pWorld,
 
     for (index = 0; index < count; ++index) {
         prop = 0;
-        if (!success || !CreateAndLoadProp0044BF50(pInfo, &prop)) {
+        if (!success || !CreateAndLoadProp(pInfo, &prop)) {
             success = 0;
         } else {
             success = 1;
@@ -807,8 +807,8 @@ unsigned char ReadWorldCameras(W8ReadLevelInfo* pInfo, W8World* pWorld)
 }
 
 // FUNCTION: WIZ8 0x004BD0D0
-unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
-                                         W8GrowableVector<stParticle*>* pParticles)
+unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
+                                 W8GrowableVector<stParticle*>* pParticles)
 {
     W8LevelParticleRecord record;
     srMaterialIFace* material;
@@ -971,8 +971,8 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
         particle->emission_limit_184 = record.emission_limit_218;
         particle->release_when_done_190 = false;
 
-        LoadMaterial004B8A70(pInfo->bitmap_folder, &record.material, &material, &texture,
-                             &render_flags.value, 1);
+        LoadMaterial(pInfo->bitmap_folder, &record.material, &material, &texture,
+                     &render_flags.value, 1);
         particle->SetRetainedObject(material);
         particle->SetRenderFlags(render_flags);
         particle->SetTexture(texture);
@@ -1112,9 +1112,9 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
         success = 0;
     }
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after missiles.");
-    success = success && ReadWorldProps004BC5E0(&info, world, 0);
+    success = success && ReadWorldProps(&info, world, 0);
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after props.");
-    success = success && ReadWorldProps004BC5E0(&info, world, 1);
+    success = success && ReadWorldProps(&info, world, 1);
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after bitmaps.");
     success = success && ReadWorldCameras(&info, world);
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after cameras.");
@@ -1157,7 +1157,7 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
         FinalizeWorldScenes(world->static_scene, world->dynamic_scene);
     }
 
-    success = ReadWorldClipPlanes004BCE20(&info, world);
+    success = ReadWorldClipPlanes(&info, world);
     if (!success) {
         srAssertFail("fSuccess", READ_LEVEL_CPP, 0x15c, 0);
     }
@@ -1178,7 +1178,7 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
         !FileRead(handle, &environment_offset.z, sizeof(environment_offset.z), 0)) {
         success = 0;
     } else {
-        success = ReadWorldParticles004BD0D0(&info, world->dynamic_scene, world->particles);
+        success = ReadWorldParticles(&info, world->dynamic_scene, world->particles);
     }
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after particles.");
     success = success && ReadNamedPositions(&info, world->named_positions);

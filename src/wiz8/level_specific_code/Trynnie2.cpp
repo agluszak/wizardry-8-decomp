@@ -160,7 +160,7 @@ bool Trynnie2UseItem(W8ItemInstance* item)
     if (item->iItemNo != 0x1b3 && item->iItemNo != 0x1c3) {
         return 0;
     }
-    if (DispatchWorldCursorNodeCommand004D9080(0, 8, 0) == 0) {
+    if (DispatchWorldCursorNodeCommand(0, 8, 0) == 0) {
         ShowString(gppStringList[0x2598 / 4]);
         return 1;
     }

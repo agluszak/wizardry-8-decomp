@@ -49,16 +49,14 @@ public:
     unsigned long* GetActivePolygons(long* count_out, int table, bool flag);
     void RemoveSkinTable(int index);
     void RemoveSkinTablesForCycle(const char* cycle_name);
-    srVector3T<float>* GetVertexLocations00471AD0(unsigned int frame, char load,
-                                                  float interpolation);
+    srVector3T<float>* GetVertexLocations(unsigned int frame, char load, float interpolation);
     srVector3T<float>* GetVertexNormals(unsigned int frame, char load); /* 0x00471CA0 */
     srVector3T<float>* GetPolygonNormals(unsigned int frame, char load);
     void SetAmbientColor(const srVector3T<float>& color);
-    unsigned char AllocateFrameBuffers00471720(unsigned int uiFrame,
-                                               unsigned char flags); /* 0x00471720 */
-    srVector3T<float>* GetVertexLights(char initialize, int table);  /* 0x00472100 */
-    float* GetVertexSunlight(char initialize);                       /* 0x004721E0 */
-    void NotifyLinkedModel005AA400(stMeshModel* previous_model);
+    unsigned char AllocateFrameBuffers(unsigned int uiFrame, unsigned char flags); /* 0x00471720 */
+    srVector3T<float>* GetVertexLights(char initialize, int table);                /* 0x00472100 */
+    float* GetVertexSunlight(char initialize);                                     /* 0x004721E0 */
+    void NotifyLinkedModel(stMeshModel* previous_model);
     void InitializeVertexFrames(int frames); /* 0x00473B00 */
     unsigned char AllocateFrameStorage();    /* 0x00471340 */
     void FreeFrameStorage();                 /* 0x004715E0 */

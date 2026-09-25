@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "wiz8/engine_code/GameData.h"
-#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator.h"
 #include "wiz8/engine_code/PolyPick.h"
 #include "wiz8/geometry.h"
 #include "wiz8/3d_code/IList.h"

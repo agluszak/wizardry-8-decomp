@@ -363,7 +363,7 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
         return 0;
     }
     if (CalcRangeDistance(static_cast<W8RangeCategory>(range)) <
-        monster_info->p3D->GetDistanceToPlayer004C7CB0()) {
+        monster_info->p3D->GetDistanceToPlayer()) {
         if (notify_failure != 0) {
             QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_special_event_0068c530, 0,
                                 g_effect_argument_005ed8c8, g_effect_argument_005ed914);
@@ -671,7 +671,7 @@ unsigned char MonsterAttackReachesAnyone(W8MonsterInfo* monster_info, unsigned i
                 srAssertFail("FALSE", COMBAT_RANGE_CPP, 0x463,
                              "CalcRangeDistance: ERROR - Invalid range category");
             }
-            if (monster_info->p3D->GetDistanceToPlayer004C7CB0() <= steps * g_world_scale) {
+            if (monster_info->p3D->GetDistanceToPlayer() <= steps * g_world_scale) {
                 return 1;
             }
         }
@@ -785,7 +785,7 @@ bool MonsterAttackReachesCharacter(W8MonsterInfo* monster_info, W8MonsterRecord*
         srAssertFail("FALSE", COMBAT_RANGE_CPP, 0x463,
                      "CalcRangeDistance: ERROR - Invalid range category");
     }
-    if (monster_info->p3D->GetDistanceToPlayer004C7CB0() <= steps * g_world_scale) {
+    if (monster_info->p3D->GetDistanceToPlayer() <= steps * g_world_scale) {
         return 1;
     }
     return 0;
@@ -953,7 +953,7 @@ W8RangeCategory GetMonsterBestRangeCategory(W8MonsterInfo* monster_info,
     for (spell = 0; spell < 10; ++spell) {
         unsigned int spell_id = record->spells_14d[spell];
 
-        if (MonsterCanAimSpell005474B0(spell_id) == 0) {
+        if (MonsterCanAimSpell(spell_id) == 0) {
             continue;
         }
         if (skip_capability_checks == 0 &&
@@ -1383,7 +1383,7 @@ float MonsterChooseTarget(W8MonsterInfo* monster_info, W8CombatSlot* out, int ki
     out->iType = W8_TARGET_KIND_NONE;
     if (monster_info->ubDisposition == 1 &&
         IsVisibleUnderConditions(monster_info, &monster_info->player_visibility, kind) &&
-        (best = monster_info->p3D->GetDistanceToPlayer004C7CB0(), best < 1000000.0f)) {
+        (best = monster_info->p3D->GetDistanceToPlayer(), best < 1000000.0f)) {
         out->iType = W8_TARGET_KIND_CHARACTER;
     }
     if (out->iType == W8_TARGET_KIND_NONE || monster_info->pCombat->reconsider_action_152 == 0) {
@@ -1449,7 +1449,7 @@ unsigned char MonsterActionReachesTarget(W8MonsterInfo* monster_info, W8MonsterR
             return 0;
         }
         if (CalcRangeDistance(static_cast<W8RangeCategory>(range)) <
-            monster_info->p3D->GetDistanceToPlayer004C7CB0()) {
+            monster_info->p3D->GetDistanceToPlayer()) {
             return 0;
         }
     } else if (target->iType == W8_TARGET_KIND_MONSTER) {
@@ -1494,7 +1494,7 @@ unsigned char MonsterActionReachesTarget(W8MonsterInfo* monster_info, W8MonsterR
         if (range_category == W8_RANGE_NONE) {
             return 0;
         }
-        if (CalcRangeDistance(range_category) < monster_info->p3D->GetDistanceToPlayer004C7CB0()) {
+        if (CalcRangeDistance(range_category) < monster_info->p3D->GetDistanceToPlayer()) {
             return 0;
         }
     } else if (target->iType == W8_TARGET_KIND_GROUP) {

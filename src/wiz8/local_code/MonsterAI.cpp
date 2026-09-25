@@ -1000,7 +1000,7 @@ members:
                 }
             } else {
                 for (spell = 0; spell < 10; ++spell) {
-                    if (MonsterCanAimSpell005474B0(record->spells_14d[spell]) != 0 &&
+                    if (MonsterCanAimSpell(record->spells_14d[spell]) != 0 &&
                         IsSpellUsableByMonster(member, record->spells_14d[spell], 1) != 0) {
                         return 1;
                     }
@@ -1011,7 +1011,7 @@ members:
             return 1;
         }
         if (GetBestMonsterAttackRange(record, 0) <= W8_RANGE_SHORT) {
-            distance = member->p3D->GetDistanceToPlayer004C7CB0();
+            distance = member->p3D->GetDistanceToPlayer();
             if (GetMonsterCombatMoveRange(member) * g_float_005ee774 > distance) {
                 if (waypoint_checked == 0) {
                     leader = MonsterInfoFromID(0x4cb, MONSTER_AI_CPP,
@@ -1329,7 +1329,7 @@ bool IsSpellUsableByMonster(W8MonsterInfo* monster_info, int spell_id, char need
     if (IsSpellBlockedForMonster(monster_info, spell_id)) {
         return 0;
     }
-    if (DispatchWorldCursorNodeCommand004D9080(monster_info, 4, 0) != 0) {
+    if (DispatchWorldCursorNodeCommand(monster_info, 4, 0) != 0) {
         return 0;
     }
     if (spell_id == 0x3c && monster_info->insanity_summon_344 != -1) {
@@ -1801,7 +1801,7 @@ unsigned char SpellAreaHitsNeutralMonster(W8MonsterInfo* monster_info, int spell
     W8MonsterInfo* target;
     unsigned int power_level;
 
-    if (MonsterCanAimSpell005474B0(spell_id) == 0) {
+    if (MonsterCanAimSpell(spell_id) == 0) {
         return 0;
     }
     SetTargetSourceToMonster(monster_info, &source);
@@ -2241,7 +2241,7 @@ bool MonsterHasVisibleTarget(W8MonsterInfo* monster_info, int party_only, int ho
     }
     if (monster_info->player_visibility.sight_state_04 == W8_SIGHT_SEEN &&
         monster_info->player_visibility.los_flags_05[2] != 0 &&
-        (within_reach == 0 || monster_info->p3D->GetDistanceToPlayer004C7CB0() <= reach)) {
+        (within_reach == 0 || monster_info->p3D->GetDistanceToPlayer() <= reach)) {
         for (index = 0; index < W8_PARTY_SLOT_COUNT; ++index) {
             if (g_status.buffers.XChar[index].fOccupied != 0 &&
                 g_status.buffers.Char[index].hp_current > 0 &&
@@ -2317,7 +2317,7 @@ bool CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record, char e
     }
     if (g_special_attack_table[record->special_attack_kind_0e3][0] ==
         W8_SPECIAL_ATTACK_EFFECT_SUMMON) {
-        if (CalcRangeDistance(W8_RANGE_LONG) < monster_info->p3D->GetDistanceToPlayer004C7CB0()) {
+        if (CalcRangeDistance(W8_RANGE_LONG) < monster_info->p3D->GetDistanceToPlayer()) {
             return 0;
         }
         if (monster_info->ubDisposition == DISP_FRIENDLY) {
@@ -2367,7 +2367,7 @@ bool IsMonsterActionUsable(W8MonsterInfo* monster_info)
         return monster_info->Target.iType == W8_TARGET_KIND_CHARACTER;
     case W8_MONSTER_ACTION_SPELL:
         spell_id = monster_info->action_detail;
-        if (!MonsterCanAimSpell005474B0(spell_id)) {
+        if (!MonsterCanAimSpell(spell_id)) {
             return 0;
         }
         switch (monster_info->Target.iType) {
@@ -2413,7 +2413,7 @@ float GetGroupNearestDistance(W8MonsterGroup* group)
         location_id = IListGetAt(group->monsters, index);
         monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(1845, MONSTER_AI_CPP, location_id, 1));
-        distance = monster_info->p3D->GetDistanceToPlayer004C7CB0();
+        distance = monster_info->p3D->GetDistanceToPlayer();
         if (distance < furthest) {
             furthest = distance;
         }
@@ -2539,7 +2539,7 @@ bool MonsterGroupHasReinforcement(W8MonsterGroup* monster_group)
             member->party_threat.los_flags_05[1] == 0) {
             continue;
         }
-        member_distance = member->p3D->GetDistanceToPlayer004C7CB0();
+        member_distance = member->p3D->GetDistanceToPlayer();
         if (member_distance > GetRangeConstant5EC360()) {
             continue;
         }
@@ -2548,7 +2548,7 @@ bool MonsterGroupHasReinforcement(W8MonsterGroup* monster_group)
             if (other != member && other->party_threat.los_flags_05[1] != 0 &&
                 other->fActive != 0 && other->fInCombat != 0 && other->hp_current != 0 &&
                 other->ubDisposition == DISP_HOSTILE) {
-                other_distance = other->p3D->GetDistanceToPlayer004C7CB0();
+                other_distance = other->p3D->GetDistanceToPlayer();
                 monster_distance = member->p3D->GetDistanceToMonster(other->p3D);
                 if (monster_distance + member_distance < other_distance * g_float_005ee780 &&
                     (member_distance < other_distance || monster_distance < other_distance)) {

@@ -256,7 +256,7 @@ void IdentifyAndOpenItemInfo(W8ItemInstance* item)
         }
     }
     OpenItemInfoDialog(item, 0);
-    SetCampItemActionMode005B59B0(0);
+    SetCampItemActionMode(0);
 }
 
 // FUNCTION: WIZ8 0x005BA3D0
@@ -264,7 +264,7 @@ void DropHeldItem005BA3D0(void)
 {
     if (ResolvePendingCampCharacter(1) != 0) {
         if (DropItemInHand(0) != 0) {
-            SetCampItemActionMode005B59B0(0);
+            SetCampItemActionMode(0);
         }
     }
 }
@@ -284,7 +284,7 @@ void OpenSplitStackDialog(W8ItemInstance* item)
         dialog->SetOrigin(g_split_dialog_x, g_split_dialog_y);
         dialog->m_destroy_callback = SplitStackDialogResult;
         DisplayCampDialog(dialog);
-        SetCampItemActionMode005B59B0(0);
+        SetCampItemActionMode(0);
     }
 }
 
@@ -294,7 +294,7 @@ void UseItem005BA4F0(W8ItemInstance* item)
     unsigned short slot;
 
     if (ValidateItemSpellUse(giReviewCharSlot, item, 0) != 0) {
-        SetCampItemActionMode005B59B0(0);
+        SetCampItemActionMode(0);
         return;
     }
     if (CanCastFromItem(g_review_character, item) != 0) {
@@ -315,7 +315,7 @@ void UseItem005BA4F0(W8ItemInstance* item)
     }
     RebuildCampItemList();
     g_camp_screen->redraw_flags |= 0xfffffff;
-    SetCampItemActionMode005B59B0(0);
+    SetCampItemActionMode(0);
 }
 
 // FUNCTION: WIZ8 0x005BA5D0
@@ -325,7 +325,7 @@ void MergeItemStacksWithHeld(W8ItemInstance* item)
         if (MergeItems(g_review_character, item) != 0) {
             RebuildCampItemList();
             g_camp_screen->redraw_flags |= 0xfffffff;
-            SetCampItemActionMode005B59B0(0);
+            SetCampItemActionMode(0);
         }
     }
 }
@@ -354,7 +354,7 @@ void ReportCastResult(int party_slot)
         ShowCampNoticeLine(text, 0, 1, 0);
     }
     g_camp_screen->redraw_flags |= 0xfffffff;
-    SetCampItemActionMode005B59B0(0);
+    SetCampItemActionMode(0);
 }
 
 // FUNCTION: WIZ8 0x005BA740
@@ -388,7 +388,7 @@ void UseHeldItemOnItem(W8ItemInstance* item)
             }
             RebuildCampItemList();
             g_camp_screen->redraw_flags |= 0xfffffff;
-            SetCampItemActionMode005B59B0(0);
+            SetCampItemActionMode(0);
             giCasterCharSlot = -1;
             return;
         }
@@ -429,7 +429,7 @@ void TargetCharacterWithHeldItem(unsigned int uiTargetChar)
     CommitPartySlotSpell(giCasterCharSlot, 0x3a, 8, &target);
     RebuildCampItemList();
     g_camp_screen->redraw_flags |= 0xfffffff;
-    SetCampItemActionMode005B59B0(0);
+    SetCampItemActionMode(0);
     giCasterCharSlot = -1;
 }
 
@@ -510,7 +510,7 @@ void SplitStackDialogResult(W8DialogBase* dialog)
             ShowCampNoticeLine(gppStringList[0x2454 / 4], 0, 1, 0);
             g_status.item_in_hand_235b.stack_count = remaining;
             if (ResolvePendingCampCharacter(1) != 0 && DropItemInHand(0) != 0) {
-                SetCampItemActionMode005B59B0(0);
+                SetCampItemActionMode(0);
             }
             destination = &g_status.item_in_hand_235b;
         }
@@ -539,7 +539,7 @@ void SplitStackDialogResult(W8DialogBase* dialog)
     RecalculateCharacterDerivedStats(g_status.buffers.Char + giReviewCharSlot);
     RecalculateCarriedWeight(g_review_character);
     RedistributePartyEncumbrance();
-    SetCampItemActionMode005B59B0(0);
+    SetCampItemActionMode(0);
     g_camp_screen->redraw_flags |= 0xfffffff;
 }
 
@@ -671,7 +671,7 @@ void UnequipBothHands(void)
     BindEquippedItem(character, 6);
     BindEquippedItem(character, 7);
     if (CanUnequipSlotItem(character, 6) != 0 && CanUnequipSlotItem(character, 7) != 0) {
-        SwapWeaponSetSlots0051D3B0(giReviewCharSlot, 0, 1);
+        SwapWeaponSetSlots(giReviewCharSlot, 0, 1);
         g_camp_screen->item_redraw_flags |= 0x3ffe00;
         g_camp_screen->redraw_flags |= 0x100;
         g_camp_screen->redraw_flags |= 0x2000;
@@ -841,7 +841,7 @@ unsigned char BackpackRegionHandler(const InputAtom* event, W8Region* region)
                 g_camp_screen->redraw_flags |= 0xfffffff;
             }
             OpenItemInfoDialog(item, 0);
-            SetCampItemActionMode005B59B0(0);
+            SetCampItemActionMode(0);
         }
         return 1;
     }
@@ -963,7 +963,7 @@ unsigned char EquipSlotRegionHandler(const InputAtom* event, W8Region* region)
                 g_camp_screen->redraw_flags |= 0xfffffff;
             }
             OpenItemInfoDialog(item, 0);
-            SetCampItemActionMode005B59B0(0);
+            SetCampItemActionMode(0);
         }
     }
     return 1;
@@ -1002,7 +1002,7 @@ unsigned char ItemPoolRegionHandler(const InputAtom* event, W8Region* region)
                     g_camp_screen->redraw_flags |= 0xfffffff;
                 }
                 OpenItemInfoDialog(item, 0);
-                SetCampItemActionMode005B59B0(0);
+                SetCampItemActionMode(0);
             }
             return 1;
         }

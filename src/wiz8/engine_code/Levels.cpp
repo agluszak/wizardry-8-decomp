@@ -563,7 +563,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
     }
 
     SetSkyNodeVisible(0);
-    ResetAutomapView005817D0();
+    ResetAutomapView();
     if (!LoadLevelStatus("Saves\\CurrentGame.SAV", level)) {
         BuildLevelStatusPath(path, level);
         g_level_status_loading = 1;
@@ -630,7 +630,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
         ResetCurrentEnvironment();
     }
     g_camera_path_active = 0;
-    InitializeLevelEnvironment00482410();
+    InitializeLevelEnvironment();
     InitializeLevelMasterFunctions(level);
     RebindNpcLevelTriggers();
     SetWorldCursorNodesVisible(g_mipe_trigger_display);
@@ -719,7 +719,7 @@ unsigned char UnloadLevel(const char* save_directory)
         }
     }
 
-    ReleaseWorldCursorNodes0048DB30();
+    ReleaseWorldCursorNodes();
     ClearSearchables();
     if (g_world_cleanup_flag != 0) {
         RenderFrame();

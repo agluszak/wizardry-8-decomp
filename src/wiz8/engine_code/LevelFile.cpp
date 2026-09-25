@@ -24,7 +24,7 @@ W8LevelFile* g_level_file;
 char g_level_file_error[0x400];
 
 // FUNCTION: WIZ8 0x004CFDC0
-W8LevelFile* ReadLevelFile004CFDC0(int hFile)
+W8LevelFile* ReadLevelFile(int hFile)
 {
     W8LevelFile* pLevel = static_cast<W8LevelFile*>(malloc(sizeof(W8LevelFile)));
     if (pLevel == 0) {
@@ -269,7 +269,7 @@ W8LevelFile* ReadLevelFile004CFDC0(int hFile)
 }
 
 // FUNCTION: WIZ8 0x004D07C0
-BOOLEAN WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel)
+BOOLEAN WriteLevelFile(int hFile, int hFileIn, W8LevelFile* pLevel)
 {
     unsigned int uiBytes;
     unsigned char fSuccess;
@@ -875,7 +875,7 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
             if (pSwitch->has_door_trigger_263 != 0) {
                 ok &= FileRead(hFile, &pSwitch->door_264.kind_00, 1, 0);
                 if (pSwitch->door_264.kind_00 == 1) {
-                    ok &= ReadDoorTriggerFile004D3540(hFile, &pSwitch->door_264);
+                    ok &= ReadDoorTriggerFile(hFile, &pSwitch->door_264);
                     if (ok == 0) {
                         ReportBuildStatus(7, "Problem reading door trigger.\n");
                         return FALSE;
@@ -1282,7 +1282,7 @@ BOOLEAN ReadSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
     if (pSuper->field_85d != 0) {
         fSuccess &= FileRead(hFile, &pSuper->door_85e.kind_00, 1, 0);
         if (pSuper->door_85e.kind_00 == 1) {
-            fSuccess = ReadDoorTriggerFile004D3540(hFile, &pSuper->door_85e);
+            fSuccess = ReadDoorTriggerFile(hFile, &pSuper->door_85e);
         } else if (pSuper->door_85e.kind_00 == 2) {
             W8LevelFileLinkedRecord* pRecord = static_cast<W8LevelFileLinkedRecord*>(malloc(0x1bb));
             unsigned char ok = 0;
@@ -1422,7 +1422,7 @@ BOOLEAN WriteSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
 }
 
 // FUNCTION: WIZ8 0x004D3540
-BOOLEAN ReadDoorTriggerFile004D3540(int hFile, W8LevelFileDoorRef* pDoor)
+BOOLEAN ReadDoorTriggerFile(int hFile, W8LevelFileDoorRef* pDoor)
 {
     W8LevelFileDoor* pDoorRec = static_cast<W8LevelFileDoor*>(malloc(0x99));
     if (pDoorRec != 0) {

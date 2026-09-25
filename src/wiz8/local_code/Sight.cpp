@@ -18,7 +18,7 @@
 #include "wiz8/engine_code/3d.h"
 #include "wiz8/engine_code/World.h"
 #include "wiz8/fact_state.h"
-#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/engine_code/Navigator.h"
 #include "wiz8/engine_code/OctPath.h"
@@ -81,7 +81,7 @@ float g_sight_default = 12.0f;
 void ResetSight(void)
 {
     SetViewDistance(12.0f);
-    SetNavigatorLinkMode00452F50(0);
+    SetNavigatorLinkMode(0);
     g_game_time_accumulator->ResetDurationScale();
     ResetMonsterGeneratorTimers();
 }
@@ -581,8 +581,8 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                     if (entry->line_of_sight_28 == 0) {
                         memset(entry->los_flags_05, 0, 4);
                     } else {
-                        monster->GetMonsterSightFlags004C4B70(other->p3D, entry->los_flags_05,
-                                                              entry->los_flags_05 + 2);
+                        monster->GetMonsterSightFlags(other->p3D, entry->los_flags_05,
+                                                      entry->los_flags_05 + 2);
                         if (monster_info->has_missile_37a != 0) {
                             unsigned char found = monster->GetProjectilePosition(&trace_position);
                             unsigned char clear;
@@ -621,7 +621,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
 
     GetCameraPosition(&camera_position);
     {
-        float distance = monster->GetDistanceToPlayer004C7CB0();
+        float distance = monster->GetDistanceToPlayer();
         bool visible_to_player;
 
         monster_info->within_viewing_distance = distance <= viewing_distance;
@@ -667,7 +667,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                     }
                 }
 
-                player_distance = monster->GetDistanceToPlayer004C7CB0();
+                player_distance = monster->GetDistanceToPlayer();
                 if (record->kind_0cb == 4) {
                     int bonus = record->effective_level_24f * 5;
 
@@ -758,7 +758,7 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
                 record = GetMonsterDataForInfo(monster_info);
                 GetCameraPosition(&camera_position);
                 yaw = GetCameraYawRadians();
-                distance = monster->GetDistanceToPlayer004C7CB0();
+                distance = monster->GetDistanceToPlayer();
                 npc_fade_flag = 0;
                 if (monster_info->fInCombat == 0) {
                     npc_fade_flag = record->camouflage_248;
@@ -922,8 +922,8 @@ void UpdateMonsterSight(W8MonsterInfo* monster_info, int direction, int use_boun
         monster_info->party_threat.los_flags_05[1] = 0;
         return;
     }
-    monster->GetPlayerToMonsterSightFlags004C4A20(monster_info->party_threat.los_flags_05,
-                                                  monster_info->party_threat.los_flags_05 + 1, 0);
+    monster->GetPlayerToMonsterSightFlags(monster_info->party_threat.los_flags_05,
+                                          monster_info->party_threat.los_flags_05 + 1, 0);
 }
 
 /* Whether the source group's monster can see the target group's monster. Out

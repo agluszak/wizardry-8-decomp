@@ -113,7 +113,7 @@ static_assert(sizeof(W8NpcScriptingState) == 0xcc, "W8NpcScriptingState_size");
 extern W8NpcScriptingState g_npc_scripting;
 extern unsigned char g_message_queue_idle; /* 0x0068C501 */
 /* 0x0068506F: scripted portrait-pick / cutscene gate PortraitSelectRegionEvent
-   and EndScriptedPortraitPick00529C40 clear. */
+   and EndScriptedPortraitPick clear. */
 
 void TryFinishNpcVoicePlayback(unsigned char force); /* 0x00525D90 */
 int FindNpcScriptQuoteByKeyword(wchar_t* keyword, short* entry_index,
@@ -155,7 +155,7 @@ void BeginNpcScriptedScene(void);                        /* 0x00529BE0 */
 void SetScriptedSceneActive(void);                       /* 0x00529BC0 */
 void ClearScriptedSceneActive(void);                     /* 0x00529BD0 */
 /* 0x00529C40: end a scripted portrait pick against the chosen party slot. */
-void EndScriptedPortraitPick00529C40(int party_slot);
+void EndScriptedPortraitPick(int party_slot);
 void BeginSedexusCapture(void); /* 0x00529EF0 */
 /* ApplyAttributeChange / ApplySkillChange: character_skills.h (0x00553AD0 / 0x00553C10) */
 /* in GameData.h: CameraLookAt (0x00420F90) */

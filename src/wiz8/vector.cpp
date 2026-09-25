@@ -215,7 +215,7 @@ class W8CharacterEvent;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-/* AutomapScreen.cpp's CreateAutomapMarkerSprites005822C0 constructs
+/* AutomapScreen.cpp's CreateAutomapMarkerSprites constructs
    g_releasable_68f1f4 with `new W8GrowableVector<srClass*>(5)`. That use is
    what emits this specialization. Retail splits the capacity ctor there: a
    helper at 0x00585460 writes the construction-phase table 0x005EBFB8 and

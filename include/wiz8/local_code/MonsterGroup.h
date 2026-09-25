@@ -131,8 +131,8 @@ bool MoveMonsterGroupToPosition(W8MonsterGroup* group, const srVector3T<float>* 
    point at the requested distance on a random angle around the camera yaw,
    widened to the largest allied-group radius. Answers the movement call's
    result so callers can branch on success. */
-bool PositionMonsterGroupNearCamera00511050(W8MonsterGroup* group, float distance, float yaw,
-                                            unsigned char flag); /* 0x00511050 */
+bool PositionMonsterGroupNearCamera(W8MonsterGroup* group, float distance, float yaw,
+                                    unsigned char flag); /* 0x00511050 */
 void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group);
 /* 0x0050FFD0: refresh the group's cached centre; a null centre out-pointer
    keeps only the cache update, which is how SpawnMonsters uses it. */

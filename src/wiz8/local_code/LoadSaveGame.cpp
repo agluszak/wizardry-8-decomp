@@ -464,7 +464,7 @@ bool SaveGame(const char* name, W8SaveScreenshot* screenshot)
         surface = new W8ColorSurface(srPixelConvert::SURFACE_ARGB1555, screenshot->pixels, 0x50,
                                      0x3c, 0xa0);
         SetRendererOption4Enabled(0);
-        screenshot->capture_result = RenderWorldToSurface00426F80(surface, &bounds, 1);
+        screenshot->capture_result = RenderWorldToSurface(surface, &bounds, 1);
         RenderFrame();
         SetRendererOption4Enabled(1);
         surface->release();
@@ -981,7 +981,7 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level)
                                 }
                             } else if (chunk_id == 0x45425543) { /* CUBE */
                                 if (g_level_status_loading == 0) {
-                                    ReleaseWorldCursorNodes0048DB30();
+                                    ReleaseWorldCursorNodes();
                                 }
                                 LoadWorldCursorNodes(stream->m_hFile);
                                 if (g_level_status_loading != 0) {
@@ -1725,7 +1725,7 @@ void CaptureSaveScreenshot(W8SaveScreenshot* screenshot)
     surface =
         new srColorSurface(srPixelConvert::SURFACE_ARGB1555, screenshot->pixels, 0x50, 0x3c, 0xa0);
     SetRendererOption4Enabled(0);
-    screenshot->capture_result = RenderWorldToSurface00426F80(surface, &rect, 1);
+    screenshot->capture_result = RenderWorldToSurface(surface, &rect, 1);
     RenderFrame();
     SetRendererOption4Enabled(1);
     surface->release();
@@ -2212,7 +2212,7 @@ void SaveGlobalStatus(W8Chunk* chunks, W8GlobalStatus* status)
    inside is loaded and appended to the caller's vector. The scan stops once
    the level's group has been processed. */
 // FUNCTION: WIZ8 0x00516070
-unsigned char LoadSavedLevelItems00516070(int level, W8GrowableVector<W8WorldItem*>* items)
+unsigned char LoadSavedLevelItems(int level, W8GrowableVector<W8WorldItem*>* items)
 {
     W8Chunk chunk;
     unsigned int file_level;

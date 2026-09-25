@@ -1,6 +1,6 @@
 #include "wiz8/engine_code/MonsterLight.h"
 
-#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator.h"
 #include "wiz8/float_constants.h"
 #include "surrender/srCore.h"
 

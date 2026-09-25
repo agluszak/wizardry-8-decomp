@@ -105,7 +105,7 @@ public:
 
     void SetEffectDefinition(const W8SpellEffectDefinition* definition); /* 0x004A5410 */
     /* 0x004A5790: true while this in-flight missile still blocks ending combat. */
-    bool BlocksEndingCombat004A5790();
+    bool BlocksEndingCombat();
 
 public:
     int missile_table_index_1d8;

@@ -73,7 +73,7 @@ public:
     W8AnimRep();
     W8AnimRep(const W8AnimRep& other);
     virtual ~W8AnimRep() override;
-    void SetFrameMethod004B55C0(signed char method);
+    void SetFrameMethod(signed char method);
 
 public:
     /* Current frame/subcycle. GrCycle advances it and all derived renderers

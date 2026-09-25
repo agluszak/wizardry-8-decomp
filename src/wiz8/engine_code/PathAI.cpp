@@ -647,7 +647,7 @@ double g_double_005ec1e8 = 2.0;
 double g_double_005ec1f0 = 1.1920928955078125e-07;
 
 // FUNCTION: WIZ8 0x004aa520
-void PathAIApply004AA520(W8PathAI* path, srNode* target)
+void PathAIApply(W8PathAI* path, srNode* target)
 {
     int index;
     float blend;

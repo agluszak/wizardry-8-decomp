@@ -215,17 +215,17 @@ public:
     void HandleAnimationFrame(unsigned char frame);
     void UpdateShakeEvents(unsigned char frame);
     void SetShakeEventVisibility(signed char cycle);
-    void UpdateAttachedObjects004C3F70();
+    void UpdateAttachedObjects();
     void BeginFadeIn(float duration);
     void BeginDelayedRemoval();
     void BeginFadeOutAndRemove(signed char state);
     void BeginFadeOut(float duration);
-    void StartTalking004C73F0(unsigned char animate_mouth);
-    void StopTalking004C7470();
+    void StartTalking(unsigned char animate_mouth);
+    void StopTalking();
     void SetCycleCallback(int cycle, CycleCallback callback);
     unsigned char GetPatrolPoint(srVector3T<float>* point);
     void TrackSoundHandle(int handle);
-    float GetDistanceToPlayer004C7CB0();
+    float GetDistanceToPlayer();
     float GetPointDistanceToPlayer(srVector3T<float> point);
     float GetDistanceToMonster(W8Monster* monster);
     float GetPointDistanceToMonster(W8Monster* monster, srVector3T<float> point);
@@ -233,8 +233,8 @@ public:
     void ProcessScript();
     unsigned char GetProjectilePosition(srVector3T<float>* position);
     unsigned char GetSpellPosition(srVector3T<float>* position);
-    unsigned char GetCycleMappedPosition004C7960(signed char cycle, int mapped_index,
-                                                 srVector3T<float>* position);
+    unsigned char GetCycleMappedPosition(signed char cycle, int mapped_index,
+                                         srVector3T<float>* position);
     unsigned char EvaluateScriptCondition(const char* expression);
     bool CanContinueScript();
     unsigned char SetScriptLabel(const char* label);
@@ -243,11 +243,10 @@ public:
     unsigned char CheckLineOfSightToPlayer();
     void GetPlayerSightFlags(unsigned char* primary, unsigned char* secondary);
     unsigned char IsVisibleToPlayer004C4920(unsigned char use_bounds);
-    void GetPlayerToMonsterSightFlags004C4A20(unsigned char* primary, unsigned char* secondary,
-                                              const srVector3T<float>* source);
+    void GetPlayerToMonsterSightFlags(unsigned char* primary, unsigned char* secondary,
+                                      const srVector3T<float>* source);
     unsigned char HasLineOfSightToMonster(W8Monster* monster);
-    void GetMonsterSightFlags004C4B70(W8Monster* monster, unsigned char* primary,
-                                      unsigned char* secondary);
+    void GetMonsterSightFlags(W8Monster* monster, unsigned char* primary, unsigned char* secondary);
     unsigned char HasLineOfSightFromPoint(srVector3T<float> point);
     int IsFacingMonster(W8Monster* monster);
     int IsFacingPlayer();
@@ -473,7 +472,7 @@ void MonsterForward4A84A0(W8Monster* monster);
 void DetachMonsterRepresentation(W8Monster* monster, W8World* world);
 void DeleteMonster(W8Monster* monster);
 void RefreshMonsterStandingHeight(W8Monster* monster);
-void MonsterSetLocationId004C5870(W8Monster* monster, int value);
+void MonsterSetLocationId(W8Monster* monster, int value);
 void MonsterForward4A7BE0(W8Monster* monster, const srVector3T<float>* position);
 /* The shared forwarder four call sites use to advance a cycle's
    representation; it stays free because its callers pass the object on the

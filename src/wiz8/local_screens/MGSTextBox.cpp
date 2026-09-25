@@ -2695,7 +2695,7 @@ void RefreshTextBoxMode(unsigned short mode)
             if (wcslen(line->wString) + 1 + length > 499) {
                 break;
             }
-            wcscat(merged, g_W8TextSeparator0060CC74);
+            wcscat(merged, g_W8TextSeparator);
             wcscat(merged, line->wString);
             length += 1 + wcslen(line->wString);
         }

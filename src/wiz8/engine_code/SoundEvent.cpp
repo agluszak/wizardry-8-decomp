@@ -75,7 +75,7 @@ int g_selected_sound_event;
 int g_last_sound_event = 0x1869f;
 
 // GLOBAL: WIZ8 0x00683420
-static int g_previous_footstep_variant_00683420;
+static int g_previous_footstep_variant;
 
 /* For every bit of the caller's mask, append the events of that kind whose
    own classification matches, then play one of them at random without
@@ -226,11 +226,11 @@ unsigned char W8SoundEvent::Play(unsigned int mask, const srVector3T<float>* pos
                 do {
                     variant = (int)Random(4) + 1;
                     ++attempts;
-                    if (variant != g_previous_footstep_variant_00683420) {
+                    if (variant != g_previous_footstep_variant) {
                         break;
                     }
                 } while (attempts < 100);
-                g_previous_footstep_variant_00683420 = variant;
+                g_previous_footstep_variant = variant;
 
                 char path[260];
                 char surface;

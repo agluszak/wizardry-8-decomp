@@ -1172,7 +1172,7 @@ void W8MonsterRep::CopyCycle(signed char cycle, const W8MonsterRep* other, signe
     int index;
 
     for (index = 0; index < other->animations[other_cycle].GetCount(); ++index) {
-        animations[cycle].Add(CloneAnimObj004A0320(*other->animations[other_cycle].GetAt(index)));
+        animations[cycle].Add(CloneAnimObj(*other->animations[other_cycle].GetAt(index)));
         animation_scales[cycle].Add(*other->animation_scales[other_cycle].GetAt(index));
     }
 
@@ -1638,7 +1638,7 @@ void W8Monster::Update()
         return;
     }
 
-    UpdateAttachedObjects004C3F70();
+    UpdateAttachedObjects();
     cycle = Query(6);
     if (gfKeyState[0x11] != 0 && g_combat_state != 0 &&
         (g_combat_state->round_active_001 != 0 || gXStatus.fPartyMovementMode != 0) &&
@@ -1796,7 +1796,7 @@ unsigned char W8Monster::GetProjectilePosition(srVector3T<float>* position)
         return 0;
     }
 
-    result = GetCycleMappedPosition004C7960(cycle, 5, position);
+    result = GetCycleMappedPosition(cycle, 5, position);
     if (result == 0 && missile_point_warned_22d == 0) {
         if (g_dev_mode != 0) {
             W8MonsterInfo* info = MonsterGetScriptPartByLocationIndex(
@@ -1819,7 +1819,7 @@ unsigned char W8Monster::GetSpellPosition(srVector3T<float>* position)
     if (position == 0) {
         return 0;
     }
-    found = GetCycleMappedPosition004C7960(0x19, 6, position);
+    found = GetCycleMappedPosition(0x19, 6, position);
     if (found == 0 && spell_vertex_warned_22c == 0) {
         if (g_dev_mode != 0) {
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(
@@ -1833,8 +1833,8 @@ unsigned char W8Monster::GetSpellPosition(srVector3T<float>* position)
 }
 
 // FUNCTION: WIZ8 0x004C7960
-unsigned char W8Monster::GetCycleMappedPosition004C7960(signed char cycle, int mapped_index,
-                                                        srVector3T<float>* position)
+unsigned char W8Monster::GetCycleMappedPosition(signed char cycle, int mapped_index,
+                                                srVector3T<float>* position)
 {
     srModelInstance* current_model = GetCurrentModelInstance();
     W8GrowableVector<W8AnimObj*>* animations;
@@ -1874,7 +1874,7 @@ unsigned char W8Monster::GetCycleMappedPosition004C7960(signed char cycle, int m
         stMeshModel* mesh = static_cast<stMeshModel*>(model->model());
         int vertex = FindMappedIndexInMeshChain(&mesh, mapped_index);
         if (mesh != 0 && vertex != -1) {
-            srVector3T<float>* vertices = mesh->GetVertexLocations00471AD0(dispatch_value, 1, 0.0f);
+            srVector3T<float>* vertices = mesh->GetVertexLocations(dispatch_value, 1, 0.0f);
             if (vertices != 0) {
                 srMatrix4T<float> matrix;
                 srVector3T<float> owner_position = GetPosition();
@@ -2641,9 +2641,8 @@ unsigned char W8Monster::IsVisibleToPlayer004C4920(unsigned char use_bounds)
 }
 
 // FUNCTION: WIZ8 0x004c4a20
-void W8Monster::GetPlayerToMonsterSightFlags004C4A20(unsigned char* primary,
-                                                     unsigned char* secondary,
-                                                     const srVector3T<float>* source)
+void W8Monster::GetPlayerToMonsterSightFlags(unsigned char* primary, unsigned char* secondary,
+                                             const srVector3T<float>* source)
 {
     srVector3T<float> monster_position;
     srVector3T<float> player_position;
@@ -2684,8 +2683,8 @@ unsigned char W8Monster::HasLineOfSightToMonster(W8Monster* monster)
 }
 
 // FUNCTION: WIZ8 0x004c4b70
-void W8Monster::GetMonsterSightFlags004C4B70(W8Monster* monster, unsigned char* primary,
-                                             unsigned char* secondary)
+void W8Monster::GetMonsterSightFlags(W8Monster* monster, unsigned char* primary,
+                                     unsigned char* secondary)
 {
     srVector3T<float> from;
     srVector3T<float> to;
@@ -2788,7 +2787,7 @@ void SetMonsterPartySlotMarker(int party_slot, int location_id, char on)
             rep->icon_count_5c4 = rep->icon_count_5c4 + 1;
         }
     }
-    info->p3D->UpdateAttachedObjects004C3F70();
+    info->p3D->UpdateAttachedObjects();
 }
 
 /* Start making the representation visible.  Reversing an active fade-out
@@ -2866,7 +2865,7 @@ void W8Monster::BeginFadeOut(float duration)
 }
 
 // FUNCTION: WIZ8 0x004c73f0
-void W8Monster::StartTalking004C73F0(unsigned char animate_mouth)
+void W8Monster::StartTalking(unsigned char animate_mouth)
 {
     if (m_pRep != 0) {
         talking = true;
@@ -2882,7 +2881,7 @@ void W8Monster::StartTalking004C73F0(unsigned char animate_mouth)
 }
 
 // FUNCTION: WIZ8 0x004c7470
-void W8Monster::StopTalking004C7470()
+void W8Monster::StopTalking()
 {
     if (m_pRep != 0) {
         srModelInstance* model;
@@ -3031,7 +3030,7 @@ void UpdateNearestMonsterGroupMembers()
 }
 
 // FUNCTION: WIZ8 0x004c7cb0
-float W8Monster::GetDistanceToPlayer004C7CB0()
+float W8Monster::GetDistanceToPlayer()
 {
     srVector3T<float> position = GetPosition();
     srVector3T<float> player_position;
@@ -3695,7 +3694,7 @@ unsigned char W8Monster::GetAnimationCenter(srVector3T<float>* center)
 /* Keep equipped items, spell icons, and temporary poster model instances in
    the camera-facing attachment layout selected by the representation. */
 // FUNCTION: WIZ8 0x004c3f70
-void W8Monster::UpdateAttachedObjects004C3F70()
+void W8Monster::UpdateAttachedObjects()
 {
     W8MonsterRep* representation = m_pRep;
     int attachment_layout = representation->icon_count_5c4;
@@ -4082,7 +4081,7 @@ void W8MonsterShakeCallback::RestoreAnimation()
                      "..\\Engine Code\\Include\\AnimRep.hpp", 0x87, 0);
     }
     representation->pending_behaviour_071 = saved_behaviour;
-    representation->SetFrameMethod004B55C0(saved_frame_method);
+    representation->SetFrameMethod(saved_frame_method);
     representation->frame_direction_06e = 1;
     representation->first_frame_094 = 0;
     representation->last_frame_095 = m_pMonster->GetNumSubCycles() - 1;
@@ -4134,10 +4133,10 @@ void W8Monster::UpdateShakeEvents(unsigned char previous_frame)
 
                     m_pRep->pending_behaviour_071 = 3;
                     if (animation->start_frame_14 == animation->end_frame_15) {
-                        m_pRep->SetFrameMethod004B55C0(4);
+                        m_pRep->SetFrameMethod(4);
                         m_pRep->frame_direction_06e = 1;
                     } else {
-                        m_pRep->SetFrameMethod004B55C0(2);
+                        m_pRep->SetFrameMethod(2);
                         m_pRep->first_frame_094 = animation->start_frame_14;
                         if (animation->end_frame_15 < GetNumSubCycles()) {
                             m_pRep->last_frame_095 = animation->end_frame_15;
@@ -4199,7 +4198,7 @@ W8AniMesh* W8Monster::GetCurrentAniMesh()
    propagate it to every attached object's +0x28 field.  The body consumes two
    cdecl arguments; callers that reserve another stack slot clean it themselves. */
 // FUNCTION: WIZ8 0x004c5870
-void MonsterSetLocationId004C5870(W8Monster* monster, int value)
+void MonsterSetLocationId(W8Monster* monster, int value)
 {
     int index;
     int count;
@@ -4482,7 +4481,7 @@ void W8Monster::GetMappedPosition(srVector3T<float>* position)
                 if ((mesh->flags_3a0 & 4) == 0) {
                     vertices = mesh->getVertexLoc();
                 } else {
-                    vertices = mesh->GetVertexLocations00471AD0(0, 1, 0.0f);
+                    vertices = mesh->GetVertexLocations(0, 1, 0.0f);
                 }
                 if (vertices != 0) {
                     srMatrix4T<float> matrix;
@@ -4702,13 +4701,13 @@ unsigned char LoadMonsterCycle(const W8GrCycleLoadContext* context, const char* 
 // FUNCTION: WIZ8 0x004c61e0
 void MonsterForward453160(void)
 {
-    StopAllNavigators00453160();
+    StopAllNavigators();
 }
 
 // FUNCTION: WIZ8 0x004c61f0
 void MonsterForward4531A0(void)
 {
-    ResumeAllNavigators004531A0();
+    ResumeAllNavigators();
 }
 
 /*
@@ -5329,7 +5328,7 @@ W8Item* CreateMonsterIconItem(W8World* world, const char* path, int flag)
         texture->loadSurface();
         texture->autoRelease();
         stModelInstance* instance =
-            static_cast<stModelInstance*>(MakePosterQuad00424BA0(texture, 500.0f, 500.0f, 1));
+            static_cast<stModelInstance*>(MakePosterQuad(texture, 500.0f, 500.0f, 1));
         if (instance != 0) {
             srVector3T<float> offset(0.0f, 250.0f, 0.0f);
             static_cast<srMeshModel*>(instance->model())->relocateVertices(offset);

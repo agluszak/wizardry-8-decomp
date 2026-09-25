@@ -20,7 +20,7 @@
 #include "wiz8/float_constants.h"
 #include "wiz8/geometry.h"
 #include "wiz8/engine_code/Navigator.h"
-#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator.h"
 #include "wiz8/startup_world.h"
 #include "wiz8/sr_api.h"
 #include "wiz8/virtual_file.h"
@@ -99,7 +99,7 @@ unsigned short g_octree_query_kind;
 unsigned short g_octree_query_id;
 
 // GLOBAL: WIZ8 0x00659770
-unsigned int* g_octree_storage_00659770;
+unsigned int* g_octree_storage_;
 
 // GLOBAL: WIZ8 0x00659774
 unsigned int g_octree_query_cell;
@@ -617,7 +617,7 @@ short W8Octree::ProjectLinkedRegionsForLocation(srVector3T<float>* location,
             strcat(expected_regions, region_label);
 
             W8OctRegionVolume* volume = &spatial_000.owned_5c[region_index];
-            if (PointInsideFrustum0046D880(location, volume->planes_88) == 0) {
+            if (PointInsideFrustum(location, volume->planes_88) == 0) {
                 continue;
             }
             if (match_count == 0) {
@@ -652,7 +652,7 @@ short W8Octree::ProjectLinkedRegionsForLocation(srVector3T<float>* location,
             break;
         }
         W8OctRegionVolume* volume = &spatial_000.owned_5c[region_index];
-        if (PointInsideFrustum0046D880(location, volume->planes_88) == 0) {
+        if (PointInsideFrustum(location, volume->planes_88) == 0) {
             continue;
         }
         if (reported_region == 0 && region_index != g_octree_region_debug_last) {
@@ -685,7 +685,7 @@ unsigned int W8Octree::GetSectorForPosition(const srVector3T<float>* position)
 {
     srVector3T<float> point = *position;
     for (unsigned int region = 1; region < spatial_000.region_count_46; ++region) {
-        if (PointInsideFrustum0046D880(&point, spatial_000.owned_5c[region].planes_88) != 0) {
+        if (PointInsideFrustum(&point, spatial_000.owned_5c[region].planes_88) != 0) {
             return spatial_000.owned_5c[region].region_bit_0c;
         }
     }
@@ -807,7 +807,7 @@ unsigned char W8Octree::CollectVisibleRegions(srVector3T<float>* location, int* 
    visible ones to the current region set. The first corner is tested against
    the far-clip sphere before the eight remaining corners are projected. */
 // FUNCTION: WIZ8 0x004301c0
-void W8Octree::MarkVisibleRegions004301C0()
+void W8Octree::MarkVisibleRegions()
 {
     float radius = far_clip_200;
     float radius_squared = radius * radius;
@@ -824,10 +824,10 @@ void W8Octree::MarkVisibleRegions004301C0()
         if (delta.LengthSquared() >= radius_squared) {
             continue;
         }
-        bool visible = PointInsideFrustum0046D880(&volume->points_1c[0], m_frustum_planes_21c);
+        bool visible = PointInsideFrustum(&volume->points_1c[0], m_frustum_planes_21c);
 
         for (int point = 1; !visible && point < 9; ++point) {
-            visible = PointInsideFrustum0046D880(&volume->points_1c[point], m_frustum_planes_21c);
+            visible = PointInsideFrustum(&volume->points_1c[point], m_frustum_planes_21c);
         }
         if (visible != 0 && volume->region_bit_0c != 0) {
             m_current_regions_160->Set(volume->region_bit_0c);
@@ -877,10 +877,10 @@ void W8Octree::BuildFrustumPlanes004302E0()
         (&m_frustum_planes_21c[5].normal.x)[axis] = -dof;
         m_frustum_planes_21c[5].w -= -dof * (&corners[4].x)[axis];
     }
-    BuildPlaneFromPoints0046D660(&m_frustum_planes_21c[0], &corners[0], &corners[5], &corners[4]);
-    BuildPlaneFromPoints0046D660(&m_frustum_planes_21c[1], &corners[0], &corners[4], &corners[6]);
-    BuildPlaneFromPoints0046D660(&m_frustum_planes_21c[2], &corners[0], &corners[7], &corners[5]);
-    BuildPlaneFromPoints0046D660(&m_frustum_planes_21c[3], &corners[0], &corners[6], &corners[7]);
+    BuildPlaneFromPoints(&m_frustum_planes_21c[0], &corners[0], &corners[5], &corners[4]);
+    BuildPlaneFromPoints(&m_frustum_planes_21c[1], &corners[0], &corners[4], &corners[6]);
+    BuildPlaneFromPoints(&m_frustum_planes_21c[2], &corners[0], &corners[7], &corners[5]);
+    BuildPlaneFromPoints(&m_frustum_planes_21c[3], &corners[0], &corners[6], &corners[7]);
     for (int index = 0; index < 6; ++index) {
         m_frustum_planes_21c[index].w += spatial_000.region_grid_cell_54;
     }
@@ -893,13 +893,13 @@ void W8Octree::BuildFrustumPlanes004302E0()
    the same size. Every cell within that radius of the camera cell that stays
    inside the spatial extent is considered: the near cells descend the branch
    array directly, while the far cells filter through
-   PointInsideFrustum0046D880 first. Either way the reached node contributes
+   PointInsideFrustum first. Either way the reached node contributes
    the region stored at its branch head. */
 // FUNCTION: WIZ8 0x0042fe90
 void W8Octree::CollectVisibleCells()
 {
     BuildFrustumPlanes004302E0();
-    MarkVisibleRegions004301C0();
+    MarkVisibleRegions();
     short radius = static_cast<short>(
         (static_cast<int>((far_clip_200 / spatial_000.region_grid_cell_54)) + 1));
     short center[3];
@@ -960,7 +960,7 @@ void W8Octree::CollectVisibleCells()
                               offset;
                     point.z = cell_z * spatial_000.region_grid_cell_54 + spatial_000.minimum_0c.z +
                               offset;
-                    if (PointInsideFrustum0046D880(&point, m_frustum_planes_21c) == 0) {
+                    if (PointInsideFrustum(&point, m_frustum_planes_21c) == 0) {
                         continue;
                     }
                     int node = 1;
@@ -1902,7 +1902,7 @@ void W8Octree::ToggleUpdateSuspension(W8World* world)
     }
     memset(m_pfRegsVisited, 0, spatial_000.region_id_bound_58 + 1);
     if (g_octree_trace_node == 0) {
-        g_octree_trace_node = g_octree_game_data->CreateTraceModel0041C930();
+        g_octree_trace_node = g_octree_game_data->CreateTraceModel();
         g_octree_trace_node->setParent(world->static_scene, 1);
         SetModelInstanceChainExclusionMask(g_octree_trace_node, 2);
     }
@@ -1918,8 +1918,8 @@ unsigned char W8Octree::TestNoiseLineOfSight(const srVector3T<float>* from, srVe
 }
 
 // FUNCTION: WIZ8 0x00434250
-unsigned char W8Octree::PrepareNavigatorTarget00434250(W8NavigatorMovementState* movement,
-                                                       float radius, float separation)
+unsigned char W8Octree::PrepareNavigatorTarget(W8NavigatorMovementState* movement, float radius,
+                                               float separation)
 {
     unsigned char result = 0;
     unsigned char hit = 0;
@@ -2023,9 +2023,9 @@ unsigned char W8Octree::PrepareNavigatorPatrol(W8NavigatorMovementState* movemen
         srVector3T<float> velocity = movement->velocity_034;
         movement->attachment_0ac->InitializeSegment(&movement->position_040,
                                                     &movement->target_position_04c);
-        result = pathing_180->BuildPatrolPath00461960(movement->attachment_0ac, movement->flags_000,
-                                                      &movement->target_position_04c, minimum,
-                                                      &velocity, maximum);
+        result = pathing_180->BuildPatrolPath(movement->attachment_0ac, movement->flags_000,
+                                              &movement->target_position_04c, minimum, &velocity,
+                                              maximum);
         if (result == 0) {
             return 0;
         }
@@ -3671,10 +3671,10 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
         Initialize(0);
         return;
     }
-    if (CheckLevelAssetSet0042CCC0(path) < 0) {
+    if (CheckLevelAssetSet(path) < 0) {
         goto failed;
     }
-    if (CheckLevelAssetSet0042CCC0(path) > 0 && BuildPreprocessedFiles(path) == 0) {
+    if (CheckLevelAssetSet(path) > 0 && BuildPreprocessedFiles(path) == 0) {
         g_octree = 0;
         spatial_000.flags_00 |= 0x80000000;
         ReportStartupMessage("Cannot find or build current preprocessed files.");
@@ -3907,16 +3907,16 @@ W8Octree::W8Octree(const char* path, W8GameData** game_data)
                                                     srAssertFail("(i2 < 10000)", OCTREE_CPP, 0x179,
                                                                  0);
                                                 }
-                                                g_octree_storage_00659770 =
+                                                g_octree_storage_ =
                                                     static_cast<unsigned int*>(malloc(limit * 4));
-                                                if (g_octree_storage_00659770 == 0) {
+                                                if (g_octree_storage_ == 0) {
                                                     fLoaded = 0;
                                                     strcpy(acMessage,
                                                            "ReadOctFile: Couldn't allocate polygon "
                                                            "index list for regions.");
                                                 } else {
                                                     for (index = 0; index < limit; ++index) {
-                                                        g_octree_storage_00659770[index] = index;
+                                                        g_octree_storage_[index] = index;
                                                     }
                                                 }
                                             }
@@ -4106,7 +4106,7 @@ failed:
    newer than the raw sources. Negative means skip the octree, zero means the
    set is ready, and positive means the preprocessed files should be rebuilt. */
 // FUNCTION: WIZ8 0x0042ccc0
-int CheckLevelAssetSet0042CCC0(const char* level_path)
+int CheckLevelAssetSet(const char* level_path)
 {
     unsigned short version;
     char copy[260];
@@ -4191,7 +4191,7 @@ int CheckLevelAssetSet0042CCC0(const char* level_path)
 // FUNCTION: WIZ8 0x0042d040
 void W8Octree::Reset()
 {
-    g_octree_storage_00659770 = 0;
+    g_octree_storage_ = 0;
     g_octree_state = 0;
     spatial_000.Reset0046CDC0();
     memset(this, 0, sizeof(*this));
@@ -4959,7 +4959,7 @@ unsigned int W8Octree::AdvanceNavigator(W8NavigatorMovementState* movement, floa
 
     if (pathing_180 != 0) {
         if (g_navigator_link_mode == 0) {
-            return pathing_180->StepAlongPath004669B0(movement, radius, separation);
+            return pathing_180->StepAlongPath(movement, radius, separation);
         }
         return pathing_180->StepMonsterAlongPath(movement, radius, separation);
     }
@@ -4969,8 +4969,8 @@ unsigned int W8Octree::AdvanceNavigator(W8NavigatorMovementState* movement, floa
     vecDir = movement->target_position_04c - movement->position_040;
     vecDir.y = 0.0f;
     distance = srVector2T<float>(vecDir.x, vecDir.z).Length();
-    step = g_game_time_accumulator->GetFrameDelta() * movement->movement_scale_060 *
-           g_rate_006068EC * g_world_scale;
+    step = g_game_time_accumulator->GetFrameDelta() * movement->movement_scale_060 * g_rate *
+           g_world_scale;
     if (step >= distance) {
         step = distance;
     } else {
@@ -5384,7 +5384,7 @@ unsigned int W8Octree::FindScatterPositions(const srVector3T<float>* position, f
                     (flatten_y != 0 || fabsf(height) <= static_cast<float>(g_double_005ec030))) {
                     candidate.y = ground;
                     if (proximity_check == 0) {
-                        if (pathing_180->SnapWaypointPosition00462E60(&candidate, 0) != 0) {
+                        if (pathing_180->SnapWaypointPosition(&candidate, 0) != 0) {
                             goto accept;
                         }
                     } else {
@@ -5541,8 +5541,7 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
                                 candidate.y = ground;
                                 unsigned char clear;
                                 if (first_only == 0) {
-                                    clear =
-                                        pathing_180->SnapWaypointPosition00462E60(&candidate, 0);
+                                    clear = pathing_180->SnapWaypointPosition(&candidate, 0);
                                 } else {
                                     clear = pathing_180->TestPathCellClearance(
                                         &candidate, radius * g_float_005ebc7c, 0);

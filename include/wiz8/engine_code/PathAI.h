@@ -63,8 +63,8 @@ void PathAIApplyToRep(W8AIRecord* record, W8AnimRepBase* representation);
 /* Places one srNode (model instance, light, camera, …) through a path. The
    body only calls srNode child/location/rotation/scale APIs; retail callers
    pass those node kinds interchangeably. */
-void PathAIApply004AA520(W8PathAI* path, srNode* node); /* 0x004AA520 */
-float PathAIGetScale(W8PathAI* path);                   /* 0x004AAA50 */
+void PathAIApply(W8PathAI* path, srNode* node); /* 0x004AA520 */
+float PathAIGetScale(W8PathAI* path);           /* 0x004AAA50 */
 void DestroyPathAI(W8PathAI* path);
 void PathAIClearOwned(W8PathAI* path);
 void PathAISetAnimated(W8PathAI* path, unsigned char value);

@@ -4,7 +4,7 @@
 
    The destroy callback's accept path is not driven: its tail calls
    (RebuildEquipmentAndDerivedStatsForSlot, RebuildCampItemList,
-   SetCampItemActionMode005B59B0) are recovered, but they assume the camp
+   SetCampItemActionMode) are recovered, but they assume the camp
    state and the items-page action controls are live, which only holds while
    the review screen is open. The cancel path is exercised because it returns
    before touching them. */

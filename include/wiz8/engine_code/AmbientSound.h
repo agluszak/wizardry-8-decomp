@@ -123,7 +123,7 @@ void StopAllAmbientSounds();
 
 void BuildFootstepPath(char* path, signed char surface, signed char material, char kind,
                        int variant);
-int PlayFootstep0047A440(signed char surface, signed char material, int kind);
+int PlayFootstep(signed char surface, signed char material, int kind);
 void UpdateAmbientSounds(W8World* world);
 void RepositionAmbientSounds(W8World* world);
 unsigned char LoadAmbientSoundList0047AB40(char* filename);

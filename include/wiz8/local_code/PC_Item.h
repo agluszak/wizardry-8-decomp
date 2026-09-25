@@ -177,8 +177,8 @@ bool StoreItemWithCharacterOrParty(W8Character* character, W8ItemInstance* item,
 bool ItemHasHiddenProperties(int item_id);                /* 0x00520750 */
 /* Find the first equipped, or optionally carried, item with a matching
    unidentified database name kind. */
-char FindCharacterItemByDatabaseKind005213C0(W8Character* character, short item_kind,
-                                             W8ItemInstance** out, int include_backpack);
+char FindCharacterItemByDatabaseKind(W8Character* character, short item_kind, W8ItemInstance** out,
+                                     int include_backpack);
 
 /* 0x0051B910: per-item-class notice index into gppStringList used for the
    unidentified ("Uncursed item" style) display name. */
@@ -246,7 +246,7 @@ unsigned int GetItemUseDifficulty(const W8Character* character, int skill, unsig
 int CastItemSpell(W8Character* character, W8ItemInstance* item, unsigned int power);
 
 void AimItemUseAtCurrentTarget(W8Character* character, W8ItemInstance* item);
-unsigned char SwapWeaponSetSlots0051D3B0(int party_slot, char announce, unsigned char refresh);
+unsigned char SwapWeaponSetSlots(int party_slot, char announce, unsigned char refresh);
 void SplitThrowableStackBetweenHands(W8Character* character, int equip_slot);
 void RemovePartyPoolEntry(unsigned int index);
 unsigned char FindItemByDatabaseKindOnParty(unsigned short item_kind, W8ItemInstance** found,

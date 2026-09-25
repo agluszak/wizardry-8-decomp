@@ -86,7 +86,7 @@ void W8DialogTextEntry::Draw(unsigned char force)
                       m_pendingBounds.bottom, 0);
     int y = GetVerticalPosition();
     wchar_t* line = copy;
-    size_t span = wcscspn(line, g_W8LineBreakCharacters00617C90);
+    size_t span = wcscspn(line, g_W8LineBreakCharacters);
     while (line[span] != L'\0') {
         line[span] = L'\0';
         int x = GetHorizontalPosition(StringPixLength(line, m_font));
@@ -114,7 +114,7 @@ void W8DialogTextEntry::Draw(unsigned char force)
             goto done;
         }
         line += span + 1;
-        span = wcscspn(line, g_W8LineBreakCharacters00617C90);
+        span = wcscspn(line, g_W8LineBreakCharacters);
     }
     {
         int x = GetHorizontalPosition(StringPixLength(line, m_font));

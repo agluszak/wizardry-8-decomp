@@ -494,8 +494,8 @@ unsigned char OctBuildPreTree::InsertSurfaceRecursive004B03E0(W8OctSpatialState*
    inserted geometry kind, and route the point or box through the ordinary
    recursive region-map walk. */
 // FUNCTION: WIZ8 0x004b06e0
-unsigned char OctBuildPreTree::UpdateRegionForGeometry004B06E0(const srVector3T<float>* geometry,
-                                                               short value, short mode)
+unsigned char OctBuildPreTree::UpdateRegionForGeometry(const srVector3T<float>* geometry,
+                                                       short value, short mode)
 {
     W8OctSpatialState working(&spatial_00);
     if (spatial_00.root_90 == 0) {
@@ -608,8 +608,8 @@ static_assert(sizeof(W8CubRegionRecord) == 0x6a, "W8CubRegionRecord_must_be_0x6a
    six frustum planes built. Answers the region bound, or zero on any read or
    allocation failure. */
 // FUNCTION: WIZ8 0x004b0c90
-unsigned short OctBuildPreTree::LoadRegionFile004B0C90(const char* stem, srVector3T<float>* minimum,
-                                                       srVector3T<float>* maximum)
+unsigned short OctBuildPreTree::LoadRegionFile(const char* stem, srVector3T<float>* minimum,
+                                               srVector3T<float>* maximum)
 {
     spatial_00.owned_5c = 0;
     spatial_00.region_count_46 = 0;
@@ -684,7 +684,7 @@ unsigned short OctBuildPreTree::LoadRegionFile004B0C90(const char* stem, srVecto
             }
         }
         volume->value_18 = record.value_06;
-        SortFrustumCorners0046DA20(&volume->points_1c[1]);
+        SortFrustumCorners(&volume->points_1c[1]);
         BuildFrustumPlanes0046D7E0(&volume->points_1c[1], volume->planes_88);
     }
     CloseHandle(file);
@@ -821,8 +821,8 @@ unsigned char OctBuildPreTree::AssignPolygonRegions(W8OctPreTreeGeometry* geomet
                 W8OctPreTreeVertex* vert = &geometry->vertices_04[vertex];
                 unsigned short hits = 0;
                 for (unsigned short region = 1; region < spatial_00.region_id_bound_58; ++region) {
-                    if (PointInsideFrustum0046D880(&vert->position_0c,
-                                                   spatial_00.owned_5c[region].planes_88) != 0) {
+                    if (PointInsideFrustum(&vert->position_0c,
+                                           spatial_00.owned_5c[region].planes_88) != 0) {
                         ++hits;
                         vert->region_08 = region;
                     }
@@ -899,7 +899,7 @@ unsigned char OctBuildPreTree::AssignPolygonRegions(W8OctPreTreeGeometry* geomet
             } while (region < bound);
         }
     }
-    BuildRegions004B19F0();
+    BuildRegions();
     unsigned long count = spatial_00.polygon_count_3c;
     polygon = 1;
     if (1 < count) {
@@ -922,11 +922,11 @@ unsigned char OctBuildPreTree::AssignPolygonRegions(W8OctPreTreeGeometry* geomet
    frees the table. Depth counts down against the leaf level and never walks
    past 0x10. */
 // FUNCTION: WIZ8 0x004b16b0
-void OctBuildPreTree::RemapNodeRegions004B16B0(W8OctBuildNode* node, int depth)
+void OctBuildPreTree::RemapNodeRegions(W8OctBuildNode* node, int depth)
 {
     if (node == 0) {
         if (region_remap_100 != 0) {
-            RemapNodeRegions004B16B0(spatial_00.root_90, 0);
+            RemapNodeRegions(spatial_00.root_90, 0);
             free(region_remap_100);
             region_remap_100 = 0;
         }
@@ -936,7 +936,7 @@ void OctBuildPreTree::RemapNodeRegions004B16B0(W8OctBuildNode* node, int depth)
         if (static_cast<short>(depth) < spatial_00.depth_44) {
             for (int child_index = 0; child_index != 8; ++child_index) {
                 if (node->children_00[child_index] != 0) {
-                    RemapNodeRegions004B16B0(node->children_00[child_index], depth + 1);
+                    RemapNodeRegions(node->children_00[child_index], depth + 1);
                 }
             }
             return;
@@ -1029,8 +1029,8 @@ unsigned short OctBuildPreTree::SplitSharedPolygon(W8OctPreTreeGeometry* geometr
         if ((polygon->flags_00 & 8) == 0) {
             inside = 0;
             for (int corner = 0; corner < 3; ++corner) {
-                if (PointInsideFrustum0046D880(&polygon->vertices_34[corner]->position_0c,
-                                               spatial_00.owned_5c[region].planes_88) != 0) {
+                if (PointInsideFrustum(&polygon->vertices_34[corner]->position_0c,
+                                       spatial_00.owned_5c[region].planes_88) != 0) {
                     inside = 1;
                     break;
                 }
@@ -1055,7 +1055,7 @@ unsigned short OctBuildPreTree::SplitSharedPolygon(W8OctPreTreeGeometry* geometr
    the temporary spatial hierarchy, assign every discovered path to its build
    node, and then derive the persistent region metadata. */
 // FUNCTION: WIZ8 0x004b19f0
-unsigned short OctBuildPreTree::BuildRegions004B19F0()
+unsigned short OctBuildPreTree::BuildRegions()
 {
     W8OctSpatialState working(&spatial_00);
 
@@ -1117,7 +1117,7 @@ unsigned short OctBuildPreTree::BuildRegions004B19F0()
         }
     }
 
-    FinalizeRegionMapping004B2A20();
+    FinalizeRegionMapping();
     AssignRegionFromSurfaces(&working);
     ValidatePolygonRegions();
 
@@ -1370,7 +1370,7 @@ unsigned char OctBuildPreTree::MergeRegion(W8OctBuildNode* node, const int* cell
    polygon and path-table entry through that map, and derive aggregate bounds
    for the validation pass. */
 // FUNCTION: WIZ8 0x004b2a20
-void OctBuildPreTree::FinalizeRegionMapping004B2A20()
+void OctBuildPreTree::FinalizeRegionMapping()
 {
     unsigned short* region_map = static_cast<unsigned short*>(
         malloc(spatial_00.region_id_bound_58 * sizeof(unsigned short)));
@@ -1692,7 +1692,7 @@ unsigned char OctBuildPreTree::BuildParticleRegions(const W8LevelFileParticleSys
             continue;
         }
 
-        if (UpdateRegionForGeometry004B06E0(&position, particle_value, 6) == 0) {
+        if (UpdateRegionForGeometry(&position, particle_value, 6) == 0) {
             srVector3T<float> extent;
             bool has_bounds = false;
             if (particle.bounds_mode == 1) {
@@ -1741,7 +1741,7 @@ unsigned char OctBuildPreTree::BuildParticleRegions(const W8LevelFileParticleSys
                                 }
                             }
                             if (!corner_mapped &&
-                                UpdateRegionForGeometry004B06E0(&corner, particle_value, 6) != 0) {
+                                UpdateRegionForGeometry(&corner, particle_value, 6) != 0) {
                                 mapped = true;
                             }
                         }
@@ -1871,7 +1871,7 @@ unsigned char OctBuildPreTree::BuildGeometryRegions(const W8LevelFileProp* recor
             }
         }
 
-        if (UpdateRegionForGeometry004B06E0(aggregate, value, 5) == 0 && !mapped) {
+        if (UpdateRegionForGeometry(aggregate, value, 5) == 0 && !mapped) {
             g_region_id_list[g_region_id_count++] = value;
         }
     }

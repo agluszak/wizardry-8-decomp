@@ -8,7 +8,7 @@
 
 extern bool g_shared_timers_paused;
 
-void ResetLevelMovement0041EEE0(float movement_limit, char reset, char fast_move); /* 0x0041EEE0 */
+void ResetLevelMovement(float movement_limit, char reset, char fast_move); /* 0x0041EEE0 */
 
 #include "wiz8/geometry.h"
 #include "wiz8/layouts/world.h"
@@ -71,7 +71,7 @@ struct W8LevelDataRecord {
     unsigned char ClampCameraToBounds(const srVector3T<float>* minimum,
                                       const srVector3T<float>* maximum);
     /* 0x0041FF00: toggle setting-6e props referenced by primary_contact_prop_id/secondary_contact_prop_id. */
-    unsigned char ToggleBoundProps0041FF00();
+    unsigned char ToggleBoundProps();
     /* 0x00420470: integrate camera_forward into vector_64/vector_70. */
     unsigned char IntegrateCameraForward();
     /* 0x00420810: rotate vector_40 by the saved yaw matrix and refresh
@@ -180,7 +180,7 @@ struct W8GameData {
        it. */
     void ProcessCrossedSurface(W8GDSurface* surface); /* 0x0041C770 */
     /* Builds the octree trace mesh and answers its model instance. */
-    stModelInstance* CreateTraceModel0041C930(); /* 0x0041c930 */
+    stModelInstance* CreateTraceModel(); /* 0x0041c930 */
     /* 0x0041F330: apply world-render camera-motion flags into `rotation` and
        mirror the result into `saved`. Retail call sites pass the owning
        W8GameData in ECX even though the body reads only globals. */
@@ -188,8 +188,8 @@ struct W8GameData {
                                 srMatrix3T<float>* saved);
     /* 0x0041F5F0: advance the camera position under the same flag set; writes
        the delta into `delta` and answers whether the position changed. */
-    unsigned char ApplyCameraMotion0041F5F0(unsigned int flags, srVector3T<float>* position,
-                                            srVector3T<float>* delta, srMatrix3T<float>* saved);
+    unsigned char ApplyCameraMotion(unsigned int flags, srVector3T<float>* position,
+                                    srVector3T<float>* delta, srMatrix3T<float>* saved);
     /* 0x0041AB40: advance camera under environment-load motion, tracing
        props/octree/geometry and applying crossed surfaces. */
     unsigned char AdvanceEnvironmentMotion();
@@ -198,9 +198,8 @@ struct W8GameData {
                                            srVector3T<float>* position, int mode);
     /* 0x0041B770: probe active collidable props along the motion segment;
        returns the nearest hit surface and may adjust `direction`. */
-    W8GDSurface* ProbePropsAlongMotion0041B770(srVector3T<float>* direction,
-                                               srVector3T<float>* position,
-                                               srVector3T<float>* scratch, float* nearest_distance);
+    W8GDSurface* ProbePropsAlongMotion(srVector3T<float>* direction, srVector3T<float>* position,
+                                       srVector3T<float>* scratch, float* nearest_distance);
 
     W8OctBuildTree* geometry_index_00;
     /* +0x04: the loading octree's back-pointer, stored by W8Octree's file-load
@@ -309,7 +308,7 @@ extern unsigned int* g_level_flags;
 extern bool g_flag_00652dcc;
 /* Read by the level-data reset and written by the GameData constructor in
    GDFileIO.cpp. */
-extern W8EnvironRecord* g_environ_00652DB4;
+extern W8EnvironRecord* g_environ;
 
 #include "wiz8/engine_code/GDFileIO.h"
 

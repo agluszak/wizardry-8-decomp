@@ -4,7 +4,7 @@
 #include "wiz8/engine_code/materials.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/engine_code/OctBuildTree.h"
-#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator.h"
 #include "wiz8/engine_code/BitArray.h"
 #include "wiz8/engine_code/game_timer.h"
 #include "wiz8/engine_code/SoundEvent.h"
@@ -208,7 +208,7 @@ void W8GameData::ApplyCameraMotionFlags(unsigned int flags, srMatrix3T<float>* r
     W8LevelDataRecord* level;
     W8EnvironRecord* environ_record;
 
-    if (g_environ_00652DB4 == 0) {
+    if (g_environ == 0) {
         environ_record = new W8EnvironRecord;
         if (environ_record != 0) {
             environ_record->value_00 = 0;
@@ -230,8 +230,8 @@ void W8GameData::ApplyCameraMotionFlags(unsigned int flags, srMatrix3T<float>* r
             environ_record->momentum_scale_3c = g_default_momentum_scale;
             environ_record->motion_limit_38 = g_default_motion_limit;
         }
-        g_environ_00652DB4 = environ_record;
-        if (g_environ_00652DB4 == 0) {
+        g_environ = environ_record;
+        if (g_environ == 0) {
             ShutdownWithErrorBox("TrackRotation: Could not allocate gpEnviron.\n");
         }
     }
@@ -335,9 +335,8 @@ srVector3T<float> g_origin_652940;
    W8GameData; the body mostly reads globals. Zero elapsed (`camera_scale_14`)
    returns before the motion helpers. */
 // FUNCTION: WIZ8 0x0041F5F0
-unsigned char W8GameData::ApplyCameraMotion0041F5F0(unsigned int flags, srVector3T<float>* position,
-                                                    srVector3T<float>* delta,
-                                                    srMatrix3T<float>* saved)
+unsigned char W8GameData::ApplyCameraMotion(unsigned int flags, srVector3T<float>* position,
+                                            srVector3T<float>* delta, srMatrix3T<float>* saved)
 {
     unsigned short timer_flags;
     unsigned int level_flags;
@@ -465,7 +464,7 @@ unsigned char W8GameData::ApplyCameraMotion0041F5F0(unsigned int flags, srVector
         }
     }
     level = g_level_data;
-    if ((flags & 0x10) != 0 && (g_environment_load_flag == 0 || g_environ_00652DB4 == 0)) {
+    if ((flags & 0x10) != 0 && (g_environment_load_flag == 0 || g_environ == 0)) {
         component = forward_scale + g_level_data->vector_40.y;
         g_level_data->vector_40.y = component;
         if (component > g_camera_motion_clamp) {
@@ -523,12 +522,12 @@ unsigned char W8GameData::ApplyCameraMotion0041F5F0(unsigned int flags, srVector
     }
 
 after_move:
-    if (g_environ_00652DB4->airborne_05 == 0) {
+    if (g_environ->airborne_05 == 0) {
         g_level_footstep_pending = 1;
     } else if (g_level_footstep_pending != 0) {
         if (g_level_data->vector_64.y <= g_footstep_fall_threshold) {
-            PlayFootstep0047A440(g_level_data->sound_environment_0c,
-                                 g_level_data->sound_environment_alt_0d, 1);
+            PlayFootstep(g_level_data->sound_environment_0c, g_level_data->sound_environment_alt_0d,
+                         1);
             g_level_data->footstep_accumulator_10 = 0;
         }
         g_level_footstep_pending = 0;
@@ -601,7 +600,7 @@ unsigned char W8LevelDataRecord::ClampCameraToBounds(const srVector3T<float>* mi
         vector_a0.z = minimum->z - maximum->z;
     }
 
-    g_environ_00652DB4->vector_24.SetZero();
+    g_environ->vector_24.SetZero();
     if (below_min_y != 0) {
         if (g_status.world_suspended_2390 != 0) {
             g_level_override = 0;
@@ -619,10 +618,9 @@ const float g_monster_motion_push = 1.05f;
    the caller's position into world space, may nudge `direction`, and latches
    plane / level-data contact fields used by the collision response pass. */
 // FUNCTION: WIZ8 0x0041B770
-W8GDSurface* W8GameData::ProbePropsAlongMotion0041B770(srVector3T<float>* direction,
-                                                       srVector3T<float>* position,
-                                                       srVector3T<float>* scratch,
-                                                       float* nearest_distance)
+W8GDSurface* W8GameData::ProbePropsAlongMotion(srVector3T<float>* direction,
+                                               srVector3T<float>* position,
+                                               srVector3T<float>* scratch, float* nearest_distance)
 {
     W8GDSurface* nearest_surface;
     W8GDSurface* surface;
@@ -816,7 +814,7 @@ unsigned char W8GameData::ProbeMonstersAlongMotion(srVector3T<float>* direction,
         monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         if (monster_info != 0 && monster_info->p3D != 0 && monster_info->p3D->active_088 != 0) {
             monster = monster_info->p3D;
-            time_scale = g_rate_006068EC * g_game_time_accumulator->GetFrameDelta();
+            time_scale = g_rate * g_game_time_accumulator->GetFrameDelta();
             monster->GetVelocity(&velocity);
             adjusted_x = direction->x - velocity.x * static_cast<float>(time_scale);
             adjusted_z = direction->z - velocity.z * static_cast<float>(time_scale);
@@ -926,7 +924,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
         return 0;
     }
 
-    g_environ_ground_latch = g_environ_00652DB4->ground_latch_04;
+    g_environ_ground_latch = g_environ->ground_latch_04;
     g_environment_motion_active = 1;
     if (level->vector_64.Length() <= static_cast<float>(g_motion_vector_epsilon)) {
         level->flags &= ~4u;
@@ -934,7 +932,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
         level->flags |= 4u;
     }
 
-    environ_record = g_environ_00652DB4;
+    environ_record = g_environ;
     environ_record->motion_factor_20 = environ_record->motion_step_1c;
     environ_record->airborne_05 = 0;
     environ_record->scale_0c = level->camera_scale_14;
@@ -955,7 +953,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
 
     environ_delta = level->vector_a0;
     camera_position.x = adjusted_position.x;
-    camera_position.y = (g_world_scale - g_environ_00652DB4->world_height_30) + adjusted_position.y;
+    camera_position.y = (g_world_scale - g_environ->world_height_30) + adjusted_position.y;
     camera_position.z = adjusted_position.z;
     motion_delta = environ_delta;
     adjusted_position.y = camera_position.y;
@@ -998,8 +996,8 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
                     if (attempt < 3) {
                         ProbeMonstersAlongMotion(&motion_delta, &probe_position, 1);
                     }
-                    nearest_surface = ProbePropsAlongMotion0041B770(&motion_delta, &probe_position,
-                                                                    &scratch, &nearest_distance);
+                    nearest_surface = ProbePropsAlongMotion(&motion_delta, &probe_position,
+                                                            &scratch, &nearest_distance);
                     prop_hit = nearest_surface != 0;
                     if (prop_hit != 0) {
                         hit_position = probe_position;
@@ -1025,7 +1023,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
             exhausted = 1;
             forced_exit = 1;
             probe_position = camera_position;
-            if ((g_level_data->flags & 2) != 0 && g_level_data->ToggleBoundProps0041FF00() == 0) {
+            if ((g_level_data->flags & 2) != 0 && g_level_data->ToggleBoundProps() == 0) {
                 environ_delta.Set(0.0f, 0.0f, 0.0f);
             }
         }
@@ -1065,7 +1063,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
                 hit_count = 0;
                 prop_hit = 0;
             } else {
-                g_environment_motion_active = nearest_surface->ResolveCollision0041DC10(
+                g_environment_motion_active = nearest_surface->ResolveCollision(
                     &camera_position, &hit_position, &motion_delta, collision_count);
                 probe_position.x = (camera_position.x + motion_delta.x) - adjusted_position.x;
                 probe_position.y = (camera_position.y + motion_delta.y) - adjusted_position.y;
@@ -1099,8 +1097,8 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
                         if (attempt < 3) {
                             ProbeMonstersAlongMotion(&motion_delta, &probe_position, 1);
                         }
-                        nearest_surface = ProbePropsAlongMotion0041B770(
-                            &motion_delta, &probe_position, &scratch, &nearest_distance);
+                        nearest_surface = ProbePropsAlongMotion(&motion_delta, &probe_position,
+                                                                &scratch, &nearest_distance);
                         prop_hit = nearest_surface != 0;
                         if (prop_hit != 0) {
                             hit_position = probe_position;
@@ -1166,7 +1164,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
             } else {
                 g_environ_ground_latch = false;
             }
-            g_environ_00652DB4->ground_latch_04 = g_environ_ground_latch;
+            g_environ->ground_latch_04 = g_environ_ground_latch;
 
             if (m_iNumTriggers != 0) {
                 index = bits_58->NextSetBit(1);
@@ -1434,7 +1432,7 @@ void W8GameData::ProcessCrossedSurface(W8GDSurface* surface)
 
     if ((surface->flags_00 & 0x1000) != 0) {
         if (surface->distance_34 > 0.0f) {
-            current = g_environ_00652DB4;
+            current = g_environ;
             record = m_ppEnvirons[surface->trigger_index_08];
             record->ground_latch_04 = current->ground_latch_04;
             record->airborne_05 = current->airborne_05;
@@ -1442,10 +1440,10 @@ void W8GameData::ProcessCrossedSurface(W8GDSurface* surface)
             record->scale_0c = current->scale_0c;
             record->motion_factor_20 = current->motion_factor_20;
             record->vector_24 = current->vector_24;
-            g_environ_00652DB4 = record;
+            g_environ = record;
             return;
         }
-        current = g_environ_00652DB4;
+        current = g_environ;
         if (current == m_ppEnvirons[surface->trigger_index_08]) {
             record = m_ppEnvirons[0];
             record->ground_latch_04 = current->ground_latch_04;
@@ -1454,7 +1452,7 @@ void W8GameData::ProcessCrossedSurface(W8GDSurface* surface)
             record->scale_0c = current->scale_0c;
             record->motion_factor_20 = current->motion_factor_20;
             record->vector_24 = current->vector_24;
-            g_environ_00652DB4 = record;
+            g_environ = record;
         }
         return;
     }
@@ -1491,7 +1489,7 @@ void W8GameData::ProcessCrossedSurface(W8GDSurface* surface)
    normal (flattened to point straight up when it tilts below 0.5), unmarked
    vertices get a scaled/biased horizontal direction renormalized to 0.3. */
 // FUNCTION: WIZ8 0x0041c930
-stModelInstance* W8GameData::CreateTraceModel0041C930()
+stModelInstance* W8GameData::CreateTraceModel()
 {
     BitArray selected(m_iNumSurfaces * 3 + 10);
     stMeshModel* mesh = new stMeshModel(m_iNumSurfaces, m_iNumSurfaces * 3);
@@ -1919,10 +1917,9 @@ unsigned char W8GDSurface::ClampHitToEdge(const srVector3T<float>* point,
    continues. The crossed contact planes persist across calls in the statics
    so sequential bounces wedge the slide between them. */
 // FUNCTION: WIZ8 0x0041DC10
-unsigned char W8GDSurface::ResolveCollision0041DC10(srVector3T<float>* origin,
-                                                    const srVector3T<float>* hit_point,
-                                                    srVector3T<float>* direction,
-                                                    int collision_index)
+unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
+                                            const srVector3T<float>* hit_point,
+                                            srVector3T<float>* direction, int collision_index)
 {
     /* Statics 0x652d50/0x652d68/0x652d80 carry the latched entry direction and
        the first/second contact normals; their atexit thunks are the SYNTHETIC
@@ -1930,7 +1927,7 @@ unsigned char W8GDSurface::ResolveCollision0041DC10(srVector3T<float>* origin,
     static srVector3T<float> s_entry_direction_00652d50;
     static srVector3T<float> s_second_normal_00652d68;
     static srVector3T<float> s_first_normal_00652d80;
-    static short s_collision_state_00652938;
+    static short s_collision_state;
     static float s_second_limit_0065294c;
     static int s_first_surface_00652d78;
     static float s_first_limit_00652da0;
@@ -1949,11 +1946,11 @@ unsigned char W8GDSurface::ResolveCollision0041DC10(srVector3T<float>* origin,
     crease_a = 0.0f;
     if ((flags_00 & 4) != 0) {
         if ((flags_00 & 0x20) != 0 && g_byte_652da6 != 0 && g_flag_652da5 != 0) {
-            g_environ_00652DB4->motion_factor_20 = 1.0f;
-        } else if (g_environ_00652DB4->motion_factor_20 < slope_48) {
-            g_environ_00652DB4->motion_factor_20 = slope_48;
+            g_environ->motion_factor_20 = 1.0f;
+        } else if (g_environ->motion_factor_20 < slope_48) {
+            g_environ->motion_factor_20 = slope_48;
         }
-        g_environ_00652DB4->airborne_05 = 1;
+        g_environ->airborne_05 = 1;
         g_level_data->flags |= 0x10;
         g_level_data->sound_environment_0c = footstep_surface_3c;
         g_level_data->sound_environment_alt_0d = footstep_material_3d;
@@ -2001,7 +1998,7 @@ unsigned char W8GDSurface::ResolveCollision0041DC10(srVector3T<float>* origin,
                      direction->z * inv_length);
             s_entry_direction_00652d50 = unit;
         }
-        s_collision_state_00652938 = 0;
+        s_collision_state = 0;
         s_bounce_count_00652d7c = 0;
     }
     ++s_bounce_count_00652d7c;
@@ -2014,7 +2011,7 @@ unsigned char W8GDSurface::ResolveCollision0041DC10(srVector3T<float>* origin,
         direction->x = 0.0f;
         direction->y = 0.0f;
         direction->z = 0.0f;
-        g_environ_00652DB4->vector_24 = 0.0f;
+        g_environ->vector_24 = 0.0f;
         return 0;
     }
     double inv_length = g_double_005ebc30 / direction_length;
@@ -2023,7 +2020,7 @@ unsigned char W8GDSurface::ResolveCollision0041DC10(srVector3T<float>* origin,
     slide.x = normal.x * distance_34 + direction->x;
     slide.y = normal.y * distance_34 + direction->y;
     slide.z = normal.z * distance_34 + direction->z;
-    ApplyEnvironContact0041EA90(&slide);
+    ApplyEnvironContact(&slide);
     srVector3T<float> slide_unit = slide;
     slide_unit.Normalize();
     float approach = DotProduct(slide_unit, s_entry_direction_00652d50);
@@ -2034,7 +2031,7 @@ unsigned char W8GDSurface::ResolveCollision0041DC10(srVector3T<float>* origin,
         return 0;
     }
     if (approach >= g_float_005ebc90) {
-        if (s_collision_state_00652938 != 0) {
+        if (s_collision_state != 0) {
             srVector3T<float> ortho = s_entry_direction_00652d50;
             float normal_sq = DotProduct(normal, normal);
             if (normal_sq > g_float_005ebc58) {
@@ -2042,16 +2039,16 @@ unsigned char W8GDSurface::ResolveCollision0041DC10(srVector3T<float>* origin,
             }
             srVector3T<float> deflect = s_entry_direction_00652d50 - ortho;
             deflect.Normalize();
-            if (DotProduct(unit, deflect) < g_float_005ebb34 && s_collision_state_00652938 == 1 &&
+            if (DotProduct(unit, deflect) < g_float_005ebb34 && s_collision_state == 1 &&
                 CentroidsDiverging(s_first_surface_00652d78, &normal, &s_first_normal_00652d80) !=
                     0) {
                 crossed = 1;
             }
         }
-    } else if (s_collision_state_00652938 != 0) {
+    } else if (s_collision_state != 0) {
         crossed = 1;
     }
-    if (s_collision_state_00652938 != 0) {
+    if (s_collision_state != 0) {
         if (g_float_005ebcb0 < DotProduct(normal, s_first_normal_00652d80)) {
             if (s_first_limit_00652da0 <= adjusted_d) {
                 return 1;
@@ -2075,7 +2072,7 @@ unsigned char W8GDSurface::ResolveCollision0041DC10(srVector3T<float>* origin,
                 s_first_limit_00652da0 = adjusted_d;
             }
         }
-        if (s_collision_state_00652938 == 2) {
+        if (s_collision_state == 2) {
             if (g_float_005ebcb0 < DotProduct(normal, s_second_normal_00652d68)) {
                 if (s_second_limit_0065294c <= adjusted_d) {
                     return 1;
@@ -2124,7 +2121,7 @@ unsigned char W8GDSurface::ResolveCollision0041DC10(srVector3T<float>* origin,
                 }
             } else if (DotProduct(slide_unit, s_second_normal_00652d68) >= g_float_005ebb34) {
                 if (recomputed != 0) {
-                    s_collision_state_00652938 = 1;
+                    s_collision_state = 1;
                 } else {
                     s_second_normal_00652d68 = normal;
                     s_second_surface_00652d60 = index_04;
@@ -2140,14 +2137,14 @@ unsigned char W8GDSurface::ResolveCollision0041DC10(srVector3T<float>* origin,
             }
             ProjectVectorOntoVector(&slide, &crease_a);
             s_second_normal_00652d68 = normal;
-            s_collision_state_00652938 = s_collision_state_00652938 + 1;
+            s_collision_state = s_collision_state + 1;
             s_second_surface_00652d60 = index_04;
             s_second_limit_0065294c = adjusted_d;
         }
     } else {
         s_first_normal_00652d80 = normal;
         s_first_surface_00652d78 = index_04;
-        s_collision_state_00652938 = 1;
+        s_collision_state = 1;
         s_first_limit_00652da0 = adjusted_d;
     }
     *direction = slide;
@@ -2211,7 +2208,7 @@ unsigned char W8GDSurface::CentroidsDiverging(int surface_index, const srVector3
    motion to the environ record. Direction tests against the surface normal
    decide whether any correction applies. */
 // FUNCTION: WIZ8 0x0041EA90
-unsigned char W8GDSurface::ApplyEnvironContact0041EA90(srVector3T<float>* direction)
+unsigned char W8GDSurface::ApplyEnvironContact(srVector3T<float>* direction)
 {
     W8LevelDataRecord* level = g_level_data;
     if ((flags_00 & 4) == 0) {
@@ -2226,8 +2223,8 @@ unsigned char W8GDSurface::ApplyEnvironContact0041EA90(srVector3T<float>* direct
     normal.x = plane_24.normal.x;
     normal.y = plane_24.normal.y;
     normal.z = plane_24.normal.z;
-    float factor = g_environ_00652DB4->motion_factor_20;
-    srVector3T<float> slide = g_environ_00652DB4->vector_24 * g_environ_00652DB4->scale_0c;
+    float factor = g_environ->motion_factor_20;
+    srVector3T<float> slide = g_environ->vector_24 * g_environ->scale_0c;
     srVector3T<float> unit = slide;
     unit.Normalize();
     if (DotProduct(unit, normal) >= g_float_005ebcb4) {
@@ -2255,14 +2252,14 @@ unsigned char W8GDSurface::ApplyEnvironContact0041EA90(srVector3T<float>* direct
             slide += pushback;
             slide -= residual;
             *direction -= residual * factor;
-            g_environ_00652DB4->SetScaledMotion(&slide);
+            g_environ->SetScaledMotion(&slide);
             return 1;
         }
         return 0;
     }
     slide = 0.0f;
-    g_environ_00652DB4->vector_24 = slide / g_environ_00652DB4->scale_0c;
-    g_environ_00652DB4->airborne_05 = 1;
+    g_environ->vector_24 = slide / g_environ->scale_0c;
+    g_environ->airborne_05 = 1;
     return 0;
 }
 
@@ -2272,7 +2269,7 @@ unsigned char W8GDSurface::ApplyEnvironContact0041EA90(srVector3T<float>* direct
 // vector constructor iterator
 
 // FUNCTION: WIZ8 0x0041EEE0
-void ResetLevelMovement0041EEE0(float movement_limit, char reset, char fast_move)
+void ResetLevelMovement(float movement_limit, char reset, char fast_move)
 {
     W8LevelDataRecord* level = g_level_data;
     if (level != 0) {
@@ -2435,7 +2432,7 @@ bool HasLevelDataVector(void)
 }
 
 // GLOBAL: WIZ8 0x00652db4
-W8EnvironRecord* g_environ_00652DB4;
+W8EnvironRecord* g_environ;
 // GLOBAL: WIZ8 0x00652dcc
 bool g_flag_00652dcc;
 
@@ -2450,8 +2447,8 @@ void BeginCameraSway(void)
     }
     g_camera_forward_scale = g_camera_level_forward_scale;
     g_navigator_gravity = 93.75f;
-    if (g_environ_00652DB4 != 0) {
-        g_environ_00652DB4->gravity_y_14 = -93.75f;
+    if (g_environ != 0) {
+        g_environ->gravity_y_14 = -93.75f;
     }
     g_camera_sway_active = 1;
 }
@@ -2464,8 +2461,8 @@ void EndCameraSway(void)
     }
     g_camera_forward_scale = g_camera_default_forward_scale;
     g_navigator_gravity = 187.5f;
-    if (g_environ_00652DB4 != 0) {
-        g_environ_00652DB4->gravity_y_14 = -187.5f;
+    if (g_environ != 0) {
+        g_environ->gravity_y_14 = -187.5f;
     }
     g_camera_sway_active = 0;
 }
@@ -2478,7 +2475,7 @@ void EndCameraSway(void)
 // FUNCTION: WIZ8 0x0041a9e0
 void W8GameData::ReleaseLevelData()
 {
-    g_environ_00652DB4 = 0;
+    g_environ = 0;
     if (g_level_data != 0) {
         delete g_level_data;
     }
@@ -2497,13 +2494,13 @@ void W8GameData::ReleaseLevelData()
 // FUNCTION: WIZ8 0x0041AA40
 void ResetCurrentEnvironment(void)
 {
-    if (g_environ_00652DB4 != 0) {
+    if (g_environ != 0) {
         if (g_octree_game_data != 0 && g_octree_game_data->m_ppEnvirons != 0) {
-            g_environ_00652DB4 = g_octree_game_data->m_ppEnvirons[0];
+            g_environ = g_octree_game_data->m_ppEnvirons[0];
         }
-        g_environ_00652DB4->vector_24.Set(0.0f, 0.0f, 0.0f);
+        g_environ->vector_24.Set(0.0f, 0.0f, 0.0f);
         if (g_environment_load_flag != 0) {
-            g_environ_00652DB4->motion_factor_20 = 1.0f;
+            g_environ->motion_factor_20 = 1.0f;
         }
         g_environment_load_flag = g_environment_load_flag == 0;
         if (g_environment_load_flag == 0) {
@@ -2520,10 +2517,10 @@ unsigned char SetEnvironmentLoadFlag(unsigned char flag)
 {
     srVector3T<float> zero_vector(0.0f, 0.0f, 0.0f);
     unsigned char previous = g_environment_load_flag;
-    if (g_environ_00652DB4 != 0) {
-        g_environ_00652DB4->vector_24 = zero_vector;
+    if (g_environ != 0) {
+        g_environ->vector_24 = zero_vector;
         if (flag == 0) {
-            g_environ_00652DB4->motion_factor_20 = 1.0f;
+            g_environ->motion_factor_20 = 1.0f;
         }
         g_environment_load_flag = flag;
     }
@@ -2839,7 +2836,7 @@ unsigned char W8LevelDataRecord::IntegrateCameraForward()
 
     cleared_vector_70 = false;
     forward_length = camera_forward_4c.Length();
-    limit = g_environ_00652DB4->motion_limit_38 * camera_scale_14;
+    limit = g_environ->motion_limit_38 * camera_scale_14;
     if (limit <= vector_40.Length()) {
         adjustment = camera_forward_4c;
         if (g_float_005ebc58 < vector_70.LengthSquared()) {
@@ -2848,7 +2845,7 @@ unsigned char W8LevelDataRecord::IntegrateCameraForward()
         }
         adjustment -= camera_forward_4c;
         delta_length = adjustment.Length();
-        limit = g_environ_00652DB4->motion_factor_20 * limit;
+        limit = g_environ->motion_factor_20 * limit;
         if (delta_length <= limit) {
             if (delta_length < limit * g_camera_snap_epsilon) {
                 adjustment.Set(0.0f, 0.0f, 0.0f);
@@ -2856,14 +2853,14 @@ unsigned char W8LevelDataRecord::IntegrateCameraForward()
         } else {
             adjustment.SetLength(limit);
         }
-        scale = g_environ_00652DB4->momentum_scale_3c * g_environ_00652DB4->motion_factor_20;
+        scale = g_environ->momentum_scale_3c * g_environ->motion_factor_20;
         vector_70 *= scale;
     } else {
         if (forward_length < limit) {
             vector_64.SetZero();
             return 0;
         }
-        limit = g_environ_00652DB4->motion_factor_20 * limit;
+        limit = g_environ->motion_factor_20 * limit;
         adjustment.Set(-camera_forward_4c.x, -camera_forward_4c.y, -camera_forward_4c.z);
         if (limit < forward_length) {
             adjustment.SetLength(limit);
@@ -2986,7 +2983,7 @@ unsigned char W8LevelDataRecord::UpdateFootstepFromMotion()
         }
         AlertCombatNoise(large_radius);
         if (sound_environment_0c >= 0 && sound_environment_alt_0d >= 0) {
-            PlayFootstep0047A440(sound_environment_0c, sound_environment_alt_0d, 0);
+            PlayFootstep(sound_environment_0c, sound_environment_alt_0d, 0);
             while (g_float_005ebcdc < footstep_accumulator_10) {
                 footstep_accumulator_10 -= g_float_005ebcdc;
             }
@@ -2999,7 +2996,7 @@ unsigned char W8LevelDataRecord::UpdateFootstepFromMotion()
    only while its setting-6f2 latch is set, and the secondary follows when it
    is still set on the far side; a secondary that fails the check reports 0. */
 // FUNCTION: WIZ8 0x0041FF00
-unsigned char W8LevelDataRecord::ToggleBoundProps0041FF00()
+unsigned char W8LevelDataRecord::ToggleBoundProps()
 {
     W8Prop* prop;
     bool toggled = false;
@@ -3068,16 +3065,15 @@ void W8LevelDataRecord::UpdateMotionProgress(unsigned char fast_move, unsigned c
         scaled_camera_forward_7c.y = camera_forward_4c.y * camera_scale_14;
         scaled_camera_forward_7c.z = camera_forward_4c.z * camera_scale_14;
         allow_override = UpdateFootstepFromMotion() != 0;
-        camera_forward_4c.x -= g_environ_00652DB4->vector_24.x;
-        camera_forward_4c.y -= g_environ_00652DB4->vector_24.y;
-        camera_forward_4c.z -= g_environ_00652DB4->vector_24.z;
+        camera_forward_4c.x -= g_environ->vector_24.x;
+        camera_forward_4c.y -= g_environ->vector_24.y;
+        camera_forward_4c.z -= g_environ->vector_24.z;
         projected = vector_58;
-        gravity.Set(g_environ_00652DB4->gravity_x_10, g_environ_00652DB4->gravity_y_14,
-                    g_environ_00652DB4->gravity_z_18);
+        gravity.Set(g_environ->gravity_x_10, g_environ->gravity_y_14, g_environ->gravity_z_18);
         ProjectVectorOntoVector(&projected, &gravity);
-        environ_vector = g_environ_00652DB4->vector_24;
+        environ_vector = g_environ->vector_24;
         if (environ_vector.Length() < projected.Length()) {
-            g_environ_00652DB4->vector_24 = projected;
+            g_environ->vector_24 = projected;
         }
         vector_40.SetZero();
         vector_70.SetZero();
@@ -3152,8 +3148,8 @@ void UpdateLevelMovementAudio(void)
     if (g_facing_tolerance_005ebcf4 < now - g_level_footstep_time &&
         (g_level_footstep_time = now,
          g_level_footstep_sound == -1 || SoundIsPlaying(g_level_footstep_sound) == 0)) {
-        g_level_footstep_sound = PlayFootstep0047A440(g_level_data->sound_environment_0c,
-                                                      g_level_data->sound_environment_alt_0d, 2);
+        g_level_footstep_sound = PlayFootstep(g_level_data->sound_environment_0c,
+                                              g_level_data->sound_environment_alt_0d, 2);
     }
 }
 

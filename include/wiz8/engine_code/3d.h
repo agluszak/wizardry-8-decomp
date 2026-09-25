@@ -18,7 +18,7 @@ struct W8OctRegionVolume;
 
 void SetSceneAmbientLightWhite(srScene* scene);
 void RemoveMonsterFromWorldList(W8World* unused, W8Monster* monster);
-void AddMonsterToWorld0046E580(W8World* unused, W8Monster* monster);
+void AddMonsterToWorld(W8World* unused, W8Monster* monster);
 void AddItemToWorld(W8World* unused, W8Item* item);
 void RemoveItemFromWorld(W8World* unused, W8Item* item);
 void SetModelInstanceChainExclusionMask(srModelInstance* node, int value);
@@ -39,18 +39,18 @@ unsigned char FinalizeWorldScenes(srNode* node, srNode* dynamic_scene);
 /* Mark an instance lit and bake dynamic-scene lights once (render_flags_178 bit 1). */
 unsigned char BakeInstanceVertexLightingIfNeeded(stModelInstance* instance,
                                                  srNode* dynamic_scene); /* 0x0046F4A0 */
-unsigned char BakeInstanceVertexLighting0046E8A0(stModelInstance* instance, srNode* lights,
-                                                 char walk_chain);
+unsigned char BakeInstanceVertexLighting(stModelInstance* instance, srNode* lights,
+                                         char walk_chain);
 void SetSceneMeshShaderBit3(srNode* node, int argument);
 void SetSceneMeshShaderLowBits(srNode* node, int argument);
 /* 0x0046F760: assign every live world's mesh vertex-light table index and
    mark the mesh dirty for rebake (automap lighting uses table 1). */
 void SetWorldMeshVertexLightTable(W8World* world, int table);
 
-void BuildPlaneFromPoints0046D660(W8Plane* plane, const srVector3T<float>* first,
-                                  const srVector3T<float>* second, const srVector3T<float>* third);
+void BuildPlaneFromPoints(W8Plane* plane, const srVector3T<float>* first,
+                          const srVector3T<float>* second, const srVector3T<float>* third);
 /* Report whether a point satisfies all six frustum planes. */
-bool PointInsideFrustum0046D880(const srVector3T<float>* point, const W8Plane* planes);
+bool PointInsideFrustum(const srVector3T<float>* point, const W8Plane* planes);
 /* Report whether a sphere of `radius` at `point` reaches all six frustum
    planes (each plane distance may be as low as -radius). */
 bool SphereInsideFrustum(const srVector3T<float>* point, float radius, const W8Plane* planes);
@@ -62,7 +62,7 @@ bool PointInsideTriangle(const srVector3T<float>* vertices, short axis,
 void BuildFrustumPlanes0046D7E0(const srVector3T<float>* points, W8Plane* planes);
 /* Order a volume's eight corner points into the canonical (y,z,x)-sorted
    sequence the frustum plane builder expects. */
-void SortFrustumCorners0046DA20(srVector3T<float>* points);
+void SortFrustumCorners(srVector3T<float>* points);
 /* Report whether the six-float bounds box (min xyz, max xyz) intersects the
    region volume's frustum: true when a bounds corner satisfies all six
    planes or a volume corner lands inside the bounds. */

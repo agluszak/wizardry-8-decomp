@@ -232,7 +232,7 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
     if (animation->path_lists_05 == 0) {
         int mesh_index;
         for (mesh_index = 0; mesh_index < (signed char)animation->group_count; ++mesh_index) {
-            W8AniMesh* mesh = CreateAniMesh004B57E0();
+            W8AniMesh* mesh = CreateAniMesh();
             signed char channel = 0;
 
             success = success && FileRead(handle, &channel, 1, 0);
@@ -257,7 +257,7 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
                 srAssertFail("fSuccess", ANIM_OBJ_CPP, 0x200, 0);
             }
             for (entry = 0; entry < entry_count; ++entry) {
-                W8AniMesh* mesh = CreateAniMesh004B57E0();
+                W8AniMesh* mesh = CreateAniMesh();
                 W8PathAI* path = 0;
                 signed char channel;
                 const char* saved_filename;
@@ -314,7 +314,7 @@ unsigned char AnimObjReadFromFile004A05C0(W8ReadLevelInfo* info, W8AnimObj* anim
    value_16 instead; +0x40 is one byte a frame and the other two a
    srVector3T<float> each. */
 // FUNCTION: WIZ8 0x004a0320
-W8AnimObj* CloneAnimObj004A0320(const W8AnimObj* source)
+W8AnimObj* CloneAnimObj(const W8AnimObj* source)
 {
     W8AnimObj* copy = (W8AnimObj*)malloc(sizeof(W8AnimObj));
     int index;
@@ -502,7 +502,7 @@ unsigned char AnimObjGetBounds(W8AnimObj* animation, signed char list_index, uns
             float saved = PathAIGetValue(path);
 
             PathAISetValue(path, static_cast<float>(index));
-            PathAIApply004AA520(path, instance);
+            PathAIApply(path, instance);
             PathAISetValue(path, saved);
         }
         ((srNode*)instance)->getRotation(rotation);

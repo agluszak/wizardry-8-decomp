@@ -1275,7 +1275,7 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
             g_item_records[item->iItemNo].equip_class != 0xe &&
             (g_item_records[item->iItemNo].equip_class < 0x15 ||
              g_item_records[item->iItemNo].equip_class > 0x16) &&
-            DispatchWorldCursorNodeCommand004D9080(0, 4, 1)) {
+            DispatchWorldCursorNodeCommand(0, 4, 1)) {
             *out_uses = 0;
             return 0;
         }
@@ -2585,8 +2585,8 @@ bool EveryCharacterHasItem(int item_id, int include_backpack)
 }
 
 // FUNCTION: WIZ8 0x005213C0
-char FindCharacterItemByDatabaseKind005213C0(W8Character* character, short item_kind,
-                                             W8ItemInstance** out, int include_backpack)
+char FindCharacterItemByDatabaseKind(W8Character* character, short item_kind, W8ItemInstance** out,
+                                     int include_backpack)
 {
     for (int slot = 0; slot < 12; ++slot) {
         W8ItemInstance* item = &character->EquippedItem[slot];
@@ -3633,8 +3633,8 @@ void UnequipUnusableItems(W8Character* character)
             if (record->skill_requirements[index].stat_id != W8_ITEM_REQUIREMENT_NONE &&
                 character->skills[(signed char)record->skill_requirements[index].stat_id].level <
                     record->skill_requirements[index].minimum) {
-                message_id = g_character_skill_name_ids
-                    [static_cast<signed char>(record->skill_requirements[index].stat_id)];
+                message_id = g_character_skill_name_ids[static_cast<signed char>(
+                    record->skill_requirements[index].stat_id)];
                 unmet = true;
                 break;
             }
@@ -3912,8 +3912,8 @@ void MergeMatchingPartnerItem(W8Character* character, W8ItemInstance* item)
         }
     }
 
-    if (FindCharacterItemByDatabaseKind005213C0(character, g_compatible_partner_pairs[row][1],
-                                                &partner, 1)) {
+    if (FindCharacterItemByDatabaseKind(character, g_compatible_partner_pairs[row][1], &partner,
+                                        1)) {
         MergeItemUses(character, item, partner);
         PostCharacterNotice(CharacterPointerToPartySlot(character), gppStringList[0x750 / 4]);
         return;
@@ -4225,8 +4225,7 @@ unsigned char FindItemByDatabaseKindOnParty(unsigned short item_kind, W8ItemInst
             continue;
         }
         W8Character* character = &g_status.buffers.Char[slot];
-        if (FindCharacterItemByDatabaseKind005213C0(character, item_kind, found,
-                                                    include_backpack)) {
+        if (FindCharacterItemByDatabaseKind(character, item_kind, found, include_backpack)) {
             if (found_character != 0) {
                 *found_character = character;
             }
@@ -4271,7 +4270,7 @@ void UpgradeProfessionClassItem(W8Character* character)
     case 2:
         return;
     case 1:
-        if (FindCharacterItemByDatabaseKind005213C0(character, 0x83, &found, 1)) {
+        if (FindCharacterItemByDatabaseKind(character, 0x83, &found, 1)) {
             return;
         }
         ReplaceOrCreateItem(&created, 599, 0, 1, 1);
@@ -4342,7 +4341,7 @@ void UpgradeProfessionClassItem(W8Character* character)
         break;
     }
 
-    if ((FindCharacterItemByDatabaseKind005213C0(character, 0x83, &found, 1) ||
+    if ((FindCharacterItemByDatabaseKind(character, 0x83, &found, 1) ||
          FindItemByDatabaseKindOnParty(0x83, &found, 0, 2)) &&
         found != 0 && found->iItemNo < item_id) {
         found->iItemNo = item_id;
@@ -4434,7 +4433,7 @@ unsigned char RemovePartyItemByID(int item_id, char remove_all)
    has been announced; and an item that cannot be held together with what is
    already there is left where it is, with the pair swapping around it. */
 // FUNCTION: WIZ8 0x0051d3b0
-unsigned char SwapWeaponSetSlots0051D3B0(int party_slot, char announce, unsigned char refresh)
+unsigned char SwapWeaponSetSlots(int party_slot, char announce, unsigned char refresh)
 {
     W8Character* character = &g_status.buffers.Char[party_slot];
     int notice_context = gXStatus.fNpcDialogueMode != 0 ? 0 : -1;
@@ -4523,7 +4522,7 @@ void BindCharacterItems(int party_slot, int arg_2)
     }
 
     if (IsPartySlotEligible(party_slot) != 0) {
-        if (SwapWeaponSetSlots0051D3B0(party_slot, static_cast<char>(arg_2), 1) != 0) {
+        if (SwapWeaponSetSlots(party_slot, static_cast<char>(arg_2), 1) != 0) {
             g_status.buffers.XChar[party_slot].weapon_swap_pending_105 = 0;
         }
     }

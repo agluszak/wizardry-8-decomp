@@ -936,7 +936,7 @@ bool SelectWorldCursorNode(void)
    detach and release its scene node, drop it from the table and run its own
    destructor. A null head with a nonzero count spins, as in retail. */
 // FUNCTION: WIZ8 0x0048DB30
-void ReleaseWorldCursorNodes0048DB30(void)
+void ReleaseWorldCursorNodes(void)
 {
     while (g_world_cursor_nodes.count != 0) {
         W8WorldCursorNode* entry = g_world_cursor_nodes.data[0];

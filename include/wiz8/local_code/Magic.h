@@ -44,7 +44,7 @@ int ExecuteCharacterSpellCast(int party_slot, int spell_id, unsigned int power_l
                               int* out_points, char continue_cast);
 /* 0x004FE740: a backfiring spell swaps roles - the intended target becomes
    the source and the original source the target. */
-void RedirectBackfiredSpellTarget004FE740(W8TargetSource* source, W8CombatSlot* target);
+void RedirectBackfiredSpellTarget(W8TargetSource* source, W8CombatSlot* target);
 /* 0x004FEDC0: pick one random in-combat participant other than the source
    and write it as the backfired spell's new target. */
 int PickBackfireTarget(int spell_id, W8TargetSource* source, W8CombatSlot* target);
@@ -68,7 +68,7 @@ void LearnSpellFromItem(W8Character* character, W8ItemInstance* item);
 
 /* Zeroes the six per-realm learned-spell counters and recounts them from the
    spell_learned array. */
-void RecountLearnedSpellsByRealm004F96A0(W8Character* character);
+void RecountLearnedSpellsByRealm(W8Character* character);
 bool CanCharacterCastSpell(W8Character* character, int spell_id);
 unsigned int GetBestSpellbookSkillForSpell(W8Character* character, int spell_id, char pricing,
                                            char prefer_unlocked, unsigned int power_level);

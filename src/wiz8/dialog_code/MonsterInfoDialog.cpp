@@ -152,7 +152,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
             knowledge = static_cast<unsigned int>(adjusted_knowledge);
         }
     }
-    combat_range = monster_info->p3D->GetDistanceToPlayer004C7CB0();
+    combat_range = monster_info->p3D->GetDistanceToPlayer();
     m_text_area_ec.Configure(&bounds, g_font_683660, 0);
     m_text_area_ec.SetEntrySpacing(1);
 

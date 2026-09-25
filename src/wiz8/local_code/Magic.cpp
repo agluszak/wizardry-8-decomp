@@ -214,7 +214,7 @@ bool MonsterOKToCastSpell(W8MonsterInfo* monster_info, int spell_id, int power_l
         !ClearMonsterCombatSlot(monster_info)) {
         return false;
     }
-    if (DispatchWorldCursorNodeCommand004D9080(monster_info, 4, 0)) {
+    if (DispatchWorldCursorNodeCommand(monster_info, 4, 0)) {
         return false;
     }
     if (!MonsterSpellTargetOK(monster_info, spell_id, combat_slot)) {
@@ -676,8 +676,8 @@ void UpdateSpellEffects(void)
                 handled = true;
             } else {
                 effect->targets_resolved_123 = 1;
-                if (MonsterCanAimSpell005474B0(effect->kind) != 0 &&
-                    effect->Source.fBackfire == 0 && effect->Source.fReflection == 0) {
+                if (MonsterCanAimSpell(effect->kind) != 0 && effect->Source.fBackfire == 0 &&
+                    effect->Source.fReflection == 0) {
                     ProvokeListedMonsterGroups(&effect->Source, &effect->monster_ids_0e0);
                 }
                 ProcessSpellEffectTargets(effect);
@@ -1058,7 +1058,7 @@ static unsigned char SpellbookMaskForSpell(int spell_id)
    skill_unlocks), where the expert-skill gate and the spell-point ceiling
    both read them. */
 // FUNCTION: WIZ8 0x004f96a0
-void RecountLearnedSpellsByRealm004F96A0(W8Character* character)
+void RecountLearnedSpellsByRealm(W8Character* character)
 {
     for (int realm = 0; realm < 6; ++realm) {
         character->skill_unlocks[0x1c + realm] = 0;
@@ -2270,7 +2270,7 @@ bool ValidateSpellTarget(int party_slot, int spell_id, unsigned int power, bool 
             PostCharacterNotice(party_slot, FormatWideString(gppStringList[0x1b8]));
         }
         valid = false;
-    } else if (!skip_world_cursor && DispatchWorldCursorNodeCommand004D9080(0, 4, 1)) {
+    } else if (!skip_world_cursor && DispatchWorldCursorNodeCommand(0, 4, 1)) {
         valid = false;
     }
 
@@ -2278,7 +2278,7 @@ bool ValidateSpellTarget(int party_slot, int spell_id, unsigned int power, bool 
         ((g_level_data->flags & 1) != 0 || !GetLevelDataFlag4() || GetLevelDataFlag9())) {
         valid = false;
     }
-    if (!valid && (!gXStatus.fCombatMode || !MonsterCanAimSpell005474B0(spell_id) ||
+    if (!valid && (!gXStatus.fCombatMode || !MonsterCanAimSpell(spell_id) ||
                    gXStatus.hostile_monster_count != 0 || !g_combat_state->enemies_engaged_a54)) {
         QueueCharacterEvent(&g_status.buffers.Char[party_slot], g_character_event_kind_005ee65c, 0,
                             g_effect_argument_005ed8c8, g_effect_argument_005ed914);
@@ -3194,7 +3194,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
                     }
                     if (party_markers.GetCount() != 0) {
                         for (index = 0; index < party_markers.GetCount(); ++index) {
-                            if (MonsterCanAimSpell005474B0(spell_id)) {
+                            if (MonsterCanAimSpell(spell_id)) {
                                 icon_flag = source->fBackfire != '\0';
                             } else {
                                 icon_flag = source->fBackfire == '\0';
@@ -3387,7 +3387,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
    character target, the first live party member for a party target, and so
    on. */
 // FUNCTION: WIZ8 0x004FE740
-void RedirectBackfiredSpellTarget004FE740(W8TargetSource* source, W8CombatSlot* target)
+void RedirectBackfiredSpellTarget(W8TargetSource* source, W8CombatSlot* target)
 {
     W8TargetSource source_copy;
     W8CombatSlot target_copy;
@@ -3514,7 +3514,7 @@ void PrepareSpellTarget(int spell_id, W8TargetSource* source, W8CombatSlot* targ
         /* fall through */
     case 1:
     case 4:
-        RedirectBackfiredSpellTarget004FE740(source, target);
+        RedirectBackfiredSpellTarget(source, target);
         return;
     case 5:
         if (TargetSourceIsCharacter(source, 0)) {
@@ -4092,7 +4092,7 @@ void PopulateSpellTargetMarkers(int spell_id, int power_level, W8TargetSource* s
                 g_status.buffers.Char[slot].hp_current != 0 &&
                 g_status.buffers.Char[slot].highest_condition < W8_CONDITION_DEAD &&
                 (g_status.buffers.Char[slot].uiCondition[W8_CONDITION_HOSTILE] == 0 ||
-                 !MonsterCanAimSpell005474B0(spell_id) || static_cast<char>(side) == '\x03')) {
+                 !MonsterCanAimSpell(spell_id) || static_cast<char>(side) == '\x03')) {
                 party_markers->Add(slot);
             }
         }

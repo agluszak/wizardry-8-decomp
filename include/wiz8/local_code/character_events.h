@@ -102,8 +102,7 @@ void RedrawPortraitQuoteBubbles(void);
 /* 0x0052FE80: queue the character's breath/idle event unless a spell or item
    is being aimed; `force` queues it regardless. */
 void StartBreathCycle(int party_slot, char force);
-void RenderPartyPortrait0052EB00(int portrait, int left, int top, int flags, int value,
-                                 int party_slot);
+void RenderPartyPortrait(int portrait, int left, int top, int flags, int value, int party_slot);
 /* 0x0052EBE0: blit one animated portrait frame and its transition, returning
    whether a frame was drawn. */
 bool BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int party_slot,

@@ -122,7 +122,7 @@ W8PropRepresentation::W8PropRepresentation(const W8PropRepresentation& other)
       slots(5), footstep_surface_0c0(other.footstep_surface_0c0),
       footstep_material_0c1(other.footstep_material_0c1)
 {
-    animation = CloneAnimObj004A0320(other.animation);
+    animation = CloneAnimObj(other.animation);
 }
 
 // SYNTHETIC: WIZ8 0x0044acf0
@@ -713,7 +713,7 @@ void W8Prop::ApplyAnimationPaths(W8World* world)
             if (path != 0) {
                 srVector3T<float> location;
 
-                PathAIApply004AA520(path, mesh);
+                PathAIApply(path, mesh);
                 static_cast<srNode*>(mesh)->getLocation(location);
                 position_03c = position_02c;
                 position_02c = location;
@@ -750,7 +750,7 @@ void W8Prop::AdvanceAnimationValue(int frames, char total)
                 rep->animation_playing_06d = 0;
                 rep->frame_direction_06e = 2;
                 if (trigger_18 != 0) {
-                    trigger_18->RunLinkedTriggers00441590();
+                    trigger_18->RunLinkedTriggers();
                 }
                 gXStatus.sight_refresh_pending_a03 = 1;
             }
@@ -762,7 +762,7 @@ void W8Prop::AdvanceAnimationValue(int frames, char total)
                 rep->animation_playing_06d = 0;
                 rep->frame_direction_06e = 4;
                 if (trigger_18 != 0) {
-                    trigger_18->RunLinkedTriggers00441590();
+                    trigger_18->RunLinkedTriggers();
                 }
                 gXStatus.sight_refresh_pending_a03 = 1;
             }
@@ -972,8 +972,7 @@ void W8Prop::ApplyAnimationFrame()
         if (path != 0) {
             PathAISetValue(
                 path, static_cast<float>(static_cast<W8PropRepresentation*>(m_pRep)->subcycle_064));
-            PathAIApply004AA520(static_cast<W8PropRepresentation*>(m_pRep)->animation->path_24,
-                                mesh);
+            PathAIApply(static_cast<W8PropRepresentation*>(m_pRep)->animation->path_24, mesh);
         }
         return;
     }
@@ -994,7 +993,7 @@ void W8Prop::ApplyAnimationFrame()
 
             PathAISetValue(
                 path, static_cast<float>(static_cast<W8PropRepresentation*>(m_pRep)->subcycle_064));
-            PathAIApply004AA520(path, mesh);
+            PathAIApply(path, mesh);
             static_cast<srNode*>(mesh)->getLocation(location);
             position_02c = location;
             position_03c = location;
@@ -1007,7 +1006,7 @@ void W8Prop::ApplyAnimationFrame()
 /* Per-frame prop update: while the animation is running this binds every
    dispatched instance to the world's dynamic scene, interpolates between the
    current and next keyframe records (position lerp, quaternion slerp for
-   rotations - the same algorithm as PathAIApply004AA520), pushes the transform
+   rotations - the same algorithm as PathAIApply), pushes the transform
    onto the instance or its child chain, and rolls the position snapshots
    forward. A stopped animation binds the single current instance and applies
    either the rep's path or its stored transform. */
@@ -1133,7 +1132,7 @@ void W8Prop::AttachAnimationInstances(W8World* world)
             instance->render_flags_178 |= 0x10;
         }
         if (Rep()->animation->path_24 != 0) {
-            PathAIApply004AA520(Rep()->animation->path_24, instance);
+            PathAIApply(Rep()->animation->path_24, instance);
         } else {
             Rep()->GetLocation004B8890(&rep_position);
             Rep()->GetRotation(&rep_rotation);
@@ -1426,7 +1425,7 @@ bool W8Prop::IsTriggerInView(srVector3T<float>* position)
 }
 
 // FUNCTION: WIZ8 0x0044bf50
-bool CreateAndLoadProp0044BF50(W8ReadLevelInfo* info, W8Prop** prop_out)
+bool CreateAndLoadProp(W8ReadLevelInfo* info, W8Prop** prop_out)
 {
     W8Prop* prop;
     bool success;
@@ -1438,7 +1437,7 @@ bool CreateAndLoadProp0044BF50(W8ReadLevelInfo* info, W8Prop** prop_out)
     if (prop == 0) {
         srAssertFail("pProp", PROP_CPP, 0x348, 0);
     }
-    success = static_cast<W8PropRepresentation*>(prop->m_pRep)->LoadProp0044AEE0(info, prop);
+    success = static_cast<W8PropRepresentation*>(prop->m_pRep)->LoadProp(info, prop);
     if (success) {
         *prop_out = prop;
         prop->m_pTimer->SetDuration(
@@ -1452,7 +1451,7 @@ bool CreateAndLoadProp0044BF50(W8ReadLevelInfo* info, W8Prop** prop_out)
    prop->m_pRep into ECX before the two stack arguments, so this is a
    PropRep method: LoadProp(pInfo, pProp). */
 // FUNCTION: WIZ8 0x0044aee0
-bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
+bool W8PropRepresentation::LoadProp(W8ReadLevelInfo* info, W8Prop* prop)
 {
     int hFile;
     bool success;
@@ -1503,7 +1502,7 @@ bool W8PropRepresentation::LoadProp0044AEE0(W8ReadLevelInfo* info, W8Prop* prop)
             }
         }
         info->mesh_filename = 0;
-        mesh = CreateAniMesh004B57E0();
+        mesh = CreateAniMesh();
         if (mesh == 0) {
             srAssertFail("pAniMesh", PROP_CPP, 0xd5, 0);
         }

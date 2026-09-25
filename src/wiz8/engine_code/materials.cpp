@@ -395,7 +395,7 @@ unsigned char PreprocessLevel(int handle, char* stem)
         W8HashTable<unsigned int, int> weld;
         weld.Clear();
         sun_pool = 0;
-        level = ReadLevelFile004CFDC0(handle);
+        level = ReadLevelFile(handle);
         if (level == 0) {
             ReportBuildStatus(7, "Could not process LVL file.\n");
             return 0;
@@ -494,7 +494,7 @@ unsigned char PreprocessLevel(int handle, char* stem)
                     new OctBuildPreTree(g_option_min_leaf_size, &minimum, &maximum,
                                         g_option_max_path_nodes, g_option_max_leaf_count, 0);
                 if (build_tree != 0) {
-                    build_tree->LoadRegionFile004B0C90(stem, &minimum, &maximum);
+                    build_tree->LoadRegionFile(stem, &minimum, &maximum);
                     if (g_option_mesh_linking == 0) {
                         build_tree->mesh_linking_f4 = 0;
                     }
@@ -615,7 +615,7 @@ unsigned char PreprocessLevel(int handle, char* stem)
                             ReportBuildStatus(6, message);
                         }
                     }
-                    build_tree->RemapNodeRegions004B16B0(0, 0);
+                    build_tree->RemapNodeRegions(0, 0);
                     ReportBuildStatus(6, "\nInserting props and particles into regions... \n");
                     build_tree->BuildParticleRegions(level->pParticleSystems,
                                                      level->nParticleSystems);
@@ -782,8 +782,7 @@ unsigned char PreprocessLevel(int handle, char* stem)
                                 tree->m_path_clearance_17c =
                                     (unsigned long&)/* c-style-cast-ok: float-bit copy */
                                     g_option_path_head_room;
-                                tree->BuildPathLists0046B060(value, level,
-                                                             g_option_delete_percentage);
+                                tree->BuildPathLists(value, level, g_option_delete_percentage);
                             }
                             if (submeshes == 0) {
                                 if (tree->GetMeshCount() == 0) {
@@ -847,7 +846,7 @@ unsigned char PreprocessLevel(int handle, char* stem)
                             level->field_04 = tree->m_meshCount_1b4;
                             level->pModels_0c = submeshes;
                             ReportBuildStatus(6, "\nWriting PVL File...\n");
-                            result = result & WriteLevelFile004D07C0(file, handle, level);
+                            result = result & WriteLevelFile(file, handle, level);
                             FileClose(file);
                             if (result != 0) {
                                 goto write_done;
@@ -1577,8 +1576,7 @@ int AccumulateVertexLight(OctPreTree* tree, W8OctPreTreeVertex* vertex, short li
                 if (g_float_005ebb34 < dot) {
                     g_lights_facing = g_lights_facing + 1;
                     if (g_option_shadow_test != 0) {
-                        if (!tree->SegmentClear00467BB0(&light->position_08,
-                                                        &vertex->position_0c)) {
+                        if (!tree->SegmentClear(&light->position_08, &vertex->position_0c)) {
                             goto next_light;
                         }
                     }
@@ -1623,7 +1621,7 @@ int PropReceivesLight(OctPreTree* tree, W8LevelFileProp* prop, W8LevelFileLight*
     position.x = prop->position_03.x * g_world_scale;
     position.y = prop->position_03.y * g_world_scale;
     position.z = prop->position_03.z * g_world_scale;
-    if (tree->SegmentClear00467BB0(&light->position_08, &position)) {
+    if (tree->SegmentClear(&light->position_08, &position)) {
         return 1;
     }
     bound = 0;
@@ -1639,7 +1637,7 @@ int PropReceivesLight(OctPreTree* tree, W8LevelFileProp* prop, W8LevelFileLight*
                         corner.z = bounds[corner_z * 3 + 2] * g_world_scale;
                         corner.x = x;
                         corner.y = y;
-                        if (tree->SegmentClear00467BB0(&light->position_08, &corner)) {
+                        if (tree->SegmentClear(&light->position_08, &corner)) {
                             return 1;
                         }
                     }
@@ -2175,9 +2173,9 @@ shown:
    established cdecl extra argument: retail 0x004B8A70 never reads it and
    always passes required=1 to the texture loaders. */
 // FUNCTION: WIZ8 0x004B8A70
-unsigned char LoadMaterial004B8A70(const char* bitmap_folder, const W8MaterialRecord* source,
-                                   srMaterialIFace** material, srTextureIFace** texture,
-                                   unsigned long* render_flags, int)
+unsigned char LoadMaterial(const char* bitmap_folder, const W8MaterialRecord* source,
+                           srMaterialIFace** material, srTextureIFace** texture,
+                           unsigned long* render_flags, int)
 {
     char texture_path[80] = "";
     char material_name[80] = "";

@@ -70,18 +70,18 @@ struct W8NavigatorAttachment {
 
     /* Lazily sums the stored segment lengths into path_length_058, skipping
        entries whose preceding path value carries bit 0x2. */
-    float MeasurePathLength00456B00(); /* 0x00456B00 */
+    float MeasurePathLength(); /* 0x00456B00 */
 
     void RecordPosition(const srVector3T<float>* position);
     void GrowPathStorage();
-    void CopyPathFrom004564F0(const W8NavigatorAttachment* other);
+    void CopyPathFrom(const W8NavigatorAttachment* other);
     void GetNextPosition(srVector3T<float>* position);
     void InitializeSegment(const srVector3T<float>* source, const srVector3T<float>* destination);
     /* Step `position` forward along the recorded route by the 2-D `distance`,
        consuming waypoints the step covers; returns zero once the route's last
        waypoint is reached. */
-    unsigned char AdvanceAlongPathPositions00456830(float distance,
-                                                    srVector3T<float>* position); /* 0x00456830 */
+    unsigned char AdvanceAlongPathPositions(float distance,
+                                            srVector3T<float>* position); /* 0x00456830 */
     /* Whether `position`'s plan-view distance to the hop leaving the current
        index stays under the path height interpolated along that segment. */
     unsigned char CheckPositionHopHeight(const srVector3T<float>* position); /* 0x00456CB0 */
@@ -499,9 +499,9 @@ public:
 
 static_assert(sizeof(W8Navigator) == 0x190, "W8Navigator_size_must_be_0x190");
 
-void SetNavigatorLinkMode00452F50(unsigned char mode);
-void StopAllNavigators00453160(void);
-void ResumeAllNavigators004531A0(void);
+void SetNavigatorLinkMode(unsigned char mode);
+void StopAllNavigators(void);
+void ResumeAllNavigators(void);
 
 void NavigatorDefaultCallback(W8Navigator* navigator);
 

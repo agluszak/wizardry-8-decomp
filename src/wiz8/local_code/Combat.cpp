@@ -227,7 +227,7 @@ unsigned char StartCombat(int surprise)
         monster_info = MonsterGetScriptPartByLocationIndex(index);
         if (monster_info->fActive != 0 && monster_info->fInCombat != 0 &&
             monster_info->hp_current > 0 && monster_info->ubDisposition == DISP_HOSTILE) {
-            float distance = monster_info->p3D->GetDistanceToPlayer004C7CB0();
+            float distance = monster_info->p3D->GetDistanceToPlayer();
             if (distance < nearest_distance) {
                 nearest_distance = distance;
                 nearest_info = monster_info;
@@ -543,11 +543,11 @@ void BeginCombatExecution(void)
     ++g_value_659c14;
     if (g_combat_state->uiCurrentPartyAction == 1 || g_combat_state->uiCurrentPartyAction == 2) {
         gXStatus.flPartyMoveDistLimit = GetPartyMovementSpeed();
-        ResetLevelMovement0041EEE0(gXStatus.flPartyMoveDistLimit, 0,
-                                   g_combat_state->uiCurrentPartyAction == 2);
+        ResetLevelMovement(gXStatus.flPartyMoveDistLimit, 0,
+                           g_combat_state->uiCurrentPartyAction == 2);
     } else {
         gXStatus.flPartyMoveDistLimit = 0.0f;
-        ResetLevelMovement0041EEE0(gXStatus.flPartyMoveDistLimit, 1, 0);
+        ResetLevelMovement(gXStatus.flPartyMoveDistLimit, 1, 0);
     }
     g_combat_state->round_counter = GetPhaseStep();
     if (CombatMayAdvanceContinuously()) {
@@ -811,8 +811,7 @@ void NotifyNearbyMonsters(int what)
         if (monster_info->fInCombat != 0 && monster_info->hp_current != 0 &&
             monster_info->highest_condition < 0xe && monster_info->uiCondition[12] == 0 &&
             monster_info->ubDisposition == 1) {
-            if (monster_info->p3D->GetDistanceToPlayer004C7CB0() <=
-                CalcRangeDistance(W8_RANGE_SHORT)) {
+            if (monster_info->p3D->GetDistanceToPlayer() <= CalcRangeDistance(W8_RANGE_SHORT)) {
                 MonsterForwardReferencePosition(monster_info->p3D, what);
             }
         }
@@ -2978,13 +2977,13 @@ int GetConditionInterrupt(W8TargetSource* source)
         if (!can_attack) {
             if (AreAllHandSlotsEmpty(&g_status.buffers.Char[party_slot]) == 0 &&
                 CanUnequipSlotItem(character, 6) != 0 && CanUnequipSlotItem(character, 7) != 0) {
-                SwapWeaponSetSlots0051D3B0(party_slot, '\0', '\x01');
+                SwapWeaponSetSlots(party_slot, '\0', '\x01');
                 if (CanAnyHandReachTarget(party_slot) != 0 &&
                     CanPartySlotAttackAnyTarget(party_slot, 8, 1, '\0') != '\0') {
                     PostCharacterNotice(party_slot, gppStringList[0x23d]);
                     return 9;
                 }
-                SwapWeaponSetSlots0051D3B0(party_slot, '\0', '\x01');
+                SwapWeaponSetSlots(party_slot, '\0', '\x01');
             }
             return 10;
         }
@@ -3067,7 +3066,7 @@ void UpdateCombat(void)
         g_combat_state->combat_evaluated_a48 = 1;
     }
     if (g_combat_state->engaged_missile != 0 &&
-        g_combat_state->engaged_missile->BlocksEndingCombat004A5790() == 0) {
+        g_combat_state->engaged_missile->BlocksEndingCombat() == 0) {
         g_combat_state->engaged_missile->block_released_1e2 = 1;
         g_combat_state->engaged_missile = 0;
     }
@@ -3097,7 +3096,7 @@ void UpdateCombat(void)
         while (missile != 0) {
             if ((missile == g_combat_state->engaged_missile ||
                  g_missile_table[missile->missile_table_index_1d8].spell_missile_154 != 0) &&
-                missile->BlocksEndingCombat004A5790() != 0) {
+                missile->BlocksEndingCombat() != 0) {
                 return;
             }
             missile = NextMissile('\0');
@@ -3188,7 +3187,7 @@ void UpdateCombat(void)
         if (pending_action < 0) {
             result = 3;
         } else if (pending_action < 2) {
-            result = ResolveCharacterAttack0053E250(slot);
+            result = ResolveCharacterAttack(slot);
         } else if (pending_action == 2) {
             result = ExecuteCharacterSpecialAttack(slot);
         } else {

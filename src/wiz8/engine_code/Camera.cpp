@@ -189,7 +189,7 @@ void PointCameraAtMonster(W8MonsterInfo* monster_info, unsigned char force, unsi
     if (monster->movement_0c0.height_offset_0b8 -
                 monster->movement_0c0.secondary_height_offset_0bc <
             g_float_005ebc64 ||
-        monster->GetDistanceToPlayer004C7CB0() > g_float_005ebcdc) {
+        monster->GetDistanceToPlayer() > g_float_005ebcdc) {
         position = monster->movement_0c0.position_040;
         position.y += monster->movement_0c0.secondary_height_offset_0bc;
     } else {

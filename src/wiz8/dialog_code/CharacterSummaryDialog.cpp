@@ -126,7 +126,7 @@ void W8CharacterSummaryDialog::Draw()
     if (m_quote_text_058 != 0) {
         m_quote_text_058->RenderToTarget(0, 0, -14);
     }
-    RenderPartyPortrait0052EB00(m_character_074->portrait_index, m_x + 11, m_y + 11, 2, 1, 0);
+    RenderPartyPortrait(m_character_074->portrait_index, m_x + 11, m_y + 11, 2, 1, 0);
     if (!m_portrait_clock_started_1af9) {
         m_portrait_clock_started_1af9 = 1;
         m_portrait_clock_1afc = GetClock();

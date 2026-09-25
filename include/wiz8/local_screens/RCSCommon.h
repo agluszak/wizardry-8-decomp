@@ -13,7 +13,7 @@ void DrawCampHands(void);
 int CreateCampButtonPanel(void);
 void DestroyCampButtonPanel(void);
 void RefreshCampItemActions(unsigned char invalidate);
-void SetCampItemActionMode005B59B0(char mode);
+void SetCampItemActionMode(char mode);
 void SelectCampCharacter(int slot);
 /* Right-click on a camp portrait while holding an item: refuse with a notice
    for dead/insane/stoned, else try AddItemToCharacter. */

@@ -10,7 +10,7 @@
 #include "surrender/srNode.h"
 #include "surrender/srHeap.h"
 #include "wiz8/3d_code/IList.h"
-#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator.h"
 #include "wiz8/engine_code/PathAI.h"
 #include "wiz8/engine_code/Octree.h"
 #include "wiz8/engine_code/OctPath.h"
@@ -97,7 +97,7 @@ unsigned char W8NavigatorAttachment::TruncatePathAtRadius(const srVector3T<float
    path_length_058 under the 0x00400000 flag. Entries whose preceding path value
    carries bit 0x2 contribute nothing. */
 // FUNCTION: WIZ8 0x00456B00
-float W8NavigatorAttachment::MeasurePathLength00456B00()
+float W8NavigatorAttachment::MeasurePathLength()
 {
     unsigned int index = 1;
     if ((flags_00 & 0x400000) == 0) {
@@ -208,7 +208,7 @@ void NavigatorDefaultCallback(W8Navigator* navigator)
    monster group already following a navigator onto that navigator's path and
    position; every other mode stops them and clears their velocity. */
 // FUNCTION: WIZ8 0x00452F50
-void SetNavigatorLinkMode00452F50(unsigned char mode)
+void SetNavigatorLinkMode(unsigned char mode)
 {
     if (g_navigator_link_mode == mode) {
         return;
@@ -234,8 +234,8 @@ void SetNavigatorLinkMode00452F50(unsigned char mode)
                     srVector3T<float> position = navigator->movement_0c0.position_040;
 
                     if ((group->fInCombat == 0 ||
-                         PositionMonsterGroupNearCamera00511050(
-                             group, 0.0f, navigator->movement_0c0.yaw, 0) == 0) &&
+                         PositionMonsterGroupNearCamera(group, 0.0f, navigator->movement_0c0.yaw,
+                                                        0) == 0) &&
                         (MoveMonsterGroupToPosition(group, &position, navigator->movement_0c0.yaw,
                                                     0, 1, 0, 0),
                          g_combat_inactive != 0)) {
@@ -246,7 +246,7 @@ void SetNavigatorLinkMode00452F50(unsigned char mode)
                              ++group_index) {
                             W8Navigator* group_navigator = *g_navigator_group.GetAt(group_index);
 
-                            group_navigator->movement_0c0.attachment_0ac->CopyPathFrom004564F0(
+                            group_navigator->movement_0c0.attachment_0ac->CopyPathFrom(
                                 navigator->movement_0c0.attachment_0ac);
                             group_navigator->position_03c = navigator->position_03c;
                             group_navigator->movement_0c0.attachment_0ac->flags_00 &= 0xff7effff;
@@ -268,7 +268,7 @@ void SetNavigatorLinkMode00452F50(unsigned char mode)
 }
 
 // FUNCTION: WIZ8 0x00453160
-void StopAllNavigators00453160(void)
+void StopAllNavigators(void)
 {
     int count = g_registered_navigators.GetCount();
     for (int index = 0; index < count; ++index) {
@@ -279,7 +279,7 @@ void StopAllNavigators00453160(void)
 }
 
 // FUNCTION: WIZ8 0x004531a0
-void ResumeAllNavigators004531A0(void)
+void ResumeAllNavigators(void)
 {
     int count = g_registered_navigators.GetCount();
     for (int index = 0; index < count; ++index) {
@@ -752,8 +752,7 @@ void W8Navigator::PropagateGroupPosition()
         CollectGroupNavigators(&g_navigator_group);
         for (int index = 0; index < g_navigator_group.GetCount(); ++index) {
             W8Navigator* navigator = *g_navigator_group.GetAt(index);
-            navigator->movement_0c0.attachment_0ac->CopyPathFrom004564F0(
-                movement_0c0.attachment_0ac);
+            navigator->movement_0c0.attachment_0ac->CopyPathFrom(movement_0c0.attachment_0ac);
             navigator->position_03c = position_03c;
             navigator->movement_0c0.attachment_0ac->flags_00 &= 0xff7effff;
             navigator->linked_update_time_0b8 = 0;
@@ -1044,8 +1043,7 @@ unsigned char W8Navigator::UpdateLinkedPosition()
             movement_stopped_024 = 0;
         }
     }
-    movement_0c0.attachment_0ac->CopyPathFrom004564F0(
-        linked_navigator_05c->movement_0c0.attachment_0ac);
+    movement_0c0.attachment_0ac->CopyPathFrom(linked_navigator_05c->movement_0c0.attachment_0ac);
     movement_0c0.attachment_0ac->flags_00 &= 0xff7fffff;
     movement_0c0.yaw = linked_navigator_05c->movement_0c0.yaw;
     movement_0c0.velocity_034 = linked_navigator_05c->movement_0c0.velocity_034 * 0.5;
@@ -1218,10 +1216,10 @@ double W8Navigator::MeasurePathDistance(const srVector3T<float>* target, float m
     } else {
         attachment.flags_00 &= 0xf3feffff;
     }
-    ready = g_octree->PrepareNavigatorTarget00434250(&movement, max_range, radius_084);
+    ready = g_octree->PrepareNavigatorTarget(&movement, max_range, radius_084);
     movement.attachment_0ac = 0;
     if (ready != 0 && ((attachment.flags_00 & 0x10000) == 0 || (attachment.flags_00 & 7) != 3)) {
-        return attachment.MeasurePathLength00456B00();
+        return attachment.MeasurePathLength();
     }
     return -1.0;
 }
@@ -1281,7 +1279,7 @@ void W8NavigatorAttachment::InitializeSegment(const srVector3T<float>* source,
 }
 
 // FUNCTION: WIZ8 0x004564f0
-void W8NavigatorAttachment::CopyPathFrom004564F0(const W8NavigatorAttachment* other)
+void W8NavigatorAttachment::CopyPathFrom(const W8NavigatorAttachment* other)
 {
     flags_00 = other->flags_00;
     path_cursor_04 = other->path_cursor_04;
@@ -1327,8 +1325,8 @@ void W8NavigatorAttachment::GetNextPosition(srVector3T<float>* position)
 }
 
 // FUNCTION: WIZ8 0x00456830
-unsigned char W8NavigatorAttachment::AdvanceAlongPathPositions00456830(float distance,
-                                                                       srVector3T<float>* position)
+unsigned char W8NavigatorAttachment::AdvanceAlongPathPositions(float distance,
+                                                               srVector3T<float>* position)
 {
     srVector3T<float> local;
     srVector3T<float> delta;
@@ -1813,8 +1811,7 @@ void W8Navigator::ResetMovementAndGroupState()
             CollectGroupNavigators(&g_navigator_group);
             for (int index = 0; index < g_navigator_group.GetCount(); ++index) {
                 W8Navigator* navigator = *g_navigator_group.GetAt(index);
-                navigator->movement_0c0.attachment_0ac->CopyPathFrom004564F0(
-                    movement_0c0.attachment_0ac);
+                navigator->movement_0c0.attachment_0ac->CopyPathFrom(movement_0c0.attachment_0ac);
                 navigator->position_03c = position_03c;
                 navigator->movement_0c0.attachment_0ac->flags_00 &= 0xff7effff;
                 navigator->linked_update_time_0b8 = 0;
@@ -1872,7 +1869,7 @@ unsigned char W8Navigator::ConfigureMovement(float minimum, float maximum)
                 CollectGroupNavigators(&g_navigator_group);
                 for (int index = 0; index < g_navigator_group.GetCount(); ++index) {
                     W8Navigator* navigator = *g_navigator_group.GetAt(index);
-                    navigator->movement_0c0.attachment_0ac->CopyPathFrom004564F0(
+                    navigator->movement_0c0.attachment_0ac->CopyPathFrom(
                         movement_0c0.attachment_0ac);
                     navigator->position_03c = position_03c;
                     navigator->movement_0c0.attachment_0ac->flags_00 &= 0xff7effff;
@@ -1894,17 +1891,17 @@ unsigned char W8Navigator::SetMovementTarget(const srVector3T<float>* target, ch
     unsigned char result;
     if (g_combat_inactive == 0) {
         radius_084 = movement_0c0.alternate_radius_0b4;
-        result = g_octree->PrepareNavigatorTarget00434250(&movement_0c0, radius_084,
-                                                          static_cast<float>(collision_margin_010));
+        result = g_octree->PrepareNavigatorTarget(&movement_0c0, radius_084,
+                                                  static_cast<float>(collision_margin_010));
     } else {
         radius_084 = movement_0c0.collision_radius_0b0;
         if ((flags_00c & 4) != 0 && (flags_00c & 1) != 0) {
-            result = g_octree->PrepareNavigatorTarget00434250(
-                &movement_0c0, radius_084,
-                target_navigator_04c->radius_084 + static_cast<float>(collision_margin_010));
+            result = g_octree->PrepareNavigatorTarget(&movement_0c0, radius_084,
+                                                      target_navigator_04c->radius_084 +
+                                                          static_cast<float>(collision_margin_010));
         } else {
-            result = g_octree->PrepareNavigatorTarget00434250(
-                &movement_0c0, radius_084, static_cast<float>(collision_margin_010));
+            result = g_octree->PrepareNavigatorTarget(&movement_0c0, radius_084,
+                                                      static_cast<float>(collision_margin_010));
         }
     }
     if (result == 0 || IsNavigatorAtTarget(&movement_0c0) != 0) {
@@ -1945,8 +1942,7 @@ unsigned char W8Navigator::SetMovementTarget(const srVector3T<float>* target, ch
         CollectGroupNavigators(&g_navigator_group);
         for (int index = 0; index < g_navigator_group.GetCount(); ++index) {
             W8Navigator* navigator = *g_navigator_group.GetAt(index);
-            navigator->movement_0c0.attachment_0ac->CopyPathFrom004564F0(
-                movement_0c0.attachment_0ac);
+            navigator->movement_0c0.attachment_0ac->CopyPathFrom(movement_0c0.attachment_0ac);
             navigator->position_03c = position_03c;
             navigator->movement_0c0.attachment_0ac->flags_00 &= 0xff7effff;
             navigator->linked_update_time_0b8 = 0;
@@ -2116,7 +2112,7 @@ void W8Navigator::UpdateAngles()
     if (gXStatus.fCombatMode == 0) {
         step = movement_0c0.turn_rate_068;
     }
-    step *= g_rate_006068EC * g_game_time_accumulator->GetFrameDelta();
+    step *= g_rate * g_game_time_accumulator->GetFrameDelta();
 
     if (movement_0c0.yaw != movement_0c0.target_yaw) {
         distance = NormalizeAngle(movement_0c0.yaw - movement_0c0.target_yaw);
@@ -2260,9 +2256,9 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
         if (g_navigator_vertical_enabled == 0) {
             movement_0c0.vertical_offset_0c0 = movement_0c0.vertical_base_07c;
         } else {
-            float phase = movement_0c0.vertical_phase_084 +
-                          g_rate_006068EC * g_game_time_accumulator->GetFrameDelta() *
-                              g_navigator_vertical_phase_step;
+            float phase =
+                movement_0c0.vertical_phase_084 +
+                g_rate * g_game_time_accumulator->GetFrameDelta() * g_navigator_vertical_phase_step;
             phase -= static_cast<float>(floor(phase));
             movement_0c0.vertical_phase_084 = phase;
             movement_0c0.vertical_offset_0c0 = static_cast<float>(sin(phase * g_double_005ec318)) *
@@ -2478,7 +2474,7 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
                 velocity.z = movement_0c0.velocity_034.z;
             }
             velocity.y = (movement_0c0.position_040.y - previous.y) /
-                         (g_rate_006068EC * g_game_time_accumulator->GetFrameDelta());
+                         (g_rate * g_game_time_accumulator->GetFrameDelta());
             if (navigation_mode_008 == 2 || navigation_mode_008 == 3) {
                 minimum_speed = g_navigator_minimum_speed_mode23;
             } else {
@@ -2496,7 +2492,7 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
     if (movement_stopped_024 == 0 && g_combat_inactive == 0 && movement_complete_026 == 0 &&
         flags_00c != 0) {
         movement_0c0.callback_progress_05c += g_game_time_accumulator->GetFrameDelta() *
-                                              movement_0c0.movement_scale_060 * g_rate_006068EC *
+                                              movement_0c0.movement_scale_060 * g_rate *
                                               g_world_scale;
         if (movement_0c0.callback_threshold_058 <= movement_0c0.callback_progress_05c) {
             if (movement_callback_08c != 0) {

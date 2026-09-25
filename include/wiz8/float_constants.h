@@ -17,7 +17,7 @@
 extern const float g_float_005ebb38;
 extern const float g_float_005ebb34;
 /* 0x005EBB30: 0.8, the radian bias subtracted from the near-camera scatter
-   heading in PositionMonsterGroupNearCamera00511050. */
+   heading in PositionMonsterGroupNearCamera. */
 extern const float g_float_005ebb30;
 /* 0x005ED828: 0.0016, the Random(1000) scale on the same scatter heading. */
 extern const float g_float_005ed828;
@@ -210,7 +210,7 @@ extern const double g_double_005ec150;
    view math and the missile aim scatter. Defined in GDCamera.cpp. */
 extern const double g_camera_view_factor_005ec300;
 /* 0x005EC240: 250000.0, squared camera-travel distance that triggers an
-   automap cell refresh in UpdateWorldCameraAndPaths0044FC20. */
+   automap cell refresh in UpdateWorldCameraAndPaths. */
 extern const double g_double_005ec240;
 /* 0x005ED7B0: 1/360, the half-degree step the random wander angle is built
    from. */

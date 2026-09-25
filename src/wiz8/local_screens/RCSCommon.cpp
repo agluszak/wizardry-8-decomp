@@ -125,7 +125,7 @@ void SelectCampCharacter(int slot)
         }
         if (g_camp_screen->entry_mode != 3 && g_camp_screen->entry_mode != 2 &&
             g_camp_screen->entry_mode != 8) {
-            SetCampItemActionMode005B59B0(0);
+            SetCampItemActionMode(0);
         }
         break;
     case 1:
@@ -865,8 +865,7 @@ void DrawCampHeader(void)
             DrawCatalogImage(-14, g_dead_portrait_catalog_ids[character->iRace][1], 0, 0, 0xa4, 0xc,
                              2, 0);
         } else {
-            RenderPartyPortrait0052EB00(character->portrait_index, 0xa4, 0xc, 2, 1,
-                                        giReviewCharSlot);
+            RenderPartyPortrait(character->portrait_index, 0xa4, 0xc, 2, 1, giReviewCharSlot);
         }
         DrawCatalogImage(-14, 0x10f, 0, 9, 0xa4, 0xc, 2, 0);
         if (state->portrait_hovered_d40[0] != 0) {
@@ -1392,7 +1391,7 @@ void RefreshCampItemActions(unsigned char invalidate)
    cleared, the mode maps onto the targeting mode and the button it highlights,
    and mode zero also drops a held item cursor back into the pool. */
 // FUNCTION: WIZ8 0x005b59b0
-void SetCampItemActionMode005B59B0(char mode)
+void SetCampItemActionMode(char mode)
 {
     int index;
     short selected = -1;
@@ -1550,10 +1549,10 @@ static void CampItemAction005B5C30(void)
             IdentifyAndOpenItemInfo(&g_status.item_in_hand_235b);
             return;
         }
-        SetCampItemActionMode005B59B0(3);
+        SetCampItemActionMode(3);
         return;
     }
-    SetCampItemActionMode005B59B0(0);
+    SetCampItemActionMode(0);
 }
 
 // FUNCTION: WIZ8 0x005b5c80
@@ -1561,14 +1560,14 @@ static void CampItemAction005B5C80(void)
 {
     if (static_cast<unsigned char>(g_item_action_controls[1]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
-        SetCampItemActionMode005B59B0(1);
+        SetCampItemActionMode(1);
         if (g_status.item_in_cursor != 0) {
             SetHandCursors(0);
             g_camp_screen->item_redraw_flags |= 0x3ffe00;
         }
         return;
     }
-    SetCampItemActionMode005B59B0(0);
+    SetCampItemActionMode(0);
 }
 
 // FUNCTION: WIZ8 0x005b5cd0
@@ -1580,10 +1579,10 @@ static void CampItemAction005B5CD0(void)
             OpenSplitStackDialog(&g_status.item_in_hand_235b);
             return;
         }
-        SetCampItemActionMode005B59B0(4);
+        SetCampItemActionMode(4);
         return;
     }
-    SetCampItemActionMode005B59B0(0);
+    SetCampItemActionMode(0);
 }
 
 // FUNCTION: WIZ8 0x005b5d10
@@ -1595,10 +1594,10 @@ static void CampItemAction005B5D10(void)
             UseItem005BA4F0(&g_status.item_in_hand_235b);
             return;
         }
-        SetCampItemActionMode005B59B0(5);
+        SetCampItemActionMode(5);
         return;
     }
-    SetCampItemActionMode005B59B0(0);
+    SetCampItemActionMode(0);
 }
 
 // FUNCTION: WIZ8 0x005b5d50
@@ -1612,10 +1611,10 @@ static void CampItemAction005B5D50(void)
             }
             return;
         }
-        SetCampItemActionMode005B59B0(6);
+        SetCampItemActionMode(6);
         return;
     }
-    SetCampItemActionMode005B59B0(0);
+    SetCampItemActionMode(0);
 }
 
 // FUNCTION: WIZ8 0x005b5d90
@@ -1635,10 +1634,10 @@ static void CampItemAction005B5D90(void)
         return;
     }
     if (active != 0) {
-        SetCampItemActionMode005B59B0(7);
+        SetCampItemActionMode(7);
         return;
     }
-    SetCampItemActionMode005B59B0(0);
+    SetCampItemActionMode(0);
 }
 
 // FUNCTION: WIZ8 0x005b5df0
@@ -1653,10 +1652,10 @@ static void CampItemAction005B5DF0(void)
             g_item_action_controls[6]->Invalidate(0);
             return;
         }
-        SetCampItemActionMode005B59B0(8);
+        SetCampItemActionMode(8);
         return;
     }
-    SetCampItemActionMode005B59B0(0);
+    SetCampItemActionMode(0);
 }
 
 // FUNCTION: WIZ8 0x005b5e60
@@ -1665,10 +1664,10 @@ static void CampItemAction005B5E60(void)
     if (static_cast<unsigned char>(g_item_action_controls[7]->m_stateFlags &
                                    g_W8TextControlMask005ED570) != 0) {
         giCasterCharSlot = giReviewCharSlot;
-        SetCampItemActionMode005B59B0(9);
+        SetCampItemActionMode(9);
         return;
     }
-    SetCampItemActionMode005B59B0(0);
+    SetCampItemActionMode(0);
 }
 
 // FUNCTION: WIZ8 0x005B2200

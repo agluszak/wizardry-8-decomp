@@ -31,7 +31,7 @@ void RunMasterFunctions(void);
 void SaveMasterFunctions(void);
 /* Dispatch one world-cursor-node command against the nodes covering `info`'s
    ground-settled position (the camera's when info is null). */
-unsigned char DispatchWorldCursorNodeCommand004D9080(W8MonsterInfo* info, int command, ...);
+unsigned char DispatchWorldCursorNodeCommand(W8MonsterInfo* info, int command, ...);
 /* Format the current level's message-database path, fetch the indexed string
    and show it. Answers whether the string existed. */
 unsigned char ShowLevelMessage(int message_id);

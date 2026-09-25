@@ -370,7 +370,7 @@ stMeshModel* OctMeshModel::Read0049E9A0(int file, srMaterialIFace** materials,
 
     if (link_index_04 >= 0) {
         meshes[link_index_04]->LinkTo(model);
-        model->NotifyLinkedModel005AA400(meshes[link_index_04]);
+        model->NotifyLinkedModel(meshes[link_index_04]);
     }
 
     vertex_locations_14 = 0;

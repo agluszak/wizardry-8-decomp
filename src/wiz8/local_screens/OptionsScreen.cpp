@@ -65,7 +65,7 @@ wchar_t g_wchar_00689b34;
    recovered site reads it yet; ownership stays with this constant until a
    writer shows a wider family. */
 // GLOBAL: WIZ8 0x005ed590
-extern const unsigned int g_W8TextControlLayoutMask005ED590 = 0x40;
+extern const unsigned int g_W8TextControlLayoutMask = 0x40;
 
 // GLOBAL: WIZ8 0x0069c1c8
 unsigned char g_options_first_frame;
@@ -1234,8 +1234,8 @@ void W8OptionsAudioPanel::OnDragEnd(W8HorizontalRangeThumb* thumb)
         SoundPlay("Data\\Sound\\Misc\\Interface Swoosh 01.wav", 0);
         break;
     case 2:
-        PlayFootstep0047A440(W8_FOOTSTEP_SURFACE_MEDIUM_ROOM, W8_FOOTSTEP_MATERIAL_GRAVEL,
-                             W8_FOOTSTEP_KIND_STEP);
+        PlayFootstep(W8_FOOTSTEP_SURFACE_MEDIUM_ROOM, W8_FOOTSTEP_MATERIAL_GRAVEL,
+                     W8_FOOTSTEP_KIND_STEP);
         break;
     case 3: {
         SOUNDPARMS options;
@@ -1647,14 +1647,14 @@ W8OptionsMenuButton::W8OptionsMenuButton(Controls* owner, const int* row)
         W8TextControl* control = new W8TextControl(m_pPanel, 0xffffffff, row[1], row[2], row[3],
                                                    row[4], -1, -1, -1, -1, -1, -1, -1);
         control->m_listener = this;
-        control->AddLayoutFlags(g_W8TextControlLayoutMask005ED590);
+        control->AddLayoutFlags(g_W8TextControlLayoutMask);
     }
 
     if (row[5] != -1) {
         W8TextControl* control = new W8TextControl(m_pPanel, 0xffffffff, row[5], row[6], row[7],
                                                    row[8], -1, -1, -1, -1, -1, -1, -1);
         control->m_listener = this;
-        control->AddLayoutFlags(g_W8TextControlLayoutMask005ED590);
+        control->AddLayoutFlags(g_W8TextControlLayoutMask);
     }
 }
 

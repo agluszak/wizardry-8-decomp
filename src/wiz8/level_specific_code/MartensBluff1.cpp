@@ -393,16 +393,16 @@ bool MartensBluff1Teleporter(Trigger* pTrigger)
     }
     switch (state - 1) {
     case 0:
-        pTrigger->RunDestination00440DD0("CT611");
+        pTrigger->RunDestination("CT611");
         return false;
     case 1:
-        pTrigger->RunDestination00440DD0("CT107");
+        pTrigger->RunDestination("CT107");
         return false;
     case 2:
-        pTrigger->RunDestination00440DD0("RIF01");
+        pTrigger->RunDestination("RIF01");
         return false;
     case 3:
-        pTrigger->RunDestination00440DD0("MR207");
+        pTrigger->RunDestination("MR207");
         return false;
     }
     return false;

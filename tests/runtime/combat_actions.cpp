@@ -61,13 +61,13 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
                 pathing != 0 ? pathing->level_bounds[5] : 0.0f);
         if (pathing != 0) {
             srVector3T<float> probe = party_position;
-            unsigned char snap = pathing->SnapWaypointPosition00462E60(&probe, 0);
+            unsigned char snap = pathing->SnapWaypointPosition(&probe, 0);
             fprintf(stderr, "runtime-test pathing: party snap=%d y=%f\n", snap, probe.y);
             for (unsigned int i = 0; i < PLLength(gXStatus.plsMonsterList); ++i) {
                 W8MonsterInfo* mi = MonsterGetScriptPartByLocationIndex(i);
                 if (mi != 0 && mi->fActive != 0 && mi->p3D != 0) {
                     srVector3T<float> mp = mi->p3D->GetPosition();
-                    unsigned char msnap = pathing->SnapWaypointPosition00462E60(&mp, 0);
+                    unsigned char msnap = pathing->SnapWaypointPosition(&mp, 0);
                     fprintf(stderr,
                             "runtime-test pathing: monster=%u pos=(%.0f %.0f %.0f) snap=%d y=%f\n",
                             i, mp.x, mp.y, mp.z, msnap, mp.y);
@@ -127,7 +127,7 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
            never finds a route to the party, so its combat
            turn can never commit a move. Relocate the group
            beside the camera through
-           PositionMonsterGroupNearCamera00511050 - the same
+           PositionMonsterGroupNearCamera - the same
            placement GroupAttacks uses for summon encounters -
            so the party stays grounded where it stands. A
            party teleport drops the collision state the frame
@@ -145,11 +145,11 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
                The scatter picks a random heading each call; single spots can
                fail MoveMonsterGroupToPosition, so retry it the way the summon
                path retries its three distances before giving up. */
-            placed = PositionMonsterGroupNearCamera00511050(provoked_group, 0.0f, 0.0f, 0);
+            placed = PositionMonsterGroupNearCamera(provoked_group, 0.0f, 0.0f, 0);
             for (int attempt = 0; attempt < 32 && placed == 0; ++attempt) {
                 static const float distances[3] = {0.0f, 1500.0f, 3000.0f};
-                placed = PositionMonsterGroupNearCamera00511050(provoked_group,
-                                                                distances[attempt % 3], 0.0f, 1);
+                placed =
+                    PositionMonsterGroupNearCamera(provoked_group, distances[attempt % 3], 0.0f, 1);
             }
         }
         fprintf(stderr, "runtime-test drop: group=%p placed=%d\n", (void*)provoked_group, placed);
@@ -176,7 +176,7 @@ static void ProvokeHostileEncounterOnGameThread(void* opaque)
                     srVector3T<float> nav = anchor;
                     nav.x += dirs[d][0] * radii[r];
                     nav.z += dirs[d][1] * radii[r];
-                    if (g_pathing->SnapWaypointPosition00462E60(&nav, 0) == 0) {
+                    if (g_pathing->SnapWaypointPosition(&nav, 0) == 0) {
                         continue;
                     }
                     nav.y = anchor.y + 2000.0f;
@@ -251,8 +251,7 @@ static void ReadHostileEngagementOnGameThread(void* opaque)
     GetCameraPosition(&party_position);
     /* The camera rides the environ's world_height above the party's feet;
        monster distances are ground distances, so measure from the feet. */
-    party_position.y -=
-        g_environ_00652DB4 != 0 ? g_environ_00652DB4->world_height_30 : g_default_world_height;
+    party_position.y -= g_environ != 0 ? g_environ->world_height_30 : g_default_world_height;
     s->screen = g_current_screen_state.id;
     s->pending = g_pending_screen_state.id;
     s->combat_mode = gXStatus.fCombatMode != 0;
@@ -689,7 +688,7 @@ static void TeleportPartyNearEngagedOnGameThread(void* opaque)
             srVector3T<float> nav = anchor;
             nav.x += dirs[d][0] * radii[r];
             nav.z += dirs[d][1] * radii[r];
-            if (g_pathing->SnapWaypointPosition00462E60(&nav, 0) == 0) {
+            if (g_pathing->SnapWaypointPosition(&nav, 0) == 0) {
                 continue;
             }
             nav.y = anchor.y + 2000.0f;

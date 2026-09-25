@@ -436,7 +436,7 @@ void ArnikaTeleportWatch(int command)
     }
     g_flag_006834dc = true;
     g_exit_door_trigger->Run(-1);
-    g_exit_door_trigger->RunDestination00440DD0("ARN11");
+    g_exit_door_trigger->RunDestination("ARN11");
 }
 
 /* GenVault-2-door trigger: spawns the vault golem once at the Golem

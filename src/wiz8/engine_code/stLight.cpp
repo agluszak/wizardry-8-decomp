@@ -397,7 +397,7 @@ void stLight::Update0049C960()
         index = 0;
     }
     PathAISetValue(path, static_cast<float>(index));
-    PathAIApply004AA520(path, this);
+    PathAIApply(path, this);
     m_path_index_248 = index;
     m_path_time_24c = seconds;
 }

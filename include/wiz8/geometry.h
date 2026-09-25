@@ -45,7 +45,7 @@ struct W8GDSurface {
        surface. */
     W8Plane plane_24;
     float distance_34;
-    /* Hit plane ProbePropsAlongMotion fills for ResolveCollision0041DC10. */
+    /* Hit plane ProbePropsAlongMotion fills for ResolveCollision. */
     W8Plane* hit_plane_38;
     unsigned char footstep_surface_3c;  /* W8FootstepSurface selector */
     unsigned char footstep_material_3d; /* W8FootstepMaterial selector */
@@ -71,16 +71,15 @@ struct W8GDSurface {
                                  float* limit);
     /* 0x0041DC10: collision response for a hit surface; `origin` is advanced
        to `hit_point` and `direction` is bent along the contact plane. */
-    unsigned char ResolveCollision0041DC10(srVector3T<float>* origin,
-                                           const srVector3T<float>* hit_point,
-                                           srVector3T<float>* direction, int collision_index);
+    unsigned char ResolveCollision(srVector3T<float>* origin, const srVector3T<float>* hit_point,
+                                   srVector3T<float>* direction, int collision_index);
     /* 0x0041E8E0: whether moving `from` to `to` pushes this surface's
        centroid away from surface `surface_index`'s centroid. */
     unsigned char CentroidsDiverging(int surface_index, const srVector3T<float>* from,
                                      const srVector3T<float>* to);
     /* 0x0041EA90: environment response for a walkable contact surface;
        adjusts `direction` and the active environ record. */
-    unsigned char ApplyEnvironContact0041EA90(srVector3T<float>* direction);
+    unsigned char ApplyEnvironContact(srVector3T<float>* direction);
 };
 
 static_assert(sizeof(W8GDSurface) == 0x4c, "W8GDSurface_must_be_0x4c");
@@ -231,6 +230,6 @@ inline void W8Quaternion::InterpolateRotation(const srMatrix3T<float>& from,
 }
 
 void ClassifySurfacePlane(const srVector3T<float>* vertices, W8GDSurface* surface);
-void BuildTrianglePlane00449A40(W8Plane* plane, const srVector3T<float>* first,
-                                const srVector3T<float>* second, const srVector3T<float>* third);
+void BuildTrianglePlane(W8Plane* plane, const srVector3T<float>* first,
+                        const srVector3T<float>* second, const srVector3T<float>* third);
 #endif

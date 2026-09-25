@@ -1309,7 +1309,7 @@ unsigned char stMeshModel::DecompressFrame(int frame, unsigned char flags,
    (bit 0 locations, bit 1 vertex normals, bit 2 polygon normals), reclaiming
    least-recently-used frames when the byte budget would overflow. */
 // FUNCTION: WIZ8 0x00471720
-unsigned char stMeshModel::AllocateFrameBuffers00471720(unsigned int uiFrame, unsigned char flags)
+unsigned char stMeshModel::AllocateFrameBuffers(unsigned int uiFrame, unsigned char flags)
 {
     if ((flags & 1) != 0 && m_pVertexLoc[uiFrame] == 0) {
         int needed = vertex_location_count_22c * sizeof(srVector3T<float>);
@@ -1363,8 +1363,8 @@ unsigned char stMeshModel::AllocateFrameBuffers00471720(unsigned int uiFrame, un
    `interpolation` is positive and another frame follows, both frames are
    decompressed and lerped into lerp_buffer_448 (m_pLerpBuffer). */
 // FUNCTION: WIZ8 0x00471AD0
-srVector3T<float>* stMeshModel::GetVertexLocations00471AD0(unsigned int frame, char load,
-                                                           float interpolation)
+srVector3T<float>* stMeshModel::GetVertexLocations(unsigned int frame, char load,
+                                                   float interpolation)
 {
     if (m_pVertexLoc == 0) {
         return 0;
@@ -1380,11 +1380,11 @@ srVector3T<float>* stMeshModel::GetVertexLocations00471AD0(unsigned int frame, c
             }
         }
         if (m_pVertexLoc[frame] == 0) {
-            AllocateFrameBuffers00471720(frame, 1);
+            AllocateFrameBuffers(frame, 1);
             DecompressFrame(frame, 1, m_pVertexLoc[frame]);
         }
         if (m_pVertexLoc[next_frame] == 0) {
-            AllocateFrameBuffers00471720(next_frame, 1);
+            AllocateFrameBuffers(next_frame, 1);
             DecompressFrame(next_frame, 1, m_pVertexLoc[next_frame]);
         }
         if (lerp_buffer_448 != 0) {
@@ -1402,7 +1402,7 @@ srVector3T<float>* stMeshModel::GetVertexLocations00471AD0(unsigned int frame, c
         return lerp_buffer_448;
     }
     if (m_pVertexLoc[frame] == 0) {
-        AllocateFrameBuffers00471720(frame, 1);
+        AllocateFrameBuffers(frame, 1);
         if (load != 0 && m_pVertexLoc[frame] != 0) {
             DecompressFrame(frame, 1, m_pVertexLoc[frame]);
         }
@@ -1419,7 +1419,7 @@ srVector3T<float>* stMeshModel::GetVertexNormals(unsigned int frame, char load)
         return 0;
     }
     if (m_pVertexNormal[frame] == 0) {
-        AllocateFrameBuffers00471720(frame, 2);
+        AllocateFrameBuffers(frame, 2);
         if (load != 0 && m_pVertexNormal[frame] != 0) {
             DecompressFrame(frame, 2, m_pVertexNormal[frame]);
         }
@@ -1434,7 +1434,7 @@ srVector3T<float>* stMeshModel::GetPolygonNormals(unsigned int frame, char load)
         return 0;
     }
     if (m_pPolyNormal[frame] == 0) {
-        AllocateFrameBuffers00471720(frame, 4);
+        AllocateFrameBuffers(frame, 4);
         if (load != 0 && m_pPolyNormal[frame] != 0) {
             DecompressFrame(frame, 4, m_pPolyNormal[frame]);
         }
@@ -2064,4 +2064,4 @@ srTriMeshPipeline* srTriMeshPipeline::Get004750A0(srGERD* renderer)
 /* Retail ICF folds this empty thiscall onto W8OptionsGraphicsPanel::OnDragEnd
    at 0x005AA400 (OptionsScreen.cpp). This source function has no separately
    retained retail address, so it intentionally has no FUNCTION marker. */
-void stMeshModel::NotifyLinkedModel005AA400(stMeshModel*) {}
+void stMeshModel::NotifyLinkedModel(stMeshModel*) {}

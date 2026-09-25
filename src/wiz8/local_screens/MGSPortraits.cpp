@@ -819,8 +819,8 @@ void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char 
                  (party_slot & 1) != 0)) {
                 portrait_flags = 0x1002;
             }
-            RenderPartyPortrait0052EB00(portrait_catalog, menu_x + 0x14, menu_y, portrait_flags, 1,
-                                        party_slot);
+            RenderPartyPortrait(portrait_catalog, menu_x + 0x14, menu_y, portrait_flags, 1,
+                                party_slot);
         }
         DrawCatalogImage(-14, 0x82, 0, static_cast<short>(grid_row), column_x, menu_y, 2, 0);
     }

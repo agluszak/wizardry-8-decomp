@@ -1398,7 +1398,7 @@ W8StringTriggerActionData::~W8StringTriggerActionData()
 /* Clear the running bit and run every comma-separated recipient trigger once
    when the link-out and state-gate bits are set. */
 // FUNCTION: WIZ8 0x00441590
-void Trigger::RunLinkedTriggers00441590()
+void Trigger::RunLinkedTriggers()
 {
     char* recipient;
 
@@ -2086,7 +2086,7 @@ Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
             trigger->setName(trigger->name_01c);
         }
         if (searchable == 1) {
-            RegisterSearchableTrigger00516F00(trigger);
+            RegisterSearchableTrigger(trigger);
         }
         if (trigger->initial_action_22a == 0x0c) {
             if (trigger->m_lData1 < 0 ||
@@ -2499,7 +2499,7 @@ action_complete:
    destination. The destination Trigger supplies the local portal orientation
    when the name was not one of the world's named entities. */
 // FUNCTION: WIZ8 0x00440dd0
-void Trigger::RunDestination00440DD0(const char* destination)
+void Trigger::RunDestination(const char* destination)
 {
     srVector3T<float> destination_position;
     srVector3T<float> destination_direction;
@@ -2545,8 +2545,8 @@ void Trigger::RunDestination00440DD0(const char* destination)
     ResetInactiveLevelDataVectors();
 
     if (location_id != current_location) {
-        RequestLevelTransition005615F0(location_id, entrance,
-                                       m_lData1 < 0 ? 0 : static_cast<unsigned char>(m_lData1));
+        RequestLevelTransition(location_id, entrance,
+                               m_lData1 < 0 ? 0 : static_cast<unsigned char>(m_lData1));
         return;
     }
 
@@ -2820,7 +2820,7 @@ void Trigger::Run(int source)
             if (m_pacRecipients == 0 || m_pacRecipients[0] == '\0') {
                 break;
             }
-            RunDestination00440DD0(m_pacRecipients);
+            RunDestination(m_pacRecipients);
             goto commit_action;
 
         default:
@@ -3687,7 +3687,7 @@ void Trigger::Run(int source)
             }
             ++index;
         } while (recipient != 0);
-        RunDestination00440DD0(g_trigger_parse_buffer);
+        RunDestination(g_trigger_parse_buffer);
         break;
     }
 
@@ -4165,7 +4165,7 @@ void ReleaseAllTriggers(void)
 /* Index of the prop whose trigger last tested in view; -1 until a prop
    matches. */
 // GLOBAL: WIZ8 0x00606998
-static int s_last_prop_index_00606998 = -1;
+static int s_last_prop_index = -1;
 
 /* Report whether any world prop's trigger representation is within its
    activation range and projects onto the screen. The remembered index is
@@ -4182,9 +4182,8 @@ bool AnyPropTriggerInView(W8World* world)
     }
     GetCameraPosition(&position);
     prop_count = PLLength(world->plsProps);
-    if (0 <= s_last_prop_index_00606998 &&
-        s_last_prop_index_00606998 < static_cast<int>(prop_count)) {
-        W8Prop* prop = static_cast<W8Prop*>(PLGet(world->plsProps, s_last_prop_index_00606998));
+    if (0 <= s_last_prop_index && s_last_prop_index < static_cast<int>(prop_count)) {
+        W8Prop* prop = static_cast<W8Prop*>(PLGet(world->plsProps, s_last_prop_index));
 
         if (prop->IsTriggerInView(&position)) {
             return 1;
@@ -4194,7 +4193,7 @@ bool AnyPropTriggerInView(W8World* world)
         W8Prop* prop = static_cast<W8Prop*>(PLGet(world->plsProps, index));
 
         if (prop->IsTriggerInView(&position)) {
-            s_last_prop_index_00606998 = index;
+            s_last_prop_index = index;
             return 1;
         }
     }

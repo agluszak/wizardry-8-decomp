@@ -385,8 +385,8 @@ public:
                                        int mode, char require_waypoint_span); /* 0x00437F30 */
     unsigned int AdvanceNavigator(W8NavigatorMovementState* movement, float radius,
                                   float separation);
-    unsigned char PrepareNavigatorTarget00434250(W8NavigatorMovementState* movement, float radius,
-                                                 float separation);
+    unsigned char PrepareNavigatorTarget(W8NavigatorMovementState* movement, float radius,
+                                         float separation);
     unsigned char PrepareNavigatorPatrol(W8NavigatorMovementState* movement, float minimum,
                                          float maximum);
     unsigned char LinkNavigatorTarget(W8NavigatorMovementState* movement,
@@ -454,7 +454,7 @@ public:
     void CollectVisibleCells();
     /* Project every candidate region volume against the frustum planes and
        mark the visible ones in the current region set. */
-    void MarkVisibleRegions004301C0(); /* 0x004301C0 */
+    void MarkVisibleRegions(); /* 0x004301C0 */
     /* Build the six frustum planes from the camera basis and far clip. */
     void BuildFrustumPlanes004302E0(); /* 0x004302E0 */
     short ProjectLinkedRegionsForLocation(srVector3T<float>* location,
@@ -647,7 +647,7 @@ public:
        visited leaf's region-polygon ids and plane/slab-testing them. Answers
        whether the segment is unobstructed; the light-visibility callers
        accumulate its result. */
-    bool SegmentClear00467BB0(const srVector3T<float>* from, const srVector3T<float>* to);
+    bool SegmentClear(const srVector3T<float>* from, const srVector3T<float>* to);
     /* Resets the collected-id run and appends every not-yet-seen polygon id
        the leaf under `cell` lists. */
     void CollectLeafPolygons(const int* cell);
@@ -661,20 +661,19 @@ public:
        array and fills m_pSubmeshes/m_aulPolyLookup. */
     OctMeshModel* CreateSubMeshes00468C30(W8OctPreTreeGeometry* geometry);
     unsigned long SplitMeshes00469670(W8OctPreTreeGeometry* geometry, W8OctSubmeshBuild* records);
-    unsigned long AllocateSubMesh0046A790(W8OctSubmeshBuild* records);
+    unsigned long AllocateSubMesh(W8OctSubmeshBuild* records);
     unsigned long SplitUVMaps0046A4B0(W8OctSubmeshBuild* record, W8OctPreTreeGeometry* geometry);
-    void VerifyPolygonRegions0046ABF0();
+    void VerifyPolygonRegions();
     void VerifyAutoMeshes(W8OctPreTreeGeometry* geometry, W8OctSubmeshBuild* records);
-    unsigned char BuildPathLists0046B060(W8GameData* game_data, W8LevelFile* level,
-                                         unsigned int min_component_percent);
+    unsigned char BuildPathLists(W8GameData* game_data, W8LevelFile* level,
+                                 unsigned int min_component_percent);
     char PathNodeObstructed0046B700(const srVector3T<float>* node_position);
     unsigned char InsertConditionalNodes0046B9D0(W8HashTable<unsigned int, CondPathNode*>* nodes,
                                                  unsigned int cell, unsigned int node,
                                                  W8PreProp* preprops, int preprop_count);
     /* Tests the bounds box against static surfaces and registered props;
        0 clear, 1 blocked, 3 clear but prop ids were recorded in m_lBlocks_328. */
-    char TestPathPropBounds0046BEC0(const srVector3T<float>* minimum,
-                                    const srVector3T<float>* maximum);
+    char TestPathPropBounds(const srVector3T<float>* minimum, const srVector3T<float>* maximum);
     int CreatePathProps0046C0F0(W8LevelFile* level, W8PreProp** preprops);
 };
 
@@ -691,7 +690,7 @@ bool __stdcall IsNavigatorAtTarget(W8NavigatorMovementState* movement);
 
 static_assert(sizeof(W8Octree) == 0x29c, "W8Octree_must_be_0x29c");
 
-extern unsigned int* g_octree_storage_00659770;
+extern unsigned int* g_octree_storage_;
 extern unsigned long* g_octree_state;
 extern stModelInstance* g_octree_trace_node;
 extern float g_octree_cell_scale;
@@ -708,7 +707,7 @@ extern unsigned char g_render_cull_front;
 extern unsigned char g_inverted_depth_render;
 extern unsigned char g_render_untextured;
 
-int CheckLevelAssetSet0042CCC0(const char* level_path);
+int CheckLevelAssetSet(const char* level_path);
 
 unsigned long* __fastcall PackColour00433FB0(unsigned long* color, double red, double green,
                                              double blue, double alpha);

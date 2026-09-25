@@ -670,8 +670,8 @@ static_assert(sizeof(W8LevelFileBlock) == 0x634, "W8LevelFileBlock_must_be_0x634
 static_assert(sizeof(W8LevelFile) == 0x279d, "W8LevelFile_must_be_0x279d");
 static_assert(offsetof(W8LevelFile, pClippingPlanes) == 0x691, "W8LevelFile_pClippingPlanes");
 
-W8LevelFile* ReadLevelFile004CFDC0(int hFile);
-BOOLEAN WriteLevelFile004D07C0(int hFile, int hFileIn, W8LevelFile* pLevel);
+W8LevelFile* ReadLevelFile(int hFile);
+BOOLEAN WriteLevelFile(int hFile, int hFileIn, W8LevelFile* pLevel);
 BOOLEAN ReadMeshFile(int hFile, W8LevelFileMesh* pMesh);
 BOOLEAN WriteMeshFile(int hFile, W8LevelFileMesh* pMesh);
 BOOLEAN ReadLightFile(int hFile, W8LevelFileLight* pLight);
@@ -682,7 +682,7 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger);
 BOOLEAN WriteTriggerFile(int hFile, W8LevelFileTrigger* pTrigger);
 BOOLEAN ReadSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger);
 BOOLEAN WriteSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger);
-BOOLEAN ReadDoorTriggerFile004D3540(int hFile, W8LevelFileDoorRef* pDoor);
+BOOLEAN ReadDoorTriggerFile(int hFile, W8LevelFileDoorRef* pDoor);
 BOOLEAN WriteDoorTriggerFile(int hFile, W8LevelFileDoorRef* pDoor);
 BOOLEAN ReadPathAIFile(int hFile, W8LevelFilePathAI* pPathAI);
 BOOLEAN WritePathAIFile(int hFile, W8LevelFilePathAI* pPathAI);

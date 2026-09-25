@@ -61,7 +61,7 @@ void FormatNotice(int channel, short text_box, const wchar_t* format, ...); /* 0
 void ReleaseMessageStorage(void);
 /* 0x0058FB50/0x0058FC30: the TEXT section pair - the four message-storage
    runs persisted around the game-status record. */
-unsigned char SaveTextBoxState0058FB50(unsigned int file);
+unsigned char SaveTextBoxState(unsigned int file);
 /* 0x0058D7E0-0x0058E010: the dormant typed-dialogue editing helpers are
    translation-unit local; MGSTextBox.cpp declares them static. */
 unsigned char HandleDialogueTextInput(const InputAtom* input); /* 0x0058F250 */

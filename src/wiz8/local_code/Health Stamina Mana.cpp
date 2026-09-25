@@ -1291,7 +1291,7 @@ int RebuildRealmSpellPointCeilings(W8Character* character)
     int index;
     int best = 0;
 
-    RecountLearnedSpellsByRealm004F96A0(character);
+    RecountLearnedSpellsByRealm(character);
     for (index = 0; index < 6; ++index) {
         max_spell_levels[index] = 0;
     }

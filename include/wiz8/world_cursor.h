@@ -107,4 +107,4 @@ void SetWorldCursorExtents(const srVector3T<float>* minimum,
    no cursor. */
 void GetWorldCursorAnchor(srVector3T<float>* position);
 void ReleaseWorldCursor(void);
-void ReleaseWorldCursorNodes0048DB30(void);
+void ReleaseWorldCursorNodes(void);

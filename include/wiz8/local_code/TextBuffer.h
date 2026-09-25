@@ -18,7 +18,7 @@ extern const unsigned int g_W8TextBufferLayoutMask005ED560;
 extern const unsigned int g_W8TextBufferLayoutMask005EF888;
 extern const unsigned int g_W8TextBufferLayoutMask005EF88C;
 extern const unsigned int g_W8TextBufferLayoutMask005EF890;
-extern const wchar_t g_W8LineBreakCharacters00617C90[];
+extern const wchar_t g_W8LineBreakCharacters[];
 
 // VTABLE: WIZ8 0x005ed5b8
 class W8TextBuffer {

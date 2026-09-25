@@ -2290,7 +2290,7 @@ void TriggerBelaVoice(W8Monster* monster)
    portrait rows can trigger their NPC's spoken event, and two long reward
    timers set their facts. */
 // FUNCTION: WIZ8 0x0050D530
-void UpdateNpcEvents0050D530(void)
+void UpdateNpcEvents(void)
 {
     W8MonsterGroup* group;
     W8MonsterInfo* monster_info;

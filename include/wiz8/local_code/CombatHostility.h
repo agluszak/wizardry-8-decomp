@@ -16,10 +16,10 @@ char MonsterHostility(W8MonsterInfo* first, W8MonsterInfo* second);
 unsigned char CharacterActionTargetsEnemies(W8Character* character, int action_kind,
                                             int action_detail, W8ActionDetailBlock* detail);
 /* 0x00547440: the monster-side counterpart; action kinds 0 and 3 always count,
-   kind 2 defers to MonsterCanAimSpell005474B0. */
+   kind 2 defers to MonsterCanAimSpell. */
 unsigned char MonsterActionTargetsEnemies(int action_kind, int action_detail,
                                           unsigned int* spell_power_level);
-bool MonsterCanAimSpell005474B0(int spell_id);
+bool MonsterCanAimSpell(int spell_id);
 bool CombatAllowsLiveGroups(void);
 void SetMonsterHostility(W8MonsterInfo* monster, unsigned char hostility); /* 0x005477D0 */
 void RecountCombatMonsters(void);                                          /* 0x00546E70 */
