@@ -267,8 +267,7 @@ unsigned char LoadMonsterDatabase(W8MonsterRecord** records)
     char path[60];
     unsigned int transferred;
     unsigned int index;
-    unsigned char* block;
-    unsigned char* cursor;
+    W8MonsterRecord* block;
     int handle;
 
     sprintf(path, "%s\\%s.%s", "Data\\Databases", "Monsters", "DBS");
@@ -281,19 +280,19 @@ unsigned char LoadMonsterDatabase(W8MonsterRecord** records)
         return 0;
     }
     if (records) {
-        block = (unsigned char*)malloc(gXStatus.uiMonstersInDatabase * 0x297);
+        block = static_cast<W8MonsterRecord*>(
+            malloc(gXStatus.uiMonstersInDatabase * sizeof(W8MonsterRecord)));
         if (!block) {
             return 0;
         }
-        for (index = 0, cursor = block; index < gXStatus.uiMonstersInDatabase; ++index) {
-            if (!FileRead(handle, cursor, 0x297, &transferred)) {
+        for (index = 0; index < gXStatus.uiMonstersInDatabase; ++index) {
+            if (!FileRead(handle, &block[index], sizeof(W8MonsterRecord), &transferred)) {
                 FileClose(handle);
                 free(block);
                 return 0;
             }
-            cursor += 0x297;
         }
-        *records = (W8MonsterRecord*)block;
+        *records = block;
     }
     FileClose(handle);
     return 1;

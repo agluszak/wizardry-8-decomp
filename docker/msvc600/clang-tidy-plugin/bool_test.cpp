@@ -42,11 +42,7 @@ struct State {
     unsigned char mask;
 };
 
-State::State()
-    : m_dirty(0)
-    , mask(0)
-{
-}
+State::State() : m_dirty(0), mask(0) {}
 
 struct SelectionState {
     unsigned char selection_settled;

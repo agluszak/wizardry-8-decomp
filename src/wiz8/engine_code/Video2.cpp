@@ -1124,7 +1124,7 @@ static RuntimeWorldRenderData ObserveWorldRenderState()
 // FUNCTION: WIZ8 0x00426790
 void RenderFrame(void)
 {
-    srVector3T<float> clear_color;
+    EnvironmentColour clear_color;
     srVector3T<float> saved_world_position;
     srVector3T<float> shifted_world_position;
     unsigned int next_page;
@@ -1151,11 +1151,7 @@ void RenderFrame(void)
     }
     if (g_world != 0) {
         if (!IsSkyEnabled()) {
-            EnvironmentColour ambient_light;
-            GetWorldLightValue(g_world, &ambient_light);
-            clear_color.x = ambient_light.red;
-            clear_color.y = ambient_light.green;
-            clear_color.z = ambient_light.blue;
+            GetWorldLightValue(g_world, &clear_color);
         } else {
             clear_color.SetSaturated(g_world->static_scene->getFogColor());
         }
@@ -1312,9 +1308,6 @@ unsigned char RenderWorldToSurface(srColorSurface* target, W8ScreenRect* rect,
 {
     srGERD* gerd = g_secondary_gerd;
     EnvironmentColour clear_color;
-    clear_color.red = 1.0f;
-    clear_color.green = 1.0f;
-    clear_color.blue = 1.0f;
     if (gerd == 0) {
         gerd = g_gerd;
     }
@@ -1337,7 +1330,7 @@ unsigned char RenderWorldToSurface(srColorSurface* target, W8ScreenRect* rect,
     } else {
         GetWorldLightValue(g_world, &clear_color);
     }
-    gerd->setClearColor(clear_color.red, clear_color.green, clear_color.blue, 1.0f);
+    gerd->setClearColor(clear_color.x, clear_color.y, clear_color.z, 1.0f);
     if (g_inverted_depth_render != 0) {
         gerd->setClearDepth(0.0);
     }
@@ -1373,23 +1366,20 @@ void InvalidateRendererTextureCache(void)
     }
 }
 
-/* The light direction travels as three raw 32-bit words that the renderer and
-   both static scenes consume as the fog colour. The renderer is flushed before
-   the new colour lands. */
+/* The renderer and both static scenes take the light direction as their fog
+   colour. The renderer is flushed before the new colour lands. */
 // FUNCTION: WIZ8 0x00427380
 void PublishLightDirection(const EnvironmentColour* direction)
 {
-    const srVector3T<float>* color = reinterpret_cast<const srVector3T<float>*>(
-        direction); // reinterpret-ok: the renderer consumes the light triple as a fog vector
     if (g_gerd != 0) {
         g_gerd->flush();
-        g_gerd->setFogColor(*color);
+        g_gerd->setFogColor(*direction);
     }
     if (g_world != 0) {
-        g_world->static_scene->setFogColor(*color);
+        g_world->static_scene->setFogColor(*direction);
     }
     if (g_world_659ab8 != 0) {
-        g_world_659ab8->static_scene->setFogColor(*color);
+        g_world_659ab8->static_scene->setFogColor(*direction);
     }
 }
 
@@ -1411,29 +1401,29 @@ void GetWorldColour(EnvironmentColour* colour)
 {
     if (g_world != 0) {
         const srVector3T<float> fog = g_world->static_scene->getFogColor();
-        colour->red = fog.x;
-        colour->green = fog.y;
-        colour->blue = fog.z;
-        if (colour->red <= 0.0f) {
-            colour->red = 0.0f;
-        } else if (colour->red >= 1.0f) {
-            colour->red = 1.0f;
+        colour->x = fog.x;
+        colour->y = fog.y;
+        colour->z = fog.z;
+        if (colour->x <= 0.0f) {
+            colour->x = 0.0f;
+        } else if (colour->x >= 1.0f) {
+            colour->x = 1.0f;
         }
-        if (colour->green <= 0.0f) {
-            colour->green = 0.0f;
-        } else if (colour->green >= 1.0f) {
-            colour->green = 1.0f;
+        if (colour->y <= 0.0f) {
+            colour->y = 0.0f;
+        } else if (colour->y >= 1.0f) {
+            colour->y = 1.0f;
         }
-        if (colour->blue <= 0.0f) {
-            colour->blue = 0.0f;
-        } else if (colour->blue >= 1.0f) {
-            colour->blue = 1.0f;
+        if (colour->z <= 0.0f) {
+            colour->z = 0.0f;
+        } else if (colour->z >= 1.0f) {
+            colour->z = 1.0f;
         }
         return;
     }
-    colour->red = 0.0f;
-    colour->green = 0.0f;
-    colour->blue = 0.0f;
+    colour->x = 0.0f;
+    colour->y = 0.0f;
+    colour->z = 0.0f;
 }
 
 // FUNCTION: WIZ8 0x00428e20

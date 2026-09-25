@@ -861,3 +861,175 @@ def compare_data(repository: Path, target: str) -> dict[str, Any]:
         "issue_count": len(problems),
         "issues": problems,
     }
+
+
+# Equivalence-group proof ---------------------------------------------------
+#
+# reccmp trusts `equivalence-groups` declarations: any reference into a member
+# resolves as a reference to the canonical address. The body-equivalence proof
+# is project-owned, so re-verifying every row against the original image is
+# what keeps a stale entry from silently masking a regression.
+
+_FUNCTION_WINDOW = 0x400
+_BRANCH_GROUP = 7  # capstone CS_GRP_BRANCH_RELATIVE
+
+
+def _equivalence_rows(target: RecCmpTarget) -> list[tuple[Any, int, int, str, str] | str]:
+    rows = []
+    for path in target.equivalence_groups:
+        text = Path(path).read_text(encoding="utf-8")
+        for lineno, line in enumerate(text.splitlines(), 1):
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            parts = [part.strip() for part in line.split("|")]
+            location = f"{path}:{lineno}"
+            try:
+                member, canonical = int(parts[0], 16), int(parts[1], 16)
+            except (ValueError, IndexError):
+                rows.append(location)
+                continue
+            rows.append(
+                (
+                    location,
+                    member,
+                    canonical,
+                    parts[2] if len(parts) > 2 else "",
+                    parts[3] if len(parts) > 3 else "function",
+                )
+            )
+    return rows
+
+
+def _normalized_instruction(
+    instruction: Any,
+    image: Any,
+    body_start: int,
+    reloc_sites: list[int],
+    groups: dict[int, int],
+) -> tuple[bytes, tuple[tuple[str, int], ...]]:
+    """An instruction with every address-bearing field folded to a canonical
+    token: relocated dwords map through the group table, intra-body branch
+    targets become offsets from the body start, and external targets become
+    their canonical original address. All other bytes compare literally."""
+    import bisect
+
+    from reccmp.compare.equivalence import canonical_orig_addr
+
+    fields = bytearray(instruction.bytes)
+    tokens: list[tuple[str, int]] = []
+    begin = bisect.bisect_left(reloc_sites, instruction.address)
+    for site in reloc_sites[begin:]:
+        if site + 4 > instruction.address + instruction.size:
+            break
+        offset = site - instruction.address
+        value = image.read_u32(site)
+        if value is not None:
+            tokens.append(("abs", canonical_orig_addr(groups, value)))
+        fields[offset : offset + 4] = b"\0" * 4
+    if _BRANCH_GROUP in instruction.groups:
+        operand = instruction.operands[0]
+        target = operand.imm
+        if body_start <= target < body_start + _FUNCTION_WINDOW:
+            tokens.append(("local", target - body_start))
+        else:
+            tokens.append(("ext", canonical_orig_addr(groups, target)))
+        offset = instruction.encoding.imm_offset
+        fields[offset : offset + instruction.encoding.imm_size] = (
+            b"\0" * instruction.encoding.imm_size
+        )
+    return bytes(fields), tuple(tokens)
+
+
+def _normalized_body(
+    image: Any, engine: Any, start: int, reloc_sites: list[int], groups: dict[int, int]
+) -> tuple[list[Any], str | None]:
+    """Relocation-normalized token stream for the body at ``start``.
+
+    The body ends at the first unconditional terminator (``ret``/``jmp``)
+    followed by inter-function padding; an early ``ret`` inside the stream is
+    kept as an ordinary instruction because its tail is real code, not padding.
+    A body ending in a jump table instead of padding is not bounded by this
+    scan and reports ``unbounded`` rather than a false equivalence.
+    """
+    raw = image.read(start, _FUNCTION_WINDOW)
+    if len(raw) != _FUNCTION_WINDOW:
+        return [], f"0x{start:08x}: cannot read {_FUNCTION_WINDOW}-byte body window"
+    tokens = []
+    for instruction in engine.disasm(raw, start):
+        tokens.append(_normalized_instruction(instruction, image, start, reloc_sites, groups))
+        if instruction.mnemonic in ("ret", "jmp"):
+            tail = image.read(instruction.address + instruction.size, 1)
+            if not tail or tail[0] in (0xCC, 0x90):
+                return tokens, None
+    return tokens, f"0x{start:08x}: no padding-terminated ret/jmp within {_FUNCTION_WINDOW} bytes"
+
+
+def verify_equivalence_groups(repository: Path, target: str) -> dict[str, Any]:
+    from reccmp.compare.equivalence import parse_equivalence_groups
+    from reccmp.formats.textfile import TextFile
+
+    from .binary.code import disassembler, relocation_sites
+    from .binary.image import PeImage
+
+    recmp_target = _project(repository).get(target)
+    original = recmp_target.original_path
+    if original is None or not Path(original).is_file():
+        raise FileNotFoundError("original image is missing; licensed inputs are required")
+    image = PeImage(Path(original))
+    groups = parse_equivalence_groups(
+        [TextFile.from_file(Path(path)) for path in recmp_target.equivalence_groups]
+    )
+    rows = _equivalence_rows(recmp_target)
+    sites = relocation_sites(image)
+    engine = disassembler()
+    results = []
+    for row in rows:
+        if isinstance(row, str):
+            results.append({"location": row, "status": "invalid"})
+            continue
+        location, member, canonical, name, kind = row
+        result: dict[str, Any] = {
+            "location": location,
+            "name": name,
+            "kind": kind,
+            "member": f"0x{member:08x}",
+            "canonical": f"0x{canonical:08x}",
+        }
+        if kind == "data":
+            member_value = image.read_u32(member)
+            canonical_value = image.read_u32(canonical)
+            equivalent = (
+                member_value is not None
+                and canonical_value is not None
+                and groups.get(member_value, member_value)
+                == groups.get(canonical_value, canonical_value)
+            )
+            result["status"] = "equivalent" if equivalent else "diverged"
+        else:
+            member_tokens, member_error = _normalized_body(image, engine, member, sites, groups)
+            canonical_tokens, canonical_error = _normalized_body(
+                image, engine, canonical, sites, groups
+            )
+            if member_error or canonical_error:
+                result["status"] = "unbounded"
+                result["error"] = member_error or canonical_error
+            elif member_tokens == canonical_tokens:
+                result["status"] = "equivalent"
+            else:
+                result["status"] = "diverged"
+                divergence = next(
+                    (
+                        index
+                        for index, pair in enumerate(zip(member_tokens, canonical_tokens))
+                        if pair[0] != pair[1]
+                    ),
+                    min(len(member_tokens), len(canonical_tokens)),
+                )
+                result["divergence"] = divergence
+        results.append(result)
+    return {
+        "ok": bool(results) and all(row["status"] == "equivalent" for row in results),
+        "count": len(results),
+        "rows": results,
+    }

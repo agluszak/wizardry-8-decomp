@@ -5,14 +5,6 @@
 
 #include <stddef.h>
 
-/* AnimRep and the 3D mesh instance exchange four highlight coefficients. */
-struct W8ModelInstance3DRenderState {
-    float highlight_red;
-    float highlight_green;
-    float highlight_blue;
-    float highlight_alpha;
-};
-
 /* The 2D instance has a different sixteen-byte block at the same class offset. */
 struct W8ModelInstance2DRenderState {
     unsigned long render_depth;
@@ -53,7 +45,9 @@ public:
     srVector3T<float> local_location_010;
     srVector3T<float> parent_location_01c;
     srMatrix3T<float> rotation_028;
-    W8ModelInstance3DRenderState render_state_04c;
+    /* RGBA highlight colour; GrCycle copies it into the 3D mesh instance,
+       which renders it as its highlight material's emissive colour. */
+    srVector4T<float> highlight_colour_04c;
     /* Set by monster scale transitions; GrCycle copies it to model instances
        only when +0x61 enables that path. A value of one clears the instance
        scale flag instead of storing a redundant scale. */
@@ -111,11 +105,9 @@ public:
     unsigned char padding_096[2];
 };
 
-static_assert(sizeof(W8ModelInstance3DRenderState) == 0x10,
-              "W8ModelInstance3DRenderState_size_must_be_0x10");
 static_assert(sizeof(W8ModelInstance2DRenderState) == 0x10,
               "W8ModelInstance2DRenderState_size_must_be_0x10");
-static_assert(offsetof(W8AnimRepBase, render_state_04c) == 0x4c,
+static_assert(offsetof(W8AnimRepBase, highlight_colour_04c) == 0x4c,
               "W8AnimRepBase_render_state_offset");
 static_assert(sizeof(W8AnimRepBase) == 0x64, "W8AnimRepBase_size_must_be_0x64");
 static_assert(sizeof(W8AnimRep) == 0x98, "W8AnimRep_size_must_be_0x98");

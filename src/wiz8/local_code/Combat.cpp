@@ -2469,8 +2469,7 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                 if (interrupt != 0xc) {
                     ShowNoticef(
                         9, gppStringList[0x23b], GetMonsterName(monster_info, NULL, 0),
-                        gppStringList[g_gender_name_message_rows[record->name_group_0cc]
-                                                                       [2]]);
+                        gppStringList[g_gender_name_message_rows[record->name_group_0cc][2]]);
                 }
             }
             break;
@@ -2615,13 +2614,11 @@ char MonsterFleeAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
     if (g_settings.verbose_combat_messages != 0) {
         ShowNoticef(
             9, L"%s %s!", GetMonsterName(monster_info, NULL, 0),
-            gppStringList
-                [g_monster_special_attack_name_ids[record->special_attack_kind_0e3]]);
+            gppStringList[g_monster_special_attack_name_ids[record->special_attack_kind_0e3]]);
         return 1;
     }
-    ShowNoticef(
-        9, g_format_s_space_s, GetMonsterName(monster_info, NULL, 0),
-        gppStringList[g_monster_special_attack_name_ids[record->special_attack_kind_0e3]]);
+    ShowNoticef(9, g_format_s_space_s, GetMonsterName(monster_info, NULL, 0),
+                gppStringList[g_monster_special_attack_name_ids[record->special_attack_kind_0e3]]);
     return 1;
 }
 
@@ -2724,8 +2721,8 @@ int ExecuteCharacterSpecialAttack(int party_slot)
                               char_targets, monster_targets);
     FatigueCharacter(
         party_slot,
-        static_cast<int>(
-            static_cast<unsigned int>(g_status.buffers.Char[party_slot].uiStaminaMax) / 5),
+        static_cast<int>(static_cast<unsigned int>(g_status.buffers.Char[party_slot].uiStaminaMax) /
+                         5),
         0, NULL);
     return 3;
 }
@@ -2778,8 +2775,7 @@ char CreateCharacterBreathEffect(int party_slot)
         return 0;
     }
     if (g_settings.verbose_combat_messages != 0) {
-        PostCharacterNotice(party_slot, g_format_s_bang,
-                            gppStringList[g_breath_notice_id]);
+        PostCharacterNotice(party_slot, g_format_s_bang, gppStringList[g_breath_notice_id]);
     } else {
         PostCharacterNotice(party_slot, g_format_s_dash_dash, gppStringList[g_breath_notice_id]);
     }
@@ -2836,8 +2832,8 @@ void StepMonsterCombatAction(W8MonsterInfo* monster_info)
             if (chosen.iType == 2) {
                 MonsterForwardReferencePosition(monster_info->p3D, 0);
             } else if (chosen.iType == 3) {
-                MonsterAimAtMonster(monster_info->p3D,
-                                            GetMonsterByLocationID(chosen.iMonsterID), 0);
+                MonsterAimAtMonster(monster_info->p3D, GetMonsterByLocationID(chosen.iMonsterID),
+                                    0);
             }
         }
         RefreshAllSight();

@@ -881,8 +881,7 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
             fSuccess &= FileRead(hFile, &pSwitch->action_value_26d, 4, 0);
         }
         pTrigger->pData_02 = pSwitch;
-        g_level_file->switch_triggers_6c5[g_level_file->num_switch_triggers_6c1] =
-            pSwitch;
+        g_level_file->switch_triggers_6c5[g_level_file->num_switch_triggers_6c1] = pSwitch;
         ++g_level_file->num_switch_triggers_6c1;
         return fSuccess;
     }
@@ -938,8 +937,7 @@ BOOLEAN ReadTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
                         okRecord = FileRead(hFile, &pRecord->kind_00, 1, 0);
                         okRecord &= FileRead(hFile, pRecord->vertices_01, 0x1b0, 0);
                         okRecord &= FileRead(hFile, &pRecord->linked_face_1b1, 2, 0);
-                        g_level_file
-                            ->linked_records_260d[g_level_file->num_linked_records_2609] =
+                        g_level_file->linked_records_260d[g_level_file->num_linked_records_2609] =
                             pRecord;
                         ++g_level_file->num_linked_records_2609;
                         pInvis->pRecord_23d = pRecord;
@@ -1291,8 +1289,7 @@ BOOLEAN WriteSuperTriggerFile(int hFile, W8LevelFileTrigger* pTrigger)
 {
     W8LevelFileSuperTrigger* pSuper = static_cast<W8LevelFileSuperTrigger*>(pTrigger->pData_02);
     if (pSuper == 0) {
-        ReportBuildStatus(7,
-                                  "WriteSuperTrigger: Couldn't create SuperTrigger structure.\n");
+        ReportBuildStatus(7, "WriteSuperTrigger: Couldn't create SuperTrigger structure.\n");
         return 0;
     }
     unsigned char fSuccess = FileWrite(hFile, &pSuper->version_00, 1, 0);

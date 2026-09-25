@@ -249,7 +249,7 @@ stModelInstance2D::~stModelInstance2D()
     }
 }
 
-/* Deliberately not a whole W8ModelInstance3DRenderState assignment. Retail
+/* Deliberately not a whole srVector4T<float> assignment. Retail
    copies the 2D fields around the parent/state work and leaves the upper two
    bytes of state_0c untouched; GrCycle's separate whole-block copy is a
    different operation. */
@@ -473,10 +473,10 @@ srClass* stModelInstance::vInstance()
 stModelInstance::stModelInstance(srNode* parent)
     : srClassSupport<stModelInstance, srModelInstance, false, 0x10004>(static_cast<srNode*>(0))
 {
-    render_state_164.highlight_red = 0.0f;
-    render_state_164.highlight_green = 0.0f;
-    render_state_164.highlight_blue = 0.0f;
-    render_state_164.highlight_alpha = 0.0f;
+    highlight_colour_164.x = 0.0f;
+    highlight_colour_164.y = 0.0f;
+    highlight_colour_164.z = 0.0f;
+    highlight_colour_164.w = 0.0f;
     render_flags_178 = 0;
     mesh_index_17c = -1;
     frame_index_180 = 0;
@@ -498,10 +498,10 @@ stModelInstance::stModelInstance(srNode* parent)
 stModelInstance& stModelInstance::operator=(const stModelInstance& other)
 {
     srModelInstance::operator=(other);
-    render_state_164.highlight_red = 0.0f;
-    render_state_164.highlight_green = 0.0f;
-    render_state_164.highlight_blue = 0.0f;
-    render_state_164.highlight_alpha = 0.0f;
+    highlight_colour_164.x = 0.0f;
+    highlight_colour_164.y = 0.0f;
+    highlight_colour_164.z = 0.0f;
+    highlight_colour_164.w = 0.0f;
     render_flags_178 = other.render_flags_178;
     mesh_index_17c = other.mesh_index_17c;
     frame_index_180 = other.frame_index_180;
@@ -664,10 +664,8 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
     }
     renderer.setAmbientLight(light);
 
-    if (render_state_164.highlight_red != g_float_005ebb34 ||
-        render_state_164.highlight_green != g_float_005ebb34 ||
-        render_state_164.highlight_blue != g_float_005ebb34 ||
-        render_state_164.highlight_alpha != g_float_005ebb34) {
+    if (highlight_colour_164.x != g_float_005ebb34 || highlight_colour_164.y != g_float_005ebb34 ||
+        highlight_colour_164.z != g_float_005ebb34 || highlight_colour_164.w != g_float_005ebb34) {
         if (retained_174 == 0) {
             retained_174 = new srMaterial;
             srVector4T<float> zero;
@@ -677,9 +675,7 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
             retained_174->setSpecular(zero);
             retained_174->setOpacity(0.35);
         }
-        retained_174->setEmissive(
-            // reinterpret-ok: the render-state block carries the highlight RGBA verbatim.
-            *reinterpret_cast<const srVector4T<float>*>(&render_state_164));
+        retained_174->setEmissive(highlight_colour_164);
     }
 
     unsigned char first_pass = 1;
@@ -733,10 +729,10 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
             }
         }
 
-        if (((render_state_164.highlight_red == g_float_005ebb34) &&
-             (render_state_164.highlight_green == g_float_005ebb34) &&
-             (render_state_164.highlight_blue == g_float_005ebb34) &&
-             (render_state_164.highlight_alpha == g_float_005ebb34)) ||
+        if (((highlight_colour_164.x == g_float_005ebb34) &&
+             (highlight_colour_164.y == g_float_005ebb34) &&
+             (highlight_colour_164.z == g_float_005ebb34) &&
+             (highlight_colour_164.w == g_float_005ebb34)) ||
             (highlight_pass_mode_190 != 1)) {
             if (diffuse_scale_enabled_1a0 != 0) {
                 g_material_diffuse_scale = diffuse_scale_1a4;
@@ -780,10 +776,8 @@ void stModelInstance::RenderMeshes(srGERD& renderer)
         }
     }
 
-    if (render_state_164.highlight_red != g_float_005ebb34 ||
-        render_state_164.highlight_green != g_float_005ebb34 ||
-        render_state_164.highlight_blue != g_float_005ebb34 ||
-        render_state_164.highlight_alpha != g_float_005ebb34) {
+    if (highlight_colour_164.x != g_float_005ebb34 || highlight_colour_164.y != g_float_005ebb34 ||
+        highlight_colour_164.z != g_float_005ebb34 || highlight_colour_164.w != g_float_005ebb34) {
         model = static_cast<stMeshModel*>(getModel());
         if (highlight_pass_mode_190 == 0) {
             renderer.setWinding(srGERD::WINDING_POSITIONAL_1);

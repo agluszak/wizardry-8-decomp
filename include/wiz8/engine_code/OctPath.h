@@ -424,8 +424,8 @@ public:
     /* Takes the size, two loose values, the bounds block out of the octree
        header, and the level name the octree already owns. */
     void ConfigureForLevel(int size, float grid_scale, int path_clearance,
-                           const W8BoundingBox* bounds, const char* name); /* 0x00458A50 */
-    unsigned char Load00458CE0(int handle);                                /* 0x00458CE0 */
+                           const srVector3T<float>* bounds, const char* name); /* 0x00458A50 */
+    unsigned char Load00458CE0(int handle);                                    /* 0x00458CE0 */
     unsigned char WritePathNodes00458AD0(unsigned int handle);
     unsigned char SaveWaypointSnapshot(unsigned char force);
     unsigned char WriteWaypointFile00459540();
