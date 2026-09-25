@@ -713,9 +713,8 @@ bool LoadWorldTriggers(W8World* world, int hFile)
 
     for (;;) {
         /* Retail read `tag` (and the tag-5 name/id below) uninitialised when a
-           FileRead short-circuited; deterministic values model that defect
-           path. */
-        char tag = 0;
+           FileRead short-circuited; the recovery keeps that read. */
+        char tag;
 
         if (finished || trigger_count <= index) {
             return header_ok;
@@ -1490,11 +1489,11 @@ W8TriggerActionData* LoadTriggerActionData004417C0(int handle)
 // FUNCTION: WIZ8 0x00441a20
 Trigger* Trigger::CreateAndLoadLevelTrigger(int handle, W8World* world)
 {
-    /* Retail read these uninitialised when the FileRead chain short-circuited;
-       deterministic zeroes model that defect path. */
+    /* Retail read these uninitialised when the FileRead chain short-circuited; the recovery keeps
+       that read. */
     Trigger* trigger = 0;
-    unsigned char record_version = 0;
-    unsigned char record_type = 0;
+    unsigned char record_version;
+    unsigned char record_type;
     if (handle == 0) {
         srAssertFail("hFile", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0xca3, 0);
     }
@@ -4116,17 +4115,17 @@ void SaveLocationVariables(int handle)
 // FUNCTION: WIZ8 0x00444310
 bool LoadLocationVariables(int handle)
 {
-    /* Retail read these uninitialised when a FileRead short-circuited;
-       deterministic zeroes model that defect path. */
-    int variable_count = 0;
+    /* Retail read these uninitialised when a FileRead short-circuited; the recovery keeps that
+       read. */
+    int variable_count;
     int index;
     bool read_ok;
 
     read_ok = FileRead(handle, &variable_count, sizeof(variable_count), 0) != 0;
     for (index = 0; index < variable_count; ++index) {
-        int value = 0;
-        char name[0x80] = {0};
-        int level = 0;
+        int value;
+        char name[0x80];
+        int level;
         char* copy;
 
         if (!read_ok) {

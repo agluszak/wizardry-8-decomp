@@ -59,10 +59,10 @@ bool CosmicCircleTriggerPlane1Hedra(Trigger* pTrigger)
 void CosmicCircleSetup(void)
 {
     /* Retail dereferenced both monster infos unconditionally, leaving the
-       pointer uninitialised on a missing named entity or failed id; null
-       models that defect path deterministically. */
-    W8MonsterInfo* pMonsterInfoDs = 0;
-    W8MonsterInfo* pMonsterInfoAltheides = 0;
+       pointer uninitialised on a missing named entity or failed id; the recovery keeps that read.
+       */
+    W8MonsterInfo* pMonsterInfoDs;
+    W8MonsterInfo* pMonsterInfoAltheides;
     srVector3T<float> positionAltheides;
     srVector3T<float> positionDs;
     srVector3T<float> positionBela;

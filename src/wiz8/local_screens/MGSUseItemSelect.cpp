@@ -388,11 +388,12 @@ void RedrawPanel69B998(void)
 }
 
 /* fItemSelectMode per-frame update: keep the scroll buttons synced, run the
-   dirty panels' redraw pass, then re-check the pending commit. Retail expands
-   CommitSelectedItemUse here. */
+   dirty panels' redraw pass, then re-check the pending commit — the same
+   sequence CommitSelectedItemUse performs, inlined here by VC6. */
 // FUNCTION: WIZ8 0x0059CF50
 void UpdateUseItemSelect(unsigned char active)
 {
+    W8Character* character;
     bool panel_dirty;
     int i;
 
@@ -414,7 +415,21 @@ void UpdateUseItemSelect(unsigned char active)
             }
         }
     }
-    CommitSelectedItemUse();
+    if (g_value_69b9a0 != 0 && CanUseItemForAction(g_status.selected_character, g_value_69b9a0) &&
+        IsItemTargetOfNeededKind(g_status.selected_character, g_value_69b9a0)) {
+        character = &g_status.buffers.Char[g_status.selected_character];
+        if (g_value_69b9a0 != 0) {
+            g_use_item_commit_active = 1;
+            CommitSelectedSpellTarget();
+            g_use_item_commit_active = 0;
+            AimItemUseAtCurrentTarget(character, g_value_69b9a0);
+            if (g_value_69b9a0 != 0 && g_value_69b9a0->iItemNo != -1 &&
+                GetItemSpell(g_value_69b9a0) == 0x17) {
+                return;
+            }
+            CloseUseItemSelectView();
+        }
+    }
 }
 
 /* Keep the scroll buttons' enabled and secondary states in step with the
