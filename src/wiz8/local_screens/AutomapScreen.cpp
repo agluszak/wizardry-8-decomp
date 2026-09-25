@@ -1560,7 +1560,7 @@ void UpdateAutomapBounds(void)
                     }
                 }
                 ++bit;
-            } while (bit < (unsigned int)g_automap_cell_count);
+            } while (bit < static_cast<unsigned int>(g_automap_cell_count));
         }
         g_automap_bounds_min.x -= g_float_005ec2f8;
         g_automap_bounds_max.x += g_float_005ec2f8;

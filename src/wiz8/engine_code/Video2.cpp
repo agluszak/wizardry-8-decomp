@@ -2130,7 +2130,7 @@ void InvalidateRegion(int left, int top, int right, int bottom, unsigned int fla
                 if ((int)clipped_left < (int)clipped_right) {
                     x = clipped_left;
                     do {
-                        InvalidateDirtyTile((int)x / 8 + (top / 8) * 0x50, cell_flags);
+                        InvalidateDirtyTile(static_cast<int>(x) / 8 + (top / 8) * 0x50, cell_flags);
                         x += 8;
                     } while ((int)x < (int)clipped_right);
                 }
