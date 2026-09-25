@@ -136,33 +136,32 @@ unsigned int RollEffectMagnitude(W8SpellEffectDefinition* definition)
     return magnitude;
 }
 
-/* How long it lasts. The three duration values combine, one is added for the
-   turn it starts on, and a quarter of the time one more is added - but only
-   at the two shortest durations, so a long effect never gains the extra
-   turn. */
+/* How long it lasts. The three duration values combine and, unless that is
+   the permanent marker, one is added for the turn it starts on. A four-way
+   roll then adds one more turn on a 0 when the duration is above one, or on
+   a 1 when it is at most two, before the definition's percentage scales it. */
 // FUNCTION: WIZ8 0x005519c0
 unsigned int RollEffectDuration(W8SpellEffectDefinition* definition)
 {
-    int combined =
+    unsigned int duration =
         definition->duration_per_power * definition->duration_scale + definition->duration_base;
-    unsigned int duration;
-    int roll;
 
-    if (combined == W8_EFFECT_PERMANENT) {
-        return W8_EFFECT_PERMANENT;
-    }
-    duration = combined + 1;
-
-    roll = Random(4);
-    if (roll == 0) {
-        if (duration >= 2) {
-            ++duration;
-        }
-    } else if (roll == 1 && duration <= 2) {
+    if (duration != W8_EFFECT_PERMANENT) {
         ++duration;
+        switch (Random(4)) {
+        case 0:
+            if (duration > 1) {
+                ++duration;
+            }
+            break;
+        case 1:
+            if (duration <= 2) {
+                ++duration;
+            }
+            break;
+        }
+        AdjustIntegerByPercent(&duration, definition->percent);
     }
-
-    AdjustIntegerByPercent(&duration, definition->percent);
     return duration;
 }
 
