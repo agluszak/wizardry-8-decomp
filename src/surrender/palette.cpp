@@ -1408,3 +1408,51 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
 
 // SYNTHETIC: SURRENDER 0x10004F90
 // srPalette default constructor closure
+
+// TEMPLATE: SURRENDER 0x10004A30
+// srClassSupport<srPalette, srClass, true, 0x2900>::clone
+
+// TEMPLATE: SURRENDER 0x10004A50
+// srClientSupport<srPalette, 0x2900>::~srClientSupport
+
+// SYNTHETIC: SURRENDER 0x10004AE0
+// member buffer destructor emission (EH unwind)
+
+// SYNTHETIC: SURRENDER 0x10004FD0
+// srPalette scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0x10005050
+// srClientSupport<srPalette, 0x2900> scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0x10005080
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0x10005090
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0x100050C0
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0x100050D0
+// std::_Winit global atexit registrar
+
+// SYNTHETIC: SURRENDER 0x10005220
+// srSurfaceIOManager scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0x100052A0
+// SurfaceImporter scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0x10005320
+// SurfaceExporter scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0x100053B0
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0x100053C0
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0x100053F0
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0x10005400
+// std::_Winit global atexit registrar

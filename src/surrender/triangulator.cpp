@@ -153,3 +153,6 @@ int srTriangulator::isInsideTriangle(const srVector2T<float>& p, const srVector2
 {
     return sameSide(p, a, b, c) && sameSide(p, b, a, c) && sameSide(p, c, a, b);
 }
+
+// TEMPLATE: SURRENDER 0x1003BE80
+// srArray<srModeler::Triangle>::release emission

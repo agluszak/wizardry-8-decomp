@@ -5961,3 +5961,114 @@ void srGERD::accumulate(e_accum operation, float scale)
 
 // SYNTHETIC: SURRENDER 0x1001B510
 // srGERD vector deleting destructor
+
+// SYNTHETIC: SURRENDER 0x1001B720
+// srClass pointer member destructor emission (EH unwind)
+
+// SYNTHETIC: SURRENDER 0x1001B730
+// global array destruction registrar
+
+// SYNTHETIC: SURRENDER 0x1001BA80
+// member pointer-pair destructor emission (EH unwind)
+
+// TEMPLATE: SURRENDER 0x1001EF30
+// srArray<T>::release emission
+
+// TEMPLATE: SURRENDER 0x1001EF60
+// srArray<T>::release emission
+
+// SYNTHETIC: SURRENDER 0x1001F030
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0x1001F040
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0x1001F070
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0x1001F080
+// std::_Winit global atexit registrar
+
+// TEMPLATE: SURRENDER 0x1001F1D0
+// srArray<T>::release emission
+
+// SYNTHETIC: SURRENDER 0x1001F490
+// member pointer-pair destructor emission (EH unwind)
+
+// TEMPLATE: SURRENDER 0x10020FC0
+// srClassSupport<srColorSurfaceIFace, srClass, true, 0x3100>::clone
+
+// TEMPLATE: SURRENDER 0x100210B0
+// srClassSupport<srGERD::LockSurface, srColorSurfaceIFace, false, 0x3111>::~srClassSupport
+
+// SYNTHETIC: SURRENDER 0x10021530
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0x10021540
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0x10021570
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0x10021580
+// std::_Winit global atexit registrar
+
+// SYNTHETIC: SURRENDER 0x10029380
+// srPtr element destructor emission
+
+// SYNTHETIC: SURRENDER 0x100296B0
+// srPtr element destructor emission
+
+// TEMPLATE: SURRENDER 0x1001EEC0
+// srArray<T> copy-assignment emission
+
+// TEMPLATE: SURRENDER 0x1001EF80
+// srHeapArray<T>::release emission
+
+// TEMPLATE: SURRENDER 0x1001EFB0
+// srHeapArray<T>::ensure emission
+
+// TEMPLATE: SURRENDER 0x1001F160
+// srArray<T> copy-assignment emission
+
+// TEMPLATE: SURRENDER 0x1001F1F0
+// srHeapArray<T> block-allocation emission
+
+// TEMPLATE: SURRENDER 0x1001F210
+// srArray<srGERD::Texture*>::reserve emission
+
+// TEMPLATE: SURRENDER 0x1001F280
+// srMatrix4T<float>::MultiplyBy emission
+
+// TEMPLATE: SURRENDER 0x1001F4C0
+// srHashTable<unsigned long, srGERD::Texture*>::Grow emission
+
+// SYNTHETIC: SURRENDER 0x1001B750
+// member destructor emission (EH unwind)
+
+// SYNTHETIC: SURRENDER 0x1001F730
+// srGERD::LockSurface scalar deleting destructor
+
+// TEMPLATE: SURRENDER 0x10021060
+// srClassSupport<srGERD::LockSurface, srColorSurfaceIFace, false, 0x3111>::clone
+
+// SYNTHETIC: SURRENDER 0x100211B0
+// srClassSupport<srColorSurfaceIFace, srClass, true, 0x3100> scalar deleting destructor
+
+// TEMPLATE: SURRENDER 0x100211D0
+// srClassSupport<srColorSurfaceIFace, srClass, true, 0x3100>::~srClassSupport
+
+// SYNTHETIC: SURRENDER 0x100212F0
+// srClassSupport<srGERD::LockSurface, srColorSurfaceIFace, false, 0x3111> scalar deleting destructor
+
+// TEMPLATE: SURRENDER 0x10023740
+// srMatrix4T<float>::Scale
+
+// SYNTHETIC: SURRENDER 0x100237E0
+// empty callable emission (no-arg thiscall reached from classifyMatrix/updateBounds)
+
+// TEMPLATE: SURRENDER 0x10023910
+// srMatrix4T<float>::MultiplyBy emission
+
+// TEMPLATE: SURRENDER 0x100296C0
+// srArray<srGERD::Texture*>::reserve emission

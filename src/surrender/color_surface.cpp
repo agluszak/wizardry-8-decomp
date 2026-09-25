@@ -3200,3 +3200,42 @@ void srColorSurface::dump(std::ostream& stream)
 
 // TEMPLATE: SURRENDER 0x1005E170
 // srClassSupport<srColorSurfaceIFace, srClass, true, 0x3100>::sGetClassNode
+
+// SYNTHETIC: SURRENDER 0x1005B4E0
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0x1005B4F0
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0x1005B520
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0x1005B530
+// std::_Winit global atexit registrar
+
+// SYNTHETIC: SURRENDER 0x1005E030
+// srClassSupport<srColorSurface, srColorSurfaceIFace, 0, 0x3110>::clone
+
+// SYNTHETIC: SURRENDER 0x1005E1C0
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0x1005E1D0
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0x1005E200
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0x1005E210
+// std::_Winit global atexit registrar
+
+// SYNTHETIC: SURRENDER 0x1005A1D0
+// srColorSurfaceIFace scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0x1005DF30
+// srColorSurface scalar deleting destructor
+
+// TEMPLATE: SURRENDER 0x1005E050
+// srClassSupport<srColorSurface, srColorSurfaceIFace, 0, 0x3110>::~srClassSupport
+
+// SYNTHETIC: SURRENDER 0x1005E150
+// srClassSupport<srColorSurface, srColorSurfaceIFace, 0, 0x3110> scalar deleting destructor

@@ -85,9 +85,7 @@ def require_umu_runner(environment: dict[str, str]) -> str:
             f"prepared umu launcher is missing: {requested_umu}; run `uv run wiz8 prepare`"
         )
     if not proton.is_dir() or not (proton / "proton").is_file():
-        raise RuntimeError(
-            f"prepared GE-Proton is missing: {proton}; run `uv run wiz8 prepare`"
-        )
+        raise RuntimeError(f"prepared GE-Proton is missing: {proton}; run `uv run wiz8 prepare`")
     return umu_run
 
 
@@ -327,9 +325,7 @@ def run_product(
     environment["WINEPREFIX"] = str(prefix)
     environment.setdefault("WIZ8_RUNTIME_SCREEN_GEOMETRY", runtime_video_screen_geometry(settings))
     environment.setdefault("WINEDLLOVERRIDES", "winemenubuilder.exe=d")
-    with runtime_display(
-        environment, default="host", log_path=staged.root / "xvfb-run.log"
-    ):
+    with runtime_display(environment, default="host", log_path=staged.root / "xvfb-run.log"):
         completed = subprocess.run(
             [umu_run, str(staged.executable), "/WINDOW", *(arguments or [])],
             cwd=staged.root,
@@ -1334,8 +1330,7 @@ def run_runtime_suite(
     wineserver = runner_environment["WIZ8_UMU_WINESERVER"]
     if shutil.which(wineserver) is None:
         raise RuntimeError(
-            f"prepared GE-Proton wineserver is missing: {wineserver}; "
-            "run `uv run wiz8 prepare`"
+            f"prepared GE-Proton wineserver is missing: {wineserver}; run `uv run wiz8 prepare`"
         )
     stage = settings.runtime_stage("runtime-test")
     stage.mkdir(parents=True, exist_ok=True)

@@ -41,9 +41,7 @@ def test_runtime_toolchain_paths_are_checkout_local(tmp_path: Path) -> None:
     assert ge_proton_path(settings) == settings.work_dir / "runtime-toolchain/GE-Proton11-7-x86_64"
 
 
-def test_materialize_archive_uses_verified_cached_archive(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_materialize_archive_uses_verified_cached_archive(tmp_path: Path, monkeypatch) -> None:
     settings = _settings(tmp_path)
     source = tmp_path / "bundle.tar"
     _tar_with_file(source, "payload", "launcher", b"#!/bin/sh\n")

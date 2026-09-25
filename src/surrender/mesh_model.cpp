@@ -2520,3 +2520,24 @@ const char* srMeshModel::sGetClassName()
 
 // SYNTHETIC: SURRENDER 0x100425A0
 // srMeshModel default constructor closure
+
+// SYNTHETIC: SURRENDER 0x100425B0
+// srMeshModel scalar deleting destructor
+
+// TEMPLATE: SURRENDER 0x10042A10
+// srClassSupport<srMeshModel, srModel, 0, 0x2010>::clone
+
+// TEMPLATE: SURRENDER 0x10044010
+// srArray<T>::release emission
+
+// TEMPLATE: SURRENDER 0x10044030
+// srArray<T>::release emission
+
+// TEMPLATE: SURRENDER 0x10044050
+// srArray<T>::release emission
+
+// SYNTHETIC: SURRENDER 0x10042630
+// member copy-assignment emission
+
+// TEMPLATE: SURRENDER 0x10043F90
+// srHeapArray<T>::ensure emission
