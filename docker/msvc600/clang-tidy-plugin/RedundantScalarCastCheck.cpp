@@ -296,19 +296,20 @@ static std::string repository_relative_path(const SourceManager& sources, Source
 // Removing a C-style cast leaves its operand in place: the operand of `(T)e` is
 // already a cast-expression, so it parses identically without the prefix. A
 // static_cast keeps its parentheses unless the operand is a primary expression.
-static std::vector<FixItHint> removal_fix(const ExplicitCastExpr* cast, const SourceManager& sources,
-                                          const LangOptions& language, bool whole_argument = false)
+static std::vector<FixItHint> removal_fix(const ExplicitCastExpr* cast,
+                                          const SourceManager& sources, const LangOptions& language,
+                                          bool whole_argument = false)
 {
     std::vector<FixItHint> hints;
     const Expr* operand = cast->getSubExprAsWritten();
-    if (operand == nullptr || cast->getBeginLoc().isMacroID() || operand->getBeginLoc().isMacroID() ||
-        cast->getEndLoc().isMacroID()) {
+    if (operand == nullptr || cast->getBeginLoc().isMacroID() ||
+        operand->getBeginLoc().isMacroID() || cast->getEndLoc().isMacroID()) {
         return hints;
     }
     if (isa<CStyleCastExpr>(cast)) {
         // A whole call argument needs no grouping parentheses once the cast is gone.
-        if (const auto* group = dyn_cast<ParenExpr>(operand); group != nullptr && whole_argument &&
-                                                             !group->getRParen().isMacroID()) {
+        if (const auto* group = dyn_cast<ParenExpr>(operand);
+            group != nullptr && whole_argument && !group->getRParen().isMacroID()) {
             hints.push_back(FixItHint::CreateRemoval(CharSourceRange::getCharRange(
                 cast->getBeginLoc(), group->getSubExpr()->getBeginLoc())));
             hints.push_back(FixItHint::CreateRemoval(
@@ -321,17 +322,17 @@ static std::vector<FixItHint> removal_fix(const ExplicitCastExpr* cast, const So
     }
     if (isa<CXXStaticCastExpr>(cast)) {
         const Expr* bare = operand->IgnoreParens();
-        const bool primary = isa<DeclRefExpr>(bare) || isa<MemberExpr>(bare) || isa<CallExpr>(bare) ||
-                             isa<ArraySubscriptExpr>(bare) || isa<IntegerLiteral>(bare) ||
-                             isa<FloatingLiteral>(bare);
+        const bool primary = isa<DeclRefExpr>(bare) || isa<MemberExpr>(bare) ||
+                             isa<CallExpr>(bare) || isa<ArraySubscriptExpr>(bare) ||
+                             isa<IntegerLiteral>(bare) || isa<FloatingLiteral>(bare);
         const CharSourceRange text = CharSourceRange::getTokenRange(operand->getSourceRange());
         std::string spelling = Lexer::getSourceText(text, sources, language).str();
         if (spelling.empty()) {
             return hints;
         }
-        hints.push_back(FixItHint::CreateReplacement(
-            CharSourceRange::getTokenRange(cast->getSourceRange()),
-            primary ? spelling : "(" + spelling + ")"));
+        hints.push_back(
+            FixItHint::CreateReplacement(CharSourceRange::getTokenRange(cast->getSourceRange()),
+                                         primary ? spelling : "(" + spelling + ")"));
     }
     return hints;
 }
@@ -396,8 +397,7 @@ public:
                     diag(cast->getBeginLoc(),
                          "intermediate cast from %0 to %1 is redundant; both types have the same "
                          "signedness and width before the enclosing conversion")
-                        << source << target
-                        << removal_fix(cast, sources, context.getLangOpts());
+                        << source << target << removal_fix(cast, sources, context.getLangOpts());
                     return;
                 }
             }
@@ -423,8 +423,7 @@ public:
                     diag(cast->getBeginLoc(),
                          "explicit cast from %0 to %1 is redundant; the surrounding floating-point "
                          "operation already performs this conversion")
-                        << source << target
-                        << removal_fix(cast, sources, context.getLangOpts());
+                        << source << target << removal_fix(cast, sources, context.getLangOpts());
                     return;
                 }
             }
@@ -806,19 +805,50 @@ static RecordProvenance trace_record_provenance(const Expr* expression,
     return {project_record_expression(expression, sources), SourceLocation()};
 }
 
-static bool is_ordinary_inheritance_cast(const ProjectRecordType& source,
-                                         const ProjectRecordType& target)
+static bool is_inheritance_cast_kind(CastKind kind)
 {
-    if (source.record == nullptr || target.record == nullptr ||
-        source.pointer_depth != target.pointer_depth || source.reference != target.reference ||
-        (source.reference ? source.pointer_depth != 0 : source.pointer_depth != 1)) {
+    return kind == CK_DerivedToBase || kind == CK_BaseToDerived;
+}
+
+static bool has_matching_indirection(const ProjectRecordType& source,
+                                     const ProjectRecordType& target)
+{
+    return source.pointer_depth == target.pointer_depth && source.reference == target.reference &&
+           (source.reference ? source.pointer_depth == 0 : source.pointer_depth == 1);
+}
+
+static bool is_ordinary_inheritance_static_cast(const ExplicitCastExpr* expression,
+                                                const SourceManager& sources,
+                                                const ProjectRecordType& source,
+                                                const ProjectRecordType& target)
+{
+    const auto* cast = dyn_cast<CXXStaticCastExpr>(expression);
+    if (cast == nullptr || source.record == nullptr || target.record == nullptr ||
+        !has_matching_indirection(source, target)) {
         return false;
     }
-    const auto* source_record = dyn_cast<CXXRecordDecl>(source.record);
-    const auto* target_record = dyn_cast<CXXRecordDecl>(target.record);
-    return source_record != nullptr && target_record != nullptr &&
-           (source_record->isDerivedFrom(target_record) ||
-            target_record->isDerivedFrom(source_record));
+    if (is_inheritance_cast_kind(cast->getCastKind())) {
+        return true;
+    }
+
+    // A no-adjustment derived-to-base static_cast is represented by an outer
+    // CK_NoOp around the implicit CK_DerivedToBase conversion.
+    const Expr* nested = cast->getSubExpr();
+    while (const auto* conversion = dyn_cast<ImplicitCastExpr>(nested)) {
+        if (is_inheritance_cast_kind(conversion->getCastKind())) {
+            const ProjectRecordType converted_source =
+                project_record_expression(conversion->getSubExpr(), sources);
+            const ProjectRecordType converted_target =
+                project_record_expression(conversion, sources);
+            if (converted_source.record == source.record &&
+                converted_target.record == target.record &&
+                has_matching_indirection(converted_source, converted_target)) {
+                return true;
+            }
+        }
+        nested = conversion->getSubExpr();
+    }
+    return false;
 }
 
 static std::string record_name(const ProjectRecordType& type)
@@ -900,8 +930,8 @@ public:
             source.reference == target.reference) {
             return;
         }
-        if (provenance.erasure.isInvalid() && !isa<CXXReinterpretCastExpr>(cast) &&
-            is_ordinary_inheritance_cast(source, target)) {
+        if (provenance.erasure.isInvalid() &&
+            is_ordinary_inheritance_static_cast(cast, sources, source, target)) {
             return;
         }
 

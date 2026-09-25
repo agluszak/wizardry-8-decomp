@@ -799,52 +799,52 @@ unsigned char AutomapScreenEnter(void)
 // FUNCTION: WIZ8 0x005806b0
 EnvironmentColour::EnvironmentColour(double red_value, double green_value, double blue_value)
 {
-    red = static_cast<float>(red_value);
-    green = static_cast<float>(green_value);
-    blue = static_cast<float>(blue_value);
-    if (red > 0.0f) {
-        if (red >= 1.0f)
-            red = 1.0f;
+    x = static_cast<float>(red_value);
+    y = static_cast<float>(green_value);
+    z = static_cast<float>(blue_value);
+    if (x > 0.0f) {
+        if (x >= 1.0f)
+            x = 1.0f;
     } else {
-        red = 0.0f;
+        x = 0.0f;
     }
-    if (green > 0.0f) {
-        if (green >= 1.0f)
-            green = 1.0f;
+    if (y > 0.0f) {
+        if (y >= 1.0f)
+            y = 1.0f;
     } else {
-        green = 0.0f;
+        y = 0.0f;
     }
-    if (blue > 0.0f) {
-        if (blue >= 1.0f)
-            blue = 1.0f;
+    if (z > 0.0f) {
+        if (z >= 1.0f)
+            z = 1.0f;
     } else {
-        blue = 0.0f;
+        z = 0.0f;
     }
 }
 
 // FUNCTION: WIZ8 0x00580940
 void EnvironmentColour::Set(double red_value, double green_value, double blue_value)
 {
-    red = static_cast<float>(red_value);
-    green = static_cast<float>(green_value);
-    blue = static_cast<float>(blue_value);
-    if (red > 0.0f) {
-        if (red >= 1.0f)
-            red = 1.0f;
+    x = static_cast<float>(red_value);
+    y = static_cast<float>(green_value);
+    z = static_cast<float>(blue_value);
+    if (x > 0.0f) {
+        if (x >= 1.0f)
+            x = 1.0f;
     } else {
-        red = 0.0f;
+        x = 0.0f;
     }
-    if (green > 0.0f) {
-        if (green >= 1.0f)
-            green = 1.0f;
+    if (y > 0.0f) {
+        if (y >= 1.0f)
+            y = 1.0f;
     } else {
-        green = 0.0f;
+        y = 0.0f;
     }
-    if (blue > 0.0f) {
-        if (blue >= 1.0f)
-            blue = 1.0f;
+    if (z > 0.0f) {
+        if (z >= 1.0f)
+            z = 1.0f;
     } else {
-        blue = 0.0f;
+        z = 0.0f;
     }
 }
 

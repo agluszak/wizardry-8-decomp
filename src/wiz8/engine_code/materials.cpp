@@ -1935,8 +1935,8 @@ void OctBuildOptions(char* stem)
     short length;
     MSG message;
 
-    memset(&colour_saved, 0, sizeof(colour_saved));
-    memset(&colour_backup, 0, sizeof(colour_backup));
+    colour_saved.SetZero();
+    colour_backup.SetZero();
     GetWorldColour(&colour_backup);
     PublishLightDirection(&colour_saved);
     SetFont(g_smfnt_font);

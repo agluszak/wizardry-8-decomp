@@ -124,6 +124,16 @@ Derived* ordinary_explicit_downcast(Base* value)
     return static_cast<Derived*>(value);
 }
 
+Base& ordinary_explicit_reference_upcast(Derived& value)
+{
+    return static_cast<Base&>(value);
+}
+
+Derived& ordinary_explicit_reference_downcast(Base& value)
+{
+    return static_cast<Derived&>(value);
+}
+
 B* allocator_return()
 {
     return static_cast<B*>(malloc(sizeof(B)));

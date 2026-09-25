@@ -8223,7 +8223,43 @@ void SetRadarMapVisible(unsigned char visible)
         }
     }
     if (visible != g_radar_panel_shown) {
-        SetViewportMode(GetMainGameViewportMode());
+        if (gXStatus.fSpellCastMode == 0) {
+            if ((gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) &&
+                gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
+                gXStatus.fItemSelectMode == 0 && g_level_block->action_panel_visible == 0 &&
+                g_level_block->formation_board_visible != 0 &&
+                g_level_block->radar_map_visible != 0 &&
+                g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
+                SetViewportMode(4);
+                g_radar_panel_shown = visible;
+                return;
+            }
+            if (gXStatus.fSpellCastMode == 0 &&
+                (gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) &&
+                gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
+                gXStatus.fItemSelectMode == 0 &&
+                (g_level_block->formation_board_visible == 0 ||
+                 g_level_block->radar_map_visible == 0 ||
+                 g_level_block->action_panel_visible == 0)) {
+                SetViewportMode(0);
+                g_radar_panel_shown = visible;
+                return;
+            }
+        }
+        switch (g_settings.main_ui_mode) {
+        case W8_MAIN_UI_MODE_RADAR:
+            SetViewportMode(0);
+            g_radar_panel_shown = visible;
+            return;
+        case W8_MAIN_UI_MODE_FORMATION:
+            SetViewportMode(1);
+            g_radar_panel_shown = visible;
+            return;
+        case W8_MAIN_UI_MODE_PORTRAITS:
+        default:
+            SetViewportMode(2);
+            break;
+        }
     }
     g_radar_panel_shown = visible;
 }
@@ -8267,7 +8303,43 @@ void SetActionPanelVisible(unsigned char visible)
         }
     }
     if (visible != g_action_panel_shown) {
-        SetViewportMode(GetMainGameViewportMode());
+        if (gXStatus.fSpellCastMode == 0) {
+            if ((gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) &&
+                gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
+                gXStatus.fItemSelectMode == 0 && g_level_block->action_panel_visible == 0 &&
+                g_level_block->formation_board_visible != 0 &&
+                g_level_block->radar_map_visible != 0 &&
+                g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
+                SetViewportMode(4);
+                g_action_panel_shown = visible;
+                return;
+            }
+            if (gXStatus.fSpellCastMode == 0 &&
+                (gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) &&
+                gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
+                gXStatus.fItemSelectMode == 0 &&
+                (g_level_block->formation_board_visible == 0 ||
+                 g_level_block->radar_map_visible == 0 ||
+                 g_level_block->action_panel_visible == 0)) {
+                SetViewportMode(0);
+                g_action_panel_shown = visible;
+                return;
+            }
+        }
+        switch (g_settings.main_ui_mode) {
+        case W8_MAIN_UI_MODE_RADAR:
+            SetViewportMode(0);
+            g_action_panel_shown = visible;
+            return;
+        case W8_MAIN_UI_MODE_FORMATION:
+            SetViewportMode(1);
+            g_action_panel_shown = visible;
+            return;
+        case W8_MAIN_UI_MODE_PORTRAITS:
+        default:
+            SetViewportMode(2);
+            break;
+        }
     }
     g_action_panel_shown = visible;
 }
@@ -8291,7 +8363,43 @@ void SetFormationBoardVisible(unsigned char visible)
         g_level_block->redraw_flags |= 0x8200;
     }
     if (visible != g_formation_panel_shown) {
-        SetViewportMode(GetMainGameViewportMode());
+        if (gXStatus.fSpellCastMode == 0) {
+            if ((gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) &&
+                gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
+                gXStatus.fItemSelectMode == 0 && g_level_block->action_panel_visible == 0 &&
+                g_level_block->formation_board_visible != 0 &&
+                g_level_block->radar_map_visible != 0 &&
+                g_settings.main_ui_mode == W8_MAIN_UI_MODE_PORTRAITS) {
+                SetViewportMode(4);
+                g_formation_panel_shown = visible;
+                return;
+            }
+            if (gXStatus.fSpellCastMode == 0 &&
+                (gXStatus.fNpcDialogueMode == 0 || CanOpenNpcDialogue() != 0) &&
+                gXStatus.fLockInteractMode == 0 && gXStatus.fTrapInteractMode == 0 &&
+                gXStatus.fItemSelectMode == 0 &&
+                (g_level_block->formation_board_visible == 0 ||
+                 g_level_block->radar_map_visible == 0 ||
+                 g_level_block->action_panel_visible == 0)) {
+                SetViewportMode(0);
+                g_formation_panel_shown = visible;
+                return;
+            }
+        }
+        switch (g_settings.main_ui_mode) {
+        case W8_MAIN_UI_MODE_RADAR:
+            SetViewportMode(0);
+            g_formation_panel_shown = visible;
+            return;
+        case W8_MAIN_UI_MODE_FORMATION:
+            SetViewportMode(1);
+            g_formation_panel_shown = visible;
+            return;
+        case W8_MAIN_UI_MODE_PORTRAITS:
+        default:
+            SetViewportMode(2);
+            break;
+        }
     }
     g_formation_panel_shown = visible;
 }
@@ -8877,10 +8985,10 @@ done:
    full-3d while every overlay flag is clear and no main-game mode override is
    set, the plain mode when any of the board, radar or combat latches is still
    down, and otherwise the override field's own mapping.
-   Retail expands this body (sign-extending the short result) at the calls in
-   SyncMainGameModeRegions and the radar/action-panel/formation-board setters
-   but calls it everywhere else in this unit; what made those four sites inline
-   is not established, so they call it here. */
+   Retail expands this body (sign-extending the short result) in the
+   radar/action-panel/formation-board setters and in SyncMainGameModeRegions
+   but calls it everywhere else in this unit. What made those sites inline is
+   not established; the setters spell the expansion out. */
 // FUNCTION: WIZ8 0x005698C0
 short GetMainGameViewportMode(void)
 {

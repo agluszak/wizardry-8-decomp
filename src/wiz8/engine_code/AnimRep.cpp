@@ -27,10 +27,10 @@ W8AnimRepBase::W8AnimRepBase()
     local_location_010.SetZero();
     parent_location_01c.SetZero();
     rotation_028.SetIdentity();
-    render_state_04c.highlight_red = 0.0f;
-    render_state_04c.highlight_green = 0.0f;
-    render_state_04c.highlight_blue = 0.0f;
-    render_state_04c.highlight_alpha = 0.0f;
+    highlight_colour_04c.x = 0.0f;
+    highlight_colour_04c.y = 0.0f;
+    highlight_colour_04c.z = 0.0f;
+    highlight_colour_04c.w = 0.0f;
     instance_scale_05c = 1.0f;
     flag_060 = false;
     apply_instance_scale_061 = 0;
@@ -56,7 +56,7 @@ W8AnimRepBase::W8AnimRepBase(const W8AnimRepBase& other)
     local_location_010 = other.local_location_010;
     parent_location_01c = other.parent_location_01c;
     rotation_028 = other.rotation_028;
-    render_state_04c = other.render_state_04c;
+    highlight_colour_04c = other.highlight_colour_04c;
     instance_scale_05c = 1.0f;
     flag_060 = false;
     apply_instance_scale_061 = 0;

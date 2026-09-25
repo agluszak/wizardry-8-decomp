@@ -1373,7 +1373,7 @@ char MergeItems(W8Character* character, W8ItemInstance* destination)
     unsigned int index;
     unsigned char quantity;
     bool found = false;
-    char merged = 0;
+    bool merged = false;
     unsigned char partially_merged = 0;
 
     if (held->iItemNo == -1) {
@@ -1395,7 +1395,7 @@ char MergeItems(W8Character* character, W8ItemInstance* destination)
              recipe->merge_component_a == destination->iItemNo)) {
             found = true;
             if (recipe->merge_skill == -1) {
-                merged = 1;
+                merged = true;
             } else {
                 merged = character->skills[recipe->merge_skill].level >= recipe->merge_skill_level;
                 if (merged) {

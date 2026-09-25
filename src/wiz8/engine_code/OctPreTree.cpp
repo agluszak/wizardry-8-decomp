@@ -1305,11 +1305,9 @@ unsigned char OctPreTree::BuildPathLists(W8GameData* game_data, W8LevelFile* lev
         if (pre_pathing_2a0 == 0) {
             ReportBuildStatus(7, "Could not create PrePathing object\n");
         }
-        pre_pathing_2a0->ConfigureForLevel(
-            path_node_count_2a4, m_region_cell_178, static_cast<int>(m_path_clearance_17c),
-            reinterpret_cast< // reinterpret-ok: minimum_0c/maximum_18 are the adjacent bounds pair
-                const W8BoundingBox*>(&spatial_000.minimum_0c),
-            m_owned_0c0);
+        pre_pathing_2a0->ConfigureForLevel(path_node_count_2a4, m_region_cell_178,
+                                           static_cast<int>(m_path_clearance_17c),
+                                           &spatial_000.minimum_0c, m_owned_0c0);
         /* Verified retail behavior: this early return runs only the two
            local hash-table destructors.  preprops (and its pStopMeshes
            arrays), object_registry and g_octree_game_data are all

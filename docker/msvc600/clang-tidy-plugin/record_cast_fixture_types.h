@@ -5,8 +5,15 @@ namespace cast_fixture {
 struct A {};
 struct B {};
 struct C {};
-struct Base {};
-struct Derived : Base {};
+struct Prefix {
+    int prefix;
+};
+struct Base {
+    int base;
+};
+struct Derived : Prefix, Base {
+    int derived;
+};
 struct Controls {};
 struct Renderer {
     struct Pick {};

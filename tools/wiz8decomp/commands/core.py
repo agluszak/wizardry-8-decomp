@@ -275,6 +275,27 @@ def datacmp_command(
         raise typer.Exit(code=1)
 
 
+def equivalence_command(
+    program: Annotated[str, typer.Option("--program")] = "wiz8",
+) -> None:
+    """Re-prove configured reccmp equivalence groups against the original image."""
+    from .. import command_support as cli
+    from ..comparison import verify_equivalence_groups
+
+    def action() -> Any:
+        settings = cli.settings()
+        from ..source_index import target_for_program
+
+        return verify_equivalence_groups(
+            settings.repo_dir, target_for_program(settings.repo_dir, program)
+        )
+
+    result = action()
+    cli.emit(result)
+    if not result.get("ok"):
+        raise typer.Exit(code=1)
+
+
 def address_command(
     addresses: Annotated[list[str], typer.Argument(help="Original or recompiled addresses.")],
     program: Annotated[str, typer.Option("--program")] = "wiz8",
@@ -420,6 +441,7 @@ def register(app: typer.Typer) -> None:
     app.command("verify-call-targets")(verify_call_targets_command)
     app.command("vtable")(vtable_command)
     app.command("datacmp")(datacmp_command)
+    app.command("equivalence")(equivalence_command)
     app.command("addr")(address_command)
     app.command("runtime-test")(runtime_test_command)
     app.command("run")(run_command)

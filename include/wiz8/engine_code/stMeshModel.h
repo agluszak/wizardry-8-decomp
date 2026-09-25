@@ -136,8 +136,7 @@ void CopyDwordBuffer(void* destination, const void* source, int count);
 void FillDwordBuffer00474700(void* destination, unsigned int value, int count);
 /* Plain dword walk used by RenderTriMeshWithEquations's active-poly
    scratch resize and by stMeshModel clone's sunlight table copy. */
-void CopyUlongBuffer(unsigned long* destination, const unsigned long* source,
-                             unsigned long count);
+void CopyUlongBuffer(unsigned long* destination, const unsigned long* source, unsigned long count);
 /* dest[i] += source[i] for `count` floats. Callers pass vertex_count*3. */
 void AddFloatBuffer(float* destination, const float* source, int count);
 /* dest[i] = source[i] + offset for `count` vectors, or a plain copy when the

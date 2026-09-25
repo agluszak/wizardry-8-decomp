@@ -488,7 +488,7 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                             copy_count = needed;
                         }
                         CopyUlongBuffer(replacement, g_software_cull_active_polygons.data,
-                                                copy_count);
+                                        copy_count);
                     }
                     g_software_cull_active_polygons.release();
                     g_software_cull_active_polygons.data = replacement;
@@ -683,8 +683,7 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
    CopyDwordBuffer (vp memcopy + self-copy guard). Retail tests the
    count before the loop's own guard. */
 // FUNCTION: WIZ8 0x004747f0
-void CopyUlongBuffer(unsigned long* destination, const unsigned long* source,
-                             unsigned long count)
+void CopyUlongBuffer(unsigned long* destination, const unsigned long* source, unsigned long count)
 {
     if (count != 0) {
         for (unsigned long index = 0; index < count; ++index) {
