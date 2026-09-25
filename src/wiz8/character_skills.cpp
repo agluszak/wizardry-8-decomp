@@ -674,7 +674,7 @@ void PracticeCharacterSkill(W8Character* character, int skill_id, int usage_poin
                 if (skill->points_02 < 100) {
                     threshold = (100 - (skill->points_02 * 100) / 100) * skill->base_level_0a / 100;
                     if (g_skill_attributes[skill_id].category == 4) {
-                        threshold = threshold / 2;
+                        threshold /= 2;
                     }
                     if (threshold == 0) {
                         threshold = 1;

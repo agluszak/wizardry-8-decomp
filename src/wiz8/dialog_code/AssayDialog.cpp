@@ -574,7 +574,7 @@ unsigned char W8AssayDialog::PopulateText()
             if (count != 0 && wcslen(g_assay_entry_text) + 1 + wcslen(g_comma_space) < 0x101) {
                 wcscat(g_assay_entry_text, g_comma_space);
             }
-            text = gppStringList[g_character_skill_name_ids[static_cast<signed char>(
+            text = gppStringList[g_character_description_first_ids[static_cast<signed char>(
                 requirement->stat_id)]];
             if (wcslen(text) + 1 + wcslen(g_assay_entry_text) < 0x101) {
                 wcscat(g_assay_entry_text, text);

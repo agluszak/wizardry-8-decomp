@@ -174,7 +174,7 @@ srColorSurface* __stdcall LoadSurface(int handle, long* unused_out)
         width = 1;
         height = 1;
         palette = SR_NEW(W8Palette)(palette_colors, header.color_map_length);
-        palette->setName("TGA importer generated palette");
+        palette->setName("TGA-importer generated palette");
         palette->autoRelease();
         break;
     case 1:

@@ -167,9 +167,9 @@ void RebuildSpellIconHudRows(void)
             g_spell_icon_rows[g_spell_icon_count] = control;
             control->Invalidate(0);
             EnableRegionInput(0xd5 - g_spell_icon_count);
-            g_spell_icon_count = g_spell_icon_count + 1;
+            ++g_spell_icon_count;
             right = left - 1;
-            left = left - 0x13;
+            left -= 0x13;
         }
     }
 }
@@ -230,9 +230,9 @@ void RebuildCombatEffectHudRows(void)
             g_combat_effect_left_rows[g_combat_effect_left_count] = control;
             control->Invalidate(0);
             EnableRegionInput(g_combat_effect_left_count + 0xd6);
-            g_combat_effect_left_count = g_combat_effect_left_count + 1;
+            ++g_combat_effect_left_count;
             left = right + 1;
-            right = right + 0x15;
+            right += 0x15;
         }
     }
     g_combat_effect_right_panel->SetBounds(0x182, 0x14, 0x1ff, 0x28);
@@ -252,9 +252,9 @@ void RebuildCombatEffectHudRows(void)
             g_combat_effect_right_rows[g_combat_effect_right_count] = control;
             control->Invalidate(0);
             EnableRegionInput(0xe4 - g_combat_effect_right_count);
-            g_combat_effect_right_count = g_combat_effect_right_count + 1;
+            ++g_combat_effect_right_count;
             right = left - 1;
-            left = left - 0x15;
+            left -= 0x15;
         }
     }
 }
@@ -345,10 +345,10 @@ unsigned char PartyEffectIconRegionEvent(const InputAtom* event, W8Region* regio
             if (match == region->callback_id) {
                 break;
             }
-            match = match + 1;
+            ++match;
         }
-        slot = slot + 1;
-        slot_index = slot_index + 1;
+        ++slot;
+        ++slot_index;
     } while (slot < &g_status.effect_slots_17af[12]);
 
     if (slot_index != 12 && event->usEvent == MOUSE_POS) {
@@ -447,10 +447,10 @@ unsigned char CombatLeftEffectIconRegionEvent(const InputAtom* event, W8Region* 
                 if (match == region->callback_id) {
                     break;
                 }
-                match = match + 1;
+                ++match;
             }
-            slot_index = slot_index + 1;
-            slot = slot + 1;
+            ++slot_index;
+            ++slot;
         } while (slot_index < 9);
 
         if (slot_index != 9 && event->usEvent == MOUSE_POS) {
@@ -490,10 +490,10 @@ unsigned char CombatRightEffectIconRegionEvent(const InputAtom* event, W8Region*
                 if (match == region->callback_id) {
                     break;
                 }
-                match = match + 1;
+                ++match;
             }
-            slot_index = slot_index + 1;
-            slot = slot + 1;
+            ++slot_index;
+            ++slot;
         } while (slot_index < 6);
 
         if (slot_index != 6 && event->usEvent == MOUSE_POS) {

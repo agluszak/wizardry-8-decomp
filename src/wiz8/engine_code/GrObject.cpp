@@ -132,7 +132,7 @@ int g_value_60dfac = 1;
 // FUNCTION: WIZ8 0x004B6D10
 int IncrementValue60DFAC(void)
 {
-    g_value_60dfac = g_value_60dfac + 1;
+    ++g_value_60dfac;
     return g_value_60dfac;
 }
 

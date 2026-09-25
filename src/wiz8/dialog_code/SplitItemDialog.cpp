@@ -874,8 +874,8 @@ void W8SplitItemDialog::OnCountFieldClick(W8DialogButton* button)
     if (!ScreenPointInRect(&g_split_count_field_bounds, &point)) {
         return;
     }
-    point.x = point.x - g_split_count_field_bounds.left;
-    point.y = point.y - g_split_count_field_bounds.top;
+    point.x -= g_split_count_field_bounds.left;
+    point.y -= g_split_count_field_bounds.top;
     dialog->m_count_input_0b4->SetActive(1, &point);
     dialog->m_active_input_0b8 = dialog->m_count_input_0b4;
 }

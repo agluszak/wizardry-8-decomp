@@ -488,7 +488,7 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
                             copy_count = needed;
                         }
                         CopyUlongBuffer(replacement, g_software_cull_active_polygons.data,
-                                        static_cast<int>(copy_count));
+                                                copy_count);
                     }
                     g_software_cull_active_polygons.release();
                     g_software_cull_active_polygons.data = replacement;
@@ -680,22 +680,16 @@ void stMeshModel::RenderTriMeshWithEquations(srGERD& renderer, const TriMesh& me
 }
 
 /* Copy `count` dwords with a plain pointer walk. Distinct from
-   CopyDwordBuffer (vp memcopy + self-copy guard). Retail lowers the
-   walk through a dest-relative displacement. */
+   CopyDwordBuffer (vp memcopy + self-copy guard). Retail tests the
+   count before the loop's own guard. */
 // FUNCTION: WIZ8 0x004747f0
-void CopyUlongBuffer(unsigned long* destination, const unsigned long* source, int count)
+void CopyUlongBuffer(unsigned long* destination, const unsigned long* source,
+                             unsigned long count)
 {
     if (count != 0) {
-        int displacement =
-            // reinterpret-ok: dword copy via dest-relative source displacement
-            reinterpret_cast<const char*>(source) - reinterpret_cast<const char*>(destination);
-        do {
-            // reinterpret-ok: dword copy via dest-relative source displacement
-            *destination = *reinterpret_cast<unsigned long*>(reinterpret_cast<char*>(destination) +
-                                                             displacement);
-            ++destination;
-            --count;
-        } while (count != 0);
+        for (unsigned long index = 0; index < count; ++index) {
+            destination[index] = source[index];
+        }
     }
 }
 

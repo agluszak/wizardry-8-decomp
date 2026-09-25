@@ -863,7 +863,7 @@ unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
         location.SetFromFloat(&record.location);
         location *= g_world_scale;
         particle->setLocation(location);
-        particle->rotateX(1.5707963267948966);
+        particle->rotateX(1.5707963);
 
         if (record.bounds_origin.x != 0.0f) {
             particle->replace_when_full_191 = 1;
@@ -1153,7 +1153,7 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
     UpdateWorldProps(world);
     FileRead(info.hFile, &camera_mode, sizeof(camera_mode), 0);
     SetCameraSwayMode(world->camera, camera_mode == 0 ? -1 : 1);
-    if (world->octree == 0 && world != g_world) {
+    if (world->octree == 0 && world != g_world_659ab8) {
         FinalizeWorldScenes(world->static_scene, world->dynamic_scene);
     }
 

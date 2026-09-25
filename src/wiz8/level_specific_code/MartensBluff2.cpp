@@ -279,12 +279,13 @@ void MartensBluff2Spikeball(int command)
             g_master_functions->Add(MartensBluff2Spikeball);
         }
     }
-    g_flag_006834dc = false;
+    g_flag_006834dc = 0;
     if (g_spikeball_count < 0x10) {
         if (g_spikeball_count == 0 || g_spikeball_gate->IsFinished() ||
-            (g_spikeball_gate->PollElapsedIntervals(), g_spikeball_gate->IsFinished())) {
+            (g_spikeball_gate->PollElapsedIntervals(),
+             g_spikeball_gate->IsFinished())) {
             g_spikeball_gate->Arm();
-            g_spikeball_count = g_spikeball_count + 1;
+            ++g_spikeball_count;
             ClearAttackBlock(&effect);
             effect.magnitude.base = 0;
             effect.magnitude.count = 2;

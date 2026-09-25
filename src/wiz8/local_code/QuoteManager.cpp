@@ -909,7 +909,7 @@ unsigned char W8CharacterEvent::PlayEventSound()
     record->voice_sound_handle = sound_handle;
     if (sound_handle == 0xffffffff) {
         if (event_type > 0x91) {
-            static const wchar_t kFallbackVoiceText[] = L"Ouch play this sound";
+            static const wchar_t kFallbackVoiceText[] = L"Ouch play this sound.";
             record->voice_time_remaining_ms =
                 ComputePortraitMessageDuration(const_cast<wchar_t*>(kFallbackVoiceText));
         } else {

@@ -874,7 +874,10 @@ void W8TextControl::GetTextOrigin(int* px, int* py)
             goto plain;
         }
         handle = m_normalSprite;
-        if (handle == -1 && (handle = m_pressedSprite, handle == -1)) {
+        if (handle == -1) {
+            handle = m_pressedSprite;
+        }
+        if (handle == -1) {
             *measured = -1;
             m_measured_h = -1;
             goto plain;

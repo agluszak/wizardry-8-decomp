@@ -1687,7 +1687,7 @@ void AutoAdvanceSelectedCharacter(void)
             SelectPartyCharacter(party_slot);
             return;
         }
-        party_slot = party_slot + 1;
+        ++party_slot;
         if (party_slot > 7) {
             party_slot = 0;
         }
@@ -1789,7 +1789,7 @@ void PracticeCombatRoundSkills(int party_slot)
                     PracticeCharacterSkill(character, skill_id, 1, 0);
                 }
             }
-            hand_record->score = hand_record->score - 1;
+            --hand_record->score;
         }
     }
     for (int skill_id = 0; skill_id < W8_SKILL_COUNT; ++skill_id) {
@@ -1839,7 +1839,7 @@ void AdvanceCombatRound(void)
             }
         }
         if (!engaged) {
-            g_combat_state->unengaged_rounds_a56 = g_combat_state->unengaged_rounds_a56 + 1;
+            ++g_combat_state->unengaged_rounds_a56;
         }
     }
     AdvanceEnvironmentTime(120000);
@@ -2096,9 +2096,9 @@ void ExecuteCharacterAction(int party_slot)
     int detail;
 
     FaceCameraToSelection(party_slot);
-    if (gXStatus.fCombatMode != '\0') {
+    if (gXStatus.fCombatMode != 0) {
         saved_dead_34 = g_combat_state->characters[party_slot].dead_34;
-        if (saved_dead_34 == '\0') {
+        if (saved_dead_34 == 0) {
             slot->pending_action = slot->action_03d;
             slot->attack_mode[0] = slot->action_detail_041;
             slot->attack_mode[1] = -1;
@@ -2110,7 +2110,7 @@ void ExecuteCharacterAction(int party_slot)
                 PrepareCharacterAttacks(party_slot);
             }
         } else if ((slot->pending_action == 0 || slot->pending_action == 1) &&
-                   g_combat_state->characters[party_slot].alternate_hand_81 != '\0') {
+                   g_combat_state->characters[party_slot].alternate_hand_81 != 0) {
             W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
             row->hand_attack_values_40[0] = 0;
             row->hand_attack_values_40[1] = 0;
@@ -2120,7 +2120,7 @@ void ExecuteCharacterAction(int party_slot)
     }
     action = slot->pending_action;
     detail = slot->attack_mode[0];
-    if (gXStatus.fCombatMode != '\0') {
+    if (gXStatus.fCombatMode != 0) {
         if (action != 4 && action != 5) {
             g_combat_state->characters[party_slot].dead_34 = 1;
             RequestRedraw((1 << party_slot) | 0x100000);
@@ -2178,7 +2178,7 @@ void ExecuteCharacterAction(int party_slot)
                     slot->pending_action = -1;
                     action = -1;
                 } else {
-                    if (saved_dead_34 == '\0') {
+                    if (saved_dead_34 == 0) {
                         PrepareCharacterAttacks(party_slot);
                     }
                     AimAtCharacter(party_slot, target, W8_TARGETING_CONTEXT_OUT_OF_COMBAT);
@@ -2191,8 +2191,8 @@ void ExecuteCharacterAction(int party_slot)
     }
     if (CharacterActionTargetsEnemies(character, action, detail,
                                       &slot->pending_action_detail_015) != 0 &&
-        (gXStatus.fCombatMode == '\0' ||
-         (interrupt == -1 && g_combat_state->characters[party_slot].berserk_80 == '\0'))) {
+        (gXStatus.fCombatMode == 0 ||
+         (interrupt == -1 && g_combat_state->characters[party_slot].berserk_80 == 0))) {
         SetTargetSourceToCharacter(party_slot, &enemy_source);
         MakeTargetGroupHostile(&enemy_source, &slot->target_out_of_combat);
     }
@@ -2220,8 +2220,8 @@ void ExecuteCharacterAction(int party_slot)
         }
         break;
     case 4:
-        if (g_combat_state->characters[party_slot].defend_switched_a4 != '\0' &&
-            g_settings.verbose_combat_messages != '\0') {
+        if (g_combat_state->characters[party_slot].defend_switched_a4 != 0 &&
+            g_settings.verbose_combat_messages != 0) {
             PostCharacterNotice(party_slot, gppStringList[0x234]);
         }
         break;
@@ -2242,7 +2242,7 @@ void ExecuteCharacterAction(int party_slot)
         do {
             step = ExecuteCharacterSpellCast(party_slot, detail, power, &step_cost, 0);
             if (step == 0) {
-                result = '\0';
+                result = 0;
             }
             fatigue_cost += step_cost;
         } while (step == 2 && power == 8 &&
@@ -2265,12 +2265,12 @@ void ExecuteCharacterAction(int party_slot)
     }
     /* A failed action falls back to defending, unless a condition interrupted
        it or the slot had already acted. */
-    if (result == '\0') {
+    if (result == 0) {
         action = -1;
-        if (interrupt == -1 && saved_dead_34 == '\0') {
+        if (interrupt == -1 && saved_dead_34 == 0) {
             action = 4;
             slot->pending_action = 4;
-            if (g_settings.verbose_combat_messages != '\0') {
+            if (g_settings.verbose_combat_messages != 0) {
                 PostCharacterNotice(party_slot, gppStringList[0x234]);
             }
         } else {
@@ -2292,9 +2292,9 @@ void ExecuteCharacterAction(int party_slot)
         if (fatigue_cost == -1) {
             fatigue_cost = CharacterActionFatigueCost(party_slot, action);
         }
-        FatigueCharacter(party_slot, fatigue_cost, '\x01', NULL);
+        FatigueCharacter(party_slot, fatigue_cost, 1, NULL);
     }
-    if (gXStatus.fCombatMode != '\0') {
+    if (gXStatus.fCombatMode != 0) {
         g_combat_state->eCombatActionStatus = 2;
     }
 }
@@ -2373,18 +2373,18 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
     W8TargetSource source;
     W8TargetSource monster_source;
 
-    if (gXStatus.fCombatMode == '\0') {
+    if (gXStatus.fCombatMode == 0) {
         srAssertFail("gXStatus.fCombatMode", "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp",
                      0xe04, 0);
     }
     if (g_combat_state->uiCurrentPartyActionStatus == 1) {
         EndPartyMovementPhase();
     }
-    PointCameraAtMonster(monster_info, '\0', '\x01');
+    PointCameraAtMonster(monster_info, 0, 1);
     SetTargetSourceToMonster(monster_info, &source);
     interrupt = GetConditionInterrupt(&source);
     if (interrupt != -1) {
-        ShowNoticef(9, g_format_s_space_s, GetMonsterName(monster_info, NULL, '\0'),
+        ShowNoticef(9, g_format_s_space_s, GetMonsterName(monster_info, NULL, 0),
                     gppStringList[g_condition_notices[interrupt + 0x74]]);
         switch (interrupt) {
         case 0:
@@ -2402,8 +2402,8 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             ClearMonsterCondition(monster_info->location_id, 0xe);
             break;
         case 8:
-            if (monster_info->pCombat->berserk_015 == '\0') {
-                monster_info->pCombat->berserk_015 = true;
+            if (monster_info->pCombat->berserk_015 == 0) {
+                monster_info->pCombat->berserk_015 = 1;
                 berserked = 1;
             }
             break;
@@ -2414,9 +2414,9 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             monster_info->action_kind = 4;
             break;
         }
-        if (monster_info->pCombat->berserk_015 != '\0') {
+        if (monster_info->pCombat->berserk_015 != 0) {
             monster_info->action_kind = 0;
-            if (ChooseRandomMonsterAction(monster_info, 1, 0, berserked) == '\0') {
+            if (ChooseRandomMonsterAction(monster_info, 1, 0, berserked) == 0) {
                 if (interrupt == 8) {
                     FormatDebugMessage(
                         1, "ERROR: %ls (ID %d) is attacking friends with nobody in range",
@@ -2432,7 +2432,7 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         }
         if (MonsterActionTargetsEnemies(monster_info->action_kind, monster_info->action_detail,
                                         &monster_info->spell_power_level) != 0 &&
-            interrupt == -1 && monster_info->pCombat->berserk_015 == '\0') {
+            interrupt == -1 && monster_info->pCombat->berserk_015 == 0) {
             SetTargetSourceToMonster(monster_info, &monster_source);
             MakeTargetGroupHostile(&monster_source, &monster_info->Target);
         }
@@ -2468,19 +2468,20 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                 monster_info->pCombat->advancing_14b = 1;
                 if (interrupt != 0xc) {
                     ShowNoticef(
-                        9, gppStringList[0x23b], GetMonsterName(monster_info, NULL, '\0'),
-                        gppStringList[g_gender_name_message_rows[record->name_group_0cc][2]]);
+                        9, gppStringList[0x23b], GetMonsterName(monster_info, NULL, 0),
+                        gppStringList[g_gender_name_message_rows[record->name_group_0cc]
+                                                                       [2]]);
                 }
             }
             break;
         case 5:
         case 7:
             if (monster_info->uiCondition[0xc] == 0 || record->kind_0cb == '\f') {
-                if (record->prefer_ranged_actions_1b9 == '\0') {
-                    range = GetBestMonsterAttackRange(record, '\x01');
+                if (record->prefer_ranged_actions_1b9 == 0) {
+                    range = GetBestMonsterAttackRange(record, 1);
                     sight = 0;
                 } else {
-                    range = GetMonsterBestRangeCategory(monster_info, '\0', &sight);
+                    range = GetMonsterBestRangeCategory(monster_info, 0, &sight);
                 }
                 if (range != W8_RANGE_NONE) {
                     unsigned short move_result;
@@ -2497,43 +2498,43 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                     if (monster_info->Target.iType == W8_TARGET_KIND_MONSTER) {
                         unsigned int index = MonsterGetIndexByLocationID(
                             0xec1, "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp",
-                            monster_info->Target.iMonsterID, '\x01');
+                            monster_info->Target.iMonsterID, 1);
                         target_info = MonsterGetScriptPartByLocationIndex(index);
                         move_result = MonsterConfigureMovementToMonster(
                             monster_info->p3D, target_info->p3D, approach_distance, engage_distance,
                             position, sight, &move_flag);
                     } else {
-                        if (monster_info->ubDisposition != '\x01') {
+                        if (monster_info->ubDisposition != 1) {
                             break;
                         }
                         move_result = MonsterConfigureMovementToPlayer(
                             monster_info->p3D, approach_distance, engage_distance, position, sight,
                             &move_flag);
                     }
-                    if (move_result == 1 || (move_result == 3 && move_flag != '\0')) {
+                    if (move_result == 1 || (move_result == 3 && move_flag != 0)) {
                         if (monster_info->action_kind == 5) {
-                            if (g_settings.verbose_combat_messages != '\0') {
+                            if (g_settings.verbose_combat_messages != 0) {
                                 if (monster_info->Target.iType == W8_TARGET_KIND_MONSTER) {
                                     PostMonsterNotice(monster_info, gppStringList[0x238],
-                                                      GetMonsterName(target_info, NULL, '\0'));
+                                                      GetMonsterName(target_info, NULL, 0));
                                 } else {
                                     PostMonsterNotice(monster_info, gppStringList[0x236]);
                                 }
                             }
                         } else if (monster_info->Target.iType == W8_TARGET_KIND_MONSTER) {
                             PostMonsterNotice(monster_info, gppStringList[0x239],
-                                              GetMonsterName(target_info, NULL, '\0'));
+                                              GetMonsterName(target_info, NULL, 0));
                         } else {
                             PostMonsterNotice(monster_info, gppStringList[0x237]);
                         }
                         result = 1;
                         break;
                     }
-                    if (monster_info->pCombat->reconsider_action_152 != '\0') {
-                        monster_info->pCombat->reconsider_action_152 = '\0';
+                    if (monster_info->pCombat->reconsider_action_152 != 0) {
+                        monster_info->pCombat->reconsider_action_152 = 0;
                         continue;
                     }
-                    if (move_flag != '\0') {
+                    if (move_flag != 0) {
                         break;
                     }
                 }
@@ -2543,15 +2544,15 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             break;
         case 6:
             if (monster_info->summoned_2da != 0 ||
-                (monster_info->ubDisposition == '\x02' && gXStatus.hostile_monster_count == 0)) {
-                ShowNoticef(9, gppStringList[0x23c], GetMonsterName(monster_info, NULL, '\0'));
+                (monster_info->ubDisposition == 2 && gXStatus.hostile_monster_count == 0)) {
+                ShowNoticef(9, gppStringList[0x23c], GetMonsterName(monster_info, NULL, 0));
                 monster_info->action_kind = 1;
                 continue;
             }
             SetUpMonsterTurn(monster_info);
             result = MonsterLinkToStartupNavigator(monster_info->p3D) != 0;
             if (result != 0) {
-                ShowNoticef(9, gppStringList[0x23a], GetMonsterName(monster_info, NULL, '\0'));
+                ShowNoticef(9, gppStringList[0x23a], GetMonsterName(monster_info, NULL, 0));
             }
             break;
         case 8:
@@ -2562,13 +2563,13 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             result = IsMonsterControlPointInRange(monster_info) != 0;
             break;
         }
-        if (result != '\0') {
+        if (result != 0) {
             if (monster_info->action_kind != 1 && monster_info->action_kind != 8) {
-                MonsterSetNavigatorFlag25(monster_info->p3D, '\0');
+                MonsterSetNavigatorFlag25(monster_info->p3D, 0);
             }
             break;
         }
-        if (interrupt != -1 || monster_info->pCombat->active != '\0' ||
+        if (interrupt != -1 || monster_info->pCombat->active != 0 ||
             monster_info->action_kind == 9) {
             monster_info->action_kind = -1;
             break;
@@ -2578,17 +2579,17 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             monster_info->action_kind = 1;
         }
         if (monster_info->action_kind == 1) {
-            ShowNoticef(9, gppStringList[0x23c], GetMonsterName(monster_info, NULL, '\0'));
+            ShowNoticef(9, gppStringList[0x23c], GetMonsterName(monster_info, NULL, 0));
             break;
         }
     }
     if (monster_info->action_kind != 1 && monster_info->action_kind != 8) {
         g_combat_state->passive_round_a55 = 0;
     }
-    if (IsMonsterActionUsable(monster_info) != '\0') {
+    if (IsMonsterActionUsable(monster_info) != 0) {
         monster_info->pCombat->settle_ticks_14c = 0;
     }
-    monster_info->pCombat->active = '\x01';
+    monster_info->pCombat->active = 1;
     RequestRedraw(0x100000);
     g_combat_state->eCombatActionStatus = 2;
 }
@@ -2599,7 +2600,7 @@ void ExecuteMonsterAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
 // FUNCTION: WIZ8 0x004EB980
 char MonsterFleeAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
 {
-    if (!CanMonsterFlee(monster_info, record, '\0')) {
+    if (!CanMonsterFlee(monster_info, record, 0)) {
         return 0;
     }
     if (AimFleeingMonster(monster_info, record) == 0) {
@@ -2609,16 +2610,18 @@ char MonsterFleeAction(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         OrientMonsterTowardTarget(monster_info, 0);
         AimMonsterBreathAtTarget(monster_info);
     }
-    monster_info->pCombat->special_ready_145 = '\0';
+    monster_info->pCombat->special_ready_145 = 0;
     StartMonsterCycle(monster_info, 0x12, 1);
-    if (g_settings.verbose_combat_messages != '\0') {
+    if (g_settings.verbose_combat_messages != 0) {
         ShowNoticef(
-            9, L"%s %s!", GetMonsterName(monster_info, NULL, '\0'),
-            gppStringList[g_monster_special_attack_name_ids[record->special_attack_kind_0e3]]);
+            9, L"%s %s!", GetMonsterName(monster_info, NULL, 0),
+            gppStringList
+                [g_monster_special_attack_name_ids[record->special_attack_kind_0e3]]);
         return 1;
     }
-    ShowNoticef(9, g_format_s_space_s, GetMonsterName(monster_info, NULL, '\0'),
-                gppStringList[g_monster_special_attack_name_ids[record->special_attack_kind_0e3]]);
+    ShowNoticef(
+        9, g_format_s_space_s, GetMonsterName(monster_info, NULL, 0),
+        gppStringList[g_monster_special_attack_name_ids[record->special_attack_kind_0e3]]);
     return 1;
 }
 
@@ -2678,12 +2681,12 @@ int ExecuteMonsterSpecialAttack(W8MonsterInfo* monster_info, W8MonsterRecord* re
     W8GrowableVector<int> char_targets;
     W8GrowableVector<int> monster_targets;
 
-    if (monster_info->pCombat->special_ready_145 == '\0') {
+    if (monster_info->pCombat->special_ready_145 == 0) {
         return 2;
     }
     SetTargetSourceToMonster(monster_info, &source);
     if (g_special_attack_table[record->special_attack_kind_0e3][0] != 6) {
-        monster_info->p3D->aim_set_1bf = '\0';
+        monster_info->p3D->aim_set_1bf = 0;
         PointCameraAtCombatTarget(&source, &monster_info->Target);
         PopulateSpellTargetMarkers(0x77, 0, &source, &monster_info->Target, &monster_targets,
                                    &char_targets, 0);
@@ -2707,10 +2710,10 @@ int ExecuteCharacterSpecialAttack(int party_slot)
     W8GrowableVector<int> char_targets;
     W8GrowableVector<int> monster_targets;
 
-    if (g_combat_state->breath_visual_a4c->finished == '\0') {
+    if (g_combat_state->breath_visual_a4c->finished == 0) {
         return 2;
     }
-    g_combat_state->breath_visual_a4c->auto_release = '\x01';
+    g_combat_state->breath_visual_a4c->auto_release = 1;
     SetTargetSourceToCharacter(party_slot, &source);
     PopulateSpellTargetMarkers(0x77, 0, &source,
                                &g_status.buffers.XChar[party_slot].target_out_of_combat,
@@ -2721,9 +2724,9 @@ int ExecuteCharacterSpecialAttack(int party_slot)
                               char_targets, monster_targets);
     FatigueCharacter(
         party_slot,
-        static_cast<int>(static_cast<unsigned int>(g_status.buffers.Char[party_slot].uiStaminaMax) /
-                         5),
-        '\0', NULL);
+        static_cast<int>(
+            static_cast<unsigned int>(g_status.buffers.Char[party_slot].uiStaminaMax) / 5),
+        0, NULL);
     return 3;
 }
 
@@ -2774,12 +2777,13 @@ char CreateCharacterBreathEffect(int party_slot)
     if (g_combat_state->breath_visual_a4c == 0) {
         return 0;
     }
-    if (g_settings.verbose_combat_messages != '\0') {
-        PostCharacterNotice(party_slot, g_format_s_bang, gppStringList[g_breath_notice_id]);
+    if (g_settings.verbose_combat_messages != 0) {
+        PostCharacterNotice(party_slot, g_format_s_bang,
+                            gppStringList[g_breath_notice_id]);
     } else {
         PostCharacterNotice(party_slot, g_format_s_dash_dash, gppStringList[g_breath_notice_id]);
     }
-    g_combat_state->breath_visual_a4c->auto_release = '\0';
+    g_combat_state->breath_visual_a4c->auto_release = 0;
     PointCameraAtCombatTarget(&source, target);
     return 1;
 }
@@ -2809,7 +2813,7 @@ void StepMonsterCombatAction(W8MonsterInfo* monster_info)
         outcome = ExecuteMonsterSpecialAttack(monster_info, record);
         break;
     case 2:
-        if (monster_info->fSpellReleased == '\0') {
+        if (monster_info->fSpellReleased == 0) {
             srAssertFail("pMonsterInfo->fSpellReleased",
                          "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0xff2, 0);
         }
@@ -2820,8 +2824,8 @@ void StepMonsterCombatAction(W8MonsterInfo* monster_info)
     case 6:
     case 7:
     case 9:
-        PointCameraAtMonster(monster_info, '\0', '\x01');
-        if (monster_info->p3D->movement_complete_026 == '\0') {
+        PointCameraAtMonster(monster_info, 0, 1);
+        if (monster_info->p3D->movement_complete_026 == 0) {
             outcome = 2;
             break;
         }
@@ -2830,10 +2834,10 @@ void StepMonsterCombatAction(W8MonsterInfo* monster_info)
             monster_info->uiCondition[W8_CONDITION_BLIND] == 0) {
             MonsterChooseTarget(monster_info, &chosen, 3);
             if (chosen.iType == 2) {
-                MonsterForwardReferencePosition(monster_info->p3D, '\0');
+                MonsterForwardReferencePosition(monster_info->p3D, 0);
             } else if (chosen.iType == 3) {
-                MonsterAimAtMonster(monster_info->p3D, GetMonsterByLocationID(chosen.iMonsterID),
-                                    '\0');
+                MonsterAimAtMonster(monster_info->p3D,
+                                            GetMonsterByLocationID(chosen.iMonsterID), 0);
             }
         }
         RefreshAllSight();
@@ -2859,8 +2863,8 @@ void StepMonsterCombatAction(W8MonsterInfo* monster_info)
             }
             outcome = monster_info->action_kind;
             if (outcome < 4 || (outcome > 7 && outcome != 9)) {
-                combat->active = '\0';
-                combat->phase = combat->phase + g_combat_state->round_counter;
+                combat->active = 0;
+                combat->phase += g_combat_state->round_counter;
                 if (combat->phase > 100) {
                     combat->phase = 100;
                 }
@@ -2911,8 +2915,8 @@ int GetConditionInterrupt(W8TargetSource* source)
         condition_turns = character->uiCondition;
         moving = g_status.buffers.XChar[party_slot].pending_action == W8_ACTION_RUN;
         if (CanAnyHandReachTarget(party_slot)) {
-            can_attack = CanPartySlotAttackAnyTarget(party_slot, 8, 1, '\0') != 0;
-            second_hand_attack = CanPartySlotAttackAnyTarget(party_slot, 8, 1, '\x01') != 0;
+            can_attack = CanPartySlotAttackAnyTarget(party_slot, 8, 1, 0) != 0;
+            second_hand_attack = CanPartySlotAttackAnyTarget(party_slot, 8, 1, 1) != 0;
         }
         secondary_flag = g_combat_state->characters[party_slot].berserk_80;
         attribute = character->attributes[0].effective;
@@ -2926,9 +2930,8 @@ int GetConditionInterrupt(W8TargetSource* source)
             srAssertFail("pSource->iMonsterID != BAD_INDEX",
                          "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0x11a9, 0);
         }
-        monster_info = MonsterGetScriptPartByLocationIndex(
-            MonsterGetIndexByLocationID(0x11aa, "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp",
-                                        source->iMonsterID, '\x01'));
+        monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
+            0x11aa, "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", source->iMonsterID, 1));
         moving = monster_info->action_kind == 4;
         condition_turns = monster_info->uiCondition;
         can_attack =
@@ -2950,12 +2953,12 @@ int GetConditionInterrupt(W8TargetSource* source)
             return 2;
         }
         if (source->iType == W8_TARGET_SOURCE_MONSTER &&
-            GetMonsterDataForInfo(monster_info)->kind_0cb != '\x0c') {
+            GetMonsterDataForInfo(monster_info)->kind_0cb != 12) {
             return 2;
         }
     }
     if (condition_turns[W8_CONDITION_INSANE] != 0 && Random(100) < 0x50) {
-        if (second_hand_attack && secondary_flag == '\0' && Random(100) < 0x28) {
+        if (second_hand_attack && secondary_flag == 0 && Random(100) < 0x28) {
             return 8;
         }
         return Random(3) + 4;
@@ -2977,18 +2980,18 @@ int GetConditionInterrupt(W8TargetSource* source)
         if (!can_attack) {
             if (AreAllHandSlotsEmpty(&g_status.buffers.Char[party_slot]) == 0 &&
                 CanUnequipSlotItem(character, 6) != 0 && CanUnequipSlotItem(character, 7) != 0) {
-                SwapWeaponSetSlots(party_slot, '\0', '\x01');
+                SwapWeaponSetSlots(party_slot, 0, 1);
                 if (CanAnyHandReachTarget(party_slot) != 0 &&
-                    CanPartySlotAttackAnyTarget(party_slot, 8, 1, '\0') != '\0') {
+                    CanPartySlotAttackAnyTarget(party_slot, 8, 1, 0) != 0) {
                     PostCharacterNotice(party_slot, gppStringList[0x23d]);
                     return 9;
                 }
-                SwapWeaponSetSlots(party_slot, '\0', '\x01');
+                SwapWeaponSetSlots(party_slot, 0, 1);
             }
             return 10;
         }
     } else if (MonsterActionTargetsEnemies(monster_info->action_kind, monster_info->action_detail,
-                                           &monster_info->spell_power_level) == '\0') {
+                                           &monster_info->spell_power_level) == 0) {
         return -1;
     }
     return 9;
@@ -3036,7 +3039,7 @@ void PointCameraAtCombatTarget(W8TargetSource* source, W8CombatSlot* target)
                          "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", 0x140c, 0);
         }
         group = GetMonsterGroupByListIndex(GetMonsterGroupIndexByID(
-            0x140d, "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", target->iGroupID, '\x01'));
+            0x140d, "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", target->iGroupID, 1));
         location_id = group->leader_location_id;
         caller_line = 0x140d;
     } else {
@@ -3044,12 +3047,12 @@ void PointCameraAtCombatTarget(W8TargetSource* source, W8CombatSlot* target)
             return;
         }
         position = target->point;
-        PointCameraAtTarget(&position, '\0', '\0');
+        PointCameraAtTarget(&position, 0, 0);
         return;
     }
     monster_info = MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
-        caller_line, "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", location_id, '\x01'));
-    PointCameraAtMonster(monster_info, '\0', '\x01');
+        caller_line, "C:\\Projects\\Wizardry 8\\Local Code\\Combat.cpp", location_id, 1));
+    PointCameraAtMonster(monster_info, 0, 1);
 }
 
 // FUNCTION: WIZ8 0x004E8EA0
@@ -3092,14 +3095,14 @@ void UpdateCombat(void)
         if (AllSpellEffectsStillRunning() == 0) {
             return;
         }
-        W8Missile* missile = NextMissile('\x01');
+        W8Missile* missile = NextMissile(1);
         while (missile != 0) {
             if ((missile == g_combat_state->engaged_missile ||
                  g_missile_table[missile->missile_table_index_1d8].spell_missile_154 != 0) &&
                 missile->BlocksEndingCombat() != 0) {
                 return;
             }
-            missile = NextMissile('\0');
+            missile = NextMissile(0);
         }
         if (gXStatus.fCombatMode != 0) {
             for (unsigned int slot = 0; slot < 2; ++slot) {
@@ -3234,13 +3237,13 @@ void UpdateCombat(void)
         }
         GetMonsterDataForInfo(monster_info);
         FatigueMonster(monster_info, MonsterActionFatigueCost(monster_info), 0);
-        MonsterSetNavigatorFlag25(monster_info->p3D, '\x01');
+        MonsterSetNavigatorFlag25(monster_info->p3D, 1);
         g_combat_state->eCombatActionStatus = 0;
         g_combat_state->pActionMonsterInfo = 0;
         W8MonsterCombatState* combat = monster_info->pCombat;
         if (combat->active != 0) {
             if (monster_info->action_kind == 0 && combat->attacks_per_round != 0 &&
-                ChooseRandomMonsterAction(monster_info, 1, 0, '\0') != 0) {
+                ChooseRandomMonsterAction(monster_info, 1, 0, 0) != 0) {
                 combat->phase =
                     combat->phase + (100U - g_combat_state->round_counter) /
                                         static_cast<unsigned int>(combat->attacks_per_round + 1);

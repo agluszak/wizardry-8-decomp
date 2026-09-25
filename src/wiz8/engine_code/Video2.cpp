@@ -2124,14 +2124,14 @@ void InvalidateRegion(int left, int top, int right, int bottom, unsigned int fla
                 cell_flags = 0x80;
             }
             if (flags & 1) {
-                cell_flags = cell_flags | 2;
+                cell_flags |= 2;
             }
             for (; top < bottom; top = top + 8) {
                 if ((int)clipped_left < (int)clipped_right) {
                     x = clipped_left;
                     do {
-                        InvalidateDirtyTile(static_cast<int>(x) / 8 + (top / 8) * 0x50, cell_flags);
-                        x = x + 8;
+                        InvalidateDirtyTile((int)x / 8 + (top / 8) * 0x50, cell_flags);
+                        x += 8;
                     } while ((int)x < (int)clipped_right);
                 }
             }
@@ -2354,7 +2354,7 @@ void DrawVideoInspector(int left, unsigned int top)
 
             GetCameraPosition(&position);
             if (gfKeyState[0x70] != 0) {
-                position.x = position.x * g_world_cursor_scale;
+                position.x *= g_world_cursor_scale;
                 scaled = position.y * g_world_cursor_scale;
                 position.y = position.z * g_world_cursor_scale;
                 position.z = scaled;
@@ -2613,7 +2613,7 @@ void ClearSurfaceRect(int left, unsigned int top, int right, unsigned int bottom
             rows = bottom - top;
             do {
                 memset(row, 0, (right - left) * 2);
-                row = row + surface_description.lPitch;
+                row += surface_description.lPitch;
                 --rows;
             } while (rows != 0);
         }

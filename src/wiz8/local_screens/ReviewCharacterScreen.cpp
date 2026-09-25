@@ -3347,20 +3347,20 @@ void ShowEndingScreen(void)
         image = 0x1e1;
         schedule_fade = false;
         wcscpy(text, gppStringList[0x787]);
-        sound = "Data\\Sound\\NPCs\\VOC\\ENDGAME1.VOC";
+        sound = "Data\\Sound\\NPCs\\VOC_ENDGAME1\\VOC_ENDGAME1_005.mp3";
     } else if (GetFact(0x219) != 0) {
         image = 0x1e2;
         wcscpy(text, gppStringList[0x788]);
-        sound = "Data\\Sound\\NPCs\\VOC\\ENDGAME2.VOC";
+        sound = "Data\\Sound\\NPCs\\VOC_ENDGAME2\\VOC_ENDGAME2_005.mp3";
     } else if (GetFact(0x21b) != 0) {
         image = 0x1e2;
         wcscpy(text, gppStringList[0x789]);
-        sound = "Data\\Sound\\NPCs\\VOC\\ENDGAME3.VOC";
+        sound = "Data\\Sound\\NPCs\\VOC_ENDGAME3\\VOC_ENDGAME3_000.mp3";
     } else if (GetFact(0x1a2) != 0) {
         image = 0x1e3;
         fade_to_black = 1;
         wcscpy(text, gppStringList[0x78a]);
-        sound = "Data\\Sound\\NPCs\\VOC\\ENDGAME4.VOC";
+        sound = "Data\\Sound\\NPCs\\VOC_ENDGAME4\\VOC_ENDGAME4_000.mp3";
         music = "CombatLose.MPL";
         g_ending_screen = 0;
         g_ending_autosave = 0;

@@ -269,7 +269,7 @@ void PleaseWaitScreenFrame(void)
         } else if (g_load_descriptor->parameter == 0x38) {
             wcscpy(g_load_descriptor->caption, L"Entering default level...");
         } else {
-            swprintf(g_load_descriptor->caption, L"Entering test level %c..",
+            swprintf(g_load_descriptor->caption, L"Entering test level %c...",
                      g_load_descriptor->parameter + 2);
         }
     }

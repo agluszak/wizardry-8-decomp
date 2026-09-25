@@ -240,7 +240,7 @@ unsigned char LoadAniMesh(int file, W8AniMesh* mesh, unsigned char load_all)
 
     if (mesh->filename_30[0] != '\0') {
         instance_name = new char[strlen(mesh->filename_30) + 8];
-        sprintf(instance_name, "%s_%d_%d", mesh->filename_30, 0, mesh->list_index_28);
+        sprintf(instance_name, "%s::%d::%d", mesh->filename_30, 0, mesh->list_index_28);
     }
 
     if (!FileRead(handle, &frame_index, sizeof(frame_index), 0) ||
@@ -280,7 +280,7 @@ unsigned char LoadAniMesh(int file, W8AniMesh* mesh, unsigned char load_all)
         while (loaded_count < frame_count) {
             loaded_instance = 0;
             if (instance_name != 0) {
-                sprintf(instance_name, "%s_%d_%d", mesh->filename_30, loaded_count,
+                sprintf(instance_name, "%s::%d::%d", mesh->filename_30, loaded_count,
                         mesh->list_index_28);
             }
             if (!load_all || !FileRead(handle, &frame_index, sizeof(frame_index), 0) ||

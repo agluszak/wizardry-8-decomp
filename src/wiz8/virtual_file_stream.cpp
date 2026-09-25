@@ -222,7 +222,7 @@ inline void srInlineString::reset()
 srInlineString operator+(const srInlineString& left, const srInlineString& right)
 {
     srInlineString result(left);
-    if (right.data() == 0 || *right.data() == '\0') {
+    if (right.data() == 0 || *right.data() == 0) {
         return result;
     }
 

@@ -623,7 +623,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
         first_visit = 1;
     }
 
-    sprintf(path, "%s\\%s\\%s", level_info.level_folder, level_info.level_file_name,
+    sprintf(path, "%s\\%s.%s", level_info.level_folder, level_info.level_file_name,
             g_ambient_sound_filename);
     LoadAmbientSoundList0047AB40(path);
     if (!g_environment_load_flag) {

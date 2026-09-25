@@ -20,7 +20,8 @@ enum W8TargetSourceKind {
     W8_TARGET_SOURCE_NONE = 0,
     W8_TARGET_SOURCE_CHARACTER = 1,
     W8_TARGET_SOURCE_MONSTER = 2,
-    W8_TARGET_SOURCE_INDIRECT = 3
+    W8_TARGET_SOURCE_INDIRECT = 3,
+    W8_TARGET_SOURCE_COUNT = 4 /* SOURCE_TYPE_COUNT in PrepareSpellTarget's assert */
 };
 
 struct W8TargetSource {
@@ -73,7 +74,8 @@ enum W8TargetKind {
     W8_TARGET_KIND_PLACE = 6,
     W8_TARGET_KIND_ITEM = 7,
     W8_TARGET_KIND_EIGHT = 8,
-    W8_TARGET_KIND_CHARACTER_INDIRECT = 9
+    W8_TARGET_KIND_CHARACTER_INDIRECT = 9,
+    W8_TARGET_KIND_COUNT = 10 /* TARGET_TYPE_COUNT in PrepareSpellTarget's assert */
 };
 
 /* The shorter form a combatant carries inline, with one more field reset to

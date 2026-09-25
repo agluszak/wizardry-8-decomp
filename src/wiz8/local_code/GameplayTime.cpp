@@ -668,9 +668,9 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
 
     unsigned int damage = character->bonus_1770.damage_per_minute;
     if (damage != 0) {
-        damage = damage * minutes;
+        damage *= minutes;
         if (g_status.wait_state_2399 != 3 || gXStatus.fCombatMode != 0) {
-            damage = damage + (damage >> 1);
+            damage += damage >> 1;
         }
         ApplyDamageToCharacter(party_slot, damage, 1, 1, 0, static_cast<W8SpellEffectResult*>(0),
                                0);
@@ -729,8 +729,8 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
                 }
                 {
                     unsigned int loss = Random(4) + 1;
-                    character->uiHPMax = character->uiHPMax - loss;
-                    character->hp_adjustment = character->hp_adjustment - loss;
+                    character->uiHPMax -= loss;
+                    character->hp_adjustment -= loss;
                     if (loss == 1) {
                         PostCharacterNotice(party_slot, gppStringList[0x26e]);
                     } else {
@@ -752,8 +752,8 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
                 }
                 {
                     unsigned int loss = Random(4) + 1;
-                    character->uiStaminaMax = character->uiStaminaMax - loss;
-                    character->fatigue_penalty_0b21 = character->fatigue_penalty_0b21 + loss;
+                    character->uiStaminaMax -= loss;
+                    character->fatigue_penalty_0b21 += loss;
                     PostCharacterNotice(party_slot, gppStringList[0x271], loss);
                     int stamina = character->stamina;
                     if (1 < stamina) {
@@ -779,7 +779,7 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
             unsigned int hits = 0;
             for (unsigned int roll = minutes; roll != 0; --roll) {
                 if (Random(4) == 0) {
-                    hits = hits + 1;
+                    ++hits;
                 }
             }
             if (hits != 0) {
@@ -851,7 +851,7 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
         health_scale = g_float_005ebb34;
     }
     if (diseased) {
-        health_scale = health_scale * g_navigator_vertical_phase_step;
+        health_scale *= g_navigator_vertical_phase_step;
     }
     float spell_scale = health_scale;
     if (health_scale < g_float_005ebc7c) {
@@ -875,11 +875,11 @@ void GameTurnsPassedChar00503100(int party_slot, unsigned int minutes)
         stamina_scale = ScaleValueByProfessionLevel(character, W8_TRAIT_STAMINA_REGENERATION, 3.3f);
     }
     if (CharacterHasTrait(character, 0x1a) != 0 && spell_scale > g_float_005ebb34) {
-        spell_scale = spell_scale * g_float_005ec340;
+        spell_scale *= g_float_005ec340;
     }
     if (CharacterHasTrait(character, W8_TRAIT_LIZARDMAN_SLOW_MAGIC_RECOVERY) != 0 &&
         spell_scale > g_float_005ebb34) {
-        spell_scale = spell_scale * g_float_005ebccc;
+        spell_scale *= g_float_005ebccc;
     }
 
     if (health_scale > g_float_005ebb34 &&

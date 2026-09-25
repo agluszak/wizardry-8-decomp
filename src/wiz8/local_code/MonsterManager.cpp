@@ -392,7 +392,7 @@ void RecordMonsterKill(W8MonsterInfo* monster_info, char announce)
         if (killer_party_slot != -1 &&
             (killer_party_slot < 0 || killer_party_slot >= W8_PARTY_SLOT_COUNT ||
              !g_status.buffers.XChar[killer_party_slot].fOccupied ||
-             g_status.buffers.Char[killer_party_slot].fInParty == '\0')) {
+             g_status.buffers.Char[killer_party_slot].fInParty == 0)) {
             srAssertFail("(iKilledByPC == BAD_INDEX) || VALID_CHAR(iKilledByPC)",
                          MONSTER_MANAGER_CPP, 0x354, 0);
         }
@@ -400,16 +400,16 @@ void RecordMonsterKill(W8MonsterInfo* monster_info, char announce)
     } else {
         notice_channel = 9;
     }
-    if (announce != '\0' && monster_info->death_processed_253 == '\0' &&
+    if (announce != 0 && monster_info->death_processed_253 == 0 &&
         monster_info->party_threat.sight_state_04 != W8_SIGHT_UNSEEN) {
-        ShowNoticef(notice_channel, L"%s %s!", GetMonsterName(monster_info, 0, '\0'),
+        ShowNoticef(notice_channel, L"%s %s!", GetMonsterName(monster_info, 0, 0),
                     gppStringList[g_condition_notices[0x49]]);
     }
     ReleaseMonsterConditionBindings(monster_info);
     if (monster_info->summoned_2da == 1) {
         return;
     }
-    if (monster_info->death_processed_253 != '\0') {
+    if (monster_info->death_processed_253 != 0) {
         return;
     }
     if (killer_party_slot == -1) {
@@ -417,7 +417,7 @@ void RecordMonsterKill(W8MonsterInfo* monster_info, char announce)
             goto done;
         }
         unsigned int killer_index = MonsterGetIndexByLocationID(
-            0x37d, MONSTER_MANAGER_CPP, monster_info->condition_target_304.iMonsterID, '\0');
+            0x37d, MONSTER_MANAGER_CPP, monster_info->condition_target_304.iMonsterID, 0);
         if (killer_index == 0xffffffff) {
             goto done;
         }
@@ -425,17 +425,16 @@ void RecordMonsterKill(W8MonsterInfo* monster_info, char announce)
         if (killer_info == 0) {
             srAssertFail("pKillerMonsterInfo != NULL", MONSTER_MANAGER_CPP, 0x381, 0);
         }
-        if (killer_info->ubDisposition != '\x02') {
+        if (killer_info->ubDisposition != 2) {
             goto done;
         }
     }
-    ApplyFactionChange('\0', '\x01', static_cast<signed char>(record->faction_id_25f),
-                       monster_list_index);
+    ApplyFactionChange(0, 1, static_cast<signed char>(record->faction_id_25f), monster_list_index);
 done:
     MonsterKilled(record->record_id_187, killer_party_slot);
-    if (monster_info->fInCombat != '\0' &&
-        ((monster_info->ubDisposition == '\x01' && monster_info->uiCondition[0xd] == 0) ||
-         (monster_info->ubDisposition == '\x02' && monster_info->uiCondition[0xd] != 0))) {
+    if (monster_info->fInCombat != 0 &&
+        ((monster_info->ubDisposition == 1 && monster_info->uiCondition[0xd] == 0) ||
+         (monster_info->ubDisposition == 2 && monster_info->uiCondition[0xd] != 0))) {
         ++g_combat_state->combat_result_00c;
         if (g_status.current_level < W8_LEVEL_COUNT) {
             ++g_status.level_progress[g_status.current_level].monster_kill_count_03;
@@ -443,7 +442,7 @@ done:
         if (killer_party_slot != -1) {
             W8Character* killer = &g_status.buffers.Char[killer_party_slot];
             ++killer->kill_count_09f9;
-            if (record->significant_kill_268 != '\0') {
+            if (record->significant_kill_268 != 0) {
                 unsigned int level_total = 0;
                 int occupied = 0;
                 for (int slot = 0; slot < W8_PARTY_SLOT_COUNT; ++slot) {

@@ -244,8 +244,8 @@ srCamera* GDCamera::CreateOrAttachCamera(srNode* parent, srCamera* camera)
         g_game_camera->setClipRange(250.0, 75000.0);
         g_game_camera->setRotation(0.0, 0.0, 0.0);
         g_game_camera->setEnvironmentRange(0.0f, 1.0f);
-        double view = g_camera_view_factor_005ec538 * g_camera_view_factor_005ec300 *
-                      g_camera_view_factor_005ec568;
+        double view = g_camera_view_factor_005ec568 * g_camera_view_factor_005ec300 *
+                      g_camera_view_factor_005ec538;
         g_game_camera->setViewPlane(view, view);
     } else {
         srVector3T<double> position;

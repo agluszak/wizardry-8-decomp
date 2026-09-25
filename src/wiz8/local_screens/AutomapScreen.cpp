@@ -4,6 +4,7 @@
 #include "wiz8/local_screens/AutomapScreen.h"
 #include "wiz8/layouts/screen_state.h"
 #include "wiz8/local_screens/Screens.h"
+#include "wiz8/local_screens/mipe.h"
 #include "wiz8/vector.h"
 #include "surrender/srTypeRegistry.h"
 #include "surrender/srClipPlane.h"
@@ -406,7 +407,7 @@ bool AutomapHasCellAt(const srVector3T<float>* position)
 bool CanUseCurrentAutomapTool(void)
 {
     if (g_mipe_active != 0) {
-        switch (g_automap_tool) {
+        switch (g_mipe_mode) {
         case 6:
         case 7:
         case 15:
@@ -593,28 +594,28 @@ void AutomapLayerUpButton(void)
 // FUNCTION: WIZ8 0x00584150
 void AutomapPanNorthButton(void)
 {
-    g_automap_position.z += g_automap_zoom * g_float_005ebcd8;
+    g_automap_position.z += g_float_005ebcd8 * g_automap_zoom;
     SetAutomapCameraPoint(&g_automap_position);
 }
 
 // FUNCTION: WIZ8 0x00584180
 void AutomapPanSouthButton(void)
 {
-    g_automap_position.z -= g_automap_zoom * g_float_005ebcd8;
+    g_automap_position.z -= g_float_005ebcd8 * g_automap_zoom;
     SetAutomapCameraPoint(&g_automap_position);
 }
 
 // FUNCTION: WIZ8 0x005841B0
 void AutomapPanWestButton(void)
 {
-    g_automap_position.x -= g_automap_zoom * g_float_005ebcd8;
+    g_automap_position.x -= g_float_005ebcd8 * g_automap_zoom;
     SetAutomapCameraPoint(&g_automap_position);
 }
 
 // FUNCTION: WIZ8 0x005841E0
 void AutomapPanEastButton(void)
 {
-    g_automap_position.x += g_automap_zoom * g_float_005ebcd8;
+    g_automap_position.x += g_float_005ebcd8 * g_automap_zoom;
     SetAutomapCameraPoint(&g_automap_position);
 }
 
@@ -676,13 +677,13 @@ unsigned char AutomapScreenEnter(void)
     g_automap_layers.Clear();
     g_automap_layers.Add(0);
     char layer_name[16];
-    sprintf(layer_name, "LAYER_%d", layer_number);
+    sprintf(layer_name, "LAYER %d", layer_number);
     srClipPlane::ClientType* layer = static_cast<srClipPlane::ClientType*>(
         srCore.getRegistry()->find(srClipPlane::ClientType::sGetClassNode(), layer_name, 0));
     while (layer) {
         g_automap_layers.Add(layer);
         ++layer_number;
-        sprintf(layer_name, "LAYER_%d", layer_number);
+        sprintf(layer_name, "LAYER %d", layer_number);
         layer = static_cast<srClipPlane::ClientType*>(
             srCore.getRegistry()->find(srClipPlane::ClientType::sGetClassNode(), layer_name, 0));
     }
@@ -748,13 +749,13 @@ unsigned char AutomapScreenEnter(void)
                 char* text = (*script.lines.GetAt(line))->text;
                 if (strchr(text, '['))
                     break;
-                if (!strstr(text, "LAYER_")) {
+                if (!strstr(text, "LAYER=")) {
                     excluded_textures.Add(text);
                 } else {
                     float height = static_cast<float>(atof(text + 6));
                     srClipPlane::ClientType* clip = SR_NEW(srClipPlane)(static_cast<srNode*>(0));
                     if (clip) {
-                        sprintf(layer_name, "LAYER_%d", layer_number);
+                        sprintf(layer_name, "LAYER %d", layer_number);
                         clip->setName(layer_name);
                         srVector4T<float> plane;
                         plane.Set(0.0f, 1.0f, 0.0f, 0.0f);
@@ -1013,19 +1014,19 @@ void AutomapScreenFrame(void)
     }
     bool moved = false;
     if (gfKeyState[0x25]) {
-        g_automap_position.x -= g_automap_zoom * g_float_005ebcd8;
+        g_automap_position.x -= g_float_005ebcd8 * g_automap_zoom;
         moved = true;
     }
     if (gfKeyState[0x27]) {
-        g_automap_position.x += g_automap_zoom * g_float_005ebcd8;
+        g_automap_position.x += g_float_005ebcd8 * g_automap_zoom;
         moved = true;
     }
     if (gfKeyState[0x26]) {
-        g_automap_position.z += g_automap_zoom * g_float_005ebcd8;
+        g_automap_position.z += g_float_005ebcd8 * g_automap_zoom;
         moved = true;
     }
     if (gfKeyState[0x28]) {
-        g_automap_position.z -= g_automap_zoom * g_float_005ebcd8;
+        g_automap_position.z -= g_float_005ebcd8 * g_automap_zoom;
         moved = true;
     }
     if (moved)
@@ -1450,7 +1451,7 @@ unsigned int LightPendingAutomapCells(unsigned int max_count)
             if (0x20 < g_automap_cell_count) {
                 while (bit < static_cast<unsigned int>(g_automap_cell_count - 0x20) &&
                        g_bits_68f288->puiIndex[bit >> 5] == 0) {
-                    bit = bit + 0x20;
+                    bit += 0x20;
                 }
             }
             if (g_bits_68f288->Test(bit) != 0) {
@@ -1472,10 +1473,10 @@ unsigned int LightPendingAutomapCells(unsigned int max_count)
                 if (g_bits_68f28c->Test(bit) == 0) {
                     g_bits_68f28c->Set(bit);
                     LightAutomapCell(&position);
-                    lit = lit + 1;
+                    ++lit;
                 }
             }
-            bit = bit + 1;
+            ++bit;
         } while (bit < static_cast<unsigned int>(g_automap_cell_count));
     }
     return lit;
@@ -1521,7 +1522,7 @@ void UpdateAutomapBounds(void)
                 if (0x20 < g_automap_cell_count) {
                     while (bit < static_cast<unsigned int>(g_automap_cell_count - 0x20) &&
                            g_bits_68f288->puiIndex[bit >> 5] == 0) {
-                        bit = bit + 0x20;
+                        bit += 0x20;
                     }
                 }
                 if (g_bits_68f288->Test(bit) != 0) {
@@ -1558,13 +1559,13 @@ void UpdateAutomapBounds(void)
                         LightAutomapCell(&position);
                     }
                 }
-                bit = bit + 1;
-            } while (bit < static_cast<unsigned int>(g_automap_cell_count));
+                ++bit;
+            } while (bit < (unsigned int)g_automap_cell_count);
         }
-        g_automap_bounds_min.x = g_automap_bounds_min.x - g_float_005ec2f8;
-        g_automap_bounds_max.x = g_automap_bounds_max.x + g_float_005ec2f8;
-        g_automap_bounds_min.z = g_automap_bounds_min.z - g_float_005ec2f8;
-        g_automap_bounds_max.z = g_automap_bounds_max.z + g_float_005ec2f8;
+        g_automap_bounds_min.x -= g_float_005ec2f8;
+        g_automap_bounds_max.x += g_float_005ec2f8;
+        g_automap_bounds_min.z -= g_float_005ec2f8;
+        g_automap_bounds_max.z += g_float_005ec2f8;
         float span = g_automap_bounds_max.x - g_automap_bounds_min.x;
         if (span <= g_automap_bounds_max.z - g_automap_bounds_min.z) {
             span = g_automap_bounds_max.z - g_automap_bounds_min.z;
@@ -1776,7 +1777,7 @@ unsigned char ShowAutomapNoteTooltip(W8AutomapNote* note)
                     break;
                 }
             }
-            index = index + 1;
+            ++index;
         } while (index < g_automap_layers.count);
     }
     if (index - 1 == g_automap_layer) {

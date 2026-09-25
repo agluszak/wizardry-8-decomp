@@ -1352,7 +1352,7 @@ void W8LockInteraction::ApplyKnockKnock(int level, int /*flag*/, char backfire)
         if (Random(1000) < chance) {
             pin = order[i];
             panel = m_tumbler_panel_10;
-            if (backfire == '\0') {
+            if (backfire == 0) {
                 if (m_tumbler_owner_38[pin] == -1) {
                     tumbler = panel->m_tumblers_54[pin];
                     tumbler->m_hovered_38 = 0;
@@ -1378,7 +1378,7 @@ void W8LockInteraction::ApplyKnockKnock(int level, int /*flag*/, char backfire)
         }
     }
     if (rolled) {
-        if (backfire == '\0') {
+        if (backfire == 0) {
             SoundPlay(s_lock_pin_rising_64bb10, 0);
         } else {
             SoundPlay(s_lock_pin_falling_64bae8, 0);
@@ -1444,11 +1444,11 @@ void W8LockInteraction::BeginUnlock()
 // FUNCTION: WIZ8 0x00587C80
 void CastSpellAtLockInteraction(unsigned int level, int flag, int backfire)
 {
-    if (gXStatus.fTrapInteractMode != '\0') {
+    if (gXStatus.fTrapInteractMode != 0) {
         AttemptTrapDisarm(level, flag, backfire);
         return;
     }
-    if (gXStatus.fLockInteractMode == '\0') {
+    if (gXStatus.fLockInteractMode == 0) {
         ShowNotice(0xc, gppStringList[0x1ebc / 4], -1, -1, 0);
         return;
     }
@@ -4734,8 +4734,8 @@ void RedrawCombatMonsterList(void)
                     SetFontObjectPalette16BPP(g_font_683660, palette);
                     gprintfDirty(0xfa, row_y, const_cast<UINT16*>(g_format_s_006068e4),
                                  scratch_text);
-                    row_y = row_y + 0xb;
-                    live_row_count = live_row_count + 1;
+                    row_y += 0xb;
+                    ++live_row_count;
                     if (max_text_width < static_cast<unsigned int>(text_width)) {
                         max_text_width = static_cast<unsigned int>(text_width);
                     }
@@ -4743,7 +4743,7 @@ void RedrawCombatMonsterList(void)
                         break;
                     }
                 }
-                group_list_index = group_list_index + 1;
+                ++group_list_index;
                 list_length = PLLength(gXStatus.plsMonsterGroupList);
             } while (group_list_index < list_length);
         }
@@ -5492,10 +5492,12 @@ void FallbackFromUnreachableAction(int party_slot)
     case W8_ACTION_ATTACK:
     case W8_ACTION_BERSERK:
         if (CanAnyHandReachTarget(party_slot) &&
-            (g_combat_state->round_active_001 != 0 || gXStatus.fPartyMovementMode != 0) &&
-            (SelectPartyCharacter(party_slot), party_slot == g_status.selected_character)) {
-            SetTargetingMode(2);
-            return;
+            (g_combat_state->round_active_001 != 0 || gXStatus.fPartyMovementMode != 0)) {
+            SelectPartyCharacter(party_slot);
+            if (party_slot == g_status.selected_character) {
+                SetTargetingMode(2);
+                return;
+            }
         }
         break;
     case W8_ACTION_CAST_SPELL:
@@ -5543,17 +5545,21 @@ void FallbackFromUnreachableAction(int party_slot)
         break;
     case W8_ACTION_PROTECT:
         if (CanCharacterAttack(party_slot) &&
-            (g_combat_state->round_active_001 != 0 || gXStatus.fPartyMovementMode != 0) &&
-            (SelectPartyCharacter(party_slot), party_slot == g_status.selected_character)) {
-            SetTargetingMode(1);
-            return;
+            (g_combat_state->round_active_001 != 0 || gXStatus.fPartyMovementMode != 0)) {
+            SelectPartyCharacter(party_slot);
+            if (party_slot == g_status.selected_character) {
+                SetTargetingMode(1);
+                return;
+            }
         }
         break;
     case W8_ACTION_BREATHE:
         if (CanCharReBreathe(party_slot) &&
-            (g_combat_state->round_active_001 != 0 || gXStatus.fPartyMovementMode != 0) &&
-            (SelectPartyCharacter(party_slot), party_slot == g_status.selected_character)) {
-            SetTargetingMode(4);
+            (g_combat_state->round_active_001 != 0 || gXStatus.fPartyMovementMode != 0)) {
+            SelectPartyCharacter(party_slot);
+            if (party_slot == g_status.selected_character) {
+                SetTargetingMode(4);
+            }
         }
         break;
     }
@@ -5942,7 +5948,7 @@ void UpdateCombatPortraitStatus(void)
             if (status == 3) {
                 if (combat_row->combat_status_8c == 3) {
                     if (ClockIsTicking(entry->acting_portrait_pulse_clock) == 0) {
-                        entry->acting_portrait_pulse = entry->acting_portrait_pulse + 1;
+                        ++entry->acting_portrait_pulse;
                         if (entry->acting_portrait_pulse == 0xc) {
                             entry->acting_portrait_pulse = 1;
                             entry->acting_portrait_pulse_clock = SetCountdownClock(100);

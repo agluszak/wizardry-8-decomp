@@ -453,7 +453,7 @@ int W8ItemVideoObjectCache::GetOrCreateVideoObject(int item_id)
     if (name[0] == '\0') {
         name = g_item_video_object_fallback_names[record->unidentified_name_index];
     }
-    sprintf(g_video_frames_62c430[object].path, "Data\\Items\\%s", name);
+    sprintf(g_video_frames_62c430[object].path, "%s\\%s", "Data\\Items", name);
     if (strstr(g_video_frames_62c430[object].path, ".sti") == 0) {
         strcat(g_video_frames_62c430[object].path, ".sti");
     }
@@ -4100,7 +4100,7 @@ void SplitThrowableStackBetweenHands(W8Character* character, int equip_slot)
             SwapItemInstances(&character->EquippedItem[equip_slot], source, character, 1);
             return;
         }
-        moved = moved - (moved >> 1);
+        moved -= (moved >> 1);
     } else {
         if (moved == 1) {
             return;

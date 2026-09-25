@@ -309,7 +309,7 @@ void TickPartyPortraitFx(void)
         clock_expired = ClockIsTicking(entry->portrait_fx_clock) == 0;
         if (entry->damage_splat_active != 0) {
             if (clock_expired != 0) {
-                entry->damage_splat_frame = entry->damage_splat_frame + 1;
+                ++entry->damage_splat_frame;
                 dirty = 1;
             }
             if (entry->damage_splat_frame == entry->damage_splat_end_frame) {
@@ -322,7 +322,7 @@ void TickPartyPortraitFx(void)
         }
         if (entry->effect_icon_active != 0) {
             if (clock_expired != 0) {
-                entry->effect_icon_frame = entry->effect_icon_frame + 1;
+                ++entry->effect_icon_frame;
                 dirty = 1;
             }
             if (entry->effect_icon_frame == entry->effect_icon_end_frame) {
@@ -588,8 +588,8 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
                     fill_color = Get16BPPColor(0x10101);
                     do {
                         LineDraw(1, draw_x, draw_y, draw_x, end_y, fill_color, screen);
-                        draw_x = draw_x + 1;
-                        line_count = line_count - 1;
+                        ++draw_x;
+                        --line_count;
                     } while (line_count != 0);
                 }
                 UnlockPrimarySurface();
@@ -611,8 +611,8 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
                     fill_color = Get16BPPColor(0x10101);
                     do {
                         LineDraw(1, draw_x, draw_y, draw_x, end_y, fill_color, screen);
-                        draw_x = draw_x + 1;
-                        line_count = line_count - 1;
+                        ++draw_x;
+                        --line_count;
                     } while (line_count != 0);
                 }
                 UnlockPrimarySurface();
@@ -635,8 +635,8 @@ void RedrawPartyPortraitBars(unsigned int party_slot, char slot_enabled)
                         fill_color = Get16BPPColor(0x10101);
                         do {
                             LineDraw(1, draw_x, draw_y, draw_x, end_y, fill_color, screen);
-                            draw_x = draw_x + 1;
-                            line_count = line_count - 1;
+                            ++draw_x;
+                            --line_count;
                         } while (line_count != 0);
                     }
                     UnlockPrimarySurface();

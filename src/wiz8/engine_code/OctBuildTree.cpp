@@ -104,7 +104,7 @@ W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
     deepest_link_list_b8 = 0;
 
     if (leaf_size < g_float_005ebc64) {
-        ReportBuildStatus(7, "Leaf Size too small--try a larger leaf size!");
+        ReportBuildStatus(7, "Leaf Size too small--try a larger leaf size!\n");
     }
     spatial_00.flags_00 = 0;
     spatial_00.item_limit_48 = item_limit;
@@ -151,7 +151,7 @@ W8OctBuildTree::W8OctBuildTree(float leaf_size, srVector3T<float>* minimum,
                 ++spatial_00.depth_44;
             }
             if (spatial_00.depth_44 > 6) {
-                ReportBuildStatus(7, "Leaf Size too small--try a larger leaf size!");
+                ReportBuildStatus(7, "Leaf Size too small--try a larger leaf size!\n");
             }
             spatial_00.extent_04 = spatial_00.cell_size_08;
         } else {

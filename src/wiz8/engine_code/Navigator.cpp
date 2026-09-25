@@ -1176,8 +1176,8 @@ W8Navigator* W8Navigator::ResolveBlockingNavigator(const srVector3T<float>* from
     if (include_target != 0 && target_navigator_04c != 0) {
         location = target_navigator_04c->movement_0c0.location_id_004;
     }
-    if (g_octree->ResolveTraceHit(from, to, movement_0c0.location_id_004, &hit_location, location,
-                                  trace_mask_090, '\0') != 0) {
+    if (g_octree->ResolveTraceHit(from, to, movement_0c0.location_id_004, &hit_location,
+                                         location, trace_mask_090, 0) != 0) {
         if (hit_location == 0) {
             return g_startup_world;
         }
@@ -1414,7 +1414,7 @@ unsigned char W8NavigatorAttachment::CheckPositionHopHeight(const srVector3T<flo
     from.y = position_4c[base].z;
     to.x = position_4c[end].x;
     to.y = position_4c[end].z;
-    distance = PointToSegmentDistance2D(&point, &from, &to, '\0', &fraction);
+    distance = PointToSegmentDistance2D(&point, &from, &to, 0, &fraction);
     surfaces = g_octree->pathing_180->m_pSurfaces_048;
     from_height = (surfaces[path_values_50[base]].flags_00 >> 0xc) * g_world_scale;
     to_height = (surfaces[path_values_50[end]].flags_00 >> 0xc) * g_world_scale;
@@ -1445,14 +1445,14 @@ unsigned char W8NavigatorAttachment::CheckPredictedHopHeight(const srVector3T<fl
     from.y = position_4c[path_cursor_04 - 1].z;
     to.x = position_4c[path_cursor_04].x;
     to.y = position_4c[path_cursor_04].z;
-    distance = PointToSegmentDistance2D(&point, &from, &to, '\0', &fraction);
+    distance = PointToSegmentDistance2D(&point, &from, &to, 0, &fraction);
     base = path_cursor_04 - 1;
     if (path_cursor_04 < path_position_index_08 && path_values_50[path_cursor_04 + 1] != 0) {
         from.x = to.x;
         from.y = to.y;
         to.x = position_4c[path_cursor_04 + 1].x;
         to.y = position_4c[path_cursor_04 + 1].z;
-        other_distance = PointToSegmentDistance2D(&point, &from, &to, '\0', other_fraction);
+        other_distance = PointToSegmentDistance2D(&point, &from, &to, 0, other_fraction);
         if (other_distance < distance) {
             base = path_cursor_04;
             fraction = other_fraction[0];
@@ -1488,7 +1488,7 @@ unsigned char W8NavigatorAttachment::AdvancePositionTowardWaypoint(srVector3T<fl
     from.y = position_4c[path_cursor_04 - 1].z;
     to.x = position_4c[path_cursor_04].x;
     to.y = position_4c[path_cursor_04].z;
-    PointToSegmentDistance2D(&point, &from, &to, '\x01', &fraction);
+    PointToSegmentDistance2D(&point, &from, &to, 1, &fraction);
     dir_x = to.x - from.x;
     dir_z = to.y - from.y;
     remainder = (g_float_005ebb38 - fraction) * srVector2T<float>(dir_x, dir_z).Length();
@@ -1515,9 +1515,9 @@ unsigned char W8NavigatorAttachment::AdvancePositionTowardWaypoint(srVector3T<fl
     }
     segment = srVector2T<float>(dir_x, dir_z).Length();
     if (segment != g_zero_005ebb40) {
-        distance = distance / segment;
-        dir_x = dir_x * distance;
-        dir_z = dir_z * distance;
+        distance /= segment;
+        dir_x *= distance;
+        dir_z *= distance;
     }
     position->x = dir_x + point.x;
     position->z = dir_z + point.y;

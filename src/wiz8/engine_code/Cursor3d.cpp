@@ -475,7 +475,7 @@ void BindCursorMonsterToGroup(void)
 
     if (gp3DCursor->group_bind_pending_09 != 0 && gp3DCursor->light_24 != 0) {
         gp3DCursor->group_bind_pending_09 = 0;
-        gp3DCursor->input_delta_0c.z = gp3DCursor->input_delta_0c.z + 1;
+        ++gp3DCursor->input_delta_0c.z;
         if (gp3DCursor->particle_04 != 0) {
             gp3DCursor->particle_04->speed_min_214 = 1000.0f;
             gp3DCursor->particle_04->speed_max_218 = 2000.0f;
@@ -599,7 +599,7 @@ void UpdateWorldCursor(void)
     if (gfRightButtonState != 0) {
         if (gp3DCursor->group_bind_pending_09 == 0 && gp3DCursor->light_24 != 0) {
             gp3DCursor->group_bind_pending_09 = 1;
-            gp3DCursor->input_delta_0c.z = gp3DCursor->input_delta_0c.z + 1;
+            ++gp3DCursor->input_delta_0c.z;
             if (gp3DCursor->particle_04 != 0) {
                 gp3DCursor->particle_04->speed_min_214 = 3000.0f;
                 gp3DCursor->particle_04->speed_max_218 = 6000.0f;
@@ -613,10 +613,10 @@ void UpdateWorldCursor(void)
         if (gp3DCursor->detached_50 != 0) {
             gp3DCursor->track_ground_41 = 0;
         }
-        gp3DCursor->input_delta_0c.y = gp3DCursor->input_delta_0c.y + (0xf0 - cursor_point.y);
+        gp3DCursor->input_delta_0c.y += 0xf0 - cursor_point.y;
     } else {
-        gp3DCursor->input_delta_0c.x = gp3DCursor->input_delta_0c.x + (cursor_point.x - 0x140);
-        gp3DCursor->input_delta_0c.z = gp3DCursor->input_delta_0c.z + (0xf0 - cursor_point.y);
+        gp3DCursor->input_delta_0c.x += cursor_point.x - 0x140;
+        gp3DCursor->input_delta_0c.z += 0xf0 - cursor_point.y;
     }
     WarpSystemCursor(0x140, 0xf0);
     ApplyWorldCursorInput();
@@ -782,7 +782,7 @@ void UpdateWorldCursorPlacement(void)
         rotation.MultiplyBy(axis);
     }
     GetCameraPosition(&camera);
-    camera.y = camera.y - g_default_world_height;
+    camera.y -= g_default_world_height;
     cursor = gp3DCursor;
     cursor->last_published_34 = -100000000.0f;
     forward.Set(0.0, 0.0, g_float_60ab48);
@@ -795,7 +795,7 @@ void UpdateWorldCursorPlacement(void)
         if (cursor->detached_50 == 0) {
             cursor->offset_18 -= camera;
         }
-        target.y = target.y + g_float_005ecb08;
+        target.y += g_float_005ecb08;
         PointCameraAtTarget(&target, 1, 0);
     } else {
         cursor->position_28 = target;

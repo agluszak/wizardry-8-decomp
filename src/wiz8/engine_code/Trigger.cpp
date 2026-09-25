@@ -3220,8 +3220,7 @@ void Trigger::Run(int source)
             float duration = abs(m_lData2) * 0.001f;
 
             if (m_lData2 > 0 && trigger_kind_018 != 2) {
-                srAssertFail("m_lData2 < 0 || m_iType == TRIGGER_INVISIBLE",
-                             "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x87f,
+                srAssertFail("0", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x87f,
                              "Continous firing missile must be invisible trigger.");
             }
             m_pEvent = new W8TriggerEvent;

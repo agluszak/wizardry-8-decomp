@@ -1270,7 +1270,7 @@ void RedrawDialogueTextInput(void)
         if (offset < 7) {
             SaveFontSettings();
             SetFontDestBuffer(0xfffffff2, g_level_block->text_box_left, g_level_block->text_box_top,
-                              g_level_block->text_box_right, g_level_block->text_box_bottom, '\0');
+                              g_level_block->text_box_right, g_level_block->text_box_bottom, 0);
             SetFontObjectPalette16BPP(g_level_block->text_box_font, g_level_block->palette_2ec);
             SetFont(g_level_block->text_box_font);
 
@@ -2327,7 +2327,7 @@ void AttemptTrapDisarm(int level, int /*flag*/, char backfire)
     W8MainGameScreen* screen = g_main_game_screen;
     int chance;
 
-    if (backfire != '\0') {
+    if (backfire != 0) {
         chance = 0;
     } else {
         chance = level * 5 + 0x32 + screen->m_difficulty_038 * -6;

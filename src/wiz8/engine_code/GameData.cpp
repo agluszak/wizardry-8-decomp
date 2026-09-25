@@ -291,7 +291,7 @@ void W8GameData::ApplyCameraMotionFlags(unsigned int flags, srMatrix3T<float>* r
     }
     if ((flags & 0x2000) != 0) {
         g_camera_max_yaw_velocity = 0.116355285f;
-        yaw_input = yaw_input * g_float_005ebc3c;
+        yaw_input *= g_float_005ebc3c;
     } else {
         g_camera_max_yaw_velocity = 0.3490658700466156f;
     }
@@ -753,7 +753,7 @@ W8GDSurface* W8GameData::ProbePropsAlongMotion(srVector3T<float>* direction,
             level->contact_facing_1c = facing;
             level->contact_normal_ac = normal;
         }
-        s_prop_hit_plane_00652d90.w = s_prop_hit_plane_00652d90.w - along_length;
+        s_prop_hit_plane_00652d90.w -= along_length;
         nearest_surface->hit_plane_38 = &s_prop_hit_plane_00652d90;
         position->x = hit_point.x + scratch->x;
         position->y = hit_point.y + scratch->y;
@@ -826,7 +826,7 @@ unsigned char W8GameData::ProbeMonstersAlongMotion(srVector3T<float>* direction,
             planar = sqrtf(dz * dz + dx * dx);
             radius = monster->radius_084;
             if (monster_info->fInCombat != 0) {
-                radius = radius + g_world_scale;
+                radius += g_world_scale;
             }
             float abs_dy = dy;
             // reinterpret-ok: retail clears the sign bit of the spilled dy float
@@ -904,9 +904,9 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
 
     level = g_level_data;
     level->flags &= ~3u;
-    level->vector_64.x = level->vector_64.x + level->vector_58.x;
-    level->vector_64.y = level->vector_64.y + level->vector_58.y;
-    level->vector_64.z = level->vector_64.z + level->vector_58.z;
+    level->vector_64.x += level->vector_58.x;
+    level->vector_64.y += level->vector_58.y;
+    level->vector_64.z += level->vector_58.z;
     level->vector_94.Set(level->vector_58.x * level->camera_scale_14,
                          level->vector_58.y * level->camera_scale_14,
                          level->vector_58.z * level->camera_scale_14);
@@ -984,7 +984,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
     attempt = 0;
 
     for (;;) {
-        attempt = attempt + 1;
+        ++attempt;
         if (attempt < 6) {
             g_environment_motion_active = 1;
             probe_position = camera_position;
@@ -1072,7 +1072,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
                     collision_count = 0;
                 }
                 collisions[collision_count] = nearest_surface;
-                collision_count = collision_count + 1;
+                ++collision_count;
                 if (99 < collision_count) {
                     srAssertFail("lCollisions < 100",
                                  "C:\\Projects\\Wizardry 8\\Engine Code\\GameData.cpp", 0x253, 0);
@@ -1133,7 +1133,7 @@ unsigned char W8GameData::AdvanceEnvironmentMotion()
                             }
                         }
                         collisions[crossed_count] = surface;
-                        crossed_count = crossed_count + 1;
+                        ++crossed_count;
                     }
                 }
                 for (index = 0; index < crossed_count; ++index) {
@@ -1897,7 +1897,7 @@ unsigned char W8GDSurface::ClampHitToEdge(const srVector3T<float>* point,
     }
     if ((flags_00 & 4) == 0) {
         if (plane_24.normal.y < g_float_005ebc9c) {
-            edge_dist = edge_dist * g_navigator_linked_radius_scale;
+            edge_dist *= g_navigator_linked_radius_scale;
         }
     } else {
         float scaled = *limit * g_navigator_mode3_scale;
@@ -2137,7 +2137,7 @@ unsigned char W8GDSurface::ResolveCollision(srVector3T<float>* origin,
             }
             ProjectVectorOntoVector(&slide, &crease_a);
             s_second_normal_00652d68 = normal;
-            s_collision_state = s_collision_state + 1;
+            ++s_collision_state;
             s_second_surface_00652d60 = index_04;
             s_second_limit_0065294c = adjusted_d;
         }

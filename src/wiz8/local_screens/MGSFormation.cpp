@@ -435,7 +435,7 @@ static void UpdateFormationCells(void)
                 overlay->m_alternateNormalSprite = sprite + 1;
                 overlay->m_pressedSprite = sprite;
                 overlay->m_alternatePressedSprite = sprite + 1;
-                sprite = sprite + 2;
+                sprite += 2;
             }
             overlay->m_disabledSprite = sprite;
             primary->SetActive(true);

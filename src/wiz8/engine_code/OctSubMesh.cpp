@@ -227,7 +227,7 @@ stMeshModel* OctMeshModel::Read0049E9A0(int file, srMaterialIFace** materials,
     read_ok &= FileRead(file, &next_link_08, 4, 0);
     read_ok &= FileRead(file, &material_index_0c, 4, 0);
     if (read_ok == 0) {
-        ShutdownWithErrorBox("OctMeshModel::Read -- Could not read Integer fields.");
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not read Integer fields.\n");
     }
 
     unsigned int header = packed_header_3c;
@@ -257,8 +257,8 @@ stMeshModel* OctMeshModel::Read0049E9A0(int file, srMaterialIFace** materials,
 
     vertex_locations_14 = model->getVertexLoc();
     ReadMeshArray(file, vertex_locations_14, vertex_count_40,
-                  "OctMeshModel::Read -- Could not get vertex location array.",
-                  "OctMeshModel::Read -- Could not read Integer fields.");
+                  "OctMeshModel::Read -- Could not get vertex location array.\n",
+                  "OctMeshModel::Read -- Could not read Integer fields.\n");
 
     model->setUVCount(map_count_10);
     vertex_map_18 = model->getVertexTexCoords(0, 0, 1);
@@ -342,7 +342,7 @@ stMeshModel* OctMeshModel::Read0049E9A0(int file, srMaterialIFace** materials,
 
     unsigned long* shade_indices = model->getVertexShadeIndex(1);
     if (vertex_locations_14 == 0) {
-        ShutdownWithErrorBox("OctMeshModel::Read -- Could not get vertex location array.");
+        ShutdownWithErrorBox("OctMeshModel::Read -- Could not get vertex location array.\n");
     }
     for (unsigned long shade_index = 0; shade_index < static_cast<unsigned long>(vertex_count_40);
          ++shade_index) {

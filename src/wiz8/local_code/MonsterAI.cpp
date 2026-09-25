@@ -192,7 +192,7 @@ void UpdateMonsterGroups(char staggered)
     if (PLLength(gXStatus.plsMonsterGroupList) == 0) {
         return;
     }
-    g_monster_group_tick = g_monster_group_tick + 1;
+    ++g_monster_group_tick;
     if (staggered == 0) {
         if (gXStatus.fCombatMode == 0 || gXStatus.sight_refresh_pending_a03 != 0) {
             if (gXStatus.sight_refresh_pending_a03 != 0) {
@@ -2529,7 +2529,7 @@ bool MonsterGroupHasReinforcement(W8MonsterGroup* monster_group)
     float other_distance;
     float monster_distance;
 
-    if (gXStatus.plsMonsterGroupEncounterList == 0) {
+    if (gXStatus.hostile_monster_count == 0) {
         return 0;
     }
     for (index = 0; index < ILLength(monster_group->monsters); ++index) {

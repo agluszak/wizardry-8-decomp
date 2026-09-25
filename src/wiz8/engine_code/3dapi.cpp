@@ -668,10 +668,10 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
             g_startup_world->SetAngles(yaw);
             g_startup_world->SetPitch(pitch);
             if (world->m_owned_04c->ApplyCameraMotion(flags, &camera_position, &delta,
-                                                      &motion_saved) != 0) {
-                camera_position.x = camera_position.x + delta.x;
-                camera_position.y = camera_position.y + delta.y;
-                camera_position.z = camera_position.z + delta.z;
+                                                              &motion_saved) != 0) {
+                camera_position.x += delta.x;
+                camera_position.y += delta.y;
+                camera_position.z += delta.z;
                 navigator_position.x = camera_position.x;
                 navigator_position.y = camera_position.y - g_default_world_height;
                 navigator_position.z = camera_position.z;
@@ -691,7 +691,7 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
                 dz = camera_position.z - s_last_automap_refresh_position.z;
                 if (dx * dx + dy * dy + dz * dz > g_double_005ec240) {
                     s_last_automap_refresh_position = camera_position;
-                    camera_position.y = camera_position.y - g_default_world_height;
+                    camera_position.y -= g_default_world_height;
                     if (AutomapHasCellAt(&camera_position) != 0) {
                         SetWorldMeshVertexLightTable(g_world, 1);
                         UpdateAutomapBounds();
@@ -963,7 +963,7 @@ void RestoreWorldCameraState(W8World* world, W8World* source_world, W8WorldCamer
     navigator_position.z = (float)camera_location.z;
     g_startup_world->SetAngles(GetCameraYawInDegrees());
     g_startup_world->SetPitch(GetCameraPitchInDegrees());
-    navigator_position.y = navigator_position.y - g_default_world_height;
+    navigator_position.y -= g_default_world_height;
     g_startup_world->SetPositionInternal(&navigator_position);
 }
 

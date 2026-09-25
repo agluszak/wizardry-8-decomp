@@ -581,7 +581,7 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
     }
     if (static_cast<int>(max_line & 0xffff) < static_cast<int>((max_width & 0xffff) - 0x18)) {
         max_width = max_line + 0x18;
-        max_line = max_line + 1;
+        ++max_line;
     } else {
         max_line = (max_width - margin_x) - 0x17;
         right_edge = 0xffffffff;

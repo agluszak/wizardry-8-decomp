@@ -1013,7 +1013,7 @@ void stModelInstance::RenderShadow(srGERD& renderer, srMeshModel::TriMesh& mesh)
     renderer.matrixMode(srGERD::MATRIX_MODELVIEW);
     renderer.pushMatrix();
     renderer.translate(0.0, height * g_float_005ebc7c, 0.0);
-    height = height * g_float_005ec8e0;
+    height *= g_float_005ec8e0;
     if (height < g_float_005ebc7c) {
         height = g_float_005ebc7c;
     }

@@ -254,7 +254,7 @@ int W8MessageDialogBase::CreateControls()
 
     m_confirm_image = LoadButtonImage(
         reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogConfirmation.sti")),
+            const_cast<char*>("Data\\Dialogs\\DialogConfirmation.STI")),
         3, 0, 1, 2, 2);
     if (m_confirm_image != -1) {
         m_confirm_button =
@@ -263,7 +263,7 @@ int W8MessageDialogBase::CreateControls()
     }
     m_cancel_image = LoadButtonImage(
         reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogConfirmation.sti")),
+            const_cast<char*>("Data\\Dialogs\\DialogConfirmation.STI")),
         7, 4, 5, 6, 6);
     if (m_cancel_image != -1) {
         m_cancel_button =
