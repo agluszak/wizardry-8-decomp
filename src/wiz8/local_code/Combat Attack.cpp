@@ -3631,7 +3631,7 @@ void FireCharacterItemMissile00544B60(int party_slot, W8Character* pc, W8CombatC
     accuracy = GetTargetAttackAttributes(
         party_slot, row->current_hand,
         g_status_685170.buffers.XChar[party_slot].attack_mode[row->current_hand], 0);
-    CombatLog("TO HIT (MISSILE_ACCURACY): Chance %d", accuracy);
+    CombatLog("TO HIT (MISSILE ACCURACY): Chance %d", accuracy);
     FireMissileSourceToTarget(missile_type, &source,
                               &g_status_685170.buffers.XChar[party_slot].target_out_of_combat,
                               &attack_block, 0, range_category, accuracy);

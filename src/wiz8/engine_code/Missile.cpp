@@ -1361,7 +1361,7 @@ void W8Missile::DetonateMissileSpell004A49E0()
     srVector3T<float> position;
 
     if (m_Source.iType != W8_TARGET_SOURCE_CHARACTER) {
-        srAssertFail("m_Source.iType == SOURCE_TYPE_CHARACTER", MISSILE_CPP, 0x6c5, 0);
+        srAssertFail("m_Source.iType == SOURCE_TYPE_CHAR", MISSILE_CPP, 0x6c5, 0);
     }
     position = GetPosition();
     ResetTargetSource(&source);

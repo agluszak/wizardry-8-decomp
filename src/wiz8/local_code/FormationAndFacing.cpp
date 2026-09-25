@@ -551,7 +551,8 @@ void SetFormationPosition(W8PartyFormationState* formation, int slot, signed cha
     if (old_row != -1) {
         signed char* occupant = &formation->bOccupantChar[old_row][old_column];
         if (*occupant == -1) {
-            srAssertFail("pFormation->bOccupantChar[bOldQuadrant] != -1", FORMATION_CPP, 0x18e, 0);
+            srAssertFail("pFormation->bOccupantChar[bOldQuadrant][bOldSlot] != -1", FORMATION_CPP,
+                         0x18e, 0);
         }
         if (formation->ubQuadrantOccupants[old_row] == 0) {
             srAssertFail("pFormation->ubQuadrantOccupants[bOldQuadrant] > 0", FORMATION_CPP, 0x18f,
@@ -565,11 +566,12 @@ void SetFormationPosition(W8PartyFormationState* formation, int slot, signed cha
     if (new_row != -1) {
         signed char* occupant = &formation->bOccupantChar[new_row][new_column];
         if (*occupant != -1) {
-            srAssertFail("pFormation->bOccupantChar[bNewQuadrant] == -1", FORMATION_CPP, 0x19d, 0);
+            srAssertFail("pFormation->bOccupantChar[bNewQuadrant][bNewSlot] == -1", FORMATION_CPP,
+                         0x19d, 0);
         }
         if (formation->ubQuadrantOccupants[new_row] >= 3) {
-            srAssertFail("pFormation->ubQuadrantOccupants[bNewQuadrant] <= 3", FORMATION_CPP, 0x19e,
-                         0);
+            srAssertFail("pFormation->ubQuadrantOccupants[bNewQuadrant] < MAX_CHARS_PER_QUADRANT",
+                         FORMATION_CPP, 0x19e, 0);
         }
         *occupant = (signed char)slot;
         ++formation->ubQuadrantOccupants[new_row];

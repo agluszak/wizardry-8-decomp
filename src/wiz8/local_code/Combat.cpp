@@ -276,7 +276,7 @@ unsigned char StartCombat(int surprise)
     if (g_settings_6850c8.continuous_combat != 0 && g_combat_state->party_surprised_a52 == 0) {
         g_combat_state->combat_ui_timer_7a8 = SetCountdownClock(g_settings_6850c8.field_019);
     }
-    SoundPlay("Data\\Sound\\Misc\\Ready_Weapons.wav", 0);
+    SoundPlay("Data\\Sound\\Misc\\Ready Weapons.wav", 0);
     return 1;
 }
 

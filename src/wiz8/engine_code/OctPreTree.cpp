@@ -1179,7 +1179,7 @@ void OctPreTree::VerifyAutoMeshes0046AD10(W8OctPreTreeGeometry* geometry,
                 int node = DescendByMask(cell);
                 if (node != 0) {
                     if (m_owned_09c[node].region_02 != static_cast<short>(mesh)) {
-                        ReportBuildStatus00497690(7, "Region has wrong automesh.\n");
+                        ReportBuildStatus00497690(7, "Region has wrong automesh.");
                     }
                     float min_x = g_float_005ec3c0;
                     float min_y = 1e+06f;

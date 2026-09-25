@@ -1317,10 +1317,10 @@ int W8Prop::BuildOrRefreshPathingRepresentation()
         return 0;
     }
     if (AnimationIsRunning(Rep()->animation) != 1) {
-        ShutdownWithErrorBox("Collidable props can be of Transitive animation type only.");
+        ShutdownWithErrorBox("Collidable props can be of Transform type only.");
     }
     if (AnimObjListCount004A1620(Rep()->animation, 2) != 1) {
-        ShutdownWithErrorBox("Collideable props should have a single mesh.");
+        ShutdownWithErrorBox("Collideable props should have a single LOD.");
     }
     instance = AnimObjDispatchList004A1560(Rep()->animation, 2, 0);
     if (instance == 0) {

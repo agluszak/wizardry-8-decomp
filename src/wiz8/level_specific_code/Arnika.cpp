@@ -106,7 +106,7 @@ void ArnikaLevelSetup004E06D0(void)
         if (pTrigger != 0) {
             if (pTrigger->m_bRepType != 2) {
                 srAssertFail("m_bRepType == TRIGGER_REP_PROP",
-                             "..\\Engine Code\\Include\\Trigger.h", 0x3ed, 0);
+                             "..\\Engine Code\\Include\\Trigger.hpp", 0x3ed, 0);
             }
             g_lazer_prop_6835cc = pTrigger->m_pProp;
             g_laser_scanning_6835d8 = 1;
@@ -123,8 +123,7 @@ void ArnikaLevelSetup004E06D0(void)
     if (GetLocationVarIDByName("ScregActive") != -1 &&
         GetLocationVarValueByName("ScregActive") == 1) {
         npc = GetNpcStateByKind(0x17);
-        if (npc == 0 || (monster_info = GetNpcMonsterInfo(npc)) == 0 ||
-            monster_info->p3D == 0) {
+        if (npc == 0 || (monster_info = GetNpcMonsterInfo(npc)) == 0 || monster_info->p3D == 0) {
             SetTriggerVariableByName00444030("ScregActive", 0);
         }
     }
@@ -146,8 +145,8 @@ void ArnikaLevelSetup004E06D0(void)
 bool ArnikaLazerScanner004E0880(Trigger* pTrigger)
 {
     if (pTrigger->m_bRepType != 2) {
-        srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.h", 0x3ed,
-                     0);
+        srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
+                     0x3ed, 0);
     }
     g_lazer_prop_6835cc = pTrigger->m_pProp;
     if (g_lazer_prop_6835cc->Rep()->animation_playing_06d != 0) {
@@ -407,8 +406,8 @@ bool ArnikaExitButton004E1180(Trigger* pTrigger)
 {
     g_exit_door_trigger_6835d4 = pTrigger;
     if (pTrigger->m_bRepType != 2) {
-        srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.h", 0x3ed,
-                     0);
+        srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
+                     0x3ed, 0);
     }
     g_exit_door_prop_6835d0 = pTrigger->m_pProp;
     if (GetLocationVarIDByName("Teleporting") == -1) {

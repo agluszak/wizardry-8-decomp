@@ -734,7 +734,7 @@ static void SelectSpellCastingRow(int index)
         }
         if (gpSCSV->uiSpellsInList < static_cast<unsigned int>(index)) {
             // c-style-cast-ok: the assertion text itself spells (INT32)
-            srAssertFail("iSpellIndex <= (INT32)gpSCSV->uiSpellsInList", SPELLCASTING_CPP, 0x407,
+            srAssertFail("iSpellIndex <= (INT32) gpSCSV->uiSpellsInList", SPELLCASTING_CPP, 0x407,
                          0);
         }
         previous = gpSCSV->selected_spell_index;

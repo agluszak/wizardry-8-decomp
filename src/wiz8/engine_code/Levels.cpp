@@ -624,7 +624,7 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
         first_visit = 1;
     }
 
-    sprintf(path, "%s\\%s\\%s", level_info.level_folder, level_info.level_file_name,
+    sprintf(path, "%s\\%s.%s", level_info.level_folder, level_info.level_file_name,
             g_ambient_sound_filename_006059e0);
     LoadAmbientSoundList0047AB40(path);
     if (!g_environment_load_flag_00603ad0) {
@@ -747,14 +747,12 @@ unsigned char UnloadLevel(const char* save_directory)
     ClearValue6834D4();
 
     srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node =
-        srClientSupport<srClipPlane,0x1500>::sGetClassNode();
+    srRegistry::ClassNode* node = srClientSupport<srClipPlane, 0x1500>::sGetClassNode();
     srClass* clip_plane = static_cast<srClass*>(registry->find(node, 0, 0));
 
     while (clip_plane != 0) {
         srClass* next = static_cast<srClass*>(
-            registry->find(srClientSupport<srClipPlane,0x1500>::sGetClassNode(),
-                           0, clip_plane));
+            registry->find(srClientSupport<srClipPlane, 0x1500>::sGetClassNode(), 0, clip_plane));
         clip_plane->release();
         clip_plane = next;
     }

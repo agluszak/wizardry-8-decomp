@@ -489,9 +489,9 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
             }
         }
         if (g_integrated_trigger_count_00659a58 >= m_iNumTriggers) {
-            srAssertFail("iTriggerCount < m_iNumTriggers",
+            srAssertFail("(iTriggerCount < m_iNumTriggers)",
                          "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x259,
-                         "AddTriggerPlane: Too many triggers.");
+                         "AddTriggerPlane: Too many triggers for trigger array.");
         }
         m_ppTriggers[g_integrated_trigger_count_00659a58++] = trigger;
         return;
@@ -519,7 +519,7 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* trigger_vertices, Trig
         m_iNumTriggers = 0;
     }
     if (m_iNumTrigSurfaces >= 500) {
-        srAssertFail("m_iNumTrigSurfaces < MAX_TRIG_SURFACES",
+        srAssertFail("(m_iNumTrigSurfaces < MAX_TRIG_SURFACES)",
                      "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x26c, 0);
     }
 
@@ -603,7 +603,7 @@ void W8GameData::AddLevelPlane004485F0(W8LevelFilePlane* plane)
         m_iNumTriggers = 0;
     }
     if (m_iNumTrigSurfaces >= 500) {
-        srAssertFail("m_iNumTrigSurfaces < MAX_TRIG_SURFACES",
+        srAssertFail("(m_iNumTrigSurfaces < MAX_TRIG_SURFACES)",
                      "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x2cc, 0);
     }
     for (index = 0; index < 4; ++index) {
@@ -785,7 +785,7 @@ void W8GameData::AddTriggerPlane(const srVector3T<float>* vertices, float value,
         m_iNumTriggers = 0;
     }
     if (m_iNumTrigSurfaces >= 500) {
-        srAssertFail("m_iNumTrigSurfaces < MAX_TRIG_SURFACES",
+        srAssertFail("(m_iNumTrigSurfaces < MAX_TRIG_SURFACES)",
                      "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x3b9, 0);
     }
     vertex_base = m_iNumTrigVertices;
@@ -976,7 +976,7 @@ void W8GameData::ReadProcessedGameData(int handle)
     }
     if (FileRead(handle, m_pVertices, m_iNumVertices * 0xc, &bytes_read) == 0) {
         srAssertFail("fSuccess", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp", 0x487,
-                     "ReadProcessedGameData: Couldn't read vertices.");
+                     "ReadProcessedGameData: Couldn't read vertices.\n");
     }
 
     m_pSurfaces =
@@ -1020,7 +1020,7 @@ void W8GameData::ReadProcessedGameData(int handle)
         m_piCondPolys = static_cast<int*>(malloc(m_iNumCondPolys * sizeof(unsigned int) + 4));
         if (m_piCondPolys == 0) {
             srAssertFail("m_piCondPolys", "C:\\Projects\\Wizardry 8\\Engine Code\\GDFileIO.cpp",
-                         0x4ad, "ReadProcessedGameData: Couldn't allocate conditional poly list.");
+                         0x4ad, "ReadProcessedGameData: Couldn't allocate switch state info.");
         }
         if (FileRead(handle, m_piCondPolys, m_iNumCondPolys * sizeof(unsigned int), &bytes_read) ==
             0) {

@@ -1976,7 +1976,7 @@ OctPreTree* OctBuildPreTree::BuildOctPreTree004B4640()
                                                  ? spatial_00.max_region_radius_60
                                                  : g_float_005ed038;
     while (selected_depth_c0 < tree->spatial_000.depth_44) {
-        ReportBuildStatus00497690(6, "Collapsing tree by one level.");
+        ReportBuildStatus00497690(6, "Collapsing tree by one level.\n");
         --tree->spatial_000.depth_44;
         tree->spatial_000.node_extent_70 += tree->spatial_000.node_extent_70;
     }

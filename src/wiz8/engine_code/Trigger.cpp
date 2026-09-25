@@ -1013,7 +1013,7 @@ bool CreateTriggerShakeEvent00444F70(int intensity, float duration, float countd
 
     if (pEvent == 0) {
         srAssertFail("pEvent", "C:\\Projects\\Wizardry 8\\Engine Code\\Trigger.cpp", 0x1372,
-                     "Out of memory creating shake camera event");
+                     "Out of memory creating shake camera event.");
     }
     pEvent->repeat_034 = 1;
     pEvent->intensity_03c = intensity;

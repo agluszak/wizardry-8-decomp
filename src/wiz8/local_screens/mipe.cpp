@@ -3504,7 +3504,7 @@ unsigned char MipeWorldViewEvent0057E0E0(int event, const POINT* point)
             if (g_mipe_cube_0068f12c == 0) {
                 ShowNoticef(0xf, L"Click on a cube to select it.");
             } else {
-                ShowNoticef(0xf, L"Click on another cube to select ");
+                ShowNoticef(0xf, L"Click on another cube to select it.");
             }
         }
         break;

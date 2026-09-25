@@ -257,7 +257,7 @@ W8LevelFile* ReadLevelFile004CFDC0(int hFile)
             W8LevelFileNamedPosition* pPosition = pLevel->pNamedPositions + i;
             ReportBuildStatus00497690(
                 5, reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
-                       String("Named Position: %s (%f, %f, %f)", pPosition->name_01,
+                       String("Named Position: %s (%f, %f, %f)\n", pPosition->name_01,
                               pPosition->position_81.x, pPosition->position_81.y,
                               pPosition->position_81.z)));
         }
@@ -517,13 +517,14 @@ bool ReadMeshFile004D1110(int hFile, W8LevelFileMesh* pMesh)
     }
     int count = pMesh->num_vertices_04;
     if (count >= 0x186a1 || count <= 0) {
-        sprintf(g_level_file_error_682ff8, "Invalid number of vertices in mesh: %d\n", count);
+        sprintf(g_level_file_error_682ff8, "Invalid number of vertices in mesh (%d vertices).\n",
+                count);
         ReportBuildStatus00497690(7, g_level_file_error_682ff8);
         return 0;
     }
     count = pMesh->num_faces_08;
     if (count >= 0x30d41 || count <= 0) {
-        sprintf(g_level_file_error_682ff8, "Invalid number of faces in mesh: %d\n", count);
+        sprintf(g_level_file_error_682ff8, "Invalid number of faces in mesh (%d faces).\n", count);
         ReportBuildStatus00497690(7, g_level_file_error_682ff8);
         return 0;
     }
@@ -737,7 +738,7 @@ bool ReadLightFile004D1820(int hFile, W8LevelFileLight* pLight)
         }
     }
     if (fSuccess == 0) {
-        srAssertFail("fSuccess", LEVELFILE_CPP, 0x35f, "Couldn't read light.\n");
+        srAssertFail("fSuccess", LEVELFILE_CPP, 0x35f, "Couldn't read light.");
     }
     return fSuccess;
 }
@@ -771,7 +772,7 @@ bool WriteLightFile004D1960(int hFile, W8LevelFileLight* pLight)
         }
     }
     if (fSuccess == 0) {
-        srAssertFail("fSuccess", LEVELFILE_CPP, 0x38e, "Couldn't Write light.\n");
+        srAssertFail("fSuccess", LEVELFILE_CPP, 0x38e, "Couldn't Write light.");
     }
     return fSuccess;
 }
@@ -797,7 +798,7 @@ bool ReadAnimLightFile004D1A90(int hFile, W8LevelFileAnimLight* pLight)
         fSuccess &= FileRead(hFile, pLight->pExtra_21, sizeof(W8LevelFileLightExtra), 0);
     }
     if (fSuccess == 0) {
-        srAssertFail("fSuccess", LEVELFILE_CPP, 0x3b2, "Couldn't read anim light.\n");
+        srAssertFail("fSuccess", LEVELFILE_CPP, 0x3b2, "Couldn't read anim light.");
     }
     return fSuccess;
 }
@@ -819,7 +820,7 @@ bool WriteAnimLightFile004D1B50(int hFile, W8LevelFileAnimLight* pLight)
         free(pLight->pExtra_21);
     }
     if (fSuccess == 0) {
-        srAssertFail("fSuccess", LEVELFILE_CPP, 0x3d4, "Couldn't write anim light.\n");
+        srAssertFail("fSuccess", LEVELFILE_CPP, 0x3d4, "Couldn't write anim light.");
     }
     return fSuccess;
 }
@@ -1972,7 +1973,7 @@ W8LevelFileProp* ReadPropsFile004D4CB0(int hFile, int count)
             ReportBuildStatus00497690(
                 5, reinterpret_cast< // reinterpret-ok: String returns a logging buffer
                        const char*>(
-                       String("Prop: %s",
+                       String("Prop: %s\n",
                               pProp->name_13))); // reinterpret-ok: String returns a logging buffer
         }
         if (fSuccess == 0) {
@@ -1988,7 +1989,7 @@ W8LevelFileProp* ReadPropsFile004D4CB0(int hFile, int count)
                         "pProps[i1].usFrame_Pos", LEVELFILE_CPP, 0x91f,
                         reinterpret_cast< // reinterpret-ok: String returns a logging buffer
                             const char*>( // reinterpret-ok: String returns a logging buffer
-                            String("Could not allocate %d segments for %s",
+                            String("Could not allocate %d segments for prop '%s'!",
                                    (int)pProp->num_frame_pos_b7, pProp->name_13)));
                 }
                 fSuccess &= FileRead(hFile, pProp->usFrame_Pos, pProp->num_frame_pos_b7 << 2, 0);
@@ -2118,12 +2119,12 @@ bool ReadParticleSystemFile004D5240(int hFile, W8LevelFileParticleSystem* pSyste
                     FileRead(hFile, &pSystem->particle_01.end_frame_221, 4, 0);
     }
     if (fSuccess == 0) {
-        srAssertFail("fSuccess", LEVELFILE_CPP, 0xa03, "Couldn't read particle system.\n");
+        srAssertFail("fSuccess", LEVELFILE_CPP, 0xa03, "Couldn't read particle system.");
     }
     ReportBuildStatus00497690(
         5,
         reinterpret_cast<const char*>( // reinterpret-ok: String returns a logging buffer
-            String("Particle System: %s Position (%f, %f, %f)", pSystem->particle_01.name,
+            String("Particle System: %s, Position %f, %f, %f\n", pSystem->particle_01.name,
                    pSystem->particle_01.location.x * g_world_scale_005ebc40,
                    pSystem->particle_01.location.y * g_world_scale_005ebc40,
                    pSystem->particle_01.location.z * g_world_scale_005ebc40)));
@@ -2146,7 +2147,7 @@ bool WriteParticleSystemFile004D5370(int hFile, W8LevelFileParticleSystem* pSyst
                     FileWrite(hFile, &pSystem->particle_01.end_frame_221, 4, 0);
     }
     if (fSuccess == 0) {
-        srAssertFail("fSuccess", LEVELFILE_CPP, 0xa2a, "Couldn't Write particle system.\n");
+        srAssertFail("fSuccess", LEVELFILE_CPP, 0xa2a, "Couldn't Write particle system.");
     }
     return fSuccess;
 }
