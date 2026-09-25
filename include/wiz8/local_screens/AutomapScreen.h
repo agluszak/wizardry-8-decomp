@@ -18,8 +18,8 @@ struct W8AutomapNote {
 static_assert(sizeof(W8AutomapNote) == 0x10, "W8AutomapNote_size");
 
 extern W8GrowableVector<W8AutomapNote*>* g_automap_notes;
-extern int g_ui_mode_current_68f2b0;
-extern int g_ui_mode_saved_68f2c4;
+extern int g_ui_mode_current;
+extern int g_ui_mode_saved;
 void SetValue68F2B0(int value); /* 0x00587C10 */
 void SetValue68F2C4(int value); /* 0x0058A870 */
 
@@ -27,34 +27,34 @@ class W8DialogButton;
 extern W8DialogButton** g_automap_buttons;
 extern int g_automap_zoom_mode;
 
-extern bool g_mipe_menu_active_68f104;
-extern bool g_mipe_active_68f105;
+extern bool g_mipe_menu_active;
+extern bool g_mipe_active;
 
-unsigned char HasAutomapLayer(int layer);
+bool HasAutomapLayer(int layer);
 void RestoreAutomapCameraPosition(void);
-unsigned char CanUseCurrentAutomapTool(void);
+bool CanUseCurrentAutomapTool(void);
 
 /* 0x00580380: recompute the automap's visible world bounds from lit cells. */
-void UpdateAutomapBounds00580380(void);
+void UpdateAutomapBounds(void);
 /* 0x00580760: when the automap dirty flag is set, light a batch of pending
    visited cells through the table-1 vertex lights, then clear the flag once
    the batch finds nothing left. */
-void RefreshDirtyAutomap00580760(void);
+void RefreshDirtyAutomap(void);
 /* 0x00581B30: pack `position` into a cell key, mark it visited if known, and
    return 1 only when that mark was newly set (retry one cell higher on miss). */
-bool AutomapHasCellAt00581B30(const srVector3T<float>* position);
+bool AutomapHasCellAt(const srVector3T<float>* position);
 
-void ResetAutomapView005817D0(void);
+void ResetAutomapView(void);
 bool SaveAutomapNotes(int handle); /* 0x00581CE0 */
 bool LoadAutomapNotes(int handle); /* 0x00581E60 */
-unsigned char GetAutomapPositionUnderCursor00582050(srVector3T<float>* position);
+unsigned char GetAutomapPositionUnderCursor(srVector3T<float>* position);
 void SetAutomapToolCursor(int tool);
-W8AutomapNote* FindAutomapNoteUnderCursor00582180(void);
-void CreateAutomapMarkerSprites005822C0(void);
-void RenderAutomapMarkers00582930(void);
-void CreateAutomapButtons00583BC0(void);
+W8AutomapNote* FindAutomapNoteUnderCursor(void);
+void CreateAutomapMarkerSprites(void);
+void RenderAutomapMarkers(void);
+void CreateAutomapButtons(void);
 
-unsigned char ReadAutomapNodes00584DD0(int hFile);
+unsigned char ReadAutomapNodes(int hFile);
 unsigned char AutomapScreenInitialize(void);
 unsigned char AutomapScreenEnter(void);
 void AutomapScreenFrame(void);

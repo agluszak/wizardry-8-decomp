@@ -1,5 +1,6 @@
 import json
 import os
+import struct
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -12,6 +13,62 @@ from wiz8decomp.comparison import (
     compare_selected,
     selected_addresses,
 )
+
+
+@pytest.mark.parametrize("callee,passes", [(0x401100, True), (0x401200, False)])
+def test_changed_call_target_uses_retail_identity(tmp_path, monkeypatch, callee, passes):
+    from reccmp.compare import Compare
+    from reccmp.types import ImageId
+    from wiz8decomp import source_index
+
+    source = tmp_path / "unit.cpp"
+    original = b"\x90\xe8" + struct.pack("<i", 0x401100 - (0x401000 + 6)) + b"\xc3"
+    recompiled = b"\x90\xe8" + struct.pack("<i", 0x501100 - (0x501000 + 6)) + b"\xc3"
+
+    class Image:
+        def __init__(self, data):
+            self.data = data
+
+        def read(self, _address, _size):
+            return self.data
+
+    class Match:
+        recomp_addr = 0x501000
+
+        def size(self, _side):
+            return 7
+
+    class Database:
+        def get_one_match(self, _address):
+            return Match()
+
+        def alias_canonical_orig(self, side, _address):
+            return 0x401100 if side == ImageId.ORIG else callee
+
+    engine = SimpleNamespace(
+        _db=Database(),
+        _lines_db=SimpleNamespace(
+            find_line_of_recomp_address=lambda address: (
+                (source, 10) if address == 0x501001 else None
+            )
+        ),
+        orig_bin=Image(original),
+        recomp_bin=Image(recompiled),
+    )
+    marker = SimpleNamespace(
+        source_file="unit.cpp",
+        declaration=SimpleNamespace(line=9, end_line=12, is_definition=True),
+    )
+    monkeypatch.setattr(comparison, "_added_call_lines", lambda *_: {source: {10}})
+    monkeypatch.setattr(comparison, "comparison_target", lambda *_: object())
+    monkeypatch.setattr(source_index, "source_functions", lambda *_: {0x401000: marker})
+    monkeypatch.setattr(Compare, "from_target", lambda *_: engine)
+
+    result = comparison.check_changed_call_targets(tmp_path, "WIZ8", "base")
+    assert result["checked"] == 1
+    assert (result["status"] == "passed") is passes
+    if not passes:
+        assert result["errors"][0]["retail_identity"] == "0x00401200"
 
 
 @pytest.mark.parametrize("accuracy", [1.0, 0.0])

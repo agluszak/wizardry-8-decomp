@@ -14,14 +14,14 @@
    Ascension Peak).
 
    Attribution evidence: the case-0x24 block of
-   InitializeLevelMasterFunctions004D6C50 registers the Triangle/Circle/
+   InitializeLevelMasterFunctions registers the Triangle/Circle/
    Square/Star shape triggers and ButtonBlocker against these callbacks, and
    the retail string pool places "DeactivatingBomb" in its own contribution
    between Ascension.cpp's and the ConnectiveTissue Liche block's. */
 
 /* The ButtonBlocker prop tracks fact 0x156. */
 // FUNCTION: WIZ8 0x004E0510
-void SavantTowerSyncButtonBlocker004E0510(void)
+void SavantTowerSyncButtonBlocker(void)
 {
     W8Prop* prop = FindPropByName(g_world, "ButtonBlocker");
     if (prop != 0) {
@@ -36,7 +36,7 @@ void SavantTowerSyncButtonBlocker004E0510(void)
 /* The shape callback (Triangle/Circle/Square/Star): on the first step latch
    DeactivatingBomb and queue the NPC-0x46 script notice. */
 // FUNCTION: WIZ8 0x004E0560
-bool SavantTowerShape004E0560(Trigger* pTrigger)
+bool SavantTowerShape(Trigger* pTrigger)
 {
     if (GetLocationVarIDByName("DeactivatingBomb") == -1) {
         CreateLocationVar("DeactivatingBomb", 1);
@@ -48,7 +48,7 @@ bool SavantTowerShape004E0560(Trigger* pTrigger)
 /* The ButtonBlocker callback: pin the blocker prop, queue the NPC-0x46
    script notice and latch fact 0x156. */
 // FUNCTION: WIZ8 0x004E05A0
-bool SavantTowerButtonBlocker004E05A0(Trigger* pTrigger)
+bool SavantTowerButtonBlocker(Trigger* pTrigger)
 {
     W8Prop* blocker = FindPropByName(g_world, "ButtonBlocker");
 

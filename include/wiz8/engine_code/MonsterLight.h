@@ -16,7 +16,7 @@ public:
     void SetVisible0049D970(char visible);
     void SetRange(float range);
     void Update0049D990(const srVector3T<float>* position);
-    void StartFadeOut0049DAF0();
+    void StartFadeOut();
 
     virtual ~MonsterLight() override; /* 0x0049E0D0 */
 

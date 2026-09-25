@@ -1,0 +1,92 @@
+name: Materialize GOG installer
+description: Restore the encrypted canonical installer and decrypt it only for this runner.
+
+inputs:
+  inputs-token:
+    description: Token with read access to the private CI input repository.
+    required: true
+  cache-key:
+    description: Symmetric key used only to decrypt/encrypt licensed cache payloads.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Restore encrypted GOG installer cache
+      id: installer-cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ runner.temp }}/wiz8-gog-cache
+        key: wiz8-gog-${{ env.GOG_INSTALLER_SHA256 }}-${{ env.GOG_CACHE_VERSION }}
+
+    - name: Fetch and encrypt GOG installer on cache miss
+      if: steps.installer-cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.inputs-token }}
+        WIZ8_CACHE_KEY: ${{ inputs.cache-key }}
+      run: |
+        set -euo pipefail
+        test -n "$GH_TOKEN"
+        test -n "$WIZ8_CACHE_KEY"
+
+        cache_dir="$RUNNER_TEMP/wiz8-gog-cache"
+        download_dir="$RUNNER_TEMP/wiz8-gog-download"
+        downloaded="$download_dir/$GOG_RELEASE_ASSET_NAME"
+        installer="$download_dir/$GOG_INSTALLER_NAME"
+        encrypted="$cache_dir/$GOG_INSTALLER_NAME.enc"
+
+        rm -rf "$cache_dir" "$download_dir"
+        mkdir -p "$cache_dir" "$download_dir"
+
+        gh release download "$GOG_RELEASE_TAG" \
+          --repo "$GOG_INPUT_REPO" \
+          --pattern "$GOG_RELEASE_ASSET_NAME" \
+          --dir "$download_dir"
+
+        test -s "$downloaded"
+        mv "$downloaded" "$installer"
+        echo "$GOG_INSTALLER_SHA256  $installer" | sha256sum --check -
+
+        openssl enc \
+          -aes-256-cbc \
+          -pbkdf2 \
+          -iter 200000 \
+          -salt \
+          -in "$installer" \
+          -out "$encrypted" \
+          -pass env:WIZ8_CACHE_KEY
+
+        rm -rf "$download_dir"
+        test -s "$encrypted"
+
+    - name: Decrypt GOG installer
+      shell: bash
+      env:
+        WIZ8_CACHE_KEY: ${{ inputs.cache-key }}
+      run: |
+        set -euo pipefail
+        test -n "$WIZ8_CACHE_KEY"
+
+        encrypted="$RUNNER_TEMP/wiz8-gog-cache/$GOG_INSTALLER_NAME.enc"
+        installer="$WIZ8_INPUT_DIR/$GOG_INSTALLER_NAME"
+
+        test -s "$encrypted"
+        mkdir -p "$WIZ8_INPUT_DIR"
+
+        openssl enc \
+          -d \
+          -aes-256-cbc \
+          -pbkdf2 \
+          -iter 200000 \
+          -in "$encrypted" \
+          -out "$installer" \
+          -pass env:WIZ8_CACHE_KEY
+
+        echo "$GOG_INSTALLER_SHA256  $installer" | sha256sum --check -
+
+        cat > config/local-inputs.yml <<EOF
+        schema: wiz8.local-inputs
+        inputs:
+          gog-media: $GOG_INSTALLER_NAME
+        EOF

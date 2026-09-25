@@ -36,6 +36,6 @@ void InitializeFactState(void);
 void LoadFactState(int save_handle);
 void SetFactNotificationsSuppressed(unsigned char suppressed);
 
-void PostNewGameLoad005063E0(void);
+void PostNewGameLoad(void);
 
 #endif

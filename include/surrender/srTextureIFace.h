@@ -37,8 +37,12 @@ public:
         unsigned long last_level_04;
         srColorSurfaceIFace* destinations[1];
     };
+    /* srGERD::setTextureSubImage packs the level-0 dimensions and the target
+       mipmap level ahead of the clipped destination rect. */
     struct PartialRequest {
-        unsigned long unknown_00[3];
+        unsigned long width_00;
+        unsigned long height_04;
+        long mipmap_level_08;
         long destination_x;
         long destination_y;
         long source_right;
@@ -84,10 +88,24 @@ public:
         CORRECTION_DEFAULT = 3
     };
 
+    // FUNCTION: SURRENDER 0x1005F5B0 SYMBOL
+    // ?sGetClassName@srTextureIFace@@SAPBDXZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
     static const char* sGetClassName()
     {
         return "srTextureIFace";
     }
+
+    /* The interface owns the full lifecycle: the constructors run the
+       srClassSupport registration chain, the copy constructor delegates to
+       the assignment guard, and the destructor unregisters through the
+       support base. */
+    srTextureIFace();
+    srTextureIFace(const srTextureIFace& other);
+    srTextureIFace& operator=(const srTextureIFace& other);
+    virtual ~srTextureIFace() override;
 
     /* Slot 8. Slot 6 is srClass::vInstance; slot 7 is clone. srTextureFile's
        17-slot vftable (0 through 16) is this interface exactly. */

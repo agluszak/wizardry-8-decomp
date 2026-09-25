@@ -1394,3 +1394,12 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
     }
     return palette;
 }
+
+// LIBRARY: SURRENDER 0x10004FA0
+// ??_L@YGXPAXIIP6EX0@Z@Z
+
+// SYNTHETIC: SURRENDER 0x10004CF0
+// srPalette::Sampler default constructor closure
+
+// SYNTHETIC: SURRENDER 0x10004F90
+// srPalette default constructor closure

@@ -18,11 +18,11 @@
 // GLOBAL: WIZ8 0x0064fde8
 int g_dialog_font_64fde8 = -1;
 // GLOBAL: WIZ8 0x0069ca32
-BOOLEAN g_dialog_font_enabled_69ca32;
+BOOLEAN g_dialog_font_enabled;
 // GLOBAL: WIZ8 0x0064fdec
-unsigned char g_dialog_font_foreground_64fdec = 255;
+unsigned char g_dialog_font_foreground = 255;
 // GLOBAL: WIZ8 0x0064fded
-unsigned char g_dialog_font_background_64fded = 255;
+unsigned char g_dialog_font_background = 255;
 
 // FUNCTION: WIZ8 0x005cf280
 W8DialogBase* CreateCharacterSummaryDialog(W8Character* character)
@@ -74,9 +74,9 @@ void ConfigureDialogFont(int font, BOOLEAN enabled, unsigned char foreground,
                          unsigned char background)
 {
     g_dialog_font_64fde8 = font;
-    g_dialog_font_enabled_69ca32 = enabled;
-    g_dialog_font_foreground_64fdec = foreground;
-    g_dialog_font_background_64fded = background;
+    g_dialog_font_enabled = enabled;
+    g_dialog_font_foreground = foreground;
+    g_dialog_font_background = background;
 }
 
 #define DIALOG_INTERFACE_CPP "C:\\Projects\\Wizardry 8\\Dialog Code\\DialogInterface.cpp"

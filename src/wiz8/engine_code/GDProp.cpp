@@ -44,15 +44,15 @@ GDProp::GDProp(srModelInstance* instance, const char* path_name, unsigned short 
     m_path_bounds_4c.max_x = 0;
     m_path_bounds_4c.min_x = 0;
 
-    if (g_octree_6598a4 != 0 && g_octree_6598a4->pathing_180 != 0) {
-        m_path_handle_04 = g_octree_6598a4->pathing_180->FindPathHandle(
-            path_name, &m_path_bounds_4c, &m_path_range_28);
+    if (g_octree != 0 && g_octree->pathing_180 != 0) {
+        m_path_handle_04 =
+            g_octree->pathing_180->FindPathHandle(path_name, &m_path_bounds_4c, &m_path_range_28);
     }
 
     if (instance != 0) {
-        if (m_path_handle_04 != 0 && g_octree_6598a4->pathing_180 != 0) {
-            g_octree_6598a4->pathing_180->LinkSurfaces00460020(this);
-            g_octree_6598a4->pathing_180->LinkEdges004600B0(this);
+        if (m_path_handle_04 != 0 && g_octree->pathing_180 != 0) {
+            g_octree->pathing_180->LinkSurfaces(this);
+            g_octree->pathing_180->LinkEdges(this);
         }
         Initialize(instance, 1, prop_number, footstep_surface, footstep_material);
     }
@@ -81,7 +81,7 @@ GDProp::~GDProp()
 /* Resize the two geometry tables to the complete linked mesh. Surfaces use
    the CRT heap, while vertices retain SurRender's heap ownership. */
 // FUNCTION: WIZ8 0x004b6f30
-void GDProp::PrepareGeometry004B6F30(srModelInstance* instance)
+void GDProp::PrepareGeometry(srModelInstance* instance)
 {
     int surface_count = 0;
     int vertex_count = 0;
@@ -135,7 +135,7 @@ void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigne
         m_prop_number_02 = prop_number;
     }
 
-    PrepareGeometry004B6F30(instance);
+    PrepareGeometry(instance);
     srMatrix4T<float> world_matrix;
     instance->getWorldSpaceMatrix(world_matrix);
 
@@ -162,18 +162,14 @@ void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigne
 
         for (int surface_index = 0; surface_index < surface_total; ++surface_index) {
             W8GDSurface* surface = &m_pGDSurfaces[surface_index];
-            BuildTrianglePlane00449A40(
-                reinterpret_cast<srVector4T<float>*>(&surface->plane_24), /* reinterpret-ok:
-                    the union's plane arm is a 4-float vector */
-
-                &m_pVertices[surface->vertex_indices_18[0]],
-                &m_pVertices[surface->vertex_indices_18[1]],
-                &m_pVertices[surface->vertex_indices_18[2]]);
+            BuildTrianglePlane(&surface->plane_24, &m_pVertices[surface->vertex_indices_18[0]],
+                               &m_pVertices[surface->vertex_indices_18[1]],
+                               &m_pVertices[surface->vertex_indices_18[2]]);
 
             int dominant_axis;
             float largest = 0.0f;
             for (int axis = 0; axis < 3; ++axis) {
-                float magnitude = (float)fabs(surface->plane_24[axis]);
+                float magnitude = static_cast<float>(fabs((&surface->plane_24.normal.x)[axis]));
                 if (largest < magnitude) {
                     largest = magnitude;
                     dominant_axis = axis;
@@ -187,13 +183,13 @@ void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigne
                 surface->flags_00 |= 0x8000;
             }
 
-            if (g_float_005ebc7c <= surface->plane_24[1]) {
+            if (g_float_005ebc7c <= surface->plane_24.normal.y) {
                 surface->contact_margin_40 = 500.0f;
                 surface->flags_00 |= 4;
-                if (g_float_005ebccc < surface->plane_24[1]) {
+                if (g_float_005ebccc < surface->plane_24.normal.y) {
                     surface->slope_48 = 1.0f;
                 } else {
-                    surface->slope_48 = surface->plane_24[1];
+                    surface->slope_48 = surface->plane_24.normal.y;
                 }
             } else {
                 surface->slope_48 = 0.0f;
@@ -203,15 +199,16 @@ void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigne
         mesh = mesh->next;
     }
 
-    W8PathingService* pathing = g_octree_6598a4->pathing_180;
+    W8PathingService* pathing = g_octree->pathing_180;
     if (m_path_handle_04 != 0 && pathing != 0) {
         if (attach == 0) {
             if (m_prop_number_02 != 0xffff) {
                 m_prop_number_02 = 0xffff;
-                pathing->SetConditionalPathFrame00457EA0(m_path_handle_04, -1);
+                pathing->SetConditionalPathFrame(m_path_handle_04, -1);
             }
         } else {
-            pathing->SetConditionalPathFrame00457EA0(m_path_handle_04, (short)m_prop_number_02);
+            pathing->SetConditionalPathFrame(m_path_handle_04,
+                                             static_cast<short>(m_prop_number_02));
             if (m_waypoint_count_0a != 0) {
                 pathing->CheckConditionalWayPtStatus004601B0(m_waypoint_count_0a, m_waypoints_10);
             }
@@ -226,14 +223,14 @@ void GDProp::Initialize(srModelInstance* instance, unsigned char attach, unsigne
         W8TriggerActionData* action = owner->m_pActionData;
         if (action != 0 && action->type_004 == 10) {
             unsigned int flags = 0x08000000;
-            if ((owner->lock_type != 0 && owner->device_state.completed == 0) ||
+            if ((owner->lock_state.lock_type != 0 &&
+                 owner->lock_state.device_state.completed == 0) ||
                 ((owner->flags_0a0 & W8_TRIGGER_ENABLED) == 0 ||
                  (static_cast<W8DoorTriggerActionData*>(action)->flags_008 & 5) != 0)) {
                 flags = 0x28000000;
             }
             if (pathing != 0) {
-                pathing->UpdateConditionalPathFlags00465FB0(m_path_handle_04, m_prop_number_02,
-                                                            flags);
+                pathing->UpdateConditionalPathFlags(m_path_handle_04, m_prop_number_02, flags);
             }
         }
     }
@@ -260,7 +257,8 @@ void GDProp::BindTrigger(Trigger* owner)
         if (action != 0) {
             m_flags_00 |= 2;
             unsigned int path_flags = 0x08000000;
-            if ((owner->lock_type == 0 || owner->device_state.completed != 0) &&
+            if ((owner->lock_state.lock_type == 0 ||
+                 owner->lock_state.device_state.completed != 0) &&
                 (owner->flags_0a0 & W8_TRIGGER_ENABLED) != 0 &&
                 (static_cast<W8DoorTriggerActionData*>(action)->flags_008 & 5) == 0) {
                 m_flags_00 |= 8;
@@ -269,10 +267,9 @@ void GDProp::BindTrigger(Trigger* owner)
                 m_flags_00 &= 0xfff7;
             }
 
-            W8PathingService* pathing = g_octree_6598a4->pathing_180;
+            W8PathingService* pathing = g_octree->pathing_180;
             if (pathing != 0) {
-                pathing->UpdateConditionalPathFlags00465FB0(m_path_handle_04, m_prop_number_02,
-                                                            path_flags);
+                pathing->UpdateConditionalPathFlags(m_path_handle_04, m_prop_number_02, path_flags);
             }
         }
     }
@@ -282,7 +279,7 @@ void GDProp::BindTrigger(Trigger* owner)
    feeds the path bookkeeping range/sentinel and is also copied out for the
    caller. */
 // FUNCTION: WIZ8 0x004b7500
-void GDProp::ComputeBounds004B7500(srVector3T<float>* minimum, srVector3T<float>* maximum)
+void GDProp::ComputeBounds(srVector3T<float>* minimum, srVector3T<float>* maximum)
 {
     m_bound_max_40 = m_pVertices[0];
     m_bound_min_34 = m_pVertices[0];
@@ -308,7 +305,7 @@ void GDProp::ComputeBounds004B7500(srVector3T<float>* minimum, srVector3T<float>
 /* The pathing record supplies inclusive unsigned coordinate bounds at
    +0x4c..+0x52. */
 // FUNCTION: WIZ8 0x004B75F0
-unsigned char GDProp::ContainsPathCoordinate004B75F0(unsigned short x, unsigned short y) const
+unsigned char GDProp::ContainsPathCoordinate(unsigned short x, unsigned short y) const
 {
     if (x >= m_path_bounds_4c.min_x && x <= m_path_bounds_4c.max_x && y >= m_path_bounds_4c.min_z &&
         y <= m_path_bounds_4c.max_z) {
@@ -335,7 +332,7 @@ char GDProp::BoundsOverlap004B7620(const srVector3T<float>* minimum,
         triangle[0] = m_pVertices[surface->vertex_indices_18[0]];
         triangle[1] = m_pVertices[surface->vertex_indices_18[1]];
         triangle[2] = m_pVertices[surface->vertex_indices_18[2]];
-        hit = TestSpatialTriangle0046CE60(bounds, triangle, surface->Normal());
+        hit = TestSpatialTriangle(bounds, triangle, surface->Normal());
     }
     return hit;
 }
@@ -345,7 +342,7 @@ char GDProp::BoundsOverlap004B7620(const srVector3T<float>* minimum,
    names CheckConditionalWayPt because the list is consumed by
    CheckConditionalWayPtStatus. */
 // FUNCTION: WIZ8 0x004b7730
-unsigned char GDProp::RegisterPathSurface004B7730(unsigned int index, const srVector2i* point)
+unsigned char GDProp::RegisterPathSurface(unsigned int index, const srVector2i* point)
 {
     if (static_cast<unsigned short>(point->x) < m_path_bounds_4c.min_x ||
         static_cast<unsigned short>(point->x) > m_path_bounds_4c.max_x ||
@@ -379,8 +376,8 @@ unsigned char GDProp::RegisterPathSurface004B7730(unsigned int index, const srVe
    cell of the rectangle. The vertical branch re-tests its first crossing
    instead of interpolating the second — a faithful retail oddity. */
 // FUNCTION: WIZ8 0x004b7830
-unsigned char GDProp::RegisterPathVertex004B7830(unsigned int index, const srVector2i* point,
-                                                 const srVector2i* second)
+unsigned char GDProp::RegisterPathVertex(unsigned int index, const srVector2i* point,
+                                         const srVector2i* second)
 {
     unsigned short x0 = static_cast<unsigned short>(point->x);
     unsigned short y0 = static_cast<unsigned short>(point->y);
@@ -471,7 +468,7 @@ void RemoveItemFromSector(int sector, W8WorldItem* item)
 
 /* Whether the optional owned list currently contains an entry. */
 // FUNCTION: WIZ8 0x004B7BA0
-unsigned char GDProp::HasListEntries004B7BA0()
+unsigned char GDProp::HasListEntries()
 {
     if (m_list_54 != 0 && (int)PLLength(m_list_54) > 0) {
         return 1;
@@ -492,7 +489,7 @@ GDPreProp::GDPreProp()
    conditional frame number; the counts accumulated for allocation are then
    reset so each transform's fill re-counts the appended geometry. */
 // FUNCTION: WIZ8 0x004b7c00
-void GDProp::ApplyAnimFrame004B7C00(unsigned short frame, W8LevelFileAnimObj* anim)
+void GDProp::ApplyAnimFrame(unsigned short frame, W8LevelFileAnimObj* anim)
 {
     signed char index;
 
@@ -537,7 +534,7 @@ void GDProp::ApplyAnimFrame004B7C00(unsigned short frame, W8LevelFileAnimObj* an
             node.path = transform->pathAI_06.pPaths[frame];
             node.scale.x = node.scale.y = node.scale.z = 1.0f;
         }
-        TransformMeshGeometry004B7E50(&node, &transform->LODMesh_02.pFrames->mesh_01);
+        TransformMeshGeometry(&node, &transform->LODMesh_02.pFrames->mesh_01);
     }
 }
 
@@ -547,8 +544,7 @@ void GDProp::ApplyAnimFrame004B7C00(unsigned short frame, W8LevelFileAnimObj* an
    and every appended surface then receives its plane, dominant axis and slope
    classification. */
 // FUNCTION: WIZ8 0x004b7e50
-void GDProp::TransformMeshGeometry004B7E50(const W8LevelFileScaledPathNode* node,
-                                           W8LevelFileMesh* mesh)
+void GDProp::TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8LevelFileMesh* mesh)
 {
     int surface_base = m_surface_count_14;
 
@@ -568,7 +564,7 @@ void GDProp::TransformMeshGeometry004B7E50(const W8LevelFileScaledPathNode* node
     translation.z = node->path.position_00.z * g_double_005ec150;
 
     if ((mesh->flags_0c & 1) != 0 && (mesh->flags_0c & 2) != 0) {
-        factor = mesh->lod_scale_58 * g_world_scale_005ebc40;
+        factor = mesh->lod_scale_58 * g_world_scale;
     } else {
         factor = static_cast<float>(g_double_005ec150);
     }
@@ -651,17 +647,14 @@ void GDProp::TransformMeshGeometry004B7E50(const W8LevelFileScaledPathNode* node
 
     for (int index = surface_base; index < m_surface_count_14; ++index) {
         W8GDSurface* surface = &m_pGDSurfaces[index];
-        BuildTrianglePlane00449A40(
-            reinterpret_cast<srVector4T<float>*>(&surface->plane_24), /* reinterpret-ok:
-                    the union's plane arm is a 4-float vector */
-            &m_pVertices[surface->vertex_indices_18[0]],
-            &m_pVertices[surface->vertex_indices_18[1]],
-            &m_pVertices[surface->vertex_indices_18[2]]);
+        BuildTrianglePlane(&surface->plane_24, &m_pVertices[surface->vertex_indices_18[0]],
+                           &m_pVertices[surface->vertex_indices_18[1]],
+                           &m_pVertices[surface->vertex_indices_18[2]]);
 
         int dominant_axis;
         float largest = g_float_005ebb34;
         for (int axis = 0; axis < 3; ++axis) {
-            float magnitude = static_cast<float>(fabs(surface->plane_24[axis]));
+            float magnitude = static_cast<float>(fabs((&surface->plane_24.normal.x)[axis]));
             if (largest < magnitude) {
                 largest = magnitude;
                 dominant_axis = axis;
@@ -669,7 +662,7 @@ void GDProp::TransformMeshGeometry004B7E50(const W8LevelFileScaledPathNode* node
         }
         surface->flags_00 = dominant_axis + 0x800;
         surface->hit_plane_38 = 0;
-        if (g_float_005ebc7c <= surface->plane_24[1]) {
+        if (g_float_005ebc7c <= surface->plane_24.normal.y) {
             surface->contact_margin_40 = 500.0f;
             surface->flags_00 |= 4;
         } else {
@@ -680,7 +673,7 @@ void GDProp::TransformMeshGeometry004B7E50(const W8LevelFileScaledPathNode* node
 }
 
 /* srMatrix4x3T<float>::SetTranslation/Scale emitted for this TU by
-   TransformMeshGeometry004B7E50; the primary templates live in srMath.h. */
+   TransformMeshGeometry; the primary templates live in srMath.h. */
 // TEMPLATE: WIZ8 0x004B8660
 // srMatrix4x3T<float>::SetTranslation
 

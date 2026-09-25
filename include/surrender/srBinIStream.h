@@ -102,13 +102,18 @@ class
     srBinIMStream : public srBinIStream {
 public:
     SR_DLL_IMPORT srBinIMStream(const void* data, unsigned long size);
-    SR_DLL_IMPORT srBinIMStream(const srBinIMStream& stream);
+
+    /* Implicit copy constructor/assignment: retail emits them via the
+       class-level dllexport as memberwise copies. */
+    // SYNTHETIC: SURRENDER 0x10030BB0
+    // ??0srBinIMStream@@QAE@ABV0@@Z
+    // SYNTHETIC: SURRENDER 0x10030C50
+    // srBinIMStream::operator=
 
     /* The retail emission is a bare ret while the vbase destructor owns the
        table stores; consumers expand it inline rather than calling the import. */
     // FUNCTION: SURRENDER 0x10030CE0
     virtual ~srBinIMStream() override {}
-    SR_DLL_IMPORT srBinIMStream& operator=(const srBinIMStream& stream);
 
     virtual SR_DLL_IMPORT unsigned long getSize() override;
     virtual SR_DLL_IMPORT srBinStream& seek(unsigned long position,

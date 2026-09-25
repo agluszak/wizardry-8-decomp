@@ -6,6 +6,7 @@ what the derivation does rather than restating current repository counts.
 
 from __future__ import annotations
 
+import logging
 from types import SimpleNamespace
 
 import pytest
@@ -34,8 +35,18 @@ class FakeCodebase:
         return iter(())
 
 
-def _marker(address: int, marker_type: MarkerType):
-    return SimpleNamespace(offset=address, type=marker_type)
+class _FakeMarker:
+    def __init__(self, address: int, marker_type: MarkerType, *, nameref: bool = False):
+        self.offset = address
+        self.type = marker_type
+        self._nameref = nameref
+
+    def is_nameref(self) -> bool:
+        return self._nameref
+
+
+def _marker(address: int, marker_type: MarkerType, *, nameref: bool = False):
+    return _FakeMarker(address, marker_type, nameref=nameref)
 
 
 def _entity(
@@ -72,7 +83,9 @@ def test_function_markers_are_the_only_recovered_source() -> None:
         _marker(0x401040, MarkerType.TEMPLATE),
     ]
 
-    source, addresses = status._source_statistics(SimpleNamespace(codebase=FakeCodebase(markers)))
+    source, addresses, name_refs = status._source_statistics(
+        SimpleNamespace(codebase=FakeCodebase(markers))
+    )
 
     assert source == {
         "functions": 2,
@@ -82,6 +95,7 @@ def test_function_markers_are_the_only_recovered_source() -> None:
         "template": 1,
     }
     assert addresses == {0x401000, 0x401050}
+    assert name_refs == set()
 
 
 def test_comparison_classification_and_effective_score() -> None:
@@ -113,7 +127,7 @@ def test_comparison_classification_and_effective_score() -> None:
     target = SimpleNamespace(report_config=None)
 
     comparison, effective_score = status._comparison_statistics(
-        _engine([], entities), target, addresses
+        _engine([], entities), target, addresses, set()
     )
 
     assert comparison["exact"] == 1
@@ -121,9 +135,42 @@ def test_comparison_classification_and_effective_score() -> None:
     assert comparison["mismatch"] == 1
     assert comparison["inconclusive"] == 1
     assert comparison["unpaired"] == 1
+    assert comparison["unpaired_line_refs"] == 1
     assert comparison["paired"] == 4
     assert effective_score == pytest.approx(3.0)
     assert comparison["accuracy"] == pytest.approx(0.75)
+
+
+def test_unpaired_name_refs_are_not_line_ref_diagnostics() -> None:
+    # A SYMBOL/name-reference marker may legitimately stay unpaired when the
+    # recomp emits no standalone copy; a line-reference marker that stays
+    # unpaired is the "Failed to find function symbol" diagnostic.
+    addresses = {0x401000, 0x401010, 0x401020}
+    entities = [_entity(0x401000, ComparisonAnalysis.exact())]
+    target = SimpleNamespace(report_config=None)
+
+    comparison, _ = status._comparison_statistics(
+        _engine([], entities), target, addresses, {0x401020}
+    )
+
+    assert comparison["unpaired"] == 2
+    assert comparison["unpaired_line_refs"] == 1
+
+
+def test_reccmp_diagnostics_are_captured_and_counted() -> None:
+    logger = logging.getLogger("reccmp.test")
+    with status._capture_reccmp_diagnostics() as capture:
+        logger.error("line lookup failed")
+        logger.warning("something suspicious")
+        logger.info("not a diagnostic")
+
+    diagnostics = status._diagnostics(capture)
+
+    assert diagnostics["error_count"] == 1
+    assert diagnostics["warning_count"] == 1
+    assert diagnostics["errors"] == ["reccmp.test: line lookup failed"]
+    assert diagnostics["warnings"] == ["reccmp.test: something suspicious"]
+    assert diagnostics["truncated"] == 0
 
 
 def test_ignored_source_functions_are_counted_not_dropped() -> None:
@@ -135,7 +182,7 @@ def test_ignored_source_functions_are_counted_not_dropped() -> None:
     target = SimpleNamespace(report_config=SimpleNamespace(ignore_functions=["Ignored"]))
 
     comparison, effective_score = status._comparison_statistics(
-        _engine([], entities), target, addresses
+        _engine([], entities), target, addresses, set()
     )
 
     assert comparison["ignored"] == 1
@@ -155,9 +202,11 @@ def _target_row(*, functions: int, paired: int, original: int | None) -> dict:
             "mismatch": paired,
             "inconclusive": 0,
             "unpaired": 0,
+            "unpaired_line_refs": 0,
             "ignored": 0,
             "accuracy": 0.0,
         },
+        "diagnostics": {"error_count": 0},
         "original_functions": original,
     }
 

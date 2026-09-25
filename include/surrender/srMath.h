@@ -2,7 +2,15 @@
 
 #include "srHeap.h"
 
+#include <float.h>
 #include <math.h>
+
+/* srMeshModel::verify asserts srFinite(t.sortBias): scalar finite test over
+   the CRT predicate. */
+inline int srFinite(double value)
+{
+    return _finite(value);
+}
 
 /*
  * SurRender math types named by the original SR.DLL export table. The layouts
@@ -36,6 +44,13 @@ public:
     T Length() const
     {
         return (T)sqrt(x * x + y * y);
+    }
+
+    /* srMeshModel::verify asserts t.vUV[p][j][i].isValid(): every component
+       finite. */
+    int isValid() const
+    {
+        return _finite(static_cast<double>(x)) && _finite(static_cast<double>(y));
     }
 
     srVector2T<T>& operator*=(double scalar)
@@ -75,7 +90,11 @@ public:
 
 template <class T> class srVector3T {
 public:
-    srVector3T<T>() {}
+    /* Defined out of line so member arrays construct through
+       __ehvector_ctor with the emitted stub body as the element callback
+       (retail 0x1003BC90 over 0xc-byte elements); scalar construction
+       inlines the empty body away. */
+    srVector3T<T>();
     srVector3T<T>(T source_0, T source_1, T source_2) : x(source_0), y(source_1), z(source_2) {}
 
     void* operator new[](unsigned int size)
@@ -112,6 +131,11 @@ public:
     bool operator==(const srVector3T<T>& other) const;
     T Length() const;
     T LengthSquared() const;
+    /* verify()'s unit-normal assert spells this lowercase form. */
+    T length() const
+    {
+        return (T)sqrt(x * x + y * y + z * z);
+    }
     srVector3T<T>* SetFromDouble(const srVector3T<double>* source);
     srVector3T<T>* SetFromFloat(const srVector3T<float>* source);
     void SetSaturated(const srVector3T<T>& source);
@@ -123,10 +147,20 @@ public:
     srVector3T<T>* Unitize();
     srVector3T<T>& Transform(const srMatrix3T<T>& matrix);
 
+    /* srMeshModel::verify asserts t.vLoc[i].isValid()/t.DIG[p][i].isValid():
+       every component finite. */
+    int isValid() const
+    {
+        return _finite(static_cast<double>(x)) && _finite(static_cast<double>(y)) &&
+               _finite(static_cast<double>(z));
+    }
+
     T x;
     T y;
     T z;
 };
+
+template <class T> srVector3T<T>::srVector3T() {}
 
 // TEMPLATE: WIZ8 0x00421670
 // srVector3T<float>::SetZero
@@ -138,6 +172,8 @@ template <class T> void srVector3T<T>::SetZero()
 }
 
 // TEMPLATE: WIZ8 0x00421680
+// srVector3T<float>::Set
+// TEMPLATE: SURRENDER 0x10044DF0
 // srVector3T<float>::Set
 template <class T>
 srVector3T<T>* srVector3T<T>::Set(double source_0, double source_1, double source_2)
@@ -398,10 +434,21 @@ template <class T> srVector3T<T> operator/(const srVector3T<T>& vector, double s
 
 template <class T> class srVector4T {
 public:
-    srVector4T<T>() {}
+    /* Defined out of line so member arrays construct through
+       __ehvector_ctor with the emitted body as the element callback;
+       scalar construction inlines the empty body away. */
+    srVector4T<T>();
 
     srVector4T<T>* Set(T source_0, T source_1, T source_2, T source_3);
     T Length() const;
+    /* srMeshModel::verify asserts t.pEq[i].isValid()/t.DCG[p][i].isValid()/
+       t.SCG[p][i].isValid(): every component finite. */
+    int isValid() const
+    {
+        return _finite(static_cast<double>(x)) && _finite(static_cast<double>(y)) &&
+               _finite(static_cast<double>(z)) && _finite(static_cast<double>(w));
+    }
+
     srVector4T<T>& operator*=(double scalar);
     srVector4T<T>& operator=(T value)
     {
@@ -417,6 +464,8 @@ public:
     T z;
     T w;
 };
+
+template <class T> srVector4T<T>::srVector4T() {}
 
 // TEMPLATE: WIZ8 0x004D6B30
 // srVector4T<float>::Set
@@ -1108,7 +1157,7 @@ float Det3(float param_1, float param_2, float param_3, float param_4, float par
    getWorldSpaceMatrix memcpy's the 12-float / 12-double cache; pushMultMatrix
    expands the affine multiply itself. The only float member emissions in
    Wiz8.exe are the translation/scale writes inside GDProp's
-   TransformMeshGeometry004B7E50. */
+   TransformMeshGeometry. */
 template <class T> class srMatrix4x3T {
 public:
     /* sr.dll emits out-of-line copies at 0x10055710 for double and 0x10055770
@@ -1181,7 +1230,7 @@ template <class T> srMatrix4x3T<T>* srMatrix4x3T<T>::Scale(const srVector3T<T>& 
 }
 
 /* Affine point transform: dest.i = row_i.xyz·point + row_i.w. The only Wiz8
-   emission is inlined inside GDProp::TransformMeshGeometry004B7E50. */
+   emission is inlined inside GDProp::TransformMeshGeometry. */
 template <class T> srVector3T<T> srMatrix4x3T<T>::TransformPoint(const srVector3T<T>& point) const
 {
     srVector3T<T> result;

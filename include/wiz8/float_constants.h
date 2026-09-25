@@ -17,7 +17,7 @@
 extern const float g_float_005ebb38;
 extern const float g_float_005ebb34;
 /* 0x005EBB30: 0.8, the radian bias subtracted from the near-camera scatter
-   heading in PositionMonsterGroupNearCamera00511050. */
+   heading in PositionMonsterGroupNearCamera. */
 extern const float g_float_005ebb30;
 /* 0x005ED828: 0.0016, the Random(1000) scale on the same scatter heading. */
 extern const float g_float_005ed828;
@@ -45,10 +45,10 @@ extern double g_double_005ebc70;
 extern float g_float_005ebc90;
 extern double g_double_005ebc30;
 extern const float g_float_005ec0a8;
-extern const float g_environment_near_scale_005ec0b0;
-extern const float g_world_scale_005ebc40;
+extern const float g_environment_near_scale;
+extern const float g_world_scale;
 /* 0x005EC5C: 1.05, the headroom factor applied to a fired missile's speed. */
-extern const float g_monster_motion_push_005ebc5c;
+extern const float g_monster_motion_push;
 /* 0x005EC510: 127.0, the SGP full-volume scale the positional-sound factory
    multiplies its loudness fraction by. */
 extern const float g_float_005ec510;
@@ -157,7 +157,7 @@ extern double g_double_005ec8d0;
 extern float g_float_005ecc38;
 extern float g_float_005ecc3c;
 extern float g_float_005ecc40;
-extern const float g_startup_near_limit_005ec000;
+extern const float g_startup_near_limit;
 extern double g_double_005ebe80;
 extern double g_double_005ebe88;
 extern double g_double_005ebe90;
@@ -178,30 +178,30 @@ extern float g_float_005ed8b8;
    record's turn budget. */
 extern const double g_double_005ece50;
 /* 0x005ECE58/0x005ECE5C: the character launch height base and the per-slot
-   vertical step GetCharacterProjectilePosition004A57B0 applies. */
+   vertical step GetCharacterProjectilePosition applies. */
 extern const float g_float_005ece58;
 extern const float g_float_005ece5c;
-extern const float g_camera_half_pi_005ec3fc;
+extern const float g_camera_half_pi;
 extern const float g_float_005ec2a8;
 extern const float g_float_005ed1e8;
 
-extern float g_navigator_gravity_00603acc;
+extern float g_navigator_gravity;
 /* 0x005EBCA4: Navigator's mode-3 step scale; the regeneration passes also read
    it as the pool-ceiling share. */
-extern float g_navigator_mode3_scale_005ebca4;
-extern float g_default_momentum_scale_603ab8;
-extern float g_default_motion_limit_603abc;
-extern const float g_camera_snap_epsilon_005ebc2c;
+extern float g_navigator_mode3_scale;
+extern float g_default_momentum_scale;
+extern float g_default_motion_limit;
+extern const float g_camera_snap_epsilon;
 /* 0x005ED2E0: 0.2, the perpendicular-alignment threshold the obstacle slide
    uses to pick a side. */
 extern const double g_double_005ed2e0;
 extern const float g_float_005ebca0;
-extern float g_movement_speed_step_005ed490;
+extern float g_movement_speed_step;
 
 extern const double g_zero_005ebb40;
 /* 0x005ED7D0: -1000000, the ground-settle failure height; the only reader is
    the backfire scatter retry loop in Magic.cpp, so it owns the constant. */
-extern const float g_ground_settle_fail_005ed7d0;
+extern const float g_ground_settle_fail;
 extern const float g_camera_angle_period_005ec014;
 extern const float g_float_005ebcf0;
 extern const float g_float_005ebcf8;
@@ -210,7 +210,7 @@ extern const double g_double_005ec150;
    view math and the missile aim scatter. Defined in GDCamera.cpp. */
 extern const double g_camera_view_factor_005ec300;
 /* 0x005EC240: 250000.0, squared camera-travel distance that triggers an
-   automap cell refresh in UpdateWorldCameraAndPaths0044FC20. */
+   automap cell refresh in UpdateWorldCameraAndPaths. */
 extern const double g_double_005ec240;
 /* 0x005ED7B0: 1/360, the half-degree step the random wander angle is built
    from. */

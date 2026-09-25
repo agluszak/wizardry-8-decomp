@@ -61,34 +61,33 @@ public:
            unsigned char footstep_surface, unsigned char footstep_material); /* 0x004B6E00 */
     ~GDProp();                                                               /* 0x004B6ED0 */
     void BindTrigger(Trigger* owner);
-    unsigned char ContainsPathCoordinate004B75F0(unsigned short x, unsigned short y) const;
-    unsigned char HasListEntries004B7BA0();
+    unsigned char ContainsPathCoordinate(unsigned short x, unsigned short y) const;
+    unsigned char HasListEntries();
     /* Rebuilds m_pVertices/m_pGDSurfaces for the given animation frame of the
        level prop's transforms. */
-    void ApplyAnimFrame004B7C00(unsigned short frame, W8LevelFileAnimObj* anim);
+    void ApplyAnimFrame(unsigned short frame, W8LevelFileAnimObj* anim);
     /* Computes the vertex AABB into m_bound_min_34/m_bound_max_40 and copies
        it to the out parameters. */
-    void ComputeBounds004B7500(srVector3T<float>* minimum, srVector3T<float>* maximum);
+    void ComputeBounds(srVector3T<float>* minimum, srVector3T<float>* maximum);
     /* Box-vs-bound test used by the pre-tree path obstruction pass. */
     char BoundsOverlap004B7620(const srVector3T<float>* minimum, const srVector3T<float>* maximum);
     /* Appends the index to the waypoint list when the grid point lies inside
        the path bounds; the list grows ten entries at a time. */
-    unsigned char RegisterPathSurface004B7730(unsigned int index, const srVector2i* point);
+    unsigned char RegisterPathSurface(unsigned int index, const srVector2i* point);
     /* Appends the index to the link list when the segment touches the path
        bounds (one-cell tolerance on the crossed sides). */
-    unsigned char RegisterPathVertex004B7830(unsigned int index, const srVector2i* point,
-                                             const srVector2i* second);
+    unsigned char RegisterPathVertex(unsigned int index, const srVector2i* point,
+                                     const srVector2i* second);
 
 private:
     void Initialize(srModelInstance* instance, unsigned char attach, unsigned short prop_number,
                     unsigned char footstep_surface,
                     unsigned char footstep_material); /* 0x004B7060 */
-    void PrepareGeometry004B6F30(srModelInstance* instance);
+    void PrepareGeometry(srModelInstance* instance);
     /* Appends the mesh's vertices/faces transformed by one animation path
        record (position/angle/axis/scale floats); called once per transform
-       channel by ApplyAnimFrame004B7C00. */
-    void TransformMeshGeometry004B7E50(const W8LevelFileScaledPathNode* node,
-                                       W8LevelFileMesh* mesh);
+       channel by ApplyAnimFrame. */
+    void TransformMeshGeometry(const W8LevelFileScaledPathNode* node, W8LevelFileMesh* mesh);
 
     unsigned short m_flags_00;           /* 0x00 */
     unsigned short m_prop_number_02;     /* 0x02 */
@@ -103,7 +102,7 @@ private:
     srVector3T<float>* m_pVertices;      /* 0x20 */
     Trigger* m_owner_24;                 /* 0x24: installed by 0x004B7470 */
     W8PathVerticalRange m_path_range_28; /* 0x28 */
-    /* Vertex AABB cached by ComputeBounds004B7500 and tested by
+    /* Vertex AABB cached by ComputeBounds and tested by
        BoundsOverlap004B7620. */
     srVector3T<float> m_bound_min_34;  /* 0x34 */
     srVector3T<float> m_bound_max_40;  /* 0x40 */

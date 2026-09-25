@@ -15,37 +15,34 @@
 
 #define PATH_AI_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\PathAI.CPP"
 
-/* identity-alias: as in Bink.cpp, retail shares one no-op stub at 0x004023a0
-   across arities (PathAIApplyToRep004A91F0 calls it with two arguments), so
-   this overload only satisfies the local call and owns no separate address. */
-void NoOp(W8AIRecord*, W8AnimRepBase005EC1D8*) {}
+/* Retail shares one no-op stub at 0x004023a0 across arities;
+   PathAIApplyToRep calls this typed overload with two arguments. */
+void NoOp(W8AIRecord*, W8AnimRepBase*) {}
 
-/* identity-alias: retail folds this empty body with the SYNTHETIC at
-   0x004023a0 in vc6_runtime.cpp. */
+/* Retail shares this empty body with the stub at 0x004023a0. */
 
 void NoOp(void) {}
 
 // FUNCTION: WIZ8 0x004a9260
-unsigned char PathAIUpdate004A9260(W8AIRecord* record, signed char direction)
+unsigned char PathAIUpdate(W8AIRecord* record, signed char direction)
 {
     if (record == 0) {
         return 0;
     }
     switch (record->kind_00) {
     case 0:
-        return static_cast<unsigned char>(
-            PathAITick004AA1F0(static_cast<W8PathAI*>(record), direction));
+        return static_cast<unsigned char>(PathAITick(static_cast<W8PathAI*>(record), direction));
     case 1:
         return 0;
     case 3:
-        return UpdateMissileAI004A4CF0(static_cast<W8AIMissile*>(record));
+        return UpdateMissileAI(static_cast<W8AIMissile*>(record));
     default:
         return 0;
     }
 }
 
 // FUNCTION: WIZ8 0x004a92a0
-unsigned char LoadPathAI004A92A0(W8PathAI** output, int handle)
+bool LoadPathAI004A92A0(W8PathAI** output, int handle)
 {
     unsigned char version;
     unsigned char success;
@@ -74,7 +71,7 @@ unsigned char LoadPathAI004A92A0(W8PathAI** output, int handle)
     success = success && FileRead(handle, &point_count, 4, 0);
 
     if (point_count == 0) {
-        DestroyPathAI004A9810(path);
+        DestroyPathAI(path);
         path = 0;
     } else {
         path->rotations_14 =
@@ -103,14 +100,14 @@ unsigned char LoadPathAI004A92A0(W8PathAI** output, int handle)
             point->x = static_cast<float>(point->x * g_double_005ec150);
             point->y = static_cast<float>(point->y * g_double_005ec150);
             point->z = static_cast<float>(point->z * g_double_005ec150);
-            PathAIAddPoint004A9C30(path, point);
+            PathAIAddPoint(path, point);
 
             FileRead(handle, &angle, 4, 0);
             FileRead(handle, &axis.x, 4, 0);
             FileRead(handle, &axis.y, 4, 0);
             FileRead(handle, &axis.z, 4, 0);
             rotation.SetIdentity();
-            if ((double)angle != g_zero_005ebb40) {
+            if (angle != g_zero_005ebb40) {
                 rotation.RotateAroundAxis(sin(angle), cos(angle), axis);
             }
             path->rotations_14[index] = rotation;
@@ -127,7 +124,7 @@ unsigned char LoadPathAI004A92A0(W8PathAI** output, int handle)
 }
 
 // FUNCTION: WIZ8 0x004a9720
-void PathAIResetRecord004A9720(W8PathAI* path)
+void PathAIResetRecord(W8PathAI* path)
 {
     if (path != 0 && path->kind_00 == 0) {
         path->position = 0;
@@ -135,13 +132,13 @@ void PathAIResetRecord004A9720(W8PathAI* path)
 }
 
 // FUNCTION: WIZ8 0x004a9740
-unsigned char PathAIRecordFlag004A9740(const W8AIRecord* record)
+unsigned char PathAIRecordFlag(const W8AIRecord* record)
 {
     return record->kind_00;
 }
 
 // FUNCTION: WIZ8 0x004a91f0
-void PathAIApplyToRep004A91F0(W8AIRecord* record, W8AnimRepBase005EC1D8* representation)
+void PathAIApplyToRep(W8AIRecord* record, W8AnimRepBase* representation)
 {
     if (record->kind_00 != 0) {
         if (record->kind_00 == 3) {
@@ -153,12 +150,12 @@ void PathAIApplyToRep004A91F0(W8AIRecord* record, W8AnimRepBase005EC1D8* represe
     if (path == 0 || representation == 0) {
         srAssertFail("pPathAI&&pRep", PATH_AI_CPP, 0x595, 0);
     }
-    PathAIPosition004AA370(path, &representation->parent_location_01c);
+    PathAIPosition(path, &representation->parent_location_01c);
     representation->location_004 = representation->parent_location_01c;
 }
 
 // FUNCTION: WIZ8 0x004a9810
-void DestroyPathAI004A9810(W8PathAI* path)
+void DestroyPathAI(W8PathAI* path)
 {
     W8GrowableVector<srVector3T<float>*>* nodes;
 
@@ -185,11 +182,11 @@ void DestroyPathAI004A9810(W8PathAI* path)
     }
 }
 
-/* The same release DestroyPathAI004A9810 performs, refused for any path whose
+/* The same release DestroyPathAI performs, refused for any path whose
    kind is not the plain node-list form. stLight's destructor at 0x0049C430
    reaches the owned path through this guard rather than the general entry. */
 // FUNCTION: WIZ8 0x004a9110
-void DestroyOwnedPathAI004A9110(W8PathAI* path)
+void DestroyOwnedPathAI(W8PathAI* path)
 {
     W8GrowableVector<srVector3T<float>*>* nodes;
 
@@ -221,7 +218,7 @@ void DestroyOwnedPathAI004A9110(W8PathAI* path)
    element by element at the node count. Nothing is shared, and timed_3c is the
    one field the copy does not carry over. */
 // FUNCTION: WIZ8 0x004a98c0
-W8PathAI* ClonePathAI004A98C0(const W8PathAI* source)
+W8PathAI* ClonePathAI(const W8PathAI* source)
 {
     W8PathAI* copy = static_cast<W8PathAI*>(malloc(sizeof(W8PathAI)));
     int count;
@@ -290,23 +287,23 @@ W8PathAI* ClonePathAI004A98C0(const W8PathAI* source)
 /* Clone whichever AI record the tag selects. An unknown tag copies nothing and
    returns null rather than aliasing the source. */
 // FUNCTION: WIZ8 0x004a91c0
-W8AIRecord* CloneAIRecord004A91C0(const W8AIRecord* record)
+W8AIRecord* CloneAIRecord(const W8AIRecord* record)
 {
     if (record == 0) {
         return 0;
     }
     switch (record->kind_00) {
     case 0:
-        return ClonePathAI004A98C0(static_cast<const W8PathAI*>(record));
+        return ClonePathAI(static_cast<const W8PathAI*>(record));
     case 3:
-        return CopyAIMissile004A53A0(static_cast<const W8AIMissile*>(record));
+        return CopyAIMissile(static_cast<const W8AIMissile*>(record));
     default:
         return 0;
     }
 }
 
 // FUNCTION: WIZ8 0x004a9bb0
-void PathAIClearOwned004A9BB0(W8PathAI* path)
+void PathAIClearOwned(W8PathAI* path)
 {
     W8GrowableVector<srVector3T<float>*>* nodes;
 
@@ -326,7 +323,7 @@ void PathAIClearOwned004A9BB0(W8PathAI* path)
 }
 
 // FUNCTION: WIZ8 0x004a9c30
-unsigned char PathAIAddPoint004A9C30(W8PathAI* path, const srVector3T<float>* point)
+unsigned char PathAIAddPoint(W8PathAI* path, const srVector3T<float>* point)
 {
     srVector3T<float>* copy =
         static_cast<srVector3T<float>*>(srHeap.allocate(sizeof(srVector3T<float>)));
@@ -360,32 +357,32 @@ unsigned char PathAIAddPoint004A9C30(W8PathAI* path, const srVector3T<float>* po
     }
     path->total_length = total_length;
     if (path->position > g_float_005ebb34 && total_length > g_float_005ebb34) {
-        PathAISetValue004A9F60(path, path->distance_travelled / total_length);
+        PathAISetValue(path, path->distance_travelled / total_length);
     }
     return 1;
 }
 
 // FUNCTION: WIZ8 0x004a9b90
-void PathAISetAnimated004A9B90(W8PathAI* path, unsigned char value)
+void PathAISetAnimated(W8PathAI* path, unsigned char value)
 {
     path->animated_3a = value;
 }
 
 // FUNCTION: WIZ8 0x004a9ba0
-void PathAIEnableTimedMode004A9BA0(W8PathAI* path)
+void PathAIEnableTimedMode(W8PathAI* path)
 {
     path->animated_3a = 1;
     path->timed_3c = 1;
 }
 
 // FUNCTION: WIZ8 0x004a9c20
-void PathAIResetTick004A9C20(W8PathAI* path)
+void PathAIResetTick(W8PathAI* path)
 {
     path->last_update_tick = GetTickCount();
 }
 
 // FUNCTION: WIZ8 0x004a9e70
-float PathAIGetValue004A9E70(W8PathAI* path)
+float PathAIGetValue(W8PathAI* path)
 {
     if (path == 0) {
         return g_float_005ebb34;
@@ -394,53 +391,35 @@ float PathAIGetValue004A9E70(W8PathAI* path)
 }
 
 // FUNCTION: WIZ8 0x004a9e90
-unsigned char PathAINextPoint004A9E90(W8PathAI* path, srVector3T<float>* point)
+unsigned char PathAINextPoint(W8PathAI* path, srVector3T<float>* point)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
-    srVector3T<float>* source;
-
     if (path == 0 || path->nodes_0c == 0) {
         return 0;
     }
-    if (path->point_index >= path->nodes_0c->count) {
+    if (path->point_index >= static_cast<unsigned int>(path->nodes_0c->GetCount())) {
         if (path->looping == 0) {
             return 0;
         }
         path->point_index = 0;
     }
-    srVector3T<float>** slot = path->nodes_0c->data;
-    if (path->point_index < path->nodes_0c->count) {
-        slot += path->point_index;
-    }
-    source = *slot;
-    *point = *source;
+    *point = **path->nodes_0c->GetAt(path->point_index);
     ++path->point_index;
     return 1;
-#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x004a9ef0
-unsigned char PathAIIsComplete004A9EF0(W8PathAI* path)
+bool PathAIIsComplete(W8PathAI* path)
 {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-compare"
-    /* Retail compiled this comparison with VC6's mixed-sign operands; the
-   signedness is part of the recovered body and changing it would change
-   the compare and branch. Suppress only this diagnostic here. */
     if (path != 0 && path->nodes_0c != 0 &&
-        (path->point_index < path->nodes_0c->count || path->looping != 0)) {
+        (path->point_index < static_cast<unsigned int>(path->nodes_0c->GetCount()) ||
+         path->looping != 0)) {
         return 0;
     }
     return 1;
-#pragma clang diagnostic pop
 }
 
 // FUNCTION: WIZ8 0x004a9f20
-unsigned int PathAIEntryCount004A9F20(W8PathAI* path)
+unsigned int PathAIEntryCount(W8PathAI* path)
 {
     if (path == 0) {
         srAssertFail("pPathAI", PATH_AI_CPP, 0x43b, 0);
@@ -449,7 +428,7 @@ unsigned int PathAIEntryCount004A9F20(W8PathAI* path)
 }
 
 // FUNCTION: WIZ8 0x004a9f60
-void PathAISetValue004A9F60(W8PathAI* path, float value)
+void PathAISetValue(W8PathAI* path, float value)
 {
     if (path == 0) {
         srAssertFail("pPathAI", PATH_AI_CPP, 0x46e, 0);
@@ -463,7 +442,7 @@ void PathAISetValue004A9F60(W8PathAI* path, float value)
             path->position = value;
             return;
         }
-        PathAIAdvanceByDistance004A9FE0(path, value * path->total_length);
+        PathAIAdvanceByDistance(path, value * path->total_length);
         return;
     }
     path->position = value;
@@ -473,7 +452,7 @@ void PathAISetValue004A9F60(W8PathAI* path, float value)
    accumulator, then walk the node chain past every segment the distance
    covers, ending with the in-segment fraction in interpolation_fraction. */
 // FUNCTION: WIZ8 0x004a9fe0
-void PathAIAdvanceByDistance004A9FE0(W8PathAI* path, float distance)
+void PathAIAdvanceByDistance(W8PathAI* path, float distance)
 {
     srVector3T<float> position;
     srVector3T<float>* next;
@@ -503,7 +482,7 @@ void PathAIAdvanceByDistance004A9FE0(W8PathAI* path, float distance)
     }
     remaining = distance;
     while (true) {
-        PathAIPosition004AA370(path, &position);
+        PathAIPosition(path, &position);
         index = path->point_index + 1;
         next = *path->nodes_0c->GetAt(index);
         segment = (position - *next).Length();
@@ -528,7 +507,7 @@ void PathAIAdvanceByDistance004A9FE0(W8PathAI* path, float distance)
 }
 
 // FUNCTION: WIZ8 0x004aa160
-void PathAIAdvanceNormalized004AA160(W8PathAI* path, float amount)
+void PathAIAdvanceNormalized(W8PathAI* path, float amount)
 {
     unsigned int index;
     float position;
@@ -556,7 +535,7 @@ void PathAIAdvanceNormalized004AA160(W8PathAI* path, float amount)
 }
 
 // FUNCTION: WIZ8 0x004aa1f0
-int PathAITick004AA1F0(W8PathAI* path, signed char direction)
+int PathAITick(W8PathAI* path, signed char direction)
 {
     DWORD now;
     unsigned int elapsed;
@@ -571,11 +550,11 @@ int PathAITick004AA1F0(W8PathAI* path, signed char direction)
         elapsed = now - path->last_update_tick;
         if (path->last_update_tick < now) {
             if (path->timed_3c != 0) {
-                PathAIAdvanceNormalized004AA160(path, elapsed * g_float_005ec128);
+                PathAIAdvanceNormalized(path, elapsed * g_float_005ec128);
             } else {
                 point_count = (float)path->nodes_0c->count;
-                PathAIAdvanceByDistance004A9FE0(path, path->total_length / point_count *
-                                                          path->speed * elapsed * g_float_005ec128);
+                PathAIAdvanceByDistance(path, path->total_length / point_count * path->speed *
+                                                  elapsed * g_float_005ec128);
             }
             path->last_update_tick = now;
             return 1;
@@ -584,7 +563,7 @@ int PathAITick004AA1F0(W8PathAI* path, signed char direction)
         if (path->step_by_node_39 == 0) {
             amount = (now - path->last_update_tick) * g_float_005ec128 * direction * path->speed;
         } else {
-            amount = g_negative_one_005ebc38;
+            amount = g_negative_one;
             if (direction > 0) {
                 amount = g_float_005ebb38;
             }
@@ -603,7 +582,7 @@ int PathAITick004AA1F0(W8PathAI* path, signed char direction)
             }
         } else if (path->looping != 0) {
             path->last_update_tick = now;
-            path->position = static_cast<float>(path->nodes_0c->count) - g_float_005ebb38;
+            path->position = path->nodes_0c->count - g_float_005ebb38;
             return 1;
         }
         path->position = g_float_005ebb34;
@@ -613,7 +592,7 @@ int PathAITick004AA1F0(W8PathAI* path, signed char direction)
 }
 
 // FUNCTION: WIZ8 0x004aa370
-void PathAIPosition004AA370(W8PathAI* path, srVector3T<float>* value)
+void PathAIPosition(W8PathAI* path, srVector3T<float>* value)
 {
     int index;
     srVector3T<float>* first;
@@ -668,7 +647,7 @@ double g_double_005ec1e8 = 2.0;
 double g_double_005ec1f0 = 1.1920928955078125e-07;
 
 // FUNCTION: WIZ8 0x004aa520
-void PathAIApply004AA520(W8PathAI* path, srNode* target)
+void PathAIApply(W8PathAI* path, srNode* target)
 {
     int index;
     float blend;
@@ -682,7 +661,7 @@ void PathAIApply004AA520(W8PathAI* path, srNode* target)
     if (target == 0) {
         return;
     }
-    PathAIPosition004AA370(path, &position);
+    PathAIPosition(path, &position);
 
     node = target->firstChild();
     if (node == 0) {
@@ -749,13 +728,13 @@ void PathAIApply004AA520(W8PathAI* path, srNode* target)
 }
 
 // FUNCTION: WIZ8 0x004aa9c0
-void PathAISetScale004AA9C0(W8PathAI* path, float value)
+void PathAISetScale(W8PathAI* path, float value)
 {
     path->speed = value;
 }
 
 // FUNCTION: WIZ8 0x004aa9d0
-void PathAISetLooping004AA9D0(W8PathAI* path, unsigned char value)
+void PathAISetLooping(W8PathAI* path, unsigned char value)
 {
     if (path == 0) {
         srAssertFail("pPathAI", PATH_AI_CPP, 0x6dc, 0);
@@ -764,7 +743,7 @@ void PathAISetLooping004AA9D0(W8PathAI* path, unsigned char value)
 }
 
 // FUNCTION: WIZ8 0x004aaa10
-void PathAISetDiscreteMode004AAA10(W8PathAI* path, unsigned char value)
+void PathAISetDiscreteMode(W8PathAI* path, unsigned char value)
 {
     if (path == 0) {
         srAssertFail("pPathAI", PATH_AI_CPP, 0x6ee, 0);
@@ -773,13 +752,13 @@ void PathAISetDiscreteMode004AAA10(W8PathAI* path, unsigned char value)
 }
 
 // FUNCTION: WIZ8 0x004AAA50
-float PathAIGetScale004AAA50(W8PathAI* path)
+float PathAIGetScale(W8PathAI* path)
 {
     return path->speed;
 }
 
 // FUNCTION: WIZ8 0x004a9750
-W8PathAI* CreateRecord004A9750(int unused)
+W8PathAI* CreateRecord(int unused)
 {
     W8PathAI* path;
 

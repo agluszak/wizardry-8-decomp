@@ -35,6 +35,7 @@ def _managed_link(source: Path, destination: Path) -> None:
 
 
 RUNTIME_OBSERVATION = re.compile(r"^WIZ8_RUNTIME_TEST (?P<fields>.+)$")
+RUNTIME_OBSERVE = re.compile(r"^WIZ8_RUNTIME_OBSERVE (?P<fields>.+)$", re.MULTILINE)
 RUNTIME_SESSION = re.compile(r"^WIZ8_RUNTIME_SESSION (?P<fields>.+)$", re.MULTILINE)
 RUNTIME_FAILURE = re.compile(r"^WIZ8_RUNTIME_FAILURE (?P<fields>.+)$", re.MULTILINE)
 RUNTIME_STEP = re.compile(r"^WIZ8_RUNTIME_STEP (?P<fields>.+)$", re.MULTILINE)
@@ -55,6 +56,32 @@ WINE_STACK_LINE = re.compile(
     re.MULTILINE,
 )
 RUNTIME_FAILURE_GRACE_SECONDS = 2.0
+DEFAULT_GE_PROTON = Path.home() / ".local/share/Steam/compatibilitytools.d/GE-Proton11-7-x86_64"
+
+
+def runtime_runner() -> str:
+    runner = os.environ.get("WIZ8_RUNTIME_RUNNER", "umu")
+    if runner not in {"wine", "umu"}:
+        raise ValueError("WIZ8_RUNTIME_RUNNER must be 'wine' or 'umu'")
+    return runner
+
+
+def configure_runtime_runner(environment: dict[str, str], runner: str) -> None:
+    environment["WIZ8_RUNTIME_RUNNER"] = runner
+    if runner == "umu":
+        environment.setdefault("PROTONPATH", str(DEFAULT_GE_PROTON))
+
+
+def require_umu_runner(environment: dict[str, str]) -> str:
+    umu_run = environment.get("WIZ8_UMU_RUN", "umu-run")
+    if shutil.which(umu_run) is None:
+        raise RuntimeError(f"install umu-launcher to provide {umu_run} for GE-Proton")
+    if environment["PROTONPATH"] == str(DEFAULT_GE_PROTON) and not DEFAULT_GE_PROTON.is_dir():
+        raise RuntimeError(
+            f"GE-Proton is missing: {environment['PROTONPATH']}; "
+            "install GE-Proton11-7-x86_64 or set PROTONPATH"
+        )
+    return umu_run
 
 
 @dataclass(frozen=True)
@@ -118,6 +145,18 @@ def _read_runtime_scenarios(
     return _parse_runtime_scenarios(result.stdout)
 
 
+def _runtime_test_command(executable: Path, environment: dict[str, str]) -> list[str]:
+    if environment.get("WIZ8_RUNTIME_RUNNER", "wine") == "umu":
+        return [environment.get("WIZ8_UMU_RUN", "umu-run"), str(executable)]
+    return ["wine", f"./{executable.name}"]
+
+
+def _runtime_test_wineserver(environment: dict[str, str]) -> str:
+    if environment.get("WIZ8_RUNTIME_RUNNER") == "umu":
+        return environment.get("WIZ8_UMU_WINESERVER", "wineserver")
+    return "wineserver"
+
+
 @dataclass(frozen=True)
 class _CrashCandidate:
     source: str
@@ -161,9 +200,7 @@ class StagedGame:
 
 
 def _materialize_config(settings: Settings, stage: Path) -> None:
-    video_cfg = stage / "3DVideo.CFG"
-    if not video_cfg.exists():
-        shutil.copy2(settings.repo_dir / "config" / "runtime" / "3DVideo.CFG", video_cfg)
+    apply_product_video_config(settings, stage)
     game_cfg = stage / "Wiz8.CFG"
     if not game_cfg.exists():
         encoded = (settings.repo_dir / "config" / "runtime" / "Wiz8.CFG.hex").read_text()
@@ -259,8 +296,12 @@ def run_product(
 ) -> dict[str, Any]:
     """Stage and launch one game process, symbolizing a crash when it happens."""
 
-    if shutil.which("wine") is None:
+    runner = runtime_runner()
+    if runner == "wine" and shutil.which("wine") is None:
         raise RuntimeError("wine is required to run the game")
+    environment = dict(os.environ)
+    configure_runtime_runner(environment, runner)
+    umu_run = require_umu_runner(environment) if runner == "umu" else ""
     if original:
         staged = stage_game(
             settings,
@@ -276,16 +317,28 @@ def run_product(
             objects=settings.recovered_objects_dir,
         )
         map_path = staged.map
-    prefix = Path(os.environ.get("WIZ8_WINE_PREFIX", settings.work_dir / "wine" / "wiz8-runtime"))
+    prefix = Path(
+        os.environ.get(
+            "WIZ8_WINE_PREFIX",
+            settings.work_dir / "wine" / ("wiz8-ge-proton" if runner == "umu" else "wiz8-runtime"),
+        )
+    )
     prefix.mkdir(parents=True, exist_ok=True)
-    environment = {**os.environ, "WINEPREFIX": str(prefix)}
+    environment["WINEPREFIX"] = str(prefix)
+    environment.setdefault("WIZ8_RUNTIME_SCREEN_GEOMETRY", runtime_video_screen_geometry(settings))
     environment.setdefault("WINEDLLOVERRIDES", "winemenubuilder.exe=d")
     with runtime_display(
         environment, default="host", log_path=staged.root / "xvfb-run.log"
     ) as display:
-        configure_wine_window_management(environment, private_display=display is not None)
+        if runner == "wine":
+            configure_wine_window_management(environment, private_display=display is not None)
+        command = (
+            ["wine", f"./{staged.executable.name}"]
+            if runner == "wine"
+            else [umu_run, str(staged.executable)]
+        )
         completed = subprocess.run(
-            ["wine", f"./{staged.executable.name}", "/WINDOW", *(arguments or [])],
+            [*command, "/WINDOW", *(arguments or [])],
             cwd=staged.root,
             env=environment,
             check=False,
@@ -303,6 +356,32 @@ def run_product(
         log_path.write_text(output, encoding="utf-8", errors="replace")
         crash = analyze_runtime_crash(log_path, map_path, staged.objects)
     return {**staged.as_dict(), "status": completed.returncode, "crash": crash}
+
+
+def runtime_video_config_source(settings: Settings) -> Path:
+    source = Path(os.environ.get("WIZ8_RUNTIME_VIDEO_CONFIG", "config/runtime/3DVideo.CFG"))
+    if not source.is_absolute():
+        source = settings.repo_dir / source
+    if not source.is_file():
+        raise RuntimeError(f"runtime video configuration is missing: {source}")
+    return source
+
+
+def apply_product_video_config(settings: Settings, stage: Path) -> None:
+    source = runtime_video_config_source(settings)
+    shutil.copy2(source, stage / "3DVideo.CFG")
+
+
+def runtime_video_screen_geometry(settings: Settings) -> str:
+    lines = runtime_video_config_source(settings).read_text(encoding="ascii").splitlines()
+    if len(lines) < 4:
+        raise RuntimeError("runtime video configuration is missing its width, height, or depth")
+    width, height, depth = (int(value) for value in lines[1:4])
+    # Glide selects its own 16-bit game mode inside Wine. Its X11 host window
+    # needs a 24-bit visual with GE-Proton; the CFG depth is the game depth.
+    if lines[0] == "Glide2x":
+        depth = 24
+    return f"{width}x{height}x{depth}"
 
 
 def _resolve_addresses(map_path: Path, addresses: list[int]) -> list[SymbolResolution | None]:
@@ -631,12 +710,24 @@ _OBSERVATION_VOLATILE_KEYS = frozenset({"failure", "history"})
 _OBSERVATION_TOLERANCES: dict[str, int] = {}
 
 
-def _semantic_observation(observation: Mapping[str, Any]) -> dict[str, Any]:
-    return {
+def _semantic_observation(
+    observation: Mapping[str, Any], *, include_history: bool = False
+) -> dict[str, Any]:
+    semantic = {
         key: value
         for key, value in observation.items()
         if key not in _OBSERVATION_VOLATILE_KEYS and not key.endswith("_ms")
     }
+    if include_history:
+        # The sequence of completed action names is semantic: ["saved",
+        # "restored"] versus ["saved"] is meaningful nondeterminism, while
+        # the timings and positions each action carried are not.
+        history = observation.get("history")
+        if isinstance(history, list):
+            semantic["history_actions"] = [
+                entry.get("action") for entry in history if isinstance(entry, Mapping)
+            ]
+    return semantic
 
 
 def _observation_differences(baseline: Mapping[str, Any], repeated: Mapping[str, Any]) -> list[str]:
@@ -676,9 +767,11 @@ def _compare_repetitions(scenario: str, outcomes: list[dict[str, Any]]) -> list[
             f"{len(outcomes) - len(passed)} failed"
         )
     if len(passed) >= 2:
-        baseline = _semantic_observation(passed[0])
+        baseline = _semantic_observation(passed[0], include_history=True)
         for index, observation in enumerate(passed[1:], start=2):
-            differences = _observation_differences(baseline, _semantic_observation(observation))
+            differences = _observation_differences(
+                baseline, _semantic_observation(observation, include_history=True)
+            )
             if differences:
                 problems.append(
                     f"{scenario}: repetition {index} disagrees with the first run: "
@@ -688,24 +781,36 @@ def _compare_repetitions(scenario: str, outcomes: list[dict[str, Any]]) -> list[
 
 
 def runtime_test_environment(
-    settings: Settings, *, prefix: Path | None = None, renderer: str | None = None
+    settings: Settings,
+    *,
+    prefix: Path | None = None,
+    renderer: str | None = None,
+    sound: bool = False,
 ) -> tuple[Path, dict[str, str]]:
+    runner = runtime_runner()
     if prefix is None:
         prefix = Path(
-            os.environ.get("WIZ8_WINE_PREFIX", settings.work_dir / "wine" / "wiz8-runtime")
+            os.environ.get(
+                "WIZ8_WINE_PREFIX",
+                settings.work_dir
+                / "wine"
+                / ("wiz8-ge-proton" if runner == "umu" else "wiz8-runtime"),
+            )
         )
     prefix.mkdir(parents=True, exist_ok=True)
-    # The scenarios never assert audible output. Force the soundless-machine
-    # path so Wine's stub audio drivers cannot perturb semantic observations.
+    # Most scenarios use the soundless-machine path so Wine's stub audio
+    # drivers cannot perturb their semantic observations.
     overrides = (
         "winemenubuilder.exe=d;winealsa.drv=d;wineoss.drv=d;winepulse.drv=d;winemm.drv=d;"
         "mmdevapi=d;dsound=d"
     )
-    environment = {
-        **os.environ,
-        "WINEPREFIX": str(prefix),
-        "WINEDLLOVERRIDES": overrides,
-    }
+    environment = {**os.environ, "WINEPREFIX": str(prefix)}
+    configure_runtime_runner(environment, runner)
+    environment.setdefault("WIZ8_RUNTIME_SCREEN_GEOMETRY", runtime_video_screen_geometry(settings))
+    if sound:
+        environment.pop("WINEDLLOVERRIDES", None)
+    else:
+        environment["WINEDLLOVERRIDES"] = overrides
     if renderer is not None:
         environment["GALLIUM_DRIVER"] = renderer
     environment["WINEDEBUG"] = "-all"
@@ -824,13 +929,21 @@ def configure_wine_window_management(
     )
 
 
-def _parse_runtime_observation_fields(fields: str) -> dict[str, str | int]:
-    parsed: dict[str, str | int] = {}
+_OBSERVATION_FLOAT_VALUE = re.compile(r"-?\d+\.\d+([eE][+-]?\d+)?|-?\d+[eE][+-]?\d+")
+
+
+def _parse_runtime_observation_fields(fields: str) -> dict[str, str | int | float]:
+    parsed: dict[str, str | int | float] = {}
     for item in fields.split():
         key, separator, value = item.partition("=")
         if not separator:
             raise RuntimeError(f"malformed runtime observation field: {item}")
-        parsed[key] = int(value) if value.lstrip("-").isdigit() else value
+        if value.lstrip("-").isdigit():
+            parsed[key] = int(value)
+        elif _OBSERVATION_FLOAT_VALUE.fullmatch(value):
+            parsed[key] = float(value)
+        else:
+            parsed[key] = value
     return parsed
 
 
@@ -856,6 +969,22 @@ def _parse_runtime_observations(stdout: str) -> dict[str, dict[str, Any]]:
             if isinstance(scenario, str):
                 observations[scenario] = fields
     return observations
+
+
+def _merge_case_observations(observation: dict[str, Any], stdout: str, scenario: str) -> None:
+    """Fold a case's RuntimeCase.observe() emissions into its record.
+
+    The executable prints WIZ8_RUNTIME_OBSERVE lines as the case runs, each a
+    typed name/value pair the case chose to expose. They land in the
+    observation record under obs.<name> so repetition and order checks
+    compare actual semantic outputs instead of only pass/fail."""
+    for match in RUNTIME_OBSERVE.finditer(stdout):
+        fields = _parse_runtime_observation_fields(match.group("fields"))
+        if fields.get("scenario") != scenario or "name" not in fields:
+            continue
+        name = fields["name"]
+        if isinstance(name, str):
+            observation[f"obs.{name}"] = fields.get("value")
 
 
 @dataclass
@@ -884,13 +1013,22 @@ def _drive_runtime_process(
     marker arms the early-exit grace."""
     started = time.monotonic()
     output: dict[str, bytearray] = {"stdout": bytearray(), "stderr": bytearray()}
+    environment = environment.copy()
+    proton_output = stage / "diagnostics" / "runtime-test.stdout"
+    proton_log = stage / "diagnostics" / "runtime-test.stderr"
+    if environment.get("WIZ8_RUNTIME_RUNNER") == "umu":
+        proton_output.parent.mkdir(parents=True, exist_ok=True)
+        proton_output.unlink(missing_ok=True)
+        proton_log.unlink(missing_ok=True)
+        environment["WIZ8_RUNTIME_TEST_OUTPUT"] = str(proton_output)
+        environment["WIZ8_RUNTIME_TEST_LOG"] = str(proton_log)
     timed_out = False
     failure_deadline: float | None = None
     pending_stderr = b""
     last_step = "process-start"
     last_step_scenario: str | None = None
     with subprocess.Popen(
-        ["wine", f"./{executable.name}", *argv_tail],
+        [*_runtime_test_command(executable, environment), *argv_tail],
         cwd=stage,
         env=environment,
         stdout=subprocess.PIPE,
@@ -954,7 +1092,7 @@ def _drive_runtime_process(
                     # replace the scenario's own crash/failure diagnostics.
                     try:
                         subprocess.run(
-                            ["wineserver", "-k"],
+                            [_runtime_test_wineserver(environment), "-k"],
                             env=environment,
                             check=False,
                             capture_output=True,
@@ -969,6 +1107,16 @@ def _drive_runtime_process(
                 process.wait()
     stdout = output["stdout"].decode(errors="replace")
     stderr = output["stderr"].decode(errors="replace")
+    if environment.get("WIZ8_RUNTIME_RUNNER") == "umu":
+        if proton_output.exists():
+            stdout = proton_output.read_text(encoding="utf-8", errors="replace")
+        if proton_log.exists():
+            stderr = proton_log.read_text(encoding="utf-8", errors="replace") + stderr
+        for line in stderr.splitlines():
+            if line.startswith("WIZ8_RUNTIME_STEP "):
+                fields = dict(item.split("=", 1) for item in line.split()[1:] if "=" in item)
+                last_step = fields.get("step", last_step)
+                last_step_scenario = fields.get("scenario")
     if timed_out:
         stderr += f"\nruntime-test deadline: last_step={last_step}\n"
     return _RuntimeProcessResult(
@@ -1013,6 +1161,7 @@ def _run_runtime_scenario(
     try:
         observation = _parse_runtime_observation(result.stdout)
         observation["history"] = _runtime_history(result.stderr, scenario)
+        _merge_case_observations(observation, result.stdout, scenario)
     except RuntimeError as error:
         raise _runtime_failure(
             scenario,
@@ -1067,6 +1216,7 @@ def _run_runtime_batch(
     observations = _parse_runtime_observations(result.stdout)
     for name, observation in observations.items():
         observation["history"] = _runtime_history(result.stderr, name)
+        _merge_case_observations(observation, result.stdout, name)
     missing = [name for name in scenarios if name not in observations]
     error: str | None = None
     if result.timed_out or result.failed_early or missing:
@@ -1076,8 +1226,10 @@ def _run_runtime_batch(
             else f"exit={result.returncode}"
         )
         in_flight = result.last_step_scenario or (missing[0] if missing else "unknown")
+        aborted = "event=aborted" in result.stderr
         error = (
-            f"batch process died after {len(observations)}/{len(scenarios)} cases "
+            f"batch {'aborted' if aborted else 'process died'} after "
+            f"{len(observations)}/{len(scenarios)} cases "
             f"(in-flight={in_flight}, exit={result.returncode}, "
             f"timed_out={result.timed_out}): {detail[:400]}"
         )
@@ -1150,21 +1302,24 @@ def run_runtime_suite(
     check_order: bool = False,
     repeat: int = 1,
     renderer: str | None = None,
-    batch: bool = False,
-    workers: int = 1,
+    batch: bool = True,
+    workers: int = 2,
 ) -> dict[str, Any]:
     """Run selected scenarios, optionally checking reverse-order determinism.
 
-    With batch=True, consecutive batch-eligible cases sharing a fixture run in
-    one game process. If a batch process dies mid-group, the unreported cases
+    With batch=True (the default), consecutive batch-eligible cases sharing a
+    fixture run in one game process; pass batch=False to isolate every case in
+    a fresh process. If a batch process dies mid-group, the unreported cases
     re-run in fresh processes so a poisoned session cannot mask or manufacture
     per-case failures.
 
-    With workers>1, independent jobs run on that many isolated workers: each
-    owns a writable stage per case, its own WINEPREFIX (wineserver -k is
-    prefix-scoped, so one worker's failure cannot kill another's server), and
-    its own virtual display (the game uses real OS input and window focus, so
-    sharing a display is unsafe). The suite executable and MAP are pinned once
+    With workers>1 (the default is 2), independent jobs run on that many
+    isolated workers: each owns a writable stage per case, its own WINEPREFIX
+    (wineserver -k is prefix-scoped, so one worker's failure cannot kill
+    another's server), and its own virtual display (the game uses real OS
+    input and window focus, so sharing a display is unsafe). Fewer workers
+    than requested spawn when fewer jobs exist, so a single-case run pays for
+    no second display or prefix. The suite executable and MAP are pinned once
     per invocation so a concurrent relink cannot mix binaries within a run."""
 
     suite_started = time.monotonic()
@@ -1183,6 +1338,11 @@ def run_runtime_suite(
 
     if shutil.which("wine") is None or shutil.which("wineserver") is None:
         raise RuntimeError("wine and wineserver are required to run WIZ8_RUNTIME_TEST")
+    runner = runtime_runner()
+    if runner == "umu":
+        runner_environment = dict(os.environ)
+        configure_runtime_runner(runner_environment, runner)
+        require_umu_runner(runner_environment)
     stage = settings.runtime_stage("runtime-test")
     stage.mkdir(parents=True, exist_ok=True)
     executable = settings.product_build_dir / "Wiz8RuntimeTest.exe"
@@ -1190,26 +1350,27 @@ def run_runtime_suite(
     pinned_executable, input_digest = _pin_suite_executable(settings, executable, stage)
 
     base_prefix = os.environ.get(
-        "WIZ8_WINE_PREFIX", str(settings.work_dir / "wine" / "wiz8-runtime")
+        "WIZ8_WINE_PREFIX",
+        str(settings.work_dir / "wine" / ("wiz8-ge-proton" if runner == "umu" else "wiz8-runtime")),
     )
-    prefixes: list[Path] = []
-    environments: list[dict[str, str]] = []
-    for index in range(workers):
-        prefix = Path(base_prefix if workers == 1 else f"{base_prefix}-w{index}")
-        prefixes.append(prefix)
-        environments.append(runtime_test_environment(settings, prefix=prefix, renderer=renderer)[1])
+    # The registry read runs on the base prefix; once the job list is known,
+    # the actual worker prefixes are allocated (the base prefix itself when
+    # only one worker is needed).
+    registry_environment = runtime_test_environment(
+        settings, prefix=Path(base_prefix), renderer=renderer
+    )[1]
 
     runs: dict[str, dict[str, dict[str, Any]]] = {}
     scenario_stages: dict[str, str] = {}
     failures: list[str] = []
     timings: dict[str, dict[str, dict[str, Any]]] = {}
 
-    # Read the scenario registry once on worker 0's prefix; the display context
-    # is short-lived — each worker opens its own before running cases.
     with runtime_display(
-        environments[0], default="virtual", log_path=stage / "xvfb-registry.log"
+        registry_environment,
+        default="host" if registry_environment.get("WIZ8_RUNTIME_RUNNER") == "umu" else "virtual",
+        log_path=stage / "xvfb-registry.log",
     ) as display:
-        configure_wine_window_management(environments[0], private_display=display is not None)
+        configure_wine_window_management(registry_environment, private_display=display is not None)
         registry_stage = stage_game(
             settings,
             name="runtime-test/registry",
@@ -1219,8 +1380,19 @@ def run_runtime_suite(
             input_pinned=True,
         )
         registry = _read_runtime_scenarios(
-            registry_stage.executable, registry_stage.root, environments[0]
+            registry_stage.executable, registry_stage.root, registry_environment
         )
+        # Registry discovery uses system Wine. Retire its prefix services while
+        # their X connection is still live, before GE-Proton starts on another
+        # private display for the scenarios.
+        if registry_environment.get("WIZ8_RUNTIME_RUNNER") == "umu":
+            subprocess.run(
+                [_runtime_test_wineserver(registry_environment), "-k"],
+                env=registry_environment,
+                check=False,
+                capture_output=True,
+                timeout=5,
+            )
     if scenarios is None:
         scenarios = tuple(
             name for name, spec in registry.items() if tiers.index(spec.tier) <= tiers.index(tier)
@@ -1260,6 +1432,28 @@ def run_runtime_suite(
         for group in groups:
             jobs.append((order_name, group))
 
+    # Spawn no more workers than jobs: a single-case run must not pay for a
+    # second private display and prefix it never uses.
+    active_workers = min(workers, len(jobs))
+    if active_workers == 1:
+        prefixes = [Path(base_prefix)]
+        environments = [registry_environment]
+    else:
+        prefixes = [Path(f"{base_prefix}-w{index}") for index in range(active_workers)]
+        environments = [
+            runtime_test_environment(settings, prefix=prefix, renderer=renderer)[1]
+            for prefix in prefixes
+        ]
+        # No worker owns the registry-read prefix; stop its wineserver so the
+        # private per-worker prefixes are the only live ones.
+        subprocess.run(
+            [_runtime_test_wineserver(registry_environment), "-k"],
+            cwd=stage,
+            env=registry_environment,
+            check=False,
+            capture_output=True,
+        )
+
     def run_group(
         order_name: str, group: tuple[str, ...], environment: dict[str, str]
     ) -> dict[str, Any]:
@@ -1281,10 +1475,14 @@ def run_runtime_suite(
             job["stages"][scenario] = str(staged.root)
             run_started = time.monotonic()
             try:
+                scenario_environment = environment
+                if scenario == "voice-portrait-sync":
+                    scenario_environment = {**environment}
+                    scenario_environment.pop("WINEDLLOVERRIDES", None)
                 job["runs"][scenario] = _run_runtime_scenario(
                     staged.executable,
                     staged.root,
-                    environment,
+                    scenario_environment,
                     scenario,
                     registry[scenario].timeout_ms / 1000,
                     object_root,
@@ -1384,7 +1582,7 @@ def run_runtime_suite(
     pending: queue.Queue[int | None] = queue.Queue()
     for job_index in range(len(jobs)):
         pending.put(job_index)
-    for _ in range(workers):
+    for _ in range(active_workers):
         pending.put(None)
     results: list[dict[str, Any] | None] = [None] * len(jobs)
     worker_errors: list[tuple[int, BaseException]] = []
@@ -1397,6 +1595,14 @@ def run_runtime_suite(
                 log_path=stage / f"xvfb-worker-{index}.log",
             ) as display:
                 configure_wine_window_management(environment, private_display=display is not None)
+                if environment.get("WIZ8_RUNTIME_RUNNER") == "umu":
+                    subprocess.run(
+                        [_runtime_test_wineserver(environment), "-k"],
+                        env=environment,
+                        check=False,
+                        capture_output=True,
+                        timeout=5,
+                    )
                 while True:
                     job_index = pending.get()
                     try:
@@ -1411,7 +1617,7 @@ def run_runtime_suite(
         finally:
             try:
                 subprocess.run(
-                    ["wineserver", "-k"],
+                    [_runtime_test_wineserver(environment), "-k"],
                     cwd=stage,
                     env=environment,
                     check=False,
@@ -1424,7 +1630,7 @@ def run_runtime_suite(
                     flush=True,
                 )
 
-    if workers == 1:
+    if active_workers == 1:
         worker(0, environments[0])
     else:
         threads = [
@@ -1433,7 +1639,7 @@ def run_runtime_suite(
                 args=(index, environments[index]),
                 name=f"runtime-worker-{index}",
             )
-            for index in range(workers)
+            for index in range(active_workers)
         ]
         for thread in threads:
             thread.start()
@@ -1489,7 +1695,7 @@ def run_runtime_suite(
         f"RUNTIME_SUITE scenarios={sum(len(run) for run in runs.values())} "
         f"failures={len(failures)} elapsed_s={elapsed:.1f} "
         f"stage_s={staging_seconds:.1f} run_s={execution_seconds:.1f} "
-        f"workers={workers} "
+        f"workers={active_workers} "
         f"renderer={environments[0].get('GALLIUM_DRIVER', 'default')}",
         file=sys.stderr,
         flush=True,
@@ -1504,7 +1710,7 @@ def run_runtime_suite(
         "scenario_stages": scenario_stages,
         "wine_prefix": str(prefixes[0]),
         "wine_prefixes": [str(prefix) for prefix in prefixes],
-        "workers": workers,
+        "workers": active_workers,
         "runs": runs,
         "timings": {
             "staging_seconds": staging_seconds,

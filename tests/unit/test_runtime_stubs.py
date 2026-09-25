@@ -23,6 +23,7 @@ from wiz8decomp.runtime_stubs import (
     RuntimeStubError,
     SourceFacts,
     _declared_callable,
+    _function_identity,
     linked_objects,
     render_alias_object,
     render_source,
@@ -31,6 +32,12 @@ from wiz8decomp.runtime_stubs import (
 
 VC6_IMAGE = "wizardry8-msvc600:sp5"
 HAVE_TOOLCHAIN = shutil.which("docker") is not None and shutil.which("wine") is not None
+
+
+def test_function_identity_counts_function_pointer_parameter() -> None:
+    assert _function_identity(
+        "void __cdecl ShowModalMessage005A6620(int, int, int, void (__cdecl *)(void), int, int)"
+    ) == ("ShowModalMessage005A6620", "ShowModalMessage005A6620", 6)
 
 
 def _stubs() -> list[ResolvedStub]:
@@ -104,7 +111,6 @@ def test_resolve_stubs_binds_declaration_by_qualified_name(monkeypatch) -> None:
                     address=0x00547570,
                     source_file="src/wiz8/engine_code/Monster.cpp",
                     parameter_count=2,
-                    folded=False,
                     is_definition=False,
                     signature="void (int, int)",
                 ),
@@ -141,12 +147,12 @@ def test_declared_callable_does_not_bind_another_class_method() -> None:
         markers_by_address={},
         callables_by_name={
             "Accept": (
-                DeclaredCallable(0x005C6910, "first.cpp", 0, False, True, None),
-                DeclaredCallable(0x005C76C0, "second.cpp", 0, False, True, None),
+                DeclaredCallable(0x005C6910, "first.cpp", 0, True, None),
+                DeclaredCallable(0x005C76C0, "second.cpp", 0, True, None),
             )
         },
     )
-    assert _declared_callable(facts, "W8CharacterPage005EF664::Accept", "Accept", 0) is None
+    assert _declared_callable(facts, "W8CharacterSpellsPage::Accept", "Accept", 0) is None
 
 
 def test_resolve_stubs_rejects_ambiguous_declaration(monkeypatch) -> None:
@@ -154,8 +160,8 @@ def test_resolve_stubs_rejects_ambiguous_declaration(monkeypatch) -> None:
         markers_by_address={},
         callables_by_name={
             "SetMonsterGroupHostility": (
-                DeclaredCallable(0x00547570, "a.cpp", 2, False, False, None),
-                DeclaredCallable(0x005477D0, "b.cpp", 2, False, False, None),
+                DeclaredCallable(0x00547570, "a.cpp", 2, False, None),
+                DeclaredCallable(0x005477D0, "b.cpp", 2, False, None),
             )
         },
     )
@@ -180,6 +186,101 @@ def test_resolve_stubs_rejects_ambiguous_declaration(monkeypatch) -> None:
             facts=facts,
             text_range=(0x401000, 0x600000),
         )
+
+
+def test_resolve_stubs_keeps_address_named_unrecovered_callable(monkeypatch) -> None:
+    facts = SourceFacts(markers_by_address={}, callables_by_name={})
+    monkeypatch.setattr(
+        "wiz8decomp.runtime_stubs.unresolved_report",
+        lambda *_args, **_kwargs: {
+            "by_symbol": {"?Function4E79A0@@YAEHHHH@Z": ["Targeting.cpp.obj"]}
+        },
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.runtime_stubs.demangle",
+        lambda _symbols: {
+            "?Function4E79A0@@YAEHHHH@Z": ("unsigned char Function4E79A0(int, int, int, int)")
+        },
+    )
+
+    stubs = resolve_stubs(
+        SimpleNamespace(repo_dir=Path("/repo")),
+        object_root=Path("/obj"),
+        map_path=Path("/map"),
+        objects=[Path("/obj/Targeting.cpp.obj")],
+        facts=facts,
+        text_range=(0x401000, 0x600000),
+    )
+
+    assert len(stubs) == 1
+    assert stubs[0].address == 0x004E79A0
+    assert stubs[0].identity == "address-name"
+
+
+def test_resolve_stubs_rejects_unmapped_first_party_callable(monkeypatch) -> None:
+    facts = SourceFacts(markers_by_address={}, callables_by_name={})
+    monkeypatch.setattr(
+        "wiz8decomp.runtime_stubs.unresolved_report",
+        lambda *_args, **_kwargs: {
+            "by_symbol": {"?IsSlotActionChosen@@YAEHHHH@Z": ["Targeting.cpp.obj"]}
+        },
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.runtime_stubs.demangle",
+        lambda _symbols: {
+            "?IsSlotActionChosen@@YAEHHHH@Z": (
+                "unsigned char IsSlotActionChosen(int, int, int, int)"
+            )
+        },
+    )
+
+    with pytest.raises(RuntimeStubError, match="no retail address evidence") as error:
+        resolve_stubs(
+            SimpleNamespace(repo_dir=Path("/repo")),
+            object_root=Path("/obj"),
+            map_path=Path("/map"),
+            objects=[Path("/obj/Targeting.cpp.obj")],
+            facts=facts,
+            text_range=(0x401000, 0x600000),
+        )
+
+    message = str(error.value)
+    assert "?IsSlotActionChosen@@YAEHHHH@Z" in message
+    assert "IsSlotActionChosen" in message
+    assert "Targeting.cpp.obj" in message
+
+
+def test_resolve_stubs_reports_all_unmapped_callables(monkeypatch) -> None:
+    symbols = {
+        "?First@@YAXXZ": ["FirstCaller.cpp.obj"],
+        "?Second@@YAXXZ": ["SecondCaller.cpp.obj"],
+    }
+    monkeypatch.setattr(
+        "wiz8decomp.runtime_stubs.unresolved_report",
+        lambda *_args, **_kwargs: {"by_symbol": symbols},
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.runtime_stubs.demangle",
+        lambda _symbols: {
+            symbol: f"void {name}()" for symbol, name in zip(symbols, ("First", "Second"))
+        },
+    )
+
+    with pytest.raises(RuntimeStubError) as error:
+        resolve_stubs(
+            SimpleNamespace(repo_dir=Path("/repo")),
+            object_root=Path("/obj"),
+            map_path=Path("/map"),
+            objects=[Path("/obj/FirstCaller.cpp.obj"), Path("/obj/SecondCaller.cpp.obj")],
+            facts=SourceFacts(markers_by_address={}, callables_by_name={}),
+            text_range=(0x401000, 0x600000),
+        )
+
+    message = str(error.value)
+    assert "?First@@YAXXZ" in message
+    assert "?Second@@YAXXZ" in message
+    assert "FirstCaller.cpp.obj" in message
+    assert "SecondCaller.cpp.obj" in message
 
 
 @pytest.mark.skipif(not HAVE_TOOLCHAIN, reason="docker and wine are required")

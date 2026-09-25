@@ -10,7 +10,7 @@ class srBounder : public srClassSupport<srBounder, srNode, false, 0x1600> {
 public:
     enum e_boundMode { BOUND_MODE_POSITIONAL_0 = 0 };
 
-    srBounder(srNode* parent);
+    srBounder(srNode* parent = 0);
     srBounder(const srBounder& other);
     srBounder& operator=(const srBounder& other);
 

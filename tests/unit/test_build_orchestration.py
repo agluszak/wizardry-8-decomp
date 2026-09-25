@@ -183,3 +183,46 @@ def test_product_inputs_names_stale_extraction_recipe(tmp_path: Path, monkeypatc
     assert result["ok"] is True
     assert result["status"] == "stale-recipe"
     assert "gog-media" in (result["detail"] or "")
+    assert "corpus clean --stage extractions" in (result["detail"] or "")
+    assert "corpus extract gog-media" in (result["detail"] or "")
+
+
+def test_product_build_uses_product_only_vc6_image(tmp_path: Path) -> None:
+    product = build.ContainerBuild.from_settings(_settings(tmp_path))
+    assert product.image == build.VC6_PRODUCT_IMAGE
+    assert product.image != build.VC6_IMAGE
+
+
+def test_prepare_comparison_reuses_cached_original_without_installer(
+    tmp_path: Path, monkeypatch
+) -> None:
+    import hashlib
+
+    settings = _settings(tmp_path)
+    settings.work_dir.mkdir(parents=True)
+    settings.repo_dir.mkdir(exist_ok=True)
+    original = settings.work_dir / "comparison/gog-base/Wiz8.exe"
+    original.parent.mkdir(parents=True)
+    payload = b"reviewed wiz8"
+    original.write_bytes(payload)
+    digest = hashlib.sha256(payload).hexdigest()
+    (settings.repo_dir / "reccmp-project.yml").write_text(
+        f"targets:\n  WIZ8:\n    filename: Wiz8.exe\n    hash:\n      sha256: {digest}\n"
+    )
+
+    events = []
+    monkeypatch.setattr(
+        "wiz8decomp.ghidra.fid_seeds.fetch_seed_sources",
+        lambda _settings: {"sources": []},
+    )
+    monkeypatch.setattr(
+        build,
+        "run",
+        lambda command, **_kwargs: events.append(command),
+    )
+
+    result = build.prepare_comparison(settings, ["WIZ8"])
+
+    assert result["extraction"] == "cached"
+    assert result["targets"] == ["WIZ8"]
+    assert events[0][:3] == ["reccmp-project", "detect", "--search-path"]

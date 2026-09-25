@@ -124,7 +124,7 @@ Common development commands:
 | `uv run wiz8 compare 0xADDRESS... --build` | Rebuild and compare selected WIZ8 functions. |
 | `uv run wiz8 compare 0x1003bee0 --program sr.dll --build` | Rebuild and compare selected SurRender provider functions. |
 | `uv run wiz8 build runtime` | Build the runnable recovered executable. |
-| `uv run wiz8 run` | Run the recovered executable under Wine. |
+| `uv run wiz8 run` | Run the recovered executable with GE-Proton. |
 | `uv run wiz8 run --original` | Run the retail executable in the same staged environment. |
 | `uv run wiz8 runtime-test --build` | Build and run the semantic runtime suite. |
 | `uv run wiz8 ghidra decompile 0xADDRESS...` | Inspect the retail decompilation for selected functions. |
@@ -135,10 +135,14 @@ Common development commands:
 
 Use `uv run wiz8 --help` for the complete command set.
 
+Runtime launch requires `umu-run` from umu-launcher and GE-Proton 11-7 installed under
+`~/.local/share/Steam/compatibilitytools.d/GE-Proton11-7-x86_64`. The default renderer is
+Glide2x at 800×600. Set `PROTONPATH` for another GE-Proton location, or set
+`WIZ8_RUNTIME_RUNNER=wine` to use system Wine explicitly.
+
 More detailed developer documentation:
 
-- [Contributor workflow](docs/contributor-workflow.md)
+- [Repository policy and task workflows](AGENTS.md)
 - [Evidence and artifact policy](docs/evidence-policy.md)
 - [Wizardry evidence and provenance model](docs/wiz8-evidence-model.md)
-- [Wizardry symbol evidence](docs/wiz8-symbol-evidence.md)
 - [Runtime/build target](docs/targets/wiz8-executable.md)

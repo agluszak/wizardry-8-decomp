@@ -14,12 +14,12 @@ class srDebugVP;
    Extra inlines below are the srVP slots Wiz8 actually reaches through the
    imported vp global (IAT 0x005eb7e8): load vp, then CALL [vtable+offset].
    Confirmed Wiz8 loaders include FUN_0046e8a0, FUN_00470040,
-   CopyDwordBuffer00470180,
+   CopyDwordBuffer,
    FUN_00471ad0, FUN_00472270, FUN_004729f0, FUN_00473190, FUN_00474700,
-   FUN_00474730, FlushSlots00475600, FUN_0047f930, FUN_00486970,
-   PrepareGeometry004B6F30, GDProp::Initialize, FUN_00580270 and FUN_005809f0.
+   FUN_00474730, FlushSlots, FUN_0047f930, FUN_00486970,
+   PrepareGeometry, GDProp::Initialize, FUN_00580270 and FUN_005809f0.
    Offsets +0x210/+0x218/+0x224 are the srVector3 `_length`, `_normalize`
-   and `_transform` slots. FillDwordBuffer00474700 / AddFloatBuffer00474730 call the dword
+   and `_transform` slots. FillDwordBuffer00474700 / AddFloatBuffer call the dword
    `_copy` and float `_add` overloads; both compare exact against retail
    CALLIND +0x38 / +0xd8. */
 class srVectorProcessor {
@@ -52,7 +52,8 @@ public:
 
     /* Retail also emits a guarded variant at 0x10027BA0 that skips the call
        when count is zero. */
-    // FUNCTION: SURRENDER 0x10027BC0
+    // FUNCTION: SURRENDER 0x10027BC0 SYMBOL
+    // ?copy@srVectorProcessor@@SAXPAKKK@Z
     static inline void copy(SRDWORD* destination, SRDWORD constant, SRDWORD count)
     {
         vp->_copy(destination, constant, count);
@@ -82,6 +83,8 @@ public:
 
     /* srVertexPipe's record paths dispatch the vertex4 sources through the
        three-vector4 copyIndexed overloads at vtable +0x84/+0x88/+0x8c. */
+    // FUNCTION: SURRENDER 0x1005CC60 SYMBOL
+    // srVectorProcessor::copyIndexed(srVector4*, const srARGB*, const SRDWORD*, SRDWORD)
     static inline void copyIndexed(srVector4* destination, const srARGB* source,
                                    const SRDWORD* indices, SRDWORD count)
     {
@@ -164,6 +167,48 @@ public:
                                  const srMatrix4& matrix, SRDWORD count)
     {
         vp->_transform(destination, vectors, matrix, count);
+    }
+
+    /* srGERD::Renderer's batch ingress dispatches the projection matrix's
+       detected mode: the vec4 transform through +0x220, ortho through
+       +0x23c, perspective through +0x240, the clip-flag byte stream
+       through +0x298, and the gather+remap triangle copy through +0x25c. */
+    static inline void transform(srVector4* destination, const srVector4* vectors,
+                                 const srMatrix4& matrix, SRDWORD count)
+    {
+        vp->_transform(destination, vectors, matrix, count);
+    }
+
+    static inline void transformOrtho(srVector4* destination, const srVector4* vectors,
+                                      const srMatrix4& matrix, SRDWORD count)
+    {
+        vp->_transformOrtho(destination, vectors, matrix, count);
+    }
+
+    static inline void transformPerspective(srVector4* destination, const srVector4* vectors,
+                                            const srMatrix4& matrix, SRDWORD count)
+    {
+        vp->_transformPerspective(destination, vectors, matrix, count);
+    }
+
+    static inline void srGetClipFlags(SRBYTE* destination, const srVector4* source, SRDWORD count)
+    {
+        vp->_srGetClipFlags(destination, source, count);
+    }
+
+    static inline void srCopyIndexedRemap(srVector3i* destination, const srVector3i* source,
+                                          const SRDWORD* indices, const SRDWORD* remap,
+                                          SRDWORD count)
+    {
+        vp->_srCopyIndexedRemap(destination, source, indices, remap, count);
+    }
+
+    /* The vec2 indexed copy the dedup path uses for both texture-coordinate
+       streams. */
+    static inline void copyIndexed(srVector2* destination, const srVector2* source,
+                                   const SRDWORD* indices, SRDWORD count)
+    {
+        vp->_copyIndexed(destination, source, indices, count);
     }
 
     /* destination[i] = |vectors[i]| for `count` vectors through vtable
@@ -270,6 +315,27 @@ public:
         vp->_swap(first, second, bytes);
     }
 
+    /* srColorSurfaceIFace::flipRectangle mirrors a converted ARGB row run
+       through the dword reverse slot (+0x3c). */
+    static inline void reverse(SRDWORD* destination, const SRDWORD* source, SRDWORD count)
+    {
+        vp->_reverse(destination, source, count);
+    }
+
+    /* srPixelConvert's keyed 32-bit formats fold a constant into the pixel
+       run through the dword _and/_or slots (+0x44/+0x4c). */
+    static inline void bitwiseAnd(SRDWORD* destination, const SRDWORD* source, SRDWORD constant,
+                                  SRDWORD count)
+    {
+        vp->_and(destination, source, constant, count);
+    }
+
+    static inline void bitwiseOr(SRDWORD* destination, const SRDWORD* source, SRDWORD constant,
+                                 SRDWORD count)
+    {
+        vp->_or(destination, source, constant, count);
+    }
+
     static inline void neg(float* destination, const float* source, SRDWORD count)
     {
         vp->_neg(destination, source, count);
@@ -357,8 +423,10 @@ public:
     }
 
 private:
-    /* srMaterial::postProcess dispatches the per-vertex blend through vp. */
+    /* srMaterial::postProcess dispatches the per-vertex blend through vp;
+       srCore::dump reads it directly for the Vector Processor report line. */
     friend class srMaterial;
+    friend class srCore;
     static void install(srVP* processor);
     // GLOBAL: SURRENDER 0x100A923C
     static SR_DLL_IMPORT srVP* vp;
@@ -382,4 +450,7 @@ private:
     /* srGERD::testBoundingBox dispatches the processor's bounding-box slot
        through vp (IAT 0x005eb7e8). */
     friend class srGERD;
+    /* srTriangleCuller dispatches _dot/_dotIndexed/_srCullNoClip and the
+       buildAVT scratch ops through vp from its own TU. */
+    friend class srTriangleCuller;
 };

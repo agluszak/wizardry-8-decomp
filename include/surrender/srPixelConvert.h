@@ -2,6 +2,8 @@
 
 #include "srHeap.h"
 
+class srPalette;
+
 class srPixelConvert {
 public:
     enum e_surfaceType {
@@ -13,9 +15,6 @@ public:
         SURFACE_BGRA32 = 0x0e,
         SURFACE_COPY = 0x18
     };
-
-    struct ConversionInfo;
-    typedef void(__cdecl* ConversionFunc)(const ConversionInfo& info);
 
     struct PixelFormat {
         unsigned char red_bits;
@@ -33,10 +32,38 @@ public:
         long bytes_per_pixel_minus_one;
         unsigned long flags;
 
-        void getName(char* name);
+        /* Retail exports the standalone copy (param mangles QAD = char* const);
+           no recovered caller ODR-uses it, so only provider dllexport keeps
+           the emission. */
+#if defined(SURRENDER_BUILD)
+        __declspec(dllexport)
+#endif
+        void getName(char* const name);
         int isValid() const;
         unsigned long match(const PixelFormat* formats, unsigned long count) const;
+
+        /* Retail compares the packed format as five dwords in isPixelFormatCompatible,
+           isCompatible and mapPixelFormat rather than field-wise bytes or memcmp. */
+        int operator==(const PixelFormat& other) const
+        {
+            const unsigned long* a = reinterpret_cast<const unsigned long*>(
+                this); // reinterpret-ok: packed pixel-format block compare
+            const unsigned long* b = reinterpret_cast<const unsigned long*>(
+                &other); // reinterpret-ok: packed pixel-format block compare
+            return a[4] == b[4] && b[0] == a[0] && b[1] == a[1] && a[3] == b[3] && a[2] == b[2];
+        }
     };
+
+    /* Converters receive the run description by reference; palette carries
+       the surface's srPalette for paletted conversion classes. */
+    struct ConversionInfo {
+        void* dest;
+        const void* source;
+        unsigned long count;
+        srPalette* palette;
+        const PixelFormat* format;
+    };
+    typedef void(__cdecl* ConversionFunc)(const ConversionInfo& info);
 
     static e_surfaceType mapPixelFormat(const PixelFormat& format);
     /* This overload is imported by both Wiz8 and the JPEG extension. */
@@ -46,3 +73,7 @@ public:
 
 static_assert(sizeof(srPixelConvert::PixelFormat) == 0x14,
               "srPixelConvert_PixelFormat_must_be_0x14");
+
+/* Builds the conversion lookup tables (channel expansion/reduction ramps,
+   dither cube, channel weights, decode/grayscale palettes) at library init. */
+void __cdecl initPixelTables(void);

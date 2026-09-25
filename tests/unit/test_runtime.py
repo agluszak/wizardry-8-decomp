@@ -10,6 +10,7 @@ from wiz8decomp.display import runtime_display
 from wiz8decomp.runtime import (
     _compare_repetitions,
     _crash_detail,
+    _merge_case_observations,
     _parse_runtime_crash,
     _parse_runtime_observation,
     _parse_wine_dump,
@@ -17,6 +18,7 @@ from wiz8decomp.runtime import (
     _runtime_failure,
     _runtime_history,
     _runtime_phase_summary,
+    _runtime_test_command,
     _semantic_observation,
     _symbolize_addresses,
     analyze_runtime_crash,
@@ -28,6 +30,19 @@ from wiz8decomp.runtime import (
 )
 
 
+@pytest.fixture(autouse=True)
+def _isolate_runtime_environment(monkeypatch) -> None:
+    for name in (
+        "WIZ8_RUNTIME_VIDEO_CONFIG",
+        "WIZ8_RUNTIME_RUNNER",
+        "WIZ8_UMU_RUN",
+        "WIZ8_UMU_WINESERVER",
+        "PROTONPATH",
+    ):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("WIZ8_RUNTIME_RUNNER", "wine")
+
+
 def _settings(tmp_path: Path) -> Settings:
     repo = tmp_path / "repo"
     work = tmp_path / "work"
@@ -36,7 +51,7 @@ def _settings(tmp_path: Path) -> Settings:
     (repo / "build" / "decomp").mkdir(parents=True)
     (repo / "build" / "decomp" / "Wiz8RuntimeTest.exe").write_bytes(b"semantic tests")
     (repo / "config" / "runtime").mkdir(parents=True)
-    (repo / "config" / "runtime" / "3DVideo.CFG").write_text("video")
+    (repo / "config" / "runtime" / "3DVideo.CFG").write_text("Software\n640\n480\n16\nAudio\n")
     (repo / "config" / "runtime" / "Wiz8.CFG.hex").write_text("00ff")
     return Settings.model_validate(
         {
@@ -65,6 +80,7 @@ def test_stage_game_uses_managed_links_and_materialized_cfg(tmp_path: Path) -> N
     assert (stage / "Saves" / "Characters").is_dir()
     assert result.executable_written is True
 
+    (stage / "3DVideo.CFG").write_text("stale")
     restaged = stage_game(
         settings,
         name="runtime-test",
@@ -72,7 +88,44 @@ def test_stage_game_uses_managed_links_and_materialized_cfg(tmp_path: Path) -> N
     )
     assert restaged.executable_written is False
     assert restaged.executable == result.executable
+    assert (stage / "3DVideo.CFG").read_text() == "Software\n640\n480\n16\nAudio\n"
     assert (stage / "Wiz8.CFG").read_bytes() == b"\x00\xff"
+
+
+def test_selected_glide_config_reaches_runtime_test_stage_and_display(
+    tmp_path: Path, monkeypatch
+) -> None:
+    settings = _settings(tmp_path)
+    config = settings.repo_dir / "config" / "runtime" / "3DVideo.Glide2x.CFG"
+    config.write_text("Glide2x\n800\n600\n16\nAudio\n")
+    monkeypatch.setenv("WIZ8_RUNTIME_VIDEO_CONFIG", str(config))
+    stage = stage_game(
+        settings,
+        name="runtime-test",
+        executable=settings.product_build_dir / "Wiz8RuntimeTest.exe",
+    )
+    assert (stage.root / "3DVideo.CFG").read_bytes() == config.read_bytes()
+    _, environment = runtime_test_environment(settings)
+    assert environment["WIZ8_RUNTIME_SCREEN_GEOMETRY"] == "800x600x24"
+    environment["WIZ8_RUNTIME_RUNNER"] = "umu"
+    environment["WIZ8_UMU_RUN"] = "/path/to/umu-run"
+    assert _runtime_test_command(stage.executable, environment) == [
+        "/path/to/umu-run",
+        str(stage.executable),
+    ]
+
+
+def test_default_runtime_uses_ge_proton_and_glide_geometry(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.delenv("WIZ8_RUNTIME_RUNNER")
+    settings = _settings(tmp_path)
+    (settings.repo_dir / "config/runtime/3DVideo.CFG").write_text("Glide2x\n800\n600\n16\nAudio\n")
+
+    _, environment = runtime_test_environment(settings)
+
+    assert environment["WIZ8_RUNTIME_RUNNER"] == "umu"
+    assert environment["PROTONPATH"].endswith("/GE-Proton11-7-x86_64")
+    assert environment["WIZ8_RUNTIME_SCREEN_GEOMETRY"] == "800x600x24"
+    assert _runtime_test_command(Path("game.exe"), environment) == ["umu-run", "game.exe"]
 
 
 def test_stage_game_refuses_an_unmanaged_asset_directory(tmp_path: Path) -> None:
@@ -89,6 +142,9 @@ def test_stage_game_refuses_an_unmanaged_asset_directory(tmp_path: Path) -> None
 
 
 def test_interactive_run_restores_managed_wine_window(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("WIZ8_RUNTIME_RUNNER", "wine")
+    monkeypatch.delenv("WIZ8_RUNTIME_VIDEO_CONFIG", raising=False)
+    monkeypatch.delenv("WIZ8_WINE_PREFIX", raising=False)
     settings = _settings(tmp_path)
     (settings.product_build_dir / "Wiz8Runtime.exe").write_bytes(b"runtime")
     prefix = settings.work_dir / "wine" / "wiz8-runtime"
@@ -220,6 +276,74 @@ def test_repetition_comparison_accepts_identical_runs() -> None:
     )
 
 
+def test_case_observations_fold_into_the_record_by_scenario() -> None:
+    stdout = (
+        "WIZ8_RUNTIME_OBSERVE scenario=save-load-move name=quick_slot value=3\n"
+        "WIZ8_RUNTIME_OBSERVE scenario=save-load-move name=saved_x value=75871.5\n"
+        "WIZ8_RUNTIME_OBSERVE scenario=other-case name=quick_slot value=9\n"
+        "WIZ8_RUNTIME_TEST scenario=save-load-move case_passed=1\n"
+    )
+
+    observation: dict = {"scenario": "save-load-move", "case_passed": 1}
+    _merge_case_observations(observation, stdout, "save-load-move")
+
+    assert observation == {
+        "scenario": "save-load-move",
+        "case_passed": 1,
+        "obs.quick_slot": 3,
+        "obs.saved_x": 75871.5,
+    }
+
+
+def test_semantic_observation_compares_history_names_on_request() -> None:
+    observation = {
+        "scenario": "s",
+        "case_passed": 1,
+        "history": [
+            {"action": "loaded", "elapsed_ms": 9, "pos": [1, 2, 3]},
+            {"action": "hit", "elapsed_ms": 12},
+        ],
+    }
+
+    assert _semantic_observation(observation) == {"scenario": "s", "case_passed": 1}
+    assert _semantic_observation(observation, include_history=True) == {
+        "scenario": "s",
+        "case_passed": 1,
+        "history_actions": ["loaded", "hit"],
+    }
+
+
+def test_repetition_comparison_reports_diverging_histories() -> None:
+    first = {
+        "scenario": "s",
+        "case_passed": 1,
+        "history": [{"action": "loaded"}, {"action": "round-start"}, {"action": "hit"}],
+    }
+    repeated = {
+        "scenario": "s",
+        "case_passed": 1,
+        "history": [{"action": "loaded"}, {"action": "hit"}],
+    }
+
+    problems = _compare_repetitions("s", [first, repeated])
+
+    assert problems == [
+        (
+            "s: repetition 2 disagrees with the first run: history_actions: "
+            "['loaded', 'round-start', 'hit'] != ['loaded', 'hit']"
+        )
+    ]
+
+
+def test_repetition_comparison_reports_diverging_case_observations() -> None:
+    first = {"scenario": "s", "case_passed": 1, "obs.quick_slot": 3}
+    repeated = {"scenario": "s", "case_passed": 1, "obs.quick_slot": 4}
+
+    problems = _compare_repetitions("s", [first, repeated])
+
+    assert problems == ["s: repetition 2 disagrees with the first run: obs.quick_slot: 3 != 4"]
+
+
 def test_runtime_failure_reports_native_reason_instead_of_timeout(tmp_path: Path) -> None:
     failure = _runtime_failure(
         "hostile-encounter",
@@ -305,6 +429,7 @@ def _registry():
         "name\tphase\ttier\tkind\ttimeout_ms\tfixture\tpath\tbatch\n"
         "main-menu-startup\tmain-menu\tpr\tintegration\t15000\tmain-menu\tnatural\tno\n"
         "split-stack\tengine-ready\tpr\tsemantic\t15000\tengine-ready\tnatural\tyes\n"
+        "oct-file\tengine-ready\tpr\tsemantic\t15000\tengine-ready\tnatural\tyes\n"
     )
 
 
@@ -377,6 +502,47 @@ def test_batch_error_only_when_the_process_dies(
         assert len(observations) == 1
         assert "batch process died after 1/2 cases" in error
         assert "in-flight=split-stack" in error
+
+
+def test_batch_case_failure_poisons_the_rest(tmp_path: Path, monkeypatch) -> None:
+    """A failed case stops the batch after reporting itself: the abort marker
+    distinguishes a deliberate poison from a dead process, and the unreported
+    remainder stays missing so the runner re-runs it in a fresh process."""
+    from wiz8decomp.runtime import _run_runtime_batch, _RuntimeProcessResult
+
+    registry = _registry()
+
+    def drive(*args, **kwargs):
+        return _RuntimeProcessResult(
+            stdout=(
+                "WIZ8_RUNTIME_TEST scenario=main-menu-startup case_passed=1\n"
+                "WIZ8_RUNTIME_TEST scenario=split-stack case_passed=0\n"
+                "WIZ8_RUNTIME_SESSION cases=3 driver=2 teardown=1\n"
+            ),
+            stderr=(
+                "WIZ8_RUNTIME_FAILURE scenario=split-stack step=case reason=x line=0\n"
+                "WIZ8_RUNTIME_BATCH scenario=oct-file event=aborted reason=case-failed\n"
+            ),
+            returncode=1,
+            timed_out=False,
+            failed_early=False,
+            last_step="split-stack",
+            last_step_scenario="split-stack",
+            elapsed=1.0,
+        )
+
+    monkeypatch.setattr("wiz8decomp.runtime._drive_runtime_process", drive)
+    observations, error = _run_runtime_batch(
+        tmp_path / "Wiz8RuntimeTest.exe",
+        tmp_path,
+        {},
+        ("main-menu-startup", "split-stack", "oct-file"),
+        registry,
+    )
+
+    assert len(observations) == 2
+    assert "oct-file" not in observations
+    assert error is not None and error.startswith("batch aborted after 2/3 cases")
 
 
 def test_batch_teardown_failure_fails_the_suite(tmp_path: Path, monkeypatch) -> None:
@@ -479,7 +645,7 @@ def test_runtime_suite_selection_and_server_lifetime(
 
     monkeypatch.setattr("wiz8decomp.runtime._run_runtime_scenario", run)
     result = run_runtime_suite(
-        settings, scenarios=scenarios, check_order=check_order, repeat=repeat
+        settings, scenarios=scenarios, check_order=check_order, repeat=repeat, workers=1
     )
     expected = (list(scenarios) + (list(reversed(scenarios)) if check_order else [])) * repeat
     assert [scenario for scenario, _ in visited] == expected
@@ -522,7 +688,7 @@ def test_runtime_suite_preserves_failures_and_continues(
     with pytest.raises(
         RuntimeError, match="forward/main-menu-startup: startup invariant failed"
     ) as error:
-        run_runtime_suite(settings, scenarios=scenarios, check_order=check_order)
+        run_runtime_suite(settings, scenarios=scenarios, check_order=check_order, workers=1)
     assert "depend on scenario order" not in str(error.value)
     assert visited == list(scenarios) + (list(reversed(scenarios)) if check_order else [])
 
@@ -552,6 +718,64 @@ def test_runtime_suite_workers_get_private_prefixes(tmp_path: Path, monkeypatch)
     assert result["workers"] == 2
     assert len(result["wine_prefixes"]) == 2
     assert result["input_digest"]
+
+
+def test_runtime_suite_workers_cap_at_the_job_count(tmp_path: Path, monkeypatch) -> None:
+    """A single-case run spawns one worker even when more were requested:
+    no idle second display or prefix."""
+    settings = _settings(tmp_path)
+    prefixes = []
+    monkeypatch.setattr("wiz8decomp.runtime.shutil.which", lambda name: f"/usr/bin/{name}")
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.runtime_display", lambda *args, **kwargs: nullcontext(None)
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.configure_wine_window_management", lambda *args, **kwargs: None
+    )
+    monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", lambda *args, **kwargs: None)
+    monkeypatch.setattr("wiz8decomp.runtime._read_runtime_scenarios", lambda *args: _registry())
+
+    def run(executable, stage, environment, scenario, timeout_seconds, object_root, map_path):
+        prefixes.append(environment["WINEPREFIX"])
+        return {"scenario": scenario, "teardown": 1}
+
+    monkeypatch.setattr("wiz8decomp.runtime._run_runtime_scenario", run)
+    result = run_runtime_suite(settings, scenarios=("split-stack",), workers=3)
+
+    assert result["workers"] == 1
+    assert len(result["wine_prefixes"]) == 1
+    assert len(set(prefixes)) == 1
+
+
+def test_runtime_suite_batches_same_fixture_cases_by_default(tmp_path: Path, monkeypatch) -> None:
+    """Batching is the default local path: consecutive batch=yes cases sharing
+    a fixture reach _run_runtime_batch as one group without a --batch flag."""
+    settings = _settings(tmp_path)
+    batches = []
+    monkeypatch.setattr("wiz8decomp.runtime.shutil.which", lambda name: f"/usr/bin/{name}")
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.runtime_display", lambda *args, **kwargs: nullcontext(None)
+    )
+    monkeypatch.setattr(
+        "wiz8decomp.runtime.configure_wine_window_management", lambda *args, **kwargs: None
+    )
+    monkeypatch.setattr("wiz8decomp.runtime.subprocess.run", lambda *args, **kwargs: None)
+    monkeypatch.setattr("wiz8decomp.runtime._read_runtime_scenarios", lambda *args: _registry())
+
+    def batch(executable, stage, environment, group, registry, object_root, map_path):
+        batches.append(group)
+        return ({name: {"scenario": name, "case_passed": 1} for name in group}, None)
+
+    monkeypatch.setattr("wiz8decomp.runtime._run_runtime_batch", batch)
+    monkeypatch.setattr(
+        "wiz8decomp.runtime._run_runtime_scenario",
+        lambda *args, **kwargs: pytest.fail("singleton path used for a batchable group"),
+    )
+
+    result = run_runtime_suite(settings, scenarios=("split-stack", "oct-file"), workers=1)
+
+    assert batches == [("split-stack", "oct-file")]
+    assert set(result["runs"]["forward"]) == {"split-stack", "oct-file"}
 
 
 def test_runtime_suite_workers_require_private_virtual_displays(
@@ -629,6 +853,9 @@ def test_staging_without_map_never_reuses_a_previous_map(tmp_path: Path) -> None
 def test_interactive_crash_uses_staged_map_after_build_map_changes(
     tmp_path: Path, synthetic_pe: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    monkeypatch.setenv("WIZ8_RUNTIME_RUNNER", "wine")
+    monkeypatch.delenv("WIZ8_RUNTIME_VIDEO_CONFIG", raising=False)
+    monkeypatch.delenv("WIZ8_WINE_PREFIX", raising=False)
     settings = _settings(tmp_path)
     executable = settings.product_build_dir / "Wiz8Runtime.exe"
     executable.write_bytes(synthetic_pe.read_bytes())

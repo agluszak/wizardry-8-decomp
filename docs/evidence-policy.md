@@ -30,8 +30,10 @@ merely because an analysis tool consumes it; generate a compatibility input when
 
 1. A fact has one canonical editable home. Other forms are generated projections.
 2. Machine observations and reviewed conclusions are separate even when they share an address.
-3. A function identity is unique by `(program, address)`. Multiple origins are evidence records,
-   aliases, or provenance tokens rather than duplicate identity rows.
+3. A retained binary function entry is unique by `(program, address)`. Source functions are
+   separate entities: linker ICF may map several independently authored functions onto one retained
+   entry without making them aliases. Record that relationship as evidence/comparison metadata, not
+   duplicate source ownership or `FOLDED` source markers.
 4. Classes, functions, assertions, imports, source paths, formats, and cross-build relationships are
    distinct entities and may remain separate tables.
 5. A new CSV must represent a new entity or relationship. A subset, reordered view, source-specific

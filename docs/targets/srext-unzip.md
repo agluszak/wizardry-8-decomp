@@ -50,7 +50,6 @@ in the original; unused stock entry points are excluded without rewriting the re
 In `config/reccmp/srext-unzip.csv`, those Sir-Tech retained helpers are typed `function` (matching
 their recovered `FUNCTION` markers). Stock UnZip codec symbols remain `library`.
 
-Some comparison percentages are depressed by unnamed upstream static globals on the original side.
 An unresolved reccmp placeholder is not itself a code mismatch; inspect the instruction stream
 before changing source.
 
@@ -65,16 +64,3 @@ before changing source.
   while diagnostic library targets may use a different branch.
 - Public upstream source should be compiled directly; only the product adapter and ABI boundary
   require independent recovery.
-
-## Runtime replacement proof
-
-A VC6 harness loaded the original `sr.dll`, constructed the extension through its real factory, and
-exercised direct and configured archive lookup, case-sensitive and insensitive matching, prefixed
-member syntax, missing/corrupt archives, multi-match rejection, repeated reads, destruction, and
-clean unload. Original and rebuilt extensions agreed across those semantic scenarios.
-
-Normal game startup does not necessarily load this extension, so a process smoke test alone is not
-claimed as ZIP coverage. The explicit harness is the relevant integration boundary.
-
-The source archive provenance and hashes remain in the configured input manifests and canonical
-evidence; they are not copied into a live status section here.

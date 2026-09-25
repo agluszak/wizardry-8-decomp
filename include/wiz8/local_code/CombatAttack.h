@@ -27,13 +27,13 @@ extern const unsigned short g_monster_hit_location_labels[W8_MONSTER_HIT_LOCATIO
 
 /* 0x0061E9CC: gppStringList indices naming the sixteen damage channels the
    missile_values arrays on monster attacks and item records carry. */
-extern const unsigned short g_damage_type_name_ids_61e9cc[0x10];
+extern const unsigned short g_damage_type_name_ids[0x10];
 /* Paired label ids for the nine W8ItemDatabaseRecord::attack_flags_04e bits;
    AssayDialog reads the first of each pair, combat logging the second. */
-extern const unsigned short g_attack_flag_name_ids_61e9a8[9][2];
+extern const unsigned short g_attack_flag_name_ids[9][2];
 /* Label ids for an item's special-category byte, also indexed by the MIPE
    editor's category selector. */
-extern const unsigned short g_special_category_name_ids_61ea78[42];
+extern const unsigned short g_special_category_name_ids[42];
 
 /* The missile attack paths hand FireMissileSourceToTarget the W8SpellEffectDefinition
    the fired missile stores: the weapon or monster attack's dice magnitude and
@@ -43,8 +43,8 @@ W8Missile* FireMissileSourceToTarget(int missile_type, W8TargetSource* source, W
                                      W8SpellEffectDefinition* attack,
                                      unsigned char use_default_accuracy,
                                      unsigned int range_category, int accuracy); /* 0x00544630 */
-void ScatterMissileAimPoint005454C0(const srVector3T<float>* from, srVector3T<float>* to,
-                                    int accuracy, char blind);
+void ScatterMissileAimPoint(const srVector3T<float>* from, srVector3T<float>* to, int accuracy,
+                            char blind);
 
 /* 0x00545090: a physical missile reached its combat target - announce the
    hit, roll penetration against the target's armour and apply the damage.
@@ -65,9 +65,6 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
 
 struct W8MonsterRecord;
 struct W8MonsterAttack;
-
-int CalculateMonsterMissileAccuracy(W8MonsterInfo* monster_info, const W8MonsterAttack* attack,
-                                    int attack_mode, int flags);
 
 /* Whether a character could attack what `target` names - a party member who
    is in play and not screened by the front rank, or a monster who is engaged,
@@ -125,22 +122,19 @@ int ApplyDamageReduction(const W8MonsterInfo* monster_info, const W8MonsterRecor
    taken the same way, and having the damage-reduction skill practises it. */
 int ApplyCharacterDamageReduction(W8Character* character, int damage);
 
-int ChooseCharacterAttackHand(int party_slot); /* 0x0053D390 */
-void PrepareCharacterAttacks(int party_slot);  /* 0x0053D680 */
-int GetTargetArmorClassModifier005468D0(W8CombatSlot* target,
-                                        unsigned int attack_mode);        /* 0x005468D0 */
-unsigned int CharChooseHandAttackMode(W8Character* character, int hand);  /* 0x00542CA0 */
-wchar_t* SpellTargetString(W8TargetSource* source, W8CombatSlot* target); /* 0x00546B40 */
-int GetTargetArmorClass00542EE0(W8CombatSlot* target, int attack_mode);   /* 0x00542EE0 */
+int ChooseCharacterAttackHand(int party_slot);                                   /* 0x0053D390 */
+void PrepareCharacterAttacks(int party_slot);                                    /* 0x0053D680 */
+int GetTargetArmorClassModifier(W8CombatSlot* target, unsigned int attack_mode); /* 0x005468D0 */
+unsigned int CharChooseHandAttackMode(W8Character* character, int hand);         /* 0x00542CA0 */
+wchar_t* SpellTargetString(W8TargetSource* source, W8CombatSlot* target);        /* 0x00546B40 */
+int GetTargetArmorClass(W8CombatSlot* target, int attack_mode);                  /* 0x00542EE0 */
 unsigned char BlockedForSpecialReason(int weapon_class, W8CombatSlot* target, int attack_value,
-                                      int armor_value, unsigned int palette); /* 0x00543110 */
-unsigned int CapAttackDamageByTargetHealth00545A00(unsigned int damage);      /* 0x00545A00 */
-void StartMonsterAttackCycle0053FFE0(W8MonsterInfo* monster_info,
-                                     int action_detail); /* 0x0053FFE0 */
-void ReportCharacterAttackResult0053FB00(int party_slot,
-                                         W8SpellEffectResult* report); /* 0x0053FB00 */
-void ReportMonsterAttackResult005412B0(W8MonsterInfo* monster_info,
-                                       W8SpellEffectResult* report); /* 0x005412B0 */
+                                      int armor_value, unsigned int palette);  /* 0x00543110 */
+unsigned int CapAttackDamageByTargetHealth(unsigned int damage);               /* 0x00545A00 */
+void StartMonsterAttackCycle(W8MonsterInfo* monster_info, int action_detail);  /* 0x0053FFE0 */
+void ReportCharacterAttackResult(int party_slot, W8SpellEffectResult* report); /* 0x0053FB00 */
+void ReportMonsterAttackResult(W8MonsterInfo* monster_info,
+                               W8SpellEffectResult* report); /* 0x005412B0 */
 /* 0x00542720: the monster side of the attack-score pipeline - the attack's
    own score plus modifier, mode, surprise, armour and attribute terms; arg_4
    selects the fumble-redirect variant. */
@@ -153,11 +147,11 @@ int ResolveMonsterAttackDamage(W8MonsterInfo* monster_info, W8MonsterAttack* att
 struct W8PList;
 /* 0x00544010: build the candidate list the monster's fumbled or repicked
    attack chooses a new target from. */
-void BuildMonsterTargetList00544010(W8MonsterInfo* monster_info, W8MonsterRecord* record,
-                                    unsigned int attack, W8PList* out_list);
+void BuildMonsterTargetList(W8MonsterInfo* monster_info, W8MonsterRecord* record,
+                            unsigned int attack, W8PList* out_list);
 /* 0x00544250: announce a friendly-fire strike and highlight the name on the
    other side's notice palette when the two sides differ. */
-void AnnounceAccidentalStrike00544250(W8TargetSource* source, W8CombatSlot* target);
+void AnnounceAccidentalStrike(W8TargetSource* source, W8CombatSlot* target);
 /* Whether a character catches the incoming attack in time to turn toward it. */
 char CharacterNoticesAttacker(int party_slot); /* 0x0053D590 */
 /* Begin one of the monster's attacks for the round. */
@@ -169,8 +163,8 @@ bool CanMonsterAttackItsTarget(W8MonsterInfo* monster_info);
 /* 0x00545AA0: the character counterpart of the same six checks. */
 bool CanCharacterAttackItsTarget(int party_slot);
 /* Build the monster attack announcement message and aim it at the target. */
-void AnnounceMonsterAttack00541630(W8MonsterInfo* monster_info, W8MonsterRecord* record,
-                                   char arg_3); /* 0x00541630 */
+void AnnounceMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record,
+                           char arg_3); /* 0x00541630 */
 /* 0x00540170: resolve one queued swing of the monster's attack - rolls the
    hit and fumble-redirect chances, resolves guardian interception, picks the
    hit location, rolls penetration, applies damage and the struck target's
@@ -185,13 +179,13 @@ char StartCharacterAttack(int party_slot, int attack_mode); /* 0x0053D870 */
    interception, picks the hit location, rolls penetration, applies damage
    and enchantments, consumes the item, and answers whether the attack
    continues. */
-int ResolveCharacterAttack0053E250(int party_slot);
+int ResolveCharacterAttack(int party_slot);
 /* 0x00544530: a fumbled swing queues its reaction event - half the time the
    attacker himself, otherwise the fumbled victim or a random party member
    answers. */
-void QueueFumbleReaction00544530(int party_slot);
+void QueueFumbleReaction(int party_slot);
 /* 0x00545E50: a defender guarding the attack's target may interpose and
    become the struck target instead; answers whether the target changed. */
-int ResolveGuardianInterception00545E50(W8TargetSource* source, W8CombatSlot* target);
-void FireCharacterItemMissile00544B60(int party_slot, W8Character* pc, W8CombatCharacterRow* row,
-                                      unsigned int range_category); /* 0x00544B60 */
+int ResolveGuardianInterception(W8TargetSource* source, W8CombatSlot* target);
+void FireCharacterItemMissile(int party_slot, W8Character* pc, W8CombatCharacterRow* row,
+                              unsigned int range_category); /* 0x00544B60 */

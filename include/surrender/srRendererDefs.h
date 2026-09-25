@@ -43,7 +43,8 @@ public:
         VERTEX_ARRAY_TEXCOORD0 = 4,
         VERTEX_ARRAY_TEXCOORD1 = 5
     };
-    enum e_indexType {};
+    /* drawElements passes 2 for the renderer's 32-bit index triples. */
+    enum e_indexType { INDEX_ULONG = 2 };
     /* The vertex-stream state srGERD embeds at +0x21c4 and hands to
        srDD::setVertexArrayInfo before each draw: live-slot mask, vertex count,
        clip mask, then the per-slot component/type/stride/pointer arrays. */

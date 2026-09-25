@@ -25,8 +25,8 @@ public:
     virtual const char* getTextureName() override;                        /* 0x00484E40 */
     virtual void invalidate() override;                                   /* 0x004023A0 */
 
-    void SetFrame00485400(int frame);
-    void AddTexture00485420(srTextureIFace* texture);
+    void SetFrame(int frame);
+    void AddTexture(srTextureIFace* texture);
     int IsFinished00485730() const;
     unsigned char Prepare004857B0();
     virtual void setupDefaultValues() override; /* 0x00485760 */

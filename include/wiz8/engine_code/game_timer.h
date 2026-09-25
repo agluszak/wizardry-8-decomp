@@ -6,24 +6,24 @@
 
 extern int g_shared_timer_pause_base;
 extern int g_shared_timer_pause_time;
-extern unsigned char g_shared_timer_paused;
-extern unsigned char g_shared_timer_flag_d1;
-extern unsigned char g_shared_timer_flag_d2;
+extern bool g_shared_timer_paused;
+extern bool g_shared_timer_flag_d1;
+extern bool g_shared_timer_flag_d2;
 extern srTimer* g_shared_timer_base;
 
-void PauseSharedGameTimers00439BC0(void);
-void ResumeSharedGameTimers00439CA0(void);
+void PauseSharedGameTimers(void);
+void ResumeSharedGameTimers(void);
 
 class W8GameTimer {
 public:
     W8GameTimer();
     W8GameTimer(float duration, unsigned char raw_time);
     virtual ~W8GameTimer();
-    __forceinline int ReadClock() const
+    int ReadClock() const
     {
         switch (m_clock_mode) {
         case 1:
-            return (g_status_685170.game_time_days * 86400000 + g_status_685170.game_time_ms) * 10;
+            return (g_status.game_time_days * 86400000 + g_status.game_time_ms) * 10;
         }
         if ((m_flags & 1) == 0) {
             if (g_shared_timer_paused != 0) {
@@ -33,7 +33,7 @@ public:
         }
         return m_shared->getUTime(srTimer::TIMER_READ_DEFAULT);
     }
-    int GetTime00439A60();
+    int GetTime();
     void SetMode(int mode);
     void SetDuration(float duration);
     void Restart();
@@ -54,6 +54,6 @@ public:
     float m_duration_scale;   /* 0x20 */
 };
 
-W8GameTimer* CreateGameTimer005EC0A4(float duration, unsigned char raw_time);
+W8GameTimer* CreateGameTimer(float duration, unsigned char raw_time);
 
 static_assert(sizeof(W8GameTimer) == 0x24, "W8GameTimer_must_be_0x24");

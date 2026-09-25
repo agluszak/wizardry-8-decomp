@@ -80,6 +80,20 @@ def _target_path(header: str) -> str | None:
     return target
 
 
+def _repository_relative_path(filename: str) -> str:
+    """Normalize host and analysis-container paths to one repository identity."""
+
+    normalized = filename.replace("\\", "/")
+    for scope in SCOPES:
+        if normalized.startswith(scope):
+            return normalized
+        marker = f"/{scope}"
+        position = normalized.find(marker)
+        if position >= 0:
+            return normalized[position + 1 :]
+    return normalized
+
+
 def _added_line_filter(diff: str) -> str:
     additions: list[tuple[str, int, str]] = []
     removals: Counter[str] = Counter()
@@ -159,8 +173,8 @@ def _changed_line_filter(repository: Path) -> str:
 
 
 def _in_scope(filename: str) -> bool:
-    normalized = filename.replace("\\", "/")
-    return any(normalized.startswith(scope) or f"/{scope}" in normalized for scope in SCOPES)
+    normalized = _repository_relative_path(filename)
+    return any(normalized.startswith(scope) for scope in SCOPES)
 
 
 def _parse_line_filter(raw: str) -> dict[str, list[tuple[int, int]]]:
@@ -171,6 +185,7 @@ def _parse_line_filter(raw: str) -> dict[str, list[tuple[int, int]]]:
         filename, separator, encoded_ranges = entry.rpartition("@")
         if not separator or not filename or not encoded_ranges:
             continue
+        filename = _repository_relative_path(filename)
         for encoded_range in encoded_ranges.split(","):
             first_text, separator, last_text = encoded_range.partition("-")
             try:
@@ -189,6 +204,7 @@ def _line_selected(
     filename: str,
     line: int,
 ) -> bool:
+    filename = _repository_relative_path(filename)
     if raw_filter == "*":
         return _in_scope(filename)
     return any(first <= line <= last for first, last in parsed_filter.get(filename, ()))
@@ -411,6 +427,17 @@ diff --git a/include/surrender/example.h b/include/surrender/example.h
     expected = "include/surrender/example.h@1;src/wiz8/example.cpp@2,4"
     if actual != expected:
         raise SystemExit(f"changed-line filter self-test failed: {actual!r} != {expected!r}")
+    repository_file = "src/wiz8/clang_tidy_path_test.cpp"
+    path_spellings = (
+        repository_file,
+        f"/repo/{repository_file}",
+        f"/home/build/wizardry/{repository_file}",
+        repository_file.replace("/", "\\"),
+    )
+    for spelling in path_spellings:
+        parsed = _parse_line_filter(f"{spelling}@12-14")
+        if not _line_selected(f"{spelling}@12-14", parsed, f"/repo/{repository_file}", 13):
+            raise SystemExit(f"repository path normalization self-test failed: {spelling!r}")
 
     with tempfile.TemporaryDirectory(prefix="wiz8-bool-self-test-") as temporary:
         root = Path(temporary)
@@ -479,6 +506,10 @@ def main() -> None:
         # Full-corpus audits intentionally produce more than Clang's default
         # diagnostic error limit. Do not truncate the cleanup inventory.
         arguments.insert(0, "--extra-arg=-ferror-limit=0")
+        print(
+            "[wiz8] explicit full-tree audit mode selected; emitting findings for the supplied translation units",
+            file=sys.stderr,
+        )
 
     with tempfile.TemporaryDirectory(prefix="wiz8-bool-facts-") as facts:
         environment = os.environ.copy()

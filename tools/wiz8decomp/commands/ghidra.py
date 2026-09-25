@@ -137,6 +137,9 @@ def flow_command(
     selector: Annotated[str, typer.Argument(help="Function address or reviewed Ghidra name")],
     root: str = typer.Option(..., "--root", help="Parameter or receiver root to trace."),
     program: str = typer.Option("wiz8", "--program"),
+    profile: str = typer.Option(
+        "analysis", "--profile", help="Decompiler option profile: program, analysis, or recovery."
+    ),
 ) -> None:
     """Answer one rooted field-flow question from HighFunction P-code."""
     from .. import command_support as cli
@@ -145,7 +148,7 @@ def flow_command(
 
     def action():
         with open_program(cli.settings(), program) as live:
-            return field_accesses(live, selector, root)
+            return field_accesses(live, selector, root, profile=profile)
 
     cli.emit(action())
 

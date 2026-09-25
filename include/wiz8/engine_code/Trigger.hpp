@@ -28,13 +28,13 @@ public:
     W8GameTimer* m_pCountdown;
     Trigger* trigger_030;
     unsigned char repeat_034;
-    unsigned char completed_035;
+    bool completed_035;
     unsigned char unknown_036[2];
 };
 
 static_assert(sizeof(W8TriggerEvent) == 0x38, "W8TriggerEvent_must_be_0x38");
 
-void UpdateTimedTriggerEvents00443D30(void);
+void UpdateTimedTriggerEvents(void);
 
 /* The common polymorphic prefix of the trigger action payload family. */
 class W8TriggerActionData {
@@ -71,15 +71,14 @@ public:
 
 static_assert(sizeof(W8DoorTriggerActionData) == 0x98, "W8DoorTriggerActionData_must_be_0x98");
 
-/* Type 6 owns its string at +8. */
-class W8TriggerActionData005EC158 : public W8TriggerActionData {
+/* Type 6 (built for action 17) owns a copy of the trigger's action string. */
+class W8StringTriggerActionData : public W8TriggerActionData {
 public:
-    virtual ~W8TriggerActionData005EC158() override;
+    virtual ~W8StringTriggerActionData() override;
     char* owned_string_008;
 };
 
-static_assert(sizeof(W8TriggerActionData005EC158) == 0x0c,
-              "W8TriggerActionData005EC158_must_be_0x0c");
+static_assert(sizeof(W8StringTriggerActionData) == 0x0c, "W8StringTriggerActionData_must_be_0x0c");
 
 /* The flags_0a0 bits whose roles are established by recovered producers and
    consumers:
@@ -99,15 +98,35 @@ static_assert(sizeof(W8TriggerActionData005EC158) == 0x0c,
    - ALTERNATE_ACTION alternates action_data_128 with
      alternate_action_data_1a8, tracked by ALTERNATE_SELECTED.
    - ITEM_PICKER marks the item-picker dialog open for this trigger.
-   - SEARCHED marks an already-searched trigger; loading unregisters it. */
+   - SEARCHED marks an already-searched trigger; loading unregisters it.
+   - ANIMATE_STATES animates the prop through its states as the state index
+     cycles; ANIMATE_ACTION lets UpdateActionAnimation run.
+   - PLANE marks a trigger registered with AddTriggerPlane; the proximity scan
+     skips it.
+   - KEEP_ON_FINISH stops FinishAction undoing the action on the recipients.
+   - HAS_ALTERNATE is set when the record has an alternate action; SelectAction
+     then raises USE_ALTERNATE after the initial action, and ALTERNATE_TOGGLES
+     drops it again after the alternate one.
+   - CONSUME_ITEM removes the required item from the party when it is used.
+   - ONCE triggers refuse SelectAction once the action has set FIRED. */
 enum W8TriggerFlag {
+    W8_TRIGGER_ANIMATE_STATES = 0x1,
+    W8_TRIGGER_ANIMATE_ACTION = 0x2,
+    W8_TRIGGER_PLANE = 0x4,
+    W8_TRIGGER_KEEP_ON_FINISH = 0x8,
     W8_TRIGGER_ON = 0x10,
     W8_TRIGGER_RUNNING = 0x40,
     W8_TRIGGER_FIRE_LINKED = 0x80,
     W8_TRIGGER_ENABLED = 0x100,
     W8_TRIGGER_LINK_ON_DEACTIVATE = 0x200,
     W8_TRIGGER_POSITIONED = 0x800,
+    W8_TRIGGER_HAS_ALTERNATE = 0x2000,
+    W8_TRIGGER_USE_ALTERNATE = 0x4000,
+    W8_TRIGGER_ALTERNATE_TOGGLES = 0x8000,
+    W8_TRIGGER_CONSUME_ITEM = 0x10000,
     W8_TRIGGER_CAN_RUN_LINKED = 0x20000,
+    W8_TRIGGER_ONCE = 0x40000,
+    W8_TRIGGER_FIRED = 0x80000,
     W8_TRIGGER_EXCLUSIVE = 0x100000,
     W8_TRIGGER_REACTIVATE_LINKED = 0x200000,
     W8_TRIGGER_ALTERNATE_ACTION = 0x800000,
@@ -118,13 +137,39 @@ enum W8TriggerFlag {
 
 /* Persisted lock/trap device state: `completed` latches once the pick/disarm
    interaction finishes; `pins` holds the eight tumbler bytes of a pickable
-   lock, re-rolled by UpdateTriggerLock00445730. */
+   lock, re-rolled by W8LockState::Reset. */
 struct W8TriggerDeviceState {
     unsigned char completed;
     unsigned char pins[8];
 };
 
 static_assert(sizeof(W8TriggerDeviceState) == 9, "W8TriggerDeviceState_must_be_9");
+
+/* The locks & traps device record embedded at the tail of Trigger. `lock_type` is the editor "Type" (0 none,
+   1 pickable lock, 2 trap, 3 key lock); `difficulty` is the editor "Difficulty"
+   grade — it doubles as the pickable lock's pin budget; `device_id` indexes
+   the tumbler/trap tables (-1 = roll on first use); `lock_countdown` ticks the
+   pick interaction (pins remaining, difficulty * 3); `last_interaction_clock`
+   is the world clock of the last attempt (-1 = never). */
+struct W8LockState {
+    /* Re-rolls the eight pin bytes of a pickable lock (lock_type == 1) and
+       resets its difficulty-derived countdown and interaction state. */
+    void Reset(); /* 0x00445730 */
+    /* Spends one point of the lock countdown and reports whether one
+       remained to spend. */
+    bool ConsumeCountdown(); /* 0x004457A0 */
+
+    int lock_type;
+    int difficulty;
+    W8TriggerDeviceState device_state;
+    unsigned char unknown_011[3];
+    int device_id;
+    int key_id;
+    int lock_countdown;
+    int last_interaction_clock;
+};
+
+static_assert(sizeof(W8LockState) == 0x24, "W8LockState_must_be_0x24");
 
 /* Engine Code\Trigger.cpp. Trigger is registered directly below srClass. It is
    not an srNode: the temporary table installed while srClassSupport is under
@@ -149,28 +194,28 @@ public:
     bool PlayActionSound(const char* sound_name, int volume);
     void UpdateActionAnimation();
     void CommitActionResult(bool apply_state_changes);
-    void CompleteItemInteraction004447F0();
+    void CompleteItemInteraction();
     void Activate00444750();
     bool Save0043BE60(int hFile);
     bool Load0043C1B0(int hFile, char version);
-    void RunLinkedTriggers00441590();
+    void RunLinkedTriggers();
     void SetPosition004416F0(srVector3T<float>* position);
     void FinishAction();
     void GetPosition(srVector3T<float>* position) const;
     bool CanRunLinkedTriggers();
     /* flag_0a0_17: loaded from the level record's message packed flag; gates
        the m_lData1..3 action message at the end of Run. */
-    bool HasActionMessage00441780();
+    bool HasActionMessage();
     /* Whether the trigger takes an item: required_item_id >= 0 (the special-item
        notice path) or a type-10 action payload naming item_00a. */
-    bool RequiresItem00441790();
+    bool RequiresItem();
     bool SelectAction();
     void GenerateItemGroup();
-    W8WorldItem* GetOrCreateItemGroup00445670(char create);
-    /* After a selected-prop Run: while g_trigger_feedback_00606994 is clear, post either
+    W8WorldItem* GetOrCreateItemGroup(char create);
+    /* After a selected-prop Run: while g_trigger_feedback is clear, post either
        the special-item notice (required_item_id != -1) or the nothing-happened notice. */
-    void PrintNothingHappenedOrSpecialItemRequired004456E0(); /* 0x004456E0 */
-    void RunDestination00440DD0(const char* destination);
+    void PrintNothingHappenedOrSpecialItemRequired(); /* 0x004456E0 */
+    void RunDestination(const char* destination);
     void Run(int source);
 
     int trigger_kind_018;
@@ -232,30 +277,10 @@ public:
     ActivationCallback activation_callback_360;
     bool running;
     unsigned char unknown_365[3];
-    /* Locks & traps device block, addressed as the `lock_state` int blob by
-       UpdateTriggerLock00445730/ConsumeLockQuality004457A0. `lock_type` is the
-       editor "Type" (0 none, 1 pickable lock, 2 trap, 3 key lock);
-       `device_id` indexes the tumbler/trap tables (-1 = roll on first use);
-       `lock_countdown` ticks the pick interaction; `last_interaction_clock`
-       is the world clock of the last attempt (-1 = never). */
-    int lock_type;
-    int difficulty;
-    W8TriggerDeviceState device_state;
-    unsigned char unknown_379[3];
-    int device_id;
-    int key_id;
-    int lock_countdown;
-    int last_interaction_clock;
+    W8LockState lock_state;
 };
 
-void InitializeStateDrivenPropVariables00445200(Trigger* trigger);
-/* Re-rolls the eight pin bytes of a pickable lock (lock_state[0] == 1) and
-   resets its difficulty-derived seed/state fields. lock_state is
-   &Trigger::lock_type. */
-void __fastcall UpdateTriggerLock00445730(int* lock_state); /* 0x00445730 */
-/* Spends one point of the lock's quality budget (lock_state[7] ==
-   Trigger::lock_countdown) and reports whether one remained to spend. */
-unsigned char __fastcall ConsumeLockQuality004457A0(int* lock_state); /* 0x004457A0 */
+void InitializeStateDrivenPropVariables(Trigger* trigger);
 
 static_assert(sizeof(Trigger) == 0x38c, "Trigger_must_be_0x38c");
 
@@ -264,38 +289,37 @@ W8TriggerActionData* LoadTriggerActionData004417C0(int handle);
 /* The TRES save chunk: the world's triggers, their runtime states, and their
    action data. */
 int ResetNextTriggerId(void);
-void SaveWorldTriggers0043C810(W8World* world, int handle);
-bool LoadWorldTriggers0043C860(W8World* world, int handle);
-void SaveTriggerRuntimeStates0043CB30(W8World* world, int handle, bool restoring);
-bool LoadTriggerRuntimeStates0043CCF0(int handle);
-void SaveTriggerActionData0043D120(W8World* world, int handle);
+void SaveWorldTriggers(W8World* world, int handle);
+bool LoadWorldTriggers(W8World* world, int handle);
+void SaveTriggerRuntimeStates(W8World* world, int handle, bool restoring);
+bool LoadTriggerRuntimeStates(int handle);
+void SaveTriggerActionData(W8World* world, int handle);
 bool LoadTriggerActionData0043D1F0(int handle);
 
-extern unsigned char g_trigger_feedback_00606994;
+extern unsigned char g_trigger_feedback;
 extern unsigned char g_flag_0068506e;
 /* Camera position cached by the per-frame trigger walk. */
-extern srVector3T<float> g_trigger_camera_006599a0;
+extern srVector3T<float> g_trigger_camera;
 /* Trigger's action camera offset, added to the world scene position while an
    action is active, and the flag that says one is. */
-extern unsigned char g_trigger_action_active_006599c8;
-extern srVector3T<float> g_trigger_action_scene_offset_006599ac;
-extern int g_container_event_alt_0068c520;
-extern int g_trap_notice_event_0068c53c;
-extern int g_lock_notice_event_0068c54c;
-extern int g_container_event_0068c548;
-extern int g_condition_reaction_005ee59c;
-extern int g_condition_reaction_alt_005ee5a0;
+extern bool g_trigger_action_active;
+extern srVector3T<float> g_trigger_action_scene_offset;
+extern int g_container_event_alt;
+extern int g_trap_notice_event;
+extern int g_lock_notice_event;
+extern int g_container_event;
+extern int g_condition_reaction;
+extern int g_condition_reaction_alt;
 
-bool CreateTriggerShakeEvent00444F70(int intensity, float duration, float countdown_duration,
-                                     bool reverse);
-bool AnyPropTriggerInView00445140(W8World* world);
+bool CreateTriggerShakeEvent(int intensity, float duration, float countdown_duration, bool reverse);
+bool AnyPropTriggerInView(W8World* world);
 
 void ReleaseAllTriggers(void);
-void UpdateWorldTriggers00443AE0(W8World* world);
-Trigger* FindTriggerForProp00443830(W8World* world, W8Prop* prop);
+void UpdateWorldTriggers(W8World* world);
+Trigger* FindTriggerForProp(W8World* world, W8Prop* prop);
 
-stLight* FindLightByName00445A10(const char* name, const srRuntimeClass* relative_to);
+stLight* FindLightByName(const char* name, const srRuntimeClass* relative_to);
 void DestroyAllWorldTriggers(W8World* world);
 /* Walk the world's triggers for a type-0x34 RunDestination trigger whose
    annulus contains the position; answers true when one does. */
-bool InsideDestinationTrigger00445940(float x, float y, float z);
+bool InsideDestinationTrigger(float x, float y, float z);

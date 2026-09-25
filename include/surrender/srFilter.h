@@ -4,10 +4,47 @@
 
 class SR_DLL_IMPORT srFilter {
 public:
-    srFilter();
-    srFilter(const srFilter& other);
-    virtual ~srFilter();
-    srFilter& operator=(const srFilter& other);
+    /* The trivial base members are defined inline. Retail emitted each as a
+       real export while still folding it into the derived constructors/
+       destructors, which is why those bodies are a single vtable store with
+       no base call. The member dllexport marks keep the header bodies for
+       that folding while still emitting the exported standalone copies. */
+    // FUNCTION: SURRENDER 0x10003300
+    // ??0srFilter@@QAE@XZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    srFilter()
+    {
+    }
+
+    // FUNCTION: SURRENDER 0x10003310
+    // ??0srFilter@@QAE@ABV0@@Z
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    srFilter(const srFilter& other)
+    {
+    }
+
+    // FUNCTION: SURRENDER 0x100032B0
+    // ??1srFilter@@UAE@XZ
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    virtual ~srFilter()
+    {
+    }
+
+    // FUNCTION: SURRENDER 0x10003330
+    // ??4srFilter@@QAEAAV0@ABV0@@Z
+#if defined(SURRENDER_BUILD)
+    __declspec(dllexport)
+#endif
+    srFilter& operator=(const srFilter& other)
+    {
+        return *this;
+    }
 
     virtual const char* getName() const = 0;
     virtual double getWeight(double value) const = 0;
@@ -65,10 +102,8 @@ public:
 static_assert(sizeof(srFilter) == 0x04, "srFilter_must_be_0x04");
 static_assert(sizeof(srBoxFilter) == 0x04, "srBoxFilter_must_be_0x04");
 static_assert(sizeof(srBellFilter) == 0x04, "srBellFilter_must_be_0x04");
-static_assert(sizeof(srBSplineFilter) == 0x04,
-              "srBSplineFilter_must_be_0x04");
-static_assert(sizeof(srTriangleFilter) == 0x04,
-              "srTriangleFilter_must_be_0x04");
+static_assert(sizeof(srBSplineFilter) == 0x04, "srBSplineFilter_must_be_0x04");
+static_assert(sizeof(srTriangleFilter) == 0x04, "srTriangleFilter_must_be_0x04");
 
 extern SR_DLL_IMPORT class srBoxFilter srBoxFilter;
 extern SR_DLL_IMPORT class srBellFilter srBellFilter;

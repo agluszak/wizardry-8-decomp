@@ -1,6 +1,7 @@
 from pathlib import Path
 
-from wiz8decomp.reccmp_lint import validate_reccmp_annotations
+import pytest
+from wiz8decomp.reccmp_lint import ReccmpLintError, validate_reccmp_annotations
 
 
 def test_decomplint_covers_every_configured_source_target(tmp_path: Path) -> None:
@@ -37,3 +38,27 @@ def test_decomplint_covers_every_configured_source_target(tmp_path: Path) -> Non
     result = validate_reccmp_annotations(tmp_path)
 
     assert set(result["targets"]) == {"WIZ8", "SURRENDER"}
+
+
+def test_folded_source_marker_is_rejected(tmp_path: Path) -> None:
+    source = tmp_path / "src/wiz8/example.cpp"
+    source.parent.mkdir(parents=True)
+    source.write_text(
+        "// FUNCTION: WIZ8 0x00401000 FOLDED\nvoid Example() {}\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ReccmpLintError, match="FOLDED source markers are forbidden"):
+        validate_reccmp_annotations(tmp_path)
+
+
+def test_identity_alias_source_annotation_is_rejected(tmp_path: Path) -> None:
+    source = tmp_path / "src/wiz8/example.cpp"
+    source.parent.mkdir(parents=True)
+    source.write_text(
+        "// identity-alias: old fold escape hatch\nvoid Example() {}\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ReccmpLintError, match="identity-alias source annotations are forbidden"):
+        validate_reccmp_annotations(tmp_path)

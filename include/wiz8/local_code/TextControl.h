@@ -38,7 +38,7 @@ public:
     // W8TextControl::`scalar deleting destructor'
     // FUNCTION: WIZ8 0x004F6640
     virtual ~W8TextControl() override {}
-    unsigned char MeasureText004F4800();
+    unsigned char MeasureText();
     void GetTextOrigin(int* px, int* py);
     void Invalidate(unsigned char immediate);
     virtual void SetEnabled(bool enabled) override;
@@ -88,7 +88,7 @@ public:
     Listener* m_listener; /* 0xb4 */
 
 protected:
-    __forceinline void InvalidateCore(unsigned char immediate);
+    void InvalidateCore(unsigned char immediate);
 };
 static_assert(sizeof(W8TextControl) == 0xb8, "W8TextControl_size");
 

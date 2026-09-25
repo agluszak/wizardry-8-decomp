@@ -216,4 +216,4 @@ static_assert(sizeof(srPalette::Quantizer) == 0x21918, "Quantizer_must_be_0x2191
 static_assert(sizeof(srPalette::Sampler) == 0x20530, "Sampler_must_be_0x20530");
 static_assert(sizeof(srPalette) == 0x28, "srPalette_must_be_0x28");
 
-typedef srClassSupport<srPalette, srPalette, false, 0x2900> W8Palette;
+typedef srClientSupport<srPalette, 0x2900> W8Palette;

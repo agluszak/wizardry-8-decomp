@@ -57,8 +57,8 @@ void W8MessageDialogBase::Draw()
     if (m_lines) {
         SaveFontSettings();
         SetFont(g_dialog_font_64fde8);
-        SetFontForeground(g_dialog_font_foreground_64fdec);
-        SetFontBackground(g_dialog_font_background_64fded);
+        SetFontForeground(g_dialog_font_foreground);
+        SetFontBackground(g_dialog_font_background);
         for (index = 0; index < m_line_count; ++index) {
             wchar_t* line = m_lines[index];
             short width = StringPixLengthArg(g_dialog_font_64fde8, wcslen(line), line);
@@ -247,14 +247,14 @@ int W8MessageDialogBase::CreateControls()
         }
     }
     m_message_button =
-        CreateTextButton(0, g_dialog_font_64fde8, g_dialog_font_foreground_64fdec,
-                         g_dialog_font_background_64fded, m_edge_image, static_cast<short>(m_x + 9),
+        CreateTextButton(0, g_dialog_font_64fde8, g_dialog_font_foreground,
+                         g_dialog_font_background, m_edge_image, static_cast<short>(m_x + 9),
                          static_cast<short>(m_y + 9), static_cast<short>(m_width - 0x12),
                          static_cast<short>(m_height - 0x12), 0x8004, 0x7e, 0, 0);
 
     m_confirm_image = LoadButtonImage(
         reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogConfirmation.sti")),
+            const_cast<char*>("Data\\Dialogs\\DialogConfirmation.STI")),
         3, 0, 1, 2, 2);
     if (m_confirm_image != -1) {
         m_confirm_button =
@@ -263,7 +263,7 @@ int W8MessageDialogBase::CreateControls()
     }
     m_cancel_image = LoadButtonImage(
         reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
-            const_cast<char*>("Data\\Dialogs\\DialogConfirmation.sti")),
+            const_cast<char*>("Data\\Dialogs\\DialogConfirmation.STI")),
         7, 4, 5, 6, 6);
     if (m_cancel_image != -1) {
         m_cancel_button =

@@ -23,6 +23,7 @@
 #include "wiz8/local_code/Configuration.h"
 #include "wiz8/engine_code/Levels.h"
 #include "wiz8/local_screens/OptionsScreen.h"
+#include "wiz8/local_screens/ReviewCharacterScreen.h"
 #include "wiz8/layouts/game_status.h"
 
 // GLOBAL: WIZ8 0x0064d8ac
@@ -32,6 +33,12 @@ static const char g_intro_video_names[7][40] = {
     "Wizardry8.bik", "unaligned.bik", "Umpani.bik",  "T'Rang.bik",
     "virgin.bik",    "darkend.bik",   "sirtech.bik",
 };
+
+// FUNCTION: WIZ8 0x005AE770
+void ContinueAfterDarkEndingVideo(void)
+{
+    BeginEndgameSequence();
+}
 // GLOBAL: WIZ8 0x0069C258
 W8BinkVideo* gpVideo;
 
@@ -43,13 +50,12 @@ unsigned char IntroScreenEnter(void)
     SetClippingRegionAndImageWidth(0x500, 0, 0, 0x280, 0x1e0);
     SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
     ClearSurfaceRect(0, 0, 0x280, 0x1e0);
-    if (g_intro_video_index == 0 && g_settings_6850c8.intro_seen &&
-        !g_status_685170.intro_shown_49bc) {
+    if (g_intro_video_index == 0 && g_settings.intro_seen && !g_status.intro_shown_49bc) {
         return 1;
     }
     sprintf(path, "Data\\Flics\\Intro\\%s", g_intro_video_names[g_intro_video_index]);
     if (!FileExists(path)) {
-        if (!FindGameDataPath0042B590(gzCdDirectory, 3)) {
+        if (!FindGameDataPath(gzCdDirectory, 3)) {
             return 1;
         }
         sprintf(path, "%sData\\Flics\\Intro\\%s", gzCdDirectory,
@@ -59,7 +65,7 @@ unsigned char IntroScreenEnter(void)
         }
     }
     StopMusicPlaylist(1);
-    DisableCursorScene00428010();
+    DisableCursorScene();
     gpVideo = new W8BinkVideo();
     if (gpVideo == 0) {
         srAssertFail("gpVideo", "C:\\Projects\\Wizardry 8\\Local Screens\\IntroScreen.cpp", 98, 0);
@@ -106,11 +112,11 @@ void AdvanceIntroScreen(void)
     char path[500];
     W8BinkVideo* video;
 
-    if (g_intro_video_index == 6 && !g_settings_6850c8.intro_seen) {
+    if (g_intro_video_index == 6 && !g_settings.intro_seen) {
         g_intro_video_index = 0;
         sprintf(path, "Data\\Flics\\Intro\\%s", g_intro_video_names[g_intro_video_index]);
         if (!FileExists(path)) {
-            if (!FindGameDataPath0042B590(gzCdDirectory, 3)) {
+            if (!FindGameDataPath(gzCdDirectory, 3)) {
                 goto ordinary_destroy;
             }
             sprintf(path, "%sData\\Flics\\Intro\\%s", gzCdDirectory,
@@ -142,27 +148,27 @@ cleared:
     case 0:
     case 6:
         SetPendingScreenState(W8_SCREEN_MAIN_MENU);
-        g_settings_6850c8.intro_seen = 1;
+        g_settings.intro_seen = true;
         break;
     case 1:
     case 2:
     case 3:
     case 4:
-        if (!g_status_685170.intro_shown_49bc) {
+        if (!g_status.intro_shown_49bc) {
             g_pending_screen_state.mode = 0;
             SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
         } else {
-            g_status_685170.intro_shown_49bc = 0;
+            g_status.intro_shown_49bc = false;
             if (GetPendingScreenState() != 7) {
                 SetPendingScreenState(W8_SCREEN_MAIN_GAME);
             }
         }
         break;
     case 5:
-        ShowModalMessage005A6620(0, 0, 1, ContinueAfterDarkEndingVideo005AE770, 1, 1);
+        BeginScreenFade(0, 0, 1, ContinueAfterDarkEndingVideo, 1, 1);
         break;
     }
-    EnableCursorScene00428020();
+    EnableCursorScene();
 }
 
 // FUNCTION: WIZ8 0x005ae940

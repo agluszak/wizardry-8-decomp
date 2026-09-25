@@ -25,43 +25,43 @@
 #define SWAMP_CPP "C:\\Projects\\Wizardry 8\\Level Specific Code\\Swamp.cpp"
 
 // GLOBAL: WIZ8 0x006834e4
-W8Monster* g_swamp_spawned_monster_6834e4;
+W8Monster* g_swamp_spawned_monster;
 
 /* Level Specific Code\Swamp.cpp (level 0x18).
 
    Attribution evidence: 0x004DAA70 passes this file's path string to
    MonsterGetIndexByLocationID. The level-0x18 block in
-   InitializeLevelMasterFunctions004D6C50 registers the surrounding cluster
+   InitializeLevelMasterFunctions registers the surrounding cluster
    (oil_pool, gas_trig_plane01-07, onelid, fire_trig_plane01-07). */
 
 /* "oil_pool": item 0x2d0 held over the pool is converted to item 0x15e and the
    shared item-consumed flag is raised. Always returns 0, so the trigger stays
    armed for another try. */
 // FUNCTION: WIZ8 0x004DA960
-bool SwampOilPool004DA960(Trigger* pTrigger)
+bool SwampOilPool(Trigger* pTrigger)
 {
-    if (g_status_685170.item_in_cursor != 0 && GetItemInHand() == 0x2d0) {
+    if (g_status.item_in_cursor != 0 && GetItemInHand() == 0x2d0) {
         ClearHeldItemDisplay();
-        ReplaceOrCreateItem(&g_status_685170.item_in_hand_235b, 0x15e, 0, 1, 0);
+        ReplaceOrCreateItem(&g_status.item_in_hand_235b, 0x15e, 0, 1, 0);
         SetItemCursor(0);
-        g_trigger_feedback_00606994 = 1;
+        g_trigger_feedback = 1;
     }
     return 0;
 }
 
-bool SwampGasFireSpawn004DAA70(Trigger* pTrigger); /* 0x004DAA70 */
-void SwampGasFireItemDrop004DACD0(int command);    /* 0x004DACD0 */
+bool SwampGasFireSpawn(Trigger* pTrigger); /* 0x004DAA70 */
+void SwampGasFireItemDrop(int command);    /* 0x004DACD0 */
 
 /* "gas_trig_plane01-07": while fact 0x16d is unset the trigger defers to the
    one-shot spawner; once set, it casts spell 0x2a at power 4 on the camera
    position. */
 // FUNCTION: WIZ8 0x004DA9B0
-bool SwampGasPlane004DA9B0(Trigger* pTrigger)
+bool SwampGasPlane(Trigger* pTrigger)
 {
     srVector3T<float> position;
 
     if (GetFact(0x16d) == 0) {
-        SwampGasFireSpawn004DAA70(pTrigger);
+        SwampGasFireSpawn(pTrigger);
         return 0;
     }
     position = GetWorld()->camera->getLocation();
@@ -72,12 +72,12 @@ bool SwampGasPlane004DA9B0(Trigger* pTrigger)
 /* "fire_trig_plane01-07": same fact gate as the gas planes, but casts spell
    0x24. */
 // FUNCTION: WIZ8 0x004DAA10
-bool SwampFirePlane004DAA10(Trigger* pTrigger)
+bool SwampFirePlane(Trigger* pTrigger)
 {
     srVector3T<float> position;
 
     if (GetFact(0x16d) == 0) {
-        SwampGasFireSpawn004DAA70(pTrigger);
+        SwampGasFireSpawn(pTrigger);
         return 0;
     }
     position = GetWorld()->camera->getLocation();
@@ -93,9 +93,9 @@ bool SwampFirePlane004DAA10(Trigger* pTrigger)
    the SetFact call after the fact-0x16d early return, not a separate
    authored function. */
 // SYNTHETIC: WIZ8 0x004DAA8A
-// SwampGasFireSpawn004DAA70 post-guard continuation
+// SwampGasFireSpawn post-guard continuation
 // FUNCTION: WIZ8 0x004DAA70
-bool SwampGasFireSpawn004DAA70(Trigger* pTrigger)
+bool SwampGasFireSpawn(Trigger* pTrigger)
 {
     srVector3T<float> center;
     srVector3T<float> position;
@@ -110,7 +110,7 @@ bool SwampGasFireSpawn004DAA70(Trigger* pTrigger)
         return 0;
     }
     SetFact(0x16d, 1, 0);
-    ResetInactiveLevelDataVectors0041EF50();
+    ResetInactiveLevelDataVectors();
     center.Set(
         (pTrigger->representation_vectors_0cc[0].x + pTrigger->representation_vectors_0cc[1].x +
          pTrigger->representation_vectors_0cc[2].x + pTrigger->representation_vectors_0cc[3].x) *
@@ -128,16 +128,16 @@ bool SwampGasFireSpawn004DAA70(Trigger* pTrigger)
         monster_info = MonsterGetScriptPartByLocationIndex(
             MonsterGetIndexByLocationID(0x8f, SWAMP_CPP, index, 1));
         if (monster_info != 0) {
-            g_swamp_spawned_monster_6834e4 = monster_info->p3D;
+            g_swamp_spawned_monster = monster_info->p3D;
             monster_info->p3D->m_pRep->instance_scale_05c = 1.0f;
             monster_info->p3D->m_pRep->apply_instance_scale_061 = 1;
-            g_swamp_spawned_monster_6834e4->BeginFadeIn004C4F80(2.0f);
-            g_swamp_spawned_monster_6834e4->GetMappedPosition004C72A0(&mapped);
+            g_swamp_spawned_monster->BeginFadeIn(2.0f);
+            g_swamp_spawned_monster->GetMappedPosition(&mapped);
             look_target = monster_info->p3D->movement_0c0.position_040;
             look_target.y += monster_info->p3D->movement_0c0.height_offset_0b8;
-            g_gd_camera_65a0f8->LookAt(&look_target, 0);
-            g_flag_6109f0 = 0;
-            g_master_functions_006834d8->Add(SwampGasFireItemDrop004DACD0);
+            g_gd_camera->LookAt(&look_target, 0);
+            g_flag_6109f0 = false;
+            g_master_functions->Add(SwampGasFireItemDrop);
         }
     }
     npc = FindNpcBindingForMonster(MonsterGetIndexByLocationID(0xa3, SWAMP_CPP, index, 1));
@@ -150,7 +150,7 @@ bool SwampGasFireSpawn004DAA70(Trigger* pTrigger)
    queued NPC script notice completes - then drops an unidentified item 0x264
    at the spawned monster and fades it out for removal. */
 // FUNCTION: WIZ8 0x004DACD0
-void SwampGasFireItemDrop004DACD0(int command)
+void SwampGasFireItemDrop(int command)
 {
     srVector3T<float> position;
     srVector3T<float> drop_position;
@@ -158,21 +158,21 @@ void SwampGasFireItemDrop004DACD0(int command)
 
     if (command != 0) {
         if (command == static_cast<int>(0xEFFFFFFF)) {
-            g_flag_6109f0 = 0;
-            g_master_functions_006834d8->Add(SwampGasFireItemDrop004DACD0);
+            g_flag_6109f0 = false;
+            g_master_functions->Add(SwampGasFireItemDrop);
         }
         return;
     }
-    g_flag_006834dc = 0;
+    g_flag_006834dc = false;
     if (g_flag_6109f0 != 0) {
-        g_flag_006834dc = 1;
-        if (g_swamp_spawned_monster_6834e4 != 0) {
-            position = g_swamp_spawned_monster_6834e4->GetPosition();
+        g_flag_006834dc = true;
+        if (g_swamp_spawned_monster != 0) {
+            position = g_swamp_spawned_monster->GetPosition();
             drop_position = position;
             item = SpawnItem(0x264, &drop_position, 3, 1);
             item->item.identified = 0;
             ActivateItem(item);
-            g_swamp_spawned_monster_6834e4->BeginFadeOutAndRemove004C5040(0);
+            g_swamp_spawned_monster->BeginFadeOutAndRemove(0);
         }
     }
 }
@@ -180,7 +180,7 @@ void SwampGasFireItemDrop004DACD0(int command)
 /* "onelid": once fact 0x33 is set and an npc of kind 0x1e exists, advance the
    script facts - set 0x39 and clear 0x33. */
 // FUNCTION: WIZ8 0x004DADF0
-bool SwampOnelid004DADF0(Trigger* pTrigger)
+bool SwampOnelid(Trigger* pTrigger)
 {
     if (GetFact(0x33) != 0 && FindNpcOfKind(0x1e) != 0) {
         SetFact(0x39, 1, 0);

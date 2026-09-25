@@ -45,8 +45,8 @@ struct W8ConditionImmunity {
 };
 #pragma pack(pop)
 
-extern W8ConditionImmunity g_condition_immunities_006171A8[3];
-extern unsigned short g_condition_notices_0061E570[128];
+extern W8ConditionImmunity g_condition_immunities[3];
+extern unsigned short g_condition_notices[128];
 
 void RemoveCharacterCondition(int party_slot, int condition, int announce);
 void SetMonsterCondition(int location_id, int condition, int duration, int argument,
@@ -65,10 +65,10 @@ void TickMonsterCondition(int location_id, int condition, unsigned int minutes);
 void TickCharacterCondition(unsigned int party_slot, unsigned int condition, unsigned int minutes);
 /* 0x00523940/0x005242B0: settle a condition on a character or monster with
    its argument, rolled duration and definition percentage. */
-void ApplyCharacterCondition00523940(int party_slot, int condition, int argument,
-                                     unsigned int duration, unsigned int percent);
-void ApplyMonsterCondition005242B0(int location_id, int condition, int argument,
-                                   unsigned int duration, unsigned int percent);
+void ApplyCharacterCondition(int party_slot, int condition, int argument, unsigned int duration,
+                             unsigned int percent);
+void ApplyMonsterCondition(int location_id, int condition, int argument, unsigned int duration,
+                           unsigned int percent);
 unsigned char GetConditionRecordFlag(int party_slot, int condition);
 /* 0x00524780: record a bound monster in a party member's condition record -
    the level the binding was made on and the monster's location id, with the
@@ -80,7 +80,6 @@ void RemoveAllConditionsFromParty(void);
 void BindMonsterToCharacterDependence(unsigned int party_slot, unsigned int dependence_slot,
                                       int monster_id);
 
-void ApplyMonsterCondition(int location_id, int condition, int arg_3);
 /* 0x005237E0: rescan uiCondition from slot 0x13 downward and write the
    first live index into W8Character::highest_condition. */
 void RecomputeCharacterHighestCondition(int party_slot);
@@ -100,4 +99,4 @@ void RemoveAllEnchantments(void);                /* 0x00524540 */
 void NormalizeItemQuantityKind(W8ItemInstance* item);
 /* 0x00522EF0: the post-load repair LoadGame runs - unequip unusable items on
    every character and normalize quantity kinds on carried and pooled items. */
-void SanitizeLoadedItems00522EF0(void);
+void SanitizeLoadedItems(void);

@@ -274,3 +274,33 @@ void srModelInstance::setExclusionMask(unsigned long mask)
 {
     exclusion_mask_15c = mask;
 }
+
+// SYNTHETIC: SURRENDER 0x10050170
+// srModelInstance default constructor closure
+
+// SYNTHETIC: SURRENDER 0x10050180
+// srModelInstance scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0x100501A0
+// srModelInstance vector deleting destructor
+
+// TEMPLATE: SURRENDER 0x1004FDA0
+// srClassSupport<srModelInstance, srNode, 0, 0x1100>::~srClassSupport
+
+// SYNTHETIC: SURRENDER 0x10050200
+// srClassSupport<srModelInstance, srNode, 0, 0x1100> scalar deleting destructor
+
+// LIBRARY: SURRENDER 0x10050230
+// std::ios_base::Init::Init
+
+// SYNTHETIC: SURRENDER 0x10050240
+// std::ios_base::Init global atexit registrar
+
+// LIBRARY: SURRENDER 0x10050270
+// std::_Winit::_Winit
+
+// SYNTHETIC: SURRENDER 0x10050280
+// std::_Winit global atexit registrar
+
+// LIBRARY: SURRENDER 0x100502B0
+// MFC CRect::CRect

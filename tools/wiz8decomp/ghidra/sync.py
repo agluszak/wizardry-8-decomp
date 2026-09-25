@@ -117,7 +117,7 @@ def _apply_name_and_prototype(program: Any, identity: Any) -> dict[str, Any]:
         return {"address": hex_address(identity.address), "action": "skip-non-function"}
     changed = []
     desired = identity.name or identity.qualified_name.rsplit("::", 1)[-1]
-    if desired and function.getName() != desired and not identity.folded:
+    if desired and function.getName() != desired:
         try:
             function.setName(desired, SourceType.IMPORTED)
             changed.append("name")
@@ -483,11 +483,7 @@ def synchronize(
     primaries: list[Any] = []
     for bound in identities.values():
         primary = next(
-            (
-                item
-                for item in bound
-                if item.kind in {"definition", "declaration"} and not item.identity_alias
-            ),
+            (item for item in bound if item.kind in {"definition", "declaration"}),
             bound[0],
         )
         if primary.kind in {"definition", "declaration"}:

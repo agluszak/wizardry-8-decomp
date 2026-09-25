@@ -573,12 +573,6 @@ int srTimer::calibrate(srTimerConfig* config)
     return 0;
 }
 
-// FUNCTION: SURRENDER 0x100621E0
-double srTimer::getFreqf() const
-{
-    return m_frequency.lo * 1e-06 + m_frequency.hi * 4294.967296;
-}
-
 // FUNCTION: SURRENDER 0x10062230
 void srTimer::getFreq(srQuadWord& out) const
 {
@@ -609,18 +603,6 @@ const char* srTimer::getIdent() const
     return m_ident;
 }
 
-// FUNCTION: SURRENDER 0x10062330
-unsigned long srTimer::getCPUCount() const
-{
-    return m_cpu_count;
-}
-
-// FUNCTION: SURRENDER 0x10062340
-const char* srTimer::getCPUIdent() const
-{
-    return m_cpu_ident;
-}
-
 // FUNCTION: SURRENDER 0x10062350
 srTimer::e_cpuTypeId srTimer::getCPUType() const
 {
@@ -649,24 +631,6 @@ unsigned short srTimer::getCPUStepping() const
 int srTimer::getFeature(long feature) const
 {
     return (m_cpu_features & (1 << feature)) != 0;
-}
-
-// FUNCTION: SURRENDER 0x100623B0
-int srTimer::getFPUSupport() const
-{
-    return m_cpu_features & 1;
-}
-
-// FUNCTION: SURRENDER 0x100623C0
-int srTimer::getRDTSCSupport() const
-{
-    return m_cpu_features >> 4 & 1;
-}
-
-// FUNCTION: SURRENDER 0x100623D0
-int srTimer::getMMXSupport() const
-{
-    return m_cpu_features >> 0x17 & 1;
 }
 
 // FUNCTION: SURRENDER 0x100623E0
@@ -715,15 +679,6 @@ char* srTimer::getStorage(char* buffer, unsigned long size)
         slash = strchr(buffer, '\\');
     }
     return buffer;
-}
-
-// FUNCTION: SURRENDER 0x10062750
-int srTimer::fastThreads()
-{
-    if (osThreadState == -1) {
-        getOsIdent();
-    }
-    return osThreadState == 1;
 }
 
 // FUNCTION: SURRENDER 0x10062770
@@ -1060,3 +1015,6 @@ std::ostream& operator<<(std::ostream& stream, const srTimer& timer)
     stream.width(mode);
     return stream;
 }
+
+// SYNTHETIC: SURRENDER 0x100621D0
+// srTimer default constructor closure

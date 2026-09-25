@@ -21,7 +21,7 @@ struct W8OctRegionPolygon {
     unsigned long flags_00;
     /* 1-based ordinal into the geometry polygon array. */
     unsigned long ordinal_04;
-    float plane_08[4]; /* normal xyz and offset d */
+    W8Plane plane_08; /* unit normal plus signed distance */
     srVector3T<float> position_18;
     /* Canonical material-group index assigned by the material sort. */
     unsigned long material_24;
@@ -32,7 +32,7 @@ struct W8OctRegionPolygon {
     unsigned long kind_2c;
     /* Set by the polygon builder when the face collapses. */
     unsigned char degenerate_30;
-    unsigned char visited_31;
+    bool visited_31;
     unsigned short region_32;
     /* Corner vertices of the shared build-vertex array; the material sort
        and SplitVertices repoint these at split copies. */
@@ -47,7 +47,7 @@ struct W8OctRegionPolygon {
 
     /* Tests the polygon's representative point against six frustum planes;
        inside means every plane distance is non-negative. */
-    unsigned char InsideFrustumPlanes004CFAE0(const srVector4T<float>* planes) const;
+    unsigned char InsideFrustumPlanes(const W8Plane* planes) const;
     unsigned char ContainsPoint004CFB30(const srVector3T<float>* bounds) const;
 };
 
@@ -57,40 +57,39 @@ static_assert(sizeof(W8OctRegionPolygon) == 0x74, "W8OctRegionPolygon_must_be_0x
    boundary, preserving existing entries. */
 int CheckArrayLength004CFB70(int** run, unsigned short count, unsigned short capacity);
 
-extern int g_build_node_instances_65be60;
-extern unsigned long g_poly_list_count_65be58;
+extern int g_build_node_instances;
+extern unsigned long g_poly_list_count;
 /* Build scratch carries mode-2 region polygons and mode-3 GD surfaces. */
-extern void** g_poly_list_65be64;
-extern W8GDSurface** g_gd_surface_list_65be68;
-extern unsigned short* g_region_id_list_65be5c;
-extern unsigned short g_region_id_count_65be6c;
+extern void** g_poly_list;
+extern W8GDSurface** g_gd_surface_list;
+extern unsigned short* g_region_id_list;
+extern unsigned short g_region_id_count;
 
 /* Retail assertion text gives the class and member names directly:
    "OctBuildPreTree::m_ppPolyList too long.", "m_pulRegPaths" and
    "m_psrvRegCenters" in Engine Code\OctBuildPreTree.cpp. */
-struct OctBuildPreTree : W8OctBuildTree00446390 {
+struct OctBuildPreTree : W8OctBuildTree {
     OctBuildPreTree(float leaf_size, srVector3T<float>* minimum, srVector3T<float>* maximum,
                     unsigned short item_limit, unsigned long path_capacity, short extent_mode);
-    OctPreTree* BuildOctPreTree004B4640();
-    unsigned short BuildRegions004B19F0();
-    unsigned char BuildParticleRegions004B3820(const W8LevelFileParticleSystem* particles,
-                                               int particle_count);
-    unsigned char BuildGeometryRegions004B3F90(const W8LevelFileProp* records, int record_count,
-                                               int base_index, unsigned char finalize);
+    OctPreTree* BuildOctPreTree();
+    unsigned short BuildRegions();
+    unsigned char BuildParticleRegions(const W8LevelFileParticleSystem* particles,
+                                       int particle_count);
+    unsigned char BuildGeometryRegions(const W8LevelFileProp* records, int record_count,
+                                       int base_index, unsigned char finalize);
 
-    void AssignInitialRegions004B1D90(const W8OctSpatialState* spatial);
-    unsigned char UpdateRegionForGeometry004B06E0(const srVector3T<float>* geometry, short value,
-                                                  short mode);
-    unsigned char UpdateRegionMap004B07E0(const W8OctSpatialState* spatial,
-                                          const srVector3T<float>* geometry, short value,
+    void AssignInitialRegions(const W8OctSpatialState* spatial);
+    unsigned char UpdateRegionForGeometry(const srVector3T<float>* geometry, short value,
                                           short mode);
-    W8OctBuildNode00446330* FindNode004B23F0(unsigned int path);
-    unsigned char MergeAdjacentRegion004B2450(W8OctBuildNode00446330* node, unsigned int path);
-    unsigned char MergeRegion004B25C0(W8OctBuildNode00446330* node, const int* cell);
-    void FinalizeRegionMapping004B2A20();
-    void AssignRegionFromSurfaces004B3050(const W8OctSpatialState* spatial);
-    void ValidatePolygonRegions004B3330();
-    void ValidateRegionBounds004B35B0(const W8BoundingBox* region_bounds);
+    unsigned char UpdateRegionMap(const W8OctSpatialState* spatial,
+                                  const srVector3T<float>* geometry, short value, short mode);
+    W8OctBuildNode* FindNode(unsigned int path);
+    unsigned char MergeAdjacentRegion(W8OctBuildNode* node, unsigned int path);
+    unsigned char MergeRegion(W8OctBuildNode* node, const int* cell);
+    void FinalizeRegionMapping();
+    void AssignRegionFromSurfaces(const W8OctSpatialState* spatial);
+    void ValidatePolygonRegions();
+    void ValidateRegionBounds(const W8BoundingBox* region_bounds);
     /* SortGeometry: welds duplicate vertices, drops degenerate polygons,
        repacks both arrays and re-inserts every polygon with mode 2. */
     unsigned char SortGeometry004AFEA0(W8OctPreTreeGeometry* geometry);
@@ -103,27 +102,27 @@ struct OctBuildPreTree : W8OctBuildTree00446390 {
                                                  W8OctRegionPolygon* polygon, unsigned long mode);
     /* Fill the leaf's region-id list with every region volume overlapping
        `bounds`; grows a 50-entry scratch list on first use. */
-    void FindLeafRegions004B1090(W8OctBuildNode00446330* node, const W8BoundingBox* bounds);
+    void FindLeafRegions004B1090(W8OctBuildNode* node, const W8BoundingBox* bounds);
     /* Loads the .rlk region file beside the level and folds its bounds into
        the build. */
-    unsigned short LoadRegionFile004B0C90(const char* stem, srVector3T<float>* minimum,
-                                          srVector3T<float>* maximum);
+    unsigned short LoadRegionFile(const char* stem, srVector3T<float>* minimum,
+                                  srVector3T<float>* maximum);
     /* Walks the node tree remapping leaf region ids through region_remap_100. */
-    void RemapNodeRegions004B16B0(W8OctBuildNode00446330* node, int depth);
+    void RemapNodeRegions(W8OctBuildNode* node, int depth);
     /* Assigns a polygon's region_32 from the region volume containing its
        representative point, falling back to the corner vertices' regions;
        marks multi-region polygons with flags bit2 and counts the assignment
        on the volume. */
-    void AssignPolygonRegion004B1190(W8OctRegionPolygon* polygon);
+    void AssignPolygonRegion(W8OctRegionPolygon* polygon);
     /* Region assignment pass run by SortGeometry: builds each vertex's
        polygon-reference run, assigns vertex and polygon regions against the
        region volumes, compacts dead regions and finishes in BuildRegions. */
-    unsigned char AssignPolygonRegions004B1280(W8OctPreTreeGeometry* geometry);
+    unsigned char AssignPolygonRegions(W8OctPreTreeGeometry* geometry);
     /* Resolves a shared polygon (flags bit2): histograms the neighboring
        polygons' regions collected through the corner vertices' face runs,
        picks the most frequent region the polygon actually touches, assigns it
        and counts it on the volume. Answers the polygon's region_32. */
-    unsigned short SplitSharedPolygon004B1780(W8OctPreTreeGeometry* geometry, int index);
+    unsigned short SplitSharedPolygon(W8OctPreTreeGeometry* geometry, int index);
 
     unsigned long path_capacity_bc;
     unsigned short selected_depth_c0;

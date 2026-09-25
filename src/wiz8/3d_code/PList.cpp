@@ -47,7 +47,7 @@ W8PList* PLCreate(void)
 // FUNCTION: WIZ8 0x005e2370
 unsigned char PListInit(W8PList* ppl)
 {
-    unsigned char created;
+    bool created;
 
     if (!ppl) {
         srAssertFail("ppl", PLIST_CPP, 0x56, 0);
@@ -204,8 +204,7 @@ void* PListRemove(W8PList* ppl, void* pEntry)
                 ppl->data[shift_index] = ppl->data[shift_index + 1];
             }
             --ppl->iNumUsed;
-            if (static_cast<double>(ppl->iNumUsed) / ppl->capacity < 0.25 &&
-                !ppl) {
+            if (static_cast<double>(ppl->iNumUsed) / ppl->capacity < 0.25 && !ppl) {
                 srAssertFail("ppl", PLIST_CPP, 0x1f8, 0);
             }
             return removed;
@@ -270,14 +269,10 @@ done:
     return index;
 }
 
-/* The retail linker folds this ordinary PList.cpp function with ILLength. The
-   retained body and address marker belong to the IList.cpp contribution.
-   {PLLength, ILLength} is therefore one linker-equivalence class: callers may
-   spell either name, and the two differ only once /OPT:NOICF gives each body
-   its own address. The linked comparison reports that alias difference as a
-   call-target mismatch; reccmp's relocation-masked object comparison is the
-   authority for the body. Never cast a W8PList* to W8IList* to force a call to
-   the retained address. */
+/* Retail ICF folds this ordinary PList.cpp function with ILLength. The retained
+   retail body is the IList.cpp emission at 0x005e2c70. PLLength remains a
+   separate typed source function with no retail address marker; the /OPT:NOICF
+   comparison build may therefore report call-target differences. */
 unsigned int PLLength(W8PList* ppl)
 {
     if (!ppl) {

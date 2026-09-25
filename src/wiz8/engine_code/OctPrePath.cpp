@@ -18,7 +18,7 @@
 /* The vertical-link slack LinkPathNodes multiplies the cell size by. Retail
    Combat.cpp reads it directly, so it is not file-static. */
 // GLOBAL: WIZ8 0x005ED300
-float g_prepath_link_height_5ed300 = 1.1f;
+float g_prepath_link_height = 1.1f;
 
 /* OctPrePathLog is a build-time ASCII density map of the path grid: one row of
    space-padded characters per z cell, one column per x cell, plus a parallel
@@ -53,7 +53,7 @@ OctPrePathLog::OctPrePathLog(float scale, const float* bounds)
         minimum_0c[2] = bounds[2];
         m_pPathStrings = static_cast<char**>(malloc(rows_04 << 2));
         if (m_pPathStrings == 0) {
-            ReportBuildStatus00497690(7, "OctPrePathLog: Could not allocate m_pPathStrings.\n");
+            ReportBuildStatus(7, "OctPrePathLog: Could not allocate m_pPathStrings.\n");
             return;
         }
         for (int i = 0; i < rows_04; ++i) {
@@ -63,7 +63,7 @@ OctPrePathLog::OctPrePathLog(float scale, const float* bounds)
         }
         m_pLinkStrings = static_cast<char**>(malloc(rows_04 << 2));
         if (m_pLinkStrings == 0) {
-            ReportBuildStatus00497690(7, "OctPrePathLog: Could not allocate m_pLinkStrings.\n");
+            ReportBuildStatus(7, "OctPrePathLog: Could not allocate m_pLinkStrings.\n");
             return;
         }
         for (int j = 0; j < rows_04; ++j) {
@@ -142,17 +142,17 @@ PrePathing::~PrePathing()
 }
 
 // FUNCTION: WIZ8 0x004CD130
-int PrePathing::SnapNamedPositions004CD130(W8LevelFileNamedPosition* positions, int count,
-                                           unsigned int min_component_percent, OctPreTree* octree)
+int PrePathing::SnapNamedPositions(W8LevelFileNamedPosition* positions, int count,
+                                   unsigned int min_component_percent, OctPreTree* octree)
 {
     min_component_percent_1200 = min_component_percent;
     named_position_count_24c = count;
     if (count != 0) {
         named_positions_250 = new srVector3T<float>[count];
         for (int i = 0; i < named_position_count_24c; ++i) {
-            named_positions_250[i].x = positions[i].position_81.x * g_world_scale_005ebc40;
-            named_positions_250[i].y = positions[i].position_81.y * g_world_scale_005ebc40;
-            named_positions_250[i].z = positions[i].position_81.z * g_world_scale_005ebc40;
+            named_positions_250[i].x = positions[i].position_81.x * g_world_scale;
+            named_positions_250[i].y = positions[i].position_81.y * g_world_scale;
+            named_positions_250[i].z = positions[i].position_81.z * g_world_scale;
             octree->SnapToGround(&named_positions_250[i], 0);
         }
     }
@@ -165,13 +165,11 @@ W8PrePathNode* PrePathing::GetPathNode()
     if (1000 <= static_cast<unsigned int>(chunk_node_count_11fc)) {
         ++chunk_index_11f8;
         if (1000 <= static_cast<unsigned int>(chunk_index_11f8)) {
-            ReportBuildStatus00497690(
-                7, "There are over one million path nodes required for this level!");
+            ReportBuildStatus(7, "There are over one million path nodes required for this level!");
         }
         node_chunks_258[chunk_index_11f8] = static_cast<W8PrePathNode*>(malloc(0x3e80));
         if (node_chunks_258[chunk_index_11f8] == 0) {
-            ReportBuildStatus00497690(7,
-                                      "PrePathing::GetPathNode -- Could not allocate path nodes.");
+            ReportBuildStatus(7, "PrePathing::GetPathNode -- Could not allocate path nodes.");
         }
         memset(node_chunks_258[chunk_index_11f8], 0, 0x3e80);
         chunk_node_count_11fc = 0;
@@ -192,14 +190,14 @@ unsigned char PrePathing::BuildPathList(W8PrePathNode* nodes,
         char message[0x100];
         sprintf(message, "BuildPathList: Could not allocate path node list, length %d nodes.\n",
                 size_004);
-        ReportBuildStatus00497690(7, message);
+        ReportBuildStatus(7, message);
         return 0;
     }
     for (int i = 0; i < size_004; ++i) {
         path_node_list_240[i] = nodes;
         nodes = nodes->next;
     }
-    if (LinkPathNodes004CD390() == 0) {
+    if (LinkPathNodes() == 0) {
         return 0;
     }
     CreatePathNodeArray();
@@ -207,22 +205,21 @@ unsigned char PrePathing::BuildPathList(W8PrePathNode* nodes,
 }
 
 // FUNCTION: WIZ8 0x004CD390
-unsigned char PrePathing::LinkPathNodes004CD390()
+unsigned char PrePathing::LinkPathNodes()
 {
-    float link_height = grid_scale_01c * g_prepath_link_height_5ed300;
+    float link_height = grid_scale_01c * g_prepath_link_height;
     int links_found = 0;
     int last_percent = 0;
     char message[0x400];
     unsigned int i;
 
     for (i = 1; i < static_cast<unsigned int>(size_004); ++i) {
-        int percent =
-            static_cast<int>(static_cast<float>(i) * 100.0f / static_cast<float>(size_004));
+        int percent = static_cast<int>(i * 100.0f / size_004);
         if (last_percent + 5 < percent) {
             last_percent += 5;
             sprintf(message, "Linking:  %d%% Complete:  %d Links Found  \r", last_percent,
                     links_found);
-            ReportStartupMessage004969D0(message);
+            ReportStartupMessage(message);
         }
         W8PrePathNode* node = path_node_list_240[i];
         if (node->level_flags == 0) {
@@ -231,7 +228,7 @@ unsigned char PrePathing::LinkPathNodes004CD390()
         for (int direction = 0; direction < 4; ++direction) {
             int x = node->cell & 0xffff;
             int z = node->cell >> 0x10;
-            StepPathCell004622D0(&x, &z, direction);
+            StepPathCell(&x, &z, direction);
             unsigned int key = (z << 0x10) + x;
             W8PrePathNode* target = 0;
             unsigned int index = cell_map_254->Lookup(&key);
@@ -254,7 +251,7 @@ unsigned char PrePathing::LinkPathNodes004CD390()
         next_direction:;
         }
     }
-    DeleteUnreachableAreas004CD7C0();
+    DeleteUnreachableAreas();
     for (i = 1; i < static_cast<unsigned int>(size_004); ++i) {
         W8PrePathNode* edge = path_node_list_240[i];
         edge->level_flags &= 0xfffffff;
@@ -264,23 +261,22 @@ unsigned char PrePathing::LinkPathNodes004CD390()
     }
     last_percent = 1;
     for (i = 1; i < static_cast<unsigned int>(size_004); ++i) {
-        int percent =
-            static_cast<int>(static_cast<float>(i) * 100.0f / static_cast<float>(size_004));
+        int percent = static_cast<int>(i * 100.0f / size_004);
         if (last_percent + 1 < percent) {
             ++last_percent;
             sprintf(message, "Computing Pathnode Clearance:  %d%% Complete  \r", last_percent);
-            ReportStartupMessage004969D0(message);
+            ReportStartupMessage(message);
         }
         W8PrePathNode* edge = path_node_list_240[i];
         if ((edge->level_flags & 0x1000000) != 0) {
-            PropagatePathNodeClearance004CD650(edge, 0);
+            PropagatePathNodeClearance(edge, 0);
         }
     }
     return 1;
 }
 
 // FUNCTION: WIZ8 0x004CD650
-void PrePathing::PropagatePathNodeClearance004CD650(W8PrePathNode* node, unsigned int depth)
+void PrePathing::PropagatePathNodeClearance(W8PrePathNode* node, unsigned int depth)
 {
     if (depth == 0) {
         if ((node->level_flags & 0x1000000) == 0) {
@@ -301,11 +297,11 @@ void PrePathing::PropagatePathNodeClearance004CD650(W8PrePathNode* node, unsigne
         ++depth;
     }
     ++depth;
-    float link_height = grid_scale_01c * g_prepath_link_height_5ed300;
+    float link_height = grid_scale_01c * g_prepath_link_height;
     for (int direction = 0; direction < 4; ++direction) {
         int x = node->cell & 0xffff;
         int z = node->cell >> 0x10;
-        StepPathCell004622D0(&x, &z, direction);
+        StepPathCell(&x, &z, direction);
         unsigned int key = (z << 0x10) + x;
         W8PrePathNode* neighbor = 0;
         unsigned int index = cell_map_254->Lookup(&key);
@@ -320,16 +316,16 @@ void PrePathing::PropagatePathNodeClearance004CD650(W8PrePathNode* node, unsigne
                     goto next_direction;
                 }
             }
-            PropagatePathNodeClearance004CD650(neighbor, depth);
+            PropagatePathNodeClearance(neighbor, depth);
         }
     next_direction:;
     }
 }
 
 // FUNCTION: WIZ8 0x004CD7C0
-unsigned int PrePathing::DeleteUnreachableAreas004CD7C0()
+unsigned int PrePathing::DeleteUnreachableAreas()
 {
-    float link_height = grid_scale_01c * g_prepath_link_height_5ed300;
+    float link_height = grid_scale_01c * g_prepath_link_height;
     int deleted = 0;
     int last_percent = 0;
     unsigned int minimum = 0;
@@ -344,16 +340,15 @@ unsigned int PrePathing::DeleteUnreachableAreas004CD7C0()
     visible_waypoints_058 = new BitArray(size_004);
     rendered_waypoints_05c = new BitArray(size_004);
     collected_waypoints_060 = new BitArray(size_004);
-    ReportBuildStatus00497690(6, "Deleting Unreacheable Areas.\n");
-    ReportBuildStatus00497690(6, "Deleting Nodes: \t");
+    ReportBuildStatus(6, "Deleting Unreacheable Areas.\n");
+    ReportBuildStatus(6, "Deleting Nodes: \t");
     for (unsigned int i = 1; i < static_cast<unsigned int>(size_004); ++i) {
-        int percent =
-            static_cast<int>(static_cast<float>(i) * 100.0f / static_cast<float>(size_004));
+        int percent = static_cast<int>(i * 100.0f / size_004);
         if (last_percent < percent) {
             last_percent = percent;
             sprintf(message, "Deleting:  %d%% Complete:  %d Pathnodes Deleted  \r", percent,
                     deleted);
-            ReportStartupMessage004969D0(message);
+            ReportStartupMessage(message);
         }
         if (rendered_waypoints_05c->Test(i)) {
             continue;
@@ -378,7 +373,7 @@ unsigned int PrePathing::DeleteUnreachableAreas004CD7C0()
                         int z = node->cell >> 0x10;
                         bool scanning = true;
                         bool first_probe = true;
-                        StepPathCell004622D0(&x, &z, direction);
+                        StepPathCell(&x, &z, direction);
                         unsigned int key = (z << 0x10) + x;
                         unsigned int next_index = cell_map_254->Lookup(&key);
                         if (static_cast<unsigned int>(size_004) <= next_index) {
@@ -481,7 +476,7 @@ unsigned int PrePathing::DeleteUnreachableAreas004CD7C0()
     delete collected_waypoints_060;
     collected_waypoints_060 = 0;
     sprintf(message, "Nodes Deleted: %d\n", size_004 - kept);
-    ReportBuildStatus00497690(6, message);
+    ReportBuildStatus(6, message);
     size_004 = kept;
     return kept;
 }
@@ -496,7 +491,7 @@ int PrePathing::CreatePathNodeArray()
     path_nodes_044 = static_cast<unsigned int*>(malloc(size_004 << 3));
     if (path_nodes_044 == 0) {
         sprintf(message, "CreatePathNodeArray: Could not allocate m_pulNodeHashArray.\n");
-        ReportBuildStatus00497690(7, message);
+        ReportBuildStatus(7, message);
     }
     if (1 < static_cast<unsigned int>(size_004)) {
         do {
@@ -513,17 +508,17 @@ int PrePathing::CreatePathNodeArray()
     }
     sprintf(message, "  %d Total Pathnodes, %d of which are Edge Nodes.\n", size_004,
             edge_node_count_008);
-    ReportBuildStatus00497690(6, message);
+    ReportBuildStatus(6, message);
     sprintf(message, "Total memory taken by Path Nodes: %dk.\n",
             (static_cast<unsigned int>(size_004) & 0x1fffffff) >> 7);
-    ReportBuildStatus00497690(6, message);
+    ReportBuildStatus(6, message);
     m_ulNumWayPoints = 0;
     m_pFileWayPoints = 0;
     return 1;
 }
 
 // FUNCTION: WIZ8 0x004CE070
-unsigned char PrePathing::CreateAutomapNodes004CE070(W8LevelFile* level)
+unsigned char PrePathing::CreateAutomapNodes(W8LevelFile* level)
 {
     int last_percent = 0;
     W8GrowableVector<int> node_keys;
@@ -538,19 +533,18 @@ unsigned char PrePathing::CreateAutomapNodes004CE070(W8LevelFile* level)
     unsigned int i = 1;
     if (1 < static_cast<unsigned int>(size_004)) {
         do {
-            int percent =
-                static_cast<int>(static_cast<float>(i) * 100.0f / static_cast<float>(size_004));
+            int percent = static_cast<int>(i * 100.0f / size_004);
             if (last_percent < percent) {
                 sprintf(message, "Creating Automap Nodes:  %d%% Complete:  %d Nodes created  \r",
                         percent, created);
-                ReportStartupMessage004969D0(message);
+                ReportStartupMessage(message);
                 last_percent = percent;
             }
             W8PrePathNode* node = path_node_list_240[i];
             srVector3T<float> position;
-            position.y = static_cast<float>(node->level_flags & 0xffff) * span_020;
-            position.x = static_cast<float>(node->cell & 0xffff) * grid_scale_01c;
-            position.z = static_cast<float>(node->cell >> 0x10) * grid_scale_01c;
+            position.y = (node->level_flags & 0xffff) * span_020;
+            position.x = (node->cell & 0xffff) * grid_scale_01c;
+            position.z = (node->cell >> 0x10) * grid_scale_01c;
             unsigned int key = AutomapNodeKey(&position);
             if (used_keys.FindNextEntry(&key, -1) == -1) {
                 node_keys.Add(key);
@@ -565,9 +559,9 @@ unsigned char PrePathing::CreateAutomapNodes004CE070(W8LevelFile* level)
     level->num_automap_nodes_6b1 = node_keys.GetCount();
     sprintf(message, "Creating Automap Nodes:  100%% Complete:  %d Automap Nodes created  \n",
             node_keys.GetCount());
-    ReportStartupMessage004969D0(message);
+    ReportStartupMessage(message);
     sprintf(message, "  %d Total Automap Nodes.\n", level->num_automap_nodes_6b1);
-    ReportBuildStatus00497690(6, message);
+    ReportBuildStatus(6, message);
     level->automap_nodes_6b5 =
         static_cast<unsigned long*>(malloc(level->num_automap_nodes_6b1 << 2));
     if (level->automap_nodes_6b5 == 0) {
@@ -625,8 +619,8 @@ void W8PathingService::LinkCollideableProps(int lNumProps, W8PreProp* pPreProps,
                 if (slot != -1) {
                     do {
                         CondPathNode* puValue = pCondValues->entries[slot].value;
-                        if ((puValue != 0) && (FindConditionalPathValue00458970(
-                                                   puValue->cell, puValue->value) != 0)) {
+                        if ((puValue != 0) &&
+                            (FindConditionalPathValue(puValue->cell, puValue->value) != 0)) {
                             if (ppCondPaths[i] == 0) {
                                 if (static_cast<unsigned int>(lNumProps) <
                                     static_cast<unsigned int>(ulOriginalCount)) {

@@ -4,6 +4,7 @@
 #define _WIN32_WINNT 0x0500
 
 #include "game_thread_executor.h"
+#include "runtime_instrumentation.h"
 #include "surrender/srMath.h"
 
 struct GameplaySnapshot {
@@ -126,9 +127,25 @@ public:
 
     bool wait_until(const char* condition, unsigned long budget_ms, RuntimeConditionFn fn,
                     void* ctx, HeldCommand* held = 0, unsigned long poll_ms = 10);
+    unsigned long event_count(RuntimeEventKind kind) const;
+    bool wait_for_event(RuntimeEventKind kind, unsigned long budget_ms);
 
     GameplayWait wait_gameplay_ready(unsigned long budget_ms, const char* step);
     const GameplayReadyCheck& last_ready_check() const;
+
+    /* Typed case-local observations: each call emits a WIZ8_RUNTIME_OBSERVE
+       line the runner folds into the case's observation record as
+       obs.<name>, where repetition and order checks compare it. Names and
+       string values must not contain whitespace. */
+    void observe(const char* name, int value);
+    void observe(const char* name, unsigned int value);
+    void observe(const char* name, long value);
+    void observe(const char* name, unsigned long value);
+    void observe(const char* name, double value);
+    void observe(const char* name, const char* value);
+    /* observe(actual) plus a named expectation failure when they differ. */
+    bool expect_eq(const char* name, long expected_value, long actual_value);
+    bool expect_eq(const char* name, const char* expected_value, const char* actual_value);
 
     /* Schedules fn on the game thread, then records a pass step or fails with
        required-invariant-failed. */
@@ -155,14 +172,21 @@ private:
     GameplayReadyCheck last_ready_check_;
     unsigned short held_key_;
     bool finished_;
+    unsigned long event_baseline_[RUNTIME_EVENT_KIND_COUNT];
+    unsigned long event_seen_[RUNTIME_EVENT_KIND_COUNT];
     const char* fixture_name_;
     const char* fixture_path_;
+    void observe_long(const char* name, long value);
+    void observe_ulong(const char* name, unsigned long value);
 };
 
 /* Free helpers moved out of wiz8_runtime_test.cpp: every game-state touch
    below happens on the game thread; only OS input injection runs on the
    driver. */
 void SendScenarioKeyHeld(unsigned short key, unsigned char release);
+void SendScenarioKeyPress(unsigned short key, unsigned long flags);
+void SendScenarioMouseClick(int client_x, int client_y);
+void SendScenarioRightMouseButton(bool release);
 int IsExtendedScenarioKey(unsigned short key);
 void ParkMouseOutsideActiveRegions();
 bool PointHitsEnabledRegion(int x, int y);

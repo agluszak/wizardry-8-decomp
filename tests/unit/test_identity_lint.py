@@ -116,7 +116,7 @@ def test_two_address_qualified_declarations_cannot_claim_one_identity(tmp_path: 
     assert violation["names"] == ["Function536F60", "TargetIsInPlay"]
 
 
-def test_documented_address_alias_does_not_create_a_second_owner(tmp_path: Path) -> None:
+def test_linker_fold_comment_does_not_alias_two_address_identities(tmp_path: Path) -> None:
     declarations = [
         {**_declaration("CanonicalName", is_definition=False), "line": 1, "end_line": 1},
         {**_declaration("FoldedName", is_definition=False), "line": 3, "end_line": 3},
@@ -126,12 +126,14 @@ def test_documented_address_alias_does_not_create_a_second_owner(tmp_path: Path)
     source.parent.mkdir(parents=True)
     source.write_text(
         "void CanonicalName(); /* 0x10001000 */\n"
-        "// identity-alias: compiler fold onto CanonicalName\n"
+        "// Retail ICF folded this onto CanonicalName.\n"
         "void FoldedName(); /* 0x10001000 */\n",
         encoding="utf-8",
     )
 
-    assert identity_violations(repository) == []
+    (violation,) = identity_violations(repository)
+    assert violation["reason"] == "multiple names"
+    assert violation["names"] == ["CanonicalName", "FoldedName"]
 
 
 def test_address_derived_name_is_allowed_for_declaration_only(tmp_path: Path) -> None:
@@ -439,6 +441,52 @@ def test_inconsistent_ordinary_consumer_prototype_is_still_reported(tmp_path: Pa
     assert violation["kind"] == "consumer-prototype"
     assert violation["reason"] == "redeclared prototype"
     assert violation["names"] == ["TryFinishNpcVoicePlayback"]
+
+
+def test_abi_prototype_waiver_allows_proven_consumer_spelling(tmp_path: Path) -> None:
+    owned = {
+        **_declaration("TryFinishNpcVoicePlayback", is_definition=True),
+        "return_type": "void",
+        "parameter_types": ["unsigned char"],
+        "semantic_id": "?TryFinishNpcVoicePlayback@@YAXE@Z",
+        "source_file": "src/srext_unzip/voice.cpp",
+        "line": 2,
+        "end_line": 2,
+        "target": "SREXT_UNZIP",
+    }
+    consumer = {
+        **_declaration("TryFinishNpcVoicePlayback", is_definition=False),
+        "return_type": "void",
+        "parameter_types": ["char"],
+        "semantic_id": "?TryFinishNpcVoicePlayback@@YAXD@Z",
+        "source_file": "src/srext_unzip/voice.h",
+        "line": 2,
+        "end_line": 2,
+    }
+    marker = {
+        "address": 0x00525D90,
+        "marker_kind": "FUNCTION",
+        "source_file": "src/srext_unzip/voice.cpp",
+        "line": 1,
+        "marker_name": None,
+        "folded": False,
+        "target": "SREXT_UNZIP",
+        "declaration_key": ["SREXT_UNZIP", "?TryFinishNpcVoicePlayback@@YAXE@Z"],
+    }
+    repository = _repository(tmp_path, [marker], [owned, consumer])
+    (tmp_path / "src/srext_unzip").mkdir(parents=True)
+    (tmp_path / "src/srext_unzip/voice.cpp").write_text(
+        "// FUNCTION: SREXT_UNZIP 0x00525D90\n"
+        "void TryFinishNpcVoicePlayback(unsigned char force) {}\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "src/srext_unzip/voice.h").write_text(
+        "// abi-prototype-ok: provider and consumer deliberately differ\n"
+        "void TryFinishNpcVoicePlayback(char force);\n",
+        encoding="utf-8",
+    )
+
+    assert identity_violations(repository) == []
 
 
 def test_same_address_prototype_disagreement_is_reported(tmp_path: Path) -> None:

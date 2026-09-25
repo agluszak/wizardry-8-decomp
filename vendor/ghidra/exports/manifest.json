@@ -6,26 +6,26 @@
       "compiler_spec": "windows",
       "function_count": 3784,
       "ghidra_release": "PUBLIC",
-      "ghidra_version": "12.1.3",
+      "ghidra_version": "12.1.4",
       "language": "x86:LE:32:default",
       "memory_block_count": 7,
       "path": "vendor/ghidra/exports/wiz8--gog-base--sr--cec1caf85861.gzf",
       "program": "wiz8--gog-base--sr--cec1caf85861",
       "pyghidra_version": "3.1.0",
-      "sha256": "fb09e3bdefbbf4846ab8ec91e0435d42da96c61d032e63d7c0e21ad04f4602e9"
+      "sha256": "12053654a522e9235056d395a22db689b58f0a4a2b12513008713f827840a9ee"
     },
     {
       "binary_sha256": "18a74ff61c65b8a2d4cfa11ffce82ad7fef022a94eaf0c2f217e479e981420d2",
       "compiler_spec": "windows",
-      "function_count": 8020,
+      "function_count": 8291,
       "ghidra_release": "PUBLIC",
-      "ghidra_version": "12.1.3",
+      "ghidra_version": "12.1.4",
       "language": "x86:LE:32:default",
       "memory_block_count": 9,
       "path": "vendor/ghidra/exports/wiz8--gog-base--wiz8--18a74ff61c65.gzf",
       "program": "wiz8--gog-base--wiz8--18a74ff61c65",
       "pyghidra_version": "3.1.0",
-      "sha256": "921b9102ff40091364908877f01ae3ad1a48c54bc0f2f495abb6a44a27038e62"
+      "sha256": "b93afc4f10135476133571423a52fb36dd6ec9889d77922eb5b9203b8874fc29"
     }
   ]
 }

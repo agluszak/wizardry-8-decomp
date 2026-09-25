@@ -57,7 +57,7 @@
 /* 0x0054B300 resets one of eight slots. */
 /* The gStatus object owned by GameplayDatabase.cpp. */
 // GLOBAL: WIZ8 0x00685170
-W8GlobalStatus g_status_685170;
+W8GlobalStatus g_status;
 /* Packed gXStatus named by the database and manager assertions. Record
    arrays remain separate roots at their own addresses. */
 // GLOBAL: WIZ8 0x006836B8

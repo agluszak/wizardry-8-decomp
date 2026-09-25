@@ -2,10 +2,11 @@
 #define WIZ8_ENGINE_CODE_OCT_PRE_TREE_H
 
 #include "surrender/srMath.h"
+#include "wiz8/geometry.h"
 
 #include <stddef.h>
 
-struct W8OctBuildNode00446330;
+struct W8OctBuildNode;
 
 /* One 0xe8-byte region volume from the spatial state's region array. The
    region id at +4 is consumed by the particle-region builder, and the six
@@ -26,7 +27,7 @@ struct W8OctRegionVolume {
     /* Nine 12-byte points from +0x1c to +0x88; 0x004301C0 projects the first
        against the camera and falls back to the other eight. */
     srVector3T<float> points_1c[9];
-    srVector4T<float> planes_88[6];
+    W8Plane planes_88[6];
 
     unsigned char ContainsPoint0049E460(const srVector3T<float>* point) const;
 };
@@ -41,10 +42,9 @@ struct W8OctSpatialState {
     ~W8OctSpatialState();
 
     void Reset0046CDC0();
-    void GetClippedBounds0046CE30(srVector3T<float>* minimum, srVector3T<float>* maximum);
-    void GetWorkingBounds0046CDF0(srVector3T<float>* minimum, srVector3T<float>* maximum);
-    void SetWorkingBounds00467B70(const srVector3T<float>* minimum,
-                                  const srVector3T<float>* maximum);
+    void GetClippedBounds(srVector3T<float>* minimum, srVector3T<float>* maximum);
+    void GetWorkingBounds(srVector3T<float>* minimum, srVector3T<float>* maximum);
+    void SetWorkingBounds(const srVector3T<float>* minimum, const srVector3T<float>* maximum);
 
     unsigned long flags_00;
     float extent_04;
@@ -61,9 +61,8 @@ struct W8OctSpatialState {
     unsigned short region_count_46;
     unsigned short item_limit_48;
     unsigned char padding_4a[6];
-    /* Packed auto-region cell coordinate bound per axis; never loaded from
-       the file, so it stays 0 on loaded trees and every cell bound check
-       fails there. */
+    /* Packed auto-region cell coordinate bound per axis, derived from the
+       leaf level when a loaded octree is initialized. */
     unsigned short region_cells_per_axis_50;
     /* The bottom octree level: insertion stops and masks saturate here. */
     unsigned short leaf_level_52;
@@ -90,22 +89,21 @@ struct W8OctSpatialState {
     unsigned long submesh_count_74;
     srVector3T<float> working_minimum_78;
     srVector3T<float> working_maximum_84;
-    /* The build octree root: W8OctBuildNode00446330 or the counted subclass
+    /* The build octree root: W8OctBuildNode or the counted subclass
        when the owning build tree counts surfaces per node. */
-    W8OctBuildNode00446330* root_90;
+    W8OctBuildNode* root_90;
     unsigned long node_index_94;
     /* The working triangle's three vertices, borrowed from the inserter's
        stack for the recursion's bounds tests. */
     const srVector3T<float>* owned_98;
 };
 
-unsigned char TestSpatialTriangle0046CE60(const srVector3T<float>* bounds,
-                                          const srVector3T<float>* vertices,
-                                          const srVector3T<float>* plane_normal);
+unsigned char TestSpatialTriangle(const srVector3T<float>* bounds,
+                                  const srVector3T<float>* vertices,
+                                  const srVector3T<float>* plane_normal);
 unsigned char BoundsOverlap0046D470(const srVector3T<float>* first,
                                     const srVector3T<float>* second);
-unsigned char PointInsideBounds0046D4D0(const srVector3T<float>* bounds,
-                                        const srVector3T<float>* point);
+bool PointInsideBounds0046D4D0(const srVector3T<float>* bounds, const srVector3T<float>* point);
 
 static_assert(sizeof(W8OctSpatialState) == 0x9c, "W8OctSpatialState_must_be_0x9c");
 static_assert(sizeof(W8OctRegionVolume) == 0xe8, "W8OctRegionVolume_must_be_0xe8");
@@ -245,8 +243,8 @@ struct W8OctFileHeader {
     /* u16 length of the per-leaf 0-terminated region-id stream. */
     unsigned long region_list_len_92;
     unsigned short region_count_96;
-    /* The spatial state's leaf level; written but never read - the reader
-       derives its leaf level from depth_62 instead. */
+    /* The spatial state's leaf level; the reader derives the region mask and
+       packed cell bound from it. */
     unsigned short leaf_level_98;
     /* Kind-0 emitted submesh count; carries the same value as
        mesh_total_9e. */

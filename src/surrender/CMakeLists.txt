@@ -14,19 +14,25 @@ add_library(wiz8_surrender_objects OBJECT
     fog.cpp
     vertex_pipe.cpp
     file_stream.cpp
+    filter.cpp
     color_surface.cpp
     generic_vp.cpp
     gerd.cpp
     gerd_filters.cpp
+    global_recycler.cpp
     heap.cpp
     huffman.cpp
     illuminator.cpp
     io_managers.cpp
     light.cpp
     material.cpp
+    memory_pool.cpp
     mesh_model.cpp
+    triangle_culler.cpp
     model.cpp
     model_instance.cpp
+    modeler.cpp
+    mutex.cpp
     node.cpp
     scene.cpp
     stream.cpp
@@ -36,15 +42,19 @@ add_library(wiz8_surrender_objects OBJECT
     pixel_convert.cpp
     renderer.cpp
     texture.cpp
+    texture_file.cpp
     texture_map.cpp
     scheduler.cpp
+    statistics.cpp
     thread.cpp
     timer.cpp
     variable_timer.cpp
     triangulator.cpp
     type_registry.cpp
     vc6_runtime.cpp
+    video_manager.cpp
     window.cpp
+    window_out.cpp
     vector_processor.cpp
 )
 target_compile_definitions(wiz8_surrender_objects PRIVATE SURRENDER_BUILD)
@@ -65,19 +75,26 @@ set_source_files_properties(
     file_stream.cpp
     gerd.cpp
     gerd_filters.cpp
+    global_recycler.cpp
     heap.cpp
     huffman.cpp
     illuminator.cpp
+    io_managers.cpp
     light.cpp
     mesh_model.cpp
     model_instance.cpp
+    modeler.cpp
+    mutex.cpp
     renderer.cpp
     scene.cpp
     stream.cpp
     texture.cpp
+    texture_file.cpp
     texture_map.cpp
     type_registry.cpp
     vector_processor.cpp
+    video_manager.cpp
+    window_out.cpp
     PROPERTIES COMPILE_OPTIONS "$<$<CXX_COMPILER_ID:MSVC>:/GX>")
 target_link_libraries(wiz8_surrender_objects PRIVATE wiz8_compile_settings)
 wiz8_lint_target(wiz8_surrender_objects)

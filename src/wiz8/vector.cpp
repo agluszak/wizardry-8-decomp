@@ -215,7 +215,7 @@ class W8CharacterEvent;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-/* AutomapScreen.cpp's CreateAutomapMarkerSprites005822C0 constructs
+/* AutomapScreen.cpp's CreateAutomapMarkerSprites constructs
    g_releasable_68f1f4 with `new W8GrowableVector<srClass*>(5)`. That use is
    what emits this specialization. Retail splits the capacity ctor there: a
    helper at 0x00585460 writes the construction-phase table 0x005EBFB8 and
@@ -268,7 +268,7 @@ class stModelInstance;
 // TEMPLATE: WIZ8 0x00438c70
 // W8GrowableVector<stModelInstance*>::~W8GrowableVector<stModelInstance*>
 
-/* Local Screens\MGSRadarMap.cpp's g_radar_icon_pools_0069bf68 emission: the
+/* Local Screens\MGSRadarMap.cpp's g_radar_icon_pools emission: the
    static initializer constructs the eighteen-pool array through this ctor. */
 
 class stModelInstance2D;
@@ -309,7 +309,7 @@ struct W8EncounterScriptName;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-/* Engine Code\Trigger.cpp's g_timed_events_006599b8. */
+/* Engine Code\Trigger.cpp's g_timed_events. */
 // VTABLE: WIZ8 0x005ec16c
 // class W8GrowableVector<W8TriggerEvent*>
 
@@ -335,7 +335,7 @@ struct W8EncounterScriptName;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-/* Engine Code\3dapi.cpp's g_worlds_00659a80. */
+/* Engine Code\3dapi.cpp's g_worlds. */
 // VTABLE: WIZ8 0x005ec2b8
 // class W8GrowableVector<W8World*>
 
@@ -451,7 +451,7 @@ class W8Navigator;
 // TEMPLATE: WIZ8 0x00474c40
 // W8GrowableVector<stMeshModel*>::~W8GrowableVector<stMeshModel*>
 
-/* Engine Code\ReadMesh.cpp's g_retained_materials_65b9d0: the static
+/* Engine Code\ReadMesh.cpp's g_retained_materials: the static
    initializer at 0x00485AF0 constructs it with capacity five; the stores
    feed it srMaterialIFace* entries out of the mesh material arrays.
    0x005ECA60 is this specialization's construction-phase table. */
@@ -511,7 +511,7 @@ class W8Navigator;
 // TEMPLATE: WIZ8 0x0048ce80
 // W8GrowableVector<W8EncounterTableRuntime*>::~W8GrowableVector<W8EncounterTableRuntime*>
 
-/* Engine Code\stCube.cpp's g_world_cursor_nodes_65ba58: the static
+/* Engine Code\stCube.cpp's g_world_cursor_nodes: the static
    initializer at 0x0048D020 constructs it with capacity five; the table
    holds the world's W8WorldCursorNode* cursor nodes.
    0x005ECAD4 is this specialization's construction-phase table. */
@@ -531,10 +531,10 @@ class W8Navigator;
 // W8GrowableVector<W8WorldCursorNode*>::~W8GrowableVector<W8WorldCursorNode*>
 
 /* The W8MasterFunction (void (*)(int)) pointer-vector specialization emitted
-   by MasterFunctionList.cpp. InitializeLevelMasterFunctions004D6C50's
+   by MasterFunctionList.cpp. InitializeLevelMasterFunctions's
    five-element construction calls the base ctor 0x004D9A70 and then installs
    the derived vtable 0x005ED438 itself, so the retail new-expression is
-   `new W8Vector<W8MasterFunction>(5)` and g_master_functions_006834d8 is the
+   `new W8Vector<W8MasterFunction>(5)` and g_master_functions is the
    thin derived type. The base vtable 0x005ED43C also tags the
    DialogFactoryDialogs.cpp member embedded at +0x64, which that unit only
    constructs, clears and destroys. No other specialization shares either
@@ -616,7 +616,7 @@ class W8Navigator;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-/* Engine Code\Spells.cpp's g_sound3d_instances_65be40. */
+/* Engine Code\Spells.cpp's g_sound3d_instances. */
 // VTABLE: WIZ8 0x005ed018
 // class W8GrowableVector<stSound3D*>
 
@@ -634,21 +634,21 @@ class W8Navigator;
 class srClipPlane;
 
 // VTABLE: WIZ8 0x005ed1b8
-// class W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>
+// class W8GrowableVector<srClientSupport<srClipPlane,5376>*>
 
 // TEMPLATE: WIZ8 0x00585340
-// W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>::W8GrowableVector
+// W8GrowableVector<srClientSupport<srClipPlane,5376>*>::W8GrowableVector
 
 // SYNTHETIC: WIZ8 0x004be030
-// W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>::`scalar deleting destructor'
+// W8GrowableVector<srClientSupport<srClipPlane,5376>*>::`scalar deleting destructor'
 
 /* Second emission of the same specialization's ctor (0x004BE050 sits beside
    this unit's other clip-plane vector emissions). */
 // TEMPLATE: WIZ8 0x004be050
-// W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>::W8GrowableVector
+// W8GrowableVector<srClientSupport<srClipPlane,5376>*>::W8GrowableVector
 
 // TEMPLATE: WIZ8 0x004bdfe0
-// W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>::~W8GrowableVector<srClassSupport<srClipPlane,srClipPlane,0,5376>*>
+// W8GrowableVector<srClientSupport<srClipPlane,5376>*>::~W8GrowableVector<srClientSupport<srClipPlane,5376>*>
 
 /* Engine Code\Monster.cpp's W8GrowableVector<W8AnimObj*> emission: the 0x1B
    elements at W8MonsterRep+0xAC (the per-cycle animations array) are built
@@ -694,7 +694,7 @@ class srClipPlane;
 
 /* Direct W8GrowableVector specialization identified by its vtable. */
 
-/* Local Code\Search.cpp's g_searchables_00689fa8. */
+/* Local Code\Search.cpp's g_searchables. */
 // VTABLE: WIZ8 0x005ed840
 // class W8GrowableVector<W8Searchable*>
 
@@ -876,7 +876,7 @@ struct W8AutomapNote;
 // SYNTHETIC: WIZ8 0x005b1bc0
 // W8GrowableVector<W8CharacterPageEntry*>::`scalar deleting destructor'
 
-/* Local Screens\CreditsScreen.cpp's g_credit_lines_0069c4a8: the enter path
+/* Local Screens\CreditsScreen.cpp's g_credit_lines: the enter path
    news the vector and the element constructor allocates five 0x14-byte
    W8CreditLine slots. */
 // VTABLE: WIZ8 0x005ef310
@@ -925,7 +925,6 @@ struct W8AutomapNote;
 // SYNTHETIC: WIZ8 0x004AAAC0
 // W8GrowableVector<srVector3T<float>*>::`scalar deleting destructor' (PathAI.CPP emission)
 
-
 /* Spells.cpp span. */
 // SYNTHETIC: WIZ8 0x004AF710
 // W8GrowableVector<stSound3D*>::`scalar deleting destructor' (Spells.cpp emission)
@@ -936,8 +935,6 @@ struct W8AutomapNote;
 
 // SYNTHETIC: WIZ8 0x004A20C0
 // W8GrowableVector<float>::`scalar deleting destructor' (AnimObj.cpp emission)
-
-
 
 /* Monster.cpp span. */
 // TEMPLATE: WIZ8 0x004CACE0
@@ -987,8 +984,6 @@ struct W8AutomapNote;
 // SYNTHETIC: WIZ8 0x00501F30
 // W8GrowableVector<W8SpellEffectEntry*>::`scalar deleting destructor' (Magic.cpp emission)
 
-
-
 /* NPC Manager.cpp span. */
 
 /* LoadSaveGame.cpp span: removes the indexed element, shift-fills the slot
@@ -1024,19 +1019,16 @@ struct W8AutomapNote;
 // SYNTHETIC: WIZ8 0x005853F0
 // W8GrowableVector<W8AutomapNote*>::`scalar deleting destructor' (second emission)
 
-
 // TEMPLATE: WIZ8 0x0047D290
 // intrusive-list head init emission
 
 /* Cursor3d.cpp -> stParticle.cpp gap. */
-
 
 /* AnimObj.cpp -> Missile.cpp gap. */
 
 /* ReadLevel.cpp -> quad.cpp gap. */
 // SYNTHETIC: WIZ8 0x004BE000
 // W8GrowableVector<W8VectorElement005ED1B8*>::`scalar deleting destructor'
-
 
 /* Monster.cpp -> OctPrePath.cpp gap. */
 

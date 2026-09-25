@@ -55,7 +55,7 @@ unsigned int ApplyDamageToMonster(W8MonsterInfo* monster_info, unsigned int amou
    seven args; the sixth parameter receives a kill-counting result block. */
 unsigned int ApplyDamageToCharacter(int party_slot, unsigned int amount, char arg_3, char arg_4,
                                     char arg_5, W8SpellEffectResult* result_stats, char arg_7);
-extern const wchar_t g_poison_suffix_0061c964[]; /* 0x0061C964 */
+extern const wchar_t g_poison_suffix[]; /* 0x0061C964 */
 /* 0x0052BEB0: how a monster answers being struck - the struck cycle, a
    possible condition knock-on, and the hostility check toward the attacker. */
 void MonsterReactsToBeingStruck(W8MonsterInfo* monster_info, W8TargetSource* attacker, char quiet);
@@ -69,11 +69,10 @@ void RestorePartyStaminaByDice(unsigned char count, unsigned char sides, short b
 void HealPartyByDice(unsigned char count, unsigned char sides, short base);
 void RestorePartySpellPoints(int amount);
 void RecalculateCharacterHitPoints(W8Character* character);
-int __cdecl CompareSpellPointDeficits(const void* first, const void* second);
+int __cdecl CompareSpellPointDeficits(const void* first, const void* second); /* 0x0052B8E0 */
 int SumCharacterSpellPoints(const W8Character* character);
 int SumCharacterSpellPointsLeft(const W8Character* character);
 int GetCharacterRealmSpellPoints(const W8Character* character, int realm);
 void RecalculateCharacterStamina(W8Character* character);
 void RecalculateRealmSpellPoints(W8Character* character);
-int RebuildRealmSpellPointCeilings0052A540(W8Character* character);
-
+int RebuildRealmSpellPointCeilings(W8Character* character);

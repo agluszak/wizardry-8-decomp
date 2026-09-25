@@ -8,9 +8,19 @@ Check decorated base names and the retail `getClassNode` shape. A generic ClassI
 registration through `Derived::sGetClassName()` and `Base::sGetClassNode()` is template evidence.
 Mark emitted instantiations with `TEMPLATE` and keep the generic definition in its canonical header.
 
-Treat `clone` separately when member state requires behavior beyond base assignment. The virtual clone
-slot returns `srClass*` throughout the hierarchy; reconstructing it as `Base*` can cause VC6 C2555
-errors in derived instantiations.
+Treat `vInstance` and `clone` as distinct ABI operations. Vtable slot 6 is `vInstance()`: the
+virtual factory. Vtable slot 7 is `clone()`: ordinary `srClassSupport` clone behavior calls
+`vInstance()` and then assigns the supported class state. `srClass::instance()` and
+`srClass::clone()` are nonvirtual wrappers around those slots. Preserve the operation retail calls;
+do not substitute a constructor, copy constructor, `vInstance`, `instance`, or `clone` merely to
+satisfy a lint or improve codegen.
+
+The virtual factory and clone slots return `srClass*` throughout the hierarchy. Do not introduce
+covariant derived return types to avoid a cast: reconstructing the slot as `Base*` can cause VC6
+C2555 errors in derived instantiations. A direct `static_cast` between modeled base and derived
+record pointers/references is ordinary C++ inheritance and does not by itself indicate a source-model
+disagreement. Type erasure through `void*`/byte pointers, `reinterpret_cast` between unrelated
+records, or other provenance-hiding conversions remain model debt.
 
 Never hand-write a scalar- or vector-deleting destructor. Declare an ordinary virtual destructor and
 use typed `delete` or `delete[]`; VC6 owns the deleting wrapper. Mark the wrapper with `SYNTHETIC` and

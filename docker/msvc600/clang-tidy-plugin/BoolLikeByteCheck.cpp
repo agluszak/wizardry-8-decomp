@@ -119,6 +119,23 @@ static std::string normalized_words(llvm::StringRef name)
     return out;
 }
 
+// Hungarian `f`/`gf` flag prefixes, as in the SGP-era fCombatMode or
+// gfEditingText. `b` is deliberately absent: m_bRepType-style names are bytes.
+static bool hungarian_flag_name(llvm::StringRef name)
+{
+    for (llvm::StringRef prefix : {"m_", "g_", "s_"}) {
+        if (name.starts_with(prefix)) {
+            name = name.drop_front(prefix.size());
+            break;
+        }
+    }
+    if (name.starts_with("gf")) {
+        name = name.drop_front(1);
+    }
+    return name.size() > 1 && name[0] == 'f' &&
+           std::isupper(static_cast<unsigned char>(name[1]));
+}
+
 static bool bool_like_name(llvm::StringRef name)
 {
     const std::string normalized = normalized_words(name);
@@ -126,6 +143,11 @@ static bool bool_like_name(llvm::StringRef name)
     llvm::StringRef(normalized).split(words, '_', -1, false);
     if (words.empty()) {
         return false;
+    }
+
+    // The Hungarian flag prefix states the domain outright (fCombatMode).
+    if (hungarian_flag_name(name)) {
+        return true;
     }
 
     // A byte count/mask/id is not a bool merely because every recovered
@@ -156,13 +178,20 @@ static bool bool_like_name(llvm::StringRef name)
     }
 
     static constexpr llvm::StringLiteral boolean_words[] = {
-        "accepted", "active", "alive", "allowed", "available", "changed", "checked",
-        "closed", "complete", "completed", "created", "dead", "dirty", "disabled", "done",
-        "empty", "enabled", "failed", "finished", "focused", "found", "handled", "hidden",
-        "hostile", "hovered", "initialized", "inside", "loaded", "locked", "muted", "occupied",
-        "open", "outside", "pending", "prepared", "present", "pressed", "ready", "required",
-        "running", "saved", "scrollable", "selected", "settled", "started", "success",
-        "successful", "toggled", "valid", "visible", "writing",
+        "accepted", "active", "alive", "allowed", "applied", "armed", "available", "blocked",
+        "bound", "cancelled", "changed", "checked", "closed", "closing", "collapsed", "complete",
+        "completed", "confirmed", "created", "dead", "dirty", "disabled", "dismissed", "done",
+        "dragging", "drawn", "editing", "empty", "enabled", "engaged", "expired", "failed",
+        "fatigued", "finished", "flag", "flagged", "focused", "found", "handled", "held",
+        "hidden", "highlighted", "hostile", "hovered", "identified", "initialized", "inside",
+        "latch", "loaded", "locked", "matched", "merged", "missed", "moved", "moving", "muted",
+        "noticed", "occupied", "open", "outside", "paused", "pending", "placed", "played",
+        "playing", "prepared", "present", "pressed", "queued", "reached", "ready", "redraw",
+        "removed", "reported", "required", "resolved", "restored", "running", "saved",
+        "scrollable", "searching", "seen", "selected", "settled", "shown", "silent", "spawned",
+        "started", "stopped", "success", "successful", "surprised", "suspended", "talking",
+        "toggled", "used", "valid", "visible", "visited", "waiting", "warned", "writing",
+        "zoomed",
     };
     for (llvm::StringRef word : words) {
         for (llvm::StringRef boolean_word : boolean_words) {

@@ -98,9 +98,8 @@ inline srInlineString::~srInlineString()
 /* Releases this object's contents and returns it to the empty state. The
    destructor and copy assignment share it. Retail keeps only the destructor
    emission above: operator='s expansion and the EH unwinders call the same
-   body, so whether retail spelled a separate release member is unprovable -
-   the claims treat the two identities as folded onto the one emission. */
-// FUNCTION: WIZ8 0x0047CDD0 FOLDED
+   body, so whether retail spelled a separate release member is unprovable.
+   There is no independently retained retail address for release(). */
 inline void srInlineString::release()
 {
     if (data_ != inline_) {
@@ -223,7 +222,7 @@ inline void srInlineString::reset()
 srInlineString operator+(const srInlineString& left, const srInlineString& right)
 {
     srInlineString result(left);
-    if (right.data() == 0 || *right.data() == '\0') {
+    if (right.data() == 0 || *right.data() == 0) {
         return result;
     }
 
@@ -302,7 +301,7 @@ unsigned long W8VirtualFileBinIStream::vread(void* buffer, unsigned long size)
 }
 
 /* The global opener's implicit default constructor, emitted for
-   g_virtual_file_stream_opener_65a124; it only installs the vtable. */
+   g_virtual_file_stream_opener; it only installs the vtable. */
 // SYNTHETIC: WIZ8 0x0047CB20
 // W8VirtualFileStreamOpener::W8VirtualFileStreamOpener
 
@@ -319,7 +318,7 @@ const char* W8VirtualFileStreamOpener::getDescription() const
 }
 
 // GLOBAL: WIZ8 0x0065A124
-W8VirtualFileStreamOpener g_virtual_file_stream_opener_65a124;
+W8VirtualFileStreamOpener g_virtual_file_stream_opener;
 
 // SYNTHETIC: WIZ8 0x0047CBB0
 // W8VirtualFileStreamOpener::`scalar deleting destructor'
@@ -348,6 +347,6 @@ void InitializeVirtualFileImageImporters(void)
 {
     srExtension::load("JPEGImporter", NULL);
     srExtension::load("TargaImporter", NULL);
-    srCore.getIStreamOpener()->addStreamType(&g_virtual_file_stream_opener_65a124, "jpg");
-    srCore.getIStreamOpener()->addStreamType(&g_virtual_file_stream_opener_65a124, "tga");
+    srCore.getIStreamOpener()->addStreamType(&g_virtual_file_stream_opener, "jpg");
+    srCore.getIStreamOpener()->addStreamType(&g_virtual_file_stream_opener, "tga");
 }

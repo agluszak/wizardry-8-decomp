@@ -1,4 +1,7 @@
 #include "wiz8/music_playlist.h"
+#ifdef WIZ8_RUNTIME_TESTS
+#include "runtime_instrumentation.h"
+#endif
 #include "wiz8/character_event_queue.h"
 #include "wiz8/xstatus.h"
 #include "wiz8/layouts/screen_state.h"
@@ -58,13 +61,8 @@ W8ScreenStateHandlers g_screen_handlers[W8_SCREEN_COUNT] = {
      ScreenLifecycleSuccess},
     {MainMenuScreenInitialize, MainMenuScreenEnter, MainMenuScreenFrame, MainMenuScreenLeave,
      ScreenLifecycleSuccess},
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wcast-function-type-mismatch"
-    /* Retail stores the zero-argument success sentinel in the int-taking
-       leave slot. Do not invent a thunk or change ScreenLifecycleSuccess. */
-    {ScreenLifecycleSuccess, ScreenLifecycleSuccess, GameStartRouterFrame,
-     (unsigned char (*)(int))ScreenLifecycleSuccess, ScreenLifecycleSuccess},
-#pragma clang diagnostic pop
+    {ScreenLifecycleSuccess, ScreenLifecycleSuccess, GameStartRouterFrame, GameStartRouterLeave,
+     ScreenLifecycleSuccess},
     {ScreenLifecycleSuccess, CharacterScreenEnter, CharacterScreenFrame, CharacterScreenLeave,
      ScreenLifecycleSuccess},
     {PleaseWaitScreenInitialize, PleaseWaitScreenEnter, PleaseWaitScreenFrame,
@@ -96,7 +94,7 @@ void GameLoop(void)
     int state;
 
     SoundServiceStreams();
-    ServiceMusicPlaylist0048F9E0();
+    ServiceMusicPlaylist();
     state = g_current_screen_state.id;
     if (g_screen_return_requested) {
         g_previous_screen_id = state;
@@ -107,54 +105,54 @@ void GameLoop(void)
             return;
         }
         g_current_screen_state.id = -1;
-        if (g_pending_screen_state.id == -1) {
-            if (!StackSize(g_screen_return_stack)) {
-                goto stop;
-            }
-            if (!Pop(g_screen_return_stack, &g_pending_screen_state)) {
-                goto stop;
-            }
+        if (g_pending_screen_state.id == -1 &&
+            (!StackSize(g_screen_return_stack) ||
+             !Pop(g_screen_return_stack, &g_pending_screen_state))) {
+            gfProgramIsRunning = 0;
+            return;
         }
         state = -1;
         g_current_screen_state.id = state;
         g_screen_return_requested = 0;
     }
-    if (g_pending_screen_state.id == -1 || g_pending_screen_state.id == state) {
-        goto finish;
-    }
-    /* Retail tests only the low byte of the count. */
-    if (static_cast<unsigned char>(gXStatus.character_event_queue->active_events.count) != 0) {
-        gXStatus.character_event_queue->CompleteFirstActiveEvent();
-        state = g_current_screen_state.id;
-    }
-    if (state != -1) {
-        g_previous_screen_id = state;
-        VideoRemoveToolTip();
-        if (!g_screen_handlers[g_current_screen_state.id].leave(0)) {
-            goto clear;
+    if (g_pending_screen_state.id != -1 && g_pending_screen_state.id != state) {
+        /* Retail tests only the low byte of the count. */
+        if (static_cast<unsigned char>(gXStatus.character_event_queue->active_events.count) != 0) {
+            gXStatus.character_event_queue->CompleteFirstActiveEvent();
+            state = g_current_screen_state.id;
         }
-        g_suspended_screen_id = g_current_screen_state.id;
-        g_screen_return_stack = Push(g_screen_return_stack, &g_current_screen_state);
+        if (state != -1) {
+            g_previous_screen_id = state;
+            VideoRemoveToolTip();
+            if (!g_screen_handlers[g_current_screen_state.id].leave(0)) {
+                g_current_screen_state.id = -1;
+                gfProgramIsRunning = 0;
+                return;
+            }
+            g_suspended_screen_id = g_current_screen_state.id;
+            g_screen_return_stack = Push(g_screen_return_stack, &g_current_screen_state);
+        }
+        state = g_pending_screen_state.id;
+        memcpy(&g_current_screen_state, &g_pending_screen_state, sizeof(W8ScreenStateRuntime));
+        if (!g_screen_handlers[state].enter()) {
+            g_current_screen_state.id = -1;
+            gfProgramIsRunning = 0;
+            return;
+        }
+        state = g_current_screen_state.id;
+        g_pending_screen_state.id = -1;
+#ifdef WIZ8_RUNTIME_TESTS
+        RuntimeObserve(RUNTIME_SCREEN_CHANGED, g_previous_screen_id, state, -1);
+        if (state == W8_SCREEN_MAIN_GAME) {
+            RuntimeObserve(RUNTIME_MAIN_GAME_ENTERED, state, 0, 0);
+        }
+#endif
     }
-    state = g_pending_screen_state.id;
-    memcpy(&g_current_screen_state, &g_pending_screen_state, sizeof(W8ScreenStateRuntime));
-    if (!g_screen_handlers[state].enter()) {
-        goto clear;
-    }
-    state = g_current_screen_state.id;
-    g_pending_screen_state.id = -1;
-
-finish:
     if (state == -1) {
-        goto stop;
+        gfProgramIsRunning = 0;
+        return;
     }
     g_screen_handlers[state].frame();
-    return;
-
-clear:
-    g_current_screen_state.id = -1;
-stop:
-    gfProgramIsRunning = 0;
 }
 
 // FUNCTION: WIZ8 0x004e34b0
@@ -162,15 +160,14 @@ void GameloopExit(unsigned char release_screens)
 {
     int state;
 
-    SetFontObjectPalette16BPP(g_smfnt_font_683694, g_font_palette_smfnt_68ee10);
-    SetFontObjectPalette16BPP(g_calligraphy_font_6835f8, g_font_palette_calligraphy_68edfc);
-    SetFontObjectPalette16BPP(g_calligraphy_shadow_font_6835f4,
-                              g_font_palette_calligraphy_shadow_68ee18);
-    SetFontObjectPalette16BPP(g_wiz_text_font_683640, g_font_palette_wiz_text_68ee14);
-    SetFontObjectPalette16BPP(g_button_font_683670, g_font_palette_button_68ee04);
+    SetFontObjectPalette16BPP(g_smfnt_font, g_font_palette_smfnt);
+    SetFontObjectPalette16BPP(g_calligraphy_font, g_font_palette_calligraphy);
+    SetFontObjectPalette16BPP(g_calligraphy_shadow_font, g_font_palette_calligraphy_shadow);
+    SetFontObjectPalette16BPP(g_wiz_text_font, g_font_palette_wiz_text);
+    SetFontObjectPalette16BPP(g_button_font, g_font_palette_button);
     SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
-    SetFontObjectPalette16BPP(g_wiz_text_bold_font_683664, g_font_palette_wiz_text_bold_68ee0c);
-    SetFontObjectPalette16BPP(g_options_detail_font_683614, g_font_palette_options_detail_68ee00);
+    SetFontObjectPalette16BPP(g_wiz_text_bold_font, g_font_palette_wiz_text_bold);
+    SetFontObjectPalette16BPP(g_options_detail_font_683614, g_font_palette_options_detail);
     if (!release_screens) {
         return;
     }
@@ -197,6 +194,12 @@ void GameloopExit(unsigned char release_screens)
                 g_current_screen_state.id = -1;
             } else {
                 g_pending_screen_state.id = -1;
+#ifdef WIZ8_RUNTIME_TESTS
+                RuntimeObserve(RUNTIME_SCREEN_CHANGED, g_previous_screen_id, state, -1);
+                if (state == W8_SCREEN_MAIN_GAME) {
+                    RuntimeObserve(RUNTIME_MAIN_GAME_ENTERED, state, 0, 0);
+                }
+#endif
             }
         }
     }

@@ -33,10 +33,10 @@ public:
                                             long count) override;
     virtual SR_DLL_IMPORT void setPixelsRaw(const void* pixels, const srVector2i* positions,
                                             long count) override;
-    virtual SR_DLL_IMPORT void getPixelColumn(unsigned long* pixels, long x, long y,
-                                              long count) override;
-    virtual SR_DLL_IMPORT void setPixelColumn(const unsigned long* pixels, long x, long y,
-                                              long count) override;
+    virtual SR_DLL_IMPORT void getPixelColumn(unsigned long* pixels, long x, long y_start,
+                                              long y_end) override;
+    virtual SR_DLL_IMPORT void setPixelColumn(const unsigned long* pixels, long x, long y_start,
+                                              long y_end) override;
     virtual SR_DLL_IMPORT srPalette* getPalette() override;
     virtual SR_DLL_IMPORT void setPalette(srPalette* palette) override;
     virtual SR_DLL_IMPORT void* getDataPtr() override;
@@ -46,20 +46,23 @@ public:
     virtual SR_DLL_IMPORT int changePixelFormat(const srPixelConvert::PixelFormat& format,
                                                 int preserve) override;
     virtual SR_DLL_IMPORT void fill(unsigned long pixel) override;
-    virtual SR_DLL_IMPORT void setHLine(long x, long y, long length, unsigned long pixel) override;
-    virtual SR_DLL_IMPORT void setVLine(long x, long y, long length, unsigned long pixel) override;
+    virtual SR_DLL_IMPORT void setHLine(long y, long x_start, long x_end,
+                                        unsigned long pixel) override;
+    virtual SR_DLL_IMPORT void setVLine(long x, long y_start, long y_end,
+                                        unsigned long pixel) override;
     virtual SR_DLL_IMPORT void blit(long x, long y, srColorSurfaceIFace& source, long source_x,
                                     long source_y, long width, long height) override;
-    virtual SR_DLL_IMPORT void swapPixelRows(long x, long y0, long y1, long width,
-                                             long rows) override;
+    virtual SR_DLL_IMPORT void swapPixelRows(long x0, long y0, long x1, long y1,
+                                             long count) override;
     virtual SR_DLL_IMPORT void flipRectangle(const Rectangle& rectangle) override;
-    virtual SR_DLL_IMPORT void getPixelRow(unsigned long* pixels, long x, long y,
-                                           long count) override;
-    virtual SR_DLL_IMPORT void setPixelRow(const unsigned long* pixels, long x, long y,
-                                           long count) override;
-    virtual SR_DLL_IMPORT void getPixelRowRaw(void* pixels, long x, long y, long count) override;
-    virtual SR_DLL_IMPORT void setPixelRowRaw(const void* pixels, long x, long y,
-                                              long count) override;
+    virtual SR_DLL_IMPORT void getPixelRow(unsigned long* pixels, long y, long x_start,
+                                           long x_end) override;
+    virtual SR_DLL_IMPORT void setPixelRow(const unsigned long* pixels, long y, long x_start,
+                                           long x_end) override;
+    virtual SR_DLL_IMPORT void getPixelRowRaw(void* pixels, long y, long x_start,
+                                              long x_end) override;
+    virtual SR_DLL_IMPORT void setPixelRowRaw(const void* pixels, long y, long x_start,
+                                              long x_end) override;
 
     SR_DLL_IMPORT srPixelConvert::ConversionFunc getPixelReadFunc() const;
     SR_DLL_IMPORT srPixelConvert::ConversionFunc getPixelWriteFunc() const;
@@ -77,6 +80,13 @@ private:
     SR_DLL_IMPORT void freeData();
     SR_DLL_IMPORT void init(const srPixelConvert::PixelFormat& format, unsigned long width,
                             unsigned long height, unsigned long pitch);
+    SR_DLL_IMPORT unsigned char* getAddress(long x, long y);
+    SR_DLL_IMPORT void convertToARGB8888(unsigned long* pixels, const void* source,
+                                         unsigned long count);
+    SR_DLL_IMPORT void convertFromARGB8888(void* pixels, const unsigned long* source,
+                                           unsigned long count);
+    SR_DLL_IMPORT void reversePixels(void* pixels, unsigned long count);
+    SR_DLL_IMPORT int isCompatible(srColorSurfaceIFace& source);
 
     srPixelConvert::ConversionFunc pixel_write_44;
     srPixelConvert::ConversionFunc pixel_read_48;
@@ -92,4 +102,4 @@ static_assert((sizeof(srColorSurface) == 0x5c), "srColorSurface_must_be_0x5c");
    retail image constructs this form (the compiled constructor calls the
    imported srColorSurface constructor and then installs table 0x005EBD10 over
    the class's own), and the template supplies the registry lifecycle. */
-typedef srClassSupport<srColorSurface, srColorSurface, false, 0x3110> W8ColorSurface;
+typedef srClientSupport<srColorSurface, 0x3110> W8ColorSurface;

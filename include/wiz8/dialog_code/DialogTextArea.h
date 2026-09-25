@@ -55,7 +55,7 @@ private:
     int m_first_visible_line;                             /* 0x18 */
     W8GrowableVector<W8DialogTextEntry*> m_all_lines_01c; /* owns entries */
     W8GrowableVector<W8DialogTextEntry*> m_visible_lines_02c; /* non-owning view */
-    unsigned char m_layout_initialized;                       /* 0x3c */
+    bool m_layout_initialized;                                /* 0x3c */
 public:
     /* Owning dialogs raise this before Draw, the same way they dirty the
        contained button and scrollbar. */

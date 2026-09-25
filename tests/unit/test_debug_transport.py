@@ -446,8 +446,9 @@ def test_capture_is_bounded_and_parses_frames(tmp_path: Path, monkeypatch) -> No
     outputs = {
         "bt 16": ["#0  0x7bd642fc in ?? ()", "#1  0x00462892 in ?? ()"],
         "info registers": ["eip 0x400007", "edx 0x462892"],
-        "x/96wx $sp": ["0x67fe00: 0x00479834"],
+        "x/192wx $sp": ["0x67fe00: 0x00479834"],
         "x/24i $pc-24": ["Cannot access memory"],
+        "info sharedlibrary": ["0x00f20000 0x00f30000 mssv29.asi"],
         "thread apply all bt 16": ["#0  0x005f1270 in unrelated_thread ()"],
         "p/x $_siginfo._sifields._sigfault.si_addr": ["$1 = 0x0d959330"],
     }
@@ -491,6 +492,9 @@ def test_launcher_uses_one_proxy_path(
 ) -> None:
     from wiz8decomp.debug.debugger import run_debugger
 
+    monkeypatch.setenv("WIZ8_RUNTIME_RUNNER", "wine")
+    monkeypatch.delenv("WIZ8_RUNTIME_VIDEO_CONFIG", raising=False)
+
     executable = tmp_path / product
     executable.touch()
     settings: Any = SimpleNamespace(
@@ -499,6 +503,9 @@ def test_launcher_uses_one_proxy_path(
         product_build_dir=tmp_path,
         recovered_objects_dir=tmp_path,
     )
+    config = tmp_path / "config/runtime/3DVideo.CFG"
+    config.parent.mkdir(parents=True)
+    config.write_text("Software\n640\n480\n16\nAudio\n")
     monkeypatch.setattr(
         "wiz8decomp.debug.debugger.stage_game",
         lambda *a, **kw: SimpleNamespace(

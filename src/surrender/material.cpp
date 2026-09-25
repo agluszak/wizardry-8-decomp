@@ -569,10 +569,245 @@ srMaterialIFace& srMaterialIFace::operator=(const srMaterialIFace& other)
     return *this;
 }
 
-/* Emitted inside this TU with the rest of srMaterialIFace's surface; both are
-   the implicit dllexport'd class emissions. */
-// SYNTHETIC: SURRENDER 0x10034BE0
-// srMaterialIFace::srMaterialIFace()
+/* The srMaterialIFace constructors live in the class declaration; retail
+   emitted standalone copies in this TU at 0x10034BE0/0x10034C70 while folding
+   the same bodies into callers. */
 
-// SYNTHETIC: SURRENDER 0x10034C70
-// srMaterialIFace::srMaterialIFace(const srMaterialIFace&)
+// FUNCTION: SURRENDER 0x10034DB0
+std::ostream& operator<<(std::ostream& stream, const srShader& shader)
+{
+    switch (shader.value & srShader::PASS_MASK) {
+    case srShader::PASS_NEVER:
+        stream << "PASS_NEVER";
+        break;
+    case srShader::PASS_LESS:
+        stream << "PASS_LESS";
+        break;
+    case srShader::PASS_EQUAL:
+        stream << "PASS_EQUAL";
+        break;
+    case srShader::PASS_LEQUAL:
+        stream << "PASS_LEQUAL";
+        break;
+    case srShader::PASS_GREATER:
+        stream << "PASS_GREATER";
+        break;
+    case srShader::PASS_NOTEQUAL:
+        stream << "PASS_NOTEQUAL";
+        break;
+    case srShader::PASS_GEQUAL:
+        stream << "PASS_GEQUAL";
+        break;
+    case srShader::PASS_ALWAYS:
+        stream << "PASS_ALWAYS";
+        break;
+    }
+    stream << '/';
+    switch ((shader.value >> 0x3) & 0x1) {
+    case srShader::DEPTH_WRITE_DISABLE:
+        stream << "DEPTH_WRITE_DISABLE";
+        break;
+    case srShader::DEPTH_WRITE_ENABLE:
+        stream << "DEPTH_WRITE_ENABLE";
+        break;
+    }
+    stream << '/';
+    switch ((shader.value >> 0x4) & 0x1) {
+    case srShader::COLOR_WRITE_DISABLE:
+        stream << "COLOR_WRITE_DISABLE";
+        break;
+    case srShader::COLOR_WRITE_ENABLE:
+        stream << "COLOR_WRITE_ENABLE";
+        break;
+    }
+    stream << '/';
+    switch ((shader.value >> srShader::DETAILALPHA0_SHIFT) & 0x7) {
+    case srShader::DETAILALPHA_DISABLE:
+        stream << "DETAILALPHA_DISABLE";
+        break;
+    case srShader::DETAILALPHA_DETAIL:
+        stream << "DETAILALPHA_DETAIL";
+        break;
+    case srShader::DETAILALPHA_SCALE:
+        stream << "DETAILALPHA_SCALE";
+        break;
+    case srShader::DETAILALPHA_INVSCALE:
+        stream << "DETAILALPHA_INVSCALE";
+        break;
+    }
+    stream << '/';
+    switch ((shader.value >> srShader::DETAILCOLOR0_SHIFT) & 0xf) {
+    case srShader::DETAILCOLOR_DISABLE:
+        stream << "DETAILCOLOR_DISABLE";
+        break;
+    case srShader::DETAILCOLOR_DETAIL:
+        stream << "DETAILCOLOR_DETAIL";
+        break;
+    case srShader::DETAILCOLOR_SCALE:
+        stream << "DETAILCOLOR_SCALE";
+        break;
+    case srShader::DETAILCOLOR_INVSCALE:
+        stream << "DETAILCOLOR_INVSCALE";
+        break;
+    case srShader::DETAILCOLOR_ADD:
+        stream << "DETAILCOLOR_ADD";
+        break;
+    case srShader::DETAILCOLOR_SUB:
+        stream << "DETAILCOLOR_SUB";
+        break;
+    case srShader::DETAILCOLOR_SUBR:
+        stream << "DETAILCOLOR_SUBR";
+        break;
+    case srShader::DETAILCOLOR_BLEND:
+        stream << "DETAILCOLOR_BLEND";
+        break;
+    case srShader::DETAILCOLOR_DETAILBLEND:
+        stream << "DETAILCOLOR_DETAILBLEND";
+        break;
+    }
+    stream << '/';
+    switch (shader.value >> srShader::DETAILALPHA1_SHIFT) {
+    case srShader::DETAILALPHA_DISABLE:
+        stream << "DETAILALPHA_DISABLE";
+        break;
+    case srShader::DETAILALPHA_DETAIL:
+        stream << "DETAILALPHA_DETAIL";
+        break;
+    case srShader::DETAILALPHA_SCALE:
+        stream << "DETAILALPHA_SCALE";
+        break;
+    case srShader::DETAILALPHA_INVSCALE:
+        stream << "DETAILALPHA_INVSCALE";
+        break;
+    }
+    stream << '/';
+    switch ((shader.value >> srShader::DETAILCOLOR1_SHIFT) & 0xf) {
+    case srShader::DETAILCOLOR_DISABLE:
+        stream << "DETAILCOLOR_DISABLE";
+        break;
+    case srShader::DETAILCOLOR_DETAIL:
+        stream << "DETAILCOLOR_DETAIL";
+        break;
+    case srShader::DETAILCOLOR_SCALE:
+        stream << "DETAILCOLOR_SCALE";
+        break;
+    case srShader::DETAILCOLOR_INVSCALE:
+        stream << "DETAILCOLOR_INVSCALE";
+        break;
+    case srShader::DETAILCOLOR_ADD:
+        stream << "DETAILCOLOR_ADD";
+        break;
+    case srShader::DETAILCOLOR_SUB:
+        stream << "DETAILCOLOR_SUB";
+        break;
+    case srShader::DETAILCOLOR_SUBR:
+        stream << "DETAILCOLOR_SUBR";
+        break;
+    case srShader::DETAILCOLOR_BLEND:
+        stream << "DETAILCOLOR_BLEND";
+        break;
+    case srShader::DETAILCOLOR_DETAILBLEND:
+        stream << "DETAILCOLOR_DETAILBLEND";
+        break;
+    }
+    stream << '/';
+    switch ((shader.value >> 0x17) & 0x1) {
+    case srShader::ALPHATEST_DISABLE:
+        stream << "ALPHATEST_DISABLE";
+        break;
+    case srShader::ALPHATEST_ENABLE:
+        stream << "ALPHATEST_ENABLE";
+        break;
+    }
+    stream << '/';
+    switch ((shader.value >> 0x18) & 0x1) {
+    case srShader::DITHER_DISABLE:
+        stream << "DITHER_DISABLE";
+        break;
+    case srShader::DITHER_ENABLE:
+        stream << "DITHER_ENABLE";
+        break;
+    }
+    stream << '/';
+    switch ((shader.value >> srShader::SRCBLEND_SHIFT) & 0x3) {
+    case srShader::SRCBLEND_ZERO:
+        stream << "SRCBLEND_ZERO";
+        break;
+    case srShader::SRCBLEND_ONE:
+        stream << "SRCBLEND_ONE";
+        break;
+    case srShader::SRCBLEND_SRC_ALPHA:
+        stream << "SRCBLEND_SRC_ALPHA";
+        break;
+    case srShader::SRCBLEND_ONE_MINUS_SRC_ALPHA:
+        stream << "SRCBLEND_ONE_MINUS_SRC_ALPHA";
+        break;
+    }
+    stream << '/';
+    switch ((shader.value >> srShader::DSTBLEND_SHIFT) & 0x7) {
+    case srShader::DSTBLEND_ZERO:
+        stream << "DSTBLEND_ZERO";
+        break;
+    case srShader::DSTBLEND_ONE:
+        stream << "DSTBLEND_ONE";
+        break;
+    case srShader::DSTBLEND_SRC_COLOR:
+        stream << "DSTBLEND_SRC_COLOR";
+        break;
+    case srShader::DSTBLEND_ONE_MINUS_SRC_COLOR:
+        stream << "DSTBLEND_ONE_MINUS_SRC_COLOR";
+        break;
+    case srShader::DSTBLEND_SRC_ALPHA:
+        stream << "DSTBLEND_SRC_ALPHA";
+        break;
+    case srShader::DSTBLEND_ONE_MINUS_SRC_ALPHA:
+        stream << "DSTBLEND_ONE_MINUS_SRC_ALPHA";
+        break;
+    }
+    stream << '/';
+    switch ((shader.value >> srShader::FOG_SHIFT) & 0x3) {
+    case srShader::FOG_DISABLE:
+        stream << "FOG_DISABLE";
+        break;
+    case srShader::FOG_ENABLE:
+        stream << "FOG_ENABLE";
+        break;
+    case srShader::FOG_SCALE_FRAGMENT:
+        stream << "FOG_SCALE_FRAGMENT";
+        break;
+    case srShader::FOG_WHITE:
+        stream << "FOG_WHITE";
+        break;
+    }
+    stream << '/';
+    switch ((shader.value >> 0xa) & 0x3) {
+    case srShader::GRADIENT_DISABLE:
+        stream << "GRADIENT_DISABLE";
+        break;
+    case srShader::GRADIENT_MODULATE:
+        stream << "GRADIENT_MODULATE";
+        break;
+    case srShader::GRADIENT_ADD:
+        stream << "GRADIENT_ADD";
+        break;
+    }
+    stream << '/';
+    switch ((shader.value >> 0xc) & 0x1) {
+    case srShader::SECONDARY_GRADIENT_DISABLE:
+        stream << "SECONDARY_GRADIENT_DISABLE";
+        break;
+    case srShader::SECONDARY_GRADIENT_ENABLE:
+        stream << "SECONDARY_GRADIENT_ENABLE";
+        break;
+    }
+    stream << '/';
+    switch ((shader.value >> 0xf) & 0x1) {
+    case srShader::TEXTURING_DISABLE:
+        stream << "TEXTURING_DISABLE";
+        break;
+    case srShader::TEXTURING_ENABLE:
+        stream << "TEXTURING_ENABLE";
+        break;
+    }
+    return stream;
+}
