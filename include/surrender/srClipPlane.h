@@ -14,6 +14,8 @@
    the three small accessors below carry no IAT entry, so consumers expand
    them from the in-class bodies while the provider emits the standalone
    exports from clipplane.cpp. */
+// VTABLE: SURRENDER 0x10076EC0 srClipPlane
+// class srClipPlane
 class SR_DLL_IMPORT srClipPlane : public srClassSupport<srClipPlane, srNode, false, 0x1500> {
 public:
     typedef srClientSupport<srClipPlane, 0x1500> ClientType;

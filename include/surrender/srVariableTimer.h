@@ -7,6 +7,8 @@
 class srVariableTimer;
 SR_DLL_IMPORT std::ostream& operator<<(std::ostream& stream, const srVariableTimer& timer);
 
+// VTABLE: SURRENDER 0x10077668 srVariableTimer
+// class srVariableTimer
 class SR_DLL_IMPORT srVariableTimer : public srTimer {
 public:
     srVariableTimer(int argument_0 = 0, int argument_1 = 0, int argument_2 = 1,

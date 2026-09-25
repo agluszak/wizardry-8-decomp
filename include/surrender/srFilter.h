@@ -2,6 +2,8 @@
 
 #include "srHeap.h"
 
+// VTABLE: SURRENDER 0x10075310 srFilter
+// class srFilter
 class SR_DLL_IMPORT srFilter {
 public:
     /* The trivial base members are defined inline. Retail emitted each as a
@@ -51,6 +53,8 @@ public:
     virtual double getSupport() const = 0;
 };
 
+// VTABLE: SURRENDER 0x10075350 srBoxFilter
+// class srBoxFilter
 class SR_DLL_IMPORT srBoxFilter : public srFilter {
 public:
     srBoxFilter();
@@ -63,6 +67,8 @@ public:
     virtual double getSupport() const override;
 };
 
+// VTABLE: SURRENDER 0x10075378 srBellFilter
+// class srBellFilter
 class SR_DLL_IMPORT srBellFilter : public srFilter {
 public:
     srBellFilter();
@@ -75,6 +81,8 @@ public:
     virtual double getSupport() const override;
 };
 
+// VTABLE: SURRENDER 0x10075398 srBSplineFilter
+// class srBSplineFilter
 class SR_DLL_IMPORT srBSplineFilter : public srFilter {
 public:
     srBSplineFilter();
@@ -87,6 +95,8 @@ public:
     virtual double getSupport() const override;
 };
 
+// VTABLE: SURRENDER 0x10075388 srTriangleFilter
+// class srTriangleFilter
 class SR_DLL_IMPORT srTriangleFilter : public srFilter {
 public:
     srTriangleFilter();

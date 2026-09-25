@@ -13,6 +13,7 @@
    getMipmapData, getMipmapLevelPartial, invalidate and setupDefaultValues.
    Slots 9/10/13 (getPriority, getDimensions, getTextureParms) stay on
    srTexture; slot 14 (getTextureName) stays on srTextureIFace. */
+// VTABLE: SURRENDER 0x100774E8 srTextureFile
 class srTextureFile : public srClassSupport<srTextureFile, srTexture, 0, 0x2112> {
 public:
     /* The default-constructor closure 0x10060090 proves both arguments
