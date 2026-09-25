@@ -749,8 +749,8 @@ unsigned char SaveMonsterStatus(W8Chunk* chunks)
     W8MonsterGroup* group;
 
     group_count =
-        PLLength(gXStatus.plsMonsterGroupEncounterList) + PLLength(gXStatus.plsMonsterGroupList);
-    monster_count = PLLength(gXStatus.plsUnbornMonsterList) + PLLength(gXStatus.plsMonsterList);
+        PLLength(gXStatus.plsMonsterGroupList) + PLLength(gXStatus.plsMonsterGroupEncounterList);
+    monster_count = PLLength(gXStatus.plsMonsterList) + PLLength(gXStatus.plsUnbornMonsterList);
     chunks->Write(&group_count, 4, 0);
     chunks->Write(&monster_count, 4, 0);
     for (index = 0; index < group_count; ++index) {

@@ -2536,7 +2536,7 @@ bool MonsterGroupHasReinforcement(W8MonsterGroup* monster_group)
     float other_distance;
     float monster_distance;
 
-    if (gXStatus.plsMonsterGroupEncounterList == 0) {
+    if (gXStatus.hostile_monster_count == 0) {
         return 0;
     }
     for (index = 0; index < ILLength(monster_group->monsters); ++index) {

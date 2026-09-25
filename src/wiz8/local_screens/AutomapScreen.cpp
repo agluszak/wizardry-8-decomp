@@ -599,28 +599,28 @@ void AutomapLayerUpButton(void)
 // FUNCTION: WIZ8 0x00584150
 void AutomapPanNorthButton(void)
 {
-    g_automap_position.z += g_automap_zoom * g_float_005ebcd8;
+    g_automap_position.z += g_float_005ebcd8 * g_automap_zoom;
     SetAutomapCameraPoint0057FC70(&g_automap_position);
 }
 
 // FUNCTION: WIZ8 0x00584180
 void AutomapPanSouthButton(void)
 {
-    g_automap_position.z -= g_automap_zoom * g_float_005ebcd8;
+    g_automap_position.z -= g_float_005ebcd8 * g_automap_zoom;
     SetAutomapCameraPoint0057FC70(&g_automap_position);
 }
 
 // FUNCTION: WIZ8 0x005841B0
 void AutomapPanWestButton(void)
 {
-    g_automap_position.x -= g_automap_zoom * g_float_005ebcd8;
+    g_automap_position.x -= g_float_005ebcd8 * g_automap_zoom;
     SetAutomapCameraPoint0057FC70(&g_automap_position);
 }
 
 // FUNCTION: WIZ8 0x005841E0
 void AutomapPanEastButton(void)
 {
-    g_automap_position.x += g_automap_zoom * g_float_005ebcd8;
+    g_automap_position.x += g_float_005ebcd8 * g_automap_zoom;
     SetAutomapCameraPoint0057FC70(&g_automap_position);
 }
 
@@ -1019,19 +1019,19 @@ void AutomapScreenFrame(void)
     }
     bool moved = false;
     if (gfKeyState[0x25]) {
-        g_automap_position.x -= g_automap_zoom * g_float_005ebcd8;
+        g_automap_position.x -= g_float_005ebcd8 * g_automap_zoom;
         moved = true;
     }
     if (gfKeyState[0x27]) {
-        g_automap_position.x += g_automap_zoom * g_float_005ebcd8;
+        g_automap_position.x += g_float_005ebcd8 * g_automap_zoom;
         moved = true;
     }
     if (gfKeyState[0x26]) {
-        g_automap_position.z += g_automap_zoom * g_float_005ebcd8;
+        g_automap_position.z += g_float_005ebcd8 * g_automap_zoom;
         moved = true;
     }
     if (gfKeyState[0x28]) {
-        g_automap_position.z -= g_automap_zoom * g_float_005ebcd8;
+        g_automap_position.z -= g_float_005ebcd8 * g_automap_zoom;
         moved = true;
     }
     if (moved)
