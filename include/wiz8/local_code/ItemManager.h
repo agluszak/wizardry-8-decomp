@@ -16,10 +16,9 @@ void DeactivateWorldItem(W8WorldItem* item); /* 0x004F70D0 */
 unsigned int ItemIndex(int runtime_id);
 void SetWorldItemHighlight(int runtime_id, char on); /* 0x004F71E0 */
 /* Runtime id of the nearest hovered world item inside `max_distance`, or -1. */
-int PickNearestItemUnderCursor004F7370(int cursor_x, int cursor_y,
-                                       float max_distance); /* 0x004F7370 */
+int PickNearestItemUnderCursor(int cursor_x, int cursor_y, float max_distance); /* 0x004F7370 */
 /* Take or trigger-pick one world item by runtime id; 1 when it stays handled. */
-unsigned char InteractWithWorldItem004F7910(int runtime_id); /* 0x004F7910 */
+unsigned char InteractWithWorldItem(int runtime_id); /* 0x004F7910 */
 /* Copy a world item's carried item out onto the heap. */
 W8ItemInstance* CopyWorldItemInstance(const W8WorldItem* item); /* 0x004F9210 */
 void SetWorldItemFlag02(W8WorldItem* item, char enabled);

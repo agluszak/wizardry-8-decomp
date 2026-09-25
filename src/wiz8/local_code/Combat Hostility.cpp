@@ -63,7 +63,7 @@ void RecountCombatMonsters(void)
         }
     }
     if (gXStatus.fCombatMode && gXStatus.hostile_monster_count != 0) {
-        g_combat_state->enemies_engaged_a54 = 1;
+        g_combat_state->enemies_engaged_a54 = true;
     }
     RequestRefreshPartyState();
 }
@@ -73,7 +73,7 @@ void RecountCombatMonsters(void)
    only matching non-zero factions fall through to the condition-thirteen
    presence test. */
 // FUNCTION: WIZ8 0x00546F80
-char MonsterHostility00546F80(W8MonsterInfo* first, W8MonsterInfo* second)
+char MonsterHostility(W8MonsterInfo* first, W8MonsterInfo* second)
 {
     W8MonsterRecord* first_record;
     W8MonsterRecord* second_record;
@@ -114,7 +114,7 @@ char MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info)
 {
     unsigned char disposition;
 
-    if (g_status_685170.buffers.Char[character_slot].uiCondition[13] == 0) {
+    if (g_status.buffers.Char[character_slot].uiCondition[13] == 0) {
         return monster_info->ubDisposition;
     }
     disposition = monster_info->ubDisposition;
@@ -135,7 +135,7 @@ char MonsterVsCharDisposition(int character_slot, W8MonsterInfo* monster_info)
 // FUNCTION: WIZ8 0x00547010
 char CharacterVsCharacterDisposition(int first, int second)
 {
-    W8Character* characters = g_status_685170.buffers.Char;
+    W8Character* characters = g_status.buffers.Char;
     unsigned int first_turns = characters[first].uiCondition[13];
     if (first_turns == 0 && characters[second].uiCondition[13] == 0) {
         return DISP_FRIENDLY;
@@ -150,7 +150,7 @@ char CharacterVsCharacterDisposition(int first, int second)
 char GetOppositeDisposition(W8TargetSource* source)
 {
     if (TargetSourceIsCharacter(source, 0)) {
-        if (g_status_685170.buffers.Char[source->iChar].uiCondition[13] == 0) {
+        if (g_status.buffers.Char[source->iChar].uiCondition[13] == 0) {
             return DISP_HOSTILE;
         }
     } else if (TargetSourceIsMonster(source, 0)) {
@@ -341,7 +341,7 @@ unsigned char MonsterActionTargetsEnemies(int action_kind, int action_detail,
 /* Whether a spell id can be aimed by monster AI: inside the spell table, not
    one of the two self-only kinds, and carrying a middle target type. */
 // FUNCTION: WIZ8 0x005474B0
-bool MonsterCanAimSpell005474B0(int spell_id)
+bool MonsterCanAimSpell(int spell_id)
 {
     if (spell_id > 0x95) {
         srAssertFail("iType < SPELL_COUNT",
@@ -368,8 +368,8 @@ bool CombatAllowsLiveGroups(void)
 const unsigned short g_group_hostility_notice_ids[3] = {511, 512, 513};
 
 // GLOBAL: WIZ8 0x0061ec14
-const int g_monster_special_attack_name_ids_61ec14[12] = {0,    1598, 1599, 1600, 1601, 1602,
-                                                          1603, 1604, 1605, 1606, 1607, 1608};
+const int g_monster_special_attack_name_ids[12] = {0,    1598, 1599, 1600, 1601, 1602,
+                                                   1603, 1604, 1605, 1606, 1607, 1608};
 
 // FUNCTION: WIZ8 0x00547540
 void SetMonsterGroupHostilityByID(int group_id, unsigned int hostility, char recurse)
@@ -383,7 +383,7 @@ void SetMonsterGroupHostilityByID(int group_id, unsigned int hostility, char rec
 // FUNCTION: WIZ8 0x00547570
 void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, char recurse)
 {
-    if (MonsterGroupAllMembersDying00511850(group)) {
+    if (MonsterGroupAllMembersDying(group)) {
         return;
     }
     W8MonsterInfo* leader =
@@ -403,7 +403,7 @@ void SetMonsterGroupHostility(W8MonsterGroup* group, unsigned int hostility, cha
             gppStringList[0x1d7 + (group->member_count != 1)],
             gppStringList[g_group_hostility_notice_ids[static_cast<unsigned char>(hostility)]]);
     }
-    group->hostility_set_at = g_status_685170.world_clock;
+    group->hostility_set_at = g_status.world_clock;
     if (previous != 0) {
         SetTargetToGroup(group->group_id, W8_TARGETING_CONTEXT_IN_COMBAT);
     }
@@ -478,8 +478,8 @@ void SetMonsterHostility(W8MonsterInfo* monster, unsigned char hostility)
 // FUNCTION: WIZ8 0x00547bf0
 unsigned char CanPartySlotTurnUndead(int party_slot)
 {
-    if (!CharacterHasTrait00547940(&g_status_685170.buffers.Char[party_slot], 0x11) ||
-        g_combat_state == 0 || g_combat_state->characters[party_slot].turn_undead_used) {
+    if (!CharacterHasTrait(&g_status.buffers.Char[party_slot], 0x11) || g_combat_state == 0 ||
+        g_combat_state->characters[party_slot].turn_undead_used) {
         return 0;
     }
     for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
@@ -502,20 +502,20 @@ int TurnUndead(int party_slot, int* out_cost, char check)
             PostCharacterNotice(party_slot, gppStringList[0x1b7], gppStringList[0x512]);
             return 0;
         }
-        g_combat_state->characters[party_slot].turn_undead_used = 1;
+        g_combat_state->characters[party_slot].turn_undead_used = true;
     }
 
     W8TargetSource source;
     SetTargetSourceToCharacter(party_slot, &source);
-    source.aim_resolved_1a = 1;
+    source.aim_resolved_1a = true;
     int power;
     if (!check) {
-        power = g_status_685170.buffers.Char[party_slot].profession_levels[0xc] + 10 +
-                g_status_685170.buffers.Char[party_slot].profession_levels[10];
+        power = g_status.buffers.Char[party_slot].profession_levels[0xc] + 10 +
+                g_status.buffers.Char[party_slot].profession_levels[10];
         source.auto_cast_18 = 1;
     } else {
-        power = g_status_685170.buffers.Char[party_slot].profession_levels[0xc] +
-                g_status_685170.buffers.Char[party_slot].profession_levels[10];
+        power = g_status.buffers.Char[party_slot].profession_levels[0xc] +
+                g_status.buffers.Char[party_slot].profession_levels[10];
         PostCharacterNotice(party_slot, gppStringList[0x182]);
     }
 
@@ -545,8 +545,8 @@ int TurnUndead(int party_slot, int* out_cost, char check)
 // FUNCTION: WIZ8 0x00547f40
 unsigned char CanPartySlotPray(int party_slot)
 {
-    if (!CharacterHasTrait00547940(&g_status_685170.buffers.Char[party_slot], 0xb) ||
-        g_combat_state == 0 || g_combat_state->characters[party_slot].pray_used) {
+    if (!CharacterHasTrait(&g_status.buffers.Char[party_slot], 0xb) || g_combat_state == 0 ||
+        g_combat_state->characters[party_slot].pray_used) {
         return 0;
     }
     for (unsigned int index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
@@ -560,16 +560,16 @@ unsigned char CanPartySlotPray(int party_slot)
 }
 
 // GLOBAL: WIZ8 0x0061DD38
-int g_pray_roll_weights_0061dd38[14] = {5, 5, 10, 10, 10, 20, 10, 10, 10, 5, 5, 5, 5, 5};
+int g_pray_roll_weights[14] = {5, 5, 10, 10, 10, 20, 10, 10, 10, 5, 5, 5, 5, 5};
 
 // GLOBAL: WIZ8 0x0068D814
-int g_pray_roll_sums_0068d814[14];
+int g_pray_roll_sums[14];
 
 // GLOBAL: WIZ8 0x0068D84C
-int g_pray_roll_total_0068d84c;
+int g_pray_roll_total;
 
 // GLOBAL: WIZ8 0x00619788
-const wchar_t g_pray_dash_00619788[] = L" -- ";
+const wchar_t g_pray_dash[] = L" -- ";
 
 /* Pray: the trait-eleven once-per-combat divine intervention. The flat
    weight table is folded into cumulative sums on first use - the slot one
@@ -577,9 +577,9 @@ const wchar_t g_pray_dash_00619788[] = L" -- ";
    how long the fight has run and by the combat difficulty. The selected tier
    retries downward through the table until an action lands. */
 // FUNCTION: WIZ8 0x00547FE0
-int CharacterPrayAction00547FE0(int party_slot)
+int CharacterPrayAction(int party_slot)
 {
-    W8Character* character = &g_status_685170.buffers.Char[party_slot];
+    W8Character* character = &g_status.buffers.Char[party_slot];
     W8GrowableVector<int> monster_targets;
     bool found = false;
     bool prayed = false;
@@ -598,18 +598,18 @@ int CharacterPrayAction00547FE0(int party_slot)
     if (!CanPartySlotPray(party_slot)) {
         return 0;
     }
-    if (g_pray_roll_total_0068d84c == 0) {
-        int* const end = &g_pray_roll_total_0068d84c + 1;
+    if (g_pray_roll_total == 0) {
+        int* const end = &g_pray_roll_total + 1;
         for (index = 0; index < 14; ++index) {
-            const int weight = g_pray_roll_weights_0061dd38[index];
-            for (int* sum = &g_pray_roll_sums_0068d814[index]; sum < end; ++sum) {
+            const int weight = g_pray_roll_weights[index];
+            for (int* sum = &g_pray_roll_sums[index]; sum < end; ++sum) {
                 *sum += weight;
             }
         }
     }
     SetTargetSourceToCharacter(party_slot, &source);
     source.auto_cast_18 = 1;
-    source.aim_resolved_1a = 1;
+    source.aim_resolved_1a = true;
     ResetCombatSlot(&target);
     PostCharacterNotice(party_slot, gppStringList[0x174]);
     cost = CharacterActionFatigueCost(party_slot, 6);
@@ -618,26 +618,26 @@ int CharacterPrayAction00547FE0(int party_slot)
         PostCharacterNotice(party_slot, gppStringList[0x175]);
         return cost;
     }
-    if (g_settings_6850c8.verbose_combat_messages == 0) {
+    if (g_settings.verbose_combat_messages == 0) {
         SetTextBoxMode(1, -1);
-        AppendToLastTextLine(g_pray_dash_00619788, -1);
+        AppendToLastTextLine(g_pray_dash, -1);
         SetTextBoxMode(1, -1);
     }
-    roll = Random(g_pray_roll_total_0068d84c);
+    roll = Random(g_pray_roll_total);
     if (g_combat_state->round_count_004 < 4) {
         roll += (g_combat_state->round_count_004 * 3 - 12) * 5;
     } else if (g_combat_state->round_count_004 > 8) {
         roll += Random(10);
     }
-    if (g_settings_6850c8.difficulty == 0) {
+    if (g_settings.difficulty == 0) {
         roll -= 10;
-    } else if (g_settings_6850c8.difficulty == 2) {
+    } else if (g_settings.difficulty == 2) {
         roll += 10;
     }
     action = 0;
     for (index = 0; index < 14; ++index) {
         action = index;
-        if (static_cast<int>(roll) <= g_pray_roll_sums_0068d814[index]) {
+        if (static_cast<int>(roll) <= g_pray_roll_sums[index]) {
             break;
         }
         action = 0;
@@ -659,8 +659,8 @@ int CharacterPrayAction00547FE0(int party_slot)
             break;
         case 1:
             for (index = 0; index < 8; ++index) {
-                W8Character* member = &g_status_685170.buffers.Char[index];
-                if (g_status_685170.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
+                W8Character* member = &g_status.buffers.Char[index];
+                if (g_status.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
                     member->stamina < member->uiStaminaMax) {
                     AppendToLastTextLine(gppStringList[0x179], -1);
                     CastSpellFromSource(0x2c, &source, &target, 7, 0, 0, 1, &outcome, 0, 0, 0);
@@ -673,8 +673,8 @@ int CharacterPrayAction00547FE0(int party_slot)
             found = false;
             in_range = 0;
             for (index = 0; index < 8; ++index) {
-                W8Character* member = &g_status_685170.buffers.Char[index];
-                if (g_status_685170.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
+                W8Character* member = &g_status.buffers.Char[index];
+                if (g_status.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
                     member->highest_condition < 0x12 && member->enchantments[2].power_00 == 0) {
                     ++in_range;
                     found = true;
@@ -683,8 +683,8 @@ int CharacterPrayAction00547FE0(int party_slot)
             if (found) {
                 pick = Random(in_range) + 1;
                 for (index = 0; index < 8; ++index) {
-                    W8Character* member = &g_status_685170.buffers.Char[index];
-                    if (g_status_685170.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
+                    W8Character* member = &g_status.buffers.Char[index];
+                    if (g_status.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
                         member->highest_condition < 0x12 && member->enchantments[2].power_00 == 0 &&
                         --pick == 0) {
                         AppendToLastTextLine(
@@ -706,8 +706,8 @@ int CharacterPrayAction00547FE0(int party_slot)
             found = false;
             in_range = 0;
             for (index = 0; index < 8; ++index) {
-                W8Character* member = &g_status_685170.buffers.Char[index];
-                if (g_status_685170.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
+                W8Character* member = &g_status.buffers.Char[index];
+                if (g_status.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
                     member->highest_condition < 0x12 &&
                     (member->uiCondition[0xb] != 0 || member->uiCondition[0xd] != 0)) {
                     ++in_range;
@@ -717,8 +717,8 @@ int CharacterPrayAction00547FE0(int party_slot)
             if (found) {
                 pick = Random(in_range) + 1;
                 for (index = 0; index < 8; ++index) {
-                    W8Character* member = &g_status_685170.buffers.Char[index];
-                    if (g_status_685170.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
+                    W8Character* member = &g_status.buffers.Char[index];
+                    if (g_status.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
                         member->highest_condition < 0x12 &&
                         (member->uiCondition[0xb] != 0 || member->uiCondition[0xd] != 0) &&
                         --pick == 0) {
@@ -754,12 +754,11 @@ int CharacterPrayAction00547FE0(int party_slot)
             }
             best = -1;
             for (index = 0; index < 8; ++index) {
-                W8Character* member = &g_status_685170.buffers.Char[index];
-                if (g_status_685170.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
+                W8Character* member = &g_status.buffers.Char[index];
+                if (g_status.buffers.XChar[index].fOccupied && member->hp_current != 0 &&
                     member->highest_condition < 0x12 &&
                     member->hp_current < static_cast<unsigned int>(member->uiHPMax) &&
-                    (best == -1 ||
-                     member->hp_current < g_status_685170.buffers.Char[best].hp_current)) {
+                    (best == -1 || member->hp_current < g_status.buffers.Char[best].hp_current)) {
                     best = index;
                 }
             }
@@ -793,8 +792,7 @@ int CharacterPrayAction00547FE0(int party_slot)
             for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
                 W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
                 if (monster->fActive && monster->fInCombat && monster->ubDisposition == 1 &&
-                    monster->hp_current != 0 &&
-                    monster->p3D->GetDistanceToPlayer004C7CB0() <= range) {
+                    monster->hp_current != 0 && monster->p3D->GetDistanceToPlayer() <= range) {
                     ++in_range;
                 }
             }
@@ -803,8 +801,8 @@ int CharacterPrayAction00547FE0(int party_slot)
                 for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
                     W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
                     if (monster->fActive && monster->fInCombat && monster->ubDisposition == 1 &&
-                        monster->hp_current != 0 &&
-                        monster->p3D->GetDistanceToPlayer004C7CB0() <= range && --pick == 0) {
+                        monster->hp_current != 0 && monster->p3D->GetDistanceToPlayer() <= range &&
+                        --pick == 0) {
                         AppendToLastTextLine(gppStringList[0x179], -1);
                         target.iType = W8_TARGET_KIND_MONSTER;
                         target.iMonsterID = monster->location_id;
@@ -875,8 +873,7 @@ int CharacterPrayAction00547FE0(int party_slot)
                     AppendToLastTextLine(
                         FormatWideString(
                             gppStringList[0x17c],
-                            gppStringList[g_gender_name_message_rows_61e430[character->gender][2]],
-                            -1),
+                            gppStringList[g_gender_name_message_rows[character->gender][2]], -1),
                         -1);
                     target.iType = W8_TARGET_KIND_FIVE;
                     CastSpellFromSource(0x75, &source, &target, power_level, 0, 0, 0, &outcome, 0,
@@ -893,8 +890,7 @@ int CharacterPrayAction00547FE0(int party_slot)
                 for (index = 0; index < PLLength(gXStatus.plsMonsterList); ++index) {
                     W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
                     if (monster->fActive && monster->fInCombat && monster->ubDisposition == 1 &&
-                        monster->hp_current != 0 &&
-                        monster->p3D->GetDistanceToPlayer004C7CB0() <= range) {
+                        monster->hp_current != 0 && monster->p3D->GetDistanceToPlayer() <= range) {
                         AppendToLastTextLine(gppStringList[0x179], -1);
                         ResetCombatSlot(&target);
                         CastSpellFromSource(0x60, &source, &target, power_level, 0, 0, 0, &outcome,
@@ -910,7 +906,7 @@ int CharacterPrayAction00547FE0(int party_slot)
             break;
         }
     }
-    g_combat_state->characters[party_slot].pray_used = 1;
+    g_combat_state->characters[party_slot].pray_used = true;
     return cost;
 }
 

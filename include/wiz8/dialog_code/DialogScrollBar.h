@@ -30,10 +30,10 @@ private:
     static void UpButtonCallback(GUI_BUTTON* button, INT32 reason);
     static void DownButtonCallback(GUI_BUTTON* button, INT32 reason);
     static void TrackButtonCallback(GUI_BUTTON* button, INT32 reason);
-    unsigned char m_initialized; /* 0x00 */
-    unsigned char m_visible;     /* 0x01 */
+    bool m_initialized; /* 0x00 */
+    bool m_visible;     /* 0x01 */
 public:
-    unsigned char m_dirty; /* 0x02: owning dialogs set this before Draw */
+    bool m_dirty; /* 0x02: owning dialogs set this before Draw */
 private:
     unsigned char unknown_003;
     int m_entry_count;         /* 0x04 */

@@ -49,59 +49,57 @@
    their derived modifiers, then drive the sky node from the stored light
    byte. */
 // FUNCTION: WIZ8 0x0050E700
-void RebuildPartyEffectBlock0050E700(void)
+void RebuildPartyEffectBlock(void)
 {
-    memset(&g_status_685170.party_modifiers_22e3, 0, sizeof(W8GameplayModifierBlock));
-    ApplyPartyEffectSlots(g_status_685170.effect_slots_17af, &g_status_685170.party_modifiers_22e3);
+    memset(&g_status.party_modifiers_22e3, 0, sizeof(W8GameplayModifierBlock));
+    ApplyPartyEffectSlots(g_status.effect_slots_17af, &g_status.party_modifiers_22e3);
     if (gXStatus.fCombatMode != 0) {
-        unsigned char value = g_status_685170.party_modifiers_22e3.armor_bonus_05;
+        unsigned char value = g_status.party_modifiers_22e3.armor_bonus_05;
 
         for (int index = 0; index < 9; ++index) {
             W8EffectSlot* slot = &g_combat_state->effect_slots[index];
             if (slot->active != 0 && slot->effect_id == 0x31) {
                 value -= slot->amount;
-                g_status_685170.party_modifiers_22e3.armor_bonus_05 = value;
+                g_status.party_modifiers_22e3.armor_bonus_05 = value;
             }
         }
-        ApplyCombatEffectSlots(g_combat_state->effect_slots_85a,
-                               &g_status_685170.party_modifiers_22e3);
+        ApplyCombatEffectSlots(g_combat_state->effect_slots_85a, &g_status.party_modifiers_22e3);
     }
     int active = 0;
     unsigned int slot_byte = 0;
     while (slot_byte <= 0x82f) {
-        W8Character* character = &g_status_685170.buffers.Char[active];
-        if (g_status_685170.buffers.XChar[active].fOccupied != 0 && character->hp_current != 0 &&
-            character->highest_condition == 0 && CharacterHasTrait00547940(character, 10) != 0) {
+        W8Character* character = &g_status.buffers.Char[active];
+        if (g_status.buffers.XChar[active].fOccupied != 0 && character->hp_current != 0 &&
+            character->highest_condition == 0 && CharacterHasTrait(character, 10) != 0) {
             break;
         }
         slot_byte += 0x106;
         ++active;
     }
     if (slot_byte < 0x830) {
-        g_status_685170.party_modifiers_22e3.boost_health_regen = 1;
-        g_status_685170.party_modifiers_22e3.boost_stamina_regen = 1;
-        g_status_685170.party_modifiers_22e3.boost_spell_regen = 1;
+        g_status.party_modifiers_22e3.boost_health_regen = 1;
+        g_status.party_modifiers_22e3.boost_stamina_regen = 1;
+        g_status.party_modifiers_22e3.boost_spell_regen = 1;
     }
     for (int party_slot = 0; party_slot < 8; ++party_slot) {
-        if (g_status_685170.buffers.XChar[party_slot].fOccupied != 0) {
-            W8Character* character = &g_status_685170.buffers.Char[party_slot];
+        if (g_status.buffers.XChar[party_slot].fOccupied != 0) {
+            W8Character* character = &g_status.buffers.Char[party_slot];
 
             memset(&character->bonus_1770, 0, sizeof(W8GameplayModifierBlock));
             ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
             ApplyModifierBlock(&character->bonus_1770, &character->condition_modifiers_16a2);
             if (character->fInParty != 0) {
-                ApplyModifierBlock(&character->bonus_1770, &g_status_685170.party_modifiers_22e3);
+                ApplyModifierBlock(&character->bonus_1770, &g_status.party_modifiers_22e3);
             }
             RecalculateCharacterDerivedStats(character);
         }
     }
-    if (g_status_685170.party_modifiers_22e3.light_47 == 0) {
+    if (g_status.party_modifiers_22e3.light_47 == 0) {
         SetSkyNodeVisible(0);
         return;
     }
     SetSkyNodeVisible(1);
-    SetCameraLightIntensity00483E30((float)g_status_685170.party_modifiers_22e3.light_47 +
-                                    g_environment_near_scale_005ec0b0);
+    SetCameraLightIntensity(g_status.party_modifiers_22e3.light_47 + g_environment_near_scale);
 }
 
 /* Fold the worn items into one character's equipment bonus block: the twelve
@@ -308,7 +306,7 @@ void RebuildCharacterModifierBlock(W8Character* character)
     ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
     ApplyModifierBlock(&character->bonus_1770, &character->condition_modifiers_16a2);
     if (character->fInParty != 0) {
-        ApplyModifierBlock(&character->bonus_1770, &g_status_685170.party_modifiers_22e3);
+        ApplyModifierBlock(&character->bonus_1770, &g_status.party_modifiers_22e3);
     }
 }
 
@@ -325,7 +323,7 @@ void RebuildEquipmentAndDerivedStats(W8Character* character)
     ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
     ApplyModifierBlock(&character->bonus_1770, &character->condition_modifiers_16a2);
     if (character->fInParty != 0) {
-        ApplyModifierBlock(&character->bonus_1770, &g_status_685170.party_modifiers_22e3);
+        ApplyModifierBlock(&character->bonus_1770, &g_status.party_modifiers_22e3);
     }
     RecalculateCharacterDerivedStats(character);
 }
@@ -336,7 +334,7 @@ void RebuildEquipmentAndDerivedStats(W8Character* character)
 // FUNCTION: WIZ8 0x0050e5c0
 void RebuildEquipmentAndDerivedStatsForSlot(int party_slot)
 {
-    W8Character* character = &g_status_685170.buffers.Char[party_slot];
+    W8Character* character = &g_status.buffers.Char[party_slot];
 
     memset(&character->equipment_bonus_1709, 0, sizeof(W8GameplayModifierBlock));
     AccumulateEquipmentModifiers(character, &character->equipment_bonus_1709);
@@ -345,7 +343,7 @@ void RebuildEquipmentAndDerivedStatsForSlot(int party_slot)
     ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
     ApplyModifierBlock(&character->bonus_1770, &character->condition_modifiers_16a2);
     if (character->fInParty != 0) {
-        ApplyModifierBlock(&character->bonus_1770, &g_status_685170.party_modifiers_22e3);
+        ApplyModifierBlock(&character->bonus_1770, &g_status.party_modifiers_22e3);
     }
     RecalculateCharacterDerivedStats(character);
 }
@@ -357,19 +355,19 @@ void RebuildEquipmentAndDerivedStatsForSlot(int party_slot)
 // FUNCTION: WIZ8 0x0050e650
 void RebuildConditionsAndDerivedStats(int party_slot)
 {
-    W8Character* character = &g_status_685170.buffers.Char[party_slot];
+    W8Character* character = &g_status.buffers.Char[party_slot];
 
     memset(&character->condition_modifiers_16a2, 0, sizeof(W8GameplayModifierBlock));
     ApplyConditionModifiers(character, character->uiCondition, character->condition_argument,
                             &character->condition_modifiers_16a2);
     ApplyEnchantmentModifiers(character->enchantments, &character->condition_modifiers_16a2);
-    ApplyBoundNpcPenalty0050DBF0(character, &character->condition_modifiers_16a2);
+    ApplyBoundNpcPenalty(character, &character->condition_modifiers_16a2);
 
     memset(&character->bonus_1770, 0, sizeof(W8GameplayModifierBlock));
     ApplyModifierBlock(&character->bonus_1770, &character->equipment_bonus_1709);
     ApplyModifierBlock(&character->bonus_1770, &character->condition_modifiers_16a2);
     if (character->fInParty != 0) {
-        ApplyModifierBlock(&character->bonus_1770, &g_status_685170.party_modifiers_22e3);
+        ApplyModifierBlock(&character->bonus_1770, &g_status.party_modifiers_22e3);
     }
     RecalculateCharacterDerivedStats(character);
 }
@@ -400,7 +398,7 @@ void RebuildMonsterDerivedStats(int location_id)
         ApplyCombatEffectSlots(monster_info->pCombat->effect_slots_d7, modifiers);
     }
     ConvertMonsterAttributes(monster_info);
-    RebuildMonsterRegenRates00502C50(monster_info);
+    RebuildMonsterRegenRates(monster_info);
 }
 
 /* Fold the live conditions into the modifier block: each running condition id
@@ -452,13 +450,12 @@ void ApplyConditionModifiers(W8Character* character, const unsigned int* conditi
             target->attribute_adjustments[1] -= 0x32;
             break;
         case 0xc:
-            if (character == 0 || CharacterHasTrait00547940(character, 7) == 0) {
+            if (character == 0 || CharacterHasTrait(character, 7) == 0) {
                 target->attribute_adjustments[6] -= 0x32;
                 target->out_of_formation = 1;
             } else {
                 target->attribute_adjustments[6] +=
-                    static_cast<signed char>(
-                        ScaleValueByProfessionLevel005479B0(character, 7, 50.0f)) -
+                    static_cast<signed char>(ScaleValueByProfessionLevel(character, 7, 50.0f)) -
                     0x32;
             }
             break;
@@ -473,8 +470,7 @@ void ApplyConditionModifiers(W8Character* character, const unsigned int* conditi
         case 0x13:
             if (GetConditionRecordFlag(CharacterPointerToPartySlot(character), 1) != 0) {
                 W8MonsterInfo* bound;
-                if (character->conditions_1817[1].level_acquired_00 ==
-                        g_status_685170.current_level &&
+                if (character->conditions_1817[1].level_acquired_00 == g_status.current_level &&
                     (bound = MonsterInfoFromID(0x16b, GAMEPLAY_MODS_CPP,
                                                character->conditions_1817[1].source_monster_04,
                                                1)) != 0) {

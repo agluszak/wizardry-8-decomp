@@ -2,8 +2,8 @@
 
 class W8Navigator;
 
-extern W8Navigator* g_startup_world_659c0c;
-extern float g_runtime_world_scale_6081e8;
+extern W8Navigator* g_startup_world;
+extern float g_runtime_world_scale;
 
-unsigned char InitializeStartupNavigation0044F060(void);
-void ShutdownStartupNavigation0044F190(void);
+unsigned char InitializeStartupNavigation(void);
+void ShutdownStartupNavigation(void);

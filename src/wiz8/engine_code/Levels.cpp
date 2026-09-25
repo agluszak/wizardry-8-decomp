@@ -111,23 +111,23 @@ W8LevelFolderRecord g_level_folders[W8_LEVEL_COUNT] = {
 /* The sky index of the world currently held in g_world_659ab8, or -1 when no
    sky is loaded. Every retail access is a byte access. */
 // GLOBAL: WIZ8 0x00604470
-signed char g_loaded_sky_index_00604470 = -1;
+signed char g_loaded_sky_index = -1;
 /* The CD volume number of the drive the game-data path finder last matched. */
 // GLOBAL: WIZ8 0x00604474
-int g_cd_index_00604474 = -1;
+int g_cd_index = -1;
 // GLOBAL: WIZ8 0x00659738
-W8MaterialMapper00482010 g_material_mapper_00659738;
+W8MaterialMapper g_material_mapper;
 
 // FUNCTION: WIZ8 0x0042b720
-int GetLevelCdNumber0042B720(int level)
+int GetLevelCdNumber(int level)
 {
     return g_level_folders[level].cd_number;
 }
 
 // FUNCTION: WIZ8 0x0042b6f0
-unsigned char IsLevelCdMissing0042B6F0(int level)
+bool IsLevelCdMissing(int level)
 {
-    return FindGameDataPath0042B590(gzCdDirectory, g_level_folders[level].cd_number) == 0;
+    return FindGameDataPath(gzCdDirectory, g_level_folders[level].cd_number) == 0;
 }
 
 /* Scan every logical drive for the CD whose volume label is WIZ8_<cd_number>,
@@ -135,13 +135,13 @@ unsigned char IsLevelCdMissing0042B6F0(int level)
    found. Only a CD-ROM drive is considered, and the volume query temporarily
    suppresses the system's error dialog for a missing disc. */
 // FUNCTION: WIZ8 0x0042B590
-unsigned char FindGameDataPath0042B590(char* path, int cd_number)
+unsigned char FindGameDataPath(char* path, int cd_number)
 {
     char expected_label[32];
     char volume_name[32];
     char drives[512];
     DWORD length;
-    unsigned char found = 0;
+    bool found = false;
 
     length = GetLogicalDriveStringsA(sizeof(drives), drives);
     if (length == 0) {
@@ -169,7 +169,7 @@ unsigned char FindGameDataPath0042B590(char* path, int cd_number)
         if (GetVolumeInformationA(path, volume_name, 32, 0, 0, 0, 0, 0) != 0 &&
             _stricmp(expected_label, volume_name) == 0) {
             found = 1;
-            g_cd_index_00604474 = cd_number;
+            g_cd_index = cd_number;
         }
         SetErrorMode(previous_mode);
         if (found != 0) {
@@ -182,7 +182,7 @@ unsigned char FindGameDataPath0042B590(char* path, int cd_number)
 // FUNCTION: WIZ8 0x0042b740
 char GetLevelBand(int saved_level)
 {
-    int level = NormalizeMasterFunctionValue004D9700(saved_level);
+    int level = NormalizeMasterFunctionValue(saved_level);
     /* `<= 0x2f` is the retail bound: it admits the first test-level slot, one
        past the W8_LEVEL_COUNT-entry table. */
     if (level >= 0 && level <= 0x2f) {
@@ -197,16 +197,16 @@ char GetLevelBand(int saved_level)
 void StartLevelMusic(int fade, int replace_current)
 {
     char path[260];
-    const char* level_name = g_level_folders[g_status_685170.current_level].level_name;
+    const char* level_name = g_level_folders[g_status.current_level].level_name;
 
     sprintf(path, "Data\\Music\\%s.MPL", level_name);
     if (FileExists(path)) {
         sprintf(path, "%s.MPL", level_name);
-        StartMusicResource0048FC10(path, fade, replace_current);
+        StartMusicResource(path, fade, replace_current);
     } else {
-        StartMusicResource0048FC10("Adventure.MPL", fade, replace_current);
+        StartMusicResource("Adventure.MPL", fade, replace_current);
     }
-    ServiceMusicPlaylist0048F9E0();
+    ServiceMusicPlaylist();
 }
 
 // FUNCTION: WIZ8 0x0042b3e0
@@ -216,7 +216,7 @@ void UnloadSkyWorld(void)
     if (world != 0) {
         Forward44FAF0(world);
         SetWorld659AB8(0);
-        g_loaded_sky_index_00604470 = 0xff;
+        g_loaded_sky_index = 0xff;
         ResetEnvironment();
     }
 }
@@ -292,7 +292,7 @@ const char* GetLevelFolderName(int level_id)
 // FUNCTION: WIZ8 0x0042b580
 int GetLoadedLevelID(void)
 {
-    return g_status_685170.current_level;
+    return g_status.current_level;
 }
 /* Retail shares the no-op stub at 0x004023A0 across arities; this typed
    overload is called with the sky world and two zero arguments. */
@@ -309,7 +309,7 @@ void NoOp(W8World* world, int first, int second)
    animated-cloud material: its cloud meshes are marked for the renderer's
    control bits and every CloudsN prop's mesh chain is rebound to it. */
 // FUNCTION: WIZ8 0x0042B020
-unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
+unsigned char LoadSkyWorld(int level, W8LevelInfo* info)
 {
     signed char sky_index;
     W8LevelInfo local_info;
@@ -320,7 +320,7 @@ unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
     } else {
         sky_index = 0;
     }
-    if (sky_index == g_loaded_sky_index_00604470) {
+    if (sky_index == g_loaded_sky_index) {
         return 1;
     }
     if (info == 0) {
@@ -332,7 +332,7 @@ unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
     if (GetWorld659AB8() != 0) {
         Forward44FAF0(GetWorld659AB8());
         SetWorld659AB8(0);
-        g_loaded_sky_index_00604470 = 0xff;
+        g_loaded_sky_index = 0xff;
         ResetEnvironment();
     }
     if (sky_index == -1) {
@@ -368,7 +368,7 @@ unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
     material->parms.emissive = 0.0f;
     material->dirty_74 = 1;
     material->m_field_78 = 0;
-    material->setMapper(&g_material_mapper_00659738);
+    material->setMapper(&g_material_mapper);
 
     for (srNode* node = sky_world->level->firstChild(); node != 0; node = node->nextSibling()) {
         if (node->getClassID() == 0x10004) {
@@ -402,12 +402,12 @@ unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info)
     NoOp(sky_world, 0, 0);
     WorldRemoveLight(sky_world, sky_world->camera_light);
     sky_world->camera_light = 0;
-    g_loaded_sky_index_00604470 = sky_index;
+    g_loaded_sky_index = sky_index;
     return 1;
 }
 
 // GLOBAL: WIZ8 0x00605820
-unsigned short g_level_name_indices_605820[W8_LEVEL_COUNT] = {
+unsigned short g_level_name_indices[W8_LEVEL_COUNT] = {
     0x6f7, 0x6f8, 0x6f9, 0x6fa, 0x6fb, 0x6fd, 0x6fc, 0x6fe, 0x6ff, 0x700, 0x701, 0x719,
     0x702, 0x703, 0x704, 0x705, 0x706, 0x707, 0x708, 0x709, 0x70a, 0x70b, 0x70c, 0x719,
     0x70d, 0x70e, 0x70f, 0x710, 0x719, 0x711, 0x719, 0x712, 0x713, 0x714, 0x719, 0x715,
@@ -415,27 +415,27 @@ unsigned short g_level_name_indices_605820[W8_LEVEL_COUNT] = {
 };
 
 // GLOBAL: WIZ8 0x00659756
-unsigned char g_level_status_loading_00659756;
+unsigned char g_level_status_loading;
 
 // GLOBAL: WIZ8 0x00603ac8
-float g_default_world_height_00603ac8 = 1000.0f;
+float g_default_world_height = 1000.0f;
 
 // GLOBAL: WIZ8 0x005ebfdc
-float g_position_height_epsilon_005ebfdc = 2500.0f;
+float g_position_height_epsilon = 2500.0f;
 
 // GLOBAL: WIZ8 0x00603ad0
-unsigned char g_environment_load_flag_00603ad0 = 1;
+unsigned char g_environment_load_flag = 1;
 
 // GLOBAL: WIZ8 0x0065ba70
-bool g_camera_path_active_0065ba70;
+bool g_camera_path_active;
 
 // GLOBAL: WIZ8 0x0068f0fd
-unsigned char g_mipe_trigger_display_0068f0fd;
+unsigned char g_mipe_trigger_display;
 
 // GLOBAL: WIZ8 0x006059E0
-char g_ambient_sound_filename_006059e0[] = "SCF";
+char g_ambient_sound_filename[] = "SCF";
 // GLOBAL: WIZ8 0x00605880
-const char* g_sky_names_00605880[] = {
+const char* g_sky_names[] = {
     "DefaultSky", "RapaxSky", "MountainPassSky", "RiftSky1",  "TrynnieSky1", "TrynnieSky2",
     "RatkinSky1", "CampSky",  "BluffSky1",       "BluffSky2", "CircleSky",
 };
@@ -461,14 +461,14 @@ unsigned char LevelBuildInfoByID(int level, W8LevelInfo* info)
         if (g_level_folders[level].sky_index == -1) {
             info->sky_file_name[0] = '\0';
         } else {
-            sprintf(info->sky_file_name, "%s.%s",
-                    g_sky_names_00605880[g_level_folders[level].sky_index], "LVL");
+            sprintf(info->sky_file_name, "%s.%s", g_sky_names[g_level_folders[level].sky_index],
+                    "LVL");
         }
     } else {
         sprintf(info->level_folder, "%s\\Test", "Levels");
         if (level == 56) {
             sprintf(info->level_file_name, "DefaultLevel.%s", "LVL");
-            sprintf(info->sky_file_name, "%s.%s", g_sky_names_00605880[0], "LVL");
+            sprintf(info->sky_file_name, "%s.%s", g_sky_names[0], "LVL");
         } else {
             char test_level = static_cast<char>(level + 2);
             sprintf(info->level_file_name, "level%c.%s", test_level, "LVL");
@@ -493,7 +493,7 @@ unsigned char LevelBuildInfoByID(int level, W8LevelInfo* info)
     if (level < W8_LEVEL_COUNT) {
         if (g_level_folders[level].sky_index != -1 && !FileExists(info->sky_path)) {
             sprintf(info->sky_folder, "%s\\Test", "Levels");
-            sprintf(info->sky_file_name, "%s.%s", g_sky_names_00605880[0], "LVL");
+            sprintf(info->sky_file_name, "%s.%s", g_sky_names[0], "LVL");
             sprintf(info->sky_bitmap_folder, "%s\\Bitmaps", info->sky_folder);
             sprintf(info->sky_path, "%s\\%s", info->sky_folder, info->sky_file_name);
             if (!FileExists(info->sky_path)) {
@@ -513,7 +513,7 @@ unsigned char LevelBuildInfoByID(int level, W8LevelInfo* info)
 // FUNCTION: WIZ8 0x0042A6F0
 unsigned char LoadLevel(int requested_level, int entrance, unsigned char restoring_game)
 {
-    int level = NormalizeMasterFunctionValue004D9700(requested_level);
+    int level = NormalizeMasterFunctionValue(requested_level);
     W8LevelInfo level_info;
     int previous_level;
     unsigned char first_visit = 0;
@@ -533,22 +533,22 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
         Forward44FAF0(GetWorld());
         SetCurrentWorld(0);
     }
-    ReleaseRetainedMaterials00489920();
+    ReleaseRetainedMaterials();
     InvalidateRendererTextureCache();
     SetCurrentWorld(CreateWorld());
 
-    previous_level = g_status_685170.current_level;
-    g_status_685170.current_level = level;
+    previous_level = g_status.current_level;
+    g_status.current_level = level;
     sprintf(music_path, "Data\\Music\\%s.MPL", g_level_folders[level].folder_name);
     if (FileExists(music_path)) {
-        sprintf(music_path, "%s.MPL", g_level_folders[g_status_685170.current_level].folder_name);
-        StartMusicResource0048FC10(music_path, 1, 1);
+        sprintf(music_path, "%s.MPL", g_level_folders[g_status.current_level].folder_name);
+        StartMusicResource(music_path, 1, 1);
     } else {
-        StartMusicResource0048FC10("", 1, 1);
+        StartMusicResource("", 1, 1);
     }
-    ServiceMusicPlaylist0048F9E0();
+    ServiceMusicPlaylist();
 
-    if (!LoadSkyWorld0042B020(level, &level_info)) {
+    if (!LoadSkyWorld(level, &level_info)) {
         return 0;
     }
     InitializeMonsterManagerState();
@@ -558,17 +558,17 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
                           level_info.level_bitmap_folder, 1)) {
         /* This is the complete canonical rollback here: restore the level ID.
            The already-installed replacement world is not destroyed. */
-        g_status_685170.current_level = previous_level;
+        g_status.current_level = previous_level;
         return 0;
     }
 
     SetSkyNodeVisible(0);
-    ResetAutomapView005817D0();
+    ResetAutomapView();
     if (!LoadLevelStatus("Saves\\CurrentGame.SAV", level)) {
         BuildLevelStatusPath(path, level);
-        g_level_status_loading_00659756 = 1;
+        g_level_status_loading = 1;
         LoadLevelStatus(path, level);
-        g_level_status_loading_00659756 = 0;
+        g_level_status_loading = 0;
     }
 
     if (!restoring_game && entrance != -1) {
@@ -585,12 +585,12 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
 
             trigger->GetPosition(&trigger_position);
             position = trigger_position;
-            position.y = SettlePositionToGround00420BD0(&trigger_position, 0) +
-                         g_default_world_height_00603ac8;
-            if (fabs(position.y - trigger_position.y) > g_position_height_epsilon_005ebfdc) {
+            position.y =
+                SettlePositionToGround00420BD0(&trigger_position, 0) + g_default_world_height;
+            if (fabs(position.y - trigger_position.y) > g_position_height_epsilon) {
                 position.y = trigger_position.y;
             }
-            SetWorldScenePosition004511D0(GetWorld(), &position);
+            SetWorldScenePosition(GetWorld(), &position);
 
             if (trigger->trigger_kind_018 == 2) {
                 srVector3T<float> axis;
@@ -609,49 +609,48 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
         } else {
             srVector3T<float> position;
 
-            position.Set(0.0f, g_default_world_height_00603ac8, 0.0f);
-            SetWorldScenePosition004511D0(GetWorld(), &position);
+            position.Set(0.0f, g_default_world_height, 0.0f);
+            SetWorldScenePosition(GetWorld(), &position);
         }
     } else {
-        RestoreWorldCameraState(GetWorld(), GetWorld659AB8(),
-                                &g_status_685170.pending_move_location);
+        RestoreWorldCameraState(GetWorld(), GetWorld659AB8(), &g_status.pending_move_location);
     }
 
-    if (level < W8_LEVEL_COUNT && !g_status_685170.level_progress[level].visited) {
+    if (level < W8_LEVEL_COUNT && !g_status.level_progress[level].visited) {
         ResetMonsterGroupTurnState();
         RebindMonsterGroupScripts();
-        g_status_685170.level_progress[level].visited = 1;
+        g_status.level_progress[level].visited = 1;
         first_visit = 1;
     }
 
     sprintf(path, "%s\\%s.%s", level_info.level_folder, level_info.level_file_name,
-            g_ambient_sound_filename_006059e0);
+            g_ambient_sound_filename);
     LoadAmbientSoundList0047AB40(path);
-    if (!g_environment_load_flag_00603ad0) {
-        ResetCurrentEnvironment0041AA40();
+    if (!g_environment_load_flag) {
+        ResetCurrentEnvironment();
     }
-    g_camera_path_active_0065ba70 = 0;
-    InitializeLevelEnvironment00482410();
-    InitializeLevelMasterFunctions004D6C50(level);
-    RebindNpcLevelTriggers0050AC60();
-    SetWorldCursorNodesVisible0048ED70(g_mipe_trigger_display_0068f0fd);
-    RebuildPartyEffectBlock0050E700();
+    g_camera_path_active = 0;
+    InitializeLevelEnvironment();
+    InitializeLevelMasterFunctions(level);
+    RebindNpcLevelTriggers();
+    SetWorldCursorNodesVisible(g_mipe_trigger_display);
+    RebuildPartyEffectBlock();
 
     if (!restoring_game) {
         if (level < W8_LEVEL_COUNT) {
-            ResetNpcBindingsForParty0050DB50();
-            ClearPendingNpcLevelFlags0050C270();
-            ReleaseNpcMonsterBindings0050C2E0();
+            ResetNpcBindingsForParty();
+            ClearPendingNpcLevelFlags();
+            ReleaseNpcMonsterBindings();
             RecordLevelEntryDialogueState();
             gXStatus.combat_countdown = 0;
         }
-        if (g_status_685170.greeting_pending_2497 && (GetFact(0x4c) || GetFact(0x4b))) {
-            DespawnAllActiveMonsterGroups0048C9F0();
+        if (g_status.greeting_pending_2497 && (GetFact(0x4c) || GetFact(0x4b))) {
+            DespawnAllActiveMonsterGroups();
         } else {
             UpdateRandomEncounterBudget(first_visit);
         }
         if (!first_visit) {
-            ResetAndRefreshAllSight005060C0();
+            ResetAndRefreshAllSight();
             AgeAllMonsterSight();
         }
         for (int index = g_spell_effects.GetCount() - 1; index >= 0; --index) {
@@ -670,8 +669,8 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
         RebuildAllWorldItemInstances();
     }
     MarkRendererReady();
-    UpdateWorldMeshAfterLoad00451020();
-    ReleaseReadMeshScratch004881D0();
+    UpdateWorldMeshAfterLoad();
+    ReleaseReadMeshScratch();
     return 1;
 }
 
@@ -679,24 +678,23 @@ unsigned char LoadLevel(int requested_level, int entrance, unsigned char restori
 unsigned char UnloadLevel(const char* save_directory)
 {
     if (gXStatus.fCombatMode != 0) {
-        EndCombat004EA310(1);
+        EndCombat(1);
     }
 
-    if (g_status_685170.current_level < W8_LEVEL_COUNT) {
-        g_status_685170.level_progress[g_status_685170.current_level].sight_clock =
-            g_status_685170.world_clock;
+    if (g_status.current_level < W8_LEVEL_COUNT) {
+        g_status.level_progress[g_status.current_level].sight_clock = g_status.world_clock;
     }
 
-    if (g_world_cleanup_flag_00659757 != 0) {
+    if (g_world_cleanup_flag != 0) {
         RenderFrame();
     }
 
-    ReleaseMarkedNpcBindings0050DA00();
+    ReleaseMarkedNpcBindings();
     if (strcmp(save_directory, "") != 0) {
         SaveLevelStatus("Saves\\CurrentGame.SAV");
     }
 
-    if (g_world_cleanup_flag_00659757 != 0) {
+    if (g_world_cleanup_flag != 0) {
         RenderFrame();
     }
 
@@ -704,46 +702,46 @@ unsigned char UnloadLevel(const char* save_directory)
         if (ReleaseItemLists() == 0) {
             return 0;
         }
-        if (g_world_cleanup_flag_00659757 != 0) {
+        if (g_world_cleanup_flag != 0) {
             RenderFrame();
         }
         if (ShutdownMonsterManager() == 0) {
             return 0;
         }
-        if (g_world_cleanup_flag_00659757 != 0) {
+        if (g_world_cleanup_flag != 0) {
             RenderFrame();
         }
         if (ScreenLifecycleSuccess() == 0) {
             return 0;
         }
-        if (g_world_cleanup_flag_00659757 != 0) {
+        if (g_world_cleanup_flag != 0) {
             RenderFrame();
         }
     }
 
-    ReleaseWorldCursorNodes0048DB30();
-    ClearSearchables005171B0();
-    if (g_world_cleanup_flag_00659757 != 0) {
+    ReleaseWorldCursorNodes();
+    ClearSearchables();
+    if (g_world_cleanup_flag != 0) {
         RenderFrame();
     }
 
-    ReleaseWorldCursor004909C0();
+    ReleaseWorldCursor();
     DisableSky();
     W8World* world = GetWorld();
     if (world != 0) {
         Forward44FAF0(world);
         SetCurrentWorld(0);
     }
-    ReleaseRetainedMaterials00489920();
+    ReleaseRetainedMaterials();
 
-    if (g_world_cleanup_flag_00659757 != 0) {
+    if (g_world_cleanup_flag != 0) {
         RenderFrame();
     }
 
     DisableSky();
-    g_status_685170.current_level = -1;
+    g_status.current_level = -1;
     ReleaseEnvironmentObjects();
-    g_runtime_world_scale_6081e8 = 500.0f;
+    g_runtime_world_scale = 500.0f;
     ClearValue6834D4();
 
     srRegistry* registry = srCore.getRegistry();
@@ -764,19 +762,19 @@ unsigned char UnloadLevel(const char* save_directory)
    saved yaw/pitch records and position are put back after the load; every
    other request is a plain unload+load. */
 // FUNCTION: WIZ8 0x0042AF60
-unsigned char ReloadLevelPreservingCamera0042AF60(int level, int entrance)
+unsigned char ReloadLevelPreservingCamera(int level, int entrance)
 {
     W8CameraAngleRecord saved_angle;
     W8CameraAngleRecord saved_pitch;
     srVector3T<float> saved_position;
     unsigned char restore = 0;
 
-    if (entrance == -1 && level == g_status_685170.current_level) {
+    if (entrance == -1 && level == g_status.current_level) {
         GetCameraOrientation(saved_angle, saved_pitch);
         WorldGetCameraLocation00451160(GetWorld(), &saved_position);
         restore = 1;
     }
-    if (g_status_685170.current_level != -1) {
+    if (g_status.current_level != -1) {
         if (UnloadLevel("Saves") == 0) {
             return 0;
         }
@@ -785,8 +783,8 @@ unsigned char ReloadLevelPreservingCamera0042AF60(int level, int entrance)
         return 0;
     }
     if (restore != 0) {
-        RestoreWorldCameraOrientation00421570(saved_angle, saved_pitch, GetWorld());
-        SetWorldScenePosition004511D0(GetWorld(), &saved_position);
+        RestoreWorldCameraOrientation(saved_angle, saved_pitch, GetWorld());
+        SetWorldScenePosition(GetWorld(), &saved_position);
     }
     return 1;
 }

@@ -26,10 +26,10 @@ struct W8CharacterCreationState {
        level-up reset zeroes it, and a profession change refunds whatever each
        entry holds before the new profession's skill points are assigned. */
     int skill_baselines_1bc[0x29];
-    int spell_points_remaining;    /* 0x260 */
-    int spell_points_total;        /* 0x264 */
-    int magic_skill_bonus;         /* 0x268 */
-    unsigned char spells_complete; /* 0x26c */
+    int spell_points_remaining; /* 0x260 */
+    int spell_points_total;     /* 0x264 */
+    int magic_skill_bonus;      /* 0x268 */
+    bool spells_complete;       /* 0x26c */
     unsigned char padding_26d[3];
 };
 static_assert(sizeof(W8CharacterCreationState) == 0x270, "W8CharacterCreationState_size");
@@ -48,7 +48,7 @@ void FinalizeCreatedCharacter(W8Character*, W8CharacterCreationState*, bool);
 void AddCharacterStartingEquipment(W8Character*);
 /* The six starting item ids each profession hands out, with the faerie
    race's own row last; -1 is an empty slot. */
-extern int g_starting_equipment_61635c[0x10][6];
+extern int g_starting_equipment[0x10][6];
 void RecomputeAttributeLimits(W8Character*, W8CharacterCreationState*);
 void ClampAttributesToBudget(W8Character*, W8CharacterCreationState*);
 void ApplyProfessionMinimumAttributes(W8Character*, W8CharacterCreationState*);
@@ -66,7 +66,7 @@ int CountRemainingSpellPoints(W8Character*, W8CharacterCreationState*);
 int ComputeLevelUpSpellPointAward(W8Character*, W8CharacterCreationState*);
 void SelectCreationSpell(W8Character*, W8CharacterCreationState*, unsigned int spell);
 void DeselectCreationSpell(W8Character*, W8CharacterCreationState*, unsigned int spell);
-void ResetSpellSelections005585D0(W8Character*, W8CharacterCreationState*);
+void ResetSpellSelections(W8Character*, W8CharacterCreationState*);
 int ComputeRealmSkillDebt(W8Character* original, W8Character* edited);
 int ComputeStartingEquipmentCost(W8Character*);
-unsigned char CanAffordStartingEquipment(W8Character*);
+bool CanAffordStartingEquipment(W8Character*);

@@ -494,8 +494,8 @@ static unsigned char CheckPathNodeChunking()
     }
     W8PrePathNode* first = prepath->GetPathNode();
     W8PrePathNode* second = prepath->GetPathNode();
-    /* Deliberately leaked: ~W8PathingService frees g_path_scratch_00659c64 and
-       clears g_pathing_00659c60 - globals this object does not own. */
+    /* Deliberately leaked: ~W8PathingService frees g_path_scratch and
+       clears g_pathing - globals this object does not own. */
     return first == prepath->node_chunks_258[0] && second == first + 1 && first->level_flags == 0 &&
            first->cell == 0 && prepath->chunk_index_11f8 == 0 &&
            prepath->chunk_node_count_11fc == 2;
@@ -529,10 +529,10 @@ static unsigned char CheckPathNodeYBits()
 
 static void RunOctFileRoundTrip(OctFileSemanticResult* result)
 {
-    OctPreTree* saved_pre_tree = g_oct_pre_tree_659c74;
-    W8Octree* saved_octree = g_octree_6598a4;
-    W8GameData* saved_game_data = g_octree_game_data_00652db0;
-    W8EnvironRecord* saved_environ = g_environ_00652DB4;
+    OctPreTree* saved_pre_tree = g_oct_pre_tree;
+    W8Octree* saved_octree = g_octree;
+    W8GameData* saved_game_data = g_octree_game_data;
+    W8EnvironRecord* saved_environ = g_environ;
     W8OctPreTreeGeometry geometry;
     W8GameData* loaded_data = 0;
     W8Octree* loaded;
@@ -621,7 +621,7 @@ static void RunOctFileRoundTrip(OctFileSemanticResult* result)
     result->file_size_matches = result->header_fields_ok;
 
     loaded = new W8Octree("NewLevel.oct", &loaded_data);
-    result->load_ok = loaded != 0 && loaded_data != 0 && g_octree_6598a4 == loaded &&
+    result->load_ok = loaded != 0 && loaded_data != 0 && g_octree == loaded &&
                       (loaded->spatial_000.flags_00 & 0x80000000) == 0;
     if (result->load_ok != 0) {
         result->spatial_roundtrip = CheckLoadedSpatial(tree, loaded);
@@ -642,12 +642,12 @@ restore:
     /* Everything allocated above is deliberately left for process teardown:
        ~W8GameData and parts of ~W8Octree route through unrecovered stubs in
        this image. The reader's W8GameData ctor deleted the writer-side
-       object's environ record through g_environ_00652DB4 and republished the
+       object's environ record through g_environ and republished the
        globals, so all four are restored here. */
-    g_oct_pre_tree_659c74 = saved_pre_tree;
-    g_octree_6598a4 = saved_octree;
-    g_octree_game_data_00652db0 = saved_game_data;
-    g_environ_00652DB4 = saved_environ;
+    g_oct_pre_tree = saved_pre_tree;
+    g_octree = saved_octree;
+    g_octree_game_data = saved_game_data;
+    g_environ = saved_environ;
 }
 
 bool RunOctFileSemanticTests(OctFileSemanticResult* result)
@@ -666,10 +666,10 @@ bool RunOctFileSemanticTests(OctFileSemanticResult* result)
     result->path_node_chunk_ok = CheckPathNodeChunking();
     result->y_bits_ok = CheckPathNodeYBits();
 
-    /* The W8GameData constructor deletes g_environ_00652DB4 and
-       g_level_data_00652dac when they are set, so the scenario requires a
+    /* The W8GameData constructor deletes g_environ and
+       g_level_data when they are set, so the scenario requires a
        state where no level is loaded - which the main menu provides. */
-    if (g_octree_disabled_6598a8 == 0 && g_level_data_00652dac == 0 && g_environ_00652DB4 == 0) {
+    if (g_octree_disabled == 0 && g_level_data == 0 && g_environ == 0) {
         result->octree_io_enabled = 1;
         RunOctFileRoundTrip(result);
     }

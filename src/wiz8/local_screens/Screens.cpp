@@ -111,7 +111,7 @@ unsigned char IsScreenTransitionPending(void)
 void RequestPartySlotRedraw(int bit)
 {
     if (g_current_screen_state.id == W8_SCREEN_CAMP) {
-        g_camp_screen_0069c0f4->redraw_flags |= 0x100;
+        g_camp_screen->redraw_flags |= 0x100;
     } else if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
         RequestRedraw(1 << (bit & 31));
     }
@@ -124,8 +124,8 @@ void RequestPartySlotRedraw(int bit)
 void RefreshPartySlotDisplay(unsigned int party_slot)
 {
     unsigned int top;
-    unsigned char overlay_ready;
-    char highlighted;
+    bool overlay_ready;
+    bool highlighted;
 
     switch (g_current_screen_state.id) {
     case W8_SCREEN_CHARACTER:
@@ -137,13 +137,12 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
         RefreshPartySelectionPortrait(party_slot);
         break;
     case W8_SCREEN_CAMP:
-        if (giReviewCharSlot == static_cast<int>(party_slot) &&
-            g_camp_screen_0069c0f4->input_mode == 0) {
-            if (g_camp_screen_0069c0f4->portrait_hovered_d40[0] != 0) {
-                g_camp_screen_0069c0f4->redraw_flags |= 0x100;
+        if (giReviewCharSlot == static_cast<int>(party_slot) && g_camp_screen->input_mode == 0) {
+            if (g_camp_screen->portrait_hovered_d40[0] != 0) {
+                g_camp_screen->redraw_flags |= 0x100;
                 return;
             }
-            g_camp_screen_0069c0f4->redraw_flags |= 0x100;
+            g_camp_screen->redraw_flags |= 0x100;
             RedrawRcsLevelUpPanel();
             RedrawRcsDismissPanel();
             return;
@@ -185,7 +184,7 @@ void RefreshPartySlotDisplay(unsigned int party_slot)
             RedrawPartyPortraitOverlay(party_slot, highlighted, overlay_ready,
                                        g_level_block->portrait_refresh_pending[party_slot] == 0);
             gXStatus.monster_manager_entries[party_slot].combat_portrait_dirty = 1;
-            InvalidatePortraitControl0059BBD0(party_slot);
+            InvalidatePortraitControl(party_slot);
             return;
         }
         break;
@@ -214,11 +213,11 @@ void SetTargetCursor(int cursor)
     if (cursor == -1) {
         if ((g_current_screen_state.id == W8_SCREEN_MAIN_GAME ||
              g_current_screen_state.id == W8_SCREEN_CAMP) &&
-            g_status_685170.item_in_cursor) {
-            if (g_status_685170.item_in_hand_235b.iItemNo != -1) {
-                g_status_685170.item_in_cursor = 1;
-                object = g_item_video_objects_68ec68.GetOrCreateVideoObject(
-                    g_status_685170.item_in_hand_235b.iItemNo);
+            g_status.item_in_cursor) {
+            if (g_status.item_in_hand_235b.iItemNo != -1) {
+                g_status.item_in_cursor = 1;
+                object =
+                    g_item_video_objects.GetOrCreateVideoObject(g_status.item_in_hand_235b.iItemNo);
                 SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(object, 0),
                                               GetCatalogVideoObjectYOffset(object), 0, 0);
                 BlitToMouseCursor(GetCatalogVideoObjectHandle(0, 0),
@@ -248,11 +247,11 @@ void UpdateHeldItemCursor(void)
 
     if ((g_current_screen_state.id == W8_SCREEN_MAIN_GAME ||
          g_current_screen_state.id == W8_SCREEN_CAMP) &&
-        g_status_685170.item_in_cursor) {
-        if (g_status_685170.item_in_hand_235b.iItemNo != -1) {
-            g_status_685170.item_in_cursor = 1;
-            object = g_item_video_objects_68ec68.GetOrCreateVideoObject(
-                g_status_685170.item_in_hand_235b.iItemNo);
+        g_status.item_in_cursor) {
+        if (g_status.item_in_hand_235b.iItemNo != -1) {
+            g_status.item_in_cursor = 1;
+            object =
+                g_item_video_objects.GetOrCreateVideoObject(g_status.item_in_hand_235b.iItemNo);
             SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(object, 0),
                                           GetCatalogVideoObjectYOffset(object), 0, 0);
             BlitToMouseCursor(GetCatalogVideoObjectHandle(0, 0), GetCatalogVideoObjectYOffset(0), 0,
@@ -286,7 +285,7 @@ void ApplyCurrentCursor(void)
         ResizeMouseCursorSurface(g_main_game_resource_slots[gXStatus.iCurrentCursor].size_x,
                                  g_main_game_resource_slots[gXStatus.iCurrentCursor].size_y);
         SetMouseCursorTexture(g_main_game_resource_slots[gXStatus.iCurrentCursor].object);
-        g_main_game_resource_slots[gXStatus.iCurrentCursor].object->SetFrame00485400(
+        g_main_game_resource_slots[gXStatus.iCurrentCursor].object->SetFrame(
             gXStatus.current_cursor_frame);
         SetMouseCursorHotspot(g_main_game_resource_slots[gXStatus.iCurrentCursor].hotspot_x,
                               g_main_game_resource_slots[gXStatus.iCurrentCursor].hotspot_y);
@@ -297,14 +296,14 @@ void ApplyCurrentCursor(void)
 }
 
 /* Empty the item-in-hand record and restore the normal cursor. The held item is
-   the 0x0c-byte record at g_status_685170.item_in_hand_235b (0x006874CB); the
+   the 0x0c-byte record at g_status.item_in_hand_235b (0x006874CB); the
    byte directly before it is item_in_cursor. */
 // FUNCTION: WIZ8 0x0055f1e0
 void ClearHeldItemDisplay(void)
 {
-    memset(&g_status_685170.item_in_hand_235b, 0, sizeof(g_status_685170.item_in_hand_235b));
-    g_status_685170.item_in_cursor = 0;
-    g_status_685170.item_in_hand_235b.iItemNo = -1;
+    memset(&g_status.item_in_hand_235b, 0, sizeof(g_status.item_in_hand_235b));
+    g_status.item_in_cursor = 0;
+    g_status.item_in_hand_235b.iItemNo = -1;
 
     if (gXStatus.iCurrentCursor != -1) {
         SetMouseCursorFromVideoObject(GetCatalogVideoObjectHandle(0, 0),
@@ -337,10 +336,9 @@ void SetItemCursor(int item_id)
     unsigned short y_offset;
     unsigned int handle;
 
-    if (g_status_685170.item_in_hand_235b.iItemNo != -1) {
-        g_status_685170.item_in_cursor = 1;
-        object = g_item_video_objects_68ec68.GetOrCreateVideoObject(
-            g_status_685170.item_in_hand_235b.iItemNo);
+    if (g_status.item_in_hand_235b.iItemNo != -1) {
+        g_status.item_in_cursor = 1;
+        object = g_item_video_objects.GetOrCreateVideoObject(g_status.item_in_hand_235b.iItemNo);
         y_offset = GetCatalogVideoObjectYOffset(object);
         handle = GetCatalogVideoObjectHandle(object, 0);
         SetMouseCursorFromVideoObject(handle, y_offset, 0, 0);
@@ -379,7 +377,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->camera_mode_100 = 7;
     g_level_block->message_box_pending_0f0 = IsMessageBoxActive();
     g_level_block->portrait_strip_dirty_108 = 0;
-    g_level_block->flag_210 = 0;
+    g_level_block->flag_210 = false;
     g_level_block->value_194 = -1;
     g_level_block->highlight_override = -1;
     g_level_block->party_slots_170[0] = -1;
@@ -412,15 +410,15 @@ void InitializeMainGameLevelBlock(void)
         g_level_block->portrait_refresh_mode[slot] = 0;
     }
     g_level_block->combat_end_notification = -1;
-    previous_mode = g_settings_6850c8.main_ui_mode;
-    g_settings_6850c8.main_ui_mode = W8_MAIN_UI_MODE_NONE;
+    previous_mode = g_settings.main_ui_mode;
+    g_settings.main_ui_mode = W8_MAIN_UI_MODE_NONE;
     ApplyMainGameModeFlag(previous_mode, 1);
     g_level_block->character_update_timer = SetCountdownClock(0);
     g_level_block->world_update_timer = SetCountdownClock(0);
     g_level_block->countdown_258 = SetCountdownClock(60000);
     g_level_block->countdown_25c = SetCountdownClock(0);
     g_level_block->countdown_26c = SetCountdownClock(0xfa);
-    g_level_block->flag_270 = 1;
+    g_level_block->flag_270 = true;
     g_level_block->text_box_visible_271 = 1;
     g_level_block->dialogue_text_input_open = 0;
     g_level_block->mipe_editing_272 = 0;
@@ -434,7 +432,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->value_2ac = 0;
     g_level_block->value_2b4 = 0;
     g_level_block->value_2b0 = 0;
-    g_level_block->text_lines[4 + g_status_685170.text_line_cursor_1795] = FindStoppedTextLine();
+    g_level_block->text_lines[4 + g_status.text_line_cursor_1795] = FindStoppedTextLine();
     g_level_block->refresh_combat_panel = 1;
     g_level_block->combat_panel_timer = SetCountdownClock(0);
     g_level_block->refresh_party_panel = 1;
@@ -454,7 +452,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->value_2f4 = -1;
     g_level_block->selection_settled = 0;
     g_level_block->tooltip_since = 0;
-    g_level_block->tooltip_pending = 0;
+    g_level_block->tooltip_pending = false;
     g_level_block->tooltip_subject = -1;
     g_level_block->tooltip_kind = -1;
     g_level_block->countdown_30c = SetCountdownClock(0);
@@ -463,7 +461,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->hover_combat_slot = -1;
     g_level_block->cursor_grace_31c = 0;
     g_level_block->countdown_320 = SetCountdownClock(0);
-    g_level_block->portrait_right_hold_armed = 0;
+    g_level_block->portrait_right_hold_armed = false;
     g_level_block->formation_board_alternate = 0;
     g_level_block->radar_map_alternate = 0;
     g_level_block->review_transition_active = 0;

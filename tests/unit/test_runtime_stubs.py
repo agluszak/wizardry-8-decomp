@@ -152,7 +152,7 @@ def test_declared_callable_does_not_bind_another_class_method() -> None:
             )
         },
     )
-    assert _declared_callable(facts, "W8CharacterPage005EF664::Accept", "Accept", 0) is None
+    assert _declared_callable(facts, "W8CharacterSpellsPage::Accept", "Accept", 0) is None
 
 
 def test_resolve_stubs_rejects_ambiguous_declaration(monkeypatch) -> None:

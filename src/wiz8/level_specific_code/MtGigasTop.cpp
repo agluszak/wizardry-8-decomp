@@ -11,7 +11,7 @@
 
 /* Level Specific Code\MtGigasTop.cpp (level 0x0f).
 
-   Attribution evidence: InitializeLevelMasterFunctions004D6C50 registers all
+   Attribution evidence: InitializeLevelMasterFunctions registers all
    five callbacks under case 0x0f, the level the Levels.cpp table names
    "MtGigasTop"; the block sits between the MtGigasOuter (0x0e) callbacks and
    the Monastery2 (9) anchors. */
@@ -24,8 +24,8 @@ bool OnEwaxxCannon1Activated(Trigger* trigger)
     W8NpcState* npc = GetNpcStateByKind(0x58);
     W8ItemInstance* item = 0;
 
-    if (g_status_685170.item_in_cursor != 0) {
-        item = &g_status_685170.item_in_hand_235b;
+    if (g_status.item_in_cursor != 0) {
+        item = &g_status.item_in_hand_235b;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
     return true;
@@ -39,8 +39,8 @@ bool OnEwaxxLandingActivated(Trigger* trigger)
     W8NpcState* npc = GetNpcStateByKind(0x7f);
     W8ItemInstance* item = 0;
 
-    if (g_status_685170.item_in_cursor != 0) {
-        item = &g_status_685170.item_in_hand_235b;
+    if (g_status.item_in_cursor != 0) {
+        item = &g_status.item_in_hand_235b;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
     return true;
@@ -63,8 +63,8 @@ bool OnEwaxxTopDoor2Activated(Trigger* trigger)
     W8NpcState* npc = GetNpcStateByKind(0x60);
     W8ItemInstance* item = 0;
 
-    if (g_status_685170.item_in_cursor != 0) {
-        item = &g_status_685170.item_in_hand_235b;
+    if (g_status.item_in_cursor != 0) {
+        item = &g_status.item_in_hand_235b;
     }
     QueueNpcScriptNotice(npc, item, -1, 0, 0);
     return true;

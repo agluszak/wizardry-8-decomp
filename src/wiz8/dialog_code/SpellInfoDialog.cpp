@@ -22,16 +22,16 @@ const char* g_spell_effect_database_path = "Data\\Databases\\SpellEffect.dbs";
 // GLOBAL: WIZ8 0x0064fcd4
 const char* g_spell_desc_database_path = "Data\\Databases\\SpellDesc.dbs";
 // GLOBAL: WIZ8 0x0061a128
-const wchar_t g_format_d_s_0061a128[] = L"%d %s";
+const wchar_t g_format_d_s[] = L"%d %s";
 // GLOBAL: WIZ8 0x00619794
-const wchar_t g_comma_space_00619794[] = L", ";
+const wchar_t g_comma_space[] = L", ";
 // GLOBAL: WIZ8 0x0060cff0
-const unsigned short g_spellbook_name_ids_60cff0[4] = {791, 792, 793, 794};
+const unsigned short g_spellbook_name_ids[4] = {791, 792, 793, 794};
 // GLOBAL: WIZ8 0x0060d4a8
-const unsigned short g_spell_usage_name_ids_60d4a8[5] = {795, 797, 796, 796, 796};
+const unsigned short g_spell_usage_name_ids[5] = {795, 797, 796, 796, 796};
 // GLOBAL: WIZ8 0x0060d4b4
-const unsigned short g_spell_target_type_name_ids_60d4b4[11] = {798, 799, 800, 801, 802, 803,
-                                                                804, 805, 806, 807, 807};
+const unsigned short g_spell_target_type_name_ids[11] = {798, 799, 800, 801, 802, 803,
+                                                         804, 805, 806, 807, 807};
 // GLOBAL: WIZ8 0x0060d4cc
 const wchar_t g_spell_target_mark_fff4[] = {0xfff4, 0};
 // GLOBAL: WIZ8 0x0060d4d0
@@ -43,20 +43,20 @@ const wchar_t g_spell_target_mark_fff2[] = {0xfff2, 0};
 // GLOBAL: WIZ8 0x0060d4dc
 const wchar_t g_spell_target_mark_fff3[] = {0xfff3, 0};
 // GLOBAL: WIZ8 0x0060d4e0
-const wchar_t* g_spell_target_parentheticals_60d4e0[11] = {
+const wchar_t* g_spell_target_parentheticals[11] = {
     g_spell_target_mark_fff4, g_spell_target_mark_fff2, g_spell_target_mark_fff4,
     g_spell_target_mark_fff2, g_spell_target_mark_fff3, g_spell_target_mark_fff1,
     g_spell_target_mark_fff0, g_spell_target_mark_fff4, g_spell_target_mark_fff0,
     g_spell_target_mark_fff4, g_spell_target_mark_fff4,
 };
 // GLOBAL: WIZ8 0x0061e9a0
-const unsigned short g_spell_range_name_ids_61e9a0[4] = {1307, 1308, 1309, 1310};
+const unsigned short g_spell_range_name_ids[4] = {1307, 1308, 1309, 1310};
 // GLOBAL: WIZ8 0x0064fdcc
-const wchar_t g_format_d_space_0064fdcc[] = L"%d ";
+const wchar_t g_format_d_space[] = L"%d ";
 // GLOBAL: WIZ8 0x0064fdc4
-const wchar_t g_plus_space_0064fdc4[] = L"+ ";
+const wchar_t g_plus_space[] = L"+ ";
 // GLOBAL: WIZ8 0x0064fdd4
-const wchar_t g_format_d_d_s_0064fdd4[] = L"%d-%d %s";
+const wchar_t g_format_d_d_s[] = L"%d-%d %s";
 
 // GLOBAL: WIZ8 0x0064FD54
 static const char SPELL_INFO_DIALOG_CPP[] =
@@ -128,9 +128,9 @@ void W8SpellInfoDialog::Draw()
         if (m_initialized == 0) {
             CreateControls();
         }
-        m_text_area_0ec.m_dirty = 1;
-        m_scroll_bar_058.m_dirty = 1;
-        m_button_0a4.m_dirty = 1;
+        m_text_area_0ec.m_dirty = true;
+        m_scroll_bar_058.m_dirty = true;
+        m_button_0a4.m_dirty = true;
         W8DialogBase::Draw();
         DrawLabels();
     }
@@ -140,7 +140,7 @@ void W8SpellInfoDialog::Draw()
     steps = (int)m_timer_144.GetProgress();
     if (steps > 0) {
         realm = g_spell_records[m_spell_054].realm;
-        animation = &g_spell_realm_animations_00648c90[realm];
+        animation = &g_spell_realm_animations[realm];
         m_animation_frame += steps;
         m_animation_frame %= animation->frame_count;
         DrawCatalogImageAndInvalidate(-0xe, animation->image, 0, m_animation_frame, m_x + 0xe,
@@ -182,40 +182,40 @@ unsigned char W8SpellInfoDialog::PopulateText()
     for (book = 0; book < 4; ++book) {
         if ((spellbook_mask & (1 << book)) != 0) {
             if (count > 0) {
-                wcscat(text, g_comma_space_00619794);
+                wcscat(text, g_comma_space);
             }
-            wcscat(text, gppStringList[g_spellbook_name_ids_60cff0[book]]);
+            wcscat(text, gppStringList[g_spellbook_name_ids[book]]);
             ++count;
         }
     }
     m_text_area_0ec.AddEntry(gppStringList[0x470 / 4], text, 10, 0xf, 0);
     m_text_area_0ec.AddEntry(gppStringList[0x474 / 4],
-                             gppStringList[g_spell_usage_name_ids_60d4a8[record->usable_when]], 10,
-                             0xf, 0);
+                             gppStringList[g_spell_usage_name_ids[record->usable_when]], 10, 0xf,
+                             0);
 
     target_type = GetSpellTargetType(m_spell_054, 0);
     m_text_area_0ec.AddEntry(
         gppStringList[0x478 / 4],
-        FormatWideString(g_format_s_space_s_00617584,
-                         gppStringList[g_spell_target_type_name_ids_60d4b4[target_type]],
-                         g_spell_target_parentheticals_60d4e0[target_type]),
+        FormatWideString(g_format_s_space_s,
+                         gppStringList[g_spell_target_type_name_ids[target_type]],
+                         g_spell_target_parentheticals[target_type]),
         10, 0xf, 0);
     m_text_area_0ec.AddEntry(gppStringList[0x47c / 4],
-                             gppStringList[g_spell_range_name_ids_61e9a0[record->range_category]],
-                             10, 0xf, 0);
+                             gppStringList[g_spell_range_name_ids[record->range_category]], 10, 0xf,
+                             0);
 
     if (record->show_effect_dice != 0 &&
         (record->effect_dice.base != 0 || record->effect_dice.count != 0)) {
         if (record->effect_dice.count == 0) {
             m_text_area_0ec.AddEntry(gppStringList[0x480 / 4],
-                                     FormatWideString(g_format_d_s_0061a128,
-                                                      (int)record->effect_dice.base,
+                                     FormatWideString(g_format_d_s,
+                                                      static_cast<int>(record->effect_dice.base),
                                                       gppStringList[0x484 / 4]),
                                      10, 0xf, 0);
         } else {
             m_text_area_0ec.AddEntry(
                 gppStringList[0x480 / 4],
-                FormatWideString(g_format_d_d_s_0064fdd4,
+                FormatWideString(g_format_d_d_s,
                                  record->effect_dice.count + (int)record->effect_dice.base,
                                  record->effect_dice.sides * record->effect_dice.count +
                                      (int)record->effect_dice.base,
@@ -245,10 +245,10 @@ unsigned char W8SpellInfoDialog::PopulateText()
                 ui_units = 0x127;
             }
             if (display > 0) {
-                wcscat(text, FormatWideString(g_format_d_space_0064fdcc, display));
+                wcscat(text, FormatWideString(g_format_d_space, display));
             }
             if (duration_base > 0) {
-                wcscat(text, g_plus_space_0064fdc4);
+                wcscat(text, g_plus_space);
             }
         }
         ui_units_lvl = ui_units;
@@ -272,7 +272,7 @@ unsigned char W8SpellInfoDialog::PopulateText()
                              FormatString("Spell %S duration has mismatched base & per-lvl units",
                                           record->display_name));
             }
-            wcscat(text, FormatWideString(g_format_d_space_0064fdcc, display_base));
+            wcscat(text, FormatWideString(g_format_d_space, display_base));
         }
         if ((duration_per_level == 1 && display_base == 0) ||
             (duration_per_level == 0 && display_base == 1)) {
@@ -329,8 +329,7 @@ void W8SpellInfoDialog::DrawLabels()
     text = FormatWideString(g_format_d_0060aa20, record->spell_level);
     width = StringPixLength(text, g_font_683660);
     gprintf(m_x + 0x7c + (0x16 - width) / 2, m_y + 0x24, L"%s", text);
-    text =
-        FormatWideString(g_format_d_s_0061a128, record->spell_point_cost, gppStringList[0x46c / 4]);
+    text = FormatWideString(g_format_d_s, record->spell_point_cost, gppStringList[0x46c / 4]);
     width = StringPixLength(text, g_font_683660);
     gprintf(m_x + 0xa4 + (0x25 - width) / 2, m_y + 0x33, L"%s", text);
 }
@@ -351,7 +350,7 @@ void W8SpellInfoDialog::ScrollCallback(W8DialogScrollBar* scroll_bar, int first_
         bottom = top + 0xb9;
         InvalidateRegion(left, top, right, bottom, 0);
         BlitCatalogSurfaceRectTo16BPP(-0xe, left, top, right, bottom, 0x1b6, 0, 0);
-        dialog->m_text_area_0ec.m_dirty = 1;
+        dialog->m_text_area_0ec.m_dirty = true;
     }
 }
 
@@ -360,7 +359,7 @@ void W8SpellInfoDialog::ScrollCallback(W8DialogScrollBar* scroll_bar, int first_
 void W8SpellInfoDialog::OnRightButtonUp()
 {
     if (m_right_button_down) {
-        m_keep_open = 0;
+        m_keep_open = false;
     }
 }
 

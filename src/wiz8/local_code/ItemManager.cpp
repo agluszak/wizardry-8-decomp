@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "wiz8/engine_code/GameData.h"
-#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator.h"
 #include "wiz8/engine_code/PolyPick.h"
 #include "wiz8/geometry.h"
 #include "wiz8/3d_code/IList.h"
@@ -83,7 +83,7 @@ unsigned char g_byte_0064a1cd = 1;
 // FUNCTION: WIZ8 0x004f69f0
 bool InitializeItemManagerState()
 {
-    g_status_685170.next_world_item_id_2352 = 1;
+    g_status.next_world_item_id_2352 = 1;
     gXStatus.item_manager_pending = 0;
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME && g_level_block != 0) {
         g_level_block->selected_item = -1;
@@ -707,11 +707,10 @@ void ActivateItem(W8WorldItem* item)
     }
     position = item->position;
     item->p3D->SetLocation0049F720(&position);
-    item->p3D->SetYaw(
-        static_cast<float>(Random(0x168) * 2 * g_camera_pi_005ec2a0 * g_double_005ed7b0));
+    item->p3D->SetYaw(static_cast<float>(Random(0x168) * 2 * g_camera_pi * g_double_005ed7b0));
     static_cast<W8ItemRep*>(item->p3D->m_pRep)->flags |= item->entity_flags;
-    item->p3D->AttachMesh0049F900(GetWorld());
-    AddItemToWorld0046E5C0(GetWorld(), item->p3D);
+    item->p3D->AttachMesh(GetWorld());
+    AddItemToWorld(GetWorld(), item->p3D);
     item->fActive = 1;
     ++gXStatus.item_manager_pending;
 
@@ -725,7 +724,7 @@ void ActivateItem(W8WorldItem* item)
         sun_position = sun->getLocation();
         mesh = static_cast<stModelInstance*>(item->p3D->GetMesh());
         if (mesh != 0) {
-            if (g_octree_6598a4->HasLineOfSight(&position, &sun_position, 1)) {
+            if (g_octree->HasLineOfSight(&position, &sun_position, 1)) {
                 mesh->light_scale_194 = 1.0f;
             } else {
                 mesh->light_scale_194 = 0.0f;
@@ -761,8 +760,8 @@ void DeactivateWorldItem(W8WorldItem* item)
     item->position = position;
     item->entity_flags = static_cast<W8ItemRep*>(item->p3D->m_pRep)->flags;
 
-    item->p3D->DetachMesh0049FA30(GetWorld());
-    RemoveItemFromWorld0046E5E0(GetWorld(), item->p3D);
+    item->p3D->DetachMesh(GetWorld());
+    RemoveItemFromWorld(GetWorld(), item->p3D);
     delete item->p3D;
     item->p3D = 0;
     item->fActive = 0;
@@ -793,7 +792,7 @@ void SetWorldItemHighlight(int runtime_id, char on)
    and whose screen distance stays inside `max_distance`, or -1. The cursor
    coordinates are carried but unused - the hover test is IsSelected. */
 // FUNCTION: WIZ8 0x004f7370
-int PickNearestItemUnderCursor004F7370(int cursor_x, int cursor_y, float max_distance)
+int PickNearestItemUnderCursor(int cursor_x, int cursor_y, float max_distance)
 {
     int result;
     float best_distance;
@@ -814,7 +813,7 @@ int PickNearestItemUnderCursor004F7370(int cursor_x, int cursor_y, float max_dis
         if (!item->p3D->IsSelected()) {
             continue;
         }
-        distance = ItemDistanceToCamera004BE7C0(GetWorld(), item->p3D);
+        distance = ItemDistanceToCamera(GetWorld(), item->p3D);
         if (distance < max_distance && distance < best_distance) {
             result = item->runtime_id;
             best_distance = distance;
@@ -846,7 +845,7 @@ void UpdateNearbyWorldItems(void)
             AdvanceFallingWorldItem(item);
         }
         if (item->fActive == 0) {
-            if (DistanceBetweenPoints004BE6D0(&item->position, &camera) < g_float_005ed7b8) {
+            if (DistanceBetweenPoints(&item->position, &camera) < g_float_005ed7b8) {
                 if (g_byte_0064a1cd != 0) {
                     if (item == 0) {
                         srAssertFail("pItemInfo != NULL", ITEM_MANAGER_CPP, 0x3e6, 0);
@@ -861,7 +860,7 @@ void UpdateNearbyWorldItems(void)
             srVector3T<float> location;
 
             item->p3D->m_pRep->GetLocation004B8890(&location);
-            if (DistanceBetweenPoints004BE6D0(&location, &camera) > g_float_005ec360) {
+            if (DistanceBetweenPoints(&location, &camera) > g_float_005ec360) {
                 DeactivateWorldItem(item);
             }
         }
@@ -879,7 +878,7 @@ void UpdateNearbyWorldItems(void)
 void DropHeldItem(int arg_1)
 {
     srVector3T<float> cursor;
-    GetCursorScaledPosition004282F0(&cursor);
+    GetCursorScaledPosition(&cursor);
     cursor.y = (cursor.y - g_float_005ebc7c) * g_float_005ec390;
     cursor.z = (cursor.z - g_float_005ebc7c) * g_float_005ec390;
 
@@ -900,7 +899,7 @@ void DropHeldItem(int arg_1)
     srVector3T<float> camera;
     GetCameraPosition(&camera);
     direction += camera;
-    g_octree_6598a4->TraceLineOfSight(&camera, &direction, 1, -3, -3, 1, 0);
+    g_octree->TraceLineOfSight(&camera, &direction, 1, -3, -3, 1, 0);
 
     srVector3T<float> delta = direction - camera;
     float distance_squared = delta.LengthSquared();
@@ -914,9 +913,9 @@ void DropHeldItem(int arg_1)
     }
 
     srVector3T<float> position = camera + delta;
-    position.y = g_octree_6598a4->SettleToGround(&position, 0, 1, 250.0f) + g_float_005ec3f8;
-    if (FindNearbyFreePosition00451800(250.0f, &position, 1, 1) != 0) {
-        W8WorldItem* item = CreateWorldItem(&g_status_685170.item_in_hand_235b, &position, 3, 1);
+    position.y = g_octree->SettleToGround(&position, 0, 1, 250.0f) + g_float_005ec3f8;
+    if (FindNearbyFreePosition(250.0f, &position, 1, 1) != 0) {
+        W8WorldItem* item = CreateWorldItem(&g_status.item_in_hand_235b, &position, 3, 1);
         if (item == 0) {
             // Retail passes the NULL item pointer as the assert message.
             // reinterpret-ok: pointer-valued assert message argument.
@@ -934,7 +933,7 @@ void DropHeldItem(int arg_1)
    Either way the group's own world entry is found by runtime id, pulled out
    of its sector, deactivated, freed and removed from the list. */
 // FUNCTION: WIZ8 0x004f7c50
-void OnItemPickerDialogDestroyed004F7C50(W8DialogBase* dialog)
+void OnItemPickerDialogDestroyed(W8DialogBase* dialog)
 {
     W8WorldItem* group;
     W8WorldItem* item;
@@ -972,7 +971,7 @@ void OnItemPickerDialogDestroyed004F7C50(W8DialogBase* dialog)
    runs, the instance copies into the cursor hand, and the world entry is
    stripped back out of its sector and the list. */
 // FUNCTION: WIZ8 0x004f7910
-unsigned char InteractWithWorldItem004F7910(int runtime_id)
+unsigned char InteractWithWorldItem(int runtime_id)
 {
     unsigned char result = 1;
     int index = ItemIndex(runtime_id);
@@ -985,19 +984,19 @@ unsigned char InteractWithWorldItem004F7910(int runtime_id)
         W8TriggerItemPickerDialog* dialog = new W8TriggerItemPickerDialog;
         if (dialog != 0) {
             dialog->SetItemGroup(item);
-            dialog->m_destroy_callback = OnItemPickerDialogDestroyed004F7C50;
+            dialog->m_destroy_callback = OnItemPickerDialogDestroyed;
         }
-        g_modal_owner_0068edd0 = dialog;
+        g_modal_owner = dialog;
         return 1;
     }
     if (item->p3D->trigger_018 != 0) {
-        result = RunItemTrigger004A0070(item->p3D);
+        result = RunItemTrigger(item->p3D);
         if (result == 0) {
             return result;
         }
     }
     if ((static_cast<W8ItemRep*>(item->p3D->m_pRep)->flags & 4) == 0) {
-        CopyItemInstance(&g_status_685170.item_in_hand_235b, &item->item, 0, 1);
+        CopyItemInstance(&g_status.item_in_hand_235b, &item->item, 0, 1);
     }
     index = ItemIndex(runtime_id);
     item = ItemInfo(index);
@@ -1097,7 +1096,7 @@ bool IsWorldItemWithinReach(W8Item* owner, const srVector3T<float>* from, float 
 
 /* plsItemList index that last satisfied AnyWorldItemVisible. */
 // GLOBAL: WIZ8 0x00618E70
-static int g_last_visible_world_item_00618e70 = -1;
+static int g_last_visible_world_item = -1;
 
 /* Any live world item visible to the camera within g_double_005ec030, resuming
    the scan at the last match. */
@@ -1117,9 +1116,9 @@ bool AnyWorldItemVisible(void)
     }
     GetCameraPosition(&camera);
     count = PLLength(gXStatus.plsItemList);
-    if (0 <= g_last_visible_world_item_00618e70 && g_last_visible_world_item_00618e70 < count) {
-        W8WorldItem* item = static_cast<W8WorldItem*>(
-            PLGet(gXStatus.plsItemList, g_last_visible_world_item_00618e70));
+    if (0 <= g_last_visible_world_item && g_last_visible_world_item < count) {
+        W8WorldItem* item =
+            static_cast<W8WorldItem*>(PLGet(gXStatus.plsItemList, g_last_visible_world_item));
         if (item->p3D != 0) {
             item->p3D->m_pRep->GetLocation004B8890(&position);
             GetCameraPosition(&eye);
@@ -1156,7 +1155,7 @@ bool AnyWorldItemVisible(void)
                 upper.y += position.y;
                 upper.z += position.z;
                 if (ShowTargetMarker(&eye, &lower, &upper) != 0) {
-                    g_last_visible_world_item_00618e70 = index;
+                    g_last_visible_world_item = index;
                     return 1;
                 }
             }
@@ -1184,20 +1183,20 @@ unsigned char AdvanceFallingWorldItem(W8WorldItem* item)
     previous_y = item->position.y;
     probe.x = item->position.x;
     probe.z = item->position.z;
-    probe.y = previous_y + g_world_scale_005ebc40;
-    dt = g_game_time_accumulator_6598bc->GetFrameDelta();
-    if (g_camera_snap_epsilon_005ebc2c < item->vertical_velocity_35) {
+    probe.y = previous_y + g_world_scale;
+    dt = g_game_time_accumulator->GetFrameDelta();
+    if (g_camera_snap_epsilon < item->vertical_velocity_35) {
         probe.y = dt * item->vertical_velocity_35 + probe.y;
     }
 
-    ground = g_octree_6598a4->SettleToGround(&probe, &hit, 1, 250.0f);
-    if (hit == 0 || fabs(ground - previous_y) < g_camera_snap_epsilon_005ebc2c) {
+    ground = g_octree->SettleToGround(&probe, &hit, 1, 250.0f);
+    if (hit == 0 || fabs(ground - previous_y) < g_camera_snap_epsilon) {
         item->flags &= ~2u;
         item->vertical_velocity_35 = 0.0f;
         return 0;
     }
 
-    sector = g_octree_6598a4->current_prop;
+    sector = g_octree->current_prop;
     if (sector != item->sector_id) {
         if (item->sector_id >= 0) {
             RemoveItemFromSector(item->sector_id, item);
@@ -1213,7 +1212,7 @@ unsigned char AdvanceFallingWorldItem(W8WorldItem* item)
         probe.y = ground;
     } else {
         item->vertical_velocity_35 =
-            dt * g_navigator_gravity_00603acc * g_float_005ebc7c + item->vertical_velocity_35;
+            dt * g_navigator_gravity * g_float_005ebc7c + item->vertical_velocity_35;
         probe.y = probe.y - dt * item->vertical_velocity_35;
         if (probe.y < ground) {
             probe.y = ground;
@@ -1239,17 +1238,17 @@ unsigned char SettleWorldItem(W8WorldItem* item)
 
     start.x = item->position.x;
     start.z = item->position.z;
-    start.y = item->position.y + g_world_scale_005ebc40;
+    start.y = item->position.y + g_world_scale;
 
     item->flags &= ~2u;
     item->vertical_velocity_35 = 0.0f;
 
-    g_octree_6598a4->SettleToGround(&start, &hit, 1, 250.0f);
+    g_octree->SettleToGround(&start, &hit, 1, 250.0f);
     if (hit == 0) {
         return 0;
     }
 
-    sector = g_octree_6598a4->current_prop;
+    sector = g_octree->current_prop;
     if (sector != item->sector_id) {
         if (item->sector_id >= 0) {
             RemoveItemFromSector(item->sector_id, item);
@@ -1295,7 +1294,7 @@ W8WorldItem* CreateWorldItem(W8ItemInstance* item, const srVector3T<float>* posi
 
     memset(result, 0, sizeof(W8WorldItem));
     EmptyItemRecord(&result->item, 0, 1);
-    result->runtime_id = g_status_685170.next_world_item_id_2352++;
+    result->runtime_id = g_status.next_world_item_id_2352++;
     result->fActive = 0;
     result->p3D = 0;
     result->position = *position;

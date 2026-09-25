@@ -65,16 +65,16 @@ wchar_t g_wchar_00689b34;
    recovered site reads it yet; ownership stays with this constant until a
    writer shows a wider family. */
 // GLOBAL: WIZ8 0x005ed590
-extern const unsigned int g_W8TextControlLayoutMask005ED590 = 0x40;
+extern const unsigned int g_W8TextControlLayoutMask = 0x40;
 
 // GLOBAL: WIZ8 0x0069c1c8
 unsigned char g_options_first_frame;
 // GLOBAL: WIZ8 0x0069c138
 W8OptionsValues g_options_values;
 // GLOBAL: WIZ8 0x0069c254
-W8OptionsScreen* g_options_screen_0069c254;
+W8OptionsScreen* g_options_screen;
 // GLOBAL: WIZ8 0x0069c1cc
-wchar_t g_options_last_save_name_0069c1cc[64];
+wchar_t g_options_last_save_name[64];
 
 // GLOBAL: WIZ8 0x0064d72c
 int g_last_options_panel = 5;
@@ -280,17 +280,17 @@ void W8OptionsSaveLoadPanel::Populate()
                                         first_sprite + 2, first_sprite + 1, -1, -1);
     m_action_button->m_listener = this;
 
-    if (m_panel == 11 && g_options_screen_0069c254->m_save_slots.count == 1) {
+    if (m_panel == 11 && g_options_screen->m_save_slots.count == 1) {
         m_delete_button->SetEnabled(0);
         m_action_button->SetEnabled(0);
     }
 
     int page = 0;
     int selected = 0;
-    if (m_panel == 11 && g_options_last_save_name_0069c1cc[0] != 0) {
-        for (int index = 1; index < g_options_screen_0069c254->m_save_slots.count; ++index) {
-            if (wcscmp(g_options_last_save_name_0069c1cc,
-                       (*g_options_screen_0069c254->m_save_slots.GetAt(index))->name) == 0) {
+    if (m_panel == 11 && g_options_last_save_name[0] != 0) {
+        for (int index = 1; index < g_options_screen->m_save_slots.count; ++index) {
+            if (wcscmp(g_options_last_save_name,
+                       (*g_options_screen->m_save_slots.GetAt(index))->name) == 0) {
                 page = (index - 1) / 5;
                 selected = (index - 1) % 5;
             }
@@ -306,7 +306,7 @@ void W8OptionsSaveLoadPanel::SetActive(unsigned char active)
     EnableRegionSet(active);
     SetEnabled(active);
     Invalidate(0);
-    if (active != 0 && g_options_screen_0069c254->m_text_editor == 0 && m_panel == 12 &&
+    if (active != 0 && g_options_screen->m_text_editor == 0 && m_panel == 12 &&
         m_selection.m_selectedIndex == 0 && m_current_04c == 0) {
         OnEditSaveName(m_rows.data[0]);
     }
@@ -315,13 +315,13 @@ void W8OptionsSaveLoadPanel::SetActive(unsigned char active)
 // FUNCTION: WIZ8 0x005aab30
 void W8OptionsSaveLoadPanel::SetCurrent(int current)
 {
-    if (g_options_screen_0069c254->m_text_editor != 0) {
-        W8OptionsTextEditor* editor = g_options_screen_0069c254->m_text_editor;
+    if (g_options_screen->m_text_editor != 0) {
+        W8OptionsTextEditor* editor = g_options_screen->m_text_editor;
         if (editor->m_listener != 0) {
             editor->m_listener->OnTextEditComplete(editor, 1);
         }
         delete editor;
-        g_options_screen_0069c254->m_text_editor = 0;
+        g_options_screen->m_text_editor = 0;
     }
     m_current_04c = current;
     Invalidate(0);
@@ -330,12 +330,12 @@ void W8OptionsSaveLoadPanel::SetCurrent(int current)
     if (m_panel == 11) {
         ++first;
     }
-    int limit = g_options_screen_0069c254->m_save_slots.count;
+    int limit = g_options_screen->m_save_slots.count;
     if (first + 5 < limit) {
         limit = first + 5;
     }
     for (int slot = first; slot < limit; ++slot) {
-        W8SaveSlot* save = *g_options_screen_0069c254->m_save_slots.GetAt(slot);
+        W8SaveSlot* save = *g_options_screen->m_save_slots.GetAt(slot);
         W8OptionsSaveRow* row = *m_rows.GetAt(slot - first);
         row->m_save = save;
         row->SetEnabled(save != 0);
@@ -348,8 +348,8 @@ void W8OptionsSaveLoadPanel::SetCurrent(int current)
         row->Invalidate(0);
     }
     m_selection.SetSelected(0);
-    if (g_options_screen_0069c254->m_text_editor == 0 && m_panel == 12 &&
-        m_selection.m_selectedIndex == 0 && m_current_04c == 0) {
+    if (g_options_screen->m_text_editor == 0 && m_panel == 12 && m_selection.m_selectedIndex == 0 &&
+        m_current_04c == 0) {
         OnEditSaveName(m_rows.data[0]);
     }
 }
@@ -358,7 +358,7 @@ void W8OptionsSaveLoadPanel::SetCurrent(int current)
 void W8OptionsSaveLoadPanel::OnPrimary(W8TextControl* control)
 {
     if (control == m_delete_button) {
-        g_options_screen_0069c254->ShowNotification(this, 1, 0x828, 1);
+        g_options_screen->ShowNotification(this, 1, 0x828, 1);
         return;
     }
     if (control != m_action_button) {
@@ -369,18 +369,18 @@ void W8OptionsSaveLoadPanel::OnPrimary(W8TextControl* control)
         return;
     }
 
-    W8OptionsTextEditor* editor = g_options_screen_0069c254->m_text_editor;
+    W8OptionsTextEditor* editor = g_options_screen->m_text_editor;
     if (editor != 0) {
         if (editor->m_listener != 0) {
             editor->m_listener->OnTextEditComplete(editor, 0);
         }
         delete editor;
-        g_options_screen_0069c254->m_text_editor = 0;
+        g_options_screen->m_text_editor = 0;
     }
     if (editor == 0 && m_current_04c == 0 && m_selection.m_selectedIndex == 0) {
         SaveSelectedSave();
     } else {
-        g_options_screen_0069c254->ShowNotification(this, 1, 0x829, 2);
+        g_options_screen->ShowNotification(this, 1, 0x829, 2);
     }
 }
 
@@ -390,20 +390,19 @@ void W8OptionsSaveLoadPanel::OnDialogClosed(unsigned char reason, int value)
     int selected_slot;
     if (reason == 0) {
         if (value == 2) {
-            if (g_options_screen_0069c254->m_text_editor != 0 || m_panel != 12 ||
+            if (g_options_screen->m_text_editor != 0 || m_panel != 12 ||
                 m_selection.m_selectedIndex != 0) {
                 return;
             }
             selected_slot = m_current_04c;
         } else if (value == 3) {
             selected_slot = m_current_04c * 5 + m_selection.m_selectedIndex;
-            wcscpy((*g_options_screen_0069c254->m_save_slots.GetAt(selected_slot))->name,
-                   m_previous_name);
+            wcscpy((*g_options_screen->m_save_slots.GetAt(selected_slot))->name, m_previous_name);
             W8OptionsSaveRow* row = *m_rows.GetAt(m_selection.m_selectedIndex);
-            row->m_save = *g_options_screen_0069c254->m_save_slots.GetAt(selected_slot);
+            row->m_save = *g_options_screen->m_save_slots.GetAt(selected_slot);
             row->SetEnabled(row->m_save != 0);
             row->Invalidate(0);
-            if (g_options_screen_0069c254->m_text_editor != 0 || m_panel != 12 ||
+            if (g_options_screen->m_text_editor != 0 || m_panel != 12 ||
                 m_selection.m_selectedIndex != 0) {
                 return;
             }
@@ -420,7 +419,7 @@ void W8OptionsSaveLoadPanel::OnDialogClosed(unsigned char reason, int value)
             char path[260];
             sprintf(path, "%s\\%S.%s", "Saves", m_previous_name, g_save_extension);
             if (DeleteFileA(path) == 0) {
-                g_options_screen_0069c254->ShowNotification(this, 0, 0x82e, 0);
+                g_options_screen->ShowNotification(this, 0, 0x82e, 0);
                 return;
             }
         }
@@ -428,7 +427,7 @@ void W8OptionsSaveLoadPanel::OnDialogClosed(unsigned char reason, int value)
             SaveSelectedSave();
             return;
         case 4:
-            if (g_options_screen_0069c254->m_text_editor != 0 || m_panel != 12 ||
+            if (g_options_screen->m_text_editor != 0 || m_panel != 12 ||
                 m_selection.m_selectedIndex != 0) {
                 return;
             }
@@ -447,18 +446,18 @@ void W8OptionsSaveLoadPanel::OnDialogClosed(unsigned char reason, int value)
 void W8OptionsSaveLoadPanel::OnTextEditComplete(W8OptionsTextEditor*, unsigned char cancelled)
 {
     int selected_slot = m_current_04c * 5 + m_selection.m_selectedIndex;
-    (*m_rows.GetAt(m_editing_row))->m_editing = 0;
+    (*m_rows.GetAt(m_editing_row))->m_editing = false;
     if (cancelled != 0) {
         (*m_rows.GetAt(m_selection.m_selectedIndex))->Invalidate(0);
         return;
     }
 
-    W8SaveSlot* slot = *g_options_screen_0069c254->m_save_slots.GetAt(selected_slot);
+    W8SaveSlot* slot = *g_options_screen->m_save_slots.GetAt(selected_slot);
     wcscpy(m_previous_name, slot->name);
     Get16BitStringFromField(0, slot->name);
     if (wcslen(slot->name) == 0) {
         wcscpy(slot->name, m_previous_name);
-        g_options_screen_0069c254->ShowNotification(this, 0, 0x82a, 4);
+        g_options_screen->ShowNotification(this, 0, 0x82a, 4);
         return;
     }
 
@@ -470,10 +469,10 @@ void W8OptionsSaveLoadPanel::OnTextEditComplete(W8OptionsTextEditor*, unsigned c
         if (SaveSlotFileExists(ConvertWideStringToString(slot->name)) == 0) {
             SaveSelectedSave();
         } else {
-            g_options_screen_0069c254->ShowNotification(this, 1, 0x829, 2);
+            g_options_screen->ShowNotification(this, 1, 0x829, 2);
         }
     } else {
-        g_options_screen_0069c254->ShowNotification(this, 1, 0x829, 3);
+        g_options_screen->ShowNotification(this, 1, 0x829, 3);
     }
 }
 
@@ -481,11 +480,11 @@ void W8OptionsSaveLoadPanel::OnTextEditComplete(W8OptionsTextEditor*, unsigned c
 void W8OptionsSaveLoadPanel::OnEditSaveName(W8OptionsSaveRow*)
 {
     int selected_slot = m_current_04c * 5 + m_selection.m_selectedIndex;
-    g_options_screen_0069c254->BeginSaveNameEdit(
+    g_options_screen->BeginSaveNameEdit(
         this, m_selection.m_selectedIndex,
-        (*g_options_screen_0069c254->m_save_slots.GetAt(selected_slot))->name);
+        (*g_options_screen->m_save_slots.GetAt(selected_slot))->name);
     m_editing_row = m_selection.m_selectedIndex;
-    (*m_rows.GetAt(m_editing_row))->m_editing = 1;
+    (*m_rows.GetAt(m_editing_row))->m_editing = true;
 }
 
 // FUNCTION: WIZ8 0x005ab230
@@ -497,13 +496,13 @@ void W8OptionsSaveLoadPanel::OnActivateSave(W8OptionsSaveRow*)
 // FUNCTION: WIZ8 0x005ab250
 void W8OptionsSaveLoadPanel::OnSelectionChanged(W8ControlSelection*, int)
 {
-    if (g_options_screen_0069c254->m_text_editor != 0) {
-        W8OptionsTextEditor* editor = g_options_screen_0069c254->m_text_editor;
+    if (g_options_screen->m_text_editor != 0) {
+        W8OptionsTextEditor* editor = g_options_screen->m_text_editor;
         if (editor->m_listener != 0) {
             editor->m_listener->OnTextEditComplete(editor, 1);
         }
         delete editor;
-        g_options_screen_0069c254->m_text_editor = 0;
+        g_options_screen->m_text_editor = 0;
     }
     if (m_panel == 12 && m_current_04c == 0 && m_selection.m_selectedIndex == 0) {
         OnEditSaveName(m_rows.data[0]);
@@ -514,36 +513,36 @@ void W8OptionsSaveLoadPanel::OnSelectionChanged(W8ControlSelection*, int)
 void W8OptionsSaveLoadPanel::DeleteSelectedSave()
 {
     int selected_slot = m_current_04c * 5 + 1 + m_selection.m_selectedIndex;
-    W8SaveSlot* slot = *g_options_screen_0069c254->m_save_slots.GetAt(selected_slot);
+    W8SaveSlot* slot = *g_options_screen->m_save_slots.GetAt(selected_slot);
     char path[260];
     sprintf(path, "%s\\%S.%s", "Saves", slot->name, g_save_extension);
     if (DeleteFileA(path) == 0) {
-        g_options_screen_0069c254->ShowNotification(this, 0, 0x82f, 0);
+        g_options_screen->ShowNotification(this, 0, 0x82f, 0);
         return;
     }
 
-    g_options_screen_0069c254->m_save_slots.RemoveAt(selected_slot);
-    if (g_options_screen_0069c254->m_save_slots.count == 1) {
+    g_options_screen->m_save_slots.RemoveAt(selected_slot);
+    if (g_options_screen->m_save_slots.count == 1) {
         selected_slot = -1;
         if (m_panel == 11) {
             m_delete_button->SetEnabled(0);
             m_action_button->SetEnabled(0);
         }
-    } else if (selected_slot >= g_options_screen_0069c254->m_save_slots.count) {
+    } else if (selected_slot >= g_options_screen->m_save_slots.count) {
         --selected_slot;
         if (m_selection.m_selectedIndex == 0) {
             --m_current_04c;
         }
     }
 
-    if (g_options_screen_0069c254->m_selected_panel_020 == 4) {
-        g_options_screen_0069c254->m_panel_038[4]->m_page_count_000 =
-            (g_options_screen_0069c254->m_save_slots.count - 2) / 5 + 1;
-    } else if (g_options_screen_0069c254->m_selected_panel_020 == 5) {
-        g_options_screen_0069c254->m_panel_038[5]->m_page_count_000 =
-            (g_options_screen_0069c254->m_save_slots.count - 1) / 5 + 1;
+    if (g_options_screen->m_selected_panel_020 == 4) {
+        g_options_screen->m_panel_038[4]->m_page_count_000 =
+            (g_options_screen->m_save_slots.count - 2) / 5 + 1;
+    } else if (g_options_screen->m_selected_panel_020 == 5) {
+        g_options_screen->m_panel_038[5]->m_page_count_000 =
+            (g_options_screen->m_save_slots.count - 1) / 5 + 1;
     }
-    g_options_screen_0069c254->m_menu_set_028->UpdateMenuSet();
+    g_options_screen->m_menu_set_028->UpdateMenuSet();
     SetCurrent(m_current_04c);
     m_selection.SetSelected(selected_slot == -1 ? -1 : (selected_slot - 1) % 5);
 }
@@ -552,12 +551,12 @@ void W8OptionsSaveLoadPanel::DeleteSelectedSave()
 void W8OptionsSaveLoadPanel::LoadSelectedSave()
 {
     int selected_slot = m_current_04c * 5 + 1 + m_selection.m_selectedIndex;
-    W8SaveSlot* slot = *g_options_screen_0069c254->m_save_slots.GetAt(selected_slot);
+    W8SaveSlot* slot = *g_options_screen->m_save_slots.GetAt(selected_slot);
     if (slot->version_major + slot->version_minor * 0.1f + slot->version_patch * 0.01f <= 1.24f) {
-        wcsncpy(g_options_last_save_name_0069c1cc, slot->name, 0x40);
-        reinterpret_cast<char*>(g_options_last_save_name_0069c1cc)[0x7e] =
+        wcsncpy(g_options_last_save_name, slot->name, 0x40);
+        reinterpret_cast<char*>(g_options_last_save_name)[0x7e] =
             0; // reinterpret-ok: raw byte view of the wide name buffer
-        if (g_status_685170.game_started != 0) {
+        if (g_status.game_started != 0) {
             ClearHeldItemDisplay();
         }
         RequestScreenTransition();
@@ -572,26 +571,26 @@ void W8OptionsSaveLoadPanel::LoadSelectedSave()
 void W8OptionsSaveLoadPanel::SaveSelectedSave()
 {
     int selected_slot = m_current_04c * 5 + m_selection.m_selectedIndex;
-    W8SaveSlot* slot = *g_options_screen_0069c254->m_save_slots.GetAt(selected_slot);
+    W8SaveSlot* slot = *g_options_screen->m_save_slots.GetAt(selected_slot);
     if (wcslen(slot->name) == 0) {
-        g_options_screen_0069c254->ShowNotification(this, 0, 0x82a, 0);
+        g_options_screen->ShowNotification(this, 0, 0x82a, 0);
         return;
     }
 
     char path[260];
     sprintf(path, "%s\\%S.%s", "Saves", slot->name, g_save_extension);
     if (FileExists(path) != 0 && DeleteFileA(path) == 0) {
-        g_options_screen_0069c254->ShowNotification(this, 0, 0x82e, 0);
+        g_options_screen->ShowNotification(this, 0, 0x82e, 0);
         return;
     }
-    wcsncpy(g_options_last_save_name_0069c1cc, slot->name, 0x40);
-    reinterpret_cast<char*>(g_options_last_save_name_0069c1cc)[0x7e] =
+    wcsncpy(g_options_last_save_name, slot->name, 0x40);
+    reinterpret_cast<char*>(g_options_last_save_name)[0x7e] =
         0; // reinterpret-ok: raw byte view of the wide name buffer
     RequestScreenTransition();
     g_pending_screen_state.mode = 2;
     strcpy(g_pending_screen_state.name, ConvertWideStringToString(slot->name));
     g_pending_screen_state.parameter_3 =
-        new W8SaveScreenshot(g_options_screen_0069c254->m_save_slots.data[0]->screenshot);
+        new W8SaveScreenshot(g_options_screen->m_save_slots.data[0]->screenshot);
     SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
 }
 
@@ -645,13 +644,13 @@ void W8OptionsSaveRow::Redraw(int full_redraw)
     } else {
         srColorSurface* portrait = new srColorSurface(srPixelConvert::SURFACE_ARGB1555,
                                                       m_save->screenshot.pixels, 0x50, 0x3c, 0xa0);
-        DrawColorSurface00425590(portrait, x + 6, y + 6);
+        DrawColorSurface(portrait, x + 6, y + 6);
         portrait->release();
     }
 
     const wchar_t* level_name = m_save->level_id == 0x38
-                                    ? g_default_level_0064d7b8
-                                    : gppStringList[g_level_name_indices_605820[m_save->level_id]];
+                                    ? g_default_level
+                                    : gppStringList[g_level_name_indices[m_save->level_id]];
     wchar_t timestamp[32];
     swprintf(timestamp, L"%d-%2.2d-%2.2d %2d:%2.2d", m_save->timestamp.wYear,
              m_save->timestamp.wMonth, m_save->timestamp.wDay, m_save->timestamp.wHour,
@@ -738,7 +737,7 @@ void W8OptionsButton::Redraw(int full_redraw)
             m_textBuffer.SetFontStateIndex(font_state);
         }
         m_textBuffer.RenderToTarget(0, static_cast<unsigned char>(full_redraw), -14);
-        m_dirty = 0;
+        m_dirty = false;
     }
 }
 
@@ -882,13 +881,13 @@ void W8OptionsKeyboardPanel::Populate()
 void W8OptionsKeyboardPanel::Invalidate(const W8ControlsRect* bounds)
 {
     Controls::Invalidate(bounds);
-    g_options_screen_0069c254->m_menu_set_028->Invalidate(0);
+    g_options_screen->m_menu_set_028->Invalidate(0);
 }
 
 // FUNCTION: WIZ8 0x005abd00
 void W8OptionsKeyboardPanel::OnPrimary(W8TextControl*)
 {
-    g_options_screen_0069c254->ShowNotification(this, 1, 0x834, 0);
+    g_options_screen->ShowNotification(this, 1, 0x834, 0);
 }
 
 // FUNCTION: WIZ8 0x005abd30
@@ -896,7 +895,7 @@ void W8OptionsKeyboardPanel::OnSelectionChanged(W8ControlSelection*, int selecte
 {
     if (selected == -1) {
         m_captured_button = 0;
-        g_options_screen_0069c254->m_key_capture = 0;
+        g_options_screen->m_key_capture = 0;
         return;
     }
 
@@ -905,7 +904,7 @@ void W8OptionsKeyboardPanel::OnSelectionChanged(W8ControlSelection*, int selecte
         control += selected;
     }
     m_captured_button = static_cast<W8OptionsKeyButton*>(*control);
-    g_options_screen_0069c254->m_key_capture = this;
+    g_options_screen->m_key_capture = this;
 }
 
 // FUNCTION: WIZ8 0x005abd90
@@ -1026,15 +1025,15 @@ W8OptionsPanel* CreateOptionsPanel(int panel, unsigned char* compact,
     case 10:
         return new W8OptionsKeyboardPanel(panel);
     case 11:
-        if (g_status_685170.game_started != 0 && g_status_685170.iron_man != 0) {
+        if (g_status.game_started != 0 && g_status.iron_man != 0) {
             *hide_navigation = 1;
             return new W8OptionsUnavailablePanel(0x82c);
         }
         *compact = 1;
         return new W8OptionsSaveLoadPanel(11);
     case 12:
-        if (g_status_685170.game_started != 0) {
-            if (g_status_685170.iron_man != 0) {
+        if (g_status.game_started != 0) {
+            if (g_status.iron_man != 0) {
                 *hide_navigation = 1;
                 return new W8OptionsUnavailablePanel(0x82c);
             }
@@ -1084,7 +1083,7 @@ void W8OptionsMousePanel::Populate()
     AddCheckbox(0x809, &g_options_values.autotarget_spells);
     AddCheckbox(0x804, &g_options_values.auto_advance_character);
     AddCheckbox(0x808, &g_options_values.autoswap_weapons);
-    if (g_status_685170.game_started == 0 || g_status_685170.iron_man == 0) {
+    if (g_status.game_started == 0 || g_status.iron_man == 0) {
         AddCheckbox(0x80d, &g_options_values.auto_save);
     }
 }
@@ -1097,13 +1096,13 @@ void W8OptionsInterfacePanel::Populate()
     m_tooltip_delay->m_minimumPosition = 0.0f;
     m_tooltip_delay->m_maximumPosition = 1200.0f;
     m_tooltip_delay->UpdatePixelPosition();
-    m_tooltip_delay->m_position = static_cast<float>(g_settings_6850c8.tooltip_delay_ms);
+    m_tooltip_delay->m_position = static_cast<float>(g_settings.tooltip_delay_ms);
     m_tooltip_delay->UpdatePixelPosition();
     m_tooltip_delay->m_listener = this;
     W8TextControl* button = AddChoiceButton(0x80f);
     button->EnableRegionHelp(0x810);
     button->m_listener = this;
-    if (g_settings_6850c8.tooltips_enabled == 0) {
+    if (g_settings.tooltips_enabled == 0) {
         button->EnableSecondaryState(0);
         m_tooltip_delay->SetEnabled(0);
     }
@@ -1119,16 +1118,16 @@ void W8OptionsInterfacePanel::Populate()
 // FUNCTION: WIZ8 0x005aa2a0
 void W8OptionsInterfacePanel::OnDragEnd(W8HorizontalRangeThumb* thumb)
 {
-    g_settings_6850c8.tooltip_delay_ms = static_cast<int>(thumb->m_position);
-    SetFastHelpDelay(static_cast<short>(g_settings_6850c8.tooltip_delay_ms));
+    g_settings.tooltip_delay_ms = static_cast<int>(thumb->m_position);
+    SetFastHelpDelay(static_cast<short>(g_settings.tooltip_delay_ms));
     SetRegionHelpDelay(0);
 }
 
 // FUNCTION: WIZ8 0x005aa2d0
 void W8OptionsInterfacePanel::OnPrimary(W8TextControl* control)
 {
-    g_settings_6850c8.tooltips_enabled = (control->m_stateFlags & g_W8TextControlMask005ED570) == 0;
-    m_tooltip_delay->SetEnabled(g_settings_6850c8.tooltips_enabled);
+    g_settings.tooltips_enabled = (control->m_stateFlags & g_W8TextControlMask005ED570) == 0;
+    m_tooltip_delay->SetEnabled(g_settings.tooltips_enabled);
     m_tooltip_delay->Invalidate(0);
 }
 
@@ -1144,32 +1143,32 @@ void W8OptionsAudioPanel::Populate()
         switch (index) {
         case 0:
             if (IsMusicMuted()) {
-                volume = g_settings_6850c8.muted_music_volume;
+                volume = g_settings.muted_music_volume;
                 muted = true;
             } else {
-                volume = g_settings_6850c8.music_volume;
+                volume = g_settings.music_volume;
             }
             break;
         case 1:
             if (IsSoundEffectsMuted()) {
-                volume = g_settings_6850c8.muted_sound_effects_volume;
+                volume = g_settings.muted_sound_effects_volume;
                 muted = true;
             } else {
-                volume = g_settings_6850c8.sound_effects_volume;
+                volume = g_settings.sound_effects_volume;
             }
             break;
         case 2:
             if (GetRenderOptionState(15) == 0) {
                 muted = true;
             }
-            volume = g_settings_6850c8.footstep_volume;
+            volume = g_settings.footstep_volume;
             break;
         case 3:
             if (IsVoiceMuted()) {
-                volume = g_settings_6850c8.muted_voice_volume;
+                volume = g_settings.muted_voice_volume;
                 muted = true;
             } else {
-                volume = g_settings_6850c8.voice_volume;
+                volume = g_settings.voice_volume;
             }
             break;
         }
@@ -1207,13 +1206,13 @@ void W8OptionsAudioPanel::OnDrag(W8HorizontalRangeThumb* thumb)
         SetMusicVolume(static_cast<unsigned char>(thumb->m_position));
         return;
     case 1:
-        SetSoundEffectsVolume0047AD00(static_cast<unsigned char>(thumb->m_position));
+        SetSoundEffectsVolume(static_cast<unsigned char>(thumb->m_position));
         return;
     case 2:
-        g_settings_6850c8.footstep_volume = static_cast<unsigned char>(thumb->m_position);
+        g_settings.footstep_volume = static_cast<unsigned char>(thumb->m_position);
         return;
     case 3:
-        g_settings_6850c8.voice_volume = static_cast<unsigned char>(thumb->m_position);
+        g_settings.voice_volume = static_cast<unsigned char>(thumb->m_position);
         return;
     }
 }
@@ -1235,13 +1234,13 @@ void W8OptionsAudioPanel::OnDragEnd(W8HorizontalRangeThumb* thumb)
         SoundPlay("Data\\Sound\\Misc\\Interface Swoosh 01.wav", 0);
         break;
     case 2:
-        PlayFootstep0047A440(W8_FOOTSTEP_SURFACE_MEDIUM_ROOM, W8_FOOTSTEP_MATERIAL_GRAVEL,
-                             W8_FOOTSTEP_KIND_STEP);
+        PlayFootstep(W8_FOOTSTEP_SURFACE_MEDIUM_ROOM, W8_FOOTSTEP_MATERIAL_GRAVEL,
+                     W8_FOOTSTEP_KIND_STEP);
         break;
     case 3: {
         SOUNDPARMS options;
         memset(&options, -1, sizeof(options));
-        options.uiVolume = g_settings_6850c8.voice_volume;
+        options.uiVolume = g_settings.voice_volume;
         SoundPlay("Data\\Sound\\Misc\\Interface Vox 01.wav", &options);
         break;
     }
@@ -1346,7 +1345,7 @@ W8OptionsScreen::W8OptionsScreen()
     }
     W8SaveSlot* current = new W8SaveSlot;
     m_save_slots.Add(current);
-    if (g_status_685170.game_started != 0) {
+    if (g_status.game_started != 0) {
         FillCurrentSaveSlot(current);
     }
     EnumerateSaveSlots(&m_save_slots);
@@ -1368,7 +1367,7 @@ void W8OptionsScreen::CreateControls()
         } else {
             m_menu_selection->AddEntry(button);
             if (index == 5) {
-                button->SetEnabled(g_status_685170.game_started);
+                button->SetEnabled(g_status.game_started);
             } else if (index == 4) {
                 button->SetEnabled(m_save_slots.count > 1);
             }
@@ -1457,7 +1456,7 @@ void W8OptionsScreen::SelectPanel(int selected, unsigned char notify)
 void W8OptionsScreen::ShowNotification(W8DialogCloseListener* listener, int caption, int message,
                                        int value)
 {
-    m_modal_closing_01d = 1;
+    m_modal_closing_01d = true;
     delete m_active_modal;
     W8NotificationDialog* dialog = new W8NotificationDialog(message, caption, value);
     m_active_modal = dialog;
@@ -1516,7 +1515,7 @@ void W8OptionsScreen::Redraw()
         ClearPrimarySurface();
         ClearSurfaceRect(0, 0, 640, 480);
         DrawCatalogImageAndInvalidate(-14, 0xee, 0, 0, 0, 0, 2, 0);
-        m_redraw_pending = 0;
+        m_redraw_pending = false;
     }
     if (m_selected_panel_020 != -1) {
         W8OptionsPanelSet* panel_set = m_panel_038[m_selected_panel_020];
@@ -1561,45 +1560,45 @@ void W8OptionsValues::TransferRenderOption(int* value, int option)
 // FUNCTION: WIZ8 0x005a6e20
 void W8OptionsValues::TransferSettings()
 {
-    TransferByte(&mouselook_toggle, &g_settings_6850c8.mouselook_toggle);
-    TransferByte(&mouselook_smoothing, &g_settings_6850c8.mouselook_smoothing);
-    TransferByte(&invert_mouse_y, &g_settings_6850c8.invert_mouse_y);
-    TransferByte(&ctrl_right_click_info, &g_settings_6850c8.ctrl_right_click_info);
-    TransferByte(&numeric_hit_points, &g_settings_6850c8.numeric_hit_points);
-    TransferByte(&autoscroll_combat_messages, &g_settings_6850c8.autoscroll_combat_messages);
-    TransferByte(&simplified_npc_interaction, &g_settings_6850c8.simplified_npc_interaction);
-    TransferByte(&verbose_combat_messages, &g_settings_6850c8.verbose_combat_messages);
-    TransferByte(&autoswap_weapons, &g_settings_6850c8.autoswap_weapons);
-    TransferByte(&skill_increase_messages, &g_settings_6850c8.skill_increase_messages);
+    TransferByte(&mouselook_toggle, &g_settings.mouselook_toggle);
+    TransferByte(&mouselook_smoothing, &g_settings.mouselook_smoothing);
+    TransferByte(&invert_mouse_y, &g_settings.invert_mouse_y);
+    TransferByte(&ctrl_right_click_info, &g_settings.ctrl_right_click_info);
+    TransferByte(&numeric_hit_points, &g_settings.numeric_hit_points);
+    TransferByte(&autoscroll_combat_messages, &g_settings.autoscroll_combat_messages);
+    TransferByte(&simplified_npc_interaction, &g_settings.simplified_npc_interaction);
+    TransferByte(&verbose_combat_messages, &g_settings.verbose_combat_messages);
+    TransferByte(&autoswap_weapons, &g_settings.autoswap_weapons);
+    TransferByte(&skill_increase_messages, &g_settings.skill_increase_messages);
     if (applying == 0) {
-        monster_movement_speed = g_settings_6850c8.monster_movement_speed;
+        monster_movement_speed = g_settings.monster_movement_speed;
     } else {
-        g_settings_6850c8.monster_movement_speed = monster_movement_speed;
+        g_settings.monster_movement_speed = monster_movement_speed;
     }
-    TransferByte(&auto_advance_character, &g_settings_6850c8.auto_advance_character);
-    TransferByte(&autotarget_spells, &g_settings_6850c8.autotarget_spells);
+    TransferByte(&auto_advance_character, &g_settings.auto_advance_character);
+    TransferByte(&autotarget_spells, &g_settings.autotarget_spells);
     if (applying == 0) {
-        gamma = g_settings_6850c8.gamma;
+        gamma = g_settings.gamma;
     } else {
-        g_settings_6850c8.gamma = gamma;
+        g_settings.gamma = gamma;
     }
-    TransferByte(&pc_confirmations, &g_settings_6850c8.pc_confirmations);
-    TransferByte(&pc_subtitles, &g_settings_6850c8.pc_subtitles);
+    TransferByte(&pc_confirmations, &g_settings.pc_confirmations);
+    TransferByte(&pc_subtitles, &g_settings.pc_subtitles);
     if (applying == 0) {
-        text_display_delay_ms = static_cast<float>(g_settings_6850c8.text_display_delay_ms);
+        text_display_delay_ms = static_cast<float>(g_settings.text_display_delay_ms);
     } else {
-        g_settings_6850c8.text_display_delay_ms = static_cast<unsigned int>(text_display_delay_ms);
+        g_settings.text_display_delay_ms = static_cast<unsigned int>(text_display_delay_ms);
     }
-    TransferByte(&auto_save, &g_settings_6850c8.auto_save);
+    TransferByte(&auto_save, &g_settings.auto_save);
     if (applying == 0) {
-        difficulty = g_status_685170.difficulty;
+        difficulty = g_status.difficulty;
     } else {
-        g_status_685170.difficulty = difficulty;
+        g_status.difficulty = difficulty;
     }
     if (applying == 0) {
-        difficulty = g_settings_6850c8.difficulty;
+        difficulty = g_settings.difficulty;
     } else {
-        g_settings_6850c8.difficulty = difficulty;
+        g_settings.difficulty = difficulty;
     }
     TransferRenderOption(&render_options[0], 4);
     TransferRenderOption(&render_options[1], 9);
@@ -1610,24 +1609,23 @@ void W8OptionsValues::TransferSettings()
     TransferRenderOption(&render_options[6], 11);
     TransferRenderOption(&render_options[7], 12);
     TransferRenderOption(&render_options[8], 16);
-    TransferByte(&monster_shadows, &g_settings_6850c8.monster_shadows);
-    TransferByte(&smooth_monster_animations, &g_settings_6850c8.smooth_monster_animations);
-    TransferByte(&smooth_world_animations, &g_settings_6850c8.smooth_world_animations);
+    TransferByte(&monster_shadows, &g_settings.monster_shadows);
+    TransferByte(&smooth_monster_animations, &g_settings.smooth_monster_animations);
+    TransferByte(&smooth_world_animations, &g_settings.smooth_world_animations);
     if (applying == 0) {
-        combat_speed = static_cast<float>(g_settings_6850c8.combat_delay_ms - 5000) * -0.0002f;
-        camera_auto_rotation = g_settings_6850c8.camera_rotation_mode == 2
-                                   ? 2
-                                   : g_settings_6850c8.camera_rotation_style;
-        TransferByte(&continuous_combat, &g_settings_6850c8.continuous_combat);
+        combat_speed = (g_settings.combat_delay_ms - 5000) * -0.0002f;
+        camera_auto_rotation =
+            g_settings.camera_rotation_mode == 2 ? 2 : g_settings.camera_rotation_style;
+        TransferByte(&continuous_combat, &g_settings.continuous_combat);
     } else {
-        g_settings_6850c8.combat_delay_ms = 5000 - static_cast<int>(combat_speed * 5000.0f);
+        g_settings.combat_delay_ms = 5000 - static_cast<int>(combat_speed * 5000.0f);
         if (camera_auto_rotation == 2) {
-            g_settings_6850c8.camera_rotation_mode = 2;
+            g_settings.camera_rotation_mode = 2;
         } else {
-            g_settings_6850c8.camera_rotation_mode = 1;
-            g_settings_6850c8.camera_rotation_style = camera_auto_rotation;
+            g_settings.camera_rotation_mode = 1;
+            g_settings.camera_rotation_style = camera_auto_rotation;
         }
-        if (continuous_combat != g_settings_6850c8.continuous_combat) {
+        if (continuous_combat != g_settings.continuous_combat) {
             TogglePartyCombatStance();
         }
     }
@@ -1649,14 +1647,14 @@ W8OptionsMenuButton::W8OptionsMenuButton(Controls* owner, const int* row)
         W8TextControl* control = new W8TextControl(m_pPanel, 0xffffffff, row[1], row[2], row[3],
                                                    row[4], -1, -1, -1, -1, -1, -1, -1);
         control->m_listener = this;
-        control->AddLayoutFlags(g_W8TextControlLayoutMask005ED590);
+        control->AddLayoutFlags(g_W8TextControlLayoutMask);
     }
 
     if (row[5] != -1) {
         W8TextControl* control = new W8TextControl(m_pPanel, 0xffffffff, row[5], row[6], row[7],
                                                    row[8], -1, -1, -1, -1, -1, -1, -1);
         control->m_listener = this;
-        control->AddLayoutFlags(g_W8TextControlLayoutMask005ED590);
+        control->AddLayoutFlags(g_W8TextControlLayoutMask);
     }
 }
 
@@ -2043,8 +2041,7 @@ void W8OptionsMenuSet::OnPrimary(W8TextControl* control)
 void W8OptionsScreen::OnDialogClosed(unsigned char reason, int)
 {
     if (reason != 0) {
-        if (g_status_685170.game_started != 0 && gXStatus.fCombatMode == 0 &&
-            AnyCharacterActive()) {
+        if (g_status.game_started != 0 && gXStatus.fCombatMode == 0 && AnyCharacterActive()) {
             AutoSaveIfAllowed(1);
         }
         RequestExitScreen();
@@ -2068,11 +2065,11 @@ unsigned char OptionsScreenLeave(int)
 {
     g_options_values.applying = 1;
     g_options_values.TransferSettings();
-    W8OptionsScreen* screen = g_options_screen_0069c254;
+    W8OptionsScreen* screen = g_options_screen;
     if (screen != 0) {
         delete screen;
     }
-    g_options_screen_0069c254 = 0;
+    g_options_screen = 0;
     NoOp();
     MSYS_Shutdown();
     ResetRegions();
@@ -2117,8 +2114,8 @@ unsigned char OptionsScreenEnter()
     SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
     g_options_values.applying = 0;
     g_options_values.TransferSettings();
-    g_options_screen_0069c254 = new W8OptionsScreen();
-    g_options_screen_0069c254->CreateControls();
+    g_options_screen = new W8OptionsScreen();
+    g_options_screen->CreateControls();
 
     if (g_current_screen_state.mode == 1) {
         selected = 4;
@@ -2133,7 +2130,7 @@ unsigned char OptionsScreenEnter()
                 if (gXStatus.fCombatMode != 0) {
                     selected = 4;
                 }
-                if (g_status_685170.iron_man != 0) {
+                if (g_status.iron_man != 0) {
                     selected = 0;
                 }
             }
@@ -2141,7 +2138,7 @@ unsigned char OptionsScreenEnter()
     } else {
         selected = 0;
     }
-    g_options_screen_0069c254->SelectPanel(selected, 1);
+    g_options_screen->SelectPanel(selected, 1);
     g_options_first_frame = 1;
     return 1;
 }
@@ -2156,21 +2153,21 @@ void OptionsScreenFrame()
     POINT current;
     InputAtom input;
 
-    if (g_dev_mode_689b32) {
+    if (g_dev_mode) {
         RequestExitScreen();
     }
-    RepositionAmbientSounds0047A600(g_world);
-    UpdateAmbientSounds0047A3E0(g_world);
-    ServiceMusicPlaylist0048F9E0();
+    RepositionAmbientSounds(g_world);
+    UpdateAmbientSounds(g_world);
+    ServiceMusicPlaylist();
     SGPMouseGetPos(&point);
 
-    W8OptionsScreen* screen = g_options_screen_0069c254;
+    W8OptionsScreen* screen = g_options_screen;
     if (screen->m_text_editor != 0) {
         SGPMouseGetPos(&current);
         MSYS_SGP_Mouse_Handler_Hook(MOUSE_POS, static_cast<unsigned short>(current.x),
                                     static_cast<unsigned short>(current.y), gfLeftButtonState,
                                     gfRightButtonState);
-        screen = g_options_screen_0069c254;
+        screen = g_options_screen;
     }
 
     W8MessageDialogBase** active_modal = &screen->m_active_modal;
@@ -2180,7 +2177,7 @@ void OptionsScreenFrame()
                 delete *active_modal;
                 *active_modal = 0;
             }
-            screen->m_redraw_pending = 1;
+            screen->m_redraw_pending = true;
             screen->m_controls_024->Invalidate(0);
             if (screen->m_selected_panel_020 != -1) {
                 W8OptionsPanelSet* panel_set = screen->m_panel_038[screen->m_selected_panel_020];
@@ -2190,7 +2187,7 @@ void OptionsScreenFrame()
                 screen->m_menu_set_028->Invalidate(0);
             }
         }
-        screen->m_modal_closing_01d = 0;
+        screen->m_modal_closing_01d = false;
     }
 
     UpdateRegionMousePosition(point.x, point.y);
@@ -2213,13 +2210,13 @@ void OptionsScreenFrame()
 // FUNCTION: WIZ8 0x005A9E70
 void SetLastSaveName(const wchar_t* target)
 {
-    wcsncpy(g_options_last_save_name_0069c1cc, target, 0x40);
-    reinterpret_cast<char*>(g_options_last_save_name_0069c1cc)[0x7e] =
+    wcsncpy(g_options_last_save_name, target, 0x40);
+    reinterpret_cast<char*>(g_options_last_save_name)[0x7e] =
         0; // reinterpret-ok: raw byte view of the wide name buffer
 }
 
 // FUNCTION: WIZ8 0x005A9E90
 wchar_t* GetLastSaveName(void)
 {
-    return g_options_last_save_name_0069c1cc;
+    return g_options_last_save_name;
 }

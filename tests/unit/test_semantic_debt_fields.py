@@ -243,7 +243,7 @@ def test_stride_join_uses_source_parameter_and_compiler_fields_not_ghidra_type()
     for use, offset in zip(uses, (0, 4, 8), strict=True):
         use.update(offset_bytes=offset, extent_bytes=4, declared_type="float")
     identity = SimpleNamespace(
-        qualified_name="stMeshModel::RenderTriMeshWithEquations00470380",
+        qualified_name="stMeshModel::RenderTriMeshWithEquations",
         semantic_id="render:poly_normals",
         owning_class="stMeshModel",
         parameter_types=(
@@ -255,7 +255,7 @@ def test_stride_join_uses_source_parameter_and_compiler_fields_not_ghidra_type()
     )
     flow = {
         "entry": "00470380",
-        "function": {"entry": "00470380", "name": "RenderTriMeshWithEquations00470380"},
+        "function": {"entry": "00470380", "name": "RenderTriMeshWithEquations"},
         "root": {
             "identity": "00470380:poly_normals",
             "requested": "3",

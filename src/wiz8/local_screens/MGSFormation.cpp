@@ -42,7 +42,7 @@
 /* 0x0064DAF4: on-board (left, top) of each of the fifteen cell markers,
    relative to the board anchor. */
 // GLOBAL: WIZ8 0x0064daf4
-int g_formation_marker_offsets_0064daf4[15][2] = {
+int g_formation_marker_offsets[15][2] = {
     {0x26, 0x9},  {0x19, 0xd},  {0x33, 0xd},  {0x43, 0x26}, {0x3f, 0x19},
     {0x3f, 0x33}, {0x26, 0x43}, {0x33, 0x3f}, {0x19, 0x3f}, {0x9, 0x26},
     {0xd, 0x33},  {0xd, 0x19},  {0x26, 0x1e}, {0x1e, 0x2a}, {0x2e, 0x2a},
@@ -50,23 +50,23 @@ int g_formation_marker_offsets_0064daf4[15][2] = {
 
 /* 0x0064DB6C: screen (left, top) of the fifteen cell controls. */
 // GLOBAL: WIZ8 0x0064db6c
-int g_formation_cell_positions_0064db6c[15][2] = {
+int g_formation_cell_positions[15][2] = {
     {0x5a, 0x1c}, {0x3d, 0x25}, {0x77, 0x25}, {0x98, 0x5a}, {0x8f, 0x3d},
     {0x8f, 0x77}, {0x5a, 0x98}, {0x77, 0x8f}, {0x3d, 0x8f}, {0x1c, 0x5a},
     {0x25, 0x77}, {0x25, 0x3d}, {0x5a, 0x48}, {0x48, 0x61}, {0x6c, 0x61},
 };
 
 // GLOBAL: WIZ8 0x0069c2f0
-int g_formation_active_cell_0069c2f0;
+int g_formation_active_cell;
 // GLOBAL: WIZ8 0x0069c2f4
-int g_formation_drag_slot_0069c2f4;
+int g_formation_drag_slot;
 /* 0x0069C304: the party slot occupying each cell control, or -1. */
 // GLOBAL: WIZ8 0x0069c304
-int g_formation_cell_slots_0069c304[15];
+int g_formation_cell_slots[15];
 // GLOBAL: WIZ8 0x0069c340
-unsigned int g_formation_drag_clock_0069c340;
+unsigned int g_formation_drag_clock;
 // GLOBAL: WIZ8 0x0069c380
-int g_formation_drag_cell_0069c380;
+int g_formation_drag_cell;
 
 static void UpdateFormationCells(void);
 static void ResetFormationCellControls(int cell);
@@ -79,8 +79,8 @@ static void DrawFormationSlotMarkers(int target)
     int slot;
 
     for (slot = 0; slot < 8; ++slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
-        W8PartyFormationPosition* position = &g_status_685170.formation.positions[slot];
+        W8PartySlotRow* row = &g_status.buffers.XChar[slot];
+        W8PartyFormationPosition* position = &g_status.formation.positions[slot];
         int left;
         int top;
         int image;
@@ -89,10 +89,8 @@ static void DrawFormationSlotMarkers(int target)
         if (row->fOccupied == 0 || position->bQuadrant == -1) {
             continue;
         }
-        left = g_formation_marker_offsets_0064daf4[position->bQuadrant * 3 +
-                                                   position->bQuadrantSlot][0];
-        top = g_formation_marker_offsets_0064daf4[position->bQuadrant * 3 + position->bQuadrantSlot]
-                                                 [1];
+        left = g_formation_marker_offsets[position->bQuadrant * 3 + position->bQuadrantSlot][0];
+        top = g_formation_marker_offsets[position->bQuadrant * 3 + position->bQuadrantSlot][1];
         image = position->facing * 3;
         order_image = row->party_order_index * 3;
         if (slot == g_level_block->formation_highlight_party_slot) {
@@ -113,22 +111,22 @@ void RefreshFormationBoard(void)
     unsigned int compass_image;
     unsigned int video_object;
 
-    if (g_status_685170.selected_character != -1) {
-        FaceCameraToSelection(g_status_685170.selected_character);
+    if (g_status.selected_character != -1) {
+        FaceCameraToSelection(g_status.selected_character);
     }
     if (g_level_block->formation_board_visible == 0) {
         return;
     }
     if (g_level_block->formation_board_sprite != 0) {
-        ReleaseObject004257F0(g_level_block->formation_board_sprite);
+        ReleaseObject(g_level_block->formation_board_sprite);
         g_level_block->formation_board_sprite = 0;
     }
     if (g_level_block->formation_compass_sprite != 0) {
-        ReleaseObject004257F0(g_level_block->formation_compass_sprite);
+        ReleaseObject(g_level_block->formation_compass_sprite);
         g_level_block->formation_compass_sprite = 0;
     }
     if (g_level_block->formation_overlay_sprite != 0) {
-        ReleaseObject004257F0(g_level_block->formation_overlay_sprite);
+        ReleaseObject(g_level_block->formation_overlay_sprite);
         g_level_block->formation_overlay_sprite = 0;
     }
     if (g_level_block->formation_board_alternate == 0) {
@@ -153,9 +151,8 @@ void RefreshFormationBoard(void)
     PositionToolTipNode(g_level_block->formation_board_sprite, 0x207, 0x167, 0);
     g_level_block->formation_board_sprite->render_state_164.display_state = 4;
     if (g_level_block->formation_compass_sprite != 0) {
-        RotateNodeInDegrees00425840(g_level_block->formation_compass_sprite,
-                                    g_status_685170.party_facing - g_status_685170.party_heading +
-                                        0x168);
+        RotateNodeInDegrees(g_level_block->formation_compass_sprite,
+                            g_status.party_facing - g_status.party_heading + 0x168);
     }
     SetRendererModePair();
 }
@@ -165,9 +162,8 @@ void RefreshFormationBoard(void)
 void UpdateFormationCompass(void)
 {
     if (g_level_block->formation_compass_sprite != 0) {
-        RotateNodeInDegrees00425840(g_level_block->formation_compass_sprite,
-                                    g_status_685170.party_facing - g_status_685170.party_heading +
-                                        0x168);
+        RotateNodeInDegrees(g_level_block->formation_compass_sprite,
+                            g_status.party_facing - g_status.party_heading + 0x168);
     }
     SetRendererModePair();
 }
@@ -185,8 +181,8 @@ void CreateFormationBoardOverlay(void)
         bounds.right = 0x269;
         bounds.bottom = 0x1c2;
         g_level_block->formation_overlay_sprite = CreateSpriteFromSurface(-14, &bounds, 0, 0, 1);
-        Position2DNodeUnsnapped004257D0(g_level_block->formation_overlay_sprite, 0x200, 0x166);
-        SetModelInstance2DDisplayState004264F0(g_level_block->formation_overlay_sprite, 4);
+        Position2DNodeUnsnapped(g_level_block->formation_overlay_sprite, 0x200, 0x166);
+        SetModelInstance2DDisplayState(g_level_block->formation_overlay_sprite, 4);
     }
 }
 
@@ -221,18 +217,18 @@ unsigned char FormationBoardRegionEvent(const InputAtom* event, W8Region* region
 
     hit = -1;
     for (slot = 0; slot < 8; ++slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
-        W8PartyFormationPosition* position = &g_status_685170.formation.positions[slot];
+        W8PartySlotRow* row = &g_status.buffers.XChar[slot];
+        W8PartyFormationPosition* position = &g_status.formation.positions[slot];
         int cell;
 
         if (row->fOccupied == 0 || position->bQuadrant == -1) {
             continue;
         }
         cell = position->bQuadrant * 3 + position->bQuadrantSlot;
-        if (IsCursorInRectangle(g_formation_marker_offsets_0064daf4[cell][0] + 0x207,
-                                g_formation_marker_offsets_0064daf4[cell][1] + 0x167,
-                                g_formation_marker_offsets_0064daf4[cell][0] + 0x211,
-                                g_formation_marker_offsets_0064daf4[cell][1] + 0x171)) {
+        if (IsCursorInRectangle(g_formation_marker_offsets[cell][0] + 0x207,
+                                g_formation_marker_offsets[cell][1] + 0x167,
+                                g_formation_marker_offsets[cell][0] + 0x211,
+                                g_formation_marker_offsets[cell][1] + 0x171)) {
             hit = slot;
             break;
         }
@@ -257,25 +253,25 @@ unsigned char FormationBoardRegionEvent(const InputAtom* event, W8Region* region
    enter/leave. Retail emits it as a separate function right after the full
    handler. */
 // FUNCTION: WIZ8 0x005B207F
-unsigned char FormationBoardHoverRegionEvent005B207F(const InputAtom*, W8Region* region)
+unsigned char FormationBoardHoverRegionEvent(const InputAtom*, W8Region* region)
 {
     int slot;
     int hit;
 
     hit = -1;
     for (slot = 0; slot < 8; ++slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
-        W8PartyFormationPosition* position = &g_status_685170.formation.positions[slot];
+        W8PartySlotRow* row = &g_status.buffers.XChar[slot];
+        W8PartyFormationPosition* position = &g_status.formation.positions[slot];
         int cell;
 
         if (row->fOccupied == 0 || position->bQuadrant == -1) {
             continue;
         }
         cell = position->bQuadrant * 3 + position->bQuadrantSlot;
-        if (IsCursorInRectangle(g_formation_marker_offsets_0064daf4[cell][0] + 0x207,
-                                g_formation_marker_offsets_0064daf4[cell][1] + 0x167,
-                                g_formation_marker_offsets_0064daf4[cell][0] + 0x211,
-                                g_formation_marker_offsets_0064daf4[cell][1] + 0x171)) {
+        if (IsCursorInRectangle(g_formation_marker_offsets[cell][0] + 0x207,
+                                g_formation_marker_offsets[cell][1] + 0x167,
+                                g_formation_marker_offsets[cell][0] + 0x211,
+                                g_formation_marker_offsets[cell][1] + 0x171)) {
             hit = slot;
             break;
         }
@@ -313,8 +309,8 @@ static unsigned char CreateFormationPanel(void)
         return 0;
     }
     for (index = 0; index < 15; ++index) {
-        int left = g_formation_cell_positions_0064db6c[index][0];
-        int top = g_formation_cell_positions_0064db6c[index][1];
+        int left = g_formation_cell_positions[index][0];
+        int top = g_formation_cell_positions[index][1];
         W8TextControl* cell;
 
         cell = new W8TextControl(g_formation_panel, index + 0xa1, left, top, left + 0x20,
@@ -379,14 +375,14 @@ void OpenFormationPanel(void)
         }
     }
     if (CreateFormationPanel() != 0) {
-        g_formation_active_cell_0069c2f0 = -1;
-        g_formation_drag_cell_0069c380 = -1;
-        g_formation_drag_slot_0069c2f4 = -1;
-        g_formation_drag_clock_0069c340 = SetCountdownClock(0);
-        gXStatus.fReviewCharacterMode = 1;
+        g_formation_active_cell = -1;
+        g_formation_drag_cell = -1;
+        g_formation_drag_slot = -1;
+        g_formation_drag_clock = SetCountdownClock(0);
+        gXStatus.fReviewCharacterMode = true;
         RegionSetEnable(0x1b);
         RequestRedraw(0x1000);
-        CopyPartyFormationState(&gXStatus.edited_formation, &g_status_685170.formation);
+        CopyPartyFormationState(&gXStatus.edited_formation, &g_status.formation);
         PauseMainGameWorld();
         UpdateFormationCells();
     }
@@ -401,11 +397,11 @@ static void UpdateFormationCells(void)
     int slot;
 
     for (cell = 0; cell < 15; ++cell) {
-        g_formation_cell_slots_0069c304[cell] = -1;
+        g_formation_cell_slots[cell] = -1;
         ResetFormationCellControls(cell);
     }
     for (slot = 0; slot < 8; ++slot) {
-        W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
+        W8PartySlotRow* row = &g_status.buffers.XChar[slot];
         W8PartyFormationPosition* position = &gXStatus.edited_formation.positions[slot];
         W8TextControl* primary;
         W8TextControl* overlay;
@@ -446,8 +442,8 @@ static void UpdateFormationCells(void)
             overlay->SetActive(true);
             primary->SetEnabled(true);
             overlay->SetEnabled(true);
-            g_formation_cell_slots_0069c304[cell] = slot;
-            if (slot == g_status_685170.selected_character &&
+            g_formation_cell_slots[cell] = slot;
+            if (slot == g_status.selected_character &&
                 (primary->m_stateFlags & g_W8TextControlMask005ED570) == 0) {
                 primary->EnableSecondaryState(0);
             }
@@ -463,19 +459,18 @@ static void SelectFormationCell(void)
 {
     int index;
 
-    if (CanHoldFormationPlace(g_formation_cell_slots_0069c304[g_formation_active_cell_0069c2f0]) !=
-        0) {
+    if (CanHoldFormationPlace(g_formation_cell_slots[g_formation_active_cell]) != 0) {
         for (index = 0; index < 15; ++index) {
             W8TextControl* control = g_formation_cell_controls[index];
 
-            if (index == g_formation_active_cell_0069c2f0) {
+            if (index == g_formation_active_cell) {
                 control->EnableSecondaryState(0);
             } else if ((control->m_stateFlags & g_W8TextControlMask005ED570) != 0) {
                 control->DisableSecondaryState(0);
                 g_formation_cell_overlays[index]->Invalidate(0);
             }
         }
-        SelectPartyCharacter(g_formation_cell_slots_0069c304[g_formation_active_cell_0069c2f0]);
+        SelectPartyCharacter(g_formation_cell_slots[g_formation_active_cell]);
     }
 }
 
@@ -488,23 +483,22 @@ static void AcceptFormationChanges(void)
     unsigned int slot;
 
     for (slot = 0; slot < 8; ++slot) {
-        if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
-            CanHoldFormationPlace(slot) != 0 &&
+        if (g_status.buffers.XChar[slot].fOccupied != 0 && CanHoldFormationPlace(slot) != 0 &&
             gXStatus.edited_formation.positions[slot].bQuadrant !=
-                g_status_685170.formation.positions[slot].bQuadrant) {
+                g_status.formation.positions[slot].bQuadrant) {
             StartBreathCycle(slot, 0);
         }
     }
     if (gXStatus.fCombatMode == 0) {
-        ReconcilePartyFormation(&gXStatus.edited_formation, &g_status_685170.formation);
-    } else if (memcmp(&gXStatus.edited_formation, &g_status_685170.formation,
+        ReconcilePartyFormation(&gXStatus.edited_formation, &g_status.formation);
+    } else if (memcmp(&gXStatus.edited_formation, &g_status.formation,
                       sizeof(W8PartyFormationState)) != 0) {
         ShowNotice(8, gppStringList[0x1f64 / 4], -1, -1, 0);
     }
     RefreshFormationBoard();
     RefreshRadarMap();
     DestroyFormationPanel();
-    gXStatus.fReviewCharacterMode = 0;
+    gXStatus.fReviewCharacterMode = false;
     UpdateHeldItemCursor();
     RegionSetDisable(0x1b);
     RequestRedraw(0x200);
@@ -517,7 +511,7 @@ static void AcceptFormationChanges(void)
 // FUNCTION: WIZ8 0x005b2960
 static void ResetFormationPanel(void)
 {
-    CopyPartyFormationState(&gXStatus.edited_formation, &g_status_685170.formation);
+    CopyPartyFormationState(&gXStatus.edited_formation, &g_status.formation);
     UpdateFormationCells();
 }
 
@@ -534,22 +528,21 @@ unsigned char FormationCellRegionEvent(const InputAtom* event, W8Region* region)
     if (gXStatus.fReviewCharacterMode == 0) {
         return 0;
     }
-    if (g_formation_cell_slots_0069c304[region->callback_id] == -1) {
-        PushButtonSoundScheme005587C0(0, 1);
+    if (g_formation_cell_slots[region->callback_id] == -1) {
+        PushButtonSoundScheme(0, 1);
         if (event->usEvent != LEFT_BUTTON_UP) {
             return 1;
         }
-        if (g_formation_drag_cell_0069c380 == -1) {
+        if (g_formation_drag_cell == -1) {
             return 1;
         }
     }
     if (event->usEvent < 0x41) {
         if (event->usEvent == LEFT_BUTTON_REPEAT) {
             if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0 &&
-                ClockIsTicking(g_formation_drag_clock_0069c340) == 0 &&
-                g_formation_drag_cell_0069c380 == -1 && g_formation_active_cell_0069c2f0 != -1) {
-                if (CanHoldFormationPlace(g_formation_cell_slots_0069c304[region->callback_id]) ==
-                    0) {
+                ClockIsTicking(g_formation_drag_clock) == 0 && g_formation_drag_cell == -1 &&
+                g_formation_active_cell != -1) {
+                if (CanHoldFormationPlace(g_formation_cell_slots[region->callback_id]) == 0) {
                     region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
                     return 1;
                 }
@@ -562,21 +555,21 @@ unsigned char FormationCellRegionEvent(const InputAtom* event, W8Region* region)
                 g_formation_cell_controls[region->callback_id]->OnLeftButtonDown(0);
                 g_formation_cell_overlays[region->callback_id]->Invalidate(0);
                 region->flags |= W8_REGION_LEFT_BUTTON_HELD;
-                g_formation_drag_clock_0069c340 = SetCountdownClock(0xfa);
+                g_formation_drag_clock = SetCountdownClock(0xfa);
                 return 1;
             }
             if (event->usEvent != LEFT_BUTTON_UP) {
                 return 0;
             }
-            if (g_formation_cell_slots_0069c304[region->callback_id] != -1) {
-                g_formation_active_cell_0069c2f0 = region->callback_id;
+            if (g_formation_cell_slots[region->callback_id] != -1) {
+                g_formation_active_cell = region->callback_id;
                 g_formation_cell_controls[region->callback_id]->OnLeftButtonUp(0);
                 g_formation_cell_overlays[region->callback_id]->Invalidate(0);
             }
             if ((region->flags & W8_REGION_LEFT_BUTTON_HELD) != 0) {
                 region->flags &= ~W8_REGION_LEFT_BUTTON_HELD;
             }
-            if (g_formation_drag_cell_0069c380 != -1) {
+            if (g_formation_drag_cell != -1) {
                 DropFormationSlot(region->callback_id);
                 return 1;
             }
@@ -589,25 +582,24 @@ unsigned char FormationCellRegionEvent(const InputAtom* event, W8Region* region)
             g_formation_cell_controls[region->callback_id]->OnMouseLeave(0);
             g_formation_cell_overlays[region->callback_id]->OnMouseLeave(0);
             g_formation_cell_overlays[region->callback_id]->Invalidate(0);
-            if (gfLeftButtonState != 0 && g_formation_drag_cell_0069c380 == -1 &&
-                CanHoldFormationPlace(g_formation_cell_slots_0069c304[region->callback_id]) != 0) {
-                g_formation_active_cell_0069c2f0 = region->callback_id;
+            if (gfLeftButtonState != 0 && g_formation_drag_cell == -1 &&
+                CanHoldFormationPlace(g_formation_cell_slots[region->callback_id]) != 0) {
+                g_formation_active_cell = region->callback_id;
                 BeginFormationDrag(event);
                 g_formation_cell_overlays[region->callback_id]->Invalidate(0);
             }
-            g_formation_active_cell_0069c2f0 = -1;
+            g_formation_active_cell = -1;
             SetTooltipSubject(7, -1);
             return 1;
         }
-        if ((region->flags & W8_REGION_MOUSE_ENTER) == 0 &&
-            g_formation_active_cell_0069c2f0 != -1) {
+        if ((region->flags & W8_REGION_MOUSE_ENTER) == 0 && g_formation_active_cell != -1) {
             return 0;
         }
         g_formation_cell_controls[region->callback_id]->OnMouseEnter(0);
         g_formation_cell_overlays[region->callback_id]->OnMouseEnter(0);
         g_formation_cell_overlays[region->callback_id]->Invalidate(0);
-        g_formation_active_cell_0069c2f0 = region->callback_id;
-        SetTooltipSubject(7, g_formation_cell_slots_0069c304[region->callback_id]);
+        g_formation_active_cell = region->callback_id;
+        SetTooltipSubject(7, g_formation_cell_slots[region->callback_id]);
     }
     return 1;
 }
@@ -651,17 +643,17 @@ unsigned char FormationBackgroundRegionEvent(const InputAtom* event, W8Region*)
     if (gXStatus.fReviewCharacterMode == 0) {
         return 0;
     }
-    PushButtonSoundScheme005587C0(0, 1);
+    PushButtonSoundScheme(0, 1);
     SGPMouseGetPos(&point);
     switch (event->usEvent) {
     case LEFT_BUTTON_UP:
-        if (g_formation_drag_cell_0069c380 != -1) {
+        if (g_formation_drag_cell != -1) {
             DropFormationSlot(-1);
         }
         return 1;
     case MOUSE_POS:
         if ((point.x < 234 || point.x > 406 || point.y < 80 || point.y > 252) &&
-            g_formation_drag_cell_0069c380 != -1) {
+            g_formation_drag_cell != -1) {
             DropFormationSlot(-1);
         }
         break;
@@ -680,40 +672,37 @@ static void BeginFormationDrag(const InputAtom*)
     int index;
     int sprite;
 
-    if (CanHoldFormationPlace(g_formation_cell_slots_0069c304[g_formation_active_cell_0069c2f0]) !=
-        0) {
+    if (CanHoldFormationPlace(g_formation_cell_slots[g_formation_active_cell]) != 0) {
         for (index = 0; index < 15; ++index) {
             W8TextControl* control = g_formation_cell_controls[index];
 
-            if (index == g_formation_active_cell_0069c2f0) {
+            if (index == g_formation_active_cell) {
                 control->EnableSecondaryState(0);
             } else if ((control->m_stateFlags & g_W8TextControlMask005ED570) != 0) {
                 control->DisableSecondaryState(0);
                 g_formation_cell_overlays[index]->Invalidate(0);
             }
         }
-        SelectPartyCharacter(g_formation_cell_slots_0069c304[g_formation_active_cell_0069c2f0]);
+        SelectPartyCharacter(g_formation_cell_slots[g_formation_active_cell]);
     }
-    g_formation_cell_controls[g_formation_active_cell_0069c2f0]->DisableSecondaryState(0);
-    g_formation_drag_slot_0069c2f4 =
-        g_formation_cell_slots_0069c304[g_formation_active_cell_0069c2f0];
-    g_formation_drag_cell_0069c380 = g_formation_active_cell_0069c2f0;
-    g_formation_cell_slots_0069c304[g_formation_active_cell_0069c2f0] = -1;
+    g_formation_cell_controls[g_formation_active_cell]->DisableSecondaryState(0);
+    g_formation_drag_slot = g_formation_cell_slots[g_formation_active_cell];
+    g_formation_drag_cell = g_formation_active_cell;
+    g_formation_cell_slots[g_formation_active_cell] = -1;
     SGPMouseGetPos(&point);
     ClearMouseSurface();
-    sprite = g_formation_cell_controls[g_formation_drag_cell_0069c380]->m_alternatePressedSprite;
+    sprite = g_formation_cell_controls[g_formation_drag_cell]->m_alternatePressedSprite;
     region = GetCatalogVideoObjectYOffset(0x9f) + (short)sprite;
     video_object = GetCatalogVideoObjectHandle(0x9f, 0);
     SetMouseCursorFromVideoObject(video_object, region, 0x10, 0x10);
-    DrawCatalogImage(
-        -0xd, 0xa0, 0,
-        static_cast<short>(
-            g_formation_cell_overlays[g_formation_drag_cell_0069c380]->m_alternateNormalSprite),
-        0, 0, 2, 0);
+    DrawCatalogImage(-0xd, 0xa0, 0,
+                     static_cast<short>(
+                         g_formation_cell_overlays[g_formation_drag_cell]->m_alternateNormalSprite),
+                     0, 0, 2, 0);
     WarpSystemCursor(point.x - 0x10, point.y - 0x10);
     RefreshMouseCursorTexture();
     gXStatus.iCurrentCursor = 7;
-    ResetFormationCellControls(g_formation_drag_cell_0069c380);
+    ResetFormationCellControls(g_formation_drag_cell);
 }
 
 /* Drop the dragged character: into an empty cell it re-seats the row, onto a
@@ -721,29 +710,28 @@ static void BeginFormationDrag(const InputAtom*)
 // FUNCTION: WIZ8 0x005b2f70
 static void DropFormationSlot(int cell)
 {
-    if (cell != -1 && cell != g_formation_drag_cell_0069c380) {
-        if (g_formation_cell_slots_0069c304[cell] == -1) {
-            SetFormationPosition(&gXStatus.edited_formation, g_formation_drag_slot_0069c2f4, -1, -1,
-                                 0, 1, 1);
-            SeatFormationSlotInRow(&gXStatus.edited_formation, g_formation_drag_slot_0069c2f4,
-                                   cell / 3);
-        } else if (CanHoldFormationPlace(g_formation_cell_slots_0069c304[cell]) == 0) {
+    if (cell != -1 && cell != g_formation_drag_cell) {
+        if (g_formation_cell_slots[cell] == -1) {
+            SetFormationPosition(&gXStatus.edited_formation, g_formation_drag_slot, -1, -1, 0, 1,
+                                 1);
+            SeatFormationSlotInRow(&gXStatus.edited_formation, g_formation_drag_slot, cell / 3);
+        } else if (CanHoldFormationPlace(g_formation_cell_slots[cell]) == 0) {
             cell = -1;
         } else {
-            SwapFormationSlots(&gXStatus.edited_formation, g_formation_drag_slot_0069c2f4,
-                               g_formation_cell_slots_0069c304[cell]);
+            SwapFormationSlots(&gXStatus.edited_formation, g_formation_drag_slot,
+                               g_formation_cell_slots[cell]);
         }
     }
     UpdateHeldItemCursor();
     UpdateFormationCells();
-    g_formation_cell_overlays[g_formation_drag_cell_0069c380]->SetAlternateTextEnabled(0);
+    g_formation_cell_overlays[g_formation_drag_cell]->SetAlternateTextEnabled(0);
     if (cell != -1) {
         g_formation_cell_overlays[cell]->SetAlternateTextEnabled(1);
-        g_formation_active_cell_0069c2f0 = cell;
-        g_level_block->formation_highlight_party_slot = g_formation_cell_slots_0069c304[cell];
+        g_formation_active_cell = cell;
+        g_level_block->formation_highlight_party_slot = g_formation_cell_slots[cell];
         RequestRedraw(1 << (g_level_block->formation_highlight_party_slot & 0x1f));
     }
-    g_formation_drag_cell_0069c380 = -1;
+    g_formation_drag_cell = -1;
 }
 
 /* Blank every sprite on a cell's control pair. */
@@ -773,7 +761,7 @@ void SelectFormationSlotCell(int party_slot)
     for (index = 0; index < 15; ++index) {
         W8TextControl* control = g_formation_cell_controls[index];
 
-        if (g_formation_cell_slots_0069c304[index] == party_slot) {
+        if (g_formation_cell_slots[index] == party_slot) {
             control->EnableSecondaryState(0);
             g_formation_cell_overlays[index]->Invalidate(0);
         } else if ((control->m_stateFlags & g_W8TextControlMask005ED570) != 0) {

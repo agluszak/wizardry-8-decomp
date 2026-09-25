@@ -31,7 +31,7 @@
    established by its definitions. */
 
 // GLOBAL: WIZ8 0x0060bfdc
-unsigned int g_light_update_flags_0060bfdc = 1;
+unsigned int g_light_update_flags = 1;
 
 /* rand() normalization to a 0..1 flicker probability; only Update0049C960
    uses it. */
@@ -73,7 +73,7 @@ stLight::~stLight()
 {
     delete m_definition_234;
     if (m_owned_244 != 0) {
-        DestroyOwnedPathAI004A9110(m_owned_244);
+        DestroyOwnedPathAI(m_owned_244);
     }
 }
 
@@ -96,7 +96,7 @@ stLight& stLight::operator=(const stLight& other)
     m_padding_238 = other.m_padding_238;
     m_direction_239 = other.m_direction_239;
     if (other.m_owned_244 != 0) {
-        m_owned_244 = ClonePathAI004A98C0(other.m_owned_244);
+        m_owned_244 = ClonePathAI(other.m_owned_244);
     } else {
         m_owned_244 = 0;
     }
@@ -118,7 +118,7 @@ void stLight::traverse(srNode::TraverseInfo& info)
 
     if (!testFlag(FLAG_TERMINATE)) {
         if (testFlag(FLAG_DISABLE) || fabs(intensity_1d0) <= g_double_005ebc70 ||
-            (g_light_update_flags_0060bfdc & 1) == 0) {
+            (g_light_update_flags & 1) == 0) {
             if (firstChild() != 0) {
                 firstChild()->traverse(info);
             }
@@ -167,10 +167,10 @@ void stLight::process(const srNode::ProcessInfo& info, srNode::e_processType typ
 }
 
 // FUNCTION: WIZ8 0x0049C940
-void stLight::SetDefinitionTime0049C940(float time)
+void stLight::SetDefinitionTime(float time)
 {
     if (m_definition_234 != 0 && m_definition_234->type_04 == 2) {
-        static_cast<stLightDefinition005ECDA0*>(m_definition_234)->time_4c = time;
+        static_cast<stKeyframedLightDefinition*>(m_definition_234)->time_4c = time;
     }
 }
 
@@ -187,8 +187,8 @@ void stLight::SetDefinitionTime0049C940(float time)
 void stLight::Update0049C960()
 {
     if (m_definition_234 != 0 && m_definition_234->type_04 == 2) {
-        stLightDefinition005ECDA0* definition =
-            static_cast<stLightDefinition005ECDA0*>(m_definition_234);
+        stKeyframedLightDefinition* definition =
+            static_cast<stKeyframedLightDefinition*>(m_definition_234);
         float time = definition->time_4c;
         int count = definition->values_18.count;
         int last = count - 1;
@@ -254,8 +254,8 @@ void stLight::Update0049C960()
     unsigned long ticks = GetTickCount();
     W8PathAI* path = m_owned_244;
     float seconds = ticks * g_float_005ec128;
-    stLightDefinition005ECDBC* definition =
-        static_cast<stLightDefinition005ECDBC*>(m_definition_234);
+    stParametricLightDefinition* definition =
+        static_cast<stParametricLightDefinition*>(m_definition_234);
     if (definition->period_30 < g_float_005ebc90) {
         definition->period_30 = 1.0f;
     }
@@ -349,7 +349,7 @@ void stLight::Update0049C960()
         if (prop != 0) {
             instance = prop->ToggleRepAnimationDefault();
             srMeshModel* model = static_cast<srMeshModel*>(instance->model());
-            if (MeshHasAnimatedTexture004B9AA0(model) == 0) {
+            if (MeshHasAnimatedTexture(model) == 0) {
                 m_prop_254 = 0;
                 instance = 0;
             }
@@ -360,7 +360,7 @@ void stLight::Update0049C960()
         if (testFlag(FLAG_DISABLE) == 0) {
             setFlag(FLAG_DISABLE);
             if (instance != 0) {
-                SetModelAnimatedTextureFrame004B9B00(instance, 1);
+                SetModelAnimatedTextureFrame(instance, 1);
             }
         } else {
             int roll = rand();
@@ -368,36 +368,36 @@ void stLight::Update0049C960()
                 if (testFlag(FLAG_DISABLE) == 0) {
                     setFlag(FLAG_DISABLE);
                     if (instance != 0) {
-                        SetModelAnimatedTextureFrame004B9B00(instance, 1);
+                        SetModelAnimatedTextureFrame(instance, 1);
                     }
                 } else {
                     clearFlag(FLAG_DISABLE);
                     if (instance != 0) {
-                        SetModelAnimatedTextureFrame004B9B00(instance, 0);
+                        SetModelAnimatedTextureFrame(instance, 0);
                     }
                 }
             }
         }
     }
-    if ((path == 0) || (PathAIEntryCount004A9F20(path) == 0) ||
+    if ((path == 0) || (PathAIEntryCount(path) == 0) ||
         ((seconds - m_path_time_24c) * definition->path_speed_38 < g_float_005ebb38)) {
         return;
     }
     int index = static_cast<int>((seconds - m_path_time_24c) * definition->path_speed_38);
     index = index * m_path_direction_250 + m_path_index_248;
-    if (index < static_cast<int>(PathAIEntryCount004A9F20(path))) {
+    if (index < static_cast<int>(PathAIEntryCount(path))) {
         if (index < 0) {
             m_path_direction_250 = 1;
             index = 0;
         }
     } else if ((definition->flags_08 & 0x20) != 0) {
         m_path_direction_250 = -1;
-        index = static_cast<int>(PathAIEntryCount004A9F20(path)) - 2;
+        index = static_cast<int>(PathAIEntryCount(path)) - 2;
     } else {
         index = 0;
     }
-    PathAISetValue004A9F60(path, static_cast<float>(index));
-    PathAIApply004AA520(path, this);
+    PathAISetValue(path, static_cast<float>(index));
+    PathAIApply(path, this);
     m_path_index_248 = index;
     m_path_time_24c = seconds;
 }
@@ -411,15 +411,15 @@ void stLight::Reset0049D070()
 {
     if (m_definition_234 != 0) {
         if (m_definition_234->type_04 == 2) {
-            stLightDefinition005ECDA0* definition =
-                static_cast<stLightDefinition005ECDA0*>(m_definition_234);
+            stKeyframedLightDefinition* definition =
+                static_cast<stKeyframedLightDefinition*>(m_definition_234);
             definition->time_4c = 0.0f;
             definition->keyframe_index_48 = 0;
             m_path_index_248 = 0;
             m_path_direction_250 = 1;
         } else {
-            stLightDefinition005ECDBC* definition =
-                static_cast<stLightDefinition005ECDBC*>(m_definition_234);
+            stParametricLightDefinition* definition =
+                static_cast<stParametricLightDefinition*>(m_definition_234);
             intensity_1d0 = definition->intensity_28;
             if ((definition->flags_08 & 8) != 0) {
                 diffuse_1a4 = definition->color_10;
@@ -435,9 +435,9 @@ void stLight::Reset0049D070()
 /* Serialize the registered positional lights: a version byte and count
    followed by each light's 0x80-byte name and its disable flag. */
 // FUNCTION: WIZ8 0x0049D120
-void SaveLightStates0049D120(int handle)
+void SaveLightStates(int handle)
 {
-    unsigned short name[0x40] = {g_empty_ambient_name_65a110};
+    unsigned short name[0x40] = {g_empty_ambient_name};
     unsigned char version = 1;
     int count = 0;
 
@@ -474,9 +474,9 @@ void SaveLightStates0049D120(int handle)
    followed by each light's 0x80-byte name and its enable flag, applied to the
    light found by name in the registry. */
 // FUNCTION: WIZ8 0x0049D390
-void LoadLightStates0049D390(int handle)
+void LoadLightStates(int handle)
 {
-    unsigned short name[0x40] = {g_empty_ambient_name_65a110};
+    unsigned short name[0x40] = {g_empty_ambient_name};
     unsigned char version;
     int count = 0;
 
@@ -564,7 +564,7 @@ unsigned char W8OctRegionVolume::ContainsPoint0049E460(const srVector3T<float>* 
 }
 
 // SYNTHETIC: WIZ8 0x004A2200
-// stLightDefinition005ECDBC::`scalar deleting destructor'
+// stParametricLightDefinition::`scalar deleting destructor'
 
 // TEMPLATE: WIZ8 0x0049E290
 // srArray<srNode*>::setCapacity

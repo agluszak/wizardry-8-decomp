@@ -29,7 +29,7 @@
    header, name, quotes array, and remaining entry allocations are left for
    the caller; NPC rebinding overwrites the pointer without releasing them. */
 // FUNCTION: WIZ8 0x0055a0a0
-void ReleaseNpcScriptFile0055A0A0(W8NpcScriptFile* file)
+void ReleaseNpcScriptFile(W8NpcScriptFile* file)
 {
     W8NpcScriptQuote* record;
     unsigned int index;
@@ -59,7 +59,7 @@ void ReleaseNpcScriptFile0055A0A0(W8NpcScriptFile* file)
 }
 
 // FUNCTION: WIZ8 0x0055a140
-unsigned char ReadNpcScriptQuote0055A140(int handle, W8NpcScriptQuote* record)
+unsigned char ReadNpcScriptQuote(int handle, W8NpcScriptQuote* record)
 {
     W8NpcQuoteEntry* entry;
     W8NpcQuoteSubEntry* sub_entry;
@@ -158,7 +158,7 @@ unsigned char ReadNpcScriptQuote0055A140(int handle, W8NpcScriptQuote* record)
    what it already allocated, which is the original's behaviour and not an
    omission here. */
 // FUNCTION: WIZ8 0x0055a480
-W8NpcScriptFile* LoadNpcScriptFile0055A480(char* path)
+W8NpcScriptFile* LoadNpcScriptFile(char* path)
 {
     int handle;
     W8NpcScriptFile* file;
@@ -204,7 +204,7 @@ W8NpcScriptFile* LoadNpcScriptFile0055A480(char* path)
         return 0;
     }
     for (index = 0; index < file->quote_count; ++index) {
-        if (!ReadNpcScriptQuote0055A140(handle, &file->quotes[index])) {
+        if (!ReadNpcScriptQuote(handle, &file->quotes[index])) {
             return 0;
         }
     }

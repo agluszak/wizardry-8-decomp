@@ -301,7 +301,7 @@ unsigned long W8VirtualFileBinIStream::vread(void* buffer, unsigned long size)
 }
 
 /* The global opener's implicit default constructor, emitted for
-   g_virtual_file_stream_opener_65a124; it only installs the vtable. */
+   g_virtual_file_stream_opener; it only installs the vtable. */
 // SYNTHETIC: WIZ8 0x0047CB20
 // W8VirtualFileStreamOpener::W8VirtualFileStreamOpener
 
@@ -318,7 +318,7 @@ const char* W8VirtualFileStreamOpener::getDescription() const
 }
 
 // GLOBAL: WIZ8 0x0065A124
-W8VirtualFileStreamOpener g_virtual_file_stream_opener_65a124;
+W8VirtualFileStreamOpener g_virtual_file_stream_opener;
 
 // SYNTHETIC: WIZ8 0x0047CBB0
 // W8VirtualFileStreamOpener::`scalar deleting destructor'
@@ -347,6 +347,6 @@ void InitializeVirtualFileImageImporters(void)
 {
     srExtension::load("JPEGImporter", NULL);
     srExtension::load("TargaImporter", NULL);
-    srCore.getIStreamOpener()->addStreamType(&g_virtual_file_stream_opener_65a124, "jpg");
-    srCore.getIStreamOpener()->addStreamType(&g_virtual_file_stream_opener_65a124, "tga");
+    srCore.getIStreamOpener()->addStreamType(&g_virtual_file_stream_opener, "jpg");
+    srCore.getIStreamOpener()->addStreamType(&g_virtual_file_stream_opener, "tga");
 }

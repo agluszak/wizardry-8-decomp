@@ -154,9 +154,9 @@ unsigned char MaintainNpcStock(W8NpcState* npc, char force)
         }
     }
 
-    if (static_cast<unsigned int>(g_status_685170.world_clock - npc->restock_clock) > 0xa8c0 ||
+    if (static_cast<unsigned int>(g_status.world_clock - npc->restock_clock) > 0xa8c0 ||
         force != 0) {
-        npc->restock_clock = g_status_685170.world_clock;
+        npc->restock_clock = g_status.world_clock;
         count = PLLength(npc->record->item_stock_rules);
         for (rule_index = 0; rule_index < count; ++rule_index) {
             rule =
@@ -203,7 +203,7 @@ unsigned char MaintainNpcStock(W8NpcState* npc, char force)
         }
     }
 
-    if (static_cast<unsigned int>(g_status_685170.world_clock - npc->maintenance_clock) < 0x15180 &&
+    if (static_cast<unsigned int>(g_status.world_clock - npc->maintenance_clock) < 0x15180 &&
         force == 0) {
         return 0;
     }
@@ -220,8 +220,8 @@ unsigned char MaintainNpcStock(W8NpcState* npc, char force)
             count = PLLength(npc->items);
         }
     }
-    npc->maintenance_clock = g_status_685170.world_clock;
-    npc->restock_clock = g_status_685170.world_clock;
+    npc->maintenance_clock = g_status.world_clock;
+    npc->restock_clock = g_status.world_clock;
     return 1;
 }
 
@@ -307,8 +307,8 @@ unsigned char PopulateNpcStock(W8NpcState* npc)
         }
     }
     SortNpcItems(npc);
-    npc->maintenance_clock = g_status_685170.world_clock;
-    npc->restock_clock = g_status_685170.world_clock;
+    npc->maintenance_clock = g_status.world_clock;
+    npc->restock_clock = g_status.world_clock;
     return 1;
 }
 
@@ -611,7 +611,7 @@ int AddNpcItemWithDelay(W8NpcState* npc, int item_id, unsigned int quantity, int
         return -1;
     }
     entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
-    entry->available_at = g_status_685170.world_clock + delay;
+    entry->available_at = g_status.world_clock + delay;
     return index;
 }
 
@@ -628,11 +628,11 @@ unsigned int GetNpcItemCount(W8NpcState* npc)
 }
 
 // GLOBAL: WIZ8 0x0062A80C
-char g_sound_cash_transaction_62a80c[] = "Data\\Sound\\misc\\Cash Transaction.wav";
+char g_sound_cash_transaction[] = "Data\\Sound\\misc\\Cash Transaction.wav";
 
 // FUNCTION: WIZ8 0x0055B730
-unsigned char SellItemToNpc0055B730(W8NpcState* npc, W8ItemInstance* item, unsigned char quantity,
-                                    char suppress_payment)
+unsigned char SellItemToNpc(W8NpcState* npc, W8ItemInstance* item, unsigned char quantity,
+                            char suppress_payment)
 {
     W8ItemInstance stack;
     int amount;
@@ -645,7 +645,7 @@ unsigned char SellItemToNpc0055B730(W8NpcState* npc, W8ItemInstance* item, unsig
             if (suppress_payment == 0) {
                 AddPartyGold(amount, 0);
             }
-            SoundPlay(g_sound_cash_transaction_62a80c, 0);
+            SoundPlay(g_sound_cash_transaction, 0);
             if (item->stack_count == 0) {
                 item->stack_count = 1;
             }
@@ -860,8 +860,8 @@ int CalculateTradeStackPrice(W8NpcState* npc, W8ItemInstance* item, char mode)
    accumulated stack then leaves the party purse and the stock entry shrinks.
    The trailing pass drops entries whose remaining count hit zero. */
 // FUNCTION: WIZ8 0x0055B7E0
-bool CompleteNpcItemPurchase0055B7E0(W8NpcState* npc, int index, unsigned char quantity,
-                                     char no_payment, int* remaining_out)
+bool CompleteNpcItemPurchase(W8NpcState* npc, int index, unsigned char quantity, char no_payment,
+                             int* remaining_out)
 {
     unsigned char available;
     unsigned char moved;
@@ -897,8 +897,8 @@ bool CompleteNpcItemPurchase0055B7E0(W8NpcState* npc, int index, unsigned char q
                 hand.stack_count = unit;
             }
         }
-        if (AddItemToPartyOrDrop(&hand, 0) == 0 && g_status_685170.item_in_cursor == 0) {
-            DisplayNpcQuote00529570(gppStringList[0x1ac4 / 4], 0);
+        if (AddItemToPartyOrDrop(&hand, 0) == 0 && g_status.item_in_cursor == 0) {
+            DisplayNpcQuote(gppStringList[0x1ac4 / 4], 0);
         }
         moved += unit;
         if (quantity <= moved) {
@@ -908,7 +908,7 @@ bool CompleteNpcItemPurchase0055B7E0(W8NpcState* npc, int index, unsigned char q
             ReplaceOrCreateItem(&stack, entry->item.iItemNo, 0, 1, 0);
             stack.stack_count = moved;
             price = CalculateTradeStackPrice(npc, &stack, 1);
-            SoundPlay(g_sound_cash_transaction_62a80c, 0);
+            SoundPlay(g_sound_cash_transaction, 0);
             if (ConsumeNpcItemQuantity(npc, index, moved) == 0) {
                 return 0;
             }
@@ -1025,7 +1025,7 @@ void DecayNpcInventory(W8NpcState* npc)
 }
 
 // FUNCTION: WIZ8 0x0055BB10
-void MatureNpcDelayedItems0055BB10(W8NpcState* npc)
+void MatureNpcDelayedItems(W8NpcState* npc)
 {
     if (npc->items == 0) {
         return;
@@ -1034,7 +1034,7 @@ void MatureNpcDelayedItems0055BB10(W8NpcState* npc)
     for (unsigned int index = 0; index < count; ++index) {
         W8NpcItemEntry* entry = static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
         if (entry->available_at == 0 ||
-            entry->available_at >= static_cast<unsigned int>(g_status_685170.world_clock)) {
+            entry->available_at >= static_cast<unsigned int>(g_status.world_clock)) {
             continue;
         }
         entry->available_at = 0;
@@ -1089,5 +1089,5 @@ void MatureNpcDelayedItems0055BB10(W8NpcState* npc)
 void RestockNpcInventory(W8NpcState* npc)
 {
     MaintainNpcStock(npc, 0);
-    MatureNpcDelayedItems0055BB10(npc);
+    MatureNpcDelayedItems(npc);
 }

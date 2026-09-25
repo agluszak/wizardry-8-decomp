@@ -203,21 +203,21 @@ int W8SplitItemDialog::CreateControls()
     UpdateAcceptButton();
     swprintf(text, g_format_d_0060aa20, m_remaining_0bc);
     m_texts_07c[2]->SetText(text, g_font_683660);
-    m_buttons_054[2]->m_dirty = 1;
+    m_buttons_054[2]->m_dirty = true;
     m_texts_07c[2]->m_geometryDirty = 1;
     m_count_input_0b4->SetValue(split_count_0c0);
-    m_buttons_054[3]->m_dirty = 1;
-    m_count_input_0b4->m_dirty = 1;
-    m_count_input_0b4->m_button->m_dirty = 1;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    m_buttons_054[3]->m_dirty = true;
+    m_count_input_0b4->m_dirty = true;
+    m_count_input_0b4->m_button->m_dirty = true;
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(m_item_0d0) * m_remaining_0bc) * g_float_005ed8b8);
     m_texts_07c[7]->SetText(text, g_font_683660);
-    m_buttons_054[4]->m_dirty = 1;
+    m_buttons_054[4]->m_dirty = true;
     m_texts_07c[7]->m_geometryDirty = 1;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(m_item_0d0) * split_count_0c0) * g_float_005ed8b8);
     m_texts_07c[9]->SetText(text, g_font_683660);
-    m_buttons_054[5]->m_dirty = 1;
+    m_buttons_054[5]->m_dirty = true;
     m_texts_07c[9]->m_geometryDirty = 1;
     UpdateCostLabels();
     return 0;
@@ -384,7 +384,7 @@ unsigned char W8SplitItemDialog::CreateTextBuffers()
     m_texts_07c[3]->SetText(FormatItemDisplayName(m_item_0d0, 0), g_font_683660);
     m_texts_07c[4]->SetText(
         FormatWideString(
-            L"%s (%s)", gppStringList[g_equip_class_name_ids_61e7dc[GetItemEquipClass(m_item_0d0)]],
+            L"%s (%s)", gppStringList[g_equip_class_name_ids[GetItemEquipClass(m_item_0d0)]],
             gppStringList[g_generic_item_name_notice[GetItemUnidentifiedNameIndex(m_item_0d0)]]),
         g_font_683660);
     return 1;
@@ -437,24 +437,24 @@ void W8SplitItemDialog::Draw()
         }
         m_first_draw_0d4 = 1;
         for (index = 0; index < button_count; ++index) {
-            m_buttons_054[index]->m_dirty = 1;
+            m_buttons_054[index]->m_dirty = true;
         }
         for (index = 0; index < text_count; ++index) {
             m_texts_07c[index]->m_geometryDirty = 1;
         }
-        m_count_input_0b4->m_dirty = 1;
-        m_count_input_0b4->m_button->m_dirty = 1;
+        m_count_input_0b4->m_dirty = true;
+        m_count_input_0b4->m_button->m_dirty = true;
         W8DialogBase::Draw();
     }
     if (m_first_draw_0d4 != 0) {
         DrawCatalogImageAndInvalidate(
-            -0xe, g_item_video_objects_68ec68.GetOrCreateVideoObject(m_item_0d0->iItemNo), 0, 0,
+            -0xe, g_item_video_objects.GetOrCreateVideoObject(m_item_0d0->iItemNo), 0, 0,
             m_x + 0x18, m_y + 0xe, 2, 0);
         m_first_draw_0d4 = 0;
     }
     if (m_buttons_054[3]->m_dirty) {
-        m_count_input_0b4->m_dirty = 1;
-        m_count_input_0b4->m_button->m_dirty = 1;
+        m_count_input_0b4->m_dirty = true;
+        m_count_input_0b4->m_button->m_dirty = true;
     }
     for (index = 0; index < button_count; ++index) {
         if (m_buttons_054[index] != 0) {
@@ -519,11 +519,11 @@ void W8SplitItemDialog::UpdateCostLabels()
     }
     swprintf(text, g_format_d_0060aa20, remaining_price);
     m_texts_07c[11]->SetText(text, g_font_683660);
-    m_buttons_054[8]->m_dirty = 1;
+    m_buttons_054[8]->m_dirty = true;
     m_texts_07c[11]->m_geometryDirty = 1;
     swprintf(text, g_format_d_0060aa20, split_price);
     m_texts_07c[13]->SetText(text, g_font_683660);
-    m_buttons_054[9]->m_dirty = 1;
+    m_buttons_054[9]->m_dirty = true;
     m_texts_07c[13]->m_geometryDirty = 1;
 }
 
@@ -532,17 +532,17 @@ void W8SplitItemDialog::UpdateArrowStates()
 {
     if (split_count_0c0 == 0) {
         m_buttons_054[0]->SetEnabled(0);
-        m_buttons_054[0]->m_dirty = 1;
+        m_buttons_054[0]->m_dirty = true;
     } else if (!m_buttons_054[0]->IsEnabled()) {
         m_buttons_054[0]->SetEnabled(1);
-        m_buttons_054[0]->m_dirty = 1;
+        m_buttons_054[0]->m_dirty = true;
     }
     if (m_remaining_0bc == 0) {
         m_buttons_054[1]->SetEnabled(0);
-        m_buttons_054[1]->m_dirty = 1;
+        m_buttons_054[1]->m_dirty = true;
     } else if (!m_buttons_054[1]->IsEnabled()) {
         m_buttons_054[1]->SetEnabled(1);
-        m_buttons_054[1]->m_dirty = 1;
+        m_buttons_054[1]->m_dirty = true;
     }
 }
 
@@ -550,22 +550,22 @@ void W8SplitItemDialog::UpdateArrowStates()
 void W8SplitItemDialog::UpdateAcceptButton()
 {
     W8ItemInstance stack;
-    unsigned char can_accept;
+    bool can_accept;
 
     stack = *m_item_0d0;
     stack.stack_count = (unsigned char)split_count_0c0;
     can_accept = split_count_0c0 != 0;
     switch (m_kind_0cc) {
     case 1:
-        if (g_status_685170.party_gold < static_cast<unsigned int>(CalculateTradeStackPrice(
-                                             g_screen_state_00649f1c->dialogue_npc, &stack, 0))) {
-            can_accept = 0;
+        if (g_status.party_gold < static_cast<unsigned int>(CalculateTradeStackPrice(
+                                      g_screen_state_00649f1c->dialogue_npc, &stack, 0))) {
+            can_accept = false;
         }
         break;
     case 2:
-        if (g_status_685170.party_gold < static_cast<unsigned int>(CalculateTradeStackPrice(
-                                             g_screen_state_00649f1c->dialogue_npc, &stack, 1))) {
-            can_accept = 0;
+        if (g_status.party_gold < static_cast<unsigned int>(CalculateTradeStackPrice(
+                                      g_screen_state_00649f1c->dialogue_npc, &stack, 1))) {
+            can_accept = false;
         }
         break;
     }
@@ -590,21 +590,21 @@ void W8SplitItemDialog::OnNumericInputChanged(int value)
     UpdateAcceptButton();
     swprintf(text, g_format_d_0060aa20, m_remaining_0bc);
     m_texts_07c[2]->SetText(text, g_font_683660);
-    m_buttons_054[2]->m_dirty = 1;
+    m_buttons_054[2]->m_dirty = true;
     m_texts_07c[2]->m_geometryDirty = 1;
     m_count_input_0b4->SetValue(split_count_0c0);
-    m_buttons_054[3]->m_dirty = 1;
-    m_count_input_0b4->m_dirty = 1;
-    m_count_input_0b4->m_button->m_dirty = 1;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    m_buttons_054[3]->m_dirty = true;
+    m_count_input_0b4->m_dirty = true;
+    m_count_input_0b4->m_button->m_dirty = true;
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(m_item_0d0) * m_remaining_0bc) * g_float_005ed8b8);
     m_texts_07c[7]->SetText(text, g_font_683660);
-    m_buttons_054[4]->m_dirty = 1;
+    m_buttons_054[4]->m_dirty = true;
     m_texts_07c[7]->m_geometryDirty = 1;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(m_item_0d0) * split_count_0c0) * g_float_005ed8b8);
     m_texts_07c[9]->SetText(text, g_font_683660);
-    m_buttons_054[5]->m_dirty = 1;
+    m_buttons_054[5]->m_dirty = true;
     m_texts_07c[9]->m_geometryDirty = 1;
     UpdateCostLabels();
 }
@@ -626,9 +626,9 @@ unsigned char W8SplitItemDialog::HandleInputEvent(const InputAtom* input)
         int key = toupper(input->usParam);
         if (key == '\r') {
             split_result_0c8 = 1;
-            m_keep_open = 0;
+            m_keep_open = false;
         } else if (key == 0x1b) {
-            m_keep_open = 0;
+            m_keep_open = false;
             return m_keep_open;
         }
     }
@@ -696,23 +696,23 @@ void W8SplitItemDialog::OnSplitDecrement(W8DialogButton* button)
     dialog->UpdateAcceptButton();
     swprintf(text, g_format_d_0060aa20, dialog->m_remaining_0bc);
     dialog->m_texts_07c[2]->SetText(text, g_font_683660);
-    dialog->m_buttons_054[2]->m_dirty = 1;
+    dialog->m_buttons_054[2]->m_dirty = true;
     dialog->m_texts_07c[2]->m_geometryDirty = 1;
     dialog->m_count_input_0b4->SetValue(dialog->split_count_0c0);
-    dialog->m_buttons_054[3]->m_dirty = 1;
-    dialog->m_count_input_0b4->m_dirty = 1;
-    dialog->m_count_input_0b4->m_button->m_dirty = 1;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    dialog->m_buttons_054[3]->m_dirty = true;
+    dialog->m_count_input_0b4->m_dirty = true;
+    dialog->m_count_input_0b4->m_button->m_dirty = true;
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(dialog->m_item_0d0) * dialog->m_remaining_0bc) *
                  g_float_005ed8b8);
     dialog->m_texts_07c[7]->SetText(text, g_font_683660);
-    dialog->m_buttons_054[4]->m_dirty = 1;
+    dialog->m_buttons_054[4]->m_dirty = true;
     dialog->m_texts_07c[7]->m_geometryDirty = 1;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(dialog->m_item_0d0) * dialog->split_count_0c0) *
                  g_float_005ed8b8);
     dialog->m_texts_07c[9]->SetText(text, g_font_683660);
-    dialog->m_buttons_054[5]->m_dirty = 1;
+    dialog->m_buttons_054[5]->m_dirty = true;
     dialog->m_texts_07c[9]->m_geometryDirty = 1;
     dialog->UpdateCostLabels();
 }
@@ -733,23 +733,23 @@ void W8SplitItemDialog::OnSplitIncrement(W8DialogButton* button)
     dialog->UpdateAcceptButton();
     swprintf(text, g_format_d_0060aa20, dialog->m_remaining_0bc);
     dialog->m_texts_07c[2]->SetText(text, g_font_683660);
-    dialog->m_buttons_054[2]->m_dirty = 1;
+    dialog->m_buttons_054[2]->m_dirty = true;
     dialog->m_texts_07c[2]->m_geometryDirty = 1;
     dialog->m_count_input_0b4->SetValue(dialog->split_count_0c0);
-    dialog->m_buttons_054[3]->m_dirty = 1;
-    dialog->m_count_input_0b4->m_dirty = 1;
-    dialog->m_count_input_0b4->m_button->m_dirty = 1;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    dialog->m_buttons_054[3]->m_dirty = true;
+    dialog->m_count_input_0b4->m_dirty = true;
+    dialog->m_count_input_0b4->m_button->m_dirty = true;
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(dialog->m_item_0d0) * dialog->m_remaining_0bc) *
                  g_float_005ed8b8);
     dialog->m_texts_07c[7]->SetText(text, g_font_683660);
-    dialog->m_buttons_054[4]->m_dirty = 1;
+    dialog->m_buttons_054[4]->m_dirty = true;
     dialog->m_texts_07c[7]->m_geometryDirty = 1;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(dialog->m_item_0d0) * dialog->split_count_0c0) *
                  g_float_005ed8b8);
     dialog->m_texts_07c[9]->SetText(text, g_font_683660);
-    dialog->m_buttons_054[5]->m_dirty = 1;
+    dialog->m_buttons_054[5]->m_dirty = true;
     dialog->m_texts_07c[9]->m_geometryDirty = 1;
     dialog->UpdateCostLabels();
 }
@@ -770,23 +770,23 @@ void W8SplitItemDialog::OnSplitDecrementMany(W8DialogButton* button)
     dialog->UpdateAcceptButton();
     swprintf(text, g_format_d_0060aa20, dialog->m_remaining_0bc);
     dialog->m_texts_07c[2]->SetText(text, g_font_683660);
-    dialog->m_buttons_054[2]->m_dirty = 1;
+    dialog->m_buttons_054[2]->m_dirty = true;
     dialog->m_texts_07c[2]->m_geometryDirty = 1;
     dialog->m_count_input_0b4->SetValue(dialog->split_count_0c0);
-    dialog->m_buttons_054[3]->m_dirty = 1;
-    dialog->m_count_input_0b4->m_dirty = 1;
-    dialog->m_count_input_0b4->m_button->m_dirty = 1;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    dialog->m_buttons_054[3]->m_dirty = true;
+    dialog->m_count_input_0b4->m_dirty = true;
+    dialog->m_count_input_0b4->m_button->m_dirty = true;
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(dialog->m_item_0d0) * dialog->m_remaining_0bc) *
                  g_float_005ed8b8);
     dialog->m_texts_07c[7]->SetText(text, g_font_683660);
-    dialog->m_buttons_054[4]->m_dirty = 1;
+    dialog->m_buttons_054[4]->m_dirty = true;
     dialog->m_texts_07c[7]->m_geometryDirty = 1;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(dialog->m_item_0d0) * dialog->split_count_0c0) *
                  g_float_005ed8b8);
     dialog->m_texts_07c[9]->SetText(text, g_font_683660);
-    dialog->m_buttons_054[5]->m_dirty = 1;
+    dialog->m_buttons_054[5]->m_dirty = true;
     dialog->m_texts_07c[9]->m_geometryDirty = 1;
     dialog->UpdateCostLabels();
 }
@@ -807,23 +807,23 @@ void W8SplitItemDialog::OnSplitIncrementMany(W8DialogButton* button)
     dialog->UpdateAcceptButton();
     swprintf(text, g_format_d_0060aa20, dialog->m_remaining_0bc);
     dialog->m_texts_07c[2]->SetText(text, g_font_683660);
-    dialog->m_buttons_054[2]->m_dirty = 1;
+    dialog->m_buttons_054[2]->m_dirty = true;
     dialog->m_texts_07c[2]->m_geometryDirty = 1;
     dialog->m_count_input_0b4->SetValue(dialog->split_count_0c0);
-    dialog->m_buttons_054[3]->m_dirty = 1;
-    dialog->m_count_input_0b4->m_dirty = 1;
-    dialog->m_count_input_0b4->m_button->m_dirty = 1;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    dialog->m_buttons_054[3]->m_dirty = true;
+    dialog->m_count_input_0b4->m_dirty = true;
+    dialog->m_count_input_0b4->m_button->m_dirty = true;
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(dialog->m_item_0d0) * dialog->m_remaining_0bc) *
                  g_float_005ed8b8);
     dialog->m_texts_07c[7]->SetText(text, g_font_683660);
-    dialog->m_buttons_054[4]->m_dirty = 1;
+    dialog->m_buttons_054[4]->m_dirty = true;
     dialog->m_texts_07c[7]->m_geometryDirty = 1;
-    swprintf(text, g_assay_format_1f_0064fbb4,
+    swprintf(text, g_assay_format_1f,
              (double)(GetItemUnitWeight(dialog->m_item_0d0) * dialog->split_count_0c0) *
                  g_float_005ed8b8);
     dialog->m_texts_07c[9]->SetText(text, g_font_683660);
-    dialog->m_buttons_054[5]->m_dirty = 1;
+    dialog->m_buttons_054[5]->m_dirty = true;
     dialog->m_texts_07c[9]->m_geometryDirty = 1;
     dialog->UpdateCostLabels();
 }
@@ -838,7 +838,7 @@ void W8SplitItemDialog::OnAccept(W8DialogButton* button)
     }
     dialog = static_cast<W8SplitItemDialog*>(button->m_owner_040);
     dialog->split_result_0c8 = 1;
-    dialog->m_keep_open = 0;
+    dialog->m_keep_open = false;
 }
 
 // FUNCTION: WIZ8 0x005DE9D0
@@ -851,7 +851,7 @@ void W8SplitItemDialog::OnCancel(W8DialogButton* button)
     }
     dialog = static_cast<W8SplitItemDialog*>(button->m_owner_040);
     dialog->split_result_0c8 = 2;
-    dialog->m_keep_open = 0;
+    dialog->m_keep_open = false;
 }
 
 // FUNCTION: WIZ8 0x005DE9F0

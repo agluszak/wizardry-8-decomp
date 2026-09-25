@@ -175,8 +175,8 @@ RUN cmake \
     fi \
  && bool_diagnostics="$(grep -c '\[wiz8-bool-like-byte\]' \
       /tmp/wiz8-clang-tidy-plugin/bool_test.log)" \
- && if [ "$bool_diagnostics" -ne 10 ]; then \
-      echo "expected 10 bool-like diagnostics, got $bool_diagnostics"; \
+ && if [ "$bool_diagnostics" -ne 12 ]; then \
+      echo "expected 12 bool-like diagnostics, got $bool_diagnostics"; \
       cat /tmp/wiz8-clang-tidy-plugin/bool_test.log; exit 1; \
     fi \
  && grep -q "warning: byte-returning predicate 'HasLineOfSightToBounds0046FD70'" \

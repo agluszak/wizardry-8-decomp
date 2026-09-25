@@ -9,9 +9,9 @@ class W8MessageDialogBase;
 /* ConfigureDialogFont writes these four; every dialog draw/text path reads
    them. Declared here because this unit owns their definitions. */
 extern int g_dialog_font_64fde8;
-extern BOOLEAN g_dialog_font_enabled_69ca32;
-extern unsigned char g_dialog_font_foreground_64fdec;
-extern unsigned char g_dialog_font_background_64fded;
+extern BOOLEAN g_dialog_font_enabled;
+extern unsigned char g_dialog_font_foreground;
+extern unsigned char g_dialog_font_background;
 void ConfigureDialogFont(int font, BOOLEAN enabled, unsigned char foreground,
                          unsigned char background);
 W8DialogBase* CreateCharacterSummaryDialog(W8Character* character);

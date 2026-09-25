@@ -97,6 +97,15 @@ void update(State& state, bool left, bool right)
     if (item_count) {
     }
 
+    unsigned char fCombatMode = 0;
+    unsigned char talking = 1;
+    if (fCombatMode && talking) {
+    }
+
+    unsigned char bRepType = 0;
+    if (bRepType) {
+    }
+
     unsigned char wire_ready = 0; // bool-byte-ok: serialized protocol byte
     (void)wire_ready;
 }

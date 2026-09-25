@@ -27,7 +27,7 @@ public:
     /* 0x0047A310: step the 1.5-second shared-group volume fade */
     void UpdateFade();
 
-    W8AmbientSound* FindNextMatching0047A260(const char* match_name, W8AmbientSound* previous);
+    W8AmbientSound* FindNextMatching(const char* match_name, W8AmbientSound* previous);
 
     char* pacSoundName;              /* 0x000: assertion-backed at 0x47A790 */
     W8AmbientSoundConfig config_004; /* 0x004: wave filename; shared sounds match on it */
@@ -62,7 +62,7 @@ public:
 
 static_assert(sizeof(W8AmbientSound) == 0x12c, "W8AmbientSound_must_be_0x12c");
 
-/* Reverb environment id indexing g_footstep_surfaces_609eb8; retail's range
+/* Reverb environment id indexing g_footstep_surfaces; retail's range
    check admits 9, one past the table's last entry (the ids are byte-sized in
    the record, so the parameters stay `char`). */
 enum W8FootstepSurface {
@@ -78,7 +78,7 @@ enum W8FootstepSurface {
     W8_FOOTSTEP_SURFACE_MAX = 9,
 };
 
-/* Step material id indexing g_footstep_names_609edc; ids at and above
+/* Step material id indexing g_footstep_names; ids at and above
    CLIMB_LADDER bypass the per-surface naming path and play a single
    "Step_<name>.WAV". */
 enum W8FootstepMaterial {
@@ -121,42 +121,41 @@ enum W8FootstepKind {
 /* 0x00479030: stop all random samples and the shared ambient priority group */
 void StopAllAmbientSounds();
 
-void BuildFootstepPath0047A540(char* path, signed char surface, signed char material, char kind,
-                               int variant);
-int PlayFootstep0047A440(signed char surface, signed char material, int kind);
-void UpdateAmbientSounds0047A3E0(W8World* world);
-void RepositionAmbientSounds0047A600(W8World* world);
+void BuildFootstepPath(char* path, signed char surface, signed char material, char kind,
+                       int variant);
+int PlayFootstep(signed char surface, signed char material, int kind);
+void UpdateAmbientSounds(W8World* world);
+void RepositionAmbientSounds(W8World* world);
 unsigned char LoadAmbientSoundList0047AB40(char* filename);
 
-void PositionAmbientSoundByName0047A950(W8World* /* unused */, const char* name);
-void StopAmbientSoundByName0047A9E0(W8World* /* unused */, const char* name);
-void ToggleAmbientSoundByName0047AA70(W8World* /* unused */, const char* name);
-void DestroyAmbientSound0047A700(W8AmbientSound* ambient);
-unsigned char AddAmbientSound0047A790(W8World* world, const char* name,
-                                      const W8AmbientSoundConfig* config,
-                                      const srVector3T<float>* position,
-                                      const srVector3T<float>* region_min,
-                                      const srVector3T<float>* region_max, int volume_min,
-                                      int volume_max, int time_min, int time_max, int speed_min,
-                                      int speed_max, float radius, unsigned char looping,
-                                      unsigned char bounded, const srVector3T<float>* region_center,
-                                      float region_angle, const srVector3T<float>* region_axis,
-                                      const srVector3T<float>* region_scale, unsigned char shared);
+void PositionAmbientSoundByName(W8World* /* unused */, const char* name);
+void StopAmbientSoundByName(W8World* /* unused */, const char* name);
+void ToggleAmbientSoundByName(W8World* /* unused */, const char* name);
+void DestroyAmbientSound(W8AmbientSound* ambient);
+unsigned char AddAmbientSound(W8World* world, const char* name, const W8AmbientSoundConfig* config,
+                              const srVector3T<float>* position,
+                              const srVector3T<float>* region_min,
+                              const srVector3T<float>* region_max, int volume_min, int volume_max,
+                              int time_min, int time_max, int speed_min, int speed_max,
+                              float radius, unsigned char looping, unsigned char bounded,
+                              const srVector3T<float>* region_center, float region_angle,
+                              const srVector3T<float>* region_axis,
+                              const srVector3T<float>* region_scale, unsigned char shared);
 
-void SaveAmbientSoundList0047B140(HWFILE handle);
+void SaveAmbientSoundList(HWFILE handle);
 void LoadAmbientSoundList0047B270(HWFILE handle);
 
 bool IsSoundEffectsMuted(void);
 unsigned char GetSoundEffectsVolume(void);
-void SetSoundEffectsVolume0047AD00(unsigned char volume);
+void SetSoundEffectsVolume(unsigned char volume);
 void SetSoundEffectsMuted(unsigned char muted);
 
-extern unsigned char g_default_footstep_surface_65a108;
-extern unsigned char g_default_footstep_material_65a109;
-extern unsigned char g_footstep_alternate_65a10a;
+extern unsigned char g_default_footstep_surface;
+extern unsigned char g_default_footstep_material;
+extern unsigned char g_footstep_alternate;
 extern int g_previous_footstep_variant_65a10c;
-extern const char* g_footstep_names_609edc[];
-extern const char* g_footstep_surfaces_609eb8[];
+extern const char* g_footstep_names[];
+extern const char* g_footstep_surfaces[];
 /* Zeroed 128-byte ambient name image; only its first word is ever read — a
    `memcpy` of it followed by a memset seeds an empty fixed-size name. */
-extern unsigned short g_empty_ambient_name_65a110;
+extern unsigned short g_empty_ambient_name;

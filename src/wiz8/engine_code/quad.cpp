@@ -14,10 +14,10 @@
 #define QUAD_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\quad.cpp"
 
 // GLOBAL: WIZ8 0x0060E5D0
-float g_quad_cell_size_0060e5d0 = 5500.0f;
+float g_quad_cell_size = 5500.0f;
 
 // FUNCTION: WIZ8 0x004BE0A0
-void DestroyWorldQuad004BE0A0(W8Quad* quad)
+void DestroyWorldQuad(W8Quad* quad)
 {
     unsigned int row;
 
@@ -39,9 +39,9 @@ void DestroyWorldQuad004BE0A0(W8Quad* quad)
 }
 
 // FUNCTION: WIZ8 0x004BE100
-static W8QuadCell* GetPolygonQuadCell004BE100(W8Quad* quad, srModelInstance* instance, int polygon,
-                                              unsigned int* row, unsigned int* column,
-                                              float origin_x, float origin_z)
+static W8QuadCell* GetPolygonQuadCell(W8Quad* quad, srModelInstance* instance, int polygon,
+                                      unsigned int* row, unsigned int* column, float origin_x,
+                                      float origin_z)
 {
     srMeshModel* model = static_cast<srMeshModel*>(instance->model());
     srVector3i* polygon_vertices = model->getPolyVertex();
@@ -56,8 +56,8 @@ static W8QuadCell* GetPolygonQuadCell004BE100(W8Quad* quad, srModelInstance* ins
 
     center.x *= 0.33333334f;
     center.z *= 0.33333334f;
-    *row = static_cast<unsigned int>(fabs((center.x - origin_x) / g_quad_cell_size_0060e5d0));
-    *column = static_cast<unsigned int>(fabs((center.z - origin_z) / g_quad_cell_size_0060e5d0));
+    *row = static_cast<unsigned int>(fabs((center.x - origin_x) / g_quad_cell_size));
+    *column = static_cast<unsigned int>(fabs((center.z - origin_z) / g_quad_cell_size));
 
     if (*row < quad->row_count && *column < quad->column_count) {
         return &quad->rows[*row].cells[*column];
@@ -66,14 +66,14 @@ static W8QuadCell* GetPolygonQuadCell004BE100(W8Quad* quad, srModelInstance* ins
 }
 
 // FUNCTION: WIZ8 0x004BE200
-W8Quad* BuildWorldQuad004BE200(srModelInstance* instance, int, float minimum_x_0c,
-                               float minimum_y_10, float minimum_z_14, float maximum_x_18, float,
-                               float maximum_z_20, srScene*, int)
+W8Quad* BuildWorldQuad(srModelInstance* instance, int, float minimum_x_0c, float minimum_y_10,
+                       float minimum_z_14, float maximum_x_18, float, float maximum_z_20, srScene*,
+                       int)
 {
     unsigned int row_count =
-        static_cast<unsigned int>((maximum_x_18 - minimum_x_0c) / g_quad_cell_size_0060e5d0) + 1;
+        static_cast<unsigned int>((maximum_x_18 - minimum_x_0c) / g_quad_cell_size) + 1;
     unsigned int column_count =
-        static_cast<unsigned int>((maximum_z_20 - minimum_z_14) / g_quad_cell_size_0060e5d0) + 1;
+        static_cast<unsigned int>((maximum_z_20 - minimum_z_14) / g_quad_cell_size) + 1;
     W8Quad* quad = static_cast<W8Quad*>(malloc(sizeof(W8Quad)));
     unsigned int row;
 
@@ -110,8 +110,8 @@ W8Quad* BuildWorldQuad004BE200(srModelInstance* instance, int, float minimum_x_0
     for (int polygon = 0; polygon < model->polygon_count_230; ++polygon) {
         unsigned int polygon_row;
         unsigned int polygon_column;
-        W8QuadCell* cell = GetPolygonQuadCell004BE100(quad, instance, polygon, &polygon_row,
-                                                      &polygon_column, minimum_x_0c, minimum_z_14);
+        W8QuadCell* cell = GetPolygonQuadCell(quad, instance, polygon, &polygon_row,
+                                              &polygon_column, minimum_x_0c, minimum_z_14);
 
         cell->occupied = 1;
         if (cell->polygon_indices == 0) {
@@ -120,7 +120,7 @@ W8Quad* BuildWorldQuad004BE200(srModelInstance* instance, int, float minimum_x_0
         IListAdd(cell->polygon_indices, polygon);
     }
 
-    quad->cell_size = g_quad_cell_size_0060e5d0;
+    quad->cell_size = g_quad_cell_size;
     quad->origin_x = minimum_x_0c;
     quad->origin_z = minimum_z_14;
     return quad;

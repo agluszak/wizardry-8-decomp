@@ -195,7 +195,7 @@ unsigned int InitializeEncounterTables(void)
             table->version_two_flags = flags;
         }
     }
-    g_encounter_tables_level = g_status_685170.current_level;
+    g_encounter_tables_level = g_status.current_level;
     FileClose(handle);
     return 1;
 }
@@ -243,7 +243,7 @@ int MonGen::SelectEncounterCandidates(W8EncounterTableRuntime* table,
     float party_level;
 
     candidates->Clear();
-    night = !(g_status_685170.game_time_ms > 18000000 && g_status_685170.game_time_ms <= 79200000);
+    night = !(g_status.game_time_ms > 18000000 && g_status.game_time_ms <= 79200000);
 
     rarity_roll = Random(100);
     if (rarity_roll <= 3) {
@@ -262,8 +262,7 @@ int MonGen::SelectEncounterCandidates(W8EncounterTableRuntime* table,
         float difference = static_cast<float>(fabs(1.0f - challenge / party_level));
 
         if (difference < 0.5f) {
-            float adjusted =
-                static_cast<float>(*table->rarity_class.GetAt(index)) * (1.0f - difference * 1.8f);
+            float adjusted = (*table->rarity_class.GetAt(index)) * (1.0f - difference * 1.8f);
             int adjusted_class;
 
             if (adjusted <= 3.0f) {
@@ -314,13 +313,13 @@ int MonGen::RollEncounterGroupSize(W8MonsterRecord* record)
     int rolled = RollDice(dice);
 
     if (relative_level >= 1.2f) {
-        if (g_settings_6850c8.difficulty == 0) {
+        if (g_settings.difficulty == 0) {
             return minimum;
         }
-        if (g_settings_6850c8.difficulty == 2) {
+        if (g_settings.difficulty == 2) {
             return rolled;
         }
-        while (static_cast<float>(rolled) > midpoint) {
+        while (rolled > midpoint) {
             rolled = RollDice(dice);
         }
         return rolled;
@@ -330,13 +329,13 @@ int MonGen::RollEncounterGroupSize(W8MonsterRecord* record)
     if (midpoint > 0.8f) {
         return rolled;
     }
-    if (g_settings_6850c8.difficulty == 2) {
+    if (g_settings.difficulty == 2) {
         return maximum;
     }
-    if (g_settings_6850c8.difficulty == 0) {
+    if (g_settings.difficulty == 0) {
         return rolled;
     }
-    while (static_cast<float>(rolled) < midpoint) {
+    while (rolled < midpoint) {
         rolled = RollDice(dice);
     }
     return rolled;
@@ -391,13 +390,12 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
 
     /* Retail computes this total even though the surviving release path never
        reads it afterwards; the external calls can still populate cycle data. */
-    encounter_weight = GetMonsterCycleFallbackValue004E5B50(species);
+    encounter_weight = GetMonsterCycleFallbackValue(species);
     for (index = 0; index < 2; ++index) {
         companion_records[index] = record->companions_0c5[index];
         if (companion_records[index].species > 0 && Chance(companion_records[index].chance)) {
             companion_active[index] = 1;
-            encounter_weight +=
-                GetMonsterCycleFallbackValue004E5B50(companion_records[index].species);
+            encounter_weight += GetMonsterCycleFallbackValue(companion_records[index].species);
         }
     }
     static_cast<void>(encounter_weight);
@@ -424,7 +422,7 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
 
     W8Monster* monster = GetMonsterByLocationID(group->leader_location_id);
     if (monster != 0) {
-        monster->SetScript004C7F10(script != 0 && script[0] != '\0' ? script : "Default.MSF", 1);
+        monster->SetScript(script != 0 && script[0] != '\0' ? script : "Default.MSF", 1);
     }
 
     for (index = 0; index < 2; ++index) {
@@ -458,7 +456,7 @@ unsigned char MonGen::GenerateEncounter(const srVector3T<float>* position)
         LinkMonsterGroupToLeader(group, companion_group);
     }
 
-    if (g_dev_mode_689b32 != 0 && gfCapturingVideo == 0 &&
+    if (g_dev_mode != 0 && gfCapturingVideo == 0 &&
         g_current_screen_state.id != W8_SCREEN_PLEASE_WAIT) {
         W8MonsterRecord* group_record = MonsterGroupGetRecord(group);
         const wchar_t* group_name =
@@ -491,12 +489,11 @@ unsigned char MonGen::CanGenerateEncounter(unsigned char force)
     srVector3T<float> delta = spawn_position_0c - camera;
     distance = delta.Length();
 
-    if (force == 0 && g_status_685170.world_suspended_2390 == 0) {
+    if (force == 0 && g_status.world_suspended_2390 == 0) {
         if (distance > 200000.0f || distance < 35000.0f) {
             return 0;
         }
-        if (g_octree_6598a4 != 0 &&
-            g_octree_6598a4->HasLineOfSight(&camera, &spawn_position_0c, 1) != 0) {
+        if (g_octree != 0 && g_octree->HasLineOfSight(&camera, &spawn_position_0c, 1) != 0) {
             return 0;
         }
     }
@@ -518,7 +515,7 @@ unsigned char MonGen::CanGenerateEncounter(unsigned char force)
         srVector3T<float> upper(spawn_position_0c.x + 5000.0f, spawn_position_0c.y + 5000.0f,
                                 spawn_position_0c.z + 5000.0f);
         unsigned long* locations = 0;
-        if (g_octree_6598a4->QueryLocationsInBox(&locations, &lower, &upper, 0) > 0) {
+        if (g_octree->QueryLocationsInBox(&locations, &lower, &upper, 0) > 0) {
             return 0;
         }
     }
@@ -547,16 +544,16 @@ void UpdateRandomEncounterBudget(unsigned char reset_budget)
     int index;
 
     if (reset_budget == 0) {
-        elapsed = g_status_685170.world_clock -
-                  g_status_685170.level_progress[g_status_685170.current_level].sight_clock;
+        elapsed =
+            g_status.world_clock - g_status.level_progress[g_status.current_level].sight_clock;
         g_random_encounter_budget +=
-            elapsed / g_level_records[g_status_685170.current_level].encounter_budget_period;
+            elapsed / g_level_records[g_status.current_level].encounter_budget_period;
     } else {
         g_random_encounter_budget =
-            g_level_records[g_status_685170.current_level].maximum_encounter_budget;
+            g_level_records[g_status.current_level].maximum_encounter_budget;
         elapsed = W8_ENCOUNTER_STALE_SECONDS + 1;
     }
-    level = &g_level_records[g_status_685170.current_level];
+    level = &g_level_records[g_status.current_level];
     ClampInteger(&g_random_encounter_budget, level->minimum_encounter_budget,
                  level->maximum_encounter_budget);
     g_random_encounter_limit = g_random_encounter_budget;
@@ -574,7 +571,7 @@ void UpdateRandomEncounterBudget(unsigned char reset_budget)
 }
 
 // FUNCTION: WIZ8 0x0048c9f0
-void DespawnAllActiveMonsterGroups0048C9F0(void)
+void DespawnAllActiveMonsterGroups(void)
 {
     while (g_active_groups.count > 0) {
         DespawnMonsterGroup(*g_active_groups.GetAt(g_active_groups.count - 1));
@@ -584,7 +581,7 @@ void DespawnAllActiveMonsterGroups0048C9F0(void)
 /* Put the encounter-culling scale back to its fast default and rearm every
    loaded generator's interval timer. */
 // FUNCTION: WIZ8 0x0048cbe0
-void ResetMonsterGeneratorTimers0048CBE0(void)
+void ResetMonsterGeneratorTimers(void)
 {
     g_encounter_culling_scale_fast = 1.0f;
     W8GrowableVector<MonGen*>* generators = g_world->monster_generators;
@@ -626,24 +623,22 @@ void CullExpiredEncounters(void)
 
     GetCameraPosition(&party);
     if (IsSightRangeOverridden() == 0) {
-        span = g_level_records[g_status_685170.current_level].encounter_culling_seconds *
-               g_sight_default_005ec254;
+        span = g_level_records[g_status.current_level].encounter_culling_seconds * g_sight_default;
     } else {
-        span = g_level_records[g_status_685170.current_level].encounter_culling_seconds *
+        span = g_level_records[g_status.current_level].encounter_culling_seconds *
                g_encounter_culling_scale_fast * g_encounter_culling_rate;
     }
     for (index = 0; index < g_active_groups.count; ++index) {
         W8MonsterGroup* group = *g_active_groups.GetAt(index);
 
-        if (span < static_cast<float>(static_cast<unsigned int>(g_status_685170.world_clock -
-                                                                group->spawn_time))) {
+        if (span < (static_cast<unsigned int>(g_status.world_clock - group->spawn_time))) {
             W8Monster* monster = GetMonsterByLocationID(group->leader_location_id);
 
             position = monster->GetPosition();
             srVector3T<float> delta = position - party;
 
             if (g_encounter_culling_distance < delta.Length() ||
-                g_status_685170.world_suspended_2390 != 0) {
+                g_status.world_suspended_2390 != 0) {
                 DespawnMonsterGroup(group);
             }
         }
@@ -752,7 +747,7 @@ unsigned char MonGen::LoadAll(int save_handle)
         g_world->monster_generators->Add(generator);
     }
 
-    level = &g_level_records[g_status_685170.current_level];
+    level = &g_level_records[g_status.current_level];
     ClampInteger(&g_random_encounter_budget, level->minimum_encounter_budget,
                  level->maximum_encounter_budget);
     g_random_encounter_limit = g_random_encounter_budget;
@@ -847,7 +842,7 @@ void UnregisterActiveEncounterGroup(W8MonsterGroup* group)
         return;
     }
 
-    W8LevelDatabaseRecord* level = &g_level_records[g_status_685170.current_level];
+    W8LevelDatabaseRecord* level = &g_level_records[g_status.current_level];
     --g_random_encounter_budget;
     ClampInteger(&g_random_encounter_budget, level->minimum_encounter_budget,
                  level->maximum_encounter_budget);
@@ -1027,7 +1022,7 @@ static __inline void LoadMonsterGeneratorMarkerInline(MonGen* generator)
     generator->marker_item = marker;
     if (marker != 0) {
         marker->SetLocation0049F720(&generator->spawn_position_0c);
-        marker->ApplyRepTransform0049FAA0();
+        marker->ApplyRepTransform();
     }
 }
 
@@ -1045,7 +1040,7 @@ void MonGen::SetActive(unsigned char active, W8Item* node)
     if (active == 0) {
         flags &= ~static_cast<unsigned int>(W8_MONGEN_ARMED);
         if (marker_item != 0) {
-            marker_item->DetachMesh0049FA30(g_world);
+            marker_item->DetachMesh(g_world);
         }
         return;
     }
@@ -1053,7 +1048,7 @@ void MonGen::SetActive(unsigned char active, W8Item* node)
     if (marker_item == 0) {
         LoadMonsterGeneratorMarkerInline(this);
     }
-    marker_item->AttachMesh0049F900(g_world);
+    marker_item->AttachMesh(g_world);
 }
 
 /* Writes the encounter subsystem's own state to a save, ahead of the generator
@@ -1138,7 +1133,7 @@ MonGen::~MonGen()
     if (marker_item != 0) {
         if ((flags >> 2 & 1) != 0) {
             flags &= ~static_cast<unsigned int>(W8_MONGEN_ARMED);
-            marker_item->DetachMesh0049FA30(g_world);
+            marker_item->DetachMesh(g_world);
         }
         delete marker_item;
     }
@@ -1152,7 +1147,7 @@ void MonGen::SetState(const srVector3T<float>* state)
     spawn_position_0c = *state;
     if (marker_item != 0) {
         marker_item->SetLocation0049F720(state);
-        marker_item->ApplyRepTransform0049FAA0();
+        marker_item->ApplyRepTransform();
     }
 }
 
@@ -1172,7 +1167,7 @@ void MonGen::Reload(int unused, unsigned char active)
     if (active == 0) {
         flags &= ~static_cast<unsigned int>(W8_MONGEN_ARMED);
         if (marker_item != 0) {
-            marker_item->DetachMesh0049FA30(g_world);
+            marker_item->DetachMesh(g_world);
         }
         return;
     }
@@ -1180,7 +1175,7 @@ void MonGen::Reload(int unused, unsigned char active)
     if (marker_item == 0) {
         LoadMonsterGeneratorMarkerInline(this);
     }
-    marker_item->AttachMesh0049F900(g_world);
+    marker_item->AttachMesh(g_world);
 }
 
 // FUNCTION: WIZ8 0x0048cc30

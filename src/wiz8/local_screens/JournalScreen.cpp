@@ -40,37 +40,37 @@
 #include "wiz8/local_screens/OptionsScreen.h"
 
 // GLOBAL: WIZ8 0x0064df38
-int g_journal_page_0064df38 = -1;
+int g_journal_page = -1;
 // GLOBAL: WIZ8 0x0069c4e0
-unsigned char g_journal_show_all_0069c4e0;
+bool g_journal_show_all;
 // GLOBAL: WIZ8 0x0064d7b8
-wchar_t g_default_level_0064d7b8[] = L"Default Level";
+wchar_t g_default_level[] = L"Default Level";
 // GLOBAL: WIZ8 0x0064d7f0
-wchar_t g_journal_page_format_0064d7f0[] = L"%d / %d";
+wchar_t g_journal_page_format[] = L"%d / %d";
 // GLOBAL: WIZ8 0x0064df40
-signed char g_journal_factions_0064df40[12] = {4, 5, 6, 7, 8, 9, 12, 11, 13, 15, 16, 0};
+signed char g_journal_factions[12] = {4, 5, 6, 7, 8, 9, 12, 11, 13, 15, 16, 0};
 // GLOBAL: WIZ8 0x0064df4c
-int g_journal_faction_name_indices_0064df4c[11] = {
+int g_journal_faction_name_indices[11] = {
     0x6e0, 0x6e1, 0x6e2, 0x6e3, 0x6e4, 0x6e5, 0x6e6, 0x6e7, 0x6e8, 0x6e9, 0x6ea,
 };
 // GLOBAL: WIZ8 0x0064df78
-wchar_t g_journal_alternate_page_0064df78[] = L"1 / 1";
+wchar_t g_journal_alternate_page[] = L"1 / 1";
 // GLOBAL: WIZ8 0x0064df3c
-int g_journal_page_count_0064df3c = -1;
+int g_journal_page_count = -1;
 // GLOBAL: WIZ8 0x0069C4CC
-int g_journal_font_69c4cc;
+int g_journal_font;
 // GLOBAL: WIZ8 0x0069C4D0
-unsigned short* g_journal_font_palette_69c4d0;
+unsigned short* g_journal_font_palette;
 // GLOBAL: WIZ8 0x0069C4D8
-unsigned short* g_journal_font_original_palette_69c4d8;
+unsigned short* g_journal_font_original_palette;
 // GLOBAL: WIZ8 0x0069C4D4
-W8JournalPanel005EF340* g_journal_panel_0069c4d4;
+W8JournalPanel* g_journal_panel;
 // GLOBAL: WIZ8 0x0069C4E4
-W8GrowableVector<W8JournalEntry>* g_journal_entries_0069c4e4;
+W8GrowableVector<W8JournalEntry>* g_journal_entries;
 // GLOBAL: WIZ8 0x0069C4DC
-unsigned int g_journal_region_set_0069c4dc;
+unsigned int g_journal_region_set;
 // GLOBAL: WIZ8 0x0068de40
-W8GrowableVector<W8JournalEntry>* g_fact_journal_entries_0068de40;
+W8GrowableVector<W8JournalEntry>* g_fact_journal_entries;
 
 // GLOBAL: WIZ8 0x0068de44
 unsigned char g_fact_notifications_suppressed;
@@ -80,10 +80,10 @@ unsigned char g_fact_notifications_suppressed;
 // FUNCTION: WIZ8 0x00558820
 void InitializeFactJournal(void)
 {
-    if (g_fact_journal_entries_0068de40 == 0) {
-        g_fact_journal_entries_0068de40 = new W8GrowableVector<W8JournalEntry>();
+    if (g_fact_journal_entries == 0) {
+        g_fact_journal_entries = new W8GrowableVector<W8JournalEntry>();
     } else {
-        g_fact_journal_entries_0068de40->Clear();
+        g_fact_journal_entries->Clear();
     }
 }
 
@@ -99,26 +99,26 @@ void SetFactNotificationsSuppressed(unsigned char suppressed)
 // FUNCTION: WIZ8 0x005588f0
 void RecordFactChangeForJournal(int fact_id)
 {
-    if (g_fact_journal_entries_0068de40 == 0) {
+    if (g_fact_journal_entries == 0) {
         InitializeFactJournal();
     }
     W8JournalEntry entry;
-    entry.level = g_status_685170.current_level;
+    entry.level = g_status.current_level;
     entry.fact = fact_id;
     entry.alternate_text = GetFact(fact_id);
-    g_fact_journal_entries_0068de40->Add(entry);
+    g_fact_journal_entries->Add(entry);
 
     if (g_fact_notifications_suppressed != 0) {
         return;
     }
     int visibility;
-    if (g_settings_6850c8.difficulty == W8_DIFFICULTY_NOVICE) {
+    if (g_settings.difficulty == W8_DIFFICULTY_NOVICE) {
         visibility = 2;
-    } else if (g_settings_6850c8.difficulty == W8_DIFFICULTY_NORMAL) {
+    } else if (g_settings.difficulty == W8_DIFFICULTY_NORMAL) {
         visibility = 1;
     } else {
         visibility = fact_id;
-        if (g_settings_6850c8.difficulty == W8_DIFFICULTY_EXPERT) {
+        if (g_settings.difficulty == W8_DIFFICULTY_EXPERT) {
             visibility = 0;
         }
     }
@@ -143,20 +143,20 @@ void RecordFactChangeForJournal(int fact_id)
 /* Write the fact journal into the open JRNL chunk: the entry count, a format
    dword, then each 0x0c-byte entry. */
 // FUNCTION: WIZ8 0x00558A90
-void SaveFactJournal00558A90(int file)
+void SaveFactJournal(int file)
 {
     int format = 1;
     int count;
     int index;
 
-    if (g_fact_journal_entries_0068de40 == 0) {
+    if (g_fact_journal_entries == 0) {
         InitializeFactJournal();
     }
-    count = g_fact_journal_entries_0068de40->count;
+    count = g_fact_journal_entries->count;
     FileWrite(file, &format, 4, 0);
     FileWrite(file, &count, 4, 0);
     for (index = 0; index < count; ++index) {
-        FileWrite(file, g_fact_journal_entries_0068de40->GetAt(index), sizeof(W8JournalEntry), 0);
+        FileWrite(file, g_fact_journal_entries->GetAt(index), sizeof(W8JournalEntry), 0);
     }
 }
 
@@ -165,7 +165,7 @@ void SaveFactJournal00558A90(int file)
    grows to the serialized count first; a failed grow leaves the count
    unstored, the same outcome a failed load leaves behind. */
 // FUNCTION: WIZ8 0x00558B20
-void LoadJournalEntries00558B20(unsigned int file)
+void LoadJournalEntries(unsigned int file)
 {
     int format;
     int count;
@@ -174,16 +174,16 @@ void LoadJournalEntries00558B20(unsigned int file)
     InitializeFactJournal();
     FileRead(file, &format, 4, 0);
     FileRead(file, &count, 4, 0);
-    if (g_fact_journal_entries_0068de40->Grow(count) != 0) {
-        g_fact_journal_entries_0068de40->count = count;
+    if (g_fact_journal_entries->Grow(count) != 0) {
+        g_fact_journal_entries->count = count;
     }
     for (index = 0; index < count; ++index) {
-        FileRead(file, g_fact_journal_entries_0068de40->GetAt(index), sizeof(W8JournalEntry), 0);
+        FileRead(file, g_fact_journal_entries->GetAt(index), sizeof(W8JournalEntry), 0);
     }
 }
 
 // FUNCTION: WIZ8 0x005bdd00
-void DrawJournalLine005BDD00(const wchar_t* text, int column, int y, int palette, char centered)
+void DrawJournalLine(const wchar_t* text, int column, int y, int palette, char centered)
 {
     int left;
     int right;
@@ -199,84 +199,82 @@ void DrawJournalLine005BDD00(const wchar_t* text, int column, int y, int palette
     if (!centered) {
         x = 5;
     } else {
-        x = (right - StringPixLength(const_cast<wchar_t*>(text), g_journal_font_69c4cc)) / 2;
+        x = (right - StringPixLength(const_cast<wchar_t*>(text), g_journal_font)) / 2;
         if (x < 0) {
             x = 0;
         }
     }
-    SetFont(g_journal_font_69c4cc);
+    SetFont(g_journal_font);
     SetFontDestBuffer(-14, left, y, left + right, y + 0x1e, 0);
     if (palette == 0) {
-        SetFontObjectPalette16BPP(g_journal_font_69c4cc, g_journal_font_original_palette_69c4d8);
+        SetFontObjectPalette16BPP(g_journal_font, g_journal_font_original_palette);
     } else if (palette == 1) {
-        SetFontObjectPalette16BPP(g_journal_font_69c4cc, g_journal_font_palette_69c4d0);
+        SetFontObjectPalette16BPP(g_journal_font, g_journal_font_palette);
     }
     gprintf(left + x, y, L"%s", text);
 }
 
 // FUNCTION: WIZ8 0x005bd860
-void RefreshJournalPanel005BD860(void)
+void RefreshJournalPanel(void)
 {
-    W8JournalPanel005EF340* panel = g_journal_panel_0069c4d4;
+    W8JournalPanel* panel = g_journal_panel;
 
     if (!panel->m_alternate_mode_064) {
-        int last_page = (g_journal_entries_0069c4e4->count - 1) / 12;
+        int last_page = (g_journal_entries->count - 1) / 12;
         int page_count = last_page + 1;
-        if (page_count != g_journal_page_count_0064df3c || g_journal_page_0064df38 < 0 ||
-            g_journal_page_0064df38 >= page_count) {
-            g_journal_page_count_0064df3c = page_count;
-            g_journal_page_0064df38 = last_page;
+        if (page_count != g_journal_page_count || g_journal_page < 0 ||
+            g_journal_page >= page_count) {
+            g_journal_page_count = page_count;
+            g_journal_page = last_page;
         }
-        panel->m_next_050->SetEnabled(g_journal_page_0064df38 < last_page);
-        panel->m_previous_054->SetEnabled(g_journal_page_0064df38 > 0);
+        panel->m_next_050->SetEnabled(g_journal_page < last_page);
+        panel->m_previous_054->SetEnabled(g_journal_page > 0);
 
         wchar_t page_text[20];
-        swprintf(page_text, g_journal_page_format_0064d7f0, g_journal_page_0064df38 + 1,
-                 page_count);
+        swprintf(page_text, g_journal_page_format, g_journal_page + 1, page_count);
         panel->m_page_text_060->SetText(page_text, g_options_detail_font_683614);
         DrawCatalogImageAndInvalidate(-14, 0x1b8, 0, 0, 0, 0, 2, 0);
-        DrawJournalLine005BDD00(gppStringList[0x1b6c / 4], 0, 0x19, 0, 1);
-        DrawJournalLine005BDD00(gppStringList[0x1b70 / 4], 1, 0x19, 0, 1);
+        DrawJournalLine(gppStringList[0x1b6c / 4], 0, 0x19, 0, 1);
+        DrawJournalLine(gppStringList[0x1b70 / 4], 1, 0x19, 0, 1);
 
-        int first = g_journal_page_0064df38 * 12;
+        int first = g_journal_page * 12;
         int last = first + 11;
-        if (last >= g_journal_entries_0069c4e4->count) {
-            last = g_journal_entries_0069c4e4->count - 1;
+        if (last >= g_journal_entries->count) {
+            last = g_journal_entries->count - 1;
         }
         int previous_level = -1;
         int y = 0x39;
         for (int index = first; index <= last; ++index, y += 0x1e) {
-            const W8JournalEntry* entry = g_journal_entries_0069c4e4->GetAt(index);
+            const W8JournalEntry* entry = g_journal_entries->GetAt(index);
             const W8FactDatabaseRecord* fact = &g_fact_records[entry->fact];
             int active = fact->highlight_when_true_036 && GetFact(entry->fact);
             const wchar_t* description =
                 entry->alternate_text ? fact->alternate_description_038 : fact->description_100;
             const wchar_t* level_name;
             if (entry->level == 0x38) {
-                level_name = g_default_level_0064d7b8;
+                level_name = g_default_level;
             } else if (entry->level == -1) {
                 level_name = gppStringList[0x1b74 / 4];
             } else {
-                level_name = gppStringList[g_level_name_indices_605820[entry->level]];
+                level_name = gppStringList[g_level_name_indices[entry->level]];
             }
             if (entry->level != previous_level) {
-                DrawJournalLine005BDD00(level_name, 0, y, 0, 1);
+                DrawJournalLine(level_name, 0, y, 0, 1);
             }
-            DrawJournalLine005BDD00(description, 1, y, active, 0);
+            DrawJournalLine(description, 1, y, active, 0);
             previous_level = entry->level;
         }
     } else {
         panel->m_next_050->SetEnabled(0);
         panel->m_previous_054->SetEnabled(0);
-        panel->m_page_text_060->SetText(g_journal_alternate_page_0064df78,
-                                        g_options_detail_font_683614);
+        panel->m_page_text_060->SetText(g_journal_alternate_page, g_options_detail_font_683614);
         DrawCatalogImageAndInvalidate(-14, 0x1b8, 0, 0, 0, 0, 2, 0);
-        DrawJournalLine005BDD00(gppStringList[0x1b78 / 4], 0, 0x19, 0, 1);
-        DrawJournalLine005BDD00(gppStringList[0x1b7c / 4], 1, 0x19, 0, 1);
+        DrawJournalLine(gppStringList[0x1b78 / 4], 0, 0x19, 0, 1);
+        DrawJournalLine(gppStringList[0x1b7c / 4], 1, 0x19, 0, 1);
 
         int y = 0x39;
         for (int index = 0; index < 11; ++index) {
-            signed char faction = g_journal_factions_0064df40[index];
+            signed char faction = g_journal_factions[index];
             if (GetFactionFlag(faction)) {
                 W8FactionDisposition disposition = GetFactionDisposition(faction);
                 const wchar_t* disposition_name = 0;
@@ -292,10 +290,9 @@ void RefreshJournalPanel005BD860(void)
                     break;
                 }
                 if (disposition_name != 0) {
-                    DrawJournalLine005BDD00(disposition_name, 0, y, 0, 1);
+                    DrawJournalLine(disposition_name, 0, y, 0, 1);
                 }
-                DrawJournalLine005BDD00(
-                    gppStringList[g_journal_faction_name_indices_0064df4c[index]], 1, y, 0, 0);
+                DrawJournalLine(gppStringList[g_journal_faction_name_indices[index]], 1, y, 0, 0);
                 y += 0x1e;
             }
         }
@@ -305,10 +302,10 @@ void RefreshJournalPanel005BD860(void)
 
 // VTABLE: WIZ8 0x005ef340 Controls
 // VTABLE: WIZ8 0x005ef338 W8TextControl::Listener
-// class W8JournalPanel005EF340
+// class W8JournalPanel
 
 // FUNCTION: WIZ8 0x005bd530
-W8JournalPanel005EF340::W8JournalPanel005EF340(unsigned int* region_set)
+W8JournalPanel::W8JournalPanel(unsigned int* region_set)
     : Controls(0x66, 0x1bb, 0, 0, 0xf3, 0, 0), m_next_050(0), m_previous_054(0), m_close_058(0),
       m_mode_05c(0), m_page_text_060(0), m_alternate_mode_064(0)
 {
@@ -349,14 +346,14 @@ W8JournalPanel005EF340::W8JournalPanel005EF340(unsigned int* region_set)
 }
 
 // FUNCTION: WIZ8 0x005bd7f0
-W8JournalPanel005EF340::~W8JournalPanel005EF340()
+W8JournalPanel::~W8JournalPanel()
 {
     DestroyAllControls();
     delete m_page_text_060;
 }
 
 // FUNCTION: WIZ8 0x005bdbf0
-void W8JournalPanel005EF340::Redraw()
+void W8JournalPanel::Redraw()
 {
     if (m_fEnabled && (m_fDirty || m_fLayoutDirty)) {
         Controls::Redraw();
@@ -365,17 +362,17 @@ void W8JournalPanel005EF340::Redraw()
 }
 
 // FUNCTION: WIZ8 0x005bdc20
-void W8JournalPanel005EF340::OnPrimary(W8TextControl* control)
+void W8JournalPanel::OnPrimary(W8TextControl* control)
 {
     if (control == m_previous_054) {
-        if (g_journal_page_0064df38 > 0) {
-            --g_journal_page_0064df38;
-            RefreshJournalPanel005BD860();
+        if (g_journal_page > 0) {
+            --g_journal_page;
+            RefreshJournalPanel();
         }
     } else if (control == m_next_050) {
-        if (g_journal_page_0064df38 < (g_journal_entries_0069c4e4->count - 1) / 12) {
-            ++g_journal_page_0064df38;
-            RefreshJournalPanel005BD860();
+        if (g_journal_page < (g_journal_entries->count - 1) / 12) {
+            ++g_journal_page;
+            RefreshJournalPanel();
         }
     } else if (control == m_close_058) {
         RequestScreenTransition();
@@ -393,7 +390,7 @@ void W8JournalPanel005EF340::OnPrimary(W8TextControl* control)
                 m_mode_05c->ActivateSecondary(1);
             }
         }
-        RefreshJournalPanel005BD860();
+        RefreshJournalPanel();
     }
 }
 
@@ -406,19 +403,19 @@ void W8JournalPanel005EF340::OnPrimary(W8TextControl* control)
 // FUNCTION: WIZ8 0x005bddd0
 unsigned char JournalScreenInitialize(void)
 {
-    g_journal_font_69c4cc =
+    g_journal_font =
         LoadFontFile(reinterpret_cast<UINT8*>( // reinterpret-ok: SGP API declared UINT8* for text
             const_cast<char*>("Data\\Journal\\journal_font.sti")));
-    g_journal_font_original_palette_69c4d8 = GetFontObjectPalette16BPP(g_journal_font_69c4cc);
-    g_journal_font_palette_69c4d0 = CopyCatalogImagePalette16BPP(0x1b9, 0);
+    g_journal_font_original_palette = GetFontObjectPalette16BPP(g_journal_font);
+    g_journal_font_palette = CopyCatalogImagePalette16BPP(0x1b9, 0);
     return 1;
 }
 
 // FUNCTION: WIZ8 0x005bde10
 unsigned char JournalScreenFinalize(void)
 {
-    SetFontObjectPalette16BPP(g_journal_font_69c4cc, g_journal_font_original_palette_69c4d8);
-    free(g_journal_font_palette_69c4d0);
+    SetFontObjectPalette16BPP(g_journal_font, g_journal_font_original_palette);
+    free(g_journal_font_palette);
     return 1;
 }
 
@@ -433,10 +430,10 @@ unsigned char JournalScreenEnter(void)
     MSYS_Init();
     ResetRegions();
     UpdateHeldItemCursor();
-    g_journal_entries_0069c4e4 = new W8GrowableVector<W8JournalEntry>();
-    g_journal_panel_0069c4d4 = new W8JournalPanel005EF340(&g_journal_region_set_0069c4dc);
+    g_journal_entries = new W8GrowableVector<W8JournalEntry>();
+    g_journal_panel = new W8JournalPanel(&g_journal_region_set);
 
-    switch (g_settings_6850c8.difficulty) {
+    switch (g_settings.difficulty) {
     case W8_DIFFICULTY_NOVICE:
         maximum_visibility = 2;
         break;
@@ -448,18 +445,18 @@ unsigned char JournalScreenEnter(void)
         break;
     }
 
-    g_journal_entries_0069c4e4->Clear();
-    for (index = 0; index < g_fact_journal_entries_0068de40->count; ++index) {
-        W8JournalEntry entry = *g_fact_journal_entries_0068de40->GetAt(index);
+    g_journal_entries->Clear();
+    for (index = 0; index < g_fact_journal_entries->count; ++index) {
+        W8JournalEntry entry = *g_fact_journal_entries->GetAt(index);
         const W8FactDatabaseRecord* fact = &g_fact_records[entry.fact];
         const wchar_t* description =
             entry.alternate_text ? fact->alternate_description_038 : fact->description_100;
-        if ((g_journal_show_all_0069c4e0 || fact->visibility_037 <= maximum_visibility) &&
+        if ((g_journal_show_all || fact->visibility_037 <= maximum_visibility) &&
             *description != 0) {
-            g_journal_entries_0069c4e4->Add(entry);
+            g_journal_entries->Add(entry);
         }
     }
-    RefreshJournalPanel005BD860();
+    RefreshJournalPanel();
     DrawCatalogImageAndInvalidate(-14, 0x1b7, 0, 1, 0, 0x1b4, 2, 0);
     return 1;
 }
@@ -469,13 +466,13 @@ unsigned char JournalScreenLeave(int)
 {
     MSYS_Shutdown();
     ResetRegions();
-    delete g_journal_panel_0069c4d4;
-    g_journal_panel_0069c4d4 = 0;
-    g_journal_entries_0069c4e4->Clear();
-    delete g_journal_entries_0069c4e4;
-    g_journal_entries_0069c4e4 = 0;
+    delete g_journal_panel;
+    g_journal_panel = 0;
+    g_journal_entries->Clear();
+    delete g_journal_entries;
+    g_journal_entries = 0;
     if (gXStatus.fCampMode) {
-        SyncDialogueNpcState00577260();
+        SyncDialogueNpcState();
     }
     return 1;
 }
@@ -492,16 +489,16 @@ void JournalScreenFrame(void)
         if (!DispatchRegionInput(&input) && input.usEvent == KEY_DOWN) {
             if (input.usParam == 0x1b) {
                 RequestScreenTransition();
-            } else if (input.usParam == 0x25 && g_journal_page_0064df38 > 0) {
-                --g_journal_page_0064df38;
-                RefreshJournalPanel005BD860();
+            } else if (input.usParam == 0x25 && g_journal_page > 0) {
+                --g_journal_page;
+                RefreshJournalPanel();
             } else if (input.usParam == 0x27 &&
-                       g_journal_page_0064df38 < (g_journal_entries_0069c4e4->count - 1) / 12) {
-                ++g_journal_page_0064df38;
-                RefreshJournalPanel005BD860();
+                       g_journal_page < (g_journal_entries->count - 1) / 12) {
+                ++g_journal_page;
+                RefreshJournalPanel();
             }
         }
     }
-    g_journal_panel_0069c4d4->Redraw();
+    g_journal_panel->Redraw();
     RenderFrame();
 }

@@ -1,5 +1,5 @@
 #include "wiz8/engine_code/game_timer.h"
-#include "wiz8/engine_code/GameTimeAccumulator0043A910.h"
+#include "wiz8/engine_code/GameTimeAccumulator.h"
 #include "wiz8/float_constants.h"
 #include "wiz8/virtual_file.h"
 #include "wiz8/layouts/game_status.h"
@@ -24,19 +24,19 @@ int g_shared_timer_pause_time;
 // GLOBAL: WIZ8 0x006598CC
 int g_shared_timer_refs;
 // GLOBAL: WIZ8 0x006598D0
-unsigned char g_shared_timer_paused;
+bool g_shared_timer_paused;
 // GLOBAL: WIZ8 0x006598D1
-unsigned char g_shared_timer_flag_d1;
+bool g_shared_timer_flag_d1;
 // GLOBAL: WIZ8 0x006598D2
-unsigned char g_shared_timer_flag_d2;
+bool g_shared_timer_flag_d2;
 
 // GLOBAL: WIZ8 0x005ec0a8
 const float g_float_005ec0a8 = 10000.0f;
 
 // FUNCTION: WIZ8 0x00439bc0
-void PauseSharedGameTimers00439BC0(void)
+void PauseSharedGameTimers(void)
 {
-    g_shared_timer_paused = 1;
+    g_shared_timer_paused = true;
     if (g_shared_timer == 0) {
         return;
     }
@@ -44,44 +44,42 @@ void PauseSharedGameTimers00439BC0(void)
     g_shared_timer_pause_time =
         g_shared_timer->getUTime(srTimer::TIMER_READ_DEFAULT) - g_shared_timer_pause_base;
 
-    if (g_game_time_accumulator_6598bc != 0 && (g_game_time_accumulator_6598bc->m_flags & 8) == 0) {
-        unsigned short flags = g_game_time_accumulator_6598bc->m_flags;
-        g_game_time_accumulator_6598bc->m_flags = flags | 8;
-        if (g_game_time_accumulator_6598bc->m_clock_mode != 1) {
+    if (g_game_time_accumulator != 0 && (g_game_time_accumulator->m_flags & 8) == 0) {
+        unsigned short flags = g_game_time_accumulator->m_flags;
+        g_game_time_accumulator->m_flags = flags | 8;
+        if (g_game_time_accumulator->m_clock_mode != 1) {
             if ((flags & 1) != 0) {
-                g_game_time_accumulator_6598bc->m_start =
-                    g_game_time_accumulator_6598bc->m_shared->getUTime(
-                        srTimer::TIMER_READ_DEFAULT) -
-                    g_game_time_accumulator_6598bc->m_start;
+                g_game_time_accumulator->m_start =
+                    g_game_time_accumulator->m_shared->getUTime(srTimer::TIMER_READ_DEFAULT) -
+                    g_game_time_accumulator->m_start;
             } else if (g_shared_timer_paused != 0) {
-                g_game_time_accumulator_6598bc->m_start =
-                    g_shared_timer_pause_time - g_game_time_accumulator_6598bc->m_start;
+                g_game_time_accumulator->m_start =
+                    g_shared_timer_pause_time - g_game_time_accumulator->m_start;
             } else {
-                g_game_time_accumulator_6598bc->m_start =
-                    g_game_time_accumulator_6598bc->m_shared->getUTime(
-                        srTimer::TIMER_READ_DEFAULT) -
-                    g_shared_timer_pause_base - g_game_time_accumulator_6598bc->m_start;
+                g_game_time_accumulator->m_start =
+                    g_game_time_accumulator->m_shared->getUTime(srTimer::TIMER_READ_DEFAULT) -
+                    g_shared_timer_pause_base - g_game_time_accumulator->m_start;
             }
         } else {
-            g_game_time_accumulator_6598bc->m_start =
-                (g_status_685170.game_time_days * 86400000 + g_status_685170.game_time_ms) * 10 -
-                g_game_time_accumulator_6598bc->m_start;
+            g_game_time_accumulator->m_start =
+                (g_status.game_time_days * 86400000 + g_status.game_time_ms) * 10 -
+                g_game_time_accumulator->m_start;
         }
     }
 }
 
 // FUNCTION: WIZ8 0x00439ca0
-void ResumeSharedGameTimers00439CA0(void)
+void ResumeSharedGameTimers(void)
 {
-    g_shared_timer_paused = 0;
-    g_shared_timer_flag_d1 = 0;
+    g_shared_timer_paused = false;
+    g_shared_timer_flag_d1 = false;
     if (g_shared_timer != 0) {
         g_shared_timer_pause_base =
             g_shared_timer->getUTime(srTimer::TIMER_READ_DEFAULT) - g_shared_timer_pause_time;
         g_shared_timer_pause_time = 0;
     }
 
-    W8GameTimeAccumulator0043A910* timer = g_game_time_accumulator_6598bc;
+    W8GameTimeAccumulator* timer = g_game_time_accumulator;
     if (timer != 0) {
         timer->m_flags &= ~8;
         int sample = timer->ReadClock();
@@ -123,7 +121,7 @@ W8GameTimer::~W8GameTimer()
 }
 
 // FUNCTION: WIZ8 0x00439a60
-int W8GameTimer::GetTime00439A60()
+int W8GameTimer::GetTime()
 {
     return ReadClock();
 }
@@ -140,9 +138,9 @@ W8GameTimer::W8GameTimer()
     m_duration_scale = 1.0f;
 
     if (g_shared_timer == 0) {
-        g_shared_timer_paused = 0;
-        g_shared_timer_flag_d1 = 0;
-        g_shared_timer_flag_d2 = 0;
+        g_shared_timer_paused = false;
+        g_shared_timer_flag_d1 = false;
+        g_shared_timer_flag_d2 = false;
 
         srTimer* timer = new srTimer(0, 0, 1);
 
@@ -158,7 +156,7 @@ W8GameTimer::W8GameTimer()
         {
             double frequency;
 
-            if ((double)timer->m_frequency != 0.0) {
+            if (timer->m_frequency != 0.0) {
                 frequency = (double)timer->m_frequency;
             } else {
                 frequency = 1.0;
@@ -193,15 +191,14 @@ W8GameTimer::W8GameTimer(float duration, unsigned char raw_time)
     m_duration_scale = 1.0f;
 
     if (g_shared_timer == 0) {
-        g_shared_timer_paused = 0;
-        g_shared_timer_flag_d1 = 0;
-        g_shared_timer_flag_d2 = 0;
+        g_shared_timer_paused = false;
+        g_shared_timer_flag_d1 = false;
+        g_shared_timer_flag_d2 = false;
         srTimer* timer = new srTimer(0, 0, 1);
         g_shared_timer = timer;
         g_shared_timer_base = timer;
         timer->m_units_per_interval = 10000;
-        timer->m_units_per_tick =
-            timer->m_frequency != 0 ? 10000.0 / (double)timer->m_frequency : 10000.0;
+        timer->m_units_per_tick = timer->m_frequency != 0 ? 10000.0 / timer->m_frequency : 10000.0;
         g_shared_timer_refs = 0;
         g_shared_timer_pause_base = 0;
         g_shared_timer_pause_time = 0;
@@ -267,7 +264,8 @@ float W8GameTimer::GetProgress()
     int sample = ReadClock();
     int start = m_start;
     int end = m_end;
-    float progress = (float)(unsigned int)(sample - start) / (float)(unsigned int)(end - start);
+    float progress = static_cast<unsigned int>(sample - start) /
+                     static_cast<float>(static_cast<unsigned int>(end - start));
     int completed = (int)progress;
 
     if (completed != 0 && completed > 0) {
@@ -286,7 +284,7 @@ float W8GameTimer::GetProgress()
 void W8GameTimer::SetProgress(float progress)
 {
     int sample = ReadClock();
-    m_start = sample - (int)((float)(unsigned int)m_duration * progress);
+    m_start = sample - static_cast<int>(static_cast<unsigned int>(m_duration) * progress);
     m_end = m_start + m_duration;
 }
 
@@ -301,7 +299,8 @@ BOOLEAN W8GameTimer::Load(int handle)
         m_duration = (int)(m_duration_seconds * m_duration_scale * 10000.0f);
         m_end = m_start + m_duration;
         unsigned int sample = ReadClock();
-        unsigned int elapsed = (unsigned int)((float)(unsigned int)m_duration * progress);
+        unsigned int elapsed =
+            static_cast<unsigned int>(static_cast<unsigned int>(m_duration) * progress);
         m_start = sample < elapsed ? 0 : sample - elapsed;
         m_end = m_start + m_duration;
     }
@@ -312,11 +311,12 @@ BOOLEAN W8GameTimer::Load(int handle)
 float W8GameTimer::GetElapsedSeconds()
 {
     int sample = ReadClock();
-    return ((float)(unsigned int)(sample - m_start) / (float)(unsigned int)(m_end - m_start)) *
+    return (static_cast<unsigned int>(sample - m_start) /
+            static_cast<float>(static_cast<unsigned int>(m_end - m_start))) *
            m_duration_seconds;
 }
 
-W8GameTimer* CreateGameTimer005EC0A4(float duration, unsigned char raw_time)
+W8GameTimer* CreateGameTimer(float duration, unsigned char raw_time)
 {
     return new W8GameTimer(duration, raw_time);
 }

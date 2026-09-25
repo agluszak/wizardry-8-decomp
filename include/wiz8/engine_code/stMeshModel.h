@@ -27,47 +27,44 @@ public:
     virtual void getTriMesh(TriMesh& mesh) override;                 /* 0x004727e0 */
     /* Recomputes the union bounds over every model in the previous/next chain
        and pushes them to each member via srMeshModel::setBounds. */
-    void CalculateLinkedBounds00471E10();         /* 0x00471e10 */
+    void CalculateLinkedBounds();                 /* 0x00471e10 */
     virtual const TriMesh& getTriMesh() override; /* 0x00472270 */
     virtual void renderTriMesh(class srGERD& renderer,
                                const TriMesh& mesh) override; /* 0x00470360 */
     /* Shared Wizardry-extended tri-mesh submit. `poly_equations` null skips
        the software backface pass; non-null callers supply polygon normals used
        to build the active-polygon scratch at 0x00659ce0. */
-    void
-    RenderTriMeshWithEquations00470380(class srGERD& renderer, const TriMesh& mesh,
-                                       const srVector3T<float>* poly_equations); /* 0x00470380 */
+    void RenderTriMeshWithEquations(class srGERD& renderer, const TriMesh& mesh,
+                                    const srVector3T<float>* poly_equations); /* 0x00470380 */
 
     int FindMappedIndex(short key); /* 0x004712D0 */
-    void SetMappedVertex00471160(short vertex, short key);
+    void SetMappedVertex(short vertex, short key);
     void LinkTo(stMeshModel* other);      /* 0x00471D60 */
     short* GetVertex(unsigned int frame); /* 0x00471AA0 */
-    int FindSkinTable004736D0(const char* name);
-    int CreateSkinTable00473260(const char* name, int base_table);
-    srPtr<srTextureIFace>* GetTextureTable00473720(int table); /* 0x00473720 */
+    int FindSkinTable(const char* name);
+    int CreateSkinTable(const char* name, int base_table);
+    srPtr<srTextureIFace>* GetTextureTable(int table); /* 0x00473720 */
     /* Active-polygon index list for a texture table; writes the count through
        `count_out` and returns 0 when the table selects no polygons. */
-    unsigned long* GetActivePolygons00473CD0(long* count_out, int table, bool flag);
-    void RemoveSkinTable00473830(int index);
-    void RemoveSkinTablesForCycle00473780(const char* cycle_name);
-    srVector3T<float>* GetVertexLocations00471AD0(unsigned int frame, char load,
-                                                  float interpolation);
-    srVector3T<float>* GetVertexNormals00471CA0(unsigned int frame, char load); /* 0x00471CA0 */
-    srVector3T<float>* GetPolygonNormals00471D00(unsigned int frame, char load);
-    void SetAmbientColor00472990(const srVector3T<float>& color);
-    unsigned char AllocateFrameBuffers00471720(unsigned int uiFrame,
-                                               unsigned char flags); /* 0x00471720 */
-    srVector3T<float>* GetVertexLights(char initialize, int table);  /* 0x00472100 */
-    float* GetVertexSunlight(char initialize);                       /* 0x004721E0 */
-    void NotifyLinkedModel005AA400(stMeshModel* previous_model);
+    unsigned long* GetActivePolygons(long* count_out, int table, bool flag);
+    void RemoveSkinTable(int index);
+    void RemoveSkinTablesForCycle(const char* cycle_name);
+    srVector3T<float>* GetVertexLocations(unsigned int frame, char load, float interpolation);
+    srVector3T<float>* GetVertexNormals(unsigned int frame, char load); /* 0x00471CA0 */
+    srVector3T<float>* GetPolygonNormals(unsigned int frame, char load);
+    void SetAmbientColor(const srVector3T<float>& color);
+    unsigned char AllocateFrameBuffers(unsigned int uiFrame, unsigned char flags); /* 0x00471720 */
+    srVector3T<float>* GetVertexLights(char initialize, int table);                /* 0x00472100 */
+    float* GetVertexSunlight(char initialize);                                     /* 0x004721E0 */
+    void NotifyLinkedModel(stMeshModel* previous_model);
     void InitializeVertexFrames(int frames); /* 0x00473B00 */
     unsigned char AllocateFrameStorage();    /* 0x00471340 */
     void FreeFrameStorage();                 /* 0x004715E0 */
     int ReleaseDecompressedFrames();         /* 0x004739E0 */
-    void FinalizeVertexFrame00473180(int frame);
+    void FinalizeVertexFrame(int frame);
     /* Bounds `frame`'s vertex table into `minimum`/`maximum`, decompressing a
        scratch copy when the frame is not resident. */
-    void GetFrameBounds00473190(int frame, srVector3T<float>* minimum, srVector3T<float>* maximum);
+    void GetFrameBounds(int frame, srVector3T<float>* minimum, srVector3T<float>* maximum);
     unsigned char DecompressFrame(int frame, unsigned char flags,
                                   srVector3T<float>* destination); /* 0x00471930 */
     void ComputeFrameNormals(int frame);                           /* 0x004729F0 */
@@ -125,28 +122,28 @@ extern W8GrowableVector<stMeshModel*> g_mesh_models; /* 0x00659CB8 */
 /* Bytes currently held by decompressed per-frame float caches. */
 extern int g_decompressed_mesh_bytes; /* 0x0065A0E8 */
 /* Scratch active-polygon indices filled by software backface cull in
-   RenderTriMeshWithEquations00470380 when an equation table is supplied. */
+   RenderTriMeshWithEquations when an equation table is supplied. */
 extern srHeapArray<unsigned long> g_software_cull_active_polygons; /* 0x00659CE0 */
 
 /* True when all three components of the vector are zero; the vertex-lighting
    code uses it to decide between a plain copy and a per-vertex offset. */
-int __fastcall IsZeroVector0046FFA0(const srVector3T<float>* vector);
+int __fastcall IsZeroVector(const srVector3T<float>* vector);
 /* Copy `count` dwords when the buffers differ. Callers pass 3*n for vec3
    arrays. */
-void CopyDwordBuffer00470180(void* destination, const void* source, int count);
+void CopyDwordBuffer(void* destination, const void* source, int count);
 /* Fill `count` dwords with `value`. FUN_00472270 uses this when a vec3's
    components are equal, passing vertex_count*3. */
 void FillDwordBuffer00474700(void* destination, unsigned int value, int count);
-/* Plain dword walk used by RenderTriMeshWithEquations00470380's active-poly
+/* Plain dword walk used by RenderTriMeshWithEquations's active-poly
    scratch resize and by stMeshModel clone's sunlight table copy. */
-void CopyUlongBuffer004747f0(unsigned long* destination, const unsigned long* source,
+void CopyUlongBuffer(unsigned long* destination, const unsigned long* source,
                              unsigned long count);
 /* dest[i] += source[i] for `count` floats. Callers pass vertex_count*3. */
-void AddFloatBuffer00474730(float* destination, const float* source, int count);
+void AddFloatBuffer(float* destination, const float* source, int count);
 /* dest[i] = source[i] + offset for `count` vectors, or a plain copy when the
    offset is zero. */
-void OffsetVertices00470040(srVector3T<float>* destination, const srVector3T<float>* source,
-                            const srVector3T<float>* offset, int count);
+void OffsetVertices(srVector3T<float>* destination, const srVector3T<float>* source,
+                    const srVector3T<float>* offset, int count);
 /* Release least-recently-used decompressed frame caches until `needed` bytes
    have been freed; 0 when the registry cannot supply them. */
-unsigned char ReclaimDecompressedBytes00473BF0(unsigned int needed);
+unsigned char ReclaimDecompressedBytes(unsigned int needed);

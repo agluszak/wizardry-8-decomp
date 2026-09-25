@@ -6,7 +6,7 @@
    0x409c5a calls it before starting the driver. */
 
 // FUNCTION: WIZ8 0x0041a800
-static void MSSShutdown0041A800(void)
+static void MSSShutdown(void)
 {
     AIL_shutdown();
 }
@@ -14,6 +14,6 @@ static void MSSShutdown0041A800(void)
 // FUNCTION: WIZ8 0x0041a7f0
 int __cdecl MSS_auto_cleanup(void)
 {
-    atexit(MSSShutdown0041A800);
+    atexit(MSSShutdown);
     return 0;
 }

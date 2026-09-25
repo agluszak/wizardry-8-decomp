@@ -76,24 +76,24 @@ void ReadMeshTransform(int file, srVector3T<float>* location, srMatrix3T<float>*
 /* The material reader retains its three parallel result tables together with
    the normalized serialized records used to identify a reusable table. */
 // GLOBAL: WIZ8 0x0065B9E8
-static srMaterialIFace** g_read_mesh_materials_65b9e8;
+static srMaterialIFace** g_read_mesh_materials;
 // GLOBAL: WIZ8 0x0065B9EC
-static srTextureIFace** g_read_mesh_textures_65b9ec;
+static srTextureIFace** g_read_mesh_textures;
 // GLOBAL: WIZ8 0x0065B9F0
-static unsigned long* g_read_mesh_render_flags_65b9f0;
+static unsigned long* g_read_mesh_render_flags;
 // GLOBAL: WIZ8 0x0065B9F4
-static W8MaterialRecord004B8A70* g_read_mesh_material_records_65b9f4;
+static W8MaterialRecord* g_read_mesh_material_records;
 // GLOBAL: WIZ8 0x0065B9F8
-static int g_read_mesh_scratch_count_65b9f8;
+static int g_read_mesh_scratch_count;
 // GLOBAL: WIZ8 0x0065B9CC
-static int g_read_mesh_material_count_65b9cc;
+static int g_read_mesh_material_count;
 
 // FUNCTION: WIZ8 0x00489A80
 bool IsTextureInReadMeshScratch(const srTextureIFace* texture)
 {
-    if (g_read_mesh_textures_65b9ec != 0 && g_read_mesh_scratch_count_65b9f8 > 0) {
-        for (short index = 0; index < g_read_mesh_scratch_count_65b9f8; ++index) {
-            if (g_read_mesh_textures_65b9ec[index] == texture) {
+    if (g_read_mesh_textures != 0 && g_read_mesh_scratch_count > 0) {
+        for (short index = 0; index < g_read_mesh_scratch_count; ++index) {
+            if (g_read_mesh_textures[index] == texture) {
                 return 1;
             }
         }
@@ -102,11 +102,11 @@ bool IsTextureInReadMeshScratch(const srTextureIFace* texture)
 }
 
 // FUNCTION: WIZ8 0x00489AC0
-unsigned char IsReadMeshMaterial00489AC0(const srClass* material)
+bool IsReadMeshMaterial(const srClass* material)
 {
-    if (g_read_mesh_materials_65b9e8 != 0 && g_read_mesh_material_count_65b9cc > 0) {
-        for (short index = 0; index < g_read_mesh_material_count_65b9cc; ++index) {
-            if (g_read_mesh_materials_65b9e8[index] == material) {
+    if (g_read_mesh_materials != 0 && g_read_mesh_material_count > 0) {
+        for (short index = 0; index < g_read_mesh_material_count; ++index) {
+            if (g_read_mesh_materials[index] == material) {
                 return 1;
             }
         }
@@ -114,21 +114,21 @@ unsigned char IsReadMeshMaterial00489AC0(const srClass* material)
     return 0;
 }
 // GLOBAL: WIZ8 0x0065B9E4
-static unsigned int g_read_mesh_index_65b9e4;
+static unsigned int g_read_mesh_index;
 // GLOBAL: WIZ8 0x0065BA00
-static srMaterialIFace** g_multi_mesh_materials_65ba00;
+static srMaterialIFace** g_multi_mesh_materials;
 // GLOBAL: WIZ8 0x0065B9FC
-static srTextureIFace** g_multi_mesh_textures_65b9fc;
+static srTextureIFace** g_multi_mesh_textures;
 
 // GLOBAL: WIZ8 0x0065BA04
-static unsigned long* g_multi_mesh_render_flags_65ba04;
+static unsigned long* g_multi_mesh_render_flags;
 /* The retained-material list is a real W8GrowableVector object at 0x0065B9D0:
    its static initializer at 0x00485AF0 constructs it with capacity five and
    its destructor is run through atexit. The element type is srMaterialIFace*
    (the material arrays' own element type), which keeps this specialization
    distinct from AutomapScreen's W8GrowableVector<srClass*>. */
 // GLOBAL: WIZ8 0x0065b9d0
-static W8GrowableVector<srMaterialIFace*> g_retained_materials_65b9d0(5);
+static W8GrowableVector<srMaterialIFace*> g_retained_materials(5);
 
 namespace {
 
@@ -544,13 +544,13 @@ void OptimizeMeshOrder(srMeshModel* model, unsigned long flags)
 }
 
 // FUNCTION: WIZ8 0x00488650
-stMeshModel* BuildSingleLevelMesh00488650(int face_count, W8ReadMeshFace* faces, int vertex_count,
-                                          int material_count, srMaterialIFace** materials,
-                                          srTextureIFace** textures, unsigned long* render_flags,
-                                          unsigned int* mesh_count, int*** vertex_maps,
-                                          unsigned int* vertex_map_count,
-                                          W8GrowableVector<short>* mapped_values,
-                                          W8GrowableVector<short>* mapped_keys)
+stMeshModel* BuildSingleLevelMesh(int face_count, W8ReadMeshFace* faces, int vertex_count,
+                                  int material_count, srMaterialIFace** materials,
+                                  srTextureIFace** textures, unsigned long* render_flags,
+                                  unsigned int* mesh_count, int*** vertex_maps,
+                                  unsigned int* vertex_map_count,
+                                  W8GrowableVector<short>* mapped_values,
+                                  W8GrowableVector<short>* mapped_keys)
 {
     W8GrowableVector<unsigned long> polygon_types;
     W8OctreeIndex vertex_indices[8];
@@ -709,8 +709,7 @@ stMeshModel* BuildSingleLevelMesh00488650(int face_count, W8ReadMeshFace* faces,
         for (int mapped = 0; mapped < mapped_meshes.count; ++mapped) {
             if (mapped_meshes.data[mapped] == type) {
                 for (int entry = 0; entry < mapped_values->count; ++entry) {
-                    model->SetMappedVertex00471160(mapped_vertices.data[entry],
-                                                   mapped_keys->data[entry]);
+                    model->SetMappedVertex(mapped_vertices.data[entry], mapped_keys->data[entry]);
                 }
                 break;
             }
@@ -797,7 +796,7 @@ stMeshModel* BuildSingleLevelMesh00488650(int face_count, W8ReadMeshFace* faces,
         }
         if (previous_model != 0) {
             previous_model->LinkTo(model);
-            model->NotifyLinkedModel005AA400(previous_model);
+            model->NotifyLinkedModel(previous_model);
         }
         previous_model = model;
         if (first_model == 0) {
@@ -813,9 +812,8 @@ stMeshModel* BuildSingleLevelMesh00488650(int face_count, W8ReadMeshFace* faces,
 }
 
 // FUNCTION: WIZ8 0x00487E10
-int ReadMeshMaterials00487E10(W8ReadLevelInfo* info, srMaterialIFace*** materials,
-                              srTextureIFace*** textures, unsigned long** render_flags,
-                              int load_materials)
+int ReadMeshMaterials(W8ReadLevelInfo* info, srMaterialIFace*** materials,
+                      srTextureIFace*** textures, unsigned long** render_flags, int load_materials)
 {
     if (info == 0) {
         srAssertFail("pInfo", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x256, 0);
@@ -840,9 +838,9 @@ int ReadMeshMaterials00487E10(W8ReadLevelInfo* info, srMaterialIFace*** material
         return 0;
     }
 
-    W8MaterialRecord004B8A70* records =
-        static_cast<W8MaterialRecord004B8A70*>(malloc(count * sizeof(W8MaterialRecord004B8A70)));
-    memset(records, 0, count * sizeof(W8MaterialRecord004B8A70));
+    W8MaterialRecord* records =
+        static_cast<W8MaterialRecord*>(malloc(count * sizeof(W8MaterialRecord)));
+    memset(records, 0, count * sizeof(W8MaterialRecord));
     FileRead(info->hFile, records, 0x11a, 0);
     if (records[0].version_00 < 4) {
         for (index = 1; index < count; ++index) {
@@ -852,7 +850,7 @@ int ReadMeshMaterials00487E10(W8ReadLevelInfo* info, srMaterialIFace*** material
         FileRead(info->hFile, records[0].texture_modes_11a, sizeof(records[0].texture_modes_11a),
                  0);
         if (count > 1) {
-            FileRead(info->hFile, records + 1, (count - 1) * sizeof(W8MaterialRecord004B8A70), 0);
+            FileRead(info->hFile, records + 1, (count - 1) * sizeof(W8MaterialRecord), 0);
         }
     }
 
@@ -860,17 +858,16 @@ int ReadMeshMaterials00487E10(W8ReadLevelInfo* info, srMaterialIFace*** material
         ClearMaterialRecordPadding(records + index);
     }
 
-    if (g_read_mesh_scratch_count_65b9f8 == count &&
-        memcmp(records, g_read_mesh_material_records_65b9f4,
-               count * sizeof(W8MaterialRecord004B8A70)) == 0) {
-        *materials = g_read_mesh_materials_65b9e8;
-        *textures = g_read_mesh_textures_65b9ec;
-        *render_flags = g_read_mesh_render_flags_65b9f0;
+    if (g_read_mesh_scratch_count == count &&
+        memcmp(records, g_read_mesh_material_records, count * sizeof(W8MaterialRecord)) == 0) {
+        *materials = g_read_mesh_materials;
+        *textures = g_read_mesh_textures;
+        *render_flags = g_read_mesh_render_flags;
         free(records);
         return count;
     }
 
-    ReleaseReadMeshScratch004881D0();
+    ReleaseReadMeshScratch();
     *materials = static_cast<srMaterialIFace**>(malloc(count * sizeof(**materials)));
     *textures = static_cast<srTextureIFace**>(malloc(count * sizeof(**textures)));
     *render_flags = static_cast<unsigned long*>(malloc(count * sizeof(**render_flags)));
@@ -878,27 +875,27 @@ int ReadMeshMaterials00487E10(W8ReadLevelInfo* info, srMaterialIFace*** material
     memset(*textures, 0, count * sizeof(**textures));
     memset(*render_flags, 0, count * sizeof(**render_flags));
 
-    g_read_mesh_materials_65b9e8 = *materials;
-    g_read_mesh_textures_65b9ec = *textures;
-    g_read_mesh_render_flags_65b9f0 = *render_flags;
-    g_read_mesh_material_records_65b9f4 = records;
-    g_read_mesh_scratch_count_65b9f8 = count;
+    g_read_mesh_materials = *materials;
+    g_read_mesh_textures = *textures;
+    g_read_mesh_render_flags = *render_flags;
+    g_read_mesh_material_records = records;
+    g_read_mesh_scratch_count = count;
 
     for (index = 0; index < count; ++index) {
         if (index == 0) {
             CreateDefaultMaterial(*materials + index, *textures + index, *render_flags + index);
         } else {
-            LoadMaterial004B8A70(info->bitmap_folder, records + index, *materials + index,
-                                 *textures + index, *render_flags + index, load_materials);
+            LoadMaterial(info->bitmap_folder, records + index, *materials + index,
+                         *textures + index, *render_flags + index, load_materials);
         }
     }
     return count;
 }
 
 // FUNCTION: WIZ8 0x00485B20
-unsigned char ReadSingleLevelMesh00485B20(W8ReadLevelInfo* info, srModelInstance** instance,
-                                          int positional_0, int positional_1, const char* name,
-                                          unsigned char load_materials)
+unsigned char ReadSingleLevelMesh(W8ReadLevelInfo* info, srModelInstance** instance,
+                                  int positional_0, int positional_1, const char* name,
+                                  unsigned char load_materials)
 {
     if (name != 0) {
         srRegistry* registry = srCore.getRegistry();
@@ -909,22 +906,22 @@ unsigned char ReadSingleLevelMesh00485B20(W8ReadLevelInfo* info, srModelInstance
 
         stMeshModel* model = static_cast<stMeshModel*>(registry->find(node, name, 0));
         if (model != 0 && model->duplicate_on_reuse_3cc != 0) {
-            stModelInstance* duplicate = CreateModelInstance0046F5C0(model);
+            stModelInstance* duplicate = CreateModelInstance(model);
             duplicate->setName("Read Mesh Duplicate Instance");
             *instance = duplicate;
-            SkipSingleLevelMesh00487BD0(info);
+            SkipSingleLevelMesh(info);
             return 1;
         }
     }
 
-    return ReadSingleLevelMeshBody00485C10(info, instance, positional_0, positional_1, name,
-                                           load_materials);
+    return ReadSingleLevelMeshBody(info, instance, positional_0, positional_1, name,
+                                   load_materials);
 }
 
 // FUNCTION: WIZ8 0x00485C10
-unsigned char ReadSingleLevelMeshBody00485C10(W8ReadLevelInfo* info, srModelInstance** instance,
-                                              int positional_0, int positional_1, const char* name,
-                                              unsigned char load_materials)
+unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** instance,
+                                      int positional_0, int positional_1, const char* name,
+                                      unsigned char load_materials)
 {
     /* Retail read mapping_count/value/key/compression_type uninitialised when
        a FileRead short-circuited; deterministic zeroes model that defect
@@ -1083,7 +1080,7 @@ unsigned char ReadSingleLevelMeshBody00485C10(W8ReadLevelInfo* info, srModelInst
     srTextureIFace** textures;
     unsigned long* render_flags;
     int material_count =
-        ReadMeshMaterials00487E10(info, &materials, &textures, &render_flags, load_materials);
+        ReadMeshMaterials(info, &materials, &textures, &render_flags, load_materials);
     if (materials == 0) {
         srAssertFail("ppsrMats", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x16b, 0);
     }
@@ -1091,13 +1088,13 @@ unsigned char ReadSingleLevelMeshBody00485C10(W8ReadLevelInfo* info, srModelInst
         srAssertFail("uiMatCount", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x16c, 0);
     }
 
-    first_model = BuildSingleLevelMesh00488650(
-        face_count, faces, vertex_count, material_count, materials, textures, render_flags,
-        &mesh_count, &vertex_maps, &vertex_map_count, &mapped_values, &mapped_keys);
+    first_model = BuildSingleLevelMesh(face_count, faces, vertex_count, material_count, materials,
+                                       textures, render_flags, &mesh_count, &vertex_maps,
+                                       &vertex_map_count, &mapped_values, &mapped_keys);
     if (first_model != 0) {
         first_model->autoRelease();
         first_model->setName(name);
-        stModelInstance* loaded_instance = CreateModelInstance0046F5C0(first_model);
+        stModelInstance* loaded_instance = CreateModelInstance(first_model);
         loaded_instance->setName("ReadSTMeshFromFile");
         if (version > 1 && loaded_instance != 0) {
             const double angle = 3.14159265358979323846;
@@ -1108,7 +1105,7 @@ unsigned char ReadSingleLevelMeshBody00485C10(W8ReadLevelInfo* info, srModelInst
             loaded_instance->setRotation(rotation);
         }
         *instance = loaded_instance;
-        first_model->duplicate_on_reuse_3cc = MeshHasAnimatedTexture004B9AA0(first_model) ? 0 : 1;
+        first_model->duplicate_on_reuse_3cc = MeshHasAnimatedTexture(first_model) ? 0 : 1;
     }
 
     if ((flags & 1) == 0) {
@@ -1133,7 +1130,7 @@ unsigned char ReadSingleLevelMeshBody00485C10(W8ReadLevelInfo* info, srModelInst
                     model_vertices[index * 3 + 1] = compressed_vertices[frame][source * 3 + 1];
                     model_vertices[index * 3 + 2] = compressed_vertices[frame][source * 3 + 2];
                 }
-                model->FinalizeVertexFrame00473180(frame);
+                model->FinalizeVertexFrame(frame);
             }
         }
     }
@@ -1141,7 +1138,7 @@ unsigned char ReadSingleLevelMeshBody00485C10(W8ReadLevelInfo* info, srModelInst
     for (int index = 0; index < material_count; ++index) {
         srMaterialIFace* material = materials[index];
         if (material != 0 && material->getReferenceCount() == 0) {
-            g_retained_materials_65b9d0.Add(material);
+            g_retained_materials.Add(material);
             material->addReference();
         }
     }
@@ -1169,8 +1166,8 @@ unsigned char ReadSingleLevelMeshBody00485C10(W8ReadLevelInfo* info, srModelInst
 }
 
 // FUNCTION: WIZ8 0x00488240
-unsigned char ReadMultipleLevelMeshes00488240(W8ReadLevelInfo* info, srModelInstance** instances,
-                                              unsigned long count, const char* name)
+unsigned char ReadMultipleLevelMeshes(W8ReadLevelInfo* info, srModelInstance** instances,
+                                      unsigned long count, const char* name)
 {
     OctMeshModel reader;
     unsigned int mesh_count;
@@ -1193,10 +1190,9 @@ unsigned char ReadMultipleLevelMeshes00488240(W8ReadLevelInfo* info, srModelInst
         FileRead(info->hFile, &root_count, sizeof(root_count), 0);
     }
 
-    g_read_mesh_material_count_65b9cc = ReadMeshMaterials00487E10(
-        info, &g_multi_mesh_materials_65ba00, &g_multi_mesh_textures_65b9fc,
-        &g_multi_mesh_render_flags_65ba04, 1);
-    if (g_read_mesh_material_count_65b9cc == 0) {
+    g_read_mesh_material_count = ReadMeshMaterials(
+        info, &g_multi_mesh_materials, &g_multi_mesh_textures, &g_multi_mesh_render_flags, 1);
+    if (g_read_mesh_material_count == 0) {
         srAssertFail("uiMatCount", "C:\\Projects\\Wizardry 8\\Engine Code\\ReadMesh.cpp", 0x329, 0);
     }
 
@@ -1215,15 +1211,14 @@ unsigned char ReadMultipleLevelMeshes00488240(W8ReadLevelInfo* info, srModelInst
     stMeshModel** meshes = static_cast<stMeshModel**>(malloc(count * sizeof(*meshes)));
     srVector3T<float> minimum;
     srVector3T<float> maximum;
-    for (g_read_mesh_index_65b9e4 = 0; g_read_mesh_index_65b9e4 < mesh_count;
-         ++g_read_mesh_index_65b9e4) {
+    for (g_read_mesh_index = 0; g_read_mesh_index < mesh_count; ++g_read_mesh_index) {
         if (g_current_screen_state.id == 4) {
-            UpdatePleaseWaitLoadFrame005915A0();
+            UpdatePleaseWaitLoadFrame();
         }
-        stMeshModel* model = reader.Read0049E9A0(
-            info->hFile, g_multi_mesh_materials_65ba00, g_multi_mesh_textures_65b9fc,
-            g_multi_mesh_render_flags_65ba04, meshes, g_read_mesh_material_count_65b9cc);
-        meshes[g_read_mesh_index_65b9e4] = model;
+        stMeshModel* model =
+            reader.Read0049E9A0(info->hFile, g_multi_mesh_materials, g_multi_mesh_textures,
+                                g_multi_mesh_render_flags, meshes, g_read_mesh_material_count);
+        meshes[g_read_mesh_index] = model;
         if ((model->control_state_390 & 1) == 0) {
             unsigned long state = model->control_state_390;
             model->control_state_390 = state | 1;
@@ -1233,16 +1228,15 @@ unsigned char ReadMultipleLevelMeshes00488240(W8ReadLevelInfo* info, srModelInst
         model->getBoundingBox(minimum, maximum);
     }
 
-    for (g_read_mesh_index_65b9e4 = 0; g_read_mesh_index_65b9e4 < root_count;
-         ++g_read_mesh_index_65b9e4) {
-        stMeshModel* model = meshes[g_read_mesh_index_65b9e4];
+    for (g_read_mesh_index = 0; g_read_mesh_index < root_count; ++g_read_mesh_index) {
+        stMeshModel* model = meshes[g_read_mesh_index];
         model->setName(name);
         if (model->previous == 0) {
-            stModelInstance* instance = CreateModelInstance0046F5C0(model);
+            stModelInstance* instance = CreateModelInstance(model);
             instance->setName("Multi Mesh Instance");
-            instance->mesh_index_17c = g_read_mesh_index_65b9e4;
-            model->duplicate_on_reuse_3cc = MeshHasAnimatedTexture004B9AA0(model);
-            instances[g_read_mesh_index_65b9e4] = instance;
+            instance->mesh_index_17c = g_read_mesh_index;
+            model->duplicate_on_reuse_3cc = MeshHasAnimatedTexture(model);
+            instances[g_read_mesh_index] = instance;
         }
     }
 
@@ -1253,10 +1247,10 @@ unsigned char ReadMultipleLevelMeshes00488240(W8ReadLevelInfo* info, srModelInst
                      "NewReadMesh: Incorrect offset in file at end of mesh.");
     }
 
-    for (int index = 0; index < g_read_mesh_material_count_65b9cc; ++index) {
-        srMaterialIFace* material = g_multi_mesh_materials_65ba00[index];
+    for (int index = 0; index < g_read_mesh_material_count; ++index) {
+        srMaterialIFace* material = g_multi_mesh_materials[index];
         if (material != 0 && material->getReferenceCount() == 0) {
-            g_retained_materials_65b9d0.Add(material);
+            g_retained_materials.Add(material);
             material->addReference();
         }
     }
@@ -1266,16 +1260,16 @@ unsigned char ReadMultipleLevelMeshes00488240(W8ReadLevelInfo* info, srModelInst
 }
 
 // FUNCTION: WIZ8 0x00489920
-void ReleaseRetainedMaterials00489920()
+void ReleaseRetainedMaterials()
 {
-    while (g_retained_materials_65b9d0.GetCount() != 0) {
-        (*g_retained_materials_65b9d0.GetAt(0))->release();
-        g_retained_materials_65b9d0.RemoveAt(0);
+    while (g_retained_materials.GetCount() != 0) {
+        (*g_retained_materials.GetAt(0))->release();
+        g_retained_materials.RemoveAt(0);
     }
 }
 
 // FUNCTION: WIZ8 0x00489980
-void ClearMaterialRecordPadding(W8MaterialRecord004B8A70* material)
+void ClearMaterialRecordPadding(W8MaterialRecord* material)
 {
     if (material == 0) {
         return;
@@ -1288,29 +1282,29 @@ void ClearMaterialRecordPadding(W8MaterialRecord004B8A70* material)
 }
 
 // FUNCTION: WIZ8 0x004881d0
-void ReleaseReadMeshScratch004881D0()
+void ReleaseReadMeshScratch()
 {
-    if (g_read_mesh_materials_65b9e8 != 0) {
-        free(g_read_mesh_materials_65b9e8);
-        g_read_mesh_materials_65b9e8 = 0;
+    if (g_read_mesh_materials != 0) {
+        free(g_read_mesh_materials);
+        g_read_mesh_materials = 0;
     }
-    if (g_read_mesh_textures_65b9ec != 0) {
-        free(g_read_mesh_textures_65b9ec);
-        g_read_mesh_textures_65b9ec = 0;
+    if (g_read_mesh_textures != 0) {
+        free(g_read_mesh_textures);
+        g_read_mesh_textures = 0;
     }
-    if (g_read_mesh_render_flags_65b9f0 != 0) {
-        free(g_read_mesh_render_flags_65b9f0);
-        g_read_mesh_render_flags_65b9f0 = 0;
+    if (g_read_mesh_render_flags != 0) {
+        free(g_read_mesh_render_flags);
+        g_read_mesh_render_flags = 0;
     }
-    if (g_read_mesh_material_records_65b9f4 != 0) {
-        free(g_read_mesh_material_records_65b9f4);
-        g_read_mesh_material_records_65b9f4 = 0;
+    if (g_read_mesh_material_records != 0) {
+        free(g_read_mesh_material_records);
+        g_read_mesh_material_records = 0;
     }
-    g_read_mesh_scratch_count_65b9f8 = 0;
+    g_read_mesh_scratch_count = 0;
 }
 
 // FUNCTION: WIZ8 0x00487bd0
-unsigned char SkipSingleLevelMesh00487BD0(W8ReadLevelInfo* info)
+unsigned char SkipSingleLevelMesh(W8ReadLevelInfo* info)
 {
     /* Retail read count/group_count uninitialised when a FileRead
        short-circuited; deterministic zeroes model that defect path. */

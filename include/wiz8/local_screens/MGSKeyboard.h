@@ -146,12 +146,12 @@ class W8TextControl;
    selection the availability refresh drives. */
 /* Each keyboard-menu row's (W8SubMenuPage, entry) selection; retail storage is
    word-sized, so the enum values ride in shorts. */
-extern short g_keyboard_menu_items_69b7ec[12];
-extern Controls* g_keyboard_menu_panel_69b804;
-extern short g_keyboard_menu_pages_69b808[12];
-extern W8TextControl* g_keyboard_menu_rows_69b820[13];
+extern short g_keyboard_menu_items[12];
+extern Controls* g_keyboard_menu_panel;
+extern short g_keyboard_menu_pages[12];
+extern W8TextControl* g_keyboard_menu_rows[13];
 /* The (x, y) of the twelve menu rows and the trailing close row. */
-extern const int g_keyboard_row_positions_64c1cc[13][2];
+extern const int g_keyboard_row_positions[13][2];
 
 void ResetMGSKeyboardBindings();
 

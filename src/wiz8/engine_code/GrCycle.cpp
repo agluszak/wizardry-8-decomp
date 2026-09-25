@@ -68,11 +68,11 @@ float g_float_005ecf98 = 0.02500000037252903f;
 // GLOBAL: WIZ8 0x005ecf9c
 float g_float_005ecf9c = 250.0f;
 // GLOBAL: WIZ8 0x0060da88
-unsigned char g_flag_0060da88 = 1;
+bool g_flag_0060da88 = true;
 // GLOBAL: WIZ8 0x0065be2c
-W8GrowableVector<W8CameraShakeEffect*>* g_shake_effects_0065be2c;
+W8GrowableVector<W8CameraShakeEffect*>* g_shake_effects;
 // GLOBAL: WIZ8 0x0065be30
-W8GameTimer* g_shake_timer_0065be30;
+W8GameTimer* g_shake_timer;
 
 /* Everything except the timer's own pacing carries across, and bit zero of the
    flags is cleared so the copy is not treated as already started. The new timer
@@ -98,10 +98,10 @@ W8CameraShakeEffect::W8CameraShakeEffect(float duration, char preset, float inte
     : flags_00(0), intensity_04(intensity), distance_cap_08(distance_cap), timer_18(duration, 0),
       cycle_3c(0), frame_40(0), subcycle_44(0), completion_callback_48(0)
 {
-    if (g_shake_effects_0065be2c == 0) {
-        g_shake_effects_0065be2c = new W8GrowableVector<W8CameraShakeEffect*>(5);
-        g_shake_timer_0065be30 = new W8GameTimer(g_float_005ecf98, 0);
-        g_shake_timer_0065be30->Restart();
+    if (g_shake_effects == 0) {
+        g_shake_effects = new W8GrowableVector<W8CameraShakeEffect*>(5);
+        g_shake_timer = new W8GameTimer(g_float_005ecf98, 0);
+        g_shake_timer->Restart();
     }
     if (preset != 0) {
         flags_00 |= 0x1c;
@@ -115,25 +115,23 @@ W8CameraShakeEffect::W8CameraShakeEffect(float duration, char preset, float inte
    which is the pair of bits set here. Trigger.cpp clears the ownership bit
    afterwards because it keeps its effect across frames and deletes it itself. */
 // FUNCTION: WIZ8 0x004ae080
-W8CameraShakeEffect* CreateCameraShakeEffect004AE080(float duration, char preset, float intensity,
-                                                     float distance_cap,
-                                                     const srVector3T<float>* position)
+W8CameraShakeEffect* CreateCameraShakeEffect(float duration, char preset, float intensity,
+                                             float distance_cap, const srVector3T<float>* position)
 {
     W8CameraShakeEffect* effect =
         new W8CameraShakeEffect(duration, preset, intensity, distance_cap, position);
 
     effect->flags_00 |= 3;
     effect->timer_18.Restart();
-    g_shake_effects_0065be2c->Add(effect);
+    g_shake_effects->Add(effect);
     return effect;
 }
 
 /* Fire the effects one animation event names. An effect already on the live
    list is not added twice, but it is repositioned and restarted either way. */
 // FUNCTION: WIZ8 0x004ae170
-void TriggerShakeEffects004AE170(W8GrowableVector<W8CameraShakeEffect*>* effects, int cycle,
-                                 unsigned int frame, int subcycle,
-                                 const srVector3T<float>* position)
+void TriggerShakeEffects(W8GrowableVector<W8CameraShakeEffect*>* effects, int cycle,
+                         unsigned int frame, int subcycle, const srVector3T<float>* position)
 {
     int index;
 
@@ -143,7 +141,7 @@ void TriggerShakeEffects004AE170(W8GrowableVector<W8CameraShakeEffect*>* effects
         if (effect->cycle_3c == cycle && effect->frame_40 == (int)frame &&
             effect->subcycle_44 == subcycle) {
             if ((effect->flags_00 & 1) == 0) {
-                g_shake_effects_0065be2c->Add(effect);
+                g_shake_effects->Add(effect);
             }
             effect->position_0c = *position;
             effect->flags_00 |= 1;
@@ -156,7 +154,7 @@ void TriggerShakeEffects004AE170(W8GrowableVector<W8CameraShakeEffect*>* effects
    the active bit is unconditional; the delete is not, because Trigger.cpp's
    effects have already cleared the bit that says the list owns them. */
 // FUNCTION: WIZ8 0x004ae270
-void StopShakeEffects004AE270(W8GrowableVector<W8CameraShakeEffect*>* effects)
+void StopShakeEffects(W8GrowableVector<W8CameraShakeEffect*>* effects)
 {
     int index;
 
@@ -166,7 +164,7 @@ void StopShakeEffects004AE270(W8GrowableVector<W8CameraShakeEffect*>* effects)
         if ((effect->flags_00 & 1) != 0) {
             unsigned int flags;
 
-            g_shake_effects_0065be2c->RemoveAt(g_shake_effects_0065be2c->IndexOf(effect));
+            g_shake_effects->RemoveAt(g_shake_effects->IndexOf(effect));
             flags = effect->flags_00;
             effect->flags_00 = flags & ~1u;
             if ((flags >> 1 & 1) != 0 && effect != 0) {
@@ -185,21 +183,21 @@ void StopShakeEffects004AE270(W8GrowableVector<W8CameraShakeEffect*>* effects)
    amounts are clamped and scaled into the three random components of the
    Trigger action camera offset, which the renderer adds to the scene. */
 // FUNCTION: WIZ8 0x004ae310
-void UpdateShakeEffects004AE310()
+void UpdateShakeEffects()
 {
-    if (g_flag_0060da88 == 0 || g_shake_effects_0065be2c == 0 ||
-        g_shake_timer_0065be30->GetProgress() < g_float_005ebb38) {
+    if (g_flag_0060da88 == 0 || g_shake_effects == 0 ||
+        g_shake_timer->GetProgress() < g_float_005ebb38) {
         return;
     }
-    if (g_shake_effects_0065be2c->GetCount() != 0) {
+    if (g_shake_effects->GetCount() != 0) {
         float intensity = 0.0f;
         srVector3T<float> camera;
         GetCameraPosition(&camera);
-        for (int index = 0; index < g_shake_effects_0065be2c->GetCount(); ++index) {
-            W8CameraShakeEffect* effect = *g_shake_effects_0065be2c->GetAt(index);
+        for (int index = 0; index < g_shake_effects->GetCount(); ++index) {
+            W8CameraShakeEffect* effect = *g_shake_effects->GetAt(index);
             float amount;
             if (effect->Evaluate004AE4E0(&camera, &amount) == 0) {
-                g_shake_effects_0065be2c->RemoveAt(index);
+                g_shake_effects->RemoveAt(index);
                 --index;
                 effect->flags_00 &= ~1u;
                 if (effect->completion_callback_48 != 0) {
@@ -216,14 +214,14 @@ void UpdateShakeEffects004AE310()
             float amplitude = intensity < g_float_005ebb38 ? intensity : g_float_005ebb38;
             amplitude *= g_float_005ecf9c;
             int span = static_cast<int>(amplitude) << 1;
-            g_trigger_action_scene_offset_006599ac.x = static_cast<float>(Random(span)) - amplitude;
-            g_trigger_action_scene_offset_006599ac.y = static_cast<float>(Random(span)) - amplitude;
-            g_trigger_action_scene_offset_006599ac.z = static_cast<float>(Random(span)) - amplitude;
-            g_trigger_action_active_006599c8 = 1;
+            g_trigger_action_scene_offset.x = Random(span) - amplitude;
+            g_trigger_action_scene_offset.y = Random(span) - amplitude;
+            g_trigger_action_scene_offset.z = Random(span) - amplitude;
+            g_trigger_action_active = true;
             return;
         }
     }
-    g_trigger_action_active_006599c8 = 0;
+    g_trigger_action_active = false;
 }
 
 /* Bit 2 gates the distance test, bit 3 selects the quadratic falloff, bit 4
@@ -271,16 +269,15 @@ float g_float_005ebc64 = 1000.0f;
    version, and hand the open file plus its resource context to the typed cycle
    reader. */
 // FUNCTION: WIZ8 0x004A67E0
-unsigned char LoadGrCycle004A67E0(const W8GrCycleLoadContext* context, const char* mon_name,
-                                  W8GrCycle** cycle, int cycle_index, int value,
-                                  const char* directory, unsigned char object_type,
-                                  const char* bitmap_directory)
+bool LoadGrCycle(const W8GrCycleLoadContext* context, const char* mon_name, W8GrCycle** cycle,
+                 int cycle_index, int value, const char* directory, unsigned char object_type,
+                 const char* bitmap_directory)
 {
     W8ReadLevelInfo info;
     char mon_path[128];
     char bitmap_path[1024];
     unsigned char version;
-    unsigned char success;
+    bool success;
 
     if (mon_name == 0 || cycle == 0) {
         srAssertFail("pacName && ppCycle", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
@@ -306,7 +303,7 @@ unsigned char LoadGrCycle004A67E0(const W8GrCycleLoadContext* context, const cha
     success = 1;
 
     if (FileRead(handle, &version, 1, 0) == 0 || version != 1 ||
-        ReadGrCycleData004A6970(&info, cycle, cycle_index, value, object_type) == 0) {
+        ReadGrCycleData(&info, cycle, cycle_index, value, object_type) == 0) {
         success = 0;
     }
 
@@ -324,8 +321,8 @@ unsigned char LoadGrCycle004A67E0(const W8GrCycleLoadContext* context, const cha
    its local transform; the live cycle owns the attachment record and vector,
    while the particle node remains scene-owned. */
 // FUNCTION: WIZ8 0x004A6970
-unsigned char ReadGrCycleData004A6970(W8ReadLevelInfo* info, W8GrCycle** cycle, int cycle_index,
-                                      int value, unsigned char object_type)
+unsigned char ReadGrCycleData(W8ReadLevelInfo* info, W8GrCycle** cycle, int cycle_index, int value,
+                              unsigned char object_type)
 {
     unsigned char has_path;
     unsigned char has_particles;
@@ -372,7 +369,7 @@ unsigned char ReadGrCycleData004A6970(W8ReadLevelInfo* info, W8GrCycle** cycle, 
     if (has_particles != 0) {
         W8GrowableVector<stParticle*> particles;
 
-        success = ReadWorldParticles004BD0D0(info, g_world->dynamic_scene, &particles);
+        success = ReadWorldParticles(info, g_world->dynamic_scene, &particles);
         if (particles.GetCount() != 0) {
             int index;
 
@@ -422,11 +419,11 @@ W8GrCycle::W8GrCycle()
     current_model_instance_1a8 = 0;
     m_plsLights = 0;
     m_plsShakeEvents = 0;
-    m_fDeleteLights = 0;
+    m_fDeleteLights = false;
     last_subcycle_1b5 = 0;
     m_plsParticles = 0;
     wrapped_1bc = 0;
-    enabled_1bd = 1;
+    enabled_1bd = true;
     mirror_x_1be = 0;
     aim_set_1bf = 0;
     m_ground_shadow = 0;
@@ -455,7 +452,7 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other) : W8GrObject(other), W8Navigator(ot
     last_subcycle_1b5 = other.last_subcycle_1b5;
     m_plsParticles = 0;
     wrapped_1bc = 0;
-    enabled_1bd = 1;
+    enabled_1bd = true;
     mirror_x_1be = other.mirror_x_1be;
     aim_set_1bf = 0;
     scale_1cc = other.scale_1cc;
@@ -547,7 +544,7 @@ W8GrCycle::~W8GrCycle()
     }
     if (m_plsShakeEvents != 0) {
         count = m_plsShakeEvents->GetCount();
-        StopShakeEffects004AE270(m_plsShakeEvents);
+        StopShakeEffects(m_plsShakeEvents);
         for (index = 0; index < count; ++index) {
             delete *m_plsShakeEvents->GetAt(index);
         }
@@ -588,7 +585,7 @@ void W8GrCycle::SetPosition004A6DF0(srVector3T<float>* position)
     W8EmitterHost* representation = GetRepresentation();
 
     representation->SetLocation004B8850(position);
-    SetPositionInternal00453590(position);
+    SetPositionInternal(position);
     return;
 }
 
@@ -621,7 +618,7 @@ void W8GrCycle::TickAnimation(float scale)
             if (frames != 0) {
                 srVector3T<float> position;
 
-                representation->timer_068 += (int)((float)frames * g_float_005ebc64 / rate);
+                representation->timer_068 += static_cast<int>(frames * g_float_005ebc64 / rate);
                 wrapped_1bc = 0;
                 position = GetPosition();
                 do {
@@ -638,16 +635,16 @@ void W8GrCycle::TickAnimation(float scale)
                                           representation->current_subcycle);
                     }
                     if (m_plsShakeEvents != 0) {
-                        TriggerShakeEffects004AE170(m_plsShakeEvents, representation->current_cycle,
-                                                    representation->subcycle_064,
-                                                    representation->current_subcycle, &position);
+                        TriggerShakeEffects(m_plsShakeEvents, representation->current_cycle,
+                                            representation->subcycle_064,
+                                            representation->current_subcycle, &position);
                     }
                 } while (frames != 0);
             }
         }
 
         if (m_plsLights != 0 && m_plsLights->GetCount() != 0) {
-            UpdateLights004A7150();
+            UpdateLights();
         }
         last_subcycle_1b5 = representation->subcycle_064;
     }
@@ -696,9 +693,9 @@ unsigned char W8GrCycle::ApplyPendingCycle()
                               representation->current_subcycle);
         }
         if (m_plsShakeEvents != 0) {
-            TriggerShakeEffects004AE170(m_plsShakeEvents, representation->current_cycle,
-                                        representation->subcycle_064,
-                                        representation->current_subcycle, &position);
+            TriggerShakeEffects(m_plsShakeEvents, representation->current_cycle,
+                                representation->subcycle_064, representation->current_subcycle,
+                                &position);
         }
 
         signed char subcycle_count = GetNumSubCycles();
@@ -713,7 +710,7 @@ unsigned char W8GrCycle::ApplyPendingCycle()
 }
 
 // FUNCTION: WIZ8 0x004a7150
-void W8GrCycle::UpdateLights004A7150()
+void W8GrCycle::UpdateLights()
 {
     W8EmitterHost* representation = GetRepresentation();
     int count = m_plsLights->GetCount();
@@ -727,8 +724,8 @@ void W8GrCycle::UpdateLights004A7150()
             continue;
         }
         if (definition->type_04 == 1) {
-            stLightDefinition005ECDBC* cycle_definition =
-                static_cast<stLightDefinition005ECDBC*>(definition);
+            stParametricLightDefinition* cycle_definition =
+                static_cast<stParametricLightDefinition*>(definition);
             if ((cycle_definition->flags_08 & 3) == 3 && (cycle_definition->flags_08 & 0x40) != 0) {
                 if (cycle_definition->IsEnabledForSubcycle(representation->subcycle_064) == 0) {
                     if (light->parentNode() != 0) {
@@ -747,7 +744,7 @@ void W8GrCycle::UpdateLights004A7150()
             if (representation->subcycle_064 == 0 || wrapped_1bc != 0) {
                 light->Reset0049D070();
             }
-            light->SetDefinitionTime0049C940(representation->subcycle_064 + frame_fraction_1d4);
+            light->SetDefinitionTime(representation->subcycle_064 + frame_fraction_1d4);
             if (definition->IsEnabledForSubcycle(0) == 0) {
                 if (light->parentNode() != 0) {
                     light->setParent(0, 0);
@@ -765,8 +762,8 @@ unsigned char W8GrCycle::GetAnimationBounds(srVector3T<float>* minimum, srVector
     W8AnimObj* animation = GetCurrentAnimation();
     W8EmitterHost* representation = GetRepresentation();
 
-    return AnimObjGetBounds004A1710(animation, representation->m_bLOD, representation->subcycle_064,
-                                    (srVector3T<float>*)minimum, (srVector3T<float>*)maximum);
+    return AnimObjGetBounds(animation, representation->m_bLOD, representation->subcycle_064,
+                            (srVector3T<float>*)minimum, (srVector3T<float>*)maximum);
 }
 
 // FUNCTION: WIZ8 0x004a7e10
@@ -778,7 +775,7 @@ unsigned char W8GrCycle::GetAnimationRadius(float* radius)
         srAssertFail("0", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x541, 0);
         return 0;
     }
-    return AniMeshRadius004B66E0(mesh, radius);
+    return AniMeshRadius(mesh, radius);
 }
 
 // FUNCTION: WIZ8 0x004a72f0
@@ -828,28 +825,28 @@ void W8GrCycle::AdvanceAnimationFrame(int, int)
     }
 
     if (AnimationIsRunning(animation) == 1) {
-        unsigned int count = AnimObjListCount004A1620(animation, representation->m_bLOD);
+        unsigned int count = AnimObjListCount(animation, representation->m_bLOD);
         unsigned int index;
 
         for (index = 0; index < count; ++index) {
-            W8PathAI* path =
-                AnimObjListEntry004A16C0(animation, representation->m_bLOD, (signed char)index);
+            W8PathAI* path = AnimObjListEntry(animation, representation->m_bLOD,
+                                              static_cast<signed char>(index));
             if (path != 0) {
-                PathAISetValue004A9F60(path, static_cast<float>(representation->subcycle_064));
+                PathAISetValue(path, static_cast<float>(representation->subcycle_064));
             }
         }
     }
 }
 
 // FUNCTION: WIZ8 0x004a7420
-void W8GrCycle::ResetRepresentation004A7420()
+void W8GrCycle::ResetRepresentation()
 {
     W8EmitterHost* target = GetRepresentation();
 
     if (target == 0) {
         srAssertFail("pRep", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x3ae, 0);
     }
-    PathAIResetRecord004A9720(static_cast<W8PathAI*>(m_pAI));
+    PathAIResetRecord(static_cast<W8PathAI*>(m_pAI));
     target->frame_direction_06e = 1;
     target->subcycle_064 = 0;
     target->timer_068 = g_shared_timer_base->getUTime(srTimer::TIMER_READ_DEFAULT);
@@ -884,11 +881,11 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
     }
     animation = GetCurrentAnimation();
     if (AnimationIsRunning(animation) == 1) {
-        int count = (int)AnimObjListCount004A1620(animation, pRep->m_bLOD);
+        int count = static_cast<int>(AnimObjListCount(animation, pRep->m_bLOD));
 
         for (index = 0; index < count; ++index) {
-            stModelInstance* psrMesh = (stModelInstance*)AnimObjDispatchList004A1560(
-                animation, pRep->m_bLOD, (signed char)index);
+            stModelInstance* psrMesh = static_cast<stModelInstance*>(
+                AnimObjDispatchList(animation, pRep->m_bLOD, static_cast<signed char>(index)));
             W8PathAI* path;
             srMatrix3T<float> current;
 
@@ -907,29 +904,29 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             }
             psrMesh->clearFlag(srNode::FLAG_DISABLE);
             psrMesh->setParent(pWorld->dynamic_scene, 0);
-            path = AnimObjListEntry004A16C0(animation, pRep->m_bLOD, (signed char)index);
+            path = AnimObjListEntry(animation, pRep->m_bLOD, static_cast<signed char>(index));
             if (path != 0) {
-                PathAIApply004AA520(path, psrMesh);
+                PathAIApply(path, psrMesh);
             }
             vecPos = movement_0c0.position_040;
             location.SetFromFloat(&vecPos);
             location.y += movement_0c0.vertical_offset_0c0;
             psrMesh->setLocation(location);
-            pRep->GetRotation004B88F0(&rotation);
+            pRep->GetRotation(&rotation);
             psrMesh->getRotation(current);
             rotation.MultiplyBy(current);
             psrMesh->setRotation(rotation);
             current_model_instance_1a8 = psrMesh;
         }
     } else {
-        stModelInstance* psrMesh = (stModelInstance*)SelectCycleFrameLod004A8360(
-            pRep->current_cycle, pRep->subcycle_064, pRep->m_bLOD);
+        stModelInstance* psrMesh = static_cast<stModelInstance*>(
+            SelectCycleFrameLod(pRep->current_cycle, pRep->subcycle_064, pRep->m_bLOD));
         srNode* child;
 
         if (psrMesh == 0) {
             srAssertFail("psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x40f, 0);
         }
-        AniMeshSetFlag10004B6860(pRep->GetEmitterAniMesh(pRep->current_cycle), 1);
+        AniMeshSetFlag10(pRep->GetEmitterAniMesh(pRep->current_cycle), 1);
         psrMesh->render_state_164 = pRep->render_state_04c;
         if (pRep->apply_instance_scale_061 != 0) {
             if (pRep->instance_scale_05c == g_float_005ebb38) {
@@ -942,7 +939,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
         vecPos = movement_0c0.position_040;
         location.SetFromFloat(&vecPos);
         location.y += movement_0c0.vertical_offset_0c0;
-        pRep->GetRotation004B88F0(&rotation);
+        pRep->GetRotation(&rotation);
         child = psrMesh->firstChild();
         if (child == 0) {
             psrMesh->setLocation(location);
@@ -959,7 +956,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
         psrMesh->clearFlag(srNode::FLAG_TERMINATE);
         psrMesh->setParent(pWorld->dynamic_scene, 0);
     }
-    UpdateParticleAttachments004A7E50();
+    UpdateParticleAttachments();
     if (m_ground_shadow != 0) {
         srVector3T<float> position = GetPosition();
 
@@ -980,7 +977,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             origin = vecPos;
             origin.y += movement_0c0.vertical_offset_0c0;
         }
-        pRep->GetRotation004B88F0(&rotation);
+        pRep->GetRotation(&rotation);
         for (index = 0; index < count; ++index) {
             stLight* light = *m_plsLights->GetAt(index);
             srVector3T<float> offset = light->m_position_228;
@@ -993,23 +990,23 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
 }
 
 // FUNCTION: WIZ8 0x004a7a70
-void W8GrCycle::DetachRepresentation004A7A70(W8World* world)
+void W8GrCycle::DetachRepresentation(W8World* world)
 {
     W8EmitterHost* representation = GetRepresentation();
     W8AnimObj* animation = GetCurrentAnimation();
 
     if (AnimationIsRunning(animation) == 1) {
-        int count = (int)AnimObjListCount004A1620(animation, representation->m_bLOD);
+        int count = static_cast<int>(AnimObjListCount(animation, representation->m_bLOD));
         for (int index = 0; index < count; ++index) {
-            srModelInstance* mesh = AnimObjDispatchList004A1560(animation, representation->m_bLOD,
-                                                                static_cast<signed char>(index));
+            srModelInstance* mesh = AnimObjDispatchList(animation, representation->m_bLOD,
+                                                        static_cast<signed char>(index));
             if (mesh == 0) {
                 srAssertFail("psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x476,
                              0);
             }
             W8AniMesh* ani_mesh = representation->GetEmitterAniMesh(representation->current_cycle);
             if (ani_mesh != 0) {
-                AniMeshSetFlag10004B6860(ani_mesh, 0);
+                AniMeshSetFlag10(ani_mesh, 0);
             }
             mesh->setFlag(srNode::FLAG_DISABLE);
             mesh->setParent(0, 1);
@@ -1019,7 +1016,7 @@ void W8GrCycle::DetachRepresentation004A7A70(W8World* world)
             srAssertFail("pWorld", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x484, 0);
         }
         W8AniMesh* ani_mesh = representation->GetEmitterAniMesh(representation->current_cycle);
-        AniMeshSetFlag10004B6860(ani_mesh, 0);
+        AniMeshSetFlag10(ani_mesh, 0);
         current_model_instance_1a8->setFlag(srNode::FLAG_DISABLE);
         current_model_instance_1a8->setFlag(srNode::FLAG_TERMINATE);
         current_model_instance_1a8->setParent(0, 0);
@@ -1044,7 +1041,7 @@ void W8GrCycle::DetachRepresentation004A7A70(W8World* world)
    along the cycle's stored axis, mode four leaves the orientation alone, and
    anything else composes the attachment's own rotation with the model's. */
 // FUNCTION: WIZ8 0x004a7e50
-void W8GrCycle::UpdateParticleAttachments004A7E50()
+void W8GrCycle::UpdateParticleAttachments()
 {
     int count;
     int index;
@@ -1078,10 +1075,9 @@ void W8GrCycle::UpdateParticleAttachments004A7E50()
         W8EmitterHost* rep = GetRepresentation();
 
         if (AnimationIsRunning(animation) == 1) {
-            psrMesh = AnimObjDispatchList004A1560(animation, rep->m_bLOD, 0);
+            psrMesh = AnimObjDispatchList(animation, rep->m_bLOD, 0);
         } else {
-            psrMesh =
-                SelectCycleFrameLod004A8360(rep->current_cycle, rep->subcycle_064, rep->m_bLOD);
+            psrMesh = SelectCycleFrameLod(rep->current_cycle, rep->subcycle_064, rep->m_bLOD);
         }
     }
     pRep = GetRepresentation();
@@ -1129,7 +1125,7 @@ void W8GrCycle::UpdateParticleAttachments004A7E50()
             if ((pMeshModel->flags_3a0 >> 2 & 1) == 0) {
                 locations = pMeshModel->getVertexLoc();
             } else {
-                locations = pMeshModel->GetVertexLocations00471AD0(pRep->subcycle_064, 1, 0);
+                locations = pMeshModel->GetVertexLocations(pRep->subcycle_064, 1, 0);
             }
             if (vertex >= pMeshModel->vertex_location_count_22c) {
                 vertex = 0;
@@ -1172,19 +1168,19 @@ void W8GrCycle::UpdateParticleAttachments004A7E50()
    override the distance choice in either direction, but only towards a LOD the
    cycle has. */
 // FUNCTION: WIZ8 0x004a7be0
-void W8GrCycle::SelectLOD004A7BE0(const srVector3T<float>* position)
+void W8GrCycle::SelectLOD(const srVector3T<float>* position)
 {
     W8EmitterHost* pRep = GetRepresentation();
     srVector3T<float> delta = pRep->location_004 - *position;
     float distance = delta.Length();
-    unsigned char has_lod_2 = pRep->SetCycleFrameLod(pRep->current_cycle, 0, 2) != 0;
-    unsigned char has_lod_1 = pRep->SetCycleFrameLod(pRep->current_cycle, 0, 1) != 0;
-    unsigned char has_lod_0 = pRep->SetCycleFrameLod(pRep->current_cycle, 0, 0) != 0;
+    bool has_lod_2 = pRep->SetCycleFrameLod(pRep->current_cycle, 0, 2) != 0;
+    bool has_lod_1 = pRep->SetCycleFrameLod(pRep->current_cycle, 0, 1) != 0;
+    bool has_lod_0 = pRep->SetCycleFrameLod(pRep->current_cycle, 0, 0) != 0;
 
     if (has_lod_2 == 0 && has_lod_1 == 0 && has_lod_0 == 0) {
         ShutdownWithErrorBox("Monster has no valid LODs!");
     }
-    if (g_render_brightness_60a210 * pRep->lod_range_09c > distance) {
+    if (g_render_brightness * pRep->lod_range_09c > distance) {
         if (has_lod_2 != 0) {
             pRep->m_bLOD = 2;
         } else if (has_lod_1 != 0) {
@@ -1192,7 +1188,7 @@ void W8GrCycle::SelectLOD004A7BE0(const srVector3T<float>* position)
         } else {
             pRep->m_bLOD = 0;
         }
-    } else if (g_render_brightness_60a210 * pRep->lod_range_0a0 > distance) {
+    } else if (g_render_brightness * pRep->lod_range_0a0 > distance) {
         if (has_lod_1 != 0) {
             pRep->m_bLOD = 1;
         } else if (has_lod_2 != 0) {
@@ -1209,20 +1205,20 @@ void W8GrCycle::SelectLOD004A7BE0(const srVector3T<float>* position)
             pRep->m_bLOD = 2;
         }
     }
-    if (g_render_fog_distance_60e610 <= g_float_005ebc3c && pRep->m_bLOD != 2) {
+    if (g_render_fog_distance <= g_float_005ebc3c && pRep->m_bLOD != 2) {
         if (has_lod_2 != 0) {
             pRep->m_bLOD = 2;
         }
         return;
     }
-    if ((g_render_fog_distance_60e610 <= g_float_005ec5c0 && pRep->m_bLOD == 0) ||
-        (g_render_fog_distance_60e610 >= g_float_005ec5c4 && pRep->m_bLOD == 2)) {
+    if ((g_render_fog_distance <= g_float_005ec5c0 && pRep->m_bLOD == 0) ||
+        (g_render_fog_distance >= g_float_005ec5c4 && pRep->m_bLOD == 2)) {
         if (has_lod_1 != 0) {
             pRep->m_bLOD = 1;
         }
         return;
     }
-    if (g_render_fog_distance_60e610 >= g_float_005ec390 && pRep->m_bLOD != 0 && has_lod_0 != 0) {
+    if (g_render_fog_distance >= g_float_005ec390 && pRep->m_bLOD != 0 && has_lod_0 != 0) {
         pRep->m_bLOD = 0;
     }
 }
@@ -1231,7 +1227,7 @@ void W8GrCycle::SelectLOD004A7BE0(const srVector3T<float>* position)
    and LOD. AnimObj's frame lookup is the source of the returned instance; the
    callers immediately use it as an srNode/srModelInstance. */
 // FUNCTION: WIZ8 0x004a8250
-srModelInstance* W8GrCycle::GetCurrentModelInstance004A8250()
+srModelInstance* W8GrCycle::GetCurrentModelInstance()
 {
     W8AnimObj* animation;
     W8EmitterHost* representation;
@@ -1243,16 +1239,16 @@ srModelInstance* W8GrCycle::GetCurrentModelInstance004A8250()
     animation = GetCurrentAnimation();
     representation = GetRepresentation();
     if (AnimationIsRunning(animation) == 1) {
-        return AnimObjDispatchList004A1560(animation, representation->m_bLOD, 0);
+        return AnimObjDispatchList(animation, representation->m_bLOD, 0);
     }
 
-    return SelectCycleFrameLod004A8360(representation->current_cycle, representation->subcycle_064,
-                                       representation->m_bLOD);
+    return SelectCycleFrameLod(representation->current_cycle, representation->subcycle_064,
+                               representation->m_bLOD);
 }
 
 // FUNCTION: WIZ8 0x004a8360
-srModelInstance* W8GrCycle::SelectCycleFrameLod004A8360(signed char cycle, signed char frame,
-                                                        signed char lod)
+srModelInstance* W8GrCycle::SelectCycleFrameLod(signed char cycle, signed char frame,
+                                                signed char lod)
 {
     W8EmitterHost* target;
 
@@ -1268,24 +1264,24 @@ srModelInstance* W8GrCycle::SelectCycleFrameLod004A8360(signed char cycle, signe
     }
     if (m_pAI != 0) {
         target = GetRepresentation();
-        PathAIApplyToRep004A91F0(m_pAI, target);
+        PathAIApplyToRep(m_pAI, target);
     }
     target = GetRepresentation();
     return target->SetCycleFrameLod(cycle, frame, lod);
 }
 
 // FUNCTION: WIZ8 0x004a8400
-unsigned char W8GrCycle::ReplacePath004A8400(W8PathAI* path)
+unsigned char W8GrCycle::ReplacePath(W8PathAI* path)
 {
     if (m_pAI != 0) {
-        DestroyOwnedPathAI004A9110(static_cast<W8PathAI*>(m_pAI));
+        DestroyOwnedPathAI(static_cast<W8PathAI*>(m_pAI));
     }
     m_pAI = path;
     return 1;
 }
 
 // FUNCTION: WIZ8 0x004a84a0
-void W8GrCycle::SubmitTargetValue004A84A0()
+void W8GrCycle::SubmitTargetValue()
 {
     W8EmitterHost* target = GetRepresentation();
 
@@ -1370,12 +1366,12 @@ void W8GrCycle::SetLights(W8GrowableVector<stLight*>* lights)
         srAssertFail("!m_fDeleteLights || (m_fDeleteLights && !m_plsLights)",
                      "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x678, 0);
     }
-    m_fDeleteLights = 0;
+    m_fDeleteLights = false;
     m_plsLights = lights;
 }
 
 // FUNCTION: WIZ8 0x004a8530
-void W8GrCycle::AddShakeEffect004A8530(W8CameraShakeEffect* effect)
+void W8GrCycle::AddShakeEffect(W8CameraShakeEffect* effect)
 {
     if (m_plsShakeEvents == 0) {
         m_plsShakeEvents = new W8GrowableVector<W8CameraShakeEffect*>();
@@ -1384,7 +1380,7 @@ void W8GrCycle::AddShakeEffect004A8530(W8CameraShakeEffect* effect)
 }
 
 // FUNCTION: WIZ8 0x004a8650
-const char* W8GrCycle::GetRegisteredName004A8650() const
+const char* W8GrCycle::GetRegisteredName() const
 {
     int name_index;
 
@@ -1402,7 +1398,7 @@ const char* W8GrCycle::GetRegisteredName004A8650() const
 }
 
 // FUNCTION: WIZ8 0x004a8700
-bool W8GrCycle::IsSoleRegisteredCycleForName004A8700() const
+bool W8GrCycle::IsSoleRegisteredCycleForName() const
 {
     int name_index;
 

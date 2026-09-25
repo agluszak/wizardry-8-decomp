@@ -128,19 +128,19 @@ void stLevel::process(const ProcessInfo& info, e_processType)
                 srVector4T<float> dark;
                 dark.Set(0.0f, 0.0f, 0.0f, 0.0f);
                 renderer.setAmbientLight(dark);
-                model->SetAmbientColor00472990(ambient_color);
+                model->SetAmbientColor(ambient_color);
             }
 
             srMeshModel::TriMesh mesh;
             model->getTriMesh(mesh);
-            if (g_render_untextured_0065a146 != 0) {
+            if (g_render_untextured != 0) {
                 mesh.shaders_b0[0].value &= 0xffff7fff;
                 mesh.poly_shaders_100[0] = 0;
             }
             srPtr<srTextureIFace>*(*poly_textures)[2] = mesh.poly_textures_e0;
             if (poly_textures != 0 && mesh.active_polygons_14c == 0) {
                 long active_count;
-                unsigned long* active = model->GetActivePolygons00473CD0(&active_count, -1, 0);
+                unsigned long* active = model->GetActivePolygons(&active_count, -1, 0);
                 if (active != 0) {
                     mesh.active_polygons_14c = active;
                     mesh.active_polygon_count_150 = active_count;
@@ -198,7 +198,7 @@ void stLevel::process(const ProcessInfo& info, e_processType)
 
 namespace {
 
-struct W8LevelItemRecord004BC380 {
+struct W8LevelItemRecord {
     int positional_00;
     srVector3T<float> position_04;
     int positional_10;
@@ -207,13 +207,12 @@ struct W8LevelItemRecord004BC380 {
     char item_name_1c[20];
 };
 
-static_assert(sizeof(W8LevelItemRecord004BC380) == 0x30,
-              "W8LevelItemRecord004BC380_size_must_be_0x30");
+static_assert(sizeof(W8LevelItemRecord) == 0x30, "W8LevelItemRecord_size_must_be_0x30");
 
-struct W8LevelLightRecord004BBAD0 {
+struct W8LevelLightRecord {
     short version;
     unsigned char create;
-    unsigned char visible;
+    bool visible;
     unsigned int flags;
     srVector3T<float> location;
     srVector3T<float> colour;
@@ -221,18 +220,17 @@ struct W8LevelLightRecord004BBAD0 {
     float range;
 };
 
-static_assert(sizeof(W8LevelLightRecord004BBAD0) == 0x28,
-              "W8LevelLightRecord004BBAD0_size_must_be_0x28");
+static_assert(sizeof(W8LevelLightRecord) == 0x28, "W8LevelLightRecord_size_must_be_0x28");
 
 } // namespace
 
 // GLOBAL: WIZ8 0x005ec0b0
-const float g_environment_near_scale_005ec0b0 = 2.0f;
+const float g_environment_near_scale = 2.0f;
 // GLOBAL: WIZ8 0x00659cd0
-srVector3T<float> g_environment_offset_00659cd0;
+srVector3T<float> g_environment_offset;
 
 // FUNCTION: WIZ8 0x004BC060
-void AssociateWorldLights004BC060(W8World* world)
+void AssociateWorldLights(W8World* world)
 {
     int light_index;
 
@@ -241,7 +239,7 @@ void AssociateWorldLights004BC060(W8World* world)
         stLightDefinition* definition = light->m_definition_234;
 
         if (definition != 0 && definition->type_04 == 1 &&
-            (static_cast<stLightDefinition005ECDBC*>(definition)->flags_08 & 1) != 0) {
+            (static_cast<stParametricLightDefinition*>(definition)->flags_08 & 1) != 0) {
             int prop_count = PLLength(world->plsProps);
             int prop_index;
 
@@ -251,7 +249,7 @@ void AssociateWorldLights004BC060(W8World* world)
                 if (prop->m_name != 0 && _stricmp(prop->m_name, light->getName()) == 0) {
                     srModelInstance* instance = prop->ToggleRepAnimationDefault();
                     light->m_prop_254 = prop;
-                    GetModelAnimatedTexture004B9B50(instance)->animation_mode_60 = 3;
+                    GetModelAnimatedTexture(instance)->animation_mode_60 = 3;
                 }
             }
         }
@@ -259,7 +257,7 @@ void AssociateWorldLights004BC060(W8World* world)
 }
 
 // FUNCTION: WIZ8 0x004BBAD0
-unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
+unsigned char ReadWorldLights(W8World* world, int hFile)
 {
     short light_count;
     int index;
@@ -268,7 +266,7 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
        an AI path it returns the stack residue of the last setLocation double
        push, which is nonzero in practice. Initialize it so the recompilation
        is deterministic rather than depending on stack residue. */
-    unsigned char path_success = 1;
+    bool path_success = true;
 
     success = FileRead(hFile, &light_count, sizeof(light_count), 0);
     if (!success) {
@@ -276,8 +274,8 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
     }
 
     for (index = 0; index < light_count; ++index) {
-        W8LevelLightRecord004BBAD0 record;
-        stLightDefinition005ECDBC* definition = 0;
+        W8LevelLightRecord record;
+        stParametricLightDefinition* definition = 0;
         W8PathAI* path = 0;
         stLight* light = 0;
         char name[20];
@@ -288,7 +286,7 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
             _strupr(name);
 
             if ((record.flags & 2) != 0) {
-                definition = new stLightDefinition005ECDBC;
+                definition = new stParametricLightDefinition;
                 record.create = 1;
 
                 FileRead(hFile, &definition->flags_08, 4, 0);
@@ -345,7 +343,7 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
             if (record.version < 2) {
                 strcpy(name, "Static Point Light");
             }
-            light = CreateLight0046DF90(world->dynamic_scene, name);
+            light = CreateLight(world->dynamic_scene, name);
             if (light == 0) {
                 srAssertFail("pstLight", READ_LEVEL_CPP, 593, 0);
             }
@@ -359,18 +357,17 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
                 light->diffuse_1a4.SetZero();
                 light->ambient_198 = record.colour;
                 light->setGroupMask(light->getGroupMask() | 4);
-                AddEnvironmentLight00483F30(light);
+                AddEnvironmentLight(light);
             } else {
                 light->diffuse_1a4 = record.colour;
                 light->ambient_198.SetZero();
             }
 
             light->specular_1b0.SetZero();
-            ConfigureWorldLight0046E300(light, record.range * g_world_scale_005ebc40);
+            ConfigureWorldLight(light, record.range * g_world_scale);
             light->intensity_1d0 = record.intensity;
-            light->setLocation(record.location.x * g_world_scale_005ebc40,
-                               record.location.y * g_world_scale_005ebc40,
-                               record.location.z * g_world_scale_005ebc40);
+            light->setLocation(record.location.x * g_world_scale, record.location.y * g_world_scale,
+                               record.location.z * g_world_scale);
         }
     }
 
@@ -381,7 +378,7 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
 }
 
 // FUNCTION: WIZ8 0x004BC9D0
-unsigned char ReadWorldEnvironment004BC9D0(W8ReadLevelInfo* pInfo, W8World* pWorld)
+unsigned char ReadWorldEnvironment(W8ReadLevelInfo* pInfo, W8World* pWorld)
 {
     /* Retail read these uninitialised when a FileRead chain short-circuited;
        deterministic zeroes model that defect path. */
@@ -398,7 +395,7 @@ unsigned char ReadWorldEnvironment004BC9D0(W8ReadLevelInfo* pInfo, W8World* pWor
     unsigned char has_light_colours = 0;
     unsigned char has_environment_colours = 0;
     unsigned char fog_enabled = 0;
-    unsigned char success;
+    bool success;
 
     success =
         FileRead(pInfo->hFile, &fog_enabled, sizeof(fog_enabled), 0) &&
@@ -411,16 +408,16 @@ unsigned char ReadWorldEnvironment004BC9D0(W8ReadLevelInfo* pInfo, W8World* pWor
 
     if (camera_mode == 1) {
         success = success && FileRead(pInfo->hFile, &position, sizeof(position), 0);
-        position *= g_world_scale_005ebc40;
-        SetWorldScenePosition004511D0(pWorld, &position);
+        position *= g_world_scale;
+        SetWorldScenePosition(pWorld, &position);
     } else if (camera_mode == 2) {
         success = success && FileRead(pInfo->hFile, &position, sizeof(position), 0) &&
                   FileRead(pInfo->hFile, &angle, sizeof(angle), 0) &&
                   FileRead(pInfo->hFile, &axis.x, sizeof(axis.x), 0) &&
                   FileRead(pInfo->hFile, &axis.y, sizeof(axis.y), 0) &&
                   FileRead(pInfo->hFile, &axis.z, sizeof(axis.z), 0);
-        position *= g_world_scale_005ebc40;
-        SetWorldScenePosition004511D0(GetWorld(), &position);
+        position *= g_world_scale;
+        SetWorldScenePosition(GetWorld(), &position);
 
         rotation.SetIdentity();
         if (angle != 0.0f) {
@@ -431,29 +428,28 @@ unsigned char ReadWorldEnvironment004BC9D0(W8ReadLevelInfo* pInfo, W8World* pWor
 
     success = success && FileRead(pInfo->hFile, &has_light_colours, sizeof(has_light_colours), 0);
     if (has_light_colours != 0) {
-        ReadLightColourTable00482F90(pInfo->hFile);
+        ReadLightColourTable(pInfo->hFile);
     } else {
-        BuildLightColourRamp00483360();
+        BuildLightColourRamp();
     }
 
     success = success &&
               FileRead(pInfo->hFile, &has_environment_colours, sizeof(has_environment_colours), 0);
     if (has_environment_colours != 0) {
-        ReadEnvironmentColourTable004830D0(pInfo->hFile);
+        ReadEnvironmentColourTable(pInfo->hFile);
     } else {
-        BuildEnvironmentColourRamp00483210();
+        BuildEnvironmentColourRamp();
     }
 
-    g_environment_offset_00659cd0.SetZero();
-    pWorld->view_distance_020 = view_distance * g_world_scale_005ebc40;
+    g_environment_offset.SetZero();
+    pWorld->view_distance_020 = view_distance * g_world_scale;
     white.red = 1.0f;
     white.green = 1.0f;
     white.blue = 1.0f;
-    ApplyEnvironmentColour00483BA0(pWorld, intensity, &white);
+    ApplyEnvironmentColour(pWorld, intensity, &white);
     WorldSetFarClip(pWorld, pWorld->view_distance_020);
-    distance_scale = view_distance < g_octree_cell_scale_005ebcd0
-                         ? g_environment_near_scale_005ec0b0
-                         : g_float_005ec3b8;
+    distance_scale =
+        view_distance < g_octree_cell_scale ? g_environment_near_scale : g_float_005ec3b8;
     WorldSetRenderRange(pWorld, distance_scale * pWorld->view_distance_020);
     pWorld->environment_range_start_014 = environment_colour.red;
     pWorld->environment_range_end_018 = environment_colour.green;
@@ -463,13 +459,13 @@ unsigned char ReadWorldEnvironment004BC9D0(W8ReadLevelInfo* pInfo, W8World* pWor
         SetFogEnabled(0);
     } else {
         SetFogEnabled(1);
-        UpdateEnvironmentLight004834B0();
+        UpdateEnvironmentLight();
     }
     return success;
 }
 
 // FUNCTION: WIZ8 0x004BCE20
-unsigned char ReadWorldClipPlanes004BCE20(W8ReadLevelInfo* pInfo, W8World* pWorld)
+unsigned char ReadWorldClipPlanes(W8ReadLevelInfo* pInfo, W8World* pWorld)
 {
     W8GrowableVector<srClipPlane*> clip_planes(5);
     srVector4T<float> plane;
@@ -516,9 +512,8 @@ unsigned char ReadWorldClipPlanes004BCE20(W8ReadLevelInfo* pInfo, W8World* pWorl
         clip_plane->setName(name);
         clip_plane->setClipPlane(plane);
 
-        position.Set(serialized_position.x * g_world_scale_005ebc40,
-                     serialized_position.y * g_world_scale_005ebc40,
-                     serialized_position.z * g_world_scale_005ebc40);
+        position.Set(serialized_position.x * g_world_scale, serialized_position.y * g_world_scale,
+                     serialized_position.z * g_world_scale);
         clip_plane->setLocation(position);
         clip_plane->setFlag(srNode::FLAG_GLOBAL);
         clip_plane->setClipType(srClipPlane::CLIP_POSITIONAL_0);
@@ -528,8 +523,8 @@ unsigned char ReadWorldClipPlanes004BCE20(W8ReadLevelInfo* pInfo, W8World* pWorl
 }
 
 // FUNCTION: WIZ8 0x004BC5E0
-unsigned char ReadWorldProps004BC5E0(W8ReadLevelInfo* pInfo, W8World* pWorld,
-                                     unsigned char mark_model_instances)
+unsigned char ReadWorldProps(W8ReadLevelInfo* pInfo, W8World* pWorld,
+                             unsigned char mark_model_instances)
 {
     /* CollectModelInstances appends. The canonical body deliberately keeps
        this one vector across the complete prop loop. */
@@ -556,19 +551,19 @@ unsigned char ReadWorldProps004BC5E0(W8ReadLevelInfo* pInfo, W8World* pWorld,
 
     for (index = 0; index < count; ++index) {
         prop = 0;
-        if (!success || !CreateAndLoadProp0044BF50(pInfo, &prop)) {
+        if (!success || !CreateAndLoadProp(pInfo, &prop)) {
             success = 0;
         } else {
             success = 1;
-            if (g_octree_6598a4 != 0) {
-                if (!g_octree_6598a4->TestPropSunBit(index)) {
+            if (g_octree != 0) {
+                if (!g_octree->TestPropSunBit(index)) {
                     prop->flags_1c |= 0x40;
                 }
-                g_octree_6598a4->AddLoadedProp(prop);
+                g_octree->AddLoadedProp(prop);
             }
             PLAdoptAppend(pWorld->plsProps, prop);
             if ((prop->flags_1c & 1) != 0) {
-                prop->GetBounds0044DD60(&bounds.minimum, &bounds.maximum);
+                prop->GetBounds(&bounds.minimum, &bounds.maximum);
                 pWorld->collidable_props->Add(prop);
                 if (pWorld->octree != 0) {
                     pWorld->octree->AddCollidablePropBounds(collidable_index, &bounds);
@@ -587,20 +582,20 @@ unsigned char ReadWorldProps004BC5E0(W8ReadLevelInfo* pInfo, W8World* pWorld,
             }
         }
     }
-    if (g_octree_6598a4 != 0) {
-        g_octree_6598a4->TestPropSunBit(-1);
+    if (g_octree != 0) {
+        g_octree->TestPropSunBit(-1);
     }
     return success;
 }
 
 // FUNCTION: WIZ8 0x004BC380
-unsigned char ReadWorldItems004BC380(W8ReadLevelInfo* pInfo, W8World* pWorld)
+unsigned char ReadWorldItems(W8ReadLevelInfo* pInfo, W8World* pWorld)
 {
     unsigned char has_trigger;
     int positional_value;
     int index;
     int count;
-    W8LevelItemRecord004BC380 record;
+    W8LevelItemRecord record;
     unsigned char positional_byte;
     unsigned char success;
     Trigger* trigger;
@@ -625,7 +620,7 @@ unsigned char ReadWorldItems004BC380(W8ReadLevelInfo* pInfo, W8World* pWorld)
         success = FileRead(pInfo->hFile, record.item_name_1c, sizeof(record.item_name_1c), 0);
         if (success) {
             FileRead(pInfo->hFile, &record.position_04, sizeof(record.position_04), 0);
-            record.position_04 *= g_world_scale_005ebc40;
+            record.position_04 *= g_world_scale;
             FileRead(pInfo->hFile, &record.positional_00, sizeof(int), 0);
             FileRead(pInfo->hFile, &record.positional_10, sizeof(int), 0);
             FileRead(pInfo->hFile, &record.positional_14, sizeof(int), 0);
@@ -666,14 +661,14 @@ unsigned char ReadWorldItems004BC380(W8ReadLevelInfo* pInfo, W8World* pWorld)
 }
 
 // FUNCTION: WIZ8 0x004BC140
-unsigned char ReadMonsterPaths004BC140(W8ReadLevelInfo* pInfo, W8World* pWorld)
+unsigned char ReadMonsterPaths(W8ReadLevelInfo* pInfo, W8World* pWorld)
 {
     int count;
     int index;
     unsigned char success;
-    unsigned char has_options;
+    bool has_options;
     unsigned char update_representation;
-    unsigned char active;
+    bool active;
     char monster_name[20];
     char options[12];
     char* separator;
@@ -689,7 +684,7 @@ unsigned char ReadMonsterPaths004BC140(W8ReadLevelInfo* pInfo, W8World* pWorld)
 
     /* Canonical 0x004BC140 initializes this once, not once per record. A
        colon-free record after an option-bearing one therefore reuses options. */
-    has_options = 0;
+    has_options = false;
     if (pInfo == 0 || pInfo->hFile == 0 || pWorld == 0) {
         return 0;
     }
@@ -708,7 +703,7 @@ unsigned char ReadMonsterPaths004BC140(W8ReadLevelInfo* pInfo, W8World* pWorld)
         success = success && FileRead(pInfo->hFile, monster_name, sizeof(monster_name), 0);
         separator = strchr(monster_name, ':');
         if (separator != 0) {
-            has_options = 1;
+            has_options = true;
             strncpy(options, separator + 1, sizeof(options));
             *separator = '\0';
         }
@@ -728,7 +723,7 @@ unsigned char ReadMonsterPaths004BC140(W8ReadLevelInfo* pInfo, W8World* pWorld)
             srVector3T<double> camera_location = pWorld->camera->getLocation();
             camera_position = camera_location;
         }
-        monster->SelectLOD004A7BE0(&camera_position);
+        monster->SelectLOD(&camera_position);
 
         if (LoadPathAI004A92A0(&path, pInfo->hFile)) {
             monster->SetPathAI(path);
@@ -744,10 +739,10 @@ unsigned char ReadMonsterPaths004BC140(W8ReadLevelInfo* pInfo, W8World* pWorld)
                 active = 0;
             }
             if (options[2] == '1') {
-                PathAISetAnimated004A9B90(path, 1);
+                PathAISetAnimated(path, 1);
             }
             if (options[3] == '1') {
-                PathAISetLooping004AA9D0(path, 1);
+                PathAISetLooping(path, 1);
             }
             if (!active) {
                 group->members_active = 0;
@@ -763,7 +758,7 @@ unsigned char ReadMonsterPaths004BC140(W8ReadLevelInfo* pInfo, W8World* pWorld)
 }
 
 // FUNCTION: WIZ8 0x004BC850
-unsigned char ReadWorldCameras004BC850(W8ReadLevelInfo* pInfo, W8World* pWorld)
+unsigned char ReadWorldCameras(W8ReadLevelInfo* pInfo, W8World* pWorld)
 {
     int count;
     int index;
@@ -803,19 +798,19 @@ unsigned char ReadWorldCameras004BC850(W8ReadLevelInfo* pInfo, W8World* pWorld)
 
         entry->path = 0;
         success = success && LoadPathAI004A92A0(&entry->path, pInfo->hFile);
-        PathAIEnableTimedMode004A9BA0(entry->path);
+        PathAIEnableTimedMode(entry->path);
         PLAdoptAppend(pWorld->plsCameras, entry);
         entry->path->entry_index_10 = index;
-        PathAISetScale004AA9C0(entry->path, scale);
+        PathAISetScale(entry->path, scale);
     }
     return 1;
 }
 
 // FUNCTION: WIZ8 0x004BD0D0
-unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
-                                         W8GrowableVector<stParticle*>* pParticles)
+unsigned char ReadWorldParticles(W8ReadLevelInfo* pInfo, srNode* pScene,
+                                 W8GrowableVector<stParticle*>* pParticles)
 {
-    W8LevelParticleRecord004BD0D0 record;
+    W8LevelParticleRecord record;
     srMaterialIFace* material;
     srTextureIFace* texture;
     srShader render_flags;
@@ -866,7 +861,7 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
         axis.SetFromFloat(&record.rotation_axis);
         particle->rotate(record.rotation_angle, axis);
         location.SetFromFloat(&record.location);
-        location *= g_world_scale_005ebc40;
+        location *= g_world_scale;
         particle->setLocation(location);
         particle->rotateX(1.5707963);
 
@@ -878,15 +873,15 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
             srVector3T<float> center;
             srVector3T<float> extent;
 
-            center = record.bounds_origin * g_world_scale_005ebc40;
+            center = record.bounds_origin * g_world_scale;
             extent = record.bounds_extent * 250.0f;
             particle->bounds_mode_1a4 = 1;
             particle->minimum_21c = center - extent;
             particle->maximum_228 = center + extent;
         } else if (record.bounds_mode == 2 && record.bounds_radius > 0.0f) {
             particle->bounds_mode_1a4 = 2;
-            particle->bounds_origin_234 = record.bounds_origin * g_world_scale_005ebc40;
-            particle->bounds_radius_240 = record.bounds_radius * g_world_scale_005ebc40;
+            particle->bounds_origin_234 = record.bounds_origin * g_world_scale;
+            particle->bounds_radius_240 = record.bounds_radius * g_world_scale;
         } else {
             particle->bounds_mode_1a4 = 0;
         }
@@ -905,7 +900,7 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
 
         if (record.has_acceleration != 0) {
             particle->has_acceleration_1a8 = 1;
-            particle->acceleration_1f4 = record.acceleration * g_world_scale_005ebc40;
+            particle->acceleration_1f4 = record.acceleration * g_world_scale;
         }
 
         if (record.velocity_mode == 0) {
@@ -919,7 +914,7 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
             particle->minimum_1d0.z = 0.0f;
             particle->maximum_1dc.x = record.spread_x_06c * 250.0f;
             particle->maximum_1dc.y = record.spread_y_070 * 250.0f;
-            particle->maximum_1dc.z = record.spread_z_074 * g_world_scale_005ebc40;
+            particle->maximum_1dc.z = record.spread_z_074 * g_world_scale;
         }
 
         if (record.direction_mode == 0) {
@@ -955,17 +950,17 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
             particle->placement_mode_1bc = 0;
         } else if (record.placement_mode == 1) {
             particle->placement_mode_1bc = 1;
-            particle->initial_speed_210 = record.placement_0c0 * g_world_scale_005ebc40;
+            particle->initial_speed_210 = record.placement_0c0 * g_world_scale;
         } else {
             particle->placement_mode_1bc = 2;
-            particle->speed_min_214 = record.placement_0c4 * g_world_scale_005ebc40;
-            particle->speed_max_218 = record.placement_0c8 * g_world_scale_005ebc40;
+            particle->speed_min_214 = record.placement_0c4 * g_world_scale;
+            particle->speed_max_218 = record.placement_0c8 * g_world_scale;
         }
 
         if (record.flutter_mode == 0) {
-            particle->SetFlutter0049AD10(0);
+            particle->SetFlutter(0);
         } else {
-            particle->SetFlutter0049AD10(2);
+            particle->SetFlutter(2);
             particle->flutter_amplitude_200 = record.flutter_value;
             particle->flutter_period_204 = static_cast<unsigned int>(record.flutter_period);
         }
@@ -976,19 +971,19 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
         particle->emission_limit_184 = record.emission_limit_218;
         particle->release_when_done_190 = false;
 
-        LoadMaterial004B8A70(pInfo->bitmap_folder, &record.material, &material, &texture,
-                             &render_flags.value, 1);
-        particle->SetRetainedObject0049ACA0(material);
-        particle->SetRenderFlags004925A0(render_flags);
-        particle->SetTexture0049AB00(texture);
+        LoadMaterial(pInfo->bitmap_folder, &record.material, &material, &texture,
+                     &render_flags.value, 1);
+        particle->SetRetainedObject(material);
+        particle->SetRenderFlags(render_flags);
+        particle->SetTexture(texture);
 
         if (strncmp(record.name, "CLOUD", 5) == 0) {
             srVector3T<double> current = particle->getLocation();
             particle->camera_offset_244 = current;
             particle->camera_relative_1c4 = 1;
             particle->SetActive(1);
-        } else if (g_octree_6598a4 != 0) {
-            g_octree_6598a4->AddLoadedParticle(particle);
+        } else if (g_octree != 0) {
+            g_octree->AddLoadedParticle(particle);
         }
         pParticles->Add(particle);
     }
@@ -996,8 +991,8 @@ unsigned char ReadWorldParticles004BD0D0(W8ReadLevelInfo* pInfo, srNode* pScene,
 }
 
 // FUNCTION: WIZ8 0x004BDC90
-unsigned char ReadNamedPositions004BDC90(W8ReadLevelInfo* pInfo,
-                                         W8GrowableVector<W8NamedPosition*>* named_positions)
+unsigned char ReadNamedPositions(W8ReadLevelInfo* pInfo,
+                                 W8GrowableVector<W8NamedPosition*>* named_positions)
 {
     int hFile;
     int count;
@@ -1081,7 +1076,7 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
     GetTickCount();
 
     if (world->psrMeshes == 0 || world->octree == 0) {
-        if (!ReadSingleLevelMesh00485B20(&info, &level_mesh, 0, 0, 0, 1)) {
+        if (!ReadSingleLevelMesh(&info, &level_mesh, 0, 0, 0, 1)) {
             return 0;
         }
         if (level_mesh == 0) {
@@ -1092,8 +1087,7 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
         level_mesh->setParent(world->level, 1);
         SetModelInstanceChainExclusionMask(level_mesh, 1);
     } else {
-        if (!ReadMultipleLevelMeshes00488240(&info, world->psrMeshes, world->octree->GetMeshCount(),
-                                             0)) {
+        if (!ReadMultipleLevelMeshes(&info, world->psrMeshes, world->octree->GetMeshCount(), 0)) {
             ShutdownWithErrorBox("ReadLevel: Error reading multi-meshes.");
         }
         for (unsigned int mesh_index = 0; mesh_index < world->octree->m_meshCount_1b4;
@@ -1105,11 +1099,11 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
         }
     }
 
-    success = ReadWorldLights004BBAD0(world, handle);
+    success = ReadWorldLights(world, handle);
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after lights.");
-    success = success && ReadMonsterPaths004BC140(&info, world);
+    success = success && ReadMonsterPaths(&info, world);
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after monsters.");
-    success = success && ReadWorldItems004BC380(&info, world);
+    success = success && ReadWorldItems(&info, world);
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after items.");
 
     if (!success || info.hFile == 0 ||
@@ -1118,13 +1112,13 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
         success = 0;
     }
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after missiles.");
-    success = success && ReadWorldProps004BC5E0(&info, world, 0);
+    success = success && ReadWorldProps(&info, world, 0);
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after props.");
-    success = success && ReadWorldProps004BC5E0(&info, world, 1);
+    success = success && ReadWorldProps(&info, world, 1);
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after bitmaps.");
-    success = success && ReadWorldCameras004BC850(&info, world);
+    success = success && ReadWorldCameras(&info, world);
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after cameras.");
-    AssociateWorldLights004BC060(world);
+    AssociateWorldLights(world);
     if (!success) {
         return 0;
     }
@@ -1139,7 +1133,7 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
             EnableSky();
         }
     } else {
-        success = ReadWorldEnvironment004BC9D0(&info, world);
+        success = ReadWorldEnvironment(&info, world);
     }
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after fog options.");
 
@@ -1156,14 +1150,14 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
     }
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after triggers.");
 
-    UpdateWorldProps0044E010(world);
+    UpdateWorldProps(world);
     FileRead(info.hFile, &camera_mode, sizeof(camera_mode), 0);
     SetCameraSwayMode(world->camera, camera_mode == 0 ? -1 : 1);
     if (world->octree == 0 && world != g_world_659ab8) {
-        FinalizeWorldScenes0046F410(world->static_scene, world->dynamic_scene);
+        FinalizeWorldScenes(world->static_scene, world->dynamic_scene);
     }
 
-    success = ReadWorldClipPlanes004BCE20(&info, world);
+    success = ReadWorldClipPlanes(&info, world);
     if (!success) {
         srAssertFail("fSuccess", READ_LEVEL_CPP, 0x15c, 0);
     }
@@ -1173,33 +1167,33 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
         srMeshModel* model = static_cast<srMeshModel*>(level_mesh->model());
         model->getBoundingBox(minimum, maximum);
         world->m_owned_06c =
-            BuildWorldQuad004BE200(level_mesh, 0, minimum.x, minimum.y, minimum.z, maximum.x,
-                                   maximum.y, maximum.z, world->static_scene, 0);
+            BuildWorldQuad(level_mesh, 0, minimum.x, minimum.y, minimum.z, maximum.x, maximum.y,
+                           maximum.z, world->static_scene, 0);
     }
-    RefreshEnvironment00483560();
-    FinalizeStaticScene0046F3A0(world->static_scene);
+    RefreshEnvironment();
+    FinalizeStaticScene(world->static_scene);
 
     if (!success || !FileRead(handle, &environment_offset.x, sizeof(environment_offset.x), 0) ||
         !FileRead(handle, &environment_offset.y, sizeof(environment_offset.y), 0) ||
         !FileRead(handle, &environment_offset.z, sizeof(environment_offset.z), 0)) {
         success = 0;
     } else {
-        success = ReadWorldParticles004BD0D0(&info, world->dynamic_scene, world->particles);
+        success = ReadWorldParticles(&info, world->dynamic_scene, world->particles);
     }
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after particles.");
-    success = success && ReadNamedPositions004BDC90(&info, world->named_positions);
+    success = success && ReadNamedPositions(&info, world->named_positions);
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after named position points.");
-    success = success && ReadAutomapNodes00584DD0(handle);
+    success = success && ReadAutomapNodes(handle);
     CHECK_PVL_OFFSET("Wrong offset in .pvl file after automap nodes.");
 
-    g_environment_offset_00659cd0 = environment_offset;
+    g_environment_offset = environment_offset;
     prop_count = PLLength(world->plsProps);
     for (index = 0; index < (int)prop_count; ++index) {
         W8Prop* prop = static_cast<W8Prop*>(PLGet(world->plsProps, index));
         W8AnimObj* animation = prop->Rep()->animation;
 
         if ((prop->flags_1c & 0x40) != 0) {
-            unsigned int animation_count = AnimObjListCount004A1620(animation, 2);
+            unsigned int animation_count = AnimObjListCount(animation, 2);
             for (unsigned int animation_index = 0; animation_index < animation_count;
                  ++animation_index) {
                 srModelInstance* instance = prop->ToggleRepAnimation(animation_index);
@@ -1221,9 +1215,9 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
                         copy->autoRelease();
                         copy->parms.ambient = 0.0f;
                         copy->dirty_74 = 1;
-                        copy->parms.emissive.x += g_environment_offset_00659cd0.x;
-                        copy->parms.emissive.y += g_environment_offset_00659cd0.y;
-                        copy->parms.emissive.z += g_environment_offset_00659cd0.z;
+                        copy->parms.emissive.x += g_environment_offset.x;
+                        copy->parms.emissive.y += g_environment_offset.y;
+                        copy->parms.emissive.z += g_environment_offset.z;
                         copy->dirty_74 = 1;
                         mesh->setMaterial(copy, 0, (srMeshModel::e_side)0);
                     }
@@ -1231,8 +1225,8 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
             }
         }
     }
-    if (g_octree_6598a4 != 0) {
-        g_octree_6598a4->m_fAccumulating = 0;
+    if (g_octree != 0) {
+        g_octree->m_fAccumulating = false;
     }
     return success;
 }

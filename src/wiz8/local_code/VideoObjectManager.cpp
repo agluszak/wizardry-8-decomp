@@ -699,7 +699,7 @@ W8VideoFrame g_video_frames_62c430[1658] = {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wmissing-field-initializers"
 // GLOBAL: WIZ8 0x006448c8
-W8VideoObjectSlot g_video_slots_6448c8[494] = {
+W8VideoObjectSlot g_video_slots[494] = {
     {0, 0},    {0, 1},    {0, 2},    {0, 7},    {0, 12},   {0, 13},   {0, 14},   {0, 18},
     {0, 22},   {0, 23},   {0, 24},   {0, 29},   {0, 30},   {0, 31},   {0, 35},   {0, 36},
     {0, 37},   {1, 0},    {81, 0},   {161, 0},  {241, 0},  {242, 0},  {243, 0},  {244, 0},
@@ -815,7 +815,7 @@ void DrawCatalogImage(int target, int object, int frame, short image, int left, 
        first_frame + frame for each of the two frame reads rather than keeping
        it, and the vertical offset is added to the caller's row in sixteen bits -
        both are shorts and the original adds them as such. */
-    slot = &g_video_slots_6448c8[object];
+    slot = &g_video_slots[object];
     row = slot->y_offset + image;
     surface = g_video_frames_62c430[slot->first_frame + frame].handle;
     if (!gfVideoObjectsInit) {
@@ -852,7 +852,7 @@ void EnsureCatalogFrameLoaded(int object, int frame)
             srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xd4, 0);
         }
     }
-    record = &g_video_frames_62c430[g_video_slots_6448c8[object].first_frame + frame];
+    record = &g_video_frames_62c430[g_video_slots[object].first_frame + frame];
     if (record->loaded == 0) {
         if (!gfVideoObjectsInit) {
             srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xdd, 0);
@@ -899,8 +899,7 @@ unsigned short* CopyCatalogImagePalette16BPP(int object, int frame)
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xe6, 0);
     }
     if (!CopyVideoObjectPalette16BPP(
-            g_video_frames_62c430[g_video_slots_6448c8[object].first_frame + frame].handle,
-            palette)) {
+            g_video_frames_62c430[g_video_slots[object].first_frame + frame].handle, palette)) {
         return 0;
     }
     return palette;
@@ -913,7 +912,7 @@ unsigned int GetCatalogVideoObjectHandle(int object, int frame)
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xe6, 0);
     }
     EnsureCatalogFrameLoaded(object, frame);
-    return g_video_frames_62c430[g_video_slots_6448c8[object].first_frame + frame].handle;
+    return g_video_frames_62c430[g_video_slots[object].first_frame + frame].handle;
 }
 
 // FUNCTION: WIZ8 0x005493e0
@@ -922,7 +921,7 @@ short GetCatalogVideoObjectYOffset(int object)
     if (!gfVideoObjectsInit) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xf2, 0);
     }
-    return g_video_slots_6448c8[object].y_offset;
+    return g_video_slots[object].y_offset;
 }
 
 // FUNCTION: WIZ8 0x00549420
@@ -938,13 +937,13 @@ HVOBJECT GetCatalogVideoObject(int object, int frame, int* y_offset_out)
     if (!gfVideoObjectsInit) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xdd, 0);
     }
-    record = &g_video_frames_62c430[g_video_slots_6448c8[object].first_frame + frame];
+    record = &g_video_frames_62c430[g_video_slots[object].first_frame + frame];
     if (record->mode == 0) {
         if (y_offset_out != 0) {
             if (!gfVideoObjectsInit) {
                 srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xf2, 0);
             }
-            *y_offset_out = g_video_slots_6448c8[object].y_offset;
+            *y_offset_out = g_video_slots[object].y_offset;
         }
         GetVideoObject(&video_object, record->handle);
         return video_object;
@@ -966,7 +965,7 @@ void InvalidateCatalogImageRect(int object, int frame, int image, int left, int 
     unsigned short height = 0;
 
     EnsureCatalogFrameLoaded(object, frame);
-    slot = &g_video_slots_6448c8[object];
+    slot = &g_video_slots[object];
     subimage = slot->y_offset + image;
     record = &g_video_frames_62c430[slot->first_frame + frame];
     if (!gfVideoObjectsInit) {
@@ -1009,7 +1008,7 @@ void GetCatalogImageSize(int object, int frame, int image, short* width, short* 
     short subimage;
 
     EnsureCatalogFrameLoaded(object, frame);
-    slot = &g_video_slots_6448c8[object];
+    slot = &g_video_slots[object];
     subimage = slot->y_offset + image;
     record = &g_video_frames_62c430[slot->first_frame + frame];
     if (!gfVideoObjectsInit) {
@@ -1024,7 +1023,7 @@ void GetCatalogImageSize(int object, int frame, int image, short* width, short* 
 /* The image's own offset inside its frame, read from the video object's ETRLE
    table; only uncompressed frames carry one. */
 // FUNCTION: WIZ8 0x00549700
-void GetCatalogImagePosition00549700(int object, int frame, int image, short* x, short* y)
+void GetCatalogImagePosition(int object, int frame, int image, short* x, short* y)
 {
     W8VideoObjectSlot* slot;
     W8VideoFrame* record;
@@ -1032,7 +1031,7 @@ void GetCatalogImagePosition00549700(int object, int frame, int image, short* x,
     short subimage;
 
     EnsureCatalogFrameLoaded(object, frame);
-    slot = &g_video_slots_6448c8[object];
+    slot = &g_video_slots[object];
     subimage = slot->y_offset + image;
     record = &g_video_frames_62c430[slot->first_frame + frame];
     if (!gfVideoObjectsInit) {
@@ -1070,7 +1069,7 @@ unsigned char BlitCatalogSurfaceRectTo16BPP(int target, int left, int top, int r
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0x19d, 0);
     }
     EnsureCatalogFrameLoaded(object, 0);
-    source_handle = g_video_frames_62c430[g_video_slots_6448c8[object].first_frame].handle;
+    source_handle = g_video_frames_62c430[g_video_slots[object].first_frame].handle;
     GetVideoSurface(&source_surface, source_handle);
     target_pixels = LockVideoSurface(target, &target_pitch);
     source_pixels = LockVideoSurface(source_handle, &source_pitch);
@@ -1093,11 +1092,11 @@ void* LockCatalogFrameSurface(unsigned int object, unsigned int frame, long* pit
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0x1b9, 0);
     }
     EnsureCatalogFrameLoaded(object, frame);
-    surface = g_video_frames_62c430[g_video_slots_6448c8[object].first_frame + frame].handle;
+    surface = g_video_frames_62c430[g_video_slots[object].first_frame + frame].handle;
     if (!gfVideoObjectsInit) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xdd, 0);
     }
-    if (g_video_frames_62c430[g_video_slots_6448c8[object].first_frame + frame].mode == 0) {
+    if (g_video_frames_62c430[g_video_slots[object].first_frame + frame].mode == 0) {
         return 0;
     }
     // reinterpret-ok: retail forwards the same 32-bit pitch word to the SGP lock API
@@ -1112,11 +1111,11 @@ void UnlockCatalogFrameSurface(unsigned int object, unsigned int frame)
     unsigned int surface;
 
     EnsureCatalogFrameLoaded(object, frame);
-    surface = g_video_frames_62c430[g_video_slots_6448c8[object].first_frame + frame].handle;
+    surface = g_video_frames_62c430[g_video_slots[object].first_frame + frame].handle;
     if (!gfVideoObjectsInit) {
         srAssertFail("VideoObjectsInitialized()", VIDEO_OBJECT_MANAGER_CPP, 0xdd, 0);
     }
-    if (g_video_frames_62c430[g_video_slots_6448c8[object].first_frame + frame].mode != 0) {
+    if (g_video_frames_62c430[g_video_slots[object].first_frame + frame].mode != 0) {
         UnLockVideoSurface(surface);
     }
 }

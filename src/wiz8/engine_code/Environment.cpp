@@ -40,13 +40,13 @@
 #define ENVIRONMENT_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\Environment.cpp"
 
 // GLOBAL: WIZ8 0x0060a3a8
-int g_environment_lighting_mode_0060a3a8 = 2;
+int g_environment_lighting_mode = 2;
 
 // GLOBAL: WIZ8 0x0065b9ad
-bool g_fog_enabled_0065b9ad;
+bool g_fog_enabled;
 
 // GLOBAL: WIZ8 0x0065b9ae
-bool g_sky_enabled_0065b9ae;
+bool g_sky_enabled;
 // GLOBAL: WIZ8 0x0065B9A8
 unsigned long g_tick_65b9a8;
 /* 0x00659AB4: the world being rendered. Its sky node is the one field these
@@ -55,45 +55,45 @@ unsigned long g_tick_65b9a8;
 /* The static and dynamic scene fogs owned by the environment. */
 // GLOBAL: WIZ8 0x0065B9B0
 srFog* g_environment_object_0065b9b0;
-/* Camera-light intensity ceiling for SetCameraLightMode00483E80; the linker
+/* Camera-light intensity ceiling for SetCameraLightMode; the linker
    folds it into the shared 50.0f constant Octree.cpp emits at 0x005EC02C. */
 static const float CAMERA_LIGHT_MAXIMUM_INTENSITY = 50.0f;
 // GLOBAL: WIZ8 0x0065B9B4
 srFog* g_environment_object_0065b9b4;
 // SYNTHETIC: WIZ8 0x00482250
-// `dynamic initializer for 'g_environment_lights_0065b998''
+// `dynamic initializer for 'g_environment_lights''
 // SYNTHETIC: WIZ8 0x00482270
-// `dynamic atexit destructor for 'g_environment_lights_0065b998''
+// `dynamic atexit destructor for 'g_environment_lights''
 // GLOBAL: WIZ8 0x0065B998
-W8GrowableVector<stLight*> g_environment_lights_0065b998(5);
+W8GrowableVector<stLight*> g_environment_lights(5);
 
 /* 1/duration while the transition body at 0x00484300 runs, zero when idle.
    BeginWorldLightingFade stores 1/duration and sets the lighting mode to 1;
-   UpdateEnvironmentLighting00484300 stores zero again once it completes. */
+   UpdateEnvironmentLighting stores zero again once it completes. */
 // GLOBAL: WIZ8 0x0065b9b8
-float g_environment_transition_rate_0065b9b8;
+float g_environment_transition_rate;
 /* Tick baseline for the active lighting transition; rewritten every frame the
    transition body advances the light scale. */
 // GLOBAL: WIZ8 0x0065b9bc
-unsigned long g_environment_transition_tick_0065b9bc;
+unsigned long g_environment_transition_tick;
 // GLOBAL: WIZ8 0x0060a3ac
-int g_last_light_phase_0060a3ac = -1;
+int g_last_light_phase = -1;
 // GLOBAL: WIZ8 0x0060a395
-unsigned char g_environment_colour_refresh_0060a395 = 1;
+unsigned char g_environment_colour_refresh = 1;
 
 /* The mapper starts its scroll rate at 0.002 texture units per second on x
    only and reseeds the shared frame clock, so the first scrolled frame uses
    the interval since this object's construction rather than since startup. */
 // FUNCTION: WIZ8 0x00482010
-W8MaterialMapper00482010::W8MaterialMapper00482010()
+W8MaterialMapper::W8MaterialMapper()
 {
     scroll_rate_u_04 = 0.002f;
     scroll_rate_v_08 = 0.0f;
-    g_frame_tick_65a154 = GetTickCount();
+    g_frame_tick = GetTickCount();
 }
 
 // FUNCTION: WIZ8 0x00482040
-int W8MaterialMapper00482010::isActive(srVertexPipe&)
+int W8MaterialMapper::isActive(srVertexPipe&)
 {
     return 1;
 }
@@ -101,7 +101,7 @@ int W8MaterialMapper00482010::isActive(srVertexPipe&)
 /* Add the frame-scaled rate to each axis and keep only the fractional part,
    then shift the first texture coordinate set of every vertex by it. */
 // FUNCTION: WIZ8 0x00482050
-void W8MaterialMapper00482010::process(srVertexPipe& pipe)
+void W8MaterialMapper::process(srVertexPipe& pipe)
 {
     float offset_x;
     float offset_y;
@@ -112,9 +112,9 @@ void W8MaterialMapper00482010::process(srVertexPipe& pipe)
     unsigned long count = pipe.getVertexCount();
     srVector2T<float>* coordinates = pipe.getST(0, 0);
 
-    offset_x = scroll_rate_u_04 * g_frame_elapsed_65a158 + offset_14;
+    offset_x = scroll_rate_u_04 * g_frame_elapsed + offset_14;
     offset_14 = offset_x - static_cast<float>(floor(offset_x));
-    offset_y = scroll_rate_v_08 * g_frame_elapsed_65a158 + offset_18;
+    offset_y = scroll_rate_v_08 * g_frame_elapsed + offset_18;
     offset_18 = offset_y - static_cast<float>(floor(offset_y));
 
     for (unsigned long index = 0; index < count; ++index) {
@@ -127,14 +127,14 @@ void W8MaterialMapper00482010::process(srVertexPipe& pipe)
    props and the orbit radius reset, then release the two fog objects and
    empty the registered-light list without freeing its storage. */
 // FUNCTION: WIZ8 0x004823B0
-void ClearEnvironmentObjects004823B0(void)
+void ClearEnvironmentObjects(void)
 {
-    g_sky_gradient_animations_0065a168[0] = 0;
-    g_sky_gradient_animations_0065a168[1] = 0;
-    g_sky_gradient_animations_0065a168[2] = 0;
-    g_sun_prop_0065a160 = 0;
-    g_moon_prop_0065ad84 = 0;
-    g_celestial_orbit_radius_0060a3a4 = -1.0f;
+    g_sky_gradient_animations[0] = 0;
+    g_sky_gradient_animations[1] = 0;
+    g_sky_gradient_animations[2] = 0;
+    g_sun_prop = 0;
+    g_moon_prop = 0;
+    g_celestial_orbit_radius = -1.0f;
     if (g_environment_object_0065b9b0 != 0) {
         g_environment_object_0065b9b0->release();
     }
@@ -143,7 +143,7 @@ void ClearEnvironmentObjects004823B0(void)
     }
     g_environment_object_0065b9b0 = 0;
     g_environment_object_0065b9b4 = 0;
-    g_environment_lights_0065b998.count = 0;
+    g_environment_lights.count = 0;
 }
 
 /* Advance the authoritative game clock and place the two celestial props on
@@ -153,57 +153,57 @@ void ClearEnvironmentObjects004823B0(void)
    clock, prop placement, and gradient animation remain one update rather than
    parallel timers. */
 // FUNCTION: WIZ8 0x00482a20
-void AdvanceEnvironmentTime00482A20(int elapsed)
+void AdvanceEnvironmentTime(int elapsed)
 {
-    unsigned int time = (unsigned int)(g_status_685170.game_time_ms + elapsed);
+    unsigned int time = static_cast<unsigned int>(g_status.game_time_ms + elapsed);
     if (time > 86399999U) {
-        ++g_status_685170.game_time_days;
+        ++g_status.game_time_days;
     }
-    g_status_685170.game_time_ms = (int)(time % 86400000U);
+    g_status.game_time_ms = static_cast<int>(time % 86400000U);
 
     if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
-        UpdateGameClock00502010(elapsed);
+        UpdateGameClock(elapsed);
     }
     g_tick_65b9a8 = GetTickCount();
 
-    const double arc = 3.141592653589793 * (double)(1.0f / 180.0f) * 80.0;
+    const double arc = 3.141592653589793 * (1.0f / 180.0f) * 80.0;
     bool day;
     double angle;
-    if ((unsigned int)g_status_685170.game_time_ms < 18000001U) {
+    if (static_cast<unsigned int>(g_status.game_time_ms) < 18000001U) {
         day = false;
-        angle = (double)(g_status_685170.game_time_ms + 7200000) * arc * 3.9682539682539686e-08;
-    } else if ((unsigned int)g_status_685170.game_time_ms < 79200001U) {
+        angle = (g_status.game_time_ms + 7200000) * arc * 3.9682539682539686e-08;
+    } else if (static_cast<unsigned int>(g_status.game_time_ms) < 79200001U) {
         day = true;
-        angle = (double)(g_status_685170.game_time_ms - 18000000) * arc * 1.633986928104575e-08;
+        angle = (g_status.game_time_ms - 18000000) * arc * 1.633986928104575e-08;
     } else {
         day = false;
-        angle = (double)(g_status_685170.game_time_ms - 79200000) * arc * 3.9682539682539686e-08;
+        angle = (g_status.game_time_ms - 79200000) * arc * 3.9682539682539686e-08;
     }
 
     srVector3T<float> direction;
-    direction.Set(0.0, g_celestial_orbit_radius_0060a3a4, 0.0);
+    direction.Set(0.0, g_celestial_orbit_radius, 0.0);
 
     srMatrix3T<float> rotation;
     rotation.SetIdentity();
 
-    angle -= 3.141592653589793 * (double)(1.0f / 180.0f) * 40.0;
+    angle -= 3.141592653589793 * (1.0f / 180.0f) * 40.0;
     if (angle != 0.0) {
         rotation.RotateAboutY(sin(angle), cos(angle));
     }
 
-    srVector3T<float> position = rotation.Transform(direction) + g_celestial_origin_65ad88;
+    srVector3T<float> position = rotation.Transform(direction) + g_celestial_origin;
 
-    W8Prop* moving = day ? g_sun_prop_0065a160 : g_moon_prop_0065ad84;
-    W8Prop* opposite = day ? g_moon_prop_0065ad84 : g_sun_prop_0065a160;
+    W8Prop* moving = day ? g_sun_prop : g_moon_prop;
+    W8Prop* opposite = day ? g_moon_prop : g_sun_prop;
     if (moving != 0) {
         moving->Rep()->SetLocation004B8850(&position);
     }
     if (opposite != 0) {
-        opposite->Rep()->SetLocation004B8850(&g_celestial_origin_65ad88);
+        opposite->Rep()->SetLocation004B8850(&g_celestial_origin);
     }
 
-    unsigned int phase = (((unsigned int)g_status_685170.game_time_ms / 1000U) << 8) / 86400U;
-    stTextureAnim** animation = g_sky_gradient_animations_0065a168;
+    unsigned int phase = ((static_cast<unsigned int>(g_status.game_time_ms) / 1000U) << 8) / 86400U;
+    stTextureAnim** animation = g_sky_gradient_animations;
 
     for (int index = 0; index != 3; ++index, ++animation) {
         if (*animation != 0) {
@@ -216,20 +216,21 @@ void AdvanceEnvironmentTime00482A20(int elapsed)
    elapsed-tick baseline and moves the world clock on by the game-clock
    multiplier's share of the time since that baseline. */
 // FUNCTION: WIZ8 0x00482990
-void SetEnvironmentTimeEnabled00482990(bool enabled)
+void SetEnvironmentTimeEnabled(bool enabled)
 {
     if (!enabled) {
-        g_environment_time_enabled_60a394 = 0;
+        g_environment_time_enabled = 0;
         return;
     }
 
-    g_environment_time_enabled_60a394 = 1;
+    g_environment_time_enabled = 1;
     g_tick_65b9a8 = GetTickCount();
-    if (g_environment_time_enabled_60a394 != 0) {
+    if (g_environment_time_enabled != 0) {
         unsigned long now = GetTickCount();
         unsigned long elapsed = now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
         if (elapsed != 0) {
-            AdvanceEnvironmentTime00482A20((int)((double)elapsed * g_view_distance_0060a390));
+            AdvanceEnvironmentTime(
+                static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
         }
     }
 }
@@ -241,52 +242,52 @@ void SetEnvironmentTimeEnabled00482990(bool enabled)
    just advances the clock. Every path that advances the clock scales the
    elapsed ticks by the game-clock multiplier. */
 // FUNCTION: WIZ8 0x00482770
-void UpdateEnvironment482770(void)
+void UpdateEnvironment(void)
 {
-    if (g_environment_transition_rate_0065b9b8 != g_float_005ebb34) {
-        UpdateEnvironmentLighting00484300();
+    if (g_environment_transition_rate != g_float_005ebb34) {
+        UpdateEnvironmentLighting();
         return;
     }
-    if (g_environment_time_enabled_60a394 == 0) {
+    if (g_environment_time_enabled == 0) {
         return;
     }
-    if (g_environment_lighting_mode_0060a3a8 == 2) {
-        if (g_sky_enabled_0065b9ae != 0) {
+    if (g_environment_lighting_mode == 2) {
+        if (g_sky_enabled != 0) {
             unsigned long now = GetTickCount();
             unsigned long elapsed =
                 now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
             if (elapsed != 0) {
-                AdvanceEnvironmentTime00482A20((int)((double)elapsed * g_view_distance_0060a390));
+                AdvanceEnvironmentTime(
+                    static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
             }
             unsigned int phase =
-                (((unsigned int)g_status_685170.game_time_ms / 1000U) << 8) / 86400U;
-            if (phase != static_cast<unsigned int>(g_last_light_phase_0060a3ac)) {
-                g_light_direction_0065ad78 = g_environment_colours_65ad98[phase];
+                ((static_cast<unsigned int>(g_status.game_time_ms) / 1000U) << 8) / 86400U;
+            if (phase != static_cast<unsigned int>(g_last_light_phase)) {
+                g_light_direction = g_environment_colours_65ad98[phase];
                 PublishLightDirection(&g_environment_colours_65ad98[phase]);
-                g_last_light_phase_0060a3ac = static_cast<int>(phase);
+                g_last_light_phase = static_cast<int>(phase);
             }
         }
-        if (g_environment_colour_refresh_0060a395 != 0) {
-            if (g_environment_time_enabled_60a394 != 0) {
+        if (g_environment_colour_refresh != 0) {
+            if (g_environment_time_enabled != 0) {
                 unsigned long now = GetTickCount();
                 unsigned long elapsed =
                     now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
                 if (elapsed != 0) {
-                    AdvanceEnvironmentTime00482A20(
-                        (int)((double)elapsed * g_view_distance_0060a390));
+                    AdvanceEnvironmentTime(
+                        static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
                 }
             }
             unsigned int phase =
-                (((unsigned int)g_status_685170.game_time_ms / 1000U) << 8) / 86400U;
-            if (phase != static_cast<unsigned int>(g_last_environment_colour_phase_0060a3b0)) {
+                ((static_cast<unsigned int>(g_status.game_time_ms) / 1000U) << 8) / 86400U;
+            if (phase != static_cast<unsigned int>(g_last_environment_colour_phase)) {
                 EnvironmentColour colour = g_environment_colours_65a178[phase];
                 if (g_world == 0) {
                     srAssertFail("pWorld", ENVIRONMENT_CPP, 634, 0);
                     srAssertFail("pWorld", ENVIRONMENT_CPP, 648, 0);
                 }
-                ApplyEnvironmentColour00483BA0(g_world, g_world->environment_intensity_024,
-                                               &colour);
-                g_last_environment_colour_phase_0060a3b0 = static_cast<int>(phase);
+                ApplyEnvironmentColour(g_world, g_world->environment_intensity_024, &colour);
+                g_last_environment_colour_phase = static_cast<int>(phase);
                 return;
             }
         }
@@ -294,7 +295,8 @@ void UpdateEnvironment482770(void)
         unsigned long now = GetTickCount();
         unsigned long elapsed = now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
         if (elapsed != 0) {
-            AdvanceEnvironmentTime00482A20((int)((double)elapsed * g_view_distance_0060a390));
+            AdvanceEnvironmentTime(
+                static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
         }
     }
 }
@@ -314,7 +316,7 @@ void UpdateEnvironment482770(void)
     } while (0)
 
 // FUNCTION: WIZ8 0x00482F90
-BOOLEAN ReadLightColourTable00482F90(int hFile)
+BOOLEAN ReadLightColourTable(int hFile)
 {
     unsigned char components[256 * 3];
     int index;
@@ -336,7 +338,7 @@ BOOLEAN ReadLightColourTable00482F90(int hFile)
 }
 
 // FUNCTION: WIZ8 0x004830D0
-BOOLEAN ReadEnvironmentColourTable004830D0(int hFile)
+BOOLEAN ReadEnvironmentColourTable(int hFile)
 {
     unsigned char components[256 * 3];
     int index;
@@ -358,7 +360,7 @@ BOOLEAN ReadEnvironmentColourTable004830D0(int hFile)
 }
 
 // FUNCTION: WIZ8 0x00483210
-void BuildEnvironmentColourRamp00483210(void)
+void BuildEnvironmentColourRamp(void)
 {
     int index;
     float value;
@@ -380,7 +382,7 @@ void BuildEnvironmentColourRamp00483210(void)
 }
 
 // FUNCTION: WIZ8 0x00483360
-void BuildLightColourRamp00483360(void)
+void BuildLightColourRamp(void)
 {
     int index;
     float value;
@@ -408,22 +410,21 @@ void BuildLightColourRamp00483360(void)
 /* Refresh the light direction from the day-phase table when the phase turns
    over; used after level load once fog is on. */
 // FUNCTION: WIZ8 0x004834B0
-void UpdateEnvironmentLight004834B0(void)
+void UpdateEnvironmentLight(void)
 {
-    if (g_environment_time_enabled_60a394 != 0) {
+    if (g_environment_time_enabled != 0) {
         unsigned long now = GetTickCount();
         unsigned long elapsed = now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
         if (elapsed != 0) {
-            AdvanceEnvironmentTime00482A20(
-                static_cast<int>(static_cast<double>(elapsed) * g_view_distance_0060a390));
+            AdvanceEnvironmentTime(
+                static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
         }
     }
-    unsigned int phase =
-        ((static_cast<unsigned int>(g_status_685170.game_time_ms) / 1000U) << 8) / 86400U;
-    if (phase != static_cast<unsigned int>(g_last_light_phase_0060a3ac)) {
-        g_light_direction_0065ad78 = g_environment_colours_65ad98[phase];
+    unsigned int phase = ((static_cast<unsigned int>(g_status.game_time_ms) / 1000U) << 8) / 86400U;
+    if (phase != static_cast<unsigned int>(g_last_light_phase)) {
+        g_light_direction = g_environment_colours_65ad98[phase];
         PublishLightDirection(&g_environment_colours_65ad98[phase]);
-        g_last_light_phase_0060a3ac = static_cast<int>(phase);
+        g_last_light_phase = static_cast<int>(phase);
     }
 }
 
@@ -469,7 +470,7 @@ void SetSkyEnabled(bool enabled)
                 WorldGetFarClip(g_world) * g_world->environment_range_end_018;
         }
 
-        PublishLightDirection(&g_light_direction_0065ad78);
+        PublishLightDirection(&g_light_direction);
         if (g_world == 0 || g_world->camera == 0) {
             return;
         }
@@ -501,38 +502,38 @@ void SetSkyEnabled(bool enabled)
 // FUNCTION: WIZ8 0x00482750
 void SetViewDistance(float distance)
 {
-    g_view_distance_0060a390 = distance;
+    g_view_distance = distance;
 }
 
 // FUNCTION: WIZ8 0x00482760
 float GetViewDistance(void)
 {
-    return g_view_distance_0060a390;
+    return g_view_distance;
 }
 
 // FUNCTION: WIZ8 0x00482a10
-unsigned char GetEnvironmentFlag0060A394(void)
+unsigned char GetEnvironmentFlag(void)
 {
-    return g_environment_time_enabled_60a394;
+    return g_environment_time_enabled;
 }
 
 // FUNCTION: WIZ8 0x004842f0
-int GetEnvironmentValue0060A3A8(void)
+int GetEnvironmentValue(void)
 {
-    return g_environment_lighting_mode_0060a3a8;
+    return g_environment_lighting_mode;
 }
 
 /* Fog, which is a plain flag with a matched pair of accessors. */
 // FUNCTION: WIZ8 0x00482e80
 void SetFogEnabled(bool enabled)
 {
-    g_fog_enabled_0065b9ad = enabled;
+    g_fog_enabled = enabled;
 }
 
 // FUNCTION: WIZ8 0x00482e90
 bool IsFogEnabled(void)
 {
-    return g_fog_enabled_0065b9ad;
+    return g_fog_enabled;
 }
 
 /* Turn the sky on, then catch the light direction up: advance the clock by the
@@ -543,53 +544,55 @@ bool IsFogEnabled(void)
 void EnableSky(void)
 {
     SetSkyEnabled(1);
-    g_sky_enabled_0065b9ae = 1;
-    if (g_environment_time_enabled_60a394 != 0) {
+    g_sky_enabled = 1;
+    if (g_environment_time_enabled != 0) {
         unsigned long now = GetTickCount();
         unsigned long elapsed = now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
         if (elapsed != 0) {
-            AdvanceEnvironmentTime00482A20((int)((double)elapsed * g_view_distance_0060a390));
+            AdvanceEnvironmentTime(
+                static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
         }
     }
-    unsigned int phase = (((unsigned int)g_status_685170.game_time_ms / 1000U) << 8) / 86400U;
-    if (phase != static_cast<unsigned int>(g_last_light_phase_0060a3ac)) {
-        g_light_direction_0065ad78 = g_environment_colours_65ad98[phase];
+    unsigned int phase = ((static_cast<unsigned int>(g_status.game_time_ms) / 1000U) << 8) / 86400U;
+    if (phase != static_cast<unsigned int>(g_last_light_phase)) {
+        g_light_direction = g_environment_colours_65ad98[phase];
         PublishLightDirection(&g_environment_colours_65ad98[phase]);
-        g_last_light_phase_0060a3ac = static_cast<int>(phase);
+        g_last_light_phase = static_cast<int>(phase);
     }
 }
 
 // GLOBAL: WIZ8 0x0060a3b0
-int g_last_environment_colour_phase_0060a3b0 = -1;
+int g_last_environment_colour_phase = -1;
 
 /* Advance the clock-driven sky and refresh the world's environment colour
    from the day-phase table when the phase turns over. */
 // FUNCTION: WIZ8 0x00483560
-void RefreshEnvironment00483560(void)
+void RefreshEnvironment(void)
 {
-    if (g_environment_time_enabled_60a394 != 0) {
+    if (g_environment_time_enabled != 0) {
         unsigned long now = GetTickCount();
         unsigned long elapsed = now < g_tick_65b9a8 ? now - g_tick_65b9a8 - 1 : now - g_tick_65b9a8;
         if (elapsed != 0) {
-            AdvanceEnvironmentTime00482A20((int)((double)elapsed * g_view_distance_0060a390));
+            AdvanceEnvironmentTime(
+                static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
         }
     }
-    unsigned int phase = (((unsigned int)g_status_685170.game_time_ms / 1000U) << 8) / 86400U;
-    if (phase != static_cast<unsigned int>(g_last_environment_colour_phase_0060a3b0)) {
+    unsigned int phase = ((static_cast<unsigned int>(g_status.game_time_ms) / 1000U) << 8) / 86400U;
+    if (phase != static_cast<unsigned int>(g_last_environment_colour_phase)) {
         EnvironmentColour colour = g_environment_colours_65a178[phase];
         if (g_world == 0) {
             srAssertFail("pWorld", ENVIRONMENT_CPP, 634, 0);
             srAssertFail("pWorld", ENVIRONMENT_CPP, 648, 0);
         }
-        ApplyEnvironmentColour00483BA0(g_world, g_world->environment_intensity_024, &colour);
-        g_last_environment_colour_phase_0060a3b0 = static_cast<int>(phase);
+        ApplyEnvironmentColour(g_world, g_world->environment_intensity_024, &colour);
+        g_last_environment_colour_phase = static_cast<int>(phase);
     }
 }
 
 /* Set the world's environment intensity, clamped to the unit range, keeping
    its current colour unless the world has no static scene to take it from. */
 // FUNCTION: WIZ8 0x00483AE0
-void SetWorldEnvironmentValue00483AE0(W8World* world, float value)
+void SetWorldEnvironmentValue(W8World* world, float value)
 {
     EnvironmentColour colour;
 
@@ -605,10 +608,10 @@ void SetWorldEnvironmentValue00483AE0(W8World* world, float value)
     }
     if (world->static_scene == 0) {
         colour = 0.0;
-        ApplyEnvironmentColour00483BA0(world, value, &colour);
+        ApplyEnvironmentColour(world, value, &colour);
         return;
     }
-    ApplyEnvironmentColour00483BA0(world, value, &world->environment_colour_02c);
+    ApplyEnvironmentColour(world, value, &world->environment_colour_02c);
 }
 
 /* Arm or complete a lighting fade. A zero duration snaps back to day/night
@@ -624,11 +627,11 @@ void BeginWorldLightingFade(float duration)
     EnvironmentColour direction;
 
     if (duration == g_float_005ebb34) {
-        g_environment_lighting_mode_0060a3a8 = 2;
-        g_environment_transition_rate_0065b9b8 = 0.0f;
-        g_world_render_enabled_65970d = 1;
-        g_monster_shadow_updates_enabled_0065970c = 1;
-        g_world_blacked_out_65970e = 0;
+        g_environment_lighting_mode = 2;
+        g_environment_transition_rate = 0.0f;
+        g_world_render_enabled = 1;
+        g_monster_shadow_updates_enabled = 1;
+        g_world_blacked_out = 0;
         g_light_scale_0060bfe0 = 1.0f;
 
         world = g_world;
@@ -649,9 +652,9 @@ void BeginWorldLightingFade(float duration)
             colour.blue = 0.0f;
             // reinterpret-ok: EnvironmentColour RGB is the same three floats as srVector3T<float>
             SaturateColor004299B0(reinterpret_cast<srVector3T<float>*>(&colour));
-            ApplyEnvironmentColour00483BA0(world, intensity, &colour);
+            ApplyEnvironmentColour(world, intensity, &colour);
         } else {
-            ApplyEnvironmentColour00483BA0(world, intensity, &world->environment_colour_02c);
+            ApplyEnvironmentColour(world, intensity, &world->environment_colour_02c);
         }
 
         world = g_world_659ab8;
@@ -670,13 +673,13 @@ void BeginWorldLightingFade(float duration)
                 colour.blue = 0.0f;
                 // reinterpret-ok: EnvironmentColour RGB is the same three floats as srVector3T<float>
                 SaturateColor004299B0(reinterpret_cast<srVector3T<float>*>(&colour));
-                ApplyEnvironmentColour00483BA0(world, intensity, &colour);
+                ApplyEnvironmentColour(world, intensity, &colour);
             } else {
-                ApplyEnvironmentColour00483BA0(world, intensity, &world->environment_colour_02c);
+                ApplyEnvironmentColour(world, intensity, &world->environment_colour_02c);
             }
         }
 
-        direction = g_light_direction_0065ad78;
+        direction = g_light_direction;
         if (direction.red <= g_float_005ebb34) {
             direction.red = 0.0f;
         } else if (direction.red >= g_float_005ebb38) {
@@ -696,9 +699,9 @@ void BeginWorldLightingFade(float duration)
         return;
     }
 
-    g_environment_transition_rate_0065b9b8 = g_float_005ebb38 / duration;
-    g_environment_transition_tick_0065b9bc = GetTickCount();
-    g_environment_lighting_mode_0060a3a8 = 1;
+    g_environment_transition_rate = g_float_005ebb38 / duration;
+    g_environment_transition_tick = GetTickCount();
+    g_environment_lighting_mode = 1;
     if (duration < g_float_005ebb34) {
         g_world->environment_base_intensity_028 = g_world->environment_intensity_024;
         if (g_world_659ab8 != 0) {
@@ -714,10 +717,10 @@ void BeginWorldLightingFade(float duration)
    direction. Completing a fade-out leaves mode 0; completing a fade-in returns
    to day/night mode 2. */
 // FUNCTION: WIZ8 0x00484300
-void UpdateEnvironmentLighting00484300(void)
+void UpdateEnvironmentLighting(void)
 {
     unsigned long now = GetTickCount();
-    unsigned long elapsed = now - g_environment_transition_tick_0065b9bc;
+    unsigned long elapsed = now - g_environment_transition_tick;
     W8World* world;
     float scale;
     float intensity;
@@ -728,7 +731,7 @@ void UpdateEnvironmentLighting00484300(void)
         return;
     }
 
-    scale = elapsed * g_environment_transition_rate_0065b9b8 + g_light_scale_0060bfe0;
+    scale = elapsed * g_environment_transition_rate + g_light_scale_0060bfe0;
     if (g_float_005ebb38 < scale) {
         scale = 1.0f;
     } else if (scale < g_float_005ebb34) {
@@ -754,9 +757,9 @@ void UpdateEnvironmentLighting00484300(void)
         colour.blue = 0.0f;
         // reinterpret-ok: EnvironmentColour RGB is the same three floats as srVector3T<float>
         SaturateColor004299B0(reinterpret_cast<srVector3T<float>*>(&colour));
-        ApplyEnvironmentColour00483BA0(world, intensity, &colour);
+        ApplyEnvironmentColour(world, intensity, &colour);
     } else {
-        ApplyEnvironmentColour00483BA0(world, intensity, &world->environment_colour_02c);
+        ApplyEnvironmentColour(world, intensity, &world->environment_colour_02c);
     }
 
     world = g_world_659ab8;
@@ -775,15 +778,15 @@ void UpdateEnvironmentLighting00484300(void)
             colour.blue = 0.0f;
             // reinterpret-ok: EnvironmentColour RGB is the same three floats as srVector3T<float>
             SaturateColor004299B0(reinterpret_cast<srVector3T<float>*>(&colour));
-            ApplyEnvironmentColour00483BA0(world, secondary, &colour);
+            ApplyEnvironmentColour(world, secondary, &colour);
         } else {
-            ApplyEnvironmentColour00483BA0(world, secondary, &world->environment_colour_02c);
+            ApplyEnvironmentColour(world, secondary, &world->environment_colour_02c);
         }
     }
 
-    direction.red = g_light_direction_0065ad78.red * scale;
-    direction.green = g_light_direction_0065ad78.green * scale;
-    direction.blue = g_light_direction_0065ad78.blue * scale;
+    direction.red = g_light_direction.red * scale;
+    direction.green = g_light_direction.green * scale;
+    direction.blue = g_light_direction.blue * scale;
     if (direction.red <= g_float_005ebb34) {
         direction.red = 0.0f;
     } else if (direction.red >= g_float_005ebb38) {
@@ -802,47 +805,47 @@ void UpdateEnvironmentLighting00484300(void)
     PublishLightDirection(&direction);
 
     if (intensity == g_float_005ebb34) {
-        g_environment_lighting_mode_0060a3a8 = 0;
-        g_world_render_enabled_65970d = 0;
-        g_monster_shadow_updates_enabled_0065970c = 0;
-        g_world_blacked_out_65970e = 1;
-        g_environment_transition_rate_0065b9b8 = 0.0f;
-        g_environment_transition_tick_0065b9bc = now;
+        g_environment_lighting_mode = 0;
+        g_world_render_enabled = 0;
+        g_monster_shadow_updates_enabled = 0;
+        g_world_blacked_out = 1;
+        g_environment_transition_rate = 0.0f;
+        g_environment_transition_tick = now;
         return;
     }
     if (scale == g_float_005ebb38) {
-        g_environment_lighting_mode_0060a3a8 = 2;
-        g_world_render_enabled_65970d = 1;
-        g_monster_shadow_updates_enabled_0065970c = 1;
-        g_world_blacked_out_65970e = 0;
-        g_environment_transition_rate_0065b9b8 = 0.0f;
-        g_environment_transition_tick_0065b9bc = now;
+        g_environment_lighting_mode = 2;
+        g_world_render_enabled = 1;
+        g_monster_shadow_updates_enabled = 1;
+        g_world_blacked_out = 0;
+        g_environment_transition_rate = 0.0f;
+        g_environment_transition_tick = now;
         return;
     }
-    g_world_blacked_out_65970e = 0;
-    g_environment_transition_tick_0065b9bc = now;
-    g_environment_lighting_mode_0060a3a8 = 1;
-    g_world_render_enabled_65970d = 1;
-    g_monster_shadow_updates_enabled_0065970c = 1;
+    g_world_blacked_out = 0;
+    g_environment_transition_tick = now;
+    g_environment_lighting_mode = 1;
+    g_world_render_enabled = 1;
+    g_monster_shadow_updates_enabled = 1;
 }
 
 // FUNCTION: WIZ8 0x00482F60
 void DisableSky(void)
 {
     SetSkyEnabled(0);
-    g_sky_enabled_0065b9ae = 0;
+    g_sky_enabled = 0;
 }
 
 // FUNCTION: WIZ8 0x00482f80
 bool IsSkyEnabled(void)
 {
-    return g_sky_enabled_0065b9ae;
+    return g_sky_enabled;
 }
 
 /* Refresh the two fog objects' ranges from the world's far clip. Runs after
    the camera's clip range moves, so the fog tracks the same plane. */
 // FUNCTION: WIZ8 0x004836A0
-void RefreshFogRanges004836A0(void)
+void RefreshFogRanges(void)
 {
     if (g_environment_object_0065b9b0 != 0 && g_world != 0) {
         g_environment_object_0065b9b0->fog_end_158 =
@@ -862,12 +865,12 @@ void RefreshFogRanges004836A0(void)
 // FUNCTION: WIZ8 0x004826b0
 void ResetEnvironment(void)
 {
-    g_sky_gradient_animations_0065a168[0] = 0;
-    g_sky_gradient_animations_0065a168[1] = 0;
-    g_sky_gradient_animations_0065a168[2] = 0;
-    g_sun_prop_0065a160 = 0;
-    g_moon_prop_0065ad84 = 0;
-    g_celestial_orbit_radius_0060a3a4 = -1.0f;
+    g_sky_gradient_animations[0] = 0;
+    g_sky_gradient_animations[1] = 0;
+    g_sky_gradient_animations[2] = 0;
+    g_sun_prop = 0;
+    g_moon_prop = 0;
+    g_celestial_orbit_radius = -1.0f;
 }
 
 /* The direction light comes from. Setting it also hands the new direction to
@@ -875,14 +878,14 @@ void ResetEnvironment(void)
 // FUNCTION: WIZ8 0x00483650
 void SetLightDirection(const EnvironmentColour* direction)
 {
-    g_light_direction_0065ad78 = *direction;
+    g_light_direction = *direction;
     PublishLightDirection(direction);
 }
 
 // FUNCTION: WIZ8 0x00483680
 void GetLightDirection(EnvironmentColour* direction)
 {
-    *direction = g_light_direction_0065ad78;
+    *direction = g_light_direction;
 }
 
 /* The ambient light the world contributes, or nothing at all when the world's
@@ -918,14 +921,14 @@ void ReleaseEnvironmentObjects(void)
     }
     g_environment_object_0065b9b0 = 0;
     g_environment_object_0065b9b4 = 0;
-    g_environment_lights_0065b998.Clear();
+    g_environment_lights.Clear();
 }
 
 // FUNCTION: WIZ8 0x00483F30
-void AddEnvironmentLight00483F30(stLight* light)
+void AddEnvironmentLight(stLight* light)
 {
     if (light != 0) {
-        g_environment_lights_0065b998.Add(light);
+        g_environment_lights.Add(light);
     }
 }
 
@@ -943,13 +946,13 @@ float GetWorldValue24(const W8World* world)
    colour. Retail takes the colour triple by value and forwards its address to
    SetWorldEnvironment. */
 // FUNCTION: WIZ8 0x00483a60
-void SetWorldEnvironmentColour00483A60(W8World* world, EnvironmentColour colour)
+void SetWorldEnvironmentColour(W8World* world, EnvironmentColour colour)
 {
     if (world == 0) {
         srAssertFail("pWorld", ENVIRONMENT_CPP, 634, 0);
         srAssertFail("pWorld", ENVIRONMENT_CPP, 648, 0);
     }
-    ApplyEnvironmentColour00483BA0(world, world->environment_intensity_024, &colour);
+    ApplyEnvironmentColour(world, world->environment_intensity_024, &colour);
 }
 
 // GLOBAL: WIZ8 0x005ec980
@@ -963,8 +966,7 @@ const double g_double_005ec990 = 43200000.0;
    unit range in place. A product helper like SaturateColor004299B0: no matching
    srVector3T method survives in the SurRender headers. */
 // FUNCTION: WIZ8 0x00483d70
-srVector3T<float>* __fastcall ScaleColourAndSaturate00483D70(srVector3T<float>* colour,
-                                                             double scale)
+srVector3T<float>* __fastcall ScaleColourAndSaturate(srVector3T<float>* colour, double scale)
 {
     float x = colour->x * (float)scale;
     colour->x = x;
@@ -993,8 +995,7 @@ srVector3T<float>* __fastcall ScaleColourAndSaturate00483D70(srVector3T<float>* 
 /* Push one day-phase colour and intensity into the world's static scene, every
    registered environment light, and the animated cloud material. */
 // FUNCTION: WIZ8 0x00483ba0
-void ApplyEnvironmentColour00483BA0(W8World* world, float intensity,
-                                    const EnvironmentColour* colour)
+void ApplyEnvironmentColour(W8World* world, float intensity, const EnvironmentColour* colour)
 {
     if (world == 0) {
         srAssertFail("pWorld", ENVIRONMENT_CPP, 0x2b0, 0);
@@ -1002,13 +1003,13 @@ void ApplyEnvironmentColour00483BA0(W8World* world, float intensity,
     if (world->static_scene != 0) {
         srVector3T<float> ambient(colour->red, colour->green, colour->blue);
 
-        ScaleColourAndSaturate00483D70(&ambient, (double)intensity);
+        ScaleColourAndSaturate(&ambient, intensity);
         world->static_scene->setAmbientLight(ambient.x, ambient.y, ambient.z);
         world->environment_colour_02c = *colour;
         world->environment_intensity_024 = intensity;
     }
-    for (int index = 0; index < g_environment_lights_0065b998.count; ++index) {
-        stLight* light = *g_environment_lights_0065b998.GetAt(index);
+    for (int index = 0; index < g_environment_lights.count; ++index) {
+        stLight* light = *g_environment_lights.GetAt(index);
         srVector3T<float> scaled(colour->red, colour->green, colour->blue);
 
         scaled *= (double)intensity;
@@ -1026,9 +1027,8 @@ void ApplyEnvironmentColour00483BA0(W8World* world, float intensity,
         srMaterial* material = static_cast<srMaterial*>(
             registry->find(node, "AnimatedCloudMaterial", static_cast<const srRuntimeClass*>(0)));
         if (material != 0) {
-            double brightness =
-                g_double_005ebc30 -
-                fabs(g_status_685170.game_time_ms - g_double_005ec990) * g_double_005ec988;
+            double brightness = g_double_005ebc30 -
+                                fabs(g_status.game_time_ms - g_double_005ec990) * g_double_005ec988;
 
             material->parms.ambient.x = static_cast<float>(brightness);
             material->parms.ambient.y = static_cast<float>(brightness);
@@ -1044,7 +1044,7 @@ void ApplyEnvironmentColour00483BA0(W8World* world, float intensity,
 
 /* Write the camera light's intensity, if the world has one. */
 // FUNCTION: WIZ8 0x00483e30
-void SetCameraLightIntensity00483E30(float value)
+void SetCameraLightIntensity(float value)
 {
     if (g_world->camera_light != 0) {
         g_world->camera_light->intensity_1d0 = value;
@@ -1074,7 +1074,7 @@ void SetSkyNodeVisible(bool visible)
    floor, falls through to mode 2 which disables the node. Mode 3 re-enables
    the node without touching the intensity. */
 // FUNCTION: WIZ8 0x00483E80
-void SetCameraLightMode00483E80(int mode)
+void SetCameraLightMode(int mode)
 {
     stLight* camera_light;
     float intensity;
@@ -1116,7 +1116,7 @@ void SetCameraLightMode00483E80(int mode)
 // FUNCTION: WIZ8 0x00482720
 void SetGameTimeMilliseconds(int value)
 {
-    g_status_685170.game_time_ms = value;
+    g_status.game_time_ms = value;
     g_tick_65b9a8 = GetTickCount();
 }
 
@@ -1126,40 +1126,39 @@ void SetGameTimeMilliseconds(int value)
 // FUNCTION: WIZ8 0x00482740
 void SetGameTimeDays(int value)
 {
-    g_status_685170.game_time_days = value;
+    g_status.game_time_days = value;
 }
 
 // GLOBAL: WIZ8 0x0060a398
-const char* g_sky_gradient_names_0060a398[3] = {"SkyGrad0000.ifl", "Skytop0000.ifl",
-                                                "Horizon0000.ifl"};
+const char* g_sky_gradient_names[3] = {"SkyGrad0000.ifl", "Skytop0000.ifl", "Horizon0000.ifl"};
 
 /* Level-entry environment setup: locate the level's Sun and Moon props, derive
    the celestial origin and orbit radius from the distance between them, register
    the three sky gradient textures, advance the day clock and publish the current
    day phase's colour and light direction. */
 // FUNCTION: WIZ8 0x00482410
-void InitializeLevelEnvironment00482410(void)
+void InitializeLevelEnvironment(void)
 {
     if (g_world_659ab8 != 0) {
-        g_sun_prop_0065a160 = FindPropByName(g_world_659ab8, "Sun");
-        g_moon_prop_0065ad84 = FindPropByName(g_world_659ab8, "Moon");
+        g_sun_prop = FindPropByName(g_world_659ab8, "Sun");
+        g_moon_prop = FindPropByName(g_world_659ab8, "Moon");
     }
-    if (g_celestial_orbit_radius_0060a3a4 < g_float_005ebb34) {
-        if (g_sun_prop_0065a160 == 0 || g_moon_prop_0065ad84 == 0) {
-            g_sun_prop_0065a160 = 0;
-            g_moon_prop_0065ad84 = 0;
+    if (g_celestial_orbit_radius < g_float_005ebb34) {
+        if (g_sun_prop == 0 || g_moon_prop == 0) {
+            g_sun_prop = 0;
+            g_moon_prop = 0;
         } else {
             srVector3T<float> sun;
             srVector3T<float> moon;
 
-            g_sun_prop_0065a160->m_pRep->GetLocation004B8890(&sun);
-            g_moon_prop_0065ad84->m_pRep->GetLocation004B8890(&moon);
+            g_sun_prop->m_pRep->GetLocation004B8890(&sun);
+            g_moon_prop->m_pRep->GetLocation004B8890(&moon);
             srVector3T<float> delta = sun - moon;
             srVector3T<float> midpoint = (sun + moon) * 0.5;
-            g_celestial_orbit_radius_0060a3a4 = delta.Length() * 0.5f;
-            g_celestial_origin_65ad88 = midpoint;
+            g_celestial_orbit_radius = delta.Length() * 0.5f;
+            g_celestial_origin = midpoint;
             for (int index = 0; index < 3; ++index) {
-                const char* name = g_sky_gradient_names_0060a398[index];
+                const char* name = g_sky_gradient_names[index];
                 srRegistry* registry = srCore.getRegistry();
                 srRegistry::ClassNode* node = registry->getClassNode(0x10000);
 
@@ -1170,14 +1169,14 @@ void InitializeLevelEnvironment00482410(void)
                 stTextureAnim* animation = static_cast<stTextureAnim*>(
                     registry->find(node, name, static_cast<const srRuntimeClass*>(0)));
 
-                g_sky_gradient_animations_0065a168[index] = animation;
+                g_sky_gradient_animations[index] = animation;
                 if (animation != 0) {
                     animation->animation_mode_60 = 3;
                 }
             }
         }
     }
-    if (g_environment_time_enabled_60a394 != 0) {
+    if (g_environment_time_enabled != 0) {
         unsigned int now = GetTickCount();
         unsigned int elapsed;
 
@@ -1187,21 +1186,22 @@ void InitializeLevelEnvironment00482410(void)
             elapsed = now - g_tick_65b9a8;
         }
         if (elapsed != 0) {
-            AdvanceEnvironmentTime00482A20(
-                static_cast<int>(static_cast<double>(elapsed) * g_view_distance_0060a390));
+            AdvanceEnvironmentTime(
+                static_cast<int>(static_cast<double>(elapsed) * g_view_distance));
         }
     }
     {
-        unsigned int phase = ((unsigned int)g_status_685170.game_time_ms / 1000U << 8) / 0x15180;
+        unsigned int phase =
+            (static_cast<unsigned int>(g_status.game_time_ms) / 1000U << 8) / 0x15180;
         EnvironmentColour colour = g_environment_colours_65a178[phase];
 
         if (g_world == 0) {
             srAssertFail("pWorld", ENVIRONMENT_CPP, 0x27a, 0);
             srAssertFail("pWorld", ENVIRONMENT_CPP, 0x288, 0);
         }
-        ApplyEnvironmentColour00483BA0(g_world, g_world->environment_intensity_024, &colour);
+        ApplyEnvironmentColour(g_world, g_world->environment_intensity_024, &colour);
         {
-            g_light_direction_0065ad78 = g_environment_colours_65ad98[phase];
+            g_light_direction = g_environment_colours_65ad98[phase];
             PublishLightDirection(&g_environment_colours_65ad98[phase]);
         }
     }

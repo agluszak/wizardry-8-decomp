@@ -422,11 +422,13 @@ def _unmarked_statements(
             )
         lines = sources[filename]
         index = item["line"] - 1
-        if (
-            index > 0
-            and lines[index - 1].lstrip().startswith("//")
-            and marker.search(lines[index - 1])
-        ):
+        # A marker may open a multi-line `//` comment directly above the cast.
+        above = index - 1
+        while above >= 0 and lines[above].lstrip().startswith("//"):
+            if marker.search(lines[above]):
+                break
+            above -= 1
+        if above >= 0 and lines[above].lstrip().startswith("//"):
             continue
         statement = "".join(lines[index:])
         # Skip any function/block opener before the cast on its first line.

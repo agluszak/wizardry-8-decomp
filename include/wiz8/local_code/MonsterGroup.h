@@ -38,7 +38,7 @@ struct W8MonsterGroup {
     /* 0x29: in-combat flag, named by the MonsterGroup.cpp:492 assertion.
        Cleared after the record loads and again when the group leaves
        combat. */
-    unsigned char fInCombat;
+    bool fInCombat;
     /* 0x2a: the group's disposition, the value SetMonsterGroupDisposition
        writes and each member's ubDisposition copies. At DISP_HOSTILE the group
        is live regardless of the global gate at 0x00547510; anything else has
@@ -131,9 +131,8 @@ bool MoveMonsterGroupToPosition(W8MonsterGroup* group, const srVector3T<float>* 
    point at the requested distance on a random angle around the camera yaw,
    widened to the largest allied-group radius. Answers the movement call's
    result so callers can branch on success. */
-unsigned char PositionMonsterGroupNearCamera00511050(W8MonsterGroup* group, float distance,
-                                                     float yaw,
-                                                     unsigned char flag); /* 0x00511050 */
+bool PositionMonsterGroupNearCamera(W8MonsterGroup* group, float distance, float yaw,
+                                    unsigned char flag); /* 0x00511050 */
 void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group);
 /* 0x0050FFD0: refresh the group's cached centre; a null centre out-pointer
    keeps only the cache update, which is how SpawnMonsters uses it. */
@@ -161,16 +160,16 @@ unsigned char RemoveAllGroupMembers(W8MonsterGroup* monster_group); /* 0x0050F5D
 /* MonsterGroup.cpp: respawns a same-sized group of a different monster id
    beside the source group, deactivating the old members as each replacement
    activates; NULL on failure. */
-W8MonsterGroup* ReplaceMonsterGroupSpecies00511A40(W8MonsterGroup* group,
-                                                   unsigned int monster_id); /* 0x00511A40 */
+W8MonsterGroup* ReplaceMonsterGroupSpecies(W8MonsterGroup* group,
+                                           unsigned int monster_id); /* 0x00511A40 */
 /* 0x00511CE0: mark every member's navigator position dirty (or clean). */
 void SetMonsterGroupNavigatorDirty(W8MonsterGroup* monster_group, unsigned char flag);
-bool MonsterGroupAllMembersDying00511850(W8MonsterGroup* monster_group); /* 0x00511850 */
-void LoadMonsterGroupMembers(W8MonsterGroup* monster_group);             /* 0x0050F630 */
+bool MonsterGroupAllMembersDying(W8MonsterGroup* monster_group); /* 0x00511850 */
+void LoadMonsterGroupMembers(W8MonsterGroup* monster_group);     /* 0x0050F630 */
 /* Out-of-combat refresh: proximity hostility for unaligned neutrals, then
    default disposition on the intelligence-squared cooldown. */
-void RefreshMonsterGroupHostility005113A0(W8MonsterGroup* monster_group); /* 0x005113A0 */
-void MonsterGroupEnterCombat(W8MonsterGroup* monster_group);              /* 0x0050F720 */
+void RefreshMonsterGroupHostility(W8MonsterGroup* monster_group); /* 0x005113A0 */
+void MonsterGroupEnterCombat(W8MonsterGroup* monster_group);      /* 0x0050F720 */
 /* Re-elect the group's leader member: the live member carrying the highest
    navigator leadership_rank_008 takes over leader_location_id, else the first member does, and
    the outgoing leader's script and heard-noise state move across. */

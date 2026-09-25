@@ -52,7 +52,7 @@ public:
     virtual void OnLeftButtonDoubleClick(int event) override;
 
     unsigned char m_save_mode;
-    unsigned char m_editing;
+    bool m_editing;
     unsigned char pad_0ba[2];
     W8SaveSlot* m_save;
     W8OptionsSaveRowListener* m_save_listener; /* 0xc0 */
@@ -442,8 +442,8 @@ public:
     virtual void OnDialogClosed(unsigned char reason, int value) override;
 
     W8Vector<W8SaveSlot*> m_save_slots;
-    unsigned char m_redraw_pending;
-    unsigned char m_modal_closing_01d;
+    bool m_redraw_pending;
+    bool m_modal_closing_01d;
     unsigned char padding_01e[2];
     int m_selected_panel_020;
     Controls* m_controls_024;
@@ -461,8 +461,8 @@ static_assert(sizeof(W8OptionsScreen) == 0x64, "W8OptionsScreen_must_be_0x64");
    W8DialogCloseListener at +0x8; the first own member follows at +0x0c. */
 W8_ASSERT_BASE_END(W8OptionsScreen, W8DialogCloseListener, m_save_slots, 0x8);
 
-extern W8OptionsScreen* g_options_screen_0069c254;
-extern wchar_t g_options_last_save_name_0069c1cc[64];
+extern W8OptionsScreen* g_options_screen;
+extern wchar_t g_options_last_save_name[64];
 
 void SetLastSaveName(const wchar_t* target);
 wchar_t* GetLastSaveName(void);

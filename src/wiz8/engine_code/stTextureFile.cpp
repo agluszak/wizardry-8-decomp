@@ -17,9 +17,9 @@
    freeing) and the zero-size branch calls the emitted release() at
    0x004741B0. The second pair backs one decoded row / RLE packet. */
 // GLOBAL: WIZ8 0x0065A138
-srHeapArray<unsigned char> g_tga_file_data_0065a138;
+srHeapArray<unsigned char> g_tga_file_data;
 // GLOBAL: WIZ8 0x0065A130
-srHeapArray<unsigned char> g_tga_row_data_0065a130;
+srHeapArray<unsigned char> g_tga_row_data;
 
 /* Decodes TGA pixel data into the surface. Destination writes are strided:
    the pixel step is the surface's bytes-per-pixel (negated when the
@@ -58,18 +58,18 @@ void __stdcall LoadSurfacePixels0047BC80(int handle, srColorSurface* surface,
     unsigned int scratch_size = rle ? file_bpp << 7 : header->width * file_bpp;
 
     unsigned int data_size = FileGetSize(handle) - FileGetPos(handle);
-    if (g_tga_file_data_0065a138.capacity < data_size) {
-        g_tga_file_data_0065a138.setCapacity(data_size, 1);
+    if (g_tga_file_data.capacity < data_size) {
+        g_tga_file_data.setCapacity(data_size, 1);
     }
-    unsigned char* file_data = g_tga_file_data_0065a138.data;
+    unsigned char* file_data = g_tga_file_data.data;
     if (!FileRead(handle, file_data, data_size, 0)) {
         return;
     }
 
-    if (g_tga_row_data_0065a130.capacity < scratch_size) {
-        g_tga_row_data_0065a130.setCapacity(scratch_size, 1);
+    if (g_tga_row_data.capacity < scratch_size) {
+        g_tga_row_data.setCapacity(scratch_size, 1);
     }
-    unsigned char* scratch = g_tga_row_data_0065a130.data;
+    unsigned char* scratch = g_tga_row_data.data;
 
     unsigned int file_offset = 0;
     unsigned int step = file_bpp;
@@ -123,7 +123,7 @@ void __stdcall LoadSurfacePixels0047BC80(int handle, srColorSurface* surface,
 }
 
 // FUNCTION: WIZ8 0x0047C090
-srColorSurface* __stdcall LoadSurface0047C090(int handle, long* unused_out)
+srColorSurface* __stdcall LoadSurface(int handle, long* unused_out)
 {
     W8TgaHeader header;
     unsigned short width;
@@ -372,7 +372,7 @@ void stTextureFile::invalidate()
 stTextureFile::~stTextureFile()
 {
     if (IsTextureInReadMeshScratch(this) != 0) {
-        ReleaseReadMeshScratch004881D0();
+        ReleaseReadMeshScratch();
     }
     invalidate();
     setFileName(0);
@@ -398,7 +398,7 @@ void stTextureFile::loadSurface()
     surface_5c = 0;
     int handle = FileOpen(file_name_58, 0x41, 0);
     if (handle != 0) {
-        surface_5c = LoadSurface0047C090(handle, &unused_04);
+        surface_5c = LoadSurface(handle, &unused_04);
         FileClose(handle);
     }
 
