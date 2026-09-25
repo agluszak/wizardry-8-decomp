@@ -724,3 +724,18 @@ void srConfig::Index::resize(long bucket_count)
 
 // GLOBAL: SURRENDER 0x100A45C8
 class srConfig srConfig;
+
+// SYNTHETIC: SURRENDER 0X10012BF0
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X10012C00
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X10012C30
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X10012C40
+// std::_Winit global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X10013310
+// member pointer-pair destructor emission (EH unwind)

@@ -1044,3 +1044,6 @@ srBinIStream* srFStreamOpener::open(const char* path)
     delete stream;
     return 0;
 }
+
+// TEMPLATE: SURRENDER 0X10031100
+// srArray<T>::release emission

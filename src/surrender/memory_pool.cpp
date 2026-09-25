@@ -397,3 +397,15 @@ void srMemoryPool::unlock(void* allocation)
         entry->locked_10 = 0;
     }
 }
+
+// SYNTHETIC: SURRENDER 0X10037040
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X10037050
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X10037080
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X10037090
+// std::_Winit global atexit registrar

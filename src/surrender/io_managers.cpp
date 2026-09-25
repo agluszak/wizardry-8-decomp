@@ -634,3 +634,33 @@ srModelIOManager::~srModelIOManager() {}
 
 // SYNTHETIC: SURRENDER 0x10016860
 // srMaterial scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X10016AD0
+// srModelIOManager scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X10016B50
+// ModelImporter scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X10016BD0
+// ModelExporter scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X1002D010
+// srIOManager scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X1002D2A0
+// member destructor emission (EH unwind)
+
+// SYNTHETIC: SURRENDER 0X1002D3D0
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X1002D3E0
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X1002D410
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X1002D420
+// std::_Winit global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X1002D660
+// vtordisp deleting-destructor funclet emission

@@ -205,3 +205,27 @@ void srTextureFile::dump(std::ostream& stream)
 
 // SYNTHETIC: SURRENDER 0x10060090
 // srTextureFile default constructor closure
+
+// TEMPLATE: SURRENDER 0X1005FDF0
+// srClassSupport<srTextureFile, srTexture, 0, 0x2112>::clone
+
+// TEMPLATE: SURRENDER 0X1005FE10
+// srClientSupport<srTextureFile, 0x2112>::~srClientSupport
+
+// SYNTHETIC: SURRENDER 0X100600A0
+// srTextureFile scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X10060120
+// srClientSupport<srTextureFile, 0x2112> scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X10060150
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X10060160
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X10060190
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X100601A0
+// std::_Winit global atexit registrar

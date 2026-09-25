@@ -433,3 +433,12 @@ void srScheduler::waitForJob(Job* job)
         srThread::yield(1);
     }
 }
+
+// SYNTHETIC: SURRENDER 0X100142BA
+// catch-rethrow funclet emission
+
+// SYNTHETIC: SURRENDER 0X100145F7
+// catch-rethrow funclet emission
+
+// SYNTHETIC: SURRENDER 0X10014720
+// member pointer-pair destructor emission (EH unwind)

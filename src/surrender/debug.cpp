@@ -191,3 +191,60 @@ srOStream_withassign srErr(&srDummyBuf);
 // GLOBAL: SURRENDER 0x100A47A0
 // srDummyStream
 srOStream_withassign srDummyStream(&srDummyBuf);
+
+// SYNTHETIC: SURRENDER 0X100330D0
+// srDummyStreamBuf scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X10033160
+// srDummyStreamBuf global static-init block
+
+// SYNTHETIC: SURRENDER 0X10033170
+// srDummyStreamBuf global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X100331A0
+// srOStream_withassign global static-init block
+
+// SYNTHETIC: SURRENDER 0X100331C0
+// srOStream_withassign global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X10033200
+// srOStream_withassign global static-init block
+
+// SYNTHETIC: SURRENDER 0X10033220
+// srOStream_withassign global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X10033260
+// srOStream_withassign global static-init block
+
+// SYNTHETIC: SURRENDER 0X10033280
+// srOStream_withassign global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X100332C0
+// srOStream_withassign global static-init block
+
+// SYNTHETIC: SURRENDER 0X100332E0
+// srOStream_withassign global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X10033460
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X10033470
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X100334A0
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X100334B0
+// std::_Winit global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X10046770
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X10046780
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X100467B0
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X100467C0
+// std::_Winit global atexit registrar

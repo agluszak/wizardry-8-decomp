@@ -222,3 +222,36 @@ srFog::~srFog()
 
 // SYNTHETIC: SURRENDER 0x1004C4D0
 // srFog default constructor closure
+
+// TEMPLATE: SURRENDER 0X1004BEA0
+// srClientSupport<srFog, 0x1210>::clone
+
+// TEMPLATE: SURRENDER 0X1004BEC0
+// srClientSupport<srFog, 0x1210>::~srClientSupport
+
+// TEMPLATE: SURRENDER 0X1004C0C0
+// srClassSupport<srIlluminator, srNode, false, 0x1200>::clone
+
+// SYNTHETIC: SURRENDER 0X1004C4E0
+// srFog scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X1004C570
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X1004C580
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X1004C5B0
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X1004C5C0
+// std::_Winit global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X1004C5E0
+// srClientSupport<srIlluminator, 0x1200> scalar deleting destructor
+
+// TEMPLATE: SURRENDER 0X1004C600
+// srClientSupport<srIlluminator, 0x1200>::~srClientSupport
+
+// SYNTHETIC: SURRENDER 0X1004C6C0
+// srClientSupport<srFog, 0x1210> scalar deleting destructor

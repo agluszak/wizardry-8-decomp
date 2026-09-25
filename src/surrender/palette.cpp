@@ -1398,8 +1398,61 @@ srPalette* srPalette::Optimizer::createOptimalPalette(const PaletteInfo& info)
 // LIBRARY: SURRENDER 0x10004FA0
 // ??_L@YGXPAXIIP6EX0@Z@Z
 
+/* The linked memset body lands mid-unit (0x10007470): Quantizer::setPalette
+   and the renderer call it with the three-argument cdecl convention. */
+// LIBRARY: SURRENDER 0x10007470
+// memset
+
 // SYNTHETIC: SURRENDER 0x10004CF0
 // srPalette::Sampler default constructor closure
 
 // SYNTHETIC: SURRENDER 0x10004F90
 // srPalette default constructor closure
+
+// TEMPLATE: SURRENDER 0X10004A30
+// srClassSupport<srPalette, srClass, true, 0x2900>::clone
+
+// TEMPLATE: SURRENDER 0X10004A50
+// srClientSupport<srPalette, 0x2900>::~srClientSupport
+
+// SYNTHETIC: SURRENDER 0X10004AE0
+// member buffer destructor emission (EH unwind)
+
+// SYNTHETIC: SURRENDER 0X10004FD0
+// srPalette scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X10005050
+// srClientSupport<srPalette, 0x2900> scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X10005080
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X10005090
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X100050C0
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X100050D0
+// std::_Winit global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X10005220
+// srSurfaceIOManager scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X100052A0
+// SurfaceImporter scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X10005320
+// SurfaceExporter scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X100053B0
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X100053C0
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X100053F0
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X10005400
+// std::_Winit global atexit registrar

@@ -547,3 +547,18 @@ int srCamera::unproject(srVector3T<float>& output, const srVector3T<double>& inp
 
 // SYNTHETIC: SURRENDER 0x100482B0
 // srCamera default constructor closure
+
+// SYNTHETIC: SURRENDER 0X100482C0
+// srCamera scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X100494F0
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X10049500
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X10049530
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X10049540
+// std::_Winit global atexit registrar

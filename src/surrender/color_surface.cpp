@@ -3200,3 +3200,30 @@ void srColorSurface::dump(std::ostream& stream)
 
 // TEMPLATE: SURRENDER 0x1005E170
 // srClassSupport<srColorSurfaceIFace, srClass, true, 0x3100>::sGetClassNode
+
+// SYNTHETIC: SURRENDER 0X1005B4E0
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X1005B4F0
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X1005B520
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X1005B530
+// std::_Winit global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X1005E030
+// srClassSupport<srColorSurface, srColorSurfaceIFace, 0, 0x3110>::clone
+
+// SYNTHETIC: SURRENDER 0X1005E1C0
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X1005E1D0
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X1005E200
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X1005E210
+// std::_Winit global atexit registrar

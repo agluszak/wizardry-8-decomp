@@ -687,3 +687,27 @@ class srHeap srHeap;
 
 // SYNTHETIC: SURRENDER 0x100359B0
 // srHeap global atexit dtor thunk
+
+// SYNTHETIC: SURRENDER 0X10036490
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X100364A0
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X100364D0
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X100364E0
+// std::_Winit global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X100367E0
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X100367F0
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X10036820
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X10036830
+// std::_Winit global atexit registrar

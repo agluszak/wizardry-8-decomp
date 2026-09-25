@@ -119,3 +119,9 @@ srIlluminator::~srIlluminator()
 
 // SYNTHETIC: SURRENDER 0x1004CC20
 // srIlluminator default constructor closure
+
+// SYNTHETIC: SURRENDER 0X1004CB10
+// srVertexProcessor subobject destructor emission (vtable restore)
+
+// SYNTHETIC: SURRENDER 0X1004CC30
+// srIlluminator scalar deleting destructor

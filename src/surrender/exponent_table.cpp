@@ -20,7 +20,7 @@ float srExponentTable::getExponent() const
 float srExponentTable::getValue(float x) const
 {
     x *= 1023.0f;
-    return values_[(int)x];
+    return values_[srFloatToInt(x)];
 }
 
 // FUNCTION: SURRENDER 0x10002e60
@@ -160,3 +160,27 @@ srCachedExponentTable& srCachedExponentTable::operator=(const srCachedExponentTa
 
 // SYNTHETIC: SURRENDER 0x100031A0
 // srCachedExponentTable default constructor closure
+
+// SYNTHETIC: SURRENDER 0X100031C0
+// srBoxFilter global static-init block
+
+// SYNTHETIC: SURRENDER 0X100031D0
+// srBoxFilter global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X10003200
+// srTriangleFilter global static-init block
+
+// SYNTHETIC: SURRENDER 0X10003210
+// srTriangleFilter global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X10003240
+// srBellFilter global static-init block
+
+// SYNTHETIC: SURRENDER 0X10003250
+// srBellFilter global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X10003280
+// srBSplineFilter global static-init block
+
+// SYNTHETIC: SURRENDER 0X10003290
+// srBSplineFilter global atexit registrar

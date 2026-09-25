@@ -52,3 +52,6 @@ void srMutex::releaseAccess()
     ReleaseMutex(handle_04);
     access_count_08--;
 }
+
+// SYNTHETIC: SURRENDER 0X10045910
+// srMutex scalar deleting destructor

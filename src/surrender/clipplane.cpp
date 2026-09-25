@@ -177,3 +177,15 @@ srClipPlane::~srClipPlane() {}
 
 // TEMPLATE: SURRENDER 0x1004A4A0
 // srArray<srNode::TraverseInfo::Entry>::setCapacity
+
+// SYNTHETIC: SURRENDER 0X1004A530
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X1004A540
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X1004A570
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X1004A580
+// std::_Winit global atexit registrar

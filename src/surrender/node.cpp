@@ -1597,3 +1597,6 @@ void srNode::rollAt(const srNode* target, double amount)
 
 // SYNTHETIC: SURRENDER 0x10051BC0
 // srNode default constructor closure
+
+// SYNTHETIC: SURRENDER 0X10051BD0
+// srNode scalar deleting destructor

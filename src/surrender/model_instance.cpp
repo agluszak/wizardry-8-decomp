@@ -304,3 +304,6 @@ void srModelInstance::setExclusionMask(unsigned long mask)
 
 // LIBRARY: SURRENDER 0x100502B0
 // MFC CRect::CRect
+
+// TEMPLATE: SURRENDER 0X1004FD80
+// srClassSupport<srModelInstance, srNode, 0, 0x1100>::clone

@@ -590,3 +590,9 @@ static void* copyMemory(void* destination, const void* source, long size)
    AllocateEntry inside setupPath's inlined Insert. */
 // TEMPLATE: SURRENDER 0x10002CF0
 // srHashTable<unsigned long,srHuffman::Compressor::Node*>::Grow
+
+// SYNTHETIC: SURRENDER 0X10002B40
+// member pointer-pair destructor emission (EH unwind)
+
+// SYNTHETIC: SURRENDER 0X10002B70
+// member pointer-pair destructor emission (EH unwind)

@@ -160,3 +160,33 @@ const char* srModel::sGetClassName()
     return "srModel";
 }
 #endif
+
+// TEMPLATE: SURRENDER 0X1003C690
+// srClassSupport<srModel, srClass, true, 0x2000>::clone
+
+// SYNTHETIC: SURRENDER 0X1003C6B0
+// srPtr element destructor emission
+
+// SYNTHETIC: SURRENDER 0X1003C850
+// Client scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X1003C8D0
+// srModel scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X1003C950
+// srClientSupport<srModel, 0x2000> scalar deleting destructor
+
+// TEMPLATE: SURRENDER 0X1003C970
+// srClientSupport<srModel, 0x2000>::~srClientSupport
+
+// SYNTHETIC: SURRENDER 0X1003CA10
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X1003CA20
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X1003CA50
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X1003CA60
+// std::_Winit global atexit registrar

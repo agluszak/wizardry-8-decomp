@@ -291,3 +291,27 @@ void srBounder::dump(std::ostream& stream)
 
 // SYNTHETIC: SURRENDER 0x1004B3A0
 // srBounder default constructor closure
+
+// TEMPLATE: SURRENDER 0X1004AF90
+// srClassSupport<srBounder, srNode, false, 0x1600>::clone
+
+// TEMPLATE: SURRENDER 0X1004AFB0
+// srClassSupport<srBounder, srNode, false, 0x1600>::~srClassSupport
+
+// SYNTHETIC: SURRENDER 0X1004B3B0
+// srBounder scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X1004B440
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X1004B450
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X1004B480
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X1004B490
+// std::_Winit global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X1004B4B0
+// srClassSupport<srBounder, srNode, false, 0x1600> scalar deleting destructor

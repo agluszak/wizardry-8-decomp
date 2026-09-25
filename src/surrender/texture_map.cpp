@@ -106,3 +106,30 @@ srClass* srTextureMap::vInstance()
 
 // SYNTHETIC: SURRENDER 0x100608C0
 // srTextureMap default constructor closure
+
+// TEMPLATE: SURRENDER 0X10060650
+// srClassSupport<srTextureMap, srTexture, 0, 0x2111>::clone
+
+// TEMPLATE: SURRENDER 0X10060670
+// srClientSupport<srTextureMap, 0x2111>::~srClientSupport
+
+// SYNTHETIC: SURRENDER 0X10060760
+// srPtr element destructor emission
+
+// SYNTHETIC: SURRENDER 0X100608D0
+// srTextureMap scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X10060950
+// srClientSupport<srTextureMap, 0x2111> scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X10060980
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X10060990
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X100609C0
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X100609D0
+// std::_Winit global atexit registrar

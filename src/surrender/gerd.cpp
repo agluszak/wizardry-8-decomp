@@ -5960,3 +5960,60 @@ void srGERD::accumulate(e_accum operation, float scale)
 
 // SYNTHETIC: SURRENDER 0x1001B510
 // srGERD vector deleting destructor
+
+// SYNTHETIC: SURRENDER 0X1001B720
+// srClass pointer member destructor emission (EH unwind)
+
+// SYNTHETIC: SURRENDER 0X1001B730
+// global array destruction registrar
+
+// SYNTHETIC: SURRENDER 0X1001BA80
+// member pointer-pair destructor emission (EH unwind)
+
+// TEMPLATE: SURRENDER 0X1001EF30
+// srArray<T>::release emission
+
+// TEMPLATE: SURRENDER 0X1001EF60
+// srArray<T>::release emission
+
+// SYNTHETIC: SURRENDER 0X1001F030
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X1001F040
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X1001F070
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X1001F080
+// std::_Winit global atexit registrar
+
+// TEMPLATE: SURRENDER 0X1001F1D0
+// srArray<T>::release emission
+
+// SYNTHETIC: SURRENDER 0X1001F490
+// member pointer-pair destructor emission (EH unwind)
+
+// TEMPLATE: SURRENDER 0X10020FC0
+// srClassSupport<srColorSurfaceIFace, srClass, true, 0x3100>::clone
+
+// TEMPLATE: SURRENDER 0X100210B0
+// srClassSupport<srGERD::LockSurface, srColorSurfaceIFace, false, 0x3111>::~srClassSupport
+
+// SYNTHETIC: SURRENDER 0X10021530
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X10021540
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X10021570
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X10021580
+// std::_Winit global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X10029380
+// srPtr element destructor emission
+
+// SYNTHETIC: SURRENDER 0X100296B0
+// srPtr element destructor emission

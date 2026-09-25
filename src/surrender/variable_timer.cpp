@@ -409,3 +409,18 @@ std::ostream& operator<<(std::ostream& stream, const srVariableTimer& timer)
 
 // SYNTHETIC: SURRENDER 0x10063F50
 // srVariableTimer default constructor closure
+
+// SYNTHETIC: SURRENDER 0X100633D0
+// srVariableTimer scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X10064300
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X10064310
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X10064340
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X10064350
+// std::_Winit global atexit registrar

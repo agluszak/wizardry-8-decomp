@@ -822,3 +822,21 @@ srBinOFStream::~srBinOFStream() {}
    the Path members. */
 // SYNTHETIC: SURRENDER 0x100163F0
 // srFileManager scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X1002E770
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X1002E780
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X1002E7B0
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X1002E7C0
+// std::_Winit global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X1002EC50
+// ReadJob scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X1002ED90
+// base subobject destructor emission (vtable restore)

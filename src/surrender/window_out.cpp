@@ -479,3 +479,33 @@ srWindowOut::~srWindowOut()
 {
     delete rdbuf();
 }
+
+// SYNTHETIC: SURRENDER 0X10047650
+// srWindowOutStreamBuf scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X100479A0
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X100479B0
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X100479E0
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X100479F0
+// std::_Winit global atexit registrar
+
+// TEMPLATE: SURRENDER 0X10047C60
+// srArray<T>::release emission
+
+// SYNTHETIC: SURRENDER 0X10047CF0
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X10047D00
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X10047D30
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X10047D40
+// std::_Winit global atexit registrar

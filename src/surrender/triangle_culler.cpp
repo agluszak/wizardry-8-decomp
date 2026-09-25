@@ -456,3 +456,15 @@ int srTriangleCuller::cull(Output& output, const Input& input)
     }
     return 0;
 }
+
+// SYNTHETIC: SURRENDER 0X10029F50
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X10029F60
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X10029F90
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X10029FA0
+// std::_Winit global atexit registrar

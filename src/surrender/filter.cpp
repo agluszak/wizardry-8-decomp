@@ -171,3 +171,15 @@ class srBSplineFilter srBSplineFilter;
 
 // GLOBAL: SURRENDER 0x100A029C
 class srBoxFilter srBoxFilter;
+
+// SYNTHETIC: SURRENDER 0X10003540
+// srBoxFilter scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X10003620
+// srBellFilter scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X100036F0
+// srTriangleFilter scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X100037C0
+// srBSplineFilter scalar deleting destructor

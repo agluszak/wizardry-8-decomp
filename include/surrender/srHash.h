@@ -18,6 +18,15 @@ inline unsigned int srHashValue(unsigned short key)
     return srHashValue(static_cast<unsigned long>(key));
 }
 
+/* srRegistry's by_instance_00 index hashes srRuntimeClass* keys with the same
+   mixing as the integer-keyed tables (retail srTypeRegistry unregisterInstance
+   at 0x1000FCD0 applies the (k>>10 ^ k)>>10 ^ k sequence to the pointer). */
+inline unsigned int srHashValue(const void* key)
+{
+    // reinterpret-ok: pointer-keyed hashing mixes the pointer's integer value
+    return srHashValue(reinterpret_cast<unsigned long>(key));
+}
+
 template <class Key, class Value> struct srHashEntry {
     int next_index;
     Key key;

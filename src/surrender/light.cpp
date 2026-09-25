@@ -829,3 +829,30 @@ float srLight::getSafeRange() const
 
 // SYNTHETIC: SURRENDER 0x1004EEF0
 // srLight default constructor closure
+
+// SYNTHETIC: SURRENDER 0X1004EF00
+// srLight scalar deleting destructor
+
+// TEMPLATE: SURRENDER 0X1004F030
+// srClassSupport<srLight, srIlluminator, false, 0x1220>::clone
+
+// TEMPLATE: SURRENDER 0X1004F050
+// srClientSupport<srLight, 0x1220>::~srClientSupport
+
+// SYNTHETIC: SURRENDER 0X1004F1E0
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X1004F1F0
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X1004F220
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X1004F230
+// std::_Winit global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X1004F250
+// srClientSupport<srLight, 0x1220> scalar deleting destructor
+
+// TEMPLATE: SURRENDER 0X1004F270
+// srClientSupport<srLight, 0x1220>::sGetClassNode

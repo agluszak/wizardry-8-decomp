@@ -1608,3 +1608,15 @@ void srDebugVP::_srGetClipFlags(SRBYTE* destination, const srVector4* source, SR
 
 // FUNCTION: SURRENDER 0x1006FCA0
 srDebugVP::~srDebugVP() {}
+
+// SYNTHETIC: SURRENDER 0X1006FCC0
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X1006FCD0
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X1006FD00
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X1006FD10
+// std::_Winit global atexit registrar

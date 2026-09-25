@@ -293,3 +293,33 @@ void srScene::setFogColor(const srVector3T<float>& color)
 
 // SYNTHETIC: SURRENDER 0x10057080
 // srScene default constructor closure
+
+// SYNTHETIC: SURRENDER 0X10056980
+// member pointer-pair destructor emission (EH unwind)
+
+// TEMPLATE: SURRENDER 0X10056A70
+// srClassSupport<srScene, srNode, 0, 0x1010>::clone
+
+// TEMPLATE: SURRENDER 0X10056A90
+// srClientSupport<srScene, 0x1010>::~srClientSupport
+
+// SYNTHETIC: SURRENDER 0X10057090
+// srScene scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X10057110
+// member destructor emission (EH unwind)
+
+// SYNTHETIC: SURRENDER 0X10057150
+// srClientSupport<srScene, 0x1010> scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X10057180
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X10057190
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X100571C0
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X100571D0
+// std::_Winit global atexit registrar

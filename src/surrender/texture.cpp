@@ -487,3 +487,39 @@ srTextureIFace::~srTextureIFace() {}
 
 // TEMPLATE: SURRENDER 0x1005F4B0
 // srClassSupport<srTextureIFace, srClass, true, 0x2100>::srClassSupport
+
+// TEMPLATE: SURRENDER 0X1005EF80
+// srClassSupport<srTextureIFace, srClass, true, 0x2100>::clone
+
+// TEMPLATE: SURRENDER 0X1005F020
+// srClassSupport<srTexture, srTextureIFace, false, 0x2110>::clone
+
+// TEMPLATE: SURRENDER 0X1005F040
+// srClientSupport<srTexture, 0x2110>::~srClientSupport
+
+// SYNTHETIC: SURRENDER 0X1005F290
+// srTexture scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X1005F310
+// srClientSupport<srTextureIFace, 0x2100> scalar deleting destructor
+
+// TEMPLATE: SURRENDER 0X1005F330
+// srClientSupport<srTextureIFace, 0x2100>::~srClientSupport
+
+// SYNTHETIC: SURRENDER 0X1005F3C0
+// srClientSupport<srTexture, 0x2110> scalar deleting destructor
+
+// SYNTHETIC: SURRENDER 0X1005F540
+// std::ios_base::Init global static-init block
+
+// SYNTHETIC: SURRENDER 0X1005F550
+// std::ios_base::Init global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X1005F580
+// std::_Winit global static-init block
+
+// SYNTHETIC: SURRENDER 0X1005F590
+// std::_Winit global atexit registrar
+
+// SYNTHETIC: SURRENDER 0X1005F700
+// srTextureIFace scalar deleting destructor
