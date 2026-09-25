@@ -443,8 +443,7 @@ void ApplyWorldCursorInput00490C60(void)
             gp3DCursor->light_24->setLocation(node_location);
         }
         if (gp3DCursor->dragged_info_dc != 0) {
-            gp3DCursor->dragged_info_dc->p3D->SetPositionInternal00453590(
-                &gp3DCursor->position_28);
+            gp3DCursor->dragged_info_dc->p3D->SetPositionInternal00453590(&gp3DCursor->position_28);
             g_octree_6598a4->UpdateMonsterLocation(gp3DCursor->dragged_info_dc->location_id,
                                                    &gp3DCursor->position_28);
             if (gfKeyState[0x10] != 0) {
@@ -477,7 +476,7 @@ void BindCursorMonsterToGroup004914E0(void)
 
     if (gp3DCursor->group_bind_pending_09 != 0 && gp3DCursor->light_24 != 0) {
         gp3DCursor->group_bind_pending_09 = 0;
-        gp3DCursor->input_delta_0c.z = gp3DCursor->input_delta_0c.z + 1;
+        ++gp3DCursor->input_delta_0c.z;
         if (gp3DCursor->particle_04 != 0) {
             gp3DCursor->particle_04->speed_min_214 = 1000.0f;
             gp3DCursor->particle_04->speed_max_218 = 2000.0f;
@@ -601,7 +600,7 @@ void UpdateWorldCursor004916C0(void)
     if (gfRightButtonState != 0) {
         if (gp3DCursor->group_bind_pending_09 == 0 && gp3DCursor->light_24 != 0) {
             gp3DCursor->group_bind_pending_09 = 1;
-            gp3DCursor->input_delta_0c.z = gp3DCursor->input_delta_0c.z + 1;
+            ++gp3DCursor->input_delta_0c.z;
             if (gp3DCursor->particle_04 != 0) {
                 gp3DCursor->particle_04->speed_min_214 = 3000.0f;
                 gp3DCursor->particle_04->speed_max_218 = 6000.0f;
@@ -615,10 +614,10 @@ void UpdateWorldCursor004916C0(void)
         if (gp3DCursor->detached_50 != 0) {
             gp3DCursor->track_ground_41 = 0;
         }
-        gp3DCursor->input_delta_0c.y = gp3DCursor->input_delta_0c.y + (0xf0 - cursor_point.y);
+        gp3DCursor->input_delta_0c.y += 0xf0 - cursor_point.y;
     } else {
-        gp3DCursor->input_delta_0c.x = gp3DCursor->input_delta_0c.x + (cursor_point.x - 0x140);
-        gp3DCursor->input_delta_0c.z = gp3DCursor->input_delta_0c.z + (0xf0 - cursor_point.y);
+        gp3DCursor->input_delta_0c.x += cursor_point.x - 0x140;
+        gp3DCursor->input_delta_0c.z += 0xf0 - cursor_point.y;
     }
     WarpSystemCursor(0x140, 0xf0);
     ApplyWorldCursorInput00490C60();
@@ -784,7 +783,7 @@ void UpdateWorldCursorPlacement00491EC0(void)
         rotation.MultiplyBy(axis);
     }
     GetCameraPosition(&camera);
-    camera.y = camera.y - g_default_world_height_00603ac8;
+    camera.y -= g_default_world_height_00603ac8;
     cursor = gp3DCursor;
     cursor->last_published_34 = -100000000.0f;
     forward.Set(0.0, 0.0, g_float_60ab48);
@@ -797,7 +796,7 @@ void UpdateWorldCursorPlacement00491EC0(void)
         if (cursor->detached_50 == 0) {
             cursor->offset_18 -= camera;
         }
-        target.y = target.y + g_float_005ecb08;
+        target.y += g_float_005ecb08;
         PointCameraAtTarget(&target, 1, 0);
     } else {
         cursor->position_28 = target;

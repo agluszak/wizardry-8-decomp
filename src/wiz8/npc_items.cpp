@@ -185,14 +185,14 @@ unsigned char MaintainNpcStock(W8NpcState* npc, char force)
                         }
                     }
                     if (held <= configured / 2) {
-                        configured = configured - held;
+                        configured -= held;
                         roll = Random(3);
                         if (roll == 0) {
                             jitter = static_cast<unsigned char>(configured >> 1);
-                            configured = configured + jitter;
+                            configured += jitter;
                         } else if (roll == 1) {
                             jitter = static_cast<unsigned char>(-(configured >> 1));
-                            configured = configured + jitter;
+                            configured += jitter;
                         }
                         if (configured != 0) {
                             AddNpcItem(npc, rule->item_id, configured);
@@ -215,7 +215,7 @@ unsigned char MaintainNpcStock(W8NpcState* npc, char force)
         if (entry != 0 && entry->quantity == 0) {
             delete static_cast<W8NpcItemEntry*>(PLRemoveAt(npc->items, index));
             if (index != 0) {
-                index = index - 1;
+                --index;
             }
             count = PLLength(npc->items);
         }
@@ -343,7 +343,7 @@ void SortNpcItems(W8NpcState* npc)
         cursor = array;
         for (index = 0; index < count; ++index) {
             *cursor = *static_cast<W8NpcItemEntry*>(PLGet(npc->items, index));
-            cursor = cursor + 1;
+            ++cursor;
         }
         qsort(array, count, sizeof(W8NpcItemEntry), CompareNpcItems);
 
@@ -362,7 +362,7 @@ void SortNpcItems(W8NpcState* npc)
             }
             *entry = *cursor;
             PLAdoptAppend(npc->items, entry);
-            cursor = cursor + 1;
+            ++cursor;
         }
         delete[] array;
     }
@@ -439,13 +439,13 @@ int AddNpcItemFromInstance(W8NpcState* npc, const W8ItemInstance* item, char qua
         if (entry->quantity == 0) {
             entry->quantity = 1;
         }
-        entry->item.stack_count = entry->item.stack_count + quantity;
+        entry->item.stack_count += quantity;
         return index;
     }
     if (entry->item.stack_count == 0) {
         entry->item.stack_count = 1;
     }
-    entry->quantity = entry->quantity + quantity;
+    entry->quantity += quantity;
     return index;
 }
 
@@ -543,10 +543,10 @@ int RestockNpcItems(W8NpcState* npc)
         roll = Random(3);
         if (roll == 0) {
             jitter = static_cast<unsigned char>(amount >> 1);
-            amount = amount + jitter;
+            amount += jitter;
         } else if (roll == 1) {
             jitter = static_cast<unsigned char>(-(amount >> 1));
-            amount = amount + jitter;
+            amount += jitter;
         }
         if (amount != 0) {
             AddNpcItem(npc, rule->item_id, amount);

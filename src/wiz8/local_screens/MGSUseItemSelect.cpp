@@ -690,7 +690,7 @@ bool AppendUseItemListEntry0059D450(W8ItemInstance* item, W8ItemInstance* select
             color = 4;
         }
         ShowNotice(color, FormatItemDisplayName(item, 1), 2, 0xffffffff, false);
-        g_use_item_list_count_0069b990 = g_use_item_list_count_0069b990 + 1;
+        ++g_use_item_list_count_0069b990;
         return true;
     }
     if (g_use_item_list_count_0069b990 + 1U > 0x15e) {
@@ -713,7 +713,7 @@ bool AppendUseItemListEntry0059D450(W8ItemInstance* item, W8ItemInstance* select
                        FormatWideString(g_format_s_paren_question_0064c7dc,
                                         FormatItemDisplayName(item, 0)),
                        2, 0xffffffff, false);
-            g_use_item_list_count_0069b990 = g_use_item_list_count_0069b990 + 1;
+            ++g_use_item_list_count_0069b990;
             return true;
         }
         charged = true;
@@ -725,7 +725,7 @@ bool AppendUseItemListEntry0059D450(W8ItemInstance* item, W8ItemInstance* select
         break;
     default:
         ShowNotice(0xf, FormatItemDisplayName(item, 0), 2, 0xffffffff, false);
-        g_use_item_list_count_0069b990 = g_use_item_list_count_0069b990 + 1;
+        ++g_use_item_list_count_0069b990;
         return true;
     }
     if (count == -1) {
@@ -736,7 +736,7 @@ bool AppendUseItemListEntry0059D450(W8ItemInstance* item, W8ItemInstance* select
         text = FormatItemDisplayName(item, 0);
     }
     ShowNotice(0xf, text, 2, 0xffffffff, false);
-    g_use_item_list_count_0069b990 = g_use_item_list_count_0069b990 + 1;
+    ++g_use_item_list_count_0069b990;
     return true;
 }
 

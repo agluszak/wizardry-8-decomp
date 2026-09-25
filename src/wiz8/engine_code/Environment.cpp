@@ -1021,8 +1021,7 @@ void ApplyEnvironmentColour00483BA0(W8World* world, float intensity,
 
         if (node == 0) {
             node = registry->registerClass(
-                "stMaterial", srClientSupport<srMaterial,8720>::sGetClassNode(),
-                0x10002, 0);
+                "stMaterial", srClientSupport<srMaterial, 8720>::sGetClassNode(), 0x10002, 0);
         }
         srMaterial* material = static_cast<srMaterial*>(
             registry->find(node, "AnimatedCloudMaterial", static_cast<const srRuntimeClass*>(0)));
@@ -1089,7 +1088,7 @@ void SetCameraLightMode00483E80(int mode)
             if (camera_light != 0) {
                 intensity = camera_light->intensity_1d0;
             }
-            intensity = intensity + g_float_005ebc7c;
+            intensity += g_float_005ebc7c;
             if (CAMERA_LIGHT_MAXIMUM_INTENSITY < intensity) {
                 intensity = CAMERA_LIGHT_MAXIMUM_INTENSITY;
             }

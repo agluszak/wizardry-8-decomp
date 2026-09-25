@@ -2251,7 +2251,7 @@ bool ProbeNpcPlacementNearParty(int /*party_slot*/, int /*mode*/, srVector3T<flo
     float yaw;
 
     GetCameraPosition(&party_position);
-    party_position.y = party_position.y - g_default_world_height_00603ac8;
+    party_position.y -= g_default_world_height_00603ac8;
     yaw = GetCameraYawRadians() + g_float_005ec29c;
     if (g_octree_6598a4->FindNavigatorPosition(&party_position, yaw, 1000.0f, 1, position_out, 1, 0,
                                                1, 10, 0) > 0) {

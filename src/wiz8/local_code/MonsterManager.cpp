@@ -317,8 +317,8 @@ void ActivateMonster(W8MonsterInfo* monster_info, int mode)
         monster_info->scale_24f = CalculateMonsterScale(monster_info);
         MonsterSetScale(monster_info->p3D, monster_info->scale_24f);
     } else {
-         MonsterSetScale(monster_info->p3D, monster_info->scale_24f);
-         MonsterSetMirrorX(monster_info->p3D, monster_info->cycle17_state);
+        MonsterSetScale(monster_info->p3D, monster_info->scale_24f);
+        MonsterSetMirrorX(monster_info->p3D, monster_info->cycle17_state);
     }
 
     ApplyMonsterRepresentationScale(monster_info->p3D);
@@ -403,7 +403,7 @@ void RecordMonsterKill(W8MonsterInfo* monster_info, char announce)
     }
     if (announce != '\0' && monster_info->death_processed_253 == '\0' &&
         monster_info->party_threat.sight_state_04 != W8_SIGHT_UNSEEN) {
-        ShowNoticef(notice_channel, L"%s %s!", GetMonsterName(monster_info, 0, '\0'),
+        ShowNoticef(notice_channel, L"%s %s!", GetMonsterName(monster_info, 0, 0),
                     gppStringList[g_condition_notices_0061E570[0x49]]);
     }
     ReleaseMonsterConditionBindings(monster_info);
@@ -418,7 +418,7 @@ void RecordMonsterKill(W8MonsterInfo* monster_info, char announce)
             goto done;
         }
         unsigned int killer_index = MonsterGetIndexByLocationID(
-            0x37d, MONSTER_MANAGER_CPP, monster_info->condition_target_304.iMonsterID, '\0');
+            0x37d, MONSTER_MANAGER_CPP, monster_info->condition_target_304.iMonsterID, 0);
         if (killer_index == 0xffffffff) {
             goto done;
         }
@@ -430,8 +430,7 @@ void RecordMonsterKill(W8MonsterInfo* monster_info, char announce)
             goto done;
         }
     }
-    ApplyFactionChange('\0', '\x01', static_cast<signed char>(record->faction_id_25f),
-                       monster_list_index);
+    ApplyFactionChange(0, 1, static_cast<signed char>(record->faction_id_25f), monster_list_index);
 done:
     MonsterKilled(record->record_id_187, killer_party_slot);
     if (monster_info->fInCombat != '\0' &&
@@ -743,7 +742,7 @@ void ProcessMonstersAtCombatEnd(unsigned char forced_cleanup)
             ReleaseMonsterConditionBindings(monster_info);
             if (forced_cleanup == 0) {
                 monster_info->death_processed_253 = 1;
-                 if (monster_info->p3D->IsDying() == 0) {
+                if (monster_info->p3D->IsDying() == 0) {
                     StartMonsterCycle(monster_info, 0x15, 1);
                     DeactivateMonster(monster_info);
                     RecordMonsterKill(monster_info, 1);
@@ -890,8 +889,8 @@ void SetMonsterControlState(W8MonsterInfo* monster_info, int control_state)
     switch (control_state) {
     case 0:
     case 2:
-         if (monster_info->control_state == 1 && monster_info->p3D->linked_navigator_05c == 0) {
-             monster_info->p3D->ClearMovement();
+        if (monster_info->control_state == 1 && monster_info->p3D->linked_navigator_05c == 0) {
+            monster_info->p3D->ClearMovement();
             monster_info->ai_mode_255 = 0;
         }
         break;
@@ -946,10 +945,10 @@ void MoveMonsterToLiveList(W8MonsterInfo* monster_info)
         MonsterSetCycle(monster_info->p3D, 1);
         MonsterSetCycleBehaviour(monster_info->p3D, 3);
     }
-     MonsterSetCycleSubCycle(monster_info->p3D, 0);
-     MonsterSetAnimating(monster_info->p3D, 1);
-     monster_info->p3D->active_088 = 1;
-     monster_info->p3D->inactive_215 = 0;
+    MonsterSetCycleSubCycle(monster_info->p3D, 0);
+    MonsterSetAnimating(monster_info->p3D, 1);
+    monster_info->p3D->active_088 = 1;
+    monster_info->p3D->inactive_215 = 0;
 }
 
 static __forceinline double DistanceBetweenPositions(const srVector3T<float>* first,
@@ -1299,8 +1298,8 @@ void DeactivateMonster(W8MonsterInfo* monster_info)
         monster_info->hp_current = 0;
         monster_info->stamina = 0;
         monster_info->p3D->active_088 = 0;
-         monster_info->p3D->flags_00c = 0x200000;
-         ClearMonsterSpellIcons(monster_info->p3D);
+        monster_info->p3D->flags_00c = 0x200000;
+        ClearMonsterSpellIcons(monster_info->p3D);
         ReleaseMonToMonVisibilityList(monster_info);
         MonsterGetLocalLocation(monster_info->p3D, &position);
         monster_info->position_17 = position;

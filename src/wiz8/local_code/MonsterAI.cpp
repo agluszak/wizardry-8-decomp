@@ -192,7 +192,7 @@ void UpdateMonsterGroups(char staggered)
     if (PLLength(gXStatus.plsMonsterGroupList) == 0) {
         return;
     }
-    g_monster_group_tick = g_monster_group_tick + 1;
+    ++g_monster_group_tick;
     if (staggered == 0) {
         if (gXStatus.fCombatMode == 0 || gXStatus.sight_refresh_pending_a03 != 0) {
             if (gXStatus.sight_refresh_pending_a03 != 0) {
@@ -408,12 +408,11 @@ void DoMonsterRTAI(W8MonsterInfo* monster_info, char engage)
         unsigned char mode;
 
         mode = monster_info->ai_mode_255 & 0xf;
-        if (mode != 6 && (monster_info->p3D->face_party_290 == 0 ||
-                          monster_info->pathing_cooldown_246 != 0 || mode != 0xa ||
-                          monster_info->player_visibility.line_of_sight_28 == 0 ||
-                          (monster_info->p3D->movement_0c0.position_040 -
-                           g_startup_world_659c0c->GetPosition())
-                                  .Length() >= g_float_005ec2f8)) {
+        if (mode != 6 &&
+            (monster_info->p3D->face_party_290 == 0 || monster_info->pathing_cooldown_246 != 0 ||
+             mode != 0xa || monster_info->player_visibility.line_of_sight_28 == 0 ||
+             (monster_info->p3D->movement_0c0.position_040 - g_startup_world_659c0c->GetPosition())
+                     .Length() >= g_float_005ec2f8)) {
             monster_info->ai_mode_255 &= 0x7f;
         }
         if (decision <= 2 || decision == 9) {

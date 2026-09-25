@@ -2784,7 +2784,7 @@ void SetMonsterPartySlotMarker004C4DE0(int party_slot, int location_id, char on)
             PListRemove(g_world->plsItems, item);
             delete item;
             rep->objects_5c8[party_slot] = 0;
-            rep->icon_count_5c4 = rep->icon_count_5c4 - 1;
+            --rep->icon_count_5c4;
         }
     } else {
         if (rep->objects_5c8[party_slot] == 0) {
@@ -2792,7 +2792,7 @@ void SetMonsterPartySlotMarker004C4DE0(int party_slot, int location_id, char on)
                     g_party_target_marker_bitmaps_0060e938[g_status_685170.buffers.XChar[party_slot]
                                                                .party_order_index]);
             rep->objects_5c8[party_slot] = CreateMonsterIconItem004C5500(g_world, path, 1);
-            rep->icon_count_5c4 = rep->icon_count_5c4 + 1;
+            ++rep->icon_count_5c4;
         }
     }
     info->p3D->UpdateAttachedObjects004C3F70();

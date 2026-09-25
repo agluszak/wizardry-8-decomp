@@ -152,7 +152,7 @@ W8LevelFile* ReadLevelFile004CFDC0(int hFile)
     }
 
     fSuccess = FileRead(hFile, &pLevel->nCameras, sizeof(pLevel->nCameras), 0);
-    fSuccess = fSuccess & fSuccess2;
+    fSuccess &= fSuccess2;
     if (pLevel->nCameras != 0) {
         pLevel->pCameras =
             static_cast<W8LevelFileCamera*>(malloc(pLevel->nCameras * sizeof(W8LevelFileCamera)));
@@ -1684,7 +1684,7 @@ header_done:
                                 ((pMorph->LODMesh_02.pFrames->mesh_01.flags_0c & 1) != 0)) {
                                 usFrame = pMorph->num_frames_01;
                             }
-                            usFrame = usFrame + 1;
+                            ++usFrame;
                         } while ((short)usFrame < (short)pMorph->num_frames_01);
                     }
                 }
@@ -1752,7 +1752,7 @@ header_done:
                                     return 0;
                                 }
                             }
-                            iFrame = iFrame + 1;
+                            ++iFrame;
                         } while (iFrame < (short)pTransform->num_frames_01);
                     }
                 }
@@ -1899,7 +1899,7 @@ header_done:
                             ((pMorph->LODMesh_02.pFrames->mesh_01.flags_0c & 1) != 0)) {
                             usFrame = pMorph->num_frames_01;
                         }
-                        usFrame = usFrame + 1;
+                        ++usFrame;
                     } while ((short)usFrame < (short)pMorph->num_frames_01);
                     free(pMorph->LODMesh_02.pFrames);
                     pMorph->LODMesh_02.pFrames = 0;
@@ -1954,7 +1954,7 @@ header_done:
                             free(pFrame->pTextures_5f);
                             pFrame->pTextures_5f = 0;
                         }
-                        iFrame = iFrame + 1;
+                        ++iFrame;
                     } while (iFrame < (short)pTransform->num_frames_01);
                     free(pTransform->LODMesh_02.pFrames);
                     pTransform->LODMesh_02.pFrames = 0;

@@ -730,15 +730,15 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
             duration = attack_block.duration_per_power * attack_block.duration_scale +
                        attack_block.duration_base;
             if (duration != 9999) {
-                duration = duration + 1;
+                ++duration;
                 {
                     unsigned int roll = Random(4);
                     if (roll == 0) {
                         if (1 < duration) {
-                            duration = duration + 1;
+                            ++duration;
                         }
                     } else if (roll == 1 && duration < 3) {
-                        duration = duration + 1;
+                        ++duration;
                     }
                 }
                 AdjustIntegerByPercent(&duration, attack_block.percent);
@@ -782,15 +782,15 @@ void ApplyInsanityEffect(W8SpellEffectEntry* effect)
                     duration = attack_block.duration_per_power * attack_block.duration_scale +
                                attack_block.duration_base;
                     if (duration != 9999) {
-                        duration = duration + 1;
+                        ++duration;
                         {
                             unsigned int roll = Random(4);
                             if (roll == 0) {
                                 if (1 < duration) {
-                                    duration = duration + 1;
+                                    ++duration;
                                 }
                             } else if (roll == 1 && duration < 3) {
-                                duration = duration + 1;
+                                ++duration;
                             }
                         }
                         AdjustIntegerByPercent(&duration, attack_block.percent);
@@ -3286,7 +3286,7 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
                             }
                             if (amount != 0) {
                                 ApplyDamageToCharacter(party_slot, amount, 0, 1, 0, 0, 0);
-                                resisted_total = resisted_total + amount;
+                                resisted_total += amount;
                                 ++hit_count;
                                 if (spell_id == 0x50) {
                                     for (realm = 0; realm < 6; ++realm) {
@@ -3305,15 +3305,15 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
                         if (spell_id == 0x4c) {
                             duration = duration_scale * power + duration_base;
                             if (duration != 9999) {
-                                duration = duration + 1;
+                                ++duration;
                                 {
                                     unsigned int roll = Random(4);
                                     if (roll == 0) {
                                         if (1 < duration) {
-                                            duration = duration + 1;
+                                            ++duration;
                                         }
                                     } else if (roll == 1 && duration < 3) {
-                                        duration = duration + 1;
+                                        ++duration;
                                     }
                                 }
                                 AdjustIntegerByPercent(&duration, percent);
@@ -3391,15 +3391,15 @@ void TickCombatEffectSlots(W8EffectSlot* effect_slots, W8CombatSlot* target)
                 if (spell_id == 0x4c) {
                     duration = duration_scale * power + duration_base;
                     if (duration != 9999) {
-                        duration = duration + 1;
+                        ++duration;
                         {
                             unsigned int roll = Random(4);
                             if (roll == 0) {
                                 if (1 < duration) {
-                                    duration = duration + 1;
+                                    ++duration;
                                 }
                             } else if (roll == 1 && duration < 3) {
-                                duration = duration + 1;
+                                ++duration;
                             }
                         }
                         AdjustIntegerByPercent(&duration, percent);
@@ -3803,7 +3803,7 @@ void ProcessSpellEffectTargets(W8SpellEffectEntry* effect)
         shake = CreateCameraShakeEffect004AE080(
             level * g_navigator_vertical_phase_step_005ebcc8 + g_float_005ebc7c, 1,
             level * g_navigator_snap_angle_005ec2f0 + g_float_005ee838, 50000.0f, &point);
-        shake->flags_00 = shake->flags_00 & 0xffffffe7;
+        shake->flags_00 &= 0xffffffe7;
         sound_name = g_spell_records[spell_id].sound_name;
         if (sound_name[0] != 0) {
             parms = 0;

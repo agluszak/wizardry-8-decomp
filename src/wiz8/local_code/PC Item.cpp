@@ -4110,7 +4110,7 @@ void SplitThrowableStackBetweenHands0051ED30(W8Character* character, int equip_s
             SwapItemInstances(&character->EquippedItem[equip_slot], source, character, 1);
             return;
         }
-        moved = moved - (moved >> 1);
+        moved -= moved >> 1;
     } else {
         if (moved == 1) {
             return;

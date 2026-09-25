@@ -1136,9 +1136,9 @@ void W8GrCycle::UpdateParticleAttachments004A7E50()
             }
             offset = locations[vertex];
         }
-        offset.x = offset.x * scale_x;
-        offset.y = offset.y * scale_y;
-        offset.z = offset.z * scale_z;
+        offset.x *= scale_x;
+        offset.y *= scale_y;
+        offset.z *= scale_z;
         placed = rotation.Transform(offset);
         location = current_model_instance_1a8->getLocation();
         srVector3T<float> anchor;

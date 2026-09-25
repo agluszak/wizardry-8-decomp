@@ -4790,8 +4790,8 @@ void RedrawCombatMonsterList(void)
                     SetFontObjectPalette16BPP(g_font_683660, palette);
                     gprintfDirty(0xfa, row_y, const_cast<UINT16*>(g_format_s_006068e4),
                                  scratch_text);
-                    row_y = row_y + 0xb;
-                    live_row_count = live_row_count + 1;
+                    row_y += 0xb;
+                    ++live_row_count;
                     if (max_text_width < static_cast<unsigned int>(text_width)) {
                         max_text_width = static_cast<unsigned int>(text_width);
                     }
@@ -4799,7 +4799,7 @@ void RedrawCombatMonsterList(void)
                         break;
                     }
                 }
-                group_list_index = group_list_index + 1;
+                ++group_list_index;
                 list_length = PLLength(gXStatus.plsMonsterGroupList);
             } while (group_list_index < list_length);
         }
@@ -6022,7 +6022,7 @@ void UpdateCombatPortraitStatus0059B4C0(void)
             if (status == 3) {
                 if (combat_row->combat_status_8c == 3) {
                     if (ClockIsTicking(entry->acting_portrait_pulse_clock) == 0) {
-                        entry->acting_portrait_pulse = entry->acting_portrait_pulse + 1;
+                        ++entry->acting_portrait_pulse;
                         if (entry->acting_portrait_pulse == 0xc) {
                             entry->acting_portrait_pulse = 1;
                             entry->acting_portrait_pulse_clock = SetCountdownClock(100);

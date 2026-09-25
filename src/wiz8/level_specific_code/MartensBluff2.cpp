@@ -285,7 +285,7 @@ void MartensBluff2Spikeball004DD3F0(int command)
             (g_spikeball_gate_683530->PollElapsedIntervals(),
              g_spikeball_gate_683530->IsFinished())) {
             g_spikeball_gate_683530->Arm();
-            g_spikeball_count_683534 = g_spikeball_count_683534 + 1;
+            ++g_spikeball_count_683534;
             ClearAttackBlock(&effect);
             effect.magnitude.base = 0;
             effect.magnitude.count = 2;

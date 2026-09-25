@@ -734,7 +734,7 @@ void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_index,
             }
             swprintf(plain_text, gppStringList[s_empty_quote_text_ids[g_empty_quote_text_index]],
                      g_npc_scripting.npc->record->source_name_004);
-            g_empty_quote_text_index = g_empty_quote_text_index + 1;
+            ++g_empty_quote_text_index;
             if (g_empty_quote_text_index == 2) {
                 g_empty_quote_text_index = 0;
             }

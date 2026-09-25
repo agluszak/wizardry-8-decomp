@@ -290,7 +290,7 @@ void RefreshMonsterGroupHostility005113A0(W8MonsterGroup* monster_group)
         if (monster_info != 0 && monster_info->p3D->IsDying() == 0) {
             break;
         }
-        index = index + 1;
+        ++index;
         if (index < ILLength(monster_group->monsters)) {
             continue;
         }
@@ -1051,7 +1051,7 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
 
     do {
         group->group_id = g_status_685170.next_group_id_234a;
-        g_status_685170.next_group_id_234a = g_status_685170.next_group_id_234a + 1;
+        ++g_status_685170.next_group_id_234a;
     } while (group->group_id == 0);
 
     group->leader_group_id = 0;
@@ -1324,7 +1324,7 @@ done:
     W8Monster* leader_monster = leader_info->p3D;
     if (script != 0 && script->getName() != 0) {
         script = old_monster->script_238;
-        leader_monster->SetScript004C7F10(script != 0 ? script->getName() : 0, '\x01');
+        leader_monster->SetScript004C7F10(script != 0 ? script->getName() : 0, 1);
     }
     leader_info->heard_noise_radius_43 = old_info->heard_noise_radius_43;
     leader_info->heard_noise_position_37 = old_info->heard_noise_position_37;
@@ -1399,7 +1399,7 @@ void ElectAlliedLeaderGroup(W8MonsterGroup* monster_group, W8MonsterInfo* leader
     stScript* script = leader_info->p3D->script_238;
     if (script != 0 && script->getName() != 0) {
         script = leader_info->p3D->script_238;
-        new_leader_info->p3D->SetScript004C7F10(script != 0 ? script->getName() : 0, '\x01');
+        new_leader_info->p3D->SetScript004C7F10(script != 0 ? script->getName() : 0, 1);
     }
     new_leader_info->heard_noise_radius_43 = leader_info->heard_noise_radius_43;
     new_leader_info->heard_noise_position_37 = leader_info->heard_noise_position_37;
@@ -1418,7 +1418,7 @@ void MonsterGroupEnterCombat(W8MonsterGroup* monster_group)
             monster_group->ubDisposition == '\x01' && gXStatus.fCombatMode == '\0') {
             return;
         }
-        if (GetFlag68F105() != '\0') {
+        if (GetFlag68F105() != 0) {
             return;
         }
         if (monster_group->fInCombat != '\0') {
@@ -1471,7 +1471,7 @@ void MonsterGroupEnterCombat(W8MonsterGroup* monster_group)
             int member_id = IListGetAt(monster_group->monsters, index);
             W8MonsterInfo* member_info = MonsterGetScriptPartByLocationIndex(
                 MonsterGetIndexByLocationID(0x830, MONSTER_GROUP_CPP, member_id, 1));
-            if (member_info != 0 && member_info->p3D->IsDying() == '\0') {
+            if (member_info != 0 && member_info->p3D->IsDying() == 0) {
                 break;
             }
             ++index;
@@ -1497,7 +1497,7 @@ void MonsterGroupEnterCombat(W8MonsterGroup* monster_group)
                     W8MonsterGroup* other = GetMonsterGroupByListIndex(group_list_index);
                     if (other->members_active_28 != '\0' && other->fInCombat != '\0' &&
                         other->member_count != 0 &&
-                        (other->ubDisposition == '\x01' || CombatAllowsLiveGroups() != '\0')) {
+                        (other->ubDisposition == '\x01' || CombatAllowsLiveGroups() != 0)) {
                         ++live_groups;
                     }
                     ++group_list_index;
@@ -1738,7 +1738,7 @@ void SetMonsterGroupEngagementState(int group_id, unsigned char state)
         group->engagement_ticks_c9 = 0;
     }
     if (group->engagement_c8 != 0) {
-        group->engagement_ticks_c9 = group->engagement_ticks_c9 + 1;
+        ++group->engagement_ticks_c9;
     }
     for (ally_index = 0; ally_index < W8_MONSTER_GROUP_ALLY_COUNT; ++ally_index) {
         if (group->allied_group_ids[ally_index] != 0) {
@@ -1749,7 +1749,7 @@ void SetMonsterGroupEngagementState(int group_id, unsigned char state)
                 group->engagement_ticks_c9 = 0;
             }
             if (group->engagement_c8 != 0) {
-                group->engagement_ticks_c9 = group->engagement_ticks_c9 + 1;
+                ++group->engagement_ticks_c9;
             }
         }
     }

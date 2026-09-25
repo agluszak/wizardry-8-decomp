@@ -64,8 +64,8 @@ unsigned char W8AmbientSound::IsInsideRegion(const srVector3T<float>* listener)
     scale_z = g_float_005ebb38 / region_scale.z;
     if (scale_x != g_float_005ebb38 || scale_y != g_float_005ebb38 || scale_z != g_float_005ebb38) {
         relative.x = scale_x * relative.x;
-        relative.y = relative.y * scale_y;
-        relative.z = relative.z * scale_z;
+        relative.y *= scale_y;
+        relative.z *= scale_z;
     }
     if (region_angle != g_float_005ebb34 &&
         (region_axis.x != g_float_005ebb34 || region_axis.y != g_float_005ebb34 ||

@@ -407,7 +407,7 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
         if (mesh->num_vertices_04 < 1 || mesh->num_faces_08 < 1) {
             return 0;
         }
-        mesh->num_vertices_04 = mesh->num_vertices_04 + 1;
+        ++mesh->num_vertices_04;
         classify = ClassifyTextures00496000(level->pTextures, level->nTextures, stem);
         vertices = static_cast<W8OctPreTreeVertex*>(malloc(mesh->num_vertices_04 * 0xc0));
         if (vertices != 0) {
@@ -460,12 +460,12 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                                                    static_cast<float>(mesh->num_vertices_04)));
                     if (mark + 10 < percent) {
                         report = 1;
-                        mark = mark + 10;
+                        mark += 10;
                     }
                     lit = WeldVertex00494800(&weld, vertices, i, 0xffffffff);
-                    i = i + 1;
+                    ++i;
                     if (lit != i) {
-                        redundant = redundant + 1;
+                        ++redundant;
                     }
                     if (report != 0) {
                         sprintf(message, "  %d%% Complete:  %d Redundant Vertices  \r", mark,
@@ -531,11 +531,11 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                             if (strstr(name, "sun") != 0 || strstr(name, "moon") != 0 ||
                                 strstr(name, "lightning") != 0) {
                                 sun_map[i] = sun_count;
-                                sun_count = sun_count + 1;
+                                ++sun_count;
                                 last_sun = i;
                             }
                         }
-                        sun_count = sun_count - 1;
+                        --sun_count;
                         if (sun_count != 0) {
                             sun_pool = static_cast<float*>(
                                 malloc(geometry.vertex_count_00 * sun_count * 4));
@@ -546,7 +546,7 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                             float* run = sun_pool;
                             for (i = 0; i < static_cast<int>(geometry.vertex_count_00); ++i) {
                                 vertices[i].sun_lights_3c = run;
-                                run = run + sun_count;
+                                run += sun_count;
                             }
                         }
                     } else {
@@ -671,13 +671,13 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                                 (i * g_octree_cell_scale_005ebcd0 /
                                  static_cast<float>(geometry.vertex_count_00)));
                             if (mark + 10 < percent) {
-                                mark = mark + 10;
+                                mark += 10;
                                 sprintf(message, "  %d%% Complete:  %d Vertices Lit \r", mark, i);
                                 ReportStartupMessage004969D0(message);
                             }
                             if (AccumulateVertexLight00495CF0(tree, vertices + i, light_total,
                                                               lights, sun_map) != 0) {
-                                lit_vertices = lit_vertices + 1;
+                                ++lit_vertices;
                             }
                         }
                         short live_lights = 0;
@@ -686,7 +686,7 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                             for (i = light_total; i != 0; --i) {
                                 if (src_light->version_00 < 2 ||
                                     (src_light->create_02 == 0 && src_light->visible_03 != 0)) {
-                                    live_lights = live_lights + 1;
+                                    ++live_lights;
                                 }
                                 ++src_light;
                             }
@@ -941,17 +941,17 @@ void ReportBuildStatus00497690(int channel, const char* message)
         }
         break;
     case 1:
-        g_progress_done_0065bd4c = g_progress_done_0065bd4c + 1;
+        ++g_progress_done_0065bd4c;
         if (g_progress_mark_0065bd50 + 10 <
             static_cast<int>((g_progress_done_0065bd4c * 100.0f / g_progress_total_0065bd48))) {
-            g_progress_mark_0065bd50 = g_progress_mark_0065bd50 + 10;
+            g_progress_mark_0065bd50 += 10;
             sprintf(line, "  %d%% Complete \r", g_progress_mark_0065bd50);
             ReportStartupMessage004969D0(line);
             return;
         }
         break;
     case 2:
-        g_progress_total_0065bd48 = g_progress_total_0065bd48 + 1;
+        ++g_progress_total_0065bd48;
         return;
     case 3:
         if (g_log_file_0065bd54 != 0) {
@@ -1040,7 +1040,7 @@ void ReportStartupMessage004969D0(const char* message)
     }
     if (g_status_cursor_0065bd44 < 6) {
         index = g_status_cursor_0065bd44;
-        g_status_cursor_0065bd44 = g_status_cursor_0065bd44 + 1;
+        ++g_status_cursor_0065bd44;
         line = g_status_lines_0065bce8[index];
     } else {
         line = g_status_lines_0065bce8[5];
@@ -1059,7 +1059,7 @@ void ReportStartupMessage004969D0(const char* message)
     while (*message != '\0') {
         if (*message > '\x1f') {
             line[length] = static_cast<unsigned short>(*message);
-            length = length + 1;
+            ++length;
         }
         if (*message == '\r' && message[1] == '\0') {
             scroll = 0;
@@ -1075,7 +1075,7 @@ void ReportStartupMessage004969D0(const char* message)
         index = 0x191;
         for (top = 0; top < 6; ++top) {
             gprintfDirty(1, index, const_cast<UINT16*>(L"%s"), g_status_lines_0065bce8[top]);
-            index = index + 0xd;
+            index += 0xd;
         }
         InvalidateRegion(0, 400, 0x27f, 0x1df, 4);
     } else {
@@ -1234,7 +1234,7 @@ int BuildRegionPolygons00494B90(W8LevelFile* level, W8OctPreTreeGeometry* geomet
     kind_counts[0] = 0;
     kind_counts[1] = 0;
     kind_counts[2] = 0;
-    mesh->num_faces_08 = mesh->num_faces_08 + 1;
+    ++mesh->num_faces_08;
     int poly_total = mesh->num_faces_08;
     polygons =
         static_cast<W8OctRegionPolygon*>(malloc(poly_total * 2 * sizeof(W8OctRegionPolygon)));
@@ -1257,9 +1257,9 @@ int BuildRegionPolygons00494B90(W8LevelFile* level, W8OctPreTreeGeometry* geomet
                         ordinal);
                 ReportStartupMessage004969D0(message);
             }
-            face->vertices[0] = face->vertices[0] + 1;
-            face->vertices[1] = face->vertices[1] + 1;
-            face->vertices[2] = face->vertices[2] + 1;
+            ++face->vertices[0];
+            ++face->vertices[1];
+            ++face->vertices[2];
             if (face->vertices[0] < 1 || mesh->num_vertices_04 <= face->vertices[0]) {
                 sprintf(message, "Mesh Read: Polygon %d Vertex 0 has invalid index: %d.", ordinal,
                         face->vertices[0]);
@@ -1316,16 +1316,16 @@ int BuildRegionPolygons00494B90(W8LevelFile* level, W8OctPreTreeGeometry* geomet
                                 cur->original_position_54.x;
                 }
                 length = sqrt(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
-                normal.x = normal.x / length;
-                normal.y = normal.y / length;
-                normal.z = normal.z / length;
+                normal.x /= length;
+                normal.y /= length;
+                normal.z /= length;
                 offset = 0.0f;
                 for (corner = 0; corner < 3; ++corner) {
                     current = vertices + vertex_index[corner];
                     offset = normal.z * current->position_0c.z + normal.y * current->position_0c.y +
                              normal.x * current->position_0c.x + offset;
                 }
-                offset = offset * g_float_005ec1a8;
+                offset *= g_float_005ec1a8;
                 axis = 0;
                 largest = 0.0f;
                 polygon->plane_08.normal.x = normal.x;
@@ -1361,7 +1361,7 @@ int BuildRegionPolygons00494B90(W8LevelFile* level, W8OctPreTreeGeometry* geomet
                         current->normal_24.x = normal.x + current->normal_24.x;
                         current->normal_24.y = normal.y + current->normal_24.y;
                         current->normal_24.z = normal.z + current->normal_24.z;
-                        current->normal_count_18 = current->normal_count_18 + 1;
+                        ++current->normal_count_18;
                     }
                 }
                 if ((materials[face->material_index].shader_flags_116 & 1) != 0) {
@@ -1373,7 +1373,7 @@ int BuildRegionPolygons00494B90(W8LevelFile* level, W8OctPreTreeGeometry* geomet
                 } else {
                     polygon->kind_2c = classify[face->material_index];
                 }
-                kind_counts[polygon->kind_2c] = kind_counts[polygon->kind_2c] + 1;
+                ++kind_counts[polygon->kind_2c];
                 if (ordinal < poly_total && opposing != 0) {
                     for (corner = 0; corner < 3; ++corner) {
                         int found = WeldVertex00494800(&weld_table, vertices, mesh->num_vertices_04,
@@ -1383,10 +1383,10 @@ int BuildRegionPolygons00494B90(W8LevelFile* level, W8OctPreTreeGeometry* geomet
                             created = vertices + mesh->num_vertices_04;
                             memcpy(created, current, 0x60);
                             created->vertex_index_04 = mesh->num_vertices_04;
-                            current->flags_00 = current->flags_00 | 2;
+                            current->flags_00 |= 2;
                             vertex_index[corner] = mesh->num_vertices_04;
-                            mesh->num_vertices_04 = mesh->num_vertices_04 + 1;
-                            created->flags_00 = created->flags_00 | 2;
+                            ++mesh->num_vertices_04;
+                            created->flags_00 |= 2;
                             created->normal_24.x = 0.0f;
                             created->normal_24.y = 0.0f;
                             created->normal_24.z = 0.0f;
@@ -1401,7 +1401,7 @@ int BuildRegionPolygons00494B90(W8LevelFile* level, W8OctPreTreeGeometry* geomet
                         current->normal_24.x = normal.x + current->normal_24.x;
                         current->normal_24.y = normal.y + current->normal_24.y;
                         current->normal_24.z = normal.z + current->normal_24.z;
-                        current->normal_count_18 = current->normal_count_18 + 1;
+                        ++current->normal_count_18;
                     }
                     if ((materials[face->material_index].shader_flags_116 & 1) != 0) {
                         back = polygons + mesh->num_faces_08;
@@ -1410,16 +1410,16 @@ int BuildRegionPolygons00494B90(W8LevelFile* level, W8OctPreTreeGeometry* geomet
                         back->vertices_34[0] = vertices + vertex_index[1];
                         back->vertices_34[1] = vertices + vertex_index[0];
                         back->vertices_34[2] = vertices + vertex_index[2];
-                        back->plane_08.normal.x = back->plane_08.normal.x * g_negative_one_005ebc38;
-                        back->plane_08.normal.y = back->plane_08.normal.y * g_negative_one_005ebc38;
-                        back->plane_08.normal.z = back->plane_08.normal.z * g_negative_one_005ebc38;
-                        back->plane_08.w = back->plane_08.w * g_negative_one_005ebc38;
+                        back->plane_08.normal.x *= g_negative_one_005ebc38;
+                        back->plane_08.normal.y *= g_negative_one_005ebc38;
+                        back->plane_08.normal.z *= g_negative_one_005ebc38;
+                        back->plane_08.w *= g_negative_one_005ebc38;
                         back->face_48.vertices[0] = vertex_index[1];
                         back->face_48.vertices[1] = vertex_index[0];
                         back->face_48.vertices[2] = vertex_index[2];
                         back->face_48.texture_coordinates[0] = face->texture_coordinates[1];
                         back->face_48.texture_coordinates[1] = face->texture_coordinates[0];
-                        mesh->num_faces_08 = mesh->num_faces_08 + 1;
+                        ++mesh->num_faces_08;
                     }
                 }
             }
@@ -1599,20 +1599,20 @@ int AccumulateVertexLight00495CF0(OctPreTree* tree, W8OctPreTreeVertex* vertex, 
             delta_z = light->position_08.z - vertex->position_0c.z;
             distance = sqrt(delta_x * delta_x + delta_y * delta_y + delta_z * delta_z);
             if ((distance < light->range_24) || ((sun_map != 0) && (*sun != 0))) {
-                g_light_candidates_0065bd18 = g_light_candidates_0065bd18 + 1;
+                ++g_light_candidates_0065bd18;
                 dot = (delta_x / distance) * vertex->normal_24.x +
                       (delta_y / distance) * vertex->normal_24.y +
                       (delta_z / distance) * vertex->normal_24.z;
                 if (g_float_005ebb34 < dot) {
-                    g_lights_facing_0065bd1c = g_lights_facing_0065bd1c + 1;
+                    ++g_lights_facing_0065bd1c;
                     if (g_option_shadow_test_0060ac71 != 0) {
                         if (!tree->SegmentClear00467BB0(&light->position_08,
                                                         &vertex->position_0c)) {
                             goto next_light;
                         }
                     }
-                    g_lights_unblocked_0065bd14 = g_lights_unblocked_0065bd14 + 1;
-                    lit = lit + 1;
+                    ++g_lights_unblocked_0065bd14;
+                    ++lit;
                     if ((sun_map == 0) || (*sun == 0)) {
                         scale = dot * light->intensity_20 *
                                 (g_float_005ebb38 - distance / light->range_24);
@@ -1626,9 +1626,9 @@ int AccumulateVertexLight00495CF0(OctPreTree* tree, W8OctPreTreeVertex* vertex, 
             }
         }
     next_light:
-        sun = sun + 1;
+        ++sun;
         ++light;
-        light_count = light_count - 1;
+        --light_count;
         if (light_count == 0) {
             return lit;
         }
@@ -1674,7 +1674,7 @@ int PropReceivesLight00495E90(OctPreTree* tree, W8LevelFileProp* prop, W8LevelFi
                     }
                 }
             }
-            bound = bound + 1;
+            ++bound;
         } while (bound < prop->anim_obj_53.num_bound_box_47);
     }
     return 0;
@@ -1915,7 +1915,7 @@ int MaterialSort00496500(W8OctPreTreeGeometry* geometry, W8MaterialRecord004B8A7
     }
     if (1 < count) {
         for (index = 1; index < count; ++index) {
-            material_lookup[index] = material_lookup[index] + (-1 - count);
+            material_lookup[index] += -1 - count;
         }
     }
     if (1 < static_cast<int>(geometry->polygon_count_08)) {

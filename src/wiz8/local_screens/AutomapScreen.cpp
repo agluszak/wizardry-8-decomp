@@ -1457,7 +1457,7 @@ unsigned int LightPendingAutomapCells005807B0(unsigned int max_count)
             if (0x20 < g_automap_cell_count_0068f27c) {
                 while (bit < static_cast<unsigned int>(g_automap_cell_count_0068f27c - 0x20) &&
                        g_bits_68f288->puiIndex[bit >> 5] == 0) {
-                    bit = bit + 0x20;
+                    bit += 0x20;
                 }
             }
             if (g_bits_68f288->Test(bit) != 0) {
@@ -1480,10 +1480,10 @@ unsigned int LightPendingAutomapCells005807B0(unsigned int max_count)
                 if (g_bits_68f28c->Test(bit) == 0) {
                     g_bits_68f28c->Set(bit);
                     LightAutomapCell(&position);
-                    lit = lit + 1;
+                    ++lit;
                 }
             }
-            bit = bit + 1;
+            ++bit;
         } while (bit < static_cast<unsigned int>(g_automap_cell_count_0068f27c));
     }
     return lit;
@@ -1529,7 +1529,7 @@ void UpdateAutomapBounds00580380(void)
                 if (0x20 < g_automap_cell_count_0068f27c) {
                     while (bit < (unsigned int)(g_automap_cell_count_0068f27c - 0x20) &&
                            g_bits_68f288->puiIndex[bit >> 5] == 0) {
-                        bit = bit + 0x20;
+                        bit += 0x20;
                     }
                 }
                 if (g_bits_68f288->Test(bit) != 0) {
@@ -1565,13 +1565,13 @@ void UpdateAutomapBounds00580380(void)
                         LightAutomapCell(&position);
                     }
                 }
-                bit = bit + 1;
+                ++bit;
             } while (bit < (unsigned int)g_automap_cell_count_0068f27c);
         }
-        g_automap_bounds_min.x = g_automap_bounds_min.x - g_float_005ec2f8;
-        g_automap_bounds_max.x = g_automap_bounds_max.x + g_float_005ec2f8;
-        g_automap_bounds_min.z = g_automap_bounds_min.z - g_float_005ec2f8;
-        g_automap_bounds_max.z = g_automap_bounds_max.z + g_float_005ec2f8;
+        g_automap_bounds_min.x -= g_float_005ec2f8;
+        g_automap_bounds_max.x += g_float_005ec2f8;
+        g_automap_bounds_min.z -= g_float_005ec2f8;
+        g_automap_bounds_max.z += g_float_005ec2f8;
         float span = g_automap_bounds_max.x - g_automap_bounds_min.x;
         if (span <= g_automap_bounds_max.z - g_automap_bounds_min.z) {
             span = g_automap_bounds_max.z - g_automap_bounds_min.z;
@@ -1783,7 +1783,7 @@ unsigned char ShowAutomapNoteTooltip00581460(W8AutomapNote* note)
                     break;
                 }
             }
-            index = index + 1;
+            ++index;
         } while (index < g_automap_layers.count);
     }
     if (index - 1 == g_automap_layer) {

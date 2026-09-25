@@ -155,7 +155,7 @@ char GetOppositeDisposition(W8TargetSource* source)
         }
     } else if (TargetSourceIsMonster(source, 0)) {
         unsigned int monster_list_index =
-            MonsterGetIndexByLocationID(0xd3, COMBAT_HOSTILITY_CPP, source->iMonsterID, '\0');
+            MonsterGetIndexByLocationID(0xd3, COMBAT_HOSTILITY_CPP, source->iMonsterID, 0);
         if (monster_list_index == 0xffffffff) {
             FormatDebugMessage(1, "GetOppositeDisposition - ERROR - can't find monster %d!",
                                source->iMonsterID);
@@ -176,7 +176,7 @@ char GetOppositeDisposition(W8TargetSource* source)
 void ProvokeListedMonsterGroups(W8TargetSource* source, W8GrowableVector<int>* monsters)
 {
     int own_monster_id = -1;
-    if (GetOppositeDisposition(source) == '\0') {
+    if (GetOppositeDisposition(source) == 0) {
         return;
     }
     if (TargetSourceIsMonster(source, 0)) {
@@ -191,7 +191,7 @@ void ProvokeListedMonsterGroups(W8TargetSource* source, W8GrowableVector<int>* m
             continue;
         }
         unsigned int monster_list_index =
-            MonsterGetIndexByLocationID(0x122, COMBAT_HOSTILITY_CPP, monster_id, '\x01');
+            MonsterGetIndexByLocationID(0x122, COMBAT_HOSTILITY_CPP, monster_id, 1);
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         if (monster_info->monster_group_id != 0) {
             target.iMonsterID = monster_id;
@@ -214,7 +214,7 @@ void MakeTargetGroupHostile(W8TargetSource* source, W8CombatSlot* target)
             return;
         }
         unsigned int monster_list_index =
-            MonsterGetIndexByLocationID(0x146, COMBAT_HOSTILITY_CPP, target->iMonsterID, '\x01');
+            MonsterGetIndexByLocationID(0x146, COMBAT_HOSTILITY_CPP, target->iMonsterID, 1);
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         if (monster_info->uiCondition[13] != 0) {
             return;
@@ -225,7 +225,7 @@ void MakeTargetGroupHostile(W8TargetSource* source, W8CombatSlot* target)
             return;
         }
         unsigned int group_list_index =
-            GetMonsterGroupIndexByID(0x1ef, COMBAT_HOSTILITY_CPP, target->iGroupID, '\x01');
+            GetMonsterGroupIndexByID(0x1ef, COMBAT_HOSTILITY_CPP, target->iGroupID, 1);
         group = GetMonsterGroupByListIndex(group_list_index);
         unsigned int index = 0;
         if (ILLength(group->monsters) == 0) {
@@ -234,7 +234,7 @@ void MakeTargetGroupHostile(W8TargetSource* source, W8CombatSlot* target)
         while (true) {
             int monster_id = IListGetAt(group->monsters, index);
             unsigned int monster_list_index =
-                MonsterGetIndexByLocationID(500, COMBAT_HOSTILITY_CPP, monster_id, '\x01');
+                MonsterGetIndexByLocationID(500, COMBAT_HOSTILITY_CPP, monster_id, 1);
             W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
             if (monster_info->uiCondition[13] == 0) {
                 break;
@@ -249,9 +249,9 @@ void MakeTargetGroupHostile(W8TargetSource* source, W8CombatSlot* target)
     }
     if (group_id != -1) {
         unsigned int group_list_index =
-            GetMonsterGroupIndexByID(0x167, COMBAT_HOSTILITY_CPP, group_id, '\x01');
+            GetMonsterGroupIndexByID(0x167, COMBAT_HOSTILITY_CPP, group_id, 1);
         group = GetMonsterGroupByListIndex(group_list_index);
-        SetMonsterGroupHostility(group, hostility, '\x01');
+        SetMonsterGroupHostility(group, hostility, 1);
         if (group->fInCombat == '\0') {
             MonsterGroupEnterCombat(group);
         }
@@ -375,7 +375,7 @@ const int g_monster_special_attack_name_ids_61ec14[12] = {0,    1598, 1599, 1600
 void SetMonsterGroupHostilityByID(int group_id, unsigned int hostility, char recurse)
 {
     unsigned int group_list_index =
-        GetMonsterGroupIndexByID(0x207, COMBAT_HOSTILITY_CPP, group_id, '\x01');
+        GetMonsterGroupIndexByID(0x207, COMBAT_HOSTILITY_CPP, group_id, 1);
     W8MonsterGroup* group = GetMonsterGroupByListIndex(group_list_index);
     SetMonsterGroupHostility(group, hostility, recurse);
 }

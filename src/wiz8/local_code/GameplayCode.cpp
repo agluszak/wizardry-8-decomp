@@ -168,7 +168,7 @@ void AdvanceCharacterToLevel(W8Character* character, unsigned int level)
     CalcXPGoal(character);
 
     while (character->uiExpLevel < level) {
-        character->uiExpLevel = character->uiExpLevel + 1;
+        ++character->uiExpLevel;
         character->experience_previous_goal = character->experience_goal;
         CalcXPGoal(character);
     }
@@ -411,7 +411,7 @@ void HandleLevelOverride004EF9A0(float fall)
         ShowNotice(8, gppStringList[0x252]);
         SoundPlay(s_fall_impact_wav_00617894, &sound_parms);
         W8Dice dice;
-        SetDice(&dice, static_cast<unsigned char>(count), '\x06', 0);
+        SetDice(&dice, static_cast<unsigned char>(count), 6, 0);
         ApplyRolledHealthChangeToParty(&dice, 0, 1);
     }
 }

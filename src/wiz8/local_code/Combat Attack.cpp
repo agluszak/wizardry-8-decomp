@@ -1720,8 +1720,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             srAssertFail("pMonsterInfo->fMissileReleased", COMBAT_ATTACK_CPP, 0x80b,
                          FormatString("ContinueMonsterAttack: ERROR - Missile not released, ID %d, "
                                       "cycle %d, pending %d",
-                                      monster_info->location_id,
-                                      MonsterQuery(monster_info->p3D, 6),
+                                      monster_info->location_id, MonsterQuery(monster_info->p3D, 6),
                                       monster_info->p3D->m_pRep->pending_cycle));
         }
         if (g_combat_state->missile_hit_result == 1) {
@@ -1841,8 +1840,8 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                                     g_effect_argument_005ed914);
             }
             if (g_combat_state->TargetHit.iType == W8_TARGET_KIND_MONSTER &&
-                static_cast<char>(
-                    target_info->p3D->IsFacingMonster004C4CA0(monster_info->p3D)) != 0 &&
+                static_cast<char>(target_info->p3D->IsFacingMonster004C4CA0(monster_info->p3D)) !=
+                    0 &&
                 target_info->fMotionless == 0) {
                 StartMonsterCycle(target_info, 0x13, 1);
             }
@@ -2162,7 +2161,7 @@ char StartMonsterAttack0053FEA0(W8MonsterInfo* monster_info, W8MonsterRecord* re
         return 0;
     }
     attack = combat->attack_index_11;
-    combat->attacks_per_round = combat->attacks_per_round - 1;
+    --combat->attacks_per_round;
     int action_detail = monster_info->action_detail;
     if (RateMonsterAttack(monster_info, record, attack, 0, 0) != 0) {
         return 0;
@@ -2229,7 +2228,7 @@ char CharacterNoticesAttacker(int party_slot)
         g_status_685170.buffers.Char[party_slot].attributes[W8_ATTRIBUTE_SENSES].effective -
         row->spot_attempts_90 * 0x19;
     noticed = Random(100) < static_cast<unsigned int>(senses);
-    row->spot_attempts_90 = row->spot_attempts_90 + 1;
+    ++row->spot_attempts_90;
     return noticed;
 }
 
@@ -2350,7 +2349,7 @@ target_name:
                     notices = Random(100) <
                               static_cast<unsigned int>(second->attributes[4] + attempts * -0x19);
                 }
-                second_combat->spot_attempts_13d = second_combat->spot_attempts_13d + 1;
+                ++second_combat->spot_attempts_13d;
                 if (notices) {
                     MonsterAimAtMonster004C62C0(second->p3D, monster_info->p3D, 0);
                     goto message_tail;
@@ -2699,7 +2698,7 @@ int ResolveCharacterAttackDamage(int party_slot, int hand, unsigned int attack_m
 
     int damage =
         (pPC->bonus_1770.damage_percent_03 + 100 + pPC->Hand[hand].damage_percent_29) * rolled + 50;
-    damage = damage / 100;
+    damage /= 100;
     if (damage < 1) {
         damage = 1;
     }
@@ -2753,7 +2752,7 @@ int GetMonsterAttackScore(W8MonsterInfo* monster_info, W8MonsterAttack* attack, 
     int penalty = FatigueArmorPenalty(monster_info->fatigue_band);
     for (unsigned int i = 0; i < 0x12; i = i + 1) {
         if (attack->ubWeaponNameIndex == g_low_fatigue_attack_verbs_0061d284[i]) {
-            penalty = penalty >> 1;
+            penalty >>= 1;
             break;
         }
     }
@@ -2992,7 +2991,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                                                              definition->power_level, 0, magnitude,
                                                              verbose, announce, 0);
                     if (accumulator != NULL) {
-                        accumulator->condition_counts[W8_CONDITION_ASLEEP] += (resisted == 0);
+                        accumulator->condition_counts[W8_CONDITION_ASLEEP] += resisted == 0;
                     }
                     break;
                 case 1:
@@ -3000,7 +2999,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                                                              1, definition->power_level, 0,
                                                              magnitude, verbose, announce, 0);
                     if (accumulator != NULL) {
-                        accumulator->condition_counts[W8_CONDITION_PARALYZED] += (resisted == 0);
+                        accumulator->condition_counts[W8_CONDITION_PARALYZED] += resisted == 0;
                     }
                     break;
                 case 2:
@@ -3014,7 +3013,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                         source, target, W8_CONDITION_POISONED, 1, definition->power_level,
                         definition->magnitude_base_1c, magnitude, verbose, announce, 0);
                     if (accumulator != NULL) {
-                        accumulator->condition_counts[W8_CONDITION_POISONED] += (resisted == 0);
+                        accumulator->condition_counts[W8_CONDITION_POISONED] += resisted == 0;
                     }
                     break;
                 case 3:
@@ -3022,7 +3021,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                                                              definition->power_level, 0, magnitude,
                                                              verbose, announce, 0);
                     if (accumulator != NULL) {
-                        accumulator->condition_counts[W8_CONDITION_HEXED] += (resisted == 0);
+                        accumulator->condition_counts[W8_CONDITION_HEXED] += resisted == 0;
                     }
                     break;
                 case 4:
@@ -3030,7 +3029,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                         source, target, W8_CONDITION_DISEASED, 1, definition->power_level, 0,
                         W8_CONDITION_INDEFINITE, verbose, announce, 0);
                     if (accumulator != NULL) {
-                        accumulator->condition_counts[W8_CONDITION_DISEASED] += (resisted == 0);
+                        accumulator->condition_counts[W8_CONDITION_DISEASED] += resisted == 0;
                     }
                     break;
                 case 5:
@@ -3072,7 +3071,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                         source, target, W8_CONDITION_UNCONSCIOUS, 3, definition->power_level, 0,
                         magnitude, verbose, announce, 0);
                     if (accumulator != NULL) {
-                        accumulator->condition_counts[W8_CONDITION_UNCONSCIOUS] += (resisted == 0);
+                        accumulator->condition_counts[W8_CONDITION_UNCONSCIOUS] += resisted == 0;
                     }
                     break;
                 case 7:
@@ -3080,7 +3079,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                                                              definition->power_level, 0, magnitude,
                                                              verbose, announce, 0);
                     if (accumulator != NULL) {
-                        accumulator->condition_counts[W8_CONDITION_BLIND] += (resisted == 0);
+                        accumulator->condition_counts[W8_CONDITION_BLIND] += resisted == 0;
                     }
                     break;
                 case 8:
@@ -3088,7 +3087,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                                                              definition->power_level, 0, magnitude,
                                                              verbose, announce, 0);
                     if (accumulator != NULL) {
-                        accumulator->condition_counts[W8_CONDITION_AFRAID] += (resisted == 0);
+                        accumulator->condition_counts[W8_CONDITION_AFRAID] += resisted == 0;
                     }
                     break;
                 case 9:
@@ -3118,7 +3117,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                             source, target, W8_CONDITION_HOSTILE, 5, definition->power_level, 0,
                             magnitude, verbose, announce, 0);
                         if (accumulator != NULL) {
-                            accumulator->condition_counts[W8_CONDITION_HOSTILE] += (resisted == 0);
+                            accumulator->condition_counts[W8_CONDITION_HOSTILE] += resisted == 0;
                         }
                     }
                     break;
@@ -3197,7 +3196,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                                                              2, definition->power_level, 0,
                                                              magnitude, verbose, announce, 0);
                     if (accumulator != NULL) {
-                        accumulator->condition_counts[W8_CONDITION_NAUSEATED] += (resisted == 0);
+                        accumulator->condition_counts[W8_CONDITION_NAUSEATED] += resisted == 0;
                     }
                     break;
                 case 0xf:
@@ -3205,7 +3204,7 @@ void ApplyEffectConditions(W8TargetSource* source, W8CombatSlot* target,
                                                              definition->power_level, 0, magnitude,
                                                              verbose, announce, 0);
                     if (accumulator != NULL) {
-                        accumulator->condition_counts[W8_CONDITION_INSANE] += (resisted == 0);
+                        accumulator->condition_counts[W8_CONDITION_INSANE] += resisted == 0;
                     }
                     break;
                 }
@@ -3298,7 +3297,7 @@ void BuildCharacterTargetList00543DC0(int party_slot, int action, W8PList* out_l
             AppendCombatTargetEntry(out_list, W8_TARGET_KIND_MONSTER, -1,
                                     monster_info->location_id);
         }
-        monster_list_index = monster_list_index + 1;
+        ++monster_list_index;
     }
 }
 
@@ -3330,14 +3329,14 @@ void BuildMonsterTargetList00544010(W8MonsterInfo* monster_info, W8MonsterRecord
                 if ((monster_info->Target.iType == W8_TARGET_KIND_MONSTER &&
                      monster_info->Target.iMonsterID == candidate->location_id) ||
                     MonsterAttackReachesMonster(monster_info, record, attack, candidate) == 0) {
-                    monster_list_index = monster_list_index + 1;
+                    ++monster_list_index;
                     continue;
                 }
                 AppendCombatTargetEntry(out_list, W8_TARGET_KIND_MONSTER, -1,
                                         candidate->location_id);
             }
         }
-        monster_list_index = monster_list_index + 1;
+        ++monster_list_index;
     }
 }
 
@@ -3625,7 +3624,7 @@ void FireCharacterItemMissile00544B60(int party_slot, W8Character* pc, W8CombatC
                 weapon->missile_values_050[0x10 - i] + paired->missile_values_050[0x10 - i];
         }
         modifiers = item_modifiers;
-        missile_value = missile_value + paired->missile_magnitude_060;
+        missile_value += paired->missile_magnitude_060;
     }
     memcpy(attack_block.condition_chances, modifiers, 0x10);
     attack_block.magnitude_base_1c = missile_value;
@@ -3660,17 +3659,17 @@ void ScatterMissileAimPoint005454C0(const srVector3T<float>* from, srVector3T<fl
     if (mag != 0.0f) {
         float scale = static_cast<float>(sin(radians));
         scale = scale / static_cast<float>(sqrt(mag));
-        sx = sx * scale;
-        sy = sy * scale;
-        sz = sz * scale;
+        sx *= scale;
+        sy *= scale;
+        sz *= scale;
     }
     mag = px * px + py * py + pz * pz;
     if (mag != 0.0f) {
         float scale = static_cast<float>(cos(radians));
         scale = scale / static_cast<float>(sqrt(mag));
-        px = px * scale;
-        py = py * scale;
-        pz = pz * scale;
+        px *= scale;
+        py *= scale;
+        pz *= scale;
     }
     sx = px + sx;
     sy = py + sy;
@@ -3903,7 +3902,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
                 }
                 monster_info->pCombat->spot_attempts_13d++;
                 if (noticed != 0) {
-                    MonsterForwardReferencePosition(monster_info->p3D, '\0');
+                    MonsterForwardReferencePosition(monster_info->p3D, 0);
                 } else {
                     g_combat_state->unaware_9a4 = IsPartyLookingAwayFrom(party_slot, monster_info);
                 }

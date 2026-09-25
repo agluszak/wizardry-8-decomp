@@ -555,8 +555,7 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
         ShowNoticef(9, L"%s %s!", name,
                     gppStringList[g_condition_notices_0061E570[condition * 4 + 1]]);
     }
-    if (monster_info->p3D->IsCycleInterruptable(monster_info->p3D->m_pRep->pending_cycle) !=
-        0) {
+    if (monster_info->p3D->IsCycleInterruptable(monster_info->p3D->m_pRep->pending_cycle) != 0) {
         StartMonsterCycle(monster_info, 0x14, 1);
     }
 }
@@ -934,7 +933,7 @@ void ApplyMonsterCondition005242B0(int location_id, int condition, int argument,
                 static_cast<short>(roll * argument);
         }
         if (previous == 0) {
-            SetMonsterSpellIcon(monster_info->p3D, condition + 0x10, '\x01');
+            SetMonsterSpellIcon(monster_info->p3D, condition + 0x10, 1);
         }
         RebuildMonsterDerivedStats(location_id);
         if (condition == W8_ENCHANTMENT_SLOT_SPECIAL) {

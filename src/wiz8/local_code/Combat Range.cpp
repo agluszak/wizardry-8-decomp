@@ -177,7 +177,7 @@ bool CharacterActionReachesTarget(int party_slot, int hand, W8TargetingContext c
     context = ResolveTargetingContext(party_slot, context);
     if (target->iType == W8_TARGET_KIND_MONSTER) {
         unsigned int monster_list_index =
-            MonsterGetIndexByLocationID(0xcb, COMBAT_RANGE_CPP, target->iMonsterID, '\0');
+            MonsterGetIndexByLocationID(0xcb, COMBAT_RANGE_CPP, target->iMonsterID, 0);
         if (monster_list_index == 0xffffffff) {
             return false;
         }
@@ -211,7 +211,7 @@ bool CharacterActionReachesTarget(int party_slot, int hand, W8TargetingContext c
         if (spell_id == 0) {
             srAssertFail("uiSpell != SPELL_NONE", COMBAT_RANGE_CPP, 0xee, 0);
         }
-        int target_type = GetSpellTargetType(spell_id, '\0');
+        int target_type = GetSpellTargetType(spell_id, 0);
         if (target_type == 5) {
             trace = false;
             distance = g_float_005ec35c;
@@ -254,12 +254,11 @@ bool CharacterActionReachesTarget(int party_slot, int hand, W8TargetingContext c
             return false;
         }
         if (trace) {
-            return g_octree_6598a4->TraceLineOfSight(&camera_top, &point, '\x01', -3, -3, '\x01',
-                                                     0) == 0;
+            return g_octree_6598a4->TraceLineOfSight(&camera_top, &point, 1, -3, -3, 1, 0) == 0;
         }
     } else if (target->iType == W8_TARGET_KIND_GROUP) {
         unsigned int group_list_index =
-            GetMonsterGroupIndexByID(0x197, COMBAT_RANGE_CPP, target->iGroupID, '\0');
+            GetMonsterGroupIndexByID(0x197, COMBAT_RANGE_CPP, target->iGroupID, 0);
         if (group_list_index == 0xffffffff) {
             return false;
         }
@@ -1072,7 +1071,7 @@ float CalcRangeDistance(int range_category, W8TargetSource* source)
             srAssertFail("pSource->iMonsterID != -1", COMBAT_RANGE_CPP, 0x483, 0);
         }
         unsigned int monster_list_index =
-            MonsterGetIndexByLocationID(0x484, COMBAT_RANGE_CPP, source->iMonsterID, '\x01');
+            MonsterGetIndexByLocationID(0x484, COMBAT_RANGE_CPP, source->iMonsterID, 1);
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         return monster_info->p3D->movement_0c0.alternate_radius_0b4 + distance;
     }
@@ -1404,8 +1403,7 @@ float MonsterChooseTarget(W8MonsterInfo* monster_info, W8CombatSlot* out, int ki
                 other->fInCombat != 0 && MonsterHostility00546F80(monster_info, other) == 1) {
                 W8VisibilityRecord* row = FindMonToMonVisibility(monster_info, other);
                 if (IsVisibleUnderConditions(monster_info, row, kind)) {
-                    float distance =
-                        monster_info->p3D->GetDistanceToMonster004C7DD0(other->p3D);
+                    float distance = monster_info->p3D->GetDistanceToMonster004C7DD0(other->p3D);
                     if (distance < best) {
                         out->iType = W8_TARGET_KIND_MONSTER;
                         out->iMonsterID = other->location_id;
@@ -1503,8 +1501,7 @@ unsigned char MonsterActionReachesTarget(W8MonsterInfo* monster_info, W8MonsterR
         if (range_category == W8_RANGE_NONE) {
             return 0;
         }
-        if (CalcRangeDistance(range_category) <
-            monster_info->p3D->GetDistanceToPlayer004C7CB0()) {
+        if (CalcRangeDistance(range_category) < monster_info->p3D->GetDistanceToPlayer004C7CB0()) {
             return 0;
         }
     } else if (target->iType == W8_TARGET_KIND_GROUP) {
@@ -1532,8 +1529,7 @@ int FindNearestVisibleGroupMonster(W8MonsterInfo* monster_info, int group_id, in
         if (target->fActive != 0 && target->hp_current != 0 && target->fInCombat != 0) {
             W8VisibilityRecord* row = FindMonToMonVisibility(monster_info, target);
             if (IsVisibleUnderConditions(monster_info, row, kind) != 0) {
-                float distance =
-                    monster_info->p3D->GetDistanceToMonster004C7DD0(target->p3D);
+                float distance = monster_info->p3D->GetDistanceToMonster004C7DD0(target->p3D);
                 if (distance < best) {
                     best_id = target->location_id;
                     best = distance;
@@ -1556,9 +1552,9 @@ void GetMonsterAttackSourceOffset(W8Monster* monster, int kind, srVector3T<float
     if (kind == 1) {
         if (monster->GetProjectilePosition004C77F0(out) != 0) {
             srVector3T<float> position = monster->GetPosition();
-            out->x = out->x - position.x;
-            out->y = out->y - position.y;
-            out->z = out->z - position.z;
+            out->x -= position.x;
+            out->y -= position.y;
+            out->z -= position.z;
             return;
         }
     } else {
@@ -1567,9 +1563,9 @@ void GetMonsterAttackSourceOffset(W8Monster* monster, int kind, srVector3T<float
         }
         if (monster->GetSpellPosition004C78E0(out) != 0) {
             srVector3T<float> position = monster->GetPosition();
-            out->x = out->x - position.x;
-            out->y = out->y - position.y;
-            out->z = out->z - position.z;
+            out->x -= position.x;
+            out->y -= position.y;
+            out->z -= position.z;
             return;
         }
     }
@@ -1584,7 +1580,7 @@ char SourceActionReachesTarget(W8TargetSource* source, W8CombatSlot* target)
     }
     if (TargetSourceIsMonster(source, 0)) {
         unsigned int monster_list_index =
-            MonsterGetIndexByLocationID(0x69e, COMBAT_RANGE_CPP, source->iMonsterID, '\x01');
+            MonsterGetIndexByLocationID(0x69e, COMBAT_RANGE_CPP, source->iMonsterID, 1);
         W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
         W8MonsterRecord* record = GetMonsterDataForInfo(monster_info);
         return MonsterActionReachesTarget(monster_info, record, 0, target);

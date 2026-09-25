@@ -399,7 +399,7 @@ void ConvertAttribute(W8Character* character, const W8Wiz7Character* imported)
                 srAssertFail("FALSE", PARTY_IMPORT_CPP, 0x462,
                              "ConvertAttribute: ERROR - Invalid attribute");
             }
-            total = total + imported_values[mapped];
+            total += imported_values[mapped];
         }
     }
     average = total / 6;
@@ -493,7 +493,7 @@ void GrantStartingSpells005595D0(W8Character* character, const W8Wiz7Character*)
     }
     i = 0;
     do {
-        LearnSpell(character, g_profession_starting_spells_62a5f8[character->iProfession][i], '\0');
+        LearnSpell(character, g_profession_starting_spells_62a5f8[character->iProfession][i], 0);
         --count;
         if (count == '\0') {
             break;
@@ -556,12 +556,12 @@ void ImportEquipment00559650(W8Character* character, const W8Wiz7Character* impo
                             continue;
                         }
                     }
-                    ReplaceOrCreateItem(&item, item_index, '\x01', '\x01', '\x01');
+                    ReplaceOrCreateItem(&item, item_index, 1, 1, 1);
                     if (g_item_records[item_index].binds_on_equip == '\0') {
-                        StoreItemWithCharacterOrParty(character, &item, '\0', 0,
+                        StoreItemWithCharacterOrParty(character, &item, 0, 0,
                                                       (unsigned int)(slot == 0));
                     } else {
-                        AddItemToCharacter(character, &item, '\0', '\0', '\0');
+                        AddItemToCharacter(character, &item, 0, 0, 0);
                     }
                 }
             }
@@ -585,8 +585,8 @@ void ImportEquipment00559650(W8Character* character, const W8Wiz7Character* impo
                 if (0 < entry->item_number) {
                     item_index = FindItemByLegacyNumber(entry->item_number);
                     price = g_item_records[item_index].value;
-                    if (ItemHasHiddenProperties(item_index) == '\0') {
-                        price = price / 2;
+                    if (ItemHasHiddenProperties(item_index) == 0) {
+                        price /= 2;
                     }
                     if (best_value < price) {
                         best_value = g_item_records[item_index].value;
@@ -596,11 +596,11 @@ void ImportEquipment00559650(W8Character* character, const W8Wiz7Character* impo
             }
             if (best_index != -1) {
                 item_index = FindItemByLegacyNumber(candidates[slot][best_index].item_number);
-                ReplaceOrCreateItem(&item, item_index, '\x01', '\x01', '\x01');
+                ReplaceOrCreateItem(&item, item_index, 1, 1, 1);
                 if (g_item_records[item_index].binds_on_equip == '\0') {
-                    StoreItemWithCharacterOrParty(character, &item, '\0', 0, 1);
+                    StoreItemWithCharacterOrParty(character, &item, 0, 0, 1);
                 } else {
-                    AddItemToCharacter(character, &item, '\0', '\0', '\0');
+                    AddItemToCharacter(character, &item, 0, 0, 0);
                 }
                 --maximum[slot];
                 candidates[slot][best_index] = empty_item;
@@ -615,19 +615,19 @@ void ImportEquipment00559650(W8Character* character, const W8Wiz7Character* impo
     for (slot = 6; slot != 0; --slot) {
         item_id = *starting++;
         if (item_id != -1) {
-            ReplaceOrCreateItem(&item, item_id, '\x01', '\x01', '\x01');
+            ReplaceOrCreateItem(&item, item_id, 1, 1, 1);
             equip_slot = GetItemDefaultEquipSlot(item_id);
             if (equip_slot == -1) {
                 if (FindCharacterItemByDatabaseKind005213C0(
-                        character, g_item_records[item_id].unidentified_name_index, 0, 2) == '\0') {
-                    AddItemToCharacter(character, &item, '\x01', '\0', '\0');
+                        character, g_item_records[item_id].unidentified_name_index, 0, 2) == 0) {
+                    AddItemToCharacter(character, &item, 1, 0, 0);
                 }
             } else {
                 if (equip_slot == 6 && (g_item_records[item_id].flags_041 & 8) != 0) {
                     equip_slot = 7;
                 }
                 if (character->EquippedItem[equip_slot].iItemNo == -1) {
-                    AddItemToCharacter(character, &item, '\x01', '\0', '\0');
+                    AddItemToCharacter(character, &item, 1, 0, 0);
                 }
             }
         }
@@ -648,8 +648,8 @@ void ImportEquipment00559650(W8Character* character, const W8Wiz7Character* impo
             }
         }
         if (give != -1) {
-            ReplaceOrCreateItem(&item, give, '\x01', '\x01', '\x01');
-            AddItemToCharacter(character, &item, '\x01', '\0', '\0');
+            ReplaceOrCreateItem(&item, give, 1, 1, 1);
+            AddItemToCharacter(character, &item, 1, 0, 0);
         }
     }
     RebuildEquipmentAndDerivedStats(character);
@@ -866,7 +866,7 @@ unsigned int ConvertSkill(unsigned int skill_id, W8Character* character,
             }
             if (unlocks == 0) {
                 roll = Random(5);
-                base_value = base_value / (roll + 5);
+                base_value /= roll + 5;
             } else if (unlocks < 5) {
                 base_value = (unlocks * base_value) / 5;
             }

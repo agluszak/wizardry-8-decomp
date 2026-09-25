@@ -459,7 +459,7 @@ int W8Octree::CollectModelsNearPoint(W8GrowableVector<stModelInstance*>* out,
                         }
                         node = m_owned_09c[node].children_04[octant];
                     }
-                    bit = bit / 2;
+                    bit /= 2;
                 }
                 if (bit == 0 && node != 0) {
                     unsigned int region = m_owned_09c[node].region_02;
@@ -2146,7 +2146,7 @@ int W8Octree::DescendByMask(const unsigned int* masked_cell)
             }
             node = m_owned_09c[node].children_04[octant];
         }
-        bit = bit / 2;
+        bit /= 2;
     }
     return node;
 }
@@ -2172,7 +2172,7 @@ unsigned int W8Octree::LeafIndexForCell(const int* cell)
         if (static_cast<int>(depth) < 1) {
             break;
         }
-        bit = bit / 2;
+        bit /= 2;
         int octant = 0;
         if ((bit & cell[0]) != 0) {
             octant = 4;
@@ -2265,7 +2265,7 @@ float W8Octree::SettleToGround(srVector3T<float>* position, unsigned char* out_h
                     float level = static_cast<float>(cell[1]);
                     --cell[1];
                     start.y = level * spatial_000.node_extent_70 + spatial_000.minimum_0c.y;
-                    end.y = end.y - spatial_000.node_extent_70;
+                    end.y -= spatial_000.node_extent_70;
                     trace.Reseed(&start, &end);
                 }
             } else if (prop_hit) {
@@ -2630,12 +2630,12 @@ char W8Octree::ResolveTraceHit(const srVector3T<float>* from, srVector3T<float>*
     } else {
         low.z = to->z;
     }
-    low.x = low.x - inflate;
-    low.y = low.y - inflate;
-    low.z = low.z - inflate;
-    high.x = high.x + inflate;
-    high.y = high.y + inflate;
-    high.z = high.z + inflate;
+    low.x -= inflate;
+    low.y -= inflate;
+    low.z -= inflate;
+    high.x += inflate;
+    high.y += inflate;
+    high.z += inflate;
     if (target == -1) {
         radius = g_startup_world_659c0c->movement_0c0.alternate_radius_0b4;
         navigator = g_startup_world_659c0c;
@@ -2777,8 +2777,8 @@ no_probes:;
                                   static_cast<float>(sqrt(static_cast<double>(
                                       (camera_radius * camera_radius - distance * distance))))) /
                                  static_cast<float>(sqrt(length2));
-                offset.x = offset.x * fraction;
-                offset.y = offset.y * fraction;
+                offset.x *= fraction;
+                offset.y *= fraction;
                 z_scale = fraction * offset.z;
             }
             to->x = offset.x + from->x;
@@ -3280,7 +3280,7 @@ int W8Octree::ProbeCellForTrace(const int* cell)
                 if (static_cast<int>(depth) < 1) {
                     break;
                 }
-                bit = bit / 2;
+                bit /= 2;
                 int octant = 0;
                 if ((bit & cell[0]) != 0) {
                     octant = 4;
@@ -3340,7 +3340,7 @@ int W8Octree::ProbeCellForBlockers(const int* cell)
                 if (static_cast<int>(depth) < 1) {
                     break;
                 }
-                bit = bit / 2;
+                bit /= 2;
                 int octant = 0;
                 if ((bit & cell[0]) != 0) {
                     octant = 4;
@@ -3397,7 +3397,7 @@ int W8Octree::ProbeCellForBlockersAppend(const int* cell)
                 if (static_cast<int>(depth) < 1) {
                     break;
                 }
-                bit = bit / 2;
+                bit /= 2;
                 int octant = 0;
                 if ((bit & cell[0]) != 0) {
                     octant = 4;
@@ -4797,7 +4797,7 @@ unsigned int W8Octree::CollectObjectsInCell(const int* cell, unsigned short kind
                 if (static_cast<int>(depth) < 1) {
                     break;
                 }
-                bit = bit / 2;
+                bit /= 2;
                 int octant = 0;
                 if ((bit & cell[0]) != 0) {
                     octant = 4;
@@ -5503,7 +5503,7 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
     float cos_radius = radius * cos_angle;
     float sin_radius = radius * sin_angle;
     float neg_cos_radius = -cos_radius;
-    source->y = source->y + g_world_scale_005ebc40;
+    source->y += g_world_scale_005ebc40;
     float ground = SettlePositionToGround00420BD0(source, 0);
     float height = source->y - ground;
     if (static_cast<float>(g_double_005ebc30) <= fabsf(height) &&
@@ -5664,7 +5664,7 @@ unsigned int W8Octree::FindNavigatorPosition(srVector3T<float>* source, float ya
                 placed = false;
             }
             ring_upper = static_cast<float>(static_cast<int>(upper) + 1);
-            lower = lower - 1;
+            --lower;
         } while (static_cast<int>(ring_upper) <= mode);
     }
     if (candidates != 0) {
