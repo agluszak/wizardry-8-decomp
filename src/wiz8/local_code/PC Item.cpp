@@ -1372,7 +1372,7 @@ char MergeItems(W8Character* character, W8ItemInstance* destination)
     unsigned int result_item_id;
     unsigned int index;
     unsigned char quantity;
-    char found = 0;
+    bool found = false;
     char merged = 0;
     unsigned char partially_merged = 0;
 
@@ -1393,7 +1393,7 @@ char MergeItems(W8Character* character, W8ItemInstance* destination)
              recipe->merge_component_b == destination->iItemNo) ||
             (recipe->merge_component_b == held->iItemNo &&
              recipe->merge_component_a == destination->iItemNo)) {
-            found = 1;
+            found = true;
             if (recipe->merge_skill == -1) {
                 merged = 1;
             } else {
