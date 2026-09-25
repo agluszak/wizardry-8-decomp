@@ -83,7 +83,7 @@ unsigned char CreatePartyMovementPanel(void)
         RegionSetEnable(0x1c);
         g_party_movement_panel->SetEnabled(1);
         g_party_movement_buttons[0]->SetActive(0);
-        gXStatus.fPartyMovementUi = 1;
+        gXStatus.fPartyMovementUi = true;
         g_level_block->move_budget_2dc = 100;
         g_level_block->move_budget_2e0 = 100;
         g_party_movement_panel->Invalidate(0);
@@ -117,7 +117,7 @@ void ReleasePartyMovement(void)
         delete g_party_movement_caption;
         g_party_movement_caption = 0;
     }
-    gXStatus.fPartyMovementUi = 0;
+    gXStatus.fPartyMovementUi = false;
 }
 
 // FUNCTION: WIZ8 0x005A1950

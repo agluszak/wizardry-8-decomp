@@ -117,7 +117,7 @@ void ReleaseNpcBinding(int value);
 W8NpcState* FindNpcBindingForMonster(unsigned int monster_list_index);
 unsigned char GetNpcDispositionBand(W8NpcState* npc);
 void SetNpcDispositionBand(W8NpcState* npc, char band);          /* 0x0050A520 */
-char WillNpcTradeForItem(W8NpcState* npc, W8ItemInstance* item); /* 0x0050A9C0 */
+bool WillNpcTradeForItem(W8NpcState* npc, W8ItemInstance* item); /* 0x0050A9C0 */
 void ApplyNpcInteraction0050A570(W8NpcState* npc, int kind, int value, W8ItemInstance* item,
                                  unsigned int gold); /* 0x0050A570: every retail call pushes five */
 /* 0x0050AA00: whether the NPC's database entry carries the value at 0x002. */

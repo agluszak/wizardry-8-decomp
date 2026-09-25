@@ -85,7 +85,7 @@ int g_skill_point_bonus_0068de2c;
 // GLOBAL: WIZ8 0x0068de30
 int g_spell_point_bonus_0068de30;
 // GLOBAL: WIZ8 0x0068de34
-unsigned char g_gender_locked_0068de34;
+bool g_gender_locked_0068de34;
 
 /* Empty every item record the character carries. 0x00520070 expands the
    per-slot helper at both loops, which is why the body lives in PC Item.cpp
@@ -99,7 +99,7 @@ void InitializeCharacterCreation(W8Character* character, W8CharacterCreationStat
     g_attribute_point_bonus_0068de28 = 0;
     g_skill_point_bonus_0068de2c = 0;
     g_spell_point_bonus_0068de30 = 0;
-    g_gender_locked_0068de34 = 0;
+    g_gender_locked_0068de34 = false;
     memset(character, 0, sizeof(*character));
     character->gender = W8_GENDER_UNSET;
     character->iProfession = W8_PROFESSION_NONE;
@@ -149,7 +149,7 @@ void InitializeCharacterLevelUp(W8Character* character, W8CharacterCreationState
     g_attribute_point_bonus_0068de28 = 0;
     g_skill_point_bonus_0068de2c = 0;
     g_spell_point_bonus_0068de30 = 0;
-    g_gender_locked_0068de34 = 0;
+    g_gender_locked_0068de34 = false;
     ++character->uiExpLevel;
     ++character->profession_levels[character->iProfession];
     memset(creation_state, 0, sizeof(*creation_state));
@@ -646,10 +646,10 @@ void FinalizeSpellPointPool(W8Character* character, W8CharacterCreationState* cr
     }
     creation_state->spell_points_remaining = creation_state->spell_points_total - spent;
     if (creation_state->spell_points_remaining > 0) {
-        creation_state->spells_complete = 0;
+        creation_state->spells_complete = false;
         return;
     }
-    creation_state->spells_complete = 1;
+    creation_state->spells_complete = true;
 }
 
 /* Re-checks every spell against the character's current realm skills and
@@ -721,10 +721,10 @@ int CountRemainingSpellPoints(W8Character* character, W8CharacterCreationState* 
         creation_state->spell_points_remaining = creation_state->spell_points_total - spent;
     }
     if (creation_state->spell_points_total != 0 && creation_state->spell_points_remaining != 0) {
-        creation_state->spells_complete = 0;
+        creation_state->spells_complete = false;
         return available;
     }
-    creation_state->spells_complete = 1;
+    creation_state->spells_complete = true;
     return available;
 }
 
@@ -847,7 +847,7 @@ void SelectCreationSpell(W8Character* character, W8CharacterCreationState* creat
         }
     }
     if (creation_state->spell_points_remaining == 0) {
-        creation_state->spells_complete = 1;
+        creation_state->spells_complete = true;
     }
     RecalculateRealmSpellPoints(character);
 }
@@ -871,7 +871,7 @@ void DeselectCreationSpell(W8Character* character, W8CharacterCreationState* cre
             }
         }
         ++creation_state->spell_points_remaining;
-        creation_state->spells_complete = 0;
+        creation_state->spells_complete = false;
         RecalculateRealmSpellPoints(character);
     }
 }
@@ -888,7 +888,7 @@ void ResetSpellSelections005585D0(W8Character* character, W8CharacterCreationSta
         }
     }
     creation_state->spell_points_remaining = creation_state->spell_points_total;
-    creation_state->spells_complete = 0;
+    creation_state->spells_complete = false;
 }
 
 /* Price the profession's starting gear: stage the equipment, sum every
@@ -926,7 +926,7 @@ int ComputeStartingEquipmentCost(W8Character* character)
 
 /* Whether the party's gold covers the new character's starting gear. */
 // FUNCTION: WIZ8 0x005586b0
-unsigned char CanAffordStartingEquipment(W8Character* character)
+bool CanAffordStartingEquipment(W8Character* character)
 {
     W8ItemInstance* item;
     unsigned int total;
@@ -973,11 +973,11 @@ void RebuildLevelUpPoolsForProfession(W8Character* character,
 
     if (profession == W8_PROFESSION_VALKYRIE) {
         if (character->gender == W8_GENDER_MALE) {
-            g_gender_locked_0068de34 = 1;
+            g_gender_locked_0068de34 = true;
             character->gender = W8_GENDER_FEMALE;
         }
     } else if (g_gender_locked_0068de34) {
-        g_gender_locked_0068de34 = 0;
+        g_gender_locked_0068de34 = false;
         character->gender = W8_GENDER_MALE;
     }
 

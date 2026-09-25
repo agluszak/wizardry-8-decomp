@@ -220,7 +220,7 @@ public:
     W8CharacterStatsRow005EF750* m_race_row_080;
     W8CharacterStatsRow005EF750* m_gender_row_084;
     bool m_navigation_state_088;
-    unsigned char m_rows_initialized_089;
+    bool m_rows_initialized_089;
     unsigned char pad_08a[2];
     W8TextControl* m_attribute_controls_08c[5];
 };
@@ -296,7 +296,7 @@ public:
 
 private:
     void UpdateEntries(); /* 0x005C7B50 */
-    unsigned char m_force_redraw_074;
+    bool m_force_redraw_074;
     unsigned char m_show_fifth_category_075;
     bool m_navigation_state_076;
     unsigned char padding_077;
@@ -335,9 +335,9 @@ private:
     W8ControlSelection m_voice_selection_0b0;
     W8GameTimer m_animation_timer_0d4;
     int m_animation_frame_0f8;
-    unsigned char m_animation_active_0fc;
-    unsigned char m_description_dirty_0fd;
-    unsigned char m_portrait_dirty_0fe;
+    bool m_animation_active_0fc;
+    bool m_description_dirty_0fd;
+    bool m_portrait_dirty_0fe;
     unsigned char pad_0ff;
 };
 static_assert(sizeof(W8CharacterPage005EF57C) == 0x100, "W8CharacterPage005EF57C_size");
@@ -437,7 +437,7 @@ public:
 
     int m_mode_008;
     int m_page_index_00c;
-    unsigned char m_header_dirty_010;
+    bool m_header_dirty_010;
     unsigned char pad_011[3];
     W8Character* m_original_014;
     W8Character m_character_018;

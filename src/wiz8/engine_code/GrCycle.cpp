@@ -68,7 +68,7 @@ float g_float_005ecf98 = 0.02500000037252903f;
 // GLOBAL: WIZ8 0x005ecf9c
 float g_float_005ecf9c = 250.0f;
 // GLOBAL: WIZ8 0x0060da88
-unsigned char g_flag_0060da88 = 1;
+bool g_flag_0060da88 = true;
 // GLOBAL: WIZ8 0x0065be2c
 W8GrowableVector<W8CameraShakeEffect*>* g_shake_effects_0065be2c;
 // GLOBAL: WIZ8 0x0065be30
@@ -219,11 +219,11 @@ void UpdateShakeEffects004AE310()
             g_trigger_action_scene_offset_006599ac.x = static_cast<float>(Random(span)) - amplitude;
             g_trigger_action_scene_offset_006599ac.y = static_cast<float>(Random(span)) - amplitude;
             g_trigger_action_scene_offset_006599ac.z = static_cast<float>(Random(span)) - amplitude;
-            g_trigger_action_active_006599c8 = 1;
+            g_trigger_action_active_006599c8 = true;
             return;
         }
     }
-    g_trigger_action_active_006599c8 = 0;
+    g_trigger_action_active_006599c8 = false;
 }
 
 /* Bit 2 gates the distance test, bit 3 selects the quadratic falloff, bit 4
@@ -271,16 +271,15 @@ float g_float_005ebc64 = 1000.0f;
    version, and hand the open file plus its resource context to the typed cycle
    reader. */
 // FUNCTION: WIZ8 0x004A67E0
-unsigned char LoadGrCycle004A67E0(const W8GrCycleLoadContext* context, const char* mon_name,
-                                  W8GrCycle** cycle, int cycle_index, int value,
-                                  const char* directory, unsigned char object_type,
-                                  const char* bitmap_directory)
+bool LoadGrCycle004A67E0(const W8GrCycleLoadContext* context, const char* mon_name,
+                         W8GrCycle** cycle, int cycle_index, int value, const char* directory,
+                         unsigned char object_type, const char* bitmap_directory)
 {
     W8ReadLevelInfo info;
     char mon_path[128];
     char bitmap_path[1024];
     unsigned char version;
-    unsigned char success;
+    bool success;
 
     if (mon_name == 0 || cycle == 0) {
         srAssertFail("pacName && ppCycle", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp",
@@ -422,11 +421,11 @@ W8GrCycle::W8GrCycle()
     current_model_instance_1a8 = 0;
     m_plsLights = 0;
     m_plsShakeEvents = 0;
-    m_fDeleteLights = 0;
+    m_fDeleteLights = false;
     last_subcycle_1b5 = 0;
     m_plsParticles = 0;
     wrapped_1bc = 0;
-    enabled_1bd = 1;
+    enabled_1bd = true;
     mirror_x_1be = 0;
     aim_set_1bf = 0;
     m_ground_shadow = 0;
@@ -455,7 +454,7 @@ W8GrCycle::W8GrCycle(const W8GrCycle& other) : W8GrObject(other), W8Navigator(ot
     last_subcycle_1b5 = other.last_subcycle_1b5;
     m_plsParticles = 0;
     wrapped_1bc = 0;
-    enabled_1bd = 1;
+    enabled_1bd = true;
     mirror_x_1be = other.mirror_x_1be;
     aim_set_1bf = 0;
     scale_1cc = other.scale_1cc;
@@ -1177,9 +1176,9 @@ void W8GrCycle::SelectLOD004A7BE0(const srVector3T<float>* position)
     W8EmitterHost* pRep = GetRepresentation();
     srVector3T<float> delta = pRep->location_004 - *position;
     float distance = delta.Length();
-    unsigned char has_lod_2 = pRep->SetCycleFrameLod(pRep->current_cycle, 0, 2) != 0;
-    unsigned char has_lod_1 = pRep->SetCycleFrameLod(pRep->current_cycle, 0, 1) != 0;
-    unsigned char has_lod_0 = pRep->SetCycleFrameLod(pRep->current_cycle, 0, 0) != 0;
+    bool has_lod_2 = pRep->SetCycleFrameLod(pRep->current_cycle, 0, 2) != 0;
+    bool has_lod_1 = pRep->SetCycleFrameLod(pRep->current_cycle, 0, 1) != 0;
+    bool has_lod_0 = pRep->SetCycleFrameLod(pRep->current_cycle, 0, 0) != 0;
 
     if (has_lod_2 == 0 && has_lod_1 == 0 && has_lod_0 == 0) {
         ShutdownWithErrorBox("Monster has no valid LODs!");
@@ -1370,7 +1369,7 @@ void W8GrCycle::SetLights(W8GrowableVector<stLight*>* lights)
         srAssertFail("!m_fDeleteLights || (m_fDeleteLights && !m_plsLights)",
                      "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x678, 0);
     }
-    m_fDeleteLights = 0;
+    m_fDeleteLights = false;
     m_plsLights = lights;
 }
 

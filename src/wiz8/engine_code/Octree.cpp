@@ -121,9 +121,9 @@ unsigned long* g_octree_state_00659890;
 // GLOBAL: WIZ8 0x00659894
 stModelInstance* g_octree_trace_node_00659894;
 // GLOBAL: WIZ8 0x00659898
-unsigned char g_octree_update_suspended_00659898;
+bool g_octree_update_suspended_00659898;
 // GLOBAL: WIZ8 0x00659899
-unsigned char g_octree_trace_enabled_00659899;
+bool g_octree_trace_enabled_00659899;
 
 /* Build a packed four-byte colour from four components and answer its
    address. The receiver is the output slot. */
@@ -299,7 +299,7 @@ void W8Octree::UpdateVisibility004304A0()
         m_linked_props_104->ClearAll();
         m_props_to_disable_110->ClearAll();
     }
-    m_projected_regions_valid_16a = 0;
+    m_projected_regions_valid_16a = false;
     m_positional_16b = 0;
     CollectVisibleRegions00430D50(&camera_location_1c0, m_visible_cells_204, 0, 1);
     CollectVisibleCells0042FE90();
@@ -623,14 +623,14 @@ short W8Octree::ProjectLinkedRegionsForLocation00431050(srVector3T<float>* locat
             }
             if (match_count == 0) {
                 m_projected_regions_15c->ClearAll();
-                m_projected_regions_valid_16a = 0;
+                m_projected_regions_valid_16a = false;
             }
             ++match_count;
             unsigned int key = region_index;
             for (int slot = m_pRegionLinks_150->FindNextEntry(&key, -1); slot != -1;
                  slot = m_pRegionLinks_150->FindNextEntry(&key, slot)) {
                 m_projected_regions_15c->Set(m_pRegionLinks_150->entries[slot].value);
-                m_projected_regions_valid_16a = 1;
+                m_projected_regions_valid_16a = true;
             }
         }
         if (match_count != 0) {
@@ -664,13 +664,13 @@ short W8Octree::ProjectLinkedRegionsForLocation00431050(srVector3T<float>* locat
             reported_region = region_index;
         }
         m_projected_regions_15c->ClearAll();
-        m_projected_regions_valid_16a = 0;
+        m_projected_regions_valid_16a = false;
         match_count = 1;
         unsigned int key = region_index;
         for (int slot = m_pRegionLinks_150->FindNextEntry(&key, -1); slot != -1;
              slot = m_pRegionLinks_150->FindNextEntry(&key, slot)) {
             m_projected_regions_15c->Set(m_pRegionLinks_150->entries[slot].value);
-            m_projected_regions_valid_16a = 1;
+            m_projected_regions_valid_16a = true;
         }
     }
 
@@ -735,7 +735,7 @@ unsigned char W8Octree::CollectVisibleRegions00430D50(srVector3T<float>* locatio
     int link_cell[3];
     float box_min[3];
     float box_max[3];
-    unsigned char inside = 1;
+    bool inside = true;
 
     for (int axis = 0; axis < 3; ++axis) {
         box_min[axis] = (&spatial_000.minimum_0c.x)[axis];
@@ -786,7 +786,7 @@ unsigned char W8Octree::CollectVisibleRegions00430D50(srVector3T<float>* locatio
             while (slot != -1) {
                 m_projected_regions_15c->Set(m_pRegionLinks_150->entries[slot].value);
                 slot = m_pRegionLinks_150->FindNextEntry(&key, slot);
-                m_projected_regions_valid_16a = 1;
+                m_projected_regions_valid_16a = true;
             }
         }
         if (node != 0) {
@@ -826,8 +826,7 @@ void W8Octree::MarkVisibleRegions004301C0()
         if (delta.LengthSquared() >= radius_squared) {
             continue;
         }
-        unsigned char visible =
-            PointInsideFrustum0046D880(&volume->points_1c[0], m_frustum_planes_21c);
+        bool visible = PointInsideFrustum0046D880(&volume->points_1c[0], m_frustum_planes_21c);
 
         for (int point = 1; !visible && point < 9; ++point) {
             visible = PointInsideFrustum0046D880(&volume->points_1c[point], m_frustum_planes_21c);
@@ -1286,7 +1285,7 @@ unsigned int W8Octree::SampleRegionLinks(const srVector3T<float>* point, char de
         m_projected_regions_15c->ClearAll();
         m_previous_regions_164->ClearAll();
     }
-    m_projected_regions_valid_16a = 0;
+    m_projected_regions_valid_16a = false;
     short samples = static_cast<short>(static_cast<int>(
         g_camera_angle_period_005ec014 / horizontal_fov_1f0 + g_camera_snap_epsilon_005ebc2c));
     if (static_cast<float>(samples) * horizontal_fov_1f0 < g_float_005ec010) {
@@ -1533,7 +1532,7 @@ void W8Octree::BuildRegionLinks(char rebuild_all)
                         } else if (input.usParam == 0x1b) {
                             aborted = true;
                             if (g_build_level_links_0065bd2c != 0) {
-                                g_build_level_links_0065bd2c = 0;
+                                g_build_level_links_0065bd2c = false;
                             }
                             continue;
                         }
@@ -1890,7 +1889,7 @@ void W8Octree::ToggleUpdateSuspension00434020(W8World* world)
 {
     if (world == 0) {
         g_octree_trace_node_00659894 = 0;
-        g_octree_update_suspended_00659898 = 0;
+        g_octree_update_suspended_00659898 = false;
         return;
     }
     g_octree_update_suspended_00659898 = (g_octree_update_suspended_00659898 == 0);
@@ -2009,7 +2008,7 @@ unsigned char W8Octree::PrepareNavigatorTarget00434250(W8NavigatorMovementState*
 }
 
 // FUNCTION: WIZ8 0x004347d0
-unsigned char __stdcall IsNavigatorAtTarget004347D0(W8NavigatorMovementState* movement)
+bool __stdcall IsNavigatorAtTarget004347D0(W8NavigatorMovementState* movement)
 {
     srVector3T<float> target;
     if (movement->attachment_0ac != 0) {
@@ -2853,7 +2852,7 @@ unsigned char W8OctreeObjectRegistry::UnregisterObject(int kind, int id)
 {
     unsigned int object_key = PackOctreeObjectKey(kind, id);
     int object_value = static_cast<int>(object_key);
-    unsigned char removed = 0;
+    bool removed = false;
 
     int slot = by_object->FindNextEntry(&object_key, -1);
     while (slot != -1) {
@@ -4337,7 +4336,7 @@ void W8Octree::Initialize(const W8OctFileHeader* header)
                      "InitOctree: Couldn't allocate m_aulGDObjs.");
     }
     spatial_000.level_kind_6c = 3;
-    m_fAccumulating = 1;
+    m_fAccumulating = true;
     ToggleUpdateSuspension00434020(0);
 }
 
@@ -4939,7 +4938,7 @@ void W8Octree::QueueOctreeKind130042E810(int id, const srVector3T<float>* positi
 // FUNCTION: WIZ8 0x00431440
 int* W8Octree::WorldPositionToCell(const srVector3T<float>* position, int* point)
 {
-    unsigned char inside = 1;
+    bool inside = true;
 
     for (int axis = 0; axis < 3; ++axis) {
         point[axis] = static_cast<int>((((&position->x)[axis] - (&spatial_000.minimum_0c.x)[axis]) /
@@ -4991,7 +4990,7 @@ unsigned int W8Octree::AdvanceNavigator(W8NavigatorMovementState* movement, floa
     W8NavigatorAttachment* attachment;
     float distance;
     float step;
-    unsigned char reached = 1;
+    bool reached = true;
 
     if (pathing_180 != 0) {
         if (g_navigator_link_mode_00659c10 == 0) {
@@ -5270,7 +5269,7 @@ float PointToSegmentDistance2D00437760(srVector2T<float>* point, const srVector2
 char GrowBoundsByPoint(const srVector3T<float>* point, srVector3T<float>* minimum,
                        srVector3T<float>* maximum)
 {
-    char changed = 0;
+    bool changed = false;
     if (minimum->x > point->x) {
         minimum->x = point->x;
         changed = 1;

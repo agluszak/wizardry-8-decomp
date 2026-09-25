@@ -54,7 +54,7 @@ struct W8MipeState {
     unsigned char unknown_11[0x13];
     srVector3T<float> drag_anchor;    /* 0x24 */
     unsigned char creation_method_30; /* 0 exact, 1 placeholder, 2 selection */
-    unsigned char dragging;           /* 0x31 */
+    bool dragging;                    /* 0x31 */
     unsigned char padding_32[2];
     float value_34;               /* 0x34: initialised to 1.0 */
     int waypoint_count;           /* 0x38 */

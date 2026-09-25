@@ -105,7 +105,7 @@ public:
     virtual void OnLeftButtonUp(int event) override;
 
     int m_image_b8;
-    unsigned char m_input_blocked_bc;
+    bool m_input_blocked_bc;
     unsigned char m_pad_bd[3];
 };
 static_assert(sizeof(W8MainGameTextEntry) == 0xc0, "W8MainGameTextEntry_size");
@@ -543,13 +543,13 @@ extern unsigned char g_radar_panel_shown_0068edbc;
 extern unsigned char g_action_panel_shown_0068edc8;
 extern unsigned char g_formation_panel_shown_0068edc9;
 extern bool g_mouselook_active_0068edd8;
-extern unsigned char g_mouselook_left_held_0068edd9;
+extern bool g_mouselook_left_held_0068edd9;
 extern bool g_node_cull_pending_0068edda;
 extern int g_main_game_mode_0068eddc;
 extern int g_selected_party_slot_64c1c8;
 int GetValue64C1C8(void); /* 0x00593320 */
 void RequestLevelTransition005615F0(int level, int entry, unsigned char flag);
-extern unsigned char g_build_level_links_0065bd2c;
+extern bool g_build_level_links_0065bd2c;
 extern int g_next_link_level_0068ede8;
 extern bool g_navigator_position_changed_659c11;
 void BeginLevelTransition(void); /* 0x005611A0 */

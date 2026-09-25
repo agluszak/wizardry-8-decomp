@@ -30,9 +30,9 @@ extern int g_automap_zoom_mode;
 extern bool g_mipe_menu_active_68f104;
 extern bool g_mipe_active_68f105;
 
-unsigned char HasAutomapLayer(int layer);
+bool HasAutomapLayer(int layer);
 void RestoreAutomapCameraPosition(void);
-unsigned char CanUseCurrentAutomapTool(void);
+bool CanUseCurrentAutomapTool(void);
 
 /* 0x00580380: recompute the automap's visible world bounds from lit cells. */
 void UpdateAutomapBounds00580380(void);

@@ -40,7 +40,7 @@ W8NotificationDialog::~W8NotificationDialog() {}
 // FUNCTION: WIZ8 0x005a81a0
 unsigned char W8NotificationDialog::ProcessInput()
 {
-    unsigned char handled;
+    bool handled;
 
     W8MessageDialogBase::ProcessInput();
     handled = is_open;

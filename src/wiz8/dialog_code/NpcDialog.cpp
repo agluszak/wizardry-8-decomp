@@ -200,7 +200,7 @@ void W8NpcDialog::Draw()
         }
         for (index = 0; index < 3; ++index) {
             if (m_buttons[index] != 0) {
-                m_buttons[index]->m_dirty = 1;
+                m_buttons[index]->m_dirty = true;
             }
         }
         W8DialogBase::Draw();
@@ -230,7 +230,7 @@ unsigned char W8NpcDialog::ProcessInput()
             static_cast<char>(HandleTextInput(&input)) == 0) {
             if (input.usEvent == KEY_DOWN && input.usParam == 0xd && m_message->kind_00 == '\x13') {
                 Get16BitStringFromField(m_input_field, m_input_text);
-                g_npc_dialog->m_keep_open = 0;
+                g_npc_dialog->m_keep_open = false;
                 return 1;
             }
             unsigned short type;
@@ -262,7 +262,7 @@ unsigned char W8NpcDialog::ProcessInput()
 void W8NpcDialog::OptionSelected(W8DialogButton* button)
 {
     g_npc_dialog->m_selected_option = static_cast<unsigned char>(button->GetUserData());
-    g_npc_dialog->m_keep_open = 0;
+    g_npc_dialog->m_keep_open = false;
 }
 
 // FUNCTION: WIZ8 0x005DB1A0

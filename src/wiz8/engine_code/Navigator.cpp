@@ -1490,7 +1490,7 @@ W8NavigatorAttachment::AdvancePositionTowardWaypoint00456F60(srVector3T<float>* 
     float fraction;
     float remainder;
     float segment;
-    unsigned char reached;
+    bool reached;
 
     point.x = position->x;
     point.y = position->z;
@@ -2259,7 +2259,7 @@ void W8Navigator::UpdateNavigation004553A0(int skip_movement, char slowed)
     srVector3T<float> adjusted;
     int movement_result = 0;
     unsigned int movement_kind;
-    unsigned char was_stopped;
+    bool was_stopped;
 
     tracked_dirty_0b4 = 0;
     if (position_dirty_09c != 0 || movement_0c0.position_adjusted_0c8 != 0) {

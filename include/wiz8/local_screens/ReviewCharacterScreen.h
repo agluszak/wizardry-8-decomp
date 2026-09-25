@@ -83,8 +83,8 @@ struct W8CampScreenState0069C0F4 {
     W8CampStatsRange* stats_range; /* 0xcd8 */
     W8CampStatsControls* stats_controls;
     unsigned int item_timer; /* 0xce0 */
-    unsigned char item_timer_active;
-    unsigned char item_timer_expired;
+    bool item_timer_active;
+    bool item_timer_expired;
     unsigned char padding_ce6[2];
     unsigned int animation_timer;
     unsigned int animation_frames[6];
@@ -116,7 +116,7 @@ struct W8CampScreenState0069C0F4 {
     W8CampCharacterInfo* character_info;
     /* 0xd50: the camp item icons were drawn while the monster/combat
        timer was enabled; its stop forces a full redraw to drop them. */
-    unsigned char item_icons_drawn_d50;
+    bool item_icons_drawn_d50;
     unsigned char padding_d51[3];
 };
 static_assert(sizeof(W8CampScreenState0069C0F4) == 0xd54, "W8CampScreenState_size");

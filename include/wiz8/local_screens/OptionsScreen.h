@@ -52,7 +52,7 @@ public:
     virtual void OnLeftButtonDoubleClick(int event) override;
 
     unsigned char m_save_mode;
-    unsigned char m_editing;
+    bool m_editing;
     unsigned char pad_0ba[2];
     W8SaveSlot* m_save;
     W8OptionsSaveRowListener* m_save_listener; /* 0xc0 */
@@ -442,8 +442,8 @@ public:
     virtual void OnDialogClosed(unsigned char reason, int value) override;
 
     W8Vector<W8SaveSlot*> m_save_slots;
-    unsigned char m_redraw_pending;
-    unsigned char m_modal_closing_01d;
+    bool m_redraw_pending;
+    bool m_modal_closing_01d;
     unsigned char padding_01e[2];
     int m_selected_panel_020;
     Controls* m_controls_024;

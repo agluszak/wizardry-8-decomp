@@ -43,7 +43,7 @@ enum { W8_ACTION_STATUS_FINISHED = 3 };
 // FUNCTION: WIZ8 0x004efbe0
 void BeginPartyMovement(void)
 {
-    gXStatus.party_moving = 1;
+    gXStatus.party_moving = true;
     MoveTimer(1);
 }
 
@@ -384,7 +384,7 @@ void BeginFreeTurnPhase(void)
 {
     ResetLevelDataVectors0041F0D0();
     g_combat_state->uiCurrentPartyActionStatus = W8_ACTION_STATUS_FINISHED;
-    gXStatus.fPartyMovementMode = 0;
+    gXStatus.fPartyMovementMode = false;
     CheckMonsterGroupsEnterCombat();
     CompletePartyMovementTurns();
     NotifyNearbyMonsters(0);
@@ -491,7 +491,7 @@ void FinishPartyMovementAction004EFDA0(void)
 void StartPartyMovementAction004EFC00(void)
 {
     if (g_combat_state->uiCurrentPartyAction == 1 || g_combat_state->uiCurrentPartyAction == 2) {
-        gXStatus.fPartyMovementMode = 1;
+        gXStatus.fPartyMovementMode = true;
         ShowNotice(8, gppStringList[0x21b], -1, -1, 0);
         gXStatus.party_move_distance = 0.0f;
     }

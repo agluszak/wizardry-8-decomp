@@ -383,7 +383,7 @@ void MtGigas2UmpaniAlarm004DB860(int command)
 {
     srVector3T<float> position;
 
-    g_flag_006834dc = 0;
+    g_flag_006834dc = false;
     if (command != 0) {
         if (GetLocationVarIDByName("UmpaniAlarm") == -1) {
             CreateLocationVar("UmpaniAlarm", 0x1e);
@@ -417,7 +417,7 @@ void MtGigas2UmpaniAlarm004DB860(int command)
             return;
         }
     }
-    g_flag_006834dc = 1;
+    g_flag_006834dc = true;
     g_alarm_sound_6834e8->Stop();
     if (g_alarm_gate_6834ec != 0) {
         delete g_alarm_gate_6834ec;

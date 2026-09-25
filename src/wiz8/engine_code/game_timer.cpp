@@ -24,11 +24,11 @@ int g_shared_timer_pause_time;
 // GLOBAL: WIZ8 0x006598CC
 int g_shared_timer_refs;
 // GLOBAL: WIZ8 0x006598D0
-unsigned char g_shared_timer_paused;
+bool g_shared_timer_paused;
 // GLOBAL: WIZ8 0x006598D1
-unsigned char g_shared_timer_flag_d1;
+bool g_shared_timer_flag_d1;
 // GLOBAL: WIZ8 0x006598D2
-unsigned char g_shared_timer_flag_d2;
+bool g_shared_timer_flag_d2;
 
 // GLOBAL: WIZ8 0x005ec0a8
 const float g_float_005ec0a8 = 10000.0f;
@@ -36,7 +36,7 @@ const float g_float_005ec0a8 = 10000.0f;
 // FUNCTION: WIZ8 0x00439bc0
 void PauseSharedGameTimers00439BC0(void)
 {
-    g_shared_timer_paused = 1;
+    g_shared_timer_paused = true;
     if (g_shared_timer == 0) {
         return;
     }
@@ -73,8 +73,8 @@ void PauseSharedGameTimers00439BC0(void)
 // FUNCTION: WIZ8 0x00439ca0
 void ResumeSharedGameTimers00439CA0(void)
 {
-    g_shared_timer_paused = 0;
-    g_shared_timer_flag_d1 = 0;
+    g_shared_timer_paused = false;
+    g_shared_timer_flag_d1 = false;
     if (g_shared_timer != 0) {
         g_shared_timer_pause_base =
             g_shared_timer->getUTime(srTimer::TIMER_READ_DEFAULT) - g_shared_timer_pause_time;
@@ -140,9 +140,9 @@ W8GameTimer::W8GameTimer()
     m_duration_scale = 1.0f;
 
     if (g_shared_timer == 0) {
-        g_shared_timer_paused = 0;
-        g_shared_timer_flag_d1 = 0;
-        g_shared_timer_flag_d2 = 0;
+        g_shared_timer_paused = false;
+        g_shared_timer_flag_d1 = false;
+        g_shared_timer_flag_d2 = false;
 
         srTimer* timer = new srTimer(0, 0, 1);
 
@@ -193,9 +193,9 @@ W8GameTimer::W8GameTimer(float duration, unsigned char raw_time)
     m_duration_scale = 1.0f;
 
     if (g_shared_timer == 0) {
-        g_shared_timer_paused = 0;
-        g_shared_timer_flag_d1 = 0;
-        g_shared_timer_flag_d2 = 0;
+        g_shared_timer_paused = false;
+        g_shared_timer_flag_d1 = false;
+        g_shared_timer_flag_d2 = false;
         srTimer* timer = new srTimer(0, 0, 1);
         g_shared_timer = timer;
         g_shared_timer_base = timer;

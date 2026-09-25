@@ -17,7 +17,7 @@ struct W8NoticeWord {
     short x_start;
     short x_end;
     unsigned char keyword_08; /* 0x08: 0 none, 1 keyword, 2 selected */
-    unsigned char redraw_09;  /* 0x09: repaint once after deselection */
+    bool redraw_09;           /* 0x09: repaint once after deselection */
 };
 static_assert(sizeof(W8NoticeWord) == 10, "W8NoticeWord_must_be_10");
 

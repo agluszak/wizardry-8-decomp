@@ -486,7 +486,7 @@ public:
     unsigned long m_leaf_count_0b8;
     W8OctreeObjectRegistry* object_registry;
     char* m_owned_0c0;
-    unsigned char m_fAccumulating;
+    bool m_fAccumulating;
     unsigned char m_padding_0c5[3];
     unsigned long m_vertex_count_0c8;
     unsigned long m_leaf_polygon_stream_len_0cc;
@@ -546,7 +546,7 @@ public:
     BitArray* m_previous_regions_164;
     unsigned char m_reset_visibility_168;
     bool m_region_links_ready_169;
-    unsigned char m_projected_regions_valid_16a;
+    bool m_projected_regions_valid_16a;
     unsigned char m_positional_16b;
     bool m_region_links_dirty_16c;
     bool m_points_dirty_16d;
@@ -591,7 +591,7 @@ public:
        against all six. */
     W8Plane m_frustum_planes_21c[6]; /* 0x21c */
     unsigned long m_padding_27c[6];
-    unsigned char m_visibility_suspended_294;
+    bool m_visibility_suspended_294;
     unsigned char m_padding_295;
     /* The build's directional-sun count: the driver stores the light total
        and CreateSubMeshes emits it as each OctMeshModel's version_00 and
@@ -688,7 +688,7 @@ extern OctPreTree* g_oct_pre_tree_659c74;
 extern "C" void NoOct(void); // C-LINKAGE: src/sgp/sgp.c invokes the /NOOCT switch
 extern bool g_octree_disabled_6598a8;
 
-unsigned char __stdcall IsNavigatorAtTarget004347D0(W8NavigatorMovementState* movement);
+bool __stdcall IsNavigatorAtTarget004347D0(W8NavigatorMovementState* movement);
 
 static_assert(sizeof(W8Octree) == 0x29c, "W8Octree_must_be_0x29c");
 
@@ -698,8 +698,8 @@ extern stModelInstance* g_octree_trace_node_00659894;
 extern float g_octree_cell_scale_005ebcd0;
 extern unsigned long g_octree_bytes_read_00659888;
 extern int g_prop_sun_index_006598ac;
-extern unsigned char g_octree_update_suspended_00659898;
-extern unsigned char g_octree_trace_enabled_00659899;
+extern bool g_octree_update_suspended_00659898;
+extern bool g_octree_trace_enabled_00659899;
 /* Renderer switches the region-link build toggles: suppress baked vertex
    lighting, force front-face culling and strip textures while sampling. */
 extern unsigned char g_render_unlit_0065a0ec;

@@ -135,7 +135,7 @@ struct W8LevelRuntimeBlock {
     int condition_orb_party_slot;
     int enchantment_orb_party_slot;
     int condition_highlight_party_slot; /* 0x20c: -1 while untracked */
-    unsigned char flag_210;             /* 0x210 */
+    bool flag_210;                      /* 0x210 */
     unsigned char padding_211[3];
     unsigned int clock_214;           /* 0x214 */
     unsigned char portrait_flash_218; /* 0x218: 500ms highlight pulse on clock_214 */
@@ -174,7 +174,7 @@ struct W8LevelRuntimeBlock {
     int highlighted_item;
     int selected_item;
     unsigned int countdown_26c; /* 0x26c */
-    unsigned char flag_270;
+    bool flag_270;
     /* 0x271: text box visible; toggled by the keyboard shortcut and raised
        by spell/item/dialogue screens that need it. */
     bool text_box_visible_271;
@@ -222,7 +222,7 @@ struct W8LevelRuntimeBlock {
     bool selection_settled;
     unsigned char padding_2f9[3];
     unsigned int tooltip_since;
-    unsigned char tooltip_pending;
+    bool tooltip_pending;
     unsigned char padding_301[3];
     int tooltip_subject;
     int tooltip_kind;
@@ -239,7 +239,7 @@ struct W8LevelRuntimeBlock {
     unsigned char padding_31d[3];
     unsigned int countdown_320; /* 0x320: portrait right-hold arm clock */
     /* 0x324: PortraitSelectRegionEvent right-button hold armed for camp. */
-    unsigned char portrait_right_hold_armed;
+    bool portrait_right_hold_armed;
     unsigned char formation_board_alternate; /* 0x325: highlighted board art while hovered */
     unsigned char radar_map_alternate;       /* 0x326: radar uses alternate frame art */
     bool review_transition_active;           /* 0x327: set while leaving into review */

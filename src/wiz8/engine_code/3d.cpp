@@ -1031,13 +1031,13 @@ void BuildPlaneFromPoints0046D660(W8Plane* plane, const srVector3T<float>* first
    coordinate toggles the inside flag when its interpolation crosses the
    first. */
 // FUNCTION: WIZ8 0x0046d530
-unsigned char PointInsideTriangle0046D530(const srVector3T<float>* vertices, short axis,
-                                          const srVector3T<float>* point)
+bool PointInsideTriangle0046D530(const srVector3T<float>* vertices, short axis,
+                                 const srVector3T<float>* point)
 {
     const float* p = &point->x;
     short u = static_cast<short>(axis + 1) % 3;
     short v = static_cast<short>(axis + 2) % 3;
-    char inside = 0;
+    bool inside = false;
 
     for (int i = 0; i < 3; ++i) {
         const float* first = &vertices[i].x;
@@ -1128,10 +1128,10 @@ void SortFrustumCorners0046DA20(srVector3T<float>* points)
 /* Sphere test generalised to a bounds box: accept when any box corner is
    inside every frustum plane or any volume corner sits inside the box. */
 // FUNCTION: WIZ8 0x0046d8d0
-unsigned char SphereInsideFrustum0046D8D0(const srVector3T<float>* point, float radius,
-                                          const W8Plane* planes)
+bool SphereInsideFrustum0046D8D0(const srVector3T<float>* point, float radius,
+                                 const W8Plane* planes)
 {
-    char inside = 1;
+    bool inside = true;
 
     for (short plane = 0; plane < 6 && inside != 0; ++plane) {
         if (point->x * planes[plane].normal.x + point->y * planes[plane].normal.y +

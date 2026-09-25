@@ -28,10 +28,10 @@ struct W8PortraitQuoteBubble {
     unsigned char background_index_08; /* 0x08 */
     unsigned char object_index_09;     /* 0x09 */
     unsigned char unknown_0a[2];
-    UINT32 background_surface;      /* 0x0c */
-    UINT32 object;                  /* 0x10 */
-    unsigned char has_resources_14; /* 0x14 */
-    unsigned char created_15;       /* 0x15 */
+    UINT32 background_surface; /* 0x0c */
+    UINT32 object;             /* 0x10 */
+    bool has_resources_14;     /* 0x14 */
+    bool created_15;           /* 0x15 */
     unsigned char unknown_16[2];
     UINT32 flags;   /* 0x18: bit 0 selects the flat fill */
     wchar_t* text;  /* 0x1c */
@@ -529,7 +529,7 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
             delete bubble;
             return -1;
         }
-        g_current_portrait_quote->has_resources_14 = 1;
+        g_current_portrait_quote->has_resources_14 = true;
         g_current_portrait_quote->background_index_08 = background_index;
         g_current_portrait_quote->object_index_09 = edge_index;
     } else {
@@ -540,7 +540,7 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
             if (bubble != 0 && bubble->has_resources_14 != 0) {
                 DeleteVideoSurfaceFromIndex(bubble->background_surface);
                 DeleteVideoObjectFromIndex(g_current_portrait_quote->object);
-                g_current_portrait_quote->has_resources_14 = 0;
+                g_current_portrait_quote->has_resources_14 = false;
             }
             surface_desc.fCreateFlags = VSURFACE_CREATE_FROMFILE | VSURFACE_SYSTEM_MEM_USAGE;
             strcpy(surface_desc.ImageFile, g_quote_bubble_backgrounds_64f554[background_index]);
@@ -552,7 +552,7 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
             if (!AddVideoObject(&object_desc, &g_current_portrait_quote->object)) {
                 return -1;
             }
-            g_current_portrait_quote->has_resources_14 = 1;
+            g_current_portrait_quote->has_resources_14 = true;
             g_current_portrait_quote->background_index_08 = background_index;
             g_current_portrait_quote->object_index_09 = edge_index;
         }
@@ -642,7 +642,7 @@ int LayoutPortraitQuoteBubble(int quote_handle, unsigned char background_index,
             return 0;
         }
         bubble->palette = font_palette;
-        bubble->created_15 = 1;
+        bubble->created_15 = true;
         bubble->width = static_cast<unsigned short>(max_width);
         bubble->height = static_cast<unsigned short>(height);
         rect.iLeft = 0;
@@ -750,7 +750,7 @@ unsigned char ReleasePortraitQuoteBubble(int quote_handle)
             if (g_current_portrait_quote != 0 && g_current_portrait_quote->has_resources_14 != 0) {
                 DeleteVideoSurfaceFromIndex(g_current_portrait_quote->background_surface);
                 DeleteVideoObjectFromIndex(g_current_portrait_quote->object);
-                g_current_portrait_quote->has_resources_14 = 0;
+                g_current_portrait_quote->has_resources_14 = false;
             }
             delete g_current_portrait_quote;
             g_current_portrait_quote = 0;

@@ -34,8 +34,8 @@ W8DialogBase::W8DialogBase()
     m_background_path = 0;
     m_background_flags = 0;
     m_field_4c = 0;
-    m_initialized = 0;
-    m_keep_open = 1;
+    m_initialized = false;
+    m_keep_open = true;
     m_destroy_callback = 0;
     m_user_data = 0;
     ++g_dword_69ca28;
@@ -177,7 +177,7 @@ int W8DialogBase::CreateControls()
         SpecifyButtonTextOffsets(m_resource, 3, 3, 1);
         SpecifyButtonMultiColorFont(m_resource, g_dialog_font_enabled_69ca32);
         m_dirty_flags |= 1;
-        m_initialized = 1;
+        m_initialized = true;
         return 0;
     }
     return m_error = 7;
@@ -205,7 +205,7 @@ void W8DialogBase::DestroyControls()
     }
     ClearSurfaceRect(m_x, m_y, m_x + m_width + 1, m_y + m_height + 1);
     InvalidateRegion(m_x, m_y, m_x + m_width + 1, m_y + m_height + 1, 1);
-    m_initialized = 0;
+    m_initialized = false;
 }
 
 // FUNCTION: WIZ8 0x005dcce0
@@ -242,7 +242,7 @@ unsigned char W8DialogBase::ProcessInput()
             break;
         case KEY_DOWN:
             if (input.usParam == 0x1b) {
-                m_keep_open = 0;
+                m_keep_open = false;
             }
             break;
         }
@@ -255,7 +255,7 @@ void DialogCloseButtonCallback(W8DialogButton* button)
 {
     W8DialogBase* dialog = button->m_owner_040;
     if (dialog != 0) {
-        dialog->m_keep_open = 0;
+        dialog->m_keep_open = false;
     }
 }
 

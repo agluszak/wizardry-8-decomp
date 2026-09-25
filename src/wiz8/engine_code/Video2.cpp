@@ -273,7 +273,7 @@ int g_cursor_hotspot_x_6596bc;
 // GLOBAL: WIZ8 0x6596c0
 int g_cursor_hotspot_y_6596c0;
 // GLOBAL: WIZ8 0x6596c4
-unsigned char g_system_cursor_visible_6596c4;
+bool g_system_cursor_visible_6596c4;
 
 // FUNCTION: WIZ8 0x00428ab0
 void AssertFailureHandler(const char* expression, const char* file, long line, const char* message)
@@ -1219,11 +1219,12 @@ void RenderFrame(void)
             int half_height = (g_viewport_6595e8.bottom - g_viewport_6595e8.top) / 2;
             srGERD::Pick pick;
             pick.position_00.x = (g_cursor_hotspot_x_6596bc - half_width - g_viewport_6595e8.left +
-                         g_cursor_width_654ad0) /
-                        static_cast<float>(half_width);
-            pick.position_00.y = -static_cast<float>(g_cursor_hotspot_y_6596c0 - half_height -
-                                            g_viewport_6595e8.top + g_cursor_height_654ad4) /
-                        static_cast<float>(half_height);
+                                  g_cursor_width_654ad0) /
+                                 static_cast<float>(half_width);
+            pick.position_00.y =
+                -static_cast<float>(g_cursor_hotspot_y_6596c0 - half_height -
+                                    g_viewport_6595e8.top + g_cursor_height_654ad4) /
+                static_cast<float>(half_height);
             pick.position_00.z = 1.0f;
             pick.selected_model_0c = 0;
             pick.value_10 = 0;
@@ -1449,7 +1450,7 @@ int GetUsedPageFileBytes(void)
 }
 
 // FUNCTION: WIZ8 0x00427260
-unsigned char RendererBufferIsLockable(void)
+bool RendererBufferIsLockable(void)
 {
     srColorSurfaceIFace* surface = g_gerd_659634->lockBuffer();
     if (surface != 0) {
@@ -1877,7 +1878,7 @@ void SyncSystemCursor(void)
         if (cursor.x < top_left.x || cursor.x >= bottom_right.x || cursor.y < top_left.y ||
             cursor.y >= bottom_right.y) {
             if (g_system_cursor_visible_6596c4 != 1) {
-                g_system_cursor_visible_6596c4 = 1;
+                g_system_cursor_visible_6596c4 = true;
                 ShowCursor(TRUE);
             }
             return;
@@ -1888,7 +1889,7 @@ void SyncSystemCursor(void)
             PositionMouseCursor(cursor.x, cursor.y, 1);
         }
         if (g_system_cursor_visible_6596c4 != 0) {
-            g_system_cursor_visible_6596c4 = 0;
+            g_system_cursor_visible_6596c4 = false;
             ShowCursor(FALSE);
         }
         return;
@@ -2797,7 +2798,7 @@ void SetFullscreenSceneLast004298E0(unsigned char value)
 }
 
 // FUNCTION: WIZ8 0x004298F0
-unsigned char HasEnoughFreeDiskSpace(void)
+bool HasEnoughFreeDiskSpace(void)
 {
     FARPROC extended;
     LARGE_INTEGER available;
@@ -2808,7 +2809,7 @@ unsigned char HasEnoughFreeDiskSpace(void)
     DWORD free_clusters;
     DWORD total_clusters;
     unsigned int megabytes;
-    unsigned char enough;
+    bool enough;
 
     extended = GetProcAddress(GetModuleHandleA("kernel32.dll"), "GetDiskFreeSpaceExA");
     if (extended != NULL) {

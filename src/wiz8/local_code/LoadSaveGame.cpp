@@ -387,7 +387,7 @@ int GetSaveGameLevel(const char* slot_name)
    writer whose failure aborts the whole save; a failed header write leaves the
    file open and returns zero. */
 // FUNCTION: WIZ8 0x005123F0
-unsigned char SaveGame(const char* name, W8SaveScreenshot* screenshot)
+bool SaveGame(const char* name, W8SaveScreenshot* screenshot)
 {
     W8Chunk chunks;
     W8Chunk current_game;
@@ -1141,7 +1141,7 @@ unsigned char LoadMonsterGroup(W8Chunk* chunk)
         group->member_count = 0;
         group->active_member_count = 0;
         group->members_active = 0;
-        group->fInCombat = 0;
+        group->fInCombat = false;
         if (is_encounter) {
             index = PLAdoptAppend(gXStatus.plsMonsterGroupEncounterList, group);
         } else {
@@ -1218,7 +1218,7 @@ unsigned char LoadMonster(W8Chunk* chunk)
     }
     monster_info->fActive = 0;
     monster_info->p3D = 0;
-    monster_info->fInCombat = 0;
+    monster_info->fInCombat = false;
     monster_info->pCombat = 0;
     if (record_version >= 5) {
         chunk->Read(&unborn, 1, 0);
@@ -1519,11 +1519,11 @@ W8WorldItem* LoadItem(int handle, char add_to_list)
    this and greys its second item out when it is clear, which is what makes the
    continue entry unavailable on a fresh install. */
 // FUNCTION: WIZ8 0x00512fb0
-unsigned char SaveGameExists(void)
+bool SaveGameExists(void)
 {
     GETFILESTRUCT find;
     char path[260];
-    unsigned char found;
+    bool found;
 
     found = 0;
     memset(&find, 0, sizeof(find));
@@ -1738,7 +1738,7 @@ void CaptureSaveScreenshot(W8SaveScreenshot* screenshot)
    Local Code\LoadSaveGame.cpp translation unit. */
 
 // GLOBAL: WIZ8 0x00689f98
-unsigned char g_save_pending_00689f98;
+bool g_save_pending_00689f98;
 
 /* 0x0061A144, the save-file extension. It sits in writable .data with 16
    reference sites across 10 functions rather than in .rdata with the format
@@ -1794,7 +1794,7 @@ unsigned char AutoSaveIfAllowed(char forced)
 {
     char name[64];
 
-    gXStatus.save_notice_shown = 0;
+    gXStatus.save_notice_shown = false;
     if (g_status_685170.world_cursor_gate_2435 == 0 && AnyMonsterDying() == 0 &&
         ((g_settings_6850c8.auto_save != 0 && forced == 0) || g_status_685170.iron_man != 0) &&
         gXStatus.fCombatMode == 0 && IsSightRangeOverridden() == 0 &&
@@ -1820,9 +1820,9 @@ unsigned char AutoSaveIfAllowed(char forced)
 // FUNCTION: WIZ8 0x00515910
 unsigned char TakePendingSaveFlag(void)
 {
-    unsigned char pending = g_save_pending_00689f98;
+    bool pending = g_save_pending_00689f98;
 
-    g_save_pending_00689f98 = 0;
+    g_save_pending_00689f98 = false;
     return pending;
 }
 
@@ -1843,7 +1843,7 @@ unsigned char SaveSlotFileExists(const char* slot_name)
 void ReportSaveFailed(char quiet)
 {
     if (quiet == 0 || g_status_685170.iron_man != 0) {
-        gXStatus.save_notice_shown = 1;
+        gXStatus.save_notice_shown = true;
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
             ShowNotice(0xc, gppStringList[0x1e0c / 4], -1, -1, 0);
         }
@@ -1859,7 +1859,7 @@ void ReportSaveFailed(char quiet)
 void ProcessMainGameAutoSave(void)
 {
     char name[64];
-    char saved;
+    bool saved;
 
     if (g_status_685170.world_cursor_gate_2435 != 0) {
         return;
@@ -1889,14 +1889,14 @@ void ProcessMainGameAutoSave(void)
         if (gXStatus.gameplay_timer->GetProgress() <= g_float_005ebb38) {
             return;
         }
-        gXStatus.save_notice_shown = 1;
+        gXStatus.save_notice_shown = true;
         if (g_current_screen_state.id == W8_SCREEN_MAIN_GAME) {
             ShowNotice(0xc, gppStringList[0x1e0c / 4], -1, -1, 0);
         }
         gXStatus.gameplay_timer->Restart();
         return;
     }
-    gXStatus.save_notice_shown = 0;
+    gXStatus.save_notice_shown = false;
     if (g_status_685170.world_cursor_gate_2435 == 0 && AnyMonsterDying() == 0 &&
         (g_settings_6850c8.auto_save != 0 || g_status_685170.iron_man != 0) &&
         gXStatus.fCombatMode == 0 && IsSightRangeOverridden() == 0 &&
@@ -2068,7 +2068,7 @@ void ReadSaveChunks(W8Chunk* source, W8Chunk* destination)
 unsigned char MeasureLevelStatusChunks00514DF0(W8Chunk* chunk, int level,
                                                unsigned int* empty_percent)
 {
-    unsigned char found = 0;
+    bool found = false;
     unsigned int total = 0;
     unsigned int empty_total = 0;
     int remaining = chunk->ChunkCount();
@@ -2226,7 +2226,7 @@ unsigned char LoadSavedLevelItems00516070(int level, W8GrowableVector<W8WorldIte
     int inner;
     int outer_count;
     int outer;
-    unsigned char found = 0;
+    bool found = false;
 
     if (chunk.OpenRead(const_cast<char*>("Saves\\CurrentGame.SAV")) == 0) {
         return 0;

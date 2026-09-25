@@ -383,7 +383,7 @@ void OpenFormationPanel(void)
         g_formation_drag_cell_0069c380 = -1;
         g_formation_drag_slot_0069c2f4 = -1;
         g_formation_drag_clock_0069c340 = SetCountdownClock(0);
-        gXStatus.fReviewCharacterMode = 1;
+        gXStatus.fReviewCharacterMode = true;
         RegionSetEnable(0x1b);
         RequestRedraw(0x1000);
         CopyPartyFormationState(&gXStatus.edited_formation, &g_status_685170.formation);
@@ -504,7 +504,7 @@ static void AcceptFormationChanges(void)
     RefreshFormationBoard();
     RefreshRadarMap();
     DestroyFormationPanel();
-    gXStatus.fReviewCharacterMode = 0;
+    gXStatus.fReviewCharacterMode = false;
     UpdateHeldItemCursor();
     RegionSetDisable(0x1b);
     RequestRedraw(0x200);

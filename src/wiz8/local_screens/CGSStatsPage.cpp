@@ -191,7 +191,7 @@ void W8CharacterStatsValue005EF6B0::Redraw(int full_redraw)
 // FUNCTION: WIZ8 0x005c92f0
 void W8CharacterStatsValue005EF6B0::OnRightButtonUp(int event)
 {
-    unsigned char enabled = m_enabled;
+    bool enabled = m_enabled;
     m_enabled = 1;
     W8TextControl::OnRightButtonUp(event);
     m_enabled = enabled;
@@ -273,7 +273,7 @@ void W8CharacterStatsRecordControl005EF700::OnMouseLeave(int event)
    retained body at 0x005c92f0; this source override stays unmarked. */
 void W8CharacterStatsRecordControl005EF700::OnRightButtonUp(int event)
 {
-    unsigned char enabled = m_enabled;
+    bool enabled = m_enabled;
     m_enabled = 1;
     W8TextControl::OnRightButtonUp(event);
     m_enabled = enabled;
@@ -383,7 +383,7 @@ void W8CharacterStatsRow005EF750::OnPrimary(W8TextControl* control)
             do {
                 if (record->enabled_0e != 0) {
                     m_value_control_024->SetRecord(index == -1 ? 0 : &m_table_018[index]);
-                    unsigned char changed = previous != index;
+                    bool changed = previous != index;
                     m_index_004 = index;
                     m_value_control_024->Invalidate(1);
                     if (m_listener_030 == 0 || !changed) {
@@ -407,7 +407,7 @@ void W8CharacterStatsRow005EF750::OnPrimary(W8TextControl* control)
                 }
             }
             m_value_control_024->SetRecord(index == -1 ? 0 : &m_table_018[index]);
-            unsigned char changed = previous != index;
+            bool changed = previous != index;
             m_index_004 = index;
             m_value_control_024->Invalidate(1);
             if (m_listener_030 != 0 && changed) {
@@ -422,7 +422,7 @@ void W8CharacterStatsRow005EF750::OnPrimary(W8TextControl* control)
             do {
                 if (record->enabled_0e != 0) {
                     m_value_control_024->SetRecord(index == -1 ? 0 : &m_table_018[index]);
-                    unsigned char changed = previous != index;
+                    bool changed = previous != index;
                     m_index_004 = index;
                     m_value_control_024->Invalidate(1);
                     if (m_listener_030 == 0 || !changed) {
@@ -446,7 +446,7 @@ void W8CharacterStatsRow005EF750::OnPrimary(W8TextControl* control)
                 }
             }
             m_value_control_024->SetRecord(index == -1 ? 0 : &m_table_018[index]);
-            unsigned char changed = previous != index;
+            bool changed = previous != index;
             m_index_004 = index;
             m_value_control_024->Invalidate(1);
             if (m_listener_030 != 0 && changed) {
@@ -524,7 +524,7 @@ void W8CharacterPage005EF778::Activate()
             }
             m_entries_04c.data[index]->UpdateButtons();
         }
-        m_rows_initialized_089 = 1;
+        m_rows_initialized_089 = true;
     }
     for (int index = 0; index < 5; ++index) {
         m_attribute_controls_08c[index]->SetActive(1);
@@ -641,7 +641,7 @@ void W8CharacterPage005EF778::Refresh()
             }
             m_entries_04c.data[index]->UpdateButtons();
         }
-        m_rows_initialized_089 = 1;
+        m_rows_initialized_089 = true;
     }
 }
 
@@ -794,7 +794,7 @@ void W8CharacterPage005EF778::OnRowValueChanged(W8CharacterStatsRow005EF750* row
             }
             m_entries_04c.data[index]->UpdateButtons();
         }
-        m_rows_initialized_089 = 1;
+        m_rows_initialized_089 = true;
     }
 }
 
@@ -971,7 +971,7 @@ void W8CharacterPage005EF778::SetCharacter(W8Character* character,
         entry->SetEnabled(0);
     }
     m_navigation_state_088 = false;
-    m_rows_initialized_089 = 0;
+    m_rows_initialized_089 = false;
 
     for (int control_index = 0; control_index < 5; ++control_index) {
         W8TextControl* control =
@@ -1015,7 +1015,7 @@ W8CharacterPage005EF778::~W8CharacterPage005EF778()
 // FUNCTION: WIZ8 0x005cab20
 void W8CharacterPage005EF778::Redraw()
 {
-    unsigned char redraw = static_cast<unsigned char>(m_fEnabled && m_fDirty);
+    bool redraw = static_cast<unsigned char>(m_fEnabled && m_fDirty);
     W8TextBuffer text;
     int left = origin_x;
     int top = origin_y;

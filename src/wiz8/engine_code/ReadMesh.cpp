@@ -102,7 +102,7 @@ bool IsTextureInReadMeshScratch(const srTextureIFace* texture)
 }
 
 // FUNCTION: WIZ8 0x00489AC0
-unsigned char IsReadMeshMaterial00489AC0(const srClass* material)
+bool IsReadMeshMaterial00489AC0(const srClass* material)
 {
     if (g_read_mesh_materials_65b9e8 != 0 && g_read_mesh_material_count_65b9cc > 0) {
         for (short index = 0; index < g_read_mesh_material_count_65b9cc; ++index) {

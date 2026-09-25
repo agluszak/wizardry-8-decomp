@@ -119,7 +119,7 @@ W8MonsterInfo* CreateMonsterInfo(W8MonsterGroup* group, W8MonsterRecord* record,
     monster_info->scale_24f = -1.0f;
     monster_info->fActive = 0;
     monster_info->p3D = 0;
-    monster_info->fInCombat = 0;
+    monster_info->fInCombat = false;
     monster_info->pCombat = 0;
     monster_info->position_17 = *position;
     monster_info->derived_23 = GetCameraFacingYaw004BE5C0(position);
@@ -1224,7 +1224,7 @@ unsigned char ShutdownMonsterManager(void)
 }
 
 // FUNCTION: WIZ8 0x004e3af0
-unsigned char RemoveMonster(unsigned int monster_list_index, unsigned char destroy_monster)
+bool RemoveMonster(unsigned int monster_list_index, unsigned char destroy_monster)
 {
     W8MonsterInfo* monster_info = MonsterGetScriptPartByLocationIndex(monster_list_index);
 
@@ -1352,7 +1352,7 @@ void MonsterInfoEnterCombat(W8MonsterInfo* monster_info)
         srAssertFail("pMonsterInfo->pCombat != NULL", MONSTER_MANAGER_CPP, 0x2a0, 0);
     }
     memset(monster_info->pCombat, 0, 0x153);
-    monster_info->fInCombat = 1;
+    monster_info->fInCombat = true;
     if (monster_info->player_visibility.sight_state_04 == W8_SIGHT_UNSEEN) {
         monster_info->player_visibility.sight_state_04 = W8_SIGHT_RECENT;
         monster_info->player_visibility.last_seen_clock_0c = g_status_685170.world_clock;
@@ -1412,7 +1412,7 @@ void MonsterInfoLeaveCombat(W8MonsterInfo* monster_info)
     DestroyMonsterActionQueue(monster_info);
     free(monster_info->pCombat);
     monster_info->pCombat = 0;
-    monster_info->fInCombat = 0;
+    monster_info->fInCombat = false;
     if (monster_info->ubDisposition == 1) {
         RecountCombatMonsters();
     }

@@ -12,7 +12,7 @@ struct W8VideoObjectSlot {
 struct W8VideoFrame {
     char path[0x30];
     int mode;
-    unsigned char loaded;
+    bool loaded;
     unsigned char unknown_35[3];
     unsigned int handle;
 };

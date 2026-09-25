@@ -41,15 +41,15 @@
 
 /* The screen's own state. */
 // GLOBAL: WIZ8 0x0069c4ba
-unsigned char g_main_menu_has_save_games;
+bool g_main_menu_has_save_games;
 // GLOBAL: WIZ8 0x0069c4b6
-unsigned char g_main_menu_redraw;
+bool g_main_menu_redraw;
 // GLOBAL: WIZ8 0x0069c4b4
 unsigned short g_main_menu_selected_item;
 // GLOBAL: WIZ8 0x0069c4c4
-unsigned char g_main_menu_warning_shown;
+bool g_main_menu_warning_shown;
 // GLOBAL: WIZ8 0x0069c4bb
-unsigned char g_main_menu_overlay_enabled;
+bool g_main_menu_overlay_enabled;
 // GLOBAL: WIZ8 0x0069c4ac
 unsigned int g_main_menu_overlay_surface;
 // GLOBAL: WIZ8 0x0069c4b0
@@ -157,7 +157,7 @@ unsigned char MainMenuScreenEnter(void)
     MSYS_Init();
     g_status_685170.game_started = 0;
     g_main_menu_has_save_games = SaveGameExists();
-    g_main_menu_redraw = 1;
+    g_main_menu_redraw = true;
     ClearPrimarySurface();
     colour = Get16BPPColor(0x10101);
     ColorFillVideoSurfaceArea(-14, 0, 0, 0x280, 0x1e0, colour);
@@ -210,7 +210,7 @@ unsigned char MainMenuScreenEnter(void)
         dialog->SetClientExtent(0xfa, 200);
         dialog->SetMessage(gppStringList[0x1fb8 / 4], 1, 0x32, 1, 0, 1, 1, 0, 0x15e);
         SetDialogDestroyCallback(dialog, 0);
-        g_main_menu_warning_shown = 1;
+        g_main_menu_warning_shown = true;
         g_main_menu_dialog = dialog;
     }
     return 1;
@@ -242,7 +242,7 @@ void MainMenuScreenFrame()
         if (ProcessDialogInput(g_main_menu_dialog) == 0) {
             delete g_main_menu_dialog;
             g_main_menu_dialog = 0;
-            g_main_menu_redraw = 1;
+            g_main_menu_redraw = true;
             DrawCatalogImage(-14, 0xe8, 0, 0, 0, 0, 2, 0);
             DrawMainMenuItem(0, 0);
             DrawMainMenuItem(1, 0);
@@ -272,7 +272,7 @@ void MainMenuScreenFrame()
                         case 0:
                             DrawMainMenuItem(g_main_menu_selected_item, 2);
                             RequestScreenTransition();
-                            g_settings_6850c8.intro_seen = 0;
+                            g_settings_6850c8.intro_seen = false;
                             SetValue64D8AC(0);
                             SetPendingScreenState(W8_SCREEN_INTRO);
                             break;
@@ -362,7 +362,7 @@ void MainMenuScreenFrame()
         }
         RenderMessageBox();
         ResetTransientRenderScenes();
-        g_main_menu_redraw = 0;
+        g_main_menu_redraw = false;
     }
     RenderFrame();
 }
@@ -513,7 +513,7 @@ unsigned char MainMenuIntroduction(const InputAtom* event, W8Region* region)
         DrawMainMenuItem(g_main_menu_selected_item, 1);
         if (region->flags & W8_REGION_LEFT_BUTTON_HELD) {
             RequestScreenTransition();
-            g_settings_6850c8.intro_seen = 0;
+            g_settings_6850c8.intro_seen = false;
             SetValue64D8AC(0);
             SetPendingScreenState(W8_SCREEN_INTRO);
         }

@@ -107,7 +107,7 @@ W8CombatState* g_combat_state;
 /* The per-character combat rows live at +0x18 of the combat state and run
    0xd4 bytes apart; the state's leading 0x18 bytes are its own header. */
 // GLOBAL: WIZ8 0x0068d810
-unsigned char g_combat_log_enabled_0068d810;
+bool g_combat_log_enabled_0068d810;
 // GLOBAL: WIZ8 0x00617664
 extern const wchar_t g_combat_log_format_00617664[] = L"%hs";
 // GLOBAL: WIZ8 0x006175B0
@@ -210,9 +210,9 @@ unsigned char StartCombat(int surprise)
     g_combat_state->combat_update_count = 0;
     g_combat_state->notice_scroll_pending_a57 = 0;
     g_combat_state->combat_ready_a62 = 0;
-    gXStatus.fCombatMode = 1;
-    gXStatus.fPartyMovementUi = 0;
-    gXStatus.fPartyMovementMode = 0;
+    gXStatus.fCombatMode = true;
+    gXStatus.fPartyMovementUi = false;
+    gXStatus.fPartyMovementMode = false;
     DisablePortraitControls0059BB40();
     EnableMainRegionSet();
     g_level_block->pick_changed_154 = 0;
@@ -593,7 +593,7 @@ void BeginCombatExecution004E8370(void)
         W8MonsterInfo* monster = MonsterGetScriptPartByLocationIndex(index);
         if (monster->fInCombat) {
             W8MonsterCombatState* state = monster->pCombat;
-            state->berserk_015 = 0;
+            state->berserk_015 = false;
             state->spot_attempts_13d = 0;
             state->pending_action_repick_count = 0;
             state->interception_count = 0;
@@ -661,7 +661,7 @@ void BeginCombatExecution004E8370(void)
             }
         }
     }
-    g_combat_state->pacing_latch_a60 = 1;
+    g_combat_state->pacing_latch_a60 = true;
 }
 
 /* Which of the two engagement counts to report - the forced one when combat
@@ -1124,7 +1124,7 @@ void EndCombat004EA310(int mode)
     UpdateScreenOverlays(0);
     RestoreCombatFormation();
     ReconcilePartyEquipmentAfterCombat0053CD60();
-    gXStatus.fCombatMode = 0;
+    gXStatus.fCombatMode = false;
     if (g_combat_state->search_mode_saved_a61 != 0) {
         ToggleSearchMode();
     }
@@ -1829,8 +1829,8 @@ void AdvanceCombatRound004E9B20(void)
         ShowNoticef(0xc, gppStringList[0x22b], g_combat_state->round_count_004);
         SoundPlay("Data\\Sound\\Misc\\EndTurnChime.wav", 0);
     }
-    g_combat_state->party_surprised_a52 = 0;
-    g_combat_state->monsters_surprised_a53 = 0;
+    g_combat_state->party_surprised_a52 = false;
+    g_combat_state->monsters_surprised_a53 = false;
     if (g_combat_state->passive_round_a55 == 0) {
         g_combat_state->unengaged_rounds_a56 = 0;
     } else {
@@ -2032,17 +2032,17 @@ void RollCombatSurprise004ECF50(char arg_1)
                 }
             }
             if (!found || PartyAvoidsSurprise() != 0) {
-                g_combat_state->party_surprised_a52 = 1;
+                g_combat_state->party_surprised_a52 = true;
             }
         }
         if (g_combat_state->party_surprised_a52 == 0) {
             if (GetLevelDataFlag8() != 0) {
                 if (Random(100) < 0x14) {
-                    g_combat_state->party_surprised_a52 = 1;
+                    g_combat_state->party_surprised_a52 = true;
                     level_surprise = true;
                 }
             } else if (g_status_685170.search_mode != 0 && Random(100) < 0x14) {
-                g_combat_state->party_surprised_a52 = 1;
+                g_combat_state->party_surprised_a52 = true;
                 search_surprise = true;
             }
         }
@@ -2060,11 +2060,11 @@ void RollCombatSurprise004ECF50(char arg_1)
         }
     }
     if (!found && gXStatus.fSurprisePossible == 0) {
-        g_combat_state->monsters_surprised_a53 = 1;
+        g_combat_state->monsters_surprised_a53 = true;
     }
     if (g_combat_state->party_surprised_a52 != 0 && g_combat_state->monsters_surprised_a53 != 0) {
-        g_combat_state->party_surprised_a52 = 0;
-        g_combat_state->monsters_surprised_a53 = 0;
+        g_combat_state->party_surprised_a52 = false;
+        g_combat_state->monsters_surprised_a53 = false;
     }
     if (g_combat_state->party_surprised_a52 == 0) {
         if (g_combat_state->monsters_surprised_a53 != 0) {
@@ -2411,7 +2411,7 @@ void ExecuteMonsterAction004EAE20(W8MonsterInfo* monster_info, W8MonsterRecord* 
             break;
         case 8:
             if (monster_info->pCombat->berserk_015 == '\0') {
-                monster_info->pCombat->berserk_015 = 1;
+                monster_info->pCombat->berserk_015 = true;
                 berserked = 1;
             }
             break;
@@ -2461,7 +2461,7 @@ void ExecuteMonsterAction004EAE20(W8MonsterInfo* monster_info, W8MonsterRecord* 
             }
             monster_info->spell_power_level = power;
             OrientMonsterTowardTarget(monster_info, 0);
-            monster_info->fSpellReleased = 0;
+            monster_info->fSpellReleased = false;
             StartMonsterCycle(monster_info, 0x19, 1);
             result = 1;
             break;
@@ -2903,7 +2903,7 @@ int GetConditionInterrupt004EC1E0(W8TargetSource* source)
     W8Character* character;
     W8MonsterInfo* monster_info;
     unsigned int* condition_turns;
-    unsigned char secondary_flag;
+    bool secondary_flag;
     unsigned int attribute;
     bool moving;
     bool controlled;
@@ -3399,7 +3399,7 @@ void ScheduleCombatActor004E9490(void)
                 }
                 g_combat_state->action_clock_7ac = SetCountdownClock(delay);
             }
-            g_combat_state->pacing_latch_a60 = 0;
+            g_combat_state->pacing_latch_a60 = false;
         } else {
             if (g_combat_state->uiCurrentPartyActionStatus == 2) {
                 int slot = 0;

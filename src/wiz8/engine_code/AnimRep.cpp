@@ -32,7 +32,7 @@ W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8()
     render_state_04c.highlight_blue = 0.0f;
     render_state_04c.highlight_alpha = 0.0f;
     instance_scale_05c = 1.0f;
-    flag_060 = 0;
+    flag_060 = false;
     apply_instance_scale_061 = 0;
 }
 
@@ -58,7 +58,7 @@ W8AnimRepBase005EC1D8::W8AnimRepBase005EC1D8(const W8AnimRepBase005EC1D8& other)
     rotation_028 = other.rotation_028;
     render_state_04c = other.render_state_04c;
     instance_scale_05c = 1.0f;
-    flag_060 = 0;
+    flag_060 = false;
     apply_instance_scale_061 = 0;
 }
 

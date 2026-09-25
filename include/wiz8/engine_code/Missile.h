@@ -131,7 +131,7 @@ public:
     unsigned char align_camera_1e4;
     unsigned char explode_ground_1e5;
     unsigned char align_explosion_1e6;
-    unsigned char flag_1e7;
+    bool flag_1e7;
     void* value_1e8;
     void* value_1ec;
     float lifetime_1f0;

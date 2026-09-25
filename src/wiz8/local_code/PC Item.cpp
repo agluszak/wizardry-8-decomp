@@ -1191,9 +1191,8 @@ unsigned char UseItem(W8Character* character, W8ItemInstance* item, int* out_use
         /* The one item that is not used on anybody: it hands the level's NPC
            over to the fact that says the party has met them. */
         if (item->iItemNo == 0x29f) {
-            W8NpcState* npc =
-                GetNpcState(g_status_685170.buffers.XChar[CharacterPointerToPartySlot(character)]
-                                .npc_index);
+            W8NpcState* npc = GetNpcState(
+                g_status_685170.buffers.XChar[CharacterPointerToPartySlot(character)].npc_index);
             if (npc == 0) {
                 srAssertFail("pNPC", PC_ITEM_CPP, 0x89d, 0);
             }
@@ -1453,7 +1452,7 @@ char MergeItems(W8Character* character, W8ItemInstance* destination)
 
     if (held->iItemNo == destination->iItemNo) {
         unsigned char partially_merged = 0;
-        unsigned char merged = MergeItemStacks(destination, held, &partially_merged);
+        bool merged = MergeItemStacks(destination, held, &partially_merged);
         return partially_merged != 0 ? 1 : merged;
     }
 
@@ -1763,7 +1762,7 @@ unsigned char GiveHeldItemToCharacterOrParty(int uiChar, unsigned char party_fir
 {
     W8ItemInstance* item = &g_status_685170.item_in_hand_235b;
     unsigned char stored = party_first;
-    unsigned char identified = 0;
+    bool identified = false;
     unsigned int slot;
 
     if (!g_status_685170.item_in_cursor) {
@@ -2840,8 +2839,8 @@ void NormalizeItemStack(W8ItemInstance* item)
    source is removed from its owner; a partial merge is reported separately so
    the caller can refresh carrying capacity before placing the remainder. */
 // FUNCTION: WIZ8 0x0051f900
-unsigned char MergeItemStacks(W8ItemInstance* destination, W8ItemInstance* source,
-                              unsigned char* partially_merged)
+bool MergeItemStacks(W8ItemInstance* destination, W8ItemInstance* source,
+                     unsigned char* partially_merged)
 {
     if (destination->iItemNo == -1) {
         return 0;
@@ -4384,7 +4383,7 @@ void UpgradeProfessionClassItem005218C0(W8Character* character)
 // FUNCTION: WIZ8 0x005215d0
 unsigned char RemovePartyItemByID005215D0(int item_id, char remove_all)
 {
-    unsigned char removed = 0;
+    bool removed = false;
 
     if (g_status_685170.item_in_cursor && g_status_685170.item_in_hand_235b.iItemNo == item_id) {
         gXStatus.held_item_source = -1;
@@ -4460,8 +4459,8 @@ unsigned char SwapWeaponSetSlots0051D3B0(int party_slot, char announce, unsigned
 {
     W8Character* character = &g_status_685170.buffers.Char[party_slot];
     int notice_context = gXStatus.fNpcDialogueMode != 0 ? 0 : -1;
-    unsigned char blocked_primary = 0;
-    unsigned char blocked_alternate = 0;
+    bool blocked_primary = false;
+    bool blocked_alternate = false;
     int primary_right_item;
     int alternate_right_item;
 

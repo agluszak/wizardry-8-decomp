@@ -171,7 +171,7 @@ struct W8Character {
     /* 0x0000: SaveCharacter stamps 1 here before writing the record, so the
        leading dword is a saved-record version rather than runtime state. */
     unsigned int record_version;
-    unsigned char fInParty; /* 0x0004: pPC->fInParty assertion spelling */
+    bool fInParty; /* 0x0004: pPC->fInParty assertion spelling */
     /* 0x0005: the character's name, wide, and the stem SaveCharacter formats
        "%ls.CHR" from. The extent below partitions the unknown run up to the
        profession at 0x0069; it is not proven, and only the fact that a wide

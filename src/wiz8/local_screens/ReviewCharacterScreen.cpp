@@ -1797,8 +1797,8 @@ unsigned char CampScreenEnter(void)
     for (unsigned int realm = 0; realm < 6; ++realm) {
         g_camp_screen_0069c0f4->realm_flags[realm] = 0;
     }
-    g_camp_screen_0069c0f4->item_timer_active = 0;
-    g_camp_screen_0069c0f4->item_timer_expired = 0;
+    g_camp_screen_0069c0f4->item_timer_active = false;
+    g_camp_screen_0069c0f4->item_timer_expired = false;
     CreateCampButtonPanel005B4EB0();
     CreateCampActionPanel005B9070();
     CreateItemsTabPanel005B9350();
@@ -1817,7 +1817,7 @@ unsigned char CampScreenEnter(void)
     g_camp_screen_0069c0f4->stats_range = new W8CampStatsRange;
     g_camp_screen_0069c0f4->stats_controls = new W8CampStatsControls;
     g_camp_screen_0069c0f4->character_info = new W8CampCharacterInfo;
-    g_camp_screen_0069c0f4->item_icons_drawn_d50 = 0;
+    g_camp_screen_0069c0f4->item_icons_drawn_d50 = false;
     ActivateCampPage005A45B0();
     g_camp_screen_0069c0f4->animation_timer = SetCountdownClock(50);
     for (unsigned int animation = 0; animation < 6; ++animation) {
@@ -1967,7 +1967,7 @@ void CampScreenFrame(void)
     if (g_camp_screen_0069c0f4->page == 0 && g_camp_screen_0069c0f4->item_timer_active &&
         !g_camp_screen_0069c0f4->item_timer_expired &&
         !ClockIsTicking(g_camp_screen_0069c0f4->item_timer)) {
-        g_camp_screen_0069c0f4->item_timer_expired = 1;
+        g_camp_screen_0069c0f4->item_timer_expired = true;
         g_camp_screen_0069c0f4->item_redraw_flags |= 0x3ffe00;
     }
     if (!g_camp_screen_0069c0f4->input_mode) {
@@ -2057,7 +2057,7 @@ void DrawCampScreen005A42A0(void)
     NoOp();
     if (!g_monster_combat_timer_enabled_006f0531 && state->item_icons_drawn_d50) {
         state->redraw_flags |= 0xfffffff;
-        state->item_icons_drawn_d50 = 0;
+        state->item_icons_drawn_d50 = false;
     }
     if (state->redraw_flags != 0 || state->item_redraw_flags != 0 || IsMessageBoxActive() ||
         g_status_685170.item_in_cursor) {
@@ -2105,7 +2105,7 @@ void DrawCampScreen005A42A0(void)
         state->item_range->m_range->Redraw();
         if (g_monster_combat_timer_enabled_006f0531 && state->dialog == 0) {
             DrawCampItemIcons005BBE30();
-            state->item_icons_drawn_d50 = 1;
+            state->item_icons_drawn_d50 = true;
         }
     } else if (state->page == 1) {
         state->stats_range->UpdateRange(0);
@@ -2141,8 +2141,7 @@ done:
 // FUNCTION: WIZ8 0x005A4570
 void SyncReviewCharInputRegion005A4570(void)
 {
-    if (giReviewCharSlot != -1 &&
-        g_status_685170.buffers.XChar[giReviewCharSlot].npc_index != -1) {
+    if (giReviewCharSlot != -1 && g_status_685170.buffers.XChar[giReviewCharSlot].npc_index != -1) {
         DisableRegionInput(0xf2);
         return;
     }
@@ -2212,7 +2211,7 @@ void ActivateCampPage005A45B0(void)
         RegionSetEnable(0x2c);
         BuildLearnedSpellState004F9600(&state->learned_spells, g_review_character_0069c0f8);
         RefreshCampSpellRanges005B7290();
-        gXStatus.fSpellCastMode = 0;
+        gXStatus.fSpellCastMode = false;
         state->selected_spell_row = -1;
         break;
     }
@@ -2395,8 +2394,8 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
 {
     W8CombatSlot target;
     short related_kind;
-    unsigned char changed = 0;
-    unsigned char merged = 0;
+    bool changed = false;
+    bool merged = false;
     unsigned char partially_merged = 0;
     unsigned char merge_tried = 0;
     unsigned char same_kind = 0;
@@ -2742,8 +2741,8 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
                     g_camp_character_0069c100 == g_review_character_0069c0f8) {
                     g_camp_character_pending_0069c104 = 0;
                     if (item->iItemNo != -1 && (giReviewCharSlot == 0 || giReviewCharSlot == 1)) {
-                        npc = GetNpcState(
-                            g_status_685170.buffers.XChar[giReviewCharSlot].npc_index);
+                        npc =
+                            GetNpcState(g_status_685170.buffers.XChar[giReviewCharSlot].npc_index);
                         if (npc != 0 && NpcWantsItem0050DC50(npc, item) != 0) {
                             g_camp_character_pending_0069c104 = 1;
                             g_camp_character_0069c100 = g_review_character_0069c0f8;
@@ -2916,7 +2915,7 @@ void HandleCampItemClick005A4C70(W8ItemInstance* item, unsigned int slot_index, 
 void TakeItemUnitToHand005A5DA0(W8ItemInstance* item, unsigned short slot, unsigned int origin)
 {
     W8ItemInstance single;
-    unsigned char moved = 0;
+    bool moved = false;
 
     if (g_camp_screen_0069c0f4->entry_mode != 0) {
         return;

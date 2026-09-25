@@ -170,7 +170,7 @@ bool Trynnie2UseItem004D9F60(W8ItemInstance* item)
         ShowString(gppStringList[0x259c / 4]);
     }
     if (g_status_685170.use_item_latch_2445 == 0) {
-        g_status_685170.use_item_latch_2445 = 1;
+        g_status_685170.use_item_latch_2445 = true;
     } else {
         ShowString(gppStringList[0x25a4 / 4]);
         if (FindEntityByName("NP_MysticalShaman", &position, 0, 0) != 0) {

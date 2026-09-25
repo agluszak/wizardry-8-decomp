@@ -23,7 +23,7 @@ W8GrowableVector<W8CreditLine>* g_credit_lines_0069c4a8;
 // GLOBAL: WIZ8 0x0069C494
 int g_credit_elapsed_steps_0069c494;
 // GLOBAL: WIZ8 0x0069C498
-unsigned char g_credit_redraw_0069c498;
+bool g_credit_redraw_0069c498;
 // GLOBAL: WIZ8 0x0069C49C
 unsigned long g_credit_started_at_0069c49c;
 // GLOBAL: WIZ8 0x0069C4A0
@@ -128,7 +128,7 @@ unsigned char CreditsScreenEnter(void)
     g_credit_elapsed_steps_0069c494 = 0;
     g_credit_y_0069c4a0 = 0x1df;
     g_credit_started_at_0069c49c = GetTickCount();
-    g_credit_redraw_0069c498 = 1;
+    g_credit_redraw_0069c498 = true;
     return 1;
 }
 
@@ -171,7 +171,7 @@ void CreditsScreenFrame(void)
         (GetTickCount() - g_credit_started_at_0069c49c) / 35 - g_credit_elapsed_steps_0069c494;
     if (steps >= 1) {
         g_credit_elapsed_steps_0069c494 += steps;
-        g_credit_redraw_0069c498 = 1;
+        g_credit_redraw_0069c498 = true;
         W8CreditLine entry = *g_credit_lines_0069c4a8->GetAt(g_credit_line_0069c4a4);
         g_credit_y_0069c4a0 -= steps;
         while (g_credit_y_0069c4a0 < 0) {
@@ -208,7 +208,7 @@ void CreditsScreenFrame(void)
         y += entry->line_height;
     }
     ResetTransientRenderScenes();
-    g_credit_redraw_0069c498 = 0;
+    g_credit_redraw_0069c498 = false;
     RenderFrame();
 }
 

@@ -444,7 +444,7 @@ void SetMonsterCondition(int location_id, int condition, int duration, int argum
     int index;
     int old_duration;
     int slot;
-    unsigned char handled;
+    bool handled;
 
     if (argument != 0 && condition != W8_CONDITION_POISONED) {
         srAssertFail("(uiPoisonStrength == 0) || (uiCondition == COND_POISONED)",
@@ -673,7 +673,7 @@ unsigned char SetCharacterCondition(int party_slot, int condition, int duration,
     W8PartySlotRow* row = &g_status_685170.buffers.XChar[party_slot];
     unsigned int old_highest;
     unsigned int old_duration;
-    unsigned char handled;
+    bool handled;
 
     if (row->fOccupied == 0) {
         srAssertFail("fCHAR_OCCUPIED(uiChar)",

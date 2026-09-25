@@ -33,7 +33,7 @@ void ApplyEffectAndAnnounce(unsigned int* result, W8CombatSlot* target, int real
 /* 0x00551BA0 sits before the unit's assertion hull rather than inside it;
    its own assertion names Magic Effects.cpp, which attributes it to this
    unit. GroupAttacks.cpp's call sites need the declaration. */
-char ResolveAttackOnTarget00551BA0(const W8TargetSource* source, W8CombatSlot* target,
+bool ResolveAttackOnTarget00551BA0(const W8TargetSource* source, W8CombatSlot* target,
                                    int condition_id, int realm, unsigned int power_level,
                                    int argument, int magnitude, char announce_resistance,
                                    char announce_condition, int duration);

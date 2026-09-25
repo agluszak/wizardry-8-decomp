@@ -58,7 +58,7 @@ public:
        only when +0x61 enables that path. A value of one clears the instance
        scale flag instead of storing a redundant scale. */
     float instance_scale_05c;
-    unsigned char flag_060;
+    bool flag_060;
     unsigned char apply_instance_scale_061;
     unsigned char padding_062[2];
 };

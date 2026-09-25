@@ -25,7 +25,7 @@ stScript* g_music_playlist_65ba74;
 // GLOBAL: WIZ8 0x0065BA78
 unsigned int g_music_playlist_tick_65ba78;
 // GLOBAL: WIZ8 0x0065BA7E
-unsigned char g_music_playlist_active_65ba7e;
+bool g_music_playlist_active_65ba7e;
 // GLOBAL: WIZ8 0x0065BA80
 int g_music_playlist_weight_total_65ba80;
 // GLOBAL: WIZ8 0x0065BA84
@@ -77,7 +77,7 @@ void SetMusicMuted(unsigned char muted)
 }
 
 // FUNCTION: WIZ8 0x00490180
-char IsCurrentMusicPlaylist(const char* playlist)
+bool IsCurrentMusicPlaylist(const char* playlist)
 {
     return _stricmp(playlist, g_music_playlist_65ba74->getName()) == 0;
 }
@@ -103,7 +103,7 @@ unsigned char InitializeMusicPlaylist(void)
 int AnalyzeMusicPlaylist0048FF50(stScript* playlist, int* total_weight)
 {
     int playable_count = 0;
-    unsigned char found_unweighted = 0;
+    bool found_unweighted = false;
 
     *total_weight = 0;
     for (int index = 0; index < playlist->lines.GetCount(); ++index) {
@@ -126,7 +126,7 @@ int AnalyzeMusicPlaylist0048FF50(stScript* playlist, int* total_weight)
             if (weight != 0) {
                 *total_weight += atoi(weight + 1);
             } else {
-                found_unweighted = 1;
+                found_unweighted = true;
                 *total_weight = 0;
             }
         }
@@ -272,7 +272,7 @@ unsigned char StartMusicResource0048FC10(const char* resource, int fade, int rep
         g_music_playlist_65ba74, &g_music_playlist_weight_total_65ba80);
     if (g_music_playlist_track_count_65ba84 != 0) {
         g_music_playlist_65ba74->setName(resource);
-        g_music_playlist_active_65ba7e = 1;
+        g_music_playlist_active_65ba7e = true;
         g_music_force_next_60aae5 = 1;
     }
     return 1;
@@ -285,12 +285,12 @@ void StopMusicPlaylist(unsigned char fade)
         if (g_music_sample_handle_60aae0 != -1) {
             SoundSetFadeVolume(g_music_sample_handle_60aae0, 0, 2000, 1);
             g_music_sample_handle_60aae0 = -1;
-            g_music_playlist_active_65ba7e = 0;
+            g_music_playlist_active_65ba7e = false;
             return;
         }
     } else {
         SoundStopMusic();
     }
     g_music_sample_handle_60aae0 = -1;
-    g_music_playlist_active_65ba7e = 0;
+    g_music_playlist_active_65ba7e = false;
 }

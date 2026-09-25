@@ -43,7 +43,7 @@ private:
     W8TextBuffer* m_text_buffers[W8_ASSAY_TEXT_BUFFER_COUNT]; /* 0xe8 */
     W8DialogScrollBar m_scroll_bar;                           /* 0xfc */
     W8ItemInstance* m_item;                                   /* 0x148 */
-    unsigned char m_item_portrait_dirty;                      /* 0x14c */
+    bool m_item_portrait_dirty;                               /* 0x14c */
     unsigned char unknown_14d[3];
     W8DialogTextArea m_text_area; /* 0x150 */
     W8Character* m_character;     /* 0x1a8 */

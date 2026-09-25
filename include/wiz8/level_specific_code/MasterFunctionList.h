@@ -1,7 +1,7 @@
 #pragma once
 
-extern unsigned char g_flag_6109f0;
-extern unsigned char g_flag_652da5;
+extern bool g_flag_6109f0;
+extern bool g_flag_652da5;
 
 #include "wiz8/vector.h"
 
@@ -17,8 +17,8 @@ typedef void (*W8MasterFunction)(int);
 /* The registered master functions, and the flag a callback sets to ask the
    dispatcher to drop it after this run. */
 extern W8Vector<W8MasterFunction>* g_master_functions_006834d8;
-extern unsigned char g_flag_006834dc;
-extern unsigned char g_flag_006834dd;
+extern bool g_flag_006834dc;
+extern bool g_flag_006834dd;
 
 void ClearValue6834D4(void);
 int NormalizeMasterFunctionValue004D9700(int value);

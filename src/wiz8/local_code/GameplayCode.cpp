@@ -1024,7 +1024,7 @@ int AddCharacterToParty(W8Character* character, int slot_kind)
 
     W8Character* destination = &g_status_685170.buffers.Char[slot];
     memcpy(destination, character, sizeof(W8Character));
-    destination->fInParty = 1;
+    destination->fInParty = true;
     ResetPartySlotRow(slot);
     ResetGameplaySlot(slot);
 
@@ -1072,13 +1072,13 @@ unsigned char RemoveCharacterFromParty(int party_slot, char save_character_data)
         srAssertFail("!fSaveCharData || fCHAR_NPC(uiSlot)", GAMEPLAY_CODE_CPP, 0x895, 0);
     }
     gXStatus.character_event_queue->RemoveCharacterEvents(character);
-    character->fInParty = 0;
+    character->fInParty = false;
     if (save_character_data != 0) {
         RebuildCharacterModifierBlock(character);
         RecalculateCharacterDerivedStats(character);
-        if (SaveCharacter(character, g_status_685170.buffers.XChar[party_slot].npc_index, 1,
-                          0) == 0) {
-            character->fInParty = 1;
+        if (SaveCharacter(character, g_status_685170.buffers.XChar[party_slot].npc_index, 1, 0) ==
+            0) {
+            character->fInParty = true;
             RebuildCharacterModifierBlock(character);
             RecalculateCharacterDerivedStats(character);
             return 0;
@@ -1137,7 +1137,7 @@ unsigned char RecruitCharacterIntoParty004EF7E0(W8Character* character, W8Charac
     }
     RemoveCharacterFromParty(slot, 0);
     memcpy(character, record, sizeof(W8Character));
-    character->fInParty = 1;
+    character->fInParty = true;
     ResetPartySlotRow(slot);
     ResetGameplaySlot(slot);
     g_status_685170.buffers.XChar[slot].npc_index = -1;

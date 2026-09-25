@@ -56,7 +56,7 @@
    selection panel used while the debug flag is active. */
 
 // GLOBAL: WIZ8 0x0068f0fe
-unsigned char g_mipe_mongen_visible_0068f0fe;
+bool g_mipe_mongen_visible_0068f0fe;
 
 // GLOBAL: WIZ8 0x0068f108
 int g_mipe_mode_0068f108;
@@ -1634,7 +1634,7 @@ int HandleCubeMenuKey0057A310(unsigned int key)
         WarpSystemCursor(0x140, 0xf0);
         GetWorldCursorAnchor00490C20(&anchor);
         MoveWorldCursorNode0048DBF0(g_mipe_cube_0068f12c, &anchor);
-        g_mipe_state_0068f100->dragging = 1;
+        g_mipe_state_0068f100->dragging = true;
         g_mipe_menu_active_68f104 = 0;
         return 1;
     case 0x35:
@@ -1838,7 +1838,7 @@ int HandleMonsterGeneratorKey0057AA00(unsigned short key)
                 ++index;
             } while (index < count);
         }
-        g_mipe_mongen_visible_0068f0fe = 1;
+        g_mipe_mongen_visible_0068f0fe = true;
         ShowMonsterGeneratorStatus005781F0();
         generator = new MonGen();
         if (generator == 0) {
@@ -1890,7 +1890,7 @@ int HandleMonsterGeneratorKey0057AA00(unsigned short key)
         ShowMonsterGeneratorStatus005781F0();
         return 1;
     case 0x35: {
-        unsigned char visible = g_mipe_mongen_visible_0068f0fe == 0;
+        bool visible = g_mipe_mongen_visible_0068f0fe == 0;
         count = GetMonsterGeneratorCount();
         index = 0;
         if (0 < count) {
@@ -2431,7 +2431,7 @@ void EditTriggerKeyID0057BA60(unsigned int key)
     Trigger* trigger;
     W8TriggerActionData* action;
     int key_id;
-    unsigned char pending;
+    bool pending;
 
     trigger = g_mipe_state_0068f100->prop->GetValue18();
     action = g_mipe_state_0068f100->prop->GetValue18()->m_pActionData;
@@ -2861,7 +2861,7 @@ unsigned char HandleMipeKey0057C230(const InputAtom* event)
                                         g_mipe_mode_0068f108 = 0xf;
                                         g_mipe_state_0068f100->selecting = 0;
                                         HideWorldCursor00490B90();
-                                        g_mipe_state_0068f100->dragging = 0;
+                                        g_mipe_state_0068f100->dragging = false;
                                         g_mipe_menu_active_68f104 = 1;
                                         ResetEditorStatusLine0058AA20(-1);
                                         ShowNoticef(6, L"Choose an action:");
@@ -3539,7 +3539,7 @@ unsigned char MipeWorldViewEvent0057E0E0(int event, const POINT* point)
     case LEFT_BUTTON_DOWN:
         if (g_mipe_mode_0068f108 == 4) {
             result = 1;
-            g_mipe_state_0068f100->dragging = 1;
+            g_mipe_state_0068f100->dragging = true;
             ShowWorldCursor00490B10();
             GetWorldCursorPosition00490BF0(&g_mipe_state_0068f100->drag_anchor);
             WarpSystemCursor(0x140, 0xf0);
@@ -3567,7 +3567,7 @@ unsigned char MipeWorldViewEvent0057E0E0(int event, const POINT* point)
         if (g_mipe_mode_0068f108 == 4) {
             DragSelectionWithCursor0057DF80();
             result = 1;
-            g_mipe_state_0068f100->dragging = 0;
+            g_mipe_state_0068f100->dragging = false;
             HideWorldCursor00490B90();
             if (g_mipe_state_0068f100->trigger != 0) {
                 Trigger* trigger = g_mipe_state_0068f100->trigger;
@@ -3588,7 +3588,7 @@ unsigned char MipeWorldViewEvent0057E0E0(int event, const POINT* point)
             g_mipe_mode_0068f108 = 0xf;
             g_mipe_state_0068f100->selecting = 0;
             HideWorldCursor00490B90();
-            g_mipe_state_0068f100->dragging = 0;
+            g_mipe_state_0068f100->dragging = false;
             g_mipe_menu_active_68f104 = 1;
             ResetEditorStatusLine0058AA20(-1);
             ShowNoticef(6, L"Choose an action:");

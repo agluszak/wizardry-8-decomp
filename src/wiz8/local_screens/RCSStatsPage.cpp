@@ -1282,15 +1282,15 @@ void W8CharacterPage005EF57C::Redraw()
         text.SetText(gppStringList[0x8e], g_font_683660);
         text.RenderToTarget(0, 1, -14);
 
-        m_portrait_dirty_0fe = 1;
-        m_description_dirty_0fd = 1;
-        m_animation_active_0fc = 0;
+        m_portrait_dirty_0fe = true;
+        m_description_dirty_0fd = true;
+        m_animation_active_0fc = false;
     }
 
     if (m_portrait_dirty_0fe) {
         DrawCatalogImageAndInvalidate(-14, 0x11, m_character_060->portrait_index, 0,
                                       origin_x + 0x86, origin_y + 5, 0, 0);
-        m_portrait_dirty_0fe = 0;
+        m_portrait_dirty_0fe = false;
     }
 
     if (m_description_dirty_0fd) {
@@ -1307,7 +1307,7 @@ void W8CharacterPage005EF57C::Redraw()
         text.SetText(element.GetQuoteText(), g_font_683660);
         text.FillBounds(0x8000);
         text.RenderToTarget(0, 1, -14);
-        m_description_dirty_0fd = 0;
+        m_description_dirty_0fd = false;
     }
 
     if (m_prepared_06c) {
@@ -1329,13 +1329,13 @@ void W8CharacterPage005EF57C::OnPrimary(W8TextControl* control)
         if (group > 11)
             group = 0;
         m_character_060->portrait_index = g_portrait_groups_648950[group].portraits[0];
-        m_portrait_dirty_0fe = 1;
+        m_portrait_dirty_0fe = true;
     } else if (control == m_control_07c) {
         int group = g_portrait_descriptors_6483d0[portrait].group - 1;
         if (group < 0)
             group = 11;
         m_character_060->portrait_index = g_portrait_groups_648950[group].portraits[0];
-        m_portrait_dirty_0fe = 1;
+        m_portrait_dirty_0fe = true;
     } else if (control == m_control_080 || control == m_control_084) {
         int group = g_portrait_descriptors_6483d0[portrait].group;
         W8PortraitGroup* portraits = &g_portrait_groups_648950[group];
@@ -1353,9 +1353,9 @@ void W8CharacterPage005EF57C::OnPrimary(W8TextControl* control)
                 index = portraits->count - 1;
         }
         m_character_060->portrait_index = portraits->portraits[index];
-        m_portrait_dirty_0fe = 1;
+        m_portrait_dirty_0fe = true;
     } else if (control == m_randomize_088) {
-        m_animation_active_0fc = 1;
+        m_animation_active_0fc = true;
         m_animation_frame_0f8 = 2;
         m_animation_timer_0d4.Restart();
         ShadowVideoSurfaceRect(-14, 0, 0, 0x280, 0x1e0);
@@ -1376,7 +1376,7 @@ void W8CharacterPage005EF57C::OnSelectionChanged(W8ControlSelection* control, in
     } else {
         m_character_060->personality_0081 = selected;
     }
-    m_description_dirty_0fd = 1;
+    m_description_dirty_0fd = true;
     m_screen_05c->UpdateNavigation(this);
 }
 
@@ -1475,12 +1475,12 @@ void W8CharacterPage005EF5C8::ShowEntryInfo(W8CharacterPageEntry* entry)
 // FUNCTION: WIZ8 0x005c77f0
 void W8CharacterPage005EF5C8::Redraw()
 {
-    unsigned char redraw = static_cast<unsigned char>(m_fEnabled && m_fDirty);
+    bool redraw = static_cast<unsigned char>(m_fEnabled && m_fDirty);
     if (m_force_redraw_074) {
         UpdateEntries();
         Invalidate(0);
         redraw = 1;
-        m_force_redraw_074 = 0;
+        m_force_redraw_074 = false;
     }
     W8CharacterPage::Redraw();
 
@@ -1585,7 +1585,7 @@ W8CharacterPage005EF5C8* CreateCharacterPage005C7CC0()
 // FUNCTION: WIZ8 0x005c7d30
 void W8CharacterPage005EF5C8::Refresh()
 {
-    m_force_redraw_074 = 1;
+    m_force_redraw_074 = true;
 }
 
 // SYNTHETIC: WIZ8 0x005c7d40

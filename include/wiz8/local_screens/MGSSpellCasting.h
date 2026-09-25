@@ -36,14 +36,14 @@ struct W8SpellCastingView {
     W8MainUiMode saved_game_mode;    /* 0x56c */
     bool input_blocked_570;          /* 0x570 */
     unsigned char pad_571[3];
-    int field_574;                  /* 0x574 */
-    int interact_id;                /* 0x578 */
-    int location_id;                /* 0x57c */
-    unsigned int uiSpellsInList;    /* 0x580 */
-    int uiSpells[0x15e];            /* 0x584 */
-    signed char alt_colors[0x15e];  /* 0xafc */
-    unsigned char closing;          /* 0xc5a: close already in progress */
-    unsigned char dialog_confirmed; /* 0xc5b */
+    int field_574;                 /* 0x574 */
+    int interact_id;               /* 0x578 */
+    int location_id;               /* 0x57c */
+    unsigned int uiSpellsInList;   /* 0x580 */
+    int uiSpells[0x15e];           /* 0x584 */
+    signed char alt_colors[0x15e]; /* 0xafc */
+    bool closing;                  /* 0xc5a: close already in progress */
+    bool dialog_confirmed;         /* 0xc5b */
 };
 
 static_assert(sizeof(W8SpellCastingView) == 0xc5c, "W8SpellCastingView_must_be_0xc5c");

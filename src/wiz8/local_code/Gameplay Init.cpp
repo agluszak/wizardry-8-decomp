@@ -310,8 +310,8 @@ void ResetGameplayStatusBlock(void)
 {
     memset(gXStatus.spell_cooldown_clocks, 0, sizeof(gXStatus.spell_cooldown_clocks));
     gXStatus.character_event_queue->DestroyAllEvents();
-    gXStatus.party_moving = 0;
-    gXStatus.fSurprisePossible = 0;
+    gXStatus.party_moving = false;
+    gXStatus.fSurprisePossible = false;
 }
 
 // FUNCTION: WIZ8 0x0054b0b0
@@ -544,7 +544,7 @@ void ResetGameplaySettings(void)
     g_settings_6850c8.main_ui_mode = W8_MAIN_UI_MODE_FORMATION;
     g_settings_6850c8.continuous_combat = 0;
     g_settings_6850c8.auto_advance_character = 0;
-    g_settings_6850c8.tooltips_enabled = 1;
+    g_settings_6850c8.tooltips_enabled = true;
     g_settings_6850c8.formation_action_panel_preference = 1;
     g_settings_6850c8.formation_radar_map_preference = 1;
     g_settings_6850c8.formation_board_preference = 1;

@@ -72,7 +72,7 @@ void PathAIEnableTimedMode004A9BA0(W8PathAI* path);
 void PathAIResetTick004A9C20(W8PathAI* path);
 float PathAIGetValue004A9E70(W8PathAI* path);
 unsigned char PathAINextPoint004A9E90(W8PathAI* path, srVector3T<float>* point);
-unsigned char PathAIIsComplete004A9EF0(W8PathAI* path);
+bool PathAIIsComplete004A9EF0(W8PathAI* path);
 unsigned int PathAIEntryCount004A9F20(W8PathAI* path);
 void PathAISetValue004A9F60(W8PathAI* path, float value);
 void PathAIAdvanceNormalized004AA160(W8PathAI* path, float amount);
@@ -81,7 +81,7 @@ void PathAIPosition004AA370(W8PathAI* path, srVector3T<float>* value);
 void PathAISetLooping004AA9D0(W8PathAI* path, unsigned char value);
 void PathAISetScale004AA9C0(W8PathAI* path, float value);
 void PathAISetDiscreteMode004AAA10(W8PathAI* path, unsigned char value);
-unsigned char LoadPathAI004A92A0(W8PathAI** path, int handle);
+bool LoadPathAI004A92A0(W8PathAI** path, int handle);
 unsigned char PathAIAddPoint004A9C30(W8PathAI* path, const srVector3T<float>* point);
 
 /* Build a zeroed 0x40-byte path and its position-pointer vector. Every caller

@@ -136,7 +136,7 @@ bool SwampGasFireSpawn004DAA70(Trigger* pTrigger)
             look_target = monster_info->p3D->movement_0c0.position_040;
             look_target.y += monster_info->p3D->movement_0c0.height_offset_0b8;
             g_gd_camera_65a0f8->LookAt(&look_target, 0);
-            g_flag_6109f0 = 0;
+            g_flag_6109f0 = false;
             g_master_functions_006834d8->Add(SwampGasFireItemDrop004DACD0);
         }
     }
@@ -158,14 +158,14 @@ void SwampGasFireItemDrop004DACD0(int command)
 
     if (command != 0) {
         if (command == static_cast<int>(0xEFFFFFFF)) {
-            g_flag_6109f0 = 0;
+            g_flag_6109f0 = false;
             g_master_functions_006834d8->Add(SwampGasFireItemDrop004DACD0);
         }
         return;
     }
-    g_flag_006834dc = 0;
+    g_flag_006834dc = false;
     if (g_flag_6109f0 != 0) {
-        g_flag_006834dc = 1;
+        g_flag_006834dc = true;
         if (g_swamp_spawned_monster_6834e4 != 0) {
             position = g_swamp_spawned_monster_6834e4->GetPosition();
             drop_position = position;

@@ -110,7 +110,7 @@ private:
     srVector3T<float> force_38;
     float radius_44;
     unsigned char nearby_queried_48;
-    unsigned char blocked_49;
+    bool blocked_49;
     unsigned char padding_4a[2];
     unsigned int nearby_count_4c;
     unsigned long* nearby_locations_50;
@@ -524,9 +524,9 @@ public:
     unsigned int search_node_capacity_0d0;
     unsigned int path_probe_count_0d4;
     W8PathProbeVolume path_probes_0d8[10];
-    unsigned char waypoint_editing_1c8; /* 0x1c8 */
-    unsigned char flag_1c9;
-    unsigned char flag_1ca;
+    bool waypoint_editing_1c8; /* 0x1c8 */
+    bool flag_1c9;
+    bool flag_1ca;
     bool search_visualization_1cb;
     bool waypoints_dirty_1cc;
     unsigned char m_padding_1cd;

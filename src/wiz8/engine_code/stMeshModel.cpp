@@ -50,7 +50,7 @@ int g_decompressed_mesh_byte_limit_00609d34 = 0x800000;
 static float s_compressed_normal_table[256];
 
 // GLOBAL: WIZ8 0x0065a0ef
-static unsigned char s_compressed_normal_table_ready;
+static bool s_compressed_normal_table_ready;
 
 // FUNCTION: WIZ8 0x00470B00
 stMeshModel::stMeshModel(long polygons, long vertices)
@@ -78,7 +78,7 @@ stMeshModel::stMeshModel(long polygons, long vertices)
             }
             s_compressed_normal_table[(unsigned char)value] = component;
         }
-        s_compressed_normal_table_ready = 1;
+        s_compressed_normal_table_ready = true;
     }
 
     srMeshModel::reset(polygons, vertices);

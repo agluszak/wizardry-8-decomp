@@ -83,7 +83,7 @@ W8DialogButton* g_combat_stance_buttons_69b89c[5];
 // GLOBAL: WIZ8 0x0069B8B0
 W8DialogButton* g_submenu_buttons_69b8b0[9];
 // GLOBAL: WIZ8 0x0069B8D4
-unsigned char g_submenu_flag_69b8d4;
+bool g_submenu_flag_69b8d4;
 /* Roof viewpoint buttons: modes 0, 1 and 2. */
 // GLOBAL: WIZ8 0x0069B8D8
 W8DialogButton* g_roof_buttons_69b8d8[3];
@@ -496,7 +496,7 @@ void ResetSubMenuPanel(void)
     }
     SetSubMenuButtonTooltips(0);
     g_submenu_clock_69b880 = SetCountdownClock(0);
-    g_submenu_flag_69b8d4 = 0;
+    g_submenu_flag_69b8d4 = false;
     RequestRedraw(0x200);
 }
 
@@ -575,7 +575,7 @@ void SubMenuPanelCloseButton(W8DialogButton* button)
     }
     SetSubMenuButtonTooltips(0);
     g_submenu_clock_69b880 = SetCountdownClock(0);
-    g_submenu_flag_69b8d4 = 0;
+    g_submenu_flag_69b8d4 = false;
     RequestRedraw(0x200);
 }
 
@@ -653,7 +653,7 @@ void RedrawOptionsDiskButton(void)
     bool enabled;
 
     DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, 2, 0, 0x1c2, 2, 0);
-    g_options_disk_button_69b8e4->m_dirty = 1;
+    g_options_disk_button_69b8e4->m_dirty = true;
     if (gXStatus.fNpcDialogueMode == 0 && gXStatus.fLockInteractMode == 0 &&
         gXStatus.fTrapInteractMode == 0 && gXStatus.fCampMode == 0 && gXStatus.fLockInteract == 0 &&
         gXStatus.fTrapInteract == 0) {
@@ -716,7 +716,7 @@ void RedrawCombatStanceButtons(void)
     DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, 3, 0x262, 0x1c2, 2, 0);
     for (button = g_combat_stance_buttons_69b89c; button < &g_combat_stance_buttons_69b89c[5];
          ++button) {
-        (*button)->m_dirty = 1;
+        (*button)->m_dirty = true;
     }
     UpdateCombatStanceButtons();
 }
@@ -857,7 +857,7 @@ void RedrawRoofButtons(void)
 
     DrawCatalogImage(-0xe, 0x85, 0, 0, 0, 0, 2, 0);
     for (button = g_roof_buttons_69b8d8; button < &g_options_disk_button_69b8e4; ++button) {
-        (*button)->m_dirty = 1;
+        (*button)->m_dirty = true;
     }
     UpdateRoofButtons();
     RequestRedraw(0x100000);
@@ -1026,7 +1026,7 @@ void RedrawLayoutArrowButtons(void)
     DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, 0, 0, 0x166, 2, 0);
     for (button = g_layout_arrow_buttons_69b884; button < &g_layout_arrow_buttons_69b884[6];
          ++button) {
-        (*button)->m_dirty = 1;
+        (*button)->m_dirty = true;
     }
     if (gXStatus.fNpcDialogueMode != 0 || gXStatus.fSpellCastMode != 0 ||
         gXStatus.fItemSelectMode != 0 || gXStatus.fLockInteractMode != 0 ||
@@ -1499,7 +1499,7 @@ void RedrawSubMenuButtons(void)
     DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, frame, 0xc4, 0x1c2, 2, 0);
 
     for (button = g_submenu_buttons_69b8b0; button < &g_submenu_buttons_69b8b0[9]; ++button) {
-        (*button)->m_dirty = 1;
+        (*button)->m_dirty = true;
     }
     for (index = 0, button = g_submenu_buttons_69b8b0; button < &g_submenu_buttons_69b8b0[9];
          ++button, ++index) {
@@ -1510,7 +1510,7 @@ void RedrawSubMenuButtons(void)
     DrawCatalogImageAndInvalidate(-0xe, 0x7e, 0, 7, 0x210, 0x1c2, 2, 0);
     for (button = g_submenu_panel_buttons_69b860; button < &g_submenu_panel_buttons_69b860[2];
          ++button) {
-        (*button)->m_dirty = 1;
+        (*button)->m_dirty = true;
     }
     UpdateSubMenuPanelButtons();
 
@@ -1522,7 +1522,7 @@ void RedrawSubMenuButtons(void)
 
     for (button = g_submenu_scroll_buttons_69b858; button < &g_submenu_scroll_buttons_69b858[2];
          ++button) {
-        (*button)->m_dirty = 1;
+        (*button)->m_dirty = true;
     }
     if (g_level_block->combat_end_notification == -1 && gXStatus.fNpcDialogueMode == 0 &&
         gXStatus.fCampMode == 0) {
@@ -1752,7 +1752,7 @@ void UpdateSubMenuAutoClose00598FA0(void)
     check_clock:
         if (g_submenu_flag_69b8d4 == 0) {
             g_submenu_clock_69b880 = SetCountdownClock(500);
-            g_submenu_flag_69b8d4 = 1;
+            g_submenu_flag_69b8d4 = true;
             return;
         }
         if (ClockIsTicking(g_submenu_clock_69b880) == 0) {
@@ -1777,6 +1777,6 @@ void UpdateSubMenuAutoClose00598FA0(void)
         }
     } else if (g_submenu_flag_69b8d4 != 0) {
         g_submenu_clock_69b880 = SetCountdownClock(0);
-        g_submenu_flag_69b8d4 = 0;
+        g_submenu_flag_69b8d4 = false;
     }
 }

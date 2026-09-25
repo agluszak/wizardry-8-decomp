@@ -168,7 +168,7 @@ unsigned char OpenUseItemSelectView(int slot)
 
     g_use_item_commit_active_0069bf38 = 0;
     UpdateScreenOverlays(0);
-    gXStatus.fItemSelectMode = 1;
+    gXStatus.fItemSelectMode = true;
     if (g_level_block->combat_end_notification != -1) {
         DestroySubMenuControls();
     }
@@ -258,7 +258,7 @@ void CloseUseItemSelectView(void)
                 delete *panel;
             }
         }
-        gXStatus.fItemSelectMode = 0;
+        gXStatus.fItemSelectMode = false;
         ApplyMainGameModeFlag(g_value_69b988, 1);
         RequestRedraw(0x200);
         RequestRedraw(0x100);

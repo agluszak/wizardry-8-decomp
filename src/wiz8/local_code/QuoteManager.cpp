@@ -568,13 +568,13 @@ W8CharacterEvent::W8CharacterEvent(W8Character* character, unsigned int event_ty
    selects an entry of the sex/personality/voice quote file, which is then
    wrapped in quotes. Clears the buffer and answers zero when no quote exists. */
 // FUNCTION: WIZ8 0x0052D0B0
-unsigned char FormatCharacterQuoteText(W8Character* character, unsigned int event_type,
-                                       unsigned int* metadata)
+bool FormatCharacterQuoteText(W8Character* character, unsigned int event_type,
+                              unsigned int* metadata)
 {
     char path[80];
     wchar_t text[500];
     int npc_index;
-    unsigned char has_npc;
+    bool has_npc;
 
     if (event_type >= 0x92) {
         return 0;
@@ -583,7 +583,7 @@ unsigned char FormatCharacterQuoteText(W8Character* character, unsigned int even
         *metadata = 0xffffffff;
     }
     npc_index = -1;
-    has_npc = 0;
+    has_npc = false;
     if (character->fInParty != 0 && g_current_screen_state.id != W8_SCREEN_CHARACTER) {
         unsigned int slot = CharacterPointerToPartySlot(character);
         npc_index = g_status_685170.buffers.XChar[slot].npc_index;
@@ -814,8 +814,8 @@ unsigned char W8CharacterEvent::IsConditionMet(unsigned int event_type)
 }
 
 // FUNCTION: WIZ8 0x0052CFB0
-static unsigned char CanDispatchCharacterEvent(unsigned int party_slot, unsigned int event_type,
-                                               unsigned int flags)
+static bool CanDispatchCharacterEvent(unsigned int party_slot, unsigned int event_type,
+                                      unsigned int flags)
 {
     W8Character* character;
     unsigned int mapped_event_type;
@@ -939,7 +939,7 @@ unsigned char W8CharacterEvent::Dispatch()
     W8PartySlotRow* row;
     int npc_index;
     W8NpcState* npc;
-    unsigned char has_quote;
+    bool has_quote;
 
     metadata = 0xffffffff;
     if (character == 0) {
@@ -1980,7 +1980,7 @@ int UpdateCharacterEventState(void)
 
     for (party_slot = 0; party_slot < 8; ++party_slot) {
         W8MonsterManagerEntry* record = &gXStatus.monster_manager_entries[party_slot];
-        unsigned char sound_active = 0;
+        unsigned char sound_active = 0; // bool-byte-ok: copied raw from the C gap track byte
 #ifdef WIZ8_RUNTIME_TESTS
         int previous_frame = record->portrait_frame;
 #endif
@@ -2147,7 +2147,7 @@ void RenderPartyPortrait0052EB00(int portrait, int left, int top, int flags, int
         return;
     }
     if (value != 0 && g_portrait_frame_flags_0061cbc0[portrait] != 0) {
-        char drawn = BlitPartyPortraitAnimation(portrait, left, top, flags, party_slot, 1);
+        bool drawn = BlitPartyPortraitAnimation(portrait, left, top, flags, party_slot, 1);
         value = drawn == 0;
     }
     if ((((gXStatus.fCombatMode != 0 && g_combat_state->characters[party_slot].dead_34 != 0) ||
@@ -2163,7 +2163,7 @@ void RenderPartyPortrait0052EB00(int portrait, int left, int top, int flags, int
    frame and its blend predecessor; the A track draws the frame the animation
    is moving to, and a dead character stops after the B track. */
 // FUNCTION: WIZ8 0x0052ebe0
-char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int party_slot,
+bool BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int party_slot,
                                 char animate)
 {
     W8MonsterManagerEntry* state = &gXStatus.monster_manager_entries[party_slot];
@@ -2173,7 +2173,7 @@ char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
     short height;
     short image_x;
     short image_y;
-    char drawn = 0;
+    bool drawn = false;
 
     if (g_portrait_frame_flags_0061cbc0[portrait] == 0) {
         return drawn;
@@ -2195,7 +2195,7 @@ char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
             return 1;
         }
         DrawCatalogImage(-0xe, 0x12, portrait, state->portrait_pose, left, top, flags | 0x200, 0);
-        drawn = 1;
+        drawn = true;
         if (state->previous_portrait_pose != -1) {
             GetCatalogImageSize(0x12, portrait, state->previous_portrait_pose, &width, &height);
             GetCatalogImagePosition00549700(0x12, portrait, state->previous_portrait_pose, &image_x,
@@ -2231,7 +2231,7 @@ char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int 
         rect.top = image_y + top;
         rect.right = width + rect.left;
         rect.bottom = height + rect.top;
-        drawn = 1;
+        drawn = true;
         if (state->previous_portrait_frame != -1) {
             GetCatalogImageSize(0x12, portrait, state->previous_portrait_frame, &width, &height);
             GetCatalogImagePosition00549700(0x12, portrait, state->previous_portrait_frame,

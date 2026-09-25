@@ -273,7 +273,7 @@ struct W8MainScreenState {
     unsigned char dialogue_hidden;
     /* 0x229: the option layout was reached through the Exit/farewell path, so
        backing out of it reopens the topic menu instead of the transcript. */
-    unsigned char reopen_topics;
+    bool reopen_topics;
     unsigned char unknown_22a[2];
     /* 0x22c: the gold the player put on the trade table - the split-amount
        dialog result, spent by ConfirmNpcTradePurchase00575710. */
@@ -310,7 +310,7 @@ struct W8MainScreenState {
        clicks, layout keys other than Escape and layout leave paths bail. */
     bool modal_dialog_open;
     /* 0x251: a refusal/farewell line 0x5c was queued for the exit path. */
-    unsigned char farewell_queued_251;
+    bool farewell_queued_251;
     /* 0x252: the dialogue session runs as queued script lines without the
        interactive panel; input, portrait and panel paths gate on it. */
     unsigned char scripted_dialogue;
@@ -328,7 +328,7 @@ struct W8MainScreenState {
     unsigned char trade_pc_items;
     /* 0x261: the main text box is collapsed to a single line while the
        dialogue is fresh; cleared when the next transcript line scrolls. */
-    unsigned char text_box_collapsed;
+    bool text_box_collapsed;
     bool dialogue_panel_hidden; /* 0x262 */
     unsigned char unknown_263;
     int last_notice_npc_kind; /* 0x264 */
@@ -376,7 +376,7 @@ void ResetMainScreenStateBlock(void);
 extern W8GrowableVector<W8GrowableVector<W8GrowableVector<wchar_t*>*>*> g_keyword_lists;
 /* 0x0068F0F8: both files are loaded and the tables are usable. Raised once the
    second file loads and lowered whenever the tables are released. */
-extern unsigned char g_keyword_lists_loaded_68f0f8;
+extern bool g_keyword_lists_loaded_68f0f8;
 /* 0x0056C200: replace the keyword lists with the contents of
    Data\Strings\English_Keywords.txt and Data\Strings\translated_Keywords.txt. */
 void ReloadKeywordLists(void);
@@ -417,7 +417,7 @@ bool ProcessPendingEvent00577A40(void);
 void SyncDialogueNpcStateAndMarkPending00577220(void);
 void ClearMainGameTargetState(void);
 /* 0x0068F0F9: a script notice is staged in g_pending_notice_68ee60 */
-extern unsigned char g_flag_68f0f9;
+extern bool g_flag_68f0f9;
 void SyncNpcServiceButtons0056EE20(int party_slot); /* 0x0056EE20 */
 /* Forward mouse events to W8MainScreenState control slots indexed by
    callback_id from dialogue_text_10c (ids 1..37, 39; id 0x27 is ignored). */

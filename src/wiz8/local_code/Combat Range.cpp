@@ -289,7 +289,7 @@ bool CanPartyMemberAimAtMonster(int party_slot, int hand, W8MonsterInfo* monster
                                 char notify_failure)
 {
     W8ActionDetailBlock* detail_block;
-    unsigned char flag;
+    bool flag;
     int action;
     int detail;
     int range;

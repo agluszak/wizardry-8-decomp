@@ -104,8 +104,7 @@ unsigned char TestSpatialTriangle0046CE60(const srVector3T<float>* bounds,
                                           const srVector3T<float>* plane_normal);
 unsigned char BoundsOverlap0046D470(const srVector3T<float>* first,
                                     const srVector3T<float>* second);
-unsigned char PointInsideBounds0046D4D0(const srVector3T<float>* bounds,
-                                        const srVector3T<float>* point);
+bool PointInsideBounds0046D4D0(const srVector3T<float>* bounds, const srVector3T<float>* point);
 
 static_assert(sizeof(W8OctSpatialState) == 0x9c, "W8OctSpatialState_must_be_0x9c");
 static_assert(sizeof(W8OctRegionVolume) == 0xe8, "W8OctRegionVolume_must_be_0xe8");

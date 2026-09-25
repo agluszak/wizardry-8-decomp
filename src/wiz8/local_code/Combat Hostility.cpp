@@ -63,7 +63,7 @@ void RecountCombatMonsters(void)
         }
     }
     if (gXStatus.fCombatMode && gXStatus.hostile_monster_count != 0) {
-        g_combat_state->enemies_engaged_a54 = 1;
+        g_combat_state->enemies_engaged_a54 = true;
     }
     RequestRefreshPartyState();
 }
@@ -502,12 +502,12 @@ int TurnUndead(int party_slot, int* out_cost, char check)
             PostCharacterNotice(party_slot, gppStringList[0x1b7], gppStringList[0x512]);
             return 0;
         }
-        g_combat_state->characters[party_slot].turn_undead_used = 1;
+        g_combat_state->characters[party_slot].turn_undead_used = true;
     }
 
     W8TargetSource source;
     SetTargetSourceToCharacter(party_slot, &source);
-    source.aim_resolved_1a = 1;
+    source.aim_resolved_1a = true;
     int power;
     if (!check) {
         power = g_status_685170.buffers.Char[party_slot].profession_levels[0xc] + 10 +
@@ -609,7 +609,7 @@ int CharacterPrayAction00547FE0(int party_slot)
     }
     SetTargetSourceToCharacter(party_slot, &source);
     source.auto_cast_18 = 1;
-    source.aim_resolved_1a = 1;
+    source.aim_resolved_1a = true;
     ResetCombatSlot(&target);
     PostCharacterNotice(party_slot, gppStringList[0x174]);
     cost = CharacterActionFatigueCost(party_slot, 6);
@@ -910,7 +910,7 @@ int CharacterPrayAction00547FE0(int party_slot)
             break;
         }
     }
-    g_combat_state->characters[party_slot].pray_used = 1;
+    g_combat_state->characters[party_slot].pray_used = true;
     return cost;
 }
 

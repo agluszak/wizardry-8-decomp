@@ -53,7 +53,7 @@ srNode* g_cursor_node_0065ba90;
 /* Set when the cursor is opened while a shift key is held; while set the
    update keeps the latched dragged monster instead of re-picking. */
 // GLOBAL: WIZ8 0x0065ba98
-unsigned char g_cursor_pick_latch_0065ba98;
+bool g_cursor_pick_latch_0065ba98;
 
 /* 0x60ab44: the saved world-cursor monster group id; -1 until a cursor is
    torn down. Seeds and restores monster_group_id_4c. */
@@ -214,7 +214,7 @@ void InitializeWorldCursor00490210(void)
             UpdateWorldCursorPlacement00491EC0();
             if (g_dev_mode_689b32 != 0 &&
                 (g_shift_held_006f0530 != 0 || g_monster_combat_timer_enabled_006f0531 != 0)) {
-                g_cursor_pick_latch_0065ba98 = 1;
+                g_cursor_pick_latch_0065ba98 = true;
             }
         }
     }
@@ -365,7 +365,7 @@ void ApplyWorldCursorInput00490C60(void)
     if (g_dev_mode_689b32 != 0) {
         if (gfKeyState[0x10] == 0 && gfKeyState[0x11] == 0) {
             if (g_cursor_pick_latch_0065ba98 != 0) {
-                g_cursor_pick_latch_0065ba98 = 0;
+                g_cursor_pick_latch_0065ba98 = false;
             }
             if (gp3DCursor->dragged_info_dc != 0) {
                 gp3DCursor->dragged_info_dc = 0;

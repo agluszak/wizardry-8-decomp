@@ -848,7 +848,7 @@ void W8GameData::CreateGDEnviron00448E60(const W8GDSurface* surface, float scale
     if (environ_record == 0) {
         environ_record = 0;
     } else {
-        environ_record->ground_latch_04 = 0;
+        environ_record->ground_latch_04 = false;
         environ_record->value_00 = 0;
         environ_record->value_08 = 0;
         environ_record->gravity_x_10 = 0;
@@ -1044,7 +1044,7 @@ void W8GameData::ReadProcessedGameData(int handle)
                              "ReadProcessedGameData: Couldn't allocate environment.");
             }
             environ_record->value_00 = 0;
-            environ_record->ground_latch_04 = 0;
+            environ_record->ground_latch_04 = false;
             environ_record->value_08 = 0;
             environ_record->gravity_x_10 = 0;
             environ_record->gravity_y_14 = -g_navigator_gravity_00603acc;
@@ -1145,7 +1145,7 @@ W8GameData::W8GameData(int handle, bool secondary)
             environ_record = 0;
         } else {
             environ_record->value_00 = 0;
-            environ_record->ground_latch_04 = 0;
+            environ_record->ground_latch_04 = false;
             environ_record->value_08 = 0;
             environ_record->gravity_x_10 = 0;
             environ_record->gravity_y_14 = -g_navigator_gravity_00603acc;
@@ -1531,7 +1531,7 @@ void W8GameData::CompileGameData00449D10()
             polygon->ordinal_04 = polygon_count;
             polygon->plane_08 = compiled->plane_24;
             polygon->degenerate_30 = 0;
-            polygon->visited_31 = 0;
+            polygon->visited_31 = false;
             polygon->vertices_34[0] = g_gd_vertices_0065bd34 + compiled->vertex_indices_18[0];
             polygon->vertices_34[1] = g_gd_vertices_0065bd34 + compiled->vertex_indices_18[1];
             polygon->vertices_34[2] = g_gd_vertices_0065bd34 + compiled->vertex_indices_18[2];
@@ -1567,7 +1567,7 @@ void W8GameData::CompileGameData00449D10()
             polygon->ordinal_04 = polygon_count;
             polygon->plane_08 = compiled->plane_24;
             polygon->degenerate_30 = 0;
-            polygon->visited_31 = 0;
+            polygon->visited_31 = false;
             polygon->vertices_34[0] = g_gd_vertices_0065bd34 + compiled->vertex_indices_18[0];
             polygon->vertices_34[1] = g_gd_vertices_0065bd34 + compiled->vertex_indices_18[1];
             polygon->vertices_34[2] = g_gd_vertices_0065bd34 + compiled->vertex_indices_18[2];

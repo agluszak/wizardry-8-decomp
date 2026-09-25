@@ -61,8 +61,8 @@ W8CharacterEvent* QueueCharacterEvent(W8Character* character, int event_type, in
 /* 0x0052D0B0: format one character quote for the given event type into the
    shared wide text buffer. Returns zero and empties it when the type has no
    quote. */
-unsigned char FormatCharacterQuoteText(W8Character* character, unsigned int event_type,
-                                       unsigned int* metadata);
+bool FormatCharacterQuoteText(W8Character* character, unsigned int event_type,
+                              unsigned int* metadata);
 /* 0x005EE6F0: first entry of the -1-terminated .rdata event-id table read at
    0x00509560. */
 extern const int g_fact_check_event_005ee6f0;
@@ -106,7 +106,7 @@ void RenderPartyPortrait0052EB00(int portrait, int left, int top, int flags, int
                                  int party_slot);
 /* 0x0052EBE0: blit one animated portrait frame and its transition, returning
    whether a frame was drawn. */
-char BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int party_slot,
+bool BlitPartyPortraitAnimation(int portrait, int left, int top, int flags, int party_slot,
                                 char animate);
 
 extern unsigned int g_event_flag_005ed8e0;

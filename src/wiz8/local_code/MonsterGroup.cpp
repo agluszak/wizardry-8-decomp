@@ -444,7 +444,7 @@ void RecountActiveMonsterGroupMembers(W8MonsterGroup* monster_group)
 static __inline unsigned char RemoveAllGroupMembersInline(W8MonsterGroup* monster_group)
 {
     unsigned int index;
-    unsigned char removed;
+    bool removed;
     int location_id;
 
     index = ILLength(monster_group->monsters);
@@ -742,7 +742,7 @@ void MonsterGroupLeaveCombat(W8MonsterGroup* monster_group)
         MonsterInfoLeaveCombat(MonsterGetScriptPartByLocationIndex(MonsterGetIndexByLocationID(
             0x1f1, MONSTER_GROUP_CPP, IListGetAt(monster_group->monsters, index), 1)));
     }
-    monster_group->fInCombat = 0;
+    monster_group->fInCombat = false;
     RequestRedrawParty();
     lead = MonsterInfoFromID(0x1fd, MONSTER_GROUP_CPP, monster_group->leader_location_id, 1);
     lead->ai_mode_255 |= 0x80;
@@ -1068,7 +1068,7 @@ W8MonsterGroup* CreateGroup(unsigned int monster_id, unsigned int count,
     group->monster_id = monster_id;
     group->centre = *position;
     group->members_active = 0;
-    group->fInCombat = 0;
+    group->fInCombat = false;
     group->unknown_2b = 3;
     if (use_alternate_name != 0 || (record->flags_0d0 & 0x10) != 0) {
         group->alternate_name = 1;
@@ -1552,8 +1552,8 @@ const float g_float_005ebb30 = 0.8f;
    centred just off the camera's back, widened to the largest allied member
    radius. `yaw` is read by the prototype but the body never uses it. */
 // FUNCTION: WIZ8 0x00511050
-unsigned char PositionMonsterGroupNearCamera00511050(W8MonsterGroup* group, float distance,
-                                                     float yaw, unsigned char flag)
+bool PositionMonsterGroupNearCamera00511050(W8MonsterGroup* group, float distance, float yaw,
+                                            unsigned char flag)
 {
     srVector3T<float> camera;
     srVector3T<float> target;

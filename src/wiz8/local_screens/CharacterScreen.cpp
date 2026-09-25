@@ -130,7 +130,7 @@ W8CharacterScreen::W8CharacterScreen(int mode, W8Character* character)
 {
     if (character != 0) {
         memcpy(&m_character_018, character, sizeof(m_character_018));
-        m_character_018.fInParty = 0;
+        m_character_018.fInParty = false;
     }
     for (int index = 0; index < 4; ++index) {
         m_pages_1b0c[index] = 0;
@@ -205,14 +205,14 @@ void W8CharacterScreen::UpdateDialog()
             gXStatus.character_event_queue->ProcessDeferredCharacterEvents();
             if (UpdateCharacterEventState() == 0 &&
                 static_cast<W8MessageDialogBase*>(m_dialog_1b1c)->close_result) {
-                m_dialog_1b1c->m_keep_open = 0;
+                m_dialog_1b1c->m_keep_open = false;
             }
         }
         if (m_dialog_1b1c->ProcessInput() == 0) {
             ClearActiveRegionIfMatches(0x138);
             m_controls_1af0->Invalidate(0);
             m_pages_1b0c[m_page_index_00c]->Refresh();
-            m_header_dirty_010 = 1;
+            m_header_dirty_010 = true;
             /* Response paths where the result matters are opened by ShowMessage, which
                also raises m_capture_dialog_result_1b24; a dialog closed without a captured
                result carries a response for which `accepted` is not observed. */
@@ -475,7 +475,7 @@ void W8CharacterScreen::SelectPage(int index)
     }
     m_controls_1af0->Invalidate(0);
     page->Prepare();
-    m_header_dirty_010 = 1;
+    m_header_dirty_010 = true;
     UpdateNavigation(page);
 }
 
@@ -557,7 +557,7 @@ void W8CharacterScreen::DrawHeader()
             g_font_683660);
         text.RenderToTarget(0, 1, -14);
     }
-    m_header_dirty_010 = 0;
+    m_header_dirty_010 = false;
 }
 
 // FUNCTION: WIZ8 0x005b0fd0
@@ -578,7 +578,7 @@ bool W8CharacterScreen::CommitCharacter()
             BuildCharacterPath00514EC0(path, m_original_014->name, -1);
             DeleteFileA(path);
         }
-        m_character_018.fInParty = 0;
+        m_character_018.fInParty = false;
         if (!SaveCharacter(&m_character_018, -1, 0, 0)) {
             memcpy(&m_character_018, &backup, sizeof(m_character_018));
             ShowMessage(gppStringList[0x350 / 4], 0, 0);
@@ -590,7 +590,7 @@ bool W8CharacterScreen::CommitCharacter()
         bool was_in_party = m_original_014->fInParty;
         memcpy(m_original_014, &m_character_018, sizeof(*m_original_014));
         if (was_in_party)
-            m_original_014->fInParty = 1;
+            m_original_014->fInParty = true;
         if (m_original_014->iProfession == W8_PROFESSION_GADGETEER)
             UpgradeProfessionClassItem005218C0(m_original_014);
         UnequipUnusableItems(m_original_014);

@@ -299,8 +299,8 @@ void TickPartyPortraitFx(void)
 
     for (slot = 0; slot < 8; ++slot) {
         W8MonsterManagerEntry* entry = &gXStatus.monster_manager_entries[slot];
-        unsigned char clock_expired;
-        bool dirty = 0;
+        bool clock_expired;
+        bool dirty = false;
 
         if (g_status_685170.buffers.XChar[slot].fOccupied == 0) {
             continue;
@@ -725,8 +725,7 @@ void StageMonsterCastIcon0059AF40(unsigned int party_slot, int realm, char alter
 }
 
 // FUNCTION: WIZ8 0x005993A0
-unsigned char PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int left,
-                                          unsigned int top)
+bool PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int left, unsigned int top)
 {
     if (gXStatus.fNpcDialogueMode != 0 && (party_slot & 1) != 0 &&
         IsPortraitObscuredByNpcDialogue(party_slot) != 0) {

@@ -455,7 +455,7 @@ int GetRandomCharacter(int require_primary, int require_secondary, int excluded_
     int skip;
     unsigned int slot;
     unsigned int scanned;
-    unsigned char matched;
+    bool matched;
     W8Character* character;
 
 retry:
@@ -463,7 +463,7 @@ retry:
     scanned = 0;
     slot = 0;
     do {
-        matched = 0;
+        matched = false;
         if (g_status_685170.buffers.XChar[slot].fOccupied != 0 &&
             static_cast<int>(slot) != excluded_slot) {
             character = &g_status_685170.buffers.Char[slot];
@@ -471,7 +471,7 @@ retry:
                 require_primary == 2) {
                 if (excluded_gender == -1 || excluded_gender != character->gender) {
                     if (character->highest_condition < 0xf || require_secondary == 2) {
-                        matched = 1;
+                        matched = true;
                         if (skip == 0) {
                             return slot;
                         }

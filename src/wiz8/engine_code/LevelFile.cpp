@@ -828,7 +828,7 @@ BOOLEAN WriteAnimLightFile004D1B50(int hFile, W8LevelFileAnimLight* pLight)
 // FUNCTION: WIZ8 0x004D1C10
 BOOLEAN ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
 {
-    unsigned char fSuccess = 0;
+    bool fSuccess = false;
     unsigned char ok;
 
     ok = FileRead(hFile, &pTrigger->version_00, 1, 0);
@@ -1024,7 +1024,7 @@ BOOLEAN ReadTriggerFile004D1C10(int hFile, W8LevelFileTrigger* pTrigger)
 // FUNCTION: WIZ8 0x004D23F0
 BOOLEAN WriteTriggerFile004D23F0(int hFile, W8LevelFileTrigger* pTrigger)
 {
-    unsigned char fSuccess;
+    bool fSuccess;
     unsigned char ok;
 
     ok = FileWrite(hFile, &pTrigger->version_00, 1, 0);

@@ -35,7 +35,7 @@ struct W8SaveSlot {
     int version_major;
     int version_minor;
     int version_patch;
-    unsigned char dev_flagged_263c; /* saved copy of status dev_flagged_49c1 */
+    bool dev_flagged_263c; /* saved copy of status dev_flagged_49c1 */
     unsigned char padding_263d[3];
 };
 
@@ -46,7 +46,7 @@ void CaptureSaveScreenshot(W8SaveScreenshot* screenshot);
 void FillCurrentSaveSlot(W8SaveSlot* slot);
 unsigned char EnumerateSaveSlots(W8GrowableVector<W8SaveSlot*>* slots);
 
-unsigned char SaveGame(const char* name, W8SaveScreenshot* screenshot);
+bool SaveGame(const char* name, W8SaveScreenshot* screenshot);
 
 struct W8Character;
 unsigned char SaveCharacter(W8Character* character, int slot, char report_failure,
@@ -63,7 +63,7 @@ unsigned char LoadCharacter(const char* name, W8Character* character, int slot,
                             char report_failure);
 void BuildCharacterFilePath00514FA0(char* destination, const char* filename, int slot);
 void BuildCharacterPath00514EC0(char* destination, const wchar_t* name, int slot);
-unsigned char SaveGameExists(void);
+bool SaveGameExists(void);
 void LoadGameStatus(W8Chunk* chunks, W8GlobalStatus* status);
 /* 0x00512920: load a save slot by name; the Please Wait screen drives it. */
 unsigned char LoadGame(const char* slot_name);
@@ -80,7 +80,7 @@ unsigned char LoadItemStatus(W8Chunk* chunk, int level);
 unsigned char MeasureLevelStatusChunks00514DF0(W8Chunk* chunk, int level,
                                                unsigned int* empty_percent);
 
-extern unsigned char g_save_pending_00689f98;
+extern bool g_save_pending_00689f98;
 
 /* Mark a matching CHAR payload consumed in Saves\\CurrentGame.SAV. */
 char MarkCurrentGameCharacterChunkConsumed(const char* path); /* 0x005154A0 */

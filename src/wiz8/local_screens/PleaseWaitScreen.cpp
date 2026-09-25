@@ -54,7 +54,7 @@ struct W8LevelLoadDescriptor {
     int mode;                       /* 0x0f0, the screen state's own mode */
     int parameter;                  /* 0x0f4 */
     int parameter_2;                /* 0x0f8 */
-    unsigned char waiting;          /* 0x0fc, gates the polling path */
+    bool waiting;                   /* 0x0fc, gates the polling path */
     char name[0x3f];                /* 0x0fd, bounded only by the next field */
     W8SaveScreenshot* save_payload; /* 0x13c */
     unsigned long entered_tick;     /* 0x140 */
@@ -70,7 +70,7 @@ W8LevelLoadDescriptor* g_load_descriptor_69b7c8;
 // GLOBAL: WIZ8 0x0069B7CC
 W8MessageDialogBase* g_swap_disc_dialog_69b7cc;
 // GLOBAL: WIZ8 0x0069B7D0
-unsigned char g_cd_marker_present_69b7d0;
+bool g_cd_marker_present_69b7d0;
 
 /* Engine Code\Levels.cpp owns this with C++ linkage. */
 
@@ -95,7 +95,7 @@ int g_level_backdrops_64bf8c[W8_LEVEL_COUNT] = {
 unsigned char PleaseWaitScreenInitialize(void)
 {
     if (FileExistsNoDB("CD.ROM")) {
-        g_cd_marker_present_69b7d0 = 1;
+        g_cd_marker_present_69b7d0 = true;
     }
     g_level_load_font_69b7c0 =
         LoadFontFile((UINT8*)const_cast<char*>("Data\\Level Load\\levelload_font.sti"));
@@ -170,7 +170,7 @@ unsigned char PleaseWaitScreenEnsureLevelArchive(int level)
 {
     if (!FileExistsNoDB("Levels\\Levels.slf") && g_cd_marker_present_69b7d0) {
         if (IsLevelCdMissing0042B6F0(level)) {
-            g_load_descriptor_69b7c8->waiting = 1;
+            g_load_descriptor_69b7c8->waiting = true;
             g_load_descriptor_69b7c8->parameter = level;
             g_load_descriptor_69b7c8->entered_tick = GetTickCount();
             if (!g_swap_disc_dialog_69b7cc) {
@@ -233,7 +233,7 @@ void PleaseWaitScreenFrame(void)
             }
         } else if (GetTickCount() - g_load_descriptor_69b7c8->entered_tick > 200) {
             if (!IsLevelCdMissing0042B6F0(g_load_descriptor_69b7c8->parameter)) {
-                g_load_descriptor_69b7c8->waiting = 0;
+                g_load_descriptor_69b7c8->waiting = false;
                 ReopenCDLibraries();
                 g_swap_disc_dialog_69b7cc->is_open = 0;
             } else if (!g_swap_disc_dialog_69b7cc->is_open && ++g_value_69b7c4 > 4) {
@@ -302,7 +302,7 @@ void PleaseWaitScreenFrame(void)
         }
         break;
     case 2: {
-        unsigned char saved =
+        bool saved =
             SaveGame(g_load_descriptor_69b7c8->name, g_load_descriptor_69b7c8->save_payload);
         ShowNotice(0xc, saved ? gppStringList[0x1bd0 / 4] : gppStringList[0x1bd8 / 4], -1, -1, 0);
         if (g_load_descriptor_69b7c8->save_payload) {

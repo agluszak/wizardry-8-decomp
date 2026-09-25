@@ -91,7 +91,7 @@ void ResolveMonsterGroupAttack005560A0(int special_attack_kind, W8TargetSource* 
     unsigned int uiRollB;
     unsigned int uiRollC;
     int extra;
-    char resolved;
+    bool resolved;
     wchar_t* text;
 
     announce = (char)g_settings_6850c8.verbose_combat_messages;
@@ -459,7 +459,7 @@ void SpawnSummonedMonsterGroup00556B10(int special_attack_kind, W8TargetSource* 
     W8MonsterGroup* group;
     W8MonsterInfo* monster_info;
     int disposition;
-    char placed;
+    bool placed;
     float yaw;
 
     switch (special_attack_kind) {

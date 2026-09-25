@@ -12,7 +12,7 @@ struct W8QuadCell {
     W8IList* polygon_indices;
     W8PList* objects;
     unsigned int dirty_stamp_08;
-    unsigned char occupied;
+    bool occupied;
     unsigned char padding_0d[3];
 };
 

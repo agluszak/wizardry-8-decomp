@@ -48,11 +48,11 @@
    PerfumeBox, StoneIdol, BlueFlowers, SquisherControls, DoorControls). */
 
 // GLOBAL: WIZ8 0x00613828
-unsigned char g_idol_gas_armed_613828 = 1;
+bool g_idol_gas_armed_613828 = true;
 // GLOBAL: WIZ8 0x0068352D
-unsigned char g_crusher_excluded_flag_68352d;
+bool g_crusher_excluded_flag_68352d;
 // GLOBAL: WIZ8 0x0068352E
-unsigned char g_crusher_active_68352e;
+bool g_crusher_active_68352e;
 // GLOBAL: WIZ8 0x00683530
 W8IntervalGate* g_spikeball_gate_683530;
 // GLOBAL: WIZ8 0x00683534
@@ -92,13 +92,13 @@ void MartensBluff2Setup004DCB50(void)
 
     pTrigger = FindTriggerByName("PerfumeBox");
     quest_state = 0;
-    g_crusher_active_68352e = 0;
+    g_crusher_active_68352e = false;
     if (pTrigger != 0) {
         if (GetLocationVarIDByName("RavenQuest") == -1) {
             CreateLocationVar("RavenQuest", 0);
-            g_flag_006834dd = 1;
+            g_flag_006834dd = true;
             FindTriggerByName("Dummy")->Run(-1);
-            g_flag_006834dd = 0;
+            g_flag_006834dd = false;
         } else {
             quest_state = GetLocationVarValueByName("RavenQuest");
         }
@@ -279,7 +279,7 @@ void MartensBluff2Spikeball004DD3F0(int command)
             g_master_functions_006834d8->Add(MartensBluff2Spikeball004DD3F0);
         }
     }
-    g_flag_006834dc = 0;
+    g_flag_006834dc = false;
     if (g_spikeball_count_683534 < 0x10) {
         if (g_spikeball_count_683534 == 0 || g_spikeball_gate_683530->IsFinished() ||
             (g_spikeball_gate_683530->PollElapsedIntervals(),
@@ -371,7 +371,7 @@ void MartensBluff2Spikeball004DD3F0(int command)
     } else {
         SetTriggerVariableByName00444030("SpikedBallLauncher", g_spikeball_count_683534);
     }
-    g_flag_006834dc = 1;
+    g_flag_006834dc = true;
 }
 
 /* "DoorBolt": re-arms the side-gate text trigger when the bolt opens. */
@@ -558,7 +558,7 @@ void MartensBluff2MonsterCrusher004DDF40(int command)
             crusher_lower.y -= g_world_scale_005ebc40;
             crusher_upper.x = upper.x;
             g_crusher_excluded_683538 = 0;
-            g_crusher_excluded_flag_68352d = 0;
+            g_crusher_excluded_flag_68352d = false;
             centre.x = (crusher_lower.x + crusher_upper.x) * g_double_005ebe80;
             centre.y = (crusher_lower.y + crusher_upper.y) * g_double_005ebe80;
             centre.z = (crusher_lower.z + crusher_upper.z) * g_double_005ebe80;
@@ -566,19 +566,19 @@ void MartensBluff2MonsterCrusher004DDF40(int command)
                 g_crusher_sound_68354c = CreateAndPlaySoundNode(
                     "Data\\Sound\\Ambients\\Hydraulics Squisher Loop.wav", centre, 0.7f, 30.0f, 1);
             }
-            g_crusher_active_68352e = 1;
+            g_crusher_active_68352e = true;
             g_crusher_state_683550 = 1;
             g_master_functions_006834d8->Add(MartensBluff2MonsterCrusher004DDF40);
         }
         if (command != 1 && GetLocationVarValueByName("RavenQuest") != 0) {
-            g_flag_006834dd = 1;
+            g_flag_006834dd = true;
             FindTriggerByName("Dummy")->Run(-1);
             FindTriggerByName("DummyRope")->Run(-1);
-            g_flag_006834dd = 0;
+            g_flag_006834dd = false;
         }
         return;
     }
-    g_flag_006834dc = 0;
+    g_flag_006834dc = false;
     if (g_squisher3_prop_68353c == 0) {
         return;
     }
@@ -592,8 +592,8 @@ void MartensBluff2MonsterCrusher004DDF40(int command)
         if (g_dummy_rope_prop_683548->Rep()->animation_playing_06d != 0) {
             return;
         }
-        g_flag_006834dc = 1;
-        g_crusher_active_68352e = 0;
+        g_flag_006834dc = true;
+        g_crusher_active_68352e = false;
         g_crusher_state_683550 = 0;
         return;
     }
@@ -604,12 +604,12 @@ void MartensBluff2MonsterCrusher004DDF40(int command)
         g_crusher_sound_68354c = 0;
         pTrigger = FindTriggerByName("Dummy");
         if (GetLocationVarValueByName("RavenQuest") == 0) {
-            g_flag_006834dc = 1;
-            g_crusher_active_68352e = 0;
+            g_flag_006834dc = true;
+            g_crusher_active_68352e = false;
             g_crusher_state_683550 = 0;
             return;
         }
-        g_flag_006834dd = 1;
+        g_flag_006834dd = true;
         pTrigger->Run(-1);
         if (pTrigger->m_bRepType != 2) {
             srAssertFail("m_bRepType == TRIGGER_REP_PROP", "..\\Engine Code\\Include\\Trigger.hpp",
@@ -623,7 +623,7 @@ void MartensBluff2MonsterCrusher004DDF40(int command)
                          0x3ed, 0);
         }
         g_dummy_rope_prop_683548 = pTrigger->m_pProp;
-        g_flag_006834dd = 0;
+        g_flag_006834dd = false;
         g_crusher_state_683550 = 2;
         return;
     }
@@ -689,7 +689,7 @@ bool MartensBluff2StoneIdol004DE520(Trigger* pTrigger)
     MartensBluff2IdolGas004DE660(1);
     g_master_functions_006834d8->Add(MartensBluff2IdolGas004DE660);
     pTrigger->flags_0a0 &= ~W8_TRIGGER_ENABLED;
-    g_flag_006834dd = 1;
+    g_flag_006834dd = true;
     SetFact(0x323, 1, 0);
     return true;
 }
@@ -706,7 +706,7 @@ bool MartensBluff2BlueFlowers004DE620(Trigger* pTrigger)
         ReplaceOrCreateItem(&g_status_685170.item_in_hand_235b, 0x2eb, 0, 0, 0);
         SetItemCursor(0);
     }
-    g_flag_006834dd = 0;
+    g_flag_006834dd = false;
     return true;
 }
 
@@ -721,7 +721,7 @@ void MartensBluff2IdolGas004DE660(int command)
     stParticle* particle;
 
     if (command != 0) {
-        g_idol_gas_armed_613828 = 1;
+        g_idol_gas_armed_613828 = true;
         BeginWorldLightingFade(-3000.0f);
         if (g_idol_gas_gate_683554 != 0) {
             g_idol_gas_gate_683554->Arm();
@@ -730,14 +730,14 @@ void MartensBluff2IdolGas004DE660(int command)
         g_idol_gas_gate_683554 = new W8IntervalGate(4.0f, 0, 1);
         return;
     }
-    g_flag_006834dc = 0;
+    g_flag_006834dc = false;
     if (g_idol_gas_armed_613828 == 0) {
-        g_flag_006834dc = 1;
+        g_flag_006834dc = true;
         if (g_idol_gas_gate_683554 != 0) {
             delete g_idol_gas_gate_683554;
         }
         g_idol_gas_gate_683554 = 0;
-        g_idol_gas_armed_613828 = 1;
+        g_idol_gas_armed_613828 = true;
         ResolveSurpriseWake005029E0();
         return;
     }
@@ -748,7 +748,7 @@ void MartensBluff2IdolGas004DE660(int command)
         }
     }
     g_idol_gas_gate_683554->Arm();
-    g_idol_gas_armed_613828 = 0;
+    g_idol_gas_armed_613828 = false;
     if (FindNpcOfKind(0x1e) == 0) {
         MartensBluff2IdolGasVictim004DE7D0();
     }

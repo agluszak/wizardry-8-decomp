@@ -526,7 +526,7 @@ unsigned char OctBuildPreTree::UpdateRegionMap004B07E0(const W8OctSpatialState* 
                                                        short value, short mode)
 {
     W8OctSpatialState child(spatial);
-    unsigned char changed = 0;
+    bool changed = false;
 
     if (child.depth_44 >= 16) {
         return 0;
@@ -844,7 +844,7 @@ unsigned char OctBuildPreTree::AssignPolygonRegions004B1280(W8OctPreTreeGeometry
         if (1 < geometry->polygon_count_08) {
             do {
                 AssignPolygonRegion004B1190(&geometry->polygons_0c[polygon]);
-                geometry->polygons_0c[polygon].visited_31 = 0;
+                geometry->polygons_0c[polygon].visited_31 = false;
                 ++polygon;
             } while (polygon < geometry->polygon_count_08);
         }
@@ -983,7 +983,7 @@ unsigned short OctBuildPreTree::SplitSharedPolygon004B1780(W8OctPreTreeGeometry*
     unsigned short regions[20];
     unsigned short counts[20];
     memset(regions, 0, sizeof(regions));
-    polygon->visited_31 = 1;
+    polygon->visited_31 = true;
     memset(counts, 0, sizeof(counts));
     unsigned short found = 0;
     for (int corner = 0; corner != 3; ++corner) {
@@ -1053,7 +1053,7 @@ unsigned short OctBuildPreTree::SplitSharedPolygon004B1780(W8OctPreTreeGeometry*
         }
     }
     if ((polygon->flags_00 & 4) == 0) {
-        polygon->visited_31 = 0;
+        polygon->visited_31 = false;
     }
     return polygon->region_32;
 }

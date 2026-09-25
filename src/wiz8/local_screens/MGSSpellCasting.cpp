@@ -291,7 +291,7 @@ unsigned char OpenSpellCastingView(int party_slot)
         memset(gpSCSV, 0, sizeof(W8SpellCastingView));
     }
     UpdateScreenOverlays(0);
-    gXStatus.fSpellCastMode = 1;
+    gXStatus.fSpellCastMode = true;
     if (g_level_block->combat_end_notification != -1) {
         DestroySubMenuControls();
     }
@@ -361,7 +361,7 @@ void CloseSpellCastingView(void)
         SelectTextBox(gXStatus.fCombatMode != 0);
         ReleaseSpellCastingViewControls();
         SetTextBoxRegionBounds(0xa8, 0x16e, 0x1c4, 0x1ba);
-        gXStatus.fSpellCastMode = 0;
+        gXStatus.fSpellCastMode = false;
         ApplyMainGameModeFlag(gpSCSV->saved_game_mode, 1);
         RequestRedraw(0x200);
         RequestRedraw(0x100);
@@ -428,7 +428,7 @@ void SelectSpellCastingCharacter(int party_slot)
     SelectSpellCastingRow(-1);
     gpSCSV->uiPowerLevels = 0;
     SelectSpellPowerLevel005A06F0(-1);
-    gpSCSV->dialog_confirmed = 0;
+    gpSCSV->dialog_confirmed = false;
     UpdateSpellPowerPips();
     SelectSpellCastingPartySlot(g_status_685170.selected_character);
     RequestRedraw(0x200);
@@ -908,7 +908,7 @@ static void SelectSpellCastingRealm005A0380(int realm)
         SelectSpellCastingRow(-1);
         gpSCSV->uiPowerLevels = 0;
         SelectSpellPowerLevel005A06F0(-1);
-        gpSCSV->dialog_confirmed = 0;
+        gpSCSV->dialog_confirmed = false;
         UpdateSpellPowerPips();
         SelectSpellCastingPartySlot(g_status_685170.selected_character);
         RequestRedraw(0x200);
@@ -1117,7 +1117,7 @@ void SpellCastingDialogResult005A0AE0(W8DialogBase* dialog)
 
     index = gpSCSV->uiSpellIndex;
     if (GetDialogResult(dialog) != 0) {
-        gpSCSV->dialog_confirmed = 1;
+        gpSCSV->dialog_confirmed = true;
         return;
     }
     gpSCSV->uiSpellToCast = 0;
@@ -1126,7 +1126,7 @@ void SpellCastingDialogResult005A0AE0(W8DialogBase* dialog)
     SelectSpellCastingRow(-1);
     gpSCSV->uiPowerLevels = 0;
     SelectSpellPowerLevel005A06F0(-1);
-    gpSCSV->dialog_confirmed = 0;
+    gpSCSV->dialog_confirmed = false;
     UpdateSpellPowerPips();
     SelectSpellCastingPartySlot(g_status_685170.selected_character);
     RequestRedraw(0x200);
@@ -1436,9 +1436,9 @@ static void TryCommitSpellCast(void)
         ShowMainGameNoticeLine(gppStringList[0x7a5], SpellCastingDialogResult005A0AE0, 1, 1);
     }
     if (ready && IsModalOpen() == 0) {
-        gpSCSV->closing = 1;
+        gpSCSV->closing = true;
         CommitSelectedSpellTarget();
-        gpSCSV->closing = 0;
+        gpSCSV->closing = false;
         if (gpSCSV->uiSpellToCast != 0x17) {
             if (gXStatus.fCampMode != 0) {
                 ResetEditorStatusLine0058AA20(-1);

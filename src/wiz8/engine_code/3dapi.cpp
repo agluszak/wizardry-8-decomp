@@ -73,7 +73,7 @@
 #define THREE_D_API_CPP "C:\\Projects\\Wizardry 8\\Engine Code\\3dapi.cpp"
 
 // GLOBAL: WIZ8 0x00607d7c
-unsigned char g_renderer_ready_00607d7c = 1;
+bool g_renderer_ready_00607d7c = true;
 
 // GLOBAL: WIZ8 0x00607d80
 int g_game_data_runtime_pending_00607d80 = 1;
@@ -84,28 +84,28 @@ const double g_double_005ec240 = 250000.0;
 class W8AmbientSound;
 
 // GLOBAL: WIZ8 0x00659757
-unsigned char g_world_cleanup_flag_00659757;
+bool g_world_cleanup_flag_00659757;
 // GLOBAL: WIZ8 0x00659a80
 W8GrowableVector<W8World*> g_worlds_00659a80;
 
 // GLOBAL: WIZ8 0x006081f8
-unsigned char g_navigator_vertical_enabled_006081f8 = 1;
+bool g_navigator_vertical_enabled_006081f8 = true;
 
 // GLOBAL: WIZ8 0x00607d7d
-unsigned char g_world_mesh_update_enabled_00607d7d = 1;
+bool g_world_mesh_update_enabled_00607d7d = true;
 
 // GLOBAL: WIZ8 0x00609c88
 float g_float_00609c88 = 60.0f;
 
 // GLOBAL: WIZ8 0x00609c8c
-unsigned char g_flag_00609c8c = 1;
+bool g_flag_00609c8c = true;
 
 // GLOBAL: WIZ8 0x006f0530
-unsigned char g_shift_held_006f0530;
+bool g_shift_held_006f0530;
 // GLOBAL: WIZ8 0x006f0531
 bool g_monster_combat_timer_enabled_006f0531;
 // GLOBAL: WIZ8 0x006f0534
-unsigned char g_modifier_held_006f0534;
+bool g_modifier_held_006f0534;
 
 // FUNCTION: WIZ8 0x00450B10
 void ConstructWorldCollections(W8World* world)
@@ -207,7 +207,7 @@ unsigned char LoadWorld(W8World* world, char* level_file_name, const char* level
 
     g_worlds_00659a80.Add(world);
 
-    world->m_loaded = 1;
+    world->m_loaded = true;
     PListInit(&world->m_list_09c);
     PListInit(&world->m_lights_0a8);
     world->m_owned_04c = 0;
@@ -346,7 +346,7 @@ void UpdateWorlds0044F400(void)
         }
         RepositionAmbientSounds0047A600(g_world);
         RequestRefreshPartyState();
-        g_renderer_ready_00607d7c = 0;
+        g_renderer_ready_00607d7c = false;
     }
 
     UpdateTimedTriggerEvents00443D30();
@@ -753,7 +753,7 @@ void UpdateWorldCameraAndPaths0044FC20(W8World* world, unsigned int flags)
 // FUNCTION: WIZ8 0x00451010
 void MarkRendererReady(void)
 {
-    g_renderer_ready_00607d7c = 1;
+    g_renderer_ready_00607d7c = true;
 }
 
 /* Resolve a particle by its runtime name from the current world's particle
@@ -839,7 +839,7 @@ void UpdateWorldMeshAfterLoad00451020(void)
         }
         RepositionAmbientSounds0047A600(g_world);
         RequestRefreshPartyState();
-        g_renderer_ready_00607d7c = 0;
+        g_renderer_ready_00607d7c = false;
     }
 }
 
@@ -1041,7 +1041,7 @@ void ApplyWorldUpdateFlags(W8World* world, unsigned int flags)
         g_float_00609c88 -= g_float_005ebc88;
     }
     if ((flags & 0x10) != 0) {
-        g_flag_00609c8c = 1;
+        g_flag_00609c8c = true;
     }
     if ((flags & 0x40) != 0) {
         world->m_loaded = world->m_loaded == 0;
@@ -1061,7 +1061,7 @@ int ForwardSelectedPropIndex004503B0(W8World*, int, int)
 }
 
 // FUNCTION: WIZ8 0x00451150
-unsigned char ForwardActivateSelectedProp00451150(W8World*, int, int, int)
+bool ForwardActivateSelectedProp00451150(W8World*, int, int, int)
 {
     return ActivateSelectedProp0044DA20();
 }

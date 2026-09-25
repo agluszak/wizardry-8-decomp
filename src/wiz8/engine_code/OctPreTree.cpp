@@ -129,7 +129,7 @@ bool OctPreTree::SegmentClear00467BB0(const srVector3T<float>* from, const srVec
     int cell[3];
     int end_cell[3];
     int span = 0;
-    unsigned char blocked = 0;
+    bool blocked = false;
 
     trace.Seed(from, to);
     m_gd_result_count_1b8 = 0;
@@ -217,7 +217,7 @@ bool OctPreTree::SegmentClear00467BB0(const srVector3T<float>* from, const srVec
 bool OctPreTree::TestCollectedPolygons004681E0(W8OctreeTrace* trace)
 {
     float limit = trace->length_28 - g_float_005ebb38;
-    unsigned char blocked = 0;
+    bool blocked = false;
 
     for (unsigned long index = 0; index < m_gd_result_count_1b8; ++index) {
         if (blocked != 0) {
@@ -1823,8 +1823,7 @@ unsigned char BoundsOverlap0046D470(const srVector3T<float>* first, const srVect
 
 /* Inclusive point containment for an axis-aligned box. */
 // FUNCTION: WIZ8 0x0046d4d0
-unsigned char PointInsideBounds0046D4D0(const srVector3T<float>* bounds,
-                                        const srVector3T<float>* point)
+bool PointInsideBounds0046D4D0(const srVector3T<float>* bounds, const srVector3T<float>* point)
 {
     return bounds[0].x <= point->x && point->x <= bounds[1].x && bounds[0].y <= point->y &&
            point->y <= bounds[1].y && bounds[0].z <= point->z && point->z <= bounds[1].z;

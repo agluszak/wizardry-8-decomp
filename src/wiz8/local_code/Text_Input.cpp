@@ -54,7 +54,7 @@ struct TEXTINPUTNODE {
     unsigned char ubStrLen;
     // bool-byte-ok: JA2 declares fEnabled as BOOLEAN (UINT8)
     unsigned char fEnabled;
-    unsigned char fUserField;
+    bool fUserField;
     unsigned char _padding0f;
     MOUSE_REGION region;
     INPUT_CALLBACK InputCallback;
@@ -75,11 +75,11 @@ struct TextInputColors {
     unsigned char ubHiForeColor;
     unsigned char ubHiShadowColor;
     unsigned char ubHiBackColor;
-    unsigned char fBevelling;
+    bool fBevelling;
     unsigned short usBrighterColor;
     unsigned short usDarkerColor;
     unsigned short usCursorColor;
-    unsigned char fUseDisabledAutoShade;
+    bool fUseDisabledAutoShade;
     unsigned char ubDisabledForeColor;
     unsigned char ubDisabledShadowColor;
     unsigned char _padding13;
@@ -118,7 +118,7 @@ static_assert(sizeof(STACKTEXTINPUTNODE) == 0x0c,
               "text input session must match the retail allocation");
 
 // GLOBAL: WIZ8 0x0069C808
-unsigned char gfEditingText;
+bool gfEditingText;
 
 // GLOBAL: WIZ8 0x0069C7EC
 static TextInputColors* pColors;
@@ -131,9 +131,9 @@ static TEXTINPUTNODE* gpTextInputTail;
 // GLOBAL: WIZ8 0x0069C7FC
 static TEXTINPUTNODE* gpActive;
 // GLOBAL: WIZ8 0x0069C809
-static unsigned char gfTextInputMode;
+static bool gfTextInputMode;
 // GLOBAL: WIZ8 0x0069C80A
-static unsigned char gfHiliteMode;
+static bool gfHiliteMode;
 // GLOBAL: WIZ8 0x0069C80B
 static unsigned char gubCursorPos;
 // GLOBAL: WIZ8 0x0069C80C
@@ -145,7 +145,7 @@ static unsigned char gubParkingPos;
 // GLOBAL: WIZ8 0x0069C80F
 static unsigned char gubVisibleStart;
 // GLOBAL: WIZ8 0x0069C7E8
-static unsigned char gfHorizontalKey;
+static bool gfHorizontalKey;
 // GLOBAL: WIZ8 0x0069C7E9
 static unsigned char gubMouseDownPos;
 // GLOBAL: WIZ8 0x0069C5D8
@@ -172,10 +172,10 @@ void InitTextInputMode(void)
     }
     gpTextInputHead = 0;
     pColors = (TextInputColors*)malloc(sizeof(TextInputColors));
-    gfTextInputMode = 1;
-    gfEditingText = 0;
-    pColors->fBevelling = 0;
-    pColors->fUseDisabledAutoShade = 1;
+    gfTextInputMode = true;
+    gfEditingText = false;
+    pColors->fBevelling = false;
+    pColors->fUseDisabledAutoShade = true;
     pColors->usCursorColor = Get16BPPColor(0x0a0a0a);
     gubVisibleStart = 0;
 }
@@ -199,10 +199,10 @@ void InitTextInputModeWithScheme(int mode)
     }
     gpTextInputHead = 0;
     pColors = (TextInputColors*)malloc(sizeof(TextInputColors));
-    gfTextInputMode = 1;
-    gfEditingText = 0;
-    pColors->fBevelling = 0;
-    pColors->fUseDisabledAutoShade = 1;
+    gfTextInputMode = true;
+    gfEditingText = false;
+    pColors->fBevelling = false;
+    pColors->fUseDisabledAutoShade = true;
     pColors->usCursorColor = Get16BPPColor(0x0a0a0a);
     gubVisibleStart = 0;
     SetTextInputScheme(mode);
@@ -217,7 +217,7 @@ void SetTextInputScheme(int mode)
         pColors->usInactiveTextFieldColor = Get16BPPColor(0xffffff);
         pColors->usDarkerColor = Get16BPPColor(0x513d18);
         pColors->usBrighterColor = Get16BPPColor(0x878a88);
-        pColors->fBevelling = 1;
+        pColors->fBevelling = true;
         pColors->ubForeColor = 0x8d;
         pColors->ubShadowColor = 0;
         pColors->ubHiForeColor = 0xd0;
@@ -228,7 +228,7 @@ void SetTextInputScheme(int mode)
         pColors->usInactiveTextFieldColor = Get16BPPColor(0x0a0a0a);
         pColors->usDarkerColor = Get16BPPColor(0);
         pColors->usBrighterColor = Get16BPPColor(0);
-        pColors->fBevelling = 1;
+        pColors->fBevelling = true;
         pColors->ubForeColor = 4;
         pColors->ubShadowColor = 5;
         pColors->ubHiForeColor = 4;
@@ -242,7 +242,7 @@ void SetTextInputScheme(int mode)
         pColors->usInactiveTextFieldColor = Get16BPPColor(0xffffff);
         pColors->usDarkerColor = Get16BPPColor(0);
         pColors->usBrighterColor = Get16BPPColor(0);
-        pColors->fBevelling = 1;
+        pColors->fBevelling = true;
         pColors->ubForeColor = 0x8d;
         pColors->ubShadowColor = 0;
         pColors->ubHiForeColor = 0xd0;
@@ -276,8 +276,8 @@ void KillTextInputMode(void)
     pColors = 0;
     gpTextInputHead = 0;
     if (session == 0) {
-        gfTextInputMode = 0;
-        gfEditingText = 0;
+        gfTextInputMode = false;
+        gfEditingText = false;
         gpActive = 0;
         return;
     }
@@ -299,8 +299,8 @@ void KillTextInputMode(void)
             continue;
         gpActive = field;
         if (field->szString == 0) {
-            gfHiliteMode = 0;
-            gfEditingText = 0;
+            gfHiliteMode = false;
+            gfEditingText = false;
             if (field->InputCallback != 0)
                 field->InputCallback(field->ubID, 1);
         } else {
@@ -311,8 +311,8 @@ void KillTextInputMode(void)
                 field->region.RegionBottomRightX - field->region.RegionTopLeftX - 10, gubCursorPos,
                 field->szString, &gsCursorX, &guiVisibleCount);
             gubCursorPos = gpActive->ubStrLen;
-            gfHiliteMode = 1;
-            gfEditingText = 1;
+            gfHiliteMode = true;
+            gfEditingText = true;
         }
         break;
     }
@@ -358,9 +358,9 @@ char AddTextInputField(int left, int top, int width, int height, int priority, c
                 gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
                 gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
         }
-        gfHiliteMode = 1;
+        gfHiliteMode = true;
     }
-    field->fUserField = 0;
+    field->fUserField = false;
     field->fEnabled = 1;
     field->fBlockMouseCallbacks = 0;
     MSYS_DefineRegion(&field->region, (unsigned short)left, (unsigned short)top,
@@ -397,8 +397,8 @@ void RemoveTextInputField(int index)
         gpActive = 0;
     free(field);
     if (gpTextInputHead == 0) {
-        gfTextInputMode = 0;
-        gfEditingText = 0;
+        gfTextInputMode = false;
+        gfEditingText = false;
     }
 }
 
@@ -419,7 +419,7 @@ void SetInputFieldStringWith16BitString(unsigned char index, wchar_t* text)
                 field->ubStrLen = 0;
                 swprintf(field->szString, &g_wchar_00689b34);
             }
-            gfHiliteMode = 0;
+            gfHiliteMode = false;
             gubCursorPos = 0;
             if (gpActive != 0) {
                 gubParkingPos = CalculateCursorPos(
@@ -482,12 +482,12 @@ void SetActiveField(char index)
             CalculateCursorPos(field->region.RegionBottomRightX - field->region.RegionTopLeftX - 10,
                                gubCursorPos, field->szString, &gsCursorX, &guiVisibleCount);
         gubCursorPos = gpActive->ubStrLen;
-        gfHiliteMode = 1;
-        gfEditingText = 1;
+        gfHiliteMode = true;
+        gfEditingText = true;
         return;
     }
-    gfHiliteMode = 0;
-    gfEditingText = 0;
+    gfHiliteMode = false;
+    gfEditingText = false;
     if (field->InputCallback != 0)
         field->InputCallback(field->ubID, 1);
 }
@@ -513,8 +513,8 @@ void SelectNextField(void)
         if (gpActive->fEnabled != 0) {
             found = true;
             if (gpActive->szString == 0) {
-                gfHiliteMode = 0;
-                gfEditingText = 0;
+                gfHiliteMode = false;
+                gfEditingText = false;
                 if (gpActive->InputCallback != 0)
                     gpActive->InputCallback(gpActive->ubID, 1);
             } else {
@@ -524,8 +524,8 @@ void SelectNextField(void)
                 gubParkingPos = CalculateCursorPos(
                     gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
                     gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
-                gfHiliteMode = 1;
-                gfEditingText = 1;
+                gfHiliteMode = true;
+                gfEditingText = true;
             }
         }
         if (gpActive == previous)
@@ -533,7 +533,7 @@ void SelectNextField(void)
         if (found)
             return;
     } while (true);
-    gfEditingText = 0;
+    gfEditingText = false;
 }
 
 // FUNCTION: WIZ8 0x005D3F00
@@ -546,14 +546,14 @@ void ClearActiveField(void)
     } else if (gpActive->InputCallback != 0) {
         gpActive->InputCallback(gpActive->ubID, 0);
     }
-    gfEditingText = 0;
+    gfEditingText = false;
     gpActive = 0;
 }
 
 // FUNCTION: WIZ8 0x005D3F50
 unsigned int HandleTextInput(const InputAtom* input)
 {
-    gfHorizontalKey = 0;
+    gfHorizontalKey = false;
     if (gfTextInputMode == 0 || gfEditingText == 0 || gpActive == 0 ||
         (input->usEvent != KEY_DOWN && input->usEvent != KEY_REPEAT) || input->usParam == 0x1b ||
         input->usParam == 0x0d || input->usParam == 9 || (input->usKeyState & ALT_DOWN) != 0 ||
@@ -578,7 +578,7 @@ unsigned int HandleTextInput(const InputAtom* input)
                 return 1;
             }
         } else {
-            gfHiliteMode = 0;
+            gfHiliteMode = false;
             if (gubStartHilite != selection_end) {
                 unsigned char first = gubStartHilite;
                 unsigned char last = selection_end;
@@ -604,13 +604,13 @@ unsigned int HandleTextInput(const InputAtom* input)
     case 0x23: /* End */
         if ((input->usKeyState & SHIFT_DOWN) != 0) {
             if (gfHiliteMode == 0) {
-                gfHiliteMode = 1;
+                gfHiliteMode = true;
                 gubStartHilite = gubCursorPos;
             }
             gubCursorPos = gpActive->ubStrLen;
             gubEndHilite = gubCursorPos;
         } else {
-            gfHiliteMode = 0;
+            gfHiliteMode = false;
             gubCursorPos = gpActive->ubStrLen;
         }
         gubParkingPos = CalculateCursorPos(
@@ -621,14 +621,14 @@ unsigned int HandleTextInput(const InputAtom* input)
     case 0x24: /* Home */
         if ((input->usKeyState & SHIFT_DOWN) != 0) {
             if (gfHiliteMode == 0) {
-                gfHiliteMode = 1;
+                gfHiliteMode = true;
                 gubStartHilite = gubCursorPos;
             }
             gubCursorPos = 0;
             gubEndHilite = 0;
         } else {
             gubCursorPos = 0;
-            gfHiliteMode = 0;
+            gfHiliteMode = false;
         }
         gubParkingPos = CalculateCursorPos(gpActive->region.RegionBottomRightX -
                                                gpActive->region.RegionTopLeftX - 10,
@@ -636,10 +636,10 @@ unsigned int HandleTextInput(const InputAtom* input)
         return 1;
 
     case 0x25: /* Left */
-        gfHorizontalKey = 1;
+        gfHorizontalKey = true;
         if ((input->usKeyState & SHIFT_DOWN) != 0) {
             if (gfHiliteMode == 0) {
-                gfHiliteMode = 1;
+                gfHiliteMode = true;
                 gubStartHilite = gubCursorPos;
             }
             if (gubCursorPos != 0) {
@@ -653,7 +653,7 @@ unsigned int HandleTextInput(const InputAtom* input)
         }
         if (gfHiliteMode != 0) {
             gubCursorPos = gubStartHilite;
-            gfHiliteMode = 0;
+            gfHiliteMode = false;
             gubParkingPos = CalculateCursorPos(
                 gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
                 gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
@@ -668,10 +668,10 @@ unsigned int HandleTextInput(const InputAtom* input)
         return 1;
 
     case 0x27: /* Right */
-        gfHorizontalKey = 1;
+        gfHorizontalKey = true;
         if ((input->usKeyState & SHIFT_DOWN) != 0) {
             if (gfHiliteMode == 0) {
-                gfHiliteMode = 1;
+                gfHiliteMode = true;
                 gubStartHilite = gubCursorPos;
             }
             if (gubCursorPos < gpActive->ubStrLen) {
@@ -685,7 +685,7 @@ unsigned int HandleTextInput(const InputAtom* input)
         }
         if (gfHiliteMode != 0) {
             gubCursorPos = selection_end;
-            gfHiliteMode = 0;
+            gfHiliteMode = false;
             gubParkingPos = CalculateCursorPos(
                 gpActive->region.RegionBottomRightX - gpActive->region.RegionTopLeftX - 10,
                 gubCursorPos, gpActive->szString, &gsCursorX, &guiVisibleCount);
@@ -706,7 +706,7 @@ unsigned int HandleTextInput(const InputAtom* input)
             gubCursorPos = 0;
             gubStartHilite = 0;
             gubEndHilite = 0;
-            gfHiliteMode = 0;
+            gfHiliteMode = false;
             SetTextInputCursor(0);
             return 1;
         }
@@ -719,7 +719,7 @@ unsigned int HandleTextInput(const InputAtom* input)
             SetTextInputCursor(gubCursorPos);
             return 1;
         }
-        gfHiliteMode = 0;
+        gfHiliteMode = false;
         if (gubStartHilite != selection_end) {
             unsigned char first = gubStartHilite;
             unsigned char last = selection_end;
@@ -746,7 +746,7 @@ unsigned int HandleTextInput(const InputAtom* input)
             return 0;
 
         if (gfHiliteMode != 0) {
-            gfHiliteMode = 0;
+            gfHiliteMode = false;
             if (gubStartHilite != gubEndHilite) {
                 unsigned char first = gubStartHilite;
                 unsigned char last = gubEndHilite;
@@ -937,7 +937,7 @@ void MouseMovedInTextRegionCallback(MOUSE_REGION* region, int reason)
                 gubParkingPos = CalculateCursorPos(
                     field->region.RegionBottomRightX - field->region.RegionTopLeftX - 10, 0,
                     field->szString, &gsCursorX, &guiVisibleCount);
-                gfHiliteMode = 0;
+                gfHiliteMode = false;
                 gubStartHilite = 0;
                 gubEndHilite = 0;
                 break;
@@ -970,7 +970,7 @@ void MouseMovedInTextRegionCallback(MOUSE_REGION* region, int reason)
     }
 
     if (position == gubMouseDownPos) {
-        gfHiliteMode = 0;
+        gfHiliteMode = false;
         return;
     }
     if (gubMouseDownPos < position) {
@@ -980,7 +980,7 @@ void MouseMovedInTextRegionCallback(MOUSE_REGION* region, int reason)
         gubEndHilite = gubMouseDownPos;
         gubStartHilite = position;
     }
-    gfHiliteMode = 1;
+    gfHiliteMode = true;
     gubCursorPos = position;
     gubParkingPos = CalculateCursorPos(
         current_field->region.RegionBottomRightX - current_field->region.RegionTopLeftX - 10,
@@ -1066,8 +1066,8 @@ void MouseClickedInTextRegionCallback(MOUSE_REGION* region, int reason)
 
         gpActive = candidate;
         if (candidate->szString == 0) {
-            gfHiliteMode = 0;
-            gfEditingText = 0;
+            gfHiliteMode = false;
+            gfEditingText = false;
             if (candidate->InputCallback != 0)
                 candidate->InputCallback(candidate->ubID, 1);
             return;
@@ -1077,8 +1077,8 @@ void MouseClickedInTextRegionCallback(MOUSE_REGION* region, int reason)
         gubCursorPos = candidate->ubStrLen;
         SetTextInputCursor(gubCursorPos);
         gubCursorPos = candidate->ubStrLen;
-        gfHiliteMode = 1;
-        gfEditingText = 1;
+        gfHiliteMode = true;
+        gfEditingText = true;
         return;
     }
 
@@ -1108,7 +1108,7 @@ void MouseClickedInTextRegionCallback(MOUSE_REGION* region, int reason)
             }
         }
         if (position == gubMouseDownPos)
-            gfHiliteMode = 0;
+            gfHiliteMode = false;
         SetTextInputCursor(position);
     }
 }
@@ -1432,7 +1432,7 @@ void SelectAllText(void)
     }
     gubStartHilite = first;
     gubEndHilite = last;
-    gfHiliteMode = 1;
+    gfHiliteMode = true;
 }
 
 /* 0x005D5DA0: sets whether the named field's mouse region callback is

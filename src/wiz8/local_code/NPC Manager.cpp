@@ -359,7 +359,7 @@ W8Character* GetNpcGroupCharacter(W8NpcState* npc)
    refuses outright, one particular item is always taken, and everything else
    has to be worth enough. */
 // FUNCTION: WIZ8 0x0050a9c0
-char WillNpcTradeForItem(W8NpcState* npc, W8ItemInstance* item)
+bool WillNpcTradeForItem(W8NpcState* npc, W8ItemInstance* item)
 {
     if (npc->record->kind == W8_NPC_KIND_NO_TRADE) {
         return 0;
@@ -552,7 +552,7 @@ int DismissNpcFromParty(int party_slot, int /*unused*/, bool skip_spawn, bool ne
     }
     RequestRedraw(~0U);
     ReturnDismissedNpcItems(npc, npc->character);
-    npc->dismissed_flag = 1;
+    npc->dismissed_flag = true;
     memset(&npc->dismissed_timer, 0, sizeof(npc->dismissed_timer));
     npc->marked_e9 = 1;
     return 1;
@@ -942,7 +942,7 @@ void AdvanceNpcTimers0050C7D0(unsigned int elapsed)
             if (npc->dismissed_flag != 0) {
                 npc->dismissed_timer += elapsed;
                 if (npc->dismissed_timer > 0x3c) {
-                    npc->dismissed_flag = 0;
+                    npc->dismissed_flag = false;
                 }
             }
             if (npc->talk_cooldown_active != 0 &&
@@ -974,12 +974,12 @@ void ProcessNpcPendingEvents0050CA80(void)
 
     if (gXStatus.fCombatMode == 0 && gXStatus.fSurprisePossible == 0) {
         if (g_status_685170.infatuation_pending_2446 != 0) {
-            unsigned char flagged = 0;
+            bool flagged = false;
             for (int index = 0; index < g_npc_states->count; ++index) {
                 W8NpcState* candidate = *g_npc_states->GetAt(index);
                 if (candidate->record->kind == 0x42) {
                     if (candidate != 0 && static_cast<unsigned char>(candidate->spawned_04) != 0) {
-                        flagged = 1;
+                        flagged = true;
                     }
                     break;
                 }
@@ -1066,7 +1066,7 @@ void ProcessNpcPendingEvents0050CA80(void)
                                     static_cast<unsigned int>(band)) {
                                     if ((bound->record->service_flags &
                                          g_npc_services[index].bit) != 0) {
-                                        row->npc_bound_fe = 1;
+                                        row->npc_bound_fe = true;
                                         bound->event_clock_eb = g_status_685170.world_clock;
                                         RebuildConditionsAndDerivedStats(slot);
                                         QueueCharacterEvent(character, 0x56, 0,
@@ -2467,7 +2467,7 @@ void ResetNpcBindingsForParty0050DB50(void)
 
         if (row->fOccupied != 0 && character->hp_current != 0) {
             GetNpcState(row->npc_index)->incapacitated_e8 = 0;
-            row->npc_bound_fe = 0;
+            row->npc_bound_fe = false;
             RebuildConditionsAndDerivedStats(party_slot);
         }
     }
@@ -2517,7 +2517,7 @@ void RestoreNamedNpcAtLevel0050C1C0(int kind, char level, const char* entity_nam
     }
     if (level == g_status_685170.current_level) {
         RestoreNpcMonster0050C560(npc, entity_name);
-        npc->restored_ea = 0;
+        npc->restored_ea = false;
         return;
     }
     npc->pending_restore = 1;
@@ -2890,7 +2890,7 @@ void HandleMarkedNpcEvent0050CF70(W8NpcState* npc, char mode)
             }
         }
     } else {
-        npc->restored_ea = 1;
+        npc->restored_ea = true;
         g_status_685170.npc_restore_pending_2430 = 1;
     }
     if (npc->marked_114 == 0) {
@@ -3100,7 +3100,7 @@ unsigned char ClearNpcScheduledItem(W8NpcState* npc, int item_id, W8ItemInstance
 // FUNCTION: WIZ8 0x0050DEC0
 char QueueNpcDepartureEvents0050DEC0(int destination_level)
 {
-    char queued = 0;
+    bool queued = false;
 
     for (int slot = 0; slot < 2; ++slot) {
         W8PartySlotRow* row = &g_status_685170.buffers.XChar[slot];
@@ -3145,7 +3145,7 @@ char QueueNpcDepartureEvents0050DEC0(int destination_level)
                                         QueueCharacterEvent(
                                             character, g_npc_services[departure].npc_id, 0,
                                             g_effect_argument_005ed8c8, g_effect_argument_005ed914);
-                                        queued = 1;
+                                        queued = true;
                                         break;
                                     }
                                     ++departure;
@@ -3202,7 +3202,7 @@ char QueueNpcDepartureEvents0050DEC0(int destination_level)
             if (event != 0) {
                 QueueCharacterEvent(character, event, 0, g_effect_argument_005ed8c8,
                                     g_effect_argument_005ed914);
-                queued = 1;
+                queued = true;
             }
         }
     }

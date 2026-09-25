@@ -70,7 +70,7 @@ enum { W8_MONSTER_ACTION_ATTACK = 0, W8_MONSTER_ACTION_SPELL = 2, W8_MONSTER_ACT
 /* Gates the out-of-combat check that gives a group whose leader is still up a
    nudge. Only UpdateMonsterGroups reads it. */
 // GLOBAL: WIZ8 0x0061CC10
-static unsigned char g_flag_0061cc10 = 1;
+static bool g_flag_0061cc10 = true;
 
 /* The frame counter the staggered group update rotates through the group
    list, one fifth per frame with a full-distance pass every twentieth. */
@@ -152,7 +152,7 @@ extern const float g_float_005ee780 = 1.15f;
 /* Reported once, so a monster missing its special-attack cycle does not flood
    the log. */
 // GLOBAL: WIZ8 0x0068D525
-static unsigned char g_special_attack_cycle_error_reported;
+static bool g_special_attack_cycle_error_reported;
 
 /* The timed sight service. The dirty flag is raised by the condition and
    enchantment writers whenever what monsters can see of the party may have
@@ -814,7 +814,7 @@ enum { W8_MONSTER_CYCLE_SPELL = 0x19 };
 
 /* Reported once, so a monster missing its spell cycle does not flood the log. */
 // GLOBAL: WIZ8 0x0068d524
-static unsigned char g_spell_cycle_error_reported;
+static bool g_spell_cycle_error_reported;
 
 /* Decide what one monster does this round. A monster taken out of the fight
    by its worst condition, or told to give up, stands down and ends its turn.
@@ -902,7 +902,7 @@ void UpdateMonsterAI(W8MonsterInfo* monster_info)
                     if (g_spell_cycle_error_reported == 0) {
                         FormatDebugMessage(0, "ERROR: %ls is missing a SPELL animation cycle",
                                            record);
-                        g_spell_cycle_error_reported = 1;
+                        g_spell_cycle_error_reported = true;
                     }
                 } else {
                     for (spell = 0; spell < 10; ++spell) {
@@ -963,7 +963,7 @@ bool MonsterGroupCanEngage(W8MonsterGroup* monster_group)
     unsigned int index;
     unsigned int spell;
     float distance;
-    unsigned char waypoint_checked = 0;
+    bool waypoint_checked = false;
     unsigned char waypoint_result = 0;
     srVector3T<float> source;
     srVector3T<float> destination;
@@ -997,7 +997,7 @@ members:
             if (MonsterIsCycleSupported(member->p3D, W8_MONSTER_CYCLE_SPELL) == 0) {
                 if (g_spell_cycle_error_reported == 0) {
                     FormatDebugMessage(0, "ERROR: %ls is missing a SPELL animation cycle", record);
-                    g_spell_cycle_error_reported = 1;
+                    g_spell_cycle_error_reported = true;
                 }
             } else {
                 for (spell = 0; spell < 10; ++spell) {
@@ -1023,7 +1023,7 @@ members:
                         waypoint_result = g_octree_6598a4->pathing_180->TestWaypointSpan0045A1B0(
                             &source, &destination, 0, 0);
                     }
-                    waypoint_checked = 1;
+                    waypoint_checked = true;
                 }
                 if (waypoint_result != 0) {
                     return 1;
@@ -1614,7 +1614,7 @@ bool MonsterSpellTargetOK(W8MonsterInfo* monster_info, int spell_id, W8CombatSlo
                         if (g_spell_cycle_error_reported == 0) {
                             FormatDebugMessage(0, "ERROR: %ls is missing a SPELL animation cycle",
                                                record);
-                            g_spell_cycle_error_reported = 1;
+                            g_spell_cycle_error_reported = true;
                             return 0;
                         }
                     } else {
@@ -2163,7 +2163,7 @@ void CheckMonsterGroupsLeaveCombat(void)
    answers at once; a visible hostile party member counts, and `party_only`
    zero also scans the monsters it is hostile to that it can see. */
 // FUNCTION: WIZ8 0x00534690
-unsigned char MonsterHasNoVisibleEnemy(W8MonsterInfo* monster_info, int party_only)
+bool MonsterHasNoVisibleEnemy(W8MonsterInfo* monster_info, int party_only)
 {
     unsigned int index;
     W8MonsterInfo* other;
@@ -2302,7 +2302,7 @@ bool CanMonsterFlee(W8MonsterInfo* monster_info, W8MonsterRecord* record, char e
     if (MonsterIsCycleSupported(monster_info->p3D, 0x12) == 0) {
         if (g_special_attack_cycle_error_reported == 0) {
             FormatDebugMessage(0, "ERROR: %ls is missing a SPECIAL ATTACK animation cycle", record);
-            g_special_attack_cycle_error_reported = 1;
+            g_special_attack_cycle_error_reported = true;
         }
         return 0;
     }
@@ -2458,8 +2458,8 @@ short IsMonsterControlPointInRange(W8MonsterInfo* monster_info)
    hostile to accept the spell; the probe is the same MonsterSpellTargetOK
    the cast itself would face. */
 // FUNCTION: WIZ8 0x00534DD0
-unsigned char MonsterGroupHalfSpellTargetsValid(W8MonsterInfo* monster_info, int spell_id,
-                                                W8MonsterGroup* target_group)
+bool MonsterGroupHalfSpellTargetsValid(W8MonsterInfo* monster_info, int spell_id,
+                                       W8MonsterGroup* target_group)
 {
     unsigned int valid = 0;
     int eligible = 0;
@@ -2491,7 +2491,7 @@ unsigned char MonsterGroupHalfSpellTargetsValid(W8MonsterInfo* monster_info, int
 /* Whether at least half of the party members the caster is hostile to accept
    the spell. */
 // FUNCTION: WIZ8 0x00534EF0
-unsigned char PartyHalfSpellTargetsValid(W8MonsterInfo* monster_info, int spell_id)
+bool PartyHalfSpellTargetsValid(W8MonsterInfo* monster_info, int spell_id)
 {
     unsigned int valid = 0;
     int eligible = 0;
@@ -2631,8 +2631,7 @@ void UpdateMonsterGroupEngagement(void)
 /* Whether the spell's markers catch at least one party member when cast at
    `slot`. */
 // FUNCTION: WIZ8 0x005353E0
-unsigned char MonsterSpellHasPartyTarget(W8MonsterInfo* monster_info, int spell_id,
-                                         W8CombatSlot* slot)
+bool MonsterSpellHasPartyTarget(W8MonsterInfo* monster_info, int spell_id, W8CombatSlot* slot)
 {
     W8GrowableVector<int> monster_markers;
     W8GrowableVector<int> party_markers;

@@ -281,7 +281,7 @@ void CheatDeathRevive00547A50(int party_slot)
                  character, W8_TRAIT_CHEAT_DEATH, character->uiHPMax * g_float_005ebc7c))) +
              0x32) *
             character->uiHPMax / 100;
-        g_combat_state->characters[party_slot].cheat_death_used = 1;
+        g_combat_state->characters[party_slot].cheat_death_used = true;
     } else {
         character->hp_current =
             Random(static_cast<unsigned int>(ScaleValueByProfessionLevel005479B0(

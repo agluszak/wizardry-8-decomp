@@ -184,9 +184,8 @@ float ItemDistanceToCamera004BE7C0(W8World* world, W8Item* item)
 }
 
 // FUNCTION: WIZ8 0x004BE870
-unsigned char PointInsideBounds004BE870(const srVector3T<float>* point,
-                                        const srVector3T<float>* minimum,
-                                        const srVector3T<float>* maximum)
+bool PointInsideBounds004BE870(const srVector3T<float>* point, const srVector3T<float>* minimum,
+                               const srVector3T<float>* maximum)
 {
     if (point->x >= minimum->x && point->x <= maximum->x && point->y >= minimum->y &&
         point->y <= maximum->y && point->z >= minimum->z && point->z <= maximum->z) {

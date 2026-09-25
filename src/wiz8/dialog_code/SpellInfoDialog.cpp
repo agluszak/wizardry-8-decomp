@@ -128,9 +128,9 @@ void W8SpellInfoDialog::Draw()
         if (m_initialized == 0) {
             CreateControls();
         }
-        m_text_area_0ec.m_dirty = 1;
-        m_scroll_bar_058.m_dirty = 1;
-        m_button_0a4.m_dirty = 1;
+        m_text_area_0ec.m_dirty = true;
+        m_scroll_bar_058.m_dirty = true;
+        m_button_0a4.m_dirty = true;
         W8DialogBase::Draw();
         DrawLabels();
     }
@@ -351,7 +351,7 @@ void W8SpellInfoDialog::ScrollCallback(W8DialogScrollBar* scroll_bar, int first_
         bottom = top + 0xb9;
         InvalidateRegion(left, top, right, bottom, 0);
         BlitCatalogSurfaceRectTo16BPP(-0xe, left, top, right, bottom, 0x1b6, 0, 0);
-        dialog->m_text_area_0ec.m_dirty = 1;
+        dialog->m_text_area_0ec.m_dirty = true;
     }
 }
 
@@ -360,7 +360,7 @@ void W8SpellInfoDialog::ScrollCallback(W8DialogScrollBar* scroll_bar, int first_
 void W8SpellInfoDialog::OnRightButtonUp()
 {
     if (m_right_button_down) {
-        m_keep_open = 0;
+        m_keep_open = false;
     }
 }
 

@@ -121,7 +121,7 @@ W8DialogButton** g_automap_buttons;
 struct W8AutomapState {
     unsigned char unknown_000[0xf4];
     unsigned int blink_time;
-    unsigned char blink_enabled;
+    bool blink_enabled;
     unsigned char flags_0f9[3];
 };
 static_assert(sizeof(W8AutomapState) == 0xfc, "W8AutomapState_size");
@@ -174,17 +174,17 @@ int g_automap_cursor_offsets[5][2] = {{0, 0}, {8, 7}, {1, 24}, {1, 24}, {8, 7}};
 // GLOBAL: WIZ8 0x0064b910
 float g_automap_range_0064b910 = 10000.0f;
 // GLOBAL: WIZ8 0x0064b90d
-unsigned char g_flag_64b90d = 1;
+bool g_flag_64b90d = true;
 // GLOBAL: WIZ8 0x0064b918
 int g_automap_layer = -1;
 // GLOBAL: WIZ8 0x0064b91c
-unsigned char g_automap_bounds_dirty_0064b91c = 1;
+bool g_automap_bounds_dirty_0064b91c = true;
 // GLOBAL: WIZ8 0x0068f138
 EnvironmentColour g_automap_saved_light_direction;
 // GLOBAL: WIZ8 0x0068f144
 EnvironmentColour g_automap_saved_ambient_light;
 // GLOBAL: WIZ8 0x0068f150
-unsigned char g_automap_saved_sky;
+bool g_automap_saved_sky;
 // GLOBAL: WIZ8 0x0068f154
 W8WorldCameraState g_automap_saved_camera;
 // GLOBAL: WIZ8 0x0068f190
@@ -218,15 +218,15 @@ srVector3T<float> g_automap_grid_origin_0068f240;
 // GLOBAL: WIZ8 0x0068f250
 int g_automap_tool;
 // GLOBAL: WIZ8 0x0068f254
-unsigned char g_automap_cursor_inside;
+bool g_automap_cursor_inside;
 // GLOBAL: WIZ8 0x0068f25c
-unsigned char g_automap_redraw;
+bool g_automap_redraw;
 // GLOBAL: WIZ8 0x0068f260
 int g_automap_page_0068f260;
 // GLOBAL: WIZ8 0x0068f264
-unsigned char g_flag_0068f264;
+bool g_flag_0068f264;
 // GLOBAL: WIZ8 0x0068f25d
-unsigned char g_automap_overlay_redraw;
+bool g_automap_overlay_redraw;
 // GLOBAL: WIZ8 0x0068f26c
 float g_automap_zoom;
 // GLOBAL: WIZ8 0x0068f270
@@ -238,7 +238,7 @@ int g_automap_zoom_mode;
 // GLOBAL: WIZ8 0x0068f27c
 int g_automap_cell_count_0068f27c;
 // GLOBAL: WIZ8 0x0068f290
-unsigned char g_automap_position_initialized;
+bool g_automap_position_initialized;
 // GLOBAL: WIZ8 0x0068f294
 W8AutomapNote* g_automap_editing_note;
 // GLOBAL: WIZ8 0x0068f298
@@ -262,7 +262,7 @@ stModelInstance2D* CreateAutomapMonsterMarker00583710(int type);
 stModelInstance2D* CreateAutomapTextMarker005839D0(void);
 
 // FUNCTION: WIZ8 0x00581000
-unsigned char HasAutomapLayer(int layer)
+bool HasAutomapLayer(int layer)
 {
     return layer >= 0 && layer < g_automap_layers.GetCount() && *g_automap_layers.GetAt(layer) != 0;
 }
@@ -323,7 +323,7 @@ void ResetAutomapView005817D0(void)
         delete note;
         g_automap_notes->RemoveAt(0);
     }
-    g_automap_redraw = 1;
+    g_automap_redraw = true;
     if (g_status_685170.current_level == 0x18 ||
         (g_status_685170.current_level > 0x1a && g_status_685170.current_level <= 0x22)) {
         g_automap_range_0064b910 = 30000.0f;
@@ -347,7 +347,7 @@ void ResetAutomapView005817D0(void)
     g_automap_grid_center_0068f1f8.y = 0.0f;
     g_automap_grid_center_0068f1f8.z =
         (g_automap_grid_min_0068f1d8.z + g_automap_grid_max_0068f1c8.z) * g_float_005ebc7c;
-    g_automap_bounds_dirty_0064b91c = 1;
+    g_automap_bounds_dirty_0064b91c = true;
     float span_x = g_automap_grid_max_0068f1c8.x - g_automap_grid_min_0068f1d8.x;
     float span_z = g_automap_grid_max_0068f1c8.z - g_automap_grid_min_0068f1d8.z;
     float largest = span_z < span_x ? span_x : span_z;
@@ -356,7 +356,7 @@ void ResetAutomapView005817D0(void)
     } else {
         g_automap_top_y = largest;
     }
-    g_automap_position_initialized = 0;
+    g_automap_position_initialized = false;
     g_automap_layer = 0;
 
     srVector3T<float> camera;
@@ -407,7 +407,7 @@ bool AutomapHasCellAt00581B30(const srVector3T<float>* position)
 }
 
 // FUNCTION: WIZ8 0x0057E490
-unsigned char CanUseCurrentAutomapTool(void)
+bool CanUseCurrentAutomapTool(void)
 {
     if (g_mipe_active_68f105 != 0) {
         switch (g_automap_tool) {
@@ -500,9 +500,9 @@ void AutomapZoomOutButton(void)
                 if (g_automap_buttons != 0) {
                     g_automap_buttons[0]->SetEnabled(1);
                     g_automap_buttons[1]->SetEnabled(1);
-                    g_automap_buttons[0]->m_dirty = 1;
+                    g_automap_buttons[0]->m_dirty = true;
                     g_automap_buttons[0]->Draw();
-                    g_automap_buttons[1]->m_dirty = 1;
+                    g_automap_buttons[1]->m_dirty = true;
                     g_automap_buttons[1]->Draw();
                 }
                 g_automap_zoom = g_automap_position.y - ground_y;
@@ -575,9 +575,9 @@ void AutomapCyclePageButton(void)
     g_automap_buttons[5]->SetVisible(g_automap_page_0068f260 == 0);
     g_automap_buttons[6]->SetVisible(g_automap_page_0068f260 == 1);
     g_automap_buttons[7]->SetVisible(g_automap_page_0068f260 == 2);
-    g_automap_buttons[g_automap_page_0068f260 + 5]->m_dirty = 1;
+    g_automap_buttons[g_automap_page_0068f260 + 5]->m_dirty = true;
     g_automap_buttons[g_automap_page_0068f260 + 5]->Draw();
-    g_automap_redraw = 1;
+    g_automap_redraw = true;
 }
 
 // FUNCTION: WIZ8 0x00584110
@@ -721,8 +721,8 @@ unsigned char AutomapScreenEnter(void)
                 surface->setFilter(&srBoxFilter);
         }
     }
-    g_automap_redraw = 1;
-    g_automap_overlay_redraw = 1;
+    g_automap_redraw = true;
+    g_automap_overlay_redraw = true;
     SetPrimarySurfaceTextureHint2Enabled(0);
     ClearSurfaceRect(0, 0, 640, 480);
     DisableCursorScene00428010();
@@ -730,7 +730,7 @@ unsigned char AutomapScreenEnter(void)
     UpdateAutomapPageButtons00581200();
     for (int button = 0; button < 16; ++button) {
         if (g_automap_buttons[button]) {
-            g_automap_buttons[button]->m_dirty = 1;
+            g_automap_buttons[button]->m_dirty = true;
             g_automap_buttons[button]->Draw();
         }
     }
@@ -787,7 +787,7 @@ unsigned char AutomapScreenEnter(void)
     }
     if (!g_automap_position_initialized) {
         g_automap_zoom = g_automap_top_y - g_automap_bounds_min.y;
-        g_automap_position_initialized = 1;
+        g_automap_position_initialized = true;
         srVector3T<float> position = (g_automap_bounds_min + g_automap_bounds_max) / 2.0;
         position.y = g_automap_top_y;
         SetAutomapCameraPoint0057FC70(&position);
@@ -864,7 +864,7 @@ W8AutomapNote* CreateAutomapNote(const srVector2T<float>* position, int layer, c
             note->text = static_cast<wchar_t*>(malloc(0x50));
             wcscpy(note->text, text);
             g_automap_notes->Add(note);
-            g_automap_redraw = 1;
+            g_automap_redraw = true;
             return note;
         }
     }
@@ -884,7 +884,7 @@ void AutomapScreenFrame(void)
             continue;
         if (!IsCursorInsideViewport()) {
             if (g_automap_cursor_inside) {
-                g_automap_cursor_inside = 0;
+                g_automap_cursor_inside = false;
                 SetMouseCursorFromVideoObject(
                     GetCatalogVideoObjectHandle(g_automap_tool + 0x14b, 0),
                     GetCatalogVideoObjectYOffset(g_automap_tool + 0x14b),
@@ -920,7 +920,7 @@ void AutomapScreenFrame(void)
             continue;
         }
         if (!g_automap_cursor_inside) {
-            g_automap_cursor_inside = 1;
+            g_automap_cursor_inside = true;
             int cursor = g_automap_tool;
             if (cursor == 0)
                 cursor = g_automap_zoom > 25000.0f ? 1 : 4;
@@ -956,7 +956,7 @@ void AutomapScreenFrame(void)
                         g_automap_hovered_note = 0;
                     if (g_automap_editing_note == note)
                         g_automap_editing_note = 0;
-                    g_automap_redraw = 1;
+                    g_automap_redraw = true;
                 }
             } else if (GetCursorPositionInViewport(&point)) {
                 ZoomAutomapIn0057FFC0(&point);
@@ -1188,9 +1188,9 @@ void SetAutomapButtonMode(int update)
         g_automap_buttons[0]->SetEnabled(0);
         g_automap_buttons[1]->SetEnabled(1);
     }
-    g_automap_buttons[0]->m_dirty = 1;
+    g_automap_buttons[0]->m_dirty = true;
     g_automap_buttons[0]->Draw();
-    g_automap_buttons[1]->m_dirty = 1;
+    g_automap_buttons[1]->m_dirty = true;
     g_automap_buttons[1]->Draw();
     g_automap_zoom_mode = update;
 }
@@ -1262,8 +1262,8 @@ void SetAutomapCameraPoint0057FC70(srVector3T<float>* position)
     g_world->camera->setLocation(srVector3T<double>(clamped.x, clamped.y, clamped.z));
     g_automap_position = clamped;
     SetAutomapLayer00580F20(g_automap_layer);
-    g_automap_redraw = 1;
-    g_automap_overlay_redraw = 1;
+    g_automap_redraw = true;
+    g_automap_overlay_redraw = true;
     if (g_world->octree != 0) {
         MarkRendererReady();
         UpdateWorldMeshAfterLoad00451020();
@@ -1288,8 +1288,8 @@ void SetAutomapLayer00580F20(int layer)
         }
     }
     g_automap_layer = layer;
-    g_automap_redraw = 1;
-    g_automap_overlay_redraw = 1;
+    g_automap_redraw = true;
+    g_automap_overlay_redraw = true;
     if (g_automap_buttons != 0) {
         if (g_automap_buttons[9] != 0) {
             g_automap_buttons[9]->SetEnabled(layer != g_automap_layers.count - 1);
@@ -1324,9 +1324,9 @@ void ResetAutomapZoom0057FE40(void)
     if (g_automap_buttons != 0) {
         g_automap_buttons[0]->SetEnabled(1);
         g_automap_buttons[1]->SetEnabled(0);
-        g_automap_buttons[0]->m_dirty = 1;
+        g_automap_buttons[0]->m_dirty = true;
         g_automap_buttons[0]->Draw();
-        g_automap_buttons[1]->m_dirty = 1;
+        g_automap_buttons[1]->m_dirty = true;
         g_automap_buttons[1]->Draw();
     }
     g_automap_zoom_mode = 0;
@@ -1369,9 +1369,9 @@ unsigned char ZoomAutomapIn0057FFC0(const srVector3T<float>* point)
         if (g_automap_buttons != 0) {
             g_automap_buttons[0]->SetEnabled(0);
             g_automap_buttons[1]->SetEnabled(1);
-            g_automap_buttons[0]->m_dirty = 1;
+            g_automap_buttons[0]->m_dirty = true;
             g_automap_buttons[0]->Draw();
-            g_automap_buttons[1]->m_dirty = 1;
+            g_automap_buttons[1]->m_dirty = true;
             g_automap_buttons[1]->Draw();
         }
         g_automap_zoom_mode = 2;
@@ -1380,9 +1380,9 @@ unsigned char ZoomAutomapIn0057FFC0(const srVector3T<float>* point)
         if (g_automap_buttons != 0) {
             g_automap_buttons[0]->SetEnabled(1);
             g_automap_buttons[1]->SetEnabled(1);
-            g_automap_buttons[0]->m_dirty = 1;
+            g_automap_buttons[0]->m_dirty = true;
             g_automap_buttons[0]->Draw();
-            g_automap_buttons[1]->m_dirty = 1;
+            g_automap_buttons[1]->m_dirty = true;
             g_automap_buttons[1]->Draw();
         }
         g_automap_zoom_mode = 1;
@@ -1515,7 +1515,7 @@ void UpdateAutomapBounds00580380(void)
     if (g_world->octree != 0) {
         if (g_automap_bounds_dirty_0064b91c != 0) {
             ResetAutomapLighting();
-            g_automap_bounds_dirty_0064b91c = 0;
+            g_automap_bounds_dirty_0064b91c = false;
         }
         g_automap_bounds_min.y = g_automap_grid_min_0068f1d8.y;
         g_automap_bounds_max.y = g_automap_grid_max_0068f1c8.y;
@@ -1606,7 +1606,7 @@ void LightAutomapCell(const srVector3T<float>* position)
             model->getBoundingBox(minimum, maximum);
             minimum += location;
             maximum += location;
-            unsigned char inside =
+            bool inside =
                 (minimum - *position).Length() <= range && (maximum - *position).Length() <= range;
             while (model != 0) {
                 srVector3T<float>* lights = model->GetVertexLights(1, -1);
@@ -1699,7 +1699,7 @@ void RenderAutomapFrame00581030(void)
                 g_world->camera->setViewPlane(view, (double)g_float_0064b920);
                 g_world->camera->setClipRange((double)g_float_0064b920, 1500000.0);
                 RenderWorldToSurface00426F80(g_automap_surface, &g_automap_viewport, 0);
-                g_automap_overlay_redraw = 0;
+                g_automap_overlay_redraw = false;
                 SetResidentTexturePolicy(0);
             }
             unsigned int pitch;
@@ -1716,7 +1716,7 @@ void RenderAutomapFrame00581030(void)
             RenderFrame();
             SetRendererOption4Enabled(1);
         }
-        g_automap_redraw = 0;
+        g_automap_redraw = false;
     }
     for (int button = 0; button < 16; ++button) {
         if (g_automap_buttons[button] != 0) {
@@ -1733,7 +1733,7 @@ void UpdateAutomapPageButtons00581200(void)
     g_automap_buttons[5]->SetVisible(g_automap_page_0068f260 == 0);
     g_automap_buttons[6]->SetVisible(g_automap_page_0068f260 == 1);
     g_automap_buttons[7]->SetVisible(g_automap_page_0068f260 == 2);
-    g_automap_buttons[g_automap_page_0068f260 + 5]->m_dirty = 1;
+    g_automap_buttons[g_automap_page_0068f260 + 5]->m_dirty = true;
     g_automap_buttons[g_automap_page_0068f260 + 5]->Draw();
 }
 
@@ -1889,7 +1889,7 @@ bool LoadAutomapNotes(int handle)
         delete note;
         g_automap_notes->RemoveAt(0);
     }
-    g_automap_redraw = 1;
+    g_automap_redraw = true;
     if (g_bits_68f288 != 0 && 1 < g_bits_68f288->bit_count) {
         g_bits_68f288->Load(handle);
         if (g_bits_68f288->bit_count == static_cast<unsigned int>(g_automap_cell_count_0068f27c)) {
@@ -1897,7 +1897,7 @@ bool LoadAutomapNotes(int handle)
         } else {
             g_bits_68f288->SetSize(g_automap_cell_count_0068f27c);
         }
-        g_automap_bounds_dirty_0064b91c = 1;
+        g_automap_bounds_dirty_0064b91c = true;
         unsigned int count;
         if (FileRead(handle, &signature, 4, 0) != 0 && signature == static_cast<int>(0xf00df00d) &&
             FileRead(handle, &count, 4, 0) != 0) {
@@ -2106,7 +2106,7 @@ void CreateAutomapMarkerSprites005822C0(void)
 // FUNCTION: WIZ8 0x00582930
 void RenderAutomapMarkers00582930(void)
 {
-    unsigned char detect_all = PartyHasCondition(0x40);
+    bool detect_all = PartyHasCondition(0x40);
     while (g_releasable_68f1f4->GetCount()) {
         srClass* object = *g_releasable_68f1f4->GetAt(0);
         object->release();
@@ -2433,7 +2433,7 @@ unsigned char HandleAutomapNoteInput00584250(const InputAtom* input)
                     (point.x - g_float_005ebc7c) * g_automap_zoom + g_automap_position.x;
                 g_automap_editing_note->position.y =
                     g_automap_position.z - (point.y - g_float_005ebc7c) * g_automap_zoom;
-                g_automap_redraw = 1;
+                g_automap_redraw = true;
             }
         }
         return 0;
@@ -2445,14 +2445,14 @@ unsigned char HandleAutomapNoteInput00584250(const InputAtom* input)
         g_automap_editing_note->text[last] = key;
         g_automap_editing_note->text[last + 1] = L'_';
         g_automap_editing_note->text[last + 2] = 0;
-        g_automap_redraw = 1;
+        g_automap_redraw = true;
     } else {
         if (input->usParam == 8) {
             if (last != 0) {
                 g_automap_editing_note->text[last - 1] = L'_';
                 g_automap_editing_note->text[last] = 0;
             }
-            g_automap_redraw = 1;
+            g_automap_redraw = true;
         } else if (input->usParam == 0xd) {
             g_automap_editing_note->text[last] = 0;
             if (wcslen(g_automap_editing_note->text) == 0) {
@@ -2466,7 +2466,7 @@ unsigned char HandleAutomapNoteInput00584250(const InputAtom* input)
                     g_automap_hovered_note = 0;
                 }
                 g_automap_editing_note = 0;
-                g_automap_redraw = 1;
+                g_automap_redraw = true;
             }
             if (g_automap_tool != 0) {
                 g_automap_tool = 0;
@@ -2477,7 +2477,7 @@ unsigned char HandleAutomapNoteInput00584250(const InputAtom* input)
                 RefreshMouseCursorTexture();
             }
             g_automap_editing_note = 0;
-            g_automap_redraw = 1;
+            g_automap_redraw = true;
         } else if (input->usParam == 0x1b) {
             int index = g_automap_notes->IndexOf(g_automap_editing_note);
             if (index >= 0) {
@@ -2489,7 +2489,7 @@ unsigned char HandleAutomapNoteInput00584250(const InputAtom* input)
                 g_automap_hovered_note = 0;
             }
             g_automap_editing_note = 0;
-            g_automap_redraw = 1;
+            g_automap_redraw = true;
             if (g_automap_tool != 0) {
                 g_automap_tool = 0;
                 SetMouseCursorFromVideoObject(
@@ -2553,9 +2553,9 @@ unsigned char HandleAutomapKey00584690(const InputAtom* input)
         g_automap_buttons[5]->SetVisible(g_automap_page_0068f260 == 0);
         g_automap_buttons[6]->SetVisible(g_automap_page_0068f260 == 1);
         g_automap_buttons[7]->SetVisible(g_automap_page_0068f260 == 2);
-        g_automap_buttons[g_automap_page_0068f260 + 5]->m_dirty = 1;
+        g_automap_buttons[g_automap_page_0068f260 + 5]->m_dirty = true;
         g_automap_buttons[g_automap_page_0068f260 + 5]->Draw();
-        g_automap_redraw = 1;
+        g_automap_redraw = true;
         return 1;
     case 0x23:
         g_automap_position.x = g_automap_saved_camera.position.x;
@@ -2617,20 +2617,20 @@ unsigned char HandleAutomapKey00584690(const InputAtom* input)
     case 0x43:
         if (g_dev_mode_689b32 != 0) {
             g_automap_state->blink_time = GetTickCount() + 200;
-            g_automap_state->blink_enabled = 1;
+            g_automap_state->blink_enabled = true;
         }
         return 1;
     case 0x49:
         if (g_dev_mode_689b32 != 0) {
             g_flag_64b90d = g_flag_64b90d == 0;
-            g_automap_redraw = 1;
-            g_automap_overlay_redraw = 1;
+            g_automap_redraw = true;
+            g_automap_overlay_redraw = true;
         }
         return 1;
     case 0x53:
         if (g_dev_mode_689b32 != 0) {
             g_automap_state->blink_time = GetTickCount() + 200;
-            g_automap_state->blink_enabled = 0;
+            g_automap_state->blink_enabled = false;
         }
         return 1;
     case 0x70:
@@ -2644,8 +2644,8 @@ unsigned char HandleAutomapKey00584690(const InputAtom* input)
     case 0x79:
         if (g_dev_mode_689b32 != 0) {
             g_flag_0068f264 = g_flag_0068f264 == 0;
-            g_automap_redraw = 1;
-            g_automap_overlay_redraw = 1;
+            g_automap_redraw = true;
+            g_automap_overlay_redraw = true;
         }
         return 1;
     default:

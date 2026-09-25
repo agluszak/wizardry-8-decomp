@@ -43,7 +43,7 @@ unsigned char PathAIUpdate004A9260(W8AIRecord* record, signed char direction)
 }
 
 // FUNCTION: WIZ8 0x004a92a0
-unsigned char LoadPathAI004A92A0(W8PathAI** output, int handle)
+bool LoadPathAI004A92A0(W8PathAI** output, int handle)
 {
     unsigned char version;
     unsigned char success;
@@ -409,7 +409,7 @@ unsigned char PathAINextPoint004A9E90(W8PathAI* path, srVector3T<float>* point)
 }
 
 // FUNCTION: WIZ8 0x004a9ef0
-unsigned char PathAIIsComplete004A9EF0(W8PathAI* path)
+bool PathAIIsComplete004A9EF0(W8PathAI* path)
 {
     if (path != 0 && path->nodes_0c != 0 &&
         (path->point_index < static_cast<unsigned int>(path->nodes_0c->GetCount()) ||

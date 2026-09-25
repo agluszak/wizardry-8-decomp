@@ -384,7 +384,7 @@ const float g_ground_settle_fail_005ed7d0 = -1000000.0f;
 /* Debug switch: when set, every cast except 0x76 fizzles on a forced 100
    percent failure chance. */
 // GLOBAL: WIZ8 0x00689b68
-unsigned char g_flag_00689b68;
+bool g_flag_00689b68;
 /* Whether every queued effect still has time left on it. */
 // FUNCTION: WIZ8 0x00500e50
 bool AllSpellEffectsStillRunning(void)
@@ -2184,7 +2184,7 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
             SetTextBoxMode(1, -1);
         }
         SetTextBoxMode(1, -1);
-        effect->reported_124 = 1;
+        effect->reported_124 = true;
     }
     unsigned int* condition_count = &effect->result_126.condition_counts[1];
 
@@ -2217,7 +2217,7 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
                     -1);
             }
             SetTextBoxMode(1, -1);
-            effect->reported_124 = 1;
+            effect->reported_124 = true;
         }
         condition_text += 4;
         ++condition_count;
@@ -2232,13 +2232,13 @@ void ReportSpellResult005005C0(W8SpellEffectEntry* effect)
                 PostCharacterNotice(
                     report->value, L"%s",
                     gppStringList[g_spell_condition_text_0061e57a[W8_CONDITION_EXHAUSTED * 4]]);
-                effect->reported_124 = 1;
+                effect->reported_124 = true;
             } else if (report->kind == 3) {
                 SetTextBoxMode(0, -1);
                 ShowNoticef(
                     9, L"%s %s", report->text,
                     gppStringList[g_spell_condition_text_0061e57a[W8_CONDITION_EXHAUSTED * 4]]);
-                effect->reported_124 = 1;
+                effect->reported_124 = true;
             }
             free(report);
         }
@@ -2857,7 +2857,7 @@ int CastSpellFromSource(int spell_id, W8TargetSource* source, W8CombatSlot* targ
     bool fizzled;
     bool quiet;
     bool forced;
-    unsigned char icon_flag;
+    bool icon_flag;
     W8SpellEffectEntry* owner;
     W8MonsterRecord* record_data;
     W8Missile* missile;

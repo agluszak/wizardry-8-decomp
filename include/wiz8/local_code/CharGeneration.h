@@ -26,10 +26,10 @@ struct W8CharacterCreationState {
        level-up reset zeroes it, and a profession change refunds whatever each
        entry holds before the new profession's skill points are assigned. */
     int skill_baselines_1bc[0x29];
-    int spell_points_remaining;    /* 0x260 */
-    int spell_points_total;        /* 0x264 */
-    int magic_skill_bonus;         /* 0x268 */
-    unsigned char spells_complete; /* 0x26c */
+    int spell_points_remaining; /* 0x260 */
+    int spell_points_total;     /* 0x264 */
+    int magic_skill_bonus;      /* 0x268 */
+    bool spells_complete;       /* 0x26c */
     unsigned char padding_26d[3];
 };
 static_assert(sizeof(W8CharacterCreationState) == 0x270, "W8CharacterCreationState_size");
@@ -69,4 +69,4 @@ void DeselectCreationSpell(W8Character*, W8CharacterCreationState*, unsigned int
 void ResetSpellSelections005585D0(W8Character*, W8CharacterCreationState*);
 int ComputeRealmSkillDebt(W8Character* original, W8Character* edited);
 int ComputeStartingEquipmentCost(W8Character*);
-unsigned char CanAffordStartingEquipment(W8Character*);
+bool CanAffordStartingEquipment(W8Character*);

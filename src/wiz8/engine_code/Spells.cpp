@@ -550,9 +550,8 @@ unsigned char W8SpellEmitterHost::ReadCycleData004AB340(W8ReadLevelInfo* info,
    requested group loads its bitmaps, SOUND_FRAME/SOUND_CYCLE rows attach timed
    sound events, and SHAKE_FRAME rows attach camera-shake effects. */
 // FUNCTION: WIZ8 0x004ab580
-unsigned char LoadSpellVisualResource004AB580(const W8GrCycleLoadContext* context, const char* name,
-                                              W8SpellVisualMode group, W8SpellVisual** visual,
-                                              int unused)
+bool LoadSpellVisualResource004AB580(const W8GrCycleLoadContext* context, const char* name,
+                                     W8SpellVisualMode group, W8SpellVisual** visual, int unused)
 {
     W8SpellVisual* shared = static_cast<W8SpellVisual*>(FindFirstGrCycleByName(name));
     if (shared != 0 && shared->mode_1d8 == group) {
@@ -571,7 +570,7 @@ unsigned char LoadSpellVisualResource004AB580(const W8GrCycleLoadContext* contex
     PauseSharedGameTimers00439BC0();
 
     unsigned char more = 1;
-    unsigned char success = 1;
+    bool success = true;
     char path[100];
     sprintf(path, "data\\Spells\\%s.mls", name);
     int handle = FileOpen(path, FILE_ACCESS_READ | FILE_OPEN_EXISTING, 0);
@@ -842,7 +841,7 @@ W8SpellVisual* SpawnSpellEffect(const srVector3T<float>* position, const char* r
     context.world_00 = g_world;
     context.directory_08 = "Data\\Spells\\Bitmaps";
     W8SpellVisual* visual = 0;
-    unsigned char loaded = 0;
+    bool loaded = false;
     int cycle = -1;
 
     if (resource_name != 0) {

@@ -100,7 +100,7 @@ struct W8GlobalStatus {
     /* 0x2390: cleared by the main-game frame; HP/SP and condition updates
        skip work while it is set, and encounter culling treats it as the
        force-despawn gate. */
-    unsigned char world_suspended_2390;
+    bool world_suspended_2390;
     /* 0x2391/0x2395: session accumulators ConsumeLevelElapsedTime0041F170
        folds the level's pending elapsed times into; the 0x00502D00 wait
        pass sums them against zero. */
@@ -126,7 +126,7 @@ struct W8GlobalStatus {
     /* 0x2432: ShowNotice sets it under quote_audit_2431 when a notice wraps
        past seven lines; the audit reports those as "Long Quote". */
     unsigned char long_quote_2432;
-    unsigned char party_fatigued_2433;
+    bool party_fatigued_2433;
     /* 0x2434: index of the party member the main-game selection flow is on.
        The screen reset writes 0xff and the 0x00526E90 handler reads and
        updates it while walking the 0x1862-byte character records. */
@@ -141,7 +141,7 @@ struct W8GlobalStatus {
     unsigned char skip_loose_character_check_2444;
     /* 0x2445: latched once the Trynnie2 Zulu/0x1c3 use-item action has been
        handled at a cursor node; later uses take the Mystical Shaman branch. */
-    unsigned char use_item_latch_2445;
+    bool use_item_latch_2445;
     bool infatuation_pending_2446;
     int difficulty;
     /* 0x244b: the save file's creation-time pair XOR-masked by SaveGame's
@@ -173,7 +173,7 @@ struct W8GlobalStatus {
     W8ItemSpellUsageRecord item_spell_usage_24a0[200];
     unsigned char log_fact_checks_3120;
     int status_ints_3121[1000];
-    unsigned char fact_88_latch_40c1;
+    bool fact_88_latch_40c1;
     unsigned char unknown_40c2[0xc];
     /* Retail addresses cast_count through +0x40c2 + spell_id * 0x10 and
        usable_cast_count through +0x40c6 + spell_id * 0x10. These are the
@@ -187,7 +187,7 @@ struct W8GlobalStatus {
     /* 0x4972: set once the Cosmic Circle arena monsters have been spawned by
        the level-4 setup; the setup skips its work while this or world_suspended_2390
        holds. */
-    unsigned char cc_arena_spawned_4972;
+    bool cc_arena_spawned_4972;
     /* 0x4973/0x4977: GetTickCount stamps. NpcScriptSavantHackDone writes the
        first; UpdateNpcEvents retires NPC 0x1b3 fifty ticks later and starts
        the second, which gates monster group 0x1b6's Bela cycle after five
@@ -208,15 +208,15 @@ struct W8GlobalStatus {
     /* 0x49b7: world-clock stamp the 0x49bb reward event compares against. */
     int trang_check_clock_49b7;
     bool trang_check_pending_49bb;
-    unsigned char intro_shown_49bc;
-    unsigned char flag_49bd;
+    bool intro_shown_49bc;
+    bool flag_49bd;
     unsigned char padding_49be[2];
     /* 0x49c0: set when the endgame transition starts; saves carrying either
        this or flag_49bd are filtered from the load list. */
     bool endgame_started_49c0;
     /* 0x49c1: latched while g_dev_mode_689b32 is set at teardown; persisted into
        the save slot as dev_flagged_263c. */
-    unsigned char dev_flagged_49c1;
+    bool dev_flagged_49c1;
 };
 #pragma pack(pop)
 

@@ -107,7 +107,7 @@ const float g_float_005ec340 = 1.25f;
 float g_path_span_scale_005ec344 = 1.5259254723787308e-05f;
 
 // GLOBAL: WIZ8 0x00659c5c
-unsigned char g_flag_00659c5c;
+bool g_flag_00659c5c;
 // GLOBAL: WIZ8 0x00659c64
 unsigned short* g_path_scratch_00659c64;
 // GLOBAL: WIZ8 0x005ec3a8
@@ -872,11 +872,11 @@ unsigned int W8PathingService::FindConditionalPathValue00458970(unsigned int key
     W8HashTable<unsigned int, unsigned int>* index = m_pPathValues_064;
     int slot = index->FindNextEntry(&key, -1);
     unsigned int found = 0;
-    unsigned char searching = 1;
+    bool searching = true;
     while (slot >= 0 && searching != 0) {
         unsigned int candidate = index->entries[slot].value;
         if (((candidate ^ value) & 0xffff) == 0) {
-            searching = 0;
+            searching = false;
             found = candidate;
         }
         slot = index->FindNextEntry(&key, slot);
@@ -1049,7 +1049,7 @@ unsigned char W8PathingService::TestAttachmentHopDoor00460680(W8NavigatorAttachm
         unsigned short destination = pairs[current + 1];
         W8PathSurface* source_surface = &m_pSurfaces_048[source];
         unsigned short edge_index = source_surface->first_edge_24;
-        unsigned char found = 0;
+        bool found = false;
         while (edge_index != 0) {
             if (found != 0) {
                 break;
@@ -1919,7 +1919,7 @@ unsigned char W8PathingService::CanReachSearchNode00465AF0(const srVector3T<floa
     float step_x = delta.x * scale;
     float step_z = delta.z * scale;
     W8OctreeIndex* visited = static_cast<W8OctreeIndex*>(m_pVisitedCells_074);
-    unsigned char blocked = 0;
+    bool blocked = false;
 
     while (1) {
         int cell_x = static_cast<int>((probe.x - level_bounds[0]) / grid_scale_01c);
@@ -2021,11 +2021,11 @@ void W8PathingService::UpdateConditionalPathFlags00465FB0(unsigned int path_hand
                 unsigned int wanted_value = m_pulCondNodeValues[key_index];
                 unsigned int current_value = 0;
                 int slot = index->FindNextEntry(&key, -1);
-                unsigned char searching = 1;
+                bool searching = true;
                 while (slot >= 0 && searching != 0) {
                     unsigned int value = index->entries[slot].value;
                     if (((value ^ wanted_value) & 0xffff) == 0) {
-                        searching = 0;
+                        searching = false;
                         current_value = value;
                     }
                     slot = index->FindNextEntry(&key, slot);
@@ -2051,11 +2051,11 @@ void W8PathingService::UpdateConditionalPathFlags00465FB0(unsigned int path_hand
                 unsigned int wanted_value = m_pulCondNodeValues[key_index];
                 unsigned int current_value = 0;
                 int slot = index->FindNextEntry(&key, -1);
-                unsigned char searching = 1;
+                bool searching = true;
                 while (slot >= 0 && searching != 0) {
                     unsigned int value = index->entries[slot].value;
                     if (((value ^ wanted_value) & 0xffff) == 0) {
-                        searching = 0;
+                        searching = false;
                         current_value = value;
                     }
                     slot = index->FindNextEntry(&key, slot);
@@ -3566,9 +3566,9 @@ W8PathingService::W8PathingService()
     probe_bounded_08c = 0;
     path_heap_06c = 0;
     path_cost_limit_070 = 1.0e10f;
-    waypoint_editing_1c8 = 0;
-    flag_1c9 = 0;
-    flag_1ca = 0;
+    waypoint_editing_1c8 = false;
+    flag_1c9 = false;
+    flag_1ca = false;
     search_visualization_1cb = 0;
     waypoints_dirty_1cc = 0;
     path_flags_1ce = 4;
@@ -3779,7 +3779,7 @@ unsigned char W8PathingService::SnapWaypointPosition00462E60(srVector3T<float>* 
         static_cast<int>(((position->z - level_bounds[2]) / grid_scale_01c)));
     unsigned int key = cell_z * 0x10000 + cell_x;
     unsigned int matched_height = height;
-    unsigned char found = 0;
+    bool found = false;
     W8HashTable<unsigned int, unsigned int>* index = m_pPathValues_064;
     W8HashEntry<unsigned int, unsigned int>* entries = index->entries;
     unsigned int hash = (key >> 10 ^ key) >> 10 ^ key;
@@ -3829,7 +3829,7 @@ unsigned char W8PathingService::TestPathCellClearance00463040(srVector3T<float>*
     unsigned int key = cell_z * 0x10000 + cell_x;
     unsigned int packed = 0;
     unsigned int matched_height = height;
-    unsigned char found = 0;
+    bool found = false;
     W8HashTable<unsigned int, unsigned int>* index = m_pPathValues_064;
     W8HashEntry<unsigned int, unsigned int>* entries = index->entries;
     unsigned int hash = (key >> 10 ^ key) >> 10 ^ key;
@@ -3874,7 +3874,7 @@ unsigned char W8PathingService::TestPathCellClearance00463040(srVector3T<float>*
 unsigned char W8PathingService::SnapToLowerPathCell00463290(srVector3T<float>* position,
                                                             unsigned char allow_directional)
 {
-    unsigned char found = 0;
+    bool found = false;
     int nearest = 10000000;
     unsigned int height =
         static_cast<unsigned int>(static_cast<int>(((position->y - level_bounds[1]) / span_020))) +
@@ -4154,7 +4154,7 @@ unsigned char W8PathingService::ProbeWaypointSegment00462750(const srVector3T<fl
     unsigned char bounded_probe = probe_bounded_08c != 0 && probe_limit_088 != 0;
     unsigned int height =
         static_cast<unsigned int>(static_cast<int>(((from->y - level_bounds[1]) / span_020))) + 1;
-    unsigned char blocked = 0;
+    bool blocked = false;
     int iteration = 0;
 
     while (iteration < walk.count_24 && blocked == 0) {
@@ -4180,7 +4180,7 @@ unsigned char W8PathingService::ProbeWaypointSegment00462750(const srVector3T<fl
 
         unsigned int direction_mask = 0;
         unsigned int path_value = 0;
-        unsigned char found = 0;
+        bool found = false;
 
         if (iteration == 0 || (visited & 0xffff0000) != 0xffff0000 || bounded_probe != 0) {
             W8HashTable<unsigned int, unsigned int>* path_index = m_pPathValues_064;
@@ -4342,7 +4342,7 @@ unsigned int W8PathingService::ComputeWaypointNeighborMask004667A0(const int* ce
             W8HashTable<unsigned int, unsigned int>* index = m_pPathValues_064;
             W8HashEntry<unsigned int, unsigned int>* entries = index->entries;
             int slot = index->bucket_heads[hash & (index->bucket_count - 1)];
-            unsigned char found = 0;
+            bool found = false;
 
             while (slot != -1) {
                 W8HashEntry<unsigned int, unsigned int>* entry = &entries[slot];
@@ -4382,7 +4382,7 @@ unsigned char W8PathingService::TestWaypointSpan0045A1B0(const srVector3T<float>
                                                          unsigned char adjust_destination,
                                                          unsigned char diagonal_steps)
 {
-    unsigned char blocked = 0;
+    bool blocked = false;
 
     if (adjust_destination == 0 &&
         (source->x < level_bounds[0] || source->y < level_bounds[1] ||
@@ -4414,7 +4414,7 @@ unsigned char W8PathingService::TestWaypointSpan0045A1B0(const srVector3T<float>
         unsigned int hash = (cell_key >> 10 ^ cell_key) >> 10 ^ cell_key;
         int slot = path_index->bucket_heads[hash & (path_index->bucket_count - 1)];
         unsigned int source_value = 0;
-        unsigned char found = 0;
+        bool found = false;
 
         while (slot != -1) {
             W8HashEntry<unsigned int, unsigned int>* entry = &entries[slot];
@@ -4483,7 +4483,7 @@ unsigned char W8PathingService::TestWaypointSpan0045A1B0(const srVector3T<float>
         int slot = path_index->bucket_heads[hash & (path_index->bucket_count - 1)];
         unsigned int direction_mask = 0;
         unsigned int path_value;
-        unsigned char found = 0;
+        bool found = false;
 
         while (slot != -1) {
             W8HashEntry<unsigned int, unsigned int>* entry = &entries[slot];
@@ -4727,7 +4727,7 @@ float W8PathingService::MeasureDirectionalPath0045AC70(const int* cell, int dire
 
     int cell_x = cell[0];
     int cell_z = cell[1];
-    unsigned char stopped = 0;
+    bool stopped = false;
 
     while (grid_scale_01c < remaining) {
         cell_x += step_x;
@@ -4738,7 +4738,7 @@ float W8PathingService::MeasureDirectionalPath0045AC70(const int* cell, int dire
         W8HashEntry<unsigned int, unsigned int>* entries = index->entries;
         int slot = index->bucket_heads[hash & (index->bucket_count - 1)];
         unsigned int path_value;
-        unsigned char found = 0;
+        bool found = false;
 
         while (slot != -1) {
             W8HashEntry<unsigned int, unsigned int>* entry = &entries[slot];
@@ -5217,11 +5217,11 @@ stModelInstance* W8PathingService::BuildPathVisualization0045BE30()
             unsigned short destination_index = edge->destination_06;
             W8PathSurface* destination = &m_pSurfaces_048[destination_index];
             unsigned short reverse_index = destination->first_edge_24;
-            unsigned char reverse_found = 0;
+            bool reverse_found = false;
 
             while (reverse_index != 0 && reverse_found == 0) {
                 if (m_pEdges_04c[reverse_index].destination_06 == source_index) {
-                    reverse_found = 1;
+                    reverse_found = true;
                 } else {
                     reverse_index = m_pEdges_04c[reverse_index].next_0c;
                 }
@@ -6022,7 +6022,7 @@ void W8PathingService::SetWaypointLinkFlags0045E030(unsigned short waypoint, uns
 void W8PathingService::RemoveWaypointLink0045E360(unsigned short edge_index)
 {
     if (m_ulNumWayPoints > 2) {
-        unsigned char found = 0;
+        bool found = false;
         unsigned int index;
         for (index = 1; index < m_ulNumWayPoints && found == 0; ++index) {
             if (m_pSurfaces_048[index].first_edge_24 == edge_index) {
@@ -6340,7 +6340,7 @@ void W8PathingService::EditTeleportalLink(const srVector3T<float>* destination,
     unsigned short destination_index;
     unsigned short source_index;
     unsigned short edge_index;
-    unsigned char both_existing = 1;
+    bool both_existing = true;
 
     if (waypoint_editing_1c8 == 0) {
         return;
@@ -6364,14 +6364,14 @@ void W8PathingService::EditTeleportalLink(const srVector3T<float>* destination,
         AddWaypoint0045DDB0(destination);
         m_pSurfaces_048[destination_index].flags_00 = 2;
         SetWaypointLinkFlags0045E030(destination_index, 6);
-        both_existing = 0;
+        both_existing = false;
     }
     if (source_index == 0) {
         source_index = static_cast<unsigned short>(m_ulNumWayPoints);
         AddWaypoint0045DDB0(source);
         m_pSurfaces_048[source_index].flags_00 = 2;
         SetWaypointLinkFlags0045E030(source_index, 5);
-        both_existing = 0;
+        both_existing = false;
     }
 
     edge_index = 0;
@@ -6820,7 +6820,7 @@ void W8PathParameters::InitializeSteeringContext004CAE50(W8NavigatorMovementStat
     }
     perpendicular_2c.Set(direction_20.z, 0.0, -direction_20.x);
     force_38.SetZero();
-    blocked_49 = 0;
+    blocked_49 = false;
     nearby_queried_48 = 0;
 }
 
@@ -6900,7 +6900,7 @@ void W8PathParameters::IntegrateSteering004CB090()
             direction = g_octree_6598a4->pathing_180->GetNeighborSlideDirection00466600(
                 &movement_00->position_040, &delta, &slide);
             if (direction == '\0') {
-                blocked_49 = 1;
+                blocked_49 = true;
             } else {
                 scale = DotProduct(slide, delta);
                 slide += delta * scale;
@@ -7130,7 +7130,7 @@ unsigned char W8PathParameters::HandleObstacleAhead004CBB70()
                         force_38 += direction_20 * -brake;
                         return 1;
                     }
-                    blocked_49 = 1;
+                    blocked_49 = true;
                     return 1;
                 }
                 steer = acceleration_0c;

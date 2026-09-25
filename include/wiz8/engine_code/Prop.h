@@ -174,5 +174,5 @@ char ResolvePickedProp(W8World* world);
 int GetSelectedPropIndex0044DA60(void);
 /* Run the latched selected-prop trigger, or clear the latch when the
    renderer has no pick. */
-unsigned char ActivateSelectedProp0044DA20(void);
+bool ActivateSelectedProp0044DA20(void);
 void UpdateWorldProps0044E010(W8World* world);

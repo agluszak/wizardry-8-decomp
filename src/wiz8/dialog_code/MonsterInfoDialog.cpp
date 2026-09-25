@@ -97,15 +97,15 @@ unsigned char W8MonsterInfoDialog::PopulateText()
 {
     W8ControlsRect bounds;
     wchar_t text[2000];
-    unsigned char is_npc = 0;
+    bool is_npc = false;
     unsigned int knowledge;
     int leader_location_id;
     int leader_group_id;
     int count;
     int index;
     int slot;
-    unsigned char has_unknown;
-    unsigned char any_shown;
+    bool has_unknown;
+    bool any_shown;
     unsigned char max_values[0x10];
     int range_category;
     const wchar_t* entry_text;
@@ -137,7 +137,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
     monster_level = record->display_level_251;
     if (monster_info->ubDisposition != 1 && (record->flags_0d0 & 1) != 0 &&
         (npc = GetNpcStateByKind(record->npc_kind_0cd)) != 0 && npc->record->has_group != 0) {
-        is_npc = 1;
+        is_npc = true;
     }
     if (monster_info->summoned_2da == 1) {
         knowledge = 0x7d;
@@ -351,8 +351,8 @@ unsigned char W8MonsterInfoDialog::PopulateText()
 
     if (9 < knowledge) {
         memset(max_values, 0, sizeof(max_values));
-        has_unknown = 0;
-        any_shown = 0;
+        has_unknown = false;
+        any_shown = false;
         for (index = 0; index < 3; ++index) {
             attack = &record->attacks[index];
             if (attack->fHasAttack != 0) {
@@ -371,14 +371,14 @@ unsigned char W8MonsterInfoDialog::PopulateText()
                 if (value < 0x4b && (knowledge < 0x1e || value < 0x32) &&
                     (knowledge < 0x3c || value < 0x19) && (knowledge < 0x50 || value < 10) &&
                     (knowledge < 0x5a || value < 5) && knowledge < 100) {
-                    has_unknown = 1;
+                    has_unknown = true;
                 } else {
                     if (count > 0) {
                         wcscat(text, g_comma_space_00619794);
                     }
                     wcscat(text, gppStringList[g_damage_type_name_ids_61e9cc[index]]);
                     ++count;
-                    any_shown = 1;
+                    any_shown = true;
                 }
             }
         }
@@ -461,7 +461,7 @@ unsigned char W8MonsterInfoDialog::PopulateText()
 void W8MonsterInfoDialog::OnRightButtonUp()
 {
     if (m_right_button_down) {
-        m_keep_open = 0;
+        m_keep_open = false;
     }
 }
 
@@ -495,7 +495,7 @@ void W8MonsterInfoDialog::ScrollCallback(W8DialogScrollBar* scroll_bar, int firs
         bottom = top + 0xb9;
         InvalidateRegion(left, top, right, bottom, 0);
         BlitCatalogSurfaceRectTo16BPP(-0xe, left, top, right, bottom, 0x1b6, 0, 0);
-        dialog->m_text_area_ec.m_dirty = 1;
+        dialog->m_text_area_ec.m_dirty = true;
     }
 }
 
@@ -513,9 +513,9 @@ void W8MonsterInfoDialog::Draw()
         if (m_initialized == 0) {
             CreateControls();
         }
-        m_text_area_ec.m_dirty = 1;
-        m_scroll_bar_58.m_dirty = 1;
-        m_button_a4.m_dirty = 1;
+        m_text_area_ec.m_dirty = true;
+        m_scroll_bar_58.m_dirty = true;
+        m_button_a4.m_dirty = true;
         W8DialogBase::Draw();
         SetFont(g_font_683660);
         SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);

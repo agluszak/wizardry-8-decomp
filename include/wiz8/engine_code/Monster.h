@@ -283,7 +283,7 @@ public:
     /* Cycle-25 animation frame that triggers the attached spell effect. */
     int spell_frame_1f8;
     /* 0x1fc: talking state armed by StartTalking; cleared by StopTalking. */
-    unsigned char talking;
+    bool talking;
     /* 0x1fd: the StartTalking argument; mouth texture animation only runs
        while it is set. */
     unsigned char animate_mouth;
@@ -297,7 +297,7 @@ public:
     int talk_state_210;
     /* 0x214: the current mouth state the dialogue update copies out of the
        active W8MouthGapTrack; forces mouth frame 0 while open. */
-    unsigned char mouth_open;
+    unsigned char mouth_open; // bool-byte-ok: copied raw from the C gap track byte
     /* 0x215: set while the monster is deactivated (active_088 cleared). */
     unsigned char inactive_215;
     /* 0x216: raised at construction; cleared once AddMonsterToWorld and the
@@ -316,9 +316,9 @@ public:
     int bob_amplitude_min_224;
     int bob_amplitude_max_228;
     /* 0x22c: the missing spell-launch-vertex warning already fired once. */
-    unsigned char spell_vertex_warned_22c;
+    bool spell_vertex_warned_22c;
     /* 0x22d: the missing missile-start-point warning already fired once. */
-    unsigned char missile_point_warned_22d;
+    bool missile_point_warned_22d;
     signed char removal_state_22e;
     unsigned char padding_22f;
     CycleCallback cycle_callback_230;
@@ -354,21 +354,21 @@ public:
     /* 0x2d0: sun-visibility state for the model light-scale lerp: -1
        uninitialized, 1 lit (scale toward 0.75), 0 shadowed (toward 0). */
     int sunlit_state_2d0;
-    unsigned char position_dirty_2d4;
+    bool position_dirty_2d4;
     unsigned char padding_2d5[3];
     W8GameTimer timer_2d8;
     float target_scale_2fc;
     float current_scale_300;
     /* 0x304: one-shot latch; the cycle-25 spell frame fires
        CreateAttachedSpellEffect once then clears it. */
-    unsigned char spell_effect_armed_304;
+    bool spell_effect_armed_304;
     unsigned char padding_305[3];
     srNode* node_308;
     W8GameTimer timer_30c;
     signed char fade_state_330;
     /* 0x331: this monster is the highlighted target; exempt from the
        attachment distance-scale clamp. */
-    unsigned char target_highlighted_331;
+    bool target_highlighted_331;
     /* 0x332: copied from the source monster; blocks hostility recompute in
        Targeting and Combat Hostility. */
     unsigned char hostility_preserved_332;
@@ -465,8 +465,8 @@ void MonsterSetHighlightMask(W8Monster* monster, unsigned char flag);
 void MonsterSetRuntimeBlock4C(W8Monster* monster, W8MonsterRuntimeBlock4C block);
 unsigned char MonsterSetAnimating(W8Monster* monster, unsigned char animating);
 unsigned char MonsterIsAnimating(W8Monster* monster);
-bool MonsterHasPendingCycle(W8Monster* monster);     /* 0x004C5710 */
-unsigned char MonsterIsScalingY(W8Monster* monster); /* 0x004C5EE0 */
+bool MonsterHasPendingCycle(W8Monster* monster); /* 0x004C5710 */
+bool MonsterIsScalingY(W8Monster* monster);      /* 0x004C5EE0 */
 void MonsterSetPendingCycle(W8Monster* monster, int cycle);
 int MonsterQuery(W8Monster* monster, int query);
 void MonsterForward4537E0(W8Monster* monster);

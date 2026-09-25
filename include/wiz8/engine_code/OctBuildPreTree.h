@@ -32,7 +32,7 @@ struct W8OctRegionPolygon {
     unsigned long kind_2c;
     /* Set by the polygon builder when the face collapses. */
     unsigned char degenerate_30;
-    unsigned char visited_31;
+    bool visited_31;
     unsigned short region_32;
     /* Corner vertices of the shared build-vertex array; the material sort
        and SplitVertices repoint these at split copies. */

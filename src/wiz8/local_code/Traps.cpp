@@ -36,7 +36,7 @@
 // GLOBAL: WIZ8 0x0069ca68
 char g_record_mode_line_0069ca68[0x1000];
 // GLOBAL: WIZ8 0x0069da6c
-unsigned char g_flag_69da6c;
+bool g_flag_69da6c;
 // GLOBAL: WIZ8 0x0069da68
 int g_value_69da68;
 // GLOBAL: WIZ8 0x0069da70
@@ -137,7 +137,7 @@ void ApplyRecordModeLine005E34B0(void)
     ShowNoticef(6, ConvertStringToWide(message));
     g_record_mode_line_0069ca68[g_record_mode_length_0069da70] = 0;
     g_record_mode_length_0069da70 = 0;
-    g_flag_69da6c = 0;
+    g_flag_69da6c = false;
     strcpy(message, s_exiting_record_mode_006503e0);
     ShowNoticef(6, ConvertStringToWide(message));
 }
@@ -193,12 +193,12 @@ char HandleRecordModeKey005E3610(const InputAtom* input, void (*prompt)(void))
     } else if (character == 0xd) {
         g_record_mode_line_0069ca68[g_record_mode_length_0069da70] = 0;
         g_record_mode_length_0069da70 = 0;
-        g_flag_69da6c = 0;
+        g_flag_69da6c = false;
         return 1;
     } else if (character == 0x1b) {
         g_record_mode_line_0069ca68[g_record_mode_length_0069da70] = 0;
         g_record_mode_length_0069da70 = 0;
-        g_flag_69da6c = 0;
+        g_flag_69da6c = false;
         ResetEditorStatusLine0058AA20(-1);
         return -1;
     } else {

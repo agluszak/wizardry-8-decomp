@@ -137,7 +137,7 @@ void ControlLiftGate(int command)
     float progress;
     int value;
 
-    g_flag_006834dc = 0;
+    g_flag_006834dc = false;
     if (command != 0) {
         value = 0;
         if (command == -1) {
@@ -199,13 +199,13 @@ void ControlLiftGate(int command)
         } else {
             progress = 1.0f;
             SetTriggerVariableByName00444030("FlagPosition", 100);
-            g_flag_006834dc = 1;
+            g_flag_006834dc = true;
         }
         g_lift_prop_683500->GetPosition0044E2C0(&position);
         position.y = (g_float_005ebb38 - progress) * (LIFT_TOP_Y - LIFT_BOTTOM_Y) + LIFT_BOTTOM_Y;
         g_lift_prop_683500->SetPosition0044E310(&position);
     } else {
-        g_flag_006834dc = 1;
+        g_flag_006834dc = true;
     }
 }
 
@@ -234,7 +234,7 @@ void ControlCampAlarm(int command)
 {
     srVector3T<float> position;
 
-    g_flag_006834dc = 0;
+    g_flag_006834dc = false;
     if (command != 0) {
         if (GetLocationVarIDByName("UmpaniCampAlarm") == -1) {
             CreateLocationVar("UmpaniCampAlarm", 0x1e);
@@ -274,7 +274,7 @@ void ControlCampAlarm(int command)
     if (!g_alarm_gate_683508->IsFinished()) {
         return;
     }
-    g_flag_006834dc = 1;
+    g_flag_006834dc = true;
     if (g_alarm_sound_683504 != 0) {
         g_alarm_sound_683504->release();
         g_alarm_sound_683504 = 0;

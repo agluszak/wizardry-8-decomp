@@ -6,7 +6,7 @@
 #include "wiz8/engine_code/IntervalGate.h"
 #include "wiz8/wiz8_windows.h"
 
-extern unsigned char g_shared_timers_paused_00652dce;
+extern bool g_shared_timers_paused_00652dce;
 
 void ResetLevelMovement0041EEE0(float movement_limit, char reset, char fast_move); /* 0x0041EEE0 */
 
@@ -58,8 +58,8 @@ struct W8LevelDataRecord {
     float contact_normal_scale_b8;       /* 0xb8 */
     unsigned char padding_bc[8];         /* 0xbc */
     W8IntervalGate interval_gate_c4;     /* 0xc4 */
-    unsigned char flag_ec;               /* 0xec */
-    unsigned char flag_ed;               /* 0xed */
+    bool flag_ec;                        /* 0xec */
+    bool flag_ed;                        /* 0xed */
     unsigned char pad_ee[2];
     float vertical_motion_f0; /* 0xf0 */
 
@@ -99,7 +99,7 @@ class BitArray;
 /* One environment record: seventeen dwords mixing counters and factors. */
 struct W8EnvironRecord {
     int value_00;
-    unsigned char ground_latch_04;
+    bool ground_latch_04;
     unsigned char airborne_05;
     unsigned char pad_06[2];
     int value_08;
@@ -306,7 +306,7 @@ extern W8LevelDataRecord* g_level_data_00652dac;
    transitions; its target's +0 flags have 0x200 masked off at 0x0044FCD0. */
 extern unsigned int* g_level_flags_00652da8;
 /* Teardown flag tested and cleared by ReleaseLevelData0041A9E0. */
-extern unsigned char g_flag_00652dcc;
+extern bool g_flag_00652dcc;
 /* Read by the level-data reset and written by the GameData constructor in
    GDFileIO.cpp. */
 extern W8EnvironRecord* g_environ_00652DB4;
@@ -394,5 +394,5 @@ extern const double g_motion_delta_epsilon_005ebc50;
 extern const double g_motion_vector_epsilon_005ebc48;
 extern const float g_footstep_fall_threshold_005ebcd4;
 extern unsigned char g_environment_motion_active_00603ad1;
-extern unsigned char g_environ_ground_latch_00652db8;
+extern bool g_environ_ground_latch_00652db8;
 extern srVector3T<float> g_origin_652940;

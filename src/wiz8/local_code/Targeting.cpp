@@ -609,7 +609,7 @@ bool ShowMonsterTargetMarker(W8MonsterInfo* monster_info)
 // FUNCTION: WIZ8 0x00537160
 char TargetMatchesNeeded(W8CombatSlot* target, int needed)
 {
-    char matched = 0;
+    bool matched = false;
 
     if (target == 0) {
         return 0;
@@ -619,7 +619,7 @@ char TargetMatchesNeeded(W8CombatSlot* target, int needed)
     case 2:
     case 8:
         if (target->iType == W8_TARGET_KIND_CHARACTER && target->iChar != BAD_INDEX) {
-            matched = 1;
+            matched = true;
         }
         if (target->iType == W8_TARGET_KIND_MONSTER && target->iMonsterID != BAD_INDEX) {
             return IsTargetStillPresent(target);
@@ -636,7 +636,7 @@ char TargetMatchesNeeded(W8CombatSlot* target, int needed)
         break;
     case 5:
         if (target->iType == W8_TARGET_KIND_GROUP && target->iGroupID != BAD_INDEX) {
-            matched = 1;
+            matched = true;
         }
         if (target->iType == W8_TARGET_KIND_PARTY) {
             return IsTargetStillPresent(target);
@@ -1299,7 +1299,7 @@ char HighlightMonsterAsTarget(int location_id, int party_slot, char highlight)
     int index = MonsterGetIndexByLocationID(0x68d, TARGETING_CPP, location_id, 0);
     W8MonsterInfo* monster_info;
     W8Monster* monster;
-    char valid = 0;
+    bool valid = false;
 
     if (index == BAD_INDEX) {
         return 0;

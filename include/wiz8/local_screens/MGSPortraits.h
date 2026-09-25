@@ -86,8 +86,8 @@ unsigned char PortraitControlRegionEvent(const InputAtom* event, W8Region* regio
 unsigned char ConditionButtonRegionEvent(const InputAtom* event, W8Region* region); /* 0x0059C260 */
 
 /* Main-game portrait overlay helpers used when a party slot refreshes. */
-unsigned char PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int flags,
-                                          unsigned int top); /* 0x005993A0 */
+bool PreparePartyPortraitOverlay(unsigned int party_slot, unsigned int flags,
+                                 unsigned int top); /* 0x005993A0 */
 void RedrawPartyPortraitOverlay(unsigned int party_slot, char highlighted, char overlay_ready,
                                 char slot_enabled); /* 0x005994C0 */
 

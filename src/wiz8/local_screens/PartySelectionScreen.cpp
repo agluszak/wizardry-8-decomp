@@ -142,7 +142,7 @@ void W8PartySelectionCharacterCollection::DetachFromParty(int index)
         memcpy(replacement, previous, sizeof(W8Character));
     }
     RemoveCharacterFromParty(slot + 2, 0);
-    replacement->fInParty = 0;
+    replacement->fInParty = false;
     characters.SetAt(index, replacement);
 }
 
@@ -367,7 +367,7 @@ void W8PartySelectionListControl005EF464::Redraw(int full_redraw)
         }
         SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
         SetFontDestBuffer(-14, 0, 0, 0x280, 0x1e0, 0);
-        m_dirty = 0;
+        m_dirty = false;
     }
 }
 
@@ -609,7 +609,7 @@ public:
 
     int m_mode;          /* 0x0c */
     int m_previous_mode; /* 0x10 */
-    unsigned char m_redraw_backdrop_14;
+    bool m_redraw_backdrop_14;
     unsigned char pad_15[3];
     W8Character* m_character_18;
     W8RangeControl* m_range; /* 0x1c */
@@ -1457,7 +1457,7 @@ W8PartySelectionController::~W8PartySelectionController()
 void W8PartySelectionController::SetMode(int mode)
 {
     m_mode = mode;
-    m_redraw_backdrop_14 = 1;
+    m_redraw_backdrop_14 = true;
 
     m_range->Invalidate(0);
     m_control_2c->Invalidate(0);
@@ -1810,7 +1810,7 @@ void W8PartySelectionController::OnPrimary(W8TextControl* control)
             memcpy(replacement, previous, sizeof(W8Character));
         }
         RemoveCharacterFromParty(slot + 2, 0);
-        replacement->fInParty = 0;
+        replacement->fInParty = false;
         collection->characters.SetAt(index, replacement);
     }
     SetMode(1);
@@ -1876,7 +1876,7 @@ void W8PartySelectionController::OnToggle(int value)
 // FUNCTION: WIZ8 0x005c1ed0
 void W8PartySelectionController::InvalidatePartySelectionComposition()
 {
-    m_redraw_backdrop_14 = 1;
+    m_redraw_backdrop_14 = true;
     m_range->Invalidate(0);
     m_control_2c->Invalidate(0);
     m_control_30->Invalidate(0);
@@ -1900,7 +1900,7 @@ void W8PartySelectionController::DrawPartySelectionComposition()
         if (m_mode == 1) {
             DrawCatalogImage(-14, 0x103, 0, 0, 0x140, 0x12e, 2, 0);
         }
-        m_redraw_backdrop_14 = 0;
+        m_redraw_backdrop_14 = false;
     }
 
     m_range->Redraw();
@@ -2010,7 +2010,7 @@ void W8PartySelectionController::ApplyPartySelectionConfirmation(int, unsigned c
                 memcpy(replacement, previous, sizeof(W8Character));
             }
             RemoveCharacterFromParty(slot + 2, 0);
-            replacement->fInParty = 0;
+            replacement->fInParty = false;
             collection->characters.SetAt(index, replacement);
         }
         SetMode(1);

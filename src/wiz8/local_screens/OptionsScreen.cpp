@@ -447,7 +447,7 @@ void W8OptionsSaveLoadPanel::OnDialogClosed(unsigned char reason, int value)
 void W8OptionsSaveLoadPanel::OnTextEditComplete(W8OptionsTextEditor*, unsigned char cancelled)
 {
     int selected_slot = m_current_04c * 5 + m_selection.m_selectedIndex;
-    (*m_rows.GetAt(m_editing_row))->m_editing = 0;
+    (*m_rows.GetAt(m_editing_row))->m_editing = false;
     if (cancelled != 0) {
         (*m_rows.GetAt(m_selection.m_selectedIndex))->Invalidate(0);
         return;
@@ -485,7 +485,7 @@ void W8OptionsSaveLoadPanel::OnEditSaveName(W8OptionsSaveRow*)
         this, m_selection.m_selectedIndex,
         (*g_options_screen_0069c254->m_save_slots.GetAt(selected_slot))->name);
     m_editing_row = m_selection.m_selectedIndex;
-    (*m_rows.GetAt(m_editing_row))->m_editing = 1;
+    (*m_rows.GetAt(m_editing_row))->m_editing = true;
 }
 
 // FUNCTION: WIZ8 0x005ab230
@@ -738,7 +738,7 @@ void W8OptionsButton::Redraw(int full_redraw)
             m_textBuffer.SetFontStateIndex(font_state);
         }
         m_textBuffer.RenderToTarget(0, static_cast<unsigned char>(full_redraw), -14);
-        m_dirty = 0;
+        m_dirty = false;
     }
 }
 
@@ -1457,7 +1457,7 @@ void W8OptionsScreen::SelectPanel(int selected, unsigned char notify)
 void W8OptionsScreen::ShowNotification(W8DialogCloseListener* listener, int caption, int message,
                                        int value)
 {
-    m_modal_closing_01d = 1;
+    m_modal_closing_01d = true;
     delete m_active_modal;
     W8NotificationDialog* dialog = new W8NotificationDialog(message, caption, value);
     m_active_modal = dialog;
@@ -1516,7 +1516,7 @@ void W8OptionsScreen::Redraw()
         ClearPrimarySurface();
         ClearSurfaceRect(0, 0, 640, 480);
         DrawCatalogImageAndInvalidate(-14, 0xee, 0, 0, 0, 0, 2, 0);
-        m_redraw_pending = 0;
+        m_redraw_pending = false;
     }
     if (m_selected_panel_020 != -1) {
         W8OptionsPanelSet* panel_set = m_panel_038[m_selected_panel_020];
@@ -2180,7 +2180,7 @@ void OptionsScreenFrame()
                 delete *active_modal;
                 *active_modal = 0;
             }
-            screen->m_redraw_pending = 1;
+            screen->m_redraw_pending = true;
             screen->m_controls_024->Invalidate(0);
             if (screen->m_selected_panel_020 != -1) {
                 W8OptionsPanelSet* panel_set = screen->m_panel_038[screen->m_selected_panel_020];
@@ -2190,7 +2190,7 @@ void OptionsScreenFrame()
                 screen->m_menu_set_028->Invalidate(0);
             }
         }
-        screen->m_modal_closing_01d = 0;
+        screen->m_modal_closing_01d = false;
     }
 
     UpdateRegionMousePosition(point.x, point.y);

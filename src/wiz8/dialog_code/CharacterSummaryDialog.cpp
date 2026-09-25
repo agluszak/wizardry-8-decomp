@@ -61,7 +61,7 @@ int W8CharacterSummaryDialog::CreateControls()
     memcpy(g_status_685170.buffers.Char, m_character_074, sizeof(*m_character_074));
     ResetPartySlotRow(0);
     ResetGameplaySlot(0);
-    g_status_685170.buffers.Char[0].fInParty = 1;
+    g_status_685170.buffers.Char[0].fInParty = true;
     g_status_685170.buffers.XChar[0].npc_index = -1;
     if (!CreateQuoteText()) {
         m_error = 7;
@@ -167,7 +167,7 @@ unsigned char W8CharacterSummaryDialog::HandleInputEvent(const InputAtom* input)
         case ENTER:
         case ESC:
         case SPACE:
-            m_keep_open = 0;
+            m_keep_open = false;
             break;
         }
     }
@@ -192,7 +192,7 @@ unsigned char W8CharacterSummaryDialog::ProcessInput()
         switch (input.usEvent) {
         case LEFT_BUTTON_DOWN:
         case LEFT_BUTTON_REPEAT:
-            m_keep_open = 0;
+            m_keep_open = false;
             MSYS_SGP_Mouse_Handler_Hook(LEFT_BUTTON_DOWN, mouse.x, mouse.y, gfLeftButtonState,
                                         gfRightButtonState);
             break;
@@ -201,7 +201,7 @@ unsigned char W8CharacterSummaryDialog::ProcessInput()
                                         gfRightButtonState);
             break;
         case RIGHT_BUTTON_DOWN:
-            m_keep_open = 0;
+            m_keep_open = false;
             MSYS_SGP_Mouse_Handler_Hook(RIGHT_BUTTON_DOWN, mouse.x, mouse.y, gfLeftButtonState,
                                         gfRightButtonState);
             break;

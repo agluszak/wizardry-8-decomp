@@ -125,7 +125,7 @@ int GetLevelCdNumber0042B720(int level)
 }
 
 // FUNCTION: WIZ8 0x0042b6f0
-unsigned char IsLevelCdMissing0042B6F0(int level)
+bool IsLevelCdMissing0042B6F0(int level)
 {
     return FindGameDataPath0042B590(gzCdDirectory, g_level_folders[level].cd_number) == 0;
 }
@@ -141,7 +141,7 @@ unsigned char FindGameDataPath0042B590(char* path, int cd_number)
     char volume_name[32];
     char drives[512];
     DWORD length;
-    unsigned char found = 0;
+    bool found = false;
 
     length = GetLogicalDriveStringsA(sizeof(drives), drives);
     if (length == 0) {
@@ -747,14 +747,12 @@ unsigned char UnloadLevel(const char* save_directory)
     ClearValue6834D4();
 
     srRegistry* registry = srCore.getRegistry();
-    srRegistry::ClassNode* node =
-        srClientSupport<srClipPlane,0x1500>::sGetClassNode();
+    srRegistry::ClassNode* node = srClientSupport<srClipPlane, 0x1500>::sGetClassNode();
     srClass* clip_plane = static_cast<srClass*>(registry->find(node, 0, 0));
 
     while (clip_plane != 0) {
         srClass* next = static_cast<srClass*>(
-            registry->find(srClientSupport<srClipPlane,0x1500>::sGetClassNode(),
-                           0, clip_plane));
+            registry->find(srClientSupport<srClipPlane, 0x1500>::sGetClassNode(), 0, clip_plane));
         clip_plane->release();
         clip_plane = next;
     }

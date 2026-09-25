@@ -1491,7 +1491,7 @@ void StartMonsterAttackCycle0053FFE0(W8MonsterInfo* monster_info, int action_det
     }
     range = GetMonsterActionRangeCategory(monster_info, record, attack);
     if (range >= W8_RANGE_LONG) {
-        monster_info->fMissileReleased = 0;
+        monster_info->fMissileReleased = false;
     }
     ResetCombatSlot(&g_combat_state->TargetHit);
     StartMonsterCycle(monster_info, cycle, 1);
@@ -1626,7 +1626,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
     int event_ids[3];
     wchar_t location_name[20];
     char verbose = g_settings_6850c8.verbose_combat_messages;
-    char swing_missed = 0;
+    bool swing_missed = false;
     char deflected = 0;
     char guaranteed_hit = 0;
     char guaranteed_penetration = 0;
@@ -1703,7 +1703,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
             AnnounceAccidentalStrike00544250(&source, &g_combat_state->TargetHit);
             guaranteed_hit = 1;
             guaranteed_penetration = 0;
-            swing_missed = 0;
+            swing_missed = false;
             roll = Random(100) + 1;
             g_combat_state->unaware_9a4 = 0;
             g_combat_state->natural_attack_9a5 = 0;
@@ -1721,15 +1721,15 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
                                       monster_info->p3D->m_pRep->pending_cycle));
         }
         if (g_combat_state->missile_hit_result == 1) {
-            swing_missed = 0;
+            swing_missed = false;
             guaranteed_hit = 1;
             guaranteed_penetration = 0;
             roll = Random(100) + 1;
         } else if (g_combat_state->missile_hit_result == 2) {
-            swing_missed = 0;
+            swing_missed = false;
             deflected = 1;
         } else {
-            swing_missed = 1;
+            swing_missed = true;
         }
     }
     if (verbose == 0) {
@@ -1742,7 +1742,7 @@ int ContinueMonsterAttack(W8MonsterInfo* monster_info, W8MonsterRecord* record)
         ResetCombatSlot(&g_combat_state->TargetHit);
     } else if (deflected != 0) {
         if (g_settings_6850c8.verbose_combat_messages == 0) {
-            report->missed = 1;
+            report->missed = true;
         } else {
             ShowNotice(9, gppStringList[0x20a], -1, -1, 0);
         }
@@ -2211,7 +2211,7 @@ const unsigned short g_monster_attack_verb_ids_61eb4c[0x60] = {
 char CharacterNoticesAttacker(int party_slot)
 {
     W8CombatCharacterRow* row = &g_combat_state->characters[party_slot];
-    char noticed = 0;
+    bool noticed = false;
 
     if (g_status_685170.buffers.Char[party_slot].hp_current == 0 ||
         g_status_685170.buffers.Char[party_slot].stamina == 0 ||
@@ -3747,7 +3747,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
     unsigned int mode;
     unsigned int hand;
     int range;
-    char noticed;
+    bool noticed;
     unsigned int event_ids[3];
 
     if (static_cast<unsigned int>(party_slot) >= 8) {
@@ -3890,7 +3890,7 @@ char StartCharacterAttack(int party_slot, int attack_mode)
                 monster_info->uiCondition[W8_CONDITION_BLIND] == 0 &&
                 monster_info->action_kind == 1) {
                 if (monster_info->pCombat->spot_attempts_13d == 0) {
-                    noticed = 1;
+                    noticed = true;
                 } else {
                     noticed = Random(100) < static_cast<unsigned int>(
                                                 monster_info->attributes[4] -
@@ -3969,11 +3969,11 @@ char StartCharacterAttack(int party_slot, int attack_mode)
     }
     PostCharacterNotice(party_slot, g_combat_state->attack_message_6b8);
     ResetCombatSlot(&g_combat_state->TargetHit);
-    row->attack_sound_played_a5 = 0;
+    row->attack_sound_played_a5 = false;
     if (range >= W8_RANGE_LONG) {
         FireCharacterItemMissile00544B60(party_slot, character, row, range);
         MakePCAttackSound00549EF0(row, &character->Hand[hand], mode, 0, -1);
-        row->attack_sound_played_a5 = 1;
+        row->attack_sound_played_a5 = true;
     } else {
         event_ids[0] = g_event_range_min_0068c57c;
         event_ids[1] = g_special_event_0068c56c;
@@ -4007,7 +4007,7 @@ int ResolveCharacterAttack0053E250(int party_slot)
     char verbose = g_settings_6850c8.verbose_combat_messages;
     char special_item = 0;
     char staged_miss = 0;
-    char swing_missed = 0;
+    bool swing_missed = false;
     char guaranteed_hit = 0;
     char guaranteed_penetration = 0;
     char fumbled = 0;
@@ -4027,7 +4027,7 @@ int ResolveCharacterAttack0053E250(int party_slot)
         special_item = 1;
         if (g_combat_state->missile_hit_result == 2) {
             if (verbose == 0) {
-                report->missed = 1;
+                report->missed = true;
             } else {
                 ShowNotice(8, gppStringList[0x20a], -1, -1, 0);
             }
@@ -4049,7 +4049,7 @@ int ResolveCharacterAttack0053E250(int party_slot)
         attack_mode = party_row->attack_mode[hand];
         if (row->attack_sound_played_a5 == 0) {
             MakePCAttackSound00549EF0(row, &character->Hand[hand], attack_mode, 1, -1);
-            row->attack_sound_played_a5 = 1;
+            row->attack_sound_played_a5 = true;
             return 2;
         }
         target = party_row->target_out_of_combat;
@@ -4119,7 +4119,7 @@ int ResolveCharacterAttack0053E250(int party_slot)
                 AnnounceAccidentalStrike00544250(&source, &g_combat_state->TargetHit);
                 guaranteed_hit = 1;
                 guaranteed_penetration = 0;
-                swing_missed = 0;
+                swing_missed = false;
                 roll = Random(100) + 1;
                 g_combat_state->unaware_9a4 = 0;
                 g_combat_state->natural_attack_9a5 = 0;
@@ -4130,7 +4130,7 @@ int ResolveCharacterAttack0053E250(int party_slot)
                 guaranteed_penetration = guaranteed_hit;
             }
         } else if (g_combat_state->missile_hit_result == 1) {
-            swing_missed = 0;
+            swing_missed = false;
             guaranteed_hit = 1;
             guaranteed_penetration = 0;
             if (CharacterHasTrait00547940(character, W8_TRAIT_THROWN_CRITICALS) != 0 &&
@@ -4143,10 +4143,10 @@ int ResolveCharacterAttack0053E250(int party_slot)
             roll = Random(100) + 1;
         } else {
             if (g_combat_state->missile_hit_result == 2) {
-                swing_missed = 0;
+                swing_missed = false;
                 staged_miss = 1;
             } else {
-                swing_missed = 1;
+                swing_missed = true;
             }
         }
         if (verbose == 0) {
@@ -4470,7 +4470,7 @@ int ResolveCharacterAttack0053E250(int party_slot)
             ApplyQueuedFatigue(&g_combat_state->TargetHit, queued_fatigue, 1);
         } else {
             if (verbose == 0) {
-                report->missed = 1;
+                report->missed = true;
             } else {
                 ShowNotice(8, gppStringList[0x20a], -1, -1, 0);
             }
@@ -4570,11 +4570,11 @@ int ResolveCharacterAttack0053E250(int party_slot)
                                     SpellTargetString(&source, &party_row->target_out_of_combat));
             }
             ResetCombatSlot(&g_combat_state->TargetHit);
-            row->attack_sound_played_a5 = 0;
+            row->attack_sound_played_a5 = false;
             if (range >= W8_RANGE_LONG) {
                 FireCharacterItemMissile00544B60(party_slot, character, row, range);
                 MakePCAttackSound00549EF0(row, &character->Hand[hand], attack_mode, 0, -1);
-                row->attack_sound_played_a5 = 1;
+                row->attack_sound_played_a5 = true;
             }
             return 2;
         }

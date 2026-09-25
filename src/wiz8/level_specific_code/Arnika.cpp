@@ -99,7 +99,7 @@ void ArnikaLevelSetup004E06D0(void)
     g_exit_door_trigger_6835d4 = 0;
     ArnikaElevator1Setup004E13B0();
     ArnikaElevator2Setup004E1A10();
-    g_flag_006834dd = 0;
+    g_flag_006834dd = false;
     if (GetLocationVarIDByName("LaserScanning") != -1 &&
         GetLocationVarValueByName("LaserScanning") != 0) {
         pTrigger = FindTriggerByName("LazerScanner");
@@ -181,15 +181,15 @@ void ArnikaLaserScanMaster004E0960(int command)
         g_master_functions_006834d8->Add(ArnikaLaserScanMaster004E0960);
         return;
     }
-    g_flag_006834dc = 0;
+    g_flag_006834dc = false;
     if (g_lazer_prop_6835cc == 0) {
-        g_flag_006834dc = 1;
+        g_flag_006834dc = true;
         return;
     }
     if (g_lazer_prop_6835cc->Rep()->animation_playing_06d != 0) {
         return;
     }
-    g_flag_006834dc = 1;
+    g_flag_006834dc = true;
     ClearMainGameTargetState();
     g_laser_scanning_6835d8 = 0;
 }
@@ -216,7 +216,7 @@ void ArnikaWarningSound004E0AC0(int command)
 {
     srVector3T<float> position;
 
-    g_flag_006834dc = 0;
+    g_flag_006834dc = false;
     if (command != 0) {
         if (GetLocationVarIDByName("WarningSound") == -1) {
             CreateLocationVar("WarningSound", 0x1e);
@@ -264,7 +264,7 @@ void ArnikaWarningSound004E0AC0(int command)
             return;
         }
     }
-    g_flag_006834dc = 1;
+    g_flag_006834dc = true;
     g_warning_loop_6835dc->Stop();
     delete g_warning_gate_6835e4;
     g_warning_gate_6835e4 = 0;
@@ -306,7 +306,7 @@ bool ArnikaMookholo004E0DC0(Trigger* pTrigger)
                 MonsterGetIndexByLocationID(0x193, ARNIKA_CPP, location_id, 1));
             if (info != 0) {
                 g_mookholo_monster_6835e8 = info->p3D;
-                g_flag_6109f0 = 0;
+                g_flag_6109f0 = false;
                 g_master_functions_006834d8->Add(ArnikaMookholoWatch004E0F70);
             }
             QueueNpcScriptNotice(FindNpcBindingForMonster(MonsterGetIndexByLocationID(
@@ -325,14 +325,14 @@ void ArnikaMookholoWatch004E0F70(int command)
 {
     if (command != 0) {
         if (command == static_cast<int>(0xEFFFFFFF)) {
-            g_flag_6109f0 = 0;
+            g_flag_6109f0 = false;
             g_master_functions_006834d8->Add(ArnikaMookholoWatch004E0F70);
         }
         return;
     }
-    g_flag_006834dc = 0;
+    g_flag_006834dc = false;
     if (g_flag_6109f0 != 0) {
-        g_flag_006834dc = 1;
+        g_flag_006834dc = true;
         if (g_mookholo_monster_6835e8 != 0) {
             g_mookholo_monster_6835e8->BeginFadeOutAndRemove004C5040(3);
             g_mookholo_monster_6835e8 = 0;
@@ -430,11 +430,11 @@ bool ArnikaExitButton004E1180(Trigger* pTrigger)
 // FUNCTION: WIZ8 0x004E1300
 void ArnikaTeleportWatch004E1300(int command)
 {
-    g_flag_006834dc = 0;
+    g_flag_006834dc = false;
     if (g_exit_door_prop_6835d0->Rep()->animation_playing_06d != 0) {
         return;
     }
-    g_flag_006834dc = 1;
+    g_flag_006834dc = true;
     g_exit_door_trigger_6835d4->Run(-1);
     g_exit_door_trigger_6835d4->RunDestination00440DD0("ARN11");
 }
@@ -612,9 +612,9 @@ void ArnikaEl1Button004E17C0(int command)
         }
         return;
     }
-    g_flag_006834dc = 0;
+    g_flag_006834dc = false;
     if (g_el01_button_prop_6835ec == 0) {
-        g_flag_006834dc = 1;
+        g_flag_006834dc = true;
         return;
     }
     if (g_el01_button_prop_6835ec->Rep()->animation_playing_06d != 0) {
@@ -628,7 +628,7 @@ void ArnikaEl1Button004E17C0(int command)
     }
     gEl01.button_down = 0;
     SetTriggerVariableByName00444030("RedButtonDown", 0);
-    g_flag_006834dc = 1;
+    g_flag_006834dc = true;
 }
 
 /* "El1-TopButtons": advances the lift while no button run is pending and the
@@ -666,15 +666,15 @@ void ArnikaEl1Moving004E19B0(int command)
             return;
         }
     }
-    g_flag_006834dc = 0;
+    g_flag_006834dc = false;
     if (gEl01.pProp == 0) {
-        g_flag_006834dc = 1;
+        g_flag_006834dc = true;
         return;
     }
     if (gEl01.pProp->Rep()->animation_playing_06d != 0) {
         return;
     }
-    g_flag_006834dc = 1;
+    g_flag_006834dc = true;
     ArnikaElevatorAdvance004E2010(1);
 }
 
@@ -822,9 +822,9 @@ void ArnikaEl2Button004E1E10(int command)
         }
         return;
     }
-    g_flag_006834dc = 0;
+    g_flag_006834dc = false;
     if (g_el02_button_prop_6835f0 == 0) {
-        g_flag_006834dc = 1;
+        g_flag_006834dc = true;
         return;
     }
     if (g_el02_button_prop_6835f0->Rep()->animation_playing_06d != 0) {
@@ -838,7 +838,7 @@ void ArnikaEl2Button004E1E10(int command)
     }
     gEl02.button_down = 0;
     SetTriggerVariableByName00444030("GreenButtonDown", 0);
-    g_flag_006834dc = 1;
+    g_flag_006834dc = true;
 }
 
 /* "Elevator-02": steps the lift while no button run is pending and the
@@ -866,15 +866,15 @@ void ArnikaEl2Moving004E1FB0(int command)
             return;
         }
     }
-    g_flag_006834dc = 0;
+    g_flag_006834dc = false;
     if (gEl02.pProp == 0) {
-        g_flag_006834dc = 1;
+        g_flag_006834dc = true;
         return;
     }
     if (gEl02.pProp->Rep()->animation_playing_06d != 0) {
         return;
     }
-    g_flag_006834dc = 1;
+    g_flag_006834dc = true;
     ArnikaElevatorAdvance004E2010(2);
 }
 
@@ -1055,9 +1055,9 @@ bool ArnikaCMbox004E2420(Trigger* pTrigger)
     } else {
         return previous != -1;
     }
-    g_flag_006834dd = 1;
+    g_flag_006834dd = true;
     pTrigger->Run(-1);
-    g_flag_006834dd = 0;
+    g_flag_006834dd = false;
     return true;
 }
 

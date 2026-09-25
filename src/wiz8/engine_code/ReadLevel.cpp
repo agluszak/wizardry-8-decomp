@@ -213,7 +213,7 @@ static_assert(sizeof(W8LevelItemRecord004BC380) == 0x30,
 struct W8LevelLightRecord004BBAD0 {
     short version;
     unsigned char create;
-    unsigned char visible;
+    bool visible;
     unsigned int flags;
     srVector3T<float> location;
     srVector3T<float> colour;
@@ -268,7 +268,7 @@ unsigned char ReadWorldLights004BBAD0(W8World* world, int hFile)
        an AI path it returns the stack residue of the last setLocation double
        push, which is nonzero in practice. Initialize it so the recompilation
        is deterministic rather than depending on stack residue. */
-    unsigned char path_success = 1;
+    bool path_success = true;
 
     success = FileRead(hFile, &light_count, sizeof(light_count), 0);
     if (!success) {
@@ -398,7 +398,7 @@ unsigned char ReadWorldEnvironment004BC9D0(W8ReadLevelInfo* pInfo, W8World* pWor
     unsigned char has_light_colours = 0;
     unsigned char has_environment_colours = 0;
     unsigned char fog_enabled = 0;
-    unsigned char success;
+    bool success;
 
     success =
         FileRead(pInfo->hFile, &fog_enabled, sizeof(fog_enabled), 0) &&
@@ -671,9 +671,9 @@ unsigned char ReadMonsterPaths004BC140(W8ReadLevelInfo* pInfo, W8World* pWorld)
     int count;
     int index;
     unsigned char success;
-    unsigned char has_options;
+    bool has_options;
     unsigned char update_representation;
-    unsigned char active;
+    bool active;
     char monster_name[20];
     char options[12];
     char* separator;
@@ -689,7 +689,7 @@ unsigned char ReadMonsterPaths004BC140(W8ReadLevelInfo* pInfo, W8World* pWorld)
 
     /* Canonical 0x004BC140 initializes this once, not once per record. A
        colon-free record after an option-bearing one therefore reuses options. */
-    has_options = 0;
+    has_options = false;
     if (pInfo == 0 || pInfo->hFile == 0 || pWorld == 0) {
         return 0;
     }
@@ -708,7 +708,7 @@ unsigned char ReadMonsterPaths004BC140(W8ReadLevelInfo* pInfo, W8World* pWorld)
         success = success && FileRead(pInfo->hFile, monster_name, sizeof(monster_name), 0);
         separator = strchr(monster_name, ':');
         if (separator != 0) {
-            has_options = 1;
+            has_options = true;
             strncpy(options, separator + 1, sizeof(options));
             *separator = '\0';
         }
@@ -1232,7 +1232,7 @@ unsigned char ReadLevel(W8World* world, int handle, unsigned char use_octree,
         }
     }
     if (g_octree_6598a4 != 0) {
-        g_octree_6598a4->m_fAccumulating = 0;
+        g_octree_6598a4->m_fAccumulating = false;
     }
     return success;
 }

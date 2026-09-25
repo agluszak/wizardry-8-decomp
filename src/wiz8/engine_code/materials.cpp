@@ -641,7 +641,7 @@ unsigned char PreprocessLevel00493120(int handle, char* stem)
                         vertices[i].visited_0a = 0;
                     }
                     for (i = 0; i < static_cast<int>(geometry.polygon_count_08); ++i) {
-                        geometry.polygons_0c[i].visited_31 = 0;
+                        geometry.polygons_0c[i].visited_31 = false;
                     }
                     ReportBuildStatus00497690(
                         6, "\nCompiling OctPreTree --------------------------\n");
@@ -1108,8 +1108,8 @@ int WeldVertex00494800(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex
     unsigned int start_y;
     unsigned int start_z;
     int slot;
-    unsigned char found;
-    unsigned char matched;
+    bool found;
+    bool matched;
     unsigned int scan_x;
     unsigned int scan_y;
     unsigned int scan_z;
@@ -1118,7 +1118,7 @@ int WeldVertex00494800(W8HashTable<unsigned int, int>* table, W8OctPreTreeVertex
     W8OctPreTreeVertex* current;
     W8OctPreTreeVertex* candidate;
 
-    matched = 0;
+    matched = false;
     found = 0;
     if (link == 0xffffffff) {
         vertex = index;
@@ -1367,7 +1367,7 @@ int BuildRegionPolygons00494B90(W8LevelFile* level, W8OctPreTreeGeometry* geomet
                 if ((materials[face->material_index].shader_flags_116 & 1) != 0) {
                     opposing = 1;
                 }
-                polygon->visited_31 = 0;
+                polygon->visited_31 = false;
                 if (face->material_index == 0) {
                     polygon->kind_2c = 3;
                 } else {
@@ -1947,7 +1947,7 @@ int MaterialSort00496500(W8OctPreTreeGeometry* geometry, W8MaterialRecord004B8A7
 // FUNCTION: WIZ8 0x00496CD0
 void OctBuildOptions00496CD0(char* stem)
 {
-    unsigned char done = g_build_level_links_0065bd2c;
+    bool done = g_build_level_links_0065bd2c;
     EnvironmentColour colour_saved;
     EnvironmentColour colour_backup;
     char* lines[7];
@@ -2225,7 +2225,7 @@ unsigned char LoadMaterial004B8A70(const char* bitmap_folder,
     char texture_folder[_MAX_PATH];
     char texture_file[_MAX_PATH];
     int texture_index = -1;
-    unsigned char has_alpha = 0;
+    bool has_alpha = false;
     int index;
 
     *render_flags = 0x0100a51b; /* packed srShader; TEXTURING set until no texture */

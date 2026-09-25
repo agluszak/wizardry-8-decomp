@@ -149,7 +149,7 @@ cleared:
     case 0:
     case 6:
         SetPendingScreenState(W8_SCREEN_MAIN_MENU);
-        g_settings_6850c8.intro_seen = 1;
+        g_settings_6850c8.intro_seen = true;
         break;
     case 1:
     case 2:
@@ -159,7 +159,7 @@ cleared:
             g_pending_screen_state.mode = 0;
             SetPendingScreenState(W8_SCREEN_PLEASE_WAIT);
         } else {
-            g_status_685170.intro_shown_49bc = 0;
+            g_status_685170.intro_shown_49bc = false;
             if (GetPendingScreenState() != 7) {
                 SetPendingScreenState(W8_SCREEN_MAIN_GAME);
             }

@@ -48,7 +48,7 @@ public:
     int m_caret;
     int m_font;             /* 0x14 */
     int m_value;            /* 0x18 */
-    unsigned char m_dirty;  /* 0x1c */
+    bool m_dirty;           /* 0x1c */
     unsigned char m_active; /* 0x1d */
     unsigned char padding_01e[2];
     /* 0x20: -1, then the stack total for the split dialogs. The acceptance
@@ -129,7 +129,7 @@ public:
     int m_cancel_button_0d4; /* 0x0d4 */
     int m_cancel_image_0d8;  /* 0x0d8 */
     W8ControlsRect m_cancel_rect_0dc;
-    unsigned char m_scrollable; /* 0x0ec: scrolling area is scrollable */
+    bool m_scrollable; /* 0x0ec: scrolling area is scrollable */
     unsigned char padding_0ed[3];
     int m_first_visible_line_0f0; /* 0x0f0 */
     int m_selected_line_0f4;      /* 0x0f4 */

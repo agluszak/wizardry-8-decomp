@@ -179,7 +179,7 @@ void ResetMessageStorage(void)
                     W8NoticeWord* stored = static_cast<W8NoticeWord*>(malloc(sizeof(W8NoticeWord)));
                     *stored = word;
                     stored->keyword_08 = 0;
-                    stored->redraw_09 = 0;
+                    stored->redraw_09 = false;
                     PLAdoptAppend(record->entries_18, stored);
                 }
             }
@@ -276,7 +276,7 @@ void AppendNoticeLine(unsigned char font_palette, const wchar_t* text, short tex
             W8NoticeWord* stored = static_cast<W8NoticeWord*>(malloc(sizeof(W8NoticeWord)));
             *stored = word;
             stored->keyword_08 = 0;
-            stored->redraw_09 = 0;
+            stored->redraw_09 = false;
             PLAdoptAppend(record->entries_18, stored);
         }
     }
@@ -1043,7 +1043,7 @@ void AdvanceNoticeLine(short text_box)
     if (g_level_block->text_scroll_drag_idle) {
         if (gXStatus.fNpcDialogueMode && g_screen_state_00649f1c->text_box_collapsed) {
             ScrollTextBoxTo(shown);
-            g_screen_state_00649f1c->text_box_collapsed = 0;
+            g_screen_state_00649f1c->text_box_collapsed = false;
         } else if (!gXStatus.fSpellCastMode && !gXStatus.fNpcDialogueMode &&
                    !gXStatus.fItemSelectMode && !gXStatus.fCampMode) {
             if (gXStatus.fCombatMode && g_combat_state->notice_scroll_pending_a57) {
@@ -2481,7 +2481,7 @@ void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
             wcsncpy(word_text, line->wString + word->start, word->end - word->start + 1);
             gprintfDirty(word->x_start + x, y, Wiz8ToSgpWideText(g_format_s_006068e4),
                          Wiz8ToSgpWideText(word_text));
-            word->redraw_09 = 0;
+            word->redraw_09 = false;
         }
         if (word->redraw_09 != 0) {
             unsigned short* palette;
@@ -2495,7 +2495,7 @@ void DrawNoticeWordOverlays(W8MessageStorageRecord* line, int x, int y)
             wcsncpy(word_text, line->wString + word->start, word->end - word->start + 1);
             gprintfDirty(word->x_start + x, y, Wiz8ToSgpWideText(g_format_s_006068e4),
                          Wiz8ToSgpWideText(word_text));
-            word->redraw_09 = 0;
+            word->redraw_09 = false;
         }
     }
 }
@@ -2511,7 +2511,7 @@ void ResetUsedNoticeWords(int text_box, unsigned char redraw)
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
                 if (word->keyword_08 == 2) {
                     word->keyword_08 = 0;
-                    word->redraw_09 = 1;
+                    word->redraw_09 = true;
                 }
             }
         }
@@ -2532,7 +2532,7 @@ void ClearNoticeWordHover(int text_box, unsigned char redraw)
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
                 if (word->keyword_08 != 2) {
                     word->keyword_08 = 0;
-                    word->redraw_09 = 1;
+                    word->redraw_09 = true;
                 }
             }
         }
@@ -2559,7 +2559,7 @@ void HighlightNoticeWordAt(int text_box, unsigned short x, unsigned short y)
                 W8NoticeWord* word = static_cast<W8NoticeWord*>(PLGet(list, j));
                 if (word->keyword_08 != 2) {
                     word->keyword_08 = 0;
-                    word->redraw_09 = 1;
+                    word->redraw_09 = true;
                 }
             }
         }

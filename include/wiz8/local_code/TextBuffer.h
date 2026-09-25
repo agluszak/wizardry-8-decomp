@@ -97,5 +97,5 @@ public:
     unsigned char pad_42[2];
     int m_renderMode;     /* 0x44: 4 initially */
     int m_fontStateIndex; /* 0x48: -1 skips the state-table override */
-    unsigned char m_flag_4c;
+    bool m_flag_4c;
 };

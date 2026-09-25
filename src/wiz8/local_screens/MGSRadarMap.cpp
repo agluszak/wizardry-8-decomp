@@ -65,7 +65,7 @@ const int g_radar_cell_offsets_0064cb6c[15][2] = {
 // GLOBAL: WIZ8 0x0069bf58
 stModelInstance2D* g_radar_backdrop_0069bf58 = 0;
 // GLOBAL: WIZ8 0x0069bf5c
-unsigned char g_radar_zoomed_0069bf5c = 0;
+bool g_radar_zoomed_0069bf5c = false;
 // GLOBAL: WIZ8 0x0069bf60
 stModelInstance2D* g_radar_compass_0069bf60 = 0;
 // GLOBAL: WIZ8 0x0069c088
@@ -379,7 +379,7 @@ void UpdateRadarBlips(void)
 
         if (monster != 0 && info->fActive != 0 && info->within_viewing_distance != 0 &&
             (monster->disabled_217 == 0 || detect_all != 0)) {
-            unsigned char hostile = 0;
+            bool hostile = false;
 
             if (gXStatus.fCombatMode != 0 && g_status_685170.selected_character != -1 &&
                 g_status_685170.buffers.XChar[g_status_685170.selected_character].fOccupied != 0 &&
@@ -556,7 +556,7 @@ void ToggleRadarMapZoom(void)
     if (g_radar_zoomed_0069bf5c == 0) {
         float radius = g_startup_world_659c0c->radius_084;
 
-        g_radar_zoomed_0069bf5c = 1;
+        g_radar_zoomed_0069bf5c = true;
         g_radar_map_scale_0069c0e0 = 13.0f;
         g_radar_inner_radius_0069c0d8 = CalcRangeDistance(W8_RANGE_TOUCH) + radius;
         g_radar_outer_radius_0069c0d4 = CalcRangeDistance(W8_RANGE_LONG) + radius;
@@ -565,7 +565,7 @@ void ToggleRadarMapZoom(void)
     }
     float radius = g_startup_world_659c0c->radius_084;
 
-    g_radar_zoomed_0069bf5c = 0;
+    g_radar_zoomed_0069bf5c = false;
     g_radar_map_scale_0069c0e0 = 2.0f;
     g_radar_inner_radius_0069c0d8 = radius;
     g_radar_outer_radius_0069c0d4 = CalcRangeDistance(W8_RANGE_EXTREME) + radius;
@@ -577,7 +577,7 @@ void ZoomRadarMapIn(void)
 {
     float radius = g_startup_world_659c0c->radius_084;
 
-    g_radar_zoomed_0069bf5c = 1;
+    g_radar_zoomed_0069bf5c = true;
     g_radar_map_scale_0069c0e0 = 13.0f;
     g_radar_inner_radius_0069c0d8 = CalcRangeDistance(W8_RANGE_TOUCH) + radius;
     g_radar_outer_radius_0069c0d4 = CalcRangeDistance(W8_RANGE_LONG) + radius;
@@ -589,7 +589,7 @@ void ZoomRadarMapOut(void)
 {
     float radius = g_startup_world_659c0c->radius_084;
 
-    g_radar_zoomed_0069bf5c = 0;
+    g_radar_zoomed_0069bf5c = false;
     g_radar_map_scale_0069c0e0 = 2.0f;
     g_radar_inner_radius_0069c0d8 = radius;
     g_radar_outer_radius_0069c0d4 = CalcRangeDistance(W8_RANGE_EXTREME) + radius;

@@ -98,9 +98,9 @@ void W8StatInfoDialogBase::Draw()
         if (m_initialized == 0) {
             CreateControls();
         }
-        textarea_0e8.m_dirty = 1;
-        scrollbar_054.m_dirty = 1;
-        button_0a0.m_dirty = 1;
+        textarea_0e8.m_dirty = true;
+        scrollbar_054.m_dirty = true;
+        button_0a0.m_dirty = true;
         W8DialogBase::Draw();
         DrawTitle();
     }
@@ -122,7 +122,7 @@ void W8StatInfoDialogBase::DrawTitle()
 void W8StatInfoDialogBase::OnRightButtonUp()
 {
     if (m_right_button_down) {
-        m_keep_open = 0;
+        m_keep_open = false;
     }
 }
 
@@ -156,7 +156,7 @@ void W8StatInfoDialogBase::ScrollCallback(W8DialogScrollBar* scroll_bar, int fir
         bottom = top + 0xb9;
         InvalidateRegion(left, top, right, bottom, 0);
         BlitCatalogSurfaceRectTo16BPP(-0xe, left, top, right, bottom, 0x1b6, 0, 0);
-        dialog->textarea_0e8.m_dirty = 1;
+        dialog->textarea_0e8.m_dirty = true;
     }
 }
 

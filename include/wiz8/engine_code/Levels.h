@@ -16,7 +16,7 @@ unsigned char LoadSkyWorld0042B020(int level, W8LevelInfo* info);
 unsigned char LoadLevel(int requested_level, int entrance, unsigned char restoring_game);
 unsigned char UnloadLevel(const char* save_directory);
 
-unsigned char IsLevelCdMissing0042B6F0(int level);
+bool IsLevelCdMissing0042B6F0(int level);
 unsigned char FindGameDataPath0042B590(char* path, int cd_number);
 int GetLevelCdNumber0042B720(int level);
 void UnloadSkyWorld(void);

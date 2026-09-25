@@ -48,15 +48,15 @@ struct W8NpcState {
     /* 0x1b: the NPC's disposition. Setting a band writes one of three
        representative values rather than a range. */
     unsigned char disposition;
-    unsigned char dismissed_flag;
+    bool dismissed_flag;
     /* 0x1d: raised by CreateNpcRuntimeNode; the greeting quote (0) and the
        first-interaction paths lower it once the NPC has been greeted. */
     bool greeting_pending;
     unsigned int dismissed_timer;
     /* 0x22/0x23: two bytes 0x0056D030 clears when the dialogue NPC is
        staged. */
-    unsigned char flag_22;
-    unsigned char flag_23;
+    bool flag_22;
+    bool flag_23;
     /* 0x24: the level-band byte GetLevelBand returns for the bound level. */
     unsigned char level_band;
     bool is_present; /* 0x25 */
@@ -72,7 +72,7 @@ struct W8NpcState {
     unsigned char partner_index_2c;
     /* 0x2d: the NPC's monster has noticed the party once; the sight path
        raises it to fire the one-shot surprise/bark event. */
-    unsigned char party_noticed_2d;
+    bool party_noticed_2d;
     /* 0x2e: the naming-style id a fact can substitute; values run to 0x85,
        past the signed-char range. */
     unsigned char name_style;
@@ -117,7 +117,7 @@ struct W8NpcState {
     /* 0x0ea: this NPC is a candidate for the scripted event pass. */
     /* 0xea: the NPC is restored into the current level and available for
        binding; cleared while a restore is pending. */
-    unsigned char restored_ea;
+    bool restored_ea;
     /* 0x0eb: world clock of the last event that ran for this NPC. */
     int event_clock_eb;
     /* 0x0ef: disposition band snapshot taken when dialogue opens. */

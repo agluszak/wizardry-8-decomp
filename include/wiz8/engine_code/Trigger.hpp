@@ -28,7 +28,7 @@ public:
     W8GameTimer* m_pCountdown;
     Trigger* trigger_030;
     unsigned char repeat_034;
-    unsigned char completed_035;
+    bool completed_035;
     unsigned char unknown_036[2];
 };
 
@@ -306,7 +306,7 @@ extern unsigned char g_flag_0068506e;
 extern srVector3T<float> g_trigger_camera_006599a0;
 /* Trigger's action camera offset, added to the world scene position while an
    action is active, and the flag that says one is. */
-extern unsigned char g_trigger_action_active_006599c8;
+extern bool g_trigger_action_active_006599c8;
 extern srVector3T<float> g_trigger_action_scene_offset_006599ac;
 extern int g_container_event_alt_0068c520;
 extern int g_trap_notice_event_0068c53c;

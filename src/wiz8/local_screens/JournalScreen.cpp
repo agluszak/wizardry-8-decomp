@@ -42,7 +42,7 @@
 // GLOBAL: WIZ8 0x0064df38
 int g_journal_page_0064df38 = -1;
 // GLOBAL: WIZ8 0x0069c4e0
-unsigned char g_journal_show_all_0069c4e0;
+bool g_journal_show_all_0069c4e0;
 // GLOBAL: WIZ8 0x0064d7b8
 wchar_t g_default_level_0064d7b8[] = L"Default Level";
 // GLOBAL: WIZ8 0x0064d7f0

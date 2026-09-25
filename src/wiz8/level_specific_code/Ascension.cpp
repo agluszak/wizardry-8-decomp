@@ -205,7 +205,7 @@ void AscensionLandShaker004DFD70(int command)
     if (command == -1) {
         return;
     }
-    g_flag_006834dc = 0;
+    g_flag_006834dc = false;
     if (g_avalanche_gate_68356c == 0) {
         g_avalanche_gate_68356c = new W8IntervalGate(1.0f, 0, 1);
         return;
@@ -222,7 +222,7 @@ void AscensionLandShaker004DFD70(int command)
     if (shaker != 0) {
         shaker->Run(-1);
     }
-    g_flag_006834dc = 1;
+    g_flag_006834dc = true;
 }
 
 /* The RampUp activation callback: spawn the daughter monster (0x18d) at the

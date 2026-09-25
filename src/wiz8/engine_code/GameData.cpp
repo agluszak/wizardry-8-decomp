@@ -140,7 +140,7 @@ enum {
 // GLOBAL: WIZ8 0x00652dba
 unsigned char g_level_override_00652dba;
 // GLOBAL: WIZ8 0x00652dce
-unsigned char g_shared_timers_paused_00652dce;
+bool g_shared_timers_paused_00652dce;
 
 /* Resolve one surface's three vertex indices through the active processed
    GameData vertex table.  The retail comparison is signed and accepts an index
@@ -191,7 +191,7 @@ void UpdateGameDataRuntime0041F260()
     }
     if (g_shared_timers_paused_00652dce != 0) {
         ResumeSharedGameTimers00439CA0();
-        g_shared_timers_paused_00652dce = 0;
+        g_shared_timers_paused_00652dce = false;
     }
     g_game_time_accumulator_6598bc->Update();
 }
@@ -214,7 +214,7 @@ void W8GameData::ApplyCameraMotionFlags0041F330(unsigned int flags, srMatrix3T<f
         environ_record = new W8EnvironRecord;
         if (environ_record != 0) {
             environ_record->value_00 = 0;
-            environ_record->ground_latch_04 = 0;
+            environ_record->ground_latch_04 = false;
             environ_record->value_08 = 0;
             environ_record->gravity_y_14 = -g_navigator_gravity_00603acc;
             environ_record->gravity_x_10 = 0;
@@ -359,7 +359,7 @@ unsigned char W8GameData::ApplyCameraMotion0041F5F0(unsigned int flags, srVector
             ShutdownWithErrorBox("TrackMovement: Could not allocate gpMovement.\n");
         }
         PauseSharedGameTimers00439BC0();
-        g_shared_timer_flag_d2 = 1;
+        g_shared_timer_flag_d2 = true;
         g_level_motion_fast_00652dcd = 0;
     }
 
@@ -372,7 +372,7 @@ unsigned char W8GameData::ApplyCameraMotion0041F5F0(unsigned int flags, srVector
         if ((timer_flags & 1) != 0) {
             return 0;
         }
-        g_shared_timer_flag_d2 = 0;
+        g_shared_timer_flag_d2 = false;
         if (g_shared_timer_flag_d1 == 0) {
             ResumeSharedGameTimers00439CA0();
         }
@@ -549,7 +549,7 @@ const double g_motion_vector_epsilon_005ebc48 = 5.0;
 // GLOBAL: WIZ8 0x00603ad1
 unsigned char g_environment_motion_active_00603ad1 = 1;
 // GLOBAL: WIZ8 0x00652db8
-unsigned char g_environ_ground_latch_00652db8;
+bool g_environ_ground_latch_00652db8;
 
 // FUNCTION: WIZ8 0x00421800
 void W8EnvironRecord::SetScaledMotion00421800(const srVector3T<float>* motion)
@@ -1166,10 +1166,10 @@ unsigned char W8GameData::AdvanceEnvironmentMotion0041AB40()
             level->vector_a0 = environ_delta;
             if (g_environment_motion_active_00603ad1 == 0) {
                 if ((g_level_data_00652dac->flags & 4) != 0 && forced_exit == 0) {
-                    g_environ_ground_latch_00652db8 = 1;
+                    g_environ_ground_latch_00652db8 = true;
                 }
             } else {
-                g_environ_ground_latch_00652db8 = 0;
+                g_environ_ground_latch_00652db8 = false;
             }
             g_environ_00652DB4->ground_latch_04 = g_environ_ground_latch_00652db8;
 
@@ -2448,7 +2448,7 @@ bool HasLevelDataVector(void)
 // GLOBAL: WIZ8 0x00652db4
 W8EnvironRecord* g_environ_00652DB4;
 // GLOBAL: WIZ8 0x00652dcc
-unsigned char g_flag_00652dcc;
+bool g_flag_00652dcc;
 
 /* The camera-sway mode halves navigator gravity, mirrors it into the active
    environment record and swaps the camera forward scale; the flag guards both
@@ -2501,7 +2501,7 @@ void W8GameData::ReleaseLevelData0041A9E0()
     g_game_time_accumulator_6598bc = 0;
     g_octree_game_data_00652db0 = 0;
     if (g_flag_00652dcc != 0) {
-        g_flag_00652dcc = 0;
+        g_flag_00652dcc = false;
     }
 }
 
@@ -2592,14 +2592,14 @@ float MoveTimer(int value)
     if (g_shared_timers_paused_00652dce != 0) {
         if ((value == 8 && g_current_screen_state.id == 7) || value == 4) {
             ResumeSharedGameTimers00439CA0();
-            g_shared_timers_paused_00652dce = 0;
+            g_shared_timers_paused_00652dce = false;
         } else {
             return g_float_005ebb34;
         }
     }
     if (value == 1) {
         PauseSharedGameTimers00439BC0();
-        g_shared_timers_paused_00652dce = 1;
+        g_shared_timers_paused_00652dce = true;
     }
     return g_game_time_accumulator_6598bc->GetFrameDelta();
 }
@@ -2815,8 +2815,8 @@ W8LevelDataRecord::W8LevelDataRecord() : interval_gate_c4()
     frame_elapsed_28 = 0;
     movement_limit_2c = 0;
     movement_progress_30 = 0;
-    flag_ec = 0;
-    flag_ed = 0;
+    flag_ec = false;
+    flag_ed = false;
     vertical_motion_f0 = 0;
     footstep_accumulator_10 = -2000.0f;
     primary_contact_prop_id = -1;

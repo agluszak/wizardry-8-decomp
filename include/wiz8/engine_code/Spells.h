@@ -36,9 +36,8 @@ W8SpellVisual* SpawnCameraSpellEffect(const char* name, int power_level, int val
                                       int flags); /* 0x004AD080 */
 /* Load one named visual from the spell bitmap directory; the out pointer is
    set only on success. */
-unsigned char LoadSpellVisualResource004AB580(const W8GrCycleLoadContext* context, const char* name,
-                                              W8SpellVisualMode group, W8SpellVisual** visual,
-                                              int unused);
+bool LoadSpellVisualResource004AB580(const W8GrCycleLoadContext* context, const char* name,
+                                     W8SpellVisualMode group, W8SpellVisual** visual, int unused);
 /* Create one spell visual from the spell's own record resource. Engine
    Code\Spells.cpp's factory, whose result the queued effect owns. */
 W8SpellVisual* SpawnSpellEffect(const srVector3T<float>* position, const char* resource_name,

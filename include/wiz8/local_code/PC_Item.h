@@ -128,8 +128,8 @@ void ReplaceOrCreateItem(W8ItemInstance* item, int item_id, unsigned char maximu
 void SwapItemInstances(W8ItemInstance* item, W8ItemInstance* destination, W8Character* character,
                        unsigned char refresh); /* 0x0051FD20 */
 void NormalizeItemStack(W8ItemInstance* item);
-unsigned char MergeItemStacks(W8ItemInstance* destination, W8ItemInstance* source,
-                              unsigned char* partially_merged);
+bool MergeItemStacks(W8ItemInstance* destination, W8ItemInstance* source,
+                     unsigned char* partially_merged);
 void MergeItemUses(W8Character* character, W8ItemInstance* into, W8ItemInstance* from);
 void UpdateFactsAfterAcquiringItem(const W8ItemInstance* item);
 void DeliverExceptionalItemReaction(W8ItemInstance* item, unsigned char choose_character,

@@ -4,7 +4,7 @@
 #include "wiz8/local_screens/Screens.h"
 
 extern int g_music_sample_handle_60aae0;
-extern unsigned char g_music_playlist_active_65ba7e;
+extern bool g_music_playlist_active_65ba7e;
 extern int g_music_playlist_weight_total_65ba80;
 extern int g_music_playlist_track_count_65ba84;
 extern int g_music_state_60aae8;
@@ -17,6 +17,6 @@ unsigned char StartMusicResource0048FC10(const char* resource, int immediate, in
 void ServiceMusicPlaylist0048F9E0(void);
 void StopMusicPlaylist(unsigned char fade);
 
-char IsCurrentMusicPlaylist(const char* playlist);
+bool IsCurrentMusicPlaylist(const char* playlist);
 
 #endif

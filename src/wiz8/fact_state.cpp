@@ -320,7 +320,7 @@ unsigned char EvaluateFact(int fact_id)
                 if (CountItemOnParty(0x1c4, 0, 0, 2) < 5) {
                     return 0;
                 }
-                g_status_685170.fact_88_latch_40c1 = 1;
+                g_status_685170.fact_88_latch_40c1 = true;
                 return 1;
             }
             break;

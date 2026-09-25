@@ -34,9 +34,9 @@ float g_render_brightness_60a210 = 1.0f;
 // GLOBAL: WIZ8 0x0060E610
 float g_render_fog_distance_60e610 = 0.5f;
 // GLOBAL: WIZ8 0x0060A20C
-unsigned char g_render_flag_60a20c = 1;
+bool g_render_flag_60a20c = true;
 // GLOBAL: WIZ8 0x00603C6C
-unsigned char g_render_flag_603c6c = 1;
+bool g_render_flag_603c6c = true;
 
 // FUNCTION: WIZ8 0x0047b570
 void DestroyRenderQuality0047B570(void)

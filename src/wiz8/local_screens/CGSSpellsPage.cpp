@@ -135,7 +135,7 @@ void W8CharacterSpellList::Redraw(int force)
             SetObjectShade(g_wiz_text_font_secondary_object_683680, 4);
         }
         m_range->Invalidate(0);
-        m_dirty = 0;
+        m_dirty = false;
     }
 }
 

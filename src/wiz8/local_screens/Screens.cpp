@@ -124,8 +124,8 @@ void RequestPartySlotRedraw(int bit)
 void RefreshPartySlotDisplay(unsigned int party_slot)
 {
     unsigned int top;
-    unsigned char overlay_ready;
-    char highlighted;
+    bool overlay_ready;
+    bool highlighted;
 
     switch (g_current_screen_state.id) {
     case W8_SCREEN_CHARACTER:
@@ -379,7 +379,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->camera_mode_100 = 7;
     g_level_block->message_box_pending_0f0 = IsMessageBoxActive();
     g_level_block->portrait_strip_dirty_108 = 0;
-    g_level_block->flag_210 = 0;
+    g_level_block->flag_210 = false;
     g_level_block->value_194 = -1;
     g_level_block->highlight_override = -1;
     g_level_block->party_slots_170[0] = -1;
@@ -420,7 +420,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->countdown_258 = SetCountdownClock(60000);
     g_level_block->countdown_25c = SetCountdownClock(0);
     g_level_block->countdown_26c = SetCountdownClock(0xfa);
-    g_level_block->flag_270 = 1;
+    g_level_block->flag_270 = true;
     g_level_block->text_box_visible_271 = 1;
     g_level_block->dialogue_text_input_open = 0;
     g_level_block->mipe_editing_272 = 0;
@@ -454,7 +454,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->value_2f4 = -1;
     g_level_block->selection_settled = 0;
     g_level_block->tooltip_since = 0;
-    g_level_block->tooltip_pending = 0;
+    g_level_block->tooltip_pending = false;
     g_level_block->tooltip_subject = -1;
     g_level_block->tooltip_kind = -1;
     g_level_block->countdown_30c = SetCountdownClock(0);
@@ -463,7 +463,7 @@ void InitializeMainGameLevelBlock(void)
     g_level_block->hover_combat_slot = -1;
     g_level_block->cursor_grace_31c = 0;
     g_level_block->countdown_320 = SetCountdownClock(0);
-    g_level_block->portrait_right_hold_armed = 0;
+    g_level_block->portrait_right_hold_armed = false;
     g_level_block->formation_board_alternate = 0;
     g_level_block->radar_map_alternate = 0;
     g_level_block->review_transition_active = 0;

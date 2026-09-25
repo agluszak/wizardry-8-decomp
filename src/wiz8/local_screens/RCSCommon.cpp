@@ -674,8 +674,7 @@ void ShowDismissCharacterDialog(void)
 // FUNCTION: WIZ8 0x005b6a60
 void OnDismissCharacterDialogClosed(W8DialogBase* base)
 {
-    if (GetDialogResult(base) &&
-        g_status_685170.buffers.XChar[giReviewCharSlot].npc_index != -1) {
+    if (GetDialogResult(base) && g_status_685170.buffers.XChar[giReviewCharSlot].npc_index != -1) {
         gXStatus.review_character_slot = static_cast<unsigned short>(giReviewCharSlot);
         DismissSelectedPartyCharacter();
     }
@@ -1709,7 +1708,7 @@ static void CampItemAction005B5E60(void)
 void CloseFormationPanel(void)
 {
     DestroyFormationPanel();
-    gXStatus.fReviewCharacterMode = 0;
+    gXStatus.fReviewCharacterMode = false;
     UpdateHeldItemCursor();
     RegionSetDisable(0x1b);
     RequestRedraw(0x200);

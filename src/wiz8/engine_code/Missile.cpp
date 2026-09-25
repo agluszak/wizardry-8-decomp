@@ -1361,7 +1361,7 @@ void W8Missile::DetonateMissileSpell004A49E0()
     source.iChar = m_Source.iChar;
     source.iType = W8_TARGET_SOURCE_CHARACTER;
     source.point = position;
-    source.aim_resolved_1a = 1;
+    source.aim_resolved_1a = true;
     ResetCombatSlot(&target);
     target.iType = W8_TARGET_KIND_PLACE;
     target.point = position;

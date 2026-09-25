@@ -2,7 +2,7 @@
 #define WIZ8_ITEM_VIDEO_OBJECT_VECTOR_H
 
 struct W8ItemVideoObjectEntry {
-    unsigned char initialized;
+    bool initialized;
     unsigned char padding_01[3];
     int video_object;
 

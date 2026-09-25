@@ -262,9 +262,9 @@ void UpdateSubMenuButton(int index)
 void SubMenuButtonPendingScreen(W8DialogButton* button)
 {
     button->SetPressed(0);
-    button->m_dirty = 1;
+    button->m_dirty = true;
     if (gXStatus.fNpcDialogueMode != 0) {
-        gXStatus.fCampMode = 1;
+        gXStatus.fCampMode = true;
     }
     SetPendingScreenState(W8_SCREEN_JOURNAL);
 }
@@ -335,7 +335,7 @@ void SubMenuButtonUseItem(W8DialogButton* button)
         }
         SetSubMenuButtonTooltips(0);
         g_submenu_clock_69b880 = SetCountdownClock(0);
-        g_submenu_flag_69b8d4 = 0;
+        g_submenu_flag_69b8d4 = false;
         RequestRedraw(0x200);
         ResetClickedMode();
         return;
@@ -400,7 +400,7 @@ void SubMenuButtonOpenMenu0(W8DialogButton* button)
     }
     SetSubMenuButtonTooltips(0);
     g_submenu_clock_69b880 = SetCountdownClock(0);
-    g_submenu_flag_69b8d4 = 0;
+    g_submenu_flag_69b8d4 = false;
     RequestRedraw(0x200);
 }
 
@@ -448,7 +448,7 @@ void SubMenuButtonOpenMenu1(W8DialogButton* button)
     }
     SetSubMenuButtonTooltips(0);
     g_submenu_clock_69b880 = SetCountdownClock(0);
-    g_submenu_flag_69b8d4 = 0;
+    g_submenu_flag_69b8d4 = false;
     RequestRedraw(0x200);
 }
 
@@ -532,7 +532,7 @@ void ReopenSubMenuPanel(void)
     }
     SetSubMenuButtonTooltips(0);
     g_submenu_clock_69b880 = SetCountdownClock(0);
-    g_submenu_flag_69b8d4 = 0;
+    g_submenu_flag_69b8d4 = false;
     RequestRedraw(0x200);
 }
 
@@ -918,10 +918,10 @@ W8SubMenuEntryState GetSubMenuEntryState(short menu, short item, int party_slot)
 void MapSubMenuSelection(short menu, short item)
 {
     int action;
-    unsigned char settled;
+    bool settled;
 
     action = -1;
-    settled = 0;
+    settled = false;
     switch (menu) {
     case W8_SUBMENU_ATTACK:
         switch (item) {
@@ -956,7 +956,7 @@ void MapSubMenuSelection(short menu, short item)
             action = W8_ACTION_USE_ITEM;
         } else if (item == 2) {
             action = W8_ACTION_USE_ITEM;
-            settled = 1;
+            settled = true;
         }
         break;
     case W8_SUBMENU_SPELLS:
@@ -964,7 +964,7 @@ void MapSubMenuSelection(short menu, short item)
             action = W8_ACTION_CAST_SPELL;
         } else if (item == 1) {
             action = W8_ACTION_CAST_SPELL;
-            settled = 1;
+            settled = true;
         }
         break;
     case W8_SUBMENU_MOVE:

@@ -53,12 +53,12 @@ void BuildPlaneFromPoints0046D660(W8Plane* plane, const srVector3T<float>* first
 bool PointInsideFrustum0046D880(const srVector3T<float>* point, const W8Plane* planes);
 /* Report whether a sphere of `radius` at `point` reaches all six frustum
    planes (each plane distance may be as low as -radius). */
-unsigned char SphereInsideFrustum0046D8D0(const srVector3T<float>* point, float radius,
-                                          const W8Plane* planes);
+bool SphereInsideFrustum0046D8D0(const srVector3T<float>* point, float radius,
+                                 const W8Plane* planes);
 /* Point-in-triangle test via dominant-axis projection: `axis` selects the two
    planar components used. */
-unsigned char PointInsideTriangle0046D530(const srVector3T<float>* vertices, short axis,
-                                          const srVector3T<float>* point);
+bool PointInsideTriangle0046D530(const srVector3T<float>* vertices, short axis,
+                                 const srVector3T<float>* point);
 /* Build the six frustum planes from the eight sorted corner points. */
 void BuildFrustumPlanes0046D7E0(const srVector3T<float>* points, W8Plane* planes);
 /* Order a volume's eight corner points into the canonical (y,z,x)-sorted

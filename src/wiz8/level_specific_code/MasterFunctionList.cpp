@@ -67,7 +67,7 @@ W8WorldCursorNode* g_active_cursor_node_006834d4;
 // GLOBAL: WIZ8 0x006834d8
 W8Vector<W8MasterFunction>* g_master_functions_006834d8;
 // GLOBAL: WIZ8 0x006834dc
-unsigned char g_flag_006834dc;
+bool g_flag_006834dc;
 
 /* SGP full-volume scale: CreateAndPlaySoundNode multiplies its clamped
    loudness fraction by this to get the node's base volume. */
@@ -210,7 +210,7 @@ unsigned char DispatchWorldCursorNodeCommand004D9080(W8MonsterInfo* info, int co
     W8WorldCursorNode* node;
     W8WorldCursorNode* previous;
     int context;
-    unsigned char handled;
+    bool handled;
     unsigned char result;
 
     result = 0;
@@ -500,13 +500,13 @@ int NormalizeMasterFunctionValue004D9700(int value)
 #define MASTER_FUNCTION_CPP "C:\\Projects\\Wizardry 8\\Level Specific Code\\MasterFunctionList.cpp"
 
 // GLOBAL: WIZ8 0x006834DD
-unsigned char g_flag_006834dd;
+bool g_flag_006834dd;
 // GLOBAL: WIZ8 0x006109F0
-unsigned char g_flag_6109f0 = 1;
+bool g_flag_6109f0 = true;
 // GLOBAL: WIZ8 0x006834E0
 int g_value_6834e0;
 // GLOBAL: WIZ8 0x00652DA5
-unsigned char g_flag_652da5;
+bool g_flag_652da5;
 
 /* Fill the away camp chest from the level-0x26 item records stored in the
    current save. Records that are not world-persistent move into the chest
@@ -651,10 +651,10 @@ void InitializeLevelMasterFunctions004D6C50(int level)
             index)); /* reinterpret-ok: function entry stored as data */
         operator delete(entry);
     }
-    g_flag_006834dd = 0;
-    g_flag_6109f0 = 1;
+    g_flag_006834dd = false;
+    g_flag_6109f0 = true;
     g_value_6834e0 = level;
-    g_flag_652da5 = 0;
+    g_flag_652da5 = false;
     switch (level) {
     case 0:
         pTrigger = FindTriggerByName("ChaosMolori");
@@ -1368,7 +1368,7 @@ void InitializeLevelMasterFunctions004D6C50(int level)
         pTrigger->activation_callback_360 = Rift1TimeDorado004DB1C0;
         return;
     case 0x16:
-        g_flag_652da5 = 1;
+        g_flag_652da5 = true;
         g_byte_652da6 = FindItemOnParty(0x254, 0, 0, 0, 0);
         pTrigger = FindTriggerByName("HigardiChest01");
         if (pTrigger == 0) {

@@ -76,7 +76,7 @@
 W8GrowableVector<W8TriggerEvent*> g_timed_events_006599b8;
 
 // GLOBAL: WIZ8 0x006599C8
-unsigned char g_trigger_action_active_006599c8;
+bool g_trigger_action_active_006599c8;
 // GLOBAL: WIZ8 0x006599AC
 srVector3T<float> g_trigger_action_scene_offset_006599ac;
 // GLOBAL: WIZ8 0x00659908
@@ -998,7 +998,7 @@ void W8TriggerShakeEvent::Update()
             trigger_030->FinishAction();
         }
         if (repeat_034 != 0) {
-            completed_035 = 1;
+            completed_035 = true;
         }
     }
 }
@@ -1243,7 +1243,7 @@ void W8TriggerEvent::Update()
     case 0x2a:
     case 0x2b:
         trigger_030->uses_remaining = trigger_030->m_lData1;
-        completed_035 = 1;
+        completed_035 = true;
         break;
 
     case 0x3f: {
@@ -1281,7 +1281,7 @@ void W8TriggerEvent::Update()
     }
 
     if (repeat_034 != 0) {
-        completed_035 = 1;
+        completed_035 = true;
     }
 }
 
@@ -2272,9 +2272,9 @@ void Trigger::FinishAction()
             goto reactivate_linked_triggers;
         }
         if (m_pEvent != 0) {
-            m_pEvent->completed_035 = 1;
+            m_pEvent->completed_035 = true;
         }
-        g_trigger_action_active_006599c8 = 0;
+        g_trigger_action_active_006599c8 = false;
         goto finish_linked_triggers;
     }
 
@@ -2285,7 +2285,7 @@ void Trigger::FinishAction()
     switch (action_230) {
     case 0x0c:
         if (m_pEvent != 0 && m_lData2 > 0) {
-            m_pEvent->completed_035 = 1;
+            m_pEvent->completed_035 = true;
         }
         action_completed = true;
         break;
@@ -2301,9 +2301,9 @@ void Trigger::FinishAction()
 
     case 0x39:
         if (m_pEvent != 0) {
-            m_pEvent->completed_035 = 1;
+            m_pEvent->completed_035 = true;
         }
-        g_trigger_action_active_006599c8 = 0;
+        g_trigger_action_active_006599c8 = false;
         action_completed = true;
         break;
     }

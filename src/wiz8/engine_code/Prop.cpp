@@ -349,7 +349,7 @@ char ResolvePickedProp(W8World* world)
     srVector3T<float> camera_position;
     unsigned int prop_count;
     int prop_index;
-    char valid;
+    bool valid;
 
     g_selected_prop_trigger_00659a60 = 0;
     g_selected_prop_index_00607b98 = -1;
@@ -1981,7 +1981,7 @@ int GetSelectedPropIndex0044DA60(void)
    trigger, run that trigger and post the nothing-happened / special-item
    notice. Clearing the pick also clears the latch. */
 // FUNCTION: WIZ8 0x0044DA20
-unsigned char ActivateSelectedProp0044DA20(void)
+bool ActivateSelectedProp0044DA20(void)
 {
     if (GetPickedModelInstance00427810() == 0) {
         g_selected_prop_trigger_00659a60 = 0;

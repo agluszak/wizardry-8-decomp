@@ -39,9 +39,9 @@ struct W8TargetSource {
     unsigned char name_known_19;
     /* 0x1a: the cast's aim was already resolved; MonsterCanAimSpell retargeting
        is skipped. */
-    unsigned char aim_resolved_1a;
-    unsigned char fReflection; /* 0x1b */
-    unsigned char fBackfire;   /* 0x1c */
+    bool aim_resolved_1a;
+    bool fReflection; /* 0x1b */
+    bool fBackfire;   /* 0x1c */
     /* 0x1d: the cast's source was resolved to a point, not a creature;
        missile/spell paths then skip the monster's spell vertex. */
     unsigned char point_source_1d;

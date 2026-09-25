@@ -117,9 +117,9 @@ void W8ProfRaceInfoDialogBase::Draw()
         if (m_initialized == 0) {
             CreateControls();
         }
-        m_text_area_118.m_dirty = 1;
-        m_scroll_bar_084.m_dirty = 1;
-        m_button_0d0.m_dirty = 1;
+        m_text_area_118.m_dirty = true;
+        m_scroll_bar_084.m_dirty = true;
+        m_button_0d0.m_dirty = true;
         W8DialogBase::Draw();
         DrawCatalogImageAndInvalidate(-0xe, m_uiTitleId, 0, m_uiSummaryId, m_x + 0xd, m_y + 0xd, 2,
                                       0);
@@ -183,7 +183,7 @@ unsigned char W8ProfRaceInfoDialogBase::PopulateText()
 void W8ProfRaceInfoDialogBase::OnRightButtonUp()
 {
     if (m_right_button_down) {
-        m_keep_open = 0;
+        m_keep_open = false;
     }
 }
 
@@ -218,7 +218,7 @@ void W8ProfRaceInfoDialogBase::ScrollCallback(W8DialogScrollBar* scroll_bar,
         bottom = top + 0xb8;
         InvalidateRegion(left, top, right, bottom, 0);
         BlitCatalogSurfaceRectTo16BPP(-0xe, left, top, right, bottom, 0x1b6, 0, 0);
-        dialog->m_text_area_118.m_dirty = 1;
+        dialog->m_text_area_118.m_dirty = true;
     }
 }
 

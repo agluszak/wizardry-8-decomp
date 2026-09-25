@@ -263,7 +263,7 @@ void RemoveNpcScriptItem(W8ItemInstance* item, int match_item_id, int item_id)
                     return;
                 }
                 SetNpcQuoteBubbleVisible(true, text, 0, -1, 0x47);
-                g_npc_scripting.voice_playing = 0;
+                g_npc_scripting.voice_playing = false;
                 g_npc_scripting.message_duration_ms = 2000;
                 g_npc_scripting.last_tick = GetTickCount();
                 g_npc_scripting.message_started_at = GetTickCount();
@@ -293,7 +293,7 @@ void RemoveNpcScriptItem(W8ItemInstance* item, int match_item_id, int item_id)
                 return;
             }
             SetNpcQuoteBubbleVisible(true, text, 0, -1, 0x47);
-            g_npc_scripting.voice_playing = 0;
+            g_npc_scripting.voice_playing = false;
             g_npc_scripting.message_duration_ms = 2000;
             g_npc_scripting.last_tick = GetTickCount();
             g_npc_scripting.message_started_at = GetTickCount();
@@ -344,7 +344,7 @@ int g_staged_value_68c3c8;
 // GLOBAL: WIZ8 0x0068c3ce
 short g_staged_short_68c3ce;
 // GLOBAL: WIZ8 0x0068c3d0
-unsigned char g_staged_flag_68c3d0;
+unsigned char g_staged_flag_68c3d0; // bool-byte-ok: stages the raw quote_active byte
 // GLOBAL: WIZ8 0x0068c3d8
 W8NpcScriptFile* g_staged_value_68c3d8;
 // GLOBAL: WIZ8 0x0068c3dc
@@ -481,7 +481,7 @@ void UpdateNpcDialogueVoiceAndCursor(void)
 void ProcessNpcScriptingFrame(void)
 {
     W8Character* character;
-    unsigned char can_open_dialogue;
+    bool can_open_dialogue;
     char dialogue_ready;
     int environment;
     int party_slot;
@@ -674,7 +674,7 @@ void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_index,
         sprintf(voice_path, "Data\\Sound\\NPCs\\Dialogue Alert.wav");
         swprintf(display_text, L"%S", quote->subquotes[subquote_index]);
         if (notice_only == 0) {
-            g_npc_scripting.portrait_message_active = 1;
+            g_npc_scripting.portrait_message_active = true;
             SetNpcQuoteBubbleVisible(1, display_text, 0, -1, -1);
             g_npc_scripting.message_duration_ms = wcslen(display_text) * 60 + 2000;
             g_npc_scripting.message_started_at = GetTickCount();
@@ -733,7 +733,7 @@ void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_index,
                 g_empty_quote_text_index = 0;
             }
             SetNpcQuoteBubbleVisible(1, plain_text, 0, -1, 0x47);
-            g_npc_scripting.voice_playing = 0;
+            g_npc_scripting.voice_playing = false;
             g_npc_scripting.message_duration_ms = 2000;
             g_npc_scripting.last_tick = GetTickCount();
             g_npc_scripting.message_started_at = GetTickCount();
@@ -787,7 +787,7 @@ void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_index,
         }
         g_npc_scripting.last_tick = GetTickCount();
         if (g_npc_scripting.voice_handle == -1) {
-            g_npc_scripting.voice_playing = 0;
+            g_npc_scripting.voice_playing = false;
             g_npc_scripting.message_duration_ms = wcslen(display_text) * 60 + 2000;
             g_npc_scripting.message_started_at = GetTickCount();
             entry = GetNpcGroupEntry(g_npc_scripting.npc);
@@ -799,7 +799,7 @@ void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_index,
                 entry->voice_time_remaining_ms = g_npc_scripting.message_duration_ms;
             }
         } else {
-            g_npc_scripting.voice_playing = 1;
+            g_npc_scripting.voice_playing = true;
             entry = GetNpcGroupEntry(g_npc_scripting.npc);
             if (entry != 0) {
                 SetPartyPortraitEventState(g_npc_scripting.npc->group_index, 1,
@@ -833,7 +833,7 @@ void SpeakNpcSubquote(W8NpcScriptQuote* quote, unsigned char subquote_index,
 void FinishNpcVoicePlayback(unsigned char resume_script)
 {
     if (g_npc_scripting.portrait_message_active != 0) {
-        g_npc_scripting.portrait_message_active = 0;
+        g_npc_scripting.portrait_message_active = false;
         SetNpcQuoteBubbleVisible(0, 0, 0, -1, -1);
         g_npc_scripting.staging_restore.finished_quote_index =
             g_npc_scripting.staging_restore.current_quote_index;
@@ -841,7 +841,7 @@ void FinishNpcVoicePlayback(unsigned char resume_script)
     }
     if (g_npc_scripting.quote_active != 0) {
         if (g_npc_scripting.voice_playing != 0) {
-            g_npc_scripting.voice_playing = 0;
+            g_npc_scripting.voice_playing = false;
             if (g_npc_scripting.voice_handle != -1) {
                 g_npc_scripting.stopping_voice_playback = 1;
                 SoundStop(static_cast<unsigned int>(g_npc_scripting.voice_handle));
@@ -1250,7 +1250,7 @@ void RunNpcScriptLine(int script_line, unsigned char force_npc_voice)
             }
         }
         if (g_npc_scripting.dialogue_cancelled_c4 != 0) {
-            g_npc_scripting.dialogue_cancelled_c4 = 0;
+            g_npc_scripting.dialogue_cancelled_c4 = false;
             return;
         }
         if (response >= 0) {
@@ -1401,7 +1401,7 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
         } else {
             AddItemToPartyOrDrop(&item, 0);
             SetNpcQuoteBubbleVisible(1, notice_text, 0, -1, 0x47);
-            g_npc_scripting.voice_playing = 0;
+            g_npc_scripting.voice_playing = false;
             g_npc_scripting.message_duration_ms = 2000;
             g_npc_scripting.last_tick = GetTickCount();
             g_npc_scripting.message_started_at = GetTickCount();
@@ -1424,7 +1424,7 @@ void ProcessNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote)
                  entry->operand_01);
         AddPartyGold(entry->operand_01, 0);
         SetNpcQuoteBubbleVisible(1, notice_text, 0, -1, 0x47);
-        g_npc_scripting.voice_playing = 0;
+        g_npc_scripting.voice_playing = false;
         g_npc_scripting.message_duration_ms = 2000;
         g_npc_scripting.last_tick = GetTickCount();
         g_npc_scripting.message_started_at = GetTickCount();
@@ -1588,7 +1588,7 @@ void ProcessMessageBoxQueue(void)
     switch (static_cast<int>(line->type)) {
     case W8_NPC_MSG_CLOSE_DIALOGUE:
         CloseNpcDialogueIfActive();
-        g_flag_6109f0 = 1;
+        g_flag_6109f0 = true;
         break;
     case W8_NPC_MSG_QUOTE_ENTRY:
         ProcessNpcQuoteEntry(line->quote_entry, line->continuation_quote);
@@ -1635,7 +1635,7 @@ void ProcessMessageBoxQueue(void)
     }
     case W8_NPC_MSG_JOURNAL_QUOTE:
         SetNpcQuoteBubbleVisible(1, gppStringList[0x74a], 0, -1, 0x47);
-        g_npc_scripting.voice_playing = 0;
+        g_npc_scripting.voice_playing = false;
         g_npc_scripting.message_duration_ms = 2000;
         g_npc_scripting.last_tick = GetTickCount();
         g_npc_scripting.message_started_at = GetTickCount();
@@ -1645,7 +1645,7 @@ void ProcessMessageBoxQueue(void)
         break;
     case W8_NPC_MSG_PORTRAIT_STRING: {
         int string_index = line->payload_10.argument;
-        g_npc_scripting.portrait_message_active = 1;
+        g_npc_scripting.portrait_message_active = true;
         SetNpcQuoteBubbleVisible(1, gppStringList[string_index], 0, -1, -1);
         g_npc_scripting.message_duration_ms =
             ComputePortraitMessageDuration(gppStringList[string_index]);
@@ -1737,7 +1737,7 @@ void ProcessMessageBoxQueue(void)
             }
             delete skill_changes;
         } else {
-            g_npc_scripting.portrait_message_active = 1;
+            g_npc_scripting.portrait_message_active = true;
             SetNpcQuoteBubbleVisible(1, line->payload_10.text, 0, -1, -1, 2, line->extra.raw, -1);
             g_npc_scripting.message_duration_ms =
                 ComputePortraitMessageDuration(line->payload_10.text);
@@ -1775,14 +1775,14 @@ void ProcessMessageBoxQueue(void)
         break;
     }
     case W8_NPC_MSG_PORTRAIT_EXTRA:
-        g_npc_scripting.portrait_message_active = 1;
+        g_npc_scripting.portrait_message_active = true;
         SetNpcQuoteBubbleVisible(1, line->payload_10.text, 0, -1, -1, 1, line->extra.raw, -1);
         g_npc_scripting.message_duration_ms = ComputePortraitMessageDuration(line->payload_10.text);
         g_npc_scripting.message_started_at = GetTickCount();
         delete[] line->payload_10.text;
         break;
     case W8_NPC_MSG_PORTRAIT_MESSAGE:
-        g_npc_scripting.portrait_message_active = 1;
+        g_npc_scripting.portrait_message_active = true;
         SetNpcQuoteBubbleVisible(1, line->payload_10.text, 0, -1, -1);
         g_npc_scripting.message_duration_ms = ComputePortraitMessageDuration(line->payload_10.text);
         g_npc_scripting.message_started_at = GetTickCount();
@@ -1796,7 +1796,7 @@ void ProcessMessageBoxQueue(void)
                       0); // c-style-cast-ok: released SGP textual API uses UINT8 pointer spelling
             delete[] line->payload_10.text;
         } else {
-            g_npc_scripting.portrait_message_active = 1;
+            g_npc_scripting.portrait_message_active = true;
             SetNpcQuoteBubbleVisible(1, line->payload_10.text, 0, -1, -1, 3, line->extra.raw, -1);
             g_npc_scripting.message_duration_ms =
                 ComputePortraitMessageDuration(line->payload_10.text);
@@ -2464,7 +2464,7 @@ void QueueNpcQuoteEntry(W8NpcQuoteEntry* entry, int continuation_quote, unsigned
 // FUNCTION: WIZ8 0x00529560
 void CancelNpcDialogue(void)
 {
-    g_npc_scripting.dialogue_cancelled_c4 = 1;
+    g_npc_scripting.dialogue_cancelled_c4 = true;
 }
 
 /* Raise the quote bubble over `text` and, when `play_sound` is set, kick off
@@ -2476,7 +2476,7 @@ void DisplayNpcQuote00529570(const wchar_t* text, char play_sound)
     SOUNDPARMS sound_parms;
 
     SetNpcQuoteBubbleVisible(true, text, 0, -1, 0x47);
-    g_npc_scripting.voice_playing = 0;
+    g_npc_scripting.voice_playing = false;
     g_npc_scripting.message_duration_ms = 2000;
     g_npc_scripting.last_tick = GetTickCount();
     g_npc_scripting.message_started_at = GetTickCount();
@@ -2791,7 +2791,7 @@ void ResolveSedexusCapture(void)
     }
 }
 // FUNCTION: WIZ8 0x0052A070
-unsigned char IsSedexusCaptureActive(void)
+bool IsSedexusCaptureActive(void)
 {
     return g_npc_scripting.sedexus_capture_active;
 }

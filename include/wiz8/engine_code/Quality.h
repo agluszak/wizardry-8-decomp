@@ -35,5 +35,5 @@ bool SaveRenderOptions0047B920(int handle);
 
 extern float g_render_brightness_60a210;
 extern float g_render_fog_distance_60e610;
-extern unsigned char g_render_flag_60a20c;
-extern unsigned char g_render_flag_603c6c;
+extern bool g_render_flag_60a20c;
+extern bool g_render_flag_603c6c;

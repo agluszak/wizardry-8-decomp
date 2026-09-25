@@ -42,7 +42,7 @@ struct W8NpcScriptingState {
     unsigned char quote_active; // bool-byte-ok: staged-byte copy stays unnormalized
     /* 0x71: the quote's voice sound actually started; gates SoundStop and the
        mouth-gap cleanup in FinishNpcVoicePlayback. */
-    unsigned char voice_playing;
+    bool voice_playing;
     unsigned char unknown_72[6];
     W8NpcScriptFile* script_file;
     W8NpcState* npc;
@@ -55,9 +55,9 @@ struct W8NpcScriptingState {
     unsigned int last_tick;
     /* 0xc4: latched by CancelNpcDialogue; the response loop checks it at
        entries_done and abandons the pending response. */
-    unsigned char dialogue_cancelled_c4;
+    bool dialogue_cancelled_c4;
     unsigned char restore_staged_session;
-    unsigned char portrait_message_active;
+    bool portrait_message_active;
     bool scripted_scene_active;
     bool sedexus_release_pending;
     bool sedexus_capture_pending;
@@ -141,7 +141,7 @@ void OnNpcTravelConfirmationClosed(W8DialogBase* dialog);      /* 0x0052A1B0 */
 void UpdateNpcDialogueVoiceAndCursor(void);                    /* 0x00524DA0 */
 void ProcessNpcScriptingFrame(void);                           /* 0x00524EB0 */
 void SetNpcScriptEventActive(unsigned char value);             /* 0x0052A1A0 */
-unsigned char IsSedexusCaptureActive(void);                    /* 0x0052A070 */
+bool IsSedexusCaptureActive(void);                             /* 0x0052A070 */
 void QueueNpcMessageLine(W8NpcMessageKind kind, int argument); /* 0x005289B0 */
 /* 0x00528D50: resolves NPC-name, named-person, and region keywords to a quote
    id; returns -1 when nothing matches. */

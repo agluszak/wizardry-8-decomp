@@ -143,7 +143,7 @@ void UpdateGameClock00502010(int elapsed)
         }
     } else {
         g_status_685170.camp_tick_ms_2436 = 0;
-        g_status_685170.party_fatigued_2433 = 0;
+        g_status_685170.party_fatigued_2433 = false;
         g_status_685170.camp_fatigue_count_2498 = 0;
     }
 
@@ -180,7 +180,7 @@ void UpdateGameClock00502010(int elapsed)
             }
             DisableMenuButtonBanks00598C70();
             RequestRedraw(0xff);
-            gXStatus.fSurprisePossible = 1;
+            gXStatus.fSurprisePossible = true;
             EnableRegionInput(0x137);
             ActivateDialogRegion(0x137);
             gXStatus.surprise_deadline_turns = 0;
@@ -245,7 +245,7 @@ void RequestCamp00502460(void)
         }
         DisableMenuButtonBanks00598C70();
         RequestRedraw(0xff);
-        gXStatus.fSurprisePossible = 1;
+        gXStatus.fSurprisePossible = true;
         EnableRegionInput(0x137);
         ActivateDialogRegion(0x137);
         gXStatus.surprise_deadline_turns = 0;
@@ -381,7 +381,7 @@ void ResolveSurpriseHold00502810(void)
 // FUNCTION: WIZ8 0x00502860
 void EndSurprise00502860(void)
 {
-    gXStatus.fSurprisePossible = 0;
+    gXStatus.fSurprisePossible = false;
     ResolveSurpriseWake005029E0();
     ClearActiveRegionIfMatches(0x137);
     DisableRegionInput(0x137);
@@ -421,7 +421,7 @@ void EndSurprise00502860(void)
 // FUNCTION: WIZ8 0x005029a0
 void RestoreSurpriseView005029A0(void)
 {
-    gXStatus.fSurprisePossible = 0;
+    gXStatus.fSurprisePossible = false;
     gXStatus.surprise_unengaged = 0;
     SetViewDistance(12.0f);
     SetNavigatorLinkMode00452F50(0);
@@ -1359,7 +1359,7 @@ void UpdateCampFatigue005044D0(int ticks)
                 }
             }
             if (g_status_685170.party_fatigued_2433 == 0) {
-                g_status_685170.party_fatigued_2433 = 1;
+                g_status_685170.party_fatigued_2433 = true;
                 ShowNotice(8, gppStringList[0x1da], -1, 0xffffffff, 0);
             }
         }
@@ -1369,7 +1369,7 @@ void UpdateCampFatigue005044D0(int ticks)
         return;
     }
     g_status_685170.camp_fatigue_count_2498 = 0;
-    g_status_685170.party_fatigued_2433 = 0;
+    g_status_685170.party_fatigued_2433 = false;
     g_status_685170.camp_tick_ms_2436 = 0;
 }
 

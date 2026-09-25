@@ -168,7 +168,7 @@ public:
     srModelInstance* current_model_instance_1a8;
     W8GrowableVector<stLight*>* m_plsLights;                  /* 0x1ac */
     W8GrowableVector<W8CameraShakeEffect*>* m_plsShakeEvents; /* 0x1b0 */
-    unsigned char m_fDeleteLights;                            /* 0x1b4: named by GrCycle.cpp:1656 */
+    bool m_fDeleteLights;                                     /* 0x1b4: named by GrCycle.cpp:1656 */
     /* 0x1b5: the subcycle the last update pass left on the representation. */
     unsigned char last_subcycle_1b5;
     unsigned char padding_1b6[2];
@@ -176,7 +176,7 @@ public:
     /* 0x1bc: set when the frame walk wrapped to first_frame; suppresses the
        per-subcycle light reset. */
     unsigned char wrapped_1bc;
-    unsigned char enabled_1bd;
+    bool enabled_1bd;
     /* 0x1be: mirror the model on X (the left-handed strike pick). */
     unsigned char mirror_x_1be;
     /* 0x1bf: m_axis_1c0 holds an aim point; mode-3 particles orient along it. */
@@ -201,10 +201,9 @@ extern float g_float_005ec128;
 W8GrCycle* FindFirstGrCycleByName(const char* name);
 unsigned char UnregisterGrCycle(W8GrCycle* cycle);
 void RegisterGrCycle(const char* name, W8GrCycle* cycle);
-unsigned char LoadGrCycle004A67E0(const W8GrCycleLoadContext* context, const char* mon_name,
-                                  W8GrCycle** cycle, int cycle_index, int value,
-                                  const char* directory, unsigned char object_type,
-                                  const char* bitmap_directory = 0);
+bool LoadGrCycle004A67E0(const W8GrCycleLoadContext* context, const char* mon_name,
+                         W8GrCycle** cycle, int cycle_index, int value, const char* directory,
+                         unsigned char object_type, const char* bitmap_directory = 0);
 unsigned char ReadGrCycleData004A6970(W8ReadLevelInfo* info, W8GrCycle** cycle, int cycle_index,
                                       int value, unsigned char object_type);
 int FindMappedIndexInMeshChain(stMeshModel** mesh, int key); /* 0x004A8D10 */

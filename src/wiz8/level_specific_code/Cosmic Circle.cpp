@@ -101,7 +101,7 @@ void CosmicCircleSetup004D9B40(void)
         if (FindEntityByName("NP_PHOONZANG1", &positionPhoonzang, 0, 0)) {
             SpawnMonsters(0x197, 1, &positionPhoonzang, 2, 1, 0, 0);
         }
-        g_status_685170.cc_arena_spawned_4972 = 1;
+        g_status_685170.cc_arena_spawned_4972 = true;
         pMonsterInfoDs->p3D->AimAtPosition(&positionAltheides);
         pMonsterInfoAltheides->p3D->AimAtPosition(&positionDs);
         pTrigger = FindTriggerByName("CC_TRIGGERPLANE2");

@@ -322,7 +322,7 @@ bool MartensBluff1TransportSpawn004DF160(void)
 // FUNCTION: WIZ8 0x004DF260
 void MartensBluff1Transporter004DF260(int command)
 {
-    g_flag_006834dc = 0;
+    g_flag_006834dc = false;
     if (command != 0) {
         int progress = 0;
 
@@ -357,7 +357,7 @@ void MartensBluff1Transporter004DF260(int command)
         return;
     }
     if (g_transport_gate_683568 == 0) {
-        g_flag_006834dc = 1;
+        g_flag_006834dc = true;
         return;
     }
     if (!g_transport_gate_683568->IsFinished()) {
@@ -372,7 +372,7 @@ void MartensBluff1Transporter004DF260(int command)
     }
     delete g_transport_gate_683568;
     g_transport_gate_683568 = 0;
-    g_flag_006834dc = 1;
+    g_flag_006834dc = true;
 }
 
 /* "MR109": the teleporter pad. Sends the party to the destination indexed by

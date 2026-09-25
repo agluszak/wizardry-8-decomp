@@ -216,7 +216,7 @@ W8Widget::W8Widget(Controls* owner, unsigned int region, int left, int top, int 
     m_pPanel = owner;
     m_enabled = 1;
     m_active = 0;
-    m_dirty = 0;
+    m_dirty = false;
     m_region = region;
     m_primaryActivationCallback = 0;
     m_leftButtonDownCallback = 0;
@@ -394,7 +394,7 @@ W8TextBuffer::W8TextBuffer()
     m_renderMode = 4;
     m_alternateRenderer = 0;
     m_fontStateIndex = -1;
-    m_flag_4c = 0;
+    m_flag_4c = false;
     m_layoutBounds.left = 0;
     m_layoutBounds.top = 0;
     m_layoutBounds.right = 0;
@@ -425,7 +425,7 @@ W8TextBuffer::W8TextBuffer(const W8ControlsRect* bounds, const wchar_t* text, in
     }
     m_renderMode = render_mode;
     m_fontStateIndex = -1;
-    m_flag_4c = 0;
+    m_flag_4c = false;
     m_layoutBounds = *bounds;
     m_pendingBounds = *bounds;
     m_lineCount = 0;
@@ -752,7 +752,7 @@ unsigned int W8TextBuffer::GetLineHeight()
 inline void W8TextControl::InvalidateCore(unsigned char immediate)
 {
     if (m_pPanel != 0) {
-        m_dirty = 1;
+        m_dirty = true;
         if (immediate) {
             m_pPanel->Invalidate(0);
         } else {
@@ -950,7 +950,7 @@ void W8TextControl::Redraw(int full_redraw)
             }
             ShadowVideoSurfaceRect(-14, m_pPanel->origin_x + m_left, m_pPanel->origin_y + m_top,
                                    m_pPanel->origin_x + m_right, m_pPanel->origin_y + m_bottom);
-            m_dirty = 0;
+            m_dirty = false;
             return;
         }
     } else if ((m_stateFlags & 1) == 0) {
@@ -986,7 +986,7 @@ void W8TextControl::Redraw(int full_redraw)
     if (m_textBuffer.HasBuffer()) {
         m_textBuffer.RenderToTarget(text_state, static_cast<unsigned char>(full_redraw), -14);
     }
-    m_dirty = 0;
+    m_dirty = false;
 }
 
 // FUNCTION: WIZ8 0x004f4460
@@ -1448,7 +1448,7 @@ public:
             (int)(((m_position - m_minimumPosition) / (m_maximumPosition - m_minimumPosition)) *
                   m_trackLength);
         if (m_pPanel != 0) {
-            m_dirty = 1;
+            m_dirty = true;
             m_pPanel->m_fLayoutDirty = 1;
             RequestRedraw(0x80000000);
             RequestRedraw(0x80000000);
@@ -1609,7 +1609,7 @@ inline void W8VerticalRangeThumb::ClampPositionAndInvalidate()
         (int)(((m_position - m_minimumPosition) / (m_maximumPosition - m_minimumPosition)) *
               m_trackLength);
     if (m_pPanel != 0) {
-        m_dirty = 1;
+        m_dirty = true;
         m_pPanel->m_fLayoutDirty = 1;
         RequestRedraw(0x80000000);
         RequestRedraw(0x80000000);
@@ -1727,7 +1727,7 @@ void W8VerticalRangeThumb::OnMouseMove(int event)
 
     bool hovered = (m_pixelPosition <= y && y <= m_pixelPosition + m_thumbHeight);
     if (hovered != m_hovered && m_pPanel != 0) {
-        m_dirty = 1;
+        m_dirty = true;
         m_pPanel->m_fLayoutDirty = 1;
         RequestRedraw(0x80000000);
         RequestRedraw(0x80000000);
@@ -1912,7 +1912,7 @@ void W8HelpTextControl::OnLeftButtonDoubleClick(int event)
 inline void W8HorizontalRangeThumb::InvalidateThumb()
 {
     if (m_pPanel != 0) {
-        m_dirty = 1;
+        m_dirty = true;
         m_pPanel->m_fLayoutDirty = 1;
         RequestRedraw(0x80000000);
         RequestRedraw(0x80000000);
@@ -2027,7 +2027,7 @@ void W8VerticalRangeThumb::OnMouseLeave(int event)
     if (m_hovered && !m_dragging) {
         m_hovered = false;
         if (m_pPanel != 0) {
-            m_dirty = 1;
+            m_dirty = true;
             if (static_cast<unsigned char>(event) != 0) {
                 m_pPanel->Invalidate(0);
                 RequestRedraw(0x80000000);
@@ -2047,7 +2047,7 @@ void W8HorizontalRangeThumb::OnMouseLeave(int event)
     if (m_hovered && !m_dragging) {
         m_hovered = false;
         if (m_pPanel != 0) {
-            m_dirty = 1;
+            m_dirty = true;
             if (static_cast<unsigned char>(event) != 0) {
                 m_pPanel->Invalidate(0);
                 RequestRedraw(0x80000000);
@@ -2310,7 +2310,7 @@ void W8Widget::DisableRegionHelp()
 void W8Widget::Invalidate(unsigned char immediate)
 {
     if (m_pPanel != 0) {
-        m_dirty = 1;
+        m_dirty = true;
         if (immediate) {
             m_pPanel->Invalidate(0);
             RequestRedraw(0x80000000);
