@@ -29,7 +29,10 @@ struct SourcePoint {
     unsigned line = 0;
     unsigned column = 0;
 
-    explicit operator bool() const { return !file.empty() && line != 0; }
+    explicit operator bool() const
+    {
+        return !file.empty() && line != 0;
+    }
 };
 
 static QualType canonical(QualType type)
@@ -106,12 +109,10 @@ static std::string normalized_words(llvm::StringRef name)
         const std::string suffix = out.substr(underscore + 1);
         const bool offset_like =
             suffix.size() >= 3 && suffix.size() <= 8 &&
-            std::any_of(suffix.begin(), suffix.end(), [](unsigned char value) {
-                return std::isdigit(value);
-            }) &&
-            std::all_of(suffix.begin(), suffix.end(), [](unsigned char value) {
-                return std::isxdigit(value);
-            });
+            std::any_of(suffix.begin(), suffix.end(),
+                        [](unsigned char value) { return std::isdigit(value); }) &&
+            std::all_of(suffix.begin(), suffix.end(),
+                        [](unsigned char value) { return std::isxdigit(value); });
         if (offset_like) {
             out.erase(underscore);
         }
@@ -132,8 +133,7 @@ static bool hungarian_flag_name(llvm::StringRef name)
     if (name.starts_with("gf")) {
         name = name.drop_front(1);
     }
-    return name.size() > 1 && name[0] == 'f' &&
-           std::isupper(static_cast<unsigned char>(name[1]));
+    return name.size() > 1 && name[0] == 'f' && std::isupper(static_cast<unsigned char>(name[1]));
 }
 
 static bool bool_like_name(llvm::StringRef name)
@@ -153,9 +153,8 @@ static bool bool_like_name(llvm::StringRef name)
     // A byte count/mask/id is not a bool merely because every recovered
     // producer currently happens to use 0 or 1 and consumers truth-test it.
     static constexpr llvm::StringLiteral non_boolean_words[] = {
-        "bit", "bits", "byte", "bytes", "code", "count", "id", "index", "kind",
-        "length", "mask", "mode", "num", "number", "offset", "size", "slot", "status",
-        "type",
+        "bit",  "bits", "byte", "bytes",  "code",   "count", "id",   "index",  "kind", "length",
+        "mask", "mode", "num",  "number", "offset", "size",  "slot", "status", "type",
     };
     for (llvm::StringRef word : words) {
         for (llvm::StringRef non_boolean : non_boolean_words) {
@@ -166,8 +165,8 @@ static bool bool_like_name(llvm::StringRef name)
     }
 
     static constexpr llvm::StringLiteral predicate_words[] = {
-        "all", "allows", "any", "both", "can", "contains", "did", "does", "has", "is",
-        "needs", "should", "supports", "uses", "wants", "was", "were", "will",
+        "all", "allows", "any",    "both",     "can",  "contains", "did", "does", "has",
+        "is",  "needs",  "should", "supports", "uses", "wants",    "was", "were", "will",
     };
     for (llvm::StringRef word : words) {
         for (llvm::StringRef predicate : predicate_words) {
@@ -178,19 +177,23 @@ static bool bool_like_name(llvm::StringRef name)
     }
 
     static constexpr llvm::StringLiteral boolean_words[] = {
-        "accepted", "active", "alive", "allowed", "applied", "armed", "available", "blocked",
-        "bound", "cancelled", "changed", "checked", "closed", "closing", "collapsed", "complete",
-        "completed", "confirmed", "created", "dead", "dirty", "disabled", "dismissed", "done",
-        "dragging", "drawn", "editing", "empty", "enabled", "engaged", "expired", "failed",
-        "fatigued", "finished", "flag", "flagged", "focused", "found", "handled", "held",
-        "hidden", "highlighted", "hostile", "hovered", "identified", "initialized", "inside",
-        "latch", "loaded", "locked", "matched", "merged", "missed", "moved", "moving", "muted",
-        "noticed", "occupied", "open", "outside", "paused", "pending", "placed", "played",
-        "playing", "prepared", "present", "pressed", "queued", "reached", "ready", "redraw",
-        "removed", "reported", "required", "resolved", "restored", "running", "saved",
-        "scrollable", "searching", "seen", "selected", "settled", "shown", "silent", "spawned",
-        "started", "stopped", "success", "successful", "surprised", "suspended", "talking",
-        "toggled", "used", "valid", "visible", "visited", "waiting", "warned", "writing",
+        "accepted",   "active",     "alive",      "allowed",     "applied",   "armed",
+        "available",  "blocked",    "bound",      "cancelled",   "changed",   "checked",
+        "closed",     "closing",    "collapsed",  "complete",    "completed", "confirmed",
+        "created",    "dead",       "dirty",      "disabled",    "dismissed", "done",
+        "dragging",   "drawn",      "editing",    "empty",       "enabled",   "engaged",
+        "expired",    "failed",     "fatigued",   "finished",    "flag",      "flagged",
+        "focused",    "found",      "handled",    "held",        "hidden",    "highlighted",
+        "hostile",    "hovered",    "identified", "initialized", "inside",    "latch",
+        "loaded",     "locked",     "matched",    "merged",      "missed",    "moved",
+        "moving",     "muted",      "noticed",    "occupied",    "open",      "outside",
+        "paused",     "pending",    "placed",     "played",      "playing",   "prepared",
+        "present",    "pressed",    "queued",     "reached",     "ready",     "redraw",
+        "removed",    "reported",   "required",   "resolved",    "restored",  "running",
+        "saved",      "scrollable", "searching",  "seen",        "selected",  "settled",
+        "shown",      "silent",     "spawned",    "started",     "stopped",   "success",
+        "successful", "surprised",  "suspended",  "talking",     "toggled",   "used",
+        "valid",      "visible",    "visited",    "waiting",     "warned",    "writing",
         "zoomed",
     };
     for (llvm::StringRef word : words) {
@@ -217,19 +220,20 @@ static bool bool_like_function_name(llvm::StringRef name)
     // Thus CanOpenNpcDialogue remains eligible, while OpenRendererWindow,
     // MonsterReadAllCycles and LoadSavedLevelItems do not.
     static constexpr llvm::StringLiteral action_words[] = {
-        "check", "clear", "create", "destroy", "init", "initialize", "load", "open",
-        "read", "release", "remove", "resize", "save", "set", "take", "update", "write",
+        "check",   "clear",  "create", "destroy", "init", "initialize", "load",   "open",  "read",
+        "release", "remove", "resize", "save",    "set",  "take",       "update", "write",
     };
     static constexpr llvm::StringLiteral evidence_words[] = {
-        "accepted", "active", "alive", "all", "allowed", "allows", "any", "available",
-        "both", "can", "changed", "checked", "closed", "complete", "completed", "contains",
-        "dead", "did", "dirty", "disabled", "does", "done", "empty", "enabled", "failed",
-        "finished", "focused", "found", "handled", "has", "hidden", "hostile", "hovered",
-        "inside", "is", "loaded", "locked", "missing", "muted", "needs", "occupied", "outside",
-        "pending", "prepared", "present", "pressed", "ready", "required", "running", "saved",
-        "scrollable", "selected", "settled", "should", "started", "success", "successful",
-        "supports", "toggled", "uses", "valid", "visible", "wants", "was", "were", "will",
-        "writing",
+        "accepted",   "active",     "alive",    "all",     "allowed",  "allows",   "any",
+        "available",  "both",       "can",      "changed", "checked",  "closed",   "complete",
+        "completed",  "contains",   "dead",     "did",     "dirty",    "disabled", "does",
+        "done",       "empty",      "enabled",  "failed",  "finished", "focused",  "found",
+        "handled",    "has",        "hidden",   "hostile", "hovered",  "inside",   "is",
+        "loaded",     "locked",     "missing",  "muted",   "needs",    "occupied", "outside",
+        "pending",    "prepared",   "present",  "pressed", "ready",    "required", "running",
+        "saved",      "scrollable", "selected", "settled", "should",   "started",  "success",
+        "successful", "supports",   "toggled",  "uses",    "valid",    "visible",  "wants",
+        "was",        "were",       "will",     "writing",
     };
 
     size_t first_action = words.size();
@@ -260,7 +264,8 @@ static bool bool_like_declaration_name(const NamedDecl* declaration)
 
 static bool is_candidate_variable(const ValueDecl* declaration)
 {
-    if (declaration == nullptr || declaration->isImplicit() || !is_byte_type(declaration->getType())) {
+    if (declaration == nullptr || declaration->isImplicit() ||
+        !is_byte_type(declaration->getType())) {
         return false;
     }
     if (isa<ParmVarDecl>(declaration)) {
@@ -329,13 +334,15 @@ public:
         if (directory == nullptr || directory[0] == '\0' || translation_unit == nullptr) {
             return;
         }
-        const std::string filename =
-            std::string(directory) + "/facts-" + std::to_string(static_cast<long long>(getpid())) +
-            ".tsv";
+        const std::string filename = std::string(directory) + "/facts-" +
+                                     std::to_string(static_cast<long long>(getpid())) + ".tsv";
         stream_.open(filename, std::ios::out | std::ios::app);
     }
 
-    bool enabled() const { return stream_.is_open(); }
+    bool enabled() const
+    {
+        return stream_.is_open();
+    }
 
     std::string key(const NamedDecl* declaration) const
     {
@@ -469,10 +476,7 @@ static void append_dependencies(std::vector<std::string>& target,
 
 class BoolFactVisitor final : public RecursiveASTVisitor<BoolFactVisitor> {
 public:
-    explicit BoolFactVisitor(FactWriter& writer)
-        : writer_(writer)
-    {
-    }
+    explicit BoolFactVisitor(FactWriter& writer) : writer_(writer) {}
 
     bool TraverseFunctionDecl(FunctionDecl* function)
     {
@@ -489,7 +493,8 @@ public:
             if (FieldDecl* field = initializer->getMember()) {
                 if (const NamedDecl* candidate = canonical_candidate(field)) {
                     writer_.declaration(candidate);
-                    record_write(candidate, initializer->getInit(), initializer->getSourceLocation());
+                    record_write(candidate, initializer->getInit(),
+                                 initializer->getSourceLocation());
                 }
             }
         }
@@ -575,9 +580,8 @@ public:
                     writer_.invalid_write(target, binary->getOperatorLoc());
                 } else {
                     const std::string self = writer_.key(target);
-                    if (!self.empty() &&
-                        std::find(rhs.dependencies.begin(), rhs.dependencies.end(), self) ==
-                            rhs.dependencies.end()) {
+                    if (!self.empty() && std::find(rhs.dependencies.begin(), rhs.dependencies.end(),
+                                                   self) == rhs.dependencies.end()) {
                         rhs.dependencies.push_back(self);
                     }
                     writer_.write(target, rhs.dependencies, binary->getOperatorLoc());
@@ -916,8 +920,8 @@ public:
     }
 };
 
-static ClangTidyModuleRegistry::Add<WizardryBoolTidyModule> module(
-    "wiz8-bool-module", "Adds Wizardry boolean-domain recovery checks.");
+static ClangTidyModuleRegistry::Add<WizardryBoolTidyModule>
+    module("wiz8-bool-module", "Adds Wizardry boolean-domain recovery checks.");
 
 } // namespace
 } // namespace clang::tidy::wiz8

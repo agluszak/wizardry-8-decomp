@@ -893,7 +893,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
                 srAssertFail("psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x3e4,
                              0);
             }
-            psrMesh->render_state_164 = pRep->render_state_04c;
+            psrMesh->highlight_colour_164 = pRep->highlight_colour_04c;
             if (pRep->apply_instance_scale_061 != 0) {
                 if (pRep->instance_scale_05c == g_float_005ebb38) {
                     psrMesh->diffuse_scale_enabled_1a0 = 0;
@@ -927,7 +927,7 @@ void W8GrCycle::UpdateRepresentation(W8World* pWorld)
             srAssertFail("psrMesh", "C:\\Projects\\Wizardry 8\\Engine Code\\GrCycle.cpp", 0x40f, 0);
         }
         AniMeshSetFlag10(pRep->GetEmitterAniMesh(pRep->current_cycle), 1);
-        psrMesh->render_state_164 = pRep->render_state_04c;
+        psrMesh->highlight_colour_164 = pRep->highlight_colour_04c;
         if (pRep->apply_instance_scale_061 != 0) {
             if (pRep->instance_scale_05c == g_float_005ebb38) {
                 psrMesh->diffuse_scale_enabled_1a0 = 0;

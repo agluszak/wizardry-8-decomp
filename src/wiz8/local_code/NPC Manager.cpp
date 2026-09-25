@@ -3052,8 +3052,7 @@ void RebindNpcLevelTriggers(void)
                 trigger->activation_callback_360 = NotifyNpcTriggerActivation;
                 trigger->m_lData1 = static_cast<int>(npc_index);
                 npc->has_monster = 1;
-                npc->level_band =
-                    static_cast<unsigned char>(GetLevelBand(g_status.current_level));
+                npc->level_band = static_cast<unsigned char>(GetLevelBand(g_status.current_level));
                 npc->bound_level = static_cast<unsigned char>(g_status.current_level);
                 ReloadNpcScriptResources(npc);
                 npc->is_present = 0;

@@ -668,7 +668,7 @@ void UpdateWorldCameraAndPaths(W8World* world, unsigned int flags)
             g_startup_world->SetAngles(yaw);
             g_startup_world->SetPitch(pitch);
             if (world->m_owned_04c->ApplyCameraMotion(flags, &camera_position, &delta,
-                                                              &motion_saved) != 0) {
+                                                      &motion_saved) != 0) {
                 camera_position.x += delta.x;
                 camera_position.y += delta.y;
                 camera_position.z += delta.z;

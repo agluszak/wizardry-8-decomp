@@ -1994,7 +1994,7 @@ void RefreshSpellTargetHighlightsAtRange(void)
             W8Monster* monster = monster_info->p3D;
             float channels[4];
 
-            memcpy(channels, &monster->m_pRep->render_state_04c, sizeof(channels));
+            memcpy(channels, &monster->m_pRep->highlight_colour_04c, sizeof(channels));
             if (channels[0] != g_float_005ebb34 || channels[1] != g_float_005ebb34 ||
                 channels[2] != g_float_005ebb34 || channels[3] != g_float_005ebb34) {
                 SetMonsterHighlightColour(monster, 0.0f, 0.0f, 0.0f, 0.0f);
@@ -3189,7 +3189,7 @@ bool AnyMonsterVisible(void)
 // FUNCTION: WIZ8 0x0053B1D0
 void UpdateTargetMarkerHighlight(void)
 {
-    W8MonsterRuntimeBlock4C block;
+    srVector4T<float> block;
     srVector3T<float> point;
     if (gXStatus.target_markers.GetCount() <= 0) {
         return;
@@ -3200,15 +3200,15 @@ void UpdateTargetMarkerHighlight(void)
         monster = GetMonsterByLocationID(location_id);
         point = gXStatus.target_position;
         if (monster->HasLineOfSightFromPoint(point) != 0) {
-            block.highlight_red = 0.0f;
-            block.highlight_green = 1.0f;
-            block.highlight_blue = 0.0f;
-            block.highlight_alpha = 1.0f;
-            MonsterSetRuntimeBlock4C(monster, block);
+            block.x = 0.0f;
+            block.y = 1.0f;
+            block.z = 0.0f;
+            block.w = 1.0f;
+            MonsterSetHighlightColour(monster, block);
             return;
         }
         memset(&block, 0, sizeof(block));
-        MonsterSetRuntimeBlock4C(monster, block);
+        MonsterSetHighlightColour(monster, block);
     }
 }
 
@@ -3218,28 +3218,28 @@ void UpdateTargetMarkerHighlight(void)
 // FUNCTION: WIZ8 0x00538510
 void HighlightPickedGroupMember(int party_slot, W8MonsterGroup* group, int color)
 {
-    W8ModelInstance3DRenderState block;
+    srVector4T<float> block;
 
     int location_id = PickNextTargetableGroupMember(party_slot, group);
     if (location_id != -1) {
         W8Monster* monster = GetMonsterByLocationID(location_id);
         if (color == 0) {
-            block.highlight_red = 0.0f;
-            block.highlight_green = 0.0f;
-            block.highlight_blue = 0.0f;
-            block.highlight_alpha = 0.0f;
+            block.x = 0.0f;
+            block.y = 0.0f;
+            block.z = 0.0f;
+            block.w = 0.0f;
         } else if (color == 1) {
-            block.highlight_red = 0.0f;
-            block.highlight_green = 1.0f;
-            block.highlight_blue = 0.0f;
-            block.highlight_alpha = 1.0f;
+            block.x = 0.0f;
+            block.y = 1.0f;
+            block.z = 0.0f;
+            block.w = 1.0f;
         } else if (color == 2) {
-            block.highlight_red = 1.0f;
-            block.highlight_green = 0.0f;
-            block.highlight_blue = 0.0f;
-            block.highlight_alpha = 1.0f;
+            block.x = 1.0f;
+            block.y = 0.0f;
+            block.z = 0.0f;
+            block.w = 1.0f;
         }
-        MonsterSetRuntimeBlock4C(monster, block);
+        MonsterSetHighlightColour(monster, block);
     }
 }
 
@@ -3334,7 +3334,7 @@ void AimAtTarget(int actor, W8CombatSlot* target, W8TargetingContext context)
 // FUNCTION: WIZ8 0x005392e0
 void ModifyGroupColor(int group_id, int color)
 {
-    W8ModelInstance3DRenderState block;
+    srVector4T<float> block;
 
     if (group_id == -1) {
         srAssertFail("uiGroupID != BAD_INDEX", TARGETING_CPP, 0x6e5, 0);
@@ -3349,24 +3349,24 @@ void ModifyGroupColor(int group_id, int color)
     }
     W8MonsterGroup* group = GetMonsterGroupByListIndex(group_index);
     if (color == 0) {
-        block.highlight_red = 0.0f;
-        block.highlight_green = 0.0f;
-        block.highlight_blue = 0.0f;
-        block.highlight_alpha = 0.0f;
+        block.x = 0.0f;
+        block.y = 0.0f;
+        block.z = 0.0f;
+        block.w = 0.0f;
     } else if (color == 1) {
-        block.highlight_red = 0.0f;
-        block.highlight_green = 1.0f;
-        block.highlight_blue = 0.0f;
-        block.highlight_alpha = 1.0f;
+        block.x = 0.0f;
+        block.y = 1.0f;
+        block.z = 0.0f;
+        block.w = 1.0f;
     } else if (color == 2) {
-        block.highlight_red = 1.0f;
-        block.highlight_green = 0.0f;
-        block.highlight_blue = 0.0f;
-        block.highlight_alpha = 1.0f;
+        block.x = 1.0f;
+        block.y = 0.0f;
+        block.z = 0.0f;
+        block.w = 1.0f;
     }
     for (unsigned int index = 0; index < ILLength(group->monsters); ++index) {
         W8Monster* monster = GetMonsterByLocationID(IListGetAt(group->monsters, index));
-        MonsterSetRuntimeBlock4C(monster, block);
+        MonsterSetHighlightColour(monster, block);
     }
 }
 
@@ -3637,19 +3637,19 @@ void UpdateSlotMonsterHighlights(int party_slot, char enable)
             W8Monster* monster = monster_info->p3D;
             if (monster_info->fActive != 0 && monster != 0) {
                 unsigned char flag = MonsterGetHighlightMask(monster);
-                W8ModelInstance3DRenderState block;
+                srVector4T<float> block;
                 if (enable != 0 && (flag & (1 << (party_slot & 0x1f))) != 0) {
-                    block.highlight_red = 1.0f;
-                    block.highlight_green = 0.0f;
-                    block.highlight_blue = 0.0f;
-                    block.highlight_alpha = 1.0f;
+                    block.x = 1.0f;
+                    block.y = 0.0f;
+                    block.z = 0.0f;
+                    block.w = 1.0f;
                 } else {
-                    block.highlight_red = 0.0f;
-                    block.highlight_green = 0.0f;
-                    block.highlight_blue = 0.0f;
-                    block.highlight_alpha = 0.0f;
+                    block.x = 0.0f;
+                    block.y = 0.0f;
+                    block.z = 0.0f;
+                    block.w = 0.0f;
                 }
-                MonsterSetRuntimeBlock4C(monster, block);
+                MonsterSetHighlightColour(monster, block);
             }
         }
         RequestRedrawParty();

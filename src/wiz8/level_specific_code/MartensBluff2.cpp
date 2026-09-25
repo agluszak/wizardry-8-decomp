@@ -282,8 +282,7 @@ void MartensBluff2Spikeball(int command)
     g_flag_006834dc = 0;
     if (g_spikeball_count < 0x10) {
         if (g_spikeball_count == 0 || g_spikeball_gate->IsFinished() ||
-            (g_spikeball_gate->PollElapsedIntervals(),
-             g_spikeball_gate->IsFinished())) {
+            (g_spikeball_gate->PollElapsedIntervals(), g_spikeball_gate->IsFinished())) {
             g_spikeball_gate->Arm();
             ++g_spikeball_count;
             ClearAttackBlock(&effect);

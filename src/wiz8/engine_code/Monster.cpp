@@ -2782,7 +2782,7 @@ void SetMonsterPartySlotMarker(int party_slot, int location_id, char on)
         if (rep->objects_5c8[party_slot] == 0) {
             sprintf(path, g_monster_bitmap_path_format,
                     g_party_target_marker_bitmaps[g_status.buffers.XChar[party_slot]
-                                                               .party_order_index]);
+                                                      .party_order_index]);
             rep->objects_5c8[party_slot] = CreateMonsterIconItem(g_world, path, 1);
             ++rep->icon_count_5c4;
         }
@@ -3599,10 +3599,11 @@ void W8Monster::SetCycle(signed char cycle)
     }
 
     if (cycle == 0x15) {
-        W8ModelInstance3DRenderState empty = {0, 0, 0, 0};
+        srVector4T<float> empty;
+        empty = 0.0f;
         srModelInstance* instance;
 
-        m_pRep->render_state_04c = empty;
+        m_pRep->highlight_colour_04c = empty;
         instance = SelectCycleFrameLod(m_pRep->current_cycle, 0, m_pRep->m_bLOD);
         if (instance != 0 && instance->model() != 0 &&
             strstr(instance->model()->getName(), "gib") != 0) {
@@ -4570,22 +4571,22 @@ void W8Monster::SetForcedSubcycleA6(signed char value)
    single epilogue despite testing two things. The block arrives by value and is
    stored as one assignment. */
 // FUNCTION: WIZ8 0x004c5ad0
-void MonsterSetRuntimeBlock4C(W8Monster* monster, W8MonsterRuntimeBlock4C block)
+void MonsterSetHighlightColour(W8Monster* monster, srVector4T<float> block)
 {
     if (monster != 0 && monster->Query(6) != 0x15) {
-        monster->m_pRep->render_state_04c = block;
+        monster->m_pRep->highlight_colour_04c = block;
     }
 }
 
 /* Highlight tint call sites pass four floats as one render-state block. */
 void SetMonsterHighlightColour(W8Monster* monster, float red, float green, float blue, float alpha)
 {
-    W8MonsterRuntimeBlock4C block;
-    block.highlight_red = red;
-    block.highlight_green = green;
-    block.highlight_blue = blue;
-    block.highlight_alpha = alpha;
-    MonsterSetRuntimeBlock4C(monster, block);
+    srVector4T<float> block;
+    block.x = red;
+    block.y = green;
+    block.z = blue;
+    block.w = alpha;
+    MonsterSetHighlightColour(monster, block);
 }
 
 /* The engine object a monster holds at 0x0c, or nothing when there is no

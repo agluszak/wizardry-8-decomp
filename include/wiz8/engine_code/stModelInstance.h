@@ -49,14 +49,14 @@ public:
     unsigned char displayState() const
     {
         // reinterpret-ok: scene purge reads the low byte at +0x170; its relation to highlight alpha remains unresolved
-        return *reinterpret_cast<const unsigned char*>(&render_state_164.highlight_alpha);
+        return *reinterpret_cast<const unsigned char*>(&highlight_colour_164.w);
     }
 
     virtual ~stModelInstance() override; /* 0x0047EF70 */
 
 public:
     unsigned long overlay_scene_flag_160;
-    W8ModelInstance3DRenderState render_state_164;
+    srVector4T<float> highlight_colour_164;
     /* Lazily built highlight material; RenderMeshes fills it from the
        render-state RGBA and installs it as the pass material. */
     srMaterial* retained_174;
@@ -75,7 +75,7 @@ public:
     float frame_interpolation_1ac;
 };
 
-static_assert(offsetof(stModelInstance, render_state_164) == 0x164,
+static_assert(offsetof(stModelInstance, highlight_colour_164) == 0x164,
               "stModelInstance_render_state_offset");
 static_assert(sizeof(stModelInstance) == 0x1b0, "stModelInstance_size_must_be_0x1b0");
 
