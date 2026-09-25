@@ -132,9 +132,6 @@ int g_effect_005ee6ec = 109;
 // GLOBAL: WIZ8 0x005ed8cc
 int g_effect_argument_005ed8cc = 1;
 
-int CreateCampActionPanel(void);
-int CreateItemsTabPanel(void);
-int CreateCampSecondaryPanel(void);
 void DrawCampCharacterInfo(void);
 void DrawCampBackpackItems(void);
 void DrawCampEquipmentItems(void);
@@ -167,8 +164,6 @@ W8TextControl* g_camp_action_buttons[2];
 W8TextControl* g_camp_realm_tabs[7];
 // GLOBAL: WIZ8 0x0069c48c
 Controls* g_camp_realm_tab_panel;
-// GLOBAL: WIZ8 0x0069c490
-unsigned int g_camp_secondary_region_set;
 
 /* 0x00648C48: the font-state palette index selected for each load category
    while the weight line is drawn; zero leaves the default palette in place. */
@@ -267,61 +262,6 @@ const W8CampScreenRegion g_camp_screen_regions[12] = {
     {0x1b5, 0x134, 0x22, 0x48, 0x1c, 0x06, 0x1d1, 0x154, 1},
     {0x0cb, 0x167, 0x22, 0x4d, 0x10, 0x04, 0x0f2, 0x18f, 0},
     {0x16a, 0x17a, 0x1a, 0x3a, 0x14, 0x05, 0x165, 0x19f, 1}};
-
-/* The camp screen's clickable labels: the seven attribute rows and the four
-   secondary value labels on the character-info panel are plain text controls
-   that additionally play the button sound on entry and on left presses. The
-   left-button handlers compile identically to W8HelpTextControl's and fold to
-   0x005B7CB0/0x005B7CD0. */
-// VTABLE: WIZ8 0x005ef2b0
-class W8CampInfoLabel : public W8TextControl {
-public:
-    W8CampInfoLabel(Controls* panel, unsigned int region, int left, int top, int right, int bottom,
-                    int text_40, int text_44, int text_48, int text_4c, int text_54, int text_50,
-                    int text_58)
-        : W8TextControl(panel, region, left, top, right, bottom, text_40, text_44, text_48, text_4c,
-                        text_54, text_50, text_58)
-    {
-    }
-    // SYNTHETIC: WIZ8 0x005b7c20
-    // W8CampInfoLabel::`scalar deleting destructor'
-    // FUNCTION: WIZ8 0x005b7c40
-    virtual ~W8CampInfoLabel() override {}
-    virtual void OnMouseEnter(int event) override;
-    virtual void OnLeftButtonDown(int event) override;
-    virtual void OnLeftButtonUp(int event) override;
-    virtual void OnLeftButtonDoubleClick(int event) override;
-};
-
-// FUNCTION: WIZ8 0x005b7c90
-void W8CampInfoLabel::OnMouseEnter(int event)
-{
-    PushButtonSoundScheme(0, 1);
-    W8TextControl::OnMouseEnter(event);
-}
-
-/* Identical body to W8HelpTextControl::OnLeftButtonDown; ICF folds it to
-   0x005B7CB0. */
-void W8CampInfoLabel::OnLeftButtonDown(int event)
-{
-    PushButtonSoundScheme(0, 1);
-    W8TextControl::OnLeftButtonDown(event);
-}
-
-/* Identical body to W8HelpTextControl::OnLeftButtonUp; ICF folds it to
-   0x005B7CD0. */
-void W8CampInfoLabel::OnLeftButtonUp(int event)
-{
-    PushButtonSoundScheme(0, 1);
-    W8TextControl::OnLeftButtonUp(event);
-}
-
-// FUNCTION: WIZ8 0x005b7cf0
-void W8CampInfoLabel::OnLeftButtonDoubleClick(int event)
-{
-    PushButtonSoundScheme(0, 1);
-    W8TextControl::OnLeftButtonDoubleClick(event);
-}
 
 /* 0x0064DD14, 0x0064DD20, 0x0064DD28, 0x00648164: the spell page's small
    formats - zero-padded cost, plain number, plain string and the realm label
@@ -1085,68 +1025,6 @@ void DrawCampItemQuantity(W8ItemInstance* item, int left, int top, int width)
     SetFontObjectPalette16BPP(g_font_683660, g_colour_68ee08);
 }
 
-/* The bottom-left panel and its two buttons: drop the held equipment and
-   toggle the character's party-row flag. */
-// FUNCTION: WIZ8 0x005b9070
-int CreateCampActionPanel(void)
-{
-    int index;
-
-    g_camp_action_panel = 0;
-    for (index = 0; index < 2; ++index) {
-        if (g_camp_action_buttons[index] != 0) {
-            g_camp_action_buttons[index] = 0;
-        }
-    }
-    g_camp_action_panel = new Controls(0x78, 0x19c, 0xbf, 0x1b4, -1, 0, 0);
-    if (g_camp_action_panel == 0) {
-        return 0;
-    }
-    g_camp_action_buttons[0] =
-        new W8TextControl(g_camp_action_panel, 0x117, 5, 0, 0x21, 0x18, 0x11e, 0, 0, 2, 1, 2, 3);
-    g_camp_action_buttons[1] = new W8TextControl(g_camp_action_panel, 0x118, 0x26, 0, 0x42, 0x18,
-                                                 0x11e, 0, 8, 4, 9, 5, 0xb);
-    index = 0;
-    while (g_camp_action_buttons[index] != 0) {
-        ++index;
-        if (index > 1) {
-            g_camp_action_buttons[1]->AddLayoutFlags(g_W8TextControlMask005ED578);
-            g_camp_action_buttons[0]->m_primaryActivationCallback = UnequipBothHands;
-            g_camp_action_buttons[1]->m_primaryActivationCallback = TogglePartyRowFlag;
-            g_camp_action_panel->SetEnabled(1);
-            return 1;
-        }
-    }
-    return 0;
-}
-
-// FUNCTION: WIZ8 0x005b9270
-void EnableCampActionButtons(void)
-{
-    g_camp_action_buttons[0]->SetActive(1);
-    g_camp_action_buttons[1]->SetActive(1);
-    if (g_status.game_started != 0) {
-        g_camp_action_buttons[1]->SetEnabled(1);
-        if (g_status.buffers.XChar[giReviewCharSlot].item_action_pending_0f5 != 0) {
-            g_camp_action_buttons[1]->EnableSecondaryState(0);
-            g_camp_action_buttons[0]->SetEnabled(0);
-        } else {
-            g_camp_action_buttons[1]->DisableSecondaryState(0);
-            g_camp_action_buttons[0]->SetEnabled(1);
-        }
-    } else {
-        g_camp_action_buttons[0]->SetEnabled(0);
-        g_camp_action_buttons[1]->SetEnabled(0);
-    }
-}
-
-// FUNCTION: WIZ8 0x005b9310
-void DisableCampActionButtons(void)
-{
-    g_camp_action_buttons[0]->SetActive(0);
-    g_camp_action_buttons[1]->SetActive(0);
-}
-
 // FUNCTION: WIZ8 0x005b9330
 void RefreshCampActionPanel(char invalidate)
 {
@@ -1156,116 +1034,6 @@ void RefreshCampActionPanel(char invalidate)
     g_camp_action_panel->Redraw();
 }
 
-/* The right-hand panel of seven tabs: the six realm filters and the pool sort
-   button. */
-// FUNCTION: WIZ8 0x005b9350
-int CreateItemsTabPanel(void)
-{
-    int index;
-
-    g_camp_realm_tab_panel = 0;
-    for (index = 0; index < 7; ++index) {
-        if (g_camp_realm_tabs[index] != 0) {
-            g_camp_realm_tabs[index] = 0;
-        }
-    }
-    g_camp_realm_tab_panel = new Controls(0x1e5, 0xc1, 0x1fd, 0x189, -1, 0, 0);
-    if (g_camp_realm_tab_panel == 0) {
-        return 0;
-    }
-    g_camp_realm_tabs[0] =
-        new W8TextControl(g_camp_realm_tab_panel, 0x110, 0, 0, 0x18, 0x18, 0x11f, 0, 0, 2, 1, 4, 3);
-    g_camp_realm_tabs[1] = new W8TextControl(g_camp_realm_tab_panel, 0x111, 0, 0x19, 0x18, 0x31,
-                                             0x11f, 0, 0xf, 0x11, 0x10, 0x13, 0x12);
-    g_camp_realm_tabs[2] = new W8TextControl(g_camp_realm_tab_panel, 0x112, 0, 0x4b, 0x18, 0x63,
-                                             0x11f, 0, 0x14, 0x16, 0x15, 0x18, 0x17);
-    g_camp_realm_tabs[3] = new W8TextControl(g_camp_realm_tab_panel, 0x113, 0, 0x32, 0x18, 0x4a,
-                                             0x11f, 0, 5, 7, 6, 9, 8);
-    g_camp_realm_tabs[4] = new W8TextControl(g_camp_realm_tab_panel, 0x114, 0, 0x6c, 0x18, 0x84,
-                                             0x11f, 0, 10, 0xc, 0xb, 0xe, 0xd);
-    g_camp_realm_tabs[5] = new W8TextControl(g_camp_realm_tab_panel, 0x115, 0, 0x8e, 0x18, 0xa6,
-                                             0x11f, 0, 0x28, 0x2a, 0x29, 0x2c, 0x2b);
-    g_camp_realm_tabs[6] = new W8TextControl(g_camp_realm_tab_panel, 0x116, 0, 0xb0, 0x18, 0xc8,
-                                             0x11f, 0, 0x1e, 0x20, 0x1f, 0x22, 0x21);
-    index = 0;
-    while (g_camp_realm_tabs[index] != 0) {
-        ++index;
-        if (index > 6) {
-            for (index = 0; index < 6; ++index) {
-                g_camp_realm_tabs[index]->AddLayoutFlags(g_W8TextControlMask005ED578);
-            }
-            g_camp_realm_tabs[0]->m_primaryActivationCallback = SelectItemsRealmTab005BB1C0;
-            g_camp_realm_tabs[1]->m_primaryActivationCallback = SelectItemsRealmTab005BB1D0;
-            g_camp_realm_tabs[2]->m_primaryActivationCallback = SelectItemsRealmTab005BB1E0;
-            g_camp_realm_tabs[3]->m_primaryActivationCallback = SelectItemsRealmTab005BB1F0;
-            g_camp_realm_tabs[4]->m_primaryActivationCallback = SelectItemsRealmTab005BB200;
-            g_camp_realm_tabs[5]->m_primaryActivationCallback = SelectItemsRealmTab005BB210;
-            g_camp_realm_tabs[6]->m_primaryActivationCallback = SortPartyItemPool005BB220;
-            g_camp_realm_tab_panel->SetEnabled(1);
-            return 1;
-        }
-    }
-    return 0;
-}
-
-/* Realm tab activation state: every tab is active and enabled while the game
-   runs, and a realm with its flag set keeps the secondary (highlighted) state.
-   The sort button has no realm flag of its own. */
-// FUNCTION: WIZ8 0x005b97b0
-void UpdateItemsRealmTabs(void)
-{
-    int index;
-    unsigned char flag;
-
-    for (index = 0; index < 7; ++index) {
-        g_camp_realm_tabs[index]->SetActive(1);
-    }
-    if (g_status.game_started == 0) {
-        for (index = 0; index < 7; ++index) {
-            g_camp_realm_tabs[index]->SetEnabled(0);
-        }
-        return;
-    }
-    for (index = 0; index < 7; ++index) {
-        g_camp_realm_tabs[index]->SetEnabled(1);
-        switch (index) {
-        case 0:
-            flag = g_camp_screen->realm_flags[2];
-            break;
-        case 1:
-            flag = g_camp_screen->realm_flags[3];
-            break;
-        case 2:
-            flag = g_camp_screen->realm_flags[5];
-            break;
-        case 3:
-            flag = g_camp_screen->realm_flags[4];
-            break;
-        case 4:
-            flag = g_camp_screen->realm_flags[0];
-            break;
-        case 5:
-            flag = g_camp_screen->realm_flags[1];
-            break;
-        default:
-            continue;
-        }
-        if (flag != 0) {
-            g_camp_realm_tabs[index]->EnableSecondaryState(0);
-        }
-    }
-}
-
-// FUNCTION: WIZ8 0x005b98c0
-void DisableItemsRealmTabs(void)
-{
-    int index;
-
-    for (index = 0; index < 7; ++index) {
-        g_camp_realm_tabs[index]->SetActive(0);
-    }
-}
-
 // FUNCTION: WIZ8 0x005b98e0
 void RefreshItemsTabPanel(char invalidate)
 {
@@ -1273,127 +1041,6 @@ void RefreshItemsTabPanel(char invalidate)
         g_camp_realm_tab_panel->Invalidate(0);
     }
     g_camp_realm_tab_panel->Redraw();
-}
-
-/* The top secondary panel: the Items/Character info page tabs, the help line,
-   the seven attribute labels and the four secondary value labels. The labels
-   are W8CampInfoLabel controls created with absolute coordinates
-   relative to the panel origin. */
-// FUNCTION: WIZ8 0x005b9900
-int CreateCampSecondaryPanel(void)
-{
-    Controls* panel;
-    int index;
-    int left;
-    int right;
-    int top;
-
-    g_camp_secondary_panel = 0;
-    for (index = 0; index < 2; ++index) {
-        if (g_camp_page_tabs[index] != 0) {
-            g_camp_page_tabs[index] = 0;
-        }
-    }
-    g_camp_help_text = 0;
-    for (index = 0; index < 7; ++index) {
-        if (g_camp_stat_labels[index] != 0) {
-            g_camp_stat_labels[index] = 0;
-        }
-    }
-    for (index = 0; index < 4; ++index) {
-        if (g_camp_info_labels[index] != 0) {
-            g_camp_info_labels[index] = 0;
-        }
-    }
-    panel = new Controls(0x13c, 7, 0x154, 0x34, 0x120, 0, 0);
-    g_camp_secondary_panel = panel;
-    if (panel == 0) {
-        return 0;
-    }
-    panel->AcquireRegionSet(&g_camp_secondary_region_set);
-    g_camp_page_tabs[0] = new W8TextControl(panel, -1, 2, 2, 0x16, 0x16, 0x121, 0, 0, 2, 1, 4, 3);
-    g_camp_page_tabs[1] =
-        new W8TextControl(panel, -1, 2, 0x17, 0x16, 0x2b, 0x121, 0, 5, 7, 6, 9, 8);
-    for (index = 0; index < 2; ++index) {
-        if (g_camp_page_tabs[index] == 0) {
-            return 0;
-        }
-    }
-    g_camp_help_text = new W8HelpTextControl(panel, -1, 5, 0x4d, 0x7c, 0x59);
-    if (g_camp_help_text == 0) {
-        return 0;
-    }
-    left = 0x1c2 - panel->origin_x;
-    right = 0x20e - panel->origin_x;
-    top = 0x3a - panel->origin_y;
-    for (index = 0; index < 7; ++index) {
-        g_camp_stat_labels[index] =
-            new W8CampInfoLabel(panel, -1, left, top, right, top + 0xc, -1, -1, -1, -1, -1, -1, -1);
-        g_camp_stat_labels[index]->EnableRegionHelp(0x958);
-        top += 0xe;
-    }
-    left = 0x144 - panel->origin_x;
-    right = 0x1b9 - panel->origin_x;
-    top = -panel->origin_y;
-    g_camp_info_labels[0] = new W8CampInfoLabel(panel, -1, left, top + 0x3a, right, top + 0x46, -1,
-                                                -1, -1, -1, -1, -1, -1);
-    g_camp_info_labels[1] = new W8CampInfoLabel(panel, -1, left, top + 0x48, right, top + 0x54, -1,
-                                                -1, -1, -1, -1, -1, -1);
-    g_camp_info_labels[2] = new W8CampInfoLabel(panel, -1, left, top + 0x80, right, top + 0x8c, -1,
-                                                -1, -1, -1, -1, -1, -1);
-    g_camp_info_labels[3] = new W8CampInfoLabel(panel, -1, left, top + 0x8e, right, top + 0x9a, -1,
-                                                -1, -1, -1, -1, -1, -1);
-    g_camp_stat_labels[0]->m_secondaryActivationCallback = OpenStatInfoDialog005BA200;
-    g_camp_stat_labels[1]->m_secondaryActivationCallback = OpenStatInfoDialog005BA210;
-    g_camp_stat_labels[2]->m_secondaryActivationCallback = OpenStatInfoDialog005BA220;
-    g_camp_stat_labels[3]->m_secondaryActivationCallback = OpenStatInfoDialog005BA230;
-    g_camp_stat_labels[4]->m_secondaryActivationCallback = OpenStatInfoDialog005BA240;
-    g_camp_stat_labels[5]->m_secondaryActivationCallback = OpenStatInfoDialog005BA250;
-    g_camp_stat_labels[6]->m_secondaryActivationCallback = OpenStatInfoDialog005BA260;
-    g_camp_info_labels[0]->m_secondaryActivationCallback = OpenSecondaryStatInfoDialog005BA270;
-    g_camp_info_labels[1]->m_secondaryActivationCallback = OpenSecondaryStatInfoDialog005BA280;
-    g_camp_info_labels[2]->m_secondaryActivationCallback = OpenSecondaryStatInfoDialog005BA290;
-    g_camp_info_labels[3]->m_secondaryActivationCallback = OpenSecondaryStatInfoDialog005BA290;
-    for (index = 0; index < 4; ++index) {
-        g_camp_info_labels[index]->EnableRegionHelp(0x958);
-    }
-    g_camp_help_text->m_secondaryActivationCallback = OpenSecondaryStatInfoDialog005BA2A0;
-    g_camp_page_tabs[0]->AddLayoutFlags(g_W8TextControlMask005ED578);
-    g_camp_page_tabs[1]->AddLayoutFlags(g_W8TextControlMask005ED578);
-    g_camp_page_tabs[0]->m_primaryActivationCallback = SetItemPageMode005B9FB0;
-    g_camp_page_tabs[1]->m_primaryActivationCallback = SetItemPageMode005B9FC0;
-    g_camp_page_tabs[0]->EnableRegionHelp(0x95d);
-    g_camp_page_tabs[1]->EnableRegionHelp(0x95e);
-    panel->SetEnabled(1);
-    return 1;
-}
-
-// FUNCTION: WIZ8 0x005b9f00
-void EnableCampSecondaryPanel(void)
-{
-    int index;
-
-    g_camp_secondary_panel->EnableRegionSet(1);
-    for (index = 0; index < 2; ++index) {
-        g_camp_page_tabs[index]->SetActive(1);
-        g_camp_page_tabs[index]->SetEnabled(1);
-    }
-    if (g_camp_screen->item_mode == 0) {
-        SetItemPageMode005B9FD0(0);
-        return;
-    }
-    SetItemPageMode005B9FD0(1);
-}
-
-// FUNCTION: WIZ8 0x005b9f60
-void DisableCampSecondaryPanel(void)
-{
-    int index;
-
-    g_camp_secondary_panel->EnableRegionSet(0);
-    for (index = 0; index < 2; ++index) {
-        g_camp_page_tabs[index]->SetActive(0);
-    }
 }
 
 // FUNCTION: WIZ8 0x005b9f90

@@ -1670,18 +1670,5 @@ static void CampItemAction005B5E60(void)
     SetCampItemActionMode(0);
 }
 
-// FUNCTION: WIZ8 0x005B2200
-void CloseFormationPanel(void)
-{
-    DestroyFormationPanel();
-    gXStatus.fReviewCharacterMode = false;
-    UpdateHeldItemCursor();
-    RegionSetDisable(0x1b);
-    RequestRedraw(0x200);
-    ClearSurfaceRect(0xd6, 0x3c, 0x1ab, 0x12f);
-    InvalidateRegion(0xd6, 0x3c, 0x1ab, 0x12f, 0);
-    ResumeMainGameWorld();
-}
-
 // SYNTHETIC: WIZ8 0x005b1b90
 // W8GrowableVector<W8CharacterPageEntry*>::`scalar deleting destructor' (second emission)

@@ -189,3 +189,7 @@ void DispatchMGSCommand(int command); /* 0x00591960 */
 /* Route one non-mouse input atom to text entry, dialogue, the trap text box,
    the MIPE editor, the record-mode console or a bound MGS command. */
 unsigned char HandleMainGameInputEvent(const InputAtom* input); /* 0x00591890 */
+/* Poll the camera/movement command bindings and set the world-render flags;
+   retail 0x005929D0/0x00592A10 bounded inside the demo MGSKeyboard.cpp hull. */
+void HandleManualCameraHotkeys(void);
+void ApplyWorldRenderHotkeys(void);

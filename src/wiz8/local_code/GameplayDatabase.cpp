@@ -329,3 +329,32 @@ unsigned char LoadMonsterDatabaseRange(unsigned int uiStartIndex, unsigned int u
     FileClose(handle);
     return 1;
 }
+
+/* Retail emits this owning-list teardown out of line here and expands the same
+   operation at the NPC-item sites.  The exact source boundary remains
+   unresolved; it is neither an authored specialization nor a W8PList member
+   destructor under the VC6 ABI. */
+// TEMPLATE: WIZ8 0x0055ADA0
+// unresolved owning PL teardown emission
+
+// FUNCTION: WIZ8 0x0054ac90
+void DestroyNpcDatabase(void)
+{
+    unsigned int index;
+
+    if (g_npc_records) {
+        for (index = 0; index < gXStatus.uiNpcsInDatabase; ++index) {
+            if (g_npc_records[index].item_stock_rules) {
+                W8PList* rules = g_npc_records[index].item_stock_rules;
+                while (PLLength(rules) != 0) {
+                    delete static_cast<W8NpcItemStockRule*>(PLRemoveAt(rules, 0));
+                }
+                PListFreeData(rules);
+                PLDestroy(rules);
+                g_npc_records[index].item_stock_rules = 0;
+            }
+        }
+        free(g_npc_records);
+        g_npc_records = 0;
+    }
+}

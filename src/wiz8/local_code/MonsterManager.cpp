@@ -16,7 +16,7 @@
 #include "wiz8/local_code/CombatRange.h"
 #include "wiz8/local_code/MonsterAI.h"
 #include "wiz8/local_code/MonsterManager.h"
-#include "wiz8/local_code/CombatDifficulty.h"
+#include "wiz8/local_code/ThingEditorShared.h"
 #include "wiz8/music_playlist.h"
 #include "wiz8/local_code/CombatHostility.h"
 #include "wiz8/local_code/ConditionsAndEnchantments.h"
@@ -66,6 +66,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
+#include "wiz8/local_code/ThingEditorShared.h"
 // GLOBAL: WIZ8 0x005ed4f0
 float g_monster_record_float_scale = 20.0f;
 // GLOBAL: WIZ8 0x00683698

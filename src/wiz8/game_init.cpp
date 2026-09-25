@@ -142,25 +142,3 @@ unsigned char InitializeGame(void)
     g_texture_cache_enabled = ok;
     return 1;
 }
-
-// FUNCTION: WIZ8 0x004e3290
-void ShutdownGame(void)
-{
-    int index;
-
-    ReleaseHitSoundDatabase();
-    ReleaseMissileDatabase();
-    for (index = 0; index < 15; ++index) {
-        free(g_font_state_palettes[index]);
-        g_font_state_palettes[index] = 0;
-    }
-    for (index = 0; index < W8_SCREEN_COUNT; ++index) {
-        g_screen_handlers[index].finalize();
-    }
-    if (g_screen_return_stack) {
-        DeleteStack(g_screen_return_stack);
-        g_screen_return_stack = 0;
-    }
-    SaveGameConfiguration();
-    ShutDownFileDatabase();
-}
