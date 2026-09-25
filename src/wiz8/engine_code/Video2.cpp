@@ -2288,9 +2288,8 @@ void DrawVideoInspector(int left, unsigned int top)
     unsigned char* row;
     int rows;
     /* Retail left the band height uninitialised for inspector modes outside
-       1..3 and read that storage into bottom; deterministic zero models
-       that defect path. */
-    int height = 0;
+       1..3 and read that storage into bottom; the recovery keeps that read. */
+    int height;
 
     if (g_video_inspector_mode == 1) {
         height = 0xb;

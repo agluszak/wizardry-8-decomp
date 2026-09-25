@@ -924,8 +924,7 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
                                       unsigned char load_materials)
 {
     /* Retail read mapping_count/value/key/compression_type uninitialised when
-       a FileRead short-circuited; deterministic zeroes model that defect
-       path. */
+       a FileRead short-circuited; the recovery keeps that read. */
     W8GrowableVector<short> mapped_values;
     W8GrowableVector<short> mapped_keys;
     int version = 0;
@@ -975,11 +974,11 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
     }
 
     if (version > 3) {
-        signed char mapping_count = 0;
+        signed char mapping_count;
         success = FileRead(file, &mapping_count, sizeof(mapping_count), 0);
         for (short index = 0; index < mapping_count; ++index) {
-            short value = 0;
-            short key = 0;
+            short value;
+            short key;
             if (success == 0 || !FileRead(file, &value, sizeof(value), 0) ||
                 !FileRead(file, &key, sizeof(key), 0)) {
                 success = 0;
@@ -1009,7 +1008,7 @@ unsigned char ReadSingleLevelMeshBody(W8ReadLevelInfo* info, srModelInstance** i
             vertices[index].z *= 500.0f;
         }
     } else {
-        unsigned char compression_type = 0;
+        unsigned char compression_type;
         FileRead(file, &compression_type, sizeof(compression_type), 0);
         FileRead(file, &frame_count, sizeof(frame_count), 0);
         if (compression_type == 2) {
@@ -1307,12 +1306,12 @@ void ReleaseReadMeshScratch()
 unsigned char SkipSingleLevelMesh(W8ReadLevelInfo* info)
 {
     /* Retail read count/group_count uninitialised when a FileRead
-       short-circuited; deterministic zeroes model that defect path. */
+       short-circuited; the recovery keeps that read. */
     int version;
     int vertex_count;
     int face_count;
     unsigned char flags = 0;
-    unsigned char count = 0;
+    unsigned char count;
     short item_count;
     short index;
     unsigned char success = 1;
@@ -1346,7 +1345,7 @@ unsigned char SkipSingleLevelMesh(W8ReadLevelInfo* info)
         vertex_count *= 0xc;
     } else {
         unsigned char ignored;
-        short group_count = 0;
+        short group_count;
 
         FileRead(info->hFile, &ignored, 1, 0);
         FileRead(info->hFile, &group_count, 2, 0);

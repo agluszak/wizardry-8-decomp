@@ -3304,7 +3304,7 @@ void OnEnterLevelDialogClosed(W8DialogBase* dialog)
         SetPendingScreenState(4);
         return;
     }
-    WorldSetCameraLocation(g_world, &g_trigger_camera.x);
+    WorldSetCameraLocation(g_world, &g_trigger_camera);
 }
 
 /* Stage the level block's pending transition into the screen state and leave
@@ -5669,7 +5669,7 @@ void RequestLevelTransition(int level, int entry, unsigned char flag)
                      normalized + 2);
         }
         if (QueueNpcDepartureEvents(normalized) != 0) {
-            WorldSetCameraLocation(g_world, &g_trigger_camera.x);
+            WorldSetCameraLocation(g_world, &g_trigger_camera);
             return;
         }
         switch (g_main_game_mode) {

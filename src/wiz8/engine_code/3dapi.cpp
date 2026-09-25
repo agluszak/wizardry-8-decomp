@@ -877,7 +877,7 @@ void WorldGetCameraRotation(W8World* world, srMatrix3T<float>* rotation)
 /* Moves the camera and its camera light together. Only the camera's move
    notifies the level; the light simply follows the view. */
 // FUNCTION: WIZ8 0x00450420
-void WorldSetCameraLocation(W8World* world, const float* location)
+void WorldSetCameraLocation(W8World* world, const srVector3T<float>* location)
 {
     srVector3T<double> position;
 
@@ -885,17 +885,17 @@ void WorldSetCameraLocation(W8World* world, const float* location)
         srAssertFail("pWorld", THREE_D_API_CPP, 0x422, 0);
     }
     if (world->camera != 0) {
-        position.x = location[0];
-        position.y = location[1];
-        position.z = location[2];
-        ((srNode*)world->camera)->setLocation(position);
-        PlacePartyAtPoint(reinterpret_cast<const srVector3T<float>*>(location));
+        position.x = location->x;
+        position.y = location->y;
+        position.z = location->z;
+        world->camera->setLocation(position);
+        PlacePartyAtPoint(location);
     }
     if (world->camera_light != 0) {
-        position.x = location[0];
-        position.y = location[1];
-        position.z = location[2];
-        ((srNode*)world->camera_light)->setLocation(position);
+        position.x = location->x;
+        position.y = location->y;
+        position.z = location->z;
+        world->camera_light->setLocation(position);
     }
 }
 

@@ -89,6 +89,27 @@ endif()
 include(sources.cmake)
 set(WIZ8_SOURCE_FILES ${WIZ8_SOURCE_UNITS})
 list(TRANSFORM WIZ8_SOURCE_FILES PREPEND "${PROJECT_SOURCE_DIR}/")
+
+if(WIZ8_LINT_COMPILE_ONLY)
+    # These units keep retail's reads of locals that are unset on a defect path
+    # (a short-circuited FileRead, a missing button or entity, an unhandled
+    # mode). Each read is confirmed against retail: initializing the local adds
+    # a store the retail body does not have. Keep the diagnostic visible, but
+    # do not fail lint or indexing on those recovered paths.
+    set_source_files_properties(
+        "${PROJECT_SOURCE_DIR}/src/wiz8/dialog_code/PortraitQuote.cpp"
+        "${PROJECT_SOURCE_DIR}/src/wiz8/dialog_code/stListBox.cpp"
+        "${PROJECT_SOURCE_DIR}/src/wiz8/engine_code/ReadLevel.cpp"
+        "${PROJECT_SOURCE_DIR}/src/wiz8/engine_code/ReadMesh.cpp"
+        "${PROJECT_SOURCE_DIR}/src/wiz8/engine_code/Trigger.cpp"
+        "${PROJECT_SOURCE_DIR}/src/wiz8/engine_code/Video2.cpp"
+        "${PROJECT_SOURCE_DIR}/src/wiz8/level_specific_code/Cosmic Circle.cpp"
+        "${PROJECT_SOURCE_DIR}/src/wiz8/local_code/Combat Attack.cpp"
+        "${PROJECT_SOURCE_DIR}/src/wiz8/local_screens/AutomapScreen.cpp"
+        PROPERTIES COMPILE_OPTIONS
+        "-Wno-error=sometimes-uninitialized" # uninit-ok: retail reads these unset locals
+    )
+endif()
 set(WIZ8_INSTRUMENTABLE_SOURCE_FILES
     "${PROJECT_SOURCE_DIR}/src/wiz8/local_code/Gameloop.cpp"
     "${PROJECT_SOURCE_DIR}/src/wiz8/local_code/RegionManager.cpp"

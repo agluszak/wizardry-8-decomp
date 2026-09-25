@@ -651,6 +651,9 @@ def run_decompiler_quality(
 ) -> dict[str, Any]:
     """Select corpus, decompile, score, and write build artifacts."""
 
+    from .ghidra.project import resolve_program_name
+
+    program_name = resolve_program_name(settings, program_name)
     destination = out_dir if out_dir is not None else settings.build_dir / "decompiler-quality"
     address_list = list(addresses) if addresses is not None else None
     corpus = select_corpus(

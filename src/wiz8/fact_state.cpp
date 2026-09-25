@@ -99,15 +99,14 @@ void SetFact(int fact_id, unsigned char value, unsigned char suppress_side_effec
 }
 
 /* The whole 1001-byte fact array minus its last entry goes to the save file in
-   one write. The original passes the address of its own parameter as the
-   bytes-written out-parameter: the handle has already been copied into a
-   register, so the incoming slot is dead and doubles as the scratch the callee
-   requires. Reproduced literally, because a separate local would cost a stack
-   frame the canonical body does not have. */
+   one write. Retail passes the handle's own dead stack slot as the
+   bytes-written out-parameter; that is VC6 reusing the slot for this local. */
 // FUNCTION: WIZ8 0x00506480
 void SaveFactState(int save_handle)
 {
-    FileWrite(save_handle, g_fact_values, 1000, (unsigned int*)&save_handle);
+    unsigned int bytes_written;
+
+    FileWrite(save_handle, g_fact_values, 1000, &bytes_written);
 }
 
 /* Clears every fact, then seeds the ones a fresh party starts with. A party
@@ -194,14 +193,14 @@ static __inline unsigned char CheckFactLogged(int fact_id)
 }
 
 /* Reads the fact array back, then re-applies the consequences that do not
-   survive a save. As in SaveFactState the handle's own incoming slot doubles as
-   the bytes-read scratch. */
+   survive a save. */
 // FUNCTION: WIZ8 0x005064a0
 void LoadFactState(int save_handle)
 {
     W8NpcState* npc;
+    unsigned int bytes_read;
 
-    FileRead(save_handle, g_fact_values, 1000, (unsigned int*)&save_handle);
+    FileRead(save_handle, g_fact_values, 1000, &bytes_read);
     if (CheckFactLogged(0x44)) {
         npc = GetNpcStateByKind(0x20);
         if (npc && npc->has_monster) {

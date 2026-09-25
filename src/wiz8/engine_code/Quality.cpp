@@ -143,12 +143,8 @@ void DisableAllRenderOptions(void)
 // FUNCTION: WIZ8 0x0047b5f0
 void EnableAllRenderOptions(void)
 {
-    int option;
-
-    option = 0;
-    while (option < W8_RENDER_OPTION_COUNT) {
+    for (int option = 0; option < W8_RENDER_OPTION_COUNT; ++option) {
         SetRenderOption(option, 1);
-        option++;
     }
 }
 
